@@ -36,7 +36,6 @@ public:
   static constexpr size_t AES_KEY_SIZE = 16;
   static constexpr size_t SHA1_SIZE = 20;
 
-  static constexpr u32 H3_TABLE_SIZE = 0x18000;
   static constexpr u32 BLOCKS_PER_GROUP = 0x40;
 
   static constexpr u64 BLOCK_HEADER_SIZE = 0x0400;

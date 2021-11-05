@@ -108,13 +108,14 @@ void ResourcePackManager::RepopulateTable()
   for (int i = 0; i < size; i++)
   {
     const auto& pack = ResourcePack::GetPacks()[size - 1 - i];
-    auto* manifest = pack.GetManifest();
+    const auto* manifest = pack.GetManifest();
+    const auto& authors = manifest->GetAuthors();
 
     auto* logo_item = new QTableWidgetItem;
     auto* name_item = new QTableWidgetItem(QString::fromStdString(manifest->GetName()));
     auto* version_item = new QTableWidgetItem(QString::fromStdString(manifest->GetVersion()));
-    auto* author_item = new QTableWidgetItem(
-        QString::fromStdString(manifest->GetAuthors().value_or("Unknown author")));
+    auto* author_item =
+        new QTableWidgetItem(authors ? QString::fromStdString(*authors) : tr("Unknown author"));
     auto* description_item =
         new QTableWidgetItem(QString::fromStdString(manifest->GetDescription().value_or("")));
     auto* website_item =

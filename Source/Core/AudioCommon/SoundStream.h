@@ -16,11 +16,10 @@ protected:
 public:
   SoundStream() : m_mixer(new Mixer(48000)) {}
   virtual ~SoundStream() {}
-  static bool isValid() { return false; }
+  static bool IsValid() { return false; }
   Mixer* GetMixer() const { return m_mixer.get(); }
   virtual bool Init() { return false; }
   virtual void SetVolume(int) {}
-  virtual void SoundLoop() {}
-  virtual void Update() {}
+  // Returns true if successful.
   virtual bool SetRunning(bool running) { return false; }
 };

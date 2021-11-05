@@ -27,9 +27,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
-#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 
 // Create func_t function pointer type and declare a nullptr-initialized static variable of that

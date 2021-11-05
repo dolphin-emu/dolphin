@@ -223,6 +223,7 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
 
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, false);
+  AddExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false);
 
   return true;
 }
@@ -868,8 +869,8 @@ void VulkanContext::InitDriverDetails()
   {
 // Apart from the driver version, Intel does not appear to provide a way to
 // differentiate between anv and the binary driver (Skylake+). Assume to be
-// using anv if we not running on Windows.
-#ifdef WIN32
+// using anv if we're not running on Windows or macOS.
+#if defined(WIN32) || defined(__APPLE__)
     vendor = DriverDetails::VENDOR_INTEL;
     driver = DriverDetails::DRIVER_INTEL;
 #else
@@ -943,7 +944,8 @@ void VulkanContext::PopulateShaderSubgroupSupport()
                                                          VK_SUBGROUP_FEATURE_BALLOT_BIT;
   m_supports_shader_subgroup_operations =
       (subgroup_properties.supportedOperations & required_operations) == required_operations &&
-      subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT;
+      subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT &&
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_INVOCATION_ID);
 }
 
 bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface)

@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <memory>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
@@ -35,16 +36,18 @@ public:
   bool Initialize() override;
   void Shutdown() override;
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
+                                                 std::string_view name) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
   std::unique_ptr<AbstractFramebuffer>
   CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
 
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                         std::string_view source) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                                                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
-                                                         size_t length) override;
+                                                         size_t length,
+                                                         std::string_view name) override;
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,

@@ -258,6 +258,8 @@ public final class SettingsFragmentPresenter
   {
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_CPU_THREAD, R.string.dual_core,
             R.string.dual_core_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ENABLE_CHEATS, R.string.enable_cheats,
+            0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_OVERRIDE_REGION_SETTINGS,
             R.string.override_region_settings, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_AUTO_DISC_CHANGE,

@@ -1373,6 +1373,10 @@ void ARM64XEmitter::CMP(ARM64Reg Rn, u32 imm, bool shift)
 {
   EncodeAddSubImmInst(1, true, shift, imm, Rn, Is64Bit(Rn) ? ARM64Reg::SP : ARM64Reg::WSP);
 }
+void ARM64XEmitter::CMN(ARM64Reg Rn, u32 imm, bool shift)
+{
+  EncodeAddSubImmInst(0, true, shift, imm, Rn, Is64Bit(Rn) ? ARM64Reg::SP : ARM64Reg::WSP);
+}
 
 // Data Processing (Immediate)
 void ARM64XEmitter::MOVZ(ARM64Reg Rd, u32 imm, ShiftAmount pos)
@@ -3007,6 +3011,14 @@ void ARM64FloatEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 void ARM64FloatEmitter::BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
   EmitThreeSame(0, 1, 3, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::BIF(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, 3, 3, Rd, Rn, Rm);
+}
+void ARM64FloatEmitter::BIT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+  EmitThreeSame(1, 2, 3, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {

@@ -122,6 +122,7 @@ public:
   void mtfsb0x(UGeckoInstruction inst);
   void mtfsb1x(UGeckoInstruction inst);
   void mtfsfix(UGeckoInstruction inst);
+  void mtfsfx(UGeckoInstruction inst);
 
   // LoadStore
   void lXX(UGeckoInstruction inst);
@@ -158,8 +159,8 @@ public:
   void ps_cmpXX(UGeckoInstruction inst);
 
   // Loadstore paired
-  void psq_l(UGeckoInstruction inst);
-  void psq_st(UGeckoInstruction inst);
+  void psq_lXX(UGeckoInstruction inst);
+  void psq_stXX(UGeckoInstruction inst);
 
   void ConvertDoubleToSingleLower(size_t guest_reg, Arm64Gen::ARM64Reg dest_reg,
                                   Arm64Gen::ARM64Reg src_reg);
@@ -194,7 +195,7 @@ protected:
 
   struct FastmemArea
   {
-    u32 length;
+    const u8* fastmem_code;
     const u8* slowmem_code;
   };
 

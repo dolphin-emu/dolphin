@@ -224,6 +224,28 @@ void InvalidateICache(u32 address, u32 size, bool forced)
     g_jit->GetBlockCache()->InvalidateICache(address, size, forced);
 }
 
+void InvalidateICacheLine(u32 address)
+{
+  if (g_jit)
+    g_jit->GetBlockCache()->InvalidateICacheLine(address);
+}
+
+void InvalidateICacheLines(u32 address, u32 count)
+{
+  // This corresponds to a PPC code loop that:
+  // - calls some form of dcb* instruction on 'address'
+  // - increments 'address' by the size of a cache line (0x20 bytes)
+  // - decrements 'count' by 1
+  // - jumps back to the dcb* instruction if 'count' != 0
+  // with an extra optimization for the case of a single cache line invalidation
+  if (count == 1)
+    InvalidateICacheLine(address);
+  else if (count == 0 || count >= static_cast<u32>(0x1'0000'0000 / 32))
+    InvalidateICache(address & ~0x1f, 0xffffffff, false);
+  else
+    InvalidateICache(address & ~0x1f, 32 * count, false);
+}
+
 void CompileExceptionCheck(ExceptionType type)
 {
   if (!g_jit)

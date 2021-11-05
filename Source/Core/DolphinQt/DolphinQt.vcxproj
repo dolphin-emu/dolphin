@@ -50,6 +50,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="CheatSearchFactoryWidget.cpp" />
+    <ClCompile Include="CheatSearchWidget.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
@@ -180,6 +182,7 @@
     <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
+    <ClCompile Include="QtUtils\PartiallyClosableTabWidget.cpp" />
     <ClCompile Include="QtUtils\UTF8CodePointCountValidator.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
@@ -191,6 +194,7 @@
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\AdvancedPane.cpp" />
     <ClCompile Include="Settings\AudioPane.cpp" />
+    <ClCompile Include="Settings\BroadbandAdapterSettingsDialog.cpp" />
     <ClCompile Include="Settings\GameCubePane.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
@@ -244,6 +248,8 @@
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="CheatSearchFactoryWidget.h" />
+    <QtMoc Include="CheatSearchWidget.h" />
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
@@ -358,6 +364,7 @@
     <QtMoc Include="QtUtils\ElidedButton.h" />
     <QtMoc Include="QtUtils\FileOpenEventFilter.h" />
     <QtMoc Include="QtUtils\ParallelProgressDialog.h" />
+    <QtMoc Include="QtUtils\PartiallyClosableTabWidget.h" />
     <QtMoc Include="QtUtils\UTF8CodePointCountValidator.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -365,6 +372,7 @@
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />
     <QtMoc Include="Settings\AudioPane.h" />
+    <QtMoc Include="Settings\BroadbandAdapterSettingsDialog.h" />
     <QtMoc Include="Settings\GameCubePane.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="Settings\InterfacePane.h" />

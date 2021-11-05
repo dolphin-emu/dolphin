@@ -358,7 +358,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     const NetPlay::NetSettings& netplay_settings = NetPlay::GetNetSettings();
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
     StartUp.bCPUThread = netplay_settings.m_CPUthread;
-    StartUp.bEnableCheats = netplay_settings.m_EnableCheats;
     StartUp.bDSPHLE = netplay_settings.m_DSPHLE;
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
     StartUp.cpu_core = netplay_settings.m_CPUcore;

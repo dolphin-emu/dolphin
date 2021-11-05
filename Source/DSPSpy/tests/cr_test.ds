@@ -1,0 +1,82 @@
+incdir "tests"
+include "dsp_base.inc"
+
+; Tests the behavior of SI, SRS, and LRS when CR is changed
+
+; Register that is writable but with contents that doesn't matter (COEF_A1_0)
+TEST_REG: equ 0xFFA0 ; 0xFF00 (not writable)
+; This is separate because SRS and SI currently require value 0..7f or ff80..ffff,
+; though the actual behavior doesn't match that
+TEST_ADDR: equ 0xFFA0 ; 0x0000
+; Memory addresses
+TEST_MEM: equ 0x00A0 ; 0x0000
+TEST_MEM_2: equ 0x01A0 ; 0x0100
+
+test_main:
+	LRI $AC0.L, #0xf00f
+	SR @TEST_REG, $AC0.L
+	SR @TEST_MEM, $AC0.L
+	SR @TEST_MEM_2, $AC0.L
+	CALL send_regs
+
+	; Observed: writes to TEST_REG
+	SI @TEST_ADDR, #0xf11f
+	CALL send_regs
+
+	LRI $AC0.L, #0xf22f
+	; Observed: writes to TEST_REG
+	SRS @TEST_ADDR, $AC0.L
+	CALL send_regs
+
+	LRI $CR, #0x0000
+	; Observed: still writes to TEST_REG
+	SI @TEST_ADDR, #0xf33f
+	CALL send_regs
+
+	LRI $AC0.L, #0xf44f
+	; Observed: writes to TEST_MEM
+	SRS @TEST_ADDR, $AC0.L
+	CALL send_regs
+
+	LRI $CR, #0x0001
+	; Observed: still writes to TEST_REG
+	SI @TEST_ADDR, #0xf55f
+	CALL send_regs
+
+	LRI $AC0.L, #0xf66f
+	; Observed: writes to TEST_MEM_2
+	SRS @TEST_ADDR, $AC0.L
+	CALL send_regs
+
+	; At this point, TEST_REG should be f55f, TEST_MEM should be f44f,
+	; and TEST_MEM_2 should be f66f.  Test the behavior of LRS.
+	; Changes to prod.l are for display only.
+	LRI $CR, #0x00ff
+	LRI $prod.l, #0xf55f
+	LRS $AC0.L, @TEST_ADDR
+	CALL send_regs
+
+	LRI $CR, #0x0000
+	LRI $prod.l, #0xf44f
+	LRS $AC0.L, @TEST_ADDR
+	CALL send_regs
+
+	LRI $CR, #0x0001
+	LRI $prod.l, #0xf66f
+	LRS $AC0.L, @TEST_ADDR
+	CALL send_regs
+
+; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test
+
+send_regs:
+	; For display purposes only
+	LRI $prod.m1, #TEST_REG
+	LRI $prod.h,  #TEST_MEM
+	LRI $prod.m2, #TEST_MEM_2
+	; Actual registers
+	LR $AC1.L, @TEST_REG
+	LR $AC0.M, @TEST_MEM
+	LR $AC1.M, @TEST_MEM_2
+	CALL send_back
+	RET

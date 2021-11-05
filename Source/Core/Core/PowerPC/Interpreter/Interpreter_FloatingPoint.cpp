@@ -22,9 +22,9 @@ enum class RoundingMode
   TowardsNegativeInfinity = 0b11
 };
 
-static void SetFI(UReg_FPSCR* fpscr, int FI)
+void SetFI(UReg_FPSCR* fpscr, u32 FI)
 {
-  if (FI)
+  if (FI != 0)
   {
     SetFPException(fpscr, FPSCR_XX);
   }
@@ -226,7 +226,7 @@ void Interpreter::fcmpu(UGeckoInstruction inst)
 
 void Interpreter::fctiwx(UGeckoInstruction inst)
 {
-  ConvertToInteger(inst, static_cast<RoundingMode>(FPSCR.RN));
+  ConvertToInteger(inst, static_cast<RoundingMode>(FPSCR.RN.Value()));
 }
 
 void Interpreter::fctiwzx(UGeckoInstruction inst)
@@ -484,7 +484,7 @@ void Interpreter::fresx(UGeckoInstruction inst)
   const auto compute_result = [inst](double value) {
     const double result = Common::ApproximateReciprocal(value);
     rPS(inst.FD).Fill(result);
-    PowerPC::UpdateFPRFSingle(result);
+    PowerPC::UpdateFPRFSingle(float(result));
   };
 
   if (b == 0.0)

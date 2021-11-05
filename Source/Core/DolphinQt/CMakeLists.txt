@@ -16,6 +16,10 @@ set(CMAKE_AUTOMOC ON)
 add_executable(dolphin-emu
   AboutDialog.cpp
   AboutDialog.h
+  CheatSearchFactoryWidget.cpp
+  CheatSearchFactoryWidget.h
+  CheatSearchWidget.cpp
+  CheatSearchWidget.h
   CheatsManager.cpp
   CheatsManager.h
   ConvertDialog.cpp
@@ -283,6 +287,8 @@ add_executable(dolphin-emu
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
   QtUtils/ParallelProgressDialog.h
+  QtUtils/PartiallyClosableTabWidget.cpp
+  QtUtils/PartiallyClosableTabWidget.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
   QtUtils/UTF8CodePointCountValidator.cpp
@@ -301,6 +307,8 @@ add_executable(dolphin-emu
   Settings/AdvancedPane.h
   Settings/AudioPane.cpp
   Settings/AudioPane.h
+  Settings/BroadbandAdapterSettingsDialog.cpp
+  Settings/BroadbandAdapterSettingsDialog.h
   Settings/GameCubePane.cpp
   Settings/GameCubePane.h
   Settings/GeneralPane.cpp
@@ -389,9 +397,14 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Data/Sys" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Sys"
   )
 
-  # Copy license.txt
+  # Copy COPYING
   add_custom_command(TARGET dolphin-emu POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/license.txt" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/license.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/COPYING" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/COPYING"
+  )
+
+  # Copy Licenses dir
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/LICENSES" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Licenses"
   )
 
   # Copy qt.conf
@@ -541,12 +554,12 @@ if(APPLE)
     # Code sign make file builds
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu$<$<CONFIG:Debug>:Debug>.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Dolphin.app" || true)
     
     # Code sign builds for build systems that do have release/debug variants (Xcode)
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmu.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options=runtime --entitlements "${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/DolphinEmuDebug.entitlements" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/Dolphin.app" || true)
       
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND

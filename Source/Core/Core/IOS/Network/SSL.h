@@ -18,8 +18,8 @@
 // clang-format on
 
 #include "Common/CommonTypes.h"
-#include "Core/IOS/IOS.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS::HLE
 {

@@ -24,7 +24,6 @@
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
-#include "Core/HW/WiimoteReal/IOdarwin.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
 #include "InputCommon/ControllerInterface/Wiimote/WiimoteController.h"
 #include "InputCommon/InputConfig.h"
@@ -281,6 +280,14 @@ void Wiimote::Read()
   Report rpt(MAX_PAYLOAD);
   auto const result = IORead(rpt.data());
 
+  if (0 == result)
+  {
+    ERROR_LOG_FMT(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote {}.", m_index + 1);
+    DisconnectInternal();
+
+    return;
+  }
+
   // Drop the report if not connected.
   if (!m_is_linked)
     return;
@@ -297,11 +304,6 @@ void Wiimote::Read()
     // Add it to queue
     rpt.resize(result);
     m_read_reports.Push(std::move(rpt));
-  }
-  else if (0 == result)
-  {
-    ERROR_LOG_FMT(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote {}.", m_index + 1);
-    DisconnectInternal();
   }
 }
 
@@ -547,7 +549,7 @@ void WiimoteScanner::StartThread()
 
 void WiimoteScanner::StopThread()
 {
-  if (m_scan_thread_running.TestAndClear())
+  if (m_scan_thread_running.IsSet())
   {
     SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
 
@@ -556,6 +558,7 @@ void WiimoteScanner::StopThread()
       backend->RequestStopSearching();
     }
 
+    m_scan_thread_running.Clear();
     m_scan_thread.join();
   }
 }
@@ -652,7 +655,6 @@ void WiimoteScanner::ThreadFunc()
     m_backends.emplace_back(std::make_unique<WiimoteScannerLinux>());
     m_backends.emplace_back(std::make_unique<WiimoteScannerAndroid>());
     m_backends.emplace_back(std::make_unique<WiimoteScannerWindows>());
-    m_backends.emplace_back(std::make_unique<WiimoteScannerDarwin>());
     m_backends.emplace_back(std::make_unique<WiimoteScannerHidapi>());
   }
 

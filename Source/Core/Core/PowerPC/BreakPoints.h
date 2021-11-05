@@ -40,7 +40,7 @@ struct TMemCheck
   u32 num_hits = 0;
 
   // returns whether to break
-  bool Action(Common::DebugInterface* dbg_interface, u32 value, u32 addr, bool write, size_t size,
+  bool Action(Common::DebugInterface* debug_interface, u64 value, u32 addr, bool write, size_t size,
               u32 pc);
 };
 

@@ -59,8 +59,8 @@ void NWC24Config::ResetConfig()
   memset(&m_data, 0, sizeof(m_data));
 
   SetMagic(0x57634366);
-  SetUnk(8);
-  SetCreationStage(NWC24_IDCS_INITIAL);
+  SetVersion(8);
+  SetCreationStage(NWC24CreationStage::Initial);
   SetEnableBooting(0);
   SetEmail("@wii.com");
 
@@ -110,7 +110,7 @@ s32 NWC24Config::CheckNwc24Config() const
     return -14;
   }
 
-  if (Unk() != 8)
+  if (Version() != 8)
     return -27;
 
   return 0;
@@ -126,14 +126,14 @@ void NWC24Config::SetMagic(u32 magic)
   m_data.magic = Common::swap32(magic);
 }
 
-u32 NWC24Config::Unk() const
+u32 NWC24Config::Version() const
 {
-  return Common::swap32(m_data.unk_04);
+  return Common::swap32(m_data.version);
 }
 
-void NWC24Config::SetUnk(u32 unk_04)
+void NWC24Config::SetVersion(u32 version)
 {
-  m_data.unk_04 = Common::swap32(unk_04);
+  m_data.version = Common::swap32(version);
 }
 
 u32 NWC24Config::IdGen() const
@@ -165,14 +165,14 @@ void NWC24Config::SetChecksum(u32 checksum)
   m_data.checksum = Common::swap32(checksum);
 }
 
-u32 NWC24Config::CreationStage() const
+NWC24CreationStage NWC24Config::CreationStage() const
 {
-  return Common::swap32(m_data.creation_stage);
+  return NWC24CreationStage(Common::swap32(u32(m_data.creation_stage)));
 }
 
-void NWC24Config::SetCreationStage(u32 creation_stage)
+void NWC24Config::SetCreationStage(NWC24CreationStage creation_stage)
 {
-  m_data.creation_stage = Common::swap32(creation_stage);
+  m_data.creation_stage = NWC24CreationStage(Common::swap32(u32(creation_stage)));
 }
 
 u32 NWC24Config::EnableBooting() const

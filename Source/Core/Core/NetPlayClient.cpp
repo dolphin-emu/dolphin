@@ -311,7 +311,7 @@ static void ReceiveSyncIdentifier(sf::Packet& spac, SyncIdentifier& sync_identif
 }
 
 // called from ---NETPLAY--- thread
-unsigned int NetPlayClient::OnData(sf::Packet& packet)
+void NetPlayClient::OnData(sf::Packet& packet)
 {
   MessageId mid;
   packet >> mid;
@@ -321,1023 +321,1138 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   switch (mid)
   {
   case NP_MSG_PLAYER_JOIN:
-  {
-    Player player;
-    packet >> player.pid;
-    packet >> player.name;
-    packet >> player.revision;
-
-    INFO_LOG_FMT(NETPLAY, "Player {} ({}) using {} joined", player.name, player.pid,
-                 player.revision);
-
-    {
-      std::lock_guard lkp(m_crit.players);
-      m_players[player.pid] = player;
-    }
-
-    m_dialog->OnPlayerConnect(player.name);
-
-    m_dialog->Update();
-  }
-  break;
+    OnPlayerJoin(packet);
+    break;
 
   case NP_MSG_PLAYER_LEAVE:
-  {
-    PlayerId pid;
-    packet >> pid;
-
-    {
-      std::lock_guard lkp(m_crit.players);
-      const auto it = m_players.find(pid);
-      if (it == m_players.end())
-        break;
-
-      const auto& player = it->second;
-      INFO_LOG_FMT(NETPLAY, "Player {} ({}) left", player.name, pid);
-      m_dialog->OnPlayerDisconnect(player.name);
-      m_players.erase(m_players.find(pid));
-    }
-
-    m_dialog->Update();
-  }
-  break;
+    OnPlayerLeave(packet);
+    break;
 
   case NP_MSG_CHAT_MESSAGE:
-  {
-    PlayerId pid;
-    packet >> pid;
-    std::string msg;
-    packet >> msg;
-
-    // don't need lock to read in this thread
-    const Player& player = m_players[pid];
-
-    INFO_LOG_FMT(NETPLAY, "Player {} ({}) wrote: {}", player.name, player.pid, msg);
-
-    // add to gui
-    std::ostringstream ss;
-    ss << player.name << '[' << (char)(pid + '0') << "]: " << msg;
-
-    m_dialog->AppendChat(ss.str());
-  }
-  break;
+    OnChatMessage(packet);
+    break;
 
   case NP_MSG_CHUNKED_DATA_START:
-  {
-    u32 cid;
-    packet >> cid;
-    std::string title;
-    packet >> title;
-    u64 data_size = Common::PacketReadU64(packet);
-
-    m_chunked_data_receive_queue.emplace(cid, sf::Packet{});
-
-    std::vector<int> players;
-    players.push_back(m_local_player->pid);
-    m_dialog->ShowChunkedProgressDialog(title, data_size, players);
-  }
-  break;
+    OnChunkedDataStart(packet);
+    break;
 
   case NP_MSG_CHUNKED_DATA_END:
-  {
-    u32 cid;
-    packet >> cid;
-
-    if (m_chunked_data_receive_queue.count(cid))
-    {
-      OnData(m_chunked_data_receive_queue[cid]);
-      m_chunked_data_receive_queue.erase(cid);
-      m_dialog->HideChunkedProgressDialog();
-
-      sf::Packet complete_packet;
-      complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
-      complete_packet << cid;
-      Send(complete_packet, CHUNKED_DATA_CHANNEL);
-    }
-  }
-  break;
+    OnChunkedDataEnd(packet);
+    break;
 
   case NP_MSG_CHUNKED_DATA_PAYLOAD:
-  {
-    u32 cid;
-    packet >> cid;
-
-    if (m_chunked_data_receive_queue.count(cid))
-    {
-      while (!packet.endOfPacket())
-      {
-        u8 byte;
-        packet >> byte;
-        m_chunked_data_receive_queue[cid] << byte;
-      }
-
-      m_dialog->SetChunkedProgress(m_local_player->pid,
-                                   m_chunked_data_receive_queue[cid].getDataSize());
-
-      sf::Packet progress_packet;
-      progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
-      progress_packet << cid;
-      progress_packet << sf::Uint64{m_chunked_data_receive_queue[cid].getDataSize()};
-      Send(progress_packet, CHUNKED_DATA_CHANNEL);
-    }
-  }
-  break;
+    OnChunkedDataPayload(packet);
+    break;
 
   case NP_MSG_CHUNKED_DATA_ABORT:
-  {
-    u32 cid;
-    packet >> cid;
-
-    if (m_chunked_data_receive_queue.count(cid))
-    {
-      m_chunked_data_receive_queue.erase(cid);
-      m_dialog->HideChunkedProgressDialog();
-    }
-  }
-  break;
+    OnChunkedDataAbort(packet);
+    break;
 
   case NP_MSG_PAD_MAPPING:
-  {
-    for (PlayerId& mapping : m_pad_map)
-    {
-      packet >> mapping;
-    }
-
-    UpdateDevices();
-
-    m_dialog->Update();
-  }
-  break;
+    OnPadMapping(packet);
+    break;
 
   case NP_MSG_GBA_CONFIG:
-  {
-    for (size_t i = 0; i < m_gba_config.size(); ++i)
-    {
-      auto& config = m_gba_config[i];
-      const auto old_config = config;
-
-      packet >> config.enabled >> config.has_rom >> config.title;
-      for (auto& data : config.hash)
-        packet >> data;
-
-      if (std::tie(config.has_rom, config.title, config.hash) !=
-          std::tie(old_config.has_rom, old_config.title, old_config.hash))
-      {
-        m_dialog->OnMsgChangeGBARom(static_cast<int>(i), config);
-        m_net_settings.m_GBARomPaths[i] =
-            config.has_rom ?
-                m_dialog->FindGBARomPath(config.hash, config.title, static_cast<int>(i)) :
-                "";
-      }
-    }
-
-    SendGameStatus();
-    UpdateDevices();
-
-    m_dialog->Update();
-  }
-  break;
+    OnGBAConfig(packet);
+    break;
 
   case NP_MSG_WIIMOTE_MAPPING:
-  {
-    for (PlayerId& mapping : m_wiimote_map)
-    {
-      packet >> mapping;
-    }
-
-    m_dialog->Update();
-  }
-  break;
+    OnWiimoteMapping(packet);
+    break;
 
   case NP_MSG_PAD_DATA:
-  {
-    while (!packet.endOfPacket())
-    {
-      PadIndex map;
-      packet >> map;
-
-      GCPadStatus pad;
-      packet >> pad.button;
-      if (!m_gba_config.at(map).enabled)
-      {
-        packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
-            pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
-      }
-
-      // Trusting server for good map value (>=0 && <4)
-      // add to pad buffer
-      m_pad_buffer.at(map).Push(pad);
-      m_gc_pad_event.Set();
-    }
-  }
-  break;
+    OnPadData(packet);
+    break;
 
   case NP_MSG_PAD_HOST_DATA:
-  {
-    while (!packet.endOfPacket())
-    {
-      PadIndex map;
-      packet >> map;
-
-      GCPadStatus pad;
-      packet >> pad.button;
-      if (!m_gba_config.at(map).enabled)
-      {
-        packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
-            pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
-      }
-
-      // Trusting server for good map value (>=0 && <4)
-      // write to last status
-      m_last_pad_status[map] = pad;
-
-      if (!m_first_pad_status_received[map])
-      {
-        m_first_pad_status_received[map] = true;
-        m_first_pad_status_received_event.Set();
-      }
-    }
-  }
-  break;
+    OnPadHostData(packet);
+    break;
 
   case NP_MSG_WIIMOTE_DATA:
-  {
-    PadIndex map;
-    WiimoteInput nw;
-    u8 size;
-    packet >> map >> nw.report_id >> size;
-    nw.data.resize(size);
-    for (auto& byte : nw.data)
-      packet >> byte;
-
-    // Trusting server for good map value (>=0 && <4)
-    // add to Wiimote buffer
-    m_wiimote_buffer.at(map).Push(nw);
-    m_wii_pad_event.Set();
-  }
-  break;
+    OnWiimoteData(packet);
+    break;
 
   case NP_MSG_PAD_BUFFER:
-  {
-    u32 size = 0;
-    packet >> size;
-
-    m_target_buffer_size = size;
-    m_dialog->OnPadBufferChanged(size);
-  }
-  break;
+    OnPadBuffer(packet);
+    break;
 
   case NP_MSG_HOST_INPUT_AUTHORITY:
-  {
-    packet >> m_host_input_authority;
-    m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
-  }
-  break;
+    OnHostInputAuthority(packet);
+    break;
 
   case NP_MSG_GOLF_SWITCH:
-  {
-    PlayerId pid;
-    packet >> pid;
-
-    const PlayerId previous_golfer = m_current_golfer;
-    m_current_golfer = pid;
-    m_dialog->OnGolferChanged(m_local_player->pid == pid, pid != 0 ? m_players[pid].name : "");
-
-    if (m_local_player->pid == previous_golfer)
-    {
-      sf::Packet spac;
-      spac << static_cast<MessageId>(NP_MSG_GOLF_RELEASE);
-      Send(spac);
-    }
-    else if (m_local_player->pid == pid)
-    {
-      sf::Packet spac;
-      spac << static_cast<MessageId>(NP_MSG_GOLF_ACQUIRE);
-      Send(spac);
-
-      // Pads are already calibrated so we can just ignore this
-      m_first_pad_status_received.fill(true);
-
-      m_wait_on_input = false;
-      m_wait_on_input_event.Set();
-    }
-  }
-  break;
+    OnGolfSwitch(packet);
+    break;
 
   case NP_MSG_GOLF_PREPARE:
-  {
-    m_wait_on_input_received = true;
-    m_wait_on_input = true;
-  }
-  break;
+    OnGolfPrepare(packet);
+    break;
 
   case NP_MSG_CHANGE_GAME:
-  {
-    std::string netplay_name;
-    {
-      std::lock_guard lkg(m_crit.game);
-      ReceiveSyncIdentifier(packet, m_selected_game);
-      packet >> netplay_name;
-    }
-
-    INFO_LOG_FMT(NETPLAY, "Game changed to {}", netplay_name);
-
-    // update gui
-    m_dialog->OnMsgChangeGame(m_selected_game, netplay_name);
-
-    SendGameStatus();
-
-    sf::Packet client_capabilities_packet;
-    client_capabilities_packet << static_cast<MessageId>(NP_MSG_CLIENT_CAPABILITIES);
-    client_capabilities_packet << ExpansionInterface::CEXIIPL::HasIPLDump();
-    client_capabilities_packet << Config::Get(Config::SESSION_USE_FMA);
-    Send(client_capabilities_packet);
-  }
-  break;
+    OnChangeGame(packet);
+    break;
 
   case NP_MSG_GAME_STATUS:
-  {
-    PlayerId pid;
-    packet >> pid;
-
-    {
-      std::lock_guard lkp(m_crit.players);
-      Player& player = m_players[pid];
-      u32 status;
-      packet >> status;
-      player.game_status = static_cast<SyncIdentifierComparison>(status);
-    }
-
-    m_dialog->Update();
-  }
-  break;
+    OnGameStatus(packet);
+    break;
 
   case NP_MSG_START_GAME:
-  {
-    {
-      std::lock_guard lkg(m_crit.game);
-      packet >> m_current_game;
-      packet >> m_net_settings.m_CPUthread;
-
-      INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
-
-      {
-        std::underlying_type_t<PowerPC::CPUCore> core;
-        if (packet >> core)
-          m_net_settings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
-        else
-          m_net_settings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
-      }
-
-      packet >> m_net_settings.m_EnableCheats;
-      packet >> m_net_settings.m_SelectedLanguage;
-      packet >> m_net_settings.m_OverrideRegionSettings;
-      packet >> m_net_settings.m_DSPEnableJIT;
-      packet >> m_net_settings.m_DSPHLE;
-      packet >> m_net_settings.m_WriteToMemcard;
-      packet >> m_net_settings.m_RAMOverrideEnable;
-      packet >> m_net_settings.m_Mem1Size;
-      packet >> m_net_settings.m_Mem2Size;
-
-      {
-        std::underlying_type_t<DiscIO::Region> tmp;
-        packet >> tmp;
-        m_net_settings.m_FallbackRegion = static_cast<DiscIO::Region>(tmp);
-      }
-
-      packet >> m_net_settings.m_AllowSDWrites;
-      packet >> m_net_settings.m_CopyWiiSave;
-      packet >> m_net_settings.m_OCEnable;
-      packet >> m_net_settings.m_OCFactor;
-
-      for (auto& device : m_net_settings.m_EXIDevice)
-      {
-        int tmp;
-        packet >> tmp;
-        device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
-      }
-
-      for (u32& value : m_net_settings.m_SYSCONFSettings)
-        packet >> value;
-
-      packet >> m_net_settings.m_EFBAccessEnable;
-      packet >> m_net_settings.m_BBoxEnable;
-      packet >> m_net_settings.m_ForceProgressive;
-      packet >> m_net_settings.m_EFBToTextureEnable;
-      packet >> m_net_settings.m_XFBToTextureEnable;
-      packet >> m_net_settings.m_DisableCopyToVRAM;
-      packet >> m_net_settings.m_ImmediateXFBEnable;
-      packet >> m_net_settings.m_EFBEmulateFormatChanges;
-      packet >> m_net_settings.m_SafeTextureCacheColorSamples;
-      packet >> m_net_settings.m_PerfQueriesEnable;
-      packet >> m_net_settings.m_FPRF;
-      packet >> m_net_settings.m_AccurateNaNs;
-      packet >> m_net_settings.m_DisableICache;
-      packet >> m_net_settings.m_SyncOnSkipIdle;
-      packet >> m_net_settings.m_SyncGPU;
-      packet >> m_net_settings.m_SyncGpuMaxDistance;
-      packet >> m_net_settings.m_SyncGpuMinDistance;
-      packet >> m_net_settings.m_SyncGpuOverclock;
-      packet >> m_net_settings.m_JITFollowBranch;
-      packet >> m_net_settings.m_FastDiscSpeed;
-      packet >> m_net_settings.m_MMU;
-      packet >> m_net_settings.m_Fastmem;
-      packet >> m_net_settings.m_SkipIPL;
-      packet >> m_net_settings.m_LoadIPLDump;
-      packet >> m_net_settings.m_VertexRounding;
-      packet >> m_net_settings.m_InternalResolution;
-      packet >> m_net_settings.m_EFBScaledCopy;
-      packet >> m_net_settings.m_FastDepthCalc;
-      packet >> m_net_settings.m_EnablePixelLighting;
-      packet >> m_net_settings.m_WidescreenHack;
-      packet >> m_net_settings.m_ForceFiltering;
-      packet >> m_net_settings.m_MaxAnisotropy;
-      packet >> m_net_settings.m_ForceTrueColor;
-      packet >> m_net_settings.m_DisableCopyFilter;
-      packet >> m_net_settings.m_DisableFog;
-      packet >> m_net_settings.m_ArbitraryMipmapDetection;
-      packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
-      packet >> m_net_settings.m_EnableGPUTextureDecoding;
-      packet >> m_net_settings.m_DeferEFBCopies;
-      packet >> m_net_settings.m_EFBAccessTileSize;
-      packet >> m_net_settings.m_EFBAccessDeferInvalidation;
-      packet >> m_net_settings.m_StrictSettingsSync;
-
-      m_initial_rtc = Common::PacketReadU64(packet);
-
-      packet >> m_net_settings.m_SyncSaveData;
-      packet >> m_net_settings.m_SaveDataRegion;
-      packet >> m_net_settings.m_SyncCodes;
-      packet >> m_net_settings.m_SyncAllWiiSaves;
-
-      for (int& extension : m_net_settings.m_WiimoteExtension)
-        packet >> extension;
-
-      packet >> m_net_settings.m_GolfMode;
-      packet >> m_net_settings.m_UseFMA;
-      packet >> m_net_settings.m_HideRemoteGBAs;
-
-      m_net_settings.m_IsHosting = m_local_player->IsHost();
-      m_net_settings.m_HostInputAuthority = m_host_input_authority;
-    }
-
-    m_dialog->OnMsgStartGame();
-  }
-  break;
+    OnStartGame(packet);
+    break;
 
   case NP_MSG_STOP_GAME:
   case NP_MSG_DISABLE_GAME:
-  {
-    INFO_LOG_FMT(NETPLAY, "Game stopped");
-
-    StopGame();
-    m_dialog->OnMsgStopGame();
-  }
-  break;
+    OnStopGame(packet);
+    break;
 
   case NP_MSG_POWER_BUTTON:
-  {
-    m_dialog->OnMsgPowerButton();
-  }
-  break;
+    OnPowerButton();
+    break;
 
   case NP_MSG_PING:
-  {
-    u32 ping_key = 0;
-    packet >> ping_key;
-
-    sf::Packet response_packet;
-    response_packet << static_cast<MessageId>(NP_MSG_PONG);
-    response_packet << ping_key;
-
-    Send(response_packet);
-  }
-  break;
+    OnPing(packet);
+    break;
 
   case NP_MSG_PLAYER_PING_DATA:
-  {
-    PlayerId pid;
-    packet >> pid;
-
-    {
-      std::lock_guard lkp(m_crit.players);
-      Player& player = m_players[pid];
-      packet >> player.ping;
-    }
-
-    DisplayPlayersPing();
-    m_dialog->Update();
-  }
-  break;
+    OnPlayerPingData(packet);
+    break;
 
   case NP_MSG_DESYNC_DETECTED:
-  {
-    int pid_to_blame;
-    u32 frame;
-    packet >> pid_to_blame;
-    packet >> frame;
-
-    std::string player = "??";
-    std::lock_guard lkp(m_crit.players);
-    {
-      auto it = m_players.find(pid_to_blame);
-      if (it != m_players.end())
-        player = it->second.name;
-    }
-
-    INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
-
-    m_dialog->OnDesync(frame, player);
-  }
-  break;
+    OnDesyncDetected(packet);
+    break;
 
   case NP_MSG_SYNC_GC_SRAM:
-  {
-    const size_t sram_settings_len = sizeof(g_SRAM) - offsetof(Sram, settings);
-    u8 sram[sram_settings_len];
-    for (u8& cell : sram)
-    {
-      packet >> cell;
-    }
-
-    {
-      std::lock_guard lkg(m_crit.game);
-      memcpy(&g_SRAM.settings, sram, sram_settings_len);
-      g_SRAM_netplay_initialized = true;
-    }
-  }
-  break;
+    OnSyncGCSRAM(packet);
+    break;
 
   case NP_MSG_SYNC_SAVE_DATA:
-  {
-    MessageId sub_id;
-    packet >> sub_id;
-
-    switch (sub_id)
-    {
-    case SYNC_SAVE_DATA_NOTIFY:
-    {
-      if (m_local_player->IsHost())
-        return 0;
-
-      packet >> m_sync_save_data_count;
-      m_sync_save_data_success_count = 0;
-
-      if (m_sync_save_data_count == 0)
-        SyncSaveDataResponse(true);
-      else
-        m_dialog->AppendChat(Common::GetStringT("Synchronizing save data..."));
-    }
+    OnSyncSaveData(packet);
     break;
-
-    case SYNC_SAVE_DATA_RAW:
-    {
-      if (m_local_player->IsHost())
-        return 0;
-
-      bool is_slot_a;
-      std::string region;
-      int size_override;
-      packet >> is_slot_a >> region >> size_override;
-
-      // This check is mainly intended to filter out characters which have special meanings in paths
-      if (region != JAP_DIR && region != USA_DIR && region != EUR_DIR)
-      {
-        SyncSaveDataResponse(false);
-        return 0;
-      }
-
-      std::string size_suffix;
-      if (size_override >= 0 && size_override <= 4)
-      {
-        size_suffix = fmt::format(
-            ".{}", Memcard::MbitToFreeBlocks(Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override));
-      }
-
-      const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY +
-                               (is_slot_a ? "A." : "B.") + region + size_suffix + ".raw";
-      if (File::Exists(path) && !File::Delete(path))
-      {
-        PanicAlertFmtT("Failed to delete NetPlay memory card. Verify your write permissions.");
-        SyncSaveDataResponse(false);
-        return 0;
-      }
-
-      const bool success = DecompressPacketIntoFile(packet, path);
-      SyncSaveDataResponse(success);
-    }
-    break;
-
-    case SYNC_SAVE_DATA_GCI:
-    {
-      if (m_local_player->IsHost())
-        return 0;
-
-      bool is_slot_a;
-      u8 file_count;
-      packet >> is_slot_a >> file_count;
-
-      const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY DIR_SEP +
-                               fmt::format("Card {}", is_slot_a ? 'A' : 'B');
-
-      if ((File::Exists(path) && !File::DeleteDirRecursively(path + DIR_SEP)) ||
-          !File::CreateFullPath(path + DIR_SEP))
-      {
-        PanicAlertFmtT("Failed to reset NetPlay GCI folder. Verify your write permissions.");
-        SyncSaveDataResponse(false);
-        return 0;
-      }
-
-      for (u8 i = 0; i < file_count; i++)
-      {
-        std::string file_name;
-        packet >> file_name;
-
-        if (!Common::IsFileNameSafe(file_name) ||
-            !DecompressPacketIntoFile(packet, path + DIR_SEP + file_name))
-        {
-          SyncSaveDataResponse(false);
-          return 0;
-        }
-      }
-
-      SyncSaveDataResponse(true);
-    }
-    break;
-
-    case SYNC_SAVE_DATA_WII:
-    {
-      if (m_local_player->IsHost())
-        return 0;
-
-      const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
-
-      if (File::Exists(path) && !File::DeleteDirRecursively(path))
-      {
-        PanicAlertFmtT("Failed to reset NetPlay NAND folder. Verify your write permissions.");
-        SyncSaveDataResponse(false);
-        return 0;
-      }
-
-      auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
-      std::vector<u64> titles;
-
-      const IOS::HLE::FS::Modes fs_modes = {IOS::HLE::FS::Mode::ReadWrite,
-                                            IOS::HLE::FS::Mode::ReadWrite,
-                                            IOS::HLE::FS::Mode::ReadWrite};
-
-      // Read the Mii data
-      bool mii_data;
-      packet >> mii_data;
-      if (mii_data)
-      {
-        auto buffer = DecompressPacketIntoBuffer(packet);
-
-        temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, "/shared2/menu/FaceLib/", 0,
-                                fs_modes);
-        auto file = temp_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                                               Common::GetMiiDatabasePath(), fs_modes);
-
-        if (!buffer || !file || !file->Write(buffer->data(), buffer->size()))
-        {
-          PanicAlertFmtT("Failed to write Mii data.");
-          SyncSaveDataResponse(false);
-          return 0;
-        }
-      }
-
-      // Read the saves
-      u32 save_count;
-      packet >> save_count;
-      for (u32 n = 0; n < save_count; n++)
-      {
-        u64 title_id = Common::PacketReadU64(packet);
-        titles.push_back(title_id);
-        temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                                Common::GetTitleDataPath(title_id) + '/', 0, fs_modes);
-        auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
-
-        bool exists;
-        packet >> exists;
-        if (!exists)
-          continue;
-
-        // Header
-        WiiSave::Header header;
-        packet >> header.tid;
-        packet >> header.banner_size;
-        packet >> header.permissions;
-        packet >> header.unk1;
-        for (u8& byte : header.md5)
-          packet >> byte;
-        packet >> header.unk2;
-        for (size_t i = 0; i < header.banner_size; i++)
-          packet >> header.banner[i];
-
-        // BkHeader
-        WiiSave::BkHeader bk_header;
-        packet >> bk_header.size;
-        packet >> bk_header.magic;
-        packet >> bk_header.ngid;
-        packet >> bk_header.number_of_files;
-        packet >> bk_header.size_of_files;
-        packet >> bk_header.unk1;
-        packet >> bk_header.unk2;
-        packet >> bk_header.total_size;
-        for (u8& byte : bk_header.unk3)
-          packet >> byte;
-        packet >> bk_header.tid;
-        for (u8& byte : bk_header.mac_address)
-          packet >> byte;
-
-        // Files
-        std::vector<WiiSave::Storage::SaveFile> files;
-        for (u32 i = 0; i < bk_header.number_of_files; i++)
-        {
-          WiiSave::Storage::SaveFile file;
-          packet >> file.mode >> file.attributes;
-          {
-            u8 tmp;
-            packet >> tmp;
-            file.type = static_cast<WiiSave::Storage::SaveFile::Type>(tmp);
-          }
-          packet >> file.path;
-
-          if (file.type == WiiSave::Storage::SaveFile::Type::File)
-          {
-            auto buffer = DecompressPacketIntoBuffer(packet);
-            if (!buffer)
-            {
-              SyncSaveDataResponse(false);
-              return 0;
-            }
-
-            file.data = std::move(*buffer);
-          }
-
-          files.push_back(std::move(file));
-        }
-
-        if (!save->WriteHeader(header) || !save->WriteBkHeader(bk_header) ||
-            !save->WriteFiles(files))
-        {
-          PanicAlertFmtT("Failed to write Wii save.");
-          SyncSaveDataResponse(false);
-          return 0;
-        }
-      }
-
-      SetWiiSyncData(std::move(temp_fs), titles);
-      SyncSaveDataResponse(true);
-    }
-    break;
-
-    case SYNC_SAVE_DATA_GBA:
-    {
-      if (m_local_player->IsHost())
-        return 0;
-
-      u8 slot;
-      packet >> slot;
-
-      const std::string path =
-          fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, slot + 1);
-      if (File::Exists(path) && !File::Delete(path))
-      {
-        PanicAlertFmtT("Failed to delete NetPlay GBA{0} save file. Verify your write permissions.",
-                       slot + 1);
-        SyncSaveDataResponse(false);
-        return 0;
-      }
-
-      const bool success = DecompressPacketIntoFile(packet, path);
-      SyncSaveDataResponse(success);
-    }
-    break;
-
-    default:
-      PanicAlertFmtT("Unknown SYNC_SAVE_DATA message received with id: {0}", sub_id);
-      break;
-    }
-  }
-  break;
 
   case NP_MSG_SYNC_CODES:
-  {
-    // Recieve Data Packet
-    MessageId sub_id;
-    packet >> sub_id;
-
-    // Check Which Operation to Perform with This Packet
-    switch (sub_id)
-    {
-    case SYNC_CODES_NOTIFY:
-    {
-      // Set both codes as unsynced
-      m_sync_gecko_codes_complete = false;
-      m_sync_ar_codes_complete = false;
-    }
+    OnSyncCodes(packet);
     break;
-
-    case SYNC_CODES_NOTIFY_GECKO:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Receive Number of Codelines to Receive
-      packet >> m_sync_gecko_codes_count;
-
-      m_sync_gecko_codes_success_count = 0;
-
-      NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
-
-      // Check if no codes to sync, if so return as finished
-      if (m_sync_gecko_codes_count == 0)
-      {
-        m_sync_gecko_codes_complete = true;
-        SyncCodeResponse(true);
-      }
-      else
-      {
-        m_dialog->AppendChat(Common::GetStringT("Synchronizing Gecko codes..."));
-      }
-    }
-    break;
-
-    case SYNC_CODES_DATA_GECKO:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Create a synced code vector
-      std::vector<Gecko::GeckoCode> synced_codes;
-      // Create a GeckoCode
-      Gecko::GeckoCode gcode;
-      gcode = Gecko::GeckoCode();
-      // Initialize gcode
-      gcode.name = "Synced Codes";
-      gcode.enabled = true;
-
-      // Receive code contents from packet
-      for (int i = 0; i < m_sync_gecko_codes_count; i++)
-      {
-        Gecko::GeckoCode::Code new_code;
-        packet >> new_code.address;
-        packet >> new_code.data;
-
-        NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.address, new_code.data);
-
-        gcode.codes.push_back(std::move(new_code));
-
-        if (++m_sync_gecko_codes_success_count >= m_sync_gecko_codes_count)
-        {
-          m_sync_gecko_codes_complete = true;
-          SyncCodeResponse(true);
-        }
-      }
-
-      // Add gcode containing all codes to Gecko Code vector
-      synced_codes.push_back(std::move(gcode));
-
-      // Clear Vector if received 0 codes (match host's end when using no codes)
-      if (m_sync_gecko_codes_count == 0)
-        synced_codes.clear();
-
-      // Copy this to the vector located in GeckoCode.cpp
-      Gecko::UpdateSyncedCodes(synced_codes);
-    }
-    break;
-
-    case SYNC_CODES_NOTIFY_AR:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Receive Number of Codelines to Receive
-      packet >> m_sync_ar_codes_count;
-
-      m_sync_ar_codes_success_count = 0;
-
-      NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} AR codelines", m_sync_ar_codes_count);
-
-      // Check if no codes to sync, if so return as finished
-      if (m_sync_ar_codes_count == 0)
-      {
-        m_sync_ar_codes_complete = true;
-        SyncCodeResponse(true);
-      }
-      else
-      {
-        m_dialog->AppendChat(Common::GetStringT("Synchronizing AR codes..."));
-      }
-    }
-    break;
-
-    case SYNC_CODES_DATA_AR:
-    {
-      // Return if this is the host
-      if (m_local_player->IsHost())
-        return 0;
-
-      // Create a synced code vector
-      std::vector<ActionReplay::ARCode> synced_codes;
-      // Create an ARCode
-      ActionReplay::ARCode arcode;
-      arcode = ActionReplay::ARCode();
-      // Initialize arcode
-      arcode.name = "Synced Codes";
-      arcode.enabled = true;
-
-      // Receive code contents from packet
-      for (int i = 0; i < m_sync_ar_codes_count; i++)
-      {
-        ActionReplay::AREntry new_code;
-        packet >> new_code.cmd_addr;
-        packet >> new_code.value;
-
-        NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.cmd_addr, new_code.value);
-        arcode.ops.push_back(new_code);
-
-        if (++m_sync_ar_codes_success_count >= m_sync_ar_codes_count)
-        {
-          m_sync_ar_codes_complete = true;
-          SyncCodeResponse(true);
-        }
-      }
-
-      // Add arcode containing all codes to AR Code vector
-      synced_codes.push_back(std::move(arcode));
-
-      // Clear Vector if received 0 codes (match host's end when using no codes)
-      if (m_sync_ar_codes_count == 0)
-        synced_codes.clear();
-
-      // Copy this to the vector located in ActionReplay.cpp
-      ActionReplay::UpdateSyncedCodes(synced_codes);
-    }
-    break;
-    }
-  }
-  break;
 
   case NP_MSG_COMPUTE_MD5:
-  {
-    SyncIdentifier sync_identifier;
-    ReceiveSyncIdentifier(packet, sync_identifier);
-
-    ComputeMD5(sync_identifier);
-  }
-  break;
+    OnComputeMD5(packet);
+    break;
 
   case NP_MSG_MD5_PROGRESS:
-  {
-    PlayerId pid;
-    int progress;
-    packet >> pid;
-    packet >> progress;
-
-    m_dialog->SetMD5Progress(pid, progress);
-  }
-  break;
+    OnMD5Progress(packet);
+    break;
 
   case NP_MSG_MD5_RESULT:
-  {
-    PlayerId pid;
-    std::string result;
-    packet >> pid;
-    packet >> result;
-
-    m_dialog->SetMD5Result(pid, result);
-  }
-  break;
+    OnMD5Result(packet);
+    break;
 
   case NP_MSG_MD5_ERROR:
-  {
-    PlayerId pid;
-    std::string error;
-    packet >> pid;
-    packet >> error;
-
-    m_dialog->SetMD5Result(pid, error);
-  }
-  break;
+    OnMD5Error(packet);
+    break;
 
   case NP_MSG_MD5_ABORT:
-  {
-    m_should_compute_MD5 = false;
-    m_dialog->AbortMD5();
-  }
-  break;
+    OnMD5Abort();
+    break;
 
   default:
     PanicAlertFmtT("Unknown message received with id : {0}", mid);
     break;
   }
+}
 
-  return 0;
+void NetPlayClient::OnPlayerJoin(sf::Packet& packet)
+{
+  Player player{};
+  packet >> player.pid;
+  packet >> player.name;
+  packet >> player.revision;
+
+  INFO_LOG_FMT(NETPLAY, "Player {} ({}) using {} joined", player.name, player.pid, player.revision);
+
+  {
+    std::lock_guard lkp(m_crit.players);
+    m_players[player.pid] = player;
+  }
+
+  m_dialog->OnPlayerConnect(player.name);
+
+  m_dialog->Update();
+}
+
+void NetPlayClient::OnPlayerLeave(sf::Packet& packet)
+{
+  PlayerId pid;
+  packet >> pid;
+
+  {
+    std::lock_guard lkp(m_crit.players);
+    const auto it = m_players.find(pid);
+    if (it == m_players.end())
+      return;
+
+    const auto& player = it->second;
+    INFO_LOG_FMT(NETPLAY, "Player {} ({}) left", player.name, pid);
+    m_dialog->OnPlayerDisconnect(player.name);
+    m_players.erase(m_players.find(pid));
+  }
+
+  m_dialog->Update();
+}
+
+void NetPlayClient::OnChatMessage(sf::Packet& packet)
+{
+  PlayerId pid;
+  packet >> pid;
+  std::string msg;
+  packet >> msg;
+
+  // don't need lock to read in this thread
+  const Player& player = m_players[pid];
+
+  INFO_LOG_FMT(NETPLAY, "Player {} ({}) wrote: {}", player.name, player.pid, msg);
+
+  // add to gui
+  std::ostringstream ss;
+  ss << player.name << '[' << char(pid + '0') << "]: " << msg;
+
+  m_dialog->AppendChat(ss.str());
+}
+
+void NetPlayClient::OnChunkedDataStart(sf::Packet& packet)
+{
+  u32 cid;
+  packet >> cid;
+  std::string title;
+  packet >> title;
+  const u64 data_size = Common::PacketReadU64(packet);
+
+  m_chunked_data_receive_queue.emplace(cid, sf::Packet{});
+
+  std::vector<int> players;
+  players.push_back(m_local_player->pid);
+  m_dialog->ShowChunkedProgressDialog(title, data_size, players);
+}
+
+void NetPlayClient::OnChunkedDataEnd(sf::Packet& packet)
+{
+  u32 cid;
+  packet >> cid;
+
+  const auto data_packet_iter = m_chunked_data_receive_queue.find(cid);
+  if (data_packet_iter == m_chunked_data_receive_queue.end())
+    return;
+
+  auto& data_packet = data_packet_iter->second;
+  OnData(data_packet);
+  m_chunked_data_receive_queue.erase(data_packet_iter);
+  m_dialog->HideChunkedProgressDialog();
+
+  sf::Packet complete_packet;
+  complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
+  complete_packet << cid;
+  Send(complete_packet, CHUNKED_DATA_CHANNEL);
+}
+
+void NetPlayClient::OnChunkedDataPayload(sf::Packet& packet)
+{
+  u32 cid;
+  packet >> cid;
+
+  const auto data_packet_iter = m_chunked_data_receive_queue.find(cid);
+  if (data_packet_iter == m_chunked_data_receive_queue.end())
+    return;
+
+  auto& data_packet = data_packet_iter->second;
+  while (!packet.endOfPacket())
+  {
+    u8 byte;
+    packet >> byte;
+    data_packet << byte;
+  }
+
+  m_dialog->SetChunkedProgress(m_local_player->pid, data_packet.getDataSize());
+
+  sf::Packet progress_packet;
+  progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
+  progress_packet << cid;
+  progress_packet << sf::Uint64{data_packet.getDataSize()};
+  Send(progress_packet, CHUNKED_DATA_CHANNEL);
+}
+
+void NetPlayClient::OnChunkedDataAbort(sf::Packet& packet)
+{
+  u32 cid;
+  packet >> cid;
+
+  const auto iter = m_chunked_data_receive_queue.find(cid);
+  if (iter == m_chunked_data_receive_queue.end())
+    return;
+
+  m_chunked_data_receive_queue.erase(iter);
+  m_dialog->HideChunkedProgressDialog();
+}
+
+void NetPlayClient::OnPadMapping(sf::Packet& packet)
+{
+  for (PlayerId& mapping : m_pad_map)
+    packet >> mapping;
+
+  UpdateDevices();
+
+  m_dialog->Update();
+}
+
+void NetPlayClient::OnWiimoteMapping(sf::Packet& packet)
+{
+  for (PlayerId& mapping : m_wiimote_map)
+    packet >> mapping;
+
+  m_dialog->Update();
+}
+
+void NetPlayClient::OnGBAConfig(sf::Packet& packet)
+{
+  for (size_t i = 0; i < m_gba_config.size(); ++i)
+  {
+    auto& config = m_gba_config[i];
+    const auto old_config = config;
+
+    packet >> config.enabled >> config.has_rom >> config.title;
+    for (auto& data : config.hash)
+      packet >> data;
+
+    if (std::tie(config.has_rom, config.title, config.hash) !=
+        std::tie(old_config.has_rom, old_config.title, old_config.hash))
+    {
+      m_dialog->OnMsgChangeGBARom(static_cast<int>(i), config);
+      m_net_settings.m_GBARomPaths[i] =
+          config.has_rom ?
+              m_dialog->FindGBARomPath(config.hash, config.title, static_cast<int>(i)) :
+              "";
+    }
+  }
+
+  SendGameStatus();
+  UpdateDevices();
+
+  m_dialog->Update();
+}
+
+void NetPlayClient::OnPadData(sf::Packet& packet)
+{
+  while (!packet.endOfPacket())
+  {
+    PadIndex map;
+    packet >> map;
+
+    GCPadStatus pad;
+    packet >> pad.button;
+    if (!m_gba_config.at(map).enabled)
+    {
+      packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
+          pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+    }
+
+    // Trusting server for good map value (>=0 && <4)
+    // add to pad buffer
+    m_pad_buffer.at(map).Push(pad);
+    m_gc_pad_event.Set();
+  }
+}
+
+void NetPlayClient::OnPadHostData(sf::Packet& packet)
+{
+  while (!packet.endOfPacket())
+  {
+    PadIndex map;
+    packet >> map;
+
+    GCPadStatus pad;
+    packet >> pad.button;
+    if (!m_gba_config.at(map).enabled)
+    {
+      packet >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >>
+          pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+    }
+
+    // Trusting server for good map value (>=0 && <4)
+    // write to last status
+    m_last_pad_status[map] = pad;
+
+    if (!m_first_pad_status_received[map])
+    {
+      m_first_pad_status_received[map] = true;
+      m_first_pad_status_received_event.Set();
+    }
+  }
+}
+
+void NetPlayClient::OnWiimoteData(sf::Packet& packet)
+{
+  PadIndex map;
+  WiimoteInput nw;
+  u8 size;
+
+  packet >> map >> nw.report_id >> size;
+
+  nw.data.resize(size);
+  for (auto& byte : nw.data)
+    packet >> byte;
+
+  // Trusting server for good map value (>=0 && <4)
+  // add to Wiimote buffer
+  m_wiimote_buffer.at(map).Push(nw);
+  m_wii_pad_event.Set();
+}
+
+void NetPlayClient::OnPadBuffer(sf::Packet& packet)
+{
+  u32 size = 0;
+  packet >> size;
+
+  m_target_buffer_size = size;
+  m_dialog->OnPadBufferChanged(size);
+}
+
+void NetPlayClient::OnHostInputAuthority(sf::Packet& packet)
+{
+  packet >> m_host_input_authority;
+  m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
+}
+
+void NetPlayClient::OnGolfSwitch(sf::Packet& packet)
+{
+  PlayerId pid;
+  packet >> pid;
+
+  const PlayerId previous_golfer = m_current_golfer;
+  m_current_golfer = pid;
+  m_dialog->OnGolferChanged(m_local_player->pid == pid, pid != 0 ? m_players[pid].name : "");
+
+  if (m_local_player->pid == previous_golfer)
+  {
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_RELEASE);
+    Send(spac);
+  }
+  else if (m_local_player->pid == pid)
+  {
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GOLF_ACQUIRE);
+    Send(spac);
+
+    // Pads are already calibrated so we can just ignore this
+    m_first_pad_status_received.fill(true);
+
+    m_wait_on_input = false;
+    m_wait_on_input_event.Set();
+  }
+}
+
+void NetPlayClient::OnGolfPrepare(sf::Packet& packet)
+{
+  m_wait_on_input_received = true;
+  m_wait_on_input = true;
+}
+
+void NetPlayClient::OnChangeGame(sf::Packet& packet)
+{
+  std::string netplay_name;
+  {
+    std::lock_guard lkg(m_crit.game);
+    ReceiveSyncIdentifier(packet, m_selected_game);
+    packet >> netplay_name;
+  }
+
+  INFO_LOG_FMT(NETPLAY, "Game changed to {}", netplay_name);
+
+  // update gui
+  m_dialog->OnMsgChangeGame(m_selected_game, netplay_name);
+
+  SendGameStatus();
+
+  sf::Packet client_capabilities_packet;
+  client_capabilities_packet << static_cast<MessageId>(NP_MSG_CLIENT_CAPABILITIES);
+  client_capabilities_packet << ExpansionInterface::CEXIIPL::HasIPLDump();
+  client_capabilities_packet << Config::Get(Config::SESSION_USE_FMA);
+  Send(client_capabilities_packet);
+}
+
+void NetPlayClient::OnGameStatus(sf::Packet& packet)
+{
+  PlayerId pid;
+  packet >> pid;
+
+  {
+    std::lock_guard lkp(m_crit.players);
+    Player& player = m_players[pid];
+    u32 status;
+    packet >> status;
+    player.game_status = static_cast<SyncIdentifierComparison>(status);
+  }
+
+  m_dialog->Update();
+}
+
+void NetPlayClient::OnStartGame(sf::Packet& packet)
+{
+  {
+    std::lock_guard lkg(m_crit.game);
+    packet >> m_current_game;
+    packet >> m_net_settings.m_CPUthread;
+
+    INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
+
+    {
+      std::underlying_type_t<PowerPC::CPUCore> core;
+      if (packet >> core)
+        m_net_settings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
+      else
+        m_net_settings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
+    }
+
+    packet >> m_net_settings.m_EnableCheats;
+    packet >> m_net_settings.m_SelectedLanguage;
+    packet >> m_net_settings.m_OverrideRegionSettings;
+    packet >> m_net_settings.m_DSPEnableJIT;
+    packet >> m_net_settings.m_DSPHLE;
+    packet >> m_net_settings.m_WriteToMemcard;
+    packet >> m_net_settings.m_RAMOverrideEnable;
+    packet >> m_net_settings.m_Mem1Size;
+    packet >> m_net_settings.m_Mem2Size;
+
+    {
+      std::underlying_type_t<DiscIO::Region> tmp;
+      packet >> tmp;
+      m_net_settings.m_FallbackRegion = static_cast<DiscIO::Region>(tmp);
+    }
+
+    packet >> m_net_settings.m_AllowSDWrites;
+    packet >> m_net_settings.m_CopyWiiSave;
+    packet >> m_net_settings.m_OCEnable;
+    packet >> m_net_settings.m_OCFactor;
+
+    for (auto& device : m_net_settings.m_EXIDevice)
+    {
+      int tmp;
+      packet >> tmp;
+      device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+    }
+
+    for (u32& value : m_net_settings.m_SYSCONFSettings)
+      packet >> value;
+
+    packet >> m_net_settings.m_EFBAccessEnable;
+    packet >> m_net_settings.m_BBoxEnable;
+    packet >> m_net_settings.m_ForceProgressive;
+    packet >> m_net_settings.m_EFBToTextureEnable;
+    packet >> m_net_settings.m_XFBToTextureEnable;
+    packet >> m_net_settings.m_DisableCopyToVRAM;
+    packet >> m_net_settings.m_ImmediateXFBEnable;
+    packet >> m_net_settings.m_EFBEmulateFormatChanges;
+    packet >> m_net_settings.m_SafeTextureCacheColorSamples;
+    packet >> m_net_settings.m_PerfQueriesEnable;
+    packet >> m_net_settings.m_FPRF;
+    packet >> m_net_settings.m_AccurateNaNs;
+    packet >> m_net_settings.m_DisableICache;
+    packet >> m_net_settings.m_SyncOnSkipIdle;
+    packet >> m_net_settings.m_SyncGPU;
+    packet >> m_net_settings.m_SyncGpuMaxDistance;
+    packet >> m_net_settings.m_SyncGpuMinDistance;
+    packet >> m_net_settings.m_SyncGpuOverclock;
+    packet >> m_net_settings.m_JITFollowBranch;
+    packet >> m_net_settings.m_FastDiscSpeed;
+    packet >> m_net_settings.m_MMU;
+    packet >> m_net_settings.m_Fastmem;
+    packet >> m_net_settings.m_SkipIPL;
+    packet >> m_net_settings.m_LoadIPLDump;
+    packet >> m_net_settings.m_VertexRounding;
+    packet >> m_net_settings.m_InternalResolution;
+    packet >> m_net_settings.m_EFBScaledCopy;
+    packet >> m_net_settings.m_FastDepthCalc;
+    packet >> m_net_settings.m_EnablePixelLighting;
+    packet >> m_net_settings.m_WidescreenHack;
+    packet >> m_net_settings.m_ForceFiltering;
+    packet >> m_net_settings.m_MaxAnisotropy;
+    packet >> m_net_settings.m_ForceTrueColor;
+    packet >> m_net_settings.m_DisableCopyFilter;
+    packet >> m_net_settings.m_DisableFog;
+    packet >> m_net_settings.m_ArbitraryMipmapDetection;
+    packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
+    packet >> m_net_settings.m_EnableGPUTextureDecoding;
+    packet >> m_net_settings.m_DeferEFBCopies;
+    packet >> m_net_settings.m_EFBAccessTileSize;
+    packet >> m_net_settings.m_EFBAccessDeferInvalidation;
+    packet >> m_net_settings.m_StrictSettingsSync;
+
+    m_initial_rtc = Common::PacketReadU64(packet);
+
+    packet >> m_net_settings.m_SyncSaveData;
+    packet >> m_net_settings.m_SaveDataRegion;
+    packet >> m_net_settings.m_SyncCodes;
+    packet >> m_net_settings.m_SyncAllWiiSaves;
+
+    for (int& extension : m_net_settings.m_WiimoteExtension)
+      packet >> extension;
+
+    packet >> m_net_settings.m_GolfMode;
+    packet >> m_net_settings.m_UseFMA;
+    packet >> m_net_settings.m_HideRemoteGBAs;
+
+    m_net_settings.m_IsHosting = m_local_player->IsHost();
+    m_net_settings.m_HostInputAuthority = m_host_input_authority;
+  }
+
+  m_dialog->OnMsgStartGame();
+}
+
+void NetPlayClient::OnStopGame(sf::Packet& packet)
+{
+  INFO_LOG_FMT(NETPLAY, "Game stopped");
+
+  StopGame();
+  m_dialog->OnMsgStopGame();
+}
+
+void NetPlayClient::OnPowerButton()
+{
+  m_dialog->OnMsgPowerButton();
+}
+
+void NetPlayClient::OnPing(sf::Packet& packet)
+{
+  u32 ping_key = 0;
+  packet >> ping_key;
+
+  sf::Packet response_packet;
+  response_packet << static_cast<MessageId>(NP_MSG_PONG);
+  response_packet << ping_key;
+
+  Send(response_packet);
+}
+
+void NetPlayClient::OnPlayerPingData(sf::Packet& packet)
+{
+  PlayerId pid;
+  packet >> pid;
+
+  {
+    std::lock_guard lkp(m_crit.players);
+    Player& player = m_players[pid];
+    packet >> player.ping;
+  }
+
+  DisplayPlayersPing();
+  m_dialog->Update();
+}
+
+void NetPlayClient::OnDesyncDetected(sf::Packet& packet)
+{
+  int pid_to_blame;
+  u32 frame;
+  packet >> pid_to_blame;
+  packet >> frame;
+
+  std::string player = "??";
+  std::lock_guard lkp(m_crit.players);
+  {
+    const auto it = m_players.find(pid_to_blame);
+    if (it != m_players.end())
+      player = it->second.name;
+  }
+
+  INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
+
+  m_dialog->OnDesync(frame, player);
+}
+
+void NetPlayClient::OnSyncGCSRAM(sf::Packet& packet)
+{
+  const size_t sram_settings_len = sizeof(g_SRAM) - offsetof(Sram, settings);
+  u8 sram[sram_settings_len];
+  for (u8& cell : sram)
+    packet >> cell;
+
+  {
+    std::lock_guard lkg(m_crit.game);
+    memcpy(&g_SRAM.settings, sram, sram_settings_len);
+    g_SRAM_netplay_initialized = true;
+  }
+}
+
+void NetPlayClient::OnSyncSaveData(sf::Packet& packet)
+{
+  MessageId sub_id;
+  packet >> sub_id;
+
+  if (m_local_player->IsHost())
+    return;
+
+  switch (sub_id)
+  {
+  case SYNC_SAVE_DATA_NOTIFY:
+    OnSyncSaveDataNotify(packet);
+    break;
+
+  case SYNC_SAVE_DATA_RAW:
+    OnSyncSaveDataRaw(packet);
+    break;
+
+  case SYNC_SAVE_DATA_GCI:
+    OnSyncSaveDataGCI(packet);
+    break;
+
+  case SYNC_SAVE_DATA_WII:
+    OnSyncSaveDataWii(packet);
+    break;
+
+  case SYNC_SAVE_DATA_GBA:
+    OnSyncSaveDataGBA(packet);
+    break;
+
+  default:
+    PanicAlertFmtT("Unknown SYNC_SAVE_DATA message received with id: {0}", sub_id);
+    break;
+  }
+}
+
+void NetPlayClient::OnSyncSaveDataNotify(sf::Packet& packet)
+{
+  packet >> m_sync_save_data_count;
+  m_sync_save_data_success_count = 0;
+
+  if (m_sync_save_data_count == 0)
+    SyncSaveDataResponse(true);
+  else
+    m_dialog->AppendChat(Common::GetStringT("Synchronizing save data..."));
+}
+
+void NetPlayClient::OnSyncSaveDataRaw(sf::Packet& packet)
+{
+  bool is_slot_a;
+  std::string region;
+  int size_override;
+  packet >> is_slot_a >> region >> size_override;
+
+  // This check is mainly intended to filter out characters which have special meanings in paths
+  if (region != JAP_DIR && region != USA_DIR && region != EUR_DIR)
+  {
+    SyncSaveDataResponse(false);
+    return;
+  }
+
+  std::string size_suffix;
+  if (size_override >= 0 && size_override <= 4)
+  {
+    size_suffix = fmt::format(
+        ".{}", Memcard::MbitToFreeBlocks(Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override));
+  }
+
+  const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY +
+                           (is_slot_a ? "A." : "B.") + region + size_suffix + ".raw";
+  if (File::Exists(path) && !File::Delete(path))
+  {
+    PanicAlertFmtT("Failed to delete NetPlay memory card. Verify your write permissions.");
+    SyncSaveDataResponse(false);
+    return;
+  }
+
+  const bool success = DecompressPacketIntoFile(packet, path);
+  SyncSaveDataResponse(success);
+}
+
+void NetPlayClient::OnSyncSaveDataGCI(sf::Packet& packet)
+{
+  bool is_slot_a;
+  u8 file_count;
+  packet >> is_slot_a >> file_count;
+
+  const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY DIR_SEP +
+                           fmt::format("Card {}", is_slot_a ? 'A' : 'B');
+
+  if ((File::Exists(path) && !File::DeleteDirRecursively(path + DIR_SEP)) ||
+      !File::CreateFullPath(path + DIR_SEP))
+  {
+    PanicAlertFmtT("Failed to reset NetPlay GCI folder. Verify your write permissions.");
+    SyncSaveDataResponse(false);
+    return;
+  }
+
+  for (u8 i = 0; i < file_count; i++)
+  {
+    std::string file_name;
+    packet >> file_name;
+
+    if (!Common::IsFileNameSafe(file_name) ||
+        !DecompressPacketIntoFile(packet, path + DIR_SEP + file_name))
+    {
+      SyncSaveDataResponse(false);
+      return;
+    }
+  }
+
+  SyncSaveDataResponse(true);
+}
+
+void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
+{
+  const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+
+  if (File::Exists(path) && !File::DeleteDirRecursively(path))
+  {
+    PanicAlertFmtT("Failed to reset NetPlay NAND folder. Verify your write permissions.");
+    SyncSaveDataResponse(false);
+    return;
+  }
+
+  auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
+  std::vector<u64> titles;
+
+  constexpr IOS::HLE::FS::Modes fs_modes{
+      IOS::HLE::FS::Mode::ReadWrite,
+      IOS::HLE::FS::Mode::ReadWrite,
+      IOS::HLE::FS::Mode::ReadWrite,
+  };
+
+  // Read the Mii data
+  bool mii_data;
+  packet >> mii_data;
+  if (mii_data)
+  {
+    auto buffer = DecompressPacketIntoBuffer(packet);
+
+    temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, "/shared2/menu/FaceLib/", 0,
+                            fs_modes);
+    auto file = temp_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                           Common::GetMiiDatabasePath(), fs_modes);
+
+    if (!buffer || !file || !file->Write(buffer->data(), buffer->size()))
+    {
+      PanicAlertFmtT("Failed to write Mii data.");
+      SyncSaveDataResponse(false);
+      return;
+    }
+  }
+
+  // Read the saves
+  u32 save_count;
+  packet >> save_count;
+  for (u32 n = 0; n < save_count; n++)
+  {
+    u64 title_id = Common::PacketReadU64(packet);
+    titles.push_back(title_id);
+    temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                            Common::GetTitleDataPath(title_id) + '/', 0, fs_modes);
+    auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
+
+    bool exists;
+    packet >> exists;
+    if (!exists)
+      continue;
+
+    // Header
+    WiiSave::Header header;
+    packet >> header.tid;
+    packet >> header.banner_size;
+    packet >> header.permissions;
+    packet >> header.unk1;
+    for (u8& byte : header.md5)
+      packet >> byte;
+    packet >> header.unk2;
+    for (size_t i = 0; i < header.banner_size; i++)
+      packet >> header.banner[i];
+
+    // BkHeader
+    WiiSave::BkHeader bk_header;
+    packet >> bk_header.size;
+    packet >> bk_header.magic;
+    packet >> bk_header.ngid;
+    packet >> bk_header.number_of_files;
+    packet >> bk_header.size_of_files;
+    packet >> bk_header.unk1;
+    packet >> bk_header.unk2;
+    packet >> bk_header.total_size;
+    for (u8& byte : bk_header.unk3)
+      packet >> byte;
+    packet >> bk_header.tid;
+    for (u8& byte : bk_header.mac_address)
+      packet >> byte;
+
+    // Files
+    std::vector<WiiSave::Storage::SaveFile> files;
+    for (u32 i = 0; i < bk_header.number_of_files; i++)
+    {
+      WiiSave::Storage::SaveFile file;
+      packet >> file.mode >> file.attributes;
+      {
+        u8 tmp;
+        packet >> tmp;
+        file.type = static_cast<WiiSave::Storage::SaveFile::Type>(tmp);
+      }
+      packet >> file.path;
+
+      if (file.type == WiiSave::Storage::SaveFile::Type::File)
+      {
+        auto buffer = DecompressPacketIntoBuffer(packet);
+        if (!buffer)
+        {
+          SyncSaveDataResponse(false);
+          return;
+        }
+
+        file.data = std::move(*buffer);
+      }
+
+      files.push_back(std::move(file));
+    }
+
+    if (!save->WriteHeader(header) || !save->WriteBkHeader(bk_header) || !save->WriteFiles(files))
+    {
+      PanicAlertFmtT("Failed to write Wii save.");
+      SyncSaveDataResponse(false);
+      return;
+    }
+  }
+
+  SetWiiSyncData(std::move(temp_fs), titles);
+  SyncSaveDataResponse(true);
+}
+
+void NetPlayClient::OnSyncSaveDataGBA(sf::Packet& packet)
+{
+  u8 slot;
+  packet >> slot;
+
+  const std::string path =
+      fmt::format("{}{}{}.sav", File::GetUserPath(D_GBAUSER_IDX), GBA_SAVE_NETPLAY, slot + 1);
+  if (File::Exists(path) && !File::Delete(path))
+  {
+    PanicAlertFmtT("Failed to delete NetPlay GBA{0} save file. Verify your write permissions.",
+                   slot + 1);
+    SyncSaveDataResponse(false);
+    return;
+  }
+
+  const bool success = DecompressPacketIntoFile(packet, path);
+  SyncSaveDataResponse(success);
+}
+
+void NetPlayClient::OnSyncCodes(sf::Packet& packet)
+{
+  // Recieve Data Packet
+  MessageId sub_id;
+  packet >> sub_id;
+
+  // Check Which Operation to Perform with This Packet
+  switch (sub_id)
+  {
+  case SYNC_CODES_NOTIFY:
+    OnSyncCodesNotify();
+    break;
+
+  case SYNC_CODES_NOTIFY_GECKO:
+    OnSyncCodesNotifyGecko(packet);
+    break;
+
+  case SYNC_CODES_DATA_GECKO:
+    OnSyncCodesDataGecko(packet);
+    break;
+
+  case SYNC_CODES_NOTIFY_AR:
+    OnSyncCodesNotifyAR(packet);
+    break;
+
+  case SYNC_CODES_DATA_AR:
+    OnSyncCodesDataAR(packet);
+    break;
+
+  default:
+    PanicAlertFmtT("Unknown SYNC_CODES message received with id: {0}", sub_id);
+    break;
+  }
+}
+
+void NetPlayClient::OnSyncCodesNotify()
+{
+  // Set both codes as unsynced
+  m_sync_gecko_codes_complete = false;
+  m_sync_ar_codes_complete = false;
+}
+
+void NetPlayClient::OnSyncCodesNotifyGecko(sf::Packet& packet)
+{
+  // Return if this is the host
+  if (m_local_player->IsHost())
+    return;
+
+  // Receive Number of Codelines to Receive
+  packet >> m_sync_gecko_codes_count;
+
+  m_sync_gecko_codes_success_count = 0;
+
+  NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
+
+  // Check if no codes to sync, if so return as finished
+  if (m_sync_gecko_codes_count == 0)
+  {
+    m_sync_gecko_codes_complete = true;
+    SyncCodeResponse(true);
+  }
+  else
+  {
+    m_dialog->AppendChat(Common::GetStringT("Synchronizing Gecko codes..."));
+  }
+}
+
+void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
+{
+  // Return if this is the host
+  if (m_local_player->IsHost())
+    return;
+
+  std::vector<Gecko::GeckoCode> synced_codes;
+  synced_codes.reserve(m_sync_gecko_codes_count);
+
+  Gecko::GeckoCode gcode{};
+  gcode.name = "Synced Codes";
+  gcode.enabled = true;
+
+  // Receive code contents from packet
+  for (u32 i = 0; i < m_sync_gecko_codes_count; i++)
+  {
+    Gecko::GeckoCode::Code new_code;
+    packet >> new_code.address;
+    packet >> new_code.data;
+
+    NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.address, new_code.data);
+
+    gcode.codes.push_back(std::move(new_code));
+
+    if (++m_sync_gecko_codes_success_count >= m_sync_gecko_codes_count)
+    {
+      m_sync_gecko_codes_complete = true;
+      SyncCodeResponse(true);
+    }
+  }
+
+  // Add gcode containing all codes to Gecko Code vector
+  synced_codes.push_back(std::move(gcode));
+
+  // Clear Vector if received 0 codes (match host's end when using no codes)
+  if (m_sync_gecko_codes_count == 0)
+    synced_codes.clear();
+
+  // Copy this to the vector located in GeckoCode.cpp
+  Gecko::UpdateSyncedCodes(synced_codes);
+}
+
+void NetPlayClient::OnSyncCodesNotifyAR(sf::Packet& packet)
+{
+  // Return if this is the host
+  if (m_local_player->IsHost())
+    return;
+
+  // Receive Number of Codelines to Receive
+  packet >> m_sync_ar_codes_count;
+
+  m_sync_ar_codes_success_count = 0;
+
+  NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} AR codelines", m_sync_ar_codes_count);
+
+  // Check if no codes to sync, if so return as finished
+  if (m_sync_ar_codes_count == 0)
+  {
+    m_sync_ar_codes_complete = true;
+    SyncCodeResponse(true);
+  }
+  else
+  {
+    m_dialog->AppendChat(Common::GetStringT("Synchronizing AR codes..."));
+  }
+}
+
+void NetPlayClient::OnSyncCodesDataAR(sf::Packet& packet)
+{
+  // Return if this is the host
+  if (m_local_player->IsHost())
+    return;
+
+  std::vector<ActionReplay::ARCode> synced_codes;
+  synced_codes.reserve(m_sync_ar_codes_count);
+
+  ActionReplay::ARCode arcode{};
+  arcode.name = "Synced Codes";
+  arcode.enabled = true;
+
+  // Receive code contents from packet
+  for (u32 i = 0; i < m_sync_ar_codes_count; i++)
+  {
+    ActionReplay::AREntry new_code;
+    packet >> new_code.cmd_addr;
+    packet >> new_code.value;
+
+    NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.cmd_addr, new_code.value);
+    arcode.ops.push_back(new_code);
+
+    if (++m_sync_ar_codes_success_count >= m_sync_ar_codes_count)
+    {
+      m_sync_ar_codes_complete = true;
+      SyncCodeResponse(true);
+    }
+  }
+
+  // Add arcode containing all codes to AR Code vector
+  synced_codes.push_back(std::move(arcode));
+
+  // Clear Vector if received 0 codes (match host's end when using no codes)
+  if (m_sync_ar_codes_count == 0)
+    synced_codes.clear();
+
+  // Copy this to the vector located in ActionReplay.cpp
+  ActionReplay::UpdateSyncedCodes(synced_codes);
+}
+
+void NetPlayClient::OnComputeMD5(sf::Packet& packet)
+{
+  SyncIdentifier sync_identifier;
+  ReceiveSyncIdentifier(packet, sync_identifier);
+
+  ComputeMD5(sync_identifier);
+}
+
+void NetPlayClient::OnMD5Progress(sf::Packet& packet)
+{
+  PlayerId pid;
+  int progress;
+  packet >> pid;
+  packet >> progress;
+
+  m_dialog->SetMD5Progress(pid, progress);
+}
+
+void NetPlayClient::OnMD5Result(sf::Packet& packet)
+{
+  PlayerId pid;
+  std::string result;
+  packet >> pid;
+  packet >> result;
+
+  m_dialog->SetMD5Result(pid, result);
+}
+
+void NetPlayClient::OnMD5Error(sf::Packet& packet)
+{
+  PlayerId pid;
+  std::string error;
+  packet >> pid;
+  packet >> error;
+
+  m_dialog->SetMD5Result(pid, error);
+}
+
+void NetPlayClient::OnMD5Abort()
+{
+  m_should_compute_MD5 = false;
+  m_dialog->AbortMD5();
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)

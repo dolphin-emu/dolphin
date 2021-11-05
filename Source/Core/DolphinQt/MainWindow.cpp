@@ -221,6 +221,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectMenuBar();
   ConnectHotkeys();
 
+  connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
+          &MainWindow::ShowGeneralWindow);
+
   InitCoreCallbacks();
 
   NetPlayInit();
@@ -256,8 +259,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   Settings::Instance().RefreshWidgetVisibility();
 
   if (!ResourcePack::Init())
+  {
     ModalMessageBox::critical(this, tr("Error"),
-                              tr("Error occured while loading some texture packs"));
+                              tr("Error occurred while loading some texture packs"));
+  }
 
   for (auto& pack : ResourcePack::GetPacks())
   {
@@ -600,6 +605,7 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::SetStateSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StartRecording, this,
           &MainWindow::OnStartRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::PlayRecording, this, &MainWindow::OnPlayRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
           &MainWindow::OnExportRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
@@ -1393,16 +1399,15 @@ bool MainWindow::NetPlayJoin()
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1461,16 +1466,15 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1494,9 +1498,8 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
     ModalMessageBox::critical(
-        nullptr, QObject::tr("Failed to open server"),
-        QObject::tr(
-            "Failed to listen on port %1. Is another instance of the NetPlay server running?")
+        nullptr, tr("Failed to open server"),
+        tr("Failed to listen on port %1. Is another instance of the NetPlay server running?")
             .arg(host_port));
     NetPlayQuit();
     return false;
@@ -1672,8 +1675,8 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
+  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File to Play"),
+                                                  QString(), tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
     return;
@@ -1742,8 +1745,8 @@ void MainWindow::OnStopRecording()
 void MainWindow::OnExportRecording()
 {
   Core::RunAsCPUThread([this] {
-    QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"),
-                                                    QString(), tr("Dolphin TAS Movies (*.dtm)"));
+    QString dtm_file = QFileDialog::getSaveFileName(this, tr("Save Recording File As"), QString(),
+                                                    tr("Dolphin TAS Movies (*.dtm)"));
     if (!dtm_file.isEmpty())
       Movie::SaveRecording(dtm_file.toStdString());
   });

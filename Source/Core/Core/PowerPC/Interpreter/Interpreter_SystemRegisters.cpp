@@ -61,7 +61,7 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
   const u32 bit = inst.CRBD;
   const u32 b = 0x80000000 >> bit;
 
-  if (b & FPSCR_ANY_X)
+  if ((b & FPSCR_ANY_X) != 0)
     SetFPException(&FPSCR, b);
   else
     FPSCR |= b;
@@ -93,7 +93,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
   u32 m = 0;
   for (u32 i = 0; i < 8; i++)
   {
-    if (fm & (1U << i))
+    if ((fm & (1U << i)) != 0)
       m |= (0xFU << (i * 4));
   }
 
@@ -129,7 +129,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
     u32 mask = 0;
     for (u32 i = 0; i < 8; i++)
     {
-      if (crm & (1U << i))
+      if ((crm & (1U << i)) != 0)
         mask |= 0xFU << (i * 4);
     }
 
@@ -214,9 +214,8 @@ void Interpreter::mtsrin(UGeckoInstruction inst)
 
 void Interpreter::mftb(UGeckoInstruction inst)
 {
-  const u32 index = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
+  [[maybe_unused]] const u32 index = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
   DEBUG_ASSERT_MSG(POWERPC, (index == SPR_TL) || (index == SPR_TU), "Invalid mftb");
-  (void)index;
   mfspr(inst);
 }
 
@@ -389,7 +388,8 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_DEC:
-    if (!(old_value >> 31) && (rGPR[inst.RD] >> 31))  // top bit from 0 to 1
+    // Top bit from 0 to 1
+    if ((old_value >> 31) == 0 && (rGPR[inst.RD] >> 31) != 0)
     {
       INFO_LOG_FMT(POWERPC, "Software triggered Decrementer exception");
       PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
@@ -487,50 +487,66 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
 void Interpreter::crand(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, PowerPC::ppcState.cr.GetBit(inst.CRBA) &
-                                             PowerPC::ppcState.cr.GetBit(inst.CRBB));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, a & b);
 }
 
 void Interpreter::crandc(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, PowerPC::ppcState.cr.GetBit(inst.CRBA) &
-                                             (1 ^ PowerPC::ppcState.cr.GetBit(inst.CRBB)));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, a & (1 ^ b));
 }
 
 void Interpreter::creqv(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (PowerPC::ppcState.cr.GetBit(inst.CRBA) ^
-                                              PowerPC::ppcState.cr.GetBit(inst.CRBB)));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (a ^ b));
 }
 
 void Interpreter::crnand(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (PowerPC::ppcState.cr.GetBit(inst.CRBA) &
-                                              PowerPC::ppcState.cr.GetBit(inst.CRBB)));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (a & b));
 }
 
 void Interpreter::crnor(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (PowerPC::ppcState.cr.GetBit(inst.CRBA) |
-                                              PowerPC::ppcState.cr.GetBit(inst.CRBB)));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (a | b));
 }
 
 void Interpreter::cror(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(
-      inst.CRBD, (PowerPC::ppcState.cr.GetBit(inst.CRBA) | PowerPC::ppcState.cr.GetBit(inst.CRBB)));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, a | b);
 }
 
 void Interpreter::crorc(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, (PowerPC::ppcState.cr.GetBit(inst.CRBA) |
-                                          (1 ^ PowerPC::ppcState.cr.GetBit(inst.CRBB))));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, a | (1 ^ b));
 }
 
 void Interpreter::crxor(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetBit(
-      inst.CRBD, (PowerPC::ppcState.cr.GetBit(inst.CRBA) ^ PowerPC::ppcState.cr.GetBit(inst.CRBB)));
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+
+  PowerPC::ppcState.cr.SetBit(inst.CRBD, a ^ b);
 }
 
 void Interpreter::mcrf(UGeckoInstruction inst)
@@ -549,34 +565,12 @@ void Interpreter::isync(UGeckoInstruction inst)
 void Interpreter::mcrfs(UGeckoInstruction inst)
 {
   UpdateFPSCR(&FPSCR);
-  u32 fpflags = ((FPSCR.Hex >> (4 * (7 - inst.CRFS))) & 0xF);
-  switch (inst.CRFS)
-  {
-  case 0:
-    FPSCR.FX = 0;
-    FPSCR.OX = 0;
-    break;
-  case 1:
-    FPSCR.UX = 0;
-    FPSCR.ZX = 0;
-    FPSCR.XX = 0;
-    FPSCR.VXSNAN = 0;
-    break;
-  case 2:
-    FPSCR.VXISI = 0;
-    FPSCR.VXIDI = 0;
-    FPSCR.VXZDZ = 0;
-    FPSCR.VXIMZ = 0;
-    break;
-  case 3:
-    FPSCR.VXVC = 0;
-    break;
-  case 5:
-    FPSCR.VXSOFT = 0;
-    FPSCR.VXSQRT = 0;
-    FPSCR.VXCVI = 0;
-    break;
-  }
+  const u32 shift = 4 * (7 - inst.CRFS);
+  const u32 fpflags = (FPSCR.Hex >> shift) & 0xF;
+
+  // If any exception bits were read, clear them
+  FPSCR.Hex &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
+
   PowerPC::ppcState.cr.SetField(inst.CRFD, fpflags);
 }
 

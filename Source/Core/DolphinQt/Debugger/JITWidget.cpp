@@ -186,14 +186,22 @@ void JITWidget::Update()
     ppc_disasm << st.numCycles << " estimated cycles" << std::endl;
 
     ppc_disasm << "Num instr: PPC: " << code_block.m_num_instructions
-               << " Host: " << host_instructions_count << " (blowup: "
-               << 100 * host_instructions_count / code_block.m_num_instructions - 100 << "%)"
-               << std::endl;
+               << " Host: " << host_instructions_count;
+    if (code_block.m_num_instructions != 0)
+    {
+      ppc_disasm << " (blowup: "
+                 << 100 * host_instructions_count / code_block.m_num_instructions - 100 << "%)";
+    }
+    ppc_disasm << std::endl;
 
     ppc_disasm << "Num bytes: PPC: " << code_block.m_num_instructions * 4
-               << " Host: " << host_code_size
-               << " (blowup: " << 100 * host_code_size / (4 * code_block.m_num_instructions) - 100
-               << "%)" << std::endl;
+               << " Host: " << host_code_size;
+    if (code_block.m_num_instructions != 0)
+    {
+      ppc_disasm << " (blowup: " << 100 * host_code_size / (4 * code_block.m_num_instructions) - 100
+                 << "%)";
+    }
+    ppc_disasm << std::endl;
 
     m_ppc_asm_widget->setHtml(
         QStringLiteral("<pre>%1</pre>").arg(QString::fromStdString(ppc_disasm.str())));

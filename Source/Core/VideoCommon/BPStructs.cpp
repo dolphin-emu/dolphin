@@ -3,6 +3,7 @@
 
 #include "VideoCommon/BPStructs.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -225,6 +226,8 @@ static void BPWritten(const BPCmd& bp)
     srcRect.right = bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1;
     srcRect.bottom = bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1;
 
+    const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+
     // Since the copy X and Y coordinates/sizes are 10-bit, the game can configure a copy region up
     // to 1024x1024. Hardware tests have found that the number of bytes written does not depend on
     // the configured stride, instead it is based on the size registers, writing beyond the length
@@ -237,29 +240,36 @@ static void BPWritten(const BPCmd& bp)
     // writing the junk data, we don't write anything to RAM at all for over-sized copies, and clamp
     // to the EFB borders for over-offset copies. The arcade virtual console games (e.g. 1942) are
     // known for configuring these out-of-range copies.
-    u32 copy_width = srcRect.GetWidth();
-    u32 copy_height = srcRect.GetHeight();
-    if (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT)
-    {
-      WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", copy_width,
-                   copy_height, srcRect.left, srcRect.top, destStride);
 
-      // Adjust the copy size to fit within the EFB. So that we don't end up with a stretched image,
-      // instead of clamping the source rectangle, we reduce it by the over-sized amount.
-      if (copy_width > EFB_WIDTH)
+    if (u32(srcRect.right) > EFB_WIDTH || u32(srcRect.bottom) > EFB_HEIGHT)
+    {
+      WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", srcRect.GetWidth(),
+                   srcRect.GetHeight(), srcRect.left, srcRect.top, destStride);
+
+      if (u32(srcRect.left) >= EFB_WIDTH || u32(srcRect.top) >= EFB_HEIGHT)
       {
-        srcRect.right -= copy_width - EFB_WIDTH;
-        copy_width = EFB_WIDTH;
+        // This is not a sane src rectangle, it doesn't touch any valid image data at all
+        // Just ignore it
+        // Apparently Mario Kart Wii in wifi mode can generate a deformed EFB copy of size 4x4
+        // at offset (328,1020)
+        if (PE_copy.copy_to_xfb == 1)
+        {
+          // Make sure we disable Bounding box to match the side effects of the non-failure path
+          BoundingBox::Disable();
+        }
+
+        return;
       }
-      if (copy_height > EFB_HEIGHT)
-      {
-        srcRect.bottom -= copy_height - EFB_HEIGHT;
-        copy_height = EFB_HEIGHT;
-      }
+
+      // Clamp the copy region to fit within EFB. So that we don't end up with a stretched image.
+      srcRect.right = std::clamp<int>(srcRect.right, 0, EFB_WIDTH);
+      srcRect.bottom = std::clamp<int>(srcRect.bottom, 0, EFB_HEIGHT);
     }
 
+    const u32 copy_width = srcRect.GetWidth();
+    const u32 copy_height = srcRect.GetHeight();
+
     // Check if we are to copy from the EFB or draw to the XFB
-    const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
     if (PE_copy.copy_to_xfb == 0)
     {
       // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from ZBuffer

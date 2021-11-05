@@ -11,6 +11,7 @@
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPIntCCUtil.h"
 #include "Core/DSP/Interpreter/DSPIntTables.h"
 
 namespace DSP::Interpreter
@@ -75,7 +76,7 @@ int Interpreter::RunCyclesThread(int cycles)
 
     Step();
     cycles--;
-    if (cycles < 0)
+    if (cycles <= 0)
       return 0;
   }
 }
@@ -98,7 +99,7 @@ int Interpreter::RunCyclesDebug(int cycles)
     }
     Step();
     cycles--;
-    if (cycles < 0)
+    if (cycles <= 0)
       return 0;
   }
 
@@ -122,7 +123,7 @@ int Interpreter::RunCyclesDebug(int cycles)
 
       Step();
       cycles--;
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
     }
 
@@ -136,7 +137,7 @@ int Interpreter::RunCyclesDebug(int cycles)
       }
       Step();
       cycles--;
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
       // We don't bother directly supporting pause - if the main emu pauses,
       // it just won't call this function anymore.
@@ -159,7 +160,7 @@ int Interpreter::RunCycles(int cycles)
     Step();
     cycles--;
 
-    if (cycles < 0)
+    if (cycles <= 0)
       return 0;
   }
 
@@ -178,7 +179,7 @@ int Interpreter::RunCycles(int cycles)
       Step();
       cycles--;
 
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
     }
 
@@ -187,7 +188,7 @@ int Interpreter::RunCycles(int cycles)
     {
       Step();
       cycles--;
-      if (cycles < 0)
+      if (cycles <= 0)
         return 0;
       // We don't bother directly supporting pause - if the main emu pauses,
       // it just won't call this function anymore.
@@ -250,14 +251,11 @@ bool Interpreter::CheckCondition(u8 condition) const
   const auto IsCarry = [this] { return IsSRFlagSet(SR_CARRY); };
   const auto IsOverflow = [this] { return IsSRFlagSet(SR_OVERFLOW); };
   const auto IsOverS32 = [this] { return IsSRFlagSet(SR_OVER_S32); };
-  const auto IsLess = [this] {
-    const auto& state = m_dsp_core.DSPState();
-    return (state.r.sr & SR_OVERFLOW) != (state.r.sr & SR_SIGN);
-  };
+  const auto IsLess = [this] { return IsSRFlagSet(SR_OVERFLOW) != IsSRFlagSet(SR_SIGN); };
   const auto IsZero = [this] { return IsSRFlagSet(SR_ARITH_ZERO); };
   const auto IsLogicZero = [this] { return IsSRFlagSet(SR_LOGIC_ZERO); };
-  const auto IsConditionA = [this] {
-    return (IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS)) && !IsSRFlagSet(SR_ARITH_ZERO);
+  const auto IsConditionB = [this] {
+    return (!(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))) || IsSRFlagSet(SR_ARITH_ZERO);
   };
 
   switch (condition & 0xf)
@@ -285,14 +283,14 @@ bool Interpreter::CheckCondition(u8 condition) const
   case 0x9:  // ? - Over s32
     return IsOverS32();
   case 0xa:  // ?
-    return IsConditionA();
+    return !IsConditionB();
   case 0xb:  // ?
-    return !IsConditionA();
+    return IsConditionB();
   case 0xc:  // LNZ  - Logic Not Zero
     return !IsLogicZero();
   case 0xd:  // LZ - Logic Zero
     return IsLogicZero();
-  case 0xe:  // 0 - Overflow
+  case 0xe:  // O - Overflow
     return IsOverflow();
   default:
     return true;
@@ -397,13 +395,14 @@ s16 Interpreter::GetAXHigh(s32 reg) const
 s64 Interpreter::GetLongAcc(s32 reg) const
 {
   const auto& state = m_dsp_core.DSPState();
-  return static_cast<s64>(state.r.ac[reg].val << 24) >> 24;
+  return static_cast<s64>(state.r.ac[reg].val);
 }
 
 void Interpreter::SetLongAcc(s32 reg, s64 value)
 {
   auto& state = m_dsp_core.DSPState();
-  state.r.ac[reg].val = static_cast<u64>(value);
+  // 40-bit sign extension
+  state.r.ac[reg].val = static_cast<u64>((value << (64 - 40)) >> (64 - 40));
 }
 
 s16 Interpreter::GetAccLow(s32 reg) const
@@ -549,8 +548,16 @@ void Interpreter::UpdateSR16(s16 value, bool carry, bool overflow, bool over_s32
   }
 }
 
+static constexpr bool IsProperlySignExtended(u64 val)
+{
+  const u64 topbits = val & 0xffff'ff80'0000'0000ULL;
+  return (topbits == 0) || (0xffff'ff80'0000'0000ULL == topbits);
+}
+
 void Interpreter::UpdateSR64(s64 value, bool carry, bool overflow)
 {
+  DEBUG_ASSERT(IsProperlySignExtended(value));
+
   auto& state = m_dsp_core.DSPState();
 
   state.r.sr &= ~SR_CMP_MASK;
@@ -581,7 +588,7 @@ void Interpreter::UpdateSR64(s64 value, bool carry, bool overflow)
   }
 
   // 0x10
-  if (value != static_cast<s32>(value))
+  if (isOverS32(value))
   {
     state.r.sr |= SR_OVER_S32;
   }
@@ -591,6 +598,28 @@ void Interpreter::UpdateSR64(s64 value, bool carry, bool overflow)
   {
     state.r.sr |= SR_TOP2BITS;
   }
+}
+
+// Updates SR based on a 64-bit value computed by result = val1 + val2.
+// Result is a separate parameter that is properly sign-extended, and as such may not equal the
+// result of adding a and b in a 64-bit context.
+void Interpreter::UpdateSR64Add(s64 val1, s64 val2, s64 result)
+{
+  DEBUG_ASSERT(((val1 + val2) & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
+  DEBUG_ASSERT(IsProperlySignExtended(val1));
+  DEBUG_ASSERT(IsProperlySignExtended(val2));
+  UpdateSR64(result, isCarryAdd(val1, result), isOverflow(val1, val2, result));
+}
+
+// Updates SR based on a 64-bit value computed by result = val1 - val2.
+// Result is a separate parameter that is properly sign-extended, and as such may not equal the
+// result of adding a and b in a 64-bit context.
+void Interpreter::UpdateSR64Sub(s64 val1, s64 val2, s64 result)
+{
+  DEBUG_ASSERT(((val1 - val2) & 0xff'ffff'ffffULL) == (result & 0xff'ffff'ffffULL));
+  DEBUG_ASSERT(IsProperlySignExtended(val1));
+  DEBUG_ASSERT(IsProperlySignExtended(val2));
+  UpdateSR64(result, isCarrySubtract(val1, result), isOverflow(val1, -val2, result));
 }
 
 void Interpreter::UpdateSRLogicZero(bool value)
@@ -690,11 +719,11 @@ void Interpreter::OpWriteRegister(int reg_, u16 val)
 
   switch (reg)
   {
-  // 8-bit sign extended registers. Should look at prod.h too...
+  // 8-bit sign extended registers.
   case DSP_REG_ACH0:
   case DSP_REG_ACH1:
-    // sign extend from the bottom 8 bits.
-    state.r.ac[reg - DSP_REG_ACH0].h = (u16)(s16)(s8)(u8)val;
+    // Sign extend from the bottom 8 bits.
+    state.r.ac[reg - DSP_REG_ACH0].h = static_cast<s8>(val);
     break;
 
   // Stack registers.
@@ -723,10 +752,10 @@ void Interpreter::OpWriteRegister(int reg_, u16 val)
     state.r.wr[reg - DSP_REG_WR0] = val;
     break;
   case DSP_REG_CR:
-    state.r.cr = val;
+    state.r.cr = val & 0x00ff;
     break;
   case DSP_REG_SR:
-    state.r.sr = val;
+    state.r.sr = val & ~SR_100;
     break;
   case DSP_REG_PRODL:
     state.r.prod.l = val;
@@ -735,7 +764,8 @@ void Interpreter::OpWriteRegister(int reg_, u16 val)
     state.r.prod.m = val;
     break;
   case DSP_REG_PRODH:
-    state.r.prod.h = val;
+    // Unlike ac0.h and ac1.h, prod.h is not sign-extended
+    state.r.prod.h = val & 0x00ff;
     break;
   case DSP_REG_PRODM2:
     state.r.prod.m2 = val;
@@ -770,7 +800,7 @@ void Interpreter::ConditionalExtendAccum(int reg)
   // Sign extend into whole accum.
   auto& state = m_dsp_core.DSPState();
   const u16 val = state.r.ac[reg - DSP_REG_ACM0].m;
-  state.r.ac[reg - DSP_REG_ACM0].h = (val & 0x8000) != 0 ? 0xFFFF : 0x0000;
+  state.r.ac[reg - DSP_REG_ACM0].h = (val & 0x8000) != 0 ? 0xFFFFFFFF : 0x0000;
   state.r.ac[reg - DSP_REG_ACM0].l = 0;
 }
 

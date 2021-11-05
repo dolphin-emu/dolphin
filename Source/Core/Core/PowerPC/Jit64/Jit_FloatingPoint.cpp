@@ -345,13 +345,18 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     RegCache::Realize(Ra, Rb, Rc, Rd);
   }
 
-  X64Reg scratch_xmm = !use_fma && inst.SUBOP5 == 30 ? XMM1 : XMM0;
-  X64Reg result_xmm = scratch_xmm == XMM0 ? XMM1 : XMM0;
+  const bool subtract = inst.SUBOP5 == 28 || inst.SUBOP5 == 30;  // msub, nmsub
+  const bool negate = inst.SUBOP5 == 30 || inst.SUBOP5 == 31;    // nmsub, nmadd
+  const bool madds0 = inst.SUBOP5 == 14;
+  const bool madds1 = inst.SUBOP5 == 15;
+
+  X64Reg scratch_xmm = XMM0;
+  X64Reg result_xmm = XMM1;
   if (software_fma)
   {
     for (size_t i = (packed ? 1 : 0); i != std::numeric_limits<size_t>::max(); --i)
     {
-      if ((i == 0 || inst.SUBOP5 == 14) && inst.SUBOP5 != 15)  // (i == 0 || madds0) && !madds1
+      if ((i == 0 || madds0) && !madds1)
       {
         if (round_input)
           Force25BitPrecision(XMM1, Rc, XMM2);
@@ -381,7 +386,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         MOVHLPS(XMM2, Rb.GetSimpleReg());
       }
 
-      if (inst.SUBOP5 == 28 || inst.SUBOP5 == 30)  // nsub, nmsub
+      if (subtract)
         XORPS(XMM2, MConst(psSignBits));
 
       BitSet32 registers_in_use = CallerSavedRegistersInUse();
@@ -399,128 +404,87 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     {
       result_xmm = XMM0;
     }
-
-    if (inst.SUBOP5 == 30 || inst.SUBOP5 == 31)  // nmsub, nmadd
-      XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
   }
   else
   {
-    switch (inst.SUBOP5)
+    if (madds0)
     {
-    case 14:  // madds0
       MOVDDUP(result_xmm, Rc);
       if (round_input)
         Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
-      break;
-    case 15:  // madds1
+    }
+    else if (madds1)
+    {
       avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, result_xmm, Rc, Rc, 3);
       if (round_input)
         Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
-      break;
-    default:
-      if (single && round_input)
+    }
+    else
+    {
+      if (round_input)
         Force25BitPrecision(result_xmm, Rc, scratch_xmm);
       else
         MOVAPD(result_xmm, Rc);
-      break;
     }
 
     if (use_fma)
     {
-      switch (inst.SUBOP5)
+      if (subtract)
       {
-      case 28:  // msub
         if (packed)
           VFMSUB132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
           VFMSUB132SD(result_xmm, Rb.GetSimpleReg(), Ra);
-        break;
-      case 14:  // madds0
-      case 15:  // madds1
-      case 29:  // madd
-        if (packed)
-          VFMADD132PD(result_xmm, Rb.GetSimpleReg(), Ra);
-        else
-          VFMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
-        break;
-      // PowerPC and x86 define NMADD/NMSUB differently
-      // x86: D = -A*C (+/-) B
-      // PPC: D = -(A*C (+/-) B)
-      // so we have to swap them; the ADD/SUB here isn't a typo.
-      case 30:  // nmsub
-        if (packed)
-          VFNMADD132PD(result_xmm, Rb.GetSimpleReg(), Ra);
-        else
-          VFNMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
-        break;
-      case 31:  // nmadd
-        if (packed)
-          VFNMSUB132PD(result_xmm, Rb.GetSimpleReg(), Ra);
-        else
-          VFNMSUB132SD(result_xmm, Rb.GetSimpleReg(), Ra);
-        break;
-      }
-    }
-    else
-    {
-      if (inst.SUBOP5 == 30)  // nmsub
-      {
-        // We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)),
-        // so handle it separately.
-        MOVAPD(scratch_xmm, Rb);
-        if (packed)
-        {
-          MULPD(result_xmm, Ra);
-          SUBPD(scratch_xmm, R(result_xmm));
-        }
-        else
-        {
-          MULSD(result_xmm, Ra);
-          SUBSD(scratch_xmm, R(result_xmm));
-        }
-        result_xmm = scratch_xmm;
       }
       else
       {
         if (packed)
-        {
-          MULPD(result_xmm, Ra);
-          if (inst.SUBOP5 == 28)  // msub
-            SUBPD(result_xmm, Rb);
-          else  //(n)madd(s[01])
-            ADDPD(result_xmm, Rb);
-        }
+          VFMADD132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-        {
-          MULSD(result_xmm, Ra);
-          if (inst.SUBOP5 == 28)
-            SUBSD(result_xmm, Rb);
-          else
-            ADDSD(result_xmm, Rb);
-        }
-        if (inst.SUBOP5 == 31)  // nmadd
-          XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
+          VFMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
+      }
+    }
+    else
+    {
+      if (packed)
+      {
+        MULPD(result_xmm, Ra);
+        if (subtract)
+          SUBPD(result_xmm, Rb);
+        else
+          ADDPD(result_xmm, Rb);
+      }
+      else
+      {
+        MULSD(result_xmm, Ra);
+        if (subtract)
+          SUBSD(result_xmm, Rb);
+        else
+          ADDSD(result_xmm, Rb);
       }
     }
   }
 
+  // Using x64's nmadd/nmsub would require us to swap the sign of the addend
+  // (i.e. PPC nmadd maps to x64 nmsub), which can cause problems with signed zeroes.
+  // Also, PowerPC's nmadd/nmsub round before the final negation unlike x64's nmadd/nmsub.
+  // So, negate using a separate instruction instead of using x64's nmadd/nmsub.
+  if (negate)
+    XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
+
   if (SConfig::GetInstance().bAccurateNaNs && result_xmm == XMM0)
   {
     // HandleNaNs needs to clobber XMM0
-    MOVAPD(XMM1, R(result_xmm));
-    result_xmm = XMM1;
+    MOVAPD(Rd, R(result_xmm));
+    result_xmm = Rd;
   }
 
+  HandleNaNs(inst, result_xmm, result_xmm, XMM0);
+
   if (single)
-  {
-    HandleNaNs(inst, result_xmm, result_xmm, XMM0);
     FinalizeSingleResult(Rd, R(result_xmm), packed, true);
-  }
   else
-  {
-    HandleNaNs(inst, result_xmm, result_xmm, XMM0);
     FinalizeDoubleResult(Rd, R(result_xmm));
-  }
 }
 
 void Jit64::fsign(UGeckoInstruction inst)

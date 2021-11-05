@@ -1457,8 +1457,8 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           compare_hashes(offsetof(HashBlock, padding_2), sizeof(HashBlock::padding_2));
         }
 
-        static_assert(std::is_trivially_copyable_v<typename decltype(
-                          CompressThreadState::decryption_buffer)::value_type>);
+        static_assert(std::is_trivially_copyable_v<
+                      typename decltype(CompressThreadState::decryption_buffer)::value_type>);
         if constexpr (RVZ)
         {
           // We must not store junk efficiently for chunks that may get reused at a position

@@ -76,9 +76,10 @@ void Interpreter::jcc(const UDSPInstruction opc)
 }
 
 // Generic jmpr implementation
-// JMPcc $R
+// JRcc $R
 // 0001 0111 rrr0 cccc
-// Jump to address; set program counter to a value from register $R.
+// Jump to address if condition cc has been met. Set program counter to
+// a value from register $R.
 void Interpreter::jmprcc(const UDSPInstruction opc)
 {
   if (!CheckCondition(opc & 0xf))
@@ -103,20 +104,24 @@ void Interpreter::ret(const UDSPInstruction opc)
   state.pc = state.PopStack(StackRegister::Call);
 }
 
-// RTI
+// RTIcc
 // 0000 0010 1111 1111
 // Return from exception. Pops stored status register $sr from data stack
 // $st1 and program counter PC from call stack $st0 and sets $pc to this
 // location.
-void Interpreter::rti(const UDSPInstruction)
+// This instruction has a conditional form, but it is not used by any official ucode.
+void Interpreter::rti(const UDSPInstruction opc)
 {
+  if (!CheckCondition(opc & 0xf))
+    return;
+
   auto& state = m_dsp_core.DSPState();
   state.r.sr = state.PopStack(StackRegister::Data);
   state.pc = state.PopStack(StackRegister::Call);
 }
 
 // HALT
-// 0000 0000 0020 0001
+// 0000 0000 0010 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void Interpreter::halt(const UDSPInstruction)
 {

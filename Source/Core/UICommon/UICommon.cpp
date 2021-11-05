@@ -102,6 +102,7 @@ void Init()
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   Common::SetEnableAlert(false); // Panic Handlers forced off
+  Common::SetAbortOnPanicAlert(Config::Get(Config::MAIN_ABORT_ON_PANIC_ALERT));
 }
 
 void Shutdown()

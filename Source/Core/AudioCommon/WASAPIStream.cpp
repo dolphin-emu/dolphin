@@ -49,7 +49,7 @@ WASAPIStream::~WASAPIStream()
     m_thread.join();
 }
 
-bool WASAPIStream::isValid()
+bool WASAPIStream::IsValid()
 {
   return true;
 }

@@ -461,7 +461,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     const int limit = m_VtxAttr.g0.NormalElements == NormalComponentCount::NBT ? 3 : 1;
 
     s32 offset = -1;
-    for (int i = 0; i < (m_VtxAttr.g0.NormalElements == NormalComponentCount::NBT ? 3 : 1); i++)
+    for (int i = 0; i < limit; i++)
     {
       if (!i || m_VtxAttr.g0.NormalIndex3)
       {

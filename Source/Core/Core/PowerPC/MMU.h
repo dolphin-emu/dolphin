@@ -86,8 +86,8 @@ HostTryReadString(u32 address, size_t size = 0,
 // Writes a value to emulated memory using the currently active MMU settings.
 // If the write fails (eg. address does not correspond to a mapped address in the current address
 // space), a PanicAlert will be shown to the user.
-void HostWrite_U8(u8 var, u32 address);
-void HostWrite_U16(u16 var, u32 address);
+void HostWrite_U8(u32 var, u32 address);
+void HostWrite_U16(u32 var, u32 address);
 void HostWrite_U32(u32 var, u32 address);
 void HostWrite_U64(u64 var, u32 address);
 void HostWrite_F32(float var, u32 address);
@@ -111,9 +111,9 @@ struct TryWriteResult
 // If the write succeeds, the returned TryWriteResult contains information on whether the given
 // address had to be translated or not. Unlike the HostWrite functions, this does not raise a
 // user-visible alert on failure.
-TryWriteResult HostTryWriteU8(u8 var, const u32 address,
+TryWriteResult HostTryWriteU8(u32 var, const u32 address,
                               RequestedAddressSpace space = RequestedAddressSpace::Effective);
-TryWriteResult HostTryWriteU16(u16 var, const u32 address,
+TryWriteResult HostTryWriteU16(u32 var, const u32 address,
                                RequestedAddressSpace space = RequestedAddressSpace::Effective);
 TryWriteResult HostTryWriteU32(u32 var, const u32 address,
                                RequestedAddressSpace space = RequestedAddressSpace::Effective);
@@ -158,12 +158,12 @@ double Read_F64(u32 address);
 u32 Read_U8_ZX(u32 address);
 u32 Read_U16_ZX(u32 address);
 
-void Write_U8(u8 var, u32 address);
-void Write_U16(u16 var, u32 address);
+void Write_U8(u32 var, u32 address);
+void Write_U16(u32 var, u32 address);
 void Write_U32(u32 var, u32 address);
 void Write_U64(u64 var, u32 address);
 
-void Write_U16_Swap(u16 var, u32 address);
+void Write_U16_Swap(u32 var, u32 address);
 void Write_U32_Swap(u32 var, u32 address);
 void Write_U64_Swap(u64 var, u32 address);
 
@@ -189,9 +189,17 @@ bool IsOptimizableGatherPipeWrite(u32 address);
 
 struct TranslateResult
 {
-  bool valid;
-  bool from_bat;
-  u32 address;
+  bool valid = false;
+  bool translated = false;
+  bool from_bat = false;
+  u32 address = 0;
+
+  TranslateResult() = default;
+  explicit TranslateResult(u32 address_) : valid(true), address(address_) {}
+  TranslateResult(bool from_bat_, u32 address_)
+      : valid(true), translated(true), from_bat(from_bat_), address(address_)
+  {
+  }
 };
 TranslateResult JitCache_TranslateAddress(u32 address);
 
@@ -199,18 +207,24 @@ constexpr int BAT_INDEX_SHIFT = 17;
 constexpr u32 BAT_PAGE_SIZE = 1 << BAT_INDEX_SHIFT;
 constexpr u32 BAT_MAPPED_BIT = 0x1;
 constexpr u32 BAT_PHYSICAL_BIT = 0x2;
-constexpr u32 BAT_RESULT_MASK = UINT32_C(~0x3);
+constexpr u32 BAT_WI_BIT = 0x4;
+constexpr u32 BAT_RESULT_MASK = UINT32_C(~0x7);
 using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KB
 extern BatTable ibat_table;
 extern BatTable dbat_table;
-inline bool TranslateBatAddess(const BatTable& bat_table, u32* address)
+inline bool TranslateBatAddess(const BatTable& bat_table, u32* address, bool* wi)
 {
   u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
   if ((bat_result & BAT_MAPPED_BIT) == 0)
     return false;
   *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
+  *wi = (bat_result & BAT_WI_BIT) != 0;
   return true;
 }
+
+constexpr size_t HW_PAGE_SIZE = 4096;
+constexpr u32 HW_PAGE_INDEX_SHIFT = 12;
+constexpr u32 HW_PAGE_INDEX_MASK = 0x3f;
 
 std::optional<u32> GetTranslatedAddress(u32 address);
 }  // namespace PowerPC

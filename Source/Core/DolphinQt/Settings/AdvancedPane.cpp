@@ -46,26 +46,27 @@ void AdvancedPane::CreateLayout()
   auto* main_layout = new QVBoxLayout();
   setLayout(main_layout);
 
-  auto* cpu_options = new QGroupBox(tr("CPU Options"));
-  auto* cpu_options_layout = new QVBoxLayout();
-  cpu_options->setLayout(cpu_options_layout);
-  main_layout->addWidget(cpu_options);
+  auto* cpu_options_group = new QGroupBox(tr("CPU Options"));
+  auto* cpu_options_group_layout = new QVBoxLayout();
+  cpu_options_group->setLayout(cpu_options_group_layout);
+  main_layout->addWidget(cpu_options_group);
 
-  QGridLayout* cpu_emulation_layout = new QGridLayout();
-  QLabel* cpu_emulation_engine_label = new QLabel(tr("CPU Emulation Engine:"));
+  auto* cpu_emulation_engine_layout = new QFormLayout;
+  cpu_emulation_engine_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  cpu_emulation_engine_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  cpu_options_group_layout->addLayout(cpu_emulation_engine_layout);
+
   m_cpu_emulation_engine_combobox = new QComboBox(this);
+  cpu_emulation_engine_layout->addRow(tr("CPU Emulation Engine:"), m_cpu_emulation_engine_combobox);
   for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
   {
     m_cpu_emulation_engine_combobox->addItem(tr(CPU_CORE_NAMES.at(cpu_core)));
   }
-  cpu_emulation_layout->addWidget(cpu_emulation_engine_label, 0, 0);
-  cpu_emulation_layout->addWidget(m_cpu_emulation_engine_combobox, 0, 1, Qt::AlignLeft);
-  cpu_options_layout->addLayout(cpu_emulation_layout);
 
   m_enable_mmu_checkbox = new QCheckBox(tr("Enable MMU"));
   m_enable_mmu_checkbox->setToolTip(tr(
       "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
-  cpu_options_layout->addWidget(m_enable_mmu_checkbox);
+  cpu_options_group_layout->addWidget(m_enable_mmu_checkbox);
 
   auto* clock_override = new QGroupBox(tr("Clock Override"));
   auto* clock_override_layout = new QVBoxLayout();
@@ -265,7 +266,7 @@ void AdvancedPane::Update()
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
     int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
     int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
-    return tr("%1 % (%2 MHz)").arg(QString::number(percent), QString::number(clock));
+    return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
 
   m_ram_override_checkbox->setEnabled(!running);
@@ -281,7 +282,7 @@ void AdvancedPane::Update()
 
   m_mem1_override_slider_label->setText([] {
     const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
-    return tr("%1MB (MEM1)").arg(QString::number(mem1_size));
+    return tr("%1 MB (MEM1)").arg(QString::number(mem1_size));
   }());
 
   m_mem2_override_slider->setEnabled(enable_ram_override_widgets && !running);
@@ -295,7 +296,7 @@ void AdvancedPane::Update()
 
   m_mem2_override_slider_label->setText([] {
     const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
-    return tr("%1MB (MEM2)").arg(QString::number(mem2_size));
+    return tr("%1 MB (MEM2)").arg(QString::number(mem2_size));
   }());
 
   m_custom_rtc_checkbox->setEnabled(!running);

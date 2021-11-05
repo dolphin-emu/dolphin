@@ -28,19 +28,21 @@
 #include <tuple>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <fmt/format.h>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/ARDecrypt.h"
 #include "Core/CheatCodes.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/PowerPC/MMU.h"
 
 #include "PrimeHack/HackConfig.h"
@@ -118,7 +120,7 @@ struct ARAddr
 // AR Remote Functions
 void ApplyCodes(const std::vector<ARCode>& codes)
 {
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
 
   std::lock_guard guard(s_lock);
@@ -147,7 +149,7 @@ void UpdateSyncedCodes(const std::vector<ARCode>& codes)
 
 std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
 {
-  if (SConfig::GetInstance().bEnableCheats)
+  if (Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
     std::lock_guard guard(s_lock);
     s_disable_logging = false;
@@ -162,7 +164,7 @@ std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
 
 void AddCode(ARCode code)
 {
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
 
   if (code.enabled)
@@ -220,42 +222,14 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
       }
       else
       {
-        std::vector<std::string> pieces = SplitString(line, ' ');
+        const auto parse_result = DeserializeLine(line);
 
-        // Check if the AR code is decrypted
-        if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
-        {
-          AREntry op;
-          bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
-          bool success_val = TryParse(pieces[1], &op.value, 16);
-
-          if (success_addr && success_val)
-          {
-            current_code.ops.push_back(op);
-          }
-          else
-          {
-            PanicAlertFmtT("Action Replay Error: invalid AR code line: {0}", line);
-
-            if (!success_addr)
-              PanicAlertFmtT("The address is invalid");
-
-            if (!success_val)
-              PanicAlertFmtT("The value is invalid");
-          }
-        }
+        if (std::holds_alternative<AREntry>(parse_result))
+          current_code.ops.push_back(std::get<AREntry>(parse_result));
+        else if (std::holds_alternative<EncryptedLine>(parse_result))
+          encrypted_lines.emplace_back(std::get<EncryptedLine>(parse_result));
         else
-        {
-          pieces = SplitString(line, '-');
-          if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 &&
-              pieces[2].size() == 5)
-          {
-            // Encrypted AR code
-            // Decryption is done in "blocks", so we must push blocks into a vector,
-            // then send to decrypt when a new block is encountered, or if it's the last block.
-            encrypted_lines.emplace_back(pieces[0] + pieces[1] + pieces[2]);
-          }
-        }
+          PanicAlertFmtT("Action Replay Error: invalid AR code line: {0}", line);
       }
     }
 
@@ -298,7 +272,7 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
       lines.emplace_back('$' + code.name);
       for (const ActionReplay::AREntry& op : code.ops)
       {
-        lines.emplace_back(fmt::format("{:08X} {:08X}", op.cmd_addr, op.value));
+        lines.emplace_back(SerializeLine(op));
       }
     }
   }
@@ -306,6 +280,39 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
   local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
   local_ini->SetLines("ActionReplay_Disabled", disabled_lines);
   local_ini->SetLines("ActionReplay", lines);
+}
+
+std::variant<std::monostate, AREntry, EncryptedLine> DeserializeLine(const std::string& line)
+{
+  std::vector<std::string> pieces = SplitString(line, ' ');
+
+  // Decrypted AR code
+  if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
+  {
+    AREntry op;
+    bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
+    bool success_val = TryParse(pieces[1], &op.value, 16);
+
+    if (success_addr && success_val)
+      return op;
+  }
+
+  // Encrypted AR code
+  pieces = SplitString(line, '-');
+  if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5)
+  {
+    // Decryption is done in "blocks", so we can't decrypt right away. Instead we push blocks into
+    // a vector, then send to decrypt when a new block is encountered, or if it's the last block.
+    return pieces[0] + pieces[1] + pieces[2];
+  }
+
+  // Parsing failed
+  return std::monostate{};
+}
+
+std::string SerializeLine(const AREntry& op)
+{
+  return fmt::format("{:08X} {:08X}", op.cmd_addr, op.value);
 }
 
 static void VLogInfo(std::string_view format, fmt::format_args args)
@@ -980,7 +987,7 @@ void RunAllActive()
 {
   prime::GetHackManager()->run_active_mods();
 
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
     return;
   // If the mutex is idle then acquiring it should be cheap, fast mutexes
   // are only atomic ops unless contested. It should be rare for this to

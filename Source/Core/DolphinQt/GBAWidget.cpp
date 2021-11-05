@@ -353,7 +353,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   disconnect_action->setChecked(!m_force_disconnect);
   connect(disconnect_action, &QAction::triggered, this, &GBAWidget::ToggleDisconnect);
 
-  auto* load_action = new QAction(tr("L&oad ROM"), menu);
+  auto* load_action = new QAction(tr("L&oad ROM..."), menu);
   load_action->setEnabled(CanControlCore());
   connect(load_action, &QAction::triggered, this, &GBAWidget::LoadROM);
 
@@ -361,7 +361,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   unload_action->setEnabled(CanControlCore() && m_core_info.has_rom);
   connect(unload_action, &QAction::triggered, this, &GBAWidget::UnloadROM);
 
-  auto* card_action = new QAction(tr("&Scan e-Reader Card(s)"), menu);
+  auto* card_action = new QAction(tr("&Scan e-Reader Card(s)..."), menu);
   card_action->setEnabled(CanControlCore() && m_core_info.has_ereader);
   connect(card_action, &QAction::triggered, this, &GBAWidget::PromptForEReaderCards);
 
@@ -370,10 +370,10 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   connect(reset_action, &QAction::triggered, this, &GBAWidget::ResetCore);
 
   auto* state_menu = new QMenu(tr("Save State"), menu);
-  auto* import_action = new QAction(tr("&Import State"), state_menu);
+  auto* import_action = new QAction(tr("&Import State..."), state_menu);
   import_action->setEnabled(CanControlCore());
   connect(import_action, &QAction::triggered, this, [this] { DoState(false); });
-  auto* export_state = new QAction(tr("&Export State"), state_menu);
+  auto* export_state = new QAction(tr("&Export State..."), state_menu);
   connect(export_state, &QAction::triggered, this, [this] { DoState(true); });
 
   auto* mute_action = new QAction(tr("&Mute"), menu);

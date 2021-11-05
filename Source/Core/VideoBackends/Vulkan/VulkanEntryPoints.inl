@@ -197,4 +197,6 @@ VULKAN_DEVICE_ENTRY_POINT(vkAcquireFullScreenExclusiveModeEXT, false)
 VULKAN_DEVICE_ENTRY_POINT(vkReleaseFullScreenExclusiveModeEXT, false)
 #endif
 
+VULKAN_DEVICE_ENTRY_POINT(vkSetDebugUtilsObjectNameEXT, false)
+
 #endif  // VULKAN_DEVICE_ENTRY_POINT

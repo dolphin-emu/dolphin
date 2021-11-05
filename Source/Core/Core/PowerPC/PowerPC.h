@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <iosfwd>
 #include <tuple>
@@ -49,12 +50,16 @@ constexpr size_t TLB_WAYS = 2;
 
 struct TLBEntry
 {
+  using WayArray = std::array<u32, TLB_WAYS>;
+
   static constexpr u32 INVALID_TAG = 0xffffffff;
 
-  u32 tag[TLB_WAYS] = {INVALID_TAG, INVALID_TAG};
-  u32 paddr[TLB_WAYS] = {};
-  u32 pte[TLB_WAYS] = {};
-  u8 recent = 0;
+  WayArray tag{INVALID_TAG, INVALID_TAG};
+  WayArray paddr{};
+  WayArray pte{};
+  u32 recent = 0;
+
+  void Invalidate() { tag.fill(INVALID_TAG); }
 };
 
 struct PairedSingle

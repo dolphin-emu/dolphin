@@ -122,8 +122,8 @@ void Interpreter::addarn(const UDSPInstruction opc)
 
 // SBCLR #I
 // 0001 0010 aaaa aiii
-// bit of status register $sr. Bit number is calculated by adding 6 to
-// immediate value I.
+// Clear bit of status register $sr. Bit number is calculated by adding 6 to immediate value I;
+// thus, bits 6 through 13 (LZ through AM) can be cleared with this instruction.
 void Interpreter::sbclr(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
@@ -134,8 +134,8 @@ void Interpreter::sbclr(const UDSPInstruction opc)
 
 // SBSET #I
 // 0001 0011 aaaa aiii
-// Set bit of status register $sr. Bit number is calculated by adding 6 to
-// immediate value I.
+// Set bit of status register $sr. Bit number is calculated by adding 6 to immediate value I;
+// thus, bits 6 through 13 (LZ through AM) can be set with this instruction.
 void Interpreter::sbset(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();

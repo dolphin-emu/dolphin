@@ -472,7 +472,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
       {
         ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
         ProcessVoice(pb, buffers, spms, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                     m_coeffs_available ? m_coeffs : nullptr);
+                     m_coeffs_checksum ? m_coeffs.data() : nullptr);
 
         // Forward the buffers
         for (auto& ptr : buffers.ptrs)
@@ -483,7 +483,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     else
     {
       ProcessVoice(pb, buffers, 96, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-                   m_coeffs_available ? m_coeffs : nullptr);
+                   m_coeffs_checksum ? m_coeffs.data() : nullptr);
     }
 
     WritePB(pb_addr, pb, m_crc);

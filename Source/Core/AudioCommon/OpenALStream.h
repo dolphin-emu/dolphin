@@ -56,18 +56,16 @@ public:
   OpenALStream() : m_source(0) {}
   ~OpenALStream() override;
   bool Init() override;
-  void SoundLoop() override;
   void SetVolume(int volume) override;
   bool SetRunning(bool running) override;
-  void Update() override;
 
-  static bool isValid();
+  static bool IsValid();
 
 private:
+  void SoundLoop();
+
   std::thread m_thread;
   Common::Flag m_run_thread;
-
-  Common::Event m_sound_sync_event;
 
   std::vector<short> m_realtime_buffer;
   std::array<ALuint, OAL_BUFFERS> m_buffers;

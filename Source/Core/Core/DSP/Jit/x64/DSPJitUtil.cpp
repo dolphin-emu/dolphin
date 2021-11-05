@@ -109,12 +109,6 @@ void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)
 {
   switch (reg & 0x1f)
   {
-  // 8-bit sign extended registers.
-  case DSP_REG_ACH0:
-  case DSP_REG_ACH1:
-    m_gpr.WriteReg(reg, R(host_sreg));
-    break;
-
   // Stack registers.
   case DSP_REG_ST0:
   case DSP_REG_ST1:
@@ -133,11 +127,6 @@ void DSPEmitter::dsp_op_write_reg_imm(int reg, u16 val)
 {
   switch (reg & 0x1f)
   {
-  // 8-bit sign extended registers. Should look at prod.h too...
-  case DSP_REG_ACH0:
-  case DSP_REG_ACH1:
-    m_gpr.WriteReg(reg, Imm16((u16)(s16)(s8)(u8)val));
-    break;
   // Stack registers.
   case DSP_REG_ST0:
   case DSP_REG_ST1:
@@ -701,7 +690,15 @@ void DSPEmitter::set_long_prod()
   m_gpr.PutReg(DSP_REG_PROD_64, true);
 }
 
-// Returns s64 in RAX
+// s64 -> s40 in long_acc
+void DSPEmitter::dsp_convert_long_acc(Gen::X64Reg long_acc)
+{
+  // return ((long_acc << (64 - 40)) >> (64 - 40))
+  SHL(64, R(long_acc), Imm8(64 - 40));  // sign extend
+  SAR(64, R(long_acc), Imm8(64 - 40));
+}
+
+// Returns s64 in long_acc
 void DSPEmitter::round_long_acc(X64Reg long_acc)
 {
   // if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;

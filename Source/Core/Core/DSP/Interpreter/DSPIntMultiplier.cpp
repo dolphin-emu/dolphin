@@ -117,7 +117,7 @@ void Interpreter::addpaxz(const UDSPInstruction opc)
 
   SetLongAcc(dreg, res);
   res = GetLongAcc(dreg);
-  UpdateSR64(res, isCarry(oldprod, res), false);
+  UpdateSR64(res, isCarryAdd(oldprod, res), false);  // TODO: Why doesn't this set the overflow bit?
 }
 
 //----
@@ -247,7 +247,7 @@ void Interpreter::mulx(const UDSPInstruction opc)
 }
 
 // MULXAC $ax0.S, $ax1.T, $acR
-// 101s t01r xxxx xxxx
+// 101s t10r xxxx xxxx
 // Add product register to accumulator register $acR. Multiply one part
 // $ax0 by one part $ax1. Part is selected by S and
 // T bits. Zero selects low part, one selects high part.
@@ -343,7 +343,7 @@ void Interpreter::mulc(const UDSPInstruction opc)
 }
 
 // MULCAC $acS.m, $axT.h, $acR
-// 110s	t10r xxxx xxxx
+// 110s t10r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axS.h of
 // secondary accumulator $axS  (treat them both as signed). Add product
 // register before multiplication to accumulator $acR.
@@ -372,7 +372,6 @@ void Interpreter::mulcac(const UDSPInstruction opc)
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR.
-// possible mistake in duddie's doc axT.h rather than axS.h
 //
 // flags out: --xx xx0x
 void Interpreter::mulcmv(const UDSPInstruction opc)
@@ -394,8 +393,7 @@ void Interpreter::mulcmv(const UDSPInstruction opc)
 }
 
 // MULCMVZ $acS.m, $axT.h, $acR
-// 110s	t01r xxxx xxxx
-// (fixed possible bug in duddie's description, s->t)
+// 110s t01r xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
 // register before multiplication to accumulator $acR, set (round) low part of

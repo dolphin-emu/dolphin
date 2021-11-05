@@ -135,9 +135,6 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // Options
   m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
-  // Tools
-  m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled() && running);
-
   // JIT
   m_jit_interpreter_core->setEnabled(running);
   m_jit_block_linking->setEnabled(!running);
@@ -232,12 +229,7 @@ void MenuBar::AddToolsMenu()
   tools_menu->addAction(tr("&Resource Pack Manager"), this,
                         [this] { emit ShowResourcePackManager(); });
 
-  m_show_cheat_manager =
-      tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
-
-  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, this, [this](bool enabled) {
-    m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
-  });
+  tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
@@ -1307,9 +1299,11 @@ void MenuBar::GenerateSymbolsFromRSO()
   if (ret == QMessageBox::Yes)
     return GenerateSymbolsFromRSOAuto();
 
-  QString text = QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"));
+  const QString text =
+      QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"),
+                            QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
   bool good;
-  uint address = text.toUInt(&good, 16);
+  const uint address = text.toUInt(&good, 16);
 
   if (!good)
   {
@@ -1345,7 +1339,7 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   });
   progress.GetRaw()->exec();
 
-  auto matches = future.get();
+  const auto matches = future.get();
 
   QStringList items;
   for (const auto& match : matches)
@@ -1361,8 +1355,9 @@ void MenuBar::GenerateSymbolsFromRSOAuto()
   }
 
   bool ok;
-  const QString item = QInputDialog::getItem(
-      this, tr("Input"), tr("Select the RSO module address:"), items, 0, false, &ok);
+  const QString item =
+      QInputDialog::getItem(this, tr("Input"), tr("Select the RSO module address:"), items, 0,
+                            false, &ok, Qt::WindowCloseButtonHint);
 
   if (!ok)
     return;
@@ -1607,7 +1602,8 @@ void MenuBar::TrySaveSymbolMap(const QString& path)
 void MenuBar::CreateSignatureFile()
 {
   const QString text = QInputDialog::getText(
-      this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
+      this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"),
+      QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
   const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"),
                                                     QDir::homePath(), GetSignatureSelector());
@@ -1631,7 +1627,8 @@ void MenuBar::CreateSignatureFile()
 void MenuBar::AppendSignatureFile()
 {
   const QString text = QInputDialog::getText(
-      this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"));
+      this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"),
+      QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
   const QString file = QFileDialog::getSaveFileName(this, tr("Append signature to"),
                                                     QDir::homePath(), GetSignatureSelector());
@@ -1722,8 +1719,9 @@ void MenuBar::LogInstructions()
 void MenuBar::SearchInstruction()
 {
   bool good;
-  const QString op = QInputDialog::getText(this, tr("Search instruction"), tr("Instruction:"),
-                                           QLineEdit::Normal, QString{}, &good);
+  const QString op =
+      QInputDialog::getText(this, tr("Search instruction"), tr("Instruction:"), QLineEdit::Normal,
+                            QString{}, &good, Qt::WindowCloseButtonHint);
 
   if (!good)
     return;
@@ -1732,7 +1730,7 @@ void MenuBar::SearchInstruction()
   for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal();
        addr += 4)
   {
-    auto ins_name =
+    const auto ins_name =
         QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));
     if (op == ins_name)
     {

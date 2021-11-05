@@ -68,6 +68,11 @@ static CoreTiming::EventType* s_event_sdio_notify;
 static CoreTiming::EventType* s_event_finish_ppc_bootstrap;
 static CoreTiming::EventType* s_event_finish_ios_boot;
 
+constexpr u32 ADDR_LEGACY_MEM_SIZE = 0x28;
+constexpr u32 ADDR_LEGACY_ARENA_LOW = 0x30;
+constexpr u32 ADDR_LEGACY_ARENA_HIGH = 0x34;
+constexpr u32 ADDR_LEGACY_MEM_SIM_SIZE = 0xf0;
+
 constexpr u32 ADDR_MEM1_SIZE = 0x3100;
 constexpr u32 ADDR_MEM1_SIM_SIZE = 0x3104;
 constexpr u32 ADDR_MEM1_END = 0x3108;
@@ -171,6 +176,11 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   Memory::Write_U16(0xBEEF, ADDR_DEVKIT_BOOT_PROGRAM_VERSION);
   Memory::Write_U32(target_imv->sysmenu_sync, ADDR_SYSMENU_SYNC);
 
+  Memory::Write_U32(target_imv->mem1_physical_size, ADDR_LEGACY_MEM_SIZE);
+  Memory::Write_U32(target_imv->mem1_arena_begin, ADDR_LEGACY_ARENA_LOW);
+  Memory::Write_U32(target_imv->mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
+  Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
+
   RAMOverrideForIOSMemoryValues(setup_type);
 
   return true;
@@ -233,6 +243,11 @@ void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
     Memory::Write_U32(mem1_end, ADDR_MEM1_END);
     Memory::Write_U32(mem1_arena_begin, ADDR_MEM1_ARENA_BEGIN);
     Memory::Write_U32(mem1_arena_end, ADDR_MEM1_ARENA_END);
+
+    Memory::Write_U32(mem1_physical_size, ADDR_LEGACY_MEM_SIZE);
+    Memory::Write_U32(mem1_arena_begin, ADDR_LEGACY_ARENA_LOW);
+    Memory::Write_U32(mem1_arena_end, ADDR_LEGACY_ARENA_HIGH);
+    Memory::Write_U32(mem1_simulated_size, ADDR_LEGACY_MEM_SIM_SIZE);
   }
   Memory::Write_U32(mem2_physical_size, ADDR_MEM2_SIZE);
   Memory::Write_U32(mem2_simulated_size, ADDR_MEM2_SIM_SIZE);

@@ -134,7 +134,7 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       handler.fprs = fprs_to_push;
       handler.flags = flags;
 
-      FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_start];
+      FastmemArea* fastmem_area = &m_fault_to_handler[fastmem_end];
       auto handler_loc_iter = m_handler_to_loc.find(handler);
 
       if (handler_loc_iter == m_handler_to_loc.end())
@@ -143,14 +143,14 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
         SwitchToFarCode();
         const u8* handler_loc = GetCodePtr();
         m_handler_to_loc[handler] = handler_loc;
+        fastmem_area->fastmem_code = fastmem_start;
         fastmem_area->slowmem_code = handler_loc;
-        fastmem_area->length = fastmem_end - fastmem_start;
       }
       else
       {
         const u8* handler_loc = handler_loc_iter->second;
+        fastmem_area->fastmem_code = fastmem_start;
         fastmem_area->slowmem_code = handler_loc;
-        fastmem_area->length = fastmem_end - fastmem_start;
         return;
       }
     }
@@ -197,15 +197,14 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     }
     else if (flags & BackPatchInfo::FLAG_STORE)
     {
-      ARM64Reg temp = ARM64Reg::W0;
-      temp = ByteswapBeforeStore(this, temp, RS, flags, false);
-      if (temp != ARM64Reg::W0)
-        MOV(ARM64Reg::W0, temp);
+      MOV(ARM64Reg::W0, RS);
+
+      const bool reverse = (flags & BackPatchInfo::FLAG_REVERSE) != 0;
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U32);
+        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U32_Swap : &PowerPC::Write_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVP2R(ARM64Reg::X8, &PowerPC::Write_U16);
+        MOVP2R(ARM64Reg::X8, reverse ? &PowerPC::Write_U16_Swap : &PowerPC::Write_U16);
       else
         MOVP2R(ARM64Reg::X8, &PowerPC::Write_U8);
 
@@ -254,33 +253,32 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
     return false;
   }
 
-  auto slow_handler_iter = m_fault_to_handler.upper_bound((const u8*)ctx->CTX_PC);
-  slow_handler_iter--;
+  const u8* pc = reinterpret_cast<const u8*>(ctx->CTX_PC);
+  auto slow_handler_iter = m_fault_to_handler.upper_bound(pc);
 
   // no fastmem area found
   if (slow_handler_iter == m_fault_to_handler.end())
     return false;
 
-  const u8* fault_location = slow_handler_iter->first;
-  const u32 fastmem_area_length = slow_handler_iter->second.length;
+  const u8* fastmem_area_start = slow_handler_iter->second.fastmem_code;
+  const u8* fastmem_area_end = slow_handler_iter->first;
 
   // no overlapping fastmem area found
-  if ((const u8*)ctx->CTX_PC - fault_location > fastmem_area_length)
+  if (pc < fastmem_area_start)
     return false;
 
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
-  ARM64XEmitter emitter((u8*)fault_location);
+  ARM64XEmitter emitter(const_cast<u8*>(fastmem_area_start));
 
   emitter.BL(slow_handler_iter->second.slowmem_code);
 
-  const u32 num_insts_max = fastmem_area_length / 4 - 1;
-  for (u32 i = 0; i < num_insts_max; ++i)
+  while (emitter.GetCodePtr() < fastmem_area_end)
     emitter.NOP();
 
   m_fault_to_handler.erase(slow_handler_iter);
 
   emitter.FlushIcache();
 
-  ctx->CTX_PC = reinterpret_cast<std::uintptr_t>(fault_location);
+  ctx->CTX_PC = reinterpret_cast<std::uintptr_t>(fastmem_area_start);
   return true;
 }

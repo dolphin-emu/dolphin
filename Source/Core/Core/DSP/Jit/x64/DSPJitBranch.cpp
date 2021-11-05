@@ -54,24 +54,43 @@ void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
     break;
   case 0xa:  // ?
   case 0xb:  // ?
+    // We want to test this expression, which corresponds to xB:
+    // (!(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))) || IsSRFlagSet(SR_ARITH_ZERO)
+    // The xB expression is used due to even instructions (i.e. xA) looking for the expression to
+    // evaluate to false, while odd ones look for it to be true.
+
+    // Since SR_OVER_S32 is bit 4 (0x10) and SR_TOP2BITS is bit 5 (0x20),
+    // set EDX to 2*EAX, so that SR_OVER_S32 is in bit 5 of EDX.
     LEA(16, EDX, MRegSum(EAX, EAX));
-    OR(16, R(EAX), R(EDX));
-    SHL(16, R(EDX), Imm8(3));
-    NOT(16, R(EAX));
-    OR(16, R(EAX), R(EDX));
-    TEST(16, R(EAX), Imm16(0x20));
+    // Now OR them together, so bit 5 of EDX is
+    // (IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))
+    OR(16, R(EDX), R(EAX));
+    // EDX bit 5 is !(IsSRFlagSet(SR_OVER_S32) || IsSRFlagSet(SR_TOP2BITS))
+    NOT(16, R(EDX));
+    // SR_ARITH_ZERO is bit 2 (0x04).  We want that in bit 5, so shift left by 3.
+    SHL(16, R(EAX), Imm8(3));
+    // Bit 5 of EAX is IsSRFlagSet(SR_OVER_S32), so or-ing EDX with EAX gives our target expression.
+    OR(16, R(EDX), R(EAX));
+    // Test bit 5
+    TEST(16, R(EDX), Imm16(0x20));
     break;
   case 0xc:  // LNZ  - Logic Not Zero
   case 0xd:  // LZ - Logic Zero
     TEST(16, R(EAX), Imm16(SR_LOGIC_ZERO));
     break;
-  case 0xe:  // 0 - Overflow
+  case 0xe:  // O - Overflow
     TEST(16, R(EAX), Imm16(SR_OVERFLOW));
     break;
   }
   DSPJitRegCache c1(m_gpr);
-  FixupBranch skip_code =
-      cond == 0xe ? J_CC(CC_E, true) : J_CC((CCFlags)(CC_NE - (cond & 1)), true);
+  CCFlags flag;
+  if (cond == 0xe)  // Overflow, special case as there is no inverse case
+    flag = CC_Z;
+  else if ((cond & 1) == 0)  // Even conditions run if the bit is zero, so jump if it IS NOT zero
+    flag = CC_NZ;
+  else  // Odd conditions run if the bit IS NOT zero, so jump if it IS zero
+    flag = CC_Z;
+  FixupBranch skip_code = J_CC(flag, true);
   (this->*conditional_fn)(opc);
   m_gpr.FlushRegs(c1);
   SetJumpTarget(skip_code);
@@ -156,9 +175,10 @@ void DSPEmitter::r_jmprcc(const UDSPInstruction opc)
   WriteBranchExit();
 }
 // Generic jmpr implementation
-// JMPcc $R
+// JRcc $R
 // 0001 0111 rrr0 cccc
-// Jump to address; set program counter to a value from register $R.
+// Jump to address if condition cc has been met. Set program counter to
+// a value from register $R.
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::jmprcc(const UDSPInstruction opc)
 {
@@ -254,12 +274,7 @@ void DSPEmitter::ret(const UDSPInstruction opc)
   ReJitConditional(opc, &DSPEmitter::r_ret);
 }
 
-// RTI
-// 0000 0010 1111 1111
-// Return from exception. Pops stored status register $sr from data stack
-// $st1 and program counter PC from call stack $st0 and sets $pc to this
-// location.
-void DSPEmitter::rti(const UDSPInstruction opc)
+void DSPEmitter::r_rti(const UDSPInstruction opc)
 {
   //	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(StackRegister::Data);
   dsp_reg_load_stack(StackRegister::Data);
@@ -267,10 +282,24 @@ void DSPEmitter::rti(const UDSPInstruction opc)
   //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M_SDSP_pc(), R(DX));
+  WriteBranchExit();
+}
+
+// RTIcc
+// 0000 0010 1111 1111
+// Return from exception. Pops stored status register $sr from data stack
+// $st1 and program counter PC from call stack $st0 and sets $pc to this
+// location.
+// This instruction has a conditional form, but it is not used by any official ucode.
+// NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
+void DSPEmitter::rti(const UDSPInstruction opc)
+{
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
+  ReJitConditional(opc, &DSPEmitter::r_rti);
 }
 
 // HALT
-// 0000 0000 0020 0001
+// 0000 0000 0010 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void DSPEmitter::halt(const UDSPInstruction)
 {

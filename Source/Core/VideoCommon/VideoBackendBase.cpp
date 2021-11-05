@@ -83,8 +83,8 @@ void VideoBackendBase::Video_ExitLoop()
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                        u64 ticks)
+void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
+                                       u64 ticks)
 {
   if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
   {
@@ -214,6 +214,10 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
     // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+    //
+    // On macOS Mojave and newer, we prefer Vulkan over OGL due to outdated drivers.
+    // However, on macOS High Sierra and older, we still prefer OGL due to its older Metal version
+    // missing several features required by the Vulkan backend.
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
@@ -222,7 +226,18 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
 #ifdef HAS_VULKAN
-    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+#ifdef __APPLE__
+    // If we can run the Vulkan backend, emplace it at the beginning of the vector so
+    // it takes precedence over OpenGL.
+    if (__builtin_available(macOS 10.14, *))
+    {
+      backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
+    }
+    else
+#endif
+    {
+      backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+    }
 #endif
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<SW::VideoSoftware>());

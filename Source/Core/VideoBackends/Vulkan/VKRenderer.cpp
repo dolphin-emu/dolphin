@@ -82,9 +82,10 @@ void Renderer::Shutdown()
   m_swap_chain.reset();
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+                                                         std::string_view name)
 {
-  return VKTexture::Create(config);
+  return VKTexture::Create(config, name);
 }
 
 std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
@@ -93,16 +94,17 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
   return VKStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return VKShader::CreateFromSource(stage, source);
+  return VKShader::CreateFromSource(stage, source, name);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length)
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name)
 {
-  return VKShader::CreateFromBinary(stage, data, length);
+  return VKShader::CreateFromBinary(stage, data, length, name);
 }
 
 std::unique_ptr<NativeVertexFormat>

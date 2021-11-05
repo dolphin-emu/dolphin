@@ -178,18 +178,24 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     case 25:
       m_float_emit.FMUL(VD, VA, VC);
       break;
-    case 28:
+    case 28:  // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
       m_float_emit.FNMSUB(VD, VA, VC, VB);
-      break;  // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
-    case 29:
+      break;
+    case 29:  // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
       m_float_emit.FMADD(VD, VA, VC, VB);
-      break;  // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
-    case 30:
-      m_float_emit.FMSUB(VD, VA, VC, VB);
-      break;  // fnmsub: "D = -(A*C - B)" vs "Vd = Va + (-Vn)*Vm"
-    case 31:
-      m_float_emit.FNMADD(VD, VA, VC, VB);
-      break;  // fnmadd: "D = -(A*C + B)" vs "Vd = (-Va) + (-Vn)*Vm"
+      break;
+    // While it may seem like PowerPC's nmadd/nmsub map to AArch64's nmadd/msub [sic],
+    // the subtly different definitions affect how signed zeroes are handled.
+    // Also, PowerPC's nmadd/nmsub perform rounding before the final negation.
+    // So, negate using a separate instruction instead of using AArch64's nmadd/msub.
+    case 30:  // fnmsub: "D = -(A*C - B)" vs "Vd = -((-Va) + Vn*Vm)"
+      m_float_emit.FNMSUB(VD, VA, VC, VB);
+      m_float_emit.FNEG(VD, VD);
+      break;
+    case 31:  // fnmadd: "D = -(A*C + B)" vs "Vd = -(Va + Vn*Vm)"
+      m_float_emit.FMADD(VD, VA, VC, VB);
+      m_float_emit.FNEG(VD, VD);
+      break;
     default:
       ASSERT_MSG(DYNA_REC, 0, "fp_arith");
       break;
@@ -548,23 +554,24 @@ void JitArm64::fresx(UGeckoInstruction inst)
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
-
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
 
   const ARM64Reg VB = fpr.R(b, RegType::LowerPair);
+  const ARM64Reg VD = fpr.RW(d, RegType::Duplicated);
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+
   m_float_emit.FMOV(ARM64Reg::X1, EncodeRegToDouble(VB));
   m_float_emit.FRECPE(ARM64Reg::D0, EncodeRegToDouble(VB));
 
   BL(GetAsmRoutines()->fres);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
-
-  const ARM64Reg VD = fpr.RW(d, RegType::Duplicated);
   m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
 
   SetFPRFIfNeeded(false, ARM64Reg::X0);
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
 }
 
 void JitArm64::frsqrtex(UGeckoInstruction inst)
@@ -576,22 +583,24 @@ void JitArm64::frsqrtex(UGeckoInstruction inst)
   const u32 b = inst.FB;
   const u32 d = inst.FD;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
 
   const ARM64Reg VB = fpr.R(b, RegType::LowerPair);
+  const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
+
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+
   m_float_emit.FMOV(ARM64Reg::X1, EncodeRegToDouble(VB));
   m_float_emit.FRSQRTE(ARM64Reg::D0, EncodeRegToDouble(VB));
 
   BL(GetAsmRoutines()->frsqrte);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0);
-
-  const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
   m_float_emit.FMOV(EncodeRegToDouble(VD), ARM64Reg::X0);
 
   SetFPRFIfNeeded(false, ARM64Reg::X0);
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
 }
 
 // Since the following float conversion functions are used in non-arithmetic PPC float
@@ -600,7 +609,7 @@ void JitArm64::frsqrtex(UGeckoInstruction inst)
 
 void JitArm64::ConvertDoubleToSingleLower(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  if (js.fpr_is_store_safe[guest_reg])
+  if (js.fpr_is_store_safe[guest_reg] && js.op->fprIsSingle[guest_reg])
   {
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
     return;
@@ -620,7 +629,7 @@ void JitArm64::ConvertDoubleToSingleLower(size_t guest_reg, ARM64Reg dest_reg, A
 
 void JitArm64::ConvertDoubleToSinglePair(size_t guest_reg, ARM64Reg dest_reg, ARM64Reg src_reg)
 {
-  if (js.fpr_is_store_safe[guest_reg])
+  if (js.fpr_is_store_safe[guest_reg] && js.op->fprIsSingle[guest_reg])
   {
     m_float_emit.FCVTN(32, EncodeRegToDouble(dest_reg), EncodeRegToDouble(src_reg));
     return;

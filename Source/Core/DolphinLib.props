@@ -163,6 +163,8 @@
     <ClInclude Include="Core\Boot\ElfTypes.h" />
     <ClInclude Include="Core\BootManager.h" />
     <ClInclude Include="Core\CheatCodes.h" />
+    <ClInclude Include="Core\CheatGeneration.h" />
+    <ClInclude Include="Core\CheatSearch.h" />
     <ClInclude Include="Core\CommonTitles.h" />
     <ClInclude Include="Core\Config\DefaultLocale.h" />
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
@@ -393,6 +395,7 @@
     <ClInclude Include="Core\PowerPC\Interpreter\ExceptionUtils.h" />
     <ClInclude Include="Core\PowerPC\Interpreter\Interpreter_FPUtils.h" />
     <ClInclude Include="Core\PowerPC\Interpreter\Interpreter.h" />
+    <ClInclude Include="Core\PowerPC\JitCommon\DivUtils.h" />
     <ClInclude Include="Core\PowerPC\JitCommon\JitAsmCommon.h" />
     <ClInclude Include="Core\PowerPC\JitCommon\JitBase.h" />
     <ClInclude Include="Core\PowerPC\JitCommon\JitCache.h" />
@@ -742,6 +745,8 @@
     <ClCompile Include="Core\Boot\DolReader.cpp" />
     <ClCompile Include="Core\Boot\ElfReader.cpp" />
     <ClCompile Include="Core\BootManager.cpp" />
+    <ClCompile Include="Core\CheatGeneration.cpp" />
+    <ClCompile Include="Core\CheatSearch.cpp" />
     <ClCompile Include="Core\Config\DefaultLocale.cpp" />
     <ClCompile Include="Core\Config\FreeLookSettings.cpp" />
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
@@ -977,6 +982,7 @@
     <ClCompile Include="Core\PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
     <ClCompile Include="Core\PowerPC\Interpreter\Interpreter_Tables.cpp" />
     <ClCompile Include="Core\PowerPC\Interpreter\Interpreter.cpp" />
+    <ClCompile Include="Core\PowerPC\JitCommon\DivUtils.cpp" />
     <ClCompile Include="Core\PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="Core\PowerPC\JitCommon\JitBase.cpp" />
     <ClCompile Include="Core\PowerPC\JitCommon\JitCache.cpp" />

@@ -203,9 +203,9 @@ void AdvancedWidget::AddDescriptions()
                  "unchecked.</dolphin_emphasis>");
   static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
-                 "debugging graphical issues. On D3D backends, this also enables debug symbols "
-                 "for the compiled shaders.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+                 "debugging graphical issues. On the Vulkan and D3D backends, this also enables "
+                 "debug symbols for the compiled shaders.<br><br><dolphin_emphasis>If unsure, "
+                 "leave this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
                  "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "

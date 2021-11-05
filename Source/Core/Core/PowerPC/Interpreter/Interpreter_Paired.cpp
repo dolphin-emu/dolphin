@@ -144,7 +144,7 @@ void Interpreter::ps_res(UGeckoInstruction inst)
   const double ps1 = Common::ApproximateReciprocal(b);
 
   rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::UpdateFPRFSingle(float(ps0));
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();

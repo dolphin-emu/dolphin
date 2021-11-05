@@ -87,6 +87,24 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
   return filename;
 }
 
+void WriteIsNanHeader(ShaderCode& out, APIType api_type)
+{
+  if (api_type == APIType::D3D)
+  {
+    out.Write("bool dolphin_isnan(float f) {{\n"
+              "  // Workaround for the HLSL compiler deciding that isnan can never be true and\n"
+              "  // optimising away the call, even though the value can actually be NaN\n"
+              "  // Just look for the bit pattern that indicates NaN instead\n"
+              "  return (asint(f) & 0x7FFFFFFF) > 0x7F800000;\n"
+              "}}\n\n");
+    // If isfinite is needed, (asint(f) & 0x7F800000) != 0x7F800000 can be used
+  }
+  else
+  {
+    out.Write("#define dolphin_isnan(f) isnan(f)\n");
+  }
+}
+
 static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string_view qualifier,
                                std::string_view type, std::string_view name, int var_index,
                                std::string_view semantic = {}, int semantic_index = -1)

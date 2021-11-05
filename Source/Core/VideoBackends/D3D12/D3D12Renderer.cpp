@@ -62,9 +62,10 @@ void Renderer::Shutdown()
   ::Renderer::Shutdown();
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+                                                         std::string_view name)
 {
-  return DXTexture::Create(config);
+  return DXTexture::Create(config, name);
 }
 
 std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
@@ -80,16 +81,17 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
                                static_cast<DXTexture*>(depth_attachment));
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return DXShader::CreateFromSource(stage, source);
+  return DXShader::CreateFromSource(stage, source, name);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length)
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name)
 {
-  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length));
+  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length), name);
 }
 
 std::unique_ptr<NativeVertexFormat>
@@ -319,6 +321,9 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
     return;
 
   m_state.compute_image_texture = dxtex;
+  if (dxtex)
+    dxtex->TransitionToState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
   m_dirty_bits |= DirtyState_ComputeImageTexture;
 }
 

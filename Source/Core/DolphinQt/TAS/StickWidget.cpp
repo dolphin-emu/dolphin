@@ -47,6 +47,9 @@ void StickWidget::paintEvent(QPaintEvent* event)
 
   const int diameter = std::min(width(), height()) - PADDING * 2;
 
+  // inscribe the StickWidget inside a square
+  painter.fillRect(PADDING, PADDING, diameter, diameter, Qt::lightGray);
+
   painter.setBrush(Qt::white);
   painter.drawEllipse(PADDING, PADDING, diameter, diameter);
 
