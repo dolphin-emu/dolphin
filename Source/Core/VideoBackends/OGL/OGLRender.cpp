@@ -332,8 +332,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   if (!m_main_gl_context->IsHeadless())
   {
     m_system_framebuffer = std::make_unique<OGLFramebuffer>(
-        nullptr, nullptr, AbstractTextureFormat::RGBA8, AbstractTextureFormat::Undefined,
-        std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
+        nullptr, nullptr, std::vector<AbstractTexture*>{}, AbstractTextureFormat::RGBA8,
+        AbstractTextureFormat::Undefined, std::max(m_main_gl_context->GetBackBufferWidth(), 1u),
         std::max(m_main_gl_context->GetBackBufferHeight(), 1u), 1, 1, 0);
     m_current_framebuffer = m_system_framebuffer.get();
   }
@@ -622,6 +622,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     else if (GLExtensions::Version() == 330)
     {
       g_ogl_config.eSupportedGLSLVersion = Glsl330;
+      g_ogl_config.bSupportsExplicitLayoutInShader =
+          GLExtensions::Supports("GL_ARB_explicit_attrib_location");
     }
     else if (GLExtensions::Version() >= 430)
     {
@@ -629,6 +631,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       g_ogl_config.eSupportedGLSLVersion = Glsl430;
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.bSupportsImageLoadStore = true;
+      g_ogl_config.bSupportsExplicitLayoutInShader = true;
       g_Config.backend_info.bSupportsSSAA = true;
       g_Config.backend_info.bSupportsSettingObjectNames = true;
 
@@ -830,11 +833,13 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
   return OGLStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                            std::vector<AbstractTexture*> additional_color_attachments)
 {
   return OGLFramebuffer::Create(static_cast<OGLTexture*>(color_attachment),
-                                static_cast<OGLTexture*>(depth_attachment));
+                                static_cast<OGLTexture*>(depth_attachment),
+                                std::move(additional_color_attachments));
 }
 
 std::unique_ptr<AbstractShader>
@@ -984,7 +989,8 @@ void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
   if (m_current_framebuffer == framebuffer)
     return;
 
-  glBindFramebuffer(GL_FRAMEBUFFER, static_cast<OGLFramebuffer*>(framebuffer)->GetFBO());
+  auto* ogl_fb = static_cast<OGLFramebuffer*>(framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, ogl_fb->GetFBO());
   m_current_framebuffer = framebuffer;
 }
 

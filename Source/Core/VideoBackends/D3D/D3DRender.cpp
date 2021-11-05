@@ -62,11 +62,13 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
   return DXStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                            std::vector<AbstractTexture*> additional_color_attachments)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
-                               static_cast<DXTexture*>(depth_attachment));
+                               static_cast<DXTexture*>(depth_attachment),
+                               std::move(additional_color_attachments));
 }
 
 std::unique_ptr<AbstractShader>
@@ -205,15 +207,7 @@ void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
 
   // We can't leave the framebuffer bound as a texture and a render target.
   DXFramebuffer* fb = static_cast<DXFramebuffer*>(framebuffer);
-  if ((fb->GetColorAttachment() &&
-       D3D::stateman->UnsetTexture(
-           static_cast<DXTexture*>(fb->GetColorAttachment())->GetD3DSRV()) != 0) ||
-      (fb->GetDepthAttachment() &&
-       D3D::stateman->UnsetTexture(
-           static_cast<DXTexture*>(fb->GetDepthAttachment())->GetD3DSRV()) != 0))
-  {
-    D3D::stateman->ApplyTextures();
-  }
+  fb->Unbind();
 
   D3D::stateman->SetFramebuffer(fb);
   m_current_framebuffer = fb;
@@ -229,17 +223,8 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
 {
   SetFramebuffer(framebuffer);
   D3D::stateman->Apply();
-
-  if (framebuffer->GetColorFormat() != AbstractTextureFormat::Undefined)
-  {
-    D3D::context->ClearRenderTargetView(
-        static_cast<const DXFramebuffer*>(framebuffer)->GetRTVArray()[0], color_value.data());
-  }
-  if (framebuffer->GetDepthFormat() != AbstractTextureFormat::Undefined)
-  {
-    D3D::context->ClearDepthStencilView(static_cast<const DXFramebuffer*>(framebuffer)->GetDSV(),
-                                        D3D11_CLEAR_DEPTH, depth_value, 0);
-  }
+  DXFramebuffer* fb = static_cast<DXFramebuffer*>(framebuffer);
+  fb->Clear(color_value, depth_value);
 }
 
 void Renderer::SetTexture(u32 index, const AbstractTexture* texture)

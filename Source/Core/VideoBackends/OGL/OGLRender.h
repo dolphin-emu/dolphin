@@ -72,6 +72,7 @@ struct VideoConfig
   bool bSupportsTextureSubImage;
   EsFbFetchType SupportedFramebufferFetch;
   bool bSupportsShaderThreadShuffleNV;
+  bool bSupportsExplicitLayoutInShader;
 
   const char* gl_vendor;
   const char* gl_renderer;
@@ -109,7 +110,8 @@ public:
                                                    const void* cache_data = nullptr,
                                                    size_t cache_data_length = 0) override;
   std::unique_ptr<AbstractFramebuffer>
-  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
+  CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                    std::vector<AbstractTexture*> additional_color_attachments) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetFramebuffer(AbstractFramebuffer* framebuffer) override;

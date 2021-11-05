@@ -980,12 +980,13 @@ void VKStagingTexture::Flush()
   m_needs_flush = false;
 }
 
-VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment, u32 width,
+VKFramebuffer::VKFramebuffer(VKTexture* color_attachment, VKTexture* depth_attachment,
+                             std::vector<AbstractTexture*> additional_color_attachments, u32 width,
                              u32 height, u32 layers, u32 samples, VkFramebuffer fb,
                              VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
                              VkRenderPass clear_render_pass)
     : AbstractFramebuffer(
-          color_attachment, depth_attachment,
+          color_attachment, depth_attachment, std::move(additional_color_attachments),
           color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined,
           depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined,
           width, height, layers, samples),
@@ -999,10 +1000,11 @@ VKFramebuffer::~VKFramebuffer()
   g_command_buffer_mgr->DeferFramebufferDestruction(m_fb);
 }
 
-std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment,
-                                                     VKTexture* depth_attachment)
+std::unique_ptr<VKFramebuffer>
+VKFramebuffer::Create(VKTexture* color_attachment, VKTexture* depth_attachment,
+                      std::vector<AbstractTexture*> additional_color_attachments)
 {
-  if (!ValidateConfig(color_attachment, depth_attachment))
+  if (!ValidateConfig(color_attachment, depth_attachment, additional_color_attachments))
     return nullptr;
 
   const VkFormat vk_color_format =
@@ -1015,21 +1017,27 @@ std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment
   const u32 layers = either_attachment->GetLayers();
   const u32 samples = either_attachment->GetSamples();
 
-  std::array<VkImageView, 2> attachment_views{};
-  u32 num_attachments = 0;
-
+  std::vector<VkImageView> attachment_views;
   if (color_attachment)
-    attachment_views[num_attachments++] = color_attachment->GetView();
+    attachment_views.push_back(color_attachment->GetView());
 
   if (depth_attachment)
-    attachment_views[num_attachments++] = depth_attachment->GetView();
+    attachment_views.push_back(depth_attachment->GetView());
+
+  for (auto* attachment : additional_color_attachments)
+  {
+    attachment_views.push_back(static_cast<VKTexture*>(attachment)->GetView());
+  }
 
   VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
-      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_LOAD);
+      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_LOAD,
+      additional_color_attachments.size());
   VkRenderPass discard_render_pass = g_object_cache->GetRenderPass(
-      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      additional_color_attachments.size());
   VkRenderPass clear_render_pass = g_object_cache->GetRenderPass(
-      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_CLEAR);
+      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_CLEAR,
+      additional_color_attachments.size());
   if (load_render_pass == VK_NULL_HANDLE || discard_render_pass == VK_NULL_HANDLE ||
       clear_render_pass == VK_NULL_HANDLE)
   {
@@ -1040,7 +1048,7 @@ std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment
                                               nullptr,
                                               0,
                                               load_render_pass,
-                                              num_attachments,
+                                              static_cast<uint32_t>(attachment_views.size()),
                                               attachment_views.data(),
                                               width,
                                               height,
@@ -1055,9 +1063,27 @@ std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(VKTexture* color_attachment
     return nullptr;
   }
 
-  return std::make_unique<VKFramebuffer>(color_attachment, depth_attachment, width, height, layers,
-                                         samples, fb, load_render_pass, discard_render_pass,
-                                         clear_render_pass);
+  return std::make_unique<VKFramebuffer>(
+      color_attachment, depth_attachment, std::move(additional_color_attachments), width, height,
+      layers, samples, fb, load_render_pass, discard_render_pass, clear_render_pass);
+}
+
+void VKFramebuffer::Unbind()
+{
+  if (m_color_attachment)
+  {
+    StateTracker::GetInstance()->UnbindTexture(
+        static_cast<VKTexture*>(m_color_attachment)->GetView());
+  }
+  for (auto* attachment : m_additional_color_attachments)
+  {
+    StateTracker::GetInstance()->UnbindTexture(static_cast<VKTexture*>(attachment)->GetView());
+  }
+  if (m_depth_attachment)
+  {
+    StateTracker::GetInstance()->UnbindTexture(
+        static_cast<VKTexture*>(m_depth_attachment)->GetView());
+  }
 }
 
 void VKFramebuffer::TransitionForRender()
@@ -1068,6 +1094,12 @@ void VKFramebuffer::TransitionForRender()
         ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   }
+  for (auto* attachment : m_additional_color_attachments)
+  {
+    static_cast<VKTexture*>(attachment)
+        ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  }
 
   if (m_depth_attachment)
   {
@@ -1075,5 +1107,24 @@ void VKFramebuffer::TransitionForRender()
         ->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                              VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
   }
+}
+
+void VKFramebuffer::Clear(const VkClearValue& color_value, const VkClearValue& depth_value)
+{
+  std::vector<VkClearValue> clear_values;
+  if (GetColorFormat() != AbstractTextureFormat::Undefined)
+  {
+    clear_values.push_back(color_value);
+  }
+  if (GetDepthFormat() != AbstractTextureFormat::Undefined)
+  {
+    clear_values.push_back(depth_value);
+  }
+  for (std::size_t i = 0; i < m_additional_color_attachments.size(); i++)
+  {
+    clear_values.push_back(color_value);
+  }
+  StateTracker::GetInstance()->BeginClearRenderPass(GetRect(), clear_values.data(),
+                                                    static_cast<u32>(clear_values.size()));
 }
 }  // namespace Vulkan

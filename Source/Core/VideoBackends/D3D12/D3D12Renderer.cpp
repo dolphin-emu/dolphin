@@ -77,11 +77,13 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
   return DXStagingTexture::Create(type, config);
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                            std::vector<AbstractTexture*> additional_color_attachments)
 {
   return DXFramebuffer::Create(static_cast<DXTexture*>(color_attachment),
-                               static_cast<DXTexture*>(depth_attachment));
+                               static_cast<DXTexture*>(depth_attachment),
+                               std::move(additional_color_attachments));
 }
 
 std::unique_ptr<AbstractShader>
@@ -136,19 +138,17 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
     native_rc.ClampUL(0, 0, m_current_framebuffer->GetWidth(), m_current_framebuffer->GetHeight());
     const D3D12_RECT d3d_clear_rc{native_rc.left, native_rc.top, native_rc.right, native_rc.bottom};
 
+    auto* dxfb = static_cast<const DXFramebuffer*>(m_current_framebuffer);
     if (fast_color_clear)
     {
-      static_cast<DXTexture*>(m_current_framebuffer->GetColorAttachment())
-          ->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
+      dxfb->TransitionRenderTargets();
 
       const std::array<float, 4> clear_color = {
           {static_cast<float>((color >> 16) & 0xFF) / 255.0f,
            static_cast<float>((color >> 8) & 0xFF) / 255.0f,
            static_cast<float>((color >> 0) & 0xFF) / 255.0f,
            static_cast<float>((color >> 24) & 0xFF) / 255.0f}};
-      g_dx_context->GetCommandList()->ClearRenderTargetView(
-          static_cast<const DXFramebuffer*>(m_current_framebuffer)->GetRTVDescriptor().cpu_handle,
-          clear_color.data(), 1, &d3d_clear_rc);
+      dxfb->ClearRenderTargets(clear_color, &d3d_clear_rc);
       color_enable = false;
       alpha_enable = false;
     }
@@ -160,9 +160,7 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
 
       // D3D does not support reversed depth ranges.
       const float clear_depth = 1.0f - static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
-      g_dx_context->GetCommandList()->ClearDepthStencilView(
-          static_cast<const DXFramebuffer*>(m_current_framebuffer)->GetDSVDescriptor().cpu_handle,
-          D3D12_CLEAR_FLAG_DEPTH, clear_depth, 0, 1, &d3d_clear_rc);
+      dxfb->ClearDepth(clear_depth, &d3d_clear_rc);
       z_enable = false;
     }
   }
@@ -206,11 +204,7 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 
 void Renderer::BindFramebuffer(DXFramebuffer* fb)
 {
-  if (fb->HasColorBuffer())
-  {
-    static_cast<DXTexture*>(fb->GetColorAttachment())
-        ->TransitionToState(D3D12_RESOURCE_STATE_RENDER_TARGET);
-  }
+  fb->TransitionRenderTargets();
   if (fb->HasDepthBuffer())
   {
     static_cast<DXTexture*>(fb->GetDepthAttachment())
@@ -258,18 +252,8 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
 {
   DXFramebuffer* dxfb = static_cast<DXFramebuffer*>(framebuffer);
   BindFramebuffer(dxfb);
-
-  static const D3D12_DISCARD_REGION dr = {0, nullptr, 0, 1};
-  if (framebuffer->HasColorBuffer())
-  {
-    g_dx_context->GetCommandList()->ClearRenderTargetView(dxfb->GetRTVDescriptor().cpu_handle,
-                                                          color_value.data(), 0, nullptr);
-  }
-  if (framebuffer->HasDepthBuffer())
-  {
-    g_dx_context->GetCommandList()->ClearDepthStencilView(
-        dxfb->GetDSVDescriptor().cpu_handle, D3D12_CLEAR_FLAG_DEPTH, depth_value, 0, 0, nullptr);
-  }
+  dxfb->ClearRenderTargets(color_value, nullptr);
+  dxfb->ClearDepth(depth_value, nullptr);
 }
 
 void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)

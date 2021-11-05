@@ -72,11 +72,13 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return std::make_unique<NullPipeline>();
 }
 
-std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
-                                                                 AbstractTexture* depth_attachment)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                            std::vector<AbstractTexture*> additional_color_attachments)
 {
   return NullFramebuffer::Create(static_cast<NullTexture*>(color_attachment),
-                                 static_cast<NullTexture*>(depth_attachment));
+                                 static_cast<NullTexture*>(depth_attachment),
+                                 std::move(additional_color_attachments));
 }
 
 std::unique_ptr<NativeVertexFormat>
