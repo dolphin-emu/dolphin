@@ -207,6 +207,7 @@ void SConfig::LoadDefaults()
   bBootToPause = false;
 
   bWii = false;
+  bTriforce = false;
 
   ResetRunningGameMetadata();
 }
@@ -227,6 +228,7 @@ struct SetGameMetadata
   {
     *region = disc.volume->GetRegion();
     config->bWii = disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc;
+    config->bTriforce = disc.volume->GetVolumeType() == DiscIO::Platform::Triforce;
     config->m_disc_booted_from_game_list = true;
     config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
     return true;

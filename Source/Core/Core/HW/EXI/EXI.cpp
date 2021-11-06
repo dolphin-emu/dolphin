@@ -68,6 +68,17 @@ void AddMemoryCard(Slot slot)
 
   g_Channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
 }
+
+void AddSP1Device()
+{
+  EXIDeviceType sp1_device = EXIDeviceType::Baseboard;
+  if (!SConfig::GetInstance().bTriforce)
+  {
+    sp1_device = Config::Get(Config::MAIN_SERIAL_PORT_1);
+  }
+
+  g_Channels[0]->AddDevice(sp1_device, SlotToEXIDevice(Slot::SP1));
+}
 }  // namespace
 
 u8 SlotToEXIChannel(Slot slot)
@@ -136,9 +147,8 @@ void Init()
   for (Slot slot : MEMCARD_SLOTS)
     AddMemoryCard(slot);
 
+  AddSP1Device();
   g_Channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
-  g_Channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
-                                                     SlotToEXIDevice(Slot::SP1));
   g_Channels[2]->AddDevice(EXIDeviceType::AD16, 0);
 
   changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
