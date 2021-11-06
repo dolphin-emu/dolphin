@@ -20,10 +20,9 @@ namespace fs = std::filesystem;
 #include <utility>
 #include <vector>
 
-#include <zlib.h>
-
 #include "Common/Align.h"
 #include "Common/CDUtils.h"
+#include "Common/CRC32.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -355,9 +354,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   if (!File::ReadFileToString(boot_rom_filename, data))
     return false;
 
-  // Use zlibs crc32 implementation to compute the hash
-  u32 ipl_hash = crc32(0L, Z_NULL, 0);
-  ipl_hash = crc32(ipl_hash, (const Bytef*)data.data(), (u32)data.size());
+  const u32 ipl_hash = Common::ComputeCRC32(data);
   bool known_ipl = false;
   bool pal_ipl = false;
   switch (ipl_hash)

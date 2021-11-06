@@ -21,9 +21,10 @@ QList<QPixmap> Resources::m_platforms;
 QList<QPixmap> Resources::m_countries;
 QList<QPixmap> Resources::m_misc;
 
-QIcon Resources::GetIcon(const QString& name, const QString& dir)
+QIcon Resources::GetIcon(std::string_view name, const QString& dir)
 {
-  QString base_path = dir + QLatin1Char{'/'} + name;
+  QString name_owned = QString::fromLatin1(name.data(), static_cast<int>(name.size()));
+  QString base_path = dir + QLatin1Char{'/'} + name_owned;
 
   const auto dpr = QGuiApplication::primaryScreen()->devicePixelRatio();
 
@@ -42,7 +43,7 @@ QIcon Resources::GetIcon(const QString& name, const QString& dir)
   return icon;
 }
 
-QPixmap Resources::GetPixmap(const QString& name, const QString& dir)
+QPixmap Resources::GetPixmap(std::string_view name, const QString& dir)
 {
   const auto icon = GetIcon(name, dir);
   return icon.pixmap(icon.availableSizes()[0]);
@@ -58,30 +59,30 @@ static QString GetResourcesDir()
   return QString::fromStdString(File::GetSysDirectory() + "Resources");
 }
 
-QIcon Resources::GetScaledIcon(const std::string& name)
+QIcon Resources::GetScaledIcon(std::string_view name)
 {
-  return GetIcon(QString::fromStdString(name), GetResourcesDir());
+  return GetIcon(name, GetResourcesDir());
 }
 
-QIcon Resources::GetScaledThemeIcon(const std::string& name)
+QIcon Resources::GetScaledThemeIcon(std::string_view name)
 {
-  return GetIcon(QString::fromStdString(name), GetCurrentThemeDir());
+  return GetIcon(name, GetCurrentThemeDir());
 }
 
-QPixmap Resources::GetScaledPixmap(const std::string& name)
+QPixmap Resources::GetScaledPixmap(std::string_view name)
 {
-  return GetPixmap(QString::fromStdString(name), GetResourcesDir());
+  return GetPixmap(name, GetResourcesDir());
 }
 
 void Resources::Init()
 {
-  for (const std::string& platform :
+  for (std::string_view platform :
        {"Platform_Gamecube", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {
     m_platforms.append(GetScaledPixmap(platform));
   }
 
-  for (const std::string& country :
+  for (std::string_view country :
        {"Flag_Europe", "Flag_Japan", "Flag_USA", "Flag_Australia", "Flag_France", "Flag_Germany",
         "Flag_Italy", "Flag_Korea", "Flag_Netherlands", "Flag_Russia", "Flag_Spain", "Flag_Taiwan",
         "Flag_International", "Flag_Unknown"})
