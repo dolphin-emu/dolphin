@@ -226,21 +226,50 @@ jobs:
         if: success()
         shell: bash
         working-directory: ${{ github.workspace }}
+        env:
+          CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
         run: |
+          export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib
           chmod +x ./build-mac.sh && ./build-mac.sh ${{ matrix.build_config }}
-      - name: Package ${{ matrix.build_type }}
-        if: success()
+          mkdir artifact
+          FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}
+          echo "FILE_NAME=$FILE_NAME" >> $GITHUB_ENV
+      - name: "Package, Sign and Notarize Netplay Release DMG"
+        if: success() && env.CERTIFICATE_MACOS_APPLICATION != null
         shell: bash
         working-directory: ${{ github.workspace }}
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+          CERTIFICATE_MACOS_APPLICATION: ${{ secrets.CERTIFICATE_MACOS_APPLICATION }}
         run: |
-          FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}.tar.gz
-          mkdir artifact
-          cd ./build/Binaries/
-          zip -r "${FILE_NAME}" "Slippi_Dolphin.app"
-          mv "${FILE_NAME}" ../../artifact/
+          rm build/Binaries/traversal_server
+          chmod +x Tools/create-dmg/run.sh 
+          ./Tools/create-dmg/run.sh --no-internet-enable \
+            --volname "Slippi Dolphin Beta Installer" \
+            --volicon "Data/slippi_dmg_icon.icns" \
+            --background "Data/slippi_dmg_background.png" \
+            --text-size 14 \
+            --window-pos 200 120 \
+            --window-size 590 610 \
+            --icon-size 100 \
+            --app-drop-link 440 196 \
+            --icon "Slippi_Dolphin.app" 140 196 \
+            --hide-extension "Slippi_Dolphin.app" \
+            "${{ env.FILE_NAME }}.dmg" \
+            "./build/Binaries/"
+          mv "${{ env.FILE_NAME }}.dmg" artifact/
+          /usr/bin/codesign -f -s "${{ secrets.APPLE_IDENTITY_HASH }}" --deep --options runtime ./artifact/${{ env.FILE_NAME }}.dmg
+          chmod +x Tools/notarize_netplay.sh && ./Tools/notarize_netplay.sh ./artifact/${{ env.FILE_NAME }}.dmg
       - name: "Publish"
         if: success()
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.artifact_name }}
           path: "./artifact/"
+      #- name: "Enable Admin Debugging via SSH (if failed)"
+      # if: failure()
+      # uses: luchihoratiu/debug-via-ssh@main
+      # with:
+      #  NGROK_AUTH_TOKEN: ${{ secrets.NGROK_TOKEN }}
+      #   SSH_PASS: ${{ secrets.NGROK_PASS }}
