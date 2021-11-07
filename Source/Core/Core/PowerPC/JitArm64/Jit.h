@@ -144,7 +144,7 @@ public:
   void fselx(UGeckoInstruction inst);
   void fcmpX(UGeckoInstruction inst);
   void frspx(UGeckoInstruction inst);
-  void fctiwzx(UGeckoInstruction inst);
+  void fctiwx(UGeckoInstruction inst);
   void fresx(UGeckoInstruction inst);
   void frsqrtex(UGeckoInstruction inst);
 

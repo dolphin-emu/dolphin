@@ -2913,6 +2913,10 @@ void ARM64FloatEmitter::FSQRT(ARM64Reg Rd, ARM64Reg Rn)
 {
   EmitScalar1Source(0, 0, IsDouble(Rd), 3, Rd, Rn);
 }
+void ARM64FloatEmitter::FRINTI(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalar1Source(0, 0, IsDouble(Rd), 15, Rd, Rn);
+}
 
 void ARM64FloatEmitter::FRECPE(ARM64Reg Rd, ARM64Reg Rn)
 {
