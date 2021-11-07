@@ -275,13 +275,12 @@ static void BPWritten(const BPCmd& bp)
     {
       // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
-      static constexpr CopyFilterCoefficients::Values filter_coefficients = {
-          {0, 0, 21, 22, 21, 0, 0}};
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
           srcRect, PE_copy.intensity_fmt, PE_copy.half_scale, 1.0f, 1.0f,
-          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom, filter_coefficients);
+          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom,
+          bpmem.copyfilter.GetCoefficients());
     }
     else
     {
