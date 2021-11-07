@@ -86,7 +86,7 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
       File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
 
   const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, *std::localtime(&time), index);
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, fmt::localtime(time), index);
 
   const std::string path = fmt::format("{}.{}", base_name, extension);
 
