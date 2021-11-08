@@ -10,7 +10,7 @@
 
 namespace
 {
-// Multiply a NxM matrix by a NxP matrix.
+// Multiply a NxM matrix by a MxP matrix.
 template <int N, int M, int P, typename T>
 auto MatrixMultiply(const std::array<T, N * M>& a, const std::array<T, M * P>& b)
     -> std::array<T, N * P>
