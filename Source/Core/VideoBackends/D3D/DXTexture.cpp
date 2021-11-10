@@ -207,7 +207,7 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
 
   ComPtr<ID3D11Texture2D> texture;
   HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, texture.GetAddressOf());
-  CHECK(SUCCEEDED(hr), "Create staging texture");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create staging texture");
   if (FAILED(hr))
     return nullptr;
 
@@ -298,7 +298,7 @@ bool DXStagingTexture::Map()
 
   D3D11_MAPPED_SUBRESOURCE sr;
   HRESULT hr = D3D::context->Map(m_tex.Get(), 0, map_type, 0, &sr);
-  CHECK(SUCCEEDED(hr), "Map readback texture");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map readback texture");
   if (FAILED(hr))
     return false;
 
@@ -363,7 +363,7 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
         color_attachment->GetLayers());
     HRESULT hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,
                                                      rtv.GetAddressOf());
-    CHECK(SUCCEEDED(hr), "Create render target view for framebuffer");
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create render target view for framebuffer");
     if (FAILED(hr))
       return nullptr;
 
@@ -375,7 +375,8 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
       desc.Format = integer_format;
       hr = D3D::device->CreateRenderTargetView(color_attachment->GetD3DTexture(), &desc,
                                                integer_rtv.GetAddressOf());
-      CHECK(SUCCEEDED(hr), "Create integer render target view for framebuffer");
+      ASSERT_MSG(VIDEO, SUCCEEDED(hr),
+                 "Failed to create integer render target view for framebuffer");
     }
   }
 
@@ -389,7 +390,7 @@ std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(DXTexture* color_attachment
         depth_attachment->GetLayers(), 0);
     HRESULT hr = D3D::device->CreateDepthStencilView(depth_attachment->GetD3DTexture(), &desc,
                                                      dsv.GetAddressOf());
-    CHECK(SUCCEEDED(hr), "Create depth stencil view for framebuffer");
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create depth stencil view for framebuffer");
     if (FAILED(hr))
       return nullptr;
   }
