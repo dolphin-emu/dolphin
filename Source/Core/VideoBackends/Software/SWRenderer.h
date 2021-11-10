@@ -58,6 +58,8 @@ public:
                     const AbstractTexture* src_texture,
                     const MathUtil::Rectangle<int>& src_rect) override;
 
+  void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
+
 protected:
   std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
