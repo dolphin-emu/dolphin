@@ -345,7 +345,7 @@ void RunGpuLoop()
 
             ASSERT_MSG(COMMANDPROCESSOR,
                        (s32)fifo.CPReadWriteDistance.load(std::memory_order_relaxed) - 32 >= 0,
-                       "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
+                       "Negative fifo.CPReadWriteDistance = {} in FIFO Loop !\nThat can produce "
                        "instability in the game. Please report it.",
                        fifo.CPReadWriteDistance.load(std::memory_order_relaxed) - 32);
 

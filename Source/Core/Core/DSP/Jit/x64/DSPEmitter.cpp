@@ -153,7 +153,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
   const auto interpreter_function = Interpreter::GetOp(inst);
 
   m_gpr.PushRegs();
-  ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for %04x", inst);
+  ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for {:04x}", inst);
   ABI_CallFunctionPC(FallbackThunk, &m_dsp_core.GetInterpreter(), inst);
   m_gpr.PopRegs();
 }

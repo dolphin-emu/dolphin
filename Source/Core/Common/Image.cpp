@@ -80,7 +80,7 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     byte_per_pixel = 4;
     break;
   default:
-    ASSERT_MSG(FRAMEDUMP, false, "Invalid format %d", static_cast<int>(format));
+    ASSERT_MSG(FRAMEDUMP, false, "Invalid format {}", format);
     return false;
   }
 

@@ -108,9 +108,9 @@ EventType* RegisterEvent(const std::string& name, TimedCallback callback)
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
   ASSERT_MSG(POWERPC, s_event_types.find(name) == s_event_types.end(),
-             "CoreTiming Event \"%s\" is already registered. Events should only be registered "
+             "CoreTiming Event \"{}\" is already registered. Events should only be registered "
              "during Init to avoid breaking save states.",
-             name.c_str());
+             name);
 
   auto info = s_event_types.emplace(name, EventType{callback, nullptr});
   EventType* event_type = &info.first->second;
@@ -257,7 +257,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
   {
     from_cpu_thread = from == FromThread::CPU;
     ASSERT_MSG(POWERPC, from_cpu_thread == Core::IsCPUThread(),
-               "A \"%s\" event was scheduled from the wrong thread (%s)", event_type->name->c_str(),
+               "A \"{}\" event was scheduled from the wrong thread ({})", *event_type->name,
                from_cpu_thread ? "CPU" : "non-CPU");
   }
 

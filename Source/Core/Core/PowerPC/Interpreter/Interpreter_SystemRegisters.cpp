@@ -341,7 +341,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_WPAR:
-    ASSERT_MSG(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ %08x", PC);
+    ASSERT_MSG(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ {:08x}", PC);
     GPFifo::ResetGatherPipe();
     break;
 

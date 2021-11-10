@@ -340,7 +340,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
                    i + 1, rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
   }
   ASSERT_MSG(POWERPC, 0,
-             "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
+             "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
              inst.hex, PC, last_pc, LR);
 }
 

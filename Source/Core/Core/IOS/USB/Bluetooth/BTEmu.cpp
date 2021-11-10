@@ -178,7 +178,7 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
       break;
     }
     default:
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_BLKMSG: %x", ctrl.endpoint);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_BLKMSG: {:#x}", ctrl.endpoint);
     }
     break;
   }
@@ -194,7 +194,7 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_INTRMSG: %x", ctrl.endpoint);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_INTRMSG: {:#x}", ctrl.endpoint);
     }
     break;
   }
@@ -1085,8 +1085,9 @@ void BluetoothEmuDevice::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl
     }
     else
     {
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB_IOCTL_CTRLMSG: 0x%04X (ocf: 0x%x  ogf 0x%x)",
-                       msg.Opcode, ocf, ogf);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0,
+                       "Unknown USB_IOCTL_CTRLMSG: {:#06x} (ocf: {:#04x} ogf {:#04x})", msg.Opcode,
+                       ocf, ogf);
     }
     break;
   }
