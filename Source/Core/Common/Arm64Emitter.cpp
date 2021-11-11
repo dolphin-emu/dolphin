@@ -577,13 +577,14 @@ void ARM64XEmitter::EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, 
 
 void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
 {
-  ASSERT_MSG(DYNAREC, imm.valid, "Invalid logical immediate");
+  ASSERT_MSG(DYNA_REC, imm.valid, "Invalid logical immediate");
 
   // Sometimes Rd is fixed to SP, but can still be 32bit or 64bit.
   // Use Rn to determine bitness here.
   bool b64Bit = Is64Bit(Rn);
 
-  ASSERT_MSG(DYNAREC, b64Bit || !imm.n, "64-bit logical immediate does not fit in 32-bit register");
+  ASSERT_MSG(DYNA_REC, b64Bit || !imm.n,
+             "64-bit logical immediate does not fit in 32-bit register");
 
   Write32((b64Bit << 31) | (op << 29) | (0x24 << 23) | (imm.n << 22) | (imm.r << 16) |
           (imm.s << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));

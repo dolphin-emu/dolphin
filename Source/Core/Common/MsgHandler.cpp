@@ -106,10 +106,11 @@ std::string GetStringT(const char* string)
   return s_str_translator(string);
 }
 
-static bool ShowMessageAlert(std::string_view text, bool yes_no, MsgType style)
+static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::LogType log_type,
+                             MsgType style)
 {
   const char* caption = GetCaption(style);
-  ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, text);
+  GENERIC_LOG_FMT(log_type, Common::Log::LogLevel::LERROR, "{}: {}", caption, text);
 
   // Panic alerts.
   if (style == MsgType::Warning && s_abort_on_panic_alert)
@@ -129,11 +130,11 @@ static bool ShowMessageAlert(std::string_view text, bool yes_no, MsgType style)
 
 // This is the first stop for gui alerts where the log is updated and the
 // correct window is shown, when using fmt
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, fmt::string_view format,
-                     const fmt::format_args& args)
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type,
+                     fmt::string_view format, const fmt::format_args& args)
 {
   const auto message = fmt::vformat(format, args);
 
-  return ShowMessageAlert(message, yes_no, style);
+  return ShowMessageAlert(message, yes_no, log_type, style);
 }
 }  // namespace Common

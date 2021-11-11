@@ -13,10 +13,11 @@
   {                                                                                                \
     if (!(_a_))                                                                                    \
     {                                                                                              \
-      if (!PanicYesNoFmt("An error occurred.\n\n" _fmt_ "\n\n"                                     \
-                         "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"             \
-                         "Ignore and continue?",                                                   \
-                         ##__VA_ARGS__, #_a_, __FILE__, __LINE__, __func__))                       \
+      if (!PanicYesNoFmtAssert(_t_,                                                                \
+                               "An error occurred.\n\n" _fmt_ "\n\n"                               \
+                               "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"       \
+                               "Ignore and continue?",                                             \
+                               ##__VA_ARGS__, #_a_, __FILE__, __LINE__, __func__))                 \
         Crash();                                                                                   \
     }                                                                                              \
   } while (0)

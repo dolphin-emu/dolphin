@@ -36,7 +36,7 @@ void Arm64RegCache::ResetRegisters(BitSet32 regs)
     OpArg& reg = m_guest_registers[i];
     ARM64Reg host_reg = reg.GetReg();
 
-    ASSERT_MSG(DYNAREC, host_reg == ARM64Reg::INVALID_REG,
+    ASSERT_MSG(DYNA_REC, host_reg == ARM64Reg::INVALID_REG,
                "Attempted to reset a loaded register (did you mean to flush it?)");
     reg.Flush();
   }

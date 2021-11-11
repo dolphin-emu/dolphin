@@ -10,6 +10,7 @@
 #include <fmt/format.h>
 
 #include "Common/FormatUtil.h"
+#include "Common/Logging/Log.h"
 
 namespace Common
 {
@@ -30,16 +31,18 @@ void RegisterStringTranslator(StringTranslator translator);
 
 std::string GetStringT(const char* string);
 
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, fmt::string_view format,
-                     const fmt::format_args& args);
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type,
+                     fmt::string_view format, const fmt::format_args& args);
 
 template <std::size_t NumFields, typename S, typename... Args>
-bool MsgAlertFmt(bool yes_no, MsgType style, const S& format, const Args&... args)
+bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, const S& format,
+                 const Args&... args)
 {
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
-  return MsgAlertFmtImpl(yes_no, style, format, fmt::make_args_checked<Args...>(format, args...));
+  return MsgAlertFmtImpl(yes_no, style, log_type, format,
+                         fmt::make_args_checked<Args...>(format, args...));
 }
 
 void SetEnableAlert(bool enable);
@@ -55,51 +58,55 @@ std::string FmtFormatT(const char* string, Args&&... args)
 
 // Fmt-capable variants of the macros
 
-#define GenericAlertFmt(yes_no, style, format, ...)                                                \
+#define GenericAlertFmt(yes_no, style, log_type, format, ...)                                      \
   [&] {                                                                                            \
     /* Use a macro-like name to avoid shadowing warnings */                                        \
     constexpr auto GENERIC_ALERT_FMT_N = Common::CountFmtReplacementFields(format);                \
-    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, FMT_STRING(format),             \
-                                                    ##__VA_ARGS__);                                \
+    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, Common::Log::LogType::log_type, \
+                                                    FMT_STRING(format), ##__VA_ARGS__);            \
   }()
 
-#define GenericAlertFmtT(yes_no, style, format, ...)                                               \
+#define GenericAlertFmtT(yes_no, style, log_type, format, ...)                                     \
   [&] {                                                                                            \
     static_assert(!Common::ContainsNonPositionalArguments(format),                                 \
                   "Translatable strings must use positional arguments (e.g. {0} instead of {})");  \
     /* Use a macro-like name to avoid shadowing warnings */                                        \
     constexpr auto GENERIC_ALERT_FMT_N = Common::CountFmtReplacementFields(format);                \
-    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, FMT_STRING(format),             \
-                                                    ##__VA_ARGS__);                                \
+    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, Common::Log::LogType::log_type, \
+                                                    FMT_STRING(format), ##__VA_ARGS__);            \
   }()
 
 #define SuccessAlertFmt(format, ...)                                                               \
-  GenericAlertFmt(false, Common::MsgType::Information, format, ##__VA_ARGS__)
+  GenericAlertFmt(false, Common::MsgType::Information, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define PanicAlertFmt(format, ...)                                                                 \
-  GenericAlertFmt(false, Common::MsgType::Warning, format, ##__VA_ARGS__)
+  GenericAlertFmt(false, Common::MsgType::Warning, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define PanicYesNoFmt(format, ...)                                                                 \
-  GenericAlertFmt(true, Common::MsgType::Warning, format, ##__VA_ARGS__)
+  GenericAlertFmt(true, Common::MsgType::Warning, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define AskYesNoFmt(format, ...)                                                                   \
-  GenericAlertFmt(true, Common::MsgType::Question, format, ##__VA_ARGS__)
+  GenericAlertFmt(true, Common::MsgType::Question, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define CriticalAlertFmt(format, ...)                                                              \
-  GenericAlertFmt(false, Common::MsgType::Critical, format, ##__VA_ARGS__)
+  GenericAlertFmt(false, Common::MsgType::Critical, MASTER_LOG, format, ##__VA_ARGS__)
 
 // Use these macros (that do the same thing) if the message should be translated.
 #define SuccessAlertFmtT(format, ...)                                                              \
-  GenericAlertFmtT(false, Common::MsgType::Information, format, ##__VA_ARGS__)
+  GenericAlertFmtT(false, Common::MsgType::Information, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define PanicAlertFmtT(format, ...)                                                                \
-  GenericAlertFmtT(false, Common::MsgType::Warning, format, ##__VA_ARGS__)
+  GenericAlertFmtT(false, Common::MsgType::Warning, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define PanicYesNoFmtT(format, ...)                                                                \
-  GenericAlertFmtT(true, Common::MsgType::Warning, format, ##__VA_ARGS__)
+  GenericAlertFmtT(true, Common::MsgType::Warning, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define AskYesNoFmtT(format, ...)                                                                  \
-  GenericAlertFmtT(true, Common::MsgType::Question, format, ##__VA_ARGS__)
+  GenericAlertFmtT(true, Common::MsgType::Question, MASTER_LOG, format, ##__VA_ARGS__)
 
 #define CriticalAlertFmtT(format, ...)                                                             \
-  GenericAlertFmtT(false, Common::MsgType::Critical, format, ##__VA_ARGS__)
+  GenericAlertFmtT(false, Common::MsgType::Critical, MASTER_LOG, format, ##__VA_ARGS__)
+
+// Variant that takes a log type, used by the assert macros
+#define PanicYesNoFmtAssert(log_type, format, ...)                                                 \
+  GenericAlertFmt(true, Common::MsgType::Warning, log_type, format, ##__VA_ARGS__)
