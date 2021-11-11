@@ -82,7 +82,7 @@ bool PlatformX11::Init()
   m_display = XOpenDisplay(nullptr);
   if (!m_display)
   {
-    PanicAlert("No X11 display found");
+    PanicAlertFmt("No X11 display found");
     return false;
   }
 

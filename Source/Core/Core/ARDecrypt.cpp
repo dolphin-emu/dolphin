@@ -476,14 +476,15 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
   else if (!batchdecrypt(uCodes.data(), (u16)vCodes.size() << 1))
   {
     // Commented out since we just send the code anyways and hope for the best XD
-    // PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
-    // "First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
+    // PanicAlertFmt("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
+    //               "First Code in Block (should be verification code):\n{}",
+    //               vCodes[0]);
 
     for (size_t i = 0; i < (vCodes.size() << 1); i += 2)
     {
       ops->emplace_back(uCodes[i], uCodes[i + 1]);
-      // PanicAlert("Decrypted AR Code without verification code:\n%08X %08X", uCodes[i],
-      // uCodes[i+1]);
+      // PanicAlertFmt("Decrypted AR Code without verification code:\n{:08X} {:08X}", uCodes[i],
+      //               uCodes[i + 1]);
     }
   }
   else
@@ -492,7 +493,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
     for (size_t i = 2; i < (vCodes.size() << 1); i += 2)
     {
       ops->emplace_back(uCodes[i], uCodes[i + 1]);
-      // PanicAlert("Decrypted AR Code:\n%08X %08X", uCodes[i], uCodes[i+1]);
+      // PanicAlertFmt("Decrypted AR Code:\n{:08X} {:08X}", uCodes[i], uCodes[i+1]);
     }
   }
 }

@@ -715,8 +715,9 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     return;
   }
 
-  PanicAlertT("JIT failed to find code space after a cache clear. This should never happen. Please "
-              "report this incident on the bug tracker. Dolphin will now exit.");
+  PanicAlertFmtT(
+      "JIT failed to find code space after a cache clear. This should never happen. Please "
+      "report this incident on the bug tracker. Dolphin will now exit.");
   exit(-1);
 }
 

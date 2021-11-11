@@ -128,20 +128,6 @@ static bool ShowMessageAlert(std::string_view text, bool yes_no, MsgType style)
 }
 
 // This is the first stop for gui alerts where the log is updated and the
-// correct window is shown, but only for legacy printf-style messages
-bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
-{
-  char buffer[2048];
-
-  va_list args;
-  va_start(args, format);
-  CharArrayFromFormatV(buffer, sizeof(buffer) - 1, s_str_translator(format).c_str(), args);
-  va_end(args);
-
-  return ShowMessageAlert(buffer, yes_no, style);
-}
-
-// This is the first stop for gui alerts where the log is updated and the
 // correct window is shown, when using fmt
 bool MsgAlertFmtImpl(bool yes_no, MsgType style, fmt::string_view format,
                      const fmt::format_args& args)

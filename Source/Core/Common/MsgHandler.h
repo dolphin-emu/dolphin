@@ -30,12 +30,6 @@ void RegisterStringTranslator(StringTranslator translator);
 
 std::string GetStringT(const char* string);
 
-bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
-#ifdef __GNUC__
-    __attribute__((format(printf, 3, 4)))
-#endif
-    ;
-
 bool MsgAlertFmtImpl(bool yes_no, MsgType style, fmt::string_view format,
                      const fmt::format_args& args);
 
@@ -58,39 +52,6 @@ std::string FmtFormatT(const char* string, Args&&... args)
   return fmt::format(Common::GetStringT(string), std::forward<Args>(args)...);
 }
 }  // namespace Common
-
-// Deprecated variants of the alert macros. See the fmt variants down below.
-
-#define SuccessAlert(format, ...)                                                                  \
-  Common::MsgAlert(false, Common::MsgType::Information, format, ##__VA_ARGS__)
-
-#define PanicAlert(format, ...)                                                                    \
-  Common::MsgAlert(false, Common::MsgType::Warning, format, ##__VA_ARGS__)
-
-#define PanicYesNo(format, ...)                                                                    \
-  Common::MsgAlert(true, Common::MsgType::Warning, format, ##__VA_ARGS__)
-
-#define AskYesNo(format, ...)                                                                      \
-  Common::MsgAlert(true, Common::MsgType::Question, format, ##__VA_ARGS__)
-
-#define CriticalAlert(format, ...)                                                                 \
-  Common::MsgAlert(false, Common::MsgType::Critical, format, ##__VA_ARGS__)
-
-// Use these macros (that do the same thing) if the message should be translated.
-#define SuccessAlertT(format, ...)                                                                 \
-  Common::MsgAlert(false, Common::MsgType::Information, format, ##__VA_ARGS__)
-
-#define PanicAlertT(format, ...)                                                                   \
-  Common::MsgAlert(false, Common::MsgType::Warning, format, ##__VA_ARGS__)
-
-#define PanicYesNoT(format, ...)                                                                   \
-  Common::MsgAlert(true, Common::MsgType::Warning, format, ##__VA_ARGS__)
-
-#define AskYesNoT(format, ...)                                                                     \
-  Common::MsgAlert(true, Common::MsgType::Question, format, ##__VA_ARGS__)
-
-#define CriticalAlertT(format, ...)                                                                \
-  Common::MsgAlert(false, Common::MsgType::Critical, format, ##__VA_ARGS__)
 
 // Fmt-capable variants of the macros
 
