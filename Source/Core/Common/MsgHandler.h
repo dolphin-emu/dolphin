@@ -45,6 +45,19 @@ bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, cons
                          fmt::make_args_checked<Args...>(format, args...));
 }
 
+template <std::size_t NumFields, bool has_non_positional_args, typename S, typename... Args>
+bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, const S& format,
+                  const Args&... args)
+{
+  static_assert(!has_non_positional_args,
+                "Translatable strings must use positional arguments (e.g. {0} instead of {})");
+  static_assert(NumFields == sizeof...(args),
+                "Unexpected number of replacement fields in format string; did you pass too few or "
+                "too many arguments?");
+  return MsgAlertFmtImpl(yes_no, style, log_type, format,
+                         fmt::make_args_checked<Args...>(format, args...));
+}
+
 void SetEnableAlert(bool enable);
 void SetAbortOnPanicAlert(bool should_abort);
 
@@ -59,22 +72,13 @@ std::string FmtFormatT(const char* string, Args&&... args)
 // Fmt-capable variants of the macros
 
 #define GenericAlertFmt(yes_no, style, log_type, format, ...)                                      \
-  [&] {                                                                                            \
-    /* Use a macro-like name to avoid shadowing warnings */                                        \
-    constexpr auto GENERIC_ALERT_FMT_N = Common::CountFmtReplacementFields(format);                \
-    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, Common::Log::LogType::log_type, \
-                                                    FMT_STRING(format), ##__VA_ARGS__);            \
-  }()
+  Common::MsgAlertFmt<Common::CountFmtReplacementFields(format)>(                                  \
+      yes_no, style, Common::Log::LogType::log_type, FMT_STRING(format), ##__VA_ARGS__)
 
 #define GenericAlertFmtT(yes_no, style, log_type, format, ...)                                     \
-  [&] {                                                                                            \
-    static_assert(!Common::ContainsNonPositionalArguments(format),                                 \
-                  "Translatable strings must use positional arguments (e.g. {0} instead of {})");  \
-    /* Use a macro-like name to avoid shadowing warnings */                                        \
-    constexpr auto GENERIC_ALERT_FMT_N = Common::CountFmtReplacementFields(format);                \
-    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, Common::Log::LogType::log_type, \
-                                                    FMT_STRING(format), ##__VA_ARGS__);            \
-  }()
+  Common::MsgAlertFmtT<Common::CountFmtReplacementFields(format),                                  \
+                       Common::ContainsNonPositionalArguments(format)>(                            \
+      yes_no, style, Common::Log::LogType::log_type, FMT_STRING(format), ##__VA_ARGS__)
 
 #define SuccessAlertFmt(format, ...)                                                               \
   GenericAlertFmt(false, Common::MsgType::Information, MASTER_LOG, format, ##__VA_ARGS__)
