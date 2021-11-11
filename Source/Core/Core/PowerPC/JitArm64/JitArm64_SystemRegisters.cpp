@@ -926,7 +926,8 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
 
     if (LogicalImm imm = LogicalImm(mask, 32))
     {
-      AND(WA, WA, LogicalImm(~mask, 32));
+      const u32 inverted_mask = ~mask;
+      AND(WA, WA, LogicalImm(inverted_mask, 32));
       AND(WB, WB, imm);
     }
     else
