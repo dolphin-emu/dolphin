@@ -49,55 +49,6 @@ static Common::Matrix44 s_viewportCorrection;
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
 
-// Viewport correction:
-// In D3D, the viewport rectangle must fit within the render target.
-// Say you want a viewport at (ix, iy) with size (iw, ih),
-// but your viewport must be clamped at (ax, ay) with size (aw, ah).
-// Just multiply the projection matrix with the following to get the same
-// effect:
-// [   (iw/aw)         0     0    ((iw - 2*(ax-ix)) / aw - 1)   ]
-// [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
-// [         0         0     1                              0   ]
-// [         0         0     0                              1   ]
-static void ViewportCorrectionMatrix(Common::Matrix44& result)
-{
-  int scissorXOff = bpmem.scissorOffset.x * 2;
-  int scissorYOff = bpmem.scissorOffset.y * 2;
-
-  // TODO: ceil, floor or just cast to int?
-  // TODO: Directly use the floats instead of rounding them?
-  float intendedX = xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff;
-  float intendedY = xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff;
-  float intendedWd = 2.0f * xfmem.viewport.wd;
-  float intendedHt = -2.0f * xfmem.viewport.ht;
-
-  if (intendedWd < 0.f)
-  {
-    intendedX += intendedWd;
-    intendedWd = -intendedWd;
-  }
-  if (intendedHt < 0.f)
-  {
-    intendedY += intendedHt;
-    intendedHt = -intendedHt;
-  }
-
-  // fit to EFB size
-  float X = (intendedX >= 0.f) ? intendedX : 0.f;
-  float Y = (intendedY >= 0.f) ? intendedY : 0.f;
-  float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
-  float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
-
-  result = Common::Matrix44::Identity();
-  if (Wd == 0 || Ht == 0)
-    return;
-
-  result.data[4 * 0 + 0] = intendedWd / Wd;
-  result.data[4 * 0 + 3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
-  result.data[4 * 1 + 1] = intendedHt / Ht;
-  result.data[4 * 1 + 3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
-}
-
 void VertexShaderManager::Init()
 {
   // Initialize state tracking variables
@@ -348,13 +299,6 @@ void VertexShaderManager::SetConstants()
 
     dirty = true;
     BPFunctions::SetViewport();
-
-    // Update projection if the viewport isn't 1:1 useable
-    if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
-    {
-      ViewportCorrectionMatrix(s_viewportCorrection);
-      bProjectionChanged = true;
-    }
   }
 
   if (bProjectionChanged || g_freelook_camera.GetController()->IsDirty())

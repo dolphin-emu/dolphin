@@ -153,17 +153,6 @@ void SetViewport()
     far_depth = 1.0f - min_depth;
   }
 
-  // Clamp to size if oversized not supported. Required for D3D.
-  if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
-  {
-    const float max_width = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetWidth());
-    const float max_height = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight());
-    x = std::clamp(x, 0.0f, max_width - 1.0f);
-    y = std::clamp(y, 0.0f, max_height - 1.0f);
-    width = std::clamp(width, 1.0f, max_width - x);
-    height = std::clamp(height, 1.0f, max_height - y);
-  }
-
   // Lower-left flip.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
     y = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight()) - y - height;
