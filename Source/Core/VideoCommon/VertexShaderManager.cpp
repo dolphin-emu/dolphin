@@ -298,7 +298,7 @@ void VertexShaderManager::SetConstants()
     }
 
     dirty = true;
-    BPFunctions::SetViewport();
+    BPFunctions::SetScissorAndViewport();
   }
 
   if (bProjectionChanged || g_freelook_camera.GetController()->IsDirty())

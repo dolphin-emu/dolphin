@@ -160,8 +160,7 @@ void Renderer::EndUtilityDrawing()
 {
   // Reset framebuffer/scissor/viewport. Pipeline will be reset at next draw.
   g_framebuffer_manager->BindEFBFramebuffer();
-  BPFunctions::SetScissor();
-  BPFunctions::SetViewport();
+  BPFunctions::SetScissorAndViewport();
 }
 
 void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
@@ -543,8 +542,7 @@ void Renderer::CheckForConfigChanges()
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   if (changed_bits & CONFIG_CHANGE_BIT_TARGET_SIZE)
   {
-    BPFunctions::SetViewport();
-    BPFunctions::SetScissor();
+    BPFunctions::SetScissorAndViewport();
   }
 
   // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
