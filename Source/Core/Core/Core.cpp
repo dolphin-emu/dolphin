@@ -196,10 +196,9 @@ void OnFrameEnd()
   // Auto Golf Mode
   if (NetPlay::IsNetPlayRunning() && IsGolfMode())
   {
-    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8036F3B8), // isBat
-                                         (Memory::Read_U8(0x802EBF95)), // BatPort
-                                         (Memory::Read_U8(0x802EBF94)), // FieldPort
-                                         Memory::Read_U8(0x802EBF98)); // isField
+    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8089389B),    // isField
+                                         (Memory::Read_U8(0x802EBF95)),  // BatPort
+                                         (Memory::Read_U8(0x802EBF94))); // FieldPort
   }
 
 #ifdef USE_MEMORYWATCHER
