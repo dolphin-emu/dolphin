@@ -157,7 +157,8 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize
   D3D::stateman->SetComputeShader(static_cast<const DXShader*>(shader)->GetD3DComputeShader());
   D3D::stateman->SyncComputeBindings();
   D3D::context->Dispatch(groups_x, groups_y, groups_z);
-  D3D::stateman->SetComputeUAV(nullptr);
+  D3D::stateman->ResetUAVs();
+  D3D::stateman->ResetComputeBindings();
 }
 
 void Renderer::BindBackbuffer(const ClearColor& clear_color)
@@ -238,9 +239,10 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   D3D::stateman->SetSampler(index, m_state_cache.Get(state));
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Renderer::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
-  D3D::stateman->SetComputeUAV(texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
+  D3D::stateman->SetComputeUAV(index,
+                               texture ? static_cast<DXTexture*>(texture)->GetD3DUAV() : nullptr);
 }
 
 void Renderer::UnbindTexture(const AbstractTexture* texture)

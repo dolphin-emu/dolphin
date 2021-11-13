@@ -564,13 +564,13 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   m_sampler_states[index] = state;
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Renderer::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
   VKTexture* vk_texture = static_cast<VKTexture*>(texture);
   if (vk_texture)
   {
     StateTracker::GetInstance()->EndRenderPass();
-    StateTracker::GetInstance()->SetImageTexture(vk_texture->GetView());
+    StateTracker::GetInstance()->SetImageTexture(index, vk_texture->GetView());
     vk_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                    read ? (write ? VKTexture::ComputeImageLayout::ReadWrite :
                                                    VKTexture::ComputeImageLayout::ReadOnly) :
@@ -578,7 +578,7 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
   }
   else
   {
-    StateTracker::GetInstance()->SetImageTexture(VK_NULL_HANDLE);
+    StateTracker::GetInstance()->SetImageTexture(index, VK_NULL_HANDLE);
   }
 }
 

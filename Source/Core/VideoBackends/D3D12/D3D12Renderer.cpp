@@ -293,13 +293,13 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   m_dirty_bits |= DirtyState_Samplers;
 }
 
-void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
+void Renderer::SetComputeImageTexture(u32 index, AbstractTexture* texture, bool read, bool write)
 {
   const DXTexture* dxtex = static_cast<const DXTexture*>(texture);
-  if (m_state.compute_image_texture == dxtex)
+  if (m_state.compute_image_textures[index] == dxtex)
     return;
 
-  m_state.compute_image_texture = dxtex;
+  m_state.compute_image_textures[index] = dxtex;
   if (dxtex)
     dxtex->TransitionToState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
@@ -317,11 +317,12 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
       m_state.textures[i].ptr = g_dx_context->GetNullSRVDescriptor().cpu_handle.ptr;
       m_dirty_bits |= DirtyState_Textures;
     }
-  }
-  if (m_state.compute_image_texture == texture)
-  {
-    m_state.compute_image_texture = nullptr;
-    m_dirty_bits |= DirtyState_ComputeImageTexture;
+
+    if (m_state.compute_image_textures[i] == texture)
+    {
+      m_state.compute_image_textures[i] = nullptr;
+      m_dirty_bits |= DirtyState_ComputeImageTexture;
+    }
   }
 }
 
@@ -738,11 +739,19 @@ bool Renderer::UpdateComputeUAVDescriptorTable()
   if (!g_dx_context->GetDescriptorAllocator()->Allocate(1, &handle))
     return false;
 
-  if (m_state.compute_image_texture)
+  std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> cpu_handles;
+  for (auto compute_image_texture : m_state.compute_image_textures)
   {
-    g_dx_context->GetDevice()->CopyDescriptorsSimple(
-        1, handle.cpu_handle, m_state.compute_image_texture->GetUAVDescriptor().cpu_handle,
-        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    if (compute_image_texture)
+    {
+    }
+  }
+
+  if (!cpu_handles.empty())
+  {
+    /*g_dx_context->GetDevice()->CopyDescriptors(
+        cpu_handles.size(), handle.cpu_handle, cpu_handles.data(),
+        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);*/
   }
   else
   {
