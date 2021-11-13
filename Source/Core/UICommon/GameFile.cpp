@@ -22,6 +22,7 @@
 #include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -624,15 +625,75 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   return name + " (" + ss.str() + ")";
 }
 
+static std::array<u8, 20> GetHash(u32 value)
+{
+  auto data = Common::BitCastToArray<u8>(value);
+  std::array<u8, 20> hash;
+  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(data.data()), data.size(), hash.data());
+  return hash;
+}
+
+static std::array<u8, 20> GetHash(std::string_view str)
+{
+  std::array<u8, 20> hash;
+  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(str.data()), str.size(), hash.data());
+  return hash;
+}
+
+static std::optional<std::array<u8, 20>> GetFileHash(const std::string& path)
+{
+  std::string buffer;
+  if (!File::ReadFileToString(path, buffer))
+    return std::nullopt;
+  return GetHash(buffer);
+}
+
+static std::optional<std::array<u8, 20>> MixHash(const std::optional<std::array<u8, 20>>& lhs,
+                                                 const std::optional<std::array<u8, 20>>& rhs)
+{
+  if (!lhs && !rhs)
+    return std::nullopt;
+  if (!lhs || !rhs)
+    return !rhs ? lhs : rhs;
+  std::array<u8, 20> result;
+  for (size_t i = 0; i < result.size(); ++i)
+    result[i] = (*lhs)[i] ^ (*rhs)[(i + 1) % result.size()];
+  return result;
+}
+
 std::array<u8, 20> GameFile::GetSyncHash() const
 {
-  std::array<u8, 20> hash{};
+  std::optional<std::array<u8, 20>> hash;
 
   if (m_platform == DiscIO::Platform::ELFOrDOL)
   {
-    std::string buffer;
-    if (File::ReadFileToString(m_file_path, buffer))
-      mbedtls_sha1_ret(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), hash.data());
+    hash = GetFileHash(m_file_path);
+  }
+  else if (m_blob_type == DiscIO::BlobType::MOD_DESCRIPTOR)
+  {
+    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+    if (descriptor)
+    {
+      GameFile proxy(descriptor->base_file);
+      if (proxy.IsValid())
+        hash = proxy.GetSyncHash();
+
+      // add patches to hash if they're enabled
+      if (descriptor->riivolution)
+      {
+        for (const auto& patch : descriptor->riivolution->patches)
+        {
+          hash = MixHash(hash, GetFileHash(patch.xml));
+          for (const auto& option : patch.options)
+          {
+            hash = MixHash(hash, GetHash(option.section_name));
+            hash = MixHash(hash, GetHash(option.option_id));
+            hash = MixHash(hash, GetHash(option.option_name));
+            hash = MixHash(hash, GetHash(option.choice));
+          }
+        }
+      }
+    }
   }
   else
   {
@@ -640,7 +701,7 @@ std::array<u8, 20> GameFile::GetSyncHash() const
       hash = volume->GetSyncHash();
   }
 
-  return hash;
+  return hash.value_or(std::array<u8, 20>{});
 }
 
 NetPlay::SyncIdentifier GameFile::GetSyncIdentifier() const
