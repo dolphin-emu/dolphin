@@ -528,8 +528,12 @@ if(APPLE)
   endforeach()
 
   # Copy MoltenVK into the bundle
-  target_sources(dolphin-emu PRIVATE "${CMAKE_SOURCE_DIR}/Externals/MoltenVK/libvulkan.dylib")
-  set_source_files_properties("${CMAKE_SOURCE_DIR}/Externals/MoltenVK/libvulkan.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
+  if(ENABLE_VULKAN)
+    add_dependencies(dolphin-emu MoltenVK)
+    ExternalProject_Get_Property(MoltenVK SOURCE_DIR)
+    target_sources(dolphin-emu PRIVATE "${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib")
+    set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
+  endif()
 
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)
