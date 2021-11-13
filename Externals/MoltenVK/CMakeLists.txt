@@ -1,8 +1,10 @@
 include(ExternalProject)
 
+set(MOLTENVK_VERSION "v1.1.5")
+
 ExternalProject_Add(MoltenVK
   GIT_REPOSITORY https://github.com/KhronosGroup/MoltenVK.git
-  GIT_TAG v1.1.5
+  GIT_TAG ${MOLTENVK_VERSION}
 
   CONFIGURE_COMMAND <SOURCE_DIR>/fetchDependencies --macos
 
