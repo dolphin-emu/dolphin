@@ -155,6 +155,11 @@ const std::vector<u64>& BootSessionData::GetWiiSyncTitles() const
   return m_wii_sync_titles;
 }
 
+const std::string& BootSessionData::GetWiiSyncRedirectFolder() const
+{
+  return m_wii_sync_redirect_folder;
+}
+
 void BootSessionData::InvokeWiiSyncCleanup() const
 {
   if (m_wii_sync_cleanup)
@@ -162,10 +167,12 @@ void BootSessionData::InvokeWiiSyncCleanup() const
 }
 
 void BootSessionData::SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs,
-                                     std::vector<u64> titles, WiiSyncCleanupFunction cleanup)
+                                     std::vector<u64> titles, std::string redirect_folder,
+                                     WiiSyncCleanupFunction cleanup)
 {
   m_wii_sync_fs = std::move(fs);
   m_wii_sync_titles = std::move(titles);
+  m_wii_sync_redirect_folder = std::move(redirect_folder);
   m_wii_sync_cleanup = std::move(cleanup);
 }
 

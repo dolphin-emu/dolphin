@@ -95,7 +95,7 @@ public:
   void HideChunkedProgressDialog() override;
   void SetChunkedProgress(int pid, u64 progress) override;
 
-  void SetHostWiiSyncTitles(std::vector<u64> titles) override;
+  void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) override;
 
 signals:
   void Stop();
