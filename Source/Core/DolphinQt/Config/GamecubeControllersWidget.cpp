@@ -18,16 +18,19 @@
 #include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/GCPad.h"
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/GCAdapter.h"
+#include <ModalMessageBox.h>
 
 static const std::vector<std::pair<SerialInterface::SIDevices, const char*>> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, _trans("None")},
     {SerialInterface::SIDEVICE_GC_CONTROLLER, _trans("Standard Controller")},
+    {SerialInterface::SIDEVICE_GC_METROID, _trans("Metroid Controller")},
     {SerialInterface::SIDEVICE_WIIU_ADAPTER, _trans("GameCube Adapter for Wii U")},
     {SerialInterface::SIDEVICE_GC_STEERING, _trans("Steering Wheel")},
     {SerialInterface::SIDEVICE_DANCEMAT, _trans("Dance Mat")},
@@ -145,6 +148,11 @@ void GamecubeControllersWidget::OnGCPadConfigure()
     return;
   case SerialInterface::SIDEVICE_GC_CONTROLLER:
     type = MappingWindow::Type::MAPPING_GCPAD;
+    Pad::ChangeUIPrimeHack(static_cast<int>(index), false);
+    break;
+  case SerialInterface::SIDEVICE_GC_METROID:
+    type = MappingWindow::Type::MAPPING_GCPAD_METROID;
+    Pad::ChangeUIPrimeHack(static_cast<int>(index), true);
     break;
   case SerialInterface::SIDEVICE_WIIU_ADAPTER:
     GCPadWiiUConfigDialog(static_cast<int>(index), this).exec();
@@ -166,6 +174,18 @@ void GamecubeControllersWidget::OnGCPadConfigure()
     break;
   default:
     return;
+  }
+
+  if (type == MappingWindow::Type::MAPPING_GCPAD) {
+    if (!SConfig::GetInstance().bPromptPrimeHackTab) {
+      if (ModalMessageBox::primehack_gctab(this)) {
+        type = MappingWindow::Type::MAPPING_GCPAD_METROID;
+        Pad::ChangeUIPrimeHack(static_cast<int>(index), true);
+        m_gc_controller_boxes[index]->setCurrentIndex(2);
+      }
+
+      SConfig::GetInstance().bPromptPrimeHackTab = true;
+    }
   }
 
   MappingWindow* window = new MappingWindow(this, type, static_cast<int>(index));

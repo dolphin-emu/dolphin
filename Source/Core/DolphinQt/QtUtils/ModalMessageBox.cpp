@@ -72,6 +72,25 @@ static inline int ExecPrimeHackWiiTabMessage(QWidget* parent)
   return msg.exec();
 }
 
+static inline int ExecPrimeHackGCTabMessage(QWidget* parent)
+{
+  ModalMessageBox msg(parent, Qt::WindowModal);
+  msg.setIcon(QMessageBox::Information);
+  msg.setWindowTitle(QString::fromStdString("PrimeHack"));
+  msg.setTextFormat(Qt::RichText);
+  msg.setText(QString::fromStdString(
+    "<p>Unless you have a specific reason to use the 'Standard Controller' window, "
+    " we highly recommend you use the Metroid Controller window instead. "
+    "Both windows will work, but the Metroid window is specialised to make configuring your controls far easier."
+    "</p><p>"
+    "If you would like to go to the Metroid controller window instead, press <b>Open</b>.<br>"));
+  msg.setStandardButtons(QMessageBox::StandardButton::Ignore);
+  msg.addButton(QMessageBox::StandardButton::Open);
+  msg.setDefaultButton(QMessageBox::NoButton);
+
+  return msg.exec();
+}
+
 void ModalMessageBox::primehack_initialrun(QWidget* parent)
 {
   if (ExecPrimeHackMessage(parent) == QMessageBox::Help) {
@@ -82,6 +101,15 @@ void ModalMessageBox::primehack_initialrun(QWidget* parent)
 bool ModalMessageBox::primehack_wiitab(QWidget* parent)
 {
   if (ExecPrimeHackWiiTabMessage(parent) == QMessageBox::Open) {
+    return true;
+  }
+
+  return false;
+}
+
+bool ModalMessageBox::primehack_gctab(QWidget* parent)
+{
+  if (ExecPrimeHackGCTabMessage(parent) == QMessageBox::Open) {
     return true;
   }
 

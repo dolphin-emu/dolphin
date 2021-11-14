@@ -37,6 +37,10 @@ static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_L
                                     PAD_BUTTON_RIGHT};
 
 static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start"};
+static const char* const metroid_named_buttons[] = { "Shoot / Select", "Jump / Cancel", "Morph Ball", "Missile", "Map", "Menu / Hint" };
+
+static const char* const prime_beams[] = { "Beam 1", "Beam 2", "Beam 3", "Beam 4" };
+static const char* const prime_visors[] = { "Visor 1", "Visor 2", "Visor 3", "Visor 4" };
 
 static const char* const named_triggers[] = {
     // i18n: The left trigger button (labeled L on real controllers)
@@ -101,32 +105,6 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
               "If unchecked, the connection state of the emulated controller is linked\n"
               "to the connection state of the real default device (if there is one).")},
       false);
-
-  // Adding PrimeHack Buttons
-  //groups.emplace_back(m_primehack_beams = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
-  //for (const char* prime_button : prime_beams)
-  //{
-  //  const std::string& ui_name = prime_button;
-  //  m_primehack_beams->controls.emplace_back(
-  //    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
-  //}
-  //m_primehack_beams->controls.emplace_back(
-  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Next Beam"), "Next Beam"));
-  //m_primehack_beams->controls.emplace_back(
-  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Beam"), "Previous Beam"));
-
-  //groups.emplace_back(m_primehack_visors = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
-  //for (const char* prime_button : prime_visors)
-  //{
-  //  const std::string& ui_name = prime_button;
-  //  m_primehack_visors->controls.emplace_back(
-  //    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
-  //}
-
-  //m_primehack_visors->controls.emplace_back(
-  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Next Visor"), "Next Visor"));
-  //m_primehack_visors->controls.emplace_back(
-  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Visor"), "Previous Visor"));
 
   groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
 
@@ -254,7 +232,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 #ifdef _WIN32
   m_buttons->SetControlExpression(5, "GRAVE");  // Start
 #else
-  m_buttons->SetControlExpression(5, "GRAVE");          // Start
+  m_buttons->SetControlExpression(5, "GRAVE");  // Start
 #endif
 
   // stick modifiers to 50 %
@@ -295,9 +273,12 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
   m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
 
-  // Triggers
-  m_triggers->SetControlExpression(0, "Shift");  // L
-  m_triggers->SetControlExpression(2, "Shift");
+  // Lock/Scan/Spider Ball
+#ifdef HAVE_X11
+  m_triggers->SetControlExpression(0, "`Click 3`");
+#else
+  m_triggers->SetControlExpression(0, "`Click 1`");
+#endif
 }
 
 bool GCPad::GetMicButton() const
@@ -306,11 +287,46 @@ bool GCPad::GetMicButton() const
   return m_mic->controls.back()->GetState<bool>();
 }
 
-// May introduce Springball into MP1-GC at some point.
+void GCPad::ChangeUIPrimeHack(bool useMetroidUI)
+{
+  if (using_metroid_ui == useMetroidUI)
+    return;
+
+
+  for (int i = 0; i < 6; i++)
+  {
+    std::string_view ui_name = useMetroidUI ? metroid_named_buttons[i] : named_buttons[i];
+
+    m_buttons->controls[i]->ui_name = _trans(ui_name);
+    m_buttons->controls[i]->display_alt = useMetroidUI;
+  }
+
+  for (int i = 0; i < 4; i++)
+  {
+    std::string_view ui_name = useMetroidUI ? prime_beams[i] : named_directions[i];
+
+    m_c_stick->controls[i]->ui_name = _trans(ui_name);
+    m_c_stick->controls[i]->display_alt = useMetroidUI;
+
+    ui_name = useMetroidUI ? prime_visors[i] : named_directions[i];
+
+    m_dpad->controls[i]->ui_name = _trans(ui_name);
+    m_dpad->controls[i]->display_alt = useMetroidUI;
+  }
+
+  m_triggers->controls[0]->ui_name = useMetroidUI ? "Lock-On" : _trans("L");
+  m_triggers->controls[0]->display_alt = useMetroidUI;
+
+  using_metroid_ui = useMetroidUI;
+  m_buttons->use_metroid_ui = useMetroidUI;
+}
+
+// May introduce Springball into GC at some point.
 bool GCPad::CheckSpringBallCtrl()
 {
   return false; //m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
 }
+
 
 std::tuple<double, double> GCPad::GetPrimeStickXY()
 {

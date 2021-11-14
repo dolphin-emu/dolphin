@@ -27,6 +27,7 @@
 #include "DolphinQt/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
+#include "DolphinQt/Config/Mapping/GCPadEmuMetroid.h"
 #include "DolphinQt/Config/Mapping/Hotkey3D.h"
 #include "DolphinQt/Config/Mapping/HotkeyControllerProfile.h"
 #include "DolphinQt/Config/Mapping/HotkeyDebugging.h"
@@ -399,6 +400,12 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("GameCube Controller"), widget);
     m_primehack_tab =
       AddWidget(PRIMEHACK_TAB_NAME, new PrimeHackEmuGC(this));
+
+    break;
+  case Type::MAPPING_GCPAD_METROID:
+    widget = new GCPadEmuMetroid(this);
+    setWindowTitle(tr("GameCube Controller (Metroid) at Port %1").arg(GetPort() + 1));
+    AddWidget(tr("General"), widget);
 
     break;
   case Type::MAPPING_GC_MICROPHONE:
