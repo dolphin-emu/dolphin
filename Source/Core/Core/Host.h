@@ -63,5 +63,6 @@ void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();
+void Host_RendererUpdateCursor(bool locked);
 
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core);

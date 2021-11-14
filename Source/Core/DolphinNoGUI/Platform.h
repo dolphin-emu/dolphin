@@ -21,6 +21,7 @@ public:
   virtual bool Init();
   virtual void SetTitle(const std::string& title);
   virtual void MainLoop() = 0;
+  virtual void UpdateCursor(bool locked) {}
 
   virtual WindowSystemInfo GetWindowSystemInfo() const = 0;
 

@@ -63,6 +63,15 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
     resize(w / dpr, h / dpr);
   });
+  connect(Host::GetInstance(), &Host::UpdateAndRecenterCursor, this, [this](bool locked) {
+    if (locked) {
+      QRect render_rect = geometry();
+      cursor().setPos(render_rect.left() + render_rect.width() / 2,
+                      render_rect.top() + render_rect.height() / 2);
+    }
+    setCursor((locked && Settings::Instance().GetHideCursor()) ? Qt::BlankCursor :
+                                                                 Qt::ArrowCursor);
+  });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Running)
@@ -436,7 +445,6 @@ bool RenderWidget::event(QEvent* event)
     SetCursorLocked(m_cursor_locked);
     win_w = size().width() / 2;
     win_h = size().height() / 2;
-    win_hdl = reinterpret_cast<void*>(winId());
     break;
   case QEvent::Resize:
   {
@@ -450,7 +458,6 @@ bool RenderWidget::event(QEvent* event)
     // Window Centre for PrimeHack mouselock.
     win_w = (new_size.width() * dpr) / 2;
     win_h = (new_size.height() * dpr) / 2;
-    win_hdl = reinterpret_cast<void*>(winId());
 
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
 

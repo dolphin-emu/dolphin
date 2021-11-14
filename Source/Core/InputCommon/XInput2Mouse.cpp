@@ -5,7 +5,6 @@
 #include <math.h>
 
 int win_w = 0, win_h = 0;
-void* win_hdl = nullptr;
 
 namespace prime
 {
@@ -144,13 +143,12 @@ void XInput2Mouse::LockCursorToGameWindow()
 {
   if (Host_RendererHasFocus() && cursor_locked)
   {
-    if (win_hdl != nullptr) {
-      XWarpPointer(display, None, reinterpret_cast<Window>(win_hdl), 0, 0, 0, 0, win_w, win_h);
-    }
+    Host_RendererUpdateCursor(true);
   }
   else
   {
     cursor_locked = false;
+    Host_RendererUpdateCursor(false);
   }
 }
 

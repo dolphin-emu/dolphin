@@ -192,6 +192,11 @@ bool Host_RendererIsFullscreen()
   return Host::GetInstance()->GetRenderFullscreen();
 }
 
+void Host_RendererUpdateCursor(bool locked)
+{
+  emit Host::GetInstance()->UpdateAndRecenterCursor(locked);
+}
+
 void Host_YieldToUI()
 {
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
