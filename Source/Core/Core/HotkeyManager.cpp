@@ -454,11 +454,6 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_WIIMOTE3_CONNECT, hotkey_string({"Alt", "F7"}));
   set_key_expression(HK_WIIMOTE4_CONNECT, hotkey_string({"Alt", "F8"}));
   set_key_expression(HK_BALANCEBOARD_CONNECT, hotkey_string({"Alt", "F9"}));
-#ifdef _WIN32
-  set_key_expression(HK_TOGGLE_THROTTLE, "TAB");
-#else
-  set_key_expression(HK_TOGGLE_THROTTLE, "Tab");
-#endif
 
   // Savestates
   for (int i = 0; i < 8; i++)
