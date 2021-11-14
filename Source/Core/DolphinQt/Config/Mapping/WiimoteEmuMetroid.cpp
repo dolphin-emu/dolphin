@@ -184,7 +184,14 @@ void WiimoteEmuMetroid::ConfigChanged()
 
 void WiimoteEmuMetroid::Update()
 {
-  return; // All this does is update the extension UI, which we do not have.
+  bool checked = Wiimote::PrimeUseController();
+
+  camera_control->setEnabled(checked);
+
+  if (m_radio_controller->isChecked() != checked) {
+    m_radio_controller->setChecked(checked);
+    m_radio_mouse->setChecked(!checked);
+  }
 }
 
 void WiimoteEmuMetroid::LoadSettings()
