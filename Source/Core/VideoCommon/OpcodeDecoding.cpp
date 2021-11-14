@@ -250,7 +250,9 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         src.Skip(bytes);
 
         // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
-        total_cycles += num_vertices * 4 * 3 + 6;
+        // HACK: In Speed Challenge and many Datel Products, lower than 1600 hangs.
+        // If Dolphin's GPU timings are ever made halfway decent, this hack can be removed.
+        total_cycles += std::max(1600, num_vertices * 4 * 3 + 6);
       }
       else
       {
