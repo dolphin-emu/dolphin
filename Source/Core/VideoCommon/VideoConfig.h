@@ -232,6 +232,7 @@ struct VideoConfig final
     bool bSupportsShaderBinaries = false;
     bool bSupportsPipelineCacheData = false;
     bool bSupportsCoarseDerivatives = false;
+    bool bSupportsTextureQueryLevels = false;
   } backend_info;
 
   // Utility

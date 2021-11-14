@@ -692,11 +692,21 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int3 size = textureSize(tex, 0);
   int size_s = size.x;
   int size_t = size.y;
-  int number_of_levels = textureQueryLevels(tex);
 )");
+        if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
+        {
+          out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
+        }
+        else
+        {
+          out.Write("  int number_of_levels = 256;  // textureQueryLevels is not supported\n");
+          ERROR_LOG_FMT(VIDEO, "textureQueryLevels is not supported!  Odd graphical results may "
+                               "occur if custom textures are in use!");
+        }
       }
       else if (api_type == APIType::D3D)
       {
+        ASSERT(g_ActiveConfig.backend_info.bSupportsTextureQueryLevels);
         out.Write(R"(
   int size_s, size_t, layers, number_of_levels;
   tex.GetDimensions(0, size_s, size_t, layers, number_of_levels);
