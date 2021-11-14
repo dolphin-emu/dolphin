@@ -932,11 +932,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   const bool use_shader_blend =
       !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
   const bool use_shader_logic_op =
-#ifdef __APPLE__
       !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
-#else
-      false;
-#endif
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
@@ -969,40 +965,24 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
         out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
       }
     }
-    else if (use_dual_source)
-#else
-    if (use_dual_source)
+    else
 #endif
     {
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      bool has_broken_decoration =
+          DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
+
+      out.Write("{} {} vec4 {};\n",
+                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
+                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
+                use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+                use_shader_blend ? "real_ocol0" : "ocol0");
+
+      if (use_dual_source)
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
-                  "FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
+        out.Write("{} out vec4 ocol1;\n", has_broken_decoration ?
+                                              "FRAGMENT_OUTPUT_LOCATION(1)" :
+                                              "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)");
       }
-      else
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n"
-                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
-      }
-    }
-    else if (use_shader_blend)
-    {
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so pull out the "real" output value
-      // and use a temporary for calculations, then set the output value once at the end of the
-      // shader
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
-      }
-      else
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
-      }
-    }
-    else
-    {
-      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
     }
 
     if (uid_data->per_pixel_depth)
@@ -1051,12 +1031,24 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
     if (use_framebuffer_fetch)
     {
-      // Store off a copy of the initial fb value for blending
-      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
+      // Store off a copy of the initial framebuffer value.
+      //
+      // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
+      // framebuffer), we read from real_ocol0 or ocol0, depending if shader blending is enabled.
+      out.Write("#ifdef FB_FETCH_VALUE\n"
+                "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
+                "#else\n"
+                "\tfloat4 initial_ocol0 = {};\n"
+                "#endif\n",
+                use_shader_blend ? "real_ocol0" : "ocol0");
     }
 
     if (use_shader_blend)
     {
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so we pull out the "real" output
+      // value above and use a temporary for calculations, then set the output value once at the
+      // end of the shader if we are using shader blending.
       out.Write("\tfloat4 ocol0;\n"
                 "\tfloat4 ocol1;\n");
     }
