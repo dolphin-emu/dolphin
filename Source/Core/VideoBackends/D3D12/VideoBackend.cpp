@@ -82,6 +82,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.AAModes = DXContext::GetAAModes(g_Config.iAdapter);
   g_Config.backend_info.bSupportsShaderBinaries = true;
   g_Config.backend_info.bSupportsPipelineCacheData = true;
+  g_Config.backend_info.bSupportsCoarseDerivatives = true;
 
   // We can only check texture support once we have a device.
   if (g_dx_context)

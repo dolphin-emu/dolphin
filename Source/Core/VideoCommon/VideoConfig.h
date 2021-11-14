@@ -230,6 +230,7 @@ struct VideoConfig final
     bool bSupportsDepthReadback = false;
     bool bSupportsShaderBinaries = false;
     bool bSupportsPipelineCacheData = false;
+    bool bSupportsCoarseDerivatives = false;
   } backend_info;
 
   // Utility

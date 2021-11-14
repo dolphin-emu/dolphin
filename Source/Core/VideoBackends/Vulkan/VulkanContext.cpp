@@ -286,6 +286,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
   config->backend_info.bSupportsLargePoints = false;               // Dependent on features.
   config->backend_info.bSupportsFramebufferFetch = false;          // No support.
+  config->backend_info.bSupportsCoarseDerivatives = true;          // Assumed support.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)

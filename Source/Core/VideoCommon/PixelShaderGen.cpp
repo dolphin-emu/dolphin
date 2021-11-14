@@ -628,15 +628,35 @@ uint WrapCoord(int coord, uint wrap, int size) {{
               BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
 
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      out.Write(R"(
+    {
+      if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
+      {
+        // The software renderer uses the equivalent of coarse derivatives, so use them here for
+        // consistency.  This hasn't been hardware tested.
+        // Note that bSupportsCoarseDerivatives being false only means dFdxCoarse and dFdxFine don't
+        // exist.  The GPU may still implement dFdx using coarse derivatives; we just don't have the
+        // ability to specifically require it.
+        out.Write(R"(
+  float2 uv_delta_x = abs(dFdxCoarse(float2(uv)));
+  float2 uv_delta_y = abs(dFdyCoarse(float2(uv)));
+)");
+      }
+      else
+      {
+        out.Write(R"(
   float2 uv_delta_x = abs(dFdx(float2(uv)));
   float2 uv_delta_y = abs(dFdy(float2(uv)));
 )");
+      }
+    }
     else if (api_type == APIType::D3D)
+    {
+      ASSERT(g_ActiveConfig.backend_info.bSupportsCoarseDerivatives);
       out.Write(R"(
-  float2 uv_delta_x = abs(ddx(float2(uv)));
-  float2 uv_delta_y = abs(ddy(float2(uv)));
+  float2 uv_delta_x = abs(ddx_coarse(float2(uv)));
+  float2 uv_delta_y = abs(ddy_coarse(float2(uv)));
 )");
+    }
 
     // TODO: LOD bias is normally S2.5 (Dolphin uses S7.8 for arbitrary mipmap detection and higher
     // IRs), but (at least per the software renderer) actual LOD is S28.4.  How does this work?

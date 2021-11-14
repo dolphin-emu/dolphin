@@ -747,6 +747,7 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // shader image load store
       "%s\n"  // shader framebuffer fetch
       "%s\n"  // shader thread shuffle
+      "%s\n"  // derivative control
 
       // Precision defines for GLSL ES
       "%s\n"
@@ -826,6 +827,9 @@ void ProgramShaderCache::CreateHeader()
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
       framebuffer_fetch_string.c_str(), shader_shuffle_string.c_str(),
+      g_ActiveConfig.backend_info.bSupportsCoarseDerivatives ?
+          "#extension GL_ARB_derivative_control : enable" :
+          "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
