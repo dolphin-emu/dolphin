@@ -9,6 +9,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
 
 struct GCPadStatus;
 
@@ -54,6 +55,8 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
+  void ChangeUIPrimeHack(bool useMetroidUI);
+
   bool CheckSpringBallCtrl();
   bool PrimeControllerMode();
 
@@ -69,6 +72,9 @@ public:
   static constexpr ControlState C_STICK_GATE_RADIUS = 0.7221375;
 
 private:
+	bool using_metroid_ui = false;
+  std::vector<std::unique_ptr<ControllerEmu::Control>> trigger_controls_temp;
+
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_main_stick;
   ControllerEmu::AnalogStick* m_c_stick;

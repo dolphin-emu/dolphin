@@ -214,7 +214,7 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(0, "LCONTROL");
 #endif
 
-  // Lock/Sacn/Spider Ball
+  // Lock/Scan/Spider Ball
 #ifdef HAVE_X11
   m_buttons->SetControlExpression(1, "`Click 3`");
 #else

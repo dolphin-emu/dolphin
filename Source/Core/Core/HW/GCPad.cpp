@@ -76,6 +76,13 @@ bool GetMicButton(const int pad_num)
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetMicButton();
 }
 
+void ChangeUIPrimeHack(int number, bool useMetroidUI)
+{
+  GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(number));
+
+  gcpad->ChangeUIPrimeHack(useMetroidUI);
+}
+
 bool CheckPitchRecentre()
 {
   GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(0));

@@ -31,6 +31,8 @@ void ResetRumble(int pad_num);
 
 bool GetMicButton(int pad_num);
 
+void ChangeUIPrimeHack(int number, bool useMetroidUI);
+
 bool CheckPitchRecentre();
 bool PrimeUseController();
 

@@ -79,9 +79,11 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   if (type == GroupType::Buttons) {
     // Load D-Pad Down into Missiles control
     if (use_metroid_ui) {
-      std::string expression;
-      sec->Get("D-Pad/Down", &expression, "");
-      controls[6]->control_ref->SetExpression(std::move(expression));
+      if (controls.size() == 7) { // Hacky way to tell if Wii or GCN
+        std::string expression;
+        sec->Get("D-Pad/Down", &expression, "");
+        controls[6]->control_ref->SetExpression(std::move(expression));
+      }
     }
   }
 
@@ -148,7 +150,9 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
   if (type == GroupType::Buttons) {
     // Load D-Pad Down into Missiles control
     if (use_metroid_ui) {
-      sec->Set("D-Pad/Down", controls[6]->control_ref->GetExpression(), "");
+      if (controls.size() == 7) { // Hacky way to tell if Wii or GCN
+        sec->Set("D-Pad/Down", controls[6]->control_ref->GetExpression(), "");
+      }
     }
   }
 

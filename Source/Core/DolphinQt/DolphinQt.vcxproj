@@ -93,6 +93,7 @@
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCMicrophone.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
+    <ClCompile Include="Config\Mapping\GCPadEmuMetroid.cpp" />
     <ClCompile Include="Config\Mapping\GCPadWiiUConfigDialog.cpp" />
     <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyControllerProfile.cpp" />
@@ -221,6 +222,7 @@
   <ItemGroup>
     <ClInclude Include="Config\CheatCodeEditor.h" />
     <ClInclude Include="Config\GameConfigEdit.h" />
+    <ClInclude Include="Config\Mapping\GCPadEmuMetroid.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\MappingIndicator.h" />
     <ClInclude Include="Config\Mapping\MappingNumeric.h" />
