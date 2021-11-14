@@ -8,6 +8,8 @@ ExternalProject_Add(MoltenVK
 
   CONFIGURE_COMMAND ${CMAKE_CURRENT_LIST_DIR}/configure.sh <LOG_DIR> <SOURCE_DIR> ${MOLTENVK_VERSION}
 
+  PATCH_COMMAND ${CMAKE_CURRENT_LIST_DIR}/patch.sh ${CMAKE_SOURCE_DIR}/Externals/MoltenVK/patches/ ${MOLTENVK_VERSION}
+
   BUILD_COMMAND make -C <SOURCE_DIR> macos
   BUILD_IN_SOURCE ON
   BUILD_BYPRODUCTS <SOURCE_DIR>/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib
