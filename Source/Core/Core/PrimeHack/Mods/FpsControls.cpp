@@ -233,7 +233,16 @@ void FpsControls::handle_beam_visor_switch(std::array<int, 4> const &beams,
 
 void FpsControls::run_mod_menu(Game game, Region region) {
   if (region == Region::NTSC_U) {
-    handle_cursor(0x80913c9c, 0x80913d5c, region);
+    u32 p0 = read32(GPR(13) - 0x2870);
+    if (!mem_check(p0)) {
+      return;
+    }
+    p0 = read32(p0 + 0xc54) + 0x9c;
+    if (!mem_check(p0)) {
+      return;
+    }
+
+    handle_cursor(p0, p0 + 0xc0, region);
   } else if (region == Region::NTSC_J) {
     if (game == Game::MENU_PRIME_1) {
       handle_cursor(0x805a7da8, 0x805a7dac, region);
