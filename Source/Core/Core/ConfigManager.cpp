@@ -261,6 +261,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("PrimeRestoreScanDash", bPrimeRestoreDashing);
   core->Set("PrimeFriendVouchers", bPrimeFriendVouchers);
   core->Set("PrimeDisableHudMemo", bDisableHudMemoPopup);
+  core->Set("PrimeUnlockHypermode", bPrimeUnlockHypermode);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -542,6 +543,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("PrimeRestoreScanDash", &bPrimeRestoreDashing, false);
   core->Get("PrimeFriendVouchers", &bPrimeFriendVouchers, true);
   core->Get("PrimeDisableHudMemo", &bDisableHudMemoPopup, false);
+  core->Get("PrimeUnlockHypermode", &bPrimeUnlockHypermode, true);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

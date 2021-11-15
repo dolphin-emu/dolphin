@@ -25,4 +25,5 @@ private:
   QCheckBox* m_checkbox_skipportalmp2;
   QCheckBox* m_checkbox_friendvouchers;
   QCheckBox* m_checkbox_hudmemo;
+  QCheckBox* m_checkbox_hypermode;
 };

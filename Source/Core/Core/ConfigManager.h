@@ -156,6 +156,7 @@ struct SConfig
   bool bPrimePortalSkip = false;
   bool bPrimeFriendVouchers = true;
   bool bDisableHudMemoPopup = false;
+  bool bPrimeUnlockHypermode = true;
 
   // Interface settings
   bool bConfirmStop = false;
