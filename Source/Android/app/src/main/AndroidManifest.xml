@@ -133,10 +133,6 @@
             android:theme="@style/DolphinBase" />
 
         <service
-            android:name=".utils.DirectoryInitialization"
-            android:exported="false"/>
-
-        <service
             android:name=".services.GameFileCacheService"
             android:exported="false"/>
 
