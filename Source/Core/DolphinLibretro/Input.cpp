@@ -102,6 +102,33 @@ static struct retro_input_descriptor descWiimoteCC[] = {
     {0},
 };
 
+static struct retro_input_descriptor descWiimoteCCPro[] = {
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, "Left"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, "Up"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, "Down"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B, "B"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A, "A"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X, "X"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y, "Y"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2, "ZL"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2, "ZR"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L, "L"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R, "R"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3, "Home"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "+"},
+    {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "-"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X,
+     "Left Stick X"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y,
+     "Left Stick Y"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X,
+     "Right Stick X"},
+    {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,
+     "Right Stick Y"},
+    {0},
+};
+
 static struct retro_input_descriptor descWiimote[] = {
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, "Left"},
     {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, "Up"},
@@ -581,15 +608,25 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       ccButtons->SetControlExpression(1, "B");                               // B
       ccButtons->SetControlExpression(2, "X");                               // X
       ccButtons->SetControlExpression(3, "Y");                               // Y
-      ccButtons->SetControlExpression(4, "L");                               // ZL
-      ccButtons->SetControlExpression(5, "R");                               // ZR
       ccButtons->SetControlExpression(6, "Select");                          // -
       ccButtons->SetControlExpression(7, "Start");                           // +
       ccButtons->SetControlExpression(8, "R3");                              // Home
-      ccTriggers->SetControlExpression(0, "`" + devAnalog + ":Trigger0+`");  // L-trigger
-      ccTriggers->SetControlExpression(1, "`" + devAnalog + ":Trigger1+`");  // R-trigger
-      ccTriggers->SetControlExpression(2, "`" + devAnalog + ":Trigger0+`");  // L-trigger Analog
-      ccTriggers->SetControlExpression(3, "`" + devAnalog + ":Trigger1+`");  // R-trigger Analog
+      if (device == RETRO_DEVICE_WIIMOTE_CC)
+      {
+        ccButtons->SetControlExpression(4, "L");                               // ZL
+        ccButtons->SetControlExpression(5, "R");                               // ZR
+        ccTriggers->SetControlExpression(0, "`" + devAnalog + ":Trigger0+`");  // L-trigger
+        ccTriggers->SetControlExpression(1, "`" + devAnalog + ":Trigger1+`");  // R-trigger
+        ccTriggers->SetControlExpression(2, "`" + devAnalog + ":Trigger0+`");  // L-trigger Analog
+        ccTriggers->SetControlExpression(3, "`" + devAnalog + ":Trigger1+`");  // R-trigger Analog
+      }
+      else // Classic Controller Pro doesn't have analog triggers and L/R should be swapped with ZL/ZR
+      {
+        ccButtons->SetControlExpression(4, "L2");                            // ZL
+        ccButtons->SetControlExpression(5, "R2");                            // ZR
+        ccTriggers->SetControlExpression(0, "L");                            // L-trigger
+        ccTriggers->SetControlExpression(1, "R");                            // R-trigger
+      }
       ccDpad->SetControlExpression(0, "Up");                                 // Up
       ccDpad->SetControlExpression(1, "Down");                               // Down
       ccDpad->SetControlExpression(2, "Left");                               // Left
@@ -793,8 +830,11 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       break;
 
     case RETRO_DEVICE_WIIMOTE_CC:
-    case RETRO_DEVICE_WIIMOTE_CC_PRO:
       desc = Libretro::Input::descWiimoteCC;
+      break;
+
+    case RETRO_DEVICE_WIIMOTE_CC_PRO:
+      desc = Libretro::Input::descWiimoteCCPro;
       break;
 
     case RETRO_DEVICE_NONE:
