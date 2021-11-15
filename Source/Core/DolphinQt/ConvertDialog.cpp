@@ -11,7 +11,6 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -26,6 +25,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/WIABlob.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "UICommon/GameFile.h"
@@ -329,6 +329,21 @@ void ConvertDialog::Convert()
     }
   }
 
+  if (std::any_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsNKit)))
+  {
+    if (!ShowAreYouSureDialog(
+            tr("Dolphin can't convert NKit files to non-NKit files. Converting an NKit file in "
+               "Dolphin will result in another NKit file.\n"
+               "\n"
+               "If you want to convert an NKit file to a non-NKit file, you can use the same "
+               "program as you originally used when converting the file to the NKit format.\n"
+               "\n"
+               "Do you want to continue anyway?")))
+    {
+      return;
+    }
+  }
+
   QString extension;
   QString filter;
   switch (format)
@@ -359,7 +374,7 @@ void ConvertDialog::Convert()
 
   if (m_files.size() > 1)
   {
-    dst_dir = QFileDialog::getExistingDirectory(
+    dst_dir = DolphinFileDialog::getExistingDirectory(
         this, tr("Select where you want to save the converted images"),
         QFileInfo(QString::fromStdString(m_files[0]->GetFilePath())).dir().absolutePath());
 
@@ -368,7 +383,7 @@ void ConvertDialog::Convert()
   }
   else
   {
-    dst_path = QFileDialog::getSaveFileName(
+    dst_path = DolphinFileDialog::getSaveFileName(
         this, tr("Select where you want to save the converted image"),
         QFileInfo(QString::fromStdString(m_files[0]->GetFilePath()))
             .dir()

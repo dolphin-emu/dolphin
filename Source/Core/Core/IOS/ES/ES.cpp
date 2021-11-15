@@ -680,7 +680,8 @@ std::optional<IPCReply> ESDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_UNKNOWN_42:
     PanicAlertFmt("IOS-ES: Unimplemented ioctlv {:#x} ({} in vectors, {} io vectors)",
                   request.request, request.in_vectors.size(), request.io_vectors.size());
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_ES, Common::Log::LERROR);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_ES,
+                        Common::Log::LogLevel::LERROR);
     return IPCReply(IPC_EINVAL);
 
   case IOCTL_ES_INVALID_3F:

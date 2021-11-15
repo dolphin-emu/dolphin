@@ -100,8 +100,7 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
 #define STATIC_REG_ACCS
 //#undef STATIC_REG_ACCS
 
-DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter)
-    : m_emitter(emitter), m_is_temporary(false), m_is_merged(false)
+DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter) : m_emitter(emitter), m_is_temporary(false)
 {
   for (X64CachedReg& xreg : m_xregs)
   {
@@ -188,13 +187,10 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter& emitter)
     m_regs[i + DSP_REG_AXL0].shift = 0;
     m_regs[i + DSP_REG_AXH0].shift = 16;
   }
-
-  m_use_ctr = 0;
 }
 
 DSPJitRegCache::DSPJitRegCache(const DSPJitRegCache& cache)
-    : m_regs(cache.m_regs), m_xregs(cache.m_xregs), m_emitter(cache.m_emitter),
-      m_is_temporary(true), m_is_merged(false)
+    : m_regs(cache.m_regs), m_xregs(cache.m_xregs), m_emitter(cache.m_emitter), m_is_temporary(true)
 {
 }
 

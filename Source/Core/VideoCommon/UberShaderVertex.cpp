@@ -215,36 +215,28 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   if (num_texgen > 0)
     GenVertexShaderTexGens(api_type, num_texgen, out);
 
-  out.Write("// The number of colors available to TEV is determined by numColorChans.\n"
-            "// We have to provide the fields to match the interface, so set to zero\n"
-            "// if it's not enabled.\n");
-
-  const char* color_prefix;
   if (per_pixel_lighting)
   {
-    out.Write("\n// Since per-pixel lighting is enabled, the vertex colors are passed through\n"
-              "// unmodified so we can evaluate the lighting in the pixel shader.\n");
-    color_prefix = "vertex_color_";
+    out.Write("// When per-pixel lighting is enabled, the vertex colors are passed through\n"
+              "// unmodified so we can evaluate the lighting in the pixel shader.\n"
+              "// Lighting is also still computed in the vertex shader since it can be used to\n"
+              "// generate texture coordinates. We generated them above, so now the colors can\n"
+              "// be reverted to their previous stage.\n"
+              "o.colors_0 = vertex_color_0;\n"
+              "o.colors_1 = vertex_color_1;\n"
+              "// Note that the numColorChans logic should be (but currently isn't)\n"
+              "// performed in the pixel shader.\n");
   }
   else
   {
-    color_prefix = "rawcolor";
+    out.Write("// The number of colors available to TEV is determined by numColorChans.\n"
+              "// We have to provide the fields to match the interface, so set to zero\n"
+              "// if it's not enabled.\n"
+              "if (xfmem_numColorChans == 0u)\n"
+              "  o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n"
+              "if (xfmem_numColorChans <= 1u)\n"
+              "  o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
-
-  out.Write("if (xfmem_numColorChans == 0u) {{\n"
-            "  if ((components & {}u) != 0u) // VB_HAS_COL0\n"
-            "    o.colors_0 = {}0;\n"
-            "  else\n"
-            "    o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n"
-            "}}\n",
-            VB_HAS_COL0, color_prefix);
-  out.Write("if (xfmem_numColorChans <= 1u) {{\n"
-            "  if ((components & {}u) != 0u) // VB_HAS_COL1\n"
-            "    o.colors_1 = {}1;\n"
-            "  else\n"
-            "    o.colors_1 = o.colors_0;\n"
-            "}}\n",
-            VB_HAS_COL1, color_prefix);
 
   if (!host_config.fast_depth_calc)
   {

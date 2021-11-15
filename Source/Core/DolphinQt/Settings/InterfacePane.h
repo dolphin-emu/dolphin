@@ -8,6 +8,7 @@
 class QCheckBox;
 class QComboBox;
 class QLabel;
+class QRadioButton;
 class QVBoxLayout;
 
 class InterfacePane final : public QWidget
@@ -15,7 +16,6 @@ class InterfacePane final : public QWidget
   Q_OBJECT
 public:
   explicit InterfacePane(QWidget* parent = nullptr);
-  void UpdateMouseOptions();
 
 private:
   void CreateLayout();
@@ -24,6 +24,9 @@ private:
   void ConnectLayout();
   void LoadConfig();
   void OnSaveConfig();
+  void OnCursorVisibleMovement();
+  void OnCursorVisibleNever();
+  void OnCursorVisibleAlways();
 
   QVBoxLayout* m_main_layout;
   QComboBox* m_combobox_language;
@@ -44,6 +47,8 @@ private:
   QCheckBox* m_checkbox_enable_osd;
   QCheckBox* m_checkbox_show_active_title;
   QCheckBox* m_checkbox_pause_on_focus_lost;
-  QCheckBox* m_checkbox_hide_mouse;
+  QRadioButton* m_radio_cursor_visible_movement;
+  QRadioButton* m_radio_cursor_visible_never;
+  QRadioButton* m_radio_cursor_visible_always;
   QCheckBox* m_checkbox_lock_mouse;
 };

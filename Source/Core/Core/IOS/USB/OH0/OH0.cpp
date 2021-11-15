@@ -39,7 +39,7 @@ std::optional<IPCReply> OH0::Open(const OpenRequest& request)
 
 std::optional<IPCReply> OH0::IOCtl(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), Common::Log::IOS_USB);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
   {
   case USB::IOCTL_USBV0_GETRHDESCA:
@@ -135,7 +135,7 @@ IPCReply OH0::GetRhDesca(const IOCtlRequest& request) const
 
   // Based on a hardware test, this ioctl seems to return a constant value
   Memory::Write_U32(0x02000302, request.buffer_out);
-  request.Dump(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LWARNING);
+  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LWARNING);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -145,7 +145,7 @@ IPCReply OH0::GetRhPortStatus(const IOCtlVRequest& request) const
     return IPCReply(IPC_EINVAL);
 
   ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_GETRHPORTSTATUS");
-  request.Dump(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
+  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LERROR);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -155,7 +155,7 @@ IPCReply OH0::SetRhPortStatus(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
 
   ERROR_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_SETRHPORTSTATUS");
-  request.Dump(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
+  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LERROR);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -208,7 +208,7 @@ std::optional<IPCReply> OH0::RegisterClassChangeHook(const IOCtlVRequest& reques
   if (!request.HasNumberOfValidVectors(1, 0))
     return IPCReply(IPC_EINVAL);
   WARN_LOG_FMT(IOS_USB, "Unimplemented IOCtlV: USB::IOCTLV_USBV0_DEVICECLASSCHANGE (no reply)");
-  request.Dump(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LWARNING);
+  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_USB, Common::Log::LogLevel::LWARNING);
   return std::nullopt;
 }
 
@@ -307,7 +307,7 @@ std::optional<IPCReply> OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVReque
     return HandleTransfer(device, request.request,
                           [&, this]() { return SubmitTransfer(*device, request); });
   case USB::IOCTLV_USBV0_UNKNOWN_32:
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB);
     return IPCReply(IPC_SUCCESS);
   default:
     return IPCReply(IPC_EINVAL);

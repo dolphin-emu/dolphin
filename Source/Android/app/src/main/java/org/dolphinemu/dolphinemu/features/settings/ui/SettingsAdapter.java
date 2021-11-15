@@ -44,6 +44,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHold
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -300,7 +301,17 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = item;
     mClickedPosition = position;
 
-    FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
+    if (!PermissionsHandler.isExternalStorageLegacy())
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+      builder.setMessage(R.string.path_not_changeable_scoped_storage);
+      builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
+      builder.show();
+    }
+    else
+    {
+      FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
+    }
   }
 
   public void onFilePickerFileClick(SettingsItem item, int position)

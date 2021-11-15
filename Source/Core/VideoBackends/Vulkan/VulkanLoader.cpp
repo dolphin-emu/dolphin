@@ -8,7 +8,6 @@
 #include "Common/CommonFuncs.h"
 #include "Common/DynamicLibrary.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
@@ -205,7 +204,8 @@ const char* VkResultToString(VkResult res)
   }
 }
 
-void LogVulkanResult(int level, const char* func_name, VkResult res, const char* msg, ...)
+void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, VkResult res,
+                     const char* msg, ...)
 {
   std::va_list ap;
   va_start(ap, msg);
@@ -215,7 +215,7 @@ void LogVulkanResult(int level, const char* func_name, VkResult res, const char*
   real_msg = fmt::format("({}) {} ({}: {})", func_name, real_msg, static_cast<int>(res),
                          VkResultToString(res));
 
-  GENERIC_LOG_FMT(Common::Log::VIDEO, static_cast<Common::Log::LOG_LEVELS>(level), "{}", real_msg);
+  GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "{}", real_msg);
 }
 
 }  // namespace Vulkan

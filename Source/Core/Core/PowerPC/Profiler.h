@@ -28,9 +28,9 @@ struct BlockStat
 struct ProfileStats
 {
   std::vector<BlockStat> block_stats;
-  u64 cost_sum;
-  u64 timecost_sum;
-  u64 countsPerSec;
+  u64 cost_sum = 0;
+  u64 timecost_sum = 0;
+  u64 countsPerSec = 0;
 };
 
 }  // namespace Profiler

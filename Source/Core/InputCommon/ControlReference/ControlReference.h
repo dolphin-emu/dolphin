@@ -41,13 +41,14 @@ public:
   // Returns a human-readable error description when the given expression is invalid.
   std::optional<std::string> SetExpression(std::string expr);
 
-  ControlState range;
+  ControlState range = 1;
 
 protected:
   ControlReference();
   std::string m_expression;
   std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
-  ciface::ExpressionParser::ParseStatus m_parse_status;
+  ciface::ExpressionParser::ParseStatus m_parse_status =
+      ciface::ExpressionParser::ParseStatus::EmptyExpression;
 };
 
 template <>

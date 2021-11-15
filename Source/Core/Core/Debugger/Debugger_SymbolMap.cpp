@@ -97,29 +97,7 @@ bool GetCallstack(std::vector<CallstackEntry>& output)
   return true;
 }
 
-void PrintCallstack()
-{
-  fmt::print("== STACK TRACE - SP = {:08x} ==", PowerPC::ppcState.gpr[1]);
-
-  if (LR == 0)
-  {
-    fmt::print(" LR = 0 - this is bad");
-  }
-
-  if (g_symbolDB.GetDescription(PC) != g_symbolDB.GetDescription(LR))
-  {
-    fmt::print(" * {}  [ LR = {:08x} ]", g_symbolDB.GetDescription(LR), LR);
-  }
-
-  WalkTheStack([](u32 func_addr) {
-    std::string func_desc = g_symbolDB.GetDescription(func_addr);
-    if (func_desc.empty() || func_desc == "Invalid")
-      func_desc = "(unknown)";
-    fmt::print(" * {} [ addr = {:08x} ]", func_desc, func_addr);
-  });
-}
-
-void PrintCallstack(Common::Log::LOG_TYPE type, Common::Log::LOG_LEVELS level)
+void PrintCallstack(Common::Log::LogType type, Common::Log::LogLevel level)
 {
   GENERIC_LOG_FMT(type, level, "== STACK TRACE - SP = {:08x} ==", PowerPC::ppcState.gpr[1]);
 
@@ -141,10 +119,9 @@ void PrintCallstack(Common::Log::LOG_TYPE type, Common::Log::LOG_LEVELS level)
   });
 }
 
-void PrintDataBuffer(Common::Log::LOG_TYPE type, const u8* data, size_t size,
-                     std::string_view title)
+void PrintDataBuffer(Common::Log::LogType type, const u8* data, size_t size, std::string_view title)
 {
-  GENERIC_LOG_FMT(type, Common::Log::LDEBUG, "{}", title);
+  GENERIC_LOG_FMT(type, Common::Log::LogLevel::LDEBUG, "{}", title);
   for (u32 j = 0; j < size;)
   {
     std::string hex_line;
@@ -155,7 +132,7 @@ void PrintDataBuffer(Common::Log::LOG_TYPE type, const u8* data, size_t size,
       if (j >= size)
         break;
     }
-    GENERIC_LOG_FMT(type, Common::Log::LDEBUG, "   Data: {}", hex_line);
+    GENERIC_LOG_FMT(type, Common::Log::LogLevel::LDEBUG, "   Data: {}", hex_line);
   }
 }
 

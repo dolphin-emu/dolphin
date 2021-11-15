@@ -12,11 +12,11 @@
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/RenderBase.h"
 
+class BoundingBox;
 struct XFBSourceBase;
 
 namespace Vulkan
 {
-class BoundingBox;
 class SwapChain;
 class StagingTexture2D;
 class VKFramebuffer;
@@ -55,10 +55,6 @@ public:
                                                    size_t cache_data_length = 0) override;
 
   SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
-  BoundingBox* GetBoundingBox() const { return m_bounding_box.get(); }
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
-  void BBoxFlushImpl() override;
 
   void Flush() override;
   void WaitForGPUIdle() override;
@@ -92,6 +88,9 @@ public:
   // next render. Use when you want to kick the current buffer to make room for new data.
   void ExecuteCommandBuffer(bool execute_off_thread, bool wait_for_completion = false);
 
+protected:
+  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
+
 private:
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
@@ -102,7 +101,6 @@ private:
   void BindFramebuffer(VKFramebuffer* fb);
 
   std::unique_ptr<SwapChain> m_swap_chain;
-  std::unique_ptr<BoundingBox> m_bounding_box;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};

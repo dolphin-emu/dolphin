@@ -26,6 +26,7 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -183,7 +184,7 @@ void GBAWidget::UnloadROM()
 
 void GBAWidget::PromptForEReaderCards()
 {
-  const QStringList card_paths = QFileDialog::getOpenFileNames(
+  const QStringList card_paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select e-Reader Cards"), QString(), tr("e-Reader Cards (*.raw);;All Files (*)"),
       nullptr, QFileDialog::Options());
 
@@ -205,9 +206,10 @@ void GBAWidget::DoState(bool export_state)
     return;
 
   QString state_path = QDir::toNativeSeparators(
-      (export_state ? QFileDialog::getSaveFileName : QFileDialog::getOpenFileName)(
+      (export_state ? DolphinFileDialog::getSaveFileName : DolphinFileDialog::getOpenFileName)(
           this, tr("Select a File"), QString(),
-          tr("mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *.ss9);;"
+          tr("mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 "
+             "*.ss5 *.ss6 *.ss7 *.ss8 *.ss9);;"
              "All Files (*)"),
           nullptr, QFileDialog::Options()));
 

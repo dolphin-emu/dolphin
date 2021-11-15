@@ -211,7 +211,7 @@ private:
     struct Shader
     {
       std::unique_ptr<AbstractShader> shader;
-      bool pending;
+      bool pending = false;
     };
     std::map<Uid, Shader> shader_map;
     LinearDiskCache<Uid, u8> disk_cache;

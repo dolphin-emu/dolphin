@@ -32,6 +32,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -255,7 +256,7 @@ static void BPWritten(const BPCmd& bp)
         if (PE_copy.copy_to_xfb == 1)
         {
           // Make sure we disable Bounding box to match the side effects of the non-failure path
-          BoundingBox::Disable();
+          g_renderer->BBoxDisable();
         }
 
         return;
@@ -287,7 +288,7 @@ static void BPWritten(const BPCmd& bp)
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
-      BoundingBox::Disable();
+      g_renderer->BBoxDisable();
 
       float yScale;
       if (PE_copy.scale_invert)
@@ -353,7 +354,7 @@ static void BPWritten(const BPCmd& bp)
     if (OpcodeDecoder::g_record_fifo_data)
       FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
 
-    TextureCacheBase::InvalidateAllBindPoints();
+    TMEM::InvalidateAll();
 
     return;
   }
@@ -452,15 +453,14 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_CLEARBBOX2:
   {
     const u8 offset = bp.address & 2;
-    BoundingBox::Enable();
+    g_renderer->BBoxEnable();
 
     g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
     g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
   }
     return;
   case BPMEM_TEXINVALIDATE:
-    // TODO: Needs some restructuring in TextureCacheBase.
-    TextureCacheBase::InvalidateAllBindPoints();
+    TMEM::Invalidate(bp.newvalue);
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
@@ -568,7 +568,7 @@ static void BPWritten(const BPCmd& bp)
       if (OpcodeDecoder::g_record_fifo_data)
         FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
 
-      TextureCacheBase::InvalidateAllBindPoints();
+      TMEM::InvalidateAll();
     }
     return;
 
@@ -646,48 +646,48 @@ static void BPWritten(const BPCmd& bp)
       GeometryShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
     }
     return;
-  // ------------------------
-  // BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS,
-  // DiagLoad, Min Filter, Mag Filter, Wrap T, S
-  // BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
-  // ------------------------
-  case BPMEM_TX_SETMODE0:  // (0x90 for linear)
-  case BPMEM_TX_SETMODE0_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
+  }
 
-  case BPMEM_TX_SETMODE1:
-  case BPMEM_TX_SETMODE1_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
-  // --------------------------------------------
-  // BPMEM_TX_SETIMAGE0 - Texture width, height, format
-  // BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width, TMEM
-  // Offset
-  // BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width, TMEM Offset
-  // BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
-  // --------------------------------------------
-  case BPMEM_TX_SETIMAGE0:
-  case BPMEM_TX_SETIMAGE0_4:
-  case BPMEM_TX_SETIMAGE1:
-  case BPMEM_TX_SETIMAGE1_4:
-  case BPMEM_TX_SETIMAGE2:
-  case BPMEM_TX_SETIMAGE2_4:
-  case BPMEM_TX_SETIMAGE3:
-  case BPMEM_TX_SETIMAGE3_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
-  // -------------------------------
-  // Set a TLUT
-  // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
-  // -------------------------------
-  case BPMEM_TX_SETTLUT:
-  case BPMEM_TX_SETTLUT_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
+  if ((bp.address & 0xc0) == 0x80)
+  {
+    auto tex_address = TexUnitAddress::FromBPAddress(bp.address);
 
-  default:
-    break;
+    switch (tex_address.Reg)
+    {
+    // ------------------------
+    // BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS,
+    // DiagLoad, Min Filter, Mag Filter, Wrap T, S
+    // BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
+    // ------------------------
+    case TexUnitAddress::Register::SETMODE0:
+    case TexUnitAddress::Register::SETMODE1:
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
+      return;
+
+    // --------------------------------------------
+    // BPMEM_TX_SETIMAGE0 - Texture width, height, format
+    // BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width,
+    //                      TMEM Offset
+    // BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width, TMEM Offset
+    // BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
+    // --------------------------------------------
+    case TexUnitAddress::Register::SETIMAGE0:
+    case TexUnitAddress::Register::SETIMAGE1:
+    case TexUnitAddress::Register::SETIMAGE2:
+    case TexUnitAddress::Register::SETIMAGE3:
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
+      return;
+
+    // -------------------------------
+    // Set a TLUT
+    // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
+    // -------------------------------
+    case TexUnitAddress::Register::SETTLUT:
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
+      return;
+    case TexUnitAddress::Register::UNKNOWN:
+      break;  // Not handled
+    }
   }
 
   switch (bp.address & 0xF0)

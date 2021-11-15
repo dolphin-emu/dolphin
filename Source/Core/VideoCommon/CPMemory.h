@@ -607,19 +607,19 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
-  u32 array_bases[CP_NUM_ARRAYS];
-  u32 array_strides[CP_NUM_ARRAYS];
-  TMatrixIndexA matrix_index_a;
-  TMatrixIndexB matrix_index_b;
+  u32 array_bases[CP_NUM_ARRAYS]{};
+  u32 array_strides[CP_NUM_ARRAYS]{};
+  TMatrixIndexA matrix_index_a{};
+  TMatrixIndexB matrix_index_b{};
   TVtxDesc vtx_desc;
   // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
-  VAT vtx_attr[CP_NUM_VAT_REG];
+  VAT vtx_attr[CP_NUM_VAT_REG]{};
 
   // Attributes that actually belong to VertexLoaderManager:
-  BitSet32 attr_dirty;
-  bool bases_dirty;
-  VertexLoaderBase* vertex_loaders[CP_NUM_VAT_REG];
-  int last_id;
+  BitSet32 attr_dirty{};
+  bool bases_dirty = false;
+  VertexLoaderBase* vertex_loaders[CP_NUM_VAT_REG]{};
+  int last_id = 0;
 };
 
 class PointerWrap;

@@ -33,29 +33,6 @@ void UpdateActiveConfig()
   g_ActiveConfig.bVSyncActive = IsVSyncActive(g_ActiveConfig.bVSync);
 }
 
-VideoConfig::VideoConfig()
-{
-  // Needed for the first frame, I think
-  fAspectRatioHackW = 1;
-  fAspectRatioHackH = 1;
-
-  // disable all features by default
-  backend_info.api_type = APIType::Nothing;
-  backend_info.MaxTextureSize = 16384;
-  backend_info.bSupportsExclusiveFullscreen = false;
-  backend_info.bSupportsMultithreading = false;
-  backend_info.bSupportsST3CTextures = false;
-  backend_info.bSupportsBPTCTextures = false;
-
-  bEnableValidationLayer = false;
-
-#if defined(ANDROID)
-  bBackendMultithreading = false;
-#else
-  bBackendMultithreading = true;
-#endif
-}
-
 void VideoConfig::Refresh()
 {
   if (!s_has_registered_callback)

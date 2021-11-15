@@ -53,11 +53,6 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   setLayout(layout);
 }
 
-void SettingsWindow::UpdateTabs()
-{
-  m_interface_pane->UpdateMouseOptions();
-}
-
 void SettingsWindow::SelectAudioPane()
 {
   m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::Audio));

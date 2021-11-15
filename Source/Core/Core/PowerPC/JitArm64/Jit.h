@@ -225,10 +225,9 @@ protected:
   void DumpCode(const u8* start, const u8* end);
 
   // Backpatching routines
-  bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
   void EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
-                            BitSet32 fprs_to_push = BitSet32(0));
+                            BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
   // Loadstore routines
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
@@ -236,6 +235,8 @@ protected:
   // jumps to the returned FixupBranch. Clobbers tmp and the 17 lower bits of addr_out.
   Arm64Gen::FixupBranch BATAddressLookup(Arm64Gen::ARM64Reg addr_out, Arm64Gen::ARM64Reg addr_in,
                                          Arm64Gen::ARM64Reg tmp, const void* bat_table);
+  Arm64Gen::FixupBranch CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
+                                           Arm64Gen::ARM64Reg tmp2);
 
   void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
@@ -253,7 +254,8 @@ protected:
   void GenerateConvertDoubleToSingle();
   void GenerateConvertSingleToDouble();
   void GenerateFPRF(bool single);
-  void GenerateQuantizedLoadStores();
+  void GenerateQuantizedLoads();
+  void GenerateQuantizedStores();
 
   // Profiling
   void BeginTimeProfile(JitBlock* b);
@@ -266,11 +268,13 @@ protected:
                           bool always_exception = false);
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
                           bool always_exception = false);
+  void WriteConditionalExceptionExit(int exception);
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
   void FixGTBeforeSettingCRFieldBit(Arm64Gen::ARM64Reg reg);
+  void UpdateFPExceptionSummary(Arm64Gen::ARM64Reg fpscr);
   void UpdateRoundingMode();
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);

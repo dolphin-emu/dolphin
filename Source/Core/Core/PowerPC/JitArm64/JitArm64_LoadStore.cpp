@@ -126,8 +126,8 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   }
   else if (mmio_address)
   {
-    MMIOLoadToReg(Memory::mmio_mapping.get(), this, regs_in_use, fprs_in_use, dest_reg,
-                  mmio_address, flags);
+    MMIOLoadToReg(Memory::mmio_mapping.get(), this, &m_float_emit, regs_in_use, fprs_in_use,
+                  dest_reg, mmio_address, flags);
   }
   else
   {
@@ -240,7 +240,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     LDR(IndexType::Unsigned, ARM64Reg::X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
 
     ARM64Reg temp = ARM64Reg::W1;
-    temp = ByteswapBeforeStore(this, temp, RS, flags, true);
+    temp = ByteswapBeforeStore(this, &m_float_emit, temp, RS, flags, true);
 
     if (accessSize == 32)
       STR(IndexType::Post, temp, ARM64Reg::X0, 4);
@@ -260,8 +260,8 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   }
   else if (mmio_address)
   {
-    MMIOWriteRegToAddr(Memory::mmio_mapping.get(), this, regs_in_use, fprs_in_use, RS, mmio_address,
-                       flags);
+    MMIOWriteRegToAddr(Memory::mmio_mapping.get(), this, &m_float_emit, regs_in_use, fprs_in_use,
+                       RS, mmio_address, flags);
   }
   else
   {
@@ -283,6 +283,20 @@ FixupBranch JitArm64::BATAddressLookup(ARM64Reg addr_out, ARM64Reg addr_in, ARM6
   LSR(addr_out, addr_in, PowerPC::BAT_INDEX_SHIFT);
   LDR(addr_out, tmp, ArithOption(addr_out, true));
   FixupBranch pass = TBNZ(addr_out, IntLog2(PowerPC::BAT_MAPPED_BIT));
+  FixupBranch fail = B();
+  SetJumpTarget(pass);
+  return fail;
+}
+
+FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
+                                         Arm64Gen::ARM64Reg tmp2)
+{
+  tmp2 = EncodeRegTo64(tmp2);
+
+  MOVP2R(tmp2, PowerPC::dbat_table.data());
+  LSR(tmp1, addr, PowerPC::BAT_INDEX_SHIFT);
+  LDR(tmp1, tmp2, ArithOption(tmp1, true));
+  FixupBranch pass = TBNZ(tmp1, IntLog2(PowerPC::BAT_PHYSICAL_BIT));
   FixupBranch fail = B();
   SetJumpTarget(pass);
   return fail;

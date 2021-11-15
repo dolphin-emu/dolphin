@@ -191,7 +191,7 @@ struct Server
   std::string m_description;
   std::string m_address;
   u16 m_port;
-  std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info;
+  std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info{};
   sf::UdpSocket m_socket;
   SteadyClock::time_point m_disconnect_time = SteadyClock::now();
 };

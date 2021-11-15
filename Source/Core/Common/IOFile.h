@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdio>
 #include <string>
@@ -55,6 +56,18 @@ public:
       m_good = false;
 
     return m_good;
+  }
+
+  template <typename T, std::size_t N>
+  bool ReadArray(std::array<T, N>* elements, size_t* num_read = nullptr)
+  {
+    return ReadArray(elements->data(), elements->size(), num_read);
+  }
+
+  template <typename T, std::size_t N>
+  bool WriteArray(const std::array<T, N>& elements)
+  {
+    return WriteArray(elements.data(), elements.size());
   }
 
   bool ReadBytes(void* data, size_t length)

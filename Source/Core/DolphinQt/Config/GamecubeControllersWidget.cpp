@@ -22,10 +22,10 @@
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/GCAdapter.h"
-#include <ModalMessageBox.h>
 
 static const std::vector<std::pair<SerialInterface::SIDevices, const char*>> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, _trans("None")},

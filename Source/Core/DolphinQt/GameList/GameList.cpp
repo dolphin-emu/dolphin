@@ -59,6 +59,7 @@
 #include "DolphinQt/GameList/GridProxyModel.h"
 #include "DolphinQt/GameList/ListProxyModel.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -254,7 +255,7 @@ void GameList::MakeEmptyView()
   m_empty->installEventFilter(event_filter);
   connect(event_filter, &DoubleClickEventFilter::doubleClicked, [this] {
     auto current_dir = QDir::currentPath();
-    auto dir = QFileDialog::getExistingDirectory(this, tr("Select a Directory"), current_dir);
+    auto dir = DolphinFileDialog::getExistingDirectory(this, tr("Select a Directory"), current_dir);
     if (!dir.isEmpty())
       Settings::Instance().AddPath(dir);
   });
@@ -285,6 +286,16 @@ void GameList::MakeGridView()
   m_grid = new QListView(this);
   m_grid->setModel(m_grid_proxy);
   m_grid->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
+  // Row in this context refers to the full set of columns (banner, title, region, etc.) associated
+  // with a single game rather than multiple games presented visually on the same row. Even though
+  // most of these elements are hidden in grid view selecting all of them allows us to use
+  // selectedRow() which only returns rows where all elements are selected. In addition to improving
+  // consistency with list view this avoids an edge case where clicking a game in grid mode selected
+  // only the first element of the row but ctrl+a selected every element of the row, making a bunch
+  // of duplicate selections for each game.
+  m_grid->setSelectionBehavior(QAbstractItemView::SelectRows);
+
   m_grid->setViewMode(QListView::IconMode);
   m_grid->setResizeMode(QListView::Adjust);
   m_grid->setUniformItemSizes(true);
@@ -352,6 +363,11 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (DiscIO::IsDisc(platform))
     {
+      menu->addAction(tr("Start with Riivolution Patches..."), this,
+                      &GameList::StartWithRiivolution);
+
+      menu->addSeparator();
+
       menu->addAction(tr("Set as &Default ISO"), this, &GameList::SetDefaultISO);
 
       if (game->ShouldAllowConversion())
@@ -489,7 +505,7 @@ void GameList::OpenProperties()
 
 void GameList::ExportWiiSave()
 {
-  const QString export_dir = QFileDialog::getExistingDirectory(
+  const QString export_dir = DolphinFileDialog::getExistingDirectory(
       this, tr("Select Export Directory"), QString::fromStdString(File::GetUserPath(D_USER_IDX)),
       QFileDialog::ShowDirsOnly);
   if (export_dir.isEmpty())
@@ -584,6 +600,15 @@ void GameList::UninstallWAD()
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
                                   tr("Failed to remove this title from the NAND."));
   result_dialog.exec();
+}
+
+void GameList::StartWithRiivolution()
+{
+  const auto game = GetSelectedGame();
+  if (!game)
+    return;
+
+  emit OnStartWithRiivolution(*game);
 }
 
 void GameList::SetDefaultISO()
@@ -789,23 +814,30 @@ void GameList::ChangeDisc()
   Core::RunAsCPUThread([file_path = game->GetFilePath()] { DVDInterface::ChangeDisc(file_path); });
 }
 
-std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
+QAbstractItemView* GameList::GetActiveView() const
 {
-  QAbstractItemView* view;
-  QSortFilterProxyModel* proxy;
   if (currentWidget() == m_list)
   {
-    view = m_list;
-    proxy = m_list_proxy;
+    return m_list;
   }
-  else
+  return m_grid;
+}
+
+QSortFilterProxyModel* GameList::GetActiveProxyModel() const
+{
+  if (currentWidget() == m_list)
   {
-    view = m_grid;
-    proxy = m_grid_proxy;
+    return m_list_proxy;
   }
-  QItemSelectionModel* sel_model = view->selectionModel();
+  return m_grid_proxy;
+}
+
+std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
+{
+  QItemSelectionModel* const sel_model = GetActiveView()->selectionModel();
   if (sel_model->hasSelection())
   {
+    QSortFilterProxyModel* const proxy = GetActiveProxyModel();
     QModelIndex model_index = proxy->mapToSource(sel_model->selectedIndexes()[0]);
     return m_model.GetGameFile(model_index.row());
   }
@@ -814,27 +846,15 @@ std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
 
 QList<std::shared_ptr<const UICommon::GameFile>> GameList::GetSelectedGames() const
 {
-  QAbstractItemView* view;
-  QSortFilterProxyModel* proxy;
-  if (currentWidget() == m_list)
-  {
-    view = m_list;
-    proxy = m_list_proxy;
-  }
-  else
-  {
-    view = m_grid;
-    proxy = m_grid_proxy;
-  }
   QList<std::shared_ptr<const UICommon::GameFile>> selected_list;
-  QItemSelectionModel* sel_model = view->selectionModel();
+  QItemSelectionModel* const sel_model = GetActiveView()->selectionModel();
+
   if (sel_model->hasSelection())
   {
-    QModelIndexList index_list =
-        currentWidget() == m_list ? sel_model->selectedRows() : sel_model->selectedIndexes();
+    const QModelIndexList index_list = sel_model->selectedRows();
     for (const auto& index : index_list)
     {
-      QModelIndex model_index = proxy->mapToSource(index);
+      const QModelIndex model_index = GetActiveProxyModel()->mapToSource(index);
       selected_list.push_back(m_model.GetGameFile(model_index.row()));
     }
   }
@@ -843,8 +863,7 @@ QList<std::shared_ptr<const UICommon::GameFile>> GameList::GetSelectedGames() co
 
 bool GameList::HasMultipleSelected() const
 {
-  return currentWidget() == m_list ? m_list->selectionModel()->selectedRows().size() > 1 :
-                                     m_grid->selectionModel()->selectedIndexes().size() > 1;
+  return GetActiveView()->selectionModel()->selectedRows().size() > 1;
 }
 
 std::shared_ptr<const UICommon::GameFile> GameList::FindGame(const std::string& path) const

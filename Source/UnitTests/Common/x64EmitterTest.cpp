@@ -163,8 +163,8 @@ protected:
 
   std::unique_ptr<X64CodeBlock> emitter;
   std::unique_ptr<disassembler> disasm;
-  u8* code_buffer;
-  u8* code_buffer_end;
+  u8* code_buffer = nullptr;
+  u8* code_buffer_end = nullptr;
 };
 
 #define TEST_INSTR_NO_OPERANDS(Name, ExpectedDisasm)                                               \

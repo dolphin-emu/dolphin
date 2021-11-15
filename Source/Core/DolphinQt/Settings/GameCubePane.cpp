@@ -32,6 +32,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/BroadbandAdapterSettingsDialog.h"
@@ -292,7 +293,7 @@ void GameCubePane::OnConfigPressed(int slot)
     qFatal("unknown settings pressed");
   }
 
-  QString filename = QFileDialog::getSaveFileName(
+  QString filename = DolphinFileDialog::getSaveFileName(
       this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       filter, 0, QFileDialog::DontConfirmOverwrite);
 
@@ -390,7 +391,7 @@ void GameCubePane::OnConfigPressed(int slot)
 
 void GameCubePane::BrowseGBABios()
 {
-  QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this, tr("Select GBA BIOS"), QString::fromStdString(File::GetUserPath(F_GBABIOS_IDX)),
       tr("All Files (*)")));
   if (!file.isEmpty())
@@ -419,9 +420,9 @@ void GameCubePane::SaveRomPathChanged()
 
 void GameCubePane::BrowseGBASaves()
 {
-  QString dir = QDir::toNativeSeparators(
-      QFileDialog::getExistingDirectory(this, tr("Select GBA Saves Path"),
-                                        QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX))));
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+      this, tr("Select GBA Saves Path"),
+      QString::fromStdString(File::GetUserPath(D_GBASAVES_IDX))));
   if (!dir.isEmpty())
   {
     m_gba_saves_edit->setText(dir);
@@ -547,7 +548,7 @@ std::string GameCubePane::GetOpenGBARom(std::string_view title)
   if (!title.empty())
     caption += QStringLiteral(": %1").arg(QString::fromStdString(std::string(title)));
   return QDir::toNativeSeparators(
-             QFileDialog::getOpenFileName(
+             DolphinFileDialog::getOpenFileName(
                  nullptr, caption, QString(),
                  tr("Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
                     "All Files (*)")))

@@ -47,6 +47,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -322,6 +323,7 @@ void VideoBackendBase::InitializeShared()
   VertexShaderManager::Init();
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
+  TMEM::Init();
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();

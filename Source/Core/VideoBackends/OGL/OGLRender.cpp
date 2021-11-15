@@ -695,8 +695,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
       glDebugMessageCallbackARB(ErrorCallback, nullptr);
     }
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }
@@ -851,19 +851,9 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<::BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(BoundingBox::Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  BoundingBox::Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  BoundingBox::Flush();
+  return std::make_unique<OGLBoundingBox>();
 }
 
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
@@ -1036,8 +1026,8 @@ void Renderer::PresentBackbuffer()
 {
   if (g_ogl_config.bSupportsDebug)
   {
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }

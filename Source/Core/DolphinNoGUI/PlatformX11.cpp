@@ -70,11 +70,11 @@ void PlatformX11::UpdateCursor(bool locked) {
     if (m_window != 0) {
       XWarpPointer(m_display, 0, m_window, 0, 0, 0, 0, m_window_width / 2, m_window_height / 2);
     }
-    if (SConfig::GetInstance().bHideCursor) {
+    if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never) {
       XDefineCursor(m_display, m_window, m_blank_cursor);
     }
   } else {
-    if (SConfig::GetInstance().bHideCursor) {
+    if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never) {
       XUndefineCursor(m_display, m_window);
     }
   }
@@ -88,7 +88,7 @@ PlatformX11::~PlatformX11()
 
   if (m_display)
   {
-    if (SConfig::GetInstance().bHideCursor)
+    if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never)
       XFreeCursor(m_display, m_blank_cursor);
 
     XCloseDisplay(m_display);
@@ -133,7 +133,7 @@ bool PlatformX11::Init()
   m_xrr_config = new X11Utils::XRRConfiguration(m_display, m_window);
 #endif
 
-  if (SConfig::GetInstance().bHideCursor)
+  if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never)
   {
     // make a blank cursor
     Pixmap Blank;
@@ -218,13 +218,13 @@ void PlatformX11::ProcessEvents()
       {
         if (Core::GetState() == Core::State::Running)
         {
-          if (SConfig::GetInstance().bHideCursor)
+          if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never)
             XUndefineCursor(m_display, m_window);
           Core::SetState(Core::State::Paused);
         }
         else
         {
-          if (SConfig::GetInstance().bHideCursor)
+          if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never)
             XDefineCursor(m_display, m_window, m_blank_cursor);
           Core::SetState(Core::State::Running);
         }
@@ -261,14 +261,15 @@ void PlatformX11::ProcessEvents()
     case FocusIn:
     {
       m_window_focus = true;
-      if (SConfig::GetInstance().bHideCursor && Core::GetState() != Core::State::Paused)
+      if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never &&
+          Core::GetState() != Core::State::Paused)
         XDefineCursor(m_display, m_window, m_blank_cursor);
     }
     break;
     case FocusOut:
     {
       m_window_focus = false;
-      if (SConfig::GetInstance().bHideCursor)
+      if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never)
         XUndefineCursor(m_display, m_window);
     }
     break;

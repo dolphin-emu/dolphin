@@ -335,7 +335,7 @@ void Jit64::Init()
   jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
-  UpdateMemoryOptions();
+  UpdateMemoryAndExceptionOptions();
   js.fastmemLoadStore = nullptr;
   js.compilerPC = 0;
 
@@ -389,7 +389,7 @@ void Jit64::ClearCache()
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
-  UpdateMemoryOptions();
+  UpdateMemoryAndExceptionOptions();
   ResetFreeMemoryRanges();
 }
 
@@ -452,6 +452,24 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
       WriteExceptionExit();
       SetJumpTarget(c);
     }
+  }
+  else if (ShouldHandleFPExceptionForInstruction(js.op))
+  {
+    TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_PROGRAM));
+    FixupBranch exception = J_CC(CC_NZ, true);
+
+    SwitchToFarCode();
+    SetJumpTarget(exception);
+
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
+
+    gpr.Flush();
+    fpr.Flush();
+
+    MOV(32, PPCSTATE(pc), Imm32(js.op->address));
+    WriteExceptionExit();
+    SwitchToNearCode();
   }
 }
 

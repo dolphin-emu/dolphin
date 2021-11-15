@@ -1155,6 +1155,8 @@ public:
   bool TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
 
   // ABI related
+  static constexpr BitSet32 CALLER_SAVED_GPRS = BitSet32(0x4007FFFF);
+  static constexpr BitSet32 CALLER_SAVED_FPRS = BitSet32(0xFFFF00FF);
   void ABI_PushRegisters(BitSet32 registers);
   void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
 

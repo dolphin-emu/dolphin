@@ -353,13 +353,13 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
 
   // Configuration.
-  builder.AddData("cfg-dsp-hle", SConfig::GetInstance().bDSPHLE);
-  builder.AddData("cfg-dsp-jit", SConfig::GetInstance().m_DSPEnableJIT);
-  builder.AddData("cfg-dsp-thread", SConfig::GetInstance().bDSPThread);
+  builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
+  builder.AddData("cfg-dsp-jit", Config::Get(Config::MAIN_DSP_JIT));
+  builder.AddData("cfg-dsp-thread", Config::Get(Config::MAIN_DSP_THREAD));
   builder.AddData("cfg-cpu-thread", SConfig::GetInstance().bCPUThread);
   builder.AddData("cfg-fastmem", SConfig::GetInstance().bFastmem);
   builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
-  builder.AddData("cfg-audio-backend", SConfig::GetInstance().sBackend);
+  builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
   builder.AddData("cfg-oc-enable", SConfig::GetInstance().m_OCEnable);
   builder.AddData("cfg-oc-factor", SConfig::GetInstance().m_OCFactor);
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));

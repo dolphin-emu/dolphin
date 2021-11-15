@@ -9,7 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 namespace
 {
@@ -20,7 +20,7 @@ PulseAudio::PulseAudio() = default;
 
 bool PulseAudio::Init()
 {
-  m_stereo = !SConfig::GetInstance().ShouldUseDPL2Decoder();
+  m_stereo = !Config::ShouldUseDPL2Decoder();
   m_channels = m_stereo ? 2 : 6;  // will tell PA we use a Stereo or 5.0 channel setup
 
   NOTICE_LOG_FMT(AUDIO, "PulseAudio backend using {} channels", m_channels);

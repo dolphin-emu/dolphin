@@ -30,6 +30,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
@@ -152,7 +153,7 @@ public final class TvMainActivity extends FragmentActivity
 
                 // Start the emulation activity and send the path of the clicked ISO to it.
                 String[] paths = GameFileCacheService.findSecondDiscAndGetPaths(holder.gameFile);
-                EmulationActivity.launch(TvMainActivity.this, paths);
+                EmulationActivity.launch(TvMainActivity.this, paths, false);
               }
             });
   }
@@ -254,7 +255,7 @@ public final class TvMainActivity extends FragmentActivity
         case MainPresenter.REQUEST_GAME_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri,
                   FileBrowserHelper.GAME_LIKE_EXTENSIONS,
-                  () -> EmulationActivity.launch(this, result.getData().toString()));
+                  () -> EmulationActivity.launch(this, result.getData().toString(), false));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
@@ -287,15 +288,13 @@ public final class TvMainActivity extends FragmentActivity
 
     if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
-      if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+      if (grantResults[0] == PackageManager.PERMISSION_DENIED)
       {
-        DirectoryInitialization.start(this);
-        GameFileCacheService.startLoad(this);
+        PermissionsHandler.setWritePermissionDenied();
       }
-      else
-      {
-        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_LONG).show();
-      }
+
+      DirectoryInitialization.start(this);
+      GameFileCacheService.startLoad(this);
     }
   }
 
@@ -314,7 +313,7 @@ public final class TvMainActivity extends FragmentActivity
     ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
     mGameRows.clear();
 
-    if (PermissionsHandler.hasWriteAccess(this))
+    if (!DirectoryInitialization.isWaitingForWriteAccess(this))
     {
       GameFileCacheService.startLoad(this);
     }

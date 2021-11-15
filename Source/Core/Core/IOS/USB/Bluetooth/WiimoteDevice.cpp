@@ -799,16 +799,12 @@ static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
 
   const u8 sequence = attrib_list.Read8(attrib_offset);
   attrib_offset++;
-  const u8 seq_size = attrib_list.Read8(attrib_offset);
+  [[maybe_unused]] const u8 seq_size = attrib_list.Read8(attrib_offset);
   attrib_offset++;
   const u8 type_id = attrib_list.Read8(attrib_offset);
   attrib_offset++;
 
-  if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)
-  {
-    DEBUG_ASSERT(sequence == SDP_SEQ8);
-    (void)seq_size;
-  }
+  DEBUG_ASSERT(sequence == SDP_SEQ8);
 
   if (type_id == SDP_UINT32)
   {

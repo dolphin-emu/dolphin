@@ -67,6 +67,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || (jo.div_by_zero_exceptions && inst.SUBOP5 == 18));
 
   u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
   u32 op5 = inst.SUBOP5;
@@ -339,6 +340,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -500,6 +502,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   FloatCompare(inst);
 }
@@ -509,6 +512,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -551,6 +555,7 @@ void JitArm64::fresx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -579,6 +584,7 @@ void JitArm64::frsqrtex(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;

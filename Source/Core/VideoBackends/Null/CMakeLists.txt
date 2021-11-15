@@ -1,5 +1,6 @@
 add_library(videonull
   NullBackend.cpp
+  NullBoundingBox.h
   NullRender.cpp
   NullRender.h
   NullTexture.cpp

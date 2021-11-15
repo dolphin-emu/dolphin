@@ -160,10 +160,12 @@ void ShaderCache::WaitForAsyncCompiler()
     m_async_shader_compiler->WaitUntilCompletion([](size_t completed, size_t total) {
       g_renderer->BeginUIFrame();
 
+      const float center_x = ImGui::GetIO().DisplaySize.x * 0.5f;
+      const float center_y = ImGui::GetIO().DisplaySize.y * 0.5f;
       const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
 
       ImGui::SetNextWindowSize(ImVec2(400.0f * scale, 50.0f * scale), ImGuiCond_Always);
-      ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+      ImGui::SetNextWindowPos(ImVec2(center_x, center_y), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
       if (ImGui::Begin(Common::GetStringT("Compiling Shaders").c_str(), nullptr,
                        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
                            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |

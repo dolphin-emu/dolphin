@@ -160,6 +160,7 @@ private:
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
+  void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
 
   void NetPlayInit();
   bool NetPlayJoin();

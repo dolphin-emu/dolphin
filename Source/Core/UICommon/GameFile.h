@@ -106,6 +106,7 @@ public:
   u64 GetVolumeSize() const { return m_volume_size; }
   bool IsVolumeSizeAccurate() const { return m_volume_size_is_accurate; }
   bool IsDatelDisc() const { return m_is_datel_disc; }
+  bool IsNKit() const { return m_is_nkit; }
   const GameBanner& GetBannerImage() const;
   const GameCover& GetCoverImage() const;
   void DoState(PointerWrap& p);

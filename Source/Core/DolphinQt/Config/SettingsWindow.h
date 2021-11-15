@@ -21,7 +21,6 @@ public:
   explicit SettingsWindow(QWidget* parent = nullptr);
   void SelectGeneralPane();
   void SelectAudioPane();
-  void UpdateTabs();
 
 private:
   QTabWidget* m_tab_widget;

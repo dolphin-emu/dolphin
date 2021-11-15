@@ -65,18 +65,18 @@ enum SSL_IOCTL
 
 struct WII_SSL
 {
-  mbedtls_ssl_context ctx;
-  mbedtls_ssl_config config;
-  mbedtls_ssl_session session;
-  mbedtls_entropy_context entropy;
-  mbedtls_ctr_drbg_context ctr_drbg;
-  mbedtls_x509_crt cacert;
-  mbedtls_x509_crt clicert;
-  mbedtls_pk_context pk;
+  mbedtls_ssl_context ctx{};
+  mbedtls_ssl_config config{};
+  mbedtls_ssl_session session{};
+  mbedtls_entropy_context entropy{};
+  mbedtls_ctr_drbg_context ctr_drbg{};
+  mbedtls_x509_crt cacert{};
+  mbedtls_x509_crt clicert{};
+  mbedtls_pk_context pk{};
   int sockfd = -1;
   int hostfd = -1;
   std::string hostname;
-  bool active;
+  bool active = false;
 };
 
 class NetSSLDevice : public Device

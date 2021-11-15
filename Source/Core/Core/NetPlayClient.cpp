@@ -244,25 +244,25 @@ bool NetPlayClient::Connect()
     return false;
   }
 
-  MessageId error;
+  ConnectionError error;
   rpac >> error;
 
   // got error message
-  if (error)
+  if (error != ConnectionError::NoError)
   {
     switch (error)
     {
-    case CON_ERR_SERVER_FULL:
+    case ConnectionError::ServerFull:
       m_dialog->OnConnectionError(_trans("The server is full."));
       break;
-    case CON_ERR_VERSION_MISMATCH:
+    case ConnectionError::VersionMismatch:
       m_dialog->OnConnectionError(
           _trans("The server and client's NetPlay versions are incompatible."));
       break;
-    case CON_ERR_GAME_RUNNING:
+    case ConnectionError::GameRunning:
       m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
-    case CON_ERR_NAME_TOO_LONG:
+    case ConnectionError::NameTooLong:
       m_dialog->OnConnectionError(_trans("Nickname is too long."));
       break;
     default:
@@ -313,143 +313,143 @@ static void ReceiveSyncIdentifier(sf::Packet& spac, SyncIdentifier& sync_identif
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnData(sf::Packet& packet)
 {
-  MessageId mid;
+  MessageID mid;
   packet >> mid;
 
   INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", mid);
 
   switch (mid)
   {
-  case NP_MSG_PLAYER_JOIN:
+  case MessageID::PlayerJoin:
     OnPlayerJoin(packet);
     break;
 
-  case NP_MSG_PLAYER_LEAVE:
+  case MessageID::PlayerLeave:
     OnPlayerLeave(packet);
     break;
 
-  case NP_MSG_CHAT_MESSAGE:
+  case MessageID::ChatMessage:
     OnChatMessage(packet);
     break;
 
-  case NP_MSG_CHUNKED_DATA_START:
+  case MessageID::ChunkedDataStart:
     OnChunkedDataStart(packet);
     break;
 
-  case NP_MSG_CHUNKED_DATA_END:
+  case MessageID::ChunkedDataEnd:
     OnChunkedDataEnd(packet);
     break;
 
-  case NP_MSG_CHUNKED_DATA_PAYLOAD:
+  case MessageID::ChunkedDataPayload:
     OnChunkedDataPayload(packet);
     break;
 
-  case NP_MSG_CHUNKED_DATA_ABORT:
+  case MessageID::ChunkedDataAbort:
     OnChunkedDataAbort(packet);
     break;
 
-  case NP_MSG_PAD_MAPPING:
+  case MessageID::PadMapping:
     OnPadMapping(packet);
     break;
 
-  case NP_MSG_GBA_CONFIG:
+  case MessageID::GBAConfig:
     OnGBAConfig(packet);
     break;
 
-  case NP_MSG_WIIMOTE_MAPPING:
+  case MessageID::WiimoteMapping:
     OnWiimoteMapping(packet);
     break;
 
-  case NP_MSG_PAD_DATA:
+  case MessageID::PadData:
     OnPadData(packet);
     break;
 
-  case NP_MSG_PAD_HOST_DATA:
+  case MessageID::PadHostData:
     OnPadHostData(packet);
     break;
 
-  case NP_MSG_WIIMOTE_DATA:
+  case MessageID::WiimoteData:
     OnWiimoteData(packet);
     break;
 
-  case NP_MSG_PAD_BUFFER:
+  case MessageID::PadBuffer:
     OnPadBuffer(packet);
     break;
 
-  case NP_MSG_HOST_INPUT_AUTHORITY:
+  case MessageID::HostInputAuthority:
     OnHostInputAuthority(packet);
     break;
 
-  case NP_MSG_GOLF_SWITCH:
+  case MessageID::GolfSwitch:
     OnGolfSwitch(packet);
     break;
 
-  case NP_MSG_GOLF_PREPARE:
+  case MessageID::GolfPrepare:
     OnGolfPrepare(packet);
     break;
 
-  case NP_MSG_CHANGE_GAME:
+  case MessageID::ChangeGame:
     OnChangeGame(packet);
     break;
 
-  case NP_MSG_GAME_STATUS:
+  case MessageID::GameStatus:
     OnGameStatus(packet);
     break;
 
-  case NP_MSG_START_GAME:
+  case MessageID::StartGame:
     OnStartGame(packet);
     break;
 
-  case NP_MSG_STOP_GAME:
-  case NP_MSG_DISABLE_GAME:
+  case MessageID::StopGame:
+  case MessageID::DisableGame:
     OnStopGame(packet);
     break;
 
-  case NP_MSG_POWER_BUTTON:
+  case MessageID::PowerButton:
     OnPowerButton();
     break;
 
-  case NP_MSG_PING:
+  case MessageID::Ping:
     OnPing(packet);
     break;
 
-  case NP_MSG_PLAYER_PING_DATA:
+  case MessageID::PlayerPingData:
     OnPlayerPingData(packet);
     break;
 
-  case NP_MSG_DESYNC_DETECTED:
+  case MessageID::DesyncDetected:
     OnDesyncDetected(packet);
     break;
 
-  case NP_MSG_SYNC_GC_SRAM:
+  case MessageID::SyncGCSRAM:
     OnSyncGCSRAM(packet);
     break;
 
-  case NP_MSG_SYNC_SAVE_DATA:
+  case MessageID::SyncSaveData:
     OnSyncSaveData(packet);
     break;
 
-  case NP_MSG_SYNC_CODES:
+  case MessageID::SyncCodes:
     OnSyncCodes(packet);
     break;
 
-  case NP_MSG_COMPUTE_MD5:
+  case MessageID::ComputeMD5:
     OnComputeMD5(packet);
     break;
 
-  case NP_MSG_MD5_PROGRESS:
+  case MessageID::MD5Progress:
     OnMD5Progress(packet);
     break;
 
-  case NP_MSG_MD5_RESULT:
+  case MessageID::MD5Result:
     OnMD5Result(packet);
     break;
 
-  case NP_MSG_MD5_ERROR:
+  case MessageID::MD5Error:
     OnMD5Error(packet);
     break;
 
-  case NP_MSG_MD5_ABORT:
+  case MessageID::MD5Abort:
     OnMD5Abort();
     break;
 
@@ -547,7 +547,7 @@ void NetPlayClient::OnChunkedDataEnd(sf::Packet& packet)
   m_dialog->HideChunkedProgressDialog();
 
   sf::Packet complete_packet;
-  complete_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_COMPLETE);
+  complete_packet << MessageID::ChunkedDataComplete;
   complete_packet << cid;
   Send(complete_packet, CHUNKED_DATA_CHANNEL);
 }
@@ -572,7 +572,7 @@ void NetPlayClient::OnChunkedDataPayload(sf::Packet& packet)
   m_dialog->SetChunkedProgress(m_local_player->pid, data_packet.getDataSize());
 
   sf::Packet progress_packet;
-  progress_packet << static_cast<MessageId>(NP_MSG_CHUNKED_DATA_PROGRESS);
+  progress_packet << MessageID::ChunkedDataProgress;
   progress_packet << cid;
   progress_packet << sf::Uint64{data_packet.getDataSize()};
   Send(progress_packet, CHUNKED_DATA_CHANNEL);
@@ -731,13 +731,13 @@ void NetPlayClient::OnGolfSwitch(sf::Packet& packet)
   if (m_local_player->pid == previous_golfer)
   {
     sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_GOLF_RELEASE);
+    spac << MessageID::GolfRelease;
     Send(spac);
   }
   else if (m_local_player->pid == pid)
   {
     sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_GOLF_ACQUIRE);
+    spac << MessageID::GolfAcquire;
     Send(spac);
 
     // Pads are already calibrated so we can just ignore this
@@ -771,7 +771,7 @@ void NetPlayClient::OnChangeGame(sf::Packet& packet)
   SendGameStatus();
 
   sf::Packet client_capabilities_packet;
-  client_capabilities_packet << static_cast<MessageId>(NP_MSG_CLIENT_CAPABILITIES);
+  client_capabilities_packet << MessageID::ClientCapabilities;
   client_capabilities_packet << ExpansionInterface::CEXIIPL::HasIPLDump();
   client_capabilities_packet << Config::Get(Config::SESSION_USE_FMA);
   Send(client_capabilities_packet);
@@ -784,10 +784,7 @@ void NetPlayClient::OnGameStatus(sf::Packet& packet)
 
   {
     std::lock_guard lkp(m_crit.players);
-    Player& player = m_players[pid];
-    u32 status;
-    packet >> status;
-    player.game_status = static_cast<SyncIdentifierComparison>(status);
+    packet >> m_players[pid].game_status;
   }
 
   m_dialog->Update();
@@ -797,19 +794,12 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 {
   {
     std::lock_guard lkg(m_crit.game);
-    packet >> m_current_game;
-    packet >> m_net_settings.m_CPUthread;
 
     INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
 
-    {
-      std::underlying_type_t<PowerPC::CPUCore> core;
-      if (packet >> core)
-        m_net_settings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
-      else
-        m_net_settings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
-    }
-
+    packet >> m_current_game;
+    packet >> m_net_settings.m_CPUthread;
+    packet >> m_net_settings.m_CPUcore;
     packet >> m_net_settings.m_EnableCheats;
     packet >> m_net_settings.m_SelectedLanguage;
     packet >> m_net_settings.m_OverrideRegionSettings;
@@ -819,24 +809,14 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.m_RAMOverrideEnable;
     packet >> m_net_settings.m_Mem1Size;
     packet >> m_net_settings.m_Mem2Size;
-
-    {
-      std::underlying_type_t<DiscIO::Region> tmp;
-      packet >> tmp;
-      m_net_settings.m_FallbackRegion = static_cast<DiscIO::Region>(tmp);
-    }
-
+    packet >> m_net_settings.m_FallbackRegion;
     packet >> m_net_settings.m_AllowSDWrites;
     packet >> m_net_settings.m_CopyWiiSave;
     packet >> m_net_settings.m_OCEnable;
     packet >> m_net_settings.m_OCFactor;
 
     for (auto& device : m_net_settings.m_EXIDevice)
-    {
-      int tmp;
-      packet >> tmp;
-      device = static_cast<ExpansionInterface::TEXIDevices>(tmp);
-    }
+      packet >> device;
 
     for (u32& value : m_net_settings.m_SYSCONFSettings)
       packet >> value;
@@ -851,6 +831,8 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.m_EFBEmulateFormatChanges;
     packet >> m_net_settings.m_SafeTextureCacheColorSamples;
     packet >> m_net_settings.m_PerfQueriesEnable;
+    packet >> m_net_settings.m_FloatExceptions;
+    packet >> m_net_settings.m_DivideByZeroExceptions;
     packet >> m_net_settings.m_FPRF;
     packet >> m_net_settings.m_AccurateNaNs;
     packet >> m_net_settings.m_DisableICache;
@@ -924,7 +906,7 @@ void NetPlayClient::OnPing(sf::Packet& packet)
   packet >> ping_key;
 
   sf::Packet response_packet;
-  response_packet << static_cast<MessageId>(NP_MSG_PONG);
+  response_packet << MessageID::Pong;
   response_packet << ping_key;
 
   Send(response_packet);
@@ -981,7 +963,7 @@ void NetPlayClient::OnSyncGCSRAM(sf::Packet& packet)
 
 void NetPlayClient::OnSyncSaveData(sf::Packet& packet)
 {
-  MessageId sub_id;
+  SyncSaveDataID sub_id;
   packet >> sub_id;
 
   if (m_local_player->IsHost())
@@ -989,23 +971,23 @@ void NetPlayClient::OnSyncSaveData(sf::Packet& packet)
 
   switch (sub_id)
   {
-  case SYNC_SAVE_DATA_NOTIFY:
+  case SyncSaveDataID::Notify:
     OnSyncSaveDataNotify(packet);
     break;
 
-  case SYNC_SAVE_DATA_RAW:
+  case SyncSaveDataID::RawData:
     OnSyncSaveDataRaw(packet);
     break;
 
-  case SYNC_SAVE_DATA_GCI:
+  case SyncSaveDataID::GCIData:
     OnSyncSaveDataGCI(packet);
     break;
 
-  case SYNC_SAVE_DATA_WII:
+  case SyncSaveDataID::WiiData:
     OnSyncSaveDataWii(packet);
     break;
 
-  case SYNC_SAVE_DATA_GBA:
+  case SyncSaveDataID::GBAData:
     OnSyncSaveDataGBA(packet);
     break;
 
@@ -1183,11 +1165,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     {
       WiiSave::Storage::SaveFile file;
       packet >> file.mode >> file.attributes;
-      {
-        u8 tmp;
-        packet >> tmp;
-        file.type = static_cast<WiiSave::Storage::SaveFile::Type>(tmp);
-      }
+      packet >> file.type;
       packet >> file.path;
 
       if (file.type == WiiSave::Storage::SaveFile::Type::File)
@@ -1239,29 +1217,29 @@ void NetPlayClient::OnSyncSaveDataGBA(sf::Packet& packet)
 void NetPlayClient::OnSyncCodes(sf::Packet& packet)
 {
   // Recieve Data Packet
-  MessageId sub_id;
+  SyncCodeID sub_id;
   packet >> sub_id;
 
   // Check Which Operation to Perform with This Packet
   switch (sub_id)
   {
-  case SYNC_CODES_NOTIFY:
+  case SyncCodeID::Notify:
     OnSyncCodesNotify();
     break;
 
-  case SYNC_CODES_NOTIFY_GECKO:
+  case SyncCodeID::NotifyGecko:
     OnSyncCodesNotifyGecko(packet);
     break;
 
-  case SYNC_CODES_DATA_GECKO:
+  case SyncCodeID::GeckoData:
     OnSyncCodesDataGecko(packet);
     break;
 
-  case SYNC_CODES_NOTIFY_AR:
+  case SyncCodeID::NotifyAR:
     OnSyncCodesNotifyAR(packet);
     break;
 
-  case SYNC_CODES_DATA_AR:
+  case SyncCodeID::ARData:
     OnSyncCodesDataAR(packet);
     break;
 
@@ -1643,7 +1621,7 @@ const NetSettings& NetPlayClient::GetNetSettings() const
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  packet << MessageID::ChatMessage;
   packet << msg;
 
   SendAsync(std::move(packet));
@@ -1666,7 +1644,7 @@ void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus
 void NetPlayClient::SendWiimoteState(const int in_game_pad, const WiimoteInput& nw)
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
+  packet << MessageID::WiimoteData;
   packet << static_cast<PadIndex>(in_game_pad);
   packet << static_cast<u8>(nw.report_id);
   packet << static_cast<u8>(nw.data.size());
@@ -1678,7 +1656,7 @@ void NetPlayClient::SendWiimoteState(const int in_game_pad, const WiimoteInput& 
 void NetPlayClient::SendStartGamePacket()
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_START_GAME);
+  packet << MessageID::StartGame;
   packet << m_current_game;
 
   SendAsync(std::move(packet));
@@ -1688,7 +1666,7 @@ void NetPlayClient::SendStartGamePacket()
 void NetPlayClient::SendStopGamePacket()
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_STOP_GAME);
+  packet << MessageID::StopGame;
 
   SendAsync(std::move(packet));
 }
@@ -1760,8 +1738,8 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
     if (++m_sync_save_data_success_count >= m_sync_save_data_count)
     {
       sf::Packet response_packet;
-      response_packet << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
-      response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_SUCCESS);
+      response_packet << MessageID::SyncSaveData;
+      response_packet << SyncSaveDataID::Success;
 
       Send(response_packet);
     }
@@ -1769,8 +1747,8 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
   else
   {
     sf::Packet response_packet;
-    response_packet << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
-    response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_FAILURE);
+    response_packet << MessageID::SyncSaveData;
+    response_packet << SyncSaveDataID::Failure;
 
     Send(response_packet);
   }
@@ -1784,8 +1762,8 @@ void NetPlayClient::SyncCodeResponse(const bool success)
     m_dialog->AppendChat(Common::GetStringT("Error processing codes."));
 
     sf::Packet response_packet;
-    response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
-    response_packet << static_cast<MessageId>(SYNC_CODES_FAILURE);
+    response_packet << MessageID::SyncCodes;
+    response_packet << SyncCodeID::Failure;
 
     Send(response_packet);
     return;
@@ -1797,8 +1775,8 @@ void NetPlayClient::SyncCodeResponse(const bool success)
     m_dialog->AppendChat(Common::GetStringT("Codes received!"));
 
     sf::Packet response_packet;
-    response_packet << static_cast<MessageId>(NP_MSG_SYNC_CODES);
-    response_packet << static_cast<MessageId>(SYNC_CODES_SUCCESS);
+    response_packet << MessageID::SyncCodes;
+    response_packet << SyncCodeID::Success;
 
     Send(response_packet);
   }
@@ -1960,7 +1938,7 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
     {
       // Tell the server we've acknowledged the message
       sf::Packet spac;
-      spac << static_cast<MessageId>(NP_MSG_GOLF_PREPARE);
+      spac << MessageID::GolfPrepare;
       Send(spac);
 
       m_wait_on_input_received = false;
@@ -1972,7 +1950,7 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
   if (IsFirstInGamePad(pad_nb) && batching)
   {
     sf::Packet packet;
-    packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
+    packet << MessageID::PadData;
 
     bool send_packet = false;
     const int num_local_pads = NumLocalPads();
@@ -1990,11 +1968,11 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
 
   if (!batching)
   {
-    int local_pad = InGamePadToLocalPad(pad_nb);
+    const int local_pad = InGamePadToLocalPad(pad_nb);
     if (local_pad < 4)
     {
       sf::Packet packet;
-      packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
+      packet << MessageID::PadData;
       if (PollLocalPad(local_pad, packet))
         SendAsync(std::move(packet));
     }
@@ -2208,7 +2186,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
     return;
 
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_PAD_HOST_DATA);
+  packet << MessageID::PadHostData;
 
   if (pad_num < 0)
   {
@@ -2309,7 +2287,7 @@ void NetPlayClient::RequestStopGame()
 void NetPlayClient::SendPowerButtonEvent()
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_POWER_BUTTON);
+  packet << MessageID::PowerButton;
   SendAsync(std::move(packet));
 }
 
@@ -2319,7 +2297,7 @@ void NetPlayClient::RequestGolfControl(const PlayerId pid)
     return;
 
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_GOLF_REQUEST);
+  packet << MessageID::GolfRequest;
   packet << pid;
   SendAsync(std::move(packet));
 }
@@ -2410,7 +2388,7 @@ bool NetPlayClient::IsLocalPlayer(const PlayerId pid) const
 void NetPlayClient::SendGameStatus()
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+  packet << MessageID::GameStatus;
 
   SyncIdentifierComparison result;
   m_dialog->FindGameFile(m_selected_game, &result);
@@ -2436,7 +2414,7 @@ void NetPlayClient::SendTimeBase()
     const sf::Uint64 timebase = SystemTimers::GetFakeTimeBase();
 
     sf::Packet packet;
-    packet << static_cast<MessageId>(NP_MSG_TIMEBASE);
+    packet << MessageID::TimeBase;
     packet << timebase;
     packet << netplay_client->m_timebase_frame;
 
@@ -2472,7 +2450,7 @@ void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
   if (file.empty() || !File::Exists(file))
   {
     sf::Packet packet;
-    packet << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+    packet << MessageID::MD5Error;
     packet << "file not found";
     Send(packet);
     return;
@@ -2483,7 +2461,7 @@ void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
   m_MD5_thread = std::thread([this, file]() {
     std::string sum = MD5::MD5Sum(file, [&](int progress) {
       sf::Packet packet;
-      packet << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+      packet << MessageID::MD5Progress;
       packet << progress;
       SendAsync(std::move(packet));
 
@@ -2491,7 +2469,7 @@ void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
     });
 
     sf::Packet packet;
-    packet << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+    packet << MessageID::MD5Result;
     packet << sum;
     SendAsync(std::move(packet));
   });

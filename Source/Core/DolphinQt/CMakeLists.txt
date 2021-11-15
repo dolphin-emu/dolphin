@@ -278,6 +278,8 @@ add_executable(dolphin-emu
   NetPlay/NetPlaySetupDialog.h
   NetPlay/PadMappingDialog.cpp
   NetPlay/PadMappingDialog.h
+  QtUtils/DolphinFileDialog.cpp
+  QtUtils/DolphinFileDialog.h
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/DoubleClickEventFilter.h
   QtUtils/ElidedButton.cpp
@@ -305,6 +307,8 @@ add_executable(dolphin-emu
   QtUtils/AspectRatioWidget.h
   ResourcePackManager.cpp
   ResourcePackManager.h
+  RiivolutionBootWidget.cpp
+  RiivolutionBootWidget.h
   Settings/AdvancedPane.cpp
   Settings/AdvancedPane.h
   Settings/AudioPane.cpp

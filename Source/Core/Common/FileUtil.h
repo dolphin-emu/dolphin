@@ -41,6 +41,7 @@ enum
   D_STATESAVES_IDX,
   D_SCREENSHOTS_IDX,
   D_HIRESTEXTURES_IDX,
+  D_RIIVOLUTION_IDX,
   D_DUMP_IDX,
   D_DUMPFRAMES_IDX,
   D_DUMPOBJECTS_IDX,
@@ -85,11 +86,11 @@ enum
 
 namespace File
 {
-// FileSystem tree node/
+// FileSystem tree node
 struct FSTEntry
 {
-  bool isDirectory;
-  u64 size;                  // File length, or for directories, recursive count of children
+  bool isDirectory = false;
+  u64 size = 0;              // File length, or for directories, recursive count of children
   std::string physicalName;  // Name on disk
   std::string virtualName;   // Name in FST names table
   std::vector<FSTEntry> children;
@@ -120,7 +121,11 @@ private:
   void AndroidContentInit(const std::string& path);
 #endif
 
+#ifdef _WIN32
+  struct __stat64 m_stat;
+#else
   struct stat m_stat;
+#endif
   bool m_exists;
 };
 

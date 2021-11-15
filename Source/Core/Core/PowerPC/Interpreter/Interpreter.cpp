@@ -20,14 +20,11 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 namespace
 {
@@ -152,16 +149,6 @@ int Interpreter::SingleStepInner()
     return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
   }
 
-#ifdef USE_GDBSTUB
-  if (gdb_active() && gdb_bp_x(PC))
-  {
-    Host_UpdateDisasmDialog();
-
-    gdb_signal(GDB_SIGTRAP);
-    gdb_handle_exception();
-  }
-#endif
-
   NPC = PC + sizeof(UGeckoInstruction);
   m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
@@ -180,7 +167,7 @@ int Interpreter::SingleStepInner()
   {
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
-      GenerateProgramException();
+      GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
     else if (MSR.FP)
@@ -306,6 +293,8 @@ void Interpreter::Run()
 #endif
             INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
             CPU::Break();
+            if (GDBStub::IsActive())
+              GDBStub::TakeControl();
             if (PowerPC::breakpoints.IsTempBreakPoint(PC))
               PowerPC::breakpoints.Remove(PC);
 
@@ -340,7 +329,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   const u32 opcode = PowerPC::HostRead_U32(last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
-  Dolphin_Debugger::PrintCallstack();
+  Dolphin_Debugger::PrintCallstack(Common::Log::LogType::POWERPC, Common::Log::LogLevel::LNOTICE);
   NOTICE_LOG_FMT(
       POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
