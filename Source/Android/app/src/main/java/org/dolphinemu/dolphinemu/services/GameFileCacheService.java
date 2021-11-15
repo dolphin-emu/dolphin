@@ -132,8 +132,9 @@ public final class GameFileCacheService extends IntentService
   }
 
   /**
-   * Asynchronously loads the game file cache from disk without checking
-   * which games are present on the file system.
+   * Asynchronously loads the game file cache from disk, without checking
+   * if the games are still present in the user's configured folders.
+   * If this has already been called, calling it again has no effect.
    */
   public static void startLoad(Context context)
   {
@@ -182,8 +183,32 @@ public final class GameFileCacheService extends IntentService
   @Override
   protected void onHandleIntent(Intent intent)
   {
-    // Load the game list cache if it isn't already loaded, otherwise do nothing
-    if (ACTION_LOAD.equals(intent.getAction()) && gameFileCache == null)
+    if (ACTION_LOAD.equals(intent.getAction()))
+    {
+      load();
+    }
+
+    if (ACTION_RESCAN.equals(intent.getAction()))
+    {
+      rescan();
+      unhandledRescanIntents.decrementAndGet();
+    }
+
+    int intentsLeft = unhandledIntents.decrementAndGet();
+    if (intentsLeft == 0)
+    {
+      sendBroadcast(DONE_LOADING);
+    }
+  }
+
+  /**
+   * Loads the game file cache from disk, without checking if the
+   * games are still present in the user's configured folders.
+   * If this has already been called, calling it again has no effect.
+   */
+  private void load()
+  {
+    if (gameFileCache == null)
     {
       GameFileCache temp = new GameFileCache();
       synchronized (temp)
@@ -197,45 +222,41 @@ public final class GameFileCacheService extends IntentService
         }
       }
     }
+  }
 
-    // Rescan the file system and update the game list cache with the results
-    if (ACTION_RESCAN.equals(intent.getAction()))
+  /**
+   * Scans for games in the user's configured folders,
+   * updating the game file cache with the results.
+   * If load hasn't been called before this, this has no effect.
+   */
+  private void rescan()
+  {
+    if (gameFileCache != null)
     {
-      if (gameFileCache != null)
+      String[] gamePaths = GameFileCache.getAllGamePaths();
+
+      boolean changed;
+      synchronized (gameFileCache)
       {
-        String[] gamePaths = GameFileCache.getAllGamePaths();
-
-        boolean changed;
-        synchronized (gameFileCache)
-        {
-          changed = gameFileCache.update(gamePaths);
-        }
-        if (changed)
-        {
-          updateGameFileArray();
-          sendBroadcast(CACHE_UPDATED);
-        }
-
-        boolean additionalMetadataChanged = gameFileCache.updateAdditionalMetadata();
-        if (additionalMetadataChanged)
-        {
-          updateGameFileArray();
-          sendBroadcast(CACHE_UPDATED);
-        }
-
-        if (changed || additionalMetadataChanged)
-        {
-          gameFileCache.save();
-        }
+        changed = gameFileCache.update(gamePaths);
+      }
+      if (changed)
+      {
+        updateGameFileArray();
+        sendBroadcast(CACHE_UPDATED);
       }
 
-      unhandledRescanIntents.decrementAndGet();
-    }
+      boolean additionalMetadataChanged = gameFileCache.updateAdditionalMetadata();
+      if (additionalMetadataChanged)
+      {
+        updateGameFileArray();
+        sendBroadcast(CACHE_UPDATED);
+      }
 
-    int intentsLeft = unhandledIntents.decrementAndGet();
-    if (intentsLeft == 0)
-    {
-      sendBroadcast(DONE_LOADING);
+      if (changed || additionalMetadataChanged)
+      {
+        gameFileCache.save();
+      }
     }
   }
 
