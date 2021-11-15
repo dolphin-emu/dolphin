@@ -179,6 +179,7 @@ void HackManager::update_mod_states() {
     set_mod_enabled("friend_vouchers_cheat", settings.bPrimeFriendVouchers);
     set_mod_enabled("portal_skip_mp2", settings.bPrimePortalSkip);
     set_mod_enabled("disable_hudmemo_popup", settings.bDisableHudMemoPopup);
+    set_mod_enabled("unlock_hypermode", settings.bPrimeUnlockHypermode);
   }
   else {
     disable_mod("noclip");
@@ -187,6 +188,7 @@ void HackManager::update_mod_states() {
     disable_mod("restore_dashing");
     disable_mod("friend_vouchers_cheat");
     disable_mod("portal_skip_mp2");
+    disable_mod("unlock_hypermode");
   }
 
   // Disallow any PrimeHack control mods

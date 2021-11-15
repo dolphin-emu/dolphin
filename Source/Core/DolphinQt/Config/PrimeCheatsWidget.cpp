@@ -29,6 +29,7 @@ void PrimeCheatsWidget::CreateWidgets()
   m_checkbox_skipportalmp2 = new QCheckBox(tr("Skip MP2 Portal Cutscene"));
   m_checkbox_friendvouchers = new QCheckBox(tr("Remove Friend Vouchers Requirement (Trilogy Only)"));
   m_checkbox_hudmemo = new QCheckBox(tr("Disable Hud Popup on Pickup Acquire"));
+  m_checkbox_hypermode = new QCheckBox(tr("Unlock Hypermode Difficulty"));
 
   layout->addWidget(m_checkbox_noclip);
   layout->addWidget(m_checkbox_invulnerability);
@@ -37,6 +38,7 @@ void PrimeCheatsWidget::CreateWidgets()
   layout->addWidget(m_checkbox_skipportalmp2);
   layout->addWidget(m_checkbox_friendvouchers);
   layout->addWidget(m_checkbox_hudmemo);
+  layout->addWidget(m_checkbox_hypermode);
 
   main_layout->addWidget(group_box);
   main_layout->addStretch();
@@ -53,6 +55,7 @@ void PrimeCheatsWidget::ConnectWidgets()
   connect(m_checkbox_skipportalmp2, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
   connect(m_checkbox_friendvouchers, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
   connect(m_checkbox_hudmemo, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
+  connect(m_checkbox_hypermode, &QCheckBox::toggled, this, &PrimeCheatsWidget::OnSaveConfig);
 }
 
 void PrimeCheatsWidget::OnSaveConfig()
@@ -65,6 +68,7 @@ void PrimeCheatsWidget::OnSaveConfig()
   settings.bPrimePortalSkip = m_checkbox_skipportalmp2->isChecked();
   settings.bPrimeFriendVouchers = m_checkbox_friendvouchers->isChecked();
   settings.bDisableHudMemoPopup = m_checkbox_hudmemo->isChecked();
+  settings.bPrimeUnlockHypermode = m_checkbox_hypermode->isChecked();
 
   settings.SaveSettings();
 }
@@ -79,6 +83,7 @@ void PrimeCheatsWidget::OnLoadConfig()
   m_checkbox_skipportalmp2->setChecked(settings.bPrimePortalSkip);
   m_checkbox_friendvouchers->setChecked(settings.bPrimeFriendVouchers);
   m_checkbox_hudmemo->setChecked(settings.bDisableHudMemoPopup);
+  m_checkbox_hypermode->setChecked(settings.bPrimeUnlockHypermode);
 }
 
 void PrimeCheatsWidget::AddDescriptions()
@@ -97,6 +102,8 @@ void PrimeCheatsWidget::AddDescriptions()
     QT_TR_NOOP("Removes the friend voucher cost from all purchasable extras. This is on by default as friend-vouchers are impossible to obtain.");
   static const char TR_HUDMEMO[] =
     QT_TR_NOOP("Removes the item pickup screen and explanation screen for powerups.");
+  static const char TR_HYPERMODE[] =
+    QT_TR_NOOP("Unlock Hypermode Difficulty.");
 
   m_checkbox_noclip->setToolTip(tr(TR_NOCLIP));
   m_checkbox_invulnerability->setToolTip(tr(TR_INVULNERABILITY));
@@ -105,6 +112,7 @@ void PrimeCheatsWidget::AddDescriptions()
   m_checkbox_skipportalmp2->setToolTip(tr(TR_SKIPPORTAL));
   m_checkbox_friendvouchers->setToolTip(tr(TR_FRIENDVOUCHERS));
   m_checkbox_hudmemo->setToolTip(tr(TR_HUDMEMO));
+  m_checkbox_hypermode->setToolTip(tr(TR_HYPERMODE));
 }
 
 void PrimeCheatsWidget::showEvent(QShowEvent*)

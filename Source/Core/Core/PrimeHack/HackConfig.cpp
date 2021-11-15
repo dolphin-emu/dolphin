@@ -24,6 +24,7 @@
 #include "Core/PrimeHack/Mods/PortalSkipMP2.h"
 #include "Core/PrimeHack/Mods/DisableHudMemoPopup.h"
 #include "Core/PrimeHack/Mods/ElfModLoader.h"
+#include "Core/PrimeHack/Mods/UnlockHypermode.h"
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -79,6 +80,7 @@ void InitializeHack() {
   hack_mgr.add_mod("friend_vouchers_cheat", std::make_unique<FriendVouchers>());
   hack_mgr.add_mod("disable_hudmemo_popup", std::make_unique<DisableHudMemoPopup>());
   hack_mgr.add_mod("elf_mod_loader", std::make_unique<ElfModLoader>());
+  hack_mgr.add_mod("unlock_hypermode", std::make_unique<UnlockHypermode>());
 
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
@@ -119,7 +121,7 @@ bool CheckSpringBallCtl() {
 bool ImprovedMotionControls() {
   return Wiimote::CheckImprovedMotions();
 }
-  
+
 bool CheckForward() {
   if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
     return Pad::CheckForward();
@@ -350,7 +352,7 @@ double GetHorizontalAxis() {
   if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
     if (Pad::PrimeUseController()) {
       return std::get<0>(Pad::GetPrimeStickXY());
-    } 
+    }
   }
   else if (Wiimote::PrimeUseController()) {
     return std::get<0>(Wiimote::GetPrimeStickXY());
@@ -366,7 +368,7 @@ double GetVerticalAxis() {
   if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
     if (Pad::PrimeUseController()) {
       return std::get<1>(Pad::GetPrimeStickXY());
-    } 
+    }
   }
   else if (Wiimote::PrimeUseController()) {
     return std::get<1>(Wiimote::GetPrimeStickXY());
