@@ -24,6 +24,12 @@ HackManager::HackManager()
                             (static_cast<u32>(d) & 0x000000ff))
 
 void HackManager::run_active_mods() {
+  // When launching a new title, the EH being 0 is a good sign
+  // that the game isn't done loading yet
+  u32 exception_hook = read32(0x80000048);
+  if (exception_hook == 0) {
+    return;
+  }
   u32 game_sig = PowerPC::HostRead_Instruction(0x8046d340);
   switch (game_sig)
   {
