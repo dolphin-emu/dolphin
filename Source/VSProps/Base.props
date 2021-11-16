@@ -119,10 +119,6 @@
                 Currently jits use some annoying code patterns which makes this common
       -->
       <DisableSpecificWarnings>4245;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <!-- Temporarily disable warnings to enable /Zc:preprocessor compatibility with WinSDK headers.
-      5105  macro expansion producing 'defined' has undefined behavior
-      -->
-      <DisableSpecificWarnings>5105;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <!-- Enable some off-by-default warnings
       4263  Non-virtual member function hides base class virtual function
       4265  Class has virtual functions, but destructor is not virtual
