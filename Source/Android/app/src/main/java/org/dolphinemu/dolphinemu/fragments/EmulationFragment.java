@@ -75,9 +75,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     super.onCreate(savedInstanceState);
 
-    // So this fragment doesn't restart on configuration changes; i.e. rotation.
-    setRetainInstance(true);
-
     mGamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
     mRiivolution = getArguments().getBoolean(KEY_RIIVOLUTION);
   }
