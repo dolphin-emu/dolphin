@@ -154,41 +154,56 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 int main(int argc, char* argv[])
 {
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
-  parser->add_option("-c", "--convert")
+  parser->add_option("-f", "--format")
       .action("store")
-      .help("Converts a game to another format [%choices]")
+      .help("Format to convert the file to [%choices]")
       .type("string")
       .set_default("RVZ")
-      .choices({"RVZ", "WIA", "GCZ", "ISO"});
+      .choices({"rvz", "wia", "gcz", "iso"});
+
+  parser->add_option("-c", "--compression")
+      .action("store")
+      .metavar("<string>")
+      .type("string")
+      .set_default("lzma2")
+      .choices({"lzma2", "zstd", "lzma", "bzip2"})
+      .help("Choose the compression type [%choices]");
 
   parser->add_option("-l", "--compression_level")
       .action("store")
       .metavar("<int>")
       .type("int")
-      .set_default(5)
-      .help("Choose the compression level (default: %default) [1-22]");
+      .set_default(9)
+      .help("Choose the compression level, for RVZ max is 9 (default: %default) [1-10]");
+
+  parser->add_option("-b", "--block_size")
+      .action("store")
+      .metavar("<int>")
+      .type("int")
+      .set_default(128)
+      .choices({"32", "64", "128", "256", "512", "1024", "2048"})
+      .help("Choose the block size in kb for RVZ compression [%choices]");
 
   parser->add_option("-j", "--remove_junk")
       .action("store_true")
       .help("Removes junk data (irreversable) when converting.");
 
-    parser->add_option("-o", "--delete_original")
+  parser->add_option("-x", "--delete_original")
       .action("store_true")
-      .help("Removes junk data (irreversable) when converting.");
+      .help("Removes original file when sucessfully converted. This will cause data loss, use at "
+            "your own risk!");
 
-  parser->add_option("-s", "--src")
+  parser->add_option("-i", "--input")
       .action("store")
       .metavar("<file>")
       .type("string")
-      .help("The source path to the directory containing files you want to convert or just a "
-            "single file you want to convert.");
+      .help("The path to a single file or a directory containing files to convert.");
 
-  parser->add_option("-d", "--dest")
+  parser->add_option("-o", "--output")
       .action("store")
       .metavar("<file>")
       .type("string")
-      .help("(Optional) The dest path to save the converted file(s). If --src is a folder, --dest "
-            "must be one too.");
+      .help("(Optional) The path to save converted file(s). If --input is a folder, --output must be one too.");
 
   parser->add_option("-p", "--platform")
       .action("store")
@@ -246,18 +261,63 @@ int main(int argc, char* argv[])
     args.erase(args.begin());
     game_specified = true;
   }
-  else if (options.is_set("convert"))
+  else if (options.is_set("input"))
   {
-    if (!options.is_set("src"))
-    {
-      fprintf(stderr, "You must set a --src to use --convert\n");
-      return 1;
-    }
-
     bool delete_original = static_cast<bool>(options.get("delete_original"));
 
     int compression_level = static_cast<int>(options.get("compression_level"));
-    std::string format = static_cast<const char*>(options.get("convert"));
+    std::string format = static_cast<const char*>(options.get("format"));
+    std::string compression = static_cast<const char*>(options.get("compression"));
+    DiscIO::WIARVZCompressionType compression_type = DiscIO::WIARVZCompressionType::LZMA2;
+
+    bool remove_junk = static_cast<bool>(options.get("remove_junk"));
+
+    int block_size = static_cast<int>(options.get("block_size"));
+    if (block_size == 32)
+    {
+      block_size = 0x8000;
+    }
+    else if (block_size == 64)
+    {
+      block_size = 0x10000;
+    }
+    else if (block_size == 128)
+    {
+      block_size = 0x20000;
+    }
+    else if (block_size == 256)
+    {
+      block_size = 0x40000;
+    }
+    else if (block_size == 512)
+    {
+      block_size = 0x80000;
+    }
+    else if (block_size == 2048)
+    {
+      block_size = 0x100000;
+    }
+    else if (block_size == 2048)
+    {
+      block_size = 0x200000;
+    }
+
+    if (compression == "lzma" || compression == "LZMA")
+    {
+      compression_type = DiscIO::WIARVZCompressionType::LZMA;
+    }
+    if (compression == "lzma2" || compression == "LZMA2")
+    {
+      compression_type = DiscIO::WIARVZCompressionType::LZMA2;
+    }
+    if (compression == "zstd" || compression == "ZSTD")
+    {
+      compression_type = DiscIO::WIARVZCompressionType::Zstd;
+    }
+    if (compression == "bzip2" || compression == "BZIP2")
+    {
+      compression_type = DiscIO::WIARVZCompressionType::Bzip2;
+    }
 
     cout << "format: " + format << endl;
 
@@ -267,6 +327,12 @@ int main(int argc, char* argv[])
     {
       blob_type = DiscIO::BlobType::RVZ;
       format = "rvz";
+
+      if (compression_level > 9)
+      {
+        fprintf(stderr, "Compression level invalid for RVZ Compression.\n");
+        return 1;
+      }
     }
     else if (format == "ISO" || format == "iso")
     {
@@ -279,33 +345,33 @@ int main(int argc, char* argv[])
       format = "gcz";
     }
 
-    std::string src = static_cast<const char*>(options.get("src"));
-    std::string dest;
+    std::string input = static_cast<const char*>(options.get("input"));
+    std::string output;
 
-    if (options.is_set("dest"))
-      dest = static_cast<const char*>(options.get("dest"));
+    if (options.is_set("output"))
+      output = static_cast<const char*>(options.get("output"));
     else
     {
-      dest = static_cast<const char*>(options.get("src"));
-      dest = dest + "." + format;
-    }    
+      output = static_cast<const char*>(options.get("input"));
+      output = output + "." + format;
+    }
 
     std::error_code ec;
-    if (fs::is_directory(src, ec))
+    if (fs::is_directory(input, ec))
     {
       // Process as directory batch job.
       std::string ext(".iso");
-      for (auto& p : fs::recursive_directory_iterator(src))
+      for (auto& p : fs::recursive_directory_iterator(input))
       {
         if (p.path().extension() == ext)
         {
           fs::path filename = p.path().stem().string() + "." + format;
-          fs::path dst = dest / filename;
-          //cout << dest << endl;
-          //cout << dst.string() << endl;
+          fs::path dst = output / filename;
+          // cout << output << endl;
+          // cout << dst.string() << endl;
 
-          DiscIO::ConvertDisc(p.path().string(), dst.string(), blob_type, compression_level,
-                                  delete_original);
+          DiscIO::ConvertDisc(p.path().string(), dst.string(), blob_type, compression_type,
+                              compression_level, block_size, remove_junk, delete_original);
         }
       }
     }
@@ -313,10 +379,11 @@ int main(int argc, char* argv[])
     {
       std::cerr << "Error in is_directory: " << ec.message();
     }
-    if (fs::is_regular_file(src, ec))
+    if (fs::is_regular_file(input, ec))
     {
-      cout << dest << endl;
-      DiscIO::ConvertDisc(src, dest, blob_type, compression_level, delete_original);
+      cout << output << endl;
+      DiscIO::ConvertDisc(input, output, blob_type, compression_type, compression_level, block_size,
+                          remove_junk, delete_original);
 
       // Process a regular file.
     }

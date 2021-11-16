@@ -1,3 +1,6 @@
+// Copyright 2021 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "DiscConverter.h"
 #include <DiscIO/VolumeGC.h>
 #include <filesystem>
@@ -11,8 +14,12 @@
 using namespace std;
 namespace DiscIO
 {
-void ConvertDisc(std::string original_path, std::string dst_path, DiscIO::BlobType format,
-                     int compression_level, bool delete_original)
+void ConvertDisc(
+    std::string original_path, std::string dst_path,
+    DiscIO::BlobType format,
+    DiscIO::WIARVZCompressionType compression_type,
+    int compression_level, int block_size, bool remove_junk,
+    bool delete_original)
 {
   cout << "Converting " + original_path + " to " + dst_path + " ..." << endl;
 
@@ -20,11 +27,7 @@ void ConvertDisc(std::string original_path, std::string dst_path, DiscIO::BlobTy
 
   std::unique_ptr<DiscIO::BlobReader> blob_reader;
   bool scrub_current_file = false; /*hardcoded not to scrub for now*/
-  // const DiscIO::BlobType format = DiscIO::BlobType::RVZ;
-  const DiscIO::WIARVZCompressionType compression = DiscIO::WIARVZCompressionType::Zstd;
 
-  constexpr int block_size = 0x20000;  // 128kb
-  // const int compression_level = 5;
   if (scrub_current_file)
   {
     blob_reader = DiscIO::ScrubbedBlob::Create(original_path);
@@ -67,7 +70,7 @@ void ConvertDisc(std::string original_path, std::string dst_path, DiscIO::BlobTy
     };
 
     std::future<bool> success;
-    //DiscIO::Platform platform = DiscIO::Platform::WiiDisc;
+    // DiscIO::Platform platform = DiscIO::Platform::WiiDisc;
     switch (format)
     {
     case DiscIO::BlobType::PLAIN:
@@ -80,26 +83,25 @@ void ConvertDisc(std::string original_path, std::string dst_path, DiscIO::BlobTy
       });
       break;
 
-       case DiscIO::BlobType::GCZ:
-        success = std::async(std::launch::async, [&] {
-           std::string d = original_path.find("wii") != std::string::npos ? "Wii" : "GC";
-           cout << "Converting to GCZ " + d;
-          const bool good = DiscIO::ConvertToGCZ(
-               blob_reader.get(), original_path, dst_path,
-                                    original_path.find("wii") != std::string::npos ? 1 : 0,
-                                                  block_size, callback);
-          /*  progress_dialog.Reset();*/
-          return good;
-        });
-        break;
+    case DiscIO::BlobType::GCZ:
+      success = std::async(std::launch::async, [&] {
+        std::string d = original_path.find("wii") != std::string::npos ? "Wii" : "GC";
+        cout << "Converting to GCZ " + d;
+        const bool good = DiscIO::ConvertToGCZ(
+            blob_reader.get(), original_path, dst_path,
+            original_path.find("wii") != std::string::npos ? 1 : 0, block_size, callback);
+        /*  progress_dialog.Reset();*/
+        return good;
+      });
+      break;
 
     case DiscIO::BlobType::WIA:
     case DiscIO::BlobType::RVZ:
       cout << "Converting to RVZ" << endl;
       success = std::async(std::launch::async, [&] {
-        const bool good = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path,
-                                                    format == DiscIO::BlobType::RVZ, compression,
-                                                    compression_level, block_size, callback);
+        const bool good = DiscIO::ConvertToWIAOrRVZ(
+            blob_reader.get(), original_path, dst_path, format == DiscIO::BlobType::RVZ,
+            compression_type, compression_level, block_size, callback);
         /*    progress_dialog.Reset();*/
         return good;
       });
@@ -118,11 +120,11 @@ void ConvertDisc(std::string original_path, std::string dst_path, DiscIO::BlobTy
       return;
     }
 
-      if (delete_original)
-      {
-        cout << "deleting: " + original_path << endl;
-        std::filesystem::remove(original_path);
-      }
+    if (delete_original)
+    {
+      cout << "deleting: " + original_path << endl;
+      std::filesystem::remove(original_path);
+    }
 
     // DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path,
     //                          format == DiscIO::BlobType::RVZ, compression, compression_level,
