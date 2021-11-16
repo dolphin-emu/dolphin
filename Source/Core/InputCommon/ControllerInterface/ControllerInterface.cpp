@@ -156,15 +156,26 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
 
   m_populating_devices_counter.fetch_add(1);
 
-  // We lock m_devices_mutex here to make everything simpler.
-  // Multiple devices classes have their own "hotplug" thread, and can add/remove devices at any
-  // time, while actual writes to "m_devices" are safe, the order in which they happen is not. That
-  // means a thread could be adding devices while we are removing them, or removing them as we are
-  // populating them (causing missing or duplicate devices).
-  m_devices_mutex.lock();
+  // We want two conditions to simultaneously hold before we start populating devices:
+  //
+  // 1. m_devices_mutex is held, to ensure that no hotplug thread is trying to add/remove devices
+  // 2. All existing shared_ptr<Device> objects have been destroyed
+  //
+  // The simplest way to accomplish this would be to first take m_devices_mutex and then call
+  // ClearDevices, but unfortunately, having m_devices_mutex held while ClearDevices is running
+  // callbacks can lead to a deadlock between m_devices_mutex and s_get_state_mutex if a callback
+  // is calling UpdateReferences while another thread is directly calling UpdateReferences.
+  //
+  // So, we run ClearDevices without holding m_devices_mutex, and re-run ClearDevices if it turns
+  // out that a hotplug thread did add a device during the brief time it was possible.
 
-  // Make sure shared_ptr<Device> objects are released before repopulating.
-  ClearDevices();
+  m_devices_mutex.lock();
+  while (!m_devices.empty())
+  {
+    m_devices_mutex.unlock();
+    ClearDevices();
+    m_devices_mutex.lock();
+  }
 
   // Some of these calls won't immediately populate devices, but will do it async
   // with their own PlatformPopulateDevices().
