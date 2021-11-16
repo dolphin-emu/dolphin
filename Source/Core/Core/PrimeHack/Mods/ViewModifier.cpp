@@ -112,7 +112,7 @@ void ViewModifier::run_mod_mp1_gc() {
   LOOKUP(fov_fp_offset);
   LOOKUP(fov_tp_offset);
   LOOKUP(gun_pos);
-  
+
   LOOKUP_DYN(object_list);
   if (object_list == 0) {
     return;
@@ -172,7 +172,7 @@ void ViewModifier::run_mod_mp2() {
     return;
   }
   const u32 camera = read32(object_list + ((camera_id & 0x3ff) << 3) + 4);
-  
+
   const float fov = std::min(GetFov(), 170.f);
   writef32(fov, camera + 0x1e8);
 
@@ -219,48 +219,73 @@ void ViewModifier::run_mod_mp2_gc() {
   DevInfo("camera", "%08X", camera);
 }
 
+void ViewModifier::on_camera_change(u32) {
+  // Original inst: stw r0, 0x14(r6)
+  write32(GPR(0), 0x14 + GPR(6));
+
+  ViewModifier* mod = static_cast<ViewModifier*>(GetHackManager()->get_mod("fov_modifier"));
+
+  mod->adjust_fov_mp3(std::min(GetFov(), 170.f), static_cast<u16>(GPR(0)));
+}
+
+void ViewModifier::adjust_fov_mp3(float fov, u16 camera_id) {
+  LOOKUP_DYN(object_list);
+  if (!mem_check(object_list)) {
+    return;
+  }
+
+  const u32 camera_addr = read32(object_list + ((camera_id & 0x7ff) << 3) + 4);
+  if (!mem_check(camera_addr)) {
+    return;
+  }
+
+  const u32 cine_obj = read32(camera_addr + 0x2e4);
+  if (mem_check(cine_obj)) {
+    if (read8(cine_obj + 0x38) & 0x20) {
+      return;
+    }
+  }
+
+  const u32 camera_params = read32(camera_addr  + 0x178);
+  writef32(fov, camera_params + 0x1c);
+  writef32(fov, camera_params + 0x18);
+}
+
 void ViewModifier::run_mod_mp3() {
   LOOKUP(state_manager);
   LOOKUP(tweakgun);
 
   LOOKUP_DYN(camera_manager);
-  if (camera_manager == 0) {
+  if (!mem_check(camera_manager)) {
     return;
   }
 
   LOOKUP_DYN(object_list);
-  if (object_list == 0) {
+  if (!mem_check(object_list)) {
     return;
   }
 
-  // Until vmcalls are implemented, this code can't be executed early
-  // enough not to cause a flicker as FOV gets updated on recognizing
-  // a new camera
   const u16 camera_id = read16(camera_manager);
   if (camera_id == 0xffff) {
     return;
   }
-  const float fov = std::min(GetFov(), 170.f);
 
-  // This will be a temporary measure, these don't seem to change but
-  // bugs could arise?
-  const u16 known_camera_uids[] = {3, 4, 6};
-  for (int i = 0; i < sizeof(known_camera_uids) / sizeof(u16); i++) {
-    const u32 camera = read32(object_list + ((known_camera_uids[i] & 0x7ff) << 3) + 4);
-    if (!mem_check(camera)) {
-      return;
-    }
-
-    const u32 camera_params = read32(camera + 0x178);
-    writef32(fov, camera_params + 0x1c);
-    writef32(fov, camera_params + 0x18);
+  adjust_fov_mp3(std::min(GetFov(), 170.f), camera_id);
+  // Thirdperson camera force update
+  if ((camera_id & 0x7ff) != 4) {
+    adjust_fov_mp3(std::min(GetFov(), 170.f), 4);
   }
+
   // best guess on the name here
   LOOKUP_DYN(perspective_info);
+  if (!mem_check(perspective_info)) {
+    return;
+  }
+  const float fov = std::min(GetFov(), 170.f);
   adjust_viewmodel(fov, read32(read32(tweakgun)) + 0xe0, perspective_info + 0x8c, 0x3dcccccd);
 
   set_code_group_state("culling", (GetCulling() || GetFov() > 94.f) ? ModState::ENABLED : ModState::DISABLED);
-  
+
   const u32 camera = read32(object_list + ((camera_id & 0x7ff) << 3) + 4);
   DevInfo("camera", "%08X", camera);
 }
@@ -348,23 +373,41 @@ void ViewModifier::init_mod_mp2_gc(Region region) {
 void ViewModifier::init_mod_mp3(Region region) {
   if (region == Region::NTSC_U) {
     add_code_change(0x8007f3dc, 0x60000000);
-    add_code_change(0x8009d058, 0x60000000);
+    add_code_change(0x800dbf50, 0x60000000);
+    add_code_change(0x800db584, 0x60000000);
+    add_code_change(0x80179860, 0x60000000);
     add_code_change(0x8031490c, 0x38600001, "culling");
     add_code_change(0x8031490c + 0x4, 0x4e800020, "culling");
+
+    const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
+    const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
+    add_code_change(0x802b1ce4, on_camera_change_vmc);
   } else if (region == Region::PAL) {
     add_code_change(0x8007f3dc, 0x60000000);
-    add_code_change(0x8009d058, 0x60000000);
+    add_code_change(0x800dbf30, 0x60000000);
+    add_code_change(0x800db564, 0x60000000);
+    add_code_change(0x801791ac, 0x60000000);
     add_code_change(0x80314038, 0x38600001, "culling");
     add_code_change(0x80314038 + 0x4, 0x4e800020, "culling");
+
+    const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
+    const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
+    add_code_change(0x802b19c0, on_camera_change_vmc);
   }
 }
-  
+
 void ViewModifier::init_mod_mp3_standalone(Region region) {
   if (region == Region::NTSC_U) {
     add_code_change(0x8007f504, 0x60000000);
-    add_code_change(0x8009cfc4, 0x60000000);
+    add_code_change(0x800dd87c, 0x60000000);
+    add_code_change(0x800dceb0, 0x60000000);
+    add_code_change(0x8017d40c, 0x60000000);
     add_code_change(0x80316a1c, 0x38600001, "culling");
     add_code_change(0x80316a1c + 0x4, 0x4e800020, "culling");
+
+    const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
+    const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
+    add_code_change(0x802b26c0, on_camera_change_vmc);
   } else if (region == Region::PAL) {
     add_code_change(0x8007f7a0, 0x60000000);
     add_code_change(0x8009d41c, 0x60000000);
