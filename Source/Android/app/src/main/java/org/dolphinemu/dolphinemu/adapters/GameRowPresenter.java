@@ -7,7 +7,6 @@ import android.graphics.drawable.Drawable;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.widget.ImageCardView;
@@ -16,7 +15,7 @@ import androidx.leanback.widget.Presenter;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
@@ -56,7 +55,7 @@ public final class GameRowPresenter extends Presenter
 
     holder.cardParent.setTitleText(gameFile.getTitle());
 
-    if (GameFileCacheService.findSecondDisc(gameFile) != null)
+    if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
       holder.cardParent
               .setContentText(

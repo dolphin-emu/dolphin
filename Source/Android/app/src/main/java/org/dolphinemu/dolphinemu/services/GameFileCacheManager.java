@@ -2,28 +2,29 @@
 
 package org.dolphinemu.dolphinemu.services;
 
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A service that loads game list data on a separate thread.
+ * Loads game list data on a separate thread.
  */
-public final class GameFileCacheService extends IntentService
+public final class GameFileCacheManager
 {
   /**
    * This is broadcast when the contents of the cache change.
@@ -37,19 +38,16 @@ public final class GameFileCacheService extends IntentService
   public static final String DONE_LOADING =
           "org.dolphinemu.dolphinemu.GAME_FILE_CACHE_DONE_LOADING";
 
-  private static final String ACTION_LOAD = "org.dolphinemu.dolphinemu.LOAD_GAME_FILE_CACHE";
-  private static final String ACTION_RESCAN = "org.dolphinemu.dolphinemu.RESCAN_GAME_FILE_CACHE";
-
   private static GameFileCache gameFileCache = null;
   private static final AtomicReference<GameFile[]> gameFiles =
           new AtomicReference<>(new GameFile[]{});
-  private static final AtomicInteger unhandledIntents = new AtomicInteger(0);
-  private static final AtomicInteger unhandledRescanIntents = new AtomicInteger(0);
 
-  public GameFileCacheService()
+  private static final ExecutorService executor = Executors.newFixedThreadPool(1);
+  private static final AtomicBoolean loadInProgress = new AtomicBoolean(false);
+  private static final AtomicBoolean rescanInProgress = new AtomicBoolean(false);
+
+  private GameFileCacheManager()
   {
-    // Superclass constructor is called to name the thread on which this service executes.
-    super("GameFileCacheService");
   }
 
   public static List<GameFile> getGameFilesForPlatform(Platform platform)
@@ -113,7 +111,7 @@ public final class GameFileCacheService extends IntentService
    */
   public static boolean isLoading()
   {
-    return unhandledIntents.get() != 0;
+    return loadInProgress.get();
   }
 
   /**
@@ -121,14 +119,7 @@ public final class GameFileCacheService extends IntentService
    */
   public static boolean isRescanning()
   {
-    return unhandledRescanIntents.get() != 0;
-  }
-
-  private static void startService(Context context, String action)
-  {
-    Intent intent = new Intent(context, GameFileCacheService.class);
-    intent.setAction(action);
-    context.startService(intent);
+    return rescanInProgress.get();
   }
 
   /**
@@ -138,10 +129,11 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startLoad(Context context)
   {
-    unhandledIntents.getAndIncrement();
-
-    new AfterDirectoryInitializationRunner().run(context, false,
-            () -> startService(context, ACTION_LOAD));
+    if (loadInProgress.compareAndSet(false, true))
+    {
+      new AfterDirectoryInitializationRunner().run(context, false,
+              () -> executor.execute(GameFileCacheManager::load));
+    }
   }
 
   /**
@@ -151,11 +143,11 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startRescan(Context context)
   {
-    unhandledIntents.getAndIncrement();
-    unhandledRescanIntents.getAndIncrement();
-
-    new AfterDirectoryInitializationRunner().run(context, false,
-            () -> startService(context, ACTION_RESCAN));
+    if (rescanInProgress.compareAndSet(false, true))
+    {
+      new AfterDirectoryInitializationRunner().run(context, false,
+              () -> executor.execute(GameFileCacheManager::rescan));
+    }
   }
 
   public static GameFile addOrGet(String gamePath)
@@ -180,33 +172,12 @@ public final class GameFileCacheService extends IntentService
     }
   }
 
-  @Override
-  protected void onHandleIntent(Intent intent)
-  {
-    if (ACTION_LOAD.equals(intent.getAction()))
-    {
-      load();
-    }
-
-    if (ACTION_RESCAN.equals(intent.getAction()))
-    {
-      rescan();
-      unhandledRescanIntents.decrementAndGet();
-    }
-
-    int intentsLeft = unhandledIntents.decrementAndGet();
-    if (intentsLeft == 0)
-    {
-      sendBroadcast(DONE_LOADING);
-    }
-  }
-
   /**
    * Loads the game file cache from disk, without checking if the
    * games are still present in the user's configured folders.
    * If this has already been called, calling it again has no effect.
    */
-  private void load()
+  private static void load()
   {
     if (gameFileCache == null)
     {
@@ -222,6 +193,10 @@ public final class GameFileCacheService extends IntentService
         }
       }
     }
+
+    loadInProgress.set(false);
+    if (!rescanInProgress.get())
+      sendBroadcast(DONE_LOADING);
   }
 
   /**
@@ -229,7 +204,7 @@ public final class GameFileCacheService extends IntentService
    * updating the game file cache with the results.
    * If load hasn't been called before this, this has no effect.
    */
-  private void rescan()
+  private static void rescan()
   {
     if (gameFileCache != null)
     {
@@ -258,17 +233,22 @@ public final class GameFileCacheService extends IntentService
         gameFileCache.save();
       }
     }
+
+    rescanInProgress.set(false);
+    if (!loadInProgress.get())
+      sendBroadcast(DONE_LOADING);
   }
 
-  private void updateGameFileArray()
+  private static void updateGameFileArray()
   {
     GameFile[] gameFilesTemp = gameFileCache.getAllGames();
     Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getTitle().compareToIgnoreCase(rhs.getTitle()));
     gameFiles.set(gameFilesTemp);
   }
 
-  private void sendBroadcast(String action)
+  private static void sendBroadcast(String action)
   {
-    LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(action));
+    LocalBroadcastManager.getInstance(DolphinApplication.getAppContext())
+            .sendBroadcast(new Intent(action));
   }
 }
