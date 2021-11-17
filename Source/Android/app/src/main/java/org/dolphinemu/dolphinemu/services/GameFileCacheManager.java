@@ -5,6 +5,8 @@ package org.dolphinemu.dolphinemu.services;
 import android.content.Context;
 import android.content.Intent;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
@@ -19,18 +21,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Loads game list data on a separate thread.
  */
 public final class GameFileCacheManager
 {
-  /**
-   * This is broadcast when the contents of the cache change.
-   */
-  public static final String CACHE_UPDATED = "org.dolphinemu.dolphinemu.GAME_FILE_CACHE_UPDATED";
-
   /**
    * This is broadcast when the service is done with all requested work, regardless of whether
    * the contents of the cache actually changed. (Maybe the cache was already up to date.)
@@ -39,8 +35,8 @@ public final class GameFileCacheManager
           "org.dolphinemu.dolphinemu.GAME_FILE_CACHE_DONE_LOADING";
 
   private static GameFileCache gameFileCache = null;
-  private static final AtomicReference<GameFile[]> gameFiles =
-          new AtomicReference<>(new GameFile[]{});
+  private static final MutableLiveData<GameFile[]> gameFiles =
+          new MutableLiveData<>(new GameFile[]{});
 
   private static final ExecutorService executor = Executors.newFixedThreadPool(1);
   private static final AtomicBoolean loadInProgress = new AtomicBoolean(false);
@@ -50,9 +46,14 @@ public final class GameFileCacheManager
   {
   }
 
+  public static LiveData<GameFile[]> getGameFiles()
+  {
+    return gameFiles;
+  }
+
   public static List<GameFile> getGameFilesForPlatform(Platform platform)
   {
-    GameFile[] allGames = gameFiles.get();
+    GameFile[] allGames = gameFiles.getValue();
     ArrayList<GameFile> platformGames = new ArrayList<>();
     for (GameFile game : allGames)
     {
@@ -66,7 +67,7 @@ public final class GameFileCacheManager
 
   public static GameFile getGameFileByGameId(String gameId)
   {
-    GameFile[] allGames = gameFiles.get();
+    GameFile[] allGames = gameFiles.getValue();
     for (GameFile game : allGames)
     {
       if (game.getGameId().equals(gameId))
@@ -81,7 +82,7 @@ public final class GameFileCacheManager
   {
     GameFile matchWithoutRevision = null;
 
-    GameFile[] allGames = gameFiles.get();
+    GameFile[] allGames = gameFiles.getValue();
     for (GameFile otherGame : allGames)
     {
       if (game.getGameId().equals(otherGame.getGameId()) &&
@@ -155,7 +156,7 @@ public final class GameFileCacheManager
     // Common case: The game is in the cache, so just grab it from there.
     // (Actually, addOrGet already checks for this case, but we want to avoid calling it if possible
     // because onHandleIntent may hold a lock on gameFileCache for extended periods of time.)
-    GameFile[] allGames = gameFiles.get();
+    GameFile[] allGames = gameFiles.getValue();
     for (GameFile game : allGames)
     {
       if (game.getPath().equals(gamePath))
@@ -189,7 +190,6 @@ public final class GameFileCacheManager
         if (gameFileCache.getSize() != 0)
         {
           updateGameFileArray();
-          sendBroadcast(CACHE_UPDATED);
         }
       }
     }
@@ -218,14 +218,12 @@ public final class GameFileCacheManager
       if (changed)
       {
         updateGameFileArray();
-        sendBroadcast(CACHE_UPDATED);
       }
 
       boolean additionalMetadataChanged = gameFileCache.updateAdditionalMetadata();
       if (additionalMetadataChanged)
       {
         updateGameFileArray();
-        sendBroadcast(CACHE_UPDATED);
       }
 
       if (changed || additionalMetadataChanged)
@@ -243,7 +241,7 @@ public final class GameFileCacheManager
   {
     GameFile[] gameFilesTemp = gameFileCache.getAllGames();
     Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getTitle().compareToIgnoreCase(rhs.getTitle()));
-    gameFiles.set(gameFilesTemp);
+    gameFiles.postValue(gameFilesTemp);
   }
 
   private static void sendBroadcast(String action)
