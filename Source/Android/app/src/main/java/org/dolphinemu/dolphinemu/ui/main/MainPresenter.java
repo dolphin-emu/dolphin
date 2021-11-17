@@ -18,7 +18,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.CompletableFuture;
@@ -58,8 +58,8 @@ public final class MainPresenter
     mView.setVersionString(versionName);
 
     IntentFilter filter = new IntentFilter();
-    filter.addAction(GameFileCacheService.CACHE_UPDATED);
-    filter.addAction(GameFileCacheService.DONE_LOADING);
+    filter.addAction(GameFileCacheManager.CACHE_UPDATED);
+    filter.addAction(GameFileCacheManager.DONE_LOADING);
     mBroadcastReceiver = new BroadcastReceiver()
     {
       @Override
@@ -67,10 +67,10 @@ public final class MainPresenter
       {
         switch (intent.getAction())
         {
-          case GameFileCacheService.CACHE_UPDATED:
+          case GameFileCacheManager.CACHE_UPDATED:
             mView.showGames();
             break;
-          case GameFileCacheService.DONE_LOADING:
+          case GameFileCacheManager.DONE_LOADING:
             mView.setRefreshing(false);
             break;
         }
@@ -102,7 +102,7 @@ public final class MainPresenter
 
       case R.id.menu_refresh:
         mView.setRefreshing(true);
-        GameFileCacheService.startRescan(context);
+        GameFileCacheManager.startRescan(context);
         return true;
 
       case R.id.button_add_directory:
@@ -140,12 +140,12 @@ public final class MainPresenter
       mDirToAdd = null;
     }
 
-    if (sShouldRescanLibrary && !GameFileCacheService.isRescanning())
+    if (sShouldRescanLibrary && !GameFileCacheManager.isRescanning())
     {
       new AfterDirectoryInitializationRunner().run(mContext, false, () ->
       {
         mView.setRefreshing(true);
-        GameFileCacheService.startRescan(mContext);
+        GameFileCacheManager.startRescan(mContext);
       });
     }
 

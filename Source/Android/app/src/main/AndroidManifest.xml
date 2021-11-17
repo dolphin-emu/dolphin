@@ -133,14 +133,6 @@
             android:theme="@style/DolphinBase" />
 
         <service
-            android:name=".utils.DirectoryInitialization"
-            android:exported="false"/>
-
-        <service
-            android:name=".services.GameFileCacheService"
-            android:exported="false"/>
-
-        <service
             android:name=".services.SyncChannelJobService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
