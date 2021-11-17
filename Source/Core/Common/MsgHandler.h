@@ -31,24 +31,25 @@ void RegisterStringTranslator(StringTranslator translator);
 
 std::string GetStringT(const char* string);
 
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type,
-                     fmt::string_view format, const fmt::format_args& args);
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+                     int line, fmt::string_view format, const fmt::format_args& args);
 
 template <std::size_t NumFields, typename S, typename... Args>
-bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, const S& format,
-                 const Args&... args)
+bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+                 int line, const S& format, const Args&... args)
 {
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
   static_assert(fmt::is_compile_string<S>::value);
-  return MsgAlertFmtImpl(yes_no, style, log_type, format,
+  return MsgAlertFmtImpl(yes_no, style, log_type, file, line, format,
                          fmt::make_args_checked<Args...>(format, args...));
 }
 
 template <std::size_t NumFields, bool has_non_positional_args, typename S, typename... Args>
-bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, const S& format,
-                  fmt::string_view translated_format, const Args&... args)
+bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+                  int line, const S& format, fmt::string_view translated_format,
+                  const Args&... args)
 {
   static_assert(!has_non_positional_args,
                 "Translatable strings must use positional arguments (e.g. {0} instead of {})");
@@ -62,7 +63,7 @@ bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, con
   // translations.  Still, verifying that the English string is correct will help ensure that
   // translations use valid strings.
   auto arg_list = fmt::make_args_checked<Args...>(format, args...);
-  return MsgAlertFmtImpl(yes_no, style, log_type, translated_format, arg_list);
+  return MsgAlertFmtImpl(yes_no, style, log_type, file, line, translated_format, arg_list);
 }
 
 void SetEnableAlert(bool enable);
@@ -80,12 +81,13 @@ std::string FmtFormatT(const char* string, Args&&... args)
 
 #define GenericAlertFmt(yes_no, style, log_type, format, ...)                                      \
   Common::MsgAlertFmt<Common::CountFmtReplacementFields(format)>(                                  \
-      yes_no, style, Common::Log::LogType::log_type, FMT_STRING(format), ##__VA_ARGS__)
+      yes_no, style, Common::Log::LogType::log_type, __FILE__, __LINE__, FMT_STRING(format),       \
+      ##__VA_ARGS__)
 
 #define GenericAlertFmtT(yes_no, style, log_type, format, ...)                                     \
   Common::MsgAlertFmtT<Common::CountFmtReplacementFields(format),                                  \
                        Common::ContainsNonPositionalArguments(format)>(                            \
-      yes_no, style, Common::Log::LogType::log_type, FMT_STRING(format),                           \
+      yes_no, style, Common::Log::LogType::log_type, __FILE__, __LINE__, FMT_STRING(format),       \
       Common::GetStringT(format), ##__VA_ARGS__)
 
 #define SuccessAlertFmt(format, ...)                                                               \
