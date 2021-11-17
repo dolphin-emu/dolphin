@@ -2,16 +2,14 @@
 
 package org.dolphinemu.dolphinemu.ui.main;
 
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ComponentActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.lifecycle.Observer;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
@@ -43,7 +41,6 @@ public final class MainPresenter
 
   private final MainView mView;
   private final ComponentActivity mActivity;
-  private BroadcastReceiver mBroadcastReceiver = null;
   private String mDirToAdd;
 
   public MainPresenter(MainView view, ComponentActivity activity)
@@ -59,30 +56,16 @@ public final class MainPresenter
 
     GameFileCacheManager.getGameFiles().observe(mActivity, (gameFiles) -> mView.showGames());
 
-    IntentFilter filter = new IntentFilter();
-    filter.addAction(GameFileCacheManager.DONE_LOADING);
-    mBroadcastReceiver = new BroadcastReceiver()
+    Observer<Boolean> refreshObserver = (isLoading) ->
     {
-      @Override
-      public void onReceive(Context context, Intent intent)
-      {
-        switch (intent.getAction())
-        {
-          case GameFileCacheManager.DONE_LOADING:
-            mView.setRefreshing(false);
-            break;
-        }
-      }
+      mView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
     };
-    LocalBroadcastManager.getInstance(mActivity).registerReceiver(mBroadcastReceiver, filter);
+    GameFileCacheManager.isLoading().observe(mActivity, refreshObserver);
+    GameFileCacheManager.isRescanning().observe(mActivity, refreshObserver);
   }
 
   public void onDestroy()
   {
-    if (mBroadcastReceiver != null)
-    {
-      LocalBroadcastManager.getInstance(mActivity).unregisterReceiver(mBroadcastReceiver);
-    }
   }
 
   public void onFabClick()
@@ -138,11 +121,10 @@ public final class MainPresenter
       mDirToAdd = null;
     }
 
-    if (sShouldRescanLibrary && !GameFileCacheManager.isRescanning())
+    if (sShouldRescanLibrary && !GameFileCacheManager.isRescanning().getValue())
     {
       new AfterDirectoryInitializationRunner().run(mActivity, false, () ->
       {
-        mView.setRefreshing(true);
         GameFileCacheManager.startRescan(mActivity);
       });
     }

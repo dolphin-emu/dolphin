@@ -122,7 +122,7 @@ public final class TvMainActivity extends FragmentActivity
 
     mSwipeRefresh.setOnRefreshListener(this);
 
-    setRefreshing(GameFileCacheManager.isLoading());
+    setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
 
     final FragmentManager fragmentManager = getSupportFragmentManager();
     mBrowseFragment = new BrowseSupportFragment();
