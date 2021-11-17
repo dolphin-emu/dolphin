@@ -324,6 +324,10 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
     return;
   }
 
+  // Explicitly tells the underlying layer to use VSync.
+  // [layer setDisplaySyncEnabled:bVSyncActive]
+  reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(layer, sel_getUid("setDisplaySyncEnabled:"), g_ActiveConfig.bVSyncActive);
+
   // [view setWantsLayer:YES]
   reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(view, sel_getUid("setWantsLayer:"), YES);
 
