@@ -2,16 +2,14 @@
 
 package org.dolphinemu.dolphinemu.ui.main;
 
-import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.core.app.ComponentActivity;
+import androidx.lifecycle.Observer;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
@@ -42,14 +40,13 @@ public final class MainPresenter
   private static boolean sShouldRescanLibrary = true;
 
   private final MainView mView;
-  private final Context mContext;
-  private BroadcastReceiver mBroadcastReceiver = null;
+  private final ComponentActivity mActivity;
   private String mDirToAdd;
 
-  public MainPresenter(MainView view, Context context)
+  public MainPresenter(MainView view, ComponentActivity activity)
   {
     mView = view;
-    mContext = context;
+    mActivity = activity;
   }
 
   public void onCreate()
@@ -57,34 +54,18 @@ public final class MainPresenter
     String versionName = BuildConfig.VERSION_NAME;
     mView.setVersionString(versionName);
 
-    IntentFilter filter = new IntentFilter();
-    filter.addAction(GameFileCacheManager.CACHE_UPDATED);
-    filter.addAction(GameFileCacheManager.DONE_LOADING);
-    mBroadcastReceiver = new BroadcastReceiver()
+    GameFileCacheManager.getGameFiles().observe(mActivity, (gameFiles) -> mView.showGames());
+
+    Observer<Boolean> refreshObserver = (isLoading) ->
     {
-      @Override
-      public void onReceive(Context context, Intent intent)
-      {
-        switch (intent.getAction())
-        {
-          case GameFileCacheManager.CACHE_UPDATED:
-            mView.showGames();
-            break;
-          case GameFileCacheManager.DONE_LOADING:
-            mView.setRefreshing(false);
-            break;
-        }
-      }
+      mView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
     };
-    LocalBroadcastManager.getInstance(mContext).registerReceiver(mBroadcastReceiver, filter);
+    GameFileCacheManager.isLoading().observe(mActivity, refreshObserver);
+    GameFileCacheManager.isRescanning().observe(mActivity, refreshObserver);
   }
 
   public void onDestroy()
   {
-    if (mBroadcastReceiver != null)
-    {
-      LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiver);
-    }
   }
 
   public void onFabClick()
@@ -140,12 +121,11 @@ public final class MainPresenter
       mDirToAdd = null;
     }
 
-    if (sShouldRescanLibrary && !GameFileCacheManager.isRescanning())
+    if (sShouldRescanLibrary && !GameFileCacheManager.isRescanning().getValue())
     {
-      new AfterDirectoryInitializationRunner().run(mContext, false, () ->
+      new AfterDirectoryInitializationRunner().run(mActivity, false, () ->
       {
-        mView.setRefreshing(true);
-        GameFileCacheManager.startRescan(mContext);
+        GameFileCacheManager.startRescan(mActivity);
       });
     }
 
@@ -172,20 +152,20 @@ public final class MainPresenter
     if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
             FileBrowserHelper.getExtension(name, false))))
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
-      builder.setMessage(mContext.getString(R.string.wrong_file_extension_in_directory,
+      AlertDialog.Builder builder = new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+      builder.setMessage(mActivity.getString(R.string.wrong_file_extension_in_directory,
               FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)));
       builder.setPositiveButton(R.string.ok, null);
       builder.show();
     }
 
-    ContentResolver contentResolver = mContext.getContentResolver();
+    ContentResolver contentResolver = mActivity.getContentResolver();
     Uri canonicalizedUri = contentResolver.canonicalize(uri);
     if (canonicalizedUri != null)
       uri = canonicalizedUri;
 
     int takeFlags = result.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
-    mContext.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+    mActivity.getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
     mDirToAdd = uri.toString();
   }
@@ -196,24 +176,22 @@ public final class MainPresenter
     {
       boolean success = WiiUtils.installWAD(path);
       int message = success ? R.string.wad_install_success : R.string.wad_install_failure;
-      return mContext.getResources().getString(message);
+      return mActivity.getResources().getString(message);
     });
   }
 
   public void importWiiSave(String path)
   {
-    final Activity mainPresenterActivity = (Activity) mContext;
-
     CompletableFuture<Boolean> canOverwriteFuture = new CompletableFuture<>();
 
     runOnThreadAndShowResult(R.string.import_in_progress, 0, () ->
     {
       BooleanSupplier canOverwrite = () ->
       {
-        mainPresenterActivity.runOnUiThread(() ->
+        mActivity.runOnUiThread(() ->
         {
           AlertDialog.Builder builder =
-                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+                  new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
           builder.setMessage(R.string.wii_save_exists);
           builder.setCancelable(false);
           builder.setPositiveButton(R.string.yes, (dialog, i) -> canOverwriteFuture.complete(true));
@@ -252,14 +230,14 @@ public final class MainPresenter
           message = R.string.wii_save_import_error;
           break;
       }
-      return mContext.getResources().getString(message);
+      return mActivity.getResources().getString(message);
     });
   }
 
   public void importNANDBin(String path)
   {
     AlertDialog.Builder builder =
-            new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+            new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
 
     builder.setMessage(R.string.nand_import_warning);
     builder.setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
@@ -281,33 +259,31 @@ public final class MainPresenter
 
   private void runOnThreadAndShowResult(int progressTitle, int progressMessage, Supplier<String> f)
   {
-    final Activity mainPresenterActivity = (Activity) mContext;
-
-    AlertDialog progressDialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
+    AlertDialog progressDialog = new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase)
             .create();
     progressDialog.setTitle(progressTitle);
     if (progressMessage != 0)
-      progressDialog.setMessage(mContext.getResources().getString(progressMessage));
+      progressDialog.setMessage(mActivity.getResources().getString(progressMessage));
     progressDialog.setCancelable(false);
     progressDialog.show();
 
     new Thread(() ->
     {
       String result = f.get();
-      mainPresenterActivity.runOnUiThread(() ->
+      mActivity.runOnUiThread(() ->
       {
         progressDialog.dismiss();
 
         if (result != null)
         {
           AlertDialog.Builder builder =
-                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+                  new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
           builder.setMessage(result);
           builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
           builder.show();
         }
       });
-    }, mContext.getResources().getString(progressTitle)).start();
+    }, mActivity.getResources().getString(progressTitle)).start();
   }
 
   public static void skipRescanningLibrary()

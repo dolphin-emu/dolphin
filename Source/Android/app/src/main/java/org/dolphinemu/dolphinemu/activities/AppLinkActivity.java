@@ -2,16 +2,12 @@
 
 package org.dolphinemu.dolphinemu.activities;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
 import androidx.fragment.app.FragmentActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
@@ -69,22 +65,13 @@ public class AppLinkActivity extends FragmentActivity
     mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
     mAfterDirectoryInitializationRunner.run(this, true, () -> tryPlay(playAction));
 
-    IntentFilter gameFileCacheIntentFilter = new IntentFilter(GameFileCacheManager.DONE_LOADING);
-
-    BroadcastReceiver gameFileCacheReceiver = new BroadcastReceiver()
+    GameFileCacheManager.isLoading().observe(this, (isLoading) ->
     {
-      @Override
-      public void onReceive(Context context, Intent intent)
+      if (!isLoading && DirectoryInitialization.areDolphinDirectoriesReady())
       {
-        if (DirectoryInitialization.areDolphinDirectoriesReady())
-        {
-          tryPlay(playAction);
-        }
+        tryPlay(playAction);
       }
-    };
-
-    LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-    broadcastManager.registerReceiver(gameFileCacheReceiver, gameFileCacheIntentFilter);
+    });
 
     DirectoryInitialization.start(this);
     GameFileCacheManager.startLoad(this);
@@ -110,7 +97,7 @@ public class AppLinkActivity extends FragmentActivity
 
     // If game == null and the load isn't done, wait for the next GameFileCacheService broadcast.
     // If game == null and the load is done, call play with a null game, making us exit in failure.
-    if (game != null || !GameFileCacheManager.isLoading())
+    if (game != null || !GameFileCacheManager.isLoading().getValue())
     {
       play(action, game);
     }

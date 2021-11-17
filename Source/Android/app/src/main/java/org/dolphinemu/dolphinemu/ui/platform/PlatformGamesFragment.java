@@ -73,7 +73,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
     mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
 
-    setRefreshing(GameFileCacheManager.isLoading());
+    setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
 
     showGames();
   }
