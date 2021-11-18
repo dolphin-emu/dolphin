@@ -106,6 +106,8 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsSSAA = true;
   g_Config.backend_info.bSupportsShaderBinaries = true;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
+  g_Config.backend_info.bSupportsCoarseDerivatives = true;
+  g_Config.backend_info.bSupportsTextureQueryLevels = true;
   g_Config.backend_info.bSupportsLogicOp = D3D::SupportsLogicOp(g_Config.iAdapter);
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();

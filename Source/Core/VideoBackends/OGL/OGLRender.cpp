@@ -483,6 +483,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       GLExtensions::Supports("GL_EXT_texture_compression_s3tc");
   g_Config.backend_info.bSupportsBPTCTextures =
       GLExtensions::Supports("GL_ARB_texture_compression_bptc");
+  g_Config.backend_info.bSupportsCoarseDerivatives =
+      GLExtensions::Supports("GL_ARB_derivative_control") || GLExtensions::Version() >= 450;
+  g_Config.backend_info.bSupportsTextureQueryLevels =
+      GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
 
   if (m_main_gl_context->IsGLES())
   {

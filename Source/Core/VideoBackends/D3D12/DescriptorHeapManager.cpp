@@ -85,32 +85,32 @@ SamplerHeapManager::~SamplerHeapManager() = default;
 
 static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& state)
 {
-  if (state.mipmap_filter == SamplerState::Filter::Linear)
+  if (state.tm0.mipmap_filter == FilterMode::Linear)
   {
-    if (state.min_filter == SamplerState::Filter::Linear)
+    if (state.tm0.min_filter == FilterMode::Linear)
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_MAG_MIP_LINEAR :
                          D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
     }
     else
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR :
                          D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
     }
   }
   else
   {
-    if (state.min_filter == SamplerState::Filter::Linear)
+    if (state.tm0.min_filter == FilterMode::Linear)
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT :
                          D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
     }
     else
     {
-      desc->Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      desc->Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                          D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT :
                          D3D12_FILTER_MIN_MAG_MIP_POINT;
     }
@@ -119,15 +119,15 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
   static constexpr std::array<D3D12_TEXTURE_ADDRESS_MODE, 3> address_modes = {
       {D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_WRAP,
        D3D12_TEXTURE_ADDRESS_MODE_MIRROR}};
-  desc->AddressU = address_modes[static_cast<u32>(state.wrap_u.Value())];
-  desc->AddressV = address_modes[static_cast<u32>(state.wrap_v.Value())];
+  desc->AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u.Value())];
+  desc->AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v.Value())];
   desc->AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-  desc->MaxLOD = state.max_lod / 16.f;
-  desc->MinLOD = state.min_lod / 16.f;
-  desc->MipLODBias = static_cast<s32>(state.lod_bias) / 256.f;
+  desc->MaxLOD = state.tm1.max_lod / 16.f;
+  desc->MinLOD = state.tm1.min_lod / 16.f;
+  desc->MipLODBias = static_cast<s32>(state.tm0.lod_bias) / 256.f;
   desc->ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
-  if (state.anisotropic_filtering)
+  if (state.tm0.anisotropic_filtering)
   {
     desc->Filter = D3D12_FILTER_ANISOTROPIC;
     desc->MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
@@ -136,7 +136,7 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
 
 bool SamplerHeapManager::Lookup(const SamplerState& ss, D3D12_CPU_DESCRIPTOR_HANDLE* handle)
 {
-  const auto it = m_sampler_map.find(ss.hex);
+  const auto it = m_sampler_map.find(ss);
   if (it != m_sampler_map.end())
   {
     *handle = it->second;
@@ -158,7 +158,7 @@ bool SamplerHeapManager::Lookup(const SamplerState& ss, D3D12_CPU_DESCRIPTOR_HAN
                                                   m_current_offset * m_descriptor_increment_size};
   g_dx_context->GetDevice()->CreateSampler(&desc, new_handle);
 
-  m_sampler_map.emplace(ss.hex, new_handle);
+  m_sampler_map.emplace(ss, new_handle);
   m_current_offset++;
   *handle = new_handle;
   return true;

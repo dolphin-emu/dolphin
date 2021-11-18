@@ -135,6 +135,7 @@ struct VideoConfig final
   int iLog = 0;           // CONF_ bits
   int iSaveTargetId = 0;  // TODO: Should be dropped
   u32 iMissingColorValue = 0;
+  bool bFastTextureSampling = false;
 
   // Stereoscopy
   StereoMode stereo_mode{};
@@ -230,6 +231,8 @@ struct VideoConfig final
     bool bSupportsDepthReadback = false;
     bool bSupportsShaderBinaries = false;
     bool bSupportsPipelineCacheData = false;
+    bool bSupportsCoarseDerivatives = false;
+    bool bSupportsTextureQueryLevels = false;
   } backend_info;
 
   // Utility
@@ -243,6 +246,16 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
+  bool ManualTextureSamplingWithHiResTextures() const
+  {
+    // Hi-res textures (including hi-res EFB copies, but not native-resolution EFB copies at higher
+    // internal resolutions) breaks the wrapping logic used by manual texture sampling.
+    if (bFastTextureSampling)
+      return false;
+    if (iEFBScale != 1 && bCopyEFBScaled)
+      return true;
+    return bHiresTextures;
+  }
   bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;

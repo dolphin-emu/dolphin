@@ -138,8 +138,11 @@ void AdvancedWidget::CreateWidgets()
 
   m_defer_efb_access_invalidation =
       new GraphicsBool(tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+  m_manual_texture_sampling =
+      new GraphicsBool(tr("Manual Texture Sampling"), Config::GFX_HACK_FAST_TEXTURE_SAMPLING, true);
 
   experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
+  experimental_layout->addWidget(m_manual_texture_sampling, 0, 1);
 
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
@@ -266,6 +269,17 @@ void AdvancedWidget::AddDescriptions()
       "<br><br>May improve performance in some games which rely on CPU EFB Access at the cost "
       "of stability.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
+  static const char TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION[] = QT_TR_NOOP(
+      "Use a manual implementation of texture sampling instead of the graphics backend's built-in "
+      "functionality.<br><br>"
+      "This setting can fix graphical issues in some games on certain GPUs, most commonly vertical "
+      "lines on FMVs. In addition to this, enabling Manual Texture Sampling will allow for correct "
+      "emulation of texture wrapping special cases (at 1x IR or when scaled EFB is disabled, and "
+      "with custom textures disabled) and better emulates Level of Detail calculation.<br><br>"
+      "This comes at the cost of potentially worse performance, especially at higher internal "
+      "resolutions; additionally, Anisotropic Filtering is currently incompatible with Manual "
+      "Texture Sampling.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
@@ -299,4 +313,5 @@ void AdvancedWidget::AddDescriptions()
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif
   m_defer_efb_access_invalidation->SetDescription(tr(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
+  m_manual_texture_sampling->SetDescription(tr(TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION));
 }

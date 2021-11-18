@@ -40,7 +40,6 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
@@ -966,6 +965,18 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
   entry->texture->Save(filename, level);
 }
 
+// Helper for checking if a BPMemory TexMode0 register is set to Point
+// Filtering modes. This is used to decide whether Anisotropic enhancements
+// are (mostly) safe in the VideoBackends.
+// If both the minification and magnification filters are set to POINT modes
+// then applying anisotropic filtering is equivalent to forced filtering. Point
+// mode textures are usually some sort of 2D UI billboard which will end up
+// misaligned from the correct pixels when filtered anisotropically.
+static bool IsAnisostropicEnhancementSafe(const TexMode0& tm0)
+{
+  return !(tm0.min_filter == FilterMode::Near && tm0.mag_filter == FilterMode::Near);
+}
+
 static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
                             bool has_arbitrary_mips)
 {
@@ -977,19 +988,18 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   // Force texture filtering config option.
   if (g_ActiveConfig.bForceFiltering)
   {
-    state.min_filter = SamplerState::Filter::Linear;
-    state.mag_filter = SamplerState::Filter::Linear;
-    state.mipmap_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                              SamplerState::Filter::Linear :
-                              SamplerState::Filter::Point;
+    state.tm0.min_filter = FilterMode::Linear;
+    state.tm0.mag_filter = FilterMode::Linear;
+    state.tm0.mipmap_filter =
+        tm0.mipmap_filter != MipMode::None ? FilterMode::Linear : FilterMode::Near;
   }
 
   // Custom textures may have a greater number of mips
   if (custom_tex)
-    state.max_lod = 255;
+    state.tm1.max_lod = 255;
 
   // Anisotropic filtering option.
-  if (g_ActiveConfig.iMaxAnisotropy != 0 && !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
+  if (g_ActiveConfig.iMaxAnisotropy != 0 && IsAnisostropicEnhancementSafe(tm0))
   {
     // https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
     // For predictable results on all hardware/drivers, only use one of:
@@ -998,31 +1008,32 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // Letting the game set other combinations will have varying arbitrary results;
     // possibly being interpreted as equal to bilinear/trilinear, implicitly
     // disabling anisotropy, or changing the anisotropic algorithm employed.
-    state.min_filter = SamplerState::Filter::Linear;
-    state.mag_filter = SamplerState::Filter::Linear;
-    if (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
-      state.mipmap_filter = SamplerState::Filter::Linear;
-    state.anisotropic_filtering = 1;
+    state.tm0.min_filter = FilterMode::Linear;
+    state.tm0.mag_filter = FilterMode::Linear;
+    if (tm0.mipmap_filter != MipMode::None)
+      state.tm0.mipmap_filter = FilterMode::Linear;
+    state.tm0.anisotropic_filtering = true;
   }
   else
   {
-    state.anisotropic_filtering = 0;
+    state.tm0.anisotropic_filtering = false;
   }
 
-  if (has_arbitrary_mips && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+  if (has_arbitrary_mips && tm0.mipmap_filter != MipMode::None)
   {
     // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
     // that have arbitrary contents, eg. are used for fog effects where the
     // distance they kick in at is important to preserve at any resolution.
     // Correct this with the upscaling factor of custom textures.
-    s64 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
-    state.lod_bias = std::clamp<s64>(state.lod_bias + lod_offset, -32768, 32767);
+    s32 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
+    state.tm0.lod_bias = std::clamp<s32>(state.tm0.lod_bias + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
-    state.anisotropic_filtering = 0;
+    state.tm0.anisotropic_filtering = false;
   }
 
   g_renderer->SetSamplerState(index, state);
+  PixelShaderManager::SetSamplerState(index, state.tm0.hex, state.tm1.hex);
 }
 
 void TextureCacheBase::BindTextures(BitSet32 used_textures)

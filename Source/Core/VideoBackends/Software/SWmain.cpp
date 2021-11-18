@@ -84,6 +84,8 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsShaderBinaries = false;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
   g_Config.backend_info.bSupportsBBox = true;
+  g_Config.backend_info.bSupportsCoarseDerivatives = false;
+  g_Config.backend_info.bSupportsTextureQueryLevels = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

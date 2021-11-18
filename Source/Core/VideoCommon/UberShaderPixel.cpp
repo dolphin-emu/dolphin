@@ -63,8 +63,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("// Pixel UberShader for {} texgens{}{}\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
+  WriteBitfieldExtractHeader(out, api_type, host_config);
   WritePixelShaderCommonHeader(out, api_type, host_config, bounding_box);
-  WriteUberShaderCommonHeader(out, api_type, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
 
@@ -226,17 +226,17 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     // Doesn't look like DirectX supports this. Oh well the code path is here just in case it
     // supports this in the future.
-    out.Write("int4 sampleTexture(uint sampler_num, float3 uv) {{\n");
+    out.Write("int4 sampleTextureWrapper(uint texmap, int2 uv, int layer) {{\n");
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      out.Write("  return iround(texture(samp[sampler_num], uv) * 255.0);\n");
+      out.Write("  return sampleTexture(texmap, samp[texmap], uv, layer);\n");
     else if (api_type == APIType::D3D)
-      out.Write("  return iround(Tex[sampler_num].Sample(samp[sampler_num], uv) * 255.0);\n");
+      out.Write("  return sampleTexture(texmap, tex[texmap], samp[texmap], uv, layer);\n");
     out.Write("}}\n\n");
   }
   else
   {
-    out.Write("int4 sampleTexture(uint sampler_num, float3 uv) {{\n"
-              "  // This is messy, but DirectX, OpenGL 3.3 and OpenGL ES 3.0 doesn't support "
+    out.Write("int4 sampleTextureWrapper(uint sampler_num, int2 uv, int layer) {{\n"
+              "  // This is messy, but DirectX, OpenGL 3.3, and OpenGL ES 3.0 don't support "
               "dynamic indexing of the sampler array\n"
               "  // With any luck the shader compiler will optimise this if the hardware supports "
               "dynamic indexing.\n"
@@ -244,9 +244,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     for (int i = 0; i < 8; i++)
     {
       if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-        out.Write("  case {}u: return iround(texture(samp[{}], uv) * 255.0);\n", i, i);
+      {
+        out.Write("  case {0}u: return sampleTexture({0}u, samp[{0}u], uv, layer);\n", i);
+      }
       else if (api_type == APIType::D3D)
-        out.Write("  case {}u: return iround(Tex[{}].Sample(samp[{}], uv) * 255.0);\n", i, i, i);
+      {
+        out.Write("  case {0}u: return sampleTexture({0}u, tex[{0}u], samp[{0}u], uv, layer);\n",
+                  i);
+      }
     }
     out.Write("  }}\n"
               "}}\n\n");
@@ -284,8 +289,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   // ======================
   //    Indirect Lookup
   // ======================
-  const auto LookupIndirectTexture = [&out, stereo](std::string_view out_var_name,
-                                                    std::string_view in_index_name) {
+  const auto LookupIndirectTexture = [&out](std::string_view out_var_name,
+                                            std::string_view in_index_name) {
     // in_index_name is the indirect stage, not the tev stage
     // bpmem_iref is packed differently from RAS1_IREF
     // This function assumes bpmem_iref is nonzero (i.e. matrix is not off, and the
@@ -301,11 +306,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  else\n"
               "    fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].zw;\n"
               "\n"
-              "  {} = sampleTexture(texmap, float3(float2(fixedPoint_uv) * " I_TEXDIMS
-              "[texmap].xy, {})).abg;\n"
-              "}}",
-              in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
-              stereo ? "float(layer)" : "0.0");
+              "  {} = sampleTextureWrapper(texmap, fixedPoint_uv, layer).abg;\n"
+              "}}\n",
+              in_index_name, in_index_name, in_index_name, in_index_name, out_var_name);
   };
 
   // ======================
@@ -729,6 +732,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("\n        ) {{\n");
   }
+  if (!stereo)
+    out.Write("  int layer = 0;\n");
 
   out.Write("  int3 tevcoord = int3(0, 0, 0);\n"
             "  State s;\n"
@@ -786,7 +791,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     {
       out.Write("    int2 fixpoint_uv{} = int2(", i);
       out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
-      out.Write(" * " I_TEXDIMS "[{}].zw);\n", i);
+      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
       // TODO: S24 overflows here?
     }
 
@@ -820,7 +825,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     // For the undefined case, we just skip applying the indirect operation, which is close enough.
     // Viewtiful Joe hits the undefined case (bug 12525).
     // Wrapping and add to previous still apply in this case (and when the stage is disabled).
-    out.Write("      if (bpmem_iref(bt) != 0u) {{");
+    out.Write("      if (bpmem_iref(bt) != 0u) {{\n");
     out.Write("        int3 indcoord;\n");
     LookupIndirectTexture("indcoord", "bt");
     out.Write("        if (bs != 0u)\n"
@@ -910,10 +915,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "      uint sampler_num = {};\n",
               BitfieldExtract<&TwoTevStageOrders::texmap0>("ss.order"));
     out.Write("\n"
-              "      float2 uv = (float2(tevcoord.xy)) * " I_TEXDIMS "[sampler_num].xy;\n");
-    out.Write("      int4 color = sampleTexture(sampler_num, float3(uv, {}));\n",
-              stereo ? "float(layer)" : "0.0");
-    out.Write("      uint swap = {};\n",
+              "      int4 color = sampleTextureWrapper(sampler_num, tevcoord.xy, layer);\n"
+              "      uint swap = {};\n",
               BitfieldExtract<&TevStageCombiner::AlphaCombiner::tswap>("ss.ac"));
     out.Write("      s.TexColor = Swizzle(swap, color);\n");
     out.Write("    }} else {{\n"

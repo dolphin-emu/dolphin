@@ -303,43 +303,43 @@ StateCache::~StateCache() = default;
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
   std::lock_guard<std::mutex> guard(m_lock);
-  auto it = m_sampler.find(state.hex);
+  auto it = m_sampler.find(state);
   if (it != m_sampler.end())
     return it->second.Get();
 
   D3D11_SAMPLER_DESC sampdc = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
-  if (state.mipmap_filter == SamplerState::Filter::Linear)
+  if (state.tm0.mipmap_filter == FilterMode::Linear)
   {
-    if (state.min_filter == SamplerState::Filter::Linear)
-      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+    if (state.tm0.min_filter == FilterMode::Linear)
+      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_MAG_MIP_LINEAR :
                           D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
     else
-      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR :
                           D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
   }
   else
   {
-    if (state.min_filter == SamplerState::Filter::Linear)
-      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+    if (state.tm0.min_filter == FilterMode::Linear)
+      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT :
                           D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
     else
-      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+      sampdc.Filter = (state.tm0.mag_filter == FilterMode::Linear) ?
                           D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT :
                           D3D11_FILTER_MIN_MAG_MIP_POINT;
   }
 
   static constexpr std::array<D3D11_TEXTURE_ADDRESS_MODE, 3> address_modes = {
       {D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_MIRROR}};
-  sampdc.AddressU = address_modes[static_cast<u32>(state.wrap_u.Value())];
-  sampdc.AddressV = address_modes[static_cast<u32>(state.wrap_v.Value())];
-  sampdc.MaxLOD = state.max_lod / 16.f;
-  sampdc.MinLOD = state.min_lod / 16.f;
-  sampdc.MipLODBias = (s32)state.lod_bias / 256.f;
+  sampdc.AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u.Value())];
+  sampdc.AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v.Value())];
+  sampdc.MaxLOD = state.tm1.max_lod / 16.f;
+  sampdc.MinLOD = state.tm1.min_lod / 16.f;
+  sampdc.MipLODBias = state.tm0.lod_bias / 256.f;
 
-  if (state.anisotropic_filtering)
+  if (state.tm0.anisotropic_filtering)
   {
     sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
     sampdc.MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
@@ -348,7 +348,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   ComPtr<ID3D11SamplerState> res;
   HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
   CHECK(SUCCEEDED(hr), "Creating D3D sampler state failed");
-  return m_sampler.emplace(state.hex, std::move(res)).first->second.Get();
+  return m_sampler.emplace(state, std::move(res)).first->second.Get();
 }
 
 ID3D11BlendState* StateCache::Get(BlendingState state)

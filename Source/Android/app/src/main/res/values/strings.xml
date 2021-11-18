@@ -303,6 +303,8 @@
     <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this unchecked.</string>
     <string name="defer_efb_invalidation">Defer EFB Cache Invalidation</string>
     <string name="defer_efb_invalidation_description">Defers invalidation of the EFB access cache until a GPU synchronization command is executed. May improve performance in some games at the cost of stability. If unsure, leave this unchecked.</string>
+    <string name="manual_texture_sampling">Manual Texture Sampling</string>
+    <string name="manual_texture_sampling_description">Use a manual implementation of texture sampling instead of the graphics backend\'s built-in functionality.</string>
     <string name="internal_resolution_dumps">Dump Frames at Internal Resolution</string>
     <string name="internal_resolution_dumps_description">Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within. If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.</string>
     <string name="debugging">Debugging</string>

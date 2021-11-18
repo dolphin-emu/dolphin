@@ -381,7 +381,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
     // Declare samplers
     out.Write("SamplerState samp[8] : register(s0);\n"
               "\n"
-              "Texture2DArray Tex[8] : register(t0);\n");
+              "Texture2DArray tex[8] : register(t0);\n");
   }
   out.Write("\n");
 
@@ -393,7 +393,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
   out.Write("\tint4 " I_COLORS "[4];\n"
             "\tint4 " I_KCOLORS "[4];\n"
             "\tint4 " I_ALPHA ";\n"
-            "\tfloat4 " I_TEXDIMS "[8];\n"
+            "\tint4 " I_TEXDIMS "[8];\n"
             "\tint4 " I_ZBIAS "[2];\n"
             "\tint4 " I_INDTEXSCALE "[2];\n"
             "\tint4 " I_INDTEXMTX "[6];\n"
@@ -414,7 +414,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "\tbool  bpmem_dither;\n"
             "\tbool  bpmem_bounding_box;\n"
             "\tuint4 bpmem_pack1[16];\n"  // .xy - combiners, .z - tevind
-            "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel
+            "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel, .zw - SamplerState tm0/tm1
             "\tint4  konstLookup[32];\n"
             "\tbool  blend_enable;\n"
             "\tuint  blend_src_factor;\n"
@@ -428,7 +428,9 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
             "#define bpmem_iref(i) (bpmem_pack1[(i)].w)\n"
             "#define bpmem_tevorder(i) (bpmem_pack2[(i)].x)\n"
-            "#define bpmem_tevksel(i) (bpmem_pack2[(i)].y)\n\n");
+            "#define bpmem_tevksel(i) (bpmem_pack2[(i)].y)\n"
+            "#define samp_texmode0(i) (bpmem_pack2[(i)].z)\n"
+            "#define samp_texmode1(i) (bpmem_pack2[(i)].w)\n\n");
 
   if (host_config.per_pixel_lighting)
   {
@@ -534,14 +536,304 @@ void UpdateBoundingBox(float2 rawpos) {{
 )",
               fmt::arg("efb_height", EFB_HEIGHT), fmt::arg("efb_scale", I_EFBSCALE));
   }
+
+  if (host_config.manual_texture_sampling)
+  {
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    {
+      out.Write(R"(
+int4 readTexture(in sampler2DArray tex, uint u, uint v, int layer, int lod) {{
+  return iround(texelFetch(tex, int3(u, v, layer), lod) * 255.0);
+}}
+
+int4 readTextureLinear(in sampler2DArray tex, uint2 uv1, uint2 uv2, int layer, int lod, int2 frac_uv) {{)");
+    }
+    else if (api_type == APIType::D3D)
+    {
+      out.Write(R"(
+int4 readTexture(in Texture2DArray tex, uint u, uint v, int layer, int lod) {{
+  return iround(tex.Load(int4(u, v, layer, lod)) * 255.0);
+}}
+
+int4 readTextureLinear(in Texture2DArray tex, uint2 uv1, uint2 uv2, int layer, int lod, int2 frac_uv) {{)");
+    }
+
+    out.Write(R"(
+  int4 result =
+    readTexture(tex, uv1.x, uv1.y, layer, lod) * (128 - frac_uv.x) * (128 - frac_uv.y) +
+    readTexture(tex, uv2.x, uv1.y, layer, lod) * (      frac_uv.x) * (128 - frac_uv.y) +
+    readTexture(tex, uv1.x, uv2.y, layer, lod) * (128 - frac_uv.x) * (      frac_uv.y) +
+    readTexture(tex, uv2.x, uv2.y, layer, lod) * (      frac_uv.x) * (      frac_uv.y);
+  return result >> 14;
+}}
+)");
+
+    if (host_config.manual_texture_sampling_custom_texture_sizes)
+    {
+      // This is slower, and doesn't result in the same odd behavior that happens on console when
+      // wrapping with non-power-of-2 sizes, but it's fine for custom textures to have non-console
+      // behavior.
+      out.Write(R"(
+// Both GLSL and HLSL produce undefined values when the modulo operator (%) is used with a negative
+// dividend and a positive divisor.  We want a positive value such that SafeModulo(-1, 3) is 2.
+int SafeModulo(int dividend, int divisor) {{
+  if (dividend >= 0) {{
+    return dividend % divisor;
+  }} else {{
+    // This works because ~x is the same as -x - 1.
+    // `~x % 5` over -5 to -1 gives 4, 3, 2, 1, 0.  `4 - (~x % 5)` gives 0, 1, 2, 3, 4.
+    return (divisor - 1) - (~dividend % divisor);
+  }}
+}}
+
+uint WrapCoord(int coord, uint wrap, int size) {{
+  switch (wrap) {{
+    case {:s}:
+    default: // confirmed that clamp is used for invalid (3) via hardware test
+      return uint(clamp(coord, 0, size - 1));
+    case {:s}:
+      return uint(SafeModulo(coord, size));  // coord % size
+    case {:s}:
+      if (SafeModulo(coord, 2 * size) >= size) {{  // coord % (2 * size)
+        coord = ~coord;
+      }}
+      return uint(SafeModulo(coord, size));  // coord % size
+  }}
+}}
+)",
+                WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
+    }
+    else
+    {
+      out.Write(R"(
+uint WrapCoord(int coord, uint wrap, int size) {{
+  switch (wrap) {{
+    case {:s}:
+    default: // confirmed that clamp is used for invalid (3) via hardware test
+      return uint(clamp(coord, 0, size - 1));
+    case {:s}:
+      return uint(coord & (size - 1));
+    case {:s}:
+      if ((coord & size) != 0) {{
+        coord = ~coord;
+      }}
+      return uint(coord & (size - 1));
+  }}
+}}
+)",
+                WrapMode::Clamp, WrapMode::Repeat, WrapMode::Mirror);
+    }
+  }
+
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  {
+    out.Write("\nint4 sampleTexture(uint texmap, in sampler2DArray tex, int2 uv, int layer) {{\n");
+  }
+  else if (api_type == APIType::D3D)
+  {
+    out.Write("\nint4 sampleTexture(uint texmap, in Texture2DArray tex, in SamplerState tex_samp, "
+              "int2 uv, int layer) {{\n");
+  }
+
+  if (!host_config.manual_texture_sampling)
+  {
+    out.Write("  float size_s = float(" I_TEXDIMS "[texmap].x * 128);\n"
+              "  float size_t = float(" I_TEXDIMS "[texmap].y * 128);\n"
+              "  float3 coords = float3(float(uv.x) / size_s, float(uv.y) / size_t, layer);\n");
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    {
+      out.Write("  return iround(255.0 * texture(tex, coords));\n}}\n");
+    }
+    else if (api_type == APIType::D3D)
+    {
+      out.Write("  return iround(255.0 * tex.Sample(tex_samp, coords));\n}}\n");
+    }
+  }
+  else
+  {
+    out.Write(R"(
+  uint texmode0 = samp_texmode0(texmap);
+  uint texmode1 = samp_texmode1(texmap);
+
+  uint wrap_s = {};
+  uint wrap_t = {};
+  bool mag_linear = {} != 0u;
+  bool mipmap_linear = {} != 0u;
+  bool min_linear = {} != 0u;
+  bool diag_lod = {} != 0u;
+  int lod_bias = {};
+  // uint max_aniso = TODO;
+  bool lod_clamp = {} != 0u;
+  int min_lod = int({});
+  int max_lod = int({});
+)",
+              BitfieldExtract<&SamplerState::TM0::wrap_u>("texmode0"),
+              BitfieldExtract<&SamplerState::TM0::wrap_v>("texmode0"),
+              BitfieldExtract<&SamplerState::TM0::mag_filter>("texmode0"),
+              BitfieldExtract<&SamplerState::TM0::mipmap_filter>("texmode0"),
+              BitfieldExtract<&SamplerState::TM0::min_filter>("texmode0"),
+              BitfieldExtract<&SamplerState::TM0::diag_lod>("texmode0"),
+              BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"),
+              // BitfieldExtract<&SamplerState::TM0::max_aniso>("texmode0"),
+              BitfieldExtract<&SamplerState::TM0::lod_clamp>("texmode0"),
+              BitfieldExtract<&SamplerState::TM1::min_lod>("texmode1"),
+              BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
+
+    if (host_config.manual_texture_sampling_custom_texture_sizes)
+    {
+      out.Write(R"(
+  int native_size_s = )" I_TEXDIMS R"([texmap].x;
+  int native_size_t = )" I_TEXDIMS R"([texmap].y;
+)");
+
+      if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+      {
+        out.Write(R"(
+  int3 size = textureSize(tex, 0);
+  int size_s = size.x;
+  int size_t = size.y;
+)");
+        if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
+        {
+          out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
+        }
+        else
+        {
+          out.Write("  int number_of_levels = 256;  // textureQueryLevels is not supported\n");
+          ERROR_LOG_FMT(VIDEO, "textureQueryLevels is not supported!  Odd graphical results may "
+                               "occur if custom textures are in use!");
+        }
+      }
+      else if (api_type == APIType::D3D)
+      {
+        ASSERT(g_ActiveConfig.backend_info.bSupportsTextureQueryLevels);
+        out.Write(R"(
+  int size_s, size_t, layers, number_of_levels;
+  tex.GetDimensions(0, size_s, size_t, layers, number_of_levels);
+)");
+      }
+
+      out.Write(R"(
+  // Prevent out-of-bounds LOD values when using custom textures
+  max_lod = min(max_lod, (number_of_levels - 1) << 4);
+  // Rescale uv to account for the new texture size
+  uv.x = (uv.x * size_s) / native_size_s;
+  uv.y = (uv.y * size_t) / native_size_t;
+)");
+    }
+    else
+    {
+      out.Write(R"(
+  int size_s = )" I_TEXDIMS R"([texmap].x;
+  int size_t = )" I_TEXDIMS R"([texmap].y;
+)");
+    }
+
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    {
+      if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
+      {
+        // The software renderer uses the equivalent of coarse derivatives, so use them here for
+        // consistency.  This hasn't been hardware tested.
+        // Note that bSupportsCoarseDerivatives being false only means dFdxCoarse and dFdxFine don't
+        // exist.  The GPU may still implement dFdx using coarse derivatives; we just don't have the
+        // ability to specifically require it.
+        out.Write(R"(
+  float2 uv_delta_x = abs(dFdxCoarse(float2(uv)));
+  float2 uv_delta_y = abs(dFdyCoarse(float2(uv)));
+)");
+      }
+      else
+      {
+        out.Write(R"(
+  float2 uv_delta_x = abs(dFdx(float2(uv)));
+  float2 uv_delta_y = abs(dFdy(float2(uv)));
+)");
+      }
+    }
+    else if (api_type == APIType::D3D)
+    {
+      ASSERT(g_ActiveConfig.backend_info.bSupportsCoarseDerivatives);
+      out.Write(R"(
+  float2 uv_delta_x = abs(ddx_coarse(float2(uv)));
+  float2 uv_delta_y = abs(ddy_coarse(float2(uv)));
+)");
+    }
+
+    // TODO: LOD bias is normally S2.5 (Dolphin uses S7.8 for arbitrary mipmap detection and higher
+    // IRs), but (at least per the software renderer) actual LOD is S28.4.  How does this work?
+    // Also, note that we can make some assumptions due to use of a SamplerState version of the BP
+    // configuration, which tidies things compared to whatever nonsense games can put in.
+    out.Write(R"(
+  float2 uv_delta = diag_lod ? uv_delta_x + uv_delta_y : max(uv_delta_x, uv_delta_y);
+  float max_delta = max(uv_delta.x / 128.0, uv_delta.y / 128.0);
+  // log2(x) is undefined if x <= 0, but in practice it seems log2(0) is -infinity, which becomes INT_MIN.
+  // If lod_bias is negative, adding it to INT_MIN causes an underflow, resulting in a large positive value.
+  // Hardware testing indicates that min_lod should be used when the derivative is 0.
+  int lod = max_delta == 0.0 ? min_lod : int(floor(log2(max_delta) * 16.0)) + (lod_bias >> 4);
+
+  bool is_linear = (lod > 0) ? min_linear : mag_linear;
+  lod = clamp(lod, min_lod, max_lod);
+  int base_lod = lod >> 4;
+  int frac_lod = lod & 15;
+  if (!mipmap_linear && frac_lod >= 8) {{
+    // Round to nearest LOD in point mode
+    base_lod++;
+  }}
+
+  if (is_linear) {{
+    uint2 texuv1 = uint2(
+        WrapCoord(((uv.x >> base_lod) - 64) >> 7, wrap_s, size_s >> base_lod),
+        WrapCoord(((uv.y >> base_lod) - 64) >> 7, wrap_t, size_t >> base_lod));
+    uint2 texuv2 = uint2(
+        WrapCoord(((uv.x >> base_lod) + 64) >> 7, wrap_s, size_s >> base_lod),
+        WrapCoord(((uv.y >> base_lod) + 64) >> 7, wrap_t, size_t >> base_lod));
+    int2 frac_uv = int2(((uv.x >> base_lod) - 64) & 0x7f, ((uv.y >> base_lod) - 64) & 0x7f);
+
+    int4 result = readTextureLinear(tex, texuv1, texuv2, layer, base_lod, frac_uv);
+
+    if (frac_lod != 0 && mipmap_linear) {{
+      texuv1 = uint2(
+          WrapCoord(((uv.x >> (base_lod + 1)) - 64) >> 7, wrap_s, size_s >> (base_lod + 1)),
+          WrapCoord(((uv.y >> (base_lod + 1)) - 64) >> 7, wrap_t, size_t >> (base_lod + 1)));
+      texuv2 = uint2(
+          WrapCoord(((uv.x >> (base_lod + 1)) + 64) >> 7, wrap_s, size_s >> (base_lod + 1)),
+          WrapCoord(((uv.y >> (base_lod + 1)) + 64) >> 7, wrap_t, size_t >> (base_lod + 1)));
+      frac_uv = int2(((uv.x >> (base_lod + 1)) - 64) & 0x7f, ((uv.y >> (base_lod + 1)) - 64) & 0x7f);
+
+      result *= 16 - frac_lod;
+      result += readTextureLinear(tex, texuv1, texuv2, layer, base_lod + 1, frac_uv) * frac_lod;
+      result >>= 4;
+    }}
+
+    return result;
+  }} else {{
+    uint2 texuv = uint2(
+        WrapCoord(uv.x >> (7 + base_lod), wrap_s, size_s >> base_lod),
+        WrapCoord(uv.y >> (7 + base_lod), wrap_t, size_t >> base_lod));
+
+    int4 result = readTexture(tex, texuv.x, texuv.y, layer, base_lod);
+
+    if (frac_lod != 0 && mipmap_linear) {{
+      texuv = uint2(
+          WrapCoord(uv.x >> (7 + base_lod + 1), wrap_s, size_s >> (base_lod + 1)),
+          WrapCoord(uv.y >> (7 + base_lod + 1), wrap_t, size_t >> (base_lod + 1)));
+
+      result *= 16 - frac_lod;
+      result += readTexture(tex, texuv.x, texuv.y, layer, base_lod + 1) * frac_lod;
+      result >>= 4;
+    }}
+    return result;
+  }}
+}}
+)");
+  }
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
                        APIType api_type, bool stereo);
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
                             bool clamp, TevScale scale, bool alpha);
-static void SampleTexture(ShaderCode& out, std::string_view texcoords, std::string_view texswap,
-                          int texmap, bool stereo, APIType api_type);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
@@ -565,7 +857,19 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
             uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
 
   // Stuff that is shared between ubershaders and pixelgen.
+  WriteBitfieldExtractHeader(out, api_type, host_config);
   WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
+
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  {
+    out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
+              "sampleTexture(texmap, samp[texmap], uv, layer)\n");
+  }
+  else if (api_type == APIType::D3D)
+  {
+    out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
+              "sampleTexture(texmap, tex[texmap], samp[texmap], uv, layer)\n");
+  }
 
   if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
@@ -754,6 +1058,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("        ) {{\n");
   }
+  if (!stereo)
+    out.Write("\tint layer = 0;\n");
 
   out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
             "[3], prev = " I_COLORS "[0];\n"
@@ -811,7 +1117,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     {
       out.Write("\tint2 fixpoint_uv{} = int2(", i);
       out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
-      out.Write(" * " I_TEXDIMS "[{}].zw);\n", i);
+      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
       // TODO: S24 overflows here?
     }
   }
@@ -834,8 +1140,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("\ttempcoord = fixpoint_uv{} >> " I_INDTEXSCALE "[{}].{};\n", texcoord, i / 2,
                 (i & 1) ? "zw" : "xy");
 
-      out.Write("\tint3 iindtex{} = ", i);
-      SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, api_type);
+      out.Write("\tint3 iindtex{0} = sampleTextureWrapper({1}u, tempcoord, layer).abg;\n", i,
+                texmap);
     }
   }
 
@@ -1243,8 +1549,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         '\0',
     };
 
-    out.Write("\ttextemp = ");
-    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, api_type);
+    out.Write("\ttextemp = sampleTextureWrapper({0}u, tevcoord.xy, layer).{1};\n",
+              stage.tevorders_texmap, texswap);
   }
   else if (uid_data->genMode_numtexgens == 0)
   {
@@ -1426,24 +1732,6 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
             tev_scale_table_left[u32(scale)],
             tev_lerp_bias[2 * u32(op) + ((scale == TevScale::Divide2) == alpha)]);
   out.Write("){}", tev_scale_table_right[u32(scale)]);
-}
-
-static void SampleTexture(ShaderCode& out, std::string_view texcoords, std::string_view texswap,
-                          int texmap, bool stereo, APIType api_type)
-{
-  out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
-
-  if (api_type == APIType::D3D)
-  {
-    out.Write("iround(255.0 * Tex[{}].Sample(samp[{}], float3({}.xy * " I_TEXDIMS
-              "[{}].xy, {}))).{};\n",
-              texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
-  }
-  else
-  {
-    out.Write("iround(255.0 * texture(samp[{}], float3({}.xy * " I_TEXDIMS "[{}].xy, {}))).{};\n",
-              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
-  }
 }
 
 constexpr std::array<const char*, 8> tev_alpha_funcs_table{

@@ -273,16 +273,22 @@ void PixelShaderManager::SetDestAlphaChanged()
 
 void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
 {
-  float rwidth = 1.0f / (width * 128.0f);
-  float rheight = 1.0f / (height * 128.0f);
-
   // TODO: move this check out to callee. There we could just call this function on texture changes
   // or better, use textureSize() in glsl
-  if (constants.texdims[texmapid][0] != rwidth || constants.texdims[texmapid][1] != rheight)
+  if (constants.texdims[texmapid][0] != width || constants.texdims[texmapid][1] != height)
     dirty = true;
 
-  constants.texdims[texmapid][0] = rwidth;
-  constants.texdims[texmapid][1] = rheight;
+  constants.texdims[texmapid][0] = width;
+  constants.texdims[texmapid][1] = height;
+}
+
+void PixelShaderManager::SetSamplerState(int texmapid, u32 tm0, u32 tm1)
+{
+  if (constants.pack2[texmapid][2] != tm0 || constants.pack2[texmapid][3] != tm1)
+    dirty = true;
+
+  constants.pack2[texmapid][2] = tm0;
+  constants.pack2[texmapid][3] = tm1;
 }
 
 void PixelShaderManager::SetZTextureBias()
@@ -382,8 +388,8 @@ void PixelShaderManager::SetZTextureOpChanged()
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
   TCoordInfo& tc = bpmem.texcoords[texmapid];
-  constants.texdims[texmapid][2] = (float)(tc.s.scale_minus_1 + 1) * 128.0f;
-  constants.texdims[texmapid][3] = (float)(tc.t.scale_minus_1 + 1) * 128.0f;
+  constants.texdims[texmapid][2] = tc.s.scale_minus_1 + 1;
+  constants.texdims[texmapid][3] = tc.t.scale_minus_1 + 1;
   dirty = true;
 }
 
