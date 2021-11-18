@@ -127,7 +127,7 @@ public final class GameFileCacheManager
     if (!loadInProgress.getValue())
     {
       loadInProgress.setValue(true);
-      new AfterDirectoryInitializationRunner().run(context, false,
+      new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false,
               () -> executor.execute(GameFileCacheManager::load));
     }
   }
@@ -142,7 +142,7 @@ public final class GameFileCacheManager
     if (!rescanInProgress.getValue())
     {
       rescanInProgress.setValue(true);
-      new AfterDirectoryInitializationRunner().run(context, false,
+      new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false,
               () -> executor.execute(GameFileCacheManager::rescan));
     }
   }

@@ -73,7 +73,7 @@ public final class MainPresenter
     mView.launchFileListActivity();
   }
 
-  public boolean handleOptionSelection(int itemId, Context context)
+  public boolean handleOptionSelection(int itemId, ComponentActivity activity)
   {
     switch (itemId)
     {
@@ -83,7 +83,7 @@ public final class MainPresenter
 
       case R.id.menu_refresh:
         mView.setRefreshing(true);
-        GameFileCacheManager.startRescan(context);
+        GameFileCacheManager.startRescan(activity);
         return true;
 
       case R.id.button_add_directory:
@@ -95,17 +95,17 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().run(context, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
                 () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
         return true;
 
       case R.id.menu_import_wii_save:
-        new AfterDirectoryInitializationRunner().run(context, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
                 () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
         return true;
 
       case R.id.menu_import_nand_backup:
-        new AfterDirectoryInitializationRunner().run(context, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
                 () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
         return true;
     }
@@ -121,12 +121,9 @@ public final class MainPresenter
       mDirToAdd = null;
     }
 
-    if (sShouldRescanLibrary && !GameFileCacheManager.isRescanning().getValue())
+    if (sShouldRescanLibrary)
     {
-      new AfterDirectoryInitializationRunner().run(mActivity, false, () ->
-      {
-        GameFileCacheManager.startRescan(mActivity);
-      });
+      GameFileCacheManager.startRescan(mActivity);
     }
 
     sShouldRescanLibrary = true;

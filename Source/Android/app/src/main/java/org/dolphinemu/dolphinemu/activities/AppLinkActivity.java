@@ -63,7 +63,7 @@ public class AppLinkActivity extends FragmentActivity
   private void initResources()
   {
     mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
-    mAfterDirectoryInitializationRunner.run(this, true, () -> tryPlay(playAction));
+    mAfterDirectoryInitializationRunner.runWithLifecycle(this, true, () -> tryPlay(playAction));
 
     GameFileCacheManager.isLoading().observe(this, (isLoading) ->
     {
@@ -122,11 +122,7 @@ public class AppLinkActivity extends FragmentActivity
 
   private void startGame(GameFile game)
   {
-    if (mAfterDirectoryInitializationRunner != null)
-    {
-      mAfterDirectoryInitializationRunner.cancel();
-      mAfterDirectoryInitializationRunner = null;
-    }
+    mAfterDirectoryInitializationRunner.cancel();
     EmulationActivity.launch(this, GameFileCacheManager.findSecondDiscAndGetPaths(game), false);
   }
 }
