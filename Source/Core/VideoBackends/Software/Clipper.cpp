@@ -345,7 +345,24 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
     Vertices[2] = v2;
   }
 
-  ClipTriangle(indices, &numIndices);
+  // TODO: behavior when disable_clipping_detection is set doesn't quite match actual hardware;
+  // there does still seem to be a maximum size after which things are clipped.  Also, currently
+  // when clipping is enabled triangles are clipped to exactly the viewport, but on hardware there
+  // is a guardband (and with certain scissor configurations, things can show up in it)
+  // Mario Party 8 in widescreen breaks without this: https://bugs.dolphin-emu.org/issues/12769
+  bool skip_clipping = false;
+  if (xfmem.clipDisable.disable_clipping_detection)
+  {
+    // If any w coordinate is negative, then the perspective divide will flip coordinates, breaking
+    // various assumptions (including backface).  So, we still need to do clipping in that case.
+    // This isn't the actual condition hardware uses.
+    if (Vertices[0]->projectedPosition.w >= 0 && Vertices[1]->projectedPosition.w >= 0 &&
+        Vertices[2]->projectedPosition.w >= 0)
+      skip_clipping = true;
+  }
+
+  if (!skip_clipping)
+    ClipTriangle(indices, &numIndices);
 
   for (int i = 0; i + 3 <= numIndices; i += 3)
   {
