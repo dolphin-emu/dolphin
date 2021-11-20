@@ -25,6 +25,11 @@
 
 class BootSessionData;
 
+namespace IOS::HLE::FS
+{
+class FileSystem;
+}
+
 namespace UICommon
 {
 class GameFile;
@@ -80,6 +85,8 @@ public:
                                          const std::vector<int>& players) = 0;
   virtual void HideChunkedProgressDialog() = 0;
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
+
+  virtual void SetHostWiiSyncTitles(std::vector<u64> titles) = 0;
 };
 
 class Player
@@ -149,6 +156,8 @@ public:
   const PadMappingArray& GetWiimoteMapping() const;
 
   void AdjustPadBufferSize(unsigned int size);
+
+  void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles);
 
   static SyncIdentifier GetSDCardIdentifier();
 
@@ -316,6 +325,9 @@ private:
 
   u64 m_initial_rtc = 0;
   u32 m_timebase_frame = 0;
+
+  std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
+  std::vector<u64> m_wii_sync_titles;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

@@ -94,6 +94,9 @@ public:
                                  const std::vector<int>& players) override;
   void HideChunkedProgressDialog() override;
   void SetChunkedProgress(int pid, u64 progress) override;
+
+  void SetHostWiiSyncTitles(std::vector<u64> titles) override;
+
 signals:
   void Stop();
 

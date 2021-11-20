@@ -40,6 +40,7 @@
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
 
@@ -1176,4 +1177,11 @@ void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
     if (m_chunked_progress_dialog->isVisible())
       m_chunked_progress_dialog->SetProgress(pid, progress);
   });
+}
+
+void NetPlayDialog::SetHostWiiSyncTitles(std::vector<u64> titles)
+{
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (client)
+    client->SetWiiSyncData(nullptr, std::move(titles));
 }

@@ -1819,7 +1819,7 @@ bool NetPlayServer::SyncSaveData()
     }
 
     // Set titles for host-side loading in WiiRoot
-    SetWiiSyncData(nullptr, titles);
+    m_dialog->SetHostWiiSyncTitles(std::move(titles));
 
     SendChunkedToClients(std::move(pac), 1, "Wii Save Synchronization");
   }
