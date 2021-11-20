@@ -419,20 +419,23 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
   if (DY31 < 0 || (DY31 == 0 && DX31 > 0))
     C3++;
 
-  // Start in corner of 8x8 block
-  minx &= ~(BLOCK_SIZE - 1);
-  miny &= ~(BLOCK_SIZE - 1);
+  // Start in corner of 2x2 block
+  s32 block_minx = minx & ~(BLOCK_SIZE - 1);
+  s32 block_miny = miny & ~(BLOCK_SIZE - 1);
 
   // Loop through blocks
-  for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
+  for (s32 y = block_miny & ~(BLOCK_SIZE - 1); y < maxy; y += BLOCK_SIZE)
   {
-    for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
+    for (s32 x = block_minx; x < maxx; x += BLOCK_SIZE)
     {
+      s32 x1_ = (x + BLOCK_SIZE - 1);
+      s32 y1_ = (y + BLOCK_SIZE - 1);
+
       // Corners of block
       s32 x0 = x << 4;
-      s32 x1 = (x + BLOCK_SIZE - 1) << 4;
+      s32 x1 = x1_ << 4;
       s32 y0 = y << 4;
-      s32 y1 = (y + BLOCK_SIZE - 1) << 4;
+      s32 y1 = y1_ << 4;
 
       // Evaluate half-space functions
       bool a00 = C1 + DX12 * y0 - DY12 * x0 > 0;
@@ -460,7 +463,8 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
       BuildBlock(x, y);
 
       // Accept whole block when totally covered
-      if (a == 0xF && b == 0xF && c == 0xF)
+      // We still need to check min/max x/y because of the scissor
+      if (a == 0xF && b == 0xF && c == 0xF && x >= minx && x1_ < maxx && y >= miny && y1_ < maxy)
       {
         for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
         {
@@ -486,7 +490,10 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
           {
             if (CX1 > 0 && CX2 > 0 && CX3 > 0)
             {
-              Draw(x + ix, y + iy, ix, iy);
+              // This check enforces the scissor rectangle, since it might not be aligned with the
+              // blocks
+              if (x + ix >= minx && x + ix < maxx && y + iy >= miny && y + iy < maxy)
+                Draw(x + ix, y + iy, ix, iy);
             }
 
             CX1 -= FDY12;
