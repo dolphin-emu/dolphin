@@ -86,7 +86,6 @@ void NetPlayBrowser::CreateWidgets()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   m_button_refresh = new QPushButton(tr("Refresh"));
   m_edit_name = new QLineEdit;
-  m_edit_game_id = new QLineEdit;
   m_check_hide_ingame = new QCheckBox(tr("Hide In-Game Sessions"));
 
   m_radio_all = new QRadioButton(tr("Private and Public"));
@@ -101,14 +100,12 @@ void NetPlayBrowser::CreateWidgets()
 
   filter_layout->addWidget(new QLabel(tr("Region:")), 0, 0);
   filter_layout->addWidget(m_region_combo, 0, 1, 1, -1);
-  filter_layout->addWidget(new QLabel(tr("Name:")), 1, 0);
+  filter_layout->addWidget(new QLabel(tr("NetPlay Nickname:")), 1, 0);
   filter_layout->addWidget(m_edit_name, 1, 1, 1, -1);
-  filter_layout->addWidget(new QLabel(tr("Game ID:")), 2, 0);
-  filter_layout->addWidget(m_edit_game_id, 2, 1, 1, -1);
-  filter_layout->addWidget(m_radio_all, 3, 1);
-  filter_layout->addWidget(m_radio_public, 3, 2);
-  filter_layout->addWidget(m_radio_private, 3, 3);
-  filter_layout->addItem(new QSpacerItem(4, 1, QSizePolicy::Expanding), 3, 4);
+  filter_layout->addWidget(m_radio_all, 2, 1);
+  filter_layout->addWidget(m_radio_public, 2, 2);
+  filter_layout->addWidget(m_radio_private, 2, 3);
+  filter_layout->addItem(new QSpacerItem(3, 1, QSizePolicy::Expanding), 3, 4);
   filter_layout->addWidget(m_check_hide_ingame, 4, 1, 1, -1);
 
   layout->addWidget(m_table_widget);
@@ -136,7 +133,6 @@ void NetPlayBrowser::ConnectWidgets()
   connect(m_check_hide_ingame, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
 
   connect(m_edit_name, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
-  connect(m_edit_game_id, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
 
   connect(m_table_widget, &QTableWidget::itemSelectionChanged, this,
           &NetPlayBrowser::OnSelectionChanged);
@@ -154,12 +150,6 @@ void NetPlayBrowser::Refresh()
 
   if (true)
     filters["version"] = Common::scm_desc_str;
-
-  if (!m_edit_name->text().isEmpty())
-    filters["name"] = m_edit_name->text().toStdString();
-
-  if (!m_edit_game_id->text().isEmpty())
-    filters["game"] = m_edit_game_id->text().toStdString();
 
   if (!m_radio_all->isChecked())
     filters["password"] = std::to_string(m_radio_private->isChecked());
@@ -333,8 +323,7 @@ void NetPlayBrowser::SaveSettings() const
 
   settings.setValue(QStringLiteral("netplaybrowser/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("netplaybrowser/region"), m_region_combo->currentText());
-  settings.setValue(QStringLiteral("netplaybrowser/name"), m_edit_name->text());
-  settings.setValue(QStringLiteral("netplaybrowser/game_id"), m_edit_game_id->text());
+  Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_edit_name->text().toStdString());
 
   QString visibility(QStringLiteral("all"));
   if (m_radio_public->isChecked())
@@ -362,8 +351,7 @@ void NetPlayBrowser::RestoreSettings()
   if (valid_region)
     m_region_combo->setCurrentText(region);
 
-  m_edit_name->setText(settings.value(QStringLiteral("netplaybrowser/name")).toString());
-  m_edit_game_id->setText(settings.value(QStringLiteral("netplaybrowser/game_id")).toString());
+  m_edit_name->setText(QString::fromStdString(Config::Get(Config::NETPLAY_NICKNAME)));
 
   const QString visibility = settings.value(QStringLiteral("netplaybrowser/visibility")).toString();
   if (visibility == QStringLiteral("public"))

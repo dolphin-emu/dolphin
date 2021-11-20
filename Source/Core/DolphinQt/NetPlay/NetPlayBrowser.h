@@ -59,7 +59,6 @@ private:
   QTableWidget* m_table_widget;
   QDialogButtonBox* m_button_box;
   QLineEdit* m_edit_name;
-  QLineEdit* m_edit_game_id;
   QCheckBox* m_check_hide_ingame;
 
   QRadioButton* m_radio_all;
