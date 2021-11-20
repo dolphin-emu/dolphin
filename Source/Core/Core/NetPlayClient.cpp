@@ -33,6 +33,7 @@
 #include "Common/Version.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -1721,7 +1722,7 @@ bool NetPlayClient::StartGame(const std::string& path)
   }
 
   // boot game
-  m_dialog->BootGame(path);
+  m_dialog->BootGame(path, nullptr);
 
   UpdateDevices();
 

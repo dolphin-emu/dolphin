@@ -23,6 +23,8 @@
 #include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
 
+class BootSessionData;
+
 namespace UICommon
 {
 class GameFile;
@@ -34,7 +36,8 @@ class NetPlayUI
 {
 public:
   virtual ~NetPlayUI() {}
-  virtual void BootGame(const std::string& filename) = 0;
+  virtual void BootGame(const std::string& filename,
+                        std::unique_ptr<BootSessionData> boot_session_data) = 0;
   virtual void StopGame() = 0;
   virtual bool IsHosting() const = 0;
 
