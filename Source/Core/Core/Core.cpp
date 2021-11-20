@@ -479,9 +479,10 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     Keyboard::LoadConfig();
   }
 
-  const std::optional<std::string> savestate_path = boot->boot_session_data.GetSavestatePath();
+  BootSessionData boot_session_data = std::move(boot->boot_session_data);
+  const std::optional<std::string> savestate_path = boot_session_data.GetSavestatePath();
   const bool delete_savestate =
-      boot->boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
+      boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   bool init_wiimotes = false;
@@ -616,9 +617,10 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // Initialise Wii filesystem contents.
   // This is done here after Boot and not in BootManager to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
-  Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
+  Common::ScopeGuard wiifs_guard{
+      [&boot_session_data]() { Core::CleanUpWiiFileSystemContents(boot_session_data); }};
   if (SConfig::GetInstance().bWii)
-    Core::InitializeWiiFileSystemContents(savegame_redirect);
+    Core::InitializeWiiFileSystemContents(savegame_redirect, boot_session_data);
   else
     wiifs_guard.Dismiss();
 

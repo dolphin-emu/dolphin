@@ -24,6 +24,11 @@ namespace File
 class IOFile;
 }
 
+namespace IOS::HLE::FS
+{
+class FileSystem;
+}
+
 struct RegionSetting
 {
   std::string area;
@@ -57,9 +62,18 @@ public:
   void SetSavestateData(std::optional<std::string> savestate_path,
                         DeleteSavestateAfterBoot delete_savestate);
 
+  bool IsWiiSyncEnabled() const;
+  IOS::HLE::FS::FileSystem* GetWiiSyncFS() const;
+  const std::vector<u64>& GetWiiSyncTitles() const;
+  void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles);
+
 private:
   std::optional<std::string> m_savestate_path;
   DeleteSavestateAfterBoot m_delete_savestate = DeleteSavestateAfterBoot::No;
+
+  bool m_wii_sync_enabled = false;
+  std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
+  std::vector<u64> m_wii_sync_titles;
 };
 
 struct BootParameters
