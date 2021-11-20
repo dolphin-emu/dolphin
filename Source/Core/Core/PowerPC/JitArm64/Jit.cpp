@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 
@@ -45,7 +46,7 @@ void JitArm64::Init()
 {
   const size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
-  AddChildCodeSpace(&farcode, child_code_size);
+  AddChildCodeSpace(&m_far_code, child_code_size);
 
   jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
   jo.enableBlocklink = true;
@@ -68,6 +69,8 @@ void JitArm64::Init()
 
   AllocStack();
   GenerateAsm();
+
+  ResetFreeMemoryRanges();
 }
 
 bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
@@ -123,15 +126,26 @@ bool JitArm64::HandleStackFault()
 void JitArm64::ClearCache()
 {
   m_fault_to_handler.clear();
-  m_handler_to_loc.clear();
 
   blocks.Clear();
+  blocks.ClearRangesToFree();
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   ClearCodeSpace();
-  farcode.ClearCodeSpace();
+  m_far_code.ClearCodeSpace();
   UpdateMemoryAndExceptionOptions();
 
   GenerateAsm();
+
+  ResetFreeMemoryRanges();
+}
+
+void JitArm64::ResetFreeMemoryRanges()
+{
+  // Set the near and far code regions as unused.
+  m_free_ranges_near.clear();
+  m_free_ranges_near.insert(GetWritableCodePtr(), GetWritableCodeEnd());
+  m_free_ranges_far.clear();
+  m_free_ranges_far.insert(m_far_code.GetWritableCodePtr(), m_far_code.GetWritableCodeEnd());
 }
 
 void JitArm64::Shutdown()
@@ -577,7 +591,12 @@ void JitArm64::SingleStep()
   pExecAddr();
 }
 
-void JitArm64::Jit(u32)
+void JitArm64::Jit(u32 em_address)
+{
+  Jit(em_address, true);
+}
+
+void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 {
   if (m_cleanup_after_stackfault)
   {
@@ -589,14 +608,31 @@ void JitArm64::Jit(u32)
 #endif
   }
 
-  if (IsAlmostFull() || farcode.IsAlmostFull() || SConfig::GetInstance().bJITNoBlockCache)
-  {
+  if (SConfig::GetInstance().bJITNoBlockCache)
     ClearCache();
+
+  // Check if any code blocks have been freed in the block cache and transfer this information to
+  // the local rangesets to allow overwriting them with new code.
+  for (auto range : blocks.GetRangesToFreeNear())
+  {
+    auto first_fastmem_area = m_fault_to_handler.upper_bound(range.first);
+    auto last_fastmem_area = first_fastmem_area;
+    auto end = m_fault_to_handler.end();
+    while (last_fastmem_area != end && last_fastmem_area->first <= range.second)
+      ++last_fastmem_area;
+    m_fault_to_handler.erase(first_fastmem_area, last_fastmem_area);
+
+    m_free_ranges_near.insert(range.first, range.second);
   }
+  for (auto range : blocks.GetRangesToFreeFar())
+  {
+    m_free_ranges_far.insert(range.first, range.second);
+  }
+  blocks.ClearRangesToFree();
+
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
   std::size_t block_size = m_code_buffer.size();
-  const u32 em_address = PowerPC::ppcState.pc;
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
@@ -619,12 +655,75 @@ void JitArm64::Jit(u32)
     return;
   }
 
-  JitBlock* b = blocks.AllocateBlock(em_address);
-  DoJit(em_address, b, nextPC);
-  blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+  if (SetEmitterStateToFreeCodeRegion())
+  {
+    u8* near_start = GetWritableCodePtr();
+    u8* far_start = m_far_code.GetWritableCodePtr();
+
+    JitBlock* b = blocks.AllocateBlock(em_address);
+    if (DoJit(em_address, b, nextPC))
+    {
+      // Code generation succeeded.
+
+      // Mark the memory regions that this code block uses as used in the local rangesets.
+      u8* near_end = GetWritableCodePtr();
+      if (near_start != near_end)
+        m_free_ranges_near.erase(near_start, near_end);
+      u8* far_end = m_far_code.GetWritableCodePtr();
+      if (far_start != far_end)
+        m_free_ranges_far.erase(far_start, far_end);
+
+      // Store the used memory regions in the block so we know what to mark as unused when the
+      // block gets invalidated.
+      b->near_begin = near_start;
+      b->near_end = near_end;
+      b->far_begin = far_start;
+      b->far_end = far_end;
+
+      blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
+      return;
+    }
+  }
+
+  if (clear_cache_and_retry_on_failure)
+  {
+    // Code generation failed due to not enough free space in either the near or far code regions.
+    // Clear the entire JIT cache and retry.
+    WARN_LOG(POWERPC, "flushing code caches, please report if this happens a lot");
+    ClearCache();
+    Jit(em_address, false);
+    return;
+  }
+
+  PanicAlertT("JIT failed to find code space after a cache clear. This should never happen. Please "
+              "report this incident on the bug tracker. Dolphin will now exit.");
+  exit(-1);
 }
 
-void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+bool JitArm64::SetEmitterStateToFreeCodeRegion()
+{
+  // Find the largest free memory blocks and set code emitters to point at them.
+  // If we can't find a free block return false instead, which will trigger a JIT cache clear.
+  auto free_near = m_free_ranges_near.by_size_begin();
+  if (free_near == m_free_ranges_near.by_size_end())
+  {
+    WARN_LOG(POWERPC, "Failed to find free memory region in near code region.");
+    return false;
+  }
+  SetCodePtr(free_near.from(), free_near.to());
+
+  auto free_far = m_free_ranges_far.by_size_begin();
+  if (free_far == m_free_ranges_far.by_size_end())
+  {
+    WARN_LOG(POWERPC, "Failed to find free memory region in far code region.");
+    return false;
+  }
+  m_far_code.SetCodePtr(free_far.from(), free_far.to());
+
+  return true;
+}
+
+bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
   js.isLastInstruction = false;
   js.firstFPInstructionFound = false;
@@ -871,9 +970,21 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     WriteExit(nextPC);
   }
 
+  if (HasWriteFailed() || m_far_code.HasWriteFailed())
+  {
+    if (HasWriteFailed())
+      WARN_LOG(POWERPC, "JIT ran out of space in near code region during code generation.");
+    if (m_far_code.HasWriteFailed())
+      WARN_LOG(POWERPC, "JIT ran out of space in far code region during code generation.");
+
+    return false;
+  }
+
   b->codeSize = (u32)(GetCodePtr() - start);
   b->originalSize = code_block.m_num_instructions;
 
   FlushIcache();
-  farcode.FlushIcache();
+  m_far_code.FlushIcache();
+
+  return true;
 }

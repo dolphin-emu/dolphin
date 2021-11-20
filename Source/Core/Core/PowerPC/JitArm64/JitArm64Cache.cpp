@@ -12,6 +12,12 @@ JitArm64BlockCache::JitArm64BlockCache(JitBase& jit) : JitBaseBlockCache{jit}
 {
 }
 
+void JitArm64BlockCache::Init()
+{
+  JitBaseBlockCache::Init();
+  ClearRangesToFree();
+}
+
 void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
                                         const JitBlock::LinkData& source, const JitBlock* dest)
 {
@@ -60,7 +66,7 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
 {
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   u8* location = source.exitPtrs;
-  ARM64XEmitter emit(location);
+  ARM64XEmitter emit(location, location + 12);
 
   WriteLinkBlock(emit, source, dest);
   emit.FlushIcache();
@@ -69,9 +75,35 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
 void JitArm64BlockCache::WriteDestroyBlock(const JitBlock& block)
 {
   // Only clear the entry points as we might still be within this block.
-  ARM64XEmitter emit(block.checkedEntry);
+  ARM64XEmitter emit(block.checkedEntry, block.normalEntry + 4);
   const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
   while (emit.GetWritableCodePtr() <= block.normalEntry)
     emit.BRK(0x123);
   emit.FlushIcache();
+}
+
+void JitArm64BlockCache::DestroyBlock(JitBlock& block)
+{
+  JitBaseBlockCache::DestroyBlock(block);
+
+  if (block.near_begin != block.near_end)
+    m_ranges_to_free_on_next_codegen_near.emplace_back(block.near_begin, block.near_end);
+  if (block.far_begin != block.far_end)
+    m_ranges_to_free_on_next_codegen_far.emplace_back(block.far_begin, block.far_end);
+}
+
+const std::vector<std::pair<u8*, u8*>>& JitArm64BlockCache::GetRangesToFreeNear() const
+{
+  return m_ranges_to_free_on_next_codegen_near;
+}
+
+const std::vector<std::pair<u8*, u8*>>& JitArm64BlockCache::GetRangesToFreeFar() const
+{
+  return m_ranges_to_free_on_next_codegen_far;
+}
+
+void JitArm64BlockCache::ClearRangesToFree()
+{
+  m_ranges_to_free_on_next_codegen_near.clear();
+  m_ranges_to_free_on_next_codegen_far.clear();
 }

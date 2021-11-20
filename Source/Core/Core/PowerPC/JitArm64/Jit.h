@@ -7,6 +7,8 @@
 #include <map>
 #include <tuple>
 
+#include <rangeset/rangesizeset.h>
+
 #include "Common/Arm64Emitter.h"
 
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -39,7 +41,8 @@ public:
   void Run() override;
   void SingleStep() override;
 
-  void Jit(u32) override;
+  void Jit(u32 em_address) override;
+  void Jit(u32 em_address, bool clear_cache_and_retry_on_failure);
 
   const char* GetName() const override { return "JITARM64"; }
 
@@ -178,21 +181,6 @@ public:
   bool IsFPRStoreSafe(size_t guest_reg) const;
 
 protected:
-  struct SlowmemHandler
-  {
-    Arm64Gen::ARM64Reg dest_reg;
-    Arm64Gen::ARM64Reg addr_reg;
-    BitSet32 gprs;
-    BitSet32 fprs;
-    u32 flags;
-
-    bool operator<(const SlowmemHandler& rhs) const
-    {
-      return std::tie(dest_reg, addr_reg, gprs, fprs, flags) <
-             std::tie(rhs.dest_reg, rhs.addr_reg, rhs.gprs, rhs.fprs, rhs.flags);
-    }
-  };
-
   struct FastmemArea
   {
     const u8* fastmem_code;
@@ -206,20 +194,23 @@ protected:
   // Simple functions to switch between near and far code emitting
   void SwitchToFarCode()
   {
-    nearcode = GetWritableCodePtr();
-    SetCodePtrUnsafe(farcode.GetWritableCodePtr());
+    m_near_code = GetWritableCodePtr();
+    m_near_code_end = GetWritableCodeEnd();
+    m_near_code_write_failed = HasWriteFailed();
+    SetCodePtrUnsafe(m_far_code.GetWritableCodePtr(), m_far_code.GetWritableCodeEnd(),
+                     m_far_code.HasWriteFailed());
     AlignCode16();
-    m_in_farcode = true;
+    m_in_far_code = true;
   }
 
   void SwitchToNearCode()
   {
-    farcode.SetCodePtrUnsafe(GetWritableCodePtr());
-    SetCodePtrUnsafe(nearcode);
-    m_in_farcode = false;
+    m_far_code.SetCodePtrUnsafe(GetWritableCodePtr(), GetWritableCodeEnd(), HasWriteFailed());
+    SetCodePtrUnsafe(m_near_code, m_near_code_end, m_near_code_write_failed);
+    m_in_far_code = false;
   }
 
-  bool IsInFarCode() const { return m_in_farcode; }
+  bool IsInFarCode() const { return m_in_far_code; }
 
   // Dump a memory range of code
   void DumpCode(const u8* start, const u8* end);
@@ -238,13 +229,19 @@ protected:
   Arm64Gen::FixupBranch CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM64Reg tmp1,
                                            Arm64Gen::ARM64Reg tmp2);
 
-  void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
+  bool DoJit(u32 em_address, JitBlock* b, u32 nextPC);
+
+  // Finds a free memory region and sets the near and far code emitters to point at that region.
+  // Returns false if no free memory region can be found for either of the two.
+  bool SetEmitterStateToFreeCodeRegion();
 
   void DoDownCount();
   void Cleanup();
   void ResetStack();
   void AllocStack();
   void FreeStack();
+
+  void ResetFreeMemoryRanges();
 
   // AsmRoutines
   void GenerateAsm();
@@ -296,7 +293,6 @@ protected:
 
   // <Fastmem fault location, slowmem handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler;
-  std::map<SlowmemHandler, const u8*> m_handler_to_loc;
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 
@@ -304,13 +300,20 @@ protected:
 
   Arm64Gen::ARM64FloatEmitter m_float_emit;
 
-  Arm64Gen::ARM64CodeBlock farcode;
-  u8* nearcode;  // Backed up when we switch to far code.
-  bool m_in_farcode = false;
+  Arm64Gen::ARM64CodeBlock m_far_code;
+  bool m_in_far_code = false;
+
+  // Backed up when we switch to far code.
+  u8* m_near_code;
+  u8* m_near_code_end;
+  bool m_near_code_write_failed;
 
   bool m_enable_blr_optimization;
   bool m_cleanup_after_stackfault = false;
   u8* m_stack_base = nullptr;
   u8* m_stack_pointer = nullptr;
   u8* m_saved_stack_pointer = nullptr;
+
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_near;
+  HyoutaUtilities::RangeSizeSet<u8*> m_free_ranges_far;
 };
