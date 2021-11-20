@@ -378,7 +378,7 @@ static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
       if (result)
         return result;
     }
-    else if (node.m_filename == filename)
+    else if (CaseInsensitiveEquals(node.m_filename, filename))
     {
       return &node;
     }
