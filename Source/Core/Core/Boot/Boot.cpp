@@ -112,22 +112,53 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
   return result;
 }
 
-BootParameters::BootParameters(Parameters&& parameters_,
-                               const std::optional<std::string>& savestate_path_)
-    : parameters(std::move(parameters_)), savestate_path(savestate_path_)
+BootSessionData::BootSessionData()
 {
 }
 
-std::unique_ptr<BootParameters>
-BootParameters::GenerateFromFile(std::string boot_path,
-                                 const std::optional<std::string>& savestate_path)
+BootSessionData::BootSessionData(std::optional<std::string> savestate_path,
+                                 DeleteSavestateAfterBoot delete_savestate)
+    : m_savestate_path(std::move(savestate_path)), m_delete_savestate(delete_savestate)
 {
-  return GenerateFromFile(std::vector<std::string>{std::move(boot_path)}, savestate_path);
 }
 
-std::unique_ptr<BootParameters>
-BootParameters::GenerateFromFile(std::vector<std::string> paths,
-                                 const std::optional<std::string>& savestate_path)
+BootSessionData::BootSessionData(BootSessionData&& other) = default;
+
+BootSessionData& BootSessionData::operator=(BootSessionData&& other) = default;
+
+BootSessionData::~BootSessionData() = default;
+
+const std::optional<std::string>& BootSessionData::GetSavestatePath() const
+{
+  return m_savestate_path;
+}
+
+DeleteSavestateAfterBoot BootSessionData::GetDeleteSavestate() const
+{
+  return m_delete_savestate;
+}
+
+void BootSessionData::SetSavestateData(std::optional<std::string> savestate_path,
+                                       DeleteSavestateAfterBoot delete_savestate)
+{
+  m_savestate_path = std::move(savestate_path);
+  m_delete_savestate = delete_savestate;
+}
+
+BootParameters::BootParameters(Parameters&& parameters_, BootSessionData boot_session_data_)
+    : parameters(std::move(parameters_)), boot_session_data(std::move(boot_session_data_))
+{
+}
+
+std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::string boot_path,
+                                                                 BootSessionData boot_session_data_)
+{
+  return GenerateFromFile(std::vector<std::string>{std::move(boot_path)},
+                          std::move(boot_session_data_));
+}
+
+std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std::string> paths,
+                                                                 BootSessionData boot_session_data_)
 {
   ASSERT(!paths.empty());
 
@@ -176,21 +207,21 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     if (disc)
     {
       return std::make_unique<BootParameters>(Disc{std::move(path), std::move(disc), paths},
-                                              savestate_path);
+                                              std::move(boot_session_data_));
     }
 
     if (extension == ".elf")
     {
       auto elf_reader = std::make_unique<ElfReader>(path);
       return std::make_unique<BootParameters>(Executable{std::move(path), std::move(elf_reader)},
-                                              savestate_path);
+                                              std::move(boot_session_data_));
     }
 
     if (extension == ".dol")
     {
       auto dol_reader = std::make_unique<DolReader>(path);
       return std::make_unique<BootParameters>(Executable{std::move(path), std::move(dol_reader)},
-                                              savestate_path);
+                                              std::move(boot_session_data_));
     }
 
     if (is_drive)
@@ -209,13 +240,13 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
   }
 
   if (extension == ".dff")
-    return std::make_unique<BootParameters>(DFF{std::move(path)}, savestate_path);
+    return std::make_unique<BootParameters>(DFF{std::move(path)}, std::move(boot_session_data_));
 
   if (extension == ".wad")
   {
     std::unique_ptr<DiscIO::VolumeWAD> wad = DiscIO::CreateWAD(std::move(path));
     if (wad)
-      return std::make_unique<BootParameters>(std::move(*wad), savestate_path);
+      return std::make_unique<BootParameters>(std::move(*wad), std::move(boot_session_data_));
   }
 
   if (extension == ".json")
@@ -223,7 +254,7 @@ BootParameters::GenerateFromFile(std::vector<std::string> paths,
     auto descriptor = DiscIO::ParseGameModDescriptorFile(path);
     if (descriptor)
     {
-      auto boot_params = GenerateFromFile(descriptor->base_file, savestate_path);
+      auto boot_params = GenerateFromFile(descriptor->base_file, std::move(boot_session_data_));
       if (!boot_params)
       {
         PanicAlertFmtT("Could not recognize file {0}", descriptor->base_file);

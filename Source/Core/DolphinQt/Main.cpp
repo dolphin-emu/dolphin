@@ -197,7 +197,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(paths, save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
   }
   else if (options.is_set("nand_title"))
@@ -216,7 +217,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   }
   else if (!args.empty())
   {
-    boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        args.front(), BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
   }
 
