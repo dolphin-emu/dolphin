@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
@@ -114,7 +115,8 @@ static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_fi
   return true;
 }
 
-static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
+static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
+                                            const BootSessionData& boot_session_data)
 {
   const u64 title_id = SConfig::GetInstance().GetTitleID();
   const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
@@ -136,8 +138,8 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
       (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
     // Copy the current user's save to the Blank NAND
-    auto* sync_fs = NetPlay::GetWiiSyncFS();
-    auto& sync_titles = NetPlay::GetWiiSyncTitles();
+    auto* sync_fs = boot_session_data.GetWiiSyncFS();
+    auto& sync_titles = boot_session_data.GetWiiSyncTitles();
     if (sync_fs)
     {
       for (const u64 title : sync_titles)
@@ -298,7 +300,8 @@ static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_sou
 }
 
 void InitializeWiiFileSystemContents(
-    std::optional<DiscIO::Riivolution::SavegameRedirect> save_redirect)
+    std::optional<DiscIO::Riivolution::SavegameRedirect> save_redirect,
+    const BootSessionData& boot_session_data)
 {
   const auto fs = IOS::HLE::GetIOS()->GetFS();
 
@@ -315,7 +318,7 @@ void InitializeWiiFileSystemContents(
     SysConf sysconf{fs};
     sysconf.Save();
 
-    InitializeDeterministicWiiSaves(fs.get());
+    InitializeDeterministicWiiSaves(fs.get(), boot_session_data);
   }
   else if (save_redirect)
   {
@@ -336,10 +339,10 @@ void InitializeWiiFileSystemContents(
   }
 }
 
-void CleanUpWiiFileSystemContents()
+void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
 {
   if (!WiiRootIsTemporary() || !Config::Get(Config::SESSION_SAVE_DATA_WRITABLE) ||
-      NetPlay::GetWiiSyncFS())
+      boot_session_data.GetWiiSyncFS())
   {
     return;
   }

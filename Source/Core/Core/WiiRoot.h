@@ -8,6 +8,8 @@
 
 #include "DiscIO/RiivolutionPatcher.h"
 
+class BootSessionData;
+
 namespace IOS::HLE::FS
 {
 struct NandRedirect;
@@ -32,8 +34,9 @@ void RestoreWiiSettings(RestoreReason reason);
 
 // Initialize or clean up the filesystem contents.
 void InitializeWiiFileSystemContents(
-    std::optional<DiscIO::Riivolution::SavegameRedirect> save_redirect);
-void CleanUpWiiFileSystemContents();
+    std::optional<DiscIO::Riivolution::SavegameRedirect> save_redirect,
+    const BootSessionData& boot_session_data);
+void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data);
 
 const std::vector<IOS::HLE::FS::NandRedirect>& GetActiveNandRedirects();
 }  // namespace Core

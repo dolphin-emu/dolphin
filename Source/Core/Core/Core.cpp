@@ -617,9 +617,12 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // Initialise Wii filesystem contents.
   // This is done here after Boot and not in BootManager to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
-  Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
+  Common::ScopeGuard wiifs_guard{[&boot_session_data] {
+    Core::CleanUpWiiFileSystemContents(boot_session_data);
+    boot_session_data.InvokeWiiSyncCleanup();
+  }};
   if (SConfig::GetInstance().bWii)
-    Core::InitializeWiiFileSystemContents(savegame_redirect);
+    Core::InitializeWiiFileSystemContents(savegame_redirect, boot_session_data);
   else
     wiifs_guard.Dismiss();
 

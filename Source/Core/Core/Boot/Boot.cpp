@@ -145,6 +145,30 @@ void BootSessionData::SetSavestateData(std::optional<std::string> savestate_path
   m_delete_savestate = delete_savestate;
 }
 
+IOS::HLE::FS::FileSystem* BootSessionData::GetWiiSyncFS() const
+{
+  return m_wii_sync_fs.get();
+}
+
+const std::vector<u64>& BootSessionData::GetWiiSyncTitles() const
+{
+  return m_wii_sync_titles;
+}
+
+void BootSessionData::InvokeWiiSyncCleanup() const
+{
+  if (m_wii_sync_cleanup)
+    m_wii_sync_cleanup();
+}
+
+void BootSessionData::SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs,
+                                     std::vector<u64> titles, WiiSyncCleanupFunction cleanup)
+{
+  m_wii_sync_fs = std::move(fs);
+  m_wii_sync_titles = std::move(titles);
+  m_wii_sync_cleanup = std::move(cleanup);
+}
+
 BootParameters::BootParameters(Parameters&& parameters_, BootSessionData boot_session_data_)
     : parameters(std::move(parameters_)), boot_session_data(std::move(boot_session_data_))
 {
