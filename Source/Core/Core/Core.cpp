@@ -479,8 +479,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     Keyboard::LoadConfig();
   }
 
-  const std::optional<std::string> savestate_path = boot->savestate_path;
-  const bool delete_savestate = boot->delete_savestate;
+  const std::optional<std::string> savestate_path = boot->boot_session_data.GetSavestatePath();
+  const bool delete_savestate =
+      boot->boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   bool init_wiimotes = false;
