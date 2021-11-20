@@ -92,6 +92,7 @@ public:
   // more than one thread, or that are called by a single other thread.
   // Without this, our devices list might end up in a mixed state.
   void PlatformPopulateDevices(std::function<void()> callback);
+  std::unique_lock<std::recursive_mutex> GetDevicesPopulationDeferredMutex() const;
   bool IsInit() const { return m_is_init; }
   void UpdateInput();
 

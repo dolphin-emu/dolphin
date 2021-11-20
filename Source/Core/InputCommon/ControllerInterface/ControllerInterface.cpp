@@ -409,6 +409,13 @@ void ControllerInterface::UpdateInput()
   }
 }
 
+std::unique_lock<std::recursive_mutex>
+ControllerInterface::GetDevicesPopulationDeferredMutex() const
+{
+  std::unique_lock<std::recursive_mutex> lock(m_devices_population_mutex, std::defer_lock);
+  return lock;
+}
+
 void ControllerInterface::SetCurrentInputChannel(ciface::InputChannel input_channel)
 {
   tls_input_channel = input_channel;

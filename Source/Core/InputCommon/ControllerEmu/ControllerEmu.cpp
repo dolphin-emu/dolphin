@@ -49,7 +49,20 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 
 void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvironment& env)
 {
-  const auto lock = GetStateLock();
+  // This mutex prevent a deadlock that could happen if a thread called this directly, while
+  // another thread reached here from within a ControllerInterface call that modifies devices.
+  // The deadlock would happen as this needs both
+  // DeviceContainer::m_devices_mutex and s_get_state_mutex.
+  // If the devices population mutex has already been locked by another thread,
+  // then all the EmulatedController(s) references are already being updated and
+  // will be up to date anyway, as anything that we could have changed
+  // before calling this should have required GetStateLock() anyway.
+  std::unique_lock<std::recursive_mutex> lock_devices_population =
+      g_controller_interface.GetDevicesPopulationDeferredMutex();
+  if (!lock_devices_population.try_lock())
+    return;
+
+  const auto lock_state = GetStateLock();
 
   for (auto& ctrlGroup : groups)
   {
@@ -77,6 +90,12 @@ void EmulatedController::UpdateSingleControlReference(const ControllerInterface&
 {
   ciface::ExpressionParser::ControlEnvironment env(devi, GetDefaultDevice(), m_expression_vars);
 
+  std::unique_lock<std::recursive_mutex> lock_devices_population =
+      g_controller_interface.GetDevicesPopulationDeferredMutex();
+  if (!lock_devices_population.try_lock())
+    return;
+
+  const auto lock_state = GetStateLock();
   ref->UpdateReference(env);
 
   env.CleanUnusedVariables();
