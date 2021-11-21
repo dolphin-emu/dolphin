@@ -612,6 +612,38 @@ void Core::ExportState(std::string_view state_path)
   file.WriteBytes(core_state.data(), core_state.size());
 }
 
+void Core::ImportSave(std::string_view save_path)
+{
+  Flush();
+  if (!IsStarted())
+    return;
+
+  File::IOFile file(std::string(save_path), "rb");
+  std::vector<u8> save_file(file.GetSize());
+  if (!file.ReadBytes(save_file.data(), save_file.size()))
+    return;
+
+  m_core->savedataRestore(m_core, save_file.data(), save_file.size(), true);
+  m_core->reset(m_core);
+}
+
+void Core::ExportSave(std::string_view save_path)
+{
+  Flush();
+  if (!IsStarted())
+    return;
+
+  File::IOFile file(std::string(save_path), "wb");
+
+  void* sram = nullptr;
+  size_t size = m_core->savedataClone(m_core, &sram);
+  if (!sram)
+    return;
+
+  file.WriteBytes(sram, size);
+  free(sram);
+}
+
 void Core::DoState(PointerWrap& p)
 {
   Flush();
