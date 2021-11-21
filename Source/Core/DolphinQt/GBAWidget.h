@@ -51,6 +51,7 @@ public:
   void PromptForEReaderCards();
   void ResetCore();
   void DoState(bool export_state);
+  void ImportExportSave(bool export_save);
   void Resize(int scale);
 
   bool IsBorderless() const;
