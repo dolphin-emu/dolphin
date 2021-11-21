@@ -221,7 +221,7 @@ protected:
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
   // Loadstore routines
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
-  void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
+  void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset, bool update);
   // If lookup succeeds, writes upper 15 bits of physical address to addr_out. If not,
   // jumps to the returned FixupBranch. Clobbers tmp and the 17 lower bits of addr_out.
   Arm64Gen::FixupBranch BATAddressLookup(Arm64Gen::ARM64Reg addr_out, Arm64Gen::ARM64Reg addr_in,
@@ -265,7 +265,10 @@ protected:
                           bool always_exception = false);
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false,
                           bool always_exception = false);
-  void WriteConditionalExceptionExit(int exception);
+  void WriteConditionalExceptionExit(int exception, u64 increment_sp_on_exit = 0);
+  void WriteConditionalExceptionExit(int exception, Arm64Gen::ARM64Reg temp_gpr,
+                                     Arm64Gen::ARM64Reg temp_fpr = Arm64Gen::ARM64Reg::INVALID_REG,
+                                     u64 increment_sp_on_exit = 0);
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
