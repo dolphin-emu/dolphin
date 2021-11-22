@@ -3,30 +3,33 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
-import android.content.IntentFilter;
 import android.widget.Toast;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.core.app.ComponentActivity;
+import androidx.lifecycle.Observer;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
 
 public class AfterDirectoryInitializationRunner
 {
-  private DirectoryStateReceiver mDirectoryStateReceiver;
-  private LocalBroadcastManager mLocalBroadcastManager;
-
+  private Observer<DirectoryInitializationState> mObserver;
   private Runnable mUnregisterCallback;
 
   /**
    * Sets a Runnable which will be called when:
    *
-   * 1. The Runnable supplied to {@link #run} is just about to run, or
-   * 2. {@link #run} was called with abortOnFailure == true and there is a failure
+   * 1. The Runnable supplied to {@link #runWithLifecycle}/{@link #runWithoutLifecycle}
+   * is just about to run, or
+   * 2. {@link #runWithLifecycle}/{@link #runWithoutLifecycle} was called with
+   * abortOnFailure == true and there is a failure
+   *
+   * @return this
    */
-  public void setFinishedCallback(Runnable runnable)
+  public AfterDirectoryInitializationRunner setFinishedCallback(Runnable runnable)
   {
     mUnregisterCallback = runnable;
+    return this;
   }
 
   private void runFinishedCallback()
@@ -48,13 +51,16 @@ public class AfterDirectoryInitializationRunner
    *
    * Calling this function multiple times per object is not supported.
    *
-   * If abortOnFailure is true and the user has not granted the required
-   * permission or the external storage was not found, a message will be
-   * shown to the user and the Runnable will not run. If it is false, the
-   * attempt to run the Runnable will never be aborted, and the Runnable
+   * If abortOnFailure is true and external storage was not found, a message
+   * will be shown to the user and the Runnable will not run. If it is false,
+   * the attempt to run the Runnable will never be aborted, and the Runnable
    * is guaranteed to run if directory initialization ever finishes.
+   *
+   * If the passed-in activity gets destroyed before this operation finishes,
+   * it will be automatically canceled.
    */
-  public void run(Context context, boolean abortOnFailure, Runnable runnable)
+  public void runWithLifecycle(ComponentActivity activity, boolean abortOnFailure,
+          Runnable runnable)
   {
     if (DirectoryInitialization.areDolphinDirectoriesReady())
     {
@@ -62,19 +68,58 @@ public class AfterDirectoryInitializationRunner
       runnable.run();
     }
     else if (abortOnFailure &&
-            showErrorMessage(context, DirectoryInitialization.getDolphinDirectoriesState()))
+            showErrorMessage(activity,
+                    DirectoryInitialization.getDolphinDirectoriesState().getValue()))
     {
       runFinishedCallback();
     }
     else
     {
-      runAfterInitialization(context, abortOnFailure, runnable);
+      mObserver = createObserver(activity, abortOnFailure, runnable);
+      DirectoryInitialization.getDolphinDirectoriesState().observe(activity, mObserver);
     }
   }
 
-  private void runAfterInitialization(Context context, boolean abortOnFailure, Runnable runnable)
+  /**
+   * Executes a Runnable after directory initialization has finished.
+   *
+   * If this is called when directory initialization already is done,
+   * the Runnable will be executed immediately. If this is called before
+   * directory initialization is done, the Runnable will be executed
+   * after directory initialization finishes successfully, or never
+   * in case directory initialization doesn't finish successfully.
+   *
+   * Calling this function multiple times per object is not supported.
+   *
+   * If abortOnFailure is true and external storage was not found, a message
+   * will be shown to the user and the Runnable will not run. If it is false,
+   * the attempt to run the Runnable will never be aborted, and the Runnable
+   * is guaranteed to run if directory initialization ever finishes.
+   */
+  public void runWithoutLifecycle(Context context, boolean abortOnFailure, Runnable runnable)
   {
-    mDirectoryStateReceiver = new DirectoryStateReceiver(state ->
+    if (DirectoryInitialization.areDolphinDirectoriesReady())
+    {
+      runFinishedCallback();
+      runnable.run();
+    }
+    else if (abortOnFailure &&
+            showErrorMessage(context,
+                    DirectoryInitialization.getDolphinDirectoriesState().getValue()))
+    {
+      runFinishedCallback();
+    }
+    else
+    {
+      mObserver = createObserver(context, abortOnFailure, runnable);
+      DirectoryInitialization.getDolphinDirectoriesState().observeForever(mObserver);
+    }
+  }
+
+  private Observer<DirectoryInitializationState> createObserver(Context context,
+          boolean abortOnFailure, Runnable runnable)
+  {
+    return (state) ->
     {
       boolean done = state == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
 
@@ -93,22 +138,12 @@ public class AfterDirectoryInitializationRunner
       {
         runnable.run();
       }
-    });
-
-    mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
-
-    IntentFilter statusIntentFilter = new IntentFilter(DirectoryInitialization.BROADCAST_ACTION);
-    mLocalBroadcastManager.registerReceiver(mDirectoryStateReceiver, statusIntentFilter);
+    };
   }
 
   public void cancel()
   {
-    if (mDirectoryStateReceiver != null)
-    {
-      mLocalBroadcastManager.unregisterReceiver(mDirectoryStateReceiver);
-      mDirectoryStateReceiver = null;
-      mLocalBroadcastManager = null;
-    }
+    DirectoryInitialization.getDolphinDirectoriesState().removeObserver(mObserver);
   }
 
   private static boolean showErrorMessage(Context context, DirectoryInitializationState state)

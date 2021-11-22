@@ -176,7 +176,7 @@ public final class EmulationActivity extends AppCompatActivity
     if (sIgnoreLaunchRequests)
       return;
 
-    new AfterDirectoryInitializationRunner().run(activity, true, () ->
+    new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true, () ->
     {
       if (FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) &&
               FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) &&

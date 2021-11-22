@@ -26,6 +26,7 @@ public final class GameFileCacheManager
   private static GameFileCache gameFileCache = null;
   private static final MutableLiveData<GameFile[]> gameFiles =
           new MutableLiveData<>(new GameFile[]{});
+  private static boolean runRescanAfterLoad = false;
 
   private static final ExecutorService executor = Executors.newFixedThreadPool(1);
   private static final MutableLiveData<Boolean> loadInProgress = new MutableLiveData<>(false);
@@ -127,7 +128,7 @@ public final class GameFileCacheManager
     if (!loadInProgress.getValue())
     {
       loadInProgress.setValue(true);
-      new AfterDirectoryInitializationRunner().run(context, false,
+      new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false,
               () -> executor.execute(GameFileCacheManager::load));
     }
   }
@@ -135,14 +136,15 @@ public final class GameFileCacheManager
   /**
    * Asynchronously scans for games in the user's configured folders,
    * updating the game file cache with the results.
-   * If startLoad hasn't been called before this, this has no effect.
+   * If loading the game file cache hasn't started or hasn't finished,
+   * the execution of this will be postponed until it finishes.
    */
   public static void startRescan(Context context)
   {
     if (!rescanInProgress.getValue())
     {
       rescanInProgress.setValue(true);
-      new AfterDirectoryInitializationRunner().run(context, false,
+      new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false,
               () -> executor.execute(GameFileCacheManager::rescan));
     }
   }
@@ -190,17 +192,33 @@ public final class GameFileCacheManager
       }
     }
 
+    if (runRescanAfterLoad)
+    {
+      rescanInProgress.postValue(true);
+    }
+
     loadInProgress.postValue(false);
+
+    if (runRescanAfterLoad)
+    {
+      runRescanAfterLoad = false;
+      rescan();
+    }
   }
 
   /**
    * Scans for games in the user's configured folders,
    * updating the game file cache with the results.
-   * If load hasn't been called before this, this has no effect.
+   * If load hasn't been called before this, the execution of this
+   * will be postponed until after load runs.
    */
   private static void rescan()
   {
-    if (gameFileCache != null)
+    if (gameFileCache == null)
+    {
+      runRescanAfterLoad = true;
+    }
+    else
     {
       String[] gamePaths = GameFileCache.getAllGamePaths();
 
