@@ -65,14 +65,14 @@ static bool CopyBackupFile(const std::string& path_from, const std::string& path
 
 static void DeleteBackupFile(const std::string& file_name)
 {
-  File::Delete(File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name);
+  File::Delete(File::GetUserPath(D_BACKUP_IDX) + file_name);
 }
 
 static void BackupFile(const std::string& path_in_nand)
 {
   const std::string file_name = PathToFileName(path_in_nand);
-  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP + path_in_nand;
-  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name;
+  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + path_in_nand;
+  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + file_name;
 
   CopyBackupFile(original_path, backup_path);
 }
@@ -80,8 +80,8 @@ static void BackupFile(const std::string& path_in_nand)
 static void RestoreFile(const std::string& path_in_nand)
 {
   const std::string file_name = PathToFileName(path_in_nand);
-  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP + path_in_nand;
-  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name;
+  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + path_in_nand;
+  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + file_name;
 
   if (CopyBackupFile(backup_path, original_path))
     DeleteBackupFile(file_name);

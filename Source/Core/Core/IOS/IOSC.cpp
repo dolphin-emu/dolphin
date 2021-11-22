@@ -557,7 +557,7 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
 
 void IOSC::LoadEntries()
 {
-  File::IOFile file{File::GetUserPath(D_WIIROOT_IDX) + "/keys.bin", "rb"};
+  File::IOFile file{File::GetUserPath(D_WIIROOT_IDX) + "keys.bin", "rb"};
   if (!file)
   {
     WARN_LOG_FMT(IOS, "keys.bin could not be found. Default values will be used.");
