@@ -26,6 +26,7 @@
 #endif
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1052,12 +1053,31 @@ const std::string& GetUserPath(unsigned int dir_index)
 
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
-void SetUserPath(unsigned int dir_index, const std::string& path)
+void SetUserPath(unsigned int dir_index, std::string path)
 {
   if (path.empty())
     return;
 
-  s_user_paths[dir_index] = path;
+#ifdef _WIN32
+  // On Windows, replace all '\' with '/' since we assume the latter in various places in the
+  // codebase.
+  for (char& c : path)
+  {
+    if (c == '\\')
+      c = '/';
+  }
+#endif
+
+  // Directories should end with a separator, files should not.
+  while (StringEndsWith(path, "/"))
+    path.pop_back();
+  if (path.empty())
+    return;
+  const bool is_directory = dir_index < FIRST_FILE_USER_PATH_IDX;
+  if (is_directory)
+    path.push_back('/');
+
+  s_user_paths[dir_index] = std::move(path);
   RebuildUserDirectories(dir_index);
 }
 
