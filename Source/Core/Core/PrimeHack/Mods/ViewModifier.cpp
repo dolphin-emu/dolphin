@@ -371,6 +371,9 @@ void ViewModifier::init_mod_mp2_gc(Region region) {
 }
 
 void ViewModifier::init_mod_mp3(Region region) {
+  const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
+  const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
+
   if (region == Region::NTSC_U) {
     add_code_change(0x8007f3dc, 0x60000000);
     add_code_change(0x800dbf50, 0x60000000);
@@ -378,9 +381,6 @@ void ViewModifier::init_mod_mp3(Region region) {
     add_code_change(0x80179860, 0x60000000);
     add_code_change(0x8031490c, 0x38600001, "culling");
     add_code_change(0x8031490c + 0x4, 0x4e800020, "culling");
-
-    const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
-    const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
     add_code_change(0x802b1ce4, on_camera_change_vmc);
   } else if (region == Region::PAL) {
     add_code_change(0x8007f3dc, 0x60000000);
@@ -389,14 +389,13 @@ void ViewModifier::init_mod_mp3(Region region) {
     add_code_change(0x801791ac, 0x60000000);
     add_code_change(0x80314038, 0x38600001, "culling");
     add_code_change(0x80314038 + 0x4, 0x4e800020, "culling");
-
-    const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
-    const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
     add_code_change(0x802b19c0, on_camera_change_vmc);
   }
 }
 
 void ViewModifier::init_mod_mp3_standalone(Region region) {
+  const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
+  const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
   if (region == Region::NTSC_U) {
     add_code_change(0x8007f504, 0x60000000);
     add_code_change(0x800dd87c, 0x60000000);
@@ -404,20 +403,23 @@ void ViewModifier::init_mod_mp3_standalone(Region region) {
     add_code_change(0x8017d40c, 0x60000000);
     add_code_change(0x80316a1c, 0x38600001, "culling");
     add_code_change(0x80316a1c + 0x4, 0x4e800020, "culling");
-
-    const int on_camera_change_fn = PowerPC::RegisterVmcall(ViewModifier::on_camera_change);
-    const u32 on_camera_change_vmc = gen_vmcall(on_camera_change_fn, 0);
     add_code_change(0x802b26c0, on_camera_change_vmc);
   } else if (region == Region::PAL) {
     add_code_change(0x8007f7a0, 0x60000000);
-    add_code_change(0x8009d41c, 0x60000000);
+    add_code_change(0x800ddd38, 0x60000000);
+    add_code_change(0x800dd36c, 0x60000000);
+    add_code_change(0x8017df00, 0x60000000);
     add_code_change(0x80318170, 0x38600001, "culling");
     add_code_change(0x80318170 + 0x4, 0x4e800020, "culling");
+    add_code_change(0x802b3ac4, on_camera_change_vmc);
   } else if (region == Region::NTSC_J) {
     add_code_change(0x8007f934, 0x60000000);
-    add_code_change(0x8009d5b0, 0x60000000);
+    add_code_change(0x800de128, 0x60000000);
+    add_code_change(0x800dd75c, 0x60000000);
+    add_code_change(0x8017f10c, 0x60000000);
     add_code_change(0x8031a4b4, 0x38600001, "culling");
     add_code_change(0x8031a4b4 + 0x4, 0x4e800020, "culling");
+    add_code_change(0x802b4fd8, on_camera_change_vmc);
   }
 }
 }  // namespace prime
