@@ -804,6 +804,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
     case RETRO_DEVICE_REAL_WIIMOTE:
       WiimoteCommon::SetSource(port, WiimoteSource::Real);
+      break;
 
     default:
       WiimoteCommon::SetSource(port, WiimoteSource::None);
@@ -837,6 +838,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       desc = Libretro::Input::descWiimoteCCPro;
       break;
 
+    case RETRO_DEVICE_REAL_WIIMOTE:
     case RETRO_DEVICE_NONE:
       continue;
 
