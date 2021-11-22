@@ -387,7 +387,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDire
     JNIEnv* env, jclass, jstring jDirectory)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  File::SetUserPath(D_CACHE_IDX, GetJString(env, jDirectory) + DIR_SEP);
+  File::SetUserPath(D_CACHE_IDX, GetJString(env, jDirectory));
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv*, jclass)
