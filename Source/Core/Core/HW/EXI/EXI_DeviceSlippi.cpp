@@ -113,6 +113,9 @@ CEXISlippi::CEXISlippi()
   // Initialize local selections to empty
   localSelections.Reset();
 
+  // Forces savestate to re-init regions when a new ISO is loaded
+	SlippiSavestate::shouldForceInit = true;
+
   // Update user file and then listen for User
 #ifndef IS_PLAYBACK
   user->ListenForLogIn();
