@@ -97,6 +97,7 @@ static const std::map<u8, std::string> cStadiumIdToStadiumName = {
 };
 
 static const std::map<u8, std::string> cTypeOfContactToHR = {
+    {0xFF, "Miss"},
     {0, "Sour"},
     {1, "Nice"}, 
     {2, "Perfect"},
@@ -126,6 +127,14 @@ static const std::map<u8, std::string> cChargePitchTypeToHR = {
     {1, "???"},
     {2, "Slider"},
     {3, "Perfect"}
+};
+
+static const std::map<u8, std::string> cTypeOfSwing = {
+    {0, "None"},
+    {1, "Slap"},
+    {2, "Charge"},
+    {3, "Star"},
+    {4, "Bunt"}
 };
 
 //Const for structs
@@ -298,7 +307,7 @@ public:
         u8 stadium;
 
         u8 innings_selected;
-        u8 innings_played = 0;
+        u8 innings_played;
 
         //Netplay info
         bool netplay;
@@ -390,8 +399,10 @@ public:
 
         //Hit Status
         u8 type_of_contact;
+        u8 swing;
         u8 charge_swing;
         u8 bunt;
+        u8 type_of_swing;
         u32 charge_power_up;
         u32 charge_power_down;
         u8 star_swing;
