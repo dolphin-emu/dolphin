@@ -80,8 +80,7 @@ Settings::Settings()
       // they'd continue living until the queued event has run, but some devices can't be recreated
       // until they are destroyed.
       // This is safe from any thread. Devices will be refreshed and re-acquired and in
-      // DevicesChanged(). Waiting on QueueOnObject() to have finished running was not feasible as
-      // it would cause deadlocks without heavy workarounds.
+      // DevicesChanged(). Calling it without queueing shouldn't cause any deadlocks but is slow.
       emit ReleaseDevices();
 
       QueueOnObject(this, [this] { emit DevicesChanged(); });
