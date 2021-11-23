@@ -193,6 +193,9 @@ void StatTracker::logGameInfo(){
 
     m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
+    m_game_info.innings_selected = Memory::Read_U8(aInningsSelected);
+    m_game_info.innings_played   = Memory::Read_U8(aAB_Inning);
+
     //Captains
     if (m_game_info.away_port == m_game_info.team0_port){
         m_game_info.away_captain = Memory::Read_U8(aTeam0_Captain);
@@ -403,6 +406,12 @@ void StatTracker::logABMiss(){
 void StatTracker::logABPitch(){
     std::cout << "Logging Pitching" << std::endl;
 
+    //Add this inning to the list of innings that the pitcher has pitched in
+    u8 pitcher_roster_id = Memory::Read_U8(aAB_PitcherRosterID);
+    u8 pitcher_team_id   = !m_curr_ab_stat.team_id;
+    EndGameRosterDefensiveStats& stat = m_defensive_stats[pitcher_team_id][pitcher_roster_id];
+    stat.innings_pitched.emplace(m_curr_ab_stat.inning);
+
     m_curr_ab_stat.pitcher_id         = Memory::Read_U8(aAB_PitcherID);
     m_curr_ab_stat.pitcher_handedness = Memory::Read_U8(aAB_PitcherHandedness);
     m_curr_ab_stat.pitch_type         = Memory::Read_U8(aAB_PitchType);
@@ -465,8 +474,11 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     json_stream << "  \"Away Player\": \"" << away_player_name << "\"," << std::endl; //TODO MAKE THIS AN ID
     json_stream << "  \"Home Player\": \"" << home_player_name << "\"," << std::endl;
 
-    json_stream << "  \"Away Score\": \"" << std::dec << m_game_info.away_score << "\"," << std::endl;
-    json_stream << "  \"Home Score\": \"" << std::dec << m_game_info.home_score << "\"," << std::endl;
+    json_stream << "  \"Away Score\": " << std::dec << m_game_info.away_score << "," << std::endl;
+    json_stream << "  \"Home Score\": " << std::dec << m_game_info.home_score << "," << std::endl;
+
+    json_stream << "  \"Innings Selected\": \"" << std::dec << std::to_string(m_game_info.innings_selected) << "\"," << std::endl;
+    json_stream << "  \"Innings Played\": \"" << std::dec << std::to_string(m_game_info.innings_played) << "\"," << std::endl;
     
     //Team Captain and Roster
     for (int team=0; team < cNumOfTeams; ++team){
@@ -508,8 +520,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             }
         }
         json_stream << "  \"" << team_label << " Team Roster\": " << str_roster << std::endl;
-        json_stream << "  \"Quitter Team\": \"" << m_game_info.quitter_team << "\"," << std::endl;
     }
+    json_stream << "  \"Quitter Team\": \"" << m_game_info.quitter_team << "\"," << std::endl;
 
     json_stream << "  \"Player Stats\": [" << std::endl;
     //Defensive Stats
@@ -555,7 +567,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Batter Outs\": " << std::to_string(def_stat.batter_outs) << "," << std::endl;
             json_stream << "        \"Strikeouts\": " << std::to_string(def_stat.strike_outs) << "," << std::endl;
             json_stream << "        \"Star Pitches Thrown\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
-            json_stream << "        \"Big Plays\": " << std::to_string(def_stat.star_pitches_thrown) << std::endl;
+            json_stream << "        \"Big Plays\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
+            json_stream << "        \"Innings Pitched\": " << std::to_string(def_stat.innings_pitched.size()) << std::endl;
             json_stream << "      }," << std::endl;
 
             EndGameRosterOffensiveStats& of_stat = m_offensive_stats[team][roster];

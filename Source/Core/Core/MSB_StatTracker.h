@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <map>
+#include <set>
 #include "Core/HW/Memmap.h"
 
 #include "Core/LocalPlayers.h"
@@ -151,6 +152,8 @@ static const u32 aTeam1_Captain = 0x80353087;
 static const u32 aAwayTeam_Score = 0x808928A4;
 static const u32 aHomeTeam_Score = 0x808928CA;
 
+static const u32 aInningsSelected = 0x8089294A;
+
 static const u8 c_roster_table_offset = 0xa0;
 
 //Addrs for DefensiveStats
@@ -207,6 +210,7 @@ static const u32 aAB_RunnerOn2       = 0x8088F1F1;
 static const u32 aAB_RunnerOn3       = 0x8088F345;
 
 //At-Bat Pitch
+static const u32 aAB_PitcherRosterID   = 0x80890AD9;
 static const u32 aAB_PitcherID         = 0x80890ADB;
 static const u32 aAB_PitcherHandedness = 0x80890B01;
 static const u32 aAB_PitchType         = 0x80890B21; //0=Curve, Charge=1, ChangeUp=2
@@ -293,6 +297,9 @@ public:
 
         u8 stadium;
 
+        u8 innings_selected;
+        u8 innings_played = 0;
+
         //Netplay info
         bool netplay;
         bool host;
@@ -326,6 +333,9 @@ public:
 
         //Calculated
         u32 ERA;
+
+        //Manually collected
+        std::set<u8> innings_pitched; //size() will give number of innings pitched
     };
     std::array<std::array<EndGameRosterDefensiveStats, cRosterSize>, cNumOfTeams> m_defensive_stats;
 
