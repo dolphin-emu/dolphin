@@ -106,7 +106,7 @@ bool SlippiUser::AttemptLogin()
 {
   std::string user_file_path = getUserFilePath();
 
-  INFO_LOG(SLIPPI_ONLINE, "Looking for file at: %s", user_file_path.c_str());
+  // INFO_LOG(SLIPPI_ONLINE, "Looking for file at: %s", user_file_path.c_str());
 
   {
     // Put the filename here in its own scope because we don't really need it elsewhere
@@ -312,6 +312,7 @@ SlippiUser::UserInfo SlippiUser::parseFile(std::string file_contents)
   info.play_key = readString(res, "playKey");
   info.connect_code = readString(res, "connectCode");
   info.latest_version = readString(res, "latestVersion");
+  info.port = res.value("port", -1);
 
   return info;
 }

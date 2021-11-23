@@ -189,6 +189,7 @@ private:
   void logMessageFromGame(u8* payload);
   void prepareFileLength(u8* payload);
   void prepareFileLoad(u8* payload);
+  int getCharColor(u8 charId, u8 teamId);
 
   void FileWriteThread(void);
 
@@ -214,6 +215,7 @@ private:
   u32 frameSeqIdx = 0;
 
   bool isEnetInitialized = false;
+  bool firstMatch = true;
 
   std::default_random_engine generator;
 

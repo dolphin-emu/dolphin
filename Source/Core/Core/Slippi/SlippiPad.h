@@ -10,8 +10,10 @@ class SlippiPad
 public:
   SlippiPad(int32_t frame);
   SlippiPad(int32_t frame, u8* padBuf);
+  SlippiPad(int32_t frame, u8 playerIdx, u8 *padBuf);
   ~SlippiPad();
 
   int32_t frame;
+  u8 playerIdx;
   u8 padBuf[SLIPPI_PAD_FULL_SIZE];
 };
