@@ -38,6 +38,7 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
@@ -95,7 +96,8 @@ static float AspectToWidescreen(float aspect)
 static bool DumpFrameToPNG(const FrameDump::FrameData& frame, const std::string& file_name)
 {
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
-                                            frame.stride);
+                                            frame.stride,
+                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
 }
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,

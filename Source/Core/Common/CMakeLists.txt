@@ -64,6 +64,8 @@ add_library(common
   HttpRequest.h
   Image.cpp
   Image.h
+  ImageC.c
+  ImageC.h
   IniFile.cpp
   IniFile.h
   Inline.h
