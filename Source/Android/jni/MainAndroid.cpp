@@ -549,8 +549,7 @@ static float GetRenderSurfaceScale(JNIEnv* env)
 }
 
 static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool riivolution,
-                const std::optional<std::string>& savestate_path = {},
-                bool delete_savestate = false)
+                BootSessionData boot_session_data = BootSessionData())
 {
   ASSERT(!paths.empty());
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
@@ -561,9 +560,8 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool riivolu
 
   s_have_wm_user_stop = false;
 
-  std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(paths, savestate_path);
-  if (boot)
-    boot->delete_savestate = delete_savestate;
+  std::unique_ptr<BootParameters> boot =
+      BootParameters::GenerateFromFile(paths, std::move(boot_session_data));
 
   if (riivolution && std::holds_alternative<BootParameters::Disc>(boot->parameters))
   {
@@ -638,8 +636,10 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2ZLjava_la
     JNIEnv* env, jclass, jobjectArray jPaths, jboolean jRiivolution, jstring jSavestate,
     jboolean jDeleteSavestate)
 {
-  Run(env, JStringArrayToVector(env, jPaths), jRiivolution, GetJString(env, jSavestate),
-      jDeleteSavestate);
+  DeleteSavestateAfterBoot delete_state =
+      jDeleteSavestate ? DeleteSavestateAfterBoot::Yes : DeleteSavestateAfterBoot::No;
+  Run(env, JStringArrayToVector(env, jPaths), jRiivolution,
+      BootSessionData(GetJString(env, jSavestate), delete_state));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env, jclass,

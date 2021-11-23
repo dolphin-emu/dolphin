@@ -33,6 +33,7 @@
 #include "Common/Version.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -75,8 +76,6 @@ using namespace WiimoteCommon;
 
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
-static std::unique_ptr<IOS::HLE::FS::FileSystem> s_wii_sync_fs;
-static std::vector<u64> s_wii_sync_titles;
 static bool s_si_poll_batching = false;
 
 // called from ---GUI--- thread
@@ -1191,7 +1190,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     }
   }
 
-  SetWiiSyncData(std::move(temp_fs), titles);
+  SetWiiSyncData(std::move(temp_fs), std::move(titles));
   SyncSaveDataResponse(true);
 }
 
@@ -1721,7 +1720,14 @@ bool NetPlayClient::StartGame(const std::string& path)
   }
 
   // boot game
-  m_dialog->BootGame(path);
+  auto boot_session_data = std::make_unique<BootSessionData>();
+  boot_session_data->SetWiiSyncData(std::move(m_wii_sync_fs), std::move(m_wii_sync_titles), [] {
+    // on emulation end clean up the Wii save sync directory -- see OnSyncSaveDataWii()
+    const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+    if (File::Exists(path))
+      File::DeleteDirRecursively(path);
+  });
+  m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
 
@@ -2251,8 +2257,6 @@ bool NetPlayClient::StopGame()
   // stop game
   m_dialog->StopGame();
 
-  ClearWiiSyncData();
-
   return true;
 }
 
@@ -2496,6 +2500,13 @@ void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
   m_dialog->OnPadBufferChanged(size);
 }
 
+void NetPlayClient::SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs,
+                                   std::vector<u64> titles)
+{
+  m_wii_sync_fs = std::move(fs);
+  m_wii_sync_titles = std::move(titles);
+}
+
 SyncIdentifier NetPlayClient::GetSDCardIdentifier()
 {
   return SyncIdentifier{{}, "sd", {}, {}, {}, {}};
@@ -2536,33 +2547,6 @@ const NetSettings& GetNetSettings()
 {
   ASSERT(IsNetPlayRunning());
   return netplay_client->GetNetSettings();
-}
-
-IOS::HLE::FS::FileSystem* GetWiiSyncFS()
-{
-  return s_wii_sync_fs.get();
-}
-
-const std::vector<u64>& GetWiiSyncTitles()
-{
-  return s_wii_sync_titles;
-}
-
-void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles)
-{
-  s_wii_sync_fs = std::move(fs);
-  s_wii_sync_titles.insert(s_wii_sync_titles.end(), titles.begin(), titles.end());
-}
-
-void ClearWiiSyncData()
-{
-  // We're just assuming it will always be here because it is
-  const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
-  if (File::Exists(path))
-    File::DeleteDirRecursively(path);
-
-  s_wii_sync_fs.reset();
-  s_wii_sync_titles.clear();
 }
 
 void SetSIPollBatching(bool state)

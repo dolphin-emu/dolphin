@@ -450,7 +450,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
         std::make_unique<BootParameters>(
             BootParameters::IPL{StartUp.m_region,
                                 std::move(std::get<BootParameters::Disc>(boot->parameters))},
-            boot->savestate_path),
+            std::move(boot->boot_session_data)),
         wsi);
   }
   return Core::Init(std::move(boot), wsi);

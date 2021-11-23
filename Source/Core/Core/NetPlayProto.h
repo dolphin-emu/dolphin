@@ -257,10 +257,6 @@ bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,
 //               IsNetPlayRunning() must be true before calling this.
 const NetSettings& GetNetSettings();
-IOS::HLE::FS::FileSystem* GetWiiSyncFS();
-const std::vector<u64>& GetWiiSyncTitles();
-void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles);
-void ClearWiiSyncData();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();
