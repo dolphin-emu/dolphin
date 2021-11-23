@@ -295,10 +295,15 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 
 void SlippiNetplayClient::writeToPacket(sf::Packet& packet, SlippiPlayerSelections& s)
 {
+  u8 playerIndex = isDecider ? 0 : 1;
+	u8 teamId = 0;
+
   packet << static_cast<NetPlay::MessageId>(NetPlay::NP_MSG_SLIPPI_MATCH_SELECTIONS);
   packet << s.characterId << s.characterColor << s.isCharacterSelected;
+  packet << playerIndex;
   packet << s.stageId << s.isStageSelected;
   packet << s.rngOffset;
+  packet << teamId;
 }
 
 void SlippiNetplayClient::WriteChatMessageToPacket(sf::Packet& packet, int messageId)
@@ -322,13 +327,20 @@ SlippiNetplayClient::readSelectionsFromPacket(sf::Packet& packet)
 {
   auto s = std::make_unique<SlippiPlayerSelections>();
 
+  u8 playerIndex;
+	u8 teamId;
+
   packet >> s->characterId;
   packet >> s->characterColor;
   packet >> s->isCharacterSelected;
 
+  packet >> playerIndex;
+
   packet >> s->stageId;
   packet >> s->isStageSelected;
   packet >> s->rngOffset;
+
+  packet >> teamId;
 
   return std::move(s);
 }

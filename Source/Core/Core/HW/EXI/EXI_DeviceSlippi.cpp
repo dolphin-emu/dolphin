@@ -103,6 +103,7 @@ CEXISlippi::CEXISlippi()
   g_playbackStatus = std::make_unique<SlippiPlaybackStatus>();
   matchmaking = std::make_unique<SlippiMatchmaking>(user.get());
   gameFileLoader = std::make_unique<SlippiGameFileLoader>();
+  game_reporter = std::make_unique<SlippiGameReporter>(user.get());
   g_replayComm = std::make_unique<SlippiReplayComm>();
 
   generator = std::default_random_engine(Common::Timer::GetTimeMs());
@@ -1884,10 +1885,21 @@ void CEXISlippi::prepareOnlineMatchState()
 #ifndef LOCAL_TESTING
       // If we get here, our opponent likely disconnected. Let's trigger a clean up
       handleConnectionCleanup();
-      prepareOnlineMatchState();
+      prepareOnlineMatchState(); // run again with new state
       return;
 #endif
     }
+    // Here we are connected, check to see if we should init play session
+		if (!is_play_session_active)
+		{
+			std::vector<std::string> uids{"", ""};
+			uids[localPlayerIndex] = userInfo.uid;
+			uids[remotePlayerIndex] = opponent.uid;
+
+			game_reporter->StartNewSession(uids);
+
+			is_play_session_active = true;
+		}
   }
   else
   {
@@ -2244,6 +2256,9 @@ void CEXISlippi::handleConnectionCleanup()
   // Reset any forced errors
   forcedError.clear();
 
+  // Reset play session
+	is_play_session_active = false;
+
 #ifdef LOCAL_TESTING
   isLocalConnected = false;
 #endif
@@ -2258,6 +2273,30 @@ void CEXISlippi::prepareNewSeed()
   u32 newSeed = generator() % 0xFFFFFFFF;
 
   appendWordToBuffer(&m_read_queue, newSeed);
+}
+
+void CEXISlippi::handleReportGame(u8 *payload)
+{
+	SlippiGameReporter::GameReport r;
+	r.duration_frames = Common::swap32(&payload[0]);
+
+	//ERROR_LOG(SLIPPI_ONLINE, "Frames: %d", r.duration_frames);
+
+	for (auto i = 0; i < 2; ++i)
+	{
+		SlippiGameReporter::PlayerReport p;
+		auto offset = i * 6;
+		p.stocks_remaining = payload[5 + offset];
+
+		auto swappedDamageDone = Common::swap32(&payload[6 + offset]);
+		p.damage_done = *(float *)&swappedDamageDone;
+
+		//ERROR_LOG(SLIPPI_ONLINE, "Stocks: %d, DamageDone: %f", p.stocks_remaining, p.damage_done);
+
+		r.players.push_back(p);
+	}
+
+	game_reporter->StartReport(r);
 }
 
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
@@ -2386,6 +2425,9 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     case CMD_GET_NEW_SEED:
       prepareNewSeed();
       break;
+    case CMD_REPORT_GAME:
+			handleReportGame(&memPtr[bufLoc + 1]);
+			break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);

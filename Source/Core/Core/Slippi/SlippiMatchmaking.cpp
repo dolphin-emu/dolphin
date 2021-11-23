@@ -384,20 +384,38 @@ void SlippiMatchmaking::handleMatchmaking()
 
   m_isSwapAttempt = false;
   m_netplayClient = nullptr;
-  m_oppIp = getResp.value("oppAddress", "");
-  m_isHost = getResp.value("isHost", false);
 
   // Clear old user
   SlippiUser::UserInfo emptyInfo;
   m_oppUser = emptyInfo;
 
-  auto oppUser = getResp["oppUser"];
-  if (oppUser.is_object())
-  {
-    m_oppUser.uid = oppUser.value("uid", "");
-    m_oppUser.display_name = oppUser.value("displayName", "");
-    m_oppUser.connect_code = oppUser.value("connectCode", "");
-  }
+  auto queue = getResp["players"];
+	if (queue.is_array())
+	{
+		for (json::iterator it = queue.begin(); it != queue.end(); ++it)
+		{
+			json el = *it;
+			//SlippiUser::UserInfo playerInfo;
+
+			bool isLocal = el.value("isLocalPlayer", false);
+			//playerInfo.uid = el.value("uid", "");
+			//playerInfo.displayName = el.value("displayName", "");
+			//playerInfo.connectCode = el.value("connectCode", "");
+			//playerInfo.port = el.value("port", 0);
+
+			if (!isLocal)
+			{
+				m_oppIp = el.value("ipAddress", "1.1.1.1:123");
+				m_oppUser.uid = el.value("uid", "");
+				m_oppUser.display_name = el.value("displayName", "");
+				m_oppUser.connect_code = el.value("connectCode", "");
+			}
+
+			//else
+			//	m_localPlayerPort = playerInfo.port - 1;
+		};
+	}
+	m_isHost = getResp.value("isHost", false);
 
   // Disconnect and destroy enet client to mm server
   terminateMmConnection();

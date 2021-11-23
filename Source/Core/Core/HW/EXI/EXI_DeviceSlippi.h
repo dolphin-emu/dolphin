@@ -17,6 +17,7 @@
 #include "Core/Slippi/SlippiSavestate.h"
 #include "Core/Slippi/SlippiSpectate.h"
 #include "Core/Slippi/SlippiUser.h"
+#include "Core/Slippi/SlippiGameReporter.h"
 #include "EXI_Device.h"
 
 #define ROLLBACK_MAX_FRAMES 7
@@ -72,6 +73,7 @@ private:
     CMD_CLEANUP_CONNECTION = 0xBA,
     CMD_SEND_CHAT_MESSAGE = 0xBB,
     CMD_GET_NEW_SEED = 0xBC,
+    CMD_REPORT_GAME = 0xBD,
 
     // Misc
     CMD_LOG_MESSAGE = 0xD0,
@@ -116,6 +118,7 @@ private:
       {CMD_GET_ONLINE_STATUS, 0},
       {CMD_CLEANUP_CONNECTION, 0},
       {CMD_GET_NEW_SEED, 0},
+      {CMD_REPORT_GAME, 16},
 
       // Misc
       {CMD_LOG_MESSAGE, 0xFFFF},  // Variable size... will only work if by itself
@@ -171,6 +174,7 @@ private:
   void prepareOnlineStatus();
   void handleConnectionCleanup();
   void prepareNewSeed();
+  void handleReportGame(u8 *payload);
 
   // replay playback stuff
   void prepareGameInfo(u8* payload);
@@ -215,6 +219,9 @@ private:
 
   std::string forcedError = "";
 
+  // Used to determine when to detect when a new session has started
+	bool is_play_session_active = false;
+
   // Frame skipping variables
   int framesToSkip = 0;
   bool isCurrentlySkipping = false;
@@ -229,6 +236,7 @@ private:
   std::unique_ptr<SlippiGameFileLoader> gameFileLoader;
   std::unique_ptr<SlippiNetplayClient> slippi_netplay;
   std::unique_ptr<SlippiMatchmaking> matchmaking;
+  std::unique_ptr<SlippiGameReporter> game_reporter;
 
   std::map<s32, std::unique_ptr<SlippiSavestate>> activeSavestates;
   std::deque<std::unique_ptr<SlippiSavestate>> availableSavestates;
