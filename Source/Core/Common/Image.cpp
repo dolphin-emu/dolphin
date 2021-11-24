@@ -68,18 +68,19 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   timer.Start();
 
   size_t byte_per_pixel;
-  int png_format;
+  int color_type;
   switch (format)
   {
   case ImageByteFormat::RGB:
-    png_format = PNG_FORMAT_RGB;
+    color_type = PNG_COLOR_TYPE_RGB;
     byte_per_pixel = 3;
     break;
   case ImageByteFormat::RGBA:
-    png_format = PNG_FORMAT_RGBA;
+    color_type = PNG_COLOR_TYPE_RGBA;
     byte_per_pixel = 4;
     break;
   default:
+    ASSERT_MSG(FRAMEDUMP, false, "Invalid format %d", static_cast<int>(format));
     return false;
   }
 
@@ -110,7 +111,7 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   bool success = false;
   if (png_ptr != nullptr && info_ptr != nullptr)
   {
-    success = SavePNG0(png_ptr, info_ptr, png_format, width, height, level, &buffer, WriteCallback,
+    success = SavePNG0(png_ptr, info_ptr, color_type, width, height, level, &buffer, WriteCallback,
                        const_cast<u8**>(rows.data()));
   }
   png_destroy_write_struct(&png_ptr, &info_ptr);
