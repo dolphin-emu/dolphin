@@ -25,3 +25,19 @@ bool SavePNG0(png_structp png_ptr, png_infop info_ptr, int png_format, png_uint_
 
   return true;
 }
+
+// pngerror.c says: "Note that the error function MUST NOT return to the calling routine or serious
+// problems will occur.  The return method used in the default routine calls
+// longjmp(png_ptr->jmp_buf_ptr, 1)"
+void PngError(png_structp png_ptr, png_const_charp msg)
+{
+  struct ErrorHandler* error_logger = (struct ErrorHandler*)png_get_error_ptr(png_ptr);
+  error_logger->StoreError(error_logger, msg);
+  png_longjmp(png_ptr, 1);
+}
+
+void PngWarning(png_structp png_ptr, png_const_charp msg)
+{
+  struct ErrorHandler* error_logger = (struct ErrorHandler*)png_get_error_ptr(png_ptr);
+  error_logger->StoreWarning(error_logger, msg);
+}

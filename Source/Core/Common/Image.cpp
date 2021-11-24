@@ -8,6 +8,7 @@
 
 #include <png.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/ImageC.h"
@@ -48,6 +49,18 @@ static void WriteCallback(png_structp png_ptr, png_bytep data, size_t length)
   buffer->insert(buffer->end(), data, data + length);
 }
 
+static void ErrorCallback(ErrorHandler* self, const char* msg)
+{
+  std::vector<std::string>* errors = static_cast<std::vector<std::string>*>(self->error_list);
+  errors->emplace_back(msg);
+}
+
+static void WarningCallback(ErrorHandler* self, const char* msg)
+{
+  std::vector<std::string>* warnings = static_cast<std::vector<std::string>*>(self->warning_list);
+  warnings->emplace_back(msg);
+}
+
 bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
              u32 height, int stride, int level)
 {
@@ -75,6 +88,14 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   std::vector<u8> buffer;
   buffer.reserve(byte_per_pixel * width * height);
 
+  std::vector<std::string> warnings;
+  std::vector<std::string> errors;
+  ErrorHandler error_handler;
+  error_handler.error_list = &errors;
+  error_handler.warning_list = &warnings;
+  error_handler.StoreError = ErrorCallback;
+  error_handler.StoreWarning = WarningCallback;
+
   std::vector<const u8*> rows;
   rows.reserve(height);
   for (u32 row = 0; row < height; row++)
@@ -82,7 +103,8 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     rows.push_back(&input[row * stride]);
   }
 
-  png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+  png_structp png_ptr =
+      png_create_write_struct(PNG_LIBPNG_VER_STRING, &error_handler, PngError, PngWarning);
   png_infop info_ptr = png_create_info_struct(png_ptr);
 
   bool success = false;
@@ -103,6 +125,23 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     timer.Stop();
     INFO_LOG_FMT(FRAMEDUMP, "{} byte {} by {} image saved to {} at level {} in {}", buffer.size(),
                  width, height, path, level, timer.GetTimeElapsedFormatted());
+    ASSERT(errors.size() == 0);
+    if (warnings.size() != 0)
+    {
+      WARN_LOG_FMT(FRAMEDUMP, "Saved with {} warnings:", warnings.size());
+      for (auto& warning : warnings)
+        WARN_LOG_FMT(FRAMEDUMP, "libpng warning: {}", warning);
+    }
+  }
+  else
+  {
+    ERROR_LOG_FMT(FRAMEDUMP,
+                  "Failed to save {} by {} image to {} at level {}: {} warnings, {} errors", width,
+                  height, path, level, warnings.size(), errors.size());
+    for (auto& error : errors)
+      ERROR_LOG_FMT(FRAMEDUMP, "libpng error: {}", error);
+    for (auto& warning : warnings)
+      WARN_LOG_FMT(FRAMEDUMP, "libpng warning: {}", warning);
   }
 
   return success;
