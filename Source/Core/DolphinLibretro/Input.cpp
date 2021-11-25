@@ -624,8 +624,8 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       {
         ccButtons->SetControlExpression(4, "L2");                            // ZL
         ccButtons->SetControlExpression(5, "R2");                            // ZR
-        ccTriggers->SetControlExpression(0, "L");                            // L-trigger
-        ccTriggers->SetControlExpression(1, "R");                            // R-trigger
+        ccTriggers->SetControlExpression(0, "L");                            // L
+        ccTriggers->SetControlExpression(1, "R");                            // R
       }
       ccDpad->SetControlExpression(0, "Up");                                 // Up
       ccDpad->SetControlExpression(1, "Down");                               // Down
@@ -669,15 +669,15 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
         ControllerEmu::ControlGroup* ncSwing = wm->GetNunchukGroup(NunchukGroup::Swing);
 #endif
 
-        ncButtons->SetControlExpression(0, "X");                      // C
-        ncButtons->SetControlExpression(1, "Y");                      // Z
-        ncStick->SetControlExpression(0, "`" + devAnalog + ":Y0-`");  // Up
-        ncStick->SetControlExpression(1, "`" + devAnalog + ":Y0+`");  // Down
-        ncStick->SetControlExpression(2, "`" + devAnalog + ":X0-`");  // Left
-        ncStick->SetControlExpression(3, "`" + devAnalog + ":X0+`");  // Right
-        ncShake->SetControlExpression(0, "L2");                       // X
-        ncShake->SetControlExpression(1, "L2");                       // Y
-        ncShake->SetControlExpression(2, "L2");                       // Z
+        ncButtons->SetControlExpression(0, "X");                             // C
+        ncButtons->SetControlExpression(1, "Y");                             // Z
+        ncStick->SetControlExpression(0, "`" + devAnalog + ":Y0-`");         // Up
+        ncStick->SetControlExpression(1, "`" + devAnalog + ":Y0+`");         // Down
+        ncStick->SetControlExpression(2, "`" + devAnalog + ":X0-`");         // Left
+        ncStick->SetControlExpression(3, "`" + devAnalog + ":X0+`");         // Right
+        ncShake->SetControlExpression(0, "L2 | `" + devMouse + ":Middle`");  // Nunchuk shake X
+        ncShake->SetControlExpression(1, "L2 | `" + devMouse + ":Middle`");  // Nunchuk shake Y
+        ncShake->SetControlExpression(2, "L2 | `" + devMouse + ":Middle`");  // Nunchuk shake Z
 
         wmButtons->SetControlExpression(0, "A | `" + devMouse + ":Left`");   // A
         wmButtons->SetControlExpression(1, "B | `" + devMouse + ":Right`");  // B
@@ -707,8 +707,8 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
         {
           wmButtons->SetControlExpression(0, "X");  // A
           wmButtons->SetControlExpression(1, "Y");  // B
-          wmButtons->SetControlExpression(2, "B");  // 2
-          wmButtons->SetControlExpression(3, "A");  // 1
+          wmButtons->SetControlExpression(2, "B");  // 1
+          wmButtons->SetControlExpression(3, "A");  // 2
         }
         wmTilt->SetControlExpression(0, "`" + devAnalog + ":Y0-`");  // Forward
         wmTilt->SetControlExpression(1, "`" + devAnalog + ":Y0+`");  // Backward
@@ -749,17 +749,14 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
           ->SetValue(false);                                          // Auto hide
       }
 
-      wmShake->SetControlExpression(0, "R2");                     // X
-      wmShake->SetControlExpression(1, "R2");                     // Y
-      wmShake->SetControlExpression(2, "R2");                     // Z
+      wmShake->SetControlExpression(0, "R2 | `" + devMouse + ":Middle`");  // Wiimote shake X
+      wmShake->SetControlExpression(1, "R2 | `" + devMouse + ":Middle`");  // Wiimote shake Y
+      wmShake->SetControlExpression(2, "R2 | `" + devMouse + ":Middle`");  // Wiimote shake Z
 #if 0
       wmHotkeys->SetControlExpression(0, "");  // Sideways Toggle
       wmHotkeys->SetControlExpression(1, "");  // Upright Toggle
       wmHotkeys->SetControlExpression(2, "");  // Sideways Hold
       wmHotkeys->SetControlExpression(3, "");  // Upright Hold
-      wmShake->SetControlExpression(0, "");  // X
-      wmShake->SetControlExpression(1, "");  // Y
-      wmShake->SetControlExpression(2, "");  // Z
 #endif
     }
 
