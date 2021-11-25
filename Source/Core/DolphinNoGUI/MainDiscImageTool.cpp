@@ -222,7 +222,7 @@ static int DoVerify(const std::string input_file_path, const optparse::Values& o
     return -1;
   }
 
-  // Only print the hash if simple mode is enabled
+  // If simple output mode is enabled, only print the hash
   if (simple_out)
   {
     if (enable_crc32 && !result->hashes.crc32.empty())
@@ -277,14 +277,12 @@ int main(int argc, char* argv[])
   parser->add_option("-m", "--mode")
     .type("string")
     .action("store")
-    // .dest("algorithm")
     .help("Operating mode [%choices]")
     .choices({"verify"});
 
   parser->add_option("-i", "--input")
     .type("string")
     .action("store")
-    //.dest("file_path")
     .help("Path to disc image FILE")
     .metavar("FILE");
 
@@ -314,7 +312,7 @@ int main(int argc, char* argv[])
   const std::string mode = static_cast<const char*>(options.get("mode"));
   if (mode != "verify")
   {
-    std::cerr << "Error: Mode not set or implemented, please check --help" << "\n";
+    std::cerr << "Error: Mode not set or not implemented, please check --help" << "\n";
     return -1;
   }
 
