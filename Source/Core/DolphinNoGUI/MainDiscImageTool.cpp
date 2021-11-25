@@ -193,13 +193,13 @@ static int DoVerify(const std::string input_file_path, const optparse::Values& o
 
   if (!enable_all && !enable_crc32 && !enable_md5 && !enable_sha1)
   {
-    std::cout << "Error: No algorithms selected for the operation" << "\n";
+    std::cerr << "Error: No algorithms selected for the operation" << "\n";
     return -1;
   }
   
   if (simple_out && enable_all)
   {
-    std::cout << "Error: Simple output incompatible with 'all' algorithm option" << "\n";
+    std::cerr << "Error: Simple output incompatible with 'all' algorithm option" << "\n";
     return -1;
   }
 
@@ -208,7 +208,7 @@ static int DoVerify(const std::string input_file_path, const optparse::Values& o
 
   if (!volume)
   {
-    std::cout << "Error: Unable to open disc image" << "\n";
+    std::cerr << "Error: Unable to open disc image" << "\n";
     return -1;
   }
 
@@ -218,7 +218,7 @@ static int DoVerify(const std::string input_file_path, const optparse::Values& o
 
   if (!result)
   {
-    std::cout << "Error: Unable to verify volume" << "\n";
+    std::cerr << "Error: Unable to verify volume" << "\n";
     return -1;
   }
 
@@ -226,17 +226,11 @@ static int DoVerify(const std::string input_file_path, const optparse::Values& o
   if (simple_out)
   {
     if (enable_crc32 && !result->hashes.crc32.empty())
-    {
       std::cout << HashToHexString(result->hashes.crc32) << "\n";
-    }
     else if (enable_md5 && !result->hashes.md5.empty())
-    {
       std::cout << HashToHexString(result->hashes.md5) << "\n";
-    }
     else if (enable_sha1 && !result->hashes.sha1.empty())
-    {
       std::cout << HashToHexString(result->hashes.sha1) << "\n";
-    }
     else
     {
       std::cerr << "Error: No hash computed\n";
@@ -296,12 +290,12 @@ int main(int argc, char* argv[])
 
   parser->add_option("--verify_simple_out")
     .action("store_true")
-    .help("Print the digest of the selected algorithm and exit. Incompatible with 'all' option.");
+    .help("Print the digest using the selected algorithm and exit. Incompatible with 'all' option.");
 
   parser->add_option("--verify_algorithm")
     .type("string")
     .action("store")
-    .help("Digest algorithms to compute (default = sha1) [%choices]")
+    .help("Digest algorithm to compute (default = sha1) [%choices]")
     .choices({"all", "crc32", "md5", "sha1"});
 
   parser->set_defaults("verify_algorithm", "sha1");
@@ -312,7 +306,7 @@ int main(int argc, char* argv[])
   const std::string input_file_path = static_cast<const char*>(options.get("input"));
   if (input_file_path.empty())
   {
-    std::cout << "Error: No input set" << "\n";
+    std::cerr << "Error: No input set" << "\n";
     return -1;
   }
 
@@ -320,7 +314,7 @@ int main(int argc, char* argv[])
   const std::string mode = static_cast<const char*>(options.get("mode"));
   if (mode != "verify")
   {
-    std::cout << "Error: Mode not set or implemented, please check --help" << "\n";
+    std::cerr << "Error: Mode not set or implemented, please check --help" << "\n";
     return -1;
   }
 
