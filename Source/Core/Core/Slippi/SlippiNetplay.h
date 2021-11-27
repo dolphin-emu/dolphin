@@ -127,14 +127,14 @@ public:
   u64 GetSlippiPing();
   s32 GetSlippiLatestRemoteFrame();
   u8 GetSlippiRemoteChatMessage();
-	u8 GetSlippiRemoteSentChatMessage();
+  u8 GetSlippiRemoteSentChatMessage();
   s32 CalcTimeOffsetUs();
 
-  void WriteChatMessageToPacket(sf::Packet &packet, int messageId);
-	std::unique_ptr<SlippiPlayerSelections> ReadChatMessageFromPacket(sf::Packet &packet);
+  void WriteChatMessageToPacket(sf::Packet& packet, int messageId);
+  std::unique_ptr<SlippiPlayerSelections> ReadChatMessageFromPacket(sf::Packet& packet);
 
-	u8 remoteChatMessageId = 0;     // most recent chat message id from opponent
-	u8 remoteSentChatMessageId = 0; // most recent chat message id that current player sent
+  u8 remoteChatMessageId = 0;      // most recent chat message id from opponent
+  u8 remoteSentChatMessageId = 0;  // most recent chat message id that current player sent
 
 protected:
   struct
@@ -204,3 +204,7 @@ private:
 
   u32 m_timebase_frame = 0;
 };
+
+extern SlippiNetplayClient* SLIPPI_NETPLAY;  // singleton static pointer
+
+static bool IsOnline();

@@ -14,9 +14,9 @@
 #include <sys/stat.h>
 #include <vector>
 
-#include "Core/ConfigManager.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
@@ -51,15 +51,14 @@ void PopulateDevices()
   for (uint32_t i = 0; i < 4; i++)
   {
     std::string pipename = "\\\\.\\pipe\\slippibot" + std::to_string(i + 1);
-    pipes[i] = CreateNamedPipeA(
-      pipename.data(),              // pipe name
-      PIPE_ACCESS_INBOUND,          // read access, inward only
-      PIPE_TYPE_BYTE | PIPE_NOWAIT, // byte mode, nonblocking
-      1,                            // number of clients
-      256,                          // output buffer size
-      256,                          // input buffer size
-      0,                            // timeout value
-      NULL                          // security attributes
+    pipes[i] = CreateNamedPipeA(pipename.data(),               // pipe name
+                                PIPE_ACCESS_INBOUND,           // read access, inward only
+                                PIPE_TYPE_BYTE | PIPE_NOWAIT,  // byte mode, nonblocking
+                                1,                             // number of clients
+                                256,                           // output buffer size
+                                256,                           // input buffer size
+                                0,                             // timeout value
+                                NULL                           // security attributes
     );
 
     // We're in nonblocking mode, so this won't wait for clients
@@ -124,14 +123,8 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
 
   u32 bytes_available = 0;
   DWORD bytesread = 0;
-  bool peek_success = PeekNamedPipe(
-    file_descriptor,
-    NULL,
-    0,
-    NULL,
-    (LPDWORD)&bytes_available,
-    NULL
-  );
+  bool peek_success =
+      PeekNamedPipe(file_descriptor, NULL, 0, NULL, (LPDWORD)&bytes_available, NULL);
 
   if (!peek_success && (GetLastError() == ERROR_BROKEN_PIPE))
   {
@@ -142,12 +135,11 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
 
   if (peek_success && (bytes_available > 0))
   {
-    bool success = ReadFile(
-      file_descriptor,    // pipe handle
-      in_buffer,          // buffer to receive reply
-      (DWORD)std::min(bytes_available, (u32)size),        // size of buffer
-      &bytesread,         // number of bytes read
-      NULL);              // not overlapped
+    bool success = ReadFile(file_descriptor,                              // pipe handle
+                            in_buffer,                                    // buffer to receive reply
+                            (DWORD)std::min(bytes_available, (u32)size),  // size of buffer
+                            &bytesread,                                   // number of bytes read
+                            NULL);                                        // not overlapped
     if (!success)
     {
       return -1;
@@ -173,12 +165,14 @@ s32 PipeDevice::readFromPipe(PIPE_FD file_descriptor, char* in_buffer, size_t si
 void PipeDevice::UpdateInput()
 {
   bool finished = false;
-  do {
+  do
+  {
     // Read any pending characters off the pipe. If we hit a newline,
     // then dequeue a command off the front of m_buf and parse it.
     char buf[32];
     s32 bytes_read = readFromPipe(m_fd, buf, sizeof buf);
-    if (bytes_read == 0) {
+    if (bytes_read == 0)
+    {
       // Pipe died, so just quit out
       return;
     }

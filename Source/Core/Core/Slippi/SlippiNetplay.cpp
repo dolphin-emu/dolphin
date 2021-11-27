@@ -3,38 +3,34 @@
 // Refer to the license.txt file included.
 
 #include "Core/Slippi/SlippiNetplay.h"
-#include "Common/Common.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/ENetUtil.h"
-#include "Common/MD5.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/NetPlayProto.h"
-//#include "Core/HW/EXI_DeviceIPL.h"
-//#include "Core/HW/SI.h"
-//#include "Core/HW/SI_DeviceGCController.h"
-#include "Core/HW/Sram.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
-//#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include <SlippiGame.h>
-#include <algorithm>
-#include <fstream>
-#include <mbedtls/md5.h>
-#include <memory>
-#include <thread>
-#include "Core/Movie.h"
-#include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include <SlippiGame.h>
+#include <algorithm>
+#include <fstream>
+#include <memory>
+#include <thread>
+
 static std::mutex pad_mutex;
 static std::mutex ack_mutex;
+
+SlippiNetplayClient* SLIPPI_NETPLAY = nullptr;
+
+static bool IsOnline()
+{
+  return SLIPPI_NETPLAY != nullptr;
+}
 
 // called from ---GUI--- thread
 SlippiNetplayClient::~SlippiNetplayClient()
@@ -58,6 +54,8 @@ SlippiNetplayClient::~SlippiNetplayClient()
     m_client = nullptr;
   }
 
+  SLIPPI_NETPLAY = nullptr;
+
   WARN_LOG(SLIPPI_ONLINE, "Netplay client cleanup complete");
 }
 
@@ -68,11 +66,11 @@ SlippiNetplayClient::SlippiNetplayClient(const std::string& address, const u16 r
     : m_qos_handle(nullptr), m_qos_flow_id(0)
 #endif
 {
-  WARN_LOG(SLIPPI_ONLINE, "Initializing Slippi Netplay for port: %d, with host: %s", localPort,
-           isDecider ? "true" : "false");
+  WARN_LOG_FMT(SLIPPI_ONLINE, "Initializing Slippi Netplay for port: %d, with host: %s", localPort,
+               isDecider ? "true" : "false");
 
   this->isDecider = isDecider;
-  // this->playerIdx = isDecider ? 0 : 1;
+  SLIPPI_NETPLAY = std::move(this);
 
   // Local address
   ENetAddress* localAddr = nullptr;
@@ -121,6 +119,7 @@ SlippiNetplayClient::SlippiNetplayClient(const std::string& address, const u16 r
 SlippiNetplayClient::SlippiNetplayClient(bool isDecider)
 {
   this->isDecider = isDecider;
+  SLIPPI_NETPLAY = std::move(this);
   slippiConnectStatus = SlippiConnectStatus::NET_CONNECT_STATUS_FAILED;
 }
 
@@ -292,7 +291,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
   break;
 
   default:
-    WARN_LOG(SLIPPI_ONLINE, "Unknown message received with id : %d", mid);
+    WARN_LOG_FMT(SLIPPI_ONLINE, "Unknown message received with id : %d", mid);
     break;
   }
 
@@ -384,6 +383,7 @@ void SlippiNetplayClient::Disconnect()
   // didn't disconnect gracefully force disconnect
   enet_peer_reset(m_server);
   m_server = nullptr;
+  SLIPPI_NETPLAY = nullptr;
 }
 
 void SlippiNetplayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
@@ -422,7 +422,8 @@ void SlippiNetplayClient::ThreadFunc()
       break;
     }
 
-    WARN_LOG(SLIPPI_ONLINE, "[Netplay] Not yet connected. Res: %d, Type: %d", net, netEvent.type);
+    WARN_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Not yet connected. Res: %d, Type: %d", net,
+                 netEvent.type);
 
     // Time out after enough time has passed
     attemptCount++;

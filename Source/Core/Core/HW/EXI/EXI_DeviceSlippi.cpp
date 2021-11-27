@@ -1667,10 +1667,8 @@ void CEXISlippi::prepareOpponentInputs(u8* payload)
 
 void CEXISlippi::handleCaptureSavestate(u8* payload)
 {
-#ifndef IS_PLAYBACK
   if (isDisconnected())
     return;
-#endif
 
   s32 frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
 

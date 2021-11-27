@@ -62,6 +62,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Slippi/SlippiNetplay.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
 
@@ -642,6 +643,10 @@ void SetState(State state)
   if (!IsRunningAndStarted())
     return;
 
+  // Do not allow any kind of cpu pause/resum if we are connected to someone on slippi
+  if (IsOnline())
+    return;
+
   switch (state)
   {
   case State::Paused:
@@ -720,6 +725,9 @@ static std::string GenerateScreenshotName()
 
 void SaveScreenShot()
 {
+  if (IsOnline())
+    return;
+
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
