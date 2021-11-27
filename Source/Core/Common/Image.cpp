@@ -8,6 +8,7 @@
 
 #include <png.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/ImageC.h"
@@ -48,6 +49,18 @@ static void WriteCallback(png_structp png_ptr, png_bytep data, size_t length)
   buffer->insert(buffer->end(), data, data + length);
 }
 
+static void ErrorCallback(ErrorHandler* self, const char* msg)
+{
+  std::vector<std::string>* errors = static_cast<std::vector<std::string>*>(self->error_list);
+  errors->emplace_back(msg);
+}
+
+static void WarningCallback(ErrorHandler* self, const char* msg)
+{
+  std::vector<std::string>* warnings = static_cast<std::vector<std::string>*>(self->warning_list);
+  warnings->emplace_back(msg);
+}
+
 bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
              u32 height, int stride, int level)
 {
@@ -55,18 +68,19 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   timer.Start();
 
   size_t byte_per_pixel;
-  int png_format;
+  int color_type;
   switch (format)
   {
   case ImageByteFormat::RGB:
-    png_format = PNG_FORMAT_RGB;
+    color_type = PNG_COLOR_TYPE_RGB;
     byte_per_pixel = 3;
     break;
   case ImageByteFormat::RGBA:
-    png_format = PNG_FORMAT_RGBA;
+    color_type = PNG_COLOR_TYPE_RGBA;
     byte_per_pixel = 4;
     break;
   default:
+    ASSERT_MSG(FRAMEDUMP, false, "Invalid format %d", static_cast<int>(format));
     return false;
   }
 
@@ -75,6 +89,14 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   std::vector<u8> buffer;
   buffer.reserve(byte_per_pixel * width * height);
 
+  std::vector<std::string> warnings;
+  std::vector<std::string> errors;
+  ErrorHandler error_handler;
+  error_handler.error_list = &errors;
+  error_handler.warning_list = &warnings;
+  error_handler.StoreError = ErrorCallback;
+  error_handler.StoreWarning = WarningCallback;
+
   std::vector<const u8*> rows;
   rows.reserve(height);
   for (u32 row = 0; row < height; row++)
@@ -82,13 +104,14 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     rows.push_back(&input[row * stride]);
   }
 
-  png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+  png_structp png_ptr =
+      png_create_write_struct(PNG_LIBPNG_VER_STRING, &error_handler, PngError, PngWarning);
   png_infop info_ptr = png_create_info_struct(png_ptr);
 
   bool success = false;
   if (png_ptr != nullptr && info_ptr != nullptr)
   {
-    success = SavePNG0(png_ptr, info_ptr, png_format, width, height, level, &buffer, WriteCallback,
+    success = SavePNG0(png_ptr, info_ptr, color_type, width, height, level, &buffer, WriteCallback,
                        const_cast<u8**>(rows.data()));
   }
   png_destroy_write_struct(&png_ptr, &info_ptr);
@@ -103,6 +126,23 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
     timer.Stop();
     INFO_LOG_FMT(FRAMEDUMP, "{} byte {} by {} image saved to {} at level {} in {}", buffer.size(),
                  width, height, path, level, timer.GetTimeElapsedFormatted());
+    ASSERT(errors.size() == 0);
+    if (warnings.size() != 0)
+    {
+      WARN_LOG_FMT(FRAMEDUMP, "Saved with {} warnings:", warnings.size());
+      for (auto& warning : warnings)
+        WARN_LOG_FMT(FRAMEDUMP, "libpng warning: {}", warning);
+    }
+  }
+  else
+  {
+    ERROR_LOG_FMT(FRAMEDUMP,
+                  "Failed to save {} by {} image to {} at level {}: {} warnings, {} errors", width,
+                  height, path, level, warnings.size(), errors.size());
+    for (auto& error : errors)
+      ERROR_LOG_FMT(FRAMEDUMP, "libpng error: {}", error);
+    for (auto& warning : warnings)
+      WARN_LOG_FMT(FRAMEDUMP, "libpng warning: {}", warning);
   }
 
   return success;
