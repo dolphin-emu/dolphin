@@ -11,6 +11,7 @@ namespace OpcodeDecoder
 {
 // Global flag to signal if FifoRecorder is active.
 extern bool g_record_fifo_data;
+extern bool g_sw_cyclecount;
 
 enum
 {

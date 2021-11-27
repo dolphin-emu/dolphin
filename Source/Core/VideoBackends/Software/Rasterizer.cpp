@@ -265,8 +265,8 @@ static void BuildBlock(s32 blockX, s32 blockY)
   }
 }
 
-void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
-                           const OutputVertexData* v2)
+u32 DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
+                          const OutputVertexData* v2)
 {
   INCSTAT(g_stats.this_frame.num_triangles_drawn);
 
@@ -332,7 +332,7 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   maxy = std::min(maxy, scissorBottom);
 
   if (minx >= maxx || miny >= maxy)
-    return;
+    return 2;
 
   // Setup slopes
   float fltx1 = v0->screenPosition.x;
@@ -389,6 +389,7 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   minx &= ~(BLOCK_SIZE - 1);
   miny &= ~(BLOCK_SIZE - 1);
 
+  u32 num_blocks = 0;
   // Loop through blocks
   for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
   {
@@ -422,6 +423,8 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
       // Skip block when outside an edge
       if (a == 0x0 || b == 0x0 || c == 0x0)
         continue;
+
+      num_blocks++;
 
       BuildBlock(x, y);
 
@@ -467,5 +470,8 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
       }
     }
   }
+  // Assume that each block with at least one pixel rendered takes one cycle per enabled tev stage
+  // Assume that all triangles take at least two cycles
+  return std::max(2u, bpmem.genMode.numtevstages * num_blocks);
 }
 }  // namespace Rasterizer

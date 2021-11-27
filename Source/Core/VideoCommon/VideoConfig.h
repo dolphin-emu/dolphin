@@ -157,6 +157,7 @@ struct VideoConfig final
   bool bDumpObjects = false;
   bool bDumpTevStages = false;
   bool bDumpTevTextureFetches = false;
+  bool bRastTimings = true;
 
   // Enable API validation layers, currently only supported with Vulkan.
   bool bEnableValidationLayer = false;

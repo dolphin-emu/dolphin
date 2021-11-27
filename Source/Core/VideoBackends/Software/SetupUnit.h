@@ -15,18 +15,18 @@ class SetupUnit
   OutputVertexData* m_VertPointer[3]{};
   OutputVertexData* m_VertWritePointer{};
 
-  void SetupQuad();
-  void SetupTriangle();
-  void SetupTriStrip();
-  void SetupTriFan();
-  void SetupLine();
-  void SetupLineStrip();
-  void SetupPoint();
+  u32 SetupQuad();
+  u32 SetupTriangle();
+  u32 SetupTriStrip();
+  u32 SetupTriFan();
+  u32 SetupLine();
+  u32 SetupLineStrip();
+  u32 SetupPoint();
 
 public:
   void Init(u8 primitiveType);
 
   OutputVertexData* GetVertex();
 
-  void SetupVertex();
+  u32 SetupVertex();
 };

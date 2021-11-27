@@ -98,6 +98,7 @@ const Info<bool> GFX_SW_DUMP_TEV_TEX_FETCHES{{System::GFX, "Settings", "SWDumpTe
                                              false};
 const Info<int> GFX_SW_DRAW_START{{System::GFX, "Settings", "SWDrawStart"}, 0};
 const Info<int> GFX_SW_DRAW_END{{System::GFX, "Settings", "SWDrawEnd"}, 100000};
+const Info<bool> GFX_SW_NO_RAST_TIMINGS{{System::GFX, "Settings", "SWNoCycleCount"}, false};
 
 const Info<bool> GFX_PREFER_GLES{{System::GFX, "Settings", "PreferGLES"}, false};
 

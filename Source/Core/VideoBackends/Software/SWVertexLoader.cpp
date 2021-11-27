@@ -32,8 +32,9 @@ SWVertexLoader::SWVertexLoader() = default;
 
 SWVertexLoader::~SWVertexLoader() = default;
 
-void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
+u32 SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
+  u32 cycles = 0;
   DebugUtil::OnObjectBegin();
 
   u8 primitiveType = 0;
@@ -90,12 +91,14 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     TransformUnit::TransformTexCoord(&m_vertex, outVertex);
 
     // assemble and rasterize the primitive
-    m_setup_unit.SetupVertex();
+    cycles += m_setup_unit.SetupVertex();
 
     INCSTAT(g_stats.this_frame.num_vertices_loaded)
   }
 
   DebugUtil::OnObjectEnd();
+
+  return cycles;
 }
 
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
