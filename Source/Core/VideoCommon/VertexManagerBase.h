@@ -97,7 +97,7 @@ public:
   DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
   void FlushData(u32 count, u32 stride);
 
-  void Flush();
+  u32 Flush();
 
   void DoState(PointerWrap& p);
 
@@ -160,7 +160,7 @@ protected:
   virtual void UploadUniforms();
 
   // Issues the draw call for the current batch in the backend.
-  virtual void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex);
+  virtual u32 DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex);
 
   u32 GetRemainingSize() const;
   u32 GetRemainingIndices(int primitive) const;

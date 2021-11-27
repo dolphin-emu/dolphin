@@ -31,6 +31,7 @@ private:
 
   ToolTipComboBox* m_backend_combo;
   GraphicsBool* m_show_statistics;
+  GraphicsBool* m_no_rast_timings;
   GraphicsBool* m_dump_textures;
   GraphicsBool* m_dump_objects;
   GraphicsBool* m_dump_tev_stages;

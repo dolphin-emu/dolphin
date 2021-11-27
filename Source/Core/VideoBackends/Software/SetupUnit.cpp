@@ -28,48 +28,42 @@ OutputVertexData* SetupUnit::GetVertex()
   return m_VertWritePointer;
 }
 
-void SetupUnit::SetupVertex()
+u32 SetupUnit::SetupVertex()
 {
   switch (m_PrimType)
   {
   case OpcodeDecoder::GX_DRAW_QUADS:
-    SetupQuad();
-    break;
+    return SetupQuad();
   case OpcodeDecoder::GX_DRAW_QUADS_2:
     WARN_LOG_FMT(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
-    SetupQuad();
-    break;
+    return SetupQuad();
   case OpcodeDecoder::GX_DRAW_TRIANGLES:
-    SetupTriangle();
-    break;
+    return SetupTriangle();
   case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
-    SetupTriStrip();
-    break;
+    return SetupTriStrip();
   case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
-    SetupTriFan();
-    break;
+    return SetupTriFan();
   case OpcodeDecoder::GX_DRAW_LINES:
-    SetupLine();
-    break;
+    return SetupLine();
   case OpcodeDecoder::GX_DRAW_LINE_STRIP:
-    SetupLineStrip();
-    break;
+    return SetupLineStrip();
   case OpcodeDecoder::GX_DRAW_POINTS:
-    SetupPoint();
-    break;
+    return SetupPoint();
   }
+
+  return 0;
 }
 
-void SetupUnit::SetupQuad()
+u32 SetupUnit::SetupQuad()
 {
   if (m_VertexCounter < 2)
   {
     m_VertexCounter++;
     m_VertWritePointer = m_VertPointer[m_VertexCounter];
-    return;
+    return 0;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  u32 cycles = Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter++;
   m_VertexCounter &= 3;
@@ -77,94 +71,101 @@ void SetupUnit::SetupQuad()
   OutputVertexData* temp = m_VertPointer[1];
   m_VertPointer[1] = m_VertPointer[2];
   m_VertPointer[2] = temp;
+
+  return cycles;
 }
 
-void SetupUnit::SetupTriangle()
+u32 SetupUnit::SetupTriangle()
 {
   if (m_VertexCounter < 2)
   {
     m_VertexCounter++;
     m_VertWritePointer = m_VertPointer[m_VertexCounter];
-    return;
+    return 0;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  u32 cycles = Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter = 0;
   m_VertWritePointer = m_VertPointer[0];
+  return cycles;
 }
 
-void SetupUnit::SetupTriStrip()
+u32 SetupUnit::SetupTriStrip()
 {
   if (m_VertexCounter < 2)
   {
     m_VertexCounter++;
     m_VertWritePointer = m_VertPointer[m_VertexCounter];
-    return;
+    return 0;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  u32 cycles = Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter++;
   m_VertPointer[2 - (m_VertexCounter & 1)] = m_VertPointer[0];
   m_VertWritePointer = m_VertPointer[0];
 
   m_VertPointer[0] = &m_Vertices[(m_VertexCounter + 1) % 3];
+  return cycles;
 }
 
-void SetupUnit::SetupTriFan()
+u32 SetupUnit::SetupTriFan()
 {
   if (m_VertexCounter < 2)
   {
     m_VertexCounter++;
     m_VertWritePointer = m_VertPointer[m_VertexCounter];
-    return;
+    return 0;
   }
 
-  Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
+  u32 cycles = Clipper::ProcessTriangle(m_VertPointer[0], m_VertPointer[1], m_VertPointer[2]);
 
   m_VertexCounter++;
   m_VertPointer[1] = m_VertPointer[2];
   m_VertPointer[2] = &m_Vertices[2 - (m_VertexCounter & 1)];
 
   m_VertWritePointer = m_VertPointer[2];
+  return cycles;
 }
 
-void SetupUnit::SetupLine()
+u32 SetupUnit::SetupLine()
 {
   if (m_VertexCounter < 1)
   {
     m_VertexCounter++;
     m_VertWritePointer = m_VertPointer[m_VertexCounter];
-    return;
+    return 0;
   }
 
-  Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
+  u32 cycles = Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
 
   m_VertexCounter = 0;
   m_VertWritePointer = m_VertPointer[0];
+  return cycles;
 }
 
-void SetupUnit::SetupLineStrip()
+u32 SetupUnit::SetupLineStrip()
 {
   if (m_VertexCounter < 1)
   {
     m_VertexCounter++;
     m_VertWritePointer = m_VertPointer[m_VertexCounter];
-    return;
+    return 0;
   }
 
   m_VertexCounter++;
 
-  Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
+  u32 cycles = Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
 
   m_VertWritePointer = m_VertPointer[0];
 
   m_VertPointer[0] = m_VertPointer[1];
   m_VertPointer[1] = &m_Vertices[m_VertexCounter & 1];
+  return cycles;
 }
 
-void SetupUnit::SetupPoint()
+u32 SetupUnit::SetupPoint()
 {
-  Clipper::ProcessPoint(m_VertPointer[0]);
+  return Clipper::ProcessPoint(m_VertPointer[0]);
 }

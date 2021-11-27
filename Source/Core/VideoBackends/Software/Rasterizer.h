@@ -11,8 +11,8 @@ namespace Rasterizer
 {
 void Init();
 
-void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
-                           const OutputVertexData* v2);
+u32 DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
+                          const OutputVertexData* v2);
 
 void SetTevReg(int reg, int comp, s16 color);
 
