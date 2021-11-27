@@ -20,7 +20,9 @@
 #ifndef AVUTIL_HWCONTEXT_CUDA_H
 #define AVUTIL_HWCONTEXT_CUDA_H
 
+#ifndef CUDA_VERSION
 #include <cuda.h>
+#endif
 
 #include "pixfmt.h"
 
@@ -32,15 +34,36 @@
  * AVBufferRefs whose data pointer is a CUdeviceptr.
  */
 
+typedef struct AVCUDADeviceContextInternal AVCUDADeviceContextInternal;
+
 /**
  * This struct is allocated as AVHWDeviceContext.hwctx
  */
 typedef struct AVCUDADeviceContext {
     CUcontext cuda_ctx;
+    CUstream stream;
+    AVCUDADeviceContextInternal *internal;
 } AVCUDADeviceContext;
 
 /**
  * AVHWFramesContext.hwctx is currently not used
+ */
+
+/**
+ * @defgroup hwcontext_cuda Device context creation flags
+ *
+ * Flags for av_hwdevice_ctx_create.
+ *
+ * @{
+ */
+
+/**
+ * Use primary device context instead of creating a new one.
+ */
+#define AV_CUDA_USE_PRIMARY_CONTEXT (1 << 0)
+
+/**
+ * @}
  */
 
 #endif /* AVUTIL_HWCONTEXT_CUDA_H */

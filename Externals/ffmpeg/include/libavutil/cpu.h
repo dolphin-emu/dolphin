@@ -21,7 +21,7 @@
 #ifndef AVUTIL_CPU_H
 #define AVUTIL_CPU_H
 
-#include "attributes.h"
+#include <stddef.h>
 
 #define AV_CPU_FLAG_FORCE    0x80000000 /* force usage of selected flags (OR) */
 
@@ -39,6 +39,7 @@
 #define AV_CPU_FLAG_SSE3SLOW 0x20000000 ///< SSE3 supported, but usually not faster
                                         ///< than regular MMX/SSE (e.g. Core1)
 #define AV_CPU_FLAG_SSSE3        0x0080 ///< Conroe SSSE3 functions
+#define AV_CPU_FLAG_SSSE3SLOW 0x4000000 ///< SSSE3 supported, but usually not faster
 #define AV_CPU_FLAG_ATOM     0x10000000 ///< Atom processor, some SSSE3 instructions are slower
 #define AV_CPU_FLAG_SSE4         0x0100 ///< Penryn SSE4.1 functions
 #define AV_CPU_FLAG_SSE42        0x0200 ///< Nehalem SSE4.2 functions
@@ -52,6 +53,8 @@
 #define AV_CPU_FLAG_FMA3        0x10000 ///< Haswell FMA3 functions
 #define AV_CPU_FLAG_BMI1        0x20000 ///< Bit Manipulation Instruction Set 1
 #define AV_CPU_FLAG_BMI2        0x40000 ///< Bit Manipulation Instruction Set 2
+#define AV_CPU_FLAG_AVX512     0x100000 ///< AVX-512 functions: requires OS support even if YMM/ZMM registers aren't used
+#define AV_CPU_FLAG_SLOW_GATHER  0x2000000 ///< CPU has slow gathers.
 
 #define AV_CPU_FLAG_ALTIVEC      0x0001 ///< standard
 #define AV_CPU_FLAG_VSX          0x0002 ///< ISA 2.06
@@ -66,6 +69,13 @@
 #define AV_CPU_FLAG_ARMV8        (1 << 6)
 #define AV_CPU_FLAG_VFP_VM       (1 << 7) ///< VFPv2 vector mode, deprecated in ARMv7-A and unavailable in various CPUs implementations
 #define AV_CPU_FLAG_SETEND       (1 <<16)
+
+#define AV_CPU_FLAG_MMI          (1 << 0)
+#define AV_CPU_FLAG_MSA          (1 << 1)
+
+//Loongarch SIMD extension.
+#define AV_CPU_FLAG_LSX          (1 << 0)
+#define AV_CPU_FLAG_LASX         (1 << 1)
 
 /**
  * Return the flags which specify extensions supported by the CPU.
@@ -82,27 +92,6 @@ int av_get_cpu_flags(void);
 void av_force_cpu_flags(int flags);
 
 /**
- * Set a mask on flags returned by av_get_cpu_flags().
- * This function is mainly useful for testing.
- * Please use av_force_cpu_flags() and av_get_cpu_flags() instead which are more flexible
- *
- * @warning this function is not thread safe.
- */
-attribute_deprecated void av_set_cpu_flags_mask(int mask);
-
-/**
- * Parse CPU flags from a string.
- *
- * The returned flags contain the specified flags as well as related unspecified flags.
- *
- * This function exists only for compatibility with libav.
- * Please use av_parse_cpu_caps() when possible.
- * @return a combination of AV_CPU_* flags, negative on error.
- */
-attribute_deprecated
-int av_parse_cpu_flags(const char *s);
-
-/**
  * Parse CPU caps from a string and update the given AV_CPU_* flags based on that.
  *
  * @return negative on error.
@@ -113,5 +102,22 @@ int av_parse_cpu_caps(unsigned *flags, const char *s);
  * @return the number of logical CPU cores present.
  */
 int av_cpu_count(void);
+
+/**
+ * Overrides cpu count detection and forces the specified count.
+ * Count < 1 disables forcing of specific count.
+ */
+void av_cpu_force_count(int count);
+
+/**
+ * Get the maximum data alignment that may be required by FFmpeg.
+ *
+ * Note that this is affected by the build configuration and the CPU flags mask,
+ * so e.g. if the CPU supports AVX, but libavutil has been built with
+ * --disable-avx or the AV_CPU_FLAG_AVX flag has been disabled through
+ *  av_set_cpu_flags_mask(), then this function will behave as if AVX is not
+ *  present.
+ */
+size_t av_cpu_max_align(void);
 
 #endif /* AVUTIL_CPU_H */

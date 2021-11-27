@@ -27,10 +27,10 @@
 #ifndef AVUTIL_SHA_H
 #define AVUTIL_SHA_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "attributes.h"
-#include "version.h"
 
 /**
  * @defgroup lavu_sha SHA
@@ -69,11 +69,11 @@ int av_sha_init(struct AVSHA* context, int bits);
 /**
  * Update hash value.
  *
- * @param context hash function context
+ * @param ctx     hash function context
  * @param data    input data to update hash with
  * @param len     input data length
  */
-void av_sha_update(struct AVSHA* context, const uint8_t* data, unsigned int len);
+void av_sha_update(struct AVSHA *ctx, const uint8_t *data, size_t len);
 
 /**
  * Finish hashing and output digest value.

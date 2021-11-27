@@ -8,3 +8,7 @@
 	url = https://github.com/mgba-emu/mgba.git
 	branch = master
 	shallow = true
+[submodule "Externals/ffmpeg/ffmpeg"]
+	path = Externals/ffmpeg/ffmpeg
+	url = https://github.com/FFmpeg/FFmpeg.git
+	branch = release/5.0

@@ -27,6 +27,7 @@
 #ifndef AVUTIL_HASH_H
 #define AVUTIL_HASH_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 /**
@@ -179,7 +180,7 @@ void av_hash_init(struct AVHashContext *ctx);
  * @param[in]     src Data to be added to the hash context
  * @param[in]     len Size of the additional data
  */
-void av_hash_update(struct AVHashContext *ctx, const uint8_t *src, int len);
+void av_hash_update(struct AVHashContext *ctx, const uint8_t *src, size_t len);
 
 /**
  * Finalize a hash context and compute the actual hash value.

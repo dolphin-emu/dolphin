@@ -27,10 +27,10 @@
 #ifndef AVUTIL_MD5_H
 #define AVUTIL_MD5_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "attributes.h"
-#include "version.h"
 
 /**
  * @defgroup lavu_md5 MD5
@@ -63,7 +63,7 @@ void av_md5_init(struct AVMD5 *ctx);
  * @param src input data to update hash with
  * @param len input data length
  */
-void av_md5_update(struct AVMD5 *ctx, const uint8_t *src, int len);
+void av_md5_update(struct AVMD5 *ctx, const uint8_t *src, size_t len);
 
 /**
  * Finish hashing and output digest value.
@@ -80,7 +80,7 @@ void av_md5_final(struct AVMD5 *ctx, uint8_t *dst);
  * @param src The data to hash
  * @param len The length of the data, in bytes
  */
-void av_md5_sum(uint8_t *dst, const uint8_t *src, const int len);
+void av_md5_sum(uint8_t *dst, const uint8_t *src, size_t len);
 
 /**
  * @}

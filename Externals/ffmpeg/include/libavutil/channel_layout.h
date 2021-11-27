@@ -71,6 +71,11 @@
 #define AV_CH_SURROUND_DIRECT_LEFT   0x0000000200000000ULL
 #define AV_CH_SURROUND_DIRECT_RIGHT  0x0000000400000000ULL
 #define AV_CH_LOW_FREQUENCY_2        0x0000000800000000ULL
+#define AV_CH_TOP_SIDE_LEFT          0x0000001000000000ULL
+#define AV_CH_TOP_SIDE_RIGHT         0x0000002000000000ULL
+#define AV_CH_BOTTOM_FRONT_CENTER    0x0000004000000000ULL
+#define AV_CH_BOTTOM_FRONT_LEFT      0x0000008000000000ULL
+#define AV_CH_BOTTOM_FRONT_RIGHT     0x0000010000000000ULL
 
 /** Channel mask value used for AVCodecContext.request_channel_layout
     to indicate that the user requests the channel order of the decoder output
@@ -110,6 +115,7 @@
 #define AV_CH_LAYOUT_OCTAGONAL         (AV_CH_LAYOUT_5POINT0|AV_CH_BACK_LEFT|AV_CH_BACK_CENTER|AV_CH_BACK_RIGHT)
 #define AV_CH_LAYOUT_HEXADECAGONAL     (AV_CH_LAYOUT_OCTAGONAL|AV_CH_WIDE_LEFT|AV_CH_WIDE_RIGHT|AV_CH_TOP_BACK_LEFT|AV_CH_TOP_BACK_RIGHT|AV_CH_TOP_BACK_CENTER|AV_CH_TOP_FRONT_CENTER|AV_CH_TOP_FRONT_LEFT|AV_CH_TOP_FRONT_RIGHT)
 #define AV_CH_LAYOUT_STEREO_DOWNMIX    (AV_CH_STEREO_LEFT|AV_CH_STEREO_RIGHT)
+#define AV_CH_LAYOUT_22POINT2          (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER|AV_CH_BACK_CENTER|AV_CH_LOW_FREQUENCY_2|AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT|AV_CH_TOP_FRONT_LEFT|AV_CH_TOP_FRONT_RIGHT|AV_CH_TOP_FRONT_CENTER|AV_CH_TOP_CENTER|AV_CH_TOP_BACK_LEFT|AV_CH_TOP_BACK_RIGHT|AV_CH_TOP_SIDE_LEFT|AV_CH_TOP_SIDE_RIGHT|AV_CH_TOP_BACK_CENTER|AV_CH_BOTTOM_FRONT_CENTER|AV_CH_BOTTOM_FRONT_LEFT|AV_CH_BOTTOM_FRONT_RIGHT)
 
 enum AVMatrixEncoding {
     AV_MATRIX_ENCODING_NONE,
@@ -131,20 +137,29 @@ enum AVMatrixEncoding {
  *   5.0(side), 5.1, 5.1(side), 7.1, 7.1(wide), downmix);
  * - the name of a single channel (FL, FR, FC, LFE, BL, BR, FLC, FRC, BC,
  *   SL, SR, TC, TFL, TFC, TFR, TBL, TBC, TBR, DL, DR);
- * - a number of channels, in decimal, optionally followed by 'c', yielding
+ * - a number of channels, in decimal, followed by 'c', yielding
  *   the default channel layout for that number of channels (@see
  *   av_get_default_channel_layout);
  * - a channel layout mask, in hexadecimal starting with "0x" (see the
  *   AV_CH_* macros).
  *
- * @warning Starting from the next major bump the trailing character
- * 'c' to specify a number of channels will be required, while a
- * channel layout mask could also be specified as a decimal number
- * (if and only if not followed by "c").
- *
  * Example: "stereo+FC" = "2c+FC" = "2c+1c" = "0x7"
  */
 uint64_t av_get_channel_layout(const char *name);
+
+/**
+ * Return a channel layout and the number of channels based on the specified name.
+ *
+ * This function is similar to (@see av_get_channel_layout), but can also parse
+ * unknown channel layout specifications.
+ *
+ * @param[in]  name             channel layout specification string
+ * @param[out] channel_layout   parsed channel layout (0 if unknown)
+ * @param[out] nb_channels      number of channels
+ *
+ * @return 0 on success, AVERROR(EINVAL) if the parsing fails.
+ */
+int av_get_extended_channel_layout(const char *name, uint64_t* channel_layout, int* nb_channels);
 
 /**
  * Return a description of a channel layout.
