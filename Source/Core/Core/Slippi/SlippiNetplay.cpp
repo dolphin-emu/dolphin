@@ -27,11 +27,6 @@ static std::mutex ack_mutex;
 
 SlippiNetplayClient* SLIPPI_NETPLAY = nullptr;
 
-static bool IsOnline()
-{
-  return SLIPPI_NETPLAY != nullptr;
-}
-
 // called from ---GUI--- thread
 SlippiNetplayClient::~SlippiNetplayClient()
 {
@@ -66,7 +61,7 @@ SlippiNetplayClient::SlippiNetplayClient(const std::string& address, const u16 r
     : m_qos_handle(nullptr), m_qos_flow_id(0)
 #endif
 {
-  WARN_LOG_FMT(SLIPPI_ONLINE, "Initializing Slippi Netplay for port: %d, with host: %s", localPort,
+  WARN_LOG_FMT(SLIPPI_ONLINE, "Initializing Slippi Netplay for port: {}, with host: {}", localPort,
                isDecider ? "true" : "false");
 
   this->isDecider = isDecider;
@@ -291,7 +286,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
   break;
 
   default:
-    WARN_LOG_FMT(SLIPPI_ONLINE, "Unknown message received with id : %d", mid);
+    WARN_LOG_FMT(SLIPPI_ONLINE, "Unknown message received with id : {}", mid);
     break;
   }
 
@@ -422,7 +417,7 @@ void SlippiNetplayClient::ThreadFunc()
       break;
     }
 
-    WARN_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Not yet connected. Res: %d, Type: %d", net,
+    WARN_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Not yet connected. Res: {}, Type: {}", net,
                  netEvent.type);
 
     // Time out after enough time has passed
