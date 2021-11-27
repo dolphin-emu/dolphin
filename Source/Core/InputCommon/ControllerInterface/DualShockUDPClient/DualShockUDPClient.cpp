@@ -136,7 +136,7 @@ public:
   std::string GetSource() const final override;
   std::optional<int> GetPreferredId() const final override;
   // Always add these at the end, given their hotplug nature
-  int GetSortPriority() const override { return -2; }
+  int GetSortPriority() const override { return -4; }
 
 private:
   void ResetPadData();
