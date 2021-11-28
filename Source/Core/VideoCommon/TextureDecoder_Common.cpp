@@ -721,6 +721,68 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   }
 }
 
+void TexDecoder_DecodeTexelQuad(u8* dst, const u8* src, int s, int t, int s2, int t2,
+                                int imageWidth, TextureFormat texformat, const u8* tlut_,
+                                TLUTFormat tlutfmt)
+{
+  switch (texformat)
+  {
+  case TextureFormat::CMPR:
+  {
+    bool same_block_s = (s & ~3) == (s2 & ~3);
+    bool same_block_t = (t & ~3) == (t2 & ~3);
+    if (same_block_s && same_block_t)
+    {
+      // All samples are from the same CMPR block, so we only need a single load
+      auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
+      *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
+      *((u32*)(dst + 4)) = TexDecoder_DecodePixelCMPR(data, s2, t);
+      *((u32*)(dst + 8)) = TexDecoder_DecodePixelCMPR(data, s, t2);
+      *((u32*)(dst + 12)) = TexDecoder_DecodePixelCMPR(data, s2, t2);
+    }
+    else if (same_block_s)
+    {
+      // There are different blocks on the top and bottom.
+      auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
+      *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
+      *((u32*)(dst + 4)) = TexDecoder_DecodePixelCMPR(data, s2, t);
+      data = TexDecoder_LoadCmprTexel(src, s, t2, imageWidth);
+      *((u32*)(dst + 8)) = TexDecoder_DecodePixelCMPR(data, s, t2);
+      *((u32*)(dst + 12)) = TexDecoder_DecodePixelCMPR(data, s2, t2);
+    }
+    else if (same_block_t)
+    {
+      // There are different blocks on the left and right.
+      auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
+      *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
+      *((u32*)(dst + 8)) = TexDecoder_DecodePixelCMPR(data, s, t2);
+      data = TexDecoder_LoadCmprTexel(src, s2, t, imageWidth);
+      *((u32*)(dst + 4)) = TexDecoder_DecodePixelCMPR(data, s2, t);
+      *((u32*)(dst + 12)) = TexDecoder_DecodePixelCMPR(data, s2, t2);
+    }
+    else
+    {
+      // All four blocks are unique
+      auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
+      *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
+      data = TexDecoder_LoadCmprTexel(src, s2, t, imageWidth);
+      *((u32*)(dst + 4)) = TexDecoder_DecodePixelCMPR(data, s2, t);
+      data = TexDecoder_LoadCmprTexel(src, s, t2, imageWidth);
+      *((u32*)(dst + 8)) = TexDecoder_DecodePixelCMPR(data, s, t2);
+      data = TexDecoder_LoadCmprTexel(src, s2, t2, imageWidth);
+      *((u32*)(dst + 12)) = TexDecoder_DecodePixelCMPR(data, s2, t2);
+    }
+  }
+  break;
+  default:
+    TexDecoder_DecodeTexel(dst, src, s, t, imageWidth, texformat, tlut_, tlutfmt);
+    TexDecoder_DecodeTexel(dst + 4, src, s2, t, imageWidth, texformat, tlut_, tlutfmt);
+    TexDecoder_DecodeTexel(dst + 8, src, s, t2, imageWidth, texformat, tlut_, tlutfmt);
+    TexDecoder_DecodeTexel(dst + 12, src, s2, t2, imageWidth, texformat, tlut_, tlutfmt);
+    break;
+  }
+}
+
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
                                          int imageWidth)
 {
