@@ -5,6 +5,8 @@
 
 #ifdef _WIN32
 #define DOLPHIN_FORCE_INLINE __forceinline
+#define DOLPHIN_NO_INLINE __declspec(noinline)
 #else
 #define DOLPHIN_FORCE_INLINE inline __attribute__((always_inline))
+#define DOLPHIN_NO_INLINE __attribute__((noinline))
 #endif

@@ -6,6 +6,7 @@
 #include <cstddef>
 
 #include "Common/CommonTypes.h"
+#include "Common/Inline.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
@@ -512,7 +513,7 @@ struct cmprTexelData
   u32 colorSel;
 };
 
-cmprTexelData TexDecoder_LoadCmprTexel(const u8* src, int s, int t, int imageWidth)
+static cmprTexelData TexDecoder_LoadCmprTexel(const u8* src, int s, int t, int imageWidth)
 {
   u16 sDxt = s >> 2;
   u16 tDxt = t >> 2;
@@ -557,7 +558,8 @@ struct CMPRCacheEntry
 
 static CMPRCacheEntry cmprCache[1 << CacheHashBits] = {};
 
-void TexDecoder_DecodePixelCMPR_Miss(cmprTexelData data, u32 cacheSet, u32 cacheTag)
+static DOLPHIN_NO_INLINE void TexDecoder_DecodePixelCMPR_Miss(cmprTexelData data, u32 cacheSet,
+                                                              u32 cacheTag)
 {
   int blue1 = Convert5To8(data.color1 & 0x1F);
   int blue2 = Convert5To8(data.color2 & 0x1F);
@@ -585,13 +587,8 @@ void TexDecoder_DecodePixelCMPR_Miss(cmprTexelData data, u32 cacheSet, u32 cache
   cmprCache[cacheSet].tag = cacheTag;
 }
 
-u32 TexDecoder_DecodePixelCMPR(cmprTexelData data, int s, int t)
+static u32* TexDecoder_CMPRCacheLookup(cmprTexelData data)
 {
-  int ss = s & 3;
-  int tt = t & 3;
-  int shift = tt * 8 + (6 - (ss << 1));
-  int colorSel = (data.colorSel >> shift) & 3;
-
   // It's quite expensive to derive the four colors of each block.
   // So we cache then, indexed by the two colors.
 
@@ -607,7 +604,22 @@ u32 TexDecoder_DecodePixelCMPR(cmprTexelData data, int s, int t)
     TexDecoder_DecodePixelCMPR_Miss(data, cacheSet, cacheTag);
   }
 
-  return cmprCache[cacheSet].colors[colorSel];
+  return cmprCache[cacheSet].colors;
+}
+
+static u32 TexDecoder_CMPRColorSelect(cmprTexelData data, u32* colors, int s, int t)
+{
+  int ss = s & 3;
+  int tt = t & 3;
+  int shift = tt * 8 + (6 - (ss << 1));
+  int colorSel = (data.colorSel >> shift) & 3;
+
+  return colors[colorSel];
+}
+
+static u32 TexDecoder_DecodePixelCMPR(cmprTexelData data, int s, int t)
+{
+  return TexDecoder_CMPRColorSelect(data, TexDecoder_CMPRCacheLookup(data), s, t);
 }
 
 void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth,
@@ -733,32 +745,37 @@ void TexDecoder_DecodeTexelQuad(u8* dst, const u8* src, int s, int t, int s2, in
     bool same_block_t = (t & ~3) == (t2 & ~3);
     if (same_block_s && same_block_t)
     {
-      // All samples are from the same CMPR block, so we only need a single load
+      // All samples are from the same CMPR block, so we only need a single load and color lookup
       auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
-      *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
-      *((u32*)(dst + 4)) = TexDecoder_DecodePixelCMPR(data, s2, t);
-      *((u32*)(dst + 8)) = TexDecoder_DecodePixelCMPR(data, s, t2);
-      *((u32*)(dst + 12)) = TexDecoder_DecodePixelCMPR(data, s2, t2);
+      auto colors = TexDecoder_CMPRCacheLookup(data);
+      *((u32*)dst) = TexDecoder_CMPRColorSelect(data, colors, s, t);
+      *((u32*)(dst + 4)) = TexDecoder_CMPRColorSelect(data, colors, s2, t);
+      *((u32*)(dst + 8)) = TexDecoder_CMPRColorSelect(data, colors, s, t2);
+      *((u32*)(dst + 12)) = TexDecoder_CMPRColorSelect(data, colors, s2, t2);
     }
     else if (same_block_s)
     {
       // There are different blocks on the top and bottom.
       auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
-      *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
-      *((u32*)(dst + 4)) = TexDecoder_DecodePixelCMPR(data, s2, t);
+      auto colors = TexDecoder_CMPRCacheLookup(data);
+      *((u32*)dst) = TexDecoder_CMPRColorSelect(data, colors, s, t);
+      *((u32*)(dst + 4)) = TexDecoder_CMPRColorSelect(data, colors, s2, t);
       data = TexDecoder_LoadCmprTexel(src, s, t2, imageWidth);
-      *((u32*)(dst + 8)) = TexDecoder_DecodePixelCMPR(data, s, t2);
-      *((u32*)(dst + 12)) = TexDecoder_DecodePixelCMPR(data, s2, t2);
+      colors = TexDecoder_CMPRCacheLookup(data);
+      *((u32*)(dst + 8)) = TexDecoder_CMPRColorSelect(data, colors, s, t2);
+      *((u32*)(dst + 12)) = TexDecoder_CMPRColorSelect(data, colors, s2, t2);
     }
     else if (same_block_t)
     {
       // There are different blocks on the left and right.
       auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
-      *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
-      *((u32*)(dst + 8)) = TexDecoder_DecodePixelCMPR(data, s, t2);
+      auto colors = TexDecoder_CMPRCacheLookup(data);
+      *((u32*)dst) = TexDecoder_CMPRColorSelect(data, colors, s, t);
+      *((u32*)(dst + 8)) = TexDecoder_CMPRColorSelect(data, colors, s, t2);
       data = TexDecoder_LoadCmprTexel(src, s2, t, imageWidth);
-      *((u32*)(dst + 4)) = TexDecoder_DecodePixelCMPR(data, s2, t);
-      *((u32*)(dst + 12)) = TexDecoder_DecodePixelCMPR(data, s2, t2);
+      colors = TexDecoder_CMPRCacheLookup(data);
+      *((u32*)(dst + 4)) = TexDecoder_CMPRColorSelect(data, colors, s2, t);
+      *((u32*)(dst + 12)) = TexDecoder_CMPRColorSelect(data, colors, s2, t2);
     }
     else
     {
