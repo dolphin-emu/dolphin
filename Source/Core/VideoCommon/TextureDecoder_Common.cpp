@@ -434,36 +434,183 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TLUTFormat tlutfmt)
   }
 }
 
+/*  General formula for computing texture offset
+    u16 sBlk = s / blockWidth;
+    u16 tBlk = t / blockHeight;
+    u16 widthBlks = (width / blockWidth) + 1;
+    u32 base = (tBlk * widthBlks + sBlk) * blockWidth * blockHeight;
+    u16 blkS = s & (blockWidth - 1);
+    u16 blkT =  t & (blockHeight - 1);
+    u32 blkOff = blkT * blockWidth + blkS;
+*/
+
+static u8 TexDecoder_LoadTexel4(const u8* src, int s, int t, int imageWidth)
+{
+  u16 sBlk = s >> 3;
+  u16 tBlk = t >> 3;
+  u16 widthBlks = (imageWidth >> 3) + 1;
+  u32 base = (tBlk * widthBlks + sBlk) << 5;
+  u16 blkS = s & 7;
+  u16 blkT = t & 7;
+  u32 blkOff = (blkT << 3) + blkS;
+
+  int rs = (blkOff & 1) ? 0 : 4;
+  u32 offset = base + (blkOff >> 1);
+
+  return (*(src + offset) >> rs) & 0xF;
+}
+
+static u8 TexDecoder_LoadTexel8(const u8* src, int s, int t, int imageWidth)
+{
+  u16 sBlk = s >> 3;
+  u16 tBlk = t >> 2;
+  u16 widthBlks = (imageWidth >> 3) + 1;
+  u32 base = (tBlk * widthBlks + sBlk) << 5;
+  u16 blkS = s & 7;
+  u16 blkT = t & 3;
+  u32 blkOff = (blkT << 3) + blkS;
+
+  return *(src + base + blkOff);
+}
+
+static u16 TexDecoder_LoadTexel16(const u8* src, int s, int t, int imageWidth)
+{
+  u16 sBlk = s >> 2;
+  u16 tBlk = t >> 2;
+  u16 widthBlks = (imageWidth >> 2) + 1;
+  u32 base = (tBlk * widthBlks + sBlk) << 4;
+  u16 blkS = s & 3;
+  u16 blkT = t & 3;
+  u32 blkOff = (blkT << 2) + blkS;
+
+  u32 offset = (base + blkOff) << 1;
+  return *(u16*)(src + offset);
+}
+
+static u32 TexDecoder_LoadTexel32(const u8* src, int s, int t, int imageWidth)
+{
+  u16 sBlk = s >> 2;
+  u16 tBlk = t >> 2;
+  u16 widthBlks = (imageWidth >> 2) + 1;
+  u32 base = (tBlk * widthBlks + sBlk) << 5;  // shift by 5 is correct
+  u16 blkS = s & 3;
+  u16 blkT = t & 3;
+  u32 blkOff = (blkT << 2) + blkS;
+
+  u32 offset = (base + blkOff) << 1;
+  const u32 valAR = *(u16*)(src + offset);
+  const u32 valGB = *(u16*)(src + offset + 32);
+
+  // Swizzle to RBGA
+  return (valAR >> 8) | (valGB << 8) | ((valAR & 0xff) << 24);
+}
+
+struct cmprTexelData
+{
+  u16 color1;
+  u16 color2;
+  u32 colorSel;
+};
+
+static cmprTexelData TexDecoder_LoadCmprTexel(const u8* src, int s, int t, int imageWidth)
+{
+  u16 sDxt = s >> 2;
+  u16 tDxt = t >> 2;
+
+  u16 sBlk = sDxt >> 1;
+  u16 tBlk = tDxt >> 1;
+  u16 widthBlks = (imageWidth >> 3) + 1;
+  u32 base = (tBlk * widthBlks + sBlk) << 2;
+  u16 blkS = sDxt & 1;
+  u16 blkT = tDxt & 1;
+  u32 blkOff = (blkT << 1) + blkS;
+
+  u32 offset = (base + blkOff) << 3;
+
+  const DXTBlock* dxtBlock = (const DXTBlock*)(src + offset);
+
+  cmprTexelData ret;
+  ret.color1 = Common::swap16(dxtBlock->color1);
+  ret.color2 = Common::swap16(dxtBlock->color2);
+  std::memcpy(&ret.colorSel, &dxtBlock->lines, sizeof(ret.colorSel));
+
+  return ret;
+}
+
+static u32 TexDecoder_DecodePixelCMPR(cmprTexelData data, int s, int t)
+{
+  int blue1 = Convert5To8(data.color1 & 0x1F);
+  int blue2 = Convert5To8(data.color2 & 0x1F);
+  int green1 = Convert6To8((data.color1 >> 5) & 0x3F);
+  int green2 = Convert6To8((data.color2 >> 5) & 0x3F);
+  int red1 = Convert5To8((data.color1 >> 11) & 0x1F);
+  int red2 = Convert5To8((data.color2 >> 11) & 0x1F);
+
+  int ss = s & 3;
+  int tt = t & 3;
+  int shift = tt * 8 + (6 - (ss << 1));
+  int colorSel = (data.colorSel >> shift) & 3;
+  colorSel |= (data.color1 > data.color2) ? 0 : 4;
+
+  // branchless version
+
+  // uint32_t colors[8] = {
+  //   MakeRGBA(red1, green1, blue1, 255),
+  //   MakeRGBA(red2, green2, blue2, 255),
+  //   MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255),
+  //   MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255),
+  //   //altColors ? MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255)
+  //   //          : MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2,
+  //   blue1), 255),
+  //   //altColors ? MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0)
+  //   //          : MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1,
+  //   blue2), 255) MakeRGBA(red1, green1, blue1, 255), MakeRGBA(red2, green2, blue2, 255),
+  //   MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255),
+  //   MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0)
+  // };
+  // return colors[colorSel];
+
+  u32 color = 0;
+
+  switch (colorSel)
+  {
+  case 0:
+  case 4:
+    color = MakeRGBA(red1, green1, blue1, 255);
+    break;
+  case 1:
+  case 5:
+    color = MakeRGBA(red2, green2, blue2, 255);
+    break;
+  case 2:
+    color = MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255);
+    break;
+  case 3:
+    color = MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
+    break;
+  case 6:
+    color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
+    break;
+  case 7:
+    // color[3] is the same as color[2] (average of both colors), but transparent.
+    // This differs from DXT1 where color[3] is transparent black.
+    color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
+    break;
+  default:
+    color = 0;
+    break;
+  }
+  return color;
+}
+
 void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth,
                             TextureFormat texformat, const u8* tlut_, TLUTFormat tlutfmt)
 {
-  /* General formula for computing texture offset
-  //
-  u16 sBlk = s / blockWidth;
-  u16 tBlk = t / blockHeight;
-  u16 widthBlks = (width / blockWidth) + 1;
-  u32 base = (tBlk * widthBlks + sBlk) * blockWidth * blockHeight;
-  u16 blkS = s & (blockWidth - 1);
-  u16 blkT =  t & (blockHeight - 1);
-  u32 blkOff = blkT * blockWidth + blkS;
-  */
-
   switch (texformat)
   {
   case TextureFormat::C4:
   {
-    u16 sBlk = s >> 3;
-    u16 tBlk = t >> 3;
-    u16 widthBlks = (imageWidth >> 3) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 5;
-    u16 blkS = s & 7;
-    u16 blkT = t & 7;
-    u32 blkOff = (blkT << 3) + blkS;
-
-    int rs = (blkOff & 1) ? 0 : 4;
-    u32 offset = base + (blkOff >> 1);
-
-    u8 val = (*(src + offset) >> rs) & 0xF;
+    u8 val = TexDecoder_LoadTexel4(src, s, t, imageWidth);
     u16* tlut = (u16*)tlut_;
 
     *((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
@@ -471,18 +618,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   break;
   case TextureFormat::I4:
   {
-    u16 sBlk = s >> 3;
-    u16 tBlk = t >> 3;
-    u16 widthBlks = (imageWidth >> 3) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 5;
-    u16 blkS = s & 7;
-    u16 blkT = t & 7;
-    u32 blkOff = (blkT << 3) + blkS;
-
-    int rs = (blkOff & 1) ? 0 : 4;
-    u32 offset = base + (blkOff >> 1);
-
-    u8 val = (*(src + offset) >> rs) & 0xF;
+    u8 val = TexDecoder_LoadTexel4(src, s, t, imageWidth);
     val = Convert4To8(val);
     dst[0] = val;
     dst[1] = val;
@@ -492,15 +628,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   break;
   case TextureFormat::I8:
   {
-    u16 sBlk = s >> 3;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 3) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 5;
-    u16 blkS = s & 7;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 3) + blkS;
-
-    u8 val = *(src + base + blkOff);
+    u8 val = TexDecoder_LoadTexel8(src, s, t, imageWidth);
     dst[0] = val;
     dst[1] = val;
     dst[2] = val;
@@ -509,15 +637,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   break;
   case TextureFormat::C8:
   {
-    u16 sBlk = s >> 3;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 3) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 5;
-    u16 blkS = s & 7;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 3) + blkS;
-
-    u8 val = *(src + base + blkOff);
+    u8 val = TexDecoder_LoadTexel8(src, s, t, imageWidth);
     u16* tlut = (u16*)tlut_;
 
     *((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
@@ -525,15 +645,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   break;
   case TextureFormat::IA4:
   {
-    u16 sBlk = s >> 3;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 3) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 5;
-    u16 blkS = s & 7;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 3) + blkS;
-
-    u8 val = *(src + base + blkOff);
+    u8 val = TexDecoder_LoadTexel8(src, s, t, imageWidth);
     const u8 a = Convert4To8(val >> 4);
     const u8 l = Convert4To8(val & 0xF);
     dst[0] = l;
@@ -544,34 +656,14 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   break;
   case TextureFormat::IA8:
   {
-    u16 sBlk = s >> 2;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 4;
-    u16 blkS = s & 3;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 2) + blkS;
+    u16 val = TexDecoder_LoadTexel16(src, s, t, imageWidth);
 
-    u32 offset = (base + blkOff) << 1;
-    const u16* valAddr = (u16*)(src + offset);
-
-    *((u32*)dst) = DecodePixel_IA8(*valAddr);
+    *((u32*)dst) = DecodePixel_IA8(val);
   }
   break;
   case TextureFormat::C14X2:
   {
-    u16 sBlk = s >> 2;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 4;
-    u16 blkS = s & 3;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 2) + blkS;
-
-    u32 offset = (base + blkOff) << 1;
-    const u16* valAddr = (u16*)(src + offset);
-
-    u16 val = Common::swap16(*valAddr) & 0x3FFF;
+    u16 val = TexDecoder_LoadTexel16(src, s, t, imageWidth) & 0x3FFF;
     u16* tlut = (u16*)tlut_;
 
     *((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
@@ -579,128 +671,34 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
   break;
   case TextureFormat::RGB565:
   {
-    u16 sBlk = s >> 2;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 4;
-    u16 blkS = s & 3;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 2) + blkS;
+    u16 val = TexDecoder_LoadTexel16(src, s, t, imageWidth);
 
-    u32 offset = (base + blkOff) << 1;
-    const u16* valAddr = (u16*)(src + offset);
-
-    *((u32*)dst) = DecodePixel_RGB565(Common::swap16(*valAddr));
+    *((u32*)dst) = DecodePixel_RGB565(Common::swap16(val));
   }
   break;
   case TextureFormat::RGB5A3:
   {
-    u16 sBlk = s >> 2;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 4;
-    u16 blkS = s & 3;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 2) + blkS;
+    u16 val = TexDecoder_LoadTexel16(src, s, t, imageWidth);
 
-    u32 offset = (base + blkOff) << 1;
-    const u16* valAddr = (u16*)(src + offset);
-
-    *((u32*)dst) = DecodePixel_RGB5A3(Common::swap16(*valAddr));
+    *((u32*)dst) = DecodePixel_RGB5A3(Common::swap16(val));
   }
   break;
   case TextureFormat::RGBA8:
   {
-    u16 sBlk = s >> 2;
-    u16 tBlk = t >> 2;
-    u16 widthBlks = (imageWidth >> 2) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 5;  // shift by 5 is correct
-    u16 blkS = s & 3;
-    u16 blkT = t & 3;
-    u32 blkOff = (blkT << 2) + blkS;
-
-    u32 offset = (base + blkOff) << 1;
-    const u8* valAddr = src + offset;
-
-    dst[3] = valAddr[0];
-    dst[0] = valAddr[1];
-    dst[1] = valAddr[32];
-    dst[2] = valAddr[33];
+    *((u32*)dst) = TexDecoder_LoadTexel32(src, s, t, imageWidth);
   }
   break;
   case TextureFormat::CMPR:
   {
-    u16 sDxt = s >> 2;
-    u16 tDxt = t >> 2;
-
-    u16 sBlk = sDxt >> 1;
-    u16 tBlk = tDxt >> 1;
-    u16 widthBlks = (imageWidth >> 3) + 1;
-    u32 base = (tBlk * widthBlks + sBlk) << 2;
-    u16 blkS = sDxt & 1;
-    u16 blkT = tDxt & 1;
-    u32 blkOff = (blkT << 1) + blkS;
-
-    u32 offset = (base + blkOff) << 3;
-
-    const DXTBlock* dxtBlock = (const DXTBlock*)(src + offset);
-
-    u16 c1 = Common::swap16(dxtBlock->color1);
-    u16 c2 = Common::swap16(dxtBlock->color2);
-    int blue1 = Convert5To8(c1 & 0x1F);
-    int blue2 = Convert5To8(c2 & 0x1F);
-    int green1 = Convert6To8((c1 >> 5) & 0x3F);
-    int green2 = Convert6To8((c2 >> 5) & 0x3F);
-    int red1 = Convert5To8((c1 >> 11) & 0x1F);
-    int red2 = Convert5To8((c2 >> 11) & 0x1F);
-
-    u16 ss = s & 3;
-    u16 tt = t & 3;
-
-    int colorSel = dxtBlock->lines[tt];
-    int rs = 6 - (ss << 1);
-    colorSel = (colorSel >> rs) & 3;
-    colorSel |= c1 > c2 ? 0 : 4;
-
-    u32 color = 0;
-
-    switch (colorSel)
-    {
-    case 0:
-    case 4:
-      color = MakeRGBA(red1, green1, blue1, 255);
-      break;
-    case 1:
-    case 5:
-      color = MakeRGBA(red2, green2, blue2, 255);
-      break;
-    case 2:
-      color = MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255);
-      break;
-    case 3:
-      color = MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
-      break;
-    case 6:
-      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
-      break;
-    case 7:
-      // color[3] is the same as color[2] (average of both colors), but transparent.
-      // This differs from DXT1 where color[3] is transparent black.
-      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
-      break;
-    default:
-      color = 0;
-      break;
-    }
-
-    *((u32*)dst) = color;
+    auto data = TexDecoder_LoadCmprTexel(src, s, t, imageWidth);
+    *((u32*)dst) = TexDecoder_DecodePixelCMPR(data, s, t);
   }
   break;
   case TextureFormat::XFB:
   {
     size_t offset = (t * imageWidth + (s & (~1))) * 2;
 
-    // We do this one color sample (aka 2 RGB pixles) at a time
+    // We do this one color sample (aka 2 RGB pixels) at a time
     int Y = int((s & 1) == 0 ? src[offset] : src[offset + 2]) - 16;
     int U = int(src[offset + 1]) - 128;
     int V = int(src[offset + 3]) - 128;
