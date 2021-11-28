@@ -34,6 +34,7 @@ extern const Info<bool> GFX_SHOW_NETPLAY_MESSAGES;
 extern const Info<bool> GFX_LOG_RENDER_TIME_TO_FILE;
 extern const Info<bool> GFX_OVERLAY_STATS;
 extern const Info<bool> GFX_OVERLAY_PROJ_STATS;
+extern const Info<bool> GFX_OVERLAY_SCISSOR_STATS;
 extern const Info<bool> GFX_DUMP_TEXTURES;
 extern const Info<bool> GFX_DUMP_MIP_TEXTURES;
 extern const Info<bool> GFX_DUMP_BASE_TEXTURES;

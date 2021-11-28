@@ -83,6 +83,7 @@ struct VideoConfig final
   bool bShowNetPlayMessages = false;
   bool bOverlayStats = false;
   bool bOverlayProjStats = false;
+  bool bOverlayScissorStats = false;
   bool bTexFmtOverlayEnable = false;
   bool bTexFmtOverlayCenter = false;
   bool bLogRenderTimeToFile = false;

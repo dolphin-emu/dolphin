@@ -58,6 +58,10 @@ struct ScissorRect
 // rectangle exists is based on games only wanting to draw one rectangle, and accidentally
 // configuring the scissor offset and size of the scissor rectangle such that multiple show up;
 // there are no known games where this is not the case.
+//
+// An ImGui overlay that displays the scissor rectangle configuration as well as the generated
+// rectangles is available by setting OverlayScissorStats (GFX_OVERLAY_SCISSOR_STATS)
+// under [Settings] to True in GFX.ini.
 struct ScissorResult
 {
   ScissorResult(const BPMemory& bpmem, const XFMemory& xfmem);
@@ -118,6 +122,25 @@ struct ScissorResult
   std::vector<ScissorRect> m_result;
 
   ScissorRect Best() const;
+
+  bool ScissorMatches(const ScissorResult& other) const
+  {
+    return scissor_tl.hex == other.scissor_tl.hex && scissor_br.hex == other.scissor_br.hex &&
+           scissor_off.hex == other.scissor_off.hex;
+  }
+  bool ViewportMatches(const ScissorResult& other) const
+  {
+    return viewport_left == other.viewport_left && viewport_right == other.viewport_right &&
+           viewport_top == other.viewport_top && viewport_bottom == other.viewport_bottom;
+  }
+  bool Matches(const ScissorResult& other, bool compare_scissor, bool compare_viewport) const
+  {
+    if (compare_scissor && !ScissorMatches(other))
+      return false;
+    if (compare_viewport && !ViewportMatches(other))
+      return false;
+    return true;
+  }
 
 private:
   ScissorResult(const BPMemory& bpmem, std::pair<float, float> viewport_x,
