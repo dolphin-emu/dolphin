@@ -512,7 +512,7 @@ struct cmprTexelData
   u32 colorSel;
 };
 
-static cmprTexelData TexDecoder_LoadCmprTexel(const u8* src, int s, int t, int imageWidth)
+cmprTexelData TexDecoder_LoadCmprTexel(const u8* src, int s, int t, int imageWidth)
 {
   u16 sDxt = s >> 2;
   u16 tDxt = t >> 2;
@@ -537,7 +537,27 @@ static cmprTexelData TexDecoder_LoadCmprTexel(const u8* src, int s, int t, int i
   return ret;
 }
 
-static u32 TexDecoder_DecodePixelCMPR(cmprTexelData data, int s, int t)
+static constexpr int CacheHashBits = 10;
+
+static constexpr u32 cmprCacheSet(u32 color1, u32 color2)
+{
+  return (color1 * color2 * 0x9E3779B1) >> (32 - CacheHashBits);
+}
+
+static constexpr u32 cmprCacheTag(u32 color1, u32 color2)
+{
+  return color1 | (color2 << 16);
+}
+
+struct CMPRCacheEntry
+{
+  u32 tag = {};
+  u32 colors[4] = {};
+};
+
+static CMPRCacheEntry cmprCache[1 << CacheHashBits] = {};
+
+void TexDecoder_DecodePixelCMPR_Miss(cmprTexelData data, u32 cacheSet, u32 cacheTag)
 {
   int blue1 = Convert5To8(data.color1 & 0x1F);
   int blue2 = Convert5To8(data.color2 & 0x1F);
@@ -546,61 +566,48 @@ static u32 TexDecoder_DecodePixelCMPR(cmprTexelData data, int s, int t)
   int red1 = Convert5To8((data.color1 >> 11) & 0x1F);
   int red2 = Convert5To8((data.color2 >> 11) & 0x1F);
 
+  auto& c = cmprCache[cacheSet].colors;
+  c[0] = MakeRGBA(red1, green1, blue1, 255);
+  c[1] = MakeRGBA(red2, green2, blue2, 255);
+  if (data.color1 > data.color2)
+  {
+    c[2] = MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255);
+    c[3] = MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
+  }
+  else
+  {
+    // color[3] is the same as color[2] (average of both colors), but transparent.
+    // This differs from DXT1 where color[3] is transparent black.
+    c[2] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
+    c[3] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
+  }
+
+  cmprCache[cacheSet].tag = cacheTag;
+}
+
+u32 TexDecoder_DecodePixelCMPR(cmprTexelData data, int s, int t)
+{
   int ss = s & 3;
   int tt = t & 3;
   int shift = tt * 8 + (6 - (ss << 1));
   int colorSel = (data.colorSel >> shift) & 3;
-  colorSel |= (data.color1 > data.color2) ? 0 : 4;
 
-  // branchless version
+  // It's quite expensive to derive the four colors of each block.
+  // So we cache then, indexed by the two colors.
 
-  // uint32_t colors[8] = {
-  //   MakeRGBA(red1, green1, blue1, 255),
-  //   MakeRGBA(red2, green2, blue2, 255),
-  //   MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255),
-  //   MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255),
-  //   //altColors ? MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255)
-  //   //          : MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2,
-  //   blue1), 255),
-  //   //altColors ? MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0)
-  //   //          : MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1,
-  //   blue2), 255) MakeRGBA(red1, green1, blue1, 255), MakeRGBA(red2, green2, blue2, 255),
-  //   MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255),
-  //   MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0)
-  // };
-  // return colors[colorSel];
+  u32 cacheSet = cmprCacheSet(data.color1, data.color2);
+  u32 cacheTag = cmprCacheTag(data.color1, data.color2);
 
-  u32 color = 0;
+  // our cache is initialized to all zeros, and we don't have space for a valid bit.
+  // This means tag 0 will end up as valid.
+  // A simple solution is to just never hit on tag zero
 
-  switch (colorSel)
+  if (cmprCache[cacheSet].tag != cacheTag || cacheTag == 0)
   {
-  case 0:
-  case 4:
-    color = MakeRGBA(red1, green1, blue1, 255);
-    break;
-  case 1:
-  case 5:
-    color = MakeRGBA(red2, green2, blue2, 255);
-    break;
-  case 2:
-    color = MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255);
-    break;
-  case 3:
-    color = MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
-    break;
-  case 6:
-    color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
-    break;
-  case 7:
-    // color[3] is the same as color[2] (average of both colors), but transparent.
-    // This differs from DXT1 where color[3] is transparent black.
-    color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
-    break;
-  default:
-    color = 0;
-    break;
+    TexDecoder_DecodePixelCMPR_Miss(data, cacheSet, cacheTag);
   }
-  return color;
+
+  return cmprCache[cacheSet].colors[colorSel];
 }
 
 void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth,
