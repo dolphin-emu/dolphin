@@ -29,6 +29,7 @@ struct RasterBlockPixel
 {
   float InvW;
   float Uv[8][2];
+  bool mask;
 };
 
 struct RasterBlock

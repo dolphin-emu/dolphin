@@ -699,7 +699,7 @@ void ResetPerfQuery()
   perf_values = {};
 }
 
-void IncPerfCounterQuadCount(PerfQueryType type)
+void IncPerfCounterPixelCount(PerfQueryType type)
 {
   // NOTE: hardware doesn't process individual pixels but quads instead.
   // Current software renderer architecture works on pixels though, so
@@ -709,6 +709,10 @@ void IncPerfCounterQuadCount(PerfQueryType type)
   if (++quad[type] != 3)
     return;
   quad[type] = 0;
+  ++perf_values[type];
+}
+
+void IncPerfCounterQuadCount(PerfQueryType type) {
   ++perf_values[type];
 }
 }  // namespace EfbInterface
