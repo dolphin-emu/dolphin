@@ -150,22 +150,18 @@ bool InputConfig::LoadConfig(InputClass type)
   }
   else
   {
-    // Only load the default profile for the first controller,
-    // otherwise they would all share the same mappings and default device
+    // Only load the default profile for the first controller and clear the others,
+    // otherwise they would all share the same mappings on the same (default) device
     if (m_controllers.size() > 0)
     {
       m_controllers[0]->LoadDefaults(g_controller_interface);
       m_controllers[0]->UpdateReferences(g_controller_interface);
     }
-    // Set the "default" default device for all other controllers, or they would end up
-    // having no default device (which is fine, but might be confusing for some users)
-    const std::string& default_device_string = g_controller_interface.GetDefaultDeviceString();
-    if (!default_device_string.empty())
+    for (size_t i = 1; i < m_controllers.size(); ++i)
     {
-      for (size_t i = 1; i < m_controllers.size(); ++i)
-      {
-        m_controllers[i]->SetDefaultDevice(default_device_string);
-      }
+      // Calling the base version just clears all settings without overwriting them with a default
+      m_controllers[i]->EmulatedController::LoadDefaults(g_controller_interface);
+      m_controllers[i]->UpdateReferences(g_controller_interface);
     }
     return false;
   }
