@@ -560,7 +560,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
     // Wiimotes cause desync issues if they're not reset before launching the game
     if (!Core::IsRunningAndStarted())
     {
-      // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
+      // This will also reset the Wiimotes for GameCube games, but that shouldn't do anything
       Wiimote::ResetAllWiimotes();
     }
 
