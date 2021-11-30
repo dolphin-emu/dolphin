@@ -11,6 +11,8 @@ namespace Rasterizer
 {
 void Init();
 
+void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
+                  const OutputVertexData* v2);
 void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
                            const OutputVertexData* v2);
 
