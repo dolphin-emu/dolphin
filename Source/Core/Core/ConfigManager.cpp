@@ -256,6 +256,7 @@ void SConfig::SaveMovieSettings(IniFile& ini)
   movie->Set("DumpFramesSilent", m_DumpFramesSilent);
   movie->Set("ShowInputDisplay", m_ShowInputDisplay);
   movie->Set("ShowRTC", m_ShowRTC);
+  movie->Set("ShowRerecord", m_ShowRerecord);
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -503,6 +504,7 @@ void SConfig::LoadMovieSettings(IniFile& ini)
   movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
   movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
   movie->Get("ShowRTC", &m_ShowRTC, false);
+  movie->Get("ShowRerecord", &m_ShowRerecord, false);
 }
 
 void SConfig::LoadInputSettings(IniFile& ini)
