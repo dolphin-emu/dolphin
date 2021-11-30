@@ -401,6 +401,7 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   reset_action->setEnabled(CanResetCore());
   connect(reset_action, &QAction::triggered, this, &GBAWidget::ResetCore);
 
+  // i18n: Noun (i.e. the data saved by the game)
   auto* savefile_menu = new QMenu(tr("Save Game"), menu);
   auto* save_import_action = new QAction(tr("&Import Save Game..."), savefile_menu);
   save_import_action->setEnabled(CanControlCore() && m_core_info.has_rom);
