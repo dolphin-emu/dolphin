@@ -86,6 +86,9 @@ const Info<int> MAIN_SYNC_GPU_MIN_DISTANCE{{System::Main, "Core", "SyncGpuMinDis
 const Info<float> MAIN_SYNC_GPU_OVERCLOCK{{System::Main, "Core", "SyncGpuOverclock"}, 1.0f};
 const Info<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, false};
 const Info<bool> MAIN_LOW_DCBZ_HACK{{System::Main, "Core", "LowDCBZHack"}, false};
+const Info<bool> MAIN_FLOAT_EXCEPTIONS{{System::Main, "Core", "FloatExceptions"}, false};
+const Info<bool> MAIN_DIVIDE_BY_ZERO_EXCEPTIONS{{System::Main, "Core", "DivByZeroExceptions"},
+                                                false};
 const Info<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const Info<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};
 const Info<bool> MAIN_DISABLE_ICACHE{{System::Main, "Core", "DisableICache"}, false};
@@ -128,6 +131,7 @@ const Info<bool> MAIN_DISABLE_SCREENSAVER{{System::Main, "Display", "DisableScre
 
 // Main.DSP
 
+const Info<bool> MAIN_DSP_THREAD{{System::Main, "DSP", "DSPThread"}, false};
 const Info<bool> MAIN_DSP_CAPTURE_LOG{{System::Main, "DSP", "CaptureLog"}, false};
 const Info<bool> MAIN_DSP_JIT{{System::Main, "DSP", "EnableJIT"}, true};
 const Info<bool> MAIN_DUMP_AUDIO{{System::Main, "DSP", "DumpAudio"}, false};
@@ -136,6 +140,15 @@ const Info<bool> MAIN_DUMP_UCODE{{System::Main, "DSP", "DumpUCode"}, false};
 const Info<std::string> MAIN_AUDIO_BACKEND{{System::Main, "DSP", "Backend"},
                                            AudioCommon::GetDefaultSoundBackend()};
 const Info<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 100};
+const Info<bool> MAIN_AUDIO_MUTED{{System::Main, "DSP", "Muted"}, false};
+#ifdef _WIN32
+const Info<std::string> MAIN_WASAPI_DEVICE{{System::Main, "DSP", "WASAPIDevice"}, "Default"};
+#endif
+
+bool ShouldUseDPL2Decoder()
+{
+  return Get(MAIN_DPL2_DECODER) && !Get(MAIN_DSP_HLE);
+}
 
 // Main.General
 

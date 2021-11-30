@@ -22,6 +22,7 @@
 #include "Common/CDUtils.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/RSO.h"
@@ -51,6 +52,7 @@
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Settings.h"
@@ -788,9 +790,9 @@ void MenuBar::AddMovieMenu()
 
   auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
   dump_audio->setCheckable(true);
-  dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
+  dump_audio->setChecked(Config::Get(Config::MAIN_DUMP_AUDIO));
   connect(dump_audio, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
+          [](bool value) { Config::SetBaseOrCurrent(Config::MAIN_DUMP_AUDIO, value); });
 }
 
 void MenuBar::AddJITMenu()
@@ -1029,8 +1031,8 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
 
 void MenuBar::InstallWAD()
 {
-  QString wad_file = QFileDialog::getOpenFileName(this, tr("Select a title to install to NAND"),
-                                                  QString(), tr("WAD files (*.wad)"));
+  QString wad_file = DolphinFileDialog::getOpenFileName(
+      this, tr("Select a title to install to NAND"), QString(), tr("WAD files (*.wad)"));
 
   if (wad_file.isEmpty())
     return;
@@ -1049,9 +1051,10 @@ void MenuBar::InstallWAD()
 
 void MenuBar::ImportWiiSave()
 {
-  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
-                                              tr("Wii save files (*.bin);;"
-                                                 "All Files (*)"));
+  QString file =
+      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                         tr("Wii save files (*.bin);;"
+                                            "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1093,7 +1096,7 @@ void MenuBar::ImportWiiSave()
 
 void MenuBar::ExportWiiSaves()
 {
-  const QString export_dir = QFileDialog::getExistingDirectory(
+  const QString export_dir = DolphinFileDialog::getExistingDirectory(
       this, tr("Select Export Directory"), QString::fromStdString(File::GetUserPath(D_USER_IDX)),
       QFileDialog::ShowDirsOnly);
   if (export_dir.isEmpty())
@@ -1482,7 +1485,7 @@ void MenuBar::SaveSymbolMap()
 
 void MenuBar::LoadOtherSymbolMap()
 {
-  const QString file = QFileDialog::getOpenFileName(
+  const QString file = DolphinFileDialog::getOpenFileName(
       this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
       tr("Dolphin Map File (*.map)"));
 
@@ -1498,7 +1501,7 @@ void MenuBar::LoadOtherSymbolMap()
 
 void MenuBar::LoadBadSymbolMap()
 {
-  const QString file = QFileDialog::getOpenFileName(
+  const QString file = DolphinFileDialog::getOpenFileName(
       this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
       tr("Dolphin Map File (*.map)"));
 
@@ -1515,7 +1518,7 @@ void MenuBar::LoadBadSymbolMap()
 void MenuBar::SaveSymbolMapAs()
 {
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
-  const QString file = QFileDialog::getSaveFileName(
+  const QString file = DolphinFileDialog::getSaveFileName(
       this, tr("Save map file"),
       QString::fromStdString(File::GetUserPath(D_MAPS_IDX) + "/" + title_id_str + ".map"),
       tr("Dolphin Map File (*.map)"));
@@ -1568,8 +1571,8 @@ void MenuBar::CreateSignatureFile()
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"),
       QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
-  const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"),
-                                                    QDir::homePath(), GetSignatureSelector());
+  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Save signature file"),
+                                                          QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
 
@@ -1593,8 +1596,8 @@ void MenuBar::AppendSignatureFile()
       this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"),
       QLineEdit::Normal, QString{}, nullptr, Qt::WindowCloseButtonHint);
 
-  const QString file = QFileDialog::getSaveFileName(this, tr("Append signature to"),
-                                                    QDir::homePath(), GetSignatureSelector());
+  const QString file = DolphinFileDialog::getSaveFileName(this, tr("Append signature to"),
+                                                          QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
 
@@ -1616,8 +1619,8 @@ void MenuBar::AppendSignatureFile()
 
 void MenuBar::ApplySignatureFile()
 {
-  const QString file = QFileDialog::getOpenFileName(this, tr("Apply signature file"),
-                                                    QDir::homePath(), GetSignatureSelector());
+  const QString file = DolphinFileDialog::getOpenFileName(this, tr("Apply signature file"),
+                                                          QDir::homePath(), GetSignatureSelector());
 
   if (file.isEmpty())
     return;
@@ -1633,18 +1636,18 @@ void MenuBar::ApplySignatureFile()
 
 void MenuBar::CombineSignatureFiles()
 {
-  const QString priorityFile = QFileDialog::getOpenFileName(
+  const QString priorityFile = DolphinFileDialog::getOpenFileName(
       this, tr("Choose priority input file"), QDir::homePath(), GetSignatureSelector());
   if (priorityFile.isEmpty())
     return;
 
-  const QString secondaryFile = QFileDialog::getOpenFileName(
+  const QString secondaryFile = DolphinFileDialog::getOpenFileName(
       this, tr("Choose secondary input file"), QDir::homePath(), GetSignatureSelector());
   if (secondaryFile.isEmpty())
     return;
 
-  const QString saveFile = QFileDialog::getSaveFileName(this, tr("Save combined output file as"),
-                                                        QDir::homePath(), GetSignatureSelector());
+  const QString saveFile = DolphinFileDialog::getSaveFileName(
+      this, tr("Save combined output file as"), QDir::homePath(), GetSignatureSelector());
   if (saveFile.isEmpty())
     return;
 

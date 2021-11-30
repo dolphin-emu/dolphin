@@ -15,6 +15,7 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.ConvertActivity;
 import org.dolphinemu.dolphinemu.features.cheats.ui.CheatsActivity;
+import org.dolphinemu.dolphinemu.features.riivolution.ui.RiivolutionBootActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -34,6 +35,7 @@ public class GamePropertiesDialog extends DialogFragment
   private static final String ARG_GAME_ID = "game_id";
   private static final String ARG_GAMETDB_ID = "gametdb_id";
   public static final String ARG_REVISION = "revision";
+  public static final String ARG_DISC_NUMBER = "disc_number";
   private static final String ARG_PLATFORM = "platform";
   private static final String ARG_SHOULD_ALLOW_CONVERSION = "should_allow_conversion";
 
@@ -46,6 +48,7 @@ public class GamePropertiesDialog extends DialogFragment
     arguments.putString(ARG_GAME_ID, gameFile.getGameId());
     arguments.putString(ARG_GAMETDB_ID, gameFile.getGameTdbId());
     arguments.putInt(ARG_REVISION, gameFile.getRevision());
+    arguments.putInt(ARG_DISC_NUMBER, gameFile.getDiscNumber());
     arguments.putInt(ARG_PLATFORM, gameFile.getPlatform());
     arguments.putBoolean(ARG_SHOULD_ALLOW_CONVERSION, gameFile.shouldAllowConversion());
     fragment.setArguments(arguments);
@@ -61,6 +64,7 @@ public class GamePropertiesDialog extends DialogFragment
     final String gameId = requireArguments().getString(ARG_GAME_ID);
     final String gameTdbId = requireArguments().getString(ARG_GAMETDB_ID);
     final int revision = requireArguments().getInt(ARG_REVISION);
+    final int discNumber = requireArguments().getInt(ARG_DISC_NUMBER);
     final int platform = requireArguments().getInt(ARG_PLATFORM);
     final boolean shouldAllowConversion =
             requireArguments().getBoolean(ARG_SHOULD_ALLOW_CONVERSION);
@@ -75,14 +79,11 @@ public class GamePropertiesDialog extends DialogFragment
             GameDetailsDialog.newInstance(path).show(requireActivity()
                     .getSupportFragmentManager(), "game_details"));
 
-    if (shouldAllowConversion)
-    {
-      itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
-              ConvertActivity.launch(getContext(), path));
-    }
-
     if (isDisc)
     {
+      itemsBuilder.add(R.string.properties_start_with_riivolution, (dialog, i) ->
+              RiivolutionBootActivity.launch(getContext(), path, gameId, revision, discNumber));
+
       itemsBuilder.add(R.string.properties_set_default_iso, (dialog, i) ->
       {
         try (Settings settings = new Settings())
@@ -92,6 +93,12 @@ public class GamePropertiesDialog extends DialogFragment
           settings.saveSettings(null, getContext());
         }
       });
+    }
+
+    if (shouldAllowConversion)
+    {
+      itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
+              ConvertActivity.launch(getContext(), path));
     }
 
     itemsBuilder.add(R.string.properties_edit_game_settings, (dialog, i) ->

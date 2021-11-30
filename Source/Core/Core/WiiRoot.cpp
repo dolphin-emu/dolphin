@@ -4,6 +4,7 @@
 #include "Core/WiiRoot.h"
 
 #include <cinttypes>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
@@ -34,6 +36,12 @@ namespace FS = IOS::HLE::FS;
 
 static std::string s_temp_wii_root;
 static bool s_wii_root_initialized = false;
+static std::vector<IOS::HLE::FS::NandRedirect> s_nand_redirects;
+
+const std::vector<IOS::HLE::FS::NandRedirect>& GetActiveNandRedirects()
+{
+  return s_nand_redirects;
+}
 
 static bool CopyBackupFile(const std::string& path_from, const std::string& path_to)
 {
@@ -107,7 +115,8 @@ static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_fi
   return true;
 }
 
-static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
+static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs,
+                                            const BootSessionData& boot_session_data)
 {
   const u64 title_id = SConfig::GetInstance().GetTitleID();
   const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
@@ -129,8 +138,8 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
       (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
     // Copy the current user's save to the Blank NAND
-    auto* sync_fs = NetPlay::GetWiiSyncFS();
-    auto& sync_titles = NetPlay::GetWiiSyncTitles();
+    auto* sync_fs = boot_session_data.GetWiiSyncFS();
+    auto& sync_titles = boot_session_data.GetWiiSyncTitles();
     if (sync_fs)
     {
       for (const u64 title : sync_titles)
@@ -202,6 +211,7 @@ void InitializeWiiRoot(bool use_temporary)
     File::SetUserPath(D_SESSION_WIIROOT_IDX, File::GetUserPath(D_WIIROOT_IDX));
   }
 
+  s_nand_redirects.clear();
   s_wii_root_initialized = true;
 }
 
@@ -213,6 +223,7 @@ void ShutdownWiiRoot()
     s_temp_wii_root.clear();
   }
 
+  s_nand_redirects.clear();
   s_wii_root_initialized = false;
 }
 
@@ -288,7 +299,9 @@ static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_sou
   return true;
 }
 
-void InitializeWiiFileSystemContents()
+void InitializeWiiFileSystemContents(
+    std::optional<DiscIO::Riivolution::SavegameRedirect> save_redirect,
+    const BootSessionData& boot_session_data)
 {
   const auto fs = IOS::HLE::GetIOS()->GetFS();
 
@@ -299,20 +312,37 @@ void InitializeWiiFileSystemContents()
   if (!CopySysmenuFilesToFS(fs.get(), File::GetSysDirectory() + WII_USER_DIR, ""))
     WARN_LOG_FMT(CORE, "Failed to copy initial System Menu files to the NAND");
 
-  if (!WiiRootIsTemporary())
-    return;
+  if (WiiRootIsTemporary())
+  {
+    // Generate a SYSCONF with default settings for the temporary Wii NAND.
+    SysConf sysconf{fs};
+    sysconf.Save();
 
-  // Generate a SYSCONF with default settings for the temporary Wii NAND.
-  SysConf sysconf{fs};
-  sysconf.Save();
-
-  InitializeDeterministicWiiSaves(fs.get());
+    InitializeDeterministicWiiSaves(fs.get(), boot_session_data);
+  }
+  else if (save_redirect)
+  {
+    const u64 title_id = SConfig::GetInstance().GetTitleID();
+    std::string source_path = Common::GetTitleDataPath(title_id);
+    if (!File::IsDirectory(save_redirect->m_target_path))
+    {
+      File::CreateFullPath(save_redirect->m_target_path + "/");
+      if (save_redirect->m_clone)
+      {
+        File::CopyDir(Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT),
+                      save_redirect->m_target_path);
+      }
+    }
+    s_nand_redirects.emplace_back(IOS::HLE::FS::NandRedirect{
+        std::move(source_path), std::move(save_redirect->m_target_path)});
+    fs->SetNandRedirects(s_nand_redirects);
+  }
 }
 
-void CleanUpWiiFileSystemContents()
+void CleanUpWiiFileSystemContents(const BootSessionData& boot_session_data)
 {
   if (!WiiRootIsTemporary() || !Config::Get(Config::SESSION_SAVE_DATA_WRITABLE) ||
-      NetPlay::GetWiiSyncFS())
+      boot_session_data.GetWiiSyncFS())
   {
     return;
   }

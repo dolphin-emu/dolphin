@@ -8,41 +8,35 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-
 #include "VideoBackends/Vulkan/VulkanLoader.h"
+
+#include "VideoCommon/BoundingBox.h"
 
 namespace Vulkan
 {
 class StagingBuffer;
 
-class BoundingBox
+class VKBoundingBox final : public BoundingBox
 {
 public:
-  BoundingBox();
-  ~BoundingBox();
+  ~VKBoundingBox() override;
 
-  bool Initialize();
+  bool Initialize() override;
 
-  s32 Get(size_t index);
-  void Set(size_t index, s32 value);
-
-  void Invalidate();
-  void Flush();
+protected:
+  std::vector<BBoxType> Read(u32 index, u32 length) override;
+  void Write(u32 index, const std::vector<BBoxType>& values) override;
 
 private:
   bool CreateGPUBuffer();
   bool CreateReadbackBuffer();
-  void Readback();
 
   VkBuffer m_gpu_buffer = VK_NULL_HANDLE;
   VkDeviceMemory m_gpu_memory = VK_NULL_HANDLE;
 
-  static const size_t NUM_VALUES = 4;
-  static const size_t BUFFER_SIZE = sizeof(u32) * NUM_VALUES;
+  static constexpr size_t BUFFER_SIZE = sizeof(BBoxType) * NUM_BBOX_VALUES;
 
   std::unique_ptr<StagingBuffer> m_readback_buffer;
-  std::array<bool, NUM_VALUES> m_values_dirty = {};
-  bool m_valid = true;
 };
 
 }  // namespace Vulkan

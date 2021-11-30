@@ -23,6 +23,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "WiimoteContinuousScanning", false),
   MAIN_WIIMOTE_ENABLE_SPEAKER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
           "WiimoteEnableSpeaker", false),
+  MAIN_MMU(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "MMU", false),
   MAIN_SYNC_GPU(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SyncGPU", false),
   MAIN_OVERCLOCK_ENABLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "OverclockEnable", false),
   MAIN_AUTO_DISC_CHANGE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AutoDiscChange", false),
@@ -129,18 +130,37 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   SYSCONF_SCREENSAVER(Settings.FILE_SYSCONF, "IPL", "SSV", false),
   SYSCONF_WIDESCREEN(Settings.FILE_SYSCONF, "IPL", "AR", true),
+  SYSCONF_PROGRESSIVE_SCAN(Settings.FILE_SYSCONF, "IPL", "PGS", true),
   SYSCONF_PAL60(Settings.FILE_SYSCONF, "IPL", "E60", true),
 
   SYSCONF_WIIMOTE_MOTOR(Settings.FILE_SYSCONF, "BT", "MOT", true),
 
   GFX_WIDESCREEN_HACK(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "wideScreenHack", false),
+  GFX_CROP(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "Crop", false),
   GFX_SHOW_FPS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowFPS", false),
+  GFX_OVERLAY_STATS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "OverlayStats", false),
+  GFX_DUMP_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpTextures", false),
+  GFX_DUMP_MIP_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpMipTextures", false),
+  GFX_DUMP_BASE_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpBaseTextures",
+          false),
+  GFX_HIRES_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "HiresTextures", false),
+  GFX_CACHE_HIRES_TEXTURES(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "CacheHiresTextures",
+          false),
+  GFX_DUMP_EFB_TARGET(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpEFBTarget", false),
+  GFX_DUMP_XFB_TARGET(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DumpXFBTarget", false),
+  GFX_INTERNAL_RESOLUTION_FRAME_DUMPS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
+          "InternalResolutionFrameDumps", false),
   GFX_ENABLE_GPU_TEXTURE_DECODING(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "EnableGPUTextureDecoding", false),
   GFX_ENABLE_PIXEL_LIGHTING(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "EnablePixelLighting", false),
   GFX_FAST_DEPTH_CALC(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "FastDepthCalc", true),
+  GFX_TEXFMT_OVERLAY_ENABLE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "TexFmtOverlayEnable",
+          false),
+  GFX_ENABLE_WIREFRAME(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "WireFrame", false),
   GFX_DISABLE_FOG(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "DisableFog", false),
+  GFX_ENABLE_VALIDATION_LAYER(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
+          "EnableValidationLayer", false),
   GFX_BACKEND_MULTITHREADING(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "BackendMultithreading", false),
   GFX_WAIT_FOR_SHADERS_BEFORE_STARTING(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
@@ -161,11 +181,15 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   GFX_HACK_EFB_ACCESS_ENABLE(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "EFBAccessEnable",
           true),
+  GFX_HACK_EFB_DEFER_INVALIDATION(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
+          "EFBAccessDeferInvalidation", false),
   GFX_HACK_BBOX_ENABLE(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "BBoxEnable", false),
   GFX_HACK_SKIP_EFB_COPY_TO_RAM(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
           "EFBToTextureEnable", true),
   GFX_HACK_SKIP_XFB_COPY_TO_RAM(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
           "XFBToTextureEnable", true),
+  GFX_HACK_DISABLE_COPY_TO_VRAM(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "DisableCopyToVRAM",
+          false),
   GFX_HACK_DEFER_EFB_COPIES(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "DeferEFBCopies", true),
   GFX_HACK_IMMEDIATE_XFB(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "ImmediateXFBEnable",
           false),
@@ -175,6 +199,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_HACK_EFB_EMULATE_FORMAT_CHANGES(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
           "EFBEmulateFormatChanges", false),
   GFX_HACK_VERTEX_ROUDING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "VertexRounding", false),
+  GFX_HACK_FAST_TEXTURE_SAMPLING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
+          "FastTextureSampling", true),
 
   LOGGER_WRITE_TO_FILE(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "WriteToFile", false),
 
@@ -201,8 +227,9 @@ public enum BooleanSetting implements AbstractBooleanSetting
           MAIN_CPU_THREAD,
           MAIN_ENABLE_CHEATS,
           MAIN_OVERRIDE_REGION_SETTINGS,
-          MAIN_WII_SD_CARD,  // Can actually be changed, but specific code is required
-          MAIN_DSP_JIT
+          MAIN_WII_SD_CARD,  // Can actually be changed, but specialized code is required
+          MAIN_MMU,
+          MAIN_DSP_JIT,
   };
 
   private static final Set<BooleanSetting> NOT_RUNTIME_EDITABLE =

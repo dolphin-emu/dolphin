@@ -21,7 +21,7 @@
 #define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
+    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)                      \
     {                                                                                              \
       if (!(_a_))                                                                                  \
       {                                                                                            \
@@ -43,6 +43,6 @@
 #define DEBUG_ASSERT(_a_)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
+    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)                      \
       ASSERT(_a_);                                                                                 \
   } while (0)

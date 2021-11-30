@@ -50,7 +50,7 @@ public:
 private:
   BlobReader* m_blob;
   std::unique_ptr<std::array<u8, VolumeWii::GROUP_TOTAL_SIZE>> m_cache;
-  u64 m_cached_offset;
+  u64 m_cached_offset = 0;
 };
 
 }  // namespace DiscIO

@@ -53,6 +53,9 @@ void EnableStepping(bool stepping);
 //   should not be used by the Host.
 void Break();
 
+// This should only be called from the CPU thread
+void Continue();
+
 // Shorthand for GetState() == State::Stepping.
 // WARNING: State::PowerDown will return false, not just State::Running.
 bool IsStepping();

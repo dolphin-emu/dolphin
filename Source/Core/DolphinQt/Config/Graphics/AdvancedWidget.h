@@ -52,6 +52,7 @@ private:
   GraphicsBool* m_dump_use_ffv1;
   GraphicsBool* m_use_fullres_framedumps;
   GraphicsInteger* m_dump_bitrate;
+  GraphicsInteger* m_png_compression_level;
 
   // Misc
   GraphicsBool* m_enable_cropping;
@@ -61,4 +62,5 @@ private:
 
   // Experimental
   GraphicsBool* m_defer_efb_access_invalidation;
+  GraphicsBool* m_manual_texture_sampling;
 };

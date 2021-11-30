@@ -24,7 +24,7 @@ constexpr u32 GCS_DENTRY_OFFSET = 0x110;
 
 bool HasSameIdentity(const DEntry& lhs, const DEntry& rhs)
 {
-  // The Gamecube BIOS identifies two files as being 'the same' (that is, disallows copying from one
+  // The GameCube BIOS identifies two files as being 'the same' (that is, disallows copying from one
   // card to another when both contain a file like it) when the full array of all of m_gamecode,
   // m_makercode, and m_filename match between them.
 

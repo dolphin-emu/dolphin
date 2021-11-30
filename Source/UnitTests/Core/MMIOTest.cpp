@@ -53,7 +53,7 @@ TEST(IsMMIOAddress, SpecialAddresses)
   EXPECT_FALSE(MMIO::IsMMIOAddress(0xCC0000E0));
 
   // And lets check some valid addresses too
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0));  // Gamecube MMIOs
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0));  // GameCube MMIOs
   EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D00008C));  // Wii MMIOs
   EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D800F10));  // Mirror of Wii MMIOs
 
@@ -67,7 +67,7 @@ class MappingTest : public testing::Test
 protected:
   virtual void SetUp() override { m_mapping = new MMIO::Mapping(); }
   virtual void TearDown() override { delete m_mapping; }
-  MMIO::Mapping* m_mapping;
+  MMIO::Mapping* m_mapping = nullptr;
 };
 
 TEST_F(MappingTest, ReadConstant)

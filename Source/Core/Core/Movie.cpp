@@ -560,7 +560,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
     // Wiimotes cause desync issues if they're not reset before launching the game
     if (!Core::IsRunningAndStarted())
     {
-      // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
+      // This will also reset the Wiimotes for GameCube games, but that shouldn't do anything
       Wiimote::ResetAllWiimotes();
     }
 
@@ -648,8 +648,16 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
     if (padState.reset)
       display_str += " RESET";
 
-    display_str += Analog1DToString(padState.TriggerL, " L");
-    display_str += Analog1DToString(padState.TriggerR, " R");
+    if (padState.TriggerL == 255 || padState.L)
+      display_str += " L";
+    else
+      display_str += Analog1DToString(padState.TriggerL, " L");
+
+    if (padState.TriggerR == 255 || padState.R)
+      display_str += " R";
+    else
+      display_str += Analog1DToString(padState.TriggerR, " R");
+
     display_str += Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA");
     display_str += Analog2DToString(padState.CStickX, padState.CStickY, " C");
   }
@@ -1072,8 +1080,7 @@ void LoadInput(const std::string& movie_path)
           memcpy(&curPadState, &s_temp_input[frame * sizeof(ControllerState)],
                  sizeof(ControllerState));
           ControllerState movPadState;
-          memcpy(&movPadState, &s_temp_input[frame * sizeof(ControllerState)],
-                 sizeof(ControllerState));
+          memcpy(&movPadState, &movInput[frame * sizeof(ControllerState)], sizeof(ControllerState));
           PanicAlertFmtT(
               "Warning: You loaded a save whose movie mismatches on frame {0}. You should load "
               "another save before continuing, or load this state with read-only mode off. "

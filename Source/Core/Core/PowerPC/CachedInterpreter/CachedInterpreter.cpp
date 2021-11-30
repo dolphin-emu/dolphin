@@ -58,7 +58,7 @@ void CachedInterpreter::Init()
   jo.enableBlocklink = false;
 
   m_block_cache.Init();
-  UpdateMemoryOptions();
+  UpdateMemoryAndExceptionOptions();
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
@@ -180,6 +180,17 @@ static bool CheckDSI(u32 data)
   return false;
 }
 
+static bool CheckProgramException(u32 data)
+{
+  if (PowerPC::ppcState.Exceptions & EXCEPTION_PROGRAM)
+  {
+    PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
+    return true;
+  }
+  return false;
+}
+
 static bool CheckBreakpoint(u32 data)
 {
   PowerPC::CheckBreakPoints();
@@ -267,26 +278,26 @@ void CachedInterpreter::Jit(u32 address)
       const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
       const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
       const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;
+      const bool check_program_exception = !endblock && ShouldHandleFPExceptionForInstruction(&op);
       const bool idle_loop = op.branchIsIdleLoop;
 
-      if (breakpoint)
-      {
+      if (breakpoint || check_fpu || endblock || memcheck || check_program_exception)
         m_code.emplace_back(WritePC, op.address);
+
+      if (breakpoint)
         m_code.emplace_back(CheckBreakpoint, js.downcountAmount);
-      }
 
       if (check_fpu)
       {
-        m_code.emplace_back(WritePC, op.address);
         m_code.emplace_back(CheckFPU, js.downcountAmount);
         js.firstFPInstructionFound = true;
       }
 
-      if (endblock || memcheck)
-        m_code.emplace_back(WritePC, op.address);
       m_code.emplace_back(PPCTables::GetInterpreterOp(op.inst), op.inst);
       if (memcheck)
         m_code.emplace_back(CheckDSI, js.downcountAmount);
+      if (check_program_exception)
+        m_code.emplace_back(CheckProgramException, js.downcountAmount);
       if (idle_loop)
         m_code.emplace_back(CheckIdle, js.blockStart);
       if (endblock)
@@ -316,5 +327,5 @@ void CachedInterpreter::ClearCache()
 {
   m_code.clear();
   m_block_cache.Clear();
-  UpdateMemoryOptions();
+  UpdateMemoryAndExceptionOptions();
 }

@@ -314,7 +314,7 @@ std::optional<IPCReply> NetKDRequestDevice::IOCtl(const IOCtlRequest& request)
   }
 
   default:
-    request.Log(GetDeviceName(), Common::Log::IOS_WC24);
+    request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
   }
 
   return IPCReply(return_value);

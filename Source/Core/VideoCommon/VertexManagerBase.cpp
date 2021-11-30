@@ -27,7 +27,6 @@
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -269,7 +268,7 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
-  if (BoundingBox::IsEnabled() && g_ActiveConfig.bBBoxEnable &&
+  if (g_renderer->IsBBoxEnabled() && g_ActiveConfig.bBBoxEnable &&
       g_ActiveConfig.backend_info.bSupportsBBox)
   {
     g_renderer->BBoxFlush();
@@ -350,7 +349,7 @@ void VertexManagerBase::LoadTextures()
   for (unsigned int i : usedtextures)
     g_texture_cache->Load(i);
 
-  g_texture_cache->BindTextures();
+  g_texture_cache->BindTextures(usedtextures);
 }
 
 void VertexManagerBase::Flush()

@@ -14,6 +14,8 @@
 #include "VideoBackends/Vulkan/VKVertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VideoCommon/DriverDetails.h"
+
 namespace Vulkan
 {
 VKPipeline::VKPipeline(VkPipeline pipeline, VkPipelineLayout pipeline_layout,
@@ -137,7 +139,11 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
   vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
   vk_state.alphaBlendOp = state.subtractAlpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
 
-  if (state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  bool use_dual_source =
+      state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
+
+  if (use_dual_source)
   {
     static constexpr std::array<VkBlendFactor, 8> src_factors = {
         {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,

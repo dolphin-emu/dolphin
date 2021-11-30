@@ -26,6 +26,7 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -183,7 +184,7 @@ void GBAWidget::UnloadROM()
 
 void GBAWidget::PromptForEReaderCards()
 {
-  const QStringList card_paths = QFileDialog::getOpenFileNames(
+  const QStringList card_paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select e-Reader Cards"), QString(), tr("e-Reader Cards (*.raw);;All Files (*)"),
       nullptr, QFileDialog::Options());
 
@@ -205,9 +206,10 @@ void GBAWidget::DoState(bool export_state)
     return;
 
   QString state_path = QDir::toNativeSeparators(
-      (export_state ? QFileDialog::getSaveFileName : QFileDialog::getOpenFileName)(
+      (export_state ? DolphinFileDialog::getSaveFileName : DolphinFileDialog::getOpenFileName)(
           this, tr("Select a File"), QString(),
-          tr("mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 *.ss5 *.ss6 *.ss7 *.ss8 *.ss9);;"
+          tr("mGBA Save States (*.ss0 *.ss1 *.ss2 *.ss3 *.ss4 "
+             "*.ss5 *.ss6 *.ss7 *.ss8 *.ss9);;"
              "All Files (*)"),
           nullptr, QFileDialog::Options()));
 
@@ -222,6 +224,36 @@ void GBAWidget::DoState(bool export_state)
             core_ptr->ExportState(state_path);
           else
             core_ptr->ImportState(state_path);
+        }
+      },
+      false);
+}
+
+void GBAWidget::ImportExportSave(bool export_save)
+{
+  if (!CanControlCore() && !export_save)
+    return;
+  if (!m_core_info.has_rom)
+    return;
+
+  QString save_path = QDir::toNativeSeparators(
+      (export_save ? DolphinFileDialog::getSaveFileName :
+                     DolphinFileDialog::getOpenFileName)(this, tr("Select a File"), QString(),
+                                                         tr("Save Game Files (*.sav);;"
+                                                            "All Files (*)"),
+                                                         nullptr, QFileDialog::Options()));
+
+  if (save_path.isEmpty())
+    return;
+
+  Core::RunOnCPUThread(
+      [export_save, core = m_core, save_path = save_path.toStdString()] {
+        if (auto core_ptr = core.lock())
+        {
+          if (export_save)
+            core_ptr->ExportSave(save_path);
+          else
+            core_ptr->ImportSave(save_path);
         }
       },
       false);
@@ -369,6 +401,14 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   reset_action->setEnabled(CanResetCore());
   connect(reset_action, &QAction::triggered, this, &GBAWidget::ResetCore);
 
+  auto* savefile_menu = new QMenu(tr("Save Game"), menu);
+  auto* save_import_action = new QAction(tr("&Import Save Game..."), savefile_menu);
+  save_import_action->setEnabled(CanControlCore() && m_core_info.has_rom);
+  connect(save_import_action, &QAction::triggered, this, [this] { ImportExportSave(false); });
+  auto* save_export_action = new QAction(tr("&Export Save Game..."), savefile_menu);
+  save_export_action->setEnabled(m_core_info.has_rom);
+  connect(save_export_action, &QAction::triggered, this, [this] { ImportExportSave(true); });
+
   auto* state_menu = new QMenu(tr("Save State"), menu);
   auto* import_action = new QAction(tr("&Import State..."), state_menu);
   import_action->setEnabled(CanControlCore());
@@ -416,11 +456,15 @@ void GBAWidget::contextMenuEvent(QContextMenuEvent* event)
   menu->addAction(card_action);
   menu->addAction(reset_action);
   menu->addSeparator();
+  menu->addMenu(savefile_menu);
   menu->addMenu(state_menu);
   menu->addSeparator();
   menu->addAction(mute_action);
   menu->addSeparator();
   menu->addMenu(options_menu);
+
+  savefile_menu->addAction(save_import_action);
+  savefile_menu->addAction(save_export_action);
 
   state_menu->addAction(import_action);
   state_menu->addAction(export_state);

@@ -21,6 +21,7 @@
     <ClInclude Include="Common\BitUtils.h" />
     <ClInclude Include="Common\BlockingLoop.h" />
     <ClInclude Include="Common\CDUtils.h" />
+    <ClInclude Include="Common\CRC32.h" />
     <ClInclude Include="Common\ChunkFile.h" />
     <ClInclude Include="Common\CodeBlock.h" />
     <ClInclude Include="Common\ColorUtil.h" />
@@ -43,6 +44,7 @@
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENetUtil.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
+    <ClInclude Include="Common\EnumMap.h" />
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FileSearch.h" />
     <ClInclude Include="Common\FileUtil.h" />
@@ -108,6 +110,7 @@
     <ClInclude Include="Common\Hash.h" />
     <ClInclude Include="Common\HttpRequest.h" />
     <ClInclude Include="Common\Image.h" />
+    <ClInclude Include="Common\ImageC.h" />
     <ClInclude Include="Common\IniFile.h" />
     <ClInclude Include="Common\Inline.h" />
     <ClInclude Include="Common\Intrinsics.h" />
@@ -430,9 +433,12 @@
     <ClInclude Include="DiscIO\FileBlob.h" />
     <ClInclude Include="DiscIO\Filesystem.h" />
     <ClInclude Include="DiscIO\FileSystemGCWii.h" />
+    <ClInclude Include="DiscIO\GameModDescriptor.h" />
     <ClInclude Include="DiscIO\LaggedFibonacciGenerator.h" />
     <ClInclude Include="DiscIO\MultithreadedCompressor.h" />
     <ClInclude Include="DiscIO\NANDImporter.h" />
+    <ClInclude Include="DiscIO\RiivolutionParser.h" />
+    <ClInclude Include="DiscIO\RiivolutionPatcher.h" />
     <ClInclude Include="DiscIO\ScrubbedBlob.h" />
     <ClInclude Include="DiscIO\TGCBlob.h" />
     <ClInclude Include="DiscIO\Volume.h" />
@@ -539,7 +545,7 @@
     <ClInclude Include="VideoBackends\D3DCommon\D3DCommon.h" />
     <ClInclude Include="VideoBackends\D3DCommon\Shader.h" />
     <ClInclude Include="VideoBackends\D3DCommon\SwapChain.h" />
-    <ClInclude Include="VideoBackends\Null\NullPerfQuery.h" />
+    <ClInclude Include="VideoBackends\Null\NullBoundingBox.h" />
     <ClInclude Include="VideoBackends\Null\NullRender.h" />
     <ClInclude Include="VideoBackends\Null\NullTexture.h" />
     <ClInclude Include="VideoBackends\Null\NullVertexManager.h" />
@@ -566,6 +572,7 @@
     <ClInclude Include="VideoBackends\Software\NativeVertexFormat.h" />
     <ClInclude Include="VideoBackends\Software\Rasterizer.h" />
     <ClInclude Include="VideoBackends\Software\SetupUnit.h" />
+    <ClInclude Include="VideoBackends\Software\SWBoundingBox.h" />
     <ClInclude Include="VideoBackends\Software\SWOGLWindow.h" />
     <ClInclude Include="VideoBackends\Software\SWRenderer.h" />
     <ClInclude Include="VideoBackends\Software\SWTexture.h" />
@@ -638,7 +645,6 @@
     <ClInclude Include="VideoCommon\PostProcessing.h" />
     <ClInclude Include="VideoCommon\RenderBase.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
-    <ClInclude Include="VideoCommon\SamplerCommon.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
     <ClInclude Include="VideoCommon\Statistics.h" />
@@ -649,6 +655,7 @@
     <ClInclude Include="VideoCommon\TextureDecoder_Util.h" />
     <ClInclude Include="VideoCommon\TextureDecoder.h" />
     <ClInclude Include="VideoCommon\TextureInfo.h" />
+    <ClInclude Include="VideoCommon\TMEM.h" />
     <ClInclude Include="VideoCommon\UberShaderCommon.h" />
     <ClInclude Include="VideoCommon\UberShaderPixel.h" />
     <ClInclude Include="VideoCommon\UberShaderVertex.h" />
@@ -683,6 +690,7 @@
     <ClCompile Include="AudioCommon\WaveFile.cpp" />
     <ClCompile Include="Common\Analytics.cpp" />
     <ClCompile Include="Common\CDUtils.cpp" />
+    <ClCompile Include="Common\CRC32.cpp" />
     <ClCompile Include="Common\ColorUtil.cpp" />
     <ClCompile Include="Common\CommonFuncs.cpp" />
     <ClCompile Include="Common\CompatPatches.cpp" />
@@ -707,6 +715,11 @@
     <ClCompile Include="Common\Hash.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
     <ClCompile Include="Common\Image.cpp" />
+    <ClCompile Include="Common\ImageC.c">
+      <!-- This is a C file, not a C++ file, so we can't use the C++ pre-compiled header -->
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles />
+    </ClCompile>
     <ClCompile Include="Common\IniFile.cpp" />
     <ClCompile Include="Common\IOFile.cpp" />
     <ClCompile Include="Common\JitRegister.cpp" />
@@ -1015,8 +1028,11 @@
     <ClCompile Include="DiscIO\FileBlob.cpp" />
     <ClCompile Include="DiscIO\Filesystem.cpp" />
     <ClCompile Include="DiscIO\FileSystemGCWii.cpp" />
+    <ClCompile Include="DiscIO\GameModDescriptor.cpp" />
     <ClCompile Include="DiscIO\LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="DiscIO\NANDImporter.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionPatcher.cpp" />
     <ClCompile Include="DiscIO\ScrubbedBlob.cpp" />
     <ClCompile Include="DiscIO\TGCBlob.cpp" />
     <ClCompile Include="DiscIO\Volume.cpp" />
@@ -1138,6 +1154,7 @@
     <ClCompile Include="VideoBackends\Software\Rasterizer.cpp" />
     <ClCompile Include="VideoBackends\Software\SetupUnit.cpp" />
     <ClCompile Include="VideoBackends\Software\SWmain.cpp" />
+    <ClCompile Include="VideoBackends\Software\SWBoundingBox.cpp" />
     <ClCompile Include="VideoBackends\Software\SWOGLWindow.cpp" />
     <ClCompile Include="VideoBackends\Software\SWRenderer.cpp" />
     <ClCompile Include="VideoBackends\Software\SWTexture.cpp" />
@@ -1207,6 +1224,7 @@
     <ClCompile Include="VideoCommon\TextureConverterShaderGen.cpp" />
     <ClCompile Include="VideoCommon\TextureDecoder_Common.cpp" />
     <ClCompile Include="VideoCommon\TextureInfo.cpp" />
+    <ClCompile Include="VideoCommon\TMEM.cpp" />
     <ClCompile Include="VideoCommon\UberShaderCommon.cpp" />
     <ClCompile Include="VideoCommon\UberShaderPixel.cpp" />
     <ClCompile Include="VideoCommon\UberShaderVertex.cpp" />

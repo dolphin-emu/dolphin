@@ -74,8 +74,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
 
     mPresenter = new SettingsActivityPresenter(this, getSettings());
-    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii,
-            getApplicationContext());
+    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii, this);
   }
 
   @Override

@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
 constexpr double PPC_NAN = std::numeric_limits<double>::quiet_NaN();
@@ -24,6 +25,20 @@ enum class FPCC
   FU = 1,  // ?
 };
 
+inline void CheckFPExceptions(UReg_FPSCR fpscr)
+{
+  if (fpscr.FEX && (MSR.FE0 || MSR.FE1))
+    GenerateProgramException(ProgramExceptionCause::FloatingPoint);
+}
+
+inline void UpdateFPExceptionSummary(UReg_FPSCR* fpscr)
+{
+  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
+  fpscr->FEX = ((fpscr->Hex >> 22) & (fpscr->Hex & FPSCR_ANY_E)) != 0;
+
+  CheckFPExceptions(*fpscr);
+}
+
 inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
 {
   if ((fpscr->Hex & mask) != mask)
@@ -32,7 +47,7 @@ inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
   }
 
   fpscr->Hex |= mask;
-  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
+  UpdateFPExceptionSummary(fpscr);
 }
 
 inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
@@ -123,7 +138,15 @@ inline FPResult NI_div(UReg_FPSCR* fpscr, double a, double b)
 {
   FPResult result{a / b};
 
-  if (std::isnan(result.value))
+  if (std::isinf(result.value))
+  {
+    if (b == 0.0)
+    {
+      result.SetException(fpscr, FPSCR_ZX);
+      return result;
+    }
+  }
+  else if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
       result.SetException(fpscr, FPSCR_VXSNAN);
@@ -142,20 +165,9 @@ inline FPResult NI_div(UReg_FPSCR* fpscr, double a, double b)
     }
 
     if (b == 0.0)
-    {
-      if (a == 0.0)
-      {
-        result.SetException(fpscr, FPSCR_VXZDZ);
-      }
-      else
-      {
-        result.SetException(fpscr, FPSCR_ZX);
-      }
-    }
+      result.SetException(fpscr, FPSCR_VXZDZ);
     else if (std::isinf(a) && std::isinf(b))
-    {
       result.SetException(fpscr, FPSCR_VXIDI);
-    }
 
     result.value = PPC_NAN;
     return result;

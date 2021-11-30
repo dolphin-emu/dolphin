@@ -93,7 +93,6 @@ void SConfig::SaveSettings()
   SaveGameListSettings(ini);
   SaveCoreSettings(ini);
   SaveMovieSettings(ini);
-  SaveDSPSettings(ini);
   SaveInputSettings(ini);
   SaveFifoPlayerSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
@@ -132,12 +131,10 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 
   general->Set("WirelessMac", m_WirelessMac);
 
-#ifdef USE_GDBSTUB
 #ifndef _WIN32
   general->Set("GDBSocket", gdb_socket);
 #endif
   general->Set("GDBPort", iGDBPort);
-#endif
 }
 
 void SConfig::SaveInterfaceSettings(IniFile& ini)
@@ -145,7 +142,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Set("ConfirmStop", bConfirmStop);
-  interface->Set("HideCursor", bHideCursor);
+  interface->Set("CursorVisibility", m_show_cursor);
   interface->Set("LockCursor", bLockCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
@@ -207,20 +204,17 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("CPUCore", cpu_core);
   core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
-  core->Set("DSPHLE", bDSPHLE);
   core->Set("SyncOnSkipIdle", bSyncGPUOnSkipIdleHack);
   core->Set("SyncGPU", bSyncGPU);
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
   core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
   core->Set("SyncGpuOverclock", fSyncGpuOverclock);
+  core->Set("FloatExceptions", bFloatExceptions);
+  core->Set("DivByZeroExceptions", bDivideByZeroExceptions);
   core->Set("FPRF", bFPRF);
   core->Set("AccurateNaNs", bAccurateNaNs);
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideRegionSettings", bOverrideRegionSettings);
-  core->Set("DPL2Decoder", bDPL2Decoder);
-  core->Set("AudioLatency", iLatency);
-  core->Set("AudioStretch", m_audio_stretch);
-  core->Set("AudioStretchMaxLatency", m_audio_stretch_max_latency);
   core->Set("AgpCartAPath", m_strGbaCartA);
   core->Set("AgpCartBPath", m_strGbaCartB);
   core->Set("SlotA", m_EXIDevice[0]);
@@ -262,23 +256,6 @@ void SConfig::SaveMovieSettings(IniFile& ini)
   movie->Set("DumpFramesSilent", m_DumpFramesSilent);
   movie->Set("ShowInputDisplay", m_ShowInputDisplay);
   movie->Set("ShowRTC", m_ShowRTC);
-}
-
-void SConfig::SaveDSPSettings(IniFile& ini)
-{
-  IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
-
-  dsp->Set("EnableJIT", m_DSPEnableJIT);
-  dsp->Set("DumpAudio", m_DumpAudio);
-  dsp->Set("DumpAudioSilent", m_DumpAudioSilent);
-  dsp->Set("DumpUCode", m_DumpUCode);
-  dsp->Set("Backend", sBackend);
-  dsp->Set("Volume", m_Volume);
-  dsp->Set("CaptureLog", m_DSPCaptureLog);
-
-#ifdef _WIN32
-  dsp->Set("WASAPIDevice", sWASAPIDevice);
-#endif
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -356,7 +333,6 @@ void SConfig::LoadSettings()
   LoadGameListSettings(ini);
   LoadCoreSettings(ini);
   LoadMovieSettings(ini);
-  LoadDSPSettings(ini);
   LoadInputSettings(ini);
   LoadFifoPlayerSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
@@ -371,12 +347,10 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("ShowLag", &m_ShowLag, false);
   general->Get("ShowFrameCount", &m_ShowFrameCount, false);
-#ifdef USE_GDBSTUB
 #ifndef _WIN32
   general->Get("GDBSocket", &gdb_socket, "");
 #endif
   general->Get("GDBPort", &(iGDBPort), -1);
-#endif
 
   m_ISOFolder.clear();
   int numISOPaths;
@@ -399,7 +373,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
-  interface->Get("HideCursor", &bHideCursor, false);
+  interface->Get("CursorVisibility", &m_show_cursor, ShowCursor::OnMovement);
   interface->Get("LockCursor", &bLockCursor, false);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
@@ -468,17 +442,12 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 #endif
   core->Get("JITFollowBranch", &bJITFollowBranch, true);
   core->Get("Fastmem", &bFastmem, true);
-  core->Get("DSPHLE", &bDSPHLE, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
   core->Get("SelectedLanguage", &SelectedLanguage,
             DiscIO::ToGameCubeLanguage(Config::GetDefaultLanguage()));
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
-  core->Get("DPL2Decoder", &bDPL2Decoder, false);
-  core->Get("AudioLatency", &iLatency, 20);
-  core->Get("AudioStretch", &m_audio_stretch, false);
-  core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
@@ -509,6 +478,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
   core->Get("LowDCBZHack", &bLowDCBZHack, false);
+  core->Get("FloatExceptions", &bFloatExceptions, false);
+  core->Get("DivByZeroExceptions", &bDivideByZeroExceptions, false);
   core->Get("FPRF", &bFPRF, false);
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
   core->Get("DisableICache", &bDisableICache, false);
@@ -532,25 +503,6 @@ void SConfig::LoadMovieSettings(IniFile& ini)
   movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
   movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
   movie->Get("ShowRTC", &m_ShowRTC, false);
-}
-
-void SConfig::LoadDSPSettings(IniFile& ini)
-{
-  IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
-
-  dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
-  dsp->Get("DumpAudio", &m_DumpAudio, false);
-  dsp->Get("DumpAudioSilent", &m_DumpAudioSilent, false);
-  dsp->Get("DumpUCode", &m_DumpUCode, false);
-  dsp->Get("Backend", &sBackend, AudioCommon::GetDefaultSoundBackend());
-  dsp->Get("Volume", &m_Volume, 100);
-  dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
-
-#ifdef _WIN32
-  dsp->Get("WASAPIDevice", &sWASAPIDevice, "default");
-#endif
-
-  m_IsMuted = false;
 }
 
 void SConfig::LoadInputSettings(IniFile& ini)
@@ -733,11 +685,9 @@ void SConfig::LoadDefaults()
   bAutomaticStart = false;
   bBootToPause = false;
 
-#ifdef USE_GDBSTUB
   iGDBPort = -1;
 #ifndef _WIN32
   gdb_socket = "";
-#endif
 #endif
 
   cpu_core = PowerPC::DefaultCPUCore();
@@ -745,8 +695,9 @@ void SConfig::LoadDefaults()
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;
   bRunCompareServer = false;
-  bDSPHLE = true;
   bFastmem = true;
+  bFloatExceptions = false;
+  bDivideByZeroExceptions = false;
   bFPRF = false;
   bAccurateNaNs = false;
   bDisableICache = false;
@@ -758,10 +709,6 @@ void SConfig::LoadDefaults()
   SelectedLanguage = 0;
   bOverrideRegionSettings = false;
   bWii = false;
-  bDPL2Decoder = false;
-  iLatency = 20;
-  m_audio_stretch = false;
-  m_audio_stretch_max_latency = 80;
 
   bLoopFifoReplay = true;
 
@@ -1050,9 +997,4 @@ IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
-}
-
-bool SConfig::ShouldUseDPL2Decoder() const
-{
-  return bDPL2Decoder && !bDSPHLE;
 }

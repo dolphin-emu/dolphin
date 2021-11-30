@@ -6,7 +6,6 @@
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QEvent>
-#include <QFileDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QIcon>
@@ -27,6 +26,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Resources.h"
@@ -189,8 +189,8 @@ void FIFOPlayerWindow::ConnectWidgets()
 
 void FIFOPlayerWindow::LoadRecording()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Open FIFO log"), QString(),
-                                              tr("Dolphin FIFO Log (*.dff)"));
+  QString path = DolphinFileDialog::getOpenFileName(this, tr("Open FIFO log"), QString(),
+                                                    tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
     return;
@@ -200,8 +200,8 @@ void FIFOPlayerWindow::LoadRecording()
 
 void FIFOPlayerWindow::SaveRecording()
 {
-  QString path = QFileDialog::getSaveFileName(this, tr("Save FIFO log"), QString(),
-                                              tr("Dolphin FIFO Log (*.dff)"));
+  QString path = DolphinFileDialog::getSaveFileName(this, tr("Save FIFO log"), QString(),
+                                                    tr("Dolphin FIFO Log (*.dff)"));
 
   if (path.isEmpty())
     return;

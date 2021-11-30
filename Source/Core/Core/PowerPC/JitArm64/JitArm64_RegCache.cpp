@@ -149,15 +149,9 @@ void Arm64GPRCache::Start(PPCAnalyst::BlockRegStats& stats)
 {
 }
 
-bool Arm64GPRCache::IsCalleeSaved(ARM64Reg reg) const
+bool Arm64GPRCache::IsCallerSaved(ARM64Reg reg) const
 {
-  static constexpr auto callee_regs = {
-      ARM64Reg::X28, ARM64Reg::X27, ARM64Reg::X26,         ARM64Reg::X25,
-      ARM64Reg::X24, ARM64Reg::X23, ARM64Reg::X22,         ARM64Reg::X21,
-      ARM64Reg::X20, ARM64Reg::X19, ARM64Reg::INVALID_REG,
-  };
-
-  return std::find(callee_regs.begin(), callee_regs.end(), EncodeRegTo64(reg)) != callee_regs.end();
+  return ARM64XEmitter::CALLER_SAVED_GPRS[DecodeReg(reg)];
 }
 
 const OpArg& Arm64GPRCache::GetGuestGPROpArg(size_t preg) const
@@ -349,24 +343,28 @@ void Arm64GPRCache::SetImmediate(const GuestRegInfo& guest_reg, u32 imm)
   reg.LoadToImm(imm);
 }
 
-void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load)
+void Arm64GPRCache::BindToRegister(const GuestRegInfo& guest_reg, bool do_load, bool set_dirty)
 {
   OpArg& reg = guest_reg.reg;
   const size_t bitsize = guest_reg.bitsize;
 
   reg.ResetLastUsed();
-  reg.SetDirty(true);
 
   const RegType reg_type = reg.GetType();
   if (reg_type == RegType::NotLoaded || reg_type == RegType::Discarded)
   {
     const ARM64Reg host_reg = bitsize != 64 ? GetReg() : EncodeRegTo64(GetReg());
     reg.Load(host_reg);
+    reg.SetDirty(set_dirty);
     if (do_load)
     {
       ASSERT_MSG(DYNA_REC, reg_type != RegType::Discarded, "Attempted to load a discarded value");
       m_emit->LDR(IndexType::Unsigned, host_reg, PPC_REG, u32(guest_reg.ppc_offset));
     }
+  }
+  else if (set_dirty)
+  {
+    reg.SetDirty(true);
   }
 }
 
@@ -416,7 +414,7 @@ BitSet32 Arm64GPRCache::GetCallerSavedUsed() const
   BitSet32 registers(0);
   for (const auto& it : m_host_registers)
   {
-    if (it.IsLocked() && !IsCalleeSaved(it.GetReg()))
+    if (it.IsLocked() && IsCallerSaved(it.GetReg()))
       registers[DecodeReg(it.GetReg())] = true;
   }
   return registers;
@@ -576,26 +574,15 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
   return ARM64Reg::INVALID_REG;
 }
 
-ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
+ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type, bool set_dirty)
 {
   OpArg& reg = m_guest_registers[preg];
-
-  bool was_dirty = reg.IsDirty();
 
   IncrementAllUsed();
   reg.ResetLastUsed();
 
-  reg.SetDirty(true);
-
-  // If not loaded at all, just alloc a new one.
-  if (reg.GetType() == RegType::NotLoaded || reg.GetType() == RegType::Discarded)
-  {
-    reg.Load(GetReg(), type);
-    return reg.GetReg();
-  }
-
   // Only the lower value will be overwritten, so we must be extra careful to store PSR1 if dirty.
-  if ((type == RegType::LowerPair || type == RegType::LowerPairSingle) && was_dirty)
+  if (reg.IsDirty() && (type == RegType::LowerPair || type == RegType::LowerPairSingle))
   {
     // We must *not* change host_reg as this register might still be in use. So it's fine to
     // store this register, but it's *not* fine to convert it to double. So for double conversion,
@@ -618,6 +605,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
         m_jit->ConvertSingleToDoubleLower(preg, flush_reg, flush_reg, scratch_reg);
         m_float_emit->STR(64, IndexType::Unsigned, flush_reg, PPC_REG, u32(PPCSTATE_OFF_PS1(preg)));
         Unlock(scratch_reg);
+        reg.Load(host_reg, RegType::LowerPairSingle);
         break;
       }
       else
@@ -625,6 +613,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
         m_jit->ConvertSingleToDoublePair(preg, flush_reg, host_reg, flush_reg);
         m_float_emit->STR(128, IndexType::Unsigned, flush_reg, PPC_REG,
                           u32(PPCSTATE_OFF_PS0(preg)));
+        reg.SetDirty(false);
       }
       break;
     case RegType::Register:
@@ -633,6 +622,7 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       // It would take longer to do an insert to a temporary and a 64bit store than to just do this.
       m_float_emit->STR(128, IndexType::Unsigned, flush_reg, PPC_REG,
                         static_cast<s32>(PPCSTATE_OFF_PS0(preg)));
+      reg.SetDirty(false);
       break;
     case RegType::DuplicatedSingle:
       flush_reg = GetReg();
@@ -642,6 +632,8 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       // Store PSR1 (which is equal to PSR0) in memory.
       m_float_emit->STR(64, IndexType::Unsigned, flush_reg, PPC_REG,
                         static_cast<s32>(PPCSTATE_OFF_PS1(preg)));
+      reg.Load(host_reg, reg.GetType() == RegType::DuplicatedSingle ? RegType::LowerPairSingle :
+                                                                      RegType::LowerPair);
       break;
     default:
       // All other types doesn't store anything in PSR1.
@@ -652,7 +644,18 @@ ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
       Unlock(flush_reg);
   }
 
-  reg.Load(reg.GetReg(), type);
+  if (reg.GetType() == RegType::NotLoaded || reg.GetType() == RegType::Discarded)
+  {
+    // If not loaded at all, just alloc a new one.
+    reg.Load(GetReg(), type);
+    reg.SetDirty(set_dirty);
+  }
+  else if (set_dirty)
+  {
+    reg.Load(reg.GetReg(), type);
+    reg.SetDirty(true);
+  }
+
   return reg.GetReg();
 }
 
@@ -716,14 +719,9 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg, ARM64Reg tmp_reg)
   }
 }
 
-bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg) const
+bool Arm64FPRCache::IsCallerSaved(ARM64Reg reg) const
 {
-  static constexpr auto callee_regs = {
-      ARM64Reg::Q8,  ARM64Reg::Q9,  ARM64Reg::Q10, ARM64Reg::Q11,         ARM64Reg::Q12,
-      ARM64Reg::Q13, ARM64Reg::Q14, ARM64Reg::Q15, ARM64Reg::INVALID_REG,
-  };
-
-  return std::find(callee_regs.begin(), callee_regs.end(), reg) != callee_regs.end();
+  return ARM64XEmitter::CALLER_SAVED_FPRS[DecodeReg(reg)];
 }
 
 bool Arm64FPRCache::IsTopHalfUsed(ARM64Reg reg) const
@@ -841,7 +839,7 @@ BitSet32 Arm64FPRCache::GetCallerSavedUsed() const
   BitSet32 registers(0);
   for (const auto& it : m_host_registers)
   {
-    if (it.IsLocked() && (!IsCalleeSaved(it.GetReg()) || IsTopHalfUsed(it.GetReg())))
+    if (it.IsLocked() && (IsCallerSaved(it.GetReg()) || IsTopHalfUsed(it.GetReg())))
       registers[DecodeReg(it.GetReg())] = true;
   }
   return registers;

@@ -49,6 +49,7 @@ const Info<std::string> GFX_DUMP_PATH{{System::GFX, "Settings", "DumpPath"}, ""}
 const Info<int> GFX_BITRATE_KBPS{{System::GFX, "Settings", "BitrateKbps"}, 25000};
 const Info<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS{
     {System::GFX, "Settings", "InternalResolutionFrameDumps"}, false};
+const Info<int> GFX_PNG_COMPRESSION_LEVEL{{System::GFX, "Settings", "PNGCompressionLevel"}, 6};
 const Info<bool> GFX_ENABLE_GPU_TEXTURE_DECODING{
     {System::GFX, "Settings", "EnableGPUTextureDecoding"}, false};
 const Info<bool> GFX_ENABLE_PIXEL_LIGHTING{{System::GFX, "Settings", "EnablePixelLighting"}, false};
@@ -150,6 +151,8 @@ const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES{
 const Info<bool> GFX_HACK_VERTEX_ROUDING{{System::GFX, "Hacks", "VertexRounding"}, false};
 const Info<u32> GFX_HACK_MISSING_COLOR_VALUE{{System::GFX, "Hacks", "MissingColorValue"},
                                              0xFFFFFFFF};
+const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING{{System::GFX, "Hacks", "FastTextureSampling"},
+                                                true};
 
 // Graphics.GameSpecific
 

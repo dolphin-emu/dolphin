@@ -27,6 +27,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/Flag.h"
 #include "Common/Inline.h"
 #include "Common/Logging/Log.h"
@@ -171,6 +172,12 @@ public:
 
   template <typename T, std::size_t N>
   void DoArray(std::array<T, N>& x)
+  {
+    DoArray(x.data(), static_cast<u32>(x.size()));
+  }
+
+  template <typename V, auto last_member, typename = decltype(last_member)>
+  void DoArray(Common::EnumMap<V, last_member>& x)
   {
     DoArray(x.data(), static_cast<u32>(x.size()));
   }

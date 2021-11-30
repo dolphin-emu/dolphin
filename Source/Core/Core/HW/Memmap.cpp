@@ -184,7 +184,7 @@ struct LogicalMemoryView
 };
 
 // Dolphin allocates memory to represent four regions:
-// - 32MB RAM (actually 24MB on hardware), available on Gamecube and Wii
+// - 32MB RAM (actually 24MB on hardware), available on GameCube and Wii
 // - 64MB "EXRAM", RAM only available on Wii
 // - 32MB FakeVMem, allocated in GameCube mode when MMU support is turned off.
 //   This is used to approximate the behavior of a common library which pages

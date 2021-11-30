@@ -112,10 +112,10 @@ private:
   ControllerEmu::SettingValue<double> m_hit_strength_setting;
 
   // Holds previous user input state to watch for "new" hits.
-  u8 m_prev_pad_input;
+  u8 m_prev_pad_input = 0;
   // Holds new drum pad hits that still need velocity data to be sent.
-  u8 m_new_pad_hits;
+  u8 m_new_pad_hits = 0;
   // Holds how many more frames to send each drum-pad bit.
-  std::array<u8, 6> m_pad_remaining_frames;
+  std::array<u8, 6> m_pad_remaining_frames{};
 };
 }  // namespace WiimoteEmu

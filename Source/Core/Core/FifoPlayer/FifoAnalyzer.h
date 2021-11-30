@@ -22,8 +22,8 @@ struct CPMemory
 {
   TVtxDesc vtxDesc;
   std::array<VAT, CP_NUM_VAT_REG> vtxAttr;
-  std::array<u32, CP_NUM_ARRAYS> arrayBases;
-  std::array<u32, CP_NUM_ARRAYS> arrayStrides;
+  std::array<u32, CP_NUM_ARRAYS> arrayBases{};
+  std::array<u32, CP_NUM_ARRAYS> arrayStrides{};
 };
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem);

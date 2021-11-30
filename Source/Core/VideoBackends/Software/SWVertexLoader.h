@@ -25,6 +25,6 @@ protected:
   void SetFormat(u8 attributeIndex, u8 primitiveType);
   void ParseVertex(const PortableVertexDeclaration& vdec, int index);
 
-  InputVertexData m_vertex;
+  InputVertexData m_vertex{};
   SetupUnit m_setup_unit;
 };

@@ -52,7 +52,7 @@ private:
   void OnAddressTableItemChanged(QTableWidgetItem* item);
   void OnAddressTableContextMenu();
   void OnValueSourceChanged();
-  void OnHexCheckboxStateChanged();
+  void OnDisplayHexCheckboxStateChanged();
 
   bool RefreshValues();
   void UpdateGuiTable();
@@ -75,6 +75,7 @@ private:
   QPushButton* m_next_scan_button;
   QPushButton* m_refresh_values_button;
   QPushButton* m_reset_button;
+  QCheckBox* m_parse_values_as_hex_checkbox;
   QCheckBox* m_display_values_in_hex_checkbox;
   QTableWidget* m_address_table;
 };

@@ -7,7 +7,6 @@
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
@@ -59,7 +58,9 @@
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
 
+#include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/CheatsManager.h"
@@ -91,6 +92,7 @@
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -100,6 +102,7 @@
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
 #include "DolphinQt/Resources.h"
+#include "DolphinQt/RiivolutionBootWidget.h"
 #include "DolphinQt/SearchBar.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/TAS/GCTASInputWindow.h"
@@ -241,8 +244,13 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
     if (!movie_path.empty())
     {
-      if (Movie::PlayInput(movie_path, &m_pending_boot->savestate_path))
+      std::optional<std::string> savestate_path;
+      if (Movie::PlayInput(movie_path, &savestate_path))
+      {
+        m_pending_boot->boot_session_data.SetSavestateData(std::move(savestate_path),
+                                                           DeleteSavestateAfterBoot::No);
         emit RecordingStatusChanged(true);
+      }
     }
   }
 
@@ -590,6 +598,7 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::SetStateSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StartRecording, this,
           &MainWindow::OnStartRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::PlayRecording, this, &MainWindow::OnPlayRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
           &MainWindow::OnExportRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
@@ -642,6 +651,8 @@ void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, [this]() { Play(); });
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
+  connect(m_game_list, &GameList::OnStartWithRiivolution, this,
+          &MainWindow::ShowRiivolutionBootWidget);
 
   connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
 }
@@ -711,7 +722,7 @@ void MainWindow::RefreshGameList()
 QStringList MainWindow::PromptFileNames()
 {
   auto& settings = Settings::Instance().GetQSettings();
-  QStringList paths = QFileDialog::getOpenFileNames(
+  QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
@@ -762,14 +773,16 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
-      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes, savestate_path);
+      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
+                std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
     }
     else
     {
       const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
-        StartGame(default_path, ScanForSecondDisc::Yes, savestate_path);
+        StartGame(default_path, ScanForSecondDisc::Yes,
+                  std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
       }
       else
       {
@@ -972,7 +985,7 @@ void MainWindow::ScreenShot()
 }
 
 void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
-                                               const std::optional<std::string>& savestate_path)
+                                               std::unique_ptr<BootSessionData> boot_session_data)
 {
   auto second_game = m_game_list->FindSecondDisc(game);
 
@@ -980,35 +993,37 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
 
-  StartGame(paths, savestate_path);
+  StartGame(paths, std::move(boot_session_data));
 }
 
 void MainWindow::StartGame(const QString& path, ScanForSecondDisc scan,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
-  StartGame(path.toStdString(), scan, savestate_path);
+  StartGame(path.toStdString(), scan, std::move(boot_session_data));
 }
 
 void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
   if (scan == ScanForSecondDisc::Yes)
   {
     std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
     if (game != nullptr)
     {
-      ScanForSecondDiscAndStartGame(*game, savestate_path);
+      ScanForSecondDiscAndStartGame(*game, std::move(boot_session_data));
       return;
     }
   }
 
-  StartGame(BootParameters::GenerateFromFile(path, savestate_path));
+  StartGame(BootParameters::GenerateFromFile(
+      path, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
 }
 
 void MainWindow::StartGame(const std::vector<std::string>& paths,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
-  StartGame(BootParameters::GenerateFromFile(paths, savestate_path));
+  StartGame(BootParameters::GenerateFromFile(
+      paths, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
 }
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
@@ -1277,15 +1292,17 @@ void MainWindow::ShowFIFOPlayer()
 
 void MainWindow::StateLoad()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::LoadAs(path.toStdString());
 }
 
 void MainWindow::StateSave()
 {
-  QString path = QFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::SaveAs(path.toStdString());
 }
 
@@ -1355,13 +1372,15 @@ void MainWindow::NetPlayInit()
 {
   const auto& game_list_model = m_game_list->GetGameListModel();
   m_netplay_setup_dialog = new NetPlaySetupDialog(game_list_model, this);
-  m_netplay_dialog = new NetPlayDialog(game_list_model);
+  m_netplay_dialog = new NetPlayDialog(
+      game_list_model,
+      [this](const std::string& path, std::unique_ptr<BootSessionData> boot_session_data) {
+        StartGame(path, ScanForSecondDisc::Yes, std::move(boot_session_data));
+      });
 #ifdef USE_DISCORD_PRESENCE
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
-          [this](const QString& path) { StartGame(path, ScanForSecondDisc::Yes); });
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::ForceStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
@@ -1611,9 +1630,10 @@ void MainWindow::OnImportNANDBackup()
   if (response == QMessageBox::No)
     return;
 
-  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
-                                              tr("BootMii NAND backup file (*.bin);;"
-                                                 "All Files (*)"));
+  QString file =
+      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                         tr("BootMii NAND backup file (*.bin);;"
+                                            "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1636,10 +1656,10 @@ void MainWindow::OnImportNANDBackup()
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
-            return QFileDialog::getOpenFileName(this, tr("Select the keys file (OTP/SEEPROM dump)"),
-                                                QDir::currentPath(),
-                                                tr("BootMii keys file (*.bin);;"
-                                                   "All Files (*)"))
+            return DolphinFileDialog::getOpenFileName(
+                       this, tr("Select the keys file (OTP/SEEPROM dump)"), QDir::currentPath(),
+                       tr("BootMii keys file (*.bin);;"
+                          "All Files (*)"))
                 .toStdString();
           });
           if (keys_file)
@@ -1658,8 +1678,8 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
+  QString dtm_file = DolphinFileDialog::getOpenFileName(
+      this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
     return;
@@ -1728,8 +1748,8 @@ void MainWindow::OnStopRecording()
 void MainWindow::OnExportRecording()
 {
   Core::RunAsCPUThread([this] {
-    QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"),
-                                                    QString(), tr("Dolphin TAS Movies (*.dtm)"));
+    QString dtm_file = DolphinFileDialog::getSaveFileName(
+        this, tr("Save Recording File As"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
     if (!dtm_file.isEmpty())
       Movie::SaveRecording(dtm_file.toStdString());
   });
@@ -1801,6 +1821,29 @@ void MainWindow::ShowResourcePackManager()
 void MainWindow::ShowCheatsManager()
 {
   m_cheats_manager->show();
+}
+
+void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
+{
+  auto second_game = m_game_list->FindSecondDisc(game);
+  std::vector<std::string> paths = {game.GetFilePath()};
+  if (second_game != nullptr)
+    paths.push_back(second_game->GetFilePath());
+  std::unique_ptr<BootParameters> boot_params = BootParameters::GenerateFromFile(paths);
+  if (!boot_params)
+    return;
+  if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
+    return;
+
+  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
+  RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
+                          disc.volume->GetDiscNumber(), this);
+  w.exec();
+  if (!w.ShouldBoot())
+    return;
+
+  AddRiivolutionPatches(boot_params.get(), std::move(w.GetPatches()));
+  StartGame(std::move(boot_params));
 }
 
 void MainWindow::Show()

@@ -17,6 +17,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
@@ -48,7 +49,7 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale
 {
   UpdateActiveConfig();
   for (SamplerState& m_sampler_state : m_sampler_states)
-    m_sampler_state.hex = RenderState::GetPointSamplerState().hex;
+    m_sampler_state = RenderState::GetPointSamplerState();
 }
 
 Renderer::~Renderer() = default;
@@ -62,13 +63,6 @@ bool Renderer::Initialize()
 {
   if (!::Renderer::Initialize())
     return false;
-
-  m_bounding_box = std::make_unique<BoundingBox>();
-  if (!m_bounding_box->Initialize())
-  {
-    PanicAlertFmt("Failed to initialize bounding box.");
-    return false;
-  }
 
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
@@ -132,20 +126,9 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(m_bounding_box->Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  m_bounding_box->Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  m_bounding_box->Flush();
-  m_bounding_box->Invalidate();
+  return std::make_unique<VKBoundingBox>();
 }
 
 void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable, bool alpha_enable,
@@ -562,7 +545,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
   // Skip lookup if the state hasn't changed.
-  if (m_sampler_states[index].hex == state.hex)
+  if (m_sampler_states[index] == state)
     return;
 
   // Look up new state and replace in state tracker.
@@ -574,7 +557,7 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
   }
 
   StateTracker::GetInstance()->SetSampler(index, sampler);
-  m_sampler_states[index].hex = state.hex;
+  m_sampler_states[index] = state;
 }
 
 void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool write)
@@ -605,7 +588,7 @@ void Renderer::ResetSamplerStates()
   // Invalidate all sampler states, next draw will re-initialize them.
   for (u32 i = 0; i < m_sampler_states.size(); i++)
   {
-    m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
+    m_sampler_states[i] = RenderState::GetPointSamplerState();
     StateTracker::GetInstance()->SetSampler(i, g_object_cache->GetPointSampler());
   }
 

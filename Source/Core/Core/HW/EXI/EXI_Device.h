@@ -65,7 +65,7 @@ public:
   // For savestates. storing it here seemed cleaner than requiring each implementation to report its
   // type. I know this class is set up like an interface, but no code requires it to be strictly
   // such.
-  TEXIDevices m_device_type;
+  TEXIDevices m_device_type = TEXIDevices::EXIDEVICE_NONE;
 
 private:
   // Byte transfer function for this device

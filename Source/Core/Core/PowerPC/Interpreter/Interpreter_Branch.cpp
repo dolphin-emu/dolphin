@@ -101,7 +101,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 

@@ -40,9 +40,9 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -56,8 +56,6 @@ static const int TEXTURE_KILL_THRESHOLD = 64;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
-
-std::bitset<8> TextureCacheBase::valid_bind_points;
 
 TextureCacheBase::TCacheEntry::TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                                            std::unique_ptr<AbstractFramebuffer> fb)
@@ -95,7 +93,7 @@ TextureCacheBase::TextureCacheBase()
 
   Common::SetHash64Function();
 
-  InvalidateAllBindPoints();
+  TMEM::InvalidateAll();
 }
 
 TextureCacheBase::~TextureCacheBase()
@@ -123,7 +121,7 @@ bool TextureCacheBase::Initialize()
 void TextureCacheBase::Invalidate()
 {
   FlushEFBCopies();
-  InvalidateAllBindPoints();
+  TMEM::InvalidateAll();
 
   bound_textures.fill(nullptr);
   for (auto& tex : textures_by_address)
@@ -967,11 +965,22 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
   entry->texture->Save(filename, level);
 }
 
+// Helper for checking if a BPMemory TexMode0 register is set to Point
+// Filtering modes. This is used to decide whether Anisotropic enhancements
+// are (mostly) safe in the VideoBackends.
+// If both the minification and magnification filters are set to POINT modes
+// then applying anisotropic filtering is equivalent to forced filtering. Point
+// mode textures are usually some sort of 2D UI billboard which will end up
+// misaligned from the correct pixels when filtered anisotropically.
+static bool IsAnisostropicEnhancementSafe(const TexMode0& tm0)
+{
+  return !(tm0.min_filter == FilterMode::Near && tm0.mag_filter == FilterMode::Near);
+}
+
 static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
                             bool has_arbitrary_mips)
 {
-  const FourTexUnits& tex = bpmem.tex[index / 4];
-  const TexMode0& tm0 = tex.texMode0[index % 4];
+  const TexMode0& tm0 = bpmem.tex.GetUnit(index).texMode0;
 
   SamplerState state = {};
   state.Generate(bpmem, index);
@@ -979,19 +988,18 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   // Force texture filtering config option.
   if (g_ActiveConfig.bForceFiltering)
   {
-    state.min_filter = SamplerState::Filter::Linear;
-    state.mag_filter = SamplerState::Filter::Linear;
-    state.mipmap_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                              SamplerState::Filter::Linear :
-                              SamplerState::Filter::Point;
+    state.tm0.min_filter = FilterMode::Linear;
+    state.tm0.mag_filter = FilterMode::Linear;
+    state.tm0.mipmap_filter =
+        tm0.mipmap_filter != MipMode::None ? FilterMode::Linear : FilterMode::Near;
   }
 
   // Custom textures may have a greater number of mips
   if (custom_tex)
-    state.max_lod = 255;
+    state.tm1.max_lod = 255;
 
   // Anisotropic filtering option.
-  if (g_ActiveConfig.iMaxAnisotropy != 0 && !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
+  if (g_ActiveConfig.iMaxAnisotropy != 0 && IsAnisostropicEnhancementSafe(tm0))
   {
     // https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
     // For predictable results on all hardware/drivers, only use one of:
@@ -1000,39 +1008,40 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
     // Letting the game set other combinations will have varying arbitrary results;
     // possibly being interpreted as equal to bilinear/trilinear, implicitly
     // disabling anisotropy, or changing the anisotropic algorithm employed.
-    state.min_filter = SamplerState::Filter::Linear;
-    state.mag_filter = SamplerState::Filter::Linear;
-    if (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
-      state.mipmap_filter = SamplerState::Filter::Linear;
-    state.anisotropic_filtering = 1;
+    state.tm0.min_filter = FilterMode::Linear;
+    state.tm0.mag_filter = FilterMode::Linear;
+    if (tm0.mipmap_filter != MipMode::None)
+      state.tm0.mipmap_filter = FilterMode::Linear;
+    state.tm0.anisotropic_filtering = true;
   }
   else
   {
-    state.anisotropic_filtering = 0;
+    state.tm0.anisotropic_filtering = false;
   }
 
-  if (has_arbitrary_mips && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+  if (has_arbitrary_mips && tm0.mipmap_filter != MipMode::None)
   {
     // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
     // that have arbitrary contents, eg. are used for fog effects where the
     // distance they kick in at is important to preserve at any resolution.
     // Correct this with the upscaling factor of custom textures.
-    s64 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
-    state.lod_bias = std::clamp<s64>(state.lod_bias + lod_offset, -32768, 32767);
+    s32 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
+    state.tm0.lod_bias = std::clamp<s32>(state.tm0.lod_bias + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
-    state.anisotropic_filtering = 0;
+    state.tm0.anisotropic_filtering = false;
   }
 
   g_renderer->SetSamplerState(index, state);
+  PixelShaderManager::SetSamplerState(index, state.tm0.hex, state.tm1.hex);
 }
 
-void TextureCacheBase::BindTextures()
+void TextureCacheBase::BindTextures(BitSet32 used_textures)
 {
   for (u32 i = 0; i < bound_textures.size(); i++)
   {
     const TCacheEntry* tentry = bound_textures[i];
-    if (IsValidBindPoint(i) && tentry)
+    if (used_textures[i] && tentry)
     {
       g_renderer->SetTexture(i, tentry->texture.get());
       PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
@@ -1041,6 +1050,8 @@ void TextureCacheBase::BindTextures()
       SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);
     }
   }
+
+  TMEM::FinalizeBinds(used_textures);
 }
 
 class ArbitraryMipmapDetector
@@ -1191,9 +1202,22 @@ private:
 TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (IsValidBindPoint(stage) && bound_textures[stage])
+  if (TMEM::IsValid(stage) && bound_textures[stage])
   {
-    return bound_textures[stage];
+    TCacheEntry* entry = bound_textures[stage];
+    // If the TMEM configuration is such that this texture is more or less guaranteed to still
+    // be in TMEM, then we know we can reuse the old entry without even hashing the memory
+    if (TMEM::IsCached(stage))
+    {
+      return entry;
+    }
+
+    // Otherwise, hash the backing memory and check it's unchanged.
+    // FIXME: this doesn't correctly handle textures from tmem.
+    if (!entry->tmem_only && entry->base_hash == entry->CalculateHash())
+    {
+      return entry;
+    }
   }
 
   TextureInfo texture_info = TextureInfo::FromStage(stage);
@@ -1208,7 +1232,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
 
   // We need to keep track of invalided textures until they have actually been replaced or
   // re-loaded
-  valid_bind_points.set(stage);
+  TMEM::Bind(stage, entry->NumBlocksX(), entry->NumBlocksY(), entry->GetNumLevels() > 1,
+             entry->format == TextureFormat::RGBA8);
 
   return entry;
 }
@@ -1511,7 +1536,7 @@ TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize, Textur
   const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : texture_info.GetLevelCount();
 
   // We can decode on the GPU if it is a supported format and the flag is enabled.
-  // Currently we don't decode RGBA8 textures from Tmem, as that would require copying from both
+  // Currently we don't decode RGBA8 textures from TMEM, as that would require copying from both
   // banks, and if we're doing an copy we may as well just do the whole thing on the CPU, since
   // there's no conversion between formats. In the future this could be extended with a separate
   // shader, however.
@@ -2538,13 +2563,21 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
 
   for (size_t i = 0; i < bound_textures.size(); ++i)
   {
-    // If the entry is currently bound and not invalidated, keep it, but mark it as invalidated.
-    // This way it can still be used via tmem cache emulation, but nothing else.
-    // Spyro: A Hero's Tail is known for using such overwritten textures.
-    if (bound_textures[i] == entry && IsValidBindPoint(static_cast<u32>(i)))
+    if (bound_textures[i] == entry)
     {
-      bound_textures[i]->tmem_only = true;
-      return ++iter;
+      if (TMEM::IsCached(static_cast<u32>(i)))
+      {
+        // If the entry is currently bound and tmem has it recorded as cached, keep it, but mark it
+        // as invalidated. This way it can still be used via tmem cache emulation, but nothing else.
+        // Spyro: A Hero's Tail is known for using such overwritten textures.
+        bound_textures[i]->tmem_only = true;
+        return ++iter;
+      }
+      else
+      {
+        // Otherwise, delete the reference to it from bound_textures
+        bound_textures[i] = nullptr;
+      }
     }
   }
 
@@ -2663,7 +2696,8 @@ void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_cop
   uniforms.filter_coefficients[2] = filter_coefficients.lower;
   uniforms.gamma_rcp = 1.0f / gamma;
   uniforms.clamp_top = clamp_top ? framebuffer_rect.top * rcp_efb_height : 0.0f;
-  uniforms.clamp_bottom = clamp_bottom ? framebuffer_rect.bottom * rcp_efb_height : 1.0f;
+  int bottom_coord = framebuffer_rect.bottom - 1;
+  uniforms.clamp_bottom = clamp_bottom ? bottom_coord * rcp_efb_height : 1.0f;
   uniforms.pixel_height = g_ActiveConfig.bCopyEFBScaled ? rcp_efb_height : 1.0f / EFB_HEIGHT;
   uniforms.padding = 0;
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
@@ -2728,7 +2762,8 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   encoder_params.y_scale = y_scale;
   encoder_params.gamma_rcp = 1.0f / gamma;
   encoder_params.clamp_top = clamp_top ? framebuffer_rect.top * rcp_efb_height : 0.0f;
-  encoder_params.clamp_bottom = clamp_bottom ? framebuffer_rect.bottom * rcp_efb_height : 1.0f;
+  int bottom_coord = framebuffer_rect.bottom - 1;
+  encoder_params.clamp_bottom = clamp_bottom ? bottom_coord * rcp_efb_height : 1.0f;
   encoder_params.filter_coefficients[0] = filter_coefficients.upper;
   encoder_params.filter_coefficients[1] = filter_coefficients.middle;
   encoder_params.filter_coefficients[2] = filter_coefficients.lower;
@@ -2817,17 +2852,20 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
 
 u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
 {
+  // RGBA takes two cache lines per block; all others take one
+  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
+
+  return NumBlocksX() * bytes_per_block;
+}
+
+u32 TextureCacheBase::TCacheEntry::NumBlocksX() const
+{
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
 
   // Round up source height to multiple of block size
   const u32 actualWidth = Common::AlignUp(native_width, blockW);
 
-  const u32 numBlocksX = actualWidth / blockW;
-
-  // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
-
-  return numBlocksX * bytes_per_block;
+  return actualWidth / blockW;
 }
 
 u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
@@ -2884,6 +2922,8 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
 {
   const u32 bytes_per_row = BytesPerRow();
   const u32 hash_sample_size = HashSampleSize();
+
+  // FIXME: textures from tmem won't get the correct hash.
   u8* ptr = Memory::GetPointer(addr);
   if (memory_stride == bytes_per_row)
   {

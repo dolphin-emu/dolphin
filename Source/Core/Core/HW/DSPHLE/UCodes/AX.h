@@ -82,24 +82,24 @@ protected:
   };
 
   // 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
-  int m_samples_left[32 * 5];
-  int m_samples_right[32 * 5];
-  int m_samples_surround[32 * 5];
-  int m_samples_auxA_left[32 * 5];
-  int m_samples_auxA_right[32 * 5];
-  int m_samples_auxA_surround[32 * 5];
-  int m_samples_auxB_left[32 * 5];
-  int m_samples_auxB_right[32 * 5];
-  int m_samples_auxB_surround[32 * 5];
+  int m_samples_left[32 * 5]{};
+  int m_samples_right[32 * 5]{};
+  int m_samples_surround[32 * 5]{};
+  int m_samples_auxA_left[32 * 5]{};
+  int m_samples_auxA_right[32 * 5]{};
+  int m_samples_auxA_surround[32 * 5]{};
+  int m_samples_auxB_left[32 * 5]{};
+  int m_samples_auxB_right[32 * 5]{};
+  int m_samples_auxB_surround[32 * 5]{};
 
-  u16 m_cmdlist[512];
+  u16 m_cmdlist[512]{};
   u32 m_cmdlist_size = 0;
 
   // Table of coefficients for polyphase sample rate conversion.
   // The coefficients aren't always available (they are part of the DSP DROM)
   // so we also need to know if they are valid or not.
   std::optional<u32> m_coeffs_checksum = std::nullopt;
-  std::array<s16, 0x800> m_coeffs;
+  std::array<s16, 0x800> m_coeffs{};
 
   u16 m_compressor_pos = 0;
 

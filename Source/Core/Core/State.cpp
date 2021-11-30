@@ -73,7 +73,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 136;  // Last changed in PR 10058
+constexpr u32 STATE_VERSION = 139;  // Last changed in PR 8350
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -298,10 +298,10 @@ static std::map<double, int> GetSavedStates()
 
 struct CompressAndDumpState_args
 {
-  std::vector<u8>* buffer_vector;
-  std::mutex* buffer_mutex;
+  std::vector<u8>* buffer_vector = nullptr;
+  std::mutex* buffer_mutex = nullptr;
   std::string filename;
-  bool wait;
+  bool wait = false;
 };
 
 static void CompressAndDumpState(CompressAndDumpState_args save_args)

@@ -43,7 +43,7 @@ private:
   static constexpr size_t LFG_K = 521;
   static constexpr size_t LFG_J = 32;
 
-  std::array<u32, LFG_K> m_buffer;
+  std::array<u32, LFG_K> m_buffer{};
 
   size_t m_position_bytes = 0;
 };

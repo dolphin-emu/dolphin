@@ -59,7 +59,6 @@ option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 option(FASTLOG "Enable all logs" OFF)
-option(GDBSTUB "Enable gdb stub for remote debugging." ON)
 option(OPROFILING "Enable profiling" OFF)
 
 # TODO: Add DSPSpy
@@ -389,10 +388,6 @@ if(FASTLOG)
   add_definitions(-DDEBUGFAST)
 endif()
 
-if(GDBSTUB)
-  add_definitions(-DUSE_GDBSTUB)
-endif()
-
 if(ENABLE_VTUNE)
   set(VTUNE_DIR "/opt/intel/vtune_amplifier")
   add_definitions(-DUSE_VTUNE)
@@ -488,8 +483,14 @@ if(ENCODE_FRAMEDUMPS)
   if(WIN32 AND _M_X86_64)
     set(FFMPEG_DIR Externals/ffmpeg)
   endif()
-  find_package(FFmpeg COMPONENTS avcodec avformat avutil swscale)
+  find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
   if(FFmpeg_FOUND)
+    if(APPLE) 
+      find_library(COREMEDIA_LIBRARY CoreMedia)
+      find_library(VIDEOTOOLBOX_LIBRARY VideoToolbox)
+      find_library(COREVIDEO_LIBRARY CoreVideo)
+      find_library(AUDIOTOOLBOX_LIBRARY AudioToolbox)
+    endif()
     message(STATUS "libav/ffmpeg found, enabling AVI frame dumps")
     add_definitions(-DHAVE_FFMPEG)
   else()
@@ -572,6 +573,10 @@ add_subdirectory(Externals/glslang)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
+
+  if(APPLE)
+    add_subdirectory(Externals/MoltenVK)
+  endif()
 endif()
 
 if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
@@ -924,6 +929,10 @@ set(CPACK_RPM_PACKAGE_LICENSE GPL-2.0)
 # TODO: CPACK_PACKAGE_ICON
 # TODO: CPACK_NSIS_*
 # TODO: Use CPack components for DSPSpy, etc => cpack_add_component
+
+# Debian Specific. Install dpkg-dev for automatic deps generation
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_SECTION "Games")
 
 set(CPACK_SET_DESTDIR ON)
 set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")

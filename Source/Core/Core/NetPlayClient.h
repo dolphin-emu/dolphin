@@ -23,6 +23,13 @@
 #include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
 
+class BootSessionData;
+
+namespace IOS::HLE::FS
+{
+class FileSystem;
+}
+
 namespace UICommon
 {
 class GameFile;
@@ -34,7 +41,8 @@ class NetPlayUI
 {
 public:
   virtual ~NetPlayUI() {}
-  virtual void BootGame(const std::string& filename) = 0;
+  virtual void BootGame(const std::string& filename,
+                        std::unique_ptr<BootSessionData> boot_session_data) = 0;
   virtual void StopGame() = 0;
   virtual bool IsHosting() const = 0;
 
@@ -77,16 +85,18 @@ public:
                                          const std::vector<int>& players) = 0;
   virtual void HideChunkedProgressDialog() = 0;
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
+
+  virtual void SetHostWiiSyncTitles(std::vector<u64> titles) = 0;
 };
 
 class Player
 {
 public:
-  PlayerId pid;
+  PlayerId pid{};
   std::string name;
   std::string revision;
-  u32 ping;
-  SyncIdentifierComparison game_status;
+  u32 ping = 0;
+  SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
 
   bool IsHost() const { return pid == 1; }
 };
@@ -147,13 +157,15 @@ public:
 
   void AdjustPadBufferSize(unsigned int size);
 
+  void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles);
+
   static SyncIdentifier GetSDCardIdentifier();
 
 protected:
   struct AsyncQueueEntry
   {
     sf::Packet packet;
-    u8 channel_id;
+    u8 channel_id = 0;
   };
 
   void ClearBuffers();
@@ -313,6 +325,9 @@ private:
 
   u64 m_initial_rtc = 0;
   u32 m_timebase_frame = 0;
+
+  std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
+  std::vector<u64> m_wii_sync_titles;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

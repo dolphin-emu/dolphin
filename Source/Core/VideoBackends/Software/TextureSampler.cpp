@@ -11,7 +11,6 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureDecoder.h"
 
 #define ALLOW_MIPMAP 1
@@ -74,12 +73,12 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
   bool mipLinear = false;
 
 #if (ALLOW_MIPMAP)
-  const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  const TexMode0& tm0 = texUnit.texMode0[texmap & 3];
+  auto texUnit = bpmem.tex.GetUnit(texmap);
+  const TexMode0& tm0 = texUnit.texMode0;
 
   const s32 lodFract = lod & 0xf;
 
-  if (lod > 0 && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+  if (lod > 0 && tm0.mipmap_filter != MipMode::None)
   {
     // use mipmap
     baseMip = lod >> 4;
@@ -115,26 +114,25 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample)
 
 void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
 {
-  const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  const u8 subTexmap = texmap & 3;
+  auto texUnit = bpmem.tex.GetUnit(texmap);
 
-  const TexMode0& tm0 = texUnit.texMode0[subTexmap];
-  const TexImage0& ti0 = texUnit.texImage0[subTexmap];
-  const TexTLUT& texTlut = texUnit.texTlut[subTexmap];
+  const TexMode0& tm0 = texUnit.texMode0;
+  const TexImage0& ti0 = texUnit.texImage0;
+  const TexTLUT& texTlut = texUnit.texTlut;
   const TextureFormat texfmt = ti0.format;
   const TLUTFormat tlutfmt = texTlut.tlut_format;
 
   const u8* imageSrc;
   const u8* imageSrcOdd = nullptr;
-  if (texUnit.texImage1[subTexmap].cache_manually_managed)
+  if (texUnit.texImage1.cache_manually_managed)
   {
-    imageSrc = &texMem[texUnit.texImage1[subTexmap].tmem_even * TMEM_LINE_SIZE];
+    imageSrc = &texMem[texUnit.texImage1.tmem_even * TMEM_LINE_SIZE];
     if (texfmt == TextureFormat::RGBA8)
-      imageSrcOdd = &texMem[texUnit.texImage2[subTexmap].tmem_odd * TMEM_LINE_SIZE];
+      imageSrcOdd = &texMem[texUnit.texImage2.tmem_odd * TMEM_LINE_SIZE];
   }
   else
   {
-    const u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;
+    const u32 imageBase = texUnit.texImage3.image_base << 5;
     imageSrc = Memory::GetPointer(imageBase);
   }
 
@@ -198,7 +196,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageSPlus1, tm0.wrap_s, image_width_minus_1 + 1);
     WrapCoord(&imageTPlus1, tm0.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1[subTexmap].cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
     {
       TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, image_width_minus_1, texfmt,
                              tlut, tlutfmt);
@@ -250,7 +248,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
     WrapCoord(&imageS, tm0.wrap_s, image_width_minus_1 + 1);
     WrapCoord(&imageT, tm0.wrap_t, image_height_minus_1 + 1);
 
-    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1[subTexmap].cache_manually_managed))
+    if (!(texfmt == TextureFormat::RGBA8 && texUnit.texImage1.cache_manually_managed))
       TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, image_width_minus_1, texfmt, tlut,
                              tlutfmt);
     else

@@ -3,7 +3,6 @@
 
 #include <QCheckBox>
 #include <QDir>
-#include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -17,6 +16,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/PathPane.h"
 
@@ -34,17 +34,17 @@ PathPane::PathPane(QWidget* parent) : QWidget(parent)
 void PathPane::Browse()
 {
   QString dir = QDir::toNativeSeparators(
-      QFileDialog::getExistingDirectory(this, tr("Select a Directory"), QDir::currentPath()));
+      DolphinFileDialog::getExistingDirectory(this, tr("Select a Directory"), QDir::currentPath()));
   if (!dir.isEmpty())
     Settings::Instance().AddPath(dir);
 }
 
 void PathPane::BrowseDefaultGame()
 {
-  QString file = QDir::toNativeSeparators(
-      QFileDialog::getOpenFileName(this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
-                                   tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs "
-                                      "*.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)")));
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
+      this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs "
+         "*.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)")));
 
   if (!file.isEmpty())
     Settings::Instance().SetDefaultGame(file);
@@ -52,7 +52,7 @@ void PathPane::BrowseDefaultGame()
 
 void PathPane::BrowseWiiNAND()
 {
-  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Wii NAND Root"), QString::fromStdString(Config::Get(Config::MAIN_FS_PATH))));
   if (!dir.isEmpty())
   {
@@ -63,7 +63,7 @@ void PathPane::BrowseWiiNAND()
 
 void PathPane::BrowseDump()
 {
-  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Dump Path"), QString::fromStdString(Config::Get(Config::MAIN_DUMP_PATH))));
   if (!dir.isEmpty())
   {
@@ -74,7 +74,7 @@ void PathPane::BrowseDump()
 
 void PathPane::BrowseLoad()
 {
-  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Load Path"), QString::fromStdString(Config::Get(Config::MAIN_LOAD_PATH))));
   if (!dir.isEmpty())
   {
@@ -85,7 +85,7 @@ void PathPane::BrowseLoad()
 
 void PathPane::BrowseResourcePack()
 {
-  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
       this, tr("Select Resource Pack Path"),
       QString::fromStdString(Config::Get(Config::MAIN_RESOURCEPACK_PATH))));
   if (!dir.isEmpty())
@@ -97,7 +97,7 @@ void PathPane::BrowseResourcePack()
 
 void PathPane::BrowseSDCard()
 {
-  QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
+  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this, tr("Select a SD Card Image"), QString::fromStdString(Config::Get(Config::MAIN_SD_PATH)),
       tr("SD Card Image (*.raw);;"
          "All Files (*)")));

@@ -64,42 +64,40 @@ public:
 
   // These store if the relevant setting should be reset back later (true) or if it should be left
   // alone on restore (false)
-  bool bSetEmulationSpeed;
-  bool bSetVolume;
-  std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
-  std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads;
-  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice;
+  bool bSetEmulationSpeed = false;
+  bool bSetVolume = false;
+  std::array<bool, MAX_BBMOTES> bSetWiimoteSource{};
+  std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads{};
+  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice{};
 
 private:
-  bool valid;
-  bool bCPUThread;
-  bool bJITFollowBranch;
-  bool bSyncGPUOnSkipIdleHack;
-  bool bFPRF;
-  bool bAccurateNaNs;
-  bool bMMU;
-  bool bLowDCBZHack;
-  bool bDisableICache;
-  bool m_EnableJIT;
-  bool bSyncGPU;
-  int iSyncGpuMaxDistance;
-  int iSyncGpuMinDistance;
-  float fSyncGpuOverclock;
-  bool bFastDiscSpeed;
-  bool bDSPHLE;
-  bool bHLE_BS2;
-  int iSelectedLanguage;
-  PowerPC::CPUCore cpu_core;
-  int Volume;
-  float m_EmulationSpeed;
-  float m_OCFactor;
-  bool m_OCEnable;
-  bool m_bt_passthrough_enabled;
-  std::string sBackend;
+  bool valid = false;
+  bool bCPUThread = false;
+  bool bJITFollowBranch = false;
+  bool bSyncGPUOnSkipIdleHack = false;
+  bool bFloatExceptions = false;
+  bool bDivideByZeroExceptions = false;
+  bool bFPRF = false;
+  bool bAccurateNaNs = false;
+  bool bMMU = false;
+  bool bLowDCBZHack = false;
+  bool bDisableICache = false;
+  bool bSyncGPU = false;
+  int iSyncGpuMaxDistance = 0;
+  int iSyncGpuMinDistance = 0;
+  float fSyncGpuOverclock = 0;
+  bool bFastDiscSpeed = false;
+  bool bHLE_BS2 = false;
+  int iSelectedLanguage = 0;
+  PowerPC::CPUCore cpu_core = PowerPC::CPUCore::Interpreter;
+  float m_EmulationSpeed = 0;
+  float m_OCFactor = 0;
+  bool m_OCEnable = false;
+  bool m_bt_passthrough_enabled = false;
   std::string m_strGPUDeterminismMode;
-  std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource;
-  std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
-  std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
+  std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
+  std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
+  std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice{};
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
@@ -109,23 +107,21 @@ void ConfigCache::SaveConfig(const SConfig& config)
   bCPUThread = config.bCPUThread;
   bJITFollowBranch = config.bJITFollowBranch;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
+  bFloatExceptions = config.bFloatExceptions;
+  bDivideByZeroExceptions = config.bDivideByZeroExceptions;
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
   bDisableICache = config.bDisableICache;
   bMMU = config.bMMU;
-  m_EnableJIT = config.m_DSPEnableJIT;
   bSyncGPU = config.bSyncGPU;
   iSyncGpuMaxDistance = config.iSyncGpuMaxDistance;
   iSyncGpuMinDistance = config.iSyncGpuMinDistance;
   fSyncGpuOverclock = config.fSyncGpuOverclock;
   bFastDiscSpeed = config.bFastDiscSpeed;
-  bDSPHLE = config.bDSPHLE;
   bHLE_BS2 = config.bHLE_BS2;
   iSelectedLanguage = config.SelectedLanguage;
   cpu_core = config.cpu_core;
-  Volume = config.m_Volume;
   m_EmulationSpeed = config.m_EmulationSpeed;
-  sBackend = config.sBackend;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
   m_OCFactor = config.m_OCFactor;
   m_OCEnable = config.m_OCEnable;
@@ -154,27 +150,24 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bCPUThread = bCPUThread;
   config->bJITFollowBranch = bJITFollowBranch;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
+  config->bFloatExceptions = bFloatExceptions;
+  config->bDivideByZeroExceptions = bDivideByZeroExceptions;
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
   config->bDisableICache = bDisableICache;
   config->bMMU = bMMU;
   config->bLowDCBZHack = bLowDCBZHack;
-  config->m_DSPEnableJIT = m_EnableJIT;
   config->bSyncGPU = bSyncGPU;
   config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
   config->iSyncGpuMinDistance = iSyncGpuMinDistance;
   config->fSyncGpuOverclock = fSyncGpuOverclock;
   config->bFastDiscSpeed = bFastDiscSpeed;
-  config->bDSPHLE = bDSPHLE;
   config->bHLE_BS2 = bHLE_BS2;
   config->SelectedLanguage = iSelectedLanguage;
   config->cpu_core = cpu_core;
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
-  if (bSetVolume)
-    config->m_Volume = Volume;
-
   if (config->bWii)
   {
     for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
@@ -199,7 +192,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
       config->m_EXIDevice[i] = m_EXIDevice[i];
   }
 
-  config->sBackend = sBackend;
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
   config->m_OCFactor = m_OCFactor;
   config->m_OCEnable = m_OCEnable;
@@ -249,13 +241,15 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
     // General settings
     IniFile::Section* core_section = game_ini.GetOrCreateSection("Core");
-    IniFile::Section* dsp_section = game_ini.GetOrCreateSection("DSP");
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
+    core_section->Get("FloatExceptions", &StartUp.bFloatExceptions, StartUp.bFloatExceptions);
+    core_section->Get("DivByZeroExceptions", &StartUp.bDivideByZeroExceptions,
+                      StartUp.bDivideByZeroExceptions);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
     core_section->Get("AccurateNaNs", &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
     core_section->Get("DisableICache", &StartUp.bDisableICache, StartUp.bDisableICache);
@@ -263,17 +257,12 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("LowDCBZHack", &StartUp.bLowDCBZHack, StartUp.bLowDCBZHack);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-    core_section->Get("DSPHLE", &StartUp.bDSPHLE, StartUp.bDSPHLE);
     core_section->Get("CPUCore", &StartUp.cpu_core, StartUp.cpu_core);
     core_section->Get("HLE_BS2", &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
     core_section->Get("GameCubeLanguage", &StartUp.SelectedLanguage, StartUp.SelectedLanguage);
     if (core_section->Get("EmulationSpeed", &StartUp.m_EmulationSpeed, StartUp.m_EmulationSpeed))
       config_cache.bSetEmulationSpeed = true;
 
-    if (dsp_section->Get("Volume", &StartUp.m_Volume, StartUp.m_Volume))
-      config_cache.bSetVolume = true;
-    dsp_section->Get("EnableJIT", &StartUp.m_DSPEnableJIT, StartUp.m_DSPEnableJIT);
-    dsp_section->Get("Backend", &StartUp.sBackend, StartUp.sBackend);
     core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,
                       StartUp.m_strGPUDeterminismMode);
     core_section->Get("Overclock", &StartUp.m_OCFactor, StartUp.m_OCFactor);
@@ -325,7 +314,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     // TODO: remove this once ConfigManager starts using OnionConfig.
     StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
     StartUp.bJITFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
-    StartUp.bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
     StartUp.bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
     StartUp.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
     StartUp.bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
@@ -352,12 +340,10 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     const NetPlay::NetSettings& netplay_settings = NetPlay::GetNetSettings();
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
     StartUp.bCPUThread = netplay_settings.m_CPUthread;
-    StartUp.bDSPHLE = netplay_settings.m_DSPHLE;
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
     StartUp.cpu_core = netplay_settings.m_CPUcore;
     StartUp.SelectedLanguage = netplay_settings.m_SelectedLanguage;
     StartUp.bOverrideRegionSettings = netplay_settings.m_OverrideRegionSettings;
-    StartUp.m_DSPEnableJIT = netplay_settings.m_DSPEnableJIT;
     StartUp.m_OCEnable = netplay_settings.m_OCEnable;
     StartUp.m_OCFactor = netplay_settings.m_OCFactor;
     StartUp.m_EXIDevice[0] = netplay_settings.m_EXIDevice[0];
@@ -370,6 +356,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.bAccurateNaNs = netplay_settings.m_AccurateNaNs;
     StartUp.bDisableICache = netplay_settings.m_DisableICache;
     StartUp.bSyncGPUOnSkipIdleHack = netplay_settings.m_SyncOnSkipIdle;
+    StartUp.bFloatExceptions = netplay_settings.m_FloatExceptions;
+    StartUp.bDivideByZeroExceptions = netplay_settings.m_DivideByZeroExceptions;
     StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
@@ -430,6 +418,10 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region) && Config::Get(Config::SYSCONF_PAL60))
     Config::SetCurrent(Config::SYSCONF_PAL60, false);
 
+  // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
+  if (!boot->riivolution_patches.empty())
+    StartUp.bFastDiscSpeed = true;
+
   Core::UpdateWantDeterminism(/*initial*/ true);
 
   if (StartUp.bWii)
@@ -458,7 +450,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
         std::make_unique<BootParameters>(
             BootParameters::IPL{StartUp.m_region,
                                 std::move(std::get<BootParameters::Disc>(boot->parameters))},
-            boot->savestate_path),
+            std::move(boot->boot_session_data)),
         wsi);
   }
   return Core::Init(std::move(boot), wsi);

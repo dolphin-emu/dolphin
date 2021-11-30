@@ -286,6 +286,8 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
   config->backend_info.bSupportsLargePoints = false;               // Dependent on features.
   config->backend_info.bSupportsFramebufferFetch = false;          // No support.
+  config->backend_info.bSupportsCoarseDerivatives = true;          // Assumed support.
+  config->backend_info.bSupportsTextureQueryLevels = true;         // Assumed support.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
@@ -671,13 +673,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT 
   const std::string log_message =
       fmt::format("Vulkan debug report: ({}) {}", pLayerPrefix ? pLayerPrefix : "", pMessage);
   if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LERROR, "{}", log_message);
+    ERROR_LOG_FMT(HOST_GPU, "{}", log_message);
   else if (flags & (VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT))
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LWARNING, "{}", log_message);
+    WARN_LOG_FMT(HOST_GPU, "{}", log_message);
   else if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LINFO, "{}", log_message);
+    INFO_LOG_FMT(HOST_GPU, "{}", log_message);
   else
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LDEBUG, "{}", log_message);
+    DEBUG_LOG_FMT(HOST_GPU, "{}", log_message);
 
   return VK_FALSE;
 }
@@ -869,8 +871,8 @@ void VulkanContext::InitDriverDetails()
   {
 // Apart from the driver version, Intel does not appear to provide a way to
 // differentiate between anv and the binary driver (Skylake+). Assume to be
-// using anv if we not running on Windows.
-#ifdef WIN32
+// using anv if we're not running on Windows or macOS.
+#if defined(WIN32) || defined(__APPLE__)
     vendor = DriverDetails::VENDOR_INTEL;
     driver = DriverDetails::DRIVER_INTEL;
 #else

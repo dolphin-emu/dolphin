@@ -99,7 +99,7 @@ private:
   bool m_is_stretching = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
-  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer;
+  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer{};
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;

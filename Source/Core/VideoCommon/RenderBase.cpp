@@ -38,6 +38,7 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
@@ -57,6 +58,7 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/FPSCounter.h"
@@ -94,7 +96,8 @@ static float AspectToWidescreen(float aspect)
 static bool DumpFrameToPNG(const FrameDump::FrameData& frame, const std::string& file_name)
 {
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
-                                            frame.stride);
+                                            frame.stride,
+                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
 }
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
@@ -124,6 +127,13 @@ bool Renderer::Initialize()
   if (!m_post_processor->Initialize(m_backbuffer_format))
     return false;
 
+  m_bounding_box = CreateBoundingBox();
+  if (g_ActiveConfig.backend_info.bSupportsBBox && !m_bounding_box->Initialize())
+  {
+    PanicAlertFmt("Failed to initialize bounding box.");
+    return false;
+  }
+
   return true;
 }
 
@@ -137,6 +147,7 @@ void Renderer::Shutdown()
   ShutdownFrameDumping();
   ShutdownImGui();
   m_post_processor.reset();
+  m_bounding_box.reset();
 }
 
 void Renderer::BeginUtilityDrawing()
@@ -184,15 +195,30 @@ void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
   g_framebuffer_manager->ReinterpretPixelData(convtype);
 }
 
-u16 Renderer::BBoxRead(int index)
+bool Renderer::IsBBoxEnabled() const
+{
+  return m_bounding_box->IsEnabled();
+}
+
+void Renderer::BBoxEnable()
+{
+  m_bounding_box->Enable();
+}
+
+void Renderer::BBoxDisable()
+{
+  m_bounding_box->Disable();
+}
+
+u16 Renderer::BBoxRead(u32 index)
 {
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
     return m_bounding_box_fallback[index];
 
-  return BBoxReadImpl(index);
+  return m_bounding_box->Get(index);
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWrite(u32 index, u16 value)
 {
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
   {
@@ -200,12 +226,15 @@ void Renderer::BBoxWrite(int index, u16 value)
     return;
   }
 
-  BBoxWriteImpl(index, value);
+  m_bounding_box->Set(index, value);
 }
 
 void Renderer::BBoxFlush()
 {
-  BBoxFlushImpl();
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+    return;
+
+  m_bounding_box->Flush();
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
@@ -559,14 +588,17 @@ void Renderer::DrawDebugText()
         ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      if (config.m_ShowFrameCount)
-      {
-        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
-      }
       if (Movie::IsPlayingInput())
       {
+        ImGui::Text("Frame: %" PRIu64 " / %" PRIu64, Movie::GetCurrentFrame(),
+                    Movie::GetTotalFrames());
         ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
                     Movie::GetTotalInputCount());
+      }
+      else if (config.m_ShowFrameCount)
+      {
+        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
+        ImGui::Text("Input: %" PRIu64, Movie::GetCurrentInputCount());
       }
       if (SConfig::GetInstance().m_ShowLag)
         ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
@@ -948,6 +980,7 @@ bool Renderer::InitializeImGui()
   ImGui::GetIO().DisplayFramebufferScale.y = m_backbuffer_scale;
   ImGui::GetIO().FontGlobalScale = m_backbuffer_scale;
   ImGui::GetStyle().ScaleAllSizes(m_backbuffer_scale);
+  ImGui::GetStyle().WindowRounding = 7.0f;
 
   PortableVertexDeclaration vdecl = {};
   vdecl.position = {VAR_FLOAT, 2, offsetof(ImDrawVert, pos), true, false};
@@ -1757,6 +1790,8 @@ void Renderer::DoState(PointerWrap& p)
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
   p.DoArray(m_bounding_box_fallback);
+
+  m_bounding_box->DoState(p);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {

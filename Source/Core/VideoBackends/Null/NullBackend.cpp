@@ -55,6 +55,8 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsPartialDepthCopies = false;
   g_Config.backend_info.bSupportsShaderBinaries = false;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
+  g_Config.backend_info.bSupportsCoarseDerivatives = false;
+  g_Config.backend_info.bSupportsTextureQueryLevels = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();

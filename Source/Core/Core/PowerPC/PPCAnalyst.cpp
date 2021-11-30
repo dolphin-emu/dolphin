@@ -524,8 +524,12 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   code->wantsCR0 = false;
   code->wantsCR1 = false;
 
+  bool first_fpu_instruction = false;
   if (opinfo->flags & FL_USE_FPU)
+  {
+    first_fpu_instruction = !block->m_fpa->any;
     block->m_fpa->any = true;
+  }
 
   if (opinfo->flags & FL_TIMER)
     block->m_gpa->anyTimer = true;
@@ -550,9 +554,10 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
   code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) != 0;
 
-  // TODO: Is it possible to determine that some FPU instructions never cause exceptions?
   code->canCauseException =
-      (opinfo->flags & (FL_LOADSTORE | FL_USE_FPU | FL_PROGRAMEXCEPTION)) != 0;
+      first_fpu_instruction || (opinfo->flags & (FL_LOADSTORE | FL_PROGRAMEXCEPTION)) != 0 ||
+      (SConfig::GetInstance().bFloatExceptions && (opinfo->flags & FL_FLOAT_EXCEPTION)) ||
+      (SConfig::GetInstance().bDivideByZeroExceptions && (opinfo->flags & FL_FLOAT_DIV));
 
   code->wantsCA = (opinfo->flags & FL_READ_CA) != 0;
   code->outputCA = (opinfo->flags & FL_SET_CA) != 0;
@@ -928,14 +933,14 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     const bool opWantsCR1 = op.wantsCR1;
     const bool opWantsFPRF = op.wantsFPRF;
     const bool opWantsCA = op.wantsCA;
-    op.wantsCR0 = wantsCR0 || op.canEndBlock;
-    op.wantsCR1 = wantsCR1 || op.canEndBlock;
-    op.wantsFPRF = wantsFPRF || op.canEndBlock;
-    op.wantsCA = wantsCA || op.canEndBlock;
-    wantsCR0 |= opWantsCR0 || op.canEndBlock;
-    wantsCR1 |= opWantsCR1 || op.canEndBlock;
-    wantsFPRF |= opWantsFPRF || op.canEndBlock;
-    wantsCA |= opWantsCA || op.canEndBlock;
+    op.wantsCR0 = wantsCR0 || op.canEndBlock || op.canCauseException;
+    op.wantsCR1 = wantsCR1 || op.canEndBlock || op.canCauseException;
+    op.wantsFPRF = wantsFPRF || op.canEndBlock || op.canCauseException;
+    op.wantsCA = wantsCA || op.canEndBlock || op.canCauseException;
+    wantsCR0 |= opWantsCR0 || op.canEndBlock || op.canCauseException;
+    wantsCR1 |= opWantsCR1 || op.canEndBlock || op.canCauseException;
+    wantsFPRF |= opWantsFPRF || op.canEndBlock || op.canCauseException;
+    wantsCA |= opWantsCA || op.canEndBlock || op.canCauseException;
     wantsCR0 &= !op.outputCR0 || opWantsCR0;
     wantsCR1 &= !op.outputCR1 || opWantsCR1;
     wantsFPRF &= !op.outputFPRF || opWantsFPRF;

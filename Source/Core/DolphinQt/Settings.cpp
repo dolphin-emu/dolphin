@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QRadioButton>
 #include <QSize>
 #include <QWidget>
 
@@ -79,8 +80,7 @@ Settings::Settings()
       // they'd continue living until the queued event has run, but some devices can't be recreated
       // until they are destroyed.
       // This is safe from any thread. Devices will be refreshed and re-acquired and in
-      // DevicesChanged(). Waiting on QueueOnObject() to have finished running was not feasible as
-      // it would cause deadlocks without heavy workarounds.
+      // DevicesChanged(). Calling it without queueing shouldn't cause any deadlocks but is slow.
       emit ReleaseDevices();
 
       QueueOnObject(this, [this] { emit DevicesChanged(); });
@@ -325,15 +325,16 @@ void Settings::SetStateSlot(int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-void Settings::SetHideCursor(bool hide_cursor)
+void Settings::SetCursorVisibility(SConfig::ShowCursor hideCursor)
 {
-  SConfig::GetInstance().bHideCursor = hide_cursor;
-  emit HideCursorChanged();
+  SConfig::GetInstance().m_show_cursor = hideCursor;
+
+  emit CursorVisibilityChanged();
 }
 
-bool Settings::GetHideCursor() const
+SConfig::ShowCursor Settings::GetCursorVisibility() const
 {
-  return SConfig::GetInstance().bHideCursor;
+  return SConfig::GetInstance().m_show_cursor;
 }
 
 void Settings::SetLockCursor(bool lock_cursor)
@@ -363,14 +364,14 @@ bool Settings::IsKeepWindowOnTopEnabled() const
 
 int Settings::GetVolume() const
 {
-  return SConfig::GetInstance().m_Volume;
+  return Config::Get(Config::MAIN_AUDIO_VOLUME);
 }
 
 void Settings::SetVolume(int volume)
 {
   if (GetVolume() != volume)
   {
-    SConfig::GetInstance().m_Volume = volume;
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
     emit VolumeChanged(volume);
   }
 }

@@ -17,6 +17,7 @@
 
 #include "Core/Config/FreeLookSettings.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -88,13 +89,13 @@ static void HandleFrameStepHotkeys()
 
   if (IsHotkey(HK_FRAME_ADVANCE_INCREASE_SPEED))
   {
-    frame_step_delay = std::min(frame_step_delay + 1, MAX_FRAME_STEP_DELAY);
+    frame_step_delay = std::max(frame_step_delay - 1, 0);
     return;
   }
 
   if (IsHotkey(HK_FRAME_ADVANCE_DECREASE_SPEED))
   {
-    frame_step_delay = std::max(frame_step_delay - 1, 0);
+    frame_step_delay = std::min(frame_step_delay + 1, MAX_FRAME_STEP_DELAY);
     return;
   }
 
@@ -186,7 +187,13 @@ void HotkeyScheduler::Run()
         emit ExitHotkey();
 
       if (!Core::IsRunningAndStarted())
+      {
+        // Only check for Play Recording hotkey when no game is running
+        if (IsHotkey(HK_PLAY_RECORDING))
+          emit PlayRecording();
+
         continue;
+      }
 
       // Disc
 
@@ -323,9 +330,9 @@ void HotkeyScheduler::Run()
 
       auto ShowVolume = []() {
         OSD::AddMessage(std::string("Volume: ") +
-                        (SConfig::GetInstance().m_IsMuted ?
+                        (Config::Get(Config::MAIN_AUDIO_MUTED) ?
                              "Muted" :
-                             std::to_string(SConfig::GetInstance().m_Volume) + "%"));
+                             std::to_string(Config::Get(Config::MAIN_AUDIO_VOLUME)) + "%"));
       };
 
       // Volume

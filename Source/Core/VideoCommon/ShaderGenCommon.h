@@ -14,6 +14,7 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/TypeUtils.h"
 
 enum class APIType;
 
@@ -168,6 +169,8 @@ union ShaderHostConfig
   BitField<21, 1, bool, u32> backend_logic_op;
   BitField<22, 1, bool, u32> backend_palette_conversion;
   BitField<23, 1, bool, u32> enable_validation_layer;
+  BitField<24, 1, bool, u32> manual_texture_sampling;
+  BitField<25, 1, bool, u32> manual_texture_sampling_custom_texture_sizes;
 
   static ShaderHostConfig GetCurrent();
 };
@@ -177,6 +180,8 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
                                        bool include_host_config, bool include_api = true);
 
 void WriteIsNanHeader(ShaderCode& out, APIType api_type);
+void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
+                                const ShaderHostConfig& host_config);
 
 void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
                              const ShaderHostConfig& host_config, std::string_view qualifier);
@@ -194,6 +199,16 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
 // Without MSAA, this flag is defined to have no effect.
 const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interface_block = false,
                                       bool in = false);
+
+// bitfieldExtract generator for BitField types
+template <auto ptr_to_bitfield_member>
+std::string BitfieldExtract(std::string_view source)
+{
+  using BitFieldT = Common::MemberType<ptr_to_bitfield_member>;
+  return fmt::format("bitfieldExtract({}({}), {}, {})", BitFieldT::IsSigned() ? "int" : "uint",
+                     source, static_cast<u32>(BitFieldT::StartBit()),
+                     static_cast<u32>(BitFieldT::NumBits()));
+}
 
 // Constant variable names
 #define I_COLORS "color"

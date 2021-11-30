@@ -39,6 +39,9 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_logic_op = g_ActiveConfig.backend_info.bSupportsLogicOp;
   bits.backend_palette_conversion = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
   bits.enable_validation_layer = g_ActiveConfig.bEnableValidationLayer;
+  bits.manual_texture_sampling = !g_ActiveConfig.bFastTextureSampling;
+  bits.manual_texture_sampling_custom_texture_sizes =
+      g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
   return bits;
 }
 
@@ -102,6 +105,30 @@ void WriteIsNanHeader(ShaderCode& out, APIType api_type)
   else
   {
     out.Write("#define dolphin_isnan(f) isnan(f)\n");
+  }
+}
+
+void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
+                                const ShaderHostConfig& host_config)
+{
+  // ==============================================
+  //  BitfieldExtract for APIs which don't have it
+  // ==============================================
+  if (!host_config.backend_bitfield)
+  {
+    out.Write("uint bitfieldExtract(uint val, int off, int size) {{\n"
+              "  // This built-in function is only supported in OpenGL 4.0+ and ES 3.1+\n"
+              "  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract "
+              "instruction.\n"
+              "  uint mask = uint((1 << size) - 1);\n"
+              "  return uint(val >> off) & mask;\n"
+              "}}\n\n");
+    out.Write("int bitfieldExtract(int val, int off, int size) {{\n"
+              "  // This built-in function is only supported in OpenGL 4.0+ and ES 3.1+\n"
+              "  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract "
+              "instruction.\n"
+              "  return ((val << (32 - size - off)) >> (32 - size));\n"
+              "}}\n\n");
   }
 }
 
