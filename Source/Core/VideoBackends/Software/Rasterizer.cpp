@@ -301,10 +301,26 @@ static void BuildBlock(s32 blockX, s32 blockY)
   }
 }
 
+void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
+                  const OutputVertexData* v2)
+{
+  if (!bpmem.genMode.zfreeze)
+  {
+    const s32 X1 = iround(16.0f * v0->screenPosition[0]) - 9;
+    const s32 Y1 = iround(16.0f * v0->screenPosition[1]) - 9;
+    const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4);
+    ZSlope = Slope(v0->screenPosition.z, v1->screenPosition.z, v2->screenPosition.z, ctx);
+  }
+}
+
 void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
                            const OutputVertexData* v2)
 {
   INCSTAT(g_stats.this_frame.num_triangles_drawn);
+
+  // The zslope should be updated now, even if the triangle is rejected by the scissor test, as
+  // zfreeze depends on it
+  UpdateZSlope(v0, v1, v2);
 
   // adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
@@ -370,21 +386,12 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   if (minx >= maxx || miny >= maxy)
     return;
 
-  // Set up slopes
+  // Set up the remaining slopes
   const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4);
 
   float w[3] = {1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w,
                 1.0f / v2->projectedPosition.w};
   WSlope = Slope(w[0], w[1], w[2], ctx);
-
-  // TODO: The zfreeze emulation is not quite correct, yet!
-  // Many things might prevent us from reaching this line (culling, clipping, scissoring).
-  // However, the zslope is always guaranteed to be calculated unless all vertices are trivially
-  // rejected during clipping!
-  // We're currently sloppy at this since we abort early if any of the culling/clipping/scissoring
-  // tests fail.
-  if (!bpmem.genMode.zfreeze)
-    ZSlope = Slope(v0->screenPosition.z, v1->screenPosition.z, v2->screenPosition.z, ctx);
 
   for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
   {

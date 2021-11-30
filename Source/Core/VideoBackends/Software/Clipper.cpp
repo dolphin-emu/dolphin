@@ -289,10 +289,42 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 {
   INCSTAT(g_stats.this_frame.num_triangles_in)
 
-  bool backface;
-
-  if (!CullTest(v0, v1, v2, backface))
+  if (IsTriviallyRejected(v0, v1, v2))
+  {
+    INCSTAT(g_stats.this_frame.num_triangles_rejected)
+    // NOTE: The slope used by zfreeze shouldn't be updated if the triangle is
+    // trivially rejected during clipping
     return;
+  }
+
+  bool backface = IsBackface(v0, v1, v2);
+
+  if (!backface)
+  {
+    if (bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All)
+    {
+      // cull frontfacing - we still need to update the slope for zfreeze
+      PerspectiveDivide(v0);
+      PerspectiveDivide(v1);
+      PerspectiveDivide(v2);
+      Rasterizer::UpdateZSlope(v0, v1, v2);
+      INCSTAT(g_stats.this_frame.num_triangles_culled)
+      return;
+    }
+  }
+  else
+  {
+    if (bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All)
+    {
+      // cull backfacing - we still need to update the slope for zfreeze
+      PerspectiveDivide(v0);
+      PerspectiveDivide(v2);
+      PerspectiveDivide(v1);
+      Rasterizer::UpdateZSlope(v0, v2, v1);
+      INCSTAT(g_stats.this_frame.num_triangles_culled)
+      return;
+    }
+  }
 
   int indices[NUM_INDICES] = {0,         1,         2,         SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
                               SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
@@ -461,19 +493,18 @@ void ProcessPoint(OutputVertexData* center)
   Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
 }
 
-bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-              bool& backface)
+bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
+                         const OutputVertexData* v2)
 {
   int mask = CalcClipMask(v0);
   mask &= CalcClipMask(v1);
   mask &= CalcClipMask(v2);
 
-  if (mask)
-  {
-    INCSTAT(g_stats.this_frame.num_triangles_rejected)
-    return false;
-  }
+  return mask != 0;
+}
 
+bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
+{
   float x0 = v0->projectedPosition.x;
   float x1 = v1->projectedPosition.x;
   float x2 = v2->projectedPosition.x;
@@ -486,29 +517,14 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
 
   float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
 
-  backface = normalZDir <= 0.0f;
+  bool backface = normalZDir <= 0.0f;
   // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
   // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
   // but the backface test does need to be inverted for things to be drawn.
   if (xfmem.viewport.ht > 0)
     backface = !backface;
 
-  // TODO: Are these tests / the definition of backface above backwards?
-  if ((bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All) &&
-      !backface)  // cull frontfacing
-  {
-    INCSTAT(g_stats.this_frame.num_triangles_culled)
-    return false;
-  }
-
-  if ((bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All) &&
-      backface)  // cull backfacing
-  {
-    INCSTAT(g_stats.this_frame.num_triangles_culled)
-    return false;
-  }
-
-  return true;
+  return backface;
 }
 
 void PerspectiveDivide(OutputVertexData* vertex)
