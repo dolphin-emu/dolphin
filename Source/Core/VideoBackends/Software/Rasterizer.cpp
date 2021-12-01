@@ -80,7 +80,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 
   s32 z = (s32)std::clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
 
-  if (bpmem.UseEarlyDepthTest() && g_ActiveConfig.bZComploc)
+  if (bpmem.UseEarlyDepthTest())
   {
     // TODO: Test if perf regs are incremented even if test is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
@@ -354,7 +354,7 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   // rejected during clipping!
   // We're currently sloppy at this since we abort early if any of the culling/clipping/scissoring
   // tests fail.
-  if (!bpmem.genMode.zfreeze || !g_ActiveConfig.bZFreeze)
+  if (!bpmem.genMode.zfreeze)
     InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31,
               fltdx12, fltdy12, fltdy31);
 

@@ -152,8 +152,6 @@ struct VideoConfig final
   // VideoSW Debugging
   int drawStart = 0;
   int drawEnd = 0;
-  bool bZComploc = false;
-  bool bZFreeze = false;
   bool bDumpObjects = false;
   bool bDumpTevStages = false;
   bool bDumpTevTextureFetches = false;
