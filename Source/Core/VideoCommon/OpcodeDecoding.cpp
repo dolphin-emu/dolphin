@@ -221,11 +221,11 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         const u32 bp_cmd = src.Read<u32>();
         if constexpr (is_preprocess)
         {
-          LoadBPRegPreprocess(bp_cmd);
+          LoadBPRegPreprocess(bp_cmd, total_cycles);
         }
         else
         {
-          LoadBPReg(bp_cmd);
+          LoadBPReg(bp_cmd, total_cycles);
           INCSTAT(g_stats.this_frame.num_bp_loads);
         }
       }
