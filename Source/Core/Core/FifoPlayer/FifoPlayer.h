@@ -123,6 +123,7 @@ private:
   void LoadMemory();
   void LoadRegisters();
   void LoadTextureMemory();
+  void ClearEfb();
 
   void WriteCP(u32 address, u16 value);
   void WritePI(u32 address, u32 value);
