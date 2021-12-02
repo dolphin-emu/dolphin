@@ -115,7 +115,7 @@ CEXISlippi::CEXISlippi()
   localSelections.Reset();
 
   // Forces savestate to re-init regions when a new ISO is loaded
-	SlippiSavestate::shouldForceInit = true;
+  SlippiSavestate::shouldForceInit = true;
 
   // Update user file and then listen for User
 #ifndef IS_PLAYBACK
@@ -448,15 +448,15 @@ void CEXISlippi::writeToFile(std::unique_ptr<WriteMessage> msg)
 
     // Get display names and connection codes from slippi netplay client
     if (slippi_netplay)
-		{
-			auto playerInfo = matchmaking->GetPlayerInfo();
+    {
+      auto playerInfo = matchmaking->GetPlayerInfo();
 
-			for (int i = 0; i < playerInfo.size(); i++)
-			{
-				slippi_names[i] = playerInfo[i].display_name;
-				slippi_connect_codes[i] = playerInfo[i].connect_code;
-			}
-		}
+      for (int i = 0; i < playerInfo.size(); i++)
+      {
+        slippi_names[i] = playerInfo[i].display_name;
+        slippi_connect_codes[i] = playerInfo[i].connect_code;
+      }
+    }
   }
 
   // If no file, do nothing
@@ -1516,11 +1516,11 @@ void CEXISlippi::handleOnlineInputs(u8* payload)
   }
 
   if (isDisconnected())
-	{
-		auto status = slippi_netplay->GetSlippiConnectStatus();
-		m_read_queue.push_back(3); // Indicate we disconnected
-		return;
-	}
+  {
+    auto status = slippi_netplay->GetSlippiConnectStatus();
+    m_read_queue.push_back(3);  // Indicate we disconnected
+    return;
+  }
 
   if (shouldSkipOnlineFrame(frame))
   {
@@ -1620,6 +1620,17 @@ void CEXISlippi::handleSendInputs(u8* payload)
   int32_t frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
   u8 delay = payload[4];
 
+  // On the first frame sent, we need to queue up empty dummy pads for as many
+  // frames as we have delay
+  if (frame == 1)
+  {
+    for (int i = 1; i <= delay; i++)
+    {
+      auto empty = std::make_unique<SlippiPad>(i);
+      slippi_netplay->SendSlippiPad(std::move(empty));
+    }
+  }
+
   auto pad = std::make_unique<SlippiPad>(frame + delay, &payload[5]);
 
   slippi_netplay->SendSlippiPad(std::move(pad));
@@ -1641,55 +1652,56 @@ void CEXISlippi::prepareOpponentInputs(u8* payload)
   m_read_queue.push_back(frameResult);  // Indicate a continue frame
 
   u8 remotePlayerCount = matchmaking->RemotePlayerCount();
-	m_read_queue.push_back(remotePlayerCount); // Indicate the number of remote players
+  m_read_queue.push_back(remotePlayerCount);  // Indicate the number of remote players
 
-	int32_t frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
+  int32_t frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
 
-	std::unique_ptr<SlippiRemotePadOutput> results[SLIPPI_REMOTE_PLAYER_MAX];
-	int offset[SLIPPI_REMOTE_PLAYER_MAX];
-	INFO_LOG(SLIPPI_ONLINE, "Preparing pad data for frame %d", frame);
+  std::unique_ptr<SlippiRemotePadOutput> results[SLIPPI_REMOTE_PLAYER_MAX];
+  int offset[SLIPPI_REMOTE_PLAYER_MAX];
+  INFO_LOG(SLIPPI_ONLINE, "Preparing pad data for frame %d", frame);
 
-	// Get pad data for each remote player and write each of their latest frame nums to the buf
-	for (int i = 0; i < remotePlayerCount; i++)
-	{
-		results[i] = slippi_netplay->GetSlippiRemotePad(frame, i);
+  // Get pad data for each remote player and write each of their latest frame nums to the buf
+  for (int i = 0; i < remotePlayerCount; i++)
+  {
+    results[i] = slippi_netplay->GetSlippiRemotePad(frame, i);
 
-		// determine offset from which to copy data
-		offset[i] = (results[i]->latestFrame - frame) * SLIPPI_PAD_FULL_SIZE;
-		offset[i] = offset[i] < 0 ? 0 : offset[i];
+    // determine offset from which to copy data
+    offset[i] = (results[i]->latestFrame - frame) * SLIPPI_PAD_FULL_SIZE;
+    offset[i] = offset[i] < 0 ? 0 : offset[i];
 
-		// add latest frame we are transfering to begining of return buf
-		int32_t latestFrame = results[i]->latestFrame;
-		if (latestFrame > frame)
-			latestFrame = frame;
-		appendWordToBuffer(&m_read_queue, *(u32 *)&latestFrame);
-		// INFO_LOG(SLIPPI_ONLINE, "Sending frame num %d for pIdx %d (offset: %d)", latestFrame, i, offset[i]);
-	}
-	// Send the current frame for any unused player slots.
-	for (int i = remotePlayerCount; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
-	{
-		appendWordToBuffer(&m_read_queue, *(u32 *)&frame);
-	}
+    // add latest frame we are transfering to begining of return buf
+    int32_t latestFrame = results[i]->latestFrame;
+    if (latestFrame > frame)
+      latestFrame = frame;
+    appendWordToBuffer(&m_read_queue, *(u32*)&latestFrame);
+    // INFO_LOG(SLIPPI_ONLINE, "Sending frame num %d for pIdx %d (offset: %d)", latestFrame, i,
+    // offset[i]);
+  }
+  // Send the current frame for any unused player slots.
+  for (int i = remotePlayerCount; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+  {
+    appendWordToBuffer(&m_read_queue, *(u32*)&frame);
+  }
 
-	// copy pad data over
-	for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
-	{
-		std::vector<u8> tx;
+  // copy pad data over
+  for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+  {
+    std::vector<u8> tx;
 
-		// Get pad data if this remote player exists
-		if (i < remotePlayerCount)
-		{
-			auto txStart = results[i]->data.begin() + offset[i];
-			auto txEnd = results[i]->data.end();
-			tx.insert(tx.end(), txStart, txEnd);
-		}
+    // Get pad data if this remote player exists
+    if (i < remotePlayerCount)
+    {
+      auto txStart = results[i]->data.begin() + offset[i];
+      auto txEnd = results[i]->data.end();
+      tx.insert(tx.end(), txStart, txEnd);
+    }
 
-		tx.resize(SLIPPI_PAD_FULL_SIZE * ROLLBACK_MAX_FRAMES, 0);
+    tx.resize(SLIPPI_PAD_FULL_SIZE * ROLLBACK_MAX_FRAMES, 0);
 
-		m_read_queue.insert(m_read_queue.end(), tx.begin(), tx.end());
-	}
+    m_read_queue.insert(m_read_queue.end(), tx.begin(), tx.end());
+  }
 
-	slippi_netplay->DropOldRemoteInputs(frame);
+  slippi_netplay->DropOldRemoteInputs(frame);
 
   // ERROR_LOG(SLIPPI_ONLINE, "EXI: [%d] %X %X %X %X %X %X %X %X", latestFrame, m_read_queue[5],
   // m_read_queue[6], m_read_queue[7], m_read_queue[8], m_read_queue[9], m_read_queue[10],
@@ -1821,28 +1833,31 @@ void CEXISlippi::startFindMatch(u8* payload)
 
 void CEXISlippi::prepareOnlineMatchState()
 {
-  // This match block is a VS match with P1 Red Falco vs P2 Red Bowser vs P3 Young Link vs P4 Young Link
-	// on Battlefield. The proper values will be overwritten
-	static std::vector<u8> onlineMatchBlock = {
-	    0x32, 0x01, 0x86, 0x4C, 0xC3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x6E, 0x00, 0x1F, 0x00, 0x00,
-	    0x01, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
-	    0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
-	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00,
-	    0xC0, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
-	    0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x05, 0x00, 0x04, 0x01, 0x00, 0x01, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00,
-	    0xC0, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
-	    0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x15, 0x03, 0x04, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00,
-	    0xC0, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
-	    0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x15, 0x03, 0x04, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00,
-	    0xC0, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
-	    0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x21, 0x03, 0x04, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00,
-	    0x40, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
-	    0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x21, 0x03, 0x04, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00,
-	    0x40, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
-	    0x00, 0x00, 0x3F, 0x80, 0x00, 0x00,
-	};
+  // This match block is a VS match with P1 Red Falco vs P2 Red Bowser vs P3 Young Link vs P4 Young
+  // Link on Battlefield. The proper values will be overwritten
+  static std::vector<u8> onlineMatchBlock = {
+      0x32, 0x01, 0x86, 0x4C, 0xC3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x6E, 0x00,
+      0x1F, 0x00, 0x00, 0x01, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x3F,
+      0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x09,
+      0x00, 0x78, 0x00, 0xC0, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x05, 0x00, 0x04,
+      0x01, 0x00, 0x01, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00, 0xC0, 0x00, 0x04, 0x01, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F,
+      0x80, 0x00, 0x00, 0x15, 0x03, 0x04, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00,
+      0xC0, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00,
+      0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x15, 0x03, 0x04, 0x00, 0x00, 0xFF,
+      0x00, 0x00, 0x09, 0x00, 0x78, 0x00, 0xC0, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00,
+      0x21, 0x03, 0x04, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x09, 0x00, 0x78, 0x00, 0x40, 0x00, 0x04,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80,
+      0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x21, 0x03, 0x04, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x09,
+      0x00, 0x78, 0x00, 0x40, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00, 0x3F, 0x80, 0x00, 0x00,
+  };
 
   m_read_queue.clear();
 
@@ -1896,21 +1911,21 @@ void CEXISlippi::prepareOnlineMatchState()
       remotePlayersReady = true;
 #else
       remotePlayersReady = 1;
-			u8 remotePlayerCount = matchmaking->RemotePlayerCount();
-			for (int i = 0; i < remotePlayerCount; i++)
-			{
-				if (!matchInfo->remotePlayerSelections[i].isCharacterSelected)
-				{
-					remotePlayersReady = 0;
-				}
-			}
+      u8 remotePlayerCount = matchmaking->RemotePlayerCount();
+      for (int i = 0; i < remotePlayerCount; i++)
+      {
+        if (!matchInfo->remotePlayerSelections[i].isCharacterSelected)
+        {
+          remotePlayersReady = 0;
+        }
+      }
 
-			if (remotePlayerCount == 1)
-			{
-				auto isDecider = slippi_netplay->IsDecider();
-				localPlayerIndex = isDecider ? 0 : 1;
-				remotePlayerIndex = isDecider ? 1 : 0;
-			}
+      if (remotePlayerCount == 1)
+      {
+        auto isDecider = slippi_netplay->IsDecider();
+        localPlayerIndex = isDecider ? 0 : 1;
+        remotePlayerIndex = isDecider ? 1 : 0;
+      }
 #endif
 
       auto isDecider = slippi_netplay->IsDecider();
@@ -1922,25 +1937,25 @@ void CEXISlippi::prepareOnlineMatchState()
 #ifndef LOCAL_TESTING
       // If we get here, our opponent likely disconnected. Let's trigger a clean up
       handleConnectionCleanup();
-      prepareOnlineMatchState(); // run again with new state
+      prepareOnlineMatchState();  // run again with new state
       return;
 #endif
     }
     // Here we are connected, check to see if we should init play session
-		if (!is_play_session_active)
-		{
-			std::vector<std::string> uids;
+    if (!is_play_session_active)
+    {
+      std::vector<std::string> uids;
 
-			auto mmPlayers = matchmaking->GetPlayerInfo();
-			for (auto mmp : mmPlayers)
-			{
-				uids.push_back(mmp.uid);
-			}
+      auto mmPlayers = matchmaking->GetPlayerInfo();
+      for (auto mmp : mmPlayers)
+      {
+        uids.push_back(mmp.uid);
+      }
 
-			game_reporter->StartNewSession(uids);
+      game_reporter->StartNewSession(uids);
 
-			is_play_session_active = true;
-		}
+      is_play_session_active = true;
+    }
   }
   else
   {
@@ -1949,7 +1964,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
   u32 rngOffset = 0;
   std::string localPlayerName = "";
-	std::string oppName = "";
+  std::string oppName = "";
   std::string p1Name = "";
   std::string p2Name = "";
   u8 chatMessageId = 0;
@@ -1957,83 +1972,83 @@ void CEXISlippi::prepareOnlineMatchState()
   u8 sentChatMessageId = 0;
 
 #ifdef LOCAL_TESTING
-	localPlayerIndex = 0;
-	chatMessageId = localChatMessageId;
-	chatMessagePlayerIdx = 0;
-	localChatMessageId = 0;
-	// in CSS p1 is always current player and p2 is opponent
-	localPlayerName = p1Name = "Player 1";
-	oppName = p2Name = "Player 2";
+  localPlayerIndex = 0;
+  chatMessageId = localChatMessageId;
+  chatMessagePlayerIdx = 0;
+  localChatMessageId = 0;
+  // in CSS p1 is always current player and p2 is opponent
+  localPlayerName = p1Name = "Player 1";
+  oppName = p2Name = "Player 2";
 #endif
 
-	m_read_queue.push_back(localPlayerReady);  // Local player ready
-	m_read_queue.push_back(remotePlayersReady); // Remote players ready
-	m_read_queue.push_back(localPlayerIndex);  // Local player index
-	m_read_queue.push_back(remotePlayerIndex); // Remote player index
+  m_read_queue.push_back(localPlayerReady);    // Local player ready
+  m_read_queue.push_back(remotePlayersReady);  // Remote players ready
+  m_read_queue.push_back(localPlayerIndex);    // Local player index
+  m_read_queue.push_back(remotePlayerIndex);   // Remote player index
 
-	// Set chat message if any
-	if (slippi_netplay)
-	{
-		auto remoteMessageSelection = slippi_netplay->GetSlippiRemoteChatMessage();
-		chatMessageId = remoteMessageSelection.messageId;
-		chatMessagePlayerIdx = remoteMessageSelection.playerIdx;
-		sentChatMessageId = slippi_netplay->GetSlippiRemoteSentChatMessage();
-		// in CSS p1 is always current player and p2 is opponent
-		localPlayerName = p1Name = userInfo.display_name;
-	}
+  // Set chat message if any
+  if (slippi_netplay)
+  {
+    auto remoteMessageSelection = slippi_netplay->GetSlippiRemoteChatMessage();
+    chatMessageId = remoteMessageSelection.messageId;
+    chatMessagePlayerIdx = remoteMessageSelection.playerIdx;
+    sentChatMessageId = slippi_netplay->GetSlippiRemoteSentChatMessage();
+    // in CSS p1 is always current player and p2 is opponent
+    localPlayerName = p1Name = userInfo.display_name;
+  }
 
-	auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
+  auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
 
-	std::vector<u8> leftTeamPlayers = {};
-	std::vector<u8> rightTeamPlayers = {};
+  std::vector<u8> leftTeamPlayers = {};
+  std::vector<u8> rightTeamPlayers = {};
 
-	if (localPlayerReady && remotePlayersReady)
-	{
-		auto isDecider = slippi_netplay->IsDecider();
-		u8 remotePlayerCount = matchmaking->RemotePlayerCount();
-		auto matchInfo = slippi_netplay->GetMatchInfo();
-		SlippiPlayerSelections lps = matchInfo->localPlayerSelections;
-		auto rps = matchInfo->remotePlayerSelections;
+  if (localPlayerReady && remotePlayersReady)
+  {
+    auto isDecider = slippi_netplay->IsDecider();
+    u8 remotePlayerCount = matchmaking->RemotePlayerCount();
+    auto matchInfo = slippi_netplay->GetMatchInfo();
+    SlippiPlayerSelections lps = matchInfo->localPlayerSelections;
+    auto rps = matchInfo->remotePlayerSelections;
 
 #ifdef LOCAL_TESTING
-		lps.playerIdx = 0;
+    lps.playerIdx = 0;
 
-		for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
-		{
-			if (i == 0)
-			{
-				rps[i].characterColor = 1;
-				rps[i].teamId = 1;
-			}
-			else
-			{
-				rps[i].characterColor = 2;
-				rps[i].teamId = 2;
-			}
+    for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+    {
+      if (i == 0)
+      {
+        rps[i].characterColor = 1;
+        rps[i].teamId = 1;
+      }
+      else
+      {
+        rps[i].characterColor = 2;
+        rps[i].teamId = 2;
+      }
 
-			rps[i].characterId = 0x2 + i;
-			rps[i].playerIdx = i + 1;
-			rps[i].isCharacterSelected = true;
-		}
+      rps[i].characterId = 0x2 + i;
+      rps[i].playerIdx = i + 1;
+      rps[i].isCharacterSelected = true;
+    }
 
-		if (lastSearch.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
-		{
-			remotePlayerCount = 4;
-		}
+    if (lastSearch.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
+    {
+      remotePlayerCount = 4;
+    }
 
-		oppName = std::string("Player");
+    oppName = std::string("Player");
 #endif
 
-		// Check if someone is picking dumb characters in non-direct
-		auto localCharOk = lps.characterId < 26;
-		auto remoteCharOk = true;
-		INFO_LOG(SLIPPI_ONLINE, "remotePlayerCount: %d", remotePlayerCount);
-		for (int i = 0; i < remotePlayerCount; i++)
-		{
-			if (rps[i].characterId >= 26)
-				remoteCharOk = false;
-		}
-		if (lastSearch.mode < directMode && (!localCharOk || !remoteCharOk))
+    // Check if someone is picking dumb characters in non-direct
+    auto localCharOk = lps.characterId < 26;
+    auto remoteCharOk = true;
+    INFO_LOG(SLIPPI_ONLINE, "remotePlayerCount: %d", remotePlayerCount);
+    for (int i = 0; i < remotePlayerCount; i++)
+    {
+      if (rps[i].characterId >= 26)
+        remoteCharOk = false;
+    }
+    if (lastSearch.mode < directMode && (!localCharOk || !remoteCharOk))
     {
       // If we get here, someone is doing something bad, clear the lobby
       handleConnectionCleanup();
@@ -2045,98 +2060,99 @@ void CEXISlippi::prepareOnlineMatchState()
 
     // Overwrite local player character
     onlineMatchBlock[0x60 + (lps.playerIdx) * 0x24] = lps.characterId;
-		onlineMatchBlock[0x63 + (lps.playerIdx) * 0x24] = lps.characterColor;
-		onlineMatchBlock[0x67 + (lps.playerIdx) * 0x24] = 0;
-		onlineMatchBlock[0x69 + (lps.playerIdx) * 0x24] = lps.teamId;
+    onlineMatchBlock[0x63 + (lps.playerIdx) * 0x24] = lps.characterColor;
+    onlineMatchBlock[0x67 + (lps.playerIdx) * 0x24] = 0;
+    onlineMatchBlock[0x69 + (lps.playerIdx) * 0x24] = lps.teamId;
 
-		// Overwrite remote player character
-		for (int i = 0; i < remotePlayerCount; i++)
-		{
-			u8 idx = matchInfo->remotePlayerSelections[i].playerIdx;
-			onlineMatchBlock[0x60 + idx * 0x24] = matchInfo->remotePlayerSelections[i].characterId;
+    // Overwrite remote player character
+    for (int i = 0; i < remotePlayerCount; i++)
+    {
+      u8 idx = matchInfo->remotePlayerSelections[i].playerIdx;
+      onlineMatchBlock[0x60 + idx * 0x24] = matchInfo->remotePlayerSelections[i].characterId;
 
-			// Set Char Colors
-			onlineMatchBlock[0x63 + idx * 0x24] = matchInfo->remotePlayerSelections[i].characterColor;
+      // Set Char Colors
+      onlineMatchBlock[0x63 + idx * 0x24] = matchInfo->remotePlayerSelections[i].characterColor;
 
-			// Set Team Ids
-			onlineMatchBlock[0x69 + idx * 0x24] = matchInfo->remotePlayerSelections[i].teamId;
-		}
+      // Set Team Ids
+      onlineMatchBlock[0x69 + idx * 0x24] = matchInfo->remotePlayerSelections[i].teamId;
+    }
 
-		// Handle Singles/Teams specific logic
-		if (remotePlayerCount < 3)
-		{
-			onlineMatchBlock[0x8] = 0; // is Teams = false
+    // Handle Singles/Teams specific logic
+    if (remotePlayerCount < 3)
+    {
+      onlineMatchBlock[0x8] = 0;  // is Teams = false
 
-			// Set p3/p4 player type to none
-			onlineMatchBlock[0x61 + 2 * 0x24] = 3;
-			onlineMatchBlock[0x61 + 3 * 0x24] = 3;
+      // Set p3/p4 player type to none
+      onlineMatchBlock[0x61 + 2 * 0x24] = 3;
+      onlineMatchBlock[0x61 + 3 * 0x24] = 3;
 
-			// Make one character lighter if same character, same color
-			bool isSheikVsZelda = lps.characterId == 0x12 && rps[0].characterId == 0x13 ||
-			                      lps.characterId == 0x13 && rps[0].characterId == 0x12;
-			bool charMatch = lps.characterId == rps[0].characterId || isSheikVsZelda;
-			bool colMatch = lps.characterColor == rps[0].characterColor;
+      // Make one character lighter if same character, same color
+      bool isSheikVsZelda = lps.characterId == 0x12 && rps[0].characterId == 0x13 ||
+                            lps.characterId == 0x13 && rps[0].characterId == 0x12;
+      bool charMatch = lps.characterId == rps[0].characterId || isSheikVsZelda;
+      bool colMatch = lps.characterColor == rps[0].characterColor;
 
-			onlineMatchBlock[0x67 + 0x24] = charMatch && colMatch ? 1 : 0;
-		}
-		else
-		{
-			onlineMatchBlock[0x8] = 1; // is Teams = true
+      onlineMatchBlock[0x67 + 0x24] = charMatch && colMatch ? 1 : 0;
+    }
+    else
+    {
+      onlineMatchBlock[0x8] = 1;  // is Teams = true
 
-			// Set p3/p4 player type to human
-			onlineMatchBlock[0x61 + 2 * 0x24] = 0;
-			onlineMatchBlock[0x61 + 3 * 0x24] = 0;
+      // Set p3/p4 player type to human
+      onlineMatchBlock[0x61 + 2 * 0x24] = 0;
+      onlineMatchBlock[0x61 + 3 * 0x24] = 0;
 
-			// Set alt color to light/dark costume for multiples of the same character on a team
-			int characterCount[26][3] = {0};
-			for (int i = 0; i < 4; i++)
-			{
-				int charId = onlineMatchBlock[0x60 + i * 0x24];
-				int teamId = onlineMatchBlock[0x69 + i * 0x24];
-				onlineMatchBlock[0x67 + i * 0x24] = characterCount[charId][teamId];
-				characterCount[charId][teamId]++;
-			}
-		}
+      // Set alt color to light/dark costume for multiples of the same character on a team
+      int characterCount[26][3] = {0};
+      for (int i = 0; i < 4; i++)
+      {
+        int charId = onlineMatchBlock[0x60 + i * 0x24];
+        int teamId = onlineMatchBlock[0x69 + i * 0x24];
+        onlineMatchBlock[0x67 + i * 0x24] = characterCount[charId][teamId];
+        characterCount[charId][teamId]++;
+      }
+    }
 
-		// Overwrite stage
-		u16 stageId;
-		if (isDecider)
-		{
-			stageId = lps.isStageSelected ? lps.stageId : rps[0].stageId;
-		}
-		else
-		{
-			stageId = rps[0].isStageSelected ? rps[0].stageId : lps.stageId;
-		}
+    // Overwrite stage
+    u16 stageId;
+    if (isDecider)
+    {
+      stageId = lps.isStageSelected ? lps.stageId : rps[0].stageId;
+    }
+    else
+    {
+      stageId = rps[0].isStageSelected ? rps[0].stageId : lps.stageId;
+    }
 
-		u16 *stage = (u16 *)&onlineMatchBlock[0xE];
-		*stage = Common::swap16(stageId);
+    u16* stage = (u16*)&onlineMatchBlock[0xE];
+    *stage = Common::swap16(stageId);
 
-		// Set rng offset
-		rngOffset = isDecider ? lps.rngOffset : rps[0].rngOffset;
-		WARN_LOG(SLIPPI_ONLINE, "Rng Offset: 0x%x", rngOffset);
-		WARN_LOG(SLIPPI_ONLINE, "P1 Char: 0x%X, P2 Char: 0x%X", onlineMatchBlock[0x60], onlineMatchBlock[0x84]);
+    // Set rng offset
+    rngOffset = isDecider ? lps.rngOffset : rps[0].rngOffset;
+    WARN_LOG(SLIPPI_ONLINE, "Rng Offset: 0x%x", rngOffset);
+    WARN_LOG(SLIPPI_ONLINE, "P1 Char: 0x%X, P2 Char: 0x%X", onlineMatchBlock[0x60],
+             onlineMatchBlock[0x84]);
 
-		// Turn pause on in direct, off in everything else
-		u8 *gameBitField3 = (u8 *)&onlineMatchBlock[2];
-		*gameBitField3 = lastSearch.mode >= directMode ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
-		//*gameBitField3 = *gameBitField3 | 0x8;
+    // Turn pause on in direct, off in everything else
+    u8* gameBitField3 = (u8*)&onlineMatchBlock[2];
+    *gameBitField3 = lastSearch.mode >= directMode ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
+    //*gameBitField3 = *gameBitField3 | 0x8;
 
-		// Group players into left/right side for team splash screen display
-		for (int i = 0; i < 4; i++)
-		{
-			int teamId = onlineMatchBlock[0x69 + i * 0x24];
-			if (teamId == lps.teamId)
-				leftTeamPlayers.push_back(i);
-			else
-				rightTeamPlayers.push_back(i);
-		}
-		int leftTeamSize = leftTeamPlayers.size();
-		int rightTeamSize = rightTeamPlayers.size();
-		leftTeamPlayers.resize(4, 0);
-		rightTeamPlayers.resize(4, 0);
-		leftTeamPlayers[3] = leftTeamSize;
-		rightTeamPlayers[3] = rightTeamSize;
+    // Group players into left/right side for team splash screen display
+    for (int i = 0; i < 4; i++)
+    {
+      int teamId = onlineMatchBlock[0x69 + i * 0x24];
+      if (teamId == lps.teamId)
+        leftTeamPlayers.push_back(i);
+      else
+        rightTeamPlayers.push_back(i);
+    }
+    int leftTeamSize = leftTeamPlayers.size();
+    int rightTeamSize = rightTeamPlayers.size();
+    leftTeamPlayers.resize(4, 0);
+    rightTeamPlayers.resize(4, 0);
+    leftTeamPlayers[3] = leftTeamSize;
+    rightTeamPlayers[3] = rightTeamSize;
   }
 
   // Add rng offset to output
@@ -2148,52 +2164,52 @@ void CEXISlippi::prepareOnlineMatchState()
   // Add chat messages id
   m_read_queue.push_back((u8)sentChatMessageId);
   m_read_queue.push_back((u8)chatMessageId);
-m_read_queue.push_back((u8)chatMessagePlayerIdx);
+  m_read_queue.push_back((u8)chatMessagePlayerIdx);
 
-	// Add player groupings for VS splash screen
-	leftTeamPlayers.resize(4, 0);
-	rightTeamPlayers.resize(4, 0);
-	m_read_queue.insert(m_read_queue.end(), leftTeamPlayers.begin(), leftTeamPlayers.end());
-	m_read_queue.insert(m_read_queue.end(), rightTeamPlayers.begin(), rightTeamPlayers.end());
+  // Add player groupings for VS splash screen
+  leftTeamPlayers.resize(4, 0);
+  rightTeamPlayers.resize(4, 0);
+  m_read_queue.insert(m_read_queue.end(), leftTeamPlayers.begin(), leftTeamPlayers.end());
+  m_read_queue.insert(m_read_queue.end(), rightTeamPlayers.begin(), rightTeamPlayers.end());
 
-	// Add names to output
-	// Always send static local player name
-	localPlayerName = ConvertStringForGame(localPlayerName, MAX_NAME_LENGTH);
-	m_read_queue.insert(m_read_queue.end(), localPlayerName.begin(), localPlayerName.end());
+  // Add names to output
+  // Always send static local player name
+  localPlayerName = ConvertStringForGame(localPlayerName, MAX_NAME_LENGTH);
+  m_read_queue.insert(m_read_queue.end(), localPlayerName.begin(), localPlayerName.end());
 
 #ifdef LOCAL_TESTING
-	std::string defaultNames[] = {"Player 1", "Player 2", "Player 3", "Player 4"};
+  std::string defaultNames[] = {"Player 1", "Player 2", "Player 3", "Player 4"};
 #endif
 
-	for (int i = 0; i < 4; i++)
-	{
-		std::string name = matchmaking->GetPlayerName(i);
+  for (int i = 0; i < 4; i++)
+  {
+    std::string name = matchmaking->GetPlayerName(i);
 #ifdef LOCAL_TESTING
-		name = defaultNames[i];
+    name = defaultNames[i];
 #endif
-		name = ConvertStringForGame(name, MAX_NAME_LENGTH);
-		m_read_queue.insert(m_read_queue.end(), name.begin(), name.end());
-	}
+    name = ConvertStringForGame(name, MAX_NAME_LENGTH);
+    m_read_queue.insert(m_read_queue.end(), name.begin(), name.end());
+  }
 
-	// Create the opponent string using the names of all players on opposing teams
-	int teamIdx = onlineMatchBlock[0x69 + localPlayerIndex * 0x24];
-	std::string oppText = "";
-	for (int i = 0; i < 4; i++)
-	{
-		if (i == localPlayerIndex)
-			continue;
+  // Create the opponent string using the names of all players on opposing teams
+  int teamIdx = onlineMatchBlock[0x69 + localPlayerIndex * 0x24];
+  std::string oppText = "";
+  for (int i = 0; i < 4; i++)
+  {
+    if (i == localPlayerIndex)
+      continue;
 
-		if (onlineMatchBlock[0x69 + i * 0x24] != teamIdx)
-		{
-			if (oppText != "")
-				oppText += "/";
+    if (onlineMatchBlock[0x69 + i * 0x24] != teamIdx)
+    {
+      if (oppText != "")
+        oppText += "/";
 
-			oppText += matchmaking->GetPlayerName(i);
-		}
-	}
-	if (matchmaking->RemotePlayerCount() == 1)
-		oppText = matchmaking->GetPlayerName(remotePlayerIndex);
-	oppName = ConvertStringForGame(oppText, MAX_NAME_LENGTH * 2 + 1);
+      oppText += matchmaking->GetPlayerName(i);
+    }
+  }
+  if (matchmaking->RemotePlayerCount() == 1)
+    oppText = matchmaking->GetPlayerName(remotePlayerIndex);
+  oppName = ConvertStringForGame(oppText, MAX_NAME_LENGTH * 2 + 1);
   m_read_queue.insert(m_read_queue.end(), oppName.begin(), oppName.end());
 
   // Add error message if there is one
@@ -2237,12 +2253,12 @@ void CEXISlippi::setMatchSelections(u8* payload)
   SlippiPlayerSelections s;
 
   s.teamId = payload[0];
-	s.characterId = payload[1];
-	s.characterColor = payload[2];
-	s.isCharacterSelected = payload[3];
+  s.characterId = payload[1];
+  s.characterColor = payload[2];
+  s.isCharacterSelected = payload[3];
 
-	s.stageId = Common::swap16(&payload[4]);
-	u8 stageSelectOption = payload[6];
+  s.stageId = Common::swap16(&payload[4]);
+  u8 stageSelectOption = payload[6];
 
   s.isStageSelected = stageSelectOption == 1 || stageSelectOption == 3;
   if (stageSelectOption == 3)
@@ -2251,16 +2267,16 @@ void CEXISlippi::setMatchSelections(u8* payload)
     s.stageId = getRandomStage();
   }
 
-  INFO_LOG(SLIPPI, "LPS set char: %d, iSS: %d, %d, stage: %d, team: %d", s.isCharacterSelected, stageSelectOption,
-	         s.isStageSelected, s.stageId, s.teamId);
+  INFO_LOG(SLIPPI, "LPS set char: %d, iSS: %d, %d, stage: %d, team: %d", s.isCharacterSelected,
+           stageSelectOption, s.isStageSelected, s.stageId, s.teamId);
 
-	s.rngOffset = generator() % 0xFFFF;
+  s.rngOffset = generator() % 0xFFFF;
 
-	if (matchmaking->LocalPlayerIndex() == 1 && firstMatch)
-	{
-		firstMatch = false;
-		s.stageId = getRandomStage();
-	}
+  if (matchmaking->LocalPlayerIndex() == 1 && firstMatch)
+  {
+    firstMatch = false;
+    s.stageId = getRandomStage();
+  }
 
   // Merge these selections
   localSelections.Merge(s);
@@ -2432,7 +2448,7 @@ void CEXISlippi::handleConnectionCleanup()
   forcedError.clear();
 
   // Reset play session
-	is_play_session_active = false;
+  is_play_session_active = false;
   firstMatch = true;
 
 #ifdef LOCAL_TESTING
@@ -2451,28 +2467,28 @@ void CEXISlippi::prepareNewSeed()
   appendWordToBuffer(&m_read_queue, newSeed);
 }
 
-void CEXISlippi::handleReportGame(u8 *payload)
+void CEXISlippi::handleReportGame(u8* payload)
 {
-	SlippiGameReporter::GameReport r;
-	r.duration_frames = Common::swap32(&payload[0]);
+  SlippiGameReporter::GameReport r;
+  r.duration_frames = Common::swap32(&payload[0]);
 
-	//ERROR_LOG(SLIPPI_ONLINE, "Frames: %d", r.duration_frames);
+  // ERROR_LOG(SLIPPI_ONLINE, "Frames: %d", r.duration_frames);
 
-	for (auto i = 0; i < 2; ++i)
-	{
-		SlippiGameReporter::PlayerReport p;
-		auto offset = i * 6;
-		p.stocks_remaining = payload[5 + offset];
+  for (auto i = 0; i < 2; ++i)
+  {
+    SlippiGameReporter::PlayerReport p;
+    auto offset = i * 6;
+    p.stocks_remaining = payload[5 + offset];
 
-		auto swappedDamageDone = Common::swap32(&payload[6 + offset]);
-		p.damage_done = *(float *)&swappedDamageDone;
+    auto swappedDamageDone = Common::swap32(&payload[6 + offset]);
+    p.damage_done = *(float*)&swappedDamageDone;
 
-		//ERROR_LOG(SLIPPI_ONLINE, "Stocks: %d, DamageDone: %f", p.stocks_remaining, p.damage_done);
+    // ERROR_LOG(SLIPPI_ONLINE, "Stocks: %d, DamageDone: %f", p.stocks_remaining, p.damage_done);
 
-		r.players.push_back(p);
-	}
+    r.players.push_back(p);
+  }
 
-	game_reporter->StartReport(r);
+  game_reporter->StartReport(r);
 }
 
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
@@ -2602,8 +2618,8 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       prepareNewSeed();
       break;
     case CMD_REPORT_GAME:
-			handleReportGame(&memPtr[bufLoc + 1]);
-			break;
+      handleReportGame(&memPtr[bufLoc + 1]);
+      break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
       SlippiSpectateServer::getInstance().write(&memPtr[bufLoc], payloadLen + 1);

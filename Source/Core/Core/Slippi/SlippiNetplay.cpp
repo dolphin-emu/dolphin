@@ -244,9 +244,10 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
       // Check that the packet actually contains the data it claims to
       if ((5 + inputsToCopy * SLIPPI_PAD_DATA_SIZE) > (int)packet.getDataSize())
       {
-        ERROR_LOG(SLIPPI_ONLINE,
-                  "Netplay packet too small to read pad buffer. Size: %d, Inputs: %d, MinSize: %d",
-                  (int)packet.getDataSize(), inputsToCopy, 5 + inputsToCopy * SLIPPI_PAD_DATA_SIZE);
+        ERROR_LOG_FMT(
+            SLIPPI_ONLINE,
+            "Netplay packet too small to read pad buffer. Size: {}, Inputs: {}, MinSize: {}",
+            (int)packet.getDataSize(), inputsToCopy, 5 + inputsToCopy * SLIPPI_PAD_DATA_SIZE);
         break;
       }
 

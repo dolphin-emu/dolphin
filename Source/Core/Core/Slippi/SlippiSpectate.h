@@ -5,9 +5,9 @@
 #include <map>
 #include <thread>
 
+#include <enet/enet.h>
 #include "Common/SPSCQueue.h"
 #include "nlohmann/json.hpp"
-#include <enet/enet.h>
 using json = nlohmann::json;
 
 // Sockets in windows are unsigned
@@ -30,10 +30,10 @@ typedef int SOCKET;
 class SlippiSocket
 {
 public:
-  u64 m_cursor = 0;           // Index of the last game event this client sent
-  u64 m_menu_cursor = 0;      // The latest menu event that this socket has sent
-  bool m_shook_hands = false; // Has this client shaken hands yet?
-  ENetPeer* m_peer = NULL;    // The ENet peer object for the socket
+  u64 m_cursor = 0;            // Index of the last game event this client sent
+  u64 m_menu_cursor = 0;       // The latest menu event that this socket has sent
+  bool m_shook_hands = false;  // Has this client shaken hands yet?
+  ENetPeer* m_peer = NULL;     // The ENet peer object for the socket
 };
 
 class SlippiSpectateServer
