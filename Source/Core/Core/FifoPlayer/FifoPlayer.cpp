@@ -25,6 +25,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/VideoCommon.h"
 
 // We need to include TextureDecoder.h for the texMem array.
 // TODO: Move texMem somewhere else so this isn't an issue.
@@ -452,6 +453,45 @@ void FifoPlayer::SetupFifo()
   WriteCP(CommandProcessor::CTRL_REGISTER, 17);  // enable read & GP link
 }
 
+void FifoPlayer::ClearEfb()
+{
+  // Trigger a bogus EFB copy to clear the screen
+  // The target address is 0, and there shouldn't be anything there,
+  // but even if there is it should be loaded in by LoadTextureMemory afterwards
+  X10Y10 tl;
+  tl.x = 0;
+  tl.y = 0;
+  LoadBPReg(BPMEM_EFB_TL, tl.hex);
+  X10Y10 wh;
+  wh.x = EFB_WIDTH - 1;
+  wh.y = EFB_HEIGHT - 1;
+  LoadBPReg(BPMEM_EFB_WH, wh.hex);
+  LoadBPReg(BPMEM_MIPMAP_STRIDE, 0x140);
+  // The clear color and Z value have already been loaded via LoadRegisters()
+  LoadBPReg(BPMEM_EFB_ADDR, 0);
+  UPE_Copy copy;
+  copy.clamp_top = false;
+  copy.clamp_bottom = false;
+  copy.yuv = false;
+  copy.target_pixel_format = static_cast<u32>(EFBCopyFormat::RGBA8) << 1;
+  copy.gamma = 0;
+  copy.half_scale = false;
+  copy.scale_invert = false;
+  copy.clear = true;
+  copy.frame_to_field = FrameToField::Progressive;
+  copy.copy_to_xfb = false;
+  copy.intensity_fmt = false;
+  copy.auto_conv = false;
+  LoadBPReg(BPMEM_TRIGGER_EFB_COPY, copy.Hex);
+  // Restore existing data - this only works at the start of the fifolog.
+  // In practice most fifologs probably explicitly specify the size each time, but this is still
+  // probably a good idea.
+  LoadBPReg(BPMEM_EFB_TL, m_File->GetBPMem()[BPMEM_EFB_TL]);
+  LoadBPReg(BPMEM_EFB_WH, m_File->GetBPMem()[BPMEM_EFB_WH]);
+  LoadBPReg(BPMEM_MIPMAP_STRIDE, m_File->GetBPMem()[BPMEM_MIPMAP_STRIDE]);
+  LoadBPReg(BPMEM_EFB_ADDR, m_File->GetBPMem()[BPMEM_EFB_ADDR]);
+}
+
 void FifoPlayer::LoadMemory()
 {
   UReg_MSR newMSR;
@@ -469,6 +509,7 @@ void FifoPlayer::LoadMemory()
 
   SetupFifo();
   LoadRegisters();
+  ClearEfb();
   LoadTextureMemory();
   FlushWGP();
 }
