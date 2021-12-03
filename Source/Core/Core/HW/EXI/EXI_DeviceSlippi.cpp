@@ -1484,8 +1484,7 @@ bool CEXISlippi::isDisconnected()
     return true;
 
   auto status = slippi_netplay->GetSlippiConnectStatus();
-  return status != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED ||
-         isConnectionStalled;
+  return status != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED;
 }
 
 static int tempTestCount = 0;
