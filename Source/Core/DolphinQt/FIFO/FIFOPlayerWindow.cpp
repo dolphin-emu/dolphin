@@ -118,6 +118,7 @@ void FIFOPlayerWindow::CreateWidgets()
   auto* playback_group = new QGroupBox(tr("Playback Options"));
   auto* playback_layout = new QGridLayout;
   m_early_memory_updates = new QCheckBox(tr("Early Memory Updates"));
+  m_early_memory_updates->setChecked(true);
 
   playback_layout->addWidget(object_range_group, 0, 0);
   playback_layout->addWidget(frame_range_group, 0, 1);

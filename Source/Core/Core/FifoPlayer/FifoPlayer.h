@@ -91,7 +91,7 @@ public:
   u32 GetObjectRangeEnd() const { return m_ObjectRangeEnd; }
   void SetObjectRangeEnd(u32 end) { m_ObjectRangeEnd = end; }
   // If enabled then all memory updates happen at once before the first frame
-  // Default is disabled
+  // Default is enabled
   void SetEarlyMemoryUpdates(bool enabled) { m_EarlyMemoryUpdates = enabled; }
   // Callbacks
   void SetFileLoadedCallback(CallbackFunc callback);
@@ -150,7 +150,7 @@ private:
   u32 m_ObjectRangeStart = 0;
   u32 m_ObjectRangeEnd = 10000;
 
-  bool m_EarlyMemoryUpdates = false;
+  bool m_EarlyMemoryUpdates = true;
 
   u64 m_CyclesPerFrame = 0;
   u32 m_ElapsedCycles = 0;
