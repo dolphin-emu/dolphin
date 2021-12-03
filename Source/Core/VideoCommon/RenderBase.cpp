@@ -575,8 +575,9 @@ void Renderer::DrawDebugText()
     ImGui::End();
   }
 
-  const bool show_movie_window =
-      config.m_ShowFrameCount | config.m_ShowLag | config.m_ShowInputDisplay | config.m_ShowRTC;
+  const bool show_movie_window = config.m_ShowFrameCount | config.m_ShowLag |
+                                 config.m_ShowInputDisplay | config.m_ShowRTC |
+                                 config.m_ShowRerecord;
   if (show_movie_window)
   {
     // Position under the FPS display.
@@ -606,6 +607,8 @@ void Renderer::DrawDebugText()
         ImGui::TextUnformatted(Movie::GetInputDisplay().c_str());
       if (SConfig::GetInstance().m_ShowRTC)
         ImGui::TextUnformatted(Movie::GetRTCDisplay().c_str());
+      if (SConfig::GetInstance().m_ShowRerecord)
+        ImGui::TextUnformatted(Movie::GetRerecords().c_str());
     }
     ImGui::End();
   }

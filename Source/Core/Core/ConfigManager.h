@@ -268,6 +268,7 @@ struct SConfig
 
   std::string m_WirelessMac;
   bool m_PauseMovie;
+  bool m_ShowRerecord;
   bool m_ShowLag;
   bool m_ShowFrameCount;
   bool m_ShowRTC;

@@ -756,6 +756,12 @@ void MenuBar::AddMovieMenu()
   connect(pause_at_end, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_PauseMovie = value; });
 
+  auto* rerecord_counter = movie_menu->addAction(tr("Show Rerecord Counter"));
+  rerecord_counter->setCheckable(true);
+  rerecord_counter->setChecked(SConfig::GetInstance().m_ShowRerecord);
+  connect(rerecord_counter, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowRerecord = value; });
+
   auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
   lag_counter->setCheckable(true);
   lag_counter->setChecked(SConfig::GetInstance().m_ShowLag);

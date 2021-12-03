@@ -200,6 +200,7 @@ void CheckWiimoteStatus(int wiimote, const WiimoteCommon::DataReportBuilder& rpt
 
 std::string GetInputDisplay();
 std::string GetRTCDisplay();
+std::string GetRerecords();
 
 // Done this way to avoid mixing of core and gui code
 using GCManipFunction = std::function<void(GCPadStatus*, int)>;

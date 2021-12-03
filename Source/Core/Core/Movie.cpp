@@ -202,6 +202,15 @@ std::string GetRTCDisplay()
   return format_time.str();
 }
 
+// NOTE: GPU Thread
+std::string GetRerecords()
+{
+  if (IsMovieActive())
+    return fmt::format("Rerecords: {}", s_rerecords);
+
+  return "Rerecords: N/A";
+}
+
 void FrameUpdate()
 {
   s_currentFrame++;
