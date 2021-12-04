@@ -77,7 +77,7 @@ CoreTiming::EventType* et_AudioDMA;
 CoreTiming::EventType* et_DSP;
 CoreTiming::EventType* et_IPC_HLE;
 // PatchEngine updates every 1/60th of a second by default
-CoreTiming::EventType* et_PatchEngine;
+// CoreTiming::EventType* et_PatchEngine;
 CoreTiming::EventType* et_Throttle;
 
 u32 s_cpu_core_clock = 486000000u;  // 486 mhz (its not 485, stop bugging me!)
@@ -163,7 +163,7 @@ void PatchEngineCallback(u64 userdata, s64 cycles_late)
     cycles_pruned += next_schedule;
   }
 
-  CoreTiming::ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
+  // CoreTiming::ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
 }
 
 void ThrottleCallback(u64 last_time, s64 cyclesLate)
@@ -326,7 +326,7 @@ void Init()
   et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
   et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
   et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
-  et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
+  // et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
   et_Throttle = CoreTiming::RegisterEvent("Throttle", ThrottleCallback);
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
@@ -334,7 +334,7 @@ void Init()
   CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
   CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeUs());
 
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
+  // CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
   if (SConfig::GetInstance().bWii)
     CoreTiming::ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);

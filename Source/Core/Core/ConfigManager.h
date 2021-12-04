@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <future>
 #include <limits>
 #include <optional>
 #include <set>
@@ -45,6 +46,18 @@ namespace SerialInterface
 enum SIDevices : int;
 }  // namespace SerialInterface
 
+namespace Melee
+{
+enum class Version
+{
+  NTSC,
+  TwentyXX,
+  UPTM,
+  MEX,
+  OTHER,
+};
+}
+
 struct BootParameters;
 
 // DSP Backend Types
@@ -67,6 +80,8 @@ enum class GPUDeterminismMode
 
 struct SConfig
 {
+  // Melee Version
+  Melee::Version m_melee_version;
   // Wii Devices
   bool m_WiiSDCard;
   bool m_WiiKeyboard;

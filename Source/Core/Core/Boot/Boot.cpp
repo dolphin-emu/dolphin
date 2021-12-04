@@ -41,6 +41,7 @@ namespace fs = std::filesystem;
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -537,6 +538,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
   PatchEngine::LoadPatches();
   HLE::PatchFixedFunctions();
+  Gecko::RunCodeHandler();
   return true;
 }
 

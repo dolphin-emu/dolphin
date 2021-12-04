@@ -20,11 +20,13 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/NetPlayClient.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/Slippi/SlippiPlayback.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/State.h"
@@ -2316,6 +2318,32 @@ void CEXISlippi::prepareFileLoad(u8* payload)
   m_read_queue.insert(m_read_queue.end(), buf.begin(), buf.end());
 }
 
+void CEXISlippi::prepareGctLength()
+{
+  m_read_queue.clear();
+
+  u32 size = Gecko::GetGctLength();
+
+  INFO_LOG(SLIPPI, "Getting gct size: %d", size);
+
+  // Write size to output
+  appendWordToBuffer(&m_read_queue, size);
+}
+
+void CEXISlippi::prepareGctLoad(u8* payload)
+{
+  m_read_queue.clear();
+
+  auto gct = Gecko::GenerateGct();
+
+  // This is the address where the codes will be written to
+  auto address = Common::swap32(&payload[0]);
+
+  INFO_LOG(SLIPPI, "Preparing to write gecko codes at: 0x%X", address);
+
+  m_read_queue.insert(m_read_queue.end(), gct.begin(), gct.end());
+}
+
 void CEXISlippi::handleChatMessage(u8* payload)
 {
   int messageId = payload[0];
@@ -2617,6 +2645,12 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_REPORT_GAME:
       handleReportGame(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_GCT_LENGTH:
+      prepareGctLength();
+      break;
+    case CMD_GCT_LOAD:
+      prepareGctLoad(&memPtr[bufLoc + 1]);
       break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");
