@@ -38,7 +38,7 @@ protected:
   struct curl_slist* m_curl_header_list = nullptr;
 
   u32 gameIndex = 1;
-  std::vector<std::string> player_uids;
+  std::vector<std::string> m_player_uids;
 
   SlippiUser* m_user;
   std::queue<GameReport> game_report_queue;

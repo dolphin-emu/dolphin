@@ -26,13 +26,13 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <ShlObj.h>
 #include <Shlwapi.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
-#include <ShlObj.h>
 #include <winerror.h>
 #else
 #include <dirent.h>
@@ -791,21 +791,22 @@ std::string GetExePath()
   return dolphin_path;
 }
 
-// SLIPPITODO: refactor with c++17 std::filesystem?
 std::string GetHomeDirectory()
 {
   std::string homeDir;
 #ifdef _WIN32
   wchar_t* path = nullptr;
 
-  if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path))) {
+  if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path)))
+  {
     char pathStr[MAX_PATH];
     wcstombs(pathStr, path, MAX_PATH);
 
     homeDir = std::string(pathStr);
     CoTaskMemFree(path);
   }
-  else {
+  else
+  {
     const char* home = getenv("USERPROFILE");
     homeDir = std::string(home) + "\\Documents";
   }
@@ -853,13 +854,15 @@ std::string GetSysDirectory()
   ASSERT_MSG(COMMON, !sysDir.empty(), "Sys directory has not been set");
 #else
   const char* home = getenv("HOME");
-  if (!home) home = getenv("PWD");
-  if (!home) home = "";
+  if (!home)
+    home = getenv("PWD");
+  if (!home)
+    home = "";
   std::string home_path = std::string(home) + DIR_SEP;
   const char* config_home = getenv("XDG_CONFIG_HOME");
-  sysDir = std::string(config_home && config_home[0] == '/'
-    ? config_home : (home_path + ".config"))
-    + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP "Sys" DIR_SEP;
+  sysDir =
+      std::string(config_home && config_home[0] == '/' ? config_home : (home_path + ".config")) +
+      DIR_SEP DOLPHIN_DATA_DIR DIR_SEP "Sys" DIR_SEP;
 #endif
 
   INFO_LOG_FMT(COMMON, "GetSysDirectory: Setting to {}:", sysDir);

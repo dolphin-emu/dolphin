@@ -365,8 +365,6 @@ std::vector<u8> GenerateGct()
 
   std::lock_guard<std::mutex> lk(s_active_codes_lock);
 
-  int i = 0;
-
   // Write codes
   for (const GeckoCode& active_code : s_active_codes)
   {

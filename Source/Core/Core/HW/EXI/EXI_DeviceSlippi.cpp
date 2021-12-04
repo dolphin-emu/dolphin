@@ -99,9 +99,11 @@ void appendHalfToBuffer(std::vector<u8>* buf, u16 word)
 
 std::string ConvertConnectCodeForGame(const std::string& input)
 {
-  char fullWidthShiftJisHashtag[] = {(char)0x81, (char)0x94, (char)0x00};
+  // Shift-Jis '#' symbol is two bytes (0x8194), followed by 0x00 null terminator
+  char fullWidthShiftJisHashtag[] = {-127, -108, 0};  // 0x81, 0x94, 0x00
   std::string connectCode(input);
-  connectCode = ReplaceAll(connectCode, "#", fullWidthShiftJisHashtag);
+  // SLIPPITODO：Not the best use of ReplaceAll. potential bug if more than one '#' found.
+  connectCode = ReplaceAll(connectCode, "#", std::string(fullWidthShiftJisHashtag));
   connectCode.resize(CONNECT_CODE_LENGTH +
                      2);  // fixed length + full width (two byte) hashtag +1, null terminator +1
   return connectCode;
@@ -2144,7 +2146,7 @@ void CEXISlippi::prepareOnlineMatchState()
              onlineMatchBlock[0x84]);
 
     // Turn pause on in direct, off in everything else
-    u8* gameBitField3 = (u8*)&onlineMatchBlock[2];
+    u8* gameBitField3 = static_cast<u8*>(&onlineMatchBlock[2]);
     *gameBitField3 = lastSearch.mode >= directMode ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
     //*gameBitField3 = *gameBitField3 | 0x8;
 
@@ -2157,8 +2159,8 @@ void CEXISlippi::prepareOnlineMatchState()
       else
         rightTeamPlayers.push_back(i);
     }
-    auto leftTeamSize = leftTeamPlayers.size();
-    auto rightTeamSize = rightTeamPlayers.size();
+    int leftTeamSize = static_cast<int>(leftTeamPlayers.size());
+    int rightTeamSize = static_cast<int>(rightTeamPlayers.size());
     leftTeamPlayers.resize(4, 0);
     rightTeamPlayers.resize(4, 0);
     leftTeamPlayers[3] = static_cast<u8>(leftTeamSize);
@@ -2229,7 +2231,7 @@ void CEXISlippi::prepareOnlineMatchState()
   auto playerInfo = matchmaking->GetPlayerInfo();
   for (int i = 0; i < 4; i++)
   {
-    std::string connectCode = i < playerInfo.size() ? playerInfo[i].connectCode : "";
+    std::string connectCode = i < playerInfo.size() ? playerInfo[i].connect_code : "";
 #ifdef LOCAL_TESTING
     connectCode = defaultConnectCodes[i];
 #endif

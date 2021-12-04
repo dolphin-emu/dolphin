@@ -67,13 +67,13 @@ SlippiNetplayClient::SlippiNetplayClient(std::vector<std::string> addrs, std::ve
 
   this->isDecider = isDecider;
   this->m_remotePlayerCount = remotePlayerCount;
-  this->playerIdx = playerIdx;
+  this->m_player_idx = playerIdx;
 
   // Set up remote player data structures.
   int j = 0;
   for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++, j++)
   {
-    if (j == playerIdx)
+    if (j == m_player_idx)
       j++;
     this->matchInfo.remotePlayerSelections[i] = SlippiPlayerSelections();
     this->matchInfo.remotePlayerSelections[i].playerIdx = j;
@@ -151,7 +151,7 @@ SlippiNetplayClient::SlippiNetplayClient(bool isDecider)
 u8 SlippiNetplayClient::PlayerIdxFromPort(u8 port)
 {
   u8 p = port;
-  if (port > playerIdx)
+  if (port > m_player_idx)
   {
     p--;
   }
@@ -160,7 +160,7 @@ u8 SlippiNetplayClient::PlayerIdxFromPort(u8 port)
 
 u8 SlippiNetplayClient::LocalPlayerPort()
 {
-  return this->playerIdx;
+  return this->m_player_idx;
 }
 
 // called from ---NETPLAY--- thread
@@ -267,7 +267,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     sf::Packet spac;
     spac << (NetPlay::MessageId)NetPlay::NP_MSG_SLIPPI_PAD_ACK;
     spac << frame;
-    spac << playerIdx;
+    spac << m_player_idx;
     INFO_LOG(SLIPPI_ONLINE, "Sending ack packet for frame %d (player %d) to peer at %d:%d", frame,
              packetPlayerPort, peer->address.host, peer->address.port);
 
@@ -835,7 +835,7 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
   auto spac = std::make_unique<sf::Packet>();
   *spac << static_cast<NetPlay::MessageId>(NetPlay::NP_MSG_SLIPPI_PAD);
   *spac << frame;
-  *spac << this->playerIdx;
+  *spac << this->m_player_idx;
   // INFO_LOG(SLIPPI_ONLINE, "Sending a packet of inputs [%d]...", frame);
   for (auto it = localPadQueue.begin(); it != localPadQueue.end(); ++it)
   {
@@ -869,7 +869,7 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
 void SlippiNetplayClient::SetMatchSelections(SlippiPlayerSelections& s)
 {
   matchInfo.localPlayerSelections.Merge(s);
-  matchInfo.localPlayerSelections.playerIdx = playerIdx;
+  matchInfo.localPlayerSelections.playerIdx = m_player_idx;
 
   // Send packet containing selections
   auto spac = std::make_unique<sf::Packet>();
