@@ -97,6 +97,16 @@ void appendHalfToBuffer(std::vector<u8>* buf, u16 word)
   buf->insert(buf->end(), halfVector.begin(), halfVector.end());
 }
 
+std::string ConvertConnectCodeForGame(const std::string& input)
+{
+  char fullWidthShiftJisHashtag[] = {(char)0x81, (char)0x94, (char)0x00};
+  std::string connectCode(input);
+  connectCode = ReplaceAll(connectCode, "#", fullWidthShiftJisHashtag);
+  connectCode.resize(CONNECT_CODE_LENGTH +
+                     2);  // fixed length + full width (two byte) hashtag +1, null terminator +1
+  return connectCode;
+}
+
 CEXISlippi::CEXISlippi()
 {
   INFO_LOG(SLIPPI, "EXI SLIPPI Constructor called.");
@@ -2212,6 +2222,21 @@ void CEXISlippi::prepareOnlineMatchState()
   oppName = ConvertStringForGame(oppText, MAX_NAME_LENGTH * 2 + 1);
   m_read_queue.insert(m_read_queue.end(), oppName.begin(), oppName.end());
 
+#ifdef LOCAL_TESTING
+  std::string defaultConnectCodes[] = {"PLYR#001", "PLYR#002", "PLYR#003", "PLYR#004"};
+#endif
+
+  auto playerInfo = matchmaking->GetPlayerInfo();
+  for (int i = 0; i < 4; i++)
+  {
+    std::string connectCode = i < playerInfo.size() ? playerInfo[i].connectCode : "";
+#ifdef LOCAL_TESTING
+    connectCode = defaultConnectCodes[i];
+#endif
+    connectCode = ConvertConnectCodeForGame(connectCode);
+    m_read_queue.insert(m_read_queue.end(), connectCode.begin(), connectCode.end());
+  }
+
   // Add error message if there is one
   auto errorStr = !forcedError.empty() ? forcedError : matchmaking->GetErrorMessage();
   errorStr = ConvertStringForGame(errorStr, 120);
@@ -2495,6 +2520,7 @@ void CEXISlippi::prepareNewSeed()
 
 void CEXISlippi::handleReportGame(u8* payload)
 {
+#ifndef LOCAL_TESTING
   SlippiGameReporter::GameReport r;
   r.duration_frames = Common::swap32(&payload[0]);
 
@@ -2515,6 +2541,7 @@ void CEXISlippi::handleReportGame(u8* payload)
   }
 
   game_reporter->StartReport(r);
+#endif
 }
 
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
