@@ -1517,7 +1517,6 @@ void CEXISlippi::handleOnlineInputs(u8* payload)
 
   if (isDisconnected())
   {
-    auto status = slippi_netplay->GetSlippiConnectStatus();
     m_read_queue.push_back(3);  // Indicate we disconnected
     return;
   }
@@ -2147,12 +2146,12 @@ void CEXISlippi::prepareOnlineMatchState()
       else
         rightTeamPlayers.push_back(i);
     }
-    int leftTeamSize = leftTeamPlayers.size();
-    int rightTeamSize = rightTeamPlayers.size();
+    auto leftTeamSize = leftTeamPlayers.size();
+    auto rightTeamSize = rightTeamPlayers.size();
     leftTeamPlayers.resize(4, 0);
     rightTeamPlayers.resize(4, 0);
-    leftTeamPlayers[3] = leftTeamSize;
-    rightTeamPlayers[3] = rightTeamSize;
+    leftTeamPlayers[3] = static_cast<u8>(leftTeamSize);
+    rightTeamPlayers[3] = static_cast<u8>(rightTeamSize);
   }
 
   // Add rng offset to output

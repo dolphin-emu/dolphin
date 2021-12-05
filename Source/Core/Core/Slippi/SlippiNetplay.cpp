@@ -273,7 +273,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
     ENetPacket* epac =
         enet_packet_create(spac.getData(), spac.getDataSize(), ENET_PACKET_FLAG_UNSEQUENCED);
-    int sendResult = enet_peer_send(peer, 2, epac);
+    enet_peer_send(peer, 2, epac);
   }
   break;
 
@@ -391,11 +391,11 @@ void SlippiNetplayClient::writeToPacket(sf::Packet& packet, SlippiPlayerSelectio
   packet << s.teamId;
 }
 
-void SlippiNetplayClient::WriteChatMessageToPacket(sf::Packet& packet, int messageId, u8 playerIdx)
+void SlippiNetplayClient::WriteChatMessageToPacket(sf::Packet& packet, int messageId, u8 player_id)
 {
   packet << static_cast<NetPlay::MessageId>(NetPlay::NP_MSG_SLIPPI_CHAT_MESSAGE);
   packet << messageId;
-  packet << playerIdx;
+  packet << player_id;
 }
 
 std::unique_ptr<SlippiPlayerSelections>
@@ -447,7 +447,7 @@ void SlippiNetplayClient::Send(sf::Packet& packet)
     }
 
     ENetPacket* epac = enet_packet_create(packet.getData(), packet.getDataSize(), flags);
-    int sendResult = enet_peer_send(m_server[i], channelId, epac);
+    enet_peer_send(m_server[i], channelId, epac);
   }
 }
 
@@ -1038,9 +1038,9 @@ s32 SlippiNetplayClient::CalcTimeOffsetUs()
     int end = bufSize - offset;
 
     int sum = 0;
-    for (int i = offset; i < end; i++)
+    for (int j = offset; j < end; j++)
     {
-      sum += buf[i];
+      sum += buf[j];
     }
 
     int count = end - offset;

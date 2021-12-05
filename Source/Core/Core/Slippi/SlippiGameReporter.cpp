@@ -16,7 +16,7 @@
 #include <json.hpp>
 using json = nlohmann::json;
 
-static size_t receive(char* ptr, size_t size, size_t nmemb, void* rcvBuf)
+inline size_t receive(char* ptr, size_t size, size_t nmemb, void* rcvBuf)
 {
   size_t len = size * nmemb;
   INFO_LOG(SLIPPI_ONLINE, "[User] Received data: %d", len);
@@ -74,9 +74,9 @@ void SlippiGameReporter::StartReport(GameReport report)
   cv.notify_one();
 }
 
-void SlippiGameReporter::StartNewSession(std::vector<std::string> player_uids)
+void SlippiGameReporter::StartNewSession(std::vector<std::string> new_player_uids)
 {
-  this->player_uids = player_uids;
+  this->player_uids = new_player_uids;
   gameIndex = 1;
 }
 

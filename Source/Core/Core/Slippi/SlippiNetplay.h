@@ -231,7 +231,7 @@ private:
 
 extern SlippiNetplayClient* SLIPPI_NETPLAY;  // singleton static pointer
 
-static bool IsOnline()
+inline bool IsOnline()
 {
   return SLIPPI_NETPLAY != nullptr;
 }
