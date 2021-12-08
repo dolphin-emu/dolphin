@@ -115,10 +115,15 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
     return std::nullopt;
 
   GameModDescriptor descriptor;
+  bool is_game_mod_descriptor = false;
   bool is_valid_version = false;
   for (const auto& [key, value] : json_root.get<picojson::object>())
   {
-    if (key == "version" && value.is<double>())
+    if (key == "type" && value.is<std::string>())
+    {
+      is_game_mod_descriptor = value.get<std::string>() == "dolphin-game-mod-descriptor";
+    }
+    else if (key == "version" && value.is<double>())
     {
       is_valid_version = value.get<double>() == 1.0;
     }
@@ -140,7 +145,7 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
           ParseRiivolutionObject(json_directory, value.get<picojson::object>());
     }
   }
-  if (!is_valid_version)
+  if (!is_game_mod_descriptor || !is_valid_version)
     return std::nullopt;
   return descriptor;
 }
