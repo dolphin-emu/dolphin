@@ -2113,16 +2113,6 @@ void CEXISlippi::prepareOnlineMatchState()
       // Set p3/p4 player type to human
       onlineMatchBlock[0x61 + 2 * 0x24] = 0;
       onlineMatchBlock[0x61 + 3 * 0x24] = 0;
-
-      // Set alt color to light/dark costume for multiples of the same character on a team
-      int characterCount[26][3] = {0};
-      for (int i = 0; i < 4; i++)
-      {
-        int charId = onlineMatchBlock[0x60 + i * 0x24];
-        int teamId = onlineMatchBlock[0x69 + i * 0x24];
-        onlineMatchBlock[0x67 + i * 0x24] = characterCount[charId][teamId];
-        characterCount[charId][teamId]++;
-      }
     }
 
     // Overwrite stage
