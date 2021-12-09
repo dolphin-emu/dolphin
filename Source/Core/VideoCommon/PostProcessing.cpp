@@ -646,7 +646,8 @@ bool PostProcessing::CompileVertexShader()
 
   ss << "}\n";
 
-  m_vertex_shader = g_renderer->CreateShaderFromSource(ShaderStage::Vertex, ss.str());
+  m_vertex_shader = g_renderer->CreateShaderFromSource(ShaderStage::Vertex, ss.str(),
+                                                       "Post-processing vertex shader");
   if (!m_vertex_shader)
   {
     PanicAlertFmt("Failed to compile post-processing vertex shader");
@@ -736,7 +737,8 @@ bool PostProcessing::CompilePixelShader()
   // Generate GLSL and compile the new shader.
   m_config.LoadShader(g_ActiveConfig.sPostProcessingShader);
   m_pixel_shader = g_renderer->CreateShaderFromSource(
-      ShaderStage::Pixel, GetHeader() + m_config.GetShaderCode() + GetFooter());
+      ShaderStage::Pixel, GetHeader() + m_config.GetShaderCode() + GetFooter(),
+      fmt::format("Post-processing pixel shader: {}", m_config.GetShader()));
   if (!m_pixel_shader)
   {
     PanicAlertFmt("Failed to compile post-processing shader {}", m_config.GetShader());
@@ -744,7 +746,8 @@ bool PostProcessing::CompilePixelShader()
     // Use default shader.
     m_config.LoadDefaultShader();
     m_pixel_shader = g_renderer->CreateShaderFromSource(
-        ShaderStage::Pixel, GetHeader() + m_config.GetShaderCode() + GetFooter());
+        ShaderStage::Pixel, GetHeader() + m_config.GetShaderCode() + GetFooter(),
+        "Default post-processing pixel shader");
     if (!m_pixel_shader)
       return false;
   }

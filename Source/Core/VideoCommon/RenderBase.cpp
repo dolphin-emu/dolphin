@@ -995,7 +995,7 @@ bool Renderer::InitializeImGui()
   m_imgui_vertex_format = CreateNativeVertexFormat(vdecl);
   if (!m_imgui_vertex_format)
   {
-    PanicAlertFmt("Failed to create imgui vertex format");
+    PanicAlertFmt("Failed to create ImGui vertex format");
     return false;
   }
 
@@ -1008,10 +1008,11 @@ bool Renderer::InitializeImGui()
 
     TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
                                   AbstractTextureFormat::RGBA8, 0);
-    std::unique_ptr<AbstractTexture> font_tex = CreateTexture(font_tex_config);
+    std::unique_ptr<AbstractTexture> font_tex =
+        CreateTexture(font_tex_config, "ImGui font texture");
     if (!font_tex)
     {
-      PanicAlertFmt("Failed to create imgui texture");
+      PanicAlertFmt("Failed to create ImGui texture");
       return false;
     }
     font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
@@ -1032,13 +1033,14 @@ bool Renderer::InitializeImGui()
 
 bool Renderer::RecompileImGuiPipeline()
 {
-  std::unique_ptr<AbstractShader> vertex_shader = CreateShaderFromSource(
-      ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader());
-  std::unique_ptr<AbstractShader> pixel_shader =
-      CreateShaderFromSource(ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader());
+  std::unique_ptr<AbstractShader> vertex_shader =
+      CreateShaderFromSource(ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
+                             "ImGui vertex shader");
+  std::unique_ptr<AbstractShader> pixel_shader = CreateShaderFromSource(
+      ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(), "ImGui pixel shader");
   if (!vertex_shader || !pixel_shader)
   {
-    PanicAlertFmt("Failed to compile imgui shaders");
+    PanicAlertFmt("Failed to compile ImGui shaders");
     return false;
   }
 
@@ -1047,10 +1049,11 @@ bool Renderer::RecompileImGuiPipeline()
   if (UseGeometryShaderForUI())
   {
     geometry_shader = CreateShaderFromSource(
-        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1));
+        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
+        "ImGui passthrough geometry shader");
     if (!geometry_shader)
     {
-      PanicAlertFmt("Failed to compile imgui geometry shader");
+      PanicAlertFmt("Failed to compile ImGui geometry shader");
       return false;
     }
   }
@@ -1515,7 +1518,8 @@ bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
   m_frame_dump_render_texture.reset();
   m_frame_dump_render_texture =
       CreateTexture(TextureConfig(target_width, target_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget));
+                                  AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget),
+                    "Frame dump render texture");
   if (!m_frame_dump_render_texture)
   {
     PanicAlertFmt("Failed to allocate frame dump render texture");
