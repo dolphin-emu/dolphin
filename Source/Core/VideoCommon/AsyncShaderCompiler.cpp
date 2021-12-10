@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/AsyncShaderCompiler.h"
+
 #include <thread>
+
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"

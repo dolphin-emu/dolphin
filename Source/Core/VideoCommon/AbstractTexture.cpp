@@ -1,13 +1,14 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/AbstractTexture.h"
+
 #include <algorithm>
 
 #include "Common/Assert.h"
 #include "Common/Image.h"
 #include "Common/MsgHandler.h"
 #include "VideoCommon/AbstractStagingTexture.h"
-#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/RenderBase.h"
 
 AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)

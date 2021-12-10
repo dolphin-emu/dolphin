@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/VertexLoader_Color.h"
+
 #include <cstring>
 
 #include "Common/CommonTypes.h"
@@ -10,7 +12,6 @@
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
-#include "VideoCommon/VertexLoader_Color.h"
 
 namespace
 {

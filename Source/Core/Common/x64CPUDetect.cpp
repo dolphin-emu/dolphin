@@ -1,10 +1,11 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/CPUDetect.h"
+
 #include <cstring>
 #include <string>
 
-#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 

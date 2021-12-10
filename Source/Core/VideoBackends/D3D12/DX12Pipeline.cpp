@@ -1,12 +1,13 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D12/DX12Pipeline.h"
+
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/DX12Context.h"
-#include "VideoBackends/D3D12/DX12Pipeline.h"
 #include "VideoBackends/D3D12/DX12Shader.h"
 #include "VideoBackends/D3D12/DX12Texture.h"
 #include "VideoBackends/D3D12/DX12VertexFormat.h"

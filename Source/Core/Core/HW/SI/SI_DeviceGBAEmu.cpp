@@ -1,6 +1,8 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/HW/SI/SI_DeviceGBAEmu.h"
+
 #include <vector>
 
 #include "Common/ChunkFile.h"
@@ -12,7 +14,6 @@
 #include "Core/HW/GBACore.h"
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/SI/SI.h"
-#include "Core/HW/SI/SI_DeviceGBAEmu.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"

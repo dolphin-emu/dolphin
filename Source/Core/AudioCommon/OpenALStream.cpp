@@ -3,12 +3,13 @@
 
 #ifdef _WIN32
 
+#include "AudioCommon/OpenALStream.h"
+
 #include <windows.h>
 #include <climits>
 #include <cstring>
 #include <thread>
 
-#include "AudioCommon/OpenALStream.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"

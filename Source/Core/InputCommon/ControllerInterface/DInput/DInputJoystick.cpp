@@ -1,6 +1,8 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
+
 #include <algorithm>
 #include <limits>
 #include <mutex>
@@ -11,7 +13,6 @@
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
-#include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
 
 namespace ciface::DInput

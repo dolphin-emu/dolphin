@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D/VideoBackend.h"
+
 #include <memory>
 #include <string>
 
@@ -15,7 +17,6 @@
 #include "VideoBackends/D3D/D3DRender.h"
 #include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
-#include "VideoBackends/D3D/VideoBackend.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 
 #include "VideoCommon/FramebufferManager.h"

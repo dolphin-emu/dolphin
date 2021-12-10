@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitCommon/JitCache.h"
+
 #include <algorithm>
 #include <array>
 #include <cstring>

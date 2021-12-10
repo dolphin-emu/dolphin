@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D/DXShader.h"
+
 #include "Common/Assert.h"
+
 #include "VideoBackends/D3D/D3DBase.h"
 
 namespace DX11

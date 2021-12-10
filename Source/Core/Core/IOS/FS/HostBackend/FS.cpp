@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/FS/HostBackend/FS.h"
+
 #include <algorithm>
 #include <optional>
 #include <string_view>
@@ -17,7 +19,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/ES.h"
-#include "Core/IOS/FS/HostBackend/FS.h"
 #include "Core/IOS/IOS.h"
 
 namespace IOS::HLE::FS

@@ -1,6 +1,8 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/SymbolDB.h"
+
 #include <cstring>
 #include <map>
 #include <string>
@@ -8,7 +10,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/SymbolDB.h"
 
 namespace Common
 {

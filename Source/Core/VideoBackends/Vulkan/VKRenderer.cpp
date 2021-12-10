@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/Vulkan/VKRenderer.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
@@ -22,7 +24,6 @@
 #include "VideoBackends/Vulkan/VKBoundingBox.h"
 #include "VideoBackends/Vulkan/VKPerfQuery.h"
 #include "VideoBackends/Vulkan/VKPipeline.h"
-#include "VideoBackends/Vulkan/VKRenderer.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VKSwapChain.h"

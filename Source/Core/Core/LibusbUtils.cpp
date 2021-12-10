@@ -1,6 +1,8 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/LibusbUtils.h"
+
 #include <mutex>
 #include <thread>
 
@@ -11,7 +13,6 @@
 #include "Common/Assert.h"
 #include "Common/Flag.h"
 #include "Common/Thread.h"
-#include "Core/LibusbUtils.h"
 
 namespace LibusbUtils
 {

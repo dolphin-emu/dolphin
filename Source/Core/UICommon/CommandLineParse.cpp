@@ -1,6 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "UICommon/CommandLineParse.h"
+
 #include <list>
 #include <optional>
 #include <sstream>
@@ -13,7 +15,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/MainSettings.h"
-#include "UICommon/CommandLineParse.h"
 
 namespace CommandLineParse
 {

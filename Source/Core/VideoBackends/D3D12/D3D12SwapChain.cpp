@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D12/D3D12SwapChain.h"
+
 #include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoBackends/D3D12/DX12Texture.h"
 

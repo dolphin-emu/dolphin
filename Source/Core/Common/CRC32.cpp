@@ -1,9 +1,9 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <zlib.h>
-
 #include "Common/CRC32.h"
+
+#include <zlib.h>
 
 namespace Common
 {

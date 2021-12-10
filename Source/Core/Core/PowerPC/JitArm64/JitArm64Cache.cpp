@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
+
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"

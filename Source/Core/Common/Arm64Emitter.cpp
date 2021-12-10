@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Arm64Emitter.h"
+
 #include <algorithm>
 #include <array>
 #include <cinttypes>
@@ -11,7 +13,6 @@
 #include <vector>
 
 #include "Common/Align.h"
-#include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"

@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D12/VideoBackend.h"
+
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -14,7 +16,6 @@
 #include "VideoBackends/D3D12/D3D12SwapChain.h"
 #include "VideoBackends/D3D12/D3D12VertexManager.h"
 #include "VideoBackends/D3D12/DX12Context.h"
-#include "VideoBackends/D3D12/VideoBackend.h"
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"

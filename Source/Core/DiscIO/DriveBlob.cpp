@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DiscIO/DriveBlob.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -12,7 +14,6 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/DriveBlob.h"
 
 #ifdef _WIN32
 #include "Common/StringUtil.h"

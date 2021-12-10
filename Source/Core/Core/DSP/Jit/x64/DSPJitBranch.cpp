@@ -1,12 +1,13 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
+
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 

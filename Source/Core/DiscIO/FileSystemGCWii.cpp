@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DiscIO/FileSystemGCWii.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -19,7 +21,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/DiscUtils.h"
-#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeDisc.h"
 

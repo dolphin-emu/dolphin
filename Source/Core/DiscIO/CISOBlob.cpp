@@ -1,6 +1,8 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DiscIO/CISOBlob.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <memory>
@@ -8,7 +10,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
-#include "DiscIO/CISOBlob.h"
 
 namespace DiscIO
 {

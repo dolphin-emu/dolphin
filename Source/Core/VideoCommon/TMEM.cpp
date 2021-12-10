@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/TMEM.h"
+
 #include <array>
 
 #include "Common/ChunkFile.h"
-
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/TMEM.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //

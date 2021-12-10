@@ -1,10 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifdef _WIN32
-#include <windows.h>
-#include <io.h>
-#endif
+#include "DiscIO/CompressedBlob.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -16,6 +13,11 @@
 
 #include <zlib.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#endif
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -24,7 +26,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "DiscIO/Blob.h"
-#include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/Volume.h"

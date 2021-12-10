@@ -1,6 +1,8 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+
 #include <cmath>
 #include <fstream>
 #include <iterator>
@@ -14,9 +16,8 @@
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 
 namespace WiimoteEmu

@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D12/D3D12BoundingBox.h"
+
 #include "Common/Logging/Log.h"
+
 #include "VideoBackends/D3D12/D3D12Renderer.h"
 #include "VideoBackends/D3D12/DX12Context.h"
 

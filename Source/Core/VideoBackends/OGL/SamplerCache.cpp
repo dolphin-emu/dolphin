@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/OGLRender.h"
 
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL

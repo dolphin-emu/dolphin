@@ -1,6 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/ES/ES.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -17,7 +19,6 @@
 #include "Common/NandPaths.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
-#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/Uids.h"

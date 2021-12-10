@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include "Common/Arm64Emitter.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
@@ -10,7 +12,6 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"

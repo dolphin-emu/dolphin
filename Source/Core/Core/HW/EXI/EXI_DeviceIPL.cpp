@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
-#include "Core/HW/DVD/DVDInterface.h"
 
 #include <cstring>
 #include <string>

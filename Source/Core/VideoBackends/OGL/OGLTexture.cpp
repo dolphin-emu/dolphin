@@ -1,11 +1,12 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/OGL/OGLTexture.h"
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 
-#include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 
 namespace OGL

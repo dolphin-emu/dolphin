@@ -1,14 +1,14 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Config/Config.h"
+
 #include <algorithm>
 #include <atomic>
 #include <list>
 #include <map>
 #include <mutex>
 #include <shared_mutex>
-
-#include "Common/Config/Config.h"
 
 namespace Config
 {

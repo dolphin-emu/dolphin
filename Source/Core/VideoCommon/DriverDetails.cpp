@@ -1,10 +1,11 @@
 // Copyright 2013 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/DriverDetails.h"
+
 #include <map>
 
 #include "Common/Logging/LogManager.h"
-#include "VideoCommon/DriverDetails.h"
 
 namespace DriverDetails
 {

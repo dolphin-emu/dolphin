@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/Mixer.h"
-#include "AudioCommon/Enums.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 
+#include "AudioCommon/Enums.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

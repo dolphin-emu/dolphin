@@ -1,6 +1,8 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/DolphinDevice.h"
+
 #include <algorithm>
 #include <cstring>
 
@@ -16,7 +18,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/DolphinDevice.h"
 
 namespace IOS::HLE
 {

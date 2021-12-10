@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
-#include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include <cstddef>
 #include <cstdlib>
@@ -23,6 +22,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 

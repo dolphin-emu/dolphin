@@ -3,6 +3,8 @@
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
 
+#include "Core/PowerPC/GDBStub.h"
+
 #include <fmt/format.h>
 #include <optional>
 #include <signal.h>
@@ -31,7 +33,6 @@ typedef SSIZE_T ssize_t;
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 #include "Core/PowerPC/PowerPC.h"
