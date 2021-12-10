@@ -171,6 +171,8 @@ add_executable(dolphin-emu
   Config/ToolTipControls/ToolTipCheckBox.h
   Config/ToolTipControls/ToolTipComboBox.cpp
   Config/ToolTipControls/ToolTipComboBox.h
+  Config/ToolTipControls/ToolTipDoubleSpinBox.cpp
+  Config/ToolTipControls/ToolTipDoubleSpinBox.h
   Config/ToolTipControls/ToolTipLineEdit.cpp
   Config/ToolTipControls/ToolTipLineEdit.h
   Config/ToolTipControls/ToolTipPushButton.cpp

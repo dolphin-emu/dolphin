@@ -119,6 +119,7 @@
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipCheckBox.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipComboBox.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipDoubleSpinBox.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipLineEdit.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipPushButton.cpp" />
     <ClCompile Include="Config\ToolTipControls\ToolTipRadioButton.cpp" />
@@ -312,6 +313,7 @@
     <QtMoc Include="Config\SettingsWindow.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipCheckBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipComboBox.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipDoubleSpinBox.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipLineEdit.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipPushButton.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipRadioButton.h" />
