@@ -81,8 +81,6 @@ add_library(common
   MathUtil.h
   Matrix.cpp
   Matrix.h
-  MD5.cpp
-  MD5.h
   MemArena.h
   MemoryUtil.cpp
   MemoryUtil.h
