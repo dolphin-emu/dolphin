@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <zlib.h>
+
 #include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonFuncs.h"
@@ -528,5 +530,15 @@ void SetHash64Function()
   {
     ptrHashFunction = &GetMurmurHash3;
   }
+}
+
+u32 ComputeCRC32(std::string_view data)
+{
+  const Bytef* buf = reinterpret_cast<const Bytef*>(data.data());
+  uInt len = static_cast<uInt>(data.size());
+  // Use zlib's crc32 implementation to compute the hash
+  u32 hash = crc32(0L, Z_NULL, 0);
+  hash = crc32(hash, buf, len);
+  return hash;
 }
 }  // namespace Common

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -14,4 +15,6 @@ u32 HashAdler32(const u8* data, size_t len);         // Fairly accurate, slightl
 u32 HashEctor(const u8* ptr, size_t length);         // JUNK. DO NOT USE FOR NEW THINGS
 u64 GetHash64(const u8* src, u32 len, u32 samples);
 void SetHash64Function();
+
+u32 ComputeCRC32(std::string_view data);
 }  // namespace Common
