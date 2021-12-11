@@ -11,6 +11,10 @@ ToolTipCheckBox::ToolTipCheckBox(const QString& label) : ToolTipWidget(label)
   SetTitle(label);
 }
 
+ToolTipCheckBox::ToolTipCheckBox(QWidget* parent) : ToolTipWidget(parent)
+{
+}
+
 QPoint ToolTipCheckBox::GetToolTipPosition() const
 {
   int checkbox_width = 18;
