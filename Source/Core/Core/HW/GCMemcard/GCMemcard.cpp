@@ -4,7 +4,6 @@
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstring>
 #include <utility>
 #include <vector>

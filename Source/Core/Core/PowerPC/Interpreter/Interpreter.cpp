@@ -4,7 +4,6 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include <array>
-#include <cinttypes>
 #include <string>
 
 #include <fmt/format.h>

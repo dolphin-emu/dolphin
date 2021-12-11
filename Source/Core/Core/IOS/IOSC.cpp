@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <map>

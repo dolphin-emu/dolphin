@@ -4,7 +4,6 @@
 #include "Core/IOS/WFS/WFSSRV.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <string>
 #include <vector>
 

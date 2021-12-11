@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <memory>

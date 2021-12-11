@@ -4,7 +4,6 @@
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cmath>
 #include <limits>
 #include <utility>

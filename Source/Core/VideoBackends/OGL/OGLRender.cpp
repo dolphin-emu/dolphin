@@ -4,7 +4,6 @@
 #include "VideoBackends/OGL/OGLRender.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cmath>
 #include <cstdio>
 #include <memory>

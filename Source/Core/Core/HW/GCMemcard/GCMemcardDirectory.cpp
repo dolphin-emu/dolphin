@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cinttypes>
 #include <cstring>
 #include <memory>
 #include <mutex>

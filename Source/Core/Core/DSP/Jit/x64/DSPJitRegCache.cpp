@@ -3,7 +3,6 @@
 
 #include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
-#include <cinttypes>
 #include <cstddef>
 
 #include "Common/Assert.h"
