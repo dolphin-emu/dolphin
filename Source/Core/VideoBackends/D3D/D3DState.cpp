@@ -249,6 +249,20 @@ void StateManager::SetComputeShader(ID3D11ComputeShader* shader)
 
 void StateManager::SyncComputeBindings()
 {
+  std::vector<ID3D11RenderTargetView*> rtv_null(m_pending.framebuffer->GetNumRTVs());
+  if (g_ActiveConfig.backend_info.bSupportsBBox)
+  {
+    ID3D11UnorderedAccessView* uav = nullptr;
+    D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
+        m_pending.framebuffer->GetNumRTVs(), rtv_null.data(), nullptr,
+        m_pending.framebuffer->GetNumRTVs() + 1, 1, &uav, nullptr);
+  }
+  else
+  {
+    D3D::context->OMSetRenderTargets(m_pending.framebuffer->GetNumRTVs(), rtv_null.data(), nullptr);
+  }
+  m_dirtyFlags |= DirtyFlag_Framebuffer;
+
   if (m_compute_constants != m_pending.pixelConstants[0])
   {
     m_compute_constants = m_pending.pixelConstants[0];
