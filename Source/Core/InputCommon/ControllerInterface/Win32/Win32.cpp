@@ -11,6 +11,7 @@
 #include <thread>
 
 #include "Common/Flag.h"
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
@@ -61,9 +62,10 @@ void ciface::Win32::Init(void* hwnd)
     HWND message_window = nullptr;
     Common::ScopeGuard promise_guard([&] { message_window_promise.set_value(message_window); });
 
-    if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)))
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr))
     {
-      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CoInitializeEx failed: {}", GetLastError());
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CoInitializeEx failed: {}", Common::HRWrap(hr));
       return;
     }
     Common::ScopeGuard uninit([] { CoUninitialize(); });
@@ -77,12 +79,14 @@ void ciface::Win32::Init(void* hwnd)
     ATOM window_class = RegisterClassEx(&window_class_info);
     if (!window_class)
     {
-      NOTICE_LOG_FMT(CONTROLLERINTERFACE, "RegisterClassEx failed: {}", GetLastError());
+      NOTICE_LOG_FMT(CONTROLLERINTERFACE, "RegisterClassEx failed: {}",
+                     Common::HRWrap(GetLastError()));
       return;
     }
     Common::ScopeGuard unregister([&window_class] {
       if (!UnregisterClass(MAKEINTATOM(window_class), GetModuleHandle(nullptr)))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "UnregisterClass failed: {}", GetLastError());
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "UnregisterClass failed: {}",
+                      Common::HRWrap(GetLastError()));
     });
 
     message_window = CreateWindowEx(0, L"Message", nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
@@ -90,12 +94,14 @@ void ciface::Win32::Init(void* hwnd)
     promise_guard.Exit();
     if (!message_window)
     {
-      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CreateWindowEx failed: {}", GetLastError());
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CreateWindowEx failed: {}",
+                    Common::HRWrap(GetLastError()));
       return;
     }
     Common::ScopeGuard destroy([&] {
       if (!DestroyWindow(message_window))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "DestroyWindow failed: {}", GetLastError());
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "DestroyWindow failed: {}",
+                      Common::HRWrap(GetLastError()));
     });
 
     std::array<RAWINPUTDEVICE, 2> devices;
