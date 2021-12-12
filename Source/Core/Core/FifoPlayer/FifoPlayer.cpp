@@ -312,13 +312,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   WriteFramePart(position, static_cast<u32>(frame.fifoData.size()), memoryUpdate, frame, info);
 
   FlushWGP();
-
-  // Sleep while the GPU is active
-  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
-  {
-    CoreTiming::Idle();
-    CoreTiming::Advance();
-  }
+  WaitForGPUInactive();
 }
 
 void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate,
@@ -490,6 +484,10 @@ void FifoPlayer::ClearEfb()
   LoadBPReg(BPMEM_EFB_WH, m_File->GetBPMem()[BPMEM_EFB_WH]);
   LoadBPReg(BPMEM_MIPMAP_STRIDE, m_File->GetBPMem()[BPMEM_MIPMAP_STRIDE]);
   LoadBPReg(BPMEM_EFB_ADDR, m_File->GetBPMem()[BPMEM_EFB_ADDR]);
+  // Wait for the EFB copy to finish.  That way, the EFB copy (which will be performed at a later
+  // time) won't clobber any memory updates.
+  FlushWGP();
+  WaitForGPUInactive();
 }
 
 void FifoPlayer::LoadMemory()
@@ -580,6 +578,16 @@ void FifoPlayer::FlushWGP()
   GPFifo::Write8(0);
 
   GPFifo::ResetGatherPipe();
+}
+
+void FifoPlayer::WaitForGPUInactive()
+{
+  // Sleep while the GPU is active
+  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
+  {
+    CoreTiming::Idle();
+    CoreTiming::Advance();
+  }
 }
 
 void FifoPlayer::LoadBPReg(u8 reg, u32 value)
