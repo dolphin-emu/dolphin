@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/Resources.h"
+
 #include <QGuiApplication>
 #include <QIcon>
 #include <QPixmap>
@@ -10,7 +12,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
 #ifdef _WIN32

@@ -3,10 +3,10 @@
 
 #include "Common/Matrix.h"
 
-#include "Common/MathUtil.h"
-
 #include <algorithm>
 #include <cmath>
+
+#include "Common/MathUtil.h"
 
 namespace
 {

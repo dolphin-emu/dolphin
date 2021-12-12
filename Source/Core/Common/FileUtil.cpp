@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/FileUtil.h"
+
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -22,7 +24,6 @@
 #ifdef __APPLE__
 #include "Common/DynamicLibrary.h"
 #endif
-#include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 

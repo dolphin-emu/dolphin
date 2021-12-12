@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/AboutDialog.h"
+
 #include <QLabel>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -8,7 +10,6 @@
 
 #include "Common/Version.h"
 
-#include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Resources.h"
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)

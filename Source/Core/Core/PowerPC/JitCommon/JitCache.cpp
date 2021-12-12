@@ -1,12 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Enable define below to enable oprofile integration. For this to work,
-// it requires at least oprofile version 0.9.4, and changing the build
-// system to link the Dolphin executable against libopagent.  Since the
-// dependency is a little inconvenient and this is possibly a slight
-// performance hit, it's not enabled by default, but it's useful for
-// locating performance issues.
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 #include <algorithm>
 #include <array>

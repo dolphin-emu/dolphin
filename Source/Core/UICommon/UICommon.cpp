@@ -1,6 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "UICommon/UICommon.h"
+
 #include <algorithm>
 #include <clocale>
 #include <cmath>
@@ -35,7 +37,6 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
-#include "UICommon/UICommon.h"
 #include "UICommon/USBUtils.h"
 
 #ifdef HAVE_X11

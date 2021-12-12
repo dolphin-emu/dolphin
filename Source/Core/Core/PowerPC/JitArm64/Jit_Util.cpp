@@ -1,13 +1,14 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit_Util.h"
+
 #include "Common/Arm64Emitter.h"
 #include "Common/Common.h"
 
 #include "Core/HW/MMIO.h"
 
 #include "Core/PowerPC/JitArm64/Jit.h"
-#include "Core/PowerPC/JitArm64/Jit_Util.h"
 
 using namespace Arm64Gen;
 

@@ -1,11 +1,12 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "AudioCommon/AudioStretcher.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 
-#include "AudioCommon/AudioStretcher.h"
 #include "Common/Logging/Log.h"
 #include "Core/Config/MainSettings.h"
 

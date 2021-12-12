@@ -33,6 +33,8 @@ Make AA apply instantly during gameplay if possible
 
 */
 
+#include "VideoBackends/OGL/VideoBackend.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -49,7 +51,6 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/VideoBackend.h"
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureCacheBase.h"

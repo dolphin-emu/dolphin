@@ -1,3 +1,6 @@
+// Copyright 2020 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
 #include <array>

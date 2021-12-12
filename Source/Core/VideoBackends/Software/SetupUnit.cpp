@@ -1,14 +1,12 @@
 // Copyright 2009 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstring>
-
 #include "VideoBackends/Software/SetupUnit.h"
 
+#include <cstring>
+
 #include "Common/Logging/Log.h"
-
 #include "VideoBackends/Software/Clipper.h"
-
 #include "VideoCommon/OpcodeDecoding.h"
 
 void SetupUnit::Init(u8 primitiveType)

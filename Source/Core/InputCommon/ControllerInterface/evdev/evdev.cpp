@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "InputCommon/ControllerInterface/evdev/evdev.h"
+
 #include <algorithm>
 #include <cstring>
 #include <map>
@@ -20,7 +22,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/evdev/evdev.h"
 
 namespace ciface::evdev
 {

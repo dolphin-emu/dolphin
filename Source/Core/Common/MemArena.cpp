@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/MemArena.h"
+
 #include <cstddef>
 #include <cstdlib>
 #include <set>
@@ -9,7 +11,6 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemArena.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 

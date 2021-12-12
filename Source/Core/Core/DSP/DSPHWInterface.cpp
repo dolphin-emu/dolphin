@@ -2,6 +2,8 @@
 // Copyright 2004 Duddie & Tratax
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/DSP/DSPCore.h"
+
 #include <atomic>
 #include <cstddef>
 #include <cstring>
@@ -14,7 +16,6 @@
 #include "Common/Swap.h"
 
 #include "Core/DSP/DSPAccelerator.h"
-#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 

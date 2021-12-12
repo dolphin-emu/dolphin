@@ -1,9 +1,10 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "AudioCommon/CubebStream.h"
+
 #include <cubeb/cubeb.h>
 
-#include "AudioCommon/CubebStream.h"
 #include "AudioCommon/CubebUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

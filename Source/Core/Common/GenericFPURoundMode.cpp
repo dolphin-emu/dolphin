@@ -1,8 +1,9 @@
 // Copyright 2003 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
+
+#include "Common/CommonTypes.h"
 
 // Generic, do nothing
 namespace FPURoundMode

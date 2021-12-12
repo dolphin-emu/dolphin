@@ -1,6 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D/DXTexture.h"
+
 #include <algorithm>
 #include <cstddef>
 
@@ -9,7 +11,6 @@
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D/D3DState.h"
-#include "VideoBackends/D3D/DXTexture.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/VideoConfig.h"
 

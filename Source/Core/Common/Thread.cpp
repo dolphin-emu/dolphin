@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Thread.h"
-#include "Common/CommonFuncs.h"
-#include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -27,6 +24,10 @@
 #include <ittnotify.h>
 #pragma comment(lib, "libittnotify.lib")
 #endif
+
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
 namespace Common
 {

@@ -1,6 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "InputCommon/GCAdapter.h"
+
 #include <algorithm>
 #include <array>
 #include <jni.h>
@@ -17,7 +19,6 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 
-#include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
 #include "jni/AndroidCommon/IDCache.h"

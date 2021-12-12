@@ -1,12 +1,13 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/Vulkan/VKShader.h"
+
 #include "Common/Align.h"
 #include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
-#include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan

@@ -1,9 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
-
 #include "Core/DSP/DSPAccelerator.h"
+
+#include <algorithm>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"

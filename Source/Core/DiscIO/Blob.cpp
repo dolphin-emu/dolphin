@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DiscIO/Blob.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -13,7 +15,6 @@
 #include "Common/IOFile.h"
 #include "Common/MsgHandler.h"
 
-#include "DiscIO/Blob.h"
 #include "DiscIO/CISOBlob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DirectoryBlob.h"

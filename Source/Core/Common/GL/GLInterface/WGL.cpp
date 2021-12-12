@@ -1,11 +1,12 @@
 // Copyright 2012 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/GL/GLInterface/WGL.h"
+
 #include <windows.h>
 #include <array>
 #include <string>
 
-#include "Common/GL/GLInterface/WGL.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 

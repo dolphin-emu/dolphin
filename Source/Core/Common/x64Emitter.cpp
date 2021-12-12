@@ -1,13 +1,14 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/x64Emitter.h"
+
 #include <cinttypes>
 #include <cstring>
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/x64Emitter.h"
 #include "Common/x64Reg.h"
 
 namespace Gen

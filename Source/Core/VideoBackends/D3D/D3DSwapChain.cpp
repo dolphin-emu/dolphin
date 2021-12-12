@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D/D3DSwapChain.h"
+
 #include "VideoBackends/D3D/DXTexture.h"
 
 namespace DX11

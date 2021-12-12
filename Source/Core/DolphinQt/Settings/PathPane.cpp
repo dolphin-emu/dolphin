@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/Settings/PathPane.h"
+
 #include <QCheckBox>
 #include <QDir>
 #include <QGroupBox>
@@ -18,7 +20,6 @@
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Settings.h"
-#include "DolphinQt/Settings/PathPane.h"
 
 PathPane::PathPane(QWidget* parent) : QWidget(parent)
 {

@@ -1,6 +1,8 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3DCommon/Shader.h"
+
 #include <fstream>
 #include <wrl/client.h>
 
@@ -10,8 +12,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
-
-#include "VideoBackends/D3DCommon/Shader.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"

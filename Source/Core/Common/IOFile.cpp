@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/IOFile.h"
+
 #include <cstddef>
 #include <cstdio>
 #include <string>
@@ -22,7 +24,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 
 namespace File
 {
