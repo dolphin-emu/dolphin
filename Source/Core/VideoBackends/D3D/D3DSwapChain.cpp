@@ -31,7 +31,7 @@ bool SwapChain::CreateSwapChainBuffers()
 {
   ComPtr<ID3D11Texture2D> texture;
   HRESULT hr = m_swap_chain->GetBuffer(0, IID_PPV_ARGS(&texture));
-  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return false;
 
