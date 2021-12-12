@@ -164,7 +164,7 @@ elseif(WIN32)
     winmm.lib
   )
   if (_M_X86_64)
-	  target_link_libraries(common PRIVATE opengl32.lib)
+    target_link_libraries(common PRIVATE opengl32.lib)
   endif()
 elseif (ANDROID)
   target_link_libraries(common
@@ -284,6 +284,10 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(common PUBLIC dl rt)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  target_sources(common PUBLIC HRWrap.h HRWrap.cpp)
 endif()
 
 if(USE_UPNP)
