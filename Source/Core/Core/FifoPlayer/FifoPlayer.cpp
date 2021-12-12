@@ -214,6 +214,9 @@ public:
   void Init() override
   {
     IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
+    // Without this call, we deadlock in initialization in dual core, as the FIFO is disabled and
+    // thus ClearEfb()'s call to WaitForGPUInactive() never returns
+    CPU::EnableStepping(false);
 
     m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
     m_parent->LoadMemory();
@@ -422,13 +425,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   }
 
   FlushWGP();
-
-  // Sleep while the GPU is active
-  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
-  {
-    CoreTiming::Idle();
-    CoreTiming::Advance();
-  }
+  WaitForGPUInactive();
 }
 
 void FifoPlayer::WriteFramePart(const FramePart& part, u32* next_mem_update,
@@ -603,6 +600,10 @@ void FifoPlayer::ClearEfb()
   LoadBPReg(BPMEM_EFB_WH, m_File->GetBPMem()[BPMEM_EFB_WH]);
   LoadBPReg(BPMEM_MIPMAP_STRIDE, m_File->GetBPMem()[BPMEM_MIPMAP_STRIDE]);
   LoadBPReg(BPMEM_EFB_ADDR, m_File->GetBPMem()[BPMEM_EFB_ADDR]);
+  // Wait for the EFB copy to finish.  That way, the EFB copy (which will be performed at a later
+  // time) won't clobber any memory updates.
+  FlushWGP();
+  WaitForGPUInactive();
 }
 
 void FifoPlayer::LoadMemory()
@@ -693,6 +694,16 @@ void FifoPlayer::FlushWGP()
   GPFifo::Write8(0);
 
   GPFifo::ResetGatherPipe();
+}
+
+void FifoPlayer::WaitForGPUInactive()
+{
+  // Sleep while the GPU is active
+  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
+  {
+    CoreTiming::Idle();
+    CoreTiming::Advance();
+  }
 }
 
 void FifoPlayer::LoadBPReg(u8 reg, u32 value)
