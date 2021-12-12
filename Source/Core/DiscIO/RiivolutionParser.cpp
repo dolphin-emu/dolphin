@@ -481,6 +481,7 @@ bool WriteConfigFile(const std::string& filename, const Config& config)
   if (xml.empty())
     return false;
 
+  ::File::CreateFullPath(filename);
   ::File::IOFile f(filename, "wb");
   if (!f)
     return false;
