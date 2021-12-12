@@ -34,7 +34,7 @@ bool SwapChain::CreateSwapChainBuffers()
   {
     ComPtr<ID3D12Resource> resource;
     HRESULT hr = m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&resource));
-    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer {}", i);
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer {}: {}", i, DX12HRWrap(hr));
 
     BufferResources buffer;
     buffer.texture = DXTexture::CreateAdopted(resource.Get());
