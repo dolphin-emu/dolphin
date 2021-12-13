@@ -20,11 +20,13 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/NetPlayClient.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/Slippi/SlippiPlayback.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/State.h"
@@ -93,6 +95,18 @@ void appendHalfToBuffer(std::vector<u8>* buf, u16 word)
 {
   auto halfVector = uint16ToVector(word);
   buf->insert(buf->end(), halfVector.begin(), halfVector.end());
+}
+
+std::string ConvertConnectCodeForGame(const std::string& input)
+{
+  // Shift-Jis '#' symbol is two bytes (0x8194), followed by 0x00 null terminator
+  char fullWidthShiftJisHashtag[] = {-127, -108, 0};  // 0x81, 0x94, 0x00
+  std::string connectCode(input);
+  // SLIPPITODO：Not the best use of ReplaceAll. potential bug if more than one '#' found.
+  connectCode = ReplaceAll(connectCode, "#", std::string(fullWidthShiftJisHashtag));
+  connectCode.resize(CONNECT_CODE_LENGTH +
+                     2);  // fixed length + full width (two byte) hashtag +1, null terminator +1
+  return connectCode;
 }
 
 CEXISlippi::CEXISlippi()
@@ -1484,8 +1498,7 @@ bool CEXISlippi::isDisconnected()
     return true;
 
   auto status = slippi_netplay->GetSlippiConnectStatus();
-  return status != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED ||
-         isConnectionStalled;
+  return status != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED;
 }
 
 static int tempTestCount = 0;
@@ -2100,16 +2113,6 @@ void CEXISlippi::prepareOnlineMatchState()
       // Set p3/p4 player type to human
       onlineMatchBlock[0x61 + 2 * 0x24] = 0;
       onlineMatchBlock[0x61 + 3 * 0x24] = 0;
-
-      // Set alt color to light/dark costume for multiples of the same character on a team
-      int characterCount[26][3] = {0};
-      for (int i = 0; i < 4; i++)
-      {
-        int charId = onlineMatchBlock[0x60 + i * 0x24];
-        int teamId = onlineMatchBlock[0x69 + i * 0x24];
-        onlineMatchBlock[0x67 + i * 0x24] = characterCount[charId][teamId];
-        characterCount[charId][teamId]++;
-      }
     }
 
     // Overwrite stage
@@ -2133,7 +2136,7 @@ void CEXISlippi::prepareOnlineMatchState()
              onlineMatchBlock[0x84]);
 
     // Turn pause on in direct, off in everything else
-    u8* gameBitField3 = (u8*)&onlineMatchBlock[2];
+    u8* gameBitField3 = static_cast<u8*>(&onlineMatchBlock[2]);
     *gameBitField3 = lastSearch.mode >= directMode ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
     //*gameBitField3 = *gameBitField3 | 0x8;
 
@@ -2146,8 +2149,8 @@ void CEXISlippi::prepareOnlineMatchState()
       else
         rightTeamPlayers.push_back(i);
     }
-    auto leftTeamSize = leftTeamPlayers.size();
-    auto rightTeamSize = rightTeamPlayers.size();
+    int leftTeamSize = static_cast<int>(leftTeamPlayers.size());
+    int rightTeamSize = static_cast<int>(rightTeamPlayers.size());
     leftTeamPlayers.resize(4, 0);
     rightTeamPlayers.resize(4, 0);
     leftTeamPlayers[3] = static_cast<u8>(leftTeamSize);
@@ -2210,6 +2213,21 @@ void CEXISlippi::prepareOnlineMatchState()
     oppText = matchmaking->GetPlayerName(remotePlayerIndex);
   oppName = ConvertStringForGame(oppText, MAX_NAME_LENGTH * 2 + 1);
   m_read_queue.insert(m_read_queue.end(), oppName.begin(), oppName.end());
+
+#ifdef LOCAL_TESTING
+  std::string defaultConnectCodes[] = {"PLYR#001", "PLYR#002", "PLYR#003", "PLYR#004"};
+#endif
+
+  auto playerInfo = matchmaking->GetPlayerInfo();
+  for (int i = 0; i < 4; i++)
+  {
+    std::string connectCode = i < playerInfo.size() ? playerInfo[i].connect_code : "";
+#ifdef LOCAL_TESTING
+    connectCode = defaultConnectCodes[i];
+#endif
+    connectCode = ConvertConnectCodeForGame(connectCode);
+    m_read_queue.insert(m_read_queue.end(), connectCode.begin(), connectCode.end());
+  }
 
   // Add error message if there is one
   auto errorStr = !forcedError.empty() ? forcedError : matchmaking->GetErrorMessage();
@@ -2315,6 +2333,32 @@ void CEXISlippi::prepareFileLoad(u8* payload)
 
   // Write the contents to output
   m_read_queue.insert(m_read_queue.end(), buf.begin(), buf.end());
+}
+
+void CEXISlippi::prepareGctLength()
+{
+  m_read_queue.clear();
+
+  u32 size = Gecko::GetGctLength();
+
+  INFO_LOG(SLIPPI, "Getting gct size: %d", size);
+
+  // Write size to output
+  appendWordToBuffer(&m_read_queue, size);
+}
+
+void CEXISlippi::prepareGctLoad(u8* payload)
+{
+  m_read_queue.clear();
+
+  auto gct = Gecko::GenerateGct();
+
+  // This is the address where the codes will be written to
+  auto address = Common::swap32(&payload[0]);
+
+  INFO_LOG(SLIPPI, "Preparing to write gecko codes at: 0x%X", address);
+
+  m_read_queue.insert(m_read_queue.end(), gct.begin(), gct.end());
 }
 
 void CEXISlippi::handleChatMessage(u8* payload)
@@ -2468,6 +2512,7 @@ void CEXISlippi::prepareNewSeed()
 
 void CEXISlippi::handleReportGame(u8* payload)
 {
+#ifndef LOCAL_TESTING
   SlippiGameReporter::GameReport r;
   r.duration_frames = Common::swap32(&payload[0]);
 
@@ -2488,6 +2533,7 @@ void CEXISlippi::handleReportGame(u8* payload)
   }
 
   game_reporter->StartReport(r);
+#endif
 }
 
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
@@ -2618,6 +2664,12 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_REPORT_GAME:
       handleReportGame(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_GCT_LENGTH:
+      prepareGctLength();
+      break;
+    case CMD_GCT_LOAD:
+      prepareGctLoad(&memPtr[bufLoc + 1]);
       break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");

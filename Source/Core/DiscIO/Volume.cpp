@@ -85,6 +85,26 @@ std::map<Language, std::string> Volume::ReadWiiNames(const std::vector<char16_t>
   return names;
 }
 
+bool Volume::FileExists(std::string file_name)
+{
+  std::vector<DiscIO::Partition> partitions = this->GetPartitions();
+  if (partitions.empty())
+    partitions.emplace_back(PARTITION_NONE);
+
+  for (const auto& partition : partitions)
+  {
+    const DiscIO::FileInfo& root_dir = this->GetFileSystem(partition)->GetRoot();
+    for (const auto& file_info : root_dir)
+    {
+      if (file_info.GetName() == file_name)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 static std::unique_ptr<VolumeDisc> CreateDisc(std::unique_ptr<BlobReader>& reader)
 {
   // Check for Wii

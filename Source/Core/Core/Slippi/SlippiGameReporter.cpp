@@ -16,18 +16,6 @@
 #include <json.hpp>
 using json = nlohmann::json;
 
-inline size_t receive(char* ptr, size_t size, size_t nmemb, void* rcvBuf)
-{
-  size_t len = size * nmemb;
-  INFO_LOG(SLIPPI_ONLINE, "[User] Received data: %d", len);
-
-  std::string* buf = (std::string*)rcvBuf;
-
-  buf->insert(buf->end(), ptr, ptr + len);
-
-  return len;
-}
-
 SlippiGameReporter::SlippiGameReporter(SlippiUser* user)
 {
   CURL* curl = curl_easy_init();
@@ -76,7 +64,7 @@ void SlippiGameReporter::StartReport(GameReport report)
 
 void SlippiGameReporter::StartNewSession(std::vector<std::string> new_player_uids)
 {
-  this->player_uids = new_player_uids;
+  this->m_player_uids = new_player_uids;
   gameIndex = 1;
 }
 
@@ -108,7 +96,7 @@ void SlippiGameReporter::ReportThreadHandler()
       for (int i = 0; i < report.players.size(); i++)
       {
         json p;
-        p["uid"] = player_uids[i];
+        p["uid"] = m_player_uids[i];
         p["damage_done"] = report.players[i].damage_done;
         p["stocks_remaining"] = report.players[i].stocks_remaining;
 

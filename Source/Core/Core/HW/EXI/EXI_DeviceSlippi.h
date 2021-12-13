@@ -10,6 +10,7 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Core/Slippi/SlippiGameFileLoader.h"
+#include "Core/Slippi/SlippiGameReporter.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
 #include "Core/Slippi/SlippiNetplay.h"
 #include "Core/Slippi/SlippiPlayback.h"
@@ -17,7 +18,6 @@
 #include "Core/Slippi/SlippiSavestate.h"
 #include "Core/Slippi/SlippiSpectate.h"
 #include "Core/Slippi/SlippiUser.h"
-#include "Core/Slippi/SlippiGameReporter.h"
 #include "EXI_Device.h"
 
 #define ROLLBACK_MAX_FRAMES 7
@@ -79,6 +79,8 @@ private:
     CMD_LOG_MESSAGE = 0xD0,
     CMD_FILE_LENGTH = 0xD1,
     CMD_FILE_LOAD = 0xD2,
+    CMD_GCT_LENGTH = 0xD3,
+    CMD_GCT_LOAD = 0xD4,
   };
 
   enum
@@ -124,6 +126,8 @@ private:
       {CMD_LOG_MESSAGE, 0xFFFF},  // Variable size... will only work if by itself
       {CMD_FILE_LENGTH, 0x40},
       {CMD_FILE_LOAD, 0x40},
+      {CMD_GCT_LENGTH, 0x0},
+      {CMD_GCT_LOAD, 0x4},
   };
 
   struct WriteMessage
@@ -174,7 +178,7 @@ private:
   void prepareOnlineStatus();
   void handleConnectionCleanup();
   void prepareNewSeed();
-  void handleReportGame(u8 *payload);
+  void handleReportGame(u8* payload);
 
   // replay playback stuff
   void prepareGameInfo(u8* payload);
@@ -185,10 +189,12 @@ private:
   void prepareIsFileReady();
 
   // misc stuff
-  void handleChatMessage(u8 *payload);
+  void handleChatMessage(u8* payload);
   void logMessageFromGame(u8* payload);
   void prepareFileLength(u8* payload);
   void prepareFileLoad(u8* payload);
+  void prepareGctLength();
+  void prepareGctLoad(u8* payload);
   int getCharColor(u8 charId, u8 teamId);
 
   void FileWriteThread(void);
@@ -222,7 +228,7 @@ private:
   std::string forcedError = "";
 
   // Used to determine when to detect when a new session has started
-	bool is_play_session_active = false;
+  bool is_play_session_active = false;
 
   // Frame skipping variables
   int framesToSkip = 0;

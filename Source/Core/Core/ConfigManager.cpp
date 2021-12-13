@@ -51,6 +51,7 @@
 #include "VideoCommon/HiresTextures.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
 
@@ -959,7 +960,32 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
   const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
   m_strBootROM = GetBootROMPath(region_dir);
-  m_strIsoPath = (boot.parameters.index() == 0) ? std::get<BootParameters::Disc>(boot.parameters).path : "";
+  m_strIsoPath =
+      (boot.parameters.index() == 0) ? std::get<BootParameters::Disc>(boot.parameters).path : "";
+
+  std::shared_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(m_strIsoPath);
+
+  if (m_game_id == "GALE01" || m_game_id == "GALJ01")
+  {
+    m_melee_version = Melee::Version::NTSC;
+
+    if (volume->GetLongNames()[DiscIO::Language::English].find("20XX") != std::string::npos)
+      m_melee_version = Melee::Version::TwentyXX;
+    else
+    {
+      // check for m-ex based build
+      if (volume->FileExists("MxDt.dat"))
+      {
+        m_melee_version = Melee::Version::MEX;
+      }
+    }
+  }
+  else if (m_game_id == "GTME01")
+  {
+    m_melee_version = Melee::Version::UPTM;
+  }
+
+  INFO_LOG_FMT(BOOT, "Melee Version: {}", m_melee_version);
 
   return true;
 }

@@ -192,7 +192,7 @@ protected:
   bool isConnectionSelected = false;
   bool isDecider = false;
   bool hasGameStarted = false;
-  u8 playerIdx = 0;
+  u8 m_player_idx = 0;
 
   std::deque<std::unique_ptr<SlippiPad>> localPadQueue;  // most recent inputs at start of deque
   std::deque<std::unique_ptr<SlippiPad>>
