@@ -44,8 +44,10 @@ void PathPane::BrowseDefaultGame()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs "
-         "*.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)")));
+      QStringLiteral("%1 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
+                     "*.m3u *.json);;%2 (*)")
+          .arg(tr("All GC/Wii files"))
+          .arg(tr("All Files"))));
 
   if (!file.isEmpty())
     Settings::Instance().SetDefaultGame(file);

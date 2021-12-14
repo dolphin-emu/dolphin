@@ -352,16 +352,17 @@ void GameList::ShowContextMenu(const QPoint&)
   else
   {
     const auto game = GetSelectedGame();
+    const bool is_mod_descriptor = game->IsModDescriptor();
     DiscIO::Platform platform = game->GetPlatform();
     menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
-    if (platform != DiscIO::Platform::ELFOrDOL)
+    if (!is_mod_descriptor && platform != DiscIO::Platform::ELFOrDOL)
     {
       menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
     }
 
     menu->addSeparator();
 
-    if (DiscIO::IsDisc(platform))
+    if (!is_mod_descriptor && DiscIO::IsDisc(platform))
     {
       menu->addAction(tr("Start with Riivolution Patches..."), this,
                       &GameList::StartWithRiivolution);
@@ -382,7 +383,7 @@ void GameList::ShowContextMenu(const QPoint&)
       menu->addSeparator();
     }
 
-    if (platform == DiscIO::Platform::WiiDisc)
+    if (!is_mod_descriptor && platform == DiscIO::Platform::WiiDisc)
     {
       auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this,
                                                   [this, file_path = game->GetFilePath()] {
@@ -394,7 +395,7 @@ void GameList::ShowContextMenu(const QPoint&)
       perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
     }
 
-    if (platform == DiscIO::Platform::WiiWAD)
+    if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)
     {
       QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
       QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
@@ -420,14 +421,15 @@ void GameList::ShowContextMenu(const QPoint&)
       menu->addSeparator();
     }
 
-    if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
+    if (!is_mod_descriptor &&
+        (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc))
     {
       menu->addAction(tr("Open Wii &Save Folder"), this, &GameList::OpenWiiSaveFolder);
       menu->addAction(tr("Export Wii Save"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
     }
 
-    if (platform == DiscIO::Platform::GameCubeDisc)
+    if (!is_mod_descriptor && platform == DiscIO::Platform::GameCubeDisc)
     {
       menu->addAction(tr("Open GameCube &Save Folder"), this, &GameList::OpenGCSaveFolder);
       menu->addSeparator();

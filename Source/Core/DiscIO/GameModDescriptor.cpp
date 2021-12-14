@@ -115,10 +115,15 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
     return std::nullopt;
 
   GameModDescriptor descriptor;
+  bool is_game_mod_descriptor = false;
   bool is_valid_version = false;
   for (const auto& [key, value] : json_root.get<picojson::object>())
   {
-    if (key == "version" && value.is<double>())
+    if (key == "type" && value.is<std::string>())
+    {
+      is_game_mod_descriptor = value.get<std::string>() == "dolphin-game-mod-descriptor";
+    }
+    else if (key == "version" && value.is<double>())
     {
       is_valid_version = value.get<double>() == 1.0;
     }
@@ -140,8 +145,80 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
           ParseRiivolutionObject(json_directory, value.get<picojson::object>());
     }
   }
-  if (!is_valid_version)
+  if (!is_game_mod_descriptor || !is_valid_version)
     return std::nullopt;
   return descriptor;
+}
+
+static picojson::object
+WriteGameModDescriptorRiivolution(const GameModDescriptorRiivolution& riivolution)
+{
+  picojson::array json_patches;
+  for (const auto& patch : riivolution.patches)
+  {
+    picojson::object json_patch;
+    if (!patch.xml.empty())
+      json_patch["xml"] = picojson::value(patch.xml);
+    if (!patch.root.empty())
+      json_patch["root"] = picojson::value(patch.root);
+    if (!patch.options.empty())
+    {
+      picojson::array json_options;
+      for (const auto& option : patch.options)
+      {
+        picojson::object json_option;
+        if (!option.section_name.empty())
+          json_option["section-name"] = picojson::value(option.section_name);
+        if (!option.option_id.empty())
+          json_option["option-id"] = picojson::value(option.option_id);
+        if (!option.option_name.empty())
+          json_option["option-name"] = picojson::value(option.option_name);
+        json_option["choice"] = picojson::value(static_cast<double>(option.choice));
+        json_options.emplace_back(std::move(json_option));
+      }
+      json_patch["options"] = picojson::value(std::move(json_options));
+    }
+    json_patches.emplace_back(std::move(json_patch));
+  }
+
+  picojson::object json_riivolution;
+  json_riivolution["patches"] = picojson::value(std::move(json_patches));
+  return json_riivolution;
+}
+
+std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, bool pretty)
+{
+  picojson::object json_root;
+  json_root["type"] = picojson::value("dolphin-game-mod-descriptor");
+  json_root["version"] = picojson::value(1.0);
+  if (!descriptor.base_file.empty())
+    json_root["base-file"] = picojson::value(descriptor.base_file);
+  if (!descriptor.display_name.empty())
+    json_root["display-name"] = picojson::value(descriptor.display_name);
+  if (!descriptor.banner.empty())
+    json_root["banner"] = picojson::value(descriptor.banner);
+  if (descriptor.riivolution)
+  {
+    json_root["riivolution"] =
+        picojson::value(WriteGameModDescriptorRiivolution(*descriptor.riivolution));
+  }
+  return picojson::value(json_root).serialize(pretty);
+}
+
+bool WriteGameModDescriptorFile(const std::string& filename, const GameModDescriptor& descriptor,
+                                bool pretty)
+{
+  auto json = WriteGameModDescriptorString(descriptor, pretty);
+  if (json.empty())
+    return false;
+
+  ::File::IOFile f(filename, "wb");
+  if (!f)
+    return false;
+
+  if (!f.WriteString(json))
+    return false;
+
+  return true;
 }
 }  // namespace DiscIO

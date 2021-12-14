@@ -86,7 +86,7 @@ public:
   virtual void HideChunkedProgressDialog() = 0;
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
 
-  virtual void SetHostWiiSyncTitles(std::vector<u64> titles) = 0;
+  virtual void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) = 0;
 };
 
 class Player
@@ -157,7 +157,8 @@ public:
 
   void AdjustPadBufferSize(unsigned int size);
 
-  void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles);
+  void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles,
+                      std::string redirect_folder);
 
   static SyncIdentifier GetSDCardIdentifier();
 
@@ -328,6 +329,7 @@ private:
 
   std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
   std::vector<u64> m_wii_sync_titles;
+  std::string m_wii_sync_redirect_folder;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

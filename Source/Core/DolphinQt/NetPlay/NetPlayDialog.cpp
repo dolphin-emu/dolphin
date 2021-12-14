@@ -1179,9 +1179,9 @@ void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
   });
 }
 
-void NetPlayDialog::SetHostWiiSyncTitles(std::vector<u64> titles)
+void NetPlayDialog::SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder)
 {
   auto client = Settings::Instance().GetNetPlayClient();
   if (client)
-    client->SetWiiSyncData(nullptr, std::move(titles));
+    client->SetWiiSyncData(nullptr, std::move(titles), std::move(redirect_folder));
 }

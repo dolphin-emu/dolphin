@@ -31,6 +31,7 @@
 #include "Common/Version.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
@@ -60,6 +61,7 @@
 #include "Core/SyncIdentifier.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
@@ -1616,6 +1618,17 @@ bool NetPlayServer::SyncSaveData()
     save_count++;
   }
 
+  std::optional<DiscIO::Riivolution::SavegameRedirect> redirected_save;
+  if (wii_save && game->GetBlobType() == DiscIO::BlobType::MOD_DESCRIPTOR)
+  {
+    auto boot_params = BootParameters::GenerateFromFile(game->GetFilePath());
+    if (boot_params)
+    {
+      redirected_save =
+          DiscIO::Riivolution::ExtractSavegameRedirect(boot_params->riivolution_patches);
+    }
+  }
+
   for (const auto& config : m_gba_config)
   {
     if (config.enabled && config.has_rom)
@@ -1818,8 +1831,20 @@ bool NetPlayServer::SyncSaveData()
       }
     }
 
+    if (redirected_save)
+    {
+      pac << true;
+      if (!CompressFolderIntoPacket(redirected_save->m_target_path, pac))
+        return false;
+    }
+    else
+    {
+      pac << false;  // no redirected save
+    }
+
     // Set titles for host-side loading in WiiRoot
-    m_dialog->SetHostWiiSyncTitles(std::move(titles));
+    m_dialog->SetHostWiiSyncData(std::move(titles),
+                                 redirected_save ? redirected_save->m_target_path : "");
 
     SendChunkedToClients(std::move(pac), 1, "Wii Save Synchronization");
   }

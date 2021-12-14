@@ -50,6 +50,8 @@ std::string GetName(BlobType blob_type, bool translate)
     return "WIA";
   case BlobType::RVZ:
     return "RVZ";
+  case BlobType::MOD_DESCRIPTOR:
+    return translate_str("Mod");
   default:
     return "";
   }

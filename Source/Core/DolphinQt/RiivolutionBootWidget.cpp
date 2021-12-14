@@ -23,6 +23,7 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/RiivolutionParser.h"
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -38,8 +39,10 @@ struct GuiRiivolutionPatchIndex
 Q_DECLARE_METATYPE(GuiRiivolutionPatchIndex);
 
 RiivolutionBootWidget::RiivolutionBootWidget(std::string game_id, std::optional<u16> revision,
-                                             std::optional<u8> disc, QWidget* parent)
-    : QDialog(parent), m_game_id(std::move(game_id)), m_revision(revision), m_disc_number(disc)
+                                             std::optional<u8> disc, std::string base_game_path,
+                                             QWidget* parent)
+    : QDialog(parent), m_game_id(std::move(game_id)), m_revision(revision), m_disc_number(disc),
+      m_base_game_path(std::move(base_game_path))
 {
   setWindowTitle(tr("Start with Riivolution Patches"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -57,6 +60,7 @@ void RiivolutionBootWidget::CreateWidgets()
   auto* open_xml_button = new QPushButton(tr("Open Riivolution XML..."));
   auto* boot_game_button = new QPushButton(tr("Start"));
   boot_game_button->setDefault(true);
+  auto* save_preset_button = new QPushButton(tr("Save as Preset..."));
   auto* group_box = new QGroupBox();
   auto* scroll_area = new QScrollArea();
 
@@ -71,6 +75,7 @@ void RiivolutionBootWidget::CreateWidgets()
   auto* button_layout = new QHBoxLayout();
   button_layout->addStretch();
   button_layout->addWidget(open_xml_button, 0, Qt::AlignRight);
+  button_layout->addWidget(save_preset_button, 0, Qt::AlignRight);
   button_layout->addWidget(boot_game_button, 0, Qt::AlignRight);
 
   auto* layout = new QVBoxLayout();
@@ -80,6 +85,7 @@ void RiivolutionBootWidget::CreateWidgets()
 
   connect(open_xml_button, &QPushButton::clicked, this, &RiivolutionBootWidget::OpenXML);
   connect(boot_game_button, &QPushButton::clicked, this, &RiivolutionBootWidget::BootGame);
+  connect(save_preset_button, &QPushButton::clicked, this, &RiivolutionBootWidget::SaveAsPreset);
 }
 
 void RiivolutionBootWidget::LoadMatchingXMLs()
@@ -144,13 +150,14 @@ void RiivolutionBootWidget::OpenXML()
   }
 }
 
-void RiivolutionBootWidget::MakeGUIForParsedFile(const std::string& path, std::string root,
+void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string root,
                                                  DiscIO::Riivolution::Disc input_disc)
 {
   const size_t disc_index = m_discs.size();
-  const auto& disc = m_discs.emplace_back(DiscWithRoot{std::move(input_disc), std::move(root)});
+  const auto& disc =
+      m_discs.emplace_back(DiscWithRoot{std::move(input_disc), std::move(root), std::move(path)});
 
-  auto* disc_box = new QGroupBox(QFileInfo(QString::fromStdString(path)).fileName());
+  auto* disc_box = new QGroupBox(QFileInfo(QString::fromStdString(disc.path)).fileName());
   auto* disc_layout = new QVBoxLayout();
   disc_box->setLayout(disc_layout);
 
@@ -278,4 +285,53 @@ void RiivolutionBootWidget::BootGame()
 
   m_should_boot = true;
   close();
+}
+
+void RiivolutionBootWidget::SaveAsPreset()
+{
+  DiscIO::GameModDescriptor descriptor;
+  descriptor.base_file = m_base_game_path;
+
+  DiscIO::GameModDescriptorRiivolution riivolution_descriptor;
+  for (const auto& disc : m_discs)
+  {
+    // filter out XMLs that don't actually contribute to the preset
+    auto patches = disc.disc.GeneratePatches(m_game_id);
+    if (patches.empty())
+      continue;
+
+    auto& descriptor_patch = riivolution_descriptor.patches.emplace_back();
+    descriptor_patch.xml = disc.path;
+    descriptor_patch.root = disc.root;
+    for (const auto& section : disc.disc.m_sections)
+    {
+      for (const auto& option : section.m_options)
+      {
+        auto& descriptor_option = descriptor_patch.options.emplace_back();
+        descriptor_option.section_name = section.m_name;
+        if (!option.m_id.empty())
+          descriptor_option.option_id = option.m_id;
+        else
+          descriptor_option.option_name = option.m_name;
+        descriptor_option.choice = option.m_selected_choice;
+      }
+    }
+  }
+
+  if (!riivolution_descriptor.patches.empty())
+    descriptor.riivolution = std::move(riivolution_descriptor);
+
+  QDir dir = QFileInfo(QString::fromStdString(m_base_game_path)).dir();
+  QString target_path = QFileDialog::getSaveFileName(this, tr("Save Preset"), dir.absolutePath(),
+                                                     QStringLiteral("%1 (*.json);;%2 (*)")
+                                                         .arg(tr("Dolphin Game Mod Preset"))
+                                                         .arg(tr("All Files")));
+  if (target_path.isEmpty())
+    return;
+
+  descriptor.display_name = QFileInfo(target_path).fileName().toStdString();
+  auto dot = descriptor.display_name.rfind('.');
+  if (dot != std::string::npos)
+    descriptor.display_name = descriptor.display_name.substr(0, dot);
+  DiscIO::WriteGameModDescriptorFile(target_path.toStdString(), descriptor, true);
 }

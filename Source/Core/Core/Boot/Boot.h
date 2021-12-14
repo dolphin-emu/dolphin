@@ -66,9 +66,10 @@ public:
 
   IOS::HLE::FS::FileSystem* GetWiiSyncFS() const;
   const std::vector<u64>& GetWiiSyncTitles() const;
+  const std::string& GetWiiSyncRedirectFolder() const;
   void InvokeWiiSyncCleanup() const;
   void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles,
-                      WiiSyncCleanupFunction cleanup);
+                      std::string redirect_folder, WiiSyncCleanupFunction cleanup);
 
 private:
   std::optional<std::string> m_savestate_path;
@@ -76,6 +77,7 @@ private:
 
   std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
   std::vector<u64> m_wii_sync_titles;
+  std::string m_wii_sync_redirect_folder;
   WiiSyncCleanupFunction m_wii_sync_cleanup;
 };
 
