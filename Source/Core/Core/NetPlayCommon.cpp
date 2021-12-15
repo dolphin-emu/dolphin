@@ -3,6 +3,8 @@
 
 #include "Core/NetPlayCommon.h"
 
+#include <algorithm>
+
 #include <fmt/format.h>
 #include <lzo/lzo1x.h>
 
