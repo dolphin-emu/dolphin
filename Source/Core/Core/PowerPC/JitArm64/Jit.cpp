@@ -28,8 +28,12 @@
 using namespace Arm64Gen;
 
 constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
-constexpr size_t FARCODE_SIZE = 1024 * 1024 * 16;
-constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+// We use a bigger farcode size for JitArm64 than Jit64, because JitArm64 always emits farcode
+// for the slow path of each loadstore instruction. Jit64 postpones emitting farcode until the
+// farcode actually is needed, saving it from having to emit farcode for most instructions.
+// TODO: Perhaps implement something similar to Jit64. But using more RAM isn't much of a problem.
+constexpr size_t FARCODE_SIZE = 1024 * 1024 * 64;
+constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 64;
 
 constexpr size_t STACK_SIZE = 2 * 1024 * 1024;
 constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
