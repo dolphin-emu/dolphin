@@ -131,6 +131,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
       m_gametdb_id = volume->GetGameTDBID();
+      m_tri_id = volume->GetTriID();
       m_title_id = volume->GetTitleID().value_or(0);
       m_maker_id = volume->GetMakerID();
       m_revision = volume->GetRevision().value_or(0);
@@ -311,6 +312,7 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_internal_name);
   p.Do(m_game_id);
   p.Do(m_gametdb_id);
+  p.Do(m_tri_id);
   p.Do(m_title_id);
   p.Do(m_maker_id);
 
@@ -499,7 +501,8 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
   if (IsModDescriptor())
     return GetName(Variant::LongAndPossiblyCustom);
 
-  const std::string& database_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
+  const std::string& database_name =
+      title_database.GetTitleName(m_gametdb_id, m_tri_id, GetConfigLanguage());
   return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
 }
 
