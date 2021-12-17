@@ -15,12 +15,17 @@ public:
   CEXIBaseboard();
   void SetCS(int cs) override;
   bool IsPresent() const override;
+  bool IsInterruptSet();
   void DoState(PointerWrap& p) override;
 
 private:
   // STATE_TO_SAVE
+  bool m_have_irq;
   u32 m_position = 0;
   u32 m_command = 0;
+  u8* m_subcommand = (u8*)&m_command;
+  u32 m_irq_timer;
+  u32 m_irq_status;
 
   void TransferByte(u8& byte) override;
 };
