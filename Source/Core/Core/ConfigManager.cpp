@@ -95,7 +95,7 @@ void SConfig::LoadSettings()
 
 void SConfig::ResetRunningGameMetadata()
 {
-  SetRunningGameMetadata("00000000", "", 0, 0, DiscIO::Region::Unknown);
+  SetRunningGameMetadata("00000000", "", "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
@@ -104,13 +104,13 @@ void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
   if (partition == volume.GetGamePartition())
   {
     SetRunningGameMetadata(volume.GetGameID(), volume.GetGameTDBID(),
-                           volume.GetTitleID().value_or(0), volume.GetRevision().value_or(0),
-                           volume.GetRegion());
+                           volume.GetTriID().value_or(""), volume.GetTitleID().value_or(0),
+                           volume.GetRevision().value_or(0), volume.GetRegion());
   }
   else
   {
     SetRunningGameMetadata(volume.GetGameID(partition), volume.GetGameTDBID(),
-                           volume.GetTitleID(partition).value_or(0),
+                           volume.GetTriID().value_or(""), volume.GetTitleID(partition).value_or(0),
                            volume.GetRevision(partition).value_or(0), volume.GetRegion());
   }
 }
@@ -127,23 +127,25 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd, DiscIO::Plat
       !DVDInterface::UpdateRunningGameMetadata(tmd_title_id))
   {
     // If not launching a disc game, just read everything from the TMD.
-    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), tmd_title_id, tmd.GetTitleVersion(),
-                           tmd.GetRegion());
+    SetRunningGameMetadata(tmd.GetGameID(), tmd.GetGameTDBID(), "", tmd_title_id,
+                           tmd.GetTitleVersion(), tmd.GetRegion());
   }
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id)
 {
-  SetRunningGameMetadata(game_id, "", 0, 0, DiscIO::Region::Unknown);
+  SetRunningGameMetadata(game_id, "", "", 0, 0, DiscIO::Region::Unknown);
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
-                                     u64 title_id, u16 revision, DiscIO::Region region)
+                                     std::string tri_id, u64 title_id, u16 revision,
+                                     DiscIO::Region region)
 {
   const bool was_changed = m_game_id != game_id || m_gametdb_id != gametdb_id ||
-                           m_title_id != title_id || m_revision != revision;
+                           m_tri_id != tri_id || m_title_id != title_id || m_revision != revision;
   m_game_id = game_id;
   m_gametdb_id = gametdb_id;
+  m_tri_id = tri_id;
   m_title_id = title_id;
   m_revision = revision;
 
@@ -173,7 +175,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
 
   const Core::TitleDatabase title_database;
   const DiscIO::Language language = GetLanguageAdjustedForRegion(bWii, region);
-  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, m_tri_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
