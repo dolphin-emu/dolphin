@@ -106,11 +106,13 @@ QGroupBox* InfoWidget::CreateGameDetails()
                                              .arg(m_game.GetRevision()));
 
   QString game_id_string = QString::fromStdString(m_game.GetGameID());
+  QString tri_id_string = QString::fromStdString(m_game.GetTriID());
 
   if (const u64 title_id = m_game.GetTitleID())
     game_id_string += QStringLiteral(" (%1)").arg(title_id, 16, 16, QLatin1Char('0'));
 
   QLineEdit* game_id = CreateValueDisplay(game_id_string);
+  QLineEdit* tri_id = CreateValueDisplay(tri_id_string);
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
 
@@ -121,6 +123,8 @@ QGroupBox* InfoWidget::CreateGameDetails()
                          m_game.GetMakerID() + ")");
 
   layout->addRow(tr("Name:"), internal_name);
+  if (m_game.GetPlatform() == DiscIO::Platform::Triforce)
+    layout->addRow(tr("Boot (Triforce) ID:"), tri_id);
   layout->addRow(tr("Game ID:"), game_id);
   layout->addRow(tr("Country:"), country);
   layout->addRow(tr("Maker:"), maker);
