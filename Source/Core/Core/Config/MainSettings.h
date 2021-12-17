@@ -138,6 +138,7 @@ extern const Info<std::string> MAIN_LOAD_PATH;
 extern const Info<std::string> MAIN_RESOURCEPACK_PATH;
 extern const Info<std::string> MAIN_FS_PATH;
 extern const Info<std::string> MAIN_SD_PATH;
+extern const Info<std::string> MAIN_WFS_PATH;
 
 // Main.GBA
 
