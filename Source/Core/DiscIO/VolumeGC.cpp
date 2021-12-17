@@ -48,11 +48,14 @@ VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader)
     std::unique_ptr<FileInfo> file_info = tmp_fs->FindFileInfo("boot.id");
     if (!file_info)
       return;
-    u32 triforce_magic;  // "BTID"
+    BootID triforce_header;
     const u64 file_size = ReadFile(*this, PARTITION_NONE, file_info.get(),
-                                   reinterpret_cast<u8*>(&triforce_magic), sizeof(triforce_magic));
-    if (file_size >= 4 && triforce_magic == BTID_MAGIC)
+                                   reinterpret_cast<u8*>(&triforce_header), sizeof(BootID));
+    if (file_size >= 4 && triforce_header.magic == BTID_MAGIC)
+    {
       m_is_triforce = true;
+      m_triforce_id = triforce_header.id;
+    }
   }
 }
 
@@ -88,6 +91,14 @@ std::string VolumeGC::GetGameTDBID(const Partition& partition) const
 
   // Normal case. Just return the usual game ID.
   return GetGameID(partition);
+}
+
+std::string VolumeGC::GetTriforceID() const
+{
+  if (m_is_triforce)
+    return (std::string(m_triforce_id.data(), m_triforce_id.size()));
+  else
+    return "";
 }
 
 Region VolumeGC::GetRegion() const
