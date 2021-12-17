@@ -13,6 +13,7 @@
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 VideoConfig g_Config;
@@ -103,6 +104,10 @@ void VideoConfig::Refresh()
   bDumpTevTextureFetches = Config::Get(Config::GFX_SW_DUMP_TEV_TEX_FETCHES);
   drawStart = Config::Get(Config::GFX_SW_DRAW_START);
   drawEnd = Config::Get(Config::GFX_SW_DRAW_END);
+  if (g_video_backend->GetName() == "Software Renderer")
+    bRastTimings = !Config::Get(Config::GFX_SW_NO_RAST_TIMINGS);
+  else
+    bRastTimings = false;
 
   bForceFiltering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
   iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);

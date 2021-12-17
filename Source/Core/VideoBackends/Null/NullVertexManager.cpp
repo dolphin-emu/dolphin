@@ -9,8 +9,9 @@ VertexManager::VertexManager() = default;
 
 VertexManager::~VertexManager() = default;
 
-void VertexManager::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
+u32 VertexManager::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
+  return 0;
 }
 
 }  // namespace Null

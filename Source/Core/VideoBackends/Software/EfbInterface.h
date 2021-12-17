@@ -58,5 +58,6 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
 
 u32 GetPerfQueryResult(PerfQueryType type);
 void ResetPerfQuery();
+void IncPerfCounterPixelCount(PerfQueryType type);
 void IncPerfCounterQuadCount(PerfQueryType type);
 }  // namespace EfbInterface

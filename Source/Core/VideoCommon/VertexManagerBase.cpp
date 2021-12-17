@@ -265,7 +265,7 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
   *out_base_index = 0;
 }
 
-void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
+u32 VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
   if (g_renderer->IsBBoxEnabled() && g_ActiveConfig.bBBoxEnable &&
@@ -275,6 +275,8 @@ void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 ba
   }
 
   g_renderer->DrawIndexed(base_index, num_indices, base_vertex);
+
+  return 0;
 }
 
 void VertexManagerBase::UploadUniforms()
@@ -352,10 +354,10 @@ void VertexManagerBase::LoadTextures()
   g_texture_cache->BindTextures(usedtextures);
 }
 
-void VertexManagerBase::Flush()
+u32 VertexManagerBase::Flush()
 {
   if (m_is_flushed)
-    return;
+    return 0;
 
   m_is_flushed = true;
 
@@ -382,7 +384,7 @@ void VertexManagerBase::Flush()
           GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP);
     }
 
-    return;
+    return 0;
   }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -463,6 +465,9 @@ void VertexManagerBase::Flush()
     m_zslope.dirty = false;
   }
 
+  // FIXME: culled triangles should take more than zero cycles.
+  u32 cycles = 0;
+
   if (!m_cull_all)
   {
     // Now the vertices can be flushed to the GPU. Everything following the CommitBuffer() call
@@ -492,7 +497,7 @@ void VertexManagerBase::Flush()
       if (PerfQueryBase::ShouldEmulate())
         g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
-      DrawCurrentBatch(base_index, num_indices, base_vertex);
+      cycles += DrawCurrentBatch(base_index, num_indices, base_vertex);
       INCSTAT(g_stats.this_frame.num_draw_calls);
 
       if (PerfQueryBase::ShouldEmulate())
@@ -511,6 +516,8 @@ void VertexManagerBase::Flush()
                   "xf.numtexgens ({}) does not match bp.numtexgens ({}). Error in command stream.",
                   xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
   }
+
+  return cycles;
 }
 
 void VertexManagerBase::DoState(PointerWrap& p)

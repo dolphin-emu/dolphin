@@ -70,6 +70,13 @@ void SoftwareRendererWidget::CreateWidgets()
   utility_layout->addWidget(m_dump_textures, 1, 1);
   utility_layout->addWidget(m_dump_objects, 1, 2);
 
+  auto* hacks_box = new QGroupBox(tr("Hacks"));
+  auto* hacks_layout = new QGridLayout();
+  m_no_rast_timings =
+      new GraphicsBool(tr("Disable Rasterizer Timings"), Config::GFX_SW_NO_RAST_TIMINGS);
+  hacks_box->setLayout(hacks_layout);
+  hacks_layout->addWidget(m_no_rast_timings, 1, 1);
+
   auto* debug_box = new QGroupBox(tr("Debug Only"));
   auto* debug_layout = new QGridLayout();
   m_dump_tev_stages = new GraphicsBool(tr("Dump TEV Stages"), Config::GFX_SW_DUMP_TEV_STAGES);
@@ -104,6 +111,7 @@ void SoftwareRendererWidget::CreateWidgets()
   main_layout->addWidget(rendering_box);
   main_layout->addWidget(overlay_box);
   main_layout->addWidget(utility_box);
+  main_layout->addWidget(hacks_box);
   main_layout->addWidget(object_range_box);
   main_layout->addStretch();
 
@@ -164,6 +172,9 @@ void SoftwareRendererWidget::AddDescriptions()
   static const char TR_SHOW_STATISTICS_DESCRIPTION[] =
       QT_TR_NOOP("Show various rendering statistics.<br><br><dolphin_emphasis>If unsure, leave "
                  "this unchecked.</dolphin_emphasis>");
+  static const char TR_NO_CYCLE_COUNT_DESCRIPTION[] =
+      QT_TR_NOOP("Force the software renderer to use the same inaccurate timings as the hardware "
+                 "backends. <br><br><dolphin_emphasis>If unsure, leave this unchecked");
   static const char TR_DUMP_TEXTURES_DESCRIPTION[] =
       QT_TR_NOOP("Dump decoded game textures to "
                  "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "
@@ -185,6 +196,7 @@ void SoftwareRendererWidget::AddDescriptions()
   m_dump_objects->SetDescription(tr(TR_DUMP_OBJECTS_DESCRIPTION));
   m_dump_tev_stages->SetDescription(tr(TR_DUMP_TEV_STAGES_DESCRIPTION));
   m_dump_tev_fetches->SetDescription(tr(TR_DUMP_TEV_FETCHES_DESCRIPTION));
+  m_no_rast_timings->SetDescription(tr(TR_NO_CYCLE_COUNT_DESCRIPTION));
 }
 
 void SoftwareRendererWidget::OnEmulationStateChanged(bool running)

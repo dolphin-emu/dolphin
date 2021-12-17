@@ -71,6 +71,36 @@ void SetTevReg(int reg, int comp, s16 color)
   tev.SetRegColor(reg, comp, color);
 }
 
+// Does the depth test for all four pixels in the block
+// Returns true if at least one pixel passes
+static bool DepthTestBlock(s32 block_x, s32 block_y) {
+  int passCount = 0;
+
+  for (s32 yi = 0; yi < BLOCK_SIZE; yi++)
+  {
+    for (s32 xi = 0; xi < BLOCK_SIZE; xi++)
+    {
+      s32 x = block_x + xi;
+      s32 y = block_y + yi;
+      RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
+
+      float dx = vertexOffsetX + (float)(x - vertex0X);
+      float dy = vertexOffsetY + (float)(y - vertex0Y);
+
+      s32 z = (s32)std::clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
+
+      if (!pixel.mask)
+      {
+        bool passed = EfbInterface::ZCompare(x, y, z);
+        pixel.mask = !passed;
+        passCount += passed;
+      }
+    }
+  }
+
+  return passCount != 0;
+}
+
 static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
   INCSTAT(g_stats.this_frame.rasterized_pixels);
@@ -80,18 +110,6 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 
   s32 z = (s32)std::clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
 
-  if (bpmem.UseEarlyDepthTest() && g_ActiveConfig.bZComploc)
-  {
-    // TODO: Test if perf regs are incremented even if test is disabled
-    EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
-    if (bpmem.zmode.testenable)
-    {
-      // early z
-      if (!EfbInterface::ZCompare(x, y, z))
-        return;
-    }
-    EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT_ZCOMPLOC);
-  }
 
   RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
 
@@ -265,8 +283,8 @@ static void BuildBlock(s32 blockX, s32 blockY)
   }
 }
 
-void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
-                           const OutputVertexData* v2)
+u32 DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
+                          const OutputVertexData* v2)
 {
   INCSTAT(g_stats.this_frame.num_triangles_drawn);
 
@@ -332,7 +350,7 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   maxy = std::min(maxy, scissorBottom);
 
   if (minx >= maxx || miny >= maxy)
-    return;
+    return 2;
 
   // Setup slopes
   float fltx1 = v0->screenPosition.x;
@@ -389,6 +407,8 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   minx &= ~(BLOCK_SIZE - 1);
   miny &= ~(BLOCK_SIZE - 1);
 
+  u32 early_depth_blocks = 0;
+  u32 shadded_blocks = 0;
   // Loop through blocks
   for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
   {
@@ -423,17 +443,16 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
       if (a == 0x0 || b == 0x0 || c == 0x0)
         continue;
 
-      BuildBlock(x, y);
-
-      // Accept whole block when totally covered
       if (a == 0xF && b == 0xF && c == 0xF)
       {
+        // Accept whole block when totally covered
         for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
         {
-          for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
-          {
-            Draw(x + ix, y + iy, ix, iy);
-          }
+            for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
+            {
+              RasterBlockPixel& pixel = rasterBlock.Pixel[ix][iy];
+              pixel.mask = false;
+            }
         }
       }
       else  // Partially covered block
@@ -450,10 +469,8 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
 
           for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
           {
-            if (CX1 > 0 && CX2 > 0 && CX3 > 0)
-            {
-              Draw(x + ix, y + iy, ix, iy);
-            }
+            RasterBlockPixel& pixel = rasterBlock.Pixel[ix][iy];
+            pixel.mask = !(CX1 > 0 && CX2 > 0 && CX3 > 0);
 
             CX1 -= FDY12;
             CX2 -= FDY23;
@@ -465,7 +482,40 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
           CY3 += FDX31;
         }
       }
+
+      // If early depth-testing is enabled, and all pixels in the block fail, we can safely skip
+      // the entire block.
+      if (bpmem.UseEarlyDepthTest())
+      {
+        EfbInterface::IncPerfCounterPixelCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
+        if (!DepthTestBlock(x, y))
+        {
+          continue;
+          early_depth_blocks++;
+        }
+
+        EfbInterface::IncPerfCounterPixelCount(PQ_ZCOMP_OUTPUT_ZCOMPLOC);
+      }
+
+      shadded_blocks++;
+
+      BuildBlock(x, y);
+
+      for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
+      {
+        for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
+        {
+          if (!rasterBlock.Pixel[ix][iy].mask)
+            Draw(x + ix, y + iy, ix, iy);
+        }
+      }
+
     }
   }
+
+  // Assume that all triangles take at least two cycles
+  // Assume that each block with at least one pixel shaded takes one cycle per enabled tev stage
+  // Assume early depth blocks can be skipped at a rate of two per cycle
+  return std::max(2u, early_depth_blocks / 2 + bpmem.genMode.numtevstages * shadded_blocks);
 }
 }  // namespace Rasterizer
