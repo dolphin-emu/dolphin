@@ -5,6 +5,8 @@
 
 #include "Core/HW/EXI/EXI_Device.h"
 
+#include "Common/IOFile.h"
+
 class PointerWrap;
 
 namespace ExpansionInterface
@@ -13,12 +15,16 @@ class CEXIBaseboard : public IEXIDevice
 {
 public:
   CEXIBaseboard();
+  ~CEXIBaseboard();
   void SetCS(int cs) override;
   bool IsPresent() const override;
   bool IsInterruptSet();
   void DoState(PointerWrap& p) override;
 
 private:
+  std::string EEPROM_filename;
+  std::unique_ptr<File::IOFile> m_EEPROM;
+
   // STATE_TO_SAVE
   bool m_have_irq;
   u32 m_position = 0;

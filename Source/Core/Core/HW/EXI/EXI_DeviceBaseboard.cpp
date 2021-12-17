@@ -5,12 +5,32 @@
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 
 namespace ExpansionInterface
 {
-CEXIBaseboard::CEXIBaseboard() = default;
+CEXIBaseboard::CEXIBaseboard()
+{
+  EEPROM_filename = File::GetUserPath(D_TRIUSER_IDX) + "EEPROM.raw";
+  if (File::Exists(EEPROM_filename))
+  {
+    m_EEPROM = std::make_unique<File::IOFile>(EEPROM_filename, "rb+");
+  }
+  else
+  {
+    m_EEPROM = std::make_unique<File::IOFile>(EEPROM_filename, "wb+");
+  }
+}
+
+CEXIBaseboard::~CEXIBaseboard()
+{
+  m_EEPROM->Close();
+  File::Delete(EEPROM_filename);
+}
 
 void CEXIBaseboard::SetCS(int cs)
 {

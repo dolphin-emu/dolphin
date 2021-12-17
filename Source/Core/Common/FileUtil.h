@@ -27,6 +27,7 @@ enum
 {
   D_USER_IDX,
   D_GCUSER_IDX,
+  D_TRIUSER_IDX,
   D_WIIROOT_IDX,          // always points to User/Wii or global user-configured directory
   D_SESSION_WIIROOT_IDX,  // may point to minimal temporary directory for determinism
   D_CONFIG_IDX,           // global settings

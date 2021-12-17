@@ -34,6 +34,7 @@
 
 // Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
 #define GC_USER_DIR "GC"
+#define TRI_USER_DIR "Triforce"
 #define GBA_USER_DIR "GBA"
 #define WII_USER_DIR "Wii"
 #define CONFIG_DIR "Config"
