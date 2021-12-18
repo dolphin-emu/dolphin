@@ -1974,13 +1974,13 @@ void CEXISlippi::prepareOnlineMatchState()
       {
         auto isDecider = slippi_netplay->IsDecider();
         localPlayerIndex = isDecider ? 0 : 1;
-        remotePlayerIndex = isDecider ? 1 : 0;
+        m_remote_player_index = isDecider ? 1 : 0;
       }
 #endif
 
       auto isDecider = slippi_netplay->IsDecider();
       localPlayerIndex = isDecider ? 0 : 1;
-      remotePlayerIndex = isDecider ? 1 : 0;
+      m_remote_player_index = isDecider ? 1 : 0;
     }
     else
     {
@@ -2031,10 +2031,10 @@ void CEXISlippi::prepareOnlineMatchState()
   oppName = p2Name = "Player 2";
 #endif
 
-  m_read_queue.push_back(localPlayerReady);    // Local player ready
-  m_read_queue.push_back(remotePlayersReady);  // Remote players ready
-  m_read_queue.push_back(localPlayerIndex);    // Local player index
-  m_read_queue.push_back(remotePlayerIndex);   // Remote player index
+  m_read_queue.push_back(localPlayerReady);       // Local player ready
+  m_read_queue.push_back(remotePlayersReady);     // Remote players ready
+  m_read_queue.push_back(m_local_player_index);   // Local player index
+  m_read_queue.push_back(m_remote_player_index);  // Remote player index
 
   // Set chat message if any
   if (slippi_netplay)
@@ -2057,12 +2057,12 @@ void CEXISlippi::prepareOnlineMatchState()
     }
     else
     {
-      chatMessagePlayerIdx = localPlayerIndex;
+      chatMessagePlayerIdx = m_local_player_index;
     }
 
     if (isSingleMode || !matchmaking)
     {
-      chatMessagePlayerIdx = sentChatMessageId > 0 ? localPlayerIndex : remotePlayerIndex;
+      chatMessagePlayerIdx = sentChatMessageId > 0 ? m_local_player_index : m_remote_player_index;
     }
     // in CSS p1 is always current player and p2 is opponent
     localPlayerName = p1Name = userInfo.display_name;
@@ -2276,11 +2276,11 @@ void CEXISlippi::prepareOnlineMatchState()
   }
 
   // Create the opponent string using the names of all players on opposing teams
-  int teamIdx = onlineMatchBlock[0x69 + localPlayerIndex * 0x24];
+  int teamIdx = onlineMatchBlock[0x69 + m_local_player_index * 0x24];
   std::string oppText = "";
   for (int i = 0; i < 4; i++)
   {
-    if (i == localPlayerIndex)
+    if (i == m_local_player_index)
       continue;
 
     if (onlineMatchBlock[0x69 + i * 0x24] != teamIdx)
@@ -2292,7 +2292,7 @@ void CEXISlippi::prepareOnlineMatchState()
     }
   }
   if (matchmaking->RemotePlayerCount() == 1)
-    oppText = matchmaking->GetPlayerName(remotePlayerIndex);
+    oppText = matchmaking->GetPlayerName(m_remote_player_index);
   oppName = ConvertStringForGame(oppText, MAX_NAME_LENGTH * 2 + 1);
   m_read_queue.insert(m_read_queue.end(), oppName.begin(), oppName.end());
 

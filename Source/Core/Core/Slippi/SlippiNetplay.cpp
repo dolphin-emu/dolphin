@@ -364,10 +364,10 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     // if chat is not enabled, automatically send back a message saying so
     if (!SConfig::GetInstance().m_slippiEnableQuickChat)
     {
-      auto packet = std::make_unique<sf::Packet>();
+      auto chat_packet = std::make_unique<sf::Packet>();
       remoteSentChatMessageId = SlippiPremadeText::CHAT_MSG_CHAT_DISABLED;
-      WriteChatMessageToPacket(*packet, remoteSentChatMessageId, LocalPlayerPort());
-      SendAsync(std::move(packet));
+      WriteChatMessageToPacket(*chat_packet, remoteSentChatMessageId, LocalPlayerPort());
+      SendAsync(std::move(chat_packet));
       remoteSentChatMessageId = 0;
       break;
     }

@@ -241,8 +241,8 @@ private:
 
   // We put these at the class level to preserve values in the case of a disconnect
   // while loading. Without this, someone could load into a game playing the wrong char
-  u8 localPlayerIndex = 0;
-  u8 remotePlayerIndex = 1;
+  u8 m_local_player_index = 0;
+  u8 m_remote_player_index = 1;
 
   // Frame skipping variables
   int framesToSkip = 0;
