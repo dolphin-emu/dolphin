@@ -2059,7 +2059,7 @@ struct fmt::formatter<UPE_Copy>
                      "Converting from RGB to YUV: {}\n"
                      "Target pixel format: {}\n"
                      "Gamma correction: {}\n"
-                     "Mipmap filter: {}\n"
+                     "Half scale: {}\n"
                      "Vertical scaling: {}\n"
                      "Clear: {}\n"
                      "Frame to field: {}\n"
