@@ -2446,9 +2446,7 @@ std::vector<u8> CEXISlippi::loadPremadeText(u8* payload)
     playerName = defaultNames[port];
 #endif
 
-    u8 paramId = payload[1] == 0x83 ?
-                     0x88 :
-                     payload[1];  // TODO: Figure out what the hell is going on and fix this
+    u8 paramId = payload[1];
 
     if (paramId == SlippiPremadeText::CHAT_MSG_CHAT_DISABLED)
     {

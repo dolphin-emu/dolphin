@@ -132,8 +132,8 @@ private:
       {CMD_GCT_LENGTH, 0x0},
       {CMD_GCT_LOAD, 0x4},
       {CMD_GET_DELAY, 0x0},
-      {CMD_PREMADE_TEXT_LENGTH, 0x0},
-      {CMD_PREMADE_TEXT_LOAD, 0x4},
+      {CMD_PREMADE_TEXT_LENGTH, 0x2},
+      {CMD_PREMADE_TEXT_LOAD, 0x2},
   };
 
   struct WriteMessage
