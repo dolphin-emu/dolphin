@@ -129,7 +129,6 @@ int SlippiMatchmaking::receiveMessage(json& msg, int timeoutMs)
                  netEvent.packet->data + netEvent.packet->dataLength);
 
       std::string str(buf.begin(), buf.end());
-      INFO_LOG(SLIPPI_ONLINE, "[Matchmaking] Received: %s", str.c_str());
       msg = json::parse(str);
 
       enet_packet_destroy(netEvent.packet);
@@ -289,19 +288,31 @@ void SlippiMatchmaking::startMatchmaking()
 
   ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Trying to find match...");
 
-  // if (!m_user->IsLoggedIn())
-  // {
-  //   ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Must be logged in to queue");
-  //   m_state = ProcessState::ERROR_ENCOUNTERED;
-  //   m_errorMsg = "Must be logged in to queue. Go back to menu";
-  //   return;
-  // }
+  /*if (!m_user->IsLoggedIn())
+  {
+      ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Must be logged in to queue");
+      m_state = ProcessState::ERROR_ENCOUNTERED;
+      m_errorMsg = "Must be logged in to queue. Go back to menu";
+      return;
+  }*/
 
-  // Compute LAN IP, in case 2 people are connecting from one IP we can send them each other's local
-  // IP instead of public. Experimental to allow people from behind one router to connect.
+  // The following code attempts to fetch the LAN IP such that when remote IPs match, the
+  // LAN IP can be tried in order to establish a connection in the case where the players
+  // don't have NAT loopback which allows that type of connection.
+  // Right now though, the logic would replace the WAN IP with the LAN IP and if the LAN
+  // IP connection didn't work but WAN would have, the players can no longer connect.
+  // Two things need to happen to improtve this logic:
+  // 1. The connection must be changed to try both the LAN and WAN IPs in the case of
+  //    matching WAN IPs
+  // 2. The process for fetching LAN IP must be improved. For me, the current method
+  //    would always fetch my VirtualBox IP, which is not correct. I also think perhaps
+  //    it didn't work on Linux/Mac but I haven't tested it.
+  // I left this logic on for now under the assumption that it will help more people than
+  // it will hurt
+  char lan_addr[30] = "";
+
   char host[256];
-  char lan_addr[30];
-  char* ip;
+  char* ip = static_cast<char*>(malloc(16));
   struct hostent* host_entry;
   int hostname;
   hostname = gethostname(host, sizeof(host));  // find the host name
@@ -312,15 +323,23 @@ void SlippiMatchmaking::startMatchmaking()
   else
   {
     host_entry = gethostbyname(host);  // find host information
-    if (host_entry == NULL)
+    if (host_entry == NULL || host_entry->h_addrtype != AF_INET)
     {
       ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Error finding LAN host");
     }
     else
     {
-      ip = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[0]));  // Convert into IP string
-      INFO_LOG(SLIPPI_ONLINE, "[Matchmaking] LAN IP: %s", ip);
+      // Fetch the last IP (because that was correct for me, not sure if it will be for all)
+      int i = 0;
+      while (host_entry->h_addr_list[i] != 0)
+      {
+        ip = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[i]));
+        WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] IP at idx {}: {}", i, ip);
+        i++;
+      }
+
       sprintf(lan_addr, "%s:%d", ip, m_hostPort);
+      WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Sending LAN address: {}", lan_addr);
     }
   }
 
@@ -410,7 +429,7 @@ void SlippiMatchmaking::handleMatchmaking()
   {
     if (latestVersion != "")
     {
-      // Update file to get new version number when the mm server tells us our version is outdated
+      // Update version number when the mm server tells us our version is outdated
       m_user->OverwriteLatestVersion(
           latestVersion);  // Force latest version for people whose file updates dont work
     }
@@ -578,6 +597,7 @@ void SlippiMatchmaking::handleConnecting()
   {
     ipLog << m_remoteIps[i] << ", ";
   }
+  // INFO_LOG(SLIPPI_ONLINE, "[Matchmaking] My port: %d || %s", m_hostPort, ipLog.str());
 
   // Is host is now used to specify who the decider is
   auto client = std::make_unique<SlippiNetplayClient>(addrs, ports, remotePlayerCount, m_hostPort,
