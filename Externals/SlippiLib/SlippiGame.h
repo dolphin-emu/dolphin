@@ -22,6 +22,8 @@ namespace Slippi {
   const uint8_t GAME_INFO_HEADER_SIZE = 78;
   const uint8_t UCF_TOGGLE_SIZE = 8;
   const uint8_t NAMETAG_SIZE = 8;
+  const uint8_t DISPLAY_NAME_SIZE = 31;
+  const uint8_t CONNECT_CODE_SIZE = 10;
   const int32_t GAME_FIRST_FRAME = -123;
   const int32_t PLAYBACK_FIRST_SAVE = -122;
   const uint8_t GAME_SHEIK_INTERNAL_ID = 0x7;
@@ -80,6 +82,8 @@ namespace Slippi {
     uint8_t playerType;
     uint8_t controllerPort;
     std::array<uint16_t, NAMETAG_SIZE> nametag;
+    std::array<uint8_t, DISPLAY_NAME_SIZE> displayName;
+    std::array<uint8_t, CONNECT_CODE_SIZE> connectCode;
   } PlayerSettings;
 
   typedef struct {
@@ -90,6 +94,8 @@ namespace Slippi {
     std::unordered_map<uint8_t, PlayerSettings> players;
     uint8_t isPAL;
     uint8_t isFrozenPS;
+    uint8_t minorScene;
+    uint8_t majorScene;
     std::vector<uint8_t> geckoCodes;
   } GameSettings;
 

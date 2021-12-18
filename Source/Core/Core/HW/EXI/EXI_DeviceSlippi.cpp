@@ -726,6 +726,13 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   // Write should resync setting
   m_read_queue.push_back(replayCommSettings.shouldResync ? 1 : 0);
 
+  // Write display names
+  for (int i = 0; i < 4; i++)
+  {
+    auto displayName = settings->players[i].displayName;
+    m_read_queue.insert(m_read_queue.end(), displayName.begin(), displayName.end());
+  }
+
   // Return the size of the gecko code list
   prepareGeckoList();
   appendWordToBuffer(&m_read_queue, (u32)geckoList.size());
