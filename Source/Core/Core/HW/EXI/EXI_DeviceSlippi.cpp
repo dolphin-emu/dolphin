@@ -2025,27 +2025,30 @@ void CEXISlippi::prepareOnlineMatchState()
 #ifdef LOCAL_TESTING
     lps.playerIdx = 0;
 
-    for (int i = 0; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
+    // By default Local testing for teams is against
+    // 1 RED TEAM Falco
+    // 2 BLUE TEAM Falco
+    for (int i = 0; i <= SLIPPI_REMOTE_PLAYER_MAX; i++)
     {
       if (i == 0)
       {
         rps[i].characterColor = 1;
-        rps[i].teamId = 1;
+        rps[i].teamId = 0;
       }
       else
       {
         rps[i].characterColor = 2;
-        rps[i].teamId = 2;
+        rps[i].teamId = 1;
       }
 
-      rps[i].characterId = 0x2 + i;
+      rps[i].characterId = 0x14;
       rps[i].playerIdx = i + 1;
       rps[i].isCharacterSelected = true;
     }
 
     if (lastSearch.mode == SlippiMatchmaking::OnlinePlayMode::TEAMS)
     {
-      remotePlayerCount = 4;
+      remotePlayerCount = 3;
     }
 
     oppName = std::string("Player");
@@ -2079,14 +2082,10 @@ void CEXISlippi::prepareOnlineMatchState()
     // Overwrite remote player character
     for (int i = 0; i < remotePlayerCount; i++)
     {
-      u8 idx = matchInfo->remotePlayerSelections[i].playerIdx;
-      onlineMatchBlock[0x60 + idx * 0x24] = matchInfo->remotePlayerSelections[i].characterId;
-
-      // Set Char Colors
-      onlineMatchBlock[0x63 + idx * 0x24] = matchInfo->remotePlayerSelections[i].characterColor;
-
-      // Set Team Ids
-      onlineMatchBlock[0x69 + idx * 0x24] = matchInfo->remotePlayerSelections[i].teamId;
+      u8 idx = rps[i].playerIdx;
+      onlineMatchBlock[0x60 + idx * 0x24] = rps[i].characterId;
+      onlineMatchBlock[0x63 + idx * 0x24] = rps[i].characterColor;
+      onlineMatchBlock[0x69 + idx * 0x24] = rps[i].teamId;
     }
 
     // Handle Singles/Teams specific logic
