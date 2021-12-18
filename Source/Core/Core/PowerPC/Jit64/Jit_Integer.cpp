@@ -2559,9 +2559,11 @@ void Jit64::twX(UGeckoInstruction inst)
       fixups.push_back(f);
     }
   }
-  FixupBranch dont_trap = J();
 
+  if (!fixups.empty())
   {
+    SwitchToFarCode();
+
     RCForkGuard gpr_guard = gpr.Fork();
     RCForkGuard fpr_guard = fpr.Fork();
 
@@ -2577,9 +2579,9 @@ void Jit64::twX(UGeckoInstruction inst)
     fpr.Flush();
 
     WriteExceptionExit();
-  }
 
-  SetJumpTarget(dont_trap);
+    SwitchToNearCode();
+  }
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
