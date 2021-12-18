@@ -82,6 +82,8 @@ private:
     CMD_GCT_LENGTH = 0xD3,
     CMD_GCT_LOAD = 0xD4,
     CMD_GET_DELAY = 0xD5,
+    CMD_PREMADE_TEXT_LENGTH = 0xE1,
+    CMD_PREMADE_TEXT_LOAD = 0xE2,
   };
 
   enum
@@ -130,6 +132,8 @@ private:
       {CMD_GCT_LENGTH, 0x0},
       {CMD_GCT_LOAD, 0x4},
       {CMD_GET_DELAY, 0x0},
+      {CMD_PREMADE_TEXT_LENGTH, 0x0},
+      {CMD_PREMADE_TEXT_LOAD, 0x4},
   };
 
   struct WriteMessage
@@ -198,6 +202,10 @@ private:
   void prepareGctLength();
   void prepareGctLoad(u8* payload);
   void prepareDelayResponse();
+  void preparePremadeTextLength(u8* payload);
+  void preparePremadeTextLoad(u8* payload);
+  std::vector<u8> loadPremadeText(u8* payload);
+  int getCharColor(u8 charId, u8 teamId);
 
   void FileWriteThread(void);
 

@@ -490,6 +490,7 @@ add_library(core
   Slippi/SlippiUser.h
 	Slippi/SlippiGameReporter.cpp
 	Slippi/SlippiGameReporter.h
+	Slippi/SlippiPremadeText.h
 )
 
 if(_M_X86)

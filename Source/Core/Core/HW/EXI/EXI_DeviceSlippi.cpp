@@ -29,6 +29,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
 #include "Core/Slippi/SlippiPlayback.h"
+#include "Core/Slippi/SlippiPremadeText.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/State.h"
 
@@ -2022,7 +2023,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
 #ifdef LOCAL_TESTING
   localPlayerIndex = 0;
-  chatMessageId = localChatMessageId;
+  sentChatMessageId = localChatMessageId;
   chatMessagePlayerIdx = 0;
   localChatMessageId = 0;
   // in CSS p1 is always current player and p2 is opponent
@@ -2042,8 +2043,15 @@ void CEXISlippi::prepareOnlineMatchState()
     chatMessageId = remoteMessageSelection.messageId;
     chatMessagePlayerIdx = remoteMessageSelection.playerIdx;
     sentChatMessageId = slippi_netplay->GetSlippiRemoteSentChatMessage();
+    // If connection is 1v1 set index 0 for local and 1 for remote
+    if ((matchmaking && matchmaking->RemotePlayerCount() == 1) || !matchmaking)
+    {
+      chatMessagePlayerIdx = sentChatMessageId > 0 ? localPlayerIndex : remotePlayerIndex;
+    }
     // in CSS p1 is always current player and p2 is opponent
     localPlayerName = p1Name = userInfo.display_name;
+    INFO_LOG_FMT(SLIPPI, "chatMessagePlayerIdx {} {}", chatMessagePlayerIdx,
+                 matchmaking ? matchmaking->RemotePlayerCount() : 0);
   }
 
   std::vector<u8> leftTeamPlayers = {};
@@ -2407,6 +2415,58 @@ void CEXISlippi::prepareGctLoad(u8* payload)
   m_read_queue.insert(m_read_queue.end(), gct.begin(), gct.end());
 }
 
+std::vector<u8> CEXISlippi::loadPremadeText(u8* payload)
+{
+  u8 textId = payload[0];
+  std::vector<u8> premadeTextData;
+  auto spt = SlippiPremadeText();
+
+  if (textId >= SlippiPremadeText::SPT_CHAT_P1 && textId <= SlippiPremadeText::SPT_CHAT_P4)
+  {
+    auto port = textId - 1;
+    std::string playerName;
+    if (matchmaking)
+      playerName = matchmaking->GetPlayerName(port);
+#ifdef LOCAL_TESTING
+    std::string defaultNames[] = {"Player 1", "lol u lost 2 dk", "Player 3", "Player 4"};
+    playerName = defaultNames[port];
+#endif
+
+    u8 paramId = payload[1] == 0x83 ?
+                     0x88 :
+                     payload[1];  // TODO: Figure out what the hell is going on and fix this
+
+    auto chatMessage = spt.premadeTextsParams[paramId];
+    std::string param = ReplaceAll(chatMessage.c_str(), " ", "<S>");
+    playerName = ReplaceAll(playerName.c_str(), " ", "<S>");
+    premadeTextData = spt.GetPremadeTextData(textId, playerName.c_str(), param.c_str());
+  }
+  else
+  {
+    premadeTextData = spt.GetPremadeTextData(textId);
+  }
+
+  return premadeTextData;
+}
+
+void CEXISlippi::preparePremadeTextLength(u8* payload)
+{
+  std::vector<u8> premadeTextData = loadPremadeText(payload);
+
+  m_read_queue.clear();
+  // Write size to output
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(premadeTextData.size()));
+}
+
+void CEXISlippi::preparePremadeTextLoad(u8* payload)
+{
+  std::vector<u8> premadeTextData = loadPremadeText(payload);
+
+  m_read_queue.clear();
+  // Write data to output
+  m_read_queue.insert(m_read_queue.end(), premadeTextData.begin(), premadeTextData.end());
+}
+
 void CEXISlippi::handleChatMessage(u8* payload)
 {
   int messageId = payload[0];
@@ -2696,6 +2756,12 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_FILE_LOAD:
       prepareFileLoad(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_PREMADE_TEXT_LENGTH:
+      preparePremadeTextLength(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_PREMADE_TEXT_LOAD:
+      preparePremadeTextLoad(&memPtr[bufLoc + 1]);
       break;
     case CMD_OPEN_LOGIN:
       handleLogInRequest();
