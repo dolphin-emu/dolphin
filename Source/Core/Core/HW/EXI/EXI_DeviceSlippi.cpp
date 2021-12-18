@@ -2448,15 +2448,23 @@ std::vector<u8> CEXISlippi::loadPremadeText(u8* payload)
 
     u8 paramId = payload[1];
 
+    for (auto it = spt.unsupportedStringMap.begin(); it != spt.unsupportedStringMap.end(); it++)
+    {
+      playerName = ReplaceAll(playerName.c_str(), it->second, "");  // Remove unsupported chars
+      playerName = ReplaceAll(playerName.c_str(), it->first,
+                              it->second);  // Remap delimiters for premade text
+    }
+
+    // Replaces spaces with premade text space
+    playerName = ReplaceAll(playerName.c_str(), " ", "<S>");
+
     if (paramId == SlippiPremadeText::CHAT_MSG_CHAT_DISABLED)
     {
       return premadeTextData =
                  spt.GetPremadeTextData(SlippiPremadeText::SPT_CHAT_DISABLED, playerName.c_str());
     }
-
     auto chatMessage = spt.premadeTextsParams[paramId];
     std::string param = ReplaceAll(chatMessage.c_str(), " ", "<S>");
-    playerName = ReplaceAll(playerName.c_str(), " ", "<S>");
     premadeTextData = spt.GetPremadeTextData(textId, playerName.c_str(), param.c_str());
   }
   else
