@@ -13,6 +13,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/NetPlayProto.h"
+#include "SlippiPremadeText.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -358,8 +359,18 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
   case NetPlay::NP_MSG_SLIPPI_CHAT_MESSAGE:
   {
     auto playerSelection = ReadChatMessageFromPacket(packet);
-    INFO_LOG(SLIPPI_ONLINE, "[Netplay] Received chat message from opponent %d: %d",
-             playerSelection->playerIdx, playerSelection->messageId);
+    INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Received chat message from opponent {}: {}",
+                 playerSelection->playerIdx, playerSelection->messageId);
+    // if chat is not enabled, automatically send back a message saying so
+    if (!SConfig::GetInstance().m_slippiEnableQuickChat)
+    {
+      auto packet = std::make_unique<sf::Packet>();
+      remoteSentChatMessageId = SlippiPremadeText::CHAT_MSG_CHAT_DISABLED;
+      WriteChatMessageToPacket(*packet, remoteSentChatMessageId, LocalPlayerPort());
+      SendAsync(std::move(packet));
+      remoteSentChatMessageId = 0;
+      break;
+    }
     // set message id to netplay instance
     remoteChatMessageSelection = std::move(playerSelection);
   }

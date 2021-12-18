@@ -2039,19 +2039,33 @@ void CEXISlippi::prepareOnlineMatchState()
   // Set chat message if any
   if (slippi_netplay)
   {
-    auto remoteMessageSelection = slippi_netplay->GetSlippiRemoteChatMessage();
-    chatMessageId = remoteMessageSelection.messageId;
-    chatMessagePlayerIdx = remoteMessageSelection.playerIdx;
+    auto isSingleMode = matchmaking && matchmaking->RemotePlayerCount() == 1;
     sentChatMessageId = slippi_netplay->GetSlippiRemoteSentChatMessage();
-    // If connection is 1v1 set index 0 for local and 1 for remote
-    if ((matchmaking && matchmaking->RemotePlayerCount() == 1) || !matchmaking)
+    // Prevent processing a message in the same frame
+    if (sentChatMessageId <= 0)
+    {
+      auto remoteMessageSelection = slippi_netplay->GetSlippiRemoteChatMessage();
+      chatMessageId = remoteMessageSelection.messageId;
+      chatMessagePlayerIdx = remoteMessageSelection.playerIdx;
+      if (chatMessageId == SlippiPremadeText::CHAT_MSG_CHAT_DISABLED && !isSingleMode)
+      {
+        // Clear remote chat messages if we are on teams and the player has chat disabled.
+        // Could also be handled on SlippiNetplay if the instance had acccess to the current
+        // connection mode
+        chatMessageId = chatMessagePlayerIdx = 0;
+      }
+    }
+    else
+    {
+      chatMessagePlayerIdx = localPlayerIndex;
+    }
+
+    if (isSingleMode || !matchmaking)
     {
       chatMessagePlayerIdx = sentChatMessageId > 0 ? localPlayerIndex : remotePlayerIndex;
     }
     // in CSS p1 is always current player and p2 is opponent
     localPlayerName = p1Name = userInfo.display_name;
-    INFO_LOG_FMT(SLIPPI, "chatMessagePlayerIdx {} {}", chatMessagePlayerIdx,
-                 matchmaking ? matchmaking->RemotePlayerCount() : 0);
   }
 
   std::vector<u8> leftTeamPlayers = {};
@@ -2435,6 +2449,12 @@ std::vector<u8> CEXISlippi::loadPremadeText(u8* payload)
     u8 paramId = payload[1] == 0x83 ?
                      0x88 :
                      payload[1];  // TODO: Figure out what the hell is going on and fix this
+
+    if (paramId == SlippiPremadeText::CHAT_MSG_CHAT_DISABLED)
+    {
+      return premadeTextData =
+                 spt.GetPremadeTextData(SlippiPremadeText::SPT_CHAT_DISABLED, playerName.c_str());
+    }
 
     auto chatMessage = spt.premadeTextsParams[paramId];
     std::string param = ReplaceAll(chatMessage.c_str(), " ", "<S>");
