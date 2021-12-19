@@ -111,6 +111,17 @@ void PathPane::BrowseSDCard()
   }
 }
 
+void PathPane::BrowseWFS()
+{
+  const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+      this, tr("Select WFS Path"), QString::fromStdString(Config::Get(Config::MAIN_WFS_PATH))));
+  if (!dir.isEmpty())
+  {
+    m_wfs_edit->setText(dir);
+    Config::SetBase(Config::MAIN_WFS_PATH, dir.toStdString());
+  }
+}
+
 void PathPane::OnSDCardPathChanged()
 {
   Config::SetBase(Config::MAIN_SD_PATH, m_sdcard_edit->text().toStdString());
@@ -236,6 +247,15 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(new QLabel(tr("SD Card Path:")), 5, 0);
   layout->addWidget(m_sdcard_edit, 5, 1);
   layout->addWidget(sdcard_open, 5, 2);
+
+  m_wfs_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_WFSROOT_IDX)));
+  connect(m_load_edit, &QLineEdit::editingFinished,
+          [=] { Config::SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
+  QPushButton* wfs_open = new QPushButton(QStringLiteral("..."));
+  connect(wfs_open, &QPushButton::clicked, this, &PathPane::BrowseWFS);
+  layout->addWidget(new QLabel(tr("WFS Path:")), 6, 0);
+  layout->addWidget(m_wfs_edit, 6, 1);
+  layout->addWidget(wfs_open, 6, 2);
 
   return layout;
 }

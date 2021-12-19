@@ -157,6 +157,7 @@ const Info<std::string> MAIN_LOAD_PATH{{System::Main, "General", "LoadPath"}, ""
 const Info<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "ResourcePackPath"}, ""};
 const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const Info<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
+const Info<std::string> MAIN_WFS_PATH{{System::Main, "General", "WFSPath"}, ""};
 
 // Main.GBA
 
