@@ -2542,6 +2542,20 @@ void CEXISlippi::handleReportGame(u8* payload)
 #endif
 }
 
+void CEXISlippi::prepareDelayResponse()
+{
+  m_read_queue.clear();
+  m_read_queue.push_back(1);  // Indicate this is a real response
+
+  if (NetPlay::IsNetPlayRunning())
+  {
+    // If we are using the old netplay, we don't want to add any additional delay, so return 0
+    m_read_queue.push_back(0);
+    return;
+  }
+  m_read_queue.push_back((u8)SConfig::GetInstance().m_slippiOnlineDelay);
+}
+
 void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   u8* memPtr = Memory::GetPointer(_uAddr);
@@ -2676,6 +2690,9 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       break;
     case CMD_GCT_LOAD:
       prepareGctLoad(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_GET_DELAY:
+      prepareDelayResponse();
       break;
     default:
       writeToFileAsync(&memPtr[bufLoc], payloadLen + 1, "");

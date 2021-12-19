@@ -81,6 +81,7 @@ private:
     CMD_FILE_LOAD = 0xD2,
     CMD_GCT_LENGTH = 0xD3,
     CMD_GCT_LOAD = 0xD4,
+    CMD_GET_DELAY = 0xD5,
   };
 
   enum
@@ -128,6 +129,7 @@ private:
       {CMD_FILE_LOAD, 0x40},
       {CMD_GCT_LENGTH, 0x0},
       {CMD_GCT_LOAD, 0x4},
+      {CMD_GET_DELAY, 0x0},
   };
 
   struct WriteMessage
@@ -195,6 +197,7 @@ private:
   void prepareFileLoad(u8* payload);
   void prepareGctLength();
   void prepareGctLoad(u8* payload);
+  void prepareDelayResponse();
   int getCharColor(u8 charId, u8 teamId);
 
   void FileWriteThread(void);
