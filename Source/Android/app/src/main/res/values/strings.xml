@@ -198,6 +198,7 @@
     <string name="load_path">Load Path</string>
     <string name="resource_pack_path">Resource Pack Path</string>
     <string name="SD_card_path">SD Card Path</string>
+    <string name="wfs_path">WFS Path</string>
 
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>
