@@ -147,19 +147,19 @@ public:
           case 'b':
             res = splittedMatches[j + 1];
             trim(res);
-            if ((u8)atoi(res.c_str()))
-              data.push_back((u8)atoi(res.c_str()));
+            if (static_cast<u8>(atoi(res.c_str())))
+              data.push_back(static_cast<u8>(atoi(res.c_str())));
             else
               data.push_back(0);
             break;
           case 's':
             res2 = splittedMatches[j + 1];
             trim(res2);
-            u16 sht = (u16)atoi(res2.c_str());
+            u16 sht = static_cast<u16>(atoi(res2.c_str()));
             if (sht)
             {
-              data.push_back((u8)(sht >> 8));
-              data.push_back((u8)(sht & 0xFF));
+              data.push_back(static_cast<u8>(sht >> 8));
+              data.push_back(static_cast<u8>(sht & 0xFF));
             }
             else
             {
@@ -178,12 +178,12 @@ public:
         {
           std::string res3 = splittedMatches[1];
           trim(res3);
-          u16 ch = (u16)atoi(res3.c_str());
+          u16 ch = static_cast<u16>(atoi(res3.c_str()));
           if (ch)
           {
-            u16 sht = (u16)(((u16)TEXT_OP_CODE::SPECIAL_CHARACTER << 8) | ch);
-            u8 r = (u8)(sht >> 8);
-            u8 r2 = (u8)(sht & 0xFF);
+            u16 sht = (static_cast<u16>(TEXT_OP_CODE::SPECIAL_CHARACTER) << 8) | ch;
+            u8 r = static_cast<u8>(sht >> 8);
+            u8 r2 = static_cast<u8>(sht & 0xFF);
             data.push_back(r);
             data.push_back(r2);
           }
@@ -219,9 +219,9 @@ public:
 
             if (pos >= 0)
             {
-              u16 sht = (u16)(((u16)TEXT_OP_CODE::COMMON_CHARACTER << 8) | pos);
-              u8 r = (u8)(sht >> 8);
-              u8 r2 = (u8)(sht & 0xFF);
+              u16 sht = static_cast<u16>((TEXT_OP_CODE::COMMON_CHARACTER << 8) | pos);
+              u8 r = static_cast<u8>(sht >> 8);
+              u8 r2 = static_cast<u8>(sht & 0xFF);
               // INFO_LOG(SLIPPI, "%x %x %x %c", sht, r, r2, chr);
 
               data.push_back(r);
@@ -232,11 +232,6 @@ public:
         }
       }
     }
-
-    //        INFO_LOG(SLIPPI, "DATA:");
-    //        for(int i=0;i<data.size();i++){
-    //            INFO_LOG(SLIPPI, "%x", data[i]);
-    //        }
     data.push_back(0x00);  // Always add end, just in case
     return data;
   }
@@ -331,12 +326,10 @@ private:
       auto opcode = (TEXT_OP_CODE)data[i++];
       std::vector<u16> param = std::vector<u16>(0);
 
-      int textCode = (u8)opcode;
+      u8 textCode = static_cast<u8>(opcode);
 
-      if ((textCode >> 4) == 2)
-        param = std::vector<u16>{(u16)(((textCode << 8) | (data[i++] & 0xFF)) & 0xFFF)};
-      else if ((textCode >> 4) == 4)
-        param = std::vector<u16>{(u16)(((textCode << 8) | (data[i++] & 0xFF)) & 0xFFF)};
+      if ((textCode >> 4) == 2 || (textCode >> 4) == 4)
+        param = std::vector<u16>{static_cast<u16>(((textCode << 8) | (data[i++] & 0xFF)) & 0xFFF)};
       else if (!CODES.count(opcode))
       {
         ERROR_LOG_FMT(SLIPPI, "Opcode Not Supported!");
@@ -351,10 +344,10 @@ private:
           switch (p[j])
           {
           case 'b':
-            param[j] = (u16)(data[i++] & 0xFF);
+            param[j] = static_cast<u16>(data[i++] & 0xFF);
             break;
           case 's':
-            param[j] = (u16)(((data[i++] & 0xFF) << 8) | (data[i++] & 0xFF));
+            param[j] = static_cast<u16>(((data[i++] & 0xFF) << 8) | (data[i++] & 0xFF));
             break;
           }
         }
