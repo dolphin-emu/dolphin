@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // This file must be encoded in UTF-8 with signatures on Windows
 
 #include <regex>
@@ -46,7 +46,7 @@ public:
     CHAT_MSG_CHAT_DISABLED = 0x10,
   };
 
-  std::unordered_map<u8, std::string> premadeTextsParams = {
+  const std::unordered_map<u8, std::string> premadeTextsParams = {
 
       {CHAT_MSG_U_PAD_UP, "ggs"},
       {CHAT_MSG_U_PAD_LEFT, "one more"},
@@ -71,7 +71,7 @@ public:
       {CHAT_MSG_CHAT_DISABLED, "player has chat disabled"},
   };
 
-  std::unordered_map<u8, std::string> premadeTexts = {
+  const std::unordered_map<u8, std::string> premadeTexts = {
       {SPT_CHAT_P1, "<LEFT><KERN><COLOR, 229, 76, 76>%s:<S><COLOR, 255, 255, 255>%s<END>"},
       {SPT_CHAT_P2, "<LEFT><KERN><COLOR, 59, 189, 255>%s:<S><COLOR, 255, 255, 255>%s<END>"},
       {SPT_CHAT_P3, "<LEFT><KERN><COLOR, 255, 203, 4>%s:<S><COLOR, 255, 255, 255>%s<END>"},
@@ -83,12 +83,12 @@ public:
 
   // This is just a map of delimiters and temporary replacements to remap them before the name is
   // converted to Slippi Premade Text format
-  std::unordered_map<std::string, std::string> unsupportedStringMap = {
+  const std::unordered_map<std::string, std::string> unsupportedStringMap = {
       {"<", "\\"}, {">", "`"}, {",", ""},  // DELETE U+007F
   };
 
   // TODO: use va_list to handle any no. or args
-  std::string GetPremadeTextString(u8 textId) { return premadeTexts[textId]; }
+  std::string GetPremadeTextString(u8 textId) { return premadeTexts.at(textId); }
 
   std::vector<u8> GetPremadeTextData(u8 textId, ...)
   {
@@ -278,7 +278,7 @@ private:
   };
 
   std::vector<std::tuple<TEXT_OP_CODE, std::vector<u16>>> OPCODES;
-  std::unordered_map<TEXT_OP_CODE, std::pair<std::string, std::string>> CODES = {
+  const std::unordered_map<TEXT_OP_CODE, std::pair<std::string, std::string>> CODES = {
       {TEXT_OP_CODE::CENTERED, std::pair<std::string, std::string>("CENTER", "")},
       {TEXT_OP_CODE::RESET_CENTERED, std::pair<std::string, std::string>("/CENTER", "")},
       {TEXT_OP_CODE::CLEAR_COLOR, std::pair<std::string, std::string>("/COLOR", "")},
@@ -310,9 +310,7 @@ private:
 
   std::pair<TEXT_OP_CODE, std::pair<std::string, std::string>> findCodeKey(std::string p)
   {
-    std::unordered_map<TEXT_OP_CODE, std::pair<std::string, std::string>>::iterator it;
-
-    for (it = CODES.begin(); it != CODES.end(); it++)
+    for (auto it = CODES.begin(); it != CODES.end(); it++)
     {
       if (it->second.first == p)
       {
@@ -345,7 +343,7 @@ private:
       }
       else
       {
-        std::pair<std::string, std::string> code = CODES[opcode];
+        std::pair<std::string, std::string> code = CODES.at(opcode);
         auto p = code.second.c_str();
         param = std::vector<u16>(strlen(p));
         for (int j = 0; j < param.size(); j++)
@@ -412,7 +410,7 @@ private:
   }
 
   // region CharMAPS
-  int CHAR_MAP[287] = {
+  const int CHAR_MAP[287] = {
       U'0',  U'1',  U'2',  U'3',  U'4',  U'5',  U'6',  U'7',  U'8',  U'9',  U'A',  U'B',  U'C',
       U'D',  U'E',  U'F',  U'G',  U'H',  U'I',  U'J',  U'K',  U'L',  U'M',  U'N',  U'O',  U'P',
       U'Q',  U'R',  U'S',  U'T',  U'U',  U'V',  U'W',  U'X',  U'Y',  U'Z',  U'a',  U'b',  U'c',

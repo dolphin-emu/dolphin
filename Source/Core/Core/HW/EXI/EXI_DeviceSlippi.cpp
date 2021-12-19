@@ -2463,7 +2463,7 @@ std::vector<u8> CEXISlippi::loadPremadeText(u8* payload)
       return premadeTextData =
                  spt.GetPremadeTextData(SlippiPremadeText::SPT_CHAT_DISABLED, playerName.c_str());
     }
-    auto chatMessage = spt.premadeTextsParams[paramId];
+    auto chatMessage = spt.premadeTextsParams.at(paramId);
     std::string param = ReplaceAll(chatMessage.c_str(), " ", "<S>");
     premadeTextData = spt.GetPremadeTextData(textId, playerName.c_str(), param.c_str());
   }
