@@ -312,7 +312,7 @@ void SlippiMatchmaking::startMatchmaking()
   char lan_addr[30] = "";
 
   char host[256];
-  char* ip = static_cast<char*>(malloc(16));
+  char ip[INET_ADDRSTRLEN] = "";
   struct hostent* host_entry;
   int hostname;
   hostname = gethostname(host, sizeof(host));  // find the host name
@@ -333,7 +333,7 @@ void SlippiMatchmaking::startMatchmaking()
       int i = 0;
       while (host_entry->h_addr_list[i] != 0)
       {
-        ip = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[i]));
+        inet_ntop(AF_INET, host_entry->h_addr_list[i], ip, INET_ADDRSTRLEN);
         WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] IP at idx {}: {}", i, ip);
         i++;
       }
