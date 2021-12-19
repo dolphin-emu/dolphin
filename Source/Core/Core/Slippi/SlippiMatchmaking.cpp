@@ -56,7 +56,7 @@ void SlippiMatchmaking::FindMatch(MatchSearchSettings settings)
 {
   isMmConnected = false;
 
-  ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Starting matchmaking...");
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Starting matchmaking...");
 
   m_searchSettings = settings;
 
@@ -222,7 +222,7 @@ void SlippiMatchmaking::startMatchmaking()
       m_hostPort = userInfo.port;
     else
       m_hostPort = 49000 + (generator() % 2000);
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Port to use: %d...", m_hostPort);
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Port to use: {}...", m_hostPort);
 
     // We are explicitly setting the client address because we are trying to utilize our connection
     // to the matchmaking service in order to hole punch. This port will end up being the port
@@ -240,7 +240,7 @@ void SlippiMatchmaking::startMatchmaking()
     // Failed to create client
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = "Failed to create mm client";
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Failed to create client...");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to create client...");
     return;
   }
 
@@ -255,7 +255,7 @@ void SlippiMatchmaking::startMatchmaking()
     // Failed to connect to server
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = "Failed to start connection to mm server";
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Failed to start connection to mm server...");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to start connection to mm server...");
     return;
   }
 
@@ -271,7 +271,7 @@ void SlippiMatchmaking::startMatchmaking()
       connectAttemptCount++;
       if (connectAttemptCount >= 20)
       {
-        ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Failed to connect to mm server...");
+        ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to connect to mm server...");
         m_state = ProcessState::ERROR_ENCOUNTERED;
         m_errorMsg = "Failed to connect to mm server";
         return;
@@ -283,14 +283,14 @@ void SlippiMatchmaking::startMatchmaking()
     netEvent.peer->data = &userInfo.display_name;
     m_client->intercept = ENetUtil::InterceptCallback;
     isMmConnected = true;
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Connected to mm server...");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Connected to mm server...");
   }
 
-  ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Trying to find match...");
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Trying to find match...");
 
   /*if (!m_user->IsLoggedIn())
   {
-      ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Must be logged in to queue");
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Must be logged in to queue");
       m_state = ProcessState::ERROR_ENCOUNTERED;
       m_errorMsg = "Must be logged in to queue. Go back to menu";
       return;
@@ -318,14 +318,14 @@ void SlippiMatchmaking::startMatchmaking()
   hostname = gethostname(host, sizeof(host));  // find the host name
   if (hostname == -1)
   {
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Error finding LAN address");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Error finding LAN address");
   }
   else
   {
     host_entry = gethostbyname(host);  // find host information
     if (host_entry == NULL || host_entry->h_addrtype != AF_INET)
     {
-      ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Error finding LAN host");
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Error finding LAN host");
     }
     else
     {
@@ -361,8 +361,8 @@ void SlippiMatchmaking::startMatchmaking()
   int rcvRes = receiveMessage(response, 5000);
   if (rcvRes != 0)
   {
-    ERROR_LOG(SLIPPI_ONLINE,
-              "[Matchmaking] Did not receive response from server for create ticket");
+    ERROR_LOG_FMT(SLIPPI_ONLINE,
+                  "[Matchmaking] Did not receive response from server for create ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = "Failed to join mm queue";
     return;
@@ -371,8 +371,8 @@ void SlippiMatchmaking::startMatchmaking()
   std::string respType = response["type"];
   if (respType != MmMessageType::CREATE_TICKET_RESP)
   {
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Received incorrect response for create ticket");
-    ERROR_LOG(SLIPPI_ONLINE, "%s", response.dump().c_str());
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received incorrect response for create ticket");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "{}", response.dump().c_str());
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = "Invalid response when joining mm queue";
     return;
@@ -381,14 +381,14 @@ void SlippiMatchmaking::startMatchmaking()
   std::string err = response.value("error", "");
   if (err.length() > 0)
   {
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Received error from server for create ticket");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received error from server for create ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = err;
     return;
   }
 
   m_state = ProcessState::MATCHMAKING;
-  ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Request ticket success");
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Request ticket success");
 }
 
 void SlippiMatchmaking::handleMatchmaking()
@@ -402,13 +402,13 @@ void SlippiMatchmaking::handleMatchmaking()
   int rcvRes = receiveMessage(getResp, 2000);
   if (rcvRes == -1)
   {
-    INFO_LOG(SLIPPI_ONLINE, "[Matchmaking] Have not yet received assignment");
+    INFO_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Have not yet received assignment");
     return;
   }
   else if (rcvRes != 0)
   {
     // Right now the only other code is -2 meaning the server died probably?
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Lost connection to the mm server");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Lost connection to the mm server");
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = "Lost connection to the mm server";
     return;
@@ -417,7 +417,7 @@ void SlippiMatchmaking::handleMatchmaking()
   std::string respType = getResp["type"];
   if (respType != MmMessageType::GET_TICKET_RESP)
   {
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Received incorrect response for get ticket");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received incorrect response for get ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = "Invalid response when getting mm status";
     return;
@@ -434,7 +434,7 @@ void SlippiMatchmaking::handleMatchmaking()
           latestVersion);  // Force latest version for people whose file updates dont work
     }
 
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Received error from server for get ticket");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Received error from server for get ticket");
     m_state = ProcessState::ERROR_ENCOUNTERED;
     m_errorMsg = err;
     return;
@@ -536,8 +536,8 @@ void SlippiMatchmaking::handleMatchmaking()
   terminateMmConnection();
 
   m_state = ProcessState::OPPONENT_CONNECTING;
-  ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Opponent found. isDecider: %s",
-            m_isHost ? "true" : "false");
+  ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Opponent found. isDecider: {}",
+                m_isHost ? "true" : "false");
 }
 
 int SlippiMatchmaking::LocalPlayerIndex()
@@ -597,7 +597,7 @@ void SlippiMatchmaking::handleConnecting()
   {
     ipLog << m_remoteIps[i] << ", ";
   }
-  // INFO_LOG(SLIPPI_ONLINE, "[Matchmaking] My port: %d || %s", m_hostPort, ipLog.str());
+  // INFO_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] My port: {} || {}", m_hostPort, ipLog.str());
 
   // Is host is now used to specify who the decider is
   auto client = std::make_unique<SlippiNetplayClient>(addrs, ports, remotePlayerCount, m_hostPort,
@@ -608,7 +608,7 @@ void SlippiMatchmaking::handleConnecting()
     auto status = client->GetSlippiConnectStatus();
     if (status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_INITIATED)
     {
-      INFO_LOG(SLIPPI_ONLINE, "[Matchmaking] Connection not yet successful");
+      INFO_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Connection not yet successful");
       Common::SleepCurrentThread(500);
 
       // Deal with class shut down
@@ -622,7 +622,7 @@ void SlippiMatchmaking::handleConnecting()
     {
       // If we failed setting up a connection in teams mode, show a detailed error about who we had
       // issues connecting to.
-      ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Failed to connect to players");
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Failed to connect to players");
       m_state = ProcessState::ERROR_ENCOUNTERED;
       m_errorMsg = "Timed out waiting for other players to connect";
       auto failedConns = client->GetFailedConnections();
@@ -645,8 +645,8 @@ void SlippiMatchmaking::handleConnecting()
     }
     else if (status != SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_CONNECTED)
     {
-      ERROR_LOG(SLIPPI_ONLINE,
-                "[Matchmaking] Connection attempt failed, looking for someone else.");
+      ERROR_LOG_FMT(SLIPPI_ONLINE,
+                    "[Matchmaking] Connection attempt failed, looking for someone else.");
 
       // Return to the start to get a new ticket to find someone else we can hopefully connect with
       m_netplayClient = nullptr;
@@ -654,7 +654,7 @@ void SlippiMatchmaking::handleConnecting()
       return;
     }
 
-    ERROR_LOG(SLIPPI_ONLINE, "[Matchmaking] Connection success!");
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Connection success!");
 
     // Successful connection
     m_netplayClient = std::move(client);
