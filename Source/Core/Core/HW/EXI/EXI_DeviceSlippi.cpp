@@ -1838,9 +1838,8 @@ void CEXISlippi::startFindMatch(u8* payload)
     }
 
     // Stage check
-    if (localSelections.isStageSelected &&
-        std::find(singlesStages.begin(), singlesStages.end(), localSelections.stageId) ==
-            singlesStages.end())
+    if (localSelections.isStageSelected && std::find(legalStages.begin(), legalStages.end(),
+                                                     localSelections.stageId) == legalStages.end())
     {
       forcedError = "The stage being requested is not allowed in this mode";
       return;
@@ -2121,7 +2120,7 @@ void CEXISlippi::prepareOnlineMatchState()
         return;
       }
 
-      if (std::find(singlesStages.begin(), singlesStages.end(), stageId) == singlesStages.end())
+      if (std::find(legalStages.begin(), legalStages.end(), stageId) == legalStages.end())
       {
         handleConnectionCleanup();
         prepareOnlineMatchState();
@@ -2280,7 +2279,7 @@ void CEXISlippi::prepareOnlineMatchState()
   m_read_queue.insert(m_read_queue.end(), onlineMatchBlock.begin(), onlineMatchBlock.end());
 }
 
-std::vector<u16> CEXISlippi::singlesStages = {
+std::vector<u16> CEXISlippi::legalStages = {
     0x2,   // FoD
     0x3,   // Pokemon
     0x8,   // Yoshi's Story
@@ -2295,7 +2294,7 @@ u16 CEXISlippi::getRandomStage(u8 onlineMode)
 
   // Reset stage pool if it's empty
   if (stagePool.empty())
-    stagePool.insert(stagePool.end(), singlesStages.begin(), singlesStages.end());
+    stagePool.insert(stagePool.end(), legalStages.begin(), legalStages.end());
 
   // Get random stage
   int randIndex = generator() % stagePool.size();
@@ -2305,8 +2304,8 @@ u16 CEXISlippi::getRandomStage(u8 onlineMode)
   stagePool.erase(stagePool.begin() + randIndex);
 
   // If the mode is teams, don't allow FoD to be selected, re-roll instead. Note that this will
-  // cause a stack overflow exception/infinite recursion in the case the FoD is the only stage in
-  // the singlesStages vector
+  // cause a stack overflow exception/infinite recursion in the case where a dev removes all
+  // stages but FoD from the legalStages vector
   if (onlineMode == (u8)SlippiMatchmaking::OnlinePlayMode::TEAMS && selectedStage == 0x2)
   {
     return getRandomStage(onlineMode);
