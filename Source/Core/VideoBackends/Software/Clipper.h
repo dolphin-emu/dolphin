@@ -3,17 +3,19 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 struct OutputVertexData;
 
 namespace Clipper
 {
 void Init();
 
-void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2);
+u32 ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2);
 
-void ProcessLine(OutputVertexData* v0, OutputVertexData* v1);
+u32 ProcessLine(OutputVertexData* v0, OutputVertexData* v1);
 
-void ProcessPoint(OutputVertexData* v);
+u32 ProcessPoint(OutputVertexData* v);
 
 bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
               bool& backface);

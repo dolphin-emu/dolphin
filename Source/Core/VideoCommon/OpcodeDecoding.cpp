@@ -25,6 +25,7 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace OpcodeDecoder
@@ -74,6 +75,7 @@ void InterpretDisplayListPreprocess(u32 address, u32 size)
 }  // Anonymous namespace
 
 bool g_record_fifo_data = false;
+bool g_sw_cyclecount = false;
 
 void Init()
 {
@@ -250,7 +252,22 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         src.Skip(bytes);
 
         // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
-        total_cycles += num_vertices * 4 * 3 + 6;
+        u32 vertex_cycles = num_vertices * 4 * 3 + 6;
+
+        if (g_ActiveConfig.bRastTimings)
+        {
+          u32 rastrizer_cycles = VertexLoaderManager::ForceFlush();
+
+          // 3 cpu cycles per gpu cycle
+          rastrizer_cycles = rastrizer_cycles * 3;
+
+          // Not 100% accurate, but close enough for now
+          total_cycles += std::max(vertex_cycles, rastrizer_cycles);
+        }
+        else
+        {
+          total_cycles += vertex_cycles;
+        }
       }
       else
       {

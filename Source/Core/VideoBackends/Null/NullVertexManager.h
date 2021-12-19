@@ -14,6 +14,6 @@ public:
   ~VertexManager() override;
 
 protected:
-  void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
+  u32 DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
 };
 }  // namespace Null

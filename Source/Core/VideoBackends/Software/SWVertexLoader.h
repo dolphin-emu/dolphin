@@ -20,7 +20,7 @@ public:
   ~SWVertexLoader();
 
 protected:
-  void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
+  u32 DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex) override;
 
   void SetFormat(u8 attributeIndex, u8 primitiveType);
   void ParseVertex(const PortableVertexDeclaration& vdec, int index);

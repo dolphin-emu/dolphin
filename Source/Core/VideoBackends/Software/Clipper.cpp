@@ -285,14 +285,15 @@ static void ClipLine(int* indices)
   }
 }
 
-void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
+u32 ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
 {
   INCSTAT(g_stats.this_frame.num_triangles_in)
 
   bool backface;
 
+  // Assume triangles take a minimum of two cycles gpu cycles, even when culled.
   if (!CullTest(v0, v1, v2, backface))
-    return;
+    return 2;
 
   int indices[NUM_INDICES] = {0,         1,         2,         SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
                               SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
@@ -315,6 +316,8 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 
   ClipTriangle(indices, &numIndices);
 
+  u32 cycles = 0;
+
   for (int i = 0; i + 3 <= numIndices; i += 3)
   {
     ASSERT(i < NUM_INDICES);
@@ -324,10 +327,12 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
       PerspectiveDivide(Vertices[indices[i + 1]]);
       PerspectiveDivide(Vertices[indices[i + 2]]);
 
-      Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i + 1]],
-                                        Vertices[indices[i + 2]]);
+      cycles += Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i + 1]],
+                                                  Vertices[indices[i + 2]]);
     }
   }
+
+  return cycles;
 }
 
 constexpr std::array<float, 8> LINE_PT_TEX_OFFSETS = {
@@ -362,7 +367,7 @@ static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, i
   }
 }
 
-void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
+u32 ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 {
   int indices[4] = {0, 1, SKIP_FLAG, SKIP_FLAG};
 
@@ -373,6 +378,8 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
   Vertices[2] = &ClippedVertices[17];
 
   ClipLine(indices);
+
+  u32 cycles = 0;
 
   if (indices[0] != SKIP_FLAG)
   {
@@ -399,19 +406,21 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
     else
       px = (dy > 0) ? 1 : -1;
 
-    OutputVertexData triangle[3];
+    OutputVertexData data[3];
 
-    CopyLineVertex(&triangle[0], v0, px, py, false);
-    CopyLineVertex(&triangle[1], v1, px, py, false);
-    CopyLineVertex(&triangle[2], v1, -px, -py, true);
+    CopyLineVertex(&data[0], v0, px, py, false);
+    CopyLineVertex(&data[1], v1, px, py, false);
+    CopyLineVertex(&data[2], v1, -px, -py, true);
 
     // ccw winding
-    Rasterizer::DrawTriangleFrontFace(&triangle[2], &triangle[1], &triangle[0]);
+    cycles += Rasterizer::DrawTriangleFrontFace(&data[2], &data[1], &data[0]);
 
-    CopyLineVertex(&triangle[1], v0, -px, -py, true);
+    CopyLineVertex(&data[1], v0, -px, -py, true);
 
-    Rasterizer::DrawTriangleFrontFace(&triangle[0], &triangle[1], &triangle[2]);
+    cycles += Rasterizer::DrawTriangleFrontFace(&data[0], &data[1], &data[2]);
   }
+
+  return cycles;
 }
 
 static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, bool px, bool py)
@@ -445,7 +454,7 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
   }
 }
 
-void ProcessPoint(OutputVertexData* center)
+u32 ProcessPoint(OutputVertexData* center)
 {
   // TODO: This isn't actually doing any clipping
   PerspectiveDivide(center);
@@ -457,8 +466,10 @@ void ProcessPoint(OutputVertexData* center)
   CopyPointVertex(&ur, center, true, true);
   CopyPointVertex(&ul, center, false, true);
 
-  Rasterizer::DrawTriangleFrontFace(&ll, &ul, &lr);
-  Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
+  u32 cycles = std::max(2u, Rasterizer::DrawTriangleFrontFace(&ll, &ul, &lr));
+  cycles += std::max(2u, Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul));
+
+  return cycles;
 }
 
 bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
