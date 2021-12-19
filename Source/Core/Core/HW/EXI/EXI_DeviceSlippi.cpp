@@ -2339,12 +2339,6 @@ void CEXISlippi::setMatchSelections(u8* payload)
 
   s.rngOffset = generator() % 0xFFFF;
 
-  if (matchmaking->LocalPlayerIndex() == 1 && firstMatch)
-  {
-    firstMatch = false;
-    s.stageId = getRandomStage(onlineMode);
-  }
-
   // Merge these selections
   localSelections.Merge(s);
 
@@ -2542,7 +2536,6 @@ void CEXISlippi::handleConnectionCleanup()
 
   // Reset play session
   is_play_session_active = false;
-  firstMatch = true;
 
 #ifdef LOCAL_TESTING
   isLocalConnected = false;

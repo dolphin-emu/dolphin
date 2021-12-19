@@ -224,7 +224,6 @@ private:
   u32 frameSeqIdx = 0;
 
   bool isEnetInitialized = false;
-  bool firstMatch = true;
 
   std::default_random_engine generator;
 
