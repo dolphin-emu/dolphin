@@ -57,6 +57,7 @@ public:
   std::vector<SlippiUser::UserInfo> GetPlayerInfo();
   std::string GetPlayerName(u8 port);
   u8 RemotePlayerCount();
+  static bool IsFixedRulesMode(OnlinePlayMode mode);
 
 protected:
   const std::string MM_HOST_DEV = "35.197.121.196";  // Dev host

@@ -85,6 +85,12 @@ std::unique_ptr<SlippiNetplayClient> SlippiMatchmaking::GetNetplayClient()
   return std::move(m_netplayClient);
 }
 
+bool IsFixedRulesMode(SlippiMatchmaking::OnlinePlayMode mode)
+{
+  return mode == SlippiMatchmaking::OnlinePlayMode::UNRANKED ||
+         mode == SlippiMatchmaking::OnlinePlayMode::RANKED;
+}
+
 void SlippiMatchmaking::sendMessage(json msg)
 {
   enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE;
