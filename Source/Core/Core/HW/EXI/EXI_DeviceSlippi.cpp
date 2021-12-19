@@ -1926,7 +1926,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
   if (mmState == SlippiMatchmaking::ProcessState::CONNECTION_SUCCESS)
   {
-    localPlayerIndex = matchmaking->LocalPlayerIndex();
+    m_local_player_index = matchmaking->LocalPlayerIndex();
 
     if (!slippi_netplay)
     {
@@ -1973,13 +1973,13 @@ void CEXISlippi::prepareOnlineMatchState()
       if (remotePlayerCount == 1)
       {
         auto isDecider = slippi_netplay->IsDecider();
-        localPlayerIndex = isDecider ? 0 : 1;
+        m_local_player_index = isDecider ? 0 : 1;
         m_remote_player_index = isDecider ? 1 : 0;
       }
 #endif
 
       auto isDecider = slippi_netplay->IsDecider();
-      localPlayerIndex = isDecider ? 0 : 1;
+      m_local_player_index = isDecider ? 0 : 1;
       m_remote_player_index = isDecider ? 1 : 0;
     }
     else
