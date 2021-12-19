@@ -1330,6 +1330,9 @@ void NetPlayClient::ThreadFunc()
     }
   }
 
+  m_dialog->AppendChat(Common::GetStringT(
+      "Dolphin Netplay is no longer needed for single player training for Slippi Online."));
+
   while (m_do_loop.IsSet())
   {
     ENetEvent netEvent;
