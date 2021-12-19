@@ -3,8 +3,21 @@
 
 #pragma once
 
+#include <string>
+
+#include "Common/CommonTypes.h"
+
 namespace HLE_OS
 {
+enum class ParameterType : bool
+{
+  ParameterList = false,
+  VariableArgumentList = true
+};
+
+std::string GetStringVA(u32 str_reg = 3,
+                        ParameterType parameter_type = ParameterType::ParameterList);
+
 void HLE_GeneralDebugPrint();
 void HLE_GeneralDebugVPrint();
 void HLE_write_console();

@@ -5,6 +5,7 @@
 
 #include <iterator>
 #include <locale>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -13,6 +14,7 @@
 
 #include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
+#include "Core/HLE/HLE_OS.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -34,6 +36,7 @@ class HLEArg
 public:
   explicit HLEArg(u64 v) : m_value(v) {}
   explicit HLEArg(u32 v) : HLEArg(static_cast<u64>(v)) {}
+  explicit HLEArg(u32 v, u32 gpr_index) : m_value(static_cast<u64>(v)), m_gpr_index(gpr_index) {}
   explicit HLEArg(double f) : m_value(Common::BitCast<u64>(f)), m_is_float(true) {}
   explicit HLEArg(float f) : HLEArg(static_cast<double>(f)) {}
 
@@ -45,9 +48,12 @@ public:
 
   bool IsFloat() const { return m_is_float; }
 
+  const std::optional<u32>& GprIndex() const { return m_gpr_index; }
+
 private:
   const u64 m_value = 0;
   const bool m_is_float = false;
+  const std::optional<u32> m_gpr_index;
 };
 
 template <>
@@ -80,7 +86,9 @@ struct fmt::formatter<HLEArg>
     Int32,
     Uint32,
     Int64,
-    Uint64
+    Uint64,
+    VarArgs,
+    VaList
   };
   std::string base_format;
   BaseType base_type = BaseType::Default;
@@ -151,6 +159,10 @@ struct fmt::formatter<HLEArg>
       return BaseType::Double;
     else if (in_array("p"))  // Pointer value
       return BaseType::Pointer;
+    else if (in_array("v"))
+      return BaseType::VarArgs;
+    else if (in_array("V"))
+      return BaseType::VaList;
     return BaseType::Default;
   }
 
@@ -250,6 +262,23 @@ struct fmt::formatter<HLEArg>
       return fmt::format_to(ctx.out(), format_string, arg.Value<u32>());
     case BaseType::Uint64:
       return fmt::format_to(ctx.out(), format_string, arg.Value<u64>());
+    case BaseType::VarArgs:
+    {
+      const auto gpr_index = arg.GprIndex();
+      if (!gpr_index || *gpr_index < 3)
+        return fmt::format_to(ctx.out(), "{}", "{InvalidVarArgsRegister}");
+      const std::string str = HLE_OS::GetStringVA(*gpr_index, HLE_OS::ParameterType::ParameterList);
+      return fmt::format_to(ctx.out(), "{}", str);
+    }
+    case BaseType::VaList:
+    {
+      const auto gpr_index = arg.GprIndex();
+      if (!gpr_index || *gpr_index < 3)
+        return fmt::format_to(ctx.out(), "{}", "{InvalidVaListRegister}");
+      const std::string str =
+          HLE_OS::GetStringVA(*gpr_index, HLE_OS::ParameterType::VariableArgumentList);
+      return fmt::format_to(ctx.out(), "{}", str);
+    }
     }
   }
 };
@@ -265,15 +294,17 @@ HLENamedArgs GetHLENamedArgs()
   auto args = HLENamedArgs();
   std::string name;
 
-  auto push_hle_arg = [&](const char* arg_name, auto value) {
-    args.push_back(fmt::arg(arg_name, HLEArg(value)));
+  auto push_hle_arg = [&](const char* arg_name, auto value,
+                          std::optional<u32> gpr_index = std::nullopt) {
+    const HLEArg arg = gpr_index ? HLEArg(value, *gpr_index) : HLEArg(value);
+    args.push_back(fmt::arg(arg_name, arg));
   };
 
-  for (int i = 0; i < 32; i++)
+  for (u32 i = 0; i < 32; i++)
   {
     // General purpose registers (int)
     name = fmt::format("r{}", i);
-    push_hle_arg(name.c_str(), GPR(i));
+    push_hle_arg(name.c_str(), GPR(i), i);
 
     // Floating point registers (double)
     name = fmt::format("f{}", i);

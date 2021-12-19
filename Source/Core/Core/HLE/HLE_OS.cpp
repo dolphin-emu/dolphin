@@ -4,9 +4,7 @@
 #include "Core/HLE/HLE_OS.h"
 
 #include <memory>
-#include <string>
 
-#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -16,14 +14,6 @@
 
 namespace HLE_OS
 {
-enum class ParameterType : bool
-{
-  ParameterList = false,
-  VariableArgumentList = true
-};
-
-std::string GetStringVA(u32 str_reg = 3,
-                        ParameterType parameter_type = ParameterType::ParameterList);
 void HLE_GeneralDebugPrint(ParameterType parameter_type);
 void HLE_LogDPrint(ParameterType parameter_type);
 void HLE_LogFPrint(ParameterType parameter_type);
