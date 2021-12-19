@@ -32,7 +32,7 @@ fi
 mkdir -p build
 pushd build
 cmake ${CMAKE_FLAGS} ..
-make -j7
+make -j$(nproc)
 popd
 
 # Copy the Sys folder in
