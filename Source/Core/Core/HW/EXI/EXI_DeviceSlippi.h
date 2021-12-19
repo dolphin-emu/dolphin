@@ -163,7 +163,7 @@ private:
   std::vector<u8> m_payload;
 
   // online play stuff
-  u16 getRandomStage(u8 onlineMode);
+  u16 getRandomStage();
   bool isDisconnected();
   void handleOnlineInputs(u8* payload);
   void prepareOpponentInputs(u8* payload);
@@ -251,6 +251,6 @@ private:
   std::map<s32, std::unique_ptr<SlippiSavestate>> activeSavestates;
   std::deque<std::unique_ptr<SlippiSavestate>> availableSavestates;
 
-  static std::vector<u16> legalStages;
+  std::vector<u16> allowedStages;
 };
 }  // namespace ExpansionInterface

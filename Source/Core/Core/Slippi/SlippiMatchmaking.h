@@ -56,6 +56,7 @@ public:
   int LocalPlayerIndex();
   std::vector<SlippiUser::UserInfo> GetPlayerInfo();
   std::string GetPlayerName(u8 port);
+  std::vector<u16> GetStages();
   u8 RemotePlayerCount();
   static bool IsFixedRulesMode(OnlinePlayMode mode);
 
@@ -88,6 +89,7 @@ protected:
   int m_localPlayerIndex;
   std::vector<std::string> m_remoteIps;
   std::vector<SlippiUser::UserInfo> m_playerInfo;
+  std::vector<u16> m_allowedStages;
   bool m_joinedLobby;
   bool m_isHost;
 

@@ -483,6 +483,36 @@ void SlippiMatchmaking::handleMatchmaking()
   }
   m_isHost = getResp.value("isHost", false);
 
+  // Get allowed stages. For stage select modes like direct and teams, this will only impact the
+  // first map selected
+  m_allowedStages.clear();
+  auto stages = getResp["stages"];
+  if (stages.is_array())
+  {
+    for (json::iterator it = stages.begin(); it != stages.end(); ++it)
+    {
+      json el = *it;
+      auto stageId = el.get<int>();
+      m_allowedStages.push_back(stageId);
+    }
+  }
+
+  if (m_allowedStages.empty())
+  {
+    // Default case, shouldn't ever really be hit but it's here just in case
+    m_allowedStages.push_back(0x3);   // Pokemon
+    m_allowedStages.push_back(0x8);   // Yoshi's Story
+    m_allowedStages.push_back(0x1C);  // Dream Land
+    m_allowedStages.push_back(0x1F);  // Battlefield
+    m_allowedStages.push_back(0x20);  // Final Destination
+
+    // Add FoD if singles
+    if (m_playerInfo.size() == 2)
+    {
+      m_allowedStages.push_back(0x2);  // FoD
+    }
+  }
+
   // Disconnect and destroy enet client to mm server
   terminateMmConnection();
 
@@ -499,6 +529,11 @@ int SlippiMatchmaking::LocalPlayerIndex()
 std::vector<SlippiUser::UserInfo> SlippiMatchmaking::GetPlayerInfo()
 {
   return m_playerInfo;
+}
+
+std::vector<u16> SlippiMatchmaking::GetStages()
+{
+  return m_allowedStages;
 }
 
 std::string SlippiMatchmaking::GetPlayerName(u8 port)
