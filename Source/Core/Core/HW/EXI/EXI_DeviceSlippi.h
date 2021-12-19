@@ -198,7 +198,6 @@ private:
   void prepareGctLength();
   void prepareGctLoad(u8* payload);
   void prepareDelayResponse();
-  int getCharColor(u8 charId, u8 teamId);
 
   void FileWriteThread(void);
 
@@ -231,6 +230,11 @@ private:
 
   // Used to determine when to detect when a new session has started
   bool is_play_session_active = false;
+
+  // We put these at the class level to preserve values in the case of a disconnect
+  // while loading. Without this, someone could load into a game playing the wrong char
+  u8 localPlayerIndex = 0;
+  u8 remotePlayerIndex = 1;
 
   // Frame skipping variables
   int framesToSkip = 0;

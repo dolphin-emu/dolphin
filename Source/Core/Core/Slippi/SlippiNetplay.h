@@ -34,8 +34,8 @@
 
 struct SlippiRemotePadOutput
 {
-  int32_t latestFrame;
-  u8 playerIdx;
+  int32_t latestFrame{};
+  u8 playerIdx{};
   std::vector<u8> data;
 };
 
@@ -185,7 +185,7 @@ protected:
   struct FrameOffsetData
   {
     // TODO: Should the buffer size be dynamic based on time sync interval or not?
-    int idx;
+    int idx{};
     std::vector<s32> buf;
   };
 
