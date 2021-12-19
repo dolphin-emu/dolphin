@@ -1828,7 +1828,6 @@ void CEXISlippi::startFindMatch(u8* payload)
   // While we do have another condition that checks characters after being connected, it's nice to
   // give someone an early error before they even queue so that they wont enter the queue and make
   // someone else get force removed from queue and have to requeue
-  auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
   if (SlippiMatchmaking::IsFixedRulesMode(search.mode))
   {
     // Character check
@@ -2029,8 +2028,6 @@ void CEXISlippi::prepareOnlineMatchState()
     localPlayerName = p1Name = userInfo.display_name;
   }
 
-  auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
-
   std::vector<u8> leftTeamPlayers = {};
   std::vector<u8> rightTeamPlayers = {};
 
@@ -2179,9 +2176,10 @@ void CEXISlippi::prepareOnlineMatchState()
     WARN_LOG(SLIPPI_ONLINE, "P1 Char: 0x%X, P2 Char: 0x%X", onlineMatchBlock[0x60],
              onlineMatchBlock[0x84]);
 
-    // Turn pause on in direct, off in everything else
+    // Turn pause off in unranked/ranked, on in other modes
     u8* gameBitField3 = static_cast<u8*>(&onlineMatchBlock[2]);
-    *gameBitField3 = lastSearch.mode >= directMode ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
+    *gameBitField3 = SlippiMatchmaking::IsFixedRulesMode(lastSearch.mode) ? *gameBitField3 | 0x8 :
+                                                                            *gameBitField3 & 0xF7;
     //*gameBitField3 = *gameBitField3 | 0x8;
 
     // Group players into left/right side for team splash screen display
