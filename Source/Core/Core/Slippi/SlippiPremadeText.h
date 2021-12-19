@@ -11,8 +11,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-using namespace std;
-
 class SlippiPremadeText
 {
 public:
@@ -48,7 +46,7 @@ public:
     CHAT_MSG_CHAT_DISABLED = 0x10,
   };
 
-  unordered_map<u8, string> premadeTextsParams = {
+  std::unordered_map<u8, std::string> premadeTextsParams = {
 
       {CHAT_MSG_U_PAD_UP, "ggs"},
       {CHAT_MSG_U_PAD_LEFT, "one more"},
@@ -73,7 +71,7 @@ public:
       {CHAT_MSG_CHAT_DISABLED, "player has chat disabled"},
   };
 
-  unordered_map<u8, string> premadeTexts = {
+  std::unordered_map<u8, std::string> premadeTexts = {
       {SPT_CHAT_P1, "<LEFT><KERN><COLOR, 229, 76, 76>%s:<S><COLOR, 255, 255, 255>%s<END>"},
       {SPT_CHAT_P2, "<LEFT><KERN><COLOR, 59, 189, 255>%s:<S><COLOR, 255, 255, 255>%s<END>"},
       {SPT_CHAT_P3, "<LEFT><KERN><COLOR, 255, 203, 4>%s:<S><COLOR, 255, 255, 255>%s<END>"},
@@ -85,16 +83,16 @@ public:
 
   // This is just a map of delimiters and temporary replacements to remap them before the name is
   // converted to Slippi Premade Text format
-  unordered_map<string, string> unsupportedStringMap = {
+  std::unordered_map<std::string, std::string> unsupportedStringMap = {
       {"<", "\\"}, {">", "`"}, {",", ""},  // DELETE U+007F
   };
 
   // TODO: use va_list to handle any no. or args
-  string GetPremadeTextString(u8 textId) { return premadeTexts[textId]; }
+  std::string GetPremadeTextString(u8 textId) { return premadeTexts[textId]; }
 
-  vector<u8> GetPremadeTextData(u8 textId, ...)
+  std::vector<u8> GetPremadeTextData(u8 textId, ...)
   {
-    string format = GetPremadeTextString(textId);
+    std::string format = GetPremadeTextString(textId);
     char str[400];
     va_list args;
     va_start(args, textId);
@@ -102,10 +100,10 @@ public:
     va_end(args);
     //		INFO_LOG(SLIPPI, "%s", str);
 
-    vector<u8> data = {};
-    vector<u8> empty = {};
+    std::vector<u8> data = {};
+    std::vector<u8> empty = {};
 
-    vector<string> matches = vector<string>();
+    std::vector<std::string> matches = std::vector<std::string>();
 
     // NOTE: This code is converted from HSDRaw C# code
     // Fuck Regex, current cpp version does not support positive lookaheads to match this pattern
@@ -121,7 +119,7 @@ public:
       }
     }
 
-    string match;
+    std::string match;
     for (int m = 0; m < matches.size(); m++)
     {
       match = matches[m];
@@ -129,10 +127,10 @@ public:
       auto splittedMatches = split(match, ",");
       if (splittedMatches.size() == 0)
         continue;
-      string firstMatch = splittedMatches[0];
+      std::string firstMatch = splittedMatches[0];
       auto utfMatch = UTF8ToUTF32(firstMatch);
 
-      pair<TEXT_OP_CODE, pair<string, string>> key = findCodeKey(firstMatch);
+      std::pair<TEXT_OP_CODE, std::pair<std::string, std::string>> key = findCodeKey(firstMatch);
       if (key.first != TEXT_OP_CODE::CUSTOM_NULL)
       {
         if (splittedMatches.size() - 1 != strlen(key.second.second.c_str()))
@@ -140,8 +138,8 @@ public:
 
         data.push_back((u8)key.first);
 
-        string res;
-        string res2;
+        std::string res;
+        std::string res2;
         for (int j = 0; j < strlen(key.second.second.c_str()); j++)
         {
           switch (key.second.second.c_str()[j])
@@ -174,11 +172,11 @@ public:
       }
       else
       {
-        // process string otherwise
+        // process std::string otherwise
 
         if (splittedMatches.size() >= 2 && firstMatch == "CHR")
         {
-          string res3 = splittedMatches[1];
+          std::string res3 = splittedMatches[1];
           trim(res3);
           u16 ch = (u16)atoi(res3.c_str());
           if (ch)
@@ -279,40 +277,40 @@ private:
 
   };
 
-  vector<tuple<TEXT_OP_CODE, vector<u16>>> OPCODES;
-  unordered_map<TEXT_OP_CODE, pair<string, string>> CODES = {
-      {TEXT_OP_CODE::CENTERED, pair<string, string>("CENTER", "")},
-      {TEXT_OP_CODE::RESET_CENTERED, pair<string, string>("/CENTER", "")},
-      {TEXT_OP_CODE::CLEAR_COLOR, pair<string, string>("/COLOR", "")},
-      {TEXT_OP_CODE::COLOR, pair<string, string>("COLOR", "bbb")},
-      {TEXT_OP_CODE::END, pair<string, string>("END", "")},
-      {TEXT_OP_CODE::FITTING, pair<string, string>("FIT", "")},
-      {TEXT_OP_CODE::KERNING, pair<string, string>("KERN", "")},
-      {TEXT_OP_CODE::LEFT_ALIGNED, pair<string, string>("LEFT", "")},
-      {TEXT_OP_CODE::LINE_BREAK, pair<string, string>("BR", "")},
-      {TEXT_OP_CODE::NO_FITTING, pair<string, string>("/FIT", "")},
-      {TEXT_OP_CODE::NO_KERNING, pair<string, string>("/KERN", "")},
-      {TEXT_OP_CODE::OFFSET, pair<string, string>("OFFSET", "ss")},
-      {TEXT_OP_CODE::RESET, pair<string, string>("RESET", "")},
-      {TEXT_OP_CODE::RESET_LEFT_ALIGN, pair<string, string>("/LEFT", "")},
-      {TEXT_OP_CODE::RESET_RIGHT_ALIGN, pair<string, string>("/RIGHT", "")},
-      {TEXT_OP_CODE::RESET_SCALING, pair<string, string>("/SCALE", "")},
-      {TEXT_OP_CODE::RESET_TEXTBOX, pair<string, string>("/TEXTBOX", "")},
-      {TEXT_OP_CODE::RIGHT_ALIGNED, pair<string, string>("/RIGHT", "")},
-      {TEXT_OP_CODE::SCALING, pair<string, string>("SCALE", "bbbb")},
-      {TEXT_OP_CODE::SET_TEXTBOX, pair<string, string>("TEXTBOX", "ss")},
-      {TEXT_OP_CODE::UNKNOWN_02, pair<string, string>("UNK02", "")},
-      {TEXT_OP_CODE::UNKNOWN_04, pair<string, string>("UNK04", "")},
-      {TEXT_OP_CODE::UNKNOWN_05, pair<string, string>("UNK05", "s")},
-      {TEXT_OP_CODE::UNKNOWN_06, pair<string, string>("UNK06", "ss")},
-      {TEXT_OP_CODE::UNKNOWN_08, pair<string, string>("UNK08", "")},
-      {TEXT_OP_CODE::UNKNOWN_09, pair<string, string>("UNK09", "")},
-      {TEXT_OP_CODE::SPACE, pair<string, string>("S", "")},
+  std::vector<std::tuple<TEXT_OP_CODE, std::vector<u16>>> OPCODES;
+  std::unordered_map<TEXT_OP_CODE, std::pair<std::string, std::string>> CODES = {
+      {TEXT_OP_CODE::CENTERED, std::pair<std::string, std::string>("CENTER", "")},
+      {TEXT_OP_CODE::RESET_CENTERED, std::pair<std::string, std::string>("/CENTER", "")},
+      {TEXT_OP_CODE::CLEAR_COLOR, std::pair<std::string, std::string>("/COLOR", "")},
+      {TEXT_OP_CODE::COLOR, std::pair<std::string, std::string>("COLOR", "bbb")},
+      {TEXT_OP_CODE::END, std::pair<std::string, std::string>("END", "")},
+      {TEXT_OP_CODE::FITTING, std::pair<std::string, std::string>("FIT", "")},
+      {TEXT_OP_CODE::KERNING, std::pair<std::string, std::string>("KERN", "")},
+      {TEXT_OP_CODE::LEFT_ALIGNED, std::pair<std::string, std::string>("LEFT", "")},
+      {TEXT_OP_CODE::LINE_BREAK, std::pair<std::string, std::string>("BR", "")},
+      {TEXT_OP_CODE::NO_FITTING, std::pair<std::string, std::string>("/FIT", "")},
+      {TEXT_OP_CODE::NO_KERNING, std::pair<std::string, std::string>("/KERN", "")},
+      {TEXT_OP_CODE::OFFSET, std::pair<std::string, std::string>("OFFSET", "ss")},
+      {TEXT_OP_CODE::RESET, std::pair<std::string, std::string>("RESET", "")},
+      {TEXT_OP_CODE::RESET_LEFT_ALIGN, std::pair<std::string, std::string>("/LEFT", "")},
+      {TEXT_OP_CODE::RESET_RIGHT_ALIGN, std::pair<std::string, std::string>("/RIGHT", "")},
+      {TEXT_OP_CODE::RESET_SCALING, std::pair<std::string, std::string>("/SCALE", "")},
+      {TEXT_OP_CODE::RESET_TEXTBOX, std::pair<std::string, std::string>("/TEXTBOX", "")},
+      {TEXT_OP_CODE::RIGHT_ALIGNED, std::pair<std::string, std::string>("/RIGHT", "")},
+      {TEXT_OP_CODE::SCALING, std::pair<std::string, std::string>("SCALE", "bbbb")},
+      {TEXT_OP_CODE::SET_TEXTBOX, std::pair<std::string, std::string>("TEXTBOX", "ss")},
+      {TEXT_OP_CODE::UNKNOWN_02, std::pair<std::string, std::string>("UNK02", "")},
+      {TEXT_OP_CODE::UNKNOWN_04, std::pair<std::string, std::string>("UNK04", "")},
+      {TEXT_OP_CODE::UNKNOWN_05, std::pair<std::string, std::string>("UNK05", "s")},
+      {TEXT_OP_CODE::UNKNOWN_06, std::pair<std::string, std::string>("UNK06", "ss")},
+      {TEXT_OP_CODE::UNKNOWN_08, std::pair<std::string, std::string>("UNK08", "")},
+      {TEXT_OP_CODE::UNKNOWN_09, std::pair<std::string, std::string>("UNK09", "")},
+      {TEXT_OP_CODE::SPACE, std::pair<std::string, std::string>("S", "")},
   };
 
-  pair<TEXT_OP_CODE, pair<string, string>> findCodeKey(string p)
+  std::pair<TEXT_OP_CODE, std::pair<std::string, std::string>> findCodeKey(std::string p)
   {
-    unordered_map<TEXT_OP_CODE, pair<string, string>>::iterator it;
+    std::unordered_map<TEXT_OP_CODE, std::pair<std::string, std::string>>::iterator it;
 
     for (it = CODES.begin(); it != CODES.end(); it++)
     {
@@ -321,34 +319,35 @@ private:
         return *it;
       }
     }
-    return pair<TEXT_OP_CODE, pair<string, string>>(TEXT_OP_CODE::CUSTOM_NULL,
-                                                    pair<string, string>("", ""));
+    return std::pair<TEXT_OP_CODE, std::pair<std::string, std::string>>(
+        TEXT_OP_CODE::CUSTOM_NULL, std::pair<std::string, std::string>("", ""));
   }
 
-  vector<tuple<TEXT_OP_CODE, vector<u16>>> DeserializeCodes(vector<u8> data)
+  std::vector<std::tuple<TEXT_OP_CODE, std::vector<u16>>> DeserializeCodes(std::vector<u8> data)
   {
-    vector<tuple<TEXT_OP_CODE, vector<u16>>> d = vector<tuple<TEXT_OP_CODE, vector<u16>>>();
+    std::vector<std::tuple<TEXT_OP_CODE, std::vector<u16>>> d =
+        std::vector<std::tuple<TEXT_OP_CODE, std::vector<u16>>>();
 
     for (int i = 0; i < data.size();)
     {
       auto opcode = (TEXT_OP_CODE)data[i++];
-      vector<u16> param = vector<u16>(0);
+      std::vector<u16> param = std::vector<u16>(0);
 
       int textCode = (u8)opcode;
 
       if ((textCode >> 4) == 2)
-        param = vector<u16>{(u16)(((textCode << 8) | (data[i++] & 0xFF)) & 0xFFF)};
+        param = std::vector<u16>{(u16)(((textCode << 8) | (data[i++] & 0xFF)) & 0xFFF)};
       else if ((textCode >> 4) == 4)
-        param = vector<u16>{(u16)(((textCode << 8) | (data[i++] & 0xFF)) & 0xFFF)};
+        param = std::vector<u16>{(u16)(((textCode << 8) | (data[i++] & 0xFF)) & 0xFFF)};
       else if (!CODES.count(opcode))
       {
         ERROR_LOG_FMT(SLIPPI, "Opcode Not Supported!");
       }
       else
       {
-        pair<string, string> code = CODES[opcode];
+        std::pair<std::string, std::string> code = CODES[opcode];
         auto p = code.second.c_str();
-        param = vector<u16>(strlen(p));
+        param = std::vector<u16>(strlen(p));
         for (int j = 0; j < param.size(); j++)
         {
           switch (p[j])
@@ -363,7 +362,8 @@ private:
         }
       }
 
-      pair<TEXT_OP_CODE, vector<u16>> c = pair<TEXT_OP_CODE, vector<u16>>(opcode, param);
+      std::pair<TEXT_OP_CODE, std::vector<u16>> c =
+          std::pair<TEXT_OP_CODE, std::vector<u16>>(opcode, param);
       d.push_back(c);
 
       if (opcode == TEXT_OP_CODE::END)
@@ -394,16 +394,16 @@ private:
     rtrim(s);
   }
 
-  vector<string> split(const string& str, const string& delim)
+  std::vector<std::string> split(const std::string& str, const std::string& delim)
   {
-    vector<string> tokens;
+    std::vector<std::string> tokens;
     size_t prev = 0, pos = 0;
     do
     {
       pos = str.find(delim, prev);
-      if (pos == string::npos)
+      if (pos == std::string::npos)
         pos = str.length();
-      string token = str.substr(prev, pos - prev);
+      std::string token = str.substr(prev, pos - prev);
       if (!token.empty())
         tokens.push_back(token);
       prev = pos + delim.length();
