@@ -333,6 +333,9 @@ public:
 
         //Quit?
         std::string quitter_team = "";
+
+        //Bookkeeping
+        u16 pitch_num = 0;
     };
     GameInfo m_game_info;
 
@@ -386,6 +389,7 @@ public:
     std::array<std::array<EndGameRosterOffensiveStats, cRosterSize>, cNumOfTeams> m_offensive_stats;
 
     struct ABStats{
+        u16 pitch_num;
         u32 game_id;
         u32 team_id;
         u8 roster_id;

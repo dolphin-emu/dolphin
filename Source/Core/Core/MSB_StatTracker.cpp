@@ -283,6 +283,11 @@ void StatTracker::logOffensiveStats(int team_id, int roster_id){
 
 void StatTracker::logABScenario(){
     std::cout << "Logging Sceanrio" << std::endl;
+
+    //Record which pitch of the game
+    m_curr_ab_stat.pitch_num = m_game_info.pitch_num;
+    ++m_game_info.pitch_num;
+
     //TODO: Figure out "Team1 is Hitting" Addr
     m_curr_ab_stat.team_id = (Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
     m_curr_ab_stat.roster_id = Memory::Read_U8(aAB_RosterID);
@@ -439,7 +444,6 @@ void StatTracker::logABPitch(){
 
     //Calc the pitcher stamina offset and add it to the base stamina addr
     u32 pitcherStaminaOffset = ((pitcher_team_id * cRosterSize * c_defensive_stat_offset) + (m_curr_ab_stat.pitcher_roster_loc * c_defensive_stat_offset));
-    std::cout << "Pitcher Team ID=" << std::to_string(pitcher_team_id) << ", Pitcher Roster Location=" << std::to_string(pitcher_roster_id) << ", Pitcher Stamina Addr=" << std::hex << (aPitcher_Stamina + pitcherStaminaOffset) << std::endl;
     m_curr_ab_stat.pitcher_stamina = Memory::Read_U16(aPitcher_Stamina + pitcherStaminaOffset);
 }
 
@@ -626,6 +630,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "      \"Pitch Summary\": [" << std::endl;
             for (auto& ab_stat : m_ab_stats[team][roster]){
                 json_stream << "        {" << std::endl;
+                json_stream << "          \"Pitch Num\": " << ab_stat.pitch_num << "," << std::endl;
                 json_stream << "          \"Batter\": " << character << "," << std::endl;
                 json_stream << "          \"Inning\": " << std::to_string(ab_stat.inning) << "," << std::endl;
                 json_stream << "          \"Half Inning\": " << std::to_string(ab_stat.half_inning) << "," << std::endl;
