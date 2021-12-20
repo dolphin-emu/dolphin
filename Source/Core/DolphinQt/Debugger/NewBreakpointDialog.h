@@ -30,6 +30,8 @@ private:
   void OnBPTypeChanged();
   void OnAddressTypeChanged();
 
+  void ShowHelp();
+
   // Instruction BPs
   QRadioButton* m_instruction_bp;
   QGroupBox* m_instruction_box;

@@ -31,7 +31,8 @@ NewBreakpointDialog::NewBreakpointDialog(BreakpointWidget* parent)
 
 void NewBreakpointDialog::CreateWidgets()
 {
-  m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  m_buttons = new QDialogButtonBox(QDialogButtonBox::Help | QDialogButtonBox::Ok |
+                                   QDialogButtonBox::Cancel);
   auto* type_group = new QButtonGroup(this);
 
   // Instruction BP
@@ -122,6 +123,7 @@ void NewBreakpointDialog::ConnectWidgets()
 {
   connect(m_buttons, &QDialogButtonBox::accepted, this, &NewBreakpointDialog::accept);
   connect(m_buttons, &QDialogButtonBox::rejected, this, &NewBreakpointDialog::reject);
+  connect(m_buttons, &QDialogButtonBox::helpRequested, this, &NewBreakpointDialog::ShowHelp);
 
   connect(m_instruction_bp, &QRadioButton::toggled, this, &NewBreakpointDialog::OnBPTypeChanged);
   connect(m_memory_bp, &QRadioButton::toggled, this, &NewBreakpointDialog::OnBPTypeChanged);
@@ -209,4 +211,43 @@ void NewBreakpointDialog::accept()
   }
 
   QDialog::accept();
+}
+
+void NewBreakpointDialog::ShowHelp()
+{
+  const auto message =
+      QStringLiteral("This dialog allows to set a breakpoint (alias BP). The execution of the "
+                     "game will pause when a BP is reached. There are two kinds of BP:\n"
+                     " - Instruction BP: will pause when the code at the address is executed\n"
+                     " - Memory BP: will pause when the memory address is read/written\n"
+                     "\n"
+                     "On top of pausing the execution you can also use log messages when the "
+                     "BP is hit. Alternatively, you can use them to only log messages and not "
+                     "break at all. When used that way, they are often called \"Tracepoint\" "
+                     "or \"Log Breakpoint\".\n"
+                     "\n"
+                     "Using braces, you can include register's state in the log message. The "
+                     "format used follows the same principle as the libfmt format {fmt}. All "
+                     "its type specifiers are supported. Printf's length specifier are also "
+                     "available to cast the value to its proper types: hh, h, l. Other type "
+                     "specifiers can also be used: u (unsigned cast), v (format string) and "
+                     "V (format string with va_list).\n"
+                     "\n"
+                     "Registers available:\n"
+                     " - GPRs: r0 .. r31\n"
+                     " - FPRs: f0 .. f31, (lower) f0_1 .. f31_1, (upper) f0_2 .. f31_2\n"
+                     " - Others: TB, PC, LR, CTR, CR, XER, FPSCR, MSR, SRR0, SRR1\n"
+                     "Exceptions, IntMask, IntCause, DSISR, DAR, HashMask\n"
+                     "\n"
+                     "Examples:\n"
+                     " -> A simple debug message\n"
+                     " -> R3={r3}, F1={f1}\n"
+                     " -> puts({r3:s})\n"
+                     " -> printf({r3:v})\n"
+                     " -> vprintf({r3:V})\n"
+                     " -> GPR: Hex={r3:08x}, Oct={r3:o}, Bin={r3:b}, Float={r3:f}\n"
+                     " -> Paired Single: {f1} = ({f1_1:016lx},{f1_2:016lx})\n"
+                     " -> Double: {f1_1:lf}, {f1_2:lf}\n"
+                     " -> Float: {f1_1:f}, {f1_2:f}\n");
+  ModalMessageBox::information(this, tr("Breakpoint dialog help"), message);
 }
