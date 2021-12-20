@@ -1966,18 +1966,28 @@ void Jit64::rlwimix(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
 
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
+
   if (gpr.IsImm(a, s))
   {
-    const u32 mask = MakeRotationMask(inst.MB, inst.ME);
     gpr.SetImmediate32(a,
                        (gpr.Imm32(a) & ~mask) | (Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
     if (inst.Rc)
       ComputeRC(a);
   }
+  else if (gpr.IsImm(s) && mask == 0xFFFFFFFF)
+  {
+    gpr.SetImmediate32(a, Common::RotateLeft(gpr.Imm32(s), inst.SH));
+
+    if (inst.Rc)
+      ComputeRC(a);
+  }
   else
   {
-    const u32 mask = MakeRotationMask(inst.MB, inst.ME);
+    const bool left_shift = mask == 0U - (1U << inst.SH);
+    const bool right_shift = mask == (1U << inst.SH) - 1;
     bool needs_test = false;
+
     if (mask == 0 || (a == s && inst.SH == 0))
     {
       needs_test = true;
@@ -1997,63 +2007,73 @@ void Jit64::rlwimix(UGeckoInstruction inst)
       AndWithMask(Ra, ~mask);
       OR(32, Ra, Imm32(Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
     }
-    else if (inst.SH)
+    else if (gpr.IsImm(a))
     {
-      bool isLeftShift = mask == 0U - (1U << inst.SH);
-      bool isRightShift = mask == (1U << inst.SH) - 1;
-      if (gpr.IsImm(a))
+      const u32 maskA = gpr.Imm32(a) & ~mask;
+
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RegCache::Realize(Rs, Ra);
+
+      if (inst.SH == 0)
       {
-        u32 maskA = gpr.Imm32(a) & ~mask;
-
-        RCOpArg Rs = gpr.Use(s, RCMode::Read);
-        RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
-        RegCache::Realize(Rs, Ra);
-
-        if (isLeftShift)
-        {
-          MOV(32, Ra, Rs);
-          SHL(32, Ra, Imm8(inst.SH));
-        }
-        else if (isRightShift)
-        {
-          MOV(32, Ra, Rs);
-          SHR(32, Ra, Imm8(32 - inst.SH));
-        }
-        else
-        {
-          RotateLeft(32, Ra, Rs, inst.SH);
-          AndWithMask(Ra, mask);
-        }
-        OR(32, Ra, Imm32(maskA));
+        MOV(32, Ra, Rs);
+        AndWithMask(Ra, mask);
+      }
+      else if (left_shift)
+      {
+        MOV(32, Ra, Rs);
+        SHL(32, Ra, Imm8(inst.SH));
+      }
+      else if (right_shift)
+      {
+        MOV(32, Ra, Rs);
+        SHR(32, Ra, Imm8(32 - inst.SH));
       }
       else
       {
-        // TODO: common cases of this might be faster with pinsrb or abuse of AH
-        RCOpArg Rs = gpr.Use(s, RCMode::Read);
-        RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
-        RegCache::Realize(Rs, Ra);
+        RotateLeft(32, Ra, Rs, inst.SH);
+        AndWithMask(Ra, mask);
+      }
 
-        if (isLeftShift)
-        {
-          MOV(32, R(RSCRATCH), Rs);
-          SHL(32, R(RSCRATCH), Imm8(inst.SH));
-          AndWithMask(Ra, ~mask);
-          OR(32, Ra, R(RSCRATCH));
-        }
-        else if (isRightShift)
-        {
-          MOV(32, R(RSCRATCH), Rs);
-          SHR(32, R(RSCRATCH), Imm8(32 - inst.SH));
-          AndWithMask(Ra, ~mask);
-          OR(32, Ra, R(RSCRATCH));
-        }
-        else
-        {
-          RotateLeft(32, RSCRATCH, Rs, inst.SH);
-          XOR(32, R(RSCRATCH), Ra);
+      if (maskA)
+        OR(32, Ra, Imm32(maskA));
+      else
+        needs_test = true;
+    }
+    else if (inst.SH)
+    {
+      // TODO: perhaps consider pinsrb or abuse of AH
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
+      RegCache::Realize(Rs, Ra);
+
+      if (left_shift)
+      {
+        MOV(32, R(RSCRATCH), Rs);
+        SHL(32, R(RSCRATCH), Imm8(inst.SH));
+      }
+      else if (right_shift)
+      {
+        MOV(32, R(RSCRATCH), Rs);
+        SHR(32, R(RSCRATCH), Imm8(32 - inst.SH));
+      }
+      else
+      {
+        RotateLeft(32, RSCRATCH, Rs, inst.SH);
+      }
+
+      if (mask == 0xFF || mask == 0xFFFF)
+      {
+        MOV(mask == 0xFF ? 8 : 16, Ra, R(RSCRATCH));
+        needs_test = true;
+      }
+      else
+      {
+        if (!left_shift && !right_shift)
           AndWithMask(RSCRATCH, mask);
-          XOR(32, Ra, R(RSCRATCH));
-        }
+        AndWithMask(Ra, ~mask);
+        OR(32, Ra, R(RSCRATCH));
       }
     }
     else
@@ -2061,9 +2081,18 @@ void Jit64::rlwimix(UGeckoInstruction inst)
       RCX64Reg Rs = gpr.Bind(s, RCMode::Read);
       RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
       RegCache::Realize(Rs, Ra);
-      XOR(32, Ra, Rs);
-      AndWithMask(Ra, ~mask);
-      XOR(32, Ra, Rs);
+
+      if (mask == 0xFF || mask == 0xFFFF)
+      {
+        MOV(mask == 0xFF ? 8 : 16, Ra, Rs);
+        needs_test = true;
+      }
+      else
+      {
+        XOR(32, Ra, Rs);
+        AndWithMask(Ra, ~mask);
+        XOR(32, Ra, Rs);
+      }
     }
     if (inst.Rc)
       ComputeRC(a, needs_test);
@@ -2088,11 +2117,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
     RCOpArg Rs = gpr.Use(s, RCMode::Read);
     RegCache::Realize(Ra, Rs);
 
-    if (a != s)
-      MOV(32, Ra, Rs);
-
-    if (amount)
-      ROL(32, Ra, Imm8(amount));
+    RotateLeft(32, Ra, Rs, amount);
 
     // we need flags if we're merging the branch
     if (inst.Rc && CheckMergedBranch(0))
