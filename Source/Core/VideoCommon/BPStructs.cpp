@@ -716,29 +716,27 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
                bp.newvalue);
 }
 
-// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
-void LoadBPReg(u32 value0, int cycles_into_future)
+// Call browser: OpcodeDecoding.cpp RunCallback::OnBP()
+void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
 {
-  int regNum = value0 >> 24;
-  int oldval = ((u32*)&bpmem)[regNum];
-  int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
+  int oldval = ((u32*)&bpmem)[reg];
+  int newval = (oldval & ~bpmem.bpMask) | (value & bpmem.bpMask);
   int changes = (oldval ^ newval) & 0xFFFFFF;
 
-  BPCmd bp = {regNum, changes, newval};
+  BPCmd bp = {reg, changes, newval};
 
   // Reset the mask register if we're not trying to set it ourselves.
-  if (regNum != BPMEM_BP_MASK)
+  if (reg != BPMEM_BP_MASK)
     bpmem.bpMask = 0xFFFFFF;
 
   BPWritten(bp, cycles_into_future);
 }
 
-void LoadBPRegPreprocess(u32 value0, int cycles_into_future)
+void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future)
 {
-  int regNum = value0 >> 24;
-  // masking could hypothetically be a problem
-  u32 newval = value0 & 0xffffff;
-  switch (regNum)
+  // masking via BPMEM_BP_MASK could hypothetically be a problem
+  u32 newval = value & 0xffffff;
+  switch (reg)
   {
   case BPMEM_SETDRAWDONE:
     if ((newval & 0xff) == 0x02)

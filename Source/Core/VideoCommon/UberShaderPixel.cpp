@@ -404,263 +404,95 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "int4 getKonstColor(State s, StageState ss);\n"
             "\n");
 
-  // The switch statements in these functions appear to get transformed into an if..else chain
-  // on NVIDIA's OpenGL/Vulkan drivers, resulting in lower performance than the D3D counterparts.
-  // Transforming the switch into a binary tree of ifs can increase performance by up to 20%.
-  if (api_type == APIType::D3D)
-  {
-    out.Write("// Helper function for Alpha Test\n"
-              "bool alphaCompare(int a, int b, uint compare) {{\n"
-              "  switch (compare) {{\n"
-              "  case 0u: // NEVER\n"
-              "    return false;\n"
-              "  case 1u: // LESS\n"
-              "    return a < b;\n"
-              "  case 2u: // EQUAL\n"
-              "    return a == b;\n"
-              "  case 3u: // LEQUAL\n"
-              "    return a <= b;\n"
-              "  case 4u: // GREATER\n"
-              "    return a > b;\n"
-              "  case 5u: // NEQUAL;\n"
-              "    return a != b;\n"
-              "  case 6u: // GEQUAL\n"
-              "    return a >= b;\n"
-              "  case 7u: // ALWAYS\n"
-              "    return true;\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-              "uint index) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev.rgb\n"
-              "    return s.Reg[0].rgb;\n"
-              "  case 1u: // prev.aaa\n"
-              "    return s.Reg[0].aaa;\n"
-              "  case 2u: // c0.rgb\n"
-              "    return s.Reg[1].rgb;\n"
-              "  case 3u: // c0.aaa\n"
-              "    return s.Reg[1].aaa;\n"
-              "  case 4u: // c1.rgb\n"
-              "    return s.Reg[2].rgb;\n"
-              "  case 5u: // c1.aaa\n"
-              "    return s.Reg[2].aaa;\n"
-              "  case 6u: // c2.rgb\n"
-              "    return s.Reg[3].rgb;\n"
-              "  case 7u: // c2.aaa\n"
-              "    return s.Reg[3].aaa;\n"
-              "  case 8u:\n"
-              "    return s.TexColor.rgb;\n"
-              "  case 9u:\n"
-              "    return s.TexColor.aaa;\n"
-              "  case 10u:\n"
-              "    return getRasColor(s, ss, colors_0, colors_1).rgb;\n"
-              "  case 11u:\n"
-              "    return getRasColor(s, ss, colors_0, colors_1).aaa;\n"
-              "  case 12u: // One\n"
-              "    return int3(255, 255, 255);\n"
-              "  case 13u: // Half\n"
-              "    return int3(128, 128, 128);\n"
-              "  case 14u:\n"
-              "    return getKonstColor(s, ss).rgb;\n"
-              "  case 15u: // Zero\n"
-              "    return int3(0, 0, 0);\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-              "uint index) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev.a\n"
-              "    return s.Reg[0].a;\n"
-              "  case 1u: // c0.a\n"
-              "    return s.Reg[1].a;\n"
-              "  case 2u: // c1.a\n"
-              "    return s.Reg[2].a;\n"
-              "  case 3u: // c2.a\n"
-              "    return s.Reg[3].a;\n"
-              "  case 4u:\n"
-              "    return s.TexColor.a;\n"
-              "  case 5u:\n"
-              "    return getRasColor(s, ss, colors_0, colors_1).a;\n"
-              "  case 6u:\n"
-              "    return getKonstColor(s, ss).a;\n"
-              "  case 7u: // Zero\n"
-              "    return 0;\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "int4 getTevReg(in State s, uint index) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev\n"
-              "    return s.Reg[0];\n"
-              "  case 1u: // c0\n"
-              "    return s.Reg[1];\n"
-              "  case 2u: // c1\n"
-              "    return s.Reg[2];\n"
-              "  case 3u: // c2\n"
-              "    return s.Reg[3];\n"
-              "  default: // prev\n"
-              "    return s.Reg[0];\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "void setRegColor(inout State s, uint index, int3 color) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev\n"
-              "    s.Reg[0].rgb = color;\n"
-              "    break;\n"
-              "  case 1u: // c0\n"
-              "    s.Reg[1].rgb = color;\n"
-              "    break;\n"
-              "  case 2u: // c1\n"
-              "    s.Reg[2].rgb = color;\n"
-              "    break;\n"
-              "  case 3u: // c2\n"
-              "    s.Reg[3].rgb = color;\n"
-              "    break;\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "void setRegAlpha(inout State s, uint index, int alpha) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev\n"
-              "    s.Reg[0].a = alpha;\n"
-              "    break;\n"
-              "  case 1u: // c0\n"
-              "    s.Reg[1].a = alpha;\n"
-              "    break;\n"
-              "  case 2u: // c1\n"
-              "    s.Reg[2].a = alpha;\n"
-              "    break;\n"
-              "  case 3u: // c2\n"
-              "    s.Reg[3].a = alpha;\n"
-              "    break;\n"
-              "  }}\n"
-              "}}\n"
-              "\n");
-  }
-  else
-  {
-    out.Write(
-        "// Helper function for Alpha Test\n"
-        "bool alphaCompare(int a, int b, uint compare) {{\n"
-        "  if (compare < 4u) {{\n"
-        "    if (compare < 2u) {{\n"
-        "      return (compare == 0u) ? (false) : (a < b);\n"
-        "    }} else {{\n"
-        "      return (compare == 2u) ? (a == b) : (a <= b);\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (compare < 6u) {{\n"
-        "      return (compare == 4u) ? (a > b) : (a != b);\n"
-        "    }} else {{\n"
-        "      return (compare == 6u) ? (a >= b) : (true);\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-        "uint index) {{\n"
-        "  if (index < 8u) {{\n"
-        "    if (index < 4u) {{\n"
-        "      if (index < 2u) {{\n"
-        "        return (index == 0u) ? s.Reg[0].rgb : s.Reg[0].aaa;\n"
-        "      }} else {{\n"
-        "        return (index == 2u) ? s.Reg[1].rgb : s.Reg[1].aaa;\n"
-        "      }}\n"
-        "    }} else {{\n"
-        "      if (index < 6u) {{\n"
-        "        return (index == 4u) ? s.Reg[2].rgb : s.Reg[2].aaa;\n"
-        "      }} else {{\n"
-        "        return (index == 6u) ? s.Reg[3].rgb : s.Reg[3].aaa;\n"
-        "      }}\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index < 12u) {{\n"
-        "      if (index < 10u) {{\n"
-        "        return (index == 8u) ? s.TexColor.rgb : s.TexColor.aaa;\n"
-        "      }} else {{\n"
-        "        int4 ras = getRasColor(s, ss, colors_0, colors_1);\n"
-        "        return (index == 10u) ? ras.rgb : ras.aaa;\n"
-        "      }}\n"
-        "    }} else {{\n"
-        "      if (index < 14u) {{\n"
-        "        return (index == 12u) ? int3(255, 255, 255) : int3(128, 128, 128);\n"
-        "      }} else {{\n"
-        "        return (index == 14u) ? getKonstColor(s, ss).rgb : int3(0, 0, 0);\n"
-        "      }}\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-        "uint index) {{\n"
-        "  if (index < 4u) {{\n"
-        "    if (index < 2u) {{\n"
-        "      return (index == 0u) ? s.Reg[0].a : s.Reg[1].a;\n"
-        "    }} else {{\n"
-        "      return (index == 2u) ? s.Reg[2].a : s.Reg[3].a;\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index < 6u) {{\n"
-        "      return (index == 4u) ? s.TexColor.a : getRasColor(s, ss, colors_0, colors_1).a;\n"
-        "    }} else {{\n"
-        "      return (index == 6u) ? getKonstColor(s, ss).a : 0;\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "int4 getTevReg(in State s, uint index) {{\n"
-        "  if (index < 2u) {{\n"
-        "    if (index == 0u) {{\n"
-        "      return s.Reg[0];\n"
-        "    }} else {{\n"
-        "      return s.Reg[1];\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index == 2u) {{\n"
-        "      return s.Reg[2];\n"
-        "    }} else {{\n"
-        "      return s.Reg[3];\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "void setRegColor(inout State s, uint index, int3 color) {{\n"
-        "  if (index < 2u) {{\n"
-        "    if (index == 0u) {{\n"
-        "      s.Reg[0].rgb = color;\n"
-        "    }} else {{\n"
-        "      s.Reg[1].rgb = color;\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index == 2u) {{\n"
-        "      s.Reg[2].rgb = color;\n"
-        "    }} else {{\n"
-        "      s.Reg[3].rgb = color;\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "void setRegAlpha(inout State s, uint index, int alpha) {{\n"
-        "  if (index < 2u) {{\n"
-        "    if (index == 0u) {{\n"
-        "      s.Reg[0].a = alpha;\n"
-        "    }} else {{\n"
-        "      s.Reg[1].a = alpha;\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index == 2u) {{\n"
-        "      s.Reg[2].a = alpha;\n"
-        "    }} else {{\n"
-        "      s.Reg[3].a = alpha;\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n");
-  }
+  static constexpr Common::EnumMap<std::string_view, CompareMode::Always> tev_alpha_funcs_table{
+      "return false;",   // CompareMode::Never
+      "return a <  b;",  // CompareMode::Less
+      "return a == b;",  // CompareMode::Equal
+      "return a <= b;",  // CompareMode::LEqual
+      "return a >  b;",  // CompareMode::Greater
+      "return a != b;",  // CompareMode::NEqual
+      "return a >= b;",  // CompareMode::GEqual
+      "return true;"     // CompareMode::Always
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevColorArg::Zero> tev_c_input_table{
+      "return s.Reg[0].rgb;",                                // CPREV,
+      "return s.Reg[0].aaa;",                                // APREV,
+      "return s.Reg[1].rgb;",                                // C0,
+      "return s.Reg[1].aaa;",                                // A0,
+      "return s.Reg[2].rgb;",                                // C1,
+      "return s.Reg[2].aaa;",                                // A1,
+      "return s.Reg[3].rgb;",                                // C2,
+      "return s.Reg[3].aaa;",                                // A2,
+      "return s.TexColor.rgb;",                              // TEXC,
+      "return s.TexColor.aaa;",                              // TEXA,
+      "return getRasColor(s, ss, colors_0, colors_1).rgb;",  // RASC,
+      "return getRasColor(s, ss, colors_0, colors_1).aaa;",  // RASA,
+      "return int3(255, 255, 255);",                         // ONE
+      "return int3(128, 128, 128);",                         // HALF
+      "return getKonstColor(s, ss).rgb;",                    // KONST
+      "return int3(0, 0, 0);",                               // ZERO
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevAlphaArg::Zero> tev_a_input_table{
+      "return s.Reg[0].a;",                                // APREV,
+      "return s.Reg[1].a;",                                // A0,
+      "return s.Reg[2].a;",                                // A1,
+      "return s.Reg[3].a;",                                // A2,
+      "return s.TexColor.a;",                              // TEXA,
+      "return getRasColor(s, ss, colors_0, colors_1).a;",  // RASA,
+      "return getKonstColor(s, ss).a;",                    // KONST,  (hw1 had quarter)
+      "return 0;",                                         // ZERO
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevOutput::Color2> tev_regs_lookup_table{
+      "return s.Reg[0];",
+      "return s.Reg[1];",
+      "return s.Reg[2];",
+      "return s.Reg[3];",
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevOutput::Color2> tev_c_set_table{
+      "s.Reg[0].rgb = color;",
+      "s.Reg[1].rgb = color;",
+      "s.Reg[2].rgb = color;",
+      "s.Reg[3].rgb = color;",
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevOutput::Color2> tev_a_set_table{
+      "s.Reg[0].a = alpha;",
+      "s.Reg[1].a = alpha;",
+      "s.Reg[2].a = alpha;",
+      "s.Reg[3].a = alpha;",
+  };
+
+  out.Write("// Helper function for Alpha Test\n"
+            "bool alphaCompare(int a, int b, uint compare) {{\n");
+  WriteSwitch(out, api_type, "compare", tev_alpha_funcs_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+            "uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_c_input_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+            "uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_a_input_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "int4 getTevReg(in State s, uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_regs_lookup_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "void setRegColor(inout State s, uint index, int3 color) {{\n");
+  WriteSwitch(out, api_type, "index", tev_c_set_table, 2, true);
+  out.Write("}}\n"
+            "\n"
+            "void setRegAlpha(inout State s, uint index, int alpha) {{\n");
+  WriteSwitch(out, api_type, "index", tev_a_set_table, 2, true);
+  out.Write("}}\n"
+            "\n");
 
   // Since the fixed-point texture coodinate variables aren't global, we need to pass
   // them to the select function.  This applies to all backends.
@@ -1284,78 +1116,59 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   if (use_shader_blend)
   {
-    static constexpr std::array<std::string_view, 8> blendSrcFactor{{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "initial_ocol0.rgb;",                  // DSTCLR
-        "float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
-        "ocol1.aaa;",                          // SRCALPHA
-        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    }};
-    static constexpr std::array<std::string_view, 8> blendSrcFactorAlpha{{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "initial_ocol0.a;",        // DSTCLR
-        "1.0 - initial_ocol0.a;",  // INVDSTCLR
-        "ocol1.a;",                // SRCALPHA
-        "1.0 - ocol1.a;",          // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    }};
-    static constexpr std::array<std::string_view, 8> blendDstFactor{{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "ocol0.rgb;",                          // SRCCLR
-        "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "ocol1.aaa;",                          // SRCALHA
-        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    }};
-    static constexpr std::array<std::string_view, 8> blendDstFactorAlpha{{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "ocol0.a;",                // SRCCLR
-        "1.0 - ocol0.a;",          // INVSRCCLR
-        "ocol1.a;",                // SRCALPHA
-        "1.0 - ocol1.a;",          // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    }};
+    using Common::EnumMap;
+
+    static constexpr EnumMap<std::string_view, SrcBlendFactor::InvDstAlpha> blendSrcFactor{
+        "blend_src.rgb = float3(0,0,0);",                      // ZERO
+        "blend_src.rgb = float3(1,1,1);",                      // ONE
+        "blend_src.rgb = initial_ocol0.rgb;",                  // DSTCLR
+        "blend_src.rgb = float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
+        "blend_src.rgb = ocol1.aaa;",                          // SRCALPHA
+        "blend_src.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_src.rgb = initial_ocol0.aaa;",                  // DSTALPHA
+        "blend_src.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<std::string_view, SrcBlendFactor::InvDstAlpha> blendSrcFactorAlpha{
+        "blend_src.a = 0.0;",                    // ZERO
+        "blend_src.a = 1.0;",                    // ONE
+        "blend_src.a = initial_ocol0.a;",        // DSTCLR
+        "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTCLR
+        "blend_src.a = ocol1.a;",                // SRCALPHA
+        "blend_src.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_src.a = initial_ocol0.a;",        // DSTALPHA
+        "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<std::string_view, DstBlendFactor::InvDstAlpha> blendDstFactor{
+        "blend_dst.rgb = float3(0,0,0);",                      // ZERO
+        "blend_dst.rgb = float3(1,1,1);",                      // ONE
+        "blend_dst.rgb = ocol0.rgb;",                          // SRCCLR
+        "blend_dst.rgb = float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
+        "blend_dst.rgb = ocol1.aaa;",                          // SRCALHA
+        "blend_dst.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_dst.rgb = initial_ocol0.aaa;",                  // DSTALPHA
+        "blend_dst.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<std::string_view, DstBlendFactor::InvDstAlpha> blendDstFactorAlpha{
+        "blend_dst.a = 0.0;",                    // ZERO
+        "blend_dst.a = 1.0;",                    // ONE
+        "blend_dst.a = ocol0.a;",                // SRCCLR
+        "blend_dst.a = 1.0 - ocol0.a;",          // INVSRCCLR
+        "blend_dst.a = ocol1.a;",                // SRCALPHA
+        "blend_dst.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_dst.a = initial_ocol0.a;",        // DSTALPHA
+        "blend_dst.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
 
     out.Write("  if (blend_enable) {{\n"
-              "    float4 blend_src;\n"
-              "    switch (blend_src_factor) {{\n");
-    for (size_t i = 0; i < blendSrcFactor.size(); i++)
-    {
-      out.Write("      case {}u: blend_src.rgb = {}; break;\n", i, blendSrcFactor[i]);
-    }
+              "    float4 blend_src;\n");
+    WriteSwitch(out, api_type, "blend_src_factor", blendSrcFactor, 4, true);
+    WriteSwitch(out, api_type, "blend_src_factor_alpha", blendSrcFactorAlpha, 4, true);
 
-    out.Write("    }}\n"
-              "    switch (blend_src_factor_alpha) {{\n");
-    for (size_t i = 0; i < blendSrcFactorAlpha.size(); i++)
-    {
-      out.Write("      case {}u: blend_src.a = {}; break;\n", i, blendSrcFactorAlpha[i]);
-    }
-
-    out.Write("    }}\n"
-              "    float4 blend_dst;\n"
-              "    switch (blend_dst_factor) {{\n");
-    for (size_t i = 0; i < blendDstFactor.size(); i++)
-    {
-      out.Write("      case {}u: blend_dst.rgb = {}; break;\n", i, blendDstFactor[i]);
-    }
-    out.Write("    }}\n"
-              "    switch (blend_dst_factor_alpha) {{\n");
-    for (size_t i = 0; i < blendDstFactorAlpha.size(); i++)
-    {
-      out.Write("      case {}u: blend_dst.a = {}; break;\n", i, blendDstFactorAlpha[i]);
-    }
+    out.Write("    float4 blend_dst;\n");
+    WriteSwitch(out, api_type, "blend_dst_factor", blendDstFactor, 4, true);
+    WriteSwitch(out, api_type, "blend_dst_factor_alpha", blendDstFactorAlpha, 4, true);
 
     out.Write(
-        "    }}\n"
         "    float4 blend_result;\n"
         "    if (blend_subtract)\n"
         "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * blend_src.rgb;\n"

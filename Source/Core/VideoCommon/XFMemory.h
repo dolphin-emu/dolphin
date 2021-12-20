@@ -13,8 +13,6 @@
 #include "Common/EnumFormatter.h"
 #include "VideoCommon/CPMemory.h"
 
-class DataReader;
-
 constexpr size_t NUM_XF_COLOR_CHANNELS = 2;
 
 // Lighting
@@ -454,10 +452,10 @@ struct XFMemory
   u32 unk9[8];                              // 0x1048 - 0x104f
   PostMtxInfo postMtxInfo[8];               // 0x1050 - 0x1057
 };
-static_assert(sizeof(XFMemory) == sizeof(u32) * 0x1058);
+static_assert(sizeof(XFMemory) == sizeof(u32) * XFMEM_REGISTERS_END);
 
 extern XFMemory xfmem;
 
-void LoadXFReg(u32 transferSize, u32 address, DataReader src);
-void LoadIndexedXF(u32 val, int array);
-void PreprocessIndexedXF(u32 val, int refarray);
+void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data);
+void LoadIndexedXF(CPArray array, u32 index, u16 address, u8 size);
+void PreprocessIndexedXF(CPArray array, u32 index, u16 address, u8 size);

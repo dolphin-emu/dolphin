@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -607,10 +608,10 @@ void SetCpClearRegister()
 {
 }
 
-void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess)
+void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
 {
   // TODO(Omega): Maybe dump FIFO to file on this error
-  PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, {2}).\n"
+  PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
                  "This means one of the following:\n"
                  "* The emulated GPU got desynced, disabling dual core can help\n"
                  "* Command stream corrupted by some spurious memory bug\n"
@@ -618,7 +619,7 @@ void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess)
                  "* Some other sort of bug\n\n"
                  "Further errors will be sent to the Video Backend log and\n"
                  "Dolphin will now likely crash or hang. Enjoy.",
-                 cmd_byte, buffer, preprocess ? "preprocess=true" : "preprocess=false");
+                 cmd_byte, fmt::ptr(buffer), preprocess);
 
   {
     PanicAlertFmt("Illegal command {:02x}\n"

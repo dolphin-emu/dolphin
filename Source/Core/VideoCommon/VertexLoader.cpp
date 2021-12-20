@@ -91,7 +91,7 @@ void VertexLoader::CompileVertexTranslator()
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = nat_offset;
-    m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.posmtx.type = ComponentFormat::UByte;
     m_native_vtx_decl.posmtx.integer = true;
     nat_offset += 4;
   }
@@ -110,7 +110,7 @@ void VertexLoader::CompileVertexTranslator()
   m_native_vtx_decl.position.components = pos_elements;
   m_native_vtx_decl.position.enable = true;
   m_native_vtx_decl.position.offset = nat_offset;
-  m_native_vtx_decl.position.type = VAR_FLOAT;
+  m_native_vtx_decl.position.type = ComponentFormat::Float;
   m_native_vtx_decl.position.integer = false;
   nat_offset += pos_elements * sizeof(float);
 
@@ -134,7 +134,7 @@ void VertexLoader::CompileVertexTranslator()
       m_native_vtx_decl.normals[i].components = 3;
       m_native_vtx_decl.normals[i].enable = true;
       m_native_vtx_decl.normals[i].offset = nat_offset;
-      m_native_vtx_decl.normals[i].type = VAR_FLOAT;
+      m_native_vtx_decl.normals[i].type = ComponentFormat::Float;
       m_native_vtx_decl.normals[i].integer = false;
       nat_offset += 12;
     }
@@ -143,7 +143,7 @@ void VertexLoader::CompileVertexTranslator()
   for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
   {
     m_native_vtx_decl.colors[i].components = 4;
-    m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
     m_native_vtx_decl.colors[i].integer = false;
 
     TPipelineFunction pFunc =
@@ -166,7 +166,7 @@ void VertexLoader::CompileVertexTranslator()
   for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
   {
     m_native_vtx_decl.texcoords[i].offset = nat_offset;
-    m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
+    m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
     m_native_vtx_decl.texcoords[i].integer = false;
 
     const auto tc = m_VtxDesc.high.TexCoord[i].Value();

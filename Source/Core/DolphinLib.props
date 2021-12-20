@@ -217,11 +217,8 @@
     <ClInclude Include="Core\DSP\Jit\x64\DSPJitTables.h" />
     <ClInclude Include="Core\DSP\LabelMap.h" />
     <ClInclude Include="Core\DSPEmulator.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoDataFile.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoPlayer.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoRecorder.h" />
     <ClInclude Include="Core\FreeLookConfig.h" />
     <ClInclude Include="Core\FreeLookManager.h" />
@@ -815,11 +812,8 @@
     <ClCompile Include="Core\DSP\Jit\x64\DSPJitUtil.cpp" />
     <ClCompile Include="Core\DSP\LabelMap.cpp" />
     <ClCompile Include="Core\DSPEmulator.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoDataFile.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoPlaybackAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoPlayer.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoRecorder.cpp" />
     <ClCompile Include="Core\FreeLookConfig.cpp" />
     <ClCompile Include="Core\FreeLookManager.cpp" />

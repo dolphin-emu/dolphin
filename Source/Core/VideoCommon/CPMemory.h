@@ -5,12 +5,14 @@
 
 #include <array>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 #include "Common/BitField.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
+#include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 
 enum
@@ -53,24 +55,46 @@ enum
 };
 
 // Vertex array numbers
-enum
+enum class CPArray : u8
 {
-  ARRAY_POSITION = 0,
-  ARRAY_NORMAL = 1,
-  ARRAY_COLOR0 = 2,
-  NUM_COLOR_ARRAYS = 2,
-  ARRAY_TEXCOORD0 = 4,
-  NUM_TEXCOORD_ARRAYS = 8,
+  Position = 0,
+  Normal = 1,
 
-  ARRAY_XF_A = 12,  // Usually used for position matrices
-  ARRAY_XF_B = 13,  // Usually used for normal matrices
-  ARRAY_XF_C = 14,  // Usually used for tex coord matrices
-  ARRAY_XF_D = 15,  // Usually used for light objects
+  Color0 = 2,
+  Color1 = 3,
 
-  // Number of arrays related to vertex components (position, normal, color, tex coord)
-  // Excludes the 4 arrays used for indexed XF loads
-  NUM_VERTEX_COMPONENT_ARRAYS = 12,
+  TexCoord0 = 4,
+  TexCoord1 = 5,
+  TexCoord2 = 6,
+  TexCoord3 = 7,
+  TexCoord4 = 8,
+  TexCoord5 = 9,
+  TexCoord6 = 10,
+  TexCoord7 = 11,
+
+  XF_A = 12,  // Usually used for position matrices
+  XF_B = 13,  // Usually used for normal matrices
+  XF_C = 14,  // Usually used for tex coord matrices
+  XF_D = 15,  // Usually used for light objects
 };
+template <>
+struct fmt::formatter<CPArray> : EnumFormatter<CPArray::XF_D>
+{
+  static constexpr array_type names = {"Position",    "Normal",      "Color 0",     "Color 1",
+                                       "Tex Coord 0", "Tex Coord 1", "Tex Coord 2", "Tex Coord 3",
+                                       "Tex Coord 4", "Tex Coord 5", "Tex Coord 6", "Tex Coord 7",
+                                       "XF A",        "XF B",        "XF C",        "XF D"};
+  formatter() : EnumFormatter(names) {}
+};
+// Intended for offsetting from Color0/TexCoord0
+constexpr CPArray operator+(CPArray array, u8 offset)
+{
+  return static_cast<CPArray>(static_cast<u8>(array) + offset);
+}
+
+// Number of arrays related to vertex components (position, normal, color, tex coord)
+// Excludes the 4 arrays used for indexed XF loads
+constexpr u8 NUM_VERTEX_COMPONENT_ARRAYS = 12;
 
 // Vertex components
 enum class VertexComponentFormat
@@ -607,31 +631,28 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
-  u32 array_bases[CP_NUM_ARRAYS]{};
-  u32 array_strides[CP_NUM_ARRAYS]{};
+  CPState() = default;
+  explicit CPState(const u32* memory);
+
+  // Mutates the CP state based on the given command and value.
+  void LoadCPReg(u8 sub_cmd, u32 value);
+  // Fills memory with data from CP regs.  There should be space for 0x100 values in memory.
+  void FillCPMemoryArray(u32* memory) const;
+
+  Common::EnumMap<u32, CPArray::XF_D> array_bases;
+  Common::EnumMap<u32, CPArray::XF_D> array_strides;
   TMatrixIndexA matrix_index_a{};
   TMatrixIndexB matrix_index_b{};
   TVtxDesc vtx_desc;
   // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
-  VAT vtx_attr[CP_NUM_VAT_REG]{};
-
-  // Attributes that actually belong to VertexLoaderManager:
-  BitSet32 attr_dirty{};
-  bool bases_dirty = false;
-  VertexLoaderBase* vertex_loaders[CP_NUM_VAT_REG]{};
-  int last_id = 0;
+  std::array<VAT, CP_NUM_VAT_REG> vtx_attr{};
 };
+static_assert(std::is_trivially_copyable_v<CPState>);
 
 class PointerWrap;
 
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
-
-// Might move this into its own file later.
-void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);
-
-// Fills memory with data from CP regs
-void FillCPMemoryArray(u32* memory);
 
 void DoCPState(PointerWrap& p);
 
