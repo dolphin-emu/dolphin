@@ -429,12 +429,18 @@ void StatTracker::logABPitch(){
     EndGameRosterDefensiveStats& stat = m_defensive_stats[pitcher_team_id][pitcher_roster_id];
     stat.innings_pitched.emplace(m_curr_ab_stat.inning);
 
+    m_curr_ab_stat.pitcher_roster_loc = Memory::Read_U8(aAB_PitcherRosterID);
     m_curr_ab_stat.pitcher_id         = Memory::Read_U8(aAB_PitcherID);
     m_curr_ab_stat.pitcher_handedness = Memory::Read_U8(aAB_PitcherHandedness);
     m_curr_ab_stat.pitch_type         = Memory::Read_U8(aAB_PitchType);
     m_curr_ab_stat.charge_type        = Memory::Read_U8(aAB_ChargePitchType);
     m_curr_ab_stat.star_pitch         = Memory::Read_U8(aAB_StarPitch);
     m_curr_ab_stat.pitch_speed        = Memory::Read_U8(aAB_PitchSpeed);
+
+    //Calc the pitcher stamina offset and add it to the base stamina addr
+    u32 pitcherStaminaOffset = ((pitcher_team_id * cRosterSize * c_defensive_stat_offset) + (m_curr_ab_stat.pitcher_roster_loc * c_defensive_stat_offset));
+    std::cout << "Pitcher Team ID=" << std::to_string(pitcher_team_id) << ", Pitcher Roster Location=" << std::to_string(pitcher_roster_id) << ", Pitcher Stamina Addr=" << std::hex << (aPitcher_Stamina + pitcherStaminaOffset) << std::endl;
+    m_curr_ab_stat.pitcher_stamina = Memory::Read_U16(aPitcher_Stamina + pitcherStaminaOffset);
 }
 
 void StatTracker::logABContactResult(){
@@ -640,7 +646,9 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 std::string pitcher_hand  = (inDecode) ? "\"" + cHandToHR.at(ab_stat.pitcher_handedness) + "\"" : std::to_string(ab_stat.pitcher_handedness);
                 std::string pitch_type    = (inDecode) ? "\"" + cPitchTypeToHR.at(ab_stat.pitch_type) + "\"" : std::to_string(ab_stat.pitch_type);
                 std::string charge_pitch_type    = (inDecode) ? "\"" + cChargePitchTypeToHR.at(ab_stat.charge_type) + "\"" : std::to_string(ab_stat.charge_type);
+                json_stream << "          \"Pitcher Roster Loc\": " << std::to_string(ab_stat.pitcher_roster_loc) << "," << std::endl;
                 json_stream << "          \"PitcherID\": " << pitcher << "," << std::endl;
+                json_stream << "          \"Pitcher Stamina\": " << ab_stat.pitcher_stamina << "," << std::endl;
                 json_stream << "          \"Pitcher Handedness\": " << pitcher_hand << "," << std::endl;
                 json_stream << "          \"Pitch Type\": " << pitch_type << "," << std::endl;
                 json_stream << "          \"Charge Pitch Type\": " << charge_pitch_type << "," << std::endl;
@@ -680,7 +688,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
                     json_stream << "            \"Charge Power Up\": " << charge_power_up << "," << std::endl;
                     json_stream << "            \"Charge Power Down\": " << charge_power_down << "," << std::endl;
-                    json_stream << "            \"Star Swing - 5 Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
+                    json_stream << "            \"Star Swing Five-Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
                     json_stream << "            \"Input Direction\": " << input_direction << "," << std::endl;
                     json_stream << "            \"Frame Of Swing Upon Contact\": " << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
                     json_stream << "            \"Frame Of Pitch Upon Swing\": " << std::dec << ab_stat.frameOfPitchUponSwing << "," << std::endl;
@@ -732,9 +740,11 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
                     json_stream << "            \"Fielding Summary\": [" << std::endl;
                     if (ab_stat.fielder_roster_loc != 0xFF) {
-                        json_stream << "              \"Fielder Roster Loc\": " << std::to_string(ab_stat.fielder_roster_loc) << "," << std::endl;
-                        json_stream << "              \"Fielder Position\": " << std::to_string(ab_stat.fielder_pos) << "," << std::endl;
-                        json_stream << "              \"Fielder Character\": " << std::to_string(ab_stat.fielder_char_id) << std::endl;
+                        std::string fielder_pos  = (inDecode) ? "\"" + cPosition.at(ab_stat.fielder_pos) + "\"" : std::to_string(ab_stat.fielder_pos);
+                        std::string fielder_char = (inDecode) ? "\"" + cCharIdToCharName.at(ab_stat.fielder_char_id) + "\"" : std::to_string(ab_stat.fielder_char_id);
+                        json_stream << "              \"Fielder Roster Location\": " << std::to_string(ab_stat.fielder_roster_loc) << "," << std::endl;
+                        json_stream << "              \"Fielder Position\": " << fielder_pos << "," << std::endl;
+                        json_stream << "              \"Fielder Character\": " << fielder_char << std::endl;
                     }
                     json_stream << "            ]" << std::endl;
                 }

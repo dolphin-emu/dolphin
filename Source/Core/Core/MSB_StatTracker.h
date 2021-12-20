@@ -139,6 +139,18 @@ static const std::map<u8, std::string> cTypeOfSwing = {
     {4, "Bunt"}
 };
 
+static const std::map<u8, std::string> cPosition = {
+    {0, "P"},
+    {1, "C"},
+    {2, "1B"},
+    {3, "2B"},
+    {4, "3B"},
+    {5, "SS"},
+    {6, "LF"},
+    {7, "CF"},
+    {8, "RF"}
+};
+
 //Const for structs
 static const int cRosterSize = 9;
 static const int cNumOfTeams = 2;
@@ -395,7 +407,9 @@ public:
         u8 pitcher_stars;
 
         //Pitcher Status
+        u8 pitcher_roster_loc;
         u8 pitcher_id;
+        u16 pitcher_stamina;
         u8 pitcher_handedness;
         u8 pitch_type;
         u8 charge_type;
