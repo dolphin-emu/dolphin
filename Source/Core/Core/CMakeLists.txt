@@ -488,9 +488,10 @@ add_library(core
   Slippi/SlippiSpectate.h
   Slippi/SlippiUser.cpp
   Slippi/SlippiUser.h
-	Slippi/SlippiGameReporter.cpp
-	Slippi/SlippiGameReporter.h
-	Slippi/SlippiPremadeText.h
+  Slippi/SlippiGameReporter.cpp
+  Slippi/SlippiGameReporter.h
+  Slippi/SlippiDirectCodes.cpp
+  Slippi/SlippiPremadeText.h
 )
 
 if(_M_X86)

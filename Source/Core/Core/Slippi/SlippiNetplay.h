@@ -42,19 +42,19 @@ struct SlippiRemotePadOutput
 class SlippiPlayerSelections
 {
 public:
-  u8 playerIdx = 0;
-  u8 characterId = 0;
-  u8 characterColor = 0;
-  u8 teamId = 0;
+  u8 playerIdx{};
+  u8 characterId{};
+  u8 characterColor{};
+  u8 teamId{};
 
   bool isCharacterSelected = false;
 
-  u16 stageId = 0;
+  u16 stageId{};
   bool isStageSelected = false;
 
-  u32 rngOffset = 0;
+  u32 rngOffset{};
 
-  int messageId;
+  int messageId{};
 
   void Merge(SlippiPlayerSelections& s)
   {

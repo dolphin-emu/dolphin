@@ -121,6 +121,8 @@ CEXISlippi::CEXISlippi()
   gameFileLoader = std::make_unique<SlippiGameFileLoader>();
   game_reporter = std::make_unique<SlippiGameReporter>(user.get());
   g_replayComm = std::make_unique<SlippiReplayComm>();
+  directCodes = std::make_unique<SlippiDirectCodes>("direct-codes.json");
+  teamsCodes = std::make_unique<SlippiDirectCodes>("teams-codes.json");
 
   generator = std::default_random_engine(Common::Timer::GetTimeMs());
 
@@ -1830,6 +1832,20 @@ void CEXISlippi::startFindMatch(u8* payload)
   shiftJisCode.insert(shiftJisCode.begin(), &payload[1], &payload[1] + 18);
   shiftJisCode.erase(std::find(shiftJisCode.begin(), shiftJisCode.end(), 0x00), shiftJisCode.end());
 
+  // Log the direct code to file.
+  if (search.mode == SlippiMatchmaking::DIRECT)
+  {
+    // Make sure to convert to UTF8, otherwise json library will fail when
+    // calling dump().
+    std::string utf8Code = SHIFTJISToUTF8(shiftJisCode);
+    directCodes->AddOrUpdateCode(utf8Code);
+  }
+  else if (search.mode == SlippiMatchmaking::TEAMS)
+  {
+    std::string utf8Code = SHIFTJISToUTF8(shiftJisCode);
+    teamsCodes->AddOrUpdateCode(utf8Code);
+  }
+
   // TODO: Make this work so we dont have to pass shiftJis to mm server
   // search.connectCode = SHIFTJISToUTF8(shiftJisCode).c_str();
   search.connectCode = shiftJisCode;
@@ -1872,6 +1888,123 @@ void CEXISlippi::startFindMatch(u8* payload)
 
   matchmaking->FindMatch(search);
 #endif
+}
+
+bool CEXISlippi::doesTagMatchInput(u8* input, u8 inputLen, std::string tag)
+{
+  auto jisTag = UTF8ToSHIFTJIS(tag);
+
+  // Check if this tag matches what has been input so far
+  bool isMatch = true;
+  for (int i = 0; i < inputLen; i++)
+  {
+    // ERROR_LOG(SLIPPI_ONLINE, "Entered: %X%X. History: %X%X", input[i * 3], input[i * 3 + 1],
+    // (u8)jisTag[i * 2],
+    //          (u8)jisTag[i * 2 + 1]);
+    if (input[i * 3] != (u8)jisTag[i * 2] || input[i * 3 + 1] != (u8)jisTag[i * 2 + 1])
+    {
+      isMatch = false;
+      break;
+    }
+  }
+
+  return isMatch;
+}
+
+void CEXISlippi::handleNameEntryLoad(u8* payload)
+{
+  u8 inputLen = payload[24];
+  u32 initialIndex = payload[25] << 24 | payload[26] << 16 | payload[27] << 8 | payload[28];
+  u8 scrollDirection = payload[29];
+  u8 curMode = payload[30];
+
+  auto codeHistory = directCodes.get();
+  if (curMode == SlippiMatchmaking::TEAMS)
+  {
+    codeHistory = teamsCodes.get();
+  }
+
+  // Adjust index
+  u32 curIndex = initialIndex;
+  if (scrollDirection == 1)
+  {
+    curIndex++;
+  }
+  else if (scrollDirection == 2)
+  {
+    curIndex = curIndex > 0 ? curIndex - 1 : curIndex;
+  }
+  else if (scrollDirection == 3)
+  {
+    curIndex = 0;
+  }
+
+  // Scroll to next tag that
+  std::string tagAtIndex = "1";
+  while (curIndex >= 0 && curIndex < (u32)codeHistory->length())
+  {
+    tagAtIndex = codeHistory->get(curIndex);
+
+    // Break if we have found a tag that matches
+    if (doesTagMatchInput(payload, inputLen, tagAtIndex))
+      break;
+
+    curIndex = scrollDirection == 2 ? curIndex - 1 : curIndex + 1;
+  }
+
+  INFO_LOG(SLIPPI_ONLINE, "Idx: %d, InitIdx: %d, Scroll: %d. Len: %d", curIndex, initialIndex,
+           scrollDirection, inputLen);
+
+  tagAtIndex = codeHistory->get(curIndex);
+  if (tagAtIndex == "1")
+  {
+    // If we failed to find a tag at the current index, try the initial index again.
+    // If the initial index matches the filter, preserve that suggestion. Without
+    // this logic, the suggestion would get cleared
+    auto initialTag = codeHistory->get(initialIndex);
+    if (doesTagMatchInput(payload, inputLen, initialTag))
+    {
+      tagAtIndex = initialTag;
+      curIndex = initialIndex;
+    }
+  }
+
+  INFO_LOG(SLIPPI_ONLINE, "Retrieved tag: %s", tagAtIndex.c_str());
+  std::string jisCode;
+  m_read_queue.clear();
+
+  if (tagAtIndex == "1")
+  {
+    m_read_queue.push_back(0);
+    m_read_queue.insert(m_read_queue.end(), payload, payload + 3 * inputLen);
+    m_read_queue.insert(m_read_queue.end(), 3 * (8 - inputLen), 0);
+    m_read_queue.push_back(inputLen);
+    appendWordToBuffer(&m_read_queue, initialIndex);
+    return;
+  }
+
+  // Indicate we have a suggestion
+  m_read_queue.push_back(1);
+
+  // Convert to tag to shift jis and write to response
+  jisCode = UTF8ToSHIFTJIS(tagAtIndex);
+
+  // Write out connect code into buffer, injection null terminator after each letter
+  for (int i = 0; i < 8; i++)
+  {
+    for (int j = i * 2; j < i * 2 + 2; j++)
+    {
+      m_read_queue.push_back(j < jisCode.length() ? jisCode[j] : 0);
+    }
+
+    m_read_queue.push_back(0x0);
+  }
+
+  INFO_LOG(SLIPPI_ONLINE, "New Idx: %d. Jis Code length: %d", curIndex, (u8)(jisCode.length() / 2));
+
+  // Write length of tag
+  m_read_queue.push_back(static_cast<u8>(jisCode.length() / 2));
+  appendWordToBuffer(&m_read_queue, curIndex);
 }
 
 void CEXISlippi::prepareOnlineMatchState()
@@ -2133,7 +2266,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
     // Overwrite stage information. Make sure everyone loads the same stage
     u16 stageId = 0x1F;  // Default to battlefield if there was no selection
-    for (auto selections : orderedSelections)
+    for (const auto& selections : orderedSelections)
     {
       if (!selections.isStageSelected)
         continue;
@@ -2780,6 +2913,9 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     case CMD_FILE_LENGTH:
       prepareFileLength(&memPtr[bufLoc + 1]);
       break;
+    case CMD_FETCH_CODE_SUGGESTION:
+      handleNameEntryLoad(&memPtr[bufLoc + 1]);
+      break;
     case CMD_FILE_LOAD:
       prepareFileLoad(&memPtr[bufLoc + 1]);
       break;
@@ -2839,7 +2975,7 @@ void CEXISlippi::DMARead(u32 addr, u32 size)
 {
   if (m_read_queue.empty())
   {
-    INFO_LOG(EXPANSIONINTERFACE, "EXI SLIPPI DMARead: Empty");
+    ERROR_LOG(SLIPPI, "EXI SLIPPI DMARead: Empty");
     return;
   }
 

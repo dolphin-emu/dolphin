@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Core/Slippi/SlippiDirectCodes.h"
 #include "Core/Slippi/SlippiGameFileLoader.h"
 #include "Core/Slippi/SlippiGameReporter.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
@@ -74,6 +75,7 @@ private:
     CMD_SEND_CHAT_MESSAGE = 0xBB,
     CMD_GET_NEW_SEED = 0xBC,
     CMD_REPORT_GAME = 0xBD,
+    CMD_FETCH_CODE_SUGGESTION = 0xBE,
 
     // Misc
     CMD_LOG_MESSAGE = 0xD0,
@@ -124,6 +126,7 @@ private:
       {CMD_CLEANUP_CONNECTION, 0},
       {CMD_GET_NEW_SEED, 0},
       {CMD_REPORT_GAME, 16},
+      {CMD_FETCH_CODE_SUGGESTION, 31},
 
       // Misc
       {CMD_LOG_MESSAGE, 0xFFFF},  // Variable size... will only work if by itself
@@ -174,6 +177,8 @@ private:
   void handleSendInputs(u8* payload);
   void handleCaptureSavestate(u8* payload);
   void handleLoadSavestate(u8* payload);
+  void handleNameEntryAutoComplete(u8* payload);
+  void handleNameEntryLoad(u8* payload);
   void startFindMatch(u8* payload);
   void prepareOnlineMatchState();
   void setMatchSelections(u8* payload);
@@ -204,6 +209,8 @@ private:
   void prepareDelayResponse();
   void preparePremadeTextLength(u8* payload);
   void preparePremadeTextLoad(u8* payload);
+  bool doesTagMatchInput(u8* input, u8 inputLen, std::string tag);
+
   std::vector<u8> loadPremadeText(u8* payload);
   int getCharColor(u8 charId, u8 teamId);
 
@@ -259,6 +266,8 @@ private:
   std::unique_ptr<SlippiNetplayClient> slippi_netplay;
   std::unique_ptr<SlippiMatchmaking> matchmaking;
   std::unique_ptr<SlippiGameReporter> game_reporter;
+  std::unique_ptr<SlippiDirectCodes> directCodes;
+  std::unique_ptr<SlippiDirectCodes> teamsCodes;
 
   std::map<s32, std::unique_ptr<SlippiSavestate>> activeSavestates;
   std::deque<std::unique_ptr<SlippiSavestate>> availableSavestates;

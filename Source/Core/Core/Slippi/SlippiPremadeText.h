@@ -269,7 +269,6 @@ private:
     COMMON_CHARACTER = 0x20,
     SPECIAL_CHARACTER = 0x40,
     CUSTOM_NULL = 0x99,
-
   };
 
   std::vector<std::tuple<TEXT_OP_CODE, std::vector<u16>>> OPCODES;
