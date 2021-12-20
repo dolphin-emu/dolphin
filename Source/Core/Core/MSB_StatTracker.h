@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <tuple>
 #include "Core/HW/Memmap.h"
 
 #include "Core/LocalPlayers.h"
@@ -21,6 +22,7 @@ enum class AB_STATE
     PITCH_STARTED,
     CONTACT,
     CONTACT_RESULT,
+    LOG_FIELDER,
     NO_CONTACT,
     PLAY_OVER,
     FINAL_RESULT,
@@ -271,6 +273,9 @@ static const u32 aAB_FrameOfPitchSeqUponSwing    = 0x80890978; //(halfword) fram
 static const u32 aAB_FieldingPort = 0x802EBF94;
 static const u32 aAB_BattingPort = 0x802EBF95;
 
+//Fielder addrs
+static const u32 aFielder_ControlStatus = 0x8088F53B; //0xA=Fielder is holding ball
+static const u32 cFielder_Offset = 0x268;
 
 class StatTracker{
 public:
@@ -430,6 +435,11 @@ public:
         u32 ball_y_pos;
         u32 ball_z_pos;
 
+        //Fielder results
+        u8 fielder_roster_loc;
+        u8 fielder_pos;
+        u8 fielder_char_id;
+
         u8 num_outs_during_play;
         u8 rbi;
 
@@ -497,6 +507,9 @@ public:
     void logABContact();
     void logABPitch();
     void logABContactResult();
+
+    //Function to get fielder who is holding the ball <roster_loc, position, char_id>. 0x
+    std::tuple<u8, u8, u8> getCharacterWithBall();
 
     //Read players from ini file and assign to team
     void readPlayerNames(bool local_game);

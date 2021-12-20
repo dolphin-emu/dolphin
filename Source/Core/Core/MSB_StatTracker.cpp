@@ -100,9 +100,21 @@ void StatTracker::lookForTriggerEvents(){
             case (AB_STATE::CONTACT):
                 if (Memory::Read_U8(aAB_ContactResult) != 0){
                     logABContactResult(); //Land vs Caught vs Foul, Landing POS.
-                    m_ab_state = AB_STATE::PLAY_OVER;
+                    if(m_ab_state != AB_STATE::LOG_FIELDER) { //If we don't need to scan for which fielder fields the ball
+                        m_ab_state = AB_STATE::PLAY_OVER;
+                    }
                 }
                 break;
+            case (AB_STATE::LOG_FIELDER):
+                {
+                //If results != 0xFF then we need to keep looking. Else move on
+                std::tuple<u8, u8, u8> fielder_result = getCharacterWithBall();
+                m_curr_ab_stat.fielder_roster_loc = std::get<0>(fielder_result);
+                m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
+                m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
+                if (std::get<0>(fielder_result) != 0xFF) { m_ab_state = AB_STATE::PLAY_OVER; };
+                break;
+                }
             case (AB_STATE::PLAY_OVER):
                 if (Memory::Read_U8(aAB_PitchThrown) == 0){
                     m_curr_ab_stat.rbi = Memory::Read_U8(aAB_RBI);
@@ -432,12 +444,24 @@ void StatTracker::logABContactResult(){
 
     if (result == 1){
         m_curr_ab_stat.result_inferred = "Landed";
+        //TODO New game state to scan for fielder status =0xA (someone picked up the ball) and record it
+        //Scan for 0xA
+        m_ab_state = AB_STATE::LOG_FIELDER;
     }
     else if (result == 3){
         m_curr_ab_stat.result_inferred = "Caught";
+        //TODO Scan all 9 positions to see who has caught the ball
+        std::tuple<u8, u8, u8> fielder_result = getCharacterWithBall();
+        m_curr_ab_stat.fielder_roster_loc = std::get<0>(fielder_result);
+        m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
+        m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
     }
     else if (result == 0xFF){
         m_curr_ab_stat.result_inferred = "Foul";
+
+        m_curr_ab_stat.fielder_roster_loc = 0xFF;
+        m_curr_ab_stat.fielder_pos = 0xFF;
+        m_curr_ab_stat.fielder_char_id = 0xFF;
     }
     else{
         m_curr_ab_stat.result_inferred = "Unknown: " + std::to_string(result);
@@ -593,7 +617,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "      }," << std::endl;
 
             //Iterate Batters vector of batting stats
-            json_stream << "      \"At-Bat Stats\": [" << std::endl;
+            json_stream << "      \"Pitch Summary\": [" << std::endl;
             for (auto& ab_stat : m_ab_stats[team][roster]){
                 json_stream << "        {" << std::endl;
                 json_stream << "          \"Batter\": " << character << "," << std::endl;
@@ -638,7 +662,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 std::string type_of_swing = (inDecode) ? "\"" + cTypeOfSwing.at(ab_stat.type_of_swing) + "\"" : std::to_string(ab_stat.type_of_swing);
 
                 json_stream << "          \"Type of Swing\": " << type_of_swing << "," << std::endl;
-                json_stream << "          \"Contact\": [" << std::endl;
+                json_stream << "          \"Contact Summary\": [" << std::endl;
                 
                 if (ab_stat.type_of_contact != 0xFF) {
 
@@ -704,7 +728,15 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     json_stream << "            \"Ball Acceleration - Z\": " << ball_z_accel << "," << std::endl;
                     json_stream << "            \"Ball Landing Position - X\": " << ball_x_pos << "," << std::endl;
                     json_stream << "            \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
-                    json_stream << "            \"Ball Landing Position - Z\": " << ball_z_pos << std::endl;
+                    json_stream << "            \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;
+
+                    json_stream << "            \"Fielding Summary\": [" << std::endl;
+                    if (ab_stat.fielder_roster_loc != 0xFF) {
+                        json_stream << "              \"Fielder Roster Loc\": " << std::to_string(ab_stat.fielder_roster_loc) << "," << std::endl;
+                        json_stream << "              \"Fielder Position\": " << std::to_string(ab_stat.fielder_pos) << "," << std::endl;
+                        json_stream << "              \"Fielder Character\": " << std::to_string(ab_stat.fielder_char_id) << std::endl;
+                    }
+                    json_stream << "            ]" << std::endl;
                 }
                 json_stream << "          ]," << std::endl;
                 json_stream << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs_during_play) << "," << std::endl;
@@ -726,6 +758,23 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     json_stream << "}" << std::endl;
 
     return std::make_pair(json_stream.str(), full_file_path);
+}
+
+//Scans player for possession
+std::tuple<u8, u8, u8> StatTracker::getCharacterWithBall() {
+    for (u8 pos=0; pos < cRosterSize; ++pos){
+        u32 aFielderControlStatus = aFielder_ControlStatus + (pos * cFielder_Offset);
+
+        bool fielder_has_ball = (Memory::Read_U8(aFielderControlStatus) == 0xA);
+
+        if (fielder_has_ball) {
+            //get char id
+            u8 roster_id = Memory::Read_U8(aFielderControlStatus-0x5A);
+            u8 char_id = Memory::Read_U8(aFielderControlStatus-0x58); //0x58 is the diff between the fielder control status and the char id 
+            return std::make_tuple(roster_id, pos, char_id);
+        }
+    }
+    return std::make_tuple(0xFF, 0xFF, 0xFF);
 }
 
 //Read players from ini file and assign to team
