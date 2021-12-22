@@ -27,10 +27,6 @@
 #define ALLOW_TEV_DUMPS 0
 #endif
 
-void Tev::Init()
-{
-}
-
 static inline s16 Clamp255(s16 in)
 {
   return in > 255 ? 255 : (in < 0 ? 0 : in);

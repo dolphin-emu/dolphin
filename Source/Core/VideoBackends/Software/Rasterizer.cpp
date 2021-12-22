@@ -108,8 +108,6 @@ static std::vector<BPFunctions::ScissorRect> scissors;
 
 void Init()
 {
-  tev.Init();
-
   // The other slopes are set each for each primitive drawn, but zfreeze means that the z slope
   // needs to be set to an (untested) default value.
   ZSlope = Slope();
