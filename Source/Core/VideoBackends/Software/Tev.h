@@ -102,7 +102,7 @@ class Tev
   };
 
   // color order: ABGR
-  std::array<TevColor, 4> Reg;
+  Common::EnumMap<TevColor, TevOutput::Color2> Reg;
   std::array<TevColor, 4> KonstantColors;
   TevColor TexColor;
   TevColor RasColor;
@@ -124,32 +124,32 @@ class Tev
   TextureCoordinateType TexCoord;
 
   const Common::EnumMap<TevColorRef, TevColorArg::Zero> m_ColorInputLUT{
-      TevColorRef::Color(Reg[0]),      // prev.rgb
-      TevColorRef::Alpha(Reg[0]),      // prev.aaa
-      TevColorRef::Color(Reg[1]),      // c0.rgb
-      TevColorRef::Alpha(Reg[1]),      // c0.aaa
-      TevColorRef::Color(Reg[2]),      // c1.rgb
-      TevColorRef::Alpha(Reg[2]),      // c1.aaa
-      TevColorRef::Color(Reg[3]),      // c2.rgb
-      TevColorRef::Alpha(Reg[3]),      // c2.aaa
-      TevColorRef::Color(TexColor),    // tex.rgb
-      TevColorRef::Alpha(TexColor),    // tex.aaa
-      TevColorRef::Color(RasColor),    // ras.rgb
-      TevColorRef::Alpha(RasColor),    // ras.aaa
-      TevColorRef::All(V1),            // one
-      TevColorRef::All(V1_2),          // half
-      TevColorRef::Color(StageKonst),  // konst
-      TevColorRef::All(V0),            // zero
+      TevColorRef::Color(Reg[TevOutput::Prev]),    // prev.rgb
+      TevColorRef::Alpha(Reg[TevOutput::Prev]),    // prev.aaa
+      TevColorRef::Color(Reg[TevOutput::Color0]),  // c0.rgb
+      TevColorRef::Alpha(Reg[TevOutput::Color0]),  // c0.aaa
+      TevColorRef::Color(Reg[TevOutput::Color1]),  // c1.rgb
+      TevColorRef::Alpha(Reg[TevOutput::Color1]),  // c1.aaa
+      TevColorRef::Color(Reg[TevOutput::Color2]),  // c2.rgb
+      TevColorRef::Alpha(Reg[TevOutput::Color2]),  // c2.aaa
+      TevColorRef::Color(TexColor),                // tex.rgb
+      TevColorRef::Alpha(TexColor),                // tex.aaa
+      TevColorRef::Color(RasColor),                // ras.rgb
+      TevColorRef::Alpha(RasColor),                // ras.aaa
+      TevColorRef::All(V1),                        // one
+      TevColorRef::All(V1_2),                      // half
+      TevColorRef::Color(StageKonst),              // konst
+      TevColorRef::All(V0),                        // zero
   };
   const Common::EnumMap<TevAlphaRef, TevAlphaArg::Zero> m_AlphaInputLUT{
-      TevAlphaRef(Reg[0]),      // prev
-      TevAlphaRef(Reg[1]),      // c0
-      TevAlphaRef(Reg[2]),      // c1
-      TevAlphaRef(Reg[3]),      // c2
-      TevAlphaRef(TexColor),    // tex
-      TevAlphaRef(RasColor),    // ras
-      TevAlphaRef(StageKonst),  // konst
-      TevAlphaRef(V0),          // zero
+      TevAlphaRef(Reg[TevOutput::Prev]),    // prev
+      TevAlphaRef(Reg[TevOutput::Color0]),  // c0
+      TevAlphaRef(Reg[TevOutput::Color1]),  // c1
+      TevAlphaRef(Reg[TevOutput::Color2]),  // c2
+      TevAlphaRef(TexColor),                // tex
+      TevAlphaRef(RasColor),                // ras
+      TevAlphaRef(StageKonst),              // konst
+      TevAlphaRef(V0),                      // zero
   };
   const Common::EnumMap<TevKonstRef, KonstSel::K3_A> m_KonstLUT{
       TevKonstRef::Value(V1),    // 1

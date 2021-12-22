@@ -120,7 +120,7 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
                  temp;
     result = result >> m_ScaleRShiftLUT[u32(cc.scale.Value())];
 
-    Reg[u32(cc.dest.Value())][i] = result;
+    Reg[cc.dest][i] = result;
   }
 }
 
@@ -157,9 +157,9 @@ void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const Inpu
     }
 
     if (cc.comparison == TevComparison::GT)
-      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
+      Reg[cc.dest][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
     else
-      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
+      Reg[cc.dest][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
   }
 }
 
@@ -179,7 +179,7 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
       temp;
   result = result >> m_ScaleRShiftLUT[u32(ac.scale.Value())];
 
-  Reg[u32(ac.dest.Value())].a = result;
+  Reg[ac.dest].a = result;
 }
 
 void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
@@ -213,9 +213,9 @@ void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const Inpu
   }
 
   if (ac.comparison == TevComparison::GT)
-    Reg[u32(ac.dest.Value())].a = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
+    Reg[ac.dest].a = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
   else
-    Reg[u32(ac.dest.Value())].a = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
+    Reg[ac.dest].a = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
 }
 
 static bool AlphaCompare(int alpha, int ref, CompareMode comp)
@@ -422,10 +422,10 @@ void Tev::Draw()
   // initial color values
   for (int i = 0; i < 4; i++)
   {
-    Reg[i].r = PixelShaderManager::constants.colors[i][0];
-    Reg[i].g = PixelShaderManager::constants.colors[i][1];
-    Reg[i].b = PixelShaderManager::constants.colors[i][2];
-    Reg[i].a = PixelShaderManager::constants.colors[i][3];
+    Reg[static_cast<TevOutput>(i)].r = PixelShaderManager::constants.colors[i][0];
+    Reg[static_cast<TevOutput>(i)].g = PixelShaderManager::constants.colors[i][1];
+    Reg[static_cast<TevOutput>(i)].b = PixelShaderManager::constants.colors[i][2];
+    Reg[static_cast<TevOutput>(i)].a = PixelShaderManager::constants.colors[i][3];
   }
 
   for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
@@ -552,15 +552,15 @@ void Tev::Draw()
 
     if (cc.clamp)
     {
-      Reg[u32(cc.dest.Value())].r = Clamp255(Reg[u32(cc.dest.Value())].r);
-      Reg[u32(cc.dest.Value())].g = Clamp255(Reg[u32(cc.dest.Value())].g);
-      Reg[u32(cc.dest.Value())].b = Clamp255(Reg[u32(cc.dest.Value())].b);
+      Reg[cc.dest].r = Clamp255(Reg[cc.dest].r);
+      Reg[cc.dest].g = Clamp255(Reg[cc.dest].g);
+      Reg[cc.dest].b = Clamp255(Reg[cc.dest].b);
     }
     else
     {
-      Reg[u32(cc.dest.Value())].r = Clamp1024(Reg[u32(cc.dest.Value())].r);
-      Reg[u32(cc.dest.Value())].g = Clamp1024(Reg[u32(cc.dest.Value())].g);
-      Reg[u32(cc.dest.Value())].b = Clamp1024(Reg[u32(cc.dest.Value())].b);
+      Reg[cc.dest].r = Clamp1024(Reg[cc.dest].r);
+      Reg[cc.dest].g = Clamp1024(Reg[cc.dest].g);
+      Reg[cc.dest].b = Clamp1024(Reg[cc.dest].b);
     }
 
     if (ac.bias != TevBias::Compare)
@@ -569,14 +569,15 @@ void Tev::Draw()
       DrawAlphaCompare(ac, inputs);
 
     if (ac.clamp)
-      Reg[u32(ac.dest.Value())].a = Clamp255(Reg[u32(ac.dest.Value())].a);
+      Reg[ac.dest].a = Clamp255(Reg[ac.dest].a);
     else
-      Reg[u32(ac.dest.Value())].a = Clamp1024(Reg[u32(ac.dest.Value())].a);
+      Reg[ac.dest].a = Clamp1024(Reg[ac.dest].a);
 
 #if ALLOW_TEV_DUMPS
     if (g_ActiveConfig.bDumpTevStages)
     {
-      u8 stage[4] = {(u8)Reg[0].r, (u8)Reg[0].g, (u8)Reg[0].b, (u8)Reg[0].a};
+      u8 stage[4] = {(u8)Reg[cc.dest].r, (u8)Reg[cc.dest].g, (u8)Reg[cc.dest].b,
+                     (u8)Reg[ac.dest].a};
       DebugUtil::DrawTempBuffer(stage, DIRECT + stageNum);
     }
 #endif
@@ -585,10 +586,10 @@ void Tev::Draw()
   // convert to 8 bits per component
   // the results of the last tev stage are put onto the screen,
   // regardless of the used destination register - TODO: Verify!
-  const u32 color_index = u32(bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest.Value());
-  const u32 alpha_index = u32(bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest.Value());
-  u8 output[4] = {(u8)Reg[alpha_index].a, (u8)Reg[color_index].r, (u8)Reg[color_index].g,
-                  (u8)Reg[color_index].b};
+  const auto& color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
+  const auto& alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
+  u8 output[4] = {(u8)Reg[alpha_index].a, (u8)Reg[color_index].b, (u8)Reg[color_index].g,
+                  (u8)Reg[color_index].r};
 
   if (!TevAlphaTest(output[ALP_C]))
     return;
