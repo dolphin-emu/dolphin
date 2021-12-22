@@ -29,12 +29,12 @@
 
 static inline s16 Clamp255(s16 in)
 {
-  return in > 255 ? 255 : (in < 0 ? 0 : in);
+  return std::clamp<s16>(in, 0, 255);
 }
 
 static inline s16 Clamp1024(s16 in)
 {
-  return in > 1023 ? 1023 : (in < -1024 ? -1024 : in);
+  return std::clamp<s16>(in, -1024, 1023);
 }
 
 void Tev::SetRasColor(RasColorChan colorChan, int swaptable)
