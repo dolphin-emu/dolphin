@@ -29,20 +29,6 @@
 
 void Tev::Init()
 {
-  m_BiasLUT[0] = 0;
-  m_BiasLUT[1] = 128;
-  m_BiasLUT[2] = -128;
-  m_BiasLUT[3] = 0;
-
-  m_ScaleLShiftLUT[0] = 0;
-  m_ScaleLShiftLUT[1] = 1;
-  m_ScaleLShiftLUT[2] = 2;
-  m_ScaleLShiftLUT[3] = 0;
-
-  m_ScaleRShiftLUT[0] = 0;
-  m_ScaleRShiftLUT[1] = 0;
-  m_ScaleRShiftLUT[2] = 0;
-  m_ScaleRShiftLUT[3] = 1;
 }
 
 static inline s16 Clamp255(s16 in)
@@ -110,15 +96,13 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
     const u16 c = InputReg.c + (InputReg.c >> 7);
 
     s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-    temp <<= m_ScaleLShiftLUT[u32(cc.scale.Value())];
+    temp <<= s_ScaleLShiftLUT[cc.scale];
     temp += (cc.scale == TevScale::Divide2) ? 0 : (cc.op == TevOp::Sub) ? 127 : 128;
     temp >>= 8;
     temp = cc.op == TevOp::Sub ? -temp : temp;
 
-    s32 result = ((InputReg.d + m_BiasLUT[u32(cc.bias.Value())])
-                  << m_ScaleLShiftLUT[u32(cc.scale.Value())]) +
-                 temp;
-    result = result >> m_ScaleRShiftLUT[u32(cc.scale.Value())];
+    s32 result = ((InputReg.d + s_BiasLUT[cc.bias]) << s_ScaleLShiftLUT[cc.scale]) + temp;
+    result = result >> s_ScaleRShiftLUT[cc.scale];
 
     Reg[cc.dest][i] = result;
   }
@@ -170,14 +154,12 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
   const u16 c = InputReg.c + (InputReg.c >> 7);
 
   s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-  temp <<= m_ScaleLShiftLUT[u32(ac.scale.Value())];
+  temp <<= s_ScaleLShiftLUT[ac.scale];
   temp += (ac.scale == TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
   temp = ac.op == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
-  s32 result =
-      ((InputReg.d + m_BiasLUT[u32(ac.bias.Value())]) << m_ScaleLShiftLUT[u32(ac.scale.Value())]) +
-      temp;
-  result = result >> m_ScaleRShiftLUT[u32(ac.scale.Value())];
+  s32 result = ((InputReg.d + s_BiasLUT[ac.bias]) << s_ScaleLShiftLUT[ac.scale]) + temp;
+  result = result >> s_ScaleRShiftLUT[ac.scale];
 
   Reg[ac.dest].a = result;
 }

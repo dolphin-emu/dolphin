@@ -189,9 +189,9 @@ class Tev
       TevKonstRef::Value(KonstantColors[2].a),  // Konst 2 Alpha
       TevKonstRef::Value(KonstantColors[3].a),  // Konst 3 Alpha
   };
-  s16 m_BiasLUT[4];
-  u8 m_ScaleLShiftLUT[4];
-  u8 m_ScaleRShiftLUT[4];
+  static constexpr Common::EnumMap<s16, TevBias::Compare> s_BiasLUT{0, 128, -128, 0};
+  static constexpr Common::EnumMap<u8, TevScale::Divide2> s_ScaleLShiftLUT{0, 1, 2, 0};
+  static constexpr Common::EnumMap<u8, TevScale::Divide2> s_ScaleRShiftLUT{0, 0, 0, 1};
 
   enum BufferBase
   {
