@@ -29,123 +29,6 @@
 
 void Tev::Init()
 {
-  FixedConstants[0] = 0;
-  FixedConstants[1] = 32;
-  FixedConstants[2] = 64;
-  FixedConstants[3] = 96;
-  FixedConstants[4] = 128;
-  FixedConstants[5] = 159;
-  FixedConstants[6] = 191;
-  FixedConstants[7] = 223;
-  FixedConstants[8] = 255;
-
-  for (s16& comp : Zero16)
-  {
-    comp = 0;
-  }
-
-  m_ColorInputLUT[0][RED_INP] = &Reg[0][RED_C];
-  m_ColorInputLUT[0][GRN_INP] = &Reg[0][GRN_C];
-  m_ColorInputLUT[0][BLU_INP] = &Reg[0][BLU_C];  // prev.rgb
-  m_ColorInputLUT[1][RED_INP] = &Reg[0][ALP_C];
-  m_ColorInputLUT[1][GRN_INP] = &Reg[0][ALP_C];
-  m_ColorInputLUT[1][BLU_INP] = &Reg[0][ALP_C];  // prev.aaa
-  m_ColorInputLUT[2][RED_INP] = &Reg[1][RED_C];
-  m_ColorInputLUT[2][GRN_INP] = &Reg[1][GRN_C];
-  m_ColorInputLUT[2][BLU_INP] = &Reg[1][BLU_C];  // c0.rgb
-  m_ColorInputLUT[3][RED_INP] = &Reg[1][ALP_C];
-  m_ColorInputLUT[3][GRN_INP] = &Reg[1][ALP_C];
-  m_ColorInputLUT[3][BLU_INP] = &Reg[1][ALP_C];  // c0.aaa
-  m_ColorInputLUT[4][RED_INP] = &Reg[2][RED_C];
-  m_ColorInputLUT[4][GRN_INP] = &Reg[2][GRN_C];
-  m_ColorInputLUT[4][BLU_INP] = &Reg[2][BLU_C];  // c1.rgb
-  m_ColorInputLUT[5][RED_INP] = &Reg[2][ALP_C];
-  m_ColorInputLUT[5][GRN_INP] = &Reg[2][ALP_C];
-  m_ColorInputLUT[5][BLU_INP] = &Reg[2][ALP_C];  // c1.aaa
-  m_ColorInputLUT[6][RED_INP] = &Reg[3][RED_C];
-  m_ColorInputLUT[6][GRN_INP] = &Reg[3][GRN_C];
-  m_ColorInputLUT[6][BLU_INP] = &Reg[3][BLU_C];  // c2.rgb
-  m_ColorInputLUT[7][RED_INP] = &Reg[3][ALP_C];
-  m_ColorInputLUT[7][GRN_INP] = &Reg[3][ALP_C];
-  m_ColorInputLUT[7][BLU_INP] = &Reg[3][ALP_C];  // c2.aaa
-  m_ColorInputLUT[8][RED_INP] = &TexColor[RED_C];
-  m_ColorInputLUT[8][GRN_INP] = &TexColor[GRN_C];
-  m_ColorInputLUT[8][BLU_INP] = &TexColor[BLU_C];  // tex.rgb
-  m_ColorInputLUT[9][RED_INP] = &TexColor[ALP_C];
-  m_ColorInputLUT[9][GRN_INP] = &TexColor[ALP_C];
-  m_ColorInputLUT[9][BLU_INP] = &TexColor[ALP_C];  // tex.aaa
-  m_ColorInputLUT[10][RED_INP] = &RasColor[RED_C];
-  m_ColorInputLUT[10][GRN_INP] = &RasColor[GRN_C];
-  m_ColorInputLUT[10][BLU_INP] = &RasColor[BLU_C];  // ras.rgb
-  m_ColorInputLUT[11][RED_INP] = &RasColor[ALP_C];
-  m_ColorInputLUT[11][GRN_INP] = &RasColor[ALP_C];
-  m_ColorInputLUT[11][BLU_INP] = &RasColor[ALP_C];  // ras.rgb
-  m_ColorInputLUT[12][RED_INP] = &FixedConstants[8];
-  m_ColorInputLUT[12][GRN_INP] = &FixedConstants[8];
-  m_ColorInputLUT[12][BLU_INP] = &FixedConstants[8];  // one
-  m_ColorInputLUT[13][RED_INP] = &FixedConstants[4];
-  m_ColorInputLUT[13][GRN_INP] = &FixedConstants[4];
-  m_ColorInputLUT[13][BLU_INP] = &FixedConstants[4];  // half
-  m_ColorInputLUT[14][RED_INP] = &StageKonst[RED_C];
-  m_ColorInputLUT[14][GRN_INP] = &StageKonst[GRN_C];
-  m_ColorInputLUT[14][BLU_INP] = &StageKonst[BLU_C];  // konst
-  m_ColorInputLUT[15][RED_INP] = &FixedConstants[0];
-  m_ColorInputLUT[15][GRN_INP] = &FixedConstants[0];
-  m_ColorInputLUT[15][BLU_INP] = &FixedConstants[0];  // zero
-
-  m_AlphaInputLUT[0] = &Reg[0][ALP_C];      // prev
-  m_AlphaInputLUT[1] = &Reg[1][ALP_C];      // c0
-  m_AlphaInputLUT[2] = &Reg[2][ALP_C];      // c1
-  m_AlphaInputLUT[3] = &Reg[3][ALP_C];      // c2
-  m_AlphaInputLUT[4] = &TexColor[ALP_C];    // tex
-  m_AlphaInputLUT[5] = &RasColor[ALP_C];    // ras
-  m_AlphaInputLUT[6] = &StageKonst[ALP_C];  // konst
-  m_AlphaInputLUT[7] = &Zero16[ALP_C];      // zero
-
-  for (int comp = 0; comp < 4; comp++)
-  {
-    m_KonstLUT[0][comp] = &FixedConstants[8];
-    m_KonstLUT[1][comp] = &FixedConstants[7];
-    m_KonstLUT[2][comp] = &FixedConstants[6];
-    m_KonstLUT[3][comp] = &FixedConstants[5];
-    m_KonstLUT[4][comp] = &FixedConstants[4];
-    m_KonstLUT[5][comp] = &FixedConstants[3];
-    m_KonstLUT[6][comp] = &FixedConstants[2];
-    m_KonstLUT[7][comp] = &FixedConstants[1];
-
-    // These are "invalid" values, not meant to be used. On hardware,
-    // they all output zero.
-    for (int i = 8; i < 16; ++i)
-    {
-      m_KonstLUT[i][comp] = &FixedConstants[0];
-    }
-
-    if (comp != ALP_C)
-    {
-      m_KonstLUT[12][comp] = &KonstantColors[0][comp];
-      m_KonstLUT[13][comp] = &KonstantColors[1][comp];
-      m_KonstLUT[14][comp] = &KonstantColors[2][comp];
-      m_KonstLUT[15][comp] = &KonstantColors[3][comp];
-    }
-
-    m_KonstLUT[16][comp] = &KonstantColors[0][RED_C];
-    m_KonstLUT[17][comp] = &KonstantColors[1][RED_C];
-    m_KonstLUT[18][comp] = &KonstantColors[2][RED_C];
-    m_KonstLUT[19][comp] = &KonstantColors[3][RED_C];
-    m_KonstLUT[20][comp] = &KonstantColors[0][GRN_C];
-    m_KonstLUT[21][comp] = &KonstantColors[1][GRN_C];
-    m_KonstLUT[22][comp] = &KonstantColors[2][GRN_C];
-    m_KonstLUT[23][comp] = &KonstantColors[3][GRN_C];
-    m_KonstLUT[24][comp] = &KonstantColors[0][BLU_C];
-    m_KonstLUT[25][comp] = &KonstantColors[1][BLU_C];
-    m_KonstLUT[26][comp] = &KonstantColors[2][BLU_C];
-    m_KonstLUT[27][comp] = &KonstantColors[3][BLU_C];
-    m_KonstLUT[28][comp] = &KonstantColors[0][ALP_C];
-    m_KonstLUT[29][comp] = &KonstantColors[1][ALP_C];
-    m_KonstLUT[30][comp] = &KonstantColors[2][ALP_C];
-    m_KonstLUT[31][comp] = &KonstantColors[3][ALP_C];
-  }
-
   m_BiasLUT[0] = 0;
   m_BiasLUT[1] = 128;
   m_BiasLUT[2] = -128;
@@ -179,38 +62,32 @@ void Tev::SetRasColor(RasColorChan colorChan, int swaptable)
   case RasColorChan::Color0:
   {
     const u8* color = Color[0];
-    RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
-    RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
+    RasColor.r = color[bpmem.tevksel[swaptable].swap1];
+    RasColor.g = color[bpmem.tevksel[swaptable].swap2];
     swaptable++;
-    RasColor[BLU_C] = color[bpmem.tevksel[swaptable].swap1];
-    RasColor[ALP_C] = color[bpmem.tevksel[swaptable].swap2];
+    RasColor.b = color[bpmem.tevksel[swaptable].swap1];
+    RasColor.a = color[bpmem.tevksel[swaptable].swap2];
   }
   break;
   case RasColorChan::Color1:
   {
     const u8* color = Color[1];
-    RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
-    RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
+    RasColor.r = color[bpmem.tevksel[swaptable].swap1];
+    RasColor.g = color[bpmem.tevksel[swaptable].swap2];
     swaptable++;
-    RasColor[BLU_C] = color[bpmem.tevksel[swaptable].swap1];
-    RasColor[ALP_C] = color[bpmem.tevksel[swaptable].swap2];
+    RasColor.b = color[bpmem.tevksel[swaptable].swap1];
+    RasColor.a = color[bpmem.tevksel[swaptable].swap2];
   }
   break;
   case RasColorChan::AlphaBump:
   {
-    for (s16& comp : RasColor)
-    {
-      comp = AlphaBump;
-    }
+    RasColor = TevColor::All(AlphaBump);
   }
   break;
   case RasColorChan::NormalizedAlphaBump:
   {
     const u8 normalized = AlphaBump | AlphaBump >> 5;
-    for (s16& comp : RasColor)
-    {
-      comp = normalized;
-    }
+    RasColor = TevColor::All(normalized);
   }
   break;
   default:
@@ -218,10 +95,7 @@ void Tev::SetRasColor(RasColorChan colorChan, int swaptable)
     if (colorChan != RasColorChan::Zero)
       PanicAlertFmt("Invalid ras color channel: {}", colorChan);
 
-    for (s16& comp : RasColor)
-    {
-      comp = 0;
-    }
+    RasColor = TevColor::All(0);
   }
   break;
   }
@@ -305,7 +179,7 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
       temp;
   result = result >> m_ScaleRShiftLUT[u32(ac.scale.Value())];
 
-  Reg[u32(ac.dest.Value())][ALP_C] = result;
+  Reg[u32(ac.dest.Value())].a = result;
 }
 
 void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
@@ -339,9 +213,9 @@ void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const Inpu
   }
 
   if (ac.comparison == TevComparison::GT)
-    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
+    Reg[u32(ac.dest.Value())].a = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
   else
-    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
+    Reg[u32(ac.dest.Value())].a = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
 }
 
 static bool AlphaCompare(int alpha, int ref, CompareMode comp)
@@ -548,10 +422,10 @@ void Tev::Draw()
   // initial color values
   for (int i = 0; i < 4; i++)
   {
-    Reg[i][RED_C] = PixelShaderManager::constants.colors[i][0];
-    Reg[i][GRN_C] = PixelShaderManager::constants.colors[i][1];
-    Reg[i][BLU_C] = PixelShaderManager::constants.colors[i][2];
-    Reg[i][ALP_C] = PixelShaderManager::constants.colors[i][3];
+    Reg[i].r = PixelShaderManager::constants.colors[i][0];
+    Reg[i].g = PixelShaderManager::constants.colors[i][1];
+    Reg[i].b = PixelShaderManager::constants.colors[i][2];
+    Reg[i].a = PixelShaderManager::constants.colors[i][3];
   }
 
   for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
@@ -634,37 +508,42 @@ void Tev::Draw()
 
       int swaptable = ac.tswap * 2;
 
-      TexColor[RED_C] = texel[bpmem.tevksel[swaptable].swap1];
-      TexColor[GRN_C] = texel[bpmem.tevksel[swaptable].swap2];
+      TexColor.r = texel[bpmem.tevksel[swaptable].swap1];
+      TexColor.g = texel[bpmem.tevksel[swaptable].swap2];
       swaptable++;
-      TexColor[BLU_C] = texel[bpmem.tevksel[swaptable].swap1];
-      TexColor[ALP_C] = texel[bpmem.tevksel[swaptable].swap2];
+      TexColor.b = texel[bpmem.tevksel[swaptable].swap1];
+      TexColor.a = texel[bpmem.tevksel[swaptable].swap2];
     }
 
     // set konst for this stage
-    const auto kc = u32(kSel.getKC(stageOdd));
-    const auto ka = u32(kSel.getKA(stageOdd));
-    StageKonst[RED_C] = *(m_KonstLUT[kc][RED_C]);
-    StageKonst[GRN_C] = *(m_KonstLUT[kc][GRN_C]);
-    StageKonst[BLU_C] = *(m_KonstLUT[kc][BLU_C]);
-    StageKonst[ALP_C] = *(m_KonstLUT[ka][ALP_C]);
+    const auto kc = kSel.getKC(stageOdd);
+    const auto ka = kSel.getKA(stageOdd);
+    StageKonst.r = m_KonstLUT[kc].r;
+    StageKonst.g = m_KonstLUT[kc].g;
+    StageKonst.b = m_KonstLUT[kc].b;
+    StageKonst.a = m_KonstLUT[ka].a;
 
     // set color
     SetRasColor(order.getColorChan(stageOdd), ac.rswap * 2);
 
     // combine inputs
     InputRegType inputs[4];
-    for (int i = 0; i < 3; i++)
-    {
-      inputs[BLU_C + i].a = *m_ColorInputLUT[u32(cc.a.Value())][i];
-      inputs[BLU_C + i].b = *m_ColorInputLUT[u32(cc.b.Value())][i];
-      inputs[BLU_C + i].c = *m_ColorInputLUT[u32(cc.c.Value())][i];
-      inputs[BLU_C + i].d = *m_ColorInputLUT[u32(cc.d.Value())][i];
-    }
-    inputs[ALP_C].a = *m_AlphaInputLUT[u32(ac.a.Value())];
-    inputs[ALP_C].b = *m_AlphaInputLUT[u32(ac.b.Value())];
-    inputs[ALP_C].c = *m_AlphaInputLUT[u32(ac.c.Value())];
-    inputs[ALP_C].d = *m_AlphaInputLUT[u32(ac.d.Value())];
+    inputs[BLU_C].a = m_ColorInputLUT[cc.a].b;
+    inputs[BLU_C].b = m_ColorInputLUT[cc.b].b;
+    inputs[BLU_C].c = m_ColorInputLUT[cc.c].b;
+    inputs[BLU_C].d = m_ColorInputLUT[cc.d].b;
+    inputs[GRN_C].a = m_ColorInputLUT[cc.a].g;
+    inputs[GRN_C].b = m_ColorInputLUT[cc.b].g;
+    inputs[GRN_C].c = m_ColorInputLUT[cc.c].g;
+    inputs[GRN_C].d = m_ColorInputLUT[cc.d].g;
+    inputs[RED_C].a = m_ColorInputLUT[cc.a].r;
+    inputs[RED_C].b = m_ColorInputLUT[cc.b].r;
+    inputs[RED_C].c = m_ColorInputLUT[cc.c].r;
+    inputs[RED_C].d = m_ColorInputLUT[cc.d].r;
+    inputs[ALP_C].a = m_AlphaInputLUT[ac.a].a;
+    inputs[ALP_C].b = m_AlphaInputLUT[ac.b].a;
+    inputs[ALP_C].c = m_AlphaInputLUT[ac.c].a;
+    inputs[ALP_C].d = m_AlphaInputLUT[ac.d].a;
 
     if (cc.bias != TevBias::Compare)
       DrawColorRegular(cc, inputs);
@@ -673,15 +552,15 @@ void Tev::Draw()
 
     if (cc.clamp)
     {
-      Reg[u32(cc.dest.Value())][RED_C] = Clamp255(Reg[u32(cc.dest.Value())][RED_C]);
-      Reg[u32(cc.dest.Value())][GRN_C] = Clamp255(Reg[u32(cc.dest.Value())][GRN_C]);
-      Reg[u32(cc.dest.Value())][BLU_C] = Clamp255(Reg[u32(cc.dest.Value())][BLU_C]);
+      Reg[u32(cc.dest.Value())].r = Clamp255(Reg[u32(cc.dest.Value())].r);
+      Reg[u32(cc.dest.Value())].g = Clamp255(Reg[u32(cc.dest.Value())].g);
+      Reg[u32(cc.dest.Value())].b = Clamp255(Reg[u32(cc.dest.Value())].b);
     }
     else
     {
-      Reg[u32(cc.dest.Value())][RED_C] = Clamp1024(Reg[u32(cc.dest.Value())][RED_C]);
-      Reg[u32(cc.dest.Value())][GRN_C] = Clamp1024(Reg[u32(cc.dest.Value())][GRN_C]);
-      Reg[u32(cc.dest.Value())][BLU_C] = Clamp1024(Reg[u32(cc.dest.Value())][BLU_C]);
+      Reg[u32(cc.dest.Value())].r = Clamp1024(Reg[u32(cc.dest.Value())].r);
+      Reg[u32(cc.dest.Value())].g = Clamp1024(Reg[u32(cc.dest.Value())].g);
+      Reg[u32(cc.dest.Value())].b = Clamp1024(Reg[u32(cc.dest.Value())].b);
     }
 
     if (ac.bias != TevBias::Compare)
@@ -690,14 +569,14 @@ void Tev::Draw()
       DrawAlphaCompare(ac, inputs);
 
     if (ac.clamp)
-      Reg[u32(ac.dest.Value())][ALP_C] = Clamp255(Reg[u32(ac.dest.Value())][ALP_C]);
+      Reg[u32(ac.dest.Value())].a = Clamp255(Reg[u32(ac.dest.Value())].a);
     else
-      Reg[u32(ac.dest.Value())][ALP_C] = Clamp1024(Reg[u32(ac.dest.Value())][ALP_C]);
+      Reg[u32(ac.dest.Value())].a = Clamp1024(Reg[u32(ac.dest.Value())].a);
 
 #if ALLOW_TEV_DUMPS
     if (g_ActiveConfig.bDumpTevStages)
     {
-      u8 stage[4] = {(u8)Reg[0][RED_C], (u8)Reg[0][GRN_C], (u8)Reg[0][BLU_C], (u8)Reg[0][ALP_C]};
+      u8 stage[4] = {(u8)Reg[0].r, (u8)Reg[0].g, (u8)Reg[0].b, (u8)Reg[0].a};
       DebugUtil::DrawTempBuffer(stage, DIRECT + stageNum);
     }
 #endif
@@ -708,8 +587,8 @@ void Tev::Draw()
   // regardless of the used destination register - TODO: Verify!
   const u32 color_index = u32(bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest.Value());
   const u32 alpha_index = u32(bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest.Value());
-  u8 output[4] = {(u8)Reg[alpha_index][ALP_C], (u8)Reg[color_index][BLU_C],
-                  (u8)Reg[color_index][GRN_C], (u8)Reg[color_index][RED_C]};
+  u8 output[4] = {(u8)Reg[alpha_index].a, (u8)Reg[color_index].r, (u8)Reg[color_index].g,
+                  (u8)Reg[color_index].b};
 
   if (!TevAlphaTest(output[ALP_C]))
     return;
