@@ -216,6 +216,9 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   }
   else if (uid_data->is_intensity)
   {
+    if (!uid_data->efb_has_alpha)
+      out.Write("  texcol.a = 1.0;\n");
+
     bool has_four_bits =
         (uid_data->dst_format == EFBCopyFormat::R4 || uid_data->dst_format == EFBCopyFormat::RA4);
     bool has_alpha =
