@@ -286,7 +286,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsBPTCTextures = false;              // Dependent on features.
   config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
   config->backend_info.bSupportsLargePoints = false;               // Dependent on features.
-  config->backend_info.bSupportsFramebufferFetch = false;          // No support.
+  config->backend_info.bSupportsFramebufferFetch = false;          // Dependent on OS and features.
   config->backend_info.bSupportsCoarseDerivatives = true;          // Assumed support.
   config->backend_info.bSupportsTextureQueryLevels = true;         // Assumed support.
 }
@@ -339,6 +339,15 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsLargePoints = features.largePoints &&
                                               properties.limits.pointSizeRange[0] <= 1.0f &&
                                               properties.limits.pointSizeRange[1] >= 16;
+
+  std::string device_name = properties.deviceName;
+  u32 vendor_id = properties.vendorID;
+
+  // Only Apple family GPUs support framebuffer fetch.
+  if (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos)
+  {
+    config->backend_info.bSupportsFramebufferFetch = true;
+  }
 
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.

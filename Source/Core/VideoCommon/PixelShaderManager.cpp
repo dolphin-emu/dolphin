@@ -510,6 +510,16 @@ void PixelShaderManager::SetBlendModeChanged()
     constants.blend_subtract_alpha = state.subtractAlpha;
     dirty = true;
   }
+  if (constants.logic_op_enable != state.logicopenable)
+  {
+    constants.logic_op_enable = state.logicopenable;
+    dirty = true;
+  }
+  if (constants.logic_op_mode != state.logicmode)
+  {
+    constants.logic_op_mode = state.logicmode;
+    dirty = true;
+  }
   s_bDestAlphaDirty = true;
 }
 

@@ -332,6 +332,9 @@ PixelShaderUid GetPixelShaderUid()
     uid_data->blend_subtract_alpha = state.subtractAlpha;
   }
 
+  uid_data->logic_op_enable = state.logicopenable;
+  uid_data->logic_op_mode = u32(state.logicmode.Value());
+
   return out;
 }
 
@@ -424,6 +427,8 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "\tuint  blend_dst_factor_alpha;\n"
             "\tbool  blend_subtract;\n"
             "\tbool  blend_subtract_alpha;\n"
+            "\tbool  logic_op_enable;\n"
+            "\tuint  logic_op_mode;\n"
             "}};\n\n");
   out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
             "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
@@ -838,6 +843,7 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
@@ -926,40 +932,58 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
        uid_data->useDstAlpha);
   const bool use_shader_blend =
       !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
+  const bool use_shader_logic_op =
+      !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (use_dual_source)
+    bool use_framebuffer_fetch = use_shader_blend || use_shader_logic_op;
+
+#ifdef __APPLE__
+    // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
+    // if we want to use it.
+    if (api_type == APIType::Vulkan)
     {
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
-                  "FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
-      }
-      else
+      if (use_dual_source)
       {
         out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n"
                   "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
       }
-    }
-    else if (use_shader_blend)
-    {
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so pull out the "real" output value
-      // and use a temporary for calculations, then set the output value once at the end of the
-      // shader
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      else if (use_shader_blend)
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+        // Metal doesn't support a single unified variable for both input and output, so we declare
+        // the output separately. The input will be defined later below.
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 real_ocol0;\n");
       }
       else
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      }
+
+      if (use_framebuffer_fetch)
+      {
+        // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
+        out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
       }
     }
     else
+#endif
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      bool has_broken_decoration =
+          DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
+
+      out.Write("{} {} vec4 {};\n",
+                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
+                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
+                use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+                use_shader_blend ? "real_ocol0" : "ocol0");
+
+      if (use_dual_source)
+      {
+        out.Write("{} out vec4 ocol1;\n", has_broken_decoration ?
+                                              "FRAGMENT_OUTPUT_LOCATION(1)" :
+                                              "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)");
+      }
     }
 
     if (uid_data->per_pixel_depth)
@@ -1005,11 +1029,28 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
     out.Write("void main()\n{{\n");
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
+
+    if (use_framebuffer_fetch)
+    {
+      // Store off a copy of the initial framebuffer value.
+      //
+      // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
+      // framebuffer), we read from real_ocol0 or ocol0, depending if shader blending is enabled.
+      out.Write("#ifdef FB_FETCH_VALUE\n"
+                "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
+                "#else\n"
+                "\tfloat4 initial_ocol0 = {};\n"
+                "#endif\n",
+                use_shader_blend ? "real_ocol0" : "ocol0");
+    }
+
     if (use_shader_blend)
     {
-      // Store off a copy of the initial fb value for blending
-      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
-                "\tfloat4 ocol0;\n"
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so we pull out the "real" output
+      // value above and use a temporary for calculations, then set the output value once at the
+      // end of the shader if we are using shader blending.
+      out.Write("\tfloat4 ocol0;\n"
                 "\tfloat4 ocol1;\n");
     }
   }
@@ -1259,6 +1300,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
 
   WriteFog(out, uid_data);
+
+  if (use_shader_logic_op)
+    WriteLogicOp(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
   // If using shader blend, we still use the separate alpha
@@ -1874,6 +1918,34 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
   out.Write("\tint ifog = iround(fog * 256.0);\n");
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
+}
+
+static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+{
+  if (uid_data->logic_op_enable)
+  {
+    static constexpr std::array<const char*, 16> logic_op_mode{
+        "int4(0, 0, 0, 0)",          // CLEAR
+        "prev & fb_value",           // AND
+        "prev & ~fb_value",          // AND_REVERSE
+        "prev",                      // COPY
+        "~prev & fb_value",          // AND_INVERTED
+        "fb_value",                  // NOOP
+        "prev ^ fb_value",           // XOR
+        "prev | fb_value",           // OR
+        "~(prev | fb_value)",        // NOR
+        "~(prev ^ fb_value)",        // EQUIV
+        "~fb_value",                 // INVERT
+        "prev | ~fb_value",          // OR_REVERSE
+        "~prev",                     // COPY_INVERTED
+        "~prev | fb_value",          // OR_INVERTED
+        "~(prev & fb_value)",        // NAND
+        "int4(255, 255, 255, 255)",  // SET
+    };
+
+    out.Write("\tint4 fb_value = iround(initial_ocol0 * 255.0);\n");
+    out.Write("\tprev = {};\n", logic_op_mode[uid_data->logic_op_mode]);
+  }
 }
 
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
