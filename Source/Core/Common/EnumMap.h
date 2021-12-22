@@ -58,7 +58,7 @@ public:
   constexpr V& operator[](BitField<position, bits, T, StorageType> key)
   {
     static_assert(1 << bits == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
-    return m_array[static_cast<std::size_t>(key.value())];
+    return m_array[static_cast<std::size_t>(key.Value())];
   }
 
   constexpr bool InBounds(T key) const { return static_cast<std::size_t>(key) < s_size; }
