@@ -678,7 +678,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Contact Summary\": [" << std::endl;
                 
                 if (ab_stat.type_of_contact != 0xFF) {
-
+                    json_stream << "            {" << std::endl;
                     std::string type_of_contact    = (inDecode) ? "\"" + cTypeOfContactToHR.at(ab_stat.type_of_contact) + "\"" : std::to_string(ab_stat.type_of_contact);
                     std::string input_direction    = (inDecode) ? "\"" + cInputDirectionToHR.at(ab_stat.input_direction) + "\"" : std::to_string(ab_stat.input_direction);
                     json_stream << "            \"Type of Contact\": " << type_of_contact << "," << std::endl;
@@ -691,15 +691,15 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     float_converter.num = ab_stat.charge_power_down;
                     charge_power_down = float_converter.fnum;
 
-                    json_stream << "            \"Charge Power Up\": " << charge_power_up << "," << std::endl;
-                    json_stream << "            \"Charge Power Down\": " << charge_power_down << "," << std::endl;
-                    json_stream << "            \"Star Swing Five-Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
-                    json_stream << "            \"Input Direction\": " << input_direction << "," << std::endl;
-                    json_stream << "            \"Frame Of Swing Upon Contact\": " << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
-                    json_stream << "            \"Frame Of Pitch Upon Swing\": " << std::dec << ab_stat.frameOfPitchUponSwing << "," << std::endl;
-                    json_stream << "            \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
-                    json_stream << "            \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
-                    json_stream << "            \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
+                    json_stream << "              \"Charge Power Up\": " << charge_power_up << "," << std::endl;
+                    json_stream << "              \"Charge Power Down\": " << charge_power_down << "," << std::endl;
+                    json_stream << "              \"Star Swing Five-Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
+                    json_stream << "              \"Input Direction\": " << input_direction << "," << std::endl;
+                    json_stream << "              \"Frame Of Swing Upon Contact\": " << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
+                    json_stream << "              \"Frame Of Pitch Upon Swing\": " << std::dec << ab_stat.frameOfPitchUponSwing << "," << std::endl;
+                    json_stream << "              \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
+                    json_stream << "              \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
+                    json_stream << "              \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
 
 
                     //Convert velocity, pos u32s to IEEE 754 Floats
@@ -733,26 +733,31 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     float_converter.num = ab_stat.ball_z_pos;
                     ball_z_pos = float_converter.fnum;
 
-                    json_stream << "            \"Ball Velocity - X\": " << ball_x_velocity << "," << std::endl;
-                    json_stream << "            \"Ball Velocity - Y\": " << ball_y_velocity << "," << std::endl;
-                    json_stream << "            \"Ball Velocity - Z\": " << ball_z_velocity << "," << std::endl;
-                    json_stream << "            \"Ball Acceleration - X\": " << ball_x_accel << "," << std::endl;
-                    json_stream << "            \"Ball Acceleration - Y\": " << ball_y_accel << "," << std::endl;
-                    json_stream << "            \"Ball Acceleration - Z\": " << ball_z_accel << "," << std::endl;
-                    json_stream << "            \"Ball Landing Position - X\": " << ball_x_pos << "," << std::endl;
-                    json_stream << "            \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
-                    json_stream << "            \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;
+                    json_stream << "              \"Ball Velocity - X\": " << ball_x_velocity << "," << std::endl;
+                    json_stream << "              \"Ball Velocity - Y\": " << ball_y_velocity << "," << std::endl;
+                    json_stream << "              \"Ball Velocity - Z\": " << ball_z_velocity << "," << std::endl;
+                    json_stream << "              \"Ball Acceleration - X\": " << ball_x_accel << "," << std::endl;
+                    json_stream << "              \"Ball Acceleration - Y\": " << ball_y_accel << "," << std::endl;
+                    json_stream << "              \"Ball Acceleration - Z\": " << ball_z_accel << "," << std::endl;
+                    json_stream << "              \"Ball Landing Position - X\": " << ball_x_pos << "," << std::endl;
+                    json_stream << "              \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
+                    json_stream << "              \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;
 
                     json_stream << "            \"Fielding Summary\": [" << std::endl;
                     if (ab_stat.fielder_roster_loc != 0xFF) {
+                        json_stream << "              {" << std::endl;
                         std::string fielder_pos  = (inDecode) ? "\"" + cPosition.at(ab_stat.fielder_pos) + "\"" : std::to_string(ab_stat.fielder_pos);
                         std::string fielder_char = (inDecode) ? "\"" + cCharIdToCharName.at(ab_stat.fielder_char_id) + "\"" : std::to_string(ab_stat.fielder_char_id);
-                        json_stream << "              \"Fielder Roster Location\": " << std::to_string(ab_stat.fielder_roster_loc) << "," << std::endl;
-                        json_stream << "              \"Fielder Position\": " << fielder_pos << "," << std::endl;
-                        json_stream << "              \"Fielder Character\": " << fielder_char << std::endl;
+                        json_stream << "                \"Fielder Roster Location\": " << std::to_string(ab_stat.fielder_roster_loc) << "," << std::endl;
+                        json_stream << "                \"Fielder Position\": " << fielder_pos << "," << std::endl;
+                        json_stream << "                \"Fielder Character\": " << fielder_char << std::endl;
+                        json_stream << "              }" << std::endl;
                     }
+                    
                     json_stream << "            ]" << std::endl;
                 }
+
+                json_stream << "            }" << std::endl;
                 json_stream << "          ]," << std::endl;
                 json_stream << "          \"Number Outs During Play\": " << std::to_string(ab_stat.num_outs_during_play) << "," << std::endl;
                 json_stream << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;
