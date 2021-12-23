@@ -571,18 +571,18 @@ void FifoPlayer::ClearEfb()
   // Trigger a bogus EFB copy to clear the screen
   // The target address is 0, and there shouldn't be anything there,
   // but even if there is it should be loaded in by LoadTextureMemory afterwards
-  X10Y10 tl;
+  X10Y10 tl = bpmem.copyTexSrcXY;
   tl.x = 0;
   tl.y = 0;
   LoadBPReg(BPMEM_EFB_TL, tl.hex);
-  X10Y10 wh;
+  X10Y10 wh = bpmem.copyTexSrcWH;
   wh.x = EFB_WIDTH - 1;
   wh.y = EFB_HEIGHT - 1;
   LoadBPReg(BPMEM_EFB_WH, wh.hex);
   LoadBPReg(BPMEM_MIPMAP_STRIDE, 0x140);
   // The clear color and Z value have already been loaded via LoadRegisters()
   LoadBPReg(BPMEM_EFB_ADDR, 0);
-  UPE_Copy copy;
+  UPE_Copy copy = bpmem.triggerEFBCopy;
   copy.clamp_top = false;
   copy.clamp_bottom = false;
   copy.yuv = false;
