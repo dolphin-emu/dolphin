@@ -466,16 +466,22 @@ void Clear()
     memset(m_pEXRAM, 0, GetExRamSize());
 }
 
-static inline u8* GetPointerForRange(u32 address, size_t size)
+u8* GetPointerForRange(u32 address, size_t size)
 {
   // Make sure we don't have a range spanning 2 separate banks
   if (size >= GetExRamSizeReal())
+  {
+    PanicAlertFmt("Oversized range in GetPointerForRange. {:x} bytes at {:#010x}", size, address);
     return nullptr;
+  }
 
   // Check that the beginning and end of the range are valid
   u8* pointer = GetPointer(address);
   if (!pointer || !GetPointer(address + u32(size) - 1))
+  {
+    // A panic alert has already been raised by GetPointer
     return nullptr;
+  }
 
   return pointer;
 }
@@ -559,55 +565,63 @@ u8* GetPointer(u32 address)
 
 u8 Read_U8(u32 address)
 {
-  return *GetPointer(address);
+  u8 value = 0;
+  CopyFromEmu(&value, address, sizeof(value));
+  return value;
 }
 
 u16 Read_U16(u32 address)
 {
-  return Common::swap16(GetPointer(address));
+  u16 value = 0;
+  CopyFromEmu(&value, address, sizeof(value));
+  return Common::swap16(value);
 }
 
 u32 Read_U32(u32 address)
 {
-  return Common::swap32(GetPointer(address));
+  u32 value = 0;
+  CopyFromEmu(&value, address, sizeof(value));
+  return Common::swap32(value);
 }
 
 u64 Read_U64(u32 address)
 {
-  return Common::swap64(GetPointer(address));
+  u64 value = 0;
+  CopyFromEmu(&value, address, sizeof(value));
+  return Common::swap64(value);
 }
 
 void Write_U8(u8 value, u32 address)
 {
-  *GetPointer(address) = value;
+  CopyToEmu(address, &value, sizeof(value));
 }
 
 void Write_U16(u16 value, u32 address)
 {
   u16 swapped_value = Common::swap16(value);
-  std::memcpy(GetPointer(address), &swapped_value, sizeof(u16));
+  CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
 void Write_U32(u32 value, u32 address)
 {
   u32 swapped_value = Common::swap32(value);
-  std::memcpy(GetPointer(address), &swapped_value, sizeof(u32));
+  CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
 void Write_U64(u64 value, u32 address)
 {
   u64 swapped_value = Common::swap64(value);
-  std::memcpy(GetPointer(address), &swapped_value, sizeof(u64));
+  CopyToEmu(address, &swapped_value, sizeof(swapped_value));
 }
 
 void Write_U32_Swap(u32 value, u32 address)
 {
-  std::memcpy(GetPointer(address), &value, sizeof(u32));
+  CopyToEmu(address, &value, sizeof(value));
 }
 
 void Write_U64_Swap(u64 value, u32 address)
 {
-  std::memcpy(GetPointer(address), &value, sizeof(u64));
+  CopyToEmu(address, &value, sizeof(value));
 }
 
 }  // namespace Memory
