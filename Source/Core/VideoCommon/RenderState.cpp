@@ -8,13 +8,10 @@
 
 #include "VideoCommon/TextureConfig.h"
 
-void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
+void RasterizationState::Generate(CullMode cull_mode, PrimitiveType primitive_type)
 {
-  cullmode = bp.genMode.cullmode;
-
-  // Back-face culling should be disabled for points/lines.
-  if (primitive_type != PrimitiveType::Triangles && primitive_type != PrimitiveType::TriangleStrip)
-    cullmode = CullMode::None;
+  cullmode = cull_mode;
+  primitive = primitive_type;
 }
 
 void DepthState::Generate(const BPMemory& bp)

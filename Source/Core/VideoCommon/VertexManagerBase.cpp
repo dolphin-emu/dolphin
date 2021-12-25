@@ -128,10 +128,14 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
+  CullMode new_cull_mode = bpmem.genMode.cullmode;
 
   // Points and lines require each vertex to be amplified to turn into triangles or triangle strips.
+  // Back-face culling should be disabled for points/lines.
   if (new_primitive_type == PrimitiveType::Lines)
   {
+    new_cull_mode = CullMode::None;
+
     needed_vertex_bytes *= 2;
     if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
       new_primitive_type = PrimitiveType::TriangleStrip;
@@ -140,6 +144,8 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   }
   else if (new_primitive_type == PrimitiveType::Points)
   {
+    new_cull_mode = CullMode::None;
+
     needed_vertex_bytes *= 4;
     if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
       new_primitive_type = PrimitiveType::TriangleStrip;
@@ -147,12 +153,13 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
       new_primitive_type = PrimitiveType::Triangles;
   }
 
-  if (m_current_primitive_type != new_primitive_type)
+  if (m_current_primitive_type != new_primitive_type || m_cull_mode != new_cull_mode)
   {
     Flush();
 
     // Have to update the rasterization state for point/line cull modes.
     m_current_primitive_type = new_primitive_type;
+    m_cull_mode = new_cull_mode;
     SetRasterizationStateChanged();
   }
 
@@ -714,7 +721,7 @@ void VertexManagerBase::UpdatePipelineConfig()
     m_rasterization_state_changed = false;
 
     RasterizationState new_rs = {};
-    new_rs.Generate(bpmem, m_current_primitive_type);
+    new_rs.Generate(m_cull_mode, m_current_primitive_type);
     if (new_rs != m_current_pipeline_config.rasterization_state)
     {
       m_current_pipeline_config.rasterization_state = new_rs;

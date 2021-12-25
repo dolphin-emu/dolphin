@@ -168,55 +168,38 @@ u16* AddQuads_nonstandard(u16* index_ptr, u32 num_verts, u32 index)
   return AddQuads<pr>(index_ptr, num_verts, index);
 }
 
+template <bool pr>
 u16* AddLineList(u16* index_ptr, u32 num_verts, u32 index)
 {
-  u32 prims = num_verts/4; //Lines have verts 2x amplified per primitive;
+  u32 prims = num_verts / 4;  // Lines have verts 4x amplified per primitive;
   for (u32 i = 0; i < prims; i += 1)
   {
-    //Tri 1
-    *index_ptr++ = index + i*4;
-    *index_ptr++ = index + i*4+2;
-    *index_ptr++ = index + i*4+1;
-    //Tri 2
-    *index_ptr++ = index + i*4+2;
-    *index_ptr++ = index + i*4+3;
-    *index_ptr++ = index + i*4+1;
+    index_ptr = AddQuads<pr>(index_ptr, 1, index + i * 4);
   }
   return index_ptr;
 }
 
 // Shouldn't be used as strips as LineLists are much more common
 // so converting them to lists
+template <bool pr>
 u16* AddLineStrip(u16* index_ptr, u32 num_verts, u32 index)
 {
-  u32 prims = num_verts/2; //Lines have verts 2x amplified per primitive;
-  for (u32 i = 1; i < prims; ++i)
+  u32 prims = num_verts / 2;  // Lines have verts 2x amplified per primitive;
+  for (u32 i = 0; i < prims - 1; ++i)
   {
-    //Tri 1
-    *index_ptr++ = index + i*2-2+0;
-    *index_ptr++ = index + i*2-2+2;
-    *index_ptr++ = index + i*2-2+1;
-    //Tri 2
-    *index_ptr++ = index + i*2-2+2;
-    *index_ptr++ = index + i*2-2+3;
-    *index_ptr++ = index + i*2-2+1;
+    index_ptr = AddQuads<pr>(index_ptr, 1, index + i * 2);
   }
   return index_ptr;
 }
 
+template <bool pr>
 u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
 {
-  u32 prims = num_verts/4; //Points have verts 4x amplified per primitive;
+  u32 prims = num_verts / 4;  // Points have verts 4x amplified per primitive;
 
   for (u32 i = 0; i != prims; ++i)
   {
-    *index_ptr++ = index + i*4+0;
-    *index_ptr++ = index + i*4+3;
-    *index_ptr++ = index + i*4+1;
-    *index_ptr++ = index + i*4+1;
-    *index_ptr++ = index + i*4+3;
-    *index_ptr++ = index + i*4+2;
-
+    index_ptr = AddQuads<pr>(index_ptr, 1, index + i * 4);
   }
   return index_ptr;
 }
@@ -233,6 +216,9 @@ void IndexGenerator::Init()
     m_primitive_table[Primitive::GX_DRAW_TRIANGLES] = AddList<true>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_STRIP] = AddStrip<true>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_FAN] = AddFan<true>;
+    m_primitive_table[Primitive::GX_DRAW_LINES] = AddLineList<true>;
+    m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLineStrip<true>;
+    m_primitive_table[Primitive::GX_DRAW_POINTS] = AddPoints<true>;
   }
   else
   {
@@ -241,10 +227,10 @@ void IndexGenerator::Init()
     m_primitive_table[Primitive::GX_DRAW_TRIANGLES] = AddList<false>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
     m_primitive_table[Primitive::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
+    m_primitive_table[Primitive::GX_DRAW_LINES] = AddLineList<false>;
+    m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLineStrip<false>;
+    m_primitive_table[Primitive::GX_DRAW_POINTS] = AddPoints<false>;
   }
-  m_primitive_table[Primitive::GX_DRAW_LINES] = AddLineList;
-  m_primitive_table[Primitive::GX_DRAW_LINE_STRIP] = AddLineStrip;
-  m_primitive_table[Primitive::GX_DRAW_POINTS] = AddPoints;
 }
 
 void IndexGenerator::Start(u16* index_ptr)

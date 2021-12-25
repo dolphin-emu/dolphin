@@ -20,7 +20,7 @@ enum class PrimitiveType : u32
 
 union RasterizationState
 {
-  void Generate(const BPMemory& bp, PrimitiveType primitive_type);
+  void Generate(CullMode cull_mode, PrimitiveType primitive_type);
 
   RasterizationState() = default;
   RasterizationState(const RasterizationState&) = default;

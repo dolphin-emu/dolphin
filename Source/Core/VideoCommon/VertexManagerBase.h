@@ -196,6 +196,7 @@ protected:
   bool m_depth_state_changed = true;
   bool m_blending_state_changed = true;
   bool m_cull_all = false;
+  CullMode m_cull_mode = CullMode::None;  // TODO: Merge with above
 
   IndexGenerator m_index_generator;
 
