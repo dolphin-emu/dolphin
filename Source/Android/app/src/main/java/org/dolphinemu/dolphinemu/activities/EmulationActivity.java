@@ -101,7 +101,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
           MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION,
-          MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS})
+          MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS, MENU_ACTION_HAPTIC_FEEDBACK})
   public @interface MenuAction
   {
   }
@@ -140,6 +140,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 31;
   public static final int MENU_ACTION_OVERLAY_CONTROLS = 32;
   public static final int MENU_ACTION_SETTINGS = 33;
+  public static final int MENU_ACTION_HAPTIC_FEEDBACK = 34;
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -164,6 +165,8 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
     buttonsActionsMap.append(R.id.menu_emulation_motion_controls,
             EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
+    buttonsActionsMap.append(R.id.menu_emulation_haptic_feedback,
+            EmulationActivity.MENU_ACTION_HAPTIC_FEEDBACK);
   }
 
   public static void launch(FragmentActivity activity, String filePath, boolean riivolution)
@@ -660,6 +663,10 @@ public final class EmulationActivity extends AppCompatActivity
         SettingsActivity.launch(this, MenuTag.SETTINGS);
         break;
 
+      case MENU_ACTION_HAPTIC_FEEDBACK:
+        adjustHapticFeedback();
+        break;
+
       case MENU_ACTION_EXIT:
         mEmulationFragment.stopEmulation();
         break;
@@ -894,6 +901,57 @@ public final class EmulationActivity extends AppCompatActivity
     });
 
     builder.show();
+  }
+
+  private void adjustHapticFeedback() {
+    LayoutInflater inflater = LayoutInflater.from(this);
+    View view = inflater.inflate(R.layout.dialog_seekbar, null);
+    int defaultHapticLevel = 0;
+
+    final SeekBar seekbar = view.findViewById(R.id.seekbar);
+    final TextView value = view.findViewById(R.id.text_value);
+    final TextView units = view.findViewById(R.id.text_units);
+
+    seekbar.setMax(255);
+    seekbar.setMin(0);
+    seekbar.setProgress(mPreferences.getInt("hapticFeedbackLevel", defaultHapticLevel));
+    seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+      public void onStartTrackingTouch(SeekBar seekBar) {
+      }
+
+      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        value.setText(String.valueOf(Math.round(progress / 255.0 * 100)));
+      }
+
+      public void onStopTrackingTouch(SeekBar seekBar) {
+        setHapticFeedbackLevel(seekbar.getProgress());
+      }
+    });
+
+    value.setText(String.valueOf(Math.round(seekbar.getProgress() / 255.0 * 100)));
+    units.setText("%");
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.emulation_haptic_feedback);
+    builder.setView(view);
+    final int previousProgress = seekbar.getProgress();
+    builder.setNegativeButton(android.R.string.cancel, (dialogInterface, i) -> {
+      setHapticFeedbackLevel(previousProgress);
+    });
+    builder.setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
+      setHapticFeedbackLevel(seekbar.getProgress());
+    });
+    builder.setNeutralButton(R.string.emulation_haptic_feedback_reset, (dialogInterface, i) -> {
+      setHapticFeedbackLevel(defaultHapticLevel);
+    });
+
+    builder.create().show();
+  }
+
+  private void setHapticFeedbackLevel(int hapticFeedbackLevel) {
+    SharedPreferences.Editor editor = mPreferences.edit();
+    editor.putInt("hapticFeedbackLevel", hapticFeedbackLevel);
+    editor.apply();
   }
 
   private void chooseController()

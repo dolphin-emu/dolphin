@@ -14,6 +14,10 @@
         android:id="@+id/menu_emulation_adjust_scale"
         android:title="@string/emulation_control_adjustments"/>
 
+    <item
+        android:id="@+id/menu_emulation_haptic_feedback"
+        android:title="@string/emulation_haptic_feedback" />
+
     <group android:checkableBehavior="all">
         <item
             android:id="@+id/menu_emulation_joystick_rel_center"

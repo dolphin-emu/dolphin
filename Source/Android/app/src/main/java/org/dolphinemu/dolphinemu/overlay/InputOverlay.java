@@ -15,6 +15,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -297,6 +299,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           }
           break;
       }
+
+      // Not all devices that support VibrationEffect (API>=26) allow Amplitude Control
+      if (mPreferences.getInt("hapticFeedbackLevel", 0) >= 1 &&
+        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        Vibrator vibratorManager = (Vibrator)
+          getContext().getSystemService(Context.VIBRATOR_SERVICE);
+        vibratorManager.vibrate(VibrationEffect.createOneShot(80,
+          mPreferences.getInt("hapticFeedbackLevel", 1)));
+    }
     }
 
     for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
