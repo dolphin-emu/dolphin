@@ -16,6 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/SPSCQueue.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -121,7 +122,8 @@ void UnregisterAllEvents()
 
 void Init()
 {
-  s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+  s_last_OC_factor =
+      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
   g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
   PowerPC::ppcState.downcount = CyclesToDowncount(MAX_SLICE_LENGTH);
   g.slice_length = MAX_SLICE_LENGTH;
@@ -316,7 +318,8 @@ void Advance()
 
   int cyclesExecuted = g.slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
   g.global_timer += cyclesExecuted;
-  s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+  s_last_OC_factor =
+      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
   g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
   g.slice_length = MAX_SLICE_LENGTH;
 

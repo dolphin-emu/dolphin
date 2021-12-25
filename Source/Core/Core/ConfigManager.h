@@ -221,8 +221,6 @@ struct SConfig
   // interface language
   std::string m_InterfaceLanguage;
   float m_EmulationSpeed;
-  bool m_OCEnable;
-  float m_OCFactor;
   // other interface settings
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;

@@ -15,6 +15,7 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 #include "Core/BootManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
@@ -79,8 +80,8 @@ IPCReply GetCPUSpeed(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const SConfig& config = SConfig::GetInstance();
-  const float oc = config.m_OCEnable ? config.m_OCFactor : 1.0f;
+  const bool overclock_enabled = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
+  const float oc = overclock_enabled ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
 
   const u32 core_clock = u32(float(SystemTimers::GetTicksPerSecond()) * oc);
 
