@@ -78,6 +78,10 @@ Globals g;
 
 static EventType* s_ev_lost = nullptr;
 
+static size_t s_registered_config_callback_id;
+static float s_config_OC_factor;
+static float s_config_OC_inv_factor;
+
 static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 {
 }
@@ -122,9 +126,12 @@ void UnregisterAllEvents()
 
 void Init()
 {
-  s_last_OC_factor =
-      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
-  g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  s_registered_config_callback_id =
+      Config::AddConfigChangedCallback([]() { Core::RunAsCPUThread([]() { RefreshConfig(); }); });
+  RefreshConfig();
+
+  s_last_OC_factor = s_config_OC_factor;
+  g.last_OC_factor_inverted = s_config_OC_inv_factor;
   PowerPC::ppcState.downcount = CyclesToDowncount(MAX_SLICE_LENGTH);
   g.slice_length = MAX_SLICE_LENGTH;
   g.global_timer = 0;
@@ -146,6 +153,14 @@ void Shutdown()
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
+  Config::RemoveConfigChangedCallback(s_registered_config_callback_id);
+}
+
+void RefreshConfig()
+{
+  s_config_OC_factor =
+      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
+  s_config_OC_inv_factor = 1.0f / s_config_OC_factor;
 }
 
 void DoState(PointerWrap& p)
@@ -318,9 +333,8 @@ void Advance()
 
   int cyclesExecuted = g.slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
   g.global_timer += cyclesExecuted;
-  s_last_OC_factor =
-      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
-  g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  s_last_OC_factor = s_config_OC_factor;
+  g.last_OC_factor_inverted = s_config_OC_inv_factor;
   g.slice_length = MAX_SLICE_LENGTH;
 
   s_is_global_timer_sane = true;
