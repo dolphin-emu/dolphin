@@ -129,11 +129,23 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
 
-  // Points and lines require each vertex to be amplified to turn into triangles.
+  // Points and lines require each vertex to be amplified to turn into triangles or triangle strips.
   if (new_primitive_type == PrimitiveType::Lines)
+  {
     needed_vertex_bytes *= 2;
+    if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+      new_primitive_type = PrimitiveType::TriangleStrip;
+    else
+      new_primitive_type = PrimitiveType::Triangles;
+  }
   else if (new_primitive_type == PrimitiveType::Points)
+  {
     needed_vertex_bytes *= 4;
+    if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+      new_primitive_type = PrimitiveType::TriangleStrip;
+    else
+      new_primitive_type = PrimitiveType::Triangles;
+  }
 
   if (m_current_primitive_type != new_primitive_type)
   {

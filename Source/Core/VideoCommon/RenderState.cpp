@@ -11,17 +11,10 @@
 void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
 {
   cullmode = bp.genMode.cullmode;
-  primitive = primitive_type;
 
   // Back-face culling should be disabled for points/lines.
-  if (primitive_type != PrimitiveType::Triangles && primitive_type != PrimitiveType::TriangleStrip){
+  if (primitive_type != PrimitiveType::Triangles && primitive_type != PrimitiveType::TriangleStrip)
     cullmode = CullMode::None;
-    // Lines and points are expanded to triangles
-    primitive = primitive_type= PrimitiveType::Triangles;
-  }
-  
-  
-  
 }
 
 void DepthState::Generate(const BPMemory& bp)
