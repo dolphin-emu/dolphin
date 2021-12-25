@@ -321,7 +321,9 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.usedualsrc && state.dstalpha && g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
+  if (((state.usedualsrc && state.dstalpha) ||
+       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
+      g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
       !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
     uid_data->blend_enable = state.blendenable;
@@ -944,10 +946,15 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
   const bool use_shader_blend =
-      !use_dual_source && uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch;
+      !use_dual_source &&
+      (uid_data->useDstAlpha ||
+       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
+      host_config.backend_shader_framebuffer_fetch;
   const bool use_shader_logic_op = !host_config.backend_logic_op && uid_data->logic_op_enable &&
                                    host_config.backend_shader_framebuffer_fetch;
-  const bool use_framebuffer_fetch = use_shader_blend || use_shader_logic_op;
+  const bool use_framebuffer_fetch =
+      use_shader_blend || use_shader_logic_op ||
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
@@ -1869,9 +1876,23 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   // ZCOMPLOC HACK:
   if (!uid_data->alpha_test_use_zcomploc_hack)
   {
-    out.Write("\t\tdiscard;\n");
-    if (api_type == APIType::D3D)
+#ifdef __APPLE__
+    if (uid_data->forced_early_z &&
+        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+    {
+      // Instead of using discard, fetch the framebuffer's color value and use it as the output
+      // for this fragment.
+      out.Write("\t\t{} = float4(initial_ocol0.xyz, 1.0);\n",
+                use_dual_source ? "real_ocol0" : "ocol0");
       out.Write("\t\treturn;\n");
+    }
+    else
+#endif
+    {
+      out.Write("\t\tdiscard;\n");
+      if (api_type == APIType::D3D)
+        out.Write("\t\treturn;\n");
+    }
   }
 
   out.Write("\t}}\n");

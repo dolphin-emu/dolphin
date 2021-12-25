@@ -133,7 +133,7 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
 }
 
 static VkPipelineColorBlendAttachmentState
-GetVulkanAttachmentBlendState(const BlendingState& state)
+GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage usage)
 {
   VkPipelineColorBlendAttachmentState vk_state = {};
 
@@ -143,7 +143,8 @@ GetVulkanAttachmentBlendState(const BlendingState& state)
   bool use_shader_blend = !use_dual_source && state.usedualsrc && state.dstalpha &&
                           g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
 
-  if (use_shader_blend)
+  if (use_shader_blend || (usage == AbstractPipelineUsage::GX &&
+                           DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)))
   {
     vk_state.blendEnable = VK_FALSE;
   }
@@ -349,7 +350,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   VkPipelineDepthStencilStateCreateInfo depth_stencil_state =
       GetVulkanDepthStencilState(config.depth_state);
   VkPipelineColorBlendAttachmentState blend_attachment_state =
-      GetVulkanAttachmentBlendState(config.blending_state);
+      GetVulkanAttachmentBlendState(config.blending_state, config.usage);
   VkPipelineColorBlendStateCreateInfo blend_state =
       GetVulkanColorBlendState(config.blending_state, &blend_attachment_state, 1);
 
