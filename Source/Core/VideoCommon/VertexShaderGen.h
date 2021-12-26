@@ -13,6 +13,11 @@ enum class TexInputForm : u32;
 enum class TexGenType : u32;
 enum class SourceRow : u32;
 
+namespace OpcodeDecoder
+{
+enum class Primitive : u8;
+}
+
 // TODO should be reordered
 enum : int
 {
@@ -46,8 +51,8 @@ struct vertex_shader_uid_data
 
   u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the texMtxInfo struct is
                                      // 8 bits wide
-  PrimitiveType prim_type:2; 
-  u32 pad : 16;
+  OpcodeDecoder::Primitive primitive : 3;
+  u32 pad : 15;
 
   struct
   {
@@ -71,6 +76,6 @@ struct vertex_shader_uid_data
 
 using VertexShaderUid = ShaderUid<vertex_shader_uid_data>;
 
-VertexShaderUid GetVertexShaderUid(PrimitiveType prim_type);
+VertexShaderUid GetVertexShaderUid(OpcodeDecoder::Primitive primitive);
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                     const vertex_shader_uid_data* uid_data);

@@ -5,15 +5,17 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-VertexShaderUid GetVertexShaderUid(PrimitiveType prim_type)
+VertexShaderUid GetVertexShaderUid(OpcodeDecoder::Primitive primitive)
 {
   ASSERT(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
   ASSERT(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
@@ -23,7 +25,7 @@ VertexShaderUid GetVertexShaderUid(PrimitiveType prim_type)
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
   uid_data->components = VertexLoaderManager::g_current_components;
   uid_data->numColorChans = xfmem.numChan.numColorChans;
-  uid_data->prim_type = prim_type;
+  uid_data->primitive = primitive;
   GetLightingShaderUid(uid_data->lighting);
 
   // transform texcoords
@@ -544,11 +546,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("gl_ClipDistance[0] = clipDist0;\n"
               "gl_ClipDistance[1] = clipDist1;\n");
   }
-  if (uid_data->prim_type == PrimitiveType::Lines)
+
+  if (uid_data->primitive == OpcodeDecoder::Primitive::GX_DRAW_LINES ||
+      uid_data->primitive == OpcodeDecoder::Primitive::GX_DRAW_LINE_STRIP)
   {
-    out.Write("if((gl_VertexID%2)==0){{o.pos.y+=0.01*o.pos.w; o.pos.x+=0.01*o.pos.w;}}");
+    out.Write("if((gl_VertexID&2)==0){{o.pos.y+=0.01*o.pos.w; o.pos.x+=0.01*o.pos.w;}}");
   }
-  if (uid_data->prim_type == PrimitiveType::Points)
+  if (uid_data->primitive == OpcodeDecoder::Primitive::GX_DRAW_POINTS)
   {
     // TODO
   }

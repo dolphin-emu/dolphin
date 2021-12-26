@@ -153,6 +153,8 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
       new_primitive_type = PrimitiveType::Triangles;
   }
 
+  m_current_primitive = primitive;
+
   if (m_current_primitive_type != new_primitive_type || m_cull_mode != new_cull_mode)
   {
     Flush();
@@ -691,12 +693,11 @@ void VertexManagerBase::UpdatePipelineConfig()
         VertexLoaderManager::GetUberVertexFormat(vertex_format->GetVertexDeclaration());
     m_pipeline_config_changed = true;
   }
-  VertexShaderUid vs_uid = GetVertexShaderUid(m_current_primitive_type);
+  VertexShaderUid vs_uid = GetVertexShaderUid(m_current_primitive);
   if (vs_uid != m_current_pipeline_config.vs_uid)
   {
     m_current_pipeline_config.vs_uid = vs_uid;
-    m_current_uber_pipeline_config.vs_uid =
-        UberShader::GetVertexShaderUid(m_current_primitive_type);
+    m_current_uber_pipeline_config.vs_uid = UberShader::GetVertexShaderUid(m_current_primitive);
     m_pipeline_config_changed = true;
   }
 

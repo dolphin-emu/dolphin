@@ -12,13 +12,13 @@
 
 namespace UberShader
 {
-VertexShaderUid GetVertexShaderUid(PrimitiveType prim_type)
+VertexShaderUid GetVertexShaderUid(OpcodeDecoder::Primitive primitive)
 {
   VertexShaderUid out;
 
   vertex_ubershader_uid_data* const uid_data = out.GetUidData();
   uid_data->num_texgens = xfmem.numTexGen.numTexGens;
-  uid_data->prim_type = prim_type;
+  uid_data->primitive = primitive;
 
   return out;
 }
