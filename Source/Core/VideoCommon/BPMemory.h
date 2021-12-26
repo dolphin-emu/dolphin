@@ -2350,70 +2350,70 @@ enum class EmulatedZ : u32
 
 struct BPMemory
 {
-  GenMode genMode;
-  u32 display_copy_filter[4];  // 01-04
-  u32 unknown;                 // 05
+  GenMode genMode;             // 0x00
+  u32 display_copy_filter[4];  // 0x01-0x04
+  u32 unknown;                 // 0x05
   // indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::matrix_index)
   // abc form a 2x3 offset matrix, there's 3 such matrices
   // the 3 offset matrices can either be indirect type, S-type, or T-type
   // 6bit scale factor s is distributed across IND_MTXA/B/C.
   // before using matrices scale by 2^-(s-17)
-  IND_MTX indmtx[3];               // 06-0e GXSetIndTexMtx, 2x3 matrices
-  IND_IMASK imask;                 // 0f
-  TevStageIndirect tevind[16];     // 10 GXSetTevIndirect
-  ScissorPos scissorTL;            // 20
-  ScissorPos scissorBR;            // 21
-  LPSize lineptwidth;              // 22 line and point width
-  u32 sucounter;                   // 23
-  u32 rascounter;                  // 24
-  TEXSCALE texscale[2];            // 25-26 GXSetIndTexCoordScale
-  RAS1_IREF tevindref;             // 27 GXSetIndTexOrder
-  TwoTevStageOrders tevorders[8];  // 28-2F
-  TCoordInfo texcoords[8];         // 0x30 s,t,s,t,s,t,s,t...
-  ZMode zmode;                     // 40
-  BlendMode blendmode;             // 41
-  ConstantAlpha dstalpha;          // 42
-  PEControl zcontrol;              // 43 GXSetZCompLoc, GXPixModeSync
-  FieldMask fieldmask;             // 44
-  u32 drawdone;                    // 45, bit1=1 if end of list
-  u32 unknown5;                    // 46 clock?
-  u32 petoken;                     // 47
-  u32 petokenint;                  // 48
-  X10Y10 copyTexSrcXY;             // 49
-  X10Y10 copyTexSrcWH;             // 4a
-  u32 copyTexDest;                 // 4b// 4b == CopyAddress (GXDispCopy and GXTexCopy use it)
-  u32 unknown6;                    // 4c
-  u32 copyMipMapStrideChannels;  // 4d usually set to 4 when dest is single channel, 8 when dest is
-                                 // 2 channel, 16 when dest is RGBA
-  // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do with
-  // number of bytes to look at when smoothing
-  u32 dispcopyyscale;                 // 4e
-  u32 clearcolorAR;                   // 4f
-  u32 clearcolorGB;                   // 50
-  u32 clearZValue;                    // 51
-  UPE_Copy triggerEFBCopy;            // 52
-  CopyFilterCoefficients copyfilter;  // 53,54
-  u32 boundbox0;                      // 55
-  u32 boundbox1;                      // 56
-  u32 unknown7[2];                    // 57,58
-  ScissorOffset scissorOffset;        // 59
-  u32 unknown8[6];                    // 5a,5b,5c,5d, 5e,5f
-  BPS_TmemConfig tmem_config;         // 60-66
-  u32 metric;                         // 67
-  FieldMode fieldmode;                // 68
-  u32 unknown10[7];                   // 69-6F
-  u32 unknown11[16];                  // 70-7F
-  AllTexUnits tex;                    // 80-bf
-  TevStageCombiner combiners[16];     // 0xC0-0xDF
-  TevReg tevregs[4];                  // 0xE0
-  FogRangeParams fogRange;            // 0xE8
-  FogParams fog;                      // 0xEE,0xEF,0xF0,0xF1,0xF2
-  AlphaTest alpha_test;               // 0xF3
-  ZTex1 ztex1;                        // 0xf4,0xf5
-  ZTex2 ztex2;
-  TevKSel tevksel[8];  // 0xf6,0xf7,f8,f9,fa,fb,fc,fd
-  u32 bpMask;          // 0xFE
-  u32 unknown18;       // ff
+  IND_MTX indmtx[3];               // 0x06-0x0e: GXSetIndTexMtx, 2x3 matrices
+  IND_IMASK imask;                 // 0x0f
+  TevStageIndirect tevind[16];     // 0x10-0x1f: GXSetTevIndirect
+  ScissorPos scissorTL;            // 0x20
+  ScissorPos scissorBR;            // 0x21
+  LPSize lineptwidth;              // 0x22
+  u32 sucounter;                   // 0x23
+  u32 rascounter;                  // 0x24
+  TEXSCALE texscale[2];            // 0x25,0x26: GXSetIndTexCoordScale
+  RAS1_IREF tevindref;             // 0x27: GXSetIndTexOrder
+  TwoTevStageOrders tevorders[8];  // 0x28-0x2f
+  TCoordInfo texcoords[8];         // 0x30-0x4f: s,t,s,t,s,t,s,t...
+  ZMode zmode;                     // 0x40
+  BlendMode blendmode;             // 0x41
+  ConstantAlpha dstalpha;          // 0x42
+  PEControl zcontrol;              // 0x43: GXSetZCompLoc, GXPixModeSync
+  FieldMask fieldmask;             // 0x44
+  u32 drawdone;                    // 0x45: bit1=1 if end of list
+  u32 unknown5;                    // 0x46: clock?
+  u32 petoken;                     // 0x47
+  u32 petokenint;                  // 0x48
+  X10Y10 copyTexSrcXY;             // 0x49
+  X10Y10 copyTexSrcWH;             // 0x4a
+  u32 copyTexDest;                 // 0x4b: CopyAddress (GXDispCopy and GXTexCopy use it)
+  u32 unknown6;                    // 0x4c
+  // usually set to 4 when dest is single channel, 8 when dest is 2 channel, 16 when dest is RGBA
+  // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do
+  // with number of bytes to look at when smoothing
+  u32 copyMipMapStrideChannels;       // 0x4d
+  u32 dispcopyyscale;                 // 0x4e
+  u32 clearcolorAR;                   // 0x4f
+  u32 clearcolorGB;                   // 0x50
+  u32 clearZValue;                    // 0x51
+  UPE_Copy triggerEFBCopy;            // 0x52
+  CopyFilterCoefficients copyfilter;  // 0x53,0x54
+  u32 boundbox0;                      // 0x55
+  u32 boundbox1;                      // 0x56
+  u32 unknown7[2];                    // 0x57,0x58
+  ScissorOffset scissorOffset;        // 0x59
+  u32 unknown8[6];                    // 0x5a-0x5f
+  BPS_TmemConfig tmem_config;         // 0x60-0x66
+  u32 metric;                         // 0x67
+  FieldMode fieldmode;                // 0x68
+  u32 unknown10[7];                   // 0x69-0x6f
+  u32 unknown11[16];                  // 0x70-0x7f
+  AllTexUnits tex;                    // 0x80-0xbf
+  TevStageCombiner combiners[16];     // 0xc0-0xdf
+  TevReg tevregs[4];                  // 0xe0-0xe7
+  FogRangeParams fogRange;            // 0xe8-0xed
+  FogParams fog;                      // 0xee-0xf2
+  AlphaTest alpha_test;               // 0xf3
+  ZTex1 ztex1;                        // 0xf4
+  ZTex2 ztex2;                        // 0xf5
+  TevKSel tevksel[8];                 // 0xf6-0xfd
+  u32 bpMask;                         // 0xfe
+  u32 unknown18;                      // 0xff
 
   EmulatedZ GetEmulatedZ() const
   {
