@@ -90,7 +90,6 @@ void SConfig::SaveSettings()
 
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
-  SaveGameListSettings(ini);
   SaveCoreSettings(ini);
   SaveMovieSettings(ini);
   SaveInputSettings(ini);
@@ -151,48 +150,6 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DebugModeEnabled", bEnableDebugging);
-}
-
-void SConfig::SaveGameListSettings(IniFile& ini)
-{
-  IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
-
-  gamelist->Set("ListDrives", m_ListDrives);
-  gamelist->Set("ListWad", m_ListWad);
-  gamelist->Set("ListElfDol", m_ListElfDol);
-  gamelist->Set("ListWii", m_ListWii);
-  gamelist->Set("ListGC", m_ListGC);
-  gamelist->Set("ListJap", m_ListJap);
-  gamelist->Set("ListPal", m_ListPal);
-  gamelist->Set("ListUsa", m_ListUsa);
-  gamelist->Set("ListAustralia", m_ListAustralia);
-  gamelist->Set("ListFrance", m_ListFrance);
-  gamelist->Set("ListGermany", m_ListGermany);
-  gamelist->Set("ListItaly", m_ListItaly);
-  gamelist->Set("ListKorea", m_ListKorea);
-  gamelist->Set("ListNetherlands", m_ListNetherlands);
-  gamelist->Set("ListRussia", m_ListRussia);
-  gamelist->Set("ListSpain", m_ListSpain);
-  gamelist->Set("ListTaiwan", m_ListTaiwan);
-  gamelist->Set("ListWorld", m_ListWorld);
-  gamelist->Set("ListUnknown", m_ListUnknown);
-  gamelist->Set("ListSort", m_ListSort);
-  gamelist->Set("ListSortSecondary", m_ListSort2);
-
-  gamelist->Set("ColumnPlatform", m_showSystemColumn);
-  gamelist->Set("ColumnBanner", m_showBannerColumn);
-  gamelist->Set("ColumnDescription", m_showDescriptionColumn);
-  gamelist->Set("ColumnTitle", m_showTitleColumn);
-  gamelist->Set("ColumnNotes", m_showMakerColumn);
-  gamelist->Set("ColumnFileName", m_showFileNameColumn);
-  gamelist->Set("ColumnFilePath", m_showFilePathColumn);
-  gamelist->Set("ColumnID", m_showIDColumn);
-  gamelist->Set("ColumnRegion", m_showRegionColumn);
-  gamelist->Set("ColumnSize", m_showSizeColumn);
-  gamelist->Set("ColumnFileFormat", m_showFileFormatColumn);
-  gamelist->Set("ColumnBlockSize", m_showBlockSizeColumn);
-  gamelist->Set("ColumnCompression", m_showCompressionColumn);
-  gamelist->Set("ColumnTags", m_showTagsColumn);
 }
 
 void SConfig::SaveCoreSettings(IniFile& ini)
@@ -331,7 +288,6 @@ void SConfig::LoadSettings()
 
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);
-  LoadGameListSettings(ini);
   LoadCoreSettings(ini);
   LoadMovieSettings(ini);
   LoadInputSettings(ini);
@@ -383,50 +339,6 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DebugModeEnabled", &bEnableDebugging, false);
-}
-
-void SConfig::LoadGameListSettings(IniFile& ini)
-{
-  IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
-
-  gamelist->Get("ListDrives", &m_ListDrives, false);
-  gamelist->Get("ListWad", &m_ListWad, true);
-  gamelist->Get("ListElfDol", &m_ListElfDol, true);
-  gamelist->Get("ListWii", &m_ListWii, true);
-  gamelist->Get("ListGC", &m_ListGC, true);
-  gamelist->Get("ListJap", &m_ListJap, true);
-  gamelist->Get("ListPal", &m_ListPal, true);
-  gamelist->Get("ListUsa", &m_ListUsa, true);
-
-  gamelist->Get("ListAustralia", &m_ListAustralia, true);
-  gamelist->Get("ListFrance", &m_ListFrance, true);
-  gamelist->Get("ListGermany", &m_ListGermany, true);
-  gamelist->Get("ListItaly", &m_ListItaly, true);
-  gamelist->Get("ListKorea", &m_ListKorea, true);
-  gamelist->Get("ListNetherlands", &m_ListNetherlands, true);
-  gamelist->Get("ListRussia", &m_ListRussia, true);
-  gamelist->Get("ListSpain", &m_ListSpain, true);
-  gamelist->Get("ListTaiwan", &m_ListTaiwan, true);
-  gamelist->Get("ListWorld", &m_ListWorld, true);
-  gamelist->Get("ListUnknown", &m_ListUnknown, true);
-  gamelist->Get("ListSort", &m_ListSort, 3);
-  gamelist->Get("ListSortSecondary", &m_ListSort2, 0);
-
-  // Gamelist columns toggles
-  gamelist->Get("ColumnPlatform", &m_showSystemColumn, true);
-  gamelist->Get("ColumnDescription", &m_showDescriptionColumn, false);
-  gamelist->Get("ColumnBanner", &m_showBannerColumn, true);
-  gamelist->Get("ColumnTitle", &m_showTitleColumn, true);
-  gamelist->Get("ColumnNotes", &m_showMakerColumn, true);
-  gamelist->Get("ColumnFileName", &m_showFileNameColumn, false);
-  gamelist->Get("ColumnFilePath", &m_showFilePathColumn, false);
-  gamelist->Get("ColumnID", &m_showIDColumn, false);
-  gamelist->Get("ColumnRegion", &m_showRegionColumn, true);
-  gamelist->Get("ColumnSize", &m_showSizeColumn, true);
-  gamelist->Get("ColumnFileFormat", &m_showFileFormatColumn, false);
-  gamelist->Get("ColumnBlockSize", &m_showBlockSizeColumn, false);
-  gamelist->Get("ColumnCompression", &m_showCompressionColumn, false);
-  gamelist->Get("ColumnTags", &m_showTagsColumn, false);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
