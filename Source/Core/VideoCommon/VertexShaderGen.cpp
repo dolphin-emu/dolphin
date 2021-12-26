@@ -550,7 +550,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   if (uid_data->primitive == OpcodeDecoder::Primitive::GX_DRAW_LINES ||
       uid_data->primitive == OpcodeDecoder::Primitive::GX_DRAW_LINE_STRIP)
   {
-    out.Write("if((gl_VertexID&2)==0){{o.pos.y+=0.01*o.pos.w; o.pos.x+=0.01*o.pos.w;}}");
+    out.Write("if((gl_VertexID&1)==0){{o.pos.y+=0.01*o.pos.w; o.pos.x+=0.01*o.pos.w;}}");
   }
   if (uid_data->primitive == OpcodeDecoder::Primitive::GX_DRAW_POINTS)
   {

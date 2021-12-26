@@ -174,7 +174,33 @@ u16* AddLineList(u16* index_ptr, u32 num_verts, u32 index)
   u32 prims = num_verts / 4;  // Lines have verts 4x amplified per primitive;
   for (u32 i = 0; i < prims; i += 1)
   {
-    index_ptr = AddQuads<pr>(index_ptr, 4, index + i * 4);
+    if constexpr (pr)
+    {
+      // TODO: The double primitive restarts are to maintain an even-odd pattern, but are almost
+      // certainly unneeded with better handling in the vertex shader
+      *index_ptr++ = index + i * 4;
+      *index_ptr++ = index + i * 4 + 2;
+      *index_ptr++ = index + i * 4 + 1;
+      // *index_ptr++ = index + i * 4 + 3;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = index + i * 4 + 2;
+      *index_ptr++ = index + i * 4 + 3;
+      *index_ptr++ = index + i * 4 + 1;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = s_primitive_restart;
+    }
+    else
+    {
+      // Tri 1
+      *index_ptr++ = index + i * 4;
+      *index_ptr++ = index + i * 4 + 2;
+      *index_ptr++ = index + i * 4 + 1;
+      // Tri 2
+      *index_ptr++ = index + i * 4 + 2;
+      *index_ptr++ = index + i * 4 + 3;
+      *index_ptr++ = index + i * 4 + 1;
+    }
   }
   return index_ptr;
 }
@@ -187,7 +213,31 @@ u16* AddLineStrip(u16* index_ptr, u32 num_verts, u32 index)
   u32 prims = num_verts / 2;  // Lines have verts 2x amplified per primitive;
   for (u32 i = 0; i < prims - 1; ++i)
   {
-    index_ptr = AddQuads<pr>(index_ptr, 4, index + i * 2);
+    if constexpr (pr)
+    {
+      // TODO
+      *index_ptr++ = index + i * 2 + 0;
+      *index_ptr++ = index + i * 2 + 2;
+      *index_ptr++ = index + i * 2 + 1;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = index + i * 2 + 2;
+      *index_ptr++ = index + i * 2 + 3;
+      *index_ptr++ = index + i * 2 + 1;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = s_primitive_restart;
+    }
+    else
+    {
+      // Tri 1
+      *index_ptr++ = index + i * 2 + 0;
+      *index_ptr++ = index + i * 2 + 2;
+      *index_ptr++ = index + i * 2 + 1;
+      // Tri 2
+      *index_ptr++ = index + i * 2 + 2;
+      *index_ptr++ = index + i * 2 + 3;
+      *index_ptr++ = index + i * 2 + 1;
+    }
   }
   return index_ptr;
 }
@@ -199,7 +249,29 @@ u16* AddPoints(u16* index_ptr, u32 num_verts, u32 index)
 
   for (u32 i = 0; i != prims; ++i)
   {
-    index_ptr = AddQuads<pr>(index_ptr, 4, index + i * 4);
+    if constexpr (pr)
+    {
+      // TODO
+      *index_ptr++ = index + i * 4 + 0;
+      *index_ptr++ = index + i * 4 + 3;
+      *index_ptr++ = index + i * 4 + 1;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = index + i * 4 + 1;
+      *index_ptr++ = index + i * 4 + 3;
+      *index_ptr++ = index + i * 4 + 2;
+      *index_ptr++ = s_primitive_restart;
+      *index_ptr++ = s_primitive_restart;
+    }
+    else
+    {
+      *index_ptr++ = index + i * 4 + 0;
+      *index_ptr++ = index + i * 4 + 3;
+      *index_ptr++ = index + i * 4 + 1;
+      *index_ptr++ = index + i * 4 + 1;
+      *index_ptr++ = index + i * 4 + 3;
+      *index_ptr++ = index + i * 4 + 2;
+    }
   }
   return index_ptr;
 }
