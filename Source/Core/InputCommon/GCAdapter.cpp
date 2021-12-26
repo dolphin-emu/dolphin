@@ -307,6 +307,15 @@ static bool CheckDeviceAccess(libusb_device* device)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed with error: {}", ret);
   }
 
+  ret = libusb_claim_interface(s_handle, 0);
+  if (ret != 0)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_claim_interface failed with error: {}", ret);
+    libusb_close(s_handle);
+    s_handle = nullptr;
+    return false;
+  }
+
   // This call makes Nyko-brand (and perhaps other) adapters work.
   // However it returns LIBUSB_ERROR_PIPE with Mayflash adapters.
   const int transfer = libusb_control_transfer(s_handle, 0x21, 11, 0x0001, 0, nullptr, 0, 1000);
@@ -317,15 +326,6 @@ static bool CheckDeviceAccess(libusb_device* device)
   // detaching the kernel driver is successful
   if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
   {
-    libusb_close(s_handle);
-    s_handle = nullptr;
-    return false;
-  }
-
-  ret = libusb_claim_interface(s_handle, 0);
-  if (ret != 0)
-  {
-    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_claim_interface failed with error: {}", ret);
     libusb_close(s_handle);
     s_handle = nullptr;
     return false;
