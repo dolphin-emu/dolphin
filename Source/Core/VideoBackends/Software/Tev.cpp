@@ -740,7 +740,13 @@ void Tev::Draw()
   EfbInterface::BlendTev(Position[0], Position[1], output);
 }
 
-void Tev::SetRegColor(int reg, int comp, s16 color)
+void Tev::SetKonstColors()
 {
-  KonstantColors[reg][comp] = color;
+  for (int i = 0; i < 4; i++)
+  {
+    KonstantColors[i].r = PixelShaderManager::constants.kcolors[i][0];
+    KonstantColors[i].g = PixelShaderManager::constants.kcolors[i][1];
+    KonstantColors[i].b = PixelShaderManager::constants.kcolors[i][2];
+    KonstantColors[i].a = PixelShaderManager::constants.kcolors[i][3];
+  }
 }

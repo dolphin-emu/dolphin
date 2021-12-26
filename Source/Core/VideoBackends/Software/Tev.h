@@ -226,7 +226,6 @@ public:
     RED_C
   };
 
+  void SetKonstColors();
   void Draw();
-
-  void SetRegColor(int reg, int comp, s16 color);
 };

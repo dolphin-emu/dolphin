@@ -67,15 +67,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     g_renderer->BBoxFlush();
 
   m_setup_unit.Init(primitive_type);
-
-  // set all states with are stored within video sw
-  for (int i = 0; i < 4; i++)
-  {
-    Rasterizer::SetTevReg(i, Tev::RED_C, PixelShaderManager::constants.kcolors[i][0]);
-    Rasterizer::SetTevReg(i, Tev::GRN_C, PixelShaderManager::constants.kcolors[i][1]);
-    Rasterizer::SetTevReg(i, Tev::BLU_C, PixelShaderManager::constants.kcolors[i][2]);
-    Rasterizer::SetTevReg(i, Tev::ALP_C, PixelShaderManager::constants.kcolors[i][3]);
-  }
+  Rasterizer::SetTevKonstColors();
 
   for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
   {
