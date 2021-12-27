@@ -657,6 +657,9 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 {
   std::lock_guard lkg(m_crit.game);
 
+  if (size < 8)
+    size = 8;
+
   m_target_buffer_size = size;
 
   // not needed on clients with host input authority
