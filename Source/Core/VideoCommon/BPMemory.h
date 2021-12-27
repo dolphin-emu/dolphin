@@ -684,8 +684,8 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
                           "Clamp: {}\n"
                           "Scale factor: {} / Compare mode: {}\n"
                           "Dest: {}\n"
-                          "Ras sel: {}\n"
-                          "Tex sel: {}",
+                          "Rasterized color swaptable: {}\n"
+                          "Texture color swaptable: {}",
                           ac.a, ac.b, ac.c, ac.d, ac.bias, ac.op, ac.comparison,
                           ac.clamp ? "Yes" : "No", ac.scale, ac.compare_mode, ac.dest, ac.rswap,
                           ac.tswap);
@@ -798,19 +798,23 @@ union TwoTevStageOrders
   }
 };
 template <>
-struct fmt::formatter<TwoTevStageOrders>
+struct fmt::formatter<std::pair<u8, TwoTevStageOrders>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TwoTevStageOrders& stages, FormatContext& ctx) const
+  auto format(const std::pair<u8, TwoTevStageOrders>& p, FormatContext& ctx) const
   {
+    const auto& [cmd, stages] = p;
+    const u8 stage_even = (cmd - BPMEM_TREF) * 2;
+    const u8 stage_odd = stage_even + 1;
+
     return fmt::format_to(ctx.out(),
-                          "Stage 0 texmap: {}\nStage 0 tex coord: {}\n"
-                          "Stage 0 enable texmap: {}\nStage 0 color channel: {}\n"
-                          "Stage 1 texmap: {}\nStage 1 tex coord: {}\n"
-                          "Stage 1 enable texmap: {}\nStage 1 color channel: {}\n",
-                          stages.texmap_even, stages.texcoord_even,
-                          stages.enable_tex_even ? "Yes" : "No", stages.colorchan_even,
+                          "Stage {0} texmap: {1}\nStage {0} tex coord: {2}\n"
+                          "Stage {0} enable texmap: {3}\nStage {0} rasterized color channel: {4}\n"
+                          "Stage {5} texmap: {6}\nStage {5} tex coord: {7}\n"
+                          "Stage {5} enable texmap: {8}\nStage {5} rasterized color channel: {9}\n",
+                          stage_even, stages.texmap_even, stages.texcoord_even,
+                          stages.enable_tex_even ? "Yes" : "No", stages.colorchan_even, stage_odd,
                           stages.texmap_odd, stages.texcoord_odd,
                           stages.enable_tex_odd ? "Yes" : "No", stages.colorchan_odd);
   }
@@ -818,33 +822,38 @@ struct fmt::formatter<TwoTevStageOrders>
 
 union TEXSCALE
 {
-  BitField<0, 4, u32> ss0;   // Indirect tex stage 0, 2^(-ss0)
-  BitField<4, 4, u32> ts0;   // Indirect tex stage 0
-  BitField<8, 4, u32> ss1;   // Indirect tex stage 1
-  BitField<12, 4, u32> ts1;  // Indirect tex stage 1
+  BitField<0, 4, u32> ss0;   // Indirect tex stage 0 or 2, 2^(-ss0)
+  BitField<4, 4, u32> ts0;   // Indirect tex stage 0 or 2
+  BitField<8, 4, u32> ss1;   // Indirect tex stage 1 or 3
+  BitField<12, 4, u32> ts1;  // Indirect tex stage 1 or 3
   u32 hex;
 };
 template <>
-struct fmt::formatter<TEXSCALE>
+struct fmt::formatter<std::pair<u8, TEXSCALE>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TEXSCALE& scale, FormatContext& ctx) const
+  auto format(const std::pair<u8, TEXSCALE>& p, FormatContext& ctx) const
   {
+    const auto& [cmd, scale] = p;
+    const u8 even = (cmd - BPMEM_RAS1_SS0) * 2;
+    const u8 odd_ = even + 1;
+
     return fmt::format_to(ctx.out(),
-                          "Even stage S scale: {} ({})\n"
-                          "Even stage T scale: {} ({})\n"
-                          "Odd stage S scale: {} ({})\n"
-                          "Odd stage T scale: {} ({})",
-                          scale.ss0, 1.f / (1 << scale.ss0), scale.ts0, 1.f / (1 << scale.ts0),
-                          scale.ss1, 1.f / (1 << scale.ss1), scale.ts1, 1.f / (1 << scale.ts1));
+                          "Indirect stage {0} S coord scale: {1} ({2})\n"
+                          "Indirect stage {0} T coord scale: {3} ({4})\n"
+                          "Indirect stage {5} S coord scale: {6} ({7})\n"
+                          "Indirect stage {5} T coord scale: {8} ({9})",
+                          even, 1.f / (1 << scale.ss0), scale.ss0, 1.f / (1 << scale.ts0),
+                          scale.ts0, odd_, 1.f / (1 << scale.ss1), scale.ss1,
+                          1.f / (1 << scale.ts1), scale.ts1);
   }
 };
 
 union RAS1_IREF
 {
-  BitField<0, 3, u32> bi0;  // Indirect tex stage 0 ntexmap
-  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 ntexcoord
+  BitField<0, 3, u32> bi0;  // Indirect tex stage 0 texmap
+  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 tex coord
   BitField<6, 3, u32> bi1;
   BitField<9, 3, u32> bc1;
   BitField<12, 3, u32> bi2;
@@ -863,12 +872,11 @@ struct fmt::formatter<RAS1_IREF>
   template <typename FormatContext>
   auto format(const RAS1_IREF& indref, FormatContext& ctx) const
   {
-    // The field names here are suspicious, since there is no bi3 or bc2
     return fmt::format_to(ctx.out(),
-                          "Stage 0 ntexmap: {}\nStage 0 ntexcoord: {}\n"
-                          "Stage 1 ntexmap: {}\nStage 1 ntexcoord: {}\n"
-                          "Stage 2 ntexmap: {}\nStage 2 ntexcoord: {}\n"
-                          "Stage 3 ntexmap: {}\nStage 3 ntexcoord: {}",
+                          "Indirect stage 0 texmap: {}\nIndirect stage 0 tex coord: {}\n"
+                          "Indirect stage 1 texmap: {}\nIndirect stage 1 tex coord: {}\n"
+                          "Indirect stage 2 texmap: {}\nIndirect stage 2 tex coord: {}\n"
+                          "Indirect stage 3 texmap: {}\nIndirect stage 3 tex coord: {}",
                           indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc2,
                           indref.bi3, indref.bc3);
   }
@@ -1748,21 +1756,27 @@ union TCInfo
   u32 hex;
 };
 template <>
-struct fmt::formatter<TCInfo>
+struct fmt::formatter<std::pair<bool, TCInfo>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TCInfo& info, FormatContext& ctx) const
+  auto format(const std::pair<bool, TCInfo>& p, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(),
-                          "Scale: {}\n"
-                          "Range bias: {}\n"
-                          "Cylindric wrap: {}\n"
-                          "Use line offset: {} (s only)\n"
-                          "Use point offset: {} (s only)",
-                          info.scale_minus_1 + 1, info.range_bias ? "Yes" : "No",
-                          info.cylindric_wrap ? "Yes" : "No", info.line_offset ? "Yes" : "No",
-                          info.point_offset ? "Yes" : "No");
+    const auto& [is_s, info] = p;
+    auto out = fmt::format_to(ctx.out(),
+                              "{0} coord scale: {1}\n"
+                              "{0} coord range bias: {2}\n"
+                              "{0} coord cylindric wrap: {3}",
+                              is_s ? 'S' : 'T', info.scale_minus_1 + 1,
+                              info.range_bias ? "Yes" : "No", info.cylindric_wrap ? "Yes" : "No");
+    if (is_s)
+    {
+      out = fmt::format_to(out,
+                           "\nUse line offset: {}"
+                           "\nUse point offset: {}",
+                           info.line_offset ? "Yes" : "No", info.point_offset ? "Yes" : "No");
+    }
+    return out;
   }
 };
 
@@ -1935,17 +1949,28 @@ union TevKSel
   u32 hex;
 };
 template <>
-struct fmt::formatter<TevKSel>
+struct fmt::formatter<std::pair<u8, TevKSel>>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevKSel& ksel, FormatContext& ctx) const
+  auto format(const std::pair<u8, TevKSel>& p, FormatContext& ctx) const
   {
+    const auto& [cmd, ksel] = p;
+    const u8 swap_number = (cmd - BPMEM_TEV_KSEL) / 2;
+    const bool swap_ba = (cmd - BPMEM_TEV_KSEL) & 1;
+    const u8 even_stage = (cmd - BPMEM_TEV_KSEL) * 2;
+    const u8 odd_stage = even_stage + 1;
+
     return fmt::format_to(ctx.out(),
-                          "Swap 1: {}\nSwap 2: {}\nColor sel 0: {}\nAlpha sel 0: {}\n"
-                          "Color sel 1: {}\nAlpha sel 1: {}",
-                          ksel.swap_rb, ksel.swap_ga, ksel.kcsel_even, ksel.kasel_even,
-                          ksel.kcsel_odd, ksel.kasel_odd);
+                          "Swap table {0}: {1} channel comes from input's {2} channel\n"
+                          "Swap table {0}: {3} channel comes from input's {4} channel\n"
+                          "TEV stage {5} konst color: {6}\n"
+                          "TEV stage {5} konst alpha: {7}\n"
+                          "TEV stage {8} konst color: {9}\n"
+                          "TEV stage {8} konst alpha: {10}",
+                          swap_number, swap_ba ? "Blue" : "Red", ksel.swap_rb,
+                          swap_ba ? "Alpha" : "Green", ksel.swap_ga, even_stage, ksel.kcsel_even,
+                          ksel.kasel_even, odd_stage, ksel.kcsel_odd, ksel.kasel_odd);
   }
 };
 
