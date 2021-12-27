@@ -202,4 +202,50 @@ const Info<bool> MAIN_ANALYTICS_ENABLED{{System::Main, "Analytics", "Enabled"}, 
 const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED{{System::Main, "Analytics", "PermissionAsked"},
                                                  false};
 
+// Main.GameList
+
+const Info<bool> MAIN_GAMELIST_LIST_DRIVES{{System::Main, "GameList", "ListDrives"}, false};
+const Info<bool> MAIN_GAMELIST_LIST_WAD{{System::Main, "GameList", "ListWad"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_ELF_DOL{{System::Main, "GameList", "ListElfDol"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_WII{{System::Main, "GameList", "ListWii"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_GC{{System::Main, "GameList", "ListGC"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_JPN{{System::Main, "GameList", "ListJap"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_PAL{{System::Main, "GameList", "ListPal"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_USA{{System::Main, "GameList", "ListUsa"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_AUSTRALIA{{System::Main, "GameList", "ListAustralia"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_FRANCE{{System::Main, "GameList", "ListFrance"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_GERMANY{{System::Main, "GameList", "ListGermany"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_ITALY{{System::Main, "GameList", "ListItaly"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_KOREA{{System::Main, "GameList", "ListKorea"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_NETHERLANDS{{System::Main, "GameList", "ListNetherlands"},
+                                                true};
+const Info<bool> MAIN_GAMELIST_LIST_RUSSIA{{System::Main, "GameList", "ListRussia"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_SPAIN{{System::Main, "GameList", "ListSpain"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_TAIWAN{{System::Main, "GameList", "ListTaiwan"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_WORLD{{System::Main, "GameList", "ListWorld"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_UNKNOWN{{System::Main, "GameList", "ListUnknown"}, true};
+const Info<int> MAIN_GAMELIST_LIST_SORT{{System::Main, "GameList", "ListSort"}, 3};
+const Info<int> MAIN_GAMELIST_LIST_SORT_SECONDARY{{System::Main, "GameList", "ListSortSecondary"},
+                                                  0};
+const Info<bool> MAIN_GAMELIST_COLUMN_PLATFORM{{System::Main, "GameList", "ColumnPlatform"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_DESCRIPTION{{System::Main, "GameList", "ColumnDescription"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_BANNER{{System::Main, "GameList", "ColumnBanner"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_TITLE{{System::Main, "GameList", "ColumnTitle"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_MAKER{{System::Main, "GameList", "ColumnNotes"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_NAME{{System::Main, "GameList", "ColumnFileName"},
+                                                false};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_PATH{{System::Main, "GameList", "ColumnFilePath"},
+                                                false};
+const Info<bool> MAIN_GAMELIST_COLUMN_GAME_ID{{System::Main, "GameList", "ColumnID"}, false};
+const Info<bool> MAIN_GAMELIST_COLUMN_REGION{{System::Main, "GameList", "ColumnRegion"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_SIZE{{System::Main, "GameList", "ColumnSize"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT{{System::Main, "GameList", "ColumnFileFormat"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE{{System::Main, "GameList", "ColumnBlockSize"},
+                                                 false};
+const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION{{System::Main, "GameList", "ColumnCompression"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTags"}, false};
+
 }  // namespace Config

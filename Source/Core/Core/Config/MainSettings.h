@@ -171,4 +171,43 @@ extern const Info<bool> MAIN_SKIP_NKIT_WARNING;
 extern const Info<std::string> MAIN_ANALYTICS_ID;
 extern const Info<bool> MAIN_ANALYTICS_ENABLED;
 extern const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED;
+
+// Main.GameList
+
+extern const Info<bool> MAIN_GAMELIST_LIST_DRIVES;
+extern const Info<bool> MAIN_GAMELIST_LIST_WAD;
+extern const Info<bool> MAIN_GAMELIST_LIST_ELF_DOL;
+extern const Info<bool> MAIN_GAMELIST_LIST_WII;
+extern const Info<bool> MAIN_GAMELIST_LIST_GC;
+extern const Info<bool> MAIN_GAMELIST_LIST_JPN;
+extern const Info<bool> MAIN_GAMELIST_LIST_PAL;
+extern const Info<bool> MAIN_GAMELIST_LIST_USA;
+extern const Info<bool> MAIN_GAMELIST_LIST_AUSTRALIA;
+extern const Info<bool> MAIN_GAMELIST_LIST_FRANCE;
+extern const Info<bool> MAIN_GAMELIST_LIST_GERMANY;
+extern const Info<bool> MAIN_GAMELIST_LIST_ITALY;
+extern const Info<bool> MAIN_GAMELIST_LIST_KOREA;
+extern const Info<bool> MAIN_GAMELIST_LIST_NETHERLANDS;
+extern const Info<bool> MAIN_GAMELIST_LIST_RUSSIA;
+extern const Info<bool> MAIN_GAMELIST_LIST_SPAIN;
+extern const Info<bool> MAIN_GAMELIST_LIST_TAIWAN;
+extern const Info<bool> MAIN_GAMELIST_LIST_WORLD;
+extern const Info<bool> MAIN_GAMELIST_LIST_UNKNOWN;
+extern const Info<int> MAIN_GAMELIST_LIST_SORT;
+extern const Info<int> MAIN_GAMELIST_LIST_SORT_SECONDARY;
+
+extern const Info<bool> MAIN_GAMELIST_COLUMN_PLATFORM;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_DESCRIPTION;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_BANNER;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_TITLE;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_MAKER;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_NAME;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_PATH;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_GAME_ID;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_REGION;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_SIZE;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_TAGS;
 }  // namespace Config

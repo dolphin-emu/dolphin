@@ -622,21 +622,21 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 
 void MenuBar::AddListColumnsMenu(QMenu* view_menu)
 {
-  static const QMap<QString, bool*> columns{
-      {tr("Platform"), &SConfig::GetInstance().m_showSystemColumn},
-      {tr("Banner"), &SConfig::GetInstance().m_showBannerColumn},
-      {tr("Title"), &SConfig::GetInstance().m_showTitleColumn},
-      {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
-      {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
-      {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
-      {tr("File Path"), &SConfig::GetInstance().m_showFilePathColumn},
-      {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
-      {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
-      {tr("File Format"), &SConfig::GetInstance().m_showFileFormatColumn},
-      {tr("Block Size"), &SConfig::GetInstance().m_showBlockSizeColumn},
-      {tr("Compression"), &SConfig::GetInstance().m_showCompressionColumn},
-      {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
+  static const QMap<QString, const Config::Info<bool>*> columns{
+      {tr("Platform"), &Config::MAIN_GAMELIST_COLUMN_PLATFORM},
+      {tr("Banner"), &Config::MAIN_GAMELIST_COLUMN_BANNER},
+      {tr("Title"), &Config::MAIN_GAMELIST_COLUMN_TITLE},
+      {tr("Description"), &Config::MAIN_GAMELIST_COLUMN_DESCRIPTION},
+      {tr("Maker"), &Config::MAIN_GAMELIST_COLUMN_MAKER},
+      {tr("File Name"), &Config::MAIN_GAMELIST_COLUMN_FILE_NAME},
+      {tr("File Path"), &Config::MAIN_GAMELIST_COLUMN_FILE_PATH},
+      {tr("Game ID"), &Config::MAIN_GAMELIST_COLUMN_GAME_ID},
+      {tr("Region"), &Config::MAIN_GAMELIST_COLUMN_REGION},
+      {tr("File Size"), &Config::MAIN_GAMELIST_COLUMN_FILE_SIZE},
+      {tr("File Format"), &Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT},
+      {tr("Block Size"), &Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE},
+      {tr("Compression"), &Config::MAIN_GAMELIST_COLUMN_COMPRESSION},
+      {tr("Tags"), &Config::MAIN_GAMELIST_COLUMN_TAGS}};
 
   QActionGroup* column_group = new QActionGroup(this);
   m_cols_menu = view_menu->addMenu(tr("List Columns"));
@@ -644,12 +644,12 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
 
   for (const auto& key : columns.keys())
   {
-    bool* config = columns[key];
+    const Config::Info<bool>* const config = columns[key];
     QAction* action = column_group->addAction(m_cols_menu->addAction(key));
     action->setCheckable(true);
-    action->setChecked(*config);
+    action->setChecked(Config::Get(*config));
     connect(action, &QAction::toggled, [this, config, key](bool value) {
-      *config = value;
+      Config::SetBase(*config, value);
       emit ColumnVisibilityToggled(key, value);
     });
   }
@@ -657,11 +657,11 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
 
 void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
 {
-  static const QMap<QString, bool*> platform_map{
-      {tr("Show Wii"), &SConfig::GetInstance().m_ListWii},
-      {tr("Show GameCube"), &SConfig::GetInstance().m_ListGC},
-      {tr("Show WAD"), &SConfig::GetInstance().m_ListWad},
-      {tr("Show ELF/DOL"), &SConfig::GetInstance().m_ListElfDol}};
+  static const QMap<QString, const Config::Info<bool>*> platform_map{
+      {tr("Show Wii"), &Config::MAIN_GAMELIST_LIST_WII},
+      {tr("Show GameCube"), &Config::MAIN_GAMELIST_LIST_GC},
+      {tr("Show WAD"), &Config::MAIN_GAMELIST_LIST_WAD},
+      {tr("Show ELF/DOL"), &Config::MAIN_GAMELIST_LIST_ELF_DOL}};
 
   QActionGroup* platform_group = new QActionGroup(this);
   QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
@@ -669,12 +669,12 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
 
   for (const auto& key : platform_map.keys())
   {
-    bool* config = platform_map[key];
+    const Config::Info<bool>* const config = platform_map[key];
     QAction* action = platform_group->addAction(plat_menu->addAction(key));
     action->setCheckable(true);
-    action->setChecked(*config);
+    action->setChecked(Config::Get(*config));
     connect(action, &QAction::toggled, [this, config, key](bool value) {
-      *config = value;
+      Config::SetBase(*config, value);
       emit GameListPlatformVisibilityToggled(key, value);
     });
   }
@@ -682,21 +682,21 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
 
 void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
 {
-  static const QMap<QString, bool*> region_map{
-      {tr("Show JAP"), &SConfig::GetInstance().m_ListJap},
-      {tr("Show PAL"), &SConfig::GetInstance().m_ListPal},
-      {tr("Show USA"), &SConfig::GetInstance().m_ListUsa},
-      {tr("Show Australia"), &SConfig::GetInstance().m_ListAustralia},
-      {tr("Show France"), &SConfig::GetInstance().m_ListFrance},
-      {tr("Show Germany"), &SConfig::GetInstance().m_ListGermany},
-      {tr("Show Italy"), &SConfig::GetInstance().m_ListItaly},
-      {tr("Show Korea"), &SConfig::GetInstance().m_ListKorea},
-      {tr("Show Netherlands"), &SConfig::GetInstance().m_ListNetherlands},
-      {tr("Show Russia"), &SConfig::GetInstance().m_ListRussia},
-      {tr("Show Spain"), &SConfig::GetInstance().m_ListSpain},
-      {tr("Show Taiwan"), &SConfig::GetInstance().m_ListTaiwan},
-      {tr("Show World"), &SConfig::GetInstance().m_ListWorld},
-      {tr("Show Unknown"), &SConfig::GetInstance().m_ListUnknown}};
+  static const QMap<QString, const Config::Info<bool>*> region_map{
+      {tr("Show JPN"), &Config::MAIN_GAMELIST_LIST_JPN},
+      {tr("Show PAL"), &Config::MAIN_GAMELIST_LIST_PAL},
+      {tr("Show USA"), &Config::MAIN_GAMELIST_LIST_USA},
+      {tr("Show Australia"), &Config::MAIN_GAMELIST_LIST_AUSTRALIA},
+      {tr("Show France"), &Config::MAIN_GAMELIST_LIST_FRANCE},
+      {tr("Show Germany"), &Config::MAIN_GAMELIST_LIST_GERMANY},
+      {tr("Show Italy"), &Config::MAIN_GAMELIST_LIST_ITALY},
+      {tr("Show Korea"), &Config::MAIN_GAMELIST_LIST_KOREA},
+      {tr("Show Netherlands"), &Config::MAIN_GAMELIST_LIST_NETHERLANDS},
+      {tr("Show Russia"), &Config::MAIN_GAMELIST_LIST_RUSSIA},
+      {tr("Show Spain"), &Config::MAIN_GAMELIST_LIST_SPAIN},
+      {tr("Show Taiwan"), &Config::MAIN_GAMELIST_LIST_TAIWAN},
+      {tr("Show World"), &Config::MAIN_GAMELIST_LIST_WORLD},
+      {tr("Show Unknown"), &Config::MAIN_GAMELIST_LIST_UNKNOWN}};
 
   QMenu* const region_menu = view_menu->addMenu(tr("Show Regions"));
   const QAction* const show_all_regions = region_menu->addAction(tr("Show All"));
@@ -705,14 +705,14 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
 
   for (const auto& key : region_map.keys())
   {
-    bool* const config = region_map[key];
+    const Config::Info<bool>* const config = region_map[key];
     QAction* const menu_item = region_menu->addAction(key);
     menu_item->setCheckable(true);
-    menu_item->setChecked(*config);
+    menu_item->setChecked(Config::Get(*config));
 
     const auto set_visibility = [this, config, key, menu_item](bool visibility) {
       menu_item->setChecked(visibility);
-      *config = visibility;
+      Config::SetBase(*config, visibility);
       emit GameListRegionVisibilityToggled(key, visibility);
     };
     const auto set_visible = std::bind(set_visibility, true);

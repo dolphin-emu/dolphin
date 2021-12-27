@@ -26,7 +26,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
   if (config_location.system == Config::System::Main)
   {
     for (const std::string_view section : {"NetPlay", "General", "GBA", "Display", "Network",
-                                           "Analytics", "AndroidOverlayButtons", "DSP"})
+                                           "Analytics", "AndroidOverlayButtons", "DSP", "GameList"})
     {
       if (config_location.section == section)
         return true;
