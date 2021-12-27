@@ -91,7 +91,6 @@ void SConfig::SaveSettings()
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
   SaveCoreSettings(ini);
-  SaveMovieSettings(ini);
   SaveInputSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
@@ -199,19 +198,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("CustomRTCValue", m_customRTCValue);
 }
 
-void SConfig::SaveMovieSettings(IniFile& ini)
-{
-  IniFile::Section* movie = ini.GetOrCreateSection("Movie");
-
-  movie->Set("PauseMovie", m_PauseMovie);
-  movie->Set("Author", m_strMovieAuthor);
-  movie->Set("DumpFrames", m_DumpFrames);
-  movie->Set("DumpFramesSilent", m_DumpFramesSilent);
-  movie->Set("ShowInputDisplay", m_ShowInputDisplay);
-  movie->Set("ShowRTC", m_ShowRTC);
-  movie->Set("ShowRerecord", m_ShowRerecord);
-}
-
 void SConfig::SaveInputSettings(IniFile& ini)
 {
   IniFile::Section* input = ini.GetOrCreateSection("Input");
@@ -270,7 +256,6 @@ void SConfig::LoadSettings()
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);
   LoadCoreSettings(ini);
-  LoadMovieSettings(ini);
   LoadInputSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
@@ -381,19 +366,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
-}
-
-void SConfig::LoadMovieSettings(IniFile& ini)
-{
-  IniFile::Section* movie = ini.GetOrCreateSection("Movie");
-
-  movie->Get("PauseMovie", &m_PauseMovie, false);
-  movie->Get("Author", &m_strMovieAuthor, "");
-  movie->Get("DumpFrames", &m_DumpFrames, false);
-  movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
-  movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
-  movie->Get("ShowRTC", &m_ShowRTC, false);
-  movie->Get("ShowRerecord", &m_ShowRerecord, false);
 }
 
 void SConfig::LoadInputSettings(IniFile& ini)

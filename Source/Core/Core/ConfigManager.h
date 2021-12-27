@@ -224,15 +224,8 @@ struct SConfig
   bool m_use_builtin_title_database = true;
 
   std::string m_WirelessMac;
-  bool m_PauseMovie;
-  bool m_ShowRerecord;
   bool m_ShowLag;
   bool m_ShowFrameCount;
-  bool m_ShowRTC;
-  std::string m_strMovieAuthor;
-  bool m_DumpFrames;
-  bool m_DumpFramesSilent;
-  bool m_ShowInputDisplay;
 
   bool m_PauseOnFocusLost;
 
@@ -265,7 +258,6 @@ private:
   void SaveInterfaceSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
-  void SaveMovieSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
   void SaveJitDebugSettings(IniFile& ini);
@@ -274,7 +266,6 @@ private:
   void LoadInterfaceSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
-  void LoadMovieSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadJitDebugSettings(IniFile& ini);
