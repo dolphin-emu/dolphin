@@ -1223,7 +1223,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    uint swap = {};\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::rswap>("ss.ac"));
   out.Write("    return Swizzle(swap, color);\n");
-  out.Write("  }} else if (ras == 5u) {{ // Alpha Bumb\n"
+  out.Write("  }} else if (ras == 5u) {{ // Alpha Bump\n"
             "    return int4(s.AlphaBump, s.AlphaBump, s.AlphaBump, s.AlphaBump);\n"
             "  }} else if (ras == 6u) {{ // Normalzied Alpha Bump\n"
             "    int normalized = s.AlphaBump | s.AlphaBump >> 5;\n"
