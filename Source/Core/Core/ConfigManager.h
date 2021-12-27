@@ -230,7 +230,6 @@ struct SConfig
   bool m_PauseOnFocusLost;
 
   // Input settings
-  bool m_BackgroundInput;
   bool m_AdapterRumble[4];
   bool m_AdapterKonga[4];
 
@@ -257,7 +256,6 @@ private:
   void SaveGeneralSettings(IniFile& ini);
   void SaveInterfaceSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
-  void SaveInputSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
   void SaveJitDebugSettings(IniFile& ini);
@@ -265,7 +263,6 @@ private:
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
-  void LoadInputSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadJitDebugSettings(IniFile& ini);

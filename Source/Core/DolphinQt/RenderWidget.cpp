@@ -157,7 +157,7 @@ void RenderWidget::UpdateCursor()
     const bool keep_on_top = (windowFlags() & Qt::WindowStaysOnTopHint) != 0;
     const bool should_hide =
         (Settings::Instance().GetCursorVisibility() == SConfig::ShowCursor::Never) &&
-        (keep_on_top || SConfig::GetInstance().m_BackgroundInput || isActiveWindow());
+        (keep_on_top || Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
     setCursor(should_hide ? Qt::BlankCursor : Qt::ArrowCursor);
   }
   else
