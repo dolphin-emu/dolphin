@@ -151,9 +151,6 @@ struct SConfig
   std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
   bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
 
-  // Fifo Player related settings
-  bool bLoopFifoReplay = true;
-
   // Custom RTC
   bool bEnableCustomRTC;
   u32 m_customRTCValue;
@@ -273,7 +270,6 @@ private:
   void SaveCoreSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
-  void SaveFifoPlayerSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
   void SaveAutoUpdateSettings(IniFile& ini);
@@ -284,7 +280,6 @@ private:
   void LoadCoreSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
-  void LoadFifoPlayerSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadAutoUpdateSettings(IniFile& ini);
