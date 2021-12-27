@@ -327,16 +327,16 @@ static void HandleQuery()
 
 static void HandleSetThread()
 {
-  if (memcmp(s_cmd_bfr, "Hg0", 3) == 0 || memcmp(s_cmd_bfr, "Hc-1", 4) == 0 ||
-      memcmp(s_cmd_bfr, "Hc0", 3) == 0 || memcmp(s_cmd_bfr, "Hc1", 3) == 0)
+  if (memcmp(s_cmd_bfr, "Hg-1", 4) == 0 || memcmp(s_cmd_bfr, "Hc-1", 4) == 0 ||
+      memcmp(s_cmd_bfr, "Hg0", 3) == 0 || memcmp(s_cmd_bfr, "Hc0", 3) == 0 ||
+      memcmp(s_cmd_bfr, "Hg1", 3) == 0 || memcmp(s_cmd_bfr, "Hc1", 3) == 0)
     return SendReply("OK");
   SendReply("E01");
 }
 
 static void HandleIsThreadAlive()
 {
-  if (memcmp(s_cmd_bfr, "T0", 2) == 0 || memcmp(s_cmd_bfr, "T1", 4) == 0 ||
-      memcmp(s_cmd_bfr, "T-1", 3) == 0)
+  if (memcmp(s_cmd_bfr, "T1", 2) == 0 || memcmp(s_cmd_bfr, "T-1", 3) == 0)
     return SendReply("OK");
   SendReply("E01");
 }
