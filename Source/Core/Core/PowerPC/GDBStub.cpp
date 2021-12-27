@@ -309,10 +309,18 @@ static void HandleQuery()
 {
   DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString() + 1);
 
-  if (!strcmp((const char*)(s_cmd_bfr + 1), "TStatus"))
-  {
-    return SendReply("T0");
-  }
+  if (!strcmp((const char*)(s_cmd_bfr + 1), "Attached"))
+    return SendReply("1");
+  if (!strcmp((const char*)(s_cmd_bfr + 1), "C"))
+    return SendReply("QC1");
+  if (!strcmp((const char*)(s_cmd_bfr + 1), "fThreadInfo"))
+    return SendReply("m1");
+  else if (!strcmp((const char*)(s_cmd_bfr + 1), "sThreadInfo"))
+    return SendReply("l");
+  else if (!strncmp((const char*)(s_cmd_bfr + 1), "ThreadExtraInfo", 15))
+    return SendReply("00");
+  else if (!strncmp((const char*)(s_cmd_bfr + 1), "Supported", static_cast<size_t>(9)))
+    return SendReply("swbreak+;hwbreak+");
 
   SendReply("");
 }
