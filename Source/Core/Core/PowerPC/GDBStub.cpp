@@ -307,12 +307,20 @@ static void SendReply(const char* reply)
 
 static void HandleQuery()
 {
-  DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString() + 1);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString());
 
-  if (!strcmp((const char*)(s_cmd_bfr + 1), "TStatus"))
-  {
-    return SendReply("T0");
-  }
+  if (!strncmp((const char*)(s_cmd_bfr), "qAttached", strlen("qAttached")))
+    return SendReply("1");
+  if (!strcmp((const char*)(s_cmd_bfr), "qC"))
+    return SendReply("QC1");
+  if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
+    return SendReply("m1");
+  else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+    return SendReply("l");
+  else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+    return SendReply("00");
+  else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
+    return SendReply("swbreak+;hwbreak+");
 
   SendReply("");
 }
