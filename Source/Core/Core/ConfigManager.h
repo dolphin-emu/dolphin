@@ -241,10 +241,6 @@ struct SConfig
   bool m_AdapterRumble[4];
   bool m_AdapterKonga[4];
 
-  // Auto-update settings
-  std::string m_auto_update_track;
-  std::string m_auto_update_hash_override;
-
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
@@ -272,7 +268,6 @@ private:
   void SaveMovieSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
-  void SaveAutoUpdateSettings(IniFile& ini);
   void SaveJitDebugSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
@@ -282,7 +277,6 @@ private:
   void LoadMovieSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
-  void LoadAutoUpdateSettings(IniFile& ini);
   void LoadJitDebugSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,

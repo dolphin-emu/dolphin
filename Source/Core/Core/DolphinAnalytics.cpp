@@ -254,7 +254,7 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("version-dist", Common::scm_distributor_str);
 
   // Auto-Update information.
-  builder.AddData("update-track", SConfig::GetInstance().m_auto_update_track);
+  builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 
   // CPU information.
   builder.AddData("cpu-summary", cpu_info.Summarize());

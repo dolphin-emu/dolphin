@@ -95,7 +95,6 @@ void SConfig::SaveSettings()
   SaveInputSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
-  SaveAutoUpdateSettings(ini);
   SaveJitDebugSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -244,14 +243,6 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
   section->Set("Devices", devices_string);
 }
 
-void SConfig::SaveAutoUpdateSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
-
-  section->Set("UpdateTrack", m_auto_update_track);
-  section->Set("HashOverride", m_auto_update_hash_override);
-}
-
 void SConfig::SaveJitDebugSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("Debug");
@@ -283,7 +274,6 @@ void SConfig::LoadSettings()
   LoadInputSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
-  LoadAutoUpdateSettings(ini);
   LoadJitDebugSettings(ini);
 }
 
@@ -440,14 +430,6 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
     if (vid && pid)
       m_usb_passthrough_devices.emplace(vid, pid);
   }
-}
-
-void SConfig::LoadAutoUpdateSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
-
-  section->Get("UpdateTrack", &m_auto_update_track, Common::scm_update_track_str);
-  section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 
 void SConfig::LoadJitDebugSettings(IniFile& ini)
