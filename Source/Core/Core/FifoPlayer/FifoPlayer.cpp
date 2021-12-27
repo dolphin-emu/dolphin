@@ -10,7 +10,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -163,7 +163,7 @@ void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
-FifoPlayer::FifoPlayer() : m_Loop{SConfig::GetInstance().bLoopFifoReplay}
+FifoPlayer::FifoPlayer() : m_Loop{Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY)}
 {
 }
 

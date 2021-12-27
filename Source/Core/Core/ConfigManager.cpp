@@ -93,7 +93,6 @@ void SConfig::SaveSettings()
   SaveCoreSettings(ini);
   SaveMovieSettings(ini);
   SaveInputSettings(ini);
-  SaveFifoPlayerSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
   SaveAutoUpdateSettings(ini);
@@ -221,13 +220,6 @@ void SConfig::SaveInputSettings(IniFile& ini)
   input->Set("BackgroundInput", m_BackgroundInput);
 }
 
-void SConfig::SaveFifoPlayerSettings(IniFile& ini)
-{
-  IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
-
-  fifoplayer->Set("LoopReplay", bLoopFifoReplay);
-}
-
 void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
@@ -289,7 +281,6 @@ void SConfig::LoadSettings()
   LoadCoreSettings(ini);
   LoadMovieSettings(ini);
   LoadInputSettings(ini);
-  LoadFifoPlayerSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
   LoadAutoUpdateSettings(ini);
@@ -420,13 +411,6 @@ void SConfig::LoadInputSettings(IniFile& ini)
   IniFile::Section* input = ini.GetOrCreateSection("Input");
 
   input->Get("BackgroundInput", &m_BackgroundInput, false);
-}
-
-void SConfig::LoadFifoPlayerSettings(IniFile& ini)
-{
-  IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
-
-  fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
 }
 
 void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
@@ -619,8 +603,6 @@ void SConfig::LoadDefaults()
   SelectedLanguage = 0;
   bOverrideRegionSettings = false;
   bWii = false;
-
-  bLoopFifoReplay = true;
 
   bJITOff = false;  // debugger only settings
   bJITLoadStoreOff = false;

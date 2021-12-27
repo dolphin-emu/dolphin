@@ -210,4 +210,9 @@ extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION;
 extern const Info<bool> MAIN_GAMELIST_COLUMN_TAGS;
+
+// Main.FifoPlayer
+
+extern const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY;
+
 }  // namespace Config
