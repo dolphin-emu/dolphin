@@ -60,6 +60,13 @@ NetPlayBrowser::~NetPlayBrowser()
 
 void NetPlayBrowser::CreateWidgets()
 {
+  auto* nickname_box = new QGroupBox;
+  auto* nickname_layout = new QGridLayout;
+  nickname_box->setLayout(nickname_layout);
+  nickname_layout->addWidget(new QLabel(tr("Your NetPlay Nickname:")), 0, 0);
+  m_edit_nickname = new QLineEdit;
+  nickname_layout->addWidget(m_edit_nickname, 0, 1);
+
   auto* layout = new QVBoxLayout;
 
   m_table_widget = new QTableWidget;
@@ -100,7 +107,7 @@ void NetPlayBrowser::CreateWidgets()
 
   filter_layout->addWidget(new QLabel(tr("Region:")), 0, 0);
   filter_layout->addWidget(m_region_combo, 0, 1, 1, -1);
-  filter_layout->addWidget(new QLabel(tr("NetPlay Nickname:")), 1, 0);
+  filter_layout->addWidget(new QLabel(tr("Lobby Name:")), 1, 0);
   filter_layout->addWidget(m_edit_name, 1, 1, 1, -1);
   filter_layout->addWidget(m_radio_all, 2, 1);
   filter_layout->addWidget(m_radio_public, 2, 2);
@@ -108,6 +115,7 @@ void NetPlayBrowser::CreateWidgets()
   filter_layout->addItem(new QSpacerItem(3, 1, QSizePolicy::Expanding), 3, 4);
   filter_layout->addWidget(m_check_hide_ingame, 4, 1, 1, -1);
 
+  layout->addWidget(nickname_box);
   layout->addWidget(m_table_widget);
   layout->addWidget(filter_box);
   layout->addWidget(m_status_label);
@@ -133,6 +141,7 @@ void NetPlayBrowser::ConnectWidgets()
   connect(m_check_hide_ingame, &QRadioButton::toggled, this, &NetPlayBrowser::Refresh);
 
   connect(m_edit_name, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
+  connect(m_edit_nickname, &QLineEdit::textChanged, this, &NetPlayBrowser::Refresh);
 
   connect(m_table_widget, &QTableWidget::itemSelectionChanged, this,
           &NetPlayBrowser::OnSelectionChanged);
@@ -147,6 +156,9 @@ void NetPlayBrowser::ConnectWidgets()
 void NetPlayBrowser::Refresh()
 {
   std::map<std::string, std::string> filters;
+
+  if (!m_edit_name->text().isEmpty())
+    filters["name"] = m_edit_name->text().toStdString();
 
   if (true)
     filters["version"] = Common::scm_desc_str;
@@ -163,6 +175,7 @@ void NetPlayBrowser::Refresh()
   std::unique_lock<std::mutex> lock(m_refresh_filters_mutex);
   m_refresh_filters = std::move(filters);
   m_refresh_event.Set();
+  SaveSettings();
 }
 
 void NetPlayBrowser::RefreshLoop()
@@ -323,7 +336,8 @@ void NetPlayBrowser::SaveSettings() const
 
   settings.setValue(QStringLiteral("netplaybrowser/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("netplaybrowser/region"), m_region_combo->currentText());
-  Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_edit_name->text().toStdString());
+  settings.setValue(QStringLiteral("netplaybrowser/name"), m_edit_name->text());
+  Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_edit_nickname->text().toStdString());
 
   QString visibility(QStringLiteral("all"));
   if (m_radio_public->isChecked())
@@ -351,7 +365,8 @@ void NetPlayBrowser::RestoreSettings()
   if (valid_region)
     m_region_combo->setCurrentText(region);
 
-  m_edit_name->setText(QString::fromStdString(Config::Get(Config::NETPLAY_NICKNAME)));
+  m_edit_name->setText(settings.value(QStringLiteral("netplaybrowser/name")).toString());
+  m_edit_nickname->setText(QString::fromStdString(Config::Get(Config::NETPLAY_NICKNAME)));
 
   const QString visibility = settings.value(QStringLiteral("netplaybrowser/visibility")).toString();
   if (visibility == QStringLiteral("public"))
