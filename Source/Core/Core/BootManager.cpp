@@ -91,8 +91,6 @@ private:
   int iSelectedLanguage = 0;
   PowerPC::CPUCore cpu_core = PowerPC::CPUCore::Interpreter;
   float m_EmulationSpeed = 0;
-  float m_OCFactor = 0;
-  bool m_OCEnable = false;
   bool m_bt_passthrough_enabled = false;
   std::string m_strGPUDeterminismMode;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
@@ -123,8 +121,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   cpu_core = config.cpu_core;
   m_EmulationSpeed = config.m_EmulationSpeed;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
-  m_OCFactor = config.m_OCFactor;
-  m_OCEnable = config.m_OCEnable;
   m_bt_passthrough_enabled = config.m_bt_passthrough_enabled;
 
   for (int i = 0; i != MAX_BBMOTES; ++i)
@@ -193,8 +189,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   }
 
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
-  config->m_OCFactor = m_OCFactor;
-  config->m_OCEnable = m_OCEnable;
   config->m_bt_passthrough_enabled = m_bt_passthrough_enabled;
 }
 
@@ -265,8 +259,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
     core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,
                       StartUp.m_strGPUDeterminismMode);
-    core_section->Get("Overclock", &StartUp.m_OCFactor, StartUp.m_OCFactor);
-    core_section->Get("OverclockEnable", &StartUp.m_OCEnable, StartUp.m_OCEnable);
 
     for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
@@ -344,8 +336,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.cpu_core = netplay_settings.m_CPUcore;
     StartUp.SelectedLanguage = netplay_settings.m_SelectedLanguage;
     StartUp.bOverrideRegionSettings = netplay_settings.m_OverrideRegionSettings;
-    StartUp.m_OCEnable = netplay_settings.m_OCEnable;
-    StartUp.m_OCFactor = netplay_settings.m_OCFactor;
     StartUp.m_EXIDevice[0] = netplay_settings.m_EXIDevice[0];
     StartUp.m_EXIDevice[1] = netplay_settings.m_EXIDevice[1];
     StartUp.m_EXIDevice[2] = netplay_settings.m_EXIDevice[2];
