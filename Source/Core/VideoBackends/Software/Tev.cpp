@@ -37,28 +37,28 @@ static inline s16 Clamp1024(s16 in)
   return std::clamp<s16>(in, -1024, 1023);
 }
 
-void Tev::SetRasColor(RasColorChan colorChan, int swaptable)
+void Tev::SetRasColor(RasColorChan colorChan, u32 swaptable)
 {
   switch (colorChan)
   {
   case RasColorChan::Color0:
   {
     const u8* color = Color[0];
-    RasColor.r = color[bpmem.tevksel[swaptable].swap1];
-    RasColor.g = color[bpmem.tevksel[swaptable].swap2];
-    swaptable++;
-    RasColor.b = color[bpmem.tevksel[swaptable].swap1];
-    RasColor.a = color[bpmem.tevksel[swaptable].swap2];
+    const auto& swap = bpmem.tevksel.GetSwapTable(swaptable);
+    RasColor.r = color[u32(swap[ColorChannel::Red])];
+    RasColor.g = color[u32(swap[ColorChannel::Green])];
+    RasColor.b = color[u32(swap[ColorChannel::Blue])];
+    RasColor.a = color[u32(swap[ColorChannel::Alpha])];
   }
   break;
   case RasColorChan::Color1:
   {
     const u8* color = Color[1];
-    RasColor.r = color[bpmem.tevksel[swaptable].swap1];
-    RasColor.g = color[bpmem.tevksel[swaptable].swap2];
-    swaptable++;
-    RasColor.b = color[bpmem.tevksel[swaptable].swap1];
-    RasColor.a = color[bpmem.tevksel[swaptable].swap2];
+    const auto& swap = bpmem.tevksel.GetSwapTable(swaptable);
+    RasColor.r = color[u32(swap[ColorChannel::Red])];
+    RasColor.g = color[u32(swap[ColorChannel::Green])];
+    RasColor.b = color[u32(swap[ColorChannel::Blue])];
+    RasColor.a = color[u32(swap[ColorChannel::Alpha])];
   }
   break;
   case RasColorChan::AlphaBump:
@@ -445,7 +445,6 @@ void Tev::Draw()
     const int stageNum2 = stageNum >> 1;
     const int stageOdd = stageNum & 1;
     const TwoTevStageOrders& order = bpmem.tevorders[stageNum2];
-    const TevKSel& kSel = bpmem.tevksel[stageNum2];
 
     // stage combiners
     const TevStageCombiner::ColorCombiner& cc = bpmem.combiners[stageNum].colorC;
@@ -484,25 +483,23 @@ void Tev::Draw()
         DebugUtil::DrawTempBuffer(texel, DIRECT_TFETCH + stageNum);
 #endif
 
-      int swaptable = ac.tswap * 2;
-
-      TexColor.r = texel[bpmem.tevksel[swaptable].swap1];
-      TexColor.g = texel[bpmem.tevksel[swaptable].swap2];
-      swaptable++;
-      TexColor.b = texel[bpmem.tevksel[swaptable].swap1];
-      TexColor.a = texel[bpmem.tevksel[swaptable].swap2];
+      const auto& swap = bpmem.tevksel.GetSwapTable(ac.tswap);
+      TexColor.r = texel[u32(swap[ColorChannel::Red])];
+      TexColor.g = texel[u32(swap[ColorChannel::Green])];
+      TexColor.b = texel[u32(swap[ColorChannel::Blue])];
+      TexColor.a = texel[u32(swap[ColorChannel::Alpha])];
     }
 
     // set konst for this stage
-    const auto kc = kSel.getKC(stageOdd);
-    const auto ka = kSel.getKA(stageOdd);
+    const auto kc = bpmem.tevksel.GetKonstColor(stageNum);
+    const auto ka = bpmem.tevksel.GetKonstAlpha(stageNum);
     StageKonst.r = m_KonstLUT[kc].r;
     StageKonst.g = m_KonstLUT[kc].g;
     StageKonst.b = m_KonstLUT[kc].b;
     StageKonst.a = m_KonstLUT[ka].a;
 
     // set color
-    SetRasColor(order.getColorChan(stageOdd), ac.rswap * 2);
+    SetRasColor(order.getColorChan(stageOdd), ac.rswap);
 
     // combine inputs
     InputRegType inputs[4];

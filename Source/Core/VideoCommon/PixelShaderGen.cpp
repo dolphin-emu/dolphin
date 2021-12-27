@@ -167,6 +167,8 @@ constexpr Common::EnumMap<const char*, TevOutput::Color2> tev_a_output_table{
     "c2.a",
 };
 
+constexpr Common::EnumMap<char, ColorChannel::Alpha> rgba_swizzle{'r', 'g', 'b', 'a'};
+
 PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
@@ -254,22 +256,22 @@ PixelShaderUid GetPixelShaderUid()
         ac.a == TevAlphaArg::RasAlpha || ac.b == TevAlphaArg::RasAlpha ||
         ac.c == TevAlphaArg::RasAlpha || ac.d == TevAlphaArg::RasAlpha)
     {
-      const int i = bpmem.combiners[n].alphaC.rswap;
-      uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i * 2].swap1;
-      uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i * 2].swap2;
-      uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i * 2 + 1].swap1;
-      uid_data->stagehash[n].tevksel_swap2b = bpmem.tevksel[i * 2 + 1].swap2;
+      const auto ras_swap_table = bpmem.tevksel.GetSwapTable(bpmem.combiners[n].alphaC.rswap);
+      uid_data->stagehash[n].ras_swap_r = ras_swap_table[ColorChannel::Red];
+      uid_data->stagehash[n].ras_swap_g = ras_swap_table[ColorChannel::Green];
+      uid_data->stagehash[n].ras_swap_b = ras_swap_table[ColorChannel::Blue];
+      uid_data->stagehash[n].ras_swap_a = ras_swap_table[ColorChannel::Alpha];
       uid_data->stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
     }
 
     uid_data->stagehash[n].tevorders_enable = bpmem.tevorders[n / 2].getEnable(n & 1);
     if (uid_data->stagehash[n].tevorders_enable)
     {
-      const int i = bpmem.combiners[n].alphaC.tswap;
-      uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1;
-      uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2;
-      uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
-      uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
+      const auto tex_swap_table = bpmem.tevksel.GetSwapTable(bpmem.combiners[n].alphaC.tswap);
+      uid_data->stagehash[n].tex_swap_r = tex_swap_table[ColorChannel::Red];
+      uid_data->stagehash[n].tex_swap_g = tex_swap_table[ColorChannel::Green];
+      uid_data->stagehash[n].tex_swap_b = tex_swap_table[ColorChannel::Blue];
+      uid_data->stagehash[n].tex_swap_a = tex_swap_table[ColorChannel::Alpha];
       uid_data->stagehash[n].tevorders_texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
     }
 
@@ -277,8 +279,8 @@ PixelShaderUid GetPixelShaderUid()
         cc.d == TevColorArg::Konst || ac.a == TevAlphaArg::Konst || ac.b == TevAlphaArg::Konst ||
         ac.c == TevAlphaArg::Konst || ac.d == TevAlphaArg::Konst)
     {
-      uid_data->stagehash[n].tevksel_kc = bpmem.tevksel[n / 2].getKC(n & 1);
-      uid_data->stagehash[n].tevksel_ka = bpmem.tevksel[n / 2].getKA(n & 1);
+      uid_data->stagehash[n].tevksel_kc = bpmem.tevksel.GetKonstColor(n);
+      uid_data->stagehash[n].tevksel_ka = bpmem.tevksel.GetKonstAlpha(n);
     }
   }
 
@@ -1412,30 +1414,18 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       ac.c == TevAlphaArg::RasAlpha || ac.d == TevAlphaArg::RasAlpha)
   {
     // Generate swizzle string to represent the Ras color channel swapping
-    const char rasswap[5] = {
-        "rgba"[stage.tevksel_swap1a],
-        "rgba"[stage.tevksel_swap2a],
-        "rgba"[stage.tevksel_swap1b],
-        "rgba"[stage.tevksel_swap2b],
-        '\0',
-    };
-
-    out.Write("\trastemp = {}.{};\n", tev_ras_table[stage.tevorders_colorchan], rasswap);
+    out.Write("\trastemp = {}.{}{}{}{};\n", tev_ras_table[stage.tevorders_colorchan],
+              rgba_swizzle[stage.ras_swap_r], rgba_swizzle[stage.ras_swap_g],
+              rgba_swizzle[stage.ras_swap_b], rgba_swizzle[stage.ras_swap_a]);
   }
 
   if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
-    const char texswap[5] = {
-        "rgba"[stage.tevksel_swap1c],
-        "rgba"[stage.tevksel_swap2c],
-        "rgba"[stage.tevksel_swap1d],
-        "rgba"[stage.tevksel_swap2d],
-        '\0',
-    };
-
-    out.Write("\ttextemp = sampleTextureWrapper({0}u, tevcoord.xy, layer).{1};\n",
-              stage.tevorders_texmap, texswap);
+    out.Write("\ttextemp = sampleTextureWrapper({}u, tevcoord.xy, layer).{}{}{}{};\n",
+              stage.tevorders_texmap, rgba_swizzle[stage.tex_swap_r],
+              rgba_swizzle[stage.tex_swap_g], rgba_swizzle[stage.tex_swap_b],
+              rgba_swizzle[stage.tex_swap_a]);
   }
   else if (uid_data->genMode_numtexgens == 0)
   {

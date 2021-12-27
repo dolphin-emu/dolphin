@@ -200,7 +200,7 @@ class Tev
     INDIRECT = 32
   };
 
-  void SetRasColor(RasColorChan colorChan, int swaptable);
+  void SetRasColor(RasColorChan colorChan, u32 swaptable);
 
   void DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);
   void DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);

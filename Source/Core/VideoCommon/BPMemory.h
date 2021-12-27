@@ -11,6 +11,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
+#include "Common/EnumMap.h"
 #include "Common/Inline.h"
 
 // X.h defines None to be 0 and Always to be 2, which causes problems with some of the enums
@@ -1838,6 +1839,19 @@ struct fmt::formatter<TevReg>
   }
 };
 
+enum class ColorChannel : u32
+{
+  Red = 0,
+  Green = 1,
+  Blue = 2,
+  Alpha = 3,
+};
+template <>
+struct fmt::formatter<ColorChannel> : EnumFormatter<ColorChannel::Alpha>
+{
+  formatter() : EnumFormatter({"Red", "Green", "Blue", "Alpha"}) {}
+};
+
 enum class KonstSel : u32
 {
   V1 = 0,
@@ -1912,16 +1926,13 @@ struct fmt::formatter<KonstSel> : EnumFormatter<KonstSel::K3_A>
 
 union TevKSel
 {
-  BitField<0, 2, u32> swap1;
-  BitField<2, 2, u32> swap2;
-  BitField<4, 5, KonstSel> kcsel0;
-  BitField<9, 5, KonstSel> kasel0;
-  BitField<14, 5, KonstSel> kcsel1;
-  BitField<19, 5, KonstSel> kasel1;
+  BitField<0, 2, ColorChannel> swap_rb;  // Odd ksel number: red; even: blue
+  BitField<2, 2, ColorChannel> swap_ga;  // Odd ksel number: green; even: alpha
+  BitField<4, 5, KonstSel> kcsel_even;
+  BitField<9, 5, KonstSel> kasel_even;
+  BitField<14, 5, KonstSel> kcsel_odd;
+  BitField<19, 5, KonstSel> kasel_odd;
   u32 hex;
-
-  KonstSel getKC(int i) const { return i ? kcsel1.Value() : kcsel0.Value(); }
-  KonstSel getKA(int i) const { return i ? kasel1.Value() : kasel0.Value(); }
 };
 template <>
 struct fmt::formatter<TevKSel>
@@ -1933,8 +1944,36 @@ struct fmt::formatter<TevKSel>
     return fmt::format_to(ctx.out(),
                           "Swap 1: {}\nSwap 2: {}\nColor sel 0: {}\nAlpha sel 0: {}\n"
                           "Color sel 1: {}\nAlpha sel 1: {}",
-                          ksel.swap1, ksel.swap2, ksel.kcsel0, ksel.kasel0, ksel.kcsel1,
-                          ksel.kasel1);
+                          ksel.swap_rb, ksel.swap_ga, ksel.kcsel_even, ksel.kasel_even,
+                          ksel.kcsel_odd, ksel.kasel_odd);
+  }
+};
+
+struct AllTevKSels
+{
+  std::array<TevKSel, 8> ksel;
+
+  KonstSel GetKonstColor(u32 tev_stage) const
+  {
+    const u32 ksel_num = tev_stage >> 1;
+    const bool odd = tev_stage & 1;
+    const auto& cur_ksel = ksel[ksel_num];
+    return odd ? cur_ksel.kcsel_odd.Value() : cur_ksel.kcsel_even.Value();
+  }
+  KonstSel GetKonstAlpha(u32 tev_stage) const
+  {
+    const u32 ksel_num = tev_stage >> 1;
+    const bool odd = tev_stage & 1;
+    const auto& cur_ksel = ksel[ksel_num];
+    return odd ? cur_ksel.kasel_odd.Value() : cur_ksel.kasel_even.Value();
+  }
+  Common::EnumMap<ColorChannel, ColorChannel::Alpha> GetSwapTable(u32 swap_table_id) const
+  {
+    const u32 rg_ksel_num = swap_table_id << 1;
+    const u32 ba_ksel_num = rg_ksel_num + 1;
+    const auto& rg_ksel = ksel[rg_ksel_num];
+    const auto& ba_ksel = ksel[ba_ksel_num];
+    return {rg_ksel.swap_rb, rg_ksel.swap_ga, ba_ksel.swap_rb, ba_ksel.swap_ga};
   }
 };
 
@@ -2415,7 +2454,7 @@ struct BPMemory
   AlphaTest alpha_test;               // 0xf3
   ZTex1 ztex1;                        // 0xf4
   ZTex2 ztex2;                        // 0xf5
-  TevKSel tevksel[8];                 // 0xf6-0xfd
+  AllTevKSels tevksel;                // 0xf6-0xfd
   u32 bpMask;                         // 0xfe
   u32 unknown18;                      // 0xff
 

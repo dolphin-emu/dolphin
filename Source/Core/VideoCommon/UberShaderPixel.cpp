@@ -271,12 +271,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  // AKA: Color Channel Swapping\n"
             "\n"
             "  int4 ret;\n");
-  out.Write("  ret.r = color[{}];\n", BitfieldExtract<&TevKSel::swap1>("bpmem_tevksel(s * 2u)"));
-  out.Write("  ret.g = color[{}];\n", BitfieldExtract<&TevKSel::swap2>("bpmem_tevksel(s * 2u)"));
+  out.Write("  ret.r = color[{}];\n", BitfieldExtract<&TevKSel::swap_rb>("bpmem_tevksel(s * 2u)"));
+  out.Write("  ret.g = color[{}];\n", BitfieldExtract<&TevKSel::swap_ga>("bpmem_tevksel(s * 2u)"));
   out.Write("  ret.b = color[{}];\n",
-            BitfieldExtract<&TevKSel::swap1>("bpmem_tevksel(s * 2u + 1u)"));
+            BitfieldExtract<&TevKSel::swap_rb>("bpmem_tevksel(s * 2u + 1u)"));
   out.Write("  ret.a = color[{}];\n",
-            BitfieldExtract<&TevKSel::swap2>("bpmem_tevksel(s * 2u + 1u)"));
+            BitfieldExtract<&TevKSel::swap_ga>("bpmem_tevksel(s * 2u + 1u)"));
   out.Write("  return ret;\n"
             "}}\n\n");
 
@@ -1240,12 +1240,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  uint tevksel = bpmem_tevksel(ss.stage>>1);\n"
             "  if ((ss.stage & 1u) == 0u)\n"
             "    return int4(konstLookup[{}].rgb, konstLookup[{}].a);\n",
-            BitfieldExtract<&TevKSel::kcsel0>("tevksel"),
-            BitfieldExtract<&TevKSel::kasel0>("tevksel"));
+            BitfieldExtract<&TevKSel::kcsel_even>("tevksel"),
+            BitfieldExtract<&TevKSel::kasel_even>("tevksel"));
   out.Write("  else\n"
             "    return int4(konstLookup[{}].rgb, konstLookup[{}].a);\n",
-            BitfieldExtract<&TevKSel::kcsel1>("tevksel"),
-            BitfieldExtract<&TevKSel::kasel1>("tevksel"));
+            BitfieldExtract<&TevKSel::kcsel_odd>("tevksel"),
+            BitfieldExtract<&TevKSel::kasel_odd>("tevksel"));
   out.Write("}}\n");
 
   return out;
