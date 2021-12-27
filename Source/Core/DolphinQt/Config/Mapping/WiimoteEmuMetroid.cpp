@@ -204,13 +204,14 @@ void WiimoteEmuMetroid::LoadSettings()
   bool checked;
 
   // Do not allow mouse mode on platforms with input APIs we do not support.
-#if defined CIFACE_USE_WIN32 || defined CIFACE_USE_XLIB
-  checked = modes->GetSelectedDevice() == 0;
-#else
-  checked = 1;
-  m_radio_mouse->setEnabled(false);
-  m_radio_controller->setEnabled(false);
-#endif
+  if (modes->GetMouseSupported()) {
+    checked = modes->GetSelectedDevice() == 0;
+  }
+  else {
+    checked = 1;
+    m_radio_mouse->setEnabled(false);
+    m_radio_controller->setEnabled(false);
+  }
 
   m_radio_mouse->setChecked(checked);
   m_radio_controller->setChecked(!checked);

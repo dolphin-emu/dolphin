@@ -10,10 +10,21 @@ namespace ControllerEmu
   // Always return controller mode for platforms with input APIs we don't support.
   int PrimeHackModes::GetSelectedDevice() const
   {
+    if (GetMouseSupported()) {
+      return m_selection_setting.GetValue();
+    }
+    else {
+      return 1;
+    }
+  }
+
+  // Check to see if we're on a platform with a mouse class.
+  bool PrimeHackModes::GetMouseSupported() const
+  {
 #if defined CIFACE_USE_WIN32 || defined CIFACE_USE_XLIB
-    return m_selection_setting.GetValue();
+    return true;
 #else
-    return 1;
+    return false;
 #endif
   }
 

@@ -22,6 +22,7 @@ namespace ControllerEmu
     explicit PrimeHackModes(const std::string& name);
 
     int GetSelectedDevice() const;
+    bool GetMouseSupported() const;
     void SetSelectedDevice(int val);
 
   private:
