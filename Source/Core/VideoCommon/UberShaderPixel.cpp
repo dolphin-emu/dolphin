@@ -581,7 +581,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    ss.order = bpmem_tevorder(stage>>1);\n"
             "    if ((stage & 1u) == 1u)\n"
             "      ss.order = ss.order >> {};\n\n",
-            int(TwoTevStageOrders().enable1.StartBit() - TwoTevStageOrders().enable0.StartBit()));
+            int(TwoTevStageOrders().enable_tex_odd.StartBit() -
+                TwoTevStageOrders().enable_tex_even.StartBit()));
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
@@ -596,11 +597,11 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
     out.Write("\n"
               "    uint tex_coord = {};\n",
-              BitfieldExtract<&TwoTevStageOrders::texcoord0>("ss.order"));
+              BitfieldExtract<&TwoTevStageOrders::texcoord_even>("ss.order"));
     out.Write("    int2 fixedPoint_uv = getTexCoord(tex_coord);\n"
               "\n"
               "    bool texture_enabled = (ss.order & {}u) != 0u;\n",
-              1 << TwoTevStageOrders().enable0.StartBit());
+              1 << TwoTevStageOrders().enable_tex_even.StartBit());
     out.Write("\n"
               "    // Indirect textures\n"
               "    uint tevind = bpmem_tevind(stage);\n"
@@ -712,7 +713,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "    // Sample texture for stage\n"
               "    if (texture_enabled) {{\n"
               "      uint sampler_num = {};\n",
-              BitfieldExtract<&TwoTevStageOrders::texmap0>("ss.order"));
+              BitfieldExtract<&TwoTevStageOrders::texmap_even>("ss.order"));
     out.Write("\n"
               "      int4 color = sampleTextureWrapper(sampler_num, tevcoord.xy, layer);\n"
               "      uint swap = {};\n",
@@ -1216,7 +1217,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "int4 getRasColor(State s, StageState ss, float4 colors_0, float4 colors_1) {{\n"
             "  // Select Ras for stage\n"
             "  uint ras = {};\n",
-            BitfieldExtract<&TwoTevStageOrders::colorchan0>("ss.order"));
+            BitfieldExtract<&TwoTevStageOrders::colorchan_even>("ss.order"));
   out.Write("  if (ras < 2u) {{ // Lighting Channel 0 or 1\n"
             "    int4 color = iround(((ras == 0u) ? colors_0 : colors_1) * 255.0);\n"
             "    uint swap = {};\n",

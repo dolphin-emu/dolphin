@@ -777,21 +777,24 @@ struct fmt::formatter<RasColorChan> : EnumFormatter<RasColorChan::Zero>
 
 union TwoTevStageOrders
 {
-  BitField<0, 3, u32> texmap0;  // Indirect tex stage texmap
-  BitField<3, 3, u32> texcoord0;
-  BitField<6, 1, bool, u32> enable0;  // true if should read from texture
-  BitField<7, 3, RasColorChan> colorchan0;
+  BitField<0, 3, u32> texmap_even;
+  BitField<3, 3, u32> texcoord_even;
+  BitField<6, 1, bool, u32> enable_tex_even;  // true if should read from texture
+  BitField<7, 3, RasColorChan> colorchan_even;
 
-  BitField<12, 3, u32> texmap1;
-  BitField<15, 3, u32> texcoord1;
-  BitField<18, 1, bool, u32> enable1;  // true if should read from texture
-  BitField<19, 3, RasColorChan> colorchan1;
+  BitField<12, 3, u32> texmap_odd;
+  BitField<15, 3, u32> texcoord_odd;
+  BitField<18, 1, bool, u32> enable_tex_odd;  // true if should read from texture
+  BitField<19, 3, RasColorChan> colorchan_odd;
 
   u32 hex;
-  u32 getTexMap(int i) const { return i ? texmap1.Value() : texmap0.Value(); }
-  u32 getTexCoord(int i) const { return i ? texcoord1.Value() : texcoord0.Value(); }
-  u32 getEnable(int i) const { return i ? enable1.Value() : enable0.Value(); }
-  RasColorChan getColorChan(int i) const { return i ? colorchan1.Value() : colorchan0.Value(); }
+  u32 getTexMap(int i) const { return i ? texmap_odd.Value() : texmap_even.Value(); }
+  u32 getTexCoord(int i) const { return i ? texcoord_odd.Value() : texcoord_even.Value(); }
+  u32 getEnable(int i) const { return i ? enable_tex_odd.Value() : enable_tex_even.Value(); }
+  RasColorChan getColorChan(int i) const
+  {
+    return i ? colorchan_odd.Value() : colorchan_even.Value();
+  }
 };
 template <>
 struct fmt::formatter<TwoTevStageOrders>
@@ -805,9 +808,10 @@ struct fmt::formatter<TwoTevStageOrders>
                           "Stage 0 enable texmap: {}\nStage 0 color channel: {}\n"
                           "Stage 1 texmap: {}\nStage 1 tex coord: {}\n"
                           "Stage 1 enable texmap: {}\nStage 1 color channel: {}\n",
-                          stages.texmap0, stages.texcoord0, stages.enable0 ? "Yes" : "No",
-                          stages.colorchan0, stages.texmap1, stages.texcoord1,
-                          stages.enable1 ? "Yes" : "No", stages.colorchan1);
+                          stages.texmap_even, stages.texcoord_even,
+                          stages.enable_tex_even ? "Yes" : "No", stages.colorchan_even,
+                          stages.texmap_odd, stages.texcoord_odd,
+                          stages.enable_tex_odd ? "Yes" : "No", stages.colorchan_odd);
   }
 };
 
