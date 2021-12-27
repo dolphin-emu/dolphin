@@ -130,22 +130,6 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   return J_CC(CC_Z, m_far_code.Enabled());
 }
 
-void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset,
-                                      bool signExtend)
-{
-  OpArg src = MComplex(RMEM, reg_addr, SCALE_1, offset);
-  LoadAndSwap(accessSize, reg_value, src, signExtend);
-}
-
-void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize,
-                                            s32 offset, bool signExtend)
-{
-  if (signExtend)
-    MOVSX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
-  else
-    MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
-}
-
 void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
                                        bool swap, MovInfo* info)
 {
