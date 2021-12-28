@@ -51,6 +51,8 @@ In most cases, clang-format can and **should** be used to automatically reformat
   echo '/Source/Core/**/*.mm filter=clang_format' >> .git/info/attributes
   ```
 
+- Visual Studio supports automatically formatting the current document according to the clang-format configuration by pressing <kbd>Control</kbd>+<kbd>K</kbd> followed by <kbd>Control</kbd>+<kbd>D</kbd> (or selecting Edit &rarr; Advanced &rarr; Format Document). This can be used without separately installing clang-format.
+
 # <a name="cpp-coding-style-and-formatting"></a>C++ coding style and formatting
 
 Summary:
