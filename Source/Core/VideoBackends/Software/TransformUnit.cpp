@@ -422,12 +422,8 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
       const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
       Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
-      //(dst->normal[0] % Vec3(1, 0, 0)).Normalized();  // dst->normal[1]
-      Vec3 binorm = dst->normal[1];
-      //(dst->normal[0] % binorm).Normalized();        // dst->normal[2]
-      Vec3 tangent = dst->normal[2];
-      float d1 = ldir * binorm;
-      float d2 = ldir * tangent;
+      float d1 = ldir * dst->normal[1];
+      float d2 = ldir * dst->normal[2];
 
       dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x + d1;
       dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y + d2;
