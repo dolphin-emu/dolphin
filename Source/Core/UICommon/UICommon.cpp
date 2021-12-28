@@ -308,7 +308,7 @@ void SetUserDirectory(const std::string& custom_path)
 #if defined(__APPLE__) || defined(ANDROID)
     if (env_path)
     {
-      user_path = env_path;
+      user_path = std::string(env_path) + DIR_SEP;
     }
     else
     {
@@ -333,7 +333,7 @@ void SetUserDirectory(const std::string& custom_path)
     }
     else if (env_path)
     {
-      user_path = env_path;
+      user_path = std::string(env_path) + DIR_SEP;
     }
     else if (!File::Exists(user_path))
     {
