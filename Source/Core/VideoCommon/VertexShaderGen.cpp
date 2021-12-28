@@ -434,10 +434,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // TODO: check if this only affects XF_TEXGEN_REGULAR
     if (texinfo.texgentype == TexGenType::Regular)
     {
-      out.Write(
-          "if(o.tex{0}.z == 0.0f)\n"
-          "\to.tex{0}.xy = clamp(o.tex{0}.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n",
-          i);
+      out.Write("if (o.tex{0}.z == 0.0f)\n"
+                "\to.tex{0}.xy = o.tex{0}.xy / 2.0;\n",
+                i);
     }
 
     out.Write("}}\n");

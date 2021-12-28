@@ -521,9 +521,8 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   // This can be seen in devkitPro's neheGX Lesson08 example for Wii
   // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
   out.Write("  if (texgentype == {:s} && output_tex.z == 0.0)\n", TexGenType::Regular);
-  out.Write(
-      "    output_tex.xy = clamp(output_tex.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n"
-      "\n");
+  out.Write("    output_tex.xy = output_tex.xy / 2.0f;\n"
+            "\n");
 
   out.Write("  // Hopefully GPUs that can support dynamic indexing will optimize this.\n");
   out.Write("  switch (texgen) {{\n");

@@ -185,8 +185,8 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,
   // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
   if (dst->z == 0.0f)
   {
-    dst->x = std::clamp(dst->x / 2.0f, -1.0f, 1.0f);
-    dst->y = std::clamp(dst->y / 2.0f, -1.0f, 1.0f);
+    dst->x = dst->x / 2.0f;
+    dst->y = dst->y / 2.0f;
   }
 }
 
