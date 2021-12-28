@@ -651,7 +651,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
       if (!host_config.backend_sampler_lod_bias)
       {
         out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
-                  "  float lod_bias = {} / 256.0f;\n"
+                  "  float lod_bias = float({}) / 256.0f;\n"
                   "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
                   BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
       }
