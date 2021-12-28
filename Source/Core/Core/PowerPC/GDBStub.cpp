@@ -53,8 +53,8 @@ enum class BreakpointType
 {
   ExecuteSoft = 0,
   ExecuteHard,
-  Read,
   Write,
+  Read,
   Access,
 };
 
