@@ -104,7 +104,25 @@ void TransformNormal(const InputVertexData* src, bool nbt, OutputVertexData* dst
   else
   {
     MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
+    //MultiplyVec3Mat33(src->normal[0] % Vec3(1, 0, 0), mat, dst->normal[1]);
+    //MultiplyVec3Mat33(src->normal[0] % (src->normal[0] % Vec3(1, 0, 0)), mat, dst->normal[2]);
+    //MultiplyVec3Mat33(Vec3(src->color[0][0], src->color[0][1], src->color[0][2]), mat,
+    //                  dst->normal[1]);
+    //MultiplyVec3Mat33(Vec3(src->color[1][0], src->color[1][1], src->color[1][2]), mat,
+    //                  dst->normal[2]);
+    MultiplyVec3Mat33(Vec3(0, 1, 0) * src->normal[0].Length(), mat, dst->normal[1]);
+    MultiplyVec3Mat33(Vec3(0, 0, 1) * src->normal[0].Length(), mat, dst->normal[2]);
+    //MultiplyVec3Mat33(Vec3(src->color[0][1], src->color[0][2], src->color[0][3]), mat,
+    //                  dst->normal[1]);
+    //MultiplyVec3Mat33(Vec3(src->color[1][1], src->color[1][2], src->color[1][3]), mat,
+    //                  dst->normal[2]);
+    //MultiplyVec3Mat33(Vec3(1, 0, 0), mat, dst->normal[1]);
+    //MultiplyVec3Mat33(Vec3(0, 1, 0), mat, dst->normal[2]);
+    //MultiplyVec3Mat33(Vec3(0, src->normal[0].y, 0), mat, dst->normal[1]);
+    //MultiplyVec3Mat33(Vec3(0, 0, src->normal[0].z), mat, dst->normal[2]);
     dst->normal[0].Normalize();
+    //dst->normal[1].Normalize();
+    //dst->normal[2].Normalize();
   }
 }
 
@@ -415,12 +433,36 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
       const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
       Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
-      float d1 = ldir * dst->normal[1];
-      float d2 = ldir * dst->normal[2];
+      //(dst->normal[0] % Vec3(1, 0, 0)).Normalized();  // dst->normal[1]
+      Vec3 binorm = dst->normal[1];
+      //(dst->normal[0] % binorm).Normalized();        // dst->normal[2]
+      Vec3 tangent = dst->normal[2];
+      float d1 = ldir * binorm;
+      float d2 = ldir * tangent;
 
       dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x + d1;
       dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y + d2;
       dst->texCoords[coordNum].z = dst->texCoords[texinfo.embosssourceshift].z;
+      /*
+      const float* mat = &xfmem.posMatrices[src->texMtx[coordNum] * 4];
+      Vec3 src2 = dst->texCoords[coordNum];
+      Vec3* dst2 = &dst->texCoords[coordNum];
+
+      if (texinfo.projection == TexSize::ST)
+      {
+        if (texinfo.inputform == TexInputForm::AB11)
+          MultiplyVec2Mat24(src2, mat, *dst2);
+        else
+          MultiplyVec3Mat24(src2, mat, *dst2);
+      }
+      else  // texinfo.projection == TexSize::STQ
+      {
+        if (texinfo.inputform == TexInputForm::AB11)
+          MultiplyVec2Mat34(src2, mat, *dst2);
+        else
+          MultiplyVec3Mat34(src2, mat, *dst2);
+      }
+      */
     }
     break;
     case TexGenType::Color0:
