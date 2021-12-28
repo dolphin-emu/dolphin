@@ -99,14 +99,18 @@ void TransformNormal(const InputVertexData* src, bool nbt, OutputVertexData* dst
     MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
     MultiplyVec3Mat33(src->normal[1], mat, dst->normal[1]);
     MultiplyVec3Mat33(src->normal[2], mat, dst->normal[2]);
+    // Only the first normal gets normalized (TODO: why?)
     dst->normal[0].Normalize();
   }
   else
   {
     MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
     float length = src->normal[0].Length();
-    MultiplyVec3Mat33(Vec3(0, length, 0), mat, dst->normal[1]);
-    MultiplyVec3Mat33(Vec3(0, 0, length), mat, dst->normal[2]);
+    // TODO: hardware-confirm this
+    // Equivalent to MultiplyVec3Mat33(Vec3(0, length, 0), mat, dst->normal[1]);
+    dst->normal[1] = Vec3(mat[1], mat[4], mat[7]) * length;
+    // Equivalent to MultiplyVec3Mat33(Vec3(0, 0, length), mat, dst->normal[2]);
+    dst->normal[2] = Vec3(mat[2], mat[5], mat[8]) * length;
     dst->normal[0].Normalize();
   }
 }

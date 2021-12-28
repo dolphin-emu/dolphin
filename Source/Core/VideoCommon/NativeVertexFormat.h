@@ -27,6 +27,7 @@ enum
   // VB_HAS_POS=0, // Implied, it always has pos! don't bother testing
   VB_HAS_NRM0 = (1 << 10),
   VB_HAS_NRM1 = (1 << 11),
+  // TODO: VB_HAS_NRM1 implies VB_HAS_NRM2; we don't need both
   VB_HAS_NRM2 = (1 << 12),
   VB_HAS_NRMALL = (7 << 10),
 

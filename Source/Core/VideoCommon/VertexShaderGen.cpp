@@ -39,16 +39,9 @@ VertexShaderUid GetVertexShaderUid()
     switch (texinfo.texgentype)
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
-      if ((uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2)) != 0)
-      {
-        // transform the light dir into tangent space
-        texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-      }
-      else
-      {
-        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-      }
+      // transform the light dir into tangent space
+      texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
+      texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
       break;
     case TexGenType::Color0:
     case TexGenType::Color1:
@@ -255,18 +248,28 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // Only the first normal gets normalized (TODO: why?)
     out.Write("float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, "
               "rawnorm0)));\n");
+    if ((uid_data->components & VB_HAS_NRM1) != 0 && (uid_data->components & VB_HAS_NRM2) != 0)
+    {
+      out.Write("float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, "
+                "rawnorm1));\n");
+      out.Write("float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, "
+                "rawnorm2));\n");
+    }
+    else
+    {
+      // TODO: hardware-confirm this - this is a special case that applies to RS2 and RS3 (and House
+      // of the Dead Overkill?)
+      out.Write("float normlen = length(rawnorm0);\n"
+                "float3 _norm1 = float3(N0.y, N1.y, N2.y) * normlen;\n"
+                "float3 _norm2 = float3(N0.z, N1.z, N2.z) * normlen;\n");
+    }
   }
-  if ((uid_data->components & VB_HAS_NRM1) != 0)
+  else
   {
-    out.Write("float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
-  }
-  if ((uid_data->components & VB_HAS_NRM2) != 0)
-  {
-    out.Write("float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
-  }
-
-  if ((uid_data->components & VB_HAS_NRM0) == 0)
     out.Write("float3 _norm0 = float3(0.0, 0.0, 0.0);\n");
+    out.Write("float3 _norm1 = float3(0.0, 0.0, 0.0);\n");
+    out.Write("float3 _norm2 = float3(0.0, 0.0, 0.0);\n");
+  }
 
   out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
@@ -336,24 +339,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     switch (texinfo.texgentype)
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
-
-      if ((uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2)) != 0)
-      {
-        // transform the light dir into tangent space
-        out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                  LIGHT_POS_PARAMS(texinfo.embosslightshift));
-        out.Write(
-            "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i,
-            texinfo.embosssourceshift);
-      }
-      else
-      {
-        // The following assert was triggered in House of the Dead Overkill and Star Wars Rogue
-        // Squadron 2
-        // ASSERT(0); // should have normals
-        out.Write("o.tex{}.xyz = o.tex{}.xyz;\n", i, texinfo.embosssourceshift);
-      }
-
+      // transform the light dir into tangent space
+      out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
+                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+      out.Write("o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n",
+                i, texinfo.embosssourceshift);
       break;
     case TexGenType::Color0:
       out.Write("o.tex{}.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);

@@ -156,24 +156,28 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n"
             "o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n"
-            "\n"
-            "// Only the first normal gets normalized (TODO: why?)\n"
-            "float3 _norm0 = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_NRM0\n",
-            VB_HAS_NRM0);
-  out.Write(
-      "  _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0)));\n"
-      "\n"
-      "float3 _norm1 = float3(0.0, 0.0, 0.0);\n"
-      "if ((components & {}u) != 0u) // VB_HAS_NRM1\n",
-      VB_HAS_NRM1);
-  out.Write("  _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n"
-            "\n"
-            "float3 _norm2 = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_NRM2\n",
-            VB_HAS_NRM2);
-  out.Write("  _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n"
             "\n");
+  out.Write("float3 _norm0 = float3(0.0, 0.0, 0.0);\n"
+            "float3 _norm1 = float3(0.0, 0.0, 0.0);\n"
+            "float3 _norm2 = float3(0.0, 0.0, 0.0);\n"
+            "if ((components & {0}u) != 0u) {{ // VB_HAS_NRM0\n"
+            "  // Only the first normal gets normalized (TODO: why?)\n"
+            "  _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, "
+            "rawnorm0)));\n"
+            "\n"
+            "  if ((components & ({1}u | {2}u)) != 0u) {{ // VB_HAS_NRM1, VB_HAS_NRM2\n"
+            "    _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n"
+            "    _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n"
+            "  }} else {{\n"
+            "    // TODO: hardware-confirm this - this is a special case that applies to RS2 and\n"
+            "    // RS3 (and House of the Dead Overkill?)\n"
+            "    float normlen = length(rawnorm0);\n"
+            "    _norm1 = float3(N0.y, N1.y, N2.y) * normlen;\n"
+            "    _norm2 = float3(N0.z, N1.z, N2.z) * normlen;\n"
+            "  }}\n"
+            "}}\n"
+            "\n",
+            VB_HAS_NRM0, VB_HAS_NRM1, VB_HAS_NRM2);
 
   // Hardware Lighting
   out.Write("// xfmem.numColorChans controls the number of color channels available to TEV,\n"
@@ -448,11 +452,8 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
     out.Write("      case {}u: output_tex.xyz = o.tex{}; break;\n", i, i);
   out.Write("      default: output_tex.xyz = float3(0.0, 0.0, 0.0); break;\n"
             "      }}\n");
-  out.Write("      if ((components & {}u) != 0u) {{ // VB_HAS_NRM1 | VB_HAS_NRM2\n",
-            VB_HAS_NRM1 | VB_HAS_NRM2);  // Should this be VB_HAS_NRM1 | VB_HAS_NRM2
-  out.Write("        float3 ldir = normalize(" I_LIGHTS "[light].pos.xyz - pos.xyz);\n"
-            "        output_tex.xyz += float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n"
-            "      }}\n"
+  out.Write("      float3 ldir = normalize(" I_LIGHTS "[light].pos.xyz - pos.xyz);\n"
+            "      output_tex.xyz += float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n"
             "    }}\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", TexGenType::Color0);
