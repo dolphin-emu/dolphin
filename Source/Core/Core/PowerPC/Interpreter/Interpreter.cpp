@@ -260,8 +260,8 @@ void Interpreter::Run()
       while (PowerPC::ppcState.downcount > 0)
       {
         m_end_block = false;
-        int i;
-        for (i = 0; !m_end_block; i++)
+        int cycles = 0;
+        while (!m_end_block)
         {
 #ifdef SHOW_HISTORY
           s_pc_vec.push_back(PC);
@@ -301,9 +301,9 @@ void Interpreter::Run()
             Host_UpdateDisasmDialog();
             return;
           }
-          SingleStepInner();
+          cycles += SingleStepInner();
         }
-        PowerPC::ppcState.downcount -= i;
+        PowerPC::ppcState.downcount -= cycles;
       }
     }
     else
