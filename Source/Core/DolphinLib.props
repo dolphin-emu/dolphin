@@ -83,6 +83,7 @@
     <ClInclude Include="Common\GL\GLExtensions\ARB_viewport_array.h" />
     <ClInclude Include="Common\GL\GLExtensions\EXT_texture_compression_s3tc.h" />
     <ClInclude Include="Common\GL\GLExtensions\EXT_texture_filter_anisotropic.h" />
+    <ClInclude Include="Common\GL\GLExtensions\EXT_texture_lod_bias.h" />
     <ClInclude Include="Common\GL\GLExtensions\gl_1_1.h" />
     <ClInclude Include="Common\GL\GLExtensions\gl_1_2.h" />
     <ClInclude Include="Common\GL\GLExtensions\gl_1_3.h" />
