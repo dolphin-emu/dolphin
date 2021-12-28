@@ -82,19 +82,6 @@ struct SConfig
   bool bJITFollowBranch;
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
-  bool bJITOff = false;
-  bool bJITLoadStoreOff = false;
-  bool bJITLoadStorelXzOff = false;
-  bool bJITLoadStorelwzOff = false;
-  bool bJITLoadStorelbzxOff = false;
-  bool bJITLoadStoreFloatingOff = false;
-  bool bJITLoadStorePairedOff = false;
-  bool bJITFloatingPointOff = false;
-  bool bJITIntegerOff = false;
-  bool bJITPairedOff = false;
-  bool bJITSystemRegistersOff = false;
-  bool bJITBranchOff = false;
-  bool bJITRegisterCacheOff = false;
 
   bool bFastmem;
   bool bFloatExceptions = false;
@@ -258,14 +245,12 @@ private:
   void SaveCoreSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
-  void SaveJitDebugSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
-  void LoadJitDebugSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                               u64 title_id, u16 revision, DiscIO::Region region);

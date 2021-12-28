@@ -274,4 +274,28 @@ const Info<bool> MAIN_MOVIE_SHOW_RERECORD{{System::Main, "Movie", "ShowRerecord"
 
 const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
 
+// Main.Debug
+
+const Info<bool> MAIN_DEBUG_JIT_OFF{{System::Main, "Debug", "JitOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_OFF{{System::Main, "Debug", "JitLoadStoreOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF{{System::Main, "Debug", "JitLoadStorelXzOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF{{System::Main, "Debug", "JitLoadStorelwzOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF{{System::Main, "Debug", "JitLoadStorelbzxOff"},
+                                                    false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF{
+    {System::Main, "Debug", "JitLoadStoreFloatingOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF{
+    {System::Main, "Debug", "JitLoadStorePairedOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_FLOATING_POINT_OFF{{System::Main, "Debug", "JitFloatingPointOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_INTEGER_OFF{{System::Main, "Debug", "JitIntegerOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF{{System::Main, "Debug", "JitPairedOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF{
+    {System::Main, "Debug", "JitSystemRegistersOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF{{System::Main, "Debug", "JitBranchOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF{{System::Main, "Debug", "JitRegisterCacheOff"},
+                                                   false};
+
 }  // namespace Config

@@ -234,4 +234,20 @@ extern const Info<bool> MAIN_MOVIE_SHOW_RERECORD;
 
 extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
 
+// Main.Debug
+
+extern const Info<bool> MAIN_DEBUG_JIT_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_FLOATING_POINT_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_INTEGER_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF;
+
 }  // namespace Config

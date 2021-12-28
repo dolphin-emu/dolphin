@@ -36,8 +36,7 @@
     }                                                                                              \
   } while (0)
 
-#define JITDISABLE(setting)                                                                        \
-  FALLBACK_IF(SConfig::GetInstance().bJITOff || SConfig::GetInstance().setting)
+#define JITDISABLE(setting) FALLBACK_IF(bJITOff || setting)
 
 class JitBase : public CPUCoreBase
 {
@@ -112,6 +111,23 @@ protected:
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::CodeBuffer m_code_buffer;
   PPCAnalyst::PPCAnalyzer analyzer;
+
+  size_t m_registered_config_callback_id;
+  bool bJITOff = false;
+  bool bJITLoadStoreOff = false;
+  bool bJITLoadStorelXzOff = false;
+  bool bJITLoadStorelwzOff = false;
+  bool bJITLoadStorelbzxOff = false;
+  bool bJITLoadStoreFloatingOff = false;
+  bool bJITLoadStorePairedOff = false;
+  bool bJITFloatingPointOff = false;
+  bool bJITIntegerOff = false;
+  bool bJITPairedOff = false;
+  bool bJITSystemRegistersOff = false;
+  bool bJITBranchOff = false;
+  bool bJITRegisterCacheOff = false;
+
+  void RefreshConfig();
 
   bool CanMergeNextInstructions(int count) const;
 

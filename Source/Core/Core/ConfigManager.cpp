@@ -93,7 +93,6 @@ void SConfig::SaveSettings()
   SaveCoreSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
-  SaveJitDebugSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -221,22 +220,6 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
   section->Set("Devices", devices_string);
 }
 
-void SConfig::SaveJitDebugSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Debug");
-
-  section->Set("JitOff", bJITOff);
-  section->Set("JitLoadStoreOff", bJITLoadStoreOff);
-  section->Set("JitLoadStoreFloatingOff", bJITLoadStoreFloatingOff);
-  section->Set("JitLoadStorePairedOff", bJITLoadStorePairedOff);
-  section->Set("JitFloatingPointOff", bJITFloatingPointOff);
-  section->Set("JitIntegerOff", bJITIntegerOff);
-  section->Set("JitPairedOff", bJITPairedOff);
-  section->Set("JitSystemRegistersOff", bJITSystemRegistersOff);
-  section->Set("JitBranchOff", bJITBranchOff);
-  section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
-}
-
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -250,7 +233,6 @@ void SConfig::LoadSettings()
   LoadCoreSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
-  LoadJitDebugSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -386,21 +368,6 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
     if (vid && pid)
       m_usb_passthrough_devices.emplace(vid, pid);
   }
-}
-
-void SConfig::LoadJitDebugSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Debug");
-  section->Get("JitOff", &bJITOff, false);
-  section->Get("JitLoadStoreOff", &bJITLoadStoreOff, false);
-  section->Get("JitLoadStoreFloatingOff", &bJITLoadStoreFloatingOff, false);
-  section->Get("JitLoadStorePairedOff", &bJITLoadStorePairedOff, false);
-  section->Get("JitFloatingPointOff", &bJITFloatingPointOff, false);
-  section->Get("JitIntegerOff", &bJITIntegerOff, false);
-  section->Get("JitPairedOff", &bJITPairedOff, false);
-  section->Get("JitSystemRegistersOff", &bJITSystemRegistersOff, false);
-  section->Get("JitBranchOff", &bJITBranchOff, false);
-  section->Get("JitRegisterCacheOff", &bJITRegisterCacheOff, false);
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -541,17 +508,6 @@ void SConfig::LoadDefaults()
   SelectedLanguage = 0;
   bOverrideRegionSettings = false;
   bWii = false;
-
-  bJITOff = false;  // debugger only settings
-  bJITLoadStoreOff = false;
-  bJITLoadStoreFloatingOff = false;
-  bJITLoadStorePairedOff = false;
-  bJITFloatingPointOff = false;
-  bJITIntegerOff = false;
-  bJITPairedOff = false;
-  bJITSystemRegistersOff = false;
-  bJITBranchOff = false;
-  bJITRegisterCacheOff = false;
 
   ResetRunningGameMetadata();
 }
