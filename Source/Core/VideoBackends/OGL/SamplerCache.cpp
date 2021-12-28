@@ -99,7 +99,14 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
 
   if (g_ActiveConfig.backend_info.bSupportsLodBiasInSampler)
   {
-    glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.tm0.lod_bias / 256.f);
+    if (!static_cast<Renderer*>(g_renderer.get())->IsGLES())
+    {
+      glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.tm0.lod_bias / 256.f);
+    }
+    else
+    {
+      glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS_EXT, params.tm0.lod_bias / 256.f);
+    }
   }
 
   if (params.tm0.anisotropic_filtering && g_ogl_config.bSupportsAniso)
