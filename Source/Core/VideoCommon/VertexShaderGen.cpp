@@ -222,60 +222,53 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // transforms
   if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
   {
+    // Vertex format has a per-vertex matrix
     out.Write("int posidx = int(posmtx.r);\n"
-              "float4 pos = float4(dot(" I_TRANSFORMMATRICES
-              "[posidx], rawpos), dot(" I_TRANSFORMMATRICES
-              "[posidx+1], rawpos), dot(" I_TRANSFORMMATRICES "[posidx+2], rawpos), 1);\n");
-
+              "float4 P0 = " I_TRANSFORMMATRICES "[posidx];\n"
+              "float4 P1 = " I_TRANSFORMMATRICES "[posidx + 1];\n"
+              "float4 P2 = " I_TRANSFORMMATRICES "[posidx + 2];\n");
     if ((uid_data->components & VB_HAS_NRMALL) != 0)
     {
       out.Write("int normidx = posidx & 31;\n"
-                "float3 N0 = " I_NORMALMATRICES "[normidx].xyz, N1 = " I_NORMALMATRICES
-                "[normidx+1].xyz, N2 = " I_NORMALMATRICES "[normidx+2].xyz;\n");
-    }
-
-    if ((uid_data->components & VB_HAS_NRM0) != 0)
-    {
-      out.Write("float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, "
-                "rawnorm0)));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM1) != 0)
-    {
-      out.Write(
-          "float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM2) != 0)
-    {
-      out.Write(
-          "float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
+                "float3 N0 = " I_NORMALMATRICES "[normidx].xyz;\n"
+                "float3 N1 = " I_NORMALMATRICES "[normidx + 1].xyz;\n"
+                "float3 N2 = " I_NORMALMATRICES "[normidx + 2].xyz;\n");
     }
   }
   else
   {
-    out.Write("float4 pos = float4(dot(" I_POSNORMALMATRIX "[0], rawpos), dot(" I_POSNORMALMATRIX
-              "[1], rawpos), dot(" I_POSNORMALMATRIX "[2], rawpos), 1.0);\n");
-    if ((uid_data->components & VB_HAS_NRM0) != 0)
+    // One shared matrix
+    out.Write("float4 P0 = " I_POSNORMALMATRIX "[0];\n"
+              "float4 P1 = " I_POSNORMALMATRIX "[1];\n"
+              "float4 P2 = " I_POSNORMALMATRIX "[2];\n");
+    if ((uid_data->components & VB_HAS_NRMALL) != 0)
     {
-      out.Write("float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX
-                "[3].xyz, rawnorm0), dot(" I_POSNORMALMATRIX
-                "[4].xyz, rawnorm0), dot(" I_POSNORMALMATRIX "[5].xyz, rawnorm0)));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM1) != 0)
-    {
-      out.Write("float3 _norm1 = float3(dot(" I_POSNORMALMATRIX
-                "[3].xyz, rawnorm1), dot(" I_POSNORMALMATRIX
-                "[4].xyz, rawnorm1), dot(" I_POSNORMALMATRIX "[5].xyz, rawnorm1));\n");
-    }
-    if ((uid_data->components & VB_HAS_NRM2) != 0)
-    {
-      out.Write("float3 _norm2 = float3(dot(" I_POSNORMALMATRIX
-                "[3].xyz, rawnorm2), dot(" I_POSNORMALMATRIX
-                "[4].xyz, rawnorm2), dot(" I_POSNORMALMATRIX "[5].xyz, rawnorm2));\n");
+      out.Write("float3 N0 = " I_POSNORMALMATRIX "[3].xyz;\n"
+                "float3 N1 = " I_POSNORMALMATRIX "[4].xyz;\n"
+                "float3 N2 = " I_POSNORMALMATRIX "[5].xyz;\n");
     }
   }
 
-  if ((uid_data->components & VB_HAS_NRM0) == 0)
+  out.Write("// Multiply the position vector by the position matrix\n"
+            "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
+  if ((uid_data->components & VB_HAS_NRM0) != 0)
+  {
+    // Only the first normal gets normalized (TODO: why?)
+    out.Write("float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, "
+              "rawnorm0)));\n");
+  }
+  else
+  {
     out.Write("float3 _norm0 = float3(0.0, 0.0, 0.0);\n");
+  }
+  if ((uid_data->components & VB_HAS_NRM1) != 0)
+  {
+    out.Write("float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
+  }
+  if ((uid_data->components & VB_HAS_NRM2) != 0)
+  {
+    out.Write("float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
+  }
 
   out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");

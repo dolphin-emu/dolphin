@@ -153,6 +153,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "  N2 = " I_POSNORMALMATRIX "[5].xyz;\n"
             "}}\n"
             "\n"
+            "// Multiply the position vector by the position matrix\n"
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n"
             "o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n"
