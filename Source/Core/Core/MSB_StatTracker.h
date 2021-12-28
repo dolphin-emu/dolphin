@@ -4,6 +4,8 @@
 #include <array>
 #include <vector>
 #include <map>
+#include <set>
+#include <tuple>
 #include "Core/HW/Memmap.h"
 
 #include "Core/LocalPlayers.h"
@@ -20,6 +22,7 @@ enum class AB_STATE
     PITCH_STARTED,
     CONTACT,
     CONTACT_RESULT,
+    LOG_FIELDER,
     NO_CONTACT,
     PLAY_OVER,
     FINAL_RESULT,
@@ -96,6 +99,7 @@ static const std::map<u8, std::string> cStadiumIdToStadiumName = {
 };
 
 static const std::map<u8, std::string> cTypeOfContactToHR = {
+    {0xFF, "Miss"},
     {0, "Sour"},
     {1, "Nice"}, 
     {2, "Perfect"},
@@ -127,6 +131,26 @@ static const std::map<u8, std::string> cChargePitchTypeToHR = {
     {3, "Perfect"}
 };
 
+static const std::map<u8, std::string> cTypeOfSwing = {
+    {0, "None"},
+    {1, "Slap"},
+    {2, "Charge"},
+    {3, "Star"},
+    {4, "Bunt"}
+};
+
+static const std::map<u8, std::string> cPosition = {
+    {0, "P"},
+    {1, "C"},
+    {2, "1B"},
+    {3, "2B"},
+    {4, "3B"},
+    {5, "SS"},
+    {6, "LF"},
+    {7, "CF"},
+    {8, "RF"}
+};
+
 //Const for structs
 static const int cRosterSize = 9;
 static const int cNumOfTeams = 2;
@@ -150,6 +174,8 @@ static const u32 aTeam1_Captain = 0x80353087;
 
 static const u32 aAwayTeam_Score = 0x808928A4;
 static const u32 aHomeTeam_Score = 0x808928CA;
+
+static const u32 aInningsSelected = 0x8089294A;
 
 static const u8 c_roster_table_offset = 0xa0;
 
@@ -207,6 +233,7 @@ static const u32 aAB_RunnerOn2       = 0x8088F1F1;
 static const u32 aAB_RunnerOn3       = 0x8088F345;
 
 //At-Bat Pitch
+static const u32 aAB_PitcherRosterID   = 0x80890AD9;
 static const u32 aAB_PitcherID         = 0x80890ADB;
 static const u32 aAB_PitcherHandedness = 0x80890B01;
 static const u32 aAB_PitchType         = 0x80890B21; //0=Curve, Charge=1, ChangeUp=2
@@ -258,6 +285,9 @@ static const u32 aAB_FrameOfPitchSeqUponSwing    = 0x80890978; //(halfword) fram
 static const u32 aAB_FieldingPort = 0x802EBF94;
 static const u32 aAB_BattingPort = 0x802EBF95;
 
+//Fielder addrs
+static const u32 aFielder_ControlStatus = 0x8088F53B; //0xA=Fielder is holding ball
+static const u32 cFielder_Offset = 0x268;
 
 class StatTracker{
 public:
@@ -293,6 +323,9 @@ public:
 
         u8 stadium;
 
+        u8 innings_selected;
+        u8 innings_played;
+
         //Netplay info
         bool netplay;
         bool host;
@@ -300,6 +333,9 @@ public:
 
         //Quit?
         std::string quitter_team = "";
+
+        //Bookkeeping
+        u16 pitch_num = 0;
     };
     GameInfo m_game_info;
 
@@ -326,6 +362,9 @@ public:
 
         //Calculated
         u32 ERA;
+
+        //Manually collected
+        std::set<u8> innings_pitched; //size() will give number of innings pitched
     };
     std::array<std::array<EndGameRosterDefensiveStats, cRosterSize>, cNumOfTeams> m_defensive_stats;
 
@@ -350,6 +389,7 @@ public:
     std::array<std::array<EndGameRosterOffensiveStats, cRosterSize>, cNumOfTeams> m_offensive_stats;
 
     struct ABStats{
+        u16 pitch_num;
         u32 game_id;
         u32 team_id;
         u8 roster_id;
@@ -371,7 +411,9 @@ public:
         u8 pitcher_stars;
 
         //Pitcher Status
+        u8 pitcher_roster_loc;
         u8 pitcher_id;
+        u16 pitcher_stamina;
         u8 pitcher_handedness;
         u8 pitch_type;
         u8 charge_type;
@@ -380,8 +422,10 @@ public:
 
         //Hit Status
         u8 type_of_contact;
+        u8 swing;
         u8 charge_swing;
         u8 bunt;
+        u8 type_of_swing;
         u32 charge_power_up;
         u32 charge_power_down;
         u8 star_swing;
@@ -408,6 +452,11 @@ public:
         u32 ball_x_pos;
         u32 ball_y_pos;
         u32 ball_z_pos;
+
+        //Fielder results
+        u8 fielder_roster_loc;
+        u8 fielder_pos;
+        u8 fielder_char_id;
 
         u8 num_outs_during_play;
         u8 rbi;
@@ -476,6 +525,9 @@ public:
     void logABContact();
     void logABPitch();
     void logABContactResult();
+
+    //Function to get fielder who is holding the ball <roster_loc, position, char_id>. 0x
+    std::tuple<u8, u8, u8> getCharacterWithBall();
 
     //Read players from ini file and assign to team
     void readPlayerNames(bool local_game);
