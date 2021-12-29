@@ -28,6 +28,7 @@ typedef SSIZE_T ssize_t;
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -59,6 +60,18 @@ enum class BreakpointType
 };
 
 const s64 GDB_UPDATE_CYCLES = 100000;
+
+constexpr char target_memory_map_xml_noMMU[] =
+    R"(<memory-map version="1.0">
+<memory type="ram" start="0x7E000000" length="0x2000000"/>
+<memory type="ram" start="0x80000000" length="0x1800000"/>
+<memory type="ram" start="0x90000000" length="0x4000000"/>
+</memory-map>)";
+
+constexpr char target_memory_map_xml_withMMU[] =
+    R"(<memory-map version="1.0">
+<memory type="ram" start="0x0" length="0x10000000"/>
+</memory-map>)";
 
 static bool s_has_control = false;
 
@@ -310,17 +323,67 @@ static void HandleQuery()
   DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString() + 1);
 
   if (!strcmp((const char*)(s_cmd_bfr + 1), "Attached"))
+  {
     return SendReply("1");
+  }
   if (!strcmp((const char*)(s_cmd_bfr + 1), "C"))
+  {
     return SendReply("QC1");
+  }
   if (!strcmp((const char*)(s_cmd_bfr + 1), "fThreadInfo"))
+  {
     return SendReply("m1");
+  }
   else if (!strcmp((const char*)(s_cmd_bfr + 1), "sThreadInfo"))
+  {
     return SendReply("l");
+  }
   else if (!strncmp((const char*)(s_cmd_bfr + 1), "ThreadExtraInfo", 15))
+  {
     return SendReply("00");
+  }
   else if (!strncmp((const char*)(s_cmd_bfr + 1), "Supported", static_cast<size_t>(9)))
-    return SendReply("swbreak+;hwbreak+");
+  {
+    return SendReply("swbreak+;hwbreak+;qXfer:memory-map:read+");
+  }
+  else if (!strncmp((const char*)(s_cmd_bfr + 1),
+                    "Xfer:memory-map:read::", static_cast<size_t>(22)))
+  {
+    const char* memoryMapXml = target_memory_map_xml_noMMU;
+    if (SConfig::GetInstance().bMMU)
+      memoryMapXml = target_memory_map_xml_withMMU;
+
+    unsigned int offset, length = 0;
+
+    unsigned int index = 23;
+    while (s_cmd_bfr[index] != ',')
+    {
+      offset <<= 4;
+      offset |= Hex2char(s_cmd_bfr[index]);
+      index++;
+    }
+
+    index++;
+    while (index < s_cmd_len)
+    {
+      length <<= 4;
+      length |= Hex2char(s_cmd_bfr[index]);
+      index++;
+    }
+    static u8 reply[GDB_BFR_MAX - 4];
+    memset(reply, 0, GDB_BFR_MAX - 4);
+    if (strlen(memoryMapXml) - offset < static_cast<size_t>(length))
+    {
+      length = strlen(memoryMapXml) - offset;
+      reply[0] = 'l';
+    }
+    else
+    {
+      reply[0] = 'm';
+    }
+    memcpy(&reply[1], &memoryMapXml[offset], length);
+    return SendReply(reinterpret_cast<const char*>(reply));
+  }
 
   SendReply("");
 }
