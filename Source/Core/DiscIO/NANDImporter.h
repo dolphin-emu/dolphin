@@ -22,7 +22,7 @@ public:
   // get_otp_dump_path will be called to get a path to it.
   void ImportNANDBin(const std::string& path_to_bin, std::function<void()> update_callback,
                      std::function<std::string()> get_otp_dump_path);
-  bool ExtractCertificates(const std::string& nand_root);
+  bool ExtractCertificates();
 
 private:
 #pragma pack(push, 1)
@@ -48,13 +48,13 @@ private:
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
   void ProcessFile(const NANDFSTEntry& entry, const std::string& parent_path);
   void ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path);
-  void ExportKeys(const std::string& nand_root);
+  void ExportKeys();
 
+  std::string m_nand_root;
   std::vector<u8> m_nand;
   std::vector<u8> m_nand_keys;
   size_t m_nand_fat_offset = 0;
   size_t m_nand_fst_offset = 0;
   std::function<void()> m_update_callback;
-  size_t m_nand_root_length = 0;
 };
 }  // namespace DiscIO
