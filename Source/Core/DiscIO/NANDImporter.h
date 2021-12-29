@@ -7,7 +7,10 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 
 namespace DiscIO
 {
@@ -24,23 +27,29 @@ public:
                      std::function<std::string()> get_otp_dump_path);
   bool ExtractCertificates();
 
-private:
+  enum class Type
+  {
+    File = 1,
+    Directory = 2,
+  };
+
 #pragma pack(push, 1)
   struct NANDFSTEntry
   {
     char name[12];
-    u8 mode;   // 0x0C
-    u8 attr;   // 0x0D
-    u16 sub;   // 0x0E
-    u16 sib;   // 0x10
-    u32 size;  // 0x12
-    u16 x1;    // 0x16
-    u16 uid;   // 0x18
-    u16 gid;   // 0x1A
-    u32 x3;    // 0x1C
+    u8 mode;
+    u8 attr;
+    Common::BigEndianValue<u16> sub;
+    Common::BigEndianValue<u16> sib;
+    Common::BigEndianValue<u32> size;
+    Common::BigEndianValue<u32> uid;
+    Common::BigEndianValue<u16> gid;
+    Common::BigEndianValue<u32> x3;
   };
+  static_assert(sizeof(NANDFSTEntry) == 0x20, "Wrong size");
 #pragma pack(pop)
 
+private:
   bool ReadNANDBin(const std::string& path_to_bin, std::function<std::string()> get_otp_dump_path);
   void FindSuperblock();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
@@ -58,3 +67,17 @@ private:
   std::function<void()> m_update_callback;
 };
 }  // namespace DiscIO
+
+template <>
+struct fmt::formatter<DiscIO::NANDImporter::NANDFSTEntry>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const DiscIO::NANDImporter::NANDFSTEntry& entry, FormatContext& ctx) const
+  {
+    return fmt::format_to(
+        ctx.out(), "{:12.12} {:#010b} {:#04x} {:#06x} {:#06x} {:#010x} {:#010x} {:#06x} {:#010x}",
+        entry.name, entry.mode, entry.attr, entry.sub, entry.sib, entry.size, entry.uid, entry.gid,
+        entry.x3);
+  }
+};

@@ -7,14 +7,11 @@
 #include <array>
 #include <cstring>
 
-#include <fmt/format.h>
-
 #include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
 
 namespace DiscIO
@@ -129,29 +126,22 @@ std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& 
   return parent_path + '/' + name;
 }
 
-std::string NANDImporter::FormatDebugString(const NANDFSTEntry& entry)
-{
-  return fmt::format(
-      "{:12.12} {:#04x} {:#04x} {:#06x} {:#06x} {:#010x} {:#06x} {:#06x} {:#06x} {:#010x}",
-      entry.name, entry.mode, entry.attr, entry.sub, entry.sib, entry.size, entry.x1, entry.uid,
-      entry.gid, entry.x3);
-}
-
 void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path)
 {
   NANDFSTEntry entry;
-  memcpy(&entry, &m_nand[m_nand_fst_offset + sizeof(NANDFSTEntry) * Common::swap16(entry_number)],
+  memcpy(&entry, &m_nand[m_nand_fst_offset + sizeof(NANDFSTEntry) * entry_number],
          sizeof(NANDFSTEntry));
 
   if (entry.sib != 0xffff)
     ProcessEntry(entry.sib, parent_path);
 
-  if ((entry.mode & 3) == 1)
+  Type type = static_cast<Type>(entry.mode & 3);
+  if (type == Type::File)
     ProcessFile(entry, parent_path);
-  else if ((entry.mode & 3) == 2)
+  else if (type == Type::Directory)
     ProcessDirectory(entry, parent_path);
   else
-    ERROR_LOG_FMT(DISCIO, "Unknown mode: {}", FormatDebugString(entry));
+    ERROR_LOG_FMT(DISCIO, "Ignoring unknown entry type for {}", entry);
 }
 
 void NANDImporter::ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path)
@@ -181,8 +171,8 @@ void NANDImporter::ProcessFile(const NANDFSTEntry& entry, const std::string& par
   std::array<u8, 16> key{};
   std::copy(&m_nand_keys[NAND_AES_KEY_OFFSET], &m_nand_keys[NAND_AES_KEY_OFFSET + key.size()],
             key.begin());
-  u16 sub = Common::swap16(entry.sub);
-  u32 remaining_bytes = Common::swap32(entry.size);
+  u16 sub = entry.sub;
+  u32 remaining_bytes = entry.size;
 
   while (remaining_bytes > 0)
   {
