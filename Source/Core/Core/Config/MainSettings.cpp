@@ -298,4 +298,13 @@ const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF{{System::Main, "Debug", "JitBranchOff
 const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF{{System::Main, "Debug", "JitRegisterCacheOff"},
                                                    false};
 
+// Main.BluetoothPassthrough
+
+const Info<bool> MAIN_BLUETOOTH_PASSTHROUGH_ENABLED{
+    {System::Main, "BluetoothPassthrough", "Enabled"}, false};
+const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_VID{{System::Main, "BluetoothPassthrough", "VID"}, -1};
+const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID{{System::Main, "BluetoothPassthrough", "PID"}, -1};
+const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
+    {System::Main, "BluetoothPassthrough", "LinkKeys"}, ""};
+
 }  // namespace Config

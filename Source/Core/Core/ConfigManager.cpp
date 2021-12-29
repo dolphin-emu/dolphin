@@ -91,7 +91,6 @@ void SConfig::SaveSettings()
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
   SaveCoreSettings(ini);
-  SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -196,16 +195,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("CustomRTCValue", m_customRTCValue);
 }
 
-void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
-
-  section->Set("Enabled", m_bt_passthrough_enabled);
-  section->Set("VID", m_bt_passthrough_vid);
-  section->Set("PID", m_bt_passthrough_pid);
-  section->Set("LinkKeys", m_bt_passthrough_link_keys);
-}
-
 void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
@@ -231,7 +220,6 @@ void SConfig::LoadSettings()
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);
   LoadCoreSettings(ini);
-  LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
 }
 
@@ -339,16 +327,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
-}
-
-void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
-
-  section->Get("Enabled", &m_bt_passthrough_enabled, false);
-  section->Get("VID", &m_bt_passthrough_vid, -1);
-  section->Get("PID", &m_bt_passthrough_pid, -1);
-  section->Get("LinkKeys", &m_bt_passthrough_link_keys, "");
 }
 
 void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
