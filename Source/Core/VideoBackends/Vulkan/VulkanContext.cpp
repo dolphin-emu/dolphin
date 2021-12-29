@@ -628,7 +628,8 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   }};
 
   device_info.queueCreateInfoCount = 1;
-  if (m_graphics_queue_family_index != m_present_queue_family_index)
+  if (m_graphics_queue_family_index != m_present_queue_family_index &&
+      m_present_queue_family_index != queue_family_count)
   {
     device_info.queueCreateInfoCount = 2;
   }
