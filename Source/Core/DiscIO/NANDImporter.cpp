@@ -140,44 +140,53 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
 
     Type type = static_cast<Type>(entry.mode & 3);
     if (type == Type::File)
-      ProcessFile(entry, path);
+    {
+      std::vector<u8> data = GetEntryData(entry);
+      File::IOFile file(m_nand_root + path, "wb");
+      file.WriteBytes(data.data(), data.size());
+    }
     else if (type == Type::Directory)
-      ProcessDirectory(entry, path);
+    {
+      File::CreateDir(m_nand_root + path);
+      ProcessEntry(entry.sub, path);
+    }
     else
+    {
       ERROR_LOG_FMT(DISCIO, "Ignoring unknown entry type for {}", entry);
+    }
 
     entry_number = entry.sib;
   }
 }
 
-void NANDImporter::ProcessDirectory(const NANDFSTEntry& entry, const std::string& path)
-{
-  File::CreateDir(m_nand_root + path);
-  ProcessEntry(entry.sub, path);
-}
-
-void NANDImporter::ProcessFile(const NANDFSTEntry& entry, const std::string& path)
+std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
 {
   constexpr size_t NAND_AES_KEY_OFFSET = 0x158;
   constexpr size_t NAND_FAT_BLOCK_SIZE = 0x4000;
 
-  File::IOFile file(m_nand_root + path, "wb");
   std::array<u8, 16> key{};
   std::copy(&m_nand_keys[NAND_AES_KEY_OFFSET], &m_nand_keys[NAND_AES_KEY_OFFSET + key.size()],
             key.begin());
+
   u16 sub = entry.sub;
-  u32 remaining_bytes = entry.size;
+  size_t remaining_bytes = entry.size;
+  std::vector<u8> data{};
+  data.reserve(remaining_bytes);
 
   while (remaining_bytes > 0)
   {
     std::array<u8, 16> iv{};
     std::vector<u8> block = Common::AES::Decrypt(
         key.data(), iv.data(), &m_nand[NAND_FAT_BLOCK_SIZE * sub], NAND_FAT_BLOCK_SIZE);
-    u32 size = remaining_bytes < NAND_FAT_BLOCK_SIZE ? remaining_bytes : NAND_FAT_BLOCK_SIZE;
-    file.WriteBytes(block.data(), size);
+
+    size_t size = std::min(remaining_bytes, block.size());
+    data.insert(data.end(), block.begin(), block.begin() + size);
     remaining_bytes -= size;
+
     sub = Common::swap16(&m_nand[m_nand_fat_offset + 2 * sub]);
   }
+
+  return data;
 }
 
 bool NANDImporter::ExtractCertificates()
