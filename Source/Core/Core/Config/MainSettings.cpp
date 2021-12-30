@@ -260,4 +260,14 @@ const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK{{System::Main, "AutoUpdate"
 const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE{{System::Main, "AutoUpdate", "HashOverride"},
                                                       ""};
 
+// Main.Movie
+
+const Info<bool> MAIN_MOVIE_PAUSE_MOVIE{{System::Main, "Movie", "PauseMovie"}, false};
+const Info<std::string> MAIN_MOVIE_MOVIE_AUTHOR{{System::Main, "Movie", "Author"}, ""};
+const Info<bool> MAIN_MOVIE_DUMP_FRAMES{{System::Main, "Movie", "DumpFrames"}, false};
+const Info<bool> MAIN_MOVIE_DUMP_FRAMES_SILENT{{System::Main, "Movie", "DumpFramesSilent"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_INPUT_DISPLAY{{System::Main, "Movie", "ShowInputDisplay"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_RTC{{System::Main, "Movie", "ShowRTC"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_RERECORD{{System::Main, "Movie", "ShowRerecord"}, false};
+
 }  // namespace Config

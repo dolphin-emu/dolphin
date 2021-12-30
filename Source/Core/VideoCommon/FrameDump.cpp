@@ -25,6 +25,7 @@ extern "C" {
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
@@ -93,7 +94,7 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   // Ask to delete file.
   if (File::Exists(path))
   {
-    if (SConfig::GetInstance().m_DumpFramesSilent ||
+    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", path))
     {
       File::Delete(path);
