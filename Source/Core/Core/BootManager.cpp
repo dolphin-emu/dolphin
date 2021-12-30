@@ -91,7 +91,6 @@ private:
   int iSelectedLanguage = 0;
   PowerPC::CPUCore cpu_core = PowerPC::CPUCore::Interpreter;
   float m_EmulationSpeed = 0;
-  bool m_bt_passthrough_enabled = false;
   std::string m_strGPUDeterminismMode;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
@@ -121,7 +120,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   cpu_core = config.cpu_core;
   m_EmulationSpeed = config.m_EmulationSpeed;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
-  m_bt_passthrough_enabled = config.m_bt_passthrough_enabled;
 
   for (int i = 0; i != MAX_BBMOTES; ++i)
     iWiimoteSource[i] = WiimoteCommon::GetSource(i);
@@ -189,7 +187,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   }
 
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
-  config->m_bt_passthrough_enabled = m_bt_passthrough_enabled;
 }
 
 static ConfigCache config_cache;
@@ -357,7 +354,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;
     StartUp.bHLE_BS2 = netplay_settings.m_SkipIPL;
-    StartUp.m_bt_passthrough_enabled = false;
     if (netplay_settings.m_HostInputAuthority && !netplay_settings.m_IsHosting)
       config_cache.bSetEmulationSpeed = true;
   }

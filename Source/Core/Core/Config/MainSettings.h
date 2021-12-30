@@ -250,4 +250,11 @@ extern const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF;
 extern const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF;
 
+// Main.BluetoothPassthrough
+
+extern const Info<bool> MAIN_BLUETOOTH_PASSTHROUGH_ENABLED;
+extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_VID;
+extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID;
+extern const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS;
+
 }  // namespace Config

@@ -29,7 +29,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/CommonTitles.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
@@ -967,14 +967,14 @@ static std::shared_ptr<IOS::HLE::Device> GetBluetoothDevice()
 
 std::shared_ptr<IOS::HLE::BluetoothEmuDevice> GetBluetoothEmuDevice()
 {
-  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     return nullptr;
   return std::static_pointer_cast<IOS::HLE::BluetoothEmuDevice>(GetBluetoothDevice());
 }
 
 std::shared_ptr<IOS::HLE::BluetoothRealDevice> GetBluetoothRealDevice()
 {
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (!Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     return nullptr;
   return std::static_pointer_cast<IOS::HLE::BluetoothRealDevice>(GetBluetoothDevice());
 }

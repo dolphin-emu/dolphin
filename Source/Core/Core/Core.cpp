@@ -486,7 +486,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   bool init_wiimotes = false;
-  if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
     if (init_controllers)
     {

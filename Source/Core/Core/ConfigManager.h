@@ -128,12 +128,6 @@ struct SConfig
   bool bLockCursor = false;
   std::string theme_name;
 
-  // Bluetooth passthrough mode settings
-  bool m_bt_passthrough_enabled = false;
-  int m_bt_passthrough_pid = -1;
-  int m_bt_passthrough_vid = -1;
-  std::string m_bt_passthrough_link_keys;
-
   // USB passthrough settings
   std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
   bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
@@ -243,13 +237,11 @@ private:
   void SaveGeneralSettings(IniFile& ini);
   void SaveInterfaceSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
-  void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
-  void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
