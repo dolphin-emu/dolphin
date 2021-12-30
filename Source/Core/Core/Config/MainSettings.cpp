@@ -7,6 +7,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Config/Config.h"
+#include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
@@ -251,5 +252,12 @@ const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTag
 // Main.FifoPlayer
 
 const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY{{System::Main, "FifoPlayer", "LoopReplay"}, true};
+
+// Main.AutoUpdate
+
+const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK{{System::Main, "AutoUpdate", "UpdateTrack"},
+                                                     Common::scm_update_track_str};
+const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE{{System::Main, "AutoUpdate", "HashOverride"},
+                                                      ""};
 
 }  // namespace Config

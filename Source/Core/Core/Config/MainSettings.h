@@ -215,4 +215,9 @@ extern const Info<bool> MAIN_GAMELIST_COLUMN_TAGS;
 
 extern const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY;
 
+// Main.AutoUpdate
+
+extern const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK;
+extern const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE;
+
 }  // namespace Config

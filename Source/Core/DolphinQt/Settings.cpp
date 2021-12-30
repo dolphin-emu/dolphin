@@ -614,14 +614,14 @@ void Settings::SetAutoUpdateTrack(const QString& mode)
   if (mode == GetAutoUpdateTrack())
     return;
 
-  SConfig::GetInstance().m_auto_update_track = mode.toStdString();
+  Config::SetBase(Config::MAIN_AUTOUPDATE_UPDATE_TRACK, mode.toStdString());
 
   emit AutoUpdateTrackChanged(mode);
 }
 
 QString Settings::GetAutoUpdateTrack() const
 {
-  return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
+  return QString::fromStdString(Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 }
 
 void Settings::SetFallbackRegion(const DiscIO::Region& region)
