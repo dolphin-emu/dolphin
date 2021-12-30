@@ -31,13 +31,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * A service that spawns its own thread in order to copy several binary and shader files
- * from the Dolphin APK to the external file system.
+ * A class that spawns its own thread in order perform initialization.
+ *
+ * The initialization steps include:
+ * - Extracting the Sys directory from the APK so it can be accessed using regular file APIs
+ * - Letting the native code know where on external storage it should place the User directory
+ * - Running the native code's init steps (which include things like populating the User directory)
  */
 public final class DirectoryInitialization
 {
   public static final String EXTRA_STATE = "directoryState";
-  private static final int WiimoteNewVersion = 5;  // Last changed in PR 8907
   private static final MutableLiveData<DirectoryInitializationState> directoryState =
           new MutableLiveData<>(DirectoryInitializationState.NOT_YET_INITIALIZED);
   private static volatile boolean areDirectoriesAvailable = false;
@@ -73,8 +76,7 @@ public final class DirectoryInitialization
       System.exit(1);
     }
 
-    initializeInternalStorage(context);
-    boolean wiimoteIniWritten = initializeExternalStorage(context);
+    extractSysDirectory(context);
     NativeLibrary.Initialize();
     NativeLibrary.ReportStartToAnalytics();
 
@@ -82,7 +84,8 @@ public final class DirectoryInitialization
 
     checkThemeSettings(context);
 
-    if (wiimoteIniWritten)
+    // TODO: Does doing this still make sense?
+    if (false)
     {
       // This has to be done after calling NativeLibrary.Initialize(),
       // as it relies on the config system
@@ -131,7 +134,7 @@ public final class DirectoryInitialization
     return true;
   }
 
-  private static void initializeInternalStorage(Context context)
+  private static void extractSysDirectory(Context context)
   {
     File sysDirectory = new File(context.getFilesDir(), "Sys");
 
@@ -151,45 +154,6 @@ public final class DirectoryInitialization
 
     // Let the native code know where the Sys directory is.
     SetSysDirectory(sysDirectory.getPath());
-  }
-
-  // Returns whether the WiimoteNew.ini file was written to
-  private static boolean initializeExternalStorage(Context context)
-  {
-    // Create User directory structure and copy some NAND files from the extracted Sys directory.
-    CreateUserDirectories();
-
-    // GCPadNew.ini and WiimoteNew.ini must contain specific values in order for controller
-    // input to work as intended (they aren't user configurable), so we overwrite them just
-    // in case the user has tried to modify them manually.
-    //
-    // ...Except WiimoteNew.ini contains the user configurable settings for Wii Remote
-    // extensions in addition to all of its lines that aren't user configurable, so since we
-    // don't want to lose the selected extensions, we don't overwrite that file if it exists.
-    //
-    // TODO: Redo the Android controller system so that we don't have to extract these INIs.
-    String configDirectory = NativeLibrary.GetUserDirectory() + File.separator + "Config";
-    String profileDirectory =
-            NativeLibrary.GetUserDirectory() + File.separator + "Config/Profiles/Wiimote/";
-    createWiimoteProfileDirectory(profileDirectory);
-
-    copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true, context);
-
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    boolean overwriteWiimoteIni = prefs.getInt("WiimoteNewVersion", 0) != WiimoteNewVersion;
-    boolean wiimoteIniWritten = copyAsset("WiimoteNew.ini",
-            new File(configDirectory, "WiimoteNew.ini"), overwriteWiimoteIni, context);
-    if (overwriteWiimoteIni)
-    {
-      SharedPreferences.Editor sPrefsEditor = prefs.edit();
-      sPrefsEditor.putInt("WiimoteNewVersion", WiimoteNewVersion);
-      sPrefsEditor.apply();
-    }
-
-    copyAsset("WiimoteProfile.ini", new File(profileDirectory, "WiimoteProfile.ini"), true,
-            context);
-
-    return wiimoteIniWritten;
   }
 
   private static void deleteDirectoryRecursively(@NonNull final File file)
@@ -322,18 +286,6 @@ public final class DirectoryInitialization
     }
   }
 
-  private static void createWiimoteProfileDirectory(String directory)
-  {
-    File wiiPath = new File(directory);
-    if (!wiiPath.isDirectory())
-    {
-      if (!wiiPath.mkdirs())
-      {
-        Log.error("[DirectoryInitialization] Failed to create folder " + wiiPath.getAbsolutePath());
-      }
-    }
-  }
-
   public static boolean preferOldFolderPicker(Context context)
   {
     // As of January 2021, ACTION_OPEN_DOCUMENT_TREE seems to be broken on the Nvidia Shield TV
@@ -432,8 +384,6 @@ public final class DirectoryInitialization
               .apply();
     }
   }
-
-  private static native void CreateUserDirectories();
 
   private static native void SetSysDirectory(String path);
 }
