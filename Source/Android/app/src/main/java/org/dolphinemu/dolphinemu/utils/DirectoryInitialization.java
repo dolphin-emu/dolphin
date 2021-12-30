@@ -145,7 +145,7 @@ public final class DirectoryInitialization
       // There is no extracted Sys directory, or there is a Sys directory from another
       // version of Dolphin that might contain outdated files. Let's (re-)extract Sys.
       deleteDirectoryRecursively(sysDirectory);
-      copyAssetFolder("Sys", sysDirectory, true, context);
+      copyAssetFolder("Sys", sysDirectory, context);
 
       SharedPreferences.Editor editor = preferences.edit();
       editor.putString("sysDirectoryVersion", revision);
@@ -209,21 +209,18 @@ public final class DirectoryInitialization
     return new File(context.getExternalCacheDir(), "gamelist.cache");
   }
 
-  private static boolean copyAsset(String asset, File output, Boolean overwrite, Context context)
+  private static boolean copyAsset(String asset, File output, Context context)
   {
     Log.verbose("[DirectoryInitialization] Copying File " + asset + " to " + output);
 
     try
     {
-      if (!output.exists() || overwrite)
+      try (InputStream in = context.getAssets().open(asset))
       {
-        try (InputStream in = context.getAssets().open(asset))
+        try (OutputStream out = new FileOutputStream(output))
         {
-          try (OutputStream out = new FileOutputStream(output))
-          {
-            copyFile(in, out);
-            return true;
-          }
+          copyFile(in, out);
+          return true;
         }
       }
     }
@@ -235,8 +232,7 @@ public final class DirectoryInitialization
     return false;
   }
 
-  private static void copyAssetFolder(String assetFolder, File outputFolder, Boolean overwrite,
-          Context context)
+  private static void copyAssetFolder(String assetFolder, File outputFolder, Context context)
   {
     Log.verbose("[DirectoryInitialization] Copying Folder " + assetFolder + " to " +
             outputFolder);
@@ -263,9 +259,8 @@ public final class DirectoryInitialization
           createdFolder = true;
         }
         copyAssetFolder(assetFolder + File.separator + file, new File(outputFolder, file),
-                overwrite, context);
-        copyAsset(assetFolder + File.separator + file, new File(outputFolder, file), overwrite,
                 context);
+        copyAsset(assetFolder + File.separator + file, new File(outputFolder, file), context);
       }
     }
     catch (IOException e)
