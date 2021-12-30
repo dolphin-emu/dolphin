@@ -91,7 +91,6 @@ void SConfig::SaveSettings()
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
   SaveCoreSettings(ini);
-  SaveInputSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
   SaveJitDebugSettings(ini);
@@ -198,13 +197,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("CustomRTCValue", m_customRTCValue);
 }
 
-void SConfig::SaveInputSettings(IniFile& ini)
-{
-  IniFile::Section* input = ini.GetOrCreateSection("Input");
-
-  input->Set("BackgroundInput", m_BackgroundInput);
-}
-
 void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
@@ -256,7 +248,6 @@ void SConfig::LoadSettings()
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);
   LoadCoreSettings(ini);
-  LoadInputSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
   LoadJitDebugSettings(ini);
@@ -366,13 +357,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
-}
-
-void SConfig::LoadInputSettings(IniFile& ini)
-{
-  IniFile::Section* input = ini.GetOrCreateSection("Input");
-
-  input->Get("BackgroundInput", &m_BackgroundInput, false);
 }
 
 void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)

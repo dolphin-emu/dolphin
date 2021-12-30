@@ -230,4 +230,8 @@ extern const Info<bool> MAIN_MOVIE_SHOW_INPUT_DISPLAY;
 extern const Info<bool> MAIN_MOVIE_SHOW_RTC;
 extern const Info<bool> MAIN_MOVIE_SHOW_RERECORD;
 
+// Main.Input
+
+extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
+
 }  // namespace Config
