@@ -4,6 +4,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -47,11 +48,22 @@ public:
     Common::BigEndianValue<u32> x3;
   };
   static_assert(sizeof(NANDFSTEntry) == 0x20, "Wrong size");
+
+  struct NANDSuperblock
+  {
+    char magic[4];  // "SFFS"
+    Common::BigEndianValue<u32> version;
+    Common::BigEndianValue<u32> unknown;
+    Common::BigEndianValue<u16> fat[0x8000];
+    NANDFSTEntry fst[0x17FF];
+    u8 pad[0x14];
+  };
+  static_assert(sizeof(NANDSuperblock) == 0x40000, "Wrong size");
 #pragma pack(pop)
 
 private:
   bool ReadNANDBin(const std::string& path_to_bin, std::function<std::string()> get_otp_dump_path);
-  void FindSuperblock();
+  bool FindSuperblock();
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
@@ -61,8 +73,7 @@ private:
   std::string m_nand_root;
   std::vector<u8> m_nand;
   std::vector<u8> m_nand_keys;
-  size_t m_nand_fat_offset = 0;
-  size_t m_nand_fst_offset = 0;
+  std::unique_ptr<NANDSuperblock> m_superblock;
   std::function<void()> m_update_callback;
 };
 }  // namespace DiscIO

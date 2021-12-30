@@ -32,8 +32,9 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
 
   if (!ReadNANDBin(path_to_bin, get_otp_dump_path))
     return;
+  if (!FindSuperblock())
+    return;
 
-  FindSuperblock();
   ProcessEntry(0, "");
   ExportKeys();
   ExtractCertificates();
@@ -88,32 +89,37 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
   return file.ReadBytes(m_nand_keys.data(), NAND_KEYS_SIZE);
 }
 
-void NANDImporter::FindSuperblock()
+bool NANDImporter::FindSuperblock()
 {
   constexpr size_t NAND_SUPERBLOCK_START = 0x1fc00000;
-  constexpr size_t NAND_SUPERBLOCK_SIZE = 0x40000;
 
-  size_t superblock = 0;
-  u32 newest_version = 0;
-  for (size_t pos = NAND_SUPERBLOCK_START; pos < NAND_SIZE; pos += NAND_SUPERBLOCK_SIZE)
+  // There are 16 superblocks, choose the highest/newest version
+  for (int i = 0; i < 16; i++)
   {
-    if (!memcmp(m_nand.data() + pos, "SFFS", 4))
+    auto superblock = std::make_unique<NANDSuperblock>();
+    std::memcpy(superblock.get(), &m_nand[NAND_SUPERBLOCK_START + i * sizeof(NANDSuperblock)],
+                sizeof(NANDSuperblock));
+
+    if (std::memcmp(superblock->magic, "SFFS", 4) != 0)
     {
-      const u32 version = Common::swap32(&m_nand[pos + 4]);
-      INFO_LOG_FMT(DISCIO, "Found superblock at {:#x} with version {:#x}", pos, version);
-      if (superblock == 0 || version > newest_version)
-      {
-        superblock = pos;
-        newest_version = version;
-      }
+      ERROR_LOG_FMT(DISCIO, "Superblock #{} does not exist", i);
+      continue;
     }
+
+    INFO_LOG_FMT(DISCIO, "Superblock #{} has version {:#x}", i, superblock->version);
+
+    if (!m_superblock || superblock->version > m_superblock->version)
+      m_superblock = std::move(superblock);
   }
 
-  m_nand_fat_offset = superblock + 0xC;
-  m_nand_fst_offset = m_nand_fat_offset + 0x10000;
-  INFO_LOG_FMT(DISCIO,
-               "Using superblock version {:#x} at position {:#x}. FAT/FST offset: {:#x}/{:#x}",
-               newest_version, superblock, m_nand_fat_offset, m_nand_fst_offset);
+  if (!m_superblock)
+  {
+    PanicAlertFmtT("This file does not contain a valid Wii filesystem.");
+    return false;
+  }
+
+  INFO_LOG_FMT(DISCIO, "Using superblock version {:#x}", m_superblock->version);
+  return true;
 }
 
 std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& parent_path)
@@ -128,11 +134,9 @@ std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& 
 
 void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path)
 {
-  NANDFSTEntry entry;
   while (entry_number != 0xffff)
   {
-    memcpy(&entry, &m_nand[m_nand_fst_offset + sizeof(NANDFSTEntry) * entry_number],
-           sizeof(NANDFSTEntry));
+    const NANDFSTEntry entry = m_superblock->fst[entry_number];
 
     const std::string path = GetPath(entry, parent_path);
     INFO_LOG_FMT(DISCIO, "Entry: {} Path: {}", entry, path);
@@ -183,7 +187,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
     data.insert(data.end(), block.begin(), block.begin() + size);
     remaining_bytes -= size;
 
-    sub = Common::swap16(&m_nand[m_nand_fat_offset + 2 * sub]);
+    sub = m_superblock->fat[sub];
   }
 
   return data;
