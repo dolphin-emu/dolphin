@@ -129,44 +129,38 @@ std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& 
 void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path)
 {
   NANDFSTEntry entry;
-  memcpy(&entry, &m_nand[m_nand_fst_offset + sizeof(NANDFSTEntry) * entry_number],
-         sizeof(NANDFSTEntry));
+  while (entry_number != 0xffff)
+  {
+    memcpy(&entry, &m_nand[m_nand_fst_offset + sizeof(NANDFSTEntry) * entry_number],
+           sizeof(NANDFSTEntry));
 
-  if (entry.sib != 0xffff)
-    ProcessEntry(entry.sib, parent_path);
+    const std::string path = GetPath(entry, parent_path);
+    INFO_LOG_FMT(DISCIO, "Entry: {} Path: {}", entry, path);
+    m_update_callback();
 
-  Type type = static_cast<Type>(entry.mode & 3);
-  if (type == Type::File)
-    ProcessFile(entry, parent_path);
-  else if (type == Type::Directory)
-    ProcessDirectory(entry, parent_path);
-  else
-    ERROR_LOG_FMT(DISCIO, "Ignoring unknown entry type for {}", entry);
+    Type type = static_cast<Type>(entry.mode & 3);
+    if (type == Type::File)
+      ProcessFile(entry, path);
+    else if (type == Type::Directory)
+      ProcessDirectory(entry, path);
+    else
+      ERROR_LOG_FMT(DISCIO, "Ignoring unknown entry type for {}", entry);
+
+    entry_number = entry.sib;
+  }
 }
 
-void NANDImporter::ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path)
+void NANDImporter::ProcessDirectory(const NANDFSTEntry& entry, const std::string& path)
 {
-  m_update_callback();
-  INFO_LOG_FMT(DISCIO, "Path: {}", FormatDebugString(entry));
-
-  const std::string path = GetPath(entry, parent_path);
   File::CreateDir(m_nand_root + path);
-
-  if (entry.sub != 0xffff)
-    ProcessEntry(entry.sub, path);
-
-  INFO_LOG_FMT(DISCIO, "Path: {}", parent_path);
+  ProcessEntry(entry.sub, path);
 }
 
-void NANDImporter::ProcessFile(const NANDFSTEntry& entry, const std::string& parent_path)
+void NANDImporter::ProcessFile(const NANDFSTEntry& entry, const std::string& path)
 {
   constexpr size_t NAND_AES_KEY_OFFSET = 0x158;
   constexpr size_t NAND_FAT_BLOCK_SIZE = 0x4000;
 
-  m_update_callback();
-  INFO_LOG_FMT(DISCIO, "File: {}", FormatDebugString(entry));
-
-  const std::string path = GetPath(entry, parent_path);
   File::IOFile file(m_nand_root + path, "wb");
   std::array<u8, 16> key{};
   std::copy(&m_nand_keys[NAND_AES_KEY_OFFSET], &m_nand_keys[NAND_AES_KEY_OFFSET + key.size()],

@@ -55,8 +55,8 @@ private:
   std::string GetPath(const NANDFSTEntry& entry, const std::string& parent_path);
   std::string FormatDebugString(const NANDFSTEntry& entry);
   void ProcessEntry(u16 entry_number, const std::string& parent_path);
-  void ProcessFile(const NANDFSTEntry& entry, const std::string& parent_path);
-  void ProcessDirectory(const NANDFSTEntry& entry, const std::string& parent_path);
+  void ProcessFile(const NANDFSTEntry& entry, const std::string& path);
+  void ProcessDirectory(const NANDFSTEntry& entry, const std::string& path);
   void ExportKeys();
 
   std::string m_nand_root;
