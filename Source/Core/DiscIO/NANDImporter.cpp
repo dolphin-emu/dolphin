@@ -4,7 +4,6 @@
 #include "DiscIO/NANDImporter.h"
 
 #include <algorithm>
-#include <array>
 #include <cstring>
 
 #include "Common/Crypto/AES.h"
@@ -35,8 +34,8 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
   if (!FindSuperblock())
     return;
 
-  ProcessEntry(0, "");
   ExportKeys();
+  ProcessEntry(0, "");
   ExtractCertificates();
 }
 
@@ -165,12 +164,7 @@ void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path
 
 std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
 {
-  constexpr size_t NAND_AES_KEY_OFFSET = 0x158;
   constexpr size_t NAND_FAT_BLOCK_SIZE = 0x4000;
-
-  std::array<u8, 16> key{};
-  std::copy(&m_nand_keys[NAND_AES_KEY_OFFSET], &m_nand_keys[NAND_AES_KEY_OFFSET + key.size()],
-            key.begin());
 
   u16 sub = entry.sub;
   size_t remaining_bytes = entry.size;
@@ -181,7 +175,7 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
   {
     std::array<u8, 16> iv{};
     std::vector<u8> block = Common::AES::Decrypt(
-        key.data(), iv.data(), &m_nand[NAND_FAT_BLOCK_SIZE * sub], NAND_FAT_BLOCK_SIZE);
+        m_aes_key.data(), iv.data(), &m_nand[NAND_FAT_BLOCK_SIZE * sub], NAND_FAT_BLOCK_SIZE);
 
     size_t size = std::min(remaining_bytes, block.size());
     data.insert(data.end(), block.begin(), block.begin() + size);
@@ -264,6 +258,10 @@ bool NANDImporter::ExtractCertificates()
 
 void NANDImporter::ExportKeys()
 {
+  constexpr size_t NAND_AES_KEY_OFFSET = 0x158;
+
+  std::copy_n(&m_nand_keys[NAND_AES_KEY_OFFSET], m_aes_key.size(), m_aes_key.begin());
+
   const std::string file_path = m_nand_root + "/keys.bin";
   File::IOFile file(file_path, "wb");
   if (!file.WriteBytes(m_nand_keys.data(), NAND_KEYS_SIZE))

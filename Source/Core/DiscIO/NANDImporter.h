@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <string>
@@ -73,6 +74,7 @@ private:
   std::string m_nand_root;
   std::vector<u8> m_nand;
   std::vector<u8> m_nand_keys;
+  std::array<u8, 16> m_aes_key;
   std::unique_ptr<NANDSuperblock> m_superblock;
   std::function<void()> m_update_callback;
 };
