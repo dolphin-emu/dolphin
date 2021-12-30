@@ -4,7 +4,9 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #include "Common/CommonTypes.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -21,9 +23,32 @@ void JitTrampoline(JitBase& jit, u32 em_address)
 
 JitBase::JitBase() : m_code_buffer(code_buffer_size)
 {
+  m_registered_config_callback_id = Config::AddConfigChangedCallback(
+      [this] { Core::RunAsCPUThread([this] { RefreshConfig(); }); });
+  RefreshConfig();
 }
 
-JitBase::~JitBase() = default;
+JitBase::~JitBase()
+{
+  Config::RemoveConfigChangedCallback(m_registered_config_callback_id);
+}
+
+void JitBase::RefreshConfig()
+{
+  bJITOff = Config::Get(Config::MAIN_DEBUG_JIT_OFF);
+  bJITLoadStoreOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF);
+  bJITLoadStorelXzOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF);
+  bJITLoadStorelwzOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF);
+  bJITLoadStorelbzxOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF);
+  bJITLoadStoreFloatingOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF);
+  bJITLoadStorePairedOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF);
+  bJITFloatingPointOff = Config::Get(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF);
+  bJITIntegerOff = Config::Get(Config::MAIN_DEBUG_JIT_INTEGER_OFF);
+  bJITPairedOff = Config::Get(Config::MAIN_DEBUG_JIT_PAIRED_OFF);
+  bJITSystemRegistersOff = Config::Get(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF);
+  bJITBranchOff = Config::Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF);
+  bJITRegisterCacheOff = Config::Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF);
+}
 
 bool JitBase::CanMergeNextInstructions(int count) const
 {

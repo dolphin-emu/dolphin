@@ -33,11 +33,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
   // Skip disabled JIT instructions
-  FALLBACK_IF(SConfig::GetInstance().bJITLoadStorelbzxOff && (inst.OPCD == 31) &&
-              (inst.SUBOP10 == 87));
-  FALLBACK_IF(SConfig::GetInstance().bJITLoadStorelXzOff &&
-              ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
-  FALLBACK_IF(SConfig::GetInstance().bJITLoadStorelwzOff && (inst.OPCD == 32));
+  FALLBACK_IF(bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
+  FALLBACK_IF(bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
+  FALLBACK_IF(bJITLoadStorelwzOff && (inst.OPCD == 32));
 
   // Determine memory access size and sign extend
   int accessSize = 0;
