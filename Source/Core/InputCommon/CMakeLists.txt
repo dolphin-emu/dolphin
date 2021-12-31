@@ -146,6 +146,9 @@ elseif(ANDROID)
     ControllerInterface/Touch/InputOverrider.cpp
     ControllerInterface/Touch/InputOverrider.h
   )
+  target_link_libraries(inputcommon PRIVATE
+    androidcommon
+  )
 endif()
 
 if(NOT ANDROID)

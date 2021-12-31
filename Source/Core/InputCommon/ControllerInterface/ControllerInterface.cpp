@@ -67,7 +67,7 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   m_input_backends.emplace_back(ciface::SDL::CreateInputBackend(this));
 #endif
 #ifdef CIFACE_USE_ANDROID
-// nothing needed
+  ciface::Android::Init();
 #endif
 #ifdef CIFACE_USE_EVDEV
   m_input_backends.emplace_back(ciface::evdev::CreateInputBackend(this));
@@ -237,7 +237,7 @@ void ControllerInterface::Shutdown()
   ciface::Quartz::DeInit();
 #endif
 #ifdef CIFACE_USE_ANDROID
-// nothing needed
+  ciface::Android::Shutdown();
 #endif
 
   // Empty the container of input backends to deconstruct and deinitialize them.
