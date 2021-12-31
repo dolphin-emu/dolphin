@@ -15,6 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
@@ -191,7 +192,7 @@ static void AnalyzeFunction2(Common::Symbol* func)
   func->flags = flags;
 }
 
-static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
+bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
 {
   const GekkoOPInfo* a_info = a.opinfo;
   const GekkoOPInfo* b_info = b.opinfo;
@@ -199,10 +200,11 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
   u64 b_flags = b_info->flags;
 
   // can't reorder around breakpoints
-  if (SConfig::GetInstance().bEnableDebugging &&
-      (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
-       PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+  if (m_is_debugging_enabled && (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
+                                 PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+  {
     return false;
+  }
   if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
   if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))

@@ -14,7 +14,7 @@
 #include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HLE/HLE.h"
@@ -247,7 +247,7 @@ void Interpreter::Run()
     CoreTiming::Advance();
 
     // we have to check exceptions at branches apparently (or maybe just rfi?)
-    if (SConfig::GetInstance().bEnableDebugging)
+    if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     {
 #ifdef SHOW_HISTORY
       s_pc_block_vec.push_back(PC);

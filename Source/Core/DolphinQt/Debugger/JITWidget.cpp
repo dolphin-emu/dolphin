@@ -156,6 +156,7 @@ void JITWidget::Update()
   PPCAnalyst::BlockRegStats fpa;
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::PPCAnalyzer analyzer;
+  analyzer.SetDebuggingEnabled(Config::Get(Config::MAIN_ENABLE_DEBUGGING));
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 

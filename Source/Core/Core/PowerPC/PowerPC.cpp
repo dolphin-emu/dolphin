@@ -18,6 +18,7 @@
 #include "Common/FloatUtils.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -264,7 +265,7 @@ void Init(CPUCore cpu_core)
   InitializeCPUCore(cpu_core);
   ppcState.iCache.Init();
 
-  if (SConfig::GetInstance().bEnableDebugging)
+  if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     breakpoints.ClearAllTemporary();
 }
 

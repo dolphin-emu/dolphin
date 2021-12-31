@@ -69,7 +69,6 @@ struct SConfig
   std::vector<std::string> m_ISOFolder;
 
   // Settings
-  bool bEnableDebugging = false;
   int iGDBPort;
 #ifndef _WIN32
   std::string gdb_socket;
@@ -114,19 +113,6 @@ struct SConfig
 
   bool bWii = false;
   bool m_is_mios = false;
-
-  // Interface settings
-  bool bConfirmStop = false;
-
-  enum class ShowCursor
-  {
-    Never,
-    Constantly,
-    OnMovement,
-  } m_show_cursor;
-
-  bool bLockCursor = false;
-  std::string theme_name;
 
   // Custom RTC
   bool bEnableCustomRTC;
@@ -192,19 +178,11 @@ struct SConfig
   std::string m_bba_xlink_ip;
   bool m_bba_xlink_chat_osd = true;
 
-  // interface language
-  std::string m_InterfaceLanguage;
   float m_EmulationSpeed;
-  // other interface settings
-  bool m_InterfaceExtendedFPSInfo;
-  bool m_show_active_title = false;
-  bool m_use_builtin_title_database = true;
 
   std::string m_WirelessMac;
   bool m_ShowLag;
   bool m_ShowFrameCount;
-
-  bool m_PauseOnFocusLost;
 
   // Input settings
   bool m_AdapterRumble[4];
@@ -231,11 +209,9 @@ private:
   ~SConfig();
 
   void SaveGeneralSettings(IniFile& ini);
-  void SaveInterfaceSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
-  void LoadInterfaceSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,

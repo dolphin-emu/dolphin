@@ -8,6 +8,7 @@
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
@@ -198,6 +199,19 @@ const Info<bool> MAIN_USE_PANIC_HANDLERS{{System::Main, "Interface", "UsePanicHa
 const Info<bool> MAIN_ABORT_ON_PANIC_ALERT{{System::Main, "Interface", "AbortOnPanicAlert"}, false};
 const Info<bool> MAIN_OSD_MESSAGES{{System::Main, "Interface", "OnScreenDisplayMessages"}, true};
 const Info<bool> MAIN_SKIP_NKIT_WARNING{{System::Main, "Interface", "SkipNKitWarning"}, false};
+const Info<bool> MAIN_CONFIRM_ON_STOP{{System::Main, "Interface", "ConfirmStop"}, true};
+const Info<ShowCursor> MAIN_SHOW_CURSOR{{System::Main, "Interface", "CursorVisibility"},
+                                        ShowCursor::OnMovement};
+const Info<bool> MAIN_LOCK_CURSOR{{System::Main, "Interface", "LockCursor"}, false};
+const Info<std::string> MAIN_INTERFACE_LANGUAGE{{System::Main, "Interface", "LanguageCode"}, ""};
+const Info<bool> MAIN_EXTENDED_FPS_INFO{{System::Main, "Interface", "ExtendedFPSInfo"}, false};
+const Info<bool> MAIN_SHOW_ACTIVE_TITLE{{System::Main, "Interface", "ShowActiveTitle"}, true};
+const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE{
+    {System::Main, "Interface", "UseBuiltinTitleDatabase"}, true};
+const Info<std::string> MAIN_THEME_NAME{{System::Main, "Interface", "ThemeName"},
+                                        DEFAULT_THEME_DIR};
+const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST{{System::Main, "Interface", "PauseOnFocusLost"}, false};
+const Info<bool> MAIN_ENABLE_DEBUGGING{{System::Main, "Interface", "DebugModeEnabled"}, false};
 
 // Main.Analytics
 

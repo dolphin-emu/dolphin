@@ -167,6 +167,24 @@ extern const Info<bool> MAIN_USE_PANIC_HANDLERS;
 extern const Info<bool> MAIN_ABORT_ON_PANIC_ALERT;
 extern const Info<bool> MAIN_OSD_MESSAGES;
 extern const Info<bool> MAIN_SKIP_NKIT_WARNING;
+extern const Info<bool> MAIN_CONFIRM_ON_STOP;
+
+enum class ShowCursor
+{
+  Never,
+  Constantly,
+  OnMovement,
+};
+extern const Info<ShowCursor> MAIN_SHOW_CURSOR;
+
+extern const Info<bool> MAIN_LOCK_CURSOR;
+extern const Info<std::string> MAIN_INTERFACE_LANGUAGE;
+extern const Info<bool> MAIN_EXTENDED_FPS_INFO;
+extern const Info<bool> MAIN_SHOW_ACTIVE_TITLE;
+extern const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE;
+extern const Info<std::string> MAIN_THEME_NAME;
+extern const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST;
+extern const Info<bool> MAIN_ENABLE_DEBUGGING;
 
 // Main.Analytics
 

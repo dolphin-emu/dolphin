@@ -48,6 +48,8 @@ void JitBase::RefreshConfig()
   bJITSystemRegistersOff = Config::Get(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF);
   bJITBranchOff = Config::Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF);
   bJITRegisterCacheOff = Config::Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF);
+  m_enable_debugging = Config::Get(Config::MAIN_ENABLE_DEBUGGING);
+  analyzer.SetDebuggingEnabled(m_enable_debugging);
 }
 
 bool JitBase::CanMergeNextInstructions(int count) const
@@ -57,8 +59,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
   {
-    if (SConfig::GetInstance().bEnableDebugging &&
-        PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+    if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
       return false;
     if (js.op[i].isBranchTarget)
       return false;

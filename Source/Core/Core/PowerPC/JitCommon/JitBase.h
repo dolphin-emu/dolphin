@@ -126,6 +126,7 @@ protected:
   bool bJITSystemRegistersOff = false;
   bool bJITBranchOff = false;
   bool bJITRegisterCacheOff = false;
+  bool m_enable_debugging = false;
 
   void RefreshConfig();
 
@@ -138,6 +139,8 @@ protected:
 public:
   JitBase();
   ~JitBase() override;
+
+  bool IsDebuggingEnabled() const { return m_enable_debugging; }
 
   static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;
