@@ -576,43 +576,48 @@ static void ProcessXFerCommand(const char* data, size_t paramsIndex)
   return SendReply(reinterpret_cast<const char*>(reply));
 }
 
+static bool IsQuery(const char* query)
+{
+  return !strncmp((const char*)(s_cmd_bfr), query, strlen(query));
+}
+
 static void HandleQuery()
 {
   DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString());
 
-  if (!strncmp((const char*)(s_cmd_bfr), "qAttached", strlen("qAttached")))
+  if (IsQuery("qAttached"))
   {
     return SendReply("1");
   }
-  if (!strcmp((const char*)(s_cmd_bfr), "qC"))
+  else if (IsQuery("qC"))
   {
     return SendReply("QC1");
   }
-  if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
+  else if (IsQuery("qfThreadInfo"))
   {
     return SendReply("m1");
   }
-  else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+  else if (IsQuery("qsThreadInfo"))
   {
     return SendReply("l");
   }
-  else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+  else if (IsQuery("qThreadExtraInfo"))
   {
     return SendReply("00");
   }
-  else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+  else if (IsQuery("qHostInfo"))
   {
     return WriteHostInfo();
   }
-  else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
+  else if (IsQuery("qSupported"))
   {
     return SendReply("swbreak+;hwbreak+;qXfer:features:read+;qXfer:memory-map:read+");
   }
-  else if (!strncmp((const char*)(s_cmd_bfr), QUERY_XFER_TARGET, strlen(QUERY_XFER_TARGET)))
+  else if (IsQuery(QUERY_XFER_TARGET))
   {
     return ProcessXFerCommand(target_xml, strlen(QUERY_XFER_TARGET));
   }
-  else if (!strncmp((const char*)(s_cmd_bfr), QUERY_XFER_MEMORY_MAP, strlen(QUERY_XFER_MEMORY_MAP)))
+  else if (IsQuery(QUERY_XFER_MEMORY_MAP))
   {
     const char* memoryMapXml = TARGET_MEMORY_MAP_XML_NO_MMU;
     if (Config::Get(Config::MAIN_MMU))
