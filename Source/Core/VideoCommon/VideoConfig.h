@@ -174,6 +174,7 @@ struct VideoConfig final
   bool bStereoSwapEyes = false;
   bool bStereoEFBMonoDepth = false;
   int iStereoDepthPercentage = 0;
+  std::string sStereoShader = "";
 
   // D3D only config, mostly to be merged into the above
   int iAdapter = 0;

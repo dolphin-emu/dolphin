@@ -32,6 +32,7 @@
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/PerformanceMetrics.h"
+#include "VideoCommon/PEShaderSystem/Config/PEShaderConfigGroup.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
@@ -467,6 +468,12 @@ private:
   Common::Timer m_timer;
 
   GraphicsModManager m_graphics_mod_manager;
+  // This texture holds the post processing output for each layer
+  std::unique_ptr<AbstractTexture> m_stereo_shader_texture;
+  VideoCommon::PE::ShaderConfigGroup m_stereo_shader_config;
+  std::unique_ptr<VideoCommon::PE::ShaderGroup> m_stereo_shader_group;
+  int m_stereo_target_width = 0;
+  int m_stereo_target_height = 0;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

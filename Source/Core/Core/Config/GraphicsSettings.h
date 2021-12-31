@@ -113,6 +113,7 @@ extern const Info<bool> GFX_STEREO_SWAP_EYES;
 extern const Info<int> GFX_STEREO_CONVERGENCE;
 extern const Info<bool> GFX_STEREO_EFB_MONO_DEPTH;
 extern const Info<int> GFX_STEREO_DEPTH_PERCENTAGE;
+extern const Info<std::string> GFX_STEREO_SHADER;
 
 // Stereoscopy pseudo-limits for consistent behavior between enhancements tab and hotkeys.
 static constexpr int GFX_STEREO_DEPTH_MAXIMUM = 100;

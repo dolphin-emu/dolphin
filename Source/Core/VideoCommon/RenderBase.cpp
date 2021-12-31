@@ -73,7 +73,6 @@
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PEShaderSystem/Config/PEShaderConfigGroup.h"
 #include "VideoCommon/PEShaderSystem/Constants.h"
 #include "VideoCommon/PEShaderSystem/Runtime/PEShaderGroup.h"
 #include "VideoCommon/PixelEngine.h"
@@ -165,11 +164,24 @@ bool Renderer::Initialize()
   m_default_shader_group = std::make_unique<VideoCommon::PE::ShaderGroup>();
   m_default_shader_group->UpdateConfig(default_shader_config);
 
+  m_stereo_shader_group = std::make_unique<VideoCommon::PE::ShaderGroup>();
+  if (g_ActiveConfig.sStereoShader != "")
+  {
+    m_stereo_shader_config.m_shaders.clear();
+    m_stereo_shader_config.m_shader_order.clear();
+    m_stereo_shader_config.m_changes++;
+    m_stereo_shader_config.AddShader(g_ActiveConfig.sStereoShader,
+                                     VideoCommon::PE::ShaderConfig::Source::System);
+    m_stereo_shader_group->UpdateConfig(m_stereo_shader_config);
+  }
+
   return true;
 }
 
 void Renderer::Shutdown()
 {
+  m_stereo_shader_group.reset();
+
   // Disable ControllerInterface's aspect ratio adjustments so mapping dialog behaves normally.
   g_controller_interface.SetAspectRatioAdjustment(1);
 
@@ -499,6 +511,7 @@ void Renderer::CheckForConfigChanges()
   const auto old_texture_filtering_mode = g_ActiveConfig.texture_filtering_mode;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
+  const std::string old_stereo_shader = g_ActiveConfig.sStereoShader;
   const u32 old_game_mod_changes =
       g_ActiveConfig.graphics_mod_config ? g_ActiveConfig.graphics_mod_config->GetChangeCount() : 0;
   const bool old_graphics_mods_enabled = g_ActiveConfig.bGraphicMods;
@@ -533,7 +546,7 @@ void Renderer::CheckForConfigChanges()
   u32 changed_bits = 0;
   if (old_shader_host_config.bits != new_host_config.bits)
     changed_bits |= CONFIG_CHANGE_BIT_HOST_CONFIG;
-  if (old_stereo != g_ActiveConfig.stereo_mode)
+  if (old_stereo != g_ActiveConfig.stereo_mode || old_stereo_shader != g_ActiveConfig.sStereoShader)
     changed_bits |= CONFIG_CHANGE_BIT_STEREO_MODE;
   if (old_multisamples != g_ActiveConfig.iMultisamples)
     changed_bits |= CONFIG_CHANGE_BIT_MULTISAMPLES;
@@ -589,11 +602,20 @@ void Renderer::CheckForConfigChanges()
     BPFunctions::SetScissorAndViewport();
   }
 
-  // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
+  // Stereo mode change requires recompiling our post stereo pipeline and imgui pipelines for
   // rendering the UI.
   if (changed_bits & CONFIG_CHANGE_BIT_STEREO_MODE)
   {
     RecompileImGuiPipeline();
+    if (g_ActiveConfig.sStereoShader != "")
+    {
+      m_stereo_shader_config.m_shaders.clear();
+      m_stereo_shader_config.m_shader_order.clear();
+      m_stereo_shader_config.m_changes++;
+      m_stereo_shader_config.AddShader(g_ActiveConfig.sStereoShader,
+                                       VideoCommon::PE::ShaderConfig::Source::System);
+      m_stereo_shader_group->UpdateConfig(m_stereo_shader_config);
+    }
   }
 }
 
@@ -1498,6 +1520,35 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
 
     DrawXFB(left_rc, source_texture, source_rc, 0);
     DrawXFB(right_rc, source_texture, source_rc, 1);
+  }
+  else if ((g_ActiveConfig.stereo_mode == StereoMode::Anaglyph ||
+            g_ActiveConfig.stereo_mode == StereoMode::Passive) &&
+           g_ActiveConfig.sStereoShader != "")
+  {
+    const auto color_attachment = m_current_framebuffer->GetColorAttachment();
+    const auto rect = color_attachment->GetRect();
+    if (m_stereo_target_width != rect.GetWidth() || m_stereo_target_height != rect.GetHeight() ||
+        color_attachment->GetFormat() != m_stereo_shader_texture->GetFormat())
+    {
+      m_stereo_shader_texture = CreateTexture(TextureConfig(rect.GetWidth(), rect.GetHeight(), 1, 2,
+                                                            1, color_attachment->GetFormat(),
+                                                            AbstractTextureFlag_RenderTarget));
+      m_stereo_target_width = rect.GetWidth();
+      m_stereo_target_height = rect.GetHeight();
+    }
+    DrawXFB(target_rc, source_texture, source_rc, 0);
+    m_stereo_shader_texture->CopyRectangleFromTexture(color_attachment, rect, 0, 0, rect, 0, 0);
+    DrawXFB(target_rc, source_texture, source_rc, 1);
+    m_stereo_shader_texture->CopyRectangleFromTexture(color_attachment, rect, 0, 0, rect, 1, 0);
+
+    // Apply the anaglyph or passive shader to the final output
+    VideoCommon::PE::ShaderApplyOptions options;
+    options.m_dest_fb = m_current_framebuffer;
+    options.m_dest_rect = target_rc;
+    options.m_source_color_tex = m_stereo_shader_texture.get();
+    options.m_source_rect = source_rc;
+    options.m_time_elapsed = m_timer.ElapsedMs();
+    m_stereo_shader_group->Apply(options);
   }
   else
   {

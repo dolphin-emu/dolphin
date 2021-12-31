@@ -15,6 +15,7 @@
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
 #include "Common/Thread.h"
 
 #include "Core/Config/FreeLookSettings.h"
@@ -47,7 +48,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
+#include "VideoCommon/PEShaderSystem/Constants.h"
 
 HotkeyScheduler::HotkeyScheduler() : m_stop_requested(false)
 {
@@ -497,14 +498,18 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_DECREMENT_SELECTED_STATE_SLOT))
         emit DecrementSelectedStateSlotHotkey();
 
+      const std::string dubois_algorithm_shader =
+          fmt::format("{}/{}/{}", File::GetSysDirectory(),
+                      VideoCommon::PE::Constants::dolphin_shipped_internal_shader_directory,
+                      "Anaglyph/dubois.glsl");
+
       // Stereoscopy
       if (IsHotkey(HK_TOGGLE_STEREO_SBS))
       {
         if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::SBS)
         {
           // Disable post-processing shader, as stereoscopy itself is currently a shader
-          if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
-            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
+          Config::SetCurrent(Config::GFX_STEREO_SHADER, "");
 
           Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::SBS);
         }
@@ -519,8 +524,7 @@ void HotkeyScheduler::Run()
         if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::TAB)
         {
           // Disable post-processing shader, as stereoscopy itself is currently a shader
-          if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
-            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
+          Config::SetCurrent(Config::GFX_STEREO_SHADER, "");
 
           Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::TAB);
         }
@@ -535,12 +539,12 @@ void HotkeyScheduler::Run()
         if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::Anaglyph)
         {
           Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Anaglyph);
-          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, DUBOIS_ALGORITHM_SHADER);
+          Config::SetCurrent(Config::GFX_STEREO_SHADER, dubois_algorithm_shader);
         }
         else
         {
           Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Off);
-          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
+          Config::SetCurrent(Config::GFX_STEREO_SHADER, "");
         }
       }
 

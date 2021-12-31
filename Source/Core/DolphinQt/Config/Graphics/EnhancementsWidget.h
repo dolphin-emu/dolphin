@@ -33,6 +33,8 @@ private:
   void ConnectWidgets();
   void AddDescriptions();
 
+  void OnStereoModeChanged();
+
   // Enhancements
   GraphicsChoice* m_ir_combo;
   ToolTipComboBox* m_aa_combo;
@@ -53,6 +55,7 @@ private:
   GraphicsSlider* m_3d_depth;
   GraphicsSlider* m_3d_convergence;
   GraphicsBool* m_3d_swap_eyes;
+  ToolTipComboBox* m_3d_shader;
 
   int m_msaa_modes;
   bool m_block_save;

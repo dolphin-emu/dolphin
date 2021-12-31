@@ -135,6 +135,7 @@ void VideoConfig::Refresh()
   iStereoConvergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
   bStereoEFBMonoDepth = Config::Get(Config::GFX_STEREO_EFB_MONO_DEPTH);
   iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
+  sStereoShader = Config::Get(Config::GFX_STEREO_SHADER);
 
   bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   bEFBAccessDeferInvalidation = Config::Get(Config::GFX_HACK_EFB_DEFER_INVALIDATION);
