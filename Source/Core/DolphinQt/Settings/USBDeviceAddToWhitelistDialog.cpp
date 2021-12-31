@@ -19,6 +19,7 @@
 
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -109,9 +110,10 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
     return;
   const auto selection_string = usb_inserted_devices_list->currentItem();
   usb_inserted_devices_list->clear();
+  auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : current_devices)
   {
-    if (SConfig::GetInstance().IsUSBDeviceWhitelisted(device.first))
+    if (whitelist.count({device.first.first, device.first.second}) != 0)
       continue;
     usb_inserted_devices_list->addItem(QString::fromStdString(device.second));
   }
@@ -141,14 +143,16 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
   const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
 
-  if (SConfig::GetInstance().IsUSBDeviceWhitelisted({vid, pid}))
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+  auto it = whitelist.emplace(vid, pid);
+  if (!it.second)
   {
     ModalMessageBox::critical(this, tr("USB Whitelist Error"),
                               tr("This USB device is already whitelisted."));
     return;
   }
-  SConfig::GetInstance().m_usb_passthrough_devices.emplace(vid, pid);
-  SConfig::GetInstance().SaveSettings();
+  Config::SetUSBDeviceWhitelist(whitelist);
+  Config::Save();
   accept();
 }
 

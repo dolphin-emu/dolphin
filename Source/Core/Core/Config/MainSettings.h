@@ -4,7 +4,9 @@
 #pragma once
 
 #include <array>
+#include <set>
 #include <string>
+#include <utility>
 
 #include "Common/Common.h"
 #include "Common/Config/Config.h"
@@ -256,5 +258,11 @@ extern const Info<bool> MAIN_BLUETOOTH_PASSTHROUGH_ENABLED;
 extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_VID;
 extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID;
 extern const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS;
+
+// Main.USBPassthrough
+
+extern const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES;
+std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist();
+void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 
 }  // namespace Config

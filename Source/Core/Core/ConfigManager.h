@@ -128,10 +128,6 @@ struct SConfig
   bool bLockCursor = false;
   std::string theme_name;
 
-  // USB passthrough settings
-  std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
-  bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
-
   // Custom RTC
   bool bEnableCustomRTC;
   u32 m_customRTCValue;
@@ -237,12 +233,10 @@ private:
   void SaveGeneralSettings(IniFile& ini);
   void SaveInterfaceSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
-  void SaveUSBPassthroughSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
-  void LoadUSBPassthroughSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                               u64 title_id, u16 revision, DiscIO::Region region);
