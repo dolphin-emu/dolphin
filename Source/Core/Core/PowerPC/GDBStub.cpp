@@ -29,6 +29,7 @@ typedef SSIZE_T ssize_t;
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -67,6 +68,19 @@ constexpr int MACH_O_POWERPC_750 = 9;
 const s64 GDB_UPDATE_CYCLES = 100000;
 
 const char* QUERY_XFER_TARGET = "qXfer:features:read:target.xml:";
+const char* QUERY_XFER_MEMORY_MAP = "qXfer:memory-map:read::";
+
+const char* TARGET_MEMORY_MAP_XML_NO_MMU =
+    "<memory-map version=\"1.0\">"
+    "<memory type=\"ram\" start=\"0x7E000000\" length=\"0x2000000\"/>"
+    "<memory type=\"ram\" start=\"0x80000000\" length=\"0x1800000\"/>"
+    "<memory type=\"ram\" start=\"0x90000000\" length=\"0x4000000\"/>"
+    "</memory-map>";
+
+const char* TARGET_MEMORY_MAP_XML_WITH_MMU =
+    "<memory-map version=\"1.0\">"
+    "<memory type=\"ram\" start=\"0x0\" length=\"0x10000000\"/>"
+    "</memory-map>";
 
 const char* target_xml = "<target version=\"1.0\">"
                          "<architecture>powerpc:750</architecture>"
@@ -567,21 +581,44 @@ static void HandleQuery()
   DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString());
 
   if (!strncmp((const char*)(s_cmd_bfr), "qAttached", strlen("qAttached")))
+  {
     return SendReply("1");
+  }
   if (!strcmp((const char*)(s_cmd_bfr), "qC"))
+  {
     return SendReply("QC1");
+  }
   if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
+  {
     return SendReply("m1");
+  }
   else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+  {
     return SendReply("l");
+  }
   else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+  {
     return SendReply("00");
+  }
   else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+  {
     return WriteHostInfo();
+  }
   else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
-    return SendReply("swbreak+;hwbreak+;qXfer:features:read+");
+  {
+    return SendReply("swbreak+;hwbreak+;qXfer:features:read+;qXfer:memory-map:read+");
+  }
   else if (!strncmp((const char*)(s_cmd_bfr), QUERY_XFER_TARGET, strlen(QUERY_XFER_TARGET)))
+  {
     return ProcessXFerCommand(target_xml, strlen(QUERY_XFER_TARGET));
+  }
+  else if (!strncmp((const char*)(s_cmd_bfr), QUERY_XFER_MEMORY_MAP, strlen(QUERY_XFER_MEMORY_MAP)))
+  {
+    const char* memoryMapXml = TARGET_MEMORY_MAP_XML_NO_MMU;
+    if (Config::Get(Config::MAIN_MMU))
+      memoryMapXml = TARGET_MEMORY_MAP_XML_WITH_MMU;
+    return ProcessXFerCommand(memoryMapXml, strlen(QUERY_XFER_MEMORY_MAP));
+  }
   SendReply("");
 }
 
