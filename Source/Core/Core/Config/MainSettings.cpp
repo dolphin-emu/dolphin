@@ -3,10 +3,13 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include <sstream>
+
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Config/Config.h"
+#include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -307,4 +310,46 @@ const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID{{System::Main, "BluetoothPassthro
 const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
     {System::Main, "BluetoothPassthrough", "LinkKeys"}, ""};
 
+// Main.USBPassthrough
+
+const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
+                                                     ""};
+
+static std::set<std::pair<u16, u16>> LoadUSBWhitelistFromString(const std::string& devices_string)
+{
+  std::set<std::pair<u16, u16>> devices;
+  for (const auto& pair : SplitString(devices_string, ','))
+  {
+    const auto index = pair.find(':');
+    if (index == std::string::npos)
+      continue;
+
+    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
+    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
+    if (vid && pid)
+      devices.emplace(vid, pid);
+  }
+  return devices;
+}
+
+static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>& devices)
+{
+  std::ostringstream oss;
+  for (const auto& device : devices)
+    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
+  std::string devices_string = oss.str();
+  if (!devices_string.empty())
+    devices_string.pop_back();
+  return devices_string;
+}
+
+std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist()
+{
+  return LoadUSBWhitelistFromString(Config::Get(Config::MAIN_USB_PASSTHROUGH_DEVICES));
+}
+
+void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
+{
+  Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
+}
 }  // namespace Config

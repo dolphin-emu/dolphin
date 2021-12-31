@@ -91,7 +91,6 @@ void SConfig::SaveSettings()
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
   SaveCoreSettings(ini);
-  SaveUSBPassthroughSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -195,20 +194,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("CustomRTCValue", m_customRTCValue);
 }
 
-void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
-
-  std::ostringstream oss;
-  for (const auto& device : m_usb_passthrough_devices)
-    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
-  std::string devices_string = oss.str();
-  if (!devices_string.empty())
-    devices_string.pop_back();
-
-  section->Set("Devices", devices_string);
-}
-
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -220,7 +205,6 @@ void SConfig::LoadSettings()
   LoadGeneralSettings(ini);
   LoadInterfaceSettings(ini);
   LoadCoreSettings(ini);
-  LoadUSBPassthroughSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -327,25 +311,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
-}
-
-void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
-  m_usb_passthrough_devices.clear();
-  std::string devices_string;
-  section->Get("Devices", &devices_string, "");
-  for (const auto& pair : SplitString(devices_string, ','))
-  {
-    const auto index = pair.find(':');
-    if (index == std::string::npos)
-      continue;
-
-    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
-    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
-    if (vid && pid)
-      m_usb_passthrough_devices.emplace(vid, pid);
-  }
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -488,11 +453,6 @@ void SConfig::LoadDefaults()
   bWii = false;
 
   ResetRunningGameMetadata();
-}
-
-bool SConfig::IsUSBDeviceWhitelisted(const std::pair<u16, u16> vid_pid) const
-{
-  return m_usb_passthrough_devices.find(vid_pid) != m_usb_passthrough_devices.end();
 }
 
 // Static method to make a simple game ID for elf/dol files
