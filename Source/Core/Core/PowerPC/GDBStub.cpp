@@ -28,6 +28,7 @@ typedef SSIZE_T ssize_t;
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -59,6 +60,9 @@ enum class BreakpointType
 };
 
 constexpr u32 NUM_BREAKPOINT_TYPES = 4;
+
+constexpr int MACH_O_POWERPC = 18;
+constexpr int MACH_O_POWERPC_750 = 9;
 
 const s64 GDB_UPDATE_CYCLES = 100000;
 
@@ -307,6 +311,14 @@ static void SendReply(const char* reply)
   }
 }
 
+static void WriteHostInfo()
+{
+  return SendReply(
+      fmt::format("cputype:{};cpusubtype:{};ostype:unknown;vendor:unknown;endian:big;ptrsize:4",
+                  MACH_O_POWERPC, MACH_O_POWERPC_750)
+          .c_str());
+}
+
 static void HandleQuery()
 {
   DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString());
@@ -321,6 +333,8 @@ static void HandleQuery()
     return SendReply("l");
   else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
     return SendReply("00");
+  else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+    return WriteHostInfo();
   else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
     return SendReply("swbreak+;hwbreak+");
 
