@@ -216,7 +216,7 @@ public:
   void ClearOption(AnalystOption option) { m_options &= ~(option); }
   bool HasOption(AnalystOption option) const { return !!(m_options & option); }
   void SetDebuggingEnabled(bool enabled) { m_is_debugging_enabled = enabled; }
-  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size);
+  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size) const;
 
 private:
   enum class ReorderType
@@ -226,11 +226,13 @@ private:
     CROR
   };
 
-  bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b);
-  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
-  void ReorderInstructions(u32 instructions, CodeOp* code);
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
-  bool IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions);
+  bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const;
+  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
+                               ReorderType type) const;
+  void ReorderInstructions(u32 instructions, CodeOp* code) const;
+  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
+                           u32 index) const;
+  bool IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const;
 
   // Options
   u32 m_options = 0;

@@ -192,7 +192,7 @@ static void AnalyzeFunction2(Common::Symbol* func)
   func->flags = flags;
 }
 
-bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
+bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
 {
   const GekkoOPInfo* a_info = a.opinfo;
   const GekkoOPInfo* b_info = b.opinfo;
@@ -451,7 +451,7 @@ static bool isCror(const CodeOp& a)
 }
 
 void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
-                                          ReorderType type)
+                                          ReorderType type) const
 {
   // Bubbling an instruction sometimes reveals another opportunity to bubble an instruction, so do
   // multiple passes.
@@ -502,7 +502,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
   }
 }
 
-void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
+void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code) const
 {
   // Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
   // picky about this, but cror seems to almost solely be used for this purpose in real code.
@@ -521,7 +521,7 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
-                                      u32 index)
+                                      u32 index) const
 {
   code->wantsCR0 = false;
   code->wantsCR1 = false;
@@ -684,7 +684,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   }
 }
 
-bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions)
+bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions) const
 {
   // Very basic algorithm to detect busy wait loops:
   //   * It loops to itself and does not contain any other branches.
@@ -737,7 +737,8 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
   return false;
 }
 
-u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size)
+u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
+                         std::size_t block_size) const
 {
   // Clear block stats
   *block->m_stats = {};
