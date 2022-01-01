@@ -363,22 +363,28 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   }
 
   s_is_started = true;
+  {
 #ifndef _WIN32
-  if (!_CoreParameter.gdb_socket.empty())
-  {
-    GDBStub::InitLocal(_CoreParameter.gdb_socket.data());
-    CPUSetInitialExecutionState(true);
-  }
-  else
+    std::string gdb_socket = Config::Get(Config::MAIN_GDB_SOCKET);
+    if (!gdb_socket.empty())
+    {
+      GDBStub::InitLocal(gdb_socket.data());
+      CPUSetInitialExecutionState(true);
+    }
+    else
 #endif
-      if (_CoreParameter.iGDBPort > 0)
-  {
-    GDBStub::Init(_CoreParameter.iGDBPort);
-    CPUSetInitialExecutionState(true);
-  }
-  else
-  {
-    CPUSetInitialExecutionState();
+    {
+      int gdb_port = Config::Get(Config::MAIN_GDB_PORT);
+      if (gdb_port > 0)
+      {
+        GDBStub::Init(gdb_port);
+        CPUSetInitialExecutionState(true);
+      }
+      else
+      {
+        CPUSetInitialExecutionState();
+      }
+    }
   }
 
   // Enter CPU run loop. When we leave it - we are done.

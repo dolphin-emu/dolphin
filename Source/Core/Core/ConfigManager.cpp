@@ -88,44 +88,11 @@ void SConfig::SaveSettings()
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
 
-  SaveGeneralSettings(ini);
   SaveCoreSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
   Config::Save();
-}
-
-void SConfig::SaveGeneralSettings(IniFile& ini)
-{
-  IniFile::Section* general = ini.GetOrCreateSection("General");
-
-  // General
-  general->Set("ShowLag", m_ShowLag);
-  general->Set("ShowFrameCount", m_ShowFrameCount);
-
-  // ISO folders
-  // Clear removed folders
-  int oldPaths;
-  int numPaths = (int)m_ISOFolder.size();
-  general->Get("ISOPaths", &oldPaths, 0);
-  for (int i = numPaths; i < oldPaths; i++)
-  {
-    ini.DeleteKey("General", fmt::format("ISOPath{}", i));
-  }
-
-  general->Set("ISOPaths", numPaths);
-  for (int i = 0; i < numPaths; i++)
-  {
-    general->Set(fmt::format("ISOPath{}", i), m_ISOFolder[i]);
-  }
-
-  general->Set("WirelessMac", m_WirelessMac);
-
-#ifndef _WIN32
-  general->Set("GDBSocket", gdb_socket);
-#endif
-  general->Set("GDBPort", iGDBPort);
 }
 
 void SConfig::SaveCoreSettings(IniFile& ini)
@@ -185,35 +152,7 @@ void SConfig::LoadSettings()
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
-  LoadGeneralSettings(ini);
   LoadCoreSettings(ini);
-}
-
-void SConfig::LoadGeneralSettings(IniFile& ini)
-{
-  IniFile::Section* general = ini.GetOrCreateSection("General");
-
-  general->Get("ShowLag", &m_ShowLag, false);
-  general->Get("ShowFrameCount", &m_ShowFrameCount, false);
-#ifndef _WIN32
-  general->Get("GDBSocket", &gdb_socket, "");
-#endif
-  general->Get("GDBPort", &(iGDBPort), -1);
-
-  m_ISOFolder.clear();
-  int numISOPaths;
-
-  if (general->Get("ISOPaths", &numISOPaths, 0))
-  {
-    for (int i = 0; i < numISOPaths; i++)
-    {
-      std::string tmpPath;
-      general->Get(fmt::format("ISOPath{}", i), &tmpPath, "");
-      m_ISOFolder.push_back(std::move(tmpPath));
-    }
-  }
-
-  general->Get("WirelessMac", &m_WirelessMac);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
@@ -391,11 +330,6 @@ void SConfig::LoadDefaults()
 {
   bAutomaticStart = false;
   bBootToPause = false;
-
-  iGDBPort = -1;
-#ifndef _WIN32
-  gdb_socket = "";
-#endif
 
   cpu_core = PowerPC::DefaultCPUCore();
   iTimingVariance = 40;

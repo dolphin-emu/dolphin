@@ -216,7 +216,7 @@ void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
 QStringList Settings::GetPaths() const
 {
   QStringList list;
-  for (const auto& path : SConfig::GetInstance().m_ISOFolder)
+  for (const auto& path : Config::GetIsoPaths())
     list << QString::fromStdString(path);
   return list;
 }
@@ -224,25 +224,27 @@ QStringList Settings::GetPaths() const
 void Settings::AddPath(const QString& qpath)
 {
   std::string path = qpath.toStdString();
+  std::vector<std::string> paths = Config::GetIsoPaths();
 
-  std::vector<std::string>& paths = SConfig::GetInstance().m_ISOFolder;
   if (std::find(paths.begin(), paths.end(), path) != paths.end())
     return;
 
   paths.emplace_back(path);
+  Config::SetIsoPaths(paths);
   emit PathAdded(qpath);
 }
 
 void Settings::RemovePath(const QString& qpath)
 {
   std::string path = qpath.toStdString();
-  std::vector<std::string>& paths = SConfig::GetInstance().m_ISOFolder;
+  std::vector<std::string> paths = Config::GetIsoPaths();
 
   auto new_end = std::remove(paths.begin(), paths.end(), path);
   if (new_end == paths.end())
     return;
 
   paths.erase(new_end, paths.end());
+  Config::SetIsoPaths(paths);
   emit PathRemoved(qpath);
 }
 

@@ -555,8 +555,6 @@ void Renderer::CheckForConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  const auto& config = SConfig::GetInstance();
-
   if (g_ActiveConfig.bShowFPS)
   {
     // Position in the top-right corner of the screen.
@@ -576,10 +574,10 @@ void Renderer::DrawDebugText()
     ImGui::End();
   }
 
-  const bool show_movie_window = config.m_ShowFrameCount || config.m_ShowLag ||
-                                 Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
-                                 Config::Get(Config::MAIN_MOVIE_SHOW_RTC) ||
-                                 Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD);
+  const bool show_movie_window =
+      Config::Get(Config::MAIN_SHOW_FRAME_COUNT) || Config::Get(Config::MAIN_SHOW_LAG) ||
+      Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
+      Config::Get(Config::MAIN_MOVIE_SHOW_RTC) || Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD);
   if (show_movie_window)
   {
     // Position under the FPS display.
@@ -598,12 +596,12 @@ void Renderer::DrawDebugText()
         ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
                     Movie::GetTotalInputCount());
       }
-      else if (config.m_ShowFrameCount)
+      else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
       {
         ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
         ImGui::Text("Input: %" PRIu64, Movie::GetCurrentInputCount());
       }
-      if (SConfig::GetInstance().m_ShowLag)
+      if (Config::Get(Config::MAIN_SHOW_LAG))
         ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
       if (Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
         ImGui::TextUnformatted(Movie::GetInputDisplay().c_str());

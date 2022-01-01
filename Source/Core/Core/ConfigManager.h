@@ -65,14 +65,7 @@ struct SConfig
   bool m_WiimoteEnableSpeaker;
   bool connect_wiimotes_for_ciface;
 
-  // ISO folder
-  std::vector<std::string> m_ISOFolder;
-
   // Settings
-  int iGDBPort;
-#ifndef _WIN32
-  std::string gdb_socket;
-#endif
   bool bAutomaticStart = false;
   bool bBootToPause = false;
 
@@ -180,10 +173,6 @@ struct SConfig
 
   float m_EmulationSpeed;
 
-  std::string m_WirelessMac;
-  bool m_ShowLag;
-  bool m_ShowFrameCount;
-
   // Input settings
   bool m_AdapterRumble[4];
   bool m_AdapterKonga[4];
@@ -208,10 +197,8 @@ private:
   SConfig();
   ~SConfig();
 
-  void SaveGeneralSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
 
-  void LoadGeneralSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
