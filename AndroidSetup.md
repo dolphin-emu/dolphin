@@ -44,7 +44,7 @@ Most dependencies for the Android project are supplied by Gradle automatically. 
 
 In the future, if the project targets a newer version of Android, or uses newer versions of the tools/build-tools packages, it will be necessary to use this tool to download updates.
 
-[components]: http://i.imgur.com/Oo1Fs93.png
-[package-icon]: http://i.imgur.com/NUpkAH8.png
-[gradle]: http://i.imgur.com/dXIH6o3.png
-[shortcut]: http://i.imgur.com/eCWP4Yy.png
+[components]: https://i.imgur.com/Oo1Fs93.png
+[package-icon]: https://i.imgur.com/NUpkAH8.png
+[gradle]: https://i.imgur.com/dXIH6o3.png
+[shortcut]: https://i.imgur.com/eCWP4Yy.png
