@@ -574,7 +574,7 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
     }
 
     s_playMode = MODE_RECORDING;
-    s_author = SConfig::GetInstance().m_strMovieAuthor;
+    s_author = Config::Get(Config::MAIN_MOVIE_MOVIE_AUTHOR);
     s_temp_input.clear();
 
     s_currentByte = 0;
@@ -1328,7 +1328,7 @@ void EndPlayInput(bool cont)
 
     Core::QueueHostJob([=] {
       Core::UpdateWantDeterminism();
-      if (was_running && !SConfig::GetInstance().m_PauseMovie)
+      if (was_running && !Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
         CPU::EnableStepping(false);
     });
   }

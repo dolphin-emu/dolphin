@@ -181,9 +181,8 @@ void AdvancedPane::ConnectLayout()
   connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
           [](bool checked) { SConfig::GetInstance().bMMU = checked; });
 
-  m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
+  m_cpu_clock_override_checkbox->setChecked(Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
-    SConfig::GetInstance().m_OCEnable = enable_clock_override;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
     Update();
   });
@@ -191,7 +190,6 @@ void AdvancedPane::ConnectLayout()
   connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
     // Vaguely exponential scaling?
     const float factor = std::exp2f((m_cpu_clock_override_slider->value() - 100.f) / 25.f);
-    SConfig::GetInstance().m_OCFactor = factor;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
     Update();
   });
@@ -232,7 +230,7 @@ void AdvancedPane::ConnectLayout()
 void AdvancedPane::Update()
 {
   const bool running = Core::GetState() != Core::State::Uninitialized;
-  const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable;
+  const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
   const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
 
@@ -258,14 +256,14 @@ void AdvancedPane::Update()
 
   {
     const QSignalBlocker blocker(m_cpu_clock_override_slider);
-    m_cpu_clock_override_slider->setValue(
-        static_cast<int>(std::round(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
+    m_cpu_clock_override_slider->setValue(static_cast<int>(
+        std::round(std::log2f(Config::Get(Config::MAIN_OVERCLOCK)) * 25.f + 100.f)));
   }
 
   m_cpu_clock_override_slider_label->setText([] {
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
-    int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
-    int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
+    int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f));
+    int clock = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * core_clock));
     return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
 

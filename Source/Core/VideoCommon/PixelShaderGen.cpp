@@ -648,7 +648,19 @@ uint WrapCoord(int coord, uint wrap, int size) {{
               "  float3 coords = float3(float(uv.x) / size_s, float(uv.y) / size_t, layer);\n");
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     {
-      out.Write("  return iround(255.0 * texture(tex, coords));\n}}\n");
+      if (!host_config.backend_sampler_lod_bias)
+      {
+        out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
+                  "  float lod_bias = float({}) / 256.0f;\n"
+                  "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
+                  BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
+      }
+      else
+      {
+        out.Write("  return iround(255.0 * texture(tex, coords));\n");
+      }
+
+      out.Write("}}\n");
     }
     else if (api_type == APIType::D3D)
     {

@@ -93,6 +93,8 @@ public:
 
     layer->Set(Config::SESSION_USE_FMA, m_settings.m_UseFMA);
 
+    layer->Set(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED, false);
+
     if (m_settings.m_StrictSettingsSync)
     {
       layer->Set(Config::GFX_HACK_VERTEX_ROUDING, m_settings.m_VertexRounding);

@@ -286,7 +286,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     if (!Settings::Instance().IsBatchModeEnabled())
     {
-      auto* updater = new Updater(&win);
+      auto* updater = new Updater(&win, Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
+                                  Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
       updater->start();
     }
 

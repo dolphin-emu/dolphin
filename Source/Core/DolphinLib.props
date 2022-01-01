@@ -726,7 +726,7 @@
     <ClCompile Include="Common\MathUtil.cpp" />
     <ClCompile Include="Common\Matrix.cpp" />
     <ClCompile Include="Common\MD5.cpp" />
-    <ClCompile Include="Common\MemArena.cpp" />
+    <ClCompile Include="Common\MemArenaWin.cpp" />
     <ClCompile Include="Common\MemoryUtil.cpp" />
     <ClCompile Include="Common\MsgHandler.cpp" />
     <ClCompile Include="Common\NandPaths.cpp" />

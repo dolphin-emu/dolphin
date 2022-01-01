@@ -51,10 +51,10 @@
 
 namespace UICommon
 {
-static void CreateDumpPath(const std::string& path)
+static void CreateDumpPath(std::string path)
 {
   if (!path.empty())
-    File::SetUserPath(D_DUMP_IDX, path + '/');
+    File::SetUserPath(D_DUMP_IDX, std::move(path));
   File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
@@ -63,18 +63,18 @@ static void CreateDumpPath(const std::string& path)
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
 }
 
-static void CreateLoadPath(const std::string& path)
+static void CreateLoadPath(std::string path)
 {
   if (!path.empty())
-    File::SetUserPath(D_LOAD_IDX, path + '/');
+    File::SetUserPath(D_LOAD_IDX, std::move(path));
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_RIIVOLUTION_IDX));
 }
 
-static void CreateResourcePackPath(const std::string& path)
+static void CreateResourcePackPath(std::string path)
 {
   if (!path.empty())
-    File::SetUserPath(D_RESOURCEPACK_IDX, path + '/');
+    File::SetUserPath(D_RESOURCEPACK_IDX, std::move(path));
 }
 
 static void CreateWFSPath(const std::string& path)
@@ -212,12 +212,12 @@ void CreateDirectories()
 #endif
 }
 
-void SetUserDirectory(const std::string& custom_path)
+void SetUserDirectory(std::string custom_path)
 {
   if (!custom_path.empty())
   {
     File::CreateFullPath(custom_path + DIR_SEP);
-    File::SetUserPath(D_USER_IDX, custom_path + DIR_SEP);
+    File::SetUserPath(D_USER_IDX, std::move(custom_path));
     return;
   }
 
@@ -281,15 +281,6 @@ void SetUserDirectory(const std::string& custom_path)
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
   CoTaskMemFree(my_documents);
-
-  // Prettify the path: it will be displayed in some places, we don't want a mix
-  // of \ and /.
-  user_path = ReplaceAll(std::move(user_path), "\\", DIR_SEP);
-
-  // Make sure it ends in DIR_SEP.
-  if (user_path.back() != DIR_SEP_CHR)
-    user_path += DIR_SEP;
-
 #else
   if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
   {

@@ -218,26 +218,25 @@ GameList::~GameList()
 
 void GameList::UpdateColumnVisibility()
 {
-  const auto& config = SConfig::GetInstance();
   const auto SetVisiblity = [this](const GameListModel::Column column, const bool is_visible) {
     m_list->setColumnHidden(static_cast<int>(column), !is_visible);
   };
 
   using Column = GameListModel::Column;
-  SetVisiblity(Column::Platform, config.m_showSystemColumn);
-  SetVisiblity(Column::Banner, config.m_showBannerColumn);
-  SetVisiblity(Column::Title, config.m_showTitleColumn);
-  SetVisiblity(Column::Description, config.m_showDescriptionColumn);
-  SetVisiblity(Column::Maker, config.m_showMakerColumn);
-  SetVisiblity(Column::ID, config.m_showIDColumn);
-  SetVisiblity(Column::Country, config.m_showRegionColumn);
-  SetVisiblity(Column::Size, config.m_showSizeColumn);
-  SetVisiblity(Column::FileName, config.m_showFileNameColumn);
-  SetVisiblity(Column::FilePath, config.m_showFilePathColumn);
-  SetVisiblity(Column::FileFormat, config.m_showFileFormatColumn);
-  SetVisiblity(Column::BlockSize, config.m_showBlockSizeColumn);
-  SetVisiblity(Column::Compression, config.m_showCompressionColumn);
-  SetVisiblity(Column::Tags, config.m_showTagsColumn);
+  SetVisiblity(Column::Platform, Config::Get(Config::MAIN_GAMELIST_COLUMN_PLATFORM));
+  SetVisiblity(Column::Banner, Config::Get(Config::MAIN_GAMELIST_COLUMN_BANNER));
+  SetVisiblity(Column::Title, Config::Get(Config::MAIN_GAMELIST_COLUMN_TITLE));
+  SetVisiblity(Column::Description, Config::Get(Config::MAIN_GAMELIST_COLUMN_DESCRIPTION));
+  SetVisiblity(Column::Maker, Config::Get(Config::MAIN_GAMELIST_COLUMN_MAKER));
+  SetVisiblity(Column::ID, Config::Get(Config::MAIN_GAMELIST_COLUMN_GAME_ID));
+  SetVisiblity(Column::Country, Config::Get(Config::MAIN_GAMELIST_COLUMN_REGION));
+  SetVisiblity(Column::Size, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_SIZE));
+  SetVisiblity(Column::FileName, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_NAME));
+  SetVisiblity(Column::FilePath, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_PATH));
+  SetVisiblity(Column::FileFormat, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT));
+  SetVisiblity(Column::BlockSize, Config::Get(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE));
+  SetVisiblity(Column::Compression, Config::Get(Config::MAIN_GAMELIST_COLUMN_COMPRESSION));
+  SetVisiblity(Column::Tags, Config::Get(Config::MAIN_GAMELIST_COLUMN_TAGS));
 }
 
 void GameList::MakeEmptyView()

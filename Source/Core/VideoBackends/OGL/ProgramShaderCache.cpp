@@ -838,7 +838,7 @@ void ProgramShaderCache::CreateHeader()
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
-      v > GlslEs300 ? "precision highp sampler2DMS;" : "",
+      v > GlslEs300 ? "precision highp sampler2DMSArray;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
 }
 

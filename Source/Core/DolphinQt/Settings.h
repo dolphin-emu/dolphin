@@ -10,7 +10,7 @@
 #include <QRadioButton>
 #include <QSettings>
 
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "DiscIO/Enums.h"
 
 namespace Core
@@ -99,8 +99,8 @@ public:
   void SetUSBKeyboardConnected(bool connected);
 
   // Graphics
-  void SetCursorVisibility(SConfig::ShowCursor hideCursor);
-  SConfig::ShowCursor GetCursorVisibility() const;
+  void SetCursorVisibility(Config::ShowCursor hideCursor);
+  Config::ShowCursor GetCursorVisibility() const;
   void SetLockCursor(bool lock_cursor);
   bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);

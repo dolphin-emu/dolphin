@@ -89,16 +89,7 @@ void SConfig::SaveSettings()
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
 
   SaveGeneralSettings(ini);
-  SaveInterfaceSettings(ini);
-  SaveGameListSettings(ini);
   SaveCoreSettings(ini);
-  SaveMovieSettings(ini);
-  SaveInputSettings(ini);
-  SaveFifoPlayerSettings(ini);
-  SaveBluetoothPassthroughSettings(ini);
-  SaveUSBPassthroughSettings(ini);
-  SaveAutoUpdateSettings(ini);
-  SaveJitDebugSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -135,64 +126,6 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   general->Set("GDBSocket", gdb_socket);
 #endif
   general->Set("GDBPort", iGDBPort);
-}
-
-void SConfig::SaveInterfaceSettings(IniFile& ini)
-{
-  IniFile::Section* interface = ini.GetOrCreateSection("Interface");
-
-  interface->Set("ConfirmStop", bConfirmStop);
-  interface->Set("CursorVisibility", m_show_cursor);
-  interface->Set("LockCursor", bLockCursor);
-  interface->Set("LanguageCode", m_InterfaceLanguage);
-  interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
-  interface->Set("ShowActiveTitle", m_show_active_title);
-  interface->Set("UseBuiltinTitleDatabase", m_use_builtin_title_database);
-  interface->Set("ThemeName", theme_name);
-  interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
-  interface->Set("DebugModeEnabled", bEnableDebugging);
-}
-
-void SConfig::SaveGameListSettings(IniFile& ini)
-{
-  IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
-
-  gamelist->Set("ListDrives", m_ListDrives);
-  gamelist->Set("ListWad", m_ListWad);
-  gamelist->Set("ListElfDol", m_ListElfDol);
-  gamelist->Set("ListWii", m_ListWii);
-  gamelist->Set("ListGC", m_ListGC);
-  gamelist->Set("ListJap", m_ListJap);
-  gamelist->Set("ListPal", m_ListPal);
-  gamelist->Set("ListUsa", m_ListUsa);
-  gamelist->Set("ListAustralia", m_ListAustralia);
-  gamelist->Set("ListFrance", m_ListFrance);
-  gamelist->Set("ListGermany", m_ListGermany);
-  gamelist->Set("ListItaly", m_ListItaly);
-  gamelist->Set("ListKorea", m_ListKorea);
-  gamelist->Set("ListNetherlands", m_ListNetherlands);
-  gamelist->Set("ListRussia", m_ListRussia);
-  gamelist->Set("ListSpain", m_ListSpain);
-  gamelist->Set("ListTaiwan", m_ListTaiwan);
-  gamelist->Set("ListWorld", m_ListWorld);
-  gamelist->Set("ListUnknown", m_ListUnknown);
-  gamelist->Set("ListSort", m_ListSort);
-  gamelist->Set("ListSortSecondary", m_ListSort2);
-
-  gamelist->Set("ColumnPlatform", m_showSystemColumn);
-  gamelist->Set("ColumnBanner", m_showBannerColumn);
-  gamelist->Set("ColumnDescription", m_showDescriptionColumn);
-  gamelist->Set("ColumnTitle", m_showTitleColumn);
-  gamelist->Set("ColumnNotes", m_showMakerColumn);
-  gamelist->Set("ColumnFileName", m_showFileNameColumn);
-  gamelist->Set("ColumnFilePath", m_showFilePathColumn);
-  gamelist->Set("ColumnID", m_showIDColumn);
-  gamelist->Set("ColumnRegion", m_showRegionColumn);
-  gamelist->Set("ColumnSize", m_showSizeColumn);
-  gamelist->Set("ColumnFileFormat", m_showFileFormatColumn);
-  gamelist->Set("ColumnBlockSize", m_showBlockSizeColumn);
-  gamelist->Set("ColumnCompression", m_showCompressionColumn);
-  gamelist->Set("ColumnTags", m_showTagsColumn);
 }
 
 void SConfig::SaveCoreSettings(IniFile& ini)
@@ -238,87 +171,10 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("RunCompareClient", bRunCompareClient);
   core->Set("MMU", bMMU);
   core->Set("EmulationSpeed", m_EmulationSpeed);
-  core->Set("Overclock", m_OCFactor);
-  core->Set("OverclockEnable", m_OCEnable);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
   core->Set("PerfMapDir", m_perfDir);
   core->Set("EnableCustomRTC", bEnableCustomRTC);
   core->Set("CustomRTCValue", m_customRTCValue);
-}
-
-void SConfig::SaveMovieSettings(IniFile& ini)
-{
-  IniFile::Section* movie = ini.GetOrCreateSection("Movie");
-
-  movie->Set("PauseMovie", m_PauseMovie);
-  movie->Set("Author", m_strMovieAuthor);
-  movie->Set("DumpFrames", m_DumpFrames);
-  movie->Set("DumpFramesSilent", m_DumpFramesSilent);
-  movie->Set("ShowInputDisplay", m_ShowInputDisplay);
-  movie->Set("ShowRTC", m_ShowRTC);
-  movie->Set("ShowRerecord", m_ShowRerecord);
-}
-
-void SConfig::SaveInputSettings(IniFile& ini)
-{
-  IniFile::Section* input = ini.GetOrCreateSection("Input");
-
-  input->Set("BackgroundInput", m_BackgroundInput);
-}
-
-void SConfig::SaveFifoPlayerSettings(IniFile& ini)
-{
-  IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
-
-  fifoplayer->Set("LoopReplay", bLoopFifoReplay);
-}
-
-void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
-
-  section->Set("Enabled", m_bt_passthrough_enabled);
-  section->Set("VID", m_bt_passthrough_vid);
-  section->Set("PID", m_bt_passthrough_pid);
-  section->Set("LinkKeys", m_bt_passthrough_link_keys);
-}
-
-void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
-
-  std::ostringstream oss;
-  for (const auto& device : m_usb_passthrough_devices)
-    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
-  std::string devices_string = oss.str();
-  if (!devices_string.empty())
-    devices_string.pop_back();
-
-  section->Set("Devices", devices_string);
-}
-
-void SConfig::SaveAutoUpdateSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
-
-  section->Set("UpdateTrack", m_auto_update_track);
-  section->Set("HashOverride", m_auto_update_hash_override);
-}
-
-void SConfig::SaveJitDebugSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Debug");
-
-  section->Set("JitOff", bJITOff);
-  section->Set("JitLoadStoreOff", bJITLoadStoreOff);
-  section->Set("JitLoadStoreFloatingOff", bJITLoadStoreFloatingOff);
-  section->Set("JitLoadStorePairedOff", bJITLoadStorePairedOff);
-  section->Set("JitFloatingPointOff", bJITFloatingPointOff);
-  section->Set("JitIntegerOff", bJITIntegerOff);
-  section->Set("JitPairedOff", bJITPairedOff);
-  section->Set("JitSystemRegistersOff", bJITSystemRegistersOff);
-  section->Set("JitBranchOff", bJITBranchOff);
-  section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
 }
 
 void SConfig::LoadSettings()
@@ -330,16 +186,7 @@ void SConfig::LoadSettings()
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
   LoadGeneralSettings(ini);
-  LoadInterfaceSettings(ini);
-  LoadGameListSettings(ini);
   LoadCoreSettings(ini);
-  LoadMovieSettings(ini);
-  LoadInputSettings(ini);
-  LoadFifoPlayerSettings(ini);
-  LoadBluetoothPassthroughSettings(ini);
-  LoadUSBPassthroughSettings(ini);
-  LoadAutoUpdateSettings(ini);
-  LoadJitDebugSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -367,66 +214,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
   }
 
   general->Get("WirelessMac", &m_WirelessMac);
-}
-
-void SConfig::LoadInterfaceSettings(IniFile& ini)
-{
-  IniFile::Section* interface = ini.GetOrCreateSection("Interface");
-
-  interface->Get("ConfirmStop", &bConfirmStop, true);
-  interface->Get("CursorVisibility", &m_show_cursor, ShowCursor::OnMovement);
-  interface->Get("LockCursor", &bLockCursor, false);
-  interface->Get("LanguageCode", &m_InterfaceLanguage, "");
-  interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
-  interface->Get("ShowActiveTitle", &m_show_active_title, true);
-  interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_title_database, true);
-  interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
-  interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
-  interface->Get("DebugModeEnabled", &bEnableDebugging, false);
-}
-
-void SConfig::LoadGameListSettings(IniFile& ini)
-{
-  IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
-
-  gamelist->Get("ListDrives", &m_ListDrives, false);
-  gamelist->Get("ListWad", &m_ListWad, true);
-  gamelist->Get("ListElfDol", &m_ListElfDol, true);
-  gamelist->Get("ListWii", &m_ListWii, true);
-  gamelist->Get("ListGC", &m_ListGC, true);
-  gamelist->Get("ListJap", &m_ListJap, true);
-  gamelist->Get("ListPal", &m_ListPal, true);
-  gamelist->Get("ListUsa", &m_ListUsa, true);
-
-  gamelist->Get("ListAustralia", &m_ListAustralia, true);
-  gamelist->Get("ListFrance", &m_ListFrance, true);
-  gamelist->Get("ListGermany", &m_ListGermany, true);
-  gamelist->Get("ListItaly", &m_ListItaly, true);
-  gamelist->Get("ListKorea", &m_ListKorea, true);
-  gamelist->Get("ListNetherlands", &m_ListNetherlands, true);
-  gamelist->Get("ListRussia", &m_ListRussia, true);
-  gamelist->Get("ListSpain", &m_ListSpain, true);
-  gamelist->Get("ListTaiwan", &m_ListTaiwan, true);
-  gamelist->Get("ListWorld", &m_ListWorld, true);
-  gamelist->Get("ListUnknown", &m_ListUnknown, true);
-  gamelist->Get("ListSort", &m_ListSort, 3);
-  gamelist->Get("ListSortSecondary", &m_ListSort2, 0);
-
-  // Gamelist columns toggles
-  gamelist->Get("ColumnPlatform", &m_showSystemColumn, true);
-  gamelist->Get("ColumnDescription", &m_showDescriptionColumn, false);
-  gamelist->Get("ColumnBanner", &m_showBannerColumn, true);
-  gamelist->Get("ColumnTitle", &m_showTitleColumn, true);
-  gamelist->Get("ColumnNotes", &m_showMakerColumn, true);
-  gamelist->Get("ColumnFileName", &m_showFileNameColumn, false);
-  gamelist->Get("ColumnFilePath", &m_showFilePathColumn, false);
-  gamelist->Get("ColumnID", &m_showIDColumn, false);
-  gamelist->Get("ColumnRegion", &m_showRegionColumn, true);
-  gamelist->Get("ColumnSize", &m_showSizeColumn, true);
-  gamelist->Get("ColumnFileFormat", &m_showFileFormatColumn, false);
-  gamelist->Get("ColumnBlockSize", &m_showBlockSizeColumn, false);
-  gamelist->Get("ColumnCompression", &m_showCompressionColumn, false);
-  gamelist->Get("ColumnTags", &m_showTagsColumn, false);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
@@ -485,92 +272,11 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
   core->Get("DisableICache", &bDisableICache, false);
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
-  core->Get("Overclock", &m_OCFactor, 1.0f);
-  core->Get("OverclockEnable", &m_OCEnable, false);
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   core->Get("PerfMapDir", &m_perfDir, "");
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
-}
-
-void SConfig::LoadMovieSettings(IniFile& ini)
-{
-  IniFile::Section* movie = ini.GetOrCreateSection("Movie");
-
-  movie->Get("PauseMovie", &m_PauseMovie, false);
-  movie->Get("Author", &m_strMovieAuthor, "");
-  movie->Get("DumpFrames", &m_DumpFrames, false);
-  movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
-  movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
-  movie->Get("ShowRTC", &m_ShowRTC, false);
-  movie->Get("ShowRerecord", &m_ShowRerecord, false);
-}
-
-void SConfig::LoadInputSettings(IniFile& ini)
-{
-  IniFile::Section* input = ini.GetOrCreateSection("Input");
-
-  input->Get("BackgroundInput", &m_BackgroundInput, false);
-}
-
-void SConfig::LoadFifoPlayerSettings(IniFile& ini)
-{
-  IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
-
-  fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
-}
-
-void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
-
-  section->Get("Enabled", &m_bt_passthrough_enabled, false);
-  section->Get("VID", &m_bt_passthrough_vid, -1);
-  section->Get("PID", &m_bt_passthrough_pid, -1);
-  section->Get("LinkKeys", &m_bt_passthrough_link_keys, "");
-}
-
-void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
-  m_usb_passthrough_devices.clear();
-  std::string devices_string;
-  section->Get("Devices", &devices_string, "");
-  for (const auto& pair : SplitString(devices_string, ','))
-  {
-    const auto index = pair.find(':');
-    if (index == std::string::npos)
-      continue;
-
-    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
-    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
-    if (vid && pid)
-      m_usb_passthrough_devices.emplace(vid, pid);
-  }
-}
-
-void SConfig::LoadAutoUpdateSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
-
-  section->Get("UpdateTrack", &m_auto_update_track, Common::scm_update_track_str);
-  section->Get("HashOverride", &m_auto_update_hash_override, "");
-}
-
-void SConfig::LoadJitDebugSettings(IniFile& ini)
-{
-  IniFile::Section* section = ini.GetOrCreateSection("Debug");
-  section->Get("JitOff", &bJITOff, false);
-  section->Get("JitLoadStoreOff", &bJITLoadStoreOff, false);
-  section->Get("JitLoadStoreFloatingOff", &bJITLoadStoreFloatingOff, false);
-  section->Get("JitLoadStorePairedOff", &bJITLoadStorePairedOff, false);
-  section->Get("JitFloatingPointOff", &bJITFloatingPointOff, false);
-  section->Get("JitIntegerOff", &bJITIntegerOff, false);
-  section->Get("JitPairedOff", &bJITPairedOff, false);
-  section->Get("JitSystemRegistersOff", &bJITSystemRegistersOff, false);
-  section->Get("JitBranchOff", &bJITBranchOff, false);
-  section->Get("JitRegisterCacheOff", &bJITRegisterCacheOff, false);
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -683,7 +389,6 @@ void SConfig::OnNewTitleLoad()
 
 void SConfig::LoadDefaults()
 {
-  bEnableDebugging = false;
   bAutomaticStart = false;
   bBootToPause = false;
 
@@ -712,25 +417,7 @@ void SConfig::LoadDefaults()
   bOverrideRegionSettings = false;
   bWii = false;
 
-  bLoopFifoReplay = true;
-
-  bJITOff = false;  // debugger only settings
-  bJITLoadStoreOff = false;
-  bJITLoadStoreFloatingOff = false;
-  bJITLoadStorePairedOff = false;
-  bJITFloatingPointOff = false;
-  bJITIntegerOff = false;
-  bJITPairedOff = false;
-  bJITSystemRegistersOff = false;
-  bJITBranchOff = false;
-  bJITRegisterCacheOff = false;
-
   ResetRunningGameMetadata();
-}
-
-bool SConfig::IsUSBDeviceWhitelisted(const std::pair<u16, u16> vid_pid) const
-{
-  return m_usb_passthrough_devices.find(vid_pid) != m_usb_passthrough_devices.end();
 }
 
 // Static method to make a simple game ID for elf/dol files

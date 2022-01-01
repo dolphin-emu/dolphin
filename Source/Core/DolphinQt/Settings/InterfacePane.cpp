@@ -21,7 +21,6 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
@@ -238,13 +237,13 @@ void InterfacePane::ConnectLayout()
 
 void InterfacePane::LoadConfig()
 {
-  const SConfig& startup_params = SConfig::GetInstance();
-  m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
+  m_checkbox_use_builtin_title_database->setChecked(
+      Config::Get(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE));
   m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
   m_combobox_language->setCurrentIndex(m_combobox_language->findData(
-      QString::fromStdString(SConfig::GetInstance().m_InterfaceLanguage)));
+      QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
   m_combobox_theme->setCurrentIndex(
-      m_combobox_theme->findText(QString::fromStdString(SConfig::GetInstance().theme_name)));
+      m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
   const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
@@ -261,19 +260,19 @@ void InterfacePane::LoadConfig()
 
   // Render Window Options
   m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
-  m_checkbox_confirm_on_stop->setChecked(startup_params.bConfirmStop);
+  m_checkbox_confirm_on_stop->setChecked(Config::Get(Config::MAIN_CONFIRM_ON_STOP));
   m_checkbox_use_panic_handlers->setChecked(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
   m_checkbox_enable_osd->setChecked(Config::Get(Config::MAIN_OSD_MESSAGES));
-  m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
-  m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
+  m_checkbox_show_active_title->setChecked(Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE));
+  m_checkbox_pause_on_focus_lost->setChecked(Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST));
   m_checkbox_use_covers->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
   m_checkbox_focused_hotkeys->setChecked(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
   m_radio_cursor_visible_movement->setChecked(Settings::Instance().GetCursorVisibility() ==
-                                              SConfig::ShowCursor::OnMovement);
+                                              Config::ShowCursor::OnMovement);
   m_radio_cursor_visible_always->setChecked(Settings::Instance().GetCursorVisibility() ==
-                                            SConfig::ShowCursor::Constantly);
+                                            Config::ShowCursor::Constantly);
   m_radio_cursor_visible_never->setChecked(Settings::Instance().GetCursorVisibility() ==
-                                           SConfig::ShowCursor::Never);
+                                           Config::ShowCursor::Never);
 
   m_checkbox_lock_mouse->setChecked(Settings::Instance().GetLockCursor());
   m_checkbox_disable_screensaver->setChecked(Config::Get(Config::MAIN_DISABLE_SCREENSAVER));
@@ -281,8 +280,8 @@ void InterfacePane::LoadConfig()
 
 void InterfacePane::OnSaveConfig()
 {
-  SConfig& settings = SConfig::GetInstance();
-  settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
+  Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
+                  m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
   Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
   Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
@@ -294,18 +293,18 @@ void InterfacePane::OnSaveConfig()
 
   // Render Window Options
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
-  settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
+  Config::SetBase(Config::MAIN_CONFIRM_ON_STOP, m_checkbox_confirm_on_stop->isChecked());
   Config::SetBase(Config::MAIN_USE_PANIC_HANDLERS, m_checkbox_use_panic_handlers->isChecked());
   Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
-  settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
-  settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
+  Config::SetBase(Config::MAIN_SHOW_ACTIVE_TITLE, m_checkbox_show_active_title->isChecked());
+  Config::SetBase(Config::MAIN_PAUSE_ON_FOCUS_LOST, m_checkbox_pause_on_focus_lost->isChecked());
 
   Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
 
   auto new_language = m_combobox_language->currentData().toString().toStdString();
-  if (new_language != SConfig::GetInstance().m_InterfaceLanguage)
+  if (new_language != Config::Get(Config::MAIN_INTERFACE_LANGUAGE))
   {
-    SConfig::GetInstance().m_InterfaceLanguage = new_language;
+    Config::SetBase(Config::MAIN_INTERFACE_LANGUAGE, new_language);
     ModalMessageBox::information(
         this, tr("Restart Required"),
         tr("You must restart Dolphin in order for the change to take effect."));
@@ -322,20 +321,20 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_FOCUSED_HOTKEYS, m_checkbox_focused_hotkeys->isChecked());
   Config::SetBase(Config::MAIN_DISABLE_SCREENSAVER, m_checkbox_disable_screensaver->isChecked());
 
-  settings.SaveSettings();
+  Config::Save();
 }
 
 void InterfacePane::OnCursorVisibleMovement()
 {
-  Settings::Instance().SetCursorVisibility(SConfig::ShowCursor::OnMovement);
+  Settings::Instance().SetCursorVisibility(Config::ShowCursor::OnMovement);
 }
 
 void InterfacePane::OnCursorVisibleNever()
 {
-  Settings::Instance().SetCursorVisibility(SConfig::ShowCursor::Never);
+  Settings::Instance().SetCursorVisibility(Config::ShowCursor::Never);
 }
 
 void InterfacePane::OnCursorVisibleAlways()
 {
-  Settings::Instance().SetCursorVisibility(SConfig::ShowCursor::Constantly);
+  Settings::Instance().SetCursorVisibility(Config::ShowCursor::Constantly);
 }

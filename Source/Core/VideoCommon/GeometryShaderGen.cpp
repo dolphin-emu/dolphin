@@ -331,21 +331,19 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
   if (wireframe && first_vertex)
     out.Write("\tif (i == 0) first = {};\n", vertex);
 
-  if (api_type == APIType::OpenGL)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    out.Write("\tgl_Position = {}.pos;\n", vertex);
+    // Vulkan NDC space has Y pointing down (right-handed NDC space).
+    if (api_type == APIType::Vulkan)
+      out.Write("\tgl_Position = float4({0}.pos.x, -{0}.pos.y, {0}.pos.z, {0}.pos.w);\n", vertex);
+    else
+      out.Write("\tgl_Position = {}.pos;\n", vertex);
+
     if (host_config.backend_depth_clamp)
     {
       out.Write("\tgl_ClipDistance[0] = {}.clipDist0;\n", vertex);
       out.Write("\tgl_ClipDistance[1] = {}.clipDist1;\n", vertex);
     }
-    AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, host_config);
-  }
-  else if (api_type == APIType::Vulkan)
-  {
-    // Vulkan NDC space has Y pointing down (right-handed NDC space).
-    out.Write("\tgl_Position = {}.pos;\n", vertex);
-    out.Write("\tgl_Position.y = -gl_Position.y;\n");
     AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, host_config);
   }
   else

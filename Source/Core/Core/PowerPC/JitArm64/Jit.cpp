@@ -67,8 +67,8 @@ void JitArm64::Init()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
-  m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().bFastmem &&
-                              !SConfig::GetInstance().bEnableDebugging;
+  m_enable_blr_optimization =
+      jo.enableBlocklink && SConfig::GetInstance().bFastmem && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
   AllocStack();
@@ -655,7 +655,7 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   std::size_t block_size = m_code_buffer.size();
 
-  if (SConfig::GetInstance().bEnableDebugging)
+  if (m_enable_debugging)
   {
     // Comment out the following to disable breakpoints (speed-up)
     block_size = 1;
@@ -820,7 +820,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.downcountAmount += opinfo->numCycles;
     js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
-    if (!SConfig::GetInstance().bEnableDebugging)
+    if (!m_enable_debugging)
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     // Skip calling UpdateLastUsed for lmw/stmw - it usually hurts more than it helps
@@ -950,7 +950,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (SConfig::GetInstance().bJITRegisterCacheOff)
+      if (bJITRegisterCacheOff)
       {
         gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
         fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
@@ -965,7 +965,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         FlushCarry();
 
       // If we have a register that will never be used again, discard or flush it.
-      if (!SConfig::GetInstance().bJITRegisterCacheOff)
+      if (!bJITRegisterCacheOff)
       {
         gpr.DiscardRegisters(op.gprDiscardable);
         fpr.DiscardRegisters(op.fprDiscardable);

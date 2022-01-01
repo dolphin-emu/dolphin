@@ -159,6 +159,7 @@ private:
   void WritePI(u32 address, u32 value);
 
   void FlushWGP();
+  void WaitForGPUInactive();
 
   void LoadBPReg(u8 reg, u32 value);
   void LoadCPReg(u8 reg, u32 value);

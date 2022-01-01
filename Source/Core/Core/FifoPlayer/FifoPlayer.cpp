@@ -10,7 +10,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -163,7 +163,7 @@ void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
-FifoPlayer::FifoPlayer() : m_Loop{SConfig::GetInstance().bLoopFifoReplay}
+FifoPlayer::FifoPlayer() : m_Loop{Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY)}
 {
 }
 
@@ -214,6 +214,9 @@ public:
   void Init() override
   {
     IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
+    // Without this call, we deadlock in initialization in dual core, as the FIFO is disabled and
+    // thus ClearEfb()'s call to WaitForGPUInactive() never returns
+    CPU::EnableStepping(false);
 
     m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
     m_parent->LoadMemory();
@@ -422,13 +425,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   }
 
   FlushWGP();
-
-  // Sleep while the GPU is active
-  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
-  {
-    CoreTiming::Idle();
-    CoreTiming::Advance();
-  }
+  WaitForGPUInactive();
 }
 
 void FifoPlayer::WriteFramePart(const FramePart& part, u32* next_mem_update,
@@ -571,18 +568,18 @@ void FifoPlayer::ClearEfb()
   // Trigger a bogus EFB copy to clear the screen
   // The target address is 0, and there shouldn't be anything there,
   // but even if there is it should be loaded in by LoadTextureMemory afterwards
-  X10Y10 tl;
+  X10Y10 tl = bpmem.copyTexSrcXY;
   tl.x = 0;
   tl.y = 0;
   LoadBPReg(BPMEM_EFB_TL, tl.hex);
-  X10Y10 wh;
+  X10Y10 wh = bpmem.copyTexSrcWH;
   wh.x = EFB_WIDTH - 1;
   wh.y = EFB_HEIGHT - 1;
   LoadBPReg(BPMEM_EFB_WH, wh.hex);
   LoadBPReg(BPMEM_MIPMAP_STRIDE, 0x140);
   // The clear color and Z value have already been loaded via LoadRegisters()
   LoadBPReg(BPMEM_EFB_ADDR, 0);
-  UPE_Copy copy;
+  UPE_Copy copy = bpmem.triggerEFBCopy;
   copy.clamp_top = false;
   copy.clamp_bottom = false;
   copy.yuv = false;
@@ -603,6 +600,10 @@ void FifoPlayer::ClearEfb()
   LoadBPReg(BPMEM_EFB_WH, m_File->GetBPMem()[BPMEM_EFB_WH]);
   LoadBPReg(BPMEM_MIPMAP_STRIDE, m_File->GetBPMem()[BPMEM_MIPMAP_STRIDE]);
   LoadBPReg(BPMEM_EFB_ADDR, m_File->GetBPMem()[BPMEM_EFB_ADDR]);
+  // Wait for the EFB copy to finish.  That way, the EFB copy (which will be performed at a later
+  // time) won't clobber any memory updates.
+  FlushWGP();
+  WaitForGPUInactive();
 }
 
 void FifoPlayer::LoadMemory()
@@ -693,6 +694,16 @@ void FifoPlayer::FlushWGP()
   GPFifo::Write8(0);
 
   GPFifo::ResetGatherPipe();
+}
+
+void FifoPlayer::WaitForGPUInactive()
+{
+  // Sleep while the GPU is active
+  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
+  {
+    CoreTiming::Idle();
+    CoreTiming::Advance();
+  }
 }
 
 void FifoPlayer::LoadBPReg(u8 reg, u32 value)

@@ -3,10 +3,15 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include <sstream>
+
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/StringUtil.h"
+#include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
@@ -194,6 +199,19 @@ const Info<bool> MAIN_USE_PANIC_HANDLERS{{System::Main, "Interface", "UsePanicHa
 const Info<bool> MAIN_ABORT_ON_PANIC_ALERT{{System::Main, "Interface", "AbortOnPanicAlert"}, false};
 const Info<bool> MAIN_OSD_MESSAGES{{System::Main, "Interface", "OnScreenDisplayMessages"}, true};
 const Info<bool> MAIN_SKIP_NKIT_WARNING{{System::Main, "Interface", "SkipNKitWarning"}, false};
+const Info<bool> MAIN_CONFIRM_ON_STOP{{System::Main, "Interface", "ConfirmStop"}, true};
+const Info<ShowCursor> MAIN_SHOW_CURSOR{{System::Main, "Interface", "CursorVisibility"},
+                                        ShowCursor::OnMovement};
+const Info<bool> MAIN_LOCK_CURSOR{{System::Main, "Interface", "LockCursor"}, false};
+const Info<std::string> MAIN_INTERFACE_LANGUAGE{{System::Main, "Interface", "LanguageCode"}, ""};
+const Info<bool> MAIN_EXTENDED_FPS_INFO{{System::Main, "Interface", "ExtendedFPSInfo"}, false};
+const Info<bool> MAIN_SHOW_ACTIVE_TITLE{{System::Main, "Interface", "ShowActiveTitle"}, true};
+const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE{
+    {System::Main, "Interface", "UseBuiltinTitleDatabase"}, true};
+const Info<std::string> MAIN_THEME_NAME{{System::Main, "Interface", "ThemeName"},
+                                        DEFAULT_THEME_DIR};
+const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST{{System::Main, "Interface", "PauseOnFocusLost"}, false};
+const Info<bool> MAIN_ENABLE_DEBUGGING{{System::Main, "Interface", "DebugModeEnabled"}, false};
 
 // Main.Analytics
 
@@ -202,4 +220,150 @@ const Info<bool> MAIN_ANALYTICS_ENABLED{{System::Main, "Analytics", "Enabled"}, 
 const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED{{System::Main, "Analytics", "PermissionAsked"},
                                                  false};
 
+// Main.GameList
+
+const Info<bool> MAIN_GAMELIST_LIST_DRIVES{{System::Main, "GameList", "ListDrives"}, false};
+const Info<bool> MAIN_GAMELIST_LIST_WAD{{System::Main, "GameList", "ListWad"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_ELF_DOL{{System::Main, "GameList", "ListElfDol"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_WII{{System::Main, "GameList", "ListWii"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_GC{{System::Main, "GameList", "ListGC"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_JPN{{System::Main, "GameList", "ListJap"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_PAL{{System::Main, "GameList", "ListPal"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_USA{{System::Main, "GameList", "ListUsa"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_AUSTRALIA{{System::Main, "GameList", "ListAustralia"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_FRANCE{{System::Main, "GameList", "ListFrance"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_GERMANY{{System::Main, "GameList", "ListGermany"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_ITALY{{System::Main, "GameList", "ListItaly"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_KOREA{{System::Main, "GameList", "ListKorea"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_NETHERLANDS{{System::Main, "GameList", "ListNetherlands"},
+                                                true};
+const Info<bool> MAIN_GAMELIST_LIST_RUSSIA{{System::Main, "GameList", "ListRussia"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_SPAIN{{System::Main, "GameList", "ListSpain"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_TAIWAN{{System::Main, "GameList", "ListTaiwan"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_WORLD{{System::Main, "GameList", "ListWorld"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_UNKNOWN{{System::Main, "GameList", "ListUnknown"}, true};
+const Info<int> MAIN_GAMELIST_LIST_SORT{{System::Main, "GameList", "ListSort"}, 3};
+const Info<int> MAIN_GAMELIST_LIST_SORT_SECONDARY{{System::Main, "GameList", "ListSortSecondary"},
+                                                  0};
+const Info<bool> MAIN_GAMELIST_COLUMN_PLATFORM{{System::Main, "GameList", "ColumnPlatform"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_DESCRIPTION{{System::Main, "GameList", "ColumnDescription"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_BANNER{{System::Main, "GameList", "ColumnBanner"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_TITLE{{System::Main, "GameList", "ColumnTitle"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_MAKER{{System::Main, "GameList", "ColumnNotes"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_NAME{{System::Main, "GameList", "ColumnFileName"},
+                                                false};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_PATH{{System::Main, "GameList", "ColumnFilePath"},
+                                                false};
+const Info<bool> MAIN_GAMELIST_COLUMN_GAME_ID{{System::Main, "GameList", "ColumnID"}, false};
+const Info<bool> MAIN_GAMELIST_COLUMN_REGION{{System::Main, "GameList", "ColumnRegion"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_SIZE{{System::Main, "GameList", "ColumnSize"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT{{System::Main, "GameList", "ColumnFileFormat"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE{{System::Main, "GameList", "ColumnBlockSize"},
+                                                 false};
+const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION{{System::Main, "GameList", "ColumnCompression"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTags"}, false};
+
+// Main.FifoPlayer
+
+const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY{{System::Main, "FifoPlayer", "LoopReplay"}, true};
+
+// Main.AutoUpdate
+
+const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK{{System::Main, "AutoUpdate", "UpdateTrack"},
+                                                     Common::scm_update_track_str};
+const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE{{System::Main, "AutoUpdate", "HashOverride"},
+                                                      ""};
+
+// Main.Movie
+
+const Info<bool> MAIN_MOVIE_PAUSE_MOVIE{{System::Main, "Movie", "PauseMovie"}, false};
+const Info<std::string> MAIN_MOVIE_MOVIE_AUTHOR{{System::Main, "Movie", "Author"}, ""};
+const Info<bool> MAIN_MOVIE_DUMP_FRAMES{{System::Main, "Movie", "DumpFrames"}, false};
+const Info<bool> MAIN_MOVIE_DUMP_FRAMES_SILENT{{System::Main, "Movie", "DumpFramesSilent"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_INPUT_DISPLAY{{System::Main, "Movie", "ShowInputDisplay"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_RTC{{System::Main, "Movie", "ShowRTC"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_RERECORD{{System::Main, "Movie", "ShowRerecord"}, false};
+
+// Main.Input
+
+const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
+
+// Main.Debug
+
+const Info<bool> MAIN_DEBUG_JIT_OFF{{System::Main, "Debug", "JitOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_OFF{{System::Main, "Debug", "JitLoadStoreOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF{{System::Main, "Debug", "JitLoadStorelXzOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF{{System::Main, "Debug", "JitLoadStorelwzOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF{{System::Main, "Debug", "JitLoadStorelbzxOff"},
+                                                    false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF{
+    {System::Main, "Debug", "JitLoadStoreFloatingOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF{
+    {System::Main, "Debug", "JitLoadStorePairedOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_FLOATING_POINT_OFF{{System::Main, "Debug", "JitFloatingPointOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_INTEGER_OFF{{System::Main, "Debug", "JitIntegerOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF{{System::Main, "Debug", "JitPairedOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF{
+    {System::Main, "Debug", "JitSystemRegistersOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF{{System::Main, "Debug", "JitBranchOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF{{System::Main, "Debug", "JitRegisterCacheOff"},
+                                                   false};
+
+// Main.BluetoothPassthrough
+
+const Info<bool> MAIN_BLUETOOTH_PASSTHROUGH_ENABLED{
+    {System::Main, "BluetoothPassthrough", "Enabled"}, false};
+const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_VID{{System::Main, "BluetoothPassthrough", "VID"}, -1};
+const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID{{System::Main, "BluetoothPassthrough", "PID"}, -1};
+const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
+    {System::Main, "BluetoothPassthrough", "LinkKeys"}, ""};
+
+// Main.USBPassthrough
+
+const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
+                                                     ""};
+
+static std::set<std::pair<u16, u16>> LoadUSBWhitelistFromString(const std::string& devices_string)
+{
+  std::set<std::pair<u16, u16>> devices;
+  for (const auto& pair : SplitString(devices_string, ','))
+  {
+    const auto index = pair.find(':');
+    if (index == std::string::npos)
+      continue;
+
+    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
+    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
+    if (vid && pid)
+      devices.emplace(vid, pid);
+  }
+  return devices;
+}
+
+static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>& devices)
+{
+  std::ostringstream oss;
+  for (const auto& device : devices)
+    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
+  std::string devices_string = oss.str();
+  if (!devices_string.empty())
+    devices_string.pop_back();
+  return devices_string;
+}
+
+std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist()
+{
+  return LoadUSBWhitelistFromString(Config::Get(Config::MAIN_USB_PASSTHROUGH_DEVICES));
+}
+
+void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
+{
+  Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
+}
 }  // namespace Config

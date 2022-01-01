@@ -861,7 +861,7 @@ bool MainWindow::RequestStop()
   else
     FullScreen();
 
-  if (SConfig::GetInstance().bConfirmStop)
+  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
   {
     if (std::exchange(m_stop_confirm_showing, true))
       return true;

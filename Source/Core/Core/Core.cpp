@@ -486,7 +486,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   bool init_wiimotes = false;
-  if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
     if (init_controllers)
     {
@@ -954,7 +954,7 @@ void UpdateTitle(u32 ElapseTime)
   else
   {
     SFPS = fmt::format("FPS: {:.0f} - VPS: {:.0f} - {:.0f}%", FPS, VPS, Speed);
-    if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
+    if (Config::Get(Config::MAIN_EXTENDED_FPS_INFO))
     {
       // Use extended or summary information. The summary information does not print the ticks data,
       // that's more of a debugging interest, it can always be optional of course if someone is
@@ -980,7 +980,7 @@ void UpdateTitle(u32 ElapseTime)
   }
 
   std::string message = fmt::format("{} | {} | {}", Common::scm_rev_str, SSettings, SFPS);
-  if (SConfig::GetInstance().m_show_active_title)
+  if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
     if (!title.empty())

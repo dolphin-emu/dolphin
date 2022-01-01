@@ -69,7 +69,6 @@ struct SConfig
   std::vector<std::string> m_ISOFolder;
 
   // Settings
-  bool bEnableDebugging = false;
   int iGDBPort;
 #ifndef _WIN32
   std::string gdb_socket;
@@ -82,19 +81,6 @@ struct SConfig
   bool bJITFollowBranch;
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
-  bool bJITOff = false;
-  bool bJITLoadStoreOff = false;
-  bool bJITLoadStorelXzOff = false;
-  bool bJITLoadStorelwzOff = false;
-  bool bJITLoadStorelbzxOff = false;
-  bool bJITLoadStoreFloatingOff = false;
-  bool bJITLoadStorePairedOff = false;
-  bool bJITFloatingPointOff = false;
-  bool bJITIntegerOff = false;
-  bool bJITPairedOff = false;
-  bool bJITSystemRegistersOff = false;
-  bool bJITBranchOff = false;
-  bool bJITRegisterCacheOff = false;
 
   bool bFastmem;
   bool bFloatExceptions = false;
@@ -127,32 +113,6 @@ struct SConfig
 
   bool bWii = false;
   bool m_is_mios = false;
-
-  // Interface settings
-  bool bConfirmStop = false;
-
-  enum class ShowCursor
-  {
-    Never,
-    Constantly,
-    OnMovement,
-  } m_show_cursor;
-
-  bool bLockCursor = false;
-  std::string theme_name;
-
-  // Bluetooth passthrough mode settings
-  bool m_bt_passthrough_enabled = false;
-  int m_bt_passthrough_pid = -1;
-  int m_bt_passthrough_vid = -1;
-  std::string m_bt_passthrough_link_keys;
-
-  // USB passthrough settings
-  std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
-  bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
-
-  // Fifo Player related settings
-  bool bLoopFifoReplay = true;
 
   // Custom RTC
   bool bEnableCustomRTC;
@@ -218,75 +178,15 @@ struct SConfig
   std::string m_bba_xlink_ip;
   bool m_bba_xlink_chat_osd = true;
 
-  // interface language
-  std::string m_InterfaceLanguage;
   float m_EmulationSpeed;
-  bool m_OCEnable;
-  float m_OCFactor;
-  // other interface settings
-  bool m_InterfaceExtendedFPSInfo;
-  bool m_show_active_title = false;
-  bool m_use_builtin_title_database = true;
-
-  bool m_ListDrives;
-  bool m_ListWad;
-  bool m_ListElfDol;
-  bool m_ListWii;
-  bool m_ListGC;
-  bool m_ListPal;
-  bool m_ListUsa;
-  bool m_ListJap;
-  bool m_ListAustralia;
-  bool m_ListFrance;
-  bool m_ListGermany;
-  bool m_ListItaly;
-  bool m_ListKorea;
-  bool m_ListNetherlands;
-  bool m_ListRussia;
-  bool m_ListSpain;
-  bool m_ListTaiwan;
-  bool m_ListWorld;
-  bool m_ListUnknown;
-  int m_ListSort;
-  int m_ListSort2;
-
-  // Game list column toggles
-  bool m_showSystemColumn;
-  bool m_showBannerColumn;
-  bool m_showDescriptionColumn;
-  bool m_showTitleColumn;
-  bool m_showMakerColumn;
-  bool m_showFileNameColumn;
-  bool m_showFilePathColumn;
-  bool m_showIDColumn;
-  bool m_showRegionColumn;
-  bool m_showSizeColumn;
-  bool m_showFileFormatColumn;
-  bool m_showBlockSizeColumn;
-  bool m_showCompressionColumn;
-  bool m_showTagsColumn;
 
   std::string m_WirelessMac;
-  bool m_PauseMovie;
-  bool m_ShowRerecord;
   bool m_ShowLag;
   bool m_ShowFrameCount;
-  bool m_ShowRTC;
-  std::string m_strMovieAuthor;
-  bool m_DumpFrames;
-  bool m_DumpFramesSilent;
-  bool m_ShowInputDisplay;
-
-  bool m_PauseOnFocusLost;
 
   // Input settings
-  bool m_BackgroundInput;
   bool m_AdapterRumble[4];
   bool m_AdapterKonga[4];
-
-  // Auto-update settings
-  std::string m_auto_update_track;
-  std::string m_auto_update_hash_override;
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
@@ -309,28 +209,10 @@ private:
   ~SConfig();
 
   void SaveGeneralSettings(IniFile& ini);
-  void SaveInterfaceSettings(IniFile& ini);
-  void SaveGameListSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
-  void SaveInputSettings(IniFile& ini);
-  void SaveMovieSettings(IniFile& ini);
-  void SaveFifoPlayerSettings(IniFile& ini);
-  void SaveBluetoothPassthroughSettings(IniFile& ini);
-  void SaveUSBPassthroughSettings(IniFile& ini);
-  void SaveAutoUpdateSettings(IniFile& ini);
-  void SaveJitDebugSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
-  void LoadInterfaceSettings(IniFile& ini);
-  void LoadGameListSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
-  void LoadInputSettings(IniFile& ini);
-  void LoadMovieSettings(IniFile& ini);
-  void LoadFifoPlayerSettings(IniFile& ini);
-  void LoadBluetoothPassthroughSettings(IniFile& ini);
-  void LoadUSBPassthroughSettings(IniFile& ini);
-  void LoadAutoUpdateSettings(IniFile& ini);
-  void LoadJitDebugSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                               u64 title_id, u16 revision, DiscIO::Region region);

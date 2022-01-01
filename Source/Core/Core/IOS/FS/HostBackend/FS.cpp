@@ -117,6 +117,8 @@ HostFileSystem::HostFileSystem(const std::string& root_path,
                                std::vector<NandRedirect> nand_redirects)
     : m_root_path{root_path}, m_nand_redirects(std::move(nand_redirects))
 {
+  while (StringEndsWith(m_root_path, "/"))
+    m_root_path.pop_back();
   File::CreateFullPath(m_root_path + "/");
   ResetFst();
   LoadFst();

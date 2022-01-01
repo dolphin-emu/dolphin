@@ -254,7 +254,7 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("version-dist", Common::scm_distributor_str);
 
   // Auto-Update information.
-  builder.AddData("update-track", SConfig::GetInstance().m_auto_update_track);
+  builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 
   // CPU information.
   builder.AddData("cpu-summary", cpu_info.Summarize());
@@ -363,8 +363,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-fastmem", SConfig::GetInstance().bFastmem);
   builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
   builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
-  builder.AddData("cfg-oc-enable", SConfig::GetInstance().m_OCEnable);
-  builder.AddData("cfg-oc-factor", SConfig::GetInstance().m_OCFactor);
+  builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
+  builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {

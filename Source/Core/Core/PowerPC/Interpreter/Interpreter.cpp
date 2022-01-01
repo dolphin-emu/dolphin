@@ -14,7 +14,7 @@
 #include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HLE/HLE.h"
@@ -247,7 +247,7 @@ void Interpreter::Run()
     CoreTiming::Advance();
 
     // we have to check exceptions at branches apparently (or maybe just rfi?)
-    if (SConfig::GetInstance().bEnableDebugging)
+    if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     {
 #ifdef SHOW_HISTORY
       s_pc_block_vec.push_back(PC);
@@ -260,8 +260,8 @@ void Interpreter::Run()
       while (PowerPC::ppcState.downcount > 0)
       {
         m_end_block = false;
-        int i;
-        for (i = 0; !m_end_block; i++)
+        int cycles = 0;
+        while (!m_end_block)
         {
 #ifdef SHOW_HISTORY
           s_pc_vec.push_back(PC);
@@ -301,9 +301,9 @@ void Interpreter::Run()
             Host_UpdateDisasmDialog();
             return;
           }
-          SingleStepInner();
+          cycles += SingleStepInner();
         }
-        PowerPC::ppcState.downcount -= i;
+        PowerPC::ppcState.downcount -= cycles;
       }
     }
     else

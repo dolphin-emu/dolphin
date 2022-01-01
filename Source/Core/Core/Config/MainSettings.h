@@ -4,7 +4,9 @@
 #pragma once
 
 #include <array>
+#include <set>
 #include <string>
+#include <utility>
 
 #include "Common/Common.h"
 #include "Common/Config/Config.h"
@@ -165,10 +167,120 @@ extern const Info<bool> MAIN_USE_PANIC_HANDLERS;
 extern const Info<bool> MAIN_ABORT_ON_PANIC_ALERT;
 extern const Info<bool> MAIN_OSD_MESSAGES;
 extern const Info<bool> MAIN_SKIP_NKIT_WARNING;
+extern const Info<bool> MAIN_CONFIRM_ON_STOP;
+
+enum class ShowCursor
+{
+  Never,
+  Constantly,
+  OnMovement,
+};
+extern const Info<ShowCursor> MAIN_SHOW_CURSOR;
+
+extern const Info<bool> MAIN_LOCK_CURSOR;
+extern const Info<std::string> MAIN_INTERFACE_LANGUAGE;
+extern const Info<bool> MAIN_EXTENDED_FPS_INFO;
+extern const Info<bool> MAIN_SHOW_ACTIVE_TITLE;
+extern const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE;
+extern const Info<std::string> MAIN_THEME_NAME;
+extern const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST;
+extern const Info<bool> MAIN_ENABLE_DEBUGGING;
 
 // Main.Analytics
 
 extern const Info<std::string> MAIN_ANALYTICS_ID;
 extern const Info<bool> MAIN_ANALYTICS_ENABLED;
 extern const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED;
+
+// Main.GameList
+
+extern const Info<bool> MAIN_GAMELIST_LIST_DRIVES;
+extern const Info<bool> MAIN_GAMELIST_LIST_WAD;
+extern const Info<bool> MAIN_GAMELIST_LIST_ELF_DOL;
+extern const Info<bool> MAIN_GAMELIST_LIST_WII;
+extern const Info<bool> MAIN_GAMELIST_LIST_GC;
+extern const Info<bool> MAIN_GAMELIST_LIST_JPN;
+extern const Info<bool> MAIN_GAMELIST_LIST_PAL;
+extern const Info<bool> MAIN_GAMELIST_LIST_USA;
+extern const Info<bool> MAIN_GAMELIST_LIST_AUSTRALIA;
+extern const Info<bool> MAIN_GAMELIST_LIST_FRANCE;
+extern const Info<bool> MAIN_GAMELIST_LIST_GERMANY;
+extern const Info<bool> MAIN_GAMELIST_LIST_ITALY;
+extern const Info<bool> MAIN_GAMELIST_LIST_KOREA;
+extern const Info<bool> MAIN_GAMELIST_LIST_NETHERLANDS;
+extern const Info<bool> MAIN_GAMELIST_LIST_RUSSIA;
+extern const Info<bool> MAIN_GAMELIST_LIST_SPAIN;
+extern const Info<bool> MAIN_GAMELIST_LIST_TAIWAN;
+extern const Info<bool> MAIN_GAMELIST_LIST_WORLD;
+extern const Info<bool> MAIN_GAMELIST_LIST_UNKNOWN;
+extern const Info<int> MAIN_GAMELIST_LIST_SORT;
+extern const Info<int> MAIN_GAMELIST_LIST_SORT_SECONDARY;
+
+extern const Info<bool> MAIN_GAMELIST_COLUMN_PLATFORM;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_DESCRIPTION;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_BANNER;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_TITLE;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_MAKER;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_NAME;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_PATH;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_GAME_ID;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_REGION;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_SIZE;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION;
+extern const Info<bool> MAIN_GAMELIST_COLUMN_TAGS;
+
+// Main.FifoPlayer
+
+extern const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY;
+
+// Main.AutoUpdate
+
+extern const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK;
+extern const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE;
+
+// Main.Movie
+
+extern const Info<bool> MAIN_MOVIE_PAUSE_MOVIE;
+extern const Info<std::string> MAIN_MOVIE_MOVIE_AUTHOR;
+extern const Info<bool> MAIN_MOVIE_DUMP_FRAMES;
+extern const Info<bool> MAIN_MOVIE_DUMP_FRAMES_SILENT;
+extern const Info<bool> MAIN_MOVIE_SHOW_INPUT_DISPLAY;
+extern const Info<bool> MAIN_MOVIE_SHOW_RTC;
+extern const Info<bool> MAIN_MOVIE_SHOW_RERECORD;
+
+// Main.Input
+
+extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
+
+// Main.Debug
+
+extern const Info<bool> MAIN_DEBUG_JIT_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_FLOATING_POINT_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_INTEGER_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF;
+
+// Main.BluetoothPassthrough
+
+extern const Info<bool> MAIN_BLUETOOTH_PASSTHROUGH_ENABLED;
+extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_VID;
+extern const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID;
+extern const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS;
+
+// Main.USBPassthrough
+
+extern const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES;
+std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist();
+void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
+
 }  // namespace Config

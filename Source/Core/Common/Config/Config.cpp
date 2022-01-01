@@ -5,17 +5,19 @@
 
 #include <algorithm>
 #include <atomic>
-#include <list>
 #include <map>
 #include <mutex>
 #include <shared_mutex>
+#include <utility>
+#include <vector>
 
 namespace Config
 {
 using Layers = std::map<LayerType, std::shared_ptr<Layer>>;
 
 static Layers s_layers;
-static std::list<ConfigChangedCallback> s_callbacks;
+static std::vector<std::pair<size_t, ConfigChangedCallback>> s_callbacks;
+static size_t s_next_callback_id = 0;
 static u32 s_callback_guards = 0;
 static std::atomic<u64> s_config_version = 0;
 
@@ -63,9 +65,24 @@ void RemoveLayer(LayerType layer)
   OnConfigChanged();
 }
 
-void AddConfigChangedCallback(ConfigChangedCallback func)
+size_t AddConfigChangedCallback(ConfigChangedCallback func)
 {
-  s_callbacks.emplace_back(std::move(func));
+  const size_t callback_id = s_next_callback_id;
+  ++s_next_callback_id;
+  s_callbacks.emplace_back(std::make_pair(callback_id, std::move(func)));
+  return callback_id;
+}
+
+void RemoveConfigChangedCallback(size_t callback_id)
+{
+  for (auto it = s_callbacks.begin(); it != s_callbacks.end(); ++it)
+  {
+    if (it->first == callback_id)
+    {
+      s_callbacks.erase(it);
+      return;
+    }
+  }
 }
 
 void OnConfigChanged()
@@ -79,7 +96,7 @@ void OnConfigChanged()
     return;
 
   for (const auto& callback : s_callbacks)
-    callback();
+    callback.second();
 }
 
 u64 GetConfigVersion()

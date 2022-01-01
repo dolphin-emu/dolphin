@@ -515,7 +515,7 @@ void Kernel::AddStaticDevices()
 
   // OH1 (Bluetooth)
   AddDevice(std::make_unique<DeviceStub>(*this, "/dev/usb/oh1"));
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (!Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     AddDevice(std::make_unique<BluetoothEmuDevice>(*this, "/dev/usb/oh1/57e/305"));
   else
     AddDevice(std::make_unique<BluetoothRealDevice>(*this, "/dev/usb/oh1/57e/305"));
