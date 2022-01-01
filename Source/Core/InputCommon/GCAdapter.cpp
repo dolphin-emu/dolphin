@@ -307,6 +307,15 @@ static bool CheckDeviceAccess(libusb_device* device)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed with error: {}", ret);
   }
 
+  // this split is needed so that we don't avoid claiming the interface when
+  // detaching the kernel driver is successful
+  if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+  {
+    libusb_close(s_handle);
+    s_handle = nullptr;
+    return false;
+  }
+
   ret = libusb_claim_interface(s_handle, 0);
   if (ret != 0)
   {
@@ -321,15 +330,6 @@ static bool CheckDeviceAccess(libusb_device* device)
   const int transfer = libusb_control_transfer(s_handle, 0x21, 11, 0x0001, 0, nullptr, 0, 1000);
   if (transfer < 0)
     WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_control_transfer failed with error: {}", transfer);
-
-  // this split is needed so that we don't avoid claiming the interface when
-  // detaching the kernel driver is successful
-  if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-  {
-    libusb_close(s_handle);
-    s_handle = nullptr;
-    return false;
-  }
 
   // Updating the adapter status will be done in AddGCAdapter
   status_guard.Dismiss();
