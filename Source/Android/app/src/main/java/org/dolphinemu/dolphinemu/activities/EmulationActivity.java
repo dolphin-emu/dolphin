@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Pair;
 import android.util.SparseIntArray;
-import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +41,7 @@ import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogIrSensitivityBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogSkylandersManagerBinding;
+import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -61,7 +61,6 @@ import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
-import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
@@ -855,13 +854,15 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   @Override
   public boolean dispatchKeyEvent(KeyEvent event)
   {
-    if (mMenuVisible || event.getKeyCode() == KeyEvent.KEYCODE_BACK)
+    if (!mMenuVisible)
     {
-      return super.dispatchKeyEvent(event);
+      if (ControllerInterface.dispatchKeyEvent(event))
+      {
+        return true;
+      }
     }
 
-    // TODO
-    return false;
+    return super.dispatchKeyEvent(event);
   }
 
   private void toggleControls()
@@ -1217,13 +1218,15 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   @Override
   public boolean dispatchGenericMotionEvent(MotionEvent event)
   {
-    if (mMenuVisible)
+    if (!mMenuVisible)
     {
-      return false;
+      if (ControllerInterface.dispatchGenericMotionEvent(event))
+      {
+        return true;
+      }
     }
 
-    // TODO
-    return false;
+    return super.dispatchGenericMotionEvent(event);
   }
 
   private void showSubMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)

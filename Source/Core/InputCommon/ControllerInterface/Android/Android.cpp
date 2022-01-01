@@ -3,6 +3,7 @@
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -15,6 +16,7 @@
 #include <jni.h>
 
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -31,6 +33,7 @@ jclass s_input_device_class;
 jmethodID s_input_device_get_device_ids;
 jmethodID s_input_device_get_device;
 jmethodID s_input_device_get_controller_number;
+jmethodID s_input_device_get_id;
 jmethodID s_input_device_get_motion_ranges;
 jmethodID s_input_device_get_name;
 jmethodID s_input_device_get_sources;
@@ -42,7 +45,20 @@ jmethodID s_motion_range_get_max;
 jmethodID s_motion_range_get_min;
 jmethodID s_motion_range_get_source;
 
+jclass s_input_event_class;
+jmethodID s_input_event_get_device;
+
+jclass s_key_event_class;
+jmethodID s_key_event_get_action;
+jmethodID s_key_event_get_keycode;
+
+jclass s_motion_event_class;
+jmethodID s_motion_event_get_axis_value;
+jmethodID s_motion_event_get_source;
+
 jintArray s_keycodes_array;
+
+std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qualifier;
 
 constexpr int MAX_KEYCODE = AKEYCODE_PROFILE_SWITCH;  // Up to date as of SDK 31
 
@@ -379,47 +395,70 @@ std::string ConstructAxisName(int source, int axis, bool negative)
   return fmt::format("{}{}{}", ConstructAxisNamePrefix(source), axis, sign);
 }
 
+std::shared_ptr<ciface::Core::Device> FindDevice(jint device_id)
+{
+  const auto it = s_device_id_to_device_qualifier.find(device_id);
+  if (it == s_device_id_to_device_qualifier.end())
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device ID {}", device_id);
+    return nullptr;
+  }
+
+  const ciface::Core::DeviceQualifier& qualifier = it->second;
+  std::shared_ptr<ciface::Core::Device> device = g_controller_interface.FindDevice(qualifier);
+  if (!device)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device {}", qualifier.ToString());
+    return nullptr;
+  }
+
+  return device;
+}
+
 }  // namespace
 
 namespace ciface::Android
 {
-class AndroidKey final : public Core::Device::Input
+class AndroidInput : public Core::Device::Input
 {
 public:
-  explicit AndroidKey(int keycode) : m_name(ConstructKeyName(keycode))
+  explicit AndroidInput(std::string name) : m_name(std::move(name))
   {
     DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Created {}", m_name);
   }
 
   std::string GetName() const override { return m_name; }
 
-  ControlState GetState() const override
-  {
-    return 0;  // TODO
-  }
+  ControlState GetState() const override { return m_state.load(std::memory_order_relaxed); }
+
+  void SetState(ControlState state) { m_state.store(state, std::memory_order_relaxed); }
 
 private:
   std::string m_name;
+  std::atomic<ControlState> m_state = 0;
 };
 
-class AndroidAxis final : public Core::Device::Input
+class AndroidKey final : public AndroidInput
+{
+public:
+  explicit AndroidKey(int keycode) : AndroidInput(ConstructKeyName(keycode)) {}
+};
+
+class AndroidAxis final : public AndroidInput
 {
 public:
   AndroidAxis(int source, int axis, bool negative)
-      : m_name(ConstructAxisName(source, axis, negative))
+      : AndroidInput(ConstructAxisName(source, axis, negative)), m_negative(negative)
   {
-    DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Created {}", m_name);
   }
-
-  std::string GetName() const override { return m_name; };
 
   ControlState GetState() const override
   {
-    return 0;  // TODO
-  };
+    return m_negative ? -AndroidInput::GetState() : AndroidInput::GetState();
+  }
 
 private:
-  std::string m_name;
+  bool m_negative;
 };
 
 class AndroidDevice final : public Core::Device
@@ -552,6 +591,7 @@ void Init()
       env->GetStaticMethodID(s_input_device_class, "getDevice", "(I)Landroid/view/InputDevice;");
   s_input_device_get_controller_number =
       env->GetMethodID(s_input_device_class, "getControllerNumber", "()I");
+  s_input_device_get_id = env->GetMethodID(s_input_device_class, "getId", "()I");
   s_input_device_get_motion_ranges =
       env->GetMethodID(s_input_device_class, "getMotionRanges", "()Ljava/util/List;");
   s_input_device_get_name =
@@ -568,6 +608,21 @@ void Init()
   s_motion_range_get_source = env->GetMethodID(s_motion_range_class, "getSource", "()I");
   env->DeleteLocalRef(motion_range_class);
 
+  const jclass input_event_class = env->FindClass("android/view/InputEvent");
+  s_input_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(input_event_class));
+  s_input_event_get_device =
+      env->GetMethodID(s_input_event_class, "getDevice", "()Landroid/view/InputDevice;");
+
+  const jclass key_event_class = env->FindClass("android/view/KeyEvent");
+  s_key_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(key_event_class));
+  s_key_event_get_action = env->GetMethodID(s_key_event_class, "getAction", "()I");
+  s_key_event_get_keycode = env->GetMethodID(s_key_event_class, "getKeyCode", "()I");
+
+  const jclass motion_event_class = env->FindClass("android/view/MotionEvent");
+  s_motion_event_class = reinterpret_cast<jclass>(env->NewGlobalRef(motion_event_class));
+  s_motion_event_get_axis_value = env->GetMethodID(s_motion_event_class, "getAxisValue", "(I)F");
+  s_motion_event_get_source = env->GetMethodID(s_motion_event_class, "getSource", "()I");
+
   jintArray keycodes_array = CreateKeyCodesArray(env);
   s_keycodes_array = reinterpret_cast<jintArray>(env->NewGlobalRef(keycodes_array));
   env->DeleteLocalRef(keycodes_array);
@@ -579,6 +634,9 @@ void Shutdown()
 
   env->DeleteGlobalRef(s_input_device_class);
   env->DeleteGlobalRef(s_motion_range_class);
+  env->DeleteGlobalRef(s_input_event_class);
+  env->DeleteGlobalRef(s_key_event_class);
+  env->DeleteGlobalRef(s_motion_event_class);
   env->DeleteGlobalRef(s_keycodes_array);
 }
 
@@ -591,8 +649,17 @@ static void AddDevice(JNIEnv* env, int device_id)
 
   env->DeleteLocalRef(input_device);
 
-  if (!device->Inputs().empty() || !device->Outputs().empty())
-    g_controller_interface.AddDevice(std::move(device));
+  if (device->Inputs().empty() && device->Outputs().empty())
+    return;
+
+  g_controller_interface.AddDevice(device);
+
+  Core::DeviceQualifier qualifier;
+  qualifier.FromDevice(device.get());
+
+  INFO_LOG_FMT(CONTROLLERINTERFACE, "Added device ID {} as {}", device_id,
+               device->GetQualifiedName());
+  s_device_id_to_device_qualifier.emplace(device_id, qualifier);
 }
 
 void PopulateDevices()
@@ -612,3 +679,93 @@ void PopulateDevices()
 }
 
 }  // namespace ciface::Android
+
+extern "C" {
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchKeyEvent(
+    JNIEnv* env, jclass, jobject key_event)
+{
+  const jint action = env->CallIntMethod(key_event, s_key_event_get_action);
+  ControlState state;
+  switch (action)
+  {
+  case AKEY_EVENT_ACTION_DOWN:
+    state = 1;
+    break;
+  case AKEY_EVENT_ACTION_UP:
+    state = 0;
+    break;
+  default:
+    return JNI_FALSE;
+  }
+
+  const jobject input_device = env->CallObjectMethod(key_event, s_input_event_get_device);
+  const jint device_id = env->CallIntMethod(input_device, s_input_device_get_id);
+  env->DeleteLocalRef(input_device);
+  const std::shared_ptr<ciface::Core::Device> device = FindDevice(device_id);
+  if (!device)
+    return JNI_FALSE;
+
+  const jint keycode = env->CallIntMethod(key_event, s_key_event_get_keycode);
+  const std::string input_name = ConstructKeyName(keycode);
+
+  ciface::Core::Device::Input* input = device->FindInput(input_name);
+  if (!input)
+  {
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find input {} in device {}", input_name,
+                  device->GetQualifiedName());
+    return false;
+  }
+
+  static_cast<ciface::Android::AndroidInput*>(input)->SetState(state);
+
+  DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name, device->GetQualifiedName(),
+                state);
+
+  // TODO: Return true when appropriate
+  return JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatchGenericMotionEvent(
+    JNIEnv* env, jclass, jobject motion_event)
+{
+  const jobject input_device = env->CallObjectMethod(motion_event, s_input_event_get_device);
+  const jint device_id = env->CallIntMethod(input_device, s_input_device_get_id);
+  env->DeleteLocalRef(input_device);
+  const std::shared_ptr<ciface::Core::Device> device = FindDevice(device_id);
+  if (!device)
+    return JNI_FALSE;
+
+  const jint source = env->CallIntMethod(motion_event, s_motion_event_get_source);
+  const std::string axis_name_prefix = ConstructAxisNamePrefix(source);
+
+  for (ciface::Core::Device::Input* input : device->Inputs())
+  {
+    const std::string input_name = input->GetName();
+    if (input_name.starts_with(axis_name_prefix))
+    {
+      const std::string axis_id_str = input_name.substr(
+          axis_name_prefix.size(), input_name.size() - axis_name_prefix.size() - sizeof('+'));
+
+      int axis_id;
+      if (!TryParse(axis_id_str, &axis_id))
+      {
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "Failed to parse \"{}\" from \"{}\" as axis ID",
+                      axis_id_str, input_name);
+        continue;
+      }
+
+      float value = env->CallFloatMethod(motion_event, s_motion_event_get_axis_value, axis_id);
+      static_cast<ciface::Android::AndroidInput*>(input)->SetState(value);
+
+      DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name,
+                    device->GetQualifiedName(), value);
+    }
+  }
+
+  // TODO: Return true when appropriate
+  return JNI_FALSE;
+}
+}
