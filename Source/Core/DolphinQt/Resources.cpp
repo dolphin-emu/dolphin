@@ -10,7 +10,7 @@
 
 #include "Common/FileUtil.h"
 
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 #include "DolphinQt/Settings.h"
 
@@ -52,7 +52,7 @@ QPixmap Resources::GetPixmap(std::string_view name, const QString& dir)
 
 static QString GetCurrentThemeDir()
 {
-  return QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
+  return QString::fromStdString(File::GetThemeDir(Config::Get(Config::MAIN_THEME_NAME)));
 }
 
 static QString GetResourcesDir()

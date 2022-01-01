@@ -89,7 +89,6 @@ void SConfig::SaveSettings()
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
 
   SaveGeneralSettings(ini);
-  SaveInterfaceSettings(ini);
   SaveCoreSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -127,22 +126,6 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   general->Set("GDBSocket", gdb_socket);
 #endif
   general->Set("GDBPort", iGDBPort);
-}
-
-void SConfig::SaveInterfaceSettings(IniFile& ini)
-{
-  IniFile::Section* interface = ini.GetOrCreateSection("Interface");
-
-  interface->Set("ConfirmStop", bConfirmStop);
-  interface->Set("CursorVisibility", m_show_cursor);
-  interface->Set("LockCursor", bLockCursor);
-  interface->Set("LanguageCode", m_InterfaceLanguage);
-  interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
-  interface->Set("ShowActiveTitle", m_show_active_title);
-  interface->Set("UseBuiltinTitleDatabase", m_use_builtin_title_database);
-  interface->Set("ThemeName", theme_name);
-  interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
-  interface->Set("DebugModeEnabled", bEnableDebugging);
 }
 
 void SConfig::SaveCoreSettings(IniFile& ini)
@@ -203,7 +186,6 @@ void SConfig::LoadSettings()
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
   LoadGeneralSettings(ini);
-  LoadInterfaceSettings(ini);
   LoadCoreSettings(ini);
 }
 
@@ -232,22 +214,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
   }
 
   general->Get("WirelessMac", &m_WirelessMac);
-}
-
-void SConfig::LoadInterfaceSettings(IniFile& ini)
-{
-  IniFile::Section* interface = ini.GetOrCreateSection("Interface");
-
-  interface->Get("ConfirmStop", &bConfirmStop, true);
-  interface->Get("CursorVisibility", &m_show_cursor, ShowCursor::OnMovement);
-  interface->Get("LockCursor", &bLockCursor, false);
-  interface->Get("LanguageCode", &m_InterfaceLanguage, "");
-  interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
-  interface->Get("ShowActiveTitle", &m_show_active_title, true);
-  interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_title_database, true);
-  interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
-  interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
-  interface->Get("DebugModeEnabled", &bEnableDebugging, false);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
@@ -423,7 +389,6 @@ void SConfig::OnNewTitleLoad()
 
 void SConfig::LoadDefaults()
 {
-  bEnableDebugging = false;
   bAutomaticStart = false;
   bBootToPause = false;
 
