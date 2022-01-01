@@ -645,13 +645,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   if (opinfo->flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
 
-  // For analysis purposes, we can assume that blr eats opinfo->flags.
-  if (opinfo->type == OpType::Branch && code->inst.hex == 0x4e800020)
-  {
-    code->outputCR0 = true;
-    code->outputCR1 = true;
-  }
-
   code->branchUsesCtr = false;
   code->branchTo = UINT32_MAX;
 
