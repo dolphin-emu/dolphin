@@ -62,6 +62,12 @@ void Init()
     Vertices[i + 3] = &ClippedVertices[i];
 }
 
+static bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
+                                const OutputVertexData* v2);
+static bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1,
+                       const OutputVertexData* v2);
+static void PerspectiveDivide(OutputVertexData* vertex);
+
 enum
 {
   SKIP_FLAG = -1,
@@ -510,8 +516,8 @@ void ProcessPoint(OutputVertexData* center)
   Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
 }
 
-bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
-                         const OutputVertexData* v2)
+static bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
+                                const OutputVertexData* v2)
 {
   int mask = CalcClipMask(v0);
   mask &= CalcClipMask(v1);
@@ -520,7 +526,8 @@ bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
   return mask != 0;
 }
 
-bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
+static bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1,
+                       const OutputVertexData* v2)
 {
   float x0 = v0->projectedPosition.x;
   float x1 = v1->projectedPosition.x;
@@ -544,7 +551,7 @@ bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const Ou
   return backface;
 }
 
-void PerspectiveDivide(OutputVertexData* vertex)
+static void PerspectiveDivide(OutputVertexData* vertex)
 {
   Vec4& projected = vertex->projectedPosition;
   Vec3& screen = vertex->screenPosition;
