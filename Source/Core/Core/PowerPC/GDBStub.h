@@ -22,6 +22,7 @@ void Deinit();
 bool IsActive();
 bool HasControl();
 void TakeControl();
+bool JustConnected();
 
 void ProcessCommands(bool loop_until_continue);
 void SendSignal(Signal signal);

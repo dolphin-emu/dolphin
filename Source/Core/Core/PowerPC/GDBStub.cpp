@@ -61,6 +61,7 @@ enum class BreakpointType
 const s64 GDB_UPDATE_CYCLES = 100000;
 
 static bool s_has_control = false;
+static bool s_just_connected = false;
 
 static int s_tmpsock = -1;
 static int s_sock = -1;
@@ -898,6 +899,7 @@ static void HandleRemoveBreakpoint()
 
 void ProcessCommands(bool loop_until_continue)
 {
+  s_just_connected = false;
   while (IsActive())
   {
     if (CPU::GetState() == CPU::State::PowerDown)
@@ -1038,6 +1040,7 @@ static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t serve
   if (s_sock < 0)
     ERROR_LOG_FMT(GDB_STUB, "Failed to accept gdb client");
   INFO_LOG_FMT(GDB_STUB, "Client connected.");
+  s_just_connected = true;
 
 #ifdef _WIN32
   closesocket(s_tmpsock);
@@ -1081,6 +1084,11 @@ bool HasControl()
 void TakeControl()
 {
   s_has_control = true;
+}
+
+bool JustConnected()
+{
+  return s_just_connected;
 }
 
 void SendSignal(Signal signal)
