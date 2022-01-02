@@ -365,10 +365,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
       break;
     case TexGenType::Color0:
-      out.Write("o.tex{}.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
+      out.Write("o.tex{}.xyz = float3(o.colors_0.r, o.colors_0.g + o.colors_0.b / 256.0, 1);\n", i);
       break;
     case TexGenType::Color1:
-      out.Write("o.tex{}.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
+      out.Write("o.tex{}.xyz = float3(o.colors_1.r, o.colors_1.g + o.colors_1.b / 256.0, 1);\n", i);
       break;
     case TexGenType::Regular:
     default:

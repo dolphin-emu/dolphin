@@ -456,10 +456,10 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "    }}\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", TexGenType::Color0);
-  out.Write("    output_tex.xyz = float3(o.colors_0.x, o.colors_0.y, 1.0);\n"
+  out.Write("    output_tex.xyz = float3(o.colors_0.r, o.colors_0.g + o.colors_0.b / 256.0, 1.0);\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", TexGenType::Color1);
-  out.Write("    output_tex.xyz = float3(o.colors_1.x, o.colors_1.y, 1.0);\n"
+  out.Write("    output_tex.xyz = float3(o.colors_1.r, o.colors_1.g + o.colors_1.b / 256.0, 1.0);\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", TexGenType::Regular);
   out.Write("  default:\n"
