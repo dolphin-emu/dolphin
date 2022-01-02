@@ -135,6 +135,10 @@ std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view j
     {
       descriptor.display_name = value.get<std::string>();
     }
+    else if (key == "maker" && value.is<std::string>())
+    {
+      descriptor.maker = value.get<std::string>();
+    }
     else if (key == "banner" && value.is<std::string>())
     {
       descriptor.banner = MakeAbsolute(json_directory, value.get<std::string>());
@@ -195,6 +199,8 @@ std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, bo
     json_root["base-file"] = picojson::value(descriptor.base_file);
   if (!descriptor.display_name.empty())
     json_root["display-name"] = picojson::value(descriptor.display_name);
+  if (!descriptor.maker.empty())
+    json_root["maker"] = picojson::value(descriptor.maker);
   if (!descriptor.banner.empty())
     json_root["banner"] = picojson::value(descriptor.banner);
   if (descriptor.riivolution)

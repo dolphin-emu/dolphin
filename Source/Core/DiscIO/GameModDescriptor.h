@@ -36,6 +36,7 @@ struct GameModDescriptor
 {
   std::string base_file;
   std::string display_name;
+  std::string maker;
   std::string banner;
   std::optional<GameModDescriptorRiivolution> riivolution = std::nullopt;
 };
