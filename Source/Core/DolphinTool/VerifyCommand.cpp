@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinTool/VerifyCommand.h"
+#include "UICommon/UICommon.h"
 
 #include <OptionParser.h>
 
@@ -12,6 +13,11 @@ int VerifyCommand::Main(const std::vector<std::string>& args)
   auto parser = std::make_unique<optparse::OptionParser>();
 
   parser->usage("usage: verify [options]...");
+
+  parser->add_option("-u", "--user")
+      .action("store")
+      .help("User folder path, required for temporary processing files."
+            "Will be automatically created if this option is not set.");
 
   parser->add_option("-i", "--input")
       .type("string")
@@ -27,6 +33,15 @@ int VerifyCommand::Main(const std::vector<std::string>& args)
       .choices({"crc32", "md5", "sha1"});
 
   const optparse::Values& options = parser->parse_args(args);
+
+  // Initialize the dolphin user directory, required for temporary processing files
+  // If this is not set, destructive file operations could occur due to path confusion
+  std::string user_directory;
+  if (options.is_set("user"))
+    user_directory = static_cast<const char*>(options.get("user"));
+
+  UICommon::SetUserDirectory(user_directory);
+  UICommon::Init();
 
   // Validate options
   const std::string input_file_path = static_cast<const char*>(options.get("input"));
