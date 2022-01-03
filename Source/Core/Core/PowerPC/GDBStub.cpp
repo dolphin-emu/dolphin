@@ -53,10 +53,12 @@ enum class BreakpointType
 {
   ExecuteSoft = 0,
   ExecuteHard,
-  Read,
   Write,
+  Read,
   Access,
 };
+
+constexpr u32 NUM_BREAKPOINT_TYPES = 4;
 
 const s64 GDB_UPDATE_CYCLES = 100000;
 
@@ -858,7 +860,7 @@ static void HandleAddBreakpoint()
   u32 i, addr = 0, len = 0;
 
   type = Hex2char(s_cmd_bfr[1]);
-  if (type > 4)
+  if (type > NUM_BREAKPOINT_TYPES)
     return SendReply("E01");
 
   i = 3;
@@ -879,7 +881,7 @@ static void HandleRemoveBreakpoint()
   u32 type, addr, len, i;
 
   type = Hex2char(s_cmd_bfr[1]);
-  if (type >= 4)
+  if (type > NUM_BREAKPOINT_TYPES)
     return SendReply("E01");
 
   addr = 0;
