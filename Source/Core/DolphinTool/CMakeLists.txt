@@ -13,6 +13,7 @@ set_target_properties(dolphin-tool PROPERTIES OUTPUT_NAME dolphin-tool)
 target_link_libraries(dolphin-tool
 PRIVATE
   discio
+  uicommon
   videocommon
   cpp-optparse
 )

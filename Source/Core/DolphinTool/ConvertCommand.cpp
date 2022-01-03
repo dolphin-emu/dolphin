@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinTool/ConvertCommand.h"
+#include "UICommon/UICommon.h"
 
 #include <OptionParser.h>
 
@@ -12,6 +13,11 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
   auto parser = std::make_unique<optparse::OptionParser>();
 
   parser->usage("usage: convert [options]... [FILE]...");
+
+  parser->add_option("-u", "--user")
+      .action("store")
+      .help("User folder path, required for temporary processing files."
+            "Will be automatically created if this option is not set.");
 
   parser->add_option("-i", "--input")
       .type("string")
@@ -55,6 +61,15 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
             "zstd: 5");
 
   const optparse::Values& options = parser->parse_args(args);
+
+  // Initialize the dolphin user directory, required for temporary processing files
+  // If this is not set, destructive file operations could occur due to path confusion
+  std::string user_directory;
+  if (options.is_set("user"))
+    user_directory = static_cast<const char*>(options.get("user"));
+
+  UICommon::SetUserDirectory(user_directory);
+  UICommon::Init();
 
   // Validate options
 
