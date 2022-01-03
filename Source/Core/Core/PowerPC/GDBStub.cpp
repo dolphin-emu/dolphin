@@ -788,9 +788,10 @@ static void ReadMemory()
 
   if (len * 2 > sizeof reply)
     SendReply("E01");
+
+  if (!PowerPC::HostIsRAMAddress(addr))
+    return SendReply("E00");
   u8* data = Memory::GetPointer(addr);
-  if (!data)
-    return SendReply("E0");
   Mem2hex(reply, data, len);
   reply[len * 2] = '\0';
   SendReply((char*)reply);
@@ -812,9 +813,9 @@ static void WriteMemory()
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
 
-  u8* dst = Memory::GetPointer(addr);
-  if (!dst)
+  if (!PowerPC::HostIsRAMAddress(addr))
     return SendReply("E00");
+  u8* dst = Memory::GetPointer(addr);
   Hex2mem(dst, s_cmd_bfr + i + 1, len);
   SendReply("OK");
 }
