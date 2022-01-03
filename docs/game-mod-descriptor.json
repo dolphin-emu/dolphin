@@ -17,6 +17,9 @@
 		"display-name": {
 			"type": "string"
 		},
+		"maker": {
+			"type": "string"
+		},
 		"banner": {
 			"type": "string"
 		},

@@ -177,6 +177,8 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
         m_valid = true;
         m_file_size = File::GetSize(m_file_path);
         m_long_names.emplace(DiscIO::Language::English, std::move(descriptor->display_name));
+        if (!descriptor->maker.empty())
+          m_long_makers.emplace(DiscIO::Language::English, std::move(descriptor->maker));
         m_internal_name = proxy.GetInternalName();
         m_game_id = proxy.GetGameID();
         m_gametdb_id = proxy.GetGameTDBID();
