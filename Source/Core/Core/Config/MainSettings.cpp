@@ -59,6 +59,8 @@ const Info<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"}, ExpansionInterface:
 const Info<int> MAIN_SERIAL_PORT_1{{System::Main, "Core", "SerialPort1"},
                                    ExpansionInterface::EXIDEVICE_NONE};
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
+const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
+const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
 
 Info<u32> GetInfoForSIDevice(u32 channel)
 {

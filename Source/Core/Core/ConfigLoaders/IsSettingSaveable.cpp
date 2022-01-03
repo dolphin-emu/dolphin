@@ -72,6 +72,23 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_FALLBACK_REGION.GetLocation(),
       &Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS.GetLocation(),
       &Config::MAIN_DSP_HLE.GetLocation(),
+      &Config::MAIN_CPU_CORE.GetLocation(),
+      &Config::MAIN_SKIP_IPL.GetLocation(),
+      &Config::MAIN_GC_LANGUAGE.GetLocation(),
+      &Config::MAIN_AGP_CART_A_PATH.GetLocation(),
+      &Config::MAIN_AGP_CART_B_PATH.GetLocation(),
+      &Config::MAIN_BBA_MAC.GetLocation(),
+      &Config::MAIN_BBA_XLINK_IP.GetLocation(),
+      &Config::MAIN_BBA_XLINK_CHAT_OSD.GetLocation(),
+      &Config::MAIN_OVERRIDE_REGION_SETTINGS.GetLocation(),
+      &Config::MAIN_CUSTOM_RTC_ENABLE.GetLocation(),
+      &Config::MAIN_CUSTOM_RTC_VALUE.GetLocation(),
+      &Config::MAIN_JIT_FOLLOW_BRANCH.GetLocation(),
+      &Config::MAIN_FLOAT_EXCEPTIONS.GetLocation(),
+      &Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS.GetLocation(),
+      &Config::MAIN_LOW_DCBZ_HACK.GetLocation(),
+      &Config::MAIN_FPRF.GetLocation(),
+      &Config::MAIN_ACCURATE_NANS.GetLocation(),
 
       // UI.General
 

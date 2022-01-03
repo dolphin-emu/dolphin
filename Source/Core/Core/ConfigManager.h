@@ -69,30 +69,21 @@ struct SConfig
   bool bAutomaticStart = false;
   bool bBootToPause = false;
 
-  PowerPC::CPUCore cpu_core;
-
-  bool bJITFollowBranch;
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 
   bool bFastmem;
-  bool bFloatExceptions = false;
-  bool bDivideByZeroExceptions = false;
-  bool bFPRF = false;
-  bool bAccurateNaNs = false;
   bool bDisableICache = false;
 
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
   bool bSyncGPUOnSkipIdleHack = true;
-  bool bHLE_BS2 = true;
   bool bCopyWiiSaveNetplay = true;
 
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
 
   bool bMMU = false;
-  bool bLowDCBZHack = false;
   int iBBDumpPort = 0;
   bool bFastDiscSpeed = false;
 
@@ -101,15 +92,8 @@ struct SConfig
   int iSyncGpuMinDistance;
   float fSyncGpuOverclock;
 
-  int SelectedLanguage = 0;
-  bool bOverrideRegionSettings = false;
-
   bool bWii = false;
   bool m_is_mios = false;
-
-  // Custom RTC
-  bool bEnableCustomRTC;
-  u32 m_customRTCValue;
 
   DiscIO::Region m_region;
 
@@ -162,14 +146,8 @@ struct SConfig
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
 
-  std::string m_strGbaCartA;
-  std::string m_strGbaCartB;
   ExpansionInterface::TEXIDevices m_EXIDevice[3];
   SerialInterface::SIDevices m_SIDevice[4];
-
-  std::string m_bba_mac;
-  std::string m_bba_xlink_ip;
-  bool m_bba_xlink_chat_osd = true;
 
   float m_EmulationSpeed;
 

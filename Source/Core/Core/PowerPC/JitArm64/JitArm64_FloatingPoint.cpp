@@ -20,7 +20,7 @@ using namespace Arm64Gen;
 
 void JitArm64::SetFPRFIfNeeded(bool single, ARM64Reg reg)
 {
-  if (!SConfig::GetInstance().bFPRF || !js.op->wantsFPRF)
+  if (!m_fprf || !js.op->wantsFPRF)
     return;
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
@@ -374,7 +374,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
 void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-  const bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
+  const bool fprf = m_fprf && js.op->wantsFPRF;
 
   const u32 a = inst.FA;
   const u32 b = inst.FB;

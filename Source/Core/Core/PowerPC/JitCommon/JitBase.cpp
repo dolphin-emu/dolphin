@@ -49,7 +49,15 @@ void JitBase::RefreshConfig()
   bJITBranchOff = Config::Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF);
   bJITRegisterCacheOff = Config::Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF);
   m_enable_debugging = Config::Get(Config::MAIN_ENABLE_DEBUGGING);
+  m_enable_float_exceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
+  m_enable_div_by_zero_exceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
+  m_low_dcbz_hack = Config::Get(Config::MAIN_LOW_DCBZ_HACK);
+  m_fprf = Config::Get(Config::MAIN_FPRF);
+  m_accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
   analyzer.SetDebuggingEnabled(m_enable_debugging);
+  analyzer.SetBranchFollowingEnabled(Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH));
+  analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
+  analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
 }
 
 bool JitBase::CanMergeNextInstructions(int count) const
@@ -72,8 +80,8 @@ void JitBase::UpdateMemoryAndExceptionOptions()
   bool any_watchpoints = PowerPC::memchecks.HasAny();
   jo.fastmem = SConfig::GetInstance().bFastmem && jo.fastmem_arena && (MSR.DR || !any_watchpoints);
   jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
-  jo.fp_exceptions = SConfig::GetInstance().bFloatExceptions;
-  jo.div_by_zero_exceptions = SConfig::GetInstance().bDivideByZeroExceptions;
+  jo.fp_exceptions = m_enable_float_exceptions;
+  jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
 }
 
 bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op)

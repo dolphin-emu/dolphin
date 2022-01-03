@@ -127,6 +127,11 @@ protected:
   bool bJITBranchOff = false;
   bool bJITRegisterCacheOff = false;
   bool m_enable_debugging = false;
+  bool m_enable_float_exceptions = false;
+  bool m_enable_div_by_zero_exceptions = false;
+  bool m_low_dcbz_hack = false;
+  bool m_fprf = false;
+  bool m_accurate_nans = false;
 
   void RefreshConfig();
 

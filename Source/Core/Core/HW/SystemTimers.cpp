@@ -52,6 +52,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -304,10 +305,10 @@ void Init()
 
   Common::Timer::IncreaseResolution();
   // store and convert localtime at boot to timebase ticks
-  if (SConfig::GetInstance().bEnableCustomRTC)
+  if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
   {
     s_localtime_rtc_offset =
-        Common::Timer::GetLocalTimeSinceJan1970() - SConfig::GetInstance().m_customRTCValue;
+        Common::Timer::GetLocalTimeSinceJan1970() - Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
   }
 
   CoreTiming::SetFakeTBStartValue(static_cast<u64>(s_cpu_core_clock / TIMER_RATIO) *

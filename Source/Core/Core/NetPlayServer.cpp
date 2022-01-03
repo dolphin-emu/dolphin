@@ -2028,10 +2028,8 @@ void NetPlayServer::CheckSyncAndStartGame()
 
 u64 NetPlayServer::GetInitialNetPlayRTC() const
 {
-  const auto& config = SConfig::GetInstance();
-
-  if (config.bEnableCustomRTC)
-    return config.m_customRTCValue;
+  if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
+    return Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
 
   return Common::Timer::GetLocalTimeSinceJan1970();
 }

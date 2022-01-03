@@ -63,6 +63,8 @@ extern const Info<int> MAIN_SLOT_A;
 extern const Info<int> MAIN_SLOT_B;
 extern const Info<int> MAIN_SERIAL_PORT_1;
 extern const Info<std::string> MAIN_BBA_MAC;
+extern const Info<std::string> MAIN_BBA_XLINK_IP;
+extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;
 Info<u32> GetInfoForSIDevice(u32 channel);
 Info<bool> GetInfoForAdapterRumble(u32 channel);
 Info<bool> GetInfoForSimulateKonga(u32 channel);

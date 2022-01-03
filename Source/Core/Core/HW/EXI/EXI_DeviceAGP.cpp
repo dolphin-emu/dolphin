@@ -13,7 +13,7 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 namespace ExpansionInterface
 {
@@ -35,8 +35,8 @@ CEXIAgp::~CEXIAgp()
   std::string filename;
   std::string ext;
   std::string gbapath;
-  SplitPath(m_slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
-                          SConfig::GetInstance().m_strGbaCartB,
+  SplitPath(m_slot == 0 ? Config::Get(Config::MAIN_AGP_CART_A_PATH) :
+                          Config::Get(Config::MAIN_AGP_CART_B_PATH),
             &path, &filename, &ext);
   gbapath = path + filename;
 
@@ -75,8 +75,8 @@ void CEXIAgp::LoadRom()
   std::string path;
   std::string filename;
   std::string ext;
-  SplitPath(m_slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
-                          SConfig::GetInstance().m_strGbaCartB,
+  SplitPath(m_slot == 0 ? Config::Get(Config::MAIN_AGP_CART_A_PATH) :
+                          Config::Get(Config::MAIN_AGP_CART_B_PATH),
             &path, &filename, &ext);
   const std::string gbapath = path + filename;
   LoadFileToROM(gbapath + ext);

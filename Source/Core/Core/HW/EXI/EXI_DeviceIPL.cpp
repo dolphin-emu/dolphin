@@ -19,6 +19,7 @@
 #include "Common/Swap.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -133,7 +134,7 @@ CEXIIPL::CEXIIPL()
 
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
-  g_SRAM.settings.language = SConfig::GetInstance().SelectedLanguage;
+  g_SRAM.settings.language = Config::Get(Config::MAIN_GC_LANGUAGE);
   g_SRAM.settings.rtc_bias = 0;
   FixSRAMChecksums();
 }
