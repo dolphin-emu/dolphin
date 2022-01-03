@@ -8,10 +8,10 @@
 #include <iterator>
 
 #include <mbedtls/bignum.h>
-#include <zlib.h>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
+#include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -146,9 +146,9 @@ void MotionPlus::Reset()
 void MotionPlus::CalibrationData::UpdateChecksum()
 {
   // Checksum is crc32 of all data other than the checksum itself.
-  auto crc_result = crc32(0, Z_NULL, 0);
-  crc_result = crc32(crc_result, reinterpret_cast<const Bytef*>(this), 0xe);
-  crc_result = crc32(crc_result, reinterpret_cast<const Bytef*>(this) + 0x10, 0xe);
+  u32 crc_result = Common::StartCRC32();
+  crc_result = Common::UpdateCRC32(crc_result, reinterpret_cast<const u8*>(this), 0xe);
+  crc_result = Common::UpdateCRC32(crc_result, reinterpret_cast<const u8*>(this) + 0x10, 0xe);
 
   crc32_lsb = u16(crc_result);
   crc32_msb = u16(crc_result >> 16);

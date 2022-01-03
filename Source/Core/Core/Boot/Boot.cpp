@@ -22,11 +22,11 @@ namespace fs = std::filesystem;
 
 #include "Common/Align.h"
 #include "Common/CDUtils.h"
-#include "Common/CRC32.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"

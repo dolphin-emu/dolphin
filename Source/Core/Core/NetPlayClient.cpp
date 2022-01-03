@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <sstream>
@@ -23,7 +24,6 @@
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/QoSSession.h"
@@ -62,6 +62,7 @@
 #include "Core/NetPlayCommon.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
+#include "DiscIO/Blob.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
@@ -2462,6 +2463,39 @@ bool NetPlayClient::DoAllPlayersHaveGame()
   });
 }
 
+static std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report_progress)
+{
+  std::vector<u8> data(8 * 1024 * 1024);
+  u64 read_offset = 0;
+  mbedtls_md5_context ctx;
+
+  std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(file_path));
+  u64 game_size = file->GetDataSize();
+
+  mbedtls_md5_starts_ret(&ctx);
+
+  while (read_offset < game_size)
+  {
+    size_t read_size = std::min(static_cast<u64>(data.size()), game_size - read_offset);
+    if (!file->Read(read_offset, read_size, data.data()))
+      return "";
+
+    mbedtls_md5_update_ret(&ctx, data.data(), read_size);
+    read_offset += read_size;
+
+    int progress =
+        static_cast<int>(static_cast<float>(read_offset) / static_cast<float>(game_size) * 100);
+    if (!report_progress(progress))
+      return "";
+  }
+
+  std::array<u8, 16> output;
+  mbedtls_md5_finish_ret(&ctx, output.data());
+
+  // Convert to hex
+  return fmt::format("{:02x}", fmt::join(output, ""));
+}
+
 void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
 {
   if (m_should_compute_MD5)
@@ -2488,7 +2522,7 @@ void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
   if (m_MD5_thread.joinable())
     m_MD5_thread.join();
   m_MD5_thread = std::thread([this, file]() {
-    std::string sum = MD5::MD5Sum(file, [&](int progress) {
+    std::string sum = MD5Sum(file, [&](int progress) {
       sf::Packet packet;
       packet << MessageID::MD5Progress;
       packet << progress;
