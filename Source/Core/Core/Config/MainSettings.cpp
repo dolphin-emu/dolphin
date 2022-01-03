@@ -10,6 +10,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
@@ -163,6 +164,59 @@ const Info<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "Resour
 const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const Info<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 const Info<std::string> MAIN_WFS_PATH{{System::Main, "General", "WFSPath"}, ""};
+const Info<bool> MAIN_SHOW_LAG{{System::Main, "General", "ShowLag"}, false};
+const Info<bool> MAIN_SHOW_FRAME_COUNT{{System::Main, "General", "ShowFrameCount"}, false};
+const Info<std::string> MAIN_WIRELESS_MAC{{System::Main, "General", "WirelessMac"}, ""};
+const Info<std::string> MAIN_GDB_SOCKET{{System::Main, "General", "GDBSocket"}, ""};
+const Info<int> MAIN_GDB_PORT{{System::Main, "General", "GDBPort"}, -1};
+const Info<int> MAIN_ISO_PATH_COUNT{{System::Main, "General", "ISOPaths"}, 0};
+
+static Info<std::string> MakeISOPathConfigInfo(size_t idx)
+{
+  return Config::Info<std::string>{{Config::System::Main, "General", fmt::format("ISOPath{}", idx)},
+                                   ""};
+}
+
+std::vector<std::string> GetIsoPaths()
+{
+  size_t count = MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
+  std::vector<std::string> paths;
+  paths.reserve(count);
+  for (size_t i = 0; i < count; ++i)
+  {
+    std::string iso_path = Config::Get(MakeISOPathConfigInfo(i));
+    if (!iso_path.empty())
+      paths.emplace_back(std::move(iso_path));
+  }
+  return paths;
+}
+
+void SetIsoPaths(const std::vector<std::string>& paths)
+{
+  size_t old_size = MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
+  size_t new_size = paths.size();
+
+  size_t current_path_idx = 0;
+  for (const std::string& p : paths)
+  {
+    if (p.empty())
+    {
+      --new_size;
+      continue;
+    }
+
+    Config::SetBase(MakeISOPathConfigInfo(current_path_idx), p);
+    ++current_path_idx;
+  }
+
+  for (size_t i = current_path_idx; i < old_size; ++i)
+  {
+    // TODO: This actually needs a Config::Erase().
+    Config::SetBase(MakeISOPathConfigInfo(i), "");
+  }
+
+  Config::SetBase(Config::MAIN_ISO_PATH_COUNT, MathUtil::SaturatingCast<int>(new_size));
+}
 
 // Main.GBA
 
