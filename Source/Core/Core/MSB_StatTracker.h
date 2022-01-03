@@ -254,6 +254,9 @@ static const u32 aAB_BallAccel_X    = 0x80890E5C;
 static const u32 aAB_BallAccel_Y    = 0x80890E60;
 static const u32 aAB_BallAccel_Z    = 0x80890E64;
 
+static const u32 aAB_BallPos_Y_Upon_Hit = 0x808909C8;
+static const u32 aAB_BallPos_X_Upon_Hit = 0x808909CC;
+
 static const u32 aAB_ChargeSwing    = 0x8089099B;
 static const u32 aAB_Bunt           = 0x8089099B; //Bunt when =3 on contact
 static const u32 aAB_ChargeUp       = 0x80890968;
@@ -267,6 +270,7 @@ static const u32 aAB_RBI            = 0x80892962; //RBI for the AB
 //At-Bat Miss
 static const u32 aAB_Miss_SwingOrBunt = 0x808909A9; //(0=NoSwing, 1=Swing, 2=Bunt)
 static const u32 aAB_Miss_AnyStrike = 0x80890B17;
+static const u32 aAB_AnySwing = 0x8089099D; //1=Charge, Star, or Slap swing
 
 //At-Bat Contact Result
 static const u32 aAB_BallPos_X = 0x80890B38;
@@ -436,6 +440,9 @@ public:
 
         u16 frameOfSwingUponContact;
         u16 frameOfPitchUponSwing;
+
+        u32 ball_x_pos_upon_hit;
+        u32 ball_y_pos_upon_hit;
     
         //  Ball Calcs
         u16 ball_angle;
