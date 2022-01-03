@@ -13,10 +13,6 @@ namespace DX12
 DXShader::DXShader(ShaderStage stage, BinaryData bytecode, std::string_view name)
     : D3DCommon::Shader(stage, std::move(bytecode)), m_name(UTF8ToWString(name))
 {
-  if (!m_name.empty())
-  {
-    m_compute_pipeline->SetName(m_name.c_str());
-  }
 }
 
 DXShader::~DXShader() = default;
@@ -56,6 +52,10 @@ bool DXShader::CreateComputePipeline()
   HRESULT hr = g_dx_context->GetDevice()->CreateComputePipelineState(
       &desc, IID_PPV_ARGS(&m_compute_pipeline));
   CHECK(SUCCEEDED(hr), "Creating compute pipeline failed");
+
+  if (m_compute_pipeline && !m_name.empty())
+    m_compute_pipeline->SetName(m_name.c_str());
+
   return SUCCEEDED(hr);
 }
 
