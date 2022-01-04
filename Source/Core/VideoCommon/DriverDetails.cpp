@@ -132,6 +132,21 @@ constexpr BugInfo m_known_bugs[] = {
      -1.0, -1.0, true},
     {API_VULKAN, OS_OSX, VENDOR_ATI, DRIVER_PORTABILITY, Family::UNKNOWN,
      BUG_BROKEN_SUBGROUP_INVOCATION_ID, -1.0, -1.0, true},
+    // Default cases for broken MT precompilation
+    // Default cases get replaced by known-good places during init
+    {API_OPENGL, OS_ALL, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, true},
+    // known good cases for broken MT precompilation
+    {API_OPENGL, OS_OSX, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, false},
+    {API_VULKAN, OS_OSX, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, false},
+    {API_OPENGL, OS_WINDOWS, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, false},
+    {API_VULKAN, OS_WINDOWS, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, false},
 };
 
 static std::map<Bug, BugInfo> m_bugs;

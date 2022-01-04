@@ -12,6 +12,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -177,6 +178,14 @@ static u32 GetNumAutoShaderCompilerThreads()
   return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
 }
 
+static u32 GetNumAutoShaderPreCompilerThreads()
+{
+  // Automatic number. We use clamp(cpus - 2, 1, infty) here.
+  // We chose this because we don't want to limit our speed-up
+  // and at the same time leave two logical cores for the dolphin UI and the rest of the OS.
+  return static_cast<u32>(std::max(cpu_info.num_cores - 2, 1));
+}
+
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
   if (!backend_info.bSupportsBackgroundCompiling)
@@ -197,8 +206,17 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
   if (!backend_info.bSupportsBackgroundCompiling)
     return 0;
 
+  const bool bugDatabaseSupported =
+      backend_info.api_type == APIType::OpenGL || backend_info.api_type == APIType::Vulkan;
+  // DirectX has always worked in our tests in PR#9414
+  const bool multiThreadingWorking =
+      !bugDatabaseSupported ||
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION);
+
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
+  else if (multiThreadingWorking)
+    return GetNumAutoShaderPreCompilerThreads();
   else
-    return GetNumAutoShaderCompilerThreads();
+    return 1;
 }
