@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <libusb.h>
 #include <mutex>
+#include <optional>
 
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -78,6 +81,9 @@ static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
 
 static u64 s_last_init = 0;
+
+static std::optional<size_t> s_config_callback_id = std::nullopt;
+static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enabled{};
 
 static void Read()
 {
@@ -196,6 +202,12 @@ void SetAdapterCallback(std::function<void()> func)
   s_detect_callback = func;
 }
 
+static void RefreshConfig()
+{
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+    s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
+}
+
 void Init()
 {
   if (s_handle != nullptr)
@@ -210,6 +222,10 @@ void Init()
   }
 
   s_status = NO_ADAPTER_DETECTED;
+
+  if (!s_config_callback_id)
+    s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
 
   if (UseAdapter())
     StartScanThread();
@@ -382,6 +398,12 @@ void Shutdown()
   Reset();
 
   s_status = NO_ADAPTER_DETECTED;
+
+  if (s_config_callback_id)
+  {
+    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    s_config_callback_id = std::nullopt;
+  }
 }
 
 static void Reset()
@@ -557,7 +579,7 @@ static void ResetRumbleLockNeeded()
 
 void Output(int chan, u8 rumble_command)
 {
-  if (s_handle == nullptr || !UseAdapter() || !SConfig::GetInstance().m_AdapterRumble[chan])
+  if (s_handle == nullptr || !UseAdapter() || !s_config_rumble_enabled[chan])
     return;
 
   // Skip over rumble commands if it has not changed or the controller is wireless

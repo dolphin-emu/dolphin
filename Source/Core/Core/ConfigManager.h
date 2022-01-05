@@ -151,10 +151,6 @@ struct SConfig
 
   float m_EmulationSpeed;
 
-  // Input settings
-  bool m_AdapterRumble[4];
-  bool m_AdapterKonga[4];
-
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;

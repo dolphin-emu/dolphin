@@ -48,7 +48,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     }
   }
 
-  static constexpr auto s_setting_saveable = {
+  static const auto s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.GetLocation(),
@@ -89,6 +89,14 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_LOW_DCBZ_HACK.GetLocation(),
       &Config::MAIN_FPRF.GetLocation(),
       &Config::MAIN_ACCURATE_NANS.GetLocation(),
+      &Config::GetInfoForAdapterRumble(0).GetLocation(),
+      &Config::GetInfoForAdapterRumble(1).GetLocation(),
+      &Config::GetInfoForAdapterRumble(2).GetLocation(),
+      &Config::GetInfoForAdapterRumble(3).GetLocation(),
+      &Config::GetInfoForSimulateKonga(0).GetLocation(),
+      &Config::GetInfoForSimulateKonga(1).GetLocation(),
+      &Config::GetInfoForSimulateKonga(2).GetLocation(),
+      &Config::GetInfoForSimulateKonga(3).GetLocation(),
 
       // UI.General
 

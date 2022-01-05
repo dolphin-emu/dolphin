@@ -113,8 +113,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     core->Set(fmt::format("SIDevice{}", i), m_SIDevice[i]);
-    core->Set(fmt::format("AdapterRumble{}", i), m_AdapterRumble[i]);
-    core->Set(fmt::format("SimulateKonga{}", i), m_AdapterKonga[i]);
   }
   core->Set("WiiSDCard", m_WiiSDCard);
   core->Set("WiiKeyboard", m_WiiKeyboard);
@@ -155,8 +153,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   {
     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
               (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
-    core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
-    core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
   }
   core->Get("WiiSDCard", &m_WiiSDCard, true);
   core->Get("WiiKeyboard", &m_WiiKeyboard, false);

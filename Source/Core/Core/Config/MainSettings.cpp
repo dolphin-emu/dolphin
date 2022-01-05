@@ -69,14 +69,26 @@ Info<u32> GetInfoForSIDevice(u32 channel)
                                           SerialInterface::SIDEVICE_NONE)};
 }
 
-Info<bool> GetInfoForAdapterRumble(u32 channel)
+const Info<bool>& GetInfoForAdapterRumble(int channel)
 {
-  return {{System::Main, "Core", fmt::format("AdapterRumble{}", channel)}, true};
+  static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "AdapterRumble0"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble1"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble2"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble3"}, true},
+  };
+  return infos[channel];
 }
 
-Info<bool> GetInfoForSimulateKonga(u32 channel)
+const Info<bool>& GetInfoForSimulateKonga(int channel)
 {
-  return {{System::Main, "Core", fmt::format("SimulateKonga{}", channel)}, false};
+  static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "SimulateKonga0"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga1"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga2"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga3"}, false},
+  };
+  return infos[channel];
 }
 
 const Info<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, true};
