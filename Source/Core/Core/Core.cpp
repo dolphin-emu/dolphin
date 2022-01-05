@@ -635,9 +635,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   Fifo::Prepare();
 
-  // Setup our core, but can't use dynarec if we are compare server
-  if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter &&
-      (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
+  // Setup our core
+  if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter)
   {
     PowerPC::SetMode(PowerPC::CoreMode::JIT);
   }
