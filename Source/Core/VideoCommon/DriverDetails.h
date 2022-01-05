@@ -318,9 +318,6 @@ enum Bug
   // BUG: Multi-threaded shader pre-compilation sometimes crashes
   // Used primarily in Videoconfig.cpp's GetNumAutoShaderPreCompilerThreads()
   // refer to https://github.com/dolphin-emu/dolphin/pull/9414 for initial validation coverage
-  // All untested platforms will report as having this bug as to avoid crashes
-  // Note that things should highly likely work out fine on D3D
-  // so we didn't extend the Bug API to also support D3D
   BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION
 };
 
