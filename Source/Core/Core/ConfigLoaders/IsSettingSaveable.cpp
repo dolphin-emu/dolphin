@@ -97,6 +97,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::GetInfoForSimulateKonga(1).GetLocation(),
       &Config::GetInfoForSimulateKonga(2).GetLocation(),
       &Config::GetInfoForSimulateKonga(3).GetLocation(),
+      &Config::MAIN_EMULATION_SPEED.GetLocation(),
 
       // UI.General
 

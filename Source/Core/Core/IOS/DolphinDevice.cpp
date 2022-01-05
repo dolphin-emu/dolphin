@@ -14,9 +14,7 @@
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
-#include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
@@ -103,8 +101,7 @@ IPCReply GetSpeedLimit(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const SConfig& config = SConfig::GetInstance();
-  const u32 speed_percent = config.m_EmulationSpeed * 100;
+  const u32 speed_percent = Config::Get(Config::MAIN_EMULATION_SPEED) * 100;
   Memory::Write_U32(speed_percent, request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
@@ -124,8 +121,7 @@ IPCReply SetSpeedLimit(const IOCtlVRequest& request)
   }
 
   const float speed = float(Memory::Read_U32(request.in_vectors[0].address)) / 100.0f;
-  SConfig::GetInstance().m_EmulationSpeed = speed;
-  BootManager::SetEmulationSpeedReset(true);
+  Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
 
   return IPCReply(IPC_SUCCESS);
 }

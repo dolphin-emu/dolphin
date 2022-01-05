@@ -64,7 +64,6 @@ public:
 
   // These store if the relevant setting should be reset back later (true) or if it should be left
   // alone on restore (false)
-  bool bSetEmulationSpeed = false;
   bool bSetVolume = false;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource{};
   std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads{};
@@ -81,7 +80,6 @@ private:
   int iSyncGpuMinDistance = 0;
   float fSyncGpuOverclock = 0;
   bool bFastDiscSpeed = false;
-  float m_EmulationSpeed = 0;
   std::string m_strGPUDeterminismMode;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
@@ -101,7 +99,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   iSyncGpuMinDistance = config.iSyncGpuMinDistance;
   fSyncGpuOverclock = config.fSyncGpuOverclock;
   bFastDiscSpeed = config.bFastDiscSpeed;
-  m_EmulationSpeed = config.m_EmulationSpeed;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
 
   for (int i = 0; i != MAX_BBMOTES; ++i)
@@ -110,7 +107,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
   std::copy(std::begin(config.m_EXIDevice), std::end(config.m_EXIDevice), std::begin(m_EXIDevice));
 
-  bSetEmulationSpeed = false;
   bSetVolume = false;
   bSetWiimoteSource.fill(false);
   bSetPads.fill(false);
@@ -151,9 +147,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
       config->m_SIDevice[i] = Pads[i];
   }
 
-  if (bSetEmulationSpeed)
-    config->m_EmulationSpeed = m_EmulationSpeed;
-
   for (unsigned int i = 0; i < ExpansionInterface::MAX_EXI_CHANNELS; ++i)
   {
     if (bSetEXIDevice[i])
@@ -164,11 +157,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 }
 
 static ConfigCache config_cache;
-
-void SetEmulationSpeedReset(bool value)
-{
-  config_cache.bSetEmulationSpeed = value;
-}
 
 static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 {
@@ -212,9 +200,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-    if (core_section->Get("EmulationSpeed", &StartUp.m_EmulationSpeed, StartUp.m_EmulationSpeed))
-      config_cache.bSetEmulationSpeed = true;
-
     core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,
                       StartUp.m_strGPUDeterminismMode);
 
@@ -302,8 +287,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.bFastDiscSpeed = netplay_settings.m_FastDiscSpeed;
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;
-    if (netplay_settings.m_HostInputAuthority && !netplay_settings.m_IsHosting)
-      config_cache.bSetEmulationSpeed = true;
   }
   else
   {

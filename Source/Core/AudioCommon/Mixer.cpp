@@ -71,7 +71,7 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   // advance indexR with sample position
   // remember fractional offset
 
-  float emulationspeed = SConfig::GetInstance().m_EmulationSpeed;
+  float emulationspeed = Config::Get(Config::MAIN_EMULATION_SPEED);
   float aid_sample_rate = static_cast<float>(m_input_sample_rate);
   if (consider_framelimit && emulationspeed > 0.0f)
   {
