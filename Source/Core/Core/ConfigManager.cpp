@@ -121,7 +121,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("WiimoteControllerInterface", connect_wiimotes_for_ciface);
   core->Set("MMU", bMMU);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
-  core->Set("PerfMapDir", m_perfDir);
 }
 
 void SConfig::LoadSettings()
@@ -165,7 +164,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
   core->Get("DisableICache", &bDisableICache, false);
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
-  core->Get("PerfMapDir", &m_perfDir, "");
 }
 
 void SConfig::ResetRunningGameMetadata()
