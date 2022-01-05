@@ -9,6 +9,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
@@ -504,8 +505,11 @@ void Interpreter::dcbz(UGeckoInstruction inst)
   }
 
   // Hack to stop dcbz/dcbi over low MEM1 trashing memory.
-  if (SConfig::GetInstance().bLowDCBZHack && (dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000))
+  if ((dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000) &&
+      Config::Get(Config::MAIN_LOW_DCBZ_HACK))
+  {
     return;
+  }
 
   // TODO: Implement some sort of L2 emulation.
   PowerPC::ClearCacheLine(dcbz_addr & (~31));

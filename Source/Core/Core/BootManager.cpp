@@ -73,23 +73,14 @@ public:
 private:
   bool valid = false;
   bool bCPUThread = false;
-  bool bJITFollowBranch = false;
   bool bSyncGPUOnSkipIdleHack = false;
-  bool bFloatExceptions = false;
-  bool bDivideByZeroExceptions = false;
-  bool bFPRF = false;
-  bool bAccurateNaNs = false;
   bool bMMU = false;
-  bool bLowDCBZHack = false;
   bool bDisableICache = false;
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance = 0;
   int iSyncGpuMinDistance = 0;
   float fSyncGpuOverclock = 0;
   bool bFastDiscSpeed = false;
-  bool bHLE_BS2 = false;
-  int iSelectedLanguage = 0;
-  PowerPC::CPUCore cpu_core = PowerPC::CPUCore::Interpreter;
   float m_EmulationSpeed = 0;
   std::string m_strGPUDeterminismMode;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
@@ -102,12 +93,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   valid = true;
 
   bCPUThread = config.bCPUThread;
-  bJITFollowBranch = config.bJITFollowBranch;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
-  bFloatExceptions = config.bFloatExceptions;
-  bDivideByZeroExceptions = config.bDivideByZeroExceptions;
-  bFPRF = config.bFPRF;
-  bAccurateNaNs = config.bAccurateNaNs;
   bDisableICache = config.bDisableICache;
   bMMU = config.bMMU;
   bSyncGPU = config.bSyncGPU;
@@ -115,9 +101,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   iSyncGpuMinDistance = config.iSyncGpuMinDistance;
   fSyncGpuOverclock = config.fSyncGpuOverclock;
   bFastDiscSpeed = config.bFastDiscSpeed;
-  bHLE_BS2 = config.bHLE_BS2;
-  iSelectedLanguage = config.SelectedLanguage;
-  cpu_core = config.cpu_core;
   m_EmulationSpeed = config.m_EmulationSpeed;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
 
@@ -142,23 +125,14 @@ void ConfigCache::RestoreConfig(SConfig* config)
   valid = false;
 
   config->bCPUThread = bCPUThread;
-  config->bJITFollowBranch = bJITFollowBranch;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
-  config->bFloatExceptions = bFloatExceptions;
-  config->bDivideByZeroExceptions = bDivideByZeroExceptions;
-  config->bFPRF = bFPRF;
-  config->bAccurateNaNs = bAccurateNaNs;
   config->bDisableICache = bDisableICache;
   config->bMMU = bMMU;
-  config->bLowDCBZHack = bLowDCBZHack;
   config->bSyncGPU = bSyncGPU;
   config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
   config->iSyncGpuMinDistance = iSyncGpuMinDistance;
   config->fSyncGpuOverclock = fSyncGpuOverclock;
   config->bFastDiscSpeed = bFastDiscSpeed;
-  config->bHLE_BS2 = bHLE_BS2;
-  config->SelectedLanguage = iSelectedLanguage;
-  config->cpu_core = cpu_core;
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
@@ -235,22 +209,12 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
-    core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
-    core_section->Get("FloatExceptions", &StartUp.bFloatExceptions, StartUp.bFloatExceptions);
-    core_section->Get("DivByZeroExceptions", &StartUp.bDivideByZeroExceptions,
-                      StartUp.bDivideByZeroExceptions);
-    core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
-    core_section->Get("AccurateNaNs", &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
     core_section->Get("DisableICache", &StartUp.bDisableICache, StartUp.bDisableICache);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
-    core_section->Get("LowDCBZHack", &StartUp.bLowDCBZHack, StartUp.bLowDCBZHack);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-    core_section->Get("CPUCore", &StartUp.cpu_core, StartUp.cpu_core);
-    core_section->Get("HLE_BS2", &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
-    core_section->Get("GameCubeLanguage", &StartUp.SelectedLanguage, StartUp.SelectedLanguage);
     if (core_section->Get("EmulationSpeed", &StartUp.m_EmulationSpeed, StartUp.m_EmulationSpeed))
       config_cache.bSetEmulationSpeed = true;
 
@@ -302,12 +266,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   {
     // TODO: remove this once ConfigManager starts using OnionConfig.
     StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
-    StartUp.bJITFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
     StartUp.bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
-    StartUp.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
     StartUp.bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
-    if (!StartUp.bWii)
-      StartUp.SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
     for (int i = 0; i < 2; ++i)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
@@ -330,30 +290,21 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
     StartUp.bCPUThread = netplay_settings.m_CPUthread;
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
-    StartUp.cpu_core = netplay_settings.m_CPUcore;
-    StartUp.SelectedLanguage = netplay_settings.m_SelectedLanguage;
-    StartUp.bOverrideRegionSettings = netplay_settings.m_OverrideRegionSettings;
     StartUp.m_EXIDevice[0] = netplay_settings.m_EXIDevice[0];
     StartUp.m_EXIDevice[1] = netplay_settings.m_EXIDevice[1];
     StartUp.m_EXIDevice[2] = netplay_settings.m_EXIDevice[2];
     config_cache.bSetEXIDevice[0] = true;
     config_cache.bSetEXIDevice[1] = true;
     config_cache.bSetEXIDevice[2] = true;
-    StartUp.bFPRF = netplay_settings.m_FPRF;
-    StartUp.bAccurateNaNs = netplay_settings.m_AccurateNaNs;
     StartUp.bDisableICache = netplay_settings.m_DisableICache;
     StartUp.bSyncGPUOnSkipIdleHack = netplay_settings.m_SyncOnSkipIdle;
-    StartUp.bFloatExceptions = netplay_settings.m_FloatExceptions;
-    StartUp.bDivideByZeroExceptions = netplay_settings.m_DivideByZeroExceptions;
     StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
     StartUp.fSyncGpuOverclock = netplay_settings.m_SyncGpuOverclock;
-    StartUp.bJITFollowBranch = netplay_settings.m_JITFollowBranch;
     StartUp.bFastDiscSpeed = netplay_settings.m_FastDiscSpeed;
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;
-    StartUp.bHLE_BS2 = netplay_settings.m_SkipIPL;
     if (netplay_settings.m_HostInputAuthority && !netplay_settings.m_IsHosting)
       config_cache.bSetEmulationSpeed = true;
   }
@@ -363,10 +314,11 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   }
 
   // Override out-of-region languages/countries to prevent games from crashing or behaving oddly
-  if (!StartUp.bOverrideRegionSettings)
+  if (!Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
   {
-    StartUp.SelectedLanguage =
-        DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region));
+    Config::SetCurrent(
+        Config::MAIN_GC_LANGUAGE,
+        DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region)));
 
     if (StartUp.bWii)
     {
@@ -428,7 +380,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     }
   }
 
-  const bool load_ipl = !StartUp.bWii && !StartUp.bHLE_BS2 &&
+  const bool load_ipl = !StartUp.bWii && !Config::Get(Config::MAIN_SKIP_IPL) &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {

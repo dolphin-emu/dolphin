@@ -413,7 +413,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
   }
 
   FixupBranch end_dcbz_hack;
-  if (SConfig::GetInstance().bLowDCBZHack)
+  if (m_low_dcbz_hack)
   {
     // HACK: Don't clear any memory in the [0x8000'0000, 0x8000'8000) region.
     CMP(32, R(RSCRATCH), Imm32(0x8000'8000));
@@ -454,7 +454,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     SetJumpTarget(end_far_code);
   }
 
-  if (SConfig::GetInstance().bLowDCBZHack)
+  if (m_low_dcbz_hack)
     SetJumpTarget(end_dcbz_hack);
 }
 

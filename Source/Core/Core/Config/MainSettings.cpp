@@ -59,6 +59,8 @@ const Info<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"}, ExpansionInterface:
 const Info<int> MAIN_SERIAL_PORT_1{{System::Main, "Core", "SerialPort1"},
                                    ExpansionInterface::EXIDEVICE_NONE};
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
+const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
+const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
 
 Info<u32> GetInfoForSIDevice(u32 channel)
 {
@@ -67,14 +69,26 @@ Info<u32> GetInfoForSIDevice(u32 channel)
                                           SerialInterface::SIDEVICE_NONE)};
 }
 
-Info<bool> GetInfoForAdapterRumble(u32 channel)
+const Info<bool>& GetInfoForAdapterRumble(int channel)
 {
-  return {{System::Main, "Core", fmt::format("AdapterRumble{}", channel)}, true};
+  static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "AdapterRumble0"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble1"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble2"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble3"}, true},
+  };
+  return infos[channel];
 }
 
-Info<bool> GetInfoForSimulateKonga(u32 channel)
+const Info<bool>& GetInfoForSimulateKonga(int channel)
 {
-  return {{System::Main, "Core", fmt::format("SimulateKonga{}", channel)}, false};
+  static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "SimulateKonga0"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga1"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga2"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga3"}, false},
+  };
+  return infos[channel];
 }
 
 const Info<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, true};

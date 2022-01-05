@@ -24,6 +24,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
@@ -72,6 +73,8 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.GetLocation()}},
       {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.GetLocation()}},
       {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.GetLocation()}},
+      {{"Core", "HLE_BS2"}, {Config::MAIN_SKIP_IPL.GetLocation()}},
+      {{"Core", "GameCubeLanguage"}, {Config::MAIN_GC_LANGUAGE.GetLocation()}},
   };
   return ini_to_location;
 }

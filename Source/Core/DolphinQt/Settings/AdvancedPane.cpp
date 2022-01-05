@@ -174,7 +174,6 @@ void AdvancedPane::ConnectLayout()
 {
   connect(m_cpu_emulation_engine_combobox,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [](int index) {
-            SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[index];
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
@@ -212,17 +211,18 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  m_custom_rtc_checkbox->setChecked(SConfig::GetInstance().bEnableCustomRTC);
+  m_custom_rtc_checkbox->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
   connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
-    SConfig::GetInstance().bEnableCustomRTC = enable_custom_rtc;
+    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
     Update();
   });
 
   QDateTime initial_date_time;
-  initial_date_time.setSecsSinceEpoch(SConfig::GetInstance().m_customRTCValue);
+  initial_date_time.setSecsSinceEpoch(Config::Get(Config::MAIN_CUSTOM_RTC_VALUE));
   m_custom_rtc_datetime->setDateTime(initial_date_time);
   connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    SConfig::GetInstance().m_customRTCValue = static_cast<u32>(date_time.toSecsSinceEpoch());
+    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
+                             static_cast<u32>(date_time.toSecsSinceEpoch()));
     Update();
   });
 }
@@ -232,12 +232,13 @@ void AdvancedPane::Update()
   const bool running = Core::GetState() != Core::State::Uninitialized;
   const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
+  const bool enable_custom_rtc_widgets = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
 
   const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
+  const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
-    if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
+    if (available_cpu_cores[i] == cpu_core)
       m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);

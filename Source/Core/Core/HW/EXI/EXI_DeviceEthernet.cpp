@@ -13,7 +13,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
@@ -28,7 +28,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 {
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
-  std::string& mac_addr_setting = SConfig::GetInstance().m_bba_mac;
+  std::string mac_addr_setting = Config::Get(Config::MAIN_BBA_MAC);
   std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
 
   std::transform(mac_addr_setting.begin(), mac_addr_setting.end(), mac_addr_setting.begin(),
@@ -38,7 +38,8 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
   {
     mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);
     mac_addr_setting = Common::MacAddressToString(mac_addr.value());
-    SConfig::GetInstance().SaveSettings();
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, mac_addr_setting);
+    Config::Save();
   }
 
   switch (type)
@@ -70,11 +71,12 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 
     // m_client_mdentifier should be unique per connected emulator from the XLink kai client's
     // perspective so lets use "dolphin<bba mac>"
-    m_network_interface = std::make_unique<XLinkNetworkInterface>(
-        this, SConfig::GetInstance().m_bba_xlink_ip, 34523,
-        "dolphin" + SConfig::GetInstance().m_bba_mac, SConfig::GetInstance().m_bba_xlink_chat_osd);
+    m_network_interface =
+        std::make_unique<XLinkNetworkInterface>(this, Config::Get(Config::MAIN_BBA_XLINK_IP), 34523,
+                                                "dolphin" + Config::Get(Config::MAIN_BBA_MAC),
+                                                Config::Get(Config::MAIN_BBA_XLINK_CHAT_OSD));
     INFO_LOG_FMT(SP1, "Created XLink Kai BBA network interface connection to {}:34523",
-                 SConfig::GetInstance().m_bba_xlink_ip);
+                 Config::Get(Config::MAIN_BBA_XLINK_IP));
     break;
   }
 

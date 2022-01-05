@@ -349,9 +349,10 @@ void GameCubePane::OnConfigPressed(int slot)
   }
   else
   {
-    path_old = QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
-                                                            SConfig::GetInstance().m_strGbaCartB))
-                   .absoluteFilePath();
+    path_old =
+        QFileInfo(QString::fromStdString(slot == 0 ? Config::Get(Config::MAIN_AGP_CART_A_PATH) :
+                                                     Config::Get(Config::MAIN_AGP_CART_B_PATH)))
+            .absoluteFilePath();
   }
 
   if (memcard)
@@ -369,11 +370,11 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     if (slot == SLOT_A_INDEX)
     {
-      SConfig::GetInstance().m_strGbaCartA = path_abs.toStdString();
+      Config::SetBase(Config::MAIN_AGP_CART_A_PATH, path_abs.toStdString());
     }
     else
     {
-      SConfig::GetInstance().m_strGbaCartB = path_abs.toStdString();
+      Config::SetBase(Config::MAIN_AGP_CART_B_PATH, path_abs.toStdString());
     }
   }
 
@@ -432,11 +433,10 @@ void GameCubePane::BrowseGBASaves()
 
 void GameCubePane::LoadSettings()
 {
-  const SConfig& params = SConfig::GetInstance();
-
   // IPL Settings
-  m_skip_main_menu->setChecked(params.bHLE_BS2);
-  m_language_combo->setCurrentIndex(m_language_combo->findData(params.SelectedLanguage));
+  m_skip_main_menu->setChecked(Config::Get(Config::MAIN_SKIP_IPL));
+  m_language_combo->setCurrentIndex(
+      m_language_combo->findData(Config::Get(Config::MAIN_GC_LANGUAGE)));
 
   bool have_menu = false;
 
@@ -478,12 +478,8 @@ void GameCubePane::SaveSettings()
 {
   Config::ConfigChangeCallbackGuard config_guard;
 
-  SConfig& params = SConfig::GetInstance();
-
   // IPL Settings
-  params.bHLE_BS2 = m_skip_main_menu->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_main_menu->isChecked());
-  params.SelectedLanguage = m_language_combo->currentData().toInt();
   Config::SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentData().toInt());
 
   // Device Settings
