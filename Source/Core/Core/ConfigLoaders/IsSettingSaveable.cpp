@@ -108,6 +108,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_WII_SD_CARD.GetLocation(),
       &Config::MAIN_WII_KEYBOARD.GetLocation(),
       &Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING.GetLocation(),
+      &Config::MAIN_WIIMOTE_ENABLE_SPEAKER.GetLocation(),
 
       // UI.General
 

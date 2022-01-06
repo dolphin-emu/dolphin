@@ -142,7 +142,16 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
   s_wiimote_pool.emplace_back(WiimotePoolEntry{std::move(wiimote)});
 }
 
-Wiimote::Wiimote() = default;
+Wiimote::Wiimote()
+{
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+Wiimote::~Wiimote()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
 
 void Wiimote::Shutdown()
 {
@@ -263,7 +272,7 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
     }
   }
   else if (rpt[1] == u8(OutputReportID::SpeakerData) &&
-           (!SConfig::GetInstance().m_WiimoteEnableSpeaker || !m_speaker_enable || m_speaker_mute))
+           (!m_speaker_enabled_in_dolphin_config || !m_speaker_enable || m_speaker_mute))
   {
     rpt.resize(3);
     // Translate undesired speaker data reports into rumble reports.
@@ -802,6 +811,11 @@ void Wiimote::ThreadFunc()
   }
 
   DisconnectInternal();
+}
+
+void Wiimote::RefreshConfig()
+{
+  m_speaker_enabled_in_dolphin_config = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
 }
 
 int Wiimote::GetIndex() const

@@ -29,6 +29,8 @@ public:
   void Reset();
   void DoState(PointerWrap& p);
 
+  void SetSpeakerEnabled(bool enabled);
+
 private:
   // Pan is -1.0 to +1.0
   void SpeakerData(const u8* data, int length, float speaker_pan);
@@ -71,6 +73,8 @@ private:
   ADPCMState adpcm_state{};
 
   ControllerEmu::SettingValue<double> m_speaker_pan_setting;
+
+  bool m_speaker_enabled = false;
 };
 
 }  // namespace WiimoteEmu
