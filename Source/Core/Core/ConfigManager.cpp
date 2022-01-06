@@ -111,7 +111,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   {
     core->Set(fmt::format("SIDevice{}", i), m_SIDevice[i]);
   }
-  core->Set("WiimoteControllerInterface", connect_wiimotes_for_ciface);
   core->Set("MMU", bMMU);
 }
 
@@ -139,7 +138,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
               (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
   }
-  core->Get("WiimoteControllerInterface", &connect_wiimotes_for_ciface, false);
   core->Get("MMU", &bMMU, bMMU);
   core->Get("BBDumpPort", &iBBDumpPort, -1);
   core->Get("SyncGPU", &bSyncGPU, false);

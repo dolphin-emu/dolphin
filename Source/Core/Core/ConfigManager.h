@@ -49,9 +49,6 @@ struct BootParameters;
 
 struct SConfig
 {
-  // Wii Devices
-  bool connect_wiimotes_for_ciface;
-
   // Settings
   bool bAutomaticStart = false;
   bool bBootToPause = false;

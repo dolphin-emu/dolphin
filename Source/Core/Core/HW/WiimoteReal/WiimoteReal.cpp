@@ -111,7 +111,7 @@ void ProcessWiimotePool()
   for (u32 index = 0; index != MAX_WIIMOTES; ++index)
     TryToFillWiimoteSlot(index);
 
-  if (SConfig::GetInstance().connect_wiimotes_for_ciface)
+  if (Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
   {
     for (auto& entry : s_wiimote_pool)
       ciface::WiimoteController::AddDevice(std::move(entry.wiimote));
@@ -686,7 +686,7 @@ void WiimoteScanner::ThreadFunc()
       continue;
 
     // If we don't want Wiimotes in ControllerInterface, we may not need them at all.
-    if (!SConfig::GetInstance().connect_wiimotes_for_ciface)
+    if (!Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
     {
       // We don't want any remotes in passthrough mode or running in GC mode.
       const bool core_running = Core::GetState() != Core::State::Uninitialized;
