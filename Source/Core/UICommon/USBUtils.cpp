@@ -27,6 +27,7 @@ static const std::map<std::pair<u16, u16>, std::string_view> s_wii_peripherals{{
     {{0x1bad, 0x0004}, "Harmonix Guitar Controller"},
     {{0x1bad, 0x3110}, "Rock Band 3 Mustang Guitar Dongle"},
     {{0x1bad, 0x3138}, "Harmonix Drum Controller for Nintendo Wii"},
+    {{0x1bad, 0x3330}, "Harmonix RB3 Keyboard for Nintendo Wii"},
     {{0x1bad, 0x3338}, "Harmonix RB3 MIDI Keyboard Interface for Nintendo Wii"},
     {{0x1bad, 0x3538}, "Harmonix RB3 MIDI Guitar Interface for Nintendo Wii"},
     {{0x1bad, 0x3430}, "Rock Band Drum Set"},
