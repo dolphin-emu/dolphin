@@ -66,7 +66,6 @@ public:
   // alone on restore (false)
   bool bSetVolume = false;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource{};
-  std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads{};
 
 private:
   bool valid = false;
@@ -77,7 +76,6 @@ private:
   int iSyncGpuMinDistance = 0;
   float fSyncGpuOverclock = 0;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
-  std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
@@ -94,11 +92,8 @@ void ConfigCache::SaveConfig(const SConfig& config)
   for (int i = 0; i != MAX_BBMOTES; ++i)
     iWiimoteSource[i] = WiimoteCommon::GetSource(i);
 
-  std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
-
   bSetVolume = false;
   bSetWiimoteSource.fill(false);
-  bSetPads.fill(false);
 }
 
 void ConfigCache::RestoreConfig(SConfig* config)
@@ -124,12 +119,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
       if (bSetWiimoteSource[i])
         WiimoteCommon::SetSource(i, iWiimoteSource[i]);
     }
-  }
-
-  for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
-  {
-    if (bSetPads[i])
-      config->m_SIDevice[i] = Pads[i];
   }
 }
 
@@ -160,17 +149,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
-
-    for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
-    {
-      int source;
-      controls_section->Get(fmt::format("PadType{}", i), &source, -1);
-      if (source >= SerialInterface::SIDEVICE_NONE && source < SerialInterface::SIDEVICE_COUNT)
-      {
-        StartUp.m_SIDevice[i] = static_cast<SerialInterface::SIDevices>(source);
-        config_cache.bSetPads[i] = true;
-      }
-    }
 
     // Wii settings
     if (StartUp.bWii)

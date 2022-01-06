@@ -83,6 +83,8 @@ static u8 s_endpoint_out = 0;
 static u64 s_last_init = 0;
 
 static std::optional<size_t> s_config_callback_id = std::nullopt;
+static std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS>
+    s_config_si_device_type{};
 static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enabled{};
 
 static void Read()
@@ -205,7 +207,10 @@ void SetAdapterCallback(std::function<void()> func)
 static void RefreshConfig()
 {
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    s_config_si_device_type[i] = Config::Get(Config::GetInfoForSIDevice(i));
     s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
+  }
 }
 
 void Init()
@@ -542,9 +547,8 @@ void ResetDeviceType(int chan)
 
 bool UseAdapter()
 {
-  const auto& si_devices = SConfig::GetInstance().m_SIDevice;
-
-  return std::any_of(std::begin(si_devices), std::end(si_devices), [](const auto device_type) {
+  const auto& si_devices = s_config_si_device_type;
+  return std::any_of(si_devices.begin(), si_devices.end(), [](const auto device_type) {
     return device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER;
   });
 }

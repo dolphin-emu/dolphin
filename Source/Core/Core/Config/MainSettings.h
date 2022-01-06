@@ -36,6 +36,11 @@ namespace ExpansionInterface
 enum TEXIDevices : int;
 }
 
+namespace SerialInterface
+{
+enum SIDevices : int;
+}
+
 namespace Config
 {
 // Main.Core
@@ -71,7 +76,7 @@ const Info<ExpansionInterface::TEXIDevices>& GetInfoForEXIDevice(int channel);
 extern const Info<std::string> MAIN_BBA_MAC;
 extern const Info<std::string> MAIN_BBA_XLINK_IP;
 extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;
-Info<u32> GetInfoForSIDevice(u32 channel);
+const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel);
 const Info<bool>& GetInfoForAdapterRumble(int channel);
 const Info<bool>& GetInfoForSimulateKonga(int channel);
 extern const Info<bool> MAIN_WII_SD_CARD;

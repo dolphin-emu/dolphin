@@ -453,9 +453,10 @@ void ChangePads()
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
-    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
       controllers[i] = ControllerType::GBA;
-    else if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+    else if (SerialInterface::SIDevice_IsGCController(si_device))
       controllers[i] = ControllerType::GC;
     else
       controllers[i] = ControllerType::None;
@@ -473,9 +474,10 @@ void ChangePads()
     }
     else if (IsUsingPad(i))
     {
-      if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+      if (SerialInterface::SIDevice_IsGCController(si_device))
       {
-        device = SConfig::GetInstance().m_SIDevice[i];
+        device = si_device;
       }
       else
       {
@@ -548,7 +550,8 @@ bool BeginRecordingInput(const ControllerTypeArray& controllers,
 
     for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
-      if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_TARUKONGA)
+      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+      if (si_device == SerialInterface::SIDEVICE_GC_TARUKONGA)
         s_bongos |= (1 << i);
     }
 

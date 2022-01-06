@@ -76,11 +76,19 @@ const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
 const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
 const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
 
-Info<u32> GetInfoForSIDevice(u32 channel)
+const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 {
-  return {{System::Main, "Core", fmt::format("SIDevice{}", channel)},
-          static_cast<u32>(channel == 0 ? SerialInterface::SIDEVICE_GC_CONTROLLER :
-                                          SerialInterface::SIDEVICE_NONE)};
+  static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"},
+                                       SerialInterface::SIDEVICE_GC_CONTROLLER},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice1"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice2"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice3"},
+                                       SerialInterface::SIDEVICE_NONE},
+  };
+  return infos[channel];
 }
 
 const Info<bool>& GetInfoForAdapterRumble(int channel)
