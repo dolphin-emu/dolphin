@@ -176,6 +176,7 @@ const Info<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "Resour
 const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const Info<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 const Info<std::string> MAIN_WFS_PATH{{System::Main, "General", "WFSPath"}, ""};
+const Info<std::string> MAIN_GECKO_URL{{System::Main, "General", "GeckoURL"}, ""};
 const Info<bool> MAIN_SHOW_LAG{{System::Main, "General", "ShowLag"}, false};
 const Info<bool> MAIN_SHOW_FRAME_COUNT{{System::Main, "General", "ShowFrameCount"}, false};
 const Info<std::string> MAIN_WIRELESS_MAC{{System::Main, "General", "WirelessMac"}, ""};

@@ -141,6 +141,7 @@ extern const Info<std::string> MAIN_RESOURCEPACK_PATH;
 extern const Info<std::string> MAIN_FS_PATH;
 extern const Info<std::string> MAIN_SD_PATH;
 extern const Info<std::string> MAIN_WFS_PATH;
+extern const Info<std::string> MAIN_GECKO_URL;
 extern const Info<bool> MAIN_SHOW_LAG;
 extern const Info<bool> MAIN_SHOW_FRAME_COUNT;
 extern const Info<std::string> MAIN_WIRELESS_MAC;

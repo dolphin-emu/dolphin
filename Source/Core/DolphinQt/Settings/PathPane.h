@@ -26,6 +26,7 @@ private:
   void BrowseResourcePack();
   void BrowseSDCard();
   void BrowseWFS();
+  void ResetGecko();
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();
   void RemovePath();
@@ -41,6 +42,7 @@ private:
   QLineEdit* m_resource_pack_edit;
   QLineEdit* m_sdcard_edit;
   QLineEdit* m_wfs_edit;
+  QLineEdit* m_gecko_edit;
 
   QPushButton* m_remove_path;
 };

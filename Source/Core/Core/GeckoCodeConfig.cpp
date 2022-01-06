@@ -3,6 +3,7 @@
 
 #include "Core/GeckoCodeConfig.h"
 
+#include <iostream>
 #include <algorithm>
 #include <optional>
 #include <sstream>
@@ -14,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/CheatCodes.h"
+#include "Core/Config/MainSettings.h"
 
 namespace Gecko
 {
@@ -22,8 +24,22 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
   // TODO: Fix https://bugs.dolphin-emu.org/issues/11772 so we don't need this workaround
   const std::string protocol = use_https ? "https://" : "http://";
 
-  // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
-  std::string endpoint{protocol + "codes.rc24.xyz/txt.php?txt=" + gametdb_id};
+  std::string endpoint;
+
+  std::string GeckoURL = Config::GetBase(Config::MAIN_GECKO_URL);
+  if(GeckoURL.find("https://") != std::string::npos) {
+    GeckoURL.erase(0, 8);
+  }
+
+  if(GeckoURL != "") 
+  {
+    endpoint = protocol + GeckoURL + gametdb_id;
+  } 
+  else 
+  {
+    // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
+    endpoint = protocol + "codes.rc24.xyz/txt.php?txt=" + gametdb_id;
+  }
   Common::HttpRequest http;
 
   // The server always redirects once to the same location.
