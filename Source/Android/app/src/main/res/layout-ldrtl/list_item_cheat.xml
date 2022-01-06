@@ -13,7 +13,7 @@
         android:id="@+id/text_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        style="@style/TextAppearance.AppCompat.Headline"
+        style="@style/TextAppearance.MaterialComponents.Headline5"
         android:textSize="16sp"
         tools:text="Hyrule Field Speed Hack"
         android:layout_margin="@dimen/spacing_large"

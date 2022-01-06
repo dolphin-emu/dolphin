@@ -52,6 +52,9 @@ public class UserDataActivity extends AppCompatActivity implements View.OnClickL
     buttonOpenSystemFileManager.setVisibility(android_11 ? View.VISIBLE : View.GONE);
 
     buttonOpenSystemFileManager.setOnClickListener(this);
+
+    // show up button
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   @Override
@@ -79,6 +82,13 @@ public class UserDataActivity extends AppCompatActivity implements View.OnClickL
                 .show();
       }
     }
+  }
+
+  @Override
+  public boolean onSupportNavigateUp()
+  {
+    onBackPressed();
+    return true;
   }
 
   private Intent getFileManagerIntent(String packageName)

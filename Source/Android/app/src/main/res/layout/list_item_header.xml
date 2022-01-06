@@ -12,7 +12,7 @@
         tools:text="CPU Settings"
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginBottom="@dimen/spacing_small"
-        android:textColor="?android:colorAccent"
+        android:textColor="@color/dolphin_blue"
         android:textStyle="bold"
         android:layout_gravity="start|bottom"/>
 

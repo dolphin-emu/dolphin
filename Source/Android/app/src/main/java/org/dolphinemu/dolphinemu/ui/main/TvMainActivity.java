@@ -133,7 +133,7 @@ public final class TvMainActivity extends FragmentActivity
 
     // Set display parameters for the BrowseFragment
     mBrowseFragment.setHeadersState(BrowseSupportFragment.HEADERS_ENABLED);
-    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
+    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_secondary));
     buildRowsAdapter();
 
     mBrowseFragment.setOnItemViewClickedListener(

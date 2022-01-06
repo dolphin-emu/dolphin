@@ -22,6 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_small"
         android:text="@string/cheats_open_settings"
+        android:textColor="@color/dolphin_white"
         app:layout_constraintStart_toEndOf="@id/text_warning"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
