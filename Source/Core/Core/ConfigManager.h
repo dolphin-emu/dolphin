@@ -64,7 +64,6 @@ struct SConfig
   bool bJITNoBlockLinking = false;
 
   bool bFastmem;
-  bool bDisableICache = false;
 
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;

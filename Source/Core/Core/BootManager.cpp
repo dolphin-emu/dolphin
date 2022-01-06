@@ -74,7 +74,6 @@ private:
   bool bCPUThread = false;
   bool bSyncGPUOnSkipIdleHack = false;
   bool bMMU = false;
-  bool bDisableICache = false;
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance = 0;
   int iSyncGpuMinDistance = 0;
@@ -91,7 +90,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 
   bCPUThread = config.bCPUThread;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
-  bDisableICache = config.bDisableICache;
   bMMU = config.bMMU;
   bSyncGPU = config.bSyncGPU;
   iSyncGpuMaxDistance = config.iSyncGpuMaxDistance;
@@ -120,7 +118,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   config->bCPUThread = bCPUThread;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
-  config->bDisableICache = bDisableICache;
   config->bMMU = bMMU;
   config->bSyncGPU = bSyncGPU;
   config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
@@ -179,7 +176,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
-    core_section->Get("DisableICache", &StartUp.bDisableICache, StartUp.bDisableICache);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
@@ -257,7 +253,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     config_cache.bSetEXIDevice[0] = true;
     config_cache.bSetEXIDevice[1] = true;
     config_cache.bSetEXIDevice[2] = true;
-    StartUp.bDisableICache = netplay_settings.m_DisableICache;
     StartUp.bSyncGPUOnSkipIdleHack = netplay_settings.m_SyncOnSkipIdle;
     StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;

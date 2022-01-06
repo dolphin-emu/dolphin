@@ -161,7 +161,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
-  core->Get("DisableICache", &bDisableICache, false);
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -281,7 +280,6 @@ void SConfig::LoadDefaults()
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;
   bFastmem = true;
-  bDisableICache = false;
   bMMU = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
