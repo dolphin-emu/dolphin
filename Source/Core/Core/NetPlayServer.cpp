@@ -415,6 +415,9 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
     return ConnectionError::NameTooLong;
 
+  // Extend reliable traffic timeout
+  enet_peer_timeout(socket, 0, 30000, 30000);
+
   // cause pings to be updated
   m_update_pings = true;
 
