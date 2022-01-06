@@ -78,7 +78,6 @@ private:
   int iSyncGpuMaxDistance = 0;
   int iSyncGpuMinDistance = 0;
   float fSyncGpuOverclock = 0;
-  bool bFastDiscSpeed = false;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
   std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice{};
@@ -95,7 +94,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   iSyncGpuMaxDistance = config.iSyncGpuMaxDistance;
   iSyncGpuMinDistance = config.iSyncGpuMinDistance;
   fSyncGpuOverclock = config.fSyncGpuOverclock;
-  bFastDiscSpeed = config.bFastDiscSpeed;
 
   for (int i = 0; i != MAX_BBMOTES; ++i)
     iWiimoteSource[i] = WiimoteCommon::GetSource(i);
@@ -123,7 +121,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
   config->iSyncGpuMinDistance = iSyncGpuMinDistance;
   config->fSyncGpuOverclock = fSyncGpuOverclock;
-  config->bFastDiscSpeed = bFastDiscSpeed;
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
@@ -178,7 +175,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
                       StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
-    core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 
     for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
@@ -223,7 +219,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   {
     // TODO: remove this once ConfigManager starts using OnionConfig.
     StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
-    StartUp.bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
     StartUp.bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
     for (int i = 0; i < 2; ++i)
     {
@@ -258,7 +253,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
     StartUp.fSyncGpuOverclock = netplay_settings.m_SyncGpuOverclock;
-    StartUp.bFastDiscSpeed = netplay_settings.m_FastDiscSpeed;
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;
   }
@@ -312,7 +306,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
   if (!boot->riivolution_patches.empty())
-    StartUp.bFastDiscSpeed = true;
+    Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 

@@ -160,7 +160,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
-  core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -283,7 +282,6 @@ void SConfig::LoadDefaults()
   bMMU = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
-  bFastDiscSpeed = false;
   bWii = false;
 
   ResetRunningGameMetadata();

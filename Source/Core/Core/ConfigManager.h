@@ -72,7 +72,6 @@ struct SConfig
 
   bool bMMU = false;
   int iBBDumpPort = 0;
-  bool bFastDiscSpeed = false;
 
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance;

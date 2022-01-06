@@ -101,6 +101,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_PERF_MAP_DIR.GetLocation(),
       &Config::MAIN_GPU_DETERMINISM_MODE.GetLocation(),
       &Config::MAIN_DISABLE_ICACHE.GetLocation(),
+      &Config::MAIN_FAST_DISC_SPEED.GetLocation(),
 
       // UI.General
 
