@@ -54,11 +54,24 @@ const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
-const Info<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
-                            ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
-const Info<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDEVICE_NONE};
-const Info<int> MAIN_SERIAL_PORT_1{{System::Main, "Core", "SerialPort1"},
-                                   ExpansionInterface::EXIDEVICE_NONE};
+
+const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_A{
+    {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
+const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
+                                                        ExpansionInterface::EXIDEVICE_NONE};
+const Info<ExpansionInterface::TEXIDevices> MAIN_SERIAL_PORT_1{
+    {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDEVICE_NONE};
+
+const Info<ExpansionInterface::TEXIDevices>& GetInfoForEXIDevice(int channel)
+{
+  static constexpr std::array<const Info<ExpansionInterface::TEXIDevices>*, 3> infos{
+      &MAIN_SLOT_A,
+      &MAIN_SLOT_B,
+      &MAIN_SERIAL_PORT_1,
+  };
+  return *infos[channel];
+}
+
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
 const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
 const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};

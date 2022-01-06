@@ -67,7 +67,6 @@ public:
   bool bSetVolume = false;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource{};
   std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads{};
-  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice{};
 
 private:
   bool valid = false;
@@ -79,7 +78,6 @@ private:
   float fSyncGpuOverclock = 0;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
-  std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice{};
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
@@ -97,12 +95,10 @@ void ConfigCache::SaveConfig(const SConfig& config)
     iWiimoteSource[i] = WiimoteCommon::GetSource(i);
 
   std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
-  std::copy(std::begin(config.m_EXIDevice), std::end(config.m_EXIDevice), std::begin(m_EXIDevice));
 
   bSetVolume = false;
   bSetWiimoteSource.fill(false);
   bSetPads.fill(false);
-  bSetEXIDevice.fill(false);
 }
 
 void ConfigCache::RestoreConfig(SConfig* config)
@@ -134,12 +130,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   {
     if (bSetPads[i])
       config->m_SIDevice[i] = Pads[i];
-  }
-
-  for (unsigned int i = 0; i < ExpansionInterface::MAX_EXI_CHANNELS; ++i)
-  {
-    if (bSetEXIDevice[i])
-      config->m_EXIDevice[i] = m_EXIDevice[i];
   }
 }
 
@@ -237,12 +227,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
     StartUp.bCPUThread = netplay_settings.m_CPUthread;
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
-    StartUp.m_EXIDevice[0] = netplay_settings.m_EXIDevice[0];
-    StartUp.m_EXIDevice[1] = netplay_settings.m_EXIDevice[1];
-    StartUp.m_EXIDevice[2] = netplay_settings.m_EXIDevice[2];
-    config_cache.bSetEXIDevice[0] = true;
-    config_cache.bSetEXIDevice[1] = true;
-    config_cache.bSetEXIDevice[2] = true;
     StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;

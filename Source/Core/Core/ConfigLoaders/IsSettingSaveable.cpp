@@ -110,6 +110,9 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING.GetLocation(),
       &Config::MAIN_WIIMOTE_ENABLE_SPEAKER.GetLocation(),
       &Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE.GetLocation(),
+      &Config::MAIN_SLOT_A.GetLocation(),
+      &Config::MAIN_SLOT_B.GetLocation(),
+      &Config::MAIN_SERIAL_PORT_1.GetLocation(),
 
       // UI.General
 

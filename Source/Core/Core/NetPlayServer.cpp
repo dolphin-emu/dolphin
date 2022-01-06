@@ -1307,10 +1307,8 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_CopyWiiSave = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   settings.m_OCEnable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   settings.m_OCFactor = Config::Get(Config::MAIN_OVERCLOCK);
-  settings.m_EXIDevice[0] =
-      static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_A));
-  settings.m_EXIDevice[1] =
-      static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_B));
+  settings.m_EXIDevice[0] = Config::Get(Config::MAIN_SLOT_A);
+  settings.m_EXIDevice[1] = Config::Get(Config::MAIN_SLOT_B);
   // There's no way the BBA is going to sync, disable it
   settings.m_EXIDevice[2] = ExpansionInterface::EXIDEVICE_NONE;
 
@@ -1595,11 +1593,12 @@ bool NetPlayServer::SyncSaveData()
 
   u8 save_count = 0;
 
-  constexpr size_t exi_device_count = 2;
-  for (size_t i = 0; i < exi_device_count; i++)
+  constexpr int exi_device_count = 2;
+  for (int i = 0; i < exi_device_count; ++i)
   {
     if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
-        SConfig::GetInstance().m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+        Config::Get(Config::GetInfoForEXIDevice(i)) ==
+            ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
     {
       save_count++;
     }
@@ -1654,7 +1653,7 @@ bool NetPlayServer::SyncSaveData()
   const std::string region =
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(game->GetRegion()));
 
-  for (size_t i = 0; i < exi_device_count; i++)
+  for (int i = 0; i < exi_device_count; ++i)
   {
     const bool is_slot_a = i == 0;
 
@@ -1695,7 +1694,7 @@ bool NetPlayServer::SyncSaveData()
       SendChunkedToClients(std::move(pac), 1,
                            fmt::format("Memory Card {} Synchronization", is_slot_a ? 'A' : 'B'));
     }
-    else if (SConfig::GetInstance().m_EXIDevice[i] ==
+    else if (Config::Get(Config::GetInfoForEXIDevice(i)) ==
              ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
     {
       const std::string path = File::GetUserPath(D_GCUSER_IDX) + region + DIR_SEP +
