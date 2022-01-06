@@ -14,6 +14,7 @@
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
@@ -509,15 +510,15 @@ void UpdateWantDeterminism(bool want)
   // it should be safe to change this.
   const SConfig& param = SConfig::GetInstance();
   bool gpu_thread = false;
-  switch (param.m_GPUDeterminismMode)
+  switch (Config::GetGPUDeterminismMode())
   {
-  case GPUDeterminismMode::Auto:
+  case Config::GPUDeterminismMode::Auto:
     gpu_thread = want;
     break;
-  case GPUDeterminismMode::Disabled:
+  case Config::GPUDeterminismMode::Disabled:
     gpu_thread = false;
     break;
-  case GPUDeterminismMode::FakeCompletion:
+  case Config::GPUDeterminismMode::FakeCompletion:
     gpu_thread = true;
     break;
   }

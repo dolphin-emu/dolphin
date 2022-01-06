@@ -120,7 +120,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
   core->Set("WiimoteControllerInterface", connect_wiimotes_for_ciface);
   core->Set("MMU", bMMU);
-  core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
 }
 
 void SConfig::LoadSettings()
@@ -163,7 +162,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
   core->Get("DisableICache", &bDisableICache, false);
-  core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
 }
 
 void SConfig::ResetRunningGameMetadata()

@@ -47,15 +47,6 @@ enum SIDevices : int;
 
 struct BootParameters;
 
-enum class GPUDeterminismMode
-{
-  Auto,
-  Disabled,
-  // This is currently the only mode.  There will probably be at least
-  // one more at some point.
-  FakeCompletion,
-};
-
 struct SConfig
 {
   // Wii Devices
@@ -93,11 +84,6 @@ struct SConfig
   bool m_is_mios = false;
 
   DiscIO::Region m_region;
-
-  std::string m_strGPUDeterminismMode;
-
-  // set based on the string version
-  GPUDeterminismMode m_GPUDeterminismMode;
 
   // files
   std::string m_strBootROM;

@@ -80,7 +80,6 @@ private:
   int iSyncGpuMinDistance = 0;
   float fSyncGpuOverclock = 0;
   bool bFastDiscSpeed = false;
-  std::string m_strGPUDeterminismMode;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads{};
   std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice{};
@@ -99,7 +98,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   iSyncGpuMinDistance = config.iSyncGpuMinDistance;
   fSyncGpuOverclock = config.fSyncGpuOverclock;
   bFastDiscSpeed = config.bFastDiscSpeed;
-  m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
 
   for (int i = 0; i != MAX_BBMOTES; ++i)
     iWiimoteSource[i] = WiimoteCommon::GetSource(i);
@@ -152,24 +150,9 @@ void ConfigCache::RestoreConfig(SConfig* config)
     if (bSetEXIDevice[i])
       config->m_EXIDevice[i] = m_EXIDevice[i];
   }
-
-  config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
 }
 
 static ConfigCache config_cache;
-
-static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
-{
-  if (mode == "auto")
-    return GPUDeterminismMode::Auto;
-  if (mode == "none")
-    return GPUDeterminismMode::Disabled;
-  if (mode == "fake-completion")
-    return GPUDeterminismMode::FakeCompletion;
-
-  NOTICE_LOG_FMT(BOOT, "Unknown GPU determinism mode {}", mode);
-  return GPUDeterminismMode::Auto;
-}
 
 // Boot the ISO or file
 bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
@@ -200,8 +183,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-    core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,
-                      StartUp.m_strGPUDeterminismMode);
 
     for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
@@ -240,8 +221,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       }
     }
   }
-
-  StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())

@@ -99,6 +99,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::GetInfoForSimulateKonga(3).GetLocation(),
       &Config::MAIN_EMULATION_SPEED.GetLocation(),
       &Config::MAIN_PERF_MAP_DIR.GetLocation(),
+      &Config::MAIN_GPU_DETERMINISM_MODE.GetLocation(),
 
       // UI.General
 
