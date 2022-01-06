@@ -267,7 +267,7 @@ QGridLayout* PathPane::MakePathsLayout()
   connect(m_gecko_edit, &QLineEdit::editingFinished,
           [=] { Config::SetBase(Config::MAIN_GECKO_URL, m_gecko_edit->text().toStdString()); });
   QPushButton* gecko_reset = new QPushButton(QStringLiteral("Reset"));
-  connect (gecko_reset, &QPushButton::clicked, this, &PathPane::ResetGecko);
+  connect(gecko_reset, &QPushButton::clicked, this, &PathPane::ResetGecko);
   layout->addWidget(new QLabel(tr("Gecko Download URL:")), 7, 0);
   layout->addWidget(m_gecko_edit, 7, 1);
   layout->addWidget(gecko_reset, 7, 2);
