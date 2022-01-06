@@ -25,7 +25,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
 
   std::string endpoint;
 
-  std::string GeckoURL = Config::GetBase(Config::MAIN_GECKO_URL);
+  std::string gecko_url = Config::GetBase(Config::MAIN_GECKO_URL);
   if (GeckoURL.find("https://") != std::string::npos)
   {
     GeckoURL.erase(0, 8);
