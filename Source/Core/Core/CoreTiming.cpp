@@ -17,7 +17,6 @@
 #include "Common/SPSCQueue.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -81,6 +80,7 @@ static EventType* s_ev_lost = nullptr;
 static size_t s_registered_config_callback_id;
 static float s_config_OC_factor;
 static float s_config_OC_inv_factor;
+static bool s_config_sync_on_skip_idle;
 
 static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 {
@@ -161,6 +161,7 @@ void RefreshConfig()
   s_config_OC_factor =
       Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
   s_config_OC_inv_factor = 1.0f / s_config_OC_factor;
+  s_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
 }
 
 void DoState(PointerWrap& p)
@@ -388,7 +389,7 @@ void AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 
 void Idle()
 {
-  if (SConfig::GetInstance().bSyncGPUOnSkipIdleHack)
+  if (s_config_sync_on_skip_idle)
   {
     // When the FIFO is processing data we must not advance because in this way
     // the VI will be desynchronized. So, We are waiting until the FIFO finish and

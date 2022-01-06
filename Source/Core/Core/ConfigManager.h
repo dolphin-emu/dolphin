@@ -67,7 +67,6 @@ struct SConfig
 
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
-  bool bSyncGPUOnSkipIdleHack = true;
   bool bCopyWiiSaveNetplay = true;
 
   bool bMMU = false;

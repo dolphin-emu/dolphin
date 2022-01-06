@@ -102,7 +102,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("TimingVariance", iTimingVariance);
   core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
-  core->Set("SyncOnSkipIdle", bSyncGPUOnSkipIdleHack);
   core->Set("SyncGPU", bSyncGPU);
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
   core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
@@ -140,7 +139,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("Fastmem", &bFastmem, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
-  core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
   core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
@@ -277,7 +275,6 @@ void SConfig::LoadDefaults()
 
   iTimingVariance = 40;
   bCPUThread = false;
-  bSyncGPUOnSkipIdleHack = true;
   bFastmem = true;
   bMMU = false;
   iBBDumpPort = -1;

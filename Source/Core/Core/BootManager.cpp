@@ -72,7 +72,6 @@ public:
 private:
   bool valid = false;
   bool bCPUThread = false;
-  bool bSyncGPUOnSkipIdleHack = false;
   bool bMMU = false;
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance = 0;
@@ -88,7 +87,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   valid = true;
 
   bCPUThread = config.bCPUThread;
-  bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bMMU = config.bMMU;
   bSyncGPU = config.bSyncGPU;
   iSyncGpuMaxDistance = config.iSyncGpuMaxDistance;
@@ -115,7 +113,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   valid = false;
 
   config->bCPUThread = bCPUThread;
-  config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bMMU = bMMU;
   config->bSyncGPU = bSyncGPU;
   config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
@@ -171,8 +168,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
-    core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
-                      StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
 
@@ -248,7 +243,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     config_cache.bSetEXIDevice[0] = true;
     config_cache.bSetEXIDevice[1] = true;
     config_cache.bSetEXIDevice[2] = true;
-    StartUp.bSyncGPUOnSkipIdleHack = netplay_settings.m_SyncOnSkipIdle;
     StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
