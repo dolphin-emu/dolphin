@@ -172,7 +172,7 @@ private:
 
   void RefreshConfig();
 
-  bool m_Loop;
+  bool m_Loop = true;
   // If enabled then all memory updates happen at once before the first frame
   bool m_EarlyMemoryUpdates = false;
 

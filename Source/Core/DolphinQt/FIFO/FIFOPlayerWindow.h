@@ -65,6 +65,7 @@ private:
   QSpinBox* m_object_range_to;
   QLabel* m_object_range_to_label;
   ToolTipCheckBox* m_early_memory_updates;
+  ToolTipCheckBox* m_loop;
   QDialogButtonBox* m_button_box;
 
   QWidget* m_main_widget;

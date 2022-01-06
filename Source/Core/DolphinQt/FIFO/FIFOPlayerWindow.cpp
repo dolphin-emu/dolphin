@@ -119,10 +119,12 @@ void FIFOPlayerWindow::CreateWidgets()
   auto* playback_group = new QGroupBox(tr("Playback Options"));
   auto* playback_layout = new QGridLayout;
   m_early_memory_updates = new ToolTipCheckBox(tr("Early Memory Updates"));
+  m_loop = new ToolTipCheckBox(tr("Loop"));
 
   playback_layout->addWidget(object_range_group, 0, 0);
   playback_layout->addWidget(frame_range_group, 0, 1);
-  playback_layout->addWidget(m_early_memory_updates, 1, 0, 1, -1);
+  playback_layout->addWidget(m_early_memory_updates, 1, 0);
+  playback_layout->addWidget(m_loop, 1, 1);
   playback_group->setLayout(playback_layout);
 
   // Recording Options
@@ -171,6 +173,7 @@ void FIFOPlayerWindow::CreateWidgets()
 void FIFOPlayerWindow::LoadSettings()
 {
   m_early_memory_updates->setChecked(Config::Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES));
+  m_loop->setChecked(Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY));
 }
 
 void FIFOPlayerWindow::ConnectWidgets()
@@ -181,6 +184,7 @@ void FIFOPlayerWindow::ConnectWidgets()
   connect(m_stop, &QPushButton::clicked, this, &FIFOPlayerWindow::StopRecording);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &FIFOPlayerWindow::hide);
   connect(m_early_memory_updates, &QCheckBox::toggled, this, &FIFOPlayerWindow::OnConfigChanged);
+  connect(m_loop, &QCheckBox::toggled, this, &FIFOPlayerWindow::OnConfigChanged);
 
   connect(m_frame_range_from, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
@@ -199,8 +203,13 @@ void FIFOPlayerWindow::AddDescriptions()
       "If enabled, then all memory updates happen at once before the first frame.<br><br>"
       "Causes issues with many fifologs, but can be useful for testing.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_LOOP_DESCRIPTION[] =
+      QT_TR_NOOP("If unchecked, then playback of the fifolog stops after the final frame.<br><br>"
+                 "This is generally only useful when a frame-dumping option is enabled.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
 
   m_early_memory_updates->SetDescription(tr(TR_MEMORY_UPDATES_DESCRIPTION));
+  m_loop->SetDescription(tr(TR_LOOP_DESCRIPTION));
 }
 
 void FIFOPlayerWindow::LoadRecording()
@@ -345,6 +354,7 @@ void FIFOPlayerWindow::OnConfigChanged()
 {
   Config::SetBase(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES,
                   m_early_memory_updates->isChecked());
+  Config::SetBase(Config::MAIN_FIFOPLAYER_LOOP_REPLAY, m_loop->isChecked());
 }
 
 void FIFOPlayerWindow::OnLimitsChanged()
