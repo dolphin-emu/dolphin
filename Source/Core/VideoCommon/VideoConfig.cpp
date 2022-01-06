@@ -9,7 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/DriverDetails.h"
@@ -24,7 +24,7 @@ static bool IsVSyncActive(bool enabled)
 {
   // Vsync is disabled when the throttler is disabled by the tab key.
   return enabled && !Core::GetIsThrottlerTempDisabled() &&
-         SConfig::GetInstance().m_EmulationSpeed == 1.0;
+         Config::Get(Config::MAIN_EMULATION_SPEED) == 1.0;
 }
 
 void UpdateActiveConfig()

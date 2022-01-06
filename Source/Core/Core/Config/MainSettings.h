@@ -72,6 +72,7 @@ extern const Info<bool> MAIN_WII_SD_CARD;
 extern const Info<bool> MAIN_WII_KEYBOARD;
 extern const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;
+extern const Info<bool> MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE;
 extern const Info<bool> MAIN_MMU;
 extern const Info<int> MAIN_BB_DUMP_PORT;
 extern const Info<bool> MAIN_SYNC_GPU;
@@ -93,7 +94,18 @@ extern const Info<u32> MAIN_MEM1_SIZE;
 extern const Info<u32> MAIN_MEM2_SIZE;
 // Should really be part of System::GFX, but again, we're stuck with past mistakes.
 extern const Info<std::string> MAIN_GFX_BACKEND;
+
+enum class GPUDeterminismMode
+{
+  Auto,
+  Disabled,
+  // This is currently the only mode.  There will probably be at least
+  // one more at some point.
+  FakeCompletion,
+};
 extern const Info<std::string> MAIN_GPU_DETERMINISM_MODE;
+GPUDeterminismMode GetGPUDeterminismMode();
+
 extern const Info<std::string> MAIN_PERF_MAP_DIR;
 extern const Info<bool> MAIN_CUSTOM_RTC_ENABLE;
 extern const Info<u32> MAIN_CUSTOM_RTC_VALUE;

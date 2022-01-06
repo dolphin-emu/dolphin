@@ -332,7 +332,7 @@ void Jit64::Init()
 {
   EnableBlockLink();
 
-  jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
+  jo.fastmem_arena = m_fastmem_enabled && Memory::InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
   UpdateMemoryAndExceptionOptions();
@@ -355,8 +355,7 @@ void Jit64::Init()
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
-  m_enable_blr_optimization =
-      jo.enableBlocklink && SConfig::GetInstance().bFastmem && !m_enable_debugging;
+  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
   m_stack = nullptr;

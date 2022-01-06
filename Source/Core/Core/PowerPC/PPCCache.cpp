@@ -7,7 +7,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -87,6 +87,12 @@ constexpr std::array<u32, 128> s_way_from_plru = [] {
 }();
 }  // Anonymous namespace
 
+InstructionCache::~InstructionCache()
+{
+  if (m_config_callback_id)
+    Config::RemoveConfigChangedCallback(*m_config_callback_id);
+}
+
 void InstructionCache::Reset()
 {
   valid.fill(0);
@@ -99,6 +105,10 @@ void InstructionCache::Reset()
 
 void InstructionCache::Init()
 {
+  if (!m_config_callback_id)
+    m_config_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+
   data.fill({});
   tags.fill({});
   Reset();
@@ -106,7 +116,7 @@ void InstructionCache::Init()
 
 void InstructionCache::Invalidate(u32 addr)
 {
-  if (!HID0.ICE || SConfig::GetInstance().bDisableICache)
+  if (!HID0.ICE || m_disable_icache)
     return;
 
   // Invalidates the whole set
@@ -129,7 +139,7 @@ void InstructionCache::Invalidate(u32 addr)
 
 u32 InstructionCache::ReadInstruction(u32 addr)
 {
-  if (!HID0.ICE || SConfig::GetInstance().bDisableICache)  // instruction cache is disabled
+  if (!HID0.ICE || m_disable_icache)  // instruction cache is disabled
     return Memory::Read_U32(addr);
   u32 set = (addr >> 5) & 0x7f;
   u32 tag = addr >> 12;
@@ -201,5 +211,10 @@ void InstructionCache::DoState(PointerWrap& p)
   p.DoArray(lookup_table);
   p.DoArray(lookup_table_ex);
   p.DoArray(lookup_table_vmem);
+}
+
+void InstructionCache::RefreshConfig()
+{
+  m_disable_icache = Config::Get(Config::MAIN_DISABLE_ICACHE);
 }
 }  // namespace PowerPC

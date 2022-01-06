@@ -348,7 +348,8 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   static_cast<void>(IDCache::GetEnvForThread());
 #endif
 
-  if (_CoreParameter.bFastmem)
+  const bool fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
+  if (fastmem_enabled)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
 
 #ifdef USE_MEMORYWATCHER
@@ -396,7 +397,7 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   s_is_started = false;
 
-  if (_CoreParameter.bFastmem)
+  if (fastmem_enabled)
     EMM::UninstallExceptionHandler();
 
   if (GDBStub::IsActive())

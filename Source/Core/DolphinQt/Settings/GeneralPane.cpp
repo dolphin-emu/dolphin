@@ -260,7 +260,7 @@ void GeneralPane::LoadConfig()
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
-  int selection = qRound(SConfig::GetInstance().m_EmulationSpeed * 10);
+  int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
     m_combobox_speedlimit->setCurrentIndex(selection);
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
@@ -353,7 +353,8 @@ void GeneralPane::OnSaveConfig()
                            m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
-  settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
+  Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
+                           m_combobox_speedlimit->currentIndex() * 0.1f);
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 

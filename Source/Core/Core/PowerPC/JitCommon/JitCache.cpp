@@ -13,7 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
@@ -40,7 +40,7 @@ JitBaseBlockCache::~JitBaseBlockCache() = default;
 
 void JitBaseBlockCache::Init()
 {
-  JitRegister::Init(SConfig::GetInstance().m_perfDir);
+  JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
   Clear();
 }

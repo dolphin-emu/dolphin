@@ -47,24 +47,8 @@ enum SIDevices : int;
 
 struct BootParameters;
 
-enum class GPUDeterminismMode
-{
-  Auto,
-  Disabled,
-  // This is currently the only mode.  There will probably be at least
-  // one more at some point.
-  FakeCompletion,
-};
-
 struct SConfig
 {
-  // Wii Devices
-  bool m_WiiSDCard;
-  bool m_WiiKeyboard;
-  bool m_WiimoteContinuousScanning;
-  bool m_WiimoteEnableSpeaker;
-  bool connect_wiimotes_for_ciface;
-
   // Settings
   bool bAutomaticStart = false;
   bool bBootToPause = false;
@@ -72,17 +56,11 @@ struct SConfig
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 
-  bool bFastmem;
-  bool bDisableICache = false;
-
-  int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
-  bool bSyncGPUOnSkipIdleHack = true;
   bool bCopyWiiSaveNetplay = true;
 
   bool bMMU = false;
   int iBBDumpPort = 0;
-  bool bFastDiscSpeed = false;
 
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance;
@@ -94,16 +72,9 @@ struct SConfig
 
   DiscIO::Region m_region;
 
-  std::string m_strGPUDeterminismMode;
-
-  // set based on the string version
-  GPUDeterminismMode m_GPUDeterminismMode;
-
   // files
   std::string m_strBootROM;
   std::string m_strSRAM;
-
-  std::string m_perfDir;
 
   std::string m_debugger_game_id;
   // TODO: remove this as soon as the ticket view hack in IOS/ES/Views is dropped.
@@ -145,8 +116,6 @@ struct SConfig
 
   ExpansionInterface::TEXIDevices m_EXIDevice[3];
   SerialInterface::SIDevices m_SIDevice[4];
-
-  float m_EmulationSpeed;
 
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;

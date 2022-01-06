@@ -52,7 +52,7 @@ void JitArm64::Init()
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&m_far_code, child_code_size);
 
-  jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
+  jo.fastmem_arena = m_fastmem_enabled && Memory::InitFastmemArena();
   jo.enableBlocklink = true;
   jo.optimizeGatherPipe = true;
   UpdateMemoryAndExceptionOptions();
@@ -67,8 +67,7 @@ void JitArm64::Init()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
-  m_enable_blr_optimization =
-      jo.enableBlocklink && SConfig::GetInstance().bFastmem && !m_enable_debugging;
+  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
   AllocStack();

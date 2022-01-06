@@ -10,6 +10,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
@@ -96,6 +97,8 @@ const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false}
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
 const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER{{System::Main, "Core", "WiimoteEnableSpeaker"}, false};
+const Info<bool> MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE{
+    {System::Main, "Core", "WiimoteControllerInterface"}, false};
 const Info<bool> MAIN_MMU{{System::Main, "Core", "MMU"}, false};
 const Info<int> MAIN_BB_DUMP_PORT{{System::Main, "Core", "BBDumpPort"}, -1};
 const Info<bool> MAIN_SYNC_GPU{{System::Main, "Core", "SyncGPU"}, false};
@@ -118,8 +121,24 @@ const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
 const Info<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"},
                                          VideoBackendBase::GetDefaultBackendName()};
+
 const Info<std::string> MAIN_GPU_DETERMINISM_MODE{{System::Main, "Core", "GPUDeterminismMode"},
                                                   "auto"};
+
+GPUDeterminismMode GetGPUDeterminismMode()
+{
+  auto mode = Config::Get(Config::MAIN_GPU_DETERMINISM_MODE);
+  if (mode == "auto")
+    return GPUDeterminismMode::Auto;
+  if (mode == "none")
+    return GPUDeterminismMode::Disabled;
+  if (mode == "fake-completion")
+    return GPUDeterminismMode::FakeCompletion;
+
+  NOTICE_LOG_FMT(CORE, "Unknown GPU determinism mode {}", mode);
+  return GPUDeterminismMode::Auto;
+}
+
 const Info<std::string> MAIN_PERF_MAP_DIR{{System::Main, "Core", "PerfMapDir"}, ""};
 const Info<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCustomRTC"}, false};
 // Default to seconds between 1.1.1970 and 1.1.2000

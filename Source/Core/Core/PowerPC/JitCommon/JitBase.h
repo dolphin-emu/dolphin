@@ -132,6 +132,7 @@ protected:
   bool m_low_dcbz_hack = false;
   bool m_fprf = false;
   bool m_accurate_nans = false;
+  bool m_fastmem_enabled = false;
 
   void RefreshConfig();
 

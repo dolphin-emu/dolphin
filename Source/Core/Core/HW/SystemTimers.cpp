@@ -173,8 +173,8 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
   u64 time = Common::Timer::GetTimeUs();
 
   s64 diff = last_time - time;
-  const SConfig& config = SConfig::GetInstance();
-  bool frame_limiter = config.m_EmulationSpeed > 0.0f && !Core::GetIsThrottlerTempDisabled();
+  const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  bool frame_limiter = emulation_speed > 0.0f && !Core::GetIsThrottlerTempDisabled();
   u32 next_event = GetTicksPerSecond() / 1000;
 
   {
@@ -186,9 +186,9 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
 
   if (frame_limiter)
   {
-    if (config.m_EmulationSpeed != 1.0f)
-      next_event = u32(next_event * config.m_EmulationSpeed);
-    const s64 max_fallback = config.iTimingVariance * 1000;
+    if (emulation_speed != 1.0f)
+      next_event = u32(next_event * emulation_speed);
+    const s64 max_fallback = Config::Get(Config::MAIN_TIMING_VARIANCE) * 1000;
     if (std::abs(diff) > max_fallback)
     {
       DEBUG_LOG_FMT(COMMON, "system too {}, {} ms skipped", diff < 0 ? "slow" : "fast",

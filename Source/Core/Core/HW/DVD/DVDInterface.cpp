@@ -19,7 +19,6 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
@@ -1382,7 +1381,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
   const u64 first_block = dvd_offset;
 
-  if (SConfig::GetInstance().bFastDiscSpeed)
+  if (Config::Get(Config::MAIN_FAST_DISC_SPEED))
   {
     // The SUDTR setting makes us act as if all reads are buffered
     buffer_start = std::numeric_limits<u64>::min();

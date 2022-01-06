@@ -97,6 +97,19 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::GetInfoForSimulateKonga(1).GetLocation(),
       &Config::GetInfoForSimulateKonga(2).GetLocation(),
       &Config::GetInfoForSimulateKonga(3).GetLocation(),
+      &Config::MAIN_EMULATION_SPEED.GetLocation(),
+      &Config::MAIN_PERF_MAP_DIR.GetLocation(),
+      &Config::MAIN_GPU_DETERMINISM_MODE.GetLocation(),
+      &Config::MAIN_DISABLE_ICACHE.GetLocation(),
+      &Config::MAIN_FAST_DISC_SPEED.GetLocation(),
+      &Config::MAIN_SYNC_ON_SKIP_IDLE.GetLocation(),
+      &Config::MAIN_FASTMEM.GetLocation(),
+      &Config::MAIN_TIMING_VARIANCE.GetLocation(),
+      &Config::MAIN_WII_SD_CARD.GetLocation(),
+      &Config::MAIN_WII_KEYBOARD.GetLocation(),
+      &Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING.GetLocation(),
+      &Config::MAIN_WIIMOTE_ENABLE_SPEAKER.GetLocation(),
+      &Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE.GetLocation(),
 
       // UI.General
 

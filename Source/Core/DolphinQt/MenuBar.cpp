@@ -829,9 +829,9 @@ void MenuBar::AddJITMenu()
 
   m_jit_disable_fastmem = m_jit->addAction(tr("Disable Fastmem"));
   m_jit_disable_fastmem->setCheckable(true);
-  m_jit_disable_fastmem->setChecked(!SConfig::GetInstance().bFastmem);
+  m_jit_disable_fastmem->setChecked(!Config::Get(Config::MAIN_FASTMEM));
   connect(m_jit_disable_fastmem, &QAction::toggled, [this](bool enabled) {
-    SConfig::GetInstance().bFastmem = !enabled;
+    Config::SetBaseOrCurrent(Config::MAIN_FASTMEM, !enabled);
     ClearCache();
   });
 
