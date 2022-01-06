@@ -111,7 +111,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   {
     core->Set(fmt::format("SIDevice{}", i), m_SIDevice[i]);
   }
-  core->Set("WiiKeyboard", m_WiiKeyboard);
   core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
   core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
   core->Set("WiimoteControllerInterface", connect_wiimotes_for_ciface);
@@ -142,7 +141,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
               (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
   }
-  core->Get("WiiKeyboard", &m_WiiKeyboard, false);
   core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);
   core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
   core->Get("WiimoteControllerInterface", &connect_wiimotes_for_ciface, false);

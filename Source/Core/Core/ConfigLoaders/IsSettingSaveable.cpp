@@ -106,6 +106,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_FASTMEM.GetLocation(),
       &Config::MAIN_TIMING_VARIANCE.GetLocation(),
       &Config::MAIN_WII_SD_CARD.GetLocation(),
+      &Config::MAIN_WII_KEYBOARD.GetLocation(),
 
       // UI.General
 

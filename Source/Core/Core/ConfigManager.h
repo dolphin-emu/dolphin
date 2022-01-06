@@ -50,7 +50,6 @@ struct BootParameters;
 struct SConfig
 {
   // Wii Devices
-  bool m_WiiKeyboard;
   bool m_WiimoteContinuousScanning;
   bool m_WiimoteEnableSpeaker;
   bool connect_wiimotes_for_ciface;
