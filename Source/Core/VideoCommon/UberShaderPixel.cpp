@@ -1194,8 +1194,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_src.rgb = float3(1,1,1);",                      // ONE
         "blend_src.rgb = initial_ocol0.rgb;",                  // DSTCLR
         "blend_src.rgb = float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
-        "blend_src.rgb = ocol1.aaa;",                          // SRCALPHA
-        "blend_src.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_src.rgb = src_color.aaa;",                      // SRCALPHA
+        "blend_src.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
         "blend_src.rgb = initial_ocol0.aaa;",                  // DSTALPHA
         "blend_src.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
     };
@@ -1204,8 +1204,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_src.a = 1.0;",                    // ONE
         "blend_src.a = initial_ocol0.a;",        // DSTCLR
         "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTCLR
-        "blend_src.a = ocol1.a;",                // SRCALPHA
-        "blend_src.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_src.a = src_color.a;",            // SRCALPHA
+        "blend_src.a = 1.0 - src_color.a;",      // INVSRCALPHA
         "blend_src.a = initial_ocol0.a;",        // DSTALPHA
         "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
     };
@@ -1214,8 +1214,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_dst.rgb = float3(1,1,1);",                      // ONE
         "blend_dst.rgb = ocol0.rgb;",                          // SRCCLR
         "blend_dst.rgb = float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "blend_dst.rgb = ocol1.aaa;",                          // SRCALHA
-        "blend_dst.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_dst.rgb = src_color.aaa;",                      // SRCALHA
+        "blend_dst.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
         "blend_dst.rgb = initial_ocol0.aaa;",                  // DSTALPHA
         "blend_dst.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
     };
@@ -1224,13 +1224,19 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_dst.a = 1.0;",                    // ONE
         "blend_dst.a = ocol0.a;",                // SRCCLR
         "blend_dst.a = 1.0 - ocol0.a;",          // INVSRCCLR
-        "blend_dst.a = ocol1.a;",                // SRCALPHA
-        "blend_dst.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_dst.a = src_color.a;",            // SRCALPHA
+        "blend_dst.a = 1.0 - src_color.a;",      // INVSRCALPHA
         "blend_dst.a = initial_ocol0.a;",        // DSTALPHA
         "blend_dst.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
     };
 
     out.Write("  if (blend_enable) {{\n"
+              "    float4 src_color;\n"
+              "    if (bpmem_dstalpha != 0u) {{\n"
+              "      src_color = ocol1;\n"
+              "    }} else {{\n"
+              "      src_color = ocol0;\n"
+              "    }}"
               "    float4 blend_src;\n");
     WriteSwitch(out, api_type, "blend_src_factor", blendSrcFactor, 4, true);
     WriteSwitch(out, api_type, "blend_src_factor_alpha", blendSrcFactorAlpha, 4, true);
