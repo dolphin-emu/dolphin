@@ -119,8 +119,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
   core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
   core->Set("WiimoteControllerInterface", connect_wiimotes_for_ciface);
-  core->Set("RunCompareServer", bRunCompareServer);
-  core->Set("RunCompareClient", bRunCompareClient);
   core->Set("MMU", bMMU);
   core->Set("EmulationSpeed", m_EmulationSpeed);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
@@ -159,8 +157,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);
   core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
   core->Get("WiimoteControllerInterface", &connect_wiimotes_for_ciface, false);
-  core->Get("RunCompareServer", &bRunCompareServer, false);
-  core->Get("RunCompareClient", &bRunCompareClient, false);
   core->Get("MMU", &bMMU, bMMU);
   core->Get("BBDumpPort", &iBBDumpPort, -1);
   core->Get("SyncGPU", &bSyncGPU, false);
@@ -290,7 +286,6 @@ void SConfig::LoadDefaults()
   iTimingVariance = 40;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;
-  bRunCompareServer = false;
   bFastmem = true;
   bDisableICache = false;
   bMMU = false;

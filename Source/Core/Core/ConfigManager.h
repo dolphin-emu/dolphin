@@ -80,9 +80,6 @@ struct SConfig
   bool bSyncGPUOnSkipIdleHack = true;
   bool bCopyWiiSaveNetplay = true;
 
-  bool bRunCompareServer = false;
-  bool bRunCompareClient = false;
-
   bool bMMU = false;
   int iBBDumpPort = 0;
   bool bFastDiscSpeed = false;
