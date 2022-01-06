@@ -26,16 +26,16 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
   std::string endpoint;
 
   std::string GeckoURL = Config::GetBase(Config::MAIN_GECKO_URL);
-  if (GeckoURL.find("https://") != std::string::npos) 
+  if (GeckoURL.find("https://") != std::string::npos)
   {
     GeckoURL.erase(0, 8);
   }
 
-  if (GeckoURL != "") 
+  if (GeckoURL != "")
   {
     endpoint = protocol + GeckoURL + gametdb_id;
-  } 
-  else 
+  }
+  else
   {
     // codes.rc24.xyz is a mirror of the now defunct geckocodes.org.
     endpoint = protocol + "codes.rc24.xyz/txt.php?txt=" + gametdb_id;
