@@ -77,7 +77,7 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   {
     float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
 
-    u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
+    u32 low_waterwark = m_input_sample_rate * Config::Get(Config::MAIN_TIMING_VARIANCE) / 1000;
     low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
 
     m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
