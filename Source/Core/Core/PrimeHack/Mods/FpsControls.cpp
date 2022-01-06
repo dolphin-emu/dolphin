@@ -76,6 +76,14 @@ void FpsControls::run_mod(Game game, Region region) {
 void FpsControls::calculate_pitch_delta() {
   const float compensated_sens = GetSensitivity() * kTurnrateRatio / 60.f;
 
+  if (CheckPitchRecentre()) {
+    calculate_pitch_to_target(0.f);
+    return;
+  } else {
+    // Cancel any interpolation that was taking place.
+    interpolating = false;
+  }
+
   pitch += static_cast<float>(GetVerticalAxis()) * compensated_sens *
     (InvertedY() ? 1.f : -1.f);
   pitch = std::clamp(pitch, -1.52f, 1.52f);
@@ -140,20 +148,23 @@ void FpsControls::calculate_pitch_locked(Game game, Region region) {
   pitch = std::clamp(pitch, -1.52f, 1.52f);
 }
 
-
+#pragma optimize("", off)
 void FpsControls::calculate_pitch_to_target(float target_pitch)
 {
   // Smoothly transitions pitch to target through interpolation
 
   const float margin = 0.05f;
-  if (pitch > (target_pitch - margin) && pitch < (target_pitch + margin)) {
-    delta = 0;
+  if (pitch >= (target_pitch - margin) && pitch <= (target_pitch + margin)) {
     pitch = target_pitch;
+    interpolating = false;
+
     return;
   }
 
-  if (delta == 0) {
+  if (!interpolating) {
+    delta = 0;
     start_pitch = pitch;
+    interpolating = true;
   }
 
   pitch = Lerp(start_pitch, target_pitch, delta / 15.f);
@@ -163,6 +174,7 @@ void FpsControls::calculate_pitch_to_target(float target_pitch)
 
   return;
 }
+#pragma optimize("", on)
 
 float FpsControls::calculate_yaw_vel() {
   return GetHorizontalAxis() * GetSensitivity() * (InvertedX() ? 1.f : -1.f);;
@@ -739,12 +751,14 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     calculate_pitch_to_target(target_pitch);
     writef32(FpsControls::pitch, firstperson_pitch);
 
+    // Known edge-case, if a user were to exit a camera lock without reaching
+    // the target (e.g loadstate), the next time they enter a camera lock,
+    // it will attempt to centre to the last target pitch.
+    // We cannot reset here due to `Reset Camera Pitch`
+
     return;
-  } else {
-    // This solves an edge case where someone manages to exit
-    // an interactable before the camera has reached the target pitch.
-    delta = 0;
   }
+
 
   mp3_handle_cursor(true, true);
   set_cursor_pos(0, 0);

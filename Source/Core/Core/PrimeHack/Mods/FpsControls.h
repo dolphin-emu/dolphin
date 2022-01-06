@@ -78,6 +78,7 @@ private:
   // For interpolating the camera pitch to centre when in MP3 context sensitive mode.
   float start_pitch;
   int delta = 0;
+  bool interpolating = false;
 
   // Prime 3 Grapple Lasso
   bool grapple_button_state, grapple_swap_axis = false;
