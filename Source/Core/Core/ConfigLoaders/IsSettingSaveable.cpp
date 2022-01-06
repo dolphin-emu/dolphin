@@ -103,6 +103,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_DISABLE_ICACHE.GetLocation(),
       &Config::MAIN_FAST_DISC_SPEED.GetLocation(),
       &Config::MAIN_SYNC_ON_SKIP_IDLE.GetLocation(),
+      &Config::MAIN_FASTMEM.GetLocation(),
 
       // UI.General
 

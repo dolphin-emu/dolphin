@@ -248,7 +248,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
     StartUp.fSyncGpuOverclock = netplay_settings.m_SyncGpuOverclock;
     StartUp.bMMU = netplay_settings.m_MMU;
-    StartUp.bFastmem = netplay_settings.m_Fastmem;
   }
   else
   {

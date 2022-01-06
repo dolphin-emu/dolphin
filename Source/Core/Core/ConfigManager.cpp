@@ -100,7 +100,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
   core->Set("TimingVariance", iTimingVariance);
-  core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
   core->Set("SyncGPU", bSyncGPU);
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
@@ -136,7 +135,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 {
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-  core->Get("Fastmem", &bFastmem, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
@@ -275,7 +273,6 @@ void SConfig::LoadDefaults()
 
   iTimingVariance = 40;
   bCPUThread = false;
-  bFastmem = true;
   bMMU = false;
   iBBDumpPort = -1;
   bSyncGPU = false;

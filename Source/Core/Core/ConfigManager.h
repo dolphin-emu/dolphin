@@ -63,8 +63,6 @@ struct SConfig
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 
-  bool bFastmem;
-
   int iTimingVariance = 40;  // in milli secounds
   bool bCPUThread = true;
   bool bCopyWiiSaveNetplay = true;
