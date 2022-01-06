@@ -843,7 +843,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
     s_wiimote_scanner.StartThread();
   }
 
-  if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+  if (Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
   else
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
@@ -957,7 +957,7 @@ static void HandleWiimoteDisconnect(int index)
 // This is called from the GUI thread
 void Refresh()
 {
-  if (!SConfig::GetInstance().m_WiimoteContinuousScanning)
+  if (!Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 
