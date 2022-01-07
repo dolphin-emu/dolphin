@@ -72,6 +72,20 @@ static std::atomic<int> s_sync_ticks;
 static bool s_syncing_suspended;
 static Common::Event s_sync_wakeup_event;
 
+static std::optional<size_t> s_config_callback_id = std::nullopt;
+static bool s_config_sync_gpu = false;
+static int s_config_sync_gpu_max_distance = 0;
+static int s_config_sync_gpu_min_distance = 0;
+static float s_config_sync_gpu_overclock = 0.0f;
+
+static void RefreshConfig()
+{
+  s_config_sync_gpu = Config::Get(Config::MAIN_SYNC_GPU);
+  s_config_sync_gpu_max_distance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
+  s_config_sync_gpu_min_distance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
+  s_config_sync_gpu_overclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
+}
+
 void DoState(PointerWrap& p)
 {
   p.DoArray(s_video_buffer, FIFO_SIZE);
@@ -110,6 +124,10 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 
 void Init()
 {
+  if (!s_config_callback_id)
+    s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
+
   // Padded so that SIMD overreads in the vertex loader are safe
   s_video_buffer = static_cast<u8*>(Common::AllocateMemoryPages(FIFO_SIZE + 4));
   ResetVideoBuffer();
@@ -131,6 +149,12 @@ void Shutdown()
   s_video_buffer_seen_ptr = nullptr;
   s_fifo_aux_write_ptr = nullptr;
   s_fifo_aux_read_ptr = nullptr;
+
+  if (s_config_callback_id)
+  {
+    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    s_config_callback_id = std::nullopt;
+  }
 }
 
 // May be executed from any thread, even the graphics thread.
@@ -296,10 +320,8 @@ void RunGpuLoop()
   AsyncRequests::GetInstance()->SetEnable(true);
   AsyncRequests::GetInstance()->SetPassthrough(false);
 
-  const SConfig& param = SConfig::GetInstance();
-
   s_gpu_mainloop.Run(
-      [&param] {
+      [] {
         // Run events from the CPU thread.
         AsyncRequests::GetInstance()->PullEvents();
 
@@ -330,7 +352,7 @@ void RunGpuLoop()
                  fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
                  fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint())
           {
-            if (param.bSyncGPU && s_sync_ticks.load() < param.iSyncGpuMinDistance)
+            if (s_config_sync_gpu && s_sync_ticks.load() < s_config_sync_gpu_min_distance)
               break;
 
             u32 cyclesExecuted = 0;
@@ -362,12 +384,12 @@ void RunGpuLoop()
 
             CommandProcessor::SetCPStatusFromGPU();
 
-            if (param.bSyncGPU)
+            if (s_config_sync_gpu)
             {
-              cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
+              cyclesExecuted = (int)(cyclesExecuted / s_config_sync_gpu_overclock);
               int old = s_sync_ticks.fetch_sub(cyclesExecuted);
-              if (old >= param.iSyncGpuMaxDistance &&
-                  old - (int)cyclesExecuted < param.iSyncGpuMaxDistance)
+              if (old >= s_config_sync_gpu_max_distance &&
+                  old - (int)cyclesExecuted < s_config_sync_gpu_max_distance)
                 s_sync_wakeup_event.Set();
             }
 
@@ -382,7 +404,7 @@ void RunGpuLoop()
           if (s_sync_ticks.load() > 0)
           {
             int old = s_sync_ticks.exchange(0);
-            if (old >= param.iSyncGpuMaxDistance)
+            if (old >= s_config_sync_gpu_max_distance)
               s_sync_wakeup_event.Set();
           }
 
@@ -429,7 +451,7 @@ void RunGpu()
   }
 
   // if the sync GPU callback is suspended, wake it up.
-  if (!is_dual_core || s_use_deterministic_gpu_thread || SConfig::GetInstance().bSyncGPU)
+  if (!is_dual_core || s_use_deterministic_gpu_thread || s_config_sync_gpu)
   {
     if (s_syncing_suspended)
     {
@@ -443,7 +465,7 @@ static int RunGpuOnCpu(int ticks)
 {
   CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   bool reset_simd_state = false;
-  int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
+  int available_ticks = int(ticks * s_config_sync_gpu_overclock) + s_sync_ticks.load();
   while (fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) &&
          fifo.CPReadWriteDistance.load(std::memory_order_relaxed) && !AtBreakpoint() &&
          available_ticks >= 0)
@@ -545,8 +567,6 @@ bool UseDeterministicGPUThread()
  */
 static int WaitForGpuThread(int ticks)
 {
-  const SConfig& param = SConfig::GetInstance();
-
   int old = s_sync_ticks.fetch_add(ticks);
   int now = old + ticks;
 
@@ -555,15 +575,15 @@ static int WaitForGpuThread(int ticks)
     return -1;
 
   // Wakeup GPU
-  if (old < param.iSyncGpuMinDistance && now >= param.iSyncGpuMinDistance)
+  if (old < s_config_sync_gpu_min_distance && now >= s_config_sync_gpu_min_distance)
     RunGpu();
 
   // If the GPU is still sleeping, wait for a longer time
-  if (now < param.iSyncGpuMinDistance)
-    return GPU_TIME_SLOT_SIZE + param.iSyncGpuMinDistance - now;
+  if (now < s_config_sync_gpu_min_distance)
+    return GPU_TIME_SLOT_SIZE + s_config_sync_gpu_min_distance - now;
 
   // Wait for GPU
-  if (now >= param.iSyncGpuMaxDistance)
+  if (now >= s_config_sync_gpu_max_distance)
     s_sync_wakeup_event.Wait();
 
   return GPU_TIME_SLOT_SIZE;
@@ -578,7 +598,7 @@ static void SyncGPUCallback(u64 ticks, s64 cyclesLate)
   {
     next = RunGpuOnCpu((int)ticks);
   }
-  else if (SConfig::GetInstance().bSyncGPU)
+  else if (s_config_sync_gpu)
   {
     next = WaitForGpuThread((int)ticks);
   }
@@ -594,7 +614,7 @@ void SyncGPUForRegisterAccess()
 
   if (!Core::System::GetInstance().IsDualCoreMode() || s_use_deterministic_gpu_thread)
     RunGpuOnCpu(GPU_TIME_SLOT_SIZE);
-  else if (SConfig::GetInstance().bSyncGPU)
+  else if (s_config_sync_gpu)
     WaitForGpuThread(GPU_TIME_SLOT_SIZE);
 }
 

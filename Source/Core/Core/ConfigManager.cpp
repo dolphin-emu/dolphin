@@ -85,45 +85,13 @@ SConfig::~SConfig()
 void SConfig::SaveSettings()
 {
   NOTICE_LOG_FMT(BOOT, "Saving settings to {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
-
-  SaveCoreSettings(ini);
-
-  ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-
   Config::Save();
-}
-
-void SConfig::SaveCoreSettings(IniFile& ini)
-{
-  IniFile::Section* core = ini.GetOrCreateSection("Core");
-
-  core->Set("SyncGPU", bSyncGPU);
-  core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
-  core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
-  core->Set("SyncGpuOverclock", fSyncGpuOverclock);
 }
 
 void SConfig::LoadSettings()
 {
-  Config::Load();
-
   INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-
-  LoadCoreSettings(ini);
-}
-
-void SConfig::LoadCoreSettings(IniFile& ini)
-{
-  IniFile::Section* core = ini.GetOrCreateSection("Core");
-
-  core->Get("SyncGPU", &bSyncGPU, false);
-  core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
-  core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
-  core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
+  Config::Load();
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -239,7 +207,6 @@ void SConfig::LoadDefaults()
   bAutomaticStart = false;
   bBootToPause = false;
 
-  bSyncGPU = false;
   bWii = false;
 
   ResetRunningGameMetadata();

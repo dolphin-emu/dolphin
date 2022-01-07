@@ -70,21 +70,12 @@ public:
 
 private:
   bool valid = false;
-  bool bSyncGPU = false;
-  int iSyncGpuMaxDistance = 0;
-  int iSyncGpuMinDistance = 0;
-  float fSyncGpuOverclock = 0;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
 {
   valid = true;
-
-  bSyncGPU = config.bSyncGPU;
-  iSyncGpuMaxDistance = config.iSyncGpuMaxDistance;
-  iSyncGpuMinDistance = config.iSyncGpuMinDistance;
-  fSyncGpuOverclock = config.fSyncGpuOverclock;
 
   for (int i = 0; i != MAX_BBMOTES; ++i)
     iWiimoteSource[i] = WiimoteCommon::GetSource(i);
@@ -99,11 +90,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
     return;
 
   valid = false;
-
-  config->bSyncGPU = bSyncGPU;
-  config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
-  config->iSyncGpuMinDistance = iSyncGpuMinDistance;
-  config->fSyncGpuOverclock = fSyncGpuOverclock;
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
@@ -138,10 +124,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     IniFile game_ini = StartUp.LoadGameIni();
 
     // General settings
-    IniFile::Section* core_section = game_ini.GetOrCreateSection("Core");
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
-
-    core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
 
     // Wii settings
     if (StartUp.bWii)
@@ -173,8 +156,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
-    // TODO: remove this once ConfigManager starts using OnionConfig.
-    StartUp.bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
     for (int i = 0; i < 2; ++i)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
@@ -196,10 +177,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     const NetPlay::NetSettings& netplay_settings = NetPlay::GetNetSettings();
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
-    StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
-    StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
-    StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
-    StartUp.fSyncGpuOverclock = netplay_settings.m_SyncGpuOverclock;
   }
   else
   {

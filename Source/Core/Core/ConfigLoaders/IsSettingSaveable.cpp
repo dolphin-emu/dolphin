@@ -120,6 +120,10 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_CPU_THREAD.GetLocation(),
       &Config::MAIN_MMU.GetLocation(),
       &Config::MAIN_BB_DUMP_PORT.GetLocation(),
+      &Config::MAIN_SYNC_GPU.GetLocation(),
+      &Config::MAIN_SYNC_GPU_MAX_DISTANCE.GetLocation(),
+      &Config::MAIN_SYNC_GPU_MIN_DISTANCE.GetLocation(),
+      &Config::MAIN_SYNC_GPU_OVERCLOCK.GetLocation(),
 
       // UI.General
 
