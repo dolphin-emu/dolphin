@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -94,6 +93,9 @@ public class CheatsActivity extends AppCompatActivity
     onSelectedCheatChanged(mViewModel.getSelectedCheat().getValue());
 
     mViewModel.getOpenDetailsViewEvent().observe(this, this::openDetailsView);
+
+    // show up button
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   @Override
@@ -103,18 +105,6 @@ public class CheatsActivity extends AppCompatActivity
     inflater.inflate(R.menu.menu_settings, menu);
 
     return true;
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item)
-  {
-    if (item.getItemId() == R.id.menu_save_exit)
-    {
-      finish();
-      return true;
-    }
-
-    return false;
   }
 
   @Override
@@ -177,6 +167,13 @@ public class CheatsActivity extends AppCompatActivity
 
       mSlidingPaneLayout.open();
     }
+  }
+
+  @Override
+  public boolean onSupportNavigateUp()
+  {
+    onBackPressed();
+    return true;
   }
 
   private void openDetailsView(boolean open)
