@@ -58,8 +58,6 @@ struct SConfig
 
   bool bCopyWiiSaveNetplay = true;
 
-  int iBBDumpPort = 0;
-
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance;
   int iSyncGpuMinDistance;

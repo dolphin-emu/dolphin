@@ -303,11 +303,11 @@ void Wiimote::Read()
 
   if (result > 0)
   {
-    if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+    if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
     {
       static sf::UdpSocket Socket;
       Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
-                  SConfig::GetInstance().iBBDumpPort);
+                  m_balance_board_dump_port);
     }
 
     // Add it to queue
@@ -324,11 +324,10 @@ bool Wiimote::Write()
 
   Report const& rpt = m_write_reports.Front();
 
-  if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+  if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
   {
     static sf::UdpSocket Socket;
-    Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
-                SConfig::GetInstance().iBBDumpPort);
+    Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, m_balance_board_dump_port);
   }
   int ret = IOWrite(rpt.data(), rpt.size());
 
@@ -816,6 +815,7 @@ void Wiimote::ThreadFunc()
 void Wiimote::RefreshConfig()
 {
   m_speaker_enabled_in_dolphin_config = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
+  m_balance_board_dump_port = Config::Get(Config::MAIN_BB_DUMP_PORT);
 }
 
 int Wiimote::GetIndex() const

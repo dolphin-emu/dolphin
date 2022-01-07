@@ -120,7 +120,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 {
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-  core->Get("BBDumpPort", &iBBDumpPort, -1);
   core->Get("SyncGPU", &bSyncGPU, false);
   core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
@@ -240,7 +239,6 @@ void SConfig::LoadDefaults()
   bAutomaticStart = false;
   bBootToPause = false;
 
-  iBBDumpPort = -1;
   bSyncGPU = false;
   bWii = false;
 
