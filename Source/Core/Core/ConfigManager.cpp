@@ -99,7 +99,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 {
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-  core->Set("CPUThread", bCPUThread);
   core->Set("SyncGPU", bSyncGPU);
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
   core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
@@ -122,7 +121,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 {
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-  core->Get("CPUThread", &bCPUThread, true);
   core->Get("MMU", &bMMU, bMMU);
   core->Get("BBDumpPort", &iBBDumpPort, -1);
   core->Get("SyncGPU", &bSyncGPU, false);
@@ -244,7 +242,6 @@ void SConfig::LoadDefaults()
   bAutomaticStart = false;
   bBootToPause = false;
 
-  bCPUThread = false;
   bMMU = false;
   iBBDumpPort = -1;
   bSyncGPU = false;

@@ -44,6 +44,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
 
 #include "DiscIO/Enums.h"
@@ -69,7 +70,6 @@ public:
 
 private:
   bool valid = false;
-  bool bCPUThread = false;
   bool bMMU = false;
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance = 0;
@@ -82,7 +82,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 {
   valid = true;
 
-  bCPUThread = config.bCPUThread;
   bMMU = config.bMMU;
   bSyncGPU = config.bSyncGPU;
   iSyncGpuMaxDistance = config.iSyncGpuMaxDistance;
@@ -103,7 +102,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   valid = false;
 
-  config->bCPUThread = bCPUThread;
   config->bMMU = bMMU;
   config->bSyncGPU = bSyncGPU;
   config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
@@ -146,7 +144,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     IniFile::Section* core_section = game_ini.GetOrCreateSection("Core");
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
-    core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
 
@@ -181,7 +178,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
     // TODO: remove this once ConfigManager starts using OnionConfig.
-    StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
     StartUp.bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
     for (int i = 0; i < 2; ++i)
     {
@@ -203,7 +199,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   {
     const NetPlay::NetSettings& netplay_settings = NetPlay::GetNetSettings();
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
-    StartUp.bCPUThread = netplay_settings.m_CPUthread;
     StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
     StartUp.bSyncGPU = netplay_settings.m_SyncGPU;
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
@@ -262,6 +257,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
   if (!boot->riivolution_patches.empty())
     Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
+
+  Core::System::GetInstance().Initialize();
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 

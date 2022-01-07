@@ -19,6 +19,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
+#include "Core/System.h"
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CPMemory.h"
@@ -95,9 +96,7 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
     SyncGPU(SyncGPUReason::Other);
     EmulatorState(false);
 
-    const SConfig& param = SConfig::GetInstance();
-
-    if (!param.bCPUThread || s_use_deterministic_gpu_thread)
+    if (!Core::System::GetInstance().IsDualCoreMode() || s_use_deterministic_gpu_thread)
       return;
 
     s_gpu_mainloop.WaitYield(std::chrono::milliseconds(100), Host_YieldToUI);
@@ -114,7 +113,7 @@ void Init()
   // Padded so that SIMD overreads in the vertex loader are safe
   s_video_buffer = static_cast<u8*>(Common::AllocateMemoryPages(FIFO_SIZE + 4));
   ResetVideoBuffer();
-  if (SConfig::GetInstance().bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
     s_gpu_mainloop.Prepare();
   s_sync_ticks.store(0);
 }
@@ -400,9 +399,7 @@ void RunGpuLoop()
 
 void FlushGpu()
 {
-  const SConfig& param = SConfig::GetInstance();
-
-  if (!param.bCPUThread || s_use_deterministic_gpu_thread)
+  if (!Core::System::GetInstance().IsDualCoreMode() || s_use_deterministic_gpu_thread)
     return;
 
   s_gpu_mainloop.Wait();
@@ -423,17 +420,16 @@ bool AtBreakpoint()
 
 void RunGpu()
 {
-  const SConfig& param = SConfig::GetInstance();
+  const bool is_dual_core = Core::System::GetInstance().IsDualCoreMode();
 
   // wake up GPU thread
-  if (param.bCPUThread && !s_use_deterministic_gpu_thread)
+  if (is_dual_core && !s_use_deterministic_gpu_thread)
   {
     s_gpu_mainloop.Wakeup();
   }
 
   // if the sync GPU callback is suspended, wake it up.
-  if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread ||
-      SConfig::GetInstance().bSyncGPU)
+  if (!is_dual_core || s_use_deterministic_gpu_thread || SConfig::GetInstance().bSyncGPU)
   {
     if (s_syncing_suspended)
     {
@@ -508,7 +504,6 @@ void UpdateWantDeterminism(bool want)
 {
   // We are paused (or not running at all yet), so
   // it should be safe to change this.
-  const SConfig& param = SConfig::GetInstance();
   bool gpu_thread = false;
   switch (Config::GetGPUDeterminismMode())
   {
@@ -523,7 +518,7 @@ void UpdateWantDeterminism(bool want)
     break;
   }
 
-  gpu_thread = gpu_thread && param.bCPUThread;
+  gpu_thread = gpu_thread && Core::System::GetInstance().IsDualCoreMode();
 
   if (s_use_deterministic_gpu_thread != gpu_thread)
   {
@@ -579,7 +574,7 @@ static void SyncGPUCallback(u64 ticks, s64 cyclesLate)
   ticks += cyclesLate;
   int next = -1;
 
-  if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread)
+  if (!Core::System::GetInstance().IsDualCoreMode() || s_use_deterministic_gpu_thread)
   {
     next = RunGpuOnCpu((int)ticks);
   }
@@ -597,7 +592,7 @@ void SyncGPUForRegisterAccess()
 {
   SyncGPU(SyncGPUReason::Other);
 
-  if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread)
+  if (!Core::System::GetInstance().IsDualCoreMode() || s_use_deterministic_gpu_thread)
     RunGpuOnCpu(GPU_TIME_SLOT_SIZE);
   else if (SConfig::GetInstance().bSyncGPU)
     WaitForGpuThread(GPU_TIME_SLOT_SIZE);

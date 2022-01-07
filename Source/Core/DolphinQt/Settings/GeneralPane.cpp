@@ -252,7 +252,7 @@ void GeneralPane::LoadConfig()
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_checkbox_enable_analytics->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
+  m_checkbox_dualcore->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
   m_checkbox_override_region_settings->setChecked(
       Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
@@ -263,7 +263,7 @@ void GeneralPane::LoadConfig()
   int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
     m_combobox_speedlimit->setCurrentIndex(selection);
-  m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
+  m_checkbox_dualcore->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
 
   const auto fallback = Settings::Instance().GetFallbackRegion();
 
@@ -346,7 +346,6 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
-  settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,

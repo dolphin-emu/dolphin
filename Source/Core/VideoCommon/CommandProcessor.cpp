@@ -17,6 +17,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/System.h"
 #include "VideoCommon/Fifo.h"
 
 namespace CommandProcessor
@@ -42,7 +43,7 @@ static Common::Flag s_interrupt_waiting;
 
 static bool IsOnThread()
 {
-  return SConfig::GetInstance().bCPUThread;
+  return Core::System::GetInstance().IsDualCoreMode();
 }
 
 static void UpdateInterrupts_Wrapper(u64 userdata, s64 cyclesLate)

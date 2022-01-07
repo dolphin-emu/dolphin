@@ -67,6 +67,7 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
 
 #ifdef USE_MEMORYWATCHER
@@ -202,8 +203,7 @@ bool IsCPUThread()
 
 bool IsGPUThread()
 {
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
   {
     return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
   }
@@ -238,7 +238,8 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   HostDispatchJobs();
 
   INFO_LOG_FMT(BOOT, "Starting core = {} mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
-  INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
+  INFO_LOG_FMT(BOOT, "CPU Thread separate = {}",
+               Core::System::GetInstance().IsDualCoreMode() ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
@@ -272,8 +273,6 @@ void Stop()  // - Hammertime!
   if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
 
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-
   s_is_stopping = true;
 
   s_timer.Stop();
@@ -291,7 +290,7 @@ void Stop()  // - Hammertime!
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stop CPU"));
   CPU::Stop();
 
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
   {
     // Video_EnterLoop() should now exit so that EmuThread()
     // will continue concurrently with the rest of the commands
@@ -333,8 +332,7 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 {
   DeclareAsCPUThread();
 
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
     Common::SetCurrentThreadName("CPU thread");
   else
     Common::SetCurrentThreadName("CPU-GPU thread");
@@ -413,8 +411,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 {
   DeclareAsCPUThread();
 
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
     Common::SetCurrentThreadName("FIFO player thread");
   else
     Common::SetCurrentThreadName("FIFO-GPU thread");
@@ -446,6 +443,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 // See the BootManager.cpp file description for a complete call schedule.
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi)
 {
+  const Core::System& system = Core::System::GetInstance();
   const SConfig& core_parameter = SConfig::GetInstance();
   CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
@@ -647,7 +645,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
 
   // ENTER THE VIDEO THREAD LOOP
-  if (core_parameter.bCPUThread)
+  if (system.IsDualCoreMode())
   {
     // This thread, after creating the EmuWindow, spawns a CPU
     // thread, and then takes over and becomes the video thread
@@ -930,8 +928,6 @@ void Callback_NewField()
 
 void UpdateTitle(u32 ElapseTime)
 {
-  SConfig& _CoreParameter = SConfig::GetInstance();
-
   if (ElapseTime == 0)
     ElapseTime = 1;
 
@@ -942,8 +938,9 @@ void UpdateTitle(u32 ElapseTime)
 
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
-      "{} {} | {} | {}", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
-      g_video_backend->GetDisplayName(), Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
+      "{} {} | {} | {}", PowerPC::GetCPUName(),
+      Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
+      Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string SFPS;
   if (Movie::IsPlayingInput())
