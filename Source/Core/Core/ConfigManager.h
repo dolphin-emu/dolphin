@@ -58,7 +58,6 @@ struct SConfig
 
   bool bCopyWiiSaveNetplay = true;
 
-  bool bMMU = false;
   int iBBDumpPort = 0;
 
   bool bSyncGPU = false;

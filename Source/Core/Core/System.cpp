@@ -20,5 +20,6 @@ System::~System() = default;
 void System::Initialize()
 {
   m_separate_cpu_and_gpu_threads = Config::Get(Config::MAIN_CPU_THREAD);
+  m_mmu_enabled = Config::Get(Config::MAIN_MMU);
 }
 }  // namespace Core

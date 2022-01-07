@@ -21,6 +21,7 @@
 #include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -1147,7 +1148,7 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 static void GenerateDSIException(u32 effective_address, bool write)
 {
   // DSI exceptions are only supported in MMU mode.
-  if (!SConfig::GetInstance().bMMU)
+  if (!Core::System::GetInstance().IsMMUMode())
   {
     PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
                   effective_address, PC);

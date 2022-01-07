@@ -70,7 +70,6 @@ public:
 
 private:
   bool valid = false;
-  bool bMMU = false;
   bool bSyncGPU = false;
   int iSyncGpuMaxDistance = 0;
   int iSyncGpuMinDistance = 0;
@@ -82,7 +81,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 {
   valid = true;
 
-  bMMU = config.bMMU;
   bSyncGPU = config.bSyncGPU;
   iSyncGpuMaxDistance = config.iSyncGpuMaxDistance;
   iSyncGpuMinDistance = config.iSyncGpuMinDistance;
@@ -102,7 +100,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   valid = false;
 
-  config->bMMU = bMMU;
   config->bSyncGPU = bSyncGPU;
   config->iSyncGpuMaxDistance = iSyncGpuMaxDistance;
   config->iSyncGpuMinDistance = iSyncGpuMinDistance;
@@ -144,7 +141,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     IniFile::Section* core_section = game_ini.GetOrCreateSection("Core");
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
-    core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
 
     // Wii settings
@@ -204,7 +200,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
     StartUp.fSyncGpuOverclock = netplay_settings.m_SyncGpuOverclock;
-    StartUp.bMMU = netplay_settings.m_MMU;
   }
   else
   {

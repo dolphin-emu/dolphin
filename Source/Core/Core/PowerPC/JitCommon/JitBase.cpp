@@ -10,6 +10,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 const u8* JitBase::Dispatch(JitBase& jit)
 {
@@ -55,6 +56,7 @@ void JitBase::RefreshConfig()
   m_fprf = Config::Get(Config::MAIN_FPRF);
   m_accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
   m_fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
+  m_mmu_enabled = Core::System::GetInstance().IsMMUMode();
   analyzer.SetDebuggingEnabled(m_enable_debugging);
   analyzer.SetBranchFollowingEnabled(Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH));
   analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
@@ -80,7 +82,7 @@ void JitBase::UpdateMemoryAndExceptionOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
   jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (MSR.DR || !any_watchpoints);
-  jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
+  jo.memcheck = m_mmu_enabled || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
 }

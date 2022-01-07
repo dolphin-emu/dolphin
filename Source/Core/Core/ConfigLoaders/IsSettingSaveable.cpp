@@ -118,6 +118,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::GetInfoForSIDevice(2).GetLocation(),
       &Config::GetInfoForSIDevice(3).GetLocation(),
       &Config::MAIN_CPU_THREAD.GetLocation(),
+      &Config::MAIN_MMU.GetLocation(),
 
       // UI.General
 

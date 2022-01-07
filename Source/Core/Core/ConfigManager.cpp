@@ -103,7 +103,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
   core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
   core->Set("SyncGpuOverclock", fSyncGpuOverclock);
-  core->Set("MMU", bMMU);
 }
 
 void SConfig::LoadSettings()
@@ -121,7 +120,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 {
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-  core->Get("MMU", &bMMU, bMMU);
   core->Get("BBDumpPort", &iBBDumpPort, -1);
   core->Get("SyncGPU", &bSyncGPU, false);
   core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
@@ -242,7 +240,6 @@ void SConfig::LoadDefaults()
   bAutomaticStart = false;
   bBootToPause = false;
 
-  bMMU = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
   bWii = false;

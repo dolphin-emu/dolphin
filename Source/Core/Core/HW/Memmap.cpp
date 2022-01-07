@@ -33,6 +33,7 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
 
@@ -260,7 +261,7 @@ void Init()
                            false};
 
   const bool wii = SConfig::GetInstance().bWii;
-  const bool mmu = SConfig::GetInstance().bMMU;
+  const bool mmu = Core::System::GetInstance().IsMMUMode();
 
   bool fake_vmem = false;
 #ifndef _ARCH_32
