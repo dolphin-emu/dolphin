@@ -833,7 +833,7 @@ public final class SettingsFragmentPresenter
 
   private void addGcPadSubSettings(ArrayList<SettingsItem> sl, int gcPadNumber, int gcPadType)
   {
-    if (gcPadType == 1) // Emulated
+    if (gcPadType == 6) // Emulated
     {
       sl.add(new HeaderSetting(mContext, R.string.generic_buttons, 0));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
@@ -892,7 +892,7 @@ public final class SettingsFragmentPresenter
               SettingsFile.KEY_EMU_RUMBLE + gcPadNumber, R.string.emulation_control_rumble,
               mGameID));
     }
-    else // Adapter
+    else if (gcPadType == 12) // Adapter
     {
       LegacyBooleanSetting rumble = new LegacyBooleanSetting(Settings.FILE_DOLPHIN,
               Settings.SECTION_INI_CORE, SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, false);
