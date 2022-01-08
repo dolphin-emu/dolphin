@@ -89,7 +89,12 @@ const Info<int> GFX_SHADER_PRECOMPILER_THREADS{
     {System::GFX, "Settings", "ShaderPrecompilerThreads"}, -1};
 const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
     {System::GFX, "Settings", "SaveTextureCacheToState"}, true};
-const Info<int> GFX_EFB_SCALE_EXCLUDE{{System::GFX, "Settings", "EFBScaledExclude"}, 630};
+const Info<int> GFX_EFB_SCALE_EXCLUDE_WIDTH{{System::GFX, "Settings", "EFBScaledExcludeWidth"},
+                                            640};
+const Info<int> GFX_EFB_SCALE_EXCLUDE_HEIGHT{{System::GFX, "Settings", "EFBScaledExcludeHeight"},
+                                             0};
+const Info<bool> GFX_EFB_SCALE_EXCLUDE_WIDTH_AND_HEIGHT_FLAG{
+    {System::GFX, "Settings", "EFBScaledExcludeWidthAndHeightFlag"}, false};
 const Info<bool> GFX_EFB_SCALE_EXCLUDE_ENABLED{{System::GFX, "Settings", "EFBScaledExcludeEnabled"},
                                                false};
 

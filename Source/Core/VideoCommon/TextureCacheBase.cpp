@@ -2078,11 +2078,24 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   u32 tex_h = height;
   u32 scaled_tex_w = g_renderer->EFBToScaledX(width);
   u32 scaled_tex_h = g_renderer->EFBToScaledY(height);
+  bool EFBScaleExcludeTexture = false;
 
-  if (width < g_ActiveConfig.iEFBExclude && g_ActiveConfig.iEFBExcludeEnabled && !is_xfb_copy)
+  if (g_ActiveConfig.iEFBExcludeEnabled && !is_xfb_copy)
   {
-    scaled_tex_w = tex_w;
-    scaled_tex_h = tex_h;
+    if (!g_ActiveConfig.iEFBExcludeWidthAndHeightFlag)
+    {
+      if (width < g_ActiveConfig.iEFBExcludeWidth || height < g_ActiveConfig.iEFBExcludeHeight)
+      {
+        EFBScaleExcludeTexture = true;
+      }
+    }
+    else
+    {
+      if (width < g_ActiveConfig.iEFBExcludeWidth && height < g_ActiveConfig.iEFBExcludeHeight)
+      {
+        EFBScaleExcludeTexture = true;
+      }
+    }
   }
 
   if (scaleByHalf)
@@ -2093,7 +2106,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     scaled_tex_h /= 2;
   }
 
-  if (!is_xfb_copy && !g_ActiveConfig.bCopyEFBScaled)
+  if ((!is_xfb_copy && !g_ActiveConfig.bCopyEFBScaled) || EFBScaleExcludeTexture)
   {
     // No upscaling
     scaled_tex_w = tex_w;

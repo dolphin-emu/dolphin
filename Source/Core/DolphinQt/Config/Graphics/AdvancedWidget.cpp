@@ -138,27 +138,44 @@ void AdvancedWidget::CreateWidgets()
 
   // Scaled EFB Copy Exclusions
   auto* efb_box = new QGroupBox(tr("Scaled EFB Copy Exclusions"));
-  auto* efb_layout = new QHBoxLayout();
-  auto* efb_layoutright = new QHBoxLayout();
+  auto* efb_layout = new QVBoxLayout();
+  auto* efb_layout_width_integer = new QHBoxLayout();
+  auto* efb_layout_height_integer = new QHBoxLayout();
   efb_box->setLayout(efb_layout);
+
   m_scaled_efb_exclude_enable =
-      new GraphicsBool(tr("Don't scale EFB copy if:"), Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);
-  m_scaled_efb_exclude_slider = new GraphicsSlider(0, 630, Config::GFX_EFB_SCALE_EXCLUDE, 100);
-  m_scaled_efb_exclude_label = new QLabel();
+      new GraphicsBool(tr("Enabled"), Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);
+  m_scaled_efb_exclude_width_and_height_flag =
+      new GraphicsBool(tr("Exclude based on Width AND Height (instead of OR)"),
+                       Config::GFX_EFB_SCALE_EXCLUDE_WIDTH_AND_HEIGHT_FLAG);
+  m_scaled_efb_exclude_slider_width =
+      new GraphicsSlider(0, EFB_WIDTH, Config::GFX_EFB_SCALE_EXCLUDE_WIDTH, 1);
+  m_scaled_efb_exclude_slider_height =
+      new GraphicsSlider(0, EFB_HEIGHT, Config::GFX_EFB_SCALE_EXCLUDE_HEIGHT, 1);
+  m_scaled_efb_exclude_integer_width =
+      new GraphicsInteger(0, EFB_WIDTH, Config::GFX_EFB_SCALE_EXCLUDE_WIDTH, 1);
+  m_scaled_efb_exclude_integer_height =
+      new GraphicsInteger(0, EFB_HEIGHT, Config::GFX_EFB_SCALE_EXCLUDE_HEIGHT, 1);
 
   if (!m_scaled_efb_exclude_enable->isChecked())
   {
-    m_scaled_efb_exclude_slider->setEnabled(false);
-    m_scaled_efb_exclude_label->setEnabled(false);
+    m_scaled_efb_exclude_slider_width->setEnabled(false);
+    m_scaled_efb_exclude_width_and_height_flag->setEnabled(false);
+    m_scaled_efb_exclude_slider_height->setEnabled(false);
+    m_scaled_efb_exclude_integer_width->setEnabled(false);
+    m_scaled_efb_exclude_integer_height->setEnabled(false);
   }
 
-  m_scaled_efb_exclude_label->setContentsMargins(40, 0, 0, 0);
-  m_scaled_efb_exclude_slider->setFixedWidth(250);
-
-  efb_layoutright->addWidget(m_scaled_efb_exclude_label);
-  efb_layoutright->addWidget(m_scaled_efb_exclude_slider);
   efb_layout->addWidget(m_scaled_efb_exclude_enable);
-  efb_layout->addLayout(efb_layoutright);
+  efb_layout_width_integer->addWidget(new QLabel(tr("Width < :")));
+  efb_layout_width_integer->addWidget(m_scaled_efb_exclude_integer_width);
+  efb_layout->addLayout(efb_layout_width_integer);
+  efb_layout->addWidget(m_scaled_efb_exclude_slider_width);
+  efb_layout->addWidget(m_scaled_efb_exclude_width_and_height_flag);
+  efb_layout_height_integer->addWidget(new QLabel(tr("Height < :")));
+  efb_layout_height_integer->addWidget(m_scaled_efb_exclude_integer_height);
+  efb_layout->addLayout(efb_layout_height_integer);
+  efb_layout->addWidget(m_scaled_efb_exclude_slider_height);
 
   // Experimental.
   auto* experimental_box = new QGroupBox(tr("Experimental"));
@@ -191,16 +208,22 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_scaled_efb_exclude_enable, &QCheckBox::toggled, [=](bool checked) {
-    m_scaled_efb_exclude_slider->setEnabled(checked);
-    m_scaled_efb_exclude_label->setEnabled(checked);
+    m_scaled_efb_exclude_slider_width->setEnabled(checked);
+    m_scaled_efb_exclude_width_and_height_flag->setEnabled(checked);
+    m_scaled_efb_exclude_slider_height->setEnabled(checked);
+    m_scaled_efb_exclude_integer_width->setEnabled(checked);
+    m_scaled_efb_exclude_integer_height->setEnabled(checked);
   });
 
   // A &QSlider signal won't fire when game ini's trigger a change, due to a signalblock in
   // GraphicsSlider
-  connect(m_scaled_efb_exclude_slider, &GraphicsSlider::valueChanged, [=] {
-    m_scaled_efb_exclude_label->setText(
-        tr("Width  <  %1").arg(m_scaled_efb_exclude_slider->value()));
+  connect(m_scaled_efb_exclude_slider_width, &GraphicsSlider::valueChanged, [=] {
+    m_scaled_efb_exclude_integer_width->setValue(m_scaled_efb_exclude_slider_width->value());
   });
+  connect(m_scaled_efb_exclude_slider_height, &GraphicsSlider::valueChanged, [=] {
+    m_scaled_efb_exclude_integer_height->setValue(m_scaled_efb_exclude_slider_height->value());
+  });
+
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
 
@@ -210,7 +233,8 @@ void AdvancedWidget::LoadSettings()
   m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
 
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
-  m_scaled_efb_exclude_label->setText(tr("Width  <  %1").arg(m_scaled_efb_exclude_slider->value()));
+  m_scaled_efb_exclude_integer_width->setValue(m_scaled_efb_exclude_slider_width->value());
+  m_scaled_efb_exclude_integer_height->setValue(m_scaled_efb_exclude_slider_height->value());
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
 }
@@ -333,14 +357,33 @@ void AdvancedWidget::AddDescriptions()
       "Texture Sampling.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_SCALED_EFB_EXCLUDE_DESCRIPTION[] = QT_TR_NOOP(
-      "EFB copies can have different sizes. Scaling up small efb copies can create graphical "
-      "issues, like poor bloom. This slider will exclude efb copies from scaling based on their "
-      "width in pixels. <br><br>630 = "
-      "exclude the minimum amount. <br><br>0 = exclude everything, the same as Scaled EFB Copy = "
+      "EFB copies can have different sizes. Scaling up small EFB copies can create graphical "
+      "issues, like poor bloom. These sliders will exclude efb copies from scaling based on their "
+      "width and/or height in pixels. <br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION[] = QT_TR_NOOP(
+      "This slider will exclude EFB copies from scaling based on their "
+      "width in pixels. <br><br>0 = "
+      "exclude nothing. <br><br>640 = exclude everything, the same as Scaled EFB Copy = "
       "off.<br><br>"
-      "Start on the right and slowly move the slider to the left until the graphical issue "
-      "improves. Values of 630 or 300 may "
-      "be good. <br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+      "Start on the left and slowly move the slider to the right until the graphical issue "
+      "improves. Values of 161, 300 or 630 may "
+      "be good.");
+  static const char TR_SCALED_EFB_EXCLUDE_HEIGHT_DESCRIPTION[] = QT_TR_NOOP(
+      "This slider will exclude EFB copies from scaling based on their "
+      "height in pixels. <br><br>0 = "
+      "exclude nothing. <br><br>528 = exclude everything, the same as Scaled EFB Copy = "
+      "off.<br><br>"
+      "Start on the left and slowly move the slider to the right until the graphical issue "
+      "improves. It is recommended to try excluding width first before raising the value here."
+      "<br><br><dolphin_emphasis>If unsure, set to "
+      "0.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_WIDTH_AND_HEIGHT_FLAG_DESCRIPTION[] =
+      QT_TR_NOOP("By default, the scaled EFB exclusions exclude textures by either the width OR "
+                 "the height values defined here. "
+                 "Enable this option to filter by width AND height instead."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
@@ -364,8 +407,20 @@ void AdvancedWidget::AddDescriptions()
   m_dump_xfb_target->SetDescription(tr(TR_DUMP_XFB_DESCRIPTION));
   m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
   m_use_fullres_framedumps->SetDescription(tr(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
-  m_scaled_efb_exclude_slider->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_DESCRIPTION));
+
+  m_scaled_efb_exclude_enable->SetTitle(tr("Scaled EFB Copy Exclusions"));
   m_scaled_efb_exclude_enable->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_DESCRIPTION));
+  m_scaled_efb_exclude_integer_width->SetTitle(tr("Width"));
+  m_scaled_efb_exclude_integer_width->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
+  m_scaled_efb_exclude_integer_height->SetTitle(tr("Height"));
+  m_scaled_efb_exclude_integer_height->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_HEIGHT_DESCRIPTION));
+  m_scaled_efb_exclude_slider_width->SetTitle(tr("Width"));
+  m_scaled_efb_exclude_slider_width->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
+  m_scaled_efb_exclude_slider_height->SetTitle(tr("Height"));
+  m_scaled_efb_exclude_slider_height->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_HEIGHT_DESCRIPTION));
+  m_scaled_efb_exclude_width_and_height_flag->SetTitle(tr("Exclude based on Width AND Height"));
+  m_scaled_efb_exclude_width_and_height_flag->SetDescription(
+      tr(TR_SCALED_EFB_EXCLUDE_WIDTH_AND_HEIGHT_FLAG_DESCRIPTION));
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif

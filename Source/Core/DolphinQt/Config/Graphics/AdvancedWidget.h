@@ -14,7 +14,6 @@ class QComboBox;
 class QSpinBox;
 class ToolTipCheckBox;
 class GraphicsSlider;
-class QLabel;
 
 class AdvancedWidget final : public GraphicsWidget
 {
@@ -68,6 +67,9 @@ private:
 
   // EFB exclusions
   GraphicsBool* m_scaled_efb_exclude_enable;
-  GraphicsSlider* m_scaled_efb_exclude_slider;
-  QLabel* m_scaled_efb_exclude_label;
+  GraphicsBool* m_scaled_efb_exclude_width_and_height_flag;
+  GraphicsSlider* m_scaled_efb_exclude_slider_width;
+  GraphicsSlider* m_scaled_efb_exclude_slider_height;
+  GraphicsInteger* m_scaled_efb_exclude_integer_width;
+  GraphicsInteger* m_scaled_efb_exclude_integer_height;
 };

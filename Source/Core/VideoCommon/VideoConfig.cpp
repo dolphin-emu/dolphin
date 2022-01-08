@@ -83,7 +83,9 @@ void VideoConfig::Refresh()
   iMultisamples = Config::Get(Config::GFX_MSAA);
   bSSAA = Config::Get(Config::GFX_SSAA);
   iEFBScale = Config::Get(Config::GFX_EFB_SCALE);
-  iEFBExclude = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE);
+  iEFBExcludeWidth = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_WIDTH);
+  iEFBExcludeHeight = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_HEIGHT);
+  iEFBExcludeWidthAndHeightFlag = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_WIDTH_AND_HEIGHT_FLAG);
   iEFBExcludeEnabled = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);
   bTexFmtOverlayEnable = Config::Get(Config::GFX_TEXFMT_OVERLAY_ENABLE);
   bTexFmtOverlayCenter = Config::Get(Config::GFX_TEXFMT_OVERLAY_CENTER);

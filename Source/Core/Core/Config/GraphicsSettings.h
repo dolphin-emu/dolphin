@@ -125,7 +125,11 @@ extern const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
 extern const Info<bool> GFX_HACK_VERTEX_ROUDING;
 extern const Info<u32> GFX_HACK_MISSING_COLOR_VALUE;
 extern const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING;
-extern const Info<int> GFX_EFB_SCALE_EXCLUDE;
+
+// Graphics.Hacks EFB Scale exclusion settings
+extern const Info<int> GFX_EFB_SCALE_EXCLUDE_WIDTH;
+extern const Info<int> GFX_EFB_SCALE_EXCLUDE_HEIGHT;
+extern const Info<bool> GFX_EFB_SCALE_EXCLUDE_WIDTH_AND_HEIGHT_FLAG;
 extern const Info<bool> GFX_EFB_SCALE_EXCLUDE_ENABLED;
 
 // Graphics.GameSpecific
