@@ -75,6 +75,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
     mPresenter = new SettingsActivityPresenter(this, getSettings());
     mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii, this);
+
+    // show up button
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   @Override
@@ -84,12 +87,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     inflater.inflate(R.menu.menu_settings, menu);
 
     return true;
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item)
-  {
-    return mPresenter.handleOptionsItem(item.getItemId());
   }
 
   @Override
@@ -292,6 +289,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void onExtensionSettingChanged(MenuTag menuTag, int value)
   {
     mPresenter.onExtensionSettingChanged(menuTag, value);
+  }
+
+  @Override
+  public boolean onSupportNavigateUp()
+  {
+    onBackPressed();
+    return true;
   }
 
   private SettingsFragment getFragment()

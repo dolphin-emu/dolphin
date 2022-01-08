@@ -120,17 +120,6 @@ public final class SettingsActivityPresenter
     }
   }
 
-  public boolean handleOptionsItem(int itemId)
-  {
-    if (itemId == R.id.menu_save_exit)
-    {
-      mView.finish();
-      return true;
-    }
-
-    return false;
-  }
-
   public void onSettingChanged()
   {
     mShouldSave = true;
