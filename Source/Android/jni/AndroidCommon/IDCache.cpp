@@ -343,12 +343,12 @@ jfieldID GetRiivolutionPatchesPointer()
 
 jclass GetWiiUpdateCallbackClass()
 {
-    return s_wii_update_cb_class;
+  return s_wii_update_cb_class;
 }
 
 jmethodID GetWiiUpdateCallbackFunction()
 {
-    return s_wii_update_cb_run;
+  return s_wii_update_cb_run;
 }
 
 }  // namespace IDCache
@@ -489,7 +489,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
   const jclass wii_update_cb_class =
       env->FindClass("org/dolphinemu/dolphinemu/utils/WiiUpdateCallback");
-  s_wii_update_cb_class= reinterpret_cast<jclass>(env->NewGlobalRef(wii_update_cb_class));
+  s_wii_update_cb_class = reinterpret_cast<jclass>(env->NewGlobalRef(wii_update_cb_class));
   s_wii_update_cb_run = env->GetMethodID(s_wii_update_cb_class, "run", "(IIJ)Z");
   env->DeleteLocalRef(wii_update_cb_class);
 
@@ -517,5 +517,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_gecko_cheat_class);
   env->DeleteGlobalRef(s_patch_cheat_class);
   env->DeleteGlobalRef(s_riivolution_patches_class);
+  env->DeleteGlobalRef(s_wii_update_cb_class);
 }
 }

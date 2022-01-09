@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -47,7 +46,7 @@ import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
-import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.ContinueLaunchCallback;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.IniFile;
@@ -80,12 +79,14 @@ public final class EmulationActivity extends AppCompatActivity
   private boolean activityRecreated;
   private String[] mPaths;
   private boolean mRiivolution;
+  private boolean mIsSystemMenu;
   private boolean mIgnoreWarnings;
   private static boolean sUserPausedEmulation;
   private boolean mMenuToastShown;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_RIIVOLUTION = "Riivolution";
+  public static final String EXTRA_SYSTEM_MENU = "SystemMenu";
   public static final String EXTRA_IGNORE_WARNINGS = "IgnoreWarnings";
   public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
   public static final String EXTRA_MENU_TOAST_SHOWN = "MenuToastShown";
@@ -171,33 +172,60 @@ public final class EmulationActivity extends AppCompatActivity
     launch(activity, new String[]{filePath}, riivolution);
   }
 
+  private static void performLaunchChecks(FragmentActivity activity,
+          ContinueLaunchCallback continueCallback)
+  {
+    if (FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) &&
+            FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) &&
+            FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) &&
+            FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_LOAD_PATH) &&
+            FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH) &&
+            FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_PATH))
+    {
+      continueCallback.run();
+    }
+    else
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
+      builder.setMessage(R.string.unavailable_paths);
+      builder.setPositiveButton(R.string.yes, (dialogInterface, i) ->
+              SettingsActivity.launch(activity, MenuTag.CONFIG_PATHS));
+      builder.setNeutralButton(R.string.continue_anyway, (dialogInterface, i) ->
+              continueCallback.run());
+      builder.show();
+    }
+  }
+
+
+  public static void launchSystemMenu(FragmentActivity activity)
+  {
+    if (sIgnoreLaunchRequests)
+      return;
+
+    performLaunchChecks(activity, () ->
+    {
+      launchSystemMenuWithoutChecks(activity);
+    });
+  }
+
   public static void launch(FragmentActivity activity, String[] filePaths, boolean riivolution)
   {
     if (sIgnoreLaunchRequests)
       return;
 
-    new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true, () ->
+    performLaunchChecks(activity, () ->
     {
-      if (FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_LOAD_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_PATH))
-      {
-        launchWithoutChecks(activity, filePaths, riivolution);
-      }
-      else
-      {
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
-        builder.setMessage(R.string.unavailable_paths);
-        builder.setPositiveButton(R.string.yes, (dialogInterface, i) ->
-                SettingsActivity.launch(activity, MenuTag.CONFIG_PATHS));
-        builder.setNeutralButton(R.string.continue_anyway, (dialogInterface, i) ->
-                launchWithoutChecks(activity, filePaths, riivolution));
-        builder.show();
-      }
+      launchWithoutChecks(activity, filePaths, riivolution);
     });
+  }
+
+  private static void launchSystemMenuWithoutChecks(FragmentActivity activity)
+  {
+    sIgnoreLaunchRequests = true;
+
+    Intent launcher = new Intent(activity, EmulationActivity.class);
+    launcher.putExtra(EmulationActivity.EXTRA_SYSTEM_MENU, true);
+    activity.startActivity(launcher);
   }
 
   private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths,
@@ -256,6 +284,7 @@ public final class EmulationActivity extends AppCompatActivity
       Intent gameToEmulate = getIntent();
       mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
       mRiivolution = gameToEmulate.getBooleanExtra(EXTRA_RIIVOLUTION, false);
+      mIsSystemMenu = gameToEmulate.getBooleanExtra(EXTRA_SYSTEM_MENU, false);
       mIgnoreWarnings = gameToEmulate.getBooleanExtra(EXTRA_IGNORE_WARNINGS, false);
       sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
       mMenuToastShown = false;
@@ -288,7 +317,7 @@ public final class EmulationActivity extends AppCompatActivity
             .findFragmentById(R.id.frame_emulation_fragment);
     if (mEmulationFragment == null)
     {
-      mEmulationFragment = EmulationFragment.newInstance(mPaths, mRiivolution);
+      mEmulationFragment = EmulationFragment.newInstance(mPaths, mRiivolution, mIsSystemMenu);
       getSupportFragmentManager().beginTransaction()
               .add(R.id.frame_emulation_fragment, mEmulationFragment)
               .commit();
