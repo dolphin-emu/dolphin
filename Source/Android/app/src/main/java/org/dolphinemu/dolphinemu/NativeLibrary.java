@@ -387,6 +387,11 @@ public final class NativeLibrary
   public static native void Run(String[] path, boolean riivolution, String savestatePath,
           boolean deleteSavestate);
 
+  /**
+   * Begins emulation of the System Menu.
+   */
+  public static native void RunSystemMenu();
+
   public static native void ChangeDisc(String path);
 
   // Surface Handling
