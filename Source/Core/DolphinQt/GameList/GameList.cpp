@@ -664,7 +664,9 @@ void GameList::OpenGCSaveFolder()
   for (int i = 0; i < 2; i++)
   {
     QUrl url;
-    switch (SConfig::GetInstance().m_EXIDevice[i])
+    const ExpansionInterface::TEXIDevices current_exi_device =
+        Config::Get(Config::GetInfoForEXIDevice(i));
+    switch (current_exi_device)
     {
     case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
     {

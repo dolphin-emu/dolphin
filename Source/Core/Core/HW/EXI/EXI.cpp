@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI_Channel.h"
@@ -45,7 +46,7 @@ void AddMemoryCards(int i)
   {
     if (Movie::IsUsingMemcard(i))
     {
-      if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MEMORYCARDFOLDER)
+      if (Config::Get(Config::GetInfoForEXIDevice(i)) == EXIDEVICE_MEMORYCARDFOLDER)
         memorycard_device = EXIDEVICE_MEMORYCARDFOLDER;
       else
         memorycard_device = EXIDEVICE_MEMORYCARD;
@@ -57,7 +58,7 @@ void AddMemoryCards(int i)
   }
   else
   {
-    memorycard_device = SConfig::GetInstance().m_EXIDevice[i];
+    memorycard_device = Config::Get(Config::GetInfoForEXIDevice(i));
   }
 
   g_Channels[i]->AddDevice(memorycard_device, 0);
@@ -101,7 +102,7 @@ void Init()
     AddMemoryCards(i);
 
   g_Channels[0]->AddDevice(EXIDEVICE_MASKROM, 1);
-  g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2], 2);  // Serial Port 1
+  g_Channels[0]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1), 2);
   g_Channels[2]->AddDevice(EXIDEVICE_AD16, 0);
 
   changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);

@@ -104,13 +104,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
   core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
   core->Set("SyncGpuOverclock", fSyncGpuOverclock);
-  core->Set("SlotA", m_EXIDevice[0]);
-  core->Set("SlotB", m_EXIDevice[1]);
-  core->Set("SerialPort1", m_EXIDevice[2]);
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
-  {
-    core->Set(fmt::format("SIDevice{}", i), m_SIDevice[i]);
-  }
   core->Set("MMU", bMMU);
 }
 
@@ -130,14 +123,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
   core->Get("CPUThread", &bCPUThread, true);
-  core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
-  core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
-  core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
-  for (size_t i = 0; i < std::size(m_SIDevice); ++i)
-  {
-    core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],
-              (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
-  }
   core->Get("MMU", &bMMU, bMMU);
   core->Get("BBDumpPort", &iBBDumpPort, -1);
   core->Get("SyncGPU", &bSyncGPU, false);

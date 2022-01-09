@@ -81,9 +81,8 @@ bool CSIDevice_GCAdapter::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_GCController::Rumble(int pad_num, ControlState strength)
+void CSIDevice_GCController::Rumble(int pad_num, ControlState strength, SIDevices device)
 {
-  SIDevices device = SConfig::GetInstance().m_SIDevice[pad_num];
   if (device == SIDEVICE_WIIU_ADAPTER)
     GCAdapter::Output(pad_num, static_cast<u8>(strength));
   else if (SIDevice_IsGCController(device))

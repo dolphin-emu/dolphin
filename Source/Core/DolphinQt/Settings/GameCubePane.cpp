@@ -458,8 +458,8 @@ void GameCubePane::LoadSettings()
   for (int i = 0; i < SLOT_COUNT; i++)
   {
     QSignalBlocker blocker(m_slot_combos[i]);
-    m_slot_combos[i]->setCurrentIndex(
-        m_slot_combos[i]->findData(SConfig::GetInstance().m_EXIDevice[i]));
+    const ExpansionInterface::TEXIDevices exi_device = Config::Get(Config::GetInfoForEXIDevice(i));
+    m_slot_combos[i]->setCurrentIndex(m_slot_combos[i]->findData(exi_device));
     UpdateButton(i);
   }
 
@@ -486,8 +486,10 @@ void GameCubePane::SaveSettings()
   for (int i = 0; i < SLOT_COUNT; i++)
   {
     const auto dev = ExpansionInterface::TEXIDevices(m_slot_combos[i]->currentData().toInt());
+    const ExpansionInterface::TEXIDevices current_exi_device =
+        Config::Get(Config::GetInfoForEXIDevice(i));
 
-    if (Core::IsRunning() && SConfig::GetInstance().m_EXIDevice[i] != dev)
+    if (Core::IsRunning() && current_exi_device != dev)
     {
       ExpansionInterface::ChangeDevice(
           // SlotB is on channel 1, slotA and SP1 are on 0
@@ -498,19 +500,7 @@ void GameCubePane::SaveSettings()
           (i == 2) ? 2 : 0);
     }
 
-    SConfig::GetInstance().m_EXIDevice[i] = dev;
-    switch (i)
-    {
-    case SLOT_A_INDEX:
-      Config::SetBaseOrCurrent(Config::MAIN_SLOT_A, dev);
-      break;
-    case SLOT_B_INDEX:
-      Config::SetBaseOrCurrent(Config::MAIN_SLOT_B, dev);
-      break;
-    case SLOT_SP1_INDEX:
-      Config::SetBaseOrCurrent(Config::MAIN_SERIAL_PORT_1, dev);
-      break;
-    }
+    Config::SetBaseOrCurrent(Config::GetInfoForEXIDevice(i), dev);
   }
 
 #ifdef HAS_LIBMGBA

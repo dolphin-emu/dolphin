@@ -178,7 +178,8 @@ void GamecubeControllersWidget::LoadSettings()
 {
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
-    const SerialInterface::SIDevices si_device = SConfig::GetInstance().m_SIDevice[i];
+    const SerialInterface::SIDevices si_device =
+        Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
     const std::optional<int> gc_index = ToGCMenuIndex(si_device);
     if (gc_index)
     {
@@ -194,7 +195,7 @@ void GamecubeControllersWidget::SaveSettings()
   {
     const int index = m_gc_controller_boxes[i]->currentIndex();
     const SerialInterface::SIDevices si_device = FromGCMenuIndex(index);
-    SConfig::GetInstance().m_SIDevice[i] = si_device;
+    Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
 
     if (Core::IsRunning())
       SerialInterface::ChangeDevice(si_device, static_cast<s32>(i));

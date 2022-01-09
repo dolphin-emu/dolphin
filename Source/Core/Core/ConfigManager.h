@@ -114,9 +114,6 @@ struct SConfig
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
 
-  ExpansionInterface::TEXIDevices m_EXIDevice[3];
-  SerialInterface::SIDevices m_SIDevice[4];
-
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
