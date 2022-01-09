@@ -8,6 +8,7 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+#include "Common/ScopeGuard.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
 #include "DiscIO/NANDImporter.h"
@@ -107,5 +108,24 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDB
         PanicAlertFmtT("The decryption keys need to be appended to the NAND backup file.");
         return "";
       });
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doOnlineUpdate(
+    JNIEnv* env, jclass, jstring jRegion, jobject jCallback)
+{
+  const std::string region = GetJString(env, jRegion);
+
+  jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
+  Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });
+
+  const auto callback = [&jCallbackGlobal](int processed, int total, u64 title_id) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    return static_cast<bool>(env->CallBooleanMethod(
+        jCallbackGlobal, IDCache::GetWiiUpdateCallbackFunction(), processed, total, title_id));
+  };
+
+  WiiUtils::UpdateResult result = WiiUtils::DoOnlineUpdate(callback, region);
+
+  return ConvertUpdateResult(result);
 }
 }
