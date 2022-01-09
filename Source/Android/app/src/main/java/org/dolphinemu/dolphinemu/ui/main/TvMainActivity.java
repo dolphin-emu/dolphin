@@ -378,6 +378,10 @@ public final class TvMainActivity extends FragmentActivity
             R.drawable.ic_folder,
             R.string.grid_menu_install_wad));
 
+    rowItems.add(new TvSettingsItem(R.id.menu_load_wii_system_menu,
+            R.drawable.ic_folder,
+            R.string.grid_menu_load_wii_system_menu));
+
     rowItems.add(new TvSettingsItem(R.id.menu_import_wii_save,
             R.drawable.ic_folder,
             R.string.grid_menu_import_wii_save));
@@ -385,6 +389,10 @@ public final class TvMainActivity extends FragmentActivity
     rowItems.add(new TvSettingsItem(R.id.menu_import_nand_backup,
             R.drawable.ic_folder,
             R.string.grid_menu_import_nand_backup));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_online_system_update,
+            R.drawable.ic_folder,
+            R.string.grid_menu_online_system_update));
 
     // Create a header for this row.
     HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));

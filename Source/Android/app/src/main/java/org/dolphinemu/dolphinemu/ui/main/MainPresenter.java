@@ -3,18 +3,23 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ComponentActivity;
+import androidx.activity.ComponentActivity;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.OnlineUpdateProgressBarDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
@@ -40,10 +45,10 @@ public final class MainPresenter
   private static boolean sShouldRescanLibrary = true;
 
   private final MainView mView;
-  private final ComponentActivity mActivity;
+  private final FragmentActivity mActivity;
   private String mDirToAdd;
 
-  public MainPresenter(MainView view, ComponentActivity activity)
+  public MainPresenter(MainView view, FragmentActivity activity)
   {
     mView = view;
     mActivity = activity;
@@ -92,6 +97,14 @@ public final class MainPresenter
 
       case R.id.menu_open_file:
         mView.launchOpenFileActivity(REQUEST_GAME_FILE);
+        return true;
+
+      case R.id.menu_load_wii_system_menu:
+        launchWiiSystemMenu();
+        return true;
+
+      case R.id.menu_online_system_update:
+        launchOnlineUpdate();
         return true;
 
       case R.id.menu_install_wad:
@@ -286,5 +299,44 @@ public final class MainPresenter
   public static void skipRescanningLibrary()
   {
     sShouldRescanLibrary = false;
+  }
+
+  private void launchOnlineUpdate()
+  {
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      SystemUpdateViewModel viewModel =
+              new ViewModelProvider(mActivity).get(SystemUpdateViewModel.class);
+      viewModel.setRegion(-1);
+      OnlineUpdateProgressBarDialogFragment progressBarFragment =
+              new OnlineUpdateProgressBarDialogFragment();
+      progressBarFragment
+              .show(mActivity.getSupportFragmentManager(), "OnlineUpdateProgressBarDialogFragment");
+      progressBarFragment.setCancelable(false);
+    }
+    else
+    {
+      SystemMenuNotInstalledDialogFragment dialogFragment =
+              new SystemMenuNotInstalledDialogFragment();
+      dialogFragment
+              .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+    }
+  }
+
+  private void launchWiiSystemMenu()
+  {
+    WiiUtils.isSystemMenuInstalled();
+
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      EmulationActivity.launchSystemMenu(mActivity);
+    }
+    else
+    {
+      SystemMenuNotInstalledDialogFragment dialogFragment =
+              new SystemMenuNotInstalledDialogFragment();
+      dialogFragment
+              .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+    }
   }
 }
