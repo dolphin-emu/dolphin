@@ -81,11 +81,6 @@ CoreTiming::EventType* et_Throttle;
 
 u32 s_cpu_core_clock = 486000000u;  // 486 mhz (its not 485, stop bugging me!)
 
-// These two are badly educated guesses.
-// Feel free to experiment. Set them in Init below.
-
-// This is a fixed value, don't change it
-int s_audio_dma_period;
 // This is completely arbitrary. If we find that we need lower latency,
 // we can just increase this number.
 int s_ipc_hle_period;
@@ -112,11 +107,16 @@ void DSPCallback(u64 userdata, s64 cyclesLate)
   CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
+int GetAudioDMACallbackPeriod()
+{
+  // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
+  return s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
+}
+
 void AudioDMACallback(u64 userdata, s64 cyclesLate)
 {
-  int period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
   DSP::UpdateAudioDMA();  // Push audio to speakers.
-  CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
+  CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
 }
 
 void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
@@ -300,9 +300,6 @@ void Init()
     s_ipc_hle_period = GetTicksPerSecond() / freq;
   }
 
-  // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
-  s_audio_dma_period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
-
   Common::Timer::IncreaseResolution();
   // store and convert localtime at boot to timebase ticks
   if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
@@ -330,7 +327,7 @@ void Init()
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
   CoreTiming::ScheduleEvent(0, et_DSP);
-  CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
+  CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
   CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeUs());
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
