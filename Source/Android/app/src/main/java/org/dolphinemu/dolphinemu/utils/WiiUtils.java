@@ -29,4 +29,6 @@ public final class WiiUtils
   public static native int doOnlineUpdate(String region, WiiUpdateCallback callback);
 
   public static native boolean isSystemMenuInstalled();
+
+  public static native String getSystemMenuVersion();
 }

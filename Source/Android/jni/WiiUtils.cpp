@@ -142,4 +142,18 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSyste
 
   return tmd.IsValid();
 }
+
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_getSystemMenuVersion(JNIEnv* env,
+                                                                                             jclass)
+{
+  IOS::HLE::Kernel ios;
+  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+
+  if (!tmd.IsValid())
+  {
+    ToJString(env, "None");
+  }
+
+  return ToJString(env, DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion()));
+}
 }
