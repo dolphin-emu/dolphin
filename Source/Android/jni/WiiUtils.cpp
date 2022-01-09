@@ -9,7 +9,10 @@
 #include "jni/AndroidCommon/IDCache.h"
 
 #include "Common/ScopeGuard.h"
+#include "Core/CommonTitles.h"
 #include "Core/HW/WiiSave.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/IOS.h"
 #include "Core/WiiUtils.h"
 #include "DiscIO/NANDImporter.h"
 
@@ -127,5 +130,14 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doOnlineUpd
   WiiUtils::UpdateResult result = WiiUtils::DoOnlineUpdate(callback, region);
 
   return ConvertUpdateResult(result);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuInstalled(JNIEnv* env, jclass)
+{
+  IOS::HLE::Kernel ios;
+  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+
+  return tmd.IsValid();
 }
 }

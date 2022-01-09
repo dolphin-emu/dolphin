@@ -27,4 +27,6 @@ public final class WiiUtils
   public static native void importNANDBin(String file);
 
   public static native int doOnlineUpdate(String region, WiiUpdateCallback callback);
+
+  public static native boolean isSystemMenuInstalled();
 }
