@@ -25,4 +25,6 @@ public final class WiiUtils
   public static native int importWiiSave(String file, BooleanSupplier canOverwrite);
 
   public static native void importNANDBin(String file);
+
+  public static native int doOnlineUpdate(String region, WiiUpdateCallback callback);
 }
