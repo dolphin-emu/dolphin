@@ -205,6 +205,14 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
   {
     return false;
   }
+  // Any instruction which can raise an interrupt is *not* a possible swap candidate:
+  // see [1] for an example of a crash caused by this error.
+  //
+  // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
+  if (a.canCauseException || b.canCauseException)
+    return false;
+  if (a_flags & FL_ENDBLOCK)
+    return false;
   if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
   if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
@@ -223,16 +231,8 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
     return false;
   }
 
-  // For now, only integer ops acceptable. Any instruction which can raise an
-  // interrupt is *not* a possible swap candidate: see [1] for an example of
-  // a crash caused by this error.
-  //
-  // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
+  // For now, only integer ops are acceptable.
   if (b_info->type != OpType::Integer)
-    return false;
-
-  // And it's possible a might raise an interrupt too (fcmpo/fcmpu)
-  if (a_info->type != OpType::Integer)
     return false;
 
   // Check that we have no register collisions.
