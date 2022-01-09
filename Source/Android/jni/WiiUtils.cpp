@@ -35,6 +35,36 @@ static jint ConvertCopyResult(WiiSave::CopyResult result)
   static_assert(static_cast<int>(WiiSave::CopyResult::NumberOfEntries) == 5);
 }
 
+static jint ConvertUpdateResult(WiiUtils::UpdateResult result)
+{
+  switch (result)
+  {
+  case WiiUtils::UpdateResult::Succeeded:
+    return 0;
+  case WiiUtils::UpdateResult::AlreadyUpToDate:
+    return 1;
+  case WiiUtils::UpdateResult::RegionMismatch:
+    return 2;
+  case WiiUtils::UpdateResult::MissingUpdatePartition:
+    return 3;
+  case WiiUtils::UpdateResult::DiscReadFailed:
+    return 4;
+  case WiiUtils::UpdateResult::ServerFailed:
+    return 5;
+  case WiiUtils::UpdateResult::DownloadFailed:
+    return 6;
+  case WiiUtils::UpdateResult::ImportFailed:
+    return 7;
+  case WiiUtils::UpdateResult::Cancelled:
+    return 8;
+  default:
+    ASSERT(false);
+    return 1;
+  }
+
+  static_assert(static_cast<int>(WiiUtils::UpdateResult::NumberOfEntries) == 9);
+}
+
 extern "C" {
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_installWAD(JNIEnv* env,
