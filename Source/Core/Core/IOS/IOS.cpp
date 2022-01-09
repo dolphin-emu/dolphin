@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <deque>
 #include <map>
 #include <memory>
@@ -683,7 +682,7 @@ std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
     ret = device->IOCtlV(IOCtlVRequest{request.address});
     break;
   default:
-    ASSERT_MSG(IOS, false, "Unexpected command: %x", request.command);
+    ASSERT_MSG(IOS, false, "Unexpected command: {:#x}", request.command);
     ret = IPCReply{IPC_EINVAL, 978_tbticks};
     break;
   }

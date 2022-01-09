@@ -107,6 +107,7 @@
     <ClInclude Include="Common\GL\GLUtil.h" />
     <ClInclude Include="Common\GL\GLX11Window.h" />
     <ClInclude Include="Common\Hash.h" />
+    <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
     <ClInclude Include="Common\Image.h" />
     <ClInclude Include="Common\ImageC.h" />
@@ -707,6 +708,7 @@
     <ClCompile Include="Common\GL\GLInterface\WGL.cpp" />
     <ClCompile Include="Common\GL\GLUtil.cpp" />
     <ClCompile Include="Common\Hash.cpp" />
+    <ClCompile Include="Common\HRWrap.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
     <ClCompile Include="Common\Image.cpp" />
     <ClCompile Include="Common\ImageC.c">

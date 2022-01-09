@@ -123,7 +123,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                          break;
                        default:
                          DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0,
-                                          "EXI Imm: Unknown transfer type %i", m_control.RW);
+                                          "EXI Imm: Unknown transfer type {}", m_control.RW);
                        }
                      }
                      else
@@ -139,7 +139,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                          break;
                        default:
                          DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0,
-                                          "EXI DMA: Unknown transfer type %i", m_control.RW);
+                                          "EXI DMA: Unknown transfer type {}", m_control.RW);
                        }
                      }
 

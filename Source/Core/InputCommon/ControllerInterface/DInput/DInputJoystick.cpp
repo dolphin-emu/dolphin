@@ -10,6 +10,7 @@
 #include <sstream>
 #include <type_traits>
 
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
@@ -62,12 +63,14 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
     {
       if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
       {
-        if (FAILED(js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
-                                                  DISCL_BACKGROUND | DISCL_EXCLUSIVE)))
+        HRESULT hr = js_device->SetCooperativeLevel(GetAncestor(hwnd, GA_ROOT),
+                                                    DISCL_BACKGROUND | DISCL_EXCLUSIVE);
+        if (FAILED(hr))
         {
-          WARN_LOG_FMT(
-              CONTROLLERINTERFACE,
-              "DInput: Failed to acquire device exclusively. Force feedback will be unavailable.");
+          WARN_LOG_FMT(CONTROLLERINTERFACE,
+                       "DInput: Failed to acquire device exclusively. Force feedback will be "
+                       "unavailable.  {}",
+                       Common::HRWrap(hr));
           // Fall back to non-exclusive mode, with no rumble
           if (FAILED(
                   js_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))

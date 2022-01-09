@@ -4,7 +4,6 @@
 #include "Core/PowerPC/JitInterface.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstdio>
 #include <string>
 #include <unordered_set>

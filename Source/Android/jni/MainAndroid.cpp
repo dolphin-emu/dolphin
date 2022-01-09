@@ -5,7 +5,6 @@
 #include <UICommon/GameFile.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
-#include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <jni.h>

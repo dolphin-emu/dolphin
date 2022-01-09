@@ -39,7 +39,7 @@ static ComPtr<ID3D12Resource> CreateTextureUploadBuffer(u32 buffer_size)
   HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
       &heap_properties, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
       IID_PPV_ARGS(&resource));
-  CHECK(SUCCEEDED(hr), "Create texture upload buffer");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create texture upload buffer: {}", DX12HRWrap(hr));
   return resource;
 }
 
@@ -116,7 +116,7 @@ std::unique_ptr<DXTexture> DXTexture::Create(const TextureConfig& config, std::s
   HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
       &heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc, resource_state,
       config.IsRenderTarget() ? &optimized_clear_value : nullptr, IID_PPV_ARGS(&resource));
-  CHECK(SUCCEEDED(hr), "Create D3D12 texture resource");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create D3D12 texture resource: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return nullptr;
 
@@ -230,9 +230,15 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
   {
     const D3D12_RANGE read_range = {0, 0};
     staging_buffer = CreateTextureUploadBuffer(upload_size);
-    if (!staging_buffer || FAILED(staging_buffer->Map(0, &read_range, &upload_buffer_ptr)))
+    if (!staging_buffer)
     {
-      PanicAlertFmt("Failed to allocate/map temporary texture upload buffer");
+      PanicAlertFmt("Failed to allocate temporary texture upload buffer");
+      return;
+    }
+    HRESULT hr = staging_buffer->Map(0, &read_range, &upload_buffer_ptr);
+    if (FAILED(hr))
+    {
+      PanicAlertFmt("Failed to map temporary texture upload buffer: {}", DX12HRWrap(hr));
       return;
     }
 
@@ -598,7 +604,7 @@ bool DXStagingTexture::Map()
 
   const D3D12_RANGE read_range = {0u, m_type == StagingTextureType::Upload ? 0u : m_buffer_size};
   HRESULT hr = m_resource->Map(0, &read_range, reinterpret_cast<void**>(&m_map_pointer));
-  CHECK(SUCCEEDED(hr), "Map resource failed");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Map resource failed: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
@@ -663,7 +669,7 @@ std::unique_ptr<DXStagingTexture> DXStagingTexture::Create(StagingTextureType ty
       &heap_properties, D3D12_HEAP_FLAG_NONE, &desc,
       is_upload ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
       IID_PPV_ARGS(&resource));
-  CHECK(SUCCEEDED(hr), "Create staging texture resource");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create staging texture resource: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return nullptr;
 

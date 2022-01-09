@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <cinttypes>
 #include <cstddef>
 #include <type_traits>
 #include <variant>

@@ -7,6 +7,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12Renderer.h"
 #include "VideoBackends/D3D12/DX12Context.h"
@@ -22,7 +23,7 @@ bool PerfQuery::Initialize()
 {
   constexpr D3D12_QUERY_HEAP_DESC desc = {D3D12_QUERY_HEAP_TYPE_OCCLUSION, PERF_QUERY_BUFFER_SIZE};
   HRESULT hr = g_dx_context->GetDevice()->CreateQueryHeap(&desc, IID_PPV_ARGS(&m_query_heap));
-  CHECK(SUCCEEDED(hr), "Failed to create query heap");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create query heap: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
@@ -40,7 +41,7 @@ bool PerfQuery::Initialize()
   hr = g_dx_context->GetDevice()->CreateCommittedResource(
       &heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc, D3D12_RESOURCE_STATE_COPY_DEST,
       nullptr, IID_PPV_ARGS(&m_query_readback_buffer));
-  CHECK(SUCCEEDED(hr), "Failed to create query buffer");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create query buffer: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
@@ -220,7 +221,7 @@ void PerfQuery::AccumulateQueriesFromBuffer(u32 query_count)
                                   (m_query_readback_pos + query_count) * sizeof(PerfQueryDataType)};
   u8* mapped_ptr;
   HRESULT hr = m_query_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&mapped_ptr));
-  CHECK(SUCCEEDED(hr), "Failed to map query readback buffer");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map query readback buffer: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return;
 

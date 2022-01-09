@@ -3,6 +3,7 @@
 
 #include <array>
 
+#include "Common/Assert.h"
 #include "Common/EnumMap.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
@@ -182,7 +183,7 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size
 
   HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
                                               vs_bytecode_size, &layout);
-  CHECK(SUCCEEDED(hr), "Failed to create input layout");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create input layout: {}", DX11HRWrap(hr));
 
   // This method can be called from multiple threads, so ensure that only one thread sets the
   // cached input layout pointer. If another thread beats this thread, use the existing layout.

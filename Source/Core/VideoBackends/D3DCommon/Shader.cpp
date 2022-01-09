@@ -8,6 +8,7 @@
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -118,8 +119,8 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file << "Video Backend: " + g_video_backend->GetDisplayName();
     file.close();
 
-    PanicAlertFmt("Failed to compile {}:\nDebug info ({}):\n{}", filename, target,
-                  static_cast<const char*>(errors->GetBufferPointer()));
+    PanicAlertFmt("Failed to compile {}: {}\nDebug info ({}):\n{}", filename, Common::HRWrap(hr),
+                  target, static_cast<const char*>(errors->GetBufferPointer()));
     return std::nullopt;
   }
 

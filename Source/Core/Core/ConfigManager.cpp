@@ -4,7 +4,6 @@
 #include "Core/ConfigManager.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <climits>
 #include <memory>
 #include <optional>

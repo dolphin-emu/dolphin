@@ -66,7 +66,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   HRESULT hr = dxgi_factory->EnumAdapters(adapter_index, adapter.GetAddressOf());
   if (FAILED(hr))
   {
-    WARN_LOG_FMT(VIDEO, "Adapter {} not found, using default", adapter_index);
+    WARN_LOG_FMT(VIDEO, "Adapter {} not found, using default: {}", adapter_index, DX11HRWrap(hr));
     adapter = nullptr;
   }
 
@@ -80,7 +80,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
         D3D11_SDK_VERSION, device.GetAddressOf(), &feature_level, context.GetAddressOf());
 
     // Debugbreak on D3D error
-    if (SUCCEEDED(hr) && SUCCEEDED(device.As(&s_debug)))
+    if (SUCCEEDED(hr) && SUCCEEDED(hr = device.As(&s_debug)))
     {
       ComPtr<ID3D11InfoQueue> info_queue;
       if (SUCCEEDED(s_debug.As(&info_queue)))
@@ -98,7 +98,7 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
     }
     else
     {
-      WARN_LOG_FMT(VIDEO, "Debug layer requested but not available.");
+      WARN_LOG_FMT(VIDEO, "Debug layer requested but not available: {}", DX11HRWrap(hr));
     }
   }
 
@@ -113,7 +113,8 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   if (FAILED(hr))
   {
     PanicAlertFmtT(
-        "Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0");
+        "Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0\n{0}",
+        DX11HRWrap(hr));
     dxgi_factory.Reset();
     D3DCommon::UnloadLibraries();
     s_d3d11_library.Close();
@@ -123,7 +124,9 @@ bool Create(u32 adapter_index, bool enable_debug_layer)
   hr = device.As(&device1);
   if (FAILED(hr))
   {
-    WARN_LOG_FMT(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
+    WARN_LOG_FMT(VIDEO,
+                 "Missing Direct3D 11.1 support. Logical operations will not be supported.\n{}",
+                 DX11HRWrap(hr));
   }
 
   stateman = std::make_unique<StateManager>();

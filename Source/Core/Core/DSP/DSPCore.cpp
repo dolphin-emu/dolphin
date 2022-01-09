@@ -300,7 +300,7 @@ u16 SDSP::ReadRegister(size_t reg) const
   case DSP_REG_ACM1:
     return r.ac[reg - DSP_REG_ACM0].m;
   default:
-    ASSERT_MSG(DSP_CORE, 0, "cannot happen");
+    ASSERT_MSG(DSPLLE, 0, "cannot happen");
     return 0;
   }
 }

@@ -600,7 +600,7 @@ void CheckExternalExceptions()
     }
     else
     {
-      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
+      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == {:08x}", exceptions);
       ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
                     exceptions);
     }

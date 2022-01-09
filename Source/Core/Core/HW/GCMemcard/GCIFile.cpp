@@ -3,8 +3,6 @@
 
 #include "Core/HW/GCMemcard/GCIFile.h"
 
-#include <cinttypes>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"

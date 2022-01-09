@@ -106,10 +106,14 @@ std::string GetStringT(const char* string)
   return s_str_translator(string);
 }
 
-static bool ShowMessageAlert(std::string_view text, bool yes_no, MsgType style)
+static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::LogType log_type,
+                             MsgType style, const char* file, int line)
 {
   const char* caption = GetCaption(style);
-  ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, text);
+  // Directly call GenericLogFmt rather than using the normal log macros so that we can use the
+  // caller's line file and line number
+  Common::Log::GenericLogFmt<2>(Common::Log::LogLevel::LERROR, log_type, file, line,
+                                FMT_STRING("{}: {}"), caption, text);
 
   // Panic alerts.
   if (style == MsgType::Warning && s_abort_on_panic_alert)
@@ -128,26 +132,12 @@ static bool ShowMessageAlert(std::string_view text, bool yes_no, MsgType style)
 }
 
 // This is the first stop for gui alerts where the log is updated and the
-// correct window is shown, but only for legacy printf-style messages
-bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
-{
-  char buffer[2048];
-
-  va_list args;
-  va_start(args, format);
-  CharArrayFromFormatV(buffer, sizeof(buffer) - 1, s_str_translator(format).c_str(), args);
-  va_end(args);
-
-  return ShowMessageAlert(buffer, yes_no, style);
-}
-
-// This is the first stop for gui alerts where the log is updated and the
 // correct window is shown, when using fmt
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, fmt::string_view format,
-                     const fmt::format_args& args)
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+                     int line, fmt::string_view format, const fmt::format_args& args)
 {
   const auto message = fmt::vformat(format, args);
 
-  return ShowMessageAlert(message, yes_no, style);
+  return ShowMessageAlert(message, yes_no, log_type, style, file, line);
 }
 }  // namespace Common

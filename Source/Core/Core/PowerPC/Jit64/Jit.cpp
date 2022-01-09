@@ -1142,7 +1142,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         // it.
         FixupBranch memException;
         ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
-                   "Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!",
+                   "Fastmem loadstores shouldn't have exception handler fixups (PC={:x})!",
                    op.address);
         if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
         {

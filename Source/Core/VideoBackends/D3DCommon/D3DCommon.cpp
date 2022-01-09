@@ -10,6 +10,7 @@
 
 #include "Common/Assert.h"
 #include "Common/DynamicLibrary.h"
+#include "Common/HRWrap.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
@@ -89,7 +90,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
   HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
   if (FAILED(hr))
   {
-    PanicAlertFmt("CreateDXGIFactory() failed with HRESULT {:08X}", hr);
+    PanicAlertFmt("CreateDXGIFactory() failed: {}", Common::HRWrap(hr));
     return nullptr;
   }
 
