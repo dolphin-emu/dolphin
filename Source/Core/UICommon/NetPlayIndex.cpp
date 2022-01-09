@@ -96,11 +96,12 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     const auto& port = entry.get("port");
     const auto& in_game = entry.get("in_game");
     const auto& version = entry.get("version");
+    const auto& revision = entry.get("revision");
 
     if (!name.is<std::string>() || !region.is<std::string>() || !method.is<std::string>() ||
         !server_id.is<std::string>() || !game_id.is<std::string>() || !has_password.is<bool>() ||
         !player_count.is<double>() || !port.is<double>() || !in_game.is<bool>() ||
-        !version.is<std::string>())
+        !version.is<std::string>() || !revision.is<std::string>())
     {
       continue;
     }
@@ -112,6 +113,7 @@ NetPlayIndex::List(const std::map<std::string, std::string>& filters)
     session.server_id = server_id.to_str();
     session.method = method.to_str();
     session.version = version.to_str();
+    session.revision = revision.to_str();
     session.has_password = has_password.get<bool>();
     session.player_count = static_cast<int>(player_count.get<double>());
     session.port = static_cast<int>(port.get<double>());
@@ -169,8 +171,9 @@ bool NetPlayIndex::Add(const NetPlaySession& session)
           "&game=" + request.EscapeComponent(session.game_id) +
           "&password=" + std::to_string(session.has_password) + "&method=" + session.method +
           "&server_id=" + session.server_id + "&in_game=" + std::to_string(session.in_game) +
-          "&port=" + std::to_string(session.port) + "&player_count=" +
-          std::to_string(session.player_count) + "&version=" + Common::scm_desc_str,
+          "&port=" + std::to_string(session.port) +
+          "&player_count=" + std::to_string(session.player_count) +
+          "&version=" + Common::scm_desc_str + "&revision=" + Common::scm_rev_str,
       {{"X-Is-Dolphin", "1"}}, Common::HttpRequest::AllowedReturnCodes::All);
 
   if (!response.has_value())
