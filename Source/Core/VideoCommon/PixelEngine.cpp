@@ -10,11 +10,14 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/System.h"
+
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerfQueryBase.h"
@@ -286,7 +289,7 @@ static void RaiseEvent(int cycles_into_future)
 
   CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
   s64 cycles = 0;  // we don't care about timings for dual core mode.
-  if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
+  if (!Core::System::GetInstance().IsDualCoreMode() || Fifo::UseDeterministicGPUThread())
   {
     from = CoreTiming::FromThread::CPU;
 

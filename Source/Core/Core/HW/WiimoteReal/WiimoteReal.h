@@ -148,6 +148,7 @@ private:
   Common::SPSCQueue<Report> m_write_reports;
 
   bool m_speaker_enabled_in_dolphin_config = false;
+  int m_balance_board_dump_port = 0;
 
   size_t m_config_changed_callback_id;
 };

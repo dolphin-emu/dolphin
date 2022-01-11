@@ -56,16 +56,7 @@ struct SConfig
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 
-  bool bCPUThread = true;
   bool bCopyWiiSaveNetplay = true;
-
-  bool bMMU = false;
-  int iBBDumpPort = 0;
-
-  bool bSyncGPU = false;
-  int iSyncGpuMaxDistance;
-  int iSyncGpuMinDistance;
-  float fSyncGpuOverclock;
 
   bool bWii = false;
   bool m_is_mios = false;
@@ -133,10 +124,6 @@ struct SConfig
 private:
   SConfig();
   ~SConfig();
-
-  void SaveCoreSettings(IniFile& ini);
-
-  void LoadCoreSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                               u64 title_id, u16 revision, DiscIO::Region region);

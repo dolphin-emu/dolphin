@@ -359,9 +359,9 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
   builder.AddData("cfg-dsp-jit", Config::Get(Config::MAIN_DSP_JIT));
   builder.AddData("cfg-dsp-thread", Config::Get(Config::MAIN_DSP_THREAD));
-  builder.AddData("cfg-cpu-thread", SConfig::GetInstance().bCPUThread);
+  builder.AddData("cfg-cpu-thread", Config::Get(Config::MAIN_CPU_THREAD));
   builder.AddData("cfg-fastmem", Config::Get(Config::MAIN_FASTMEM));
-  builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
+  builder.AddData("cfg-syncgpu", Config::Get(Config::MAIN_SYNC_GPU));
   builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));

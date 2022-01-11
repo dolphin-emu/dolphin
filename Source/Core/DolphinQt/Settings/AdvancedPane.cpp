@@ -178,7 +178,7 @@ void AdvancedPane::ConnectLayout()
           });
 
   connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
-          [](bool checked) { SConfig::GetInstance().bMMU = checked; });
+          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_MMU, checked); });
 
   m_cpu_clock_override_checkbox->setChecked(Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
@@ -243,7 +243,7 @@ void AdvancedPane::Update()
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
 
-  m_enable_mmu_checkbox->setChecked(SConfig::GetInstance().bMMU);
+  m_enable_mmu_checkbox->setChecked(Config::Get(Config::MAIN_MMU));
   m_enable_mmu_checkbox->setEnabled(!running);
 
   QFont bf = font();
