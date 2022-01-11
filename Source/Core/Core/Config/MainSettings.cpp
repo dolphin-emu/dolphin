@@ -8,6 +8,7 @@
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/EnumMap.h"
@@ -50,12 +51,42 @@ const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, fals
 const Info<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"}, 80};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
+const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_MEMCARD_A_PATH,
+          &MAIN_MEMCARD_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const Info<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
+const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_AGP_CART_A_PATH,
+          &MAIN_AGP_CART_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
+const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_GCI_FOLDER_A_PATH_OVERRIDE,
+          &MAIN_GCI_FOLDER_B_PATH_OVERRIDE,
+      };
+  return *infos[slot];
+}
 
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
     {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::MemoryCardFolder};

@@ -40,6 +40,11 @@ enum class Slot : int
 static constexpr auto SLOTS = {Slot::A, Slot::B, Slot::SP1};
 static constexpr auto MAX_SLOT = Slot::SP1;
 static constexpr auto MEMCARD_SLOTS = {Slot::A, Slot::B};
+static constexpr auto MAX_MEMCARD_SLOT = Slot::B;
+constexpr bool IsMemcardSlot(Slot slot)
+{
+  return slot == Slot::A || slot == Slot::B;
+}
 
 u8 SlotToEXIChannel(Slot slot);
 u8 SlotToEXIDevice(Slot slot);
@@ -54,12 +59,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 void UpdateInterrupts();
 void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late);
 
-void ChangeDevice(const u8 channel, const EXIDeviceType device_type, const u8 device_num,
+void ChangeDevice(Slot slot, EXIDeviceType device_type,
+                  CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
                   CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
 
 CEXIChannel* GetChannel(u32 index);
-
-IEXIDevice* FindDevice(EXIDeviceType device_type, int customIndex = -1);
+IEXIDevice* GetDevice(Slot slot);
 
 }  // namespace ExpansionInterface
 

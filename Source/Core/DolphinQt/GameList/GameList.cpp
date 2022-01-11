@@ -677,9 +677,7 @@ void GameList::OpenGCSaveFolder()
                                           SConfig::GetDirectoryForRegion(game->GetRegion()),
                                           slot == Slot::A ? "Card A" : "Card B");
 
-      std::string override_path = slot == Slot::A ?
-                                      Config::Get(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE) :
-                                      Config::Get(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE);
+      std::string override_path = Config::Get(Config::GetInfoForGCIPathOverride(slot));
 
       if (!override_path.empty())
         path = override_path;
@@ -697,8 +695,7 @@ void GameList::OpenGCSaveFolder()
     }
     case ExpansionInterface::EXIDeviceType::MemoryCard:
     {
-      std::string memcard_path = slot == Slot::A ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
-                                                   Config::Get(Config::MAIN_MEMCARD_B_PATH);
+      std::string memcard_path = Config::Get(Config::GetInfoForMemcardPath(slot));
 
       std::string memcard_dir;
 

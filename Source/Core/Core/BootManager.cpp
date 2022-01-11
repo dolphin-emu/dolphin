@@ -156,12 +156,13 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
-    for (int i = 0; i < 2; ++i)
+    for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
     {
-      if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+      if (Movie::IsUsingMemcard(slot) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
       {
         const auto raw_path =
-            File::GetUserPath(D_GCUSER_IDX) + fmt::format("Movie{}.raw", (i == 0) ? 'A' : 'B');
+            File::GetUserPath(D_GCUSER_IDX) +
+            fmt::format("Movie{}.raw", slot == ExpansionInterface::Slot::A ? 'A' : 'B');
         if (File::Exists(raw_path))
           File::Delete(raw_path);
 

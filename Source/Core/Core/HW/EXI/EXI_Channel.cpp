@@ -278,7 +278,7 @@ void CEXIChannel::DoState(PointerWrap& p)
       // the new device type are identical in this case. I assume there is a reason we have this
       // grace period when switching in the GUI.
       AddDevice(EXIDeviceType::None, device_index);
-      ExpansionInterface::ChangeDevice(m_channel_id, EXIDeviceType::MemoryCardFolder, device_index,
+      ExpansionInterface::ChangeDevice(m_channel_id, device_index, EXIDeviceType::MemoryCardFolder,
                                        CoreTiming::FromThread::CPU);
     }
   }
@@ -293,16 +293,5 @@ void CEXIChannel::PauseAndLock(bool do_lock, bool resume_on_unlock)
 void CEXIChannel::SetEXIINT(bool exiint)
 {
   m_status.EXIINT = !!exiint;
-}
-
-IEXIDevice* CEXIChannel::FindDevice(EXIDeviceType device_type, int custom_index)
-{
-  for (auto& sup : m_devices)
-  {
-    IEXIDevice* device = sup->FindDevice(device_type, custom_index);
-    if (device)
-      return device;
-  }
-  return nullptr;
 }
 }  // namespace ExpansionInterface

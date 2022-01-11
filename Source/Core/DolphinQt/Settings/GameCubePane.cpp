@@ -387,11 +387,11 @@ void GameCubePane::OnConfigPressed(int slot)
     ExpansionInterface::ChangeDevice(
         // SlotB is on channel 1, slotA and SP1 are on 0
         slot,
+        // SP1 is device 2, slots are device 0
+        0,
         // The device enum to change to
         memcard ? ExpansionInterface::EXIDeviceType::MemoryCard :
-                  ExpansionInterface::EXIDeviceType::AGP,
-        // SP1 is device 2, slots are device 0
-        0);
+                  ExpansionInterface::EXIDeviceType::AGP);
   }
 }
 
@@ -501,10 +501,10 @@ void GameCubePane::SaveSettings()
       ExpansionInterface::ChangeDevice(
           // SlotB is on channel 1, slotA and SP1 are on 0
           (i == 1) ? 1 : 0,
-          // The device enum to change to
-          dev,
           // SP1 is device 2, slots are device 0
-          (i == 2) ? 2 : 0);
+          (i == 2) ? 2 : 0,
+          // The device enum to change to
+          dev);
     }
 
     Config::SetBaseOrCurrent(Config::GetInfoForEXIDevice(static_cast<ExpansionInterface::Slot>(i)),

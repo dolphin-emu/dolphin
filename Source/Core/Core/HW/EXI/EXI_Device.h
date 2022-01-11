@@ -54,8 +54,6 @@ public:
   virtual void DMAWrite(u32 address, u32 size);
   virtual void DMARead(u32 address, u32 size);
 
-  virtual IEXIDevice* FindDevice(EXIDeviceType device_type, int custom_index = -1);
-
   virtual bool UseDelayedTransferCompletion() const;
   virtual bool IsPresent() const;
   virtual void SetCS(int cs);

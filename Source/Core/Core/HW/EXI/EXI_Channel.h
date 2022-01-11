@@ -30,7 +30,6 @@ public:
 
   // get device
   IEXIDevice* GetDevice(u8 chip_select);
-  IEXIDevice* FindDevice(EXIDeviceType device_type, int custom_index = -1);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 

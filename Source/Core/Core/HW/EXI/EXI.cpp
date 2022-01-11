@@ -39,15 +39,14 @@ static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late);
 
 namespace
 {
-void AddMemoryCards(int i)
+void AddMemoryCard(Slot slot)
 {
   EXIDeviceType memorycard_device;
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
-    if (Movie::IsUsingMemcard(i))
+    if (Movie::IsUsingMemcard(slot))
     {
-      if (Config::Get(Config::GetInfoForEXIDevice(static_cast<Slot>(i))) ==
-          EXIDeviceType::MemoryCardFolder)
+      if (Config::Get(Config::GetInfoForEXIDevice(slot)) == EXIDeviceType::MemoryCardFolder)
         memorycard_device = EXIDeviceType::MemoryCardFolder;
       else
         memorycard_device = EXIDeviceType::MemoryCard;
@@ -59,10 +58,10 @@ void AddMemoryCards(int i)
   }
   else
   {
-    memorycard_device = Config::Get(Config::GetInfoForEXIDevice(static_cast<Slot>(i)));
+    memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
   }
 
-  g_Channels[i]->AddDevice(memorycard_device, 0);
+  g_Channels[SlotToEXIChannel(slot)]->AddDevice(memorycard_device, SlotToEXIDevice(slot));
 }
 }  // namespace
 
@@ -132,7 +131,7 @@ void Init()
   }
 
   for (Slot slot : MEMCARD_SLOTS)
-    AddMemoryCards(static_cast<int>(slot));
+    AddMemoryCard(slot);
 
   g_Channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
   g_Channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
@@ -186,7 +185,12 @@ static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
   g_Channels.at(channel)->AddDevice(static_cast<EXIDeviceType>(type), num);
 }
 
-void ChangeDevice(const u8 channel, const EXIDeviceType device_type, const u8 device_num,
+void ChangeDevice(Slot slot, EXIDeviceType device_type, CoreTiming::FromThread from_thread)
+{
+  ChangeDevice(SlotToEXIChannel(slot), SlotToEXIDevice(slot), device_type, from_thread);
+}
+
+void ChangeDevice(u8 channel, u8 device_num, EXIDeviceType device_type,
                   CoreTiming::FromThread from_thread)
 {
   // Let the hardware see no device for 1 second
@@ -203,15 +207,9 @@ CEXIChannel* GetChannel(u32 index)
   return g_Channels.at(index).get();
 }
 
-IEXIDevice* FindDevice(EXIDeviceType device_type, int customIndex)
+IEXIDevice* GetDevice(Slot slot)
 {
-  for (auto& channel : g_Channels)
-  {
-    IEXIDevice* device = channel->FindDevice(device_type, customIndex);
-    if (device)
-      return device;
-  }
-  return nullptr;
+  return g_Channels.at(SlotToEXIChannel(slot))->GetDevice(1 << SlotToEXIDevice(slot));
 }
 
 void UpdateInterrupts()

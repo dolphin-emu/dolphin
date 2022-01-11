@@ -1670,10 +1670,9 @@ bool NetPlayServer::SyncSaveData()
 
     if (m_settings.m_EXIDevice[slot] == ExpansionInterface::EXIDeviceType::MemoryCard)
     {
-      std::string path = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
-                                     Config::Get(Config::MAIN_MEMCARD_B_PATH);
+      std::string path = Config::Get(Config::GetInfoForMemcardPath(slot));
 
-      MemoryCard::CheckPath(path, region, is_slot_a);
+      MemoryCard::CheckPath(path, region, slot);
 
       int size_override;
       IniFile gameIni = SConfig::LoadGameIni(game->GetGameID(), game->GetRevision());
