@@ -582,7 +582,8 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
                                      "`" + devAnalog + ":Trigger0+`|L3");  // L-trigger Soft Press
     gcTriggers->SetControlExpression(3,
                                      "`" + devAnalog + ":Trigger1+`|R3");  // R-trigger Soft Press
-    gcRumble->SetControlExpression(0, "Rumble");
+    if (Libretro::Options::enableRumble)
+      gcRumble->SetControlExpression(0, "Rumble");
 
     gcPad->UpdateReferences(g_controller_interface);
     Pad::GetConfig()->SaveConfig();
@@ -773,7 +774,9 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
         ->SetValue(false);  // Upright Wiimote
     static_cast<ControllerEmu::NumericSetting<bool>*>(wmOptions->numeric_settings[3].get())
         ->SetValue(false);  // Sideways Wiimote
-    wmRumble->SetControlExpression(0, "Rumble");
+    if (Libretro::Options::enableRumble)
+      wmRumble->SetControlExpression(0, "Rumble");
+
     switch (device)
     {
     case RETRO_DEVICE_WIIMOTE:

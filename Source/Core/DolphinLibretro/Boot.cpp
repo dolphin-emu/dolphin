@@ -113,6 +113,7 @@ bool retro_load_game(const struct retro_game_info* game)
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, Libretro::Options::progressiveScan);
   Config::SetBase(Config::SYSCONF_PAL60, Libretro::Options::pal60);
   Config::SetBase(Config::SYSCONF_SENSOR_BAR_POSITION, Libretro::Options::sensorBarPosition);
+  Config::SetBase(Config::SYSCONF_WIIMOTE_MOTOR, Libretro::Options::enableRumble);
 
   Config::SetBase(Config::GFX_WIDESCREEN_HACK, Libretro::Options::WidescreenHack);
   Config::SetBase(Config::GFX_EFB_SCALE, Libretro::Options::efbScale);

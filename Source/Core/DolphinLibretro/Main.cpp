@@ -234,7 +234,8 @@ void retro_run(void)
   }
 
   if (Libretro::Options::irMode.Updated() || Libretro::Options::irCenter.Updated()
-      || Libretro::Options::irWidth.Updated() || Libretro::Options::irHeight.Updated())
+      || Libretro::Options::irWidth.Updated() || Libretro::Options::irHeight.Updated()
+      || Libretro::Options::enableRumble.Updated())
   {
     Libretro::Input::ResetControllers();
   }
