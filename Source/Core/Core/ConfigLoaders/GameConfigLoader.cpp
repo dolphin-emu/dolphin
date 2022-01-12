@@ -75,10 +75,10 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.GetLocation()}},
       {{"Core", "HLE_BS2"}, {Config::MAIN_SKIP_IPL.GetLocation()}},
       {{"Core", "GameCubeLanguage"}, {Config::MAIN_GC_LANGUAGE.GetLocation()}},
-      {{"Core", "PadType0"}, {Config::GetInfoForSIDevice(0).GetLocation()}},
-      {{"Core", "PadType1"}, {Config::GetInfoForSIDevice(1).GetLocation()}},
-      {{"Core", "PadType2"}, {Config::GetInfoForSIDevice(2).GetLocation()}},
-      {{"Core", "PadType3"}, {Config::GetInfoForSIDevice(3).GetLocation()}},
+      {{"Controls", "PadType0"}, {Config::GetInfoForSIDevice(0).GetLocation()}},
+      {{"Controls", "PadType1"}, {Config::GetInfoForSIDevice(1).GetLocation()}},
+      {{"Controls", "PadType2"}, {Config::GetInfoForSIDevice(2).GetLocation()}},
+      {{"Controls", "PadType3"}, {Config::GetInfoForSIDevice(3).GetLocation()}},
   };
   return ini_to_location;
 }
@@ -90,6 +90,7 @@ static const INIToSectionMap& GetINIToSectionMap()
 {
   static const INIToSectionMap ini_to_section = {
       {"Core", {Config::System::Main, "Core"}},
+      {"DSP", {Config::System::Main, "DSP"}},
       {"Display", {Config::System::Main, "Display"}},
       {"Video_Hardware", {Config::System::GFX, "Hardware"}},
       {"Video_Settings", {Config::System::GFX, "Settings"}},
