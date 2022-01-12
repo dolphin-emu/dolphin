@@ -16,6 +16,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <array>
 #include <utility>
 
 #include "Common/CommonPaths.h"
@@ -97,31 +98,28 @@ void GameCubePane::CreateWidgets()
   }
 
   // Add slot devices
-  for (const auto& entry : {std::make_pair(tr("<Nothing>"), EXIDeviceType::None),
-                            std::make_pair(tr("Dummy"), EXIDeviceType::Dummy),
-                            std::make_pair(tr("Memory Card"), EXIDeviceType::MemoryCard),
-                            std::make_pair(tr("GCI Folder"), EXIDeviceType::MemoryCardFolder),
-                            std::make_pair(tr("USB Gecko"), EXIDeviceType::Gecko),
-                            std::make_pair(tr("Advance Game Port"), EXIDeviceType::AGP),
-                            std::make_pair(tr("Microphone"), EXIDeviceType::Microphone)})
+  for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::MemoryCard,
+                            EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko,
+                            EXIDeviceType::AGP, EXIDeviceType::Microphone})
   {
-    m_slot_combos[0]->addItem(entry.first, static_cast<int>(entry.second));
-    m_slot_combos[1]->addItem(entry.first, static_cast<int>(entry.second));
+    const QString name = tr(fmt::format("{:n}", device).c_str());
+    const int value = static_cast<int>(device);
+    m_slot_combos[0]->addItem(name, value);
+    m_slot_combos[1]->addItem(name, value);
   }
 
   // Add SP1 devices
-  std::vector<std::pair<QString, EXIDeviceType>> sp1Entries{
-      std::make_pair(tr("<Nothing>"), EXIDeviceType::None),
-      std::make_pair(tr("Dummy"), EXIDeviceType::Dummy),
-      std::make_pair(tr("Broadband Adapter (TAP)"), EXIDeviceType::Ethernet),
-      std::make_pair(tr("Broadband Adapter (XLink Kai)"), EXIDeviceType::EthernetXLink)};
-#if defined(__APPLE__)
-  sp1Entries.emplace_back(std::make_pair(tr("Broadband Adapter (tapserver)"),
-                                         ExpansionInterface::EXIDeviceType::EthernetTapServer));
+  for (const auto device : {
+           EXIDeviceType::None,
+           EXIDeviceType::Dummy,
+           EXIDeviceType::Ethernet,
+           EXIDeviceType::EthernetXLink,
+#ifdef __APPLE__
+           EXIDeviceType::EthernetTapServer,
 #endif
-  for (const auto& entry : sp1Entries)
+       })
   {
-    m_slot_combos[2]->addItem(entry.first, static_cast<int>(entry.second));
+    m_slot_combos[2]->addItem(tr(fmt::format("{:n}", device).c_str()), static_cast<int>(device));
   }
 
   device_layout->addWidget(new QLabel(tr("Slot A:")), 0, 0);

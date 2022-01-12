@@ -95,7 +95,6 @@ protected:
 
   constexpr explicit EnumFormatter(const array_type names) : m_names(std::move(names)) {}
 
-private:
   const array_type m_names;
   char format_type = 'u';
 };
