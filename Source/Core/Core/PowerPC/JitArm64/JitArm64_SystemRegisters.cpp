@@ -111,7 +111,7 @@ void JitArm64::mfsr(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
 
   gpr.BindToRegister(inst.RD, false);
-  LDR(INDEX_UNSIGNED, gpr.R(inst.RD), PPC_REG, PPCSTATE_OFF(sr[inst.SR]));
+  LDR(INDEX_UNSIGNED, gpr.R(inst.RD), PPC_REG, PPCSTATE_OFF_SR(inst.SR));
 }
 
 void JitArm64::mtsr(UGeckoInstruction inst)
@@ -120,7 +120,7 @@ void JitArm64::mtsr(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
 
   gpr.BindToRegister(inst.RS, true);
-  STR(INDEX_UNSIGNED, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(sr[inst.SR]));
+  STR(INDEX_UNSIGNED, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF_SR(inst.SR));
 }
 
 void JitArm64::mfsrin(UGeckoInstruction inst)
@@ -137,7 +137,7 @@ void JitArm64::mfsrin(UGeckoInstruction inst)
 
   UBFM(index, RB, 28, 31);
   ADD(index64, PPC_REG, index64, ArithOption(index64, ST_LSL, 2));
-  LDR(INDEX_UNSIGNED, gpr.R(d), index64, PPCSTATE_OFF(sr[0]));
+  LDR(INDEX_UNSIGNED, gpr.R(d), index64, PPCSTATE_OFF_SR(0));
 
   gpr.Unlock(index);
 }
@@ -156,7 +156,7 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
 
   UBFM(index, RB, 28, 31);
   ADD(index64, PPC_REG, index64, ArithOption(index64, ST_LSL, 2));
-  STR(INDEX_UNSIGNED, gpr.R(d), index64, PPCSTATE_OFF(sr[0]));
+  STR(INDEX_UNSIGNED, gpr.R(d), index64, PPCSTATE_OFF_SR(0));
 
   gpr.Unlock(index);
 }
@@ -283,7 +283,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     UMULH(Xresult, Xresult, XB);
 
     ADD(Xresult, XA, Xresult, ArithOption(Xresult, ST_LSR, 3));
-    STR(INDEX_UNSIGNED, Xresult, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
+    STR(INDEX_UNSIGNED, Xresult, PPC_REG, PPCSTATE_OFF_SPR(SPR_TL));
 
     if (CanMergeNextInstructions(1))
     {
@@ -344,7 +344,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
   default:
     gpr.BindToRegister(d, false);
     ARM64Reg RD = gpr.R(d);
-    LDR(INDEX_UNSIGNED, RD, PPC_REG, PPCSTATE_OFF(spr) + iIndex * 4);
+    LDR(INDEX_UNSIGNED, RD, PPC_REG, PPCSTATE_OFF_SPR(iIndex));
     break;
   }
 }
@@ -408,7 +408,7 @@ void JitArm64::mtspr(UGeckoInstruction inst)
 
   // OK, this is easy.
   ARM64Reg RD = gpr.R(inst.RD);
-  STR(INDEX_UNSIGNED, RD, PPC_REG, PPCSTATE_OFF(spr) + iIndex * 4);
+  STR(INDEX_UNSIGNED, RD, PPC_REG, PPCSTATE_OFF_SPR(iIndex));
 }
 
 void JitArm64::crXXX(UGeckoInstruction inst)

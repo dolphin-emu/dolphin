@@ -637,7 +637,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     int gqr = *code_block.m_gqr_used.begin();
     if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
     {
-      LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0]) + gqr * 4);
+      LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + gqr));
       FixupBranch no_fail = CBZ(W0);
       FixupBranch fail = B();
       SwitchToFarCode();

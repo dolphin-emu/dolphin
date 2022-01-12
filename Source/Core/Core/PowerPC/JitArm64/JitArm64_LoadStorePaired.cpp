@@ -77,7 +77,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   }
   else
   {
-    LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
+    LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + inst.I));
     UBFM(type_reg, scale_reg, 16, 18);   // Type
     UBFM(scale_reg, scale_reg, 24, 29);  // Scale
 
@@ -179,7 +179,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
         m_float_emit.FCVTN(32, D0, VS);
     }
 
-    LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
+    LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + inst.I));
     UBFM(type_reg, scale_reg, 0, 2);    // Type
     UBFM(scale_reg, scale_reg, 8, 13);  // Scale
 

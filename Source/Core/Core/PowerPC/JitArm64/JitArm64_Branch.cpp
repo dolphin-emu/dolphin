@@ -57,14 +57,14 @@ void JitArm64::rfi(UGeckoInstruction inst)
 
   ANDI2R(WC, WC, (~mask) & clearMSR13, WA);  // rD = Masked MSR
 
-  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR1]));  // rB contains SRR1 here
+  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_SRR1));  // rB contains SRR1 here
 
   ANDI2R(WA, WA, mask & clearMSR13, WB);  // rB contains masked SRR1 here
   ORR(WA, WA, WC);                        // rB = Masked MSR OR masked SRR1
 
   STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));  // STR rB in to rA
 
-  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR0]));
+  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_SRR0));
   gpr.Unlock(WB, WC);
 
   WriteExceptionExit(WA);
@@ -80,7 +80,7 @@ void JitArm64::bx(UGeckoInstruction inst)
   {
     ARM64Reg WA = gpr.GetReg();
     MOVI2R(WA, js.compilerPC + 4);
-    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
+    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
     gpr.Unlock(WA);
   }
 
@@ -125,9 +125,9 @@ void JitArm64::bcx(UGeckoInstruction inst)
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
-    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
+    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
     SUBS(WA, WA, 1);
-    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
+    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
 
     if (inst.BO & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = B(CC_NEQ);
@@ -150,7 +150,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
   if (inst.LK)
   {
     MOVI2R(WA, js.compilerPC + 4);
-    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
+    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
   }
   gpr.Unlock(WA);
 
@@ -213,13 +213,13 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   {
     ARM64Reg WB = gpr.GetReg();
     MOVI2R(WB, js.compilerPC + 4);
-    STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
+    STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
     gpr.Unlock(WB);
   }
 
   ARM64Reg WA = gpr.GetReg();
 
-  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
+  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
   AND(WA, WA, 30, 29);  // Wipe the bottom 2 bits.
 
   WriteExit(WA, inst.LK_3, js.compilerPC + 4);
@@ -241,9 +241,9 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
-    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
+    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
     SUBS(WA, WA, 1);
-    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
+    STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
 
     if (inst.BO & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = B(CC_NEQ);
@@ -265,13 +265,13 @@ void JitArm64::bclrx(UGeckoInstruction inst)
     SetJumpTarget(far_addr);
   }
 
-  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
+  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
   AND(WA, WA, 30, 29);  // Wipe the bottom 2 bits.
 
   if (inst.LK)
   {
     MOVI2R(WB, js.compilerPC + 4);
-    STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
+    STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
     gpr.Unlock(WB);
   }
 
