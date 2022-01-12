@@ -46,10 +46,16 @@ void AddMemoryCard(Slot slot)
   {
     if (Movie::IsUsingMemcard(slot))
     {
-      if (Config::Get(Config::GetInfoForEXIDevice(slot)) == EXIDeviceType::MemoryCardFolder)
-        memorycard_device = EXIDeviceType::MemoryCardFolder;
-      else
-        memorycard_device = EXIDeviceType::MemoryCard;
+      memorycard_device = Config::Get(Config::GetInfoForEXIDevice(slot));
+      if (memorycard_device != EXIDeviceType::MemoryCardFolder &&
+          memorycard_device != EXIDeviceType::MemoryCard)
+      {
+        PanicAlertFmtT(
+            "The movie indicates that a memory card should be inserted into {0:n}, but one is not "
+            "currently inserted (instead, {1} is inserted).  For the movie to sync properly, "
+            "please change the selected device to Memory Card or GCI Folder.",
+            slot, Common::GetStringT(fmt::format("{:n}", memorycard_device).c_str()));
+      }
     }
     else
     {
