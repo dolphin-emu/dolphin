@@ -161,7 +161,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   CleanupFromPreviousUpdate();
 #endif
 
-  std::string_view version_hash = hash_override.empty() ? Common::scm_rev_git_str : hash_override;
+  std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
   std::string url = fmt::format("https://dolphin-emu.org/update/check/v1/{}/{}/{}", update_track,
                                 version_hash, GetPlatformID());
 

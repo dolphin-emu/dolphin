@@ -1471,7 +1471,7 @@ void GetSettings()
   s_memcards |= (slot_a_has_raw_memcard || slot_a_has_gci_folder) << 0;
   s_memcards |= (slot_b_has_raw_memcard || slot_b_has_gci_folder) << 1;
 
-  s_revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
+  s_revision = ConvertGitRevisionToBytes(Common::GetScmRevGitStr());
 
   if (!Config::Get(Config::MAIN_DSP_HLE))
   {

@@ -982,7 +982,7 @@ void UpdateTitle(u32 ElapseTime)
     }
   }
 
-  std::string message = fmt::format("{} | {} | {}", Common::scm_rev_str, SSettings, SFPS);
+  std::string message = fmt::format("{} | {} | {}", Common::GetScmRevStr(), SSettings, SFPS);
   if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();

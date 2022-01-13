@@ -7,12 +7,11 @@
 
 namespace Common
 {
-// Git version number
-extern const std::string scm_desc_str;
-extern const std::string scm_branch_str;
-extern const std::string scm_rev_str;
-extern const std::string scm_rev_git_str;
-extern const std::string scm_distributor_str;
-extern const std::string scm_update_track_str;
-extern const std::string netplay_dolphin_ver;
+const std::string& GetScmDescStr();
+const std::string& GetScmBranchStr();
+const std::string& GetScmRevStr();
+const std::string& GetScmRevGitStr();
+const std::string& GetScmDistributorStr();
+const std::string& GetScmUpdateTrackStr();
+const std::string& GetNetplayDolphinVer();
 }  // namespace Common

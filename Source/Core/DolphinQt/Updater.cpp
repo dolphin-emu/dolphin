@@ -55,7 +55,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
            "download. "
            "You are running %2.<br> Would you like to update?<br><h4>Release Notes:</h4>")
             .arg(QString::fromStdString(info.new_shortrev))
-            .arg(QString::fromStdString(Common::scm_desc_str)));
+            .arg(QString::fromStdString(Common::GetScmDescStr())));
     label->setTextFormat(Qt::RichText);
 
     auto* changelog = new QTextBrowser;

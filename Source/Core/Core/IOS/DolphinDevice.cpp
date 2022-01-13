@@ -58,10 +58,10 @@ IPCReply GetVersion(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const auto length = std::min(size_t(request.io_vectors[0].size), Common::scm_desc_str.size());
+  const auto length = std::min(size_t(request.io_vectors[0].size), Common::GetScmDescStr().size());
 
   Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
-  Memory::CopyToEmu(request.io_vectors[0].address, Common::scm_desc_str.data(), length);
+  Memory::CopyToEmu(request.io_vectors[0].address, Common::GetScmDescStr().data(), length);
 
   return IPCReply(IPC_SUCCESS);
 }
