@@ -18,7 +18,7 @@ public:
   explicit Updater(QWidget* parent);
 
   void run() override;
-  void OnUpdateAvailable(const NewVersionInformation& info) override;
+  void OnUpdateAvailable(std::string info);
   bool CheckForUpdate();
 
 private:

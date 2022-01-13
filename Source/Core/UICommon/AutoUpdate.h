@@ -42,5 +42,5 @@ public:
   void TriggerUpdate(const NewVersionInformation& info, RestartMode restart_mode);
 
 protected:
-  virtual void OnUpdateAvailable(const NewVersionInformation& info) = 0;
+  virtual void OnUpdateAvailable(std::string info) = 0;
 };
