@@ -241,8 +241,8 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
     if (!WD::IsValidMode(m_mode))
       return IPCReply(u32(ResultCode::UnavailableCommand));
 
-    INFO_LOG_FMT(IOS_NET, "WD_SetLinkState: setting target status to 1 (Idle)");
     m_target_status = Status::Idle;
+    INFO_LOG_FMT(IOS_NET, "WD_SetLinkState: setting target status to {}", m_target_status);
   }
   else
   {
