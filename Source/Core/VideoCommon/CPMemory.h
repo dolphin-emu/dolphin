@@ -258,7 +258,7 @@ struct fmt::formatter<TVtxDesc::Low>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TVtxDesc::Low& desc, FormatContext& ctx)
+  auto format(const TVtxDesc::Low& desc, FormatContext& ctx) const
   {
     static constexpr std::array<const char*, 2> present = {"Not present", "Present"};
 
@@ -287,7 +287,7 @@ struct fmt::formatter<TVtxDesc::High>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TVtxDesc::High& desc, FormatContext& ctx)
+  auto format(const TVtxDesc::High& desc, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "Texture Coord 0: {}\n"
@@ -307,7 +307,7 @@ struct fmt::formatter<TVtxDesc>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TVtxDesc& desc, FormatContext& ctx)
+  auto format(const TVtxDesc& desc, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}\n{}", desc.low, desc.high);
   }
@@ -342,7 +342,7 @@ struct fmt::formatter<UVAT_group0>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group0& g0, FormatContext& ctx)
+  auto format(const UVAT_group0& g0, FormatContext& ctx) const
   {
     static constexpr std::array<const char*, 2> byte_dequant = {
         "shift does not apply to u8/s8 components", "shift applies to u8/s8 components"};
@@ -398,7 +398,7 @@ struct fmt::formatter<UVAT_group1>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group1& g1, FormatContext& ctx)
+  auto format(const UVAT_group1& g1, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "Texture coord 1 elements: {}\n"
@@ -444,7 +444,7 @@ struct fmt::formatter<UVAT_group2>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group2& g2, FormatContext& ctx)
+  auto format(const UVAT_group2& g2, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "Texture coord 4 shift: {} ({})\n"
@@ -578,7 +578,7 @@ struct fmt::formatter<VAT>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const VAT& vat, FormatContext& ctx)
+  auto format(const VAT& vat, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}\n{}\n{}", vat.g0, vat.g1, vat.g2);
   }
@@ -599,7 +599,7 @@ struct fmt::formatter<TMatrixIndexA>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TMatrixIndexA& m, FormatContext& ctx)
+  auto format(const TMatrixIndexA& m, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "PosNormal: {}\nTex0: {}\nTex1: {}\nTex2: {}\nTex3: {}",
                      m.PosNormalMtxIdx, m.Tex0MtxIdx, m.Tex1MtxIdx, m.Tex2MtxIdx, m.Tex3MtxIdx);
@@ -619,7 +619,7 @@ struct fmt::formatter<TMatrixIndexB>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TMatrixIndexB& m, FormatContext& ctx)
+  auto format(const TMatrixIndexB& m, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx,
                      m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);

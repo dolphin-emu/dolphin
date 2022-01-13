@@ -44,7 +44,7 @@ struct fmt::formatter<TextureConversionShaderGen::UidData>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TextureConversionShaderGen::UidData& uid, FormatContext& ctx)
+  auto format(const TextureConversionShaderGen::UidData& uid, FormatContext& ctx) const
   {
     std::string dst_format;
     if (uid.dst_format == EFBCopyFormat::XFB)

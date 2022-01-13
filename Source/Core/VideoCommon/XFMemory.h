@@ -254,7 +254,7 @@ struct fmt::formatter<LitChannel>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const LitChannel& chan, FormatContext& ctx)
+  auto format(const LitChannel& chan, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "Material source: {0}\nEnable lighting: {1}\nLight mask: {2:x} ({2:08b})\n"
@@ -276,7 +276,7 @@ struct fmt::formatter<ClipDisable>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const ClipDisable& cd, FormatContext& ctx)
+  auto format(const ClipDisable& cd, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "Disable clipping detection: {}\n"
@@ -300,7 +300,7 @@ struct fmt::formatter<INVTXSPEC>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const INVTXSPEC& spec, FormatContext& ctx)
+  auto format(const INVTXSPEC& spec, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "Num colors: {}\nNum normals: {}\nNum textures: {}", spec.numcolors,
                      spec.numnormals, spec.numtextures);
@@ -324,7 +324,7 @@ struct fmt::formatter<TexMtxInfo>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexMtxInfo& i, FormatContext& ctx)
+  auto format(const TexMtxInfo& i, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "Projection: {}\nInput form: {}\nTex gen type: {}\n"
@@ -347,7 +347,7 @@ struct fmt::formatter<PostMtxInfo>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const PostMtxInfo& i, FormatContext& ctx)
+  auto format(const PostMtxInfo& i, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index,
                      i.normalize ? "Yes" : "No");

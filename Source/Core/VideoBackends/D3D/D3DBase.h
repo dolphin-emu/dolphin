@@ -57,7 +57,7 @@ struct fmt::formatter<DX11::DX11HRWrap>
 {
   constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const DX11::DX11HRWrap& hr, FormatContext& ctx)
+  auto format(const DX11::DX11HRWrap& hr, FormatContext& ctx) const
   {
     if (hr.m_hr == DXGI_ERROR_DEVICE_REMOVED && DX11::D3D::device != nullptr)
     {

@@ -62,7 +62,7 @@ public:
   }
 
   template <typename FormatContext>
-  auto format(const T& e, FormatContext& ctx)
+  auto format(const T& e, FormatContext& ctx) const
   {
     const auto value_s = static_cast<std::underlying_type_t<T>>(e);      // Possibly signed
     const auto value_u = static_cast<std::make_unsigned_t<T>>(value_s);  // Always unsigned
