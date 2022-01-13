@@ -263,24 +263,25 @@ struct fmt::formatter<TVtxDesc::Low>
   {
     static constexpr std::array<const char*, 2> present = {"Not present", "Present"};
 
-    return format_to(ctx.out(),
-                     "Position and normal matrix index: {}\n"
-                     "Texture Coord 0 matrix index: {}\n"
-                     "Texture Coord 1 matrix index: {}\n"
-                     "Texture Coord 2 matrix index: {}\n"
-                     "Texture Coord 3 matrix index: {}\n"
-                     "Texture Coord 4 matrix index: {}\n"
-                     "Texture Coord 5 matrix index: {}\n"
-                     "Texture Coord 6 matrix index: {}\n"
-                     "Texture Coord 7 matrix index: {}\n"
-                     "Position: {}\n"
-                     "Normal: {}\n"
-                     "Color 0: {}\n"
-                     "Color 1: {}",
-                     present[desc.PosMatIdx], present[desc.Tex0MatIdx], present[desc.Tex1MatIdx],
-                     present[desc.Tex2MatIdx], present[desc.Tex3MatIdx], present[desc.Tex4MatIdx],
-                     present[desc.Tex5MatIdx], present[desc.Tex6MatIdx], present[desc.Tex7MatIdx],
-                     desc.Position, desc.Normal, desc.Color0, desc.Color1);
+    return fmt::format_to(
+        ctx.out(),
+        "Position and normal matrix index: {}\n"
+        "Texture Coord 0 matrix index: {}\n"
+        "Texture Coord 1 matrix index: {}\n"
+        "Texture Coord 2 matrix index: {}\n"
+        "Texture Coord 3 matrix index: {}\n"
+        "Texture Coord 4 matrix index: {}\n"
+        "Texture Coord 5 matrix index: {}\n"
+        "Texture Coord 6 matrix index: {}\n"
+        "Texture Coord 7 matrix index: {}\n"
+        "Position: {}\n"
+        "Normal: {}\n"
+        "Color 0: {}\n"
+        "Color 1: {}",
+        present[desc.PosMatIdx], present[desc.Tex0MatIdx], present[desc.Tex1MatIdx],
+        present[desc.Tex2MatIdx], present[desc.Tex3MatIdx], present[desc.Tex4MatIdx],
+        present[desc.Tex5MatIdx], present[desc.Tex6MatIdx], present[desc.Tex7MatIdx], desc.Position,
+        desc.Normal, desc.Color0, desc.Color1);
   }
 };
 template <>
@@ -290,17 +291,17 @@ struct fmt::formatter<TVtxDesc::High>
   template <typename FormatContext>
   auto format(const TVtxDesc::High& desc, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Texture Coord 0: {}\n"
-                     "Texture Coord 1: {}\n"
-                     "Texture Coord 2: {}\n"
-                     "Texture Coord 3: {}\n"
-                     "Texture Coord 4: {}\n"
-                     "Texture Coord 5: {}\n"
-                     "Texture Coord 6: {}\n"
-                     "Texture Coord 7: {}",
-                     desc.Tex0Coord, desc.Tex1Coord, desc.Tex2Coord, desc.Tex3Coord, desc.Tex4Coord,
-                     desc.Tex5Coord, desc.Tex6Coord, desc.Tex7Coord);
+    return fmt::format_to(ctx.out(),
+                          "Texture Coord 0: {}\n"
+                          "Texture Coord 1: {}\n"
+                          "Texture Coord 2: {}\n"
+                          "Texture Coord 3: {}\n"
+                          "Texture Coord 4: {}\n"
+                          "Texture Coord 5: {}\n"
+                          "Texture Coord 6: {}\n"
+                          "Texture Coord 7: {}",
+                          desc.Tex0Coord, desc.Tex1Coord, desc.Tex2Coord, desc.Tex3Coord,
+                          desc.Tex4Coord, desc.Tex5Coord, desc.Tex6Coord, desc.Tex7Coord);
   }
 };
 template <>
@@ -310,7 +311,7 @@ struct fmt::formatter<TVtxDesc>
   template <typename FormatContext>
   auto format(const TVtxDesc& desc, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "{}\n{}", desc.low, desc.high);
+    return fmt::format_to(ctx.out(), "{}\n{}", desc.low, desc.high);
   }
 };
 
@@ -350,26 +351,26 @@ struct fmt::formatter<UVAT_group0>
     static constexpr std::array<const char*, 2> normalindex3 = {"single index per normal",
                                                                 "triple-index per nine-normal"};
 
-    return format_to(ctx.out(),
-                     "Position elements: {}\n"
-                     "Position format: {}\n"
-                     "Position shift: {} ({})\n"
-                     "Normal elements: {}\n"
-                     "Normal format: {}\n"
-                     "Color 0 elements: {}\n"
-                     "Color 0 format: {}\n"
-                     "Color 1 elements: {}\n"
-                     "Color 1 format: {}\n"
-                     "Texture coord 0 elements: {}\n"
-                     "Texture coord 0 format: {}\n"
-                     "Texture coord 0 shift: {} ({})\n"
-                     "Byte dequant: {}\n"
-                     "Normal index 3: {}",
-                     g0.PosElements, g0.PosFormat, g0.PosFrac, 1.f / (1 << g0.PosFrac),
-                     g0.NormalElements, g0.NormalFormat, g0.Color0Elements, g0.Color0Comp,
-                     g0.Color1Elements, g0.Color1Comp, g0.Tex0CoordElements, g0.Tex0CoordFormat,
-                     g0.Tex0Frac, 1.f / (1 << g0.Tex0Frac), byte_dequant[g0.ByteDequant],
-                     normalindex3[g0.NormalIndex3]);
+    return fmt::format_to(ctx.out(),
+                          "Position elements: {}\n"
+                          "Position format: {}\n"
+                          "Position shift: {} ({})\n"
+                          "Normal elements: {}\n"
+                          "Normal format: {}\n"
+                          "Color 0 elements: {}\n"
+                          "Color 0 format: {}\n"
+                          "Color 1 elements: {}\n"
+                          "Color 1 format: {}\n"
+                          "Texture coord 0 elements: {}\n"
+                          "Texture coord 0 format: {}\n"
+                          "Texture coord 0 shift: {} ({})\n"
+                          "Byte dequant: {}\n"
+                          "Normal index 3: {}",
+                          g0.PosElements, g0.PosFormat, g0.PosFrac, 1.f / (1 << g0.PosFrac),
+                          g0.NormalElements, g0.NormalFormat, g0.Color0Elements, g0.Color0Comp,
+                          g0.Color1Elements, g0.Color1Comp, g0.Tex0CoordElements,
+                          g0.Tex0CoordFormat, g0.Tex0Frac, 1.f / (1 << g0.Tex0Frac),
+                          byte_dequant[g0.ByteDequant], normalindex3[g0.NormalIndex3]);
   }
 };
 
@@ -401,24 +402,24 @@ struct fmt::formatter<UVAT_group1>
   template <typename FormatContext>
   auto format(const UVAT_group1& g1, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Texture coord 1 elements: {}\n"
-                     "Texture coord 1 format: {}\n"
-                     "Texture coord 1 shift: {} ({})\n"
-                     "Texture coord 2 elements: {}\n"
-                     "Texture coord 2 format: {}\n"
-                     "Texture coord 2 shift: {} ({})\n"
-                     "Texture coord 3 elements: {}\n"
-                     "Texture coord 3 format: {}\n"
-                     "Texture coord 3 shift: {} ({})\n"
-                     "Texture coord 4 elements: {}\n"
-                     "Texture coord 4 format: {}\n"
-                     "Enhance VCache (must always be on): {}",
-                     g1.Tex1CoordElements, g1.Tex1CoordFormat, g1.Tex1Frac,
-                     1.f / (1 << g1.Tex1Frac), g1.Tex2CoordElements, g1.Tex2CoordFormat,
-                     g1.Tex2Frac, 1.f / (1 << g1.Tex2Frac), g1.Tex3CoordElements,
-                     g1.Tex3CoordFormat, g1.Tex3Frac, 1.f / (1 << g1.Tex3Frac),
-                     g1.Tex4CoordElements, g1.Tex4CoordFormat, g1.VCacheEnhance ? "Yes" : "No");
+    return fmt::format_to(
+        ctx.out(),
+        "Texture coord 1 elements: {}\n"
+        "Texture coord 1 format: {}\n"
+        "Texture coord 1 shift: {} ({})\n"
+        "Texture coord 2 elements: {}\n"
+        "Texture coord 2 format: {}\n"
+        "Texture coord 2 shift: {} ({})\n"
+        "Texture coord 3 elements: {}\n"
+        "Texture coord 3 format: {}\n"
+        "Texture coord 3 shift: {} ({})\n"
+        "Texture coord 4 elements: {}\n"
+        "Texture coord 4 format: {}\n"
+        "Enhance VCache (must always be on): {}",
+        g1.Tex1CoordElements, g1.Tex1CoordFormat, g1.Tex1Frac, 1.f / (1 << g1.Tex1Frac),
+        g1.Tex2CoordElements, g1.Tex2CoordFormat, g1.Tex2Frac, 1.f / (1 << g1.Tex2Frac),
+        g1.Tex3CoordElements, g1.Tex3CoordFormat, g1.Tex3Frac, 1.f / (1 << g1.Tex3Frac),
+        g1.Tex4CoordElements, g1.Tex4CoordFormat, g1.VCacheEnhance ? "Yes" : "No");
   }
 };
 
@@ -447,22 +448,22 @@ struct fmt::formatter<UVAT_group2>
   template <typename FormatContext>
   auto format(const UVAT_group2& g2, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Texture coord 4 shift: {} ({})\n"
-                     "Texture coord 5 elements: {}\n"
-                     "Texture coord 5 format: {}\n"
-                     "Texture coord 5 shift: {} ({})\n"
-                     "Texture coord 6 elements: {}\n"
-                     "Texture coord 6 format: {}\n"
-                     "Texture coord 6 shift: {} ({})\n"
-                     "Texture coord 7 elements: {}\n"
-                     "Texture coord 7 format: {}\n"
-                     "Texture coord 7 shift: {} ({})",
-                     g2.Tex4Frac, 1.f / (1 << g2.Tex4Frac), g2.Tex5CoordElements,
-                     g2.Tex5CoordFormat, g2.Tex5Frac, 1.f / (1 << g2.Tex5Frac),
-                     g2.Tex6CoordElements, g2.Tex6CoordFormat, g2.Tex6Frac,
-                     1.f / (1 << g2.Tex6Frac), g2.Tex7CoordElements, g2.Tex7CoordFormat,
-                     g2.Tex7Frac, 1.f / (1 << g2.Tex7Frac));
+    return fmt::format_to(ctx.out(),
+                          "Texture coord 4 shift: {} ({})\n"
+                          "Texture coord 5 elements: {}\n"
+                          "Texture coord 5 format: {}\n"
+                          "Texture coord 5 shift: {} ({})\n"
+                          "Texture coord 6 elements: {}\n"
+                          "Texture coord 6 format: {}\n"
+                          "Texture coord 6 shift: {} ({})\n"
+                          "Texture coord 7 elements: {}\n"
+                          "Texture coord 7 format: {}\n"
+                          "Texture coord 7 shift: {} ({})",
+                          g2.Tex4Frac, 1.f / (1 << g2.Tex4Frac), g2.Tex5CoordElements,
+                          g2.Tex5CoordFormat, g2.Tex5Frac, 1.f / (1 << g2.Tex5Frac),
+                          g2.Tex6CoordElements, g2.Tex6CoordFormat, g2.Tex6Frac,
+                          1.f / (1 << g2.Tex6Frac), g2.Tex7CoordElements, g2.Tex7CoordFormat,
+                          g2.Tex7Frac, 1.f / (1 << g2.Tex7Frac));
   }
 };
 
@@ -581,7 +582,7 @@ struct fmt::formatter<VAT>
   template <typename FormatContext>
   auto format(const VAT& vat, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "{}\n{}\n{}", vat.g0, vat.g1, vat.g2);
+    return fmt::format_to(ctx.out(), "{}\n{}\n{}", vat.g0, vat.g1, vat.g2);
   }
 };
 
@@ -602,8 +603,9 @@ struct fmt::formatter<TMatrixIndexA>
   template <typename FormatContext>
   auto format(const TMatrixIndexA& m, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "PosNormal: {}\nTex0: {}\nTex1: {}\nTex2: {}\nTex3: {}",
-                     m.PosNormalMtxIdx, m.Tex0MtxIdx, m.Tex1MtxIdx, m.Tex2MtxIdx, m.Tex3MtxIdx);
+    return fmt::format_to(ctx.out(), "PosNormal: {}\nTex0: {}\nTex1: {}\nTex2: {}\nTex3: {}",
+                          m.PosNormalMtxIdx, m.Tex0MtxIdx, m.Tex1MtxIdx, m.Tex2MtxIdx,
+                          m.Tex3MtxIdx);
   }
 };
 
@@ -622,8 +624,8 @@ struct fmt::formatter<TMatrixIndexB>
   template <typename FormatContext>
   auto format(const TMatrixIndexB& m, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx,
-                     m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);
+    return fmt::format_to(ctx.out(), "Tex4: {}\nTex5: {}\nTex6: {}\nTex7: {}", m.Tex4MtxIdx,
+                          m.Tex5MtxIdx, m.Tex6MtxIdx, m.Tex7MtxIdx);
   }
 };
 

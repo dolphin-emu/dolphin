@@ -84,8 +84,9 @@ struct fmt::formatter<EFBCopyParams>
       copy_format = "XFB";
     else
       copy_format = fmt::to_string(uid.copy_format);
-    return format_to(ctx.out(), "format: {}, copy format: {}, depth: {}, yuv: {}, copy filter: {}",
-                     uid.efb_format, copy_format, uid.depth, uid.yuv, uid.copy_filter);
+    return fmt::format_to(ctx.out(),
+                          "format: {}, copy format: {}, depth: {}, yuv: {}, copy filter: {}",
+                          uid.efb_format, copy_format, uid.depth, uid.yuv, uid.copy_filter);
   }
 };
 
