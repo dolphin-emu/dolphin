@@ -387,6 +387,7 @@ std::string GameFile::GetExtension() const
 {
   std::string extension;
   SplitPath(m_file_path, nullptr, nullptr, &extension);
+  Common::ToLower(&extension);
   return extension;
 }
 
