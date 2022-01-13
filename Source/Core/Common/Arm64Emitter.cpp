@@ -690,7 +690,8 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
   case FixupBranch::Type::CBZ:
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
-               "Branch type {}: Received too large distance: {}", branch.type, distance);
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     const bool b64Bit = Is64Bit(branch.reg);
     inst = (b64Bit << 31) | (0x1A << 25) | (Not << 24) | (MaskImm19(distance) << 5) |
            DecodeReg(branch.reg);
@@ -698,7 +699,8 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
   break;
   case FixupBranch::Type::BConditional:
     ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
-               "Branch type {}: Received too large distance: {}", branch.type, distance);
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = (0x2A << 25) | (MaskImm19(distance) << 5) | branch.cond;
     break;
   case FixupBranch::Type::TBNZ:
@@ -707,19 +709,22 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
   case FixupBranch::Type::TBZ:
   {
     ASSERT_MSG(DYNA_REC, IsInRangeImm14(distance),
-               "Branch type {}: Received too large distance: {}", branch.type, distance);
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = ((branch.bit & 0x20) << 26) | (0x1B << 25) | (Not << 24) | ((branch.bit & 0x1F) << 19) |
            (MaskImm14(distance) << 5) | DecodeReg(branch.reg);
   }
   break;
   case FixupBranch::Type::B:
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance),
-               "Branch type {}: Received too large distance: {}", branch.type, distance);
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = (0x5 << 26) | MaskImm26(distance);
     break;
   case FixupBranch::Type::BL:
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance),
-               "Branch type {}: Received too large distance: {}", branch.type, distance);
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = (0x25 << 26) | MaskImm26(distance);
     break;
   }

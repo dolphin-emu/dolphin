@@ -381,7 +381,7 @@ s32 FSDevice::Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
     return ConvertResult(ResultCode::Invalid);
 
   const Result<u32> result = m_ios.GetFS()->SeekFile(handle.fs_fd, offset, mode);
-  LogResult(result, "Seek({}, 0x{:08x}, {})", handle.name.data(), offset, mode);
+  LogResult(result, "Seek({}, 0x{:08x}, {})", handle.name.data(), offset, static_cast<int>(mode));
   if (!result)
     return ConvertResult(result.Error());
   return *result;

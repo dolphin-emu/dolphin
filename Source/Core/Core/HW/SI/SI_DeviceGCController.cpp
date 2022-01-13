@@ -108,8 +108,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   // DEFAULT
   default:
   {
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", command);
-    PanicAlertFmt("SI: Unknown command ({:#x})", command);
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", static_cast<u8>(command));
+    PanicAlertFmt("SI: Unknown command ({:#x})", static_cast<u8>(command));
   }
   break;
   }

@@ -48,7 +48,7 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
-  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:0x{:#010x} (pc={:#06x})", type, mailbox,
+  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:0x{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
                 PeekMailbox(mailbox), pc);
 #endif
 
@@ -75,7 +75,7 @@ void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
-  DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, mailbox,
+  DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
                 PeekMailbox(mailbox), pc);
 #endif
 }

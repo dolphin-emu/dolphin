@@ -582,7 +582,8 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
       break;
     default:
       // This really shouldn't happen as the M+ deactivates on an invalid mode write.
-      ERROR_LOG_FMT(WIIMOTE, "M+ unknown passthrough-mode {}", GetPassthroughMode());
+      ERROR_LOG_FMT(WIIMOTE, "M+ unknown passthrough-mode {}",
+                    static_cast<int>(GetPassthroughMode()));
       mplus_data.is_mp_data = true;
       break;
     }
