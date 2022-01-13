@@ -25,10 +25,20 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
-//#include "UICommon/AutoUpdate.h"
+#include "UICommon/AutoUpdate.h"
 #ifdef USE_DISCORD_PRESENCE
 #include "UICommon/DiscordPresence.h"
 #endif
+
+//constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
+//constexpr int AUTO_UPDATE_STABLE_INDEX = 1;
+//constexpr int AUTO_UPDATE_BETA_INDEX = 2;
+//constexpr int AUTO_UPDATE_DEV_INDEX = 3;
+//
+//constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
+//constexpr const char* AUTO_UPDATE_STABLE_STRING = "stable";
+//constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
+//constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 
 constexpr int FALLBACK_REGION_NTSCJ_INDEX = 0;
 constexpr int FALLBACK_REGION_NTSCU_INDEX = 1;
@@ -54,6 +64,10 @@ void GeneralPane::CreateLayout()
   m_main_layout = new QVBoxLayout;
   // Create layout here
   CreateBasic();
+
+  //if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  //  CreateAutoUpdate();
+
 
   CreateFallbackRegion();
 
@@ -86,6 +100,14 @@ void GeneralPane::ConnectLayout()
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
+
+  //if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  //{
+  //  connect(m_combobox_update_track, qOverload<int>(&QComboBox::currentIndexChanged), this,
+  //          &GeneralPane::OnSaveConfig);
+  //  connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
+  //          &GeneralPane::LoadConfig);
+  //}
 
   // Advanced
   connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged),
@@ -146,6 +168,27 @@ void GeneralPane::CreateBasic()
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
 }
 
+/*
+void GeneralPane::CreateAutoUpdate()
+{
+  auto* auto_update_group = new QGroupBox(tr("Auto Update Settings"));
+  auto* layout = new QFormLayout;
+  auto_update_group->setLayout(layout);
+  m_main_layout->addWidget(auto_update_group);
+
+  layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
+  m_combobox_update_track = new QComboBox(this);
+
+  layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
+
+  for (const QString& option : {tr("Don't Update"), tr("Stable (once a year)"),
+                                tr("Beta (once a month)"), tr("Dev (multiple times a day)")})
+    m_combobox_update_track->addItem(option);
+}
+*/
+
 void GeneralPane::CreateFallbackRegion()
 {
   auto* fallback_region_group = new QGroupBox(tr("Fallback Region"));
@@ -192,6 +235,20 @@ void GeneralPane::LoadConfig()
 {
   const QSignalBlocker blocker(this);
 
+  //if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  //{
+  //  const auto track = Settings::Instance().GetAutoUpdateTrack().toStdString();
+
+  //  if (track == AUTO_UPDATE_DISABLE_STRING)
+  //    m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_DISABLE_INDEX);
+  //  else if (track == AUTO_UPDATE_STABLE_STRING)
+  //    m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_STABLE_INDEX);
+  //  else if (track == AUTO_UPDATE_BETA_STRING)
+  //    m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
+  //  else
+  //    m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
+  //}
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_checkbox_enable_analytics->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
@@ -220,6 +277,29 @@ void GeneralPane::LoadConfig()
     m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
+//static QString UpdateTrackFromIndex(int index)
+//{
+//  QString value;
+//
+//  switch (index)
+//  {
+//  case AUTO_UPDATE_DISABLE_INDEX:
+//    value = QString::fromStdString(AUTO_UPDATE_DISABLE_STRING);
+//    break;
+//  case AUTO_UPDATE_STABLE_INDEX:
+//    value = QString::fromStdString(AUTO_UPDATE_STABLE_STRING);
+//    break;
+//  case AUTO_UPDATE_BETA_INDEX:
+//    value = QString::fromStdString(AUTO_UPDATE_BETA_STRING);
+//    break;
+//  case AUTO_UPDATE_DEV_INDEX:
+//    value = QString::fromStdString(AUTO_UPDATE_DEV_STRING);
+//    break;
+//  }
+//
+//  return value;
+//}
+
 static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
 {
   DiscIO::Region value = DiscIO::Region::Unknown;
@@ -247,7 +327,12 @@ static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
 
 void GeneralPane::OnSaveConfig()
 {
-  Config::ConfigChangeCallbackGuard config_guard;
+  //Config::ConfigChangeCallbackGuard config_guard;
+  //if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  //{
+  //  Settings::Instance().SetAutoUpdateTrack(
+  //      UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
+  //}
 
   auto& settings = SConfig::GetInstance();
 
