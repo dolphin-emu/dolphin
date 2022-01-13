@@ -48,6 +48,23 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_USE_GAME_COVERS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
           "UseGameCovers", true),
 
+  MAIN_DEBUG_JIT_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitOff", false),
+  MAIN_DEBUG_JIT_LOAD_STORE_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitLoadStoreOff",
+          false),
+  MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
+          "JitLoadStoreFloatingOff", false),
+  MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
+          "JitLoadStorePairedOff", false),
+  MAIN_DEBUG_JIT_FLOATING_POINT_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
+          "JitFloatingPointOff", false),
+  MAIN_DEBUG_JIT_INTEGER_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitIntegerOff", false),
+  MAIN_DEBUG_JIT_PAIRED_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitPairedOff", false),
+  MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
+          "JitSystemRegistersOff", false),
+  MAIN_DEBUG_JIT_BRANCH_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitBranchOff", false),
+  MAIN_DEBUG_JIT_REGISTER_CACHE_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
+          "JitRegisterCacheOff", false),
+
   MAIN_JOYSTICK_REL_CENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "JoystickRelCenter", true),
   MAIN_PHONE_RUMBLE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
@@ -202,25 +219,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_HACK_FAST_TEXTURE_SAMPLING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
           "FastTextureSampling", true),
 
-  LOGGER_WRITE_TO_FILE(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "WriteToFile", false),
-
-  // These settings are not yet in the new config system in C++ - please move them once they are
-
-  MAIN_JIT_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitOff", false),
-  MAIN_JIT_LOAD_STORE_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitLoadStoreOff", false),
-  MAIN_JIT_LOAD_STORE_FLOATING_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
-          "JitLoadStoreFloatingOff", false),
-  MAIN_JIT_LOAD_STORE_PAIRED_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
-          "JitLoadStorePairedOff", false),
-  MAIN_JIT_FLOATING_POINT_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitFloatingPointOff",
-          false),
-  MAIN_JIT_INTEGER_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitIntegerOff", false),
-  MAIN_JIT_PAIRED_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitPairedOff", false),
-  MAIN_JIT_SYSTEM_REGISTERS_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG,
-          "JitSystemRegistersOff", false),
-  MAIN_JIT_BRANCH_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitBranchOff", false),
-  MAIN_JIT_REGISTER_CACHE_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitRegisterCacheOff",
-          false);
+  LOGGER_WRITE_TO_FILE(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "WriteToFile", false);
 
   private static final BooleanSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new BooleanSetting[]{
           MAIN_DSP_HLE,
