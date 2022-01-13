@@ -73,7 +73,7 @@ void SetAbortOnPanicAlert(bool should_abort);
 template <typename... Args>
 std::string FmtFormatT(const char* string, Args&&... args)
 {
-  return fmt::format(Common::GetStringT(string), std::forward<Args>(args)...);
+  return fmt::format(fmt::runtime(Common::GetStringT(string)), std::forward<Args>(args)...);
 }
 }  // namespace Common
 
