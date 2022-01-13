@@ -1688,7 +1688,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     };
 
     static constexpr EnumMap<const char*, TevCompareMode::RGB8> tev_rgb_comparison_eq{
-        "((tevin_a.r == tevin_b.r) ? tevin_c.rgb : int3(0))",  // TevCompareMode::R8
+        "((tevin_a.r == tevin_b.r) ? tevin_c.rgb : int3(0,0,0))",  // TevCompareMode::R8
         "((idot(tevin_a.rgb,comp16) == idot(tevin_b.rgb,comp16)) ? tevin_c.rgb : int3(0,0,0))",  // GR16
         "((idot(tevin_a.rgb,comp24) == idot(tevin_b.rgb,comp24)) ? tevin_c.rgb : int3(0,0,0))",  // BGR24
         "((int3(1,1,1) - sign(abs(tevin_a.rgb - tevin_b.rgb))) * tevin_c.rgb)"  // RGB8
