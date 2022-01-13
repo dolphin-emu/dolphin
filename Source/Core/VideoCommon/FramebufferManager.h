@@ -35,7 +35,7 @@ struct fmt::formatter<EFBReinterpretType> : EnumFormatter<EFBReinterpretType::RG
 {
   static constexpr array_type names = {"RGB8 to RGB565", "RGB8 to RGBA6",  "RGBA6 to RGB8",
                                        "RGB6 to RGB565", "RGB565 to RGB8", "RGB565 to RGBA6"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)

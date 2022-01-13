@@ -122,7 +122,7 @@ enum class TevScale : u32
 template <>
 struct fmt::formatter<TevScale> : EnumFormatter<TevScale::Divide2>
 {
-  formatter() : EnumFormatter({"1", "2", "4", "0.5"}) {}
+  constexpr formatter() : EnumFormatter({"1", "2", "4", "0.5"}) {}
 };
 
 // TEV combiner operator
@@ -134,7 +134,7 @@ enum class TevOp : u32
 template <>
 struct fmt::formatter<TevOp> : EnumFormatter<TevOp::Sub>
 {
-  formatter() : EnumFormatter({"Add", "Subtract"}) {}
+  constexpr formatter() : EnumFormatter({"Add", "Subtract"}) {}
 };
 
 enum class TevCompareMode : u32
@@ -148,7 +148,7 @@ enum class TevCompareMode : u32
 template <>
 struct fmt::formatter<TevCompareMode> : EnumFormatter<TevCompareMode::RGB8>
 {
-  formatter() : EnumFormatter({"R8", "GR16", "BGR24", "RGB8 / A8"}) {}
+  constexpr formatter() : EnumFormatter({"R8", "GR16", "BGR24", "RGB8 / A8"}) {}
 };
 
 enum class TevComparison : u32
@@ -159,7 +159,7 @@ enum class TevComparison : u32
 template <>
 struct fmt::formatter<TevComparison> : EnumFormatter<TevComparison::EQ>
 {
-  formatter() : EnumFormatter({"Greater than", "Equal to"}) {}
+  constexpr formatter() : EnumFormatter({"Greater than", "Equal to"}) {}
 };
 
 // TEV color combiner input
@@ -189,7 +189,7 @@ struct fmt::formatter<TevColorArg> : EnumFormatter<TevColorArg::Zero>
       "prev.rgb", "prev.aaa", "c0.rgb",  "c0.aaa",  "c1.rgb", "c1.aaa", "c2.rgb",    "c2.aaa",
       "tex.rgb",  "tex.aaa",  "ras.rgb", "ras.aaa", "ONE",    "HALF",   "konst.rgb", "ZERO",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 // TEV alpha combiner input
@@ -210,7 +210,7 @@ struct fmt::formatter<TevAlphaArg> : EnumFormatter<TevAlphaArg::Zero>
   static constexpr array_type names = {
       "prev", "c0", "c1", "c2", "tex", "ras", "konst", "ZERO",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 // TEV output registers
@@ -224,7 +224,7 @@ enum class TevOutput : u32
 template <>
 struct fmt::formatter<TevOutput> : EnumFormatter<TevOutput::Color2>
 {
-  formatter() : EnumFormatter({"prev", "c0", "c1", "c2"}) {}
+  constexpr formatter() : EnumFormatter({"prev", "c0", "c1", "c2"}) {}
 };
 
 // Z-texture formats
@@ -237,7 +237,7 @@ enum class ZTexFormat : u32
 template <>
 struct fmt::formatter<ZTexFormat> : EnumFormatter<ZTexFormat::U24>
 {
-  formatter() : EnumFormatter({"u8", "u16", "u24"}) {}
+  constexpr formatter() : EnumFormatter({"u8", "u16", "u24"}) {}
 };
 
 // Z texture operator
@@ -250,7 +250,7 @@ enum class ZTexOp : u32
 template <>
 struct fmt::formatter<ZTexOp> : EnumFormatter<ZTexOp::Replace>
 {
-  formatter() : EnumFormatter({"Disabled", "Add", "Replace"}) {}
+  constexpr formatter() : EnumFormatter({"Disabled", "Add", "Replace"}) {}
 };
 
 // TEV bias value
@@ -264,7 +264,7 @@ enum class TevBias : u32
 template <>
 struct fmt::formatter<TevBias> : EnumFormatter<TevBias::Compare>
 {
-  formatter() : EnumFormatter({"0", "+0.5", "-0.5", "compare"}) {}
+  constexpr formatter() : EnumFormatter({"0", "+0.5", "-0.5", "compare"}) {}
 };
 
 // Indirect texture format
@@ -278,7 +278,7 @@ enum class IndTexFormat : u32
 template <>
 struct fmt::formatter<IndTexFormat> : EnumFormatter<IndTexFormat::ITF_3>
 {
-  formatter() : EnumFormatter({"ITF_8", "ITF_5", "ITF_4", "ITF_3"}) {}
+  constexpr formatter() : EnumFormatter({"ITF_8", "ITF_5", "ITF_4", "ITF_3"}) {}
 };
 
 // Indirect texture bias
@@ -296,7 +296,7 @@ enum class IndTexBias : u32
 template <>
 struct fmt::formatter<IndTexBias> : EnumFormatter<IndTexBias::STU>
 {
-  formatter() : EnumFormatter({"None", "S", "T", "ST", "U", "SU", "TU", "STU"}) {}
+  constexpr formatter() : EnumFormatter({"None", "S", "T", "ST", "U", "SU", "TU", "STU"}) {}
 };
 
 enum class IndMtxIndex : u32
@@ -309,7 +309,7 @@ enum class IndMtxIndex : u32
 template <>
 struct fmt::formatter<IndMtxIndex> : EnumFormatter<IndMtxIndex::Matrix2>
 {
-  formatter() : EnumFormatter({"Off", "Matrix 0", "Matrix 1", "Matrix 2"}) {}
+  constexpr formatter() : EnumFormatter({"Off", "Matrix 0", "Matrix 1", "Matrix 2"}) {}
 };
 
 enum class IndMtxId : u32
@@ -321,7 +321,7 @@ enum class IndMtxId : u32
 template <>
 struct fmt::formatter<IndMtxId> : EnumFormatter<IndMtxId::T>
 {
-  formatter() : EnumFormatter({"Indirect", "S", "T"}) {}
+  constexpr formatter() : EnumFormatter({"Indirect", "S", "T"}) {}
 };
 
 // Indirect texture bump alpha
@@ -335,7 +335,7 @@ enum class IndTexBumpAlpha : u32
 template <>
 struct fmt::formatter<IndTexBumpAlpha> : EnumFormatter<IndTexBumpAlpha::U>
 {
-  formatter() : EnumFormatter({"Off", "S", "T", "U"}) {}
+  constexpr formatter() : EnumFormatter({"Off", "S", "T", "U"}) {}
 };
 
 // Indirect texture wrap value
@@ -352,7 +352,7 @@ enum class IndTexWrap : u32
 template <>
 struct fmt::formatter<IndTexWrap> : EnumFormatter<IndTexWrap::ITW_0>
 {
-  formatter() : EnumFormatter({"Off", "256", "128", "64", "32", "16", "0"}) {}
+  constexpr formatter() : EnumFormatter({"Off", "256", "128", "64", "32", "16", "0"}) {}
 };
 
 union IND_MTXA
@@ -771,7 +771,7 @@ struct fmt::formatter<RasColorChan> : EnumFormatter<RasColorChan::Zero>
       "Color chan 0", "Color chan 1", nullptr,           nullptr,
       nullptr,        "Alpha bump",   "Norm alpha bump", "Zero",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union TwoTevStageOrders
@@ -880,7 +880,7 @@ enum class WrapMode : u32
 template <>
 struct fmt::formatter<WrapMode> : EnumFormatter<WrapMode::Mirror>
 {
-  formatter() : EnumFormatter({"Clamp", "Repeat", "Mirror"}) {}
+  constexpr formatter() : EnumFormatter({"Clamp", "Repeat", "Mirror"}) {}
 };
 
 enum class MipMode : u32
@@ -892,7 +892,7 @@ enum class MipMode : u32
 template <>
 struct fmt::formatter<MipMode> : EnumFormatter<MipMode::Linear>
 {
-  formatter() : EnumFormatter({"None", "Mip point", "Mip linear"}) {}
+  constexpr formatter() : EnumFormatter({"None", "Mip point", "Mip linear"}) {}
 };
 
 enum class FilterMode : u32
@@ -903,7 +903,7 @@ enum class FilterMode : u32
 template <>
 struct fmt::formatter<FilterMode> : EnumFormatter<FilterMode::Linear>
 {
-  formatter() : EnumFormatter({"Near", "Linear"}) {}
+  constexpr formatter() : EnumFormatter({"Near", "Linear"}) {}
 };
 
 enum class LODType : u32
@@ -914,7 +914,7 @@ enum class LODType : u32
 template <>
 struct fmt::formatter<LODType> : EnumFormatter<LODType::Diagonal>
 {
-  formatter() : EnumFormatter({"Edge LOD", "Diagonal LOD"}) {}
+  constexpr formatter() : EnumFormatter({"Edge LOD", "Diagonal LOD"}) {}
 };
 
 enum class MaxAniso
@@ -926,7 +926,7 @@ enum class MaxAniso
 template <>
 struct fmt::formatter<MaxAniso> : EnumFormatter<MaxAniso::Four>
 {
-  formatter() : EnumFormatter({"1", "2", "4"}) {}
+  constexpr formatter() : EnumFormatter({"1", "2", "4"}) {}
 };
 
 union TexMode0
@@ -1129,7 +1129,7 @@ struct fmt::formatter<CullMode> : EnumFormatter<CullMode::All>
       "Front-facing primitives only",
       "All primitives",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union GenMode
@@ -1180,7 +1180,7 @@ enum class AspectRatioAdjustment
 template <>
 struct fmt::formatter<AspectRatioAdjustment> : EnumFormatter<AspectRatioAdjustment::Adjust>
 {
-  formatter() : EnumFormatter({"Don't adjust", "Adjust"}) {}
+  constexpr formatter() : EnumFormatter({"Don't adjust", "Adjust"}) {}
 };
 
 union LPSize
@@ -1247,7 +1247,7 @@ struct fmt::formatter<SrcBlendFactor> : EnumFormatter<SrcBlendFactor::InvDstAlph
 {
   static constexpr array_type names = {"0",         "1",           "dst_color", "1-dst_color",
                                        "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class DstBlendFactor : u32
@@ -1266,7 +1266,7 @@ struct fmt::formatter<DstBlendFactor> : EnumFormatter<DstBlendFactor::InvDstAlph
 {
   static constexpr array_type names = {"0",         "1",           "src_color", "1-src_color",
                                        "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class LogicOp : u32
@@ -1309,7 +1309,7 @@ struct fmt::formatter<LogicOp> : EnumFormatter<LogicOp::Set>
       "Nand (~(src & dst))",
       "Set (1)",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union BlendMode
@@ -1381,7 +1381,7 @@ enum class FogProjection : u32
 template <>
 struct fmt::formatter<FogProjection> : EnumFormatter<FogProjection::Orthographic>
 {
-  formatter() : EnumFormatter({"Perspective", "Orthographic"}) {}
+  constexpr formatter() : EnumFormatter({"Perspective", "Orthographic"}) {}
 };
 
 enum class FogType : u32
@@ -1406,7 +1406,7 @@ struct fmt::formatter<FogType> : EnumFormatter<FogType::BackwardsExpSq>
       "Backwards exponential fog",
       "Backwards exponenential-sequared fog",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union FogParam3
@@ -1529,7 +1529,7 @@ struct fmt::formatter<CompareMode> : EnumFormatter<CompareMode::Always>
 {
   static constexpr array_type names = {"Never",   "Less",   "Equal",  "LEqual",
                                        "Greater", "NEqual", "GEqual", "Always"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union ZMode
@@ -1601,7 +1601,7 @@ enum class FieldMaskState : u32
 template <>
 struct fmt::formatter<FieldMaskState> : EnumFormatter<FieldMaskState::Write>
 {
-  formatter() : EnumFormatter({"Skipped", "Written"}) {}
+  constexpr formatter() : EnumFormatter({"Skipped", "Written"}) {}
 };
 
 union FieldMask
@@ -1639,7 +1639,7 @@ struct fmt::formatter<PixelFormat> : EnumFormatter<PixelFormat::YUV420>
 {
   static constexpr array_type names = {"RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24",
                                        "Y8",       "U8",        "V8",         "YUV420"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class DepthFormat : u32
@@ -1662,7 +1662,7 @@ struct fmt::formatter<DepthFormat> : EnumFormatter<DepthFormat::ZINV_FAR>
       "linear",     "compressed (near)",     "compressed (mid)",     "compressed (far)",
       "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union PEControl
@@ -1733,7 +1733,7 @@ enum class TevRegType : u32
 template <>
 struct fmt::formatter<TevRegType> : EnumFormatter<TevRegType::Constant>
 {
-  formatter() : EnumFormatter({"Color", "Constant"}) {}
+  constexpr formatter() : EnumFormatter({"Color", "Constant"}) {}
 };
 
 struct TevReg
@@ -1860,7 +1860,7 @@ struct fmt::formatter<KonstSel> : EnumFormatter<KonstSel::K3_A>
       "Konst 2 Alpha",
       "Konst 3 Alpha",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union TevKSel
@@ -1900,7 +1900,7 @@ enum class AlphaTestOp : u32
 template <>
 struct fmt::formatter<AlphaTestOp> : EnumFormatter<AlphaTestOp::Xnor>
 {
-  formatter() : EnumFormatter({"And", "Or", "Xor", "Xnor"}) {}
+  constexpr formatter() : EnumFormatter({"And", "Or", "Xor", "Xnor"}) {}
 };
 
 enum class AlphaTestResult
@@ -1988,7 +1988,7 @@ struct fmt::formatter<FrameToField> : EnumFormatter<FrameToField::InterlacedOdd>
 {
   static constexpr array_type names = {"Progressive", nullptr, "Interlaced (even lines)",
                                        "Interlaced (odd lines)"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union UPE_Copy

@@ -84,7 +84,7 @@ struct fmt::formatter<CPArray> : EnumFormatter<CPArray::XF_D>
                                        "Tex Coord 0", "Tex Coord 1", "Tex Coord 2", "Tex Coord 3",
                                        "Tex Coord 4", "Tex Coord 5", "Tex Coord 6", "Tex Coord 7",
                                        "XF A",        "XF B",        "XF C",        "XF D"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 // Intended for offsetting from Color0/TexCoord0
 constexpr CPArray operator+(CPArray array, u8 offset)
@@ -107,7 +107,7 @@ enum class VertexComponentFormat
 template <>
 struct fmt::formatter<VertexComponentFormat> : EnumFormatter<VertexComponentFormat::Index16>
 {
-  formatter() : EnumFormatter({"Not present", "Direct", "8-bit index", "16-bit index"}) {}
+  constexpr formatter() : EnumFormatter({"Not present", "Direct", "8-bit index", "16-bit index"}) {}
 };
 
 constexpr bool IsIndexed(VertexComponentFormat format)
@@ -126,7 +126,8 @@ enum class ComponentFormat
 template <>
 struct fmt::formatter<ComponentFormat> : EnumFormatter<ComponentFormat::Float>
 {
-  formatter() : EnumFormatter({"Unsigned Byte", "Byte", "Unsigned Short", "Short", "Float"}) {}
+  static constexpr array_type names = {"Unsigned Byte", "Byte", "Unsigned Short", "Short", "Float"};
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 constexpr u32 GetElementSize(ComponentFormat format)
@@ -155,7 +156,7 @@ enum class CoordComponentCount
 template <>
 struct fmt::formatter<CoordComponentCount> : EnumFormatter<CoordComponentCount::XYZ>
 {
-  formatter() : EnumFormatter({"2 (x, y)", "3 (x, y, z)"}) {}
+  constexpr formatter() : EnumFormatter({"2 (x, y)", "3 (x, y, z)"}) {}
 };
 
 enum class NormalComponentCount
@@ -166,7 +167,7 @@ enum class NormalComponentCount
 template <>
 struct fmt::formatter<NormalComponentCount> : EnumFormatter<NormalComponentCount::NBT>
 {
-  formatter() : EnumFormatter({"1 (n)", "3 (n, b, t)"}) {}
+  constexpr formatter() : EnumFormatter({"1 (n)", "3 (n, b, t)"}) {}
 };
 
 enum class ColorComponentCount
@@ -177,7 +178,7 @@ enum class ColorComponentCount
 template <>
 struct fmt::formatter<ColorComponentCount> : EnumFormatter<ColorComponentCount::RGBA>
 {
-  formatter() : EnumFormatter({"3 (r, g, b)", "4 (r, g, b, a)"}) {}
+  constexpr formatter() : EnumFormatter({"3 (r, g, b)", "4 (r, g, b, a)"}) {}
 };
 
 enum class ColorFormat
@@ -196,7 +197,7 @@ struct fmt::formatter<ColorFormat> : EnumFormatter<ColorFormat::RGBA8888>
       "RGB 16 bits 565",   "RGB 24 bits 888",   "RGB 32 bits 888x",
       "RGBA 16 bits 4444", "RGBA 24 bits 6666", "RGBA 32 bits 8888",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class TexComponentCount
@@ -207,7 +208,7 @@ enum class TexComponentCount
 template <>
 struct fmt::formatter<TexComponentCount> : EnumFormatter<TexComponentCount::ST>
 {
-  formatter() : EnumFormatter({"1 (s)", "2 (s, t)"}) {}
+  constexpr formatter() : EnumFormatter({"1 (s)", "2 (s, t)"}) {}
 };
 
 struct TVtxDesc

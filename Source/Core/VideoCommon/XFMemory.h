@@ -26,7 +26,7 @@ enum class TexSize : u32
 template <>
 struct fmt::formatter<TexSize> : EnumFormatter<TexSize::STQ>
 {
-  formatter() : EnumFormatter({"ST (2x4 matrix)", "STQ (3x4 matrix)"}) {}
+  constexpr formatter() : EnumFormatter({"ST (2x4 matrix)", "STQ (3x4 matrix)"}) {}
 };
 
 // Input form
@@ -38,7 +38,7 @@ enum class TexInputForm : u32
 template <>
 struct fmt::formatter<TexInputForm> : EnumFormatter<TexInputForm::ABC1>
 {
-  formatter() : EnumFormatter({"AB11", "ABC1"}) {}
+  constexpr formatter() : EnumFormatter({"AB11", "ABC1"}) {}
 };
 
 enum class NormalCount : u32
@@ -50,7 +50,7 @@ enum class NormalCount : u32
 template <>
 struct fmt::formatter<NormalCount> : EnumFormatter<NormalCount::NormalsBinormals>
 {
-  formatter() : EnumFormatter({"None", "Normals only", "Normals and binormals"}) {}
+  constexpr formatter() : EnumFormatter({"None", "Normals only", "Normals and binormals"}) {}
 };
 
 // Texture generation type
@@ -70,7 +70,7 @@ struct fmt::formatter<TexGenType> : EnumFormatter<TexGenType::Color1>
       "Color channel 0",
       "Color channel 1",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 // Source row
@@ -108,7 +108,7 @@ struct fmt::formatter<SourceRow> : EnumFormatter<SourceRow::Tex7>
       "Tex 6",
       "Tex 7",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class MatSource : u32
@@ -119,7 +119,7 @@ enum class MatSource : u32
 template <>
 struct fmt::formatter<MatSource> : EnumFormatter<MatSource::Vertex>
 {
-  formatter() : EnumFormatter({"Material color register", "Vertex color"}) {}
+  constexpr formatter() : EnumFormatter({"Material color register", "Vertex color"}) {}
 };
 
 enum class AmbSource : u32
@@ -130,7 +130,7 @@ enum class AmbSource : u32
 template <>
 struct fmt::formatter<AmbSource> : EnumFormatter<AmbSource::Vertex>
 {
-  formatter() : EnumFormatter({"Ambient color register", "Vertex color"}) {}
+  constexpr formatter() : EnumFormatter({"Ambient color register", "Vertex color"}) {}
 };
 
 // Light diffuse attenuation function
@@ -143,7 +143,7 @@ enum class DiffuseFunc : u32
 template <>
 struct fmt::formatter<DiffuseFunc> : EnumFormatter<DiffuseFunc::Clamp>
 {
-  formatter() : EnumFormatter({"None", "Sign", "Clamp"}) {}
+  constexpr formatter() : EnumFormatter({"None", "Sign", "Clamp"}) {}
 };
 
 // Light attenuation function
@@ -163,7 +163,7 @@ struct fmt::formatter<AttenuationFunc> : EnumFormatter<AttenuationFunc::Spot>
       "Directional light attenuation",
       "Spot light attenuation",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 // Projection type
@@ -175,7 +175,7 @@ enum class ProjectionType : u32
 template <>
 struct fmt::formatter<ProjectionType> : EnumFormatter<ProjectionType::Orthographic>
 {
-  formatter() : EnumFormatter({"Perspective", "Orthographic"}) {}
+  constexpr formatter() : EnumFormatter({"Perspective", "Orthographic"}) {}
 };
 
 // Registers and register ranges

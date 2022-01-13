@@ -23,7 +23,7 @@
  * template <>
  * struct fmt::formatter<Foo> : EnumFormatter<Foo::C>
  * {
- *   formatter() : EnumFormatter({"A", "B", "C"}) {}
+ *   constexpr formatter() : EnumFormatter({"A", "B", "C"}) {}
  * };
  *
  * enum class Bar
@@ -39,7 +39,7 @@
  *   // using std::array here fails due to nullptr not being const char*, at least in MSVC
  *   // (but only when a field is used; directly in the constructor is OK)
  *   static constexpr array_type names = {"D", "E", nullptr, "F"};
- *   formatter() : EnumFormatter(names) {}
+ *   constexpr formatter() : EnumFormatter(names) {}
  * };
  */
 template <auto last_member, typename = decltype(last_member)>

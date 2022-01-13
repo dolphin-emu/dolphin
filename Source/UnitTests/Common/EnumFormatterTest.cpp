@@ -16,7 +16,7 @@ enum class Enum1 : u32
 template <>
 struct fmt::formatter<Enum1> : EnumFormatter<Enum1::C>
 {
-  formatter() : EnumFormatter({"A", "B", "C"}) {}
+  constexpr formatter() : EnumFormatter({"A", "B", "C"}) {}
 };
 
 enum class Enum2 : s32
@@ -30,7 +30,7 @@ template <>
 struct fmt::formatter<Enum2> : EnumFormatter<Enum2::F>
 {
   static constexpr array_type names = {"D", "E", nullptr, "F"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 TEST(EnumUtil, Enum1)
