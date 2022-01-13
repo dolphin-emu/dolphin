@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -1819,7 +1820,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     if (has_no_arguments)
       out.Write("{}", tev_alpha_funcs_table[mode]);
     else
-      out.Write(tev_alpha_funcs_table[mode], ref);
+      out.Write(fmt::runtime(tev_alpha_funcs_table[mode]), ref);
   };
 
   out.SetConstantsUsed(C_ALPHA, C_ALPHA);

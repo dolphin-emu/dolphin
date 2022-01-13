@@ -594,7 +594,7 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
     for (u32 i = 0; i < xf_mem_transfer_size; i++)
     {
       const auto mem_desc = GetXFMemDescription(xf_mem_base + i, Common::swap32(data));
-      fmt::format_to(std::back_inserter(desc), i == 0 ? "{}" : "\n{}", mem_desc);
+      fmt::format_to(std::back_inserter(desc), "{}{}", i != 0 ? "\n" : "", mem_desc);
       data += 4;
     }
 

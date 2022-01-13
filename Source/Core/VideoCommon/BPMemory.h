@@ -565,9 +565,9 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
       if (has_bias)
       {
         if (has_ac || has_bc || has_d)
-          out = fmt::format_to(out, cc.bias == TevBias::AddHalf ? " + .5" : " - .5");
+          out = fmt::format_to(out, "{}", cc.bias == TevBias::AddHalf ? " + .5" : " - .5");
         else
-          out = fmt::format_to(out, cc.bias == TevBias::AddHalf ? ".5" : "-.5");
+          out = fmt::format_to(out, "{}", cc.bias == TevBias::AddHalf ? ".5" : "-.5");
       }
       else
       {
@@ -659,9 +659,9 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
       if (has_bias)
       {
         if (has_ac || has_bc || has_d)
-          out = fmt::format_to(out, ac.bias == TevBias::AddHalf ? " + .5" : " - .5");
+          out = fmt::format_to(out, "{}", ac.bias == TevBias::AddHalf ? " + .5" : " - .5");
         else
-          out = fmt::format_to(out, ac.bias == TevBias::AddHalf ? ".5" : "-.5");
+          out = fmt::format_to(out, "{}", ac.bias == TevBias::AddHalf ? ".5" : "-.5");
       }
       else
       {
