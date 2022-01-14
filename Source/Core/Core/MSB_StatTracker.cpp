@@ -38,10 +38,11 @@ void StatTracker::lookForTriggerEvents(){
                 //Log beginning of pitch
                 if (Memory::Read_U8(aAB_PitchThrown) == 1){
                     //Collect port info for players
-                    if (m_game_info.team0_port == 0 && m_game_info.team1_port == 0){
+                    if (m_game_info.team0_port == 0xFF && m_game_info.team1_port == 0xFF){
                         u8 fielder_port = Memory::Read_U8(aAB_FieldingPort);
                         u8 batter_port = Memory::Read_U8(aAB_BattingPort);
                         
+                        //Works off of the assumption that team0 is ALWAYS port1. Will not work in CPU v CPU games
                         if (fielder_port == 1) { m_game_info.team0_port = fielder_port; }
                         else if (batter_port == 1) { m_game_info.team0_port = batter_port; }
 
@@ -75,6 +76,11 @@ void StatTracker::lookForTriggerEvents(){
                         }
 
                         std::cout << "Away Player=" << away_player_name << "(" << std::to_string(m_game_info.away_port) << "), Home Player=" << home_player_name << "(" << std::to_string(m_game_info.home_port) << ")" << std::endl;;
+                    }
+
+                    if ((m_game_info.team0_captain_roster_loc == 0xFF) || (m_game_info.team1_captain_roster_loc == 0xFF)) {
+                        m_game_info.team0_captain_roster_loc = Memory::Read_U8(aTeam0_Captain_Roster_Loc);
+                        m_game_info.team1_captain_roster_loc = Memory::Read_U8(aTeam1_Captain_Roster_Loc);
                     }
 
 
@@ -115,6 +121,11 @@ void StatTracker::lookForTriggerEvents(){
                 if (std::get<0>(fielder_result) != 0xFF) { 
                     m_ab_state = AB_STATE::PLAY_OVER; 
                 };
+
+                //Break out if play ends without fielding the ball (HR)
+                if (Memory::Read_U8(aAB_PitchThrown) == 0) {
+                    m_ab_state = AB_STATE::PLAY_OVER;
+                }
                 break;
                 }
             case (AB_STATE::PLAY_OVER):
@@ -129,6 +140,9 @@ void StatTracker::lookForTriggerEvents(){
                 //Final Stats - Collected 1 frame after aAB_PitchThrown==0
                 m_curr_ab_stat.num_outs_during_play = Memory::Read_U8(aAB_NumOutsDuringPlay);
                 m_curr_ab_stat.result_game = Memory::Read_U8(aAB_FinalResult);
+
+                //Increment pitcher outs if needed
+                m_curr_ab_stat.outs += m_curr_ab_stat.num_outs_during_play;
 
                 //Store current AB stat to the players vector
                 m_ab_stats[m_curr_ab_stat.team_id][m_curr_ab_stat.roster_id].push_back(m_curr_ab_stat);
@@ -172,11 +186,8 @@ void StatTracker::lookForTriggerEvents(){
                 File::WriteStringToFile(jsonPlusPath.second, jsonPlusPath.first);
                 std::cout << "Logging to " << jsonPlusPath.second << std::endl;
 
-                //Psuedocode for submit
-                // if (submit){
-                //     std::pair<std::string, std::string> jsonPlusPath = getStatJSON(false);
-                //     /submit();
-                // }
+                std::pair<std::string, std::string> jsonPlusPathEnoded = getStatJSON(false);
+                File::WriteStringToFile(jsonPlusPathEnoded.second + ".encoded", jsonPlusPathEnoded.first);
 
                 m_game_state = GAME_STATE::ENDGAME_LOGGED;
 
@@ -197,13 +208,11 @@ void StatTracker::lookForTriggerEvents(){
 void StatTracker::logGameInfo(){
     std::cout << "Logging EngGame Stats" << std::endl;
 
-    time_t now = time(0);
-    //char* date_time = ctime(&now);
-    tm *gmtm = gmtime(&now);
-    char* dt = asctime(gmtm);
+    std::time_t unix_time = std::time(nullptr);
 
-    m_game_info.date_time = std::string(dt);
-    m_game_info.date_time.pop_back();
+    m_game_info.unix_date_time = std::to_string(unix_time);
+    m_game_info.local_date_time = std::asctime(std::localtime(&unix_time));
+    m_game_info.local_date_time.pop_back();
 
     m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
@@ -514,8 +523,9 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
     json_stream << "{" << std::endl;
     std::string stadium = (inDecode) ? "\"" + cStadiumIdToStadiumName.at(m_game_info.stadium) + "\"" : std::to_string(m_game_info.stadium);
+    std::string date_time = (inDecode) ? m_game_info.local_date_time : m_game_info.unix_date_time;
     json_stream << "  \"GameID\": \"" << std::hex << m_game_info.game_id << "\"," << std::endl;
-    json_stream << "  \"Date\": \"" << m_game_info.date_time << "\"," << std::endl;
+    json_stream << "  \"Date\": \"" << date_time << "\"," << std::endl;
     json_stream << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
     json_stream << "  \"StadiumID\": " << stadium << "," << std::endl;
     json_stream << "  \"Away Player\": \"" << away_player_name << "\"," << std::endl; //TODO MAKE THIS AN ID
@@ -531,42 +541,22 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     for (int team=0; team < cNumOfTeams; ++team){
         //If Team0 is away team
         std::string team_label;
-        u16 captain_id = 0;
         if (team == 0){
             if (team0_is_away){
                 team_label = "Away";
-                captain_id = m_game_info.away_captain;
             }
             else {
                 team_label = "Home";
-                captain_id = m_game_info.home_captain;
             }
         }
         else if (team == 1) {
             if (team0_is_away){
                 team_label = "Home";
-                captain_id = m_game_info.home_captain;
             }
             else {
                 team_label = "Away";
-                captain_id = m_game_info.away_captain;
             }
         }
-
-        std::string captain = (inDecode) ? "\"" + cCharIdToCharName.at(captain_id) + "\"" : std::to_string(captain_id);
-        json_stream << "  \"" << team_label << " Team Captain\": " << captain << "," << std::endl;
-        std::string str_roster = "[";
-        for (int roster=0; roster < cRosterSize; ++roster){
-            std::string character = (inDecode) ? "\"" + cCharIdToCharName.at(m_game_info.rosters_char_id[team][roster]) + "\"" : std::to_string(m_game_info.rosters_char_id[team][roster]);
-            str_roster = str_roster + character;
-            if (roster == 8){
-                str_roster = str_roster + "],";
-            }
-            else{
-                str_roster = str_roster + ", ";
-            }
-        }
-        json_stream << "  \"" << team_label << " Team Roster\": " << str_roster << std::endl;
     }
     json_stream << "  \"Quitter Team\": \"" << m_game_info.quitter_team << "\"," << std::endl;
 
@@ -574,7 +564,9 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     //Defensive Stats
     for (int team=0; team < cNumOfTeams; ++team){
         std::string team_label;
+        u8 captain_roster_loc;
         if (team == 0){
+            captain_roster_loc = m_game_info.team0_captain_roster_loc;
             if (team0_is_away){
                 team_label = "Away";
             }
@@ -583,6 +575,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             }
         }
         else if (team == 1) {
+            captain_roster_loc = m_game_info.team1_captain_roster_loc;
             if (team0_is_away){
                 team_label = "Home";
             }
@@ -599,8 +592,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
             std::string character = (inDecode) ? "\"" + cCharIdToCharName.at(m_game_info.rosters_char_id[team][roster]) + "\"" : std::to_string(m_game_info.rosters_char_id[team][roster]);
             json_stream << "      \"Character\": " << character << "," << std::endl;
-
-            json_stream << "      \"Is Starred\": " << std::to_string(def_stat.is_starred) << "," << std::endl;
+            json_stream << "      \"Captain\": " << (captain_roster_loc == roster) << "," << std::endl;
+            json_stream << "      \"Superstar\": " << std::to_string(def_stat.is_starred) << "," << std::endl;
             json_stream << "      \"Defensive Stats\": {" << std::endl;
             json_stream << "        \"Batters Faced\": " << std::to_string(def_stat.batters_faced) << "," << std::endl;
             json_stream << "        \"Runs Allowed\": " << std::dec << def_stat.runs_allowed << "," << std::endl;
@@ -611,11 +604,11 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Pitches Thrown\": " << def_stat.pitches_thrown << "," << std::endl;
             json_stream << "        \"Stamina\": " << def_stat.stamina << "," << std::endl;
             json_stream << "        \"Was Pitcher\": " << std::to_string(def_stat.was_pitcher) << "," << std::endl;
-            json_stream << "        \"Batter Outs\": " << std::to_string(def_stat.batter_outs) << "," << std::endl;
             json_stream << "        \"Strikeouts\": " << std::to_string(def_stat.strike_outs) << "," << std::endl;
             json_stream << "        \"Star Pitches Thrown\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
             json_stream << "        \"Big Plays\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
-            json_stream << "        \"Innings Pitched\": " << std::to_string(def_stat.innings_pitched.size()) << std::endl;
+            json_stream << "        \"Outs Pitched\": " << std::to_string(def_stat.outs_pitched) << "," << std::endl;
+            json_stream << "        \"Inning Appearances\": " << std::to_string(def_stat.innings_pitched.size()) << std::endl;
             json_stream << "      }," << std::endl;
 
             EndGameRosterOffensiveStats& of_stat = m_offensive_stats[team][roster];
@@ -642,8 +635,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Batter\": " << character << "," << std::endl;
                 json_stream << "          \"Inning\": " << std::to_string(ab_stat.inning) << "," << std::endl;
                 json_stream << "          \"Half Inning\": " << std::to_string(ab_stat.half_inning) << "," << std::endl;
-                json_stream << "          \"Batter Score\": \"" << std::dec << ab_stat.batter_score << "\"," << std::endl;
-                json_stream << "          \"Fielder Score\": \"" << std::dec << ab_stat.fielder_score << "\"," << std::endl;
+                json_stream << "          \"Batter Score\": " << std::dec << ab_stat.batter_score << "," << std::endl;
+                json_stream << "          \"Fielder Score\": " << std::dec << ab_stat.fielder_score << "," << std::endl;
                 json_stream << "          \"Balls\": " << std::to_string(ab_stat.balls) << "," << std::endl;
                 json_stream << "          \"Strikes\": " << std::to_string(ab_stat.strikes) << "," << std::endl;
                 json_stream << "          \"Outs\": " << std::to_string(ab_stat.outs) << "," << std::endl;
@@ -661,7 +654,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 std::string charge_pitch_type    = (inDecode) ? "\"" + cChargePitchTypeToHR.at(ab_stat.charge_type) + "\"" : std::to_string(ab_stat.charge_type);
                 json_stream << "          \"Pitcher Roster Location\": " << std::to_string(ab_stat.pitcher_roster_loc) << "," << std::endl;
                 json_stream << "          \"PitcherID\": " << pitcher << "," << std::endl;
-                json_stream << "          \"Pitcher Stamina\": " << ab_stat.pitcher_stamina << "," << std::endl;
+                json_stream << "          \"Pitcher Stamina\": " << std::dec << ab_stat.pitcher_stamina << "," << std::endl;
                 json_stream << "          \"Pitcher Handedness\": " << pitcher_hand << "," << std::endl;
                 json_stream << "          \"Pitch Type\": " << pitch_type << "," << std::endl;
                 json_stream << "          \"Charge Pitch Type\": " << charge_pitch_type << "," << std::endl;
@@ -705,7 +698,6 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     json_stream << "              \"Star Swing Five-Star\": " << std::to_string(ab_stat.moon_shot) << "," << std::endl;
                     json_stream << "              \"Input Direction\": " << input_direction << "," << std::endl;
                     json_stream << "              \"Frame Of Swing Upon Contact\": " << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
-                    json_stream << "              \"Frame Of Pitch Upon Swing\": " << std::dec << ab_stat.frameOfPitchUponSwing << "," << std::endl;
                     json_stream << "              \"Ball Angle\": \"" << std::dec << ab_stat.ball_angle << "\"," << std::endl;
                     json_stream << "              \"Ball Vertical Power\": \"" << std::dec << ab_stat.vert_power << "\"," << std::endl;
                     json_stream << "              \"Ball Horizontal Power\": \"" << std::dec << ab_stat.horiz_power << "\"," << std::endl;
@@ -759,8 +751,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     json_stream << "              \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
                     json_stream << "              \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;
 
-                    json_stream << "              \"Ball Position Upon Contact- x\": " << ball_x_pos_upon_hit << "," << std::endl;
-                    json_stream << "              \"Ball Position Upon Contact- Y\": " << ball_y_pos_upon_hit << "," << std::endl;
+                    json_stream << "              \"Ball Position Upon Contact - x\": " << ball_x_pos_upon_hit << "," << std::endl;
+                    json_stream << "              \"Ball Position Upon Contact - Y\": " << ball_y_pos_upon_hit << "," << std::endl;
 
                     json_stream << "              \"Fielding Summary\": [" << std::endl;
                     if (ab_stat.fielder_roster_loc != 0xFF) {
@@ -782,7 +774,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"RBI\": " << std::to_string(ab_stat.rbi) << "," << std::endl;
 
                 json_stream << "          \"Final Result - Inferred\": \"" << ab_stat.result_inferred << "\"," << std::endl;
-                json_stream << "          \"Final Result - Game\": \"" << std::to_string(ab_stat.result_game) << "\"" << std::endl;
+                json_stream << "          \"Final Result - Game\": " << std::to_string(ab_stat.result_game) << std::endl;
                 
                 std::string end_comma = (ab_stat == m_ab_stats[team][roster].back()) ? "" : ",";
                 json_stream << "        }" << end_comma << std::endl;
