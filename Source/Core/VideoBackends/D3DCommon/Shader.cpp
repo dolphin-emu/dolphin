@@ -115,7 +115,7 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file << "\n";
     file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
     file << "\n";
-    file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+    file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
     file << "Video Backend: " + g_video_backend->GetDisplayName();
     file.close();
 

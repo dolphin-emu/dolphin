@@ -149,8 +149,8 @@ private:
     {
       // Null-terminator is intentionally not copied.
       std::memcpy(&id, "DCAC", sizeof(u32));
-      std::memcpy(ver, Common::scm_rev_git_str.c_str(),
-                  std::min(Common::scm_rev_git_str.size(), sizeof(ver)));
+      std::memcpy(ver, Common::GetScmRevGitStr().c_str(),
+                  std::min(Common::GetScmRevGitStr().size(), sizeof(ver)));
     }
 
     u32 id = 0;
