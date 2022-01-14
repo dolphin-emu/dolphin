@@ -88,6 +88,8 @@ public:
   std::string revision;
   u32 ping;
   SyncIdentifierComparison game_status;
+  std::string UserName;
+  std::string UserID;
 
   bool IsHost() const { return pid == 1; }
 };
@@ -287,4 +289,5 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
+std::vector<std::string> GetLocalPlayerNetplay();
 }  // namespace NetPlay
