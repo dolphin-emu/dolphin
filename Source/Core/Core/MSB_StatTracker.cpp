@@ -222,6 +222,7 @@ void StatTracker::logGameInfo(){
 
     m_game_info.unix_date_time = std::to_string(unix_time);
     m_game_info.local_date_time = std::asctime(std::localtime(&unix_time));
+    game_info.local_date_time.pop_back();
 
     m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
