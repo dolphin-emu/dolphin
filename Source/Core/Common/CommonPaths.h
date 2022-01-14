@@ -62,6 +62,7 @@
 #define WII_WC24CONF_DIR "shared2" DIR_SEP "wc24"
 #define RESOURCES_DIR "Resources"
 #define THEMES_DIR "Themes"
+#define TEXTUREPACKS_DIR "TexturePacks"
 #define STYLES_DIR "Styles"
 #define GBASAVES_DIR "Saves"
 #define ANAGLYPH_DIR "Anaglyph"

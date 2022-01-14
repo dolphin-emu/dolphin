@@ -584,7 +584,9 @@ void Renderer::DrawDebugText()
   if (g_ActiveConfig.bShowNetPlayMessages && g_netplay_chat_ui)
     g_netplay_chat_ui->Display();
 
-  if (Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui)
+  // don't show overlay unless in debug mode
+  if (Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY) && g_netplay_golf_ui &&
+      SConfig::GetInstance().bEnableDebugging)
     g_netplay_golf_ui->Display();
 
   if (g_ActiveConfig.bOverlayProjStats)

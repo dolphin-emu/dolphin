@@ -139,18 +139,18 @@ void NetPlayDialog::CreateMainLayout()
 
   m_network_menu = m_menu_bar->addMenu(tr("Network"));
   m_network_menu->setToolTipsVisible(true);
+  m_golf_mode_action = m_network_menu->addAction(tr("Auto Golf Mode"));
+  m_golf_mode_action->setToolTip(tr("One player will have 0 input delay (the golfer), while the "
+                                    "opponent will have a latency penalty.\n"
+                                    "With Auto Golf Mode, the Batter is always set to the golfer, "
+                                    "then when the ball is hit the golfer\n"
+                                    "will automatically switch to the fielder."));
+  m_golf_mode_action->setCheckable(true);
   m_fixed_delay_action = m_network_menu->addAction(tr("Fair Input Delay"));
   m_fixed_delay_action->setToolTip(
       tr("Each player sends their own inputs to the game, with equal buffer size for all players, "
-         "configured by the host.\nSuitable for competitive games where fairness and minimal "
-         "latency are most important."));
+         "configured by the host.\nRecommended only for games of low ping with highly stable connection."));
   m_fixed_delay_action->setCheckable(true);
-  m_golf_mode_action = m_network_menu->addAction(tr("Auto Golf Mode"));
-  m_golf_mode_action->setToolTip(
-      tr("One player will have 0 input delay (the golfer), while the opponent will have a latency penalty.\n"
-         "With Auto Golf Mode, the Batter is always set to the golfer, then when the ball is hit the golfer\n"
-         "will automatically switch to the fielder."));
-  m_golf_mode_action->setCheckable(true);
 
   m_network_mode_group = new QActionGroup(this);
   m_network_mode_group->setExclusive(true);
