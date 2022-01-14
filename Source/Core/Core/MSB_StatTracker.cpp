@@ -141,11 +141,8 @@ void StatTracker::lookForTriggerEvents(){
                 m_curr_ab_stat.num_outs_during_play = Memory::Read_U8(aAB_NumOutsDuringPlay);
                 m_curr_ab_stat.result_game = Memory::Read_U8(aAB_FinalResult);
 
-                if (m_curr_ab_stat.outs < Memory::Read_U8(aAB_Outs)) {
-                    std::cout << "Pitcher pitched an out" << std::endl;
-                    EndGameRosterDefensiveStats& stat = m_defensive_stats[!m_curr_ab_stat.team_id][m_curr_ab_stat.pitcher_roster_loc];
-                    ++stat.outs_pitched;
-                }
+                //Increment pitcher outs if needed
+                m_curr_ab_stat.outs += m_curr_ab_stat.num_outs_during_play;
 
                 //Store current AB stat to the players vector
                 m_ab_stats[m_curr_ab_stat.team_id][m_curr_ab_stat.roster_id].push_back(m_curr_ab_stat);
@@ -191,13 +188,6 @@ void StatTracker::lookForTriggerEvents(){
 
                 std::pair<std::string, std::string> jsonPlusPathEnoded = getStatJSON(false);
                 File::WriteStringToFile(jsonPlusPathEnoded.second + ".encoded", jsonPlusPathEnoded.first);
-                std::cout << "Logging to " << jsonPlusPathEnoded.second << std::endl;
-
-                //Psuedocode for submit
-                // if (submit){
-                //     std::pair<std::string, std::string> jsonPlusPath = getStatJSON(false);
-                //     /submit();
-                // }
 
                 m_game_state = GAME_STATE::ENDGAME_LOGGED;
 
@@ -222,7 +212,7 @@ void StatTracker::logGameInfo(){
 
     m_game_info.unix_date_time = std::to_string(unix_time);
     m_game_info.local_date_time = std::asctime(std::localtime(&unix_time));
-    game_info.local_date_time.pop_back();
+    m_game_info.local_date_time.pop_back();
 
     m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
