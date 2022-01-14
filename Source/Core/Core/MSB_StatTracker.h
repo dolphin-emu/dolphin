@@ -100,11 +100,11 @@ static const std::map<u8, std::string> cStadiumIdToStadiumName = {
 
 static const std::map<u8, std::string> cTypeOfContactToHR = {
     {0xFF, "Miss"},
-    {0, "Sour"},
-    {1, "Nice"}, 
+    {0, "Sour - Inside"},
+    {1, "Nice - Inside"}, 
     {2, "Perfect"},
-    {3, "Nice"}, 
-    {4, "Sour"}
+    {3, "Nice - Outside"}, 
+    {4, "Sour - Outside"}
 };
 
 static const std::map<u8, std::string> cHandToHR = {
@@ -171,6 +171,9 @@ static const u32 aTeam1_RosterCharId_Start = 0x803541A5;
 
 static const u32 aTeam0_Captain = 0x80353083;
 static const u32 aTeam1_Captain = 0x80353087;
+
+static const u32 aTeam0_Captain_Roster_Loc = 0x80892A83;
+static const u32 aTeam1_Captain_Roster_Loc = 0x80892A87;
 
 static const u32 aAwayTeam_Score = 0x808928A4;
 static const u32 aHomeTeam_Score = 0x808928CA;
@@ -305,12 +308,16 @@ public:
     
     struct GameInfo{
         u32 game_id;
-        std::string date_time;
+        std::string unix_date_time;
+        std::string local_date_time;
 
-        u8 team0_port = 0;
-        u8 team1_port = 0;
+        u8 team0_port = 0xFF;
+        u8 team1_port = 0xFF;
         u8 away_port;
         u8 home_port;
+
+        u8 team0_captain_roster_loc = 0xFF;
+        u8 team1_captain_roster_loc = 0xFF;
 
         std::string team0_player_name;
         std::string team1_player_name;
@@ -369,6 +376,7 @@ public:
 
         //Manually collected
         std::set<u8> innings_pitched; //size() will give number of innings pitched
+        u8 outs_pitched = 0;
     };
     std::array<std::array<EndGameRosterDefensiveStats, cRosterSize>, cNumOfTeams> m_defensive_stats;
 
@@ -439,7 +447,7 @@ public:
         u8 hit_by_pitch;
 
         u16 frameOfSwingUponContact;
-        u16 frameOfPitchUponSwing;
+        u16 frameOfPitchUponSwing; //Remove for inaccuracy
 
         u32 ball_x_pos_upon_hit;
         u32 ball_y_pos_upon_hit;
