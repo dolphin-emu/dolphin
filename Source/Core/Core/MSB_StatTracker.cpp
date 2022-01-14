@@ -564,7 +564,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     //Defensive Stats
     for (int team=0; team < cNumOfTeams; ++team){
         std::string team_label;
-        u8 captain_roster_loc;
+        u8 captain_roster_loc = 0;
         if (team == 0){
             captain_roster_loc = m_game_info.team0_captain_roster_loc;
             if (team0_is_away){
