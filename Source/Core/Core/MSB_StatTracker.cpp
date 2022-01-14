@@ -142,7 +142,8 @@ void StatTracker::lookForTriggerEvents(){
                 m_curr_ab_stat.result_game = Memory::Read_U8(aAB_FinalResult);
 
                 //Increment pitcher outs if needed
-                m_curr_ab_stat.outs += m_curr_ab_stat.num_outs_during_play;
+                EndGameRosterDefensiveStats& stat = m_defensive_stats[!m_curr_ab_stat.team_id][m_curr_ab_stat.pitcher_roster_loc];
+                stat.outs_pitched += m_curr_ab_stat.num_outs_during_play;
 
                 //Store current AB stat to the players vector
                 m_ab_stats[m_curr_ab_stat.team_id][m_curr_ab_stat.roster_id].push_back(m_curr_ab_stat);
