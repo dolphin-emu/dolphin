@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -99,9 +98,9 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
-          MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION,
-          MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_MODE, MENU_SET_IR_SENSITIVITY,
+          MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
+          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS})
   public @interface MenuAction
   {
   }
@@ -133,13 +132,14 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
   public static final int MENU_ACTION_RUMBLE = 25;
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
-  public static final int MENU_SET_IR_SENSITIVITY = 27;
-  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
-  public static final int MENU_ACTION_MOTION_CONTROLS = 29;
-  public static final int MENU_ACTION_PAUSE_EMULATION = 30;
-  public static final int MENU_ACTION_UNPAUSE_EMULATION = 31;
-  public static final int MENU_ACTION_OVERLAY_CONTROLS = 32;
-  public static final int MENU_ACTION_SETTINGS = 33;
+  public static final int MENU_SET_IR_MODE = 27;
+  public static final int MENU_SET_IR_SENSITIVITY = 28;
+  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 29;
+  public static final int MENU_ACTION_MOTION_CONTROLS = 30;
+  public static final int MENU_ACTION_PAUSE_EMULATION = 31;
+  public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
+  public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
+  public static final int MENU_ACTION_SETTINGS = 34;
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -158,6 +158,8 @@ public final class EmulationActivity extends AppCompatActivity
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
     buttonsActionsMap
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
+    buttonsActionsMap.append(R.id.menu_emulation_set_ir_mode,
+            EmulationActivity.MENU_SET_IR_MODE);
     buttonsActionsMap.append(R.id.menu_emulation_set_ir_sensitivity,
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
@@ -644,6 +646,10 @@ public final class EmulationActivity extends AppCompatActivity
         startActivityForResult(intent, REQUEST_CHANGE_DISC);
         break;
 
+      case MENU_SET_IR_MODE:
+        setIRMode();
+        break;
+
       case MENU_SET_IR_SENSITIVITY:
         setIRSensitivity();
         break;
@@ -935,6 +941,20 @@ public final class EmulationActivity extends AppCompatActivity
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
+
+    builder.show();
+  }
+
+  private void setIRMode()
+  {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    builder.setTitle(R.string.emulation_ir_mode);
+    builder.setSingleChoiceItems(R.array.irModeEntries,
+            IntSetting.MAIN_IR_MODE.getInt(mSettings),
+            (dialog, indexSelected) ->
+                    IntSetting.MAIN_IR_MODE.setInt(mSettings, indexSelected));
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+            mEmulationFragment.refreshOverlayPointer(mSettings));
 
     builder.show();
   }
