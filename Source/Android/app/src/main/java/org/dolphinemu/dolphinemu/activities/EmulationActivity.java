@@ -98,9 +98,10 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_MODE, MENU_SET_IR_SENSITIVITY,
-          MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
-          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_RECENTER, MENU_SET_IR_MODE,
+          MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_MOTION_CONTROLS,
+          MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS,
+          MENU_ACTION_SETTINGS})
   public @interface MenuAction
   {
   }
@@ -132,14 +133,15 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
   public static final int MENU_ACTION_RUMBLE = 25;
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
-  public static final int MENU_SET_IR_MODE = 27;
-  public static final int MENU_SET_IR_SENSITIVITY = 28;
-  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 29;
-  public static final int MENU_ACTION_MOTION_CONTROLS = 30;
-  public static final int MENU_ACTION_PAUSE_EMULATION = 31;
-  public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
-  public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
-  public static final int MENU_ACTION_SETTINGS = 34;
+  public static final int MENU_SET_IR_RECENTER = 27;
+  public static final int MENU_SET_IR_MODE = 28;
+  public static final int MENU_SET_IR_SENSITIVITY = 29;
+  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 30;
+  public static final int MENU_ACTION_MOTION_CONTROLS = 31;
+  public static final int MENU_ACTION_PAUSE_EMULATION = 32;
+  public static final int MENU_ACTION_UNPAUSE_EMULATION = 33;
+  public static final int MENU_ACTION_OVERLAY_CONTROLS = 34;
+  public static final int MENU_ACTION_SETTINGS = 35;
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -158,6 +160,8 @@ public final class EmulationActivity extends AppCompatActivity
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
     buttonsActionsMap
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
+    buttonsActionsMap.append(R.id.menu_emulation_ir_recenter,
+            EmulationActivity.MENU_SET_IR_RECENTER);
     buttonsActionsMap.append(R.id.menu_emulation_set_ir_mode,
             EmulationActivity.MENU_SET_IR_MODE);
     buttonsActionsMap.append(R.id.menu_emulation_set_ir_sensitivity,
@@ -482,6 +486,11 @@ public final class EmulationActivity extends AppCompatActivity
             .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
     menu.findItem(R.id.menu_emulation_rumble)
             .setChecked(BooleanSetting.MAIN_PHONE_RUMBLE.getBoolean(mSettings));
+    if (wii)
+    {
+      menu.findItem(R.id.menu_emulation_ir_recenter)
+              .setChecked(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean(mSettings));
+    }
 
     popup.setOnMenuItemClickListener(this::onOptionsItemSelected);
 
@@ -519,6 +528,10 @@ public final class EmulationActivity extends AppCompatActivity
       case MENU_ACTION_RUMBLE:
         item.setChecked(!item.isChecked());
         toggleRumble(item.isChecked());
+        break;
+      case MENU_SET_IR_RECENTER:
+        item.setChecked(!item.isChecked());
+        toggleRecenter(item.isChecked());
         break;
     }
   }
@@ -696,6 +709,12 @@ public final class EmulationActivity extends AppCompatActivity
   {
     BooleanSetting.MAIN_PHONE_RUMBLE.setBoolean(mSettings, state);
     Rumble.setPhoneVibrator(state, this);
+  }
+
+  private void toggleRecenter(boolean state)
+  {
+    BooleanSetting.MAIN_IR_ALWAYS_RECENTER.setBoolean(mSettings, state);
+    mEmulationFragment.refreshOverlayPointer(mSettings);
   }
 
   private void editControlsPlacement()

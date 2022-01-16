@@ -33,6 +33,7 @@ public class InputOverlayPointer
   private float mTouchStartY;
 
   private int mMode;
+  private boolean mRecenter;
 
   private boolean doubleTap = false;
   private int doubleTapButton;
@@ -48,10 +49,11 @@ public class InputOverlayPointer
     DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.CLASSIC_BUTTON_A);
   }
 
-  public InputOverlayPointer(Rect surfacePosition, int button, int mode)
+  public InputOverlayPointer(Rect surfacePosition, int button, int mode, boolean recenter)
   {
     doubleTapButton = button;
     mMode = mode;
+    mRecenter = recenter;
 
     mGameCenterX = (surfacePosition.left + surfacePosition.right) / 2.0f;
     mGameCenterY = (surfacePosition.top + surfacePosition.bottom) / 2.0f;
@@ -97,6 +99,8 @@ public class InputOverlayPointer
           trackId = -1;
         if (mMode == MODE_DRAG)
           updateOldAxes();
+        if (mRecenter)
+          reset();
         break;
     }
 
@@ -143,6 +147,11 @@ public class InputOverlayPointer
     oldaxes[1] = axes[1];
   }
 
+  private void reset()
+  {
+    axes[0] = axes[1] = oldaxes[0] = oldaxes[1] = 0f;
+  }
+
   public float[] getAxisValues()
   {
     float[] iraxes = {0f, 0f, 0f, 0f};
@@ -158,5 +167,10 @@ public class InputOverlayPointer
     mMode = mode;
     if (mode == MODE_DRAG)
       updateOldAxes();
+  }
+
+  public void setRecenter(boolean recenter)
+  {
+    mRecenter = recenter;
   }
 }
