@@ -33,8 +33,9 @@ enum class DPL2Quality;
 
 namespace ExpansionInterface
 {
-enum TEXIDevices : int;
-}
+enum class EXIDeviceType : int;
+enum class Slot : int;
+}  // namespace ExpansionInterface
 
 namespace SerialInterface
 {
@@ -65,14 +66,17 @@ extern const Info<bool> MAIN_AUDIO_STRETCH;
 extern const Info<int> MAIN_AUDIO_STRETCH_LATENCY;
 extern const Info<std::string> MAIN_MEMCARD_A_PATH;
 extern const Info<std::string> MAIN_MEMCARD_B_PATH;
+const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_AGP_CART_A_PATH;
 extern const Info<std::string> MAIN_AGP_CART_B_PATH;
+const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE;
 extern const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE;
-extern const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_A;
-extern const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_B;
-extern const Info<ExpansionInterface::TEXIDevices> MAIN_SERIAL_PORT_1;
-const Info<ExpansionInterface::TEXIDevices>& GetInfoForEXIDevice(int channel);
+const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot);
+extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A;
+extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B;
+extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1;
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_BBA_MAC;
 extern const Info<std::string> MAIN_BBA_XLINK_IP;
 extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;

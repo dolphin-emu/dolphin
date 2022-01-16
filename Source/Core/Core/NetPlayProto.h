@@ -8,7 +8,9 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 namespace DiscIO
@@ -44,7 +46,7 @@ struct NetSettings
   bool m_CopyWiiSave = false;
   bool m_OCEnable = false;
   float m_OCFactor = 0;
-  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice{};
+  Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> m_EXIDevice{};
 
   std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings{};
 

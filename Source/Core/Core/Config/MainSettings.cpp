@@ -8,13 +8,16 @@
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -48,28 +51,60 @@ const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, fals
 const Info<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"}, 80};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
+const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_MEMCARD_A_PATH,
+          &MAIN_MEMCARD_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const Info<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
+const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_AGP_CART_A_PATH,
+          &MAIN_AGP_CART_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
-
-const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_A{
-    {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
-const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
-                                                        ExpansionInterface::EXIDEVICE_NONE};
-const Info<ExpansionInterface::TEXIDevices> MAIN_SERIAL_PORT_1{
-    {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDEVICE_NONE};
-
-const Info<ExpansionInterface::TEXIDevices>& GetInfoForEXIDevice(int channel)
+const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot)
 {
-  static constexpr std::array<const Info<ExpansionInterface::TEXIDevices>*, 3> infos{
-      &MAIN_SLOT_A,
-      &MAIN_SLOT_B,
-      &MAIN_SERIAL_PORT_1,
-  };
-  return *infos[channel];
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_GCI_FOLDER_A_PATH_OVERRIDE,
+          &MAIN_GCI_FOLDER_B_PATH_OVERRIDE,
+      };
+  return *infos[slot];
+}
+
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
+    {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::MemoryCardFolder};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
+                                                          ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
+    {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
+
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
+{
+  static constexpr Common::EnumMap<const Info<ExpansionInterface::EXIDeviceType>*,
+                                   ExpansionInterface::MAX_SLOT>
+      infos{
+          &MAIN_SLOT_A,
+          &MAIN_SLOT_B,
+          &MAIN_SERIAL_PORT_1,
+      };
+  return *infos[slot];
 }
 
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};

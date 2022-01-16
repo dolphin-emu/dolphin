@@ -43,6 +43,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -433,9 +434,17 @@ bool IsStartingFromClearSave()
   return s_bClearSave;
 }
 
-bool IsUsingMemcard(int memcard)
+bool IsUsingMemcard(ExpansionInterface::Slot slot)
 {
-  return (s_memcards & (1 << memcard)) != 0;
+  switch (slot)
+  {
+  case ExpansionInterface::Slot::A:
+    return (s_memcards & 1) != 0;
+  case ExpansionInterface::Slot::B:
+    return (s_memcards & 2) != 0;
+  default:
+    return false;
+  }
 }
 
 bool IsNetPlayRecording()
@@ -1438,12 +1447,13 @@ void SetGraphicsConfig()
 // NOTE: EmuThread / Host Thread
 void GetSettings()
 {
-  const ExpansionInterface::TEXIDevices slot_a_type = Config::Get(Config::MAIN_SLOT_A);
-  const ExpansionInterface::TEXIDevices slot_b_type = Config::Get(Config::MAIN_SLOT_B);
-  const bool slot_a_has_raw_memcard = slot_a_type == ExpansionInterface::EXIDEVICE_MEMORYCARD;
-  const bool slot_a_has_gci_folder = slot_a_type == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
-  const bool slot_b_has_raw_memcard = slot_b_type == ExpansionInterface::EXIDEVICE_MEMORYCARD;
-  const bool slot_b_has_gci_folder = slot_b_type == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
+  using ExpansionInterface::EXIDeviceType;
+  const EXIDeviceType slot_a_type = Config::Get(Config::MAIN_SLOT_A);
+  const EXIDeviceType slot_b_type = Config::Get(Config::MAIN_SLOT_B);
+  const bool slot_a_has_raw_memcard = slot_a_type == EXIDeviceType::MemoryCard;
+  const bool slot_a_has_gci_folder = slot_a_type == EXIDeviceType::MemoryCardFolder;
+  const bool slot_b_has_raw_memcard = slot_b_type == EXIDeviceType::MemoryCard;
+  const bool slot_b_has_gci_folder = slot_b_type == EXIDeviceType::MemoryCardFolder;
 
   s_bSaveConfig = true;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
@@ -1455,9 +1465,9 @@ void GetSettings()
   }
   else
   {
-    const auto gci_folder_has_saves = [](int card_index) {
+    const auto gci_folder_has_saves = [](ExpansionInterface::Slot card_slot) {
       const auto [path, migrate] = ExpansionInterface::CEXIMemoryCard::GetGCIFolderPath(
-          card_index, ExpansionInterface::AllowMovieFolder::No);
+          card_slot, ExpansionInterface::AllowMovieFolder::No);
       const u64 number_of_saves = File::ScanDirectoryTree(path, false).size;
       return number_of_saves > 0;
     };
@@ -1465,8 +1475,8 @@ void GetSettings()
     s_bClearSave =
         !(slot_a_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_A_PATH))) &&
         !(slot_b_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_B_PATH))) &&
-        !(slot_a_has_gci_folder && gci_folder_has_saves(0)) &&
-        !(slot_b_has_gci_folder && gci_folder_has_saves(1));
+        !(slot_a_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::A)) &&
+        !(slot_b_has_gci_folder && gci_folder_has_saves(ExpansionInterface::Slot::B));
   }
   s_memcards |= (slot_a_has_raw_memcard || slot_a_has_gci_folder) << 0;
   s_memcards |= (slot_b_has_raw_memcard || slot_b_has_gci_folder) << 1;
