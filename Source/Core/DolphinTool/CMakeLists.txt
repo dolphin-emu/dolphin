@@ -14,7 +14,6 @@ target_link_libraries(dolphin-tool
 PRIVATE
   discio
   uicommon
-  videocommon
   cpp-optparse
 )
 
