@@ -360,8 +360,8 @@ PRIVATE
 if (WIN32)
   target_link_libraries(dolphin-emu
   PRIVATE
-	  gdi32.lib
-		shell32.lib
+    gdi32.lib
+    shell32.lib
   )
 endif()
 
