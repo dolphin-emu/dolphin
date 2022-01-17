@@ -1132,8 +1132,10 @@ void DirectoryBlobPartition::WriteDirectory(std::vector<FSTBuilderNode>* parent_
   // Sort for determinism
   std::sort(sorted_entries.begin(), sorted_entries.end(),
             [](const FSTBuilderNode& one, const FSTBuilderNode& two) {
-              const std::string one_upper = ASCIIToUppercase(one.m_filename);
-              const std::string two_upper = ASCIIToUppercase(two.m_filename);
+              std::string one_upper = one.m_filename;
+              std::string two_upper = two.m_filename;
+              Common::ToUpper(&one_upper);
+              Common::ToUpper(&two_upper);
               return one_upper == two_upper ? one.m_filename < two.m_filename :
                                               one_upper < two_upper;
             });
@@ -1199,12 +1201,4 @@ static void Write32(u32 data, u32 offset, std::vector<u8>* buffer)
   (*buffer)[offset++] = (data >> 8) & 0xff;
   (*buffer)[offset] = data & 0xff;
 }
-
-static std::string ASCIIToUppercase(std::string str)
-{
-  std::transform(str.begin(), str.end(), str.begin(),
-                 [](char c) { return std::toupper(c, std::locale::classic()); });
-  return str;
-}
-
 }  // namespace DiscIO

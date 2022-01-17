@@ -20,6 +20,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 namespace ActionReplay
@@ -462,7 +463,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
 
   for (std::string& s : vCodes)
   {
-    std::transform(s.begin(), s.end(), s.begin(), toupper);
+    Common::ToUpper(&s);
   }
 
   const u32 ret = alphatobin(uCodes.data(), vCodes, (int)vCodes.size());
