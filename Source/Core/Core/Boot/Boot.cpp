@@ -205,7 +205,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   std::string folder_path;
   std::string extension;
   SplitPath(paths.front(), &folder_path, nullptr, &extension);
-  std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+  Common::ToLower(&extension);
 
   if (extension == ".m3u" || extension == ".m3u8")
   {
@@ -214,7 +214,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       return {};
 
     SplitPath(paths.front(), nullptr, nullptr, &extension);
-    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+    Common::ToLower(&extension);
   }
 
   std::string path = paths.front();
@@ -226,7 +226,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   {
     const std::string display_name = GetAndroidContentDisplayName(path);
     SplitPath(display_name, nullptr, nullptr, &extension);
-    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+    Common::ToLower(&extension);
   }
 #endif
 

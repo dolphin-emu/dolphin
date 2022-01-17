@@ -31,8 +31,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
   std::string mac_addr_setting = Config::Get(Config::MAIN_BBA_MAC);
   std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
 
-  std::transform(mac_addr_setting.begin(), mac_addr_setting.end(), mac_addr_setting.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  Common::ToLower(&mac_addr_setting);
 
   if (!mac_addr)
   {
