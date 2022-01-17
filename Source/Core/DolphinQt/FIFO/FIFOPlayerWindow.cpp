@@ -38,6 +38,7 @@ FIFOPlayerWindow::FIFOPlayerWindow(QWidget* parent) : QWidget(parent)
   setWindowIcon(Resources::GetAppIcon());
 
   CreateWidgets();
+  LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 
