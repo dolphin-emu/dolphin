@@ -285,19 +285,19 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
 
   u32 size = std::min<u32>(BP_MEM_SIZE, header.bpMemSize);
   file.Seek(header.bpMemOffset, File::SeekOrigin::Begin);
-  file.ReadArray(&dataFile->m_BPMem);
+  file.ReadArray(dataFile->m_BPMem.data(), size);
 
   size = std::min<u32>(CP_MEM_SIZE, header.cpMemSize);
   file.Seek(header.cpMemOffset, File::SeekOrigin::Begin);
-  file.ReadArray(&dataFile->m_CPMem);
+  file.ReadArray(dataFile->m_CPMem.data(), size);
 
   size = std::min<u32>(XF_MEM_SIZE, header.xfMemSize);
   file.Seek(header.xfMemOffset, File::SeekOrigin::Begin);
-  file.ReadArray(&dataFile->m_XFMem);
+  file.ReadArray(dataFile->m_XFMem.data(), size);
 
   size = std::min<u32>(XF_REGS_SIZE, header.xfRegsSize);
   file.Seek(header.xfRegsOffset, File::SeekOrigin::Begin);
-  file.ReadArray(&dataFile->m_XFRegs);
+  file.ReadArray(dataFile->m_XFRegs.data(), size);
 
   // Texture memory saving was added in version 4.
   dataFile->m_TexMem.fill(0);
