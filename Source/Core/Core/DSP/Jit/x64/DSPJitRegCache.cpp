@@ -20,6 +20,10 @@ namespace DSP::JIT::x64
 constexpr std::array<X64Reg, 15> s_allocation_order = {
     {R8, R9, R10, R11, R12, R13, R14, R15, RSI, RDI, RBX, RCX, RDX, RAX, RBP}};
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
 static Gen::OpArg GetRegisterPointer(size_t reg)
 {
   switch (reg)
@@ -95,6 +99,9 @@ static Gen::OpArg GetRegisterPointer(size_t reg)
     return M(static_cast<void*>(nullptr));
   }
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #define STATIC_REG_ACCS
 //#undef STATIC_REG_ACCS
