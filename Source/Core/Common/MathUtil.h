@@ -37,7 +37,7 @@ constexpr Dest SaturatingCast(T value)
 {
   static_assert(std::is_integral<Dest>());
 
-  constexpr Dest lo = std::numeric_limits<Dest>::lowest();
+  [[maybe_unused]] constexpr Dest lo = std::numeric_limits<Dest>::lowest();
   constexpr Dest hi = std::numeric_limits<Dest>::max();
 
   // T being a signed integer and Dest unsigned is a problematic case because the value will
