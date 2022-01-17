@@ -633,7 +633,7 @@ static void WriteRegister()
   }
   else if (id >= 88 && id < 104)
   {
-    PowerPC::ppcState.sr[SPR_IBAT0U + id - 88] = re32hex(bufptr);
+    PowerPC::ppcState.spr[SPR_IBAT0U + id - 88] = re32hex(bufptr);
   }
   else
   {
