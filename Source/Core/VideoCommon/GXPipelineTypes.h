@@ -35,24 +35,6 @@ struct GXPipelineUid
   // and this map lookup can happen every draw call. However, as using memcmp() will also compare
   // any padding bytes, we have to ensure these are zeroed out.
   GXPipelineUid() { std::memset(static_cast<void*>(this), 0, sizeof(*this)); }
-#ifdef _MSC_VER
-#pragma warning(push)
-// Disable warning for uninitialized member variables, as MSVC doesn't recognise that memcpy
-// performs this initialization.
-#pragma warning(disable : 26495)
-#endif
-  GXPipelineUid(const GXPipelineUid& rhs)
-  {
-    std::memcpy(static_cast<void*>(this), &rhs, sizeof(*this));
-  }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-  GXPipelineUid& operator=(const GXPipelineUid& rhs)
-  {
-    std::memcpy(static_cast<void*>(this), &rhs, sizeof(*this));
-    return *this;
-  }
   bool operator<(const GXPipelineUid& rhs) const
   {
     return std::memcmp(this, &rhs, sizeof(*this)) < 0;
@@ -74,23 +56,6 @@ struct GXUberPipelineUid
   BlendingState blending_state;
 
   GXUberPipelineUid() { std::memset(static_cast<void*>(this), 0, sizeof(*this)); }
-#ifdef _MSC_VER
-#pragma warning(push)
-// Disable warning for uninitialized member variables
-#pragma warning(disable : 26495)
-#endif
-  GXUberPipelineUid(const GXUberPipelineUid& rhs)
-  {
-    std::memcpy(static_cast<void*>(this), &rhs, sizeof(*this));
-  }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-  GXUberPipelineUid& operator=(const GXUberPipelineUid& rhs)
-  {
-    std::memcpy(static_cast<void*>(this), &rhs, sizeof(*this));
-    return *this;
-  }
   bool operator<(const GXUberPipelineUid& rhs) const
   {
     return std::memcmp(this, &rhs, sizeof(*this)) < 0;
