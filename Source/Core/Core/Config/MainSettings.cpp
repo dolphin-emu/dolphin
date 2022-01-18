@@ -20,6 +20,7 @@
 #include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/HSP/HSP_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -570,5 +571,51 @@ std::string GetBootROMPath(const std::string& region_directory)
   if (!File::Exists(path))
     return File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region_directory + DIR_SEP GC_IPL;
   return path;
+}
+
+std::string GetMemcardPath(ExpansionInterface::Slot slot, DiscIO::Region region, u16 size_mb)
+{
+  return GetMemcardPath(Config::Get(GetInfoForMemcardPath(slot)), slot, region, size_mb);
+}
+
+std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
+                           DiscIO::Region region, u16 size_mb)
+{
+  const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(region));
+  const std::string blocks_string = size_mb < Memcard::MBIT_SIZE_MEMORY_CARD_2043 ?
+                                        fmt::format(".{}", Memcard::MbitToFreeBlocks(size_mb)) :
+                                        "";
+
+  if (configured_filename.empty())
+  {
+    // Use default memcard path if there is no user defined one.
+    const bool is_slot_a = slot == ExpansionInterface::Slot::A;
+    return fmt::format("{}{}.{}{}.raw", File::GetUserPath(D_GCUSER_IDX),
+                       is_slot_a ? GC_MEMCARDA : GC_MEMCARDB, region_dir, blocks_string);
+  }
+
+  // Custom path is expected to be stored in the form of
+  // "/path/to/file.{region_code}.raw"
+  // with an arbitrary but supported region code.
+  // Try to extract and replace that region code.
+  // If there's no region code just insert one before the extension.
+
+  std::string dir;
+  std::string name;
+  std::string ext;
+  UnifyPathSeparators(configured_filename);
+  SplitPath(configured_filename, &dir, &name, &ext);
+
+  constexpr std::string_view us_region = "." USA_DIR;
+  constexpr std::string_view jp_region = "." JAP_DIR;
+  constexpr std::string_view eu_region = "." EUR_DIR;
+  if (StringEndsWith(name, us_region))
+    name = name.substr(0, name.size() - us_region.size());
+  else if (StringEndsWith(name, jp_region))
+    name = name.substr(0, name.size() - jp_region.size());
+  else if (StringEndsWith(name, eu_region))
+    name = name.substr(0, name.size() - eu_region.size());
+
+  return fmt::format("{}{}.{}{}{}", dir, name, region_dir, blocks_string, ext);
 }
 }  // namespace Config

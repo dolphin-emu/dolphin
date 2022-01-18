@@ -705,10 +705,11 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   }
 }
 
-void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot)
+void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterface::Slot card_slot,
+                            DiscIO::Region region)
 {
   File::CreateFullPath(directory_name);
-  std::string ini_memcard = Config::Get(Config::GetInfoForMemcardPath(card_slot));
+  const std::string ini_memcard = Config::GetMemcardPath(card_slot, region);
   if (File::Exists(ini_memcard))
   {
     auto [error_code, memcard] = Memcard::GCMemcard::Open(ini_memcard.c_str());
