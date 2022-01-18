@@ -1470,8 +1470,8 @@ bool NetPlayServer::StartGame()
 
   const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
 
-  const std::string region = SConfig::GetDirectoryForRegion(
-      SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game_identifier)->GetRegion()));
+  const std::string region = Config::GetDirectoryForRegion(
+      Config::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game_identifier)->GetRegion()));
 
   // sync GC SRAM with clients
   if (!g_SRAM_netplay_initialized)
@@ -1666,7 +1666,7 @@ bool NetPlayServer::SyncSaveData()
     return true;
 
   const std::string region =
-      SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(game->GetRegion()));
+      Config::GetDirectoryForRegion(Config::ToGameCubeRegion(game->GetRegion()));
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {

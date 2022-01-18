@@ -265,7 +265,7 @@ void GeneralPane::LoadConfig()
     m_combobox_speedlimit->setCurrentIndex(selection);
   m_checkbox_dualcore->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
 
-  const auto fallback = Settings::Instance().GetFallbackRegion();
+  const auto fallback = Config::Get(Config::MAIN_FALLBACK_REGION);
 
   if (fallback == DiscIO::Region::NTSC_J)
     m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
