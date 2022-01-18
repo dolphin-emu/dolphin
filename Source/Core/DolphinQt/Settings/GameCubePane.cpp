@@ -301,28 +301,37 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
 
-  QString filename = DolphinFileDialog::getSaveFileName(
+  const QString filename = DolphinFileDialog::getSaveFileName(
       this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       tr("GameCube Memory Cards (*.raw *.gcp)"), 0, QFileDialog::DontConfirmOverwrite);
 
   if (filename.isEmpty())
     return;
 
-  QString path_abs = QFileInfo(filename).absoluteFilePath();
+  const std::string raw_path = QFileInfo(filename).absoluteFilePath().toStdString();
+
+  // The actual region path that's stored into the config is arbitrary, but since any of them may be
+  // loaded we should check them all.
+  const std::string jp_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_J);
+  const std::string us_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_U);
+  const std::string eu_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::PAL);
 
   // Memcard validity checks
-  if (File::Exists(filename.toStdString()))
+  for (const std::string& path : {jp_path, us_path, eu_path})
   {
-    auto [error_code, mc] = Memcard::GCMemcard::Open(filename.toStdString());
-
-    if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
+    if (File::Exists(path))
     {
-      ModalMessageBox::critical(
-          this, tr("Error"),
-          tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
-              .arg(filename)
-              .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
-      return;
+      auto [error_code, mc] = Memcard::GCMemcard::Open(path);
+
+      if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
+      {
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
+                .arg(QString::fromStdString(path))
+                .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
+        return;
+      }
     }
   }
 
@@ -331,32 +340,35 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
     if (other_slot == slot)
       continue;
 
-    bool other_slot_memcard = m_slot_combos[other_slot]->currentData().toInt() ==
-                              static_cast<int>(ExpansionInterface::EXIDeviceType::MemoryCard);
-    if (other_slot_memcard)
+    const std::string other_eu_path = Config::GetMemcardPath(other_slot, DiscIO::Region::PAL);
+    if (eu_path == other_eu_path)
     {
-      QString path_other =
-          QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForMemcardPath(other_slot))))
-              .absoluteFilePath();
-
-      if (path_abs == path_other)
-      {
-        ModalMessageBox::critical(
-            this, tr("Error"),
-            tr("The same file can't be used in multiple slots; it is already used by %1.")
-                .arg(QString::fromStdString(fmt::to_string(other_slot))));
-        return;
-      }
+      ModalMessageBox::critical(
+          this, tr("Error"),
+          tr("The same file can't be used in multiple slots; it is already used by %1.")
+              .arg(QString::fromStdString(fmt::to_string(other_slot))));
+      return;
     }
   }
 
-  QString path_old =
-      QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForMemcardPath(slot))))
-          .absoluteFilePath();
+  const std::string old_eu_path = Config::GetMemcardPath(slot, DiscIO::Region::PAL);
 
-  Config::SetBase(Config::GetInfoForMemcardPath(slot), path_abs.toStdString());
+  // To reduce user confusion, match the fallback region for the actual path stored in the config.
+  switch (Config::Get(Config::MAIN_FALLBACK_REGION))
+  {
+  case DiscIO::Region::NTSC_U:
+    Config::SetBase(Config::GetInfoForMemcardPath(slot), us_path);
+    break;
+  case DiscIO::Region::NTSC_J:
+  case DiscIO::Region::NTSC_K:
+    Config::SetBase(Config::GetInfoForMemcardPath(slot), jp_path);
+    break;
+  default:
+    Config::SetBase(Config::GetInfoForMemcardPath(slot), eu_path);
+    break;
+  }
 
-  if (Core::IsRunning() && path_abs != path_old)
+  if (Core::IsRunning() && eu_path != old_eu_path)
   {
     // ChangeDevice unplugs the device for 1 second, which means that games should notice that
     // the path has changed and thus the memory card contents have changed
