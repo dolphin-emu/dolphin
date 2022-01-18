@@ -1665,8 +1665,8 @@ bool NetPlayServer::SyncSaveData()
   if (save_count == 0)
     return true;
 
-  const std::string region =
-      Config::GetDirectoryForRegion(Config::ToGameCubeRegion(game->GetRegion()));
+  const auto game_region = game->GetRegion();
+  const std::string region = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(game_region));
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
@@ -1674,17 +1674,11 @@ bool NetPlayServer::SyncSaveData()
 
     if (m_settings.m_EXIDevice[slot] == ExpansionInterface::EXIDeviceType::MemoryCard)
     {
-      std::string path = Config::Get(Config::GetInfoForMemcardPath(slot));
-
-      MemoryCard::CheckPath(path, region, slot);
-
       const int size_override = m_settings.m_MemcardSizeOverride;
+      u16 card_size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043;
       if (size_override >= 0 && size_override <= 4)
-      {
-        path.insert(path.find_last_of('.'),
-                    fmt::format(".{}", Memcard::MbitToFreeBlocks(Memcard::MBIT_SIZE_MEMORY_CARD_59
-                                                                 << size_override)));
-      }
+        card_size_mbits = static_cast<u16>(Memcard::MBIT_SIZE_MEMORY_CARD_59 << size_override);
+      std::string path = Config::GetMemcardPath(slot, game_region, card_size_mbits);
 
       sf::Packet pac;
       pac << MessageID::SyncSaveData;
