@@ -84,10 +84,11 @@ public:
   // Schedule a vulkan resource for destruction later on. This will occur when the command buffer
   // is next re-used, and the GPU has finished working with the specified resource.
   void DeferBufferDestruction(VkBuffer object);
+  void DeferBufferDestruction(VkBuffer object, VmaAllocation allocation);
   void DeferBufferViewDestruction(VkBufferView object);
   void DeferDeviceMemoryDestruction(VkDeviceMemory object);
   void DeferFramebufferDestruction(VkFramebuffer object);
-  void DeferImageDestruction(VkImage object);
+  void DeferImageDestruction(VkImage object, VmaAllocation allocation);
   void DeferImageViewDestruction(VkImageView object);
 
 private:

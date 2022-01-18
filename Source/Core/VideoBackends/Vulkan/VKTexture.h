@@ -30,7 +30,7 @@ public:
   };
 
   VKTexture() = delete;
-  VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
+  VKTexture(const TextureConfig& tex_config, VmaAllocation allocation, VkImage image,
             std::string_view name, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
             ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
   ~VKTexture();
@@ -51,11 +51,10 @@ public:
   void FinishedRendering() override;
 
   VkImage GetImage() const { return m_image; }
-  VkDeviceMemory GetDeviceMemory() const { return m_device_memory; }
   VkImageView GetView() const { return m_view; }
   VkImageLayout GetLayout() const { return m_layout; }
   VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
-  bool IsAdopted() const { return m_device_memory != VkDeviceMemory(VK_NULL_HANDLE); }
+  bool IsAdopted() const { return m_allocation != VK_NULL_HANDLE; }
 
   static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config, std::string_view name);
   static std::unique_ptr<VKTexture>
@@ -74,7 +73,7 @@ public:
 private:
   bool CreateView(VkImageViewType type);
 
-  VkDeviceMemory m_device_memory;
+  VmaAllocation m_allocation = VK_NULL_HANDLE;
   VkImage m_image;
   VkImageView m_view = VK_NULL_HANDLE;
   mutable VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;

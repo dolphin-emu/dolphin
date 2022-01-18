@@ -40,6 +40,8 @@ VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_devi
 
 VulkanContext::~VulkanContext()
 {
+  if (m_allocator != VK_NULL_HANDLE)
+    vmaDestroyAllocator(m_allocator);
   if (m_device != VK_NULL_HANDLE)
     vkDestroyDevice(m_device, nullptr);
 
@@ -225,6 +227,7 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, false);
   AddExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false);
+  AddExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME, false);
 
   return true;
 }
@@ -432,7 +435,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
     context->EnableDebugReports();
 
   // Attempt to create the device.
-  if (!context->CreateDevice(surface, enable_validation_layer))
+  if (!context->CreateDevice(surface, enable_validation_layer) || !context->CreateAllocator())
   {
     // Since we are destroying the instance, we're also responsible for destroying the surface.
     if (surface != VK_NULL_HANDLE)
@@ -679,6 +682,39 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   {
     vkGetDeviceQueue(m_device, m_present_queue_family_index, 0, &m_present_queue);
   }
+  return true;
+}
+
+bool VulkanContext::CreateAllocator()
+{
+  VmaAllocatorCreateInfo vma_create_info = {};
+  vma_create_info.vulkanApiVersion = VK_API_VERSION_1_0;
+  vma_create_info.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
+  vma_create_info.physicalDevice = m_physical_device;
+  vma_create_info.device = m_device;
+  vma_create_info.instance = m_instance;
+
+  if (vkEnumerateInstanceVersion)
+  {
+    u32 supported_api_version = 0;
+    VkResult res = vkEnumerateInstanceVersion(&supported_api_version);
+    if (res == VK_SUCCESS && (VK_VERSION_MAJOR(supported_api_version) > 1 ||
+                              VK_VERSION_MINOR(supported_api_version) >= 1))
+    {
+      vma_create_info.vulkanApiVersion = VK_API_VERSION_1_1;
+    }
+  }
+
+  if (SupportsDeviceExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME))
+    vma_create_info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+
+  VkResult res = vmaCreateAllocator(&vma_create_info, &m_allocator);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vmaCreateAllocator failed: ");
+    return false;
+  }
+
   return true;
 }
 

@@ -1162,6 +1162,7 @@
     <ClCompile Include="VideoBackends\Vulkan\StateTracker.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKBoundingBox.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKMain.cpp" />
+    <ClCompile Include="VideoBackends\Vulkan\VKMemAllocator.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKPerfQuery.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKPipeline.cpp" />
     <ClCompile Include="VideoBackends\Vulkan\VKRenderer.cpp" />

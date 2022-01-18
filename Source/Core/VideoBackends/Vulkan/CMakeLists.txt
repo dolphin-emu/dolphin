@@ -13,6 +13,7 @@ add_library(videovulkan
   VKBoundingBox.cpp
   VKBoundingBox.h
   VKMain.cpp
+  VKMemAllocator.cpp
   VKPerfQuery.cpp
   VKPerfQuery.h
   VKPipeline.cpp
@@ -45,6 +46,7 @@ PUBLIC
 PRIVATE
   # Link against glslang, the other necessary libraries are referenced by the executable.
   glslang
+  VulkanMemoryAllocator::VulkanMemoryAllocator
   xxhash
 )
 
@@ -53,6 +55,8 @@ target_include_directories(videovulkan
 PRIVATE
   ${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include
 )
+
+target_compile_definitions(videovulkan PRIVATE VMA_STATIC_VULKAN_FUNCTIONS=1)
 
 # Silence warnings on glslang by flagging it as a system include
 target_include_directories(videovulkan

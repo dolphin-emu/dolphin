@@ -23,10 +23,10 @@
 
 namespace Vulkan
 {
-VKTexture::VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
+VKTexture::VKTexture(const TextureConfig& tex_config, VmaAllocation allocation, VkImage image,
                      std::string_view name, VkImageLayout layout /* = VK_IMAGE_LAYOUT_UNDEFINED */,
                      ComputeImageLayout compute_layout /* = ComputeImageLayout::Undefined */)
-    : AbstractTexture(tex_config), m_device_memory(device_memory), m_image(image), m_layout(layout),
+    : AbstractTexture(tex_config), m_allocation(allocation), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
   if (!m_name.empty() && vkSetDebugUtilsObjectNameEXT)
@@ -46,10 +46,9 @@ VKTexture::~VKTexture()
   g_command_buffer_mgr->DeferImageViewDestruction(m_view);
 
   // If we don't have device memory allocated, the image is not owned by us (e.g. swapchain)
-  if (m_device_memory != VK_NULL_HANDLE)
+  if (m_allocation != VK_NULL_HANDLE)
   {
-    g_command_buffer_mgr->DeferImageDestruction(m_image);
-    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_device_memory);
+    g_command_buffer_mgr->DeferImageDestruction(m_image, m_allocation);
   }
 }
 
@@ -82,46 +81,23 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config, st
                                   nullptr,
                                   VK_IMAGE_LAYOUT_UNDEFINED};
 
+  VmaAllocationCreateInfo vma_alloc_create_info = {};
+  vma_alloc_create_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+  vma_alloc_create_info.flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+
   VkImage image = VK_NULL_HANDLE;
-  VkResult res = vkCreateImage(g_vulkan_context->GetDevice(), &image_info, nullptr, &image);
+  VmaAllocation vma_allocation = VK_NULL_HANDLE;
+  VkResult res = vmaCreateImage(g_vulkan_context->GetAllocator(), &image_info,
+                                &vma_alloc_create_info, &image, &vma_allocation, nullptr);
   if (res != VK_SUCCESS)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateImage failed: ");
-    return nullptr;
-  }
-
-  // Allocate memory to back this texture, we want device local memory in this case
-  VkMemoryRequirements memory_requirements;
-  vkGetImageMemoryRequirements(g_vulkan_context->GetDevice(), image, &memory_requirements);
-
-  VkMemoryAllocateInfo memory_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
-      g_vulkan_context
-          ->GetMemoryType(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                          false)
-          .value_or(0)};
-
-  VkDeviceMemory device_memory;
-  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_info, nullptr, &device_memory);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
-    return nullptr;
-  }
-
-  res = vkBindImageMemory(g_vulkan_context->GetDevice(), image, device_memory, 0);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkBindImageMemory failed: ");
-    vkDestroyImage(g_vulkan_context->GetDevice(), image, nullptr);
-    vkFreeMemory(g_vulkan_context->GetDevice(), device_memory, nullptr);
+    LOG_VULKAN_ERROR(res, "vmaCreateImage failed: ");
     return nullptr;
   }
 
   std::unique_ptr<VKTexture> texture =
-      std::make_unique<VKTexture>(tex_config, device_memory, image, name, VK_IMAGE_LAYOUT_UNDEFINED,
-                                  ComputeImageLayout::Undefined);
+      std::make_unique<VKTexture>(tex_config, vma_allocation, image, name,
+                                  VK_IMAGE_LAYOUT_UNDEFINED, ComputeImageLayout::Undefined);
   if (!texture->CreateView(VK_IMAGE_VIEW_TYPE_2D_ARRAY))
     return nullptr;
 
@@ -132,7 +108,7 @@ std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_con
                                                     VkImageViewType view_type, VkImageLayout layout)
 {
   std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, VkDeviceMemory(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
+      tex_config, VmaAllocation(VK_NULL_HANDLE), image, "", layout, ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
 

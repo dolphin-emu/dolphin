@@ -61,6 +61,7 @@ public:
   u32 GetGraphicsQueueFamilyIndex() const { return m_graphics_queue_family_index; }
   VkQueue GetPresentQueue() const { return m_present_queue; }
   u32 GetPresentQueueFamilyIndex() const { return m_present_queue_family_index; }
+  VmaAllocator GetAllocator() const { return m_allocator; }
   const VkQueueFamilyProperties& GetGraphicsQueueProperties() const
   {
     return m_graphics_queue_properties;
@@ -125,6 +126,7 @@ private:
   bool SelectDeviceExtensions(bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
+  bool CreateAllocator();
   void InitDriverDetails();
   void PopulateShaderSubgroupSupport();
 
@@ -135,6 +137,7 @@ private:
   VkQueue m_graphics_queue = VK_NULL_HANDLE;
   u32 m_graphics_queue_family_index = 0;
   VkQueue m_present_queue = VK_NULL_HANDLE;
+  VmaAllocator m_allocator = VK_NULL_HANDLE;
   u32 m_present_queue_family_index = 0;
   VkQueueFamilyProperties m_graphics_queue_properties = {};
 

@@ -439,6 +439,7 @@ void CommandBufferManager::BeginCommandBuffer()
   resources.semaphore_used = false;
   resources.fence_counter = m_next_fence_counter++;
   m_current_frame = next_buffer_index;
+  vmaSetCurrentFrameIndex(g_vulkan_context->GetAllocator(), static_cast<u32>(m_next_fence_counter));
 }
 
 void CommandBufferManager::DeferBufferDestruction(VkBuffer object)
@@ -446,6 +447,14 @@ void CommandBufferManager::DeferBufferDestruction(VkBuffer object)
   FrameResources& resources = m_frame_resources[m_current_frame];
   resources.cleanup_resources.push_back(
       [object]() { vkDestroyBuffer(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
+void CommandBufferManager::DeferBufferDestruction(VkBuffer object, VmaAllocation allocation)
+{
+  FrameResources& resources = m_frame_resources[m_current_frame];
+  resources.cleanup_resources.push_back([object, allocation]() {
+    vmaDestroyBuffer(g_vulkan_context->GetAllocator(), object, allocation);
+  });
 }
 
 void CommandBufferManager::DeferBufferViewDestruction(VkBufferView object)
@@ -469,11 +478,12 @@ void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
       [object]() { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
-void CommandBufferManager::DeferImageDestruction(VkImage object)
+void CommandBufferManager::DeferImageDestruction(VkImage object, VmaAllocation allocation)
 {
   FrameResources& resources = m_frame_resources[m_current_frame];
-  resources.cleanup_resources.push_back(
-      [object]() { vkDestroyImage(g_vulkan_context->GetDevice(), object, nullptr); });
+  resources.cleanup_resources.push_back([object, allocation]() {
+    vmaDestroyImage(g_vulkan_context->GetAllocator(), object, allocation);
+  });
 }
 
 void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
