@@ -97,6 +97,8 @@ add_library(videocommon
   UberShaderPixel.h
   UberShaderVertex.cpp
   UberShaderVertex.h
+  VertexCache.cpp
+  VertexCache.h
   VertexLoader.cpp
   VertexLoader.h
   VertexLoaderBase.cpp
