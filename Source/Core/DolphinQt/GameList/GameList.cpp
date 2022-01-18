@@ -734,7 +734,7 @@ void GameList::OpenGCSaveFolder()
     }
     case ExpansionInterface::EXIDeviceType::MemoryCard:
     {
-      std::string memcard_path = Config::Get(Config::GetInfoForMemcardPath(slot));
+      const std::string memcard_path = Config::GetMemcardPath(slot, game->GetRegion());
 
       std::string memcard_dir;
 

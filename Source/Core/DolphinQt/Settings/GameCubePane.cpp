@@ -303,66 +303,89 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
 {
   ASSERT(ExpansionInterface::IsMemcardSlot(slot));
 
-  QString filename = DolphinFileDialog::getSaveFileName(
-      this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+  const QString filename = DolphinFileDialog::getSaveFileName(
+      this, tr("Choose a file to open or create"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       tr("GameCube Memory Cards (*.raw *.gcp)"), 0, QFileDialog::DontConfirmOverwrite);
 
   if (filename.isEmpty())
     return;
 
-  QString path_abs = QFileInfo(filename).absoluteFilePath();
+  const std::string raw_path =
+      WithUnifiedPathSeparators(QFileInfo(filename).absoluteFilePath().toStdString());
 
-  // Memcard validity checks
-  if (File::Exists(filename.toStdString()))
+  // Figure out if the user selected a card that has a valid region specifier in the filename.
+  const std::string jp_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_J);
+  const std::string us_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::NTSC_U);
+  const std::string eu_path = Config::GetMemcardPath(raw_path, slot, DiscIO::Region::PAL);
+  const bool raw_path_valid = raw_path == jp_path || raw_path == us_path || raw_path == eu_path;
+
+  if (!raw_path_valid)
   {
-    auto [error_code, mc] = Memcard::GCMemcard::Open(filename.toStdString());
-
-    if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
-    {
-      ModalMessageBox::critical(
-          this, tr("Error"),
-          tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
-              .arg(filename)
-              .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
-      return;
-    }
+    // TODO: We could try to autodetect the card region here and offer automatic renaming.
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("The filename %1 does not conform to Dolphin's region code format "
+                                 "for memory cards. Please rename this file to either %2, %3, or "
+                                 "%4, matching the region of the save files that are on it.")
+                                  .arg(QString::fromStdString(PathToFileName(raw_path)))
+                                  .arg(QString::fromStdString(PathToFileName(us_path)))
+                                  .arg(QString::fromStdString(PathToFileName(eu_path)))
+                                  .arg(QString::fromStdString(PathToFileName(jp_path))));
+    return;
   }
 
-  for (ExpansionInterface::Slot other_slot : ExpansionInterface::MEMCARD_SLOTS)
+  // Memcard validity checks
+  for (const std::string& path : {jp_path, us_path, eu_path})
   {
-    if (other_slot == slot)
-      continue;
-
-    bool other_slot_memcard = m_slot_combos[other_slot]->currentData().toInt() ==
-                              static_cast<int>(ExpansionInterface::EXIDeviceType::MemoryCard);
-    if (other_slot_memcard)
+    if (File::Exists(path))
     {
-      QString path_other =
-          QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForMemcardPath(other_slot))))
-              .absoluteFilePath();
+      auto [error_code, mc] = Memcard::GCMemcard::Open(path);
 
-      if (path_abs == path_other)
+      if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
       {
         ModalMessageBox::critical(
             this, tr("Error"),
-            tr("The same file can't be used in multiple slots; it is already used by %1.")
-                .arg(QString::fromStdString(fmt::to_string(other_slot))));
+            tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
+                .arg(QString::fromStdString(path))
+                .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
         return;
       }
     }
   }
 
-  QString path_old =
-      QFileInfo(QString::fromStdString(Config::Get(Config::GetInfoForMemcardPath(slot))))
-          .absoluteFilePath();
-
-  Config::SetBase(Config::GetInfoForMemcardPath(slot), path_abs.toStdString());
-
-  if (Core::IsRunning() && path_abs != path_old)
+  // Check if the other slot has the same memory card configured and refuse to use this card if so.
+  // The EU path is compared here, but it doesn't actually matter which one we compare since they
+  // follow a known pattern, so if the EU path matches the other match too and vice-versa.
+  for (ExpansionInterface::Slot other_slot : ExpansionInterface::MEMCARD_SLOTS)
   {
-    // ChangeDevice unplugs the device for 1 second, which means that games should notice that
-    // the path has changed and thus the memory card contents have changed
-    ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCard);
+    if (other_slot == slot)
+      continue;
+
+    const std::string other_eu_path = Config::GetMemcardPath(other_slot, DiscIO::Region::PAL);
+    if (eu_path == other_eu_path)
+    {
+      ModalMessageBox::critical(
+          this, tr("Error"),
+          tr("The same file can't be used in multiple slots; it is already used by %1.")
+              .arg(QString::fromStdString(fmt::to_string(other_slot))));
+      return;
+    }
+  }
+
+  Config::SetBase(Config::GetInfoForMemcardPath(slot), raw_path);
+
+  if (Core::IsRunning())
+  {
+    // If emulation is running and the new card is different from the old one, notify the system to
+    // eject the old and insert the new card.
+    // TODO: This should probably done by a config change callback instead.
+    const std::string old_eu_path = Config::GetMemcardPath(slot, DiscIO::Region::PAL);
+    if (eu_path != old_eu_path)
+    {
+      // ChangeDevice unplugs the device for 1 second, which means that games should notice that
+      // the path has changed and thus the memory card contents have changed
+      ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCard);
+    }
   }
 }
 

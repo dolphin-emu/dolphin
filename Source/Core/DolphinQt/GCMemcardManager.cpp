@@ -228,7 +228,8 @@ void GCMemcardManager::LoadDefaultMemcards()
       continue;
     }
 
-    const QString path = QString::fromStdString(Config::Get(Config::GetInfoForMemcardPath(slot)));
+    const QString path = QString::fromStdString(
+        Config::GetMemcardPath(slot, Config::Get(Config::MAIN_FALLBACK_REGION)));
     SetSlotFile(slot, path);
   }
 }
