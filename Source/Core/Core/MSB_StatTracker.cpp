@@ -630,7 +630,9 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
             //Iterate Batters vector of batting stats
             json_stream << "      \"Pitch Summary\": [" << std::endl;
-            for (auto& ab_stat : m_ab_stats[team][roster]){
+            for (auto it = m_ab_stats[team][roster].begin(); it != m_ab_stats[team][roster].end(); it++){
+                ABStats ab_stat = *it;
+
                 json_stream << "        {" << std::endl;
                 json_stream << "          \"Pitch Num\": " << ab_stat.pitch_num << "," << std::endl;
                 json_stream << "          \"Batter\": " << character << "," << std::endl;
@@ -752,7 +754,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     json_stream << "              \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
                     json_stream << "              \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;
 
-                    json_stream << "              \"Ball Position Upon Contact - x\": " << ball_x_pos_upon_hit << "," << std::endl;
+                    json_stream << "              \"Ball Position Upon Contact - X\": " << ball_x_pos_upon_hit << "," << std::endl;
                     json_stream << "              \"Ball Position Upon Contact - Y\": " << ball_y_pos_upon_hit << "," << std::endl;
 
                     json_stream << "              \"Fielding Summary\": [" << std::endl;
@@ -777,7 +779,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Final Result - Inferred\": \"" << ab_stat.result_inferred << "\"," << std::endl;
                 json_stream << "          \"Final Result - Game\": " << std::to_string(ab_stat.result_game) << std::endl;
                 
-                std::string end_comma = (ab_stat == m_ab_stats[team][roster].back()) ? "" : ",";
+                std::string end_comma = (std::next(it) != m_ab_stats[team][roster].end()) ? "," : "";
                 json_stream << "        }" << end_comma << std::endl;
             }
             json_stream << "      ]" << std::endl;
