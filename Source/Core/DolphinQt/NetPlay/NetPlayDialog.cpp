@@ -989,7 +989,7 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     });
   }
 
-  if (!golfer_name.empty())
+  if (!golfer_name.empty() && (SConfig::GetInstance().bEnableDebugging))  // only show if debug mode
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
