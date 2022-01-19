@@ -68,6 +68,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2+](http://www.surina.net/soundtouch/license.html)
 - [TAP-Windows](https://openvpn.net/):
    header only
+- [VulkanMemoryAllocator](https://gpuopen.com/vulkan-memory-allocator/):
+   [MIT](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/blob/master/LICENSE.txt)
 - [Windows Implementation Libraries](https://github.com/microsoft/wil):
    [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
 - [xxHash](https://github.com/Cyan4973/xxHash):
