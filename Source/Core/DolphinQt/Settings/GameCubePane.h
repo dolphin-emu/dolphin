@@ -14,6 +14,8 @@
 
 class QCheckBox;
 class QComboBox;
+class QHBoxLayout;
+class QLabel;
 class QLineEdit;
 class QPushButton;
 
@@ -49,6 +51,14 @@ private:
 
   Common::EnumMap<QPushButton*, ExpansionInterface::MAX_SLOT> m_slot_buttons;
   Common::EnumMap<QComboBox*, ExpansionInterface::MAX_SLOT> m_slot_combos;
+
+  Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_memcard_path_layouts;
+  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_memcard_path_labels;
+  Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_memcard_paths;
+
+  Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_path_layouts;
+  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_path_labels;
+  Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_paths;
 
   QCheckBox* m_gba_threads;
   QCheckBox* m_gba_save_rom_path;

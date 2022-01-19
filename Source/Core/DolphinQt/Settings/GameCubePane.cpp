@@ -10,6 +10,7 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -98,6 +99,23 @@ void GameCubePane::CreateWidgets()
     m_slot_buttons[slot]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
 
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+  {
+    m_memcard_path_layouts[slot] = new QHBoxLayout();
+    m_memcard_path_labels[slot] = new QLabel(tr("Memory Card Path:"));
+    m_memcard_paths[slot] = new QLineEdit();
+    m_memcard_paths[slot]->setReadOnly(true);
+    m_memcard_path_layouts[slot]->addWidget(m_memcard_path_labels[slot]);
+    m_memcard_path_layouts[slot]->addWidget(m_memcard_paths[slot]);
+
+    m_agp_path_layouts[slot] = new QHBoxLayout();
+    m_agp_path_labels[slot] = new QLabel(tr("GBA Cartridge Path:"));
+    m_agp_paths[slot] = new QLineEdit();
+    m_agp_paths[slot]->setReadOnly(true);
+    m_agp_path_layouts[slot]->addWidget(m_agp_path_labels[slot]);
+    m_agp_path_layouts[slot]->addWidget(m_agp_paths[slot]);
+  }
+
   // Add slot devices
   for (const auto device : {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::MemoryCard,
                             EXIDeviceType::MemoryCardFolder, EXIDeviceType::Gecko,
@@ -124,15 +142,34 @@ void GameCubePane::CreateWidgets()
                                                           static_cast<int>(device));
   }
 
-  device_layout->addWidget(new QLabel(tr("Slot A:")), 0, 0);
-  device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::A], 0, 1);
-  device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::A], 0, 2);
-  device_layout->addWidget(new QLabel(tr("Slot B:")), 1, 0);
-  device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::B], 1, 1);
-  device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::B], 1, 2);
-  device_layout->addWidget(new QLabel(tr("SP1:")), 2, 0);
-  device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP1], 2, 1);
-  device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP1], 2, 2);
+  {
+    int row = 0;
+    device_layout->addWidget(new QLabel(tr("Slot A:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::A], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::A], row, 2);
+
+    ++row;
+    device_layout->addLayout(m_memcard_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addWidget(new QLabel(tr("Slot B:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::B], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::B], row, 2);
+
+    ++row;
+    device_layout->addLayout(m_memcard_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addWidget(new QLabel(tr("SP1:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP1], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP1], row, 2);
+  }
 
 #ifdef HAS_LIBMGBA
   // GBA Settings
@@ -254,6 +291,10 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
     has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
                   device == ExpansionInterface::EXIDeviceType::AGP ||
                   device == ExpansionInterface::EXIDeviceType::Microphone);
+    m_memcard_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::MemoryCard);
+    m_memcard_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::MemoryCard);
+    m_agp_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
+    m_agp_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
     break;
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
@@ -374,6 +415,8 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
     // the path has changed and thus the memory card contents have changed
     ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCard);
   }
+
+  LoadSettings();
 }
 
 void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
@@ -403,6 +446,8 @@ void GameCubePane::BrowseAGPRom(ExpansionInterface::Slot slot)
     // we might as well do it for the AGP too.
     ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::AGP);
   }
+
+  LoadSettings();
 }
 
 void GameCubePane::BrowseGBABios()
@@ -478,6 +523,14 @@ void GameCubePane::LoadSettings()
     m_slot_combos[slot]->setCurrentIndex(
         m_slot_combos[slot]->findData(static_cast<int>(exi_device)));
     UpdateButton(slot);
+  }
+
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
+  {
+    m_memcard_paths[slot]->setText(QString::fromStdString(
+        Config::GetMemcardPath(slot, Config::Get(Config::MAIN_FALLBACK_REGION))));
+    m_agp_paths[slot]->setText(
+        QString::fromStdString(Config::Get(Config::GetInfoForAGPCartPath(slot))));
   }
 
 #ifdef HAS_LIBMGBA
