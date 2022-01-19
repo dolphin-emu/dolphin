@@ -75,6 +75,18 @@ const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
       };
   return *infos[slot];
 }
+const Info<std::string> MAIN_GCI_FOLDER_A_PATH{{System::Main, "Core", "GCIFolderAPath"}, ""};
+const Info<std::string> MAIN_GCI_FOLDER_B_PATH{{System::Main, "Core", "GCIFolderBPath"}, ""};
+const Info<std::string>& GetInfoForGCIPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_GCI_FOLDER_A_PATH,
+          &MAIN_GCI_FOLDER_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
@@ -614,5 +626,36 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
     name = name.substr(0, name.size() - eu_region.size());
 
   return fmt::format("{}{}.{}{}{}", dir, name, region_dir, blocks_string, ext);
+}
+
+std::string GetGCIFolderPath(ExpansionInterface::Slot slot, DiscIO::Region region)
+{
+  return GetGCIFolderPath(Config::Get(GetInfoForGCIPath(slot)), slot, region);
+}
+
+std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
+                             DiscIO::Region region)
+{
+  const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(region));
+  const bool is_slot_a = slot == ExpansionInterface::Slot::A;
+
+  if (configured_folder.empty())
+  {
+    return fmt::format("{}{}/Card {}", File::GetUserPath(D_GCUSER_IDX), region_dir,
+                       is_slot_a ? 'A' : 'B');
+  }
+
+#ifdef _WIN32
+  for (char& c : configured_folder)
+  {
+    if (c == '\\')
+      c = '/';
+  }
+#endif
+
+  while (StringEndsWith(configured_folder, "/"))
+    configured_folder.pop_back();
+
+  return fmt::format("{}/{}/Card {}", configured_folder, region_dir, is_slot_a ? 'A' : 'B');
 }
 }  // namespace Config

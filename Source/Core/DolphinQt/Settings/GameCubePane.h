@@ -40,6 +40,7 @@ private:
   void OnConfigPressed(ExpansionInterface::Slot slot);
 
   void BrowseMemcard(ExpansionInterface::Slot slot);
+  void BrowseGCIFolder(ExpansionInterface::Slot slot);
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void BrowseGBABios();
   void BrowseGBARom(size_t index);
@@ -59,6 +60,10 @@ private:
   Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_path_layouts;
   Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_path_labels;
   Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_agp_paths;
+
+  Common::EnumMap<QHBoxLayout*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_path_layouts;
+  Common::EnumMap<QLabel*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_path_labels;
+  Common::EnumMap<QLineEdit*, ExpansionInterface::MAX_MEMCARD_SLOT> m_gci_paths;
 
   QCheckBox* m_gba_threads;
   QCheckBox* m_gba_save_rom_path;

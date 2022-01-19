@@ -114,6 +114,13 @@ void GameCubePane::CreateWidgets()
     m_agp_paths[slot]->setReadOnly(true);
     m_agp_path_layouts[slot]->addWidget(m_agp_path_labels[slot]);
     m_agp_path_layouts[slot]->addWidget(m_agp_paths[slot]);
+
+    m_gci_path_layouts[slot] = new QHBoxLayout();
+    m_gci_path_labels[slot] = new QLabel(tr("GCI Folder Path:"));
+    m_gci_paths[slot] = new QLineEdit();
+    m_gci_paths[slot]->setReadOnly(true);
+    m_gci_path_layouts[slot]->addWidget(m_gci_path_labels[slot]);
+    m_gci_path_layouts[slot]->addWidget(m_gci_paths[slot]);
   }
 
   // Add slot devices
@@ -155,6 +162,9 @@ void GameCubePane::CreateWidgets()
     device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
 
     ++row;
+    device_layout->addLayout(m_gci_path_layouts[ExpansionInterface::Slot::A], row, 0, 1, 3);
+
+    ++row;
     device_layout->addWidget(new QLabel(tr("Slot B:")), row, 0);
     device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::B], row, 1);
     device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::B], row, 2);
@@ -164,6 +174,9 @@ void GameCubePane::CreateWidgets()
 
     ++row;
     device_layout->addLayout(m_agp_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
+
+    ++row;
+    device_layout->addLayout(m_gci_path_layouts[ExpansionInterface::Slot::B], row, 0, 1, 3);
 
     ++row;
     device_layout->addWidget(new QLabel(tr("SP1:")), row, 0);
@@ -289,12 +302,16 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   case ExpansionInterface::Slot::A:
   case ExpansionInterface::Slot::B:
     has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
+                  device == ExpansionInterface::EXIDeviceType::MemoryCardFolder ||
                   device == ExpansionInterface::EXIDeviceType::AGP ||
                   device == ExpansionInterface::EXIDeviceType::Microphone);
     m_memcard_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::MemoryCard);
     m_memcard_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::MemoryCard);
     m_agp_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
     m_agp_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
+    m_gci_path_labels[slot]->setHidden(device !=
+                                       ExpansionInterface::EXIDeviceType::MemoryCardFolder);
+    m_gci_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::MemoryCardFolder);
     break;
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
@@ -314,6 +331,9 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   {
   case ExpansionInterface::EXIDeviceType::MemoryCard:
     BrowseMemcard(slot);
+    return;
+  case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
+    BrowseGCIFolder(slot);
     return;
   case ExpansionInterface::EXIDeviceType::AGP:
     BrowseAGPRom(slot);
@@ -414,6 +434,50 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
     // ChangeDevice unplugs the device for 1 second, which means that games should notice that
     // the path has changed and thus the memory card contents have changed
     ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCard);
+  }
+
+  LoadSettings();
+}
+
+void GameCubePane::BrowseGCIFolder(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+
+  const QString path = DolphinFileDialog::getExistingDirectory(
+      this, tr("Choose the GCI base folder"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)));
+
+  if (path.isEmpty())
+    return;
+
+  const std::string raw_path = QFileInfo(path).absoluteFilePath().toStdString();
+
+  // Check if the same folder is selected for both.
+  const std::string eu_path = Config::GetGCIFolderPath(raw_path, slot, DiscIO::Region::PAL);
+  for (ExpansionInterface::Slot other_slot : ExpansionInterface::MEMCARD_SLOTS)
+  {
+    if (other_slot == slot)
+      continue;
+
+    const std::string other_eu_path = Config::GetGCIFolderPath(other_slot, DiscIO::Region::PAL);
+    if (eu_path == other_eu_path)
+    {
+      ModalMessageBox::critical(
+          this, tr("Error"),
+          tr("The same folder can't be used in multiple slots; it is already used by %1.")
+              .arg(QString::fromStdString(fmt::to_string(other_slot))));
+      return;
+    }
+  }
+
+  const std::string old_eu_path = Config::GetMemcardPath(slot, DiscIO::Region::PAL);
+  Config::SetBase(Config::GetInfoForGCIPath(slot), raw_path);
+
+  if (Core::IsRunning() && eu_path != old_eu_path)
+  {
+    // ChangeDevice unplugs the device for 1 second, which means that games should notice that
+    // the path has changed and thus the memory card contents have changed
+    ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCardFolder);
   }
 
   LoadSettings();
@@ -531,6 +595,8 @@ void GameCubePane::LoadSettings()
         Config::GetMemcardPath(slot, Config::Get(Config::MAIN_FALLBACK_REGION))));
     m_agp_paths[slot]->setText(
         QString::fromStdString(Config::Get(Config::GetInfoForAGPCartPath(slot))));
+    m_gci_paths[slot]->setText(QString::fromStdString(
+        Config::GetGCIFolderPath(slot, Config::Get(Config::MAIN_FALLBACK_REGION))));
   }
 
 #ifdef HAS_LIBMGBA
