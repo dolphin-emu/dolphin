@@ -104,7 +104,7 @@ void NetPlayDialog::CreateMainLayout()
   m_buffer_size_box = new QSpinBox;
   m_buffer_size_box->setToolTip(
       tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\n"
-      "Project Rio's Batter Lag Reduction mod removes 1 frame (4 buffer) from swings on NetPlay,\n"
+      "Project Rio's Batter Lag Reduction mod removes 2 frames (8 buffer) from swings on NetPlay,\n"
       "and a 120 Hz or greater monitor reduces another 0.5 frames (2 buffer) of general lag.\n\n"
       "For a simple method, use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 ping and less.\n"
       "Games above 150 ping will be very laggy and are not recommended for competitive play."));
@@ -139,18 +139,18 @@ void NetPlayDialog::CreateMainLayout()
 
   m_network_menu = m_menu_bar->addMenu(tr("Network"));
   m_network_menu->setToolTipsVisible(true);
+  m_golf_mode_action = m_network_menu->addAction(tr("Auto Golf Mode"));
+  m_golf_mode_action->setToolTip(tr("One player will have 0 input delay (the golfer), while the "
+                                    "opponent will have a latency penalty.\n"
+                                    "With Auto Golf Mode, the Batter is always set to the golfer, "
+                                    "then when the ball is hit the golfer\n"
+                                    "will automatically switch to the fielder."));
+  m_golf_mode_action->setCheckable(true);
   m_fixed_delay_action = m_network_menu->addAction(tr("Fair Input Delay"));
   m_fixed_delay_action->setToolTip(
       tr("Each player sends their own inputs to the game, with equal buffer size for all players, "
-         "configured by the host.\nSuitable for competitive games where fairness and minimal "
-         "latency are most important."));
+         "configured by the host.\nRecommended only for games of low ping with highly stable connection."));
   m_fixed_delay_action->setCheckable(true);
-  m_golf_mode_action = m_network_menu->addAction(tr("Auto Golf Mode"));
-  m_golf_mode_action->setToolTip(
-      tr("One player will have 0 input delay (the golfer), while the opponent will have a latency penalty.\n"
-         "With Auto Golf Mode, the Batter is always set to the golfer, then when the ball is hit the golfer\n"
-         "will automatically switch to the fielder."));
-  m_golf_mode_action->setCheckable(true);
 
   m_network_mode_group = new QActionGroup(this);
   m_network_mode_group->setExclusive(true);
@@ -887,7 +887,7 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 {
   m_host_input_authority = enabled;
-  DisplayMessage(enabled ? tr("Host input authority enabled") : tr("Host input authority disabled"),
+  DisplayMessage(enabled ? tr("Auto Golf Mode enabled") : tr("Fair Input Delay enabled"),
                  "");
 
   QueueOnObject(this, [this, enabled] {

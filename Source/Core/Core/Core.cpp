@@ -179,9 +179,9 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  if (!NetPlay::IsNetPlayRunning() || NetPlay::HIA)
+  if (!NetPlay::IsNetPlayRunning() || IsGolfMode())
   {
-    // for some unknown reason, when playing locally the game gets a write error at frme 6457
+    // for some unknown reason, when playing locally the game gets a write error at frame 6457
     // no idea why, so imma just write to the addr on some arbiturary frame number
     if (Movie::GetCurrentFrame()==500)
     {
@@ -194,12 +194,11 @@ void OnFrameEnd()
     }
   }
   // Auto Golf Mode
-  if (NetPlay::HIA)
+  if (NetPlay::IsNetPlayRunning() && IsGolfMode())
   {
-    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8036F3B8), // isBat
-                                         (Memory::Read_U8(0x802EBF95)), // BatPort
-                                         (Memory::Read_U8(0x802EBF94)), // FieldPort
-                                         Memory::Read_U8(0x802EBF98)); // isField
+    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8089389B),    // isField
+                                         (Memory::Read_U8(0x802EBF95)),  // BatPort
+                                         (Memory::Read_U8(0x802EBF94))); // FieldPort
   }
 
 #ifdef USE_MEMORYWATCHER
@@ -210,6 +209,18 @@ void OnFrameEnd()
   if (s_stat_tracker) {
     s_stat_tracker->Run();
   }
+}
+
+bool IsGolfMode()
+{
+  // we have to do this dumb work around cause Dolphin gets an error
+  // when calling GetNetSetttings when NetPlay's not running
+  bool out = false;
+  if (NetPlay::IsNetPlayRunning())
+  {
+    out = NetPlay::GetNetSettings().m_HostInputAuthority;
+  }
+  return out;
 }
 
 // Display messages and return values

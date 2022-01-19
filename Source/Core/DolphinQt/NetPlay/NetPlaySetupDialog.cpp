@@ -316,9 +316,13 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
 
 void NetPlaySetupDialog::show()
 {
-  // Here i'm setting default configs to make NetPlay sessions start more easily
-  std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
-  m_host_server_name->setText(QString::fromStdString(nickname));
+  // Here i'm setting the lobby name if it's empty to make
+  // NetPlay sessions start more easily for first time players
+  if (m_host_server_name->text().isEmpty())
+  {
+    std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
+    m_host_server_name->setText(QString::fromStdString(nickname));
+  }
   m_host_server_browser->setChecked(true);
   m_connection_type->setCurrentIndex(1);
   m_tab_widget->setCurrentIndex(1);

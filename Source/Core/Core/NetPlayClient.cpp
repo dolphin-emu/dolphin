@@ -606,7 +606,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     packet >> m_host_input_authority;
     m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
-    isHostInputAuthority(m_host_input_authority);
   }
   break;
 
@@ -2346,16 +2345,16 @@ void NetPlayClient::RequestGolfControl()
   RequestGolfControl(m_local_player->pid);
 }
 
-void NetPlayClient::AutoGolfMode(int isBat, int BatPort, int FieldPort, int isField)
+void NetPlayClient::AutoGolfMode(int isField, int BatPort, int FieldPort)
 {
   if (BatPort != 0) // only != 0 when a game is in progress
   {
-    if (isBat == 0 || isField == 1)  // fielding/baserunning state
+    if (isField == 1)  // fielding/baserunning state
     {
       if (netplay_client->ShouldBeGolfer(FieldPort))
         netplay_client->RequestGolfControl();
     }
-    else if (isBat == 1)  // batting/pitching state
+    else if (isField == 0)  // batting/pitching state
     {
       if (netplay_client->ShouldBeGolfer(BatPort))
         netplay_client->RequestGolfControl();
@@ -2593,19 +2592,6 @@ std::string GetPlayerMappingString(PlayerId pid, const PadMappingArray& pad_map,
 bool IsNetPlayRunning()
 {
   return netplay_client != nullptr;
-}
-
-void isHostInputAuthority(bool enabled)
-{
-  if (enabled == true)
-  {
-    HIA = true;
-  }
-  else
-  {
-    HIA = false;
-  }
-  return;
 }
 
 const NetSettings& GetNetSettings()

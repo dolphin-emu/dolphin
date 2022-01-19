@@ -42,6 +42,7 @@ private:
   GraphicsBool* m_dump_xfb_target;
   GraphicsBool* m_disable_vram_copies;
   GraphicsBool* m_load_custom_textures;
+  QComboBox* m_custom_textures_list;
 
   // Texture dumping
   GraphicsBool* m_dump_textures;

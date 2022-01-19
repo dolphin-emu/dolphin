@@ -589,7 +589,7 @@ void MenuBar::InstallUpdateManually()
   {
     ModalMessageBox::information(
         this, tr("Update"),
-        tr("You are running the latest version available on this update track."));
+        tr("You are running the latest version available."));
   }
 
   track = previous_value;
