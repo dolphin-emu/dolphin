@@ -716,16 +716,10 @@ void GameList::OpenGCSaveFolder()
     {
     case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
     {
-      std::string path = fmt::format("{}/{}/{}", File::GetUserPath(D_GCUSER_IDX),
-                                     Config::GetDirectoryForRegion(game->GetRegion()),
-                                     slot == Slot::A ? "Card A" : "Card B");
-
       std::string override_path = Config::Get(Config::GetInfoForGCIPathOverride(slot));
-
-      if (!override_path.empty())
-        path = override_path;
-
-      QDir dir(QString::fromStdString(path));
+      QDir dir(QString::fromStdString(override_path.empty() ?
+                                          Config::GetGCIFolderPath(slot, game->GetRegion()) :
+                                          override_path));
 
       if (!dir.entryList({QStringLiteral("%1-%2-*.gci")
                               .arg(QString::fromStdString(game->GetMakerID()))

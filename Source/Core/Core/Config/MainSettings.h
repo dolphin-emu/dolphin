@@ -75,6 +75,9 @@ const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_AGP_CART_A_PATH;
 extern const Info<std::string> MAIN_AGP_CART_B_PATH;
 const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot);
+extern const Info<std::string> MAIN_GCI_FOLDER_A_PATH;
+extern const Info<std::string> MAIN_GCI_FOLDER_B_PATH;
+const Info<std::string>& GetInfoForGCIPath(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE;
 extern const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE;
 const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot);
@@ -352,4 +355,8 @@ std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::
 std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
                            std::optional<DiscIO::Region> region, u16 size_mb = 0x80);
 bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot);
+std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region);
+std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
+                             std::optional<DiscIO::Region> region);
+bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot);
 }  // namespace Config

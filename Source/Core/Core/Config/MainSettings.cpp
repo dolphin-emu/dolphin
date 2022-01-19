@@ -76,6 +76,18 @@ const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
       };
   return *infos[slot];
 }
+const Info<std::string> MAIN_GCI_FOLDER_A_PATH{{System::Main, "Core", "GCIFolderAPath"}, ""};
+const Info<std::string> MAIN_GCI_FOLDER_B_PATH{{System::Main, "Core", "GCIFolderBPath"}, ""};
+const Info<std::string>& GetInfoForGCIPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_GCI_FOLDER_A_PATH,
+          &MAIN_GCI_FOLDER_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
@@ -649,5 +661,64 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
 bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot)
 {
   return Config::Get(GetInfoForMemcardPath(slot)).empty();
+}
+
+std::string GetGCIFolderPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region)
+{
+  return GetGCIFolderPath(Config::Get(GetInfoForGCIPath(slot)), slot, region);
+}
+
+std::string GetGCIFolderPath(std::string configured_folder, ExpansionInterface::Slot slot,
+                             std::optional<DiscIO::Region> region)
+{
+  if (configured_folder.empty())
+  {
+    const auto region_dir = Config::GetDirectoryForRegion(
+        Config::ToGameCubeRegion(region ? *region : Config::Get(Config::MAIN_FALLBACK_REGION)));
+    const bool is_slot_a = slot == ExpansionInterface::Slot::A;
+    return fmt::format("{}{}/Card {}", File::GetUserPath(D_GCUSER_IDX), region_dir,
+                       is_slot_a ? 'A' : 'B');
+  }
+
+  // Custom path is expected to be stored in the form of
+  // "/path/to/folder/{region_code}"
+  // with an arbitrary but supported region code.
+  // Try to extract and replace that region code.
+  // If there's no region code just insert one at the end.
+
+  UnifyPathSeparators(configured_folder);
+  while (StringEndsWith(configured_folder, "/"))
+    configured_folder.pop_back();
+
+  constexpr std::string_view us_region = "/" USA_DIR;
+  constexpr std::string_view jp_region = "/" JAP_DIR;
+  constexpr std::string_view eu_region = "/" EUR_DIR;
+  std::string_view base_path = configured_folder;
+  std::optional<DiscIO::Region> path_region = std::nullopt;
+  if (StringEndsWith(base_path, us_region))
+  {
+    base_path = base_path.substr(0, base_path.size() - us_region.size());
+    path_region = DiscIO::Region::NTSC_U;
+  }
+  else if (StringEndsWith(base_path, jp_region))
+  {
+    base_path = base_path.substr(0, base_path.size() - jp_region.size());
+    path_region = DiscIO::Region::NTSC_J;
+  }
+  else if (StringEndsWith(base_path, eu_region))
+  {
+    base_path = base_path.substr(0, base_path.size() - eu_region.size());
+    path_region = DiscIO::Region::PAL;
+  }
+
+  const DiscIO::Region used_region =
+      region ? *region : (path_region ? *path_region : Config::Get(Config::MAIN_FALLBACK_REGION));
+  return fmt::format("{}/{}", base_path,
+                     Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region)));
+}
+
+bool IsDefaultGCIFolderPathConfigured(ExpansionInterface::Slot slot)
+{
+  return Config::Get(GetInfoForGCIPath(slot)).empty();
 }
 }  // namespace Config

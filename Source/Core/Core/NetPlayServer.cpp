@@ -1686,7 +1686,8 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
     return true;
 
   const auto game_region = sync_info.game->GetRegion();
-  const std::string region = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(game_region));
+  const auto gamecube_region = Config::ToGameCubeRegion(game_region);
+  const std::string region = Config::GetDirectoryForRegion(gamecube_region);
 
   for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
@@ -1723,8 +1724,7 @@ bool NetPlayServer::SyncSaveData(const SaveSyncInfo& sync_info)
     else if (Config::Get(Config::GetInfoForEXIDevice(slot)) ==
              ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
-      const std::string path = File::GetUserPath(D_GCUSER_IDX) + region + DIR_SEP +
-                               fmt::format("Card {}", is_slot_a ? 'A' : 'B');
+      const std::string path = Config::GetGCIFolderPath(slot, gamecube_region);
 
       sf::Packet pac;
       pac << MessageID::SyncSaveData;
