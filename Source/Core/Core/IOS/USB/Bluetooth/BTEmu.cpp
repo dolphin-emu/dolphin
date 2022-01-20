@@ -598,7 +598,8 @@ bool BluetoothEmuDevice::SendEventRemoteNameReq(const bdaddr_t& bd)
   DEBUG_LOG_FMT(IOS_WIIMOTE, "  bd: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
                 remote_name_req->bdaddr[0], remote_name_req->bdaddr[1], remote_name_req->bdaddr[2],
                 remote_name_req->bdaddr[3], remote_name_req->bdaddr[4], remote_name_req->bdaddr[5]);
-  DEBUG_LOG_FMT(IOS_WIIMOTE, "  RemoteName: {}", remote_name_req->RemoteName);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "  RemoteName: {}",
+                reinterpret_cast<char*>(remote_name_req->RemoteName));
 
   AddEventToQueue(event);
 

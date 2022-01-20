@@ -571,8 +571,8 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
   // do not allow writes past registers
   if (end_address > XFMEM_REGISTERS_END)
   {
-    fmt::format_to(name, "Invalid XF Transfer ");
-    fmt::format_to(desc, "Transfer ends past end of address space\n\n");
+    fmt::format_to(std::back_inserter(name), "Invalid XF Transfer ");
+    fmt::format_to(std::back_inserter(desc), "Transfer ends past end of address space\n\n");
     end_address = XFMEM_REGISTERS_END;
   }
 
@@ -588,30 +588,32 @@ std::pair<std::string, std::string> GetXFTransferInfo(u16 base_address, u8 trans
       base_address = XFMEM_REGISTERS_START;
     }
 
-    fmt::format_to(name, "Write {} XF mem words at {:04x}", xf_mem_transfer_size, xf_mem_base);
+    fmt::format_to(std::back_inserter(name), "Write {} XF mem words at {:04x}",
+                   xf_mem_transfer_size, xf_mem_base);
 
     for (u32 i = 0; i < xf_mem_transfer_size; i++)
     {
       const auto mem_desc = GetXFMemDescription(xf_mem_base + i, Common::swap32(data));
-      fmt::format_to(desc, i == 0 ? "{}" : "\n{}", mem_desc);
+      fmt::format_to(std::back_inserter(desc), "{}{}", i != 0 ? "\n" : "", mem_desc);
       data += 4;
     }
 
     if (end_address > XFMEM_REGISTERS_START)
-      fmt::format_to(name, "; ");
+      fmt::format_to(std::back_inserter(name), "; ");
   }
 
   // write to XF regs
   if (base_address >= XFMEM_REGISTERS_START)
   {
-    fmt::format_to(name, "Write {} XF regs at {:04x}", end_address - base_address, base_address);
+    fmt::format_to(std::back_inserter(name), "Write {} XF regs at {:04x}",
+                   end_address - base_address, base_address);
 
     for (u32 address = base_address; address < end_address; address++)
     {
       const u32 value = Common::swap32(data);
 
       const auto [regname, regdesc] = GetXFRegInfo(address, value);
-      fmt::format_to(desc, "{}\n{}\n", regname, regdesc);
+      fmt::format_to(std::back_inserter(desc), "{}\n{}\n", regname, regdesc);
 
       data += 4;
     }
@@ -628,7 +630,7 @@ std::pair<std::string, std::string> GetXFIndexedLoadInfo(CPArray array, u32 inde
   fmt::memory_buffer written;
   for (u32 i = 0; i < size; i++)
   {
-    fmt::format_to(written, "{}\n", GetXFMemName(address + i));
+    fmt::format_to(std::back_inserter(written), "{}\n", GetXFMemName(address + i));
   }
 
   return std::make_pair(desc, fmt::to_string(written));

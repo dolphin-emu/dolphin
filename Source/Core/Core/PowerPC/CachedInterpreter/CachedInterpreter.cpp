@@ -100,7 +100,8 @@ void CachedInterpreter::ExecuteOneBlock()
       break;
 
     default:
-      ERROR_LOG_FMT(POWERPC, "Unknown CachedInterpreter Instruction: {}", code->type);
+      ERROR_LOG_FMT(POWERPC, "Unknown CachedInterpreter Instruction: {}",
+                    static_cast<int>(code->type));
       break;
     }
   }

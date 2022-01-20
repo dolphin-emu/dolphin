@@ -23,7 +23,7 @@
  * template <>
  * struct fmt::formatter<Foo> : EnumFormatter<Foo::C>
  * {
- *   formatter() : EnumFormatter({"A", "B", "C"}) {}
+ *   constexpr formatter() : EnumFormatter({"A", "B", "C"}) {}
  * };
  *
  * enum class Bar
@@ -39,7 +39,7 @@
  *   // using std::array here fails due to nullptr not being const char*, at least in MSVC
  *   // (but only when a field is used; directly in the constructor is OK)
  *   static constexpr array_type names = {"D", "E", nullptr, "F"};
- *   formatter() : EnumFormatter(names) {}
+ *   constexpr formatter() : EnumFormatter(names) {}
  * };
  */
 template <auto last_member, typename = decltype(last_member)>
@@ -62,7 +62,7 @@ public:
   }
 
   template <typename FormatContext>
-  auto format(const T& e, FormatContext& ctx)
+  auto format(const T& e, FormatContext& ctx) const
   {
     const auto value_s = static_cast<std::underlying_type_t<T>>(e);      // Possibly signed
     const auto value_u = static_cast<std::make_unsigned_t<T>>(value_s);  // Always unsigned

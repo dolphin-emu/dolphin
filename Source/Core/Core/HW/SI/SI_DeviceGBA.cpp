@@ -335,7 +335,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
   }
 
   // This should never happen, but appease MSVC which thinks it might.
-  ERROR_LOG_FMT(SERIALINTERFACE, "Unknown state {}\n", m_next_action);
+  ERROR_LOG_FMT(SERIALINTERFACE, "Unknown state {}\n", static_cast<int>(m_next_action));
   return 0;
 }
 

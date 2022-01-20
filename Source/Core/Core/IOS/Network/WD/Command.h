@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 #include "Common/Flag.h"
 #include "Common/Network.h"
 #include "Common/Swap.h"
@@ -147,6 +148,7 @@ private:
     ScanningForAOSSAccessPoint,
     ScanningForDS,
   };
+  friend struct fmt::formatter<IOS::HLE::NetWDCommandDevice::Status>;
 
   void ProcessRecvRequests();
   void HandleStateChange();
@@ -172,3 +174,20 @@ private:
   std::deque<u32> m_recv_notification_requests;
 };
 }  // namespace IOS::HLE
+
+template <>
+struct fmt::formatter<IOS::HLE::WD::Mode> : EnumFormatter<IOS::HLE::WD::Mode::Unknown6>
+{
+  static constexpr array_type names{
+      "Not initialized", "DS Communications", "Unknown 2", "AOSS Access Point Scan",
+      "Unknown 4",       "Unknown 5",         "Unknown 6",
+  };
+  constexpr formatter() : EnumFormatter(names) {}
+};
+template <>
+struct fmt::formatter<IOS::HLE::NetWDCommandDevice::Status>
+    : EnumFormatter<IOS::HLE::NetWDCommandDevice::Status::ScanningForDS>
+{
+  static constexpr array_type names{"Idle", "Scanning for AOSS Access Point", "Scanning for DS"};
+  constexpr formatter() : EnumFormatter(names) {}
+};

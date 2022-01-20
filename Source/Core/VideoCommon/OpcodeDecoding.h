@@ -290,5 +290,5 @@ struct fmt::formatter<OpcodeDecoder::Primitive>
       "GX_DRAW_TRIANGLE_FAN", "GX_DRAW_LINES",
       "GX_DRAW_LINE_STRIP",   "GX_DRAW_POINTS",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };

@@ -36,9 +36,9 @@ struct fmt::formatter<geometry_shader_uid_data>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const geometry_shader_uid_data& uid, FormatContext& ctx)
+  auto format(const geometry_shader_uid_data& uid, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "passthrough: {}, {} tex gens, primitive type {}",
-                     uid.IsPassthrough(), uid.numTexGens, uid.primitive_type);
+    return fmt::format_to(ctx.out(), "passthrough: {}, {} tex gens, primitive type {}",
+                          uid.IsPassthrough(), uid.numTexGens, uid.primitive_type);
   }
 };

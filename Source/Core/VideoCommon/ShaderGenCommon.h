@@ -107,7 +107,7 @@ public:
 
   // Writes format strings using fmtlib format strings.
   template <typename... Args>
-  void Write(std::string_view format, Args&&... args)
+  void Write(fmt::format_string<Args...> format, Args&&... args)
   {
     fmt::format_to(std::back_inserter(m_buffer), format, std::forward<Args>(args)...);
   }

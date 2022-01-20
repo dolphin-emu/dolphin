@@ -367,10 +367,11 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case Command::ExtraByteProgram:
     case Command::ChipErase:
       DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0. seems normal.",
-                    m_command);
+                    static_cast<u8>(m_command));
       break;
     default:
-      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0", m_command);
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0",
+                   static_cast<u8>(m_command));
       break;
     }
     if (m_command == Command::ClearStatus)

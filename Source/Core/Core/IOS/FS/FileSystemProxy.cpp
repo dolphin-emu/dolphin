@@ -101,7 +101,7 @@ void FSDevice::DoState(PointerWrap& p)
 }
 
 template <typename... Args>
-static void LogResult(ResultCode code, std::string_view format, Args&&... args)
+static void LogResult(ResultCode code, fmt::format_string<Args...> format, Args&&... args)
 {
   const std::string command = fmt::format(format, std::forward<Args>(args)...);
   const auto type =
@@ -112,7 +112,7 @@ static void LogResult(ResultCode code, std::string_view format, Args&&... args)
 }
 
 template <typename T, typename... Args>
-static void LogResult(const Result<T>& result, std::string_view format, Args&&... args)
+static void LogResult(const Result<T>& result, fmt::format_string<Args...> format, Args&&... args)
 {
   const auto result_code = result.Succeeded() ? ResultCode::Success : result.Error();
   LogResult(result_code, format, std::forward<Args>(args)...);
@@ -381,7 +381,7 @@ s32 FSDevice::Seek(u64 fd, u32 offset, FS::SeekMode mode, Ticks ticks)
     return ConvertResult(ResultCode::Invalid);
 
   const Result<u32> result = m_ios.GetFS()->SeekFile(handle.fs_fd, offset, mode);
-  LogResult(result, "Seek({}, 0x{:08x}, {})", handle.name.data(), offset, mode);
+  LogResult(result, "Seek({}, 0x{:08x}, {})", handle.name.data(), offset, static_cast<int>(mode));
   if (!result)
     return ConvertResult(result.Error());
   return *result;

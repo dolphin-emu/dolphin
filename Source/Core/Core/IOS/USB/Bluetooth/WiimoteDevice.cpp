@@ -212,13 +212,12 @@ bool WiimoteDevice::IsConnected() const
 
 void WiimoteDevice::Activate(bool connect)
 {
-  const char* message = nullptr;
-
   if (connect && m_baseband_state == BasebandState::Inactive)
   {
     SetBasebandState(BasebandState::RequestConnection);
 
-    message = "Wii Remote {} connected";
+    Core::DisplayMessage(fmt::format("Wii Remote {} connected", GetNumber() + 1),
+                         CONNECTION_MESSAGE_TIME);
   }
   else if (!connect && IsConnected())
   {
@@ -228,11 +227,9 @@ void WiimoteDevice::Activate(bool connect)
     // Not doing that doesn't seem to break anything.
     m_host->RemoteDisconnect(GetBD());
 
-    message = "Wii Remote {} disconnected";
+    Core::DisplayMessage(fmt::format("Wii Remote {} disconnected", GetNumber() + 1),
+                         CONNECTION_MESSAGE_TIME);
   }
-
-  if (message)
-    Core::DisplayMessage(fmt::format(message, GetNumber() + 1), CONNECTION_MESSAGE_TIME);
 }
 
 bool WiimoteDevice::EventConnectionRequest()

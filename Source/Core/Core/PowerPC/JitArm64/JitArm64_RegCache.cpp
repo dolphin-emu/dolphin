@@ -90,7 +90,8 @@ void Arm64RegCache::LockRegister(ARM64Reg host_reg)
 {
   auto reg = std::find(m_host_registers.begin(), m_host_registers.end(), host_reg);
   ASSERT_MSG(DYNA_REC, reg != m_host_registers.end(),
-             "Don't try locking a register that isn't in the cache. Reg {}", host_reg);
+             "Don't try locking a register that isn't in the cache. Reg {}",
+             static_cast<int>(host_reg));
   reg->Lock();
 }
 
@@ -98,7 +99,8 @@ void Arm64RegCache::UnlockRegister(ARM64Reg host_reg)
 {
   auto reg = std::find(m_host_registers.begin(), m_host_registers.end(), host_reg);
   ASSERT_MSG(DYNA_REC, reg != m_host_registers.end(),
-             "Don't try unlocking a register that isn't in the cache. Reg {}", host_reg);
+             "Don't try unlocking a register that isn't in the cache. Reg {}",
+             static_cast<int>(host_reg));
   reg->Unlock();
 }
 

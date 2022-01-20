@@ -402,7 +402,8 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
                               {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}, ticks);
   if (result != FS::ResultCode::Success)
   {
-    ERROR_LOG_FMT(IOS_ES, "Failed to create temporary file {}: {}", tmp_path, result);
+    ERROR_LOG_FMT(IOS_ES, "Failed to create temporary file {}: {}", tmp_path,
+                  static_cast<int>(result));
     return FS::ConvertResult(result);
   }
 
@@ -428,7 +429,8 @@ s32 ESDevice::WriteSystemFile(const std::string& path, const std::vector<u8>& da
   result = fs.RenameFile(PID_KERNEL, PID_KERNEL, tmp_path, path, ticks);
   if (result != FS::ResultCode::Success)
   {
-    ERROR_LOG_FMT(IOS_ES, "Failed to move launch file to final destination ({}): {}", path, result);
+    ERROR_LOG_FMT(IOS_ES, "Failed to move launch file to final destination ({}): {}", path,
+                  static_cast<int>(result));
     return FS::ConvertResult(result);
   }
 

@@ -737,7 +737,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   MessageID mid;
   packet >> mid;
 
-  INFO_LOG_FMT(NETPLAY, "Got client message: {:x}", mid);
+  INFO_LOG_FMT(NETPLAY, "Got client message: {:x}", static_cast<u8>(mid));
 
   // don't need lock because this is the only thread that modifies the players
   // only need locks for writes to m_players in this thread
@@ -1146,7 +1146,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     default:
       PanicAlertFmtT(
           "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking player!",
-          sub_id, player.pid);
+          static_cast<u8>(sub_id), player.pid);
       return 1;
     }
   }
@@ -1188,15 +1188,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     default:
       PanicAlertFmtT(
           "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} Kicking player!",
-          sub_id, player.pid);
+          static_cast<u8>(sub_id), player.pid);
       return 1;
     }
   }
   break;
 
   default:
-    PanicAlertFmtT("Unknown message with id:{0} received from player:{1} Kicking player!", mid,
-                   player.pid);
+    PanicAlertFmtT("Unknown message with id:{0} received from player:{1} Kicking player!",
+                   static_cast<u8>(mid), player.pid);
     // unknown message, kick the client
     return 1;
   }

@@ -9,6 +9,7 @@
 #include <winternl.h>
 
 #include <fmt/format.h>
+#include <fmt/xchar.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
