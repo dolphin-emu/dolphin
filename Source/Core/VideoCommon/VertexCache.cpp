@@ -30,10 +30,10 @@ constexpr u32 CACHE_RAM_SIZE = 1024 * 8;
 // (though it doesn't explain how those work with the perf counter)
 
 constexpr u32 NUM_CACHE_SETS = 8;
-constexpr u32 NUM_CACHE_LINES = 8;
-constexpr u32 CACHE_LINE_SIZE = CACHE_RAM_SIZE / NUM_CACHE_SETS / NUM_CACHE_LINES;
+constexpr u32 NUM_CACHE_LINES = 8 * 4;
+constexpr u32 CACHE_LINE_SIZE = 0x20;
 
-constexpr u32 CACHE_LINE_OFFSET_BITS = 7;
+constexpr u32 CACHE_LINE_OFFSET_BITS = 5;
 static_assert(CACHE_LINE_SIZE == 1 << CACHE_LINE_OFFSET_BITS);
 constexpr u32 CACHE_LINE_OFFSET_SHIFT = 0;
 constexpr u32 CACHE_LINE_OFFSET_MASK = (1 << CACHE_LINE_OFFSET_BITS) - 1;
