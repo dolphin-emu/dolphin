@@ -764,6 +764,21 @@ public final class EmulationActivity extends AppCompatActivity
                       .valueOf(classicSettingBase + indexSelected)
                       .setBoolean(mSettings, isChecked));
     }
+    else if (mPreferences.getInt("wiiController", 3) == 5)
+    {
+      boolean[] wiiDrumsKitEnabledButtons = new boolean[10];
+      String drumSettingBase = "MAIN_BUTTON_TOGGLE_DRUM_";
+
+      for (int i = 0; i < wiiDrumsKitEnabledButtons.length; i++)
+      {
+        wiiDrumsKitEnabledButtons[i] =
+                BooleanSetting.valueOf(drumSettingBase + i).getBoolean(mSettings);
+      }
+      builder.setMultiChoiceItems(R.array.drumsKit, wiiDrumsKitEnabledButtons,
+              (dialog, indexSelected, isChecked) -> BooleanSetting
+                      .valueOf(drumSettingBase + indexSelected)
+                      .setBoolean(mSettings, isChecked));
+    }
     else
     {
       boolean[] wiiEnabledButtons = new boolean[11];
