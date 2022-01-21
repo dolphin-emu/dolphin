@@ -10,6 +10,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
+#include "VideoCommon/VertexCache.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
@@ -62,60 +63,45 @@ void SetCol565(VertexLoader* loader, u16 val_)
   SetCol(loader, col | alpha_mask);
 }
 
-u32 Read32(const u8* addr)
+u32 Read32(CPArray array, u16 index)
 {
-  u32 value;
-  std::memcpy(&value, addr, sizeof(u32));
-  return value;
+  // NOTE: not swapped
+  return VertexCache::ReadData<u32>(array, index);
 }
 
-u32 Read24(const u8* addr)
+u32 Read24(CPArray array, u16 index)
 {
-  return Read32(addr) | alpha_mask;
+  return Read32(array, index) | alpha_mask;
 }
 
 template <typename I>
 void Color_ReadIndex_16b_565(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* const address =
-      VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
-      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
-
-  u16 value;
-  std::memcpy(&value, address, sizeof(u16));
-
-  SetCol565(loader, Common::swap16(value));
+  const auto data = VertexCache::ReadData<u16>(CPArray::Color0 + loader->m_colIndex, index);
+  SetCol565(loader, Common::swap16(data));
 }
 
 template <typename I>
 void Color_ReadIndex_24b_888(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* address = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
-                      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
-  SetCol(loader, Read24(address));
+  SetCol(loader, Read24(CPArray::Color0 + loader->m_colIndex, index));
 }
 
 template <typename I>
 void Color_ReadIndex_32b_888x(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* address = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
-                      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
-  SetCol(loader, Read24(address));
+  SetCol(loader, Read24(CPArray::Color0 + loader->m_colIndex, index));
 }
 
 template <typename I>
 void Color_ReadIndex_16b_4444(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* const address =
-      VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
-      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
 
-  u16 value;
-  std::memcpy(&value, address, sizeof(u16));
+  u16 value = VertexCache::ReadData<u16>(CPArray::Color0 + loader->m_colIndex, index);
 
   SetCol4444(loader, value);
 }
@@ -124,9 +110,8 @@ template <typename I>
 void Color_ReadIndex_24b_6666(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* data = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
-                   (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
-  const u32 val = Common::swap24(data);
+  const auto data = VertexCache::ReadData<u8, 3>(CPArray::Color0 + loader->m_colIndex, index);
+  const u32 val = Common::swap24(data.data());
   SetCol6666(loader, val);
 }
 
@@ -134,20 +119,24 @@ template <typename I>
 void Color_ReadIndex_32b_8888(VertexLoader* loader)
 {
   const auto index = DataRead<I>();
-  const u8* address = VertexLoaderManager::cached_arraybases[CPArray::Color0 + loader->m_colIndex] +
-                      (index * g_main_cp_state.array_strides[CPArray::Color0 + loader->m_colIndex]);
-  SetCol(loader, Read32(address));
+  SetCol(loader, Read32(CPArray::Color0 + loader->m_colIndex, index));
 }
 
 void Color_ReadDirect_24b_888(VertexLoader* loader)
 {
-  SetCol(loader, Read24(DataGetPosition()));
+  // Note: not swapped
+  u32 value;
+  std::memcpy(&value, DataGetPosition(), sizeof(u32));
+  SetCol(loader, value | alpha_mask);
   DataSkip(3);
 }
 
 void Color_ReadDirect_32b_888x(VertexLoader* loader)
 {
-  SetCol(loader, Read24(DataGetPosition()));
+  // Note: not swapped
+  u32 value;
+  std::memcpy(&value, DataGetPosition(), sizeof(u32));
+  SetCol(loader, value | alpha_mask);
   DataSkip(4);
 }
 

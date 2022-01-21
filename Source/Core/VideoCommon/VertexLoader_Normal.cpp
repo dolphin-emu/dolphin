@@ -10,6 +10,7 @@
 #include "Common/EnumMap.h"
 
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/VertexCache.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
@@ -81,10 +82,9 @@ void Normal_Index_Offset(VertexLoader* loader)
   static_assert(std::is_unsigned_v<I>, "Only unsigned I is sane!");
 
   const auto index = DataRead<I>();
-  const auto data = reinterpret_cast<const T*>(
-      VertexLoaderManager::cached_arraybases[CPArray::Normal] +
-      (index * g_main_cp_state.array_strides[CPArray::Normal]) + sizeof(T) * 3 * Offset);
-  ReadIndirect<T, N * 3>(loader, data);
+  // XXX This is horribly jank
+  const auto data = VertexCache::ReadData<T, 3 + 3 * Offset>(CPArray::Normal, index);
+  ReadIndirect<T, N * 3>(loader, data.data() + 3 * Offset);
 }
 
 template <typename I, typename T, u32 N>

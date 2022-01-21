@@ -24,6 +24,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexCache.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -196,6 +197,7 @@ public:
     else if (static_cast<Opcode>(opcode) == Opcode::GX_CMD_INVL_VC)
     {
       // Invalidate Vertex Cache
+      VertexCache::Invalidate();
       m_cycles += 6;
       DEBUG_LOG_FMT(VIDEO, "Invalidate (vertex cache?)");
     }
