@@ -406,6 +406,8 @@ void Stop()  // - Hammertime!
 
   s_timer.Stop();
 
+  s_stat_tracker->init(); // Stop blank stat file from being output if a game is closed out before json output
+
   CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
