@@ -535,8 +535,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     json_stream << "  \"Away Score\": " << std::dec << m_game_info.away_score << "," << std::endl;
     json_stream << "  \"Home Score\": " << std::dec << m_game_info.home_score << "," << std::endl;
 
-    json_stream << "  \"Innings Selected\": \"" << std::dec << std::to_string(m_game_info.innings_selected) << "\"," << std::endl;
-    json_stream << "  \"Innings Played\": \"" << std::dec << std::to_string(m_game_info.innings_played) << "\"," << std::endl;
+    json_stream << "  \"Innings Selected\": " << std::to_string(m_game_info.innings_selected) << "," << std::endl;
+    json_stream << "  \"Innings Played\": " << std::to_string(m_game_info.innings_played) << "," << std::endl;
     
     //Team Captain and Roster
     for (int team=0; team < cNumOfTeams; ++team){
