@@ -72,4 +72,7 @@ jmethodID GetPatchCheatConstructor();
 jclass GetRiivolutionPatchesClass();
 jfieldID GetRiivolutionPatchesPointer();
 
+jclass GetWiiUpdateCallbackClass();
+jmethodID GetWiiUpdateCallbackFunction();
+
 }  // namespace IDCache

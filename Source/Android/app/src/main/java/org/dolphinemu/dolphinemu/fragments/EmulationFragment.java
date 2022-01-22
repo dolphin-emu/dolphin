@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -30,6 +29,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 {
   private static final String KEY_GAMEPATHS = "gamepaths";
   private static final String KEY_RIIVOLUTION = "riivolution";
+  private static final String KEY_SYSTEM_MENU = "systemMenu";
 
   private InputOverlay mInputOverlay;
 
@@ -37,14 +37,17 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   private boolean mRiivolution;
   private boolean mRunWhenSurfaceIsValid;
   private boolean mLoadPreviousTemporaryState;
+  private boolean mLaunchSystemMenu;
 
   private EmulationActivity activity;
 
-  public static EmulationFragment newInstance(String[] gamePaths, boolean riivolution)
+  public static EmulationFragment newInstance(String[] gamePaths, boolean riivolution,
+          boolean systemMenu)
   {
     Bundle args = new Bundle();
     args.putStringArray(KEY_GAMEPATHS, gamePaths);
     args.putBoolean(KEY_RIIVOLUTION, riivolution);
+    args.putBoolean(KEY_SYSTEM_MENU, systemMenu);
 
     EmulationFragment fragment = new EmulationFragment();
     fragment.setArguments(args);
@@ -77,6 +80,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
     mGamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
     mRiivolution = getArguments().getBoolean(KEY_RIIVOLUTION);
+    mLaunchSystemMenu = getArguments().getBoolean(KEY_SYSTEM_MENU);
   }
 
   /**
@@ -269,6 +273,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         {
           Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
           NativeLibrary.Run(mGamePaths, mRiivolution, getTemporaryStateFilePath(), true);
+        }
+        if (mLaunchSystemMenu)
+        {
+          Log.debug("[EmulationFragment] Starting emulation thread for the Wii Menu.");
+          NativeLibrary.RunSystemMenu();
         }
         else
         {

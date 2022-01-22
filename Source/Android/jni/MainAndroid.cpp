@@ -32,6 +32,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -547,20 +548,13 @@ static float GetRenderSurfaceScale(JNIEnv* env)
   return env->CallStaticFloatMethod(native_library_class, get_render_surface_scale_method);
 }
 
-static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool riivolution,
-                BootSessionData boot_session_data = BootSessionData())
+static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivolution)
 {
-  ASSERT(!paths.empty());
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
-
   std::unique_lock<std::mutex> host_identity_guard(s_host_identity_lock);
 
   WiimoteReal::InitAdapterClass();
 
   s_have_wm_user_stop = false;
-
-  std::unique_ptr<BootParameters> boot =
-      BootParameters::GenerateFromFile(paths, std::move(boot_session_data));
 
   if (riivolution && std::holds_alternative<BootParameters::Disc>(boot->parameters))
   {
@@ -624,6 +618,15 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool riivolu
                             IDCache::GetFinishEmulationActivity());
 }
 
+static void Run(JNIEnv* env, const std::vector<std::string>& paths, bool riivolution,
+                BootSessionData boot_session_data = BootSessionData())
+{
+  ASSERT(!paths.empty());
+  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
+
+  Run(env, BootParameters::GenerateFromFile(paths, std::move(boot_session_data)), riivolution);
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Z(
     JNIEnv* env, jclass, jobjectArray jPaths, jboolean jRiivolution)
 {
@@ -639,6 +642,12 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2ZLjava_la
       jDeleteSavestate ? DeleteSavestateAfterBoot::Yes : DeleteSavestateAfterBoot::No;
   Run(env, JStringArrayToVector(env, jPaths), jRiivolution,
       BootSessionData(GetJString(env, jSavestate), delete_state));
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RunSystemMenu(JNIEnv* env,
+                                                                                  jclass)
+{
+  Run(env, std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}), false);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env, jclass,

@@ -182,6 +182,29 @@
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
 
+    <!-- Online Update Region Select Fragment -->
+    <string name="region_select_title">Please select a region</string>
+    <string name="europe">Europe</string>
+    <string name="japan">Japan</string>
+    <string name="korea">Korea</string>
+    <string name="united_states">United States</string>
+
+    <!-- Online Update Progress Bar Fragment -->
+    <string name="updating">Updating</string>
+    <string name="updating_message">Updating title %016x...\nThis can take a while.</string>
+    <string name="update_success">The emulated Wii console has been updated.</string>
+    <string name="already_up_to_date">The emulated Wii console is already up-to-date.</string>
+    <string name="region_mismatch">The game\'s region does not match your console\'s. To avoid issues with the system menu, it is not possible to update the emulated console using this disc.</string>
+    <string name="missing_update_partition">The game disc does not contain any usable update information.</string>
+    <string name="disc_read_failed">The game disc does not contain any usable update information.</string>
+    <string name="server_failed">"Could not download update information from Nintendo. Please check your Internet connection and try again.</string>
+    <string name="download_failed">Could not download update files from Nintendo. Please check your Internet connection and try again.</string>
+    <string name="import_failed">"Could not install an update to the Wii system memory. Please refer to logs for more information.</string>
+    <string name="update_cancelled">The update has been cancelled. It is strongly recommended to finish it in order to avoid inconsistent system software versions.</string>
+    <string name="update_success_title">Update completed</string>
+    <string name="update_failed_title">Update failed</string>
+    <string name="update_cancelled_title">Update cancelled</string>
+
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
     <string name="dsp_emulation_engine">DSP Emulation Engine</string>
@@ -391,6 +414,9 @@
     <string name="grid_menu_install_wad">Install WAD</string>
     <string name="grid_menu_import_wii_save">Import Wii Save</string>
     <string name="grid_menu_import_nand_backup">Import BootMii NAND Backup</string>
+    <string name="grid_menu_online_system_update">Perform Online System Update</string>
+    <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
+    <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
     <string name="import_in_progress">Importing...</string>
     <string name="do_not_close_app">Do not close the app!</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
@@ -401,6 +427,8 @@
     <string name="wii_save_import_corruped_source">Failed to import save file. The given file appears to be corrupted or is not a valid Wii save.</string>
     <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
     <string name="nand_import_warning">Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?</string>
+    <string name="system_menu_not_installed_title">Not installed</string>
+    <string name="system_menu_not_installed_message">The Wii Menu is currently not installed. Would you like to install it now?\nAn internet connection is required to download the update. It is recommended to download the update on Wi-Fi, as the amount of data downloaded may be large.</string>
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
