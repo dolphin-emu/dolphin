@@ -56,7 +56,7 @@ jobs:
           echo "PATH $PATH"
           qmake -v
           cd /tmp 
-          curl -sLO "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+          curl -sSLO "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
           chmod a+x linuxdeployqt*.AppImage
           ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract
           cd $GITHUB_WORKSPACE
