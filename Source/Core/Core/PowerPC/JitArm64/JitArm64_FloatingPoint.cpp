@@ -117,8 +117,6 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 
       Force25BitPrecision(reg_encoder(V0Q), VC, reg_encoder(V1Q));
       VC = reg_encoder(V0Q);
-
-      fpr.Unlock(V1Q);
     }
 
     switch (op5)
