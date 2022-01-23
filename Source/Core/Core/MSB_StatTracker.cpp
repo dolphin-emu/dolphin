@@ -34,6 +34,14 @@ void StatTracker::lookForTriggerEvents(){
                     init();
                 }
 
+                //I can't declare a new var in the case so I had to stuff the expression for team_id into the array idx
+                //Maybe a better way but this should work
+                if (Memory::Read_U8(aAB_BatterRosterID) != m_fielder_tracker[!((Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1)].prev_batter_roster_loc){
+                    u8 team_id = !(Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
+                    m_fielder_tracker[team_id].prev_batter_roster_loc = Memory::Read_U8(aAB_BatterRosterID);
+                    m_fielder_tracker[team_id].resetFielderMap();
+                }
+
                 //First Pitch of the game: collect port/player names
                 //Log beginning of pitch
                 if (Memory::Read_U8(aAB_PitchThrown) == 1){
@@ -78,11 +86,15 @@ void StatTracker::lookForTriggerEvents(){
                         std::cout << "Away Player=" << away_player_name << "(" << std::to_string(m_game_info.away_port) << "), Home Player=" << home_player_name << "(" << std::to_string(m_game_info.home_port) << ")" << std::endl;;
                     }
 
+                    //Get captain roster positions
                     if ((m_game_info.team0_captain_roster_loc == 0xFF) || (m_game_info.team1_captain_roster_loc == 0xFF)) {
                         m_game_info.team0_captain_roster_loc = Memory::Read_U8(aTeam0_Captain_Roster_Loc);
                         m_game_info.team1_captain_roster_loc = Memory::Read_U8(aTeam1_Captain_Roster_Loc);
                     }
 
+                    //Check for fielder swaps
+                    u8 team_id = !(Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
+                    m_fielder_tracker[team_id].evaluateFielders();
 
                     std::cout << "Pitch detected!" << std::endl;
 
@@ -302,7 +314,7 @@ void StatTracker::logABScenario(){
 
     //TODO: Figure out "Team1 is Hitting" Addr
     m_curr_ab_stat.team_id = (Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
-    m_curr_ab_stat.roster_id = Memory::Read_U8(aAB_RosterID);
+    m_curr_ab_stat.roster_id = Memory::Read_U8(aAB_BatterRosterID);
 
     bool away_team_is_batting = (Memory::Read_U8(aAB_BatterPort) == m_game_info.away_port); //away team is batting if batter port matches away port
     m_curr_ab_stat.inning          = Memory::Read_U8(aAB_Inning);
@@ -478,11 +490,12 @@ void StatTracker::logABContactResult(){
     }
     else if (result == 3){
         m_curr_ab_stat.result_inferred = "Caught";
-        //TODO Scan all 9 positions to see who has caught the ball
         std::tuple<u8, u8, u8> fielder_result = getCharacterWithBall();
         m_curr_ab_stat.fielder_roster_loc = std::get<0>(fielder_result);
         m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
         m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
+
+        ++m_fielder_tracker[!m_curr_ab_stat.team_id].out_count_by_position[m_curr_ab_stat.fielder_roster_loc][m_curr_ab_stat.fielder_pos];
     }
     else if (result == 0xFF){
         m_curr_ab_stat.result_inferred = "Foul";

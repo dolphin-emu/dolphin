@@ -154,6 +154,7 @@ static const std::map<u8, std::string> cPosition = {
 //Const for structs
 static const int cRosterSize = 9;
 static const int cNumOfTeams = 2;
+static const int cNumOfPositions = 9;
 
 //Addrs for triggering evts
 static const u32 aGameId           = 0x802EBF8C;
@@ -220,7 +221,7 @@ static const u8 c_offensive_stat_offset = 0x26;
 //At-Bat Scenario 
 static const u32 aAB_BatterPort      = 0x802EBF95;
 static const u32 aAB_PitcherPort     = 0x802EBF94;
-static const u32 aAB_RosterID        = 0x80890971;
+static const u32 aAB_BatterRosterID  = 0x80890971;
 static const u32 aAB_Inning          = 0x808928A3;
 static const u32 aAB_HalfInning      = 0x8089294D;
 static const u32 aAB_Balls           = 0x8089296F;
@@ -294,7 +295,9 @@ static const u32 aAB_BattingPort = 0x802EBF95;
 
 //Fielder addrs
 static const u32 aFielder_ControlStatus = 0x8088F53B; //0xA=Fielder is holding ball
+static const u32 aFielder_RosterLoc = 0x8088F4E1; //Catcher. Use Filder_Offset to calc the rest 
 static const u32 cFielder_Offset = 0x268;
+
 
 class StatTracker{
 public:
@@ -489,6 +492,86 @@ public:
         } 
     };
     std::array<std::array<std::vector<ABStats>, cRosterSize>, cNumOfTeams> m_ab_stats;
+
+    struct FielderTracker {
+        //Roster_loc, pair<position, changed>
+        //Set changed=true any time the sampled position (each pitch) does not match the current position
+        //Rest changed upon new batter
+        std::map<u8, std::pair<u8, bool>> fielder_map = {
+            {0, std::make_pair(0xFF, false)},
+            {1, std::make_pair(0xFF, false)},
+            {2, std::make_pair(0xFF, false)},
+            {3, std::make_pair(0xFF, false)},
+            {4, std::make_pair(0xFF, false)},
+            {5, std::make_pair(0xFF, false)},
+            {6, std::make_pair(0xFF, false)},
+            {7, std::make_pair(0xFF, false)},
+            {8, std::make_pair(0xFF, false)}
+        };
+
+        u8 prev_batter_roster_loc; //Used to check each pitch if the batter has changed.
+                                   //Mark current positions when changed
+
+        //Roster loc, array<pitches at position>
+        std::map<u8, std::array<u8, cNumOfPositions>> pitch_count_by_position = {
+            {0, {0}},
+            {1, {0}},
+            {2, {0}},
+            {3, {0}},
+            {4, {0}},
+            {5, {0}},
+            {6, {0}},
+            {7, {0}},
+            {8, {0}}
+        };
+
+        //Roster loc, array<pitches at position>
+        std::map<u8, std::array<u8, cNumOfPositions>> out_count_by_position = {
+            {0, {0}},
+            {1, {0}},
+            {2, {0}},
+            {3, {0}},
+            {4, {0}},
+            {5, {0}},
+            {6, {0}},
+            {7, {0}},
+            {8, {0}}
+        };
+
+        void resetFielderMap() {
+            for (auto& roster_loc : fielder_map){
+                std::pair<u8, bool>& position_tracker = roster_loc.second;
+
+                position_tracker.first = 0xFF; //Reset position
+                position_tracker.second = false; //Reset isChanged bool
+            }
+        }
+        
+        //Scans field to see who is playing which position and increments counts for positions
+        void evaluateFielders() {
+            for (u8 pos=0; pos < cRosterSize; ++pos){
+                u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
+
+                u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
+
+                //fielder_map[roster_loc].first;
+
+                //If new position, mark changed (unless this is the first pitch of the AB (pos==0xFF))
+                //Then set new position
+                if (fielder_map[roster_loc].first != pos){
+                    if (fielder_map[roster_loc].first != 0xFF){
+                        fielder_map[roster_loc].second = true;
+                    }
+                    fielder_map[roster_loc].first = pos; 
+                }
+
+                //Increment the number of pitches this player has seen at this position
+                ++pitch_count_by_position[roster_loc][pos];
+            }
+            return;
+        }
+    };
+    std::array<FielderTracker, cNumOfTeams> m_fielder_tracker; //One per team
 
     void init(){
         m_game_info = GameInfo();
