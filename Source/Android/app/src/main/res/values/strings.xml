@@ -11,14 +11,6 @@
     <string name="controller_2">GameCube Controller 3</string>
     <string name="controller_3">GameCube Controller 4</string>
 
-    <string name="controller_control">Control Stick</string>
-    <string name="controller_c">C Stick</string>
-    <string name="controller_trig">Triggers</string>
-    <string name="controller_dpad">D-Pad</string>
-    <string name="modifier_range">Modifier Range</string>
-    <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
-    <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
-
     <string name="wiimote_4">Wii Remote 1</string>
     <string name="wiimote_5">Wii Remote 2</string>
     <string name="wiimote_6">Wii Remote 3</string>
@@ -30,85 +22,9 @@
     <string name="wiimote_extension_7">Wii Remote Extension 4</string>
 
     <string name="wiimote_extensions">Extension</string>
-    <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
-    <string name="wiimote_ir">IR</string>
-    <string name="wiimote_swing">Swing</string>
-    <string name="wiimote_tilt">Tilt</string>
-    <string name="wiimote_shake">Shake</string>
 
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
-    <string name="input_rumble_description">Press or move any input to set rumble.</string>
-
-    <!-- Generic buttons (Shared with lots of stuff) -->
-    <string name="generic_buttons">Buttons</string>
-    <string name="generic_up">Up</string>
-    <string name="generic_down">Down</string>
-    <string name="generic_left">Left</string>
-    <string name="generic_right">Right</string>
-    <string name="generic_forward">Forward</string>
-    <string name="generic_backward">Backward</string>
-    <string name="generic_stick">Stick</string>
-    <string name="generic_green">Green</string>
-    <string name="generic_red">Red</string>
-    <string name="generic_yellow">Yellow</string>
-    <string name="generic_blue">Blue</string>
-    <string name="generic_orange">Orange</string>
-
-    <!-- GameCube buttons (May be shared with other stuff too) -->
-    <string name="button_a">A</string>
-    <string name="button_b">B</string>
-    <string name="button_start">START</string>
-    <string name="button_x">X</string>
-    <string name="button_y">Y</string>
-    <string name="button_z">Z</string>
-    <string name="trigger_left">L</string>
-    <string name="trigger_right">R</string>
-
-    <!-- Wii Remote buttons (May be shared with other stuff too) -->
-    <string name="button_one">1</string>
-    <string name="button_two">2</string>
-    <string name="button_minus">-</string>
-    <string name="button_plus">+</string>
-    <string name="button_home">HOME</string>
-    <string name="ir_hide">Hide</string>
-    <string name="tilt_modifier">Modifier</string>
-    <string name="shake_x">X</string>
-    <string name="shake_y">Y</string>
-    <string name="shake_z">Z</string>
-
-    <!-- Nunchuk only buttons -->
-    <string name="nunchuk_button_c">C</string>
-
-    <!-- Classic only buttons -->
-    <string name="classic_button_zl">ZL</string>
-    <string name="classic_button_zr">ZR</string>
-    <string name="classic_leftstick">Left Stick</string>
-    <string name="classic_rightstick">Right Stick</string>
-
-    <!-- Guitar only buttons -->
-    <string name="guitar_frets">Frets</string>
-    <string name="guitar_strum">Strum</string>
-    <string name="guitar_whammy">Whammy</string>
-    <string name="guitar_whammy_bar">Bar</string>
-
-    <!-- Drums only buttons -->
-    <string name="drums_pads">Pads</string>
-    <string name="drums_pad_bass">Bass</string>
-
-    <!-- Turntable only buttons -->
-    <string name="turntable_button_green_left">Green Left</string>
-    <string name="turntable_button_red_left">Red Left</string>
-    <string name="turntable_button_blue_left">Blue Left</string>
-    <string name="turntable_button_green_right">Green Right</string>
-    <string name="turntable_button_red_right">Red Right</string>
-    <string name="turntable_button_blue_right">Blue Right</string>
-    <string name="turntable_button_euphoria">Euphoria</string>
-    <string name="turntable_table_left">Table Left</string>
-    <string name="turntable_table_right">Table Right</string>
-    <string name="turntable_effect">Effect</string>
-    <string name="turntable_effect_dial">Dial</string>
-    <string name="turntable_crossfade">Crossfade</string>
 
     <!-- Main Preference Fragment -->
     <string name="settings">Settings</string>
@@ -528,7 +444,6 @@
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_game_properties">Game Properties</string>
     <string name="preferences_game_properties_with_game_id">Game Properties: %1$s</string>
-    <string name="preferences_extensions">Extension Bindings</string>
     <string name="game_ini_junk_title">Junk Data Found</string>
     <string name="game_ini_junk_question">The settings file for this game contains extraneous data added by an old version of Dolphin. This will likely prevent global settings from working as intended.\n\nWould you like to fix this by deleting the settings file for this game? All game-specific settings and cheats that you have added will be removed. This cannot be undone.</string>
 
@@ -626,7 +541,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_control_opacity">Opacity</string>
     <string name="emulation_control_adjustments">Adjust Controls</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
-    <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
     <string name="emulation_menu_help">Press Back to access the menu.\nLong press Back to exit emulation.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
@@ -642,13 +556,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="gc_adapter_rumble_description">Enable the vibration function for this GameCube controller.</string>
     <string name="gc_adapter_bongos">Bongo Controller</string>
     <string name="gc_adapter_bongos_description">Enable this if you are using bongos on this port.</string>
-
-    <!-- Wii Remote Input Menu-->
-    <string name="header_wiimote_general">General</string>
-    <string name="header_controllers">Controllers</string>
-
-    <!-- Rumble -->
-    <string name="rumble_not_found">Device rumble not found</string>
 
     <string name="path_not_changeable_scoped_storage">Due to the Scoped Storage policy in Android 11 and newer, you can\'t change this path.</string>
     <string name="load_settings">Loading Settings…</string>

@@ -12,7 +12,6 @@ import androidx.appcompat.app.AlertDialog;
 
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
-import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
@@ -50,7 +49,7 @@ public final class MotionAlertDialog extends AlertDialog
     Log.debug("[MotionAlertDialog] Received key event: " + event.getAction());
     if (event.getAction() == KeyEvent.ACTION_UP)
     {
-      if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
+      if (true)
       {
         setting.onKeyInput(mAdapter.getSettings(), event);
         dismiss();
@@ -116,8 +115,7 @@ public final class MotionAlertDialog extends AlertDialog
       {
         InputDevice.MotionRange range = motionRanges.get(i);
         int axis = range.getAxis();
-        float origValue = event.getAxisValue(axis);
-        float value = ControllerMappingHelper.scaleAxis(input, axis, origValue);
+        float value = event.getAxisValue(axis);
         if (firstEvent)
         {
           mPreviousValues.add(value);
