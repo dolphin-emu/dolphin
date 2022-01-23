@@ -18,6 +18,7 @@
 
 #include "Common/HttpRequest.h"
 #include "Common/Hash.h"
+#include "DiscIO/Enums.h"
 #endif
 
 namespace Discord
@@ -89,22 +90,49 @@ void HandleDiscordJoin(const char* join_secret)
 
 std::string ArtworkForGameId()
 {
-    std::string game_region = SConfig::GetInstance().GetGameTDBID().substr(3, 1);
-
     std::string region_code;
-    if (game_region == "E") {
-        region_code = "US";
-    } else if (game_region == "P") {
-        region_code = "EN";
-    } else if (game_region == "J") {
-        region_code = "JA";
-    } else if (game_region == "K") {
-        region_code = "KO";
-    } else if (game_region == "C") {
-        region_code = "ZH";
-    } else {
-        // If the game's region code is not any of the above, return an empty string
-        return ""
+    switch (SConfig::GetInstance().m_region)
+    {
+        case DiscIO::Region::NTSC_J:
+            region_code = "JA";
+            break;
+        case DiscIO::Region::NTSC_U:
+            region_code = "US";
+            break;
+        case DiscIO::Region::NTSC_K:
+            region_code = "KO";
+            break;
+        case DiscIO::Region::PAL:
+        {
+
+            const auto user_lang = SConfig::GetInstance().GetCurrentLanguage(SConfig::GetInstance().bWii);
+            switch (user_lang)
+            {
+                case DiscIO::Language::German:
+                    region_code = "DE";
+                    break;
+                case DiscIO::Language::French:
+                    region_code = "FR";
+                    break;
+                case DiscIO::Language::Spanish:
+                    region_code = "ES";
+                    break;
+                case DiscIO::Language::Italian:
+                    region_code = "IT";
+                    break;
+                case DiscIO::Language::Dutch:
+                    region_code = "NL";
+                    break;
+                case DiscIO::Language::English:
+                default:
+                    region_code = "EN";
+                    break;
+            }
+            break;
+        }
+        case DiscIO::Region::Unknown:
+            region_code = "EN";
+            break;
     }
 
     constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
