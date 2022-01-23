@@ -41,8 +41,6 @@ static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector)
 static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer);
 static void Write32(u32 data, u32 offset, std::vector<u8>* buffer);
 
-static std::string ASCIIToUppercase(std::string str);
-
 enum class PartitionType : u32
 {
   Game = 0,
