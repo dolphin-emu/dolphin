@@ -15,11 +15,9 @@
 
 #include <discord_rpc.h>
 #include <fmt/format.h>
+
 #include "Common/HttpRequest.h"
-
 #include "Common/Hash.h"
-#include "DiscIO/Enums.h"
-
 #endif
 
 namespace Discord
