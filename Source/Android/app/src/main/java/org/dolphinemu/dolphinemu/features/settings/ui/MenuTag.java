@@ -31,14 +31,14 @@ public enum MenuTag
   GCPAD_2("gcpad", 1),
   GCPAD_3("gcpad", 2),
   GCPAD_4("gcpad", 3),
-  WIIMOTE_1("wiimote", 4),
-  WIIMOTE_2("wiimote", 5),
-  WIIMOTE_3("wiimote", 6),
-  WIIMOTE_4("wiimote", 7),
-  WIIMOTE_EXTENSION_1("wiimote_extension", 4),
-  WIIMOTE_EXTENSION_2("wiimote_extension", 5),
-  WIIMOTE_EXTENSION_3("wiimote_extension", 6),
-  WIIMOTE_EXTENSION_4("wiimote_extension", 7);
+  WIIMOTE_1("wiimote", 0),
+  WIIMOTE_2("wiimote", 1),
+  WIIMOTE_3("wiimote", 2),
+  WIIMOTE_4("wiimote", 3),
+  WIIMOTE_EXTENSION_1("wiimote_extension", 0),
+  WIIMOTE_EXTENSION_2("wiimote_extension", 1),
+  WIIMOTE_EXTENSION_3("wiimote_extension", 2),
+  WIIMOTE_EXTENSION_4("wiimote_extension", 3);
 
   private String tag;
   private int subType = -1;

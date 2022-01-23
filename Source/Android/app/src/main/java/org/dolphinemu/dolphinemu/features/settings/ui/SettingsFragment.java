@@ -67,14 +67,14 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.GCPAD_2, R.string.controller_1);
     titles.put(MenuTag.GCPAD_3, R.string.controller_2);
     titles.put(MenuTag.GCPAD_4, R.string.controller_3);
-    titles.put(MenuTag.WIIMOTE_1, R.string.wiimote_4);
-    titles.put(MenuTag.WIIMOTE_2, R.string.wiimote_5);
-    titles.put(MenuTag.WIIMOTE_3, R.string.wiimote_6);
-    titles.put(MenuTag.WIIMOTE_4, R.string.wiimote_7);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_1, R.string.wiimote_extension_4);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_2, R.string.wiimote_extension_5);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_3, R.string.wiimote_extension_6);
-    titles.put(MenuTag.WIIMOTE_EXTENSION_4, R.string.wiimote_extension_7);
+    titles.put(MenuTag.WIIMOTE_1, R.string.wiimote_0);
+    titles.put(MenuTag.WIIMOTE_2, R.string.wiimote_1);
+    titles.put(MenuTag.WIIMOTE_3, R.string.wiimote_2);
+    titles.put(MenuTag.WIIMOTE_4, R.string.wiimote_3);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_1, R.string.wiimote_extension_0);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_2, R.string.wiimote_extension_1);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_3, R.string.wiimote_extension_2);
+    titles.put(MenuTag.WIIMOTE_EXTENSION_4, R.string.wiimote_extension_3);
   }
 
   private FragmentSettingsBinding mBinding;

@@ -11,15 +11,15 @@
     <string name="controller_2">GameCube Controller 3</string>
     <string name="controller_3">GameCube Controller 4</string>
 
-    <string name="wiimote_4">Wii Remote 1</string>
-    <string name="wiimote_5">Wii Remote 2</string>
-    <string name="wiimote_6">Wii Remote 3</string>
-    <string name="wiimote_7">Wii Remote 4</string>
+    <string name="wiimote_0">Wii Remote 1</string>
+    <string name="wiimote_1">Wii Remote 2</string>
+    <string name="wiimote_2">Wii Remote 3</string>
+    <string name="wiimote_3">Wii Remote 4</string>
 
-    <string name="wiimote_extension_4">Wii Remote Extension 1</string>
-    <string name="wiimote_extension_5">Wii Remote Extension 2</string>
-    <string name="wiimote_extension_6">Wii Remote Extension 3</string>
-    <string name="wiimote_extension_7">Wii Remote Extension 4</string>
+    <string name="wiimote_extension_0">Wii Remote Extension 1</string>
+    <string name="wiimote_extension_1">Wii Remote Extension 2</string>
+    <string name="wiimote_extension_2">Wii Remote Extension 3</string>
+    <string name="wiimote_extension_3">Wii Remote Extension 4</string>
 
     <string name="wiimote_extensions">Extension</string>
 

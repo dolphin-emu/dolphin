@@ -83,6 +83,22 @@ static jfieldID s_riivolution_patches_pointer;
 static jclass s_wii_update_cb_class;
 static jmethodID s_wii_update_cb_run;
 
+static jclass s_control_class;
+static jfieldID s_control_pointer;
+static jmethodID s_control_constructor;
+
+static jclass s_control_group_class;
+static jfieldID s_control_group_pointer;
+static jmethodID s_control_group_constructor;
+
+static jclass s_control_reference_class;
+static jfieldID s_control_reference_pointer;
+static jmethodID s_control_reference_constructor;
+
+static jclass s_emulated_controller_class;
+static jfieldID s_emulated_controller_pointer;
+static jmethodID s_emulated_controller_constructor;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -383,6 +399,66 @@ jmethodID GetWiiUpdateCallbackFunction()
   return s_wii_update_cb_run;
 }
 
+jclass GetControlClass()
+{
+  return s_control_class;
+}
+
+jfieldID GetControlPointer()
+{
+  return s_control_pointer;
+}
+
+jmethodID GetControlConstructor()
+{
+  return s_control_constructor;
+}
+
+jclass GetControlGroupClass()
+{
+  return s_control_group_class;
+}
+
+jfieldID GetControlGroupPointer()
+{
+  return s_control_group_pointer;
+}
+
+jmethodID GetControlGroupConstructor()
+{
+  return s_control_group_constructor;
+}
+
+jclass GetControlReferenceClass()
+{
+  return s_control_reference_class;
+}
+
+jfieldID GetControlReferencePointer()
+{
+  return s_control_reference_pointer;
+}
+
+jmethodID GetControlReferenceConstructor()
+{
+  return s_control_reference_constructor;
+}
+
+jclass GetEmulatedControllerClass()
+{
+  return s_emulated_controller_class;
+}
+
+jfieldID GetEmulatedControllerPointer()
+{
+  return s_emulated_controller_pointer;
+}
+
+jmethodID GetEmulatedControllerConstructor()
+{
+  return s_emulated_controller_constructor;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -541,6 +617,35 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_wii_update_cb_run = env->GetMethodID(s_wii_update_cb_class, "run", "(IIJ)Z");
   env->DeleteLocalRef(wii_update_cb_class);
 
+  const jclass control_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/Control");
+  s_control_class = reinterpret_cast<jclass>(env->NewGlobalRef(control_class));
+  s_control_pointer = env->GetFieldID(control_class, "mPointer", "J");
+  s_control_constructor = env->GetMethodID(control_class, "<init>", "(J)V");
+  env->DeleteLocalRef(control_class);
+
+  const jclass control_group_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/ControlGroup");
+  s_control_group_class = reinterpret_cast<jclass>(env->NewGlobalRef(control_group_class));
+  s_control_group_pointer = env->GetFieldID(control_group_class, "mPointer", "J");
+  s_control_group_constructor = env->GetMethodID(control_group_class, "<init>", "(J)V");
+  env->DeleteLocalRef(control_group_class);
+
+  const jclass control_reference_class = env->FindClass(
+      "org/dolphinemu/dolphinemu/features/input/model/controlleremu/ControlReference");
+  s_control_reference_class = reinterpret_cast<jclass>(env->NewGlobalRef(control_reference_class));
+  s_control_reference_pointer = env->GetFieldID(control_reference_class, "mPointer", "J");
+  s_control_reference_constructor = env->GetMethodID(control_reference_class, "<init>", "(J)V");
+  env->DeleteLocalRef(control_reference_class);
+
+  const jclass emulated_controller_class = env->FindClass(
+      "org/dolphinemu/dolphinemu/features/input/model/controlleremu/EmulatedController");
+  s_emulated_controller_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(emulated_controller_class));
+  s_emulated_controller_pointer = env->GetFieldID(emulated_controller_class, "mPointer", "J");
+  s_emulated_controller_constructor = env->GetMethodID(emulated_controller_class, "<init>", "(J)V");
+  env->DeleteLocalRef(emulated_controller_class);
+
   return JNI_VERSION;
 }
 
@@ -568,5 +673,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_graphics_mod_class);
   env->DeleteGlobalRef(s_riivolution_patches_class);
   env->DeleteGlobalRef(s_wii_update_cb_class);
+  env->DeleteGlobalRef(s_control_class);
+  env->DeleteGlobalRef(s_control_group_class);
+  env->DeleteGlobalRef(s_control_reference_class);
+  env->DeleteGlobalRef(s_emulated_controller_class);
 }
 }

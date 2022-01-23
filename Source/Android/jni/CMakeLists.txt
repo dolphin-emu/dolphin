@@ -10,7 +10,15 @@ add_library(main SHARED
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
+  Input/Control.cpp
+  Input/Control.h
+  Input/ControlGroup.cpp
+  Input/ControlGroup.h
+  Input/ControlReference.cpp
+  Input/ControlReference.h
+  Input/EmulatedController.cpp
   Input/InputOverrider.cpp
+  Input/MappingCommon.cpp
   IniFile.cpp
   MainAndroid.cpp
   RiivolutionPatches.cpp
@@ -23,6 +31,7 @@ PRIVATE
   androidcommon
   common
   core
+  inputcommon
   uicommon
 )
 

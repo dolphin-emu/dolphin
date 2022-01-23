@@ -82,4 +82,20 @@ jfieldID GetRiivolutionPatchesPointer();
 jclass GetWiiUpdateCallbackClass();
 jmethodID GetWiiUpdateCallbackFunction();
 
+jclass GetControlClass();
+jfieldID GetControlPointer();
+jmethodID GetControlConstructor();
+
+jclass GetControlGroupClass();
+jfieldID GetControlGroupPointer();
+jmethodID GetControlGroupConstructor();
+
+jclass GetControlReferenceClass();
+jfieldID GetControlReferencePointer();
+jmethodID GetControlReferenceConstructor();
+
+jclass GetEmulatedControllerClass();
+jfieldID GetEmulatedControllerPointer();
+jmethodID GetEmulatedControllerConstructor();
+
 }  // namespace IDCache

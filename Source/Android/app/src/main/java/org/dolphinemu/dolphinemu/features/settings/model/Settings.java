@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.input.model.MappingCommon;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
@@ -169,6 +170,8 @@ public class Settings implements Closeable
       {
         SettingsFile.saveFile(entry.getKey(), entry.getValue(), view);
       }
+
+      MappingCommon.save();
 
       NativeConfig.save(NativeConfig.LAYER_BASE);
 

@@ -14,6 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.UserDataActivity;
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup;
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
+import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
@@ -795,14 +798,14 @@ public final class SettingsFragmentPresenter
 
   private void addWiimoteSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_1_SOURCE, R.string.wiimote_4, 0,
-            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(4)));
-    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_2_SOURCE, R.string.wiimote_5, 0,
-            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(5)));
-    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_3_SOURCE, R.string.wiimote_6, 0,
-            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(6)));
-    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_4_SOURCE, R.string.wiimote_7, 0,
-            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(7)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_1_SOURCE, R.string.wiimote_0, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(0)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_2_SOURCE, R.string.wiimote_1, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(1)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_3_SOURCE, R.string.wiimote_2, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(2)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_4_SOURCE, R.string.wiimote_3, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(3)));
   }
 
   private void addGraphicsSettings(ArrayList<SettingsItem> sl)
@@ -1073,7 +1076,7 @@ public final class SettingsFragmentPresenter
   {
     if (gcPadType == 6) // Emulated
     {
-      // TODO
+      addControllerSettings(sl, EmulatedController.getGcPad(gcPadNumber));
     }
     else if (gcPadType == 12) // Adapter
     {
@@ -1086,13 +1089,30 @@ public final class SettingsFragmentPresenter
 
   private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
-    // TODO
+    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
-          int extentionType)
+          int extensionType)
   {
-    // TODO
+    addControllerSettings(sl,
+            EmulatedController.getWiimoteAttachment(wiimoteNumber, extensionType));
+  }
+
+  private void addControllerSettings(ArrayList<SettingsItem> sl, EmulatedController controller)
+  {
+    int groupCount = controller.getGroupCount();
+    for (int i = 0; i < groupCount; i++)
+    {
+      ControlGroup group = controller.getGroup(i);
+      sl.add(new HeaderSetting(group.getUiName(), ""));
+
+      int controlCount = group.getControlCount();
+      for (int j = 0; j < controlCount; j++)
+      {
+        sl.add(new InputMappingControlSetting(group.getControl(j), controller));
+      }
+    }
   }
 
   private static int getLogVerbosityEntries()

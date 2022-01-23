@@ -1,0 +1,51 @@
+// Copyright 2022 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "jni/Input/ControlGroup.h"
+
+#include <jni.h>
+
+#include "Common/MsgHandler.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
+#include "jni/Input/Control.h"
+
+static ControllerEmu::ControlGroup* GetPointer(JNIEnv* env, jobject obj)
+{
+  return reinterpret_cast<ControllerEmu::ControlGroup*>(
+      env->GetLongField(obj, IDCache::GetControlGroupPointer()));
+}
+
+jobject ControlGroupToJava(JNIEnv* env, ControllerEmu::ControlGroup* group)
+{
+  if (!group)
+    return nullptr;
+
+  return env->NewObject(IDCache::GetControlGroupClass(), IDCache::GetControlGroupConstructor(),
+                        reinterpret_cast<jlong>(group));
+}
+
+extern "C" {
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getUiName(
+    JNIEnv* env, jobject obj)
+{
+  return ToJString(env, Common::GetStringT(GetPointer(env, obj)->ui_name.c_str()));
+}
+
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getControlCount(
+    JNIEnv* env, jobject obj)
+{
+  return static_cast<jint>(GetPointer(env, obj)->controls.size());
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getControl(
+    JNIEnv* env, jobject obj, jint i)
+{
+  return ControlToJava(env, GetPointer(env, obj)->controls[i].get());
+}
+}

@@ -1,46 +1,38 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
+package org.dolphinemu.dolphinemu.features.input.ui.viewholder;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder;
 
-public final class InputBindingSettingViewHolder extends SettingViewHolder
+public final class InputMappingControlSettingViewHolder extends SettingViewHolder
 {
-  private InputBindingSetting mItem;
-
-  private final Context mContext;
+  private InputMappingControlSetting mItem;
 
   private final ListItemSettingBinding mBinding;
 
-  public InputBindingSettingViewHolder(@NonNull ListItemSettingBinding binding,
-          SettingsAdapter adapter, Context context)
+  public InputMappingControlSettingViewHolder(@NonNull ListItemSettingBinding binding,
+          SettingsAdapter adapter)
   {
     super(binding.getRoot(), adapter);
     mBinding = binding;
-    mContext = context;
   }
 
   @Override
   public void bind(SettingsItem item)
   {
-    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-
-    mItem = (InputBindingSetting) item;
+    mItem = (InputMappingControlSetting) item;
 
     mBinding.textSettingName.setText(mItem.getName());
-    mBinding.textSettingDescription
-            .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
+    mBinding.textSettingDescription.setText(mItem.getValue());
 
     setStyle(mBinding.textSettingName, mItem);
   }
@@ -54,7 +46,7 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
       return;
     }
 
-    getAdapter().onInputBindingClick(mItem, getBindingAdapterPosition());
+    getAdapter().onInputMappingClick(mItem, getBindingAdapterPosition());
 
     setStyle(mBinding.textSettingName, mItem);
   }

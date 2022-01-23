@@ -37,15 +37,15 @@ import org.dolphinemu.dolphinemu.databinding.ListItemHeaderBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSettingSwitchBinding;
 import org.dolphinemu.dolphinemu.databinding.ListItemSubmenuBinding;
-import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
+import org.dolphinemu.dolphinemu.features.input.ui.MotionAlertDialog;
+import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
+import org.dolphinemu.dolphinemu.features.input.ui.viewholder.InputMappingControlSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
@@ -57,9 +57,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.DateTimeSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderHyperLinkViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputStringSettingViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RumbleBindingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RunRunnableViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceViewHolder;
@@ -124,13 +122,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       case SettingsItem.TYPE_SUBMENU:
         return new SubmenuViewHolder(ListItemSubmenuBinding.inflate(inflater), this);
 
-      case SettingsItem.TYPE_INPUT_BINDING:
-        return new InputBindingSettingViewHolder(ListItemSettingBinding.inflate(inflater), this,
-                mContext);
-
-      case SettingsItem.TYPE_RUMBLE_BINDING:
-        return new RumbleBindingViewHolder(ListItemSettingBinding.inflate(inflater), this,
-                mContext);
+      case SettingsItem.TYPE_INPUT_MAPPING_CONTROL:
+        return new InputMappingControlSettingViewHolder(ListItemSettingBinding.inflate(inflater),
+                this);
 
       case SettingsItem.TYPE_FILE_PICKER:
         return new FilePickerViewHolder(ListItemSettingBinding.inflate(inflater), this);
@@ -314,9 +308,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.loadSubMenu(item.getMenuKey());
   }
 
-  public void onInputBindingClick(final InputBindingSetting item, final int position)
+  public void onInputMappingClick(final InputMappingControlSetting item, final int position)
   {
-    final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item, this);
+    final MotionAlertDialog dialog = new MotionAlertDialog(mView.getActivity(), item);
 
     Drawable background = ContextCompat.getDrawable(mContext, R.drawable.dialog_round);
     @ColorInt int color = new ElevationOverlayProvider(dialog.getContext()).compositeOverlay(
@@ -326,13 +320,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     dialog.getWindow().setBackgroundDrawable(background);
 
     dialog.setTitle(R.string.input_binding);
-    dialog.setMessage(String.format(mContext.getString(
-                    item instanceof RumbleBindingSetting ?
-                            R.string.input_rumble_description : R.string.input_binding_description),
+    dialog.setMessage(String.format(mContext.getString(R.string.input_binding_description),
             item.getName()));
     dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
     dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
-            (dialogInterface, i) -> item.clearValue(getSettings()));
+            (dialogInterface, i) -> item.clearValue());
     dialog.setOnDismissListener(dialog1 ->
     {
       notifyItemChanged(position);
