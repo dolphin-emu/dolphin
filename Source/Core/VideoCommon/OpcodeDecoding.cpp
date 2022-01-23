@@ -32,13 +32,7 @@
 
 namespace OpcodeDecoder
 {
-static bool s_is_fifo_error_seen = false;
 bool g_record_fifo_data = false;
-
-void Init()
-{
-  s_is_fifo_error_seen = false;
-}
 
 template <bool is_preprocess>
 class RunCallback final : public Callback
@@ -207,19 +201,7 @@ public:
     }
     else
     {
-      // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule
-      // accidentally uses 0x01-0x03 due to sending 4 more vertices than intended.
-      // Hardware testing indicates that 0x01-0x07 do nothing, so to avoid annoying the user with
-      // spurious popups, we don't create a panic alert in those cases.  Other unknown opcodes
-      // (such as 0x18) seem to result in hangs.
-      if (!s_is_fifo_error_seen && opcode > 0x07)
-      {
-        CommandProcessor::HandleUnknownOpcode(opcode, data, is_preprocess);
-        s_is_fifo_error_seen = true;
-      }
-
-      ERROR_LOG_FMT(VIDEO, "FIFO: Unknown Opcode({:#04x} @ {}, preprocessing = {})", opcode,
-                    fmt::ptr(data), is_preprocess ? "yes" : "no");
+      CommandProcessor::HandleUnknownOpcode(opcode, data, is_preprocess);
       m_cycles += 1;
     }
   }

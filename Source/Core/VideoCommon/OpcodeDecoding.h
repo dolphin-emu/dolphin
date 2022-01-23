@@ -60,8 +60,6 @@ enum class Primitive : u8
   GX_DRAW_POINTS = 0x7           // 0xB8
 };
 
-void Init();
-
 // Interface for the Run and RunCommand functions below.
 // The functions themselves are templates so that the compiler generates separate versions for each
 // callback (with the callback functions inlined), so the callback doesn't actually need to be
