@@ -102,6 +102,9 @@ std::string ArtworkForGameId()
         region_code = "KO";
     } else if (game_region == "C") {
         region_code = "ZH";
+    } else {
+        // If the game's region code is not any of the above, return an empty string
+        return ""
     }
 
     constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
