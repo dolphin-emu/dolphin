@@ -41,6 +41,8 @@ static u16 m_tokenReg;
 static Common::Flag s_interrupt_set;
 static Common::Flag s_interrupt_waiting;
 
+static bool s_is_fifo_error_seen = false;
+
 static bool IsOnThread()
 {
   return Core::System::GetInstance().IsDualCoreMode();
@@ -73,6 +75,8 @@ void SCPFifoStruct::Init()
   bFF_HiWatermarkInt.store(0, std::memory_order_relaxed);
   bFF_LoWatermark.store(0, std::memory_order_relaxed);
   bFF_LoWatermarkInt.store(0, std::memory_order_relaxed);
+
+  s_is_fifo_error_seen = false;
 }
 
 void SCPFifoStruct::DoState(PointerWrap& p)
@@ -611,18 +615,26 @@ void SetCpClearRegister()
 
 void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
 {
-  // TODO(Omega): Maybe dump FIFO to file on this error
-  PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
-                 "This means one of the following:\n"
-                 "* The emulated GPU got desynced, disabling dual core can help\n"
-                 "* Command stream corrupted by some spurious memory bug\n"
-                 "* This really is an unknown opcode (unlikely)\n"
-                 "* Some other sort of bug\n\n"
-                 "Further errors will be sent to the Video Backend log and\n"
-                 "Dolphin will now likely crash or hang. Enjoy.",
-                 cmd_byte, fmt::ptr(buffer), preprocess);
-
+  // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule
+  // accidentally uses 0x01-0x03 due to sending 4 more vertices than intended.
+  // Hardware testing indicates that 0x01-0x07 do nothing, so to avoid annoying the user with
+  // spurious popups, we don't create a panic alert in those cases.  Other unknown opcodes
+  // (such as 0x18) seem to result in hangs.
+  if (!s_is_fifo_error_seen && cmd_byte > 0x07)
   {
+    s_is_fifo_error_seen = true;
+
+    // TODO(Omega): Maybe dump FIFO to file on this error
+    PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
+                   "This means one of the following:\n"
+                   "* The emulated GPU got desynced, disabling dual core can help\n"
+                   "* Command stream corrupted by some spurious memory bug\n"
+                   "* This really is an unknown opcode (unlikely)\n"
+                   "* Some other sort of bug\n\n"
+                   "Further errors will be sent to the Video Backend log and\n"
+                   "Dolphin will now likely crash or hang. Enjoy.",
+                   cmd_byte, fmt::ptr(buffer), preprocess);
+
     PanicAlertFmt("Illegal command {:02x}\n"
                   "CPBase: {:#010x}\n"
                   "CPEnd: {:#010x}\n"
@@ -653,6 +665,10 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
                   fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
                   fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false");
   }
+
+  // We always generate this log message, though we only generate the panic alerts once.
+  ERROR_LOG_FMT(VIDEO, "FIFO: Unknown Opcode ({:#04x} @ {}, preprocessing = {})", cmd_byte,
+                fmt::ptr(buffer), preprocess ? "yes" : "no");
 }
 
 }  // namespace CommandProcessor

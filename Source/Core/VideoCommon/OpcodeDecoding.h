@@ -24,7 +24,6 @@ extern bool g_record_fifo_data;
 enum class Opcode
 {
   GX_NOP = 0x00,
-  GX_UNKNOWN_RESET = 0x01,
 
   GX_LOAD_BP_REG = 0x61,
   GX_LOAD_CP_REG = 0x08,
@@ -60,8 +59,6 @@ enum class Primitive : u8
   GX_DRAW_LINE_STRIP = 0x6,      // 0xB0
   GX_DRAW_POINTS = 0x7           // 0xB8
 };
-
-void Init();
 
 // Interface for the Run and RunCommand functions below.
 // The functions themselves are templates so that the compiler generates separate versions for each
