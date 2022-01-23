@@ -90,50 +90,9 @@ void HandleDiscordJoin(const char* join_secret)
 
 std::string ArtworkForGameId()
 {
-    std::string region_code;
-    switch (SConfig::GetInstance().m_region)
-    {
-        case DiscIO::Region::NTSC_J:
-            region_code = "JA";
-            break;
-        case DiscIO::Region::NTSC_U:
-            region_code = "US";
-            break;
-        case DiscIO::Region::NTSC_K:
-            region_code = "KO";
-            break;
-        case DiscIO::Region::PAL:
-        {
-
-            const auto user_lang = SConfig::GetInstance().GetCurrentLanguage(SConfig::GetInstance().bWii);
-            switch (user_lang)
-            {
-                case DiscIO::Language::German:
-                    region_code = "DE";
-                    break;
-                case DiscIO::Language::French:
-                    region_code = "FR";
-                    break;
-                case DiscIO::Language::Spanish:
-                    region_code = "ES";
-                    break;
-                case DiscIO::Language::Italian:
-                    region_code = "IT";
-                    break;
-                case DiscIO::Language::Dutch:
-                    region_code = "NL";
-                    break;
-                case DiscIO::Language::English:
-                default:
-                    region_code = "EN";
-                    break;
-            }
-            break;
-        }
-        case DiscIO::Region::Unknown:
-            region_code = "EN";
-            break;
-    }
+    DiscIO::Region region = SConfig::GetInstance().m_region;
+    bool isWii = SConfig::GetInstance().bWii;
+    std::string region_code = SConfig::GetInstance().GetGameTDBImageRegionCode(region, isWii);
 
     constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
     std::string url = fmt::format(cover_url, region_code, SConfig::GetInstance().GetGameTDBID());
