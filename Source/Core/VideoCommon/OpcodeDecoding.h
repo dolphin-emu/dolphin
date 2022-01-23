@@ -24,7 +24,6 @@ extern bool g_record_fifo_data;
 enum class Opcode
 {
   GX_NOP = 0x00,
-  GX_UNKNOWN_RESET = 0x01,
 
   GX_LOAD_BP_REG = 0x61,
   GX_LOAD_CP_REG = 0x08,

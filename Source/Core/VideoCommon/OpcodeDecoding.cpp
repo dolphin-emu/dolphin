@@ -193,13 +193,7 @@ public:
   }
   OPCODE_CALLBACK(void OnUnknown(u8 opcode, const u8* data))
   {
-    if (static_cast<Opcode>(opcode) == Opcode::GX_UNKNOWN_RESET)
-    {
-      // Datel software uses this command
-      m_cycles += 6;
-      DEBUG_LOG_FMT(VIDEO, "GX Reset?");
-    }
-    else if (static_cast<Opcode>(opcode) == Opcode::GX_CMD_UNKNOWN_METRICS)
+    if (static_cast<Opcode>(opcode) == Opcode::GX_CMD_UNKNOWN_METRICS)
     {
       // 'Zelda Four Swords' calls it and checks the metrics registers after that
       m_cycles += 6;
@@ -213,11 +207,19 @@ public:
     }
     else
     {
-      if (!s_is_fifo_error_seen)
+      // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule
+      // accidentally uses 0x01-0x03 due to sending 4 more vertices than intended.
+      // Hardware testing indicates that 0x01-0x07 do nothing, so to avoid annoying the user with
+      // spurious popups, we don't create a panic alert in those cases.  Other unknown opcodes
+      // (such as 0x18) seem to result in hangs.
+      if (!s_is_fifo_error_seen && opcode > 0x07)
+      {
         CommandProcessor::HandleUnknownOpcode(opcode, data, is_preprocess);
+        s_is_fifo_error_seen = true;
+      }
+
       ERROR_LOG_FMT(VIDEO, "FIFO: Unknown Opcode({:#04x} @ {}, preprocessing = {})", opcode,
                     fmt::ptr(data), is_preprocess ? "yes" : "no");
-      s_is_fifo_error_seen = true;
       m_cycles += 1;
     }
   }
