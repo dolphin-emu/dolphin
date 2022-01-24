@@ -71,6 +71,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "PhoneRumble", true),
   MAIN_SHOW_INPUT_OVERLAY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "ShowInputOverlay", true),
+  MAIN_IR_ALWAYS_RECENTER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "IRAlwaysRecenter", false),
 
   MAIN_BUTTON_TOGGLE_GC_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
           "ButtonToggleGCButtonA", true),

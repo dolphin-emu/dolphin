@@ -433,6 +433,12 @@
         <item>Right Stick</item>
     </string-array>
 
+    <string-array name="irModeEntries">
+        <item>Disabled</item>
+        <item>Follow</item>
+        <item>Drag</item>
+    </string-array>
+
     <string-array name="doubleTap">
         <item>Button A</item>
         <item>Button B</item>
