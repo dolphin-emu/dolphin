@@ -1,6 +1,6 @@
 
 #include "Core/MSB_StatTracker.h"
-#include <iostream>
+
 #include <iomanip>
 #include <fstream>
 #include <ctime>
@@ -495,7 +495,10 @@ void StatTracker::logABContactResult(){
         m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
         m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
 
+        //Increment outs for that position for fielder
         ++m_fielder_tracker[!m_curr_ab_stat.team_id].out_count_by_position[m_curr_ab_stat.fielder_roster_loc][m_curr_ab_stat.fielder_pos];
+        //Indicate if fielder had been swapped for this batter
+        m_curr_ab_stat.fielder_swapped_for_batter = m_fielder_tracker[!m_curr_ab_stat.team_id].fielder_map[m_curr_ab_stat.fielder_roster_loc].second;
     }
     else if (result == 0xFF){
         m_curr_ab_stat.result_inferred = "Foul";
@@ -622,7 +625,31 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Star Pitches Thrown\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
             json_stream << "        \"Big Plays\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
             json_stream << "        \"Outs Pitched\": " << std::to_string(def_stat.outs_pitched) << "," << std::endl;
-            json_stream << "        \"Inning Appearances\": " << std::to_string(def_stat.innings_pitched.size()) << std::endl;
+            json_stream << "        \"Inning Appearances\": " << std::to_string(def_stat.innings_pitched.size()) << "," << std::endl;
+            json_stream << "        \"Pitches Per Position\": [" << std::endl;
+            if (m_fielder_tracker[team].pitchesAtAnyPosition(roster, 0)){
+                json_stream << "          {" << std::endl;
+                for (int pos = 0; pos < cNumOfPositions; ++pos) {
+                    if (m_fielder_tracker[team].pitch_count_by_position[roster][pos] > 0){
+                        std::string comma = (m_fielder_tracker[team].pitchesAtAnyPosition(roster, pos)) ? "," : "";
+                        json_stream << "            \"" << cPosition.at(pos) << "\": " << std::to_string(m_fielder_tracker[team].pitch_count_by_position[roster][pos]) << comma << std::endl;
+                    }
+                }
+                json_stream << "          }" << std::endl;
+            }
+            json_stream << "        ]," << std::endl;
+            json_stream << "        \"Outs Per Position\": [" << std::endl;
+            if (m_fielder_tracker[team].outsAtAnyPosition(roster, 0)){
+                json_stream << "          {" << std::endl;
+                for (int pos = 0; pos < cNumOfPositions; ++pos) {
+                    if (m_fielder_tracker[team].out_count_by_position[roster][pos] > 0){
+                        std::string comma = (m_fielder_tracker[team].outsAtAnyPosition(roster, pos)) ? "," : "";
+                        json_stream << "            \"" << cPosition.at(pos) << "\": " << std::to_string(m_fielder_tracker[team].out_count_by_position[roster][pos]) << comma << std::endl;
+                    }
+                }
+                json_stream << "          }" << std::endl;
+            }
+            json_stream << "        ]" << std::endl;
             json_stream << "      }," << std::endl;
 
             EndGameRosterOffensiveStats& of_stat = m_offensive_stats[team][roster];
@@ -777,7 +804,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                         std::string fielder_char = (inDecode) ? "\"" + cCharIdToCharName.at(ab_stat.fielder_char_id) + "\"" : std::to_string(ab_stat.fielder_char_id);
                         json_stream << "                   \"Fielder Roster Location\": " << std::to_string(ab_stat.fielder_roster_loc) << "," << std::endl;
                         json_stream << "                   \"Fielder Position\": " << fielder_pos << "," << std::endl;
-                        json_stream << "                   \"Fielder Character\": " << fielder_char << std::endl;
+                        json_stream << "                   \"Fielder Character\": " << fielder_char << "," << std::endl;
+                        json_stream << "                   \"Fielder Swap\": " <<  m_curr_ab_stat.fielder_swapped_for_batter << std::endl;
                         json_stream << "                 }" << std::endl;
                     }
                     

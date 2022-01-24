@@ -6,6 +6,7 @@
 #include <map>
 #include <set>
 #include <tuple>
+#include <iostream>
 #include "Core/HW/Memmap.h"
 
 #include "Core/LocalPlayers.h"
@@ -475,6 +476,7 @@ public:
         u8 fielder_roster_loc;
         u8 fielder_pos;
         u8 fielder_char_id;
+        bool fielder_swapped_for_batter;
 
         u8 num_outs_during_play;
         u8 rbi;
@@ -509,7 +511,7 @@ public:
             {8, std::make_pair(0xFF, false)}
         };
 
-        u8 prev_batter_roster_loc; //Used to check each pitch if the batter has changed.
+        u8 prev_batter_roster_loc = 0xFF; //Used to check each pitch if the batter has changed.
                                    //Mark current positions when changed
 
         //Roster loc, array<pitches at position>
@@ -539,11 +541,23 @@ public:
         };
 
         void resetFielderMap() {
+            bool any_uninitialized_fielders = false;
             for (auto& roster_loc : fielder_map){
-                std::pair<u8, bool>& position_tracker = roster_loc.second;
+                if (roster_loc.second.first == 0xFF) {any_uninitialized_fielders = true;}
+                roster_loc.second.second = false; //Reset isChanged bool
+            }
+            //Init fielders - only do this loop at the start of the game
+            if (any_uninitialized_fielders){
+                for (u8 pos=0; pos < cRosterSize; ++pos){
+                    u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
 
-                position_tracker.first = 0xFF; //Reset position
-                position_tracker.second = false; //Reset isChanged bool
+                    u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
+
+                    if ((fielder_map[roster_loc].first != pos) 
+                    && (fielder_map[roster_loc].first == 0xFF)){
+                        fielder_map[roster_loc].first = pos;
+                    }
+                }
             }
         }
         
@@ -561,6 +575,9 @@ public:
                 if (fielder_map[roster_loc].first != pos){
                     if (fielder_map[roster_loc].first != 0xFF){
                         fielder_map[roster_loc].second = true;
+                        std::cout << "RosterLoc:" << std::to_string(roster_loc) 
+                                  << " swapped from " << cPosition.at(fielder_map[roster_loc].first)
+                                  << " to " << cPosition.at(pos) << std::endl; 
                     }
                     fielder_map[roster_loc].first = pos; 
                 }
@@ -570,12 +587,30 @@ public:
             }
             return;
         }
+
+        bool outsAtAnyPosition(u8 roster_loc, u8 starting_pos) {
+            for (u8 pos=starting_pos+1; pos < cRosterSize; ++pos){
+                if (out_count_by_position[roster_loc][pos] > 0) { 
+                    return true;
+                }
+            }
+            return false;
+        }
+        bool pitchesAtAnyPosition(u8 roster_loc, u8 starting_pos) {
+            for (u8 pos=starting_pos+1; pos < cRosterSize; ++pos){
+                if (pitch_count_by_position[roster_loc][pos] > 0) { 
+                    return true;
+                }
+            }
+            return false;
+        }
     };
     std::array<FielderTracker, cNumOfTeams> m_fielder_tracker; //One per team
 
     void init(){
         m_game_info = GameInfo();
         for (int team=0; team < cNumOfTeams; ++team){
+            m_fielder_tracker[team] = FielderTracker();
             for (int roster=0; roster < cRosterSize; ++roster){
                 m_defensive_stats[team][roster] = EndGameRosterDefensiveStats();
                 m_offensive_stats[team][roster] = EndGameRosterOffensiveStats();
