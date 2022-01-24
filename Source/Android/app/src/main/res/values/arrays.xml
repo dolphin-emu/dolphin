@@ -207,9 +207,9 @@
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
-        <item>Low</item>
+        <item>Fast</item>
         <item>Medium</item>
-        <item>High</item>
+        <item>Safe</item>
     </string-array>
     <integer-array name="textureCacheAccuracyValues" translatable="false">
         <item>128</item>
