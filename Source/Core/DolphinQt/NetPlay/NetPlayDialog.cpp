@@ -414,6 +414,15 @@ void NetPlayDialog::OnChat()
   });
 }
 
+void NetPlayDialog::DisplayActiveGeckoCodes()
+{
+  if (!IsHosting())
+  {
+    return;
+  }
+  Settings::Instance().GetNetPlayClient()->GetActiveGeckoCodes();
+}
+
 void NetPlayDialog::OnRankedEnabled(bool is_ranked)
 {
   if (is_ranked != 0)
@@ -468,7 +477,10 @@ void NetPlayDialog::OnStart()
   }
 
   if (Settings::Instance().GetNetPlayServer()->RequestStartGame())
+  {
     SetOptionsEnabled(false);
+    DisplayActiveGeckoCodes();
+  }
 }
 
 void NetPlayDialog::reject()

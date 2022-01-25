@@ -774,6 +774,20 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_SEND_CODES:
+  {
+    std::string codes;
+    packet >> codes;
+
+    // send codes to other clients
+    sf::Packet spac;
+    spac << (MessageId)NP_MSG_SEND_CODES;
+    spac << codes;
+
+    SendToClients(spac);
+  }
+  break;
+
   case NP_MSG_CHUNKED_DATA_PROGRESS:
   {
     u32 cid;

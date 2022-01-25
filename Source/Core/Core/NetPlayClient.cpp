@@ -71,6 +71,8 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 #include <Core/LocalPlayers.h>
+#include <Core/ConfigLoaders/GameConfigLoader.h>
+#include <Core/GeckoCodeConfig.h>
 
 namespace NetPlay
 {
@@ -391,6 +393,23 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     ss << player.name << '[' << (char)(pid + '0') << "]: " << msg;
 
     m_dialog->AppendChat(ss.str());
+  }
+  break;
+
+  case NP_MSG_SEND_CODES:
+  {
+    std::string codeStr;
+    packet >> codeStr;
+    auto ss = std::stringstream{codeStr};
+
+    v_ActiveGeckoCodes = {};
+    for (std::string line; std::getline(ss, line, '\n');)
+      v_ActiveGeckoCodes.push_back(line);
+
+    // add to chat
+    m_dialog->AppendChat("Active Gecko Codes:");
+    for (const std::string code : v_ActiveGeckoCodes)
+      m_dialog->AppendChat(code);
   }
   break;
 
@@ -1668,6 +1687,43 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
   packet << msg;
 
   SendAsync(std::move(packet));
+}
+
+void NetPlayClient::SendActiveGeckoCodes()
+{
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_SEND_CODES);
+  std::string codeStr = "";
+
+  for (const std::string code : v_ActiveGeckoCodes)
+    codeStr += code + "\n";
+  packet << codeStr;
+
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::GetActiveGeckoCodes()
+{
+  // Find all INI files
+  const auto game_id = "GYQE01";
+  const auto revision = 0;
+  IniFile globalIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+  IniFile localIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+
+  // Create a Gecko Code Vector with just the active codes
+  std::vector<Gecko::GeckoCode> s_active_codes =
+      Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+
+  v_ActiveGeckoCodes = {};
+  for (const Gecko::GeckoCode& active_code : s_active_codes)
+  {
+    v_ActiveGeckoCodes.push_back(active_code.name);
+  }
+  SendActiveGeckoCodes();
 }
 
 // called from ---CPU--- thread
