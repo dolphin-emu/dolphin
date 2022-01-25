@@ -286,9 +286,6 @@ bool NetPlayClient::Connect()
     player.name = m_player_name;
     player.pid = m_pid;
     player.revision = Common::netplay_dolphin_ver;
-    std::vector<std::string> userinfo = GetLocalPlayerNetplay();
-    player.UserName = userinfo[0];
-    player.UserID = userinfo[1];
 
     // add self to player list
     m_players[m_pid] = player;
@@ -410,6 +407,20 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     m_dialog->AppendChat("Active Gecko Codes:");
     for (const std::string code : v_ActiveGeckoCodes)
       m_dialog->AppendChat(code);
+  }
+  break;
+
+  case NP_MSG_PLAYER_DATA:
+  {
+    u8 port;
+    packet >> port;
+    std::string userinfoStr;
+    packet >> userinfoStr;
+    std::vector<std::string> userinfo;
+    auto ss = std::stringstream{userinfoStr};
+    for (std::string line; std::getline(ss, line, '\n');)
+      userinfo.push_back(line);
+    NetplayerUserInfo[port] = userinfo;
   }
   break;
 
@@ -1824,6 +1835,9 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   UpdateDevices();
 
+  // send player usernames & keys here
+  SendLocalPlayerNetplay(GetLocalPlayerNetplay());
+
   return true;
 }
 
@@ -2792,8 +2806,28 @@ void NetPlay_Disable()
   netplay_client = nullptr;
 }
 
-std::vector<std::string> GetLocalPlayerNetplay()
+void NetPlayClient::SendLocalPlayerNetplay(std::vector<std::string> userinfo)
 {
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_PLAYER_DATA);
+
+  u8 portnum = 0;
+  for (auto player_id : m_pad_map)
+  {
+    portnum += 1;
+    if (player_id == m_local_player->pid)
+      NetplayerUserInfo[portnum] = userinfo;
+  }
+
+  packet << portnum;
+  packet << userinfo[0] + "\n" + userinfo[1] + "\n";
+
+  SendAsync(std::move(packet));
+}
+
+std::vector<std::string> NetPlayClient::GetLocalPlayerNetplay()
+{
+  // Eventually replace this with the account information in future official release
   std::vector<std::string> userinfo;
 
   IniFile local_players_ini;
@@ -2830,8 +2864,8 @@ std::vector<std::string> GetLocalPlayerNetplay()
         break;
       }
     }
-    userinfo[0] = player.username;
-    userinfo[1] = player.userid;
+    userinfo.push_back(player.username);
+    userinfo.push_back(player.userid);
   }
   return userinfo;
 }

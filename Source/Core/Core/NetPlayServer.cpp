@@ -788,6 +788,23 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_PLAYER_DATA:
+  {
+    u8 port;
+    packet >> port;
+    std::string userinfoStr;
+    packet >> userinfoStr;
+
+    // send userinfo to other clients
+    sf::Packet spac;
+    spac << (MessageId)NP_MSG_PLAYER_DATA;
+    spac << port;
+    spac << userinfoStr;
+
+    SendToClients(spac);
+  }
+  break;
+
   case NP_MSG_CHUNKED_DATA_PROGRESS:
   {
     u32 cid;

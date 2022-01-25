@@ -88,8 +88,6 @@ public:
   std::string revision;
   u32 ping;
   SyncIdentifierComparison game_status;
-  std::string UserName;
-  std::string UserID;
 
   bool IsHost() const { return pid == 1; }
 };
@@ -107,6 +105,10 @@ public:
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;
+  std::map<int, std::vector<std::string>> NetplayerUserInfo; // int is port, vector[0] is username, vector[1] is user id
+
+  void SendLocalPlayerNetplay(std::vector<std::string>);
+  std::vector<std::string> GetLocalPlayerNetplay();
 
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
@@ -292,5 +294,4 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
-std::vector<std::string> GetLocalPlayerNetplay();
 }  // namespace NetPlay
