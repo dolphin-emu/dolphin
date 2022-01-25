@@ -297,7 +297,7 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
 
   s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
   temp <<= m_ScaleLShiftLUT[u32(ac.scale.Value())];
-  temp += (ac.scale != TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
+  temp += (ac.scale == TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
   temp = ac.op == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
   s32 result =
