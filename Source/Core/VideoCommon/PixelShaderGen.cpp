@@ -1234,6 +1234,18 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
                    use_dual_source || use_shader_blend);
   }
 
+  // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
+  // alpha test for the FMV in the background fails, since they depend on depth for drawing a yellow
+  // border) and Fortune Street's gameplay (where a rectangle with an alpha value of 1 is drawn over
+  // the center of the screen several times, but those rectangles shouldn't be visible).
+  // Blending seems to result in no changes to the output with an alpha of 1, even if the input
+  // color is white.
+  // TODO: Investigate this further: we might be handling blending incorrectly in general (though
+  // there might not be any good way of changing blending behavior)
+  out.Write("\t// Hardware testing indicates that an alpha of 1 can pass an alpha test,\n"
+            "\t// but doesn't do anything in blending\n"
+            "\tif (prev.a == 1) prev.a = 0;\n");
+
   if (uid_data->zfreeze)
   {
     out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);

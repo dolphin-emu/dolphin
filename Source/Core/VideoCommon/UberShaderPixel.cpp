@@ -1032,6 +1032,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  }}\n"
             "\n");
 
+  out.Write("  // Hardware testing indicates that an alpha of 1 can pass an alpha test,\n"
+            "  // but doesn't do anything in blending\n"
+            "  if (TevResult.a == 1) TevResult.a = 0;\n");
   // =========
   // Dithering
   // =========
