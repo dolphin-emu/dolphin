@@ -246,7 +246,8 @@ void GameFile::DownloadDefaultCover()
   if (File::Exists(png_path))
     return;
 
-  std::string region_code = SConfig::GetInstance().GetGameTDBImageRegionCode(m_region, DiscIO::IsWii(GetPlatform()));
+  std::string region_code =
+      SConfig::GetInstance().GetGameTDBImageRegionCode(m_region, DiscIO::IsWii(GetPlatform()));
 
   Common::HttpRequest request;
   constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";

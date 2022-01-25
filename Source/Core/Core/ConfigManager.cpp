@@ -440,37 +440,37 @@ DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region 
 
 std::string SConfig::GetGameTDBImageRegionCode(DiscIO::Region region, bool wii) const
 {
-    switch (region)
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
+    return "JA";
+  case DiscIO::Region::NTSC_U:
+    return "US";
+  case DiscIO::Region::NTSC_K:
+    return "KO";
+  case DiscIO::Region::PAL:
+  {
+    const auto user_lang = GetCurrentLanguage(wii);
+    switch (user_lang)
     {
-        case DiscIO::Region::NTSC_J:
-            return "JA";
-        case DiscIO::Region::NTSC_U:
-            return "US";
-        case DiscIO::Region::NTSC_K:
-            return "KO";
-        case DiscIO::Region::PAL:
-        {
-            const auto user_lang = GetCurrentLanguage(wii);
-            switch (user_lang)
-            {
-                case DiscIO::Language::German:
-                    return "DE";
-                case DiscIO::Language::French:
-                    return "FR";
-                case DiscIO::Language::Spanish:
-                    return "ES";
-                case DiscIO::Language::Italian:
-                    return "IT";
-                case DiscIO::Language::Dutch:
-                    return "NL";
-                case DiscIO::Language::English:
-                default:
-                    return "EN";
-            }
-        }
-        case DiscIO::Region::Unknown:
-            return "EN";
+    case DiscIO::Language::German:
+      return "DE";
+    case DiscIO::Language::French:
+      return "FR";
+    case DiscIO::Language::Spanish:
+      return "ES";
+    case DiscIO::Language::Italian:
+      return "IT";
+    case DiscIO::Language::Dutch:
+      return "NL";
+    case DiscIO::Language::English:
+    default:
+      return "EN";
     }
+  }
+  case DiscIO::Region::Unknown:
+    return "EN";
+  }
 }
 
 IniFile SConfig::LoadDefaultGameIni() const

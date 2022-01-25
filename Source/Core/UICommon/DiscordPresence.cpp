@@ -16,8 +16,8 @@
 #include <discord_rpc.h>
 #include <fmt/format.h>
 
-#include "Common/HttpRequest.h"
 #include "Common/Hash.h"
+#include "Common/HttpRequest.h"
 #include "DiscIO/Enums.h"
 #endif
 
@@ -90,21 +90,21 @@ void HandleDiscordJoin(const char* join_secret)
 
 std::string ArtworkForGameId()
 {
-    DiscIO::Region region = SConfig::GetInstance().m_region;
-    bool isWii = SConfig::GetInstance().bWii;
-    std::string region_code = SConfig::GetInstance().GetGameTDBImageRegionCode(region, isWii);
+  DiscIO::Region region = SConfig::GetInstance().m_region;
+  bool isWii = SConfig::GetInstance().bWii;
+  std::string region_code = SConfig::GetInstance().GetGameTDBImageRegionCode(region, isWii);
 
-    constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
-    std::string url = fmt::format(cover_url, region_code, SConfig::GetInstance().GetGameTDBID());
+  constexpr char cover_url[] = "https://art.gametdb.com/wii/cover/{}/{}.png";
+  std::string url = fmt::format(cover_url, region_code, SConfig::GetInstance().GetGameTDBID());
 
-    // If the artwork doesn't exist, we will return an empty string
-    Common::HttpRequest request;
-    const auto response = request.Get(url);
+  // If the artwork doesn't exist, we will return an empty string
+  Common::HttpRequest request;
+  const auto response = request.Get(url);
 
-    if (!response)
-        return "";
+  if (!response)
+    return "";
 
-    return url;
+  return url;
 }
 
 }  // namespace
@@ -158,8 +158,9 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
       current_game.empty() ? SConfig::GetInstance().GetTitleDescription() : current_game;
 
   std::string game_artwork;
-  if (!SConfig::GetInstance().GetGameTDBID().empty()) {
-      game_artwork = ArtworkForGameId();
+  if (!SConfig::GetInstance().GetGameTDBID().empty())
+  {
+    game_artwork = ArtworkForGameId();
   }
 
   DiscordRichPresence discord_presence = {};
