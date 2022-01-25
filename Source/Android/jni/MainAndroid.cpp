@@ -496,7 +496,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadWiimoteConfig(JNIEnv*,
                                                                                         jclass)
 {
-  WiimoteReal::LoadSettings();
   Wiimote::LoadConfig();
 }
 

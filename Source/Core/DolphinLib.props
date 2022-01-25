@@ -176,6 +176,7 @@
     <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
     <ClInclude Include="Core\Config\UISettings.h" />
+    <ClInclude Include="Core\Config\WiimoteSettings.h" />
     <ClInclude Include="Core\ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\GameConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\IsSettingSaveable.h" />
@@ -763,6 +764,7 @@
     <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
     <ClCompile Include="Core\Config\UISettings.cpp" />
+    <ClCompile Include="Core\Config\WiimoteSettings.cpp" />
     <ClCompile Include="Core\ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\GameConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\IsSettingSaveable.cpp" />

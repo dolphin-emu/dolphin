@@ -36,6 +36,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -169,7 +170,7 @@ std::string GetInputDisplay()
         s_controllers[i] = ControllerType::GC;
       else
         s_controllers[i] = ControllerType::None;
-      s_wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
+      s_wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
     }
   }
 
@@ -506,7 +507,7 @@ void ChangeWiiPads(bool instantly)
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
   // This is important for Wiimotes, because they can desync easily if they get re-activated
@@ -518,7 +519,8 @@ void ChangeWiiPads(bool instantly)
   {
     const bool is_using_wiimote = IsUsingWiimote(i);
 
-    WiimoteCommon::SetSource(i, is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
+    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
+                       is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
     if (bt != nullptr)
       bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
