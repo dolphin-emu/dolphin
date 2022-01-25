@@ -822,6 +822,8 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     for (auto slot : ExpansionInterface::SLOTS)
       packet >> m_net_settings.m_EXIDevice[slot];
 
+    packet >> m_net_settings.m_MemcardSizeOverride;
+
     for (u32& value : m_net_settings.m_SYSCONFSettings)
       packet >> value;
 

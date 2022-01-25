@@ -1324,6 +1324,8 @@ bool NetPlayServer::SetupNetSettings()
     settings.m_EXIDevice[slot] = device;
   }
 
+  settings.m_MemcardSizeOverride = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
+
   for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
   {
     std::visit(
@@ -1510,6 +1512,8 @@ bool NetPlayServer::StartGame()
   for (auto slot : ExpansionInterface::SLOTS)
     spac << static_cast<int>(m_settings.m_EXIDevice[slot]);
 
+  spac << m_settings.m_MemcardSizeOverride;
+
   for (u32 value : m_settings.m_SYSCONFSettings)
     spac << value;
 
@@ -1674,10 +1678,7 @@ bool NetPlayServer::SyncSaveData()
 
       MemoryCard::CheckPath(path, region, slot);
 
-      int size_override;
-      IniFile gameIni = SConfig::LoadGameIni(game->GetGameID(), game->GetRevision());
-      gameIni.GetOrCreateSection("Core")->Get("MemoryCardSize", &size_override, -1);
-
+      const int size_override = m_settings.m_MemcardSizeOverride;
       if (size_override >= 0 && size_override <= 4)
       {
         path.insert(path.find_last_of('.'),
