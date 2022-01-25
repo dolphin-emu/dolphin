@@ -126,8 +126,6 @@ void NetPlayDialog::CreateMainLayout()
   m_load_wii_action->setCheckable(true);
   m_sync_save_data_action = m_data_menu->addAction(tr("Sync Saves"));
   m_sync_save_data_action->setCheckable(true);
-  m_sync_codes_action = m_data_menu->addAction(tr("Sync AR/Gecko Codes"));
-  m_sync_codes_action->setCheckable(true);
   m_sync_all_wii_saves_action = m_data_menu->addAction(tr("Sync All Wii Saves"));
   m_sync_all_wii_saves_action->setCheckable(true);
   m_strict_settings_sync_action = m_data_menu->addAction(tr("Strict Settings Sync"));
@@ -186,7 +184,7 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button->setAutoDefault(false);
 
   m_sync_save_data_action->setChecked(true);
-  m_sync_codes_action->setChecked(true);
+
 
   m_main_layout->setMenuBar(m_menu_bar);
 
@@ -381,7 +379,6 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_write_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_load_wii_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
-  connect(m_sync_codes_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_record_input_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_strict_settings_sync_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_all_wii_saves_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
@@ -815,7 +812,6 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_load_wii_action->setEnabled(enabled);
     m_write_save_data_action->setEnabled(enabled);
     m_sync_save_data_action->setEnabled(enabled);
-    m_sync_codes_action->setEnabled(enabled);
     m_assign_ports_button->setEnabled(enabled);
     m_strict_settings_sync_action->setEnabled(enabled);
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
@@ -1103,7 +1099,6 @@ void NetPlayDialog::LoadSettings()
   m_write_save_data_action->setChecked(write_save_data);
   m_load_wii_action->setChecked(load_wii_save);
   m_sync_save_data_action->setChecked(sync_saves);
-  m_sync_codes_action->setChecked(sync_codes);
   m_record_input_action->setChecked(record_inputs);
   m_strict_settings_sync_action->setChecked(strict_settings_sync);
   m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
@@ -1139,7 +1134,6 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_WRITE_SAVE_DATA, m_write_save_data_action->isChecked());
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_action->isChecked());
-  Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
