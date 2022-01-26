@@ -275,10 +275,10 @@ void HacksWidget::AddDescriptions()
                  "states at the cost of additional save/load time.<br><br><dolphin_emphasis>If "
                  "unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_VERTEX_ROUNDING_DESCRIPTION[] = QT_TR_NOOP(
-      "Rounds 2D vertices to whole pixels.<br><br>Fixes graphical problems in some games at "
-      "higher internal resolutions. This setting has no effect when native internal "
-      "resolution is used.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
+      "Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number.<br><br>"
+      "Fixes graphical problems in some games at higher internal resolutions. This setting has no "
+      "effect when native internal resolution is used.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));
