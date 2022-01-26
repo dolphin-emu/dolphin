@@ -103,7 +103,7 @@ void HacksWidget::CreateWidgets()
       new GraphicsBool(tr("Fast Depth Calculation"), Config::GFX_FAST_DEPTH_CALC);
   m_disable_bounding_box =
       new GraphicsBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
-  m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUDING);
+  m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING);
   m_save_texture_cache_state =
       new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
 
