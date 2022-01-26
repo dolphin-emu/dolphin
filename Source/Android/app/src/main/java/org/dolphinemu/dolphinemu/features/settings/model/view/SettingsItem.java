@@ -72,7 +72,7 @@ public abstract class SettingsItem
    */
   public abstract int getType();
 
-  protected abstract AbstractSetting getSetting();
+  public abstract AbstractSetting getSetting();
 
   public boolean isOverridden(Settings settings)
   {

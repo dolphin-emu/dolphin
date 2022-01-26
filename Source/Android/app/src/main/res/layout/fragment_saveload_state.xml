@@ -11,36 +11,42 @@
         android:id="@+id/loadsave_state_button_1"
         android:layout_width="128dp"
         android:layout_height="96dp"
+        android:textColor="?attr/colorPrimary"
         style="@style/OverlayInGameMenuOption"/>
 
     <Button
         android:id="@+id/loadsave_state_button_2"
         android:layout_width="128dp"
         android:layout_height="96dp"
+        android:textColor="?attr/colorPrimary"
         style="@style/OverlayInGameMenuOption"/>
 
     <Button
         android:id="@+id/loadsave_state_button_3"
         android:layout_width="128dp"
         android:layout_height="96dp"
+        android:textColor="?attr/colorPrimary"
         style="@style/OverlayInGameMenuOption"/>
 
     <Button
         android:id="@+id/loadsave_state_button_4"
         android:layout_width="128dp"
         android:layout_height="96dp"
+        android:textColor="?attr/colorPrimary"
         style="@style/OverlayInGameMenuOption"/>
 
     <Button
         android:id="@+id/loadsave_state_button_5"
         android:layout_width="128dp"
         android:layout_height="96dp"
+        android:textColor="?attr/colorPrimary"
         style="@style/OverlayInGameMenuOption"/>
 
     <Button
         android:id="@+id/loadsave_state_button_6"
         android:layout_width="128dp"
         android:layout_height="96dp"
+        android:textColor="?attr/colorPrimary"
         style="@style/OverlayInGameMenuOption"/>
 
 </GridLayout>

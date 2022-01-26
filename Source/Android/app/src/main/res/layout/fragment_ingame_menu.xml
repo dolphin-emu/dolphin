@@ -5,7 +5,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:paddingBottom="16dp"
-              android:background="@color/dolphin_blue_dark"
+              android:background="?attr/colorPrimaryDark"
               tools:layout_width="250dp">
 
     <TextView
@@ -109,6 +109,9 @@
     <Button
         android:id="@+id/menu_exit"
         android:text="@string/emulation_exit"
-        style="@style/InGameMenuOption"/>
+        style="@style/InGameMenuOption"
+        android:fontFamily="sans-serif"
+        android:textColor="?attr/colorOnGradientPrimary"
+        android:background="@drawable/button_primary_gradient_shadow"/>
 
 </LinearLayout>

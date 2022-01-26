@@ -6,6 +6,7 @@ import android.app.Application;
 import android.content.Context;
 import android.hardware.usb.UsbManager;
 
+import org.dolphinemu.dolphinemu.model.AppTheme;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
@@ -28,6 +29,9 @@ public class DolphinApplication extends Application
 
     if (DirectoryInitialization.shouldStart(getApplicationContext()))
       DirectoryInitialization.start(getApplicationContext());
+
+    // Set theme of native components
+    NativeLibrary.setNativeTheme(AppTheme.APPLICATION_THEME.getString(null));
   }
 
   public static Context getAppContext()

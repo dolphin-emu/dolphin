@@ -31,6 +31,7 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.model.AppTheme;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
@@ -54,6 +55,7 @@ public final class TvMainActivity extends FragmentActivity
   protected void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
+    AppTheme.applyTheme(this);
     setContentView(R.layout.activity_tv_main);
 
     setupUI();
@@ -133,7 +135,7 @@ public final class TvMainActivity extends FragmentActivity
 
     // Set display parameters for the BrowseFragment
     mBrowseFragment.setHeadersState(BrowseSupportFragment.HEADERS_ENABLED);
-    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
+    mBrowseFragment.setBrandColor(typedValue.data);
     buildRowsAdapter();
 
     mBrowseFragment.setOnItemViewClickedListener(

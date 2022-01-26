@@ -65,6 +65,7 @@
 #include "../../Core/Common/WindowSystemInfo.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
+#include "jni/AndroidCommon/AndroidTheme.h"
 
 namespace
 {
@@ -787,5 +788,13 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentTitleDescriptionUnchecked
     description = SConfig::GetInstance().GetTitleDescription();
 
   return ToJString(env, description);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_setNativeTheme(JNIEnv* env, jclass, jstring theme)
+{
+const char *themeString = env->GetStringUTFChars(theme, nullptr);
+AndroidTheme::Set(themeString);
+env->ReleaseStringUTFChars(theme, themeString);
 }
 }

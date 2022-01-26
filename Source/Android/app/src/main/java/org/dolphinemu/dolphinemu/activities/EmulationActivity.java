@@ -43,6 +43,7 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
+import org.dolphinemu.dolphinemu.model.AppTheme;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
@@ -195,7 +196,7 @@ public final class EmulationActivity extends AppCompatActivity
       }
       else
       {
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setMessage(R.string.unavailable_paths);
         builder.setPositiveButton(R.string.yes, (dialogInterface, i) ->
                 SettingsActivity.launch(activity, MenuTag.CONFIG_PATHS));
@@ -320,6 +321,7 @@ public final class EmulationActivity extends AppCompatActivity
 
     Rumble.initRumble(this);
 
+    AppTheme.applyTheme(this);
     setContentView(R.layout.activity_emulation);
 
     // Find or create the EmulationFragment
@@ -792,7 +794,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void toggleControls()
   {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_toggle_controls);
     if (!NativeLibrary.IsEmulatingWii() || mPreferences.getInt("wiiController", 3) == 0)
     {
@@ -854,7 +856,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void chooseDoubleTapButton()
   {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
     int currentController =
             mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK);
@@ -935,7 +937,7 @@ public final class EmulationActivity extends AppCompatActivity
     });
     valueOpacity.setText(seekbarOpacity.getProgress() + "%");
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_control_adjustments);
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
@@ -957,7 +959,7 @@ public final class EmulationActivity extends AppCompatActivity
   private void chooseController()
   {
     final SharedPreferences.Editor editor = mPreferences.edit();
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_choose_controller);
     builder.setSingleChoiceItems(R.array.controllersEntries,
             mPreferences.getInt("wiiController", 3),
@@ -979,7 +981,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void showMotionControlsOptions()
   {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_motion_controls);
     builder.setSingleChoiceItems(R.array.motionControlsEntries,
             IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings),
@@ -999,7 +1001,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void setIRMode()
   {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_ir_mode);
     builder.setSingleChoiceItems(R.array.irModeEntries,
             IntSetting.MAIN_IR_MODE.getInt(mSettings),
@@ -1109,7 +1111,7 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(getString(R.string.emulation_ir_sensitivity));
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
@@ -1142,7 +1144,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void resetOverlay()
   {
-    new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+    new AlertDialog.Builder(this)
             .setTitle(getString(R.string.emulation_touch_overlay_reset))
             .setPositiveButton(R.string.yes, (dialogInterface, i) ->
                     mEmulationFragment.resetInputOverlay())

@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.model.AppTheme;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
@@ -62,7 +63,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     super.onCreate(savedInstanceState);
 
     MainPresenter.skipRescanningLibrary();
-
+    AppTheme.applyTheme(this);
     setContentView(R.layout.activity_settings);
 
     Intent launcher = getIntent();
@@ -224,7 +225,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   @Override
   public void showGameIniJunkDeletionQuestion()
   {
-    new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+    new AlertDialog.Builder(this)
             .setTitle(getString(R.string.game_ini_junk_title))
             .setMessage(getString(R.string.game_ini_junk_question))
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> mPresenter.clearSettings())

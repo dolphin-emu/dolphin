@@ -26,6 +26,7 @@
             android:layout_height="wrap_content"
             app:tabBackground="?colorPrimary"
             app:tabGravity="fill"
+            app:tabIndicatorColor="?attr/colorOnPrimary"
             app:tabMode="fixed"
             app:tabTextAppearance="@style/MyCustomTextAppearance" />
 
@@ -46,6 +47,6 @@
         app:borderWidth="0dp"
         app:layout_anchor="@+id/pager_platforms"
         app:layout_anchorGravity="bottom|right|end"
-        app:rippleColor="?android:colorPrimaryDark" />
+        android:backgroundTint="?attr/colorAccent"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

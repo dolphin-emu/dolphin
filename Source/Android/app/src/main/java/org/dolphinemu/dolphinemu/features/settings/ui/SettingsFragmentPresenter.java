@@ -41,6 +41,9 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoice
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import android.preference.PreferenceManager;
+import android.content.SharedPreferences;
+import org.dolphinemu.dolphinemu.model.AppTheme;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -287,6 +290,15 @@ public final class SettingsFragmentPresenter
 
   private void addInterfaceSettings(ArrayList<SettingsItem> sl)
   {
+    sl.add(new StringSingleChoiceSetting(mContext, AppTheme.APPLICATION_THEME, R.string.application_theme,
+      0, R.array.themeEntries, R.array.themeValues));
+    // Listener that reloads the application when the theme is changed
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+    prefs.registerOnSharedPreferenceChangeListener((sharedPreferences, key) ->
+    {
+      if (key.equals(AppTheme.APP_THEME))
+        AppTheme.onThemeChanged();
+    });
     // Hide the orientation setting if the device only supports one orientation. Old devices which
     // support both portrait and landscape may report support for neither, so we use ==, not &&.
     PackageManager packageManager = mContext.getPackageManager();

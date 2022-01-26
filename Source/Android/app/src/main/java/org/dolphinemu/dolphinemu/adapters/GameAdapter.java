@@ -74,16 +74,15 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
     GameFile gameFile = mGameFiles.get(position);
     PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
 
+    String country = context.getResources().getStringArray(R.array.countryNames)[gameFile.getCountry()];
     holder.textGameTitle.setText(gameFile.getTitle());
+    holder.textGameCountry.setText(country);
 
     if (GameFileCacheManager.findSecondDisc(gameFile) != null)
     {
       holder.textGameCaption
-              .setText(context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
-    }
-    else
-    {
-      holder.textGameCaption.setText(gameFile.getCompany());
+        .setText(context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
+      holder.textGameCaption.setVisibility(View.VISIBLE);
     }
 
     holder.gameFile = gameFile;

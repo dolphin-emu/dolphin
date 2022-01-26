@@ -96,7 +96,7 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
 
     Context context = clicked.getContext();
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase)
+    AlertDialog.Builder builder = new AlertDialog.Builder(context)
             .setMessage(R.string.setting_clear_confirm);
 
     builder

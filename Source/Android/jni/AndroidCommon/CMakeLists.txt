@@ -3,6 +3,8 @@ add_library(androidcommon STATIC
   AndroidCommon.h
   IDCache.cpp
   IDCache.h
+  AndroidTheme.cpp
+  AndroidTheme.h
 )
 
 target_link_libraries(androidcommon

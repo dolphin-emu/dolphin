@@ -504,6 +504,8 @@ public final class NativeLibrary
 
   private static native String GetCurrentTitleDescriptionUnchecked();
 
+  public static native void setNativeTheme(String theme);
+
   @Keep
   public static boolean displayAlertMsg(final String caption, final String text,
           final boolean yesNo, final boolean isWarning, final boolean nonBlocking)

@@ -637,4 +637,18 @@
         <item>21</item>
         <item>22</item>
     </integer-array>
+
+    <!-- Application Theme -->
+    <string-array name="themeEntries">
+        <item>Dolphin Blue</item>
+        <item>|MMJR| Purple</item>
+        <item>Neon Red</item>
+        <item>Luigi Green</item>
+    </string-array>
+    <string-array name="themeValues">
+        <item>dolphinblue</item>
+        <item>mmjrpurple</item>
+        <item>neonred</item>
+        <item>luigigreen</item>
+    </string-array>
 </resources>

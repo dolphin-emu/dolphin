@@ -1,55 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-                                    xmlns:tools="http://schemas.android.com/tools"
-                                    android:layout_width="match_parent"
-                                    tools:layout_width="160dp"
-                                    android:layout_height="270dp"
-                                    android:transitionName="card_game"
-                                    android:focusable="true"
-                                    android:clickable="true"
-                                    android:foreground="?android:attr/selectableItemBackground">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="170dp"
+    android:layout_margin="3dp"
+    android:layout_marginTop="10dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:padding="0dp"
+    android:transitionName="card_game"
+    app:cardCornerRadius="3dp"
+    tools:layout_width="160dp">
+
+
+    <ImageView
+        android:id="@+id/image_game_screen"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginHorizontal="0dp"
+        android:layout_weight="1"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:scaleType="fitXY"
+        tools:src="@drawable/placeholder_screenshot" />
+
+    <TextView
+        android:id="@+id/text_game_title"
+        style="@android:style/TextAppearance.Material.Subhead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
+        android:ellipsize="end"
+        android:lines="1"
+        android:maxLines="1"
+        android:visibility="gone"
+        tools:text="The Legend of Zelda: The Wind Waker" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <ImageView
-            android:id="@+id/image_game_screen"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            tools:src="@drawable/placeholder_screenshot"
-            tools:scaleType="centerCrop"/>
-
-        <TextView
-            android:id="@+id/text_game_title"
-            style="@android:style/TextAppearance.Material.Subhead"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginTop="16dp"
-            android:ellipsize="end"
-            android:lines="1"
-            android:maxLines="1"
-            tools:text="The Legend of Zelda: The Wind Waker"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="3dp">
 
         <TextView
             android:id="@+id/text_game_caption"
             style="@android:style/TextAppearance.Material.Caption"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:ellipsize="end"
-            android:lines="1"
-            android:maxLines="1"
-            tools:text="Nintendo"/>
+            android:layout_height="match_parent"
+            android:textColor="?attr/textColorOnPrimary"
+            android:textStyle="bold"
+            android:paddingVertical="2dp"
+            android:paddingHorizontal="3dp"
+            android:background="?attr/colorOnPrimary"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="Disc 1" />
+
+        <TextView
+            android:id="@+id/text_country"
+            style="@android:style/TextAppearance.Material.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingVertical="2dp"
+            android:paddingHorizontal="3dp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:background="?attr/colorPrimary"
+            tools:text="NTSC" />
 
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
+
+
 

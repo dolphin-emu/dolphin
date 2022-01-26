@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:right="3dp" android:top="3dp">  <!-- shadow effect -->
+        <shape>
+            <corners android:radius="8dp" />
+            <solid android:color="#3F000000" />
+        </shape>
+    </item>
+
+    <item android:bottom="3dp" android:left="3dp" android:drawable="@drawable/button_primary_gradient" />
+
+</layer-list>
