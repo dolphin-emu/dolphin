@@ -311,15 +311,11 @@ void NetPlayDialog::ConnectWidgets()
       client->AdjustPadBufferSize(value);
   });
 
-  //connect(m_ranked_box, &QCheckBox::stateChanged, this, &NetPlayDialog::OnRankedEnabled);
-
   connect(m_ranked_box, &QCheckBox::stateChanged, [this](bool is_ranked) {
     auto client = Settings::Instance().GetNetPlayClient();
     auto server = Settings::Instance().GetNetPlayServer();
     if (server)
       server->AdjustRankedBox(is_ranked);
-    else
-      client->AdjustRankedBox(is_ranked);
   });
 
 
@@ -422,7 +418,7 @@ void NetPlayDialog::DisplayActiveGeckoCodes()
 
 void NetPlayDialog::OnRankedEnabled(bool is_ranked)
 {
-  if (is_ranked != 0)
+  if (is_ranked)
   {
     DisplayMessage(tr("Ranked Mode Enabled"), "green");
     Core::setRankedStatus(is_ranked);

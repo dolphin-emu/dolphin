@@ -155,7 +155,6 @@ public:
   const PadMappingArray& GetWiimoteMapping() const;
 
   void AdjustPadBufferSize(unsigned int size);
-  void AdjustRankedBox(bool is_ranked);
 
   static SyncIdentifier GetSDCardIdentifier();
 

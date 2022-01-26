@@ -2626,12 +2626,6 @@ void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
   m_dialog->OnPadBufferChanged(size);
 }
 
-void NetPlayClient::AdjustRankedBox(bool is_ranked)
-{
-  m_ranked_client = is_ranked;
-  m_dialog->OnRankedEnabled(is_ranked);
-}
-
 SyncIdentifier NetPlayClient::GetSDCardIdentifier()
 {
   return SyncIdentifier{{}, "sd", {}, {}, {}, {}};
