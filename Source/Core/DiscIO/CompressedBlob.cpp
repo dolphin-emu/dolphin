@@ -270,19 +270,19 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
 };
 
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, u32 sub_type, int block_size,
+                  const std::string& tempfile_path, u32 sub_type, int block_size,
                   CompressCB callback)
 {
   ASSERT(infile->IsDataSizeAccurate());
 
-  File::IOFile outfile(outfile_path, "wb");
-  if (!outfile)
+  File::IOFile tempfile(tempfile_path, "wb");
+  if (!tempfile)
   {
     PanicAlertFmtT(
         "Failed to open the output file \"{0}\".\n"
         "Check that you have permissions to write the target folder and that the media can "
         "be written.",
-        outfile_path);
+        tempfile_path);
     return false;
   }
 
@@ -301,9 +301,9 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   std::vector<u32> hashes(header.num_blocks);
 
   // seek past the header (we will write it at the end)
-  outfile.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
+  tempfile.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
   // seek past the offset and hash tables (we will write them at the end)
-  outfile.Seek((sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
+  tempfile.Seek((sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
 
   // Now we are ready to write compressed data!
   u64 inpos = 0;
@@ -318,7 +318,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   };
 
   const auto output = [&](OutputParameters parameters) {
-    return Output(std::move(parameters), &outfile, &position, &offsets, progress_monitor,
+    return Output(std::move(parameters), &tempfile, &position, &offsets, progress_monitor,
                   header.num_blocks, callback);
   };
 
@@ -352,21 +352,15 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
 
   const ConversionResultCode result = compressor.GetStatus();
 
-  if (result != ConversionResultCode::Success)
-  {
-    // Remove the incomplete output file.
-    outfile.Close();
-    File::Delete(outfile_path);
-  }
-  else
+  if (result == ConversionResultCode::Success)
   {
     // Okay, go back and fill in headers
-    outfile.Seek(0, SEEK_SET);
-    outfile.WriteArray(&header, 1);
-    outfile.WriteArray(offsets.data(), header.num_blocks);
-    outfile.WriteArray(hashes.data(), header.num_blocks);
+    tempfile.Seek(0, SEEK_SET);
+    tempfile.WriteArray(&header, 1);
+    tempfile.WriteArray(offsets.data(), header.num_blocks);
+    tempfile.WriteArray(hashes.data(), header.num_blocks);
 
-    callback(Common::GetStringT("Done compressing disc image."), 1.0f);
+    callback(Common::GetStringT("Done compressing disc image."), 0.99f);
   }
 
   if (result == ConversionResultCode::ReadFailed)
@@ -376,7 +370,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   {
     PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                    "Check that you have enough space available on the target drive.",
-                   outfile_path);
+                   tempfile_path);
   }
 
   return result == ConversionResultCode::Success;

@@ -18,6 +18,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QString>
+#include <QTemporaryFile>
 #include <QVBoxLayout>
 
 #include "Common/Assert.h"
@@ -381,9 +382,14 @@ void ConvertDialog::Convert()
             .append(extension),
         filter);
 
+    dst_dir = QFileInfo(dst_path).absoluteDir().absolutePath();
+
     if (dst_path.isEmpty())
       return;
   }
+
+  bool confirm_replace_none = false;
+  bool confirm_replace_all = false;
 
   for (const auto& file : m_files)
   {
@@ -395,17 +401,32 @@ void ConvertDialog::Convert()
               .absoluteFilePath(QFileInfo(QString::fromStdString(original_path)).completeBaseName())
               .append(extension);
       QFileInfo dst_info = QFileInfo(dst_path);
-      if (dst_info.exists())
+      if (dst_info.exists() && !confirm_replace_all)
       {
+        if (confirm_replace_none)
+          continue;
+
         ModalMessageBox confirm_replace(this);
         confirm_replace.setIcon(QMessageBox::Warning);
         confirm_replace.setWindowTitle(tr("Confirm"));
         confirm_replace.setText(tr("The file %1 already exists.\n"
                                    "Do you wish to replace it?")
                                     .arg(dst_info.fileName()));
-        confirm_replace.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        confirm_replace.setStandardButtons(QMessageBox::Yes | QMessageBox::No |
+                                           QMessageBox::YesToAll | QMessageBox::NoToAll);
 
-        if (confirm_replace.exec() == QMessageBox::No)
+        confirm_replace.setDefaultButton(QMessageBox::No);
+
+        int confirm_replace_result = confirm_replace.exec();
+
+        if (confirm_replace_result == QMessageBox::YesToAll)
+          confirm_replace_all = true;
+
+        if (confirm_replace_result == QMessageBox::NoToAll)
+          confirm_replace_none = true;
+
+        if (confirm_replace_result == QMessageBox::No ||
+            confirm_replace_result == QMessageBox::NoToAll)
           continue;
       }
     }
@@ -461,13 +482,25 @@ void ConvertDialog::Convert()
       };
 
       std::future<bool> success;
+      QTemporaryFile temporary_file;
+
+      temporary_file.setFileTemplate(
+          QDir(dst_dir + QString::fromStdString("/dolphin-XXXXXX")).absolutePath());
+      temporary_file.open();
+      const std::string temporary_file_path = temporary_file.fileName().toStdString();
+      temporary_file.close();
 
       switch (format)
       {
       case DiscIO::BlobType::PLAIN:
         success = std::async(std::launch::async, [&] {
           const bool good = DiscIO::ConvertToPlain(blob_reader.get(), original_path,
-                                                   dst_path.toStdString(), callback);
+                                                   temporary_file_path, callback);
+          if (good)
+            QFile::remove(dst_path);
+          const bool rename_success = temporary_file.rename(dst_path);
+          if (rename_success)
+            temporary_file.setAutoRemove(false);
           progress_dialog.Reset();
           return good;
         });
@@ -476,8 +509,13 @@ void ConvertDialog::Convert()
       case DiscIO::BlobType::GCZ:
         success = std::async(std::launch::async, [&] {
           const bool good = DiscIO::ConvertToGCZ(
-              blob_reader.get(), original_path, dst_path.toStdString(),
+              blob_reader.get(), original_path, temporary_file_path,
               file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, block_size, callback);
+          if (good)
+            QFile::remove(dst_path);
+          const bool rename_success = temporary_file.rename(dst_path);
+          if (rename_success)
+            temporary_file.setAutoRemove(false);
           progress_dialog.Reset();
           return good;
         });
@@ -487,9 +525,14 @@ void ConvertDialog::Convert()
       case DiscIO::BlobType::RVZ:
         success = std::async(std::launch::async, [&] {
           const bool good =
-              DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, dst_path.toStdString(),
+              DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), original_path, temporary_file_path,
                                         format == DiscIO::BlobType::RVZ, compression,
                                         compression_level, block_size, callback);
+          if (good)
+            QFile::remove(dst_path);
+          const bool rename_success = temporary_file.rename(dst_path);
+          if (rename_success)
+            temporary_file.setAutoRemove(false);
           progress_dialog.Reset();
           return good;
         });

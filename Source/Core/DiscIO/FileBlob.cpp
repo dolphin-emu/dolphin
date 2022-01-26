@@ -42,18 +42,18 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, CompressCB callback)
+                    const std::string& tempfile_path, CompressCB callback)
 {
   ASSERT(infile->IsDataSizeAccurate());
 
-  File::IOFile outfile(outfile_path, "wb");
-  if (!outfile)
+  File::IOFile tempfile(tempfile_path, "wb");
+  if (!tempfile)
   {
     PanicAlertFmtT(
         "Failed to open the output file \"{0}\".\n"
         "Check that you have permissions to write the target folder and that the media can "
         "be written.",
-        outfile_path);
+        tempfile_path);
     return false;
   }
 
@@ -94,21 +94,14 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
       success = false;
       break;
     }
-    if (!outfile.WriteBytes(buffer.data(), sz))
+    if (!tempfile.WriteBytes(buffer.data(), sz))
     {
       PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                      "Check that you have enough space available on the target drive.",
-                     outfile_path);
+                     tempfile_path);
       success = false;
       break;
     }
-  }
-
-  if (!success)
-  {
-    // Remove the incomplete output file.
-    outfile.Close();
-    File::Delete(outfile_path);
   }
 
   return success;
