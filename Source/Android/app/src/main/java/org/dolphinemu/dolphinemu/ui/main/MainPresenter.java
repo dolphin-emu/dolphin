@@ -162,7 +162,7 @@ public final class MainPresenter
     if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
             FileBrowserHelper.getExtension(name, false))))
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+      AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
       builder.setMessage(mActivity.getString(R.string.wrong_file_extension_in_directory,
               FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)));
       builder.setPositiveButton(R.string.ok, null);
@@ -201,7 +201,7 @@ public final class MainPresenter
         mActivity.runOnUiThread(() ->
         {
           AlertDialog.Builder builder =
-                  new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+            new AlertDialog.Builder(mActivity);
           builder.setMessage(R.string.wii_save_exists);
           builder.setCancelable(false);
           builder.setPositiveButton(R.string.yes, (dialog, i) -> canOverwriteFuture.complete(true));
@@ -269,7 +269,7 @@ public final class MainPresenter
 
   private void runOnThreadAndShowResult(int progressTitle, int progressMessage, Supplier<String> f)
   {
-    AlertDialog progressDialog = new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase)
+    AlertDialog progressDialog = new AlertDialog.Builder(mActivity)
             .create();
     progressDialog.setTitle(progressTitle);
     if (progressMessage != 0)
@@ -287,7 +287,7 @@ public final class MainPresenter
         if (result != null)
         {
           AlertDialog.Builder builder =
-                  new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+            new AlertDialog.Builder(mActivity);
           builder.setMessage(result);
           builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
           builder.show();
