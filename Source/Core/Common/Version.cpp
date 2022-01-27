@@ -16,7 +16,7 @@ namespace Common
 #else
 #define BUILD_TYPE_STR ""
 #endif
-#define RIO_REV_STR "0.1.4"
+#define RIO_REV_STR "0.1.4.a"
 
 const std::string scm_rev_str = "Project Rio "
 #if !SCM_IS_MASTER
