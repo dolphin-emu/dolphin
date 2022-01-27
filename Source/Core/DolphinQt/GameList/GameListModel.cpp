@@ -259,6 +259,10 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
     return false;
   }
 
+  std::string RioGameID = "GYQE01";
+  if (game.GetGameID() != RioGameID)
+    return false;
+
   const bool show_platform = [&game] {
     switch (game.GetPlatform())
     {
