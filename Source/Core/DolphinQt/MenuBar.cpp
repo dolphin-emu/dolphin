@@ -241,9 +241,6 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
-
   tools_menu->addSeparator();
 
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
