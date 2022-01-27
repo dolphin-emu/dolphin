@@ -59,6 +59,7 @@ public:
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
   virtual void OnRankedEnabled(bool is_ranked) = 0;
+  virtual void OnActiveGeckoCodes(std::string codeStr) = 0;
 
   virtual bool IsRecording() = 0;
   virtual std::shared_ptr<const UICommon::GameFile>

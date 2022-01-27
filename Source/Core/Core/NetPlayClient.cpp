@@ -404,9 +404,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       v_ActiveGeckoCodes.push_back(line);
 
     // add to chat
-    m_dialog->AppendChat("Active Gecko Codes:");
+    std::string firstLine = "Active Gecko Codes:";
+    m_dialog->OnActiveGeckoCodes(firstLine);
     for (const std::string code : v_ActiveGeckoCodes)
-      m_dialog->AppendChat(code);
+      m_dialog->OnActiveGeckoCodes(code);
   }
   break;
 

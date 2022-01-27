@@ -64,6 +64,7 @@ public:
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
   void OnRankedEnabled(bool is_ranked) override;
+  void OnActiveGeckoCodes(std::string codeStr);
 
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;

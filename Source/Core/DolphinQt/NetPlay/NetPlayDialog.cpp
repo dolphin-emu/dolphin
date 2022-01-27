@@ -410,10 +410,13 @@ void NetPlayDialog::OnChat()
 void NetPlayDialog::DisplayActiveGeckoCodes()
 {
   if (!IsHosting())
-  {
     return;
-  }
   Settings::Instance().GetNetPlayClient()->GetActiveGeckoCodes();
+}
+
+void NetPlayDialog::OnActiveGeckoCodes(std::string codeStr)
+{
+  DisplayMessage(QString::fromStdString(codeStr), "darkblue");
 }
 
 void NetPlayDialog::OnRankedEnabled(bool is_ranked)
