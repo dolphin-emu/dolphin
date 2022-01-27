@@ -627,6 +627,14 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_COIN_FLIP:
+  {
+    int coinFlip;
+    packet >> coinFlip;
+    m_dialog->OnCoinFlipResult(coinFlip);
+  }
+  break;
+
   case NP_MSG_PAD_BUFFER:
   {
     u32 size = 0;
@@ -1736,6 +1744,15 @@ void NetPlayClient::GetActiveGeckoCodes()
     v_ActiveGeckoCodes.push_back(active_code.name);
   }
   SendActiveGeckoCodes();
+}
+
+void NetPlayClient::SendCoinFlip(int randNum)
+{
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_COIN_FLIP);
+  packet << randNum;
+
+  SendAsync(std::move(packet));
 }
 
 // called from ---CPU--- thread

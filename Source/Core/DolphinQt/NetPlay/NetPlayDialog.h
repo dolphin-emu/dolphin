@@ -64,6 +64,7 @@ public:
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
   void OnRankedEnabled(bool is_ranked) override;
+  void OnCoinFlipResult(int coinNum);
   void OnActiveGeckoCodes(std::string codeStr);
 
   void OnIndexAdded(bool success, const std::string error) override;
@@ -98,6 +99,7 @@ private:
   void CreateMainLayout();
   void ConnectWidgets();
   void OnChat();
+  void OnCoinFlip();
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
@@ -149,6 +151,7 @@ private:
   QSplitter* m_splitter;
   QCheckBox* m_ranked_box;
   QActionGroup* m_network_mode_group;
+  QPushButton* m_coin_flipper;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;

@@ -788,6 +788,20 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_COIN_FLIP:
+  {
+    int coinNum;
+    packet >> coinNum;
+
+    // send codes to other clients
+    sf::Packet spac;
+    spac << (MessageId)NP_MSG_COIN_FLIP;
+    spac << coinNum;
+
+    SendToClients(spac);
+  }
+  break;
+
   case NP_MSG_PLAYER_DATA:
   {
     u8 port;

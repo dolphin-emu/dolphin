@@ -183,6 +183,8 @@ enum
   NP_MSG_SYNC_SAVE_DATA = 0xF1,
   NP_MSG_SYNC_CODES = 0xF2,
   NP_MSG_SEND_CODES = 0xF3,
+
+  NP_MSG_COIN_FLIP = 0xF4,
 };
 
 enum

@@ -117,6 +117,7 @@ void NetPlayDialog::CreateMainLayout()
       tr("Enabling Ranked Mode will mark down your games as being ranked in the stats files.\nWhen "
          "sorting through the database, this game will be included as a ranked game.\nThis should "
          "only be toggled for serious games as to keep our database accurate and organized.\nToggling this box will always record & sumit stats, ignoring user configurations."));
+  m_coin_flipper = new QPushButton(tr("Coin Flip"));
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
@@ -199,9 +200,10 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 4, Qt::AlignVCenter | Qt::AlignRight);
-  options_widget->setColumnStretch(3, 1000);
+  options_widget->addWidget(m_quit_button, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->setColumnStretch(5, 1000);
   options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
+  options_widget->addWidget(m_coin_flipper, 0, 4, Qt::AlignVCenter);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -318,6 +320,8 @@ void NetPlayDialog::ConnectWidgets()
       server->AdjustRankedBox(is_ranked);
   });
 
+  connect(m_coin_flipper, &QPushButton::clicked, this, &NetPlayDialog::OnCoinFlip);
+
 
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
@@ -405,6 +409,23 @@ void NetPlayDialog::OnChat()
 
     SendMessage(msg);
   });
+}
+
+void NetPlayDialog::OnCoinFlip()
+{
+  if (!IsHosting())
+    return;
+  int randNum;
+  randNum = 1 + rand() % 2;
+  Settings::Instance().GetNetPlayClient()->SendCoinFlip(randNum);
+}
+
+void NetPlayDialog::OnCoinFlipResult(int coinNum)
+{
+  if (coinNum == 1)
+    DisplayMessage(tr("Heads"), "darkorange");
+  else
+    DisplayMessage(tr("Tails"), "orange");
 }
 
 void NetPlayDialog::DisplayActiveGeckoCodes()
@@ -533,6 +554,8 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_kick_button->setEnabled(false);
   m_ranked_box->setHidden(!is_hosting);
   m_ranked_box->setEnabled(is_hosting);
+  m_coin_flipper->setHidden(!is_hosting);
+  m_coin_flipper->setEnabled(is_hosting);
 
   SetOptionsEnabled(true);
 
