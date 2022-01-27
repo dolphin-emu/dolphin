@@ -1062,7 +1062,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    }} else {{\n"
             "      // orthographic\n"
             "      // ze = a*Zs    (here, no B_SHF)\n"
-            "      ze = " I_FOGF ".z * float(zCoord) / 16777216.0;\n"
+            "      ze = " I_FOGF ".x * float(zCoord) / 16777216.0;\n"
             "    }}\n"
             "\n"
             "    if (bool({})) {{\n",
