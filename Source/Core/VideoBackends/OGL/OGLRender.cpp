@@ -784,7 +784,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
   glGenFramebuffers(1, &m_shared_read_framebuffer);
   glGenFramebuffers(1, &m_shared_draw_framebuffer);
 
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+  if (g_ActiveConfig.UsePrimitiveRestart())
     GLUtil::EnablePrimitiveRestart(m_main_gl_context.get());
 
   UpdateActiveConfig();

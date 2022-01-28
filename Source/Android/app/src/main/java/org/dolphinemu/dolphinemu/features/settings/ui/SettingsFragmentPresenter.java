@@ -744,6 +744,8 @@ public final class SettingsFragmentPresenter
             R.string.crop_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_PROGRESSIVE_SCAN,
             R.string.progressive_scan, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_PRIMITIVE_RESTART,
+            R.string.primitive_restart, R.string.primitive_restart_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_BACKEND_MULTITHREADING,
             R.string.backend_multithreading, R.string.backend_multithreading_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_EFB_DEFER_INVALIDATION,

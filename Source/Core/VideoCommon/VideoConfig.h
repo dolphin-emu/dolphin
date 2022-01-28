@@ -64,6 +64,7 @@ struct VideoConfig final
   AspectMode suggested_aspect_mode{};
   bool bCrop = false;  // Aspect ratio controls.
   bool bShaderCache = false;
+  bool bPrimitiveRestart = false;
 
   // Enhancements
   u32 iMultisamples = 0;
@@ -260,6 +261,10 @@ struct VideoConfig final
   bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
+  bool UsePrimitiveRestart() const
+  {
+    return backend_info.bSupportsPrimitiveRestart && bPrimitiveRestart;
+  }
 };
 
 extern VideoConfig g_Config;

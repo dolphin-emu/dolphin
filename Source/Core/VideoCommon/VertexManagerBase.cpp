@@ -125,7 +125,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(OpcodeDecoder::Primitive 
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  PrimitiveType new_primitive_type = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+  PrimitiveType new_primitive_type = g_ActiveConfig.UsePrimitiveRestart() ?
                                          primitive_from_gx_pr[primitive] :
                                          primitive_from_gx[primitive];
   if (m_current_primitive_type != new_primitive_type)
@@ -192,7 +192,7 @@ u32 VertexManagerBase::GetRemainingIndices(OpcodeDecoder::Primitive primitive) c
 {
   const u32 index_len = MAXIBUFFERSIZE - m_index_generator.GetIndexLen();
 
-  if (g_Config.backend_info.bSupportsPrimitiveRestart)
+  if (g_Config.UsePrimitiveRestart())
   {
     switch (primitive)
     {

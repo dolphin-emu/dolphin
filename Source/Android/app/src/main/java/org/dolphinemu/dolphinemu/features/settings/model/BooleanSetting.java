@@ -186,6 +186,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           "WaitForShadersBeforeStarting", false),
   GFX_SAVE_TEXTURE_CACHE_TO_STATE(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
           "SaveTextureCacheToState", true),
+  GFX_PRIMITIVE_RESTART(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "PrimitiveRestart", true),
 
   GFX_ENHANCE_FORCE_FILTERING(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
           "ForceFiltering", false),
@@ -231,6 +232,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
           MAIN_WII_SD_CARD,  // Can actually be changed, but specialized code is required
           MAIN_MMU,
           MAIN_DSP_JIT,
+          GFX_PRIMITIVE_RESTART,
   };
 
   private static final Set<BooleanSetting> NOT_RUNTIME_EDITABLE =

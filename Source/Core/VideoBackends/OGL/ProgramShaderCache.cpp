@@ -880,7 +880,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
     glEnable(GL_CLIP_DISTANCE1);
     glEnable(GL_DEPTH_CLAMP);
   }
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+  if (g_ActiveConfig.UsePrimitiveRestart())
     GLUtil::EnablePrimitiveRestart(context);
 
   return true;

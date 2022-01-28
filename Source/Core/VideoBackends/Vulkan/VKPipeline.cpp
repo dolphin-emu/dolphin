@@ -290,7 +290,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
   // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY or VK_PRIMITIVE_TOPOLOGY_PATCH_LIST,
   // primitiveRestartEnable must be VK_FALSE
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart &&
+  if (g_ActiveConfig.UsePrimitiveRestart() &&
       IsStripPrimitiveTopology(input_assembly_state.topology))
   {
     input_assembly_state.primitiveRestartEnable = VK_TRUE;
