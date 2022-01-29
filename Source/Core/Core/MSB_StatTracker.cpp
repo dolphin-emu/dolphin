@@ -97,6 +97,12 @@ void StatTracker::lookForTriggerEvents(){
                     u8 team_id = !(Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
                     m_fielder_tracker[team_id].evaluateFielders();
 
+                    //Check if pitcher was at center of mound, if so this is a potential DB
+                    if (Memory::Read_U8(aFielder_Pos_X) == 0){
+                        m_curr_ab_stat.potential_db = true;
+                        std::cout << "Potential DB!" << std::endl;
+                    }
+
                     std::cout << "Pitch detected!" << std::endl;
 
                     logABScenario(); //Inning, Order, 
@@ -104,6 +110,16 @@ void StatTracker::lookForTriggerEvents(){
                 }
                 break;
             case (AB_STATE::PITCH_STARTED): //Look for contact or end of pitch
+                //If the pitcher started in the center of the mound this is a potential DB
+                //If the ball curves at any point it is no longer a DB
+                if (m_curr_ab_stat.potential_db && (Memory::Read_U8(aAB_PitcherHasCtrlofPitch) == 1)) {
+                    if (Memory::Read_U8(aAB_PitchCurveInput) != 0) {
+                        std::cout << "No longer potential DB!" << std::endl;
+                        m_curr_ab_stat.potential_db = false;
+                    }
+                }
+                
+                //State transitions
                 if ((Memory::Read_U8(aAB_HitByPitch) == 1) || (Memory::Read_U8(aAB_PitchThrown) == 0)){
                     logABMiss(); //Strike or Swing or Bunt
                     logABPitch();
@@ -152,6 +168,13 @@ void StatTracker::lookForTriggerEvents(){
                 }
                 break;
             case (AB_STATE::FINAL_RESULT):
+                //Determine if this was pitch was a DB
+                if (m_curr_ab_stat.potential_db){
+                    m_curr_ab_stat.db = 1;
+                    m_curr_ab_stat.potential_db = false;
+                    
+                    std::cout << "Logging DB!" << std::endl;
+                }
                 
                 //Final Stats - Collected 1 frame after aAB_PitchThrown==0
                 m_curr_ab_stat.num_outs_during_play = Memory::Read_U8(aAB_NumOutsDuringPlay);
@@ -712,6 +735,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Charge Pitch Type\": " << charge_pitch_type << "," << std::endl;
                 json_stream << "          \"Star Pitch\": " << std::to_string(ab_stat.star_pitch) << "," << std::endl;
                 json_stream << "          \"Pitch Speed\": " << std::to_string(ab_stat.pitch_speed) << "," << std::endl;
+                json_stream << "          \"Pitch DB (Integrosity)\": " << std::to_string(ab_stat.db) << "," << std::endl;
 
                 
                 std::string batter_handedness  = (inDecode) ? "\"" + cHandToHR.at(ab_stat.batter_handedness) + "\"" : std::to_string(ab_stat.batter_handedness);

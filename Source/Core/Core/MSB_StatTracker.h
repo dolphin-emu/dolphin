@@ -246,6 +246,8 @@ static const u32 aAB_PitchType         = 0x80890B21; //0=Curve, Charge=1, Change
 static const u32 aAB_ChargePitchType   = 0x80890B1F; //2=Slider, 3=Perfect
 static const u32 aAB_StarPitch         = 0x80890B34;
 static const u32 aAB_PitchSpeed        = 0x80890B0A;
+static const u32 aAB_PitchCurveInput   = 0x80890A24; //0 if no curve is applied, otherwise its non-zero
+static const u32 aAB_PitcherHasCtrlofPitch = 0x80890B12; //Above addr is valid when this addr =1
 
 //At-Bat Hit
 static const u32 aAB_HorizPower     = 0x808926D6;
@@ -440,6 +442,10 @@ public:
         u8 star_pitch;
         u8 pitch_speed;
 
+        //For integrosity - TODO
+        u8 db = 0;
+        bool potential_db = false;
+
         //Hit Status
         u8 type_of_contact;
         u8 swing;
@@ -484,6 +490,7 @@ public:
         u32 fielder_x_pos;
         u32 fielder_y_pos;
         u32 fielder_z_pos;
+        u8 bobble; // TODO
 
         u8 num_outs_during_play;
         u8 rbi;
