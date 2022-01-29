@@ -2751,16 +2751,23 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
     u32 padding;
   };
   Uniforms encoder_params;
-  const float rcp_efb_height = 1.0f / static_cast<float>(g_framebuffer_manager->GetEFBHeight());
+  const u32 efb_height = g_framebuffer_manager->GetEFBHeight();
+  const float rcp_efb_height = 1.0f / static_cast<float>(efb_height);
   encoder_params.position_uniform[0] = src_rect.left;
   encoder_params.position_uniform[1] = src_rect.top;
   encoder_params.position_uniform[2] = static_cast<s32>(native_width);
   encoder_params.position_uniform[3] = scale_by_half ? 2 : 1;
   encoder_params.y_scale = y_scale;
   encoder_params.gamma_rcp = 1.0f / gamma;
-  encoder_params.clamp_top = clamp_top ? framebuffer_rect.top * rcp_efb_height : 0.0f;
-  int bottom_coord = framebuffer_rect.bottom - 1;
-  encoder_params.clamp_bottom = clamp_bottom ? bottom_coord * rcp_efb_height : 1.0f;
+  //   NOTE: when the clamp bits aren't set, the hardware will happily read beyond the EFB,
+  //         which returns random garbage from the empty bus (confirmed by hardware tests).
+  //
+  //         In our implementation, the garbage just so happens to be the top or bottom row.
+  //         Statistically, that could happen.
+  const u32 top_coord = clamp_top ? framebuffer_rect.top : 0;
+  encoder_params.clamp_top = (static_cast<float>(top_coord) + .5f) * rcp_efb_height;
+  const u32 bottom_coord = (clamp_bottom ? framebuffer_rect.bottom : efb_height) - 1;
+  encoder_params.clamp_bottom = (static_cast<float>(bottom_coord) + .5f) * rcp_efb_height;
   encoder_params.filter_coefficients[0] = filter_coefficients.upper;
   encoder_params.filter_coefficients[1] = filter_coefficients.middle;
   encoder_params.filter_coefficients[2] = filter_coefficients.lower;
