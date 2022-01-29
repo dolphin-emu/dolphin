@@ -50,12 +50,15 @@ static QString RefToDisplayString(ControlReference* ref)
         controls[i] = qualifier.has_device ? QStringLiteral(":") : QString();
         controls[i].append(QString::fromStdString(qualifier.control_name));
       }
+      else
+      {
+        controls[i].remove(QLatin1Char{' '});
+      }
     }
   }
   // Do not re-add "`" to the final string, we don't need to see it.
   expression = controls.join(QStringLiteral(""));
 
-  expression.remove(QLatin1Char{' '});
   expression.remove(QLatin1Char{'\t'});
   expression.remove(QLatin1Char{'\n'});
   expression.remove(QLatin1Char{'\r'});

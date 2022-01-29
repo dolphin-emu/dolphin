@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
-#include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include <cstddef>
 #include <cstdlib>
@@ -23,6 +22,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 
+#include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -50,8 +50,12 @@ static const char SHADER_HEADER[] = R"(
   #define SAMPLER_BINDING(x) layout(set = 1, binding = x)
   #define TEXEL_BUFFER_BINDING(x) layout(set = 1, binding = (x + 8))
   #define SSBO_BINDING(x) layout(set = 2, binding = x)
+  #define INPUT_ATTACHMENT_BINDING(x, y, z) layout(set = x, binding = y, input_attachment_index = z)
   #define VARYING_LOCATION(x) layout(location = x)
   #define FORCE_EARLY_Z layout(early_fragment_tests) in
+
+  // Metal framebuffer fetch helpers.
+  #define FB_FETCH_VALUE subpassLoad(in_ocol0)
 
   // hlsl to glsl function translation
   #define API_VULKAN 1
@@ -165,7 +169,7 @@ static std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage,
     }
 
     stream << "\n";
-    stream << "Dolphin Version: " + Common::scm_rev_str + "\n";
+    stream << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
     stream << "Video Backend: " + g_video_backend->GetDisplayName();
 
     PanicAlertFmt("{} (written to {})", msg, filename);
@@ -196,7 +200,21 @@ static std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage,
 
   SPIRVCodeVector out_code;
   spv::SpvBuildLogger logger;
-  glslang::GlslangToSpv(*intermediate, out_code, &logger);
+  glslang::SpvOptions options;
+
+  if (g_ActiveConfig.bEnableValidationLayer)
+  {
+    // Attach the source code to the SPIR-V for tools like RenderDoc.
+    intermediate->addSourceText(pass_source_code, pass_source_code_length);
+
+    options.generateDebugInfo = true;
+    options.disableOptimizer = true;
+    options.optimizeSize = false;
+    options.disassemble = false;
+    options.validate = true;
+  }
+
+  glslang::GlslangToSpv(*intermediate, out_code, &logger, &options);
 
   // Write out messages
   // Temporary: skip if it contains "Warning, version 450 is not yet complete; most version-specific

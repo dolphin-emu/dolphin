@@ -99,18 +99,6 @@ typedef void (*CompiledCode)();
 class ValidBlockBitSet final
 {
 public:
-  ValidBlockBitSet()
-  {
-    m_valid_block.reset(new u32[VALID_BLOCK_ALLOC_ELEMENTS]);
-    ClearAll();
-  }
-
-  void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
-  void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
-  void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
-  bool Test(u32 bit) { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
-
-private:
   enum
   {
     // ValidBlockBitSet covers the whole 32-bit address-space in 32-byte
@@ -121,7 +109,19 @@ private:
     // The number of elements in the allocated array. Each u32 contains 32 bits.
     VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
   };
+  // Directly accessed by Jit64.
   std::unique_ptr<u32[]> m_valid_block;
+
+  ValidBlockBitSet()
+  {
+    m_valid_block.reset(new u32[VALID_BLOCK_ALLOC_ELEMENTS]);
+    ClearAll();
+  }
+
+  void Set(u32 bit) { m_valid_block[bit / 32] |= 1u << (bit % 32); }
+  void Clear(u32 bit) { m_valid_block[bit / 32] &= ~(1u << (bit % 32)); }
+  void ClearAll() { memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS); }
+  bool Test(u32 bit) const { return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0; }
 };
 
 class JitBaseBlockCache
@@ -161,7 +161,10 @@ public:
   const u8* Dispatch();
 
   void InvalidateICache(u32 address, u32 length, bool forced);
+  void InvalidateICacheLine(u32 address);
   void ErasePhysicalRange(u32 address, u32 length);
+
+  u32* GetBlockBitSet() const;
 
 protected:
   virtual void DestroyBlock(JitBlock& block);
@@ -175,6 +178,7 @@ private:
   void LinkBlockExits(JitBlock& block);
   void LinkBlock(JitBlock& block);
   void UnlinkBlock(const JitBlock& block);
+  void InvalidateICacheInternal(u32 physical_address, u32 address, u32 length, bool forced);
 
   JitBlock* MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
@@ -201,5 +205,5 @@ private:
 
   // This array is indexed with the masked PC and likely holds the correct block id.
   // This is used as a fast cache of block_map used in the assembly dispatcher.
-  std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map;  // start_addr & mask -> number
+  std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map{};  // start_addr & mask -> number
 };

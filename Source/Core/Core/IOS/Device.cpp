@@ -94,15 +94,15 @@ bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t 
          std::all_of(io_vectors.begin(), io_vectors.end(), IsValidVector);
 }
 
-void IOCtlRequest::Log(std::string_view device_name, Common::Log::LOG_TYPE type,
-                       Common::Log::LOG_LEVELS verbosity) const
+void IOCtlRequest::Log(std::string_view device_name, Common::Log::LogType type,
+                       Common::Log::LogLevel verbosity) const
 {
   GENERIC_LOG_FMT(type, verbosity, "{} (fd {}) - IOCtl {:#x} (in_size={:#x}, out_size={:#x})",
                   device_name, fd, request, buffer_in_size, buffer_out_size);
 }
 
-void IOCtlRequest::Dump(const std::string& description, Common::Log::LOG_TYPE type,
-                        Common::Log::LOG_LEVELS level) const
+void IOCtlRequest::Dump(const std::string& description, Common::Log::LogType type,
+                        Common::Log::LogLevel level) const
 {
   Log("===== " + description, type, level);
   GENERIC_LOG_FMT(type, level, "In buffer\n{}",
@@ -111,14 +111,14 @@ void IOCtlRequest::Dump(const std::string& description, Common::Log::LOG_TYPE ty
                   HexDump(Memory::GetPointer(buffer_out), buffer_out_size));
 }
 
-void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
-                               Common::Log::LOG_LEVELS level) const
+void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LogType type,
+                               Common::Log::LogLevel level) const
 {
   Dump("Unknown IOCtl - " + description, type, level);
 }
 
-void IOCtlVRequest::Dump(std::string_view description, Common::Log::LOG_TYPE type,
-                         Common::Log::LOG_LEVELS level) const
+void IOCtlVRequest::Dump(std::string_view description, Common::Log::LogType type,
+                         Common::Log::LogLevel level) const
 {
   GENERIC_LOG_FMT(type, level, "===== {} (fd {}) - IOCtlV {:#x} ({} in, {} io)", description, fd,
                   request, in_vectors.size(), io_vectors.size());
@@ -135,8 +135,8 @@ void IOCtlVRequest::Dump(std::string_view description, Common::Log::LOG_TYPE typ
     GENERIC_LOG_FMT(type, level, "io[{}] (size={:#x})", i++, vector.size);
 }
 
-void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
-                                Common::Log::LOG_LEVELS level) const
+void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LogType type,
+                                Common::Log::LogLevel level) const
 {
   Dump("Unknown IOCtlV - " + description, type, level);
 }

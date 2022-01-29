@@ -1,6 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include <limits>
 
 #include "Common/Arm64Emitter.h"
@@ -14,7 +16,6 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/MMU.h"
@@ -223,7 +224,8 @@ void JitArm64::GenerateCommonAsm()
   GenerateFPRF(false);
   JitRegister::Register(GetAsmRoutines()->fprf_single, GetCodePtr(), "JIT_FPRF");
 
-  GenerateQuantizedLoadStores();
+  GenerateQuantizedLoads();
+  GenerateQuantizedStores();
 }
 
 // Input: X1 contains input, and D0 contains result of running the input through AArch64 FRECPE.
@@ -483,17 +485,21 @@ void JitArm64::GenerateFPRF(bool single)
   B(write_fprf_and_ret);
 }
 
-void JitArm64::GenerateQuantizedLoadStores()
+void JitArm64::GenerateQuantizedLoads()
 {
-  // X0 is the scale
-  // X1 is address
-  // X2 is a temporary on stores
+  // X0 is the address
+  // X1 is the scale
+  // X2 is a temporary
+  // X3 is a temporary (used in EmitBackpatchRoutine)
   // X30 is LR
-  // Q0 is the return for loads
-  //    is the register for stores
+  // Q0 is the return
   // Q1 is a temporary
-  ARM64Reg addr_reg = ARM64Reg::X1;
-  ARM64Reg scale_reg = ARM64Reg::X0;
+  ARM64Reg addr_reg = ARM64Reg::X0;
+  ARM64Reg scale_reg = ARM64Reg::X1;
+  BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{2, 3};
+  if (!jo.memcheck)
+    gprs_to_push &= ~BitSet32{0};
+  BitSet32 fprs_to_push = BitSet32(0xFFFFFFFF) & ~BitSet32{0, 1};
   ARM64FloatEmitter float_emit(this);
 
   const u8* start = GetCodePtr();
@@ -501,63 +507,80 @@ void JitArm64::GenerateQuantizedLoadStores()
   BRK(100);
   const u8* loadPairedFloatTwo = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LD1(32, 1, ARM64Reg::D0, addr_reg);
-    float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
+    constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_32;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push & ~BitSet32{1}, fprs_to_push, true);
+
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedU8Two = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LDR(16, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
+    constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.UXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedS8Two = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LDR(16, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
+    constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.SXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedU16Two = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LD1(16, 1, ARM64Reg::D0, addr_reg);
-    float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
+    constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedS16Two = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LD1(16, 1, ARM64Reg::D0, addr_reg);
-    float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
+    constexpr u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
@@ -565,63 +588,80 @@ void JitArm64::GenerateQuantizedLoadStores()
 
   const u8* loadPairedFloatOne = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
-    float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push & ~BitSet32{1}, fprs_to_push, true);
+
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedU8One = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LDR(8, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.UXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedS8One = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LDR(8, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.SXTL(8, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedU16One = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LDR(16, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
-    float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.UXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.UCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
   }
   const u8* loadPairedS16One = GetCodePtr();
   {
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.LDR(16, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
-    float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     float_emit.SXTL(16, ARM64Reg::D0, ARM64Reg::D0);
     float_emit.SCVTF(32, ARM64Reg::D0, ARM64Reg::D0);
 
-    MOVP2R(addr_reg, &m_dequantizeTableS);
-    ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    MOVP2R(ARM64Reg::X2, &m_dequantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
     float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
     float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
     RET(ARM64Reg::X30);
@@ -652,262 +692,202 @@ void JitArm64::GenerateQuantizedLoadStores()
   single_load_quantized[5] = loadPairedU16One;
   single_load_quantized[6] = loadPairedS8One;
   single_load_quantized[7] = loadPairedS16One;
+}
 
-  // Stores
-  start = GetCodePtr();
+void JitArm64::GenerateQuantizedStores()
+{
+  // X0 is the scale
+  // X1 is the address
+  // X2 is a temporary
+  // X30 is LR
+  // Q0 is the register
+  // Q1 is a temporary
+  ARM64Reg scale_reg = ARM64Reg::X0;
+  ARM64Reg addr_reg = ARM64Reg::X1;
+  BitSet32 gprs_to_push = CALLER_SAVED_GPRS & ~BitSet32{0, 2};
+  if (!jo.memcheck)
+    gprs_to_push &= ~BitSet32{1};
+  BitSet32 fprs_to_push = BitSet32(0xFFFFFFFF) & ~BitSet32{0, 1};
+  ARM64FloatEmitter float_emit(this);
+
+  const u8* start = GetCodePtr();
   const u8* storePairedIllegal = GetCodePtr();
   BRK(0x101);
-  const u8* storePairedFloat;
-  const u8* storePairedFloatSlow;
+  const u8* storePairedFloat = GetCodePtr();
   {
-    storePairedFloat = GetCodePtr();
-    float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.ST1(64, ARM64Reg::Q0, 0, addr_reg, ARM64Reg::SP);
-    RET(ARM64Reg::X30);
+    constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_32;
 
-    storePairedFloatSlow = GetCodePtr();
-    float_emit.UMOV(64, ARM64Reg::X0, ARM64Reg::Q0, 0);
-    ROR(ARM64Reg::X0, ARM64Reg::X0, 32);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U64);
-    BR(ARM64Reg::X2);
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
+    RET(ARM64Reg::X30);
+  }
+  const u8* storePairedU8 = GetCodePtr();
+  {
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
+
+    constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
+    RET(ARM64Reg::X30);
+  }
+  const u8* storePairedS8 = GetCodePtr();
+  {
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
+
+    constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
+    RET(ARM64Reg::X30);
+  }
+  const u8* storePairedU16 = GetCodePtr();
+  {
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+
+    constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
+    RET(ARM64Reg::X30);
+  }
+  const u8* storePairedS16 = GetCodePtr();  // Used by Viewtiful Joe's intro movie
+  {
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+
+    constexpr u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT |
+                          BackPatchInfo::FLAG_PAIR | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
+    RET(ARM64Reg::X30);
   }
 
-  const u8* storePairedU8;
-  const u8* storePairedU8Slow;
+  const u8* storeSingleFloat = GetCodePtr();
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
 
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
 
-    storePairedU8 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.ST1(16, ARM64Reg::Q0, 0, addr_reg, ARM64Reg::SP);
     RET(ARM64Reg::X30);
-
-    storePairedU8Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.UMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    REV16(ARM64Reg::W0, ARM64Reg::W0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
-    BR(ARM64Reg::X2);
   }
-  const u8* storePairedS8;
-  const u8* storePairedS8Slow;
+  const u8* storeSingleU8 = GetCodePtr();  // Used by MKWii
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
 
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
 
-    storePairedS8 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.ST1(16, ARM64Reg::Q0, 0, addr_reg, ARM64Reg::SP);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     RET(ARM64Reg::X30);
-
-    storePairedS8Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.UMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    REV16(ARM64Reg::W0, ARM64Reg::W0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
-    BR(ARM64Reg::X2);
   }
-
-  const u8* storePairedU16;
-  const u8* storePairedU16Slow;
+  const u8* storeSingleS8 = GetCodePtr();
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
 
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
 
-    storePairedU16 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.ST1(32, ARM64Reg::Q0, 0, addr_reg, ARM64Reg::SP);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_8;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     RET(ARM64Reg::X30);
-
-    storePairedU16Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
-    float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U32);
-    BR(ARM64Reg::X2);
   }
-  const u8* storePairedS16;  // Used by Viewtiful Joe's intro movie
-  const u8* storePairedS16Slow;
+  const u8* storeSingleU16 = GetCodePtr();  // Used by MKWii
   {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
 
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
+    float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
 
-    storePairedS16 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.ST1(32, ARM64Reg::Q0, 0, addr_reg, ARM64Reg::SP);
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     RET(ARM64Reg::X30);
-
-    storePairedS16Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
-    float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U32);
-    BR(ARM64Reg::X2);
   }
-
-  const u8* storeSingleFloat;
-  const u8* storeSingleFloatSlow;
+  const u8* storeSingleS16 = GetCodePtr();
   {
-    storeSingleFloat = GetCodePtr();
-    float_emit.REV32(8, ARM64Reg::D0, ARM64Reg::D0);
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.STR(32, IndexType::Unsigned, ARM64Reg::D0, addr_reg, 0);
+    MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
+    ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
+    float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
+    float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
+
+    float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
+    float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
+
+    constexpr u32 flags =
+        BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_16;
+
+    EmitBackpatchRoutine(flags, jo.fastmem_arena, jo.fastmem_arena, ARM64Reg::D0, addr_reg,
+                         gprs_to_push, fprs_to_push, true);
+
     RET(ARM64Reg::X30);
-
-    storeSingleFloatSlow = GetCodePtr();
-    float_emit.UMOV(32, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U32);
-    BR(ARM64Reg::X2);
-  }
-  const u8* storeSingleU8;  // Used by MKWii
-  const u8* storeSingleU8Slow;
-  {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
-
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
-
-    storeSingleU8 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.ST1(8, ARM64Reg::Q0, 0, addr_reg);
-    RET(ARM64Reg::X30);
-
-    storeSingleU8Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.UMOV(8, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U8);
-    BR(ARM64Reg::X2);
-  }
-  const u8* storeSingleS8;
-  const u8* storeSingleS8Slow;
-  {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
-
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(8, ARM64Reg::D0, ARM64Reg::D0);
-    };
-
-    storeSingleS8 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.ST1(8, ARM64Reg::Q0, 0, addr_reg);
-    RET(ARM64Reg::X30);
-
-    storeSingleS8Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.SMOV(8, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U8);
-    BR(ARM64Reg::X2);
-  }
-  const u8* storeSingleU16;  // Used by MKWii
-  const u8* storeSingleU16Slow;
-  {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
-
-      float_emit.FCVTZU(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.UQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-    };
-
-    storeSingleU16 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
-    float_emit.ST1(16, ARM64Reg::Q0, 0, addr_reg);
-    RET(ARM64Reg::X30);
-
-    storeSingleU16Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.UMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
-    BR(ARM64Reg::X2);
-  }
-  const u8* storeSingleS16;
-  const u8* storeSingleS16Slow;
-  {
-    auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVP2R(ARM64Reg::X2, &m_quantizeTableS);
-      ADD(scale_reg, ARM64Reg::X2, scale_reg, ArithOption(scale_reg, ShiftType::LSL, 3));
-      float_emit.LDR(32, IndexType::Unsigned, ARM64Reg::D1, scale_reg, 0);
-      float_emit.FMUL(32, ARM64Reg::D0, ARM64Reg::D0, ARM64Reg::D1);
-
-      float_emit.FCVTZS(32, ARM64Reg::D0, ARM64Reg::D0);
-      float_emit.SQXTN(16, ARM64Reg::D0, ARM64Reg::D0);
-    };
-
-    storeSingleS16 = GetCodePtr();
-    emit_quantize();
-    ADD(addr_reg, addr_reg, MEM_REG);
-    float_emit.REV16(8, ARM64Reg::D0, ARM64Reg::D0);
-    float_emit.ST1(16, ARM64Reg::Q0, 0, addr_reg);
-    RET(ARM64Reg::X30);
-
-    storeSingleS16Slow = GetCodePtr();
-    emit_quantize();
-    float_emit.SMOV(16, ARM64Reg::W0, ARM64Reg::Q0, 0);
-    MOVP2R(ARM64Reg::X2, &PowerPC::Write_U16);
-    BR(ARM64Reg::X2);
   }
 
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
   paired_store_quantized = reinterpret_cast<const u8**>(AlignCode16());
-  ReserveCodeSpace(32 * sizeof(u8*));
+  ReserveCodeSpace(8 * sizeof(u8*));
 
-  // Fast
   paired_store_quantized[0] = storePairedFloat;
   paired_store_quantized[1] = storePairedIllegal;
   paired_store_quantized[2] = storePairedIllegal;
@@ -917,31 +897,15 @@ void JitArm64::GenerateQuantizedLoadStores()
   paired_store_quantized[6] = storePairedS8;
   paired_store_quantized[7] = storePairedS16;
 
-  paired_store_quantized[8] = storeSingleFloat;
-  paired_store_quantized[9] = storePairedIllegal;
-  paired_store_quantized[10] = storePairedIllegal;
-  paired_store_quantized[11] = storePairedIllegal;
-  paired_store_quantized[12] = storeSingleU8;
-  paired_store_quantized[13] = storeSingleU16;
-  paired_store_quantized[14] = storeSingleS8;
-  paired_store_quantized[15] = storeSingleS16;
+  single_store_quantized = reinterpret_cast<const u8**>(AlignCode16());
+  ReserveCodeSpace(8 * sizeof(u8*));
 
-  // Slow
-  paired_store_quantized[16] = storePairedFloatSlow;
-  paired_store_quantized[17] = storePairedIllegal;
-  paired_store_quantized[18] = storePairedIllegal;
-  paired_store_quantized[19] = storePairedIllegal;
-  paired_store_quantized[20] = storePairedU8Slow;
-  paired_store_quantized[21] = storePairedU16Slow;
-  paired_store_quantized[22] = storePairedS8Slow;
-  paired_store_quantized[23] = storePairedS16Slow;
-
-  paired_store_quantized[24] = storeSingleFloatSlow;
-  paired_store_quantized[25] = storePairedIllegal;
-  paired_store_quantized[26] = storePairedIllegal;
-  paired_store_quantized[27] = storePairedIllegal;
-  paired_store_quantized[28] = storeSingleU8Slow;
-  paired_store_quantized[29] = storeSingleU16Slow;
-  paired_store_quantized[30] = storeSingleS8Slow;
-  paired_store_quantized[31] = storeSingleS16Slow;
+  single_store_quantized[0] = storeSingleFloat;
+  single_store_quantized[1] = storePairedIllegal;
+  single_store_quantized[2] = storePairedIllegal;
+  single_store_quantized[3] = storePairedIllegal;
+  single_store_quantized[4] = storeSingleU8;
+  single_store_quantized[5] = storeSingleU16;
+  single_store_quantized[6] = storeSingleS8;
+  single_store_quantized[7] = storeSingleS16;
 }

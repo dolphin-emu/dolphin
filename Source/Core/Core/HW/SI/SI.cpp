@@ -11,10 +11,12 @@
 #include <memory>
 #include <sstream>
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
@@ -60,151 +62,140 @@ enum
 // SI Channel Output
 union USIChannelOut
 {
-  u32 hex;
-  struct
-  {
-    u32 OUTPUT1 : 8;
-    u32 OUTPUT0 : 8;
-    u32 CMD : 8;
-    u32 : 8;
-  };
+  u32 hex = 0;
+
+  BitField<0, 8, u32> OUTPUT1;
+  BitField<8, 8, u32> OUTPUT0;
+  BitField<16, 8, u32> CMD;
+  BitField<24, 8, u32> reserved;
 };
 
 // SI Channel Input High u32
 union USIChannelIn_Hi
 {
-  u32 hex;
-  struct
-  {
-    u32 INPUT3 : 8;
-    u32 INPUT2 : 8;
-    u32 INPUT1 : 8;
-    u32 INPUT0 : 6;
-    u32 ERRLATCH : 1;  // 0: no error  1: Error latched. Check SISR.
-    u32 ERRSTAT : 1;   // 0: no error  1: error on last transfer
-  };
+  u32 hex = 0;
+
+  BitField<0, 8, u32> INPUT3;
+  BitField<8, 8, u32> INPUT2;
+  BitField<16, 8, u32> INPUT1;
+  BitField<24, 6, u32> INPUT0;
+  BitField<30, 1, u32> ERRLATCH;  // 0: no error  1: Error latched. Check SISR.
+  BitField<31, 1, u32> ERRSTAT;   // 0: no error  1: error on last transfer
 };
 
 // SI Channel Input Low u32
 union USIChannelIn_Lo
 {
-  u32 hex;
-  struct
-  {
-    u32 INPUT7 : 8;
-    u32 INPUT6 : 8;
-    u32 INPUT5 : 8;
-    u32 INPUT4 : 8;
-  };
+  u32 hex = 0;
+
+  BitField<0, 8, u32> INPUT7;
+  BitField<8, 8, u32> INPUT6;
+  BitField<16, 8, u32> INPUT5;
+  BitField<24, 8, u32> INPUT4;
 };
 
 // SI Channel
 struct SSIChannel
 {
-  USIChannelOut out;
-  USIChannelIn_Hi in_hi;
-  USIChannelIn_Lo in_lo;
+  USIChannelOut out{};
+  USIChannelIn_Hi in_hi{};
+  USIChannelIn_Lo in_lo{};
   std::unique_ptr<ISIDevice> device;
 
-  bool has_recent_device_change;
+  bool has_recent_device_change = false;
 };
 
 // SI Poll: Controls how often a device is polled
 union USIPoll
 {
-  u32 hex;
-  struct
-  {
-    u32 VBCPY3 : 1;  // 1: write to output buffer only on vblank
-    u32 VBCPY2 : 1;
-    u32 VBCPY1 : 1;
-    u32 VBCPY0 : 1;
-    u32 EN3 : 1;  // Enable polling of channel
-    u32 EN2 : 1;  //  does not affect communication RAM transfers
-    u32 EN1 : 1;
-    u32 EN0 : 1;
-    u32 Y : 8;   // Polls per frame
-    u32 X : 10;  // Polls per X lines. begins at vsync, min 7, max depends on video mode
-    u32 : 6;
-  };
+  u32 hex = 0;
+
+  BitField<0, 1, u32> VBCPY3;  // 1: write to output buffer only on vblank
+  BitField<1, 1, u32> VBCPY2;
+  BitField<2, 1, u32> VBCPY1;
+  BitField<3, 1, u32> VBCPY0;
+  BitField<4, 1, u32> EN3;  // Enable polling of channel
+  BitField<5, 1, u32> EN2;  //  does not affect communication RAM transfers
+  BitField<6, 1, u32> EN1;
+  BitField<7, 1, u32> EN0;
+  BitField<8, 8, u32> Y;    // Polls per frame
+  BitField<16, 10, u32> X;  // Polls per X lines. begins at vsync, min 7, max depends on video mode
+  BitField<26, 6, u32> reserved;
 };
 
 // SI Communication Control Status Register
 union USIComCSR
 {
   u32 hex = 0;
-  struct
-  {
-    u32 TSTART : 1;   // write: start transfer  read: transfer status
-    u32 CHANNEL : 2;  // determines which SI channel will be used on the communication interface.
-    u32 : 3;
-    u32 CALLBEN : 1;  // Callback enable
-    u32 CMDEN : 1;    // Command enable?
-    u32 INLNGTH : 7;
-    u32 : 1;
-    u32 OUTLNGTH : 7;  // Communication Channel Output Length in bytes
-    u32 : 1;
-    u32 CHANEN : 1;      // Channel enable?
-    u32 CHANNUM : 2;     // Channel number?
-    u32 RDSTINTMSK : 1;  // Read Status Interrupt Status Mask
-    u32 RDSTINT : 1;     // Read Status Interrupt Status
-    u32 COMERR : 1;      // Communication Error (set 0)
-    u32 TCINTMSK : 1;    // Transfer Complete Interrupt Mask
-    u32 TCINT : 1;       // Transfer Complete Interrupt
-  };
+
+  BitField<0, 1, u32> TSTART;   // write: start transfer  read: transfer status
+  BitField<1, 2, u32> CHANNEL;  // determines which SI channel will be
+                                // used on the communication interface.
+  BitField<3, 3, u32> reserved_1;
+  BitField<6, 1, u32> CALLBEN;  // Callback enable
+  BitField<7, 1, u32> CMDEN;    // Command enable?
+  BitField<8, 7, u32> INLNGTH;
+  BitField<15, 1, u32> reserved_2;
+  BitField<16, 7, u32> OUTLNGTH;  // Communication Channel Output Length in bytes
+  BitField<23, 1, u32> reserved_3;
+  BitField<24, 1, u32> CHANEN;      // Channel enable?
+  BitField<25, 2, u32> CHANNUM;     // Channel number?
+  BitField<27, 1, u32> RDSTINTMSK;  // Read Status Interrupt Status Mask
+  BitField<28, 1, u32> RDSTINT;     // Read Status Interrupt Status
+  BitField<29, 1, u32> COMERR;      // Communication Error (set 0)
+  BitField<30, 1, u32> TCINTMSK;    // Transfer Complete Interrupt Mask
+  BitField<31, 1, u32> TCINT;       // Transfer Complete Interrupt
+
   USIComCSR() = default;
-  USIComCSR(u32 value) : hex{value} {}
+  explicit USIComCSR(u32 value) : hex{value} {}
 };
 
 // SI Status Register
 union USIStatusReg
 {
   u32 hex = 0;
-  struct
-  {
-    u32 UNRUN3 : 1;  // (RWC) write 1: bit cleared  read 1: main proc underrun error
-    u32 OVRUN3 : 1;  // (RWC) write 1: bit cleared  read 1: overrun error
-    u32 COLL3 : 1;   // (RWC) write 1: bit cleared  read 1: collision error
-    u32 NOREP3 : 1;  // (RWC) write 1: bit cleared  read 1: response error
-    u32 WRST3 : 1;   // (R) 1: buffer channel0 not copied
-    u32 RDST3 : 1;   // (R) 1: new Data available
-    u32 : 2;         // 7:6
-    u32 UNRUN2 : 1;  // (RWC) write 1: bit cleared  read 1: main proc underrun error
-    u32 OVRUN2 : 1;  // (RWC) write 1: bit cleared  read 1: overrun error
-    u32 COLL2 : 1;   // (RWC) write 1: bit cleared  read 1: collision error
-    u32 NOREP2 : 1;  // (RWC) write 1: bit cleared  read 1: response error
-    u32 WRST2 : 1;   // (R) 1: buffer channel0 not copied
-    u32 RDST2 : 1;   // (R) 1: new Data available
-    u32 : 2;         // 15:14
-    u32 UNRUN1 : 1;  // (RWC) write 1: bit cleared  read 1: main proc underrun error
-    u32 OVRUN1 : 1;  // (RWC) write 1: bit cleared  read 1: overrun error
-    u32 COLL1 : 1;   // (RWC) write 1: bit cleared  read 1: collision error
-    u32 NOREP1 : 1;  // (RWC) write 1: bit cleared  read 1: response error
-    u32 WRST1 : 1;   // (R) 1: buffer channel0 not copied
-    u32 RDST1 : 1;   // (R) 1: new Data available
-    u32 : 2;         // 23:22
-    u32 UNRUN0 : 1;  // (RWC) write 1: bit cleared  read 1: main proc underrun error
-    u32 OVRUN0 : 1;  // (RWC) write 1: bit cleared  read 1: overrun error
-    u32 COLL0 : 1;   // (RWC) write 1: bit cleared  read 1: collision error
-    u32 NOREP0 : 1;  // (RWC) write 1: bit cleared  read 1: response error
-    u32 WRST0 : 1;   // (R) 1: buffer channel0 not copied
-    u32 RDST0 : 1;   // (R) 1: new Data available
-    u32 : 1;
-    u32 WR : 1;  // (RW) write 1 start copy, read 0 copy done
-  };
+
+  BitField<0, 1, u32> UNRUN3;       // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BitField<1, 1, u32> OVRUN3;       // (RWC) write 1: bit cleared  read 1: overrun error
+  BitField<2, 1, u32> COLL3;        // (RWC) write 1: bit cleared  read 1: collision error
+  BitField<3, 1, u32> NOREP3;       // (RWC) write 1: bit cleared  read 1: response error
+  BitField<4, 1, u32> WRST3;        // (R) 1: buffer channel0 not copied
+  BitField<5, 1, u32> RDST3;        // (R) 1: new Data available
+  BitField<6, 2, u32> reserved_1;   // 7:6
+  BitField<8, 1, u32> UNRUN2;       // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BitField<9, 1, u32> OVRUN2;       // (RWC) write 1: bit cleared  read 1: overrun error
+  BitField<10, 1, u32> COLL2;       // (RWC) write 1: bit cleared  read 1: collision error
+  BitField<11, 1, u32> NOREP2;      // (RWC) write 1: bit cleared  read 1: response error
+  BitField<12, 1, u32> WRST2;       // (R) 1: buffer channel0 not copied
+  BitField<13, 1, u32> RDST2;       // (R) 1: new Data available
+  BitField<14, 2, u32> reserved_2;  // 15:14
+  BitField<16, 1, u32> UNRUN1;      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BitField<17, 1, u32> OVRUN1;      // (RWC) write 1: bit cleared  read 1: overrun error
+  BitField<18, 1, u32> COLL1;       // (RWC) write 1: bit cleared  read 1: collision error
+  BitField<19, 1, u32> NOREP1;      // (RWC) write 1: bit cleared  read 1: response error
+  BitField<20, 1, u32> WRST1;       // (R) 1: buffer channel0 not copied
+  BitField<21, 1, u32> RDST1;       // (R) 1: new Data available
+  BitField<22, 2, u32> reserved_3;  // 23:22
+  BitField<24, 1, u32> UNRUN0;      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BitField<25, 1, u32> OVRUN0;      // (RWC) write 1: bit cleared  read 1: overrun error
+  BitField<26, 1, u32> COLL0;       // (RWC) write 1: bit cleared  read 1: collision error
+  BitField<27, 1, u32> NOREP0;      // (RWC) write 1: bit cleared  read 1: response error
+  BitField<28, 1, u32> WRST0;       // (R) 1: buffer channel0 not copied
+  BitField<29, 1, u32> RDST0;       // (R) 1: new Data available
+  BitField<30, 1, u32> reserved_4;
+  BitField<31, 1, u32> WR;  // (RW) write 1 start copy, read 0 copy done
+
   USIStatusReg() = default;
-  USIStatusReg(u32 value) : hex{value} {}
+  explicit USIStatusReg(u32 value) : hex{value} {}
 };
 
 // SI EXI Clock Count
 union USIEXIClockCount
 {
-  u32 hex;
-  struct
-  {
-    u32 LOCK : 1;  // 1: prevents CPU from setting EXI clock to 32MHz
-    u32 : 0;
-  };
+  u32 hex = 0;
+
+  BitField<0, 1, u32> LOCK;  // 1: prevents CPU from setting EXI clock to 32MHz
+  BitField<1, 30, u32> reserved;
 };
 
 static CoreTiming::EventType* s_change_device_event;
@@ -257,14 +248,10 @@ static void UpdateInterrupts()
     s_com_csr.RDSTINT = 0;
 
   // check if we have to generate an interrupt
-  if ((s_com_csr.RDSTINT & s_com_csr.RDSTINTMSK) || (s_com_csr.TCINT & s_com_csr.TCINTMSK))
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
-  }
-  else
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, false);
-  }
+  const bool generate_interrupt = (s_com_csr.RDSTINT & s_com_csr.RDSTINTMSK) != 0 ||
+                                  (s_com_csr.TCINT & s_com_csr.TCINTMSK) != 0;
+
+  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, generate_interrupt);
 }
 
 static void GenerateSIInterrupt(SIInterruptType type)
@@ -425,7 +412,7 @@ void Init()
       }
       else if (Movie::IsUsingPad(i))
       {
-        SIDevices current = SConfig::GetInstance().m_SIDevice[i];
+        SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
         // GC pad-compatible devices can be used for both playing and recording
         if (Movie::IsUsingBongo(i))
           s_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
@@ -437,7 +424,7 @@ void Init()
     }
     else if (!NetPlay::IsNetPlayRunning())
     {
-      s_desired_device_types[i] = SConfig::GetInstance().m_SIDevice[i];
+      s_desired_device_types[i] = Config::Get(Config::GetInfoForSIDevice(i));
     }
 
     AddDevice(s_desired_device_types[i], i);
@@ -499,28 +486,28 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   // In and out for the 4 SI channels.
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (u32 i = 0; i < u32(MAX_SI_CHANNELS); ++i)
   {
     // We need to clear the RDST bit for the SI channel when reading.
     // CH0 -> Bit 24 + 5
     // CH1 -> Bit 16 + 5
     // CH2 -> Bit 8 + 5
     // CH3 -> Bit 0 + 5
-    int rdst_bit = 8 * (3 - i) + 5;
+    const u32 rdst_bit = 8 * (3 - i) + 5;
 
     mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
                    MMIO::DirectRead<u32>(&s_channel[i].out.hex),
                    MMIO::DirectWrite<u32>(&s_channel[i].out.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     s_status_reg.hex &= ~(1 << rdst_bit);
+                     s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
                      return s_channel[i].in_hi.hex;
                    }),
                    MMIO::DirectWrite<u32>(&s_channel[i].in_hi.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     s_status_reg.hex &= ~(1 << rdst_bit);
+                     s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
                      return s_channel[i].in_lo.hex;
                    }),
@@ -532,13 +519,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&s_com_csr.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   USIComCSR tmp_com_csr(val);
+                   const USIComCSR tmp_com_csr(val);
 
-                   s_com_csr.CHANNEL = tmp_com_csr.CHANNEL;
-                   s_com_csr.INLNGTH = tmp_com_csr.INLNGTH;
-                   s_com_csr.OUTLNGTH = tmp_com_csr.OUTLNGTH;
-                   s_com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK;
-                   s_com_csr.TCINTMSK = tmp_com_csr.TCINTMSK;
+                   s_com_csr.CHANNEL = tmp_com_csr.CHANNEL.Value();
+                   s_com_csr.INLNGTH = tmp_com_csr.INLNGTH.Value();
+                   s_com_csr.OUTLNGTH = tmp_com_csr.OUTLNGTH.Value();
+                   s_com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK.Value();
+                   s_com_csr.TCINTMSK = tmp_com_csr.TCINTMSK.Value();
 
                    if (tmp_com_csr.RDSTINT)
                      s_com_csr.RDSTINT = 0;
@@ -560,7 +547,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&s_status_reg.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   USIStatusReg tmp_status(val);
+                   const USIStatusReg tmp_status(val);
 
                    // clear bits ( if (tmp.bit) SISR.bit=0 )
                    if (tmp_status.NOREP0)

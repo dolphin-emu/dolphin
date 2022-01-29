@@ -1,0 +1,70 @@
+From 25c85d827aed098d2536f09a68c23780346cd4e1 Mon Sep 17 00:00:00 2001
+From: OatmealDome <julian@oatmealdome.me>
+Date: Mon, 9 Aug 2021 21:24:10 -0400
+Subject: [PATCH] hidapi: Don't leak device handle in macOS 10.10 or newer
+ Ported from libusb's hidapi fork. Original patch by Youw
+ (cdc473dfe43f6432dda7ad53d7656b8ae8ff968b).
+
+---
+ Externals/hidapi/mac/hid.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/Externals/hidapi/mac/hid.c b/Externals/hidapi/mac/hid.c
+index d8055f372c..ea945d4dec 100644
+--- a/Externals/hidapi/mac/hid.c
++++ b/Externals/hidapi/mac/hid.c
+@@ -33,6 +33,9 @@
+ 
+ #include "hidapi.h"
+ 
++/* As defined in AppKit.h, but we don't need the entire AppKit for a single constant. */
++extern const double NSAppKitVersionNumber;
++
+ /* Barrier implementation because Mac OSX doesn't have pthread_barrier.
+    It also doesn't have clock_gettime(). So much for POSIX and SUSv2.
+    This implementation came from Brent Priddy and was posted on
+@@ -177,6 +180,7 @@ static void free_hid_device(hid_device *dev)
+ }
+ 
+ static	IOHIDManagerRef hid_mgr = 0x0;
++static	int is_macos_10_10_or_greater = 0;
+ 
+ 
+ #if 0
+@@ -390,6 +394,7 @@ static int init_hid_manager(void)
+ int HID_API_EXPORT hid_init(void)
+ {
+ 	if (!hid_mgr) {
++		is_macos_10_10_or_greater = (NSAppKitVersionNumber >= 1343); /* NSAppKitVersionNumber10_10 */
+ 		return init_hid_manager();
+ 	}
+ 
+@@ -989,7 +994,7 @@ void HID_API_EXPORT hid_close(hid_device *dev)
+ 		return;
+ 
+ 	/* Disconnect the report callback before close. */
+-	if (!dev->disconnected) {
++	if (is_macos_10_10_or_greater || !dev->disconnected) {
+ 		IOHIDDeviceRegisterInputReportCallback(
+ 			dev->device_handle, dev->input_report_buf, dev->max_input_report_len,
+ 			NULL, dev);
+@@ -1013,8 +1018,14 @@ void HID_API_EXPORT hid_close(hid_device *dev)
+ 
+ 	/* Close the OS handle to the device, but only if it's not
+ 	   been unplugged. If it's been unplugged, then calling
+-	   IOHIDDeviceClose() will crash. */
+-	if (!dev->disconnected) {
++	   IOHIDDeviceClose() will crash.
++
++	   UPD: The crash part was true in/until some version of macOS.
++	   Starting with macOS 10.15, there is an opposite effect in some environments:
++	   crash happenes if IOHIDDeviceClose() is not called.
++	   Not leaking a resource in all tested environments.
++	*/
++	if (is_macos_10_10_or_greater || !dev->disconnected) {
+ 		IOHIDDeviceClose(dev->device_handle, kIOHIDOptionsTypeSeizeDevice);
+ 	}
+ 
+-- 
+2.30.1 (Apple Git-130)
+

@@ -64,6 +64,13 @@ enum SOResultCode : s32
 NetIPTopDevice::NetIPTopDevice(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name)
 {
+  m_work_queue.Reset([this](AsyncTask task) {
+    const IPCReply reply = task.handler();
+    {
+      std::lock_guard lg(m_async_reply_lock);
+      m_async_replies.emplace(AsyncReply{task.request, reply.return_value});
+    }
+  });
 }
 
 void NetIPTopDevice::DoState(PointerWrap& p)
@@ -319,11 +326,11 @@ std::optional<IPCReply> NetIPTopDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_POLL:
     return HandlePollRequest(request);
   case IOCTL_SO_GETHOSTBYNAME:
-    return HandleGetHostByNameRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleGetHostByNameRequest, request);
   case IOCTL_SO_ICMPCANCEL:
     return HandleICMPCancelRequest(request);
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_NET);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_NET);
     break;
   }
 
@@ -341,11 +348,11 @@ std::optional<IPCReply> NetIPTopDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_SO_RECVFROM:
     return HandleRecvFromRequest(request);
   case IOCTLV_SO_GETADDRINFO:
-    return HandleGetAddressInfoRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleGetAddressInfoRequest, request);
   case IOCTLV_SO_ICMPPING:
     return HandleICMPPingRequest(request);
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_NET);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_NET);
     break;
   }
 
@@ -354,12 +361,21 @@ std::optional<IPCReply> NetIPTopDevice::IOCtlV(const IOCtlVRequest& request)
 
 void NetIPTopDevice::Update()
 {
+  {
+    std::lock_guard lg(m_async_reply_lock);
+    while (!m_async_replies.empty())
+    {
+      const auto& reply = m_async_replies.front();
+      GetIOS()->EnqueueIPCReply(reply.request, reply.return_value);
+      m_async_replies.pop();
+    }
+  }
   WiiSockMan::GetInstance().Update();
 }
 
 IPCReply NetIPTopDevice::HandleInitInterfaceRequest(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
   return IPCReply(IPC_SUCCESS);
 }
 
@@ -435,7 +451,7 @@ IPCReply NetIPTopDevice::HandleListenRequest(const IOCtlRequest& request)
   u32 BACKLOG = Memory::Read_U32(request.buffer_in + 0x04);
   u32 ret = listen(WiiSockMan::GetInstance().GetHostSocket(fd), BACKLOG);
 
-  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
   return IPCReply(WiiSockMan::GetNetErrorCode(ret, "SO_LISTEN", false));
 }
 
@@ -445,7 +461,7 @@ IPCReply NetIPTopDevice::HandleGetSockOptRequest(const IOCtlRequest& request)
   u32 level = Memory::Read_U32(request.buffer_out + 4);
   u32 optname = Memory::Read_U32(request.buffer_out + 8);
 
-  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
 
   // Do the level/optname translation
   int nat_level = MapWiiSockOptLevelToNative(level);
@@ -511,7 +527,7 @@ IPCReply NetIPTopDevice::HandleGetSockNameRequest(const IOCtlRequest& request)
 {
   u32 fd = Memory::Read_U32(request.buffer_in);
 
-  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_WC24);
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
@@ -1031,7 +1047,7 @@ IPCReply NetIPTopDevice::HandleGetAddressInfoRequest(const IOCtlVRequest& reques
     ret = SO_ERROR_HOST_NOT_FOUND;
   }
 
-  request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LINFO);
+  request.Dump(GetDeviceName(), Common::Log::LogType::IOS_NET, Common::Log::LogLevel::LINFO);
   return IPCReply(ret);
 }
 

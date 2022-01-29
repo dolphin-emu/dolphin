@@ -14,6 +14,8 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
   add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
   add_definitions(-D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+  # The replacement for the old atomic shared_ptr functions was added in C++20, so we can't use it yet
+  add_definitions(-D_SILENCE_CXX20_OLD_SHARED_PTR_ATOMIC_SUPPORT_DEPRECATION_WARNING)
 endif()
 
 if (MSVC)
@@ -28,12 +30,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (MSVC)
-	# TODO: Use https://cmake.org/cmake/help/latest/policy/CMP0092.html instead (once we can require CMake >= 3.15)
+  # TODO: Use https://cmake.org/cmake/help/latest/policy/CMP0092.html instead (once we can require CMake >= 3.15)
   # Taken from http://www.cmake.org/Wiki/CMake_FAQ#Dynamic_Replace.
   foreach(flag_var
-	        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-					MAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-		# Replaces /W3 with /W4 in defaults (add_compile_options would cause very annoying warnings here)
+          CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+          MAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    # Replaces /W3 with /W4 in defaults (add_compile_options would cause very annoying warnings here)
     string(REPLACE "/W3" "/W4" ${flag_var} "${${flag_var}}")
   endforeach()
 

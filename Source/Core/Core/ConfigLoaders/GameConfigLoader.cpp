@@ -24,6 +24,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
@@ -72,6 +73,12 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.GetLocation()}},
       {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.GetLocation()}},
       {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.GetLocation()}},
+      {{"Core", "HLE_BS2"}, {Config::MAIN_SKIP_IPL.GetLocation()}},
+      {{"Core", "GameCubeLanguage"}, {Config::MAIN_GC_LANGUAGE.GetLocation()}},
+      {{"Controls", "PadType0"}, {Config::GetInfoForSIDevice(0).GetLocation()}},
+      {{"Controls", "PadType1"}, {Config::GetInfoForSIDevice(1).GetLocation()}},
+      {{"Controls", "PadType2"}, {Config::GetInfoForSIDevice(2).GetLocation()}},
+      {{"Controls", "PadType3"}, {Config::GetInfoForSIDevice(3).GetLocation()}},
   };
   return ini_to_location;
 }
@@ -83,6 +90,7 @@ static const INIToSectionMap& GetINIToSectionMap()
 {
   static const INIToSectionMap ini_to_section = {
       {"Core", {Config::System::Main, "Core"}},
+      {"DSP", {Config::System::Main, "DSP"}},
       {"Display", {Config::System::Main, "Display"}},
       {"Video_Hardware", {Config::System::GFX, "Hardware"}},
       {"Video_Settings", {Config::System::GFX, "Settings"}},

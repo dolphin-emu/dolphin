@@ -208,6 +208,12 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 
   // Shake
   for (int i = 0; i < 3; ++i)
-    m_shake->SetControlExpression(i, "Click 2");
+  {
+#ifdef __APPLE__
+    m_shake->SetControlExpression(i, "`Middle Click`");
+#else
+    m_shake->SetControlExpression(i, "`Click 2`");
+#endif
+  }
 }
 }  // namespace WiimoteEmu

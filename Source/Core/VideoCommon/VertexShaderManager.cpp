@@ -23,6 +23,7 @@
 #include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -356,7 +357,7 @@ void VertexShaderManager::SetConstants()
     }
   }
 
-  if (bProjectionChanged || g_freelook_camera.IsDirty())
+  if (bProjectionChanged || g_freelook_camera.GetController()->IsDirty())
   {
     bProjectionChanged = false;
 
@@ -366,16 +367,21 @@ void VertexShaderManager::SetConstants()
     {
     case ProjectionType::Perspective:
     {
-      const Common::Vec2 fov =
-          g_freelook_camera.IsActive() ? g_freelook_camera.GetFieldOfView() : Common::Vec2{1, 1};
-      g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW * fov.x;
+      const Common::Vec2 fov_multiplier = g_freelook_camera.IsActive() ?
+                                              g_freelook_camera.GetFieldOfViewMultiplier() :
+                                              Common::Vec2{1, 1};
+      g_fProjectionMatrix[0] =
+          rawProjection[0] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
       g_fProjectionMatrix[1] = 0.0f;
-      g_fProjectionMatrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW * fov.x;
+      g_fProjectionMatrix[2] =
+          rawProjection[1] * g_ActiveConfig.fAspectRatioHackW * fov_multiplier.x;
       g_fProjectionMatrix[3] = 0.0f;
 
       g_fProjectionMatrix[4] = 0.0f;
-      g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH * fov.y;
-      g_fProjectionMatrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH * fov.y;
+      g_fProjectionMatrix[5] =
+          rawProjection[2] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
+      g_fProjectionMatrix[6] =
+          rawProjection[3] * g_ActiveConfig.fAspectRatioHackH * fov_multiplier.y;
       g_fProjectionMatrix[7] = 0.0f;
 
       g_fProjectionMatrix[8] = 0.0f;
@@ -435,7 +441,7 @@ void VertexShaderManager::SetConstants()
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 
-    g_freelook_camera.SetClean();
+    g_freelook_camera.GetController()->SetClean();
 
     dirty = true;
   }

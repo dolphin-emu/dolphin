@@ -241,8 +241,8 @@ IPCReply NetWDCommandDevice::SetLinkState(const IOCtlVRequest& request)
     if (!WD::IsValidMode(m_mode))
       return IPCReply(u32(ResultCode::UnavailableCommand));
 
-    INFO_LOG_FMT(IOS_NET, "WD_SetLinkState: setting target status to 1 (Idle)");
     m_target_status = Status::Idle;
+    INFO_LOG_FMT(IOS_NET, "WD_SetLinkState: setting target status to {}", m_target_status);
   }
   else
   {
@@ -378,7 +378,7 @@ std::optional<IPCReply> NetWDCommandDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_CHANGE_VTSF:
   default:
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_WD_UNIMPLEMENTED_IOCTL);
-    request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LWARNING);
+    request.Dump(GetDeviceName(), Common::Log::LogType::IOS_NET, Common::Log::LogLevel::LWARNING);
   }
 
   return IPCReply(IPC_SUCCESS);

@@ -16,7 +16,7 @@ enum class Enum1 : u32
 template <>
 struct fmt::formatter<Enum1> : EnumFormatter<Enum1::C>
 {
-  formatter() : EnumFormatter({"A", "B", "C"}) {}
+  constexpr formatter() : EnumFormatter({"A", "B", "C"}) {}
 };
 
 enum class Enum2 : s32
@@ -30,7 +30,7 @@ template <>
 struct fmt::formatter<Enum2> : EnumFormatter<Enum2::F>
 {
   static constexpr array_type names = {"D", "E", nullptr, "F"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 TEST(EnumUtil, Enum1)
@@ -46,6 +46,12 @@ TEST(EnumUtil, Enum1)
   EXPECT_EQ(fmt::format("{:s}", Enum1::C), "0x2u /* C */");
   EXPECT_EQ(fmt::format("{:s}", static_cast<Enum1>(3)), "0x3u /* Invalid */");
   EXPECT_EQ(fmt::format("{:s}", static_cast<Enum1>(4)), "0x4u /* Invalid */");
+
+  EXPECT_EQ(fmt::format("{:n}", Enum1::A), "A");
+  EXPECT_EQ(fmt::format("{:n}", Enum1::B), "B");
+  EXPECT_EQ(fmt::format("{:n}", Enum1::C), "C");
+  EXPECT_EQ(fmt::format("{:n}", static_cast<Enum1>(3)), "Invalid (3)");
+  EXPECT_EQ(fmt::format("{:n}", static_cast<Enum1>(4)), "Invalid (4)");
 }
 
 TEST(EnumUtil, Enum2)
@@ -63,4 +69,11 @@ TEST(EnumUtil, Enum2)
   EXPECT_EQ(fmt::format("{:s}", Enum2::F), "0x3u /* F */");
   EXPECT_EQ(fmt::format("{:s}", static_cast<Enum2>(4)), "0x4u /* Invalid */");
   EXPECT_EQ(fmt::format("{:s}", static_cast<Enum2>(-1)), "0xffffffffu /* Invalid */");
+
+  EXPECT_EQ(fmt::format("{:n}", Enum2::D), "D");
+  EXPECT_EQ(fmt::format("{:n}", Enum2::E), "E");
+  EXPECT_EQ(fmt::format("{:n}", static_cast<Enum2>(2)), "Invalid (2)");
+  EXPECT_EQ(fmt::format("{:n}", Enum2::F), "F");
+  EXPECT_EQ(fmt::format("{:n}", static_cast<Enum2>(4)), "Invalid (4)");
+  EXPECT_EQ(fmt::format("{:n}", static_cast<Enum2>(-1)), "Invalid (-1)");
 }

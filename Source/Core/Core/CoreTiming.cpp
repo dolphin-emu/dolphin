@@ -16,7 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/SPSCQueue.h"
 
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -77,6 +77,11 @@ Globals g;
 
 static EventType* s_ev_lost = nullptr;
 
+static size_t s_registered_config_callback_id;
+static float s_config_OC_factor;
+static float s_config_OC_inv_factor;
+static bool s_config_sync_on_skip_idle;
+
 static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 {
 }
@@ -103,9 +108,9 @@ EventType* RegisterEvent(const std::string& name, TimedCallback callback)
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
   ASSERT_MSG(POWERPC, s_event_types.find(name) == s_event_types.end(),
-             "CoreTiming Event \"%s\" is already registered. Events should only be registered "
+             "CoreTiming Event \"{}\" is already registered. Events should only be registered "
              "during Init to avoid breaking save states.",
-             name.c_str());
+             name);
 
   auto info = s_event_types.emplace(name, EventType{callback, nullptr});
   EventType* event_type = &info.first->second;
@@ -121,8 +126,12 @@ void UnregisterAllEvents()
 
 void Init()
 {
-  s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
-  g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  s_registered_config_callback_id =
+      Config::AddConfigChangedCallback([]() { Core::RunAsCPUThread([]() { RefreshConfig(); }); });
+  RefreshConfig();
+
+  s_last_OC_factor = s_config_OC_factor;
+  g.last_OC_factor_inverted = s_config_OC_inv_factor;
   PowerPC::ppcState.downcount = CyclesToDowncount(MAX_SLICE_LENGTH);
   g.slice_length = MAX_SLICE_LENGTH;
   g.global_timer = 0;
@@ -144,6 +153,15 @@ void Shutdown()
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
+  Config::RemoveConfigChangedCallback(s_registered_config_callback_id);
+}
+
+void RefreshConfig()
+{
+  s_config_OC_factor =
+      Config::Get(Config::MAIN_OVERCLOCK_ENABLE) ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
+  s_config_OC_inv_factor = 1.0f / s_config_OC_factor;
+  s_config_sync_on_skip_idle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
 }
 
 void DoState(PointerWrap& p)
@@ -239,7 +257,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
   {
     from_cpu_thread = from == FromThread::CPU;
     ASSERT_MSG(POWERPC, from_cpu_thread == Core::IsCPUThread(),
-               "A \"%s\" event was scheduled from the wrong thread (%s)", event_type->name->c_str(),
+               "A \"{}\" event was scheduled from the wrong thread ({})", *event_type->name,
                from_cpu_thread ? "CPU" : "non-CPU");
   }
 
@@ -316,8 +334,8 @@ void Advance()
 
   int cyclesExecuted = g.slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
   g.global_timer += cyclesExecuted;
-  s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
-  g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  s_last_OC_factor = s_config_OC_factor;
+  g.last_OC_factor_inverted = s_config_OC_inv_factor;
   g.slice_length = MAX_SLICE_LENGTH;
 
   s_is_global_timer_sane = true;
@@ -371,7 +389,7 @@ void AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 
 void Idle()
 {
-  if (SConfig::GetInstance().bSyncGPUOnSkipIdleHack)
+  if (s_config_sync_on_skip_idle)
   {
     // When the FIFO is processing data we must not advance because in this way
     // the VI will be desynchronized. So, We are waiting until the FIFO finish and

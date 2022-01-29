@@ -13,36 +13,38 @@
   {                                                                                                \
     if (!(_a_))                                                                                    \
     {                                                                                              \
-      if (!PanicYesNo(_fmt_, ##__VA_ARGS__))                                                       \
+      if (!PanicYesNoFmtAssert(_t_,                                                                \
+                               "An error occurred.\n\n" _fmt_ "\n\n"                               \
+                               "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"       \
+                               "Ignore and continue?",                                             \
+                               ##__VA_ARGS__, #_a_, __FILE__, __LINE__, __func__))                 \
         Crash();                                                                                   \
     }                                                                                              \
   } while (0)
 
-#define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
+#define DEBUG_ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                     \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
-    {                                                                                              \
-      if (!(_a_))                                                                                  \
-      {                                                                                            \
-        ERROR_LOG(_t_, _msg_, ##__VA_ARGS__);                                                      \
-        if (!PanicYesNo(_msg_, ##__VA_ARGS__))                                                     \
-          Crash();                                                                                 \
-      }                                                                                            \
-    }                                                                                              \
+    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)                      \
+      ASSERT_MSG(_t_, _a_, _fmt_, ##__VA_ARGS__);                                                  \
   } while (0)
 
 #define ASSERT(_a_)                                                                                \
   do                                                                                               \
   {                                                                                                \
-    ASSERT_MSG(MASTER_LOG, _a_,                                                                    \
-               _trans("An error occurred.\n\n  Line: %d\n  File: %s\n\nIgnore and continue?"),     \
-               __LINE__, __FILE__);                                                                \
+    if (!(_a_))                                                                                    \
+    {                                                                                              \
+      if (!PanicYesNoFmt("An error occurred.\n\n"                                                  \
+                         "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"             \
+                         "Ignore and continue?",                                                   \
+                         #_a_, __FILE__, __LINE__, __func__))                                      \
+        Crash();                                                                                   \
+    }                                                                                              \
   } while (0)
 
 #define DEBUG_ASSERT(_a_)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                 \
+    if constexpr (Common::Log::MAX_LOGLEVEL >= Common::Log::LogLevel::LDEBUG)                      \
       ASSERT(_a_);                                                                                 \
   } while (0)

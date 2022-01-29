@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.181
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinQt\DolphinQt.vcxproj", "{FA3FA62B-6F58-4B86-9453-4D149940A066}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DolphinNoGUI", "Core\DolphinNoGUI\DolphinNoGUI.vcxproj", "{974E563D-23F8-4E8F-9083-F62876B04E08}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DolphinTool", "Core\DolphinTool\DolphinTool.vcxproj", "{8F91523C-5C5E-4B22-A1F1-67560B6DC714}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSPTool", "DSPTool\DSPTool.vcxproj", "{1970D175-3DE8-4738-942A-4D98D1CDBF64}"
 EndProject
@@ -95,6 +97,14 @@ Global
 		{974E563D-23F8-4E8F-9083-F62876B04E08}.Debug|x64.ActiveCfg = Debug|x64
 		{974E563D-23F8-4E8F-9083-F62876B04E08}.Release|ARM64.ActiveCfg = Release|ARM64
 		{974E563D-23F8-4E8F-9083-F62876B04E08}.Release|x64.ActiveCfg = Release|x64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Debug|ARM64.Build.0 = Debug|ARM64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Debug|x64.ActiveCfg = Debug|x64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Debug|x64.Build.0 = Debug|x64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Release|ARM64.ActiveCfg = Release|ARM64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Release|ARM64.Build.0 = Release|ARM64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Release|x64.ActiveCfg = Release|x64
+		{8F91523C-5C5E-4B22-A1F1-67560B6DC714}.Release|x64.Build.0 = Release|x64
 		{1970D175-3DE8-4738-942A-4D98D1CDBF64}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{1970D175-3DE8-4738-942A-4D98D1CDBF64}.Debug|ARM64.Build.0 = Debug|ARM64
 		{1970D175-3DE8-4738-942A-4D98D1CDBF64}.Debug|x64.ActiveCfg = Debug|x64

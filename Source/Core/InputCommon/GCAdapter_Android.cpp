@@ -1,6 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "InputCommon/GCAdapter.h"
+
 #include <algorithm>
 #include <array>
 #include <jni.h>
@@ -10,14 +12,13 @@
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 
-#include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
 #include "jni/AndroidCommon/IDCache.h"
@@ -59,6 +60,16 @@ static std::thread s_adapter_detect_thread;
 static Common::Flag s_adapter_detect_thread_running;
 
 static u64 s_last_init = 0;
+
+static std::optional<size_t> s_config_callback_id = std::nullopt;
+static std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS>
+    s_config_si_device_type{};
+
+static void RefreshConfig()
+{
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+    s_config_si_device_type[i] = Config::Get(Config::GetInfoForSIDevice(i));
+}
 
 static void ScanThreadFunc()
 {
@@ -199,6 +210,10 @@ void Init()
   jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
 
+  if (!s_config_callback_id)
+    s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
+
   if (UseAdapter())
     StartScanThread();
 }
@@ -235,6 +250,12 @@ void Shutdown()
 {
   StopScanThread();
   Reset();
+
+  if (s_config_callback_id)
+  {
+    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    s_config_callback_id = std::nullopt;
+  }
 }
 
 void StartScanThread()
@@ -375,8 +396,7 @@ void ResetDeviceType(int chan)
 
 bool UseAdapter()
 {
-  const auto& si_devices = SConfig::GetInstance().m_SIDevice;
-
+  const auto& si_devices = s_config_si_device_type;
   return std::any_of(std::begin(si_devices), std::end(si_devices), [](const auto device_type) {
     return device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER;
   });

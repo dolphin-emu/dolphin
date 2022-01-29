@@ -12,13 +12,13 @@
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Align.h"
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
@@ -78,61 +78,57 @@ constexpr u32 DI_CONFIG_REGISTER = 0x24;
 // DI Status Register
 union UDISR
 {
-  u32 Hex;
-  struct
-  {
-    u32 BREAK : 1;      // Stop the Device + Interrupt
-    u32 DEINTMASK : 1;  // Access Device Error Int Mask
-    u32 DEINT : 1;      // Access Device Error Int
-    u32 TCINTMASK : 1;  // Transfer Complete Int Mask
-    u32 TCINT : 1;      // Transfer Complete Int
-    u32 BRKINTMASK : 1;
-    u32 BRKINT : 1;  // w 1: clear brkint
-    u32 : 25;
-  };
-  UDISR() { Hex = 0; }
-  UDISR(u32 _hex) { Hex = _hex; }
+  u32 Hex = 0;
+
+  BitField<0, 1, u32> BREAK;      // Stop the Device + Interrupt
+  BitField<1, 1, u32> DEINTMASK;  // Access Device Error Int Mask
+  BitField<2, 1, u32> DEINT;      // Access Device Error Int
+  BitField<3, 1, u32> TCINTMASK;  // Transfer Complete Int Mask
+  BitField<4, 1, u32> TCINT;      // Transfer Complete Int
+  BitField<5, 1, u32> BRKINTMASK;
+  BitField<6, 1, u32> BRKINT;  // w 1: clear brkint
+  BitField<7, 25, u32> reserved;
+
+  UDISR() = default;
+  explicit UDISR(u32 hex) : Hex{hex} {}
 };
 
 // DI Cover Register
 union UDICVR
 {
-  u32 Hex;
-  struct
-  {
-    u32 CVR : 1;         // 0: Cover closed  1: Cover open
-    u32 CVRINTMASK : 1;  // 1: Interrupt enabled
-    u32 CVRINT : 1;      // r 1: Interrupt requested w 1: Interrupt clear
-    u32 : 29;
-  };
-  UDICVR() { Hex = 0; }
-  UDICVR(u32 _hex) { Hex = _hex; }
+  u32 Hex = 0;
+
+  BitField<0, 1, u32> CVR;         // 0: Cover closed  1: Cover open
+  BitField<1, 1, u32> CVRINTMASK;  // 1: Interrupt enabled
+  BitField<2, 1, u32> CVRINT;      // r 1: Interrupt requested w 1: Interrupt clear
+  BitField<3, 29, u32> reserved;
+
+  UDICVR() = default;
+  explicit UDICVR(u32 hex) : Hex{hex} {}
 };
 
 // DI DMA Control Register
 union UDICR
 {
-  u32 Hex;
-  struct
-  {
-    u32 TSTART : 1;  // w:1 start   r:0 ready
-    u32 DMA : 1;     // 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
-    u32 RW : 1;      // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
-    u32 : 29;
-  };
+  u32 Hex = 0;
+
+  BitField<0, 1, u32> TSTART;  // w:1 start   r:0 ready
+  BitField<1, 1, u32> DMA;     // 1: DMA Mode
+                               // 0: Immediate Mode (can only do Access Register Command)
+  BitField<2, 1, u32> RW;      // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
+  BitField<3, 29, u32> reserved;
 };
 
 // DI Config Register
 union UDICFG
 {
-  u32 Hex;
-  struct
-  {
-    u32 CONFIG : 8;
-    u32 : 24;
-  };
-  UDICFG() { Hex = 0; }
-  UDICFG(u32 _hex) { Hex = _hex; }
+  u32 Hex = 0;
+
+  BitField<0, 8, u32> CONFIG;
+  BitField<8, 24, u32> reserved;
+
+  UDICFG() = default;
+  explicit UDICFG(u32 hex) : Hex{hex} {}
 };
 
 // STATE_TO_SAVE
@@ -582,7 +578,7 @@ bool AutoChangeDisc()
 
 static void SetLidOpen()
 {
-  u32 old_value = s_DICVR.CVR;
+  const u32 old_value = s_DICVR.CVR;
   s_DICVR.CVR = IsDiscInside() ? 0 : 1;
   if (s_DICVR.CVR != old_value)
     GenerateDIInterrupt(DIInterruptType::CVRINT);
@@ -600,20 +596,20 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   UDISR tmpStatusReg(val);
+                   const UDISR tmp_status_reg(val);
 
-                   s_DISR.DEINTMASK = tmpStatusReg.DEINTMASK;
-                   s_DISR.TCINTMASK = tmpStatusReg.TCINTMASK;
-                   s_DISR.BRKINTMASK = tmpStatusReg.BRKINTMASK;
-                   s_DISR.BREAK = tmpStatusReg.BREAK;
+                   s_DISR.DEINTMASK = tmp_status_reg.DEINTMASK.Value();
+                   s_DISR.TCINTMASK = tmp_status_reg.TCINTMASK.Value();
+                   s_DISR.BRKINTMASK = tmp_status_reg.BRKINTMASK.Value();
+                   s_DISR.BREAK = tmp_status_reg.BREAK.Value();
 
-                   if (tmpStatusReg.DEINT)
+                   if (tmp_status_reg.DEINT)
                      s_DISR.DEINT = 0;
 
-                   if (tmpStatusReg.TCINT)
+                   if (tmp_status_reg.TCINT)
                      s_DISR.TCINT = 0;
 
-                   if (tmpStatusReg.BRKINT)
+                   if (tmp_status_reg.BRKINT)
                      s_DISR.BRKINT = 0;
 
                    if (s_DISR.BREAK)
@@ -626,11 +622,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&s_DICVR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   UDICVR tmpCoverReg(val);
+                   const UDICVR tmp_cover_reg(val);
 
-                   s_DICVR.CVRINTMASK = tmpCoverReg.CVRINTMASK;
+                   s_DICVR.CVRINTMASK = tmp_cover_reg.CVRINTMASK.Value();
 
-                   if (tmpCoverReg.CVRINT)
+                   if (tmp_cover_reg.CVRINT)
                      s_DICVR.CVRINT = 0;
 
                    UpdateInterrupts();
@@ -670,9 +666,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 static void UpdateInterrupts()
 {
-  const bool set_mask = (s_DISR.DEINT & s_DISR.DEINTMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
-                        (s_DISR.BRKINT & s_DISR.BRKINTMASK) ||
-                        (s_DICVR.CVRINT & s_DICVR.CVRINTMASK);
+  const bool set_mask =
+      (s_DISR.DEINT & s_DISR.DEINTMASK) != 0 || (s_DISR.TCINT & s_DISR.TCINTMASK) != 0 ||
+      (s_DISR.BRKINT & s_DISR.BRKINTMASK) != 0 || (s_DICVR.CVRINT & s_DICVR.CVRINTMASK) != 0;
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
@@ -1385,7 +1381,7 @@ static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& parti
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
   const u64 first_block = dvd_offset;
 
-  if (SConfig::GetInstance().bFastDiscSpeed)
+  if (Config::Get(Config::MAIN_FAST_DISC_SPEED))
   {
     // The SUDTR setting makes us act as if all reads are buffered
     buffer_start = std::numeric_limits<u64>::min();

@@ -1,7 +1,6 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cctype>
 #include <cstring>
 #include <disasm.h>  // From Bochs, fallback included in Externals.
 #include <gtest/gtest.h>
@@ -17,6 +16,7 @@
 #undef TEST
 
 #include "Common/CPUDetect.h"
+#include "Common/StringUtil.h"
 #include "Common/x64Emitter.h"
 
 namespace Gen
@@ -125,7 +125,7 @@ protected:
       bool inside_parens = false;
       for (auto c : str)
       {
-        c = tolower(c);
+        c = Common::ToLower(c);
         if (c == '(')
         {
           inside_parens = true;
@@ -163,8 +163,8 @@ protected:
 
   std::unique_ptr<X64CodeBlock> emitter;
   std::unique_ptr<disassembler> disasm;
-  u8* code_buffer;
-  u8* code_buffer_end;
+  u8* code_buffer = nullptr;
+  u8* code_buffer_end = nullptr;
 };
 
 #define TEST_INSTR_NO_OPERANDS(Name, ExpectedDisasm)                                               \

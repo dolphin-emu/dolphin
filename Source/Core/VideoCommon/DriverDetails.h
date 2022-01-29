@@ -229,13 +229,16 @@ enum Bug
   // index as a MRT location instead, or omit the binding completely.
   BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION,
 
-  // Bug: Dual-source outputs from fragment shaders are broken on AMD OpenGL drivers
+  // Bug: Dual-source outputs from fragment shaders are broken on some drivers.
   // Started Version: -1
   // Ended Version: -1
-  // Fragment shaders that specify dual-source outputs, cause the driver to crash
-  // sometimes this happens in the kernel mode part of the driver resulting in a BSOD.
-  // Disable dual-source blending support for now.
+  // On some AMD drivers, fragment shaders that specify dual-source outputs can cause the driver to
+  // crash. Sometimes this happens in the kernel mode part of the driver, resulting in a BSOD.
+  // These shaders are also particularly problematic on macOS's Intel drivers. On OpenGL, they can
+  // cause depth issues. On Metal, they can cause the driver to not write a primitive to the depth
+  // buffer whenever a fragment is discarded. Disable dual-source blending support on these drivers.
   BUG_BROKEN_DUAL_SOURCE_BLENDING,
+
   // BUG: ImgTec GLSL shader compiler fails when negating the input to a bitwise operation
   // Started version: 1.5
   // Ended version: 1.8@4693462
@@ -305,6 +308,17 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_SSBO_FIELD_ATOMICS,
+
+  // BUG: Accessing gl_SubgroupInvocationID causes the Metal shader compiler to crash.
+  // Affected devices: AMD (macOS)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_SUBGROUP_INVOCATION_ID,
+
+  // BUG: Multi-threaded shader pre-compilation sometimes crashes
+  // Used primarily in Videoconfig.cpp's GetNumAutoShaderPreCompilerThreads()
+  // refer to https://github.com/dolphin-emu/dolphin/pull/9414 for initial validation coverage
+  BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION
 };
 
 // Initializes our internal vendor, device family, and driver version

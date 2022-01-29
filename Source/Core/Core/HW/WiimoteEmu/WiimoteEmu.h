@@ -109,6 +109,7 @@ public:
   static constexpr u16 BUTTON_HOME = 0x8000;
 
   explicit Wiimote(unsigned int index);
+  ~Wiimote();
 
   std::string GetName() const override;
   void LoadDefaults(const ControllerInterface& ciface) override;
@@ -143,6 +144,8 @@ private:
   // static constexpr int EEPROM_SIZE = 16 * 1024;
   // This is the region exposed over bluetooth:
   static constexpr int EEPROM_FREE_SIZE = 0x1700;
+
+  void RefreshConfig();
 
   void StepDynamics();
   void UpdateButtonsStatus();
@@ -297,5 +300,7 @@ private:
   PositionalState m_shake_state;
 
   IMUCursorState m_imu_cursor_state;
+
+  size_t m_config_changed_callback_id;
 };
 }  // namespace WiimoteEmu

@@ -232,8 +232,8 @@ public:
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys;
-  std::array<ControllerEmu::ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups;
+  std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys{};
+  std::array<ControllerEmu::ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups{};
 };
 
 namespace HotkeyManagerEmu

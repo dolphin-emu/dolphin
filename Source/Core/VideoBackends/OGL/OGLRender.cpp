@@ -4,7 +4,6 @@
 #include "VideoBackends/OGL/OGLRender.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cmath>
 #include <cstdio>
 #include <memory>
@@ -483,20 +482,21 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       GLExtensions::Supports("GL_EXT_texture_compression_s3tc");
   g_Config.backend_info.bSupportsBPTCTextures =
       GLExtensions::Supports("GL_ARB_texture_compression_bptc");
+  g_Config.backend_info.bSupportsCoarseDerivatives =
+      GLExtensions::Supports("GL_ARB_derivative_control") || GLExtensions::Version() >= 450;
+  g_Config.backend_info.bSupportsTextureQueryLevels =
+      GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
 
   if (m_main_gl_context->IsGLES())
   {
-    g_ogl_config.SupportedESPointSize =
-        GLExtensions::Supports("GL_OES_geometry_point_size") ?
-            1 :
-            GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 : 0;
-    g_ogl_config.SupportedESTextureBuffer = GLExtensions::Supports("VERSION_GLES_3_2") ?
-                                                EsTexbufType::TexbufCore :
-                                                GLExtensions::Supports("GL_OES_texture_buffer") ?
-                                                EsTexbufType::TexbufOes :
-                                                GLExtensions::Supports("GL_EXT_texture_buffer") ?
-                                                EsTexbufType::TexbufExt :
-                                                EsTexbufType::TexbufNone;
+    g_ogl_config.SupportedESPointSize = GLExtensions::Supports("GL_OES_geometry_point_size") ? 1 :
+                                        GLExtensions::Supports("GL_EXT_geometry_point_size") ? 2 :
+                                                                                               0;
+    g_ogl_config.SupportedESTextureBuffer =
+        GLExtensions::Supports("VERSION_GLES_3_2")      ? EsTexbufType::TexbufCore :
+        GLExtensions::Supports("GL_OES_texture_buffer") ? EsTexbufType::TexbufOes :
+        GLExtensions::Supports("GL_EXT_texture_buffer") ? EsTexbufType::TexbufExt :
+                                                          EsTexbufType::TexbufNone;
 
     supports_glsl_cache = true;
     g_ogl_config.bSupportsGLSync = true;
@@ -511,6 +511,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // glReadPixels() can't be used with non-color formats. But, if we support
     // ARB_get_texture_sub_image (unlikely, except maybe on NVIDIA), we can use that instead.
     g_Config.backend_info.bSupportsDepthReadback = g_ogl_config.bSupportsTextureSubImage;
+
+    // GL_TEXTURE_LOD_BIAS is not supported on GLES.
+    g_Config.backend_info.bSupportsLodBiasInSampler = false;
 
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
@@ -698,8 +701,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
       glDebugMessageCallbackARB(ErrorCallback, nullptr);
     }
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }
@@ -810,9 +813,10 @@ void Renderer::Shutdown()
   glDeleteFramebuffers(1, &m_shared_read_framebuffer);
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+                                                         std::string_view name)
 {
-  return std::make_unique<OGLTexture>(config);
+  return std::make_unique<OGLTexture>(config, name);
 }
 
 std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
@@ -828,14 +832,15 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
                                 static_cast<OGLTexture*>(depth_attachment));
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return OGLShader::CreateFromSource(stage, source);
+  return OGLShader::CreateFromSource(stage, source, name);
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length,
+                                 [[maybe_unused]] std::string_view name)
 {
   return nullptr;
 }
@@ -852,19 +857,9 @@ void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
   glScissor(rc.left, rc.top, rc.GetWidth(), rc.GetHeight());
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<::BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(BoundingBox::Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  BoundingBox::Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  BoundingBox::Flush();
+  return std::make_unique<OGLBoundingBox>();
 }
 
 void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
@@ -1037,8 +1032,8 @@ void Renderer::PresentBackbuffer()
 {
   if (g_ogl_config.bSupportsDebug)
   {
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }

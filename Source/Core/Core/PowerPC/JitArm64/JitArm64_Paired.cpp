@@ -1,14 +1,17 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -75,6 +78,7 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   const u32 a = inst.FA;
   const u32 c = inst.FC;
@@ -125,6 +129,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   const u32 a = inst.FA;
   const u32 b = inst.FB;
@@ -132,6 +137,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   const u32 d = inst.FD;
   const u32 op5 = inst.SUBOP5;
 
+  const bool inaccurate_fma = !Config::Get(Config::SESSION_USE_FMA);
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
   const bool round_c = !js.op->fprIsSingle[inst.FC];
   const RegType type = singles ? RegType::Single : RegType::Register;
@@ -147,27 +153,42 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   ARM64Reg V0 = ARM64Reg::INVALID_REG;
   ARM64Reg V1Q = ARM64Reg::INVALID_REG;
 
-  if (round_c || (d != b && (d == a || d == c)))
-  {
-    V0Q = fpr.GetReg();
-    V0 = reg_encoder(V0Q);
-  }
+  const auto allocate_v0_if_needed = [&] {
+    if (V0Q == ARM64Reg::INVALID_REG)
+    {
+      V0Q = fpr.GetReg();
+      V0 = reg_encoder(V0Q);
+    }
+  };
 
   if (round_c)
   {
     ASSERT_MSG(DYNA_REC, !singles, "Tried to apply 25-bit precision to single");
 
+    allocate_v0_if_needed();
     V1Q = fpr.GetReg();
 
     Force25BitPrecision(reg_encoder(V1Q), VC, V0);
     VC = reg_encoder(V1Q);
   }
 
+  ARM64Reg inaccurate_fma_temp_reg = VD;
+  if (inaccurate_fma && d == b)
+  {
+    allocate_v0_if_needed();
+    inaccurate_fma_temp_reg = V0;
+  }
+
+  ARM64Reg result_reg = VD;
   switch (op5)
   {
-  case 14:  // ps_madds0
-    // d = a * c.ps0 + b
-    if (VD == VB)
+  case 14:  // ps_madds0: d = a * c.ps0 + b
+    if (inaccurate_fma)
+    {
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 0);
+      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
+    }
+    else if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC, 0);
     }
@@ -178,14 +199,19 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     }
     else
     {
+      allocate_v0_if_needed();
       m_float_emit.MOV(V0, VB);
       m_float_emit.FMLA(size, V0, VA, VC, 0);
-      m_float_emit.MOV(VD, V0);
+      result_reg = V0;
     }
     break;
-  case 15:  // ps_madds1
-    // d = a * c.ps1 + b
-    if (VD == VB)
+  case 15:  // ps_madds1: d = a * c.ps1 + b
+    if (inaccurate_fma)
+    {
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 1);
+      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
+    }
+    else if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC, 1);
     }
@@ -196,19 +222,18 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     }
     else
     {
+      allocate_v0_if_needed();
       m_float_emit.MOV(V0, VB);
       m_float_emit.FMLA(size, V0, VA, VC, 1);
-      m_float_emit.MOV(VD, V0);
+      result_reg = V0;
     }
     break;
-  case 28:  // ps_msub
-    // d = a * c - b
-    if (VD == VB)
+  case 28:  // ps_msub:  d = a * c - b
+  case 30:  // ps_nmsub: d = -(a * c - b)
+    if (inaccurate_fma)
     {
-      // d = -(-a * c + b)
-      // rounding is incorrect if the rounding mode is +/- infinity
-      m_float_emit.FMLS(size, VD, VA, VC);
-      m_float_emit.FNEG(size, VD, VD);
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
+      m_float_emit.FSUB(size, VD, inaccurate_fma_temp_reg, VB);
     }
     else if (VD != VA && VD != VC)
     {
@@ -217,14 +242,20 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     }
     else
     {
+      allocate_v0_if_needed();
       m_float_emit.FNEG(size, V0, VB);
       m_float_emit.FMLA(size, V0, VA, VC);
-      m_float_emit.MOV(VD, V0);
+      result_reg = V0;
     }
     break;
-  case 29:  // ps_madd
-    // d = a * c + b
-    if (VD == VB)
+  case 29:  // ps_madd:  d = a * c + b
+  case 31:  // ps_nmadd: d = -(a * c + b)
+    if (inaccurate_fma)
+    {
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
+      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
+    }
+    else if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC);
     }
@@ -235,57 +266,28 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     }
     else
     {
+      allocate_v0_if_needed();
       m_float_emit.MOV(V0, VB);
       m_float_emit.FMLA(size, V0, VA, VC);
-      m_float_emit.MOV(VD, V0);
-    }
-    break;
-  case 30:  // ps_nmsub
-    // d = -(a * c - b)
-    // =>
-    // d = -a * c + b
-    // Note: PowerPC rounds before the final negation.
-    // We don't handle this at the moment because it's
-    // only relevant when rounding to +/- infinity.
-    if (VD == VB)
-    {
-      m_float_emit.FMLS(size, VD, VA, VC);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      m_float_emit.MOV(VD, VB);
-      m_float_emit.FMLS(size, VD, VA, VC);
-    }
-    else
-    {
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLS(size, V0, VA, VC);
-      m_float_emit.MOV(VD, V0);
-    }
-    break;
-  case 31:  // ps_nmadd
-    // d = -(a * c + b)
-    if (VD == VB)
-    {
-      m_float_emit.FMLA(size, VD, VA, VC);
-      m_float_emit.FNEG(size, VD, VD);
-    }
-    else if (VD != VA && VD != VC)
-    {
-      // d = -a * c - b
-      // See rounding note at ps_nmsub.
-      m_float_emit.FNEG(size, VD, VB);
-      m_float_emit.FMLS(size, VD, VA, VC);
-    }
-    else
-    {
-      m_float_emit.MOV(V0, VB);
-      m_float_emit.FMLA(size, V0, VA, VC);
-      m_float_emit.FNEG(size, VD, V0);
+      result_reg = V0;
     }
     break;
   default:
     ASSERT_MSG(DYNA_REC, 0, "ps_madd - invalid op");
+    break;
+  }
+
+  switch (op5)
+  {
+  case 30:  // ps_nmsub
+  case 31:  // ps_nmadd
+    // PowerPC's nmadd/nmsub perform rounding before the final negation, which is not the case
+    // for any of AArch64's FMA instructions, so we negate using a separate instruction.
+    m_float_emit.FNEG(size, VD, result_reg);
+    break;
+  default:
+    if (result_reg != VD)
+      m_float_emit.MOV(VD, result_reg);
     break;
   }
 
@@ -347,6 +349,7 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   const u32 a = inst.FA;
   const u32 b = inst.FB;
@@ -393,6 +396,7 @@ void JitArm64::ps_res(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -425,6 +429,7 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
   const u32 b = inst.FB;
   const u32 d = inst.FD;
@@ -456,6 +461,7 @@ void JitArm64::ps_cmpXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   const bool upper = inst.SUBOP10 & 64;
   FloatCompare(inst, upper);

@@ -27,6 +27,7 @@ include "dsp_base.inc"
 ; And thus it's tricky to implement in software too :p
 
 ; test using indexing register 1 - 0 is used in send_back
+test_main:
 lri $AR1, #16
 lri $IX1, #32
 lri $WR1, #0

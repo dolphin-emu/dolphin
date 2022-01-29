@@ -1,6 +1,8 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/LibusbUtils.h"
+
 #include <mutex>
 #include <thread>
 
@@ -11,7 +13,6 @@
 #include "Common/Assert.h"
 #include "Common/Flag.h"
 #include "Common/Thread.h"
-#include "Core/LibusbUtils.h"
 
 namespace LibusbUtils
 {
@@ -22,7 +23,7 @@ public:
   Impl()
   {
     const int ret = libusb_init(&m_context);
-    ASSERT_MSG(IOS_USB, ret == LIBUSB_SUCCESS, "Failed to init libusb: %s", libusb_error_name(ret));
+    ASSERT_MSG(IOS_USB, ret == LIBUSB_SUCCESS, "Failed to init libusb: {}", libusb_error_name(ret));
     if (ret != LIBUSB_SUCCESS)
       return;
 

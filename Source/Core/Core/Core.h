@@ -126,7 +126,6 @@ void OnFrameEnd();
 bool IsGolfMode();
 
 void VideoThrottle();
-void RequestRefreshInfo();
 
 void UpdateTitle(u32 ElapseTime);
 

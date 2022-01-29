@@ -4,6 +4,7 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 
 #include <array>
+
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCTables.h"
 
@@ -78,12 +79,12 @@ constexpr std::array<GekkoOPTemplate, 54> primarytable{{
     {54, &JitArm64::stfXX},  // stfd
     {55, &JitArm64::stfXX},  // stfdu
 
-    {56, &JitArm64::psq_l},   // psq_l
-    {57, &JitArm64::psq_l},   // psq_lu
-    {60, &JitArm64::psq_st},  // psq_st
-    {61, &JitArm64::psq_st},  // psq_stu
+    {56, &JitArm64::psq_lXX},   // psq_l
+    {57, &JitArm64::psq_lXX},   // psq_lu
+    {60, &JitArm64::psq_stXX},  // psq_st
+    {61, &JitArm64::psq_stXX},  // psq_stu
 
-    // missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
+    // missing: 0, 1, 2, 5, 6, 9, 22, 30, 58, 62
 }};
 
 constexpr std::array<GekkoOPTemplate, 13> table4{{
@@ -125,10 +126,10 @@ constexpr std::array<GekkoOPTemplate, 17> table4_2{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 4> table4_3{{
-    {6, &JitArm64::FallBackToInterpreter},   // psq_lx
-    {7, &JitArm64::FallBackToInterpreter},   // psq_stx
-    {38, &JitArm64::FallBackToInterpreter},  // psq_lux
-    {39, &JitArm64::FallBackToInterpreter},  // psq_stux
+    {6, &JitArm64::psq_lXX},    // psq_lx
+    {7, &JitArm64::psq_stXX},   // psq_stx
+    {38, &JitArm64::psq_lXX},   // psq_lux
+    {39, &JitArm64::psq_stXX},  // psq_stux
 }};
 
 constexpr std::array<GekkoOPTemplate, 13> table19{{
@@ -304,22 +305,22 @@ constexpr std::array<GekkoOPTemplate, 9> table59{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 15> table63{{
-    {264, &JitArm64::fp_logic},              // fabsx
-    {32, &JitArm64::fcmpX},                  // fcmpo
-    {0, &JitArm64::fcmpX},                   // fcmpu
-    {14, &JitArm64::FallBackToInterpreter},  // fctiwx
-    {15, &JitArm64::fctiwzx},                // fctiwzx
-    {72, &JitArm64::fp_logic},               // fmrx
-    {136, &JitArm64::fp_logic},              // fnabsx
-    {40, &JitArm64::fp_logic},               // fnegx
-    {12, &JitArm64::frspx},                  // frspx
+    {264, &JitArm64::fp_logic},  // fabsx
+    {32, &JitArm64::fcmpX},      // fcmpo
+    {0, &JitArm64::fcmpX},       // fcmpu
+    {14, &JitArm64::fctiwx},     // fctiwx
+    {15, &JitArm64::fctiwx},     // fctiwzx
+    {72, &JitArm64::fp_logic},   // fmrx
+    {136, &JitArm64::fp_logic},  // fnabsx
+    {40, &JitArm64::fp_logic},   // fnegx
+    {12, &JitArm64::frspx},      // frspx
 
-    {64, &JitArm64::mcrfs},                   // mcrfs
-    {583, &JitArm64::mffsx},                  // mffsx
-    {70, &JitArm64::mtfsb0x},                 // mtfsb0x
-    {38, &JitArm64::FallBackToInterpreter},   // mtfsb1x
-    {134, &JitArm64::FallBackToInterpreter},  // mtfsfix
-    {711, &JitArm64::FallBackToInterpreter},  // mtfsfx
+    {64, &JitArm64::mcrfs},     // mcrfs
+    {583, &JitArm64::mffsx},    // mffsx
+    {70, &JitArm64::mtfsb0x},   // mtfsb0x
+    {38, &JitArm64::mtfsb1x},   // mtfsb1x
+    {134, &JitArm64::mtfsfix},  // mtfsfix
+    {711, &JitArm64::mtfsfx},   // mtfsfx
 }};
 
 constexpr std::array<GekkoOPTemplate, 10> table63_2{{

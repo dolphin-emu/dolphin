@@ -16,6 +16,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/EnumMap.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
@@ -48,25 +49,24 @@ namespace ExpansionInterface
 static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
 static const auto MC_TRANSFER_RATE_WRITE = static_cast<u32>(96.125f * 1024.0f);
 
-static std::array<CoreTiming::EventType*, 2> s_et_cmd_done;
-static std::array<CoreTiming::EventType*, 2> s_et_transfer_complete;
+static Common::EnumMap<CoreTiming::EventType*, MAX_MEMCARD_SLOT> s_et_cmd_done;
+static Common::EnumMap<CoreTiming::EventType*, MAX_MEMCARD_SLOT> s_et_transfer_complete;
+static Common::EnumMap<char, MAX_MEMCARD_SLOT> s_card_short_names{'A', 'B'};
 
-// Takes care of the nasty recovery of the 'this' pointer from card_index,
+// Takes care of the nasty recovery of the 'this' pointer from card_slot,
 // stored in the userdata parameter of the CoreTiming event.
 void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
                                                std::function<void(CEXIMemoryCard*)> callback)
 {
-  int card_index = (int)userdata;
-  auto* self = static_cast<CEXIMemoryCard*>(
-      ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index));
-  if (self == nullptr)
+  Slot card_slot = static_cast<Slot>(userdata);
+  IEXIDevice* self = ExpansionInterface::GetDevice(card_slot);
+  if (self != nullptr)
   {
-    self = static_cast<CEXIMemoryCard*>(
-        ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index));
-  }
-  if (self)
-  {
-    callback(self);
+    if (self->m_device_type == EXIDeviceType::MemoryCard ||
+        self->m_device_type == EXIDeviceType::MemoryCardFolder)
+    {
+      callback(static_cast<CEXIMemoryCard*>(self));
+    }
   }
 }
 
@@ -83,19 +83,15 @@ void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64)
 
 void CEXIMemoryCard::Init()
 {
-  static constexpr char DONE_PREFIX[] = "memcardDone";
-  static constexpr char TRANSFER_COMPLETE_PREFIX[] = "memcardTransferComplete";
-
   static_assert(s_et_cmd_done.size() == s_et_transfer_complete.size(), "Event array size differs");
-  for (unsigned int i = 0; i < s_et_cmd_done.size(); ++i)
+  static_assert(s_et_cmd_done.size() == MEMCARD_SLOTS.size(), "Event array size differs");
+  for (Slot slot : MEMCARD_SLOTS)
   {
-    std::string name = DONE_PREFIX;
-    name += static_cast<char>('A' + i);
-    s_et_cmd_done[i] = CoreTiming::RegisterEvent(name, CmdDoneCallback);
-
-    name = TRANSFER_COMPLETE_PREFIX;
-    name += static_cast<char>('A' + i);
-    s_et_transfer_complete[i] = CoreTiming::RegisterEvent(name, TransferCompleteCallback);
+    s_et_cmd_done[slot] = CoreTiming::RegisterEvent(
+        fmt::format("memcardDone{}", s_card_short_names[slot]), CmdDoneCallback);
+    s_et_transfer_complete[slot] = CoreTiming::RegisterEvent(
+        fmt::format("memcardTransferComplete{}", s_card_short_names[slot]),
+        TransferCompleteCallback);
   }
 }
 
@@ -105,12 +101,12 @@ void CEXIMemoryCard::Shutdown()
   s_et_transfer_complete.fill(nullptr);
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
+CEXIMemoryCard::CEXIMemoryCard(const Slot slot, bool gci_folder,
                                const Memcard::HeaderData& header_data)
-    : m_card_index(index)
+    : m_card_slot(slot)
 {
-  ASSERT_MSG(EXPANSIONINTERFACE, static_cast<std::size_t>(index) < s_et_cmd_done.size(),
-             "Trying to create invalid memory card index %d.", index);
+  ASSERT_MSG(EXPANSIONINTERFACE, IsMemcardSlot(slot), "Trying to create invalid memory card in {}.",
+             slot);
 
   // NOTE: When loading a save state, DMA completion callbacks (s_et_transfer_complete) and such
   //   may have been restored, we need to anticipate those arriving.
@@ -145,15 +141,13 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
   m_memory_card_size = m_memory_card->GetCardId() * SIZE_TO_Mb;
   std::array<u8, 20> header{};
   m_memory_card->Read(0, static_cast<s32>(header.size()), header.data());
-  SetCardFlashID(header.data(), m_card_index);
+  SetCardFlashID(header.data(), m_card_slot);
 }
 
 std::pair<std::string /* path */, bool /* migrate */>
-CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder)
+CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder)
 {
-  std::string path_override =
-      Config::Get(card_index == 0 ? Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE :
-                                    Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE);
+  std::string path_override = Config::Get(Config::GetInfoForGCIPathOverride(card_slot));
 
   if (!path_override.empty())
     return {std::move(path_override), false};
@@ -162,7 +156,7 @@ CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_fo
 
   const bool use_movie_folder = allow_movie_folder == AllowMovieFolder::Yes &&
                                 Movie::IsPlayingInput() && Movie::IsConfigSaved() &&
-                                Movie::IsUsingMemcard(card_index) &&
+                                Movie::IsUsingMemcard(card_slot) &&
                                 Movie::IsStartingFromClearSave();
 
   if (use_movie_folder)
@@ -170,7 +164,7 @@ CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_fo
 
   const DiscIO::Region region = SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region);
   path = path + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
-         fmt::format("Card {}", char('A' + card_index));
+         fmt::format("Card {}", s_card_short_names[card_slot]);
   return {std::move(path), !use_movie_folder};
 }
 
@@ -186,7 +180,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 
   // TODO(C++20): Use structured bindings when we can use C++20 and refer to structured bindings
   // in lambda captures
-  const auto folder_path_pair = GetGCIFolderPath(m_card_index, AllowMovieFolder::Yes);
+  const auto folder_path_pair = GetGCIFolderPath(m_card_slot, AllowMovieFolder::Yes);
   const std::string& dir_path = folder_path_pair.first;
   const bool migrate = folder_path_pair.second;
 
@@ -194,7 +188,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
   if (!file_info.Exists())
   {
     if (migrate)  // first use of memcard folder, migrate automatically
-      MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_index);
+      MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_slot);
     else
       File::CreateFullPath(dir_path + DIR_SEP);
   }
@@ -204,7 +198,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     {
       PanicAlertFmtT("{0} was not a directory, moved to *.original", dir_path);
       if (migrate)
-        MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_index);
+        MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_slot);
       else
         File::CreateFullPath(dir_path + DIR_SEP);
     }
@@ -218,22 +212,23 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     }
   }
 
-  m_memory_card = std::make_unique<GCMemcardDirectory>(dir_path + DIR_SEP, m_card_index,
-                                                       header_data, current_game_id);
+  m_memory_card = std::make_unique<GCMemcardDirectory>(dir_path + DIR_SEP, m_card_slot, header_data,
+                                                       current_game_id);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
 {
-  const bool is_slot_a = m_card_index == 0;
-  std::string filename = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
-                                     Config::Get(Config::MAIN_MEMCARD_B_PATH);
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(m_card_index) &&
+  std::string filename = Config::Get(Config::GetInfoForMemcardPath(m_card_slot));
+  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(m_card_slot) &&
       Movie::IsStartingFromClearSave())
-    filename = File::GetUserPath(D_GCUSER_IDX) + fmt::format("Movie{}.raw", is_slot_a ? 'A' : 'B');
+  {
+    filename = File::GetUserPath(D_GCUSER_IDX) +
+               fmt::format("Movie{}.raw", s_card_short_names[m_card_slot]);
+  }
 
   const std::string region_dir =
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
-  MemoryCard::CheckPath(filename, region_dir, is_slot_a);
+  MemoryCard::CheckPath(filename, region_dir, m_card_slot);
 
   if (size_mb < Memcard::MBIT_SIZE_MEMORY_CARD_2043)
   {
@@ -241,13 +236,13 @@ void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
                     fmt::format(".{}", Memcard::MbitToFreeBlocks(size_mb)));
   }
 
-  m_memory_card = std::make_unique<MemoryCard>(filename, m_card_index, size_mb);
+  m_memory_card = std::make_unique<MemoryCard>(filename, m_card_slot, size_mb);
 }
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_index]);
-  CoreTiming::RemoveEvent(s_et_transfer_complete[m_card_index]);
+  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_slot]);
+  CoreTiming::RemoveEvent(s_et_transfer_complete[m_card_slot]);
 }
 
 bool CEXIMemoryCard::UseDelayedTransferCompletion() const
@@ -272,13 +267,14 @@ void CEXIMemoryCard::CmdDone()
 void CEXIMemoryCard::TransferComplete()
 {
   // Transfer complete, send interrupt
-  ExpansionInterface::GetChannel(m_card_index)->SendTransferComplete();
+  ExpansionInterface::GetChannel(ExpansionInterface::SlotToEXIChannel(m_card_slot))
+      ->SendTransferComplete();
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
-  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_index]);
-  CoreTiming::ScheduleEvent(cycles, s_et_cmd_done[m_card_index], m_card_index);
+  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_slot]);
+  CoreTiming::ScheduleEvent(cycles, s_et_cmd_done[m_card_slot], static_cast<u64>(m_card_slot));
 }
 
 void CEXIMemoryCard::SetCS(int cs)
@@ -371,10 +367,11 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case Command::ExtraByteProgram:
     case Command::ChipErase:
       DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0. seems normal.",
-                    m_command);
+                    static_cast<u8>(m_command));
       break;
     default:
-      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0", m_command);
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0",
+                   static_cast<u8>(m_command));
       break;
     }
     if (m_command == Command::ClearStatus)
@@ -522,17 +519,8 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
     p.Do(m_programming_buffer);
     p.Do(m_address);
     m_memory_card->DoState(p);
-    p.Do(m_card_index);
+    p.Do(m_card_slot);
   }
-}
-
-IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int custom_index)
-{
-  if (device_type != m_device_type)
-    return nullptr;
-  if (custom_index != m_card_index)
-    return nullptr;
-  return this;
 }
 
 // DMA reads are preceded by all of the necessary setup via IMMRead
@@ -548,7 +536,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 
   // Schedule transfer complete later based on read speed
   CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-                            s_et_transfer_complete[m_card_index], m_card_index);
+                            s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -564,6 +552,6 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 
   // Schedule transfer complete later based on write speed
   CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-                            s_et_transfer_complete[m_card_index], m_card_index);
+                            s_et_transfer_complete[m_card_slot], static_cast<u64>(m_card_slot));
 }
 }  // namespace ExpansionInterface

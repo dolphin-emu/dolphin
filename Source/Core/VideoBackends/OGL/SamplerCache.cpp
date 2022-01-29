@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/OGLRender.h"
 
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/SamplerCommon.h"
+#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -72,16 +71,16 @@ void SamplerCache::InvalidateBinding(u32 stage)
 void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
 {
   GLenum min_filter;
-  GLenum mag_filter = (params.mag_filter == SamplerState::Filter::Point) ? GL_NEAREST : GL_LINEAR;
-  if (params.mipmap_filter == SamplerState::Filter::Linear)
+  GLenum mag_filter = (params.tm0.mag_filter == FilterMode::Near) ? GL_NEAREST : GL_LINEAR;
+  if (params.tm0.mipmap_filter == FilterMode::Linear)
   {
-    min_filter = (params.min_filter == SamplerState::Filter::Point) ? GL_NEAREST_MIPMAP_LINEAR :
-                                                                      GL_LINEAR_MIPMAP_LINEAR;
+    min_filter = (params.tm0.min_filter == FilterMode::Near) ? GL_NEAREST_MIPMAP_LINEAR :
+                                                               GL_LINEAR_MIPMAP_LINEAR;
   }
   else
   {
-    min_filter = (params.min_filter == SamplerState::Filter::Point) ? GL_NEAREST_MIPMAP_NEAREST :
-                                                                      GL_LINEAR_MIPMAP_NEAREST;
+    min_filter = (params.tm0.min_filter == FilterMode::Near) ? GL_NEAREST_MIPMAP_NEAREST :
+                                                               GL_LINEAR_MIPMAP_NEAREST;
   }
 
   glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, min_filter);
@@ -91,17 +90,19 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
       {GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT}};
 
   glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S,
-                      address_modes[static_cast<u32>(params.wrap_u.Value())]);
+                      address_modes[static_cast<u32>(params.tm0.wrap_u.Value())]);
   glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T,
-                      address_modes[static_cast<u32>(params.wrap_v.Value())]);
+                      address_modes[static_cast<u32>(params.tm0.wrap_v.Value())]);
 
-  glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, params.min_lod / 16.f);
-  glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.max_lod / 16.f);
+  glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, params.tm1.min_lod / 16.f);
+  glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.tm1.max_lod / 16.f);
 
-  if (!static_cast<Renderer*>(g_renderer.get())->IsGLES())
-    glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.lod_bias / 256.f);
+  if (g_ActiveConfig.backend_info.bSupportsLodBiasInSampler)
+  {
+    glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.tm0.lod_bias / 256.f);
+  }
 
-  if (params.anisotropic_filtering && g_ogl_config.bSupportsAniso)
+  if (params.tm0.anisotropic_filtering && g_ogl_config.bSupportsAniso)
   {
     glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT,
                         static_cast<float>(1 << g_ActiveConfig.iMaxAnisotropy));

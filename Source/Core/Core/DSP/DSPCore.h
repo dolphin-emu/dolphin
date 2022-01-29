@@ -200,7 +200,7 @@ enum : u16
   SR_LOGIC_ZERO = 0x0040,
   SR_OVERFLOW_STICKY =
       0x0080,  // Set at the same time as 0x2 (under same conditions) - but not cleared the same
-  SR_100 = 0x0100,         // Unknown
+  SR_100 = 0x0100,         // Unknown, always reads back as 0
   SR_INT_ENABLE = 0x0200,  // Not 100% sure but duddie says so. This should replace the hack, if so.
   SR_400 = 0x0400,         // Unknown
   SR_EXT_INT_ENABLE = 0x0800,  // Appears in zelda - seems to disable external interrupts
@@ -271,7 +271,7 @@ struct DSP_Regs
     {
       u16 l;
       u16 m;
-      u16 h;
+      u32 h;  // 32 bits so that val is fully sign-extended (only 8 bits are actually used)
     };
   } ac[2];
 };
@@ -279,10 +279,10 @@ struct DSP_Regs
 struct DSPInitOptions
 {
   // DSP IROM blob, which is where the DSP boots from. Embedded into the DSP.
-  std::array<u16, DSP_IROM_SIZE> irom_contents;
+  std::array<u16, DSP_IROM_SIZE> irom_contents{};
 
   // DSP DROM blob, which contains resampling coefficients.
-  std::array<u16, DSP_COEF_SIZE> coef_contents;
+  std::array<u16, DSP_COEF_SIZE> coef_contents{};
 
   // Core used to emulate the DSP.
   // Default: JIT64.

@@ -11,7 +11,6 @@
 
 #include <QDialogButtonBox>
 #include <QDir>
-#include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -40,7 +39,10 @@
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
 #include "DolphinQt/GCMemcardCreateNewDialog.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+
+using namespace ExpansionInterface;
 
 constexpr int ROW_HEIGHT = 36;
 constexpr int COLUMN_WIDTH_FILENAME = 100;
@@ -54,6 +56,14 @@ constexpr int COLUMN_INDEX_TEXT = 2;
 constexpr int COLUMN_INDEX_ICON = 3;
 constexpr int COLUMN_INDEX_BLOCKS = 4;
 constexpr int COLUMN_COUNT = 5;
+
+namespace
+{
+Slot OtherSlot(Slot slot)
+{
+  return slot == Slot::A ? Slot::B : Slot::A;
+}
+};  // namespace
 
 struct GCMemcardManager::IconAnimationData
 {
@@ -70,7 +80,7 @@ GCMemcardManager::GCMemcardManager(QWidget* parent) : QDialog(parent)
   CreateWidgets();
   ConnectWidgets();
 
-  SetActiveSlot(0);
+  SetActiveSlot(Slot::A);
   UpdateActions();
 
   m_timer = new QTimer(this);
@@ -117,52 +127,54 @@ void GCMemcardManager::CreateWidgets()
 
   auto* layout = new QGridLayout;
 
-  for (int i = 0; i < SLOT_COUNT; i++)
+  for (Slot slot : MEMCARD_SLOTS)
   {
-    m_slot_group[i] = new QGroupBox(i == 0 ? tr("Slot A") : tr("Slot B"));
-    m_slot_file_edit[i] = new QLineEdit;
-    m_slot_open_button[i] = new QPushButton(tr("&Open..."));
-    m_slot_create_button[i] = new QPushButton(tr("&Create..."));
-    m_slot_table[i] = new QTableWidget;
-    m_slot_table[i]->setTabKeyNavigation(false);
-    m_slot_stat_label[i] = new QLabel;
+    m_slot_group[slot] = new QGroupBox(slot == Slot::A ? tr("Slot A") : tr("Slot B"));
+    m_slot_file_edit[slot] = new QLineEdit;
+    m_slot_open_button[slot] = new QPushButton(tr("&Open..."));
+    m_slot_create_button[slot] = new QPushButton(tr("&Create..."));
+    m_slot_table[slot] = new QTableWidget;
+    m_slot_table[slot]->setTabKeyNavigation(false);
+    m_slot_stat_label[slot] = new QLabel;
 
-    m_slot_table[i]->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    m_slot_table[i]->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_slot_table[i]->setSortingEnabled(true);
-    m_slot_table[i]->horizontalHeader()->setHighlightSections(false);
-    m_slot_table[i]->horizontalHeader()->setMinimumSectionSize(0);
-    m_slot_table[i]->horizontalHeader()->setSortIndicatorShown(true);
-    m_slot_table[i]->setColumnCount(COLUMN_COUNT);
-    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_FILENAME,
-                                             new QTableWidgetItem(tr("Filename")));
-    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_BANNER,
-                                             new QTableWidgetItem(tr("Banner")));
-    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_TEXT, new QTableWidgetItem(tr("Title")));
-    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_ICON, new QTableWidgetItem(tr("Icon")));
-    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_BLOCKS,
-                                             new QTableWidgetItem(tr("Blocks")));
-    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_FILENAME, COLUMN_WIDTH_FILENAME);
-    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_BANNER, COLUMN_WIDTH_BANNER);
-    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_TEXT, COLUMN_WIDTH_TEXT);
-    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_ICON, COLUMN_WIDTH_ICON);
-    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_BLOCKS, COLUMN_WIDTH_BLOCKS);
-    m_slot_table[i]->verticalHeader()->setDefaultSectionSize(ROW_HEIGHT);
-    m_slot_table[i]->verticalHeader()->hide();
-    m_slot_table[i]->setShowGrid(false);
+    m_slot_table[slot]->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    m_slot_table[slot]->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_slot_table[slot]->setSortingEnabled(true);
+    m_slot_table[slot]->horizontalHeader()->setHighlightSections(false);
+    m_slot_table[slot]->horizontalHeader()->setMinimumSectionSize(0);
+    m_slot_table[slot]->horizontalHeader()->setSortIndicatorShown(true);
+    m_slot_table[slot]->setColumnCount(COLUMN_COUNT);
+    m_slot_table[slot]->setHorizontalHeaderItem(COLUMN_INDEX_FILENAME,
+                                                new QTableWidgetItem(tr("Filename")));
+    m_slot_table[slot]->setHorizontalHeaderItem(COLUMN_INDEX_BANNER,
+                                                new QTableWidgetItem(tr("Banner")));
+    m_slot_table[slot]->setHorizontalHeaderItem(COLUMN_INDEX_TEXT,
+                                                new QTableWidgetItem(tr("Title")));
+    m_slot_table[slot]->setHorizontalHeaderItem(COLUMN_INDEX_ICON,
+                                                new QTableWidgetItem(tr("Icon")));
+    m_slot_table[slot]->setHorizontalHeaderItem(COLUMN_INDEX_BLOCKS,
+                                                new QTableWidgetItem(tr("Blocks")));
+    m_slot_table[slot]->setColumnWidth(COLUMN_INDEX_FILENAME, COLUMN_WIDTH_FILENAME);
+    m_slot_table[slot]->setColumnWidth(COLUMN_INDEX_BANNER, COLUMN_WIDTH_BANNER);
+    m_slot_table[slot]->setColumnWidth(COLUMN_INDEX_TEXT, COLUMN_WIDTH_TEXT);
+    m_slot_table[slot]->setColumnWidth(COLUMN_INDEX_ICON, COLUMN_WIDTH_ICON);
+    m_slot_table[slot]->setColumnWidth(COLUMN_INDEX_BLOCKS, COLUMN_WIDTH_BLOCKS);
+    m_slot_table[slot]->verticalHeader()->setDefaultSectionSize(ROW_HEIGHT);
+    m_slot_table[slot]->verticalHeader()->hide();
+    m_slot_table[slot]->setShowGrid(false);
 
     auto* slot_layout = new QGridLayout;
-    m_slot_group[i]->setLayout(slot_layout);
+    m_slot_group[slot]->setLayout(slot_layout);
 
-    slot_layout->addWidget(m_slot_file_edit[i], 0, 0);
-    slot_layout->addWidget(m_slot_open_button[i], 0, 1);
-    slot_layout->addWidget(m_slot_create_button[i], 0, 2);
-    slot_layout->addWidget(m_slot_table[i], 1, 0, 1, 3);
-    slot_layout->addWidget(m_slot_stat_label[i], 2, 0);
+    slot_layout->addWidget(m_slot_file_edit[slot], 0, 0);
+    slot_layout->addWidget(m_slot_open_button[slot], 0, 1);
+    slot_layout->addWidget(m_slot_create_button[slot], 0, 2);
+    slot_layout->addWidget(m_slot_table[slot], 1, 0, 1, 3);
+    slot_layout->addWidget(m_slot_stat_label[slot], 2, 0);
 
-    layout->addWidget(m_slot_group[i], 0, i * 2, 8, 1);
+    layout->addWidget(m_slot_group[slot], 0, slot == Slot::A ? 0 : 2, 8, 1);
 
-    UpdateSlotTable(i);
+    UpdateSlotTable(slot);
   }
 
   layout->addWidget(m_select_button, 1, 1);
@@ -179,7 +191,8 @@ void GCMemcardManager::CreateWidgets()
 void GCMemcardManager::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  connect(m_select_button, &QPushButton::clicked, [this] { SetActiveSlot(!m_active_slot); });
+  connect(m_select_button, &QPushButton::clicked,
+          [this] { SetActiveSlot(OtherSlot(m_active_slot)); });
   connect(m_export_gci_action, &QAction::triggered,
           [this] { ExportFiles(Memcard::SavefileFormat::GCI); });
   connect(m_export_gcs_action, &QAction::triggered,
@@ -191,7 +204,7 @@ void GCMemcardManager::ConnectWidgets()
   connect(m_copy_button, &QPushButton::clicked, this, &GCMemcardManager::CopyFiles);
   connect(m_fix_checksums_button, &QPushButton::clicked, this, &GCMemcardManager::FixChecksums);
 
-  for (int slot = 0; slot < SLOT_COUNT; slot++)
+  for (Slot slot : MEMCARD_SLOTS)
   {
     connect(m_slot_file_edit[slot], &QLineEdit::textChanged,
             [this, slot](const QString& path) { SetSlotFile(slot, path); });
@@ -206,27 +219,26 @@ void GCMemcardManager::ConnectWidgets()
 
 void GCMemcardManager::LoadDefaultMemcards()
 {
-  for (int i = 0; i < SLOT_COUNT; i++)
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
-    if (Config::Get(i == 0 ? Config::MAIN_SLOT_A : Config::MAIN_SLOT_B) !=
-        ExpansionInterface::EXIDEVICE_MEMORYCARD)
+    if (Config::Get(Config::GetInfoForEXIDevice(slot)) !=
+        ExpansionInterface::EXIDeviceType::MemoryCard)
     {
       continue;
     }
 
-    const QString path = QString::fromStdString(
-        Config::Get(i == 0 ? Config::MAIN_MEMCARD_A_PATH : Config::MAIN_MEMCARD_B_PATH));
-    SetSlotFile(i, path);
+    const QString path = QString::fromStdString(Config::Get(Config::GetInfoForMemcardPath(slot)));
+    SetSlotFile(slot, path);
   }
 }
 
-void GCMemcardManager::SetActiveSlot(int slot)
+void GCMemcardManager::SetActiveSlot(Slot slot)
 {
-  for (int i = 0; i < SLOT_COUNT; i++)
-    m_slot_table[i]->setEnabled(i == slot);
+  for (Slot slot2 : MEMCARD_SLOTS)
+    m_slot_table[slot2]->setEnabled(slot2 == slot);
 
-  m_select_button->setText(slot == 0 ? tr("Switch to B") : tr("Switch to A"));
-  m_copy_button->setText(slot == 0 ? tr("Copy to B") : tr("Copy to A"));
+  m_select_button->setText(slot == Slot::A ? tr("Switch to B") : tr("Switch to A"));
+  m_copy_button->setText(slot == Slot::A ? tr("Copy to B") : tr("Copy to A"));
 
   m_active_slot = slot;
 
@@ -234,7 +246,7 @@ void GCMemcardManager::SetActiveSlot(int slot)
   UpdateActions();
 }
 
-void GCMemcardManager::UpdateSlotTable(int slot)
+void GCMemcardManager::UpdateSlotTable(Slot slot)
 {
   m_slot_active_icons[slot].clear();
 
@@ -307,7 +319,7 @@ void GCMemcardManager::UpdateActions()
   auto selection = m_slot_table[m_active_slot]->selectedItems();
   bool have_selection = selection.count();
   bool have_memcard = m_slot_memcard[m_active_slot] != nullptr;
-  bool have_memcard_other = m_slot_memcard[!m_active_slot] != nullptr;
+  bool have_memcard_other = m_slot_memcard[OtherSlot(m_active_slot)] != nullptr;
 
   m_copy_button->setEnabled(have_selection && have_memcard_other);
   m_export_button->setEnabled(have_selection);
@@ -316,7 +328,7 @@ void GCMemcardManager::UpdateActions()
   m_fix_checksums_button->setEnabled(have_memcard);
 }
 
-void GCMemcardManager::SetSlotFile(int slot, QString path)
+void GCMemcardManager::SetSlotFile(Slot slot, QString path)
 {
   auto [error_code, memcard] = Memcard::GCMemcard::Open(path.toStdString());
 
@@ -337,14 +349,15 @@ void GCMemcardManager::SetSlotFile(int slot, QString path)
   UpdateActions();
 }
 
-void GCMemcardManager::SetSlotFileInteractive(int slot)
+void GCMemcardManager::SetSlotFileInteractive(Slot slot)
 {
-  QString path = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
-      this,
-      slot == 0 ? tr("Set memory card file for Slot A") : tr("Set memory card file for Slot B"),
-      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      QStringLiteral("%1 (*.raw *.gcp);;%2 (*)")
-          .arg(tr("GameCube Memory Cards"), tr("All Files"))));
+  QString path = QDir::toNativeSeparators(
+      DolphinFileDialog::getOpenFileName(this,
+                                         slot == Slot::A ? tr("Set memory card file for Slot A") :
+                                                           tr("Set memory card file for Slot B"),
+                                         QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+                                         QStringLiteral("%1 (*.raw *.gcp);;%2 (*)")
+                                             .arg(tr("GameCube Memory Cards"), tr("All Files"))));
   if (!path.isEmpty())
     m_slot_file_edit[slot]->setText(path);
 }
@@ -418,7 +431,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
     const QString qformatdesc = GetFormatDescription(format);
     const std::string default_path =
         fmt::format("{}/{}{}", File::GetUserPath(D_GCUSER_IDX), basename, extension);
-    const QString qfilename = QFileDialog::getSaveFileName(
+    const QString qfilename = DolphinFileDialog::getSaveFileName(
         this, tr("Export Save File"), QString::fromStdString(default_path),
         QStringLiteral("%1 (*%2);;%3 (*)")
             .arg(qformatdesc, QString::fromStdString(extension), tr("All Files")));
@@ -435,9 +448,9 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
     return;
   }
 
-  const QString qdirpath =
-      QFileDialog::getExistingDirectory(this, QObject::tr("Export Save Files"),
-                                        QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)));
+  const QString qdirpath = DolphinFileDialog::getExistingDirectory(
+      this, QObject::tr("Export Save Files"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)));
   if (qdirpath.isEmpty())
     return;
 
@@ -487,7 +500,7 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
   }
 }
 
-void GCMemcardManager::ImportFiles(int slot, const std::vector<Memcard::Savefile>& savefiles)
+void GCMemcardManager::ImportFiles(Slot slot, const std::vector<Memcard::Savefile>& savefiles)
 {
   auto& card = m_slot_memcard[slot];
   if (!card)
@@ -567,7 +580,7 @@ void GCMemcardManager::ImportFile()
   if (!card)
     return;
 
-  const QStringList paths = QFileDialog::getOpenFileNames(
+  const QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Import Save File(s)"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
       QStringLiteral("%1 (*.gci *.gcs *.sav);;%2 (*.gci);;%3 (*.gcs);;%4 (*.sav);;%5 (*)")
           .arg(tr("Supported file formats"), GetFormatDescription(Memcard::SavefileFormat::GCI),
@@ -611,7 +624,7 @@ void GCMemcardManager::CopyFiles()
   if (!source_card)
     return;
 
-  auto& target_card = m_slot_memcard[!m_active_slot];
+  auto& target_card = m_slot_memcard[OtherSlot(m_active_slot)];
   if (!target_card)
     return;
 
@@ -627,7 +640,7 @@ void GCMemcardManager::CopyFiles()
     return;
   }
 
-  ImportFiles(!m_active_slot, savefiles);
+  ImportFiles(OtherSlot(m_active_slot), savefiles);
 }
 
 void GCMemcardManager::DeleteFiles()
@@ -677,7 +690,7 @@ void GCMemcardManager::FixChecksums()
   }
 }
 
-void GCMemcardManager::CreateNewCard(int slot)
+void GCMemcardManager::CreateNewCard(Slot slot)
 {
   GCMemcardCreateNewDialog dialog(this);
   if (dialog.exec() == QDialog::Accepted)
@@ -687,7 +700,7 @@ void GCMemcardManager::CreateNewCard(int slot)
 void GCMemcardManager::DrawIcons()
 {
   const int column = COLUMN_INDEX_ICON;
-  for (int slot = 0; slot < SLOT_COUNT; slot++)
+  for (Slot slot : MEMCARD_SLOTS)
   {
     QTableWidget* table = m_slot_table[slot];
     const int row_count = table->rowCount();
@@ -737,7 +750,7 @@ void GCMemcardManager::DrawIcons()
   ++m_current_frame;
 }
 
-QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
+QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, Slot slot)
 {
   auto& memcard = m_slot_memcard[slot];
 
@@ -753,7 +766,7 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
   return QPixmap::fromImage(image);
 }
 
-GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int file_index, int slot)
+GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int file_index, Slot slot)
 {
   auto& memcard = m_slot_memcard[slot];
 

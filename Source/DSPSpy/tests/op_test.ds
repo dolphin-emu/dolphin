@@ -10,6 +10,7 @@ include "dsp_base.inc"
 // 0x02cb is the same opcode, but arithmetic.
 // We'll call it  asrn, no arguments.
 
+test_main:
 clr $ACC0
 clr $ACC1
 lri $AC0.H, #0

@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/FS/HostBackend/FS.h"
+
 #include <algorithm>
 #include <optional>
 #include <string_view>
@@ -17,18 +19,28 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/ES.h"
-#include "Core/IOS/FS/HostBackend/FS.h"
 #include "Core/IOS/IOS.h"
 
 namespace IOS::HLE::FS
 {
-std::string HostFileSystem::BuildFilename(const std::string& wii_path) const
+HostFileSystem::HostFilename HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
+  for (const auto& redirect : m_nand_redirects)
+  {
+    if (StringBeginsWith(wii_path, redirect.source_path) &&
+        (wii_path.size() == redirect.source_path.size() ||
+         wii_path[redirect.source_path.size()] == '/'))
+    {
+      std::string relative_to_redirect = wii_path.substr(redirect.source_path.size());
+      return HostFilename{redirect.target_path + Common::EscapePath(relative_to_redirect), true};
+    }
+  }
+
   if (wii_path.compare(0, 1, "/") == 0)
-    return m_root_path + Common::EscapePath(wii_path);
+    return HostFilename{m_root_path + Common::EscapePath(wii_path), false};
 
   ASSERT(false);
-  return m_root_path;
+  return HostFilename{m_root_path, false};
 }
 
 // Get total filesize of contents of a directory (recursive)
@@ -101,8 +113,12 @@ bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
   return (u8(requested_mode) & u8(file_mode)) == u8(requested_mode);
 }
 
-HostFileSystem::HostFileSystem(const std::string& root_path) : m_root_path{root_path}
+HostFileSystem::HostFileSystem(const std::string& root_path,
+                               std::vector<NandRedirect> nand_redirects)
+    : m_root_path{root_path}, m_nand_redirects(std::move(nand_redirects))
 {
+  while (StringEndsWith(m_root_path, "/"))
+    m_root_path.pop_back();
   File::CreateFullPath(m_root_path + "/");
   ResetFst();
   LoadFst();
@@ -197,11 +213,12 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
   if (!IsValidNonRootPath(path))
     return nullptr;
 
-  const File::FileInfo host_file_info{BuildFilename(path)};
+  auto host_file = BuildFilename(path);
+  const File::FileInfo host_file_info{host_file.host_path};
   if (!host_file_info.Exists())
     return nullptr;
 
-  FstEntry* entry = &m_root_entry;
+  FstEntry* entry = host_file.is_redirect ? &m_redirect_fst : &m_root_entry;
   std::string complete_path = "";
   for (const std::string& component : SplitString(std::string(path.substr(1)), '/'))
   {
@@ -217,7 +234,8 @@ HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& 
       // Fall back to dummy data to avoid breaking existing filesystems.
       // This code path is also reached when creating a new file or directory;
       // proper metadata is filled in later.
-      INFO_LOG_FMT(IOS_FS, "Creating a default entry for {}", complete_path);
+      INFO_LOG_FMT(IOS_FS, "Creating a default entry for {} ({})", complete_path,
+                   host_file.is_redirect ? "redirect" : "NAND");
       entry = &entry->children.emplace_back();
       entry->name = component;
       entry->data.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
@@ -241,7 +259,7 @@ void HostFileSystem::DoState(PointerWrap& p)
     handle.host_file.reset();
 
   // handle /tmp
-  std::string Path = BuildFilename("/tmp");
+  std::string Path = BuildFilename("/tmp").host_path;
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
     File::DeleteDirRecursively(Path);
@@ -336,7 +354,7 @@ void HostFileSystem::DoState(PointerWrap& p)
     p.Do(handle.wii_path);
     p.Do(handle.file_offset);
     if (handle.opened)
-      handle.host_file = OpenHostFile(BuildFilename(handle.wii_path));
+      handle.host_file = OpenHostFile(BuildFilename(handle.wii_path).host_path);
   }
 }
 
@@ -346,7 +364,7 @@ ResultCode HostFileSystem::Format(Uid uid)
     return ResultCode::AccessDenied;
   if (m_root_path.empty())
     return ResultCode::AccessDenied;
-  const std::string root = BuildFilename("/");
+  const std::string root = BuildFilename("/").host_path;
   if (!File::DeleteDirRecursively(root) || !File::CreateDir(root))
     return ResultCode::UnknownError;
   ResetFst();
@@ -366,7 +384,7 @@ ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::st
     return ResultCode::TooManyPathComponents;
 
   const auto split_path = SplitPathAndBasename(path);
-  const std::string host_path = BuildFilename(path);
+  const std::string host_path = BuildFilename(path).host_path;
 
   FstEntry* parent = GetFstEntryForPath(split_path.parent);
   if (!parent)
@@ -428,7 +446,7 @@ ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
   if (!IsValidNonRootPath(path))
     return ResultCode::Invalid;
 
-  const std::string host_path = BuildFilename(path);
+  const std::string host_path = BuildFilename(path).host_path;
   const auto split_path = SplitPathAndBasename(path);
 
   FstEntry* parent = GetFstEntryForPath(split_path.parent);
@@ -491,8 +509,10 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
     return ResultCode::InUse;
   }
 
-  const std::string host_old_path = BuildFilename(old_path);
-  const std::string host_new_path = BuildFilename(new_path);
+  const auto host_old_info = BuildFilename(old_path);
+  const auto host_new_info = BuildFilename(new_path);
+  const std::string& host_old_path = host_old_info.host_path;
+  const std::string& host_new_path = host_new_info.host_path;
 
   // If there is already something of the same type at the new path, delete it.
   if (File::Exists(host_new_path))
@@ -509,8 +529,27 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
 
   if (!File::Rename(host_old_path, host_new_path))
   {
-    ERROR_LOG_FMT(IOS_FS, "Rename {} to {} - failed", host_old_path, host_new_path);
-    return ResultCode::NotFound;
+    if (host_old_info.is_redirect || host_new_info.is_redirect)
+    {
+      // If either path is a redirect, the source and target may be on a different partition or
+      // device, so a simple rename may not work. Fall back to Copy & Delete and see if that works.
+      if (!File::Copy(host_old_path, host_new_path))
+      {
+        ERROR_LOG_FMT(IOS_FS, "Copying {} to {} in Rename fallback failed", host_old_path,
+                      host_new_path);
+        return ResultCode::NotFound;
+      }
+      if (!File::Delete(host_old_path))
+      {
+        ERROR_LOG_FMT(IOS_FS, "Deleting {} in Rename fallback failed", host_old_path);
+        return ResultCode::Invalid;
+      }
+    }
+    else
+    {
+      ERROR_LOG_FMT(IOS_FS, "Rename {} to {} - failed", host_old_path, host_new_path);
+      return ResultCode::NotFound;
+    }
   }
 
   // Finally, remove the child from the old parent and move it to the new parent.
@@ -544,7 +583,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
   if (entry->data.is_file)
     return ResultCode::Invalid;
 
-  const std::string host_path = BuildFilename(path);
+  const std::string host_path = BuildFilename(path).host_path;
   File::FSTEntry host_entry = File::ScanDirectoryTree(host_path, false);
   for (File::FSTEntry& child : host_entry.children)
   {
@@ -612,7 +651,7 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string
     return ResultCode::NotFound;
 
   Metadata metadata = entry->data;
-  metadata.size = File::GetSize(BuildFilename(path));
+  metadata.size = File::GetSize(BuildFilename(path).host_path);
   return metadata;
 }
 
@@ -631,7 +670,7 @@ ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, 
   if (caller_uid != 0 && uid != entry->data.uid)
     return ResultCode::AccessDenied;
 
-  const bool is_empty = File::GetSize(BuildFilename(path)) == 0;
+  const bool is_empty = File::GetSize(BuildFilename(path).host_path) == 0;
   if (entry->data.uid != uid && entry->data.is_file && !is_empty)
     return ResultCode::FileNotEmpty;
 
@@ -667,7 +706,7 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
     return ResultCode::Invalid;
 
   DirectoryStats stats{};
-  std::string path(BuildFilename(wii_path));
+  std::string path(BuildFilename(wii_path).host_path);
   if (File::IsDirectory(path))
   {
     File::FSTEntry parent_dir = File::ScanDirectoryTree(path, true);
@@ -685,4 +724,8 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
   return stats;
 }
 
+void HostFileSystem::SetNandRedirects(std::vector<NandRedirect> nand_redirects)
+{
+  m_nand_redirects = std::move(nand_redirects);
+}
 }  // namespace IOS::HLE::FS

@@ -669,3 +669,16 @@ std::string GetEscapedHtml(std::string html)
   }
   return html;
 }
+
+namespace Common
+{
+void ToLower(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+}
+
+void ToUpper(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+}
+}  // namespace Common

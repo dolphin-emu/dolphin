@@ -3,6 +3,7 @@
 package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -10,8 +11,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.ConvertActivity;
+import org.dolphinemu.dolphinemu.features.cheats.ui.CheatsActivity;
+import org.dolphinemu.dolphinemu.features.riivolution.ui.RiivolutionBootActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -28,8 +32,10 @@ public class GamePropertiesDialog extends DialogFragment
 {
   public static final String TAG = "GamePropertiesDialog";
   private static final String ARG_PATH = "path";
-  private static final String ARG_GAMEID = "game_id";
+  private static final String ARG_GAME_ID = "game_id";
+  private static final String ARG_GAMETDB_ID = "gametdb_id";
   public static final String ARG_REVISION = "revision";
+  public static final String ARG_DISC_NUMBER = "disc_number";
   private static final String ARG_PLATFORM = "platform";
   private static final String ARG_SHOULD_ALLOW_CONVERSION = "should_allow_conversion";
 
@@ -39,8 +45,10 @@ public class GamePropertiesDialog extends DialogFragment
 
     Bundle arguments = new Bundle();
     arguments.putString(ARG_PATH, gameFile.getPath());
-    arguments.putString(ARG_GAMEID, gameFile.getGameId());
+    arguments.putString(ARG_GAME_ID, gameFile.getGameId());
+    arguments.putString(ARG_GAMETDB_ID, gameFile.getGameTdbId());
     arguments.putInt(ARG_REVISION, gameFile.getRevision());
+    arguments.putInt(ARG_DISC_NUMBER, gameFile.getDiscNumber());
     arguments.putInt(ARG_PLATFORM, gameFile.getPlatform());
     arguments.putBoolean(ARG_SHOULD_ALLOW_CONVERSION, gameFile.shouldAllowConversion());
     fragment.setArguments(arguments);
@@ -53,8 +61,10 @@ public class GamePropertiesDialog extends DialogFragment
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
     final String path = requireArguments().getString(ARG_PATH);
-    final String gameId = requireArguments().getString(ARG_GAMEID);
+    final String gameId = requireArguments().getString(ARG_GAME_ID);
+    final String gameTdbId = requireArguments().getString(ARG_GAMETDB_ID);
     final int revision = requireArguments().getInt(ARG_REVISION);
+    final int discNumber = requireArguments().getInt(ARG_DISC_NUMBER);
     final int platform = requireArguments().getInt(ARG_PLATFORM);
     final boolean shouldAllowConversion =
             requireArguments().getBoolean(ARG_SHOULD_ALLOW_CONVERSION);
@@ -69,14 +79,11 @@ public class GamePropertiesDialog extends DialogFragment
             GameDetailsDialog.newInstance(path).show(requireActivity()
                     .getSupportFragmentManager(), "game_details"));
 
-    if (shouldAllowConversion)
-    {
-      itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
-              ConvertActivity.launch(getContext(), path));
-    }
-
     if (isDisc)
     {
+      itemsBuilder.add(R.string.properties_start_with_riivolution, (dialog, i) ->
+              RiivolutionBootActivity.launch(getContext(), path, gameId, revision, discNumber));
+
       itemsBuilder.add(R.string.properties_set_default_iso, (dialog, i) ->
       {
         try (Settings settings = new Settings())
@@ -88,11 +95,20 @@ public class GamePropertiesDialog extends DialogFragment
       });
     }
 
+    if (shouldAllowConversion)
+    {
+      itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
+              ConvertActivity.launch(getContext(), path));
+    }
+
     itemsBuilder.add(R.string.properties_edit_game_settings, (dialog, i) ->
             SettingsActivity.launch(getContext(), MenuTag.SETTINGS, gameId, revision, isWii));
 
+    itemsBuilder.add(R.string.properties_edit_cheats, (dialog, i) ->
+            CheatsActivity.launch(getContext(), gameId, gameTdbId, revision, isWii));
+
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
-            clearGameSettings(gameId));
+            clearGameSettingsWithConfirmation(gameId));
 
     AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(),
             R.style.DolphinDialogBase);
@@ -102,8 +118,19 @@ public class GamePropertiesDialog extends DialogFragment
     return builder.create();
   }
 
-  private void clearGameSettings(String gameId)
+  private void clearGameSettingsWithConfirmation(String gameId)
   {
+    new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase)
+            .setTitle(R.string.properties_clear_game_settings)
+            .setMessage(R.string.properties_clear_game_settings_confirmation)
+            .setPositiveButton(R.string.yes, (dialog, i) -> clearGameSettings(gameId))
+            .setNegativeButton(R.string.no, null)
+            .show();
+  }
+
+  private static void clearGameSettings(String gameId)
+  {
+    Context context = DolphinApplication.getAppContext();
     String gameSettingsPath =
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
     String gameProfilesPath = DirectoryInitialization.getUserDirectory() + "/Config/Profiles/";
@@ -115,24 +142,24 @@ public class GamePropertiesDialog extends DialogFragment
     {
       if (gameSettingsFile.delete() || hadGameProfiles)
       {
-        Toast.makeText(getContext(),
-                getResources().getString(R.string.properties_clear_success, gameId),
+        Toast.makeText(context,
+                context.getResources().getString(R.string.properties_clear_success, gameId),
                 Toast.LENGTH_SHORT).show();
       }
       else
       {
-        Toast.makeText(getContext(),
-                getResources().getString(R.string.properties_clear_failure, gameId),
+        Toast.makeText(context,
+                context.getResources().getString(R.string.properties_clear_failure, gameId),
                 Toast.LENGTH_SHORT).show();
       }
     }
     else
     {
-      Toast.makeText(getContext(), R.string.properties_clear_missing, Toast.LENGTH_SHORT).show();
+      Toast.makeText(context, R.string.properties_clear_missing, Toast.LENGTH_SHORT).show();
     }
   }
 
-  private boolean recursivelyDeleteGameProfiles(@NonNull final File file, String gameId)
+  private static boolean recursivelyDeleteGameProfiles(@NonNull final File file, String gameId)
   {
     boolean hadGameProfiles = false;
 

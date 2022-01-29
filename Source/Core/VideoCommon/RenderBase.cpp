@@ -38,6 +38,8 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
@@ -57,6 +59,7 @@
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/FPSCounter.h"
@@ -94,7 +97,8 @@ static float AspectToWidescreen(float aspect)
 static bool DumpFrameToPNG(const FrameDump::FrameData& frame, const std::string& file_name)
 {
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
-                                            frame.stride);
+                                            frame.stride,
+                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
 }
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,
@@ -124,6 +128,13 @@ bool Renderer::Initialize()
   if (!m_post_processor->Initialize(m_backbuffer_format))
     return false;
 
+  m_bounding_box = CreateBoundingBox();
+  if (g_ActiveConfig.backend_info.bSupportsBBox && !m_bounding_box->Initialize())
+  {
+    PanicAlertFmt("Failed to initialize bounding box.");
+    return false;
+  }
+
   return true;
 }
 
@@ -137,6 +148,7 @@ void Renderer::Shutdown()
   ShutdownFrameDumping();
   ShutdownImGui();
   m_post_processor.reset();
+  m_bounding_box.reset();
 }
 
 void Renderer::BeginUtilityDrawing()
@@ -184,15 +196,30 @@ void Renderer::ReinterpretPixelData(EFBReinterpretType convtype)
   g_framebuffer_manager->ReinterpretPixelData(convtype);
 }
 
-u16 Renderer::BBoxRead(int index)
+bool Renderer::IsBBoxEnabled() const
+{
+  return m_bounding_box->IsEnabled();
+}
+
+void Renderer::BBoxEnable()
+{
+  m_bounding_box->Enable();
+}
+
+void Renderer::BBoxDisable()
+{
+  m_bounding_box->Disable();
+}
+
+u16 Renderer::BBoxRead(u32 index)
 {
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
     return m_bounding_box_fallback[index];
 
-  return BBoxReadImpl(index);
+  return m_bounding_box->Get(index);
 }
 
-void Renderer::BBoxWrite(int index, u16 value)
+void Renderer::BBoxWrite(u32 index, u16 value)
 {
   if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
   {
@@ -200,12 +227,15 @@ void Renderer::BBoxWrite(int index, u16 value)
     return;
   }
 
-  BBoxWriteImpl(index, value);
+  m_bounding_box->Set(index, value);
 }
 
 void Renderer::BBoxFlush()
 {
-  BBoxFlushImpl();
+  if (!g_ActiveConfig.bBBoxEnable || !g_ActiveConfig.backend_info.bSupportsBBox)
+    return;
+
+  m_bounding_box->Flush();
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
@@ -525,8 +555,6 @@ void Renderer::CheckForConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  const auto& config = SConfig::GetInstance();
-
   if (g_ActiveConfig.bShowFPS)
   {
     // Position in the top-right corner of the screen.
@@ -547,7 +575,9 @@ void Renderer::DrawDebugText()
   }
 
   const bool show_movie_window =
-      config.m_ShowFrameCount | config.m_ShowLag | config.m_ShowInputDisplay | config.m_ShowRTC;
+      Config::Get(Config::MAIN_SHOW_FRAME_COUNT) || Config::Get(Config::MAIN_SHOW_LAG) ||
+      Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY) ||
+      Config::Get(Config::MAIN_MOVIE_SHOW_RTC) || Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD);
   if (show_movie_window)
   {
     // Position under the FPS display.
@@ -559,21 +589,26 @@ void Renderer::DrawDebugText()
         ImGui::GetIO().DisplaySize);
     if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      if (config.m_ShowFrameCount)
-      {
-        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
-      }
       if (Movie::IsPlayingInput())
       {
+        ImGui::Text("Frame: %" PRIu64 " / %" PRIu64, Movie::GetCurrentFrame(),
+                    Movie::GetTotalFrames());
         ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
                     Movie::GetTotalInputCount());
       }
-      if (SConfig::GetInstance().m_ShowLag)
+      else if (Config::Get(Config::MAIN_SHOW_FRAME_COUNT))
+      {
+        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
+        ImGui::Text("Input: %" PRIu64, Movie::GetCurrentInputCount());
+      }
+      if (Config::Get(Config::MAIN_SHOW_LAG))
         ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
-      if (SConfig::GetInstance().m_ShowInputDisplay)
+      if (Config::Get(Config::MAIN_MOVIE_SHOW_INPUT_DISPLAY))
         ImGui::TextUnformatted(Movie::GetInputDisplay().c_str());
-      if (SConfig::GetInstance().m_ShowRTC)
+      if (Config::Get(Config::MAIN_MOVIE_SHOW_RTC))
         ImGui::TextUnformatted(Movie::GetRTCDisplay().c_str());
+      if (Config::Get(Config::MAIN_MOVIE_SHOW_RERECORD))
+        ImGui::TextUnformatted(Movie::GetRerecords().c_str());
     }
     ImGui::End();
   }
@@ -928,7 +963,7 @@ void Renderer::RecordVideoMemory()
   const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
   u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
-  FillCPMemoryArray(cpmem);
+  g_main_cp_state.FillCPMemoryArray(cpmem);
 
   FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size,
                                              texMem);
@@ -948,16 +983,17 @@ bool Renderer::InitializeImGui()
   ImGui::GetIO().DisplayFramebufferScale.y = m_backbuffer_scale;
   ImGui::GetIO().FontGlobalScale = m_backbuffer_scale;
   ImGui::GetStyle().ScaleAllSizes(m_backbuffer_scale);
+  ImGui::GetStyle().WindowRounding = 7.0f;
 
   PortableVertexDeclaration vdecl = {};
-  vdecl.position = {VAR_FLOAT, 2, offsetof(ImDrawVert, pos), true, false};
-  vdecl.texcoords[0] = {VAR_FLOAT, 2, offsetof(ImDrawVert, uv), true, false};
-  vdecl.colors[0] = {VAR_UNSIGNED_BYTE, 4, offsetof(ImDrawVert, col), true, false};
+  vdecl.position = {ComponentFormat::Float, 2, offsetof(ImDrawVert, pos), true, false};
+  vdecl.texcoords[0] = {ComponentFormat::Float, 2, offsetof(ImDrawVert, uv), true, false};
+  vdecl.colors[0] = {ComponentFormat::UByte, 4, offsetof(ImDrawVert, col), true, false};
   vdecl.stride = sizeof(ImDrawVert);
   m_imgui_vertex_format = CreateNativeVertexFormat(vdecl);
   if (!m_imgui_vertex_format)
   {
-    PanicAlertFmt("Failed to create imgui vertex format");
+    PanicAlertFmt("Failed to create ImGui vertex format");
     return false;
   }
 
@@ -970,10 +1006,11 @@ bool Renderer::InitializeImGui()
 
     TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
                                   AbstractTextureFormat::RGBA8, 0);
-    std::unique_ptr<AbstractTexture> font_tex = CreateTexture(font_tex_config);
+    std::unique_ptr<AbstractTexture> font_tex =
+        CreateTexture(font_tex_config, "ImGui font texture");
     if (!font_tex)
     {
-      PanicAlertFmt("Failed to create imgui texture");
+      PanicAlertFmt("Failed to create ImGui texture");
       return false;
     }
     font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
@@ -994,13 +1031,14 @@ bool Renderer::InitializeImGui()
 
 bool Renderer::RecompileImGuiPipeline()
 {
-  std::unique_ptr<AbstractShader> vertex_shader = CreateShaderFromSource(
-      ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader());
-  std::unique_ptr<AbstractShader> pixel_shader =
-      CreateShaderFromSource(ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader());
+  std::unique_ptr<AbstractShader> vertex_shader =
+      CreateShaderFromSource(ShaderStage::Vertex, FramebufferShaderGen::GenerateImGuiVertexShader(),
+                             "ImGui vertex shader");
+  std::unique_ptr<AbstractShader> pixel_shader = CreateShaderFromSource(
+      ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader(), "ImGui pixel shader");
   if (!vertex_shader || !pixel_shader)
   {
-    PanicAlertFmt("Failed to compile imgui shaders");
+    PanicAlertFmt("Failed to compile ImGui shaders");
     return false;
   }
 
@@ -1009,10 +1047,11 @@ bool Renderer::RecompileImGuiPipeline()
   if (UseGeometryShaderForUI())
   {
     geometry_shader = CreateShaderFromSource(
-        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1));
+        ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1),
+        "ImGui passthrough geometry shader");
     if (!geometry_shader)
     {
-      PanicAlertFmt("Failed to compile imgui geometry shader");
+      PanicAlertFmt("Failed to compile ImGui geometry shader");
       return false;
     }
   }
@@ -1416,7 +1455,7 @@ bool Renderer::IsFrameDumping() const
   if (m_screenshot_request.IsSet())
     return true;
 
-  if (SConfig::GetInstance().m_DumpFrames)
+  if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     return true;
 
   return false;
@@ -1477,7 +1516,8 @@ bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
   m_frame_dump_render_texture.reset();
   m_frame_dump_render_texture =
       CreateTexture(TextureConfig(target_width, target_height, 1, 1, 1,
-                                  AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget));
+                                  AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget),
+                    "Frame dump render texture");
   if (!m_frame_dump_render_texture)
   {
     PanicAlertFmt("Failed to allocate frame dump render texture");
@@ -1623,7 +1663,7 @@ void Renderer::FrameDumpThreadFunc()
       m_screenshot_completed.Set();
     }
 
-    if (SConfig::GetInstance().m_DumpFrames)
+    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES))
     {
       if (!frame_dump_started)
       {
@@ -1634,7 +1674,7 @@ void Renderer::FrameDumpThreadFunc()
 
         // Stop frame dumping if we fail to start.
         if (!frame_dump_started)
-          SConfig::GetInstance().m_DumpFrames = false;
+          Config::SetCurrent(Config::MAIN_MOVIE_DUMP_FRAMES, false);
       }
 
       // If we failed to start frame dumping, don't write a frame.
@@ -1705,7 +1745,7 @@ std::string Renderer::GetFrameDumpNextImageFileName() const
 bool Renderer::StartFrameDumpToImage(const FrameDump::FrameData&)
 {
   m_frame_dump_image_counter = 1;
-  if (!SConfig::GetInstance().m_DumpFramesSilent)
+  if (!Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT))
   {
     // Only check for the presence of the first image to confirm overwriting.
     // A previous run will always have at least one image, and it's safe to assume that if the user
@@ -1757,6 +1797,8 @@ void Renderer::DoState(PointerWrap& p)
   p.Do(m_last_xfb_stride);
   p.Do(m_last_xfb_height);
   p.DoArray(m_bounding_box_fallback);
+
+  m_bounding_box->DoState(p);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {

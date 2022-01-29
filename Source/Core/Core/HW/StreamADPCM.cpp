@@ -3,9 +3,9 @@
 
 // Adapted from in_cube by hcs & destop
 
-#include <algorithm>
-
 #include "Core/HW/StreamADPCM.h"
+
+#include <algorithm>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"

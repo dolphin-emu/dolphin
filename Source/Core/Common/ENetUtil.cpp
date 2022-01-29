@@ -1,7 +1,7 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "ENetUtil.h"
+#include "Common/ENetUtil.h"
 
 #include "Common/CommonTypes.h"
 

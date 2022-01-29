@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <type_traits>
 
 namespace Common
@@ -66,4 +67,20 @@ static_assert(std::is_same_v<ObjectType<&Bar::d>, Bar>);
 static_assert(std::is_same_v<ObjectType<&Bar::c>, Foo>);
 static_assert(!std::is_same_v<ObjectType<&Bar::c>, Bar>);
 }  // namespace detail
+
+// Template for checking if Types is count occurrences of T.
+template <typename T, size_t count, typename... Ts>
+struct IsNOf : std::integral_constant<bool, std::conjunction_v<std::is_convertible<Ts, T>...> &&
+                                                sizeof...(Ts) == count>
+{
+};
+
+static_assert(IsNOf<int, 0>::value);
+static_assert(!IsNOf<int, 0, int>::value);
+static_assert(IsNOf<int, 1, int>::value);
+static_assert(!IsNOf<int, 1>::value);
+static_assert(!IsNOf<int, 1, int, int>::value);
+static_assert(IsNOf<int, 2, int, int>::value);
+static_assert(IsNOf<int, 2, int, short>::value);  // Type conversions ARE allowed
+static_assert(!IsNOf<int, 2, int, char*>::value);
 }  // namespace Common

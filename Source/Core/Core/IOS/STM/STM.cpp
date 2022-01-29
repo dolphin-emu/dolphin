@@ -55,7 +55,7 @@ std::optional<IPCReply> STMImmediateDevice::IOCtl(const IOCtlRequest& request)
     break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_STM);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_STM);
   }
 
   return IPCReply(return_value);

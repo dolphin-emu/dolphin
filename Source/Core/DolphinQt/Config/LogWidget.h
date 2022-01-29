@@ -36,7 +36,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void Log(Common::Log::LOG_LEVELS level, const char* text) override;
+  void Log(Common::Log::LogLevel level, const char* text) override;
 
   // Log
   QCheckBox* m_log_wrap;
@@ -46,7 +46,7 @@ private:
 
   QTimer* m_timer;
 
-  using LogEntry = std::pair<std::string, Common::Log::LOG_LEVELS>;
+  using LogEntry = std::pair<std::string, Common::Log::LogLevel>;
 
   // Maximum number of lines to show in log viewer
   static constexpr int MAX_LOG_LINES = 5000;

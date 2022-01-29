@@ -9,35 +9,33 @@
 #include "Common/Align.h"
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureDecoder.h"
 
 TextureInfo TextureInfo::FromStage(u32 stage)
 {
-  const FourTexUnits& tex = bpmem.tex[stage >> 2];
-  const u32 id = stage & 3;
+  const auto tex = bpmem.tex.GetUnit(stage);
 
-  const auto texture_format = tex.texImage0[id].format;
-  const auto tlut_format = tex.texTlut[id].tlut_format;
+  const auto texture_format = tex.texImage0.format;
+  const auto tlut_format = tex.texTlut.tlut_format;
 
-  const auto width = tex.texImage0[id].width + 1;
-  const auto height = tex.texImage0[id].height + 1;
+  const auto width = tex.texImage0.width + 1;
+  const auto height = tex.texImage0.height + 1;
 
-  const u32 address = (tex.texImage3[id].image_base /* & 0x1FFFFF*/) << 5;
+  const u32 address = (tex.texImage3.image_base /* & 0x1FFFFF*/) << 5;
 
-  const u32 tlutaddr = tex.texTlut[id].tmem_offset << 9;
+  const u32 tlutaddr = tex.texTlut.tmem_offset << 9;
   const u8* tlut_ptr = &texMem[tlutaddr];
 
   std::optional<u32> mip_count;
-  const bool has_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
+  const bool has_mipmaps = tex.texMode0.mipmap_filter != MipMode::None;
   if (has_mipmaps)
   {
-    mip_count = (tex.texMode1[id].max_lod + 0xf) / 0x10;
+    mip_count = (tex.texMode1.max_lod + 0xf) / 0x10;
   }
 
-  const bool from_tmem = tex.texImage1[id].cache_manually_managed != 0;
-  const u32 tmem_address_even = from_tmem ? tex.texImage1[id].tmem_even * TMEM_LINE_SIZE : 0;
-  const u32 tmem_address_odd = from_tmem ? tex.texImage2[id].tmem_odd * TMEM_LINE_SIZE : 0;
+  const bool from_tmem = tex.texImage1.cache_manually_managed != 0;
+  const u32 tmem_address_even = from_tmem ? tex.texImage1.tmem_even * TMEM_LINE_SIZE : 0;
+  const u32 tmem_address_odd = from_tmem ? tex.texImage2.tmem_odd * TMEM_LINE_SIZE : 0;
 
   if (from_tmem)
   {

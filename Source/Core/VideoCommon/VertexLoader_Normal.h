@@ -14,8 +14,8 @@ class VertexLoader_Normal
 {
 public:
   static u32 GetSize(VertexComponentFormat type, ComponentFormat format,
-                     NormalComponentCount elements, u32 index3);
+                     NormalComponentCount elements, bool index3);
 
   static TPipelineFunction GetFunction(VertexComponentFormat type, ComponentFormat format,
-                                       NormalComponentCount elements, u32 index3);
+                                       NormalComponentCount elements, bool index3);
 };

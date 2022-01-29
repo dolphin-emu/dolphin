@@ -50,20 +50,20 @@ private:
 
   std::string m_device_name;
 
-  mbedtls_aes_context m_aes_ctx;
+  mbedtls_aes_context m_aes_ctx{};
   u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 
   ES::TMDReader m_tmd;
   std::string m_base_extract_path;
 
-  u64 m_current_title_id;
+  u64 m_current_title_id = 0;
   std::string m_current_title_id_str;
-  u16 m_current_group_id;
+  u16 m_current_group_id = 0;
   std::string m_current_group_id_str;
-  u64 m_import_title_id;
+  u64 m_import_title_id = 0;
   std::string m_import_title_id_str;
-  u16 m_import_group_id;
+  u16 m_import_group_id = 0;
   std::string m_import_group_id_str;
 
   // Set on IMPORT_TITLE_INIT when the next profile application should not delete

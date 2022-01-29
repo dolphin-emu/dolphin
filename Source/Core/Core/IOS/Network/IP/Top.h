@@ -3,10 +3,12 @@
 
 #pragma once
 
+#include <queue>
 #include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/SocketContext.h"
+#include "Common/WorkQueueThread.h"
 #include "Core/IOS/Device.h"
 
 #ifdef _WIN32
@@ -73,6 +75,25 @@ public:
   void Update() override;
 
 private:
+  struct AsyncTask
+  {
+    IOS::HLE::Request request;
+    std::function<IPCReply()> handler;
+  };
+
+  struct AsyncReply
+  {
+    IOS::HLE::Request request;
+    s32 return_value;
+  };
+
+  template <typename Method, typename Request>
+  std::optional<IPCReply> LaunchAsyncTask(Method method, const Request& request)
+  {
+    m_work_queue.EmplaceItem(AsyncTask{request, std::bind(method, this, request)});
+    return std::nullopt;
+  }
+
   IPCReply HandleInitInterfaceRequest(const IOCtlRequest& request);
   IPCReply HandleSocketRequest(const IOCtlRequest& request);
   IPCReply HandleICMPSocketRequest(const IOCtlRequest& request);
@@ -99,5 +120,8 @@ private:
   IPCReply HandleICMPPingRequest(const IOCtlVRequest& request);
 
   Common::SocketContext m_socket_context;
+  Common::WorkQueueThread<AsyncTask> m_work_queue;
+  std::mutex m_async_reply_lock;
+  std::queue<AsyncReply> m_async_replies;
 };
 }  // namespace IOS::HLE

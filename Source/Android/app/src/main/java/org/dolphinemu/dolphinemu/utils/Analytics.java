@@ -25,7 +25,7 @@ public class Analytics
 
   public static void checkAnalyticsInit(Context context)
   {
-    new AfterDirectoryInitializationRunner().run(context, false, () ->
+    new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false, () ->
     {
       if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.getBooleanGlobal())
       {

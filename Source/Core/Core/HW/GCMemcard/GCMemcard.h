@@ -82,7 +82,7 @@ private:
 struct GCMemcardAnimationFrameRGBA8
 {
   std::vector<u32> image_data;
-  u8 delay;
+  u8 delay = 0;
 };
 
 // size of a single memory card block in bytes

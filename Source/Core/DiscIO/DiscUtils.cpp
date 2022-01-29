@@ -12,6 +12,8 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
@@ -43,7 +45,7 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
       return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }
 
-    return fmt::format(include_prefix ? "P{}" : "{}", partition_type);
+    return fmt::format("{}{}", include_prefix ? "P" : "", partition_type);
   }
 }
 
@@ -196,6 +198,51 @@ u64 GetBiggestReferencedOffset(const Volume& volume, const std::vector<Partition
     }
   }
   return biggest_offset;
+}
+
+bool IsGCZBlockSizeLegacyCompatible(int block_size, u64 file_size)
+{
+  // In order for versions of Dolphin prior to 5.0-11893 to be able to convert a GCZ file
+  // to ISO without messing up the final part of the file in some way, the file size
+  // must be an integer multiple of the block size (fixed in 3aa463c) and must not be
+  // an integer multiple of the block size multiplied by 32 (fixed in 26b21e3).
+  return file_size % block_size == 0 && file_size % (block_size * 32) != 0;
+}
+
+bool IsDiscImageBlockSizeValid(int block_size, DiscIO::BlobType format)
+{
+  switch (format)
+  {
+  case DiscIO::BlobType::GCZ:
+    // Block size "must" be a power of 2
+    if (!MathUtil::IsPow2(block_size))
+      return false;
+
+    break;
+  case DiscIO::BlobType::WIA:
+    // Block size must not be less than the minimum, and must be a multiple of it
+    if (block_size < WIA_MIN_BLOCK_SIZE || block_size % WIA_MIN_BLOCK_SIZE != 0)
+      return false;
+
+    break;
+  case DiscIO::BlobType::RVZ:
+    // Block size must not be smaller than the minimum
+    // Block sizes smaller than the large block size threshold must be a power of 2
+    // Block sizes larger than that threshold must be a multiple of the threshold
+    if (block_size < RVZ_MIN_BLOCK_SIZE ||
+        (block_size < RVZ_BIG_BLOCK_SIZE_LCM && !MathUtil::IsPow2(block_size)) ||
+        (block_size > RVZ_BIG_BLOCK_SIZE_LCM && block_size % RVZ_BIG_BLOCK_SIZE_LCM != 0))
+    {
+      return false;
+    }
+
+    break;
+  default:
+    ASSERT(false);
+    break;
+  }
+
+  return true;
 }
 
 }  // namespace DiscIO

@@ -332,10 +332,10 @@ void Jit64::Init()
 {
   EnableBlockLink();
 
-  jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
+  jo.fastmem_arena = m_fastmem_enabled && Memory::InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
-  UpdateMemoryOptions();
+  UpdateMemoryAndExceptionOptions();
   js.fastmemLoadStore = nullptr;
   js.compilerPC = 0;
 
@@ -355,8 +355,7 @@ void Jit64::Init()
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
-  m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().bFastmem &&
-                              !SConfig::GetInstance().bEnableDebugging;
+  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
   m_stack = nullptr;
@@ -389,7 +388,7 @@ void Jit64::ClearCache()
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
-  UpdateMemoryOptions();
+  UpdateMemoryAndExceptionOptions();
   ResetFreeMemoryRanges();
 }
 
@@ -452,6 +451,24 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
       WriteExceptionExit();
       SetJumpTarget(c);
     }
+  }
+  else if (ShouldHandleFPExceptionForInstruction(js.op))
+  {
+    TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_PROGRAM));
+    FixupBranch exception = J_CC(CC_NZ, true);
+
+    SwitchToFarCode();
+    SetJumpTarget(exception);
+
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
+
+    gpr.Flush();
+    fpr.Flush();
+
+    MOV(32, PPCSTATE(pc), Imm32(js.op->address));
+    WriteExceptionExit();
+    SwitchToNearCode();
   }
 }
 
@@ -585,8 +602,8 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
   MOV(32, PPCSTATE(pc), Imm32(destination));
 
   // Do not skip breakpoint check if debugging.
-  const u8* dispatcher = SConfig::GetInstance().bEnableDebugging ? asm_routines.dispatcher :
-                                                                   asm_routines.dispatcher_no_check;
+  const u8* dispatcher =
+      m_enable_debugging ? asm_routines.dispatcher : asm_routines.dispatcher_no_check;
 
   // Perform downcount flag check, followed by the requested exit
   if (bl)
@@ -778,7 +795,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
 
   std::size_t block_size = m_code_buffer.size();
 
-  if (SConfig::GetInstance().bEnableDebugging)
+  if (m_enable_debugging)
   {
     // We can link blocks as long as we are not single stepping and there are no breakpoints here
     EnableBlockLink();
@@ -989,7 +1006,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
 
-    if (!SConfig::GetInstance().bEnableDebugging)
+    if (!m_enable_debugging)
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     if (i == (code_block.m_num_instructions - 1))
@@ -1076,8 +1093,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(op.address) &&
-          !CPU::IsStepping())
+      if (m_enable_debugging && breakpoints.IsAddressBreakPoint(op.address) && !CPU::IsStepping())
       {
         // Turn off block linking if there are breakpoints so that the Step Over command does not
         // link this block.
@@ -1098,7 +1114,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SetJumpTarget(noBreakpoint);
       }
 
-      if (SConfig::GetInstance().bJITRegisterCacheOff)
+      if (bJITRegisterCacheOff)
       {
         gpr.Flush();
         fpr.Flush();
@@ -1126,7 +1142,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         // it.
         FixupBranch memException;
         ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
-                   "Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!",
+                   "Fastmem loadstores shouldn't have exception handler fixups (PC={:x})!",
                    op.address);
         if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
         {
@@ -1162,7 +1178,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       fpr.Commit();
 
       // If we have a register that will never be used again, discard or flush it.
-      if (!SConfig::GetInstance().bJITRegisterCacheOff)
+      if (!bJITRegisterCacheOff)
       {
         gpr.Discard(op.gprDiscardable);
         fpr.Discard(op.fprDiscardable);

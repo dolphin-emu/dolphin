@@ -4,7 +4,6 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include <array>
-#include <cinttypes>
 #include <string>
 
 #include <fmt/format.h>
@@ -14,20 +13,17 @@
 #include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 namespace
 {
@@ -111,9 +107,9 @@ void Interpreter::Shutdown()
 {
 }
 
-static int startTrace = 0;
+static bool s_start_trace = false;
 
-static void Trace(UGeckoInstruction& inst)
+static void Trace(const UGeckoInstruction& inst)
 {
   std::string regs;
   for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
@@ -152,26 +148,16 @@ int Interpreter::SingleStepInner()
     return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
   }
 
-#ifdef USE_GDBSTUB
-  if (gdb_active() && gdb_bp_x(PC))
-  {
-    Host_UpdateDisasmDialog();
-
-    gdb_signal(GDB_SIGTRAP);
-    gdb_handle_exception();
-  }
-#endif
-
   NPC = PC + sizeof(UGeckoInstruction);
   m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
   // Uncomment to trace the interpreter
-  // if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
-  //	startTrace = 1;
+  // if ((PC & 0x00FFFFFF) >= 0x000AB54C && (PC & 0x00FFFFFF) <= 0x000AB624)
+  //   s_start_trace = true;
   // else
-  //	startTrace = 0;
+  //   s_start_trace = false;
 
-  if (startTrace)
+  if (s_start_trace)
   {
     Trace(m_prev_inst);
   }
@@ -180,13 +166,13 @@ int Interpreter::SingleStepInner()
   {
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
-      GenerateProgramException();
+      GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
     else if (MSR.FP)
     {
       m_op_table[m_prev_inst.OPCD](m_prev_inst);
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+      if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
       {
         CheckExceptions();
       }
@@ -202,7 +188,7 @@ int Interpreter::SingleStepInner()
       else
       {
         m_op_table[m_prev_inst.OPCD](m_prev_inst);
-        if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+        if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
         {
           CheckExceptions();
         }
@@ -234,7 +220,7 @@ void Interpreter::SingleStep()
   CoreTiming::g.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
-  if (PowerPC::ppcState.Exceptions)
+  if (PowerPC::ppcState.Exceptions != 0)
   {
     PowerPC::CheckExceptions();
     PC = NPC;
@@ -243,10 +229,10 @@ void Interpreter::SingleStep()
 
 //#define SHOW_HISTORY
 #ifdef SHOW_HISTORY
-std::vector<int> PCVec;
-std::vector<int> PCBlockVec;
-int ShowBlocks = 30;
-int ShowSteps = 300;
+static std::vector<u32> s_pc_vec;
+static std::vector<u32> s_pc_block_vec;
+constexpr u32 s_show_blocks = 30;
+constexpr u32 s_show_steps = 300;
 #endif
 
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
@@ -260,12 +246,12 @@ void Interpreter::Run()
     CoreTiming::Advance();
 
     // we have to check exceptions at branches apparently (or maybe just rfi?)
-    if (SConfig::GetInstance().bEnableDebugging)
+    if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     {
 #ifdef SHOW_HISTORY
-      PCBlockVec.push_back(PC);
-      if (PCBlockVec.size() > ShowBlocks)
-        PCBlockVec.erase(PCBlockVec.begin());
+      s_pc_block_vec.push_back(PC);
+      if (s_pc_block_vec.size() > s_show_blocks)
+        s_pc_block_vec.erase(s_pc_block_vec.begin());
 #endif
 
       // Debugging friendly version of inner loop. Tries to do the timing as similarly to the
@@ -273,13 +259,13 @@ void Interpreter::Run()
       while (PowerPC::ppcState.downcount > 0)
       {
         m_end_block = false;
-        int i;
-        for (i = 0; !m_end_block; i++)
+        int cycles = 0;
+        while (!m_end_block)
         {
 #ifdef SHOW_HISTORY
-          PCVec.push_back(PC);
-          if (PCVec.size() > ShowSteps)
-            PCVec.erase(PCVec.begin());
+          s_pc_vec.push_back(PC);
+          if (s_pc_vec.size() > s_show_steps)
+            s_pc_vec.erase(s_pc_vec.begin());
 #endif
 
           // 2: check for breakpoint
@@ -288,33 +274,35 @@ void Interpreter::Run()
 #ifdef SHOW_HISTORY
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
             NOTICE_LOG_FMT(POWERPC, "Blocks:");
-            for (const int entry : PCBlockVec)
+            for (const u32 entry : s_pc_block_vec)
               NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", entry);
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
             NOTICE_LOG_FMT(POWERPC, "Steps:");
-            for (size_t j = 0; j < PCVec.size(); j++)
+            for (size_t j = 0; j < s_pc_vec.size(); j++)
             {
               // Write space
               if (j > 0)
               {
-                if (PCVec[j] != PCVec[(j - 1) + 4]
+                if (s_pc_vec[j] != s_pc_vec[(j - 1) + 4]
                   NOTICE_LOG_FMT(POWERPC, "");
               }
 
-              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", PCVec[j]);
+              NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", s_pc_vec[j]);
             }
 #endif
             INFO_LOG_FMT(POWERPC, "Hit Breakpoint - {:08x}", PC);
             CPU::Break();
+            if (GDBStub::IsActive())
+              GDBStub::TakeControl();
             if (PowerPC::breakpoints.IsTempBreakPoint(PC))
               PowerPC::breakpoints.Remove(PC);
 
             Host_UpdateDisasmDialog();
             return;
           }
-          SingleStepInner();
+          cycles += SingleStepInner();
         }
-        PowerPC::ppcState.downcount -= i;
+        PowerPC::ppcState.downcount -= cycles;
       }
     }
     else
@@ -340,7 +328,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   const u32 opcode = PowerPC::HostRead_U32(last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG_FMT(POWERPC, "Last PC = {:08x} : {}", last_pc, disasm);
-  Dolphin_Debugger::PrintCallstack();
+  Dolphin_Debugger::PrintCallstack(Common::Log::LogType::POWERPC, Common::Log::LogLevel::LNOTICE);
   NOTICE_LOG_FMT(
       POWERPC,
       "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
@@ -351,7 +339,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
                    i + 1, rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
   }
   ASSERT_MSG(POWERPC, 0,
-             "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
+             "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
              inst.hex, PC, last_pc, LR);
 }
 

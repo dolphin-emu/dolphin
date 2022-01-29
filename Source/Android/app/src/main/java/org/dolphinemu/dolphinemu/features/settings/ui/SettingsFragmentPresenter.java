@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.UserDataActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
@@ -92,6 +93,12 @@ public final class SettingsFragmentPresenter
   public void onViewCreated(MenuTag menuTag, Settings settings)
   {
     this.mMenuTag = menuTag;
+
+    if (!TextUtils.isEmpty(mGameID))
+    {
+      mView.getActivity().setTitle(mContext.getString(R.string.game_settings, mGameID));
+    }
+
     setSettings(settings);
   }
 
@@ -121,10 +128,6 @@ public final class SettingsFragmentPresenter
 
   private void loadSettingsList()
   {
-    if (!TextUtils.isEmpty(mGameID))
-    {
-      mView.getActivity().setTitle(mContext.getString(R.string.game_settings, mGameID));
-    }
     ArrayList<SettingsItem> sl = new ArrayList<>();
 
     switch (mMenuTag)
@@ -181,8 +184,16 @@ public final class SettingsFragmentPresenter
         addEnhanceSettings(sl);
         break;
 
+      case STEREOSCOPY:
+        addStereoSettings(sl);
+        break;
+
       case HACKS:
         addHackSettings(sl);
+        break;
+
+      case ADVANCED_GRAPHICS:
+        addAdvancedGraphicsSettings(sl);
         break;
 
       case CONFIG_LOG:
@@ -212,10 +223,6 @@ public final class SettingsFragmentPresenter
       case WIIMOTE_EXTENSION_3:
       case WIIMOTE_EXTENSION_4:
         addExtensionTypeSettings(sl, mControllerNumber, mControllerType);
-        break;
-
-      case STEREOSCOPY:
-        addStereoSettings(sl);
         break;
 
       default:
@@ -252,12 +259,16 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(mContext, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(mContext, R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(mContext, R.string.debug_submenu, MenuTag.DEBUG));
+    sl.add(new RunRunnable(mContext, R.string.user_data_submenu, 0, 0, 0,
+            () -> UserDataActivity.launch(mContext)));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_CPU_THREAD, R.string.dual_core,
             R.string.dual_core_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ENABLE_CHEATS, R.string.enable_cheats,
+            0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_OVERRIDE_REGION_SETTINGS,
             R.string.override_region_settings, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_AUTO_DISC_CHANGE,
@@ -400,6 +411,8 @@ public final class SettingsFragmentPresenter
             R.string.resource_pack_path, 0, MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
             MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
+    sl.add(new FilePicker(mContext, StringSetting.MAIN_WFS_PATH, R.string.wfs_path, 0,
+            MainPresenter.REQUEST_DIRECTORY, "/WFS"));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
@@ -533,6 +546,8 @@ public final class SettingsFragmentPresenter
     }
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_CPU_CORE, R.string.cpu_core, 0,
             emuCoresEntries, emuCoresValues));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_MMU, R.string.mmu_enable,
+            R.string.mmu_enable_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
@@ -608,9 +623,11 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(mContext, IntSetting.GFX_ASPECT_RATIO, R.string.aspect_ratio, 0,
             R.array.aspectRatioEntries, R.array.aspectRatioValues));
 
-    sl.add(new HeaderSetting(mContext, R.string.graphics_enhancements_and_hacks, 0));
+    sl.add(new HeaderSetting(mContext, R.string.graphics_more_settings, 0));
     sl.add(new SubmenuSetting(mContext, R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
     sl.add(new SubmenuSetting(mContext, R.string.hacks_submenu, MenuTag.HACKS));
+    sl.add(new SubmenuSetting(mContext, R.string.advanced_graphics_submenu,
+            MenuTag.ADVANCED_GRAPHICS));
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -656,14 +673,10 @@ public final class SettingsFragmentPresenter
             R.string.arbitrary_mipmap_detection, R.string.arbitrary_mipmap_detection_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_WIDESCREEN_HACK,
             R.string.wide_screen_hack, R.string.wide_screen_hack_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_BACKEND_MULTITHREADING,
-            R.string.backend_multithreading, R.string.backend_multithreading_description));
 
-     /*
-     Check if we support stereo
-     If we support desktop GL then we must support at least OpenGL 3.2
-     If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
-     */
+    // Check if we support stereo
+    // If we support desktop GL then we must support at least OpenGL 3.2
+    // If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
     EGLHelper helper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
 
     if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
@@ -712,6 +725,51 @@ public final class SettingsFragmentPresenter
             R.string.texture_cache_to_state, R.string.texture_cache_to_state_description));
   }
 
+  private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)
+  {
+    sl.add(new HeaderSetting(mContext, R.string.custom_textures, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HIRES_TEXTURES,
+            R.string.load_custom_texture, R.string.load_custom_texture_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_CACHE_HIRES_TEXTURES,
+            R.string.cache_custom_texture, R.string.cache_custom_texture_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_TEXTURES,
+            R.string.dump_texture, R.string.dump_texture_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_BASE_TEXTURES,
+            R.string.dump_base_texture, R.string.dump_base_texture_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_MIP_TEXTURES,
+            R.string.dump_mip_texture, R.string.dump_mip_texture_description));
+
+    sl.add(new HeaderSetting(mContext, R.string.misc, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_CROP, R.string.crop,
+            R.string.crop_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_PROGRESSIVE_SCAN,
+            R.string.progressive_scan, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_BACKEND_MULTITHREADING,
+            R.string.backend_multithreading, R.string.backend_multithreading_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_EFB_DEFER_INVALIDATION,
+            R.string.defer_efb_invalidation, R.string.defer_efb_invalidation_description));
+    sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
+            R.string.manual_texture_sampling, R.string.manual_texture_sampling_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_INTERNAL_RESOLUTION_FRAME_DUMPS,
+            R.string.internal_resolution_dumps, R.string.internal_resolution_dumps_description));
+
+    sl.add(new HeaderSetting(mContext, R.string.debugging, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENABLE_WIREFRAME,
+            R.string.wireframe, R.string.leave_this_unchecked));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_OVERLAY_STATS,
+            R.string.show_stats, R.string.leave_this_unchecked));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_TEXFMT_OVERLAY_ENABLE,
+            R.string.texture_format, R.string.leave_this_unchecked));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_ENABLE_VALIDATION_LAYER,
+            R.string.validation_layer, R.string.leave_this_unchecked));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_EFB_TARGET,
+            R.string.dump_efb, R.string.leave_this_unchecked));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_DUMP_XFB_TARGET,
+            R.string.dump_xfb, R.string.leave_this_unchecked));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_DISABLE_COPY_TO_VRAM,
+            R.string.disable_vram_copies, R.string.leave_this_unchecked));
+  }
+
   private void addLogConfigurationSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.LOGGER_WRITE_TO_FILE, R.string.log_to_file,
@@ -739,24 +797,25 @@ public final class SettingsFragmentPresenter
             R.string.debug_fastmem, 0));
 
     sl.add(new HeaderSetting(mContext, R.string.debug_jit_header, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_OFF, R.string.debug_jitoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_LOAD_STORE_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_OFF, R.string.debug_jitoff,
+            0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_OFF,
             R.string.debug_jitloadstoreoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_LOAD_STORE_FLOATING_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF,
             R.string.debug_jitloadstorefloatingoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_LOAD_STORE_PAIRED_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF,
             R.string.debug_jitloadstorepairedoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_FLOATING_POINT_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_FLOATING_POINT_OFF,
             R.string.debug_jitfloatingpointoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_INTEGER_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_INTEGER_OFF,
             R.string.debug_jitintegeroff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_PAIRED_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_PAIRED_OFF,
             R.string.debug_jitpairedoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_SYSTEM_REGISTERS_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF,
             R.string.debug_jitsystemregistersoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_BRANCH_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_BRANCH_OFF,
             R.string.debug_jitbranchoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_REGISTER_CACHE_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_REGISTER_CACHE_OFF,
             R.string.debug_jitregistercacheoff, 0));
   }
 
@@ -775,7 +834,7 @@ public final class SettingsFragmentPresenter
 
   private void addGcPadSubSettings(ArrayList<SettingsItem> sl, int gcPadNumber, int gcPadType)
   {
-    if (gcPadType == 1) // Emulated
+    if (gcPadType == 6) // Emulated
     {
       sl.add(new HeaderSetting(mContext, R.string.generic_buttons, 0));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
@@ -834,7 +893,7 @@ public final class SettingsFragmentPresenter
               SettingsFile.KEY_EMU_RUMBLE + gcPadNumber, R.string.emulation_control_rumble,
               mGameID));
     }
-    else // Adapter
+    else if (gcPadType == 12) // Adapter
     {
       LegacyBooleanSetting rumble = new LegacyBooleanSetting(Settings.FILE_DOLPHIN,
               Settings.SECTION_INI_CORE, SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, false);
@@ -1286,7 +1345,7 @@ public final class SettingsFragmentPresenter
 
   private static int getLogVerbosityEntries()
   {
-    // Value obtained from LOG_LEVELS in Common/Logging/Log.h
+    // Value obtained from LogLevel in Common/Logging/Log.h
     if (NativeLibrary.GetMaxLogLevel() == 5)
     {
       return R.array.logVerbosityEntriesMaxLevelDebug;
@@ -1299,7 +1358,7 @@ public final class SettingsFragmentPresenter
 
   private static int getLogVerbosityValues()
   {
-    // Value obtained from LOG_LEVELS in Common/Logging/Log.h
+    // Value obtained from LogLevel in Common/Logging/Log.h
     if (NativeLibrary.GetMaxLogLevel() == 5)
     {
       return R.array.logVerbosityValuesMaxLevelDebug;
