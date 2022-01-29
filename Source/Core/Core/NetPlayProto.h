@@ -47,6 +47,7 @@ struct NetSettings
   bool m_OCEnable = false;
   float m_OCFactor = 0;
   Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> m_EXIDevice{};
+  int m_MemcardSizeOverride = -1;
 
   std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings{};
 

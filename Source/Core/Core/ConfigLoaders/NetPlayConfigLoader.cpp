@@ -40,6 +40,7 @@ public:
     layer->Set(Config::MAIN_OVERCLOCK, m_settings.m_OCFactor);
     for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
       layer->Set(Config::GetInfoForEXIDevice(slot), m_settings.m_EXIDevice[slot]);
+    layer->Set(Config::MAIN_MEMORY_CARD_SIZE, m_settings.m_MemcardSizeOverride);
     layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.m_WriteToMemcard);
     layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
