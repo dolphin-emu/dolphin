@@ -6,7 +6,6 @@ add_library(main SHARED
   Cheats/GraphicsModGroup.cpp
   Cheats/PatchCheat.cpp
   Config/NativeConfig.cpp
-  Config/PostProcessing.cpp
   GameList/GameFile.cpp
   GameList/GameFile.h
   GameList/GameFileCache.cpp
