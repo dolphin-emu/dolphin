@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <qstringbuilder.h>
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
@@ -51,9 +52,12 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   QGroupBox* group_box = new QGroupBox(name);
   QFormLayout* form_layout = new QFormLayout();
 
-  group_box->setLayout(form_layout);
+  QHBoxLayout* m_morph_profiles_layout = nullptr;
+  QComboBox* m_morph_profiles_combo = nullptr;
 
   MappingIndicator* indicator = nullptr;
+
+  group_box->setLayout(form_layout);
 
   switch (group->type)
   {
@@ -88,6 +92,21 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   case ControllerEmu::GroupType::Stick:
     indicator = new AnalogStickIndicator(*static_cast<ControllerEmu::ReshapableInput*>(group));
+    break;
+
+  case ControllerEmu::GroupType::PrimeHackMorph:
+    m_morph_profiles_layout = new QHBoxLayout();
+    m_morph_profiles_combo = new QComboBox();
+    m_morph_profiles_combo->setObjectName(tr("ProfileList"));
+
+    //PrimeHack Morphball Controls Layout added to default group layout.
+    form_layout->addRow(m_morph_profiles_layout);
+
+    m_morph_profiles_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+    m_morph_profiles_combo->setMinimumWidth(200);
+    m_morph_profiles_combo->setEditable(true);
+
+    m_morph_profiles_layout->addWidget(m_morph_profiles_combo);
     break;
 
   default:

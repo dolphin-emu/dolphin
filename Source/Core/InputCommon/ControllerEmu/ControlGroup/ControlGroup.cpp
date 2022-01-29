@@ -5,6 +5,11 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/IOFile.h"
+
+#include "Core/HW/Wiimote.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -13,6 +18,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
 
 namespace ControllerEmu
 {
@@ -61,7 +67,7 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
 
   for (auto& setting : numeric_settings)
     setting->LoadFromIni(*sec, group);
-
+  
   for (auto& c : controls)
   {
     {
@@ -114,13 +120,22 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   }
 
   // extensions
-  if (type == GroupType::PrimeHack)
+  if (type == GroupType::PrimeHackMode)
   {
     auto* const ext = static_cast<PrimeHackModes*>(this);
 
     std::string i;
     sec->Get(base + name + "/Mode", &i, "0");
     ext->SetSelectedDevice(stoi(i));
+  }
+
+  if (type == GroupType::PrimeHackMorph)
+  {
+    auto* const ext = static_cast<PrimeHackMorph*>(this);
+
+    std::string prof;
+    sec->Get(base + name + "/MorphBallProfile", &prof);
+    ext->SetMorphBallProfileName(prof);
   }
 }
 
@@ -177,11 +192,31 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
       ai->SaveConfig(sec, base + ai->GetName() + "/");
   }
 
-  if (type == GroupType::PrimeHack)
+  if (type == GroupType::PrimeHackMode)
   {
     auto* const ext = static_cast<PrimeHackModes*>(this);
 
     sec->Set(base + name + "/Mode", std::to_string(ext->GetSelectedDevice()), "0");
+  }
+
+  if (type == GroupType::PrimeHackMorph)
+  {
+    auto* const ext = static_cast<PrimeHackMorph*>(this);
+
+    std::string morph_prof = ext->GetMorphBallProfileName();
+    if (morph_prof.empty())
+      morph_prof = "Disabled";
+    sec->Set(base + name + "/MorphBallProfile", morph_prof);
+
+
+    // Go ahead and save out the backup of this profile for when in-game.
+    const std::string og_wiimote_new = WIIMOTE_INI_NAME;
+    const std::string backup_wiimote_new = std::string(WIIMOTE_INI_NAME) + "_Backup.ini";
+
+    const std::string default_path = File::GetUserPath(D_CONFIG_IDX) + og_wiimote_new + ".ini";
+    std::string file_text;
+    if (File::ReadFileToString(default_path, file_text))
+      File::WriteStringToFile(File::GetUserPath(D_CONFIG_IDX) + backup_wiimote_new, file_text);
   }
 }
 

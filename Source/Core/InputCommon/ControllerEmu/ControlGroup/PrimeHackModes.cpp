@@ -3,7 +3,7 @@
 
 namespace ControllerEmu
 {
-  PrimeHackModes::PrimeHackModes(const std::string& name_) : ControlGroup(name_, GroupType::PrimeHack)
+  PrimeHackModes::PrimeHackModes(const std::string& name_) : ControlGroup(name_, GroupType::PrimeHackMode)
   {
   }
 

@@ -1,7 +1,7 @@
 #include "Core/PrimeHack/Mods/FpsControls.h"
 
 #include "Core/PrimeHack/Mods/ContextSensitiveControls.h"
-#include "Core/PrimeHack/PrimeUtils.h"
+#include "Core/PrimeHack/PrimeUtils.h"  //Loads HackConfig.h for us
 
 #include "Common/Timer.h"
 
@@ -339,6 +339,8 @@ void FpsControls::run_mod_mp1(Region region) {
     if (read32(ball_state) == 0) {
       writef32(calculate_yaw_vel(), angular_momentum);
     }
+
+    swap_morph_profiles(read32(ball_state));
   }
 }
 
@@ -499,6 +501,8 @@ void FpsControls::run_mod_mp2(Region region) {
 
     // Nothing new here
     write32(0, angular_momentum + 0x18);
+
+    swap_morph_profiles(read32(ball_state));
   }
 }
 
@@ -670,6 +674,7 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
     } else {
       handle_cursor(cursor + 0x9c, cursor + 0x15c, active_region);
     }
+
   };
 
   // Handles menu screen cursor
@@ -778,6 +783,8 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
 
   // Nothing new here
   write32(0, angular_momentum + 0x18);
+
+  swap_morph_profiles(read32(ball_state));
 }
 
 void FpsControls::CheckBeamVisorSetting(Game game)

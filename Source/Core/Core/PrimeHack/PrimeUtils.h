@@ -62,6 +62,8 @@ void set_beam_owned(int index, bool owned);
 void set_visor_owned(int index, bool owned);
 void set_cursor_pos(float x, float y);
 
+void swap_morph_profiles(u32 ball_state);
+
 void DevInfo(const char* name, const char* format, ...);
 void DevInfoMatrix(const char* name, const Transform& t);
 

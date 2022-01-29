@@ -30,6 +30,7 @@ static int current_visor = 0;
 static std::array<bool, 4> beam_owned = {false, false, false, false};
 static std::array<bool, 4> visor_owned = {false, false, false, false};
 static bool noclip_enabled = false;
+static bool was_in_morphball = false;
 
 std::array<std::array<CodeChange, static_cast<int>(Game::MAX_VAL) + 1>,
   static_cast<int>(Region::MAX_VAL) + 1> noclip_enable_codes;
@@ -206,6 +207,23 @@ int get_beam_switch(std::array<int, 4> const& beams) {
     pressing_button = false;
   }
   return -1;
+}
+
+void swap_morph_profiles(u32 ball_state) {
+  if (ball_state == 1 && !was_in_morphball) {
+    std::string profile = GetProfiles().first;
+
+    if (!profile.empty() && (profile != std::string("Disabled"))) {
+      ChangeControllerProfileMorphBall(profile);
+    }
+    was_in_morphball = true;
+  }
+  else if (ball_state == 0 && was_in_morphball) {
+    std::string profile = GetProfiles().second;
+
+    ChangeControllerProfileMorphBall(profile);
+    was_in_morphball = false;
+  }
 }
 
 std::stringstream ss;

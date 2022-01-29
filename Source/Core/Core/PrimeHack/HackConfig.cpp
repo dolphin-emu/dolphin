@@ -4,6 +4,11 @@
 #include <string>
 
 #include "Common/IniFile.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 
 #include "Core/PrimeHack/PrimeUtils.h"
 #include "Core/PrimeHack/EmuVariableManager.h"
@@ -33,9 +38,13 @@
 #include "Core/Config/GraphicsSettings.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
+#include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/VideoConfig.h"
 #include <Core/Host.h>
+
+constexpr const char* PROFILES_DIR = "Profiles/";
 
 namespace prime {
 namespace {
@@ -249,6 +258,39 @@ std::tuple<float, float, float> GetArmXYZ() {
   float z = Config::Get(Config::ARMPOSITION_UPDOWN) / 100.f;
 
   return std::make_tuple(x, y, z);
+}
+
+
+std::pair<std::string, std::string> GetProfiles() {
+  auto* group = static_cast<ControllerEmu::PrimeHackMorph*>(
+    Wiimote::GetWiimoteGroup(0, WiimoteEmu::WiimoteGroup::MorphballControls));
+
+  const std::string morph_profname = group->GetMorphBallProfileName();
+  std::string morph_profile_path;
+  std::string main_profile_path;
+
+  if (!morph_profname.empty() && (morph_profname != std::string("Disabled"))) {
+    morph_profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
+      Wiimote::GetConfig()->GetProfileName() + "/" + group->GetMorphBallProfileName() +
+      ".ini";
+  } else {
+    morph_profile_path = "";
+  }
+
+  main_profile_path = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME + "_Backup.ini";
+
+  return { morph_profile_path, main_profile_path };
+}
+
+void ChangeControllerProfileMorphBall(std::string profile_path)
+{
+  IniFile ini;
+  ini.Load(profile_path);
+
+  std::string profile_name = ini.GetSection("Wiimote1") ? "Wiimote1" : "Profile";
+
+  Wiimote::GetConfig()->GetController(0)->LoadConfig(ini.GetOrCreateSection(profile_name));
+  Wiimote::GetConfig()->GetController(0)->UpdateReferences(g_controller_interface);
 }
 
 void UpdateHackSettings() {

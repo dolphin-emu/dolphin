@@ -89,5 +89,8 @@ private:
 
   // Check when to reset the cursor position
   bool menu_open = true;
+
+  // Check if we were in the morph ball state last frame.
+  bool was_in_morph_ball = false;
 };
 }

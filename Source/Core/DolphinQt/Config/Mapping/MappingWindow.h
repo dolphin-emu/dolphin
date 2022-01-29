@@ -59,6 +59,8 @@ public:
 signals:
   // Emitted when config has changed so widgets can update to reflect the change.
   void ConfigChanged();
+  void ProfileSaved();
+  void ProfileLoaded();
   // Emitted at 30hz for real-time indicators to be updated.
   void Update();
   void Save();
