@@ -979,10 +979,10 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
     return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
 
   glDrawBuffer(GL_BACK_LEFT);
-  // TODO: post process
+  DrawXFB(target_rc, source_texture, source_rc, 0);
 
   glDrawBuffer(GL_BACK_RIGHT);
-  // TODO: post process
+  DrawXFB(target_rc, source_texture, source_rc, 1);
 
   glDrawBuffer(GL_BACK);
 }
