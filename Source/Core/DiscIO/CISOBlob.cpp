@@ -69,7 +69,7 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
       if (!(m_file.Seek(file_off, File::SeekOrigin::Begin) &&
             m_file.ReadArray(out_ptr, bytes_to_read)))
       {
-        m_file.Clear();
+        m_file.ClearError();
         return false;
       }
     }

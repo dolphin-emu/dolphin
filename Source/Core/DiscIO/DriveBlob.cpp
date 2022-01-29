@@ -153,7 +153,7 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* o
   m_file.Seek(GetSectorSize() * block_num, File::SeekOrigin::Begin);
   if (m_file.ReadBytes(out_ptr, num_blocks * GetSectorSize()))
     return true;
-  m_file.Clear();
+  m_file.ClearError();
   return false;
 #endif
 }

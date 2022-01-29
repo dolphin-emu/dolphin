@@ -127,7 +127,7 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 
     if (!data_file.ReadBytes(out_ptr, read_size))
     {
-      data_file.Clear();
+      data_file.ClearError();
       return false;
     }
 

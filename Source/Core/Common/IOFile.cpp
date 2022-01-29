@@ -94,7 +94,7 @@ bool IOFile::Close()
 void IOFile::SetHandle(std::FILE* file)
 {
   Close();
-  Clear();
+  ClearError();
   m_file = file;
 }
 

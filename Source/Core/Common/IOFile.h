@@ -103,7 +103,7 @@ public:
   bool Flush();
 
   // clear error state
-  void Clear()
+  void ClearError()
   {
     m_good = true;
     std::clearerr(m_file);

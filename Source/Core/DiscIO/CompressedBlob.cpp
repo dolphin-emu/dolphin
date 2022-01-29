@@ -109,7 +109,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   {
     ERROR_LOG_FMT(DISCIO, "The disc image \"{}\" is truncated, some of the data is missing.",
                   m_file_name);
-    m_file.Clear();
+    m_file.ClearError();
     return false;
   }
 
