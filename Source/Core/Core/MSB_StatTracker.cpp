@@ -34,12 +34,13 @@ void StatTracker::lookForTriggerEvents(){
                     init();
                 }
 
-                //I can't declare a new var in the case so I had to stuff the expression for team_id into the array idx
-                //Maybe a better way but this should work
-                if (Memory::Read_U8(aAB_BatterRosterID) != m_fielder_tracker[!((Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1)].prev_batter_roster_loc){
+                if (true){
                     u8 team_id = !(Memory::Read_U8(aAB_BatterPort) == m_game_info.team0_port) ? 0 : 1; //If P1/Team1 is batting then Team=0(Team1). Else Team=1 (Team2)
-                    m_fielder_tracker[team_id].prev_batter_roster_loc = Memory::Read_U8(aAB_BatterRosterID);
-                    m_fielder_tracker[team_id].resetFielderMap();
+                    if ((Memory::Read_U8(aAB_BatterRosterID) != m_fielder_tracker[team_id].prev_batter_roster_loc)
+                     || (m_fielder_tracker[team_id].anyUninitializedFielders())){
+                        m_fielder_tracker[team_id].prev_batter_roster_loc = Memory::Read_U8(aAB_BatterRosterID);
+                        m_fielder_tracker[team_id].resetFielderMap();
+                    }
                 }
 
                 //First Pitch of the game: collect port/player names
@@ -126,10 +127,13 @@ void StatTracker::lookForTriggerEvents(){
             case (AB_STATE::LOG_FIELDER):
                 {
                 //If results != 0xFF then we need to keep looking. Else move on
-                std::tuple<u8, u8, u8> fielder_result = getCharacterWithBall();
+                std::tuple<u8, u8, u8, u32, u32, u32> fielder_result = getCharacterWithBall();
                 m_curr_ab_stat.fielder_roster_loc = std::get<0>(fielder_result);
                 m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
                 m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
+                m_curr_ab_stat.fielder_x_pos = std::get<3>(fielder_result);
+                m_curr_ab_stat.fielder_y_pos = std::get<4>(fielder_result);
+                m_curr_ab_stat.fielder_z_pos = std::get<5>(fielder_result);
                 if (std::get<0>(fielder_result) != 0xFF) { 
                     m_ab_state = AB_STATE::PLAY_OVER; 
                 };
@@ -490,14 +494,19 @@ void StatTracker::logABContactResult(){
     }
     else if (result == 3){
         m_curr_ab_stat.result_inferred = "Caught";
-        std::tuple<u8, u8, u8> fielder_result = getCharacterWithBall();
+        std::tuple<u8, u8, u8, u32, u32, u32> fielder_result = getCharacterWithBall();
         m_curr_ab_stat.fielder_roster_loc = std::get<0>(fielder_result);
         m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
         m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
+        m_curr_ab_stat.fielder_x_pos = std::get<3>(fielder_result);
+        m_curr_ab_stat.fielder_y_pos = std::get<4>(fielder_result);
+        m_curr_ab_stat.fielder_z_pos = std::get<5>(fielder_result);
 
         //Increment outs for that position for fielder
         ++m_fielder_tracker[!m_curr_ab_stat.team_id].out_count_by_position[m_curr_ab_stat.fielder_roster_loc][m_curr_ab_stat.fielder_pos];
         //Indicate if fielder had been swapped for this batter
+        std::cout << "Trying to see if fielder was swapped. Team_id=" << (!m_curr_ab_stat.team_id) << " Fielder Roster=" << std::to_string(m_curr_ab_stat.fielder_roster_loc)
+                  << " Swapped=" << m_fielder_tracker[!m_curr_ab_stat.team_id].fielder_map[m_curr_ab_stat.fielder_roster_loc].second << std::endl;
         m_curr_ab_stat.fielder_swapped_for_batter = m_fielder_tracker[!m_curr_ab_stat.team_id].fielder_map[m_curr_ab_stat.fielder_roster_loc].second;
     }
     else if (result == 0xFF){
@@ -805,7 +814,22 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                         json_stream << "                   \"Fielder Roster Location\": " << std::to_string(ab_stat.fielder_roster_loc) << "," << std::endl;
                         json_stream << "                   \"Fielder Position\": " << fielder_pos << "," << std::endl;
                         json_stream << "                   \"Fielder Character\": " << fielder_char << "," << std::endl;
-                        json_stream << "                   \"Fielder Swap\": " <<  m_curr_ab_stat.fielder_swapped_for_batter << std::endl;
+                        json_stream << "                   \"Fielder Swap\": " <<  std::to_string(m_curr_ab_stat.fielder_swapped_for_batter) << "," << std::endl;
+                        
+                        float fielder_x_pos, fielder_y_pos, fielder_z_pos;
+
+                        float_converter.num = ab_stat.fielder_x_pos;
+                        fielder_x_pos = float_converter.fnum;
+
+                        float_converter.num = ab_stat.fielder_y_pos;
+                        fielder_y_pos = float_converter.fnum;
+
+                        float_converter.num = ab_stat.fielder_z_pos;
+                        fielder_z_pos = float_converter.fnum;
+
+                        json_stream << "                   \"Fielder Position - X\": " << fielder_x_pos << "," << std::endl;
+                        json_stream << "                   \"Fielder Position - Y\": " << fielder_y_pos << "," << std::endl;
+                        json_stream << "                   \"Fielder Position - Z\": " << fielder_z_pos << std::endl;
                         json_stream << "                 }" << std::endl;
                     }
                     
@@ -836,9 +860,12 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 }
 
 //Scans player for possession
-std::tuple<u8, u8, u8> StatTracker::getCharacterWithBall() {
+std::tuple<u8, u8, u8, u32, u32, u32> StatTracker::getCharacterWithBall() {
     for (u8 pos=0; pos < cRosterSize; ++pos){
         u32 aFielderControlStatus = aFielder_ControlStatus + (pos * cFielder_Offset);
+        u32 aFielderPosX = aFielder_Pos_X + (pos * cFielder_Offset);
+        u32 aFielderPosY = aFielder_Pos_Y + (pos * cFielder_Offset);
+        u32 aFielderPosZ = aFielder_Pos_Z + (pos * cFielder_Offset);
 
         bool fielder_has_ball = (Memory::Read_U8(aFielderControlStatus) == 0xA);
 
@@ -847,11 +874,15 @@ std::tuple<u8, u8, u8> StatTracker::getCharacterWithBall() {
             u8 roster_id = Memory::Read_U8(aFielderControlStatus-0x5A);
             u8 char_id = Memory::Read_U8(aFielderControlStatus-0x58); //0x58 is the diff between the fielder control status and the char id
 
+            u32 x_pos = Memory::Read_U32(aFielderPosX);
+            u32 y_pos = Memory::Read_U32(aFielderPosY);
+            u32 z_pos = Memory::Read_U32(aFielderPosZ);
+
             std::cout << "Logging Fielder" << std::endl;
-            return std::make_tuple(roster_id, pos, char_id);
+            return std::make_tuple(roster_id, pos, char_id, x_pos, y_pos, z_pos);
         }
     }
-    return std::make_tuple(0xFF, 0xFF, 0xFF);
+    return std::make_tuple(0xFF, 0xFF, 0xFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 }
 
 //Read players from ini file and assign to team

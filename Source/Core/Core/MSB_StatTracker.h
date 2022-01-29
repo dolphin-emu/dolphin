@@ -149,7 +149,8 @@ static const std::map<u8, std::string> cPosition = {
     {5, "SS"},
     {6, "LF"},
     {7, "CF"},
-    {8, "RF"}
+    {8, "RF"},
+    {0xFF, "Inv"}
 };
 
 //Const for structs
@@ -296,7 +297,10 @@ static const u32 aAB_BattingPort = 0x802EBF95;
 
 //Fielder addrs
 static const u32 aFielder_ControlStatus = 0x8088F53B; //0xA=Fielder is holding ball
-static const u32 aFielder_RosterLoc = 0x8088F4E1; //Catcher. Use Filder_Offset to calc the rest 
+static const u32 aFielder_RosterLoc = 0x8088F4E1; //Pitcher. Use Filder_Offset to calc the rest 
+static const u32 aFielder_Pos_X = 0x8088F368; //Pitcher
+static const u32 aFielder_Pos_Y = 0x8088F370; //Pitcher
+static const u32 aFielder_Pos_Z = 0x8088F374; //Pitcher
 static const u32 cFielder_Offset = 0x268;
 
 
@@ -476,7 +480,10 @@ public:
         u8 fielder_roster_loc;
         u8 fielder_pos;
         u8 fielder_char_id;
-        bool fielder_swapped_for_batter;
+        u8 fielder_swapped_for_batter;
+        u32 fielder_x_pos;
+        u32 fielder_y_pos;
+        u32 fielder_z_pos;
 
         u8 num_outs_during_play;
         u8 rbi;
@@ -540,6 +547,13 @@ public:
             {8, {0}}
         };
 
+        bool anyUninitializedFielders() {
+            for (auto& roster_loc : fielder_map){
+                if (roster_loc.second.first == 0xFF) {return true;}
+            }
+            return false;
+        }
+
         void resetFielderMap() {
             bool any_uninitialized_fielders = false;
             for (auto& roster_loc : fielder_map){
@@ -552,6 +566,10 @@ public:
                     u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
 
                     u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
+
+                    std::cout << "RosterLoc:" << std::to_string(roster_loc) 
+                                  << " Init Pos=" << cPosition.at(fielder_map[roster_loc].first)
+                                  << " New Pos=" << cPosition.at(pos) << std::endl;
 
                     if ((fielder_map[roster_loc].first != pos) 
                     && (fielder_map[roster_loc].first == 0xFF)){
@@ -567,8 +585,6 @@ public:
                 u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
 
                 u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
-
-                //fielder_map[roster_loc].first;
 
                 //If new position, mark changed (unless this is the first pitch of the AB (pos==0xFF))
                 //Then set new position
@@ -659,8 +675,8 @@ public:
     void logABPitch();
     void logABContactResult();
 
-    //Function to get fielder who is holding the ball <roster_loc, position, char_id>. 0x
-    std::tuple<u8, u8, u8> getCharacterWithBall();
+    //Function to get fielder who is holding the ball <roster_loc, position, char_id, x_po, y_pos, z_pos>. 0x
+    std::tuple<u8, u8, u8, u32, u32, u32> getCharacterWithBall();
 
     //Read players from ini file and assign to team
     void readPlayerNames(bool local_game);
