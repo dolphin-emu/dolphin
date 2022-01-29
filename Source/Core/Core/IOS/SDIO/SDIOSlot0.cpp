@@ -251,8 +251,8 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);
 
-      if (!m_card.Seek(address, SEEK_SET))
-        ERROR_LOG_FMT(IOS_SD, "Seek failed WTF");
+      if (!m_card.Seek(address, File::SeekOrigin::Begin))
+        ERROR_LOG_FMT(IOS_SD, "Seek failed");
 
       if (m_card.ReadBytes(Memory::GetPointer(req.addr), size))
       {
@@ -281,8 +281,8 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);
 
-      if (!m_card.Seek(address, SEEK_SET))
-        ERROR_LOG_FMT(IOS_SD, "fseeko failed WTF");
+      if (!m_card.Seek(address, File::SeekOrigin::Begin))
+        ERROR_LOG_FMT(IOS_SD, "Seek failed");
 
       if (!m_card.WriteBytes(Memory::GetPointer(req.addr), size))
       {

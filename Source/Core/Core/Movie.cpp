@@ -1021,7 +1021,7 @@ void LoadInput(const std::string& movie_path)
   {
     s_rerecords++;
     tmpHeader.numRerecords = s_rerecords;
-    t_record.Seek(0, SEEK_SET);
+    t_record.Seek(0, File::SeekOrigin::Begin);
     t_record.WriteArray(&tmpHeader, 1);
   }
 
