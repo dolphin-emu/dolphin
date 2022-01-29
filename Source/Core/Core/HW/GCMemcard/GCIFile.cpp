@@ -55,7 +55,7 @@ bool GCIFile::LoadSaveBlocks()
     }
 
     m_save_data.resize(num_blocks);
-    save_file.Seek(DENTRY_SIZE, SEEK_SET);
+    save_file.Seek(DENTRY_SIZE, File::SeekOrigin::Begin);
     if (!save_file.ReadBytes(m_save_data.data(), size))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to read data from GCI file {}", m_filename);

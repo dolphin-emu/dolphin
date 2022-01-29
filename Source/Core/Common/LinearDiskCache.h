@@ -101,7 +101,7 @@ public:
         m_num_entries++;
       }
       m_file.Clear();
-      m_file.Seek(last_valid_value_start, SEEK_SET);
+      m_file.Seek(last_valid_value_start, File::SeekOrigin::Begin);
 
       return m_num_entries;
     }
