@@ -24,14 +24,6 @@
         android:inputType="textMultiLine"
         android:layout_below="@id/game_id" />
 
-    <TextView
-        android:id="@+id/ini_editor_error"
-        android:layout_width="260dp"
-        android:layout_height="wrap_content"
-        android:text="@string/error"
-        android:visibility="gone"
-        android:gravity="center" />
-
     <Button
         android:text="@string/save"
         android:textColor="@android:color/white"
