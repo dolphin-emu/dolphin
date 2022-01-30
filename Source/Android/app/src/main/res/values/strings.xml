@@ -388,9 +388,17 @@
     <string name="user_data_new_location">Your user data is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
     <!-- Android 10 and up support android:hasFragileUserData -->
     <string name="user_data_new_location_android_10">Your user data is stored in a location which by default <b>will be deleted</b> when you uninstall the app:</string>
-    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, not all file manager apps can access this location. However, you can access it using the system file manager (if present on your device), or by connecting your device to a PC.</string>
+    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, file manager apps can\'t access this folder in the same way as regular folders. You might be able to access the folder using the system file manager (if present on your device), or by connecting your device to a PC.</string>
     <string name="user_data_open_system_file_manager">Open System File Manager</string>
+    <string name="user_data_import">Import User Data</string>
+    <string name="user_data_export">Export User Data</string>
     <string name="user_data_open_system_file_manager_failed">Sorry, Dolphin couldn\'t find the system file manager on your device.</string>
+    <string name="user_data_import_warning">Are you sure you want to replace your user data with the data in this file? All existing user data will be deleted!</string>
+    <string name="user_data_import_invalid_file">This file doesn\'t seem to contain Dolphin user data.</string>
+    <string name="user_data_import_success">The user data has been imported.</string>
+    <string name="user_data_import_failure">Failed to import user data.</string>
+    <string name="user_data_export_success">Your user data has been exported.</string>
+    <string name="user_data_export_failure">Failed to export user data.</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
@@ -418,6 +426,7 @@
     <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
     <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
     <string name="import_in_progress">Importing...</string>
+    <string name="export_in_progress">Exporting...</string>
     <string name="do_not_close_app">Do not close the app!</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>

@@ -61,7 +61,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     super.onCreate(savedInstanceState);
 
-    MainPresenter.skipRescanningLibrary();
+    // If we came here from the game list, we don't want to rescan when returning to the game list.
+    // But if we came here after UserDataActivity restarted the app, we do want to rescan.
+    if (savedInstanceState == null)
+    {
+      MainPresenter.skipRescanningLibrary();
+    }
 
     setContentView(R.layout.activity_settings);
 
