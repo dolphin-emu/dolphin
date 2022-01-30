@@ -22,11 +22,13 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 
-public class IniEditorDialog extends DialogFragment {
+public class IniEditorDialog extends DialogFragment
+{
   private static final String ARG_GAME_ID = "game_id";
   private ViewGroup mViewGroup;
 
-  public static IniEditorDialog newInstance(String gameId) {
+  public static IniEditorDialog newInstance(String gameId)
+  {
     IniEditorDialog fragment = new IniEditorDialog();
 
     Bundle arguments = new Bundle();
@@ -38,7 +40,8 @@ public class IniEditorDialog extends DialogFragment {
 
   @NonNull
   @Override
-  public Dialog onCreateDialog(Bundle savedInstanceState) {
+  public Dialog onCreateDialog(Bundle savedInstanceState)
+  {
     final String gameId = getArguments().getString(ARG_GAME_ID);
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     mViewGroup = (ViewGroup) getActivity().getLayoutInflater()
@@ -63,20 +66,25 @@ public class IniEditorDialog extends DialogFragment {
     return builder.create();
   }
 
-  private void setGameSettings(String gameId, EditText editCode) {
+  private void setGameSettings(String gameId, EditText editCode)
+  {
     String filename = DirectoryInitialization.getLocalSettingFile(gameId);
     int count = 0;
     String[] targets = {"[ActionReplay]", "[ActionReplay_Enabled]", "[Gecko]", "[Gecko_Enabled]"};
     int[] indices = {-1, -1, -1, -1};
 
     StringBuilder sb = new StringBuilder();
-    try {
+    try
+    {
       BufferedReader reader = new BufferedReader(new FileReader(filename));
       String line = reader.readLine();
-      while (line != null) {
-        for (int i = 0; i < targets.length; ++i) {
+      while (line != null)
+      {
+        for (int i = 0; i < targets.length; ++i)
+        {
           int index = line.indexOf(targets[i]);
-          if (index != -1) {
+          if (index != -1)
+          {
             indices[i] = count + index;
           }
         }
@@ -86,20 +94,26 @@ public class IniEditorDialog extends DialogFragment {
         sb.append(System.lineSeparator());
         line = reader.readLine();
       }
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       Log.error(e.getMessage());
       onSaveError();
     }
 
     int cursorPos = 0;
-    for (int i = 0; i < targets.length; ++i) {
-      if (indices[i] < 0) {
+    for (int i = 0; i < targets.length; ++i)
+    {
+      if (indices[i] < 0)
+      {
         sb.append(System.lineSeparator());
         sb.append(targets[i]);
         sb.append(System.lineSeparator());
         count += targets[i].length() + 2;
         cursorPos = count;
-      } else if (indices[i] > cursorPos) {
+      }
+      else if (indices[i] > cursorPos)
+      {
         cursorPos = indices[i] + targets[i].length() + 1;
       }
     }
@@ -111,15 +125,19 @@ public class IniEditorDialog extends DialogFragment {
     editCode.setSelection(cursorPos);
   }
 
-  private void saveIniContent(String gameId, String content) {
+  private void saveIniContent(String gameId, String content)
+  {
     String filename = DirectoryInitialization.getLocalSettingFile(gameId);
     boolean saved = false;
-    try {
+    try
+    {
       BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
       writer.write(content);
       writer.close();
       saved = true;
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       Log.error(e.getMessage());
       onSaveError();
     }
@@ -128,7 +146,8 @@ public class IniEditorDialog extends DialogFragment {
       Toast.LENGTH_SHORT).show();
   }
 
-  public void onSaveError() {
+  public void onSaveError()
+  {
     TextView textError = mViewGroup.findViewById(R.id.ini_editor_error);
     textError.setText(R.string.error);
   }
