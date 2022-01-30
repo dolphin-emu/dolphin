@@ -19,15 +19,27 @@ std::array<T, N> ReadData(u32 addr)
   return res;
 }
 template <typename T, u32 N>
+std::array<T, N> ReadData(CPArray array, u16 index, u32 byte_offset)
+{
+  const u32 base = g_main_cp_state.array_bases[array];
+  const u32 stride = g_main_cp_state.array_strides[array];
+  u32 addr = base + index * stride + byte_offset;
+  return ReadData<T, N>(addr);
+}
+template <typename T, u32 N>
 std::array<T, N> ReadData(CPArray array, u16 index)
 {
-  u32 addr = g_main_cp_state.array_bases[array] + index * g_main_cp_state.array_strides[array];
-  return ReadData<T, N>(addr);
+  return ReadData<T, N>(array, index, 0);
 }
 template <typename T>
 T ReadData(CPArray array, u16 index)
 {
   return ReadData<T, 1>(array, index)[0];
+}
+template <typename T>
+T ReadData(CPArray array, u16 index, u32 byte_offset)
+{
+  return ReadData<T, 1>(array, index, byte_offset)[0];
 }
 void Invalidate();
 }  // namespace VertexCache
