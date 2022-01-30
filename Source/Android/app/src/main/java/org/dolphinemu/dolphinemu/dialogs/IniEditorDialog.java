@@ -144,3 +144,4 @@ public class IniEditorDialog extends DialogFragment
                 Toast.LENGTH_SHORT).show();
     }
 }
+
