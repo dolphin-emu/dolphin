@@ -153,6 +153,6 @@ public class IniEditorDialog extends DialogFragment
   public void onSaveError()
   {
     TextView textError = mViewGroup.findViewById(R.id.ini_editor_error);
-    textError.setVisibility(View.GONE);
+    textError.setText(R.string.error);
   }
 }
