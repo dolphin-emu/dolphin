@@ -21,6 +21,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AlertDialogItemsBuilder;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -60,6 +61,8 @@ public class GamePropertiesDialog extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
+    final GameFile gameFile =
+      GameFileCacheManager.addOrGet(getArguments().getString(ARG_PATH));
     final String path = requireArguments().getString(ARG_PATH);
     final String gameId = requireArguments().getString(ARG_GAME_ID);
     final String gameTdbId = requireArguments().getString(ARG_GAMETDB_ID);
@@ -106,6 +109,9 @@ public class GamePropertiesDialog extends DialogFragment
 
     itemsBuilder.add(R.string.properties_edit_cheats, (dialog, i) ->
             CheatsActivity.launch(getContext(), gameId, gameTdbId, revision, isWii));
+
+    itemsBuilder.add(R.string.properties_ini_editor, (dialog, i) ->
+            IniEditorDialog.newInstance(gameFile.getPath()).show(getFragmentManager(), "IniEditorDialog"));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettingsWithConfirmation(gameId));

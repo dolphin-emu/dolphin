@@ -127,6 +127,12 @@ public final class DirectoryInitialization
     return true;
   }
 
+  public static String getLocalSettingFile(String gameId)
+  {
+    return getUserDirectory() + File.separator + "GameSettings" + File.separator + gameId +
+      ".ini";
+  }
+
   private static void initializeInternalStorage(Context context)
   {
     File sysDirectory = new File(context.getFilesDir(), "Sys");
