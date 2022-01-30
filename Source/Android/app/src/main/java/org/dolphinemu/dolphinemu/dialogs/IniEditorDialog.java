@@ -6,7 +6,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,8 +13,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -44,9 +41,7 @@ public class IniEditorDialog extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    final GameFile gameFile =
-      GameFileCacheManager.addOrGet(getArguments().getString(ARG_GAME_ID));
-    final String gameId = gameFile.getGameId();
+    final String gameId = getArguments().getString(ARG_GAME_ID);
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     mViewGroup = (ViewGroup) getActivity().getLayoutInflater()
       .inflate(R.layout.dialog_ini_editor, null);

@@ -109,7 +109,7 @@ public class GamePropertiesDialog extends DialogFragment
             CheatsActivity.launch(getContext(), gameId, gameTdbId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_ini_editor, (dialog, i) ->
-            IniEditorDialog.newInstance(path).show(getFragmentManager(), "IniEditorDialog"));
+            IniEditorDialog.newInstance(gameId).show(getFragmentManager(), "IniEditorDialog"));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettingsWithConfirmation(gameId));
