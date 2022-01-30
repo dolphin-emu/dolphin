@@ -98,7 +98,6 @@ public class IniEditorDialog extends DialogFragment
     catch (Exception e)
     {
       Log.error(e.getMessage());
-      onSaveError();
     }
 
     int cursorPos = 0;
@@ -139,16 +138,9 @@ public class IniEditorDialog extends DialogFragment
     catch (Exception e)
     {
       Log.error(e.getMessage());
-      onSaveError();
     }
 
     Toast.makeText(getContext(), saved ? R.string.settings_saved : R.string.error,
             Toast.LENGTH_SHORT).show();
-  }
-
-  public void onSaveError()
-  {
-    TextView textError = mViewGroup.findViewById(R.id.ini_editor_error);
-    textError.setText(R.string.error);
   }
 }
