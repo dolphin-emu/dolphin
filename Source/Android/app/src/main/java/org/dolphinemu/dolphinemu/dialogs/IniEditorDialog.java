@@ -45,7 +45,7 @@ public class IniEditorDialog extends DialogFragment
     final String gameId = getArguments().getString(ARG_GAME_ID);
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     mViewGroup = (ViewGroup) getActivity().getLayoutInflater()
-      .inflate(R.layout.dialog_ini_editor, null);
+            .inflate(R.layout.dialog_ini_editor, null);
 
     TextView textGameId = mViewGroup.findViewById(R.id.game_id);
     textGameId.setText(gameId);
@@ -143,7 +143,7 @@ public class IniEditorDialog extends DialogFragment
     }
 
     Toast.makeText(getContext(), saved ? R.string.settings_saved : R.string.error,
-      Toast.LENGTH_SHORT).show();
+            Toast.LENGTH_SHORT).show();
   }
 
   public void onSaveError()
