@@ -29,12 +29,12 @@ public class IniEditorDialog extends DialogFragment
   private static final String ARG_GAME_ID = "game_id";
   private ViewGroup mViewGroup;
 
-  public static IniEditorDialog newInstance(String gamePath)
+  public static IniEditorDialog newInstance(String gameId)
   {
     IniEditorDialog fragment = new IniEditorDialog();
 
     Bundle arguments = new Bundle();
-    arguments.putString(ARG_GAME_ID, gamePath);
+    arguments.putString(ARG_GAME_ID, gameId);
     fragment.setArguments(arguments);
 
     return fragment;
@@ -102,7 +102,7 @@ public class IniEditorDialog extends DialogFragment
     catch (Exception e)
     {
       Log.error(e.getMessage());
-      onLoadError();
+      onSaveError();
     }
 
     int cursorPos = 0;
@@ -143,14 +143,14 @@ public class IniEditorDialog extends DialogFragment
     catch (Exception e)
     {
       Log.error(e.getMessage());
-      onLoadError();
+      onSaveError();
     }
 
     Toast.makeText(getContext(), saved ? R.string.settings_saved : R.string.error,
       Toast.LENGTH_SHORT).show();
   }
 
-  public void onLoadError()
+  public void onSaveError()
   {
     TextView textError = mViewGroup.findViewById(R.id.ini_editor_error);
     textError.setVisibility(View.GONE);
