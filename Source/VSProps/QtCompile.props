@@ -7,8 +7,7 @@
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
     <QtDirValid>false</QtDirValid>
     <QtDirValid Condition="Exists('$(QTDIR)')">true</QtDirValid>
-    <QtIncludeDirWithoutTrailingSeparator>$(QTDIR)include</QtIncludeDirWithoutTrailingSeparator>
-    <QtIncludeDir>$(QtIncludeDirWithoutTrailingSeparator)\</QtIncludeDir>
+    <QtIncludeDir>$(QTDIR)include\</QtIncludeDir>
     <QtLibDir>$(QTDIR)lib\</QtLibDir>
     <QtBinDir>$(QTDIR)bin\</QtBinDir>
     <QtPluginsDir>$(QTDIR)plugins\</QtPluginsDir>
@@ -17,21 +16,19 @@
     <QtLibSuffix Condition="'$(Configuration)'=='Debug'">$(QtDebugSuffix)</QtLibSuffix>
     <QtPluginFolder>QtPlugins</QtPluginFolder>
   </PropertyGroup>
-  <PropertyGroup>
-    <ExternalIncludePath>$(QtIncludeDir);$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(QtIncludeDir)QtCore;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(QtIncludeDir)QtGui;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(QtIncludeDir)QtWidgets;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;$(ExternalIncludePath)</ExternalIncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">QT_NO_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>QT_USE_QSTRINGBUILDER;QT_NO_CAST_FROM_ASCII;QT_NO_CAST_TO_ASCII;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(QtIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtIncludeDir)QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtIncludeDir)QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--
         Ignore warnings in locally-instantiated Qt templates.
-        This should probably be removed at some point (when Qt is fixed).
+        This should be removed at some point (when Qt is fixed).
         -->
       <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
     </ClCompile>

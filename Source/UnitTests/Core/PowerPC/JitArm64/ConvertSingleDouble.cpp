@@ -35,7 +35,7 @@ public:
     const Common::ScopedJITPageWriteAndNoExecute enable_jit_page_writes;
 
     AllocCodeSpace(4096);
-    AddChildCodeSpace(&farcode, 2048);
+    AddChildCodeSpace(&m_far_code, 2048);
 
     gpr.Init(this);
     fpr.Init(this);

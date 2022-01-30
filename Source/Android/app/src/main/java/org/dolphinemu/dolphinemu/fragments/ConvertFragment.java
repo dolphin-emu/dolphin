@@ -20,7 +20,7 @@ import android.widget.Spinner;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
 import java.io.File;
@@ -136,7 +136,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   public void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
-    gameFile = GameFileCacheService.addOrGet(requireArguments().getString(ARG_GAME_PATH));
+    gameFile = GameFileCacheManager.addOrGet(requireArguments().getString(ARG_GAME_PATH));
   }
 
   @Override

@@ -70,6 +70,12 @@ static jclass s_patch_cheat_class;
 static jfieldID s_patch_cheat_pointer;
 static jmethodID s_patch_cheat_constructor;
 
+static jclass s_riivolution_patches_class;
+static jfieldID s_riivolution_patches_pointer;
+
+static jclass s_wii_update_cb_class;
+static jmethodID s_wii_update_cb_run;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -325,6 +331,26 @@ jmethodID GetPatchCheatConstructor()
   return s_patch_cheat_constructor;
 }
 
+jclass GetRiivolutionPatchesClass()
+{
+  return s_riivolution_patches_class;
+}
+
+jfieldID GetRiivolutionPatchesPointer()
+{
+  return s_riivolution_patches_pointer;
+}
+
+jclass GetWiiUpdateCallbackClass()
+{
+  return s_wii_update_cb_class;
+}
+
+jmethodID GetWiiUpdateCallbackFunction()
+{
+  return s_wii_update_cb_run;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -454,6 +480,19 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_patch_cheat_constructor = env->GetMethodID(patch_cheat_class, "<init>", "(J)V");
   env->DeleteLocalRef(patch_cheat_class);
 
+  const jclass riivolution_patches_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/riivolution/model/RiivolutionPatches");
+  s_riivolution_patches_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(riivolution_patches_class));
+  s_riivolution_patches_pointer = env->GetFieldID(riivolution_patches_class, "mPointer", "J");
+  env->DeleteLocalRef(riivolution_patches_class);
+
+  const jclass wii_update_cb_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/WiiUpdateCallback");
+  s_wii_update_cb_class = reinterpret_cast<jclass>(env->NewGlobalRef(wii_update_cb_class));
+  s_wii_update_cb_run = env->GetMethodID(s_wii_update_cb_class, "run", "(IIJ)Z");
+  env->DeleteLocalRef(wii_update_cb_class);
+
   return JNI_VERSION;
 }
 
@@ -477,5 +516,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_ar_cheat_class);
   env->DeleteGlobalRef(s_gecko_cheat_class);
   env->DeleteGlobalRef(s_patch_cheat_class);
+  env->DeleteGlobalRef(s_riivolution_patches_class);
+  env->DeleteGlobalRef(s_wii_update_cb_class);
 }
 }

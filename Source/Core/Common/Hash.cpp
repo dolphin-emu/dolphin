@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <zlib.h>
+
 #include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonFuncs.h"
@@ -528,5 +530,29 @@ void SetHash64Function()
   {
     ptrHashFunction = &GetMurmurHash3;
   }
+}
+
+u32 ComputeCRC32(std::string_view data)
+{
+  return ComputeCRC32(reinterpret_cast<const u8*>(data.data()), static_cast<u32>(data.size()));
+}
+
+u32 ComputeCRC32(const u8* ptr, u32 length)
+{
+  return UpdateCRC32(StartCRC32(), ptr, length);
+}
+
+u32 StartCRC32()
+{
+  return crc32(0L, Z_NULL, 0);
+}
+
+u32 UpdateCRC32(u32 crc, const u8* ptr, u32 length)
+{
+  static_assert(std::is_same_v<const u8*, const Bytef*>);
+  static_assert(std::is_same_v<u32, uInt>);
+  // Use zlib's crc32 implementation to compute the hash
+  // crc32_z (which takes a size_t) would be better, but it isn't available on Android
+  return crc32(crc, ptr, length);
 }
 }  // namespace Common

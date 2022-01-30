@@ -37,7 +37,7 @@ WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
   // Grab disc info (assume slot 0, checked in ReadHeader())
   m_wlba_table.resize(m_blocks_per_disc);
   m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/,
-                       SEEK_SET);
+                       File::SeekOrigin::Begin);
   m_files[0].file.ReadBytes(m_wlba_table.data(), m_blocks_per_disc * sizeof(u16));
   for (size_t i = 0; i < m_blocks_per_disc; i++)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
@@ -86,7 +86,7 @@ bool WbfsFileReader::AddFileToList(File::IOFile file)
 bool WbfsFileReader::ReadHeader()
 {
   // Read hd size info
-  m_files[0].file.Seek(0, SEEK_SET);
+  m_files[0].file.Seek(0, File::SeekOrigin::Begin);
   m_files[0].file.ReadBytes(&m_header, sizeof(WbfsHeader));
   if (m_header.magic != WBFS_MAGIC)
     return false;
@@ -127,7 +127,7 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 
     if (!data_file.ReadBytes(out_ptr, read_size))
     {
-      data_file.Clear();
+      data_file.ClearError();
       return false;
     }
 
@@ -152,7 +152,7 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
     {
       if (final_address < (file_entry.base_address + file_entry.size))
       {
-        file_entry.file.Seek(final_address - file_entry.base_address, SEEK_SET);
+        file_entry.file.Seek(final_address - file_entry.base_address, File::SeekOrigin::Begin);
         if (available)
         {
           u64 till_end_of_file = file_entry.size - (final_address - file_entry.base_address);
@@ -168,7 +168,7 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
   ERROR_LOG_FMT(DISCIO, "Read beyond end of disc");
   if (available)
     *available = 0;
-  m_files[0].file.Seek(0, SEEK_SET);
+  m_files[0].file.Seek(0, File::SeekOrigin::Begin);
   return m_files[0].file;
 }
 

@@ -573,7 +573,6 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
 
   int size = sizes[type] * (single ? 1 : 2);
   bool isInline = quantize != -1;
-  bool safe_access = m_jit.jo.memcheck || !m_jit.jo.fastmem;
 
   // illegal
   if (type == QUANTIZE_INVALID1 || type == QUANTIZE_INVALID2 || type == QUANTIZE_INVALID3)
@@ -591,34 +590,15 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
 
   bool extend = single && (type == QUANTIZE_S8 || type == QUANTIZE_S16);
 
-  if (safe_access)
+  BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
+  int flags = isInline ? 0 :
+                         SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
+                             SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
+  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
+  if (!single && (type == QUANTIZE_U8 || type == QUANTIZE_S8))
   {
-    BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
-    int flags = isInline ? 0 :
-                           SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
-                               SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
-    SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
-    if (!single && (type == QUANTIZE_U8 || type == QUANTIZE_S8))
-    {
-      // TODO: Support not swapping in safeLoadToReg to avoid bswapping twice
-      ROR(16, R(RSCRATCH_EXTRA), Imm8(8));
-    }
-  }
-  else
-  {
-    switch (type)
-    {
-    case QUANTIZE_U8:
-    case QUANTIZE_S8:
-      UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, size, 0, extend);
-      break;
-    case QUANTIZE_U16:
-    case QUANTIZE_S16:
-      UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, size, 0, extend);
-      break;
-    default:
-      break;
-    }
+    // TODO: Support not swapping in safeLoadToReg to avoid bswapping twice
+    ROR(16, R(RSCRATCH_EXTRA), Imm8(8));
   }
 
   if (single)
@@ -717,59 +697,21 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
 {
   int size = single ? 32 : 64;
   bool extend = false;
-  bool safe_access = m_jit.jo.memcheck || !m_jit.jo.fastmem;
 
-  if (safe_access)
-  {
-    BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
-    int flags = isInline ? 0 :
-                           SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
-                               SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
-    SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
-  }
+  BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
+  int flags = isInline ? 0 :
+                         SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
+                             SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
+  SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
 
   if (single)
   {
-    if (safe_access)
-    {
-      MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
-    }
-    else if (cpu_info.bSSSE3)
-    {
-      MOVD_xmm(XMM0, MRegSum(RMEM, RSCRATCH_EXTRA));
-      PSHUFB(XMM0, MConst(pbswapShuffle1x4));
-    }
-    else
-    {
-      LoadAndSwap(32, RSCRATCH_EXTRA, MRegSum(RMEM, RSCRATCH_EXTRA));
-      MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
-    }
-
+    MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
     UNPCKLPS(XMM0, MConst(m_one));
   }
   else
   {
-    // FIXME? This code (in non-MMU mode) assumes all accesses are directly to RAM, i.e.
-    // don't need hardware access handling. This will definitely crash if paired loads occur
-    // from non-RAM areas, but as far as I know, this never happens. I don't know if this is
-    // for a good reason, or merely because no game does this.
-    // If we find something that actually does do this, maybe this should be changed. How
-    // much of a performance hit would it be?
-    if (safe_access)
-    {
-      ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
-      MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));
-    }
-    else if (cpu_info.bSSSE3)
-    {
-      MOVQ_xmm(XMM0, MRegSum(RMEM, RSCRATCH_EXTRA));
-      PSHUFB(XMM0, MConst(pbswapShuffle2x4));
-    }
-    else
-    {
-      LoadAndSwap(64, RSCRATCH_EXTRA, MRegSum(RMEM, RSCRATCH_EXTRA));
-      ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
-      MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));
-    }
+    ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
+    MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));
   }
 }

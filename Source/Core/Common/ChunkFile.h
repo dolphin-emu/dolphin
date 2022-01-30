@@ -25,8 +25,11 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/Flag.h"
 #include "Common/Inline.h"
 #include "Common/Logging/Log.h"
@@ -171,6 +174,12 @@ public:
 
   template <typename T, std::size_t N>
   void DoArray(std::array<T, N>& x)
+  {
+    DoArray(x.data(), static_cast<u32>(x.size()));
+  }
+
+  template <typename V, auto last_member, typename = decltype(last_member)>
+  void DoArray(Common::EnumMap<V, last_member>& x)
   {
     DoArray(x.data(), static_cast<u32>(x.size()));
   }
@@ -325,8 +334,8 @@ private:
 
     case MODE_VERIFY:
       DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *ptr, size),
-                       "Savestate verification failure: buf %p != %p (size %u).\n", data, *ptr,
-                       size);
+                       "Savestate verification failure: buf {} != {} (size {}).\n", fmt::ptr(data),
+                       fmt::ptr(*ptr), size);
       break;
     }
 

@@ -49,8 +49,8 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   GenerateVSOutputMembers(out, api_type, num_texgen, host_config, "");
   out.Write("}};\n\n");
 
-  WriteUberShaderCommonHeader(out, api_type, host_config);
   WriteIsNanHeader(out, api_type);
+  WriteBitfieldExtractHeader(out, api_type, host_config);
   WriteLightingFunction(out);
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)

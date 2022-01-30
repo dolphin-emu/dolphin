@@ -172,7 +172,7 @@ private:
 
   Hashes<bool> m_hashes_to_calculate{};
   bool m_calculating_any_hash = false;
-  unsigned long m_crc32_context = 0;
+  u32 m_crc32_context = 0;
   mbedtls_md5_context m_md5_context{};
   mbedtls_sha1_context m_sha1_context{};
 

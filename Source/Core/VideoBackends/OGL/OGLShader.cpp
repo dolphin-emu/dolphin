@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/OGLShader.h"
+
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
 namespace OGL

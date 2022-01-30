@@ -3,6 +3,7 @@
 
 #include "VideoBackends/D3D12/DX12Shader.h"
 
+#include "Common/Assert.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D12/Common.h"
@@ -13,10 +14,6 @@ namespace DX12
 DXShader::DXShader(ShaderStage stage, BinaryData bytecode, std::string_view name)
     : D3DCommon::Shader(stage, std::move(bytecode)), m_name(UTF8ToWString(name))
 {
-  if (!m_name.empty())
-  {
-    m_compute_pipeline->SetName(m_name.c_str());
-  }
 }
 
 DXShader::~DXShader() = default;
@@ -55,7 +52,11 @@ bool DXShader::CreateComputePipeline()
 
   HRESULT hr = g_dx_context->GetDevice()->CreateComputePipelineState(
       &desc, IID_PPV_ARGS(&m_compute_pipeline));
-  CHECK(SUCCEEDED(hr), "Creating compute pipeline failed");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating compute pipeline failed: {}", DX12HRWrap(hr));
+
+  if (m_compute_pipeline && !m_name.empty())
+    m_compute_pipeline->SetName(m_name.c_str());
+
   return SUCCEEDED(hr);
 }
 

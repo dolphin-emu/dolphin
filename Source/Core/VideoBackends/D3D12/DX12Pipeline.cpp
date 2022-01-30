@@ -1,12 +1,13 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D12/DX12Pipeline.h"
+
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/DX12Context.h"
-#include "VideoBackends/D3D12/DX12Pipeline.h"
 #include "VideoBackends/D3D12/DX12Shader.h"
 #include "VideoBackends/D3D12/DX12Texture.h"
 #include "VideoBackends/D3D12/DX12VertexFormat.h"
@@ -209,8 +210,8 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   HRESULT hr = g_dx_context->GetDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
   if (FAILED(hr))
   {
-    WARN_LOG_FMT(VIDEO, "CreateGraphicsPipelineState() {}failed with HRESULT {:08X}",
-                 cache_data ? "with cache data " : "", hr);
+    WARN_LOG_FMT(VIDEO, "CreateGraphicsPipelineState() {}failed: {}",
+                 cache_data ? "with cache data " : "", DX12HRWrap(hr));
     return nullptr;
   }
 
@@ -226,7 +227,7 @@ AbstractPipeline::CacheData DXPipeline::GetCacheData() const
   HRESULT hr = m_pipeline->GetCachedBlob(&blob);
   if (FAILED(hr))
   {
-    WARN_LOG_FMT(VIDEO, "ID3D12Pipeline::GetCachedBlob() failed with HRESULT {:08X}", hr);
+    WARN_LOG_FMT(VIDEO, "ID3D12Pipeline::GetCachedBlob() failed: {}", DX12HRWrap(hr));
     return {};
   }
 

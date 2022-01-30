@@ -3,11 +3,21 @@
 
 #include "Core/Config/MainSettings.h"
 
+#include <sstream>
+
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/Assert.h"
+#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/EnumMap.h"
+#include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
+#include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -41,34 +51,103 @@ const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, fals
 const Info<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"}, 80};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
+const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_MEMCARD_A_PATH,
+          &MAIN_MEMCARD_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const Info<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
+const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_AGP_CART_A_PATH,
+          &MAIN_AGP_CART_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
-const Info<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
-                            ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
-const Info<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDEVICE_NONE};
-const Info<int> MAIN_SERIAL_PORT_1{{System::Main, "Core", "SerialPort1"},
-                                   ExpansionInterface::EXIDEVICE_NONE};
+const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_GCI_FOLDER_A_PATH_OVERRIDE,
+          &MAIN_GCI_FOLDER_B_PATH_OVERRIDE,
+      };
+  return *infos[slot];
+}
+
+const Info<int> MAIN_MEMORY_CARD_SIZE{{System::Main, "Core", "MemoryCardSize"}, -1};
+
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
+    {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::MemoryCardFolder};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
+                                                          ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
+    {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
+
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
+{
+  static constexpr Common::EnumMap<const Info<ExpansionInterface::EXIDeviceType>*,
+                                   ExpansionInterface::MAX_SLOT>
+      infos{
+          &MAIN_SLOT_A,
+          &MAIN_SLOT_B,
+          &MAIN_SERIAL_PORT_1,
+      };
+  return *infos[slot];
+}
+
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
+const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
+const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
 
-Info<u32> GetInfoForSIDevice(u32 channel)
+const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 {
-  return {{System::Main, "Core", fmt::format("SIDevice{}", channel)},
-          static_cast<u32>(channel == 0 ? SerialInterface::SIDEVICE_GC_CONTROLLER :
-                                          SerialInterface::SIDEVICE_NONE)};
+  static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"},
+                                       SerialInterface::SIDEVICE_GC_CONTROLLER},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice1"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice2"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice3"},
+                                       SerialInterface::SIDEVICE_NONE},
+  };
+  return infos[channel];
 }
 
-Info<bool> GetInfoForAdapterRumble(u32 channel)
+const Info<bool>& GetInfoForAdapterRumble(int channel)
 {
-  return {{System::Main, "Core", fmt::format("AdapterRumble{}", channel)}, true};
+  static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "AdapterRumble0"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble1"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble2"}, true},
+      Info<bool>{{System::Main, "Core", "AdapterRumble3"}, true},
+  };
+  return infos[channel];
 }
 
-Info<bool> GetInfoForSimulateKonga(u32 channel)
+const Info<bool>& GetInfoForSimulateKonga(int channel)
 {
-  return {{System::Main, "Core", fmt::format("SimulateKonga{}", channel)}, false};
+  static const std::array<const Info<bool>, 4> infos{
+      Info<bool>{{System::Main, "Core", "SimulateKonga0"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga1"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga2"}, false},
+      Info<bool>{{System::Main, "Core", "SimulateKonga3"}, false},
+  };
+  return infos[channel];
 }
 
 const Info<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, true};
@@ -76,8 +155,8 @@ const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false}
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
 const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER{{System::Main, "Core", "WiimoteEnableSpeaker"}, false};
-const Info<bool> MAIN_RUN_COMPARE_SERVER{{System::Main, "Core", "RunCompareServer"}, false};
-const Info<bool> MAIN_RUN_COMPARE_CLIENT{{System::Main, "Core", "RunCompareClient"}, false};
+const Info<bool> MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE{
+    {System::Main, "Core", "WiimoteControllerInterface"}, false};
 const Info<bool> MAIN_MMU{{System::Main, "Core", "MMU"}, false};
 const Info<int> MAIN_BB_DUMP_PORT{{System::Main, "Core", "BBDumpPort"}, -1};
 const Info<bool> MAIN_SYNC_GPU{{System::Main, "Core", "SyncGPU"}, false};
@@ -100,8 +179,24 @@ const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
 const Info<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"},
                                          VideoBackendBase::GetDefaultBackendName()};
+
 const Info<std::string> MAIN_GPU_DETERMINISM_MODE{{System::Main, "Core", "GPUDeterminismMode"},
                                                   "auto"};
+
+GPUDeterminismMode GetGPUDeterminismMode()
+{
+  auto mode = Config::Get(Config::MAIN_GPU_DETERMINISM_MODE);
+  if (mode == "auto")
+    return GPUDeterminismMode::Auto;
+  if (mode == "none")
+    return GPUDeterminismMode::Disabled;
+  if (mode == "fake-completion")
+    return GPUDeterminismMode::FakeCompletion;
+
+  NOTICE_LOG_FMT(CORE, "Unknown GPU determinism mode {}", mode);
+  return GPUDeterminismMode::Auto;
+}
+
 const Info<std::string> MAIN_PERF_MAP_DIR{{System::Main, "Core", "PerfMapDir"}, ""};
 const Info<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCustomRTC"}, false};
 // Default to seconds between 1.1.1970 and 1.1.2000
@@ -157,6 +252,60 @@ const Info<std::string> MAIN_LOAD_PATH{{System::Main, "General", "LoadPath"}, ""
 const Info<std::string> MAIN_RESOURCEPACK_PATH{{System::Main, "General", "ResourcePackPath"}, ""};
 const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
 const Info<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
+const Info<std::string> MAIN_WFS_PATH{{System::Main, "General", "WFSPath"}, ""};
+const Info<bool> MAIN_SHOW_LAG{{System::Main, "General", "ShowLag"}, false};
+const Info<bool> MAIN_SHOW_FRAME_COUNT{{System::Main, "General", "ShowFrameCount"}, false};
+const Info<std::string> MAIN_WIRELESS_MAC{{System::Main, "General", "WirelessMac"}, ""};
+const Info<std::string> MAIN_GDB_SOCKET{{System::Main, "General", "GDBSocket"}, ""};
+const Info<int> MAIN_GDB_PORT{{System::Main, "General", "GDBPort"}, -1};
+const Info<int> MAIN_ISO_PATH_COUNT{{System::Main, "General", "ISOPaths"}, 0};
+
+static Info<std::string> MakeISOPathConfigInfo(size_t idx)
+{
+  return Config::Info<std::string>{{Config::System::Main, "General", fmt::format("ISOPath{}", idx)},
+                                   ""};
+}
+
+std::vector<std::string> GetIsoPaths()
+{
+  size_t count = MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
+  std::vector<std::string> paths;
+  paths.reserve(count);
+  for (size_t i = 0; i < count; ++i)
+  {
+    std::string iso_path = Config::Get(MakeISOPathConfigInfo(i));
+    if (!iso_path.empty())
+      paths.emplace_back(std::move(iso_path));
+  }
+  return paths;
+}
+
+void SetIsoPaths(const std::vector<std::string>& paths)
+{
+  size_t old_size = MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
+  size_t new_size = paths.size();
+
+  size_t current_path_idx = 0;
+  for (const std::string& p : paths)
+  {
+    if (p.empty())
+    {
+      --new_size;
+      continue;
+    }
+
+    Config::SetBase(MakeISOPathConfigInfo(current_path_idx), p);
+    ++current_path_idx;
+  }
+
+  for (size_t i = current_path_idx; i < old_size; ++i)
+  {
+    // TODO: This actually needs a Config::Erase().
+    Config::SetBase(MakeISOPathConfigInfo(i), "");
+  }
+
+  Config::SetBase(Config::MAIN_ISO_PATH_COUNT, MathUtil::SaturatingCast<int>(new_size));
+}
 
 // Main.GBA
 
@@ -193,6 +342,19 @@ const Info<bool> MAIN_USE_PANIC_HANDLERS{{System::Main, "Interface", "UsePanicHa
 const Info<bool> MAIN_ABORT_ON_PANIC_ALERT{{System::Main, "Interface", "AbortOnPanicAlert"}, false};
 const Info<bool> MAIN_OSD_MESSAGES{{System::Main, "Interface", "OnScreenDisplayMessages"}, true};
 const Info<bool> MAIN_SKIP_NKIT_WARNING{{System::Main, "Interface", "SkipNKitWarning"}, false};
+const Info<bool> MAIN_CONFIRM_ON_STOP{{System::Main, "Interface", "ConfirmStop"}, true};
+const Info<ShowCursor> MAIN_SHOW_CURSOR{{System::Main, "Interface", "CursorVisibility"},
+                                        ShowCursor::OnMovement};
+const Info<bool> MAIN_LOCK_CURSOR{{System::Main, "Interface", "LockCursor"}, false};
+const Info<std::string> MAIN_INTERFACE_LANGUAGE{{System::Main, "Interface", "LanguageCode"}, ""};
+const Info<bool> MAIN_EXTENDED_FPS_INFO{{System::Main, "Interface", "ExtendedFPSInfo"}, false};
+const Info<bool> MAIN_SHOW_ACTIVE_TITLE{{System::Main, "Interface", "ShowActiveTitle"}, true};
+const Info<bool> MAIN_USE_BUILT_IN_TITLE_DATABASE{
+    {System::Main, "Interface", "UseBuiltinTitleDatabase"}, true};
+const Info<std::string> MAIN_THEME_NAME{{System::Main, "Interface", "ThemeName"},
+                                        DEFAULT_THEME_DIR};
+const Info<bool> MAIN_PAUSE_ON_FOCUS_LOST{{System::Main, "Interface", "PauseOnFocusLost"}, false};
+const Info<bool> MAIN_ENABLE_DEBUGGING{{System::Main, "Interface", "DebugModeEnabled"}, false};
 
 // Main.Analytics
 
@@ -201,4 +363,152 @@ const Info<bool> MAIN_ANALYTICS_ENABLED{{System::Main, "Analytics", "Enabled"}, 
 const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED{{System::Main, "Analytics", "PermissionAsked"},
                                                  false};
 
+// Main.GameList
+
+const Info<bool> MAIN_GAMELIST_LIST_DRIVES{{System::Main, "GameList", "ListDrives"}, false};
+const Info<bool> MAIN_GAMELIST_LIST_WAD{{System::Main, "GameList", "ListWad"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_ELF_DOL{{System::Main, "GameList", "ListElfDol"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_WII{{System::Main, "GameList", "ListWii"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_GC{{System::Main, "GameList", "ListGC"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_JPN{{System::Main, "GameList", "ListJap"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_PAL{{System::Main, "GameList", "ListPal"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_USA{{System::Main, "GameList", "ListUsa"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_AUSTRALIA{{System::Main, "GameList", "ListAustralia"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_FRANCE{{System::Main, "GameList", "ListFrance"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_GERMANY{{System::Main, "GameList", "ListGermany"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_ITALY{{System::Main, "GameList", "ListItaly"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_KOREA{{System::Main, "GameList", "ListKorea"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_NETHERLANDS{{System::Main, "GameList", "ListNetherlands"},
+                                                true};
+const Info<bool> MAIN_GAMELIST_LIST_RUSSIA{{System::Main, "GameList", "ListRussia"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_SPAIN{{System::Main, "GameList", "ListSpain"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_TAIWAN{{System::Main, "GameList", "ListTaiwan"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_WORLD{{System::Main, "GameList", "ListWorld"}, true};
+const Info<bool> MAIN_GAMELIST_LIST_UNKNOWN{{System::Main, "GameList", "ListUnknown"}, true};
+const Info<int> MAIN_GAMELIST_LIST_SORT{{System::Main, "GameList", "ListSort"}, 3};
+const Info<int> MAIN_GAMELIST_LIST_SORT_SECONDARY{{System::Main, "GameList", "ListSortSecondary"},
+                                                  0};
+const Info<bool> MAIN_GAMELIST_COLUMN_PLATFORM{{System::Main, "GameList", "ColumnPlatform"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_DESCRIPTION{{System::Main, "GameList", "ColumnDescription"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_BANNER{{System::Main, "GameList", "ColumnBanner"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_TITLE{{System::Main, "GameList", "ColumnTitle"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_MAKER{{System::Main, "GameList", "ColumnNotes"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_NAME{{System::Main, "GameList", "ColumnFileName"},
+                                                false};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_PATH{{System::Main, "GameList", "ColumnFilePath"},
+                                                false};
+const Info<bool> MAIN_GAMELIST_COLUMN_GAME_ID{{System::Main, "GameList", "ColumnID"}, false};
+const Info<bool> MAIN_GAMELIST_COLUMN_REGION{{System::Main, "GameList", "ColumnRegion"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_SIZE{{System::Main, "GameList", "ColumnSize"}, true};
+const Info<bool> MAIN_GAMELIST_COLUMN_FILE_FORMAT{{System::Main, "GameList", "ColumnFileFormat"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_BLOCK_SIZE{{System::Main, "GameList", "ColumnBlockSize"},
+                                                 false};
+const Info<bool> MAIN_GAMELIST_COLUMN_COMPRESSION{{System::Main, "GameList", "ColumnCompression"},
+                                                  false};
+const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTags"}, false};
+
+// Main.FifoPlayer
+
+const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY{{System::Main, "FifoPlayer", "LoopReplay"}, true};
+const Info<bool> MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES{
+    {System::Main, "FifoPlayer", "EarlyMemoryUpdates"}, false};
+
+// Main.AutoUpdate
+
+const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK{{System::Main, "AutoUpdate", "UpdateTrack"},
+                                                     Common::GetScmUpdateTrackStr()};
+const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE{{System::Main, "AutoUpdate", "HashOverride"},
+                                                      ""};
+
+// Main.Movie
+
+const Info<bool> MAIN_MOVIE_PAUSE_MOVIE{{System::Main, "Movie", "PauseMovie"}, false};
+const Info<std::string> MAIN_MOVIE_MOVIE_AUTHOR{{System::Main, "Movie", "Author"}, ""};
+const Info<bool> MAIN_MOVIE_DUMP_FRAMES{{System::Main, "Movie", "DumpFrames"}, false};
+const Info<bool> MAIN_MOVIE_DUMP_FRAMES_SILENT{{System::Main, "Movie", "DumpFramesSilent"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_INPUT_DISPLAY{{System::Main, "Movie", "ShowInputDisplay"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_RTC{{System::Main, "Movie", "ShowRTC"}, false};
+const Info<bool> MAIN_MOVIE_SHOW_RERECORD{{System::Main, "Movie", "ShowRerecord"}, false};
+
+// Main.Input
+
+const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
+
+// Main.Debug
+
+const Info<bool> MAIN_DEBUG_JIT_OFF{{System::Main, "Debug", "JitOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_OFF{{System::Main, "Debug", "JitLoadStoreOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF{{System::Main, "Debug", "JitLoadStorelXzOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF{{System::Main, "Debug", "JitLoadStorelwzOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF{{System::Main, "Debug", "JitLoadStorelbzxOff"},
+                                                    false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF{
+    {System::Main, "Debug", "JitLoadStoreFloatingOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF{
+    {System::Main, "Debug", "JitLoadStorePairedOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_FLOATING_POINT_OFF{{System::Main, "Debug", "JitFloatingPointOff"},
+                                                   false};
+const Info<bool> MAIN_DEBUG_JIT_INTEGER_OFF{{System::Main, "Debug", "JitIntegerOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF{{System::Main, "Debug", "JitPairedOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF{
+    {System::Main, "Debug", "JitSystemRegistersOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF{{System::Main, "Debug", "JitBranchOff"}, false};
+const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF{{System::Main, "Debug", "JitRegisterCacheOff"},
+                                                   false};
+
+// Main.BluetoothPassthrough
+
+const Info<bool> MAIN_BLUETOOTH_PASSTHROUGH_ENABLED{
+    {System::Main, "BluetoothPassthrough", "Enabled"}, false};
+const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_VID{{System::Main, "BluetoothPassthrough", "VID"}, -1};
+const Info<int> MAIN_BLUETOOTH_PASSTHROUGH_PID{{System::Main, "BluetoothPassthrough", "PID"}, -1};
+const Info<std::string> MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS{
+    {System::Main, "BluetoothPassthrough", "LinkKeys"}, ""};
+
+// Main.USBPassthrough
+
+const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES{{System::Main, "USBPassthrough", "Devices"},
+                                                     ""};
+
+static std::set<std::pair<u16, u16>> LoadUSBWhitelistFromString(const std::string& devices_string)
+{
+  std::set<std::pair<u16, u16>> devices;
+  for (const auto& pair : SplitString(devices_string, ','))
+  {
+    const auto index = pair.find(':');
+    if (index == std::string::npos)
+      continue;
+
+    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
+    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
+    if (vid && pid)
+      devices.emplace(vid, pid);
+  }
+  return devices;
+}
+
+static std::string SaveUSBWhitelistToString(const std::set<std::pair<u16, u16>>& devices)
+{
+  std::ostringstream oss;
+  for (const auto& device : devices)
+    oss << fmt::format("{:04x}:{:04x}", device.first, device.second) << ',';
+  std::string devices_string = oss.str();
+  if (!devices_string.empty())
+    devices_string.pop_back();
+  return devices_string;
+}
+
+std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist()
+{
+  return LoadUSBWhitelistFromString(Config::Get(Config::MAIN_USB_PASSTHROUGH_DEVICES));
+}
+
+void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
+{
+  Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
+}
 }  // namespace Config

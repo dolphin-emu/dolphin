@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cmath>
 #include <cstring>
 #include <memory>

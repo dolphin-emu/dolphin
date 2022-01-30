@@ -13,7 +13,7 @@
 #include <QVBoxLayout>
 
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 BroadbandAdapterSettingsDialog::BroadbandAdapterSettingsDialog(QWidget* parent, Type bba_type)
@@ -38,7 +38,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
     // interface (physical) like a serial number. "MAC" should be kept in translations.
     address_label = new QLabel(tr("Enter new Broadband Adapter MAC address:"));
     address_placeholder = QString::fromStdString("aa:bb:cc:dd:ee:ff");
-    current_address = QString::fromStdString(SConfig::GetInstance().m_bba_mac);
+    current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_MAC));
     description = new QLabel(tr("For setup instructions, <a "
                                 "href=\"https://wiki.dolphin-emu.org/"
                                 "index.php?title=Broadband_Adapter\">refer to this page</a>."));
@@ -51,7 +51,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
   case Type::XLinkKai:
     address_label = new QLabel(tr("Enter IP address of device running the XLink Kai Client:"));
     address_placeholder = QString::fromStdString("127.0.0.1");
-    current_address = QString::fromStdString(SConfig::GetInstance().m_bba_xlink_ip);
+    current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_XLINK_IP));
     description =
         new QLabel(tr("For setup instructions, <a "
                       "href=\"https://www.teamxlink.co.uk/wiki/Dolphin\">refer to this page</a>."));
@@ -100,11 +100,11 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
           tr("The entered MAC address is invalid."));
       return;
     }
-    SConfig::GetInstance().m_bba_mac = bba_new_address;
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, bba_new_address);
     break;
 
   case Type::XLinkKai:
-    SConfig::GetInstance().m_bba_xlink_ip = bba_new_address;
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_XLINK_IP, bba_new_address);
     break;
   }
 

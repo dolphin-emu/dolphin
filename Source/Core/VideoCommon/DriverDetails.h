@@ -314,6 +314,11 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_SUBGROUP_INVOCATION_ID,
+
+  // BUG: Multi-threaded shader pre-compilation sometimes crashes
+  // Used primarily in Videoconfig.cpp's GetNumAutoShaderPreCompilerThreads()
+  // refer to https://github.com/dolphin-emu/dolphin/pull/9414 for initial validation coverage
+  BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION
 };
 
 // Initializes our internal vendor, device family, and driver version

@@ -103,16 +103,10 @@ add_library(core
   DSP/LabelMap.h
   DSPEmulator.cpp
   DSPEmulator.h
-  FifoPlayer/FifoAnalyzer.cpp
-  FifoPlayer/FifoAnalyzer.h
   FifoPlayer/FifoDataFile.cpp
   FifoPlayer/FifoDataFile.h
-  FifoPlayer/FifoPlaybackAnalyzer.cpp
-  FifoPlayer/FifoPlaybackAnalyzer.h
   FifoPlayer/FifoPlayer.cpp
   FifoPlayer/FifoPlayer.h
-  FifoPlayer/FifoRecordAnalyzer.cpp
-  FifoPlayer/FifoRecordAnalyzer.h
   FifoPlayer/FifoRecorder.cpp
   FifoPlayer/FifoRecorder.h
   FreeLookConfig.cpp
@@ -452,6 +446,8 @@ add_library(core
   PowerPC/JitCommon/JitCache.h
   PowerPC/JitInterface.cpp
   PowerPC/JitInterface.h
+  PowerPC/GDBStub.cpp
+  PowerPC/GDBStub.h
   PowerPC/MMU.cpp
   PowerPC/MMU.h
   PowerPC/PowerPC.cpp
@@ -696,13 +692,6 @@ if(TARGET Hidapi::Hidapi)
   )
   target_link_libraries(core PUBLIC Hidapi::Hidapi)
   target_compile_definitions(core PRIVATE -DHAVE_HIDAPI=1)
-endif()
-
-if(GDBSTUB)
-  target_sources(core PRIVATE
-    PowerPC/GDBStub.cpp
-    PowerPC/GDBStub.h
-  )
 endif()
 
 if(UNIX)

@@ -93,6 +93,12 @@ public final class SettingsFragmentPresenter
   public void onViewCreated(MenuTag menuTag, Settings settings)
   {
     this.mMenuTag = menuTag;
+
+    if (!TextUtils.isEmpty(mGameID))
+    {
+      mView.getActivity().setTitle(mContext.getString(R.string.game_settings, mGameID));
+    }
+
     setSettings(settings);
   }
 
@@ -122,10 +128,6 @@ public final class SettingsFragmentPresenter
 
   private void loadSettingsList()
   {
-    if (!TextUtils.isEmpty(mGameID))
-    {
-      mView.getActivity().setTitle(mContext.getString(R.string.game_settings, mGameID));
-    }
     ArrayList<SettingsItem> sl = new ArrayList<>();
 
     switch (mMenuTag)
@@ -409,6 +411,8 @@ public final class SettingsFragmentPresenter
             R.string.resource_pack_path, 0, MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
             MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
+    sl.add(new FilePicker(mContext, StringSetting.MAIN_WFS_PATH, R.string.wfs_path, 0,
+            MainPresenter.REQUEST_DIRECTORY, "/WFS"));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
@@ -542,6 +546,8 @@ public final class SettingsFragmentPresenter
     }
     sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_CPU_CORE, R.string.cpu_core, 0,
             emuCoresEntries, emuCoresValues));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_MMU, R.string.mmu_enable,
+            R.string.mmu_enable_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_OVERCLOCK_ENABLE,
             R.string.overclock_enable, R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(mContext, FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
@@ -742,6 +748,8 @@ public final class SettingsFragmentPresenter
             R.string.backend_multithreading, R.string.backend_multithreading_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_EFB_DEFER_INVALIDATION,
             R.string.defer_efb_invalidation, R.string.defer_efb_invalidation_description));
+    sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_FAST_TEXTURE_SAMPLING,
+            R.string.manual_texture_sampling, R.string.manual_texture_sampling_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_INTERNAL_RESOLUTION_FRAME_DUMPS,
             R.string.internal_resolution_dumps, R.string.internal_resolution_dumps_description));
 
@@ -789,24 +797,25 @@ public final class SettingsFragmentPresenter
             R.string.debug_fastmem, 0));
 
     sl.add(new HeaderSetting(mContext, R.string.debug_jit_header, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_OFF, R.string.debug_jitoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_LOAD_STORE_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_OFF, R.string.debug_jitoff,
+            0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_OFF,
             R.string.debug_jitloadstoreoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_LOAD_STORE_FLOATING_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF,
             R.string.debug_jitloadstorefloatingoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_LOAD_STORE_PAIRED_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF,
             R.string.debug_jitloadstorepairedoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_FLOATING_POINT_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_FLOATING_POINT_OFF,
             R.string.debug_jitfloatingpointoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_INTEGER_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_INTEGER_OFF,
             R.string.debug_jitintegeroff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_PAIRED_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_PAIRED_OFF,
             R.string.debug_jitpairedoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_SYSTEM_REGISTERS_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF,
             R.string.debug_jitsystemregistersoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_BRANCH_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_BRANCH_OFF,
             R.string.debug_jitbranchoff, 0));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_JIT_REGISTER_CACHE_OFF,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_DEBUG_JIT_REGISTER_CACHE_OFF,
             R.string.debug_jitregistercacheoff, 0));
   }
 
@@ -825,7 +834,7 @@ public final class SettingsFragmentPresenter
 
   private void addGcPadSubSettings(ArrayList<SettingsItem> sl, int gcPadNumber, int gcPadType)
   {
-    if (gcPadType == 1) // Emulated
+    if (gcPadType == 6) // Emulated
     {
       sl.add(new HeaderSetting(mContext, R.string.generic_buttons, 0));
       sl.add(new InputBindingSetting(mContext, Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
@@ -884,7 +893,7 @@ public final class SettingsFragmentPresenter
               SettingsFile.KEY_EMU_RUMBLE + gcPadNumber, R.string.emulation_control_rumble,
               mGameID));
     }
-    else // Adapter
+    else if (gcPadType == 12) // Adapter
     {
       LegacyBooleanSetting rumble = new LegacyBooleanSetting(Settings.FILE_DOLPHIN,
               Settings.SECTION_INI_CORE, SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, false);
@@ -1336,7 +1345,7 @@ public final class SettingsFragmentPresenter
 
   private static int getLogVerbosityEntries()
   {
-    // Value obtained from LOG_LEVELS in Common/Logging/Log.h
+    // Value obtained from LogLevel in Common/Logging/Log.h
     if (NativeLibrary.GetMaxLogLevel() == 5)
     {
       return R.array.logVerbosityEntriesMaxLevelDebug;
@@ -1349,7 +1358,7 @@ public final class SettingsFragmentPresenter
 
   private static int getLogVerbosityValues()
   {
-    // Value obtained from LOG_LEVELS in Common/Logging/Log.h
+    // Value obtained from LogLevel in Common/Logging/Log.h
     if (NativeLibrary.GetMaxLogLevel() == 5)
     {
       return R.array.logVerbosityValuesMaxLevelDebug;

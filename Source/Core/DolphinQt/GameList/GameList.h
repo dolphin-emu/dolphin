@@ -9,6 +9,7 @@
 
 #include "DolphinQt/GameList/GameListModel.h"
 
+class QAbstractItemView;
 class QLabel;
 class QListView;
 class QSortFilterProxyModel;
@@ -50,6 +51,7 @@ public:
 
 signals:
   void GameSelected();
+  void OnStartWithRiivolution(const UICommon::GameFile& game);
   void NetPlayHost(const UICommon::GameFile& game);
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OpenGeneralSettings();
@@ -62,6 +64,7 @@ private:
   void OpenWiiSaveFolder();
   void OpenGCSaveFolder();
   void OpenWiki();
+  void StartWithRiivolution();
   void SetDefaultISO();
   void DeleteFile();
 #ifdef _WIN32
@@ -87,6 +90,8 @@ private:
   void MakeEmptyView();
   // We only have two views, just use a bool to distinguish.
   void SetPreferredView(bool list);
+  QAbstractItemView* GetActiveView() const;
+  QSortFilterProxyModel* GetActiveProxyModel() const;
   void ConsiderViewChange();
   void UpdateFont();
 

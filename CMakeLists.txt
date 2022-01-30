@@ -32,6 +32,10 @@ if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
   option(ENABLE_EGL "Enables EGL OpenGL Interface" ON)
 endif()
 
+if(NOT ANDROID)
+  option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" ON)
+endif()
+
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
@@ -59,7 +63,6 @@ option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 option(FASTLOG "Enable all logs" OFF)
-option(GDBSTUB "Enable gdb stub for remote debugging." ON)
 option(OPROFILING "Enable profiling" OFF)
 
 # TODO: Add DSPSpy
@@ -389,10 +392,6 @@ if(FASTLOG)
   add_definitions(-DDEBUGFAST)
 endif()
 
-if(GDBSTUB)
-  add_definitions(-DUSE_GDBSTUB)
-endif()
-
 if(ENABLE_VTUNE)
   set(VTUNE_DIR "/opt/intel/vtune_amplifier")
   add_definitions(-DUSE_VTUNE)
@@ -565,7 +564,7 @@ if (_M_X86)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 
-find_package(fmt 7.1)
+find_package(fmt 8.0)
 if(fmt_FOUND)
   message(STATUS "Using shared fmt ${fmt_VERSION}")
 else()
@@ -578,6 +577,10 @@ add_subdirectory(Externals/glslang)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
+
+  if(APPLE)
+    add_subdirectory(Externals/MoltenVK)
+  endif()
 endif()
 
 if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
@@ -675,7 +678,7 @@ endif()
 pkg_check_modules(MINIZIP minizip>=2.0.0)
 if(MINIZIP_FOUND)
   message(STATUS "Using shared minizip")
-	include_directories(${MINIZIP_INCLUDE_DIRS})
+  include_directories(${MINIZIP_INCLUDE_DIRS})
 else()
   check_vendoring_approved(minizip)
   message(STATUS "Shared minizip not found, falling back to the static library")

@@ -64,11 +64,6 @@ void IEXIDevice::DMARead(u32 address, u32 size)
   }
 }
 
-IEXIDevice* IEXIDevice::FindDevice(TEXIDevices device_type, int custom_index)
-{
-  return (device_type == m_device_type) ? this : nullptr;
-}
-
 bool IEXIDevice::UseDelayedTransferCompletion() const
 {
   return false;
@@ -101,60 +96,63 @@ void IEXIDevice::TransferByte(u8& byte)
 }
 
 // F A C T O R Y
-std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num,
+std::unique_ptr<IEXIDevice> EXIDevice_Create(const EXIDeviceType device_type, const int channel_num,
                                              const Memcard::HeaderData& memcard_header_data)
 {
   std::unique_ptr<IEXIDevice> result;
+  // XXX This computation isn't necessarily right (it holds for A/B, but not SP1)
+  // However, the devices that care about slots currently only go in A/B.
+  const Slot slot = static_cast<Slot>(channel_num);
 
   switch (device_type)
   {
-  case EXIDEVICE_DUMMY:
+  case EXIDeviceType::Dummy:
     result = std::make_unique<CEXIDummy>("Dummy");
     break;
 
-  case EXIDEVICE_MEMORYCARD:
-  case EXIDEVICE_MEMORYCARDFOLDER:
+  case EXIDeviceType::MemoryCard:
+  case EXIDeviceType::MemoryCardFolder:
   {
-    bool gci_folder = (device_type == EXIDEVICE_MEMORYCARDFOLDER);
-    result = std::make_unique<CEXIMemoryCard>(channel_num, gci_folder, memcard_header_data);
+    bool gci_folder = (device_type == EXIDeviceType::MemoryCardFolder);
+    result = std::make_unique<CEXIMemoryCard>(slot, gci_folder, memcard_header_data);
     break;
   }
-  case EXIDEVICE_MASKROM:
+  case EXIDeviceType::MaskROM:
     result = std::make_unique<CEXIIPL>();
     break;
 
-  case EXIDEVICE_AD16:
+  case EXIDeviceType::AD16:
     result = std::make_unique<CEXIAD16>();
     break;
 
-  case EXIDEVICE_MIC:
+  case EXIDeviceType::Microphone:
     result = std::make_unique<CEXIMic>(channel_num);
     break;
 
-  case EXIDEVICE_ETH:
+  case EXIDeviceType::Ethernet:
     result = std::make_unique<CEXIETHERNET>(BBADeviceType::TAP);
     break;
 
 #if defined(__APPLE__)
-  case EXIDEVICE_ETHTAPSERVER:
+  case EXIDeviceType::EthernetTapServer:
     result = std::make_unique<CEXIETHERNET>(BBADeviceType::TAPSERVER);
     break;
 #endif
 
-  case EXIDEVICE_ETHXLINK:
+  case EXIDeviceType::EthernetXLink:
     result = std::make_unique<CEXIETHERNET>(BBADeviceType::XLINK);
     break;
 
-  case EXIDEVICE_GECKO:
+  case EXIDeviceType::Gecko:
     result = std::make_unique<CEXIGecko>();
     break;
 
-  case EXIDEVICE_AGP:
-    result = std::make_unique<CEXIAgp>(channel_num);
+  case EXIDeviceType::AGP:
+    result = std::make_unique<CEXIAgp>(slot);
     break;
 
-  case EXIDEVICE_AM_BASEBOARD:
-  case EXIDEVICE_NONE:
+  case EXIDeviceType::AMBaseboard:
+  case EXIDeviceType::None:
   default:
     result = std::make_unique<IEXIDevice>();
     break;

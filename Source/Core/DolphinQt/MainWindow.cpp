@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/MainWindow.h"
+
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDateTime>
@@ -58,7 +60,9 @@
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
 
+#include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/CheatsManager.h"
@@ -84,7 +88,6 @@
 #include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
-#include "DolphinQt/MainWindow.h"
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
@@ -100,6 +103,7 @@
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
 #include "DolphinQt/Resources.h"
+#include "DolphinQt/RiivolutionBootWidget.h"
 #include "DolphinQt/SearchBar.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/TAS/GCTASInputWindow.h"
@@ -202,7 +206,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
                        const std::string& movie_path)
     : QMainWindow(nullptr)
 {
-  setWindowTitle(QString::fromStdString(Common::scm_rev_str));
+  setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
   setWindowIcon(Resources::GetAppIcon());
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
@@ -241,8 +245,13 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
     if (!movie_path.empty())
     {
-      if (Movie::PlayInput(movie_path, &m_pending_boot->savestate_path))
+      std::optional<std::string> savestate_path;
+      if (Movie::PlayInput(movie_path, &savestate_path))
+      {
+        m_pending_boot->boot_session_data.SetSavestateData(std::move(savestate_path),
+                                                           DeleteSavestateAfterBoot::No);
         emit RecordingStatusChanged(true);
+      }
     }
   }
 
@@ -311,6 +320,13 @@ void MainWindow::InitControllers()
     return;
 
   g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
+  if (!g_controller_interface.HasDefaultDevice())
+  {
+    // Note that the CI default device could be still temporarily removed at any time
+    WARN_LOG(CONTROLLERINTERFACE,
+             "No default device has been added in time. EmulatedController(s) defaulting adds"
+             " input mappings made for a specific default device depending on the platform");
+  }
   Pad::Initialize();
   Pad::InitializeGBA();
   Keyboard::Initialize();
@@ -643,6 +659,8 @@ void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, [this]() { Play(); });
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
+  connect(m_game_list, &GameList::OnStartWithRiivolution, this,
+          &MainWindow::ShowRiivolutionBootWidget);
 
   connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
 }
@@ -715,8 +733,10 @@ QStringList MainWindow::PromptFileNames()
   QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
-         "*.dff *.m3u);;All Files (*)"));
+      QStringLiteral("%1 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
+                     "*.dff *.m3u *.json);;%2 (*)")
+          .arg(tr("All GC/Wii files"))
+          .arg(tr("All Files")));
 
   if (!paths.isEmpty())
   {
@@ -763,14 +783,16 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
-      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes, savestate_path);
+      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
+                std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
     }
     else
     {
       const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
-        StartGame(default_path, ScanForSecondDisc::Yes, savestate_path);
+        StartGame(default_path, ScanForSecondDisc::Yes,
+                  std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
       }
       else
       {
@@ -839,7 +861,7 @@ bool MainWindow::RequestStop()
   else
     FullScreen();
 
-  if (SConfig::GetInstance().bConfirmStop)
+  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
   {
     if (std::exchange(m_stop_confirm_showing, true))
       return true;
@@ -973,7 +995,7 @@ void MainWindow::ScreenShot()
 }
 
 void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
-                                               const std::optional<std::string>& savestate_path)
+                                               std::unique_ptr<BootSessionData> boot_session_data)
 {
   auto second_game = m_game_list->FindSecondDisc(game);
 
@@ -981,35 +1003,37 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
 
-  StartGame(paths, savestate_path);
+  StartGame(paths, std::move(boot_session_data));
 }
 
 void MainWindow::StartGame(const QString& path, ScanForSecondDisc scan,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
-  StartGame(path.toStdString(), scan, savestate_path);
+  StartGame(path.toStdString(), scan, std::move(boot_session_data));
 }
 
 void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
   if (scan == ScanForSecondDisc::Yes)
   {
     std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
     if (game != nullptr)
     {
-      ScanForSecondDiscAndStartGame(*game, savestate_path);
+      ScanForSecondDiscAndStartGame(*game, std::move(boot_session_data));
       return;
     }
   }
 
-  StartGame(BootParameters::GenerateFromFile(path, savestate_path));
+  StartGame(BootParameters::GenerateFromFile(
+      path, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
 }
 
 void MainWindow::StartGame(const std::vector<std::string>& paths,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
-  StartGame(BootParameters::GenerateFromFile(paths, savestate_path));
+  StartGame(BootParameters::GenerateFromFile(
+      paths, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
 }
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
@@ -1121,7 +1145,7 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     m_rendering_to_main = false;
     m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
-    setWindowTitle(QString::fromStdString(Common::scm_rev_str));
+    setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
   }
 
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
@@ -1358,13 +1382,15 @@ void MainWindow::NetPlayInit()
 {
   const auto& game_list_model = m_game_list->GetGameListModel();
   m_netplay_setup_dialog = new NetPlaySetupDialog(game_list_model, this);
-  m_netplay_dialog = new NetPlayDialog(game_list_model);
+  m_netplay_dialog = new NetPlayDialog(
+      game_list_model,
+      [this](const std::string& path, std::unique_ptr<BootSessionData> boot_session_data) {
+        StartGame(path, ScanForSecondDisc::Yes, std::move(boot_session_data));
+      });
 #ifdef USE_DISCORD_PRESENCE
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
-          [this](const QString& path) { StartGame(path, ScanForSecondDisc::Yes); });
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::ForceStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
@@ -1702,9 +1728,10 @@ void MainWindow::OnStartRecording()
 
   for (int i = 0; i < 4; i++)
   {
-    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
       controllers[i] = Movie::ControllerType::GBA;
-    else if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+    else if (SerialInterface::SIDevice_IsGCController(si_device))
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
@@ -1756,8 +1783,9 @@ void MainWindow::ShowTASInput()
 {
   for (int i = 0; i < num_gc_controllers; i++)
   {
-    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
-        SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
+    const auto si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device != SerialInterface::SIDEVICE_NONE &&
+        si_device != SerialInterface::SIDEVICE_GC_GBA)
     {
       m_gc_tas_input_windows[i]->show();
       m_gc_tas_input_windows[i]->raise();
@@ -1805,6 +1833,29 @@ void MainWindow::ShowResourcePackManager()
 void MainWindow::ShowCheatsManager()
 {
   m_cheats_manager->show();
+}
+
+void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
+{
+  auto second_game = m_game_list->FindSecondDisc(game);
+  std::vector<std::string> paths = {game.GetFilePath()};
+  if (second_game != nullptr)
+    paths.push_back(second_game->GetFilePath());
+  std::unique_ptr<BootParameters> boot_params = BootParameters::GenerateFromFile(paths);
+  if (!boot_params)
+    return;
+  if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
+    return;
+
+  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
+  RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
+                          disc.volume->GetDiscNumber(), game.GetFilePath(), this);
+  w.exec();
+  if (!w.ShouldBoot())
+    return;
+
+  AddRiivolutionPatches(boot_params.get(), std::move(w.GetPatches()));
+  StartGame(std::move(boot_params));
 }
 
 void MainWindow::Show()

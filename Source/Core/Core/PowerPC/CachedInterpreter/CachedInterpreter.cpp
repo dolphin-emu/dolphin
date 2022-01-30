@@ -100,7 +100,8 @@ void CachedInterpreter::ExecuteOneBlock()
       break;
 
     default:
-      ERROR_LOG_FMT(POWERPC, "Unknown CachedInterpreter Instruction: {}", code->type);
+      ERROR_LOG_FMT(POWERPC, "Unknown CachedInterpreter Instruction: {}",
+                    static_cast<int>(code->type));
       break;
     }
   }
@@ -273,8 +274,8 @@ void CachedInterpreter::Jit(u32 address)
 
     if (!op.skip)
     {
-      const bool breakpoint = SConfig::GetInstance().bEnableDebugging &&
-                              PowerPC::breakpoints.IsAddressBreakPoint(op.address);
+      const bool breakpoint =
+          m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(op.address);
       const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
       const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
       const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;

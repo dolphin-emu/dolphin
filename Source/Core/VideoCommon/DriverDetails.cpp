@@ -1,10 +1,11 @@
 // Copyright 2013 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/DriverDetails.h"
+
 #include <map>
 
 #include "Common/Logging/LogManager.h"
-#include "VideoCommon/DriverDetails.h"
 
 namespace DriverDetails
 {
@@ -131,6 +132,14 @@ constexpr BugInfo m_known_bugs[] = {
      -1.0, -1.0, true},
     {API_VULKAN, OS_OSX, VENDOR_ATI, DRIVER_PORTABILITY, Family::UNKNOWN,
      BUG_BROKEN_SUBGROUP_INVOCATION_ID, -1.0, -1.0, true},
+    {API_OPENGL, OS_ANDROID, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, true},
+    {API_VULKAN, OS_ANDROID, VENDOR_ALL, DRIVER_ALL, Family::UNKNOWN,
+     BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION, -1.0, -1.0, true},
+    {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART,
+     -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART,
+     -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;

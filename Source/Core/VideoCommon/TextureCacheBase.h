@@ -5,6 +5,7 @@
 
 #include <array>
 #include <bitset>
+#include <fmt/format.h>
 #include <map>
 #include <memory>
 #include <optional>
@@ -69,6 +70,24 @@ struct EFBCopyParams
   bool depth;
   bool yuv;
   bool copy_filter;
+};
+
+template <>
+struct fmt::formatter<EFBCopyParams>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const EFBCopyParams& uid, FormatContext& ctx) const
+  {
+    std::string copy_format;
+    if (uid.copy_format == EFBCopyFormat::XFB)
+      copy_format = "XFB";
+    else
+      copy_format = fmt::to_string(uid.copy_format);
+    return fmt::format_to(ctx.out(),
+                          "format: {}, copy format: {}, depth: {}, yuv: {}, copy filter: {}",
+                          uid.efb_format, copy_format, uid.depth, uid.yuv, uid.copy_filter);
+  }
 };
 
 // Reduced version of the full coefficient array, with a single value for each row.

@@ -1,11 +1,11 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/CheatGeneration.h"
+
 #include <vector>
 
 #include <fmt/format.h>
-
-#include "Core/CheatGeneration.h"
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"

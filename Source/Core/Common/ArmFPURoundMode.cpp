@@ -1,14 +1,15 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/CPUDetect.h"
-#include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
-#include "Common/Logging/Log.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
+
+#include "Common/CPUDetect.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 static u64 GetFPCR()
 {

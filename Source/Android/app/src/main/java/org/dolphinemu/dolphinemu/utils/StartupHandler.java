@@ -2,8 +2,11 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
+import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -15,6 +18,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 public final class StartupHandler
 {
@@ -33,27 +37,60 @@ public final class StartupHandler
     if (TvUtil.isLeanback(parent))
       TvUtil.scheduleSyncingChannel(parent);
 
-    String[] start_files = null;
-    Bundle extras = parent.getIntent().getExtras();
-    if (extras != null)
-    {
-      start_files = extras.getStringArray("AutoStartFiles");
-      if (start_files == null)
-      {
-        String start_file = extras.getString("AutoStartFile");
-        if (!TextUtils.isEmpty(start_file))
-        {
-          start_files = new String[]{start_file};
-        }
-      }
-    }
-
-    if (start_files != null && start_files.length > 0)
+    String[] gamesToLaunch = getGamesFromIntent(parent.getIntent());
+    if (gamesToLaunch != null && gamesToLaunch.length > 0)
     {
       // Start the emulation activity, send the ISO passed in and finish the main activity
-      EmulationActivity.launch(parent, start_files);
+      EmulationActivity.launch(parent, gamesToLaunch, false);
       parent.finish();
     }
+  }
+
+  private static String[] getGamesFromIntent(Intent intent)
+  {
+    // Priority order when looking for game paths in an intent:
+    //
+    // Specifying multiple discs (for multi-disc games) is prioritized over specifying a single
+    // disc. But most of the time, only a single disc will have been specified anyway.
+    //
+    // Specifying content URIs (compatible with scoped storage) is prioritized over raw paths.
+    // The intention is that if a frontend app specifies both a content URI and a raw path, newer
+    // versions of Dolphin will work correctly under scoped storage, while older versions of Dolphin
+    // (which don't use scoped storage and don't support content URIs) will also work.
+
+    // 1. Content URI, multiple
+    ClipData clipData = intent.getClipData();
+    if (clipData != null)
+    {
+      String[] uris = new String[clipData.getItemCount()];
+      for (int i = 0; i < uris.length; i++)
+      {
+        uris[i] = Objects.toString(clipData.getItemAt(i).getUri());
+      }
+      return uris;
+    }
+
+    // 2. Content URI, single
+    Uri uri = intent.getData();
+    if (uri != null)
+      return new String[]{uri.toString()};
+
+    Bundle extras = intent.getExtras();
+    if (extras != null)
+    {
+      // 3. File path, multiple
+      String[] paths = extras.getStringArray("AutoStartFiles");
+      if (paths != null)
+        return paths;
+
+      // 4. File path, single
+      String path = extras.getString("AutoStartFile");
+      if (!TextUtils.isEmpty(path))
+        return new String[]{path};
+    }
+
+    // Nothing was found
+    return null;
   }
 
   /**
@@ -79,7 +116,7 @@ public final class StartupHandler
     final Instant lastOpened = Instant.ofEpochMilli(lastOpen);
     if (current.isAfter(lastOpened.plus(6, ChronoUnit.HOURS)))
     {
-      new AfterDirectoryInitializationRunner().run(context, false,
+      new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false,
               NativeLibrary::ReportStartToAnalytics);
     }
   }

@@ -55,7 +55,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
 
   default:
   {
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", command);
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", static_cast<u8>(command));
   }
   break;
   }

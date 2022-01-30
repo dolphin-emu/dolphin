@@ -17,6 +17,7 @@
 #include <map>
 #include <optional>
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -304,11 +305,11 @@ void WiimoteControllersWidget::LoadSettings()
   }
   m_wiimote_real_balance_board->setChecked(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) ==
                                            WiimoteSource::Real);
-  m_wiimote_speaker_data->setChecked(SConfig::GetInstance().m_WiimoteEnableSpeaker);
-  m_wiimote_ciface->setChecked(SConfig::GetInstance().connect_wiimotes_for_ciface);
-  m_wiimote_continuous_scanning->setChecked(SConfig::GetInstance().m_WiimoteContinuousScanning);
+  m_wiimote_speaker_data->setChecked(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
+  m_wiimote_ciface->setChecked(Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE));
+  m_wiimote_continuous_scanning->setChecked(Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING));
 
-  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     m_wiimote_passthrough->setChecked(true);
   else
     m_wiimote_emu->setChecked(true);
@@ -318,10 +319,14 @@ void WiimoteControllersWidget::LoadSettings()
 
 void WiimoteControllersWidget::SaveSettings()
 {
-  SConfig::GetInstance().m_WiimoteEnableSpeaker = m_wiimote_speaker_data->isChecked();
-  SConfig::GetInstance().connect_wiimotes_for_ciface = m_wiimote_ciface->isChecked();
-  SConfig::GetInstance().m_WiimoteContinuousScanning = m_wiimote_continuous_scanning->isChecked();
-  SConfig::GetInstance().m_bt_passthrough_enabled = m_wiimote_passthrough->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_ENABLE_SPEAKER,
+                           m_wiimote_speaker_data->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE,
+                           m_wiimote_ciface->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING,
+                           m_wiimote_continuous_scanning->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED,
+                           m_wiimote_passthrough->isChecked());
 
   WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, m_wiimote_real_balance_board->isChecked() ?
                                                       WiimoteSource::Real :

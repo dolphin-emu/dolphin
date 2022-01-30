@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -8,7 +10,7 @@
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -19,7 +21,6 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
-  FALLBACK_IF(jo.memcheck);
 
   // If we have a fastmem arena, the asm routines assume address translation is on.
   FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
@@ -47,7 +48,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   constexpr ARM64Reg addr_reg = ARM64Reg::W0;
   constexpr ARM64Reg scale_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
-  ARM64Reg VS = fpr.RW(inst.RS, RegType::Single);
+  ARM64Reg VS = fpr.RW(inst.RS, RegType::Single, false);
 
   if (inst.RA || update)  // Always uses the register on update
   {
@@ -66,7 +67,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
       MOVI2R(addr_reg, (u32)offset);
   }
 
-  if (update)
+  const bool early_update = !jo.memcheck;
+  if (update && early_update)
   {
     gpr.BindToRegister(inst.RA, false);
     MOV(gpr.R(inst.RA), addr_reg);
@@ -78,9 +80,11 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
     BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
 
     // Wipe the registers we are using as temporaries
-    gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+    if (!update || early_update)
+      gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
     fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
-    fprs_in_use[DecodeReg(VS)] = 0;
+    if (!jo.memcheck)
+      fprs_in_use[DecodeReg(VS)] = 0;
 
     u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
@@ -99,6 +103,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
+    WriteConditionalExceptionExit(EXCEPTION_DSI, ARM64Reg::X30, ARM64Reg::Q1);
+
     m_float_emit.ORR(EncodeRegToDouble(VS), ARM64Reg::D0, ARM64Reg::D0);
   }
 
@@ -106,6 +112,15 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   {
     m_float_emit.FMOV(ARM64Reg::S0, 0x70);  // 1.0 as a Single
     m_float_emit.INS(32, VS, 1, ARM64Reg::Q0, 0);
+  }
+
+  const ARM64Reg VS_again = fpr.RW(inst.RS, RegType::Single, true);
+  ASSERT(VS == VS_again);
+
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
@@ -121,7 +136,6 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
-  FALLBACK_IF(jo.memcheck);
 
   // If we have a fastmem arena, the asm routines assume address translation is on.
   FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
@@ -198,7 +212,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
       MOVI2R(addr_reg, (u32)offset);
   }
 
-  if (update)
+  const bool early_update = !jo.memcheck;
+  if (update && early_update)
   {
     gpr.BindToRegister(inst.RA, false);
     MOV(gpr.R(inst.RA), addr_reg);
@@ -211,7 +226,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 
     // Wipe the registers we are using as temporaries
     gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
-    gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+    if (!update || early_update)
+      gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
 
     u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
     if (!w)
@@ -229,6 +245,14 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     MOVP2R(ARM64Reg::X30, w ? single_store_quantized : paired_store_quantized);
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
+
+    WriteConditionalExceptionExit(EXCEPTION_DSI, ARM64Reg::X30, ARM64Reg::Q1);
+  }
+
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize && !have_single)

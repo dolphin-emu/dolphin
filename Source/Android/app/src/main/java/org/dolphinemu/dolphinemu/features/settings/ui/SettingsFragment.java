@@ -100,7 +100,6 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   {
     super.onCreate(savedInstanceState);
 
-    setRetainInstance(true);
     Bundle args = getArguments();
     MenuTag menuTag = (MenuTag) args.getSerializable(ARGUMENT_MENU_TAG);
     String gameId = getArguments().getString(ARGUMENT_GAME_ID);

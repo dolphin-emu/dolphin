@@ -5,12 +5,13 @@
 
 // Multiplier and product register control
 
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
+
 #include <cstddef>
 
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 

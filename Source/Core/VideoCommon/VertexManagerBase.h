@@ -35,6 +35,11 @@ enum TexelBufferFormat : u32
   NUM_TEXEL_BUFFER_FORMATS
 };
 
+namespace OpcodeDecoder
+{
+enum class Primitive : u8;
+};
+
 class VertexManagerBase
 {
 private:
@@ -93,8 +98,9 @@ public:
   virtual bool Initialize();
 
   PrimitiveType GetCurrentPrimitiveType() const { return m_current_primitive_type; }
-  void AddIndices(int primitive, u32 num_vertices);
-  DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
+  void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
+  DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count, u32 stride,
+                                      bool cullall);
   void FlushData(u32 count, u32 stride);
 
   void Flush();
@@ -163,7 +169,7 @@ protected:
   virtual void DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex);
 
   u32 GetRemainingSize() const;
-  u32 GetRemainingIndices(int primitive) const;
+  u32 GetRemainingIndices(OpcodeDecoder::Primitive primitive) const;
 
   void CalculateZSlope(NativeVertexFormat* format);
   void LoadTextures();

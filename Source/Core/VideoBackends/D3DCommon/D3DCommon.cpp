@@ -1,6 +1,8 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3DCommon/D3DCommon.h"
+
 #include <d3d11.h>
 #include <d3d12.h>
 #include <dxgi1_3.h>
@@ -8,9 +10,10 @@
 
 #include "Common/Assert.h"
 #include "Common/DynamicLibrary.h"
+#include "Common/HRWrap.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "VideoBackends/D3DCommon/D3DCommon.h"
+
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -87,7 +90,7 @@ Microsoft::WRL::ComPtr<IDXGIFactory> CreateDXGIFactory(bool debug_device)
   HRESULT hr = create_dxgi_factory(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
   if (FAILED(hr))
   {
-    PanicAlertFmt("CreateDXGIFactory() failed with HRESULT {:08X}", hr);
+    PanicAlertFmt("CreateDXGIFactory() failed: {}", Common::HRWrap(hr));
     return nullptr;
   }
 

@@ -1,3 +1,6 @@
+// Copyright 2016 Dolphin Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "Core/DolphinAnalytics.h"
 
 #include <array>
@@ -245,13 +248,13 @@ void DolphinAnalytics::MakeBaseBuilder()
   Common::AnalyticsReportBuilder builder;
 
   // Version information.
-  builder.AddData("version-desc", Common::scm_desc_str);
-  builder.AddData("version-hash", Common::scm_rev_git_str);
-  builder.AddData("version-branch", Common::scm_branch_str);
-  builder.AddData("version-dist", Common::scm_distributor_str);
+  builder.AddData("version-desc", Common::GetScmDescStr());
+  builder.AddData("version-hash", Common::GetScmRevGitStr());
+  builder.AddData("version-branch", Common::GetScmBranchStr());
+  builder.AddData("version-dist", Common::GetScmDistributorStr());
 
   // Auto-Update information.
-  builder.AddData("update-track", SConfig::GetInstance().m_auto_update_track);
+  builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 
   // CPU information.
   builder.AddData("cpu-summary", cpu_info.Summarize());
@@ -356,12 +359,12 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
   builder.AddData("cfg-dsp-jit", Config::Get(Config::MAIN_DSP_JIT));
   builder.AddData("cfg-dsp-thread", Config::Get(Config::MAIN_DSP_THREAD));
-  builder.AddData("cfg-cpu-thread", SConfig::GetInstance().bCPUThread);
-  builder.AddData("cfg-fastmem", SConfig::GetInstance().bFastmem);
-  builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
+  builder.AddData("cfg-cpu-thread", Config::Get(Config::MAIN_CPU_THREAD));
+  builder.AddData("cfg-fastmem", Config::Get(Config::MAIN_FASTMEM));
+  builder.AddData("cfg-syncgpu", Config::Get(Config::MAIN_SYNC_GPU));
   builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
-  builder.AddData("cfg-oc-enable", SConfig::GetInstance().m_OCEnable);
-  builder.AddData("cfg-oc-factor", SConfig::GetInstance().m_OCFactor);
+  builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
+  builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
   builder.AddData("cfg-render-to-main", Config::Get(Config::MAIN_RENDER_TO_MAIN));
   if (g_video_backend)
   {
@@ -424,7 +427,7 @@ void DolphinAnalytics::MakePerGameBuilder()
   // Controller information
   // We grab enough to tell what percentage of our users are playing with keyboard/mouse, some kind
   // of gamepad
-  // or the official gamecube adapter.
+  // or the official GameCube adapter.
   builder.AddData("gcadapter-detected", GCAdapter::IsDetected(nullptr));
   builder.AddData("has-controller", Pad::GetConfig()->IsControllerControlledByGamepadDevice(0) ||
                                         GCAdapter::IsDetected(nullptr));

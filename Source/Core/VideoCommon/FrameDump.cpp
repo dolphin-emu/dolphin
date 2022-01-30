@@ -25,6 +25,7 @@ extern "C" {
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
@@ -86,14 +87,14 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
       File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
 
   const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, *std::localtime(&time), index);
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, fmt::localtime(time), index);
 
   const std::string path = fmt::format("{}.{}", base_name, extension);
 
   // Ask to delete file.
   if (File::Exists(path))
   {
-    if (SConfig::GetInstance().m_DumpFramesSilent ||
+    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", path))
     {
       File::Delete(path);
@@ -333,12 +334,18 @@ void FrameDump::AddFrame(const FrameData& frame)
 
 void FrameDump::ProcessPackets()
 {
+  auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
+      av_packet_alloc(), [](AVPacket* packet) { av_packet_free(&packet); });
+
+  if (!pkt)
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not allocate packet");
+    return;
+  }
+
   while (true)
   {
-    AVPacket pkt;
-    av_init_packet(&pkt);
-
-    const int receive_error = avcodec_receive_packet(m_context->codec, &pkt);
+    const int receive_error = avcodec_receive_packet(m_context->codec, pkt.get());
 
     if (receive_error == AVERROR(EAGAIN) || receive_error == AVERROR_EOF)
     {
@@ -352,10 +359,10 @@ void FrameDump::ProcessPackets()
       break;
     }
 
-    av_packet_rescale_ts(&pkt, m_context->codec->time_base, m_context->stream->time_base);
-    pkt.stream_index = m_context->stream->index;
+    av_packet_rescale_ts(pkt.get(), m_context->codec->time_base, m_context->stream->time_base);
+    pkt->stream_index = m_context->stream->index;
 
-    if (const int write_error = av_interleaved_write_frame(m_context->format, &pkt))
+    if (const int write_error = av_interleaved_write_frame(m_context->format, pkt.get()))
     {
       ERROR_LOG_FMT(FRAMEDUMP, "Error writing packet: {}", write_error);
       break;

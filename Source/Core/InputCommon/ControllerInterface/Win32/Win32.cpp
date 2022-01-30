@@ -7,10 +7,11 @@
 
 #include <array>
 #include <future>
+#include <mutex>
 #include <thread>
 
-#include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
@@ -19,12 +20,12 @@
 
 constexpr UINT WM_DOLPHIN_STOP = WM_USER;
 
-static Common::Event s_received_device_change_event;
 // Dolphin's render window
 static HWND s_hwnd;
 // Windows messaging window (hidden)
 static HWND s_message_window;
 static std::thread s_thread;
+static std::mutex s_populate_mutex;
 static Common::Flag s_first_populate_devices_asked;
 
 static LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
@@ -35,7 +36,7 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARA
     // listen for it.
     if (s_first_populate_devices_asked.IsSet())
     {
-      s_received_device_change_event.Set();
+      std::lock_guard lk_population(s_populate_mutex);
       // TODO: we could easily use the message passed alongside this event, which tells
       // whether a device was added or removed, to avoid removing old, still connected, devices
       g_controller_interface.PlatformPopulateDevices([] {
@@ -61,9 +62,10 @@ void ciface::Win32::Init(void* hwnd)
     HWND message_window = nullptr;
     Common::ScopeGuard promise_guard([&] { message_window_promise.set_value(message_window); });
 
-    if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)))
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr))
     {
-      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CoInitializeEx failed: {}", GetLastError());
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CoInitializeEx failed: {}", Common::HRWrap(hr));
       return;
     }
     Common::ScopeGuard uninit([] { CoUninitialize(); });
@@ -77,12 +79,14 @@ void ciface::Win32::Init(void* hwnd)
     ATOM window_class = RegisterClassEx(&window_class_info);
     if (!window_class)
     {
-      NOTICE_LOG_FMT(CONTROLLERINTERFACE, "RegisterClassEx failed: {}", GetLastError());
+      NOTICE_LOG_FMT(CONTROLLERINTERFACE, "RegisterClassEx failed: {}",
+                     Common::HRWrap(GetLastError()));
       return;
     }
     Common::ScopeGuard unregister([&window_class] {
       if (!UnregisterClass(MAKEINTATOM(window_class), GetModuleHandle(nullptr)))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "UnregisterClass failed: {}", GetLastError());
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "UnregisterClass failed: {}",
+                      Common::HRWrap(GetLastError()));
     });
 
     message_window = CreateWindowEx(0, L"Message", nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
@@ -90,12 +94,14 @@ void ciface::Win32::Init(void* hwnd)
     promise_guard.Exit();
     if (!message_window)
     {
-      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CreateWindowEx failed: {}", GetLastError());
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "CreateWindowEx failed: {}",
+                    Common::HRWrap(GetLastError()));
       return;
     }
     Common::ScopeGuard destroy([&] {
       if (!DestroyWindow(message_window))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "DestroyWindow failed: {}", GetLastError());
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "DestroyWindow failed: {}",
+                      Common::HRWrap(GetLastError()));
     });
 
     std::array<RAWINPUTDEVICE, 2> devices;
@@ -135,14 +141,12 @@ void ciface::Win32::PopulateDevices(void* hwnd)
   if (s_thread.joinable())
   {
     s_hwnd = static_cast<HWND>(hwnd);
+    // To avoid blocking this thread until the async population has finished, directly do it here
+    // (we need the DInput Keyboard and Mouse "default" device to always be added without any wait).
+    std::lock_guard lk_population(s_populate_mutex);
     s_first_populate_devices_asked.Set();
-    s_received_device_change_event.Reset();
-    // Do this forced devices refresh in the messaging thread so it won't cause any race conditions
-    PostMessage(s_message_window, WM_INPUT_DEVICE_CHANGE, 0, 0);
-    std::thread([] {
-      if (!s_received_device_change_event.WaitFor(std::chrono::seconds(5)))
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "win32 timed out when trying to populate devices");
-    }).detach();
+    ciface::DInput::PopulateDevices(s_hwnd);
+    ciface::XInput::PopulateDevices();
   }
   else
   {
@@ -156,6 +160,7 @@ void ciface::Win32::ChangeWindow(void* hwnd)
   if (s_thread.joinable())  // "Has init?"
   {
     s_hwnd = static_cast<HWND>(hwnd);
+    std::lock_guard lk_population(s_populate_mutex);
     ciface::DInput::ChangeWindow(s_hwnd);
   }
 }
@@ -168,7 +173,6 @@ void ciface::Win32::DeInit()
     PostMessage(s_message_window, WM_DOLPHIN_STOP, 0, 0);
     s_thread.join();
     s_message_window = nullptr;
-    s_received_device_change_event.Reset();
     s_first_populate_devices_asked.Clear();
     DInput::DeInit();
   }

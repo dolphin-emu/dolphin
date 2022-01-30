@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <memory>
@@ -31,6 +30,7 @@
 #include "Common/Version.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
@@ -40,6 +40,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
@@ -60,6 +62,7 @@
 #include "Core/SyncIdentifier.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
@@ -357,7 +360,8 @@ void NetPlayServer::ThreadFunc()
     ClearPeerPlayerId(player_entry.second.socket);
     enet_peer_disconnect(player_entry.second.socket, 0);
   }
-}  // namespace NetPlay
+  m_players.clear();
+}
 
 static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_identifier)
 {
@@ -391,7 +395,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   std::string npver;
   rpac >> npver;
   // Dolphin netplay version
-  if (npver != Common::scm_rev_git_str)
+  if (npver != Common::GetScmRevGitStr())
     return ConnectionError::VersionMismatch;
 
   // game is currently running or game start is pending
@@ -411,6 +415,9 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 
   if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
     return ConnectionError::NameTooLong;
+
+  // Extend reliable traffic timeout
+  enet_peer_timeout(socket, 0, 30000, 30000);
 
   // cause pings to be updated
   m_update_pings = true;
@@ -730,7 +737,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   MessageID mid;
   packet >> mid;
 
-  INFO_LOG_FMT(NETPLAY, "Got client message: {:x}", mid);
+  INFO_LOG_FMT(NETPLAY, "Got client message: {:x}", static_cast<u8>(mid));
 
   // don't need lock because this is the only thread that modifies the players
   // only need locks for writes to m_players in this thread
@@ -1139,7 +1146,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     default:
       PanicAlertFmtT(
           "Unknown SYNC_SAVE_DATA message with id:{0} received from player:{1} Kicking player!",
-          sub_id, player.pid);
+          static_cast<u8>(sub_id), player.pid);
       return 1;
     }
   }
@@ -1181,15 +1188,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     default:
       PanicAlertFmtT(
           "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} Kicking player!",
-          sub_id, player.pid);
+          static_cast<u8>(sub_id), player.pid);
       return 1;
     }
   }
   break;
 
   default:
-    PanicAlertFmtT("Unknown message with id:{0} received from player:{1} Kicking player!", mid,
-                   player.pid);
+    PanicAlertFmtT("Unknown message with id:{0} received from player:{1} Kicking player!",
+                   static_cast<u8>(mid), player.pid);
     // unknown message, kick the client
     return 1;
   }
@@ -1301,12 +1308,23 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_CopyWiiSave = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   settings.m_OCEnable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   settings.m_OCFactor = Config::Get(Config::MAIN_OVERCLOCK);
-  settings.m_EXIDevice[0] =
-      static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_A));
-  settings.m_EXIDevice[1] =
-      static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_B));
-  // There's no way the BBA is going to sync, disable it
-  settings.m_EXIDevice[2] = ExpansionInterface::EXIDEVICE_NONE;
+
+  for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+  {
+    ExpansionInterface::EXIDeviceType device;
+    if (slot == ExpansionInterface::Slot::SP1)
+    {
+      // There's no way the BBA is going to sync, disable it
+      device = ExpansionInterface::EXIDeviceType::None;
+    }
+    else
+    {
+      device = Config::Get(Config::GetInfoForEXIDevice(slot));
+    }
+    settings.m_EXIDevice[slot] = device;
+  }
+
+  settings.m_MemcardSizeOverride = Config::Get(Config::MAIN_MEMORY_CARD_SIZE);
 
   for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
   {
@@ -1491,8 +1509,10 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
 
-  for (auto& device : m_settings.m_EXIDevice)
-    spac << device;
+  for (auto slot : ExpansionInterface::SLOTS)
+    spac << static_cast<int>(m_settings.m_EXIDevice[slot]);
+
+  spac << m_settings.m_MemcardSizeOverride;
 
   for (u32 value : m_settings.m_SYSCONFSettings)
     spac << value;
@@ -1589,11 +1609,11 @@ bool NetPlayServer::SyncSaveData()
 
   u8 save_count = 0;
 
-  constexpr size_t exi_device_count = 2;
-  for (size_t i = 0; i < exi_device_count; i++)
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
-    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
-        SConfig::GetInstance().m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+    if (m_settings.m_EXIDevice[slot] == ExpansionInterface::EXIDeviceType::MemoryCard ||
+        Config::Get(Config::GetInfoForEXIDevice(slot)) ==
+            ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       save_count++;
     }
@@ -1613,6 +1633,17 @@ bool NetPlayServer::SyncSaveData()
   {
     wii_save = true;
     save_count++;
+  }
+
+  std::optional<DiscIO::Riivolution::SavegameRedirect> redirected_save;
+  if (wii_save && game->GetBlobType() == DiscIO::BlobType::MOD_DESCRIPTOR)
+  {
+    auto boot_params = BootParameters::GenerateFromFile(game->GetFilePath());
+    if (boot_params)
+    {
+      redirected_save =
+          DiscIO::Riivolution::ExtractSavegameRedirect(boot_params->riivolution_patches);
+    }
   }
 
   for (const auto& config : m_gba_config)
@@ -1637,21 +1668,17 @@ bool NetPlayServer::SyncSaveData()
   const std::string region =
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(game->GetRegion()));
 
-  for (size_t i = 0; i < exi_device_count; i++)
+  for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
-    const bool is_slot_a = i == 0;
+    const bool is_slot_a = slot == ExpansionInterface::Slot::A;
 
-    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD)
+    if (m_settings.m_EXIDevice[slot] == ExpansionInterface::EXIDeviceType::MemoryCard)
     {
-      std::string path = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
-                                     Config::Get(Config::MAIN_MEMCARD_B_PATH);
+      std::string path = Config::Get(Config::GetInfoForMemcardPath(slot));
 
-      MemoryCard::CheckPath(path, region, is_slot_a);
+      MemoryCard::CheckPath(path, region, slot);
 
-      int size_override;
-      IniFile gameIni = SConfig::LoadGameIni(game->GetGameID(), game->GetRevision());
-      gameIni.GetOrCreateSection("Core")->Get("MemoryCardSize", &size_override, -1);
-
+      const int size_override = m_settings.m_MemcardSizeOverride;
       if (size_override >= 0 && size_override <= 4)
       {
         path.insert(path.find_last_of('.'),
@@ -1678,8 +1705,8 @@ bool NetPlayServer::SyncSaveData()
       SendChunkedToClients(std::move(pac), 1,
                            fmt::format("Memory Card {} Synchronization", is_slot_a ? 'A' : 'B'));
     }
-    else if (SConfig::GetInstance().m_EXIDevice[i] ==
-             ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+    else if (Config::Get(Config::GetInfoForEXIDevice(slot)) ==
+             ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       const std::string path = File::GetUserPath(D_GCUSER_IDX) + region + DIR_SEP +
                                fmt::format("Card {}", is_slot_a ? 'A' : 'B');
@@ -1817,8 +1844,20 @@ bool NetPlayServer::SyncSaveData()
       }
     }
 
+    if (redirected_save)
+    {
+      pac << true;
+      if (!CompressFolderIntoPacket(redirected_save->m_target_path, pac))
+        return false;
+    }
+    else
+    {
+      pac << false;  // no redirected save
+    }
+
     // Set titles for host-side loading in WiiRoot
-    SetWiiSyncData(nullptr, titles);
+    m_dialog->SetHostWiiSyncData(std::move(titles),
+                                 redirected_save ? redirected_save->m_target_path : "");
 
     SendChunkedToClients(std::move(pac), 1, "Wii Save Synchronization");
   }
@@ -2002,10 +2041,8 @@ void NetPlayServer::CheckSyncAndStartGame()
 
 u64 NetPlayServer::GetInitialNetPlayRTC() const
 {
-  const auto& config = SConfig::GetInstance();
-
-  if (config.bEnableCustomRTC)
-    return config.m_customRTCValue;
+  if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
+    return Config::Get(Config::MAIN_CUSTOM_RTC_VALUE);
 
   return Common::Timer::GetLocalTimeSinceJan1970();
 }

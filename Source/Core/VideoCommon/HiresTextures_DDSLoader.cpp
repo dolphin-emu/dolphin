@@ -447,7 +447,7 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
 
   // Read first mip level, as it may have a custom pitch.
   Level first_level;
-  if (!file.Seek(info.first_mip_offset, SEEK_SET) ||
+  if (!file.Seek(info.first_mip_offset, File::SeekOrigin::Begin) ||
       !ReadMipLevel(&first_level, file, filename, 0, info, info.width, info.height,
                     info.first_mip_row_length, info.first_mip_size))
   {

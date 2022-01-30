@@ -111,7 +111,7 @@ void ProcessWiimotePool()
   for (u32 index = 0; index != MAX_WIIMOTES; ++index)
     TryToFillWiimoteSlot(index);
 
-  if (SConfig::GetInstance().connect_wiimotes_for_ciface)
+  if (Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
   {
     for (auto& entry : s_wiimote_pool)
       ciface::WiimoteController::AddDevice(std::move(entry.wiimote));
@@ -142,7 +142,16 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
   s_wiimote_pool.emplace_back(WiimotePoolEntry{std::move(wiimote)});
 }
 
-Wiimote::Wiimote() = default;
+Wiimote::Wiimote()
+{
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+Wiimote::~Wiimote()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
 
 void Wiimote::Shutdown()
 {
@@ -263,7 +272,7 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
     }
   }
   else if (rpt[1] == u8(OutputReportID::SpeakerData) &&
-           (!SConfig::GetInstance().m_WiimoteEnableSpeaker || !m_speaker_enable || m_speaker_mute))
+           (!m_speaker_enabled_in_dolphin_config || !m_speaker_enable || m_speaker_mute))
   {
     rpt.resize(3);
     // Translate undesired speaker data reports into rumble reports.
@@ -294,11 +303,11 @@ void Wiimote::Read()
 
   if (result > 0)
   {
-    if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+    if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
     {
       static sf::UdpSocket Socket;
       Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
-                  SConfig::GetInstance().iBBDumpPort);
+                  m_balance_board_dump_port);
     }
 
     // Add it to queue
@@ -315,11 +324,10 @@ bool Wiimote::Write()
 
   Report const& rpt = m_write_reports.Front();
 
-  if (SConfig::GetInstance().iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
+  if (m_balance_board_dump_port > 0 && m_index == WIIMOTE_BALANCE_BOARD)
   {
     static sf::UdpSocket Socket;
-    Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
-                SConfig::GetInstance().iBBDumpPort);
+    Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, m_balance_board_dump_port);
   }
   int ret = IOWrite(rpt.data(), rpt.size());
 
@@ -677,11 +685,11 @@ void WiimoteScanner::ThreadFunc()
       continue;
 
     // If we don't want Wiimotes in ControllerInterface, we may not need them at all.
-    if (!SConfig::GetInstance().connect_wiimotes_for_ciface)
+    if (!Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE))
     {
       // We don't want any remotes in passthrough mode or running in GC mode.
       const bool core_running = Core::GetState() != Core::State::Uninitialized;
-      if (SConfig::GetInstance().m_bt_passthrough_enabled ||
+      if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED) ||
           (core_running && !SConfig::GetInstance().bWii))
         continue;
 
@@ -804,6 +812,12 @@ void Wiimote::ThreadFunc()
   DisconnectInternal();
 }
 
+void Wiimote::RefreshConfig()
+{
+  m_speaker_enabled_in_dolphin_config = Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER);
+  m_balance_board_dump_port = Config::Get(Config::MAIN_BB_DUMP_PORT);
+}
+
 int Wiimote::GetIndex() const
 {
   return m_index;
@@ -843,7 +857,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
     s_wiimote_scanner.StartThread();
   }
 
-  if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+  if (Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
   else
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
@@ -957,7 +971,7 @@ static void HandleWiimoteDisconnect(int index)
 // This is called from the GUI thread
 void Refresh()
 {
-  if (!SConfig::GetInstance().m_WiimoteContinuousScanning)
+  if (!Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING))
     s_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 

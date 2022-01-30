@@ -14,9 +14,8 @@ JitBlockCache::JitBlockCache(JitBase& jit) : JitBaseBlockCache{jit}
 void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
   // Do not skip breakpoint check if debugging.
-  const u8* dispatcher = SConfig::GetInstance().bEnableDebugging ?
-                             m_jit.GetAsmRoutines()->dispatcher :
-                             m_jit.GetAsmRoutines()->dispatcher_no_check;
+  const u8* dispatcher = m_jit.IsDebuggingEnabled() ? m_jit.GetAsmRoutines()->dispatcher :
+                                                      m_jit.GetAsmRoutines()->dispatcher_no_check;
 
   u8* location = source.exitPtrs;
   const u8* address = dest ? dest->checkedEntry : dispatcher;

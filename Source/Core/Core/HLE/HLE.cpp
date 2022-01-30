@@ -31,7 +31,7 @@ constexpr std::array<Hook, 23> os_patches{{
     {"FAKE_TO_SKIP_0",               HLE_Misc::UnimplementedFunction,       HookType::Replace, HookFlag::Generic},
 
     // Name doesn't matter, installed in CBoot::BootUp()
-    {"HBReload",                     HLE_Misc::HBReload,                    HookType::Replace, HookFlag::Generic},
+    {"HBReload",                     HLE_Misc::HBReload,                    HookType::Replace, HookFlag::Fixed},
 
     // Debug/OS Support
     {"OSPanic",                      HLE_OS::HLE_OSPanic,                   HookType::Replace, HookFlag::Debug},
@@ -189,7 +189,7 @@ HookFlag GetHookFlagsByIndex(u32 index)
 
 bool IsEnabled(HookFlag flag)
 {
-  return flag != HLE::HookFlag::Debug || SConfig::GetInstance().bEnableDebugging ||
+  return flag != HLE::HookFlag::Debug || Config::Get(Config::MAIN_ENABLE_DEBUGGING) ||
          PowerPC::GetMode() == PowerPC::CoreMode::Interpreter;
 }
 
@@ -234,5 +234,22 @@ u32 UnPatch(std::string_view patch_name)
   }
 
   return 0;
+}
+
+u32 UnpatchRange(u32 start_addr, u32 end_addr)
+{
+  u32 count = 0;
+
+  auto i = s_hooked_addresses.lower_bound(start_addr);
+  while (i != s_hooked_addresses.end() && i->first < end_addr)
+  {
+    INFO_LOG_FMT(OSHLE, "Unpatch HLE hooks [{:08x};{:08x}): {} at {:08x}", start_addr, end_addr,
+                 os_patches[i->second].name, i->first);
+    PowerPC::ppcState.iCache.Invalidate(i->first);
+    i = s_hooked_addresses.erase(i);
+    count += 1;
+  }
+
+  return count;
 }
 }  // namespace HLE

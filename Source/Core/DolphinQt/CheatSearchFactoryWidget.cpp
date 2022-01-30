@@ -20,8 +20,10 @@
 #include "Core/CheatSearch.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 CheatSearchFactoryWidget::CheatSearchFactoryWidget()
 {
@@ -152,6 +154,15 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
   PowerPC::RequestedAddressSpace address_space;
   if (m_standard_address_space->isChecked())
   {
+    const Core::State core_state = Core::GetState();
+    if (core_state != Core::State::Running && core_state != Core::State::Paused)
+    {
+      ModalMessageBox::warning(
+          this, tr("No game running."),
+          tr("Please start a game before starting a search with standard memory regions."));
+      return;
+    }
+
     memory_ranges.emplace_back(0x80000000, Memory::GetRamSizeReal());
     if (SConfig::GetInstance().bWii)
       memory_ranges.emplace_back(0x90000000, Memory::GetExRamSizeReal());

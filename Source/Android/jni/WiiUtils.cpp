@@ -8,7 +8,11 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+#include "Common/ScopeGuard.h"
+#include "Core/CommonTitles.h"
 #include "Core/HW/WiiSave.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/IOS.h"
 #include "Core/WiiUtils.h"
 #include "DiscIO/NANDImporter.h"
 
@@ -33,6 +37,36 @@ static jint ConvertCopyResult(WiiSave::CopyResult result)
   }
 
   static_assert(static_cast<int>(WiiSave::CopyResult::NumberOfEntries) == 5);
+}
+
+static jint ConvertUpdateResult(WiiUtils::UpdateResult result)
+{
+  switch (result)
+  {
+  case WiiUtils::UpdateResult::Succeeded:
+    return 0;
+  case WiiUtils::UpdateResult::AlreadyUpToDate:
+    return 1;
+  case WiiUtils::UpdateResult::RegionMismatch:
+    return 2;
+  case WiiUtils::UpdateResult::MissingUpdatePartition:
+    return 3;
+  case WiiUtils::UpdateResult::DiscReadFailed:
+    return 4;
+  case WiiUtils::UpdateResult::ServerFailed:
+    return 5;
+  case WiiUtils::UpdateResult::DownloadFailed:
+    return 6;
+  case WiiUtils::UpdateResult::ImportFailed:
+    return 7;
+  case WiiUtils::UpdateResult::Cancelled:
+    return 8;
+  default:
+    ASSERT(false);
+    return 1;
+  }
+
+  static_assert(static_cast<int>(WiiUtils::UpdateResult::NumberOfEntries) == 9);
 }
 
 extern "C" {
@@ -77,5 +111,47 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_importNANDB
         PanicAlertFmtT("The decryption keys need to be appended to the NAND backup file.");
         return "";
       });
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doOnlineUpdate(
+    JNIEnv* env, jclass, jstring jRegion, jobject jCallback)
+{
+  const std::string region = GetJString(env, jRegion);
+
+  jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
+  Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });
+
+  const auto callback = [&jCallbackGlobal](int processed, int total, u64 title_id) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    return static_cast<bool>(env->CallBooleanMethod(
+        jCallbackGlobal, IDCache::GetWiiUpdateCallbackFunction(), processed, total, title_id));
+  };
+
+  WiiUtils::UpdateResult result = WiiUtils::DoOnlineUpdate(callback, region);
+
+  return ConvertUpdateResult(result);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_utils_WiiUtils_isSystemMenuInstalled(JNIEnv* env, jclass)
+{
+  IOS::HLE::Kernel ios;
+  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+
+  return tmd.IsValid();
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_utils_WiiUtils_getSystemMenuVersion(JNIEnv* env, jclass)
+{
+  IOS::HLE::Kernel ios;
+  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+
+  if (!tmd.IsValid())
+  {
+    return ToJString(env, "");
+  }
+
+  return ToJString(env, DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion()));
 }
 }

@@ -1,17 +1,18 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3DCommon/Shader.h"
+
 #include <fstream>
 #include <wrl/client.h>
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
-
-#include "VideoBackends/D3DCommon/Shader.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -114,12 +115,12 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
     file << "\n";
     file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
     file << "\n";
-    file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+    file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
     file << "Video Backend: " + g_video_backend->GetDisplayName();
     file.close();
 
-    PanicAlertFmt("Failed to compile {}:\nDebug info ({}):\n{}", filename, target,
-                  static_cast<const char*>(errors->GetBufferPointer()));
+    PanicAlertFmt("Failed to compile {}: {}\nDebug info ({}):\n{}", filename, Common::HRWrap(hr),
+                  target, static_cast<const char*>(errors->GetBufferPointer()));
     return std::nullopt;
   }
 

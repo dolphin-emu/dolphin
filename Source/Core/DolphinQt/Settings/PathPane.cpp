@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/Settings/PathPane.h"
+
 #include <QCheckBox>
 #include <QDir>
 #include <QGroupBox>
@@ -18,7 +20,6 @@
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/Settings.h"
-#include "DolphinQt/Settings/PathPane.h"
 
 PathPane::PathPane(QWidget* parent) : QWidget(parent)
 {
@@ -43,8 +44,10 @@ void PathPane::BrowseDefaultGame()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
       this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs "
-         "*.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)")));
+      QStringLiteral("%1 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
+                     "*.m3u *.json);;%2 (*)")
+          .arg(tr("All GC/Wii files"))
+          .arg(tr("All Files"))));
 
   if (!file.isEmpty())
     Settings::Instance().SetDefaultGame(file);
@@ -105,6 +108,17 @@ void PathPane::BrowseSDCard()
   {
     m_sdcard_edit->setText(file);
     OnSDCardPathChanged();
+  }
+}
+
+void PathPane::BrowseWFS()
+{
+  const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+      this, tr("Select WFS Path"), QString::fromStdString(Config::Get(Config::MAIN_WFS_PATH))));
+  if (!dir.isEmpty())
+  {
+    m_wfs_edit->setText(dir);
+    Config::SetBase(Config::MAIN_WFS_PATH, dir.toStdString());
   }
 }
 
@@ -233,6 +247,15 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(new QLabel(tr("SD Card Path:")), 5, 0);
   layout->addWidget(m_sdcard_edit, 5, 1);
   layout->addWidget(sdcard_open, 5, 2);
+
+  m_wfs_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_WFSROOT_IDX)));
+  connect(m_load_edit, &QLineEdit::editingFinished,
+          [=] { Config::SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
+  QPushButton* wfs_open = new QPushButton(QStringLiteral("..."));
+  connect(wfs_open, &QPushButton::clicked, this, &PathPane::BrowseWFS);
+  layout->addWidget(new QLabel(tr("WFS Path:")), 6, 0);
+  layout->addWidget(m_wfs_edit, 6, 1);
+  layout->addWidget(wfs_open, 6, 2);
 
   return layout;
 }

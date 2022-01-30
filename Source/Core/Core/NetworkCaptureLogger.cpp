@@ -191,7 +191,7 @@ void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length,
   };
 
   Common::EthernetHeader ethernet_header(0x800);
-  auto mac = Common::StringToMacAddress(SConfig::GetInstance().m_WirelessMac);
+  auto mac = Common::StringToMacAddress(Config::Get(Config::MAIN_WIRELESS_MAC));
   if (mac)
   {
     auto& mac_address =

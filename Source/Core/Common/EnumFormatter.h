@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <array>
+#include "Common/EnumMap.h"
+
 #include <fmt/format.h>
 #include <type_traits>
 
@@ -22,7 +23,7 @@
  * template <>
  * struct fmt::formatter<Foo> : EnumFormatter<Foo::C>
  * {
- *   formatter() : EnumFormatter({"A", "B", "C"}) {}
+ *   constexpr formatter() : EnumFormatter({"A", "B", "C"}) {}
  * };
  *
  * enum class Bar
@@ -38,54 +39,62 @@
  *   // using std::array here fails due to nullptr not being const char*, at least in MSVC
  *   // (but only when a field is used; directly in the constructor is OK)
  *   static constexpr array_type names = {"D", "E", nullptr, "F"};
- *   formatter() : EnumFormatter(names) {}
+ *   constexpr formatter() : EnumFormatter(names) {}
  * };
  */
-template <auto last_member, typename T = decltype(last_member),
-          size_t size = static_cast<size_t>(last_member) + 1,
-          std::enable_if_t<std::is_enum_v<T>, bool> = true>
+template <auto last_member, typename = decltype(last_member)>
 class EnumFormatter
 {
+  // The second template argument is needed to avoid compile errors from ambiguity with multiple
+  // enums with the same number of members in GCC prior to 8.  See https://godbolt.org/z/xcKaW1seW
+  // and https://godbolt.org/z/hz7Yqq1P5
+  using T = decltype(last_member);
+  static_assert(std::is_enum_v<T>);
+
 public:
   constexpr auto parse(fmt::format_parse_context& ctx)
   {
     auto it = ctx.begin(), end = ctx.end();
-    // 'u' for user display, 's' for shader generation
-    if (it != end && (*it == 'u' || *it == 's'))
-      formatting_for_shader = (*it++ == 's');
+    // 'u' for user display, 's' for shader generation, 'n' for name only
+    if (it != end && (*it == 'u' || *it == 's' || *it == 'n'))
+      format_type = *it++;
     return it;
   }
 
   template <typename FormatContext>
-  auto format(const T& e, FormatContext& ctx)
+  auto format(const T& e, FormatContext& ctx) const
   {
     const auto value_s = static_cast<std::underlying_type_t<T>>(e);      // Possibly signed
     const auto value_u = static_cast<std::make_unsigned_t<T>>(value_s);  // Always unsigned
-    const bool has_name = value_s >= 0 && value_u < size && m_names[value_u] != nullptr;
+    const bool has_name = m_names.InBounds(e) && m_names[e] != nullptr;
 
-    if (!formatting_for_shader)
+    switch (format_type)
     {
+    default:
+    case 'u':
       if (has_name)
-        return fmt::format_to(ctx.out(), "{} ({})", m_names[value_u], value_s);
+        return fmt::format_to(ctx.out(), "{} ({})", m_names[e], value_s);
       else
         return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
-    }
-    else
-    {
+    case 's':
       if (has_name)
-        return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value_u, m_names[value_u]);
+        return fmt::format_to(ctx.out(), "{:#x}u /* {} */", value_u, m_names[e]);
       else
         return fmt::format_to(ctx.out(), "{:#x}u /* Invalid */", value_u);
+    case 'n':
+      if (has_name)
+        return fmt::format_to(ctx.out(), "{}", m_names[e]);
+      else
+        return fmt::format_to(ctx.out(), "Invalid ({})", value_s);
     }
   }
 
 protected:
   // This is needed because std::array deduces incorrectly if nullptr is included in the list
-  using array_type = std::array<const char*, size>;
+  using array_type = Common::EnumMap<const char*, last_member>;
 
   constexpr explicit EnumFormatter(const array_type names) : m_names(std::move(names)) {}
 
-private:
   const array_type m_names;
-  bool formatting_for_shader = false;
+  char format_type = 'u';
 };

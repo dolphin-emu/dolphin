@@ -1,10 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/CPUDetect.h"
+
 #include <cstring>
 #include <string>
+#include <thread>
 
-#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 
@@ -106,7 +108,6 @@ void CPUInfo::Detect()
   // Detect family and other misc stuff.
   bool ht = false;
   HTT = ht;
-  logical_cpu_count = 1;
   if (max_std_fn >= 1)
   {
     __cpuid(cpu_id, 0x00000001);
@@ -120,8 +121,12 @@ void CPUInfo::Detect()
     // Detect AMD Zen1, Zen1+ and Zen2
     if (family == 23)
       bZen1p2 = true;
-    logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
     ht = (cpu_id[3] >> 28) & 1;
+
+    // AMD CPUs before Zen faked this flag and didn't actually
+    // implement simultaneous multithreading (SMT; Intel calls it HTT)
+    // but rather some weird middle-ground between 1-2 cores
+    HTT = ht && (vendor == CPUVendor::Intel || family >= 23);
 
     if ((cpu_id[3] >> 25) & 1)
       bSSE = true;
@@ -200,35 +205,10 @@ void CPUInfo::Detect()
       bLongMode = true;
   }
 
-  num_cores = (logical_cpu_count == 0) ? 1 : logical_cpu_count;
-
-  if (max_ex_fn >= 0x80000008)
-  {
-    // Get number of cores. This is a bit complicated. Following AMD manual here.
-    __cpuid(cpu_id, 0x80000008);
-    int apic_id_core_id_size = (cpu_id[2] >> 12) & 0xF;
-    if (apic_id_core_id_size == 0)
-    {
-      if (ht)
-      {
-        // New mechanism for modern Intel CPUs.
-        if (vendor == CPUVendor::Intel)
-        {
-          __cpuidex(cpu_id, 0x00000004, 0x00000000);
-          int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;
-          HTT = (cores_x_package < logical_cpu_count);
-          cores_x_package = ((logical_cpu_count % cores_x_package) == 0) ? cores_x_package : 1;
-          num_cores = (cores_x_package > 1) ? cores_x_package : num_cores;
-          logical_cpu_count /= cores_x_package;
-        }
-      }
-    }
-    else
-    {
-      // Use AMD's new method.
-      num_cores = (cpu_id[2] & 0xFF) + 1;
-    }
-  }
+  // this should be much more reliable and easier
+  // than trying to get the number of cores out of the CPUID data
+  // ourselves
+  num_cores = std::max(std::thread::hardware_concurrency(), 1u);
 }
 
 // Turn the CPU info into a string we can show

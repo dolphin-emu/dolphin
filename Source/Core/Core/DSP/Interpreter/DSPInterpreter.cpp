@@ -687,7 +687,7 @@ u16 Interpreter::OpReadRegister(int reg_)
   case DSP_REG_ACM1:
     return state.r.ac[reg - DSP_REG_ACM0].m;
   default:
-    ASSERT_MSG(DSP_INT, 0, "cannot happen");
+    ASSERT_MSG(DSPLLE, 0, "cannot happen");
     return 0;
   }
 }

@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/AboutDialog.h"
+
 #include <QLabel>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -8,7 +10,6 @@
 
 #include "Common/Version.h"
 
-#include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Resources.h"
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
@@ -46,12 +47,12 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 <a href='https://forums.dolphin-emu.org/'>%SUPPORT%</a>
 )")
           .replace(QStringLiteral("%VERSION_STRING%"),
-                   QString::fromUtf8(Common::scm_desc_str.c_str()))
+                   QString::fromUtf8(Common::GetScmDescStr().c_str()))
           .replace(QStringLiteral("%BRANCH%"),
                    // i18n: "Branch" means the version control term, not a literal tree branch.
-                   tr("Branch: %1").arg(QString::fromUtf8(Common::scm_branch_str.c_str())))
+                   tr("Branch: %1").arg(QString::fromUtf8(Common::GetScmBranchStr().c_str())))
           .replace(QStringLiteral("%REVISION%"),
-                   tr("Revision: %1").arg(QString::fromUtf8(Common::scm_rev_git_str.c_str())))
+                   tr("Revision: %1").arg(QString::fromUtf8(Common::GetScmRevGitStr().c_str())))
           .replace(QStringLiteral("%QT_VERSION%"),
                    tr("Using Qt %1").arg(QStringLiteral(QT_VERSION_STR)))
           .replace(QStringLiteral("%CHECK_FOR_UPDATES%"), tr("Check for updates"))

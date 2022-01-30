@@ -29,7 +29,6 @@
         android:name="android.permission.VIBRATE"
         android:required="false"/>
 
-    <!-- Once compileSdkVersion is 31, add: android:dataExtractionRules="@xml/backup_rules_api_31" -->
     <application
         android:name=".DolphinApplication"
         android:label="@string/app_name"
@@ -38,9 +37,11 @@
         android:preserveLegacyExternalStorage="true"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/backup_rules_api_31"
         android:supportsRtl="true"
         android:isGame="true"
-        android:banner="@drawable/banner_tv">
+        android:banner="@drawable/banner_tv"
+        android:hasFragileUserData="true">
         <meta-data
             android:name="android.max_aspect"
             android:value="2.1"/>
@@ -126,13 +127,10 @@
             android:label="@string/user_data_submenu"
             android:theme="@style/DolphinSettingsBase" />
 
-        <service
-            android:name=".utils.DirectoryInitialization"
-            android:exported="false"/>
-
-        <service
-            android:name=".services.GameFileCacheService"
-            android:exported="false"/>
+        <activity
+            android:name=".features.riivolution.ui.RiivolutionBootActivity"
+            android:exported="false"
+            android:theme="@style/DolphinBase" />
 
         <service
             android:name=".services.SyncChannelJobService"
@@ -157,4 +155,3 @@
     </application>
 
 </manifest>
-

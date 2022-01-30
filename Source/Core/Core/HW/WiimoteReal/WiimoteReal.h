@@ -51,7 +51,7 @@ public:
   Wiimote(Wiimote&&) = delete;
   Wiimote& operator=(Wiimote&&) = delete;
 
-  virtual ~Wiimote() {}
+  ~Wiimote() override;
   // This needs to be called in derived destructors!
   void Shutdown();
 
@@ -125,6 +125,8 @@ private:
 
   void ThreadFunc();
 
+  void RefreshConfig();
+
   bool m_is_linked = false;
 
   // We track the speaker state to convert unnecessary speaker data into rumble reports.
@@ -144,6 +146,11 @@ private:
 
   Common::SPSCQueue<Report> m_read_reports;
   Common::SPSCQueue<Report> m_write_reports;
+
+  bool m_speaker_enabled_in_dolphin_config = false;
+  int m_balance_board_dump_port = 0;
+
+  size_t m_config_changed_callback_id;
 };
 
 class WiimoteScannerBackend
@@ -209,5 +216,4 @@ void InitAdapterClass();
 void HandleWiimotesInControllerInterfaceSettingChange();
 void PopulateDevices();
 void ProcessWiimotePool();
-
 }  // namespace WiimoteReal

@@ -41,6 +41,7 @@ enum
   D_STATESAVES_IDX,
   D_SCREENSHOTS_IDX,
   D_HIRESTEXTURES_IDX,
+  D_RIIVOLUTION_IDX,
   D_DUMP_IDX,
   D_DUMPFRAMES_IDX,
   D_DUMPOBJECTS_IDX,
@@ -61,7 +62,8 @@ enum
   D_DYNAMICINPUT_IDX,
   D_GBAUSER_IDX,
   D_GBASAVES_IDX,
-  F_DOLPHINCONFIG_IDX,
+  FIRST_FILE_USER_PATH_IDX,
+  F_DOLPHINCONFIG_IDX = FIRST_FILE_USER_PATH_IDX,
   F_GCPADCONFIG_IDX,
   F_WIIPADCONFIG_IDX,
   F_GCKEYBOARDCONFIG_IDX,
@@ -120,7 +122,11 @@ private:
   void AndroidContentInit(const std::string& path);
 #endif
 
+#ifdef _WIN32
+  struct __stat64 m_stat;
+#else
   struct stat m_stat;
+#endif
   bool m_exists;
 };
 
@@ -203,7 +209,7 @@ const std::string& GetUserPath(unsigned int dir_index);
 
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
-void SetUserPath(unsigned int dir_index, const std::string& path);
+void SetUserPath(unsigned int dir_index, std::string path);
 
 // probably doesn't belong here
 std::string GetThemeDir(const std::string& theme_name);

@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/Vulkan/VulkanLoader.h"
+
 #include <atomic>
 #include <cstdarg>
 #include <cstdlib>
@@ -8,10 +10,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/DynamicLibrary.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-
-#include "VideoBackends/Vulkan/VulkanLoader.h"
 
 #define VULKAN_MODULE_ENTRY_POINT(name, required) PFN_##name name;
 #define VULKAN_INSTANCE_ENTRY_POINT(name, required) PFN_##name name;
@@ -44,8 +43,8 @@ static bool OpenVulkanLibrary()
   if (libvulkan_env && s_vulkan_module.Open(libvulkan_env))
     return true;
 
-  // Use the libvulkan.dylib from the application bundle.
-  std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+  // Use the libMoltenVK.dylib from the application bundle.
+  std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libMoltenVK.dylib";
   return s_vulkan_module.Open(filename.c_str());
 #else
   std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
@@ -205,7 +204,8 @@ const char* VkResultToString(VkResult res)
   }
 }
 
-void LogVulkanResult(int level, const char* func_name, VkResult res, const char* msg, ...)
+void LogVulkanResult(Common::Log::LogLevel level, const char* func_name, VkResult res,
+                     const char* msg, ...)
 {
   std::va_list ap;
   va_start(ap, msg);
@@ -215,7 +215,7 @@ void LogVulkanResult(int level, const char* func_name, VkResult res, const char*
   real_msg = fmt::format("({}) {} ({}: {})", func_name, real_msg, static_cast<int>(res),
                          VkResultToString(res));
 
-  GENERIC_LOG_FMT(Common::Log::VIDEO, static_cast<Common::Log::LOG_LEVELS>(level), "{}", real_msg);
+  GENERIC_LOG_FMT(Common::Log::LogType::VIDEO, level, "{}", real_msg);
 }
 
 }  // namespace Vulkan

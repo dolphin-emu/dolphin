@@ -3,6 +3,9 @@
 
 #include "Core/NetPlayCommon.h"
 
+#include <algorithm>
+
+#include <fmt/format.h>
 #include <lzo/lzo1x.h>
 
 #include "Common/FileUtil.h"
@@ -82,6 +85,35 @@ bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
   packet << static_cast<u32>(0);
 
   return true;
+}
+
+static bool CompressFolderIntoPacketInternal(const File::FSTEntry& folder, sf::Packet& packet)
+{
+  const sf::Uint64 size = folder.children.size();
+  packet << size;
+  for (const auto& child : folder.children)
+  {
+    const bool is_folder = child.isDirectory;
+    packet << child.virtualName;
+    packet << is_folder;
+    const bool success = is_folder ? CompressFolderIntoPacketInternal(child, packet) :
+                                     CompressFileIntoPacket(child.physicalName, packet);
+    if (!success)
+      return false;
+  }
+  return true;
+}
+
+bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet)
+{
+  if (!File::IsDirectory(folder_path))
+  {
+    packet << false;
+    return true;
+  }
+
+  packet << true;
+  return CompressFolderIntoPacketInternal(File::ScanDirectoryTree(folder_path, true), packet);
 }
 
 bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet)
@@ -185,6 +217,47 @@ bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
   }
 
   return true;
+}
+
+static bool DecompressPacketIntoFolderInternal(sf::Packet& packet, const std::string& folder_path)
+{
+  if (!File::CreateFullPath(folder_path + "/"))
+    return false;
+
+  sf::Uint64 size;
+  packet >> size;
+  for (size_t i = 0; i < size; ++i)
+  {
+    std::string name;
+    packet >> name;
+
+    if (name.find('/') != std::string::npos)
+      return false;
+#ifdef _WIN32
+    if (name.find('\\') != std::string::npos)
+      return false;
+#endif
+    if (std::all_of(name.begin(), name.end(), [](char c) { return c == '.'; }))
+      return false;
+
+    bool is_folder;
+    packet >> is_folder;
+    std::string path = fmt::format("{}/{}", folder_path, name);
+    const bool success = is_folder ? DecompressPacketIntoFolderInternal(packet, path) :
+                                     DecompressPacketIntoFile(packet, path);
+    if (!success)
+      return false;
+  }
+  return true;
+}
+
+bool DecompressPacketIntoFolder(sf::Packet& packet, const std::string& folder_path)
+{
+  bool folder_existed;
+  packet >> folder_existed;
+  if (!folder_existed)
+    return true;
+  return DecompressPacketIntoFolderInternal(packet, folder_path);
 }
 
 std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet)

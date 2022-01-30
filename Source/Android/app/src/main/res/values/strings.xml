@@ -182,6 +182,29 @@
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
 
+    <!-- Online Update Region Select Fragment -->
+    <string name="region_select_title">Please select a region</string>
+    <string name="europe">Europe</string>
+    <string name="japan">Japan</string>
+    <string name="korea">Korea</string>
+    <string name="united_states">United States</string>
+
+    <!-- Online Update Progress Bar Fragment -->
+    <string name="updating">Updating</string>
+    <string name="updating_message">Updating title %016x...\nThis can take a while.</string>
+    <string name="update_success">The emulated Wii console has been updated.</string>
+    <string name="already_up_to_date">The emulated Wii console is already up-to-date.</string>
+    <string name="region_mismatch">The game\'s region does not match your console\'s. To avoid issues with the system menu, it is not possible to update the emulated console using this disc.</string>
+    <string name="missing_update_partition">The game disc does not contain any usable update information.</string>
+    <string name="disc_read_failed">The game disc does not contain any usable update information.</string>
+    <string name="server_failed">"Could not download update information from Nintendo. Please check your Internet connection and try again.</string>
+    <string name="download_failed">Could not download update files from Nintendo. Please check your Internet connection and try again.</string>
+    <string name="import_failed">"Could not install an update to the Wii system memory. Please refer to logs for more information.</string>
+    <string name="update_cancelled">The update has been cancelled. It is strongly recommended to finish it in order to avoid inconsistent system software versions.</string>
+    <string name="update_success_title">Update completed</string>
+    <string name="update_failed_title">Update failed</string>
+    <string name="update_cancelled_title">Update cancelled</string>
+
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
     <string name="dsp_emulation_engine">DSP Emulation Engine</string>
@@ -198,6 +221,7 @@
     <string name="load_path">Load Path</string>
     <string name="resource_pack_path">Resource Pack Path</string>
     <string name="SD_card_path">SD Card Path</string>
+    <string name="wfs_path">WFS Path</string>
 
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>
@@ -303,6 +327,8 @@
     <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this unchecked.</string>
     <string name="defer_efb_invalidation">Defer EFB Cache Invalidation</string>
     <string name="defer_efb_invalidation_description">Defers invalidation of the EFB access cache until a GPU synchronization command is executed. May improve performance in some games at the cost of stability. If unsure, leave this unchecked.</string>
+    <string name="manual_texture_sampling">Manual Texture Sampling</string>
+    <string name="manual_texture_sampling_description">Use a manual implementation of texture sampling instead of the graphics backend\'s built-in functionality.</string>
     <string name="internal_resolution_dumps">Dump Frames at Internal Resolution</string>
     <string name="internal_resolution_dumps_description">Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within. If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.</string>
     <string name="debugging">Debugging</string>
@@ -318,6 +344,8 @@
     <!-- Advanced Settings -->
     <string name="advanced_submenu">Advanced</string>
     <string name="cpu_core">CPU Core</string>
+    <string name="mmu_enable">Enable MMU</string>
+    <string name="mmu_enable_description">Enables the Memory Management Unit. Needed for some games, but may reduce performance.</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
@@ -358,7 +386,9 @@
     <string name="user_data_submenu">User Data</string>
     <string name="user_data_old_location">Your user data is stored in a location which will <b>not</b> be deleted when you uninstall the app:</string>
     <string name="user_data_new_location">Your user data is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
-    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, you can\'t access this location using file manager apps. However, you can access it using the system file manager, or by connecting your device to a PC.</string>
+    <!-- Android 10 and up support android:hasFragileUserData -->
+    <string name="user_data_new_location_android_10">Your user data is stored in a location which by default <b>will be deleted</b> when you uninstall the app:</string>
+    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, not all file manager apps can access this location. However, you can access it using the system file manager (if present on your device), or by connecting your device to a PC.</string>
     <string name="user_data_open_system_file_manager">Open System File Manager</string>
     <string name="user_data_open_system_file_manager_failed">Sorry, Dolphin couldn\'t find the system file manager on your device.</string>
 
@@ -384,6 +414,9 @@
     <string name="grid_menu_install_wad">Install WAD</string>
     <string name="grid_menu_import_wii_save">Import Wii Save</string>
     <string name="grid_menu_import_nand_backup">Import BootMii NAND Backup</string>
+    <string name="grid_menu_online_system_update">Perform Online System Update</string>
+    <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
+    <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
     <string name="import_in_progress">Importing...</string>
     <string name="do_not_close_app">Do not close the app!</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
@@ -394,11 +427,14 @@
     <string name="wii_save_import_corruped_source">Failed to import save file. The given file appears to be corrupted or is not a valid Wii save.</string>
     <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
     <string name="nand_import_warning">Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?</string>
+    <string name="system_menu_not_installed_title">Not installed</string>
+    <string name="system_menu_not_installed_message">The Wii Menu is currently not installed. Would you like to install it now?\nAn internet connection is required to download the update. It is recommended to download the update on Wi-Fi, as the amount of data downloaded may be large.</string>
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
-    <string name="properties_convert">Convert File</string>
+    <string name="properties_start_with_riivolution">Start with Riivolution Patches</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
+    <string name="properties_convert">Convert File</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>
     <string name="properties_edit_cheats">Edit Cheats</string>
     <string name="properties_clear_game_settings">Clear Game Settings and Cheats</string>
@@ -478,6 +514,11 @@ and a few other programs. It can efficiently compress encrypted Wii data, but no
 It can efficiently compress both junk data and encrypted Wii data.
     </string>
 
+    <!-- Riivolution Boot Screen -->
+    <string name="riivolution_sd_root">SD Root: %1$s</string>
+    <string name="riivolution_disabled">Disabled</string>
+    <string name="riivolution_start">Start</string>
+
     <!-- Emulation Menu -->
     <string name="pause_emulation">Pause Emulation</string>
     <string name="unpause_emulation">Unpause Emulation</string>
@@ -504,6 +545,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_menu_help">Press Back to access the menu.\nLong press Back to exit emulation.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_ir_group">Touch IR Pointer</string>
+    <string name="emulation_ir_recenter">Always recenter</string>
+    <string name="emulation_ir_mode">IR Mode</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
     <string name="emulation_motion_controls">Motion Controls</string>

@@ -18,14 +18,12 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 #include "VideoCommon/VideoBackendBase.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 namespace PowerPC
 {
@@ -521,6 +519,9 @@ static void Memcheck(u32 address, u64 var, bool write, size_t size)
     return;
 
   CPU::Break();
+
+  if (GDBStub::IsActive())
+    GDBStub::TakeControl();
 
   // Fake a DSI so that all the code that tests for it in order to skip
   // the rest of the instruction will apply.  (This means that
@@ -1147,7 +1148,7 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 static void GenerateDSIException(u32 effective_address, bool write)
 {
   // DSI exceptions are only supported in MMU mode.
-  if (!SConfig::GetInstance().bMMU)
+  if (!Core::System::GetInstance().IsMMUMode())
   {
     PanicAlertFmt("Invalid {} {:#010x}, PC = {:#010x}", write ? "write to" : "read from",
                   effective_address, PC);

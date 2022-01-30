@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Updater.h"
 
+#include <utility>
+
 #include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -18,20 +20,22 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-Updater::Updater(QWidget* parent) : m_parent(parent)
+Updater::Updater(QWidget* parent, std::string update_track, std::string hash_override)
+    : m_parent(parent), m_update_track(std::move(update_track)),
+      m_hash_override(std::move(hash_override))
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate();
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
 }
 
 bool Updater::CheckForUpdate()
 {
   m_update_available = false;
-  AutoUpdateChecker::CheckForUpdate();
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
 
   return m_update_available;
 }
@@ -51,7 +55,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
            "download. "
            "You are running %2.<br> Would you like to update?<br><h4>Release Notes:</h4>")
             .arg(QString::fromStdString(info.new_shortrev))
-            .arg(QString::fromStdString(Common::scm_desc_str)));
+            .arg(QString::fromStdString(Common::GetScmDescStr())));
     label->setTextFormat(Qt::RichText);
 
     auto* changelog = new QTextBrowser;

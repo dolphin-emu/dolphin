@@ -15,6 +15,7 @@ class QStackedWidget;
 class QString;
 
 class BreakpointWidget;
+class BootSessionData;
 struct BootParameters;
 class CheatsManager;
 class CodeWidget;
@@ -132,13 +133,13 @@ private:
   };
 
   void ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
-                                     const std::optional<std::string>& savestate_path = {});
+                                     std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(const QString& path, ScanForSecondDisc scan,
-                 const std::optional<std::string>& savestate_path = {});
+                 std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(const std::string& path, ScanForSecondDisc scan,
-                 const std::optional<std::string>& savestate_path = {});
+                 std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(const std::vector<std::string>& paths,
-                 const std::optional<std::string>& savestate_path = {});
+                 std::unique_ptr<BootSessionData> boot_session_data = nullptr);
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget(bool reinit = true, bool is_exit = false);
@@ -157,6 +158,7 @@ private:
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
+  void ShowRiivolutionBootWidget(const UICommon::GameFile& game);
 
   void NetPlayInit();
   bool NetPlayJoin();

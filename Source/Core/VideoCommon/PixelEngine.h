@@ -61,8 +61,8 @@ void DoState(PointerWrap& p);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // gfx backend support
-void SetToken(const u16 token, const bool interrupt);
-void SetFinish();
+void SetToken(const u16 token, const bool interrupt, int cycle_delay);
+void SetFinish(int cycle_delay);
 UPEAlphaReadReg GetAlphaReadMode();
 
 }  // namespace PixelEngine

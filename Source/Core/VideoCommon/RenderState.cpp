@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/RenderState.h"
+
 #include <algorithm>
 #include <array>
-#include "VideoCommon/SamplerCommon.h"
+
 #include "VideoCommon/TextureConfig.h"
 
 void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_type)
@@ -17,29 +18,11 @@ void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_ty
     cullmode = CullMode::None;
 }
 
-RasterizationState& RasterizationState::operator=(const RasterizationState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
-}
-
-FramebufferState& FramebufferState::operator=(const FramebufferState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
-}
-
 void DepthState::Generate(const BPMemory& bp)
 {
   testenable = bp.zmode.testenable.Value();
   updateenable = bp.zmode.updateenable.Value();
   func = bp.zmode.func.Value();
-}
-
-DepthState& DepthState::operator=(const DepthState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
 }
 
 // If the framebuffer format has no alpha channel, it is assumed to
@@ -216,42 +199,45 @@ void BlendingState::ApproximateLogicOpWithBlending()
   dstfactor = approximations[u32(logicmode.Value())].dstfactor;
 }
 
-BlendingState& BlendingState::operator=(const BlendingState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
-}
-
 void SamplerState::Generate(const BPMemory& bp, u32 index)
 {
   auto tex = bp.tex.GetUnit(index);
-  const TexMode0& tm0 = tex.texMode0;
-  const TexMode1& tm1 = tex.texMode1;
+  const TexMode0& bp_tm0 = tex.texMode0;
+  const TexMode1& bp_tm1 = tex.texMode1;
 
   // GX can configure the mip filter to none. However, D3D and Vulkan can't express this in their
   // sampler states. Therefore, we set the min/max LOD to zero if this option is used.
-  min_filter = tm0.min_filter == FilterMode::Linear ? Filter::Linear : Filter::Point;
-  mipmap_filter = tm0.mipmap_filter == MipMode::Linear ? Filter::Linear : Filter::Point;
-  mag_filter = tm0.mag_filter == FilterMode::Linear ? Filter::Linear : Filter::Point;
+  tm0.min_filter = bp_tm0.min_filter;
+  tm0.mipmap_filter =
+      bp_tm0.mipmap_filter == MipMode::Linear ? FilterMode::Linear : FilterMode::Near;
+  tm0.mag_filter = bp_tm0.mag_filter;
 
   // If mipmaps are disabled, clamp min/max lod
-  max_lod = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm1.max_lod.Value() : 0;
-  min_lod = std::min(max_lod.Value(), static_cast<u64>(tm1.min_lod));
-  lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias * (256 / 32) : 0;
+  if (bp_tm0.mipmap_filter == MipMode::None)
+  {
+    tm1.max_lod = 0;
+    tm1.min_lod = 0;
+    tm0.lod_bias = 0;
+  }
+  else
+  {
+    // NOTE: When comparing, max is checked first, then min; if max is less than min, max wins
+    tm1.max_lod = bp_tm1.max_lod.Value();
+    tm1.min_lod = std::min(tm1.max_lod.Value(), bp_tm1.min_lod.Value());
+    tm0.lod_bias = bp_tm0.lod_bias * (256 / 32);
+  }
 
-  // Address modes
+  // Wrap modes
   // Hardware testing indicates that wrap_mode set to 3 behaves the same as clamp.
-  static constexpr std::array<AddressMode, 4> address_modes = {
-      {AddressMode::Clamp, AddressMode::Repeat, AddressMode::MirroredRepeat, AddressMode::Clamp}};
-  wrap_u = address_modes[u32(tm0.wrap_s.Value())];
-  wrap_v = address_modes[u32(tm0.wrap_t.Value())];
-  anisotropic_filtering = 0;
-}
+  auto filter_invalid_wrap = [](WrapMode mode) {
+    return (mode <= WrapMode::Mirror) ? mode : WrapMode::Clamp;
+  };
+  tm0.wrap_u = filter_invalid_wrap(bp_tm0.wrap_s);
+  tm0.wrap_v = filter_invalid_wrap(bp_tm0.wrap_t);
 
-SamplerState& SamplerState::operator=(const SamplerState& rhs)
-{
-  hex = rhs.hex;
-  return *this;
+  tm0.diag_lod = bp_tm0.diag_lod;
+  tm0.anisotropic_filtering = false;  // TODO: Respect BP anisotropic filtering mode
+  tm0.lod_clamp = bp_tm0.lod_clamp;   // TODO: What does this do?
 }
 
 namespace RenderState
@@ -344,37 +330,42 @@ BlendingState GetNoColorWriteBlendState()
 SamplerState GetInvalidSamplerState()
 {
   SamplerState state;
-  state.hex = UINT64_C(0xFFFFFFFFFFFFFFFF);
+  state.tm0.hex = 0xFFFFFFFF;
+  state.tm1.hex = 0xFFFFFFFF;
   return state;
 }
 
 SamplerState GetPointSamplerState()
 {
   SamplerState state = {};
-  state.min_filter = SamplerState::Filter::Point;
-  state.mag_filter = SamplerState::Filter::Point;
-  state.mipmap_filter = SamplerState::Filter::Point;
-  state.wrap_u = SamplerState::AddressMode::Clamp;
-  state.wrap_v = SamplerState::AddressMode::Clamp;
-  state.min_lod = 0;
-  state.max_lod = 255;
-  state.lod_bias = 0;
-  state.anisotropic_filtering = false;
+  state.tm0.min_filter = FilterMode::Near;
+  state.tm0.mag_filter = FilterMode::Near;
+  state.tm0.mipmap_filter = FilterMode::Near;
+  state.tm0.wrap_u = WrapMode::Clamp;
+  state.tm0.wrap_v = WrapMode::Clamp;
+  state.tm1.min_lod = 0;
+  state.tm1.max_lod = 255;
+  state.tm0.lod_bias = 0;
+  state.tm0.anisotropic_filtering = false;
+  state.tm0.diag_lod = LODType::Edge;
+  state.tm0.lod_clamp = false;
   return state;
 }
 
 SamplerState GetLinearSamplerState()
 {
   SamplerState state = {};
-  state.min_filter = SamplerState::Filter::Linear;
-  state.mag_filter = SamplerState::Filter::Linear;
-  state.mipmap_filter = SamplerState::Filter::Linear;
-  state.wrap_u = SamplerState::AddressMode::Clamp;
-  state.wrap_v = SamplerState::AddressMode::Clamp;
-  state.min_lod = 0;
-  state.max_lod = 255;
-  state.lod_bias = 0;
-  state.anisotropic_filtering = false;
+  state.tm0.min_filter = FilterMode::Linear;
+  state.tm0.mag_filter = FilterMode::Linear;
+  state.tm0.mipmap_filter = FilterMode::Linear;
+  state.tm0.wrap_u = WrapMode::Clamp;
+  state.tm0.wrap_v = WrapMode::Clamp;
+  state.tm1.min_lod = 0;
+  state.tm1.max_lod = 255;
+  state.tm0.lod_bias = 0;
+  state.tm0.anisotropic_filtering = false;
+  state.tm0.diag_lod = LODType::Edge;
+  state.tm0.lod_clamp = false;
   return state;
 }
 

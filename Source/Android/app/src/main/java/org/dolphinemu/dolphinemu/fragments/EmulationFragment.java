@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -29,19 +28,26 @@ import java.io.File;
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
   private static final String KEY_GAMEPATHS = "gamepaths";
+  private static final String KEY_RIIVOLUTION = "riivolution";
+  private static final String KEY_SYSTEM_MENU = "systemMenu";
 
   private InputOverlay mInputOverlay;
 
   private String[] mGamePaths;
+  private boolean mRiivolution;
   private boolean mRunWhenSurfaceIsValid;
   private boolean mLoadPreviousTemporaryState;
+  private boolean mLaunchSystemMenu;
 
   private EmulationActivity activity;
 
-  public static EmulationFragment newInstance(String[] gamePaths)
+  public static EmulationFragment newInstance(String[] gamePaths, boolean riivolution,
+          boolean systemMenu)
   {
     Bundle args = new Bundle();
     args.putStringArray(KEY_GAMEPATHS, gamePaths);
+    args.putBoolean(KEY_RIIVOLUTION, riivolution);
+    args.putBoolean(KEY_SYSTEM_MENU, systemMenu);
 
     EmulationFragment fragment = new EmulationFragment();
     fragment.setArguments(args);
@@ -72,10 +78,9 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     super.onCreate(savedInstanceState);
 
-    // So this fragment doesn't restart on configuration changes; i.e. rotation.
-    setRetainInstance(true);
-
     mGamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
+    mRiivolution = getArguments().getBoolean(KEY_RIIVOLUTION);
+    mLaunchSystemMenu = getArguments().getBoolean(KEY_SYSTEM_MENU);
   }
 
   /**
@@ -159,6 +164,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     if (mInputOverlay != null)
       mInputOverlay.refreshControls();
+  }
+
+  public void refreshOverlayPointer(Settings settings)
+  {
+    if (mInputOverlay != null)
+      mInputOverlay.refreshOverlayPointer(settings);
   }
 
   public void resetInputOverlay()
@@ -267,12 +278,17 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         if (mLoadPreviousTemporaryState)
         {
           Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
-          NativeLibrary.Run(mGamePaths, getTemporaryStateFilePath(), true);
+          NativeLibrary.Run(mGamePaths, mRiivolution, getTemporaryStateFilePath(), true);
+        }
+        if (mLaunchSystemMenu)
+        {
+          Log.debug("[EmulationFragment] Starting emulation thread for the Wii Menu.");
+          NativeLibrary.RunSystemMenu();
         }
         else
         {
           Log.debug("[EmulationFragment] Starting emulation thread.");
-          NativeLibrary.Run(mGamePaths);
+          NativeLibrary.Run(mGamePaths, mRiivolution);
         }
         EmulationActivity.stopIgnoringLaunchRequests();
       }, "NativeEmulation");

@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D/D3DSwapChain.h"
+
+#include "Common/Assert.h"
+
 #include "VideoBackends/D3D/DXTexture.h"
 
 namespace DX11
@@ -28,7 +31,7 @@ bool SwapChain::CreateSwapChainBuffers()
 {
   ComPtr<ID3D11Texture2D> texture;
   HRESULT hr = m_swap_chain->GetBuffer(0, IID_PPV_ARGS(&texture));
-  CHECK(SUCCEEDED(hr), "Get swap chain buffer");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer: {}", DX11HRWrap(hr));
   if (FAILED(hr))
     return false;
 

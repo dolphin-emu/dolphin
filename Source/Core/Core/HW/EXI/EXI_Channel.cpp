@@ -34,7 +34,7 @@ CEXIChannel::CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_head
     m_status.CHIP_SELECT = 1;
 
   for (auto& device : m_devices)
-    device = EXIDevice_Create(EXIDEVICE_NONE, m_channel_id, m_memcard_header_data);
+    device = EXIDevice_Create(EXIDeviceType::None, m_channel_id, m_memcard_header_data);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -123,7 +123,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                          break;
                        default:
                          DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0,
-                                          "EXI Imm: Unknown transfer type %i", m_control.RW);
+                                          "EXI Imm: Unknown transfer type {}", m_control.RW);
                        }
                      }
                      else
@@ -139,7 +139,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                          break;
                        default:
                          DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0,
-                                          "EXI DMA: Unknown transfer type %i", m_control.RW);
+                                          "EXI DMA: Unknown transfer type {}", m_control.RW);
                        }
                      }
 
@@ -168,7 +168,7 @@ void CEXIChannel::RemoveDevices()
     device.reset(nullptr);
 }
 
-void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
+void CEXIChannel::AddDevice(const EXIDeviceType device_type, const int device_num)
 {
   AddDevice(EXIDevice_Create(device_type, m_channel_id, m_memcard_header_data), device_num);
 }
@@ -245,7 +245,7 @@ void CEXIChannel::DoState(PointerWrap& p)
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
     std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
-    TEXIDevices type = device->m_device_type;
+    EXIDeviceType type = device->m_device_type;
     p.Do(type);
 
     if (type == device->m_device_type)
@@ -260,7 +260,7 @@ void CEXIChannel::DoState(PointerWrap& p)
       AddDevice(std::move(save_device), device_index, false);
     }
 
-    if (type == EXIDEVICE_MEMORYCARDFOLDER && old_header_data != m_memcard_header_data &&
+    if (type == EXIDeviceType::MemoryCardFolder && old_header_data != m_memcard_header_data &&
         !Movie::IsMovieActive())
     {
       // We have loaded a savestate that has a GCI folder memcard that is different to the virtual
@@ -277,8 +277,8 @@ void CEXIChannel::DoState(PointerWrap& p)
       // notify_presence_changed flag set to true? Not sure how software behaves if the previous and
       // the new device type are identical in this case. I assume there is a reason we have this
       // grace period when switching in the GUI.
-      AddDevice(EXIDEVICE_NONE, device_index);
-      ExpansionInterface::ChangeDevice(m_channel_id, EXIDEVICE_MEMORYCARDFOLDER, device_index,
+      AddDevice(EXIDeviceType::None, device_index);
+      ExpansionInterface::ChangeDevice(m_channel_id, device_index, EXIDeviceType::MemoryCardFolder,
                                        CoreTiming::FromThread::CPU);
     }
   }
@@ -293,16 +293,5 @@ void CEXIChannel::PauseAndLock(bool do_lock, bool resume_on_unlock)
 void CEXIChannel::SetEXIINT(bool exiint)
 {
   m_status.EXIINT = !!exiint;
-}
-
-IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int custom_index)
-{
-  for (auto& sup : m_devices)
-  {
-    IEXIDevice* device = sup->FindDevice(device_type, custom_index);
-    if (device)
-      return device;
-  }
-  return nullptr;
 }
 }  // namespace ExpansionInterface

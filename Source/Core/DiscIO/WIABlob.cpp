@@ -87,7 +87,7 @@ WIARVZFileReader<RVZ>::~WIARVZFileReader() = default;
 template <bool RVZ>
 bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
 {
-  if (!m_file.Seek(0, SEEK_SET) || !m_file.ReadArray(&m_header_1, 1))
+  if (!m_file.Seek(0, File::SeekOrigin::Begin) || !m_file.ReadArray(&m_header_1, 1))
     return false;
 
   if ((!RVZ && m_header_1.magic != WIA_MAGIC) || (RVZ && m_header_1.magic != RVZ_MAGIC))
@@ -160,7 +160,7 @@ bool WIARVZFileReader<RVZ>::Initialize(const std::string& path)
   const size_t number_of_partition_entries = Common::swap32(m_header_2.number_of_partition_entries);
   const size_t partition_entry_size = Common::swap32(m_header_2.partition_entry_size);
   std::vector<u8> partition_entries(partition_entry_size * number_of_partition_entries);
-  if (!m_file.Seek(Common::swap64(m_header_2.partition_entries_offset), SEEK_SET))
+  if (!m_file.Seek(Common::swap64(m_header_2.partition_entries_offset), File::SeekOrigin::Begin))
     return false;
   if (!m_file.ReadBytes(partition_entries.data(), partition_entries.size()))
     return false;
@@ -686,7 +686,7 @@ bool WIARVZFileReader<RVZ>::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
       return false;
     }
 
-    if (!m_file->Seek(m_offset_in_file, SEEK_SET))
+    if (!m_file->Seek(m_offset_in_file, File::SeekOrigin::Begin))
       return false;
     if (!m_file->ReadBytes(m_in.data.data() + m_in.bytes_written, bytes_to_read))
       return false;
@@ -1716,7 +1716,7 @@ bool WIARVZFileReader<RVZ>::WriteHeader(File::IOFile* file, const u8* data, size
   {
     WARN_LOG_FMT(DISCIO,
                  "Headers did not fit in the allocated space. Writing to end of file instead");
-    if (!file->Seek(0, SEEK_END))
+    if (!file->Seek(0, File::SeekOrigin::End))
       return false;
     *bytes_written = file->Tell();
   }
@@ -1949,7 +1949,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
     return ConversionResultCode::InternalError;
 
   bytes_written = sizeof(WIAHeader1) + sizeof(WIAHeader2);
-  if (!outfile->Seek(sizeof(WIAHeader1) + sizeof(WIAHeader2), SEEK_SET))
+  if (!outfile->Seek(sizeof(WIAHeader1) + sizeof(WIAHeader2), File::SeekOrigin::Begin))
     return ConversionResultCode::WriteFailed;
 
   u64 partition_entries_offset;
@@ -2018,7 +2018,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
   mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_1), offsetof(WIAHeader1, header_1_hash),
                    header_1.header_1_hash.data());
 
-  if (!outfile->Seek(0, SEEK_SET))
+  if (!outfile->Seek(0, File::SeekOrigin::Begin))
     return ConversionResultCode::WriteFailed;
 
   if (!outfile->WriteArray(&header_1, 1))
