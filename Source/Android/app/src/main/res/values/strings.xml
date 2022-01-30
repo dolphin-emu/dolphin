@@ -602,6 +602,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="make_sure_continuous_scan_enabled">Please make sure Continuous Scanning is enabled in Core Settings.</string>
 
     <!-- Ini Editor Window -->
-    <string name="ini_editor_text">Ini Content</string>
+    <string name="ini_editor_text">INI Content</string>
 
 </resources>

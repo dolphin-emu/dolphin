@@ -61,8 +61,6 @@ public class GamePropertiesDialog extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    final GameFile gameFile =
-      GameFileCacheManager.addOrGet(getArguments().getString(ARG_PATH));
     final String path = requireArguments().getString(ARG_PATH);
     final String gameId = requireArguments().getString(ARG_GAME_ID);
     final String gameTdbId = requireArguments().getString(ARG_GAMETDB_ID);
@@ -111,7 +109,7 @@ public class GamePropertiesDialog extends DialogFragment
             CheatsActivity.launch(getContext(), gameId, gameTdbId, revision, isWii));
 
     itemsBuilder.add(R.string.properties_ini_editor, (dialog, i) ->
-            IniEditorDialog.newInstance(gameFile.getPath()).show(getFragmentManager(), "IniEditorDialog"));
+            IniEditorDialog.newInstance(path).show(getFragmentManager(), "IniEditorDialog"));
 
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettingsWithConfirmation(gameId));
