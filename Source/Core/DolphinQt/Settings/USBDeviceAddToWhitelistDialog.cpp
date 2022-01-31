@@ -3,7 +3,6 @@
 
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
 
-#include <QButtonGroup>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QErrorMessage>
