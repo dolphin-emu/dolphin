@@ -298,8 +298,13 @@ static const u32 aAB_FieldingPort = 0x802EBF94;
 static const u32 aAB_BattingPort = 0x802EBF95;
 
 //Fielder addrs
+//All of these addrs start with the pitcher. The rest are 0x268 away
 static const u32 aFielder_ControlStatus = 0x8088F53B; //0xA=Fielder is holding ball
 static const u32 aFielder_RosterLoc = 0x8088F4E1; //Pitcher. Use Filder_Offset to calc the rest 
+static const u32 aFielder_AnyJump = 0x8088F56B; //Pitcher
+static const u32 aFielder_Action = 0x8088F5C1; //Pitcher. 2=Slide, 3=Walljump
+static const u32 aFielder_Bobble = 0x8088F5C0; //Pitcher
+static const u32 aFielder_Knockout = 0x8088F578; //Pitcher
 static const u32 aFielder_Pos_X = 0x8088F368; //Pitcher
 static const u32 aFielder_Pos_Y = 0x8088F370; //Pitcher
 static const u32 aFielder_Pos_Z = 0x8088F374; //Pitcher
@@ -487,10 +492,18 @@ public:
         u8 fielder_pos;
         u8 fielder_char_id;
         u8 fielder_swapped_for_batter;
+        u8 fielder_action; //1=jump, 2=slide, 3=walljump
         u32 fielder_x_pos;
         u32 fielder_y_pos;
         u32 fielder_z_pos;
-        u8 bobble; // TODO
+        u8 bobble; //Bobble info
+        u8 bobble_fielder_roster_loc;
+        u8 bobble_fielder_pos;
+        u8 bobble_fielder_char_id;
+        u8 bobble_fielder_action;
+        u32 bobble_fielder_x_pos;
+        u32 bobble_fielder_y_pos;
+        u32 bobble_fielder_z_pos;
 
         u8 num_outs_during_play;
         u8 rbi;
@@ -682,9 +695,12 @@ public:
     void logABPitch();
     void logABContactResult();
 
-    //Function to get fielder who is holding the ball <roster_loc, position, char_id, x_po, y_pos, z_pos>. 0x
-    std::tuple<u8, u8, u8, u32, u32, u32> getCharacterWithBall();
+    //TODO Redo these tuple functions
+    //Function to get fielder who is holding the ball <roster_loc, position, char_id, x_po, y_pos, z_pos, action>
+    std::tuple<u8, u8, u8, u32, u32, u32, u8> getCharacterWithBall();
 
+    //Function to get fielder who is holding the ball <roster_loc, position, char_id, x_po, y_pos, z_pos, action, type of bobble>
+    std::tuple<u8, u8, u8, u32, u32, u32, u8, u8> checkIfFielderBobbles();
     //Read players from ini file and assign to team
     void readPlayerNames(bool local_game);
     void setDefaultNames(bool local_game);

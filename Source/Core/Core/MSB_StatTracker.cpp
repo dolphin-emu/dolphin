@@ -139,11 +139,35 @@ void StatTracker::lookForTriggerEvents(){
                         m_ab_state = AB_STATE::PLAY_OVER;
                     }
                 }
+                else {
+                    std::tuple<u8, u8, u8, u32, u32, u32, u8, u8> bobble_result = checkIfFielderBobbles();
+                    if (std::get<0>(bobble_result)){
+                        m_curr_ab_stat.bobble = std::get<6>(bobble_result);
+                        m_curr_ab_stat.bobble_fielder_roster_loc = std::get<0>(bobble_result);
+                        m_curr_ab_stat.bobble_fielder_pos = std::get<1>(bobble_result);
+                        m_curr_ab_stat.bobble_fielder_char_id = std::get<2>(bobble_result);
+                        m_curr_ab_stat.bobble_fielder_x_pos = std::get<3>(bobble_result);
+                        m_curr_ab_stat.bobble_fielder_y_pos = std::get<4>(bobble_result);
+                        m_curr_ab_stat.bobble_fielder_z_pos = std::get<5>(bobble_result);
+                    }
+                }
                 break;
             case (AB_STATE::LOG_FIELDER):
                 {
+                //Look for bobble
+                std::tuple<u8, u8, u8, u32, u32, u32, u8, u8> bobble_result = checkIfFielderBobbles();
+                if (std::get<0>(bobble_result)){
+                    m_curr_ab_stat.bobble = std::get<6>(bobble_result);
+                    m_curr_ab_stat.bobble_fielder_roster_loc = std::get<0>(bobble_result);
+                    m_curr_ab_stat.bobble_fielder_pos = std::get<1>(bobble_result);
+                    m_curr_ab_stat.bobble_fielder_char_id = std::get<2>(bobble_result);
+                    m_curr_ab_stat.bobble_fielder_x_pos = std::get<3>(bobble_result);
+                    m_curr_ab_stat.bobble_fielder_y_pos = std::get<4>(bobble_result);
+                    m_curr_ab_stat.bobble_fielder_z_pos = std::get<5>(bobble_result);
+                }
+                //Look for fielder who collecs ball
                 //If results != 0xFF then we need to keep looking. Else move on
-                std::tuple<u8, u8, u8, u32, u32, u32> fielder_result = getCharacterWithBall();
+                std::tuple<u8, u8, u8, u32, u32, u32, u8> fielder_result = getCharacterWithBall();
                 m_curr_ab_stat.fielder_roster_loc = std::get<0>(fielder_result);
                 m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
                 m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
@@ -517,13 +541,24 @@ void StatTracker::logABContactResult(){
     }
     else if (result == 3){
         m_curr_ab_stat.result_inferred = "Caught";
-        std::tuple<u8, u8, u8, u32, u32, u32> fielder_result = getCharacterWithBall();
+        std::tuple<u8, u8, u8, u32, u32, u32, u8> fielder_result = getCharacterWithBall();
         m_curr_ab_stat.fielder_roster_loc = std::get<0>(fielder_result);
         m_curr_ab_stat.fielder_pos = std::get<1>(fielder_result);
         m_curr_ab_stat.fielder_char_id = std::get<2>(fielder_result);
         m_curr_ab_stat.fielder_x_pos = std::get<3>(fielder_result);
         m_curr_ab_stat.fielder_y_pos = std::get<4>(fielder_result);
         m_curr_ab_stat.fielder_z_pos = std::get<5>(fielder_result);
+
+        std::tuple<u8, u8, u8, u32, u32, u32, u8, u8> bobble_result = checkIfFielderBobbles();
+        if (std::get<0>(bobble_result)){
+            m_curr_ab_stat.bobble = std::get<6>(bobble_result);
+            m_curr_ab_stat.bobble_fielder_roster_loc = std::get<0>(bobble_result);
+            m_curr_ab_stat.bobble_fielder_pos = std::get<1>(bobble_result);
+            m_curr_ab_stat.bobble_fielder_char_id = std::get<2>(bobble_result);
+            m_curr_ab_stat.bobble_fielder_x_pos = std::get<3>(bobble_result);
+            m_curr_ab_stat.bobble_fielder_y_pos = std::get<4>(bobble_result);
+            m_curr_ab_stat.bobble_fielder_z_pos = std::get<5>(bobble_result);
+        }
 
         //Increment outs for that position for fielder
         ++m_fielder_tracker[!m_curr_ab_stat.team_id].out_count_by_position[m_curr_ab_stat.fielder_roster_loc][m_curr_ab_stat.fielder_pos];
@@ -853,7 +888,34 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
                         json_stream << "                   \"Fielder Position - X\": " << fielder_x_pos << "," << std::endl;
                         json_stream << "                   \"Fielder Position - Y\": " << fielder_y_pos << "," << std::endl;
-                        json_stream << "                   \"Fielder Position - Z\": " << fielder_z_pos << std::endl;
+                        json_stream << "                   \"Fielder Position - Z\": " << fielder_z_pos << "," << std::endl;
+                        json_stream << "                   \"Bobble\": " << std::to_string(ab_stat.bobble) << "," << std::endl;
+                        json_stream << "                   \"Bobble Summary\": [" <<  std::endl;
+                        if (ab_stat.bobble != 0xFF && (ab_stat.fielder_pos != ab_stat.bobble_fielder_pos)) {
+                            json_stream << "                   {" << std::endl;
+                            std::string bobble_fielder_pos  = (inDecode) ? "\"" + cPosition.at(ab_stat.bobble_fielder_pos) + "\"" : std::to_string(ab_stat.bobble_fielder_pos);
+                            std::string bobble_fielder_char = (inDecode) ? "\"" + cCharIdToCharName.at(ab_stat.bobble_fielder_char_id) + "\"" : std::to_string(ab_stat.bobble_fielder_char_id);
+                            json_stream << "                     \"Bobble Fielder Roster Location\": " << std::to_string(ab_stat.bobble_fielder_roster_loc) << "," << std::endl;
+                            json_stream << "                     \"Bobble Fielder Position\": " << bobble_fielder_pos << "," << std::endl;
+                            json_stream << "                     \"Bobble Fielder Character\": " << bobble_fielder_char << "," << std::endl;
+                            
+                            float bobble_fielder_x_pos, bobble_fielder_y_pos, bobble_fielder_z_pos;
+
+                            float_converter.num = ab_stat.bobble_fielder_x_pos;
+                            bobble_fielder_x_pos = float_converter.fnum;
+
+                            float_converter.num = ab_stat.bobble_fielder_y_pos;
+                            bobble_fielder_y_pos = float_converter.fnum;
+
+                            float_converter.num = ab_stat.bobble_fielder_z_pos;
+                            bobble_fielder_z_pos = float_converter.fnum;
+
+                            json_stream << "                     \"Bobble Fielder Position - X\": " << bobble_fielder_x_pos << "," << std::endl;
+                            json_stream << "                     \"Bobble Fielder Position - Y\": " << bobble_fielder_y_pos << "," << std::endl;
+                            json_stream << "                     \"Bobble Fielder Position - Z\": " << bobble_fielder_z_pos << std::endl;
+                            json_stream << "                   }" << std::endl;
+                        }
+                        json_stream << "                   ]" <<  std::endl;
                         json_stream << "                 }" << std::endl;
                     }
                     
@@ -884,12 +946,15 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 }
 
 //Scans player for possession
-std::tuple<u8, u8, u8, u32, u32, u32> StatTracker::getCharacterWithBall() {
+std::tuple<u8, u8, u8, u32, u32, u32, u8> StatTracker::getCharacterWithBall() {
     for (u8 pos=0; pos < cRosterSize; ++pos){
         u32 aFielderControlStatus = aFielder_ControlStatus + (pos * cFielder_Offset);
         u32 aFielderPosX = aFielder_Pos_X + (pos * cFielder_Offset);
         u32 aFielderPosY = aFielder_Pos_Y + (pos * cFielder_Offset);
         u32 aFielderPosZ = aFielder_Pos_Z + (pos * cFielder_Offset);
+
+        u32 aFielderJump = aFielder_AnyJump + (pos * cFielder_Offset);
+        u32 aFielderAction = aFielder_Action + (pos * cFielder_Offset);
 
         bool fielder_has_ball = (Memory::Read_U8(aFielderControlStatus) == 0xA);
 
@@ -902,11 +967,81 @@ std::tuple<u8, u8, u8, u32, u32, u32> StatTracker::getCharacterWithBall() {
             u32 y_pos = Memory::Read_U32(aFielderPosY);
             u32 z_pos = Memory::Read_U32(aFielderPosZ);
 
+            u8 action = 0x0;
+
+            if (Memory::Read_U32(aFielderAction)) {
+                action = Memory::Read_U32(aFielderAction); //2 = Slide, 3 = Walljump
+                if (Memory::Read_U32(aFielderAction) == 1) {
+                    action = 0xFF;
+                }
+            }
+            else if (Memory::Read_U32(aFielderJump)) {
+                action = Memory::Read_U32(aFielderJump); //1 = jump
+                if (Memory::Read_U32(aFielderAction) != 1) {
+                    action = 0xFE;
+                }
+            }
+
             std::cout << "Logging Fielder" << std::endl;
-            return std::make_tuple(roster_id, pos, char_id, x_pos, y_pos, z_pos);
+            return std::make_tuple(roster_id, pos, char_id, x_pos, y_pos, z_pos, action);
         }
     }
-    return std::make_tuple(0xFF, 0xFF, 0xFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+    return std::make_tuple(0xFF, 0xFF, 0xFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x0);
+}
+
+std::tuple<u8, u8, u8, u32, u32, u32, u8, u8> StatTracker::checkIfFielderBobbles() {
+    for (u8 pos=0; pos < cRosterSize; ++pos){
+        u32 aFielderControlStatus = aFielder_ControlStatus + (pos * cFielder_Offset);
+        u32 aFielderBobbleStatus = aFielder_Bobble + (pos * cFielder_Offset);
+        u32 aFielderKnockoutStatus = aFielder_Knockout + (pos * cFielder_Offset);
+
+        u32 aFielderJump = aFielder_AnyJump + (pos * cFielder_Offset);
+        u32 aFielderAction = aFielder_Action + (pos * cFielder_Offset);
+
+        u32 aFielderPosX = aFielder_Pos_X + (pos * cFielder_Offset);
+        u32 aFielderPosY = aFielder_Pos_Y + (pos * cFielder_Offset);
+        u32 aFielderPosZ = aFielder_Pos_Z + (pos * cFielder_Offset);
+        
+        u8 typeOfFielderDisruption = 0x0;
+        u8 bobble_addr = Memory::Read_U8(aFielderBobbleStatus);
+        u8 knockout_addr = Memory::Read_U8(aFielderKnockoutStatus);
+
+        if (knockout_addr) {
+            typeOfFielderDisruption = 0x10; //Knockout - no bobble
+        }
+        else if (bobble_addr){
+            typeOfFielderDisruption = bobble_addr; //Different types of bobbles
+        }
+
+        if (typeOfFielderDisruption > 0x0) {
+            //get char id
+            u8 roster_id = Memory::Read_U8(aFielderControlStatus-0x5A);
+            u8 char_id = Memory::Read_U8(aFielderControlStatus-0x58); //0x58 is the diff between the fielder control status and the char id
+
+            u32 x_pos = Memory::Read_U32(aFielderPosX);
+            u32 y_pos = Memory::Read_U32(aFielderPosY);
+            u32 z_pos = Memory::Read_U32(aFielderPosZ);
+
+            u8 action = 0x0;
+
+            if (Memory::Read_U32(aFielderAction)) {
+                action = Memory::Read_U32(aFielderAction); //2 = Slide, 3 = Walljump
+                if (Memory::Read_U32(aFielderAction) == 1) {
+                    action = 0xFF;
+                }
+            }
+            else if (Memory::Read_U32(aFielderJump)) {
+                action = Memory::Read_U32(aFielderJump); //1 = jump
+                if (Memory::Read_U32(aFielderAction) != 1) {
+                    action = 0xFE;
+                }
+            }
+
+            std::cout << "Logging Fielder" << std::endl;
+            return std::make_tuple(roster_id, pos, char_id, x_pos, y_pos, z_pos, action, typeOfFielderDisruption);
+        }
+    }
+    return std::make_tuple(0xFF, 0xFF, 0xFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x0, 0xFF);
 }
 
 //Read players from ini file and assign to team
