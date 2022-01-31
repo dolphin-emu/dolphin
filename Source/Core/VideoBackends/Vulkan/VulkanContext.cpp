@@ -224,7 +224,11 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
 
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, false);
-  AddExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false);
+
+  if (AddExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false))
+  {
+    g_Config.backend_info.bSupportsSettingObjectNames = true;
+  }
 
   return true;
 }
@@ -290,6 +294,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsCoarseDerivatives = true;          // Assumed support.
   config->backend_info.bSupportsTextureQueryLevels = true;         // Assumed support.
   config->backend_info.bSupportsLodBiasInSampler = false;          // Dependent on OS.
+  config->backend_info.bSupportsSettingObjectNames = false;        // Dependent on features.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
