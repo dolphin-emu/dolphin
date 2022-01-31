@@ -88,6 +88,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsCoarseDerivatives = false;
   g_Config.backend_info.bSupportsTextureQueryLevels = false;
   g_Config.backend_info.bSupportsLodBiasInSampler = false;
+  g_Config.backend_info.bSupportsSettingObjectNames = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};
