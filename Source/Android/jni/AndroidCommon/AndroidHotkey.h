@@ -1,4 +1,4 @@
-// Copyright 2021 Dolphin MMJR
+// Copyright 2021 Dolphin Emulator
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -8,9 +8,9 @@ namespace AndroidHotkey
 {
 enum Hotkey
 {
-    HOTKEY = 900,
-    HK_TOGGLE_SKIP_EFB_ACCESS = 901,
-    HK_TOGGLE_EFBCOPIES = 902,
+  HOTKEY = 900,
+  HK_TOGGLE_SKIP_EFB_ACCESS = 901,
+  HK_TOGGLE_EFBCOPIES = 902,
 };
 
 /*
