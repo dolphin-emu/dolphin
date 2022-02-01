@@ -464,6 +464,12 @@
         <item>1</item>
         <item>-1</item>
     </integer-array>
+    
+    <string-array name="hotkeyModeEntries">
+        <item>Disabled</item>
+        <item>Skip EFB Access from CPU</item>
+        <item>Store EFB Copies to Texture Only</item>
+    </string-array>
 
     <string-array name="synchronizeGpuThreadEntries">
         <item>Never</item>

@@ -66,6 +66,8 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+#include "AndroidCommon/AndroidHotkey.h"
+
 namespace
 {
 constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
@@ -282,6 +284,18 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
     JNIEnv* env, jclass, jstring jDevice, jint Axis, jfloat Value)
 {
   ButtonManager::GamepadAxisEvent(GetJString(env, jDevice), Axis, Value);
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onHotkeyEvent(
+        JNIEnv* env, jclass, jint HotkeyId, jboolean showMessage)
+{
+  return AndroidHotkey::onHotkeyEvent(HotkeyId, showMessage);
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getHotkeyState(
+        JNIEnv* env, jclass, jint HotkeyId)
+{
+  return AndroidHotkey::getHotkeyState(HotkeyId);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSensorsEnabled(

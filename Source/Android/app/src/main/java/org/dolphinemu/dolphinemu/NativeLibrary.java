@@ -221,6 +221,18 @@ public final class NativeLibrary
   }
 
   /**
+   * HotkeyIDs, in case we want to have more settings toggleable in the future.
+   * Every entry needs to be synced with their cpp counterpart.
+   * Every hotkey needs its own code to be handled.
+   */
+  public static final class Hotkey
+  {
+    public static final int HOTKEY = 900;
+    public static final int HK_TOGGLE_EFB_ACCESS = 901;
+    public static final int HK_TOGGLE_EFBCOPIES = 902;
+  }
+
+  /**
    * Button states
    */
   public static final class ButtonState
@@ -257,6 +269,23 @@ public final class NativeLibrary
    * @param Value  The value of the axis represented by the given ID.
    */
   public static native void onGamePadMoveEvent(String Device, int Axis, float Value);
+
+  /**
+   * Handles hotkeys events
+   *
+   * @param HotkeyId    ID of the hotkey to toggle.
+   * @param showMessage Display an OSD message on hotkey toggle.
+   * @return The state of the toggled hotkey.
+   */
+  public static native boolean onHotkeyEvent(int HotkeyId, boolean showMessage);
+
+  /**
+   * Retrieves hotkey's state
+   *
+   * @param HotkeyId ID of the hotkey to get the state of.
+   * @return The state of the hotkey.
+   */
+  public static native boolean getHotkeyState(int HotkeyId);
 
   /**
    * Rumble sent from native. Currently only supports phone rumble.

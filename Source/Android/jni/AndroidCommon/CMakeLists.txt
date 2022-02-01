@@ -1,6 +1,8 @@
 add_library(androidcommon STATIC
   AndroidCommon.cpp
   AndroidCommon.h
+  AndroidHotkey.cpp
+  AndroidHotkey.h
   IDCache.cpp
   IDCache.h
 )

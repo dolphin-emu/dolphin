@@ -190,4 +190,14 @@
     <integer name="CLASSIC_TRIGGER_L_PORTRAIT_Y">458</integer>
     <integer name="CLASSIC_TRIGGER_R_PORTRAIT_X">650</integer>
     <integer name="CLASSIC_TRIGGER_R_PORTRAIT_Y">360</integer>
+    
+    <!-- Hotkey layout -->
+    <integer name="HOTKEY_X">595</integer>
+    <integer name="HOTKEY_Y">745</integer>
+    <integer name="HOTKEY_H_X">595</integer>
+    <integer name="HOTKEY_H_Y">745</integer>
+    <integer name="HOTKEY_PORTRAIT_X">846</integer>
+    <integer name="HOTKEY_PORTRAIT_Y">810</integer>
+    <integer name="HOTKEY_H_PORTRAIT_X">846</integer>
+    <integer name="HOTKEY_H_PORTRAIT_Y">810</integer>
 </resources>
