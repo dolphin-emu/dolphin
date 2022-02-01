@@ -288,11 +288,7 @@ def build(config):
                 "-DCMAKE_IGNORE_PATH="+ignore_path,
                 "-DCMAKE_OSX_DEPLOYMENT_TARGET="
                 + config[arch+"_mac_os_deployment_target"],
-                "-DMACOS_CODE_SIGNING_IDENTITY="
-                + config["codesign_identity"],
-                "-DMACOS_CODE_SIGNING_IDENTITY_UPDATER="
-                + config["codesign_identity"],
-                '-DMACOS_CODE_SIGNING="ON"'
+                '-DMACOS_CODE_SIGNING="OFF"'
             ],
             env=env, cwd=arch)
 
