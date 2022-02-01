@@ -38,6 +38,7 @@
 #define WII_USER_DIR "Wii"
 #define CONFIG_DIR "Config"
 #define GAMESETTINGS_DIR "GameSettings"
+#define STATFILES_DIR "StatFiles"
 #define MAPS_DIR "Maps"
 #define CACHE_DIR "Cache"
 #define COVERCACHE_DIR "GameCovers"
@@ -62,6 +63,7 @@
 #define WII_WC24CONF_DIR "shared2" DIR_SEP "wc24"
 #define RESOURCES_DIR "Resources"
 #define THEMES_DIR "Themes"
+#define TEXTUREPACKS_DIR "TexturePacks"
 #define STYLES_DIR "Styles"
 #define GBASAVES_DIR "Saves"
 #define ANAGLYPH_DIR "Anaglyph"
@@ -82,6 +84,7 @@
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG "Dolphin.ini"
+#define LOCALPLAYERS_CONFIG "LocalPlayers.ini"
 #define GCPAD_CONFIG "GCPadNew.ini"
 #define WIIPAD_CONFIG "WiimoteNew.ini"
 #define GCKEYBOARD_CONFIG "GCKeyNew.ini"

@@ -32,6 +32,8 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Core/HW/Memmap.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -71,6 +73,9 @@
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
+#include <Core/LocalPlayers.h>
+#include <Core/ConfigLoaders/GameConfigLoader.h>
+#include <Core/GeckoCodeConfig.h>
 
 namespace NetPlay
 {
@@ -322,6 +327,12 @@ void NetPlayClient::OnData(sf::Packet& packet)
 
   INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", static_cast<u8>(mid));
 
+  if (g_ActiveConfig.bShowBatterFielder)
+  {
+    DisplayFielder();
+    DisplayBatter();
+  }
+
   switch (mid)
   {
   case MessageID::PlayerJoin:
@@ -456,6 +467,22 @@ void NetPlayClient::OnData(sf::Packet& packet)
   case MessageID::MD5Abort:
     OnMD5Abort();
     break;
+  
+  case MessageID::RankedBox:
+    OnRankedBoxMsg(packet);
+    break;
+  
+  case MessageID::PlayerData:
+    OnPlayerDataMsg(packet);
+    break;
+  
+  case MessageID::SendCodes:
+    OnSendCodesMsg(packet);
+    break;
+  
+  case MessageID::CoinFlip:
+    OnCoinFlipMsg(packet);
+    break;  
 
   default:
     PanicAlertFmtT("Unknown message received with id : {0}", static_cast<u8>(mid));
@@ -888,6 +915,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 
     m_net_settings.m_IsHosting = m_local_player->IsHost();
     m_net_settings.m_HostInputAuthority = m_host_input_authority;
+    m_net_settings.m_RankedMode = m_ranked_client;
   }
 
   m_dialog->OnMsgStartGame();
@@ -1458,6 +1486,49 @@ void NetPlayClient::OnMD5Abort()
   m_dialog->AbortMD5();
 }
 
+void OnRankedBoxMsg(sf::Packet& packet)
+{
+  packet >> m_ranked_client;
+  m_dialog->OnRankedEnabled(m_ranked_client);
+}
+
+void OnPlayerDataMsg(sf::Packet& packet)
+{
+  u8 port;
+  packet >> port;
+  std::string userinfoStr;
+  packet >> userinfoStr;
+  std::vector<std::string> userinfo;
+  auto ss = std::stringstream{userinfoStr};
+  for (std::string line; std::getline(ss, line, '\n');)
+    userinfo.push_back(line);
+  NetplayerUserInfo[port] = userinfo;
+}
+
+void OnSendCodesMsg(sf::Packet& packet)
+{
+  std::string codeStr;
+  packet >> codeStr;
+  auto ss = std::stringstream{codeStr};
+
+  v_ActiveGeckoCodes = {};
+  for (std::string line; std::getline(ss, line, '\n');)
+    v_ActiveGeckoCodes.push_back(line);
+
+  // add to chat
+  std::string firstLine = "Active Gecko Codes:";
+  m_dialog->OnActiveGeckoCodes(firstLine);
+  for (const std::string code : v_ActiveGeckoCodes)
+    m_dialog->OnActiveGeckoCodes(code);
+}
+
+void OnCoinFlipMsg(sf::Packet& packet)
+{
+  int coinFlip;
+  packet >> coinFlip;
+  m_dialog->OnCoinFlipResult(coinFlip);
+}
+
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
   ENetPacket* epac =
@@ -1472,6 +1543,123 @@ void NetPlayClient::DisplayPlayersPing()
 
   OSD::AddTypedMessage(OSD::MessageType::NetPlayPing, fmt::format("Ping: {}", GetPlayersMaxPing()),
                        OSD::Duration::SHORT, OSD::Color::CYAN);
+}
+
+void NetPlayClient::DisplayFielder()
+{
+  std::string playername = "";
+  u32 color = OSD::Color::CYAN;
+  bool fielderExists = false;
+  if (m_is_running.IsSet())
+  {
+    if (GetFielderPort() == 1)
+    {
+      playername = GetPortPlayer(1);
+      color = OSD::Color::RED;
+      fielderExists = true;
+    }
+    if (GetFielderPort() == 2)
+    {
+      playername = GetPortPlayer(2);
+      color = OSD::Color::BLUE;
+      fielderExists = true;
+    }
+    if (GetFielderPort() == 3)
+    {
+      playername = GetPortPlayer(3);
+      color = OSD::Color::YELLOW;
+      fielderExists = true;
+    }
+    if (GetFielderPort() == 4)
+    {
+      playername = GetPortPlayer(4);
+      color = OSD::Color::GREEN;
+      fielderExists = true;
+    }
+  }
+  if (fielderExists)
+  {
+    OSD::AddTypedMessage(OSD::MessageType::CurrentFielder, fmt::format("Fielder: {}", playername),
+                         OSD::Duration::SHORT, color);
+  }
+
+  return;
+}
+
+void NetPlayClient::DisplayBatter()
+{
+  std::string playername = "";
+  u32 color = OSD::Color::CYAN;
+  bool batterExists = false;
+  if (m_is_running.IsSet())
+  {
+    if (GetBatterPort() == 1)
+    {
+      playername = GetPortPlayer(1);
+      color = OSD::Color::RED;
+      batterExists = true;
+    }
+    if (GetBatterPort() == 2)
+    {
+      playername = GetPortPlayer(2);
+      color = OSD::Color::BLUE;
+      batterExists = true;
+    }
+    if (GetBatterPort() == 3)
+    {
+      playername = GetPortPlayer(3);
+      color = OSD::Color::YELLOW;
+      batterExists = true;
+    }
+    if (GetBatterPort() == 4)
+    {
+      playername = GetPortPlayer(4);
+      color = OSD::Color::GREEN;
+      batterExists = true;
+    }
+  }
+  if (batterExists)
+  {
+    OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
+                         OSD::Duration::SHORT, color);
+  }
+
+  return;
+}
+
+u8 NetPlayClient::GetFielderPort()
+{
+  return Memory::Read_U8(fielderPort);
+}
+
+u8 NetPlayClient::GetBatterPort()
+{
+  return Memory::Read_U8(batterPort);
+}
+
+std::string NetPlayClient::GetPortPlayer(int port)
+{
+  u8 portnum = 0;
+  for (auto player_id : m_pad_map)
+  {
+    portnum += 1;
+    if (portnum == port)
+      return m_players[player_id].name;
+  }
+  return "";
+}
+
+bool NetPlayClient::ShouldBeGolfer(int port)
+{
+  bool out = false;
+  u8 portnum = 0;
+  for (auto player_id : m_pad_map)
+  {
+    portnum += 1;
+    if (portnum == port && player_id == m_local_player->pid)
+      out = true;
+  }
+  return out;
 }
 
 u32 NetPlayClient::GetPlayersMaxPing() const
@@ -1652,6 +1840,52 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
   SendAsync(std::move(packet));
 }
 
+void NetPlayClient::SendActiveGeckoCodes()
+{
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_SEND_CODES);
+  std::string codeStr = "";
+
+  for (const std::string code : v_ActiveGeckoCodes)
+    codeStr += code + "\n";
+  packet << codeStr;
+
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::GetActiveGeckoCodes()
+{
+  // Find all INI files
+  const auto game_id = "GYQE01";
+  const auto revision = 0;
+  IniFile globalIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+  IniFile localIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+
+  // Create a Gecko Code Vector with just the active codes
+  std::vector<Gecko::GeckoCode> s_active_codes =
+      Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+
+  v_ActiveGeckoCodes = {};
+  for (const Gecko::GeckoCode& active_code : s_active_codes)
+  {
+    v_ActiveGeckoCodes.push_back(active_code.name);
+  }
+  SendActiveGeckoCodes();
+}
+
+void NetPlayClient::SendCoinFlip(int randNum)
+{
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_COIN_FLIP);
+  packet << randNum;
+
+  SendAsync(std::move(packet));
+}
+
 // called from ---CPU--- thread
 void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus& pad,
                                         sf::Packet& packet)
@@ -1762,6 +1996,9 @@ bool NetPlayClient::StartGame(const std::string& path)
   m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
+
+  // send player usernames & keys here
+  SendLocalPlayerNetplay(GetLocalPlayerNetplay());
 
   return true;
 }
@@ -2334,7 +2571,6 @@ void NetPlayClient::RequestGolfControl(const PlayerId pid)
 {
   if (!m_host_input_authority || !m_net_settings.m_GolfMode)
     return;
-
   sf::Packet packet;
   packet << MessageID::GolfRequest;
   packet << pid;
@@ -2344,6 +2580,24 @@ void NetPlayClient::RequestGolfControl(const PlayerId pid)
 void NetPlayClient::RequestGolfControl()
 {
   RequestGolfControl(m_local_player->pid);
+}
+
+void NetPlayClient::AutoGolfMode(int isField, int BatPort, int FieldPort)
+{
+  if (BatPort != 0) // only != 0 when a game is in progress
+  {
+    if (isField == 1)  // fielding/baserunning state
+    {
+      if (netplay_client->ShouldBeGolfer(FieldPort))
+        netplay_client->RequestGolfControl();
+    }
+    else if (isField == 0)  // batting/pitching state
+    {
+      if (netplay_client->ShouldBeGolfer(BatPort))
+        netplay_client->RequestGolfControl();
+    }
+  }
+  return;
 }
 
 // called from ---GUI--- thread
@@ -2722,6 +2976,71 @@ void NetPlay_Disable()
   std::lock_guard lk(crit_netplay_client);
   netplay_client = nullptr;
 }
+
+void NetPlayClient::SendLocalPlayerNetplay(std::vector<std::string> userinfo)
+{
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_PLAYER_DATA);
+
+  u8 portnum = 0;
+  for (auto player_id : m_pad_map)
+  {
+    portnum += 1;
+    if (player_id == m_local_player->pid)
+      NetplayerUserInfo[portnum] = userinfo;
+  }
+
+  packet << portnum;
+  packet << userinfo[0] + "\n" + userinfo[1] + "\n";
+
+  SendAsync(std::move(packet));
+}
+
+std::vector<std::string> NetPlayClient::GetLocalPlayerNetplay()
+{
+  // Eventually replace this with the account information in future official release
+  std::vector<std::string> userinfo;
+
+  IniFile local_players_ini;
+  local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  for (const IniFile* ini : {&local_players_ini})
+  {
+    std::vector<std::string> lines;
+    ini->GetLines("Local_Players_List", &lines, false);
+    AddPlayers::AddPlayers player;
+    u8 port = 0;
+    for (auto& line : lines)
+    {
+      ++port;
+      std::istringstream ss(line);
+
+      // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
+      // Use the C locale to workaround this behavior
+      ss.imbue(std::locale::classic());
+
+      switch ((line)[0])
+      {
+      case '+':
+        if (!player.username.empty() && !player.userid.empty())
+          // players.push_back(player);
+          player = AddPlayers::AddPlayers();
+        ss.seekg(1, std::ios_base::cur);
+        // read the code name
+        std::getline(ss, player.username,
+                     '[');  // stop at [ character (beginning of contributor name)
+        player.username = StripSpaces(player.username);
+        // read the code creator name
+        std::getline(ss, player.userid, ']');
+        break;
+        break;
+      }
+    }
+    userinfo.push_back(player.username);
+    userinfo.push_back(player.userid);
+  }
+  return userinfo;
+}
+
 }  // namespace NetPlay
 
 // stuff hacked into dolphin

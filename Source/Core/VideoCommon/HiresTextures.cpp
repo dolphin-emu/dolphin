@@ -32,6 +32,7 @@
 #include "Core/ConfigManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
+#include <Common/MsgHandler.h>
 
 struct DiskTexture
 {
@@ -77,9 +78,9 @@ void HiresTexture::Update()
     s_textureCache.clear();
   }
 
-  const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::set<std::string> texture_directories =
-      GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
+  const std::string& game_id = "GYQE01";
+  const std::set<std::string> texture_directories = GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
+
   const std::vector<std::string> extensions{".png", ".dds"};
 
   for (const auto& texture_directory : texture_directories)
@@ -415,8 +416,29 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
 std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
                                                       const std::string& game_id)
 {
+  bool isCustomTexturePack = (Config::Get(Config::GFX_TEXTURE_PACK) == 0);
+  std::string sTexturePack = "";
+  auto textures_search_results = Common::DoFileSearch(
+      {File::GetUserPath(D_TEXTUREPACKS_IDX), File::GetSysDirectory() + TEXTUREPACKS_DIR});
+  const auto textures_directory = File::GetSysDirectory() + TEXTUREPACKS_DIR + DIR_SEP;
+  if (!isCustomTexturePack)
+  {
+    int iCustomTexturePack = Config::Get(Config::GFX_TEXTURE_PACK) - 1;
+    sTexturePack = PathToFileName(textures_search_results[iCustomTexturePack]);
+  }
+  return GetTextureDirectoriesWithGameId(isCustomTexturePack ? root_directory : textures_directory,
+                                         game_id, isCustomTexturePack, sTexturePack);
+}
+
+
+std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
+                                                      const std::string& game_id,
+                                                      bool isCustomTexturePack,
+                                                      std::string& texturePack)
+{
   std::set<std::string> result;
-  const std::string texture_directory = root_directory + game_id;
+  const std::string textureFolder = isCustomTexturePack ? game_id : texturePack;
+  const std::string texture_directory = root_directory + textureFolder;
 
   if (File::Exists(texture_directory))
   {
@@ -432,7 +454,7 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
       result.insert(region_free_directory);
     }
   }
-
+  
   const auto match_gameid = [game_id](const std::string& filename) {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);

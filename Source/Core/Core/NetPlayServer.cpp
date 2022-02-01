@@ -158,7 +158,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
     is_connected = true;
     m_do_loop = true;
     m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
-    m_target_buffer_size = 5;
+    m_target_buffer_size = 8;
     m_chunked_data_thread = std::thread(&NetPlayServer::ChunkedDataThreadFunc, this);
 
 #ifdef USE_UPNP
@@ -463,6 +463,12 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
     Send(player.socket, spac);
   }
 
+  // send ranked box state
+  spac.clear();
+  spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
+  spac << m_current_ranked_value;
+  Send(player.socket, spac);
+
   // send input authority state
   spac.clear();
   spac << MessageID::HostInputAuthority;
@@ -658,6 +664,9 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 {
   std::lock_guard lkg(m_crit.game);
 
+  if (size < 8)
+    size = 8;
+
   m_target_buffer_size = size;
 
   // not needed on clients with host input authority
@@ -670,6 +679,19 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 
     SendAsyncToClients(std::move(spac));
   }
+}
+
+void NetPlayServer::AdjustRankedBox(const bool is_ranked)
+{
+  std::lock_guard lkg(m_crit.game);
+  m_current_ranked_value = is_ranked;
+
+  // tell clients to change ranked box
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
+  spac << m_current_ranked_value;
+
+  SendAsyncToClients(std::move(spac));
 }
 
 void NetPlayServer::SetHostInputAuthority(const bool enable)
@@ -756,6 +778,51 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     spac << msg;
 
     SendToClients(spac, player.pid);
+  }
+  break;
+
+  case MessageID::SendCodes:
+  {
+    std::string codes;
+    packet >> codes;
+
+    // send codes to other clients
+    sf::Packet spac;
+    spac << (MessageId)SendCodes;
+    spac << codes;
+
+    SendToClients(spac);
+  }
+  break;
+
+  case MessageID::CoinFlip:
+  {
+    int coinNum;
+    packet >> coinNum;
+
+    // send codes to other clients
+    sf::Packet spac;
+    spac << (MessageId)CoinFlip;
+    spac << coinNum;
+
+    SendToClients(spac);
+  }
+  break;
+
+  case MessageID::PlayerData:
+  {
+    u8 port;
+    packet >> port;
+    std::string userinfoStr;
+    packet >> userinfoStr;
+
+    // send userinfo to other clients
+    sf::Packet spac;
+    spac << (MessageId)PlayerData;
+    spac << port;
+    spac << userinfoStr;
+
+    SendToClients(spac);
   }
   break;
 
@@ -1433,7 +1500,7 @@ bool NetPlayServer::RequestStartGame()
   }
 
   // Check To Send Codes to Clients
-  if (m_settings.m_SyncCodes && m_players.size() > 1)
+  if (m_players.size() > 1)
   {
     start_now = false;
     m_start_pending = true;

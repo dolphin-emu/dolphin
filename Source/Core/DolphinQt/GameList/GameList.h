@@ -65,6 +65,7 @@ private:
   void OpenGCSaveFolder();
   void OpenWiki();
   void StartWithRiivolution();
+  void OpenProjectRio();
   void SetDefaultISO();
   void DeleteFile();
 #ifdef _WIN32

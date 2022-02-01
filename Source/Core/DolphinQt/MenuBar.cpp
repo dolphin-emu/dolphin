@@ -119,6 +119,8 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_screenshot_action->setEnabled(running);
   m_state_load_menu->setEnabled(running);
   m_state_save_menu->setEnabled(running);
+  m_record_stats->setDisabled(running);
+  m_submit_stats->setDisabled(running);
 
   // Movie
   m_recording_read_only->setEnabled(running);
@@ -232,9 +234,6 @@ void MenuBar::AddToolsMenu()
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
   tools_menu->addSeparator();
-
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
 
   tools_menu->addSeparator();
 
@@ -528,6 +527,28 @@ void MenuBar::AddOptionsMenu()
 
   options_menu->addSeparator();
 
+ 
+  m_record_stats = options_menu->addAction(tr("Record Stats"), this, &Core::setRecordStatus);
+  m_record_stats->setCheckable(true);
+  m_record_stats->setChecked(SConfig::GetInstance().bRecordStats);
+
+  connect(m_record_stats, &QAction::toggled, this,
+          [](bool enable) { SConfig::GetInstance().bRecordStats = enable; });
+
+  Core::setRecordStatus(SConfig::GetInstance().bRecordStats);
+  
+  m_submit_stats = options_menu->addAction(tr("Submit Stats"), this, &Core::setSubmitStatus);
+  m_submit_stats->setCheckable(true);
+  // Hiding since submission won't be in alpha release
+  m_submit_stats->setVisible(false);
+  m_submit_stats->setChecked(SConfig::GetInstance().bSubmitStats);
+
+  connect(m_submit_stats, &QAction::toggled, this,
+          [](bool enable) { SConfig::GetInstance().bSubmitStats = enable; });
+
+  Core::setSubmitStatus(SConfig::GetInstance().bSubmitStats);
+
+
   // Debugging mode only
   m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));
   m_boot_to_pause->setCheckable(true);
@@ -555,7 +576,7 @@ void MenuBar::InstallUpdateManually()
   {
     ModalMessageBox::information(
         this, tr("Update"),
-        tr("You are running the latest version available on this update track."));
+        tr("You are running the latest version available."));
   }
 }
 
@@ -563,16 +584,26 @@ void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("&Help"));
 
-  QAction* website = help_menu->addAction(tr("&Website"));
+  QAction* website = help_menu->addAction(tr("&Dolphin Website"));
   connect(website, &QAction::triggered, this,
           []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
+  QAction* projectrio = help_menu->addAction(tr("&Project Rio Website"));
+  connect(projectrio, &QAction::triggered, this,
+          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.projectrio.online/"))); });
+  QAction* discord = help_menu->addAction(tr("&Discord"));
+  connect(discord, &QAction::triggered, this, []() {
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.com/invite/9ZZtpuEPCd")));
+  });
+
+  help_menu->addSeparator();
+
   QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
   connect(documentation, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
   });
   QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/CNace13/dolphin")));
   });
   QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
   connect(bugtracker, &QAction::triggered, this, []() {

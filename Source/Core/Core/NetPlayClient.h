@@ -66,6 +66,9 @@ public:
   virtual void OnTraversalStateChanged(TraversalClient::State state) = 0;
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
+  virtual void OnRankedEnabled(bool is_ranked) = 0;
+  virtual void OnCoinFlipResult(int coinFlip) = 0;
+  virtual void OnActiveGeckoCodes(std::string codeStr) = 0;
 
   virtual bool IsRecording() = 0;
   virtual std::shared_ptr<const UICommon::GameFile>
@@ -114,6 +117,10 @@ public:
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;
+  std::map<int, std::vector<std::string>> NetplayerUserInfo; // int is port, vector[0] is username, vector[1] is user id
+
+  void SendLocalPlayerNetplay(std::vector<std::string>);
+  std::vector<std::string> GetLocalPlayerNetplay();
 
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
@@ -122,11 +129,15 @@ public:
   void Stop();
   bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
+  void SendActiveGeckoCodes();
+  void GetActiveGeckoCodes();
+  void SendCoinFlip(int randNum);
   void RequestStopGame();
   void SendPowerButtonEvent();
   void RequestGolfControl(PlayerId pid);
   void RequestGolfControl();
   std::string GetCurrentGolfer();
+  std::vector<std::string> v_ActiveGeckoCodes;
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, std::size_t size, u8 reporting_mode);
@@ -149,6 +160,7 @@ public:
   bool IsLocalPlayer(PlayerId pid) const;
 
   static void SendTimeBase();
+  static void AutoGolfMode(int isField, int BatPort, int FieldPort);
   bool DoAllPlayersHaveGame();
 
   const PadMappingArray& GetPadMapping() const;
@@ -198,6 +210,8 @@ protected:
   SyncIdentifier m_selected_game;
   Common::Flag m_is_running{false};
   Common::Flag m_do_loop{true};
+
+  bool m_ranked_client = false;
 
   // In non-host input authority mode, this is how many packets each client should
   // try to keep in-flight to the other clients. In host input authority mode, this is how
@@ -251,6 +265,12 @@ private:
   void SendGameStatus();
   void ComputeMD5(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
+  void DisplayBatter();
+  void DisplayFielder();
+  u8 GetFielderPort();
+  u8 GetBatterPort();
+  std::string GetPortPlayer(int port);
+  bool ShouldBeGolfer(int port);
   u32 GetPlayersMaxPing() const;
 
   void OnData(sf::Packet& packet);
@@ -297,6 +317,12 @@ private:
   void OnMD5Result(sf::Packet& packet);
   void OnMD5Error(sf::Packet& packet);
   void OnMD5Abort();
+  void OnRankedBoxMsg(sf::Packet& packet);
+  void OnPlayerDataMsg(sf::Packet& packet);
+  void OnSendCodesMsg(sf::Packet& packet);
+  void OnCoinFlipMsg(sf::Packet& packet);
+  static const u32 fielderPort = 0x802EBF94;
+  static const u32 batterPort = 0x802EBF95;
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;

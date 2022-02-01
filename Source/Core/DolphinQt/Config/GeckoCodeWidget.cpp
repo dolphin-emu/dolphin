@@ -70,7 +70,7 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_description = new QTextEdit;
   m_code_description->setFont(monospace);
   m_code_description->setReadOnly(true);
-  m_code_description->setFixedHeight(line_height * 5);
+  m_code_description->setFixedHeight(line_height * 10);
 
   m_code_view = new QTextEdit;
   m_code_view->setFont(monospace);
@@ -82,7 +82,9 @@ void GeckoCodeWidget::CreateWidgets()
   m_remove_code = new QPushButton(tr("&Remove Code"));
   m_download_codes = new QPushButton(tr("Download Codes"));
 
-  m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
+  m_download_codes->setToolTip(tr(m_game_id == "GYQE01" ?
+                                      "Download Mario Superstar Baseball Codes" :
+                                      "Download Codes from WiiRD Database"));
 
   m_code_list->setEnabled(!m_game_id.empty());
   m_name_label->setEnabled(!m_game_id.empty());
@@ -126,7 +128,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_download_codes);
 
   layout->addLayout(btn_layout);
-
   setLayout(layout);
 }
 
@@ -300,10 +301,14 @@ void GeckoCodeWidget::UpdateList()
                    Qt::ItemIsDragEnabled);
     item->setCheckState(code.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
+    // stop people from being dumb and disabling the required codeset
+    if (code.name == "! Required: Project Rio Codes !")
+    {
+      item->setCheckState(Qt::Checked);
+    }
 
     m_code_list->addItem(item);
   }
-
   m_code_list->setDragDropMode(QAbstractItemView::InternalMove);
 }
 
