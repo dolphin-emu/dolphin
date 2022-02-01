@@ -1024,7 +1024,7 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     });
   }
 
-  if (!golfer_name.empty() && (SConfig::GetInstance().bEnableDebugging)) // only show if debug mode
+  if (!golfer_name.empty() && (Config::Get(Config::MAIN_ENABLE_DEBUGGING))) // only show if debug mode
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
@@ -1113,7 +1113,6 @@ void NetPlayDialog::LoadSettings()
   const bool write_save_data = Config::Get(Config::NETPLAY_WRITE_SAVE_DATA);
   const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
-  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
   const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
   const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);

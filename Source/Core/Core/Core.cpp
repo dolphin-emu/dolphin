@@ -77,7 +77,7 @@
 #endif
 
 #include "DiscIO/RiivolutionPatcher.h"
-#include "MSB_StatTracker.h"
+#include "Core/MSB_StatTracker.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"

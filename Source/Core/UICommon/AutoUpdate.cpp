@@ -171,7 +171,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   picojson::object obj = json.get<picojson::object>();
 
   // check if latest version == current
-  if (obj["tag_name"].get<std::string>() == Common::scm_desc_str)
+  if (obj["tag_name"].get<std::string>() == Common::GetRioRevStr())
   {
     INFO_LOG_FMT(COMMON, "Auto-update status: we are up to date.");
     return;

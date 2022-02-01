@@ -79,7 +79,7 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
-  SaveLocalSettings();
+  //SaveLocalSettings();
 }
 
 void SConfig::SaveSettings()

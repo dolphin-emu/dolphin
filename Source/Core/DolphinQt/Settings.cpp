@@ -115,28 +115,32 @@ void Settings::SetPlayerOne(const QString& m_local_player_1)
 {
   SConfig::GetInstance().m_local_player_1 = m_local_player_1.toStdString();
   SConfig& settings = SConfig::GetInstance();
-  settings.SaveLocalSettings();
+  settings.SaveSettings();
+  //settings.SaveLocalSettings();
 }
 
 void Settings::SetPlayerTwo(const QString& m_local_player_2)
 {
   SConfig::GetInstance().m_local_player_2 = m_local_player_2.toStdString();
   SConfig& settings = SConfig::GetInstance();
-  settings.SaveLocalSettings();
+  settings.SaveSettings();
+  // settings.SaveLocalSettings();
 }
 
 void Settings::SetPlayerThree(const QString& m_local_player_3)
 {
   SConfig::GetInstance().m_local_player_3 = m_local_player_3.toStdString();
   SConfig& settings = SConfig::GetInstance();
-  settings.SaveLocalSettings();
+  settings.SaveSettings();
+  // settings.SaveLocalSettings();
 }
 
 void Settings::SetPlayerFour(const QString& m_local_player_4)
 {
   SConfig::GetInstance().m_local_player_4 = m_local_player_4.toStdString();
   SConfig& settings = SConfig::GetInstance();
-  settings.SaveLocalSettings();
+  settings.SaveSettings();
+  // settings.SaveLocalSettings();
 }
 
 

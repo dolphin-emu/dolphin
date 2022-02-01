@@ -157,14 +157,11 @@ void NetPlayBrowser::Refresh()
 {
   std::map<std::string, std::string> filters;
 
-  if (true)
-    filters["version"] = Common::GetScmDescStr();
-
   if (!m_edit_name->text().isEmpty())
     filters["name"] = m_edit_name->text().toStdString();
 
   if (true)
-    filters["version"] = Common::scm_desc_str;
+    filters["version"] = Common::GetScmRevStr();
 
   if (!m_radio_all->isChecked())
     filters["password"] = std::to_string(m_radio_private->isChecked());

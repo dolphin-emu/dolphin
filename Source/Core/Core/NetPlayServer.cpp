@@ -465,7 +465,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 
   // send ranked box state
   spac.clear();
-  spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
+  spac << MessageID::RankedBox;
   spac << m_current_ranked_value;
   Send(player.socket, spac);
 
@@ -688,7 +688,7 @@ void NetPlayServer::AdjustRankedBox(const bool is_ranked)
 
   // tell clients to change ranked box
   sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_RANKED_BOX);
+  spac << MessageID::RankedBox;
   spac << m_current_ranked_value;
 
   SendAsyncToClients(std::move(spac));
@@ -788,7 +788,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     // send codes to other clients
     sf::Packet spac;
-    spac << (MessageId)SendCodes;
+    spac << MessageID::SendCodes;
     spac << codes;
 
     SendToClients(spac);
@@ -802,7 +802,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     // send codes to other clients
     sf::Packet spac;
-    spac << (MessageId)CoinFlip;
+    spac << MessageID::CoinFlip;
     spac << coinNum;
 
     SendToClients(spac);
@@ -818,7 +818,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     // send userinfo to other clients
     sf::Packet spac;
-    spac << (MessageId)PlayerData;
+    spac << MessageID::PlayerData;
     spac << port;
     spac << userinfoStr;
 

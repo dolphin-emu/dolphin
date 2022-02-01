@@ -39,6 +39,12 @@ const std::string& GetScmRevGitStr()
   return scm_rev_git_str;
 }
 
+const std::string& GetRioRevStr()
+{
+  static const std::string rio_rev_str = RIO_REV_STR;
+  return rio_rev_str;
+}
+
 const std::string& GetScmDescStr()
 {
   static const std::string scm_desc_str = SCM_DESC_STR;

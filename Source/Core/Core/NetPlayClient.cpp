@@ -1486,13 +1486,13 @@ void NetPlayClient::OnMD5Abort()
   m_dialog->AbortMD5();
 }
 
-void OnRankedBoxMsg(sf::Packet& packet)
+void NetPlayClient::OnRankedBoxMsg(sf::Packet& packet)
 {
   packet >> m_ranked_client;
   m_dialog->OnRankedEnabled(m_ranked_client);
 }
 
-void OnPlayerDataMsg(sf::Packet& packet)
+void NetPlayClient::OnPlayerDataMsg(sf::Packet& packet)
 {
   u8 port;
   packet >> port;
@@ -1505,7 +1505,7 @@ void OnPlayerDataMsg(sf::Packet& packet)
   NetplayerUserInfo[port] = userinfo;
 }
 
-void OnSendCodesMsg(sf::Packet& packet)
+void NetPlayClient::OnSendCodesMsg(sf::Packet& packet)
 {
   std::string codeStr;
   packet >> codeStr;
@@ -1522,7 +1522,7 @@ void OnSendCodesMsg(sf::Packet& packet)
     m_dialog->OnActiveGeckoCodes(code);
 }
 
-void OnCoinFlipMsg(sf::Packet& packet)
+void NetPlayClient::OnCoinFlipMsg(sf::Packet& packet)
 {
   int coinFlip;
   packet >> coinFlip;
@@ -1843,7 +1843,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 void NetPlayClient::SendActiveGeckoCodes()
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_SEND_CODES);
+  packet << MessageID::SendCodes;
   std::string codeStr = "";
 
   for (const std::string code : v_ActiveGeckoCodes)
@@ -1880,7 +1880,7 @@ void NetPlayClient::GetActiveGeckoCodes()
 void NetPlayClient::SendCoinFlip(int randNum)
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_COIN_FLIP);
+  packet << MessageID::CoinFlip;
   packet << randNum;
 
   SendAsync(std::move(packet));
@@ -2980,7 +2980,7 @@ void NetPlay_Disable()
 void NetPlayClient::SendLocalPlayerNetplay(std::vector<std::string> userinfo)
 {
   sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_PLAYER_DATA);
+  packet << MessageID::PlayerData;
 
   u8 portnum = 0;
   for (auto player_id : m_pad_map)

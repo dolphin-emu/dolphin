@@ -28,6 +28,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
@@ -121,7 +122,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
  // Block running anything other than MSSB
   if (!StartUp.GetGameID().empty() && !StartUp.GameHasDefaultGameIni())
   {
-    PanicAlertT("This is not a copy of Mario Superstar Baseball.\n"
+    PanicAlertFmt("This is not a copy of Mario Superstar Baseball.\n"
                 "Project Rio is only intended to be used for Mario Superstar Baseball.\n"
                 "Please use regular Dolphin (https://dolphin-emu.org/) for running "
                 "games other than Mario Superstar Baseball.");

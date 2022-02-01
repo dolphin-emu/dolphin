@@ -52,7 +52,10 @@ void Updater::OnUpdateAvailable(std::string info)
     dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     auto* label = new QLabel(tr("<h2>A new version of Rio is available!</h2><h4>Head to "
                                 "the Project Rio website to download the latest update!</h4>"
-      "<u>New Version:</u><strong> %1</strong><br><u>Your Version:</u><strong> %2</strong></br>").arg(QString::fromStdString(info)).arg(QString::fromStdString(Common::scm_desc_str)));
+                                "<u>New Version:</u><strong> %1</strong><br><u>Your "
+                                "Version:</u><strong> %2</strong></br>")
+                                 .arg(QString::fromStdString(info))
+                                 .arg(QString::fromStdString(Common::GetRioRevStr())));
     label->setTextFormat(Qt::RichText);
 
     auto* buttons = new QDialogButtonBox;
