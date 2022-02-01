@@ -79,6 +79,7 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
+  SaveLocalSettings();
 }
 
 void SConfig::SaveSettings()
@@ -205,6 +206,8 @@ void SConfig::LoadDefaults()
 {
   bAutomaticStart = false;
   bBootToPause = false;
+  bRecordStats = true;
+  bSubmitStats = true;
 
   bWii = false;
 
@@ -438,6 +441,11 @@ DiscIO::Language SConfig::GetLanguageAdjustedForRegion(bool wii, DiscIO::Region 
   return language;
 }
 
+bool SConfig::GameHasDefaultGameIni() const
+{
+  return GameHasDefaultGameIni(GetGameID_Wrapper(), m_revision);
+}
+
 IniFile SConfig::LoadDefaultGameIni() const
 {
   return LoadDefaultGameIni(GetGameID(), m_revision);
@@ -451,6 +459,23 @@ IniFile SConfig::LoadLocalGameIni() const
 IniFile SConfig::LoadGameIni() const
 {
   return LoadGameIni(GetGameID(), m_revision);
+}
+
+u16 SConfig::GetGameRevision() const
+{
+  return m_revision;
+}
+std::string SConfig::GetGameID_Wrapper() const
+{
+  return m_gametdb_id;
+}
+
+bool SConfig::GameHasDefaultGameIni(const std::string& id, u16 revision)
+{
+	const std::vector<std::string> filenames = ConfigLoaders::GetGameIniFilenames(id, revision);
+	return std::any_of(filenames.begin(), filenames.end(), [](const std::string& filename) {
+		return File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename);
+	});
 }
 
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)

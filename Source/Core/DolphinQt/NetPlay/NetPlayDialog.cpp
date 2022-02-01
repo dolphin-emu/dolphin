@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
+#include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
 #include <QFileDialog>
@@ -105,10 +106,22 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button = new QPushButton;
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
+  m_buffer_size_box->setToolTip(
+      tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\n"
+      "Project Rio's Batter Lag Reduction mod removes 2 frames (8 buffer) from swings on NetPlay,\n"
+      "and a 120 Hz or greater monitor reduces another 0.5 frames (2 buffer) of general lag.\n\n"
+      "For a simple method, use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 ping and less.\n"
+      "Games above 150 ping will be very laggy and are not recommended for competitive play."));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
   m_menu_bar = new QMenuBar(this);
+  m_ranked_box = new QCheckBox(tr("Ranked"));
+  m_ranked_box->setToolTip(
+      tr("Enabling Ranked Mode will mark down your games as being ranked in the stats files.\nWhen "
+         "sorting through the database, this game will be included as a ranked game.\nThis should "
+         "only be toggled for serious games as to keep our database accurate and organized.\nToggling this box will always record & sumit stats, ignoring user configurations."));
+  m_coin_flipper = new QPushButton(tr("Coin Flip"));
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
@@ -118,8 +131,6 @@ void NetPlayDialog::CreateMainLayout()
   m_load_wii_action->setCheckable(true);
   m_sync_save_data_action = m_data_menu->addAction(tr("Sync Saves"));
   m_sync_save_data_action->setCheckable(true);
-  m_sync_codes_action = m_data_menu->addAction(tr("Sync AR/Gecko Codes"));
-  m_sync_codes_action->setCheckable(true);
   m_sync_all_wii_saves_action = m_data_menu->addAction(tr("Sync All Wii Saves"));
   m_sync_all_wii_saves_action->setCheckable(true);
   m_strict_settings_sync_action = m_data_menu->addAction(tr("Strict Settings Sync"));
@@ -131,29 +142,22 @@ void NetPlayDialog::CreateMainLayout()
 
   m_network_menu = m_menu_bar->addMenu(tr("Network"));
   m_network_menu->setToolTipsVisible(true);
+  m_golf_mode_action = m_network_menu->addAction(tr("Auto Golf Mode"));
+  m_golf_mode_action->setToolTip(tr("One player will have 0 input delay (the golfer), while the "
+                                    "opponent will have a latency penalty.\n"
+                                    "With Auto Golf Mode, the Batter is always set to the golfer, "
+                                    "then when the ball is hit the golfer\n"
+                                    "will automatically switch to the fielder."));
+  m_golf_mode_action->setCheckable(true);
   m_fixed_delay_action = m_network_menu->addAction(tr("Fair Input Delay"));
   m_fixed_delay_action->setToolTip(
       tr("Each player sends their own inputs to the game, with equal buffer size for all players, "
-         "configured by the host.\nSuitable for competitive games where fairness and minimal "
-         "latency are most important."));
+         "configured by the host.\nRecommended only for games of low ping with highly stable connection."));
   m_fixed_delay_action->setCheckable(true);
-  m_host_input_authority_action = m_network_menu->addAction(tr("Host Input Authority"));
-  m_host_input_authority_action->setToolTip(
-      tr("Host has control of sending all inputs to the game, as received from other players, "
-         "giving the host zero latency but increasing latency for others.\nSuitable for casual "
-         "games with 3+ players, possibly on unstable or high latency connections."));
-  m_host_input_authority_action->setCheckable(true);
-  m_golf_mode_action = m_network_menu->addAction(tr("Golf Mode"));
-  m_golf_mode_action->setToolTip(
-      tr("Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be "
-         "switched at any time.\nSuitable for turn-based games with timing-sensitive controls, "
-         "such as golf."));
-  m_golf_mode_action->setCheckable(true);
 
   m_network_mode_group = new QActionGroup(this);
   m_network_mode_group->setExclusive(true);
   m_network_mode_group->addAction(m_fixed_delay_action);
-  m_network_mode_group->addAction(m_host_input_authority_action);
   m_network_mode_group->addAction(m_golf_mode_action);
   m_fixed_delay_action->setChecked(true);
 
@@ -185,7 +189,7 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button->setAutoDefault(false);
 
   m_sync_save_data_action->setChecked(true);
-  m_sync_codes_action->setChecked(true);
+
 
   m_main_layout->setMenuBar(m_menu_bar);
 
@@ -200,8 +204,10 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 3, Qt::AlignVCenter | Qt::AlignRight);
-  options_widget->setColumnStretch(3, 1000);
+  options_widget->addWidget(m_quit_button, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->setColumnStretch(5, 1000);
+  options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
+  options_widget->addWidget(m_coin_flipper, 0, 4, Qt::AlignVCenter);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -311,6 +317,16 @@ void NetPlayDialog::ConnectWidgets()
       client->AdjustPadBufferSize(value);
   });
 
+  connect(m_ranked_box, &QCheckBox::stateChanged, [this](bool is_ranked) {
+    auto client = Settings::Instance().GetNetPlayClient();
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->AdjustRankedBox(is_ranked);
+  });
+
+  connect(m_coin_flipper, &QPushButton::clicked, this, &NetPlayDialog::OnCoinFlip);
+
+
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
     {
@@ -320,8 +336,7 @@ void NetPlayDialog::ConnectWidgets()
     }
   };
 
-  connect(m_host_input_authority_action, &QAction::toggled, this,
-          [hia_function] { hia_function(true); });
+
   connect(m_golf_mode_action, &QAction::toggled, this, [hia_function] { hia_function(true); });
   connect(m_fixed_delay_action, &QAction::toggled, this, [hia_function] { hia_function(false); });
 
@@ -362,15 +377,14 @@ void NetPlayDialog::ConnectWidgets()
 
   // SaveSettings() - Save Hosting-Dialog Settings
 
+  connect(m_ranked_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
   connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), this,
           &NetPlayDialog::SaveSettings);
   connect(m_write_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_load_wii_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_save_data_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
-  connect(m_sync_codes_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_record_input_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_strict_settings_sync_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
-  connect(m_host_input_authority_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_sync_all_wii_saves_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_golf_mode_overlay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
@@ -401,10 +415,53 @@ void NetPlayDialog::OnChat()
   });
 }
 
+void NetPlayDialog::OnCoinFlip()
+{
+  if (!IsHosting())
+    return;
+  int randNum;
+  randNum = 1 + rand() % 2;
+  Settings::Instance().GetNetPlayClient()->SendCoinFlip(randNum);
+}
+
+void NetPlayDialog::OnCoinFlipResult(int coinNum)
+{
+  if (coinNum == 1)
+    DisplayMessage(tr("Heads"), "darkorange");
+  else
+    DisplayMessage(tr("Tails"), "orange");
+}
+
+void NetPlayDialog::DisplayActiveGeckoCodes()
+{
+  if (!IsHosting())
+    return;
+  Settings::Instance().GetNetPlayClient()->GetActiveGeckoCodes();
+}
+
+void NetPlayDialog::OnActiveGeckoCodes(std::string codeStr)
+{
+  DisplayMessage(QString::fromStdString(codeStr), "darkblue");
+}
+
+void NetPlayDialog::OnRankedEnabled(bool is_ranked)
+{
+  if (is_ranked)
+  {
+    DisplayMessage(tr("Ranked Mode Enabled"), "green");
+    Core::setRankedStatus(is_ranked);
+  }
+  else
+  {
+    DisplayMessage(tr("Ranked Mode Disabled"), "red");
+    Core::setRankedStatus(is_ranked);
+  }
+}
+
 void NetPlayDialog::OnIndexAdded(bool success, const std::string error)
 {
-  DisplayMessage(success ? tr("Successfully added to the NetPlay index") :
-                           tr("Failed to add this session to the NetPlay index: %1")
+  DisplayMessage(success ? tr("Success: Session can now be joined.") :
+                           tr("Failed to host session. Check your internet connection: %1")
                                .arg(QString::fromStdString(error)),
                  success ? "green" : "red");
 }
@@ -441,7 +498,10 @@ void NetPlayDialog::OnStart()
   }
 
   if (Settings::Instance().GetNetPlayServer()->RequestStartGame())
+  {
     SetOptionsEnabled(false);
+    DisplayActiveGeckoCodes();
+  }
 }
 
 void NetPlayDialog::reject()
@@ -465,6 +525,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_chat_type_edit->clear();
 
   bool is_hosting = Settings::Instance().GetNetPlayServer() != nullptr;
+
 
   if (is_hosting)
   {
@@ -495,6 +556,10 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_hostcode_action_button->setHidden(!is_hosting);
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
+  m_ranked_box->setHidden(!is_hosting);
+  m_ranked_box->setEnabled(is_hosting);
+  m_coin_flipper->setHidden(!is_hosting);
+  m_coin_flipper->setEnabled(is_hosting);
 
   SetOptionsEnabled(true);
 
@@ -774,13 +839,12 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_load_wii_action->setEnabled(enabled);
     m_write_save_data_action->setEnabled(enabled);
     m_sync_save_data_action->setEnabled(enabled);
-    m_sync_codes_action->setEnabled(enabled);
     m_assign_ports_button->setEnabled(enabled);
     m_strict_settings_sync_action->setEnabled(enabled);
-    m_host_input_authority_action->setEnabled(enabled);
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
     m_golf_mode_action->setEnabled(enabled);
     m_fixed_delay_action->setEnabled(enabled);
+    m_ranked_box->setCheckable(enabled);
   }
 
   m_record_input_action->setEnabled(enabled);
@@ -805,9 +869,11 @@ void NetPlayDialog::OnMsgStartGame()
     if (client)
     {
       if (auto game = FindGameFile(m_current_game_identifier))
+      {
         client->StartGame(game->GetFilePath());
-      else
-        PanicAlertFmtT("Selected game doesn't exist in game list!");
+        m_ranked_box->setEnabled(false);
+      }
+      else PanicAlertFmtT("Selected game doesn't exist in game list!");
     }
     UpdateDiscordPresence();
   });
@@ -818,6 +884,9 @@ void NetPlayDialog::OnMsgStopGame()
   g_netplay_chat_ui.reset();
   g_netplay_golf_ui.reset();
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
+
+  const bool is_hosting = IsHosting();
+  m_ranked_box->setEnabled(is_hosting);
 }
 
 void NetPlayDialog::OnMsgPowerButton()
@@ -853,7 +922,7 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 {
   m_host_input_authority = enabled;
-  DisplayMessage(enabled ? tr("Host input authority enabled") : tr("Host input authority disabled"),
+  DisplayMessage(enabled ? tr("Auto Golf Mode enabled") : tr("Fair Input Delay enabled"),
                  "");
 
   QueueOnObject(this, [this, enabled] {
@@ -955,7 +1024,7 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     });
   }
 
-  if (!golfer_name.empty())
+  if (!golfer_name.empty() && (SConfig::GetInstance().bEnableDebugging)) // only show if debug mode
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
@@ -1050,12 +1119,13 @@ void NetPlayDialog::LoadSettings()
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
   const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
+  const bool ranked_mode = Config::Get(Config::NETPLAY_RANKED);
 
+  m_ranked_box->setChecked(ranked_mode);
   m_buffer_size_box->setValue(buffer_size);
   m_write_save_data_action->setChecked(write_save_data);
   m_load_wii_action->setChecked(load_wii_save);
   m_sync_save_data_action->setChecked(sync_saves);
-  m_sync_codes_action->setChecked(sync_codes);
   m_record_input_action->setChecked(record_inputs);
   m_strict_settings_sync_action->setChecked(strict_settings_sync);
   m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
@@ -1067,10 +1137,6 @@ void NetPlayDialog::LoadSettings()
   if (network_mode == "fixeddelay")
   {
     m_fixed_delay_action->setChecked(true);
-  }
-  else if (network_mode == "hostinputauthority")
-  {
-    m_host_input_authority_action->setChecked(true);
   }
   else if (network_mode == "golf")
   {
@@ -1095,21 +1161,18 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_WRITE_SAVE_DATA, m_write_save_data_action->isChecked());
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_action->isChecked());
-  Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
+  Config::SetBase(Config::NETPLAY_RANKED, m_ranked_box->isChecked());
+
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())
   {
     network_mode = "fixeddelay";
-  }
-  else if (m_host_input_authority_action->isChecked())
-  {
-    network_mode = "hostinputauthority";
   }
   else if (m_golf_mode_action->isChecked())
   {

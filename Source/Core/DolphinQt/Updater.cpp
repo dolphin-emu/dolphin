@@ -17,6 +17,7 @@
 
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Settings.h"
+#include <qdesktopservices.h>
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
@@ -40,11 +41,36 @@ bool Updater::CheckForUpdate()
   return m_update_available;
 }
 
-void Updater::OnUpdateAvailable(const NewVersionInformation& info)
+void Updater::OnUpdateAvailable(std::string info)
 {
-  bool later = false;
+  // bool later = false;
   m_update_available = true;
 
+  std::optional<int> choice = RunOnObject(m_parent, [&] {
+    QDialog* dialog = new QDialog(m_parent);
+    dialog->setWindowTitle(tr("Update available"));
+    dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    auto* label = new QLabel(tr("<h2>A new version of Rio is available!</h2><h4>Head to "
+                                "the Project Rio website to download the latest update!</h4>"
+      "<u>New Version:</u><strong> %1</strong><br><u>Your Version:</u><strong> %2</strong></br>").arg(QString::fromStdString(info)).arg(QString::fromStdString(Common::scm_desc_str)));
+    label->setTextFormat(Qt::RichText);
+
+    auto* buttons = new QDialogButtonBox;
+    auto* projectrio = buttons->addButton(tr("Go to Project Rio website"), QDialogButtonBox::AcceptRole);
+
+    connect(projectrio, &QPushButton::clicked, this, []() {
+      QDesktopServices::openUrl(QUrl(QStringLiteral("https://www.projectrio.online/")));
+    });
+
+    auto* layout = new QVBoxLayout;
+    layout->addWidget(label);
+    dialog->setLayout(layout);
+    layout->addWidget(buttons);
+
+    return dialog->exec();
+  });
+
+  /*
   std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);
     dialog->setWindowTitle(tr("Update available"));
@@ -106,5 +132,5 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
         return 0;
       });
     }
-  }
+  }*/
 }

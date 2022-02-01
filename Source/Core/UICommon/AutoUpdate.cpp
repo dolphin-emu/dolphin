@@ -135,38 +135,24 @@ bool AutoUpdateChecker::SystemSupportsAutoUpdates()
 #endif
 }
 
-static std::string GetPlatformID()
-{
-#if defined _WIN32
-  return "win";
-#elif defined __APPLE__
-#if defined(MACOS_UNIVERSAL_BUILD)
-  return "macos-universal";
-#else
-  return "macos";
-#endif
-#else
-  return "unknown";
-#endif
-}
 
 void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
                                        std::string_view hash_override)
 {
-  // Don't bother checking if updates are not supported or not enabled.
-  if (!SystemSupportsAutoUpdates() || update_track.empty())
-    return;
+  // Don't bother checking if updates are not supported.
+  //if (!SystemSupportsAutoUpdates()) 
+  //  return;
 
 #ifdef OS_SUPPORTS_UPDATER
   CleanupFromPreviousUpdate();
 #endif
 
-  std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
-  std::string url = fmt::format("https://dolphin-emu.org/update/check/v1/{}/{}/{}", update_track,
-                                version_hash, GetPlatformID());
+  // This url returns a json containing info about the latest release
+  std::string url = "https://api.github.com/repos/CNace13/ProjectRio/releases/latest";
+  Common::HttpRequest::Headers headers = {{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36"}};
 
   Common::HttpRequest req{std::chrono::seconds{10}};
-  auto resp = req.Get(url);
+  auto resp = req.Get(url, headers);
   if (!resp)
   {
     ERROR_LOG_FMT(COMMON, "Auto-update request failed");
@@ -184,23 +170,13 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   }
   picojson::object obj = json.get<picojson::object>();
 
-  if (obj["status"].get<std::string>() != "outdated")
+  // check if latest version == current
+  if (obj["tag_name"].get<std::string>() == Common::scm_desc_str)
   {
     INFO_LOG_FMT(COMMON, "Auto-update status: we are up to date.");
     return;
   }
-
-  NewVersionInformation nvi;
-  nvi.this_manifest_url = obj["old"].get<picojson::object>()["manifest"].get<std::string>();
-  nvi.next_manifest_url = obj["new"].get<picojson::object>()["manifest"].get<std::string>();
-  nvi.content_store_url = obj["content-store"].get<std::string>();
-  nvi.new_shortrev = obj["new"].get<picojson::object>()["name"].get<std::string>();
-  nvi.new_hash = obj["new"].get<picojson::object>()["hash"].get<std::string>();
-
-  // TODO: generate the HTML changelog from the JSON information.
-  nvi.changelog_html = GenerateChangelog(obj["changelog"].get<picojson::array>());
-
-  OnUpdateAvailable(nvi);
+  OnUpdateAvailable(obj["tag_name"].get<std::string>());
 }
 
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
@@ -211,7 +187,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   {
     WARN_LOG_FMT(COMMON, "Auto-update: received a redundant trigger request, ignoring");
     return;
-  }
+  }  
 
   s_update_triggered = true;
 #ifdef OS_SUPPORTS_UPDATER

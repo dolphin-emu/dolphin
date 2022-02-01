@@ -145,7 +145,8 @@ public:
     }
 
     // Check To Override Client's Cheat Codes
-    if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
+    // We want to always sync codes to avoid desyncs & for other reasons
+    if (!m_settings.m_IsHosting)
     {
       // Raise flag to use host's codes
       layer->Set(Config::SESSION_CODE_SYNC_OVERRIDE, true);

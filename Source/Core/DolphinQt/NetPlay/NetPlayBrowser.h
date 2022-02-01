@@ -32,6 +32,7 @@ public:
   ~NetPlayBrowser();
 
   void accept() override;
+
 signals:
   void Join();
   void UpdateStatusRequested(const QString& status);
@@ -59,8 +60,7 @@ private:
   QTableWidget* m_table_widget;
   QDialogButtonBox* m_button_box;
   QLineEdit* m_edit_name;
-  QLineEdit* m_edit_game_id;
-  QCheckBox* m_check_hide_incompatible;
+  QLineEdit* m_edit_nickname;
   QCheckBox* m_check_hide_ingame;
 
   QRadioButton* m_radio_all;

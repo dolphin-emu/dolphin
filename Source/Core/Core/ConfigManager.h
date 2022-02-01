@@ -37,6 +37,8 @@ struct SConfig
   // Settings
   bool bAutomaticStart = false;
   bool bBootToPause = false;
+  bool bRecordStats;
+  bool bSubmitStats;
 
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
@@ -82,10 +84,14 @@ struct SConfig
   DiscIO::Language GetCurrentLanguage(bool wii) const;
   DiscIO::Language GetLanguageAdjustedForRegion(bool wii, DiscIO::Region region) const;
 
+	u16 GetGameRevision() const;
+  std::string GetGameID_Wrapper() const;
+  bool GameHasDefaultGameIni() const;
   IniFile LoadDefaultGameIni() const;
   IniFile LoadLocalGameIni() const;
   IniFile LoadGameIni() const;
 
+  static bool GameHasDefaultGameIni(const std::string& id, u16 revision);
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
@@ -97,6 +103,7 @@ struct SConfig
 
   // Save settings
   void SaveSettings();
+  void SaveLocalSettings();
 
   // Load settings
   void LoadSettings();

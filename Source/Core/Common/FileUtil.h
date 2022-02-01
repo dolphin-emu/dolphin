@@ -32,6 +32,7 @@ enum
   D_CONFIG_IDX,           // global settings
   D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
                           // settings (per game)
+  D_STATFILES_IDX,
   D_MAPS_IDX,
   D_CACHE_IDX,
   D_COVERCACHE_IDX,
@@ -53,6 +54,7 @@ enum
   D_LOGS_IDX,
   D_MAILLOGS_IDX,
   D_THEMES_IDX,
+  D_TEXTUREPACKS_IDX,
   D_STYLES_IDX,
   D_PIPES_IDX,
   D_MEMORYWATCHER_IDX,
@@ -64,6 +66,7 @@ enum
   D_GBASAVES_IDX,
   FIRST_FILE_USER_PATH_IDX,
   F_DOLPHINCONFIG_IDX = FIRST_FILE_USER_PATH_IDX,
+  F_LOCALPLAYERSCONFIG_IDX,
   F_GCPADCONFIG_IDX,
   F_WIIPADCONFIG_IDX,
   F_GCKEYBOARDCONFIG_IDX,

@@ -57,6 +57,8 @@ add_executable(dolphin-emu
   Translation.h
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/AddLocalPlayers.cpp
+  Config/AddLocalPlayers.h
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
@@ -120,6 +122,10 @@ add_executable(dolphin-emu
   Config/Graphics/SoftwareRendererWidget.h
   Config/InfoWidget.cpp
   Config/InfoWidget.h
+  Config/LocalPlayersWindow.cpp
+  Config/LocalPlayersWindow.h
+  Config/LocalPlayersWidget.cpp
+  Config/LocalPlayersWidget.h
   Config/LogConfigWidget.cpp
   Config/LogConfigWidget.h
   Config/LogWidget.cpp

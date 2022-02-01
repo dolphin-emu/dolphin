@@ -15,6 +15,8 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+
+
 static QSize ICON_SIZE(32, 32);
 
 ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
@@ -87,6 +89,10 @@ void ToolBar::OnDebugModeToggled(bool enabled)
   m_skip_action->setVisible(enabled);
   m_show_pc_action->setVisible(enabled);
   m_set_pc_action->setVisible(enabled);
+  m_open_action->setVisible(enabled);
+  m_refresh_action->setVisible(enabled);
+  m_pause_play_action->setVisible(enabled);
+  m_stop_action->setVisible(enabled);
 
   bool paused = Core::GetState() == Core::State::Paused;
   m_step_action->setEnabled(paused);
@@ -117,7 +123,7 @@ void ToolBar::MakeActions()
   m_refresh_action = addAction(tr("Refresh"), [this] { emit RefreshPressed(); });
   m_refresh_action->setEnabled(false);
 
-  addSeparator();
+  // addSeparator();
 
   m_pause_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
 
@@ -127,10 +133,19 @@ void ToolBar::MakeActions()
 
   addSeparator();
 
+  m_start_netplay_action = addAction(tr("Online Play"), this, &ToolBar::StartNetPlayPressed);
+
+  addSeparator();
+
   m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
+
+  addSeparator();
+
+  m_view_gecko_codes_action = addAction(tr("Gecko Codes"), this, &ToolBar::ViewGeckoCodes);
+  m_local_players_action = addAction(tr("Local Players"), this, &ToolBar::ViewLocalPlayers);
 
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
@@ -195,4 +210,7 @@ void ToolBar::UpdateIcons()
   m_config_action->setIcon(Resources::GetScaledThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetScaledThemeIcon("classic"));
   m_graphics_action->setIcon(Resources::GetScaledThemeIcon("graphics"));
+  m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("wifi"));
+  m_view_gecko_codes_action->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint@2x"));
+  m_local_players_action->setIcon(Resources::GetScaledThemeIcon("browse"));
 }

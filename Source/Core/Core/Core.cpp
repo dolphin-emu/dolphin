@@ -20,6 +20,8 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Core/HW/AddressSpace.h"
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -75,6 +77,7 @@
 #endif
 
 #include "DiscIO/RiivolutionPatcher.h"
+#include "MSB_StatTracker.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -117,6 +120,8 @@ static std::atomic<bool> s_stop_frame_step;
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
 #endif
 
+static std::unique_ptr<StatTracker> s_stat_tracker;
+
 struct HostJob
 {
   std::function<void()> job;
@@ -147,16 +152,137 @@ double GetActualEmulationSpeed()
 
 void FrameUpdateOnCPUThread()
 {
-  if (NetPlay::IsNetPlayRunning())
+  if (NetPlay::IsNetPlayRunning()) {
     NetPlay::NetPlayClient::SendTimeBase();
+
+    if (s_stat_tracker){
+      //Figure out if client is hosting via netplay settings. Could use local player as well
+      bool is_hosting = NetPlay::GetNetSettings().m_IsHosting;
+      std::string opponent_name = "";
+      /*
+      for (auto player : NetPlay::NetPlayClient::GetPlayers()){
+        if (!NetPlay::NetPlayClient::IsLocalPlayer(player.pid)){
+          opponent_name = player.name;
+          break;
+        }
+      }*/
+      s_stat_tracker->setNetplaySession(true, is_hosting, opponent_name);
+    }
+  }
+  else{
+    if (s_stat_tracker){
+      s_stat_tracker->setNetplaySession(false);
+    }
+  }
 }
 
 void OnFrameEnd()
 {
+  // Write IsGolfMode to memory, control use of 2 frame BLR mod
+  if (!NetPlay::IsNetPlayRunning() || IsGolfMode())
+  {
+    // for some unknown reason, when playing locally the game gets a write error at frame 6457
+    // no idea why, so imma just write to the addr on some arbiturary frame number
+    if (Movie::GetCurrentFrame()==500)
+    {
+      // sets a specific address to 1 each frame
+      // this address is read by Project Rio's version of Batter Lag Reduction. It only activates
+      // when this addr = 0. this system prevents user error of forgetting to turn off lag reduciton
+      // when playing local and turning it on for netplay
+      AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+      accessors->WriteU8(0x802EBF96, 1);
+    }
+  }
+  // Auto Golf Mode
+  if (NetPlay::IsNetPlayRunning() && IsGolfMode())
+  {
+    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8089389B),    // isField
+                                         (Memory::Read_U8(0x802EBF95)),  // BatPort
+                                         (Memory::Read_U8(0x802EBF94))); // FieldPort
+  }
+
+  // Training Mode
+  if (Memory::Read_U8(0x802EBFB4) == 1)
+  {
+    // If Practice Mode and Contact Made
+    // if ((Memory::Read_U8(0x8086B04C) == 1) && (Memory::Read_U8(0x80892ADA) == 1))
+    if ((Memory::Read_U8(0x80892ADA) == 1)) // If contact is made
+    {
+      unsigned int contactFrame = Memory::Read_U16(0x80890976);
+      unsigned int typeOfContact_Value = Memory::Read_U8(0x808909A2);
+      std::string typeOfContact;
+      unsigned int inputDirection_Value = Memory::Read_U8(0x8089392D) & 0xF;
+      std::string inputDirection;
+      float angle = (float)Memory::Read_U16(0x808926D4) / 10;
+      unsigned int xVelocity_Value = Memory::Read_U32(0x80890E50);
+      unsigned int yVelocity_Value = Memory::Read_U32(0x80890E54);
+      unsigned int zVelocity_Value = Memory::Read_U32(0x80890E58);
+
+      // convert type of contact to string
+      if (typeOfContact_Value == 0)
+        typeOfContact = "Sour - Left";
+      else if (typeOfContact_Value == 1)
+        typeOfContact = "Nice - Left";
+      else if (typeOfContact_Value == 2)
+        typeOfContact = "Perfect";
+      else if (typeOfContact_Value == 3)
+        typeOfContact = "Nice - Right";
+      else // typeOfContact_Value == 4
+        typeOfContact = "Sour - Right";
+
+      // convert input direction to string
+      if (inputDirection_Value == 0)
+        inputDirection = "None";
+      else if (inputDirection_Value == 1)
+        inputDirection = "Left";
+      else if (inputDirection_Value == 2)
+        inputDirection = "Right";
+      else if (inputDirection_Value == 4)
+        inputDirection = "Down";
+      else if (inputDirection_Value == 8)
+        inputDirection = "Up";
+      else if (inputDirection_Value == 5)
+        inputDirection = "Down/Left";
+      else if (inputDirection_Value == 9)
+        inputDirection = "Up/Left";
+      else if (inputDirection_Value == 6)
+        inputDirection = "Down/Right";
+      else if (inputDirection_Value == 10)
+        inputDirection = "Up/Right";
+      else
+        inputDirection = "Unknown";
+
+      OSD::AddMessage(fmt::format("Contact Frame: {}", contactFrame), 6000);
+      OSD::AddMessage(fmt::format("Type of Contact: {}", typeOfContact), 6000);
+      OSD::AddMessage(fmt::format("Input Direction: {}", inputDirection), 6000);
+      OSD::AddMessage(fmt::format("Ball Angle: {}", angle), 6000);
+      OSD::AddMessage(fmt::format("X Velocity: {}, Y Velocity: {}, Z Velocity: {}",
+                                  xVelocity_Value, yVelocity_Value,
+                                  zVelocity_Value), 6000);
+
+    }
+  }
+
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
+
+  if (s_stat_tracker) {
+    s_stat_tracker->Run();
+  }
+}
+
+bool IsGolfMode()
+{
+  // we have to do this dumb work around cause Dolphin gets an error
+  // when calling GetNetSetttings when NetPlay's not running
+  bool out = false;
+  if (NetPlay::IsNetPlayRunning())
+  {
+    out = NetPlay::GetNetSettings().m_HostInputAuthority;
+  }
+  return out;
 }
 
 // Display messages and return values
@@ -277,6 +403,8 @@ void Stop()  // - Hammertime!
 
   s_timer.Stop();
 
+  s_stat_tracker->init(); // Stop blank stat file from being output if a game is closed out before json output
+
   CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
@@ -353,6 +481,11 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 #ifdef USE_MEMORYWATCHER
   s_memory_watcher = std::make_unique<MemoryWatcher>();
 #endif
+
+  if (!s_stat_tracker) {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
 
   if (savestate_path)
   {
@@ -1139,6 +1272,33 @@ void UpdateInputGate(bool require_focus, bool require_full_focus)
   const bool full_focus_passes =
       !require_focus || !require_full_focus || (focus_passes && Host_RendererHasFullFocus());
   ControlReference::SetInputGate(focus_passes && full_focus_passes);
+}
+
+void setRecordStatus(bool inNewStatus)
+{
+  //SConfig& settings = SConfig::GetInstance();
+  //settings.SaveSettings();
+  if (!s_stat_tracker) {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+
+  s_stat_tracker->setRecordStatus(inNewStatus);
+}
+
+void setSubmitStatus(bool inNewStatus)
+{
+  SConfig& settings = SConfig::GetInstance();
+  settings.SaveSettings();
+}
+
+void setRankedStatus(bool inNewStatus)
+{
+  if (!s_stat_tracker) {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+  s_stat_tracker->setRankedStatus(inNewStatus);
 }
 
 }  // namespace Core

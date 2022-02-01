@@ -53,6 +53,7 @@ public:
 
   void Update() override;
   void AppendChat(const std::string& msg) override;
+  void DisplayActiveGeckoCodes();
 
   void OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
                        const std::string& netplay_name) override;
@@ -71,6 +72,10 @@ public:
   void OnTraversalStateChanged(TraversalClient::State state) override;
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
+
+  void OnRankedEnabled(bool is_ranked) override;
+  void OnCoinFlipResult(int coinNum);
+  void OnActiveGeckoCodes(std::string codeStr);
 
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;
@@ -106,6 +111,7 @@ private:
   void CreateMainLayout();
   void ConnectWidgets();
   void OnChat();
+  void OnCoinFlip();
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
@@ -148,7 +154,6 @@ private:
   QAction* m_sync_codes_action;
   QAction* m_record_input_action;
   QAction* m_strict_settings_sync_action;
-  QAction* m_host_input_authority_action;
   QAction* m_sync_all_wii_saves_action;
   QAction* m_golf_mode_action;
   QAction* m_golf_mode_overlay_action;
@@ -156,7 +161,9 @@ private:
   QAction* m_hide_remote_gbas_action;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
+  QCheckBox* m_ranked_box;
   QActionGroup* m_network_mode_group;
+  QPushButton* m_coin_flipper;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
@@ -174,6 +181,7 @@ private:
   int m_player_count = 0;
   int m_old_player_count = 0;
   bool m_host_input_authority = false;
+  bool m_current_ranked_value = false;
 
   StartGameCallback m_start_game_callback;
 };

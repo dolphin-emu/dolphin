@@ -16,6 +16,8 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/Memmap.h"
+
 struct BootParameters;
 struct WindowSystemInfo;
 
@@ -121,6 +123,7 @@ void DisplayMessage(std::string message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
 void OnFrameEnd();
+bool IsGolfMode();
 
 void VideoThrottle();
 
@@ -168,5 +171,19 @@ void HostDispatchJobs();
 void DoFrameStep();
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
+
+//void setRankedStatus(bool inNewStatus);
+void setRecordStatus(bool inNewStatus);
+void setSubmitStatus(bool inNewStatus);
+void setRankedStatus(bool inNewStatus);
+
+// static const u8 aFieldingPort = 0x802EBF94;
+  // Specifies which port is fielding; holds value 1-4
+//static const u8 aBattingPort = 0x802EBF95;
+  // Specifies which port is batting; holds value 1-4
+// static const u8 aGameState = 0x8036F3B8;
+  // Tells if in the fielding/running state or the  pitching/batting state
+  // If 0, fielding/running
+  // If 1, batting/pitching
 
 }  // namespace Core

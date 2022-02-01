@@ -16,18 +16,19 @@ namespace Common
 #else
 #define BUILD_TYPE_STR ""
 #endif
+#define RIO_REV_STR "0.1.4.a"
 
 const std::string& GetScmRevStr()
 {
-  static const std::string scm_rev_str = "Dolphin "
+  static const std::string scm_rev_str = "Project Rio "
 #if !SCM_IS_MASTER
                                          "[" SCM_BRANCH_STR "] "
 #endif
 
 #ifdef __INTEL_COMPILER
-      BUILD_TYPE_STR SCM_DESC_STR "-ICC";
+    BUILD_TYPE_STR RIO_REV_STR "-ICC";
 #else
-      BUILD_TYPE_STR SCM_DESC_STR;
+    BUILD_TYPE_STR RIO_REV_STR;
 #endif
   return scm_rev_str;
 }
@@ -65,11 +66,11 @@ const std::string& GetScmUpdateTrackStr()
 const std::string& GetNetplayDolphinVer()
 {
 #ifdef _WIN32
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Win";
+  static const std::string netplay_dolphin_ver = RIO_REV_STR " Win";
 #elif __APPLE__
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Mac";
+  static const std::string netplay_dolphin_ver = RIO_REV_STR " Mac";
 #else
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Lin";
+  static const std::string netplay_dolphin_ver = RIO_REV_STR " Lin";
 #endif
   return netplay_dolphin_ver;
 }
