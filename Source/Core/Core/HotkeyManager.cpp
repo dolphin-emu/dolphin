@@ -441,6 +441,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_STEP_OUT, hotkey_string({"Shift", "F11"}));
   set_key_expression(HK_BP_TOGGLE, hotkey_string({"Shift", "F9"}));
   set_key_expression(HK_SCREENSHOT, "F9");
+  set_key_expression(HK_FULLSCREEN, "=");
   set_key_expression(HK_WIIMOTE1_CONNECT, hotkey_string({"Alt", "F5"}));
   set_key_expression(HK_WIIMOTE2_CONNECT, hotkey_string({"Alt", "F6"}));
   set_key_expression(HK_WIIMOTE3_CONNECT, hotkey_string({"Alt", "F7"}));
