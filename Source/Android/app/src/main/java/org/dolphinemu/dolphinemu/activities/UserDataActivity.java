@@ -320,6 +320,10 @@ public class UserDataActivity extends AppCompatActivity
       {
         exportUserData(zos, child, new File(pathRelativeToRoot, child.getName()));
       }
+      if (children.length == 0 && pathRelativeToRoot != null)
+      {
+        zos.putNextEntry(new ZipEntry(pathRelativeToRoot.getPath() + '/'));
+      }
     }
     else
     {
