@@ -30,4 +30,4 @@ bool onHotkeyEvent(int id, bool showMessage);
  */
 bool getHotkeyState(int id);
 
-} // namespace AndroidHotkey
+}
