@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -8,114 +10,149 @@
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Arm64Gen;
 
-void JitArm64::psq_l(UGeckoInstruction inst)
+void JitArm64::psq_lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
-  FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
-  // The asm routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  // If we have a fastmem arena, the asm routines assume address translation is on.
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
 
   // X30 is LR
-  // X0 contains the scale
-  // X1 is the address
+  // X0 is the address
+  // X1 contains the scale
   // X2 is a temporary
   // Q0 is the return register
   // Q1 is a temporary
-  const bool update = inst.OPCD == 57;
   const s32 offset = inst.SIMM_12;
+  const bool indexed = inst.OPCD == 4;
+  const bool update = inst.OPCD == 57 || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
+  const int i = indexed ? inst.Ix : inst.I;
+  const int w = indexed ? inst.Wx : inst.W;
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
+  fpr.Lock(ARM64Reg::Q0);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Lock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
+    fpr.Lock(ARM64Reg::Q1);
+  }
 
-  const ARM64Reg arm_addr = gpr.R(inst.RA);
-  constexpr ARM64Reg scale_reg = ARM64Reg::W0;
-  constexpr ARM64Reg addr_reg = ARM64Reg::W1;
+  constexpr ARM64Reg addr_reg = ARM64Reg::W0;
+  constexpr ARM64Reg scale_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
-  ARM64Reg VS;
+  ARM64Reg VS = fpr.RW(inst.RS, RegType::Single, false);
 
   if (inst.RA || update)  // Always uses the register on update
   {
-    if (offset >= 0)
-      ADD(addr_reg, arm_addr, offset);
+    if (indexed)
+      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
+    else if (offset >= 0)
+      ADD(addr_reg, gpr.R(inst.RA), offset);
     else
-      SUB(addr_reg, arm_addr, std::abs(offset));
+      SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
   }
   else
   {
-    MOVI2R(addr_reg, (u32)offset);
+    if (indexed)
+      MOV(addr_reg, gpr.R(inst.RB));
+    else
+      MOVI2R(addr_reg, (u32)offset);
   }
 
-  if (update)
+  const bool early_update = !jo.memcheck;
+  if (update && early_update)
   {
-    gpr.BindToRegister(inst.RA, true);
-    MOV(arm_addr, addr_reg);
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
   {
-    VS = fpr.RW(inst.RS, RegType::Single);
-    if (!inst.W)
-    {
-      ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), MEM_REG);
-      m_float_emit.LD1(32, 1, EncodeRegToDouble(VS), EncodeRegTo64(addr_reg));
-    }
-    else
-    {
-      m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), MEM_REG);
-    }
-    m_float_emit.REV32(8, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
+    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
+    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+
+    // Wipe the registers we are using as temporaries
+    if (!update || early_update)
+      gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+    fprs_in_use[DecodeReg(ARM64Reg::Q0)] = false;
+    if (!jo.memcheck)
+      fprs_in_use[DecodeReg(VS)] = 0;
+
+    u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
+    if (!w)
+      flags |= BackPatchInfo::FLAG_PAIR;
+
+    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VS, EncodeRegTo64(addr_reg), gprs_in_use,
+                         fprs_in_use);
   }
   else
   {
-    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + inst.I));
+    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + i));
     UBFM(type_reg, scale_reg, 16, 18);   // Type
     UBFM(scale_reg, scale_reg, 24, 29);  // Scale
 
-    MOVP2R(ARM64Reg::X30, inst.W ? single_load_quantized : paired_load_quantized);
+    MOVP2R(ARM64Reg::X30, w ? single_load_quantized : paired_load_quantized);
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
-    VS = fpr.RW(inst.RS, RegType::Single);
+    WriteConditionalExceptionExit(EXCEPTION_DSI, ARM64Reg::X30, ARM64Reg::Q1);
+
     m_float_emit.ORR(EncodeRegToDouble(VS), ARM64Reg::D0, ARM64Reg::D0);
   }
 
-  if (inst.W)
+  if (w)
   {
     m_float_emit.FMOV(ARM64Reg::S0, 0x70);  // 1.0 as a Single
     m_float_emit.INS(32, VS, 1, ARM64Reg::Q0, 0);
   }
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  const ARM64Reg VS_again = fpr.RW(inst.RS, RegType::Single, true);
+  ASSERT(VS == VS_again);
+
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
+  }
+
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Unlock(ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3);
+    fpr.Unlock(ARM64Reg::Q1);
+  }
 }
 
-void JitArm64::psq_st(UGeckoInstruction inst)
+void JitArm64::psq_stXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
-  FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
-  // The asm routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  // If we have a fastmem arena, the asm routines assume address translation is on.
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
 
   // X30 is LR
   // X0 contains the scale
   // X1 is the address
   // Q0 is the store register
 
-  const bool update = inst.OPCD == 61;
   const s32 offset = inst.SIMM_12;
+  const bool indexed = inst.OPCD == 4;
+  const bool update = inst.OPCD == 61 || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
+  const int i = indexed ? inst.Ix : inst.I;
+  const int w = indexed ? inst.Wx : inst.W;
 
-  fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
+  if (!js.assumeNoPairedQuantize)
+    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
 
   const bool have_single = fpr.IsSingle(inst.RS);
 
@@ -127,7 +164,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     {
       const ARM64Reg single_reg = fpr.GetReg();
 
-      if (inst.W)
+      if (w)
         m_float_emit.FCVT(32, 64, EncodeRegToDouble(single_reg), EncodeRegToDouble(VS));
       else
         m_float_emit.FCVTN(32, EncodeRegToDouble(single_reg), EncodeRegToDouble(VS));
@@ -143,93 +180,88 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     }
     else
     {
-      if (inst.W)
+      if (w)
         m_float_emit.FCVT(32, 64, ARM64Reg::D0, VS);
       else
         m_float_emit.FCVTN(32, ARM64Reg::D0, VS);
     }
   }
 
-  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-
-  const ARM64Reg arm_addr = gpr.R(inst.RA);
+  gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!js.assumeNoPairedQuantize)
+    gpr.Lock(ARM64Reg::W2);
 
   constexpr ARM64Reg scale_reg = ARM64Reg::W0;
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
 
-  BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-
-  // Wipe the registers we are using as temporaries
-  gprs_in_use &= BitSet32(~7);
-  fprs_in_use &= BitSet32(~3);
-
   if (inst.RA || update)  // Always uses the register on update
   {
-    if (offset >= 0)
+    if (indexed)
+      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
+    else if (offset >= 0)
       ADD(addr_reg, gpr.R(inst.RA), offset);
     else
       SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
   }
   else
   {
-    MOVI2R(addr_reg, (u32)offset);
+    if (indexed)
+      MOV(addr_reg, gpr.R(inst.RB));
+    else
+      MOVI2R(addr_reg, (u32)offset);
   }
 
-  if (update)
+  const bool early_update = !jo.memcheck;
+  if (update && early_update)
   {
-    gpr.BindToRegister(inst.RA, true);
-    MOV(arm_addr, addr_reg);
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
   {
-    u32 flags = BackPatchInfo::FLAG_STORE;
+    BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
+    BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
 
-    flags |= (inst.W ? BackPatchInfo::FLAG_SIZE_F32 : BackPatchInfo::FLAG_SIZE_F32X2);
+    // Wipe the registers we are using as temporaries
+    gprs_in_use[DecodeReg(ARM64Reg::W0)] = false;
+    if (!update || early_update)
+      gprs_in_use[DecodeReg(ARM64Reg::W1)] = false;
+
+    u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT | BackPatchInfo::FLAG_SIZE_32;
+    if (!w)
+      flags |= BackPatchInfo::FLAG_PAIR;
 
     EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, VS, EncodeRegTo64(addr_reg), gprs_in_use,
                          fprs_in_use);
   }
   else
   {
-    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + inst.I));
+    LDR(IndexType::Unsigned, scale_reg, PPC_REG, PPCSTATE_OFF_SPR(SPR_GQR0 + i));
     UBFM(type_reg, scale_reg, 0, 2);    // Type
     UBFM(scale_reg, scale_reg, 8, 13);  // Scale
 
-    // Inline address check
-    // FIXME: This doesn't correctly account for the BAT configuration.
-    TST(addr_reg, LogicalImm(0x0c000000, 32));
-    FixupBranch pass = B(CC_EQ);
-    FixupBranch fail = B();
-
-    SwitchToFarCode();
-    SetJumpTarget(fail);
-    // Slow
-    MOVP2R(ARM64Reg::X30, &paired_store_quantized[16 + inst.W * 8]);
-    LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
-
-    ABI_PushRegisters(gprs_in_use);
-    m_float_emit.ABI_PushRegisters(fprs_in_use, ARM64Reg::X30);
-    BLR(EncodeRegTo64(type_reg));
-    m_float_emit.ABI_PopRegisters(fprs_in_use, ARM64Reg::X30);
-    ABI_PopRegisters(gprs_in_use);
-    FixupBranch continue1 = B();
-    SwitchToNearCode();
-    SetJumpTarget(pass);
-
-    // Fast
-    MOVP2R(ARM64Reg::X30, &paired_store_quantized[inst.W * 8]);
+    MOVP2R(ARM64Reg::X30, w ? single_store_quantized : paired_store_quantized);
     LDR(EncodeRegTo64(type_reg), ARM64Reg::X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 
-    SetJumpTarget(continue1);
+    WriteConditionalExceptionExit(EXCEPTION_DSI, ARM64Reg::X30, ARM64Reg::Q1);
+  }
+
+  if (update && !early_update)
+  {
+    gpr.BindToRegister(inst.RA, false);
+    MOV(gpr.R(inst.RA), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize && !have_single)
     fpr.Unlock(VS);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W30);
-  fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!js.assumeNoPairedQuantize)
+  {
+    gpr.Unlock(ARM64Reg::W2);
+    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+  }
 }

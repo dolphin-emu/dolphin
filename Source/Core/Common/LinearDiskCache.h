@@ -100,8 +100,8 @@ public:
 
         m_num_entries++;
       }
-      m_file.Clear();
-      m_file.Seek(last_valid_value_start, SEEK_SET);
+      m_file.ClearError();
+      m_file.Seek(last_valid_value_start, File::SeekOrigin::Begin);
 
       return m_num_entries;
     }
@@ -149,11 +149,11 @@ private:
     {
       // Null-terminator is intentionally not copied.
       std::memcpy(&id, "DCAC", sizeof(u32));
-      std::memcpy(ver, Common::scm_rev_git_str.c_str(),
-                  std::min(Common::scm_rev_git_str.size(), sizeof(ver)));
+      std::memcpy(ver, Common::GetScmRevGitStr().c_str(),
+                  std::min(Common::GetScmRevGitStr().size(), sizeof(ver)));
     }
 
-    u32 id;
+    u32 id = 0;
     const u16 key_t_size = sizeof(K);
     const u16 value_t_size = sizeof(V);
     char ver[40] = {};
@@ -161,5 +161,5 @@ private:
   } m_header;
 
   File::IOFile m_file;
-  u32 m_num_entries;
+  u32 m_num_entries = 0;
 };

@@ -250,9 +250,11 @@ void WatchWidget::OnClear()
 
 void WatchWidget::OnNewWatch()
 {
-  QString text = QInputDialog::getText(this, tr("Input"), tr("Enter address to watch:"));
+  const QString text =
+      QInputDialog::getText(this, tr("Input"), tr("Enter address to watch:"), QLineEdit::Normal,
+                            QString{}, nullptr, Qt::WindowCloseButtonHint);
   bool good;
-  uint address = text.toUInt(&good, 16);
+  const uint address = text.toUInt(&good, 16);
 
   if (!good)
   {

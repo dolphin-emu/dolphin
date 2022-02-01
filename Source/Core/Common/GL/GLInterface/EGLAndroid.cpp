@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/GL/GLInterface/EGLAndroid.h"
+
 #include <android/native_window.h>
 
 EGLDisplay GLContextEGLAndroid::OpenEGLDisplay()

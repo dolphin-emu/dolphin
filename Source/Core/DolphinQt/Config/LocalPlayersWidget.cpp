@@ -155,7 +155,8 @@ void LocalPlayersWidget::SavePlayers()
   local_players_path.Save(ini_path);
 
   SConfig& settings = SConfig::GetInstance();
-  settings.SaveLocalSettings();
+  //settings.SaveLocalSettings();
+  settings.SaveSettings();
 }
 
 void LocalPlayersWidget::LoadPlayers()

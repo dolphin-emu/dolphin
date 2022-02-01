@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Updater.h"
 
+#include <utility>
+
 #include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -19,20 +21,22 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-Updater::Updater(QWidget* parent) : m_parent(parent)
+Updater::Updater(QWidget* parent, std::string update_track, std::string hash_override)
+    : m_parent(parent), m_update_track(std::move(update_track)),
+      m_hash_override(std::move(hash_override))
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate();
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
 }
 
 bool Updater::CheckForUpdate()
 {
   m_update_available = false;
-  AutoUpdateChecker::CheckForUpdate();
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
 
   return m_update_available;
 }
@@ -48,7 +52,10 @@ void Updater::OnUpdateAvailable(std::string info)
     dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     auto* label = new QLabel(tr("<h2>A new version of Rio is available!</h2><h4>Head to "
                                 "the Project Rio website to download the latest update!</h4>"
-      "<u>New Version:</u><strong> %1</strong><br><u>Your Version:</u><strong> %2</strong></br>").arg(QString::fromStdString(info)).arg(QString::fromStdString(Common::scm_desc_str)));
+                                "<u>New Version:</u><strong> %1</strong><br><u>Your "
+                                "Version:</u><strong> %2</strong></br>")
+                                 .arg(QString::fromStdString(info))
+                                 .arg(QString::fromStdString(Common::GetRioRevStr())));
     label->setTextFormat(Qt::RichText);
 
     auto* buttons = new QDialogButtonBox;
@@ -77,7 +84,7 @@ void Updater::OnUpdateAvailable(std::string info)
            "download. "
            "You are running %2.<br> Would you like to update?<br><h4>Release Notes:</h4>")
             .arg(QString::fromStdString(info.new_shortrev))
-            .arg(QString::fromStdString(Common::scm_desc_str)));
+            .arg(QString::fromStdString(Common::GetScmDescStr())));
     label->setTextFormat(Qt::RichText);
 
     auto* changelog = new QTextBrowser;

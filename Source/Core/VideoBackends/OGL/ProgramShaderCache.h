@@ -59,7 +59,7 @@ struct PipelineProgramKeyHash
 
 struct PipelineProgram
 {
-  PipelineProgramKey key;
+  PipelineProgramKey key{};
   SHADER shader;
   std::atomic_size_t reference_count{1};
   bool binary_retrieved = false;

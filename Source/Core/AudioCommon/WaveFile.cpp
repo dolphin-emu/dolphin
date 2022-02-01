@@ -12,6 +12,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;
@@ -30,7 +31,7 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
   // Ask to delete file
   if (File::Exists(filename))
   {
-    if (SConfig::GetInstance().m_DumpAudioSilent ||
+    if (Config::Get(Config::MAIN_DUMP_AUDIO_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", filename))
     {
       File::Delete(filename);
@@ -94,11 +95,10 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
 
 void WaveFileWriter::Stop()
 {
-  // u32 file_size = (u32)ftello(file);
-  file.Seek(4, SEEK_SET);
+  file.Seek(4, File::SeekOrigin::Begin);
   Write(audio_size + 36);
 
-  file.Seek(40, SEEK_SET);
+  file.Seek(40, File::SeekOrigin::Begin);
   Write(audio_size);
 
   file.Close();

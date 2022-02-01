@@ -15,7 +15,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * OS
     * Windows (7 SP1 or higher).
     * Linux.
-    * macOS (10.12 Sierra or higher).
+    * macOS (10.13 High Sierra or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -39,9 +39,9 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2019 16.3 or later is a hard requirement. Other compilers might be
+Visual Studio 2022 17.0 or later is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
-recommended to be used. Git and Windows 10 SDK must be installed when building.
+recommended to be used. Git and Windows 11 SDK must be installed when building.
 
 Make sure to pull submodules before building:
 ```sh
@@ -62,6 +62,11 @@ Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Man
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
+
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
 
 ### macOS Build Steps:
 
@@ -122,6 +127,11 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 
 These instructions assume familiarity with Android development. If you do not have an
 Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
+
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
 
 If using Android Studio, import the Gradle project located in `./Source/Android`.
 

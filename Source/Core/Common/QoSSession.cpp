@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/QoSSession.h"
-#include "Core/ConfigManager.h"
 
 #if defined(_WIN32)
 #include <Qos2.h>
 #pragma comment(lib, "qwave")
 #endif
+
+#include "Core/ConfigManager.h"
 
 namespace Common
 {

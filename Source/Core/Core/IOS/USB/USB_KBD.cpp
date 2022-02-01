@@ -10,7 +10,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
 #include "InputCommon/ControlReference/ControlReference.h"  // For background input check
@@ -210,7 +210,7 @@ std::optional<IPCReply> USB_KBD::Write(const ReadWriteRequest& request)
 
 std::optional<IPCReply> USB_KBD::IOCtl(const IOCtlRequest& request)
 {
-  if (SConfig::GetInstance().m_WiiKeyboard && !Core::WantsDeterminism() &&
+  if (Config::Get(Config::MAIN_WII_KEYBOARD) && !Core::WantsDeterminism() &&
       ControlReference::GetInputGate() && !m_message_queue.empty())
   {
     Memory::CopyToEmu(request.buffer_out, &m_message_queue.front(), sizeof(MessageData));
@@ -231,7 +231,7 @@ bool USB_KBD::IsKeyPressed(int key) const
 
 void USB_KBD::Update()
 {
-  if (!SConfig::GetInstance().m_WiiKeyboard || Core::WantsDeterminism() || !m_is_active)
+  if (!Config::Get(Config::MAIN_WII_KEYBOARD) || Core::WantsDeterminism() || !m_is_active)
     return;
 
   u8 modifiers = 0x00;

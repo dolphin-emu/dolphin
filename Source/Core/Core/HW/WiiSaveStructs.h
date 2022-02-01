@@ -91,8 +91,9 @@ public:
       File = 1,
       Directory = 2,
     };
-    u8 mode, attributes;
-    Type type;
+    u8 mode = 0;
+    u8 attributes = 0;
+    Type type{};
     /// File name relative to the title data directory.
     std::string path;
     // Only valid for regular (i.e. non-directory) files.

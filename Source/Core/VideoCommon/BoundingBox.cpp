@@ -4,72 +4,118 @@
 #include "VideoCommon/BoundingBox.h"
 
 #include <algorithm>
-#include <array>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
-namespace BoundingBox
-{
-namespace
-{
-// Whether or not bounding box is enabled.
-bool s_is_active = false;
+#include <algorithm>
 
-// Current bounding box coordinates.
-std::array<u16, 4> s_coordinates{
-    0x80,
-    0xA0,
-    0x80,
-    0xA0,
-};
-}  // Anonymous namespace
-
-void Enable()
+void BoundingBox::Enable()
 {
-  s_is_active = true;
-  PixelShaderManager::SetBoundingBoxActive(s_is_active);
+  m_is_active = true;
+  PixelShaderManager::SetBoundingBoxActive(m_is_active);
 }
 
-void Disable()
+void BoundingBox::Disable()
 {
-  s_is_active = false;
-  PixelShaderManager::SetBoundingBoxActive(s_is_active);
+  m_is_active = false;
+  PixelShaderManager::SetBoundingBoxActive(m_is_active);
 }
 
-bool IsEnabled()
+void BoundingBox::Flush()
 {
-  return s_is_active;
+  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+    return;
+
+  m_is_valid = false;
+
+  if (std::none_of(m_dirty.begin(), m_dirty.end(), [](bool dirty) { return dirty; }))
+    return;
+
+  // TODO: Does this make any difference over just writing all the values?
+  // Games only ever seem to write all 4 values at once anyways.
+  for (u32 start = 0; start < NUM_BBOX_VALUES; ++start)
+  {
+    if (!m_dirty[start])
+      continue;
+
+    u32 end = start + 1;
+    while (end < NUM_BBOX_VALUES && m_dirty[end])
+      ++end;
+
+    for (u32 i = start; i < end; ++i)
+      m_dirty[i] = false;
+
+    Write(start, std::vector<BBoxType>(m_values.begin() + start, m_values.begin() + end));
+  }
 }
 
-u16 GetCoordinate(Coordinate coordinate)
+void BoundingBox::Readback()
 {
-  return s_coordinates[static_cast<u32>(coordinate)];
+  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+    return;
+
+  auto read_values = Read(0, NUM_BBOX_VALUES);
+
+  // Preserve dirty values, that way we don't need to sync.
+  for (u32 i = 0; i < NUM_BBOX_VALUES; i++)
+  {
+    if (!m_dirty[i])
+      m_values[i] = read_values[i];
+  }
+
+  m_is_valid = true;
 }
 
-void SetCoordinate(Coordinate coordinate, u16 value)
+u16 BoundingBox::Get(u32 index)
 {
-  s_coordinates[static_cast<u32>(coordinate)] = value;
+  ASSERT(index < NUM_BBOX_VALUES);
+
+  if (!m_is_valid)
+    Readback();
+
+  return static_cast<u16>(m_values[index]);
 }
 
-void Update(u16 left, u16 right, u16 top, u16 bottom)
+void BoundingBox::Set(u32 index, u16 value)
 {
-  const u16 new_left = std::min(left, GetCoordinate(Coordinate::Left));
-  const u16 new_right = std::max(right, GetCoordinate(Coordinate::Right));
-  const u16 new_top = std::min(top, GetCoordinate(Coordinate::Top));
-  const u16 new_bottom = std::max(bottom, GetCoordinate(Coordinate::Bottom));
+  ASSERT(index < NUM_BBOX_VALUES);
 
-  SetCoordinate(Coordinate::Left, new_left);
-  SetCoordinate(Coordinate::Right, new_right);
-  SetCoordinate(Coordinate::Top, new_top);
-  SetCoordinate(Coordinate::Bottom, new_bottom);
+  if (m_is_valid && m_values[index] == value)
+    return;
+
+  m_values[index] = value;
+  m_dirty[index] = true;
 }
 
-void DoState(PointerWrap& p)
+// FIXME: This may not work correctly if we're in the middle of a draw.
+// We should probably ensure that state saves only happen on frame boundaries.
+// Nonetheless, it has been designed to be as safe as possible.
+void BoundingBox::DoState(PointerWrap& p)
 {
-  p.Do(s_is_active);
-  p.DoArray(s_coordinates);
-}
+  p.Do(m_is_active);
+  p.DoArray(m_values);
+  p.DoArray(m_dirty);
+  p.Do(m_is_valid);
 
-}  // namespace BoundingBox
+  // We handle saving the backend values specially rather than using Readback() and Flush() so that
+  // we don't mess up the current cache state
+  std::vector<BBoxType> backend_values(NUM_BBOX_VALUES);
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    p.Do(backend_values);
+
+    if (g_ActiveConfig.backend_info.bSupportsBBox)
+      Write(0, backend_values);
+  }
+  else
+  {
+    if (g_ActiveConfig.backend_info.bSupportsBBox)
+      backend_values = Read(0, NUM_BBOX_VALUES);
+
+    p.Do(backend_values);
+  }
+}

@@ -73,7 +73,7 @@ void stopdamnwav()
 void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
 {
   // TODO: should we still process samples for the decoder state?
-  if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
+  if (!m_speaker_enabled)
     return;
 
   if (reg_data.sample_rate == 0 || length == 0)
@@ -184,6 +184,11 @@ void SpeakerLogic::DoState(PointerWrap& p)
 {
   p.Do(adpcm_state);
   p.Do(reg_data);
+}
+
+void SpeakerLogic::SetSpeakerEnabled(bool enabled)
+{
+  m_speaker_enabled = enabled;
 }
 
 int SpeakerLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)

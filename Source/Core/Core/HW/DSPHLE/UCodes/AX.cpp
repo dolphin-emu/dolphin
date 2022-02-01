@@ -5,14 +5,18 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <iterator>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/Core.h"
+#include "Core/DolphinAnalytics.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -23,7 +27,7 @@
 
 namespace DSP::HLE
 {
-AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc), m_cmdlist_size(0)
+AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 }
@@ -37,41 +41,44 @@ void AXUCode::Initialize()
 {
   m_mail_handler.PushMail(DSP_INIT, true);
 
-  LoadResamplingCoefficients();
+  LoadResamplingCoefficients(false, 0);
 }
 
-void AXUCode::LoadResamplingCoefficients()
+bool AXUCode::LoadResamplingCoefficients(bool require_same_checksum, u32 desired_checksum)
 {
-  m_coeffs_available = false;
+  constexpr size_t raw_coeffs_size = 0x800 * 2;
+  m_coeffs_checksum = std::nullopt;
 
   const std::array<std::string, 2> filenames{
       File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
       File::GetSysDirectory() + "/GC/dsp_coef.bin",
   };
 
-  size_t fidx;
-  std::string filename;
-  for (fidx = 0; fidx < filenames.size(); ++fidx)
+  for (const std::string& filename : filenames)
   {
-    filename = filenames[fidx];
-    if (File::GetSize(filename) != 0x1000)
+    INFO_LOG_FMT(DSPHLE, "Checking for polyphase resampling coeffs at {}", filename);
+
+    if (File::GetSize(filename) != raw_coeffs_size)
       continue;
 
-    break;
+    File::IOFile fp(filename, "rb");
+    std::array<u8, raw_coeffs_size> raw_coeffs;
+    fp.ReadBytes(raw_coeffs.data(), raw_coeffs_size);
+
+    u32 checksum = Common::HashAdler32(raw_coeffs.data(), raw_coeffs_size);
+    if (require_same_checksum && checksum != desired_checksum)
+      continue;
+
+    std::memcpy(m_coeffs.data(), raw_coeffs.data(), raw_coeffs_size);
+    for (auto& coef : m_coeffs)
+      coef = Common::swap16(coef);
+
+    INFO_LOG_FMT(DSPHLE, "Using polyphase resampling coeffs from {}", filename);
+    m_coeffs_checksum = checksum;
+    return true;
   }
 
-  if (fidx >= filenames.size())
-    return;
-
-  INFO_LOG_FMT(DSPHLE, "Loading polyphase resampling coeffs from {}", filename);
-
-  File::IOFile fp(filename, "rb");
-  fp.ReadBytes(m_coeffs, 0x1000);
-
-  for (auto& coef : m_coeffs)
-    coef = Common::swap16(coef);
-
-  m_coeffs_available = true;
+  return false;
 }
 
 void AXUCode::SignalWorkEnd()
@@ -172,6 +179,7 @@ void AXUCode::HandleCommandList()
       break;
 
     case CMD_UNK_08:
+      DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_UNIMPLEMENTED_AX_COMMAND);
       curr_idx += 10;
       break;  // TODO: check
 
@@ -181,13 +189,11 @@ void AXUCode::HandleCommandList()
       MixAUXSamples(1, 0, HILO_TO_32(addr));
       break;
 
-    case CMD_COMPRESSOR_TABLE_ADDR:
-      curr_idx += 2;
-      break;
+    case CMD_UNK_0A:
     case CMD_UNK_0B:
-      break;  // TODO: check other versions
     case CMD_UNK_0C:
-      break;  // TODO: check other versions
+      // nop in all 6 known ucodes we handle here
+      break;
 
     case CMD_MORE:
       addr_hi = m_cmdlist[curr_idx++];
@@ -224,16 +230,16 @@ void AXUCode::HandleCommandList()
       SetOppositeLR(HILO_TO_32(addr));
       break;
 
-    case CMD_UNK_12:
+    case CMD_COMPRESSOR:
     {
-      u16 samp_val = m_cmdlist[curr_idx++];
-      u16 idx = m_cmdlist[curr_idx++];
+      // 0x4e8a8b21 doesn't have this command, but it doesn't range-check
+      // the value properly and ends up jumping into a mixer function
+      ASSERT(m_crc != 0x4e8a8b21);
+      u16 threshold = m_cmdlist[curr_idx++];
+      u16 frames = m_cmdlist[curr_idx++];
       addr_hi = m_cmdlist[curr_idx++];
       addr_lo = m_cmdlist[curr_idx++];
-      // TODO
-      // suppress warnings:
-      (void)samp_val;
-      (void)idx;
+      RunCompressor(threshold, frames, HILO_TO_32(addr), 5);
       break;
     }
 
@@ -432,7 +438,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
       ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
 
       ProcessVoice(pb, buffers, spms, ConvertMixerControl(pb.mixer_control),
-                   m_coeffs_available ? m_coeffs : nullptr);
+                   m_coeffs_checksum ? m_coeffs.data() : nullptr);
 
       // Forward the buffers
       for (auto& ptr : buffers.ptrs)
@@ -505,6 +511,52 @@ void AXUCode::SetMainLR(u32 src_addr)
     m_samples_left[i] = samp;
     m_samples_right[i] = samp;
     m_samples_surround[i] = 0;
+  }
+}
+
+void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u32 millis)
+{
+  // check for L/R samples exceeding the threshold
+  bool triggered = false;
+  for (u32 i = 0; i < 32 * millis; ++i)
+  {
+    if (std::abs(m_samples_left[i]) > int(threshold) ||
+        std::abs(m_samples_right[i]) > int(threshold))
+    {
+      triggered = true;
+      break;
+    }
+  }
+
+  const u32 frame_byte_size = 32 * millis * sizeof(s16);
+  u32 table_offset = 0;
+  if (triggered)
+  {
+    // one attack frame based on previous frame
+    table_offset = m_compressor_pos * frame_byte_size;
+    // next frame will start release
+    m_compressor_pos = release_frames;
+  }
+  else if (m_compressor_pos)
+  {
+    // release
+    --m_compressor_pos;
+    // the release ramps are located after the attack ramps
+    constexpr u32 ATTACK_ENTRY_COUNT = 11;
+    table_offset = (ATTACK_ENTRY_COUNT + m_compressor_pos) * frame_byte_size;
+  }
+  else
+  {
+    return;
+  }
+
+  // apply the selected ramp
+  u16* ramp = (u16*)HLEMemory_Get_Pointer(table_addr + table_offset);
+  for (u32 i = 0; i < 32 * millis; ++i)
+  {
+    u16 coef = Common::swap16(*ramp++);
+    m_samples_left[i] = (s64(m_samples_left[i]) * coef) >> 15;
+    m_samples_right[i] = (s64(m_samples_right[i]) * coef) >> 15;
   }
 }
 
@@ -702,6 +754,24 @@ void AXUCode::DoAXState(PointerWrap& p)
   p.Do(m_samples_auxB_left);
   p.Do(m_samples_auxB_right);
   p.Do(m_samples_auxB_surround);
+
+  auto old_checksum = m_coeffs_checksum;
+  p.Do(m_coeffs_checksum);
+
+  if (p.GetMode() == PointerWrap::MODE_READ && m_coeffs_checksum &&
+      old_checksum != m_coeffs_checksum)
+  {
+    if (!LoadResamplingCoefficients(true, *m_coeffs_checksum))
+    {
+      Core::DisplayMessage("Could not find the DSP polyphase resampling coefficients used by the "
+                           "savestate. Aborting load state.",
+                           3000);
+      p.SetMode(PointerWrap::MODE_VERIFY);
+      return;
+    }
+  }
+
+  p.Do(m_compressor_pos);
 }
 
 void AXUCode::DoState(PointerWrap& p)

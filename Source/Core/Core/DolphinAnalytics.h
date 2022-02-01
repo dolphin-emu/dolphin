@@ -72,6 +72,15 @@ enum class GameQuirk
   // Track them separately.
   USES_CP_PERF_COMMAND,
 
+  // We don't implement all AX features yet.
+  USES_UNIMPLEMENTED_AX_COMMAND,
+  USES_AX_INITIAL_TIME_DELAY,
+
+  // We don't implement XFMEM_CLIPDISABLE yet.
+  SETS_XF_CLIPDISABLE_BIT_0,
+  SETS_XF_CLIPDISABLE_BIT_1,
+  SETS_XF_CLIPDISABLE_BIT_2,
+
   COUNT,
 };
 

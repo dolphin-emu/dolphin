@@ -216,6 +216,15 @@ void FreeLookController::Update()
   if (!g_freelook_camera.IsActive())
     return;
 
+  auto* camera_controller = g_freelook_camera.GetController();
+  if (camera_controller->SupportsInput())
+  {
+    UpdateInput(static_cast<CameraControllerInput*>(camera_controller));
+  }
+}
+
+void FreeLookController::UpdateInput(CameraControllerInput* camera_controller)
+{
   const auto lock = GetStateLock();
 
   float dt = 1.0;
@@ -239,48 +248,48 @@ void FreeLookController::Update()
   const auto gyro_motion_quat =
       Common::Quaternion::RotateXYZ(gyro_motion_rad_velocity_converted * dt);
 
-  g_freelook_camera.Rotate(gyro_motion_quat);
+  camera_controller->Rotate(gyro_motion_quat);
   if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
-    g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed() * dt);
+    camera_controller->MoveVertical(-camera_controller->GetSpeed() * dt);
 
   if (m_move_buttons->controls[MoveButtons::Down]->GetState<bool>())
-    g_freelook_camera.MoveVertical(g_freelook_camera.GetSpeed() * dt);
+    camera_controller->MoveVertical(camera_controller->GetSpeed() * dt);
 
   if (m_move_buttons->controls[MoveButtons::Left]->GetState<bool>())
-    g_freelook_camera.MoveHorizontal(g_freelook_camera.GetSpeed() * dt);
+    camera_controller->MoveHorizontal(camera_controller->GetSpeed() * dt);
 
   if (m_move_buttons->controls[MoveButtons::Right]->GetState<bool>())
-    g_freelook_camera.MoveHorizontal(-g_freelook_camera.GetSpeed() * dt);
+    camera_controller->MoveHorizontal(-camera_controller->GetSpeed() * dt);
 
   if (m_move_buttons->controls[MoveButtons::Forward]->GetState<bool>())
-    g_freelook_camera.MoveForward(g_freelook_camera.GetSpeed() * dt);
+    camera_controller->MoveForward(camera_controller->GetSpeed() * dt);
 
   if (m_move_buttons->controls[MoveButtons::Backward]->GetState<bool>())
-    g_freelook_camera.MoveForward(-g_freelook_camera.GetSpeed() * dt);
+    camera_controller->MoveForward(-camera_controller->GetSpeed() * dt);
 
   if (m_fov_buttons->controls[FieldOfViewButtons::IncreaseX]->GetState<bool>())
-    g_freelook_camera.IncreaseFovX(g_freelook_camera.GetFovStepSize() * dt);
+    camera_controller->IncreaseFovX(camera_controller->GetFovStepSize() * dt);
 
   if (m_fov_buttons->controls[FieldOfViewButtons::DecreaseX]->GetState<bool>())
-    g_freelook_camera.IncreaseFovX(-1.0f * g_freelook_camera.GetFovStepSize() * dt);
+    camera_controller->IncreaseFovX(-1.0f * camera_controller->GetFovStepSize() * dt);
 
   if (m_fov_buttons->controls[FieldOfViewButtons::IncreaseY]->GetState<bool>())
-    g_freelook_camera.IncreaseFovY(g_freelook_camera.GetFovStepSize() * dt);
+    camera_controller->IncreaseFovY(camera_controller->GetFovStepSize() * dt);
 
   if (m_fov_buttons->controls[FieldOfViewButtons::DecreaseY]->GetState<bool>())
-    g_freelook_camera.IncreaseFovY(-1.0f * g_freelook_camera.GetFovStepSize() * dt);
+    camera_controller->IncreaseFovY(-1.0f * camera_controller->GetFovStepSize() * dt);
 
   if (m_speed_buttons->controls[SpeedButtons::Decrease]->GetState<bool>())
-    g_freelook_camera.ModifySpeed(g_freelook_camera.GetSpeed() * -0.9 * dt);
+    camera_controller->ModifySpeed(camera_controller->GetSpeed() * -0.9 * dt);
 
   if (m_speed_buttons->controls[SpeedButtons::Increase]->GetState<bool>())
-    g_freelook_camera.ModifySpeed(g_freelook_camera.GetSpeed() * 1.1 * dt);
+    camera_controller->ModifySpeed(camera_controller->GetSpeed() * 1.1 * dt);
 
   if (m_speed_buttons->controls[SpeedButtons::Reset]->GetState<bool>())
-    g_freelook_camera.ResetSpeed();
+    camera_controller->ResetSpeed();
 
   if (m_other_buttons->controls[OtherButtons::ResetView]->GetState<bool>())
-    g_freelook_camera.Reset();
+    camera_controller->Reset();
 }
 
 namespace FreeLook

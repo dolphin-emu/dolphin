@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/Jit64/Jit.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -14,7 +16,6 @@
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -37,7 +38,7 @@ void Jit64::SetFPRFIfNeeded(const OpArg& input, bool single)
   // As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
   // FPRF is fast enough in JIT that we might as well just enable it for every float instruction
   // if the FPRF flag is set.
-  if (!SConfig::GetInstance().bFPRF || !js.op->wantsFPRF)
+  if (!m_fprf || !js.op->wantsFPRF)
     return;
 
   X64Reg xmm = XMM0;
@@ -101,7 +102,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
   // Dragon Ball: Revenge of King Piccolo requires generated NaNs
   // to be positive, so we'll have to handle them manually.
 
-  if (!SConfig::GetInstance().bAccurateNaNs)
+  if (!m_accurate_nans)
   {
     if (xmm_out != xmm)
       MOVAPD(xmm_out, R(xmm));
@@ -208,6 +209,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || (jo.div_by_zero_exceptions && inst.SUBOP5 == 18));
 
   int a = inst.FA;
   int b = inst.FB;
@@ -228,7 +230,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     packed = false;
 
   bool round_input = single && !js.op->fprIsSingle[inst.FC];
-  bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
+  bool preserve_inputs = m_accurate_nans;
 
   const auto fp_tri_op = [&](int op1, int op2, bool reversible,
                              void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
@@ -257,7 +259,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
       avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
-    HandleNaNs(inst, Rd, dest);
+    HandleNaNs(inst, Rd, dest, XMM0);
     if (single)
       FinalizeSingleResult(Rd, Rd, packed, true);
     else
@@ -292,6 +294,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   // We would like to emulate FMA instructions accurately without rounding error if possible, but
   // unfortunately emulating FMA in software is just too slow on CPUs that are too old to have FMA
@@ -345,12 +348,18 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     RegCache::Realize(Ra, Rb, Rc, Rd);
   }
 
-  X64Reg result_reg = XMM0;
+  const bool subtract = inst.SUBOP5 == 28 || inst.SUBOP5 == 30;  // msub, nmsub
+  const bool negate = inst.SUBOP5 == 30 || inst.SUBOP5 == 31;    // nmsub, nmadd
+  const bool madds0 = inst.SUBOP5 == 14;
+  const bool madds1 = inst.SUBOP5 == 15;
+
+  X64Reg scratch_xmm = XMM0;
+  X64Reg result_xmm = XMM1;
   if (software_fma)
   {
     for (size_t i = (packed ? 1 : 0); i != std::numeric_limits<size_t>::max(); --i)
     {
-      if ((i == 0 || inst.SUBOP5 == 14) && inst.SUBOP5 != 15)  // (i == 0 || madds0) && !madds1
+      if ((i == 0 || madds0) && !madds1)
       {
         if (round_input)
           Force25BitPrecision(XMM1, Rc, XMM2);
@@ -380,7 +389,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
         MOVHLPS(XMM2, Rb.GetSimpleReg());
       }
 
-      if (inst.SUBOP5 == 28 || inst.SUBOP5 == 30)  // nsub, nmsub
+      if (subtract)
         XORPS(XMM2, MConst(psSignBits));
 
       BitSet32 registers_in_use = CallerSavedRegistersInUse();
@@ -392,123 +401,93 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     if (packed)
     {
       MOVSD(Rd, XMM0);
-      result_reg = Rd;
+      result_xmm = Rd;
     }
-
-    if (inst.SUBOP5 == 30 || inst.SUBOP5 == 31)  // nmsub, nmadd
-      XORPD(result_reg, MConst(packed ? psSignBits2 : psSignBits));
+    else
+    {
+      result_xmm = XMM0;
+    }
   }
   else
   {
-    switch (inst.SUBOP5)
+    if (madds0)
     {
-    case 14:  // madds0
-      MOVDDUP(XMM0, Rc);
+      MOVDDUP(result_xmm, Rc);
       if (round_input)
-        Force25BitPrecision(XMM0, R(XMM0), XMM1);
-      break;
-    case 15:  // madds1
-      avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, Rc, Rc, 3);
+        Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
+    }
+    else if (madds1)
+    {
+      avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, result_xmm, Rc, Rc, 3);
       if (round_input)
-        Force25BitPrecision(XMM0, R(XMM0), XMM1);
-      break;
-    default:
-      if (single && round_input)
-        Force25BitPrecision(XMM0, Rc, XMM1);
+        Force25BitPrecision(result_xmm, R(result_xmm), scratch_xmm);
+    }
+    else
+    {
+      if (round_input)
+        Force25BitPrecision(result_xmm, Rc, scratch_xmm);
       else
-        MOVAPD(XMM0, Rc);
-      break;
+        MOVAPD(result_xmm, Rc);
     }
 
     if (use_fma)
     {
-      switch (inst.SUBOP5)
+      if (subtract)
       {
-      case 28:  // msub
         if (packed)
-          VFMSUB132PD(XMM0, Rb.GetSimpleReg(), Ra);
+          VFMSUB132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-          VFMSUB132SD(XMM0, Rb.GetSimpleReg(), Ra);
-        break;
-      case 14:  // madds0
-      case 15:  // madds1
-      case 29:  // madd
-        if (packed)
-          VFMADD132PD(XMM0, Rb.GetSimpleReg(), Ra);
-        else
-          VFMADD132SD(XMM0, Rb.GetSimpleReg(), Ra);
-        break;
-      // PowerPC and x86 define NMADD/NMSUB differently
-      // x86: D = -A*C (+/-) B
-      // PPC: D = -(A*C (+/-) B)
-      // so we have to swap them; the ADD/SUB here isn't a typo.
-      case 30:  // nmsub
-        if (packed)
-          VFNMADD132PD(XMM0, Rb.GetSimpleReg(), Ra);
-        else
-          VFNMADD132SD(XMM0, Rb.GetSimpleReg(), Ra);
-        break;
-      case 31:  // nmadd
-        if (packed)
-          VFNMSUB132PD(XMM0, Rb.GetSimpleReg(), Ra);
-        else
-          VFNMSUB132SD(XMM0, Rb.GetSimpleReg(), Ra);
-        break;
-      }
-    }
-    else
-    {
-      if (inst.SUBOP5 == 30)  // nmsub
-      {
-        // We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)),
-        // so handle it separately.
-        MOVAPD(XMM1, Rb);
-        if (packed)
-        {
-          MULPD(XMM0, Ra);
-          SUBPD(XMM1, R(XMM0));
-        }
-        else
-        {
-          MULSD(XMM0, Ra);
-          SUBSD(XMM1, R(XMM0));
-        }
-        result_reg = XMM1;
+          VFMSUB132SD(result_xmm, Rb.GetSimpleReg(), Ra);
       }
       else
       {
         if (packed)
-        {
-          MULPD(XMM0, Ra);
-          if (inst.SUBOP5 == 28)  // msub
-            SUBPD(XMM0, Rb);
-          else  //(n)madd(s[01])
-            ADDPD(XMM0, Rb);
-        }
+          VFMADD132PD(result_xmm, Rb.GetSimpleReg(), Ra);
         else
-        {
-          MULSD(XMM0, Ra);
-          if (inst.SUBOP5 == 28)
-            SUBSD(XMM0, Rb);
-          else
-            ADDSD(XMM0, Rb);
-        }
-        if (inst.SUBOP5 == 31)  // nmadd
-          XORPD(XMM0, MConst(packed ? psSignBits2 : psSignBits));
+          VFMADD132SD(result_xmm, Rb.GetSimpleReg(), Ra);
+      }
+    }
+    else
+    {
+      if (packed)
+      {
+        MULPD(result_xmm, Ra);
+        if (subtract)
+          SUBPD(result_xmm, Rb);
+        else
+          ADDPD(result_xmm, Rb);
+      }
+      else
+      {
+        MULSD(result_xmm, Ra);
+        if (subtract)
+          SUBSD(result_xmm, Rb);
+        else
+          ADDSD(result_xmm, Rb);
       }
     }
   }
 
+  // Using x64's nmadd/nmsub would require us to swap the sign of the addend
+  // (i.e. PPC nmadd maps to x64 nmsub), which can cause problems with signed zeroes.
+  // Also, PowerPC's nmadd/nmsub round before the final negation unlike x64's nmadd/nmsub.
+  // So, negate using a separate instruction instead of using x64's nmadd/nmsub.
+  if (negate)
+    XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
+
+  if (m_accurate_nans && result_xmm == XMM0)
+  {
+    // HandleNaNs needs to clobber XMM0
+    MOVAPD(Rd, R(result_xmm));
+    result_xmm = Rd;
+  }
+
+  HandleNaNs(inst, result_xmm, result_xmm, XMM0);
+
   if (single)
-  {
-    HandleNaNs(inst, result_reg, result_reg, result_reg == XMM1 ? XMM0 : XMM1);
-    FinalizeSingleResult(Rd, R(result_reg), packed, true);
-  }
+    FinalizeSingleResult(Rd, R(result_xmm), packed, true);
   else
-  {
-    HandleNaNs(inst, result_reg, result_reg, XMM1);
-    FinalizeDoubleResult(Rd, R(result_reg));
-  }
+    FinalizeDoubleResult(Rd, R(result_xmm));
 }
 
 void Jit64::fsign(UGeckoInstruction inst)
@@ -653,7 +632,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-  bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
+  bool fprf = m_fprf && js.op->wantsFPRF;
   // bool ordered = !!(inst.SUBOP10 & 32);
   int a = inst.FA;
   int b = inst.FB;
@@ -757,6 +736,7 @@ void Jit64::fcmpX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   FloatCompare(inst);
 }
@@ -766,6 +746,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   int d = inst.RD;
   int b = inst.RB;
@@ -808,6 +789,7 @@ void Jit64::frspx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
   int b = inst.FB;
   int d = inst.FD;
   bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
@@ -824,6 +806,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
   int b = inst.FB;
   int d = inst.FD;
 
@@ -842,6 +825,7 @@ void Jit64::fresx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
   int b = inst.FB;
   int d = inst.FD;
 

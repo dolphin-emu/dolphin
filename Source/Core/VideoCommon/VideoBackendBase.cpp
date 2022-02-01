@@ -13,7 +13,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -21,6 +20,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 
 // TODO: ugly
 #ifdef _WIN32
@@ -47,6 +47,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -83,8 +84,8 @@ void VideoBackendBase::Video_ExitLoop()
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                                        u64 ticks)
+void VideoBackendBase::Video_OutputXFB(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
+                                       u64 ticks)
 {
   if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
   {
@@ -214,6 +215,10 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
     // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+    //
+    // On macOS Mojave and newer, we prefer Vulkan over OGL due to outdated drivers.
+    // However, on macOS High Sierra and older, we still prefer OGL due to its older Metal version
+    // missing several features required by the Vulkan backend.
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
@@ -222,7 +227,18 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
 #ifdef HAS_VULKAN
-    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+#ifdef __APPLE__
+    // If we can run the Vulkan backend, emplace it at the beginning of the vector so
+    // it takes precedence over OpenGL.
+    if (__builtin_available(macOS 10.14, *))
+    {
+      backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
+    }
+    else
+#endif
+    {
+      backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+    }
 #endif
 #ifdef HAS_OPENGL
     backends.push_back(std::make_unique<SW::VideoSoftware>());
@@ -273,7 +289,7 @@ void VideoBackendBase::PopulateBackendInfoFromUI()
 
 void VideoBackendBase::DoState(PointerWrap& p)
 {
-  if (!SConfig::GetInstance().bCPUThread)
+  if (!Core::System::GetInstance().IsDualCoreMode())
   {
     VideoCommon_DoState(p);
     return;
@@ -300,13 +316,13 @@ void VideoBackendBase::InitializeShared()
 
   CommandProcessor::Init();
   Fifo::Init();
-  OpcodeDecoder::Init();
   PixelEngine::Init();
   BPInit();
   VertexLoaderManager::Init();
   VertexShaderManager::Init();
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
+  TMEM::Init();
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();

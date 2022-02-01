@@ -155,10 +155,10 @@ private:
   int BusRead(u8 slave_addr, u8 addr, int count, u8* data_out) override;
   int BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in) override;
 
-  Register m_reg_data;
+  Register m_reg_data{};
 
   // When disabled the camera does not respond on the bus.
   // Change is triggered by wiimote report 0x13.
-  bool m_is_enabled;
+  bool m_is_enabled = false;
 };
 }  // namespace WiimoteEmu

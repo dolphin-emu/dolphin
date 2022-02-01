@@ -82,6 +82,8 @@ enum class UpdateResult
   ImportFailed,
   // Update was cancelled.
   Cancelled,
+
+  NumberOfEntries,
 };
 
 // Return false to cancel the update as soon as the current title has finished updating.

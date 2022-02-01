@@ -7,6 +7,8 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "Common/HRWrap.h"
+
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorAllocator.h"
@@ -187,4 +189,34 @@ private:
 
 extern std::unique_ptr<DXContext> g_dx_context;
 
+// Wrapper for HRESULT to be used with fmt.  Note that we can't create a fmt::formatter directly
+// for HRESULT as HRESULT is simply a typedef on long and not a distinct type.
+// Unlike the version in Common, this variant also knows to call GetDeviceRemovedReason if needed.
+struct DX12HRWrap
+{
+  constexpr explicit DX12HRWrap(HRESULT hr) : m_hr(hr) {}
+  const HRESULT m_hr;
+};
+
 }  // namespace DX12
+
+template <>
+struct fmt::formatter<DX12::DX12HRWrap>
+{
+  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const DX12::DX12HRWrap& hr, FormatContext& ctx) const
+  {
+    if (hr.m_hr == DXGI_ERROR_DEVICE_REMOVED && DX12::g_dx_context != nullptr &&
+        DX12::g_dx_context->GetDevice() != nullptr)
+    {
+      return fmt::format_to(
+          ctx.out(), "{}\nDevice removal reason: {}", Common::HRWrap(hr.m_hr),
+          Common::HRWrap(DX12::g_dx_context->GetDevice()->GetDeviceRemovedReason()));
+    }
+    else
+    {
+      return fmt::format_to(ctx.out(), "{}", Common::HRWrap(hr.m_hr));
+    }
+  }
+};

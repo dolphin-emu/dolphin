@@ -593,8 +593,8 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
     //         In our implementation, the garbage just so happens to be the top or bottom row.
     //         Statistically, that could happen.
     const u16 y_prev = static_cast<u16>(std::max(clamp_top ? source_rect.top : 0, y - 1));
-    const u16 y_next =
-        static_cast<u16>(std::min<int>(clamp_bottom ? source_rect.bottom : EFB_HEIGHT, y + 1));
+    const u16 y_next = static_cast<u16>(
+        std::min<int>((clamp_bottom ? source_rect.bottom : EFB_HEIGHT) - 1, y + 1));
 
     // Get a scanline of YUV pixels in 4:4:4 format
     for (int i = 1, x = left; x < right; i++, x++)

@@ -11,8 +11,11 @@
 #include <array>
 #include <iterator>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/IniFile.h"
@@ -43,8 +46,54 @@ const char* PatchTypeAsString(PatchType type)
   return s_patch_type_strings.at(static_cast<int>(type));
 }
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni)
+std::optional<PatchEntry> DeserializeLine(std::string line)
+{
+  std::string::size_type loc = line.find('=');
+  if (loc != std::string::npos)
+    line[loc] = ':';
+
+  const std::vector<std::string> items = SplitString(line, ':');
+  PatchEntry entry;
+
+  if (items.size() < 3)
+    return std::nullopt;
+
+  if (!TryParse(items[0], &entry.address))
+    return std::nullopt;
+  if (!TryParse(items[2], &entry.value))
+    return std::nullopt;
+
+  if (items.size() >= 4)
+  {
+    if (!TryParse(items[3], &entry.comparand))
+      return std::nullopt;
+    entry.conditional = true;
+  }
+
+  const auto iter = std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
+  if (iter == s_patch_type_strings.end())
+    return std::nullopt;
+  entry.type = static_cast<PatchType>(std::distance(s_patch_type_strings.begin(), iter));
+
+  return entry;
+}
+
+std::string SerializeLine(const PatchEntry& entry)
+{
+  if (entry.conditional)
+  {
+    return fmt::format("0x{:08X}:{}:0x{:08X}:0x{:08X}", entry.address,
+                       PatchEngine::PatchTypeAsString(entry.type), entry.value, entry.comparand);
+  }
+  else
+  {
+    return fmt::format("0x{:08X}:{}:0x{:08X}", entry.address,
+                       PatchEngine::PatchTypeAsString(entry.type), entry.value);
+  }
+}
+
+void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
+                      const IniFile& globalIni, const IniFile& localIni)
 {
   const IniFile* inis[2] = {&globalIni, &localIni};
 
@@ -64,7 +113,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
         // Take care of the previous code
         if (!currentPatch.name.empty())
         {
-          patches.push_back(currentPatch);
+          patches->push_back(currentPatch);
         }
         currentPatch.entries.clear();
 
@@ -74,53 +123,49 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
       }
       else
       {
-        std::string::size_type loc = line.find('=');
-
-        if (loc != std::string::npos)
-        {
-          line[loc] = ':';
-        }
-
-        const std::vector<std::string> items = SplitString(line, ':');
-
-        if (items.size() >= 3)
-        {
-          PatchEntry pE;
-          bool success = true;
-          success &= TryParse(items[0], &pE.address);
-          success &= TryParse(items[2], &pE.value);
-          if (items.size() >= 4)
-          {
-            success &= TryParse(items[3], &pE.comparand);
-            pE.conditional = true;
-          }
-
-          const auto iter =
-              std::find(s_patch_type_strings.begin(), s_patch_type_strings.end(), items[1]);
-          pE.type = PatchType(std::distance(s_patch_type_strings.begin(), iter));
-
-          success &= (pE.type != (PatchType)3);
-          if (success)
-          {
-            currentPatch.entries.push_back(pE);
-          }
-        }
+        if (std::optional<PatchEntry> entry = DeserializeLine(line))
+          currentPatch.entries.push_back(*entry);
       }
     }
 
     if (!currentPatch.name.empty() && !currentPatch.entries.empty())
     {
-      patches.push_back(currentPatch);
+      patches->push_back(currentPatch);
     }
 
-    ReadEnabledAndDisabled(*ini, section, &patches);
+    ReadEnabledAndDisabled(*ini, section, patches);
 
     if (ini == &globalIni)
     {
-      for (Patch& patch : patches)
+      for (Patch& patch : *patches)
         patch.default_enabled = patch.enabled;
     }
   }
+}
+
+void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches)
+{
+  std::vector<std::string> lines;
+  std::vector<std::string> lines_enabled;
+  std::vector<std::string> lines_disabled;
+
+  for (const auto& patch : patches)
+  {
+    if (patch.enabled != patch.default_enabled)
+      (patch.enabled ? lines_enabled : lines_disabled).emplace_back('$' + patch.name);
+
+    if (!patch.user_defined)
+      continue;
+
+    lines.emplace_back('$' + patch.name);
+
+    for (const PatchEntry& entry : patch.entries)
+      lines.emplace_back(SerializeLine(entry));
+  }
+
+  local_ini->SetLines("OnFrame_Enabled", lines_enabled);
+  local_ini->SetLines("OnFrame_Disabled", lines_disabled);
+  local_ini->SetLines("OnFrame", lines);
 }
 
 static void LoadSpeedhacks(const std::string& section, IniFile& ini)
@@ -161,7 +206,7 @@ void LoadPatches()
   IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
   IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
-  LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
+  LoadPatchSection("OnFrame", &s_on_frame, globalIni, localIni);
 
   // Check if I'm syncing Codes
   if (Config::Get(Config::SESSION_CODE_SYNC_OVERRIDE))

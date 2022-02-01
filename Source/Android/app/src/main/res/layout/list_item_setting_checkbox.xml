@@ -10,7 +10,7 @@
 
     <TextView
         android:id="@+id/text_setting_name"
-        style="@style/TextAppearance.AppCompat.Headline"
+        style="@style/TextAppearance.MaterialComponents.Headline5"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
@@ -43,7 +43,10 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/spacing_large"
+        android:buttonTint="@color/dolphin_blue"
+        android:clickable="false"
         android:focusable="false"
-        android:clickable="false"/>
+        android:minHeight="0dp"
+        android:minWidth="0dp" />
 
 </RelativeLayout>

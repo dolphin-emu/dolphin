@@ -32,6 +32,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/TraversalClient.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
@@ -40,6 +41,7 @@
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
 
@@ -63,8 +65,10 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model, QWidget* parent)
-    : QDialog(parent), m_game_list_model(game_list_model)
+NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
+                             StartGameCallback start_game_callback, QWidget* parent)
+    : QDialog(parent), m_game_list_model(game_list_model),
+      m_start_game_callback(std::move(start_game_callback))
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -747,10 +751,11 @@ void NetPlayDialog::UpdateGUI()
 
 // NetPlayUI methods
 
-void NetPlayDialog::BootGame(const std::string& filename)
+void NetPlayDialog::BootGame(const std::string& filename,
+                             std::unique_ptr<BootSessionData> boot_session_data)
 {
   m_got_stop_request = false;
-  emit Boot(QString::fromStdString(filename));
+  m_start_game_callback(filename, std::move(boot_session_data));
 }
 
 void NetPlayDialog::StopGame()
@@ -1019,7 +1024,7 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     });
   }
 
-  if (!golfer_name.empty() && (SConfig::GetInstance().bEnableDebugging)) // only show if debug mode
+  if (!golfer_name.empty() && (Config::Get(Config::MAIN_ENABLE_DEBUGGING))) // only show if debug mode
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
@@ -1108,7 +1113,6 @@ void NetPlayDialog::LoadSettings()
   const bool write_save_data = Config::Get(Config::NETPLAY_WRITE_SAVE_DATA);
   const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
   const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
-  const bool sync_codes = Config::Get(Config::NETPLAY_SYNC_CODES);
   const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
   const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
@@ -1235,4 +1239,11 @@ void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
     if (m_chunked_progress_dialog->isVisible())
       m_chunked_progress_dialog->SetProgress(pid, progress);
   });
+}
+
+void NetPlayDialog::SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder)
+{
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (client)
+    client->SetWiiSyncData(nullptr, std::move(titles), std::move(redirect_folder));
 }

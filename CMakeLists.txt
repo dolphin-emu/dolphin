@@ -8,9 +8,9 @@ cmake_minimum_required(VERSION 3.10)
 
 # MacOS prior to 10.14 did not support aligned alloc which is used to implement
 # std::unique_ptr in the arm64 C++ standard library. x86_64 builds can override
-# this to 10.12.0 using -DCMAKE_OSX_DEPLOYMENT_TARGET="10.12.0" without issue.
+# this to 10.13.0 using -DCMAKE_OSX_DEPLOYMENT_TARGET="10.13.0" without issue.
 # This is done in the universal binary building script to build a binary that 
-# runs on 10.12 on x86_64 computers, while still containing an arm64 slice.
+# runs on 10.13 on x86_64 computers, while still containing an arm64 slice.
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14.0" CACHE STRING "")
 
@@ -30,6 +30,10 @@ if(UNIX AND NOT APPLE AND NOT ANDROID)
 endif()
 if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
   option(ENABLE_EGL "Enables EGL OpenGL Interface" ON)
+endif()
+
+if(NOT ANDROID)
+  option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" ON)
 endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
@@ -59,7 +63,6 @@ option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 option(FASTLOG "Enable all logs" OFF)
-option(GDBSTUB "Enable gdb stub for remote debugging." ON)
 option(OPROFILING "Enable profiling" OFF)
 
 # TODO: Add DSPSpy
@@ -389,10 +392,6 @@ if(FASTLOG)
   add_definitions(-DDEBUGFAST)
 endif()
 
-if(GDBSTUB)
-  add_definitions(-DUSE_GDBSTUB)
-endif()
-
 if(ENABLE_VTUNE)
   set(VTUNE_DIR "/opt/intel/vtune_amplifier")
   add_definitions(-DUSE_VTUNE)
@@ -488,8 +487,14 @@ if(ENCODE_FRAMEDUMPS)
   if(WIN32 AND _M_X86_64)
     set(FFMPEG_DIR Externals/ffmpeg)
   endif()
-  find_package(FFmpeg COMPONENTS avcodec avformat avutil swscale)
+  find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
   if(FFmpeg_FOUND)
+    if(APPLE) 
+      find_library(COREMEDIA_LIBRARY CoreMedia)
+      find_library(VIDEOTOOLBOX_LIBRARY VideoToolbox)
+      find_library(COREVIDEO_LIBRARY CoreVideo)
+      find_library(AUDIOTOOLBOX_LIBRARY AudioToolbox)
+    endif()
     message(STATUS "libav/ffmpeg found, enabling AVI frame dumps")
     add_definitions(-DHAVE_FFMPEG)
   else()
@@ -559,7 +564,7 @@ if (_M_X86)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 
-find_package(fmt 7.1)
+find_package(fmt 8.0)
 if(fmt_FOUND)
   message(STATUS "Using shared fmt ${fmt_VERSION}")
 else()
@@ -572,6 +577,10 @@ add_subdirectory(Externals/glslang)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)
+
+  if(APPLE)
+    add_subdirectory(Externals/MoltenVK)
+  endif()
 endif()
 
 if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
@@ -669,7 +678,7 @@ endif()
 pkg_check_modules(MINIZIP minizip>=2.0.0)
 if(MINIZIP_FOUND)
   message(STATUS "Using shared minizip")
-	include_directories(${MINIZIP_INCLUDE_DIRS})
+  include_directories(${MINIZIP_INCLUDE_DIRS})
 else()
   check_vendoring_approved(minizip)
   message(STATUS "Shared minizip not found, falling back to the static library")
@@ -924,6 +933,10 @@ set(CPACK_RPM_PACKAGE_LICENSE GPL-2.0)
 # TODO: CPACK_PACKAGE_ICON
 # TODO: CPACK_NSIS_*
 # TODO: Use CPack components for DSPSpy, etc => cpack_add_component
+
+# Debian Specific. Install dpkg-dev for automatic deps generation
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_SECTION "Games")
 
 set(CPACK_SET_DESTDIR ON)
 set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")

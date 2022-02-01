@@ -24,7 +24,7 @@
 #include "Common/Network.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
@@ -38,8 +38,8 @@ constexpr u8 REQUEST_TYPE = static_cast<u8>(LIBUSB_ENDPOINT_OUT) |
 
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
-  const int vid = SConfig::GetInstance().m_bt_passthrough_vid;
-  const int pid = SConfig::GetInstance().m_bt_passthrough_pid;
+  const int vid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID);
+  const int pid = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID);
   if (vid == -1 || pid == -1)
     return true;
   return descriptor.idVendor == vid && descriptor.idProduct == pid;
@@ -49,9 +49,11 @@ static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
 {
   constexpr u8 SUBCLASS = 0x01;
   constexpr u8 PROTOCOL_BLUETOOTH = 0x01;
-  if (SConfig::GetInstance().m_bt_passthrough_vid != -1 &&
-      SConfig::GetInstance().m_bt_passthrough_pid != -1)
+  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID) != -1 &&
+      Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID) != -1)
+  {
     return true;
+  }
   return descriptor.bInterfaceClass == LIBUSB_CLASS_WIRELESS &&
          descriptor.bInterfaceSubClass == SUBCLASS &&
          descriptor.bInterfaceProtocol == PROTOCOL_BLUETOOTH;
@@ -106,7 +108,8 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
                                          sizeof(serial_number));
       NOTICE_LOG_FMT(IOS_WIIMOTE, "Using device {:04x}:{:04x} (rev {:x}) for Bluetooth: {} {} {}",
                      device_descriptor.idVendor, device_descriptor.idProduct,
-                     device_descriptor.bcdDevice, manufacturer, product, serial_number);
+                     device_descriptor.bcdDevice, reinterpret_cast<char*>(manufacturer),
+                     reinterpret_cast<char*>(product), reinterpret_cast<char*>(serial_number));
       m_is_wii_bt_module =
           device_descriptor.idVendor == 0x57e && device_descriptor.idProduct == 0x305;
       return false;
@@ -499,7 +502,7 @@ void BluetoothRealDevice::FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl)
 
 void BluetoothRealDevice::LoadLinkKeys()
 {
-  const std::string& entries = SConfig::GetInstance().m_bt_passthrough_link_keys;
+  std::string entries = Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS);
   if (entries.empty())
     return;
   for (const auto& pair : SplitString(entries, ','))
@@ -546,14 +549,17 @@ void BluetoothRealDevice::SaveLinkKeys()
     oss << Common::MacAddressToString(address);
     oss << '=';
     oss << std::hex;
-    for (const u16& data : entry.second)
-      oss << std::setfill('0') << std::setw(2) << data;
+    for (u8 data : entry.second)
+    {
+      // We cast to u16 here in order to have it displayed as two nibbles.
+      oss << std::setfill('0') << std::setw(2) << static_cast<u16>(data);
+    }
     oss << std::dec << ',';
   }
   std::string config_string = oss.str();
   if (!config_string.empty())
     config_string.pop_back();
-  SConfig::GetInstance().m_bt_passthrough_link_keys = config_string;
+  Config::SetBase(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS, config_string);
 }
 
 bool BluetoothRealDevice::OpenDevice(libusb_device* device)

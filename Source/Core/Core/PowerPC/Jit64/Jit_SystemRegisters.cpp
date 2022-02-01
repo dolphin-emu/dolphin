@@ -1,13 +1,16 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/Jit64/Jit.h"
+
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/x64Emitter.h"
+
 #include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -183,6 +186,33 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 
   // Should never happen.
   return FixupBranch();
+}
+
+// Could be done with one temp register, but with two temp registers it's faster
+void Jit64::UpdateFPExceptionSummary(X64Reg fpscr, X64Reg tmp1, X64Reg tmp2)
+{
+  // Kill dependency on tmp1 (not required for correctness, since SHL will shift out upper bytes)
+  XOR(32, R(tmp1), R(tmp1));
+
+  // fpscr.VX = (fpscr & FPSCR_VX_ANY) != 0
+  TEST(32, R(fpscr), Imm32(FPSCR_VX_ANY));
+  SETcc(CC_NZ, R(tmp1));
+  SHL(32, R(tmp1), Imm8(IntLog2(FPSCR_VX)));
+  AND(32, R(fpscr), Imm32(~(FPSCR_VX | FPSCR_FEX)));
+  OR(32, R(fpscr), R(tmp1));
+
+  // fpscr.FEX = ((fpscr >> 22) & (fpscr & FPSCR_ANY_E)) != 0
+  MOV(32, R(tmp1), R(fpscr));
+  MOV(32, R(tmp2), R(fpscr));
+  SHR(32, R(tmp1), Imm8(22));
+  AND(32, R(tmp2), Imm32(FPSCR_ANY_E));
+  TEST(32, R(tmp1), R(tmp2));
+  // Unfortunately we eat a partial register stall below - we can't zero any of the registers before
+  // the TEST, and we can't use XOR right after the TEST since that would overwrite flags. However,
+  // there is no false dependency, since SETcc depends on TEST's flags and TEST depends on tmp1.
+  SETcc(CC_NZ, R(tmp1));
+  SHL(32, R(tmp1), Imm8(IntLog2(FPSCR_FEX)));
+  OR(32, R(fpscr), R(tmp1));
 }
 
 static void DoICacheReset()
@@ -395,6 +425,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
+  FALLBACK_IF(jo.fp_exceptions);
 
   {
     RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
@@ -637,6 +668,19 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   // Only clear exception bits (but not FEX/VX).
   mask &= FPSCR_FX | FPSCR_ANY_X;
 
+  RCX64Reg scratch_guard;
+  X64Reg scratch;
+  if (mask != 0)
+  {
+    scratch_guard = gpr.Scratch();
+    RegCache::Realize(scratch_guard);
+    scratch = scratch_guard;
+  }
+  else
+  {
+    scratch = RSCRATCH;
+  }
+
   if (cpu_info.bBMI1)
   {
     MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
@@ -652,14 +696,17 @@ void Jit64::mcrfs(UGeckoInstruction inst)
     SHR(32, R(RSCRATCH2), Imm8(shift));
     AND(32, R(RSCRATCH2), Imm32(0xF));
   }
+
+  LEA(64, scratch, MConst(PowerPC::ConditionRegister::s_crTable));
+  MOV(64, R(scratch), MComplex(scratch, RSCRATCH2, SCALE_8, 0));
+  MOV(64, CROffset(inst.CRFD), R(scratch));
+
   if (mask != 0)
   {
     AND(32, R(RSCRATCH), Imm32(~mask));
+    UpdateFPExceptionSummary(RSCRATCH, RSCRATCH2, scratch);
     MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
   }
-  LEA(64, RSCRATCH, MConst(PowerPC::ConditionRegister::s_crTable));
-  MOV(64, R(RSCRATCH), MComplex(RSCRATCH, RSCRATCH2, SCALE_8, 0));
-  MOV(64, CROffset(inst.CRFD), R(RSCRATCH));
 }
 
 void Jit64::mffsx(UGeckoInstruction inst)
@@ -669,18 +716,6 @@ void Jit64::mffsx(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
 
   MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-
-  // FPSCR.FEX = 0 (and VX for below)
-  AND(32, R(RSCRATCH), Imm32(~0x60000000));
-
-  // FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
-  XOR(32, R(RSCRATCH2), R(RSCRATCH2));
-  TEST(32, R(RSCRATCH), Imm32(FPSCR_VX_ANY));
-  SETcc(CC_NZ, R(RSCRATCH2));
-  SHL(32, R(RSCRATCH2), Imm8(31 - 2));
-  OR(32, R(RSCRATCH), R(RSCRATCH2));
-
-  MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
   int d = inst.FD;
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
@@ -710,17 +745,32 @@ void Jit64::mtfsb0x(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
 
-  u32 mask = ~(0x80000000 >> inst.CRBD);
-  if (inst.CRBD < 29)
+  const u32 mask = 0x80000000 >> inst.CRBD;
+  const u32 inverted_mask = ~mask;
+
+  if (mask == FPSCR_FEX || mask == FPSCR_VX)
+    return;
+
+  if (inst.CRBD < 29 && (mask & (FPSCR_ANY_X | FPSCR_ANY_E)) == 0)
   {
-    AND(32, PPCSTATE(fpscr), Imm32(mask));
+    AND(32, PPCSTATE(fpscr), Imm32(inverted_mask));
   }
   else
   {
     MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-    AND(32, R(RSCRATCH), Imm32(mask));
+    AND(32, R(RSCRATCH), Imm32(inverted_mask));
+
+    if ((mask & (FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+    {
+      RCX64Reg scratch = gpr.Scratch();
+      RegCache::Realize(scratch);
+
+      UpdateFPExceptionSummary(RSCRATCH, RSCRATCH2, scratch);
+    }
+
     MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
-    UpdateMXCSR();
+    if (inst.CRBD >= 29)
+      UpdateMXCSR();
   }
 }
 
@@ -729,10 +779,15 @@ void Jit64::mtfsb1x(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
-  u32 mask = 0x80000000 >> inst.CRBD;
+  const u32 mask = 0x80000000 >> inst.CRBD;
+
+  if (mask == FPSCR_FEX || mask == FPSCR_VX)
+    return;
+
   MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-  if (mask & FPSCR_ANY_X)
+  if ((mask & FPSCR_ANY_X) != 0)
   {
     BTS(32, R(RSCRATCH), Imm32(31 - inst.CRBD));
     FixupBranch dont_set_fx = J_CC(CC_C);
@@ -743,6 +798,15 @@ void Jit64::mtfsb1x(UGeckoInstruction inst)
   {
     OR(32, R(RSCRATCH), Imm32(mask));
   }
+
+  if ((mask & (FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+  {
+    RCX64Reg scratch = gpr.Scratch();
+    RegCache::Realize(scratch);
+
+    UpdateFPExceptionSummary(RSCRATCH, RSCRATCH2, scratch);
+  }
+
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
   if (inst.CRBD >= 29)
     UpdateMXCSR();
@@ -753,14 +817,25 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   u8 imm = (inst.hex >> (31 - 19)) & 0xF;
+  u32 mask = 0xF0000000 >> (4 * inst.CRFD);
   u32 or_mask = imm << (28 - 4 * inst.CRFD);
-  u32 and_mask = ~(0xF0000000 >> (4 * inst.CRFD));
+  u32 and_mask = ~mask;
 
   MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
   AND(32, R(RSCRATCH), Imm32(and_mask));
   OR(32, R(RSCRATCH), Imm32(or_mask));
+
+  if ((mask & (FPSCR_FEX | FPSCR_VX | FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+  {
+    RCX64Reg scratch = gpr.Scratch();
+    RegCache::Realize(scratch);
+
+    UpdateFPExceptionSummary(RSCRATCH, RSCRATCH2, scratch);
+  }
+
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
   // Field 7 contains NI and RN.
@@ -773,6 +848,7 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(jo.fp_exceptions);
 
   u32 mask = 0;
   for (int i = 0; i < 8; i++)
@@ -798,6 +874,15 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
     AND(32, R(RSCRATCH2), Imm32(~mask));
     OR(32, R(RSCRATCH), R(RSCRATCH2));
   }
+
+  if ((mask & (FPSCR_FEX | FPSCR_VX | FPSCR_ANY_X | FPSCR_ANY_E)) != 0)
+  {
+    RCX64Reg scratch = gpr.Scratch();
+    RegCache::Realize(scratch);
+
+    UpdateFPExceptionSummary(RSCRATCH, RSCRATCH2, scratch);
+  }
+
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
   if (inst.FM & 1)

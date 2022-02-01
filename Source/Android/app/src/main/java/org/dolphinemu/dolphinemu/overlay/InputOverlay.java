@@ -164,7 +164,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       doubleTapButton = InputOverlayPointer.DOUBLE_TAP_A;
     }
 
-    overlayPointer = new InputOverlayPointer(mSurfacePosition, doubleTapButton);
+    overlayPointer = new InputOverlayPointer(mSurfacePosition, doubleTapButton,
+            IntSetting.MAIN_IR_MODE.getIntGlobal(),
+            BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBooleanGlobal());
   }
 
   @Override
@@ -767,6 +769,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
     mIsFirstRun = false;
     invalidate();
+  }
+
+  public void refreshOverlayPointer(Settings settings)
+  {
+    if (overlayPointer != null)
+    {
+      overlayPointer.setMode(IntSetting.MAIN_IR_MODE.getInt(settings));
+      overlayPointer.setRecenter(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean(settings));
+    }
   }
 
   public void resetButtonPlacement()

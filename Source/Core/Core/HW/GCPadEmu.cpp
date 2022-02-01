@@ -198,10 +198,6 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(5, "`Return`");
 #endif
 
-  // stick modifiers to 50 %
-  m_main_stick->controls[4]->control_ref->range = 0.5f;
-  m_c_stick->controls[4]->control_ref->range = 0.5f;
-
   // D-Pad
   m_dpad->SetControlExpression(0, "`T`");  // Up
   m_dpad->SetControlExpression(1, "`G`");  // Down

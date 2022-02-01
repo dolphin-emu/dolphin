@@ -12,13 +12,13 @@
 
 #include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWBoundingBox.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWTexture.h"
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -38,7 +38,8 @@ bool SWRenderer::IsHeadless() const
   return m_window->IsHeadless();
 }
 
-std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config,
+                                                           [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWTexture>(config);
 }
@@ -78,13 +79,15 @@ public:
 };
 
 std::unique_ptr<AbstractShader>
-SWRenderer::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source)
+SWRenderer::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source,
+                                   [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWShader>(stage);
 }
 
-std::unique_ptr<AbstractShader> SWRenderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                   const void* data, size_t length)
+std::unique_ptr<AbstractShader>
+SWRenderer::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length,
+                                   [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<SWShader>(stage);
 }
@@ -138,14 +141,9 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
   return value;
 }
 
-u16 SWRenderer::BBoxReadImpl(int index)
+std::unique_ptr<BoundingBox> SWRenderer::CreateBoundingBox() const
 {
-  return BoundingBox::GetCoordinate(static_cast<BoundingBox::Coordinate>(index));
-}
-
-void SWRenderer::BBoxWriteImpl(int index, u16 value)
-{
-  BoundingBox::SetCoordinate(static_cast<BoundingBox::Coordinate>(index), value);
+  return std::make_unique<SWBoundingBox>();
 }
 
 void SWRenderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,

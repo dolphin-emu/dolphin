@@ -266,9 +266,15 @@ public:
   // Gets the immediate that a register is set to, only valid for guest GPRs
   u32 GetImm(size_t preg) const { return GetGuestGPROpArg(preg).GetImm(); }
   // Binds a guest GPR to a host register, optionally loading its value
-  void BindToRegister(size_t preg, bool do_load) { BindToRegister(GetGuestGPR(preg), do_load); }
+  void BindToRegister(size_t preg, bool do_load, bool set_dirty = true)
+  {
+    BindToRegister(GetGuestGPR(preg), do_load, set_dirty);
+  }
   // Binds a guest CR to a host register, optionally loading its value
-  void BindCRToRegister(size_t preg, bool do_load) { BindToRegister(GetGuestCR(preg), do_load); }
+  void BindCRToRegister(size_t preg, bool do_load, bool set_dirty = true)
+  {
+    BindToRegister(GetGuestCR(preg), do_load, set_dirty);
+  }
   BitSet32 GetCallerSavedUsed() const override;
 
   void StoreRegisters(BitSet32 regs, Arm64Gen::ARM64Reg tmp_reg = Arm64Gen::ARM64Reg::INVALID_REG)
@@ -291,7 +297,7 @@ protected:
   void FlushRegister(size_t index, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
+  bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
 
   struct GuestRegInfo
   {
@@ -307,7 +313,7 @@ private:
 
   Arm64Gen::ARM64Reg R(const GuestRegInfo& guest_reg);
   void SetImmediate(const GuestRegInfo& guest_reg, u32 imm);
-  void BindToRegister(const GuestRegInfo& guest_reg, bool do_load);
+  void BindToRegister(const GuestRegInfo& guest_reg, bool do_load, bool set_dirty = true);
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
   void FlushCRRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);
@@ -326,7 +332,7 @@ public:
   // Will dump an immediate to the host register as well
   Arm64Gen::ARM64Reg R(size_t preg, RegType type);
 
-  Arm64Gen::ARM64Reg RW(size_t preg, RegType type);
+  Arm64Gen::ARM64Reg RW(size_t preg, RegType type, bool set_dirty = true);
 
   BitSet32 GetCallerSavedUsed() const override;
 
@@ -350,7 +356,7 @@ protected:
   void FlushRegister(size_t preg, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg) override;
 
 private:
-  bool IsCalleeSaved(Arm64Gen::ARM64Reg reg) const;
+  bool IsCallerSaved(Arm64Gen::ARM64Reg reg) const;
   bool IsTopHalfUsed(Arm64Gen::ARM64Reg reg) const;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state, Arm64Gen::ARM64Reg tmp_reg);

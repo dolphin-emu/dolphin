@@ -3,8 +3,10 @@
 
 #include "UICommon/AutoUpdate.h"
 
-#include <picojson.h>
 #include <string>
+
+#include <fmt/format.h>
+#include <picojson.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -12,7 +14,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
-#include "Core/ConfigManager.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -135,7 +136,8 @@ bool AutoUpdateChecker::SystemSupportsAutoUpdates()
 }
 
 
-void AutoUpdateChecker::CheckForUpdate()
+void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
+                                       std::string_view hash_override)
 {
   // Don't bother checking if updates are not supported.
   //if (!SystemSupportsAutoUpdates()) 
@@ -169,7 +171,7 @@ void AutoUpdateChecker::CheckForUpdate()
   picojson::object obj = json.get<picojson::object>();
 
   // check if latest version == current
-  if (obj["tag_name"].get<std::string>() == Common::scm_desc_str)
+  if (obj["tag_name"].get<std::string>() == Common::GetRioRevStr())
   {
     INFO_LOG_FMT(COMMON, "Auto-update status: we are up to date.");
     return;

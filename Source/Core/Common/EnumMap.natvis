@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2022 Dolphin Emulator Project
+  SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Common::EnumMap&lt;*,*,*&gt;">
+    <Expand>
+      <!-- The following would work, except ValueNode for IndexListItems doesn't support the Name attribute.
+      It's only allowed for LinkedListItems and TreeItems, for some reason.  So we get to reimplement it with CustomListItems. -->
+      <!--
+      <IndexListItems>
+        <Size>$T2 + 1</Size>
+        <ValueNode Name="[{($T3)$i}]">m_array[$i]</ValueNode>
+      </IndexListItems>
+      -->
+      <CustomListItems MaxItemsPerView="5000">
+        <Variable Name="i" InitialValue="0" />
+        <!-- Size is incremented by 1 since the template argument is the last member (inclusive), but we want the count (exclusive) -->
+        <Size>$T2 + 1</Size>
+        <Loop>
+          <Break Condition="i > $T2" />
+          <Item Name="[{($T3)i}]">m_array[i]</Item>
+          <Exec>i++</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

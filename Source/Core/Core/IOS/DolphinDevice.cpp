@@ -1,6 +1,8 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/DolphinDevice.h"
+
 #include <algorithm>
 #include <cstring>
 
@@ -12,11 +14,9 @@
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
-#include "Core/BootManager.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/DolphinDevice.h"
 
 namespace IOS::HLE
 {
@@ -58,10 +58,10 @@ IPCReply GetVersion(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const auto length = std::min(size_t(request.io_vectors[0].size), Common::scm_desc_str.size());
+  const auto length = std::min(size_t(request.io_vectors[0].size), Common::GetScmDescStr().size());
 
   Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
-  Memory::CopyToEmu(request.io_vectors[0].address, Common::scm_desc_str.data(), length);
+  Memory::CopyToEmu(request.io_vectors[0].address, Common::GetScmDescStr().data(), length);
 
   return IPCReply(IPC_SUCCESS);
 }
@@ -78,8 +78,8 @@ IPCReply GetCPUSpeed(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const SConfig& config = SConfig::GetInstance();
-  const float oc = config.m_OCEnable ? config.m_OCFactor : 1.0f;
+  const bool overclock_enabled = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
+  const float oc = overclock_enabled ? Config::Get(Config::MAIN_OVERCLOCK) : 1.0f;
 
   const u32 core_clock = u32(float(SystemTimers::GetTicksPerSecond()) * oc);
 
@@ -101,8 +101,7 @@ IPCReply GetSpeedLimit(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const SConfig& config = SConfig::GetInstance();
-  const u32 speed_percent = config.m_EmulationSpeed * 100;
+  const u32 speed_percent = Config::Get(Config::MAIN_EMULATION_SPEED) * 100;
   Memory::Write_U32(speed_percent, request.io_vectors[0].address);
 
   return IPCReply(IPC_SUCCESS);
@@ -122,8 +121,7 @@ IPCReply SetSpeedLimit(const IOCtlVRequest& request)
   }
 
   const float speed = float(Memory::Read_U32(request.in_vectors[0].address)) / 100.0f;
-  SConfig::GetInstance().m_EmulationSpeed = speed;
-  BootManager::SetEmulationSpeedReset(true);
+  Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
 
   return IPCReply(IPC_SUCCESS);
 }

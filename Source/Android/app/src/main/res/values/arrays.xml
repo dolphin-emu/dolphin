@@ -145,7 +145,7 @@
         <item>0</item>
     </integer-array>
 
-    <!-- Log Verbosity selection based on LOG_LEVELS in Common/Logging/Log.h -->
+    <!-- Log Verbosity selection based on LogLevel in Common/Logging/Log.h -->
     <string-array name="logVerbosityEntriesMaxLevelInfo" translatable="false">
         <item>Notice</item>
         <item>Error</item>
@@ -207,9 +207,9 @@
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
-        <item>Low</item>
+        <item>Fast</item>
         <item>Medium</item>
-        <item>High</item>
+        <item>Safe</item>
     </string-array>
     <integer-array name="textureCacheAccuracyValues" translatable="false">
         <item>128</item>
@@ -431,6 +431,12 @@
         <item>D-Pad</item>
         <item>Left Stick</item>
         <item>Right Stick</item>
+    </string-array>
+
+    <string-array name="irModeEntries">
+        <item>Disabled</item>
+        <item>Follow</item>
+        <item>Drag</item>
     </string-array>
 
     <string-array name="doubleTap">

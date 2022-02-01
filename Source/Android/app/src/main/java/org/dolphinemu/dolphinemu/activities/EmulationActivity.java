@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -79,11 +78,15 @@ public final class EmulationActivity extends AppCompatActivity
 
   private boolean activityRecreated;
   private String[] mPaths;
+  private boolean mRiivolution;
+  private boolean mLaunchSystemMenu;
   private boolean mIgnoreWarnings;
   private static boolean sUserPausedEmulation;
   private boolean mMenuToastShown;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
+  public static final String EXTRA_RIIVOLUTION = "Riivolution";
+  public static final String EXTRA_SYSTEM_MENU = "SystemMenu";
   public static final String EXTRA_IGNORE_WARNINGS = "IgnoreWarnings";
   public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
   public static final String EXTRA_MENU_TOAST_SHOWN = "MenuToastShown";
@@ -97,9 +100,10 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
-          MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION,
-          MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_RECENTER, MENU_SET_IR_MODE,
+          MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_MOTION_CONTROLS,
+          MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS,
+          MENU_ACTION_SETTINGS})
   public @interface MenuAction
   {
   }
@@ -131,13 +135,15 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
   public static final int MENU_ACTION_RUMBLE = 25;
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
-  public static final int MENU_SET_IR_SENSITIVITY = 27;
-  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
-  public static final int MENU_ACTION_MOTION_CONTROLS = 29;
-  public static final int MENU_ACTION_PAUSE_EMULATION = 30;
-  public static final int MENU_ACTION_UNPAUSE_EMULATION = 31;
-  public static final int MENU_ACTION_OVERLAY_CONTROLS = 32;
-  public static final int MENU_ACTION_SETTINGS = 33;
+  public static final int MENU_SET_IR_RECENTER = 27;
+  public static final int MENU_SET_IR_MODE = 28;
+  public static final int MENU_SET_IR_SENSITIVITY = 29;
+  public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 30;
+  public static final int MENU_ACTION_MOTION_CONTROLS = 31;
+  public static final int MENU_ACTION_PAUSE_EMULATION = 32;
+  public static final int MENU_ACTION_UNPAUSE_EMULATION = 33;
+  public static final int MENU_ACTION_OVERLAY_CONTROLS = 34;
+  public static final int MENU_ACTION_SETTINGS = 35;
 
   private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -156,6 +162,10 @@ public final class EmulationActivity extends AppCompatActivity
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
     buttonsActionsMap
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
+    buttonsActionsMap.append(R.id.menu_emulation_ir_recenter,
+            EmulationActivity.MENU_SET_IR_RECENTER);
+    buttonsActionsMap.append(R.id.menu_emulation_set_ir_mode,
+            EmulationActivity.MENU_SET_IR_MODE);
     buttonsActionsMap.append(R.id.menu_emulation_set_ir_sensitivity,
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
@@ -164,17 +174,15 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
 
-  public static void launch(FragmentActivity activity, String filePath)
+  public static void launch(FragmentActivity activity, String filePath, boolean riivolution)
   {
-    launch(activity, new String[]{filePath});
+    launch(activity, new String[]{filePath}, riivolution);
   }
 
-  public static void launch(FragmentActivity activity, String[] filePaths)
+  private static void performLaunchChecks(FragmentActivity activity,
+          Runnable continueCallback)
   {
-    if (sIgnoreLaunchRequests)
-      return;
-
-    new AfterDirectoryInitializationRunner().run(activity, true, () ->
+    new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true, () ->
     {
       if (FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) &&
               FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) &&
@@ -183,7 +191,7 @@ public final class EmulationActivity extends AppCompatActivity
               FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH) &&
               FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_PATH))
       {
-        launchWithoutChecks(activity, filePaths);
+        continueCallback.run();
       }
       else
       {
@@ -192,18 +200,52 @@ public final class EmulationActivity extends AppCompatActivity
         builder.setPositiveButton(R.string.yes, (dialogInterface, i) ->
                 SettingsActivity.launch(activity, MenuTag.CONFIG_PATHS));
         builder.setNeutralButton(R.string.continue_anyway, (dialogInterface, i) ->
-                launchWithoutChecks(activity, filePaths));
+                continueCallback.run());
         builder.show();
       }
     });
   }
 
-  private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths)
+
+  public static void launchSystemMenu(FragmentActivity activity)
+  {
+    if (sIgnoreLaunchRequests)
+      return;
+
+    performLaunchChecks(activity, () ->
+    {
+      launchSystemMenuWithoutChecks(activity);
+    });
+  }
+
+  public static void launch(FragmentActivity activity, String[] filePaths, boolean riivolution)
+  {
+    if (sIgnoreLaunchRequests)
+      return;
+
+    performLaunchChecks(activity, () ->
+    {
+      launchWithoutChecks(activity, filePaths, riivolution);
+    });
+  }
+
+  private static void launchSystemMenuWithoutChecks(FragmentActivity activity)
+  {
+    sIgnoreLaunchRequests = true;
+
+    Intent launcher = new Intent(activity, EmulationActivity.class);
+    launcher.putExtra(EmulationActivity.EXTRA_SYSTEM_MENU, true);
+    activity.startActivity(launcher);
+  }
+
+  private static void launchWithoutChecks(FragmentActivity activity, String[] filePaths,
+          boolean riivolution)
   {
     sIgnoreLaunchRequests = true;
 
     Intent launcher = new Intent(activity, EmulationActivity.class);
     launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
+    launcher.putExtra(EXTRA_RIIVOLUTION, riivolution);
 
     activity.startActivity(launcher);
   }
@@ -251,6 +293,8 @@ public final class EmulationActivity extends AppCompatActivity
       // Get params we were passed
       Intent gameToEmulate = getIntent();
       mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
+      mRiivolution = gameToEmulate.getBooleanExtra(EXTRA_RIIVOLUTION, false);
+      mLaunchSystemMenu = gameToEmulate.getBooleanExtra(EXTRA_SYSTEM_MENU, false);
       mIgnoreWarnings = gameToEmulate.getBooleanExtra(EXTRA_IGNORE_WARNINGS, false);
       sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
       mMenuToastShown = false;
@@ -283,7 +327,7 @@ public final class EmulationActivity extends AppCompatActivity
             .findFragmentById(R.id.frame_emulation_fragment);
     if (mEmulationFragment == null)
     {
-      mEmulationFragment = EmulationFragment.newInstance(mPaths);
+      mEmulationFragment = EmulationFragment.newInstance(mPaths, mRiivolution, mLaunchSystemMenu);
       getSupportFragmentManager().beginTransaction()
               .add(R.id.frame_emulation_fragment, mEmulationFragment)
               .commit();
@@ -475,6 +519,11 @@ public final class EmulationActivity extends AppCompatActivity
             .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
     menu.findItem(R.id.menu_emulation_rumble)
             .setChecked(BooleanSetting.MAIN_PHONE_RUMBLE.getBoolean(mSettings));
+    if (wii)
+    {
+      menu.findItem(R.id.menu_emulation_ir_recenter)
+              .setChecked(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean(mSettings));
+    }
 
     popup.setOnMenuItemClickListener(this::onOptionsItemSelected);
 
@@ -512,6 +561,10 @@ public final class EmulationActivity extends AppCompatActivity
       case MENU_ACTION_RUMBLE:
         item.setChecked(!item.isChecked());
         toggleRumble(item.isChecked());
+        break;
+      case MENU_SET_IR_RECENTER:
+        item.setChecked(!item.isChecked());
+        toggleRecenter(item.isChecked());
         break;
     }
   }
@@ -639,6 +692,10 @@ public final class EmulationActivity extends AppCompatActivity
         startActivityForResult(intent, REQUEST_CHANGE_DISC);
         break;
 
+      case MENU_SET_IR_MODE:
+        setIRMode();
+        break;
+
       case MENU_SET_IR_SENSITIVITY:
         setIRSensitivity();
         break;
@@ -685,6 +742,12 @@ public final class EmulationActivity extends AppCompatActivity
   {
     BooleanSetting.MAIN_PHONE_RUMBLE.setBoolean(mSettings, state);
     Rumble.setPhoneVibrator(state, this);
+  }
+
+  private void toggleRecenter(boolean state)
+  {
+    BooleanSetting.MAIN_IR_ALWAYS_RECENTER.setBoolean(mSettings, state);
+    mEmulationFragment.refreshOverlayPointer(mSettings);
   }
 
   private void editControlsPlacement()
@@ -930,6 +993,20 @@ public final class EmulationActivity extends AppCompatActivity
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
+
+    builder.show();
+  }
+
+  private void setIRMode()
+  {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    builder.setTitle(R.string.emulation_ir_mode);
+    builder.setSingleChoiceItems(R.array.irModeEntries,
+            IntSetting.MAIN_IR_MODE.getInt(mSettings),
+            (dialog, indexSelected) ->
+                    IntSetting.MAIN_IR_MODE.setInt(mSettings, indexSelected));
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+            mEmulationFragment.refreshOverlayPointer(mSettings));
 
     builder.show();
   }

@@ -136,7 +136,7 @@ public:
   std::string GetSource() const final override;
   std::optional<int> GetPreferredId() const final override;
   // Always add these at the end, given their hotplug nature
-  int GetSortPriority() const override { return -2; }
+  int GetSortPriority() const override { return -4; }
 
 private:
   void ResetPadData();
@@ -191,7 +191,7 @@ struct Server
   std::string m_description;
   std::string m_address;
   u16 m_port;
-  std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info;
+  std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info{};
   sf::UdpSocket m_socket;
   SteadyClock::time_point m_disconnect_time = SteadyClock::now();
 };

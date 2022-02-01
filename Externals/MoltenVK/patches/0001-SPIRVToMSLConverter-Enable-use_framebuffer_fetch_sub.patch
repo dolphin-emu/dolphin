@@ -1,0 +1,24 @@
+From 4ca33b7a9b149c6fbcc1c88ce08fc49f21294f6d Mon Sep 17 00:00:00 2001
+From: OatmealDome <julian@oatmealdome.me>
+Date: Sat, 31 Jul 2021 19:18:35 -0400
+Subject: [PATCH] SPIRVToMSLConverter: Enable use_framebuffer_fetch_subpasses
+
+---
+ .../MoltenVKShaderConverter/SPIRVToMSLConverter.cpp              | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/MoltenVKShaderConverter/MoltenVKShaderConverter/SPIRVToMSLConverter.cpp b/MoltenVKShaderConverter/MoltenVKShaderConverter/SPIRVToMSLConverter.cpp
+index 17c79394..97e98004 100644
+--- a/MoltenVKShaderConverter/MoltenVKShaderConverter/SPIRVToMSLConverter.cpp
++++ b/MoltenVKShaderConverter/MoltenVKShaderConverter/SPIRVToMSLConverter.cpp
+@@ -92,6 +92,7 @@ MVK_PUBLIC_SYMBOL SPIRVToMSLConversionOptions::SPIRVToMSLConversionOptions() {
+ #endif
+ 
+ 	mslOptions.pad_fragment_output_components = true;
++	mslOptions.use_framebuffer_fetch_subpasses = true;
+ }
+ 
+ MVK_PUBLIC_SYMBOL bool mvk::MSLShaderInput::matches(const mvk::MSLShaderInput& other) const {
+-- 
+2.30.1 (Apple Git-130)
+

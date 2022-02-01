@@ -19,10 +19,9 @@
 #include <QTimer>
 #include <QWindow>
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include "Core/Config/MainSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/State.h"
 
@@ -37,8 +36,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
-#include <WinUser.h>
-#include <windef.h>
+#include <Windows.h>
 #endif
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
@@ -83,7 +81,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   m_mouse_timer->setSingleShot(true);
   setMouseTracking(true);
 
-  connect(&Settings::Instance(), &Settings::HideCursorChanged, this,
+  connect(&Settings::Instance(), &Settings::CursorVisibilityChanged, this,
           &RenderWidget::OnHideCursorChanged);
   connect(&Settings::Instance(), &Settings::LockCursorChanged, this,
           &RenderWidget::OnLockCursorChanged);
@@ -139,6 +137,7 @@ void RenderWidget::OnHideCursorChanged()
 {
   UpdateCursor();
 }
+
 void RenderWidget::OnLockCursorChanged()
 {
   SetCursorLocked(false);
@@ -155,14 +154,16 @@ void RenderWidget::UpdateCursor()
     // on top of the game window in the background
     const bool keep_on_top = (windowFlags() & Qt::WindowStaysOnTopHint) != 0;
     const bool should_hide =
-        Settings::Instance().GetHideCursor() &&
-        (keep_on_top || SConfig::GetInstance().m_BackgroundInput || isActiveWindow());
+        (Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) &&
+        (keep_on_top || Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT) || isActiveWindow());
     setCursor(should_hide ? Qt::BlankCursor : Qt::ArrowCursor);
   }
   else
   {
-    setCursor((m_cursor_locked && Settings::Instance().GetHideCursor()) ? Qt::BlankCursor :
-                                                                          Qt::ArrowCursor);
+    setCursor((m_cursor_locked &&
+               Settings::Instance().GetCursorVisibility() == Config::ShowCursor::Never) ?
+                  Qt::BlankCursor :
+                  Qt::ArrowCursor);
   }
 }
 
@@ -185,7 +186,8 @@ void RenderWidget::HandleCursorTimer()
 {
   if (!isActiveWindow())
     return;
-  if (!Settings::Instance().GetLockCursor() || m_cursor_locked)
+  if ((!Settings::Instance().GetLockCursor() || m_cursor_locked) &&
+      Settings::Instance().GetCursorVisibility() == Config::ShowCursor::OnMovement)
   {
     setCursor(Qt::BlankCursor);
   }
@@ -268,7 +270,7 @@ void RenderWidget::SetCursorLocked(bool locked, bool follow_aspect_ratio)
     {
       m_cursor_locked = true;
 
-      if (Settings::Instance().GetHideCursor())
+      if (Settings::Instance().GetCursorVisibility() != Config::ShowCursor::Constantly)
       {
         setCursor(Qt::BlankCursor);
       }
@@ -362,16 +364,18 @@ bool RenderWidget::event(QEvent* event)
     {
       // Lock the cursor with any mouse button click (behave the same as window focus change).
       // This event is occasionally missed because isActiveWindow is laggy
-      if (Settings::Instance().GetLockCursor() && event->type() == QEvent::MouseButtonPress)
+      if (Settings::Instance().GetLockCursor())
       {
         SetCursorLocked(true);
       }
-      // Unhide on movement
-      if (!Settings::Instance().GetHideCursor())
-      {
-        setCursor(Qt::ArrowCursor);
-        m_mouse_timer->start(MOUSE_HIDE_DELAY);
-      }
+    }
+    break;
+  case QEvent::MouseMove:
+    // Unhide on movement
+    if (Settings::Instance().GetCursorVisibility() == Config::ShowCursor::OnMovement)
+    {
+      setCursor(Qt::ArrowCursor);
+      m_mouse_timer->start(MOUSE_HIDE_DELAY);
     }
     break;
   case QEvent::WinIdChange:
@@ -379,7 +383,8 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Show:
     // Don't do if "stay on top" changed (or was true)
-    if (Settings::Instance().GetLockCursor() && Settings::Instance().GetHideCursor() &&
+    if (Settings::Instance().GetLockCursor() &&
+        Settings::Instance().GetCursorVisibility() != Config::ShowCursor::Constantly &&
         !m_dont_lock_cursor_on_show)
     {
       // Auto lock when this window is shown (it was hidden)
@@ -392,7 +397,7 @@ bool RenderWidget::event(QEvent* event)
   // Note that this event in Windows is not always aligned to the window that is highlighted,
   // it's the window that has keyboard and mouse focus
   case QEvent::WindowActivate:
-    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)
+    if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) && Core::GetState() == Core::State::Paused)
       Core::SetState(Core::State::Running);
 
     UpdateCursor();
@@ -414,7 +419,7 @@ bool RenderWidget::event(QEvent* event)
 
     UpdateCursor();
 
-    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
+    if (Config::Get(Config::MAIN_PAUSE_ON_FOCUS_LOST) && Core::GetState() == Core::State::Running)
     {
       // If we are declared as the CPU thread, it means that the real CPU thread is waiting
       // for us to finish showing a panic alert (with that panic alert likely being the cause
@@ -453,6 +458,8 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Close:
     emit Closed();
+    break;
+  default:
     break;
   }
   return QWidget::event(event);

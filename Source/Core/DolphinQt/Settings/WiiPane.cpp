@@ -179,7 +179,7 @@ void WiiPane::CreateWiiRemoteSettings()
   auto* wii_remote_settings_group_layout = new QGridLayout();
   wii_remote_settings_group->setLayout(wii_remote_settings_group_layout);
   m_main_layout->addWidget(wii_remote_settings_group);
-  m_wiimote_motor = new QCheckBox(tr("Wii Remote Rumble"));
+  m_wiimote_motor = new QCheckBox(tr("Enable Rumble"));
 
   m_wiimote_sensor_position_label = new QLabel(tr("Sensor Bar Position:"));
   m_wiimote_ir_sensor_position = new QComboBox();
@@ -283,14 +283,17 @@ void WiiPane::OnUSBWhitelistRemoveButton()
   QString pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
-  SConfig::GetInstance().m_usb_passthrough_devices.erase({vid_u16, pid_u16});
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+  whitelist.erase({vid_u16, pid_u16});
+  Config::SetUSBDeviceWhitelist(whitelist);
   PopulateUSBPassthroughListWidget();
 }
 
 void WiiPane::PopulateUSBPassthroughListWidget()
 {
   m_whitelist_usb_list->clear();
-  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+  for (const auto& device : whitelist)
   {
     QListWidgetItem* usb_lwi =
         new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));

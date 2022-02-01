@@ -4,11 +4,13 @@
 #pragma once
 
 #include <memory>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/RenderBase.h"
 
+class BoundingBox;
 class SWOGLWindow;
 
 namespace SW
@@ -20,7 +22,8 @@ public:
 
   bool IsHeadless() const override;
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
+                                                 std::string_view name) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
   std::unique_ptr<AbstractFramebuffer>
@@ -28,10 +31,11 @@ public:
 
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
 
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                         std::string_view source) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                                                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
-                                                         size_t length) override;
+                                                         size_t length,
+                                                         std::string_view name) override;
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
@@ -40,8 +44,6 @@ public:
 
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
 
   void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                          const AbstractTexture* source_texture,
@@ -55,6 +57,9 @@ public:
   void ScaleTexture(AbstractFramebuffer* dst_framebuffer, const MathUtil::Rectangle<int>& dst_rect,
                     const AbstractTexture* src_texture,
                     const MathUtil::Rectangle<int>& src_rect) override;
+
+protected:
+  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   std::unique_ptr<SWOGLWindow> m_window;

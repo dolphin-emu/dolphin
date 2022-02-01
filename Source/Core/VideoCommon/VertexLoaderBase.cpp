@@ -4,7 +4,6 @@
 #include "VideoCommon/VertexLoaderBase.h"
 
 #include <array>
-#include <cinttypes>
 #include <cstring>
 #include <memory>
 #include <string>

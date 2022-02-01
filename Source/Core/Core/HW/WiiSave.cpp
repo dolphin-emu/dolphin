@@ -278,7 +278,7 @@ public:
   std::optional<Header> ReadHeader() override
   {
     Header header;
-    if (!m_file.Seek(0, SEEK_SET) || !m_file.ReadArray(&header, 1))
+    if (!m_file.Seek(0, File::SeekOrigin::Begin) || !m_file.ReadArray(&header, 1))
       return {};
 
     std::array<u8, 0x10> iv = s_sd_initial_iv;
@@ -310,7 +310,7 @@ public:
   std::optional<BkHeader> ReadBkHeader() override
   {
     BkHeader bk_header;
-    m_file.Seek(sizeof(Header), SEEK_SET);
+    m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
     if (!m_file.ReadArray(&bk_header, 1))
       return {};
     if (bk_header.size != BK_LISTED_SZ || bk_header.magic != BK_HDR_MAGIC)
@@ -323,7 +323,7 @@ public:
   std::optional<std::vector<SaveFile>> ReadFiles() override
   {
     const std::optional<BkHeader> bk_header = ReadBkHeader();
-    if (!bk_header || !m_file.Seek(sizeof(Header) + sizeof(BkHeader), SEEK_SET))
+    if (!bk_header || !m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return {};
 
     std::vector<SaveFile> files;
@@ -352,15 +352,18 @@ public:
         save_file.data = [this, size, rounded_size, iv,
                           pos]() mutable -> std::optional<std::vector<u8>> {
           std::vector<u8> file_data(rounded_size);
-          if (!m_file.Seek(pos, SEEK_SET) || !m_file.ReadBytes(file_data.data(), rounded_size))
+          if (!m_file.Seek(pos, File::SeekOrigin::Begin) ||
+              !m_file.ReadBytes(file_data.data(), rounded_size))
+          {
             return {};
+          }
 
           m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
                          file_data.data(), IOS::PID_ES);
           file_data.resize(size);
           return file_data;
         };
-        m_file.Seek(pos + rounded_size, SEEK_SET);
+        m_file.Seek(pos + rounded_size, File::SeekOrigin::Begin);
       }
       files.emplace_back(std::move(save_file));
     }
@@ -373,17 +376,17 @@ public:
     std::array<u8, 0x10> iv = s_sd_initial_iv;
     m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
                    sizeof(Header), reinterpret_cast<u8*>(&encrypted_header), IOS::PID_ES);
-    return m_file.Seek(0, SEEK_SET) && m_file.WriteArray(&encrypted_header, 1);
+    return m_file.Seek(0, File::SeekOrigin::Begin) && m_file.WriteArray(&encrypted_header, 1);
   }
 
   bool WriteBkHeader(const BkHeader& bk_header) override
   {
-    return m_file.Seek(sizeof(Header), SEEK_SET) && m_file.WriteArray(&bk_header, 1);
+    return m_file.Seek(sizeof(Header), File::SeekOrigin::Begin) && m_file.WriteArray(&bk_header, 1);
   }
 
   bool WriteFiles(const std::vector<SaveFile>& files) override
   {
-    if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), SEEK_SET))
+    if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), File::SeekOrigin::Begin))
       return false;
 
     for (const SaveFile& save_file : files)
@@ -440,7 +443,7 @@ private:
     {
       const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
       auto data = std::make_unique<u8[]>(data_size);
-      m_file.Seek(sizeof(Header), SEEK_SET);
+      m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
       if (!m_file.ReadBytes(data.get(), data_size))
         return false;
       mbedtls_sha1_ret(data.get(), data_size, data_sha1.data());
@@ -453,7 +456,7 @@ private:
                 data_sha1.data(), static_cast<u32>(data_sha1.size()));
 
     // Write signatures.
-    if (!m_file.Seek(0, SEEK_END))
+    if (!m_file.Seek(0, File::SeekOrigin::End))
       return false;
     const u32 SIGNATURE_END_MAGIC = Common::swap32(0x2f536969);
     const IOS::CertECC device_certificate = m_iosc.GetDeviceCertificate();

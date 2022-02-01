@@ -2,11 +2,12 @@
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Crypto/ec.h"
+
 #include <algorithm>
 #include <cstring>
 
 #include "Common/Crypto/bn.h"
-#include "Common/Crypto/ec.h"
 #include "Common/Inline.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"

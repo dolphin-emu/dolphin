@@ -4,6 +4,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <string_view>
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 #include "VideoCommon/AbstractFramebuffer.h"
@@ -29,7 +31,7 @@ public:
 
   VKTexture() = delete;
   VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
-            VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
+            std::string_view name, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED,
             ComputeImageLayout compute_layout = ComputeImageLayout::Undefined);
   ~VKTexture();
 
@@ -55,7 +57,7 @@ public:
   VkFormat GetVkFormat() const { return GetVkFormatForHostTextureFormat(m_config.format); }
   bool IsAdopted() const { return m_device_memory != VkDeviceMemory(VK_NULL_HANDLE); }
 
-  static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config);
+  static std::unique_ptr<VKTexture> Create(const TextureConfig& tex_config, std::string_view name);
   static std::unique_ptr<VKTexture>
   CreateAdopted(const TextureConfig& tex_config, VkImage image,
                 VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
@@ -77,6 +79,7 @@ private:
   VkImageView m_view = VK_NULL_HANDLE;
   mutable VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
   mutable ComputeImageLayout m_compute_layout = ComputeImageLayout::Undefined;
+  std::string m_name;
 };
 
 class VKStagingTexture final : public AbstractStagingTexture

@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/MemoryWatcher.h"
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -9,7 +11,6 @@
 
 #include "Common/FileUtil.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/MemoryWatcher.h"
 #include "Core/PowerPC/MMU.h"
 
 MemoryWatcher::MemoryWatcher()

@@ -79,7 +79,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
 
     // We must double these values because we are mapping half of a stick range to a 0..255 value.
     // We're only getting half the precison we could potentially have,
-    // but we'll have to redesign our gamecube controller input to fix that.
+    // but we'll have to redesign our GameCube controller input to fix that.
 
     // All 8 bits (Accelerate)
     low |= u32(std::clamp(accel_value * 2, 0, 0xff)) << 24;

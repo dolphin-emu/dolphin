@@ -1,0 +1,69 @@
+{
+	"$schema": "https://raw.githubusercontent.com/dolphin-emu/dolphin/master/docs/game-mod-descriptor.json",
+	"title": "Dolphin Game Mod Descriptor",
+	"type": "object",
+	"required": ["type", "version", "base-file"],
+	"properties": {
+		"type": {
+			"type": "string",
+			"pattern": "^dolphin-game-mod-descriptor$"
+		},
+		"version": {
+			"type": "integer"
+		},
+		"base-file": {
+			"type": "string"
+		},
+		"display-name": {
+			"type": "string"
+		},
+		"maker": {
+			"type": "string"
+		},
+		"banner": {
+			"type": "string"
+		},
+		"riivolution": {
+			"type": "object",
+			"required": ["patches"],
+			"properties": {
+				"patches": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": ["xml", "root", "options"],
+						"properties": {
+							"xml": {
+								"type": "string"
+							},
+							"root": {
+								"type": "string"
+							},
+							"options": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": ["choice"],
+									"properties": {
+										"section-name": {
+											"type": "string"
+										},
+										"option-id": {
+											"type": "string"
+										},
+										"option-name": {
+											"type": "string"
+										},
+										"choice": {
+											"type": "integer"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

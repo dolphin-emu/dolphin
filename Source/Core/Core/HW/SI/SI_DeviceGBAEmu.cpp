@@ -1,6 +1,8 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/HW/SI/SI_DeviceGBAEmu.h"
+
 #include <vector>
 
 #include "Common/ChunkFile.h"
@@ -12,7 +14,6 @@
 #include "Core/HW/GBACore.h"
 #include "Core/HW/GBAPad.h"
 #include "Core/HW/SI/SI.h"
-#include "Core/HW/SI/SI_DeviceGBAEmu.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
@@ -91,11 +92,11 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
     std::copy(response.begin(), response.end(), buffer);
 
 #ifdef _DEBUG
-    const Common::Log::LOG_LEVELS log_level =
+    const Common::Log::LogLevel log_level =
         (m_last_cmd == EBufferCommands::CMD_STATUS || m_last_cmd == EBufferCommands::CMD_RESET) ?
-            Common::Log::LERROR :
-            Common::Log::LWARNING;
-    GENERIC_LOG_FMT(Common::Log::SERIALINTERFACE, log_level,
+            Common::Log::LogLevel::LERROR :
+            Common::Log::LogLevel::LWARNING;
+    GENERIC_LOG_FMT(Common::Log::LogType::SERIALINTERFACE, log_level,
                     "{}                              [< {:02x}{:02x}{:02x}{:02x}{:02x}] ({})",
                     m_device_number, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
                     response.size());
@@ -106,7 +107,7 @@ int CSIDevice_GBAEmu::RunBuffer(u8* buffer, int request_length)
   }
 
   // This should never happen, but appease MSVC which thinks it might.
-  ERROR_LOG_FMT(SERIALINTERFACE, "Unknown state {}\n", m_next_action);
+  ERROR_LOG_FMT(SERIALINTERFACE, "Unknown state {}\n", static_cast<int>(m_next_action));
   return -1;
 }
 

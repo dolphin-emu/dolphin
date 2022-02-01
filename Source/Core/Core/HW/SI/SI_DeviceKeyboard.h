@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Core/HW/SI/SI_Device.h"
 
 class PointerWrap;
@@ -23,7 +25,6 @@ public:
   bool GetData(u32& hi, u32& low) override;
 
   KeyboardStatus GetKeyboardStatus() const;
-  void MapKeys(const KeyboardStatus& key_status, u8* key);
 
   // Send a command directly
   void SendCommand(u32 command, u8 poll) override;
@@ -31,7 +32,11 @@ public:
   // Savestate support
   void DoState(PointerWrap& p) override;
 
-protected:
+private:
+  using KeyArray = std::array<u8, 3>;
+
+  KeyArray MapKeys(const KeyboardStatus& key_status) const;
+
   // PADAnalogMode
   u8 m_mode = 0;
 

@@ -1,9 +1,9 @@
 // Copyright 2021 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cstdlib>
-
 #include "Core/PowerPC/JitCommon/DivUtils.h"
+
+#include <cstdlib>
 
 namespace JitCommon
 {

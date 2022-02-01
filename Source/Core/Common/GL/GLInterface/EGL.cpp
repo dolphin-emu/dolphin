@@ -1,12 +1,13 @@
 // Copyright 2012 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/GL/GLInterface/EGL.h"
+
 #include <array>
 #include <cstdlib>
 #include <sstream>
 #include <vector>
 
-#include "Common/GL/GLInterface/EGL.h"
 #include "Common/Logging/Log.h"
 
 #ifndef EGL_KHR_create_context

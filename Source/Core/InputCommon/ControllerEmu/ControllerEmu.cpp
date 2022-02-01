@@ -18,6 +18,8 @@
 
 namespace ControllerEmu
 {
+// This should theoretically be per EmulatedController instance,
+// though no EmulatedController usually run in parallel, so it makes little difference
 static std::recursive_mutex s_get_state_mutex;
 
 std::string EmulatedController::GetDisplayName() const
@@ -77,6 +79,7 @@ void EmulatedController::UpdateSingleControlReference(const ControllerInterface&
 {
   ciface::ExpressionParser::ControlEnvironment env(devi, GetDefaultDevice(), m_expression_vars);
 
+  const auto lock = GetStateLock();
   ref->UpdateReference(env);
 
   env.CleanUnusedVariables();

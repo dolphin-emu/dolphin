@@ -175,7 +175,7 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
   // checking the name is probably good (and hacky) enough
   // but I'll double check with the num of buttons/axes
   std::string lcasename = GetName();
-  std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(), tolower);
+  Common::ToLower(&lcasename);
 
   if ((std::string::npos != lcasename.find("xbox 360")) &&
       (10 == SDL_JoystickNumButtons(joystick)) && (5 == SDL_JoystickNumAxes(joystick)) &&

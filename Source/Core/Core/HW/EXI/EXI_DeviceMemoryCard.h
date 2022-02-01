@@ -21,6 +21,8 @@ struct HeaderData;
 
 namespace ExpansionInterface
 {
+enum class Slot : int;
+
 enum class AllowMovieFolder
 {
   Yes,
@@ -30,14 +32,13 @@ enum class AllowMovieFolder
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(int index, bool gci_folder, const Memcard::HeaderData& header_data);
+  CEXIMemoryCard(Slot slot, bool gci_folder, const Memcard::HeaderData& header_data);
   ~CEXIMemoryCard() override;
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
   bool UseDelayedTransferCompletion() const override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
-  IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index) override;
   void DMARead(u32 addr, u32 size) override;
   void DMAWrite(u32 addr, u32 size) override;
 
@@ -48,7 +49,7 @@ public:
   static void Shutdown();
 
   static std::pair<std::string /* path */, bool /* migrate */>
-  GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
+  GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder);
 
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
@@ -90,7 +91,7 @@ private:
     ChipErase = 0xF4,
   };
 
-  int m_card_index;
+  Slot m_card_slot;
   //! memory card state
 
   // STATE_TO_SAVE
