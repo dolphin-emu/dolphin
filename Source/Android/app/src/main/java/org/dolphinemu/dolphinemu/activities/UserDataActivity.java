@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 
 import java.io.File;
@@ -185,6 +186,7 @@ public class UserDataActivity extends AppCompatActivity
         try (ZipInputStream zis = new ZipInputStream(is))
         {
           File userDirectory = new File(DirectoryInitialization.getUserDirectory());
+          String userDirectoryCanonicalized = userDirectory.getCanonicalPath() + '/';
 
           sMustRestartApp = true;
           deleteChildrenRecursively(userDirectory);
@@ -197,6 +199,12 @@ public class UserDataActivity extends AppCompatActivity
           {
             File destFile = new File(userDirectory, ze.getName());
             File destDirectory = ze.isDirectory() ? destFile : destFile.getParentFile();
+
+            if (!destFile.getCanonicalPath().startsWith(userDirectoryCanonicalized))
+            {
+              Log.error("Zip file attempted path traversal! " + ze.getName());
+              return R.string.user_data_import_failure;
+            }
 
             if (!destDirectory.isDirectory() && !destDirectory.mkdirs())
             {
