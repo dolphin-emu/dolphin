@@ -178,21 +178,6 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  // Write IsGolfMode to memory, control use of 2 frame BLR mod
-  if (!NetPlay::IsNetPlayRunning() || IsGolfMode())
-  {
-    // for some unknown reason, when playing locally the game gets a write error at frame 6457
-    // no idea why, so imma just write to the addr on some arbiturary frame number
-    if (Movie::GetCurrentFrame()==500)
-    {
-      // sets a specific address to 1 each frame
-      // this address is read by Project Rio's version of Batter Lag Reduction. It only activates
-      // when this addr = 0. this system prevents user error of forgetting to turn off lag reduciton
-      // when playing local and turning it on for netplay
-      AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
-      accessors->WriteU8(0x802EBF96, 1);
-    }
-  }
   // Auto Golf Mode
   if (NetPlay::IsNetPlayRunning() && IsGolfMode())
   {

@@ -106,21 +106,23 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button = new QPushButton;
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
-  m_buffer_size_box->setToolTip(
-      tr("Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\n"
+  m_buffer_size_box->setToolTip(tr(
+      "Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\n"
       "Project Rio's Batter Lag Reduction mod removes 2 frames (8 buffer) from swings on NetPlay,\n"
       "and a 120 Hz or greater monitor reduces another 0.5 frames (2 buffer) of general lag.\n\n"
-      "For a simple method, use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 ping and less.\n"
+      "For a simple method, use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 "
+      "ping and less.\n"
       "Games above 150 ping will be very laggy and are not recommended for competitive play."));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
   m_menu_bar = new QMenuBar(this);
   m_ranked_box = new QCheckBox(tr("Ranked"));
-  m_ranked_box->setToolTip(
-      tr("Enabling Ranked Mode will mark down your games as being ranked in the stats files.\nWhen "
-         "sorting through the database, this game will be included as a ranked game.\nThis should "
-         "only be toggled for serious games as to keep our database accurate and organized.\nToggling this box will always record & sumit stats, ignoring user configurations."));
+  m_ranked_box->setToolTip(tr(
+      "Enabling Ranked Mode will mark down your games as being ranked in the stats files.\nWhen "
+      "sorting through the database, this game will be included as a ranked game.\nThis should "
+      "only be toggled for serious games as to keep our database accurate and organized.\nToggling "
+      "this box will always record & sumit stats, ignoring user configurations."));
   m_coin_flipper = new QPushButton(tr("Coin Flip"));
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
@@ -147,12 +149,12 @@ void NetPlayDialog::CreateMainLayout()
                                     "opponent will have a latency penalty.\n"
                                     "With Auto Golf Mode, the Batter is always set to the golfer, "
                                     "then when the ball is hit the golfer\n"
-                                    "will automatically switch to the fielder."));
+                                    "will automatically switch to the fielder.\n\nThis is the standard for competitive NetPlay."));
   m_golf_mode_action->setCheckable(true);
   m_fixed_delay_action = m_network_menu->addAction(tr("Fair Input Delay"));
   m_fixed_delay_action->setToolTip(
       tr("Each player sends their own inputs to the game, with equal buffer size for all players, "
-         "configured by the host.\nRecommended only for games of low ping with highly stable connection."));
+         "configured by the host.\nRecommended only for casual games or when playing minigames."));
   m_fixed_delay_action->setCheckable(true);
 
   m_network_mode_group = new QActionGroup(this);
@@ -189,7 +191,6 @@ void NetPlayDialog::CreateMainLayout()
   m_game_button->setAutoDefault(false);
 
   m_sync_save_data_action->setChecked(true);
-
 
   m_main_layout->setMenuBar(m_menu_bar);
 
@@ -294,8 +295,6 @@ void NetPlayDialog::ConnectWidgets()
     m_pad_mapping->exec();
 
     Settings::Instance().GetNetPlayServer()->SetPadMapping(m_pad_mapping->GetGCPadArray());
-    Settings::Instance().GetNetPlayServer()->SetGBAConfig(m_pad_mapping->GetGBAArray(), true);
-    Settings::Instance().GetNetPlayServer()->SetWiimoteMapping(m_pad_mapping->GetWiimoteArray());
   });
 
   // Chat
@@ -326,7 +325,6 @@ void NetPlayDialog::ConnectWidgets()
 
   connect(m_coin_flipper, &QPushButton::clicked, this, &NetPlayDialog::OnCoinFlip);
 
-
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
     {
@@ -335,7 +333,6 @@ void NetPlayDialog::ConnectWidgets()
         server->SetHostInputAuthority(enable);
     }
   };
-
 
   connect(m_golf_mode_action, &QAction::toggled, this, [hia_function] { hia_function(true); });
   connect(m_fixed_delay_action, &QAction::toggled, this, [hia_function] { hia_function(false); });
@@ -525,7 +522,6 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_chat_type_edit->clear();
 
   bool is_hosting = Settings::Instance().GetNetPlayServer() != nullptr;
-
 
   if (is_hosting)
   {
@@ -872,7 +868,8 @@ void NetPlayDialog::OnMsgStartGame()
         client->StartGame(game->GetFilePath());
         m_ranked_box->setEnabled(false);
       }
-      else PanicAlertFmtT("Selected game doesn't exist in game list!");
+      else
+        PanicAlertFmtT("Selected game doesn't exist in game list!");
     }
     UpdateDiscordPresence();
   });
@@ -921,26 +918,22 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 {
   m_host_input_authority = enabled;
-  DisplayMessage(enabled ? tr("Auto Golf Mode enabled") : tr("Fair Input Delay enabled"),
-                 "");
+  DisplayMessage(enabled ? tr("Auto Golf Mode enabled") : tr("Fair Input Delay enabled"), "purple");
 
   QueueOnObject(this, [this, enabled] {
-    const bool is_hosting = IsHosting();
-    const bool enable_buffer = is_hosting != enabled;
-
-    if (is_hosting)
+    if (enabled)
     {
-      m_buffer_size_box->setEnabled(enable_buffer);
-      m_buffer_label->setEnabled(enable_buffer);
-      m_buffer_size_box->setHidden(false);
-      m_buffer_label->setHidden(false);
+      m_buffer_size_box->setEnabled(false);
+      m_buffer_label->setEnabled(false);
+      m_buffer_size_box->setHidden(true);
+      m_buffer_label->setHidden(true);
     }
     else
     {
       m_buffer_size_box->setEnabled(true);
       m_buffer_label->setEnabled(true);
-      m_buffer_size_box->setHidden(!enable_buffer);
-      m_buffer_label->setHidden(!enable_buffer);
+      m_buffer_size_box->setHidden(false);
+      m_buffer_label->setHidden(false);
     }
 
     m_buffer_label->setText(enabled ? tr("Max Buffer:") : tr("Buffer:"));
@@ -1023,7 +1016,8 @@ void NetPlayDialog::OnGolferChanged(const bool is_golfer, const std::string& gol
     });
   }
 
-  if (!golfer_name.empty() && (Config::Get(Config::MAIN_ENABLE_DEBUGGING))) // only show if debug mode
+  if (!golfer_name.empty() &&
+      (Config::Get(Config::MAIN_ENABLE_DEBUGGING)))  // only show if debug mode
     DisplayMessage(tr("%1 is now golfing").arg(QString::fromStdString(golfer_name)), "");
 }
 
@@ -1165,7 +1159,6 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
   Config::SetBase(Config::NETPLAY_RANKED, m_ranked_box->isChecked());
-
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())
