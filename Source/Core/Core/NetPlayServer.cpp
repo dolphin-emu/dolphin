@@ -781,6 +781,32 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case MessageID::PadSpectator:
+  {
+    bool spectator;
+    packet >> spectator;
+    auto padmap = this->GetPadMapping();
+    auto temp = padmap[0];
+    for (auto pad : padmap)
+    {
+      pad = temp;
+    }
+    for (int i = 0; i < padmap.size(); i++)
+    {
+      if (spectator && padmap[i] == player.pid)
+      {
+        padmap[i] = 0;
+      }
+      else if (!spectator && padmap[i] == 0)
+      {
+        padmap[i] = player.pid;
+        break;
+      }
+    }
+    this->SetPadMapping(padmap);
+  }
+  break;
+
   case MessageID::SendCodes:
   {
     std::string codes;

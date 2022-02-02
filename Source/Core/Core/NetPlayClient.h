@@ -69,6 +69,8 @@ public:
   virtual void OnRankedEnabled(bool is_ranked) = 0;
   virtual void OnCoinFlipResult(int coinFlip) = 0;
   virtual void OnActiveGeckoCodes(std::string codeStr) = 0;
+  virtual bool IsSpectating() = 0;
+  virtual void SetSpectating(bool spectating) = 0;
 
   virtual bool IsRecording() = 0;
   virtual std::shared_ptr<const UICommon::GameFile>
@@ -129,6 +131,7 @@ public:
   void Stop();
   bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
+  void SendSpectatorSetting(bool spectator);
   void SendActiveGeckoCodes();
   void GetActiveGeckoCodes();
   void SendCoinFlip(int randNum);

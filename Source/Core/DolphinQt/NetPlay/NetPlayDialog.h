@@ -76,6 +76,8 @@ public:
   void OnRankedEnabled(bool is_ranked) override;
   void OnCoinFlipResult(int coinNum);
   void OnActiveGeckoCodes(std::string codeStr);
+  bool IsSpectating() override;
+  void SetSpectating(bool spectating) override;
 
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;
@@ -111,6 +113,7 @@ private:
   void CreateMainLayout();
   void ConnectWidgets();
   void OnChat();
+  void OnSpectatorToggle();
   void OnCoinFlip();
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
@@ -164,6 +167,7 @@ private:
   QCheckBox* m_ranked_box;
   QActionGroup* m_network_mode_group;
   QPushButton* m_coin_flipper;
+  QCheckBox* m_spectator_toggle;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;

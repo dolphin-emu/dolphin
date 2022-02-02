@@ -124,6 +124,7 @@ void NetPlayDialog::CreateMainLayout()
       "only be toggled for serious games as to keep our database accurate and organized.\nToggling "
       "this box will always record & sumit stats, ignoring user configurations."));
   m_coin_flipper = new QPushButton(tr("Coin Flip"));
+  m_spectator_toggle = new QCheckBox(tr("Spectator"));
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
@@ -205,10 +206,11 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->addWidget(m_quit_button, 0, 6, Qt::AlignVCenter | Qt::AlignRight);
   options_widget->setColumnStretch(5, 1000);
   options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
   options_widget->addWidget(m_coin_flipper, 0, 4, Qt::AlignVCenter);
+  options_widget->addWidget(m_spectator_toggle, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -323,6 +325,8 @@ void NetPlayDialog::ConnectWidgets()
       server->AdjustRankedBox(is_ranked);
   });
 
+  connect(m_spectator_toggle, &QCheckBox::stateChanged, this, &NetPlayDialog::OnSpectatorToggle);
+
   connect(m_coin_flipper, &QPushButton::clicked, this, &NetPlayDialog::OnCoinFlip);
 
   const auto hia_function = [this](bool enable) {
@@ -396,6 +400,13 @@ void NetPlayDialog::SendMessage(const std::string& msg)
   DisplayMessage(
       QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname), QString::fromStdString(msg)),
       "");
+}
+
+void NetPlayDialog::OnSpectatorToggle()
+{
+  // ask server to set mapping
+  const bool spectator = m_spectator_toggle->isChecked();
+  Settings::Instance().GetNetPlayClient()->SendSpectatorSetting(spectator);
 }
 
 void NetPlayDialog::OnChat()
@@ -873,6 +884,7 @@ void NetPlayDialog::OnMsgStartGame()
     }
     UpdateDiscordPresence();
   });
+  m_spectator_toggle->setEnabled(false);
 }
 
 void NetPlayDialog::OnMsgStopGame()
@@ -883,6 +895,17 @@ void NetPlayDialog::OnMsgStopGame()
 
   const bool is_hosting = IsHosting();
   m_ranked_box->setEnabled(is_hosting);
+  m_spectator_toggle->setEnabled(true);
+}
+
+bool NetPlayDialog::IsSpectating()
+{
+  return m_spectator_toggle->isChecked();
+}
+
+void NetPlayDialog::SetSpectating(bool spectating)
+{
+  m_spectator_toggle->setChecked(spectating);
 }
 
 void NetPlayDialog::OnMsgPowerButton()

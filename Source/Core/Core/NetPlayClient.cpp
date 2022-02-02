@@ -625,8 +625,14 @@ void NetPlayClient::OnChunkedDataAbort(sf::Packet& packet)
 
 void NetPlayClient::OnPadMapping(sf::Packet& packet)
 {
+  bool assigned = false;
   for (PlayerId& mapping : m_pad_map)
+  {
     packet >> mapping;
+    if (!assigned && mapping == this->m_pid)
+      assigned = true;
+  }
+  m_dialog->SetSpectating(!assigned);
 
   UpdateDevices();
 
@@ -1824,6 +1830,14 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
   packet << MessageID::ChatMessage;
   packet << msg;
 
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::SendSpectatorSetting(bool spectator)
+{
+  sf::Packet packet;
+  packet << MessageID::PadSpectator;
+  packet << spectator;
   SendAsync(std::move(packet));
 }
 
