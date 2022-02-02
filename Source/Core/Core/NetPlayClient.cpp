@@ -327,10 +327,11 @@ void NetPlayClient::OnData(sf::Packet& packet)
 
   INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", static_cast<u8>(mid));
 
-  if (g_ActiveConfig.bShowBatterFielder)
+  m_is_running.IsSet() ? m_Data_Sent_Count += 1 : m_Data_Sent_Count = 0;
+  if (g_ActiveConfig.bShowBatterFielder && m_Data_Sent_Count >= 20)
   {
-    DisplayFielder();
     DisplayBatter();
+    DisplayFielder();
   }
 
   switch (mid)
@@ -919,6 +920,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
   }
 
   m_dialog->OnMsgStartGame();
+  m_Data_Sent_Count = 0;
 }
 
 void NetPlayClient::OnStopGame(sf::Packet& packet)
@@ -927,6 +929,7 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
 
   StopGame();
   m_dialog->OnMsgStopGame();
+  m_Data_Sent_Count = 0;
 }
 
 void NetPlayClient::OnPowerButton()
@@ -1549,82 +1552,66 @@ void NetPlayClient::DisplayFielder()
 {
   std::string playername = "";
   u32 color = OSD::Color::CYAN;
-  bool fielderExists = false;
-  if (m_is_running.IsSet())
+  u8 fielderPortInt = GetFielderPort();
+  bool fielderExists = fielderPortInt >= 1 && fielderPortInt <= 4 ? true : false;
+  if (fielderExists)
   {
-    if (GetFielderPort() == 1)
+    if (fielderPortInt == 1)
     {
       playername = GetPortPlayer(1);
       color = OSD::Color::RED;
-      fielderExists = true;
     }
-    if (GetFielderPort() == 2)
+    if (fielderPortInt == 2)
     {
       playername = GetPortPlayer(2);
       color = OSD::Color::BLUE;
-      fielderExists = true;
     }
-    if (GetFielderPort() == 3)
+    if (fielderPortInt == 3)
     {
       playername = GetPortPlayer(3);
       color = OSD::Color::YELLOW;
-      fielderExists = true;
     }
-    if (GetFielderPort() == 4)
+    if (fielderPortInt == 4)
     {
       playername = GetPortPlayer(4);
       color = OSD::Color::GREEN;
-      fielderExists = true;
     }
-  }
-  if (fielderExists)
-  {
-    OSD::AddTypedMessage(OSD::MessageType::CurrentFielder, fmt::format("Fielder: {}", playername),
+    OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
                          OSD::Duration::SHORT, color);
   }
-
-  return;
 }
 
 void NetPlayClient::DisplayBatter()
 {
   std::string playername = "";
   u32 color = OSD::Color::CYAN;
-  bool batterExists = false;
-  if (m_is_running.IsSet())
+  u8 batterPortInt = GetBatterPort();
+  bool batterExists = batterPortInt >= 1 && batterPortInt <= 4 ? true : false;
+  if (batterExists)
   {
-    if (GetBatterPort() == 1)
+    if (batterPortInt == 1)
     {
       playername = GetPortPlayer(1);
       color = OSD::Color::RED;
-      batterExists = true;
     }
-    if (GetBatterPort() == 2)
+    if (batterPortInt == 2)
     {
       playername = GetPortPlayer(2);
       color = OSD::Color::BLUE;
-      batterExists = true;
     }
-    if (GetBatterPort() == 3)
+    if (batterPortInt == 3)
     {
       playername = GetPortPlayer(3);
       color = OSD::Color::YELLOW;
-      batterExists = true;
     }
-    if (GetBatterPort() == 4)
+    if (batterPortInt == 4)
     {
       playername = GetPortPlayer(4);
       color = OSD::Color::GREEN;
-      batterExists = true;
     }
-  }
-  if (batterExists)
-  {
     OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
                          OSD::Duration::SHORT, color);
   }
-
-  return;
 }
 
 u8 NetPlayClient::GetFielderPort()

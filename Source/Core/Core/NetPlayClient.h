@@ -323,6 +323,7 @@ private:
   void OnCoinFlipMsg(sf::Packet& packet);
   static const u32 fielderPort = 0x802EBF94;
   static const u32 batterPort = 0x802EBF95;
+  int m_Data_Sent_Count = 0;
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;
