@@ -808,7 +808,6 @@ void NetPlayDialog::OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifi
     m_current_game_name = netplay_name;
     UpdateDiscordPresence();
   });
-  DisplayMessage(tr("Game changed to \"%1\"").arg(qname), "magenta");
 }
 
 void NetPlayDialog::OnMsgChangeGBARom(int pad, const NetPlay::GBAConfig& config)
