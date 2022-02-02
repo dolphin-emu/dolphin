@@ -332,6 +332,9 @@ void NetPlaySetupDialog::ConnectWidgets()
                                       m_host_games->item(index)->text());
   });
 
+  // refresh browser on tab changed
+  connect(m_tab_widget, &QTabWidget::currentChanged, this, &NetPlaySetupDialog::RefreshBrowser);
+
   connect(m_host_games, &QListWidget::itemDoubleClicked, this, &NetPlaySetupDialog::accept);
 
   connect(m_host_force_port_check, &QCheckBox::toggled,
@@ -473,6 +476,7 @@ void NetPlaySetupDialog::show()
   m_host_server_browser->setChecked(true);
   m_connection_type->setCurrentIndex(1);
   m_tab_widget->setCurrentIndex(2); // start on browser
+  RefreshBrowser();
 
   PopulateGameList();
   QDialog::show();
