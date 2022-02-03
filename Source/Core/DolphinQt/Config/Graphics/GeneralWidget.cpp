@@ -83,7 +83,8 @@ void GeneralWidget::CreateWidgets()
   m_video_layout->addWidget(m_enable_fullscreen, 4, 1);
 
 #if defined(__APPLE__)
-  m_enable_metal_double_buffering = new GraphicsBool(tr("Double Buffer Metal Layer"), Config::GFX_METAL_DOUBLE_BUFFER);
+  m_enable_metal_double_buffering =
+      new GraphicsBool(tr("Double Buffer Metal Layer"), Config::GFX_METAL_DOUBLE_BUFFER);
   m_video_layout->addWidget(m_enable_metal_double_buffering, 8, 0);
 #endif
 
