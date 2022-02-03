@@ -220,6 +220,9 @@ std::string GetThemeDir(const std::string& theme_name);
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
 
+// Returns Dir of built-in themes
+std::string GetSysStylesPath();
+
 #ifdef ANDROID
 void SetSysDirectory(const std::string& path);
 #endif

@@ -1056,6 +1056,11 @@ const std::string& GetUserPath(unsigned int dir_index)
   return s_user_paths[dir_index];
 }
 
+std::string GetSysStylesPath()
+{
+  return GetSysDirectory() + STYLES_DIR + DIR_SEP + "Kuroi-master" + DIR_SEP;
+}
+
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
 void SetUserPath(unsigned int dir_index, std::string path)

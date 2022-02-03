@@ -126,7 +126,7 @@ void InterfacePane::CreateUI()
 
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
-  m_label_userstyle = new QLabel(tr("User Style:"));
+  m_label_userstyle = new QLabel(tr("Style:"));
   combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
@@ -141,15 +141,17 @@ void InterfacePane::CreateUI()
 
   // Checkboxes
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
-  m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
+  m_checkbox_use_darkmode = new QCheckBox(tr("Dark Mode"));
+  m_checkbox_use_darkmode->setToolTip(tr("Dark Mode will be overridden by any custom styles that are enabled.\n"
+                                        "Make sure to set the styles option to \"(None)\" for dark mode to work."));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
   m_checkbox_focused_hotkeys = new QCheckBox(tr("Hotkeys Require Window Focus"));
   m_checkbox_disable_screensaver = new QCheckBox(tr("Inhibit Screensaver During Emulation"));
 
+  groupbox_layout->addWidget(m_checkbox_use_darkmode);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
-  groupbox_layout->addWidget(m_checkbox_use_userstyle);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
   groupbox_layout->addWidget(m_checkbox_focused_hotkeys);
@@ -232,7 +234,7 @@ void InterfacePane::ConnectLayout()
           &InterfacePane::OnCursorVisibleAlways);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetLockCursor);
-  connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_darkmode, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
 }
 
 void InterfacePane::LoadConfig()
@@ -244,6 +246,7 @@ void InterfacePane::LoadConfig()
       QString::fromStdString(Config::Get(Config::MAIN_INTERFACE_LANGUAGE))));
   m_combobox_theme->setCurrentIndex(
       m_combobox_theme->findText(QString::fromStdString(Config::Get(Config::MAIN_THEME_NAME))));
+  m_checkbox_use_darkmode->setChecked(Settings::Instance().IsDarkMode());
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
   const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
@@ -251,9 +254,7 @@ void InterfacePane::LoadConfig()
   if (index > 0)
     m_combobox_userstyle->setCurrentIndex(index);
 
-  m_checkbox_use_userstyle->setChecked(Settings::Instance().AreUserStylesEnabled());
-
-  const bool visible = m_checkbox_use_userstyle->isChecked();
+  const bool visible = true;
 
   m_combobox_userstyle->setVisible(visible);
   m_label_userstyle->setVisible(visible);
@@ -283,10 +284,11 @@ void InterfacePane::OnSaveConfig()
   Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
                   m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
+  Settings::Instance().SetUserStylesEnabled(true);
+  Settings::Instance().SetDarkMode(m_checkbox_use_darkmode->isChecked());
   Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
 
-  const bool visible = m_checkbox_use_userstyle->isChecked();
+  const bool visible = true;
 
   m_combobox_userstyle->setVisible(visible);
   m_label_userstyle->setVisible(visible);
