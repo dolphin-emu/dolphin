@@ -296,17 +296,7 @@ void SetUserDirectory(std::string custom_path)
       home = "";
     std::string home_path = std::string(home) + DIR_SEP;
 
-#if defined(__APPLE__) || defined(ANDROID)
-    if (env_path)
-    {
-      user_path = env_path;
-    }
-    else
-    {
-      user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
-    }
-#else
-    // We are on a non-Apple and non-Android POSIX system, there are 4 cases:
+    // On a non-Apple and non-Android POSIX system, there are 4 cases:
     // 1. GetExeDirectory()/portable.txt exists
     //    -> Use GetExeDirectory()/User
     // 2. $DOLPHIN_EMU_USERPATH is set
@@ -316,7 +306,15 @@ void SetUserDirectory(std::string custom_path)
     // 4. Default
     //    -> Use XDG basedir, see
     //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
+    //
+    // On macOS:
+    // 1. GetExeDirectory()/portable.txt exists
+    //    -> Use GetExeDirectory()/User
+    // 2. $DOLPHIN_EMU_USERPATH is set
+    //    -> Use $DOLPHIN_EMU_USERPATH
+    // 3. Default
+    //
+    // On Android, custom_path is set, so this code path is never reached.
     std::string exe_path = File::GetExeDirectory();
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
@@ -326,29 +324,40 @@ void SetUserDirectory(std::string custom_path)
     {
       user_path = env_path;
     }
-    else if (!File::Exists(user_path))
+#if defined(__APPLE__) || defined(ANDROID)
+    else
     {
-      const char* data_home = getenv("XDG_DATA_HOME");
-      std::string data_path =
-          std::string(data_home && data_home[0] == '/' ? data_home :
-                                                         (home_path + ".local" DIR_SEP "share")) +
-          DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+      user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
+    }
+#else
+    else
+    {
+      user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
 
-      const char* config_home = getenv("XDG_CONFIG_HOME");
-      std::string config_path =
-          std::string(config_home && config_home[0] == '/' ? config_home :
-                                                             (home_path + ".config")) +
-          DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+      if (!File::Exists(user_path))
+      {
+        const char* data_home = getenv("XDG_DATA_HOME");
+        std::string data_path =
+            std::string(data_home && data_home[0] == '/' ? data_home :
+                                                           (home_path + ".local" DIR_SEP "share")) +
+            DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 
-      const char* cache_home = getenv("XDG_CACHE_HOME");
-      std::string cache_path =
-          std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
-          DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+        const char* config_home = getenv("XDG_CONFIG_HOME");
+        std::string config_path =
+            std::string(config_home && config_home[0] == '/' ? config_home :
+                                                               (home_path + ".config")) +
+            DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 
-      File::SetUserPath(D_USER_IDX, data_path);
-      File::SetUserPath(D_CONFIG_IDX, config_path);
-      File::SetUserPath(D_CACHE_IDX, cache_path);
-      return;
+        const char* cache_home = getenv("XDG_CACHE_HOME");
+        std::string cache_path =
+            std::string(cache_home && cache_home[0] == '/' ? cache_home : (home_path + ".cache")) +
+            DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+
+        File::SetUserPath(D_USER_IDX, data_path);
+        File::SetUserPath(D_CONFIG_IDX, config_path);
+        File::SetUserPath(D_CACHE_IDX, cache_path);
+        return;
+      }
     }
 #endif
   }
