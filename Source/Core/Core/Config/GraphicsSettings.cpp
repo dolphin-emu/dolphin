@@ -91,8 +91,7 @@ const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
     {System::GFX, "Settings", "SaveTextureCacheToState"}, true};
 
 #if defined(__APPLE__)
-const Info<bool> GFX_METAL_DOUBLE_BUFFER{
-    {System::GFX, "Settings", "EnableMetalDoubleBuffer"}, false};
+const Info<bool> GFX_METAL_DOUBLE_BUFFER{{System::GFX, "Settings", "EnableMetalDoubleBuffer"}, false};
 #endif
 
 const Info<bool> GFX_SW_ZCOMPLOC{{System::GFX, "Settings", "SWZComploc"}, true};

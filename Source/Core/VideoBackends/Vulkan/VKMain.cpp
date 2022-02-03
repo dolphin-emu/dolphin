@@ -7,6 +7,7 @@
 
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
+#include "Core/Config/GraphicsSettings.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
@@ -345,12 +346,12 @@ void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 
   // CAMetalLayer defaults to 3 for this value, which is equivalent to triple-buffering. This can 
   // be lowered to double-buffering through - the only valid values are `2` or `3`.
-  if (g_ActiveConfig.bMetalDoubleBuffer)
+  //if (g_ActiveConfig.bMetalDoubleBuffer)
+  if (Config::Get(Config::GFX_METAL_DOUBLE_BUFFER))
   {
     // [layer setMaximumDrawableCount:2];
     // (`unsigned long` is the type alias of `NSUInteger` on 64-bit platforms)
     reinterpret_cast<void (*)(id, SEL, unsigned long)>(objc_msgSend)(layer, sel_getUid("setMaximumDrawableCount:"), 2);
-    PanicAlertFmtT("Debug: Metal Double Buffering set");
   }
 
   // Store the layer pointer, that way MoltenVK doesn't call [NSView layer] outside the main thread.
