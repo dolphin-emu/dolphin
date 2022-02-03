@@ -327,7 +327,7 @@ void NetPlayClient::OnData(sf::Packet& packet)
 
   INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", static_cast<u8>(mid));
 
-  m_is_running.IsSet() ? m_Data_Sent_Count += 1 : m_Data_Sent_Count = 0;
+  IsNetPlayRunning() ? m_Data_Sent_Count += 1 : m_Data_Sent_Count = 0;
   if (g_ActiveConfig.bShowBatterFielder && m_Data_Sent_Count >= 20)
   {
     DisplayBatter();
@@ -830,6 +830,7 @@ void NetPlayClient::OnGameStatus(sf::Packet& packet)
 
 void NetPlayClient::OnStartGame(sf::Packet& packet)
 {
+  m_Data_Sent_Count = 0;
   {
     std::lock_guard lkg(m_crit.game);
 
@@ -926,7 +927,6 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
   }
 
   m_dialog->OnMsgStartGame();
-  m_Data_Sent_Count = 0;
 }
 
 void NetPlayClient::OnStopGame(sf::Packet& packet)
