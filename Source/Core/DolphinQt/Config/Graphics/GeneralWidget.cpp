@@ -82,6 +82,11 @@ void GeneralWidget::CreateWidgets()
   m_video_layout->addWidget(m_enable_vsync, 4, 0);
   m_video_layout->addWidget(m_enable_fullscreen, 4, 1);
 
+#if defined(__APPLE__)
+  m_enable_metal_double_buffering = new GraphicsBool(tr("Double Buffer Metal Layer"), Config::GFX_METAL_DOUBLE_BUFFER);
+  m_video_layout->addWidget(m_enable_metal_double_buffering, 8, 0);
+#endif
+
   // Other
   auto* m_options_box = new QGroupBox(tr("Other"));
   auto* m_options_layout = new QGridLayout();
@@ -189,6 +194,10 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   m_render_main_window->setEnabled(!running);
   m_enable_fullscreen->setEnabled(!running);
 
+#if defined(__APPLE__)
+  m_enable_metal_double_buffering->setEnabled(!running);
+#endif
+
   const bool supports_adapters = !g_Config.backend_info.Adapters.empty();
   m_adapter_combo->setEnabled(!running && supports_adapters);
 }
@@ -266,6 +275,12 @@ void GeneralWidget::AddDescriptions()
                  "two or fewer cores, it is recommended to enable this option, as a large shader "
                  "queue may reduce frame rates.<br><br><dolphin_emphasis>Otherwise, if "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
+#if defined(__APPLE__)
+  static const char TR_ENABLE_METAL_DOUBLE_BUFFERING_DESCRIPTION[] =
+      QT_TR_NOOP("Instructs the underlying CAMetalLayer to use double buffering instead of triple "
+                 "buffering.<br><br><dolphin_emphasis>If unsure, leave this unchecked."
+                 "</dolphin_emphasis>");
+#endif
 
   m_backend_combo->SetTitle(tr("Backend"));
   m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
@@ -278,6 +293,9 @@ void GeneralWidget::AddDescriptions()
   m_enable_vsync->SetDescription(tr(TR_VSYNC_DESCRIPTION));
 
   m_enable_fullscreen->SetDescription(tr(TR_FULLSCREEN_DESCRIPTION));
+#if defined(__APPLE__)
+  m_enable_metal_double_buffering->SetDescription(tr(TR_ENABLE_METAL_DOUBLE_BUFFERING_DESCRIPTION));
+#endif
 
   m_show_fps->SetDescription(tr(TR_SHOW_FPS_DESCRIPTION));
 
