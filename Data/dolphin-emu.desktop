@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
-Icon=dolphin-emu
+Icon=RioLogo
 Exec=env QT_QPA_PLATFORM=xcb dolphin-emu
 Terminal=false
 Type=Application
 Categories=Game;Emulator;
-Name=Dolphin Emulator
+Name=Project Rio
 GenericName=Wii/GameCube Emulator
 Comment=A Wii/GameCube Emulator
