@@ -6,8 +6,8 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.activity.ComponentActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -32,7 +32,6 @@ import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 public final class MainPresenter
 {

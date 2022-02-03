@@ -19,7 +19,6 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 
 public class NetworkHelper
 {
