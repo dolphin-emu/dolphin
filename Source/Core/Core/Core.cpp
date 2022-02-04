@@ -178,13 +178,7 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  // Auto Golf Mode
-  if (NetPlay::IsNetPlayRunning() && IsGolfMode())
-  {
-    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8089389B),    // isField
-                                         (Memory::Read_U8(0x802EBF95)),  // BatPort
-                                         (Memory::Read_U8(0x802EBF94))); // FieldPort
-  }
+  AutoGolfMode();
 
   // if training mode gecko code is on & if not on netplay
   // using this feature on netplay can be considered an unfair advantage
@@ -192,8 +186,6 @@ void OnFrameEnd()
     TrainingMode();
 
 
-    }
-  }
 
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
@@ -205,15 +197,27 @@ void OnFrameEnd()
   }
 }
 
+
+void AutoGolfMode()
+{
+  if (IsGolfMode())
+  {
+    u8 BatterPort = Memory::Read_U8(0x802EBF95);
+    if (BatterPort == 0)
+      return; // do this here to avoid unneccesary mem reads
+    u8 FielderPort = Memory::Read_U8(0x802EBF94);
+    bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
+
+    NetPlay::NetPlayClient::AutoGolfMode(isField, BatterPort, FielderPort);
+  }
+}
+
 bool IsGolfMode()
 {
-  // we have to do this dumb work around cause Dolphin gets an error
-  // when calling GetNetSetttings when NetPlay's not running
   bool out = false;
   if (NetPlay::IsNetPlayRunning())
-  {
     out = NetPlay::GetNetSettings().m_HostInputAuthority;
-  }
+
   return out;
 }
 

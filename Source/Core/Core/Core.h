@@ -175,6 +175,7 @@ void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 float u32ToFloat(u32 value);
 float ms_to_mph(float MetersPerSecond);
 float vectorMagnitude(float x, float y, float z);
+void AutoGolfMode();
 void TrainingMode();
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);

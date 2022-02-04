@@ -2583,22 +2583,23 @@ void NetPlayClient::RequestGolfControl()
   RequestGolfControl(m_local_player->pid);
 }
 
-void NetPlayClient::AutoGolfMode(int isField, int BatPort, int FieldPort)
+void NetPlayClient::AutoGolfMode(bool isField, int BatPort, int FieldPort)
 {
-  if (BatPort != 0) // only != 0 when a game is in progress
-  {
-    if (isField == 1)  // fielding/baserunning state
-    {
-      if (netplay_client->ShouldBeGolfer(FieldPort))
-        netplay_client->RequestGolfControl();
-    }
-    else if (isField == 0)  // batting/pitching state
-    {
-      if (netplay_client->ShouldBeGolfer(BatPort))
-        netplay_client->RequestGolfControl();
-    }
-  }
-  return;
+  if (isField && netplay_client->ShouldBeGolfer(FieldPort))  // fielding/baserunning state
+    netplay_client->RequestGolfControl();
+  
+  else if (!isField && netplay_client->ShouldBeGolfer(BatPort))  // batting/pitching state
+    netplay_client->RequestGolfControl();
+}
+
+// Returns whether the client should assign themselves golf status
+// m_pad_map is an array, where index + 1 = port and the value is the client ID that's connected to said port
+bool NetPlayClient::ShouldBeGolfer(int port)
+{
+  if (port >= 5)
+    return false;
+  int clientID = m_local_player->pid;  // refers to netplay client (the computer that's connected)
+  return m_pad_map[port - 1] == clientID ? true : false;
 }
 
 // called from ---GUI--- thread

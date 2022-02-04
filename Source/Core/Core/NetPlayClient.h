@@ -163,9 +163,9 @@ public:
   bool IsLocalPlayer(PlayerId pid) const;
 
   static void SendTimeBase();
-  static void AutoGolfMode(int isField, int BatPort, int FieldPort);
   bool DoAllPlayersHaveGame();
 
+  static void AutoGolfMode(bool isField, int BatPort, int FieldPort);
   const PadMappingArray& GetPadMapping() const;
   const GBAConfigArray& GetGBAConfig() const;
   const PadMappingArray& GetWiimoteMapping() const;
