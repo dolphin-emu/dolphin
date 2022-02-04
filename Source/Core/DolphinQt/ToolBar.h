@@ -61,7 +61,6 @@ private:
   QAction* m_config_action;
   QAction* m_start_netplay_action;
   QAction* m_view_gecko_codes_action;
-  QAction* m_local_players_action;
   QAction* m_controllers_action;
   QAction* m_graphics_action;
   QAction* m_step_action;
@@ -70,4 +69,5 @@ private:
   QAction* m_skip_action;
   QAction* m_show_pc_action;
   QAction* m_set_pc_action;
+  QAction* m_local_play_action;
 };
