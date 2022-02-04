@@ -4,7 +4,6 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import android.content.Context;
 
-import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;

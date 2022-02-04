@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches;
-import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 public class RiivolutionBootActivity extends AppCompatActivity

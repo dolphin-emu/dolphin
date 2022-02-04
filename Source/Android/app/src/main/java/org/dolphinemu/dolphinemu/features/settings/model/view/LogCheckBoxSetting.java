@@ -2,8 +2,6 @@
 
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import android.content.Context;
-
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
