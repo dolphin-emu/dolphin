@@ -37,6 +37,7 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Unlock Cursor"),
     _trans("Activate NetPlay Chat"),
     _trans("Control NetPlay Golf Mode"),
+    _trans("Drain Buffer Golf Mode"),
 
     _trans("Volume Down"),
     _trans("Volume Up"),
@@ -324,7 +325,7 @@ struct HotkeyGroupInfo
 };
 
 constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
-    {{_trans("General"), HK_OPEN, HK_REQUEST_GOLF_CONTROL},
+    {{_trans("General"), HK_OPEN, HK_DRAIN_GOLF_BUFFER},
      {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
      {_trans("Emulation Speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
      {_trans("Frame Advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
@@ -447,6 +448,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_WIIMOTE3_CONNECT, hotkey_string({"Alt", "F7"}));
   set_key_expression(HK_WIIMOTE4_CONNECT, hotkey_string({"Alt", "F8"}));
   set_key_expression(HK_BALANCEBOARD_CONNECT, hotkey_string({"Alt", "F9"}));
+  set_key_expression(HK_DRAIN_GOLF_BUFFER, "SPACE");
 #ifdef _WIN32
   set_key_expression(HK_TOGGLE_THROTTLE, "TAB");
 #else

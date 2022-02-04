@@ -76,6 +76,7 @@
 #include <Core/LocalPlayers.h>
 #include <Core/ConfigLoaders/GameConfigLoader.h>
 #include <Core/GeckoCodeConfig.h>
+#include "Core/HotkeyManager.h"
 
 namespace NetPlay
 {
@@ -2200,11 +2201,16 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
 
       std::chrono::duration<double> time_diff =
           std::chrono::steady_clock::now() - m_buffer_under_target_last;
-      if (time_diff.count() >= 1.0 || !buffer_over_target)
+      bool bDrainHotkeyPressed = HotkeyManagerEmu::IsPressed(HK_DRAIN_GOLF_BUFFER, true);
+
+      if (time_diff.count() >= 1.0 || (!buffer_over_target && !bDrainHotkeyPressed))
       {
         // run fast if the buffer is overfilled, otherwise run normal speed
         Config::SetCurrent(Config::MAIN_EMULATION_SPEED, buffer_over_target ? 0.0f : 1.0f);
       }
+      // Hotkey drains netplay buffer for non golfer
+      if (bDrainHotkeyPressed)
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, m_pad_buffer[pad_nb].Size() > 1 ? 0.0f : 1.0f); // set lowest buffer to 5 to prevent problems
     }
     else
     {
