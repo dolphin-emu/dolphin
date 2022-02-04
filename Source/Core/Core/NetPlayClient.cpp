@@ -2516,6 +2516,8 @@ void NetPlayClient::RequestGolfControl()
   RequestGolfControl(m_local_player->pid);
 }
 
+
+// Auto Golf Mode functions
 void NetPlayClient::AutoGolfMode(bool isField, int BatPort, int FieldPort)
 {
   if (isField && netplay_client->ShouldBeGolfer(FieldPort))  // fielding/baserunning state
@@ -2543,6 +2545,7 @@ std::string NetPlayClient::GetCurrentGolfer()
     return m_players[m_current_golfer].name;
   return "";
 }
+
 
 // called from ---GUI--- thread
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
