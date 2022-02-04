@@ -226,10 +226,15 @@ void TrainingMode()
 {
   if (Memory::Read_U8(0x80892ADA) == 1)  // If contact is made
   {
+    u8 BatterPort = Memory::Read_U8(0x802EBF95);
+    if (BatterPort > 0)
+      BatterPort--;
+    u32 stickDirectionAddr = 0x8089392D + (0x10 * BatterPort);
+
     u16 contactFrame = Memory::Read_U16(0x80890976);
     u8 typeOfContact_Value = Memory::Read_U8(0x808909A2);
     std::string typeOfContact;
-    u8 inputDirection_Value = Memory::Read_U8(0x8089392D) & 0xF;
+    u8 inputDirection_Value = Memory::Read_U8(stickDirectionAddr) & 0xF;
     std::string inputDirection;
     int chargeUp = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x80890968)) * 100)); 
     int chargeDown = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x8089096C)) * 100));
