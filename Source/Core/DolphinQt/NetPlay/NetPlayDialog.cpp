@@ -437,7 +437,7 @@ void NetPlayDialog::OnCoinFlipResult(int coinNum)
   if (coinNum == 1)
     DisplayMessage(tr("Heads"), "darkorange");
   else
-    DisplayMessage(tr("Tails"), "orange");
+    DisplayMessage(tr("Tails"), "goldenrod");
 }
 
 void NetPlayDialog::DisplayActiveGeckoCodes()
@@ -449,19 +449,19 @@ void NetPlayDialog::DisplayActiveGeckoCodes()
 
 void NetPlayDialog::OnActiveGeckoCodes(std::string codeStr)
 {
-  DisplayMessage(QString::fromStdString(codeStr), "darkblue");
+  DisplayMessage(QString::fromStdString(codeStr), "cornflowerblue");
 }
 
 void NetPlayDialog::OnRankedEnabled(bool is_ranked)
 {
   if (is_ranked)
   {
-    DisplayMessage(tr("Ranked Mode Enabled"), "green");
+    DisplayMessage(tr("Ranked Mode Enabled"), "mediumseagreen");
     Core::setRankedStatus(is_ranked);
   }
   else
   {
-    DisplayMessage(tr("Ranked Mode Disabled"), "red");
+    DisplayMessage(tr("Ranked Mode Disabled"), "crimson");
     Core::setRankedStatus(is_ranked);
   }
 }
@@ -941,7 +941,7 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
 {
   m_host_input_authority = enabled;
-  DisplayMessage(enabled ? tr("Auto Golf Mode enabled") : tr("Fair Input Delay enabled"), "purple");
+  DisplayMessage(enabled ? tr("Auto Golf Mode enabled") : tr("Fair Input Delay enabled"), "violet");
 
   QueueOnObject(this, [this, enabled] {
     if (enabled)
