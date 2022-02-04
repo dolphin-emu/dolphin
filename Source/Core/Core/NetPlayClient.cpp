@@ -327,13 +327,6 @@ void NetPlayClient::OnData(sf::Packet& packet)
 
   INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", static_cast<u8>(mid));
 
-  IsNetPlayRunning() ? m_Data_Sent_Count += 1 : m_Data_Sent_Count = 0;
-  if (g_ActiveConfig.bShowBatterFielder && m_Data_Sent_Count >= 20)
-  {
-    DisplayBatter();
-    DisplayFielder();
-  }
-
   switch (mid)
   {
   case MessageID::PlayerJoin:
@@ -830,7 +823,6 @@ void NetPlayClient::OnGameStatus(sf::Packet& packet)
 
 void NetPlayClient::OnStartGame(sf::Packet& packet)
 {
-  m_Data_Sent_Count = 0;
   {
     std::lock_guard lkg(m_crit.game);
 
@@ -935,7 +927,6 @@ void NetPlayClient::OnStopGame(sf::Packet& packet)
 
   StopGame();
   m_dialog->OnMsgStopGame();
-  m_Data_Sent_Count = 0;
 }
 
 void NetPlayClient::OnPowerButton()
@@ -1554,105 +1545,41 @@ void NetPlayClient::DisplayPlayersPing()
                        OSD::Duration::SHORT, OSD::Color::CYAN);
 }
 
-void NetPlayClient::DisplayFielder()
+void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
 {
+  if (!g_ActiveConfig.bShowBatterFielder)
+    return;
+
   std::string playername = "";
   u32 color = OSD::Color::CYAN;
-  u8 fielderPortInt = GetFielderPort();
-  bool fielderExists = fielderPortInt >= 1 && fielderPortInt <= 4 ? true : false;
+  std::array<u32, 4> portColor = {
+      {OSD::Color::RED, OSD::Color::BLUE, OSD::Color::YELLOW, OSD::Color::GREEN}};
+  BatterPortInt--;
+  FielderPortInt--;
+
+  bool fielderExists = FielderPortInt >= 0 && FielderPortInt <= 3 ? true : false;  // checks that the port isn't a CPU
   if (fielderExists)
   {
-    if (fielderPortInt == 1)
-    {
-      playername = GetPortPlayer(1);
-      color = OSD::Color::RED;
-    }
-    if (fielderPortInt == 2)
-    {
-      playername = GetPortPlayer(2);
-      color = OSD::Color::BLUE;
-    }
-    if (fielderPortInt == 3)
-    {
-      playername = GetPortPlayer(3);
-      color = OSD::Color::YELLOW;
-    }
-    if (fielderPortInt == 4)
-    {
-      playername = GetPortPlayer(4);
-      color = OSD::Color::GREEN;
-    }
-    OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
+    playername = netplay_client->GetPortPlayer(FielderPortInt);
+    color = portColor[FielderPortInt];
+    OSD::AddTypedMessage(OSD::MessageType::CurrentFielder, fmt::format("Fielder: {}", playername),
                          OSD::Duration::SHORT, color);
   }
-}
 
-void NetPlayClient::DisplayBatter()
-{
-  std::string playername = "";
-  u32 color = OSD::Color::CYAN;
-  u8 batterPortInt = GetBatterPort();
-  bool batterExists = batterPortInt >= 1 && batterPortInt <= 4 ? true : false;
+  bool batterExists = BatterPortInt >= 0 && BatterPortInt <= 3 ? true : false;  // checks that the port isn't a CPU
   if (batterExists)
   {
-    if (batterPortInt == 1)
-    {
-      playername = GetPortPlayer(1);
-      color = OSD::Color::RED;
-    }
-    if (batterPortInt == 2)
-    {
-      playername = GetPortPlayer(2);
-      color = OSD::Color::BLUE;
-    }
-    if (batterPortInt == 3)
-    {
-      playername = GetPortPlayer(3);
-      color = OSD::Color::YELLOW;
-    }
-    if (batterPortInt == 4)
-    {
-      playername = GetPortPlayer(4);
-      color = OSD::Color::GREEN;
-    }
+    playername = netplay_client->GetPortPlayer(BatterPortInt);
+    color = portColor[BatterPortInt];
     OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
                          OSD::Duration::SHORT, color);
   }
 }
 
-u8 NetPlayClient::GetFielderPort()
-{
-  return Memory::Read_U8(fielderPort);
-}
 
-u8 NetPlayClient::GetBatterPort()
+std::string NetPlayClient::GetPortPlayer(int PortInt)
 {
-  return Memory::Read_U8(batterPort);
-}
-
-std::string NetPlayClient::GetPortPlayer(int port)
-{
-  u8 portnum = 0;
-  for (auto player_id : m_pad_map)
-  {
-    portnum += 1;
-    if (portnum == port)
-      return m_players[player_id].name;
-  }
-  return "";
-}
-
-bool NetPlayClient::ShouldBeGolfer(int port)
-{
-  bool out = false;
-  u8 portnum = 0;
-  for (auto player_id : m_pad_map)
-  {
-    portnum += 1;
-    if (portnum == port && player_id == m_local_player->pid)
-      out = true;
-  }
-  return out;
+  return m_players[m_pad_map[PortInt]].name;
 }
 
 u32 NetPlayClient::GetPlayersMaxPing() const

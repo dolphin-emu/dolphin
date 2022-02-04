@@ -185,6 +185,7 @@ void OnFrameEnd()
   if (Memory::Read_U8(0x802EBFB4) == 1 && !NetPlay::IsNetPlayRunning())
     TrainingMode();
 
+  DisplayBatterFielder();
 
 
 #ifdef USE_MEMORYWATCHER
@@ -300,6 +301,50 @@ void TrainingMode()
   }
 }
 
+void DisplayBatterFielder()
+{
+  u8 BatterPort = Memory::Read_U8(0x802EBF95);
+  u8 FielderPort = Memory::Read_U8(0x802EBF94); 
+  if (BatterPort == 0 || FielderPort == 0) // game hasn't started yet; do not continue func
+    return;
+
+  // Run using NetPlay Nicknames
+  if (NetPlay::IsNetPlayRunning())
+    NetPlay::NetPlayClient::DisplayBatterFielder(BatterPort, FielderPort);
+
+  // Run using Local Players
+  else
+  {
+    std::string P1 = SConfig::GetInstance().m_local_player_1;
+    std::string P2 = SConfig::GetInstance().m_local_player_2;
+    std::string P3 = SConfig::GetInstance().m_local_player_3;
+    std::string P4 = SConfig::GetInstance().m_local_player_4;
+    std::vector<std::string> LocalPlayerList{P1, P2, P3, P4};
+    std::array<u32, 4> portColor = {
+        {OSD::Color::RED, OSD::Color::BLUE, OSD::Color::YELLOW, OSD::Color::GREEN}};
+
+    // subtract 1 from each port so they can be used as indeces in the arrays
+    if (BatterPort < 5)
+      BatterPort--;
+    if (FielderPort < 5)
+      FielderPort--;
+
+    if (LocalPlayerList[BatterPort] != "" && BatterPort < 4) // check for valid user & port
+    {
+      OSD::AddTypedMessage(OSD::MessageType::CurrentBatter,
+                           fmt::format("Batter: {}", LocalPlayerList[BatterPort]),
+                           OSD::Duration::SHORT, portColor[BatterPort]);
+    }
+    if (LocalPlayerList[FielderPort] != "" && FielderPort < 4)  // check for valid user & port
+    {
+      OSD::AddTypedMessage(OSD::MessageType::CurrentFielder,
+                           fmt::format("Fielder: {}", LocalPlayerList[FielderPort]),
+                           OSD::Duration::SHORT, portColor[FielderPort]);
+    }
+  }
+}
+
+// rounds to 2 decimal places
 float u32ToFloat(u32 value)
 {
   float_converter.num = value;

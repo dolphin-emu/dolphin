@@ -177,6 +177,8 @@ float ms_to_mph(float MetersPerSecond);
 float vectorMagnitude(float x, float y, float z);
 void AutoGolfMode();
 void TrainingMode();
+void DisplayBatterFielder();
+
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);
 void setSubmitStatus(bool inNewStatus);

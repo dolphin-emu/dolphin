@@ -166,6 +166,8 @@ public:
   bool DoAllPlayersHaveGame();
 
   static void AutoGolfMode(bool isField, int BatPort, int FieldPort);
+  static void DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt);
+
   const PadMappingArray& GetPadMapping() const;
   const GBAConfigArray& GetGBAConfig() const;
   const PadMappingArray& GetWiimoteMapping() const;
@@ -268,11 +270,8 @@ private:
   void SendGameStatus();
   void ComputeMD5(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
-  void DisplayBatter();
-  void DisplayFielder();
-  u8 GetFielderPort();
-  u8 GetBatterPort();
-  std::string GetPortPlayer(int port);
+
+  std::string GetPortPlayer(int PortInt);
   bool ShouldBeGolfer(int port);
   u32 GetPlayersMaxPing() const;
 
@@ -324,9 +323,6 @@ private:
   void OnPlayerDataMsg(sf::Packet& packet);
   void OnSendCodesMsg(sf::Packet& packet);
   void OnCoinFlipMsg(sf::Packet& packet);
-  static const u32 fielderPort = 0x802EBF94;
-  static const u32 batterPort = 0x802EBF95;
-  int m_Data_Sent_Count = 0;
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;
