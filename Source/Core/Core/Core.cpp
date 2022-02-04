@@ -186,64 +186,11 @@ void OnFrameEnd()
                                          (Memory::Read_U8(0x802EBF94))); // FieldPort
   }
 
-  // Training Mode
-  if (Memory::Read_U8(0x802EBFB4) == 1)
-  {
-    // If Practice Mode and Contact Made
-    // if ((Memory::Read_U8(0x8086B04C) == 1) && (Memory::Read_U8(0x80892ADA) == 1))
-    if ((Memory::Read_U8(0x80892ADA) == 1)) // If contact is made
-    {
-      unsigned int contactFrame = Memory::Read_U16(0x80890976);
-      unsigned int typeOfContact_Value = Memory::Read_U8(0x808909A2);
-      std::string typeOfContact;
-      unsigned int inputDirection_Value = Memory::Read_U8(0x8089392D) & 0xF;
-      std::string inputDirection;
-      float angle = (float)Memory::Read_U16(0x808926D4) / 10;
-      unsigned int xVelocity_Value = Memory::Read_U32(0x80890E50);
-      unsigned int yVelocity_Value = Memory::Read_U32(0x80890E54);
-      unsigned int zVelocity_Value = Memory::Read_U32(0x80890E58);
+  // if training mode gecko code is on & if not on netplay
+  // using this feature on netplay can be considered an unfair advantage
+  if (Memory::Read_U8(0x802EBFB4) == 1 && !NetPlay::IsNetPlayRunning())
+    TrainingMode();
 
-      // convert type of contact to string
-      if (typeOfContact_Value == 0)
-        typeOfContact = "Sour - Left";
-      else if (typeOfContact_Value == 1)
-        typeOfContact = "Nice - Left";
-      else if (typeOfContact_Value == 2)
-        typeOfContact = "Perfect";
-      else if (typeOfContact_Value == 3)
-        typeOfContact = "Nice - Right";
-      else // typeOfContact_Value == 4
-        typeOfContact = "Sour - Right";
-
-      // convert input direction to string
-      if (inputDirection_Value == 0)
-        inputDirection = "None";
-      else if (inputDirection_Value == 1)
-        inputDirection = "Left";
-      else if (inputDirection_Value == 2)
-        inputDirection = "Right";
-      else if (inputDirection_Value == 4)
-        inputDirection = "Down";
-      else if (inputDirection_Value == 8)
-        inputDirection = "Up";
-      else if (inputDirection_Value == 5)
-        inputDirection = "Down/Left";
-      else if (inputDirection_Value == 9)
-        inputDirection = "Up/Left";
-      else if (inputDirection_Value == 6)
-        inputDirection = "Down/Right";
-      else if (inputDirection_Value == 10)
-        inputDirection = "Up/Right";
-      else
-        inputDirection = "Unknown";
-
-      OSD::AddMessage(fmt::format("Contact Frame: {}", contactFrame), 6000);
-      OSD::AddMessage(fmt::format("Type of Contact: {}", typeOfContact), 6000);
-      OSD::AddMessage(fmt::format("Input Direction: {}", inputDirection), 6000);
-      OSD::AddMessage(fmt::format("Ball Angle: {}", angle), 6000);
-      OSD::AddMessage(fmt::format("X Velocity: {}, Y Velocity: {}, Z Velocity: {}",
-                                  xVelocity_Value, yVelocity_Value,
-                                  zVelocity_Value), 6000);
 
     }
   }
@@ -269,6 +216,104 @@ bool IsGolfMode()
   }
   return out;
 }
+
+void TrainingMode()
+{
+  if (Memory::Read_U8(0x80892ADA) == 1)  // If contact is made
+  {
+    u16 contactFrame = Memory::Read_U16(0x80890976);
+    u8 typeOfContact_Value = Memory::Read_U8(0x808909A2);
+    std::string typeOfContact;
+    u8 inputDirection_Value = Memory::Read_U8(0x8089392D) & 0xF;
+    std::string inputDirection;
+    int chargeUp = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x80890968)) * 100)); 
+    int chargeDown = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x8089096C)) * 100));
+
+    float angle = roundf((float)Memory::Read_U16(0x808926D4) * 3600 / 4096) / 10; // 0x400 == 90°, 0x800 == 180°, 0x1000 == 360°
+    float xVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 600) / 10;  // * 60 cause default units are meters per frame
+    float yVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E54)) * 600) / 10;
+    float zVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 600) / 10;
+    float netVelocity = vectorMagnitude(xVelocity, yVelocity, zVelocity);
+
+    // convert type of contact to string
+    if (typeOfContact_Value == 0)
+      typeOfContact = "Sour - Left";
+    else if (typeOfContact_Value == 1)
+      typeOfContact = "Nice - Left";
+    else if (typeOfContact_Value == 2)
+      typeOfContact = "Perfect";
+    else if (typeOfContact_Value == 3)
+      typeOfContact = "Nice - Right";
+    else  // typeOfContact_Value == 4
+      typeOfContact = "Sour - Right";
+
+    // convert input direction to string
+    if (inputDirection_Value == 0)
+      inputDirection = "None";
+    else if (inputDirection_Value == 1)
+      inputDirection = "Left";
+    else if (inputDirection_Value == 2)
+      inputDirection = "Right";
+    else if (inputDirection_Value == 4)
+      inputDirection = "Down";
+    else if (inputDirection_Value == 8)
+      inputDirection = "Up";
+    else if (inputDirection_Value == 5)
+      inputDirection = "Down/Left";
+    else if (inputDirection_Value == 9)
+      inputDirection = "Up/Left";
+    else if (inputDirection_Value == 6)
+      inputDirection = "Down/Right";
+    else if (inputDirection_Value == 10)
+      inputDirection = "Up/Right";
+    else
+      inputDirection = "Unknown";
+
+    int totalCharge;
+    chargeUp == 100 ? totalCharge = chargeDown : totalCharge = chargeUp;
+
+    OSD::AddMessage(fmt::format(
+      "Contact Frame:  {}\n"
+      "Type of Contact:  {}\n"
+      "Input Direction:  {}\n"
+      "Charge Percent:  {}%\n"
+      "Ball Angle:  {}°\n\n"
+      "X Velocity:  {} m/s  -->  {} mph\n"
+      "Y Velocity:  {} m/s  -->  {} mph\n"
+      "Z Velocity:  {} m/s  -->  {} mph\n"
+      "Net Velocity:  {} m/s  -->  {} mph",
+      contactFrame,
+      typeOfContact,
+      inputDirection,
+      totalCharge,
+      angle,
+      xVelocity, ms_to_mph(xVelocity),
+      yVelocity, ms_to_mph(yVelocity),
+      zVelocity, ms_to_mph(zVelocity),
+      netVelocity, ms_to_mph(netVelocity)
+      ),
+      6000); // message time
+  }
+}
+
+float u32ToFloat(u32 value)
+{
+  float_converter.num = value;
+  return float_converter.fnum;
+}
+
+float ms_to_mph(float MetersPerSecond)
+{
+  return roundf(MetersPerSecond * 4.4704) / 10;
+}
+
+float vectorMagnitude(float x, float y, float z)
+{
+  float sum = pow(x, 2) + pow(y, 2) + pow(z, 2);
+  return roundf(sqrt(sum) * 10) / 10;
+}
+
+
 
 // Display messages and return values
 
