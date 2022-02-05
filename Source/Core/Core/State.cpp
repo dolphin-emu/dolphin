@@ -64,7 +64,7 @@ static AfterLoadCallbackFunc s_on_after_load_callback;
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
-static bool s_load_or_save_in_progress;
+static std::mutex s_load_or_save_in_progress_mutex;
 
 static std::mutex g_cs_undo_load_buffer;
 static std::mutex g_cs_current_buffer;
@@ -403,10 +403,9 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 void SaveAs(const std::string& filename, bool wait)
 {
-  if (s_load_or_save_in_progress)
+  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  if (!lk)
     return;
-
-  s_load_or_save_in_progress = true;
 
   Core::RunOnCPUThread(
       [&] {
@@ -446,8 +445,6 @@ void SaveAs(const std::string& filename, bool wait)
         }
       },
       true);
-
-  s_load_or_save_in_progress = false;
 }
 
 bool ReadHeader(const std::string& filename, StateHeader& header)
@@ -550,17 +547,18 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 void LoadAs(const std::string& filename)
 {
-  if (!Core::IsRunning() || s_load_or_save_in_progress)
-  {
+  if (!Core::IsRunning())
     return;
-  }
-  else if (NetPlay::IsNetPlayRunning())
+
+  if (NetPlay::IsNetPlayRunning())
   {
     OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
     return;
   }
 
-  s_load_or_save_in_progress = true;
+  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  if (!lk)
+    return;
 
   Core::RunOnCPUThread(
       [&] {
@@ -617,8 +615,6 @@ void LoadAs(const std::string& filename)
           s_on_after_load_callback();
       },
       true);
-
-  s_load_or_save_in_progress = false;
 }
 
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
