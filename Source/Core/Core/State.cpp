@@ -70,6 +70,7 @@ static std::mutex g_cs_undo_load_buffer;
 static std::mutex g_cs_current_buffer;
 static Common::Event g_compressAndDumpStateSyncEvent;
 
+static std::recursive_mutex g_save_thread_mutex;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
@@ -434,8 +435,12 @@ void SaveAs(const std::string& filename, bool wait)
           save_args.filename = filename;
           save_args.wait = wait;
 
-          Flush();
-          g_save_thread = std::thread(CompressAndDumpState, save_args);
+          {
+            std::lock_guard lk(g_save_thread_mutex);
+            Flush();
+            g_save_thread = std::thread(CompressAndDumpState, save_args);
+          }
+
           g_compressAndDumpStateSyncEvent.Wait();
         }
         else
@@ -695,6 +700,8 @@ void SaveFirstSaved()
 
 void Flush()
 {
+  std::lock_guard lk(g_save_thread_mutex);
+
   // If already saving state, wait for it to finish
   if (g_save_thread.joinable())
     g_save_thread.join();
