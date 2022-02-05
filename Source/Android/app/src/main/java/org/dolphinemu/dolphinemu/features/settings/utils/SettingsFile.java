@@ -4,7 +4,6 @@ package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import androidx.annotation.NonNull;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.utils.BiMap;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;

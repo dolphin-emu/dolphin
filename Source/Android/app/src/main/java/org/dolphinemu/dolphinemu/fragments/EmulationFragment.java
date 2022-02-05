@@ -166,6 +166,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       mInputOverlay.refreshControls();
   }
 
+  public void refreshOverlayPointer(Settings settings)
+  {
+    if (mInputOverlay != null)
+      mInputOverlay.refreshOverlayPointer(settings);
+  }
+
   public void resetInputOverlay()
   {
     if (mInputOverlay != null)

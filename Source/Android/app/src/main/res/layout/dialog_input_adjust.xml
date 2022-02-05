@@ -15,7 +15,7 @@
 
         <TextView
             android:id="@+id/input_scale_name"
-            style="@style/TextAppearance.AppCompat.Headline"
+            style="@style/TextAppearance.MaterialComponents.Headline5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
@@ -62,7 +62,7 @@
 
         <TextView
             android:id="@+id/input_opacity_name"
-            style="@style/TextAppearance.AppCompat.Headline"
+            style="@style/TextAppearance.MaterialComponents.Headline5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"

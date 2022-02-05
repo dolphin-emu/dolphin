@@ -49,10 +49,10 @@ GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
 
 static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
                        const geometry_shader_uid_data* uid_data, const char* vertex,
-                       APIType api_type, bool wireframe, bool first_vertex = false);
+                       APIType api_type, bool wireframe, bool stereo, bool first_vertex = false);
 static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
-                         const geometry_shader_uid_data* uid_data, APIType api_type,
-                         bool wireframe);
+                         const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe,
+                         bool stereo);
 
 ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& host_config,
                                       const geometry_shader_uid_data* uid_data)
@@ -239,11 +239,6 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
   if (stereo)
   {
-    // Select the output layer
-    out.Write("\tps.layer = eye;\n");
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      out.Write("\tgl_Layer = eye;\n");
-
     // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
     // to the depth of the vertex. We retrieve the depth value from the w-component of the projected
     // vertex which contains the negated z-component of the original vertex.
@@ -273,8 +268,8 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     }
     out.Write("\t}}\n");
 
-    EmitVertex(out, host_config, uid_data, "l", api_type, wireframe, true);
-    EmitVertex(out, host_config, uid_data, "r", api_type, wireframe);
+    EmitVertex(out, host_config, uid_data, "l", api_type, wireframe, stereo, true);
+    EmitVertex(out, host_config, uid_data, "r", api_type, wireframe, stereo);
   }
   else if (primitive_type == PrimitiveType::Points)
   {
@@ -302,19 +297,19 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     }
     out.Write("\t}}\n");
 
-    EmitVertex(out, host_config, uid_data, "ll", api_type, wireframe, true);
-    EmitVertex(out, host_config, uid_data, "lr", api_type, wireframe);
-    EmitVertex(out, host_config, uid_data, "ul", api_type, wireframe);
-    EmitVertex(out, host_config, uid_data, "ur", api_type, wireframe);
+    EmitVertex(out, host_config, uid_data, "ll", api_type, wireframe, stereo, true);
+    EmitVertex(out, host_config, uid_data, "lr", api_type, wireframe, stereo);
+    EmitVertex(out, host_config, uid_data, "ul", api_type, wireframe, stereo);
+    EmitVertex(out, host_config, uid_data, "ur", api_type, wireframe, stereo);
   }
   else
   {
-    EmitVertex(out, host_config, uid_data, "f", api_type, wireframe, true);
+    EmitVertex(out, host_config, uid_data, "f", api_type, wireframe, stereo, true);
   }
 
   out.Write("\t}}\n");
 
-  EndPrimitive(out, host_config, uid_data, api_type, wireframe);
+  EndPrimitive(out, host_config, uid_data, api_type, wireframe, stereo);
 
   if (stereo && !host_config.backend_gs_instancing)
     out.Write("\t}}\n");
@@ -326,7 +321,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
 static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
                        const geometry_shader_uid_data* uid_data, const char* vertex,
-                       APIType api_type, bool wireframe, bool first_vertex)
+                       APIType api_type, bool wireframe, bool stereo, bool first_vertex)
 {
   if (wireframe && first_vertex)
     out.Write("\tif (i == 0) first = {};\n", vertex);
@@ -351,6 +346,14 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
     out.Write("\tps.o = {};\n", vertex);
   }
 
+  if (stereo)
+  {
+    // Select the output layer
+    out.Write("\tps.layer = eye;\n");
+    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+      out.Write("\tgl_Layer = eye;\n");
+  }
+
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     out.Write("\tEmitVertex();\n");
   else
@@ -358,10 +361,11 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
 }
 
 static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
-                         const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe)
+                         const geometry_shader_uid_data* uid_data, APIType api_type, bool wireframe,
+                         bool stereo)
 {
   if (wireframe)
-    EmitVertex(out, host_config, uid_data, "first", api_type, wireframe);
+    EmitVertex(out, host_config, uid_data, "first", api_type, wireframe, stereo);
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     out.Write("\tEndPrimitive();\n");

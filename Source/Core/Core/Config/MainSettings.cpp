@@ -88,6 +88,8 @@ const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot
   return *infos[slot];
 }
 
+const Info<int> MAIN_MEMORY_CARD_SIZE{{System::Main, "Core", "MemoryCardSize"}, -1};
+
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
     {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::MemoryCardFolder};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},

@@ -772,7 +772,7 @@ void ShaderCache::LoadPipelineUIDCache()
 
       // We open the file for reading and writing, so we must seek to the end before writing.
       if (uid_file_valid)
-        uid_file_valid = m_gx_pipeline_uid_cache_file.Seek(expected_size, SEEK_SET);
+        uid_file_valid = m_gx_pipeline_uid_cache_file.Seek(expected_size, File::SeekOrigin::Begin);
     }
 
     // If the file is invalid, close it. We re-open and truncate it below.

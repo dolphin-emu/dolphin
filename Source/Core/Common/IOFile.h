@@ -13,6 +13,13 @@
 
 namespace File
 {
+enum class SeekOrigin
+{
+  Begin,
+  Current,
+  End,
+};
+
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
 // and make forgetting an fclose() harder
@@ -89,14 +96,14 @@ public:
   std::FILE* GetHandle() { return m_file; }
   void SetHandle(std::FILE* file);
 
-  bool Seek(s64 off, int origin);
+  bool Seek(s64 offset, SeekOrigin origin);
   u64 Tell() const;
   u64 GetSize() const;
   bool Resize(u64 size);
   bool Flush();
 
   // clear error state
-  void Clear()
+  void ClearError()
   {
     m_good = true;
     std::clearerr(m_file);

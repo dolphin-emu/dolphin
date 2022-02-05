@@ -2,13 +2,13 @@
 <resources>
 
     <!-- Inherit from the material theme -->
-    <style name="DolphinBase" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="DolphinBase" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Main theme colors -->
         <!-- Branding color for the app bar -->
+        <item name="colorSurface">@color/dolphin_blue</item>
         <item name="colorPrimary">@color/dolphin_blue</item>
-        <!-- Darker variant for the status bar and contextual app bars -->
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-        <item name="colorAccent">@color/dolphin_purple</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
@@ -19,20 +19,24 @@
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="DolphinSettingsBase" parent="Theme.AppCompat.DayNight.DarkActionBar">
+    <style name="DolphinSettingsBase" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorSurface">@color/dolphin_blue</item>
         <item name="colorPrimary">@color/dolphin_blue</item>
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-        <item name="colorAccent">@color/dolphin_purple</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
     </style>
 
     <!-- Themes for Dialogs -->
 
-    <style name="DolphinDialogBase" parent="Theme.AppCompat.DayNight.Dialog.Alert" />
-
-    <style name="DolphinEmulationBase" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="DolphinDialogBase" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="colorPrimary">@color/dolphin_blue</item>
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-        <item name="colorAccent">@color/dolphin_purple</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
+    </style>
+
+    <style name="DolphinEmulationBase" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
         <item name="android:windowTranslucentNavigation">true</item>
 
         <item name="android:windowBackground">@android:color/black</item>
@@ -50,9 +54,10 @@
 
     <!-- Android TV Themes -->
     <style name="DolphinTvBase" parent="Theme.Leanback.Browse">
+        <item name="colorSurface">@color/dolphin_blue</item>
         <item name="colorPrimary">@color/dolphin_blue</item>
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-        <item name="colorAccent">@color/dolphin_purple</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
@@ -63,7 +68,7 @@
         <item name="browseTitleViewLayout">@layout/titleview</item>
     </style>
 
-    <style name="InGameMenuOption" parent="Widget.AppCompat.Button.Borderless">
+    <style name="InGameMenuOption" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:textSize">16sp</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:textColor">@android:color/white</item>
@@ -86,8 +91,8 @@
     <!-- Inherit from a base file picker theme that handles day/night -->
     <style name="FilePickerTheme" parent="FilePickerBaseTheme">
         <item name="colorPrimary">@color/dolphin_blue</item>
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
 
         <!--&lt;!&ndash; Setting a divider is entirely optional &ndash;&gt;-->
         <item name="nnf_list_item_divider">?android:attr/listDivider</item>
@@ -97,13 +102,14 @@
 
         <!-- If you want to set a specific toolbar theme, do it here -->
 
-        <item name="nnf_toolbarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="nnf_toolbarTheme">@style/ThemeOverlay.MaterialComponents.Dark.ActionBar</item>
     </style>
 
-    <style name="FilePickerAlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+    <style name="FilePickerAlertDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="colorSurface">@color/dolphin_blue</item>
         <item name="colorPrimary">@color/dolphin_blue</item>
-        <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
     </style>
 
 </resources>

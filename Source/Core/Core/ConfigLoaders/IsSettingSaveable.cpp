@@ -38,9 +38,10 @@ bool IsSettingSaveable(const Config::Location& config_location)
     // TODO: Kill the current Android controller mappings system
     if (config_location.section == "Android")
     {
-      static constexpr std::array<const char*, 8> android_setting_saveable = {
-          "ControlScale",    "ControlOpacity", "EmulationOrientation", "JoystickRelCenter",
-          "LastPlatformTab", "MotionControls", "PhoneRumble",          "ShowInputOverlay"};
+      static constexpr std::array<const char*, 10> android_setting_saveable = {
+          "ControlScale",    "ControlOpacity",  "EmulationOrientation", "JoystickRelCenter",
+          "LastPlatformTab", "MotionControls",  "PhoneRumble",          "ShowInputOverlay",
+          "IRMode",          "IRAlwaysRecenter"};
 
       return std::any_of(
           android_setting_saveable.cbegin(), android_setting_saveable.cend(),

@@ -17,12 +17,23 @@ public class InputOverlayPointer
   public static final int DOUBLE_TAP_2 = 2;
   public static final int DOUBLE_TAP_CLASSIC_A = 3;
 
+  public static final int MODE_DISABLED = 0;
+  public static final int MODE_FOLLOW = 1;
+  public static final int MODE_DRAG = 2;
+
   private final float[] axes = {0f, 0f};
+  private final float[] oldaxes = {0f, 0f};
 
   private float mGameCenterX;
   private float mGameCenterY;
   private float mGameWidthHalfInv;
   private float mGameHeightHalfInv;
+
+  private float mTouchStartX;
+  private float mTouchStartY;
+
+  private int mMode;
+  private boolean mRecenter;
 
   private boolean doubleTap = false;
   private int doubleTapButton;
@@ -38,9 +49,11 @@ public class InputOverlayPointer
     DOUBLE_TAP_OPTIONS.add(NativeLibrary.ButtonType.CLASSIC_BUTTON_A);
   }
 
-  public InputOverlayPointer(Rect surfacePosition, int button)
+  public InputOverlayPointer(Rect surfacePosition, int button, int mode, boolean recenter)
   {
     doubleTapButton = button;
+    mMode = mode;
+    mRecenter = recenter;
 
     mGameCenterX = (surfacePosition.left + surfacePosition.right) / 2.0f;
     mGameCenterY = (surfacePosition.top + surfacePosition.bottom) / 2.0f;
@@ -76,36 +89,67 @@ public class InputOverlayPointer
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_POINTER_DOWN:
         trackId = event.getPointerId(pointerIndex);
+        mTouchStartX = event.getX(pointerIndex);
+        mTouchStartY = event.getY(pointerIndex);
         touchPress();
         break;
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
         if (trackId == event.getPointerId(pointerIndex))
           trackId = -1;
+        if (mMode == MODE_DRAG)
+          updateOldAxes();
+        if (mRecenter)
+          reset();
         break;
     }
 
     if (trackId == -1)
       return;
 
-    axes[0] = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
-    axes[1] = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
+    if (mMode == MODE_FOLLOW)
+    {
+      axes[0] = (event.getY(event.findPointerIndex(trackId)) - mGameCenterY) * mGameHeightHalfInv;
+      axes[1] = (event.getX(event.findPointerIndex(trackId)) - mGameCenterX) * mGameWidthHalfInv;
+    }
+    else if (mMode == MODE_DRAG)
+    {
+      axes[0] = oldaxes[0] +
+              (event.getY(event.findPointerIndex(trackId)) - mTouchStartY) * mGameHeightHalfInv;
+      axes[1] = oldaxes[1] +
+              (event.getX(event.findPointerIndex(trackId)) - mTouchStartX) * mGameWidthHalfInv;
+    }
   }
 
   private void touchPress()
   {
-    if (doubleTap)
+    if (mMode != MODE_DISABLED)
     {
-      NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
-              doubleTapButton, NativeLibrary.ButtonState.PRESSED);
-      new Handler().postDelayed(() -> NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
-              doubleTapButton, NativeLibrary.ButtonState.RELEASED), 50);
+      if (doubleTap)
+      {
+        NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
+                doubleTapButton, NativeLibrary.ButtonState.PRESSED);
+        new Handler()
+                .postDelayed(() -> NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice,
+                        doubleTapButton, NativeLibrary.ButtonState.RELEASED), 50);
+      }
+      else
+      {
+        doubleTap = true;
+        new Handler().postDelayed(() -> doubleTap = false, 300);
+      }
     }
-    else
-    {
-      doubleTap = true;
-      new Handler().postDelayed(() -> doubleTap = false, 300);
-    }
+  }
+
+  private void updateOldAxes()
+  {
+    oldaxes[0] = axes[0];
+    oldaxes[1] = axes[1];
+  }
+
+  private void reset()
+  {
+    axes[0] = axes[1] = oldaxes[0] = oldaxes[1] = 0f;
   }
 
   public float[] getAxisValues()
@@ -116,5 +160,17 @@ public class InputOverlayPointer
     iraxes[3] = axes[1];
     iraxes[2] = axes[1];
     return iraxes;
+  }
+
+  public void setMode(int mode)
+  {
+    mMode = mode;
+    if (mode == MODE_DRAG)
+      updateOldAxes();
+  }
+
+  public void setRecenter(boolean recenter)
+  {
+    mRecenter = recenter;
   }
 }

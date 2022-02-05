@@ -71,7 +71,9 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
       m_update_callback();
 
     file.ReadBytes(&m_nand[i * NAND_BLOCK_SIZE], NAND_BLOCK_SIZE);
-    file.Seek(NAND_ECC_BLOCK_SIZE, SEEK_CUR);  // We don't care about the ECC blocks
+
+    // We don't care about the ECC blocks
+    file.Seek(NAND_ECC_BLOCK_SIZE, File::SeekOrigin::Current);
   }
 
   m_nand_keys.resize(NAND_KEYS_SIZE);

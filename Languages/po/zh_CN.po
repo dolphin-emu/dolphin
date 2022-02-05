@@ -15,13 +15,13 @@
 # Yueyu <lxfly2000@outlook.com>, 2013-2014
 # zhenchao zhang <z734789215@gmail.com>, 2016
 # Ryan Zhou <sentret_c@sina.cn>, 2013
-# 天绝星 <c.cejhb@gmail.com>, 2015-2021
+# 天绝星 <c.cejhb@gmail.com>, 2015-2022
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-18 23:27+0100\n"
-"PO-Revision-Date: 2021-12-20 05:45+0000\n"
+"POT-Creation-Date: 2022-01-30 23:50+0100\n"
+"PO-Revision-Date: 2022-01-22 03:04+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
@@ -926,7 +926,7 @@ msgstr "只有在 Wii 游戏运行时同步才能触发。"
 #. i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
 #: Source/Core/Core/HW/EXI/EXI_Device.h:89
 msgid "AD16"
-msgstr ""
+msgstr "AD16"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:114
 msgid ""
@@ -1887,7 +1887,7 @@ msgstr "校准周期"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:290
 msgid "Call display list at %1 with size %2"
-msgstr ""
+msgstr "调用位于 %1 大小为 %2 的显示列表"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:104
 msgid "Callstack"
@@ -1907,7 +1907,7 @@ msgstr "镜头视野（影响指向的灵敏度）。"
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "只能为虚拟内存中的数值生成 AR 代码。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1771
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1772
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "不能按照连接句柄 {0:02x} 找到 Wii 遥控器"
 
@@ -2126,7 +2126,7 @@ msgstr "代码"
 msgid "Code:"
 msgstr "代码："
 
-#: Source/Core/Core/NetPlayClient.cpp:1811
+#: Source/Core/Core/NetPlayClient.cpp:1813
 msgid "Codes received!"
 msgstr "代码已接收！"
 
@@ -2497,7 +2497,7 @@ msgid ""
 "Internet connection and try again."
 msgstr "无法从任天堂下载更新信息。请检查你的互联网连接然后重试。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:124
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:125
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -2507,7 +2507,7 @@ msgstr ""
 "\n"
 "模拟主机即将停止运行。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:130
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:131
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "The following error occurred when Dolphin tried to use an adapter:\n"
@@ -2768,7 +2768,7 @@ msgstr "数据格式无法识别或损坏。"
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "GC 存储卡管理器中的数据不一致，正在中止操作。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1769
+#: Source/Core/Core/NetPlayClient.cpp:1771
 msgid "Data received!"
 msgstr "数据已接收！"
 
@@ -3450,7 +3450,7 @@ msgstr "退出模拟(&X)"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:177
 msgid "EFB copy %1"
-msgstr ""
+msgstr "EFB 复制 %1"
 
 #: Source/Core/Core/HW/EXI/BBA/TAP_Win32.cpp:216
 msgid ""
@@ -3869,11 +3869,11 @@ msgstr "获取会话列表时出错: %1"
 msgid "Error occurred while loading some texture packs"
 msgstr "加载一些纹理包时发生错误"
 
-#: Source/Core/Core/NetPlayClient.cpp:1798
+#: Source/Core/Core/NetPlayClient.cpp:1800
 msgid "Error processing codes."
 msgstr "处理代码时出错。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1770
+#: Source/Core/Core/NetPlayClient.cpp:1772
 msgid "Error processing data."
 msgstr "处理数据时出错。"
 
@@ -3881,11 +3881,11 @@ msgstr "处理数据时出错。"
 msgid "Error reading file: {0}"
 msgstr "读取文件时出错：{0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1440
+#: Source/Core/Core/NetPlayServer.cpp:1442
 msgid "Error synchronizing cheat codes!"
 msgstr "同步保存金手指代码时出错！"
 
-#: Source/Core/Core/NetPlayServer.cpp:1427
+#: Source/Core/Core/NetPlayServer.cpp:1429
 msgid "Error synchronizing save data!"
 msgstr "同步存档数据时出错！"
 
@@ -4148,7 +4148,7 @@ msgstr "无法将此会话添加到联机索引: %1"
 msgid "Failed to append to signature file '%1'"
 msgstr "附加到签名文件 '%1' 失败"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:592
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:593
 msgid "Failed to claim interface for BT passthrough"
 msgstr "索取蓝牙直通接口失败"
 
@@ -4177,12 +4177,12 @@ msgstr "创建 D3D12 全局资源失败"
 msgid "Failed to create DXGI factory"
 msgstr "创建 DXGI 工厂失败"
 
-#: Source/Core/Core/NetPlayClient.cpp:1230
+#: Source/Core/Core/NetPlayClient.cpp:1232
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr "删除联机 GBA{0} 存档文件失败。请验证你的写入权限。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1040
+#: Source/Core/Core/NetPlayClient.cpp:1042
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr "删除联机存储卡失败。请验证你的写入权限。"
 
@@ -4190,7 +4190,7 @@ msgstr "删除联机存储卡失败。请验证你的写入权限。"
 msgid "Failed to delete the selected file."
 msgstr "无法删除所选文件。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:585
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:586
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "分离蓝牙直通内核驱动失败: {0}"
 
@@ -4275,6 +4275,9 @@ msgid ""
 "Make sure your video card supports at least D3D 10.0\n"
 "{0}"
 msgstr ""
+"初始化 Direct3D 失败。\n"
+"请确保你的显卡至少支持 D3D 10.0\n"
+"{0}"
 
 #: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:142
 #: Source/Core/VideoBackends/OGL/OGLMain.cpp:197
@@ -4329,7 +4332,7 @@ msgstr "加载 {0} 失败。如果你使用的是 Windows 7，请尝试安装 KB
 msgid "Failed to open '%1'"
 msgstr "无法打开 '%1'"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:571
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:572
 msgid "Failed to open Bluetooth device: {0}"
 msgstr "打开蓝牙设备失败: {0} "
 
@@ -4424,15 +4427,15 @@ msgstr ""
 msgid "Failed to remove this title from the NAND."
 msgstr "将该游戏从 NAND 中移除失败。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1061
+#: Source/Core/Core/NetPlayClient.cpp:1063
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr "重置联机 GCI 文件夹失败。请验证你的写入权限。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1089
+#: Source/Core/Core/NetPlayClient.cpp:1091
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr "重置联机 NAND 文件夹失败。请验证你的写入权限。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1095
+#: Source/Core/Core/NetPlayClient.cpp:1097
 msgid "Failed to reset NetPlay redirect folder. Verify your write permissions."
 msgstr "重置联机重定向文件夹失败。请验证你的写入权限。"
 
@@ -4464,11 +4467,11 @@ msgstr "卸载包失败: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "无法将 BT.DINF 写入 SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:1123
+#: Source/Core/Core/NetPlayClient.cpp:1125
 msgid "Failed to write Mii data."
 msgstr "写入 Mii 数据失败。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1199
+#: Source/Core/Core/NetPlayClient.cpp:1201
 msgid "Failed to write Wii save."
 msgstr "写入 Wii 存档失败。"
 
@@ -4482,7 +4485,7 @@ msgstr "写入配置文件失败!"
 msgid "Failed to write modified memory card to disk."
 msgstr "修改过的存储卡写入磁盘失败。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1211
+#: Source/Core/Core/NetPlayClient.cpp:1213
 msgid "Failed to write redirected save."
 msgstr "写入重定向存档失败。"
 
@@ -4953,7 +4956,7 @@ msgstr "GCMemcardDirectory: ClearBlock 被用于无效的区块地址"
 msgid "GCZ GC/Wii images (*.gcz)"
 msgstr "GCZ GC/Wii 镜像 (*.gcz)"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:615
+#: Source/Core/VideoCommon/CommandProcessor.cpp:628
 msgid ""
 "GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
 "This means one of the following:\n"
@@ -4965,6 +4968,15 @@ msgid ""
 "Further errors will be sent to the Video Backend log and\n"
 "Dolphin will now likely crash or hang. Enjoy."
 msgstr ""
+"GFX FIFO: 未知 Opcode ({0:#04x} @ {1}, preprocess={2})。\n"
+"这可能是下述中的一个原因:\n"
+"* 模拟的 GPU 未同步，禁用双核心可以改善\n"
+"* 命令流被一些伪内存错误破坏\n"
+"* 这确实是一个未知 Opcode（可能性低）\n"
+"* 其它类型的错误\n"
+"\n"
+"进一步的错误信息将发送到视频后端日志中并且\n"
+"Dolphin 现在可能崩溃或挂起。请关闭。"
 
 #: Source/Core/VideoBackends/OGL/OGLMain.cpp:164
 msgid "GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024."
@@ -5099,7 +5111,7 @@ msgstr "游戏状态"
 msgid "Game changed to \"%1\""
 msgstr "游戏更改为 \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1705
+#: Source/Core/Core/NetPlayClient.cpp:1707
 msgid "Game is already running!"
 msgstr "游戏已经运行!"
 
@@ -5540,6 +5552,9 @@ msgid ""
 "<br><br>Causes issues with many fifologs, but can be useful for testing."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"如果启用，则所有内存刷新都会在第一帧之前立即发生。<br><br>会导致问题并出现大"
+"量 fifo 日志，但对测试很有帮助。<br><br><dolphin_emphasis>如果不确定，请不要"
+"勾选此项。</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:208
 msgid ""
@@ -5547,6 +5562,9 @@ msgid ""
 "<br><br>This is generally only useful when a frame-dumping option is enabled."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"如果未选中，则 fifo 日志 的回放将在最后一帧后停止。<br><br>这通常仅在启用帧转"
+"储选项时有用。<br><br><dolphin_emphasis>如果不确定，请勾选此项。</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:55
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:728
@@ -5854,7 +5872,7 @@ msgstr "无效校验和。"
 msgid "Invalid game."
 msgstr "无效游戏。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1929
+#: Source/Core/Core/NetPlayClient.cpp:1931
 msgid "Invalid host"
 msgstr "无效主机"
 
@@ -6397,7 +6415,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:123
 msgid "Loop"
-msgstr ""
+msgstr "循环"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:896
 msgid "Lost connection to NetPlay server..."
@@ -6472,7 +6490,7 @@ msgstr "映射"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:87
 msgid "Mask ROM"
-msgstr ""
+msgstr "伪装 ROM"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:641
 msgid "Match Found"
@@ -6761,11 +6779,11 @@ msgstr "联机设定"
 msgid "Netherlands"
 msgstr "荷兰"
 
-#: Source/Core/Core/NetPlayClient.cpp:2765
+#: Source/Core/Core/NetPlayClient.cpp:2767
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "联机在 NetPlay_GetButtonPress() 中不同步"
 
-#: Source/Core/Core/NetPlayClient.cpp:2147
+#: Source/Core/Core/NetPlayClient.cpp:2149
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "联机发生不同步，已无法恢复。"
 
@@ -7560,11 +7578,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1536
+#: Source/Core/Core/NetPlayClient.cpp:1538
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "无法启用服务质量 (QoS)。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1532
+#: Source/Core/Core/NetPlayClient.cpp:1534
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "已成功启用服务质量 (QoS)。"
 
@@ -8422,7 +8440,7 @@ msgstr "选择状态 9"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:117
 msgid "Select WFS Path"
-msgstr ""
+msgstr "选择 WFS 路径"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:59
 msgid "Select Wii NAND Root"
@@ -8500,8 +8518,8 @@ msgid "Selected controller profile does not exist"
 msgstr "所选控制器预设不存在"
 
 #: Source/Core/Core/NetPlayServer.cpp:1282
-#: Source/Core/Core/NetPlayServer.cpp:1621
-#: Source/Core/Core/NetPlayServer.cpp:1906
+#: Source/Core/Core/NetPlayServer.cpp:1625
+#: Source/Core/Core/NetPlayServer.cpp:1907
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:439
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:810
 msgid "Selected game doesn't exist in game list!"
@@ -8615,7 +8633,7 @@ msgstr "服务器 IP 地址"
 msgid "Server Port"
 msgstr "服务器端口"
 
-#: Source/Core/Core/NetPlayClient.cpp:1926
+#: Source/Core/Core/NetPlayClient.cpp:1928
 msgid "Server rejected traversal attempt"
 msgstr "穿透尝试被服务器拒绝"
 
@@ -8780,7 +8798,7 @@ msgstr "显示意大利"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:680
 msgid "Show JPN"
-msgstr ""
+msgstr "显示日本"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:687
 msgid "Show Korea"
@@ -9497,15 +9515,15 @@ msgid ""
 msgstr ""
 "同步 GPU 与 CPU 线程以帮助防止双核模式下的随机卡死。（开=兼容，关=快速）"
 
-#: Source/Core/Core/NetPlayClient.cpp:1370
+#: Source/Core/Core/NetPlayClient.cpp:1372
 msgid "Synchronizing AR codes..."
 msgstr "正在同步 AR 代码..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1303
+#: Source/Core/Core/NetPlayClient.cpp:1305
 msgid "Synchronizing Gecko codes..."
 msgstr "正在同步 Gecko 代码..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1012
+#: Source/Core/Core/NetPlayClient.cpp:1014
 msgid "Synchronizing save data..."
 msgstr "正在同步存档数据..."
 
@@ -9636,7 +9654,7 @@ msgid ""
 "size."
 msgstr "分区 {0} 的数据大小无法用区块大小平均分配。"
 
-#: Source/Android/jni/WiiUtils.cpp:77
+#: Source/Android/jni/WiiUtils.cpp:111
 msgid "The decryption keys need to be appended to the NAND backup file."
 msgstr "解密密钥需要附加到 NAND 备份文件中。"
 
@@ -9795,13 +9813,15 @@ msgstr ""
 msgid "The install partition is missing."
 msgstr "缺少安装分区。"
 
-#: Source/Core/Core/HW/EXI/EXI.cpp:54
+#: Source/Core/Core/HW/EXI/EXI.cpp:53
 msgid ""
 "The movie indicates that a memory card should be inserted into {0:n}, but "
 "one is not currently inserted (instead, {1} is inserted).  For the movie to "
 "sync properly, please change the selected device to Memory Card or GCI "
 "Folder."
 msgstr ""
+"影片指示应将存储卡插入 {0:n}，但当前未插入存储卡（而是插入了 {1}）。为使影片"
+"正确同步，请将所选设备更改为存储卡或 GCI 文件夹。"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:141
 msgid "The patches in %1 are not for the selected game or game revision."
@@ -9832,7 +9852,7 @@ msgstr "产生的已解密 AR 代码不包含任何行。"
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:346
 msgid ""
 "The same file can't be used in multiple slots; it is already used by %1."
-msgstr ""
+msgstr "同一文件不能在多个插槽中使用；其已被 %1 占用。"
 
 #: Source/Core/Core/NetPlayClient.cpp:264
 msgid "The server and client's NetPlay versions are incompatible."
@@ -10333,7 +10353,7 @@ msgstr "穿透错误"
 msgid "Traversal Server"
 msgstr "穿透服务器"
 
-#: Source/Core/Core/NetPlayClient.cpp:1923
+#: Source/Core/Core/NetPlayClient.cpp:1925
 msgid "Traversal server timed out connecting to the host"
 msgstr "穿透服务器与主机连接超时"
 
@@ -10345,7 +10365,7 @@ msgstr "尝试提前翻译分支，多数情况下可提高性能。默认值为
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:92
 msgid "Triforce AM Baseboard"
-msgstr ""
+msgstr "Triforce AM 基板"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:72
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:94
@@ -10459,7 +10479,7 @@ msgstr ""
 "\n"
 "是否要忽略此行继续分析？"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:273
+#: Source/Core/DiscIO/NANDImporter.cpp:275
 msgid "Unable to write to file {0}"
 msgstr "无法写入文件 {0}"
 
@@ -10514,7 +10534,7 @@ msgstr "未知"
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "未知 DVD 命令 {0:08x} - 致命错误"
 
-#: Source/Core/Core/NetPlayClient.cpp:1270
+#: Source/Core/Core/NetPlayClient.cpp:1272
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "收到未知的 同步_代码 消息，ID：{0}"
 
@@ -10524,7 +10544,7 @@ msgid ""
 "Kicking player!"
 msgstr "收到未知的 同步_GECKO_代码 消息，ID：{0} 来自玩家：{1} 剔除玩家！"
 
-#: Source/Core/Core/NetPlayClient.cpp:999
+#: Source/Core/Core/NetPlayClient.cpp:1001
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "收到未知的 同步_存档_数据 消息，ID：{0}"
 
@@ -10554,7 +10574,7 @@ msgstr "未知光盘"
 msgid "Unknown error occurred."
 msgstr "发生未知错误。"
 
-#: Source/Core/Core/NetPlayClient.cpp:1932
+#: Source/Core/Core/NetPlayClient.cpp:1934
 msgid "Unknown error {0:x}"
 msgstr "未知错误 {0:x}"
 
@@ -10957,7 +10977,7 @@ msgstr "WASAPI （独占模式）"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:256
 msgid "WFS Path:"
-msgstr ""
+msgstr "WFS 路径："
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:350
 msgid "WIA GC/Wii images (*.wia)"

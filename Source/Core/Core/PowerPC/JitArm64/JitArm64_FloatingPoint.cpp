@@ -113,12 +113,10 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       ASSERT_MSG(DYNA_REC, !inputs_are_singles, "Tried to apply 25-bit precision to single");
 
       V0Q = fpr.GetReg();
-      const ARM64Reg V1Q = fpr.GetReg();
+      V1Q = fpr.GetReg();
 
       Force25BitPrecision(reg_encoder(V0Q), VC, reg_encoder(V1Q));
       VC = reg_encoder(V0Q);
-
-      fpr.Unlock(V1Q);
     }
 
     switch (op5)

@@ -41,8 +41,6 @@ static size_t ReadFileToVector(const std::string& path, std::vector<u8>* vector)
 static void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer);
 static void Write32(u32 data, u32 offset, std::vector<u8>* buffer);
 
-static std::string ASCIIToUppercase(std::string str);
-
 enum class PartitionType : u32
 {
   Game = 0,
@@ -100,7 +98,7 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
     {
       const auto& content = std::get<ContentFile>(m_content_source);
       File::IOFile file(content.m_filename, "rb");
-      if (!file.Seek(content.m_offset + offset_in_content, SEEK_SET) ||
+      if (!file.Seek(content.m_offset + offset_in_content, File::SeekOrigin::Begin) ||
           !file.ReadBytes(*buffer, bytes_to_read))
       {
         return false;

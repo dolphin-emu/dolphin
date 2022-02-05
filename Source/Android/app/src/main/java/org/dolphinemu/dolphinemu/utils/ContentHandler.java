@@ -8,10 +8,9 @@ import android.net.Uri;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import androidx.annotation.Keep;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 

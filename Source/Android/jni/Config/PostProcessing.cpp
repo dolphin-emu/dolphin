@@ -6,7 +6,7 @@
 
 #include <jni.h>
 
-#include "VideoCommon/PostProcessing.cpp"
+#include "VideoCommon/PostProcessing.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 
 extern "C" {

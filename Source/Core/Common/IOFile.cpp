@@ -94,7 +94,7 @@ bool IOFile::Close()
 void IOFile::SetHandle(std::FILE* file)
 {
   Close();
-  Clear();
+  ClearError();
   m_file = file;
 }
 
@@ -106,9 +106,25 @@ u64 IOFile::GetSize() const
     return 0;
 }
 
-bool IOFile::Seek(s64 off, int origin)
+bool IOFile::Seek(s64 offset, SeekOrigin origin)
 {
-  if (!IsOpen() || 0 != fseeko(m_file, off, origin))
+  int fseek_origin;
+  switch (origin)
+  {
+  case SeekOrigin::Begin:
+    fseek_origin = SEEK_SET;
+    break;
+  case SeekOrigin::Current:
+    fseek_origin = SEEK_CUR;
+    break;
+  case SeekOrigin::End:
+    fseek_origin = SEEK_END;
+    break;
+  default:
+    return false;
+  }
+
+  if (!IsOpen() || 0 != fseeko(m_file, offset, fseek_origin))
     m_good = false;
 
   return m_good;
