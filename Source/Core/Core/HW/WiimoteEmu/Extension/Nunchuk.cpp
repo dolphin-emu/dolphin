@@ -198,6 +198,7 @@ void Nunchuk::DoState(PointerWrap& p)
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
+#ifndef ANDROID
   // Stick
   m_stick->SetControlExpression(0, "W");  // up
   m_stick->SetControlExpression(1, "S");  // down
@@ -228,5 +229,6 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
     m_shake->SetControlExpression(i, "`Click 2`");
 #endif
   }
+#endif
 }
 }  // namespace WiimoteEmu

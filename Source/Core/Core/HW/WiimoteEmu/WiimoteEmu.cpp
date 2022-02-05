@@ -655,6 +655,24 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+#ifdef ANDROID
+  // Rumble
+  m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
+
+  // Motion Source
+  m_imu_accelerometer->SetControlExpression(0, "`Android/0/Device Sensors:Accel Up`");
+  m_imu_accelerometer->SetControlExpression(1, "`Android/0/Device Sensors:Accel Down`");
+  m_imu_accelerometer->SetControlExpression(2, "`Android/0/Device Sensors:Accel Left`");
+  m_imu_accelerometer->SetControlExpression(3, "`Android/0/Device Sensors:Accel Right`");
+  m_imu_accelerometer->SetControlExpression(4, "`Android/0/Device Sensors:Accel Forward`");
+  m_imu_accelerometer->SetControlExpression(5, "`Android/0/Device Sensors:Accel Backward`");
+  m_imu_gyroscope->SetControlExpression(0, "`Android/0/Device Sensors:Gyro Pitch Up`");
+  m_imu_gyroscope->SetControlExpression(1, "`Android/0/Device Sensors:Gyro Pitch Down`");
+  m_imu_gyroscope->SetControlExpression(2, "`Android/0/Device Sensors:Gyro Roll Left`");
+  m_imu_gyroscope->SetControlExpression(3, "`Android/0/Device Sensors:Gyro Roll Right`");
+  m_imu_gyroscope->SetControlExpression(4, "`Android/0/Device Sensors:Gyro Yaw Left`");
+  m_imu_gyroscope->SetControlExpression(5, "`Android/0/Device Sensors:Gyro Yaw Right`");
+#else
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
   // A
@@ -672,10 +690,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // B
   m_buttons->SetControlExpression(1, "`Click 1`");
 #endif
-  m_buttons->SetControlExpression(2, "`1`");  // 1
-  m_buttons->SetControlExpression(3, "`2`");  // 2
-  m_buttons->SetControlExpression(4, "Q");    // -
-  m_buttons->SetControlExpression(5, "E");    // +
+  m_buttons->SetControlExpression(2, "`1`");     // 1
+  m_buttons->SetControlExpression(3, "`2`");     // 2
+  m_buttons->SetControlExpression(4, "Q");       // -
+  m_buttons->SetControlExpression(5, "E");       // +
 
 #ifdef _WIN32
   m_buttons->SetControlExpression(6, "RETURN");  // Home
@@ -729,6 +747,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_imu_gyroscope->SetControlExpression(3, "`Gyro Roll Right`");
   m_imu_gyroscope->SetControlExpression(4, "`Gyro Yaw Left`");
   m_imu_gyroscope->SetControlExpression(5, "`Gyro Yaw Right`");
+#endif
 
   // Enable Nunchuk:
   constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;

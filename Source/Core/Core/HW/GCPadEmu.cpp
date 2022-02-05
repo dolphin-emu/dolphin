@@ -170,12 +170,16 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+#ifdef ANDROID
+  // Rumble
+  m_rumble->SetControlExpression(0, "`Android/0/Device Sensors:Motor 0`");
+#else
   // Buttons
-  m_buttons->SetControlExpression(0, "`X`");  // A
-  m_buttons->SetControlExpression(1, "`Z`");  // B
-  m_buttons->SetControlExpression(2, "`C`");  // X
-  m_buttons->SetControlExpression(3, "`S`");  // Y
-  m_buttons->SetControlExpression(4, "`D`");  // Z
+  m_buttons->SetControlExpression(0, "`X`");       // A
+  m_buttons->SetControlExpression(1, "`Z`");       // B
+  m_buttons->SetControlExpression(2, "`C`");       // X
+  m_buttons->SetControlExpression(3, "`S`");       // Y
+  m_buttons->SetControlExpression(4, "`D`");       // Z
 #ifdef _WIN32
   m_buttons->SetControlExpression(5, "`RETURN`");  // Start
 #else
@@ -225,6 +229,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   // Triggers
   m_triggers->SetControlExpression(0, "`Q`");  // L
   m_triggers->SetControlExpression(1, "`W`");  // R
+#endif
 }
 
 bool GCPad::GetMicButton() const

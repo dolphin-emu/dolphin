@@ -120,6 +120,7 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
+#ifndef ANDROID
   auto hotkey_string = [](std::vector<std::string> inputs) {
     return "@(" + JoinStrings(inputs, "+") + ')';
   };
@@ -193,6 +194,7 @@ void FreeLookController::LoadDefaults(const ControllerInterface& ciface)
                                         "if(`Click 1`,`RelativeMouse X-` * 0.10, 0)");
   m_rotation_gyro->SetControlExpression(GyroButtons::YawRight,
                                         "if(`Click 1`,`RelativeMouse X+` * 0.10, 0)");
+#endif
 #endif
 }
 
