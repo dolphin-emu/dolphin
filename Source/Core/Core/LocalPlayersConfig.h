@@ -13,4 +13,5 @@ namespace AddPlayers
 {
   std::vector<AddPlayers> LoadPlayers(const IniFile& localIni);
   void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& players);
-}  // namespace AddPlayers
+  std::vector<std::string> LoadPortPlayers(IniFile& inifile);
+  }  // namespace AddPlayers

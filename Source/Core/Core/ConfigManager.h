@@ -108,10 +108,11 @@ struct SConfig
 
   // Save settings
   void SaveSettings();
-  //void SaveLocalSettings();
+  void SaveLocalSettings();
 
   // Load settings
   void LoadSettings();
+  void LoadLocalSettings();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }

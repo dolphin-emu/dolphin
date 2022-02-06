@@ -37,13 +37,18 @@ LocalPlayersWidget::LocalPlayersWidget(QWidget* parent) : QWidget(parent)
   IniFile local_players_ini;
   local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
   m_local_players = AddPlayers::LoadPlayers(local_players_ini);
+
   CreateLayout();
-  LoadPlayers();
+  UpdatePlayers();
   ConnectWidgets();
 }
 
 void LocalPlayersWidget::CreateLayout()
 {
+  IniFile local_players_ini;
+  local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  m_local_players = AddPlayers::LoadPlayers(local_players_ini);
+
   m_player_box = new QGroupBox(tr("Players list"));
   m_player_layout = new QGridLayout();
   m_player_layout->setVerticalSpacing(7);
@@ -96,12 +101,10 @@ void LocalPlayersWidget::CreateLayout()
 
 void LocalPlayersWidget::UpdatePlayers()
 {
-  // Currently, this removes the combo box selections that were made previous to adding a player
-  // I don't know how to fix that. If you remove these clears then each item in the list gets duplicated
-  m_player_list_1->clear();
-  m_player_list_2->clear();
-  m_player_list_3->clear();
-  m_player_list_4->clear();
+  //m_player_list_1->clear();
+  //m_player_list_2->clear();
+  //m_player_list_3->clear();
+  //m_player_list_4->clear();
 
   // List an option to not select a player
   m_player_list_1->addItem(tr("No Player Selected"));
@@ -130,6 +133,19 @@ void LocalPlayersWidget::UpdatePlayers()
   LoadPlayers();
 }
 
+void LocalPlayersWidget::AddPlayerToList()
+{
+  auto playerAdd = m_local_players[m_local_players.size() - 1];
+  auto username = QString::fromStdString(playerAdd.username)
+                      .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
+                      .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
+
+  m_player_list_1->addItem(username);
+  m_player_list_2->addItem(username);
+  m_player_list_3->addItem(username);
+  m_player_list_4->addItem(username);
+}
+
 void LocalPlayersWidget::OnAddPlayers()
 {
   AddPlayers::AddPlayers name;
@@ -141,7 +157,7 @@ void LocalPlayersWidget::OnAddPlayers()
 
   m_local_players.push_back(std::move(name));
   SavePlayers();
-  UpdatePlayers();
+  AddPlayerToList();
 }
 
 void LocalPlayersWidget::SavePlayers()
@@ -153,48 +169,29 @@ void LocalPlayersWidget::SavePlayers()
   local_players_path.Load(ini_path);
   AddPlayers::SavePlayers(local_players_path, m_local_players);
   local_players_path.Save(ini_path);
-
-  SConfig& settings = SConfig::GetInstance();
-  //settings.SaveLocalSettings();
-  settings.SaveSettings();
 }
 
 void LocalPlayersWidget::LoadPlayers()
 {
+  SConfig& settings = SConfig::GetInstance();
+  settings.SaveLocalSettings();
 
-  m_player_list_1->clear();
-  m_player_list_2->clear();
-  m_player_list_3->clear();
-  m_player_list_4->clear();
+  std::string P1 = SConfig::GetInstance().m_local_player_1;
+  std::string P2 = SConfig::GetInstance().m_local_player_2;
+  std::string P3 = SConfig::GetInstance().m_local_player_3;
+  std::string P4 = SConfig::GetInstance().m_local_player_4;
 
-  // List an option to not select a player
-  m_player_list_1->addItem(tr("No Player Selected"));
-  m_player_list_2->addItem(tr("No Player Selected"));
-  m_player_list_3->addItem(tr("No Player Selected"));
-  m_player_list_4->addItem(tr("No Player Selected"));
-
-  // List avalable players in LocalPlayers.ini
-  for (size_t i = 0; i < m_local_players.size(); i++)
+  for (int i = 0; i < m_player_list_1->count(); i++)
   {
-    const auto& player = m_local_players[i];
-
-    auto username = QString::fromStdString(player.username)
-                        .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
-                        .replace(QStringLiteral("&gt;"), QChar::fromLatin1('>'));
-
-    // In the future, i should add in a feature that if a player is selected on another port, they
-    // won't appear on the dropdown some conditional that checks the other ports before adding the
-    // item
-    m_player_list_1->addItem(username);
-    m_player_list_2->addItem(username);
-    m_player_list_3->addItem(username);
-    m_player_list_4->addItem(username);
+    if (P1 == m_player_list_1->itemText(i).toStdString())
+      m_player_list_1->setCurrentIndex(i);
+    else if (P2 == m_player_list_2->itemText(i).toStdString())
+      m_player_list_2->setCurrentIndex(i);
+    else if (P3 == m_player_list_3->itemText(i).toStdString())
+      m_player_list_3->setCurrentIndex(i);
+    else if (P4 == m_player_list_4->itemText(i).toStdString())
+      m_player_list_4->setCurrentIndex(i);
   }
-  /*
-  m_player_list_1->setCurrentIndex(m_player_list_1->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_1)));
-  m_player_list_2->setCurrentIndex(m_player_list_2->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_2)));
-  m_player_list_3->setCurrentIndex(m_player_list_3->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_3)));
-  m_player_list_4->setCurrentIndex(m_player_list_4->findText(QString::fromStdString(SConfig::GetInstance().m_local_player_4)));*/
 }
 
 void LocalPlayersWidget::ConnectWidgets()
