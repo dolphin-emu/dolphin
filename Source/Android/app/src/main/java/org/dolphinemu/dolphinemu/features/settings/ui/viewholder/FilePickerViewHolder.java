@@ -13,7 +13,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
@@ -91,7 +91,7 @@ public final class FilePickerViewHolder extends SettingViewHolder
     }
 
     int position = getAdapterPosition();
-    if (mFilePicker.getRequestType() == MainPresenter.REQUEST_DIRECTORY)
+    if (mFilePicker.getRequestType() == MainActivity.REQUEST_DIRECTORY)
     {
       getAdapter().onFilePickerDirectoryClick(mItem, position);
     }

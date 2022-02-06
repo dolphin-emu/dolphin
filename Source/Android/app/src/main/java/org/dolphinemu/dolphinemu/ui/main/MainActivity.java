@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.ui.main;
 
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -10,10 +11,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
@@ -23,34 +28,56 @@ import com.google.android.material.tabs.TabLayout;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.OnlineUpdateProgressBarDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel;
+import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.utils.Action1;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
+import org.dolphinemu.dolphinemu.utils.CompletableFuture;
+import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
+import org.dolphinemu.dolphinemu.BuildConfig;
+
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
  * individually display a grid of available games for each Fragment, in a tabbed layout.
  */
 public final class MainActivity extends AppCompatActivity
-        implements MainView, SwipeRefreshLayout.OnRefreshListener
+        implements SwipeRefreshLayout.OnRefreshListener
 {
+  public static final int REQUEST_DIRECTORY = 1;
+  public static final int REQUEST_GAME_FILE = 2;
+  public static final int REQUEST_SD_FILE = 3;
+  public static final int REQUEST_WAD_FILE = 4;
+  public static final int REQUEST_WII_SAVE_FILE = 5;
+  public static final int REQUEST_NAND_BIN_FILE = 6;
+
   private ViewPager mViewPager;
   private Toolbar mToolbar;
   private TabLayout mTabLayout;
   private FloatingActionButton mFab;
 
-  private final MainPresenter mPresenter = new MainPresenter(this, this);
+  private String mDirToAdd;
+
+  private static boolean sShouldRescanLibrary = true;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -63,9 +90,9 @@ public final class MainActivity extends AppCompatActivity
     setSupportActionBar(mToolbar);
 
     // Set up the FAB.
-    mFab.setOnClickListener(view -> mPresenter.onFabClick());
+    mFab.setOnClickListener(view -> onFabClick());
 
-    mPresenter.onCreate();
+    getPresenter();
 
     // Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
     if (savedInstanceState == null)
@@ -78,10 +105,38 @@ public final class MainActivity extends AppCompatActivity
     }
   }
 
+  public void getPresenter()
+  {
+    String versionName = BuildConfig.VERSION_NAME;
+    setVersionString(versionName);
+
+    GameFileCacheManager.getGameFiles().observe(this, (gameFiles) -> showGames());
+
+    Observer<Boolean> refreshObserver = (isLoading) ->
+    {
+      setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
+    };
+    GameFileCacheManager.isLoading().observe(this, refreshObserver);
+    GameFileCacheManager.isRescanning().observe(this, refreshObserver);
+  }
+
   @Override
   protected void onResume()
   {
     super.onResume();
+
+    if (mDirToAdd != null)
+    {
+      GameFileCache.addGameFolder(mDirToAdd);
+      mDirToAdd = null;
+    }
+
+    if (sShouldRescanLibrary)
+    {
+      GameFileCacheManager.startRescan(this);
+    }
+
+    sShouldRescanLibrary = true;
 
     if (DirectoryInitialization.shouldStart(this))
     {
@@ -89,8 +144,6 @@ public final class MainActivity extends AppCompatActivity
       new AfterDirectoryInitializationRunner()
               .runWithLifecycle(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
-
-    mPresenter.onResume();
 
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
@@ -101,7 +154,6 @@ public final class MainActivity extends AppCompatActivity
   protected void onDestroy()
   {
     super.onDestroy();
-    mPresenter.onDestroy();
   }
 
   @Override
@@ -118,7 +170,7 @@ public final class MainActivity extends AppCompatActivity
 
     if (isChangingConfigurations())
     {
-      MainPresenter.skipRescanningLibrary();
+      skipRescanningLibrary();
     }
     else if (DirectoryInitialization.areDolphinDirectoriesReady())
     {
@@ -154,23 +206,64 @@ public final class MainActivity extends AppCompatActivity
     return true;
   }
 
-  /**
-   * MainView
-   */
+  public boolean handleOptionSelection(int itemId, ComponentActivity activity)
+  {
+    switch (itemId)
+    {
+      case R.id.menu_settings:
+        launchSettingsActivity(MenuTag.SETTINGS);
+        return true;
 
-  @Override
+      case R.id.menu_refresh:
+        setRefreshing(true);
+        GameFileCacheManager.startRescan(activity);
+        return true;
+
+      case R.id.button_add_directory:
+        launchFileListActivity();
+        return true;
+
+      case R.id.menu_open_file:
+        launchOpenFileActivity(REQUEST_GAME_FILE);
+        return true;
+
+      case R.id.menu_load_wii_system_menu:
+        launchWiiSystemMenu();
+        return true;
+
+      case R.id.menu_online_system_update:
+        launchOnlineUpdate();
+        return true;
+
+      case R.id.menu_install_wad:
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+                () -> launchOpenFileActivity(REQUEST_WAD_FILE));
+        return true;
+
+      case R.id.menu_import_wii_save:
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+                () -> launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
+        return true;
+
+      case R.id.menu_import_nand_backup:
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+                () -> launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
+        return true;
+    }
+
+    return false;
+  }
+
   public void setVersionString(String version)
   {
     mToolbar.setSubtitle(version);
   }
 
-  @Override
   public void launchSettingsActivity(MenuTag menuTag)
   {
     SettingsActivity.launch(this, menuTag);
   }
 
-  @Override
   public void launchFileListActivity()
   {
     if (DirectoryInitialization.preferOldFolderPicker(this))
@@ -180,17 +273,191 @@ public final class MainActivity extends AppCompatActivity
     else
     {
       Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-      startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY);
+      startActivityForResult(intent, REQUEST_DIRECTORY);
     }
   }
 
-  @Override
   public void launchOpenFileActivity(int requestCode)
   {
     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
     intent.addCategory(Intent.CATEGORY_OPENABLE);
     intent.setType("*/*");
     startActivityForResult(intent, requestCode);
+  }
+
+  /**
+   * Called when a selection is made using the Storage Access Framework folder picker.
+   */
+  public void onDirectorySelected(Intent result)
+  {
+    Uri uri = result.getData();
+
+    boolean recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
+    String[] childNames = ContentHandler.getChildNames(uri, recursive);
+    if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
+            FileBrowserHelper.getExtension(name, false))))
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+      builder.setMessage(getString(R.string.wrong_file_extension_in_directory,
+              FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)));
+      builder.setPositiveButton(R.string.ok, null);
+      builder.show();
+    }
+
+    ContentResolver contentResolver = getContentResolver();
+    Uri canonicalizedUri = contentResolver.canonicalize(uri);
+    if (canonicalizedUri != null)
+      uri = canonicalizedUri;
+
+    int takeFlags = result.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
+    getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+    mDirToAdd = uri.toString();
+  }
+
+  /**
+   * Called when a selection is made using the legacy folder picker.
+   */
+  public void onDirectorySelected(String dir)
+  {
+    mDirToAdd = dir;
+  }
+
+  public void onFabClick()
+  {
+    launchFileListActivity();
+  }
+
+  public void installWAD(String path)
+  {
+    ThreadUtil.runOnThreadAndShowResult(this, R.string.import_in_progress, 0, () ->
+    {
+      boolean success = WiiUtils.installWAD(path);
+      int message = success ? R.string.wad_install_success : R.string.wad_install_failure;
+      return getResources().getString(message);
+    });
+  }
+
+  public void importWiiSave(String path)
+  {
+    CompletableFuture<Boolean> canOverwriteFuture = new CompletableFuture<>();
+
+    ThreadUtil.runOnThreadAndShowResult(this, R.string.import_in_progress, 0, () ->
+    {
+      BooleanSupplier canOverwrite = () ->
+      {
+        runOnUiThread(() ->
+        {
+          AlertDialog.Builder builder =
+                  new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+          builder.setMessage(R.string.wii_save_exists);
+          builder.setCancelable(false);
+          builder.setPositiveButton(R.string.yes, (dialog, i) -> canOverwriteFuture.complete(true));
+          builder.setNegativeButton(R.string.no, (dialog, i) -> canOverwriteFuture.complete(false));
+          builder.show();
+        });
+
+        try
+        {
+          return canOverwriteFuture.get();
+        }
+        catch (ExecutionException | InterruptedException e)
+        {
+          // Shouldn't happen
+          throw new RuntimeException(e);
+        }
+      };
+
+      int result = WiiUtils.importWiiSave(path, canOverwrite);
+
+      int message;
+      switch (result)
+      {
+        case WiiUtils.RESULT_SUCCESS:
+          message = R.string.wii_save_import_success;
+          break;
+        case WiiUtils.RESULT_CORRUPTED_SOURCE:
+          message = R.string.wii_save_import_corruped_source;
+          break;
+        case WiiUtils.RESULT_TITLE_MISSING:
+          message = R.string.wii_save_import_title_missing;
+          break;
+        case WiiUtils.RESULT_CANCELLED:
+          return null;
+        default:
+          message = R.string.wii_save_import_error;
+          break;
+      }
+      return getResources().getString(message);
+    });
+  }
+
+  public void importNANDBin(String path)
+  {
+    AlertDialog.Builder builder =
+            new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+
+    builder.setMessage(R.string.nand_import_warning);
+    builder.setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
+    builder.setPositiveButton(R.string.yes, (dialog, i) ->
+    {
+      dialog.dismiss();
+
+      ThreadUtil.runOnThreadAndShowResult(this, R.string.import_in_progress,
+              R.string.do_not_close_app, () ->
+              {
+                // ImportNANDBin unfortunately doesn't provide any result value...
+                // It does however show a panic alert if something goes wrong.
+                WiiUtils.importNANDBin(path);
+                return null;
+              });
+    });
+
+    builder.show();
+  }
+
+  public static void skipRescanningLibrary()
+  {
+    sShouldRescanLibrary = false;
+  }
+
+  private void launchOnlineUpdate()
+  {
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      SystemUpdateViewModel viewModel =
+              new ViewModelProvider(this).get(SystemUpdateViewModel.class);
+      viewModel.setRegion(-1);
+      OnlineUpdateProgressBarDialogFragment progressBarFragment =
+              new OnlineUpdateProgressBarDialogFragment();
+      progressBarFragment
+              .show(getSupportFragmentManager(), "OnlineUpdateProgressBarDialogFragment");
+      progressBarFragment.setCancelable(false);
+    }
+    else
+    {
+      SystemMenuNotInstalledDialogFragment dialogFragment =
+              new SystemMenuNotInstalledDialogFragment();
+      dialogFragment
+              .show(getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+    }
+  }
+
+  private void launchWiiSystemMenu()
+  {
+    WiiUtils.isSystemMenuInstalled();
+
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      EmulationActivity.launchSystemMenu(this);
+    }
+    else
+    {
+      SystemMenuNotInstalledDialogFragment dialogFragment =
+              new SystemMenuNotInstalledDialogFragment();
+      dialogFragment
+              .show(getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+    }
   }
 
   /**
@@ -209,42 +476,42 @@ public final class MainActivity extends AppCompatActivity
       Uri uri = result.getData();
       switch (requestCode)
       {
-        case MainPresenter.REQUEST_DIRECTORY:
+        case REQUEST_DIRECTORY:
           if (DirectoryInitialization.preferOldFolderPicker(this))
           {
-            mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
+            onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
           }
           else
           {
-            mPresenter.onDirectorySelected(result);
+            onDirectorySelected(result);
           }
           break;
 
-        case MainPresenter.REQUEST_GAME_FILE:
+        case REQUEST_GAME_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri,
                   FileBrowserHelper.GAME_LIKE_EXTENSIONS,
                   () -> EmulationActivity.launch(this, result.getData().toString(), false));
           break;
 
-        case MainPresenter.REQUEST_WAD_FILE:
+        case REQUEST_WAD_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.WAD_EXTENSION,
-                  () -> mPresenter.installWAD(result.getData().toString()));
+                  () -> installWAD(result.getData().toString()));
           break;
 
-        case MainPresenter.REQUEST_WII_SAVE_FILE:
+        case REQUEST_WII_SAVE_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
-                  () -> mPresenter.importWiiSave(result.getData().toString()));
+                  () -> importWiiSave(result.getData().toString()));
           break;
 
-        case MainPresenter.REQUEST_NAND_BIN_FILE:
+        case REQUEST_NAND_BIN_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
-                  () -> mPresenter.importNANDBin(result.getData().toString()));
+                  () -> importNANDBin(result.getData().toString()));
           break;
       }
     }
     else
     {
-      MainPresenter.skipRescanningLibrary();
+      skipRescanningLibrary();
     }
   }
 
@@ -276,7 +543,7 @@ public final class MainActivity extends AppCompatActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item)
   {
-    return mPresenter.handleOptionSelection(item.getItemId(), this);
+    return handleOptionSelection(item.getItemId(), this);
   }
 
   /**
@@ -292,7 +559,6 @@ public final class MainActivity extends AppCompatActivity
   /**
    * Shows or hides the loading indicator.
    */
-  @Override
   public void setRefreshing(boolean refreshing)
   {
     forEachPlatformGamesView(view -> view.setRefreshing(refreshing));
@@ -301,7 +567,6 @@ public final class MainActivity extends AppCompatActivity
   /**
    * To be called when the game file cache is updated.
    */
-  @Override
   public void showGames()
   {
     forEachPlatformGamesView(PlatformGamesView::showGames);

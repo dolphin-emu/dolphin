@@ -23,7 +23,7 @@ import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 import org.dolphinemu.dolphinemu.features.cheats.model.GeckoCheat;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.ui.TwoPaneOnBackPressedCallback;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 
 public class CheatsActivity extends AppCompatActivity
         implements SlidingPaneLayout.PanelSlideListener
@@ -62,7 +62,7 @@ public class CheatsActivity extends AppCompatActivity
   {
     super.onCreate(savedInstanceState);
 
-    MainPresenter.skipRescanningLibrary();
+    MainActivity.skipRescanningLibrary();
 
     Intent intent = getIntent();
     mGameId = intent.getStringExtra(ARG_GAME_ID);

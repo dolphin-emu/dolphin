@@ -20,7 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
 import java.util.Set;
@@ -64,7 +64,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     // But if we came here after UserDataActivity restarted the app, we do want to rescan.
     if (savedInstanceState == null)
     {
-      MainPresenter.skipRescanningLibrary();
+      MainActivity.skipRescanningLibrary();
     }
 
     setContentView(R.layout.activity_settings);
@@ -173,15 +173,15 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == RESULT_OK)
     {
-      if (requestCode != MainPresenter.REQUEST_DIRECTORY)
+      if (requestCode != MainActivity.REQUEST_DIRECTORY)
       {
         Uri uri = canonicalizeIfPossible(result.getData());
 
-        Set<String> validExtensions = requestCode == MainPresenter.REQUEST_GAME_FILE ?
+        Set<String> validExtensions = requestCode == MainActivity.REQUEST_GAME_FILE ?
                 FileBrowserHelper.GAME_EXTENSIONS : FileBrowserHelper.RAW_EXTENSION;
 
         int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
-        if (requestCode != MainPresenter.REQUEST_GAME_FILE)
+        if (requestCode != MainActivity.REQUEST_GAME_FILE)
           flags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
         int takeFlags = flags & result.getFlags();
 

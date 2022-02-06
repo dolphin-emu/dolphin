@@ -23,8 +23,6 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
-import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
@@ -40,9 +38,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public final class TvMainActivity extends FragmentActivity
-        implements MainView, SwipeRefreshLayout.OnRefreshListener
+        implements SwipeRefreshLayout.OnRefreshListener
 {
-  private final MainPresenter mPresenter = new MainPresenter(this, this);
+  private final MainActivity mActivity = new MainActivity();
 
   private SwipeRefreshLayout mSwipeRefresh;
 
@@ -57,8 +55,6 @@ public final class TvMainActivity extends FragmentActivity
     setContentView(R.layout.activity_tv_main);
 
     setupUI();
-
-    mPresenter.onCreate();
 
     // Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
     if (savedInstanceState == null)
@@ -78,8 +74,6 @@ public final class TvMainActivity extends FragmentActivity
       GameFileCacheManager.startLoad(this);
     }
 
-    mPresenter.onResume();
-
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
     refetchMetadata();
@@ -89,7 +83,6 @@ public final class TvMainActivity extends FragmentActivity
   protected void onDestroy()
   {
     super.onDestroy();
-    mPresenter.onDestroy();
   }
 
   @Override
@@ -106,7 +99,7 @@ public final class TvMainActivity extends FragmentActivity
 
     if (isChangingConfigurations())
     {
-      MainPresenter.skipRescanningLibrary();
+      MainActivity.skipRescanningLibrary();
     }
 
     StartupHandler.setSessionTime(this);
@@ -143,7 +136,7 @@ public final class TvMainActivity extends FragmentActivity
               if (item instanceof TvSettingsItem)
               {
                 TvSettingsItem settingsItem = (TvSettingsItem) item;
-                mPresenter.handleOptionSelection(settingsItem.getItemId(), this);
+                mActivity.handleOptionSelection(settingsItem.getItemId(), this);
               }
               else
               {
@@ -160,51 +153,19 @@ public final class TvMainActivity extends FragmentActivity
    * MainView
    */
 
-  @Override
   public void setVersionString(String version)
   {
     mBrowseFragment.setTitle(version);
   }
 
-  @Override
-  public void launchSettingsActivity(MenuTag menuTag)
-  {
-    SettingsActivity.launch(this, menuTag);
-  }
-
-  @Override
-  public void launchFileListActivity()
-  {
-    if (DirectoryInitialization.preferOldFolderPicker(this))
-    {
-      FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS);
-    }
-    else
-    {
-      Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-      startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY);
-    }
-  }
-
-  @Override
-  public void launchOpenFileActivity(int requestCode)
-  {
-    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-    intent.addCategory(Intent.CATEGORY_OPENABLE);
-    intent.setType("*/*");
-    startActivityForResult(intent, requestCode);
-  }
-
   /**
    * Shows or hides the loading indicator.
    */
-  @Override
   public void setRefreshing(boolean refreshing)
   {
     mSwipeRefresh.setRefreshing(refreshing);
   }
 
-  @Override
   public void showGames()
   {
     // Kicks off the program services to update all channels
@@ -239,42 +200,42 @@ public final class TvMainActivity extends FragmentActivity
       Uri uri = result.getData();
       switch (requestCode)
       {
-        case MainPresenter.REQUEST_DIRECTORY:
+        case MainActivity.REQUEST_DIRECTORY:
           if (DirectoryInitialization.preferOldFolderPicker(this))
           {
-            mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
+            mActivity.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
           }
           else
           {
-            mPresenter.onDirectorySelected(result);
+            mActivity.onDirectorySelected(result);
           }
           break;
 
-        case MainPresenter.REQUEST_GAME_FILE:
+        case MainActivity.REQUEST_GAME_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri,
                   FileBrowserHelper.GAME_LIKE_EXTENSIONS,
                   () -> EmulationActivity.launch(this, result.getData().toString(), false));
           break;
 
-        case MainPresenter.REQUEST_WAD_FILE:
+        case MainActivity.REQUEST_WAD_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.WAD_EXTENSION,
-                  () -> mPresenter.installWAD(result.getData().toString()));
+                  () -> mActivity.installWAD(result.getData().toString()));
           break;
 
-        case MainPresenter.REQUEST_WII_SAVE_FILE:
+        case MainActivity.REQUEST_WII_SAVE_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
-                  () -> mPresenter.importWiiSave(result.getData().toString()));
+                  () -> mActivity.importWiiSave(result.getData().toString()));
           break;
 
-        case MainPresenter.REQUEST_NAND_BIN_FILE:
+        case MainActivity.REQUEST_NAND_BIN_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.BIN_EXTENSION,
-                  () -> mPresenter.importNANDBin(result.getData().toString()));
+                  () -> mActivity.importNANDBin(result.getData().toString()));
           break;
       }
     }
     else
     {
-      MainPresenter.skipRescanningLibrary();
+      MainActivity.skipRescanningLibrary();
     }
   }
 

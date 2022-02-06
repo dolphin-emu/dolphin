@@ -39,7 +39,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettin
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
 
 import java.util.ArrayList;
@@ -396,19 +396,19 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_RECURSIVE_ISO_PATHS,
             R.string.search_subfolders, 0));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_DEFAULT_ISO, R.string.default_ISO, 0,
-            MainPresenter.REQUEST_GAME_FILE, null));
+            MainActivity.REQUEST_GAME_FILE, null));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_FS_PATH, R.string.wii_NAND_root, 0,
-            MainPresenter.REQUEST_DIRECTORY, "/Wii"));
+            MainActivity.REQUEST_DIRECTORY, "/Wii"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_DUMP_PATH, R.string.dump_path, 0,
-            MainPresenter.REQUEST_DIRECTORY, "/Dump"));
+            MainActivity.REQUEST_DIRECTORY, "/Dump"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_LOAD_PATH, R.string.load_path, 0,
-            MainPresenter.REQUEST_DIRECTORY, "/Load"));
+            MainActivity.REQUEST_DIRECTORY, "/Load"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_RESOURCEPACK_PATH,
-            R.string.resource_pack_path, 0, MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
+            R.string.resource_pack_path, 0, MainActivity.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
-            MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
+            MainActivity.REQUEST_SD_FILE, "/Wii/sd.raw"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_WFS_PATH, R.string.wfs_path, 0,
-            MainPresenter.REQUEST_DIRECTORY, "/WFS"));
+            MainActivity.REQUEST_DIRECTORY, "/WFS"));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)

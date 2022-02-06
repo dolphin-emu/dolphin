@@ -17,7 +17,7 @@ import com.nononsenseapps.filepicker.Utils;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.CustomFilePickerActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public final class FileBrowserHelper
             Environment.getExternalStorageDirectory().getPath());
     i.putExtra(CustomFilePickerActivity.EXTRA_EXTENSIONS, extensions);
 
-    activity.startActivityForResult(i, MainPresenter.REQUEST_DIRECTORY);
+    activity.startActivityForResult(i, MainActivity.REQUEST_DIRECTORY);
   }
 
   @Nullable
