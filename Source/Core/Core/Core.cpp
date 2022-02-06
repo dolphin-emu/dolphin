@@ -89,6 +89,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
@@ -179,12 +180,7 @@ void FrameUpdateOnCPUThread()
 void OnFrameEnd()
 {
   AutoGolfMode();
-
-  // if training mode gecko code is on & if not on netplay
-  // using this feature on netplay can be considered an unfair advantage
-  if (Memory::Read_U8(0x802EBFB4) == 1 && !NetPlay::IsNetPlayRunning())
-    TrainingMode();
-
+  TrainingMode();
   DisplayBatterFielder();
 
 
@@ -197,7 +193,6 @@ void OnFrameEnd()
     s_stat_tracker->Run();
   }
 }
-
 
 void AutoGolfMode()
 {
@@ -222,8 +217,19 @@ bool IsGolfMode()
   return out;
 }
 
+// TODO: add stats for the following: base runner coordinates; ball coords frame before being caught, character coords after diving/jumping/wall jumping
 void TrainingMode()
 {
+  // if training mode config is on and not ranked netplay
+  // using this feature on ranked can be considered an unfair advantage
+  if (!g_ActiveConfig.bTrainingModeOverlay || isRankedMode())
+    return;
+
+  //bool isPitchThrown = Memory::Read_U8(0x80895D6C) == 1 ? true : false;
+  bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
+  bool isInGame = Memory::Read_U8(0x80871A6D) == 1 ? true : false;
+
+  // Batting Training Mode stats
   if (Memory::Read_U8(0x80892ADA) == 1)  // If contact is made
   {
     u8 BatterPort = Memory::Read_U8(0x802EBF95);
@@ -239,10 +245,10 @@ void TrainingMode()
     int chargeUp = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x80890968)) * 100)); 
     int chargeDown = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x8089096C)) * 100));
 
-    float angle = roundf((float)Memory::Read_U16(0x808926D4) * 3600 / 4096) / 10; // 0x400 == 90°, 0x800 == 180°, 0x1000 == 360°
-    float xVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 600) / 10;  // * 60 cause default units are meters per frame
-    float yVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E54)) * 600) / 10;
-    float zVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 600) / 10;
+    float angle = roundf((float)Memory::Read_U16(0x808926D4) * 36000 / 4096) / 100; // 0x400 == 90°, 0x800 == 180°, 0x1000 == 360°
+    float xVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 6000) / 100;  // * 60 cause default units are meters per frame
+    float yVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E54)) * 6000) / 100;
+    float zVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 6000) / 100;
     float netVelocity = vectorMagnitude(xVelocity, yVelocity, zVelocity);
 
     // convert type of contact to string
@@ -282,16 +288,18 @@ void TrainingMode()
     int totalCharge;
     chargeUp == 100 ? totalCharge = chargeDown : totalCharge = chargeUp;
 
-    OSD::AddMessage(fmt::format(
+    OSD::AddTypedMessage(OSD::MessageType::TrainingModeBatting, fmt::format(
+      "Batting Data:                    \n"
       "Contact Frame:  {}\n"
       "Type of Contact:  {}\n"
       "Input Direction:  {}\n"
       "Charge Percent:  {}%\n"
       "Ball Angle:  {}°\n\n"
-      "X Velocity:  {} m/s  -->  {} mph\n"
-      "Y Velocity:  {} m/s  -->  {} mph\n"
-      "Z Velocity:  {} m/s  -->  {} mph\n"
-      "Net Velocity:  {} m/s  -->  {} mph",
+      "Exit Velocities:  \n"
+      "X :  {} m/s  -->  {} mph\n"
+      "Y:  {} m/s  -->  {} mph\n"
+      "Z :  {} m/s  -->  {} mph\n"
+      "Net:  {} m/s  -->  {} mph",
       contactFrame,
       typeOfContact,
       inputDirection,
@@ -300,14 +308,81 @@ void TrainingMode()
       xVelocity, ms_to_mph(xVelocity),
       yVelocity, ms_to_mph(yVelocity),
       zVelocity, ms_to_mph(zVelocity),
-      netVelocity, ms_to_mph(netVelocity)
-      ),
-      6000); // message time
+      netVelocity, ms_to_mph(netVelocity)),
+      8000); // message time & color
+    }
+
+
+  // Coordinate data
+  if (isInGame)
+  {
+    float BallPos_X = roundf(u32ToFloat(Memory::Read_U32(0x80890B38)) * 100) / 100;
+    float BallPos_Y = roundf(u32ToFloat(Memory::Read_U32(0x80890B3C)) * 100) / 100;
+    float BallPos_Z = roundf(u32ToFloat(Memory::Read_U32(0x80890B40)) * 100) / 100;
+    float BallVel_X = isField ? roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 6000) / 100 :
+                                roundf(u32ToFloat(Memory::Read_U32(0x808909D8)) * 6000) / 100;
+    float BallVel_Y = isField ? RoundZ(u32ToFloat(Memory::Read_U32(0x80890E54)) * 6000) / 100 :// floor small decimal to prevent weirdness
+                                RoundZ(u32ToFloat(Memory::Read_U32(0x808909DC)) * 6000) / 100;
+    float BallVel_Z = isField ? roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 6000) / 100 :
+                                roundf(u32ToFloat(Memory::Read_U32(0x808909E0)) * 6000) / 100;
+    float BallVel_Net = roundf(vectorMagnitude(BallVel_X, BallVel_Y, BallVel_Z) * 100) / 100;
+
+    int baseOffset= 0x268 * Memory::Read_U8(0x80892801);  // used to get offsed for baseFielderAddr
+    u32 baseFielderAddr = 0x8088F368 + baseOffset;        // 0x0 == x; 0x8 == y; 0xc == z
+
+    float FielderPos_X = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr)) * 100) / 100;
+    float FielderPos_Y = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0xc)) * 100) / 100;
+    float FielderPos_Z = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x8)) * 100) / 100;
+    float FielderVel_X = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x30)) * 6000) / 100;
+    //float FielderVel_Y = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x15C)) * 6000) / 100; // this addr is wrong
+    float FielderVel_Z = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x34)) * 6000) / 100;
+    float FielderVel_Net = roundf(vectorMagnitude(FielderVel_X, 0 /*FielderVel_Y*/, FielderVel_Z) * 100) / 100;
+
+    OSD::AddTypedMessage(OSD::MessageType::TrainingModeBallCoordinates, fmt::format(
+      "Ball Coordinates:                \n"
+      "X:  {}\n"
+      "Y:  {}\n"
+      "Z:  {}\n\n"
+      "Ball Velocity:  \n"
+      "X:  {} m/s  -->  {} mph\n"
+      "Y:  {} m/s  -->  {} mph\n"
+      "Z:  {} m/s  -->  {} mph\n"
+      "Net:  {} m/s  -->  {} mph\n",
+      BallPos_X,
+      BallPos_Y,
+      BallPos_Z,
+      BallVel_X, ms_to_mph(BallVel_X),
+      BallVel_Y, ms_to_mph(BallVel_Y),
+      BallVel_Z, ms_to_mph(BallVel_Z),
+      BallVel_Net, ms_to_mph(BallVel_Net)
+    ), 200, OSD::Color::CYAN);  // short time cause we don't want this info to linger
+
+    OSD::AddTypedMessage(OSD::MessageType::TrainingModeFielderCoordinates, fmt::format(
+      "Fielder Coordinates:             \n"
+      "X:  {}\n"
+      "Y:  {}\n"
+      "Z:  {}\n\n"
+      "Fielder Velocity: \n"
+      "X:  {} m/s  -->  {} mph\n"
+      //"Y:  {} m/s  -->  {} mph\n"
+      "Z:  {} m/s  -->  {} mph\n"
+      "Net:  {} m/s  -->  {} mph",
+      FielderPos_X,
+      FielderPos_Y,
+      FielderPos_Z,
+      FielderVel_X, ms_to_mph(FielderVel_X),
+      //FielderVel_Y, ms_to_mph(FielderVel_Y),
+      FielderVel_Z, ms_to_mph(FielderVel_Z),
+      FielderVel_Net, ms_to_mph(FielderVel_Net)
+    ), 200, OSD::Color::CYAN);
   }
 }
 
 void DisplayBatterFielder()
 {
+  if (!g_ActiveConfig.bShowBatterFielder)
+    return;
+
   u8 BatterPort = Memory::Read_U8(0x802EBF95);
   u8 FielderPort = Memory::Read_U8(0x802EBF94); 
   if (BatterPort == 0 || FielderPort == 0) // game hasn't started yet; do not continue func
@@ -358,15 +433,28 @@ float u32ToFloat(u32 value)
 
 float ms_to_mph(float MetersPerSecond)
 {
-  return roundf(MetersPerSecond * 4.4704) / 10;
+  return roundf(MetersPerSecond * 223.7) / 100;
 }
 
 float vectorMagnitude(float x, float y, float z)
 {
   float sum = pow(x, 2) + pow(y, 2) + pow(z, 2);
-  return roundf(sqrt(sum) * 10) / 10;
+  return roundf(sqrt(sum) * 100) / 100;
 }
 
+float RoundZ(float num)
+{
+  if (num < 50 && num > -50)
+    num = 0;
+  return roundf(num);
+}
+
+bool isRankedMode()
+{
+  if (!NetPlay::IsNetPlayRunning())
+    return false;
+  return NetPlay::NetPlayClient::isRanked();
+}
 
 
 // Display messages and return values

@@ -16,6 +16,9 @@ enum class MessageType
   NetPlayBuffer,
   CurrentFielder,
   CurrentBatter,
+  TrainingModeFielderCoordinates,
+  TrainingModeBallCoordinates,
+  TrainingModeBatting,
 
   // This entry must be kept last so that persistent typed messages are
   // displayed before other messages

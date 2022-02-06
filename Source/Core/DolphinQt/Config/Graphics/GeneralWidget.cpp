@@ -88,6 +88,7 @@ void GeneralWidget::CreateWidgets()
 
   m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
   m_show_batter_fielder = new GraphicsBool(tr("Show Batting / Fielding Player"), Config::GFX_SHOW_BATTER_FIELDER);
+  m_training_mode = new GraphicsBool(tr("Training Mode v1.0"), Config::GFX_TRAINING_MODE);
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
   m_log_render_time =
       new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
@@ -109,6 +110,7 @@ void GeneralWidget::CreateWidgets()
   m_options_layout->addWidget(m_show_ping, 2, 1);
 
   m_options_layout->addWidget(m_show_batter_fielder, 3, 0);
+  m_options_layout->addWidget(m_training_mode, 3, 1);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -273,6 +275,10 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Shows the name of the Batter & Fielder on the screen. Uses Local Players for offline games "
                  "and NetPlay nicknames for online games. Be sure to assign Local Players to the correct port.");
 
+  static const char TR_TRAINING_MODE[] =
+      QT_TR_NOOP("Displays game informaiton on screen in real-time. Useful for "
+                 "practice/testing/labbing purposes.");
+
   m_backend_combo->SetTitle(tr("Backend"));
   m_backend_combo->SetDescription(tr(TR_BACKEND_DESCRIPTION));
 
@@ -290,6 +296,8 @@ void GeneralWidget::AddDescriptions()
   m_show_ping->SetDescription(tr(TR_SHOW_NETPLAY_PING_DESCRIPTION));
 
   m_show_batter_fielder->SetDescription(tr(TR_SHOW_BATTER_FIELDER));
+
+  m_training_mode->SetDescription(tr(TR_TRAINING_MODE));
 
   m_log_render_time->SetDescription(tr(TR_LOG_RENDERTIME_DESCRIPTION));
 

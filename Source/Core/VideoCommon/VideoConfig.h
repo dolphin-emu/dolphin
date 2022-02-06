@@ -80,6 +80,7 @@ struct VideoConfig final
   // Information
   bool bShowFPS = false;
   bool bShowBatterFielder = false;
+  bool bTrainingModeOverlay = false;
   bool bShowNetPlayPing = false;
   bool bShowNetPlayMessages = false;
   bool bOverlayStats = false;

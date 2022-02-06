@@ -1546,11 +1546,13 @@ void NetPlayClient::DisplayPlayersPing()
                        OSD::Duration::SHORT, OSD::Color::CYAN);
 }
 
+bool NetPlayClient::isRanked()
+{
+  return netplay_client->m_ranked_client;
+}
+
 void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
 {
-  if (!g_ActiveConfig.bShowBatterFielder)
-    return;
-
   std::string playername = "";
   u32 color = OSD::Color::CYAN;
   std::array<u32, 4> portColor = {

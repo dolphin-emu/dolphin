@@ -167,7 +167,9 @@ public:
 
   static void AutoGolfMode(bool isField, int BatPort, int FieldPort);
   static void DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt);
-
+  static bool isRanked();
+  bool m_ranked_client = false;
+  
   const PadMappingArray& GetPadMapping() const;
   const GBAConfigArray& GetGBAConfig() const;
   const PadMappingArray& GetWiimoteMapping() const;
@@ -215,8 +217,6 @@ protected:
   SyncIdentifier m_selected_game;
   Common::Flag m_is_running{false};
   Common::Flag m_do_loop{true};
-
-  bool m_ranked_client = false;
 
   // In non-host input authority mode, this is how many packets each client should
   // try to keep in-flight to the other clients. In host input authority mode, this is how
