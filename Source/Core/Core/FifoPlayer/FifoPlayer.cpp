@@ -593,7 +593,7 @@ void FifoPlayer::ClearEfb()
   copy.clamp_bottom = false;
   copy.unknown_bit = false;
   copy.target_pixel_format = static_cast<u32>(EFBCopyFormat::RGBA8) << 1;
-  copy.gamma = 0;
+  copy.gamma = GammaCorrection::Gamma1_0;
   copy.half_scale = false;
   copy.scale_invert = false;
   copy.clear = true;

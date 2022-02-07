@@ -2035,6 +2035,20 @@ struct fmt::formatter<FrameToField> : EnumFormatter<FrameToField::InterlacedOdd>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
+enum class GammaCorrection : u32
+{
+  Gamma1_0 = 0,
+  Gamma1_7 = 1,
+  Gamma2_2 = 2,
+  // Hardware testing indicates this behaves the same as Gamma2_2
+  Invalid2_2 = 3,
+};
+template <>
+struct fmt::formatter<GammaCorrection> : EnumFormatter<GammaCorrection::Invalid2_2>
+{
+  constexpr formatter() : EnumFormatter({"1.0", "1.7", "2.2", "Invalid 2.2"}) {}
+};
+
 union UPE_Copy
 {
   u32 Hex;
@@ -2044,8 +2058,7 @@ union UPE_Copy
   BitField<2, 1, u32> unknown_bit;
   BitField<3, 4, u32> target_pixel_format;  // realformat is (fmt/2)+((fmt&1)*8).... for some reason
                                             // the msb is the lsb (pattern: cycling right shift)
-  // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-  BitField<7, 2, u32> gamma;
+  BitField<7, 2, GammaCorrection> gamma;
   // "mipmap" filter... false = no filter (scale 1:1) ; true = box filter (scale 2:1)
   BitField<9, 1, bool, u32> half_scale;
   BitField<10, 1, bool, u32> scale_invert;  // if set vertical scaling is on
@@ -2084,19 +2097,6 @@ struct fmt::formatter<UPE_Copy>
       else
         clamp = "None";
     }
-    std::string_view gamma = "Invalid";
-    switch (copy.gamma)
-    {
-    case 0:
-      gamma = "1.0";
-      break;
-    case 1:
-      gamma = "1.7";
-      break;
-    case 2:
-      gamma = "2.2";
-      break;
-    }
 
     return fmt::format_to(ctx.out(),
                           "Clamping: {}\n"
@@ -2110,7 +2110,7 @@ struct fmt::formatter<UPE_Copy>
                           "Copy to XFB: {}\n"
                           "Intensity format: {}\n"
                           "Automatic color conversion: {}",
-                          clamp, copy.unknown_bit, copy.tp_realFormat(), gamma,
+                          clamp, copy.unknown_bit, copy.tp_realFormat(), copy.gamma,
                           no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
                           copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
                           no_yes[copy.auto_conv]);
