@@ -62,7 +62,7 @@ static void WriteHeader(ShaderCode& code, APIType api_type)
              "  float y_scale;\n"
              "  float gamma_rcp;\n"
              "  float2 clamp_tb;\n"
-             "  float3 filter_coefficients;\n"
+             "  uint3 filter_coefficients;\n"
              "}};\n");
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
@@ -151,7 +151,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
   // The filter is only applied to the RGB channels, the alpha channel is left intact.
   code.Write("float4 SampleEFB(float2 uv, float2 pixel_size, int xoffset)\n"
              "{{\n");
-  if (params.copy_filter)
+  if (params.all_copy_filter_coefs_needed)
   {
     code.Write("  float4 prev_row = ");
     WriteSampleOp(-1);
@@ -162,9 +162,9 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
                "  float4 next_row = ");
     WriteSampleOp(1);
     code.Write(";\n"
-               "  return float4(min(prev_row.rgb * filter_coefficients[0] +\n"
-               "                      current_row.rgb * filter_coefficients[1] +\n"
-               "                      next_row.rgb * filter_coefficients[2], \n"
+               "  return float4(min(prev_row.rgb * filter_coefficients[0] / 64.0 +\n"
+               "                      current_row.rgb * filter_coefficients[1] / 64.0 +\n"
+               "                      next_row.rgb * filter_coefficients[2] / 64.0, \n"
                "                    float3(1, 1, 1)), current_row.a);\n");
   }
   else
@@ -172,7 +172,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
     code.Write("  float4 current_row = ");
     WriteSampleOp(0);
     code.Write(";\n"
-               "return float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
+               "return float4(min(current_row.rgb * filter_coefficients[1] / 64.0, float3(1, 1, 1)),\n"
                "              current_row.a);\n");
   }
   code.Write("}}\n");

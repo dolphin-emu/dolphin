@@ -6,13 +6,15 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace TextureConversionShaderGen
 {
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
-                         bool scale_by_half, bool copy_filter)
+                         bool scale_by_half, float gamma_rcp,
+                         const std::array<u32, 3>& filter_coefficients)
 {
   TCShaderUid out;
 
@@ -22,7 +24,11 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
   uid_data->is_depth_copy = is_depth_copy;
   uid_data->is_intensity = is_intensity;
   uid_data->scale_by_half = scale_by_half;
-  uid_data->copy_filter = copy_filter;
+  uid_data->all_copy_filter_coefs_needed =
+      TextureCacheBase::AllCopyFilterCoefsNeeded(filter_coefficients);
+  uid_data->copy_filter_can_overflow = TextureCacheBase::CopyFilterCanOverflow(filter_coefficients);
+  // If the gamma is needed, then include that too.
+  uid_data->apply_gamma = gamma_rcp != 1.0f;
 
   return out;
 }
@@ -31,7 +37,7 @@ static void WriteHeader(APIType api_type, ShaderCode& out)
 {
   out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
             "  float2 src_offset, src_size;\n"
-            "  float3 filter_coefficients;\n"
+            "  uint3 filter_coefficients;\n"
             "  float gamma_rcp;\n"
             "  float2 clamp_tb;\n"
             "  float pixel_height;\n"
@@ -98,22 +104,22 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 
   // The copy filter applies to both color and depth copies. This has been verified on hardware.
   // The filter is only applied to the RGB channels, the alpha channel is left intact.
-  if (uid_data->copy_filter)
+  if (uid_data->all_copy_filter_coefs_needed)
   {
     out.Write("  float4 prev_row = SampleEFB(v_tex0, -1.0f);\n"
               "  float4 current_row = SampleEFB(v_tex0, 0.0f);\n"
               "  float4 next_row = SampleEFB(v_tex0, 1.0f);\n"
-              "  float4 texcol = float4(min(prev_row.rgb * filter_coefficients[0] +\n"
-              "                               current_row.rgb * filter_coefficients[1] +\n"
-              "                               next_row.rgb * filter_coefficients[2], \n"
+              "  float4 texcol = float4(min(prev_row.rgb * filter_coefficients[0] / 64.0 +\n"
+              "                               current_row.rgb * filter_coefficients[1] / 64.0 +\n"
+              "                               next_row.rgb * filter_coefficients[2] / 64.0, \n"
               "                             float3(1, 1, 1)), current_row.a);\n");
   }
   else
   {
     out.Write(
         "  float4 current_row = SampleEFB(v_tex0, 0.0f);\n"
-        "  float4 texcol = float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
-        "                         current_row.a);\n");
+        "  float4 texcol = float4(min(current_row.rgb * filter_coefficients[1] / 64.0,\n"
+        "                         float3(1, 1, 1)), current_row.a);\n");
   }
 
   if (uid_data->is_depth_copy)
