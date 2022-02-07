@@ -2125,6 +2125,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     // so if the game does try to use the scrambled texture, dolphin will grab the scrambled
     // texture (or black if copy_to_ram is also disabled) out of ram.
     ERROR_LOG_FMT(VIDEO, "Memory stride too small ({} < {})", dstStride, bytes_per_row);
+    OSD::AddTypedMessage(OSD::MessageType::StrideNotice, "Memory stride too small!");
     copy_to_vram = false;
   }
 
