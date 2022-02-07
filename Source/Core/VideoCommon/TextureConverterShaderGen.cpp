@@ -216,6 +216,8 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   }
   else if (uid_data->is_intensity)
   {
+    out.Write("  texcol = floor(texcol * 255.0) / 255.0;\n");
+
     if (!uid_data->efb_has_alpha)
       out.Write("  texcol.a = 1.0;\n");
 
@@ -250,6 +252,8 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   }
   else
   {
+    out.Write("  texcol = floor(texcol * 255.0) / 255.0;\n");
+
     if (!uid_data->efb_has_alpha)
       out.Write("  texcol.a = 1.0;\n");
 

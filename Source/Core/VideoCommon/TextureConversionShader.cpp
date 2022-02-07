@@ -279,6 +279,8 @@ static void WriteSampleColor(ShaderCode& code, std::string_view color_comp, std:
                              int x_offset, APIType api_type, const EFBCopyParams& params)
 {
   code.Write("  {} = SampleEFB(uv0, pixel_size, {}).{};\n", dest, x_offset, color_comp);
+  if (!params.depth)
+    code.Write("  {0} = floor({0} * 255.0) / 255.0;\n", dest);
 }
 
 static void WriteColorToIntensity(ShaderCode& code, std::string_view src, std::string_view dest)
