@@ -153,6 +153,25 @@ static const std::map<u8, std::string> cPosition = {
     {0xFF, "Inv"}
 };
 
+static const std::map<u8, std::string> cFielderActions = {
+    {0, "None"},
+    {1, "Jump"},
+    {2, "Sliding"},
+    {3, "Walljump"},
+    {0xFE, "Inv-jump"},
+    {0xFF, "Inv-action"}
+};
+
+static const std::map<u8, std::string> cFielderBobbles = {
+    {0, "None"},
+    {1, "Slide/stun lock"},
+    {2, "Unknown"},
+    {3, "Bobble"},
+    {4, "Fireball"},
+    {0x10, "Garlic knockout"},
+    {0xFF, "None"}
+};
+
 //Const for structs
 static const int cRosterSize = 9;
 static const int cNumOfTeams = 2;
@@ -496,7 +515,7 @@ public:
         u32 fielder_x_pos;
         u32 fielder_y_pos;
         u32 fielder_z_pos;
-        u8 bobble; //Bobble info
+        u8 bobble = 0xFF; //Bobble info
         u8 bobble_fielder_roster_loc;
         u8 bobble_fielder_pos;
         u8 bobble_fielder_char_id;
@@ -624,16 +643,16 @@ public:
             return;
         }
 
-        bool outsAtAnyPosition(u8 roster_loc, u8 starting_pos) {
-            for (u8 pos=starting_pos+1; pos < cRosterSize; ++pos){
+        bool outsAtAnyPosition(u8 roster_loc, int starting_pos) {
+            for (int pos=starting_pos; pos < cRosterSize; ++pos){
                 if (out_count_by_position[roster_loc][pos] > 0) { 
                     return true;
                 }
             }
             return false;
         }
-        bool pitchesAtAnyPosition(u8 roster_loc, u8 starting_pos) {
-            for (u8 pos=starting_pos+1; pos < cRosterSize; ++pos){
+        bool pitchesAtAnyPosition(u8 roster_loc, int starting_pos) {
+            for (int pos=starting_pos; pos < cRosterSize; ++pos){
                 if (pitch_count_by_position[roster_loc][pos] > 0) { 
                     return true;
                 }
