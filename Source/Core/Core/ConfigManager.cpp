@@ -115,10 +115,10 @@ void SConfig::LoadLocalSettings()
   IniFile local_players_path;
   local_players_path.Load(ini_path);
   std::vector<std::string> portPlayers = AddPlayers::LoadPortPlayers(local_players_path);
-  m_local_player_1 = portPlayers[0];
-  m_local_player_2 = portPlayers[1];
-  m_local_player_3 = portPlayers[2];
-  m_local_player_4 = portPlayers[3];
+  if (portPlayers.size() > 0) { m_local_player_1 = portPlayers[0]; }
+  if (portPlayers.size() > 1) { m_local_player_2 = portPlayers[1]; }
+  if (portPlayers.size() > 2) { m_local_player_3 = portPlayers[2]; }
+  if (portPlayers.size() > 3) { m_local_player_4 = portPlayers[3]; }
 }
 
 void SConfig::ResetRunningGameMetadata()
