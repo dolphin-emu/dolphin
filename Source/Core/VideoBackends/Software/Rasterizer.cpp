@@ -163,31 +163,33 @@ static void InitSlope(Slope* slope, float f1, float f2, float f3, float DX31, fl
 
 static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
 {
-  const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  const u8 subTexmap = texmap & 3;
+  auto texUnit = bpmem.tex.GetUnit(texmap);
 
   // LOD calculation requires data from the texture mode for bias, etc.
   // it does not seem to use the actual texture size
-  const TexMode0& tm0 = texUnit.texMode0[subTexmap];
-  const TexMode1& tm1 = texUnit.texMode1[subTexmap];
+  const TexMode0& tm0 = texUnit.texMode0;
+  const TexMode1& tm1 = texUnit.texMode1;
 
   float sDelta, tDelta;
+
+  float* uv00 = rasterBlock.Pixel[0][0].Uv[texcoord];
+  float* uv10 = rasterBlock.Pixel[1][0].Uv[texcoord];
+  float* uv01 = rasterBlock.Pixel[0][1].Uv[texcoord];
+
+  float dudx = fabsf(uv00[0] - uv10[0]);
+  float dvdx = fabsf(uv00[1] - uv10[1]);
+  float dudy = fabsf(uv00[0] - uv01[0]);
+  float dvdy = fabsf(uv00[1] - uv01[1]);
+
   if (tm0.diag_lod == LODType::Diagonal)
   {
-    float* uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
-    float* uv1 = rasterBlock.Pixel[1][1].Uv[texcoord];
-
-    sDelta = fabsf(uv0[0] - uv1[0]);
-    tDelta = fabsf(uv0[1] - uv1[1]);
+    sDelta = dudx + dudy;
+    tDelta = dvdx + dvdy;
   }
   else
   {
-    float* uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
-    float* uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
-    float* uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
-
-    sDelta = std::max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
-    tDelta = std::max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));
+    sDelta = std::max(dudx, dudy);
+    tDelta = std::max(dvdx, dvdy);
   }
 
   // get LOD in s28.4

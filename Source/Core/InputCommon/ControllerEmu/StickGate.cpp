@@ -232,6 +232,15 @@ void ReshapableInput::LoadConfig(IniFile::Section* section, const std::string& d
   ControlGroup::LoadConfig(section, default_device, base_name);
 
   const std::string group(base_name + name + '/');
+
+  // Special handling for "Modifier" button "Range" settings which default to 50% instead of 100%.
+  if (const auto* modifier_input = GetModifierInput())
+  {
+    section->Get(group + modifier_input->name + "/Range", &modifier_input->control_ref->range,
+                 50.0);
+    modifier_input->control_ref->range /= 100;
+  }
+
   std::string load_str;
   section->Get(group + CALIBRATION_CONFIG_NAME, &load_str, "");
   const auto load_data = SplitString(load_str, ' ');
@@ -313,11 +322,7 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // This is affected by the modifier's "range" setting which defaults to 50%.
   if (modifier)
   {
-    // TODO: Modifier's range setting gets reset to 100% when the clear button is clicked.
-    // This causes the modifier to not behave how a user might suspect.
-    // Retaining the old scale-by-50% behavior until range is fixed to clear to 50%.
-    dist *= 0.5;
-    // dist *= modifier;
+    dist *= modifier;
   }
 
   // Apply deadzone as a percentage of the user-defined calibration shape/size:
@@ -328,6 +333,11 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
 
   return {std::clamp(std::cos(angle) * dist, -clamp, clamp),
           std::clamp(std::sin(angle) * dist, -clamp, clamp)};
+}
+
+Control* ReshapableInput::GetModifierInput() const
+{
+  return nullptr;
 }
 
 }  // namespace ControllerEmu

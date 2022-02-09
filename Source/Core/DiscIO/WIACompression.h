@@ -141,7 +141,7 @@ private:
   u32 m_rvz_packed_size;
 
   u32 m_size = 0;
-  bool m_junk;
+  bool m_junk = false;
   LaggedFibonacciGenerator m_lfg;
 };
 
@@ -178,7 +178,7 @@ public:
 
 private:
   std::vector<u8> m_buffer;
-  size_t m_bytes_written;
+  size_t m_bytes_written = 0;
   mbedtls_sha1_context m_sha1_context;
 };
 
@@ -244,7 +244,7 @@ private:
   void ExpandBuffer(size_t bytes_to_add);
 
   ZSTD_CStream* m_stream;
-  ZSTD_outBuffer m_out_buffer;
+  ZSTD_outBuffer m_out_buffer{};
   std::vector<u8> m_buffer;
 };
 

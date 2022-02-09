@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/Config/PropertiesDialog.h"
+
 #include <memory>
 
 #include <QDialogButtonBox>
@@ -17,7 +19,6 @@
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 #include "DolphinQt/Config/InfoWidget.h"
 #include "DolphinQt/Config/PatchesWidget.h"
-#include "DolphinQt/Config/PropertiesDialog.h"
 #include "DolphinQt/Config/VerifyWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 

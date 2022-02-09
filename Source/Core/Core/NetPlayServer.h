@@ -82,16 +82,16 @@ private:
   class Client
   {
   public:
-    PlayerId pid;
+    PlayerId pid{};
     std::string name;
     std::string revision;
-    SyncIdentifierComparison game_status;
-    bool has_ipl_dump;
-    bool has_hardware_fma;
+    SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
+    bool has_ipl_dump = false;
+    bool has_hardware_fma = false;
 
-    ENetPeer* socket;
-    u32 ping;
-    u32 current_game;
+    ENetPeer* socket = nullptr;
+    u32 ping = 0;
+    u32 current_game = 0;
 
     Common::QoSSession qos_session;
 
@@ -108,16 +108,16 @@ private:
   struct AsyncQueueEntry
   {
     sf::Packet packet;
-    PlayerId target_pid;
-    TargetMode target_mode;
-    u8 channel_id;
+    PlayerId target_pid{};
+    TargetMode target_mode{};
+    u8 channel_id = 0;
   };
 
   struct ChunkedDataQueueEntry
   {
     sf::Packet packet;
-    PlayerId target_pid;
-    TargetMode target_mode;
+    PlayerId target_pid{};
+    TargetMode target_mode{};
     std::string title;
   };
 
@@ -131,7 +131,7 @@ private:
   void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
                      u8 channel_id = DEFAULT_CHANNEL);
   void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
-  unsigned int OnConnect(ENetPeer* socket, sf::Packet& rpac);
+  ConnectionError OnConnect(ENetPeer* socket, sf::Packet& rpac);
   unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
 
@@ -175,7 +175,7 @@ private:
   std::map<PlayerId, Client> m_players;
 
   std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
-  bool m_desync_detected;
+  bool m_desync_detected = false;
 
   struct
   {
@@ -195,7 +195,7 @@ private:
   Common::Event m_chunked_data_event;
   Common::Event m_chunked_data_complete_event;
   std::thread m_chunked_data_thread;
-  u32 m_next_chunked_data_id;
+  u32 m_next_chunked_data_id = 0;
   std::unordered_map<u32, unsigned int> m_chunked_data_complete_count;
   bool m_abort_chunked_data = false;
 

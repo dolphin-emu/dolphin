@@ -15,6 +15,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders
@@ -31,14 +32,15 @@ public:
   {
     layer->Set(Config::MAIN_CPU_THREAD, m_settings.m_CPUthread);
     layer->Set(Config::MAIN_CPU_CORE, m_settings.m_CPUcore);
+    layer->Set(Config::MAIN_ENABLE_CHEATS, m_settings.m_EnableCheats);
     layer->Set(Config::MAIN_GC_LANGUAGE, m_settings.m_SelectedLanguage);
     layer->Set(Config::MAIN_OVERRIDE_REGION_SETTINGS, m_settings.m_OverrideRegionSettings);
     layer->Set(Config::MAIN_DSP_HLE, m_settings.m_DSPHLE);
     layer->Set(Config::MAIN_OVERCLOCK_ENABLE, m_settings.m_OCEnable);
     layer->Set(Config::MAIN_OVERCLOCK, m_settings.m_OCFactor);
-    layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
-    layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
-    layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
+    for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+      layer->Set(Config::GetInfoForEXIDevice(slot), m_settings.m_EXIDevice[slot]);
+    layer->Set(Config::MAIN_MEMORY_CARD_SIZE, m_settings.m_MemcardSizeOverride);
     layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.m_WriteToMemcard);
     layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
@@ -68,6 +70,8 @@ public:
     layer->Set(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES,
                m_settings.m_SafeTextureCacheColorSamples);
     layer->Set(Config::GFX_PERF_QUERIES_ENABLE, m_settings.m_PerfQueriesEnable);
+    layer->Set(Config::MAIN_FLOAT_EXCEPTIONS, m_settings.m_FloatExceptions);
+    layer->Set(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS, m_settings.m_DivideByZeroExceptions);
     layer->Set(Config::MAIN_FPRF, m_settings.m_FPRF);
     layer->Set(Config::MAIN_ACCURATE_NANS, m_settings.m_AccurateNaNs);
     layer->Set(Config::MAIN_DISABLE_ICACHE, m_settings.m_DisableICache);
@@ -89,6 +93,8 @@ public:
     layer->Set(Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_settings.m_EFBAccessDeferInvalidation);
 
     layer->Set(Config::SESSION_USE_FMA, m_settings.m_UseFMA);
+
+    layer->Set(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED, false);
 
     if (m_settings.m_StrictSettingsSync)
     {
@@ -139,7 +145,8 @@ public:
     }
 
     // Check To Override Client's Cheat Codes
-    if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
+    // We want to always sync codes to avoid desyncs & for other reasons
+    if (!m_settings.m_IsHosting)
     {
       // Raise flag to use host's codes
       layer->Set(Config::SESSION_CODE_SYNC_OVERRIDE, true);

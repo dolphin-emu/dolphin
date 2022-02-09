@@ -98,7 +98,7 @@ private:
         delete next_ptr;
     }
 
-    T current;
+    T current{};
     std::atomic<ElementPtr*> next;
   };
 

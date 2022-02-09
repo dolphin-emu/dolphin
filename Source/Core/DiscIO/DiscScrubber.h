@@ -46,7 +46,7 @@ private:
   bool ParsePartitionData(const Partition& partition);
   void ParseFileSystemData(u64 partition_data_offset, const FileInfo& directory);
 
-  const Volume* m_disc;
+  const Volume* m_disc = nullptr;
 
   std::vector<u8> m_free_table;
   u64 m_file_size = 0;

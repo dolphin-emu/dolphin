@@ -2,9 +2,10 @@
 // Copyright 2004 Duddie & Tratax
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/DSP/DSPCore.h"
+
 #include "Common/Logging/Log.h"
 
-#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
 
 namespace DSP

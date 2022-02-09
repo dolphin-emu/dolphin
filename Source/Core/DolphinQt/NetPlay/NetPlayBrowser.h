@@ -32,6 +32,7 @@ public:
   ~NetPlayBrowser();
 
   void accept() override;
+
 signals:
   void Join();
   void UpdateStatusRequested(const QString& status);

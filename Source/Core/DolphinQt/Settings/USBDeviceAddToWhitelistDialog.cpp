@@ -19,6 +19,7 @@
 
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -109,9 +110,10 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
     return;
   const auto selection_string = usb_inserted_devices_list->currentItem();
   usb_inserted_devices_list->clear();
+  auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : current_devices)
   {
-    if (SConfig::GetInstance().IsUSBDeviceWhitelisted(device.first))
+    if (whitelist.count({device.first.first, device.first.second}) != 0)
       continue;
     usb_inserted_devices_list->addItem(QString::fromStdString(device.second));
   }
@@ -128,38 +130,29 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   if (!IsValidUSBIDString(vid_string))
   {
     // i18n: Here, VID means Vendor ID (for a USB device).
-    ModalMessageBox vid_warning_box(this);
-    vid_warning_box.setIcon(QMessageBox::Warning);
-    vid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
-    // i18n: Here, VID means Vendor ID (for a USB device).
-    vid_warning_box.setText(tr("The entered VID is invalid."));
-    vid_warning_box.setStandardButtons(QMessageBox::Ok);
-    vid_warning_box.exec();
+    ModalMessageBox::critical(this, tr("USB Whitelist Error"), tr("The entered VID is invalid."));
     return;
   }
   if (!IsValidUSBIDString(pid_string))
   {
     // i18n: Here, PID means Product ID (for a USB device).
-    ModalMessageBox pid_warning_box(this);
-    pid_warning_box.setIcon(QMessageBox::Warning);
-    pid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
-    // i18n: Here, PID means Product ID (for a USB device).
-    pid_warning_box.setText(tr("The entered PID is invalid."));
-    pid_warning_box.setStandardButtons(QMessageBox::Ok);
-    pid_warning_box.exec();
+    ModalMessageBox::critical(this, tr("USB Whitelist Error"), tr("The entered PID is invalid."));
     return;
   }
 
   const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
   const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
 
-  if (SConfig::GetInstance().IsUSBDeviceWhitelisted({vid, pid}))
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+  auto it = whitelist.emplace(vid, pid);
+  if (!it.second)
   {
-    ModalMessageBox::critical(this, tr("Error"), tr("This USB device is already whitelisted."));
+    ModalMessageBox::critical(this, tr("USB Whitelist Error"),
+                              tr("This USB device is already whitelisted."));
     return;
   }
-  SConfig::GetInstance().m_usb_passthrough_devices.emplace(vid, pid);
-  SConfig::GetInstance().SaveSettings();
+  Config::SetUSBDeviceWhitelist(whitelist);
+  Config::Save();
   accept();
 }
 

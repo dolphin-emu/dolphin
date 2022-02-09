@@ -131,7 +131,7 @@ public:
   u32 GetImportsNameTable() const;
 
 private:
-  RSOHeader m_header;
+  RSOHeader m_header{};
   std::string m_name;
   u32 m_address = 0;
 };

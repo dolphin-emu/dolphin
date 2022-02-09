@@ -168,7 +168,10 @@ private:
     bool is_partition;
     u8 partition_data_index;
 
-    DataEntry(size_t index_) : index(static_cast<u32>(index_)), is_partition(false) {}
+    DataEntry(size_t index_)
+        : index(static_cast<u32>(index_)), is_partition(false), partition_data_index(0)
+    {
+    }
     DataEntry(size_t index_, size_t partition_data_index_)
         : index(static_cast<u32>(index_)), is_partition(true),
           partition_data_index(static_cast<u8>(partition_data_index_))
@@ -240,26 +243,25 @@ private:
 
   struct ReuseID
   {
-    // This code is a workaround for an ICE in Visual Studio 16.10.0 when making an ARM64 Release
-    // build. Once a fixed version of Visual Studio is released, we can use std::tie instead.
-#define COMPARE_REUSE_ID_INNER(op, f, next) ((f != other.f) ? (f op other.f) : (next))
-#define COMPARE_REUSE_ID(op, equal_result)                                                         \
-  COMPARE_REUSE_ID_INNER(                                                                          \
-      op, partition_key,                                                                           \
-      COMPARE_REUSE_ID_INNER(                                                                      \
-          op, data_size,                                                                           \
-          COMPARE_REUSE_ID_INNER(op, encrypted, COMPARE_REUSE_ID_INNER(op, value, equal_result))))
-
-    bool operator==(const ReuseID& other) const { return COMPARE_REUSE_ID(==, true); }
-    bool operator<(const ReuseID& other) const { return COMPARE_REUSE_ID(<, false); }
-    bool operator>(const ReuseID& other) const { return COMPARE_REUSE_ID(>, false); }
+    bool operator==(const ReuseID& other) const
+    {
+      return std::tie(partition_key, data_size, encrypted, value) ==
+             std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
+    }
+    bool operator<(const ReuseID& other) const
+    {
+      return std::tie(partition_key, data_size, encrypted, value) <
+             std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
+    }
+    bool operator>(const ReuseID& other) const
+    {
+      return std::tie(partition_key, data_size, encrypted, value) >
+             std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
+    }
 
     bool operator!=(const ReuseID& other) const { return !operator==(other); }
     bool operator>=(const ReuseID& other) const { return !operator<(other); }
     bool operator<=(const ReuseID& other) const { return !operator>(other); }
-
-#undef COMPARE_REUSE_ID_INNER
-#undef COMPARE_REUSE_ID
 
     WiiKey partition_key;
     u64 data_size;
@@ -282,11 +284,11 @@ private:
 
   struct CompressParameters
   {
-    std::vector<u8> data;
-    const DataEntry* data_entry;
-    u64 data_offset;
-    u64 bytes_read;
-    size_t group_index;
+    std::vector<u8> data{};
+    const DataEntry* data_entry = nullptr;
+    u64 data_offset = 0;
+    u64 bytes_read = 0;
+    size_t group_index = 0;
   };
 
   struct WIAOutputParametersEntry
@@ -313,8 +315,8 @@ private:
   struct OutputParameters
   {
     std::vector<OutputParametersEntry> entries;
-    u64 bytes_read;
-    size_t group_index;
+    u64 bytes_read = 0;
+    size_t group_index = 0;
   };
 
   static bool PadTo4(File::IOFile* file, u64* bytes_written);

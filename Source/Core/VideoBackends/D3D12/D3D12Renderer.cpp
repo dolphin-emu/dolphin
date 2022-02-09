@@ -1,12 +1,13 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D12/D3D12Renderer.h"
+
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12BoundingBox.h"
 #include "VideoBackends/D3D12/D3D12PerfQuery.h"
-#include "VideoBackends/D3D12/D3D12Renderer.h"
 #include "VideoBackends/D3D12/D3D12SwapChain.h"
 #include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoBackends/D3D12/DX12Pipeline.h"
@@ -46,25 +47,20 @@ bool Renderer::Initialize()
   if (!::Renderer::Initialize())
     return false;
 
-  m_bounding_box = BoundingBox::Create();
-  if (!m_bounding_box)
-    return false;
-
-  SetPixelShaderUAV(m_bounding_box->GetGPUDescriptor().cpu_handle);
   return true;
 }
 
 void Renderer::Shutdown()
 {
-  m_bounding_box.reset();
   m_swap_chain.reset();
 
   ::Renderer::Shutdown();
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+                                                         std::string_view name)
 {
-  return DXTexture::Create(config);
+  return DXTexture::Create(config, name);
 }
 
 std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
@@ -80,16 +76,17 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
                                static_cast<DXTexture*>(depth_attachment));
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
-  return DXShader::CreateFromSource(stage, source);
+  return DXShader::CreateFromSource(stage, source, name);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length)
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name)
 {
-  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length));
+  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length), name);
 }
 
 std::unique_ptr<NativeVertexFormat>
@@ -105,20 +102,9 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return DXPipeline::Create(config, cache_data, cache_data_length);
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(m_bounding_box->Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  m_bounding_box->Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  m_bounding_box->Flush();
-  m_bounding_box->Invalidate();
+  return std::make_unique<D3D12BoundingBox>();
 }
 
 void Renderer::Flush()
@@ -319,6 +305,9 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
     return;
 
   m_state.compute_image_texture = dxtex;
+  if (dxtex)
+    dxtex->TransitionToState(D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
   m_dirty_bits |= DirtyState_ComputeImageTexture;
 }
 

@@ -22,10 +22,10 @@ class KeyboardMouse : public Core::Device
 private:
   struct State
   {
-    BYTE keyboard[256];
+    BYTE keyboard[256]{};
 
     // Old smoothed relative mouse movement.
-    DIMOUSESTATE2 mouse;
+    DIMOUSESTATE2 mouse{};
 
     // Normalized mouse cursor position.
     Common::TVec2<ControlState> cursor;

@@ -1,11 +1,12 @@
 // Copyright 2012 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/GL/GLInterface/WGL.h"
+
 #include <windows.h>
 #include <array>
 #include <string>
 
-#include "Common/GL/GLInterface/WGL.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -396,20 +397,9 @@ HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
                                       0};
 
     // Attempt creating this context.
-    HGLRC core_context = wglCreateContextAttribsARB(dc, nullptr, attribs.data());
+    HGLRC core_context = wglCreateContextAttribsARB(dc, share_context, attribs.data());
     if (core_context)
     {
-      // If we're creating a shared context, share the resources before the context is used.
-      if (share_context)
-      {
-        if (!wglShareLists(share_context, core_context))
-        {
-          ERROR_LOG_FMT(VIDEO, "wglShareLists failed");
-          wglDeleteContext(core_context);
-          return nullptr;
-        }
-      }
-
       INFO_LOG_FMT(VIDEO, "WGL: Created a GL {}.{} core context", version.first, version.second);
       return core_context;
     }

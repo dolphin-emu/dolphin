@@ -1,11 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+
 #include <cmath>
 
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -144,7 +145,7 @@ void Interpreter::ps_res(UGeckoInstruction inst)
   const double ps1 = Common::ApproximateReciprocal(b);
 
   rPS(inst.FD).SetBoth(ps0, ps1);
-  PowerPC::UpdateFPRFSingle(ps0);
+  PowerPC::UpdateFPRFSingle(float(ps0));
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();

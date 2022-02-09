@@ -78,7 +78,7 @@ private:
 
   struct PotentialMatch
   {
-    u64 size;
+    u64 size = 0;
     Hashes<std::vector<u8>> hashes;
   };
 
@@ -87,9 +87,9 @@ private:
   std::vector<PotentialMatch> ScanDatfile(const std::vector<u8>& data, const std::string& system);
 
   std::string m_game_id;
-  u16 m_revision;
-  u8 m_disc_number;
-  u64 m_size;
+  u16 m_revision = 0;
+  u8 m_disc_number = 0;
+  u64 m_size = 0;
 
   std::future<std::vector<PotentialMatch>> m_future;
   Result m_result;
@@ -172,9 +172,9 @@ private:
 
   Hashes<bool> m_hashes_to_calculate{};
   bool m_calculating_any_hash = false;
-  unsigned long m_crc32_context = 0;
-  mbedtls_md5_context m_md5_context;
-  mbedtls_sha1_context m_sha1_context;
+  u32 m_crc32_context = 0;
+  mbedtls_md5_context m_md5_context{};
+  mbedtls_sha1_context m_sha1_context{};
 
   u64 m_excess_bytes = 0;
   std::vector<u8> m_data;

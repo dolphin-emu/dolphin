@@ -51,6 +51,7 @@ private:
   // Options
   GraphicsBool* m_show_fps;
   GraphicsBool* m_show_batter_fielder;
+  GraphicsBool* m_training_mode;
   GraphicsBool* m_show_ping;
   GraphicsBool* m_log_render_time;
   GraphicsBool* m_autoadjust_window_size;

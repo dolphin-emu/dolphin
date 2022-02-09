@@ -16,8 +16,8 @@ class DataReader;
 
 class VertexLoaderUID
 {
-  std::array<u32, 5> vid;
-  size_t hash;
+  std::array<u32, 5> vid{};
+  size_t hash = 0;
 
 public:
   VertexLoaderUID() {}

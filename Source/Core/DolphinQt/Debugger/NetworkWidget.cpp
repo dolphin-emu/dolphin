@@ -232,6 +232,9 @@ void NetworkWidget::ConnectWidgets()
 
 void NetworkWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   m_socket_table->setRowCount(0);
   for (u32 wii_fd = 0; wii_fd < IOS::HLE::WII_SOCKET_FD_MAX; wii_fd++)
   {

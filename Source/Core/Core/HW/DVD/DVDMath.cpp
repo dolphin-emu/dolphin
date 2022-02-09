@@ -3,7 +3,6 @@
 
 #include "Core/HW/DVD/DVDMath.h"
 
-#include <cinttypes>
 #include <cmath>
 
 #include "Common/CommonTypes.h"

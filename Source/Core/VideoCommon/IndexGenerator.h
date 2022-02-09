@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include <array>
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
+#include "VideoCommon/OpcodeDecoding.h"
 
 class IndexGenerator
 {
@@ -15,7 +16,7 @@ public:
   void Init();
   void Start(u16* index_ptr);
 
-  void AddIndices(int primitive, u32 num_vertices);
+  void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
 
   void AddExternalIndices(const u16* indices, u32 num_indices, u32 num_vertices);
 
@@ -30,5 +31,5 @@ private:
   u32 m_base_index = 0;
 
   using PrimitiveFunction = u16* (*)(u16*, u32, u32);
-  std::array<PrimitiveFunction, 8> m_primitive_table{};
+  Common::EnumMap<PrimitiveFunction, OpcodeDecoder::Primitive::GX_DRAW_POINTS> m_primitive_table{};
 };

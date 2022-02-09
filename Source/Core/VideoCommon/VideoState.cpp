@@ -1,11 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/VideoState.h"
+
 #include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
@@ -14,11 +15,11 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
 
 void VideoCommon_DoState(PointerWrap& p)
@@ -47,6 +48,10 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoArray(texMem);
   p.DoMarker("texMem");
 
+  // TMEM
+  TMEM::DoState(p);
+  p.DoMarker("TMEM");
+
   // FIFO
   Fifo::DoState(p);
   p.DoMarker("Fifo");
@@ -70,9 +75,6 @@ void VideoCommon_DoState(PointerWrap& p)
 
   g_vertex_manager->DoState(p);
   p.DoMarker("VertexManager");
-
-  BoundingBox::DoState(p);
-  p.DoMarker("BoundingBox");
 
   g_framebuffer_manager->DoState(p);
   p.DoMarker("FramebufferManager");

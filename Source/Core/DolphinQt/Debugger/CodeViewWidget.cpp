@@ -20,6 +20,7 @@
 #include <QTableWidgetItem>
 #include <QWheelEvent>
 
+#include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
@@ -35,10 +36,10 @@
 
 struct CodeViewBranch
 {
-  u32 src_addr;
-  u32 dst_addr;
+  u32 src_addr = 0;
+  u32 dst_addr = 0;
   u32 indentation = 0;
-  bool is_link;
+  bool is_link = false;
 };
 
 constexpr u32 WIDTH_PER_BRANCH_ARROW = 16;
@@ -393,26 +394,27 @@ void CodeViewWidget::CalculateBranchIndentation()
   // build a 2D lookup table representing the columns and rows the arrow could be drawn in
   // and try to place all branch arrows in it as far left as possible
   std::vector<bool> arrow_space_used(columns * rows, false);
-  const auto index = [&](u32 column, u32 row) { return column * rows + row; };
-  const u32 first_visible_addr = AddressForRow(0);
-  const u32 last_visible_addr = AddressForRow(static_cast<int>(rows - 1));
-  for (CodeViewBranch& branch : m_branches)
-  {
+  const auto index = [&](u32 column, u32 row) {
+    ASSERT(row <= rows);
+    ASSERT(column <= columns);
+    return column * rows + row;
+  };
+
+  const auto add_branch_arrow = [&](CodeViewBranch& branch, u32 first_addr, u32 first_row,
+                                    u32 last_addr) {
     const u32 arrow_src_addr = branch.src_addr;
     const u32 arrow_dst_addr = branch.is_link ? branch.src_addr : branch.dst_addr;
-    const u32 arrow_addr_lower = std::min(arrow_src_addr, arrow_dst_addr);
-    const u32 arrow_addr_higher = std::max(arrow_src_addr, arrow_dst_addr);
-    const bool is_visible =
-        last_visible_addr >= arrow_addr_lower || first_visible_addr <= arrow_addr_higher;
-    if (!is_visible)
-      continue;
+    const auto [arrow_addr_lower, arrow_addr_higher] = std::minmax(arrow_src_addr, arrow_dst_addr);
 
-    const u32 arrow_first_visible_addr =
-        std::clamp(arrow_addr_lower, first_visible_addr, last_visible_addr);
-    const u32 arrow_last_visible_addr =
-        std::clamp(arrow_addr_higher, first_visible_addr, last_visible_addr);
-    const u32 arrow_first_visible_row = (arrow_first_visible_addr - first_visible_addr) / 4;
-    const u32 arrow_last_visible_row = (arrow_last_visible_addr - first_visible_addr) / 4;
+    const bool is_visible =
+        std::max(arrow_addr_lower, first_addr) <= std::min(arrow_addr_higher, last_addr);
+    if (!is_visible)
+      return;
+
+    const u32 arrow_first_visible_addr = std::clamp(arrow_addr_lower, first_addr, last_addr);
+    const u32 arrow_last_visible_addr = std::clamp(arrow_addr_higher, first_addr, last_addr);
+    const u32 arrow_first_visible_row = (arrow_first_visible_addr - first_addr) / 4 + first_row;
+    const u32 arrow_last_visible_row = (arrow_last_visible_addr - first_addr) / 4 + first_row;
 
     const auto free_column = [&]() -> std::optional<u32> {
       for (u32 column = 0; column < columns; ++column)
@@ -432,11 +434,43 @@ void CodeViewWidget::CalculateBranchIndentation()
     }();
 
     if (!free_column)
-      continue;
+      return;
 
     branch.indentation = *free_column;
     for (u32 row = arrow_first_visible_row; row <= arrow_last_visible_row; ++row)
       arrow_space_used[index(*free_column, row)] = true;
+  };
+
+  const u32 first_visible_addr = AddressForRow(0);
+  const u32 last_visible_addr = AddressForRow(static_cast<int>(rows - 1));
+
+  if (first_visible_addr <= last_visible_addr)
+  {
+    for (CodeViewBranch& branch : m_branches)
+      add_branch_arrow(branch, first_visible_addr, 0, last_visible_addr);
+  }
+  else
+  {
+    // Scrolling defaults to being centered around address 00000000, which means addresses before
+    // the start are visible (e.g. ffffffa8 - 00000050).  We need to do this in two parts, one for
+    // first_visible_addr to fffffffc, and the second for 00000000 to last_visible_addr.
+    // That means we need to find the row corresponding to 00000000.
+    int addr_zero_row = -1;
+    for (int row = 0; row < rows; row++)
+    {
+      if (AddressForRow(row) == 0)
+      {
+        addr_zero_row = row;
+        break;
+      }
+    }
+    ASSERT(addr_zero_row != -1);
+
+    for (CodeViewBranch& branch : m_branches)
+    {
+      add_branch_arrow(branch, first_visible_addr, 0, 0xfffffffc);
+      add_branch_arrow(branch, 0x00000000, addr_zero_row, last_visible_addr);
+    }
   }
 }
 
@@ -638,15 +672,15 @@ void CodeViewWidget::OnRenameSymbol()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  QString name =
+  const QString name =
       QInputDialog::getText(this, tr("Rename symbol"), tr("Symbol name:"), QLineEdit::Normal,
-                            QString::fromStdString(symbol->name), &good);
+                            QString::fromStdString(symbol->name), &good, Qt::WindowCloseButtonHint);
 
   if (good && !name.isEmpty())
   {
@@ -673,16 +707,16 @@ void CodeViewWidget::OnSetSymbolSize()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  int size =
+  const int size =
       QInputDialog::getInt(this, tr("Rename symbol"),
                            tr("Set symbol size (%1):").arg(QString::fromStdString(symbol->name)),
-                           symbol->size, 1, 0xFFFF, 1, &good);
+                           symbol->size, 1, 0xFFFF, 1, &good, Qt::WindowCloseButtonHint);
 
   if (!good)
     return;
@@ -696,18 +730,19 @@ void CodeViewWidget::OnSetSymbolEndAddress()
 {
   const u32 addr = GetContextAddress();
 
-  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* const symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
 
   bool good;
-  QString name = QInputDialog::getText(
+  const QString name = QInputDialog::getText(
       this, tr("Set symbol end address"),
       tr("Symbol (%1) end address:").arg(QString::fromStdString(symbol->name)), QLineEdit::Normal,
-      QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good);
+      QStringLiteral("%1").arg(addr + symbol->size, 8, 16, QLatin1Char('0')), &good,
+      Qt::WindowCloseButtonHint);
 
-  u32 address = name.toUInt(&good, 16);
+  const u32 address = name.toUInt(&good, 16);
 
   if (!good)
     return;

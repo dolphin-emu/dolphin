@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/ToolBar.h"
+
 #include <algorithm>
 #include <vector>
 
@@ -12,7 +14,6 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
-#include "DolphinQt/ToolBar.h"
 
 
 
@@ -61,7 +62,7 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   bool running = state != Core::State::Uninitialized;
   m_stop_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
-  m_screenshot_action->setEnabled(running);
+  // m_screenshot_action->setEnabled(running);
   m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   bool playing = running && state != Core::State::Paused;
@@ -127,13 +128,14 @@ void ToolBar::MakeActions()
   m_pause_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
 
   m_stop_action = addAction(tr("Stop"), this, &ToolBar::StopPressed);
-  m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
-  m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
+
+  // addSeparator();
+
 
   addSeparator();
 
-  m_start_netplay_action = addAction(tr("Start NetPlay"), this, &ToolBar::StartNetPlayPressed);
-  m_join_netplay_action = addAction(tr("Join NetPlay"), this, &ToolBar::JoinNetPlayPressed);
+  m_local_play_action = addAction(tr("Local Play"), this, &ToolBar::ViewLocalPlayers);
+  m_start_netplay_action = addAction(tr("Online Play"), this, &ToolBar::StartNetPlayPressed);
 
   addSeparator();
 
@@ -142,16 +144,19 @@ void ToolBar::MakeActions()
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
 
+  m_view_gecko_codes_action = addAction(tr("Gecko Codes"), this, &ToolBar::ViewGeckoCodes);
+
   addSeparator();
 
-  m_view_gecko_codes_action = addAction(tr("Gecko Codes"), this, &ToolBar::ViewGeckoCodes);
-  m_local_players_action = addAction(tr("Local Players"), this, &ToolBar::ViewLocalPlayers);
+  m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
+// m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
 
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
-  for (const auto& action :
-       {m_open_action, m_pause_play_action, m_stop_action, m_stop_action, m_fullscreen_action,
-        m_screenshot_action, m_config_action, m_graphics_action, m_controllers_action,
+  for (const auto& action : {
+        m_open_action, m_pause_play_action, m_stop_action, m_stop_action,
+        m_local_play_action, m_start_netplay_action, m_fullscreen_action,
+        m_config_action, m_graphics_action, m_controllers_action,
         m_step_action, m_step_over_action, m_step_out_action, m_skip_action, m_show_pc_action,
         m_set_pc_action})
   {
@@ -206,12 +211,11 @@ void ToolBar::UpdateIcons()
 
   m_stop_action->setIcon(Resources::GetScaledThemeIcon("stop"));
   m_fullscreen_action->setIcon(Resources::GetScaledThemeIcon("fullscreen"));
-  m_screenshot_action->setIcon(Resources::GetScaledThemeIcon("screenshot"));
+  //m_screenshot_action->setIcon(Resources::GetScaledThemeIcon("screenshot"));
   m_config_action->setIcon(Resources::GetScaledThemeIcon("config"));
   m_controllers_action->setIcon(Resources::GetScaledThemeIcon("classic"));
   m_graphics_action->setIcon(Resources::GetScaledThemeIcon("graphics"));
-  m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("netplay"));
-  m_join_netplay_action->setIcon(Resources::GetScaledThemeIcon("join_netplay"));
+  m_start_netplay_action->setIcon(Resources::GetScaledThemeIcon("wifi"));
   m_view_gecko_codes_action->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint@2x"));
-  m_local_players_action->setIcon(Resources::GetScaledThemeIcon("browse"));
+  m_local_play_action->setIcon(Resources::GetScaledThemeIcon("play"));
 }

@@ -52,13 +52,8 @@ void Shutdown()
 
 static void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
 {
-  FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  u8 subTexmap = texmap & 3;
-
-  TexImage0& ti0 = texUnit.texImage0[subTexmap];
-
-  u32 width = ti0.width + 1;
-  u32 height = ti0.height + 1;
+  u32 width = bpmem.tex.GetUnit(texmap).texImage0.width + 1;
+  u32 height = bpmem.tex.GetUnit(texmap).texImage0.height + 1;
 
   auto data = std::make_unique<u8[]>(width * height * 4);
 
@@ -80,10 +75,7 @@ void GetTextureRGBA(u8* dst, u32 texmap, s32 mip, u32 width, u32 height)
 
 static s32 GetMaxTextureLod(u32 texmap)
 {
-  FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
-  u8 subTexmap = texmap & 3;
-
-  u8 maxLod = texUnit.texMode1[subTexmap].max_lod;
+  u8 maxLod = bpmem.tex.GetUnit(texmap).texMode1.max_lod;
   u8 mip = maxLod >> 4;
   u8 fract = maxLod & 0xf;
 

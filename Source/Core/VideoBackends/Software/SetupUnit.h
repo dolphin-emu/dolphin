@@ -6,14 +6,19 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 
+namespace OpcodeDecoder
+{
+enum class Primitive : u8;
+}
+
 class SetupUnit
 {
-  u8 m_PrimType;
-  int m_VertexCounter;
+  OpcodeDecoder::Primitive m_PrimType{};
+  int m_VertexCounter = 0;
 
   OutputVertexData m_Vertices[3];
-  OutputVertexData* m_VertPointer[3];
-  OutputVertexData* m_VertWritePointer;
+  OutputVertexData* m_VertPointer[3]{};
+  OutputVertexData* m_VertWritePointer{};
 
   void SetupQuad();
   void SetupTriangle();
@@ -24,7 +29,7 @@ class SetupUnit
   void SetupPoint();
 
 public:
-  void Init(u8 primitiveType);
+  void Init(OpcodeDecoder::Primitive primitive_type);
 
   OutputVertexData* GetVertex();
 

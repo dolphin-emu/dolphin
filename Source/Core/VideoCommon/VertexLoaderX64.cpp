@@ -15,6 +15,7 @@
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 
@@ -54,7 +55,7 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
   JitRegister::Register(region, GetCodePtr(), name.c_str());
 }
 
-OpArg VertexLoaderX64::GetVertexAddr(int array, VertexComponentFormat attribute)
+OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attribute)
 {
   OpArg data = MDisp(src_reg, m_src_ofs);
   if (IsIndexed(attribute))
@@ -62,7 +63,7 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, VertexComponentFormat attribute)
     int bits = attribute == VertexComponentFormat::Index8 ? 8 : 16;
     LoadAndSwap(bits, scratch1, data);
     m_src_ofs += bits / 8;
-    if (array == ARRAY_POSITION)
+    if (array == CPArray::Position)
     {
       CMP(bits, R(scratch1), Imm8(-1));
       m_skip_vertex = J_CC(CC_E, true);
@@ -121,7 +122,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
   native_format->components = count_out;
   native_format->enable = true;
   native_format->offset = m_dst_ofs;
-  native_format->type = VAR_FLOAT;
+  native_format->type = ComponentFormat::Float;
   native_format->integer = false;
 
   m_dst_ofs += sizeof(float) * count_out;
@@ -420,7 +421,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = m_dst_ofs;
-    m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.posmtx.type = ComponentFormat::UByte;
     m_native_vtx_decl.posmtx.integer = true;
     m_src_ofs += sizeof(u8);
     m_dst_ofs += sizeof(u32);
@@ -433,7 +434,7 @@ void VertexLoaderX64::GenerateVertexLoader()
       texmatidx_ofs[i] = m_src_ofs++;
   }
 
-  OpArg data = GetVertexAddr(ARRAY_POSITION, m_VtxDesc.low.Position);
+  OpArg data = GetVertexAddr(CPArray::Position, m_VtxDesc.low.Position);
   int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
   ReadVertex(data, m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat, pos_elements, pos_elements,
              m_VtxAttr.g0.ByteDequant, m_VtxAttr.g0.PosFrac, &m_native_vtx_decl.position);
@@ -448,7 +449,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     {
       if (!i || m_VtxAttr.g0.NormalIndex3)
       {
-        data = GetVertexAddr(ARRAY_NORMAL, m_VtxDesc.low.Normal);
+        data = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
         int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat);
         data.AddMemOffset(i * elem_size * 3);
       }
@@ -457,27 +458,27 @@ void VertexLoaderX64::GenerateVertexLoader()
     }
   }
 
-  for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); i++)
   {
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
     {
-      data = GetVertexAddr(ARRAY_COLOR0 + int(i), m_VtxDesc.low.Color[i]);
+      data = GetVertexAddr(CPArray::Color0 + i, m_VtxDesc.low.Color[i]);
       ReadColor(data, m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
-      m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+      m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
       m_native_vtx_decl.colors[i].integer = false;
       m_dst_ofs += 4;
     }
   }
 
-  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
   {
     int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::ST ? 2 : 1;
     if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
     {
-      data = GetVertexAddr(ARRAY_TEXCOORD0 + int(i), m_VtxDesc.high.TexCoord[i]);
+      data = GetVertexAddr(CPArray::TexCoord0 + i, m_VtxDesc.high.TexCoord[i]);
       u8 scaling_exponent = m_VtxAttr.GetTexFrac(i);
       ReadVertex(data, m_VtxDesc.high.TexCoord[i], m_VtxAttr.GetTexFormat(i), elements,
                  m_VtxDesc.low.TexMatIdx[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant,
@@ -487,7 +488,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     {
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
-      m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
+      m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
       m_native_vtx_decl.texcoords[i].integer = false;
       MOVZX(64, 8, scratch1, MDisp(src_reg, texmatidx_ofs[i]));
       if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)

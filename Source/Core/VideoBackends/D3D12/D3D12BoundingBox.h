@@ -2,47 +2,39 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
+
 #include <memory>
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 
+#include "VideoCommon/BoundingBox.h"
+
 namespace DX12
 {
-class BoundingBox
+class D3D12BoundingBox final : public BoundingBox
 {
 public:
-  ~BoundingBox();
+  ~D3D12BoundingBox() override;
 
-  static std::unique_ptr<BoundingBox> Create();
+  bool Initialize() override;
 
-  const DescriptorHandle& GetGPUDescriptor() const { return m_gpu_descriptor; }
-
-  s32 Get(size_t index);
-  void Set(size_t index, s32 value);
-
-  void Invalidate();
-  void Flush();
+protected:
+  std::vector<BBoxType> Read(u32 index, u32 length) override;
+  void Write(u32 index, const std::vector<BBoxType>& values) override;
 
 private:
-  using ValueType = s32;
-  static const u32 NUM_VALUES = 4;
-  static const u32 BUFFER_SIZE = sizeof(ValueType) * NUM_VALUES;
-  static const u32 MAX_UPDATES_PER_FRAME = 128;
-  static const u32 STREAM_BUFFER_SIZE = BUFFER_SIZE * MAX_UPDATES_PER_FRAME;
-
-  BoundingBox();
+  static constexpr u32 BUFFER_SIZE = sizeof(BBoxType) * NUM_BBOX_VALUES;
+  static constexpr u32 MAX_UPDATES_PER_FRAME = 128;
+  static constexpr u32 STREAM_BUFFER_SIZE = BUFFER_SIZE * MAX_UPDATES_PER_FRAME;
 
   bool CreateBuffers();
-  void Readback();
 
   // Three buffers: GPU for read/write, CPU for reading back, and CPU for staging changes.
   ComPtr<ID3D12Resource> m_gpu_buffer;
   ComPtr<ID3D12Resource> m_readback_buffer;
   StreamBuffer m_upload_buffer;
-  DescriptorHandle m_gpu_descriptor;
-  std::array<ValueType, NUM_VALUES> m_values = {};
-  std::array<bool, NUM_VALUES> m_dirty = {};
-  bool m_valid = true;
+  DescriptorHandle m_gpu_descriptor{};
 };
-};  // namespace DX12
+
+}  // namespace DX12

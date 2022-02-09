@@ -40,6 +40,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
@@ -64,20 +65,19 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "Core/System.h"
 #include "Core/WiiRoot.h"
-
-#ifdef USE_GDBSTUB
-#include "Core/PowerPC/GDBStub.h"
-#endif
 
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
 #endif
 
-#include "MSB_StatTracker.h"
+#include "DiscIO/RiivolutionPatcher.h"
+#include "Core/MSB_StatTracker.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -89,6 +89,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
@@ -111,7 +112,6 @@ static std::thread s_emu_thread;
 static std::vector<StateChangedCallbackFunc> s_on_state_changed_callbacks;
 
 static std::thread s_cpu_thread;
-static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
 static std::atomic<double> s_last_actual_emulation_speed{1.0};
 static bool s_frame_step = false;
@@ -179,27 +179,10 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
-  if (!NetPlay::IsNetPlayRunning() || IsGolfMode())
-  {
-    // for some unknown reason, when playing locally the game gets a write error at frame 6457
-    // no idea why, so imma just write to the addr on some arbiturary frame number
-    if (Movie::GetCurrentFrame()==500)
-    {
-      // sets a specific address to 1 each frame
-      // this address is read by Project Rio's version of Batter Lag Reduction. It only activates
-      // when this addr = 0. this system prevents user error of forgetting to turn off lag reduciton
-      // when playing local and turning it on for netplay
-      AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
-      accessors->WriteU8(0x802EBF96, 1);
-    }
-  }
-  // Auto Golf Mode
-  if (NetPlay::IsNetPlayRunning() && IsGolfMode())
-  {
-    NetPlay::NetPlayClient::AutoGolfMode(Memory::Read_U8(0x8089389B),    // isField
-                                         (Memory::Read_U8(0x802EBF95)),  // BatPort
-                                         (Memory::Read_U8(0x802EBF94))); // FieldPort
-  }
+  AutoGolfMode();
+  TrainingMode();
+  DisplayBatterFielder();
+
 
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
@@ -211,17 +194,269 @@ void OnFrameEnd()
   }
 }
 
+void AutoGolfMode()
+{
+  if (IsGolfMode())
+  {
+    u8 BatterPort = Memory::Read_U8(0x802EBF95);
+    if (BatterPort == 0)
+      return; // do this here to avoid unneccesary mem reads
+    u8 FielderPort = Memory::Read_U8(0x802EBF94);
+    bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
+
+    NetPlay::NetPlayClient::AutoGolfMode(isField, BatterPort, FielderPort);
+  }
+}
+
 bool IsGolfMode()
 {
-  // we have to do this dumb work around cause Dolphin gets an error
-  // when calling GetNetSetttings when NetPlay's not running
   bool out = false;
   if (NetPlay::IsNetPlayRunning())
-  {
     out = NetPlay::GetNetSettings().m_HostInputAuthority;
-  }
+
   return out;
 }
+
+// TODO: add stats for the following: base runner coordinates; ball coords frame before being caught, character coords after diving/jumping/wall jumping
+void TrainingMode()
+{
+  // if training mode config is on and not ranked netplay
+  // using this feature on ranked can be considered an unfair advantage
+  if (!g_ActiveConfig.bTrainingModeOverlay || isRankedMode())
+    return;
+
+  //bool isPitchThrown = Memory::Read_U8(0x80895D6C) == 1 ? true : false;
+  bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
+  bool isInGame = Memory::Read_U8(0x80871A6D) == 1 ? true : false;
+  bool ContactMade = Memory::Read_U8(0x80892ADA) == 1 ? true : false;
+
+  // Batting Training Mode stats
+  if (ContactMade)
+  {
+    u8 BatterPort = Memory::Read_U8(0x802EBF95);
+    if (BatterPort > 0)
+      BatterPort--;
+    u32 stickDirectionAddr = 0x8089392D + (0x10 * BatterPort);
+
+    u16 contactFrame = Memory::Read_U16(0x80890976);
+    u8 typeOfContact_Value = Memory::Read_U8(0x808909A2);
+    std::string typeOfContact;
+    u8 inputDirection_Value = Memory::Read_U8(stickDirectionAddr) & 0xF;
+    std::string inputDirection;
+    int chargeUp = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x80890968)) * 100)); 
+    int chargeDown = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x8089096C)) * 100));
+
+    float angle = roundf((float)Memory::Read_U16(0x808926D4) * 36000 / 4096) / 100; // 0x400 == 90°, 0x800 == 180°, 0x1000 == 360°
+    float xVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 6000) / 100;  // * 60 cause default units are meters per frame
+    float yVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E54)) * 6000) / 100;
+    float zVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 6000) / 100;
+    float netVelocity = vectorMagnitude(xVelocity, yVelocity, zVelocity);
+
+    // convert type of contact to string
+    if (typeOfContact_Value == 0)
+      typeOfContact = "Sour - Left";
+    else if (typeOfContact_Value == 1)
+      typeOfContact = "Nice - Left";
+    else if (typeOfContact_Value == 2)
+      typeOfContact = "Perfect";
+    else if (typeOfContact_Value == 3)
+      typeOfContact = "Nice - Right";
+    else  // typeOfContact_Value == 4
+      typeOfContact = "Sour - Right";
+
+    // convert input direction to string
+    if (inputDirection_Value == 0)
+      inputDirection = "None";
+    else if (inputDirection_Value == 1)
+      inputDirection = "Left";
+    else if (inputDirection_Value == 2)
+      inputDirection = "Right";
+    else if (inputDirection_Value == 4)
+      inputDirection = "Down";
+    else if (inputDirection_Value == 8)
+      inputDirection = "Up";
+    else if (inputDirection_Value == 5)
+      inputDirection = "Down/Left";
+    else if (inputDirection_Value == 9)
+      inputDirection = "Up/Left";
+    else if (inputDirection_Value == 6)
+      inputDirection = "Down/Right";
+    else if (inputDirection_Value == 10)
+      inputDirection = "Up/Right";
+    else
+      inputDirection = "Unknown";
+
+    int totalCharge;
+    chargeUp == 100 ? totalCharge = chargeDown : totalCharge = chargeUp;
+
+    OSD::AddTypedMessage(OSD::MessageType::TrainingModeBatting, fmt::format(
+      "Batting Data:                    \n"
+      "Contact Frame:  {}\n"
+      "Type of Contact:  {}\n"
+      "Input Direction:  {}\n"
+      "Charge Percent:  {}%\n"
+      "Ball Angle:  {}°\n\n"
+      "Exit Velocities:  \n"
+      "X :  {} m/s  -->  {} mph\n"
+      "Y:  {} m/s  -->  {} mph\n"
+      "Z :  {} m/s  -->  {} mph\n"
+      "Net:  {} m/s  -->  {} mph",
+      contactFrame,
+      typeOfContact,
+      inputDirection,
+      totalCharge,
+      angle,
+      xVelocity, ms_to_mph(xVelocity),
+      yVelocity, ms_to_mph(yVelocity),
+      zVelocity, ms_to_mph(zVelocity),
+      netVelocity, ms_to_mph(netVelocity)),
+      8000); // message time & color
+    }
+
+
+  // Coordinate data
+  if (isInGame)
+  {
+    float BallPos_X = roundf(u32ToFloat(Memory::Read_U32(0x80890B38)) * 100) / 100;
+    float BallPos_Y = roundf(u32ToFloat(Memory::Read_U32(0x80890B3C)) * 100) / 100;
+    float BallPos_Z = roundf(u32ToFloat(Memory::Read_U32(0x80890B40)) * 100) / 100;
+    float BallVel_X = isField ? roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 6000) / 100 :
+                                roundf(u32ToFloat(Memory::Read_U32(0x808909D8)) * 6000) / 100;
+    float BallVel_Y = isField ? RoundZ(u32ToFloat(Memory::Read_U32(0x80890E54)) * 6000) / 100 :// floor small decimal to prevent weirdness
+                                RoundZ(u32ToFloat(Memory::Read_U32(0x808909DC)) * 6000) / 100;
+    float BallVel_Z = isField ? roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 6000) / 100 :
+                                roundf(u32ToFloat(Memory::Read_U32(0x808909E0)) * 6000) / 100;
+    float BallVel_Net = roundf(vectorMagnitude(BallVel_X, BallVel_Y, BallVel_Z) * 100) / 100;
+
+    int baseOffset= 0x268 * Memory::Read_U8(0x80892801);  // used to get offsed for baseFielderAddr
+    u32 baseFielderAddr = 0x8088F368 + baseOffset;        // 0x0 == x; 0x8 == y; 0xc == z
+
+    float FielderPos_X = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr)) * 100) / 100;
+    float FielderPos_Y = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0xc)) * 100) / 100;
+    float FielderPos_Z = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x8)) * 100) / 100;
+    float FielderVel_X = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x30)) * 6000) / 100;
+    //float FielderVel_Y = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x15C)) * 6000) / 100; // this addr is wrong
+    float FielderVel_Z = roundf(u32ToFloat(Memory::Read_U32(baseFielderAddr + 0x34)) * 6000) / 100;
+    float FielderVel_Net = roundf(vectorMagnitude(FielderVel_X, 0 /*FielderVel_Y*/, FielderVel_Z) * 100) / 100;
+
+    OSD::AddTypedMessage(OSD::MessageType::TrainingModeBallCoordinates, fmt::format(
+      "Ball Coordinates:                \n"
+      "X:  {}\n"
+      "Y:  {}\n"
+      "Z:  {}\n\n"
+      "Ball Velocity:  \n"
+      "X:  {} m/s  -->  {} mph\n"
+      "Y:  {} m/s  -->  {} mph\n"
+      "Z:  {} m/s  -->  {} mph\n"
+      "Net:  {} m/s  -->  {} mph\n",
+      BallPos_X,
+      BallPos_Y,
+      BallPos_Z,
+      BallVel_X, ms_to_mph(BallVel_X),
+      BallVel_Y, ms_to_mph(BallVel_Y),
+      BallVel_Z, ms_to_mph(BallVel_Z),
+      BallVel_Net, ms_to_mph(BallVel_Net)
+    ), 200, OSD::Color::CYAN);  // short time cause we don't want this info to linger
+
+    OSD::AddTypedMessage(OSD::MessageType::TrainingModeFielderCoordinates, fmt::format(
+      "Fielder Coordinates:             \n"
+      "X:  {}\n"
+      "Y:  {}\n"
+      "Z:  {}\n\n"
+      "Fielder Velocity: \n"
+      "X:  {} m/s  -->  {} mph\n"
+      //"Y:  {} m/s  -->  {} mph\n"
+      "Z:  {} m/s  -->  {} mph\n"
+      "Net:  {} m/s  -->  {} mph",
+      FielderPos_X,
+      FielderPos_Y,
+      FielderPos_Z,
+      FielderVel_X, ms_to_mph(FielderVel_X),
+      //FielderVel_Y, ms_to_mph(FielderVel_Y),
+      FielderVel_Z, ms_to_mph(FielderVel_Z),
+      FielderVel_Net, ms_to_mph(FielderVel_Net)
+    ), 200, OSD::Color::CYAN);
+  }
+}
+
+void DisplayBatterFielder()
+{
+  if (!g_ActiveConfig.bShowBatterFielder)
+    return;
+
+  u8 BatterPort = Memory::Read_U8(0x802EBF95);
+  u8 FielderPort = Memory::Read_U8(0x802EBF94); 
+  if (BatterPort == 0 || FielderPort == 0) // game hasn't started yet; do not continue func
+    return;
+
+  // Run using NetPlay Nicknames
+  if (NetPlay::IsNetPlayRunning())
+    NetPlay::NetPlayClient::DisplayBatterFielder(BatterPort, FielderPort);
+
+  // Run using Local Players
+  else
+  {
+    std::string P1 = SConfig::GetInstance().m_local_player_1;
+    std::string P2 = SConfig::GetInstance().m_local_player_2;
+    std::string P3 = SConfig::GetInstance().m_local_player_3;
+    std::string P4 = SConfig::GetInstance().m_local_player_4;
+    std::vector<std::string> LocalPlayerList{P1, P2, P3, P4};
+    std::array<u32, 4> portColor = {
+        {OSD::Color::RED, OSD::Color::BLUE, OSD::Color::YELLOW, OSD::Color::GREEN}};
+
+    // subtract 1 from each port so they can be used as indeces in the arrays
+    if (BatterPort < 5)
+      BatterPort--;
+    if (FielderPort < 5)
+      FielderPort--;
+
+    if (LocalPlayerList[BatterPort] != "" && BatterPort < 4) // check for valid user & port
+    {
+      OSD::AddTypedMessage(OSD::MessageType::CurrentBatter,
+                           fmt::format("Batter: {}", LocalPlayerList[BatterPort]),
+                           OSD::Duration::SHORT, portColor[BatterPort]);
+    }
+    if (LocalPlayerList[FielderPort] != "" && FielderPort < 4)  // check for valid user & port
+    {
+      OSD::AddTypedMessage(OSD::MessageType::CurrentFielder,
+                           fmt::format("Fielder: {}", LocalPlayerList[FielderPort]),
+                           OSD::Duration::SHORT, portColor[FielderPort]);
+    }
+  }
+}
+
+// rounds to 2 decimal places
+float u32ToFloat(u32 value)
+{
+  float_converter.num = value;
+  return float_converter.fnum;
+}
+
+float ms_to_mph(float MetersPerSecond)
+{
+  return roundf(MetersPerSecond * 223.7) / 100;
+}
+
+float vectorMagnitude(float x, float y, float z)
+{
+  float sum = pow(x, 2) + pow(y, 2) + pow(z, 2);
+  return roundf(sqrt(sum) * 100) / 100;
+}
+
+float RoundZ(float num)
+{
+  if (num < 50 && num > -50)
+    num = 0;
+  return roundf(num);
+}
+
+bool isRankedMode()
+{
+  if (!NetPlay::IsNetPlayRunning())
+    return false;
+  return NetPlay::NetPlayClient::isRanked();
+}
+
 
 // Display messages and return values
 
@@ -267,8 +502,7 @@ bool IsCPUThread()
 
 bool IsGPUThread()
 {
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
   {
     return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
   }
@@ -303,7 +537,8 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   HostDispatchJobs();
 
   INFO_LOG_FMT(BOOT, "Starting core = {} mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
-  INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
+  INFO_LOG_FMT(BOOT, "CPU Thread separate = {}",
+               Core::System::GetInstance().IsDualCoreMode() ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
@@ -337,8 +572,6 @@ void Stop()  // - Hammertime!
   if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
 
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-
   s_is_stopping = true;
 
   s_timer.Stop();
@@ -358,7 +591,7 @@ void Stop()  // - Hammertime!
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stop CPU"));
   CPU::Stop();
 
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
   {
     // Video_EnterLoop() should now exit so that EmuThread()
     // will continue concurrently with the rest of the commands
@@ -382,12 +615,13 @@ void UndeclareAsCPUThread()
 }
 
 // For the CPU Thread only.
-static void CPUSetInitialExecutionState()
+static void CPUSetInitialExecutionState(bool force_paused = false)
 {
   // The CPU starts in stepping state, and will wait until a new state is set before executing.
   // SetState must be called on the host thread, so we defer it for later.
-  QueueHostJob([]() {
-    SetState(SConfig::GetInstance().bBootToPause ? State::Paused : State::Running);
+  QueueHostJob([force_paused]() {
+    bool paused = SConfig::GetInstance().bBootToPause || force_paused;
+    SetState(paused ? State::Paused : State::Running);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
     Host_Message(HostMessageID::WMUserCreate);
@@ -399,8 +633,7 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 {
   DeclareAsCPUThread();
 
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
     Common::SetCurrentThreadName("CPU thread");
   else
     Common::SetCurrentThreadName("CPU-GPU thread");
@@ -414,7 +647,8 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   static_cast<void>(IDCache::GetEnvForThread());
 #endif
 
-  if (_CoreParameter.bFastmem)
+  const bool fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
+  if (fastmem_enabled)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
 
 #ifdef USE_MEMORYWATCHER
@@ -434,24 +668,29 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   }
 
   s_is_started = true;
-  CPUSetInitialExecutionState();
-
-#ifdef USE_GDBSTUB
+  {
 #ifndef _WIN32
-  if (!_CoreParameter.gdb_socket.empty())
-  {
-    gdb_init_local(_CoreParameter.gdb_socket.data());
-    gdb_break();
-  }
-  else
+    std::string gdb_socket = Config::Get(Config::MAIN_GDB_SOCKET);
+    if (!gdb_socket.empty())
+    {
+      GDBStub::InitLocal(gdb_socket.data());
+      CPUSetInitialExecutionState(true);
+    }
+    else
 #endif
-      if (_CoreParameter.iGDBPort > 0)
-  {
-    gdb_init(_CoreParameter.iGDBPort);
-    // break at next instruction (the first instruction)
-    gdb_break();
+    {
+      int gdb_port = Config::Get(Config::MAIN_GDB_PORT);
+      if (gdb_port > 0)
+      {
+        GDBStub::Init(gdb_port);
+        CPUSetInitialExecutionState(true);
+      }
+      else
+      {
+        CPUSetInitialExecutionState();
+      }
+    }
   }
-#endif
 
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
@@ -462,8 +701,15 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   s_is_started = false;
 
-  if (_CoreParameter.bFastmem)
+  if (fastmem_enabled)
     EMM::UninstallExceptionHandler();
+
+  if (GDBStub::IsActive())
+  {
+    GDBStub::Deinit();
+    INFO_LOG_FMT(GDB_STUB, "Killed by CPU shutdown");
+    return;
+  }
 }
 
 static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
@@ -471,8 +717,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 {
   DeclareAsCPUThread();
 
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-  if (_CoreParameter.bCPUThread)
+  if (Core::System::GetInstance().IsDualCoreMode())
     Common::SetCurrentThreadName("FIFO player thread");
   else
     Common::SetCurrentThreadName("FIFO-GPU thread");
@@ -504,6 +749,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 // See the BootManager.cpp file description for a complete call schedule.
 static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi)
 {
+  const Core::System& system = Core::System::GetInstance();
   const SConfig& core_parameter = SConfig::GetInstance();
   CallOnStateChangedCallbacks(State::Starting);
   Common::ScopeGuard flag_guard{[] {
@@ -544,12 +790,14 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     Keyboard::LoadConfig();
   }
 
-  const std::optional<std::string> savestate_path = boot->savestate_path;
-  const bool delete_savestate = boot->delete_savestate;
+  BootSessionData boot_session_data = std::move(boot->boot_session_data);
+  const std::optional<std::string>& savestate_path = boot_session_data.GetSavestatePath();
+  const bool delete_savestate =
+      boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   bool init_wiimotes = false;
-  if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
     if (init_controllers)
     {
@@ -637,11 +885,11 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   g_renderer->EndUIFrame();
 
   if (cpu_info.HTT)
-    SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;
+    Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 4);
   else
-    SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 2;
+    Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, cpu_info.num_cores > 2);
 
-  if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
+  if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, Config::Get(Config::MAIN_DSP_THREAD)))
   {
     PanicAlertFmt("Failed to initialize DSP emulation!");
     return;
@@ -670,24 +918,30 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   else
     cpuThreadFunc = CpuThread;
 
+  std::optional<DiscIO::Riivolution::SavegameRedirect> savegame_redirect = std::nullopt;
+  if (SConfig::GetInstance().bWii)
+    savegame_redirect = DiscIO::Riivolution::ExtractSavegameRedirect(boot->riivolution_patches);
+
   if (!CBoot::BootUp(std::move(boot)))
     return;
 
   // Initialise Wii filesystem contents.
   // This is done here after Boot and not in BootManager to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
-  Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
+  Common::ScopeGuard wiifs_guard{[&boot_session_data] {
+    Core::CleanUpWiiFileSystemContents(boot_session_data);
+    boot_session_data.InvokeWiiSyncCleanup();
+  }};
   if (SConfig::GetInstance().bWii)
-    Core::InitializeWiiFileSystemContents();
+    Core::InitializeWiiFileSystemContents(savegame_redirect, boot_session_data);
   else
     wiifs_guard.Dismiss();
 
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   Fifo::Prepare();
 
-  // Setup our core, but can't use dynarec if we are compare server
-  if (core_parameter.cpu_core != PowerPC::CPUCore::Interpreter &&
-      (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
+  // Setup our core
+  if (Config::Get(Config::MAIN_CPU_CORE) != PowerPC::CPUCore::Interpreter)
   {
     PowerPC::SetMode(PowerPC::CoreMode::JIT);
   }
@@ -697,7 +951,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
 
   // ENTER THE VIDEO THREAD LOOP
-  if (core_parameter.bCPUThread)
+  if (system.IsDualCoreMode())
   {
     // This thread, after creating the EmuWindow, spawns a CPU
     // thread, and then takes over and becomes the video thread
@@ -724,11 +978,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     cpuThreadFunc(savestate_path, delete_savestate);
   }
 
-#ifdef USE_GDBSTUB
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
-  gdb_deinit();
+  GDBStub::Deinit();
   INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
-#endif
 }
 
 // Set or get the running state
@@ -811,7 +1063,7 @@ static std::string GenerateScreenshotName()
 
   const std::time_t cur_time = std::time(nullptr);
   const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *std::localtime(&cur_time));
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, fmt::localtime(cur_time));
 
   // First try a filename without any suffixes, if already exists then append increasing numbers
   std::string name = fmt::format("{}.png", base_name);
@@ -834,11 +1086,6 @@ void SaveScreenShot(std::string_view name)
   Core::RunAsCPUThread([&name] {
     g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
   });
-}
-
-void RequestRefreshInfo()
-{
-  s_request_refresh_info = true;
 }
 
 static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
@@ -939,7 +1186,7 @@ void VideoThrottle()
 {
   // Update info per second
   u32 ElapseTime = (u32)s_timer.GetTimeElapsed();
-  if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_request_refresh_info)
+  if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_frame_step)
   {
     s_timer.Start();
 
@@ -987,9 +1234,6 @@ void Callback_NewField()
 
 void UpdateTitle(u32 ElapseTime)
 {
-  s_request_refresh_info = false;
-  SConfig& _CoreParameter = SConfig::GetInstance();
-
   if (ElapseTime == 0)
     ElapseTime = 1;
 
@@ -999,16 +1243,17 @@ void UpdateTitle(u32 ElapseTime)
                         (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
   // Settings are shown the same for both extended and summary info
-  const std::string SSettings =
-      fmt::format("{} {} | {} | {}", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
-                  g_video_backend->GetDisplayName(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
+  const std::string SSettings = fmt::format(
+      "{} {} | {} | {}", PowerPC::GetCPUName(),
+      Core::System::GetInstance().IsDualCoreMode() ? "DC" : "SC", g_video_backend->GetDisplayName(),
+      Config::Get(Config::MAIN_DSP_HLE) ? "HLE" : "LLE");
 
   std::string SFPS;
   if (Movie::IsPlayingInput())
   {
-    SFPS = fmt::format("Input: {}/{} - VI: {} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
+    SFPS = fmt::format("Input: {}/{} - VI: {}/{} - FPS: {:.0f} - VPS: {:.0f} - {:.0f}%",
                        Movie::GetCurrentInputCount(), Movie::GetTotalInputCount(),
-                       Movie::GetCurrentFrame(), FPS, VPS, Speed);
+                       Movie::GetCurrentFrame(), Movie::GetTotalFrames(), FPS, VPS, Speed);
   }
   else if (Movie::IsRecordingInput())
   {
@@ -1018,7 +1263,7 @@ void UpdateTitle(u32 ElapseTime)
   else
   {
     SFPS = fmt::format("FPS: {:.0f} - VPS: {:.0f} - {:.0f}%", FPS, VPS, Speed);
-    if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
+    if (Config::Get(Config::MAIN_EXTENDED_FPS_INFO))
     {
       // Use extended or summary information. The summary information does not print the ticks data,
       // that's more of a debugging interest, it can always be optional of course if someone is
@@ -1043,8 +1288,8 @@ void UpdateTitle(u32 ElapseTime)
     }
   }
 
-  std::string message = fmt::format("{} | {} | {}", Common::scm_rev_str, SSettings, SFPS);
-  if (SConfig::GetInstance().m_show_active_title)
+  std::string message = fmt::format("{} | {} | {}", Common::GetScmRevStr(), SSettings, SFPS);
+  if (Config::Get(Config::MAIN_SHOW_ACTIVE_TITLE))
   {
     const std::string& title = SConfig::GetInstance().GetTitleDescription();
     if (!title.empty())
@@ -1182,7 +1427,6 @@ void DoFrameStep()
     // if already paused, frame advance for 1 frame
     s_stop_frame_step = false;
     s_frame_step = true;
-    RequestRefreshInfo();
     SetState(State::Running);
   }
   else if (!s_frame_step)

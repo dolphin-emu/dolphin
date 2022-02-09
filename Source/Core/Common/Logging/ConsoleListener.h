@@ -11,8 +11,8 @@ public:
   ConsoleListener();
   ~ConsoleListener();
 
-  void Log(Common::Log::LOG_LEVELS level, const char* text) override;
+  void Log(Common::Log::LogLevel level, const char* text) override;
 
 private:
-  bool m_use_color;
+  bool m_use_color = false;
 };

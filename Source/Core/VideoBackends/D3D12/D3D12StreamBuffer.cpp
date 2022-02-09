@@ -46,13 +46,14 @@ bool StreamBuffer::AllocateBuffer(u32 size)
   HRESULT hr = g_dx_context->GetDevice()->CreateCommittedResource(
       &heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc, D3D12_RESOURCE_STATE_GENERIC_READ,
       nullptr, IID_PPV_ARGS(&m_buffer));
-  CHECK(SUCCEEDED(hr), "Allocate buffer");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to allocate buffer of size {}: {}", size,
+             DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
   static const D3D12_RANGE read_range = {};
   hr = m_buffer->Map(0, &read_range, reinterpret_cast<void**>(&m_host_pointer));
-  CHECK(SUCCEEDED(hr), "Map buffer");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to map buffer of size {}: {}", size, DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 

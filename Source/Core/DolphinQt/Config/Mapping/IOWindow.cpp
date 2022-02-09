@@ -207,7 +207,7 @@ public:
 
 private:
   std::function<ControlState()> m_state_evaluator;
-  bool m_should_paint_state_indicator;
+  bool m_should_paint_state_indicator = false;
 };
 
 IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* controller,
@@ -509,15 +509,17 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
 
   UpdateExpression(m_expression_text->toPlainText().toStdString());
-  m_original_expression = m_reference->GetExpression();
 
   if (ciface::ExpressionParser::ParseStatus::SyntaxError == m_reference->GetParseStatus())
   {
     ModalMessageBox::warning(this, tr("Error"), tr("The expression contains a syntax error."));
   }
-
-  // must be the OK button
-  accept();
+  else
+  {
+    // must be the OK button
+    m_original_expression = m_reference->GetExpression();
+    accept();
+  }
 }
 
 void IOWindow::OnDetectButtonPressed()

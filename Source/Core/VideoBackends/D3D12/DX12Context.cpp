@@ -12,6 +12,7 @@
 #include "Common/Assert.h"
 #include "Common/DynamicLibrary.h"
 #include "Common/StringUtil.h"
+
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
@@ -151,7 +152,7 @@ bool DXContext::CreateDevice(u32 adapter_index, bool enable_debug_layer)
   HRESULT hr = m_dxgi_factory->EnumAdapters(adapter_index, &adapter);
   if (FAILED(hr))
   {
-    ERROR_LOG_FMT(VIDEO, "Adapter {} not found, using default", adapter_index);
+    ERROR_LOG_FMT(VIDEO, "Adapter {} not found, using default: {}", adapter_index, DX12HRWrap(hr));
     adapter = nullptr;
   }
 
@@ -165,14 +166,14 @@ bool DXContext::CreateDevice(u32 adapter_index, bool enable_debug_layer)
     }
     else
     {
-      ERROR_LOG_FMT(VIDEO, "Debug layer requested but not available.");
+      ERROR_LOG_FMT(VIDEO, "Debug layer requested but not available: {}", DX12HRWrap(hr));
       enable_debug_layer = false;
     }
   }
 
   // Create the actual device.
   hr = s_d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device));
-  CHECK(SUCCEEDED(hr), "Create D3D12 device");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create D3D12 device: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
@@ -207,7 +208,7 @@ bool DXContext::CreateCommandQueue()
                                                D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
                                                D3D12_COMMAND_QUEUE_FLAG_NONE};
   HRESULT hr = m_device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&m_command_queue));
-  CHECK(SUCCEEDED(hr), "Create command queue");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command queue: {}", DX12HRWrap(hr));
   return SUCCEEDED(hr);
 }
 
@@ -215,12 +216,12 @@ bool DXContext::CreateFence()
 {
   HRESULT hr =
       m_device->CreateFence(m_completed_fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
-  CHECK(SUCCEEDED(hr), "Create fence");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create fence: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
   m_fence_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-  CHECK(m_fence_event != NULL, "Create fence event");
+  ASSERT_MSG(VIDEO, m_fence_event != NULL, "Failed to create fence event");
   if (!m_fence_event)
     return false;
 
@@ -302,14 +303,15 @@ static bool BuildRootSignature(ID3D12Device* device, ID3D12RootSignature** sig_p
                                                 &root_signature_blob, &root_signature_error_blob);
   if (FAILED(hr))
   {
-    PanicAlertFmt("Failed to serialize root signature: {}",
-                  static_cast<const char*>(root_signature_error_blob->GetBufferPointer()));
+    PanicAlertFmt("Failed to serialize root signature: {}\n{}",
+                  static_cast<const char*>(root_signature_error_blob->GetBufferPointer()),
+                  DX12HRWrap(hr));
     return false;
   }
 
   hr = device->CreateRootSignature(0, root_signature_blob->GetBufferPointer(),
                                    root_signature_blob->GetBufferSize(), IID_PPV_ARGS(sig_ptr));
-  CHECK(SUCCEEDED(hr), "Create root signature");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create root signature: {}", DX12HRWrap(hr));
   return true;
 }
 
@@ -416,21 +418,21 @@ bool DXContext::CreateCommandLists()
     CommandListResources& res = m_command_lists[i];
     HRESULT hr = m_device->CreateCommandAllocator(
         D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(res.command_allocator.GetAddressOf()));
-    CHECK(SUCCEEDED(hr), "Create command allocator");
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command allocator: {}", DX12HRWrap(hr));
     if (FAILED(hr))
       return false;
 
     hr = m_device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, res.command_allocator.Get(),
                                      nullptr, IID_PPV_ARGS(res.command_list.GetAddressOf()));
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create command list: {}", DX12HRWrap(hr));
     if (FAILED(hr))
     {
-      PanicAlertFmt("Failed to create command list.");
       return false;
     }
 
     // Close the command list, since the first thing we do is reset them.
     hr = res.command_list->Close();
-    CHECK(SUCCEEDED(hr), "Closing new command list failed");
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Closing new command list failed: {}", DX12HRWrap(hr));
     if (FAILED(hr))
       return false;
 
@@ -472,14 +474,15 @@ void DXContext::ExecuteCommandList(bool wait_for_completion)
 
   // Close and queue command list.
   HRESULT hr = res.command_list->Close();
-  CHECK(SUCCEEDED(hr), "Close command list");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to close command list: {}", DX12HRWrap(hr));
   const std::array<ID3D12CommandList*, 1> execute_lists{res.command_list.Get()};
   m_command_queue->ExecuteCommandLists(static_cast<UINT>(execute_lists.size()),
                                        execute_lists.data());
 
   // Update fence when GPU has completed.
   hr = m_command_queue->Signal(m_fence.Get(), m_current_fence_value);
-  CHECK(SUCCEEDED(hr), "Signal fence");
+
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to signal fence: {}", DX12HRWrap(hr));
 
   MoveToNextCommandList();
   if (wait_for_completion)
@@ -532,7 +535,7 @@ void DXContext::WaitForFence(u64 fence)
   {
     // Fall back to event.
     HRESULT hr = m_fence->SetEventOnCompletion(fence, m_fence_event);
-    CHECK(SUCCEEDED(hr), "Set fence event on completion");
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to set fence event on completion: {}", DX12HRWrap(hr));
     WaitForSingleObject(m_fence_event, INFINITE);
     m_completed_fence_value = m_fence->GetCompletedValue();
   }

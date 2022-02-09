@@ -1,13 +1,14 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "AudioCommon/AudioStretcher.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 
-#include "AudioCommon/AudioStretcher.h"
 #include "Common/Logging/Log.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 namespace AudioCommon
 {
@@ -31,7 +32,7 @@ void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsign
   // We were given actual_samples number of samples, and num_samples were requested from us.
   double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
 
-  const double max_latency = SConfig::GetInstance().m_audio_stretch_max_latency;
+  const double max_latency = Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY);
   const double max_backlog = m_sample_rate * max_latency / 1000.0 / m_stretch_ratio;
   const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
   if (backlog_fullness > 5.0)

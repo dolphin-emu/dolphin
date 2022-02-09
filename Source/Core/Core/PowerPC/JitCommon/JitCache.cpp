@@ -1,12 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Enable define below to enable oprofile integration. For this to work,
-// it requires at least oprofile version 0.9.4, and changing the build
-// system to link the Dolphin executable against libopagent.  Since the
-// dependency is a little inconvenient and this is possibly a slight
-// performance hit, it's not enabled by default, but it's useful for
-// locating performance issues.
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 #include <algorithm>
 #include <array>
@@ -18,7 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
@@ -45,7 +40,7 @@ JitBaseBlockCache::~JitBaseBlockCache() = default;
 
 void JitBaseBlockCache::Init()
 {
-  JitRegister::Init(SConfig::GetInstance().m_perfDir);
+  JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
   Clear();
 }
@@ -96,10 +91,10 @@ void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
 
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
-  u32 physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
-  JitBlock& b = block_map.emplace(physicalAddress, JitBlock())->second;
+  const u32 physical_address = PowerPC::JitCache_TranslateAddress(em_address).address;
+  JitBlock& b = block_map.emplace(physical_address, JitBlock())->second;
   b.effectiveAddress = em_address;
-  b.physicalAddress = physicalAddress;
+  b.physicalAddress = physical_address;
   b.msrBits = MSR.Hex & JIT_CACHE_MSR_MASK;
   b.linkData.clear();
   b.fast_block_map_index = 0;
@@ -183,27 +178,72 @@ const u8* JitBaseBlockCache::Dispatch()
   return block->normalEntry;
 }
 
-void JitBaseBlockCache::InvalidateICache(u32 address, u32 length, bool forced)
+void JitBaseBlockCache::InvalidateICacheLine(u32 address)
 {
-  auto translated = PowerPC::JitCache_TranslateAddress(address);
-  if (!translated.valid)
-    return;
-  u32 pAddr = translated.address;
+  const u32 cache_line_address = address & ~0x1f;
+  const auto translated = PowerPC::JitCache_TranslateAddress(cache_line_address);
+  if (translated.valid)
+    InvalidateICacheInternal(translated.address, cache_line_address, 32, false);
+}
 
-  // Optimize the common case of length == 32 which is used by Interpreter::dcb*
-  bool destroy_block = true;
-  if (length == 32)
+void JitBaseBlockCache::InvalidateICache(u32 initial_address, u32 initial_length, bool forced)
+{
+  u32 address = initial_address;
+  u32 length = initial_length;
+  while (length > 0)
   {
-    if (!valid_block.Test(pAddr / 32))
+    const auto translated = PowerPC::JitCache_TranslateAddress(address);
+
+    const bool address_from_bat = translated.valid && translated.translated && translated.from_bat;
+    const int shift = address_from_bat ? PowerPC::BAT_INDEX_SHIFT : PowerPC::HW_PAGE_INDEX_SHIFT;
+    const u32 mask = ~((1u << shift) - 1u);
+    const u32 first_address = address;
+    const u32 last_address = address + (length - 1u);
+    if ((first_address & mask) == (last_address & mask))
+    {
+      if (translated.valid)
+        InvalidateICacheInternal(translated.address, address, length, forced);
+      return;
+    }
+
+    const u32 end_of_page = (first_address + (1u << shift)) & mask;
+    const u32 length_this_page = end_of_page - first_address;
+    if (translated.valid)
+      InvalidateICacheInternal(translated.address, address, length_this_page, forced);
+    address = address + length_this_page;
+    length = length - length_this_page;
+  }
+}
+
+void JitBaseBlockCache::InvalidateICacheInternal(u32 physical_address, u32 address, u32 length,
+                                                 bool forced)
+{
+  // Optimization for the case of invalidating a single cache line, which is used by the dcb*
+  // instructions. If the valid_block bit for that cacheline is not set, we can safely skip
+  // the remaining invalidation logic.
+  bool destroy_block = true;
+  if (length == 32 && (physical_address & 0x1fu) == 0)
+  {
+    if (!valid_block.Test(physical_address / 32))
       destroy_block = false;
     else
-      valid_block.Clear(pAddr / 32);
+      valid_block.Clear(physical_address / 32);
+  }
+  else if (length > 32)
+  {
+    // Even if we can't check the set for optimization, we still want to remove all fully covered
+    // cache lines from the valid_block set so that later calls don't try to invalidate already
+    // cleared regions.
+    const u32 covered_block_start = (physical_address + 0x1f) / 32;
+    const u32 covered_block_end = (physical_address + length) / 32;
+    for (u32 i = covered_block_start; i < covered_block_end; ++i)
+      valid_block.Clear(i);
   }
 
   if (destroy_block)
   {
     // destroy JIT blocks
-    ErasePhysicalRange(pAddr, length);
+    ErasePhysicalRange(physical_address, length);
 
     // If the code was actually modified, we need to clear the relevant entries from the
     // FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
@@ -267,6 +307,11 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
     else
       start++;
   }
+}
+
+u32* JitBaseBlockCache::GetBlockBitSet() const
+{
+  return valid_block.m_valid_block.get();
 }
 
 void JitBaseBlockCache::WriteDestroyBlock(const JitBlock& block)

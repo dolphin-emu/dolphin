@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D12/VideoBackend.h"
+
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -14,7 +16,6 @@
 #include "VideoBackends/D3D12/D3D12SwapChain.h"
 #include "VideoBackends/D3D12/D3D12VertexManager.h"
 #include "VideoBackends/D3D12/DX12Context.h"
-#include "VideoBackends/D3D12/VideoBackend.h"
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"
@@ -82,6 +83,9 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.AAModes = DXContext::GetAAModes(g_Config.iAdapter);
   g_Config.backend_info.bSupportsShaderBinaries = true;
   g_Config.backend_info.bSupportsPipelineCacheData = true;
+  g_Config.backend_info.bSupportsCoarseDerivatives = true;
+  g_Config.backend_info.bSupportsTextureQueryLevels = true;
+  g_Config.backend_info.bSupportsLodBiasInSampler = true;
 
   // We can only check texture support once we have a device.
   if (g_dx_context)

@@ -91,6 +91,16 @@ void EmuCodeBlock::SwitchToNearCode()
   SetCodePtr(m_near_code, m_near_code_end, m_near_code_write_failed);
 }
 
+FixupBranch EmuCodeBlock::BATAddressLookup(X64Reg addr, X64Reg tmp, const void* bat_table)
+{
+  MOV(64, R(tmp), ImmPtr(bat_table));
+  SHR(32, R(addr), Imm8(PowerPC::BAT_INDEX_SHIFT));
+  MOV(32, R(addr), MComplex(tmp, addr, SCALE_4, 0));
+  BT(32, R(addr), Imm8(IntLog2(PowerPC::BAT_MAPPED_BIT)));
+
+  return J_CC(CC_NC, m_far_code.Enabled());
+}
+
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
                                              BitSet32 registers_in_use)
 {
@@ -118,22 +128,6 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
     POP(RSCRATCH);
 
   return J_CC(CC_Z, m_far_code.Enabled());
-}
-
-void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset,
-                                      bool signExtend)
-{
-  OpArg src = MComplex(RMEM, reg_addr, SCALE_1, offset);
-  LoadAndSwap(accessSize, reg_value, src, signExtend);
-}
-
-void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize,
-                                            s32 offset, bool signExtend)
-{
-  if (signExtend)
-    MOVSX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
-  else
-    MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
 }
 
 void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,

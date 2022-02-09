@@ -87,4 +87,19 @@ void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& player)
 
   inifile.SetLines("Local_Players_List", lines);
 }
+
+std::vector<std::string> LoadPortPlayers(IniFile& inifile)
+{
+  std::vector<std::string> ports;
+
+  IniFile::Section* localplayers = inifile.GetOrCreateSection("Local Players");
+
+  const IniFile::Section::SectionMap portmap = localplayers->GetValues();
+  for (const auto& name : portmap)
+  {
+    ports.push_back(name.second);
+  }
+
+  return ports;
+}
 }  // namespace AddPlayers

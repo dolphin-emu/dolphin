@@ -11,8 +11,7 @@
     <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
     <SourceDir>$(DolphinRootDir)Source\</SourceDir>
     <CoreDir>$(SourceDir)Core\</CoreDir>
-    <CScript Condition="'$(ProgramFiles(x86))' != ''">%windir%\System32\cscript</CScript>
-    <CScript Condition="'$(ProgramFiles(x86))' == ''">%windir%\Sysnative\cscript</CScript>
+    <CScript>%windir%\System32\cscript</CScript>
     <VSPropsDir>$(SourceDir)VSProps\</VSPropsDir>
   </PropertyGroup>
   <PropertyGroup>

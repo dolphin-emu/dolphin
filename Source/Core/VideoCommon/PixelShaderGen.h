@@ -8,15 +8,16 @@
 #include "VideoCommon/ShaderGenCommon.h"
 
 enum class APIType;
-enum class AlphaTestResult;
-enum class SrcBlendFactor : u32;
-enum class DstBlendFactor : u32;
-enum class CompareMode : u32;
 enum class AlphaTestOp : u32;
-enum class RasColorChan : u32;
-enum class KonstSel : u32;
+enum class AlphaTestResult;
+enum class CompareMode : u32;
+enum class DstBlendFactor : u32;
 enum class FogProjection : u32;
 enum class FogType : u32;
+enum class KonstSel : u32;
+enum class RasColorChan : u32;
+enum class SrcBlendFactor : u32;
+enum class ZTexOp : u32;
 
 #pragma pack(1)
 struct pixel_shader_uid_data
@@ -40,7 +41,7 @@ struct pixel_shader_uid_data
 
   FogType fog_fsel : 3;
   u32 fog_RangeBaseEnabled : 1;
-  u32 ztex_op : 2;
+  ZTexOp ztex_op : 2;
   u32 per_pixel_depth : 1;
   u32 forced_early_z : 1;
   u32 early_ztest : 1;
@@ -58,6 +59,8 @@ struct pixel_shader_uid_data
   DstBlendFactor blend_dst_factor_alpha : 3;  // Only used with shader_framebuffer_fetch blend
   u32 blend_subtract : 1;                     // Only used with shader_framebuffer_fetch blend
   u32 blend_subtract_alpha : 1;               // Only used with shader_framebuffer_fetch blend
+  u32 logic_op_enable : 1;                    // Only used with shader_framebuffer_fetch logic ops
+  u32 logic_op_mode : 4;                      // Only used with shader_framebuffer_fetch logic ops
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;

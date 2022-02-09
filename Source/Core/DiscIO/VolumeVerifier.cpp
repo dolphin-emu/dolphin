@@ -16,13 +16,13 @@
 #include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 #include <unzip.h>
-#include <zlib.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -125,7 +125,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
   const std::optional<std::vector<u8>> result =
       request.Get("http://redump.org/datfile/" + system + "/serial,version",
-                  {{"User-Agent", Common::scm_rev_str}});
+                  {{"User-Agent", Common::GetScmRevStr()}});
 
   const std::string output_path = GetPathForSystem(system);
 
@@ -630,14 +630,17 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     // IOS9 is the only IOS which can be assumed to exist in a working state on any Wii
     // regardless of what updates have been installed. At least Mario Party 8
     // (RM8E01, revision 2) uses IOS9 without having it in its update partition.
-    bool has_correct_ios = tmd.IsValid() && (tmd.GetIOSId() & 0xFF) == 9;
+    const u64 ios_ver = tmd.GetIOSId() & 0xFF;
+    bool has_correct_ios = tmd.IsValid() && ios_ver == 9;
 
     if (!has_correct_ios && tmd.IsValid())
     {
       std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys");
       if (file_info)
       {
-        const std::string correct_ios = "IOS" + std::to_string(tmd.GetIOSId() & 0xFF) + "-";
+        const std::string ios_ver_str = std::to_string(ios_ver);
+        const std::string correct_ios =
+            IsDebugSigned() ? ("firmware.64." + ios_ver_str + ".") : ("IOS" + ios_ver_str + "-");
         for (const FileInfo& f : *file_info)
         {
           if (StringBeginsWith(f.GetName(), correct_ios))
@@ -1038,7 +1041,7 @@ void VolumeVerifier::SetUpHashing()
             [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
 
   if (m_hashes_to_calculate.crc32)
-    m_crc32_context = crc32(0, nullptr, 0);
+    m_crc32_context = Common::StartCRC32();
 
   if (m_hashes_to_calculate.md5)
   {
@@ -1168,9 +1171,8 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.crc32)
     {
       m_crc32_future = std::async(std::launch::async, [this, byte_increment] {
-        // It would be nice to use crc32_z here instead of crc32, but it isn't available on Android
         m_crc32_context =
-            crc32(m_crc32_context, m_data.data(), static_cast<unsigned int>(byte_increment));
+            Common::UpdateCRC32(m_crc32_context, m_data.data(), static_cast<u32>(byte_increment));
       });
     }
 

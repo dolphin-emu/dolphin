@@ -15,13 +15,13 @@ FPURegCache::FPURegCache(Jit64& jit) : RegCache{jit}
 
 void FPURegCache::StoreRegister(preg_t preg, const OpArg& new_loc)
 {
-  ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - %zu", preg);
+  ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - {}", preg);
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location()->GetSimpleReg());
 }
 
 void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
-  ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - %zu", preg);
+  ASSERT_MSG(DYNA_REC, !m_regs[preg].IsDiscarded(), "Discarded register - {}", preg);
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location().value());
 }
 

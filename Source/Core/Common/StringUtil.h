@@ -240,3 +240,17 @@ std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line);
 #endif
 
 std::string GetEscapedHtml(std::string html);
+
+namespace Common
+{
+inline char ToLower(char ch)
+{
+  return std::tolower(ch, std::locale::classic());
+}
+inline char ToUpper(char ch)
+{
+  return std::toupper(ch, std::locale::classic());
+}
+void ToLower(std::string* str);
+void ToUpper(std::string* str);
+}  // namespace Common

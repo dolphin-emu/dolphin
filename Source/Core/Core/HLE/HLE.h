@@ -40,6 +40,7 @@ void Reload();
 
 void Patch(u32 pc, std::string_view func_name);
 u32 UnPatch(std::string_view patch_name);
+u32 UnpatchRange(u32 start_addr, u32 end_addr);
 void Execute(u32 current_pc, u32 hook_index);
 
 // Returns the HLE hook index of the address

@@ -237,8 +237,8 @@ private:
     void DoState(PointerWrap& p);
 
     bool in_use = false;
-    ObjectType type;
-    ObjectSubType subtype;
+    ObjectType type{};
+    ObjectSubType subtype{};
     std::vector<u8> data;
     u32 misc_data = 0;
     u32 owner_mask = 0;

@@ -7,8 +7,10 @@
 
 #include <QFont>
 #include <QObject>
+#include <QRadioButton>
 #include <QSettings>
 
+#include "Core/Config/MainSettings.h"
 #include "DiscIO/Enums.h"
 
 namespace Core
@@ -49,6 +51,9 @@ public:
   void SetThemeName(const QString& theme_name);
   void SetCurrentUserStyle(const QString& stylesheet_name);
   QString GetCurrentUserStyle() const;
+
+  void SetDarkMode(bool enabled);
+  bool IsDarkMode();
 
   void SetUserStylesEnabled(bool enabled);
   bool AreUserStylesEnabled() const;
@@ -97,8 +102,8 @@ public:
   void SetUSBKeyboardConnected(bool connected);
 
   // Graphics
-  void SetHideCursor(bool hide_cursor);
-  bool GetHideCursor() const;
+  void SetCursorVisibility(Config::ShowCursor hideCursor);
+  Config::ShowCursor GetCursorVisibility() const;
   void SetLockCursor(bool lock_cursor);
   bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);
@@ -174,7 +179,7 @@ signals:
   void MetadataRefreshRequested();
   void MetadataRefreshCompleted();
   void AutoRefreshToggled(bool enabled);
-  void HideCursorChanged();
+  void CursorVisibilityChanged();
   void LockCursorChanged();
   void KeepWindowOnTopChanged(bool top);
   void VolumeChanged(int volume);

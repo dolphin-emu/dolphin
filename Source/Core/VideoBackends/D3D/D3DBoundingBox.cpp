@@ -1,57 +1,55 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D/D3DBoundingBox.h"
+
 #include <algorithm>
 #include <array>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "VideoBackends/D3D/D3DBoundingBox.h"
+
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
-static constexpr u32 NUM_BBOX_VALUES = 4;
-static ComPtr<ID3D11Buffer> s_bbox_buffer;
-static ComPtr<ID3D11Buffer> s_bbox_staging_buffer;
-static ComPtr<ID3D11UnorderedAccessView> s_bbox_uav;
-static std::array<s32, NUM_BBOX_VALUES> s_bbox_values;
-static std::array<bool, NUM_BBOX_VALUES> s_bbox_dirty;
-static bool s_bbox_valid = false;
-
-ID3D11UnorderedAccessView* BBox::GetUAV()
+D3DBoundingBox::~D3DBoundingBox()
 {
-  return s_bbox_uav.Get();
+  m_uav.Reset();
+  m_staging_buffer.Reset();
+  m_buffer.Reset();
 }
 
-void BBox::Init()
+bool D3DBoundingBox::Initialize()
 {
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
-    return;
-
   // Create 2 buffers here.
   // First for unordered access on default pool.
-  auto desc = CD3D11_BUFFER_DESC(NUM_BBOX_VALUES * sizeof(s32), D3D11_BIND_UNORDERED_ACCESS,
-                                 D3D11_USAGE_DEFAULT, 0, 0, sizeof(s32));
-  const s32 initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
+  auto desc = CD3D11_BUFFER_DESC(NUM_BBOX_VALUES * sizeof(BBoxType), D3D11_BIND_UNORDERED_ACCESS,
+                                 D3D11_USAGE_DEFAULT, 0, 0, sizeof(BBoxType));
+  const BBoxType initial_values[NUM_BBOX_VALUES] = {0, 0, 0, 0};
   D3D11_SUBRESOURCE_DATA data;
   data.pSysMem = initial_values;
-  data.SysMemPitch = NUM_BBOX_VALUES * sizeof(s32);
+  data.SysMemPitch = NUM_BBOX_VALUES * sizeof(BBoxType);
   data.SysMemSlicePitch = 0;
   HRESULT hr;
-  hr = D3D::device->CreateBuffer(&desc, &data, &s_bbox_buffer);
-  CHECK(SUCCEEDED(hr), "Create BoundingBox Buffer.");
-  D3DCommon::SetDebugObjectName(s_bbox_buffer.Get(), "BoundingBox Buffer");
+  hr = D3D::device->CreateBuffer(&desc, &data, &m_buffer);
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create BoundingBox Buffer: {}", DX11HRWrap(hr));
+  if (FAILED(hr))
+    return false;
+  D3DCommon::SetDebugObjectName(m_buffer.Get(), "BoundingBox Buffer");
 
   // Second to use as a staging buffer.
   desc.Usage = D3D11_USAGE_STAGING;
   desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
   desc.BindFlags = 0;
-  hr = D3D::device->CreateBuffer(&desc, nullptr, &s_bbox_staging_buffer);
-  CHECK(SUCCEEDED(hr), "Create BoundingBox Staging Buffer.");
-  D3DCommon::SetDebugObjectName(s_bbox_staging_buffer.Get(), "BoundingBox Staging Buffer");
+  hr = D3D::device->CreateBuffer(&desc, nullptr, &m_staging_buffer);
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create BoundingBox Staging Buffer: {}",
+             DX11HRWrap(hr));
+  if (FAILED(hr))
+    return false;
+  D3DCommon::SetDebugObjectName(m_staging_buffer.Get(), "BoundingBox Staging Buffer");
 
   // UAV is required to allow concurrent access.
   D3D11_UNORDERED_ACCESS_VIEW_DESC UAVdesc = {};
@@ -60,89 +58,43 @@ void BBox::Init()
   UAVdesc.Buffer.FirstElement = 0;
   UAVdesc.Buffer.Flags = 0;
   UAVdesc.Buffer.NumElements = NUM_BBOX_VALUES;
-  hr = D3D::device->CreateUnorderedAccessView(s_bbox_buffer.Get(), &UAVdesc, &s_bbox_uav);
-  CHECK(SUCCEEDED(hr), "Create BoundingBox UAV.");
-  D3DCommon::SetDebugObjectName(s_bbox_uav.Get(), "BoundingBox UAV");
-  D3D::stateman->SetOMUAV(s_bbox_uav.Get());
+  hr = D3D::device->CreateUnorderedAccessView(m_buffer.Get(), &UAVdesc, &m_uav);
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create BoundingBox UAV: {}", DX11HRWrap(hr));
+  if (FAILED(hr))
+    return false;
+  D3DCommon::SetDebugObjectName(m_uav.Get(), "BoundingBox UAV");
+  D3D::stateman->SetOMUAV(m_uav.Get());
 
-  s_bbox_dirty = {};
-  s_bbox_valid = true;
+  return true;
 }
 
-void BBox::Shutdown()
+std::vector<BBoxType> D3DBoundingBox::Read(u32 index, u32 length)
 {
-  s_bbox_uav.Reset();
-  s_bbox_staging_buffer.Reset();
-  s_bbox_buffer.Reset();
-}
-
-void BBox::Flush()
-{
-  s_bbox_valid = false;
-
-  if (std::none_of(s_bbox_dirty.begin(), s_bbox_dirty.end(), [](bool dirty) { return dirty; }))
-    return;
-
-  for (u32 start = 0; start < NUM_BBOX_VALUES;)
-  {
-    if (!s_bbox_dirty[start])
-    {
-      start++;
-      continue;
-    }
-
-    u32 end = start + 1;
-    s_bbox_dirty[start] = false;
-    for (; end < NUM_BBOX_VALUES; end++)
-    {
-      if (!s_bbox_dirty[end])
-        break;
-
-      s_bbox_dirty[end] = false;
-    }
-
-    D3D11_BOX box{start * sizeof(s32), 0, 0, end * sizeof(s32), 1, 1};
-    D3D::context->UpdateSubresource(s_bbox_buffer.Get(), 0, &box, &s_bbox_values[start], 0, 0);
-  }
-}
-
-void BBox::Readback()
-{
-  D3D::context->CopyResource(s_bbox_staging_buffer.Get(), s_bbox_buffer.Get());
+  std::vector<BBoxType> values(length);
+  D3D::context->CopyResource(m_staging_buffer.Get(), m_buffer.Get());
 
   D3D11_MAPPED_SUBRESOURCE map;
-  HRESULT hr = D3D::context->Map(s_bbox_staging_buffer.Get(), 0, D3D11_MAP_READ, 0, &map);
+  HRESULT hr = D3D::context->Map(m_staging_buffer.Get(), 0, D3D11_MAP_READ, 0, &map);
   if (SUCCEEDED(hr))
   {
-    for (u32 i = 0; i < NUM_BBOX_VALUES; i++)
-    {
-      if (!s_bbox_dirty[i])
-      {
-        std::memcpy(&s_bbox_values[i], reinterpret_cast<const u8*>(map.pData) + sizeof(s32) * i,
-                    sizeof(s32));
-      }
-    }
+    std::memcpy(values.data(), reinterpret_cast<const u8*>(map.pData) + sizeof(BBoxType) * index,
+                sizeof(BBoxType) * length);
 
-    D3D::context->Unmap(s_bbox_staging_buffer.Get(), 0);
+    D3D::context->Unmap(m_staging_buffer.Get(), 0);
   }
 
-  s_bbox_valid = true;
+  return values;
 }
 
-void BBox::Set(int index, int value)
+void D3DBoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
 {
-  if (s_bbox_valid && s_bbox_values[index] == value)
-    return;
-
-  s_bbox_values[index] = value;
-  s_bbox_dirty[index] = true;
+  D3D11_BOX box{index * sizeof(BBoxType),
+                0,
+                0,
+                static_cast<u32>(index + values.size()) * sizeof(BBoxType),
+                1,
+                1};
+  D3D::context->UpdateSubresource(m_buffer.Get(), 0, &box, values.data(), 0, 0);
 }
 
-int BBox::Get(int index)
-{
-  if (!s_bbox_valid)
-    Readback();
-
-  return s_bbox_values[index];
-}
 };  // namespace DX11

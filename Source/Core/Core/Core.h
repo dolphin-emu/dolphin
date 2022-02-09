@@ -126,7 +126,6 @@ void OnFrameEnd();
 bool IsGolfMode();
 
 void VideoThrottle();
-void RequestRefreshInfo();
 
 void UpdateTitle(u32 ElapseTime);
 
@@ -173,18 +172,24 @@ void DoFrameStep();
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
+float u32ToFloat(u32 value);
+float ms_to_mph(float MetersPerSecond);
+float vectorMagnitude(float x, float y, float z);
+float RoundZ(float num);
+bool isRankedMode();
+
+void AutoGolfMode();
+void TrainingMode();
+void DisplayBatterFielder();
+
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);
 void setSubmitStatus(bool inNewStatus);
 void setRankedStatus(bool inNewStatus);
 
-// static const u8 aFieldingPort = 0x802EBF94;
-  // Specifies which port is fielding; holds value 1-4
-//static const u8 aBattingPort = 0x802EBF95;
-  // Specifies which port is batting; holds value 1-4
-// static const u8 aGameState = 0x8036F3B8;
-  // Tells if in the fielding/running state or the  pitching/batting state
-  // If 0, fielding/running
-  // If 1, batting/pitching
+union{
+  u32 num;
+  float fnum;
+} float_converter;
 
 }  // namespace Core

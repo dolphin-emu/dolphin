@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
@@ -58,7 +59,7 @@ struct Normal_Direct
 {
   static void function([[maybe_unused]] VertexLoader* loader)
   {
-    auto const source = reinterpret_cast<const T*>(DataGetPosition());
+    const auto source = reinterpret_cast<const T*>(DataGetPosition());
     ReadIndirect<T, N * 3>(source);
     DataSkip<N * 3 * sizeof(T)>();
   }
@@ -71,10 +72,10 @@ void Normal_Index_Offset()
 {
   static_assert(std::is_unsigned_v<I>, "Only unsigned I is sane!");
 
-  auto const index = DataRead<I>();
-  auto const data = reinterpret_cast<const T*>(
-      VertexLoaderManager::cached_arraybases[ARRAY_NORMAL] +
-      (index * g_main_cp_state.array_strides[ARRAY_NORMAL]) + sizeof(T) * 3 * Offset);
+  const auto index = DataRead<I>();
+  const auto data = reinterpret_cast<const T*>(
+      VertexLoaderManager::cached_arraybases[CPArray::Normal] +
+      (index * g_main_cp_state.array_strides[CPArray::Normal]) + sizeof(T) * 3 * Offset);
   ReadIndirect<T, N * 3>(data);
 }
 
@@ -98,39 +99,6 @@ struct Normal_Index_Indices3
   static constexpr u32 size = sizeof(I) * 3;
 };
 
-enum NormalType
-{
-  NRM_NOT_PRESENT = 0,
-  NRM_DIRECT = 1,
-  NRM_INDEX8 = 2,
-  NRM_INDEX16 = 3,
-  NUM_NRM_TYPE
-};
-
-enum NormalFormat
-{
-  FORMAT_UBYTE = 0,
-  FORMAT_BYTE = 1,
-  FORMAT_USHORT = 2,
-  FORMAT_SHORT = 3,
-  FORMAT_FLOAT = 4,
-  NUM_NRM_FORMAT
-};
-
-enum NormalElements
-{
-  NRM_NBT = 0,
-  NRM_NBT3 = 1,
-  NUM_NRM_ELEMENTS
-};
-
-enum NormalIndices
-{
-  NRM_INDICES1 = 0,
-  NRM_INDICES3 = 1,
-  NUM_NRM_INDICES
-};
-
 struct Set
 {
   template <typename T>
@@ -145,83 +113,88 @@ struct Set
   TPipelineFunction function;
 };
 
-using Formats = std::array<Set, NUM_NRM_FORMAT>;
-using Elements = std::array<Formats, NUM_NRM_ELEMENTS>;
-using Indices = std::array<Elements, NUM_NRM_INDICES>;
-using Types = std::array<Indices, NUM_NRM_TYPE>;
+using Common::EnumMap;
+using Formats = EnumMap<Set, ComponentFormat::Float>;
+using Elements = EnumMap<Formats, NormalComponentCount::NBT>;
+using Indices = std::array<Elements, 2>;
+using Types = EnumMap<Indices, VertexComponentFormat::Index16>;
 
 constexpr Types InitializeTable()
 {
   Types table{};
 
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_UBYTE] = Normal_Direct<u8, 1>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_BYTE] = Normal_Direct<s8, 1>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_USHORT] = Normal_Direct<u16, 1>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_SHORT] = Normal_Direct<s16, 1>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_FLOAT] = Normal_Direct<float, 1>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] = Normal_Direct<u8, 3>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE] = Normal_Direct<s8, 3>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT] = Normal_Direct<u16, 3>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] = Normal_Direct<s16, 3>();
-  table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] = Normal_Direct<float, 3>();
+  using VCF = VertexComponentFormat;
+  using NCC = NormalComponentCount;
+  using FMT = ComponentFormat;
 
-  // Same as above
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_UBYTE] = Normal_Direct<u8, 1>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_BYTE] = Normal_Direct<s8, 1>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_USHORT] = Normal_Direct<u16, 1>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_SHORT] = Normal_Direct<s16, 1>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_FLOAT] = Normal_Direct<float, 1>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] = Normal_Direct<u8, 3>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE] = Normal_Direct<s8, 3>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT] = Normal_Direct<u16, 3>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] = Normal_Direct<s16, 3>();
-  table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] = Normal_Direct<float, 3>();
+  table[VCF::Direct][false][NCC::N][FMT::UByte] = Normal_Direct<u8, 1>();
+  table[VCF::Direct][false][NCC::N][FMT::Byte] = Normal_Direct<s8, 1>();
+  table[VCF::Direct][false][NCC::N][FMT::UShort] = Normal_Direct<u16, 1>();
+  table[VCF::Direct][false][NCC::N][FMT::Short] = Normal_Direct<s16, 1>();
+  table[VCF::Direct][false][NCC::N][FMT::Float] = Normal_Direct<float, 1>();
+  table[VCF::Direct][false][NCC::NBT][FMT::UByte] = Normal_Direct<u8, 3>();
+  table[VCF::Direct][false][NCC::NBT][FMT::Byte] = Normal_Direct<s8, 3>();
+  table[VCF::Direct][false][NCC::NBT][FMT::UShort] = Normal_Direct<u16, 3>();
+  table[VCF::Direct][false][NCC::NBT][FMT::Short] = Normal_Direct<s16, 3>();
+  table[VCF::Direct][false][NCC::NBT][FMT::Float] = Normal_Direct<float, 3>();
 
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_UBYTE] = Normal_Index<u8, u8, 1>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_BYTE] = Normal_Index<u8, s8, 1>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_USHORT] = Normal_Index<u8, u16, 1>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_SHORT] = Normal_Index<u8, s16, 1>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_FLOAT] = Normal_Index<u8, float, 1>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] = Normal_Index<u8, u8, 3>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE] = Normal_Index<u8, s8, 3>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT] = Normal_Index<u8, u16, 3>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] = Normal_Index<u8, s16, 3>();
-  table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] = Normal_Index<u8, float, 3>();
+  // Same as above, since there are no indices
+  table[VCF::Direct][true][NCC::N][FMT::UByte] = Normal_Direct<u8, 1>();
+  table[VCF::Direct][true][NCC::N][FMT::Byte] = Normal_Direct<s8, 1>();
+  table[VCF::Direct][true][NCC::N][FMT::UShort] = Normal_Direct<u16, 1>();
+  table[VCF::Direct][true][NCC::N][FMT::Short] = Normal_Direct<s16, 1>();
+  table[VCF::Direct][true][NCC::N][FMT::Float] = Normal_Direct<float, 1>();
+  table[VCF::Direct][true][NCC::NBT][FMT::UByte] = Normal_Direct<u8, 3>();
+  table[VCF::Direct][true][NCC::NBT][FMT::Byte] = Normal_Direct<s8, 3>();
+  table[VCF::Direct][true][NCC::NBT][FMT::UShort] = Normal_Direct<u16, 3>();
+  table[VCF::Direct][true][NCC::NBT][FMT::Short] = Normal_Direct<s16, 3>();
+  table[VCF::Direct][true][NCC::NBT][FMT::Float] = Normal_Direct<float, 3>();
 
-  // Same as above for NRM_NBT
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_UBYTE] = Normal_Index<u8, u8, 1>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_BYTE] = Normal_Index<u8, s8, 1>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_USHORT] = Normal_Index<u8, u16, 1>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_SHORT] = Normal_Index<u8, s16, 1>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_FLOAT] = Normal_Index<u8, float, 1>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] = Normal_Index_Indices3<u8, u8>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE] = Normal_Index_Indices3<u8, s8>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT] = Normal_Index_Indices3<u8, u16>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] = Normal_Index_Indices3<u8, s16>();
-  table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] = Normal_Index_Indices3<u8, float>();
+  table[VCF::Index8][false][NCC::N][FMT::UByte] = Normal_Index<u8, u8, 1>();
+  table[VCF::Index8][false][NCC::N][FMT::Byte] = Normal_Index<u8, s8, 1>();
+  table[VCF::Index8][false][NCC::N][FMT::UShort] = Normal_Index<u8, u16, 1>();
+  table[VCF::Index8][false][NCC::N][FMT::Short] = Normal_Index<u8, s16, 1>();
+  table[VCF::Index8][false][NCC::N][FMT::Float] = Normal_Index<u8, float, 1>();
+  table[VCF::Index8][false][NCC::NBT][FMT::UByte] = Normal_Index<u8, u8, 3>();
+  table[VCF::Index8][false][NCC::NBT][FMT::Byte] = Normal_Index<u8, s8, 3>();
+  table[VCF::Index8][false][NCC::NBT][FMT::UShort] = Normal_Index<u8, u16, 3>();
+  table[VCF::Index8][false][NCC::NBT][FMT::Short] = Normal_Index<u8, s16, 3>();
+  table[VCF::Index8][false][NCC::NBT][FMT::Float] = Normal_Index<u8, float, 3>();
 
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_UBYTE] = Normal_Index<u16, u8, 1>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_BYTE] = Normal_Index<u16, s8, 1>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_USHORT] = Normal_Index<u16, u16, 1>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_SHORT] = Normal_Index<u16, s16, 1>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_FLOAT] = Normal_Index<u16, float, 1>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] = Normal_Index<u16, u8, 3>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE] = Normal_Index<u16, s8, 3>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT] = Normal_Index<u16, u16, 3>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] = Normal_Index<u16, s16, 3>();
-  table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] = Normal_Index<u16, float, 3>();
+  // Same for NormalComponentCount::N; differs for NBT
+  table[VCF::Index8][true][NCC::N][FMT::UByte] = Normal_Index<u8, u8, 1>();
+  table[VCF::Index8][true][NCC::N][FMT::Byte] = Normal_Index<u8, s8, 1>();
+  table[VCF::Index8][true][NCC::N][FMT::UShort] = Normal_Index<u8, u16, 1>();
+  table[VCF::Index8][true][NCC::N][FMT::Short] = Normal_Index<u8, s16, 1>();
+  table[VCF::Index8][true][NCC::N][FMT::Float] = Normal_Index<u8, float, 1>();
+  table[VCF::Index8][true][NCC::NBT][FMT::UByte] = Normal_Index_Indices3<u8, u8>();
+  table[VCF::Index8][true][NCC::NBT][FMT::Byte] = Normal_Index_Indices3<u8, s8>();
+  table[VCF::Index8][true][NCC::NBT][FMT::UShort] = Normal_Index_Indices3<u8, u16>();
+  table[VCF::Index8][true][NCC::NBT][FMT::Short] = Normal_Index_Indices3<u8, s16>();
+  table[VCF::Index8][true][NCC::NBT][FMT::Float] = Normal_Index_Indices3<u8, float>();
 
-  // Same as above for NRM_NBT
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_UBYTE] = Normal_Index<u16, u8, 1>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_BYTE] = Normal_Index<u16, s8, 1>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_USHORT] = Normal_Index<u16, u16, 1>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_SHORT] = Normal_Index<u16, s16, 1>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_FLOAT] = Normal_Index<u16, float, 1>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] = Normal_Index_Indices3<u16, u8>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE] = Normal_Index_Indices3<u16, s8>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT] = Normal_Index_Indices3<u16, u16>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] = Normal_Index_Indices3<u16, s16>();
-  table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] = Normal_Index_Indices3<u16, float>();
+  table[VCF::Index16][false][NCC::N][FMT::UByte] = Normal_Index<u16, u8, 1>();
+  table[VCF::Index16][false][NCC::N][FMT::Byte] = Normal_Index<u16, s8, 1>();
+  table[VCF::Index16][false][NCC::N][FMT::UShort] = Normal_Index<u16, u16, 1>();
+  table[VCF::Index16][false][NCC::N][FMT::Short] = Normal_Index<u16, s16, 1>();
+  table[VCF::Index16][false][NCC::N][FMT::Float] = Normal_Index<u16, float, 1>();
+  table[VCF::Index16][false][NCC::NBT][FMT::UByte] = Normal_Index<u16, u8, 3>();
+  table[VCF::Index16][false][NCC::NBT][FMT::Byte] = Normal_Index<u16, s8, 3>();
+  table[VCF::Index16][false][NCC::NBT][FMT::UShort] = Normal_Index<u16, u16, 3>();
+  table[VCF::Index16][false][NCC::NBT][FMT::Short] = Normal_Index<u16, s16, 3>();
+  table[VCF::Index16][false][NCC::NBT][FMT::Float] = Normal_Index<u16, float, 3>();
+
+  // Same for NormalComponentCount::N; differs for NBT
+  table[VCF::Index16][true][NCC::N][FMT::UByte] = Normal_Index<u16, u8, 1>();
+  table[VCF::Index16][true][NCC::N][FMT::Byte] = Normal_Index<u16, s8, 1>();
+  table[VCF::Index16][true][NCC::N][FMT::UShort] = Normal_Index<u16, u16, 1>();
+  table[VCF::Index16][true][NCC::N][FMT::Short] = Normal_Index<u16, s16, 1>();
+  table[VCF::Index16][true][NCC::N][FMT::Float] = Normal_Index<u16, float, 1>();
+  table[VCF::Index16][true][NCC::NBT][FMT::UByte] = Normal_Index_Indices3<u16, u8>();
+  table[VCF::Index16][true][NCC::NBT][FMT::Byte] = Normal_Index_Indices3<u16, s8>();
+  table[VCF::Index16][true][NCC::NBT][FMT::UShort] = Normal_Index_Indices3<u16, u16>();
+  table[VCF::Index16][true][NCC::NBT][FMT::Short] = Normal_Index_Indices3<u16, s16>();
+  table[VCF::Index16][true][NCC::NBT][FMT::Float] = Normal_Index_Indices3<u16, float>();
 
   return table;
 }
@@ -230,14 +203,14 @@ constexpr Types s_table = InitializeTable();
 }  // Anonymous namespace
 
 u32 VertexLoader_Normal::GetSize(VertexComponentFormat type, ComponentFormat format,
-                                 NormalComponentCount elements, u32 index3)
+                                 NormalComponentCount elements, bool index3)
 {
-  return s_table[u32(type)][index3][u32(elements)][u32(format)].gc_size;
+  return s_table[type][index3][elements][format].gc_size;
 }
 
 TPipelineFunction VertexLoader_Normal::GetFunction(VertexComponentFormat type,
                                                    ComponentFormat format,
-                                                   NormalComponentCount elements, u32 index3)
+                                                   NormalComponentCount elements, bool index3)
 {
-  return s_table[u32(type)][index3][u32(elements)][u32(format)].function;
+  return s_table[type][index3][elements][format].function;
 }

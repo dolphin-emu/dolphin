@@ -22,8 +22,8 @@ enum class ReadSavefileErrorCode
   DataCorrupted,
 };
 
-// Reads a Gamecube memory card savefile from a file.
-// Supported formats are GCI, GCS (Gameshark), and SAV (MaxDrive).
+// Reads a GameCube memory card savefile from a file.
+// Supported formats are GCI, GCS (GameShark), and SAV (MaxDrive).
 std::variant<ReadSavefileErrorCode, Savefile> ReadSavefile(const std::string& filename);
 
 enum class SavefileFormat
@@ -33,7 +33,7 @@ enum class SavefileFormat
   SAV,
 };
 
-// Writes a Gamecube memory card savefile to a file.
+// Writes a GameCube memory card savefile to a file.
 bool WriteSavefile(const std::string& filename, const Savefile& savefile, SavefileFormat format);
 
 // Generates a filename (without extension) for the given directory entry.

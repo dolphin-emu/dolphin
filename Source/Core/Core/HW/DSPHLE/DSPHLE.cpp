@@ -21,10 +21,10 @@ bool DSPHLE::Initialize(bool wii, bool dsp_thread)
   m_wii = wii;
   m_ucode = nullptr;
   m_last_ucode = nullptr;
-  m_halt = false;
-  m_assert_interrupt = false;
 
   SetUCode(UCODE_ROM);
+
+  m_dsp_control.Hex = 0;
   m_dsp_control.DSPHalt = 1;
   m_dsp_control.DSPInit = 1;
 

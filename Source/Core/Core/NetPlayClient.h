@@ -23,6 +23,13 @@
 #include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
 
+class BootSessionData;
+
+namespace IOS::HLE::FS
+{
+class FileSystem;
+}
+
 namespace UICommon
 {
 class GameFile;
@@ -34,7 +41,8 @@ class NetPlayUI
 {
 public:
   virtual ~NetPlayUI() {}
-  virtual void BootGame(const std::string& filename) = 0;
+  virtual void BootGame(const std::string& filename,
+                        std::unique_ptr<BootSessionData> boot_session_data) = 0;
   virtual void StopGame() = 0;
   virtual bool IsHosting() const = 0;
 
@@ -59,6 +67,10 @@ public:
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
   virtual void OnRankedEnabled(bool is_ranked) = 0;
+  virtual void OnCoinFlipResult(int coinFlip) = 0;
+  virtual void OnActiveGeckoCodes(std::string codeStr) = 0;
+  virtual bool IsSpectating() = 0;
+  virtual void SetSpectating(bool spectating) = 0;
 
   virtual bool IsRecording() = 0;
   virtual std::shared_ptr<const UICommon::GameFile>
@@ -78,16 +90,18 @@ public:
                                          const std::vector<int>& players) = 0;
   virtual void HideChunkedProgressDialog() = 0;
   virtual void SetChunkedProgress(int pid, u64 progress) = 0;
+
+  virtual void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) = 0;
 };
 
 class Player
 {
 public:
-  PlayerId pid;
+  PlayerId pid{};
   std::string name;
   std::string revision;
-  u32 ping;
-  SyncIdentifierComparison game_status;
+  u32 ping = 0;
+  SyncIdentifierComparison game_status = SyncIdentifierComparison::Unknown;
 
   bool IsHost() const { return pid == 1; }
 };
@@ -105,6 +119,10 @@ public:
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;
+  std::map<int, std::vector<std::string>> NetplayerUserInfo; // int is port, vector[0] is username, vector[1] is user id
+
+  void SendLocalPlayerNetplay(std::vector<std::string>);
+  std::vector<std::string> GetLocalPlayerNetplay();
 
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
@@ -113,11 +131,16 @@ public:
   void Stop();
   bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
+  void SendSpectatorSetting(bool spectator);
+  void SendActiveGeckoCodes();
+  void GetActiveGeckoCodes();
+  void SendCoinFlip(int randNum);
   void RequestStopGame();
   void SendPowerButtonEvent();
   void RequestGolfControl(PlayerId pid);
   void RequestGolfControl();
   std::string GetCurrentGolfer();
+  std::vector<std::string> v_ActiveGeckoCodes;
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, std::size_t size, u8 reporting_mode);
@@ -140,15 +163,21 @@ public:
   bool IsLocalPlayer(PlayerId pid) const;
 
   static void SendTimeBase();
-  static void AutoGolfMode(int isField, int BatPort, int FieldPort);
   bool DoAllPlayersHaveGame();
 
+  static void AutoGolfMode(bool isField, int BatPort, int FieldPort);
+  static void DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt);
+  static bool isRanked();
+  bool m_ranked_client = false;
+  
   const PadMappingArray& GetPadMapping() const;
   const GBAConfigArray& GetGBAConfig() const;
   const PadMappingArray& GetWiimoteMapping() const;
 
   void AdjustPadBufferSize(unsigned int size);
-  void AdjustRankedBox(bool is_ranked);
+
+  void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, std::vector<u64> titles,
+                      std::string redirect_folder);
 
   static SyncIdentifier GetSDCardIdentifier();
 
@@ -156,7 +185,7 @@ protected:
   struct AsyncQueueEntry
   {
     sf::Packet packet;
-    u8 channel_id;
+    u8 channel_id = 0;
   };
 
   void ClearBuffers();
@@ -188,8 +217,6 @@ protected:
   SyncIdentifier m_selected_game;
   Common::Flag m_is_running{false};
   Common::Flag m_do_loop{true};
-
-  bool m_ranked_client = false;
 
   // In non-host input authority mode, this is how many packets each client should
   // try to keep in-flight to the other clients. In host input authority mode, this is how
@@ -237,23 +264,65 @@ private:
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void SendWiimoteState(int in_game_pad, const WiimoteInput& nw);
-  unsigned int OnData(sf::Packet& packet);
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();
   void SendGameStatus();
   void ComputeMD5(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
-  void DisplayBatter();
-  void DisplayFielder();
-  u8 GetFielderPort();
-  u8 GetBatterPort();
-  std::string GetPortPlayer(int port);
+
+  std::string GetPortPlayer(int PortInt);
   bool ShouldBeGolfer(int port);
   u32 GetPlayersMaxPing() const;
 
-  static const u32 fielderPort = 0x802EBF94;
-  static const u32 batterPort = 0x802EBF95;
+  void OnData(sf::Packet& packet);
+  void OnPlayerJoin(sf::Packet& packet);
+  void OnPlayerLeave(sf::Packet& packet);
+  void OnChatMessage(sf::Packet& packet);
+  void OnChunkedDataStart(sf::Packet& packet);
+  void OnChunkedDataEnd(sf::Packet& packet);
+  void OnChunkedDataPayload(sf::Packet& packet);
+  void OnChunkedDataAbort(sf::Packet& packet);
+  void OnPadMapping(sf::Packet& packet);
+  void OnWiimoteMapping(sf::Packet& packet);
+  void OnGBAConfig(sf::Packet& packet);
+  void OnPadData(sf::Packet& packet);
+  void OnPadHostData(sf::Packet& packet);
+  void OnWiimoteData(sf::Packet& packet);
+  void OnPadBuffer(sf::Packet& packet);
+  void OnHostInputAuthority(sf::Packet& packet);
+  void OnGolfSwitch(sf::Packet& packet);
+  void OnGolfPrepare(sf::Packet& packet);
+  void OnChangeGame(sf::Packet& packet);
+  void OnGameStatus(sf::Packet& packet);
+  void OnStartGame(sf::Packet& packet);
+  void OnStopGame(sf::Packet& packet);
+  void OnPowerButton();
+  void OnPing(sf::Packet& packet);
+  void OnPlayerPingData(sf::Packet& packet);
+  void OnDesyncDetected(sf::Packet& packet);
+  void OnSyncGCSRAM(sf::Packet& packet);
+  void OnSyncSaveData(sf::Packet& packet);
+  void OnSyncSaveDataNotify(sf::Packet& packet);
+  void OnSyncSaveDataRaw(sf::Packet& packet);
+  void OnSyncSaveDataGCI(sf::Packet& packet);
+  void OnSyncSaveDataWii(sf::Packet& packet);
+  void OnSyncSaveDataGBA(sf::Packet& packet);
+  void OnSyncCodes(sf::Packet& packet);
+  void OnSyncCodesNotify();
+  void OnSyncCodesNotifyGecko(sf::Packet& packet);
+  void OnSyncCodesDataGecko(sf::Packet& packet);
+  void OnSyncCodesNotifyAR(sf::Packet& packet);
+  void OnSyncCodesDataAR(sf::Packet& packet);
+  void OnComputeMD5(sf::Packet& packet);
+  void OnMD5Progress(sf::Packet& packet);
+  void OnMD5Result(sf::Packet& packet);
+  void OnMD5Error(sf::Packet& packet);
+  void OnMD5Abort();
+  void OnRankedBoxMsg(sf::Packet& packet);
+  void OnPlayerDataMsg(sf::Packet& packet);
+  void OnSendCodesMsg(sf::Packet& packet);
+  void OnCoinFlipMsg(sf::Packet& packet);
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;
@@ -283,6 +352,10 @@ private:
 
   u64 m_initial_rtc = 0;
   u32 m_timebase_frame = 0;
+
+  std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
+  std::vector<u64> m_wii_sync_titles;
+  std::string m_wii_sync_redirect_folder;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

@@ -30,6 +30,7 @@ private:
   void OnAddPlayers();
   void SavePlayers();
   void UpdatePlayers();
+  void AddPlayerToList();
 
   void ConnectWidgets();
 

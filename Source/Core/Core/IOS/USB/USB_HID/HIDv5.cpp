@@ -24,7 +24,7 @@ USB_HIDv5::~USB_HIDv5()
 
 std::optional<IPCReply> USB_HIDv5::IOCtl(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), Common::Log::IOS_USB);
+  request.Log(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
   {
   case USB::IOCTL_USBV5_GETVERSION:
@@ -46,14 +46,15 @@ std::optional<IPCReply> USB_HIDv5::IOCtl(const IOCtlRequest& request)
     return HandleDeviceIOCtl(request,
                              [&](USBV5Device& device) { return CancelEndpoint(device, request); });
   default:
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB, Common::Log::LERROR);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB,
+                        Common::Log::LogLevel::LERROR);
     return IPCReply(IPC_SUCCESS);
   }
 }
 
 std::optional<IPCReply> USB_HIDv5::IOCtlV(const IOCtlVRequest& request)
 {
-  request.DumpUnknown(GetDeviceName(), Common::Log::IOS_USB);
+  request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_USB);
   switch (request.request)
   {
   // TODO: HIDv5 seems to be able to queue transfers depending on the transfer length (unlike VEN).

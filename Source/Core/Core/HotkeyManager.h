@@ -31,6 +31,7 @@ enum Hotkey
   HK_UNLOCK_CURSOR,
   HK_ACTIVATE_CHAT,
   HK_REQUEST_GOLF_CONTROL,
+  HK_DRAIN_GOLF_BUFFER,
 
   HK_VOLUME_DOWN,
   HK_VOLUME_UP,
@@ -232,8 +233,8 @@ public:
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys;
-  std::array<ControllerEmu::ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups;
+  std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys{};
+  std::array<ControllerEmu::ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups{};
 };
 
 namespace HotkeyManagerEmu

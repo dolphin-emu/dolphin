@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
+#include "VideoCommon/CPMemory.h"
 
 // m_components
 enum
@@ -45,18 +46,9 @@ enum
   VB_HAS_UVTEXMTXSHIFT = 13,
 };
 
-enum VarType
-{
-  VAR_UNSIGNED_BYTE,   // GX_U8  = 0
-  VAR_BYTE,            // GX_S8  = 1
-  VAR_UNSIGNED_SHORT,  // GX_U16 = 2
-  VAR_SHORT,           // GX_S16 = 3
-  VAR_FLOAT,           // GX_F32 = 4
-};
-
 struct AttributeFormat
 {
-  VarType type;
+  ComponentFormat type;
   int components;
   int offset;
   bool enable;

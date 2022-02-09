@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <functional>
+#include <memory>
+#include <string>
+
 #include <QDialog>
 #include <QMenuBar>
 
@@ -11,6 +15,7 @@
 #include "DolphinQt/GameList/GameListModel.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
+class BootSessionData;
 class ChunkedProgressDialog;
 class MD5Dialog;
 class PadMappingDialog;
@@ -30,19 +35,25 @@ class NetPlayDialog : public QDialog, public NetPlay::NetPlayUI
 {
   Q_OBJECT
 public:
-  explicit NetPlayDialog(const GameListModel& game_list_model, QWidget* parent = nullptr);
+  using StartGameCallback = std::function<void(const std::string& path,
+                                               std::unique_ptr<BootSessionData> boot_session_data)>;
+
+  explicit NetPlayDialog(const GameListModel& game_list_model,
+                         StartGameCallback start_game_callback, QWidget* parent = nullptr);
   ~NetPlayDialog();
 
   void show(std::string nickname, bool use_traversal);
   void reject() override;
 
   // NetPlayUI methods
-  void BootGame(const std::string& filename) override;
+  void BootGame(const std::string& filename,
+                std::unique_ptr<BootSessionData> boot_session_data) override;
   void StopGame() override;
   bool IsHosting() const override;
 
   void Update() override;
   void AppendChat(const std::string& msg) override;
+  void DisplayActiveGeckoCodes();
 
   void OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
                        const std::string& netplay_name) override;
@@ -63,6 +74,10 @@ public:
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
   void OnRankedEnabled(bool is_ranked) override;
+  void OnCoinFlipResult(int coinNum);
+  void OnActiveGeckoCodes(std::string codeStr);
+  bool IsSpectating() override;
+  void SetSpectating(bool spectating) override;
 
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;
@@ -86,8 +101,10 @@ public:
                                  const std::vector<int>& players) override;
   void HideChunkedProgressDialog() override;
   void SetChunkedProgress(int pid, u64 progress) override;
+
+  void SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder) override;
+
 signals:
-  void Boot(const QString& filename);
   void Stop();
 
 private:
@@ -96,6 +113,8 @@ private:
   void CreateMainLayout();
   void ConnectWidgets();
   void OnChat();
+  void OnSpectatorToggle();
+  void OnCoinFlip();
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
@@ -147,6 +166,8 @@ private:
   QSplitter* m_splitter;
   QCheckBox* m_ranked_box;
   QActionGroup* m_network_mode_group;
+  QPushButton* m_coin_flipper;
+  QCheckBox* m_spectator_toggle;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
@@ -165,4 +186,6 @@ private:
   int m_old_player_count = 0;
   bool m_host_input_authority = false;
   bool m_current_ranked_value = false;
+
+  StartGameCallback m_start_game_callback;
 };

@@ -69,7 +69,8 @@ private:
     }
     void DoState(PointerWrap& p);
     void PushSamples(const short* samples, unsigned int num_samples);
-    unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+    unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit,
+                     float emulationspeed, int timing_variance);
     void SetInputSampleRate(unsigned int rate);
     unsigned int GetInputSampleRate() const;
     void SetVolume(unsigned int lvolume, unsigned int rvolume);
@@ -89,6 +90,8 @@ private:
     u32 m_frac = 0;
   };
 
+  void RefreshConfig();
+
   MixerFifo m_dma_mixer{this, 32000, false};
   MixerFifo m_streaming_mixer{this, 48000, false};
   MixerFifo m_wiimote_speaker_mixer{this, 3000, true};
@@ -99,7 +102,7 @@ private:
   bool m_is_stretching = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
-  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer;
+  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer{};
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;
@@ -109,4 +112,10 @@ private:
 
   // Current rate of emulation (1.0 = 100% speed)
   std::atomic<float> m_speed{0.0f};
+
+  float m_config_emulation_speed;
+  int m_config_timing_variance;
+  bool m_config_audio_stretch;
+
+  size_t m_config_changed_callback_id;
 };

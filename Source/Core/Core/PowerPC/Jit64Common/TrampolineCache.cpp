@@ -3,7 +3,6 @@
 
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 
-#include <cinttypes>
 #include <string>
 
 #include "Common/CommonTypes.h"

@@ -4,10 +4,13 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #include "Common/CommonTypes.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 
 const u8* JitBase::Dispatch(JitBase& jit)
 {
@@ -21,9 +24,44 @@ void JitTrampoline(JitBase& jit, u32 em_address)
 
 JitBase::JitBase() : m_code_buffer(code_buffer_size)
 {
+  m_registered_config_callback_id = Config::AddConfigChangedCallback(
+      [this] { Core::RunAsCPUThread([this] { RefreshConfig(); }); });
+  RefreshConfig();
 }
 
-JitBase::~JitBase() = default;
+JitBase::~JitBase()
+{
+  Config::RemoveConfigChangedCallback(m_registered_config_callback_id);
+}
+
+void JitBase::RefreshConfig()
+{
+  bJITOff = Config::Get(Config::MAIN_DEBUG_JIT_OFF);
+  bJITLoadStoreOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_OFF);
+  bJITLoadStorelXzOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LXZ_OFF);
+  bJITLoadStorelwzOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LWZ_OFF);
+  bJITLoadStorelbzxOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_LBZX_OFF);
+  bJITLoadStoreFloatingOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF);
+  bJITLoadStorePairedOff = Config::Get(Config::MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF);
+  bJITFloatingPointOff = Config::Get(Config::MAIN_DEBUG_JIT_FLOATING_POINT_OFF);
+  bJITIntegerOff = Config::Get(Config::MAIN_DEBUG_JIT_INTEGER_OFF);
+  bJITPairedOff = Config::Get(Config::MAIN_DEBUG_JIT_PAIRED_OFF);
+  bJITSystemRegistersOff = Config::Get(Config::MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF);
+  bJITBranchOff = Config::Get(Config::MAIN_DEBUG_JIT_BRANCH_OFF);
+  bJITRegisterCacheOff = Config::Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF);
+  m_enable_debugging = Config::Get(Config::MAIN_ENABLE_DEBUGGING);
+  m_enable_float_exceptions = Config::Get(Config::MAIN_FLOAT_EXCEPTIONS);
+  m_enable_div_by_zero_exceptions = Config::Get(Config::MAIN_DIVIDE_BY_ZERO_EXCEPTIONS);
+  m_low_dcbz_hack = Config::Get(Config::MAIN_LOW_DCBZ_HACK);
+  m_fprf = Config::Get(Config::MAIN_FPRF);
+  m_accurate_nans = Config::Get(Config::MAIN_ACCURATE_NANS);
+  m_fastmem_enabled = Config::Get(Config::MAIN_FASTMEM);
+  m_mmu_enabled = Core::System::GetInstance().IsMMUMode();
+  analyzer.SetDebuggingEnabled(m_enable_debugging);
+  analyzer.SetBranchFollowingEnabled(Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH));
+  analyzer.SetFloatExceptionsEnabled(m_enable_float_exceptions);
+  analyzer.SetDivByZeroExceptionsEnabled(m_enable_div_by_zero_exceptions);
+}
 
 bool JitBase::CanMergeNextInstructions(int count) const
 {
@@ -32,8 +70,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
   {
-    if (SConfig::GetInstance().bEnableDebugging &&
-        PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+    if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
       return false;
     if (js.op[i].isBranchTarget)
       return false;
@@ -41,9 +78,21 @@ bool JitBase::CanMergeNextInstructions(int count) const
   return true;
 }
 
-void JitBase::UpdateMemoryOptions()
+void JitBase::UpdateMemoryAndExceptionOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = SConfig::GetInstance().bFastmem && jo.fastmem_arena && (MSR.DR || !any_watchpoints);
-  jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
+  jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (MSR.DR || !any_watchpoints);
+  jo.memcheck = m_mmu_enabled || any_watchpoints;
+  jo.fp_exceptions = m_enable_float_exceptions;
+  jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
+}
+
+bool JitBase::ShouldHandleFPExceptionForInstruction(const PPCAnalyst::CodeOp* op)
+{
+  if (jo.fp_exceptions)
+    return (op->opinfo->flags & FL_FLOAT_EXCEPTION) != 0;
+  else if (jo.div_by_zero_exceptions)
+    return (op->opinfo->flags & FL_FLOAT_DIV) != 0;
+  else
+    return false;
 }
