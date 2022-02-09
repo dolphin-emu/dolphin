@@ -228,9 +228,10 @@ void TrainingMode()
   //bool isPitchThrown = Memory::Read_U8(0x80895D6C) == 1 ? true : false;
   bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
   bool isInGame = Memory::Read_U8(0x80871A6D) == 1 ? true : false;
+  bool ContactMade = Memory::Read_U8(0x80892ADA) == 1 ? true : false;
 
   // Batting Training Mode stats
-  if (Memory::Read_U8(0x80892ADA) == 1)  // If contact is made
+  if (ContactMade)
   {
     u8 BatterPort = Memory::Read_U8(0x802EBF95);
     if (BatterPort > 0)
