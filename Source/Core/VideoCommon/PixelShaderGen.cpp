@@ -852,7 +852,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
                        APIType api_type, bool stereo);
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
-                            bool clamp, TevScale scale, bool alpha);
+                            bool clamp, TevScale scale);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType api_type,
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
@@ -1233,6 +1233,18 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
                    use_dual_source || use_shader_blend);
   }
+
+  // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
+  // alpha test for the FMV in the background fails, since they depend on depth for drawing a yellow
+  // border) and Fortune Street's gameplay (where a rectangle with an alpha value of 1 is drawn over
+  // the center of the screen several times, but those rectangles shouldn't be visible).
+  // Blending seems to result in no changes to the output with an alpha of 1, even if the input
+  // color is white.
+  // TODO: Investigate this further: we might be handling blending incorrectly in general (though
+  // there might not be any good way of changing blending behavior)
+  out.Write("\t// Hardware testing indicates that an alpha of 1 can pass an alpha test,\n"
+            "\t// but doesn't do anything in blending\n"
+            "\tif (prev.a == 1) prev.a = 0;\n");
 
   if (uid_data->zfreeze)
   {
@@ -1677,7 +1689,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\t{} = clamp(", tev_c_output_table[cc.dest]);
   if (cc.bias != TevBias::Compare)
   {
-    WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.scale, false);
+    WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.scale);
   }
   else
   {
@@ -1710,7 +1722,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\t{} = clamp(", tev_a_output_table[ac.dest]);
   if (ac.bias != TevBias::Compare)
   {
-    WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.scale, true);
+    WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.scale);
   }
   else
   {
@@ -1742,7 +1754,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 }
 
 static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBias bias, TevOp op,
-                            bool clamp, TevScale scale, bool alpha)
+                            bool clamp, TevScale scale)
 {
   static constexpr Common::EnumMap<const char*, TevScale::Divide2> tev_scale_table_left{
       "",       // Scale1
@@ -1780,12 +1792,14 @@ static void WriteTevRegular(ShaderCode& out, std::string_view components, TevBia
   // - c is scaled from 0..255 to 0..256, which allows dividing the result by 256 instead of 255
   // - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
   // - a rounding bias is added before dividing by 256
+  // TODO: Is the rounding bias still added when the scale is divide by 2?  Currently we do not
+  // apply it.
   out.Write("(((tevin_d.{}{}){})", components, tev_bias_table[bias], tev_scale_table_left[scale]);
   out.Write(" {} ", tev_op_table[op]);
   out.Write("(((((tevin_a.{0}<<8) + "
             "(tevin_b.{0}-tevin_a.{0})*(tevin_c.{0}+(tevin_c.{0}>>7))){1}){2})>>8)",
             components, tev_scale_table_left[scale],
-            ((scale == TevScale::Divide2) == alpha) ? tev_lerp_bias[op] : "");
+            (scale != TevScale::Divide2) ? tev_lerp_bias[op] : "");
   out.Write("){}", tev_scale_table_right[scale]);
 }
 
