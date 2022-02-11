@@ -309,6 +309,7 @@ void SetIsoPaths(const std::vector<std::string>& paths)
 
 // Main.GBA
 
+#ifdef HAS_LIBMGBA
 const Info<std::string> MAIN_GBA_BIOS_PATH{{System::Main, "GBA", "BIOS"}, ""};
 const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
     Info<std::string>{{System::Main, "GBA", "Rom1"}, ""},
@@ -318,6 +319,7 @@ const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
 const Info<std::string> MAIN_GBA_SAVES_PATH{{System::Main, "GBA", "SavesPath"}, ""};
 const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH{{System::Main, "GBA", "SavesInRomPath"}, false};
 const Info<bool> MAIN_GBA_THREADS{{System::Main, "GBA", "Threads"}, true};
+#endif
 
 // Main.Network
 
