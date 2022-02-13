@@ -628,22 +628,6 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
   // to keep around for unexpected cases.
   const bool suppress_panic_alert = (cmd_byte <= 0x7) || (cmd_byte == 0x3f);
 
-  if (!s_is_fifo_error_seen && !suppress_panic_alert)
-  {
-    s_is_fifo_error_seen = true;
-
-    // TODO(Omega): Maybe dump FIFO to file on this error
-    PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
-                   "This means one of the following:\n"
-                   "* The emulated GPU got desynced, disabling dual core can help\n"
-                   "* Command stream corrupted by some spurious memory bug\n"
-                   "* This really is an unknown opcode (unlikely)\n"
-                   "* Some other sort of bug\n\n"
-                   "Further errors will be sent to the Video Backend log and\n"
-                   "Dolphin will now likely crash or hang. Enjoy.",
-                   cmd_byte, fmt::ptr(buffer), preprocess);
-  }
-
   // We always generate this log message, though we only generate the panic alerts once.
   //
   // PC and LR are generally inaccurate in dual-core and are still misleading in single-core
@@ -674,6 +658,22 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
                 fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
                 fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
                 fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", PC, LR);
+
+  if (!s_is_fifo_error_seen && !suppress_panic_alert)
+  {
+    s_is_fifo_error_seen = true;
+
+    // TODO(Omega): Maybe dump FIFO to file on this error
+    PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
+                   "This means one of the following:\n"
+                   "* The emulated GPU got desynced, disabling dual core can help\n"
+                   "* Command stream corrupted by some spurious memory bug\n"
+                   "* This really is an unknown opcode (unlikely)\n"
+                   "* Some other sort of bug\n\n"
+                   "Further errors will be sent to the Video Backend log and\n"
+                   "Dolphin will now likely crash or hang. Enjoy.",
+                   cmd_byte, fmt::ptr(buffer), preprocess);
+  }
 }
 
 }  // namespace CommandProcessor
