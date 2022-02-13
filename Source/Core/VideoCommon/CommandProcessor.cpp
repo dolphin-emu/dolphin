@@ -17,6 +17,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/Fifo.h"
 
@@ -637,12 +638,21 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
   }
 
   // We always generate this log message, though we only generate the panic alerts once.
+  //
+  // PC and LR are generally inaccurate in dual-core and are still misleading in single-core
+  // due to the gather pipe queueing data.  Changing GATHER_PIPE_SIZE to 1 and
+  // GATHER_PIPE_EXTRA_SIZE to 16 * 32 in GPFifo.h, and using the cached interpreter CPU emulation
+  // engine, can result in more accurate information (though it is still a bit delayed).
+  // PC and LR are meaningless when using the fifoplayer, and will generally not be helpful if the
+  // unknown opcode is inside of a display list.  Also note that the changes in GPFifo.h are not
+  // accurate and may introduce timing issues.
   ERROR_LOG_FMT(VIDEO,
                 "FIFO: Unknown Opcode {:#04x} @ {}, preprocessing = {}, CPBase: {:#010x}, CPEnd: "
                 "{:#010x}, CPHiWatermark: {:#010x}, CPLoWatermark: {:#010x}, CPReadWriteDistance: "
                 "{:#010x}, CPWritePointer: {:#010x}, CPReadPointer: {:#010x}, CPBreakpoint: "
                 "{:#010x}, bFF_GPReadEnable: {}, bFF_BPEnable: {}, bFF_BPInt: {}, bFF_Breakpoint: "
-                "{}, bFF_GPLinkEnable: {}, bFF_HiWatermarkInt: {}, bFF_LoWatermarkInt: {}",
+                "{}, bFF_GPLinkEnable: {}, bFF_HiWatermarkInt: {}, bFF_LoWatermarkInt: {}, "
+                "approximate PC: {:08x}, approximate LR: {:08x}",
                 cmd_byte, fmt::ptr(buffer), preprocess ? "yes" : "no",
                 fifo.CPBase.load(std::memory_order_relaxed),
                 fifo.CPEnd.load(std::memory_order_relaxed), fifo.CPHiWatermark, fifo.CPLoWatermark,
@@ -656,7 +666,7 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
                 fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
                 fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
                 fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-                fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false");
+                fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", PC, LR);
 }
 
 }  // namespace CommandProcessor
