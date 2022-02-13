@@ -616,12 +616,19 @@ void SetCpClearRegister()
 
 void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
 {
-  // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule
-  // accidentally uses 0x01-0x03 due to sending 4 more vertices than intended.
-  // Hardware testing indicates that 0x01-0x07 do nothing, so to avoid annoying the user with
+  // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule accidentally uses
+  // 0x01-0x03 due to sending 4 more vertices than intended (see https://dolp.in/i8104).
+  // Prince of Persia: Rival Swords sends 0x3f if the home menu is opened during the intro cutscene
+  // due to a game bug resulting in an incorrect vertex desc that results in the float value 1.0,
+  // encoded as 0x3f800000, being parsed as an opcode (see https://dolp.in/i9203).
+  //
+  // Hardware testing indicates that these opcodes do nothing, so to avoid annoying the user with
   // spurious popups, we don't create a panic alert in those cases.  Other unknown opcodes
-  // (such as 0x18) seem to result in hangs.
-  if (!s_is_fifo_error_seen && cmd_byte > 0x07)
+  // (such as 0x18) seem to result in actual hangs on real hardware, so the alert still is important
+  // to keep around for unexpected cases.
+  const bool suppress_panic_alert = (cmd_byte <= 0x7) || (cmd_byte == 0x3f);
+
+  if (!s_is_fifo_error_seen && !suppress_panic_alert)
   {
     s_is_fifo_error_seen = true;
 
