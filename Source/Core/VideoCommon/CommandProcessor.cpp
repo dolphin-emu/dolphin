@@ -628,6 +628,9 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
   // to keep around for unexpected cases.
   const bool suppress_panic_alert = (cmd_byte <= 0x7) || (cmd_byte == 0x3f);
 
+  const auto log_level =
+      suppress_panic_alert ? Common::Log::LogLevel::LWARNING : Common::Log::LogLevel::LERROR;
+
   // We always generate this log message, though we only generate the panic alerts once.
   //
   // PC and LR are generally inaccurate in dual-core and are still misleading in single-core
@@ -637,27 +640,28 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
   // PC and LR are meaningless when using the fifoplayer, and will generally not be helpful if the
   // unknown opcode is inside of a display list.  Also note that the changes in GPFifo.h are not
   // accurate and may introduce timing issues.
-  ERROR_LOG_FMT(VIDEO,
-                "FIFO: Unknown Opcode {:#04x} @ {}, preprocessing = {}, CPBase: {:#010x}, CPEnd: "
-                "{:#010x}, CPHiWatermark: {:#010x}, CPLoWatermark: {:#010x}, CPReadWriteDistance: "
-                "{:#010x}, CPWritePointer: {:#010x}, CPReadPointer: {:#010x}, CPBreakpoint: "
-                "{:#010x}, bFF_GPReadEnable: {}, bFF_BPEnable: {}, bFF_BPInt: {}, bFF_Breakpoint: "
-                "{}, bFF_GPLinkEnable: {}, bFF_HiWatermarkInt: {}, bFF_LoWatermarkInt: {}, "
-                "approximate PC: {:08x}, approximate LR: {:08x}",
-                cmd_byte, fmt::ptr(buffer), preprocess ? "yes" : "no",
-                fifo.CPBase.load(std::memory_order_relaxed),
-                fifo.CPEnd.load(std::memory_order_relaxed), fifo.CPHiWatermark, fifo.CPLoWatermark,
-                fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
-                fifo.CPWritePointer.load(std::memory_order_relaxed),
-                fifo.CPReadPointer.load(std::memory_order_relaxed),
-                fifo.CPBreakpoint.load(std::memory_order_relaxed),
-                fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
-                fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
-                fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-                fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", PC, LR);
+  GENERIC_LOG_FMT(
+      Common::Log::LogType::VIDEO, log_level,
+      "FIFO: Unknown Opcode {:#04x} @ {}, preprocessing = {}, CPBase: {:#010x}, CPEnd: "
+      "{:#010x}, CPHiWatermark: {:#010x}, CPLoWatermark: {:#010x}, CPReadWriteDistance: "
+      "{:#010x}, CPWritePointer: {:#010x}, CPReadPointer: {:#010x}, CPBreakpoint: "
+      "{:#010x}, bFF_GPReadEnable: {}, bFF_BPEnable: {}, bFF_BPInt: {}, bFF_Breakpoint: "
+      "{}, bFF_GPLinkEnable: {}, bFF_HiWatermarkInt: {}, bFF_LoWatermarkInt: {}, "
+      "approximate PC: {:08x}, approximate LR: {:08x}",
+      cmd_byte, fmt::ptr(buffer), preprocess ? "yes" : "no",
+      fifo.CPBase.load(std::memory_order_relaxed), fifo.CPEnd.load(std::memory_order_relaxed),
+      fifo.CPHiWatermark, fifo.CPLoWatermark,
+      fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
+      fifo.CPWritePointer.load(std::memory_order_relaxed),
+      fifo.CPReadPointer.load(std::memory_order_relaxed),
+      fifo.CPBreakpoint.load(std::memory_order_relaxed),
+      fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", PC, LR);
 
   if (!s_is_fifo_error_seen && !suppress_panic_alert)
   {
