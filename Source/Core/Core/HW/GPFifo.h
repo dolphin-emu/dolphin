@@ -9,10 +9,8 @@ class PointerWrap;
 
 namespace GPFifo
 {
-enum
-{
-  GATHER_PIPE_SIZE = 32
-};
+constexpr u32 GATHER_PIPE_SIZE = 32;
+constexpr u32 GATHER_PIPE_EXTRA_SIZE = GATHER_PIPE_SIZE * 16;
 
 // Init
 void Init();

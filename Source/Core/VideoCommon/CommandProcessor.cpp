@@ -17,6 +17,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/System.h"
 #include "VideoCommon/Fifo.h"
 
@@ -382,7 +383,7 @@ void GatherPipeBursted()
   }
   else
   {
-    fifo.CPWritePointer.fetch_add(GATHER_PIPE_SIZE, std::memory_order_relaxed);
+    fifo.CPWritePointer.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_relaxed);
   }
 
   if (m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
@@ -396,7 +397,7 @@ void GatherPipeBursted()
   if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed) != 0)
     CoreTiming::ForceExceptionCheck(0);
 
-  fifo.CPReadWriteDistance.fetch_add(GATHER_PIPE_SIZE, std::memory_order_seq_cst);
+  fifo.CPReadWriteDistance.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
 
   Fifo::RunGpu();
 
@@ -615,12 +616,19 @@ void SetCpClearRegister()
 
 void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
 {
-  // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule
-  // accidentally uses 0x01-0x03 due to sending 4 more vertices than intended.
-  // Hardware testing indicates that 0x01-0x07 do nothing, so to avoid annoying the user with
+  // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule accidentally uses
+  // 0x01-0x03 due to sending 4 more vertices than intended (see https://dolp.in/i8104).
+  // Prince of Persia: Rival Swords sends 0x3f if the home menu is opened during the intro cutscene
+  // due to a game bug resulting in an incorrect vertex desc that results in the float value 1.0,
+  // encoded as 0x3f800000, being parsed as an opcode (see https://dolp.in/i9203).
+  //
+  // Hardware testing indicates that these opcodes do nothing, so to avoid annoying the user with
   // spurious popups, we don't create a panic alert in those cases.  Other unknown opcodes
-  // (such as 0x18) seem to result in hangs.
-  if (!s_is_fifo_error_seen && cmd_byte > 0x07)
+  // (such as 0x18) seem to result in actual hangs on real hardware, so the alert still is important
+  // to keep around for unexpected cases.
+  const bool suppress_panic_alert = (cmd_byte <= 0x7) || (cmd_byte == 0x3f);
+
+  if (!s_is_fifo_error_seen && !suppress_panic_alert)
   {
     s_is_fifo_error_seen = true;
 
@@ -634,41 +642,38 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
                    "Further errors will be sent to the Video Backend log and\n"
                    "Dolphin will now likely crash or hang. Enjoy.",
                    cmd_byte, fmt::ptr(buffer), preprocess);
-
-    PanicAlertFmt("Illegal command {:02x}\n"
-                  "CPBase: {:#010x}\n"
-                  "CPEnd: {:#010x}\n"
-                  "CPHiWatermark: {:#010x}\n"
-                  "CPLoWatermark: {:#010x}\n"
-                  "CPReadWriteDistance: {:#010x}\n"
-                  "CPWritePointer: {:#010x}\n"
-                  "CPReadPointer: {:#010x}\n"
-                  "CPBreakpoint: {:#010x}\n"
-                  "bFF_GPReadEnable: {}\n"
-                  "bFF_BPEnable: {}\n"
-                  "bFF_BPInt: {}\n"
-                  "bFF_Breakpoint: {}\n"
-                  "bFF_GPLinkEnable: {}\n"
-                  "bFF_HiWatermarkInt: {}\n"
-                  "bFF_LoWatermarkInt: {}\n",
-                  cmd_byte, fifo.CPBase.load(std::memory_order_relaxed),
-                  fifo.CPEnd.load(std::memory_order_relaxed), fifo.CPHiWatermark,
-                  fifo.CPLoWatermark, fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
-                  fifo.CPWritePointer.load(std::memory_order_relaxed),
-                  fifo.CPReadPointer.load(std::memory_order_relaxed),
-                  fifo.CPBreakpoint.load(std::memory_order_relaxed),
-                  fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false");
   }
 
   // We always generate this log message, though we only generate the panic alerts once.
-  ERROR_LOG_FMT(VIDEO, "FIFO: Unknown Opcode ({:#04x} @ {}, preprocessing = {})", cmd_byte,
-                fmt::ptr(buffer), preprocess ? "yes" : "no");
+  //
+  // PC and LR are generally inaccurate in dual-core and are still misleading in single-core
+  // due to the gather pipe queueing data.  Changing GATHER_PIPE_SIZE to 1 and
+  // GATHER_PIPE_EXTRA_SIZE to 16 * 32 in GPFifo.h, and using the cached interpreter CPU emulation
+  // engine, can result in more accurate information (though it is still a bit delayed).
+  // PC and LR are meaningless when using the fifoplayer, and will generally not be helpful if the
+  // unknown opcode is inside of a display list.  Also note that the changes in GPFifo.h are not
+  // accurate and may introduce timing issues.
+  ERROR_LOG_FMT(VIDEO,
+                "FIFO: Unknown Opcode {:#04x} @ {}, preprocessing = {}, CPBase: {:#010x}, CPEnd: "
+                "{:#010x}, CPHiWatermark: {:#010x}, CPLoWatermark: {:#010x}, CPReadWriteDistance: "
+                "{:#010x}, CPWritePointer: {:#010x}, CPReadPointer: {:#010x}, CPBreakpoint: "
+                "{:#010x}, bFF_GPReadEnable: {}, bFF_BPEnable: {}, bFF_BPInt: {}, bFF_Breakpoint: "
+                "{}, bFF_GPLinkEnable: {}, bFF_HiWatermarkInt: {}, bFF_LoWatermarkInt: {}, "
+                "approximate PC: {:08x}, approximate LR: {:08x}",
+                cmd_byte, fmt::ptr(buffer), preprocess ? "yes" : "no",
+                fifo.CPBase.load(std::memory_order_relaxed),
+                fifo.CPEnd.load(std::memory_order_relaxed), fifo.CPHiWatermark, fifo.CPLoWatermark,
+                fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
+                fifo.CPWritePointer.load(std::memory_order_relaxed),
+                fifo.CPReadPointer.load(std::memory_order_relaxed),
+                fifo.CPBreakpoint.load(std::memory_order_relaxed),
+                fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", PC, LR);
 }
 
 }  // namespace CommandProcessor
