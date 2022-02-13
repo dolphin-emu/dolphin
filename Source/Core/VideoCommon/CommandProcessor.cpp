@@ -382,7 +382,7 @@ void GatherPipeBursted()
   }
   else
   {
-    fifo.CPWritePointer.fetch_add(GATHER_PIPE_SIZE, std::memory_order_relaxed);
+    fifo.CPWritePointer.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_relaxed);
   }
 
   if (m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
@@ -396,7 +396,7 @@ void GatherPipeBursted()
   if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed) != 0)
     CoreTiming::ForceExceptionCheck(0);
 
-  fifo.CPReadWriteDistance.fetch_add(GATHER_PIPE_SIZE, std::memory_order_seq_cst);
+  fifo.CPReadWriteDistance.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
 
   Fifo::RunGpu();
 
