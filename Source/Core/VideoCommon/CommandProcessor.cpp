@@ -634,41 +634,29 @@ void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
                    "Further errors will be sent to the Video Backend log and\n"
                    "Dolphin will now likely crash or hang. Enjoy.",
                    cmd_byte, fmt::ptr(buffer), preprocess);
-
-    PanicAlertFmt("Illegal command {:02x}\n"
-                  "CPBase: {:#010x}\n"
-                  "CPEnd: {:#010x}\n"
-                  "CPHiWatermark: {:#010x}\n"
-                  "CPLoWatermark: {:#010x}\n"
-                  "CPReadWriteDistance: {:#010x}\n"
-                  "CPWritePointer: {:#010x}\n"
-                  "CPReadPointer: {:#010x}\n"
-                  "CPBreakpoint: {:#010x}\n"
-                  "bFF_GPReadEnable: {}\n"
-                  "bFF_BPEnable: {}\n"
-                  "bFF_BPInt: {}\n"
-                  "bFF_Breakpoint: {}\n"
-                  "bFF_GPLinkEnable: {}\n"
-                  "bFF_HiWatermarkInt: {}\n"
-                  "bFF_LoWatermarkInt: {}\n",
-                  cmd_byte, fifo.CPBase.load(std::memory_order_relaxed),
-                  fifo.CPEnd.load(std::memory_order_relaxed), fifo.CPHiWatermark,
-                  fifo.CPLoWatermark, fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
-                  fifo.CPWritePointer.load(std::memory_order_relaxed),
-                  fifo.CPReadPointer.load(std::memory_order_relaxed),
-                  fifo.CPBreakpoint.load(std::memory_order_relaxed),
-                  fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false");
   }
 
   // We always generate this log message, though we only generate the panic alerts once.
-  ERROR_LOG_FMT(VIDEO, "FIFO: Unknown Opcode ({:#04x} @ {}, preprocessing = {})", cmd_byte,
-                fmt::ptr(buffer), preprocess ? "yes" : "no");
+  ERROR_LOG_FMT(VIDEO,
+                "FIFO: Unknown Opcode {:#04x} @ {}, preprocessing = {}, CPBase: {:#010x}, CPEnd: "
+                "{:#010x}, CPHiWatermark: {:#010x}, CPLoWatermark: {:#010x}, CPReadWriteDistance: "
+                "{:#010x}, CPWritePointer: {:#010x}, CPReadPointer: {:#010x}, CPBreakpoint: "
+                "{:#010x}, bFF_GPReadEnable: {}, bFF_BPEnable: {}, bFF_BPInt: {}, bFF_Breakpoint: "
+                "{}, bFF_GPLinkEnable: {}, bFF_HiWatermarkInt: {}, bFF_LoWatermarkInt: {}",
+                cmd_byte, fmt::ptr(buffer), preprocess ? "yes" : "no",
+                fifo.CPBase.load(std::memory_order_relaxed),
+                fifo.CPEnd.load(std::memory_order_relaxed), fifo.CPHiWatermark, fifo.CPLoWatermark,
+                fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
+                fifo.CPWritePointer.load(std::memory_order_relaxed),
+                fifo.CPReadPointer.load(std::memory_order_relaxed),
+                fifo.CPBreakpoint.load(std::memory_order_relaxed),
+                fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
+                fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false");
 }
 
 }  // namespace CommandProcessor
