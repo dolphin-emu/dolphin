@@ -61,22 +61,23 @@ MemArena::MemArena()
   if (!static_cast<PIsApiSetImplemented>(ptr_IsApiSetImplemented)("api-ms-win-core-memory-l1-1-6"))
     return;
 
-  const HMODULE handle = LoadLibraryW(L"api-ms-win-core-memory-l1-1-6.dll");
-  if (!handle)
+  m_api_ms_win_core_memory_l1_1_6_handle.Open("api-ms-win-core-memory-l1-1-6.dll");
+  if (!m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
     return;
 
-  void* const address_VirtualAlloc2 = GetProcAddress(handle, "VirtualAlloc2FromApp");
-  void* const address_MapViewOfFile3 = GetProcAddress(handle, "MapViewOfFile3FromApp");
+  void* const address_VirtualAlloc2 =
+      m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("VirtualAlloc2FromApp");
+  void* const address_MapViewOfFile3 =
+      m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("MapViewOfFile3FromApp");
   if (address_VirtualAlloc2 && address_MapViewOfFile3)
   {
-    m_api_ms_win_core_memory_l1_1_6_handle = handle;
     m_address_VirtualAlloc2 = address_VirtualAlloc2;
     m_address_MapViewOfFile3 = address_MapViewOfFile3;
   }
   else
   {
     // at least one function is not available, use legacy logic
-    FreeLibrary(handle);
+    m_api_ms_win_core_memory_l1_1_6_handle.Close();
   }
 }
 
@@ -84,8 +85,6 @@ MemArena::~MemArena()
 {
   ReleaseMemoryRegion();
   ReleaseSHMSegment();
-  if (m_api_ms_win_core_memory_l1_1_6_handle)
-    FreeLibrary(static_cast<HMODULE>(m_api_ms_win_core_memory_l1_1_6_handle));
 }
 
 void MemArena::GrabSHMSegment(size_t size)
@@ -123,7 +122,7 @@ u8* MemArena::ReserveMemoryRegion(size_t memory_size)
   }
 
   u8* base;
-  if (m_api_ms_win_core_memory_l1_1_6_handle)
+  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
     base = static_cast<u8*>(static_cast<PVirtualAlloc2>(m_address_VirtualAlloc2)(
         nullptr, nullptr, memory_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS,
@@ -154,7 +153,7 @@ u8* MemArena::ReserveMemoryRegion(size_t memory_size)
 
 void MemArena::ReleaseMemoryRegion()
 {
-  if (m_api_ms_win_core_memory_l1_1_6_handle && m_reserved_region)
+  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen() && m_reserved_region)
   {
     // user should have unmapped everything by this point, check if that's true and yell if not
     // (it indicates a bug in the emulated memory mapping logic)
@@ -291,7 +290,7 @@ WindowsMemoryRegion* MemArena::EnsureSplitRegionForMapping(void* start_address, 
 
 void* MemArena::MapInMemoryRegion(s64 offset, size_t size, void* base)
 {
-  if (m_api_ms_win_core_memory_l1_1_6_handle)
+  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
     WindowsMemoryRegion* const region = EnsureSplitRegionForMapping(base, size);
     if (!region)
@@ -393,7 +392,7 @@ bool MemArena::JoinRegionsAfterUnmap(void* start_address, size_t size)
 
 void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
-  if (m_api_ms_win_core_memory_l1_1_6_handle)
+  if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
     if (UnmapViewOfFileEx(view, MEM_PRESERVE_PLACEHOLDER))
     {

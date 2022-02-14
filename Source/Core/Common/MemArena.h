@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/DynamicLibrary.h"
 
 namespace Common
 {
@@ -106,7 +107,7 @@ private:
   std::vector<WindowsMemoryRegion> m_regions;
   void* m_reserved_region = nullptr;
   void* m_memory_handle = nullptr;
-  void* m_api_ms_win_core_memory_l1_1_6_handle = nullptr;
+  Common::DynamicLibrary m_api_ms_win_core_memory_l1_1_6_handle;
   void* m_address_VirtualAlloc2 = nullptr;
   void* m_address_MapViewOfFile3 = nullptr;
 #else
