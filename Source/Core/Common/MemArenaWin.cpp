@@ -29,6 +29,8 @@ using PMapViewOfFile3 = PVOID(WINAPI*)(HANDLE FileMapping, HANDLE Process, PVOID
                                        MEM_EXTENDED_PARAMETER* ExtendedParameters,
                                        ULONG ParameterCount);
 
+using PUnmapViewOfFileEx = BOOL(WINAPI*)(PVOID BaseAddress, ULONG UnmapFlags);
+
 using PIsApiSetImplemented = BOOL(APIENTRY*)(PCSTR Contract);
 
 namespace Common
@@ -62,22 +64,30 @@ MemArena::MemArena()
     return;
 
   m_api_ms_win_core_memory_l1_1_6_handle.Open("api-ms-win-core-memory-l1-1-6.dll");
-  if (!m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
+  m_kernel32_handle.Open("Kernel32.dll");
+  if (!m_api_ms_win_core_memory_l1_1_6_handle.IsOpen() || !m_kernel32_handle.IsOpen())
+  {
+    m_api_ms_win_core_memory_l1_1_6_handle.Close();
+    m_kernel32_handle.Close();
     return;
+  }
 
   void* const address_VirtualAlloc2 =
       m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("VirtualAlloc2FromApp");
   void* const address_MapViewOfFile3 =
       m_api_ms_win_core_memory_l1_1_6_handle.GetSymbolAddress("MapViewOfFile3FromApp");
-  if (address_VirtualAlloc2 && address_MapViewOfFile3)
+  void* const address_UnmapViewOfFileEx = m_kernel32_handle.GetSymbolAddress("UnmapViewOfFileEx");
+  if (address_VirtualAlloc2 && address_MapViewOfFile3 && address_UnmapViewOfFileEx)
   {
     m_address_VirtualAlloc2 = address_VirtualAlloc2;
     m_address_MapViewOfFile3 = address_MapViewOfFile3;
+    m_address_UnmapViewOfFileEx = address_UnmapViewOfFileEx;
   }
   else
   {
     // at least one function is not available, use legacy logic
     m_api_ms_win_core_memory_l1_1_6_handle.Close();
+    m_kernel32_handle.Close();
   }
 }
 
@@ -394,7 +404,8 @@ void MemArena::UnmapFromMemoryRegion(void* view, size_t size)
 {
   if (m_api_ms_win_core_memory_l1_1_6_handle.IsOpen())
   {
-    if (UnmapViewOfFileEx(view, MEM_PRESERVE_PLACEHOLDER))
+    if (static_cast<PUnmapViewOfFileEx>(m_address_UnmapViewOfFileEx)(view,
+                                                                     MEM_PRESERVE_PLACEHOLDER))
     {
       if (!JoinRegionsAfterUnmap(view, size))
         PanicAlertFmt("Joining memory region failed.");
