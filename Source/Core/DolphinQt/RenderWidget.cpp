@@ -554,6 +554,9 @@ void RenderWidget::SetImGuiKeyMap()
   }};
   auto lock = g_renderer->GetImGuiLock();
 
+  if (!ImGui::GetCurrentContext())
+    return;
+
   for (auto [imgui_key, qt_key] : key_map)
     ImGui::GetIO().KeyMap[imgui_key] = (qt_key & 0x1FF);
 }
