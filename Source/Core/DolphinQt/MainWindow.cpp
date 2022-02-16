@@ -39,6 +39,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
@@ -530,8 +531,6 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
-  connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
-  connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
@@ -646,6 +645,8 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
+
+  connect(m_tool_bar, &ToolBar::StartNetPlayPressed, this, &MainWindow::ShowNetPlaySetupDialog);
 
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
@@ -1391,10 +1392,11 @@ void MainWindow::NetPlayInit()
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::ForceStop);
+  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
+  connect(m_netplay_setup_dialog, &NetPlaySetupDialog::JoinBrowser, this, &MainWindow::NetPlayJoin);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
 
@@ -1735,7 +1737,7 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
   if (Movie::BeginRecordingInput(controllers, wiimotes))
@@ -1795,7 +1797,7 @@ void MainWindow::ShowTASInput()
 
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
+    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
       m_wii_tas_input_windows[i]->show();

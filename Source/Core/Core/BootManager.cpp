@@ -53,58 +53,6 @@
 
 namespace BootManager
 {
-// TODO this is an ugly hack which allows us to restore values trampled by per-game settings
-// Apply fire liberally
-struct ConfigCache
-{
-public:
-  // fill the cache with values from the configuration
-  void SaveConfig(const SConfig& config);
-  // restore values to the configuration from the cache
-  void RestoreConfig(SConfig* config);
-
-  // These store if the relevant setting should be reset back later (true) or if it should be left
-  // alone on restore (false)
-  bool bSetVolume = false;
-  std::array<bool, MAX_BBMOTES> bSetWiimoteSource{};
-
-private:
-  bool valid = false;
-  std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource{};
-};
-
-void ConfigCache::SaveConfig(const SConfig& config)
-{
-  valid = true;
-
-  for (int i = 0; i != MAX_BBMOTES; ++i)
-    iWiimoteSource[i] = WiimoteCommon::GetSource(i);
-
-  bSetVolume = false;
-  bSetWiimoteSource.fill(false);
-}
-
-void ConfigCache::RestoreConfig(SConfig* config)
-{
-  if (!valid)
-    return;
-
-  valid = false;
-
-  // Only change these back if they were actually set by game ini, since they can be changed while a
-  // game is running.
-  if (config->bWii)
-  {
-    for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
-    {
-      if (bSetWiimoteSource[i])
-        WiimoteCommon::SetSource(i, iWiimoteSource[i]);
-    }
-  }
-}
-
-static ConfigCache config_cache;
-
 // Boot the ISO or file
 bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
@@ -113,45 +61,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   SConfig& StartUp = SConfig::GetInstance();
 
-  config_cache.SaveConfig(StartUp);
-
   if (!StartUp.SetPathsAndGameMetadata(*boot))
     return false;
-
-  // Load game specific settings
-  if (!std::holds_alternative<BootParameters::IPL>(boot->parameters))
-  {
-    IniFile game_ini = StartUp.LoadGameIni();
-
-    // General settings
-    IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
-
-    // Wii settings
-    if (StartUp.bWii)
-    {
-      int source;
-      for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-      {
-        controls_section->Get(fmt::format("WiimoteSource{}", i), &source, -1);
-        if (source != -1 && WiimoteCommon::GetSource(i) != WiimoteSource(source) &&
-            WiimoteSource(source) >= WiimoteSource::None &&
-            WiimoteSource(source) <= WiimoteSource::Real)
-        {
-          config_cache.bSetWiimoteSource[i] = true;
-          WiimoteCommon::SetSource(i, WiimoteSource(source));
-        }
-      }
-      controls_section->Get("WiimoteSourceBB", &source, -1);
-      if (source != -1 &&
-          WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) != WiimoteSource(source) &&
-          (WiimoteSource(source) == WiimoteSource::None ||
-           WiimoteSource(source) == WiimoteSource::Real))
-      {
-        config_cache.bSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = true;
-        WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, WiimoteSource(source));
-      }
-    }
-  }
 
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
@@ -313,7 +224,6 @@ void RestoreConfig()
   Config::RemoveLayer(Config::LayerType::GlobalGame);
   Config::RemoveLayer(Config::LayerType::LocalGame);
   SConfig::GetInstance().ResetRunningGameMetadata();
-  config_cache.RestoreConfig(&SConfig::GetInstance());
 }
 
 }  // namespace BootManager

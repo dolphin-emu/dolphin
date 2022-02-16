@@ -6,13 +6,10 @@
     <string name="host">app</string>
     <string name="scheme">dolphinemu</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop. -->
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
     <string name="controller_2">GameCube Controller 3</string>
     <string name="controller_3">GameCube Controller 4</string>
-    <!-- END WARNING -->
 
     <string name="controller_control">Control Stick</string>
     <string name="controller_c">C Stick</string>
@@ -22,23 +19,15 @@
     <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop.
-            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
     <string name="wiimote_4">Wii Remote 1</string>
     <string name="wiimote_5">Wii Remote 2</string>
     <string name="wiimote_6">Wii Remote 3</string>
     <string name="wiimote_7">Wii Remote 4</string>
-    <!-- END WARNING -->
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop.
-            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
     <string name="wiimote_extension_4">Wii Remote Extension 1</string>
     <string name="wiimote_extension_5">Wii Remote Extension 2</string>
     <string name="wiimote_extension_6">Wii Remote Extension 3</string>
     <string name="wiimote_extension_7">Wii Remote Extension 4</string>
-    <!-- END WARNING -->
 
     <string name="wiimote_extensions">Extension</string>
     <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
@@ -316,9 +305,9 @@
     <string name="dump_texture">Dump Textures</string>
     <string name="dump_texture_description">Dumps decoded game textures based on the other flags to User/Dump/Textures/&lt;game_id&gt;/. If unsure, leave this unchecked.</string>
     <string name="dump_base_texture">Dump Base Textures</string>
-    <string name="dump_base_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_base_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="dump_mip_texture">Dump Mip Maps</string>
-    <string name="dump_mip_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_mip_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="misc">Misc</string>
     <string name="crop">Crop</string>
     <string name="crop_description">Crops the picture from its native aspect ratio to 4:3 or 16:9. If unsure, leave this unchecked.</string>

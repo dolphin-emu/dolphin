@@ -376,7 +376,7 @@ void CodeViewWidget::Update()
 
 void CodeViewWidget::CalculateBranchIndentation()
 {
-  const size_t rows = rowCount();
+  const u32 rows = rowCount();
   const size_t columns = m_branches.size();
   if (rows < 1 || columns < 1)
     return;
@@ -442,7 +442,7 @@ void CodeViewWidget::CalculateBranchIndentation()
   };
 
   const u32 first_visible_addr = AddressForRow(0);
-  const u32 last_visible_addr = AddressForRow(static_cast<int>(rows - 1));
+  const u32 last_visible_addr = AddressForRow(rows - 1);
 
   if (first_visible_addr <= last_visible_addr)
   {
@@ -456,7 +456,7 @@ void CodeViewWidget::CalculateBranchIndentation()
     // first_visible_addr to fffffffc, and the second for 00000000 to last_visible_addr.
     // That means we need to find the row corresponding to 00000000.
     int addr_zero_row = -1;
-    for (int row = 0; row < rows; row++)
+    for (u32 row = 0; row < rows; row++)
     {
       if (AddressForRow(row) == 0)
       {

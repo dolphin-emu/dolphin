@@ -50,9 +50,8 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att)
   GenerateVertexLoader();
   WriteProtect();
 
-  const std::string name =
-      fmt::format("VertexLoaderX64\nVtx desc: \n{}\nVAT:\n{}", vtx_desc, vtx_att);
-  JitRegister::Register(region, GetCodePtr(), name.c_str());
+  JitRegister::Register(region, GetCodePtr(), "VertexLoaderX64\nVtx desc: \n{}\nVAT:\n{}", vtx_desc,
+                        vtx_att);
 }
 
 OpArg VertexLoaderX64::GetVertexAddr(CPArray array, VertexComponentFormat attribute)

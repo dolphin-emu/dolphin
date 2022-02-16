@@ -25,12 +25,12 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
-#include "UICommon/AutoUpdate.h"
+//#include "UICommon/AutoUpdate.h"
 #ifdef USE_DISCORD_PRESENCE
 #include "UICommon/DiscordPresence.h"
 #endif
 
-constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
+/* constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
 constexpr int AUTO_UPDATE_STABLE_INDEX = 1;
 constexpr int AUTO_UPDATE_BETA_INDEX = 2;
 constexpr int AUTO_UPDATE_DEV_INDEX = 3;
@@ -38,7 +38,7 @@ constexpr int AUTO_UPDATE_DEV_INDEX = 3;
 constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
 constexpr const char* AUTO_UPDATE_STABLE_STRING = "stable";
 constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
-constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
+constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";*/
 
 constexpr int FALLBACK_REGION_NTSCJ_INDEX = 0;
 constexpr int FALLBACK_REGION_NTSCU_INDEX = 1;
@@ -65,8 +65,8 @@ void GeneralPane::CreateLayout()
   // Create layout here
   CreateBasic();
 
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-    CreateAutoUpdate();
+  /* if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+    CreateAutoUpdate();*/
 
   CreateFallbackRegion();
 
@@ -83,7 +83,6 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
   const bool running = state != Core::State::Uninitialized;
 
   m_checkbox_dualcore->setEnabled(!running);
-  m_checkbox_cheats->setEnabled(!running);
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence->setEnabled(!running);
@@ -94,7 +93,6 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
-  connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -102,13 +100,13 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
 
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  /* if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
     connect(m_combobox_update_track, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GeneralPane::OnSaveConfig);
     connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
             &GeneralPane::LoadConfig);
-  }
+  }*/
 
   // Advanced
   connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged),
@@ -135,9 +133,6 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speedup)"));
   basic_group_layout->addWidget(m_checkbox_dualcore);
-
-  m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
-  basic_group_layout->addWidget(m_checkbox_cheats);
 
   m_checkbox_override_region_settings = new QCheckBox(tr("Allow Mismatched Region Settings"));
   basic_group_layout->addWidget(m_checkbox_override_region_settings);
@@ -172,7 +167,7 @@ void GeneralPane::CreateBasic()
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
 }
 
-void GeneralPane::CreateAutoUpdate()
+/* void GeneralPane::CreateAutoUpdate()
 {
   auto* auto_update_group = new QGroupBox(tr("Auto Update Settings"));
   auto* auto_update_group_layout = new QFormLayout;
@@ -189,7 +184,7 @@ void GeneralPane::CreateAutoUpdate()
   for (const QString& option : {tr("Don't Update"), tr("Stable (once a year)"),
                                 tr("Beta (once a month)"), tr("Dev (multiple times a day)")})
     m_combobox_update_track->addItem(option);
-}
+}*/
 
 void GeneralPane::CreateFallbackRegion()
 {
@@ -235,7 +230,7 @@ void GeneralPane::LoadConfig()
 {
   const QSignalBlocker blocker(this);
 
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  /* if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
     const auto track = Settings::Instance().GetAutoUpdateTrack().toStdString();
 
@@ -247,13 +242,12 @@ void GeneralPane::LoadConfig()
       m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
     else
       m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
-  }
+  }*/
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_checkbox_enable_analytics->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
   m_checkbox_dualcore->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
-  m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
   m_checkbox_override_region_settings->setChecked(
       Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
   m_checkbox_auto_disc_change->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
@@ -279,7 +273,7 @@ void GeneralPane::LoadConfig()
     m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
-static QString UpdateTrackFromIndex(int index)
+/* static QString UpdateTrackFromIndex(int index)
 {
   QString value;
 
@@ -300,7 +294,7 @@ static QString UpdateTrackFromIndex(int index)
   }
 
   return value;
-}
+}*/
 
 static DiscIO::Region UpdateFallbackRegionFromIndex(int index)
 {
@@ -332,11 +326,11 @@ void GeneralPane::OnSaveConfig()
   Config::ConfigChangeCallbackGuard config_guard;
 
   auto& settings = SConfig::GetInstance();
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  /* if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
     Settings::Instance().SetAutoUpdateTrack(
         UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
-  }
+  }*/
 
 #ifdef USE_DISCORD_PRESENCE
   Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
@@ -347,11 +341,9 @@ void GeneralPane::OnSaveConfig()
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
-  Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
-  Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
                            m_combobox_speedlimit->currentIndex() * 0.1f);
   Settings::Instance().SetFallbackRegion(

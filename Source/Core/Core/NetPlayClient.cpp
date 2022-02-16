@@ -37,6 +37,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
@@ -1741,24 +1742,26 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   for (unsigned int i = 0; i < 4; ++i)
   {
-    WiimoteCommon::SetSource(i,
-                             m_wiimote_map[i] > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
+    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
+                       m_wiimote_map[i] > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
   }
 
   // boot game
   auto boot_session_data = std::make_unique<BootSessionData>();
-  boot_session_data->SetWiiSyncData(
-      std::move(m_wii_sync_fs), std::move(m_wii_sync_titles), std::move(m_wii_sync_redirect_folder),
-      [] {
-        // on emulation end clean up the Wii save sync directory -- see OnSyncSaveDataWii()
-        const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
-        if (File::Exists(path))
-          File::DeleteDirRecursively(path);
-        const std::string redirect_path =
-            File::GetUserPath(D_USER_IDX) + "Redirect" GC_MEMCARD_NETPLAY DIR_SEP;
-        if (File::Exists(redirect_path))
-          File::DeleteDirRecursively(redirect_path);
-      });
+  boot_session_data->SetWiiSyncData(std::move(m_wii_sync_fs), std::move(m_wii_sync_titles),
+                                    std::move(m_wii_sync_redirect_folder), [] {
+                                      // on emulation end clean up the Wii save sync directory --
+                                      // see OnSyncSaveDataWii()
+                                      const std::string wii_path = File::GetUserPath(D_USER_IDX) +
+                                                                   "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+                                      if (File::Exists(wii_path))
+                                        File::DeleteDirRecursively(wii_path);
+                                      const std::string redirect_path =
+                                          File::GetUserPath(D_USER_IDX) +
+                                          "Redirect" GC_MEMCARD_NETPLAY DIR_SEP;
+                                      if (File::Exists(redirect_path))
+                                        File::DeleteDirRecursively(redirect_path);
+                                    });
   m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();

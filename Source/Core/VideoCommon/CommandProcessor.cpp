@@ -121,11 +121,6 @@ void DoState(PointerWrap& p)
   p.Do(s_interrupt_waiting);
 }
 
-static inline void WriteLow(std::atomic<u32>& reg, u16 lowbits)
-{
-  reg.store((reg.load(std::memory_order_relaxed) & 0xFFFF0000) | lowbits,
-            std::memory_order_relaxed);
-}
 static inline void WriteHigh(std::atomic<u32>& reg, u16 highbits)
 {
   reg.store((reg.load(std::memory_order_relaxed) & 0x0000FFFF) | (static_cast<u32>(highbits) << 16),
@@ -205,6 +200,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {FIFO_WRITE_POINTER_HI, MMIO::Utils::HighPart(&fifo.CPWritePointer), false,
        WMASK_HI_RESTRICT},
       // FIFO_READ_POINTER has different code for single/dual core.
+      {FIFO_BP_LO, MMIO::Utils::LowPart(&fifo.CPBreakpoint), false, WMASK_LO_ALIGN_32BIT},
+      {FIFO_BP_HI, MMIO::Utils::HighPart(&fifo.CPBreakpoint), false, WMASK_HI_RESTRICT},
   };
 
   for (auto& mapped_var : directly_mapped_vars)
@@ -213,16 +210,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    mapped_var.readonly ? MMIO::InvalidWrite<u16>() :
                                          MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask));
   }
-
-  mmio->Register(base | FIFO_BP_LO, MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPBreakpoint)),
-                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   WriteLow(fifo.CPBreakpoint, val & WMASK_LO_ALIGN_32BIT);
-                 }));
-  mmio->Register(base | FIFO_BP_HI,
-                 MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.CPBreakpoint)),
-                 MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](u32, u16 val) {
-                   WriteHigh(fifo.CPBreakpoint, val & WMASK_HI_RESTRICT);
-                 }));
 
   // Timing and metrics MMIOs are stubbed with fixed values.
   struct

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <string>
 #include <type_traits>

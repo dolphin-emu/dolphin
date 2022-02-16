@@ -27,6 +27,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/MarioPartyNetplay/Gamestate.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -297,6 +298,8 @@ bool ApplyFramePatches()
   }
 
   ApplyPatches(s_on_frame);
+
+  mpn_per_frame();
 
   // Run the Gecko code handler
   Gecko::RunCodeHandler();

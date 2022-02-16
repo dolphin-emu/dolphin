@@ -1,5 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #include "Common/Version.h"
 
@@ -17,61 +18,19 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-const std::string& GetScmRevStr()
-{
-  static const std::string scm_rev_str = "Dolphin "
-#if !SCM_IS_MASTER
-                                         "[" SCM_BRANCH_STR "] "
-#endif
+// MPN Dolphin Version
+const std::string scm_rev_str = "Dolphin MPN - (" SCM_REV_STR ")";
 
-#ifdef __INTEL_COMPILER
-      BUILD_TYPE_STR SCM_DESC_STR "-ICC";
-#else
-      BUILD_TYPE_STR SCM_DESC_STR;
-#endif
-  return scm_rev_str;
-}
+const std::string scm_rev_git_str = SCM_REV_STR;
+const std::string scm_desc_str = SCM_DESC_STR;
+const std::string scm_branch_str = SCM_BRANCH_STR;
+const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
 
-const std::string& GetScmRevGitStr()
-{
-  static const std::string scm_rev_git_str = SCM_REV_STR;
-  return scm_rev_git_str;
-}
-
-const std::string& GetScmDescStr()
-{
-  static const std::string scm_desc_str = SCM_DESC_STR;
-  return scm_desc_str;
-}
-
-const std::string& GetScmBranchStr()
-{
-  static const std::string scm_branch_str = SCM_BRANCH_STR;
-  return scm_branch_str;
-}
-
-const std::string& GetScmDistributorStr()
-{
-  static const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
-  return scm_distributor_str;
-}
-
-const std::string& GetScmUpdateTrackStr()
-{
-  static const std::string scm_update_track_str = SCM_UPDATE_TRACK_STR;
-  return scm_update_track_str;
-}
-
-const std::string& GetNetplayDolphinVer()
-{
 #ifdef _WIN32
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Win";
+const std::string netplay_dolphin_ver = SCM_DESC_STR " Win";
 #elif __APPLE__
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Mac";
+const std::string netplay_dolphin_ver = SCM_DESC_STR " Mac";
 #else
-  static const std::string netplay_dolphin_ver = SCM_DESC_STR " Lin";
+const std::string netplay_dolphin_ver = SCM_DESC_STR " Lin";
 #endif
-  return netplay_dolphin_ver;
-}
-
 }  // namespace Common
