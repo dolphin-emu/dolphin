@@ -18,7 +18,7 @@ enum class GAME_STATE
   ENDGAME_LOGGED,
 };
 
-enum class AB_STATE
+enum class EVENT_STATE
 {
     PITCH_STARTED,
     CONTACT,
@@ -27,7 +27,7 @@ enum class AB_STATE
     NO_CONTACT,
     PLAY_OVER,
     FINAL_RESULT,
-    WAITING_FOR_PITCH,
+    WAITING_FOR_EVENT,
 };
 
 //Conversion Maps
@@ -184,6 +184,8 @@ static const u32 aWhoQuit          = 0x802EBF93;
 
 static const u32 aAB_PitchThrown     = 0x8088A81B;
 static const u32 aAB_ContactResult   = 0x808926B3; //0=InAir, 1=Landed, 2=Fielded, 3=Caught, FF=Foul
+static const u32 aAB_ContactMade     = 0x80892ADA;
+static const u32 aAB_PickoffAttempt  = 0x80892857;
 
 //Addrs for GameInfo
 static const u32 aStadiumId = 0x800E8705;
@@ -217,7 +219,7 @@ static const u32 aPitcher_WasPitcher        = 0x803535DA;
 static const u32 aPitcher_BatterOuts        = 0x803535E1;
 static const u32 aPitcher_StrikeOuts        = 0x803535E4;
 static const u32 aPitcher_StarPitchesThrown = 0x803535E5;
-static const u32 aPitcher_IsStarred = 0x8035323B;
+static const u32 aPitcher_IsStarred         = 0x8035323B;
 
 static const u8 c_defensive_stat_offset = 0x1E;
 
@@ -239,7 +241,7 @@ static const u32 aBatter_StarHits     = 0x80353808;
 static const u8 c_offensive_stat_offset = 0x26;
 
 
-//At-Bat Scenario 
+//Event Scenario 
 static const u32 aAB_BatterPort      = 0x802EBF95;
 static const u32 aAB_PitcherPort     = 0x802EBF94;
 static const u32 aAB_BatterRosterID  = 0x80890971;
@@ -257,7 +259,7 @@ static const u32 aAB_RunnerOn1       = 0x8088F09D;
 static const u32 aAB_RunnerOn2       = 0x8088F1F1;
 static const u32 aAB_RunnerOn3       = 0x8088F345;
 
-//At-Bat Pitch
+//Pitch
 static const u32 aAB_PitcherRosterID   = 0x80890AD9;
 static const u32 aAB_PitcherID         = 0x80890ADB;
 static const u32 aAB_PitcherHandedness = 0x80890B01;
@@ -381,15 +383,28 @@ public:
 
         //Bookkeeping
         u16 pitch_num = 0;
+        u16 event_num = 0;
+
+        //Array of both teams' character summaries
+        std::array<std::array<CharacterSummary, cRosterSize>, cNumOfTeams> character_summaries;
+
+        //All of the events for this game
+        std::map<u16, Event> events;
     };
     GameInfo m_game_info;
 
-    struct EndGameRosterDefensiveStats{
-        u32 game_id;
-        u32 team_id;
-        u32 roster_id;
+    struct CharacterSummary{
+        u8 roster_id;
+        u8 team_id;
         u8 is_starred;
+        u8 fielding_hand;
+        u8 batting_hand;
 
+        EndGameRosterDefensiveStats end_game_defensive_stats;
+        EndGameRosterOffensiveStats end_game_defensive_stats;
+    }
+
+    struct EndGameRosterDefensiveStats{
         u8  batters_faced;
         u16 runs_allowed;
         u16 batters_walked;
@@ -405,14 +420,10 @@ public:
 
         u8 big_plays;
 
-        //Calculated
-        u32 ERA;
-
         //Manually collected
         std::set<u8> innings_pitched; //size() will give number of innings pitched
         u8 outs_pitched = 0;
     };
-    std::array<std::array<EndGameRosterDefensiveStats, cRosterSize>, cNumOfTeams> m_defensive_stats;
 
     struct EndGameRosterOffensiveStats{
         u32 game_id;
@@ -432,35 +443,47 @@ public:
         u8 bases_stolen;
         u8 star_hits;
     };
-    std::array<std::array<EndGameRosterOffensiveStats, cRosterSize>, cNumOfTeams> m_offensive_stats;
 
-    struct ABStats{
-        u16 pitch_num;
-        u32 game_id;
-        u32 team_id;
-        u8 roster_id;
+    struct Event{
+        u16 event_num = 0;
 
-        //Scenario
         u8 inning;
         u8 half_inning;
-        u16 batter_score;
-        u16 fielder_score;
+        u16 away_score;
+        u16 home_score;
+        u8 is_star_chance;
+        u8 away_stars;
+        u8 home_stars;
+        u8 chem_links_ob;
+
         u8 balls;
         u8 strikes;
         u8 outs;
-        u8 runner_on_1;
-        u8 runner_on_2;
-        u8 runner_on_3;
-        u8 chem_links_ob;
-        u8 is_star_chance;
-        u8 batter_stars;
-        u8 pitcher_stars;
 
+        optional<Runner> runner_batter;
+        optional<Runner> runner_1;
+        optional<Runner> runner_2;
+        optional<Runner> runner_3;
+        optional<Pitch>  pitch;
+
+        u8 rbi;
+        u8 result_of_atbat;
+    };
+
+    struct Runner {
+        u8 runner_roster_loc;
+        u8 runner_char_id;
+        u8 initial_base;
+        u8 out_type;
+        u8 out_location;
+        u8 result_base;
+    };
+
+    struct Pitch{
         //Pitcher Status
         u8 pitcher_roster_loc;
         u8 pitcher_id;
         u16 pitcher_stamina;
-        u8 pitcher_handedness;
         u8 pitch_type;
         u8 charge_type;
         u8 star_pitch;
@@ -475,7 +498,6 @@ public:
         u8 swing;
         u8 charge_swing;
         u8 bunt;
-        u8 type_of_swing;
         u32 charge_power_up;
         u32 charge_power_down;
         u8 star_swing;
@@ -485,10 +507,12 @@ public:
         u8 hit_by_pitch;
 
         u16 frameOfSwingUponContact;
-        u16 frameOfPitchUponSwing; //Remove for inaccuracy
 
         u32 ball_x_pos_upon_hit;
         u32 ball_y_pos_upon_hit;
+
+        u32 batter_x_pos_upon_hit;
+        u32 batter_y_pos_upon_hit;
     
         //  Ball Calcs
         u16 ball_angle;
@@ -497,16 +521,16 @@ public:
         u32 ball_x_velocity;
         u32 ball_y_velocity;
         u32 ball_z_velocity;
-        u32 ball_x_accel;
-        u32 ball_y_accel;
-        u32 ball_z_accel;
         
         //Final Result Ball
-        u32 ball_x_pos;
-        u32 ball_y_pos;
-        u32 ball_z_pos;
+        u32 ball_x_pos, prev_ball_x_pos;
+        u32 ball_y_pos, prev_ball_y_pos;
+        u32 ball_z_pos, prev_ball_z_pos;
 
-        //Fielder results
+        optional<Fielder> fielder;
+    };
+
+    struct Fielder {
         u8 fielder_roster_loc;
         u8 fielder_pos;
         u8 fielder_char_id;
@@ -516,30 +540,135 @@ public:
         u32 fielder_y_pos;
         u32 fielder_z_pos;
         u8 bobble = 0xFF; //Bobble info
-        u8 bobble_fielder_roster_loc;
-        u8 bobble_fielder_pos;
-        u8 bobble_fielder_char_id;
-        u8 bobble_fielder_action;
-        u32 bobble_fielder_x_pos;
-        u32 bobble_fielder_y_pos;
-        u32 bobble_fielder_z_pos;
-
-        u8 num_outs_during_play;
-        u8 rbi;
-
-        std::string result_inferred; //strike-swing, strike-looking, ball, foul, land, caught
-        u8 result_game;
-
-        bool operator==(const ABStats& rhs_ab){
-            return ( (this->inning      == rhs_ab.inning)
-                  && (this->half_inning == rhs_ab.half_inning)
-                  && (this->roster_id   == rhs_ab.roster_id)
-                  && (this->balls       == rhs_ab.balls)
-                  && (this->strikes     == rhs_ab.strikes)
-                  && (this->outs        == rhs_ab.outs) );
-        } 
+        //u8 bobble_fielder_roster_loc;
+        //u8 bobble_fielder_pos;
+        //u8 bobble_fielder_char_id;
+        //u8 bobble_fielder_action;
+        //u32 bobble_fielder_x_pos;
+        //u32 bobble_fielder_y_pos;
+        //u32 bobble_fielder_z_pos;
     };
-    std::array<std::array<std::vector<ABStats>, cRosterSize>, cNumOfTeams> m_ab_stats;
+
+    struct FielderTracker {
+        //Roster_loc, pair<position, changed>
+        //Set changed=true any time the sampled position (each pitch) does not match the current position
+        //Rest changed upon new batter
+        std::map<u8, std::pair<u8, bool>> fielder_map = {
+            {0, std::make_pair(0xFF, false)},
+            {1, std::make_pair(0xFF, false)},
+            {2, std::make_pair(0xFF, false)},
+            {3, std::make_pair(0xFF, false)},
+            {4, std::make_pair(0xFF, false)},
+            {5, std::make_pair(0xFF, false)},
+            {6, std::make_pair(0xFF, false)},
+            {7, std::make_pair(0xFF, false)},
+            {8, std::make_pair(0xFF, false)}
+        };
+
+        u8 prev_batter_roster_loc = 0xFF; //Used to check each pitch if the batter has changed.
+                                   //Mark current positions when changed
+
+        //Roster loc, array<pitches at position>
+        std::map<u8, std::array<u8, cNumOfPositions>> pitch_count_by_position = {
+            {0, {0}},
+            {1, {0}},
+            {2, {0}},
+            {3, {0}},
+            {4, {0}},
+            {5, {0}},
+            {6, {0}},
+            {7, {0}},
+            {8, {0}}
+        };
+
+        //Roster loc, array<pitches at position>
+        std::map<u8, std::array<u8, cNumOfPositions>> out_count_by_position = {
+            {0, {0}},
+            {1, {0}},
+            {2, {0}},
+            {3, {0}},
+            {4, {0}},
+            {5, {0}},
+            {6, {0}},
+            {7, {0}},
+            {8, {0}}
+        };
+
+        bool anyUninitializedFielders() {
+            for (auto& roster_loc : fielder_map){
+                if (roster_loc.second.first == 0xFF) {return true;}
+            }
+            return false;
+        }
+
+        void resetFielderMap() {
+            bool any_uninitialized_fielders = false;
+            for (auto& roster_loc : fielder_map){
+                if (roster_loc.second.first == 0xFF) {any_uninitialized_fielders = true;}
+                roster_loc.second.second = false; //Reset isChanged bool
+            }
+            //Init fielders - only do this loop at the start of the game
+            if (any_uninitialized_fielders){
+                for (u8 pos=0; pos < cRosterSize; ++pos){
+                    u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
+
+                    u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
+
+                    std::cout << "RosterLoc:" << std::to_string(roster_loc) 
+                                  << " Init Pos=" << cPosition.at(fielder_map[roster_loc].first)
+                                  << " New Pos=" << cPosition.at(pos) << std::endl;
+
+                    if ((fielder_map[roster_loc].first != pos) 
+                    && (fielder_map[roster_loc].first == 0xFF)){
+                        fielder_map[roster_loc].first = pos;
+                    }
+                }
+            }
+        }
+        
+        //Scans field to see who is playing which position and increments counts for positions
+        void evaluateFielders() {
+            for (u8 pos=0; pos < cRosterSize; ++pos){
+                u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
+
+                u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
+
+                //If new position, mark changed (unless this is the first pitch of the AB (pos==0xFF))
+                //Then set new position
+                if (fielder_map[roster_loc].first != pos){
+                    if (fielder_map[roster_loc].first != 0xFF){
+                        fielder_map[roster_loc].second = true;
+                        std::cout << "RosterLoc:" << std::to_string(roster_loc) 
+                                  << " swapped from " << cPosition.at(fielder_map[roster_loc].first)
+                                  << " to " << cPosition.at(pos) << std::endl; 
+                    }
+                    fielder_map[roster_loc].first = pos; 
+                }
+
+                //Increment the number of pitches this player has seen at this position
+                ++pitch_count_by_position[roster_loc][pos];
+            }
+            return;
+        }
+
+        bool outsAtAnyPosition(u8 roster_loc, int starting_pos) {
+            for (int pos=starting_pos; pos < cRosterSize; ++pos){
+                if (out_count_by_position[roster_loc][pos] > 0) { 
+                    return true;
+                }
+            }
+            return false;
+        }
+        bool pitchesAtAnyPosition(u8 roster_loc, int starting_pos) {
+            for (int pos=starting_pos; pos < cRosterSize; ++pos){
+                if (pitch_count_by_position[roster_loc][pos] > 0) { 
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+    std::array<FielderTracker, cNumOfTeams> m_fielder_tracker; //One per team
 
     struct FielderTracker {
         //Roster_loc, pair<position, changed>
@@ -663,23 +792,16 @@ public:
     std::array<FielderTracker, cNumOfTeams> m_fielder_tracker; //One per team
 
     void init(){
+        //Reset all game info
         m_game_info = GameInfo();
-        for (int team=0; team < cNumOfTeams; ++team){
-            m_fielder_tracker[team] = FielderTracker();
-            for (int roster=0; roster < cRosterSize; ++roster){
-                m_defensive_stats[team][roster] = EndGameRosterDefensiveStats();
-                m_offensive_stats[team][roster] = EndGameRosterOffensiveStats();
-                m_ab_stats[team][roster].clear();
-            }
-        }   
 
         //Reset state machines
         m_game_state = GAME_STATE::PREGAME;
-        m_ab_state   = AB_STATE::WAITING_FOR_PITCH;
+        m_ab_state   = EVENT_STATE::WAITING_FOR_EVENT;
     }
 
-    GAME_STATE m_game_state = GAME_STATE::PREGAME;
-    AB_STATE   m_ab_state = AB_STATE::WAITING_FOR_PITCH;
+    GAME_STATE  m_game_state = GAME_STATE::PREGAME;
+    EVENT_STATE m_ab_state   = EVENT_STATE::WAITING_FOR_EVENT;
     
     ABStats m_curr_ab_stat;
 
@@ -708,7 +830,7 @@ public:
     void logDefensiveStats(int team_id, int roster_id);
     void logOffensiveStats(int team_id, int roster_id);
     
-    void logABScenario();
+    void logEventScenario(Event& in_event);
     void logABMiss();
     void logABContact();
     void logABPitch();
