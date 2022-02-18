@@ -200,7 +200,6 @@ These folders are installed read-only and should not be changed:
 
 * `GameSettings`: per-game default settings database
 * `GC`: DSP and font dumps
-* `Maps`: symbol tables (dev only)
 * `Shaders`: post-processing shaders
 * `Themes`: icon themes for GUI
 * `Resources`: icons that are theme-agnostic
