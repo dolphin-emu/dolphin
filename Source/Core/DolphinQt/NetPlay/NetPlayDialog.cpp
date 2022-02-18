@@ -90,6 +90,7 @@ NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
 
   restoreGeometry(settings.value(QStringLiteral("netplaydialog/geometry")).toByteArray());
   m_splitter->restoreState(settings.value(QStringLiteral("netplaydialog/splitter")).toByteArray());
+  srand(time(0));
 }
 
 NetPlayDialog::~NetPlayDialog()
@@ -428,7 +429,7 @@ void NetPlayDialog::OnCoinFlip()
   if (!IsHosting())
     return;
   int randNum;
-  randNum = 1 + rand() % 2;
+  randNum = rand() % 2;
   Settings::Instance().GetNetPlayClient()->SendCoinFlip(randNum);
 }
 
