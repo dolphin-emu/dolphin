@@ -21,6 +21,10 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_SLOT_A(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotA", 8),
   MAIN_SLOT_B(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SlotB", 255),
   MAIN_FALLBACK_REGION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "FallbackRegion", 2),
+  MAIN_SI_DEVICE_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice0", 6),
+  MAIN_SI_DEVICE_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice1", 0),
+  MAIN_SI_DEVICE_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice2", 0),
+  MAIN_SI_DEVICE_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SIDevice3", 0),
 
   MAIN_AUDIO_VOLUME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "Volume", 100),
 
@@ -60,13 +64,23 @@ public enum IntSetting implements AbstractIntSetting
   GFX_STEREO_CONVERGENCE_PERCENTAGE(Settings.FILE_GFX, Settings.SECTION_STEREOSCOPY,
           "StereoConvergencePercentage", 100),
 
-  LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1);
+  LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1),
+
+  WIIMOTE_1_SOURCE(Settings.FILE_WIIMOTE, "Wiimote1", "Source", 1),
+  WIIMOTE_2_SOURCE(Settings.FILE_WIIMOTE, "Wiimote2", "Source", 0),
+  WIIMOTE_3_SOURCE(Settings.FILE_WIIMOTE, "Wiimote3", "Source", 0),
+  WIIMOTE_4_SOURCE(Settings.FILE_WIIMOTE, "Wiimote4", "Source", 0),
+  WIIMOTE_BB_SOURCE(Settings.FILE_WIIMOTE, "BalanceBoard", "Source", 0);
 
   private static final IntSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new IntSetting[]{
           MAIN_CPU_CORE,
           MAIN_GC_LANGUAGE,
           MAIN_SLOT_A,  // Can actually be changed, but specific code is required
           MAIN_SLOT_B,  // Can actually be changed, but specific code is required
+          MAIN_SI_DEVICE_0,  // Can actually be changed, but specific code is required
+          MAIN_SI_DEVICE_1,  // Can actually be changed, but specific code is required
+          MAIN_SI_DEVICE_2,  // Can actually be changed, but specific code is required
+          MAIN_SI_DEVICE_3,  // Can actually be changed, but specific code is required
   };
 
   private static final Set<IntSetting> NOT_RUNTIME_EDITABLE =

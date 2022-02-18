@@ -20,9 +20,7 @@ public final class SettingsFile
   public static final String KEY_ISO_PATH_BASE = "ISOPath";
   public static final String KEY_ISO_PATHS = "ISOPaths";
 
-  public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
-  public static final String KEY_GCPAD_G_TYPE = "PadType";
 
   public static final String KEY_GCBIND_A = "InputA_";
   public static final String KEY_GCBIND_B = "InputB_";
@@ -50,11 +48,9 @@ public final class SettingsFile
 
   public static final String KEY_EMU_RUMBLE = "EmuRumble";
 
-  public static final String KEY_WIIMOTE_TYPE = "Source";
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";
 
   // Controller keys for game specific settings
-  public static final String KEY_WIIMOTE_G_TYPE = "WiimoteSource";
   public static final String KEY_WIIMOTE_PROFILE = "WiimoteProfile";
 
   public static final String KEY_WIIBIND_A = "WiimoteA_";

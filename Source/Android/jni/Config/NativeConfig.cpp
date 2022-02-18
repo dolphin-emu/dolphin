@@ -38,6 +38,10 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
   {
     system = Config::System::Logger;
   }
+  else if (decoded_file == "WiimoteNew")
+  {
+    system = Config::System::WiiPad;
+  }
   else
   {
     ASSERT(false);
