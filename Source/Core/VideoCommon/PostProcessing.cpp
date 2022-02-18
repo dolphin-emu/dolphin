@@ -166,11 +166,11 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
     option.m_dirty = true;
 
     if (it.m_type == "OptionBool")
-      option.m_type = ConfigurationOption::OptionType::OPTION_BOOL;
+      option.m_type = ConfigurationOption::OptionType::Bool;
     else if (it.m_type == "OptionRangeFloat")
-      option.m_type = ConfigurationOption::OptionType::OPTION_FLOAT;
+      option.m_type = ConfigurationOption::OptionType::Float;
     else if (it.m_type == "OptionRangeInteger")
-      option.m_type = ConfigurationOption::OptionType::OPTION_INTEGER;
+      option.m_type = ConfigurationOption::OptionType::Integer;
 
     for (const auto& string_option : it.m_options)
     {
@@ -213,17 +213,17 @@ void PostProcessingConfiguration::LoadOptions(const std::string& code)
           output_float = &option.m_float_step_values;
         }
 
-        if (option.m_type == ConfigurationOption::OptionType::OPTION_BOOL)
+        if (option.m_type == ConfigurationOption::OptionType::Bool)
         {
           TryParse(string_option.second, &option.m_bool_value);
         }
-        else if (option.m_type == ConfigurationOption::OptionType::OPTION_INTEGER)
+        else if (option.m_type == ConfigurationOption::OptionType::Integer)
         {
           TryParseVector(string_option.second, output_integer);
           if (output_integer->size() > 4)
             output_integer->erase(output_integer->begin() + 4, output_integer->end());
         }
-        else if (option.m_type == ConfigurationOption::OptionType::OPTION_FLOAT)
+        else if (option.m_type == ConfigurationOption::OptionType::Float)
         {
           TryParseVector(string_option.second, output_float);
           if (output_float->size() > 4)
@@ -245,11 +245,11 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
   {
     switch (it.second.m_type)
     {
-    case ConfigurationOption::OptionType::OPTION_BOOL:
+    case ConfigurationOption::OptionType::Bool:
       ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &it.second.m_bool_value,
                                            it.second.m_bool_value);
       break;
-    case ConfigurationOption::OptionType::OPTION_INTEGER:
+    case ConfigurationOption::OptionType::Integer:
     {
       std::string value;
       ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
@@ -257,7 +257,7 @@ void PostProcessingConfiguration::LoadOptionsConfiguration()
         TryParseVector(value, &it.second.m_integer_values);
     }
     break;
-    case ConfigurationOption::OptionType::OPTION_FLOAT:
+    case ConfigurationOption::OptionType::Float:
     {
       std::string value;
       ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
@@ -279,12 +279,12 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
   {
     switch (it.second.m_type)
     {
-    case ConfigurationOption::OptionType::OPTION_BOOL:
+    case ConfigurationOption::OptionType::Bool:
     {
       ini.GetOrCreateSection(section)->Set(it.second.m_option_name, it.second.m_bool_value);
     }
     break;
-    case ConfigurationOption::OptionType::OPTION_INTEGER:
+    case ConfigurationOption::OptionType::Integer:
     {
       std::string value;
       for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
@@ -295,7 +295,7 @@ void PostProcessingConfiguration::SaveOptionsConfiguration()
       ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
     }
     break;
-    case ConfigurationOption::OptionType::OPTION_FLOAT:
+    case ConfigurationOption::OptionType::Float:
     {
       std::ostringstream value;
       value.imbue(std::locale("C"));
@@ -459,15 +459,14 @@ std::string PostProcessing::GetUniformBufferHeader() const
   // Custom options/uniforms
   for (const auto& it : m_config.GetOptions())
   {
-    if (it.second.m_type ==
-        PostProcessingConfiguration::ConfigurationOption::OptionType::OPTION_BOOL)
+    if (it.second.m_type == PostProcessingConfiguration::ConfigurationOption::OptionType::Bool)
     {
       ss << fmt::format("  int {};\n", it.first);
       for (u32 i = 0; i < 3; i++)
         ss << "  int ubo_align_" << unused_counter++ << "_;\n";
     }
     else if (it.second.m_type ==
-             PostProcessingConfiguration::ConfigurationOption::OptionType::OPTION_INTEGER)
+             PostProcessingConfiguration::ConfigurationOption::OptionType::Integer)
     {
       u32 count = static_cast<u32>(it.second.m_integer_values.size());
       if (count == 1)
@@ -479,7 +478,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
         ss << "  int ubo_align_" << unused_counter++ << "_;\n";
     }
     else if (it.second.m_type ==
-             PostProcessingConfiguration::ConfigurationOption::OptionType::OPTION_FLOAT)
+             PostProcessingConfiguration::ConfigurationOption::OptionType::Float)
     {
       u32 count = static_cast<u32>(it.second.m_float_values.size());
       if (count == 1)
@@ -707,17 +706,17 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
 
     switch (it.second.m_type)
     {
-    case PostProcessingConfiguration::ConfigurationOption::OptionType::OPTION_BOOL:
+    case PostProcessingConfiguration::ConfigurationOption::OptionType::Bool:
       value.as_bool[0] = it.second.m_bool_value ? 1 : 0;
       break;
 
-    case PostProcessingConfiguration::ConfigurationOption::OptionType::OPTION_INTEGER:
+    case PostProcessingConfiguration::ConfigurationOption::OptionType::Integer:
       ASSERT(it.second.m_integer_values.size() < 4);
       std::copy_n(it.second.m_integer_values.begin(), it.second.m_integer_values.size(),
                   value.as_int);
       break;
 
-    case PostProcessingConfiguration::ConfigurationOption::OptionType::OPTION_FLOAT:
+    case PostProcessingConfiguration::ConfigurationOption::OptionType::Float:
       ASSERT(it.second.m_float_values.size() < 4);
       std::copy_n(it.second.m_float_values.begin(), it.second.m_float_values.size(),
                   value.as_float);
