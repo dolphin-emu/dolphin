@@ -3,9 +3,13 @@
 
 #include "Core/HW/Wiimote.h"
 
+#include <optional>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -23,16 +27,17 @@
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
 static std::array<u8, MAX_BBMOTES> s_last_connect_request_counter;
 
-namespace WiimoteCommon
+namespace
 {
 static std::array<std::atomic<WiimoteSource>, MAX_BBMOTES> s_wiimote_sources;
+static std::optional<size_t> s_config_callback_id = std::nullopt;
 
 WiimoteSource GetSource(unsigned int index)
 {
   return s_wiimote_sources[index];
 }
 
-void SetSource(unsigned int index, WiimoteSource source)
+void OnSourceChanged(unsigned int index, WiimoteSource source)
 {
   const WiimoteSource previous_source = s_wiimote_sources[index].exchange(source);
 
@@ -44,9 +49,19 @@ void SetSource(unsigned int index, WiimoteSource source)
 
   WiimoteReal::HandleWiimoteSourceChange(index);
 
-  Core::RunAsCPUThread([index] { UpdateSource(index); });
+  Core::RunAsCPUThread([index] { WiimoteCommon::UpdateSource(index); });
 }
 
+void RefreshConfig()
+{
+  for (int i = 0; i < MAX_BBMOTES; ++i)
+    OnSourceChanged(i, Config::Get(Config::GetInfoForWiimoteSource(i)));
+}
+
+}  // namespace
+
+namespace WiimoteCommon
+{
 void UpdateSource(unsigned int index)
 {
   const auto bluetooth = WiiUtils::GetBluetoothEmuDevice();
@@ -144,6 +159,12 @@ void Shutdown()
   s_config.ClearControllers();
 
   WiimoteReal::Stop();
+
+  if (s_config_callback_id)
+  {
+    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    s_config_callback_id = std::nullopt;
+  }
 }
 
 void Initialize(InitializeMode init_mode)
@@ -157,6 +178,10 @@ void Initialize(InitializeMode init_mode)
   s_config.RegisterHotplugCallback();
 
   LoadConfig();
+
+  if (!s_config_callback_id)
+    s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
 
   WiimoteReal::Initialize(init_mode);
 
@@ -191,7 +216,7 @@ void DoState(PointerWrap& p)
 {
   for (int i = 0; i < MAX_BBMOTES; ++i)
   {
-    const WiimoteSource source = WiimoteCommon::GetSource(i);
+    const WiimoteSource source = GetSource(i);
     auto state_wiimote_source = u8(source);
     p.Do(state_wiimote_source);
 
