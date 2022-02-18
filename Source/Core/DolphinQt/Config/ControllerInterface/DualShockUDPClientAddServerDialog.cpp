@@ -5,7 +5,6 @@
 
 #include <fmt/format.h>
 
-#include <QButtonGroup>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>

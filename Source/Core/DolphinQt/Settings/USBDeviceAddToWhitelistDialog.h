@@ -7,7 +7,6 @@
 
 class QTimer;
 class QDialog;
-class QButtonGroup;
 class QHeaderView;
 class QLabel;
 class QLineEdit;
