@@ -1324,7 +1324,7 @@ void EndPlayInput(bool cont)
   {
     // We can be called by EmuThread during boot (CPU::State::PowerDown)
     bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
-    if (was_running)
+    if (was_running && Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
       CPU::Break();
     s_rerecords = 0;
     s_currentByte = 0;
@@ -1337,11 +1337,7 @@ void EndPlayInput(bool cont)
     // delete tmpInput;
     // tmpInput = nullptr;
 
-    Core::QueueHostJob([=] {
-      Core::UpdateWantDeterminism();
-      if (was_running && !Config::Get(Config::MAIN_MOVIE_PAUSE_MOVIE))
-        CPU::EnableStepping(false);
-    });
+    Core::QueueHostJob([=] { Core::UpdateWantDeterminism(); });
   }
 }
 
