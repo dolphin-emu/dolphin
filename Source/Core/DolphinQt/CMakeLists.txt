@@ -606,6 +606,22 @@ else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)
+  # Set that we want ORIGIN in FLAGS.
+  # We also want RPATH, not RUNPATH, so disable the new tags.
+  target_link_options(dolphin-emu
+  PRIVATE
+    LINKER:-z,origin
+    LINKER:--disable-new-dtags
+  )
+
+  # For Steam Runtime builds, our Qt shared libraries will be in a "lib" folder.
+  set_target_properties(dolphin-emu PROPERTIES
+    BUILD_WITH_INSTALL_RPATH true
+    INSTALL_RPATH "\$ORIGIN/lib"
+  )
+endif()
+
 if(USE_MGBA)
   target_sources(dolphin-emu PRIVATE
     GBAHost.cpp
