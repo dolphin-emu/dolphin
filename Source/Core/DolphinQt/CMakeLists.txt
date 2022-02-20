@@ -620,6 +620,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)
     BUILD_WITH_INSTALL_RPATH true
     INSTALL_RPATH "\$ORIGIN/lib"
   )
+
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
+    COMMAND cp -P "${QT_DIR}/../../*.so*" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${QT_DIR}/../../../plugins/platforms" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms"
+  )
 endif()
 
 if(USE_MGBA)
