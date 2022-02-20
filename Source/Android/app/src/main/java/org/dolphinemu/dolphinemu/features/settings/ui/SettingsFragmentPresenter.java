@@ -16,7 +16,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -865,15 +864,10 @@ public final class SettingsFragmentPresenter
     }
     else if (gcPadType == 12) // Adapter
     {
-      LegacyBooleanSetting rumble = new LegacyBooleanSetting(Settings.FILE_DOLPHIN,
-              Settings.SECTION_INI_CORE, SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, false);
-      LegacyBooleanSetting bongo = new LegacyBooleanSetting(Settings.FILE_DOLPHIN,
-              Settings.SECTION_INI_CORE, SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, false);
-
-      sl.add(new CheckBoxSetting(mContext, rumble, R.string.gc_adapter_rumble,
-              R.string.gc_adapter_rumble_description));
-      sl.add(new CheckBoxSetting(mContext, bongo, R.string.gc_adapter_bongos,
-              R.string.gc_adapter_bongos_description));
+      sl.add(new CheckBoxSetting(mContext, BooleanSetting.getSettingForAdapterRumble(gcPadNumber),
+              R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description));
+      sl.add(new CheckBoxSetting(mContext, BooleanSetting.getSettingForSimulateKonga(gcPadNumber),
+              R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description));
     }
   }
 
