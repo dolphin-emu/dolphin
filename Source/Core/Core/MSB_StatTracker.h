@@ -230,6 +230,8 @@ static const u32 aBatter_Singles      = 0x803537EA;
 static const u32 aBatter_Doubles      = 0x803537EB;
 static const u32 aBatter_Triples      = 0x803537EC;
 static const u32 aBatter_Homeruns     = 0x803537ED;
+static const u32 aBatter_BuntSuccess  = 0x803537EE; //Increments any time a bunt moves a runner
+static const u32 aBatter_SacFlys      = 0x803537EF;
 static const u32 aBatter_Strikeouts   = 0x803537F1;
 static const u32 aBatter_Walks_4Balls = 0x803537F2;
 static const u32 aBatter_Walks_Hit    = 0x803537F3;
@@ -331,6 +333,18 @@ static const u32 aFielder_Pos_Y = 0x8088F370; //Pitcher
 static const u32 aFielder_Pos_Z = 0x8088F374; //Pitcher
 static const u32 cFielder_Offset = 0x268;
 
+//Runner addrs
+static const u32 aRunner_RosterLoc = 0x8088EEF9;
+static const u32 aRunner_CharId = 0x8088EEFB;
+//static const u32 aRunner_InitialBase = ;
+static const u32 aRunner_OutType = 0x8088EF44;
+static const u32 aRunner_OutLoc = 0x8088EF3F; //Technically holds the next base
+static const u32 aRunner_CurrentBase = 0x8088EF3D;
+static const u32 aRunner_Stealing = 0x8088EF66;
+static const u32 cRunner_Offset = 0x154;
+
+
+
 
 class StatTracker{
 public:
@@ -382,8 +396,8 @@ public:
         std::string quitter_team = "";
 
         //Bookkeeping
-        u16 pitch_num = 0;
-        u16 event_num = 0;
+        //int pitch_num = 0;
+        int event_num = 0;
 
         //Array of both teams' character summaries
         std::array<std::array<CharacterSummary, cRosterSize>, cNumOfTeams> character_summaries;
@@ -394,14 +408,15 @@ public:
     GameInfo m_game_info;
 
     struct CharacterSummary{
-        u8 roster_id;
         u8 team_id;
+        u8 roster_id;
+        u8 char_id;
         u8 is_starred;
         u8 fielding_hand;
         u8 batting_hand;
 
         EndGameRosterDefensiveStats end_game_defensive_stats;
-        EndGameRosterOffensiveStats end_game_defensive_stats;
+        EndGameRosterOffensiveStats end_game_offensive_stats;
     }
 
     struct EndGameRosterDefensiveStats{
@@ -460,39 +475,58 @@ public:
         u8 strikes;
         u8 outs;
 
-        optional<Runner> runner_batter;
-        optional<Runner> runner_1;
-        optional<Runner> runner_2;
-        optional<Runner> runner_3;
-        optional<Pitch>  pitch;
+        std::optional<Runner> runner_batter;
+        std::optional<Runner> runner_1;
+        std::optional<Runner> runner_2;
+        std::optional<Runner> runner_3;
+        std::optional<Pitch>  pitch;
 
         u8 rbi;
         u8 result_of_atbat;
     };
 
     struct Runner {
-        u8 runner_roster_loc;
-        u8 runner_char_id;
-        u8 initial_base;
-        u8 out_type;
-        u8 out_location;
-        u8 result_base;
+        u8 roster_loc;
+        u8 char_id;
+        u8 initial_base; //0=Batter, 1=1B, 2=2B, 3=3B
+        u8 out_type = 0xFF;
+        u8 out_location = 0xFF;
+        u8 result_base = 0xFF;
+        u8 steal = 0xFF;
     };
 
     struct Pitch{
         //Pitcher Status
+        u8 pitcher_team_id;
         u8 pitcher_roster_loc;
-        u8 pitcher_id;
+        u8 pitcher_char_id;
         u16 pitcher_stamina;
         u8 pitch_type;
         u8 charge_type;
         u8 star_pitch;
         u8 pitch_speed;
 
+        u8 batter_roster_loc;
+        u8 batter_id;
+
         //For integrosity - TODO
         u8 db = 0;
         bool potential_db = false;
 
+        //0=HBP
+        //1=BB
+        //2=Ball
+        //3=Strike-looking
+        //4=Strike-swing
+        //5=Strike-bunting
+        //6=Contact
+        //7=Unknown
+        pitch u8 pitch_result; 
+
+        std::optional<Contact> contact;
+    };
+
+    struct Contact
         //Hit Status
         u8 type_of_contact;
         u8 swing;
@@ -527,7 +561,25 @@ public:
         u32 ball_y_pos, prev_ball_y_pos;
         u32 ball_z_pos, prev_ball_z_pos;
 
-        optional<Fielder> fielder;
+        //0=Out
+        //1=Fair
+        //2=Foul
+        //3=Unknown
+        u8 primary_contact_result;
+
+        //0=Out-caught
+        //1=Out-force
+        //2=Out-tag
+        //3=single
+        //4=double
+        //5=triple
+        //6=HR
+        //7=foul
+        //8=other (sac-fly??, sac-bunt??, GRD??)
+        u8 secondary_contact_result;
+
+        std::optional<Fielder> fielder_bobble;
+        std::optional<Fielder> fielder_final;
     };
 
     struct Fielder {
@@ -835,6 +887,9 @@ public:
     void logABContact();
     void logABPitch();
     void logABContactResult();
+
+    //RunnerInfo
+    std::optional<Runner> getRunnerInfo(int base);
 
     //TODO Redo these tuple functions
     //Function to get fielder who is holding the ball <roster_loc, position, char_id, x_po, y_pos, z_pos, action>
