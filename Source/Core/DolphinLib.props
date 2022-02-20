@@ -482,6 +482,7 @@
     <ClInclude Include="InputCommon\ControllerInterface\DualShockUDPClient\DualShockUDPProto.h" />
     <ClInclude Include="InputCommon\ControllerInterface\evdev\evdev.h" />
     <ClInclude Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\MappingCommon.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="InputCommon\ControllerInterface\XInput\XInput.h" />
@@ -1069,6 +1070,7 @@
     <ClCompile Include="InputCommon\ControllerInterface\DInput\XInputFilter.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\MappingCommon.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\XInput\XInput.cpp" />
