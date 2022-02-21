@@ -627,6 +627,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM)
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${QT_DIR}/../../../plugins/platforms" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms"
   )
 
+  # Copy qt.conf
+  target_sources(dolphin-emu PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
+  add_custom_command(TARGET dolphin-emu POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/qt.conf"
+  )
+
   # Mark all data files as resources
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
   file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
