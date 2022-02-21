@@ -404,6 +404,8 @@ public:
 
         //All of the events for this game
         std::map<u16, Event> events;
+
+        Event& getCurrentEvent() { return events.at(event_num); }
     };
     GameInfo m_game_info;
 
@@ -451,6 +453,8 @@ public:
         u8 doubles;
         u8 triples;
         u8 homeruns;
+        u8 sac_flys;
+        u8 successful_bunts;
         u8 strikouts;
         u8 walks_4balls;
         u8 walks_hit;
@@ -521,7 +525,7 @@ public:
         //5=Strike-bunting
         //6=Contact
         //7=Unknown
-        pitch u8 pitch_result; 
+        u8 pitch_result; 
 
         std::optional<Contact> contact;
     };
@@ -562,20 +566,20 @@ public:
         u32 ball_z_pos, prev_ball_z_pos;
 
         //0=Out
-        //1=Fair
-        //2=Foul
+        //1=Foul
+        //2=Fair
         //3=Unknown
         u8 primary_contact_result;
 
         //0=Out-caught
         //1=Out-force
         //2=Out-tag
-        //3=single
-        //4=double
-        //5=triple
-        //6=HR
-        //7=foul
-        //8=other (sac-fly??, sac-bunt??, GRD??)
+        //3=foul
+        //7=single
+        //8=double
+        //9=triple
+        //A=HR
+        //A+=other (sac-fly??, sac-bunt??, GRD??)
         u8 secondary_contact_result;
 
         std::optional<Fielder> fielder_bobble;
