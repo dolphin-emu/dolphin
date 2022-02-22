@@ -162,7 +162,7 @@ void StatTracker::lookForTriggerEvents(){
                     m_event_state = EVENT_STATE::PLAY_OVER;
                 }
                 //Contact
-                else if (Memory::Read_U32(aAB_ContactMade)){
+                else if (Memory::Read_U32(aAB_BallVel_X))){
                     //Init contact
                     m_game_info.getCurrentEvent().pitch->contact = Contact();
                     
@@ -398,18 +398,20 @@ void StatTracker::logOffensiveStats(int in_team_id, int roster_id){
     }
     auto& stat = character_summaries[adjusted_team_id][roster_id].end_game_offensive_stats;
 
-    stat.at_bats      = Memory::Read_U8(aBatter_AtBats + offset);
-    stat.hits         = Memory::Read_U8(aBatter_Hits + offset);
-    stat.singles      = Memory::Read_U8(aBatter_Singles + offset);
-    stat.doubles      = Memory::Read_U8(aBatter_Doubles + offset);
-    stat.triples      = Memory::Read_U8(aBatter_Triples + offset);
-    stat.homeruns     = Memory::Read_U8(aBatter_Homeruns + offset);
-    stat.strikouts    = Memory::Read_U8(aBatter_Strikeouts + offset);
-    stat.walks_4balls = Memory::Read_U8(aBatter_Walks_4Balls + offset);
-    stat.walks_hit    = Memory::Read_U8(aBatter_Walks_Hit + offset);
-    stat.rbi          = Memory::Read_U8(aBatter_RBI + offset);
-    stat.bases_stolen = Memory::Read_U8(aBatter_BasesStolen + offset);
-    stat.star_hits    = Memory::Read_U8(aBatter_StarHits + offset);
+    stat.at_bats        = Memory::Read_U8(aBatter_AtBats + offset);
+    stat.hits           = Memory::Read_U8(aBatter_Hits + offset);
+    stat.singles        = Memory::Read_U8(aBatter_Singles + offset);
+    stat.doubles        = Memory::Read_U8(aBatter_Doubles + offset);
+    stat.triples        = Memory::Read_U8(aBatter_Triples + offset);
+    stat.homeruns       = Memory::Read_U8(aBatter_Homeruns + offset);
+    stat.bunt_successes = Memory::Read_U8(aBatter_BuntSuccess + offset);
+    stat.sac_flys       = Memory::Read_U8(aBatter_SacFlys + offset);
+    stat.strikouts      = Memory::Read_U8(aBatter_Strikeouts + offset);
+    stat.walks_4balls   = Memory::Read_U8(aBatter_Walks_4Balls + offset);
+    stat.walks_hit      = Memory::Read_U8(aBatter_Walks_Hit + offset);
+    stat.rbi            = Memory::Read_U8(aBatter_RBI + offset);
+    stat.bases_stolen   = Memory::Read_U8(aBatter_BasesStolen + offset);
+    stat.star_hits      = Memory::Read_U8(aBatter_StarHits + offset);
 
     character_summaries[adjusted_team_id][roster_id].end_game_defensive_stats.big_plays = Memory::Read_U8(aBatter_BigPlays + offset);
 }
@@ -445,7 +447,13 @@ void StatTracker::logEventState(Event& in_event){
     in_event.is_star_chance  = Memory::Read_U8(aAB_IsStarChance);
     in_event.chem_links_ob   = Memory::Read_U8(aAB_ChemLinksOnBase);
 
-    //m_curr_ab_stat.batter_handedness = Memory::Read_U8(aAB_BatterHand);
+    //The following stamina lookup requires team_id to be in teams of team0 or team1
+    u8 pitching_team_0_or_1 = Memory::Read_U8(aAB_PitcherPort) == m_game_info.team1_port;
+    u8 pitcher_roster_loc = Memory::Read_U8(aAB_PitcherRosterID);
+
+    //Calc the pitcher stamina offset and add it to the base stamina addr - TODO move to EventSummary
+    u32 pitcherStaminaOffset = ((pitching_team_0_or_1 * cRosterSize * c_defensive_stat_offset) + (pitcher_roster_loc * c_defensive_stat_offset));
+    in_event.pitcher_stamina = Memory::Read_U16(aPitcher_Stamina + pitcherStaminaOffset);
 }
 
 void StatTracker::logContact(Contact* in_contact){
@@ -477,13 +485,16 @@ void StatTracker::logContact(Contact* in_contact){
     in_contact->hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
     in_contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
-    in_contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Y_Upon_Hit);
+    in_contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
+
+    in_contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
+    in_contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
 
     //Frame collect
     in_contact->frameOfSwingUponContact = Memory::Read_U16(aAB_FrameOfSwingAnimUponContact);
 }
 
-void StatTracker::logContactMiss(Event& in_event){
+void StatTracker::F(Event& in_event){
     std::cout << "Logging Miss" << std::endl;
 
     Pitch* pitch = event.pitch.get();
@@ -508,7 +519,10 @@ void StatTracker::logContactMiss(Event& in_event){
     contact->ball_z_velocity   = 0;
 
     contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
-    contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Y_Upon_Hit);
+    contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
+
+    contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
+    contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
 
     contact->hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
@@ -564,13 +578,6 @@ void StatTracker::logEventPitch(Pitch* in_pitch){
     in_pitch->charge_type        = Memory::Read_U8(aAB_ChargePitchType);
     in_pitch->star_pitch         = Memory::Read_U8(aAB_StarPitch);
     in_pitch->pitch_speed        = Memory::Read_U8(aAB_PitchSpeed);
-
-    //The following stamina lookup requires team_id to be in teams of team0 or team1
-    u8 pitching_team_0_or_1 = Memory::Read_U8(aAB_PitcherPort) == m_game_info.team1_port;
-
-    //Calc the pitcher stamina offset and add it to the base stamina addr - TODO move to EventSummary
-    u32 pitcherStaminaOffset = ((pitching_team_0_or_1 * cRosterSize * c_defensive_stat_offset) + (in_pitch.pitcher_roster_loc * c_defensive_stat_offset));
-    in_pitch->pitcher_stamina = Memory::Read_U16(aPitcher_Stamina + pitcherStaminaOffset);
 }
 
 void StatTracker::logContactResult(Contact* in_contact){
@@ -582,10 +589,19 @@ void StatTracker::logContactResult(Contact* in_contact){
     if (result == 1){
         in_contact->primary_contact_result = 2; //Landed Fair
         m_event_state = EVENT_STATE::LOG_FIELDER;
+        in_contact->ball_x_pos = Memory::Read_U32(aAB_BallPos_X);
+        in_contact->ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
+        in_contact->ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);
     }
     else if (result == 3){
         in_contact->primary_contact_result = 0; //Out (secondary=caught)
         in_contact->secondary_contact_result = 0; //Out (secondary=caught)
+
+        //If the ball is caught, use the balls position from the frame before to avoid the ball_pos
+        //from matching the fielders
+        contact->ball_x_pos = contact->prev_ball_x_pos;
+        contact->ball_y_pos = contact->prev_ball_y_pos;
+        contact->ball_z_pos = contact->prev_ball_z_pos; 
 
         //Ball has been caught. Log this as final fielder. If ball has been bobbled they will be logged as bobble
         std::optional<Fielder> final_fielder = logFielderWithBall();
@@ -602,13 +618,38 @@ void StatTracker::logContactResult(Contact* in_contact){
     else if (result == 0xFF){
         in_contact->primary_contact_result = 1; //Foul
         in_contact->secondary_contact_result = 3; //Foul
+        in_contact->ball_x_pos = Memory::Read_U32(aAB_BallPos_X);
+        in_contact->ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
+        in_contact->ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);
     }
     else{
         in_contact->primary_contact_result = 3;
+        in_contact->ball_x_pos = Memory::Read_U32(aAB_BallPos_X);
+        in_contact->ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
+        in_contact->ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);
     }
-    in_contact->ball_x_pos = Memory::Read_U32(aAB_BallPos_X);
-    in_contact->ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
-    in_contact->ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);
+}
+
+void StatTracker::logFinalResults(Event& in_event){
+    std::cout << "Logging Final Result" << std::endl;
+
+    //Indicate strikeout in the runner_0
+    if (in_event.game_result == 1){
+        //0x10 in runner_0 denotes strikeout
+        in_event.runner_0.out_type = 0x10;
+    }
+
+    //Fill in secondary result for contact
+    if (in_event.game_result >= 0x7 && in_event.game_result <= 0xF){
+        //0x10 in runner_0 denotes strikeout
+        in_event.pitch.value()->contact.value()->secondary_contact_result = in_event.game_result;
+    }
+    else if ((in_event.runner_0.out_type == 2) || (in_event.runner_0.out_type == 3)){
+        in_event.pitch.value()->contact.value()->secondary_contact_result = in_event.runner_0.out_type;
+    }
+
+    //multi_out
+    in_event.pitch.value()->contact.value()->multi_out = Memory::Read_U8(aAB_NumOutsDuringPlay) > 1;
 }
 
 std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
@@ -673,28 +714,34 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     }
     json_stream << "  \"Quitter Team\": \"" << m_game_info.quitter_team << "\"," << std::endl;
 
-    json_stream << "  \"Player Stats\": [" << std::endl;
+    json_stream << "  \"Character Game Stats\": [" << std::endl;
     //Defensive Stats
     for (int team=0; team < cNumOfTeams; ++team){
-        std::string team_label;
-        u8 captain_roster_loc = 0;
-        if (team == 0){
-            captain_roster_loc = m_game_info.team0_captain_roster_loc;
-            if (team0_is_away){
-                team_label = "Away";
-            }
-            else{
-                team_label = "Home";
-            }
-        }
-        else if (team == 1) {
-            captain_roster_loc = m_game_info.team1_captain_roster_loc;
-            if (team0_is_away){
-                team_label = "Home";
-            }
-            else {
-                team_label = "Away";
-            }
+        // std::string team_label;
+        // u8 captain_roster_loc = 0;
+        // if (team == 0){
+        //    captain_roster_loc = m_game_info.team0_captain_roster_loc;
+        //    if (team0_is_away){
+        //        team_label = "Away";
+        //    }
+        //    else{
+        //        team_label = "Home";
+        //    }
+        // }
+        // else if (team == 1) {
+        //    captain_roster_loc = m_game_info.team1_captain_roster_loc;
+        //    if (team0_is_away){
+        //        team_label = "Home";
+        //    }
+        //    else {
+        //        team_label = "Away";
+        //    }
+        // }
+
+        for (int roster=0; roster < cRosterSize; ++roster){
+            json_stream << "    {" << std::endl;
+            json_stream << "      \"Team\": \"" << team << "\"," << std::endl;
+            json_stream << "      \"RosterID\": " << roster << "," << std::endl;
         }
 
         for (int roster=0; roster < cRosterSize; ++roster){
@@ -871,18 +918,18 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     float_converter.num = ab_stat.ball_y_pos_upon_hit;
                     ball_y_pos_upon_hit = float_converter.fnum;
 
-                    json_stream << "              \"Ball Velocity - X\": " << ball_x_velocity << "," << std::endl;
-                    json_stream << "              \"Ball Velocity - Y\": " << ball_y_velocity << "," << std::endl;
-                    json_stream << "              \"Ball Velocity - Z\": " << ball_z_velocity << "," << std::endl;
+                    json_stream << "              \"Ball Velocity - X\": " << floatConverter() << "," << std::endl;
+                    json_stream << "              \"Ball Velocity - Y\": " << floatConverter() << "," << std::endl;
+                    json_stream << "              \"Ball Velocity - Z\": " << floatConverter() << "," << std::endl;
                     //json_stream << "              \"Ball Acceleration - X\": " << ball_x_accel << "," << std::endl;
                     //json_stream << "              \"Ball Acceleration - Y\": " << ball_y_accel << "," << std::endl;
                     //json_stream << "              \"Ball Acceleration - Z\": " << ball_z_accel << "," << std::endl;
-                    json_stream << "              \"Ball Landing Position - X\": " << ball_x_pos << "," << std::endl;
-                    json_stream << "              \"Ball Landing Position - Y\": " << ball_y_pos << "," << std::endl;
-                    json_stream << "              \"Ball Landing Position - Z\": " << ball_z_pos << "," << std::endl;
+                    json_stream << "              \"Ball Landing Position - X\": " << floatConverter() << "," << std::endl;
+                    json_stream << "              \"Ball Landing Position - Y\": " << floatConverter() << "," << std::endl;
+                    json_stream << "              \"Ball Landing Position - Z\": " << floatConverter() << "," << std::endl;
 
-                    json_stream << "              \"Ball Position Upon Contact - X\": " << ball_x_pos_upon_hit << "," << std::endl;
-                    json_stream << "              \"Ball Position Upon Contact - Y\": " << ball_y_pos_upon_hit << "," << std::endl;
+                    json_stream << "              \"Ball Position Upon Contact - X\": " << floatConverter() << "," << std::endl;
+                    json_stream << "              \"Ball Position Upon Contact - Y\": " << floatConverter() << "," << std::endl;
 
                     json_stream << "              \"Fielding Summary\": [" << std::endl;
                     if (ab_stat.fielder_roster_loc != 0xFF) {

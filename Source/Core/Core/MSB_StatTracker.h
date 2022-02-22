@@ -211,6 +211,7 @@ static const u32 aPitcher_BattersFaced      = 0x803535C9;
 static const u32 aPitcher_RunsAllowed       = 0x803535CA;
 static const u32 aPitcher_BattersWalked     = 0x803535CE;
 static const u32 aPitcher_BattersHit        = 0x803535D0;
+static const u32 aPitcher_BattersHit        = 0x8035361E;
 static const u32 aPitcher_HitsAllowed       = 0x803535D2;
 static const u32 aPitcher_HRsAllowed        = 0x803535D4;
 static const u32 aPitcher_PitchesThrown     = 0x803535D6;
@@ -285,8 +286,11 @@ static const u32 aAB_BallAccel_X    = 0x80890E5C;
 static const u32 aAB_BallAccel_Y    = 0x80890E60;
 static const u32 aAB_BallAccel_Z    = 0x80890E64;
 
-static const u32 aAB_BallPos_Y_Upon_Hit = 0x808909C8;
-static const u32 aAB_BallPos_X_Upon_Hit = 0x808909CC;
+static const u32 aAB_BallPos_X_Upon_Hit = 0x808909C8;
+static const u32 aAB_BallPos_Z_Upon_Hit = 0x808909CC;
+
+static const u32 aAB_BatterPos_X_Upon_Hit = 0x80890910;
+static const u32 aAB_BatterPos_Z_Upon_Hit = 0x80890914;
 
 static const u32 aAB_ChargeSwing    = 0x8089099B;
 static const u32 aAB_Bunt           = 0x8089099B; //Bunt when =3 on contact
@@ -474,6 +478,7 @@ public:
         u8 away_stars;
         u8 home_stars;
         u8 chem_links_ob;
+        u16 pitcher_stamina;
 
         u8 balls;
         u8 strikes;
@@ -504,7 +509,6 @@ public:
         u8 pitcher_team_id;
         u8 pitcher_roster_loc;
         u8 pitcher_char_id;
-        u16 pitcher_stamina;
         u8 pitch_type;
         u8 charge_type;
         u8 star_pitch;
@@ -891,6 +895,7 @@ public:
     void logABContact();
     void logABPitch();
     void logABContactResult();
+    void logFinalResults(Event& in_event);
 
     //RunnerInfo
     std::optional<Runner> getRunnerInfo(int base);
@@ -904,6 +909,13 @@ public:
     //Read players from ini file and assign to team
     void readPlayerNames(bool local_game);
     void setDefaultNames(bool local_game);
+
+    float floatConverter(u32 in_value) {
+        float out_float;
+        float_converter.num = in_value;
+        out_float = float_converter.fnum;
+        return out_float;
+    }
 
     //Returns JSON, PathToWriteTo
     std::pair<std::string, std::string> getStatJSON(bool inDecode);
