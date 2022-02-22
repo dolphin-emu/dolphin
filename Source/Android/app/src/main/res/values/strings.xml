@@ -305,9 +305,9 @@
     <string name="dump_texture">Dump Textures</string>
     <string name="dump_texture_description">Dumps decoded game textures based on the other flags to User/Dump/Textures/&lt;game_id&gt;/. If unsure, leave this unchecked.</string>
     <string name="dump_base_texture">Dump Base Textures</string>
-    <string name="dump_base_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_base_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="dump_mip_texture">Dump Mip Maps</string>
-    <string name="dump_mip_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_mip_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="misc">Misc</string>
     <string name="crop">Crop</string>
     <string name="crop_description">Crops the picture from its native aspect ratio to 4:3 or 16:9. If unsure, leave this unchecked.</string>
