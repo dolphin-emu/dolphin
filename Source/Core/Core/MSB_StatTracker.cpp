@@ -380,6 +380,7 @@ void StatTracker::logDefensiveStats(int team_id, int roster_id){
     stat.stamina             = Memory::Read_U16(aPitcher_Stamina + offset);
     stat.was_pitcher         = Memory::Read_U8(aPitcher_WasPitcher + offset);
     stat.batter_outs         = Memory::Read_U8(aPitcher_BatterOuts + offset);
+    stat.outs_pitched        = Memory::Read_U8(aPitcher_OutsPitched + offset);
     stat.strike_outs         = Memory::Read_U8(aPitcher_StrikeOuts + offset);
     stat.star_pitches_thrown = Memory::Read_U8(aPitcher_StarPitchesThrown + offset);
 }
@@ -739,21 +740,16 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
         // }
 
         for (int roster=0; roster < cRosterSize; ++roster){
+            CharacterSummary& char_summary = m_game_info.character_summaries[team][roster];
             json_stream << "    {" << std::endl;
-            json_stream << "      \"Team\": \"" << team << "\"," << std::endl;
-            json_stream << "      \"RosterID\": " << roster << "," << std::endl;
-        }
+            json_stream << "      \"Team\": \""        << team << "\"," << std::endl;
+            json_stream << "      \"RosterID\": "      << roster << "," << std::endl;
+            json_stream << "      \"Superstar\": "     << std::to_string(char_summary.is_starred) << "," << std::endl;
+            json_stream << "      \"Pitching Hand\": " << "\"\"" << "," << std::endl;
+            json_stream << "      \"Batting Hand\": "  << "\"\"" << "," << std::endl;
 
-        for (int roster=0; roster < cRosterSize; ++roster){
-            EndGameRosterDefensiveStats& def_stat = m_defensive_stats[team][roster];
-            json_stream << "    {" << std::endl;
-            json_stream << "      \"Team\": \"" << team_label << "\"," << std::endl;
-            json_stream << "      \"RosterID\": " << roster << "," << std::endl;
-
-            std::string character = (inDecode) ? "\"" + cCharIdToCharName.at(m_game_info.rosters_char_id[team][roster]) + "\"" : std::to_string(m_game_info.rosters_char_id[team][roster]);
-            json_stream << "      \"Character\": " << character << "," << std::endl;
-            json_stream << "      \"Captain\": " << (captain_roster_loc == roster) << "," << std::endl;
-            json_stream << "      \"Superstar\": " << std::to_string(def_stat.is_starred) << "," << std::endl;
+            //=== Defensive Stats ===
+            EndGameRosterDefensiveStats& def_stat = char_summary.end_game_defensive_stats;
             json_stream << "      \"Defensive Stats\": {" << std::endl;
             json_stream << "        \"Batters Faced\": " << std::to_string(def_stat.batters_faced) << "," << std::endl;
             json_stream << "        \"Runs Allowed\": " << std::dec << def_stat.runs_allowed << "," << std::endl;
@@ -768,7 +764,6 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Star Pitches Thrown\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
             json_stream << "        \"Big Plays\": " << std::to_string(def_stat.star_pitches_thrown) << "," << std::endl;
             json_stream << "        \"Outs Pitched\": " << std::to_string(def_stat.outs_pitched) << "," << std::endl;
-            json_stream << "        \"Inning Appearances\": " << std::to_string(def_stat.innings_pitched.size()) << "," << std::endl;
             json_stream << "        \"Pitches Per Position\": [" << std::endl;
             if (m_fielder_tracker[team].pitchesAtAnyPosition(roster, 0)){
                 json_stream << "          {" << std::endl;
@@ -795,7 +790,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        ]" << std::endl;
             json_stream << "      }," << std::endl;
 
-            EndGameRosterOffensiveStats& of_stat = m_offensive_stats[team][roster];
+            //=== Offensive Stats ===
+            EndGameRosterDefensiveStats& def_stat = char_summary.end_game_offensive_stats;
             json_stream << "      \"Offensive Stats\": {" << std::endl;
             json_stream << "        \"At Bats\": " << std::to_string(of_stat.at_bats) << "," << std::endl;
             json_stream << "        \"Hits\": " << std::to_string(of_stat.hits) << "," << std::endl;
@@ -803,6 +799,8 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Doubles\": " << std::to_string(of_stat.doubles) << "," << std::endl;
             json_stream << "        \"Triples\": " << std::to_string(of_stat.triples) << "," << std::endl;
             json_stream << "        \"Homeruns\": " << std::to_string(of_stat.homeruns) << "," << std::endl;
+            json_stream << "        \"Successful Bunts\": " << std::to_string(of_stat.successful_bunts) << "," << std::endl;
+            json_stream << "        \"Sac Flys\": " << std::to_string(of_stat.sac_flys) << "," << std::endl;
             json_stream << "        \"Strikeouts\": " << std::to_string(of_stat.strikouts) << "," << std::endl;
             json_stream << "        \"Walks (4 Balls)\": " << std::to_string(of_stat.walks_4balls) << "," << std::endl;
             json_stream << "        \"Walks (Hit)\": " << std::to_string(of_stat.walks_hit) << "," << std::endl;
@@ -810,7 +808,77 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Bases Stolen\": " << std::to_string(of_stat.bases_stolen) << "," << std::endl;
             json_stream << "        \"Star Hits\": " << std::to_string(of_stat.star_hits) << std::endl;
             json_stream << "      }," << std::endl;
+        }
 
+        //=== Events === 
+        json_stream << "  \"Events\": [" << std::endl;
+        for (auto& event_pair : m_game_info.events) {
+            u8 event_num = event_pair.first;
+            Event& event = event_pair.second;
+
+            json_stream << "    {" << std::endl;
+            json_stream << "      \"Event Num\": "   << std::to_string(event_num) << "," << std::endl;
+            json_stream << "      \"Inning\": "      << std::to_string(ab_stat.inning) << "," << std::endl;
+            json_stream << "      \"Half Inning\": " << std::to_string(ab_stat.half_inning) << "," << std::endl;
+            json_stream << "      \"Away Score\": "  << std::dec << event.away_score << "," << std::endl;
+            json_stream << "      \"Home Score\": "  << std::dec << event.home_score << "," << std::endl;
+            json_stream << "      \"Balls\": "       << std::to_string(event.balls) << "," << std::endl;
+            json_stream << "      \"Strikes\": "     << std::to_string(event.strikes) << "," << std::endl;
+            json_stream << "      \"Outs\": "        << std::to_string(event.outs) << "," << std::endl;
+
+            //=== Runners ===
+
+            //=== Pitch ===
+            if (event.pitch.has_value()){
+                Pitch* pitch = event.pitch.get();
+                json_stream << "      \"Pitch\": {" << std::endl;
+                json_stream << "        \"Pitcher Team Id\": "    << std::to_string(pitch->pitcher_team_id) << "," << std::endl;
+                json_stream << "        \"Pitcher Roster Loc\": " << std::to_string(pitch->pitcher_roster_loc) << "," << std::endl;
+                json_stream << "        \"Pitcher Char Id\": "    << std::to_string(pitch->pitcher_char_id) << "," << std::endl;
+                json_stream << "        \"Pitch Type\": "         << std::to_string(pitch->pitch_type) << "," << std::endl;
+                json_stream << "        \"Charge Type\": "        << std::to_string(pitch->charge_type) << "," << std::endl;
+                json_stream << "        \"Star Pitch\": "         << std::to_string(pitch->star_pitch) << "," << std::endl;
+                json_stream << "        \"Pitch Type\": "         << std::to_string(pitch->pitch_type) << "," << std::endl;
+                json_stream << "        \"DB\": "                 << std::to_string(pitch->db) << "," << std::endl;
+                json_stream << "        \"Pitch Result\": "       << std::to_string(pitch->pitch_result);
+                
+                //=== Contact ===
+                if (pitch->contact.has_value()){
+                    json_stream << "," << std::endl;
+
+                    Contact* contact = pitch->contact.get();
+                    json_stream << "        \"Contact\": {" << std::endl;
+                    json_stream << "          \"Type of Contact\": "                  << type_of_contact << "," << std::endl;
+                    json_stream << "          \"Charge Power Up\": "                  << charge_power_up << "," << std::endl;
+                    json_stream << "          \"Charge Power Down\": "                << charge_power_down << "," << std::endl;
+                    json_stream << "          \"Star Swing Five-Star\": "             << std::to_string(ab_stat.moon_shot) << "," << std::endl;
+                    json_stream << "          \"Input Direction\": "                  << input_direction << "," << std::endl;
+                    json_stream << "          \"Frame Of Swing Upon Contact\": "      << std::dec << ab_stat.frameOfSwingUponContact << "," << std::endl;
+                    json_stream << "          \"Ball Angle\": \""                     << std::dec << ab_stat.ball_angle << "\"," << std::endl;
+                    json_stream << "          \"Ball Vertical Power\": \""            << std::dec << ab_stat.vert_power << "\"," << std::endl;
+                    json_stream << "          \"Ball Horizontal Power\": \""          << std::dec << ab_stat.horiz_power << "\"," << std::endl;
+                    json_stream << "          \"Ball Velocity - X\": "                << floatConverter() << "," << std::endl;
+                    json_stream << "          \"Ball Velocity - Y\": "                << floatConverter() << "," << std::endl;
+                    json_stream << "          \"Ball Velocity - Z\": "                << floatConverter() << "," << std::endl;
+                    //json_stream << "          \"Ball Acceleration - X\": "            << ball_x_accel << "," << std::endl;
+                    //json_stream << "          \"Ball Acceleration - Y\": "            << ball_y_accel << "," << std::endl;
+                    //json_stream << "          \"Ball Acceleration - Z\": "            << ball_z_accel << "," << std::endl;
+                    json_stream << "          \"Ball Landing Position - X\": "        << floatConverter() << "," << std::endl;
+                    json_stream << "          \"Ball Landing Position - Y\": "        << floatConverter() << "," << std::endl;
+                    json_stream << "          \"Ball Landing Position - Z\": "        << floatConverter() << "," << std::endl;
+
+                    json_stream << "          \"Ball Position Upon Contact - X\": "   << floatConverter() << "," << std::endl;
+                    json_stream << "          \"Ball Position Upon Contact - Z\": "   << floatConverter() << "," << std::endl;
+                    json_stream << "          \"Batter Position Upon Contact - X\": " << floatConverter() << "," << std::endl;
+                    json_stream << "          \"Batter Position Upon Contact - Z\": " << floatConverter() << "," << std::endl;
+                    json_stream << "        }" << std::endl;
+                }
+                else { //Finish pitch JSON
+                    json_stream << std::endl;
+                }
+                json_stream << "      }," << std::endl;
+            }
+        }
             //Iterate Batters vector of batting stats
             json_stream << "      \"Pitch Summary\": [" << std::endl;
             for (auto it = m_ab_stats[team][roster].begin(); it != m_ab_stats[team][roster].end(); it++){

@@ -218,6 +218,7 @@ static const u32 aPitcher_PitchesThrown     = 0x803535D6;
 static const u32 aPitcher_Stamina           = 0x803535D8;
 static const u32 aPitcher_WasPitcher        = 0x803535DA;
 static const u32 aPitcher_BatterOuts        = 0x803535E1;
+static const u32 aPitcher_OutsPitched       = 0x803535E2;
 static const u32 aPitcher_StrikeOuts        = 0x803535E4;
 static const u32 aPitcher_StarPitchesThrown = 0x803535E5;
 static const u32 aPitcher_IsStarred         = 0x8035323B;
@@ -435,15 +436,12 @@ public:
         u16 pitches_thrown;
         u16 stamina;
         u8 was_pitcher;
+        u8 outs_pitched;
         u8 batter_outs;
         u8 strike_outs;
         u8 star_pitches_thrown;
 
         u8 big_plays;
-
-        //Manually collected
-        std::set<u8> innings_pitched; //size() will give number of innings pitched
-        u8 outs_pitched = 0;
     };
 
     struct EndGameRosterOffensiveStats{
@@ -479,6 +477,9 @@ public:
         u8 home_stars;
         u8 chem_links_ob;
         u16 pitcher_stamina;
+
+        u8 pitcher_roster_loc;
+        u8 batter_roster_loc;
 
         u8 balls;
         u8 strikes;
