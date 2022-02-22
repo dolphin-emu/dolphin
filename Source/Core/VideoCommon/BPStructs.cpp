@@ -276,7 +276,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
-          srcRect, PE_copy.intensity_fmt, PE_copy.half_scale, 1.0f, 1.0f,
+          srcRect, PE_copy.intensity_fmt && PE_copy.auto_conv, PE_copy.half_scale, 1.0f, 1.0f,
           bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom,
           bpmem.copyfilter.GetCoefficients());
     }
