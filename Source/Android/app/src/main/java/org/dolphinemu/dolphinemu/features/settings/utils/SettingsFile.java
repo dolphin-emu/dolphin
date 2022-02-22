@@ -43,9 +43,6 @@ public final class SettingsFile
   public static final String KEY_GCBIND_DPAD_LEFT = "DPadLeft_";
   public static final String KEY_GCBIND_DPAD_RIGHT = "DPadRight_";
 
-  public static final String KEY_GCADAPTER_RUMBLE = "AdapterRumble";
-  public static final String KEY_GCADAPTER_BONGOS = "SimulateKonga";
-
   public static final String KEY_EMU_RUMBLE = "EmuRumble";
 
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";

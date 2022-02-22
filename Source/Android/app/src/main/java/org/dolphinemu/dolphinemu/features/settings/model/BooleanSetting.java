@@ -18,6 +18,14 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_OVERRIDE_REGION_SETTINGS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
           "OverrideRegionSettings", false),
   MAIN_AUDIO_STRETCH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AudioStretch", false),
+  MAIN_ADAPTER_RUMBLE_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AdapterRumble0", true),
+  MAIN_ADAPTER_RUMBLE_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AdapterRumble1", true),
+  MAIN_ADAPTER_RUMBLE_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AdapterRumble2", true),
+  MAIN_ADAPTER_RUMBLE_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "AdapterRumble3", true),
+  MAIN_SIMULATE_KONGA_0(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SimulateKonga0", false),
+  MAIN_SIMULATE_KONGA_1(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SimulateKonga1", false),
+  MAIN_SIMULATE_KONGA_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SimulateKonga2", false),
+  MAIN_SIMULATE_KONGA_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SimulateKonga3", false),
   MAIN_WII_SD_CARD(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "WiiSDCard", true),
   MAIN_WIIMOTE_CONTINUOUS_SCANNING(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
           "WiimoteContinuousScanning", false),
@@ -321,5 +329,17 @@ public enum BooleanSetting implements AbstractBooleanSetting
   public void setBooleanGlobal(int layer, boolean newValue)
   {
     NativeConfig.setBoolean(layer, mFile, mSection, mKey, newValue);
+  }
+
+  public static BooleanSetting getSettingForAdapterRumble(int channel)
+  {
+    return new BooleanSetting[]{MAIN_ADAPTER_RUMBLE_0, MAIN_ADAPTER_RUMBLE_1, MAIN_ADAPTER_RUMBLE_2,
+            MAIN_ADAPTER_RUMBLE_3}[channel];
+  }
+
+  public static BooleanSetting getSettingForSimulateKonga(int channel)
+  {
+    return new BooleanSetting[]{MAIN_SIMULATE_KONGA_0, MAIN_SIMULATE_KONGA_1, MAIN_SIMULATE_KONGA_2,
+            MAIN_SIMULATE_KONGA_3}[channel];
   }
 }
