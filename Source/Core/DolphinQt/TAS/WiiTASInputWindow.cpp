@@ -9,6 +9,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QVBoxLayout>
@@ -33,6 +34,7 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/IRWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
+#include "DolphinQt/TAS/TASSlider.h"
 
 #include "InputCommon/InputConfig.h"
 
@@ -53,11 +55,13 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   auto* x_layout = new QHBoxLayout;
   m_ir_x_value = CreateSliderValuePair(x_layout, ir_x_default, ir_max_x, ir_x_shortcut_key_sequence,
-                                       Qt::Horizontal, m_ir_box, true);
+                                       Qt::Horizontal, m_ir_box, true)
+                     ->value;
 
   auto* y_layout = new QVBoxLayout;
   m_ir_y_value = CreateSliderValuePair(y_layout, ir_y_default, ir_max_y, ir_y_shortcut_key_sequence,
-                                       Qt::Vertical, m_ir_box, true);
+                                       Qt::Vertical, m_ir_box, true)
+                     ->value;
   m_ir_y_value->setMaximumWidth(60);
 
   auto* visual = new IRWidget(this);
@@ -96,64 +100,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_ir_box->setMinimumWidth(20);
   m_nunchuk_stick_box->setMinimumWidth(20);
 
-  m_remote_orientation_box = new QGroupBox(tr("Wii Remote Orientation"));
-
-  auto* top_layout = new QHBoxLayout;
-  top_layout->addWidget(m_ir_box);
-  top_layout->addWidget(m_nunchuk_stick_box);
-  top_layout->addWidget(m_classic_left_stick_box);
-  top_layout->addWidget(m_classic_right_stick_box);
-
-  auto* remote_orientation_x_layout =
-      // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("X"), m_remote_orientation_x_value, 512, 1023, Qt::Key_Q,
-                                  m_remote_orientation_box);
-  auto* remote_orientation_y_layout =
-      // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Y"), m_remote_orientation_y_value, 512, 1023, Qt::Key_W,
-                                  m_remote_orientation_box);
-  auto* remote_orientation_z_layout =
-      // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Z"), m_remote_orientation_z_value, 616, 1023, Qt::Key_E,
-                                  m_remote_orientation_box);
-
-  auto* remote_orientation_layout = new QVBoxLayout;
-  remote_orientation_layout->addLayout(remote_orientation_x_layout);
-  remote_orientation_layout->addLayout(remote_orientation_y_layout);
-  remote_orientation_layout->addLayout(remote_orientation_z_layout);
-  m_remote_orientation_box->setLayout(remote_orientation_layout);
-
-  m_nunchuk_orientation_box = new QGroupBox(tr("Nunchuk Orientation"));
-
-  auto* nunchuk_orientation_x_layout =
-      // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("X"), m_nunchuk_orientation_x_value, 512, 1023, Qt::Key_I,
-                                  m_nunchuk_orientation_box);
-  auto* nunchuk_orientation_y_layout =
-      // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Y"), m_nunchuk_orientation_y_value, 512, 1023, Qt::Key_O,
-                                  m_nunchuk_orientation_box);
-  auto* nunchuk_orientation_z_layout =
-      // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Z"), m_nunchuk_orientation_z_value, 512, 1023, Qt::Key_P,
-                                  m_nunchuk_orientation_box);
-
-  auto* nunchuk_orientation_layout = new QVBoxLayout;
-  nunchuk_orientation_layout->addLayout(nunchuk_orientation_x_layout);
-  nunchuk_orientation_layout->addLayout(nunchuk_orientation_y_layout);
-  nunchuk_orientation_layout->addLayout(nunchuk_orientation_z_layout);
-  m_nunchuk_orientation_box->setLayout(nunchuk_orientation_layout);
-
-  m_triggers_box = new QGroupBox(tr("Triggers"));
-  auto* l_trigger_layout = CreateSliderValuePairLayout(tr("Left"), m_left_trigger_value, 0, 31,
-                                                       Qt::Key_N, m_triggers_box);
-  auto* r_trigger_layout = CreateSliderValuePairLayout(tr("Right"), m_right_trigger_value, 0, 31,
-                                                       Qt::Key_M, m_triggers_box);
-
-  auto* triggers_layout = new QVBoxLayout;
-  triggers_layout->addLayout(l_trigger_layout);
-  triggers_layout->addLayout(r_trigger_layout);
-  m_triggers_box->setLayout(triggers_layout);
+  SetOrientationAndTriggerBoxes();
 
   m_a_button = CreateButton(QStringLiteral("&A"));
   m_b_button = CreateButton(QStringLiteral("&B"));
@@ -235,6 +182,12 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_classic_buttons_box = new QGroupBox(tr("Classic Buttons"));
   m_classic_buttons_box->setLayout(classic_buttons_layout);
 
+  auto* top_layout = new QHBoxLayout;
+  top_layout->addWidget(m_ir_box);
+  top_layout->addWidget(m_nunchuk_stick_box);
+  top_layout->addWidget(m_classic_left_stick_box);
+  top_layout->addWidget(m_classic_right_stick_box);
+
   auto* layout = new QVBoxLayout;
   layout->addLayout(top_layout);
   layout->addWidget(m_remote_orientation_box);
@@ -266,6 +219,125 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
       ext = 2;
   }
   UpdateExt(ext);
+}
+
+void WiiTASInputWindow::SetOrientationAndTriggerBoxes()
+{
+  m_remote_orientation_box = new QGroupBox(tr("Wii Remote Orientation"));
+
+  const QKeySequence remote_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_Q);
+  const QKeySequence remote_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_W);
+  const QKeySequence remote_z_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_E);
+
+  auto* remote_x_label = new QLabel(
+      tr("X (%1)").arg(remote_x_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+  auto* remote_y_label = new QLabel(
+      tr("Y (%1)").arg(remote_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+  auto* remote_z_label = new QLabel(
+      tr("Z (%1)").arg(remote_z_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+
+  QBoxLayout* remote_x_layout = new QHBoxLayout;
+  remote_x_layout->addWidget(remote_x_label);
+  QBoxLayout* remote_y_layout = new QHBoxLayout;
+  remote_y_layout->addWidget(remote_y_label);
+  QBoxLayout* remote_z_layout = new QHBoxLayout;
+  remote_z_layout->addWidget(remote_y_label);
+
+  SliderValuePair* remote_x_slider_value_pair =
+      CreateSliderValuePair(remote_x_layout, 512, 1023, remote_x_shortcut_key_sequence,
+                            Qt::Horizontal, m_remote_orientation_box);
+  SliderValuePair* remote_y_slider_value_pair =
+      CreateSliderValuePair(remote_y_layout, 512, 1023, remote_y_shortcut_key_sequence,
+                            Qt::Horizontal, m_remote_orientation_box);
+  SliderValuePair* remote_z_slider_value_pair =
+      CreateSliderValuePair(remote_z_layout, 616, 1023, remote_z_shortcut_key_sequence,
+                            Qt::Horizontal, m_remote_orientation_box);
+
+  QGridLayout* remote_orientation_layout = new QGridLayout;
+  remote_orientation_layout->addWidget(remote_x_label, 0, 0);
+  remote_orientation_layout->addWidget(remote_x_slider_value_pair->slider, 0, 1);
+  remote_orientation_layout->addWidget(remote_x_slider_value_pair->value, 0, 2);
+  remote_orientation_layout->addWidget(remote_y_label, 1, 0);
+  remote_orientation_layout->addWidget(remote_y_slider_value_pair->slider, 1, 1);
+  remote_orientation_layout->addWidget(remote_y_slider_value_pair->value, 1, 2);
+  remote_orientation_layout->addWidget(remote_z_label, 2, 0);
+  remote_orientation_layout->addWidget(remote_z_slider_value_pair->slider, 2, 1);
+  remote_orientation_layout->addWidget(remote_z_slider_value_pair->value, 2, 2);
+
+  m_remote_orientation_box->setLayout(remote_orientation_layout);
+
+  m_nunchuk_orientation_box = new QGroupBox(tr("Nunchuk Orientation"));
+
+  const QKeySequence nunchuk_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_T);
+  const QKeySequence nunchuk_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_O);
+  const QKeySequence nunchuk_z_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_P);
+
+  auto* nunchuk_x_label = new QLabel(
+      tr("X (%1)").arg(nunchuk_x_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+  auto* nunchuk_y_label = new QLabel(
+      tr("Y (%1)").arg(nunchuk_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+  auto* nunchuk_z_label = new QLabel(
+      tr("Z (%1)").arg(nunchuk_z_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+
+  QBoxLayout* nunchuk_x_layout = new QHBoxLayout;
+  nunchuk_x_layout->addWidget(nunchuk_x_label);
+  QBoxLayout* nunchuk_y_layout = new QHBoxLayout;
+  nunchuk_y_layout->addWidget(nunchuk_y_label);
+  QBoxLayout* nunchuk_z_layout = new QHBoxLayout;
+  nunchuk_z_layout->addWidget(nunchuk_y_label);
+
+  SliderValuePair* nunchuk_x_slider_value_pair =
+      CreateSliderValuePair(nunchuk_x_layout, 512, 1023, nunchuk_x_shortcut_key_sequence,
+                            Qt::Horizontal, m_nunchuk_orientation_box);
+  SliderValuePair* nunchuk_y_slider_value_pair =
+      CreateSliderValuePair(nunchuk_y_layout, 512, 1023, nunchuk_y_shortcut_key_sequence,
+                            Qt::Horizontal, m_nunchuk_orientation_box);
+  SliderValuePair* nunchuk_z_slider_value_pair =
+      CreateSliderValuePair(remote_z_layout, 512, 1023, nunchuk_z_shortcut_key_sequence,
+                            Qt::Horizontal, m_nunchuk_orientation_box);
+
+  QGridLayout* nunchuk_orientation_layout = new QGridLayout;
+  nunchuk_orientation_layout->addWidget(nunchuk_x_label, 0, 0);
+  nunchuk_orientation_layout->addWidget(nunchuk_x_slider_value_pair->slider, 0, 1);
+  nunchuk_orientation_layout->addWidget(nunchuk_x_slider_value_pair->value, 0, 2);
+  nunchuk_orientation_layout->addWidget(nunchuk_y_label, 1, 0);
+  nunchuk_orientation_layout->addWidget(nunchuk_y_slider_value_pair->slider, 1, 1);
+  nunchuk_orientation_layout->addWidget(nunchuk_y_slider_value_pair->value, 1, 2);
+  nunchuk_orientation_layout->addWidget(nunchuk_z_label, 2, 0);
+  nunchuk_orientation_layout->addWidget(nunchuk_z_slider_value_pair->slider, 2, 1);
+  nunchuk_orientation_layout->addWidget(nunchuk_z_slider_value_pair->value, 2, 2);
+
+  m_nunchuk_orientation_box->setLayout(nunchuk_orientation_layout);
+
+  m_triggers_box = new QGroupBox(tr("Triggers"));
+  const QKeySequence l_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_N);
+  const QKeySequence r_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_M);
+
+  auto* l_label =
+      new QLabel(tr("Left (%1)").arg(l_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+  auto* r_label =
+      new QLabel(tr("Right (%1)").arg(r_shortcut_key_sequence.toString(QKeySequence::NativeText)));
+
+  QBoxLayout* l_layout = new QHBoxLayout;
+  l_layout->addWidget(l_label);
+  QBoxLayout* r_layout = new QHBoxLayout;
+  r_layout->addWidget(r_label);
+
+  SliderValuePair* l_slider_value_pair = CreateSliderValuePair(
+      l_layout, 0, 31, l_shortcut_key_sequence, Qt::Horizontal, m_triggers_box);
+  SliderValuePair* r_slider_value_pair = CreateSliderValuePair(
+      r_layout, 0, 31, r_shortcut_key_sequence, Qt::Horizontal, m_triggers_box);
+
+  // Create grid layout
+  QGridLayout* triggers_layout = new QGridLayout;
+  triggers_layout->addWidget(l_label, 0, 0);
+  triggers_layout->addWidget(l_slider_value_pair->slider, 0, 1);
+  triggers_layout->addWidget(l_slider_value_pair->value, 0, 2);
+  triggers_layout->addWidget(r_label, 1, 0);
+  triggers_layout->addWidget(r_slider_value_pair->slider, 1, 1);
+  triggers_layout->addWidget(r_slider_value_pair->value, 1, 2);
+
+  m_triggers_box->setLayout(triggers_layout);
 }
 
 void WiiTASInputWindow::UpdateExt(u8 ext)

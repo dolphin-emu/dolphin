@@ -18,6 +18,7 @@ public:
   void GetValues(GCPadStatus* pad);
 
 private:
+  void SetTriggersBox();
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;
   TASCheckBox* m_x_button;
