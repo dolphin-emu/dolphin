@@ -629,6 +629,8 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
 
     // We do the inverse BT.601 conversion for YCbCr to RGB
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+    // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB isn't
+    // in a real texture format, so does this conversion actually ever happen?)
     u8 R = std::clamp(int(1.164f * Y + 1.596f * V), 0, 255);
     u8 G = std::clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
     u8 B = std::clamp(int(1.164f * Y + 2.017f * U), 0, 255);
@@ -694,6 +696,8 @@ void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 str
 
       // We do the inverse BT.601 conversion for YCbCr to RGB
       // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+      // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB
+      // isn't in a real texture format, so does this conversion actually ever happen?)
       u8 R1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 1.596f * V), 0, 255));
       u8 G1 = static_cast<u8>(std::clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255));
       u8 B1 = static_cast<u8>(std::clamp(int(1.164f * Y1 + 2.017f * U), 0, 255));

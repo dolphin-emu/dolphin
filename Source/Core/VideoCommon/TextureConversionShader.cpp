@@ -968,6 +968,8 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
     // We do the inverse BT.601 conversion for YCbCr to RGB
     // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+    // TODO: Use more precise numbers for this conversion (although on real hardware, the XFB isn't
+    // in a real texture format, so does this conversion actually ever happen?)
     {TextureFormat::XFB,
      {TEXEL_BUFFER_FORMAT_RGBA8_UINT, 0, 8, 8, false,
       R"(
