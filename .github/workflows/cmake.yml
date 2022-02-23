@@ -34,6 +34,8 @@ jobs:
     - name: Build
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      env:
+        MAKEFLAGS: "-j2" #This flag tells CMake to try building using two cores instead of just one.
 
     - name: Test
       working-directory: ${{github.workspace}}/build
