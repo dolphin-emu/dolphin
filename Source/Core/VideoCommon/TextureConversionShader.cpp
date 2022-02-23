@@ -48,8 +48,7 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return 2;
   default:
-    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEncodedSampleCount)",
-                  static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format {}! (GetEncodedSampleCount)", format);
     return 1;
   }
 }
@@ -802,8 +801,7 @@ std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
     WriteXFBEncoder(code, api_type, params);
     break;
   default:
-    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GenerateEncodingShader)",
-                  static_cast<int>(params.copy_format));
+    PanicAlertFmt("Invalid EFB Copy Format {}! (GenerateEncodingShader)", params.copy_format);
     break;
   }
 
