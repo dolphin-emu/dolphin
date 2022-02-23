@@ -2123,10 +2123,12 @@ union CopyFilterCoefficients
 
   u64 Hex;
 
+  BitField<0, 32, u32, u64> Low;
   BitField<0, 6, u64> w0;
   BitField<6, 6, u64> w1;
   BitField<12, 6, u64> w2;
   BitField<18, 6, u64> w3;
+  BitField<32, 32, u32, u64> High;
   BitField<32, 6, u64> w4;
   BitField<38, 6, u64> w5;
   BitField<44, 6, u64> w6;
