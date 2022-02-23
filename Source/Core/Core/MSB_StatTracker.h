@@ -508,7 +508,6 @@ public:
     struct Pitch{
         //Pitcher Status
         u8 pitcher_team_id;
-        u8 pitcher_roster_loc;
         u8 pitcher_char_id;
         u8 pitch_type;
         u8 charge_type;
@@ -537,6 +536,7 @@ public:
 
     struct Contact
         //Hit Status
+        u8 type_of_swing;
         u8 type_of_contact;
         u8 swing;
         u8 charge_swing;
@@ -892,8 +892,8 @@ public:
     void logOffensiveStats(int team_id, int roster_id);
     
     void logEventScenario(Event& in_event);
-    void logABMiss();
-    void logABContact();
+    void logMiss(Event& in_event);
+    void logContact(Event& in_event);
     void logABPitch();
     void logABContactResult();
     void logFinalResults(Event& in_event);
