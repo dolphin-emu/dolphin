@@ -2039,9 +2039,9 @@ union UPE_Copy
 {
   u32 Hex;
 
-  BitField<0, 1, bool, u32> clamp_top;      // if set clamp top
-  BitField<1, 1, bool, u32> clamp_bottom;   // if set clamp bottom
-  BitField<2, 1, bool, u32> yuv;            // if set, color conversion from RGB to YUV
+  BitField<0, 1, bool, u32> clamp_top;     // if set clamp top
+  BitField<1, 1, bool, u32> clamp_bottom;  // if set clamp bottom
+  BitField<2, 1, u32> unknown_bit;
   BitField<3, 4, u32> target_pixel_format;  // realformat is (fmt/2)+((fmt&1)*8).... for some reason
                                             // the msb is the lsb (pattern: cycling right shift)
   // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
@@ -2100,7 +2100,7 @@ struct fmt::formatter<UPE_Copy>
 
     return fmt::format_to(ctx.out(),
                           "Clamping: {}\n"
-                          "Converting from RGB to YUV: {}\n"
+                          "Unknown bit: {}\n"
                           "Target pixel format: {}\n"
                           "Gamma correction: {}\n"
                           "Half scale: {}\n"
@@ -2110,7 +2110,7 @@ struct fmt::formatter<UPE_Copy>
                           "Copy to XFB: {}\n"
                           "Intensity format: {}\n"
                           "Automatic color conversion: {}",
-                          clamp, no_yes[copy.yuv], copy.tp_realFormat(), gamma,
+                          clamp, copy.unknown_bit, copy.tp_realFormat(), gamma,
                           no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
                           copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
                           no_yes[copy.auto_conv]);

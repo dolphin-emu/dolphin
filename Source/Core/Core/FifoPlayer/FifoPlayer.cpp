@@ -591,7 +591,7 @@ void FifoPlayer::ClearEfb()
   UPE_Copy copy = bpmem.triggerEFBCopy;
   copy.clamp_top = false;
   copy.clamp_bottom = false;
-  copy.yuv = false;
+  copy.unknown_bit = false;
   copy.target_pixel_format = static_cast<u32>(EFBCopyFormat::RGBA8) << 1;
   copy.gamma = 0;
   copy.half_scale = false;
