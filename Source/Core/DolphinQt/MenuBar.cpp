@@ -549,7 +549,8 @@ void MenuBar::AddOptionsMenu()
 void MenuBar::InstallUpdateManually()
 {
   auto* updater =
-      new Updater(this->parentWidget(), "dev", Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+      new Updater(this->parentWidget(), Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
+                  Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
 
   if (!updater->CheckForUpdate())
   {
