@@ -32,4 +32,4 @@ jobs:
       with:
         arguments: assembleArm_64Release
         gradle-executable: ./Source/Android/gradlew
-        build-root-directory: ${{github.workspace}}/build
+        build-root-directory: ./Source/Android/
