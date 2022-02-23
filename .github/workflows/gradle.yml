@@ -30,6 +30,6 @@ jobs:
     - name: Build with Gradle
       uses: gradle/gradle-build-action@v2
       with:
-        arguments: assembleArm_64Release
+        arguments: build
         gradle-executable: ./Source/Android/gradlew
         build-root-directory: ./Source/Android/
