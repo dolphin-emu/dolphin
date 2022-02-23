@@ -154,6 +154,9 @@ void HacksWidget::LoadSettings()
   const QSignalBlocker blocker(m_accuracy);
   auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
 
+  // Re-enable the slider in case it was disabled because of a custom value
+  m_accuracy->setEnabled(true);
+
   int slider_pos = 0;
 
   switch (samples)
