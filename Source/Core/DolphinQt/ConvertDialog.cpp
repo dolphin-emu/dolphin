@@ -262,7 +262,7 @@ void ConvertDialog::OnCompressionChanged()
   const auto compression_type =
       static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
 
-  const std::pair<int, int> range = DiscIO::GetAllowedCompressionLevels(compression_type);
+  const std::pair<int, int> range = DiscIO::GetAllowedCompressionLevels(compression_type, true);
 
   for (int i = range.first; i <= range.second; ++i)
   {

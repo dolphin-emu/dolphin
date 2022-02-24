@@ -5,6 +5,8 @@ add_executable(dolphin-tool
   ConvertCommand.h
   VerifyCommand.cpp
   VerifyCommand.h
+  HeaderCommand.cpp
+  HeaderCommand.h
   ToolMain.cpp
 )
 
