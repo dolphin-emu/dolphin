@@ -29,10 +29,10 @@ void StatTracker::lookForTriggerEvents(){
                 m_game_info.getCurrentEvent().runner_2 = logRunnerInfo(2);
                 m_game_info.getCurrentEvent().runner_3 = logRunnerInfo(3);
 
-                m_ab_state = AB_STATE::WAITING_FOR_PITCH;
+                m_event_state = EVENT_STATE::WAITING_FOR_EVENT;
                 
             //Look for Pitch
-            case (EVENT_STATE::WAITING_FOR_PITCH):
+            case (EVENT_STATE::WAITING_FOR_EVENT):
                 //Handle quit to main menu
                 if (Memory::Read_U32(aGameId) == 0){
                     u8 quitter_port = Memory::Read_U8(aWhoQuit);
@@ -60,12 +60,12 @@ void StatTracker::lookForTriggerEvents(){
                 //2. Has pitch started?
                 //Watch for Runners Stealing
                 if (Memory::Read_U8(aAB_PitchThrown)
-                 || (areAnyRunnersStealing() && Memory::Read_U8(aAB_PickoffAttempt)){
+                 || (anyRunnerStealing(m_game_info.getCurrentEvent()) && Memory::Read_U8(aAB_PickoffAttempt))){
                     //Event has started, log state
-                    logEventState();
+                    logEventState(m_game_info.getCurrentEvent());
 
                     //Get batter runner info
-                    m_game_info.getCurrentEvent().runner_0 = getRunnerInfo(0);
+                    m_game_info.getCurrentEvent().runner_batter = logRunnerInfo(0);
 
                     //Log if runners are stealing
                     logRunnerStealing(m_game_info.getCurrentEvent().runner_1);
@@ -86,16 +86,15 @@ void StatTracker::lookForTriggerEvents(){
                         }
 
                         //Pitch has started
-                        m_ab_state = AB_STATE::PITCH_STARTED;
+                        m_event_state = EVENT_STATE::PITCH_STARTED;
                     }
                     else if(Memory::Read_U8(aAB_PickoffAttempt)) {
-                        m_ab_state = AB_STATE::MONITOR_RUNNERS;
+                        m_event_state = EVENT_STATE::MONITOR_RUNNERS;
                     }
                 }
 
-
                 //First Pitch of the game (once a game): collect port/player names
-                if (Memory::Read_U8(aAB_PitchThrown) && (m_game_info.pitch_num == 0)){
+                if (Memory::Read_U8(aAB_PitchThrown) && (m_game_info.event_num == 0)){
                     //Collect port info for players
                     if (m_game_info.team0_port == 0xFF && m_game_info.team1_port == 0xFF){
                         u8 fielder_port = Memory::Read_U8(aAB_FieldingPort);
@@ -157,16 +156,13 @@ void StatTracker::lookForTriggerEvents(){
                 }
                 //HBP or miss
                 if ((Memory::Read_U8(aAB_HitByPitch) == 1) || (Memory::Read_U8(aAB_PitchThrown) == 0)){
-                    logEventPitch(m_game_info.getCurrentEvent());
-                    logContactMiss(m_game_info.getCurrentEvent(); //Strike or Swing or Bunt
+                    logPitch(m_game_info.getCurrentEvent());
+                    logContactMiss(m_game_info.getCurrentEvent()); //Strike or Swing or Bunt
                     m_event_state = EVENT_STATE::PLAY_OVER;
                 }
                 //Contact
-                else if (Memory::Read_U32(aAB_BallVel_X))){
-                    //Init contact
-                    m_game_info.getCurrentEvent().pitch->contact = Contact();
-                    
-                    logEventPitch(m_game_info.getCurrentEvent();
+                else if (Memory::Read_U32(aAB_BallVel_X)){                    
+                    logPitch(m_game_info.getCurrentEvent());
                     logContact(m_game_info.getCurrentEvent());
                     m_event_state = EVENT_STATE::CONTACT;
                 }
@@ -176,14 +172,14 @@ void StatTracker::lookForTriggerEvents(){
                 if (Memory::Read_U8(aAB_ContactResult)){
                     //Indicate that pitch resulted in contact and log contact details
                     m_game_info.getCurrentEvent().pitch->pitch_result = 6;
-                    logContactResult(m_game_info.getCurrentEvent().pitch->contact.get()); //Land vs Caught vs Foul, Landing POS.
+                    logContactResult(&m_game_info.getCurrentEvent().pitch->contact.value()); //Land vs Caught vs Foul, Landing POS.
                     if(m_event_state != EVENT_STATE::LOG_FIELDER) { //If we don't need to scan for which fielder fields the ball
                         m_event_state = EVENT_STATE::PLAY_OVER;
                     }
                 }
                 else {
                     //Ball is still in air
-                    Contact* contact = m_game_info.getCurrentEvent().pitch->contact;
+                    Contact* contact = &m_game_info.getCurrentEvent().pitch->contact.value();
                     contact->prev_ball_x_pos = contact->ball_x_pos;
                     contact->prev_ball_y_pos = contact->ball_y_pos;
                     contact->prev_ball_z_pos = contact->ball_z_pos;
@@ -201,19 +197,17 @@ void StatTracker::lookForTriggerEvents(){
                 }
                 break;
             case (EVENT_STATE::LOG_FIELDER):
-                {
                 //Look for bobble if we haven't seen any fielder touch the ball yet
                 if (!m_game_info.getCurrentEvent().pitch->contact->first_fielder.has_value() 
                  && !m_game_info.getCurrentEvent().pitch->contact->collect_fielder.has_value()){
-                    auto& first_fielder = m_game_info.getCurrentEvent().pitch->contact->first_fielder;
+                    
                     //Returns a fielder that has bobbled if any exist. Otherwise optional is nullptr
-                    first_fielder = logFielderBobble();
+                    m_game_info.getCurrentEvent().pitch->contact->first_fielder = logFielderBobble();
                 }
-                else if (!collect_fielder.has_value()){
-                    auto& collect_fielder = m_game_info.getCurrentEvent().pitch->contact->collect_fielder;
+                else if (!m_game_info.getCurrentEvent().pitch->contact->collect_fielder.has_value()){
                     //Returns fielder that is holding the ball. Otherwise nullptr
-                    collect_fielder = logFielderWithBall();
-                    if (collect_fielder.has_value()){
+                    m_game_info.getCurrentEvent().pitch->contact->collect_fielder = logFielderWithBall();
+                    if (m_game_info.getCurrentEvent().pitch->contact->collect_fielder.has_value()){
                         //Start watching runners for outs when the ball has finally been collected
                         m_event_state = EVENT_STATE::MONITOR_RUNNERS;
                     }
@@ -238,7 +232,7 @@ void StatTracker::lookForTriggerEvents(){
                 break;
             case (EVENT_STATE::PLAY_OVER):
                 if (!Memory::Read_U8(aAB_PitchThrown)){
-                    event.rbi = Memory::Read_U8(aAB_RBI);
+                    m_game_info.getCurrentEvent().rbi = Memory::Read_U8(aAB_RBI);
                     m_event_state = EVENT_STATE::FINAL_RESULT;
                     std::cout << "Play over" << std::endl;
                 }
@@ -288,7 +282,7 @@ void StatTracker::lookForTriggerEvents(){
             }
             break;
         case (GAME_STATE::INGAME):
-            if ((Memory::Read_U8(aEndOfGameFlag) == 1) && (m_event_state == EVENT_STATE::WAITING_FOR_PITCH) ){
+            if ((Memory::Read_U8(aEndOfGameFlag) == 1) && (m_event_state == EVENT_STATE::WAITING_FOR_EVENT) ){
                 logGameInfo();
 
                 std::pair<std::string, std::string> jsonPlusPath = getStatJSON(true);
@@ -352,10 +346,10 @@ void StatTracker::logGameInfo(){
     }
 }
 
-void StatTracker::logDefensiveStats(int team_id, int roster_id){
-    u32 offset = (team_id * cRosterSize * c_defensive_stat_offset) + (roster_id * c_defensive_stat_offset);
+void StatTracker::logDefensiveStats(int in_team_id, int roster_id){
+    u32 offset = (in_team_id * cRosterSize * c_defensive_stat_offset) + (roster_id * c_defensive_stat_offset);
 
-    u32 is_starred_offset = (team_id * cRosterSize) + roster_id;
+    u32 is_starred_offset = (in_team_id * cRosterSize) + roster_id;
 
     //in_team_id is in terms of team0 and team1 but we need it to 
     u8 adjusted_team_id;
@@ -366,9 +360,9 @@ void StatTracker::logDefensiveStats(int team_id, int roster_id){
     else{
         adjusted_team_id = (m_game_info.team1_port == m_game_info.away_port);
     }
-    auto& stat = character_summaries[adjusted_team_id][roster_id].end_game_defensive_stats;
+    auto& stat = m_game_info.character_summaries[adjusted_team_id][roster_id].end_game_defensive_stats;
 
-    character_summaries[adjusted_team_id][roster_id].is_starred = Memory::Read_U8(aPitcher_IsStarred + is_starred_offset);
+    m_game_info.character_summaries[adjusted_team_id][roster_id].is_starred = Memory::Read_U8(aPitcher_IsStarred + is_starred_offset);
 
     stat.batters_faced       = Memory::Read_U8(aPitcher_BattersFaced + offset);
     stat.runs_allowed        = Memory::Read_U16(aPitcher_RunsAllowed + offset);
@@ -397,7 +391,7 @@ void StatTracker::logOffensiveStats(int in_team_id, int roster_id){
     else{
         adjusted_team_id = (m_game_info.team1_port == m_game_info.away_port);
     }
-    auto& stat = character_summaries[adjusted_team_id][roster_id].end_game_offensive_stats;
+    auto& stat = m_game_info.character_summaries[adjusted_team_id][roster_id].end_game_offensive_stats;
 
     stat.at_bats          = Memory::Read_U8(aBatter_AtBats + offset);
     stat.hits             = Memory::Read_U8(aBatter_Hits + offset);
@@ -414,18 +408,17 @@ void StatTracker::logOffensiveStats(int in_team_id, int roster_id){
     stat.bases_stolen     = Memory::Read_U8(aBatter_BasesStolen + offset);
     stat.star_hits        = Memory::Read_U8(aBatter_StarHits + offset);
 
-    character_summaries[adjusted_team_id][roster_id].end_game_defensive_stats.big_plays = Memory::Read_U8(aBatter_BigPlays + offset);
+    m_game_info.character_summaries[adjusted_team_id][roster_id].end_game_defensive_stats.big_plays = Memory::Read_U8(aBatter_BigPlays + offset);
 }
 
 void StatTracker::logEventState(Event& in_event){
     std::cout << "Logging Event State" << std::endl;
 
     //Team Id (0=Home is batting, Away is batting)
-    in_event.batting_team_id = (Memory::Read_U8(aAB_BatterPort) == m_game_info.away_port);
-    in_event.roster_id = Memory::Read_U8(aAB_RosterID);
+    u8 batting_team_id = (Memory::Read_U8(aAB_BatterPort) == m_game_info.away_port);
 
     in_event.inning          = Memory::Read_U8(aAB_Inning);
-    in_event.half_inning     = !in_event.batting_team_id;
+    in_event.half_inning     = !batting_team_id;
 
     //Figure out scores
     in_event.away_score = Memory::Read_U16(aAwayTeam_Score);
@@ -436,7 +429,7 @@ void StatTracker::logEventState(Event& in_event){
     in_event.outs            = Memory::Read_U8(aAB_Outs);
     
     //Figure out star ownership
-    if (in_game_info.team0_port == m_game_info.away_port){
+    if (m_game_info.team0_port == m_game_info.away_port){
         in_event.away_stars = Memory::Read_U8(aAB_P1_Stars);
         in_event.home_stars = Memory::Read_U8(aAB_P2_Stars);
     }
@@ -460,51 +453,56 @@ void StatTracker::logEventState(Event& in_event){
     in_event.batter_roster_loc  = Memory::Read_U8(aAB_BatterRosterID);
 }
 
-void StatTracker::logContact(Contact* in_contact){
+void StatTracker::logContact(Event& in_event){
     std::cout << "Logging Contact" << std::endl;
 
-    in_contact->type_of_contact   = Memory::Read_U8(aAB_TypeOfContact);
-    in_contact->bunt              =(Memory::Read_U8(aAB_Bunt) == 3);
+    Pitch* pitch = &in_event.pitch.value();
+    //Create contact object to populate and get a ptr to it
+    pitch->contact = std::make_optional(Contact());
+    Contact* contact = &in_event.pitch->contact.value();
 
-    in_contact->swing             = (Memory::Read_U8(aAB_Miss_SwingOrBunt) == 1);
-    in_contact->charge_swing      = ((Memory::Read_U8(aAB_ChargeSwing) == 1) && !(Memory::Read_U8(aAB_StarSwing)));
-    in_contact->charge_power_up   = Memory::Read_U32(aAB_ChargeUp);
-    in_contact->charge_power_down = Memory::Read_U32(aAB_ChargeDown);
-    in_contact->star_swing        = Memory::Read_U8(aAB_StarSwing);
-    in_contact->moon_shot         = Memory::Read_U8(aAB_MoonShot);
-    in_contact->input_direction   = Memory::Read_U8(aAB_InputDirection);
+    contact->type_of_contact   = Memory::Read_U8(aAB_TypeOfContact);
+    contact->bunt              =(Memory::Read_U8(aAB_Bunt) == 3);
 
-    in_contact->horiz_power       = Memory::Read_U16(aAB_HorizPower);
-    in_contact->vert_power        = Memory::Read_U16(aAB_VertPower);
-    in_contact->ball_angle        = Memory::Read_U16(aAB_BallAngle);
+    contact->swing             = (Memory::Read_U8(aAB_Miss_SwingOrBunt) == 1);
+    contact->charge_swing      = ((Memory::Read_U8(aAB_ChargeSwing) == 1) && !(Memory::Read_U8(aAB_StarSwing)));
+    contact->charge_power_up   = Memory::Read_U32(aAB_ChargeUp);
+    contact->charge_power_down = Memory::Read_U32(aAB_ChargeDown);
+    contact->star_swing        = Memory::Read_U8(aAB_StarSwing);
+    contact->moon_shot         = Memory::Read_U8(aAB_MoonShot);
+    contact->input_direction   = Memory::Read_U8(aAB_InputDirection);
 
-    in_contact->ball_x_velocity   = Memory::Read_U32(aAB_BallVel_X);
-    in_contact->ball_y_velocity   = Memory::Read_U32(aAB_BallVel_Y);
-    in_contact->ball_z_velocity   = Memory::Read_U32(aAB_BallVel_Z);
+    contact->horiz_power       = Memory::Read_U16(aAB_HorizPower);
+    contact->vert_power        = Memory::Read_U16(aAB_VertPower);
+    contact->ball_angle        = Memory::Read_U16(aAB_BallAngle);
 
-    //in_contact->ball_x_accel   = Memory::Read_U32(aAB_BallAccel_X);
-    //in_contact->ball_y_accel   = Memory::Read_U32(aAB_BallAccel_Y);
-    //in_contact->ball_z_accel   = Memory::Read_U32(aAB_BallAccel_Z);
+    contact->ball_x_velocity   = Memory::Read_U32(aAB_BallVel_X);
+    contact->ball_y_velocity   = Memory::Read_U32(aAB_BallVel_Y);
+    contact->ball_z_velocity   = Memory::Read_U32(aAB_BallVel_Z);
 
-    in_contact->hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
+    //contact->ball_x_accel   = Memory::Read_U32(aAB_BallAccel_X);
+    //contact->ball_y_accel   = Memory::Read_U32(aAB_BallAccel_Y);
+    //contact->ball_z_accel   = Memory::Read_U32(aAB_BallAccel_Z);
 
-    in_contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
-    in_contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
+    contact->hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
-    in_contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
-    in_contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
+    contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
+    contact->ball_z_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
+
+    contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
+    contact->ball_z_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
 
     //Frame collect
-    in_contact->frameOfSwingUponContact = Memory::Read_U16(aAB_FrameOfSwingAnimUponContact);
+    contact->frameOfSwingUponContact = Memory::Read_U16(aAB_FrameOfSwingAnimUponContact);
 }
 
 void StatTracker::logContactMiss(Event& in_event){
     std::cout << "Logging Miss" << std::endl;
 
-    Pitch* pitch = event.pitch.get();
+    Pitch* pitch = &in_event.pitch.value();
     //Create contact object to populate and get a ptr to it
-    pitch.contact = std::make_optional(Contact());
-    Contact* contact = event.pitch->contact.get();
+    pitch->contact = std::make_optional(Contact());
+    Contact* contact = &in_event.pitch->contact.value();
 
     contact->type_of_contact   = 0xFF; //Set 0 because game only sets when contact is made. Never reset
     contact->bunt              =(Memory::Read_U8(aAB_Miss_SwingOrBunt) == 2); //Need to use miss version for bunt. Game won't set bunt regular flag unless contact is made
@@ -525,10 +523,10 @@ void StatTracker::logContactMiss(Event& in_event){
     contact->ball_z_velocity   = 0;
 
     contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
-    contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
+    contact->ball_z_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
 
-    contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
-    contact->ball_y_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
+    contact->batter_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
+    contact->batter_z_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
 
     contact->hit_by_pitch = Memory::Read_U8(aAB_HitByPitch);
 
@@ -549,7 +547,7 @@ void StatTracker::logContactMiss(Event& in_event){
     
     if (!any_strike){
         if (contact->hit_by_pitch){ pitch->pitch_result = 0; }
-        else if (event.balls == 3) { pitch->pitch_result = 1; }
+        else if (in_event.balls == 3) { pitch->pitch_result = 1; }
         else {
             pitch->pitch_result = 2;
         };
@@ -573,7 +571,7 @@ void StatTracker::logContactMiss(Event& in_event){
     }
 }
 
-void StatTracker::logEventPitch(Event& in_event){
+void StatTracker::logPitch(Event& in_event){
     std::cout << "Logging Pitching" << std::endl;
 
     in_event.pitch = std::make_optional(Pitch());
@@ -606,21 +604,21 @@ void StatTracker::logContactResult(Contact* in_contact){
 
         //If the ball is caught, use the balls position from the frame before to avoid the ball_pos
         //from matching the fielders
-        contact->ball_x_pos = contact->prev_ball_x_pos;
-        contact->ball_y_pos = contact->prev_ball_y_pos;
-        contact->ball_z_pos = contact->prev_ball_z_pos; 
+        in_contact->ball_x_pos = in_contact->prev_ball_x_pos;
+        in_contact->ball_y_pos = in_contact->prev_ball_y_pos;
+        in_contact->ball_z_pos = in_contact->prev_ball_z_pos; 
 
         //Ball has been caught. Log this as final fielder. If ball has been bobbled they will be logged as bobble
         std::optional<Fielder> final_fielder = logFielderWithBall();
         in_contact->collect_fielder = final_fielder;
 
         //Increment outs for that position for fielder
-        ++m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].out_count_by_position[in_contact->collect_fielder.fielder_roster_loc][in_contact->collect_fielder.fielder_pos];
+        ++m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].out_count_by_position[in_contact->collect_fielder->fielder_roster_loc][in_contact->collect_fielder->fielder_pos];
         //Indicate if fielder had been swapped for this batter
         std::cout << "Trying to see if fielder was swapped. Team_id=" << (!m_game_info.getCurrentEvent().half_inning) 
-                  << " Fielder Roster=" << std::to_string(m_curr_ab_stat.fielder_roster_loc)
-                  << " Swapped=" << m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].fielder_map[in_contact->collect_fielder.fielder_roster_loc].second << std::endl;
-        in_contact->collect_fielder.fielder_swapped_for_batter = m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].fielder_map[in_contact->collect_fielder.fielder_roster_loc].second;
+                  << " Fielder Roster=" << std::to_string(in_contact->collect_fielder->fielder_roster_loc)
+                  << " Swapped=" << m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].fielder_map[in_contact->collect_fielder->fielder_roster_loc].second << std::endl;
+        in_contact->collect_fielder->fielder_swapped_for_batter = m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].fielder_map[in_contact->collect_fielder->fielder_roster_loc].second;
     }
     else if (result == 0xFF){
         in_contact->primary_contact_result = 1; //Foul
@@ -640,21 +638,21 @@ void StatTracker::logContactResult(Contact* in_contact){
 void StatTracker::logFinalResults(Event& in_event){
     std::cout << "Logging Final Result" << std::endl;
 
-    //Indicate strikeout in the runner_0
-    if (in_event.game_result == 1){
-        //0x10 in runner_0 denotes strikeout
-        in_event.runner_0.out_type = 0x10;
+    //Indicate strikeout in the runner_batter
+    if (in_event.result_of_atbat == 1){
+        //0x10 in runner_batter denotes strikeout
+        in_event.runner_batter->out_type = 0x10;
     }
 
     if (in_event.pitch.has_value() && in_event.pitch->contact.has_value()){
-        Contact* contact = in_event.pitch->contact.get();
+        Contact* contact = &in_event.pitch->contact.value();
         //Fill in secondary result for contact
-        if (in_event.game_result >= 0x7 && in_event.game_result <= 0xF){
-            //0x10 in runner_0 denotes strikeout
-            contact->secondary_contact_result = in_event.game_result;
+        if (in_event.result_of_atbat >= 0x7 && in_event.result_of_atbat <= 0xF){
+            //0x10 in runner_batter denotes strikeout
+            contact->secondary_contact_result = in_event.result_of_atbat;
         }
-        else if ((in_event.runner_0.out_type == 2) || (in_event.runner_0.out_type == 3)){
-            contact->secondary_contact_result = in_event.runner_0.out_type;
+        else if ((in_event.runner_batter->out_type == 2) || (in_event.runner_batter->out_type == 3)){
+            contact->secondary_contact_result = in_event.runner_batter->out_type;
         }
 
         if (contact->star_swing == 1){ contact->type_of_swing = 3; }
@@ -666,7 +664,7 @@ void StatTracker::logFinalResults(Event& in_event){
     }
 
     //multi_out
-    in_event.pitch.value()->contact.value()->multi_out = Memory::Read_U8(aAB_NumOutsDuringPlay) > 1;
+    in_event.pitch->contact->multi_out = (Memory::Read_U8(aAB_NumOutsDuringPlay) > 1);
 }
 
 std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
@@ -715,10 +713,10 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
         // std::string team_label;
         u8 captain_roster_loc = 0;
         if (team == 0){
-            captain_roster_loc = (m_game_info.home_port == m_game_info.team0_port) ? m_game_info.team0_captain_roster_loc : m_game_info.team1_captain_roster_loc
+            captain_roster_loc = (m_game_info.home_port == m_game_info.team0_port) ? m_game_info.team0_captain_roster_loc : m_game_info.team1_captain_roster_loc;
         }
         if (team == 1){
-            captain_roster_loc = (m_game_info.away_port == m_game_info.team0_port) ? m_game_info.team0_captain_roster_loc : m_game_info.team1_captain_roster_loc
+            captain_roster_loc = (m_game_info.away_port == m_game_info.team0_port) ? m_game_info.team0_captain_roster_loc : m_game_info.team1_captain_roster_loc;
         }
 
         for (int roster=0; roster < cRosterSize; ++roster){
@@ -774,36 +772,36 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "      }," << std::endl;
 
             //=== Offensive Stats ===
-            EndGameRosterDefensiveStats& def_stat = char_summary.end_game_offensive_stats;
+            EndGameRosterOffensiveStats& of_stat = char_summary.end_game_offensive_stats;
             json_stream << "      \"Offensive Stats\": {" << std::endl;
-            json_stream << "        \"At Bats\": " << std::to_string(of_stat.at_bats) << "," << std::endl;
-            json_stream << "        \"Hits\": " << std::to_string(of_stat.hits) << "," << std::endl;
-            json_stream << "        \"Singles\": " << std::to_string(of_stat.singles) << "," << std::endl;
-            json_stream << "        \"Doubles\": " << std::to_string(of_stat.doubles) << "," << std::endl;
-            json_stream << "        \"Triples\": " << std::to_string(of_stat.triples) << "," << std::endl;
-            json_stream << "        \"Homeruns\": " << std::to_string(of_stat.homeruns) << "," << std::endl;
+            json_stream << "        \"At Bats\": "          << std::to_string(of_stat.at_bats) << "," << std::endl;
+            json_stream << "        \"Hits\": "             << std::to_string(of_stat.hits) << "," << std::endl;
+            json_stream << "        \"Singles\": "          << std::to_string(of_stat.singles) << "," << std::endl;
+            json_stream << "        \"Doubles\": "          << std::to_string(of_stat.doubles) << "," << std::endl;
+            json_stream << "        \"Triples\": "          << std::to_string(of_stat.triples) << "," << std::endl;
+            json_stream << "        \"Homeruns\": "         << std::to_string(of_stat.homeruns) << "," << std::endl;
             json_stream << "        \"Successful Bunts\": " << std::to_string(of_stat.successful_bunts) << "," << std::endl;
-            json_stream << "        \"Sac Flys\": " << std::to_string(of_stat.sac_flys) << "," << std::endl;
-            json_stream << "        \"Strikeouts\": " << std::to_string(of_stat.strikouts) << "," << std::endl;
-            json_stream << "        \"Walks (4 Balls)\": " << std::to_string(of_stat.walks_4balls) << "," << std::endl;
-            json_stream << "        \"Walks (Hit)\": " << std::to_string(of_stat.walks_hit) << "," << std::endl;
-            json_stream << "        \"RBI\": " << std::to_string(of_stat.rbi) << "," << std::endl;
-            json_stream << "        \"Bases Stolen\": " << std::to_string(of_stat.bases_stolen) << "," << std::endl;
-            json_stream << "        \"Star Hits\": " << std::to_string(of_stat.star_hits) << std::endl;
+            json_stream << "        \"Sac Flys\": "         << std::to_string(of_stat.sac_flys) << "," << std::endl;
+            json_stream << "        \"Strikeouts\": "       << std::to_string(of_stat.strikouts) << "," << std::endl;
+            json_stream << "        \"Walks (4 Balls)\": "  << std::to_string(of_stat.walks_4balls) << "," << std::endl;
+            json_stream << "        \"Walks (Hit)\": "      << std::to_string(of_stat.walks_hit) << "," << std::endl;
+            json_stream << "        \"RBI\": "              << std::to_string(of_stat.rbi) << "," << std::endl;
+            json_stream << "        \"Bases Stolen\": "     << std::to_string(of_stat.bases_stolen) << "," << std::endl;
+            json_stream << "        \"Star Hits\": "        << std::to_string(of_stat.star_hits) << std::endl;
             json_stream << "      }" << std::endl;
         }
     }
     json_stream << "  ]," << std::endl;
     //=== Events === 
     json_stream << "  \"Events\": [" << std::endl;
-    for (auto event_map_iter = m_game_info.events.begin(); event_map_iter != m_game_info.events.end()) {
+    for (auto event_map_iter = m_game_info.events.begin(); event_map_iter != m_game_info.events.end(); event_map_iter++) {
         u8 event_num = event_map_iter->first;
         Event& event = event_map_iter->second;
 
         json_stream << "    {" << std::endl;
         json_stream << "      \"Event Num\": "               << std::to_string(event_num) << "," << std::endl;
-        json_stream << "      \"Inning\": "                  << std::to_string(ab_stat.inning) << "," << std::endl;
-        json_stream << "      \"Half Inning\": "             << std::to_string(ab_stat.half_inning) << "," << std::endl;
+        json_stream << "      \"Inning\": "                  << std::to_string(event.inning) << "," << std::endl;
+        json_stream << "      \"Half Inning\": "             << std::to_string(event.half_inning) << "," << std::endl;
         json_stream << "      \"Away Score\": "              << std::dec << event.away_score << "," << std::endl;
         json_stream << "      \"Home Score\": "              << std::dec << event.home_score << "," << std::endl;
         json_stream << "      \"Balls\": "                   << std::to_string(event.balls) << "," << std::endl;
@@ -820,18 +818,18 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
         //=== Runners ===
         //Build vector of <Runner*, Label/Name>
-        vector<pair<Runner*, std::string>> runners;
+        std::vector<std::pair<Runner*, std::string>> runners;
         if (event.runner_batter) {
-            runners.push_back({event.runner_batter.get(), "Batter"});
+            runners.push_back({&event.runner_batter.value(), "Batter"});
         }
         if (event.runner_1) {
-            runners.push_back({event.runner_1.get(), "1B"});
+            runners.push_back({&event.runner_1.value(), "1B"});
         }
         if (event.runner_2) {
-            runners.push_back({event.runner_2.get(), "2B"});
+            runners.push_back({&event.runner_2.value(), "2B"});
         }
         if (event.runner_3) {
-            runners.push_back({event.runner_3.get(), "3B"});
+            runners.push_back({&event.runner_3.value(), "3B"});
         }
 
         for (auto& runner : runners){
@@ -852,10 +850,10 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
         //=== Pitch ===
         if (event.pitch.has_value()){
-            Pitch* pitch = event.pitch.get();
+            Pitch* pitch = &event.pitch.value();
             json_stream << "      \"Pitch\": {" << std::endl;
             json_stream << "        \"Pitcher Team Id\": "    << std::to_string(pitch->pitcher_team_id) << "," << std::endl;
-            json_stream << "        \"Pitcher Roster Loc\": " << std::to_string(pitch->pitcher_roster_loc) << "," << std::endl;
+            //json_stream << "        \"Pitcher Roster Loc\": " << std::to_string(pitch->pitcher_roster_loc) << "," << std::endl;
             json_stream << "        \"Pitcher Char Id\": "    << std::to_string(pitch->pitcher_char_id) << "," << std::endl;
             json_stream << "        \"Pitch Type\": "         << std::to_string(pitch->pitch_type) << "," << std::endl;
             json_stream << "        \"Charge Type\": "        << std::to_string(pitch->charge_type) << "," << std::endl;
@@ -868,7 +866,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             if (pitch->contact.has_value()){
                 json_stream << "," << std::endl;
 
-                Contact* contact = pitch->contact.get();
+                Contact* contact = &pitch->contact.value();
                 json_stream << "        \"Contact\": {" << std::endl;
                 json_stream << "          \"Type of Swing\": "                    << contact->type_of_swing << "," << std::endl;
                 json_stream << "          \"Type of Contact\": "                  << contact->type_of_contact << "," << std::endl;
@@ -894,6 +892,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Ball Position Upon Contact - Z\": "   << floatConverter(contact->ball_z_pos_upon_hit) << "," << std::endl;
                 json_stream << "          \"Batter Position Upon Contact - X\": " << floatConverter(contact->batter_x_pos_upon_hit) << "," << std::endl;
                 json_stream << "          \"Batter Position Upon Contact - Z\": " << floatConverter(contact->batter_z_pos_upon_hit) << "," << std::endl;
+                json_stream << "          \"Multi-out\": "                        << std::to_string(contact->multi_out) << "," << std::endl;
                 json_stream << "          \"Contact Result - Primary\": "         << std::to_string(contact->primary_contact_result) << "," << std::endl;
                 json_stream << "          \"Contact Result - Secondary\": "       << std::to_string(contact->secondary_contact_result);
 
@@ -906,15 +905,15 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                     Fielder* fielder;
 
                     //If the fielder bobbled but the same fielder collected the ball OR there was no bobble, log single fielder
-                    if ((contact->first_fielder.has_value() && (contact->first_fielder->fielder_roster_loc == contact->collect_fielder->fielder_roster_loc)
+                    if ((contact->first_fielder.has_value() && (contact->first_fielder->fielder_roster_loc == contact->collect_fielder->fielder_roster_loc))
                         || !contact->first_fielder.has_value()){
-                        if (contact->first_fielder.has_value()) { fielder = contact->first_fielder.get(); }
-                        else {fielder = contact->collect_fielder.get();}
+                        if (contact->first_fielder.has_value()) { fielder = &contact->first_fielder.value(); }
+                        else {fielder = &contact->collect_fielder.value();}
 
                         json_stream << "          \"First Fielder\": {" << std::endl;
                         json_stream << "            \"Fielder Roster Location\": " << std::to_string(fielder->fielder_roster_loc) << "," << std::endl;
                         json_stream << "            \"Fielder Position\": "        << std::to_string(fielder->fielder_pos) << "," << std::endl;
-                        json_stream << "            \"Fielder Character\": "       << std::to_string(fielder->fielder_char) << "," << std::endl;
+                        json_stream << "            \"Fielder Character\": "       << std::to_string(fielder->fielder_char_id) << "," << std::endl;
                         json_stream << "            \"Fielder Action\": "          << std::to_string(fielder->fielder_action) << "," << std::endl;
                         json_stream << "            \"Fielder Swap\": "            << std::to_string(fielder->fielder_swapped_for_batter) << "," << std::endl;
                         json_stream << "            \"Fielder Position - X\": "    << floatConverter(fielder->fielder_x_pos) << "," << std::endl;
@@ -924,15 +923,15 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                         json_stream << "          }" << std::endl;
                     }
                     else if (contact->first_fielder.has_value() 
-                            && (contact->first_fielder->fielder_roster_loc != contact->collect_fielder->fielder_roster_loc) {
+                            && (contact->first_fielder->fielder_roster_loc != contact->collect_fielder->fielder_roster_loc)) {
                         
-                        Fielder* first_fielder = first_fielder  = contact->first_fielder.get();
-                        Fielder* second_fielder = first_fielder = contact->collect_fielder.get();
+                        Fielder* first_fielder  = &contact->first_fielder.value();
+                        Fielder* second_fielder = &contact->collect_fielder.value();
 
                         json_stream << "          \"First Fielder\": {" << std::endl;
                         json_stream << "            \"Fielder Roster Location\": " << std::to_string(first_fielder->fielder_roster_loc) << "," << std::endl;
                         json_stream << "            \"Fielder Position\": "        << std::to_string(first_fielder->fielder_pos) << "," << std::endl;
-                        json_stream << "            \"Fielder Character\": "       << std::to_string(first_fielder->fielder_char) << "," << std::endl;
+                        json_stream << "            \"Fielder Character\": "       << std::to_string(first_fielder->fielder_char_id) << "," << std::endl;
                         json_stream << "            \"Fielder Action\": "          << std::to_string(first_fielder->fielder_action) << "," << std::endl;
                         json_stream << "            \"Fielder Swap\": "            << std::to_string(first_fielder->fielder_swapped_for_batter) << "," << std::endl;
                         json_stream << "            \"Fielder Position - X\": "    << floatConverter(first_fielder->fielder_x_pos) << "," << std::endl;
@@ -943,7 +942,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
                         json_stream << "          \"Second Fielder\": {" << std::endl;
                         json_stream << "            \"Fielder Roster Location\": " << std::to_string(second_fielder->fielder_roster_loc) << "," << std::endl;
                         json_stream << "            \"Fielder Position\": "        << std::to_string(second_fielder->fielder_pos) << "," << std::endl;
-                        json_stream << "            \"Fielder Character\": "       << std::to_string(second_fielder->fielder_char) << "," << std::endl;
+                        json_stream << "            \"Fielder Character\": "       << std::to_string(second_fielder->fielder_char_id) << "," << std::endl;
                         json_stream << "            \"Fielder Action\": "          << std::to_string(second_fielder->fielder_action) << "," << std::endl;
                         json_stream << "            \"Fielder Swap\": "            << std::to_string(second_fielder->fielder_swapped_for_batter) << "," << std::endl;
                         json_stream << "            \"Fielder Position - X\": "    << floatConverter(second_fielder->fielder_x_pos) << "," << std::endl;
@@ -963,7 +962,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             }
             json_stream << "      }," << std::endl;
         }
-        std::string end_comma = (std::next(it) != event_map_iter.end()) ? "," : "";
+        std::string end_comma = (std::next(event_map_iter) !=  m_game_info.events.end()) ? "," : "";
         json_stream << "    }" << end_comma << std::endl;
     }
 
@@ -974,7 +973,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 }
 
 //Scans player for possession
-std::optional<Fielder> StatTracker::logFielderWithBall(Fielder fielder) {
+std::optional<StatTracker::Fielder> StatTracker::logFielderWithBall() {
     std::optional<Fielder> fielder;
     for (u8 pos=0; pos < cRosterSize; ++pos){
         u32 aFielderControlStatus = aFielder_ControlStatus + (pos * cFielder_Offset);
@@ -990,28 +989,28 @@ std::optional<Fielder> StatTracker::logFielderWithBall(Fielder fielder) {
         if (fielder_has_ball) {
             Fielder fielder_with_ball;
             //get char id
-            fielder_with_ball.roster_id = Memory::Read_U8(aFielderControlStatus-0x5A);
-            fielder_with_ball.char_id = Memory::Read_U8(aFielderControlStatus-0x58); //0x58 is the diff between the fielder control status and the char id
+            fielder_with_ball.fielder_roster_loc = Memory::Read_U8(aFielderControlStatus-0x5A);
+            fielder_with_ball.fielder_char_id = Memory::Read_U8(aFielderControlStatus-0x58); //0x58 is the diff between the fielder control status and the char id
             fielder_with_ball.fielder_pos = pos;
 
-            fielder_with_ball.x_pos = Memory::Read_U32(aFielderPosX);
-            fielder_with_ball.y_pos = Memory::Read_U32(aFielderPosY);
-            fielder_with_ball.z_pos = Memory::Read_U32(aFielderPosZ);
+            fielder_with_ball.fielder_x_pos = Memory::Read_U32(aFielderPosX);
+            fielder_with_ball.fielder_y_pos = Memory::Read_U32(aFielderPosY);
+            fielder_with_ball.fielder_z_pos = Memory::Read_U32(aFielderPosZ);
 
             u8 action = 0x0;
 
             if (Memory::Read_U32(aFielderAction)) {
-                fielder_with_ball.action = Memory::Read_U8(aFielderAction); //2 = Slide, 3 = Walljump
+                fielder_with_ball.fielder_action = Memory::Read_U8(aFielderAction); //2 = Slide, 3 = Walljump
 
                 std::cout << "Type of Action: " << std::to_string(action) << std::endl;
                 if (Memory::Read_U8(aFielderAction) == 1) {
-                    fielder_with_ball.action = 0xFF;
+                    fielder_with_ball.fielder_action = 0xFF;
                 }
             }
             else if (Memory::Read_U8(aFielderJump)) {
-                fielder_with_ball.action = Memory::Read_U8(aFielderJump); //1 = jump
+                fielder_with_ball.fielder_action = Memory::Read_U8(aFielderJump); //1 = jump
                 if (Memory::Read_U8(aFielderAction) != 1) {
-                    fielder_with_ball.action = 0xFE;
+                    fielder_with_ball.fielder_action = 0xFE;
                 }
             }
 
@@ -1023,7 +1022,7 @@ std::optional<Fielder> StatTracker::logFielderWithBall(Fielder fielder) {
     return fielder;
 }
 
-std::optional<Fielder> StatTracker::logFielderBobble() {
+std::optional<StatTracker::Fielder> StatTracker::logFielderBobble() {
     std::optional<Fielder> fielder;
     for (u8 pos=0; pos < cRosterSize; ++pos){
         u32 aFielderControlStatus = aFielder_ControlStatus + (pos * cFielder_Offset);
@@ -1052,33 +1051,33 @@ std::optional<Fielder> StatTracker::logFielderBobble() {
             Fielder fielder_that_bobbled;
             std::cout << "Type of Bobble: " << std::to_string(typeOfFielderDisruption) << std::endl;
             //get char id
-            fielder_that_bobbled.roster_id = Memory::Read_U8(aFielderControlStatus-0x5A);
-            fielder_that_bobbled.char_id = Memory::Read_U8(aFielderControlStatus-0x58); //0x58 is the diff between the fielder control status and the char id
+            fielder_that_bobbled.fielder_roster_loc = Memory::Read_U8(aFielderControlStatus-0x5A);
+            fielder_that_bobbled.fielder_char_id = Memory::Read_U8(aFielderControlStatus-0x58); //0x58 is the diff between the fielder control status and the char id
 
-            fielder_that_bobbled.x_pos = Memory::Read_U32(aFielderPosX);
-            fielder_that_bobbled.y_pos = Memory::Read_U32(aFielderPosY);
-            fielder_that_bobbled.z_pos = Memory::Read_U32(aFielderPosZ);
+            fielder_that_bobbled.fielder_x_pos = Memory::Read_U32(aFielderPosX);
+            fielder_that_bobbled.fielder_y_pos = Memory::Read_U32(aFielderPosY);
+            fielder_that_bobbled.fielder_z_pos = Memory::Read_U32(aFielderPosZ);
 
             u8 action = 0x0;
 
             if (Memory::Read_U8(aFielderAction)) {
-                fielder_that_bobbled.action = Memory::Read_U8(aFielderAction); //2 = Slide, 3 = Walljump
+                fielder_that_bobbled.fielder_action = Memory::Read_U8(aFielderAction); //2 = Slide, 3 = Walljump
                 std::cout << "Type of Action: " << std::to_string(action) << std::endl;
                 if (Memory::Read_U8(aFielderAction) == 1) {
-                    fielder_that_bobbled.action = 0xFF;
+                    fielder_that_bobbled.fielder_action = 0xFF;
                 }
             }
             else if (Memory::Read_U8(aFielderJump)) {
-                fielder_that_bobbled.action = Memory::Read_U8(aFielderJump); //1 = jump
+                fielder_that_bobbled.fielder_action = Memory::Read_U8(aFielderJump); //1 = jump
                 if (Memory::Read_U8(aFielderAction) != 1) {
-                    fielder_that_bobbled.action = 0xFE;
+                    fielder_that_bobbled.fielder_action = 0xFE;
                 }
             }
 
             fielder_that_bobbled.bobble = typeOfFielderDisruption;
 
             std::cout << "Logging Bobble" << std::endl;
-            fielder = std::make_optional(fielder_with_ball);
+            fielder = std::make_optional(fielder_that_bobbled);
             return fielder;
         }
     }
@@ -1187,20 +1186,27 @@ void StatTracker::setNetplaySession(bool netplay_session, bool is_host, std::str
     m_state.m_netplay_opponent_alias = opponent_name;
 }
 
-std::optional<Runner> StatTracker::logRunnerInfo(u8 base){
-    optional<Runner> runner;
+std::optional<StatTracker::Runner> StatTracker::logRunnerInfo(u8 base){
+    std::optional<Runner> runner;
     //See if there is a runner in this pos
     if (Memory::Read_U8(aRunner_RosterLoc + (base * cRunner_Offset)) != 0xFF){
         Runner init_runner;
         init_runner.roster_loc = Memory::Read_U8(aRunner_RosterLoc + (base * cRunner_Offset));
         init_runner.char_id = Memory::Read_U8(aRunner_CharId + (base * cRunner_Offset));
         init_runner.initial_base = base;
-        runner = std::make_unique(init_runner);
+        runner = std::make_optional(init_runner);
         return runner;        
     }
     return runner;
 }
 
+bool StatTracker::anyRunnerStealing(Event& in_event){
+    u8 runner_1_stealing = Memory::Read_U8(aRunner_Stealing + (1 * cRunner_Offset));
+    u8 runner_2_stealing = Memory::Read_U8(aRunner_Stealing + (2 * cRunner_Offset));
+    u8 runner_3_stealing = Memory::Read_U8(aRunner_Stealing + (3 * cRunner_Offset));
+
+    return (runner_1_stealing || runner_2_stealing || runner_3_stealing);
+}
 void StatTracker::logRunnerStealing(std::optional<Runner> in_runner){
     //Return if no runner
     if (!in_runner.has_value()) { return; }
@@ -1210,10 +1216,10 @@ void StatTracker::logRunnerStealing(std::optional<Runner> in_runner){
     //1-Ready to steal
     //2-regular steal
     //3-perfect steal
-    u8 steal_val = Memory::Read_U8(aRunner_Stealing + (in_runner.initial_base * cRunner_Offset));
+    in_runner->steal = Memory::Read_U8(aRunner_Stealing + (in_runner->initial_base * cRunner_Offset));
 }
 
-void StatTracker::logRunnerEvents(std::optional<Runner> in_runner in_runner){
+void StatTracker::logRunnerEvents(std::optional<Runner> in_runner){
     //Return if no runner
     if (!in_runner.has_value()) { return; }
 
