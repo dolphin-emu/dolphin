@@ -192,9 +192,6 @@ static const u32 aAB_PickoffAttempt  = 0x80892857;
 //Addrs for GameInfo
 static const u32 aStadiumId = 0x800E8705;
 
-static const u32 aTeam0_RosterCharId_Start = 0x80353C05;
-static const u32 aTeam1_RosterCharId_Start = 0x803541A5;
-
 static const u32 aTeam0_Captain = 0x80353083;
 static const u32 aTeam1_Captain = 0x80353087;
 
@@ -207,6 +204,10 @@ static const u32 aHomeTeam_Score = 0x808928CA;
 static const u32 aInningsSelected = 0x8089294A;
 
 static const u8 c_roster_table_offset = 0xa0;
+
+static const u32 aInGame_CharAttributes_CharId       = 0x80353C05;
+static const u32 aInGame_CharAttributes_FieldingHand = 0x80353C06;
+static const u32 aInGame_CharAttributes_BattingHand  = 0x80353C07;
 
 //Addrs for DefensiveStats
 static const u32 aPitcher_BattersFaced      = 0x803535C9;
@@ -578,11 +579,6 @@ public:
         bool ranked;
 
         //Auto capture
-        u16 away_captain;
-        u16 home_captain;
-
-        std::array<std::array<u8, cRosterSize>, cNumOfTeams> rosters_char_id;
-
         u16 away_score;
         u16 home_score;
 
