@@ -29,5 +29,7 @@ jobs:
       run:  mkdir ${{github.workspace}}/build
     - name: Build with Gradle
       uses: gradle/gradle-build-action@v2
-    - name: Build debug apk
-      run: ./Source/Android/gradlew assembleDebug
+      with:
+        arguments: assembleDebug
+        gradle-executable: ./Source/Android/gradlew
+        build-root-directory: ./Source/Android/
