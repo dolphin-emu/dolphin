@@ -221,8 +221,6 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   case AttenuationFunc::Dir:
   {
     ldir = ldir.Normalized();
-    if (ldir == Vec3(0.0f, 0.0f, 0.0f))
-      ldir = normal;
     break;
   }
   case AttenuationFunc::Spec:

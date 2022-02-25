@@ -25,8 +25,6 @@ void WriteLightingFunction(ShaderCode& out)
   out.Write("  case {:s}:\n", AttenuationFunc::Dir);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"
             "    attn = 1.0;\n"
-            "    if (length(ldir) == 0.0)\n"
-            "      ldir = normal;\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", AttenuationFunc::Spec);
   out.Write("    ldir = normalize(" I_LIGHTS "[index].pos.xyz - pos.xyz);\n"

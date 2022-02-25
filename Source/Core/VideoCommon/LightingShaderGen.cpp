@@ -22,7 +22,6 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   case AttenuationFunc::Dir:
     object.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
     object.Write("attn = 1.0;\n");
-    object.Write("if (length(ldir) == 0.0)\n\t ldir = _normal;\n");
     break;
   case AttenuationFunc::Spec:
     object.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
