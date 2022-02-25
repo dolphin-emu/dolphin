@@ -33,3 +33,8 @@ jobs:
         arguments: assembleDebug
         gradle-executable: ./Source/Android/gradlew
         build-root-directory: ./Source/Android/
+        
+    - uses: actions/upload-artifact@main
+      with:
+        name: webpack artifacts
+        path: test/
