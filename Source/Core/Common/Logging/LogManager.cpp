@@ -101,8 +101,7 @@ static size_t DeterminePathCutOffPoint()
   constexpr const char* pattern2 = "\\source\\core\\";
 #endif
   std::string path = __FILE__;
-  std::transform(path.begin(), path.end(), path.begin(),
-                 [](char c) { return std::tolower(c, std::locale::classic()); });
+  Common::ToLower(&path);
   size_t pos = path.find(pattern);
 #ifdef _WIN32
   if (pos == std::string::npos)

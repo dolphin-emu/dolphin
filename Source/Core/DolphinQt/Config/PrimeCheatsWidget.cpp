@@ -6,6 +6,8 @@
 #include <QWidget>
 
 #include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
+#include "Common/Config/Config.h"
 
 PrimeCheatsWidget::PrimeCheatsWidget()
 {
@@ -60,30 +62,26 @@ void PrimeCheatsWidget::ConnectWidgets()
 
 void PrimeCheatsWidget::OnSaveConfig()
 {
-  auto& settings = SConfig::GetInstance();
-  settings.bPrimeNoclip = m_checkbox_noclip->isChecked();
-  settings.bPrimeInvulnerability = m_checkbox_invulnerability->isChecked();
-  settings.bPrimeSkipCutscene = m_checkbox_skipcutscenes->isChecked();
-  settings.bPrimeRestoreDashing = m_checkbox_scandash->isChecked();
-  settings.bPrimePortalSkip = m_checkbox_skipportalmp2->isChecked();
-  settings.bPrimeFriendVouchers = m_checkbox_friendvouchers->isChecked();
-  settings.bDisableHudMemoPopup = m_checkbox_hudmemo->isChecked();
-  settings.bPrimeUnlockHypermode = m_checkbox_hypermode->isChecked();
-
-  settings.SaveSettings();
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_NOCLIP, m_checkbox_noclip->isChecked());
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_INVULNERABILITY, m_checkbox_invulnerability->isChecked());
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_SKIPPABLE_CUTSCENES, m_checkbox_skipcutscenes->isChecked());
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_RESTORE_SCANDASH, m_checkbox_scandash->isChecked());
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_SKIPMP2_PORTAL, m_checkbox_skipportalmp2->isChecked());
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_FRIENDVOUCHERS, m_checkbox_friendvouchers->isChecked());
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_DISABLE_HUDMEMO, m_checkbox_hudmemo->isChecked());
+  Config::SetBaseOrCurrent(Config::PRIMEHACK_UNLOCK_HYPERMODE, m_checkbox_hypermode->isChecked());
 }
 
 void PrimeCheatsWidget::OnLoadConfig()
 {
-  auto& settings = SConfig::GetInstance();
-  m_checkbox_noclip->setChecked(settings.bPrimeNoclip);
-  m_checkbox_invulnerability->setChecked(settings.bPrimeInvulnerability);
-  m_checkbox_skipcutscenes->setChecked(settings.bPrimeSkipCutscene);
-  m_checkbox_scandash->setChecked(settings.bPrimeRestoreDashing);
-  m_checkbox_skipportalmp2->setChecked(settings.bPrimePortalSkip);
-  m_checkbox_friendvouchers->setChecked(settings.bPrimeFriendVouchers);
-  m_checkbox_hudmemo->setChecked(settings.bDisableHudMemoPopup);
-  m_checkbox_hypermode->setChecked(settings.bPrimeUnlockHypermode);
+  m_checkbox_noclip->setChecked(Config::Get(Config::PRIMEHACK_NOCLIP));
+  m_checkbox_invulnerability->setChecked(Config::Get(Config::PRIMEHACK_INVULNERABILITY));
+  m_checkbox_skipcutscenes->setChecked(Config::Get(Config::PRIMEHACK_SKIPPABLE_CUTSCENES));
+  m_checkbox_scandash->setChecked(Config::Get(Config::PRIMEHACK_RESTORE_SCANDASH));
+  m_checkbox_skipportalmp2->setChecked(Config::Get(Config::PRIMEHACK_SKIPMP2_PORTAL));
+  m_checkbox_friendvouchers->setChecked(Config::Get(Config::PRIMEHACK_FRIENDVOUCHERS));
+  m_checkbox_hudmemo->setChecked(Config::Get(Config::PRIMEHACK_DISABLE_HUDMEMO));
+  m_checkbox_hypermode->setChecked(Config::Get(Config::PRIMEHACK_UNLOCK_HYPERMODE));
 }
 
 void PrimeCheatsWidget::AddDescriptions()

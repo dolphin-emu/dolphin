@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/Vulkan/VulkanLoader.h"
+
 #include <atomic>
 #include <cstdarg>
 #include <cstdlib>
@@ -9,8 +11,6 @@
 #include "Common/DynamicLibrary.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-
-#include "VideoBackends/Vulkan/VulkanLoader.h"
 
 #define VULKAN_MODULE_ENTRY_POINT(name, required) PFN_##name name;
 #define VULKAN_INSTANCE_ENTRY_POINT(name, required) PFN_##name name;
@@ -43,8 +43,8 @@ static bool OpenVulkanLibrary()
   if (libvulkan_env && s_vulkan_module.Open(libvulkan_env))
     return true;
 
-  // Use the libvulkan.dylib from the application bundle.
-  std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+  // Use the libMoltenVK.dylib from the application bundle.
+  std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libMoltenVK.dylib";
   return s_vulkan_module.Open(filename.c_str());
 #else
   std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);

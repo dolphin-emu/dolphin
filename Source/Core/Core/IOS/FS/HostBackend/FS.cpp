@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/IOS/FS/HostBackend/FS.h"
+
 #include <algorithm>
 #include <optional>
 #include <string_view>
@@ -17,7 +19,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/ES.h"
-#include "Core/IOS/FS/HostBackend/FS.h"
 #include "Core/IOS/IOS.h"
 
 namespace IOS::HLE::FS
@@ -116,6 +117,8 @@ HostFileSystem::HostFileSystem(const std::string& root_path,
                                std::vector<NandRedirect> nand_redirects)
     : m_root_path{root_path}, m_nand_redirects(std::move(nand_redirects))
 {
+  while (StringEndsWith(m_root_path, "/"))
+    m_root_path.pop_back();
   File::CreateFullPath(m_root_path + "/");
   ResetFst();
   LoadFst();

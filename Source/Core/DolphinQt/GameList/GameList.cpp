@@ -47,6 +47,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
@@ -218,26 +219,25 @@ GameList::~GameList()
 
 void GameList::UpdateColumnVisibility()
 {
-  const auto& config = SConfig::GetInstance();
   const auto SetVisiblity = [this](const GameListModel::Column column, const bool is_visible) {
     m_list->setColumnHidden(static_cast<int>(column), !is_visible);
   };
 
   using Column = GameListModel::Column;
-  SetVisiblity(Column::Platform, config.m_showSystemColumn);
-  SetVisiblity(Column::Banner, config.m_showBannerColumn);
-  SetVisiblity(Column::Title, config.m_showTitleColumn);
-  SetVisiblity(Column::Description, config.m_showDescriptionColumn);
-  SetVisiblity(Column::Maker, config.m_showMakerColumn);
-  SetVisiblity(Column::ID, config.m_showIDColumn);
-  SetVisiblity(Column::Country, config.m_showRegionColumn);
-  SetVisiblity(Column::Size, config.m_showSizeColumn);
-  SetVisiblity(Column::FileName, config.m_showFileNameColumn);
-  SetVisiblity(Column::FilePath, config.m_showFilePathColumn);
-  SetVisiblity(Column::FileFormat, config.m_showFileFormatColumn);
-  SetVisiblity(Column::BlockSize, config.m_showBlockSizeColumn);
-  SetVisiblity(Column::Compression, config.m_showCompressionColumn);
-  SetVisiblity(Column::Tags, config.m_showTagsColumn);
+  SetVisiblity(Column::Platform, Config::Get(Config::MAIN_GAMELIST_COLUMN_PLATFORM));
+  SetVisiblity(Column::Banner, Config::Get(Config::MAIN_GAMELIST_COLUMN_BANNER));
+  SetVisiblity(Column::Title, Config::Get(Config::MAIN_GAMELIST_COLUMN_TITLE));
+  SetVisiblity(Column::Description, Config::Get(Config::MAIN_GAMELIST_COLUMN_DESCRIPTION));
+  SetVisiblity(Column::Maker, Config::Get(Config::MAIN_GAMELIST_COLUMN_MAKER));
+  SetVisiblity(Column::ID, Config::Get(Config::MAIN_GAMELIST_COLUMN_GAME_ID));
+  SetVisiblity(Column::Country, Config::Get(Config::MAIN_GAMELIST_COLUMN_REGION));
+  SetVisiblity(Column::Size, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_SIZE));
+  SetVisiblity(Column::FileName, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_NAME));
+  SetVisiblity(Column::FilePath, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_PATH));
+  SetVisiblity(Column::FileFormat, Config::Get(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT));
+  SetVisiblity(Column::BlockSize, Config::Get(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE));
+  SetVisiblity(Column::Compression, Config::Get(Config::MAIN_GAMELIST_COLUMN_COMPRESSION));
+  SetVisiblity(Column::Tags, Config::Get(Config::MAIN_GAMELIST_COLUMN_TAGS));
 }
 
 void GameList::MakeEmptyView()
@@ -352,16 +352,17 @@ void GameList::ShowContextMenu(const QPoint&)
   else
   {
     const auto game = GetSelectedGame();
+    const bool is_mod_descriptor = game->IsModDescriptor();
     DiscIO::Platform platform = game->GetPlatform();
     menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
-    if (platform != DiscIO::Platform::ELFOrDOL)
+    if (!is_mod_descriptor && platform != DiscIO::Platform::ELFOrDOL)
     {
       menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
     }
 
     menu->addSeparator();
 
-    if (DiscIO::IsDisc(platform))
+    if (!is_mod_descriptor && DiscIO::IsDisc(platform))
     {
       menu->addAction(tr("Start with Riivolution Patches..."), this,
                       &GameList::StartWithRiivolution);
@@ -382,7 +383,7 @@ void GameList::ShowContextMenu(const QPoint&)
       menu->addSeparator();
     }
 
-    if (platform == DiscIO::Platform::WiiDisc)
+    if (!is_mod_descriptor && platform == DiscIO::Platform::WiiDisc)
     {
       auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this,
                                                   [this, file_path = game->GetFilePath()] {
@@ -394,7 +395,7 @@ void GameList::ShowContextMenu(const QPoint&)
       perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
     }
 
-    if (platform == DiscIO::Platform::WiiWAD)
+    if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)
     {
       QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
       QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
@@ -420,14 +421,15 @@ void GameList::ShowContextMenu(const QPoint&)
       menu->addSeparator();
     }
 
-    if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
+    if (!is_mod_descriptor &&
+        (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc))
     {
       menu->addAction(tr("Open Wii &Save Folder"), this, &GameList::OpenWiiSaveFolder);
       menu->addAction(tr("Export Wii Save"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
     }
 
-    if (platform == DiscIO::Platform::GameCubeDisc)
+    if (!is_mod_descriptor && platform == DiscIO::Platform::GameCubeDisc)
     {
       menu->addAction(tr("Open GameCube &Save Folder"), this, &GameList::OpenGCSaveFolder);
       menu->addSeparator();
@@ -660,19 +662,22 @@ void GameList::OpenGCSaveFolder()
 
   bool found = false;
 
-  for (int i = 0; i < 2; i++)
+  using ExpansionInterface::Slot;
+
+  for (Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
     QUrl url;
-    switch (SConfig::GetInstance().m_EXIDevice[i])
+    const ExpansionInterface::EXIDeviceType current_exi_device =
+        Config::Get(Config::GetInfoForEXIDevice(slot));
+    switch (current_exi_device)
     {
-    case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
+    case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
     {
       std::string path = StringFromFormat("%s/%s/%s", File::GetUserPath(D_GCUSER_IDX).c_str(),
                                           SConfig::GetDirectoryForRegion(game->GetRegion()),
-                                          i == 0 ? "Card A" : "Card B");
+                                          slot == Slot::A ? "Card A" : "Card B");
 
-      std::string override_path = i == 0 ? Config::Get(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE) :
-                                           Config::Get(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE);
+      std::string override_path = Config::Get(Config::GetInfoForGCIPathOverride(slot));
 
       if (!override_path.empty())
         path = override_path;
@@ -688,10 +693,9 @@ void GameList::OpenGCSaveFolder()
       }
       break;
     }
-    case ExpansionInterface::EXIDEVICE_MEMORYCARD:
+    case ExpansionInterface::EXIDeviceType::MemoryCard:
     {
-      std::string memcard_path = i == 0 ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
-                                          Config::Get(Config::MAIN_MEMCARD_B_PATH);
+      std::string memcard_path = Config::Get(Config::GetInfoForMemcardPath(slot));
 
       std::string memcard_dir;
 

@@ -70,7 +70,6 @@ add_library(videocommon
   RenderBase.h
   RenderState.cpp
   RenderState.h
-  SamplerCommon.h
   ShaderCache.cpp
   ShaderCache.h
   ShaderGenCommon.cpp

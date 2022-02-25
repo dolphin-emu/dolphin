@@ -33,6 +33,8 @@ Make AA apply instantly during gameplay if possible
 
 */
 
+#include "VideoBackends/OGL/VideoBackend.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -49,7 +51,6 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/VideoBackend.h"
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -92,6 +93,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsPartialDepthCopies = true;
   g_Config.backend_info.bSupportsShaderBinaries = false;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
+  g_Config.backend_info.bSupportsLodBiasInSampler = true;
 
   // TODO: There is a bug here, if texel buffers or SSBOs/atomics are not supported the graphics
   // options will show the option when it is not supported. The only way around this would be
@@ -99,7 +101,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsGPUTextureDecoding = true;
   g_Config.backend_info.bSupportsBBox = true;
 
-  // Overwritten in Render.cpp later
+  // Overwritten in OGLRender.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
@@ -107,6 +109,8 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsDepthClamp = true;
   g_Config.backend_info.bSupportsST3CTextures = false;
   g_Config.backend_info.bSupportsBPTCTextures = false;
+  g_Config.backend_info.bSupportsCoarseDerivatives = false;
+  g_Config.backend_info.bSupportsTextureQueryLevels = false;
 
   g_Config.backend_info.Adapters.clear();
 

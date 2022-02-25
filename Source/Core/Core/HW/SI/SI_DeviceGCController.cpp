@@ -10,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -33,6 +34,14 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_numb
   m_origin.origin_stick_y = GCPadStatus::MAIN_STICK_CENTER_Y;
   m_origin.substick_x = GCPadStatus::C_STICK_CENTER_X;
   m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
+
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+CSIDevice_GCController::~CSIDevice_GCController()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
@@ -99,8 +108,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   // DEFAULT
   default:
   {
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", command);
-    PanicAlertFmt("SI: Unknown command ({:#x})", command);
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", static_cast<u8>(command));
+    PanicAlertFmt("SI: Unknown command ({:#x})", static_cast<u8>(command));
   }
   break;
   }
@@ -299,10 +308,11 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 
     if (pad_num < 4)
     {
+      const SIDevices device = m_config_si_devices[pad_num];
       if (type == 1)
-        CSIDevice_GCController::Rumble(pad_num, 1.0);
+        CSIDevice_GCController::Rumble(pad_num, 1.0, device);
       else
-        CSIDevice_GCController::Rumble(pad_num, 0.0);
+        CSIDevice_GCController::Rumble(pad_num, 0.0, device);
     }
 
     if (poll == 0)
@@ -326,6 +336,15 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_mode);
   p.Do(m_timer_button_combo_start);
   p.Do(m_last_button_combo);
+}
+
+void CSIDevice_GCController::RefreshConfig()
+{
+  for (int i = 0; i < 4; ++i)
+  {
+    const SerialInterface::SIDevices device = Config::Get(Config::GetInfoForSIDevice(i));
+    m_config_si_devices[i] = device;
+  }
 }
 
 CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)

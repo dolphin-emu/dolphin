@@ -1,8 +1,6 @@
 // Copyright 2019 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/CommonTypes.h"
-
 #include "VideoBackends/D3D12/D3D12VertexManager.h"
 
 #include "Common/Align.h"

@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DiscIO/FileBlob.h"
+
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -10,7 +12,6 @@
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
-#include "DiscIO/FileBlob.h"
 
 namespace DiscIO
 {
@@ -29,13 +30,13 @@ std::unique_ptr<PlainFileReader> PlainFileReader::Create(File::IOFile file)
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-  if (m_file.Seek(offset, SEEK_SET) && m_file.ReadBytes(out_ptr, nbytes))
+  if (m_file.Seek(offset, File::SeekOrigin::Begin) && m_file.ReadBytes(out_ptr, nbytes))
   {
     return true;
   }
   else
   {
-    m_file.Clear();
+    m_file.ClearError();
     return false;
   }
 }

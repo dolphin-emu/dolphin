@@ -255,7 +255,7 @@ void HotkeyScheduler::Run()
       if (auto bt = WiiUtils::GetBluetoothRealDevice())
         bt->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
 
-      if (SConfig::GetInstance().bEnableDebugging)
+      if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
       {
         CheckDebuggingHotkeys();
       }
@@ -460,26 +460,26 @@ void HotkeyScheduler::Run()
       Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
 
       auto ShowEmulationSpeed = []() {
+        const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
         OSD::AddMessage(
-            SConfig::GetInstance().m_EmulationSpeed <= 0 ?
+            emulation_speed <= 0 ?
                 "Speed Limit: Unlimited" :
-                StringFromFormat("Speed Limit: %li%%",
-                                 std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)));
+                StringFromFormat("Speed Limit: %li%%", std::lround(emulation_speed * 100.f)));
       };
 
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
-        auto speed = SConfig::GetInstance().m_EmulationSpeed - 0.1;
+        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
         speed = (speed <= 0 || (speed >= 0.95 && speed <= 1.05)) ? 1.0 : speed;
-        SConfig::GetInstance().m_EmulationSpeed = speed;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
         ShowEmulationSpeed();
       }
 
       if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
       {
-        auto speed = SConfig::GetInstance().m_EmulationSpeed + 0.1;
+        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) + 0.1;
         speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
-        SConfig::GetInstance().m_EmulationSpeed = speed;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
         ShowEmulationSpeed();
       }
 
@@ -570,30 +570,30 @@ void HotkeyScheduler::Run()
     if (Config::Get(Config::MAIN_ENABLE_CHEATS)) {
       if (IsHotkey(HK_NOCLIP_TOGGLE))
       {
-        const bool new_value = !SConfig::GetInstance().bPrimeNoclip;
-        SConfig::GetInstance().bPrimeNoclip = new_value;
+        const bool new_value = !Config::Get(Config::PRIMEHACK_NOCLIP);
+        Config::SetBaseOrCurrent(Config::PRIMEHACK_NOCLIP, new_value);
 
         OSD::AddMessage(StringFromFormat("Noclip: %s", new_value ? "Enabled" : "Disabled"));
       }
 
       if (IsHotkey(HK_INVULNERABILITY_TOGGLE))
       {
-        const bool new_value = !SConfig::GetInstance().bPrimeInvulnerability;
-        SConfig::GetInstance().bPrimeInvulnerability = new_value;
+        const bool new_value = !Config::Get(Config::PRIMEHACK_INVULNERABILITY);
+        Config::SetBaseOrCurrent(Config::PRIMEHACK_INVULNERABILITY, new_value);
       }
 
       if (IsHotkey(HK_SKIP_CUTSCENE))
       {
-        const bool new_value = !SConfig::GetInstance().bPrimeSkipCutscene;
-        SConfig::GetInstance().bPrimeSkipCutscene = new_value;
+        const bool new_value = !Config::Get(Config::PRIMEHACK_SKIPPABLE_CUTSCENES);
+        Config::SetBaseOrCurrent(Config::PRIMEHACK_SKIPPABLE_CUTSCENES, new_value);
 
         OSD::AddMessage(StringFromFormat("Skippable Cutscenes: %s", new_value ? "Enabled" : "Disabled"));
       }
 
       if (IsHotkey(HK_RESTORE_DASHING))
       {
-        const bool new_value = !SConfig::GetInstance().bPrimeRestoreDashing;
-        SConfig::GetInstance().bPrimeRestoreDashing = new_value;
+        const bool new_value = !Config::Get(Config::PRIMEHACK_RESTORE_SCANDASH);
+        Config::SetBaseOrCurrent(Config::PRIMEHACK_RESTORE_SCANDASH, new_value);
 
         OSD::AddMessage(StringFromFormat("Restore Dashing: %s", new_value ? "Enabled" : "Disabled"));
       }

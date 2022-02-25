@@ -8,7 +8,9 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 namespace DiscIO
@@ -44,7 +46,8 @@ struct NetSettings
   bool m_CopyWiiSave = false;
   bool m_OCEnable = false;
   float m_OCFactor = 0;
-  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice{};
+  Common::EnumMap<ExpansionInterface::EXIDeviceType, ExpansionInterface::MAX_SLOT> m_EXIDevice{};
+  int m_MemcardSizeOverride = -1;
 
   std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings{};
 
@@ -257,10 +260,6 @@ bool IsNetPlayRunning();
 // Precondition: A netplay client instance must be present. In other words,
 //               IsNetPlayRunning() must be true before calling this.
 const NetSettings& GetNetSettings();
-IOS::HLE::FS::FileSystem* GetWiiSyncFS();
-const std::vector<u64>& GetWiiSyncTitles();
-void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles);
-void ClearWiiSyncData();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
 bool IsSyncingAllWiiSaves();

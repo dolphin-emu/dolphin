@@ -172,20 +172,18 @@ void HackManager::run_active_mods() {
 }
 
 void HackManager::update_mod_states() {
-  auto& settings = SConfig::GetInstance();
-
   set_mod_enabled("auto_efb", UseMPAutoEFB());
   set_mod_enabled("cut_beam_fx_mp1", GetEnableSecondaryGunFX());
 
   if (Config::Get(Config::MAIN_ENABLE_CHEATS)) {
-    set_mod_enabled("noclip", GetNoclip());
-    set_mod_enabled("invulnerability", GetInvulnerability());
-    set_mod_enabled("skip_cutscene", GetSkipCutscene());
-    set_mod_enabled("restore_dashing", GetRestoreDashing());
-    set_mod_enabled("friend_vouchers_cheat", settings.bPrimeFriendVouchers);
-    set_mod_enabled("portal_skip_mp2", settings.bPrimePortalSkip);
-    set_mod_enabled("disable_hudmemo_popup", settings.bDisableHudMemoPopup);
-    set_mod_enabled("unlock_hypermode", settings.bPrimeUnlockHypermode);
+    set_mod_enabled("noclip", Config::Get(Config::PRIMEHACK_NOCLIP));
+    set_mod_enabled("invulnerability", Config::Get(Config::PRIMEHACK_INVULNERABILITY));
+    set_mod_enabled("skip_cutscene", Config::Get(Config::PRIMEHACK_SKIPPABLE_CUTSCENES));
+    set_mod_enabled("restore_dashing", Config::Get(Config::PRIMEHACK_RESTORE_SCANDASH));
+    set_mod_enabled("friend_vouchers_cheat", Config::Get(Config::PRIMEHACK_FRIENDVOUCHERS));
+    set_mod_enabled("portal_skip_mp2", Config::Get(Config::PRIMEHACK_SKIPMP2_PORTAL));
+    set_mod_enabled("disable_hudmemo_popup", Config::Get(Config::PRIMEHACK_DISABLE_HUDMEMO));
+    set_mod_enabled("unlock_hypermode", Config::Get(Config::PRIMEHACK_UNLOCK_HYPERMODE));
   }
   else {
     disable_mod("noclip");
@@ -198,7 +196,8 @@ void HackManager::update_mod_states() {
   }
 
   // Disallow any PrimeHack control mods
-  if (!settings.bEnablePrimeHack) {
+  if (!Config::Get(Config::PRIMEHACK_ENABLE))
+  {
     disable_mod("fps_controls");
     disable_mod("springball_button");
     disable_mod("context_sensitive_controls");

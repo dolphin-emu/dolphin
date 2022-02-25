@@ -1,14 +1,17 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -134,6 +137,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   const u32 d = inst.FD;
   const u32 op5 = inst.SUBOP5;
 
+  const bool inaccurate_fma = !Config::Get(Config::SESSION_USE_FMA);
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
   const bool round_c = !js.op->fprIsSingle[inst.FC];
   const RegType type = singles ? RegType::Single : RegType::Register;
@@ -168,11 +172,23 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     VC = reg_encoder(V1Q);
   }
 
+  ARM64Reg inaccurate_fma_temp_reg = VD;
+  if (inaccurate_fma && d == b)
+  {
+    allocate_v0_if_needed();
+    inaccurate_fma_temp_reg = V0;
+  }
+
   ARM64Reg result_reg = VD;
   switch (op5)
   {
   case 14:  // ps_madds0: d = a * c.ps0 + b
-    if (VD == VB)
+    if (inaccurate_fma)
+    {
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 0);
+      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
+    }
+    else if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC, 0);
     }
@@ -190,7 +206,12 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     }
     break;
   case 15:  // ps_madds1: d = a * c.ps1 + b
-    if (VD == VB)
+    if (inaccurate_fma)
+    {
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC, 1);
+      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
+    }
+    else if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC, 1);
     }
@@ -209,7 +230,12 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     break;
   case 28:  // ps_msub:  d = a * c - b
   case 30:  // ps_nmsub: d = -(a * c - b)
-    if (VD != VA && VD != VC)
+    if (inaccurate_fma)
+    {
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
+      m_float_emit.FSUB(size, VD, inaccurate_fma_temp_reg, VB);
+    }
+    else if (VD != VA && VD != VC)
     {
       m_float_emit.FNEG(size, VD, VB);
       m_float_emit.FMLA(size, VD, VA, VC);
@@ -224,7 +250,12 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     break;
   case 29:  // ps_madd:  d = a * c + b
   case 31:  // ps_nmadd: d = -(a * c + b)
-    if (VD == VB)
+    if (inaccurate_fma)
+    {
+      m_float_emit.FMUL(size, inaccurate_fma_temp_reg, VA, VC);
+      m_float_emit.FADD(size, VD, inaccurate_fma_temp_reg, VB);
+    }
+    else if (VD == VB)
     {
       m_float_emit.FMLA(size, VD, VA, VC);
     }

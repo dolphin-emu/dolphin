@@ -183,7 +183,6 @@ void ViewModifier::run_mod_mp2() {
 }
 
 void ViewModifier::run_mod_mp2_gc() {
-  LOOKUP(state_manager);
   LOOKUP(tweakgun_offset);
 
   LOOKUP_DYN(world);
@@ -252,7 +251,6 @@ void ViewModifier::adjust_fov_mp3(float fov, u16 camera_id) {
 }
 
 void ViewModifier::run_mod_mp3() {
-  LOOKUP(state_manager);
   LOOKUP(tweakgun);
 
   LOOKUP_DYN(camera_manager);

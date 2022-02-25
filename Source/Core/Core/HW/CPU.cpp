@@ -136,7 +136,8 @@ void Run()
         state_lock.unlock();
         if (GDBStub::IsActive() && GDBStub::HasControl())
         {
-          GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
+          if (!GDBStub::JustConnected())
+            GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
           GDBStub::ProcessCommands(true);
           // If we are still going to step, emulate the fact we just sent a step command
           if (GDBStub::HasControl())

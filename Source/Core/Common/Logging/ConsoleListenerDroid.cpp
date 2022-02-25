@@ -1,9 +1,9 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <android/log.h>
-
 #include "Common/Logging/ConsoleListener.h"
+
+#include <android/log.h>
 
 ConsoleListener::ConsoleListener()
 {

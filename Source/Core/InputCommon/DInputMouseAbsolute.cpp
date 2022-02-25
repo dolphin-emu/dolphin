@@ -1,7 +1,10 @@
 #include "DInputMouseAbsolute.h"
-#include "Core\Host.h"
-#include "VideoCommon\OnScreenDisplay.h"
-#include "Core\ConfigManager.h"
+#include "VideoCommon/OnScreenDisplay.h"
+
+#include "Core/Host.h"
+#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
+#include "Common/Config/Config.h"
 
 int win_w = 0, win_h = 0;
 
@@ -55,7 +58,7 @@ void DInputMouse::Init(LPDIRECTINPUTDEVICE8 mo_device)
 void DInputMouse::UpdateInput()
 {
   // safeguard
-  if (m_mo_device == nullptr || !SConfig::GetInstance().bEnablePrimeHack)
+  if (m_mo_device == nullptr || !Config::Get(Config::PRIMEHACK_ENABLE))
     return;
 
   DIMOUSESTATE2 input_temp;

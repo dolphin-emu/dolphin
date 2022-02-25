@@ -19,7 +19,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <!-- 5054  operator '+': deprecated between enumerations of different types (in Qt headers) -->
+      <!-- 5054  operator '+': deprecated between enumerations of different types (types defined in Qt headers) -->
       <DisableSpecificWarnings>5054;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)Config\Graphics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

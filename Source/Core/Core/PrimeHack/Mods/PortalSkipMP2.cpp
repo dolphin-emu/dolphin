@@ -46,8 +46,7 @@ void PortalSkipMP2::run_mod(Game game, Region region) {
   if (game != Game::PRIME_2 && game != Game::PRIME_2_GCN) {
     return;
   }
-
-  LOOKUP(state_manager);
+   
   LOOKUP_DYN(world_id);
 
   LOOKUP_DYN(object_list);

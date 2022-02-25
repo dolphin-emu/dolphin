@@ -10,7 +10,6 @@
 #ifdef USE_DISCORD_PRESENCE
 
 #include <algorithm>
-#include <cctype>
 #include <ctime>
 #include <set>
 #include <string>
@@ -19,6 +18,7 @@
 #include <fmt/format.h>
 
 #include "Common/Hash.h"
+#include "Common/StringUtil.h"
 
 #endif
 
@@ -170,8 +170,7 @@ std::string ArtworkForGameId(const std::string& gameid)
   if (REGISTERED_GAMES.count(region_neutral_gameid) != 0)
   {
     // Discord asset keys can only be lowercase.
-    std::transform(region_neutral_gameid.begin(), region_neutral_gameid.end(),
-                   region_neutral_gameid.begin(), tolower);
+    Common::ToLower(&region_neutral_gameid);
     return "game_" + region_neutral_gameid;
   }
   return "";
@@ -224,7 +223,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
-  const std::string& title = "v" + Common::primehack_ver + " (Dolphin Emulator Fork)";
+  const std::string& title = "v" + Common::GetScmRevStr() + " (Dolphin Emulator Fork)";
 
   DiscordRichPresence discord_presence = {};
   discord_presence.largeImageKey = "primehack_logo";

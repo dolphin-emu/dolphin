@@ -16,6 +16,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
@@ -301,7 +302,7 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
       model = gen.GetValue("MODEL");
 
       bool region_matches = false;
-      if (SConfig::GetInstance().bOverrideRegionSettings)
+      if (Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
       {
         region_matches = true;
       }
@@ -461,8 +462,13 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
     state->discstate = 0x01;
   });
 
-  // The system menu clears the RTC flags
-  ExpansionInterface::g_rtc_flags.m_hex = 0;
+  // The system menu clears the RTC flags.
+  // However, the system menu also updates the disc cache when this happens; see
+  // https://wiibrew.org/wiki/MX23L4005#DI and
+  // https://wiibrew.org/wiki//title/00000001/00000002/data/cache.dat for details. If we clear the
+  // RTC flags, then the system menu thinks the disc cache is up to date, and will show the wrong
+  // disc in the disc channel (and reboot the first time the disc is opened)
+  // ExpansionInterface::g_rtc_flags.m_hex = 0;
 
   // While reading a disc, the system menu reads the first partition table
   // (0x20 bytes from 0x00040020) and stores a pointer to the data partition entry.

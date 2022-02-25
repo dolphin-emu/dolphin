@@ -6,12 +6,167 @@
 #include <algorithm>
 #include <cstring>
 
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
+
 #include "Core/ConfigManager.h"
-#include "Core/FifoPlayer/FifoAnalyzer.h"
-#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 #include "Core/HW/Memmap.h"
+
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/XFStructs.h"
+
+class FifoRecorder::FifoRecordAnalyzer : public OpcodeDecoder::Callback
+{
+public:
+  explicit FifoRecordAnalyzer(FifoRecorder* owner) : m_owner(owner) {}
+  explicit FifoRecordAnalyzer(FifoRecorder* owner, const u32* cpmem)
+      : m_owner(owner), m_cpmem(cpmem)
+  {
+  }
+
+  OPCODE_CALLBACK(void OnXF(u16 address, u8 count, const u8* data)) {}
+  OPCODE_CALLBACK(void OnCP(u8 command, u32 value)) { GetCPState().LoadCPReg(command, value); }
+  OPCODE_CALLBACK(void OnBP(u8 command, u32 value)) {}
+  OPCODE_CALLBACK(void OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size));
+  OPCODE_CALLBACK(void OnPrimitiveCommand(OpcodeDecoder::Primitive primitive, u8 vat,
+                                          u32 vertex_size, u16 num_vertices,
+                                          const u8* vertex_data));
+  OPCODE_CALLBACK(void OnDisplayList(u32 address, u32 size))
+  {
+    WARN_LOG_FMT(VIDEO,
+                 "Unhandled display list call {:08x} {:08x}; should have been inlined earlier",
+                 address, size);
+  }
+  OPCODE_CALLBACK(void OnNop(u32 count)) {}
+  OPCODE_CALLBACK(void OnUnknown(u8 opcode, const u8* data)) {}
+
+  OPCODE_CALLBACK(void OnCommand(const u8* data, u32 size)) {}
+
+  OPCODE_CALLBACK(CPState& GetCPState()) { return m_cpmem; }
+
+private:
+  void ProcessVertexComponent(CPArray array_index, VertexComponentFormat array_type,
+                              u32 component_offset, u32 vertex_size, u16 num_vertices,
+                              const u8* vertex_data);
+
+  FifoRecorder* const m_owner;
+  CPState m_cpmem;
+};
+
+void FifoRecorder::FifoRecordAnalyzer::OnIndexedLoad(CPArray array, u32 index, u16 address, u8 size)
+{
+  const u32 load_address = m_cpmem.array_bases[array] + m_cpmem.array_strides[array] * index;
+
+  m_owner->UseMemory(load_address, size * sizeof(u32), MemoryUpdate::XF_DATA);
+}
+
+// TODO: The following code is copied with modifications from VertexLoaderBase.
+// Surely there's a better solution?
+#include "VideoCommon/VertexLoader_Color.h"
+#include "VideoCommon/VertexLoader_Normal.h"
+#include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexLoader_TextCoord.h"
+
+void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primitive primitive,
+                                                          u8 vat, u32 vertex_size, u16 num_vertices,
+                                                          const u8* vertex_data)
+{
+  const auto& vtx_desc = m_cpmem.vtx_desc;
+  const auto& vtx_attr = m_cpmem.vtx_attr[vat];
+
+  u32 offset = 0;
+
+  if (vtx_desc.low.PosMatIdx)
+    offset++;
+  for (auto texmtxidx : vtx_desc.low.TexMatIdx)
+  {
+    if (texmtxidx)
+      offset++;
+  }
+  const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
+                                                      vtx_attr.g0.PosElements);
+  ProcessVertexComponent(CPArray::Position, vtx_desc.low.Position, offset, vertex_size,
+                         num_vertices, vertex_data);
+  offset += pos_size;
+
+  const u32 norm_size =
+      VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
+                                   vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
+  ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Position, offset, vertex_size, num_vertices,
+                         vertex_data);
+  offset += norm_size;
+
+  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  {
+    const u32 color_size =
+        VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
+    ProcessVertexComponent(CPArray::Color0 + i, vtx_desc.low.Position, offset, vertex_size,
+                           num_vertices, vertex_data);
+    offset += color_size;
+  }
+  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  {
+    const u32 tc_size = VertexLoader_TextCoord::GetSize(
+        vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
+    ProcessVertexComponent(CPArray::TexCoord0 + i, vtx_desc.low.Position, offset, vertex_size,
+                           num_vertices, vertex_data);
+    offset += tc_size;
+  }
+
+  ASSERT(offset == vertex_size);
+}
+
+// If a component is indexed, the array it indexes into for data must be saved.
+void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(CPArray array_index,
+                                                              VertexComponentFormat array_type,
+                                                              u32 component_offset, u32 vertex_size,
+                                                              u16 num_vertices,
+                                                              const u8* vertex_data)
+{
+  // Skip if not indexed array
+  if (!IsIndexed(array_type))
+    return;
+
+  u16 max_index = 0;
+
+  // Determine min and max indices
+  if (array_type == VertexComponentFormat::Index8)
+  {
+    for (u16 vertex_num = 0; vertex_num < num_vertices; vertex_num++)
+    {
+      const u8 index = vertex_data[component_offset];
+      vertex_data += vertex_size;
+
+      // 0xff skips the vertex
+      if (index != 0xff)
+      {
+        if (index > max_index)
+          max_index = index;
+      }
+    }
+  }
+  else
+  {
+    for (u16 vertex_num = 0; vertex_num < num_vertices; vertex_num++)
+    {
+      const u16 index = Common::swap16(&vertex_data[component_offset]);
+      vertex_data += vertex_size;
+
+      // 0xffff skips the vertex
+      if (index != 0xffff)
+      {
+        if (index > max_index)
+          max_index = index;
+      }
+    }
+  }
+
+  const u32 array_start = m_cpmem.array_bases[array_index];
+  const u32 array_size = m_cpmem.array_strides[array_index] * (max_index + 1);
+
+  m_owner->UseMemory(array_start, array_size, MemoryUpdate::VERTEX_STREAM);
+}
 
 static FifoRecorder instance;
 
@@ -76,7 +231,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
   {
     // Assumes data contains all information for the command
     // Calls FifoRecorder::UseMemory
-    const u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DecodeMode::Record);
+    const u32 analyzed_size = OpcodeDecoder::RunCommand(data, size, *m_record_analyzer);
 
     // Make sure FifoPlayer's command analyzer agrees about the size of the command.
     if (analyzed_size != size)
@@ -211,7 +366,7 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
     memcpy(m_File->GetTexMem(), texMem, FifoDataFile::TEX_MEM_SIZE);
   }
 
-  FifoRecordAnalyzer::Initialize(cpMem);
+  m_record_analyzer = std::make_unique<FifoRecordAnalyzer>(this, cpMem);
 }
 
 bool FifoRecorder::IsRecording() const

@@ -7,6 +7,8 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
@@ -46,8 +48,7 @@ void SetSource(unsigned int index, WiimoteSource source)
   }
 
   if (index == 0) {
-    SConfig::GetInstance().bEnablePrimeHack =
-      source == WiimoteSource::Real ? false : true;
+    Config::SetBaseOrCurrent(Config::PRIMEHACK_ENABLE, source == WiimoteSource::Real ? false : true);
   }
 
   WiimoteReal::HandleWiimoteSourceChange(index);

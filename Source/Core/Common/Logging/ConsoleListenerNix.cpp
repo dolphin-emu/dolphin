@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Logging/ConsoleListener.h"
+
 #include <cstdio>
 #include <cstring>
 
@@ -8,7 +10,6 @@
 #include <unistd.h>
 #endif
 
-#include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 
 ConsoleListener::ConsoleListener()

@@ -7,53 +7,54 @@
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
     <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with /Brepro)-->
     <LinkIncremental>false</LinkIncremental>
-    <!--
-      Coagulate external include directories.
-      Order matters! (first hit, first use).
-        Note: Directory containing source file being compiled is always searched first.
-      -->
-    <ExternalIncludePath>$(ExternalsDir)Bochs_disasm;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)bzip2;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)cpp-optparse;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)FreeSurround\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)cubeb\include;$(ExternalsDir)cubeb\msvc;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)curl\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)discord-rpc\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)ed25519;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)enet\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)ffmpeg\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)fmt\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)GL;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)glslang;$(ExternalsDir)glslang\StandAlone;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)imgui;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)liblzma\api;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)libpng;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)libusb\libusb;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)LZO;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)mGBA\mgba\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)miniupnpc\src;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)minizip;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)mbedtls\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)OpenAL\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)picojson;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)pugixml;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)rangeset\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)SFML\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)soundtouch;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)Vulkan\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)WIL\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)xxhash;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)zlib;$(ExternalIncludePath)</ExternalIncludePath>
-    <ExternalIncludePath>$(ExternalsDir)zstd\lib;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
     <ClCompile>
       <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!--
+      Coagulate external include directories.
+      Order matters! (first hit, first use).
+        Note: Directory containing source file being compiled is always searched first.
+      -->
+      <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)bzip2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)FreeSurround\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)cubeb\include;$(ExternalsDir)cubeb\msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)discord-rpc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)ed25519;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)glslang;$(ExternalsDir)glslang\StandAlone;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)liblzma\api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)LZO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)mGBA\mgba\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)minizip;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)OpenAL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)picojson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)pugixml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)rangeset\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)soundtouch;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)WIL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)zstd\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--Base external header policy: ignore all warnings except template instantiations, and disable analyzer-->
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <ExternalTemplatesDiagnostics>true</ExternalTemplatesDiagnostics>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <PreprocessorDefinitions>FMT_HEADER_ONLY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
         It would be a good idea to disable _CRT_SECURE_NO_WARNINGS and get rid of e.g. C string parsing funcs
@@ -118,10 +119,6 @@
                 Currently jits use some annoying code patterns which makes this common
       -->
       <DisableSpecificWarnings>4245;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <!-- Temporarily disable warnings to enable /Zc:preprocessor compatibility with WinSDK headers.
-      5105  macro expansion producing 'defined' has undefined behavior
-      -->
-      <DisableSpecificWarnings>5105;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <!-- Enable some off-by-default warnings
       4263  Non-virtual member function hides base class virtual function
       4265  Class has virtual functions, but destructor is not virtual

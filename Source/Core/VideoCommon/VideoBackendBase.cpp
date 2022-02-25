@@ -13,7 +13,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -21,6 +20,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/System.h"
 
 // TODO: ugly
 #ifdef _WIN32
@@ -289,7 +289,7 @@ void VideoBackendBase::PopulateBackendInfoFromUI()
 
 void VideoBackendBase::DoState(PointerWrap& p)
 {
-  if (!SConfig::GetInstance().bCPUThread)
+  if (!Core::System::GetInstance().IsDualCoreMode())
   {
     VideoCommon_DoState(p);
     return;
@@ -316,7 +316,6 @@ void VideoBackendBase::InitializeShared()
 
   CommandProcessor::Init();
   Fifo::Init();
-  OpcodeDecoder::Init();
   PixelEngine::Init();
   BPInit();
   VertexLoaderManager::Init();

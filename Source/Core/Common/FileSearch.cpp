@@ -1,12 +1,13 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/FileSearch.h"
+
 #include <algorithm>
 #include <functional>
 #include <iterator>
 
 #include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
 #include "Common/StringUtil.h"
 
 #ifdef _MSC_VER

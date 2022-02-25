@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/D3D/VideoBackend.h"
+
 #include <memory>
 #include <string>
 
@@ -15,7 +17,6 @@
 #include "VideoBackends/D3D/D3DRender.h"
 #include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
-#include "VideoBackends/D3D/VideoBackend.h"
 #include "VideoBackends/D3DCommon/D3DCommon.h"
 
 #include "VideoCommon/FramebufferManager.h"
@@ -106,7 +107,11 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsSSAA = true;
   g_Config.backend_info.bSupportsShaderBinaries = true;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
+  g_Config.backend_info.bSupportsCoarseDerivatives = true;
+  g_Config.backend_info.bSupportsTextureQueryLevels = true;
+  g_Config.backend_info.bSupportsLodBiasInSampler = true;
   g_Config.backend_info.bSupportsLogicOp = D3D::SupportsLogicOp(g_Config.iAdapter);
+  g_Config.backend_info.bSupportsSettingObjectNames = true;
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
   g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);

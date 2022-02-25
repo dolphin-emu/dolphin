@@ -56,7 +56,7 @@ V5IsoMessage::V5IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     total_packet_size += packet_size;
   }
   length = ioctlv.GetVector(2)->size;
-  ASSERT_MSG(IOS_USB, length == total_packet_size, "Wrong buffer size (0x%x != 0x%x)", length,
+  ASSERT_MSG(IOS_USB, length == total_packet_size, "Wrong buffer size ({:#x} != {:#x})", length,
              total_packet_size);
 }
 }  // namespace USB

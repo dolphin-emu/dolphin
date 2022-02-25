@@ -14,6 +14,8 @@
 #include <utility>
 #include <vector>
 
+
+#include "Common/Config/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SI/SI.h"
@@ -177,14 +179,15 @@ void GamecubeControllersWidget::OnGCPadConfigure()
   }
 
   if (type == MappingWindow::Type::MAPPING_GCPAD) {
-    if (!SConfig::GetInstance().bPromptPrimeHackTab) {
+    if (!Config::Get(Config::PRIMEHACK_PROMPT_TAB))
+    {
       if (ModalMessageBox::primehack_gctab(this)) {
         type = MappingWindow::Type::MAPPING_GCPAD_METROID;
         Pad::ChangeUIPrimeHack(static_cast<int>(index), true);
         m_gc_controller_boxes[index]->setCurrentIndex(2);
       }
 
-      SConfig::GetInstance().bPromptPrimeHackTab = true;
+      Config::SetBase(Config::PRIMEHACK_PROMPT_TAB, true);
     }
   }
 
@@ -198,7 +201,8 @@ void GamecubeControllersWidget::LoadSettings()
 {
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
-    const SerialInterface::SIDevices si_device = SConfig::GetInstance().m_SIDevice[i];
+    const SerialInterface::SIDevices si_device =
+        Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
     const std::optional<int> gc_index = ToGCMenuIndex(si_device);
     if (gc_index)
     {
@@ -214,7 +218,7 @@ void GamecubeControllersWidget::SaveSettings()
   {
     const int index = m_gc_controller_boxes[i]->currentIndex();
     const SerialInterface::SIDevices si_device = FromGCMenuIndex(index);
-    SConfig::GetInstance().m_SIDevice[i] = si_device;
+    Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
 
     if (Core::IsRunning())
       SerialInterface::ChangeDevice(si_device, static_cast<s32>(i));

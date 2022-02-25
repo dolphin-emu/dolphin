@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstring>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <sstream>
@@ -23,7 +24,6 @@
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/QoSSession.h"
@@ -33,11 +33,13 @@
 #include "Common/Version.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
@@ -61,6 +63,7 @@
 #include "Core/NetPlayCommon.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/SyncIdentifier.h"
+#include "DiscIO/Blob.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
@@ -75,8 +78,6 @@ using namespace WiimoteCommon;
 
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
-static std::unique_ptr<IOS::HLE::FS::FileSystem> s_wii_sync_fs;
-static std::vector<u64> s_wii_sync_titles;
 static bool s_si_poll_batching = false;
 
 // called from ---GUI--- thread
@@ -149,6 +150,9 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       m_dialog->OnConnectionError(_trans("Could not create peer."));
       return;
     }
+
+    // Extend reliable traffic timeout
+    enet_peer_timeout(m_server, 0, 30000, 30000);
 
     ENetEvent netEvent;
     int net = enet_host_service(m_client, &netEvent, 5000);
@@ -226,8 +230,8 @@ bool NetPlayClient::Connect()
 {
   // send connect message
   sf::Packet packet;
-  packet << Common::scm_rev_git_str;
-  packet << Common::netplay_dolphin_ver;
+  packet << Common::GetScmRevGitStr();
+  packet << Common::GetNetplayDolphinVer();
   packet << m_player_name;
   Send(packet);
   enet_host_flush(m_client);
@@ -280,7 +284,7 @@ bool NetPlayClient::Connect()
     Player player;
     player.name = m_player_name;
     player.pid = m_pid;
-    player.revision = Common::netplay_dolphin_ver;
+    player.revision = Common::GetNetplayDolphinVer();
 
     // add self to player list
     m_players[m_pid] = player;
@@ -316,7 +320,7 @@ void NetPlayClient::OnData(sf::Packet& packet)
   MessageID mid;
   packet >> mid;
 
-  INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", mid);
+  INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", static_cast<u8>(mid));
 
   switch (mid)
   {
@@ -454,7 +458,7 @@ void NetPlayClient::OnData(sf::Packet& packet)
     break;
 
   default:
-    PanicAlertFmtT("Unknown message received with id : {0}", mid);
+    PanicAlertFmtT("Unknown message received with id : {0}", static_cast<u8>(mid));
     break;
   }
 }
@@ -815,8 +819,10 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.m_OCEnable;
     packet >> m_net_settings.m_OCFactor;
 
-    for (auto& device : m_net_settings.m_EXIDevice)
-      packet >> device;
+    for (auto slot : ExpansionInterface::SLOTS)
+      packet >> m_net_settings.m_EXIDevice[slot];
+
+    packet >> m_net_settings.m_MemcardSizeOverride;
 
     for (u32& value : m_net_settings.m_SYSCONFSettings)
       packet >> value;
@@ -992,7 +998,7 @@ void NetPlayClient::OnSyncSaveData(sf::Packet& packet)
     break;
 
   default:
-    PanicAlertFmtT("Unknown SYNC_SAVE_DATA message received with id: {0}", sub_id);
+    PanicAlertFmtT("Unknown SYNC_SAVE_DATA message received with id: {0}", static_cast<u8>(sub_id));
     break;
   }
 }
@@ -1078,10 +1084,17 @@ void NetPlayClient::OnSyncSaveDataGCI(sf::Packet& packet)
 void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
 {
   const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+  std::string redirect_path = File::GetUserPath(D_USER_IDX) + "Redirect" GC_MEMCARD_NETPLAY DIR_SEP;
 
   if (File::Exists(path) && !File::DeleteDirRecursively(path))
   {
     PanicAlertFmtT("Failed to reset NetPlay NAND folder. Verify your write permissions.");
+    SyncSaveDataResponse(false);
+    return;
+  }
+  if (File::Exists(redirect_path) && !File::DeleteDirRecursively(redirect_path))
+  {
+    PanicAlertFmtT("Failed to reset NetPlay redirect folder. Verify your write permissions.");
     SyncSaveDataResponse(false);
     return;
   }
@@ -1191,7 +1204,19 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     }
   }
 
-  SetWiiSyncData(std::move(temp_fs), titles);
+  bool has_redirected_save;
+  packet >> has_redirected_save;
+  if (has_redirected_save)
+  {
+    if (!DecompressPacketIntoFolder(packet, redirect_path))
+    {
+      PanicAlertFmtT("Failed to write redirected save.");
+      SyncSaveDataResponse(false);
+      return;
+    }
+  }
+
+  SetWiiSyncData(std::move(temp_fs), std::move(titles), std::move(redirect_path));
   SyncSaveDataResponse(true);
 }
 
@@ -1244,7 +1269,7 @@ void NetPlayClient::OnSyncCodes(sf::Packet& packet)
     break;
 
   default:
-    PanicAlertFmtT("Unknown SYNC_CODES message received with id: {0}", sub_id);
+    PanicAlertFmtT("Unknown SYNC_CODES message received with id: {0}", static_cast<u8>(sub_id));
     break;
   }
 }
@@ -1721,7 +1746,20 @@ bool NetPlayClient::StartGame(const std::string& path)
   }
 
   // boot game
-  m_dialog->BootGame(path);
+  auto boot_session_data = std::make_unique<BootSessionData>();
+  boot_session_data->SetWiiSyncData(
+      std::move(m_wii_sync_fs), std::move(m_wii_sync_titles), std::move(m_wii_sync_redirect_folder),
+      [] {
+        // on emulation end clean up the Wii save sync directory -- see OnSyncSaveDataWii()
+        const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+        if (File::Exists(path))
+          File::DeleteDirRecursively(path);
+        const std::string redirect_path =
+            File::GetUserPath(D_USER_IDX) + "Redirect" GC_MEMCARD_NETPLAY DIR_SEP;
+        if (File::Exists(redirect_path))
+          File::DeleteDirRecursively(redirect_path);
+      });
+  m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
 
@@ -1803,11 +1841,13 @@ void NetPlayClient::UpdateDevices()
     else if (player_id == m_local_player->pid)
     {
       // Use local controller types for local controllers if they are compatible
-      if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
+      const SerialInterface::SIDevices si_device =
+          Config::Get(Config::GetInfoForSIDevice(local_pad));
+      if (SerialInterface::SIDevice_IsGCController(si_device))
       {
-        SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
+        SerialInterface::ChangeDevice(si_device, pad);
 
-        if (SConfig::GetInstance().m_SIDevice[local_pad] == SerialInterface::SIDEVICE_WIIU_ADAPTER)
+        if (si_device == SerialInterface::SIDEVICE_WIIU_ADAPTER)
         {
           GCAdapter::ResetDeviceType(local_pad);
         }
@@ -1891,7 +1931,7 @@ void NetPlayClient::OnConnectFailed(TraversalConnectFailedReason reason)
     PanicAlertFmtT("Invalid host");
     break;
   default:
-    PanicAlertFmtT("Unknown error {0:x}", reason);
+    PanicAlertFmtT("Unknown error {0:x}", static_cast<int>(reason));
     break;
   }
 }
@@ -1998,13 +2038,13 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
       if (time_diff.count() >= 1.0 || !buffer_over_target)
       {
         // run fast if the buffer is overfilled, otherwise run normal speed
-        SConfig::GetInstance().m_EmulationSpeed = buffer_over_target ? 0.0f : 1.0f;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, buffer_over_target ? 0.0f : 1.0f);
       }
     }
     else
     {
       // Set normal speed when we're the host, otherwise it can get stuck at unlimited
-      SConfig::GetInstance().m_EmulationSpeed = 1.0f;
+      Config::SetCurrent(Config::MAIN_EMULATION_SPEED, 1.0f);
     }
   }
 
@@ -2126,7 +2166,8 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
   {
     pad_status = Pad::GetGBAStatus(local_pad);
   }
-  else if (SConfig::GetInstance().m_SIDevice[local_pad] == SerialInterface::SIDEVICE_WIIU_ADAPTER)
+  else if (Config::Get(Config::GetInfoForSIDevice(local_pad)) ==
+           SerialInterface::SIDEVICE_WIIU_ADAPTER)
   {
     pad_status = GCAdapter::Input(local_pad);
   }
@@ -2250,8 +2291,6 @@ bool NetPlayClient::StopGame()
 
   // stop game
   m_dialog->StopGame();
-
-  ClearWiiSyncData();
 
   return true;
 }
@@ -2433,6 +2472,39 @@ bool NetPlayClient::DoAllPlayersHaveGame()
   });
 }
 
+static std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report_progress)
+{
+  std::vector<u8> data(8 * 1024 * 1024);
+  u64 read_offset = 0;
+  mbedtls_md5_context ctx;
+
+  std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(file_path));
+  u64 game_size = file->GetDataSize();
+
+  mbedtls_md5_starts_ret(&ctx);
+
+  while (read_offset < game_size)
+  {
+    size_t read_size = std::min(static_cast<u64>(data.size()), game_size - read_offset);
+    if (!file->Read(read_offset, read_size, data.data()))
+      return "";
+
+    mbedtls_md5_update_ret(&ctx, data.data(), read_size);
+    read_offset += read_size;
+
+    int progress =
+        static_cast<int>(static_cast<float>(read_offset) / static_cast<float>(game_size) * 100);
+    if (!report_progress(progress))
+      return "";
+  }
+
+  std::array<u8, 16> output;
+  mbedtls_md5_finish_ret(&ctx, output.data());
+
+  // Convert to hex
+  return fmt::format("{:02x}", fmt::join(output, ""));
+}
+
 void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
 {
   if (m_should_compute_MD5)
@@ -2459,7 +2531,7 @@ void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
   if (m_MD5_thread.joinable())
     m_MD5_thread.join();
   m_MD5_thread = std::thread([this, file]() {
-    std::string sum = MD5::MD5Sum(file, [&](int progress) {
+    std::string sum = MD5Sum(file, [&](int progress) {
       sf::Packet packet;
       packet << MessageID::MD5Progress;
       packet << progress;
@@ -2494,6 +2566,14 @@ void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
 {
   m_target_buffer_size = size;
   m_dialog->OnPadBufferChanged(size);
+}
+
+void NetPlayClient::SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs,
+                                   std::vector<u64> titles, std::string redirect_folder)
+{
+  m_wii_sync_fs = std::move(fs);
+  m_wii_sync_titles = std::move(titles);
+  m_wii_sync_redirect_folder = std::move(redirect_folder);
 }
 
 SyncIdentifier NetPlayClient::GetSDCardIdentifier()
@@ -2536,33 +2616,6 @@ const NetSettings& GetNetSettings()
 {
   ASSERT(IsNetPlayRunning());
   return netplay_client->GetNetSettings();
-}
-
-IOS::HLE::FS::FileSystem* GetWiiSyncFS()
-{
-  return s_wii_sync_fs.get();
-}
-
-const std::vector<u64>& GetWiiSyncTitles()
-{
-  return s_wii_sync_titles;
-}
-
-void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles)
-{
-  s_wii_sync_fs = std::move(fs);
-  s_wii_sync_titles.insert(s_wii_sync_titles.end(), titles.begin(), titles.end());
-}
-
-void ClearWiiSyncData()
-{
-  // We're just assuming it will always be here because it is
-  const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
-  if (File::Exists(path))
-    File::DeleteDirRecursively(path);
-
-  s_wii_sync_fs.reset();
-  s_wii_sync_titles.clear();
 }
 
 void SetSIPollBatching(bool state)

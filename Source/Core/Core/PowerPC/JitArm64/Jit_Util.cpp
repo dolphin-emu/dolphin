@@ -1,13 +1,14 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/JitArm64/Jit_Util.h"
+
 #include "Common/Arm64Emitter.h"
 #include "Common/Common.h"
 
 #include "Core/HW/MMIO.h"
 
 #include "Core/PowerPC/JitArm64/Jit.h"
-#include "Core/PowerPC/JitArm64/Jit_Util.h"
 
 using namespace Arm64Gen;
 
@@ -47,7 +48,7 @@ private:
       m_emit->STR(IndexType::Unsigned, reg, ARM64Reg::X0, 0);
       break;
     default:
-      ASSERT_MSG(DYNA_REC, false, "Unknown size %d passed to MMIOWriteCodeGenerator!", sbits);
+      ASSERT_MSG(DYNA_REC, false, "Unknown size {} passed to MMIOWriteCodeGenerator!", sbits);
       break;
     }
   }
@@ -140,7 +141,7 @@ private:
       m_emit->LDR(IndexType::Unsigned, m_dst_reg, ARM64Reg::X0, 0);
       break;
     default:
-      ASSERT_MSG(DYNA_REC, false, "Unknown size %d passed to MMIOReadCodeGenerator!", sbits);
+      ASSERT_MSG(DYNA_REC, false, "Unknown size {} passed to MMIOReadCodeGenerator!", sbits);
       break;
     }
   }

@@ -31,6 +31,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/TraversalClient.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
@@ -39,6 +40,7 @@
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
 
@@ -62,8 +64,10 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model, QWidget* parent)
-    : QDialog(parent), m_game_list_model(game_list_model)
+NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
+                             StartGameCallback start_game_callback, QWidget* parent)
+    : QDialog(parent), m_game_list_model(game_list_model),
+      m_start_game_callback(std::move(start_game_callback))
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -682,10 +686,11 @@ void NetPlayDialog::UpdateGUI()
 
 // NetPlayUI methods
 
-void NetPlayDialog::BootGame(const std::string& filename)
+void NetPlayDialog::BootGame(const std::string& filename,
+                             std::unique_ptr<BootSessionData> boot_session_data)
 {
   m_got_stop_request = false;
-  emit Boot(QString::fromStdString(filename));
+  m_start_game_callback(filename, std::move(boot_session_data));
 }
 
 void NetPlayDialog::StopGame()
@@ -1172,4 +1177,11 @@ void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
     if (m_chunked_progress_dialog->isVisible())
       m_chunked_progress_dialog->SetProgress(pid, progress);
   });
+}
+
+void NetPlayDialog::SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder)
+{
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (client)
+    client->SetWiiSyncData(nullptr, std::move(titles), std::move(redirect_folder));
 }

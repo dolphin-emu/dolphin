@@ -15,6 +15,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders
@@ -37,9 +38,9 @@ public:
     layer->Set(Config::MAIN_DSP_HLE, m_settings.m_DSPHLE);
     layer->Set(Config::MAIN_OVERCLOCK_ENABLE, m_settings.m_OCEnable);
     layer->Set(Config::MAIN_OVERCLOCK, m_settings.m_OCFactor);
-    layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
-    layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
-    layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
+    for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+      layer->Set(Config::GetInfoForEXIDevice(slot), m_settings.m_EXIDevice[slot]);
+    layer->Set(Config::MAIN_MEMORY_CARD_SIZE, m_settings.m_MemcardSizeOverride);
     layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.m_WriteToMemcard);
     layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
@@ -92,6 +93,8 @@ public:
     layer->Set(Config::GFX_HACK_EFB_DEFER_INVALIDATION, m_settings.m_EFBAccessDeferInvalidation);
 
     layer->Set(Config::SESSION_USE_FMA, m_settings.m_UseFMA);
+
+    layer->Set(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED, false);
 
     if (m_settings.m_StrictSettingsSync)
     {

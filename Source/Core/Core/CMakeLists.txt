@@ -103,16 +103,10 @@ add_library(core
   DSP/LabelMap.h
   DSPEmulator.cpp
   DSPEmulator.h
-  FifoPlayer/FifoAnalyzer.cpp
-  FifoPlayer/FifoAnalyzer.h
   FifoPlayer/FifoDataFile.cpp
   FifoPlayer/FifoDataFile.h
-  FifoPlayer/FifoPlaybackAnalyzer.cpp
-  FifoPlayer/FifoPlaybackAnalyzer.h
   FifoPlayer/FifoPlayer.cpp
   FifoPlayer/FifoPlayer.h
-  FifoPlayer/FifoRecordAnalyzer.cpp
-  FifoPlayer/FifoRecordAnalyzer.h
   FifoPlayer/FifoRecorder.cpp
   FifoPlayer/FifoRecorder.h
   FreeLookConfig.cpp

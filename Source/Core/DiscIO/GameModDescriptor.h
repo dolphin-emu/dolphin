@@ -36,6 +36,7 @@ struct GameModDescriptor
 {
   std::string base_file;
   std::string display_name;
+  std::string maker;
   std::string banner;
   std::optional<GameModDescriptorRiivolution> riivolution = std::nullopt;
 };
@@ -43,4 +44,7 @@ struct GameModDescriptor
 std::optional<GameModDescriptor> ParseGameModDescriptorFile(const std::string& filename);
 std::optional<GameModDescriptor> ParseGameModDescriptorString(std::string_view json,
                                                               std::string_view json_path);
+std::string WriteGameModDescriptorString(const GameModDescriptor& descriptor, bool pretty);
+bool WriteGameModDescriptorFile(const std::string& filename, const GameModDescriptor& descriptor,
+                                bool pretty);
 }  // namespace DiscIO

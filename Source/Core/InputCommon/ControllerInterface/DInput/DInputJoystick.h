@@ -64,6 +64,7 @@ public:
 
   std::string GetName() const override;
   std::string GetSource() const override;
+  int GetSortPriority() const override { return -2; }
 
   bool IsValid() const final override;
 

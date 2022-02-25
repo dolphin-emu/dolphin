@@ -3,8 +3,9 @@
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
+
+#include "Core/DSP/DSPCore.h"
 
 using namespace Gen;
 

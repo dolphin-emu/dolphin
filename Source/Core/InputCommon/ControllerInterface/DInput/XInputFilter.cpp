@@ -1,6 +1,8 @@
 // Copyright 2014 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
+
 #include <cwchar>
 #include <unordered_set>
 #include <vector>

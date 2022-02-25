@@ -103,6 +103,7 @@ void AdvancedWidget::CreateWidgets()
                                               Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   m_dump_use_ffv1 = new GraphicsBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
   m_dump_bitrate = new GraphicsInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
+  m_png_compression_level = new GraphicsInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL);
 
   dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
@@ -110,6 +111,9 @@ void AdvancedWidget::CreateWidgets()
   dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 1, 0);
   dump_layout->addWidget(m_dump_bitrate, 1, 1);
 #endif
+  dump_layout->addWidget(new QLabel(tr("PNG Compression Level:")), 2, 0);
+  m_png_compression_level->SetTitle(tr("PNG Compression Level"));
+  dump_layout->addWidget(m_png_compression_level, 2, 1);
 
   // Misc.
   auto* misc_box = new QGroupBox(tr("Misc"));
@@ -138,8 +142,11 @@ void AdvancedWidget::CreateWidgets()
 
   m_defer_efb_access_invalidation =
       new GraphicsBool(tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+  m_manual_texture_sampling =
+      new GraphicsBool(tr("Manual Texture Sampling"), Config::GFX_HACK_FAST_TEXTURE_SAMPLING, true);
 
   experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
+  experimental_layout->addWidget(m_manual_texture_sampling, 0, 1);
 
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
@@ -248,6 +255,16 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
+  static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
+      QT_TR_NOOP("Specifies the zlib compression level to use when saving PNG images (both for "
+                 "screenshots and framedumping).<br><br>"
+                 "Since PNG uses lossless compression, this does not affect the image quality; "
+                 "instead, it is a trade-off between file size and compression time.<br><br>"
+                 "A value of 0 uses no compression at all.  A value of 1 uses very little "
+                 "compression, while the maximum value of 9 applies a lot of compression.  "
+                 "However, for PNG files, levels between 3 and 6 are generally about as good as "
+                 "level 9 but finish in significantly less time.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
   static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
       "Crops the picture from its native aspect ratio to 4:3 or "
       "16:9.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
@@ -266,6 +283,17 @@ void AdvancedWidget::AddDescriptions()
       "<br><br>May improve performance in some games which rely on CPU EFB Access at the cost "
       "of stability.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
+  static const char TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION[] = QT_TR_NOOP(
+      "Use a manual implementation of texture sampling instead of the graphics backend's built-in "
+      "functionality.<br><br>"
+      "This setting can fix graphical issues in some games on certain GPUs, most commonly vertical "
+      "lines on FMVs. In addition to this, enabling Manual Texture Sampling will allow for correct "
+      "emulation of texture wrapping special cases (at 1x IR or when scaled EFB is disabled, and "
+      "with custom textures disabled) and better emulates Level of Detail calculation.<br><br>"
+      "This comes at the cost of potentially worse performance, especially at higher internal "
+      "resolutions; additionally, Anisotropic Filtering is currently incompatible with Manual "
+      "Texture Sampling.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
@@ -292,6 +320,7 @@ void AdvancedWidget::AddDescriptions()
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif
+  m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
@@ -299,4 +328,5 @@ void AdvancedWidget::AddDescriptions()
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif
   m_defer_efb_access_invalidation->SetDescription(tr(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
+  m_manual_texture_sampling->SetDescription(tr(TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION));
 }

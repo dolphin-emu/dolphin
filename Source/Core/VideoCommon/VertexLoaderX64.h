@@ -10,6 +10,7 @@
 enum class VertexComponentFormat;
 enum class ComponentFormat;
 enum class ColorFormat;
+enum class CPArray : u8;
 
 class VertexLoaderX64 : public VertexLoaderBase, public Gen::X64CodeBlock
 {
@@ -23,7 +24,7 @@ private:
   u32 m_src_ofs = 0;
   u32 m_dst_ofs = 0;
   Gen::FixupBranch m_skip_vertex;
-  Gen::OpArg GetVertexAddr(int array, VertexComponentFormat attribute);
+  Gen::OpArg GetVertexAddr(CPArray array, VertexComponentFormat attribute);
   int ReadVertex(Gen::OpArg data, VertexComponentFormat attribute, ComponentFormat format,
                  int count_in, int count_out, bool dequantize, u8 scaling_exponent,
                  AttributeFormat* native_format);

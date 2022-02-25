@@ -6,8 +6,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/HW/EXI/EXI.h"
 
 // English
 // This is just a template. Most/all fields are updated with sane(r) values at runtime.
@@ -72,8 +75,22 @@ void InitSRAM()
   }
 }
 
-void SetCardFlashID(const u8* buffer, u8 card_index)
+void SetCardFlashID(const u8* buffer, ExpansionInterface::Slot card_slot)
 {
+  u8 card_index;
+  switch (card_slot)
+  {
+  case ExpansionInterface::Slot::A:
+    card_index = 0;
+    break;
+  case ExpansionInterface::Slot::B:
+    card_index = 1;
+    break;
+  default:
+    PanicAlertFmt("Invalid memcard slot {}", card_slot);
+    return;
+  }
+
   u64 rand = Common::swap64(&buffer[12]);
   u8 csum = 0;
   for (int i = 0; i < 12; i++)

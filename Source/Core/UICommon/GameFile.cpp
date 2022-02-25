@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <iterator>
@@ -22,6 +21,7 @@
 #include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -43,6 +43,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/GameModDescriptor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
 
@@ -162,6 +163,34 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     m_is_nkit = false;
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
+  }
+
+  if (!IsValid() && GetExtension() == ".json")
+  {
+    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+    if (descriptor)
+    {
+      GameFile proxy(descriptor->base_file);
+      if (proxy.IsValid())
+      {
+        m_valid = true;
+        m_file_size = File::GetSize(m_file_path);
+        m_long_names.emplace(DiscIO::Language::English, std::move(descriptor->display_name));
+        if (!descriptor->maker.empty())
+          m_long_makers.emplace(DiscIO::Language::English, std::move(descriptor->maker));
+        m_internal_name = proxy.GetInternalName();
+        m_game_id = proxy.GetGameID();
+        m_gametdb_id = proxy.GetGameTDBID();
+        m_title_id = proxy.GetTitleID();
+        m_maker_id = proxy.GetMakerID();
+        m_region = proxy.GetRegion();
+        m_country = proxy.GetCountry();
+        m_platform = proxy.GetPlatform();
+        m_revision = proxy.GetRevision();
+        m_disc_number = proxy.GetDiscNumber();
+        m_blob_type = DiscIO::BlobType::MOD_DESCRIPTOR;
+      }
+    }
   }
 }
 
@@ -358,6 +387,7 @@ std::string GameFile::GetExtension() const
 {
   std::string extension;
   SplitPath(m_file_path, nullptr, nullptr, &extension);
+  Common::ToLower(&extension);
   return extension;
 }
 
@@ -470,6 +500,18 @@ bool GameFile::ReadPNGBanner(const std::string& path)
   return true;
 }
 
+bool GameFile::TryLoadGameModDescriptorBanner()
+{
+  if (m_blob_type != DiscIO::BlobType::MOD_DESCRIPTOR)
+    return false;
+
+  auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+  if (!descriptor)
+    return false;
+
+  return ReadPNGBanner(descriptor->banner);
+}
+
 bool GameFile::CustomBannerChanged()
 {
   std::string path, name;
@@ -482,8 +524,12 @@ bool GameFile::CustomBannerChanged()
     // Homebrew Channel icon naming. Typical for DOLs and ELFs, but we also support it for volumes.
     if (!ReadPNGBanner(path + "icon.png"))
     {
-      // If no custom icon is found, go back to the non-custom one.
-      m_pending.custom_banner = {};
+      // If it's a game mod descriptor file, it may specify its own custom banner.
+      if (!TryLoadGameModDescriptorBanner())
+      {
+        // If no custom icon is found, go back to the non-custom one.
+        m_pending.custom_banner = {};
+      }
     }
   }
 
@@ -499,6 +545,8 @@ const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) 
 {
   if (!m_custom_name.empty())
     return m_custom_name;
+  if (IsModDescriptor())
+    return GetName(Variant::LongAndPossiblyCustom);
 
   const std::string& database_name = title_database.GetTitleName(m_gametdb_id, GetConfigLanguage());
   return database_name.empty() ? GetName(Variant::LongAndPossiblyCustom) : database_name;
@@ -563,7 +611,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   int disc_number = GetDiscNumber() + 1;
 
   std::string lower_name = name;
-  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+  Common::ToLower(&lower_name);
   if (disc_number > 1 &&
       lower_name.find(fmt::format("disc {}", disc_number)) == std::string::npos &&
       lower_name.find(fmt::format("disc{}", disc_number)) == std::string::npos)
@@ -579,15 +627,75 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   return name + " (" + ss.str() + ")";
 }
 
+static std::array<u8, 20> GetHash(u32 value)
+{
+  auto data = Common::BitCastToArray<u8>(value);
+  std::array<u8, 20> hash;
+  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(data.data()), data.size(), hash.data());
+  return hash;
+}
+
+static std::array<u8, 20> GetHash(std::string_view str)
+{
+  std::array<u8, 20> hash;
+  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(str.data()), str.size(), hash.data());
+  return hash;
+}
+
+static std::optional<std::array<u8, 20>> GetFileHash(const std::string& path)
+{
+  std::string buffer;
+  if (!File::ReadFileToString(path, buffer))
+    return std::nullopt;
+  return GetHash(buffer);
+}
+
+static std::optional<std::array<u8, 20>> MixHash(const std::optional<std::array<u8, 20>>& lhs,
+                                                 const std::optional<std::array<u8, 20>>& rhs)
+{
+  if (!lhs && !rhs)
+    return std::nullopt;
+  if (!lhs || !rhs)
+    return !rhs ? lhs : rhs;
+  std::array<u8, 20> result;
+  for (size_t i = 0; i < result.size(); ++i)
+    result[i] = (*lhs)[i] ^ (*rhs)[(i + 1) % result.size()];
+  return result;
+}
+
 std::array<u8, 20> GameFile::GetSyncHash() const
 {
-  std::array<u8, 20> hash{};
+  std::optional<std::array<u8, 20>> hash;
 
   if (m_platform == DiscIO::Platform::ELFOrDOL)
   {
-    std::string buffer;
-    if (File::ReadFileToString(m_file_path, buffer))
-      mbedtls_sha1_ret(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), hash.data());
+    hash = GetFileHash(m_file_path);
+  }
+  else if (m_blob_type == DiscIO::BlobType::MOD_DESCRIPTOR)
+  {
+    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+    if (descriptor)
+    {
+      GameFile proxy(descriptor->base_file);
+      if (proxy.IsValid())
+        hash = proxy.GetSyncHash();
+
+      // add patches to hash if they're enabled
+      if (descriptor->riivolution)
+      {
+        for (const auto& patch : descriptor->riivolution->patches)
+        {
+          hash = MixHash(hash, GetFileHash(patch.xml));
+          for (const auto& option : patch.options)
+          {
+            hash = MixHash(hash, GetHash(option.section_name));
+            hash = MixHash(hash, GetHash(option.option_id));
+            hash = MixHash(hash, GetHash(option.option_name));
+            hash = MixHash(hash, GetHash(option.choice));
+          }
+        }
+      }
+    }
   }
   else
   {
@@ -595,7 +703,7 @@ std::array<u8, 20> GameFile::GetSyncHash() const
       hash = volume->GetSyncHash();
   }
 
-  return hash;
+  return hash.value_or(std::array<u8, 20>{});
 }
 
 NetPlay::SyncIdentifier GameFile::GetSyncIdentifier() const
@@ -652,6 +760,7 @@ bool GameFile::ShouldShowFileFormatDetails() const
   case DiscIO::BlobType::PLAIN:
     break;
   case DiscIO::BlobType::DRIVE:
+  case DiscIO::BlobType::MOD_DESCRIPTOR:
     return false;
   default:
     return true;
@@ -678,7 +787,7 @@ std::string GameFile::GetFileFormatName() const
   case DiscIO::Platform::ELFOrDOL:
   {
     std::string extension = GetExtension();
-    std::transform(extension.begin(), extension.end(), extension.begin(), ::toupper);
+    Common::ToUpper(&extension);
 
     // substr removes the dot
     return extension.substr(std::min<size_t>(1, extension.size()));
@@ -697,6 +806,11 @@ std::string GameFile::GetFileFormatName() const
 bool GameFile::ShouldAllowConversion() const
 {
   return DiscIO::IsDisc(m_platform) && m_volume_size_is_accurate;
+}
+
+bool GameFile::IsModDescriptor() const
+{
+  return m_blob_type == DiscIO::BlobType::MOD_DESCRIPTOR;
 }
 
 const GameBanner& GameFile::GetBannerImage() const

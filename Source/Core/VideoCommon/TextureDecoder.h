@@ -41,7 +41,7 @@ struct fmt::formatter<TextureFormat> : EnumFormatter<TextureFormat::CMPR>
   static constexpr array_type names = {"I4",     "I8",    "IA4",   "IA8",   "RGB565",
                                        "RGB5A3", "RGBA8", nullptr, "C4",    "C8",
                                        "C14X2",  nullptr, nullptr, nullptr, "CMPR"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 static inline bool IsColorIndexed(TextureFormat format)
@@ -103,7 +103,7 @@ struct fmt::formatter<EFBCopyFormat> : EnumFormatter<EFBCopyFormat::GB8>
       "R8/I8/Z8H", "G8/Z8M",        "B8/Z8L",  "RG8/Z16R (Note: G and R are reversed)",
       "GB8/Z16L",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class TLUTFormat
@@ -116,7 +116,7 @@ enum class TLUTFormat
 template <>
 struct fmt::formatter<TLUTFormat> : EnumFormatter<TLUTFormat::RGB5A3>
 {
-  formatter() : EnumFormatter({"IA8", "RGB565", "RGB5A3"}) {}
+  constexpr formatter() : EnumFormatter({"IA8", "RGB565", "RGB5A3"}) {}
 };
 
 static inline bool IsValidTLUTFormat(TLUTFormat tlutfmt)

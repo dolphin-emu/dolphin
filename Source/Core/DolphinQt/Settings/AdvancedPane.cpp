@@ -174,16 +174,14 @@ void AdvancedPane::ConnectLayout()
 {
   connect(m_cpu_emulation_engine_combobox,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [](int index) {
-            SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[index];
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
   connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
-          [](bool checked) { SConfig::GetInstance().bMMU = checked; });
+          [](bool checked) { Config::SetBaseOrCurrent(Config::MAIN_MMU, checked); });
 
-  m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
+  m_cpu_clock_override_checkbox->setChecked(Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
-    SConfig::GetInstance().m_OCEnable = enable_clock_override;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
     Update();
   });
@@ -191,7 +189,6 @@ void AdvancedPane::ConnectLayout()
   connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
     // Vaguely exponential scaling?
     const float factor = std::exp2f((m_cpu_clock_override_slider->value() - 100.f) / 25.f);
-    SConfig::GetInstance().m_OCFactor = factor;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
     Update();
   });
@@ -214,17 +211,18 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  m_custom_rtc_checkbox->setChecked(SConfig::GetInstance().bEnableCustomRTC);
+  m_custom_rtc_checkbox->setChecked(Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE));
   connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
-    SConfig::GetInstance().bEnableCustomRTC = enable_custom_rtc;
+    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_ENABLE, enable_custom_rtc);
     Update();
   });
 
   QDateTime initial_date_time;
-  initial_date_time.setSecsSinceEpoch(SConfig::GetInstance().m_customRTCValue);
+  initial_date_time.setSecsSinceEpoch(Config::Get(Config::MAIN_CUSTOM_RTC_VALUE));
   m_custom_rtc_datetime->setDateTime(initial_date_time);
   connect(m_custom_rtc_datetime, &QDateTimeEdit::dateTimeChanged, [this](QDateTime date_time) {
-    SConfig::GetInstance().m_customRTCValue = static_cast<u32>(date_time.toSecsSinceEpoch());
+    Config::SetBaseOrCurrent(Config::MAIN_CUSTOM_RTC_VALUE,
+                             static_cast<u32>(date_time.toSecsSinceEpoch()));
     Update();
   });
 }
@@ -232,19 +230,20 @@ void AdvancedPane::ConnectLayout()
 void AdvancedPane::Update()
 {
   const bool running = Core::GetState() != Core::State::Uninitialized;
-  const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable;
+  const bool enable_cpu_clock_override_widgets = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
   const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
-  const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
+  const bool enable_custom_rtc_widgets = Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE) && !running;
 
   const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
+  const auto cpu_core = Config::Get(Config::MAIN_CPU_CORE);
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
-    if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
+    if (available_cpu_cores[i] == cpu_core)
       m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
 
-  m_enable_mmu_checkbox->setChecked(SConfig::GetInstance().bMMU);
+  m_enable_mmu_checkbox->setChecked(Config::Get(Config::MAIN_MMU));
   m_enable_mmu_checkbox->setEnabled(!running);
 
   QFont bf = font();
@@ -258,14 +257,14 @@ void AdvancedPane::Update()
 
   {
     const QSignalBlocker blocker(m_cpu_clock_override_slider);
-    m_cpu_clock_override_slider->setValue(
-        static_cast<int>(std::round(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
+    m_cpu_clock_override_slider->setValue(static_cast<int>(
+        std::round(std::log2f(Config::Get(Config::MAIN_OVERCLOCK)) * 25.f + 100.f)));
   }
 
   m_cpu_clock_override_slider_label->setText([] {
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
-    int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
-    int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
+    int percent = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * 100.f));
+    int clock = static_cast<int>(std::round(Config::Get(Config::MAIN_OVERCLOCK) * core_clock));
     return tr("%1% (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
 

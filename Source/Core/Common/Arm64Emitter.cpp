@@ -1,17 +1,19 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/Arm64Emitter.h"
+
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstring>
 #include <optional>
 #include <tuple>
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Align.h"
-#include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
@@ -71,14 +73,16 @@ std::optional<u8> FPImm8FromFloat(float value)
 }
 }  // Anonymous namespace
 
-void ARM64XEmitter::SetCodePtrUnsafe(u8* ptr)
+void ARM64XEmitter::SetCodePtrUnsafe(u8* ptr, u8* end, bool write_failed)
 {
   m_code = ptr;
+  m_code_end = end;
+  m_write_failed = write_failed;
 }
 
 void ARM64XEmitter::SetCodePtr(u8* ptr, u8* end, bool write_failed)
 {
-  SetCodePtrUnsafe(ptr);
+  SetCodePtrUnsafe(ptr, end, write_failed);
   m_lastCacheFlushEnd = ptr;
 }
 
@@ -90,6 +94,16 @@ const u8* ARM64XEmitter::GetCodePtr() const
 u8* ARM64XEmitter::GetWritableCodePtr()
 {
   return m_code;
+}
+
+const u8* ARM64XEmitter::GetCodeEnd() const
+{
+  return m_code_end;
+}
+
+u8* ARM64XEmitter::GetWritableCodeEnd()
+{
+  return m_code_end;
 }
 
 void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
@@ -116,6 +130,13 @@ u8* ARM64XEmitter::AlignCodePage()
 
 void ARM64XEmitter::Write32(u32 value)
 {
+  if (m_code + sizeof(u32) > m_code_end)
+  {
+    m_code = m_code_end;
+    m_write_failed = true;
+    return;
+  }
+
   std::memcpy(m_code, &value, sizeof(u32));
   m_code += sizeof(u32);
 }
@@ -287,13 +308,12 @@ void ARM64XEmitter::EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr
   bool b64Bit = Is64Bit(Rt);
   s64 distance = (s64)ptr - (s64)m_code;
 
-  ASSERT_MSG(DYNA_REC, !(distance & 0x3), "%s: distance must be a multiple of 4: %" PRIx64,
-             __func__, distance);
+  ASSERT_MSG(DYNA_REC, !(distance & 0x3), "Distance must be a multiple of 4: {}", distance);
 
   distance >>= 2;
 
   ASSERT_MSG(DYNA_REC, distance >= -0x40000 && distance <= 0x3FFFF,
-             "%s: Received too large distance: %" PRIx64, __func__, distance);
+             "Received too large distance: {}", distance);
 
   Write32((b64Bit << 31) | (0x34 << 24) | (op << 24) | (((u32)distance << 5) & 0xFFFFE0) |
           DecodeReg(Rt));
@@ -305,13 +325,12 @@ void ARM64XEmitter::EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const voi
   u8 b5 = (bits >> 5) & 0x1;
   s64 distance = (s64)ptr - (s64)m_code;
 
-  ASSERT_MSG(DYNA_REC, !(distance & 0x3), "%s: distance must be a multiple of 4: %" PRIx64,
-             __func__, distance);
+  ASSERT_MSG(DYNA_REC, !(distance & 0x3), "distance must be a multiple of 4: {}", distance);
 
   distance >>= 2;
 
-  ASSERT_MSG(DYNA_REC, distance >= -0x3FFF && distance < 0x3FFF,
-             "%s: Received too large distance: %" PRIx64, __func__, distance);
+  ASSERT_MSG(DYNA_REC, distance >= -0x3FFF && distance < 0x3FFF, "Received too large distance: {}",
+             distance);
 
   Write32((b5 << 31) | (0x36 << 24) | (op << 24) | (b40 << 19) |
           ((static_cast<u32>(distance) << 5) & 0x7FFE0) | DecodeReg(Rt));
@@ -321,13 +340,12 @@ void ARM64XEmitter::EncodeUnconditionalBranchInst(u32 op, const void* ptr)
 {
   s64 distance = (s64)ptr - s64(m_code);
 
-  ASSERT_MSG(DYNA_REC, !(distance & 0x3), "%s: distance must be a multiple of 4: %" PRIx64,
-             __func__, distance);
+  ASSERT_MSG(DYNA_REC, !(distance & 0x3), "distance must be a multiple of 4: {}", distance);
 
   distance >>= 2;
 
   ASSERT_MSG(DYNA_REC, distance >= -0x2000000LL && distance <= 0x1FFFFFFLL,
-             "%s: Received too large distance: %" PRIx64, __func__, distance);
+             "Received too large distance: {}", distance);
 
   Write32((op << 31) | (0x5 << 26) | (distance & 0x3FFFFFF));
 }
@@ -339,8 +357,7 @@ void ARM64XEmitter::EncodeUnconditionalBranchInst(u32 opc, u32 op2, u32 op3, u32
 
 void ARM64XEmitter::EncodeExceptionInst(u32 instenc, u32 imm)
 {
-  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFFF), "%s: Exception instruction too large immediate: %d",
-             __func__, imm);
+  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFFF), "Exception instruction too large immediate: {}", imm);
 
   Write32((0xD4 << 24) | (ExcEnc[instenc][0] << 21) | (imm << 5) | (ExcEnc[instenc][1] << 2) |
           ExcEnc[instenc][2]);
@@ -375,8 +392,8 @@ void ARM64XEmitter::EncodeCondCompareImmInst(u32 op, ARM64Reg Rn, u32 imm, u32 n
 {
   bool b64Bit = Is64Bit(Rn);
 
-  ASSERT_MSG(DYNA_REC, !(imm & ~0x1F), "%s: too large immediate: %d", __func__, imm);
-  ASSERT_MSG(DYNA_REC, !(nzcv & ~0xF), "%s: Flags out of range: %d", __func__, nzcv);
+  ASSERT_MSG(DYNA_REC, !(imm & ~0x1F), "too large immediate: {}", imm);
+  ASSERT_MSG(DYNA_REC, !(nzcv & ~0xF), "Flags out of range: {}", nzcv);
 
   Write32((b64Bit << 31) | (op << 30) | (1 << 29) | (0xD2 << 21) | (imm << 16) | (cond << 12) |
           (1 << 11) | (DecodeReg(Rn) << 5) | nzcv);
@@ -387,7 +404,7 @@ void ARM64XEmitter::EncodeCondCompareRegInst(u32 op, ARM64Reg Rn, ARM64Reg Rm, u
 {
   bool b64Bit = Is64Bit(Rm);
 
-  ASSERT_MSG(DYNA_REC, !(nzcv & ~0xF), "%s: Flags out of range: %d", __func__, nzcv);
+  ASSERT_MSG(DYNA_REC, !(nzcv & ~0xF), "Flags out of range: {}", nzcv);
 
   Write32((b64Bit << 31) | (op << 30) | (1 << 29) | (0xD2 << 21) | (DecodeReg(Rm) << 16) |
           (cond << 12) | (DecodeReg(Rn) << 5) | nzcv);
@@ -444,7 +461,7 @@ void ARM64XEmitter::EncodeLoadRegisterInst(u32 bitop, ARM64Reg Rt, u32 imm)
   bool b64Bit = Is64Bit(Rt);
   bool bVec = IsVector(Rt);
 
-  ASSERT_MSG(DYNA_REC, !(imm & 0xFFFFF), "%s: offset too large %d", __func__, imm);
+  ASSERT_MSG(DYNA_REC, !(imm & 0xFFFFF), "offset too large {}", imm);
 
   if (b64Bit && bitop != 0x2)  // LDRSW(0x2) uses 64bit reg, doesn't have 64bit bit set
     bitop |= 0x1;
@@ -474,7 +491,7 @@ void ARM64XEmitter::EncodeLoadStorePairedInst(u32 op, ARM64Reg Rt, ARM64Reg Rt2,
   else
     imm >>= 2;
 
-  ASSERT_MSG(DYNA_REC, !(imm & ~0xF), "%s: offset too large %d", __func__, imm);
+  ASSERT_MSG(DYNA_REC, !(imm & ~0xF), "offset too large {}", imm);
 
   u32 opc = 0;
   if (b128Bit)
@@ -495,7 +512,7 @@ void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, u32 op2, ARM64Reg Rt, ARM
 
   u32 offset = imm & 0x1FF;
 
-  ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255), "%s: offset too large %d", __func__, imm);
+  ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255), "offset too large {}", imm);
 
   Write32((b64Bit << 30) | (op << 22) | (bVec << 26) | (offset << 12) | (op2 << 10) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rt));
@@ -513,10 +530,8 @@ void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn,
   else if (size == 16)
     imm >>= 1;
 
-  ASSERT_MSG(DYNA_REC, imm >= 0, "%s(IndexType::Unsigned): offset must be positive %d", __func__,
-             imm);
-  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFF), "%s(IndexType::Unsigned): offset too large %d", __func__,
-             imm);
+  ASSERT_MSG(DYNA_REC, imm >= 0, "(IndexType::Unsigned): offset must be positive {}", imm);
+  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFF), "(IndexType::Unsigned): offset too large {}", imm);
 
   Write32((b64Bit << 30) | (op << 22) | (bVec << 26) | (imm << 10) | (DecodeReg(Rn) << 5) |
           DecodeReg(Rt));
@@ -526,7 +541,7 @@ void ARM64XEmitter::EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount 
 {
   bool b64Bit = Is64Bit(Rd);
 
-  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFFF), "%s: immediate out of range: %d", __func__, imm);
+  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFFF), "immediate out of range: {}", imm);
 
   Write32((b64Bit << 31) | (op << 29) | (0x25 << 23) | (static_cast<u32>(pos) << 21) | (imm << 5) |
           DecodeReg(Rd));
@@ -554,7 +569,7 @@ void ARM64XEmitter::EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, 
 {
   bool b64Bit = Is64Bit(Rd);
 
-  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFF), "%s: immediate too large: %x", __func__, imm);
+  ASSERT_MSG(DYNA_REC, !(imm & ~0xFFF), "immediate too large: {}", imm);
 
   Write32((b64Bit << 31) | (op << 30) | (flags << 29) | (0x11 << 24) | (shift << 22) | (imm << 10) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -562,13 +577,14 @@ void ARM64XEmitter::EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, 
 
 void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm)
 {
-  ASSERT_MSG(DYNAREC, imm.valid, "Invalid logical immediate");
+  ASSERT_MSG(DYNA_REC, imm.valid, "Invalid logical immediate");
 
   // Sometimes Rd is fixed to SP, but can still be 32bit or 64bit.
   // Use Rn to determine bitness here.
   bool b64Bit = Is64Bit(Rn);
 
-  ASSERT_MSG(DYNAREC, b64Bit || !imm.n, "64-bit logical immediate does not fit in 32-bit register");
+  ASSERT_MSG(DYNA_REC, b64Bit || !imm.n,
+             "64-bit logical immediate does not fit in 32-bit register");
 
   Write32((b64Bit << 31) | (op << 29) | (0x24 << 23) | (imm.n << 22) | (imm.r << 16) |
           (imm.s << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -592,7 +608,7 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
     type_encode = 0b011;
     break;
   case IndexType::Unsigned:
-    ASSERT_MSG(DYNA_REC, false, "%s doesn't support IndexType::Unsigned!", __func__);
+    ASSERT_MSG(DYNA_REC, false, "IndexType::Unsigned is not supported!");
     break;
   }
 
@@ -606,7 +622,7 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
     imm >>= 2;
   }
 
-  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair!");
+  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair! {}", imm);
 
   Write32((op << 30) | (0b101 << 27) | (type_encode << 23) | (load << 22) | ((imm & 0x7F) << 15) |
           (DecodeReg(Rt2) << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rt));
@@ -619,8 +635,7 @@ void ARM64XEmitter::EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm)
 
 void ARM64XEmitter::EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255), "%s received too large offset: %d", __func__,
-             imm);
+  ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255), "offset too large: {}", imm);
 
   Write32((size << 30) | (0b111 << 27) | (op << 22) | ((imm & 0x1FF) << 12) | (DecodeReg(Rn) << 5) |
           DecodeReg(Rt));
@@ -659,6 +674,9 @@ static constexpr u32 MaskImm26(s64 distance)
 // FixupBranch branching
 void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 {
+  if (!branch.ptr)
+    return;
+
   bool Not = false;
   u32 inst = 0;
   s64 distance = (s64)(m_code - branch.ptr);
@@ -671,16 +689,18 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
     [[fallthrough]];
   case FixupBranch::Type::CBZ:
   {
-    ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, static_cast<int>(branch.type), distance);
+    ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     const bool b64Bit = Is64Bit(branch.reg);
     inst = (b64Bit << 31) | (0x1A << 25) | (Not << 24) | (MaskImm19(distance) << 5) |
            DecodeReg(branch.reg);
   }
   break;
   case FixupBranch::Type::BConditional:
-    ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, static_cast<int>(branch.type), distance);
+    ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = (0x2A << 25) | (MaskImm19(distance) << 5) | branch.cond;
     break;
   case FixupBranch::Type::TBNZ:
@@ -688,20 +708,23 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
     [[fallthrough]];
   case FixupBranch::Type::TBZ:
   {
-    ASSERT_MSG(DYNA_REC, IsInRangeImm14(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, static_cast<int>(branch.type), distance);
+    ASSERT_MSG(DYNA_REC, IsInRangeImm14(distance),
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = ((branch.bit & 0x20) << 26) | (0x1B << 25) | (Not << 24) | ((branch.bit & 0x1F) << 19) |
            (MaskImm14(distance) << 5) | DecodeReg(branch.reg);
   }
   break;
   case FixupBranch::Type::B:
-    ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, static_cast<int>(branch.type), distance);
+    ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance),
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = (0x5 << 26) | MaskImm26(distance);
     break;
   case FixupBranch::Type::BL:
-    ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
-               __func__, static_cast<int>(branch.type), distance);
+    ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance),
+               "Branch type {}: Received too large distance: {}", static_cast<int>(branch.type),
+               distance);
     inst = (0x25 << 26) | MaskImm26(distance);
     break;
   }
@@ -709,67 +732,68 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
   std::memcpy(branch.ptr, &inst, sizeof(inst));
 }
 
-FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
+FixupBranch ARM64XEmitter::WriteFixupBranch()
 {
   FixupBranch branch{};
   branch.ptr = m_code;
+  BRK(0);
+
+  // If we couldn't write the full jump instruction, indicate that in the returned FixupBranch by
+  // setting the branch's address to null. This will prevent a later SetJumpTarget() from writing to
+  // invalid memory.
+  if (HasWriteFailed())
+    branch.ptr = nullptr;
+
+  return branch;
+}
+
+FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
+{
+  FixupBranch branch = WriteFixupBranch();
   branch.type = FixupBranch::Type::CBZ;
   branch.reg = Rt;
-  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
 {
-  FixupBranch branch{};
-  branch.ptr = m_code;
+  FixupBranch branch = WriteFixupBranch();
   branch.type = FixupBranch::Type::CBNZ;
   branch.reg = Rt;
-  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B(CCFlags cond)
 {
-  FixupBranch branch{};
-  branch.ptr = m_code;
+  FixupBranch branch = WriteFixupBranch();
   branch.type = FixupBranch::Type::BConditional;
   branch.cond = cond;
-  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
 {
-  FixupBranch branch{};
-  branch.ptr = m_code;
+  FixupBranch branch = WriteFixupBranch();
   branch.type = FixupBranch::Type::TBZ;
   branch.reg = Rt;
   branch.bit = bit;
-  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
 {
-  FixupBranch branch{};
-  branch.ptr = m_code;
+  FixupBranch branch = WriteFixupBranch();
   branch.type = FixupBranch::Type::TBNZ;
   branch.reg = Rt;
   branch.bit = bit;
-  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::B()
 {
-  FixupBranch branch{};
-  branch.ptr = m_code;
+  FixupBranch branch = WriteFixupBranch();
   branch.type = FixupBranch::Type::B;
-  NOP();
   return branch;
 }
 FixupBranch ARM64XEmitter::BL()
 {
-  FixupBranch branch{};
-  branch.ptr = m_code;
+  FixupBranch branch = WriteFixupBranch();
   branch.type = FixupBranch::Type::BL;
-  NOP();
   return branch;
 }
 
@@ -791,7 +815,7 @@ void ARM64XEmitter::B(CCFlags cond, const void* ptr)
   distance >>= 2;
 
   ASSERT_MSG(DYNA_REC, IsInRangeImm19(distance),
-             "%s: Received too large distance: %p->%p %" PRIi64 " %" PRIx64, __func__, m_code, ptr,
+             "Received too large distance: {}->{} (dist {} {:#x})", fmt::ptr(m_code), fmt::ptr(ptr),
              distance, distance);
   Write32((0x54 << 24) | (MaskImm19(distance) << 5) | cond);
 }
@@ -1410,24 +1434,21 @@ void ARM64XEmitter::BFI(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
 {
   u32 size = Is64Bit(Rn) ? 64 : 32;
   ASSERT_MSG(DYNA_REC, lsb < size && width >= 1 && width <= size - lsb,
-             "%s passed lsb %d and width %d which is greater than the register size!", __func__,
-             lsb, width);
+             "lsb {} and width {} is greater than the register size {}!", lsb, width, size);
   BFM(Rd, Rn, (size - lsb) % size, width - 1);
 }
 void ARM64XEmitter::BFXIL(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
 {
   u32 size = Is64Bit(Rn) ? 64 : 32;
   ASSERT_MSG(DYNA_REC, lsb < size && width >= 1 && width <= size - lsb,
-             "%s passed lsb %d and width %d which is greater than the register size!", __func__,
-             lsb, width);
+             "lsb {} and width {} is greater than the register size {}!", lsb, width, size);
   BFM(Rd, Rn, lsb, lsb + width - 1);
 }
 void ARM64XEmitter::UBFIZ(ARM64Reg Rd, ARM64Reg Rn, u32 lsb, u32 width)
 {
   u32 size = Is64Bit(Rn) ? 64 : 32;
   ASSERT_MSG(DYNA_REC, lsb < size && width >= 1 && width <= size - lsb,
-             "%s passed lsb %d and width %d which is greater than the register size!", __func__,
-             lsb, width);
+             "lsb {} and width {} is greater than the register size {}!", lsb, width, size);
   UBFM(Rd, Rn, (size - lsb) % size, width - 1);
 }
 void ARM64XEmitter::EXTR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u32 shift)
@@ -1448,7 +1469,7 @@ void ARM64XEmitter::SXTH(ARM64Reg Rd, ARM64Reg Rn)
 }
 void ARM64XEmitter::SXTW(ARM64Reg Rd, ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "%s requires 64bit register as destination", __func__);
+  ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "64bit register required as destination");
   SBFM(Rd, Rn, 0, 31);
 }
 void ARM64XEmitter::UXTB(ARM64Reg Rd, ARM64Reg Rn)
@@ -1739,7 +1760,7 @@ void ARM64XEmitter::LDUR(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 }
 void ARM64XEmitter::LDURSW(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  ASSERT_MSG(DYNA_REC, !Is64Bit(Rt), "%s must have a 64bit destination register!", __func__);
+  ASSERT_MSG(DYNA_REC, !Is64Bit(Rt), "Must have a 64bit destination register!");
   EncodeLoadStoreUnscaled(2, 2, Rt, Rn, imm);
 }
 
@@ -1945,12 +1966,12 @@ bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
   MOVI2R(Rd, imm1);
   int size1 = GetCodePtr() - start_pointer;
 
-  SetCodePtrUnsafe(start_pointer);
+  m_code = start_pointer;
 
   MOVI2R(Rd, imm2);
   int size2 = GetCodePtr() - start_pointer;
 
-  SetCodePtrUnsafe(start_pointer);
+  m_code = start_pointer;
 
   bool element = size1 > size2;
 
@@ -1991,7 +2012,7 @@ void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
     STP(IndexType::Signed, odd_reg, even_reg, ARM64Reg::SP, 16 * (i + 1));
   }
 
-  ASSERT_MSG(DYNA_REC, it == registers.end(), "%s registers don't match.", __func__);
+  ASSERT_MSG(DYNA_REC, it == registers.end(), "Registers don't match: {:b}", registers.m_val);
 }
 
 void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
@@ -2028,7 +2049,7 @@ void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
   else
     LDP(IndexType::Post, first, second, ARM64Reg::SP, stack_size);
 
-  ASSERT_MSG(DYNA_REC, it == registers.end(), "%s registers don't match.", __func__);
+  ASSERT_MSG(DYNA_REC, it == registers.end(), "Registers don't match: {:b}", registers.m_val);
 }
 
 // Float Emitter
@@ -2052,10 +2073,10 @@ void ARM64FloatEmitter::EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type,
   if (type == IndexType::Unsigned)
   {
     ASSERT_MSG(DYNA_REC, !(imm & ((size - 1) >> 3)),
-               "%s(IndexType::Unsigned) immediate offset must be aligned to size! (%d) (%p)",
-               __func__, imm, m_emit->GetCodePtr());
-    ASSERT_MSG(DYNA_REC, imm >= 0, "%s(IndexType::Unsigned) immediate offset must be positive!",
-               __func__);
+               "(IndexType::Unsigned) immediate offset must be aligned to size! ({}) ({})", imm,
+               fmt::ptr(m_emit->GetCodePtr()));
+    ASSERT_MSG(DYNA_REC, imm >= 0, "(IndexType::Unsigned) immediate offset must be positive! ({})",
+               imm);
     if (size == 16)
       imm >>= 1;
     else if (size == 32)
@@ -2069,7 +2090,7 @@ void ARM64FloatEmitter::EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type,
   else
   {
     ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255),
-               "%s immediate offset must be within range of -256 to 256!", __func__);
+               "immediate offset must be within range of -256 to 256! {}", imm);
     encoded_imm = (imm & 0x1FF) << 2;
     if (type == IndexType::Post)
       encoded_imm |= 1;
@@ -2085,7 +2106,7 @@ void ARM64FloatEmitter::EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type,
 void ARM64FloatEmitter::EmitScalar2Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd,
                                           ARM64Reg Rn, ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "%s only supports double and single registers!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "Only double and single registers are supported!");
 
   Write32((M << 31) | (S << 29) | (0b11110001 << 21) | (type << 22) | (DecodeReg(Rm) << 16) |
           (opcode << 12) | (1 << 11) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -2094,7 +2115,7 @@ void ARM64FloatEmitter::EmitScalar2Source(bool M, bool S, u32 type, u32 opcode, 
 void ARM64FloatEmitter::EmitScalarThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn,
                                             ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "%s only supports double and single registers!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "Only double and single registers are supported!");
 
   Write32((1 << 30) | (U << 29) | (0b11110001 << 21) | (size << 22) | (DecodeReg(Rm) << 16) |
           (opcode << 11) | (1 << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -2103,7 +2124,7 @@ void ARM64FloatEmitter::EmitScalarThreeSame(bool U, u32 size, u32 opcode, ARM64R
 void ARM64FloatEmitter::EmitThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn,
                                       ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "%s doesn't support singles!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "Singles are not supported!");
   bool quad = IsQuad(Rd);
 
   Write32((quad << 30) | (U << 29) | (0b1110001 << 21) | (size << 22) | (DecodeReg(Rm) << 16) |
@@ -2124,7 +2145,7 @@ void ARM64FloatEmitter::EmitScalar2RegMisc(bool U, u32 size, u32 opcode, ARM64Re
 
 void ARM64FloatEmitter::Emit2RegMisc(bool Q, bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "%s doesn't support singles!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "Singles are not supported!");
 
   Write32((Q << 30) | (U << 29) | (0b1110001 << 21) | (size << 22) | (opcode << 12) | (1 << 11) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -2133,7 +2154,7 @@ void ARM64FloatEmitter::Emit2RegMisc(bool Q, bool U, u32 size, u32 opcode, ARM64
 void ARM64FloatEmitter::EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size,
                                                      ARM64Reg Rt, ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, !IsSingle(Rt), "%s doesn't support singles!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsSingle(Rt), "Singles are not supported!");
   bool quad = IsQuad(Rt);
 
   Write32((quad << 30) | (0b1101 << 24) | (L << 22) | (R << 21) | (opcode << 13) | (S << 12) |
@@ -2143,7 +2164,7 @@ void ARM64FloatEmitter::EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode,
 void ARM64FloatEmitter::EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size,
                                                      ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !IsSingle(Rt), "%s doesn't support singles!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsSingle(Rt), "Singles are not supported!");
   bool quad = IsQuad(Rt);
 
   Write32((quad << 30) | (0x1B << 23) | (L << 22) | (R << 21) | (DecodeReg(Rm) << 16) |
@@ -2152,7 +2173,7 @@ void ARM64FloatEmitter::EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode,
 
 void ARM64FloatEmitter::Emit1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "%s doesn't support vector!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "Vector is not supported!");
 
   Write32((M << 31) | (S << 29) | (0xF1 << 21) | (type << 22) | (opcode << 15) | (1 << 14) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -2161,7 +2182,7 @@ void ARM64FloatEmitter::Emit1Source(bool M, bool S, u32 type, u32 opcode, ARM64R
 void ARM64FloatEmitter::EmitConversion(bool sf, bool S, u32 type, u32 rmode, u32 opcode,
                                        ARM64Reg Rd, ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, Rn <= ARM64Reg::SP, "%s only supports GPR as source!", __func__);
+  ASSERT_MSG(DYNA_REC, Rn <= ARM64Reg::SP, "Only GPRs are supported as source!");
 
   Write32((sf << 31) | (S << 29) | (0xF1 << 21) | (type << 22) | (rmode << 19) | (opcode << 16) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -2248,7 +2269,7 @@ void ARM64FloatEmitter::EmitConversion2(bool sf, bool S, bool direction, u32 typ
 
 void ARM64FloatEmitter::EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Reg Rn, ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !IsQuad(Rn), "%s doesn't support vector!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rn), "Vector is not supported!");
   bool is_double = IsDouble(Rn);
 
   Write32((M << 31) | (S << 29) | (0xF1 << 21) | (is_double << 22) | (DecodeReg(Rm) << 16) |
@@ -2258,7 +2279,7 @@ void ARM64FloatEmitter::EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Re
 void ARM64FloatEmitter::EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd, ARM64Reg Rn,
                                        ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "%s doesn't support vector!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "Vector is not supported!");
   bool is_double = IsDouble(Rd);
 
   Write32((M << 31) | (S << 29) | (0xF1 << 21) | (is_double << 22) | (DecodeReg(Rm) << 16) |
@@ -2267,7 +2288,7 @@ void ARM64FloatEmitter::EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd
 
 void ARM64FloatEmitter::EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "%s doesn't support singles!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsSingle(Rd), "Singles are not supported!");
 
   bool quad = IsQuad(Rd);
 
@@ -2285,7 +2306,7 @@ void ARM64FloatEmitter::EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, 
 
 void ARM64FloatEmitter::EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm8)
 {
-  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "%s doesn't support vector!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "Vector is not supported!");
 
   bool is_double = !IsSingle(Rd);
 
@@ -2296,7 +2317,7 @@ void ARM64FloatEmitter::EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64R
 void ARM64FloatEmitter::EmitShiftImm(bool Q, bool U, u32 immh, u32 immb, u32 opcode, ARM64Reg Rd,
                                      ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, immh, "%s bad encoding! Can't have zero immh", __func__);
+  ASSERT_MSG(DYNA_REC, immh != 0, "Can't have zero immh");
 
   Write32((Q << 30) | (U << 29) | (0xF << 24) | (immh << 19) | (immb << 16) | (opcode << 11) |
           (1 << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -2346,7 +2367,7 @@ void ARM64FloatEmitter::EmitLoadStoreMultipleStructurePost(u32 size, bool L, u32
 void ARM64FloatEmitter::EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd,
                                           ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "%s doesn't support vector!", __func__);
+  ASSERT_MSG(DYNA_REC, !IsQuad(Rd), "Vector is not supported!");
 
   Write32((M << 31) | (S << 29) | (0xF1 << 21) | (type << 22) | (opcode << 15) | (1 << 14) |
           (DecodeReg(Rn) << 5) | DecodeReg(Rd));
@@ -2364,8 +2385,7 @@ void ARM64FloatEmitter::EmitVectorxElement(bool U, u32 size, bool L, u32 opcode,
 
 void ARM64FloatEmitter::EmitLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
-  ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255), "%s received too large offset: %d", __func__,
-             imm);
+  ASSERT_MSG(DYNA_REC, !(imm < -256 || imm > 255), "received too large offset: {}", imm);
 
   Write32((size << 30) | (0xF << 26) | (op << 22) | ((imm & 0x1FF) << 12) | (DecodeReg(Rn) << 5) |
           DecodeReg(Rt));
@@ -2389,30 +2409,30 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
     type_encode = 0b011;
     break;
   case IndexType::Unsigned:
-    ASSERT_MSG(DYNA_REC, false, "%s doesn't support IndexType::Unsigned!", __func__);
+    ASSERT_MSG(DYNA_REC, false, "IndexType::Unsigned is unsupported!");
     break;
   }
 
   if (size == 128)
   {
-    ASSERT_MSG(DYNA_REC, !(imm & 0xF), "%s received invalid offset 0x%x!", __func__, imm);
+    ASSERT_MSG(DYNA_REC, !(imm & 0xF), "Invalid offset {:#x}! (size {})", imm, size);
     opc = 2;
     imm >>= 4;
   }
   else if (size == 64)
   {
-    ASSERT_MSG(DYNA_REC, !(imm & 0x7), "%s received invalid offset 0x%x!", __func__, imm);
+    ASSERT_MSG(DYNA_REC, !(imm & 0x7), "Invalid offset {:#x}! (size {})", imm, size);
     opc = 1;
     imm >>= 3;
   }
   else if (size == 32)
   {
-    ASSERT_MSG(DYNA_REC, !(imm & 0x3), "%s received invalid offset 0x%x!", __func__, imm);
+    ASSERT_MSG(DYNA_REC, !(imm & 0x3), "Invalid offset {:#x}! (size {})", imm, size);
     opc = 0;
     imm >>= 2;
   }
 
-  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair!");
+  ASSERT_MSG(DYNA_REC, imm >= -64 && imm < 64, "imm too large for load/store pair! {}", imm);
 
   Write32((opc << 30) | (0b1011 << 26) | (type_encode << 23) | (load << 22) | ((imm & 0x7F) << 15) |
           (DecodeReg(Rt2) << 10) | (DecodeReg(Rn) << 5) | DecodeReg(Rt));
@@ -2421,7 +2441,7 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
 void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64Reg Rt, ARM64Reg Rn,
                                                       ArithOption Rm)
 {
-  ASSERT_MSG(DYNA_REC, Rm.IsExtended(), "%s must contain an extended reg as Rm!", __func__);
+  ASSERT_MSG(DYNA_REC, Rm.IsExtended(), "Must contain an extended reg as Rm!");
 
   u32 encoded_size = 0;
   u32 encoded_op = 0;
@@ -2779,8 +2799,8 @@ void ARM64FloatEmitter::ST1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn, ARM64Re
 // Loadstore multiple structure
 void ARM64FloatEmitter::LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!",
-             __func__);
+  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "Must have a count of 1 to 4 registers! ({})",
+             count);
   u32 opcode = 0;
   if (count == 1)
     opcode = 0b111;
@@ -2795,9 +2815,9 @@ void ARM64FloatEmitter::LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 void ARM64FloatEmitter::LD1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn,
                             ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!",
-             __func__);
-  ASSERT_MSG(DYNA_REC, type == IndexType::Post, "%s only supports post indexing!", __func__);
+  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "Must have a count of 1 to 4 registers! ({})",
+             count);
+  ASSERT_MSG(DYNA_REC, type == IndexType::Post, "Only post indexing is supported!");
 
   u32 opcode = 0;
   if (count == 1)
@@ -2812,8 +2832,8 @@ void ARM64FloatEmitter::LD1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM6
 }
 void ARM64FloatEmitter::ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 {
-  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!",
-             __func__);
+  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "Must have a count of 1 to 4 registers! ({})",
+             count);
   u32 opcode = 0;
   if (count == 1)
     opcode = 0b111;
@@ -2828,9 +2848,9 @@ void ARM64FloatEmitter::ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 void ARM64FloatEmitter::ST1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn,
                             ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!",
-             __func__);
-  ASSERT_MSG(DYNA_REC, type == IndexType::Post, "%s only supports post indexing!", __func__);
+  ASSERT_MSG(DYNA_REC, !(count == 0 || count > 4), "Must have a count of 1 to 4 registers! ({})",
+             count);
+  ASSERT_MSG(DYNA_REC, type == IndexType::Post, "Only post indexing is supporte!");
 
   u32 opcode = 0;
   if (count == 1)
@@ -2913,6 +2933,10 @@ void ARM64FloatEmitter::FSQRT(ARM64Reg Rd, ARM64Reg Rn)
 {
   EmitScalar1Source(0, 0, IsDouble(Rd), 3, Rd, Rn);
 }
+void ARM64FloatEmitter::FRINTI(ARM64Reg Rd, ARM64Reg Rn)
+{
+  EmitScalar1Source(0, 0, IsDouble(Rd), 15, Rd, Rn);
+}
 
 void ARM64FloatEmitter::FRECPE(ARM64Reg Rd, ARM64Reg Rn)
 {
@@ -2926,7 +2950,7 @@ void ARM64FloatEmitter::FRSQRTE(ARM64Reg Rd, ARM64Reg Rn)
 // Scalar - 2 Source
 void ARM64FloatEmitter::ADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-  ASSERT_MSG(DYNA_REC, IsDouble(Rd), "%s only supports double registers!", __func__);
+  ASSERT_MSG(DYNA_REC, IsDouble(Rd), "Only double registers are supported!");
   EmitScalarThreeSame(0, 3, 0b10000, Rd, Rn, Rm);
 }
 void ARM64FloatEmitter::FADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
@@ -3264,9 +3288,9 @@ void ARM64FloatEmitter::INS(u8 size, ARM64Reg Rd, u8 index1, ARM64Reg Rn, u8 ind
 void ARM64FloatEmitter::UMOV(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index)
 {
   bool b64Bit = Is64Bit(Rd);
-  ASSERT_MSG(DYNA_REC, Rd < ARM64Reg::SP, "%s destination must be a GPR!", __func__);
+  ASSERT_MSG(DYNA_REC, Rd < ARM64Reg::SP, "Destination must be a GPR!");
   ASSERT_MSG(DYNA_REC, !(b64Bit && size != 64),
-             "%s must have a size of 64 when destination is 64bit!", __func__);
+             "Must have a size of 64 when destination is 64bit!");
   u32 imm5 = 0;
 
   if (size == 8)
@@ -3295,8 +3319,8 @@ void ARM64FloatEmitter::UMOV(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index)
 void ARM64FloatEmitter::SMOV(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index)
 {
   bool b64Bit = Is64Bit(Rd);
-  ASSERT_MSG(DYNA_REC, Rd < ARM64Reg::SP, "%s destination must be a GPR!", __func__);
-  ASSERT_MSG(DYNA_REC, size != 64, "%s doesn't support 64bit destination. Use UMOV!", __func__);
+  ASSERT_MSG(DYNA_REC, Rd < ARM64Reg::SP, "Destination must be a GPR!");
+  ASSERT_MSG(DYNA_REC, size != 64, "SMOV doesn't support 64bit destination. Use UMOV!");
   u32 imm5 = 0;
 
   if (size == 8)
@@ -3534,8 +3558,8 @@ void ARM64FloatEmitter::UXTL2(u8 src_size, ARM64Reg Rd, ARM64Reg Rn)
 
 void ARM64FloatEmitter::SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, bool upper)
 {
-  ASSERT_MSG(DYNA_REC, shift < src_size, "%s shift amount must less than the element size!",
-             __func__);
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+             shift, src_size);
   u32 immh = 0;
   u32 immb = shift & 0xFFF;
 
@@ -3557,8 +3581,8 @@ void ARM64FloatEmitter::SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, 
 
 void ARM64FloatEmitter::USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, bool upper)
 {
-  ASSERT_MSG(DYNA_REC, shift < src_size, "%s shift amount must less than the element size!",
-             __func__);
+  ASSERT_MSG(DYNA_REC, shift < src_size, "Shift amount must less than the element size! {} {}",
+             shift, src_size);
   u32 immh = 0;
   u32 immb = shift & 0xFFF;
 
@@ -3580,8 +3604,8 @@ void ARM64FloatEmitter::USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, 
 
 void ARM64FloatEmitter::SHRN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift, bool upper)
 {
-  ASSERT_MSG(DYNA_REC, shift < dest_size, "%s shift amount must less than the element size!",
-             __func__);
+  ASSERT_MSG(DYNA_REC, shift < dest_size, "Shift amount must less than the element size! {} {}",
+             shift, dest_size);
   u32 immh = 0;
   u32 immb = shift & 0xFFF;
 
@@ -3614,7 +3638,8 @@ void ARM64FloatEmitter::UXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, bool upper)
 // vector x indexed element
 void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index)
 {
-  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "%s only supports 32bit or 64bit size!", __func__);
+  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "Only 32bit or 64bit sizes are supported! {}",
+             size);
 
   bool L = false;
   bool H = false;
@@ -3633,7 +3658,8 @@ void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 
 void ARM64FloatEmitter::FMLA(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index)
 {
-  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "%s only supports 32bit or 64bit size!", __func__);
+  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "Only 32bit or 64bit sizes are supported! {}",
+             size);
 
   bool L = false;
   bool H = false;
@@ -3659,14 +3685,14 @@ void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
   u8 abcdefgh = imm & 0xFF;
   if (size == 8)
   {
-    ASSERT_MSG(DYNA_REC, shift == 0, "%s(size8) doesn't support shift!", __func__);
-    ASSERT_MSG(DYNA_REC, !(imm & ~0xFFULL), "%s(size8) only supports 8bit values!", __func__);
+    ASSERT_MSG(DYNA_REC, shift == 0, "size8 doesn't support shift! ({})", shift);
+    ASSERT_MSG(DYNA_REC, !(imm & ~0xFFULL), "size8 only supports 8bit values! ({})", imm);
   }
   else if (size == 16)
   {
-    ASSERT_MSG(DYNA_REC, shift == 0 || shift == 8, "%s(size16) only supports shift of {0, 8}!",
-               __func__);
-    ASSERT_MSG(DYNA_REC, !(imm & ~0xFFULL), "%s(size16) only supports 8bit values!", __func__);
+    ASSERT_MSG(DYNA_REC, shift == 0 || shift == 8, "size16 only supports shift of 0 or 8! ({})",
+               shift);
+    ASSERT_MSG(DYNA_REC, !(imm & ~0xFFULL), "size16 only supports 8bit values! ({})", imm);
 
     if (shift == 8)
       cmode |= 2;
@@ -3674,9 +3700,9 @@ void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
   else if (size == 32)
   {
     ASSERT_MSG(DYNA_REC, shift == 0 || shift == 8 || shift == 16 || shift == 24,
-               "%s(size32) only supports shift of {0, 8, 16, 24}!", __func__);
+               "size32 only supports shift of 0, 8, 16, or 24! ({})", shift);
     // XXX: Implement support for MOVI - shifting ones variant
-    ASSERT_MSG(DYNA_REC, !(imm & ~0xFFULL), "%s(size32) only supports 8bit values!", __func__);
+    ASSERT_MSG(DYNA_REC, !(imm & ~0xFFULL), "size32 only supports 8bit values! ({})", imm);
     switch (shift)
     {
     case 8:
@@ -3694,7 +3720,7 @@ void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
   }
   else  // 64
   {
-    ASSERT_MSG(DYNA_REC, shift == 0, "%s(size64) doesn't support shift!", __func__);
+    ASSERT_MSG(DYNA_REC, shift == 0, "size64 doesn't support shift! ({})", shift);
 
     op = 1;
     cmode = 0xE;
@@ -3702,7 +3728,8 @@ void ARM64FloatEmitter::MOVI(u8 size, ARM64Reg Rd, u64 imm, u8 shift)
     for (int i = 0; i < 8; ++i)
     {
       u8 tmp = (imm >> (i << 3)) & 0xFF;
-      ASSERT_MSG(DYNA_REC, tmp == 0xFF || tmp == 0, "%s(size64) Invalid immediate!", __func__);
+      ASSERT_MSG(DYNA_REC, tmp == 0xFF || tmp == 0, "size64 Invalid immediate! ({} -> {})", imm,
+                 tmp);
       if (tmp == 0xFF)
         abcdefgh |= (1 << i);
     }
@@ -3716,8 +3743,8 @@ void ARM64FloatEmitter::ORR_BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift, u8 op)
   u8 cmode = 1;
   if (size == 16)
   {
-    ASSERT_MSG(DYNA_REC, shift == 0 || shift == 8, "%s(size16) only supports shift of {0, 8}!",
-               __func__);
+    ASSERT_MSG(DYNA_REC, shift == 0 || shift == 8, "size16 only supports shift of 0 or 8! {}",
+               shift);
 
     if (shift == 8)
       cmode |= 2;
@@ -3725,7 +3752,7 @@ void ARM64FloatEmitter::ORR_BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift, u8 op)
   else if (size == 32)
   {
     ASSERT_MSG(DYNA_REC, shift == 0 || shift == 8 || shift == 16 || shift == 24,
-               "%s(size32) only supports shift of {0, 8, 16, 24}!", __func__);
+               "size32 only supports shift of 0, 8, 16, or 24! ({})", shift);
     // XXX: Implement support for MOVI - shifting ones variant
     switch (shift)
     {
@@ -3744,7 +3771,7 @@ void ARM64FloatEmitter::ORR_BIC(u8 size, ARM64Reg Rd, u8 imm, u8 shift, u8 op)
   }
   else
   {
-    ASSERT_MSG(DYNA_REC, false, "%s only supports size of {16, 32}!", __func__);
+    ASSERT_MSG(DYNA_REC, false, "Only size of 16 or 32 is supported! ({})", size);
   }
   EncodeModImm(Q, op, cmode, 0, Rd, imm);
 }
@@ -3936,8 +3963,8 @@ void ARM64XEmitter::ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   else
   {
     ASSERT_MSG(DYNA_REC, scratch != ARM64Reg::INVALID_REG,
-               "ANDI2R - failed to construct logical immediate value from %08x, need scratch",
-               (u32)imm);
+               "ANDI2R - failed to construct logical immediate value from {:#10x}, need scratch",
+               imm);
     MOVI2R(scratch, imm);
     AND(Rd, Rn, scratch);
   }
@@ -3952,8 +3979,8 @@ void ARM64XEmitter::ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   else
   {
     ASSERT_MSG(DYNA_REC, scratch != ARM64Reg::INVALID_REG,
-               "ORRI2R - failed to construct logical immediate value from %08x, need scratch",
-               (u32)imm);
+               "ORRI2R - failed to construct logical immediate value from {:#10x}, need scratch",
+               imm);
     MOVI2R(scratch, imm);
     ORR(Rd, Rn, scratch);
   }
@@ -3968,8 +3995,8 @@ void ARM64XEmitter::EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   else
   {
     ASSERT_MSG(DYNA_REC, scratch != ARM64Reg::INVALID_REG,
-               "EORI2R - failed to construct logical immediate value from %08x, need scratch",
-               (u32)imm);
+               "EORI2R - failed to construct logical immediate value from {:#10x}, need scratch",
+               imm);
     MOVI2R(scratch, imm);
     EOR(Rd, Rn, scratch);
   }
@@ -3984,8 +4011,8 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   else
   {
     ASSERT_MSG(DYNA_REC, scratch != ARM64Reg::INVALID_REG,
-               "ANDSI2R - failed to construct logical immediate value from %08x, need scratch",
-               (u32)imm);
+               "ANDSI2R - failed to construct logical immediate value from {:#10x}, need scratch",
+               imm);
     MOVI2R(scratch, imm);
     ANDS(Rd, Rn, scratch);
   }
@@ -4057,8 +4084,8 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
   }
 
   ASSERT_MSG(DYNA_REC, has_scratch,
-             "ADDI2R - failed to construct arithmetic immediate value from %08x, need scratch",
-             (u32)imm);
+             "ADDI2R - failed to construct arithmetic immediate value from {:#10x}, need scratch",
+             imm);
 
   negative ^= MOVI2R2(scratch, imm, imm_neg);
   if (!negative)
@@ -4190,7 +4217,7 @@ void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool 
   else
   {
     ASSERT_MSG(DYNA_REC, scratch != ARM64Reg::INVALID_REG,
-               "Failed to find a way to generate FP immediate %f without scratch", value);
+               "Failed to find a way to generate FP immediate {} without scratch", value);
     if (negate)
       value = -value;
 

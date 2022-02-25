@@ -22,7 +22,9 @@ void AddLayer(std::unique_ptr<ConfigLayerLoader> loader);
 std::shared_ptr<Layer> GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 
-void AddConfigChangedCallback(ConfigChangedCallback func);
+// returns an ID that can be passed to RemoveConfigChangedCallback()
+size_t AddConfigChangedCallback(ConfigChangedCallback func);
+void RemoveConfigChangedCallback(size_t callback_id);
 void OnConfigChanged();
 
 // Returns the number of times the config has changed in the current execution of the program

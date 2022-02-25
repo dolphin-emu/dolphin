@@ -7,8 +7,10 @@
 #include <memory>
 #include <string>
 #include <string_view>
+
 #include "Common/CommonTypes.h"
 
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"

@@ -63,8 +63,6 @@ bool Noclip::has_control_mp2() {
 }
 
 bool Noclip::has_control_mp2_gc() {
-  LOOKUP(state_manager);
-
   LOOKUP_DYN(world);
   if (world == 0) {
     return false;

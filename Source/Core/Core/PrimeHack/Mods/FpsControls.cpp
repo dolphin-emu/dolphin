@@ -649,7 +649,6 @@ void FpsControls::mp3_handle_lasso(u32 grapple_state_addr) {
 
 // this game is
 void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
-  const bool is_mp3_standalone_us = active_game == Game::PRIME_3_STANDALONE && active_region == Region::NTSC_U;
   CheckBeamVisorSetting(active_game);
 
   if (GrappleCtlBound()) {

@@ -3,6 +3,8 @@
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
 
+#include "Core/PowerPC/GDBStub.h"
+
 #include <fmt/format.h>
 #include <optional>
 #include <signal.h>
@@ -26,12 +28,12 @@ typedef SSIZE_T ssize_t;
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/SocketContext.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/BreakPoints.h"
-#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -52,14 +54,20 @@ enum class BreakpointType
 {
   ExecuteSoft = 0,
   ExecuteHard,
-  Read,
   Write,
+  Read,
   Access,
 };
+
+constexpr u32 NUM_BREAKPOINT_TYPES = 4;
+
+constexpr int MACH_O_POWERPC = 18;
+constexpr int MACH_O_POWERPC_750 = 9;
 
 const s64 GDB_UPDATE_CYCLES = 100000;
 
 static bool s_has_control = false;
+static bool s_just_connected = false;
 
 static int s_tmpsock = -1;
 static int s_sock = -1;
@@ -304,30 +312,48 @@ static void SendReply(const char* reply)
   }
 }
 
+static void WriteHostInfo()
+{
+  return SendReply(
+      fmt::format("cputype:{};cpusubtype:{};ostype:unknown;vendor:unknown;endian:big;ptrsize:4",
+                  MACH_O_POWERPC, MACH_O_POWERPC_750)
+          .c_str());
+}
+
 static void HandleQuery()
 {
-  DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString() + 1);
+  DEBUG_LOG_FMT(GDB_STUB, "gdb: query '{}'", CommandBufferAsString());
 
-  if (!strcmp((const char*)(s_cmd_bfr + 1), "TStatus"))
-  {
-    return SendReply("T0");
-  }
+  if (!strncmp((const char*)(s_cmd_bfr), "qAttached", strlen("qAttached")))
+    return SendReply("1");
+  if (!strcmp((const char*)(s_cmd_bfr), "qC"))
+    return SendReply("QC1");
+  if (!strcmp((const char*)(s_cmd_bfr), "qfThreadInfo"))
+    return SendReply("m1");
+  else if (!strcmp((const char*)(s_cmd_bfr), "qsThreadInfo"))
+    return SendReply("l");
+  else if (!strncmp((const char*)(s_cmd_bfr), "qThreadExtraInfo", strlen("qThreadExtraInfo")))
+    return SendReply("00");
+  else if (!strncmp((const char*)(s_cmd_bfr), "qHostInfo", strlen("qHostInfo")))
+    return WriteHostInfo();
+  else if (!strncmp((const char*)(s_cmd_bfr), "qSupported", strlen("qSupported")))
+    return SendReply("swbreak+;hwbreak+");
 
   SendReply("");
 }
 
 static void HandleSetThread()
 {
-  if (memcmp(s_cmd_bfr, "Hg0", 3) == 0 || memcmp(s_cmd_bfr, "Hc-1", 4) == 0 ||
-      memcmp(s_cmd_bfr, "Hc0", 3) == 0 || memcmp(s_cmd_bfr, "Hc1", 3) == 0)
+  if (memcmp(s_cmd_bfr, "Hg-1", 4) == 0 || memcmp(s_cmd_bfr, "Hc-1", 4) == 0 ||
+      memcmp(s_cmd_bfr, "Hg0", 3) == 0 || memcmp(s_cmd_bfr, "Hc0", 3) == 0 ||
+      memcmp(s_cmd_bfr, "Hg1", 3) == 0 || memcmp(s_cmd_bfr, "Hc1", 3) == 0)
     return SendReply("OK");
   SendReply("E01");
 }
 
 static void HandleIsThreadAlive()
 {
-  if (memcmp(s_cmd_bfr, "T0", 2) == 0 || memcmp(s_cmd_bfr, "T1", 4) == 0 ||
-      memcmp(s_cmd_bfr, "T-1", 3) == 0)
+  if (memcmp(s_cmd_bfr, "T1", 2) == 0 || memcmp(s_cmd_bfr, "T-1", 3) == 0)
     return SendReply("OK");
   SendReply("E01");
 }
@@ -389,6 +415,14 @@ static void ReadRegister()
   {
     wbe64hex(reply, rPS(id - 32).PS0AsU64());
   }
+  else if (id >= 71 && id < 87)
+  {
+    wbe32hex(reply, PowerPC::ppcState.sr[id - 71]);
+  }
+  else if (id >= 88 && id < 104)
+  {
+    wbe32hex(reply, PowerPC::ppcState.spr[SPR_IBAT0U + id - 88]);
+  }
   else
   {
     switch (id)
@@ -412,10 +446,124 @@ static void ReadRegister()
       wbe32hex(reply, PowerPC::ppcState.spr[SPR_XER]);
       break;
     case 70:
-      wbe32hex(reply, 0x0BADC0DE);
-      break;
-    case 71:
       wbe32hex(reply, FPSCR.Hex);
+      break;
+    case 87:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PVR]);
+      break;
+    case 104:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SDR]);
+      break;
+    case 105:
+      wbe64hex(reply, PowerPC::ppcState.spr[SPR_ASR]);
+      break;
+    case 106:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DAR]);
+      break;
+    case 107:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DSISR]);
+      break;
+    case 108:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG0]);
+      break;
+    case 109:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG1]);
+      break;
+    case 110:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG2]);
+      break;
+    case 111:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SPRG3]);
+      break;
+    case 112:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SRR0]);
+      break;
+    case 113:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SRR1]);
+      break;
+    case 114:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_TL]);
+      break;
+    case 115:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_TU]);
+      break;
+    case 116:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DEC]);
+      break;
+    case 117:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DABR]);
+      break;
+    case 118:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_EAR]);
+      break;
+    case 119:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_HID0]);
+      break;
+    case 120:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_HID1]);
+      break;
+    case 121:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_IABR]);
+      break;
+    case 122:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_DABR]);
+      break;
+    case 124:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UMMCR0]);
+      break;
+    case 125:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC1]);
+      break;
+    case 126:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC2]);
+      break;
+    case 127:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_USIA]);
+      break;
+    case 128:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UMMCR1]);
+      break;
+    case 129:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC3]);
+      break;
+    case 130:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_UPMC4]);
+      break;
+    case 131:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_MMCR0]);
+      break;
+    case 132:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC1]);
+      break;
+    case 133:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC2]);
+      break;
+    case 134:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_SIA]);
+      break;
+    case 135:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_MMCR1]);
+      break;
+    case 136:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC3]);
+      break;
+    case 137:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_PMC4]);
+      break;
+    case 138:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_L2CR]);
+      break;
+    case 139:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_ICTC]);
+      break;
+    case 140:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_THRM1]);
+      break;
+    case 141:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_THRM2]);
+      break;
+    case 142:
+      wbe32hex(reply, PowerPC::ppcState.spr[SPR_THRM3]);
       break;
     default:
       return SendReply("E01");
@@ -479,6 +627,14 @@ static void WriteRegister()
   {
     rPS(id - 32).SetPS0(re64hex(bufptr));
   }
+  else if (id >= 71 && id < 87)
+  {
+    PowerPC::ppcState.sr[id - 71] = re32hex(bufptr);
+  }
+  else if (id >= 88 && id < 104)
+  {
+    PowerPC::ppcState.sr[SPR_IBAT0U + id - 88] = re32hex(bufptr);
+  }
   else
   {
     switch (id)
@@ -502,10 +658,124 @@ static void WriteRegister()
       PowerPC::ppcState.spr[SPR_XER] = re32hex(bufptr);
       break;
     case 70:
-      // do nothing, we dont have MQ
-      break;
-    case 71:
       FPSCR.Hex = re32hex(bufptr);
+      break;
+    case 87:
+      PowerPC::ppcState.spr[SPR_PVR] = re32hex(bufptr);
+      break;
+    case 104:
+      PowerPC::ppcState.spr[SPR_SDR] = re32hex(bufptr);
+      break;
+    case 105:
+      PowerPC::ppcState.spr[SPR_ASR] = re64hex(bufptr);
+      break;
+    case 106:
+      PowerPC::ppcState.spr[SPR_DAR] = re32hex(bufptr);
+      break;
+    case 107:
+      PowerPC::ppcState.spr[SPR_DSISR] = re32hex(bufptr);
+      break;
+    case 108:
+      PowerPC::ppcState.spr[SPR_SPRG0] = re32hex(bufptr);
+      break;
+    case 109:
+      PowerPC::ppcState.spr[SPR_SPRG1] = re32hex(bufptr);
+      break;
+    case 110:
+      PowerPC::ppcState.spr[SPR_SPRG2] = re32hex(bufptr);
+      break;
+    case 111:
+      PowerPC::ppcState.spr[SPR_SPRG3] = re32hex(bufptr);
+      break;
+    case 112:
+      PowerPC::ppcState.spr[SPR_SRR0] = re32hex(bufptr);
+      break;
+    case 113:
+      PowerPC::ppcState.spr[SPR_SRR1] = re32hex(bufptr);
+      break;
+    case 114:
+      PowerPC::ppcState.spr[SPR_TL] = re32hex(bufptr);
+      break;
+    case 115:
+      PowerPC::ppcState.spr[SPR_TU] = re32hex(bufptr);
+      break;
+    case 116:
+      PowerPC::ppcState.spr[SPR_DEC] = re32hex(bufptr);
+      break;
+    case 117:
+      PowerPC::ppcState.spr[SPR_DABR] = re32hex(bufptr);
+      break;
+    case 118:
+      PowerPC::ppcState.spr[SPR_EAR] = re32hex(bufptr);
+      break;
+    case 119:
+      PowerPC::ppcState.spr[SPR_HID0] = re32hex(bufptr);
+      break;
+    case 120:
+      PowerPC::ppcState.spr[SPR_HID1] = re32hex(bufptr);
+      break;
+    case 121:
+      PowerPC::ppcState.spr[SPR_IABR] = re32hex(bufptr);
+      break;
+    case 122:
+      PowerPC::ppcState.spr[SPR_DABR] = re32hex(bufptr);
+      break;
+    case 124:
+      PowerPC::ppcState.spr[SPR_UMMCR0] = re32hex(bufptr);
+      break;
+    case 125:
+      PowerPC::ppcState.spr[SPR_UPMC1] = re32hex(bufptr);
+      break;
+    case 126:
+      PowerPC::ppcState.spr[SPR_UPMC2] = re32hex(bufptr);
+      break;
+    case 127:
+      PowerPC::ppcState.spr[SPR_USIA] = re32hex(bufptr);
+      break;
+    case 128:
+      PowerPC::ppcState.spr[SPR_UMMCR1] = re32hex(bufptr);
+      break;
+    case 129:
+      PowerPC::ppcState.spr[SPR_UPMC3] = re32hex(bufptr);
+      break;
+    case 130:
+      PowerPC::ppcState.spr[SPR_UPMC4] = re32hex(bufptr);
+      break;
+    case 131:
+      PowerPC::ppcState.spr[SPR_MMCR0] = re32hex(bufptr);
+      break;
+    case 132:
+      PowerPC::ppcState.spr[SPR_PMC1] = re32hex(bufptr);
+      break;
+    case 133:
+      PowerPC::ppcState.spr[SPR_PMC2] = re32hex(bufptr);
+      break;
+    case 134:
+      PowerPC::ppcState.spr[SPR_SIA] = re32hex(bufptr);
+      break;
+    case 135:
+      PowerPC::ppcState.spr[SPR_MMCR1] = re32hex(bufptr);
+      break;
+    case 136:
+      PowerPC::ppcState.spr[SPR_PMC3] = re32hex(bufptr);
+      break;
+    case 137:
+      PowerPC::ppcState.spr[SPR_PMC4] = re32hex(bufptr);
+      break;
+    case 138:
+      PowerPC::ppcState.spr[SPR_L2CR] = re32hex(bufptr);
+      break;
+    case 139:
+      PowerPC::ppcState.spr[SPR_ICTC] = re32hex(bufptr);
+      break;
+    case 140:
+      PowerPC::ppcState.spr[SPR_THRM1] = re32hex(bufptr);
+      break;
+    case 141:
+      PowerPC::ppcState.spr[SPR_THRM2] = re32hex(bufptr);
+      break;
+    case 142:
+      PowerPC::ppcState.spr[SPR_THRM3] = re32hex(bufptr);
       break;
     default:
       return SendReply("E01");
@@ -535,9 +805,10 @@ static void ReadMemory()
 
   if (len * 2 > sizeof reply)
     SendReply("E01");
+
+  if (!PowerPC::HostIsRAMAddress(addr))
+    return SendReply("E00");
   u8* data = Memory::GetPointer(addr);
-  if (!data)
-    return SendReply("E0");
   Mem2hex(reply, data, len);
   reply[len * 2] = '\0';
   SendReply((char*)reply);
@@ -559,9 +830,9 @@ static void WriteMemory()
     len = (len << 4) | Hex2char(s_cmd_bfr[i++]);
   INFO_LOG_FMT(GDB_STUB, "gdb: write memory: {:08x} bytes to {:08x}", len, addr);
 
-  u8* dst = Memory::GetPointer(addr);
-  if (!dst)
+  if (!PowerPC::HostIsRAMAddress(addr))
     return SendReply("E00");
+  u8* dst = Memory::GetPointer(addr);
   Hex2mem(dst, s_cmd_bfr + i + 1, len);
   SendReply("OK");
 }
@@ -577,7 +848,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
     PowerPC::breakpoints.Add(addr);
-    INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}", type, len, addr);
+    INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}",
+                 static_cast<int>(type), len, addr);
   }
   else
   {
@@ -593,7 +865,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     new_memcheck.log_on_hit = false;
     new_memcheck.is_enabled = true;
     PowerPC::memchecks.Add(new_memcheck);
-    INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", type, len, addr);
+    INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", static_cast<int>(type),
+                 len, addr);
   }
   return true;
 }
@@ -604,7 +877,7 @@ static void HandleAddBreakpoint()
   u32 i, addr = 0, len = 0;
 
   type = Hex2char(s_cmd_bfr[1]);
-  if (type > 4)
+  if (type > NUM_BREAKPOINT_TYPES)
     return SendReply("E01");
 
   i = 3;
@@ -625,7 +898,7 @@ static void HandleRemoveBreakpoint()
   u32 type, addr, len, i;
 
   type = Hex2char(s_cmd_bfr[1]);
-  if (type >= 4)
+  if (type > NUM_BREAKPOINT_TYPES)
     return SendReply("E01");
 
   addr = 0;
@@ -645,6 +918,7 @@ static void HandleRemoveBreakpoint()
 
 void ProcessCommands(bool loop_until_continue)
 {
+  s_just_connected = false;
   while (IsActive())
   {
     if (CPU::GetState() == CPU::State::PowerDown)
@@ -785,6 +1059,7 @@ static void InitGeneric(int domain, const sockaddr* server_addr, socklen_t serve
   if (s_sock < 0)
     ERROR_LOG_FMT(GDB_STUB, "Failed to accept gdb client");
   INFO_LOG_FMT(GDB_STUB, "Client connected.");
+  s_just_connected = true;
 
 #ifdef _WIN32
   closesocket(s_tmpsock);
@@ -830,10 +1105,16 @@ void TakeControl()
   s_has_control = true;
 }
 
+bool JustConnected()
+{
+  return s_just_connected;
+}
+
 void SendSignal(Signal signal)
 {
   char bfr[128] = {};
-  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", signal, 64, PC, 1, GPR(1));
+  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64, PC, 1,
+                 GPR(1));
   SendReply(bfr);
 }
 }  // namespace GDBStub

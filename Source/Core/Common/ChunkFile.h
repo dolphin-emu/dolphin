@@ -25,6 +25,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
@@ -332,8 +334,8 @@ private:
 
     case MODE_VERIFY:
       DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *ptr, size),
-                       "Savestate verification failure: buf %p != %p (size %u).\n", data, *ptr,
-                       size);
+                       "Savestate verification failure: buf {} != {} (size {}).\n", fmt::ptr(data),
+                       fmt::ptr(*ptr), size);
       break;
     }
 

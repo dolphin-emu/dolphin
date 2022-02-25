@@ -4,7 +4,6 @@
 #include "Common/Network.h"
 
 #include <algorithm>
-#include <cctype>
 #include <string_view>
 
 #ifndef _WIN32
@@ -18,6 +17,7 @@
 #include <fmt/format.h>
 
 #include "Common/Random.h"
+#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -59,7 +59,7 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 
   for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
   {
-    char c = tolower(mac_string.at(i));
+    char c = Common::ToLower(mac_string.at(i));
     if (c >= '0' && c <= '9')
     {
       mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);

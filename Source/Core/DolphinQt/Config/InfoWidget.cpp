@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/Config/InfoWidget.h"
+
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QDir>
@@ -17,7 +19,6 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
-#include "DolphinQt/Config/InfoWidget.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ImageConverter.h"
 

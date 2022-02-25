@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DiscIO/FileSystemGCWii.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -19,7 +21,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/DiscUtils.h"
-#include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeDisc.h"
 
@@ -145,13 +146,9 @@ bool FileInfoGCWii::NameCaseInsensitiveEquals(std::string_view other) const
       // other is in UTF-8 and this is in Shift-JIS, so we convert so that we can compare correctly
       const std::string this_utf8 = SHIFTJISToUTF8(this_ptr);
       return std::equal(this_utf8.cbegin(), this_utf8.cend(), other.cbegin() + i, other.cend(),
-                        [](char a, char b) {
-                          return std::tolower(a, std::locale::classic()) ==
-                                 std::tolower(b, std::locale::classic());
-                        });
+                        [](char a, char b) { return Common::ToLower(a) == Common::ToLower(b); });
     }
-    else if (std::tolower(*this_ptr, std::locale::classic()) !=
-             std::tolower(*other_ptr, std::locale::classic()))
+    else if (Common::ToLower(*this_ptr) != Common::ToLower(*other_ptr))
     {
       return false;
     }

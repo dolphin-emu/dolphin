@@ -31,6 +31,8 @@ public:
   ControlState GetMaxRotationalVelocity() const;
 
 private:
+  Control* GetModifierInput() const override;
+
   SettingValue<double> m_max_angle_setting;
   SettingValue<double> m_max_rotational_velocity;
 };

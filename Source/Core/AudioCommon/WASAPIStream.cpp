@@ -17,6 +17,7 @@
 #include <thread>
 
 #include "Common/Assert.h"
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -66,11 +67,11 @@ static bool HandleWinAPI(std::string_view message, HRESULT result)
       error = "Audio endpoint already in use!";
       break;
     default:
-      error = TStrToUTF8(_com_error(result).ErrorMessage()).c_str();
+      error = Common::GetHResultMessage(result);
       break;
     }
 
-    ERROR_LOG_FMT(AUDIO, "WASAPI: {}: {}", message, error);
+    ERROR_LOG_FMT(AUDIO, "WASAPI: {}: {} ({:08x})", message, error, result);
   }
 
   return SUCCEEDED(result);

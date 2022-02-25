@@ -34,10 +34,9 @@ void NANDImporter::ImportNANDBin(const std::string& path_to_bin,
   if (!ReadNANDBin(path_to_bin, get_otp_dump_path))
     return;
 
-  const std::string nand_root = File::GetUserPath(D_WIIROOT_IDX);
+  std::string nand_root = File::GetUserPath(D_WIIROOT_IDX);
+  nand_root.pop_back();  // remove trailing path separator
   m_nand_root_length = nand_root.length();
-  if (nand_root.back() == '/')
-    m_nand_root_length++;
 
   FindSuperblock();
   ProcessEntry(0, nand_root);
@@ -72,7 +71,9 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
       m_update_callback();
 
     file.ReadBytes(&m_nand[i * NAND_BLOCK_SIZE], NAND_BLOCK_SIZE);
-    file.Seek(NAND_ECC_BLOCK_SIZE, SEEK_CUR);  // We don't care about the ECC blocks
+
+    // We don't care about the ECC blocks
+    file.Seek(NAND_ECC_BLOCK_SIZE, File::SeekOrigin::Current);
   }
 
   m_nand_keys.resize(NAND_KEYS_SIZE);

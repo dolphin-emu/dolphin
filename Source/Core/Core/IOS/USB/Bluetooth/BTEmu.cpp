@@ -178,7 +178,7 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
       break;
     }
     default:
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_BLKMSG: %x", ctrl.endpoint);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_BLKMSG: {:#x}", ctrl.endpoint);
     }
     break;
   }
@@ -194,7 +194,7 @@ std::optional<IPCReply> BluetoothEmuDevice::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_INTRMSG: %x", ctrl.endpoint);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_INTRMSG: {:#x}", ctrl.endpoint);
     }
     break;
   }
@@ -598,7 +598,8 @@ bool BluetoothEmuDevice::SendEventRemoteNameReq(const bdaddr_t& bd)
   DEBUG_LOG_FMT(IOS_WIIMOTE, "  bd: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
                 remote_name_req->bdaddr[0], remote_name_req->bdaddr[1], remote_name_req->bdaddr[2],
                 remote_name_req->bdaddr[3], remote_name_req->bdaddr[4], remote_name_req->bdaddr[5]);
-  DEBUG_LOG_FMT(IOS_WIIMOTE, "  RemoteName: {}", remote_name_req->RemoteName);
+  DEBUG_LOG_FMT(IOS_WIIMOTE, "  RemoteName: {}",
+                reinterpret_cast<char*>(remote_name_req->RemoteName));
 
   AddEventToQueue(event);
 
@@ -1085,8 +1086,9 @@ void BluetoothEmuDevice::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl
     }
     else
     {
-      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB_IOCTL_CTRLMSG: 0x%04X (ocf: 0x%x  ogf 0x%x)",
-                       msg.Opcode, ocf, ogf);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0,
+                       "Unknown USB_IOCTL_CTRLMSG: {:#06x} (ocf: {:#04x} ogf {:#04x})", msg.Opcode,
+                       ocf, ogf);
     }
     break;
   }

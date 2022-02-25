@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/Swap.h"
 
 #include "VideoCommon/DataReader.h"
@@ -59,8 +60,8 @@ void Pos_ReadIndex(VertexLoader* loader)
   const auto index = DataRead<I>();
   loader->m_vertexSkip = index == std::numeric_limits<I>::max();
   const auto data =
-      reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[ARRAY_POSITION] +
-                                 (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
+      reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[CPArray::Position] +
+                                 (index * g_main_cp_state.array_strides[CPArray::Position]));
   const auto scale = loader->m_posScale;
   DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
@@ -76,138 +77,109 @@ void Pos_ReadIndex(VertexLoader* loader)
   LOG_VTX();
 }
 
-constexpr TPipelineFunction s_table_read_position[4][8][2] = {
-    {
-        {
-            nullptr,
-            nullptr,
-        },
-        {
-            nullptr,
-            nullptr,
-        },
-        {
-            nullptr,
-            nullptr,
-        },
-        {
-            nullptr,
-            nullptr,
-        },
-        {
-            nullptr,
-            nullptr,
-        },
-    },
-    {
-        {
-            Pos_ReadDirect<u8, 2>,
-            Pos_ReadDirect<u8, 3>,
-        },
-        {
-            Pos_ReadDirect<s8, 2>,
-            Pos_ReadDirect<s8, 3>,
-        },
-        {
-            Pos_ReadDirect<u16, 2>,
-            Pos_ReadDirect<u16, 3>,
-        },
-        {
-            Pos_ReadDirect<s16, 2>,
-            Pos_ReadDirect<s16, 3>,
-        },
-        {
-            Pos_ReadDirect<float, 2>,
-            Pos_ReadDirect<float, 3>,
-        },
-    },
-    {
-        {
-            Pos_ReadIndex<u8, u8, 2>,
-            Pos_ReadIndex<u8, u8, 3>,
-        },
-        {
-            Pos_ReadIndex<u8, s8, 2>,
-            Pos_ReadIndex<u8, s8, 3>,
-        },
-        {
-            Pos_ReadIndex<u8, u16, 2>,
-            Pos_ReadIndex<u8, u16, 3>,
-        },
-        {
-            Pos_ReadIndex<u8, s16, 2>,
-            Pos_ReadIndex<u8, s16, 3>,
-        },
-        {
-            Pos_ReadIndex<u8, float, 2>,
-            Pos_ReadIndex<u8, float, 3>,
-        },
-    },
-    {
-        {
-            Pos_ReadIndex<u16, u8, 2>,
-            Pos_ReadIndex<u16, u8, 3>,
-        },
-        {
-            Pos_ReadIndex<u16, s8, 2>,
-            Pos_ReadIndex<u16, s8, 3>,
-        },
-        {
-            Pos_ReadIndex<u16, u16, 2>,
-            Pos_ReadIndex<u16, u16, 3>,
-        },
-        {
-            Pos_ReadIndex<u16, s16, 2>,
-            Pos_ReadIndex<u16, s16, 3>,
-        },
-        {
-            Pos_ReadIndex<u16, float, 2>,
-            Pos_ReadIndex<u16, float, 3>,
-        },
-    },
+using Common::EnumMap;
+
+// These functions are to work around a "too many initializer values" error with nested brackets
+// C++ does not let you write std::array<std::array<u32, 2>, 2> a = {{1, 2}, {3, 4}}
+// (although it does allow std::array<std::array<u32, 2>, 2> b = {1, 2, 3, 4})
+constexpr EnumMap<TPipelineFunction, CoordComponentCount::XYZ> e(TPipelineFunction xy,
+                                                                 TPipelineFunction xyz)
+{
+  return {xy, xyz};
+}
+constexpr EnumMap<u32, CoordComponentCount::XYZ> e(u32 xy, u32 xyz)
+{
+  return {xy, xyz};
+}
+
+constexpr EnumMap<EnumMap<TPipelineFunction, CoordComponentCount::XYZ>, ComponentFormat::Float>
+f(EnumMap<EnumMap<TPipelineFunction, CoordComponentCount::XYZ>, ComponentFormat::Float> in)
+{
+  return in;
+}
+
+constexpr EnumMap<EnumMap<u32, CoordComponentCount::XYZ>, ComponentFormat::Float>
+g(EnumMap<EnumMap<u32, CoordComponentCount::XYZ>, ComponentFormat::Float> in)
+{
+  return in;
+}
+
+template <typename T>
+using Table = EnumMap<EnumMap<EnumMap<T, CoordComponentCount::XYZ>, ComponentFormat::Float>,
+                      VertexComponentFormat::Index16>;
+
+constexpr Table<TPipelineFunction> s_table_read_position = {
+    f({
+        e(nullptr, nullptr),
+        e(nullptr, nullptr),
+        e(nullptr, nullptr),
+        e(nullptr, nullptr),
+        e(nullptr, nullptr),
+    }),
+    f({
+        e(Pos_ReadDirect<u8, 2>, Pos_ReadDirect<u8, 3>),
+        e(Pos_ReadDirect<s8, 2>, Pos_ReadDirect<s8, 3>),
+        e(Pos_ReadDirect<u16, 2>, Pos_ReadDirect<u16, 3>),
+        e(Pos_ReadDirect<s16, 2>, Pos_ReadDirect<s16, 3>),
+        e(Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>),
+    }),
+    f({
+        e(Pos_ReadIndex<u8, u8, 2>, Pos_ReadIndex<u8, u8, 3>),
+        e(Pos_ReadIndex<u8, s8, 2>, Pos_ReadIndex<u8, s8, 3>),
+        e(Pos_ReadIndex<u8, u16, 2>, Pos_ReadIndex<u8, u16, 3>),
+        e(Pos_ReadIndex<u8, s16, 2>, Pos_ReadIndex<u8, s16, 3>),
+        e(Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>),
+    }),
+    f({
+        e(Pos_ReadIndex<u16, u8, 2>, Pos_ReadIndex<u16, u8, 3>),
+        e(Pos_ReadIndex<u16, s8, 2>, Pos_ReadIndex<u16, s8, 3>),
+        e(Pos_ReadIndex<u16, u16, 2>, Pos_ReadIndex<u16, u16, 3>),
+        e(Pos_ReadIndex<u16, s16, 2>, Pos_ReadIndex<u16, s16, 3>),
+        e(Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>),
+    }),
 };
 
-constexpr u32 s_table_read_position_vertex_size[4][8][2] = {
-    {
-        {0, 0},
-        {0, 0},
-        {0, 0},
-        {0, 0},
-        {0, 0},
-    },
-    {
-        {2, 3},
-        {2, 3},
-        {4, 6},
-        {4, 6},
-        {8, 12},
-    },
-    {
-        {1, 1},
-        {1, 1},
-        {1, 1},
-        {1, 1},
-        {1, 1},
-    },
-    {
-        {2, 2},
-        {2, 2},
-        {2, 2},
-        {2, 2},
-        {2, 2},
-    },
+constexpr Table<u32> s_table_read_position_vertex_size = {
+    g({
+        e(0u, 0u),
+        e(0u, 0u),
+        e(0u, 0u),
+        e(0u, 0u),
+        e(0u, 0u),
+    }),
+    g({
+        e(2, 3),
+        e(2, 3),
+        e(4, 6),
+        e(4, 6),
+        e(8, 12),
+    }),
+    g({
+        e(1, 1),
+        e(1, 1),
+        e(1, 1),
+        e(1, 1),
+        e(1, 1),
+    }),
+    g({
+        e(2, 2),
+        e(2, 2),
+        e(2, 2),
+        e(2, 2),
+        e(2, 2),
+    }),
 };
 }  // Anonymous namespace
 
 u32 VertexLoader_Position::GetSize(VertexComponentFormat type, ComponentFormat format,
                                    CoordComponentCount elements)
 {
-  return s_table_read_position_vertex_size[u32(type)][u32(format)][u32(elements)];
+  return s_table_read_position_vertex_size[type][format][elements];
 }
 
 TPipelineFunction VertexLoader_Position::GetFunction(VertexComponentFormat type,
                                                      ComponentFormat format,
                                                      CoordComponentCount elements)
 {
-  return s_table_read_position[u32(type)][u32(format)][u32(elements)];
+  return s_table_read_position[type][format][elements];
 }

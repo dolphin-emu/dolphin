@@ -1,6 +1,8 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/AboutDialog.h"
+
 #include <QLabel>
 #include <QTextEdit>
 #include <QVBoxLayout>
@@ -8,7 +10,6 @@
 
 #include "Common/Version.h"
 
-#include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Resources.h"
 
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
@@ -16,7 +17,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   setWindowTitle(tr("About Dolphin"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  const QString prime_ver = QString::fromStdString(Common::primehack_ver);
+  const QString prime_ver = QString::fromStdString(Common::GetScmRevStr());
   const QString text =
     QStringLiteral(R"(
 <p style='font-size:38pt; font-weight:400;'>PrimeHack</p>
@@ -46,26 +47,27 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 <a href='https://github.com/shiiion/dolphin/graphs/contributors'>%AUTHORS%</a> |
 <a href='https://github.com/shiiion/dolphin/wiki'>%SUPPORT%</a>
 )")
-.replace(QStringLiteral("%VERSION_STRING%"), prime_ver + tr(" (5.0-14344)"))
-    .replace(QStringLiteral("%BRANCH%"),
-      // i18n: "Branch" means the version control term, not a literal tree branch.
-      tr("Branch: %1").arg(QString::fromUtf8(Common::scm_branch_str.c_str())))
-    .replace(QStringLiteral("%REVISION%"),
-      tr("Revision: %1").arg(QString::fromUtf8(Common::scm_rev_git_str.c_str())))
-    .replace(QStringLiteral("%QT_VERSION%"),
-      tr("Using Qt %1").arg(QStringLiteral(QT_VERSION_STR)))
-    .replace(QStringLiteral("%CHECK_FOR_UPDATES%"), tr("Check for updates"))
-    .replace(QStringLiteral("%ABOUT_DOLPHIN%"),
-      // i18n: The word "free" in the standard phrase "free and open source"
-      // is "free" as in "freedom" - it refers to certain properties of the
-      // software's license, not the software's price. (It is true that Dolphin
-      // can be downloaded at no cost, but that's not what this message says.)
-      tr("PrimeHack is a fork of Dolphin to bring traditional FPS controls and settings to the Metroid Prime series."))
-    .replace(QStringLiteral("%GAMES_YOU_OWN%"),
-      tr("This software should not be used to play games you do not legally own."))
-    .replace(QStringLiteral("%LICENSE%"), tr("License"))
-    .replace(QStringLiteral("%AUTHORS%"), tr("Authors"))
-    .replace(QStringLiteral("%SUPPORT%"), tr("Support"));
+          .replace(QStringLiteral("%VERSION_STRING%"),
+                   QString::fromUtf8(Common::GetScmDescStr().c_str()))
+          .replace(QStringLiteral("%BRANCH%"),
+                   // i18n: "Branch" means the version control term, not a literal tree branch.
+                   tr("Branch: %1").arg(QString::fromUtf8(Common::GetScmBranchStr().c_str())))
+          .replace(QStringLiteral("%REVISION%"),
+                   tr("Revision: %1").arg(QString::fromUtf8(Common::GetScmRevGitStr().c_str())))
+          .replace(QStringLiteral("%QT_VERSION%"),
+                   tr("Using Qt %1").arg(QStringLiteral(QT_VERSION_STR)))
+          .replace(QStringLiteral("%CHECK_FOR_UPDATES%"), tr("Check for updates"))
+          .replace(QStringLiteral("%ABOUT_DOLPHIN%"),
+                   // i18n: The word "free" in the standard phrase "free and open source"
+                   // is "free" as in "freedom" - it refers to certain properties of the
+                   // software's license, not the software's price. (It is true that Dolphin
+                   // can be downloaded at no cost, but that's not what this message says.)
+                   tr("PrimeHack is a fork of Dolphin to bring traditional FPS controls and settings to the Metroid Prime series."))
+          .replace(QStringLiteral("%GAMES_YOU_OWN%"),
+                   tr("This software should not be used to play games you do not legally own."))
+          .replace(QStringLiteral("%LICENSE%"), tr("License"))
+          .replace(QStringLiteral("%AUTHORS%"), tr("Authors"))
+          .replace(QStringLiteral("%SUPPORT%"), tr("Support"));
 
   QLabel* text_label = new QLabel(text);
   text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);

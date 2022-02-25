@@ -309,8 +309,7 @@ static AspectMode get_aspect_mode() {
 static void handle_wiimote_IR(u32 x_address, u32 y_address, Region region, float half_width, float half_height, AspectMode mode, float aspect_step) {
   constexpr float kInternalWidth = 640.f;
   const float cur_width = g_renderer->GetBackbufferWidth();
-  const float cur_height = g_renderer->GetBackbufferHeight();
-  const float render_aspect = cur_width / cur_height;
+  const float cur_height = g_renderer->GetBackbufferHeight(); 
   float unstretched_w = kMetroidAr > (cur_width / cur_height) ? cur_width : cur_height * kMetroidAr;
   if (region == Region::PAL) {
     unstretched_w *= kPalStretchMultiplier;

@@ -35,14 +35,17 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/GCPad.h"
 #include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Host.h"
+
+#include "Common/Config/Config.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/VideoConfig.h"
-#include <Core/Host.h>
 
 constexpr const char* PROFILES_DIR = "Profiles/";
 
@@ -97,7 +100,8 @@ void InitializeHack() {
   hack_mgr.enable_mod("bloom_intensity");
 
   // Enable no PrimeHack control mods
-  if (!SConfig::GetInstance().bEnablePrimeHack) {
+  if (!Config::Get(Config::PRIMEHACK_ENABLE))
+  {
     return;
   }
 
@@ -198,22 +202,6 @@ bool UseMPAutoEFB() {
 
 bool LockCameraInPuzzles() {
   return Config::Get(Config::LOCKCAMERA_IN_PUZZLES);
-}
-
-bool GetNoclip() {
-  return SConfig::GetInstance().bPrimeNoclip;
-}
-
-bool GetInvulnerability() {
-  return SConfig::GetInstance().bPrimeInvulnerability;
-}
-
-bool GetSkipCutscene() {
-  return SConfig::GetInstance().bPrimeSkipCutscene;
-}
-
-bool GetRestoreDashing() {
-  return SConfig::GetInstance().bPrimeRestoreDashing;
 }
 
 bool GetEFBTexture() {
