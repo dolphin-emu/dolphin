@@ -151,7 +151,10 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_deleteKey(
     JNIEnv* env, jclass, jint layer, jstring file, jstring section, jstring key)
 {
   const Config::Location location = GetLocation(env, file, section, key);
-  return static_cast<jboolean>(GetLayer(layer, location)->DeleteKey(location));
+  const bool had_value = GetLayer(layer, location)->DeleteKey(location);
+  if (had_value)
+    Config::OnConfigChanged();
+  return static_cast<jboolean>(had_value);
 }
 
 JNIEXPORT jstring JNICALL
