@@ -14,8 +14,10 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/SDCardUtil.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/VersionInfo.h"
@@ -27,6 +29,29 @@ SDIOSlot0Device::SDIOSlot0Device(Kernel& ios, const std::string& device_name)
 {
   if (!Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     INFO_LOG_FMT(IOS_SD, "Writes to SD card disabled by user");
+
+  m_config_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  m_sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+}
+
+SDIOSlot0Device::~SDIOSlot0Device()
+{
+  Config::RemoveConfigChangedCallback(m_config_callback_id);
+}
+
+void SDIOSlot0Device::RefreshConfig()
+{
+  if (m_sd_card_inserted != Config::Get(Config::MAIN_WII_SD_CARD))
+  {
+    Core::RunAsCPUThread([this] {
+      const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+      if (m_sd_card_inserted != sd_card_inserted)
+      {
+        m_sd_card_inserted = sd_card_inserted;
+        EventNotify();
+      }
+    });
+  }
 }
 
 void SDIOSlot0Device::DoState(PointerWrap& p)
@@ -49,10 +74,14 @@ void SDIOSlot0Device::EventNotify()
   if (!m_event)
     return;
 
-  const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
-  if ((sd_card_inserted && m_event->type == EVENT_INSERT) ||
-      (!sd_card_inserted && m_event->type == EVENT_REMOVE))
+  if ((m_sd_card_inserted && m_event->type == EVENT_INSERT) ||
+      (!m_sd_card_inserted && m_event->type == EVENT_REMOVE))
   {
+    if (m_sd_card_inserted)
+      INFO_LOG_FMT(IOS_SD, "Notifying PPC of SD card insertion");
+    else
+      INFO_LOG_FMT(IOS_SD, "Notifying PPC of SD card removal");
+
     m_ios.EnqueueIPCReply(m_event->request, m_event->type);
     m_event.reset();
   }
