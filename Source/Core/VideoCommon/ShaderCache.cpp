@@ -588,14 +588,15 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.blending_state = blending_state;
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
 
-  // We can use framebuffer fetch to emulate logic ops in the fragment shader.
-  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
-      !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
-  {
-    WARN_LOG_FMT(VIDEO,
-                 "Approximating logic op with blending, this will produce incorrect rendering.");
-    config.blending_state.ApproximateLogicOpWithBlending();
-  }
+  // TODO If this fixes issues in Kirby Air Ride, see if there's an easy way to expose this as a configurable setting.
+  // // We can use framebuffer fetch to emulate logic ops in the fragment shader.
+  // if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
+  //     !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  // {
+  //   WARN_LOG_FMT(VIDEO,
+  //                "Approximating logic op with blending, this will produce incorrect rendering.");
+  //   config.blending_state.ApproximateLogicOpWithBlending();
+  // }
 
   return config;
 }
