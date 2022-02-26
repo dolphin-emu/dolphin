@@ -17,57 +17,81 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   const char* swizzle = alpha ? "a" : "rgb";
   const char* swizzle_components = (alpha) ? "" : "3";
 
+  // Create a normalized vector pointing from the light to the current position.  We manualy
+  // normalize instead of using normalize() because the raw distance is needed for spot lights.
+  object.Write("    float3 ldir = " LIGHT_POS ".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(index));
+  object.Write("    float dist2 = dot(ldir, ldir);\n"
+               "    float dist = sqrt(dist2);\n"
+               "    ldir = ldir / dist;\n");
+
   switch (attn_func)
   {
   case AttenuationFunc::None:
   case AttenuationFunc::Dir:
-    object.Write("    float3 ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                 LIGHT_POS_PARAMS(index));
     object.Write("    float attn = 1.0;\n");
     break;
   case AttenuationFunc::Spec:
-    object.Write("    float3 ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                 LIGHT_POS_PARAMS(index));
-    object.Write("    float attn = (dot(_normal, ldir) >= 0.0) ? max(0.0, dot(_normal, " LIGHT_DIR
-                 ".xyz)) : 0.0;\n",
+    object.Write("    float cosine = 0.0;\n"
+                 "    // Ensure that the object is facing the light\n"
+                 "    if (dot(_normal, ldir) >= 0.0) {{\n"
+                 "      // Compute the cosine of the angle between the object normal\n"
+                 "      // and the half-angle direction for the viewer\n"
+                 "      // (assuming the half-angle direction is a unit vector)\n"
+                 "      cosine = max(0.0, dot(_normal, " LIGHT_DIR ".xyz));\n",
                  LIGHT_DIR_PARAMS(index));
-    object.Write("    float3 cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
-    object.Write("    float3 distAttn = " LIGHT_DISTATT ".xyz);\n", LIGHT_DISTATT_PARAMS(index));
-    object.Write("    attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
-                 "float3(1.0, attn, attn*attn));\n");
+    object.Write("    }}\n"
+                 "    // Specular lights use the angle for the denominator as well\n"
+                 "    dist = cosine;\n"
+                 "    dist2 = dist * dist;\n");
     break;
   case AttenuationFunc::Spot:
-    object.Write("    float3 ldir = " LIGHT_POS ".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(index));
-    object.Write("    float dist2 = dot(ldir, ldir);\n"
-                 "    float dist = sqrt(dist2);\n"
-                 "    ldir = ldir / dist;\n"
-                 "    float attn = max(0.0, dot(ldir, " LIGHT_DIR ".xyz));\n",
+    object.Write("    // Compute the cosine of the angle between the vector to the object\n"
+                 "    // and the light's direction (assuming the direction is a unit vector)\n"
+                 "    float cosine = max(0.0, dot(ldir, " LIGHT_DIR ".xyz));\n",
                  LIGHT_DIR_PARAMS(index));
-    // attn*attn may overflow
-    object.Write("    attn = max(0.0, " LIGHT_COSATT ".x + " LIGHT_COSATT ".y*attn + " LIGHT_COSATT
-                 ".z*attn*attn) / dot(" LIGHT_DISTATT ".xyz, float3(1.0,dist,dist2));\n",
-                 LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index),
-                 LIGHT_DISTATT_PARAMS(index));
     break;
+  }
+
+  if (attn_func == AttenuationFunc::Spot || attn_func == AttenuationFunc::Spec)
+  {
+    object.Write("    float3 cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
+    object.Write("    float3 distAttn = " LIGHT_DISTATT ".xyz;\n", LIGHT_DISTATT_PARAMS(index));
+    object.Write("    float cosine2 = cosine * cosine;\n"
+                 ""
+                 "    // This is equivalent to dot(cosAttn, float3(1.0, attn, attn*attn)),\n"
+                 "    // except with spot lights games often don't set the direction value,\n"
+                 "    // as they configure cosAttn to (1, 0, 0).  GX light objects are often\n"
+                 "    // stack-allocated, so those values are uninitialized and may be\n"
+                 "    // arbitrary garbage, including NaN or Inf, or become Inf when squared.\n"
+                 "    float numerator = cosAttn.x;                            // constant term\n"
+                 "    if (cosAttn.y != 0.0) numerator += cosAttn.y * cosine;  // linear term\n"
+                 "    if (cosAttn.z != 0.0) numerator += cosAttn.z * cosine2; // quadratic term\n"
+                 "    // Same with the denominator, though this generally is not garbage\n"
+                 "    // Note that VertexShaderManager ensures that distAttn is not zero, which\n"
+                 "    // should prevent division by zero (TODO: what does real hardware do?)\n"
+                 "    float denominator = distAttn.x;                           // constant term\n"
+                 "    if (distAttn.y != 0.0) denominator += distAttn.y * dist;  // linear term\n"
+                 "    if (distAttn.z != 0.0) denominator += distAttn.z * dist2; // quadratic term\n"
+                 ""
+                 "    float attn = max(0.0f, numerator / denominator);\n");
   }
 
   switch (diffuse_func)
   {
   case DiffuseFunc::None:
-    object.Write("    lacc.{} += int{}(round(attn * float{}(" LIGHT_COL ")));\n", swizzle,
-                 swizzle_components, swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
+    object.Write("    float diffuse = 1.0;\n");
     break;
   case DiffuseFunc::Sign:
-  case DiffuseFunc::Clamp:
-    object.Write("    lacc.{} += int{}(round(attn * {}dot(ldir, _normal)) * float{}(" LIGHT_COL
-                 ")));\n",
-                 swizzle, swizzle_components, diffuse_func != DiffuseFunc::Sign ? "max(0.0," : "(",
-                 swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
+  default:  // Confirmed by hardware testing that invalid values use this
+    object.Write("    float diffuse = dot(ldir, _normal);\n");
     break;
-  default:
-    ASSERT(false);
+  case DiffuseFunc::Clamp:
+    object.Write("    float diffuse = max(0.0, dot(ldir, _normal));\n");
+    break;
   }
 
+  object.Write("    lacc.{} += int{}(round(attn * diffuse * float{}(" LIGHT_COL ")));\n", swizzle,
+               swizzle_components, swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
   object.Write("  }}\n");
 }
 
