@@ -914,3 +914,14 @@ void StatTracker::setNetplaySession(bool netplay_session, bool is_host, std::str
     m_state.m_is_host = is_host;
     m_state.m_netplay_opponent_alias = opponent_name;
 }
+
+void StatTracker::setAvgPing(int avgPing) {
+  std::cout << "Avg Ping=" << avgPing << std::endl;
+  m_state.m_avg_ping = avgPing;
+}
+
+void StatTracker::setLagSpikes(int nLagSpikes)
+{
+  std::cout << "Number of Lag Spikes=" << nLagSpikes << std::endl;
+  m_state.m_lag_spikes = nLagSpikes;
+}

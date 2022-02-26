@@ -181,6 +181,11 @@ bool isRankedMode();
 void AutoGolfMode();
 void TrainingMode();
 void DisplayBatterFielder();
+void SetAvgPing();
+
+int avgPing = 0;
+int nPing = 0;
+int nLagSpikes = 0;
 
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);

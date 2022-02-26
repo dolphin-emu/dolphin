@@ -516,6 +516,8 @@ public:
         bool m_netplay_session = false;
         bool m_is_host = false;
         std::string m_netplay_opponent_alias = "";
+        int m_avg_ping = 0;
+        int m_lag_spikes = 0;
     } m_state;
 
     union
@@ -527,6 +529,8 @@ public:
     void setRankedStatus(bool inBool);
     void setRecordStatus(bool inBool);
     void setNetplaySession(bool netplay_session, bool is_host=false, std::string opponent_name = "");
+    void setAvgPing(int avgPing);
+    void setLagSpikes(int nLagSpikes);
 
     void Run();
     void lookForTriggerEvents();

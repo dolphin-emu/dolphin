@@ -182,7 +182,7 @@ void OnFrameEnd()
   AutoGolfMode();
   TrainingMode();
   DisplayBatterFielder();
-
+  SetAvgPing();
 
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
@@ -457,6 +457,37 @@ bool isRankedMode()
   return NetPlay::NetPlayClient::isRanked();
 }
 
+void SetAvgPing()
+{
+  // checks if GameID is set and that the end game flag hasn't been hit yet
+  bool inGame = Memory::Read_U32(0x802EBF8C) != 0 && Memory::Read_U32(0x80892AB3) == 0 ?
+                    true :
+                    false;
+  if (!inGame) {
+    avgPing = 0;
+    nPing = 0;
+    nLagSpikes = 0;
+    return;
+  }
+  u32 currentPing = NetPlay::NetPlayClient::sGetPlayersMaxPing();
+  nPing += 1;
+  avgPing = ((avgPing * (nPing - 1)) + currentPing) / nPing;
+
+  // "Lag Spike" definition; currently just checks if ping is more than 150
+  // should probably make a better definition in the future
+  if (currentPing >= 150) {
+    nLagSpikes += 1;
+  }
+
+  // tell the stat tracker what the new avg ping is
+  if (!s_stat_tracker)
+  {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+  s_stat_tracker->setAvgPing(avgPing);
+  s_stat_tracker->setLagSpikes(nLagSpikes);
+}
 
 // Display messages and return values
 

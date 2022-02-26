@@ -1585,6 +1585,11 @@ std::string NetPlayClient::GetPortPlayer(int PortInt)
   return m_players[m_pad_map[PortInt]].name;
 }
 
+u32 NetPlayClient::sGetPlayersMaxPing()
+{
+  return netplay_client->GetPlayersMaxPing();
+}
+
 u32 NetPlayClient::GetPlayersMaxPing() const
 {
   return std::max_element(
