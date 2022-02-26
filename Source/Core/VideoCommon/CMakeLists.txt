@@ -39,6 +39,16 @@ add_library(videocommon
   GeometryShaderGen.h
   GeometryShaderManager.cpp
   GeometryShaderManager.h
+  GraphicsModSystem/Config/GraphicsMod.cpp
+  GraphicsModSystem/Config/GraphicsMod.h
+  GraphicsModSystem/Config/GraphicsModFeature.cpp
+  GraphicsModSystem/Config/GraphicsModFeature.h
+  GraphicsModSystem/Config/GraphicsModGroup.cpp
+  GraphicsModSystem/Config/GraphicsModGroup.h
+  GraphicsModSystem/Config/GraphicsTarget.cpp
+  GraphicsModSystem/Config/GraphicsTarget.h
+  GraphicsModSystem/Config/GraphicsTargetGroup.cpp
+  GraphicsModSystem/Config/GraphicsTargetGroup.h
   GraphicsModSystem/Constants.h
   HiresTextures.cpp
   HiresTextures.h
