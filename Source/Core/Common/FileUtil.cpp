@@ -859,7 +859,6 @@ std::string GetExePath()
     }
 #elif defined(__APPLE__)
     result = GetBundleDirectory();
-    result = result.substr(0, result.find_last_of("Dolphin.app/Contents/MacOS") + 1);
 #else
     char dolphin_exe_path[PATH_MAX];
     ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
