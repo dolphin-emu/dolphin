@@ -225,6 +225,7 @@
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
+    <ClInclude Include="QtUtils\SignalBlocking.h" />
     <ClInclude Include="QtUtils\WinIconHelper.h" />
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
