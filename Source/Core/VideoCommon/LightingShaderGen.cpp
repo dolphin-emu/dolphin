@@ -13,6 +13,7 @@
 static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_data, int index,
                                 AttenuationFunc attn_func, DiffuseFunc diffuse_func, bool alpha)
 {
+  object.Write("  {{ // {} light {}\n", alpha ? "Alpha" : "Color", index);
   const char* swizzle = alpha ? "a" : "rgb";
   const char* swizzle_components = (alpha) ? "" : "3";
 
@@ -20,30 +21,32 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   {
   case AttenuationFunc::None:
   case AttenuationFunc::Dir:
-    object.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
-    object.Write("attn = 1.0;\n");
+    object.Write("    float3 ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
+                 LIGHT_POS_PARAMS(index));
+    object.Write("    float attn = 1.0;\n");
     break;
   case AttenuationFunc::Spec:
-    object.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
-    object.Write("attn = (dot(_normal, ldir) >= 0.0) ? max(0.0, dot(_normal, " LIGHT_DIR
+    object.Write("    float3 ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
+                 LIGHT_POS_PARAMS(index));
+    object.Write("    float attn = (dot(_normal, ldir) >= 0.0) ? max(0.0, dot(_normal, " LIGHT_DIR
                  ".xyz)) : 0.0;\n",
                  LIGHT_DIR_PARAMS(index));
-    object.Write("cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
-    object.Write("distAttn = {}(" LIGHT_DISTATT ".xyz);\n",
+    object.Write("    float3 cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
+    object.Write("    float3 distAttn = {}(" LIGHT_DISTATT ".xyz);\n",
                  (diffuse_func == DiffuseFunc::None) ? "" : "normalize",
                  LIGHT_DISTATT_PARAMS(index));
-    object.Write("attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
+    object.Write("    attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
                  "float3(1.0, attn, attn*attn));\n");
     break;
   case AttenuationFunc::Spot:
-    object.Write("ldir = " LIGHT_POS ".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(index));
-    object.Write("dist2 = dot(ldir, ldir);\n"
-                 "dist = sqrt(dist2);\n"
-                 "ldir = ldir / dist;\n"
-                 "attn = max(0.0, dot(ldir, " LIGHT_DIR ".xyz));\n",
+    object.Write("    float3 ldir = " LIGHT_POS ".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(index));
+    object.Write("    float dist2 = dot(ldir, ldir);\n"
+                 "    float dist = sqrt(dist2);\n"
+                 "    ldir = ldir / dist;\n"
+                 "    float attn = max(0.0, dot(ldir, " LIGHT_DIR ".xyz));\n",
                  LIGHT_DIR_PARAMS(index));
     // attn*attn may overflow
-    object.Write("attn = max(0.0, " LIGHT_COSATT ".x + " LIGHT_COSATT ".y*attn + " LIGHT_COSATT
+    object.Write("    attn = max(0.0, " LIGHT_COSATT ".x + " LIGHT_COSATT ".y*attn + " LIGHT_COSATT
                  ".z*attn*attn) / dot(" LIGHT_DISTATT ".xyz, float3(1.0,dist,dist2));\n",
                  LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index),
                  LIGHT_DISTATT_PARAMS(index));
@@ -53,12 +56,12 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   switch (diffuse_func)
   {
   case DiffuseFunc::None:
-    object.Write("lacc.{} += int{}(round(attn * float{}(" LIGHT_COL ")));\n", swizzle,
+    object.Write("    lacc.{} += int{}(round(attn * float{}(" LIGHT_COL ")));\n", swizzle,
                  swizzle_components, swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
     break;
   case DiffuseFunc::Sign:
   case DiffuseFunc::Clamp:
-    object.Write("lacc.{} += int{}(round(attn * {}dot(ldir, _normal)) * float{}(" LIGHT_COL
+    object.Write("    lacc.{} += int{}(round(attn * {}dot(ldir, _normal)) * float{}(" LIGHT_COL
                  ")));\n",
                  swizzle, swizzle_components, diffuse_func != DiffuseFunc::Sign ? "max(0.0," : "(",
                  swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
@@ -67,7 +70,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
     ASSERT(false);
   }
 
-  object.Write("\n");
+  object.Write("  }}\n");
 }
 
 // vertex shader
@@ -91,52 +94,52 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
     const bool alpha_enable = ((uid_data.enablelighting >> chan_a) & 1) != 0;
 
     object.Write("{{\n"
-                 "// Lighting for channel {}:\n"
-                 "// Color material source: {}\n"
-                 "// Color ambient source: {}\n"
-                 "// Color lighting enabled: {}\n"
-                 "// Alpha material source: {}\n"
-                 "// Alpha ambient source: {}\n"
-                 "// Alpha lighting enabled: {}\n",
+                 "  // Lighting for channel {}:\n"
+                 "  // Color material source: {}\n"
+                 "  // Color ambient source: {}\n"
+                 "  // Color lighting enabled: {}\n"
+                 "  // Alpha material source: {}\n"
+                 "  // Alpha ambient source: {}\n"
+                 "  // Alpha lighting enabled: {}\n",
                  chan, color_matsource, color_ambsource, color_enable, alpha_matsource,
                  alpha_ambsource, alpha_enable);
 
     if (color_matsource == MatSource::Vertex)
-      object.Write("int4 mat = int4(round({}{} * 255.0));\n", in_color_name, chan);
+      object.Write("  int4 mat = int4(round({}{} * 255.0));\n", in_color_name, chan);
     else  // from material color register
-      object.Write("int4 mat = {}[{}];\n", I_MATERIALS, chan + 2);
+      object.Write("  int4 mat = {}[{}];\n", I_MATERIALS, chan + 2);
 
     if (color_enable)
     {
       if (color_ambsource == AmbSource::Vertex)
-        object.Write("lacc = int4(round({}{} * 255.0));\n", in_color_name, chan);
+        object.Write("  int4 lacc = int4(round({}{} * 255.0));\n", in_color_name, chan);
       else  // from ambient color register
-        object.Write("lacc = {}[{}];\n", I_MATERIALS, chan);
+        object.Write("  int4 lacc = {}[{}];\n", I_MATERIALS, chan);
     }
     else
     {
-      object.Write("lacc = int4(255, 255, 255, 255);\n");
+      object.Write("  int4 lacc = int4(255, 255, 255, 255);\n");
     }
 
     // check if alpha is different
     if (color_matsource != alpha_matsource)
     {
       if (alpha_matsource == MatSource::Vertex)
-        object.Write("mat.w = int(round({}{}.w * 255.0));\n", in_color_name, chan);
+        object.Write("  mat.w = int(round({}{}.w * 255.0));\n", in_color_name, chan);
       else  // from material color register
-        object.Write("mat.w = {}[{}].w;\n", I_MATERIALS, chan + 2);
+        object.Write("  mat.w = {}[{}].w;\n", I_MATERIALS, chan + 2);
     }
 
     if (alpha_enable)
     {
       if (alpha_ambsource == AmbSource::Vertex)  // from vertex
-        object.Write("lacc.w = int(round({}{}.w * 255.0));\n", in_color_name, chan);
+        object.Write("  lacc.w = int(round({}{}.w * 255.0));\n", in_color_name, chan);
       else  // from ambient color register
-        object.Write("lacc.w = {}[{}].w;\n", I_MATERIALS, chan);
+        object.Write("  lacc.w = {}[{}].w;\n", I_MATERIALS, chan);
     }
     else
     {
-      object.Write("lacc.w = 255;\n");
+      object.Write("  lacc.w = 255;\n");
     }
 
     if (color_enable)
@@ -145,38 +148,36 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
       const auto diffusefunc = static_cast<DiffuseFunc>((uid_data.diffusefunc >> (2 * chan)) & 3);
       const u32 light_mask =
           (uid_data.light_mask >> (NUM_XF_LIGHTS * chan)) & ((1 << NUM_XF_LIGHTS) - 1);
-      object.Write("// Color attenuation function: {}\n", attnfunc);
-      object.Write("// Color diffuse function: {}\n", diffusefunc);
-      object.Write("// Color light mask: {:08b}\n", light_mask);
+      object.Write("  // Color attenuation function: {}\n", attnfunc);
+      object.Write("  // Color diffuse function: {}\n", diffusefunc);
+      object.Write("  // Color light mask: {:08b}\n", light_mask);
       for (u32 light = 0; light < NUM_XF_LIGHTS; light++)
       {
         if ((light_mask & (1 << light)) != 0)
         {
-          object.Write("// Color light {}\n", light);
           GenerateLightShader(object, uid_data, light, attnfunc, diffusefunc, false);
         }
       }
     }
-    if (alpha_enable)  // Alpha lights
+    if (alpha_enable)
     {
       const auto attnfunc = static_cast<AttenuationFunc>((uid_data.attnfunc >> (2 * chan_a)) & 3);
       const auto diffusefunc = static_cast<DiffuseFunc>((uid_data.diffusefunc >> (2 * chan_a)) & 3);
       const u32 light_mask =
           (uid_data.light_mask >> (NUM_XF_LIGHTS * chan_a)) & ((1 << NUM_XF_LIGHTS) - 1);
-      object.Write("// Alpha attenuation function: {}\n", attnfunc);
-      object.Write("// Alpha diffuse function: {}\n", diffusefunc);
-      object.Write("// Alpha light mask function: {:08b}\n", light_mask);
+      object.Write("  // Alpha attenuation function: {}\n", attnfunc);
+      object.Write("  // Alpha diffuse function: {}\n", diffusefunc);
+      object.Write("  // Alpha light mask function: {:08b}\n", light_mask);
       for (u32 light = 0; light < NUM_XF_LIGHTS; light++)
       {
         if ((light_mask & (1 << light)) != 0)
         {
-          object.Write("// Alpha light {}\n", light);
           GenerateLightShader(object, uid_data, light, attnfunc, diffusefunc, true);
         }
       }
     }
-    object.Write("lacc = clamp(lacc, 0, 255);\n");
-    object.Write("{}{} = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, chan);
+    object.Write("  lacc = clamp(lacc, 0, 255);\n");
+    object.Write("  {}{} = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, chan);
     object.Write("}}\n");
   }
 }
