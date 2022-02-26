@@ -14,6 +14,7 @@ enum class MessageType
 {
   NetPlayPing,
   NetPlayBuffer,
+  NetPlayDesync,
   CurrentFielder,
   CurrentBatter,
   TrainingModeFielderCoordinates,
