@@ -200,7 +200,7 @@ void AutoGolfMode()
   {
     u8 BatterPort = Memory::Read_U8(0x802EBF95);
     if (BatterPort == 0)
-      return; // do this here to avoid unneccesary mem reads
+      return; // means game hasn't started yet
     u8 FielderPort = Memory::Read_U8(0x802EBF94);
     bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
 

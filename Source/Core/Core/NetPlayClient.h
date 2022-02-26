@@ -272,7 +272,7 @@ private:
   void DisplayPlayersPing();
 
   std::string GetPortPlayer(int PortInt);
-  bool ShouldBeGolfer(int port);
+  void AutoGolfModeLogic(bool isField, int BatPort, int FieldPort);
   u32 GetPlayersMaxPing() const;
 
   void OnData(sf::Packet& packet);

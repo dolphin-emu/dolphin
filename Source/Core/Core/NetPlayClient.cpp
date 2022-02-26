@@ -2522,22 +2522,41 @@ void NetPlayClient::RequestGolfControl()
 // Auto Golf Mode functions
 void NetPlayClient::AutoGolfMode(bool isField, int BatPort, int FieldPort)
 {
-  if (isField && netplay_client->ShouldBeGolfer(FieldPort))  // fielding/baserunning state
-    netplay_client->RequestGolfControl();
-  
-  else if (!isField && netplay_client->ShouldBeGolfer(BatPort))  // batting/pitching state
-    netplay_client->RequestGolfControl();
+  netplay_client->AutoGolfModeLogic(isField, BatPort, FieldPort);
 }
 
-// Returns whether the client should assign themselves golf status
-// m_pad_map: key = port - 1 and value is the client ID that's connected to said port?
-bool NetPlayClient::ShouldBeGolfer(int port)
+void NetPlayClient::AutoGolfModeLogic(bool isField, int BatPort, int FieldPort)
 {
-  if (port >= 5)
-    return false;
-  int clientID = m_local_player->pid;  // refers to netplay client (the computer that's connected)
-  return m_pad_map[port - 1] == clientID ? true : false;
+  int clientID = m_local_player->pid; // refers to netplay client (the computer that's connected)
+  int GolfPort = isField ? FieldPort - 1 : BatPort - 1; // subtract 1 since m_pad_map uses 0->3 instead of 1->4
+  if (GolfPort >= 4 || GolfPort < 0) // something's wrong. probably a CPU player; return to avoid array out-of-range errors
+    return;
+
+  // this little block makes it so that the auto golf logic will only complete if the client's been the golfer for more than
+  // 10 frames. this is to ensure that under laggier conditions, a golfer who's game is too far behind doesn't swap the golfer
+  // status back and forth for a short while, which can be extra jarring to players
+  if (clientID != m_current_golfer) {
+    framesAsGolfer = 0;
+    return;
+  }
+  if (framesAsGolfer <= 255) // don't want a memory overflow here
+    framesAsGolfer += 1;
+  if (framesAsGolfer <= 10)
+    return;
+
+  // if the current golfer is also the one who should be the golfer, return
+  // this prevents bugs due to requesting a swap every frame, which i think caused problems in the old code
+  // m_pad_map is an array. the indices are the ports (0->3) and the values are the client ID's assigned to that port
+  if (m_pad_map[GolfPort] == clientID)
+    return;
+
+  // find the player that should be the golfer and assign them as the golfer
+  for (auto player : GetPlayers()) {
+    if (m_pad_map[GolfPort] == player->pid)
+      RequestGolfControl(player->pid);
+  }
 }
+
 
 // called from ---GUI--- thread
 std::string NetPlayClient::GetCurrentGolfer()
