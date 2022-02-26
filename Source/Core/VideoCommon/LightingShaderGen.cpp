@@ -32,9 +32,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  ".xyz)) : 0.0;\n",
                  LIGHT_DIR_PARAMS(index));
     object.Write("    float3 cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
-    object.Write("    float3 distAttn = {}(" LIGHT_DISTATT ".xyz);\n",
-                 (diffuse_func == DiffuseFunc::None) ? "" : "normalize",
-                 LIGHT_DISTATT_PARAMS(index));
+    object.Write("    float3 distAttn = " LIGHT_DISTATT ".xyz);\n", LIGHT_DISTATT_PARAMS(index));
     object.Write("    attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
                  "float3(1.0, attn, attn*attn));\n");
     break;

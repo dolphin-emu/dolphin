@@ -230,8 +230,6 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
     Vec3 attLen = Vec3(1.0, attn, attn * attn);
     Vec3 cosAttn = light->cosatt;
     Vec3 distAttn = light->distatt;
-    if (chan.diffusefunc != DiffuseFunc::None)
-      distAttn = distAttn.Normalized();
 
     attn = SafeDivide(std::max(0.0f, attLen * cosAttn), attLen * distAttn);
     break;
