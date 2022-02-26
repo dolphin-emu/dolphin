@@ -8,28 +8,21 @@
 name: Gradle and CMake CI 
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  issues:
+    types:
+      -opened
 
 jobs:
-  build:
-
+  label_issues:
     runs-on: ubuntu-latest
-
+    permissions:
+      issues: write
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-    - name: Create build directory
-      run:  mkdir ${{github.workspace}}/build
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@v2
-      with:
-        arguments: assembleDebug
-        gradle-executable: ./Source/Android/gradlew
-        build-root-directory: ./Source/Android/
+      - name: Set Issue Names
+        uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90
+        with:
+          add-labels: "CI setup issue, bug, help wanted"
+        env: 
+          GITHUB_TOKEN: $ {{ github.token }}
+          
+      
