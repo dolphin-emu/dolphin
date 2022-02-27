@@ -41,12 +41,15 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
     break;
   case AttenuationFunc::Spec:
     object.Write("    float cosine = 0.0;\n"
-                 "    // Compute the cosine of the angle between the object normal\n"
-                 "    // and the half-angle direction for the viewer\n"
-                 "    // (assuming the half-angle direction is a unit vector)\n"
-                 "    cosine = max(0.0, dot(_normal, " LIGHT_DIR ".xyz));\n",
+                 "    // Ensure that the object is facing the light\n"
+                 "    if (dot(_normal, ldir) >= 0.0) {{\n"
+                 "      // Compute the cosine of the angle between the object normal\n"
+                 "      // and the half-angle direction for the viewer\n"
+                 "      // (assuming the half-angle direction is a unit vector)\n"
+                 "      cosine = max(0.0, dot(_normal, " LIGHT_DIR ".xyz));\n",
                  LIGHT_DIR_PARAMS(index));
-    object.Write("    // Specular lights use the angle for the denominator as well\n"
+    object.Write("    }}\n"
+                 "    // Specular lights use the angle for the denominator as well\n"
                  "    dist = cosine;\n"
                  "    dist2 = dist * dist;\n");
     break;
