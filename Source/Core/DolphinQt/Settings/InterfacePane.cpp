@@ -213,12 +213,12 @@ void InterfacePane::ConnectLayout()
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_disable_screensaver, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveDebugMode);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [=](int index) { Settings::Instance().SetThemeName(m_combobox_theme->itemText(index)); });
   connect(m_combobox_userstyle, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &InterfacePane::OnSaveConfig);
+          &InterfacePane::OnSaveUserStyle);
   connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -235,7 +235,7 @@ void InterfacePane::ConnectLayout()
           &InterfacePane::OnCursorVisibleAlways);
   connect(m_checkbox_lock_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetLockCursor);
-  connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveUserStyle);
 }
 
 void InterfacePane::LoadConfig()
@@ -295,14 +295,6 @@ void InterfacePane::OnSaveConfig()
 
   Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
                   m_checkbox_use_builtin_title_database->isChecked());
-  Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
-  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
-
-  const bool visible = m_checkbox_use_userstyle->isChecked();
-
-  m_combobox_userstyle->setVisible(visible);
-  m_label_userstyle->setVisible(visible);
 
   // Render Window Options
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
@@ -333,6 +325,27 @@ void InterfacePane::OnSaveConfig()
 
   Config::SetBase(Config::MAIN_FOCUSED_HOTKEYS, m_checkbox_focused_hotkeys->isChecked());
   Config::SetBase(Config::MAIN_DISABLE_SCREENSAVER, m_checkbox_disable_screensaver->isChecked());
+
+  Config::Save();
+}
+
+void InterfacePane::OnSaveDebugMode()
+{
+  Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
+
+  Config::Save();
+}
+
+void InterfacePane::OnSaveUserStyle()
+{
+  Config::ConfigChangeCallbackGuard config_guard;
+
+  Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
+  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
+
+  const bool visible = m_checkbox_use_userstyle->isChecked();
+  m_combobox_userstyle->setVisible(visible);
+  m_label_userstyle->setVisible(visible);
 
   Config::Save();
 }

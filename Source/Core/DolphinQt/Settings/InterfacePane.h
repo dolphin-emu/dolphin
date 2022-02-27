@@ -24,6 +24,8 @@ private:
   void ConnectLayout();
   void LoadConfig();
   void OnSaveConfig();
+  void OnSaveDebugMode();
+  void OnSaveUserStyle();
   void OnCursorVisibleMovement();
   void OnCursorVisibleNever();
   void OnCursorVisibleAlways();
