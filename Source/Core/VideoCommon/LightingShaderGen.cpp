@@ -22,25 +22,48 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   object.Write("    float3 ldir = " LIGHT_POS ".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(index));
   object.Write("    float dist2 = dot(ldir, ldir);\n"
                "    float dist = sqrt(dist2);\n"
-               "    ldir = ldir / dist;\n");
+               "    ldir = ldir / dist;\n\n");
+
+  switch (diffuse_func)
+  {
+  case DiffuseFunc::None:
+    object.Write("    float diffuse = 1.0;\n\n");
+    break;
+  case DiffuseFunc::Sign:
+  default:  // Confirmed by hardware testing that invalid values use this
+    object.Write("    float diffuse = dot(ldir, _normal);\n\n");
+    break;
+  case DiffuseFunc::Clamp:
+    object.Write("    float diffuse = max(0.0, dot(ldir, _normal));\n\n");
+    break;
+  }
 
   switch (attn_func)
   {
   case AttenuationFunc::None:
+    if (diffuse_func == DiffuseFunc::None)
+    {
+      object.Write("    float attn = 1.0;\n");
+      break;
+    }
+    else
+    {
+      object.Write("    lacc.{} += int{}(round(255 * sign(diffuse)));\n", swizzle,
+                   swizzle_components);
+      object.Write("  }}\n");
+      return;  // Return, not break!
+    }
   case AttenuationFunc::Dir:
     object.Write("    float attn = 1.0;\n");
     break;
   case AttenuationFunc::Spec:
     object.Write("    float cosine = 0.0;\n"
-                 "    // Ensure that the object is facing the light\n"
-                 "    if (dot(_normal, ldir) >= 0.0) {{\n"
-                 "      // Compute the cosine of the angle between the object normal\n"
-                 "      // and the half-angle direction for the viewer\n"
-                 "      // (assuming the half-angle direction is a unit vector)\n"
-                 "      cosine = max(0.0, dot(_normal, " LIGHT_DIR ".xyz));\n",
+                 "    // Compute the cosine of the angle between the object normal\n"
+                 "    // and the half-angle direction for the viewer\n"
+                 "    // (assuming the half-angle direction is a unit vector)\n"
+                 "    cosine = max(0.0, dot(_normal, -" LIGHT_DIR ".xyz));\n",
                  LIGHT_DIR_PARAMS(index));
-    object.Write("    }}\n"
-                 "    // Specular lights use the angle for the denominator as well\n"
+    object.Write("    // Specular lights use the angle for the denominator as well\n"
                  "    dist = cosine;\n"
                  "    dist2 = dist * dist;\n");
     break;
@@ -74,20 +97,6 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  "    if (distAttn.z != 0.0) denominator += distAttn.z * dist2; // quadratic term\n"
                  ""
                  "    float attn = max(0.0f, numerator / denominator);\n");
-  }
-
-  switch (diffuse_func)
-  {
-  case DiffuseFunc::None:
-    object.Write("    float diffuse = 1.0;\n");
-    break;
-  case DiffuseFunc::Sign:
-  default:  // Confirmed by hardware testing that invalid values use this
-    object.Write("    float diffuse = dot(ldir, _normal);\n");
-    break;
-  case DiffuseFunc::Clamp:
-    object.Write("    float diffuse = max(0.0, dot(ldir, _normal));\n");
-    break;
   }
 
   object.Write("    lacc.{} += int{}(round(attn * diffuse * float{}(" LIGHT_COL ")));\n", swizzle,
