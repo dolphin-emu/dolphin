@@ -944,9 +944,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
   const bool use_shader_blend =
-      !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
-  const bool use_shader_logic_op =
-      !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
+      !use_dual_source && uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch;
+  const bool use_shader_logic_op = !host_config.backend_logic_op && uid_data->logic_op_enable &&
+                                   host_config.backend_shader_framebuffer_fetch;
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
@@ -1949,30 +1949,27 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
 static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
-  if (uid_data->logic_op_enable)
-  {
-    static constexpr std::array<const char*, 16> logic_op_mode{
-        "int4(0, 0, 0, 0)",          // CLEAR
-        "prev & fb_value",           // AND
-        "prev & ~fb_value",          // AND_REVERSE
-        "prev",                      // COPY
-        "~prev & fb_value",          // AND_INVERTED
-        "fb_value",                  // NOOP
-        "prev ^ fb_value",           // XOR
-        "prev | fb_value",           // OR
-        "~(prev | fb_value)",        // NOR
-        "~(prev ^ fb_value)",        // EQUIV
-        "~fb_value",                 // INVERT
-        "prev | ~fb_value",          // OR_REVERSE
-        "~prev",                     // COPY_INVERTED
-        "~prev | fb_value",          // OR_INVERTED
-        "~(prev & fb_value)",        // NAND
-        "int4(255, 255, 255, 255)",  // SET
-    };
+  static constexpr std::array<const char*, 16> logic_op_mode{
+      "int4(0, 0, 0, 0)",          // CLEAR
+      "prev & fb_value",           // AND
+      "prev & ~fb_value",          // AND_REVERSE
+      "prev",                      // COPY
+      "~prev & fb_value",          // AND_INVERTED
+      "fb_value",                  // NOOP
+      "prev ^ fb_value",           // XOR
+      "prev | fb_value",           // OR
+      "~(prev | fb_value)",        // NOR
+      "~(prev ^ fb_value)",        // EQUIV
+      "~fb_value",                 // INVERT
+      "prev | ~fb_value",          // OR_REVERSE
+      "~prev",                     // COPY_INVERTED
+      "~prev | fb_value",          // OR_INVERTED
+      "~(prev & fb_value)",        // NAND
+      "int4(255, 255, 255, 255)",  // SET
+  };
 
-    out.Write("\tint4 fb_value = iround(initial_ocol0 * 255.0);\n");
-    out.Write("\tprev = {};\n", logic_op_mode[uid_data->logic_op_mode]);
-  }
+  out.Write("\tint4 fb_value = iround(initial_ocol0 * 255.0);\n");
+  out.Write("\tprev = {};\n", logic_op_mode[uid_data->logic_op_mode]);
 }
 
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
