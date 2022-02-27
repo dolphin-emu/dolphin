@@ -27,6 +27,15 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
   switch (attn_func)
   {
   case AttenuationFunc::None:
+    // This logic correctly reproduces the behavior (if diffuse > 0, then lacc is 255, if it's < 0
+    // lacc is 0, and if it's equal to 0 lacc is unchanged, but with DiffuseFunc::None lacc instead
+    // has the light's color added to it), but may be an overly jank implementation (and might give
+    // incorrect results for a light value of 1/256, for instance; testing is needed)
+    if (diffuse_func == DiffuseFunc::None)
+      object.Write("    float attn = 1.0;\n");
+    else
+      object.Write("    float attn = 1024.0;\n");
+    break;
   case AttenuationFunc::Dir:
     object.Write("    float attn = 1.0;\n");
     break;
