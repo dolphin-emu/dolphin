@@ -947,11 +947,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       !use_dual_source && uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch;
   const bool use_shader_logic_op = !host_config.backend_logic_op && uid_data->logic_op_enable &&
                                    host_config.backend_shader_framebuffer_fetch;
+  const bool use_framebuffer_fetch = use_shader_blend || use_shader_logic_op;
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    bool use_framebuffer_fetch = use_shader_blend || use_shader_logic_op;
-
 #ifdef __APPLE__
     // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
     // if we want to use it.
@@ -959,18 +958,16 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     {
       if (use_dual_source)
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n"
-                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
-      }
-      else if (use_shader_blend)
-      {
-        // Metal doesn't support a single unified variable for both input and output, so we declare
-        // the output separately. The input will be defined later below.
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 real_ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
+                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
+                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
       }
       else
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+        // Metal doesn't support a single unified variable for both input and output,
+        // so when using framebuffer fetch, we declare the input separately below.
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {}};\n",
+                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
       }
 
       if (use_framebuffer_fetch)
@@ -989,7 +986,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
                 has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
                                         "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
                 use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
-                use_shader_blend ? "real_ocol0" : "ocol0");
+                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
       if (use_dual_source)
       {
@@ -1048,23 +1045,23 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       // Store off a copy of the initial framebuffer value.
       //
       // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
-      // framebuffer), we read from real_ocol0 or ocol0, depending if shader blending is enabled.
+      // framebuffer), we read from real_ocol0.
       out.Write("#ifdef FB_FETCH_VALUE\n"
                 "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
                 "#else\n"
-                "\tfloat4 initial_ocol0 = {};\n"
-                "#endif\n",
-                use_shader_blend ? "real_ocol0" : "ocol0");
+                "\tfloat4 initial_ocol0 = real_ocol0;\n"
+                "#endif\n");
+
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so we pull out the "real" output
+      // value above and use a temporary for calculations, then set the output value once at the
+      // end of the shader.
+      out.Write("\tfloat4 ocol0;\n");
     }
 
     if (use_shader_blend)
     {
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so we pull out the "real" output
-      // value above and use a temporary for calculations, then set the output value once at the
-      // end of the shader if we are using shader blending.
-      out.Write("\tfloat4 ocol0;\n"
-                "\tfloat4 ocol1;\n");
+      out.Write("\tfloat4 ocol1;\n");
     }
   }
   else  // D3D
@@ -1335,6 +1332,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   if (use_shader_blend)
     WriteBlend(out, uid_data);
+  else if (use_framebuffer_fetch)
+    out.Write("\treal_ocol0 = ocol0;\n");
 
   if (uid_data->bounding_box)
     out.Write("\tUpdateBoundingBox(rawpos.xy);\n");
