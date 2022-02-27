@@ -198,11 +198,11 @@ void AutoGolfMode()
 {
   if (IsGolfMode())
   {
-    u8 BatterPort = Memory::Read_U8(0x802EBF95);
+    u8 BatterPort = Memory::Read_U8(aBatterPort);
     if (BatterPort == 0)
       return; // means game hasn't started yet
-    u8 FielderPort = Memory::Read_U8(0x802EBF94);
-    bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
+    u8 FielderPort = Memory::Read_U8(aFielderPort);
+    bool isField = Memory::Read_U8(aIsField) == 1 ? true : false;
 
     NetPlay::NetPlayClient::AutoGolfMode(isField, BatterPort, FielderPort);
   }
@@ -226,30 +226,30 @@ void TrainingMode()
     return;
 
   //bool isPitchThrown = Memory::Read_U8(0x80895D6C) == 1 ? true : false;
-  bool isField = Memory::Read_U8(0x8089389B) == 1 ? true : false;
-  bool isInGame = Memory::Read_U8(0x80871A6D) == 1 ? true : false;
-  bool ContactMade = Memory::Read_U8(0x80892ADA) == 1 ? true : false;
+  bool isField = Memory::Read_U8(aIsField) == 1 ? true : false;
+  bool isInGame = Memory::Read_U8(aIsInGame) == 1 ? true : false;
+  bool ContactMade = Memory::Read_U8(aContactMade) == 1 ? true : false;
 
   // Batting Training Mode stats
   if (ContactMade)
   {
-    u8 BatterPort = Memory::Read_U8(0x802EBF95);
+    u8 BatterPort = Memory::Read_U8(aBatterPort);
     if (BatterPort > 0)
       BatterPort--;
     u32 stickDirectionAddr = 0x8089392D + (0x10 * BatterPort);
 
-    u16 contactFrame = Memory::Read_U16(0x80890976);
-    u8 typeOfContact_Value = Memory::Read_U8(0x808909A2);
+    u16 contactFrame = Memory::Read_U16(aContactFrame);
+    u8 typeOfContact_Value = Memory::Read_U8(aTypeOfContact);
     std::string typeOfContact;
     u8 inputDirection_Value = Memory::Read_U8(stickDirectionAddr) & 0xF;
     std::string inputDirection;
-    int chargeUp = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x80890968)) * 100)); 
-    int chargeDown = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(0x8089096C)) * 100));
+    int chargeUp = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(aChargeUp)) * 100)); 
+    int chargeDown = static_cast<int>(roundf(u32ToFloat(Memory::Read_U32(aChargeDown)) * 100));
 
-    float angle = roundf((float)Memory::Read_U16(0x808926D4) * 36000 / 4096) / 100; // 0x400 == 90°, 0x800 == 180°, 0x1000 == 360°
-    float xVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 6000) / 100;  // * 60 cause default units are meters per frame
-    float yVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E54)) * 6000) / 100;
-    float zVelocity = roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 6000) / 100;
+    float angle = roundf((float)Memory::Read_U16(aBallAngle) * 36000 / 4096) / 100; // 0x400 == 90°, 0x800 == 180°, 0x1000 == 360°
+    float xVelocity = roundf(u32ToFloat(Memory::Read_U32(aBallVelocity_X)) * 6000) / 100;  // * 60 cause default units are meters per frame
+    float yVelocity = roundf(u32ToFloat(Memory::Read_U32(aBallVelocity_Y)) * 6000) / 100;
+    float zVelocity = roundf(u32ToFloat(Memory::Read_U32(aBallVelocity_Z)) * 6000) / 100;
     float netVelocity = vectorMagnitude(xVelocity, yVelocity, zVelocity);
 
     // convert type of contact to string
@@ -317,15 +317,15 @@ void TrainingMode()
   // Coordinate data
   if (isInGame)
   {
-    float BallPos_X = roundf(u32ToFloat(Memory::Read_U32(0x80890B38)) * 100) / 100;
-    float BallPos_Y = roundf(u32ToFloat(Memory::Read_U32(0x80890B3C)) * 100) / 100;
-    float BallPos_Z = roundf(u32ToFloat(Memory::Read_U32(0x80890B40)) * 100) / 100;
-    float BallVel_X = isField ? roundf(u32ToFloat(Memory::Read_U32(0x80890E50)) * 6000) / 100 :
-                                roundf(u32ToFloat(Memory::Read_U32(0x808909D8)) * 6000) / 100;
-    float BallVel_Y = isField ? RoundZ(u32ToFloat(Memory::Read_U32(0x80890E54)) * 6000) / 100 :// floor small decimal to prevent weirdness
-                                RoundZ(u32ToFloat(Memory::Read_U32(0x808909DC)) * 6000) / 100;
-    float BallVel_Z = isField ? roundf(u32ToFloat(Memory::Read_U32(0x80890E58)) * 6000) / 100 :
-                                roundf(u32ToFloat(Memory::Read_U32(0x808909E0)) * 6000) / 100;
+    float BallPos_X = roundf(u32ToFloat(Memory::Read_U32(aBallPosition_X)) * 100) / 100;
+    float BallPos_Y = roundf(u32ToFloat(Memory::Read_U32(aBallPosition_Y)) * 100) / 100;
+    float BallPos_Z = roundf(u32ToFloat(Memory::Read_U32(aBallPosition_Z)) * 100) / 100;
+    float BallVel_X = isField ? roundf(u32ToFloat(Memory::Read_U32(aBallVelocity_X)) * 6000) / 100 :
+                                roundf(u32ToFloat(Memory::Read_U32(aPitchedBallVelocity_X)) * 6000) / 100;
+    float BallVel_Y = isField ? RoundZ(u32ToFloat(Memory::Read_U32(aBallVelocity_Y)) * 6000) / 100 :// floor small decimal to prevent weirdness
+                                RoundZ(u32ToFloat(Memory::Read_U32(aPitchedBallVelocity_Y)) * 6000) / 100;
+    float BallVel_Z = isField ? roundf(u32ToFloat(Memory::Read_U32(aBallVelocity_Z)) * 6000) / 100 :
+                                roundf(u32ToFloat(Memory::Read_U32(aPitchedBallVelocity_Z)) * 6000) / 100;
     float BallVel_Net = roundf(vectorMagnitude(BallVel_X, BallVel_Y, BallVel_Z) * 100) / 100;
 
     int baseOffset= 0x268 * Memory::Read_U8(0x80892801);  // used to get offsed for baseFielderAddr
@@ -384,8 +384,8 @@ void DisplayBatterFielder()
   if (!g_ActiveConfig.bShowBatterFielder)
     return;
 
-  u8 BatterPort = Memory::Read_U8(0x802EBF95);
-  u8 FielderPort = Memory::Read_U8(0x802EBF94); 
+  u8 BatterPort = Memory::Read_U8(aBatterPort);
+  u8 FielderPort = Memory::Read_U8(aFielderPort); 
   if (BatterPort == 0 || FielderPort == 0) // game hasn't started yet; do not continue func
     return;
 
