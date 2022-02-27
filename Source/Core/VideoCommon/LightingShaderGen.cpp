@@ -49,9 +49,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  "      cosine = max(0.0, dot(_normal, " LIGHT_DIR ".xyz));\n",
                  LIGHT_DIR_PARAMS(index));
     object.Write("    }}\n"
-                 "    ldir = " LIGHT_DIR ".xyz;\n",
-                 LIGHT_DIR_PARAMS(index));
-    object.Write("    // Specular lights use the angle for the denominator as well\n"
+                 "    // Specular lights use the angle for the denominator as well\n"
                  "    dist = cosine;\n"
                  "    dist2 = dist * dist;\n");
     break;
@@ -100,9 +98,6 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
     object.Write("    float diffuse = max(0.0, dot(ldir, _normal));\n");
     break;
   }
-
-  if (attn_func == AttenuationFunc::Spec && diffuse_func != DiffuseFunc::None)
-    object.Write("    diffuse *= (2048.0 + 1024.0);\n");
 
   object.Write("    lacc.{} += int{}(round(attn * diffuse * float{}(" LIGHT_COL ")));\n", swizzle,
                swizzle_components, swizzle_components, LIGHT_COL_PARAMS(index, swizzle));
