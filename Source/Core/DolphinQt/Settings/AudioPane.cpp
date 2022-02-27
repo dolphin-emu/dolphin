@@ -25,6 +25,7 @@
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/SettingsWindow.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 AudioPane::AudioPane()
@@ -37,6 +38,7 @@ AudioPane::AudioPane()
   connect(&Settings::Instance(), &Settings::VolumeChanged, this, &AudioPane::OnVolumeChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &AudioPane::LoadSettings);
 
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
@@ -79,6 +81,9 @@ void AudioPane::CreateWidgets()
   m_backend_label = new QLabel(tr("Audio Backend:"));
   m_backend_combo = new QComboBox();
   m_dolby_pro_logic = new QCheckBox(tr("Dolby Pro Logic II Decoder"));
+
+  for (const auto& backend : AudioCommon::GetSoundBackends())
+    m_backend_combo->addItem(tr(backend.c_str()), QVariant(QString::fromStdString(backend)));
 
   if (m_latency_control_supported)
   {
@@ -201,28 +206,29 @@ void AudioPane::LoadSettings()
   // DSP
   if (Config::Get(Config::MAIN_DSP_HLE))
   {
-    m_dsp_hle->setChecked(true);
+    SignalBlocking(m_dsp_hle)->setChecked(true);
   }
   else
   {
-    m_dsp_lle->setChecked(Config::Get(Config::MAIN_DSP_JIT));
-    m_dsp_interpreter->setChecked(!Config::Get(Config::MAIN_DSP_JIT));
+    SignalBlocking(m_dsp_lle)->setChecked(Config::Get(Config::MAIN_DSP_JIT));
+    SignalBlocking(m_dsp_interpreter)->setChecked(!Config::Get(Config::MAIN_DSP_JIT));
   }
 
   // Backend
   const auto current = Config::Get(Config::MAIN_AUDIO_BACKEND);
   bool selection_set = false;
-  for (const auto& backend : AudioCommon::GetSoundBackends())
+  std::vector<std::string> audio_backends = AudioCommon::GetSoundBackends();
+  for (size_t i = 0; i < audio_backends.size(); ++i)
   {
-    m_backend_combo->addItem(tr(backend.c_str()), QVariant(QString::fromStdString(backend)));
-    if (backend == current)
+    if (audio_backends[i] == current)
     {
-      m_backend_combo->setCurrentIndex(m_backend_combo->count() - 1);
+      SignalBlocking(m_backend_combo)->setCurrentIndex(static_cast<int>(i));
       selection_set = true;
+      break;
     }
   }
   if (!selection_set)
-    m_backend_combo->setCurrentIndex(-1);
+    SignalBlocking(m_backend_combo)->setCurrentIndex(-1);
 
   OnBackendChanged();
 
@@ -230,10 +236,10 @@ void AudioPane::LoadSettings()
   OnVolumeChanged(settings.GetVolume());
 
   // DPL2
-  m_dolby_pro_logic->setChecked(Config::Get(Config::MAIN_DPL2_DECODER));
-  m_dolby_quality_slider->setValue(int(Config::Get(Config::MAIN_DPL2_QUALITY)));
-  m_dolby_quality_latency_label->setText(
-      GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
+  SignalBlocking(m_dolby_pro_logic)->setChecked(Config::Get(Config::MAIN_DPL2_DECODER));
+  SignalBlocking(m_dolby_quality_slider)->setValue(int(Config::Get(Config::MAIN_DPL2_QUALITY)));
+  SignalBlocking(m_dolby_quality_latency_label)
+      ->setText(GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
   if (AudioCommon::SupportsDPL2Decoder(current) && !m_dsp_hle->isChecked())
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isChecked());
@@ -241,29 +247,40 @@ void AudioPane::LoadSettings()
 
   // Latency
   if (m_latency_control_supported)
-    m_latency_spin->setValue(Config::Get(Config::MAIN_AUDIO_LATENCY));
+    SignalBlocking(m_latency_spin)->setValue(Config::Get(Config::MAIN_AUDIO_LATENCY));
 
   // Stretch
-  m_stretching_enable->setChecked(Config::Get(Config::MAIN_AUDIO_STRETCH));
-  m_stretching_buffer_slider->setValue(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY));
-  m_stretching_buffer_slider->setEnabled(m_stretching_enable->isChecked());
-  m_stretching_buffer_indicator->setText(tr("%1 ms").arg(m_stretching_buffer_slider->value()));
+  SignalBlocking(m_stretching_enable)->setChecked(Config::Get(Config::MAIN_AUDIO_STRETCH));
+  SignalBlocking(m_stretching_buffer_slider)
+      ->setValue(Config::Get(Config::MAIN_AUDIO_STRETCH_LATENCY));
+  SignalBlocking(m_stretching_buffer_slider)->setEnabled(m_stretching_enable->isChecked());
+  SignalBlocking(m_stretching_buffer_indicator)
+      ->setText(tr("%1 ms").arg(m_stretching_buffer_slider->value()));
 
 #ifdef _WIN32
-  if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
-  {
-    m_wasapi_device_combo->setCurrentIndex(0);
-  }
-  else
-  {
-    m_wasapi_device_combo->setCurrentText(
-        QString::fromStdString(Config::Get(Config::MAIN_WASAPI_DEVICE)));
-  }
+  LoadWasapiDevice();
 #endif
 }
 
+#ifdef _WIN32
+void AudioPane::LoadWasapiDevice()
+{
+  if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
+  {
+    SignalBlocking(m_wasapi_device_combo)->setCurrentIndex(0);
+  }
+  else
+  {
+    SignalBlocking(m_wasapi_device_combo)
+        ->setCurrentText(QString::fromStdString(Config::Get(Config::MAIN_WASAPI_DEVICE)));
+  }
+}
+#endif
+
 void AudioPane::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   auto& settings = Settings::Instance();
 
   // DSP
@@ -361,11 +378,15 @@ void AudioPane::OnBackendChanged()
 
   if (is_wasapi)
   {
+    QSignalBlocker wasapi_blocker(m_wasapi_device_combo);
+
     m_wasapi_device_combo->clear();
     m_wasapi_device_combo->addItem(tr("Default Device"));
 
     for (const auto device : WASAPIStream::GetAvailableDevices())
       m_wasapi_device_combo->addItem(QString::fromStdString(device));
+
+    LoadWasapiDevice();
   }
 #endif
 
@@ -400,8 +421,8 @@ void AudioPane::OnEmulationStateChanged(bool running)
 
 void AudioPane::OnVolumeChanged(int volume)
 {
-  m_volume_slider->setValue(volume);
-  m_volume_indicator->setText(tr("%1%").arg(volume));
+  SignalBlocking(m_volume_slider)->setValue(volume);
+  SignalBlocking(m_volume_indicator)->setText(tr("%1%").arg(volume));
 }
 
 void AudioPane::CheckNeedForLatencyControl()
