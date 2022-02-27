@@ -83,6 +83,8 @@ InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
   CreateLayout();
   LoadConfig();
   ConnectLayout();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &InterfacePane::LoadConfig);
 }
 
 void InterfacePane::CreateLayout()
@@ -289,6 +291,8 @@ void InterfacePane::LoadConfig()
 
 void InterfacePane::OnSaveConfig()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   Config::SetBase(Config::MAIN_USE_BUILT_IN_TITLE_DATABASE,
                   m_checkbox_use_builtin_title_database->isChecked());
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
