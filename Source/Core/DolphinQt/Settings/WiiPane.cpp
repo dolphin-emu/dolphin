@@ -24,6 +24,7 @@
 #include "Core/Core.h"
 
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
 
@@ -50,6 +51,8 @@ WiiPane::WiiPane(QWidget* parent) : QWidget(parent)
   ConnectLayout();
   ValidateSelectionState();
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &WiiPane::LoadConfig);
 }
 
 void WiiPane::CreateLayout()
@@ -225,22 +228,25 @@ void WiiPane::OnEmulationStateChanged(bool running)
 
 void WiiPane::LoadConfig()
 {
-  m_screensaver_checkbox->setChecked(Config::Get(Config::SYSCONF_SCREENSAVER));
-  m_pal60_mode_checkbox->setChecked(Config::Get(Config::SYSCONF_PAL60));
-  m_sd_card_checkbox->setChecked(Settings::Instance().IsSDCardInserted());
-  m_allow_sd_writes_checkbox->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
-  m_connect_keyboard_checkbox->setChecked(Settings::Instance().IsUSBKeyboardConnected());
-  m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
-  m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
-  m_sound_mode_choice->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
+  SignalBlocking(m_screensaver_checkbox)->setChecked(Config::Get(Config::SYSCONF_SCREENSAVER));
+  SignalBlocking(m_pal60_mode_checkbox)->setChecked(Config::Get(Config::SYSCONF_PAL60));
+  SignalBlocking(m_sd_card_checkbox)->setChecked(Settings::Instance().IsSDCardInserted());
+  SignalBlocking(m_allow_sd_writes_checkbox)->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
+  SignalBlocking(m_connect_keyboard_checkbox)
+      ->setChecked(Settings::Instance().IsUSBKeyboardConnected());
+  SignalBlocking(m_aspect_ratio_choice)->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
+  SignalBlocking(m_system_language_choice)->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
+  SignalBlocking(m_sound_mode_choice)->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
 
   PopulateUSBPassthroughListWidget();
 
-  m_wiimote_ir_sensor_position->setCurrentIndex(
-      TranslateSensorBarPosition(Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
-  m_wiimote_ir_sensitivity->setValue(Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY));
-  m_wiimote_speaker_volume->setValue(Config::Get(Config::SYSCONF_SPEAKER_VOLUME));
-  m_wiimote_motor->setChecked(Config::Get(Config::SYSCONF_WIIMOTE_MOTOR));
+  SignalBlocking(m_wiimote_ir_sensor_position)
+      ->setCurrentIndex(
+          TranslateSensorBarPosition(Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION)));
+  SignalBlocking(m_wiimote_ir_sensitivity)
+      ->setValue(Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY));
+  SignalBlocking(m_wiimote_speaker_volume)->setValue(Config::Get(Config::SYSCONF_SPEAKER_VOLUME));
+  SignalBlocking(m_wiimote_motor)->setChecked(Config::Get(Config::SYSCONF_WIIMOTE_MOTOR));
 }
 
 void WiiPane::OnSaveConfig()
@@ -292,6 +298,8 @@ void WiiPane::OnUSBWhitelistRemoveButton()
 
 void WiiPane::PopulateUSBPassthroughListWidget()
 {
+  QSignalBlocker blocker(m_whitelist_usb_list);
+
   m_whitelist_usb_list->clear();
   auto whitelist = Config::GetUSBDeviceWhitelist();
   for (const auto& device : whitelist)
