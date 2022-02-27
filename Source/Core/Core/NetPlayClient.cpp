@@ -1579,6 +1579,10 @@ void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
   }
 }
 
+std::string NetPlayClient::sGetPortPlayer(int PortInt)
+{
+  return netplay_client->GetPortPlayer(PortInt - 1);
+}
 
 std::string NetPlayClient::GetPortPlayer(int PortInt)
 {

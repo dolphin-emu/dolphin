@@ -169,6 +169,7 @@ public:
   static void DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt);
   static bool isRanked();
   static u32 sGetPlayersMaxPing();
+  static std::string sGetPortPlayer(int PortInt);
   bool m_ranked_client = false;
   
   const PadMappingArray& GetPadMapping() const;
