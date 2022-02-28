@@ -516,19 +516,19 @@ void ElfModLoader::parse_and_load_modfile(std::string const& path) {
   // TODO: check if too many callgate table entries
   // should never go over really, but good for clarity
   for (auto&& [hook_fn, hook_addr] : parsed_vthooks) {
-    resolve_symbols([this, hook_addr] (Symbol* hook_sym) {
+    resolve_symbols([this, hook_addr = hook_addr] (Symbol* hook_sym) {
         create_vthook_callgated(hook_sym->address, hook_addr);
       }, hook_fn);
   }
 
   for (auto&& [hook_fn, hook_addr] : parsed_blhooks) {
-    resolve_symbols([this, hook_addr] (Symbol* hook_sym) {
+    resolve_symbols([this, hook_addr = hook_addr] (Symbol* hook_sym) {
         create_blhook_callgated(hook_sym->address, hook_addr);
       }, hook_fn);
   }
 
   for (auto&& [hook_fn, hook_addr] : parsed_trampolines) {
-    resolve_symbols([this, hook_addr] (Symbol* hook_sym) {
+    resolve_symbols([this, hook_addr = hook_addr] (Symbol* hook_sym) {
         create_trampoline_callgated(hook_sym->address, hook_addr);
       }, hook_fn);
   }
