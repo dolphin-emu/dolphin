@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Version.h"
 
@@ -18,19 +17,54 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-// MPN Dolphin Version
-const std::string scm_rev_str = "Dolphin MPN - (" SCM_REV_STR ")";
+const std::string& GetScmRevStr()
+{
+  #define MPN_REV_STR "02/27/2022"
+  static const std::string scm_rev_str = "Dolphin MPN";
+  return scm_rev_str;
+}
 
-const std::string scm_rev_git_str = SCM_REV_STR;
-const std::string scm_desc_str = SCM_DESC_STR;
-const std::string scm_branch_str = SCM_BRANCH_STR;
-const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
+const std::string& GetScmRevGitStr()
+{
+  static const std::string scm_rev_git_str = SCM_REV_STR;
+  return scm_rev_git_str;
+}
 
+const std::string& GetScmDescStr()
+{
+  static const std::string scm_desc_str = SCM_DESC_STR;
+  return scm_desc_str;
+}
+
+const std::string& GetScmBranchStr()
+{
+  static const std::string scm_branch_str = SCM_BRANCH_STR;
+  return scm_branch_str;
+}
+
+const std::string& GetScmDistributorStr()
+{
+  static const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;
+  return scm_distributor_str;
+}
+
+const std::string& GetScmUpdateTrackStr()
+{
+  static const std::string scm_update_track_str = SCM_UPDATE_TRACK_STR;
+  return scm_update_track_str;
+}
+
+const std::string& GetNetplayDolphinVer()
+{
+#define LABEL "MPN"
 #ifdef _WIN32
-const std::string netplay_dolphin_ver = SCM_DESC_STR " Win";
+  static const std::string netplay_dolphin_ver = LABEL " Win";
 #elif __APPLE__
-const std::string netplay_dolphin_ver = SCM_DESC_STR " Mac";
+  static const std::string netplay_dolphin_ver = LABEL " Mac";
 #else
-const std::string netplay_dolphin_ver = SCM_DESC_STR " Lin";
+  static const std::string netplay_dolphin_ver = LABEL " Lin";
 #endif
+  return netplay_dolphin_ver;
+}
+
 }  // namespace Common

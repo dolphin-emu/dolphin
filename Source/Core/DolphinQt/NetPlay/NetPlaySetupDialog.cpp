@@ -209,10 +209,10 @@ void NetPlaySetupDialog::CreateMainLayout()
 
   host_layout->addWidget(m_host_port_box, 0, 0, Qt::AlignLeft);
 #ifdef USE_UPNP
-  host_layout->addWidget(m_host_upnp, 0, 4, Qt::AlignRight);
+  host_layout->addWidget(m_host_upnp, 0, 5, Qt::AlignRight);
 #endif
   host_layout->addWidget(m_host_games, 2, 0, 1, -1);
-  host_layout->addWidget(m_host_button, 4, 3, 2, 1, Qt::AlignRight);
+  host_layout->addWidget(m_host_button, 4, 5, Qt::AlignRight);
 
   host_widget->setLayout(host_layout);
 

@@ -33,7 +33,7 @@ const Info<std::string> NETPLAY_ADDRESS{{System::Main, "NetPlay", "Address"}, "1
 const Info<u16> NETPLAY_CONNECT_PORT{{System::Main, "NetPlay", "ConnectPort"}, DEFAULT_LISTEN_PORT};
 const Info<u16> NETPLAY_LISTEN_PORT{{System::Main, "NetPlay", "ListenPort"}, DEFAULT_LISTEN_PORT};
 
-const Info<std::string> NETPLAY_NICKNAME{{System::Main, "NetPlay", "Nickname"}, "Player"};
+const Info<std::string> NETPLAY_NICKNAME{{System::Main, "NetPlay", "Nickname"}, "MPN Player"};
 const Info<bool> NETPLAY_USE_UPNP{{System::Main, "NetPlay", "UseUPNP"}, false};
 
 const Info<bool> NETPLAY_ENABLE_QOS{{System::Main, "NetPlay", "EnableQoS"}, true};
