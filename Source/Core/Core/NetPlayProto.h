@@ -97,7 +97,7 @@ struct NetSettings
 
   bool m_StrictSettingsSync = false;
   bool m_SyncSaveData = false;
-  bool m_SyncCodes = false;
+  bool m_SyncCodes = true;
   std::string m_SaveDataRegion;
   bool m_SyncAllWiiSaves = false;
   std::array<int, 4> m_WiimoteExtension{};

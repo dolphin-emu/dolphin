@@ -1477,7 +1477,7 @@ bool NetPlayServer::SetupNetSettings()
 
   settings.m_StrictSettingsSync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
   settings.m_SyncSaveData = Config::Get(Config::NETPLAY_SYNC_SAVES);
-  settings.m_SyncCodes = Config::Get(Config::NETPLAY_SYNC_CODES);
+  settings.m_SyncCodes = true;
   settings.m_SyncAllWiiSaves =
       Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES) && Config::Get(Config::NETPLAY_SYNC_SAVES);
   settings.m_GolfMode = Config::Get(Config::NETPLAY_NETWORK_MODE) == "golf";
