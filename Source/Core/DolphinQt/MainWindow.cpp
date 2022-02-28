@@ -531,8 +531,6 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
-  connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
-  connect(m_menu_bar, &MenuBar::BrowseNetPlay, this, &MainWindow::ShowNetPlayBrowser);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
   connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
@@ -647,6 +645,8 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
+
+  connect(m_tool_bar, &ToolBar::StartNetPlayPressed, this, &MainWindow::ShowNetPlaySetupDialog);
 
   connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
   connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
@@ -1392,10 +1392,11 @@ void MainWindow::NetPlayInit()
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::ForceStop);
+  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
+  connect(m_netplay_setup_dialog, &NetPlaySetupDialog::JoinBrowser, this, &MainWindow::NetPlayJoin);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
 
