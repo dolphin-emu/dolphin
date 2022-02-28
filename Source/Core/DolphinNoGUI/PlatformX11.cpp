@@ -69,11 +69,11 @@ void PlatformX11::UpdateCursor(bool locked) {
     if (m_window != 0) {
       XWarpPointer(m_display, 0, m_window, 0, 0, 0, 0, m_window_width / 2, m_window_height / 2);
     }
-    if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never) {
+    if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never) {
       XDefineCursor(m_display, m_window, m_blank_cursor);
     }
   } else {
-    if (SConfig::GetInstance().m_show_cursor == SConfig::ShowCursor::Never) {
+    if (Config::Get(Config::MAIN_SHOW_CURSOR) == Config::ShowCursor::Never) {
       XUndefineCursor(m_display, m_window);
     }
   }
