@@ -225,6 +225,7 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   }
   case AttenuationFunc::Spec:
   {
+    PanicAlertFmt("Specular lighting in use!");
     ldir = ldir.Normalized();
     attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
     Vec3 attLen = Vec3(1.0, attn, attn * attn);
