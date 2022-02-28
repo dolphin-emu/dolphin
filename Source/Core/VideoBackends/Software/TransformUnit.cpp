@@ -218,6 +218,11 @@ static float CalculateLightAttn(const LightPointer* light, Vec3* _ldir, const Ve
   switch (chan.attnfunc)
   {
   case AttenuationFunc::None:
+  {
+    PanicAlertFmt("None lighting in use!");
+    ldir = ldir.Normalized();
+    break;
+  }
   case AttenuationFunc::Dir:
   {
     ldir = ldir.Normalized();
