@@ -31,6 +31,9 @@ jobs:
     # Use Static ZSTD
     - name: Remove ZSTD
       run: brew uninstall zstd curl php --force --ignore-dependencies
+    # Submoudle
+    - name: Checkout Submodles
+      run: git submodule update --init --recursive
     # Run CMake
     - name: Run CMake
       run: mkdir -p build && cd build && cmake .. -G Ninja -DCMAKE_CXX_FLAGS="-Xclang -fcolor-diagnostics" -DCMAKE_PREFIX_PATH=$(brew --prefix qt5)
