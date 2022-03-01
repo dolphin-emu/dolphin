@@ -1495,7 +1495,7 @@ void MainWindow::NetPlayInit()
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
+  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStopNetplay);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
