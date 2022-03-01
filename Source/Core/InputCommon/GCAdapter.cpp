@@ -417,12 +417,14 @@ void SetAdapterCallback(std::function<void(void)> func)
 
 static void RefreshConfig()
 {
-  s_is_adapter_wanted = false;
+  s_is_adapter_wanted = Config::Get(Config::MAIN_USE_GC_ADAPTER_FOR_CONTROLLER_INTERFACE);
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     s_is_adapter_wanted |= Config::Get(Config::GetInfoForSIDevice(i)) ==
                            SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER;
+
+    // TODO: ControllerInterface shouldn't obey this setting.
     s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
   }
 }
@@ -782,6 +784,18 @@ GCPadStatus Input(int chan)
   }
 
   return pad_state.status;
+}
+
+GCPadStatus PeekInput(int chan)
+{
+  std::lock_guard lk(s_read_mutex);
+  return s_port_states[chan].status;
+}
+
+GCPadStatus GetOrigin(int chan)
+{
+  std::lock_guard lk(s_read_mutex);
+  return s_port_states[chan].origin;
 }
 
 // Get ControllerType from first byte in input payload.
