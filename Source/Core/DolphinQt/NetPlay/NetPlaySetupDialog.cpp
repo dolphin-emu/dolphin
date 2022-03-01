@@ -507,12 +507,11 @@ void NetPlaySetupDialog::UpdateListBrowser()
   });
 
   auto* hor_header = m_table_widget->horizontalHeader();
-
+  hor_header->setSectionResizeMode(0, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(0, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(1, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(2, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(4, QHeaderView::ResizeToContents);
   hor_header->setHighlightSections(false);
 
   m_table_widget->setRowCount(session_count);
@@ -531,10 +530,10 @@ void NetPlaySetupDialog::UpdateListBrowser()
     for (const auto& item : {name, game_id, player_count, in_game})
       item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
 
-    m_table_widget->setItem(i, 1, name);
-    m_table_widget->setItem(i, 2, game_id);
-    m_table_widget->setItem(i, 3, player_count);
-    m_table_widget->setItem(i, 4, in_game);
+    m_table_widget->setItem(i, 0, name);
+    m_table_widget->setItem(i, 1, game_id);
+    m_table_widget->setItem(i, 2, player_count);
+    m_table_widget->setItem(i, 3, in_game);
 
   }
 

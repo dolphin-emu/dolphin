@@ -944,6 +944,110 @@ bool MainWindow::RequestStop()
   return true;
 }
 
+bool MainWindow::RequestStopNetplay()
+{
+  if (!Core::IsRunning())
+  {
+    Core::QueueHostJob([this] { OnStopComplete(); }, true);
+    return true;
+  }
+
+  const bool rendered_widget_was_active =
+      m_render_widget->isActiveWindow() && !m_render_widget->isFullScreen();
+  QWidget* confirm_parent = (!m_rendering_to_main && rendered_widget_was_active) ?
+                                m_render_widget :
+                                static_cast<QWidget*>(this);
+  const bool was_cursor_locked = m_render_widget->IsCursorLocked();
+
+  if (!m_render_widget->isFullScreen())
+    m_render_widget_geometry = m_render_widget->saveGeometry();
+  else
+    FullScreen();
+
+  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
+  {
+    if (std::exchange(m_stop_confirm_showing, true))
+      return true;
+
+    Common::ScopeGuard confirm_lock([this] { m_stop_confirm_showing = false; });
+
+    const Core::State state = Core::GetState();
+
+    // Only pause the game, if NetPlay is not running
+    bool pause = !Settings::Instance().GetNetPlayClient();
+
+    if (pause)
+      Core::SetState(Core::State::Paused);
+
+    if (rendered_widget_was_active)
+    {
+      // We have to do this before creating the message box, otherwise we might receive the window
+      // activation event before we know we need to lock the cursor again.
+      m_render_widget->SetCursorLockedOnNextActivation(was_cursor_locked);
+    }
+
+    // This is to avoid any "race conditions" between the "Window Activate" message and the
+    // message box returning, which could break cursor locking depending on the order
+    m_render_widget->SetWaitingForMessageBox(true);
+    auto confirm = ModalMessageBox::question(
+        confirm_parent, tr("Quitter!"),
+        m_stop_requested ? tr("A user closed down their game from the netplay lobby. "
+                              "This could the Netplay session has ended due to someone ragequitting! "
+                              "Do you want to stop the current emulation?") :
+                           tr("A user closed down their game from the netplay lobby. "
+                              "This could the Netplay session has ended due to someone ragequitting"
+                              "Do you want to stop the current emulation?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
+
+    // If a user confirmed stopping the emulation, we do not capture the cursor again,
+    // even if the render widget will stay alive for a while.
+    // If a used rejected stopping the emulation, we instead capture the cursor again,
+    // and let them continue playing as if nothing had happened
+    // (assuming cursor locking is on).
+    if (confirm != QMessageBox::Yes)
+    {
+      m_render_widget->SetWaitingForMessageBox(false);
+
+      if (pause)
+        Core::SetState(state);
+
+      return false;
+    }
+    else
+    {
+      m_render_widget->SetCursorLockedOnNextActivation(false);
+      // This needs to be after SetCursorLockedOnNextActivation(false) as it depends on it
+      m_render_widget->SetWaitingForMessageBox(false);
+    }
+  }
+
+  OnStopRecording();
+  // TODO: Add Debugger shutdown
+
+  if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
+  {
+    m_stop_requested = true;
+
+    // Unpause because gracefully shutting down needs the game to actually request a shutdown.
+    // TODO: Do not unpause in debug mode to allow debugging until the complete shutdown.
+    if (Core::GetState() == Core::State::Paused)
+      Core::SetState(Core::State::Running);
+
+    // Tell NetPlay about the power event
+    if (NetPlay::IsNetPlayRunning())
+      NetPlay::SendPowerButtonEvent();
+
+    return true;
+  }
+
+  ForceStop();
+#ifdef Q_OS_WIN
+  // Allow windows to idle or turn off display again
+  SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+  return true;
+}
+
 void MainWindow::ForceStop()
 {
   Core::Stop();
@@ -1392,7 +1496,7 @@ void MainWindow::NetPlayInit()
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
+  connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStopNetplay);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
