@@ -990,12 +990,13 @@ bool MainWindow::RequestStopNetplay()
     // message box returning, which could break cursor locking depending on the order
     m_render_widget->SetWaitingForMessageBox(true);
     auto confirm = ModalMessageBox::question(
-        confirm_parent, tr("Confirm"),
-        m_stop_requested ? tr("A user disconnected from the netplay lobby"
-                              "Netplay session has ended due to someone crashing"
-                              "before NetPlay complete."
-                              "All players control Player 1 and have been seperated") :
-                           tr("Do you want to stop the current emulation?"),
+        confirm_parent, tr("Quitter!"),
+        m_stop_requested ? tr("A user closed down their game from the netplay lobby. "
+                              "This could the Netplay session has ended due to someone ragequitting! "
+                              "Do you want to stop the current emulation?") :
+                           tr("A user closed down their game from the netplay lobby. "
+                              "This could the Netplay session has ended due to someone ragequitting"
+                              "Do you want to stop the current emulation?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
 
     // If a user confirmed stopping the emulation, we do not capture the cursor again,
