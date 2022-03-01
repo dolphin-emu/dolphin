@@ -508,10 +508,10 @@ void NetPlaySetupDialog::UpdateListBrowser()
 
   auto* hor_header = m_table_widget->horizontalHeader();
   hor_header->setSectionResizeMode(0, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(0, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(1, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-
   hor_header->setHighlightSections(false);
 
   m_table_widget->setRowCount(session_count);
