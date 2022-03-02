@@ -13,6 +13,10 @@
     <item
         android:id="@+id/menu_emulation_adjust_scale"
         android:title="@string/emulation_control_adjustments"/>
+        
+    <item
+        android:id="@+id/menu_emulation_hotkey"
+        android:title="@string/emulation_hotkey"/>
 
     <item
         android:id="@+id/menu_emulation_joystick_rel_center"
