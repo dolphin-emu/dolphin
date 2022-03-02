@@ -23,6 +23,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/AutoUpdate.h"
@@ -238,45 +239,46 @@ void GeneralPane::LoadConfig()
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
     const auto track = Settings::Instance().GetAutoUpdateTrack().toStdString();
-
     if (track == AUTO_UPDATE_DISABLE_STRING)
-      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_DISABLE_INDEX);
+      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DISABLE_INDEX);
     else if (track == AUTO_UPDATE_STABLE_STRING)
-      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_STABLE_INDEX);
+      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_STABLE_INDEX);
     else if (track == AUTO_UPDATE_BETA_STRING)
-      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
+      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
     else
-      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
+      SignalBlocking(m_combobox_update_track)->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
   }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  m_checkbox_enable_analytics->setChecked(Settings::Instance().IsAnalyticsEnabled());
+  SignalBlocking(m_checkbox_enable_analytics)
+      ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
-  m_checkbox_dualcore->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
-  m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
-  m_checkbox_override_region_settings->setChecked(
-      Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
-  m_checkbox_auto_disc_change->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
+  SignalBlocking(m_checkbox_dualcore)->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
+  SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
+  SignalBlocking(m_checkbox_override_region_settings)
+      ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
+  SignalBlocking(m_checkbox_auto_disc_change)
+      ->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
+
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+  SignalBlocking(m_checkbox_discord_presence)
+      ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
   int selection = qRound(Config::Get(Config::MAIN_EMULATION_SPEED) * 10);
   if (selection < m_combobox_speedlimit->count())
-    m_combobox_speedlimit->setCurrentIndex(selection);
-  m_checkbox_dualcore->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
+    SignalBlocking(m_combobox_speedlimit)->setCurrentIndex(selection);
 
   const auto fallback = Settings::Instance().GetFallbackRegion();
-
   if (fallback == DiscIO::Region::NTSC_J)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
   else if (fallback == DiscIO::Region::NTSC_U)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCU_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCU_INDEX);
   else if (fallback == DiscIO::Region::PAL)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_PAL_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_PAL_INDEX);
   else if (fallback == DiscIO::Region::NTSC_K)
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCK_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCK_INDEX);
   else
-    m_combobox_fallback_region->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
+    SignalBlocking(m_combobox_fallback_region)->setCurrentIndex(FALLBACK_REGION_NTSCJ_INDEX);
 }
 
 static QString UpdateTrackFromIndex(int index)
