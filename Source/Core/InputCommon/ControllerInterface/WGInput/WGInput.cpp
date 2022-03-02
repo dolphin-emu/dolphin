@@ -172,6 +172,8 @@ public:
     }
   }
 
+  int GetSortPriority() const override { return -1; }
+
 private:
   // `boolean` comes from Windows API. (typedef of unsigned char)
   using ButtonValueType = boolean;

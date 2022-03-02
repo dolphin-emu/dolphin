@@ -31,7 +31,7 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
   std::optional<int> GetPreferredId() const override;
-  int GetSortPriority() const override { return -1; }
+  int GetSortPriority() const override { return -2; }
 
   void UpdateInput() override;
 
