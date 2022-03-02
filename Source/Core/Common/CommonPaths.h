@@ -72,6 +72,7 @@
 #define BACKUP_DIR "Backup"
 #define RESOURCEPACK_DIR "ResourcePacks"
 #define DYNAMICINPUT_DIR "DynamicInputTextures"
+#define GRAPHICSMOD_DIR "GraphicMods"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -137,3 +138,6 @@
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"
+
+// Subdirs in Config
+#define GRAPHICSMOD_CONFIG_DIR "GraphicMods"

@@ -69,6 +69,7 @@ static void CreateLoadPath(std::string path)
     File::SetUserPath(D_LOAD_IDX, std::move(path));
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
   File::CreateFullPath(File::GetUserPath(D_RIIVOLUTION_IDX));
+  File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
 }
 
 static void CreateResourcePackPath(std::string path)
@@ -188,6 +189,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_COVERCACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
+  File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX) + GRAPHICSMOD_CONFIG_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
@@ -197,6 +199,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_GRAPHICSMOD_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
   File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
