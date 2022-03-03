@@ -233,11 +233,6 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
-
-  tools_menu->addSeparator();
-
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
 
   m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
@@ -305,7 +300,7 @@ void MenuBar::AddToolsMenu()
 void MenuBar::AddEmulationMenu()
 {
   QMenu* emu_menu = addMenu(tr("&Emulation"));
-  m_play_action = emu_menu->addAction(tr("&Play"), this, &MenuBar::Play);
+  m_play_action = emu_menu->addAction(tr("&Local Play"), this, &MenuBar::Play);
   m_pause_action = emu_menu->addAction(tr("&Pause"), this, &MenuBar::Pause);
   m_stop_action = emu_menu->addAction(tr("&Stop"), this, &MenuBar::Stop);
   m_reset_action = emu_menu->addAction(tr("&Reset"), this, &MenuBar::Reset);

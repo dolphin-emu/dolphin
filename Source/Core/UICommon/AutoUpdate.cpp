@@ -164,7 +164,7 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
   std::string url = fmt::format("https://dolphin-emu.org/update/check/v1/{}/{}/{}", update_track,
                                 version_hash, GetPlatformID());
-
+  /*
   Common::HttpRequest req{std::chrono::seconds{10}};
   auto resp = req.Get(url);
   if (!resp)
@@ -201,17 +201,18 @@ void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
   nvi.changelog_html = GenerateChangelog(obj["changelog"].get<picojson::array>());
 
   OnUpdateAvailable(nvi);
+  */
 }
 
 void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
                                       AutoUpdateChecker::RestartMode restart_mode)
 {
   // Check to make sure we don't already have an update triggered
-  if (s_update_triggered)
+  /* if (s_update_triggered)
   {
     WARN_LOG_FMT(COMMON, "Auto-update: received a redundant trigger request, ignoring");
     return;
-  }
+  }*/
 
   s_update_triggered = true;
 #ifdef OS_SUPPORTS_UPDATER

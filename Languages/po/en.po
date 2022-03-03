@@ -512,7 +512,7 @@ msgid "&Pause"
 msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:308
-msgid "&Play"
+msgid "&Local Play"
 msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:357
