@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -55,6 +54,6 @@ private:
   static bool LoadTexture(Level& level, const std::vector<u8>& buffer);
   static void Prefetch();
 
-  HiresTexture() {}
-  bool m_has_arbitrary_mipmaps;
+  HiresTexture() = default;
+  bool m_has_arbitrary_mipmaps = false;
 };

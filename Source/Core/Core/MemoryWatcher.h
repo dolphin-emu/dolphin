@@ -1,10 +1,12 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #include <map>
+#include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <vector>

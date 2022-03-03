@@ -1,12 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2004 Duddie & Tratax
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/DSP/DSPCore.h"
 
 #include <cstddef>
 
 #include "Common/CommonTypes.h"
-#include "Core/DSP/DSPCore.h"
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 namespace DSP

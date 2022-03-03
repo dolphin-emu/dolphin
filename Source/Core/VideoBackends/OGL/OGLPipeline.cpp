@@ -1,10 +1,10 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoBackends/OGL/OGLPipeline.h"
 
 #include "Common/Assert.h"
 
-#include "VideoBackends/OGL/OGLPipeline.h"
 #include "VideoBackends/OGL/OGLRender.h"
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLVertexManager.h"

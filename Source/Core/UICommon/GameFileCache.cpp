@@ -1,10 +1,10 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/GameFileCache.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <functional>
 #include <list>
@@ -27,13 +27,14 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 20;  // Last changed in PR 9461
+static constexpr u32 CACHE_REVISION = 21;  // Last changed in PR 10187
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
 {
-  static const std::vector<std::string> search_extensions = {
-      ".gcm", ".tgc", ".iso", ".ciso", ".gcz", ".wbfs", ".wia", ".rvz", ".wad", ".dol", ".elf"};
+  static const std::vector<std::string> search_extensions = {".gcm", ".tgc",  ".iso", ".ciso",
+                                                             ".gcz", ".wbfs", ".wia", ".rvz",
+                                                             ".wad", ".dol",  ".elf", ".json"};
 
   // TODO: We could process paths iteratively as they are found
   return Common::DoFileSearch(directories_to_scan, search_extensions, recursive_scan);
@@ -43,13 +44,9 @@ GameFileCache::GameFileCache() : m_path(File::GetUserPath(D_CACHE_IDX) + "gameli
 {
 }
 
-GameFileCache::GameFileCache(std::string path) : m_path(std::move(path))
-{
-}
-
 void GameFileCache::ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const
 {
-  for (const std::shared_ptr<const GameFile>& item : m_cached_files)
+  for (const std::shared_ptr<GameFile>& item : m_cached_files)
     f(item);
 }
 
@@ -207,7 +204,7 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   if (custom_cover_changed)
     copy->CustomCoverCommit();
 
-  *game_file = std::move(copy);
+  std::atomic_store(game_file, std::move(copy));
 
   return true;
 }

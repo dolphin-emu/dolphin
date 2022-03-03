@@ -1,12 +1,12 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 
@@ -119,16 +119,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   }
 
   for (auto& control : group->controls)
-  {
-    auto* button = new MappingButton(this, control->control_ref.get(), !indicator);
-
-    button->setMinimumWidth(100);
-    button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    const bool translate = control->translate == ControllerEmu::Translate;
-    const QString translated_name =
-        translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
-    form_layout->addRow(translated_name, button);
-  }
+    CreateControl(control.get(), form_layout, !indicator);
 
   for (auto& setting : group->numeric_settings)
   {
@@ -185,6 +176,42 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   }
 
   return group_box;
+}
+
+QGroupBox* MappingWidget::CreateControlsBox(const QString& name, ControllerEmu::ControlGroup* group,
+                                            int columns)
+{
+  auto* group_box = new QGroupBox(name);
+  auto* hbox_layout = new QHBoxLayout();
+
+  group_box->setLayout(hbox_layout);
+
+  std::vector<QFormLayout*> form_layouts;
+  for (int i = 0; i < columns; ++i)
+  {
+    form_layouts.push_back(new QFormLayout());
+    hbox_layout->addLayout(form_layouts[i]);
+  }
+
+  for (size_t i = 0; i < group->controls.size(); ++i)
+  {
+    CreateControl(group->controls[i].get(), form_layouts[i % columns], true);
+  }
+
+  return group_box;
+}
+
+void MappingWidget::CreateControl(const ControllerEmu::Control* control, QFormLayout* layout,
+                                  bool indicator)
+{
+  auto* button = new MappingButton(this, control->control_ref.get(), indicator);
+
+  button->setMinimumWidth(100);
+  button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  const bool translate = control->translate == ControllerEmu::Translate;
+  const QString translated_name =
+      translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
+  layout->addRow(translated_name, button);
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const

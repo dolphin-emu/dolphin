@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.slidingpanelayout.widget.SlidingPaneLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sliding_pane_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.fragment.app.FragmentContainerView
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:id="@+id/cheat_list"
+        android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatListFragment" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:id="@+id/cheat_details"
+        android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatDetailsFragment" />
+
+</androidx.slidingpanelayout.widget.SlidingPaneLayout>

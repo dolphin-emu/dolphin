@@ -1,12 +1,12 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/VertexLoaderARM64.h"
 
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 
@@ -60,7 +60,7 @@ VertexLoaderARM64::VertexLoaderARM64(const TVtxDesc& vtx_desc, const VAT& vtx_at
   WriteProtect();
 }
 
-void VertexLoaderARM64::GetVertexAddr(int array, VertexComponentFormat attribute, ARM64Reg reg)
+void VertexLoaderARM64::GetVertexAddr(CPArray array, VertexComponentFormat attribute, ARM64Reg reg)
 {
   if (IsIndexed(attribute))
   {
@@ -96,24 +96,26 @@ void VertexLoaderARM64::GetVertexAddr(int array, VertexComponentFormat attribute
       REV16(scratch1_reg, scratch1_reg);
     }
 
-    if (array == ARRAY_POSITION)
+    if (array == CPArray::Position)
     {
-      EOR(scratch2_reg, scratch1_reg, 0,
-          attribute == VertexComponentFormat::Index8 ? 7 : 15);  // 0xFF : 0xFFFF
+      EOR(scratch2_reg, scratch1_reg,
+          attribute == VertexComponentFormat::Index8 ? LogicalImm(0xFF, 32) :
+                                                       LogicalImm(0xFFFF, 32));
       m_skip_vertex = CBZ(scratch2_reg);
     }
 
-    LDR(IndexType::Unsigned, scratch2_reg, stride_reg, array * 4);
+    LDR(IndexType::Unsigned, scratch2_reg, stride_reg, static_cast<u8>(array) * 4);
     MUL(scratch1_reg, scratch1_reg, scratch2_reg);
 
-    LDR(IndexType::Unsigned, EncodeRegTo64(scratch2_reg), arraybase_reg, array * 8);
+    LDR(IndexType::Unsigned, EncodeRegTo64(scratch2_reg), arraybase_reg,
+        static_cast<u8>(array) * 8);
     ADD(EncodeRegTo64(reg), EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch2_reg));
   }
   else
     ADD(reg, src_reg, m_src_ofs);
 }
 
-s32 VertexLoaderARM64::GetAddressImm(int array, VertexComponentFormat attribute,
+s32 VertexLoaderARM64::GetAddressImm(CPArray array, VertexComponentFormat attribute,
                                      Arm64Gen::ARM64Reg reg, u32 align)
 {
   if (IsIndexed(attribute) || (m_src_ofs > 255 && (m_src_ofs & (align - 1))))
@@ -219,7 +221,7 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
   native_format->components = count_out;
   native_format->enable = true;
   native_format->offset = m_dst_ofs;
-  native_format->type = VAR_FLOAT;
+  native_format->type = ComponentFormat::Float;
   native_format->integer = false;
   m_dst_ofs += sizeof(float) * count_out;
 
@@ -245,7 +247,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
       LDR(IndexType::Unsigned, scratch2_reg, src_reg, offset);
 
     if (format != ColorFormat::RGBA8888)
-      ORRI2R(scratch2_reg, scratch2_reg, 0xFF000000);
+      ORR(scratch2_reg, scratch2_reg, LogicalImm(0xFF000000, 32));
     STR(IndexType::Unsigned, scratch2_reg, dst_reg, m_dst_ofs);
     load_bytes = format == ColorFormat::RGB888 ? 3 : 4;
     break;
@@ -263,7 +265,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     REV16(scratch3_reg, scratch3_reg);
 
     // B
-    AND(scratch2_reg, scratch3_reg, 32, 4);
+    AND(scratch2_reg, scratch3_reg, LogicalImm(0x1F, 32));
     ORR(scratch2_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 3));
     ORR(scratch2_reg, scratch2_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 5));
     ORR(scratch1_reg, ARM64Reg::WSP, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 16));
@@ -280,7 +282,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSR, 2));
 
     // A
-    ORRI2R(scratch1_reg, scratch1_reg, 0xFF000000);
+    ORR(scratch1_reg, scratch1_reg, LogicalImm(0xFF000000, 32));
 
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
     load_bytes = 2;
@@ -301,7 +303,7 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     UBFM(scratch1_reg, scratch3_reg, 4, 7);
 
     // G
-    AND(scratch2_reg, scratch3_reg, 32, 3);
+    AND(scratch2_reg, scratch3_reg, LogicalImm(0xF, 32));
     ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ShiftType::LSL, 8));
 
     // B
@@ -403,8 +405,8 @@ void VertexLoaderARM64::GenerateVertexLoader()
     MOV(skipped_reg, ARM64Reg::WZR);
   MOV(saved_count, count_reg);
 
-  MOVP2R(stride_reg, g_main_cp_state.array_strides);
-  MOVP2R(arraybase_reg, VertexLoaderManager::cached_arraybases);
+  MOVP2R(stride_reg, g_main_cp_state.array_strides.data());
+  MOVP2R(arraybase_reg, VertexLoaderManager::cached_arraybases.data());
 
   if (need_scale)
     MOVP2R(scale_reg, scale_factors);
@@ -414,7 +416,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   if (m_VtxDesc.low.PosMatIdx)
   {
     LDRB(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
-    AND(scratch1_reg, scratch1_reg, 0, 5);
+    AND(scratch1_reg, scratch1_reg, LogicalImm(0x3F, 32));
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
 
     // Z-Freeze
@@ -427,7 +429,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     m_native_vtx_decl.posmtx.components = 4;
     m_native_vtx_decl.posmtx.enable = true;
     m_native_vtx_decl.posmtx.offset = m_dst_ofs;
-    m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.posmtx.type = ComponentFormat::UByte;
     m_native_vtx_decl.posmtx.integer = true;
     m_src_ofs += sizeof(u8);
     m_dst_ofs += sizeof(u32);
@@ -448,8 +450,8 @@ void VertexLoaderARM64::GenerateVertexLoader()
     int load_size = GetLoadSize(load_bytes);
     load_size <<= 3;
 
-    s32 offset = GetAddressImm(ARRAY_POSITION, m_VtxDesc.low.Position, EncodeRegTo64(scratch1_reg),
-                               load_size);
+    s32 offset = GetAddressImm(CPArray::Position, m_VtxDesc.low.Position,
+                               EncodeRegTo64(scratch1_reg), load_size);
     ReadVertex(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat, pos_elements, pos_elements,
                m_VtxAttr.g0.ByteDequant, m_VtxAttr.g0.PosFrac, &m_native_vtx_decl.position, offset);
   }
@@ -461,7 +463,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     const int limit = m_VtxAttr.g0.NormalElements == NormalComponentCount::NBT ? 3 : 1;
 
     s32 offset = -1;
-    for (int i = 0; i < (m_VtxAttr.g0.NormalElements == NormalComponentCount::NBT ? 3 : 1); i++)
+    for (int i = 0; i < limit; i++)
     {
       if (!i || m_VtxAttr.g0.NormalIndex3)
       {
@@ -470,7 +472,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
         int load_bytes = elem_size * 3;
         int load_size = GetLoadSize(load_bytes);
 
-        offset = GetAddressImm(ARRAY_NORMAL, m_VtxDesc.low.Normal, EncodeRegTo64(scratch1_reg),
+        offset = GetAddressImm(CPArray::Normal, m_VtxDesc.low.Normal, EncodeRegTo64(scratch1_reg),
                                load_size << 3);
 
         if (offset == -1)
@@ -488,10 +490,10 @@ void VertexLoaderARM64::GenerateVertexLoader()
     }
   }
 
-  for (size_t i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); i++)
   {
     m_native_vtx_decl.colors[i].components = 4;
-    m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+    m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
     m_native_vtx_decl.colors[i].integer = false;
 
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
@@ -501,22 +503,22 @@ void VertexLoaderARM64::GenerateVertexLoader()
           m_VtxAttr.GetColorFormat(i) == ColorFormat::RGBA4444)
         align = 2;
 
-      s32 offset = GetAddressImm(ARRAY_COLOR0 + int(i), m_VtxDesc.low.Color[i],
+      s32 offset = GetAddressImm(CPArray::Color0 + i, m_VtxDesc.low.Color[i],
                                  EncodeRegTo64(scratch1_reg), align);
       ReadColor(m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i), offset);
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
-      m_native_vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+      m_native_vtx_decl.colors[i].type = ComponentFormat::UByte;
       m_native_vtx_decl.colors[i].integer = false;
       m_dst_ofs += 4;
     }
   }
 
-  for (size_t i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
   {
     m_native_vtx_decl.texcoords[i].offset = m_dst_ofs;
-    m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
+    m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
     m_native_vtx_decl.texcoords[i].integer = false;
 
     int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::S ? 1 : 2;
@@ -527,7 +529,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
       int load_size = GetLoadSize(load_bytes);
       load_size <<= 3;
 
-      s32 offset = GetAddressImm(ARRAY_TEXCOORD0 + int(i), m_VtxDesc.high.TexCoord[i],
+      s32 offset = GetAddressImm(CPArray::TexCoord0 + i, m_VtxDesc.high.TexCoord[i],
                                  EncodeRegTo64(scratch1_reg), load_size);
       u8 scaling_exponent = m_VtxAttr.GetTexFrac(i);
       ReadVertex(m_VtxDesc.high.TexCoord[i], m_VtxAttr.GetTexFormat(i), elements,
@@ -538,7 +540,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     {
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
-      m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
+      m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
       m_native_vtx_decl.texcoords[i].integer = false;
 
       LDRB(IndexType::Unsigned, scratch2_reg, src_reg, texmatidx_ofs[i]);

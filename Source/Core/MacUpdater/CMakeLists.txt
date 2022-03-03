@@ -32,8 +32,8 @@ target_link_libraries(MacUpdater PRIVATE
     "-framework AppKit"
     "-framework CoreData"
     "-framework Foundation"
-	uicommon
-	updatercommon
+    uicommon
+    updatercommon
 )
 
 # Compile storyboards (Adapted from https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/OSX-InterfaceBuilderFiles)

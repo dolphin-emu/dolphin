@@ -1,9 +1,11 @@
-package org.dolphinemu.dolphinemu.utils;
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-import androidx.appcompat.app.AlertDialog;
+package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
 import android.content.DialogInterface.OnClickListener;
+
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.ArrayList;
 

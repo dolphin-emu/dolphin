@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinNoGUI/Platform.h"
 
@@ -120,6 +119,11 @@ void Host_TitleChanged()
 #endif
 }
 
+std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
+{
+  return nullptr;
+}
+
 static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 {
   std::string platform_name = static_cast<const char*>(options.get("platform"));
@@ -183,7 +187,8 @@ int main(int argc, char* argv[])
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(paths, save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
   }
   else if (options.is_set("nand_title"))
@@ -200,7 +205,8 @@ int main(int argc, char* argv[])
   }
   else if (args.size())
   {
-    boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        args.front(), BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     args.erase(args.begin());
     game_specified = true;
   }

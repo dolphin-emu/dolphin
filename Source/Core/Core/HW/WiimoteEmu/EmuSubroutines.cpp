@@ -1,6 +1,7 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <cmath>
 #include <fstream>
@@ -15,9 +16,8 @@
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 
 namespace WiimoteEmu
@@ -29,7 +29,7 @@ void Wiimote::HandleReportMode(const OutputReportMode& dr)
   if (!DataReportBuilder::IsValidMode(dr.mode))
   {
     // A real wiimote ignores the entire message if the mode is invalid.
-    WARN_LOG_FMT(WIIMOTE, "Game requested invalid report mode: {:#04x}", dr.mode);
+    WARN_LOG_FMT(WIIMOTE, "Game requested invalid report mode: {:#04x}", static_cast<u8>(dr.mode));
     return;
   }
 
@@ -50,11 +50,12 @@ void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneri
 {
   if (size < sizeof(T))
   {
-    ERROR_LOG_FMT(WIIMOTE, "InvokeHandler: report: {:#04x} invalid size: {}", rpt.rpt_id, size);
+    ERROR_LOG_FMT(WIIMOTE, "InvokeHandler: report: {:#04x} invalid size: {}",
+                  static_cast<u8>(rpt.rpt_id), size);
     return;
   }
 
-  (this->*handler)(Common::BitCastPtr<T>(rpt.data));
+  (this->*handler)(Common::BitCastPtr<T>(&rpt.data[0]));
 }
 
 void Wiimote::EventLinked()
@@ -124,7 +125,7 @@ void Wiimote::InterruptDataOutput(const u8* data, u32 size)
     InvokeHandler<OutputReportEnableFeature>(&Wiimote::HandleIRLogicEnable2, rpt, rpt_size);
     break;
   default:
-    PanicAlertFmt("HidOutputReport: Unknown report ID {:#04x}", rpt.rpt_id);
+    PanicAlertFmt("HidOutputReport: Unknown report ID {:#04x}", static_cast<u8>(rpt.rpt_id));
     break;
   }
 }
@@ -411,8 +412,9 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   // A zero size request is just ignored, like on the real wiimote.
   m_read_request.size = Common::swap16(rd.size);
 
-  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::ReadData: {} @ {:#04x} @ {:#04x} ({})", m_read_request.space,
-                m_read_request.slave_address, m_read_request.address, m_read_request.size);
+  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::ReadData: {} @ {:#04x} @ {:#04x} ({})",
+                static_cast<u8>(m_read_request.space), m_read_request.slave_address,
+                m_read_request.address, m_read_request.size);
 
   // Send up to one read-data-reply.
   // If more data needs to be sent it will happen on the next "Update()"

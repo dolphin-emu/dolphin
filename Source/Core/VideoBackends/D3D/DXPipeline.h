@@ -1,11 +1,12 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <d3d11.h>
 #include <memory>
+
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/AbstractPipeline.h"
 
 namespace DX11

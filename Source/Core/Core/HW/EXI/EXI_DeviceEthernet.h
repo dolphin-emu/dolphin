@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -405,8 +404,8 @@ private:
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     sf::UdpSocket m_sf_socket;
     sf::IpAddress m_sf_recipient_ip;
-    char m_in_frame[9004];
-    char m_out_frame[9004];
+    char m_in_frame[9004]{};
+    char m_out_frame[9004]{};
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
@@ -23,7 +25,7 @@ public class Analytics
 
   public static void checkAnalyticsInit(Context context)
   {
-    new AfterDirectoryInitializationRunner().run(context, false, () ->
+    new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false, () ->
     {
       if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.getBooleanGlobal())
       {

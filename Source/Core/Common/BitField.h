@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Copyright 2014 Tony Wasserka
 // All rights reserved.
@@ -134,10 +133,6 @@ public:
   // so that we can use this within unions
   constexpr BitField() = default;
 
-// Visual Studio (as of VS2017) considers BitField to not be trivially
-// copyable if we delete this copy assignment operator.
-// https://developercommunity.visualstudio.com/content/problem/101208/c-compiler-is-overly-strict-regarding-whether-a-cl.html
-#ifndef _MSC_VER
   // We explicitly delete the copy assignment operator here, because the
   // default copy assignment would copy the full storage value, rather than
   // just the bits relevant to this particular bit field.
@@ -145,7 +140,6 @@ public:
   // relevant bits, but we're prevented from doing that because the savestate
   // code expects that this class is trivially copyable.
   BitField& operator=(const BitField&) = delete;
-#endif
 
   DOLPHIN_FORCE_INLINE BitField& operator=(T val)
   {
@@ -155,6 +149,7 @@ public:
 
   constexpr T Value() const { return Value(std::is_signed<T>()); }
   constexpr operator T() const { return Value(); }
+  static constexpr bool IsSigned() { return std::is_signed<T>(); }
   static constexpr std::size_t StartBit() { return position; }
   static constexpr std::size_t NumBits() { return bits; }
 
@@ -198,7 +193,7 @@ struct fmt::formatter<BitField<position, bits, T, S>>
   fmt::formatter<T> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitField<position, bits, T, S>& bitfield, FormatContext& ctx)
+  auto format(const BitField<position, bits, T, S>& bitfield, FormatContext& ctx) const
   {
     return m_formatter.format(bitfield.Value(), ctx);
   }
@@ -241,10 +236,6 @@ public:
   // so that we can use this within unions
   constexpr BitFieldArray() = default;
 
-// Visual Studio (as of VS2017) considers BitField to not be trivially
-// copyable if we delete this copy assignment operator.
-// https://developercommunity.visualstudio.com/content/problem/101208/c-compiler-is-overly-strict-regarding-whether-a-cl.html
-#ifndef _MSC_VER
   // We explicitly delete the copy assignment operator here, because the
   // default copy assignment would copy the full storage value, rather than
   // just the bits relevant to this particular bit field.
@@ -252,9 +243,9 @@ public:
   // relevant bits, but we're prevented from doing that because the savestate
   // code expects that this class is trivially copyable.
   BitFieldArray& operator=(const BitFieldArray&) = delete;
-#endif
 
 public:
+  constexpr bool IsSigned() const { return std::is_signed<T>(); }
   constexpr std::size_t StartBit() const { return position; }
   constexpr std::size_t NumBits() const { return bits; }
   constexpr std::size_t Size() const { return size; }
@@ -488,7 +479,7 @@ struct fmt::formatter<BitFieldArrayRef<position, bits, size, T, S>>
   fmt::formatter<T> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitFieldArrayRef<position, bits, size, T, S>& ref, FormatContext& ctx)
+  auto format(const BitFieldArrayRef<position, bits, size, T, S>& ref, FormatContext& ctx) const
   {
     return m_formatter.format(ref.Value(), ctx);
   }
@@ -500,7 +491,8 @@ struct fmt::formatter<BitFieldArrayConstRef<position, bits, size, T, S>>
   fmt::formatter<T> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitFieldArrayConstRef<position, bits, size, T, S>& ref, FormatContext& ctx)
+  auto format(const BitFieldArrayConstRef<position, bits, size, T, S>& ref,
+              FormatContext& ctx) const
   {
     return m_formatter.format(ref.Value(), ctx);
   }

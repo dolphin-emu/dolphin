@@ -1,14 +1,13 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
-#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 void Interpreter::bx(UGeckoInstruction inst)
@@ -16,10 +15,12 @@ void Interpreter::bx(UGeckoInstruction inst)
   if (inst.LK)
     LR = PC + 4;
 
+  const auto address = u32(SignExt26(inst.LI << 2));
+
   if (inst.AA)
-    NPC = SignExt26(inst.LI << 2);
+    NPC = address;
   else
-    NPC = PC + SignExt26(inst.LI << 2);
+    NPC = PC + address;
 
   m_end_block = true;
 }
@@ -30,11 +31,11 @@ void Interpreter::bcx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
 
-  const bool true_false = ((inst.BO >> 3) & 1);
-  const bool only_counter_check = ((inst.BO >> 4) & 1);
-  const bool only_condition_check = ((inst.BO >> 2) & 1);
+  const bool true_false = ((inst.BO >> 3) & 1) != 0;
+  const bool only_counter_check = ((inst.BO >> 4) & 1) != 0;
+  const bool only_condition_check = ((inst.BO >> 2) & 1) != 0;
   const u32 ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
-  const bool counter = only_condition_check || ctr_check;
+  const bool counter = only_condition_check || ctr_check != 0;
   const bool condition =
       only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI) == u32(true_false));
 
@@ -43,10 +44,12 @@ void Interpreter::bcx(UGeckoInstruction inst)
     if (inst.LK)
       LR = PC + 4;
 
+    const auto address = u32(SignExt16(s16(inst.BD << 2)));
+
     if (inst.AA)
-      NPC = SignExt16(inst.BD << 2);
+      NPC = address;
     else
-      NPC = PC + SignExt16(inst.BD << 2);
+      NPC = PC + address;
   }
 
   m_end_block = true;
@@ -54,13 +57,13 @@ void Interpreter::bcx(UGeckoInstruction inst)
 
 void Interpreter::bcctrx(UGeckoInstruction inst)
 {
-  DEBUG_ASSERT_MSG(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
+  DEBUG_ASSERT_MSG(POWERPC, (inst.BO_2 & BO_DONT_DECREMENT_FLAG) != 0,
                    "bcctrx with decrement and test CTR option is invalid!");
 
   const u32 condition =
       ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
-  if (condition)
+  if (condition != 0)
   {
     NPC = CTR & (~3);
     if (inst.LK_3)
@@ -79,7 +82,7 @@ void Interpreter::bclrx(UGeckoInstruction inst)
   const u32 condition =
       ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
-  if (counter & condition)
+  if ((counter & condition) != 0)
   {
     NPC = LR & (~3);
     if (inst.LK_3)
@@ -99,7 +102,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
 {
   if (MSR.PR)
   {
-    GenerateProgramException();
+    GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 

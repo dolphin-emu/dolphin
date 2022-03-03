@@ -1,6 +1,7 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "DolphinQt/ToolBar.h"
 
 #include <algorithm>
 #include <vector>
@@ -13,7 +14,6 @@
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
-#include "DolphinQt/ToolBar.h"
 
 static QSize ICON_SIZE(32, 32);
 

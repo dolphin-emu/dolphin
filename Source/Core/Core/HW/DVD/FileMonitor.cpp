@@ -1,11 +1,9 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DVD/FileMonitor.h"
 
 #include <algorithm>
-#include <cctype>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -30,7 +28,7 @@ static bool IsSoundFile(const std::string& filename)
 {
   std::string extension;
   SplitPath(filename, nullptr, nullptr, &extension);
-  std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+  Common::ToLower(&extension);
 
   static const std::unordered_set<std::string> extensions = {
       ".adp",    // 1080 Avalanche, Crash Bandicoot, etc.
@@ -54,8 +52,8 @@ static bool IsSoundFile(const std::string& filename)
 void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
   // Do nothing if the log isn't selected
-  if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::FILEMON,
-                                                         Common::Log::LWARNING))
+  if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::FILEMON,
+                                                         Common::Log::LogLevel::LWARNING))
   {
     return;
   }

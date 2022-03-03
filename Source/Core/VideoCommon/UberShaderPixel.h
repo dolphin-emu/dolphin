@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -28,10 +27,10 @@ using PixelShaderUid = ShaderUid<pixel_ubershader_uid_data>;
 
 PixelShaderUid GetPixelShaderUid();
 
-ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
+ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
                           const pixel_ubershader_uid_data* uid_data);
 
 void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& callback);
-void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
+void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid);
 }  // namespace UberShader

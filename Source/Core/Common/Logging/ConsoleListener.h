@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -12,8 +11,8 @@ public:
   ConsoleListener();
   ~ConsoleListener();
 
-  void Log(Common::Log::LOG_LEVELS level, const char* text) override;
+  void Log(Common::Log::LogLevel level, const char* text) override;
 
 private:
-  bool m_use_color;
+  [[maybe_unused]] bool m_use_color = false;
 };

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 #include <functional>
@@ -53,6 +52,9 @@ void EnableStepping(bool stepping);
 //   which enables it to avoid deadlocks but also makes it less safe so it
 //   should not be used by the Host.
 void Break();
+
+// This should only be called from the CPU thread
+void Continue();
 
 // Shorthand for GetState() == State::Stepping.
 // WARNING: State::PowerDown will return false, not just State::Running.

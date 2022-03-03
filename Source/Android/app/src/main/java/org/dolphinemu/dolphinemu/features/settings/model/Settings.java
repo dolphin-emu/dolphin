@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.features.settings.model;
 
 import android.content.Context;
@@ -5,9 +7,10 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 
@@ -207,7 +210,7 @@ public class Settings implements Closeable
     if (!isGameSpecific())
     {
       if (context != null)
-        Toast.makeText(context, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.settings_saved, Toast.LENGTH_SHORT).show();
 
       for (Map.Entry<String, IniFile> entry : mIniFiles.entrySet())
       {
@@ -230,7 +233,7 @@ public class Settings implements Closeable
       if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this))
       {
         // Refresh game library
-        GameFileCacheService.startRescan(context);
+        GameFileCacheManager.startRescan(context);
       }
     }
     else
@@ -238,7 +241,10 @@ public class Settings implements Closeable
       // custom game settings
 
       if (context != null)
-        Toast.makeText(context, "Saved settings for " + mGameId, Toast.LENGTH_SHORT).show();
+      {
+        Toast.makeText(context, context.getString(R.string.settings_saved_game_specific, mGameId),
+                Toast.LENGTH_SHORT).show();
+      }
 
       SettingsFile.saveCustomGameSettings(mGameId, getGameSpecificFile());
 

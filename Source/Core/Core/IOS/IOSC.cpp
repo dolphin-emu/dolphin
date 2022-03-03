@@ -1,12 +1,10 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/IOSC.h"
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -558,7 +556,7 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
 
 void IOSC::LoadEntries()
 {
-  File::IOFile file{File::GetUserPath(D_WIIROOT_IDX) + "/keys.bin", "rb"};
+  File::IOFile file{File::GetUserPath(D_WIIROOT_IDX) + "keys.bin", "rb"};
   if (!file)
   {
     WARN_LOG_FMT(IOS, "keys.bin could not be found. Default values will be used.");

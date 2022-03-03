@@ -1,13 +1,12 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Config/FreeLookSettings.h"
-#include "Core/FreeLookConfig.h"
 
 #include <string>
 
 #include "Common/Config/Config.h"
+#include "Core/FreeLookConfig.h"
 
 namespace Config
 {

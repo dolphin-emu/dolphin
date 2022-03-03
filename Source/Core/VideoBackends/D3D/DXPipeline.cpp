@@ -1,6 +1,7 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoBackends/D3D/DXPipeline.h"
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
@@ -9,7 +10,6 @@
 #include "VideoBackends/D3D/D3DRender.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
-#include "VideoBackends/D3D/DXPipeline.h"
 #include "VideoBackends/D3D/DXShader.h"
 #include "VideoBackends/D3D/DXTexture.h"
 #include "VideoCommon/VideoConfig.h"

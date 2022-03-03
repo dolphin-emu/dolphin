@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/DiscordPresence.h"
 
@@ -11,7 +10,6 @@
 #ifdef USE_DISCORD_PRESENCE
 
 #include <algorithm>
-#include <cctype>
 #include <ctime>
 #include <set>
 #include <string>
@@ -20,6 +18,7 @@
 #include <fmt/format.h>
 
 #include "Common/Hash.h"
+#include "Common/StringUtil.h"
 
 #endif
 
@@ -168,8 +167,7 @@ std::string ArtworkForGameId(const std::string& gameid)
   if (REGISTERED_GAMES.count(region_neutral_gameid) != 0)
   {
     // Discord asset keys can only be lowercase.
-    std::transform(region_neutral_gameid.begin(), region_neutral_gameid.end(),
-                   region_neutral_gameid.begin(), tolower);
+    Common::ToLower(&region_neutral_gameid);
     return "game_" + region_neutral_gameid;
   }
   return "";

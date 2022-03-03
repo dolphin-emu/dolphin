@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigLoaders/MovieConfigLoader.h"
 
@@ -14,6 +13,7 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 #include "VideoCommon/VideoConfig.h"
@@ -46,6 +46,10 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, dtm->bEFBEmulateFormatChanges);
   config_layer->Set(Config::GFX_HACK_IMMEDIATE_XFB, dtm->bImmediateXFB);
   config_layer->Set(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM, dtm->bSkipXFBCopyToRam);
+
+  config_layer->Set(Config::SESSION_USE_FMA, dtm->bUseFMA);
+
+  config_layer->Set(Config::MAIN_JIT_FOLLOW_BRANCH, dtm->bFollowBranch);
 }
 
 void SaveToDTM(Movie::DTMHeader* dtm)
@@ -70,7 +74,11 @@ void SaveToDTM(Movie::DTMHeader* dtm)
   dtm->bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
   dtm->bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
 
-  // This never used the regular config
+  dtm->bUseFMA = Config::Get(Config::SESSION_USE_FMA);
+
+  dtm->bFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+
+  // Settings which only existed in old Dolphin versions
   dtm->bSkipIdle = true;
   dtm->bEFBCopyEnable = true;
   dtm->bEFBCopyCacheEnable = false;

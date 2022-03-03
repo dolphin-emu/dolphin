@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoBackends/Vulkan/VideoBackend.h"
 
 #include <vector>
 
@@ -15,7 +16,6 @@
 #include "VideoBackends/Vulkan/VKRenderer.h"
 #include "VideoBackends/Vulkan/VKSwapChain.h"
 #include "VideoBackends/Vulkan/VKVertexManager.h"
-#include "VideoBackends/Vulkan/VideoBackend.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/FramebufferManager.h"
@@ -79,8 +79,8 @@ void VideoBackend::InitBackendInfo()
 // Helper method to check whether the Host GPU logging category is enabled.
 static bool IsHostGPULoggingEnabled()
 {
-  return Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                           Common::Log::LERROR);
+  return Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                           Common::Log::LogLevel::LERROR);
 }
 
 // Helper method to determine whether to enable the debug report extension.

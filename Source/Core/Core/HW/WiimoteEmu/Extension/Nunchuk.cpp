@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 
@@ -209,6 +208,12 @@ void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 
   // Shake
   for (int i = 0; i < 3; ++i)
-    m_shake->SetControlExpression(i, "Click 2");
+  {
+#ifdef __APPLE__
+    m_shake->SetControlExpression(i, "`Middle Click`");
+#else
+    m_shake->SetControlExpression(i, "`Click 2`");
+#endif
+  }
 }
 }  // namespace WiimoteEmu

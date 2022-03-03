@@ -1,6 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/FileUtil.h"
 
 #include <algorithm>
 #include <chrono>
@@ -20,9 +21,12 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#ifdef __APPLE__
+#include "Common/DynamicLibrary.h"
+#endif
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -66,6 +70,18 @@ namespace File
 static std::string s_android_sys_directory;
 #endif
 
+#ifdef __APPLE__
+static Common::DynamicLibrary s_security_framework;
+
+using DolSecTranslocateIsTranslocatedURL = Boolean (*)(CFURLRef path, bool* isTranslocated,
+                                                       CFErrorRef* __nullable error);
+using DolSecTranslocateCreateOriginalPathForURL = CFURLRef
+__nullable (*)(CFURLRef translocatedPath, CFErrorRef* __nullable error);
+
+static DolSecTranslocateIsTranslocatedURL s_is_translocated_url;
+static DolSecTranslocateCreateOriginalPathForURL s_create_orig_path;
+#endif
+
 #ifdef _WIN32
 FileInfo::FileInfo(const std::string& path)
 {
@@ -78,12 +94,6 @@ FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
 #else
 FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
 {
-#ifdef ANDROID
-  if (IsPathAndroidContent(path))
-    AndroidContentInit(path);
-  else
-#endif
-    m_exists = stat(path.c_str(), &m_stat) == 0;
 }
 
 FileInfo::FileInfo(const char* path)
@@ -475,8 +485,16 @@ bool CreateEmptyFile(const std::string& filename)
 }
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
+FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 {
+#ifdef _WIN32
+  if (!directory.empty() && (directory.back() == '/' || directory.back() == '\\'))
+    directory.pop_back();
+#else
+  if (!directory.empty() && directory.back() == '/')
+    directory.pop_back();
+#endif
+
   INFO_LOG_FMT(COMMON, "ScanDirectoryTree: directory {}", directory);
   FSTEntry parent_entry;
   parent_entry.physicalName = directory;
@@ -776,16 +794,47 @@ std::string GetTempFilenameForAtomicWrite(std::string path)
 #if defined(__APPLE__)
 std::string GetBundleDirectory()
 {
-  CFURLRef BundleRef;
-  char AppBundlePath[MAXPATHLEN];
-  // Get the main bundle for the app
-  BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-  CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
-  CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
-  CFRelease(BundleRef);
-  CFRelease(BundlePath);
+  CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
 
-  return AppBundlePath;
+  // Starting in macOS Sierra, apps downloaded from the Internet may be
+  // "translocated" to a read-only DMG and executed from there. This is
+  // done to prevent a scenario where an attacker can replace a trusted
+  // app's resources to load untrusted code.
+  //
+  // We should return Dolphin's actual location on the filesystem in
+  // this function, so bundle_ref will be untranslocated if necessary.
+  //
+  // More information: https://objective-see.com/blog/blog_0x15.html
+
+  // The APIs to deal with translocated paths are private, so we have
+  // to dynamically load them from the Security framework.
+  //
+  // The headers can be found under "Security" on opensource.apple.com:
+  // Security/OSX/libsecurity_translocate/lib/SecTranslocate.h
+  if (!s_security_framework.IsOpen())
+  {
+    s_security_framework.Open("/System/Library/Frameworks/Security.framework/Security");
+    s_security_framework.GetSymbol("SecTranslocateIsTranslocatedURL", &s_is_translocated_url);
+    s_security_framework.GetSymbol("SecTranslocateCreateOriginalPathForURL", &s_create_orig_path);
+  }
+
+  bool is_translocated = false;
+  s_is_translocated_url(bundle_ref, &is_translocated, nullptr);
+
+  if (is_translocated)
+  {
+    CFURLRef untranslocated_ref = s_create_orig_path(bundle_ref, nullptr);
+    CFRelease(bundle_ref);
+    bundle_ref = untranslocated_ref;
+  }
+
+  char app_bundle_path[MAXPATHLEN];
+  CFStringRef bundle_path = CFURLCopyFileSystemPath(bundle_ref, kCFURLPOSIXPathStyle);
+  CFStringGetFileSystemRepresentation(bundle_path, app_bundle_path, sizeof(app_bundle_path));
+  CFRelease(bundle_ref);
+  CFRelease(bundle_path);
+
+  return app_bundle_path;
 }
 #endif
 
@@ -810,7 +859,6 @@ std::string GetExePath()
     }
 #elif defined(__APPLE__)
     result = GetBundleDirectory();
-    result = result.substr(0, result.find_last_of("Dolphin.app/Contents/MacOS") + 1);
 #else
     char dolphin_exe_path[PATH_MAX];
     ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
@@ -883,7 +931,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
   {
   case D_USER_IDX:
     s_user_paths[D_GCUSER_IDX] = s_user_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-    s_user_paths[D_WIIROOT_IDX] = s_user_paths[D_USER_IDX] + WII_USER_DIR;
+    s_user_paths[D_WIIROOT_IDX] = s_user_paths[D_USER_IDX] + WII_USER_DIR DIR_SEP;
     s_user_paths[D_CONFIG_IDX] = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
     s_user_paths[D_GAMESETTINGS_IDX] = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
     s_user_paths[D_MAPS_IDX] = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
@@ -896,6 +944,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_SCREENSHOTS_IDX] = s_user_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
     s_user_paths[D_LOAD_IDX] = s_user_paths[D_USER_IDX] + LOAD_DIR DIR_SEP;
     s_user_paths[D_HIRESTEXTURES_IDX] = s_user_paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+    s_user_paths[D_RIIVOLUTION_IDX] = s_user_paths[D_LOAD_IDX] + RIIVOLUTION_DIR DIR_SEP;
     s_user_paths[D_DUMP_IDX] = s_user_paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
     s_user_paths[D_DUMPFRAMES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
     s_user_paths[D_DUMPOBJECTS_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_OBJECTS_DIR DIR_SEP;
@@ -928,13 +977,17 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
-    s_user_paths[F_WIISDCARD_IDX] = s_user_paths[D_WIIROOT_IDX] + DIR_SEP WII_SDCARD;
+    s_user_paths[F_WIISDCARD_IDX] = s_user_paths[D_WIIROOT_IDX] + WII_SDCARD;
 
     s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
     s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] =
         s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_LOCATIONS;
     s_user_paths[F_MEMORYWATCHERSOCKET_IDX] =
         s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_SOCKET;
+
+    s_user_paths[D_GBAUSER_IDX] = s_user_paths[D_USER_IDX] + GBA_USER_DIR DIR_SEP;
+    s_user_paths[D_GBASAVES_IDX] = s_user_paths[D_GBAUSER_IDX] + GBASAVES_DIR DIR_SEP;
+    s_user_paths[F_GBABIOS_IDX] = s_user_paths[D_GBAUSER_IDX] + GBA_BIOS;
 
     // The shader cache has moved to the cache directory, so remove the old one.
     // TODO: remove that someday.
@@ -944,10 +997,14 @@ static void RebuildUserDirectories(unsigned int dir_index)
   case D_CONFIG_IDX:
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
     s_user_paths[F_GCPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
+    s_user_paths[F_GCKEYBOARDCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCKEYBOARD_CONFIG;
     s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
     s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+    s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
+        s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
+    s_user_paths[F_FREELOOKCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + FREELOOK_CONFIG;
     break;
 
   case D_CACHE_IDX:
@@ -980,6 +1037,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 
   case D_LOAD_IDX:
     s_user_paths[D_HIRESTEXTURES_IDX] = s_user_paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+    s_user_paths[D_RIIVOLUTION_IDX] = s_user_paths[D_LOAD_IDX] + RIIVOLUTION_DIR DIR_SEP;
     s_user_paths[D_DYNAMICINPUT_IDX] = s_user_paths[D_LOAD_IDX] + DYNAMICINPUT_DIR DIR_SEP;
     break;
   }
@@ -994,12 +1052,31 @@ const std::string& GetUserPath(unsigned int dir_index)
 
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
-void SetUserPath(unsigned int dir_index, const std::string& path)
+void SetUserPath(unsigned int dir_index, std::string path)
 {
   if (path.empty())
     return;
 
-  s_user_paths[dir_index] = path;
+#ifdef _WIN32
+  // On Windows, replace all '\' with '/' since we assume the latter in various places in the
+  // codebase.
+  for (char& c : path)
+  {
+    if (c == '\\')
+      c = '/';
+  }
+#endif
+
+  // Directories should end with a separator, files should not.
+  while (StringEndsWith(path, "/"))
+    path.pop_back();
+  if (path.empty())
+    return;
+  const bool is_directory = dir_index < FIRST_FILE_USER_PATH_IDX;
+  if (is_directory)
+    path.push_back('/');
+
+  s_user_paths[dir_index] = std::move(path);
   RebuildUserDirectories(dir_index);
 }
 

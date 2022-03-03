@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -22,7 +21,7 @@ protected:
 
 private:
   const TASInputWindow* m_parent;
-  int m_frame_turbo_started;
-  int m_turbo_press_frames;
-  int m_turbo_total_frames;
+  int m_frame_turbo_started = 0;
+  int m_turbo_press_frames = 0;
+  int m_turbo_total_frames = 0;
 };

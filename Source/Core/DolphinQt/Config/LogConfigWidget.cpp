@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/LogConfigWidget.h"
 
@@ -63,9 +62,9 @@ void LogConfigWidget::CreateWidgets()
   m_types_list = new QListWidget;
 
   const auto* const log_manager = Common::Log::LogManager::GetInstance();
-  for (int i = 0; i < Common::Log::NUMBER_OF_LOGS; i++)
+  for (int i = 0; i < static_cast<int>(Common::Log::LogType::NUMBER_OF_LOGS); i++)
   {
-    const auto log_type = static_cast<Common::Log::LOG_TYPE>(i);
+    const auto log_type = static_cast<Common::Log::LogType>(i);
     const QString full_name = QString::fromUtf8(log_manager->GetFullName(log_type));
     const QString short_name = QString::fromUtf8(log_manager->GetShortName(log_type));
     auto* widget = new QListWidgetItem(QStringLiteral("%1 (%2)").arg(full_name, short_name));
@@ -78,7 +77,7 @@ void LogConfigWidget::CreateWidgets()
   verbosity_layout->addWidget(m_verbosity_error);
   verbosity_layout->addWidget(m_verbosity_warning);
   verbosity_layout->addWidget(m_verbosity_info);
-  if constexpr (MAX_LOGLEVEL == Common::Log::LOG_LEVELS::LDEBUG)
+  if constexpr (Common::Log::MAX_LOGLEVEL == Common::Log::LogLevel::LDEBUG)
   {
     verbosity_layout->addWidget(m_verbosity_debug);
   }
@@ -140,12 +139,12 @@ void LogConfigWidget::LoadSettings()
   setFloating(settings.value(QStringLiteral("logconfigwidget/floating")).toBool());
 
   // Config - Verbosity
-  const Common::Log::LOG_LEVELS verbosity = log_manager->GetLogLevel();
-  m_verbosity_notice->setChecked(verbosity == Common::Log::LOG_LEVELS::LNOTICE);
-  m_verbosity_error->setChecked(verbosity == Common::Log::LOG_LEVELS::LERROR);
-  m_verbosity_warning->setChecked(verbosity == Common::Log::LOG_LEVELS::LWARNING);
-  m_verbosity_info->setChecked(verbosity == Common::Log::LOG_LEVELS::LINFO);
-  m_verbosity_debug->setChecked(verbosity == Common::Log::LOG_LEVELS::LDEBUG);
+  const Common::Log::LogLevel verbosity = log_manager->GetLogLevel();
+  m_verbosity_notice->setChecked(verbosity == Common::Log::LogLevel::LNOTICE);
+  m_verbosity_error->setChecked(verbosity == Common::Log::LogLevel::LERROR);
+  m_verbosity_warning->setChecked(verbosity == Common::Log::LogLevel::LWARNING);
+  m_verbosity_info->setChecked(verbosity == Common::Log::LogLevel::LINFO);
+  m_verbosity_debug->setChecked(verbosity == Common::Log::LogLevel::LDEBUG);
 
   // Config - Outputs
   m_out_file->setChecked(log_manager->IsListenerEnabled(Common::Log::LogListener::FILE_LISTENER));
@@ -155,9 +154,9 @@ void LogConfigWidget::LoadSettings()
       log_manager->IsListenerEnabled(Common::Log::LogListener::LOG_WINDOW_LISTENER));
 
   // Config - Log Types
-  for (int i = 0; i < Common::Log::NUMBER_OF_LOGS; ++i)
+  for (int i = 0; i < static_cast<int>(Common::Log::LogType::NUMBER_OF_LOGS); ++i)
   {
-    const auto log_type = static_cast<Common::Log::LOG_TYPE>(i);
+    const auto log_type = static_cast<Common::Log::LogType>(i);
     const bool log_enabled = log_manager->IsEnabled(log_type);
 
     if (!log_enabled)
@@ -178,22 +177,22 @@ void LogConfigWidget::SaveSettings()
   settings.setValue(QStringLiteral("logconfigwidget/floating"), isFloating());
 
   // Config - Verbosity
-  auto verbosity = Common::Log::LOG_LEVELS::LNOTICE;
+  auto verbosity = Common::Log::LogLevel::LNOTICE;
 
   if (m_verbosity_notice->isChecked())
-    verbosity = Common::Log::LOG_LEVELS::LNOTICE;
+    verbosity = Common::Log::LogLevel::LNOTICE;
 
   if (m_verbosity_error->isChecked())
-    verbosity = Common::Log::LOG_LEVELS::LERROR;
+    verbosity = Common::Log::LogLevel::LERROR;
 
   if (m_verbosity_warning->isChecked())
-    verbosity = Common::Log::LOG_LEVELS::LWARNING;
+    verbosity = Common::Log::LogLevel::LWARNING;
 
   if (m_verbosity_info->isChecked())
-    verbosity = Common::Log::LOG_LEVELS::LINFO;
+    verbosity = Common::Log::LogLevel::LINFO;
 
   if (m_verbosity_debug->isChecked())
-    verbosity = Common::Log::LOG_LEVELS::LDEBUG;
+    verbosity = Common::Log::LogLevel::LDEBUG;
 
   auto* const log_manager = Common::Log::LogManager::GetInstance();
 
@@ -207,9 +206,9 @@ void LogConfigWidget::SaveSettings()
   log_manager->EnableListener(Common::Log::LogListener::LOG_WINDOW_LISTENER,
                               m_out_window->isChecked());
   // Config - Log Types
-  for (int i = 0; i < Common::Log::NUMBER_OF_LOGS; ++i)
+  for (int i = 0; i < static_cast<int>(Common::Log::LogType::NUMBER_OF_LOGS); ++i)
   {
-    const auto type = static_cast<Common::Log::LOG_TYPE>(i);
+    const auto type = static_cast<Common::Log::LogType>(i);
     const bool enabled = m_types_list->item(i)->checkState() == Qt::Checked;
     const bool was_enabled = log_manager->IsEnabled(type);
 

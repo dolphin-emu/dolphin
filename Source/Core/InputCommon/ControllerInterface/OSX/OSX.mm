@@ -1,6 +1,7 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "InputCommon/ControllerInterface/OSX/OSX.h"
 
 #include <thread>
 
@@ -13,7 +14,6 @@
 #include "Common/Thread.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 #include "InputCommon/ControllerInterface/OSX/RunLoopStopper.h"
 
@@ -135,8 +135,6 @@ static void DeviceDebugPrint(IOHIDDeviceRef device)
 #endif
 }
 
-static void* g_window;
-
 static std::string GetDeviceRefName(IOHIDDeviceRef inIOHIDDeviceRef)
 {
   const NSString* name = reinterpret_cast<const NSString*>(
@@ -172,10 +170,8 @@ static void DeviceMatchingCallback(void* inContext, IOReturn inResult, void* inS
   }
 }
 
-void Init(void* window)
+void Init()
 {
-  g_window = window;
-
   HIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
   if (!HIDManager)
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "Failed to create HID Manager reference");
@@ -210,19 +206,17 @@ void Init(void* window)
   });
 }
 
-void PopulateDevices(void* window)
-{
-  DeInit();
-  Init(window);
-}
-
 void DeInit()
 {
-  s_stopper.Signal();
-  s_hotplug_thread.join();
+  if (HIDManager)
+  {
+    s_stopper.Signal();
+    s_hotplug_thread.join();
 
-  // This closes all devices as well
-  IOHIDManagerClose(HIDManager, kIOHIDOptionsTypeNone);
-  CFRelease(HIDManager);
+    // This closes all devices as well
+    IOHIDManagerClose(HIDManager, kIOHIDOptionsTypeNone);
+    CFRelease(HIDManager);
+    HIDManager = nullptr;
+  }
 }
 }  // namespace ciface::OSX

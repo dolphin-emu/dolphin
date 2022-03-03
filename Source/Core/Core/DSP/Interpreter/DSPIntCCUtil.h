@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
@@ -12,18 +11,19 @@
 
 namespace DSP::Interpreter
 {
-constexpr bool isCarry(u64 val, u64 result)
+constexpr bool isCarryAdd(u64 val, u64 result)
 {
   return val > result;
 }
 
-constexpr bool isCarry2(u64 val, u64 result)
+constexpr bool isCarrySubtract(u64 val, u64 result)
 {
   return val >= result;
 }
 
 constexpr bool isOverflow(s64 val1, s64 val2, s64 res)
 {
+  // val1 > 0 and val1 > 0 yet res < 0, or val1 < 0 and val2 < 0 yet res > 0.
   return ((val1 ^ res) & (val2 ^ res)) < 0;
 }
 

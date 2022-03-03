@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.Dialog;
@@ -13,7 +15,7 @@ import androidx.fragment.app.DialogFragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 
 public final class GameDetailsDialog extends DialogFragment
@@ -34,7 +36,7 @@ public final class GameDetailsDialog extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    GameFile gameFile = GameFileCacheService.addOrGet(getArguments().getString(ARG_GAME_PATH));
+    GameFile gameFile = GameFileCacheManager.addOrGet(getArguments().getString(ARG_GAME_PATH));
 
     AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity(),
             R.style.DolphinDialogBase);
@@ -90,7 +92,8 @@ public final class GameDetailsDialog extends DialogFragment
       long blockSize = gameFile.getBlockSize();
       String compression = gameFile.getCompressionMethod();
 
-      textFileFormat.setText(String.format("%1$s (%2$s)", gameFile.getFileFormatName(), fileSize));
+      textFileFormat.setText(getResources().getString(R.string.game_details_size_and_format,
+              gameFile.getFileFormatName(), fileSize));
 
       if (compression.isEmpty())
       {

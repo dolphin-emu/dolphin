@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/MMIO.h"
 
@@ -291,6 +290,18 @@ void ReadHandler<T>::Visit(ReadHandlingMethodVisitor<T>& visitor)
 }
 
 template <typename T>
+T ReadHandler<T>::Read(u32 addr)
+{
+  // Check if the handler has already been initialized. For real
+  // handlers, this will always be the case, so this branch should be
+  // easily predictable.
+  if (!m_Method)
+    InitializeInvalid();
+
+  return m_ReadFunc(addr);
+}
+
+template <typename T>
 void ReadHandler<T>::ResetMethod(ReadHandlingMethod<T>* method)
 {
   m_Method.reset(method);
@@ -320,6 +331,12 @@ void ReadHandler<T>::ResetMethod(ReadHandlingMethod<T>* method)
 }
 
 template <typename T>
+void ReadHandler<T>::InitializeInvalid()
+{
+  ResetMethod(InvalidRead<T>());
+}
+
+template <typename T>
 WriteHandler<T>::WriteHandler()
 {
 }
@@ -342,6 +359,18 @@ void WriteHandler<T>::Visit(WriteHandlingMethodVisitor<T>& visitor)
     InitializeInvalid();
 
   m_Method->AcceptWriteVisitor(visitor);
+}
+
+template <typename T>
+void WriteHandler<T>::Write(u32 addr, T val)
+{
+  // Check if the handler has already been initialized. For real
+  // handlers, this will always be the case, so this branch should be
+  // easily predictable.
+  if (!m_Method)
+    InitializeInvalid();
+
+  m_WriteFunc(addr, val);
 }
 
 template <typename T>
@@ -371,6 +400,12 @@ void WriteHandler<T>::ResetMethod(WriteHandlingMethod<T>* method)
   FuncCreatorVisitor v;
   Visit(v);
   m_WriteFunc = v.ret;
+}
+
+template <typename T>
+void WriteHandler<T>::InitializeInvalid()
+{
+  ResetMethod(InvalidWrite<T>());
 }
 
 // Define all the public specializations that are exported in MMIOHandlers.h.

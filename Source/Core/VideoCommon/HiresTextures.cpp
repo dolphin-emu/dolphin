@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/HiresTextures.h"
 
@@ -221,19 +220,28 @@ std::string HiresTexture::GenBaseName(TextureInfo& texture_info, bool dump)
 
   const auto texture_name_details = texture_info.CalculateTextureName();
 
-  // try to match a wildcard template
-  if (!dump)
-  {
-    const std::string texture_name =
-        fmt::format("{}_${}", texture_name_details.base_name, texture_name_details.format_name);
-    if (s_textureMap.find(texture_name) != s_textureMap.end())
-      return texture_name;
-  }
-
-  // else generate the complete texture
+  // look for an exact match first
   const std::string full_name = texture_name_details.GetFullName();
   if (dump || s_textureMap.find(full_name) != s_textureMap.end())
     return full_name;
+
+  // else try and find a wildcard
+  if (!dump)
+  {
+    // Single wildcard ignoring the tlut hash
+    const std::string texture_name_single_wildcard_tlut =
+        fmt::format("{}_{}_$_{}", texture_name_details.base_name, texture_name_details.texture_name,
+                    texture_name_details.format_name);
+    if (s_textureMap.find(texture_name_single_wildcard_tlut) != s_textureMap.end())
+      return texture_name_single_wildcard_tlut;
+
+    // Single wildcard ignoring the texture hash
+    const std::string texture_name_single_wildcard_tex =
+        fmt::format("{}_${}_{}", texture_name_details.base_name, texture_name_details.tlut_name,
+                    texture_name_details.format_name);
+    if (s_textureMap.find(texture_name_single_wildcard_tex) != s_textureMap.end())
+      return texture_name_single_wildcard_tex;
+  }
 
   return "";
 }

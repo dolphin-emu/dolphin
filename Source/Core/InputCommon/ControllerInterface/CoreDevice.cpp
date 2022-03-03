@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
@@ -259,10 +258,18 @@ std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const
   return device_strings;
 }
 
+bool DeviceContainer::HasDefaultDevice() const
+{
+  std::lock_guard lk(m_devices_mutex);
+  // Devices are already sorted by priority
+  return !m_devices.empty() && m_devices[0]->GetSortPriority() >= 0;
+}
+
 std::string DeviceContainer::GetDefaultDeviceString() const
 {
   std::lock_guard lk(m_devices_mutex);
-  if (m_devices.empty())
+  // Devices are already sorted by priority
+  if (m_devices.empty() || m_devices[0]->GetSortPriority() < 0)
     return "";
 
   DeviceQualifier device_qualifier;

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -42,6 +41,7 @@ enum
   D_STATESAVES_IDX,
   D_SCREENSHOTS_IDX,
   D_HIRESTEXTURES_IDX,
+  D_RIIVOLUTION_IDX,
   D_DUMP_IDX,
   D_DUMPFRAMES_IDX,
   D_DUMPOBJECTS_IDX,
@@ -60,7 +60,10 @@ enum
   D_BACKUP_IDX,
   D_RESOURCEPACK_IDX,
   D_DYNAMICINPUT_IDX,
-  F_DOLPHINCONFIG_IDX,
+  D_GBAUSER_IDX,
+  D_GBASAVES_IDX,
+  FIRST_FILE_USER_PATH_IDX,
+  F_DOLPHINCONFIG_IDX = FIRST_FILE_USER_PATH_IDX,
   F_GCPADCONFIG_IDX,
   F_WIIPADCONFIG_IDX,
   F_GCKEYBOARDCONFIG_IDX,
@@ -78,16 +81,17 @@ enum
   F_WIISDCARD_IDX,
   F_DUALSHOCKUDPCLIENTCONFIG_IDX,
   F_FREELOOKCONFIG_IDX,
+  F_GBABIOS_IDX,
   NUM_PATH_INDICES
 };
 
 namespace File
 {
-// FileSystem tree node/
+// FileSystem tree node
 struct FSTEntry
 {
-  bool isDirectory;
-  u64 size;                  // File length, or for directories, recursive count of children
+  bool isDirectory = false;
+  u64 size = 0;              // File length, or for directories, recursive count of children
   std::string physicalName;  // Name on disk
   std::string virtualName;   // Name in FST names table
   std::vector<FSTEntry> children;
@@ -118,7 +122,11 @@ private:
   void AndroidContentInit(const std::string& path);
 #endif
 
+#ifdef _WIN32
+  struct __stat64 m_stat;
+#else
   struct stat m_stat;
+#endif
   bool m_exists;
 };
 
@@ -174,7 +182,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename);
 bool CreateEmptyFile(const std::string& filename);
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive);
+FSTEntry ScanDirectoryTree(std::string directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory);
@@ -201,7 +209,7 @@ const std::string& GetUserPath(unsigned int dir_index);
 
 // Sets a user directory path
 // Rebuilds internal directory structure to compensate for the new directory
-void SetUserPath(unsigned int dir_index, const std::string& path);
+void SetUserPath(unsigned int dir_index, std::string path);
 
 // probably doesn't belong here
 std::string GetThemeDir(const std::string& theme_name);

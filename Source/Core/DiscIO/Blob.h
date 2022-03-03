@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -40,6 +39,7 @@ enum class BlobType
   TGC,
   WIA,
   RVZ,
+  MOD_DESCRIPTOR,
 };
 
 std::string GetName(BlobType blob_type, bool translate);

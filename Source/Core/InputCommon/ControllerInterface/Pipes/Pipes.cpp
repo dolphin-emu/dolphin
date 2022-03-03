@@ -1,6 +1,7 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
 #include <algorithm>
 #include <array>
@@ -18,7 +19,6 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
 namespace ciface::Pipes
 {

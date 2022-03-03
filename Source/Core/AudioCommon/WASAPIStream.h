@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -36,13 +35,14 @@ public:
   ~WASAPIStream();
   bool Init() override;
   bool SetRunning(bool running) override;
-  void SoundLoop() override;
 
-  static bool isValid();
+  static bool IsValid();
   static std::vector<std::string> GetAvailableDevices();
   static Microsoft::WRL::ComPtr<IMMDevice> GetDeviceByName(std::string_view name);
 
 private:
+  void SoundLoop();
+
   u32 m_frames_in_buffer = 0;
   std::atomic<bool> m_running = false;
   std::thread m_thread;

@@ -1,9 +1,9 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "jni/AndroidCommon/AndroidCommon.h"
 
+#include <algorithm>
 #include <ios>
 #include <string>
 #include <string_view>
@@ -68,8 +68,7 @@ bool IsPathAndroidContent(const std::string& uri)
 std::string OpenModeToAndroid(std::string mode)
 {
   // The 'b' specifier is not supported by Android. Since we're on POSIX, it's fine to just skip it.
-  if (!mode.empty() && mode.back() == 'b')
-    mode.pop_back();
+  mode.erase(std::remove(mode.begin(), mode.end(), 'b'));
 
   if (mode == "r+")
     mode = "rw";

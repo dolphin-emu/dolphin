@@ -1,9 +1,9 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Null/NullRender.h"
 
+#include "VideoBackends/Null/NullBoundingBox.h"
 #include "VideoBackends/Null/NullTexture.h"
 
 #include "VideoCommon/AbstractPipeline.h"
@@ -29,7 +29,8 @@ bool Renderer::IsHeadless() const
   return true;
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+                                                         [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<NullTexture>(config);
 }
@@ -47,13 +48,15 @@ public:
 };
 
 std::unique_ptr<AbstractShader>
-Renderer::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source)
+Renderer::CreateShaderFromSource(ShaderStage stage, [[maybe_unused]] std::string_view source,
+                                 [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<NullShader>(stage);
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length,
+                                 [[maybe_unused]] std::string_view name)
 {
   return std::make_unique<NullShader>(stage);
 }
@@ -80,5 +83,10 @@ std::unique_ptr<NativeVertexFormat>
 Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<NativeVertexFormat>(vtx_decl);
+}
+
+std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
+{
+  return std::make_unique<NullBoundingBox>();
 }
 }  // namespace Null

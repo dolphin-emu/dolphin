@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/WASAPIStream.h"
 
@@ -18,10 +17,11 @@
 #include <thread>
 
 #include "Common/Assert.h"
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 using Microsoft::WRL::ComPtr;
@@ -50,7 +50,7 @@ WASAPIStream::~WASAPIStream()
     m_thread.join();
 }
 
-bool WASAPIStream::isValid()
+bool WASAPIStream::IsValid()
 {
   return true;
 }
@@ -67,11 +67,11 @@ static bool HandleWinAPI(std::string_view message, HRESULT result)
       error = "Audio endpoint already in use!";
       break;
     default:
-      error = TStrToUTF8(_com_error(result).ErrorMessage()).c_str();
+      error = Common::GetHResultMessage(result);
       break;
     }
 
-    ERROR_LOG_FMT(AUDIO, "WASAPI: {}: {}", message, error);
+    ERROR_LOG_FMT(AUDIO, "WASAPI: {}: {} ({:08x})", message, error, result);
   }
 
   return SUCCEEDED(result);
@@ -177,19 +177,19 @@ bool WASAPIStream::SetRunning(bool running)
 
     HRESULT result;
 
-    if (SConfig::GetInstance().sWASAPIDevice == "default")
+    if (Config::Get(Config::MAIN_WASAPI_DEVICE) == "default")
     {
       result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
     }
     else
     {
       result = S_OK;
-      device = GetDeviceByName(SConfig::GetInstance().sWASAPIDevice);
+      device = GetDeviceByName(Config::Get(Config::MAIN_WASAPI_DEVICE));
 
       if (!device)
       {
         ERROR_LOG_FMT(AUDIO, "Can't find device '{}', falling back to default",
-                      SConfig::GetInstance().sWASAPIDevice);
+                      Config::Get(Config::MAIN_WASAPI_DEVICE));
         result = m_enumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
       }
     }
@@ -223,7 +223,7 @@ bool WASAPIStream::SetRunning(bool running)
 
     result = audio_client->GetDevicePeriod(nullptr, &device_period);
 
-    device_period += SConfig::GetInstance().iLatency * (10000 / m_format.Format.nChannels);
+    device_period += Config::Get(Config::MAIN_AUDIO_LATENCY) * (10000 / m_format.Format.nChannels);
     INFO_LOG_FMT(AUDIO, "Audio period set to {}", device_period);
 
     if (!HandleWinAPI("Failed to obtain device period", result))
@@ -259,7 +259,7 @@ bool WASAPIStream::SetRunning(bool running)
       device_period =
           static_cast<REFERENCE_TIME>(
               10000.0 * 1000 * m_frames_in_buffer / m_format.Format.nSamplesPerSec + 0.5) +
-          SConfig::GetInstance().iLatency * 10000;
+          Config::Get(Config::MAIN_AUDIO_LATENCY) * 10000;
 
       result = audio_client->Initialize(
           AUDCLNT_SHAREMODE_EXCLUSIVE,
@@ -334,13 +334,13 @@ void WASAPIStream::SoundLoop()
     s16* audio_data = reinterpret_cast<s16*>(data);
     GetMixer()->Mix(audio_data, m_frames_in_buffer);
 
-    const SConfig& config = SConfig::GetInstance();
-    const bool is_muted = config.m_IsMuted || config.m_Volume == 0;
-    const bool need_volume_adjustment = config.m_Volume != 100 && !is_muted;
+    const bool is_muted =
+        Config::Get(Config::MAIN_AUDIO_MUTED) || Config::Get(Config::MAIN_AUDIO_VOLUME) == 0;
+    const bool need_volume_adjustment = Config::Get(Config::MAIN_AUDIO_VOLUME) != 100 && !is_muted;
 
     if (need_volume_adjustment)
     {
-      const float volume = config.m_Volume / 100.0f;
+      const float volume = Config::Get(Config::MAIN_AUDIO_VOLUME) / 100.0f;
 
       for (u32 i = 0; i < m_frames_in_buffer * 2; i++)
         *audio_data++ *= volume;

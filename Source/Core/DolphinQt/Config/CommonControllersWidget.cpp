@@ -1,6 +1,5 @@
 // Copyright 2021 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/CommonControllersWidget.h"
 
@@ -9,7 +8,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 
 #include "DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.h"
@@ -58,11 +57,11 @@ void CommonControllersWidget::OnControllerInterfaceConfigure()
 
 void CommonControllersWidget::LoadSettings()
 {
-  m_common_bg_input->setChecked(SConfig::GetInstance().m_BackgroundInput);
+  m_common_bg_input->setChecked(Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
 }
 
 void CommonControllersWidget::SaveSettings()
 {
-  SConfig::GetInstance().m_BackgroundInput = m_common_bg_input->isChecked();
-  SConfig::GetInstance().SaveSettings();
+  Config::SetBaseOrCurrent(Config::MAIN_INPUT_BACKGROUND_INPUT, m_common_bg_input->isChecked());
+  Config::Save();
 }

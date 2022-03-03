@@ -1,11 +1,17 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include "Common/CommonTypes.h"
+
+// The update SR analysis is not perfect: it does not properly handle modified SR values if SR is
+// only read within a function call, and it's possible that a previous instruction sets SR (e.g. the
+// logical zero bit, or the sticky overflow bit) but is marked as not changing SR as a later
+// instruction sets it.  When this flag is set, we always treat instructions as updating SR, and
+// disable the analysis for if SR needs to be set.
+#define DISABLE_UPDATE_SR_ANALYSIS
 
 namespace DSP
 {
@@ -64,7 +70,11 @@ public:
   // Whether or not the address describes an instruction that requires updating the SR register.
   [[nodiscard]] bool IsUpdateSR(u16 address) const
   {
+#ifdef DISABLE_UPDATE_SR_ANALYSIS
+    return true;
+#else
     return (GetCodeFlags(address) & CODE_UPDATE_SR) != 0;
+#endif
   }
 
   // Whether or not the address describes instructions that potentially raise exceptions.

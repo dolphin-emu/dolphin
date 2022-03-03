@@ -1,6 +1,7 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #include <array>
 #include <sstream>
@@ -24,7 +25,6 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
-#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 namespace ButtonManager
 {

@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
 
@@ -228,11 +227,11 @@ u32 PostProcessingConfigWindow::ConfigGroup::AddWidgets(PostProcessingConfigWind
 
   switch (m_config_option->m_type)
   {
-  case OptionType::OPTION_BOOL:
+  case OptionType::Bool:
     return AddBool(parent, grid, row);
-  case OptionType::OPTION_FLOAT:
+  case OptionType::Float:
     return AddFloat(parent, grid, row);
-  case OptionType::OPTION_INTEGER:
+  case OptionType::Integer:
     return AddInteger(parent, grid, row);
   default:
     // obviously shouldn't get here
@@ -337,7 +336,7 @@ void PostProcessingConfigWindow::ConfigGroup::EnableSuboptions(const bool state)
 {
   for (auto& it : m_subgroups)
   {
-    if (it->m_config_option->m_type == OptionType::OPTION_BOOL)
+    if (it->m_config_option->m_type == OptionType::Bool)
     {
       it->m_checkbox->setEnabled(state);
     }

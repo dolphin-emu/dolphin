@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
@@ -43,6 +43,7 @@
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENetUtil.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
+    <ClInclude Include="Common\EnumMap.h" />
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FileSearch.h" />
     <ClInclude Include="Common\FileUtil.h" />
@@ -106,8 +107,10 @@
     <ClInclude Include="Common\GL\GLUtil.h" />
     <ClInclude Include="Common\GL\GLX11Window.h" />
     <ClInclude Include="Common\Hash.h" />
+    <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
     <ClInclude Include="Common\Image.h" />
+    <ClInclude Include="Common\ImageC.h" />
     <ClInclude Include="Common\IniFile.h" />
     <ClInclude Include="Common\Inline.h" />
     <ClInclude Include="Common\Intrinsics.h" />
@@ -121,7 +124,6 @@
     <ClInclude Include="Common\Logging\LogManager.h" />
     <ClInclude Include="Common\MathUtil.h" />
     <ClInclude Include="Common\Matrix.h" />
-    <ClInclude Include="Common\MD5.h" />
     <ClInclude Include="Common\MemArena.h" />
     <ClInclude Include="Common\MemoryUtil.h" />
     <ClInclude Include="Common\MinizipUtil.h" />
@@ -163,14 +165,18 @@
     <ClInclude Include="Core\Boot\ElfTypes.h" />
     <ClInclude Include="Core\BootManager.h" />
     <ClInclude Include="Core\CheatCodes.h" />
+    <ClInclude Include="Core\CheatGeneration.h" />
+    <ClInclude Include="Core\CheatSearch.h" />
     <ClInclude Include="Core\CommonTitles.h" />
     <ClInclude Include="Core\Config\DefaultLocale.h" />
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
     <ClInclude Include="Core\Config\MainSettings.h" />
     <ClInclude Include="Core\Config\NetplaySettings.h" />
+    <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
     <ClInclude Include="Core\Config\UISettings.h" />
+    <ClInclude Include="Core\Config\WiimoteSettings.h" />
     <ClInclude Include="Core\ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\GameConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\IsSettingSaveable.h" />
@@ -211,11 +217,8 @@
     <ClInclude Include="Core\DSP\Jit\x64\DSPJitTables.h" />
     <ClInclude Include="Core\DSP\LabelMap.h" />
     <ClInclude Include="Core\DSPEmulator.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoDataFile.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoPlayer.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoRecorder.h" />
     <ClInclude Include="Core\FreeLookConfig.h" />
     <ClInclude Include="Core\FreeLookManager.h" />
@@ -245,7 +248,6 @@
     <ClInclude Include="Core\HW\DSPHLE\UCodes\Zelda.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPDebugInterface.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPLLE.h" />
-    <ClInclude Include="Core\HW\DSPLLE\DSPLLEGlobals.h" />
     <ClInclude Include="Core\HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="Core\HW\DVD\DVDInterface.h" />
     <ClInclude Include="Core\HW\DVD\DVDMath.h" />
@@ -263,6 +265,9 @@
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="Core\HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="Core\HW\EXI\EXI.h" />
+    <ClInclude Include="Core\HW\GBACore.h" />
+    <ClInclude Include="Core\HW\GBAPad.h" />
+    <ClInclude Include="Core\HW\GBAPadEmu.h" />
     <ClInclude Include="Core\HW\GCKeyboard.h" />
     <ClInclude Include="Core\HW\GCKeyboardEmu.h" />
     <ClInclude Include="Core\HW\GCMemcard\GCIFile.h" />
@@ -283,6 +288,7 @@
     <ClInclude Include="Core\HW\SI\SI_Device.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceDanceMat.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBA.h" />
+    <ClInclude Include="Core\HW\SI\SI_DeviceGBAEmu.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCAdapter.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCController.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGCSteeringWheel.h" />
@@ -374,6 +380,7 @@
     <ClInclude Include="Core\MemTools.h" />
     <ClInclude Include="Core\Movie.h" />
     <ClInclude Include="Core\NetPlayClient.h" />
+    <ClInclude Include="Core\NetPlayCommon.h" />
     <ClInclude Include="Core\NetPlayProto.h" />
     <ClInclude Include="Core\NetPlayServer.h" />
     <ClInclude Include="Core\NetworkCaptureLogger.h" />
@@ -388,6 +395,7 @@
     <ClInclude Include="Core\PowerPC\Interpreter\ExceptionUtils.h" />
     <ClInclude Include="Core\PowerPC\Interpreter\Interpreter_FPUtils.h" />
     <ClInclude Include="Core\PowerPC\Interpreter\Interpreter.h" />
+    <ClInclude Include="Core\PowerPC\JitCommon\DivUtils.h" />
     <ClInclude Include="Core\PowerPC\JitCommon\JitAsmCommon.h" />
     <ClInclude Include="Core\PowerPC\JitCommon\JitBase.h" />
     <ClInclude Include="Core\PowerPC\JitCommon\JitCache.h" />
@@ -422,9 +430,12 @@
     <ClInclude Include="DiscIO\FileBlob.h" />
     <ClInclude Include="DiscIO\Filesystem.h" />
     <ClInclude Include="DiscIO\FileSystemGCWii.h" />
+    <ClInclude Include="DiscIO\GameModDescriptor.h" />
     <ClInclude Include="DiscIO\LaggedFibonacciGenerator.h" />
     <ClInclude Include="DiscIO\MultithreadedCompressor.h" />
     <ClInclude Include="DiscIO\NANDImporter.h" />
+    <ClInclude Include="DiscIO\RiivolutionParser.h" />
+    <ClInclude Include="DiscIO\RiivolutionPatcher.h" />
     <ClInclude Include="DiscIO\ScrubbedBlob.h" />
     <ClInclude Include="DiscIO\TGCBlob.h" />
     <ClInclude Include="DiscIO\Volume.h" />
@@ -531,7 +542,7 @@
     <ClInclude Include="VideoBackends\D3DCommon\D3DCommon.h" />
     <ClInclude Include="VideoBackends\D3DCommon\Shader.h" />
     <ClInclude Include="VideoBackends\D3DCommon\SwapChain.h" />
-    <ClInclude Include="VideoBackends\Null\NullPerfQuery.h" />
+    <ClInclude Include="VideoBackends\Null\NullBoundingBox.h" />
     <ClInclude Include="VideoBackends\Null\NullRender.h" />
     <ClInclude Include="VideoBackends\Null\NullTexture.h" />
     <ClInclude Include="VideoBackends\Null\NullVertexManager.h" />
@@ -558,6 +569,7 @@
     <ClInclude Include="VideoBackends\Software\NativeVertexFormat.h" />
     <ClInclude Include="VideoBackends\Software\Rasterizer.h" />
     <ClInclude Include="VideoBackends\Software\SetupUnit.h" />
+    <ClInclude Include="VideoBackends\Software\SWBoundingBox.h" />
     <ClInclude Include="VideoBackends\Software\SWOGLWindow.h" />
     <ClInclude Include="VideoBackends\Software\SWRenderer.h" />
     <ClInclude Include="VideoBackends\Software\SWTexture.h" />
@@ -630,7 +642,6 @@
     <ClInclude Include="VideoCommon\PostProcessing.h" />
     <ClInclude Include="VideoCommon\RenderBase.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
-    <ClInclude Include="VideoCommon\SamplerCommon.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
     <ClInclude Include="VideoCommon\Statistics.h" />
@@ -641,6 +652,7 @@
     <ClInclude Include="VideoCommon\TextureDecoder_Util.h" />
     <ClInclude Include="VideoCommon\TextureDecoder.h" />
     <ClInclude Include="VideoCommon\TextureInfo.h" />
+    <ClInclude Include="VideoCommon\TMEM.h" />
     <ClInclude Include="VideoCommon\UberShaderCommon.h" />
     <ClInclude Include="VideoCommon\UberShaderPixel.h" />
     <ClInclude Include="VideoCommon\UberShaderVertex.h" />
@@ -697,8 +709,14 @@
     <ClCompile Include="Common\GL\GLInterface\WGL.cpp" />
     <ClCompile Include="Common\GL\GLUtil.cpp" />
     <ClCompile Include="Common\Hash.cpp" />
+    <ClCompile Include="Common\HRWrap.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
     <ClCompile Include="Common\Image.cpp" />
+    <ClCompile Include="Common\ImageC.c">
+      <!-- This is a C file, not a C++ file, so we can't use the C++ pre-compiled header -->
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles />
+    </ClCompile>
     <ClCompile Include="Common\IniFile.cpp" />
     <ClCompile Include="Common\IOFile.cpp" />
     <ClCompile Include="Common\JitRegister.cpp" />
@@ -707,8 +725,7 @@
     <ClCompile Include="Common\Logging\LogManager.cpp" />
     <ClCompile Include="Common\MathUtil.cpp" />
     <ClCompile Include="Common\Matrix.cpp" />
-    <ClCompile Include="Common\MD5.cpp" />
-    <ClCompile Include="Common\MemArena.cpp" />
+    <ClCompile Include="Common\MemArenaWin.cpp" />
     <ClCompile Include="Common\MemoryUtil.cpp" />
     <ClCompile Include="Common\MsgHandler.cpp" />
     <ClCompile Include="Common\NandPaths.cpp" />
@@ -737,13 +754,17 @@
     <ClCompile Include="Core\Boot\DolReader.cpp" />
     <ClCompile Include="Core\Boot\ElfReader.cpp" />
     <ClCompile Include="Core\BootManager.cpp" />
+    <ClCompile Include="Core\CheatGeneration.cpp" />
+    <ClCompile Include="Core\CheatSearch.cpp" />
     <ClCompile Include="Core\Config\DefaultLocale.cpp" />
     <ClCompile Include="Core\Config\FreeLookSettings.cpp" />
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
     <ClCompile Include="Core\Config\MainSettings.cpp" />
     <ClCompile Include="Core\Config\NetplaySettings.cpp" />
+    <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
     <ClCompile Include="Core\Config\UISettings.cpp" />
+    <ClCompile Include="Core\Config\WiimoteSettings.cpp" />
     <ClCompile Include="Core\ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\GameConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\IsSettingSaveable.cpp" />
@@ -791,11 +812,8 @@
     <ClCompile Include="Core\DSP\Jit\x64\DSPJitUtil.cpp" />
     <ClCompile Include="Core\DSP\LabelMap.cpp" />
     <ClCompile Include="Core\DSPEmulator.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoDataFile.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoPlaybackAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoPlayer.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoRecorder.cpp" />
     <ClCompile Include="Core\FreeLookConfig.cpp" />
     <ClCompile Include="Core\FreeLookManager.cpp" />
@@ -822,7 +840,6 @@
     <ClCompile Include="Core\HW\DSPHLE\UCodes\Zelda.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPLLE.cpp" />
-    <ClCompile Include="Core\HW\DSPLLE\DSPLLEGlobals.cpp" />
     <ClCompile Include="Core\HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDInterface.cpp" />
     <ClCompile Include="Core\HW\DVD\DVDMath.cpp" />
@@ -841,6 +858,9 @@
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="Core\HW\EXI\EXI.cpp" />
+    <ClCompile Include="Core\HW\GBACore.cpp" />
+    <ClCompile Include="Core\HW\GBAPad.cpp" />
+    <ClCompile Include="Core\HW\GBAPadEmu.cpp" />
     <ClCompile Include="Core\HW\GCKeyboard.cpp" />
     <ClCompile Include="Core\HW\GCKeyboardEmu.cpp" />
     <ClCompile Include="Core\HW\GCMemcard\GCIFile.cpp" />
@@ -859,6 +879,7 @@
     <ClCompile Include="Core\HW\SI\SI_Device.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGBA.cpp" />
+    <ClCompile Include="Core\HW\SI\SI_DeviceGBAEmu.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCAdapter.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCController.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGCSteeringWheel.cpp" />
@@ -950,6 +971,7 @@
     <ClCompile Include="Core\MemTools.cpp" />
     <ClCompile Include="Core\Movie.cpp" />
     <ClCompile Include="Core\NetPlayClient.cpp" />
+    <ClCompile Include="Core\NetPlayCommon.cpp" />
     <ClCompile Include="Core\NetPlayServer.cpp" />
     <ClCompile Include="Core\NetworkCaptureLogger.cpp" />
     <ClCompile Include="Core\PatchEngine.cpp" />
@@ -967,6 +989,7 @@
     <ClCompile Include="Core\PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
     <ClCompile Include="Core\PowerPC\Interpreter\Interpreter_Tables.cpp" />
     <ClCompile Include="Core\PowerPC\Interpreter\Interpreter.cpp" />
+    <ClCompile Include="Core\PowerPC\JitCommon\DivUtils.cpp" />
     <ClCompile Include="Core\PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="Core\PowerPC\JitCommon\JitBase.cpp" />
     <ClCompile Include="Core\PowerPC\JitCommon\JitCache.cpp" />
@@ -999,8 +1022,11 @@
     <ClCompile Include="DiscIO\FileBlob.cpp" />
     <ClCompile Include="DiscIO\Filesystem.cpp" />
     <ClCompile Include="DiscIO\FileSystemGCWii.cpp" />
+    <ClCompile Include="DiscIO\GameModDescriptor.cpp" />
     <ClCompile Include="DiscIO\LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="DiscIO\NANDImporter.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionPatcher.cpp" />
     <ClCompile Include="DiscIO\ScrubbedBlob.cpp" />
     <ClCompile Include="DiscIO\TGCBlob.cpp" />
     <ClCompile Include="DiscIO\Volume.cpp" />
@@ -1122,6 +1148,7 @@
     <ClCompile Include="VideoBackends\Software\Rasterizer.cpp" />
     <ClCompile Include="VideoBackends\Software\SetupUnit.cpp" />
     <ClCompile Include="VideoBackends\Software\SWmain.cpp" />
+    <ClCompile Include="VideoBackends\Software\SWBoundingBox.cpp" />
     <ClCompile Include="VideoBackends\Software\SWOGLWindow.cpp" />
     <ClCompile Include="VideoBackends\Software\SWRenderer.cpp" />
     <ClCompile Include="VideoBackends\Software\SWTexture.cpp" />
@@ -1191,6 +1218,7 @@
     <ClCompile Include="VideoCommon\TextureConverterShaderGen.cpp" />
     <ClCompile Include="VideoCommon\TextureDecoder_Common.cpp" />
     <ClCompile Include="VideoCommon\TextureInfo.cpp" />
+    <ClCompile Include="VideoCommon\TMEM.cpp" />
     <ClCompile Include="VideoCommon\UberShaderCommon.cpp" />
     <ClCompile Include="VideoCommon\UberShaderPixel.cpp" />
     <ClCompile Include="VideoCommon\UberShaderVertex.cpp" />
@@ -1212,5 +1240,6 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Common\BitField.natvis" />
+    <Natvis Include="Common\EnumMap.natvis" />
   </ItemGroup>
 </Project>

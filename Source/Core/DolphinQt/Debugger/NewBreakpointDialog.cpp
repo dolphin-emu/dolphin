@@ -1,9 +1,9 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Debugger/NewBreakpointDialog.h"
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -20,6 +20,7 @@
 NewBreakpointDialog::NewBreakpointDialog(BreakpointWidget* parent)
     : QDialog(parent), m_parent(parent)
 {
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
   setWindowTitle(tr("New Breakpoint"));
   CreateWidgets();
   ConnectWidgets();
@@ -31,10 +32,12 @@ NewBreakpointDialog::NewBreakpointDialog(BreakpointWidget* parent)
 void NewBreakpointDialog::CreateWidgets()
 {
   m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  auto* type_group = new QButtonGroup(this);
 
   // Instruction BP
   m_instruction_bp = new QRadioButton(tr("Instruction Breakpoint"));
   m_instruction_bp->setChecked(true);
+  type_group->addButton(m_instruction_bp);
   m_instruction_box = new QGroupBox;
   m_instruction_address = new QLineEdit;
 
@@ -45,11 +48,15 @@ void NewBreakpointDialog::CreateWidgets()
 
   // Memory BP
   m_memory_bp = new QRadioButton(tr("Memory Breakpoint"));
+  type_group->addButton(m_memory_bp);
   m_memory_box = new QGroupBox;
+  auto* memory_type_group = new QButtonGroup(this);
   m_memory_use_address = new QRadioButton(tr("Address"));
   m_memory_use_address->setChecked(true);
+  memory_type_group->addButton(m_memory_use_address);
   // i18n: A range of memory addresses
   m_memory_use_range = new QRadioButton(tr("Range"));
+  memory_type_group->addButton(m_memory_use_range);
   m_memory_address_from = new QLineEdit;
   m_memory_address_to = new QLineEdit;
   m_memory_address_from_label = new QLabel;  // Set by OnAddressTypeChanged
@@ -103,6 +110,8 @@ void NewBreakpointDialog::CreateWidgets()
   layout->addWidget(m_buttons);
 
   setLayout(layout);
+
+  m_instruction_address->setFocus();
 }
 
 void NewBreakpointDialog::ConnectWidgets()

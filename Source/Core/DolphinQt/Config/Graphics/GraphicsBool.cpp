@@ -1,18 +1,16 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
-#include "DolphinQt/Config/Graphics/BalloonTip.h"
 
+#include <QEvent>
+#include <QFont>
 #include <QSignalBlocker>
 
 #include "Common/Config/Config.h"
 
+#include "DolphinQt/Config/Graphics/BalloonTip.h"
 #include "DolphinQt/Settings.h"
-
-#include <QEvent>
-#include <QFont>
 
 GraphicsBool::GraphicsBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
     : ToolTipCheckBox(label), m_setting(setting), m_reverse(reverse)

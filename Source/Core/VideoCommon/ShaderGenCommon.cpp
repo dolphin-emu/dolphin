@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/ShaderGenCommon.h"
 
@@ -39,6 +38,11 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_shader_framebuffer_fetch = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
   bits.backend_logic_op = g_ActiveConfig.backend_info.bSupportsLogicOp;
   bits.backend_palette_conversion = g_ActiveConfig.backend_info.bSupportsPaletteConversion;
+  bits.enable_validation_layer = g_ActiveConfig.bEnableValidationLayer;
+  bits.manual_texture_sampling = !g_ActiveConfig.bFastTextureSampling;
+  bits.manual_texture_sampling_custom_texture_sizes =
+      g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
+  bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
   return bits;
 }
 
@@ -85,6 +89,48 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
 
   filename += ".cache";
   return filename;
+}
+
+void WriteIsNanHeader(ShaderCode& out, APIType api_type)
+{
+  if (api_type == APIType::D3D)
+  {
+    out.Write("bool dolphin_isnan(float f) {{\n"
+              "  // Workaround for the HLSL compiler deciding that isnan can never be true and\n"
+              "  // optimising away the call, even though the value can actually be NaN\n"
+              "  // Just look for the bit pattern that indicates NaN instead\n"
+              "  return (asint(f) & 0x7FFFFFFF) > 0x7F800000;\n"
+              "}}\n\n");
+    // If isfinite is needed, (asint(f) & 0x7F800000) != 0x7F800000 can be used
+  }
+  else
+  {
+    out.Write("#define dolphin_isnan(f) isnan(f)\n");
+  }
+}
+
+void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
+                                const ShaderHostConfig& host_config)
+{
+  // ==============================================
+  //  BitfieldExtract for APIs which don't have it
+  // ==============================================
+  if (!host_config.backend_bitfield)
+  {
+    out.Write("uint bitfieldExtract(uint val, int off, int size) {{\n"
+              "  // This built-in function is only supported in OpenGL 4.0+ and ES 3.1+\n"
+              "  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract "
+              "instruction.\n"
+              "  uint mask = uint((1 << size) - 1);\n"
+              "  return uint(val >> off) & mask;\n"
+              "}}\n\n");
+    out.Write("int bitfieldExtract(int val, int off, int size) {{\n"
+              "  // This built-in function is only supported in OpenGL 4.0+ and ES 3.1+\n"
+              "  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract "
+              "instruction.\n"
+              "  return ((val << (32 - size - off)) >> (32 - size));\n"
+              "}}\n\n");
+  }
 }
 
 static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string_view qualifier,

@@ -1,10 +1,10 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/MsgHandler.h"
 
 #include <cstdarg>
+#include <cstdlib>
 #include <string>
 
 #ifdef _WIN32
@@ -52,13 +52,14 @@ std::string DefaultStringTranslator(const char* text)
 MsgAlertHandler s_msg_handler = DefaultMsgHandler;
 StringTranslator s_str_translator = DefaultStringTranslator;
 bool s_alert_enabled = true;
+bool s_abort_on_panic_alert = false;
 
 const char* GetCaption(MsgType style)
 {
-  static const std::string info_caption = s_str_translator(_trans("Information"));
-  static const std::string warn_caption = s_str_translator(_trans("Question"));
-  static const std::string ques_caption = s_str_translator(_trans("Warning"));
-  static const std::string crit_caption = s_str_translator(_trans("Critical"));
+  static const std::string info_caption = GetStringT("Information");
+  static const std::string ques_caption = GetStringT("Question");
+  static const std::string warn_caption = GetStringT("Warning");
+  static const std::string crit_caption = GetStringT("Critical");
 
   switch (style)
   {
@@ -95,50 +96,48 @@ void SetEnableAlert(bool enable)
   s_alert_enabled = enable;
 }
 
+void SetAbortOnPanicAlert(bool should_abort)
+{
+  s_abort_on_panic_alert = should_abort;
+}
+
 std::string GetStringT(const char* string)
 {
   return s_str_translator(string);
 }
 
-// This is the first stop for gui alerts where the log is updated and the
-// correct window is shown
-bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
+static bool ShowMessageAlert(std::string_view text, bool yes_no, Common::Log::LogType log_type,
+                             MsgType style, const char* file, int line)
 {
-  // Read message and write it to the log
   const char* caption = GetCaption(style);
-  char buffer[2048];
+  // Directly call GenericLogFmt rather than using the normal log macros so that we can use the
+  // caller's line file and line number
+  Common::Log::GenericLogFmt<2>(Common::Log::LogLevel::LERROR, log_type, file, line,
+                                FMT_STRING("{}: {}"), caption, text);
 
-  va_list args;
-  va_start(args, format);
-  CharArrayFromFormatV(buffer, sizeof(buffer) - 1, s_str_translator(format).c_str(), args);
-  va_end(args);
-
-  ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, buffer);
+  // Panic alerts.
+  if (style == MsgType::Warning && s_abort_on_panic_alert)
+  {
+    std::abort();
+  }
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
   if (s_msg_handler != nullptr &&
       (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
   {
-    return s_msg_handler(caption, buffer, yes_no, style);
+    return s_msg_handler(caption, text.data(), yes_no, style);
   }
 
   return true;
 }
 
-bool MsgAlertFmtImpl(bool yes_no, MsgType style, fmt::string_view format,
-                     const fmt::format_args& args)
+// This is the first stop for gui alerts where the log is updated and the
+// correct window is shown, when using fmt
+bool MsgAlertFmtImpl(bool yes_no, MsgType style, Common::Log::LogType log_type, const char* file,
+                     int line, fmt::string_view format, const fmt::format_args& args)
 {
-  const char* caption = GetCaption(style);
   const auto message = fmt::vformat(format, args);
-  ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, message);
 
-  // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-  if (s_msg_handler != nullptr &&
-      (s_alert_enabled || style == MsgType::Question || style == MsgType::Critical))
-  {
-    return s_msg_handler(caption, message.c_str(), yes_no, style);
-  }
-
-  return true;
+  return ShowMessageAlert(message, yes_no, log_type, style, file, line);
 }
 }  // namespace Common

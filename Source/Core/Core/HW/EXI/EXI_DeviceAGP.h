@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -13,10 +12,12 @@ class PointerWrap;
 
 namespace ExpansionInterface
 {
+enum class Slot : int;
+
 class CEXIAgp : public IEXIDevice
 {
 public:
-  CEXIAgp(const int index);
+  CEXIAgp(const Slot slot);
   virtual ~CEXIAgp() override;
   bool IsPresent() const override { return true; }
   void ImmWrite(u32 _uData, u32 _uSize) override;
@@ -32,7 +33,7 @@ private:
     EE_READ_TRUE = 0xB,
   };
 
-  int m_slot;
+  Slot m_slot;
 
   //! ROM
   u32 m_rom_size = 0;

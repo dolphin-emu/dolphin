@@ -1,12 +1,10 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D/D3DRender.h"
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cmath>
 #include <cstring>
 #include <memory>
@@ -53,9 +51,10 @@ bool Renderer::IsHeadless() const
   return !m_swap_chain;
 }
 
-std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config,
+                                                         std::string_view name)
 {
-  return DXTexture::Create(config);
+  return DXTexture::Create(config, name);
 }
 
 std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
@@ -71,20 +70,21 @@ std::unique_ptr<AbstractFramebuffer> Renderer::CreateFramebuffer(AbstractTexture
                                static_cast<DXTexture*>(depth_attachment));
 }
 
-std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source)
+std::unique_ptr<AbstractShader>
+Renderer::CreateShaderFromSource(ShaderStage stage, std::string_view source, std::string_view name)
 {
   auto bytecode = DXShader::CompileShader(D3D::feature_level, stage, source);
   if (!bytecode)
     return nullptr;
 
-  return DXShader::CreateFromBytecode(stage, std::move(*bytecode));
+  return DXShader::CreateFromBytecode(stage, std::move(*bytecode), name);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
-                                                                 const void* data, size_t length)
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name)
 {
-  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length));
+  return DXShader::CreateFromBytecode(stage, DXShader::CreateByteCode(data, length), name);
 }
 
 std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config,
@@ -264,19 +264,9 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
     D3D::stateman->ApplyTextures();
 }
 
-u16 Renderer::BBoxReadImpl(int index)
+std::unique_ptr<BoundingBox> Renderer::CreateBoundingBox() const
 {
-  return static_cast<u16>(BBox::Get(index));
-}
-
-void Renderer::BBoxWriteImpl(int index, u16 value)
-{
-  BBox::Set(index, value);
-}
-
-void Renderer::BBoxFlushImpl()
-{
-  BBox::Flush();
+  return std::make_unique<D3DBoundingBox>();
 }
 
 void Renderer::Flush()

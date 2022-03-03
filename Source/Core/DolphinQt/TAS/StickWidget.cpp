@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/TAS/StickWidget.h"
 
@@ -47,6 +46,9 @@ void StickWidget::paintEvent(QPaintEvent* event)
   painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
   const int diameter = std::min(width(), height()) - PADDING * 2;
+
+  // inscribe the StickWidget inside a square
+  painter.fillRect(PADDING, PADDING, diameter, diameter, Qt::lightGray);
 
   painter.setBrush(Qt::white);
   painter.drawEllipse(PADDING, PADDING, diameter, diameter);

@@ -1,14 +1,13 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "AudioCommon/Mixer.h"
-#include "AudioCommon/Enums.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 
+#include "AudioCommon/Enums.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -36,11 +35,15 @@ Mixer::Mixer(unsigned int BackendSampleRate)
       m_surround_decoder(BackendSampleRate,
                          DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY)))
 {
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+
   INFO_LOG_FMT(AUDIO_INTERFACE, "Mixer is initialized");
 }
 
 Mixer::~Mixer()
 {
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 void Mixer::DoState(PointerWrap& p)
@@ -48,11 +51,14 @@ void Mixer::DoState(PointerWrap& p)
   m_dma_mixer.DoState(p);
   m_streaming_mixer.DoState(p);
   m_wiimote_speaker_mixer.DoState(p);
+  for (auto& mixer : m_gba_mixers)
+    mixer.DoState(p);
 }
 
 // Executed from sound stream thread
 unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
-                                   bool consider_framelimit)
+                                   bool consider_framelimit, float emulationspeed,
+                                   int timing_variance)
 {
   unsigned int currentSample = 0;
 
@@ -70,13 +76,12 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   // advance indexR with sample position
   // remember fractional offset
 
-  float emulationspeed = SConfig::GetInstance().m_EmulationSpeed;
   float aid_sample_rate = static_cast<float>(m_input_sample_rate);
   if (consider_framelimit && emulationspeed > 0.0f)
   {
     float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
 
-    u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
+    u32 low_waterwark = m_input_sample_rate * timing_variance / 1000;
     low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
 
     m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
@@ -94,20 +99,24 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   s32 lvolume = m_LVolume.load();
   s32 rvolume = m_RVolume.load();
 
+  const auto read_buffer = [this](auto index) {
+    return m_little_endian ? m_buffer[index] : Common::swap16(m_buffer[index]);
+  };
+
   // TODO: consider a higher-quality resampling algorithm.
   for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2)
   {
     u32 indexR2 = indexR + 2;  // next sample
 
-    s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]);   // current
-    s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]);  // next
+    s16 l1 = read_buffer(indexR & INDEX_MASK);   // current
+    s16 l2 = read_buffer(indexR2 & INDEX_MASK);  // next
     int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
     sampleL = (sampleL * lvolume) >> 8;
     sampleL += samples[currentSample + 1];
     samples[currentSample + 1] = std::clamp(sampleL, -32767, 32767);
 
-    s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]);   // current
-    s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]);  // next
+    s16 r1 = read_buffer((indexR + 1) & INDEX_MASK);   // current
+    s16 r2 = read_buffer((indexR2 + 1) & INDEX_MASK);  // next
     int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
     sampleR = (sampleR * rvolume) >> 8;
     sampleR += samples[currentSample];
@@ -123,8 +132,8 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
 
   // Padding
   short s[2];
-  s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
-  s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
+  s[0] = read_buffer((indexR - 1) & INDEX_MASK);
+  s[1] = read_buffer((indexR - 2) & INDEX_MASK);
   s[0] = (s[0] * rvolume) >> 8;
   s[1] = (s[1] * lvolume) >> 8;
   for (; currentSample < numSamples * 2; currentSample += 2)
@@ -149,16 +158,26 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 
   memset(samples, 0, num_samples * 2 * sizeof(short));
 
-  if (SConfig::GetInstance().m_audio_stretch)
+  const float emulation_speed = m_config_emulation_speed;
+  const int timing_variance = m_config_timing_variance;
+  if (m_config_audio_stretch)
   {
     unsigned int available_samples =
         std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
 
     m_scratch_buffer.fill(0);
 
-    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false);
-    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false);
-    m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false);
+    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+                    timing_variance);
+    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+                          timing_variance);
+    m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+                                timing_variance);
+    for (auto& mixer : m_gba_mixers)
+    {
+      mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+                timing_variance);
+    }
 
     if (!m_is_stretching)
     {
@@ -170,9 +189,11 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
   }
   else
   {
-    m_dma_mixer.Mix(samples, num_samples, true);
-    m_streaming_mixer.Mix(samples, num_samples, true);
-    m_wiimote_speaker_mixer.Mix(samples, num_samples, true);
+    m_dma_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
+    m_streaming_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
+    m_wiimote_speaker_mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
+    for (auto& mixer : m_gba_mixers)
+      mixer.Mix(samples, num_samples, true, emulation_speed, timing_variance);
     m_is_stretching = false;
   }
 
@@ -259,12 +280,17 @@ void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_sam
 
     for (unsigned int i = 0; i < num_samples; ++i)
     {
-      samples_stereo[i * 2] = Common::swap16(samples[i]);
-      samples_stereo[i * 2 + 1] = Common::swap16(samples[i]);
+      samples_stereo[i * 2] = samples[i];
+      samples_stereo[i * 2 + 1] = samples[i];
     }
 
     m_wiimote_speaker_mixer.PushSamples(samples_stereo, num_samples);
   }
+}
+
+void Mixer::PushGBASamples(int device_number, const short* samples, unsigned int num_samples)
+{
+  m_gba_mixers[device_number].PushSamples(samples, num_samples);
 }
 
 void Mixer::SetDMAInputSampleRate(unsigned int rate)
@@ -277,6 +303,11 @@ void Mixer::SetStreamInputSampleRate(unsigned int rate)
   m_streaming_mixer.SetInputSampleRate(rate);
 }
 
+void Mixer::SetGBAInputSampleRates(int device_number, unsigned int rate)
+{
+  m_gba_mixers[device_number].SetInputSampleRate(rate);
+}
+
 void Mixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
 {
   m_streaming_mixer.SetVolume(lvolume, rvolume);
@@ -285,6 +316,11 @@ void Mixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
 void Mixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
 {
   m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
+}
+
+void Mixer::SetGBAVolume(int device_number, unsigned int lvolume, unsigned int rvolume)
+{
+  m_gba_mixers[device_number].SetVolume(lvolume, rvolume);
 }
 
 void Mixer::StartLogDTKAudio(const std::string& filename)
@@ -359,6 +395,13 @@ void Mixer::StopLogDSPAudio()
   {
     WARN_LOG_FMT(AUDIO, "DSP Audio logging has already been stopped");
   }
+}
+
+void Mixer::RefreshConfig()
+{
+  m_config_emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  m_config_timing_variance = Config::Get(Config::MAIN_TIMING_VARIANCE);
+  m_config_audio_stretch = Config::Get(Config::MAIN_AUDIO_STRETCH);
 }
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)

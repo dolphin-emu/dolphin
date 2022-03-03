@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifdef _WIN32
 #include <string>
@@ -120,6 +119,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   }
 #endif
 
+  Host::GetInstance()->DeclareAsHostThread();
+
 #ifdef __APPLE__
   // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
   // the application is launched for the first time. This is to set the "ProcessSerialNumber",
@@ -196,7 +197,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(paths, save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
   }
   else if (options.is_set("nand_title"))
@@ -215,7 +217,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   }
   else if (!args.empty())
   {
-    boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        args.front(), BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
   }
 
@@ -283,7 +286,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     if (!Settings::Instance().IsBatchModeEnabled())
     {
-      auto* updater = new Updater(&win);
+      auto* updater = new Updater(&win, Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
+                                  Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
       updater->start();
     }
 

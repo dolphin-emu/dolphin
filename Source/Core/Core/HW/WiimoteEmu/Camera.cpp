@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/WiimoteEmu/Camera.h"
 
@@ -95,7 +94,7 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
   struct CameraPoint
   {
     IRBasic::IRObject position;
-    u8 size;
+    u8 size = 0;
   };
 
   std::array<CameraPoint, leds.size()> camera_points;

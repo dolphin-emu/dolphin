@@ -1,10 +1,11 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <memory>
+#include <string>
+#include <string_view>
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/Common.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
@@ -19,7 +20,7 @@ class DXTexture final : public AbstractTexture
 public:
   ~DXTexture();
 
-  static std::unique_ptr<DXTexture> Create(const TextureConfig& config);
+  static std::unique_ptr<DXTexture> Create(const TextureConfig& config, std::string_view name);
   static std::unique_ptr<DXTexture> CreateAdopted(ID3D12Resource* resource);
 
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
@@ -44,7 +45,8 @@ public:
   void DestroyResource();
 
 private:
-  DXTexture(const TextureConfig& config, ID3D12Resource* resource, D3D12_RESOURCE_STATES state);
+  DXTexture(const TextureConfig& config, ID3D12Resource* resource, D3D12_RESOURCE_STATES state,
+            std::string_view name);
 
   bool CreateSRVDescriptor();
   bool CreateUAVDescriptor();
@@ -52,6 +54,8 @@ private:
   ComPtr<ID3D12Resource> m_resource;
   DescriptorHandle m_srv_descriptor = {};
   DescriptorHandle m_uav_descriptor = {};
+
+  std::wstring m_name;
 
   mutable D3D12_RESOURCE_STATES m_state;
 };

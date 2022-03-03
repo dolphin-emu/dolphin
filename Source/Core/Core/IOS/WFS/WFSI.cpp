@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/IOS/WFS/WFSI.h"
 
@@ -541,7 +540,8 @@ std::optional<IPCReply> WFSIDevice::IOCtl(const IOCtlRequest& request)
     // TODO(wfs): Should be returning an error. However until we have
     // everything properly stubbed it's easier to simulate the methods
     // succeeding.
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS, Common::Log::LWARNING);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WFS,
+                        Common::Log::LogLevel::LWARNING);
     Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
   }

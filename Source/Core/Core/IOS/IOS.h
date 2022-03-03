@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -125,8 +124,6 @@ public:
   std::shared_ptr<FS::FileSystem> GetFS();
   std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetES();
-
-  void SDIO_EventNotify();
 
   void EnqueueIPCRequest(u32 address);
   void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,

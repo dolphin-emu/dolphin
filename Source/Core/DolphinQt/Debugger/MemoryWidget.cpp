@@ -1,12 +1,12 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Debugger/MemoryWidget.h"
 
 #include <optional>
 #include <string>
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -14,6 +14,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRadioButton>
+#include <QRegularExpression>
 #include <QScrollArea>
 #include <QSpacerItem>
 #include <QSplitter>
@@ -103,6 +104,12 @@ void MemoryWidget::CreateWidgets()
   m_address_splitter->setCollapsible(0, false);
   m_address_splitter->setStretchFactor(1, 2);
 
+  auto* search_type_group = new QButtonGroup(this);
+  m_find_ascii = new QRadioButton(tr("ASCII"));
+  m_find_hex = new QRadioButton(tr("Hex string"));
+  search_type_group->addButton(m_find_ascii);
+  search_type_group->addButton(m_find_hex);
+
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
   m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
@@ -116,8 +123,6 @@ void MemoryWidget::CreateWidgets()
 
   m_find_next = new QPushButton(tr("Find &Next"));
   m_find_previous = new QPushButton(tr("Find &Previous"));
-  m_find_ascii = new QRadioButton(tr("ASCII"));
-  m_find_hex = new QRadioButton(tr("Hex"));
   m_result_label = new QLabel;
 
   search_layout->addWidget(m_find_next);
@@ -480,16 +485,10 @@ void MemoryWidget::ValidateSearchValue()
   QFont font;
   QPalette palette;
 
-  if (m_find_hex->isChecked() && !m_data_edit->text().isEmpty())
+  if (!IsValueValid())
   {
-    bool good;
-    m_data_edit->text().toULongLong(&good, 16);
-
-    if (!good)
-    {
-      font.setBold(true);
-      palette.setColor(QPalette::Text, Qt::red);
-    }
+    font.setBold(true);
+    palette.setColor(QPalette::Text, Qt::red);
   }
 
   m_data_edit->setFont(font);
@@ -524,44 +523,17 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
+  if (!IsValueValid())
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
+    return;
+  }
+
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  if (m_find_ascii->isChecked())
-  {
-    const QByteArray bytes = m_data_edit->text().toUtf8();
-
-    for (char c : bytes)
-      accessors->WriteU8(addr++, static_cast<u8>(c));
-  }
-  else
-  {
-    bool good_value;
-    const QString text = m_data_edit->text();
-    const int length =
-        text.startsWith(QStringLiteral("0x"), Qt::CaseInsensitive) ? text.size() - 2 : text.size();
-    const u64 value = text.toULongLong(&good_value, 16);
-
-    if (!good_value)
-    {
-      ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
-      return;
-    }
-
-    if (length <= 2)
-    {
-      accessors->WriteU8(addr, static_cast<u8>(value));
-    }
-    else if (length <= 4)
-    {
-      accessors->WriteU16(addr, static_cast<u16>(value));
-    }
-    else if (length <= 8)
-    {
-      accessors->WriteU32(addr, static_cast<u32>(value));
-    }
-    else
-      accessors->WriteU64(addr, value);
-  }
+  const QByteArray bytes = GetValueData();
+  for (const char c : bytes)
+    accessors->WriteU8(addr++, static_cast<u8>(c));
 
   Update();
 }
@@ -617,46 +589,40 @@ void MemoryWidget::OnDumpFakeVMEM()
             std::distance(accessors->begin(), accessors->end()));
 }
 
-std::vector<u8> MemoryWidget::GetValueData() const
+bool MemoryWidget::IsValueValid() const
 {
-  std::vector<u8> search_for;  // Series of bytes we want to look for
+  if (m_find_ascii->isChecked())
+    return true;
+  const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
+                                  QRegularExpression::CaseInsensitiveOption);
+  const QRegularExpressionMatch match = is_hex.match(m_data_edit->text());
+  return match.hasMatch();
+}
+
+QByteArray MemoryWidget::GetValueData() const
+{
+  if (!IsValueValid())
+    return QByteArray();
+
+  const QByteArray value = m_data_edit->text().toUtf8();
 
   if (m_find_ascii->isChecked())
-  {
-    const QByteArray bytes = m_data_edit->text().toUtf8();
-    search_for.assign(bytes.begin(), bytes.end());
-  }
-  else
-  {
-    bool good;
-    u64 value = m_data_edit->text().toULongLong(&good, 16);
+    return value;
 
-    if (!good)
-      return {};
-
-    int size;
-
-    if (value == static_cast<u8>(value))
-      size = sizeof(u8);
-    else if (value == static_cast<u16>(value))
-      size = sizeof(u16);
-    else if (value == static_cast<u32>(value))
-      size = sizeof(u32);
-    else
-      size = sizeof(u64);
-
-    for (int i = size - 1; i >= 0; i--)
-      search_for.push_back((value >> (i * 8)) & 0xFF);
-  }
-
-  return search_for;
+  return QByteArray::fromHex(value);
 }
 
 void MemoryWidget::FindValue(bool next)
 {
-  std::vector<u8> search_for = GetValueData();
+  if (!IsValueValid())
+  {
+    m_result_label->setText(tr("Bad value provided."));
+    return;
+  }
 
-  if (search_for.empty())
+  const QByteArray search_for = GetValueData();
+
+  if (search_for.isEmpty())
   {
     m_result_label->setText(tr("No Value Given"));
     return;
@@ -672,8 +638,8 @@ void MemoryWidget::FindValue(bool next)
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  auto found_addr =
-      accessors->Search(addr, search_for.data(), static_cast<u32>(search_for.size()), next);
+  const auto found_addr = accessors->Search(addr, reinterpret_cast<const u8*>(search_for.data()),
+                                            static_cast<u32>(search_for.size()), next);
 
   if (found_addr.has_value())
   {

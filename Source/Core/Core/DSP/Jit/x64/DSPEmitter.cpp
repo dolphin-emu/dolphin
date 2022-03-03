@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
@@ -154,7 +153,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
   const auto interpreter_function = Interpreter::GetOp(inst);
 
   m_gpr.PushRegs();
-  ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for %04x", inst);
+  ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for {:04x}", inst);
   ABI_CallFunctionPC(FallbackThunk, &m_dsp_core.GetInterpreter(), inst);
   m_gpr.PopRegs();
 }
@@ -471,6 +470,10 @@ void DSPEmitter::CompileDispatcher()
   RET();
 }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
 Gen::OpArg DSPEmitter::M_SDSP_pc()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, pc)));
@@ -504,5 +507,8 @@ Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
   return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs) +
                                      sizeof(SDSP::reg_stack_ptrs[0]) * index));
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 }  // namespace DSP::JIT::x64

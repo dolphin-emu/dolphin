@@ -1,16 +1,27 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Settings.h"
+
+#include <atomic>
 
 #include <QApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QRadioButton>
 #include <QSize>
 #include <QWidget>
+
+#ifdef _WIN32
+#include <memory>
+
+#include <fmt/format.h>
+
+#include <QTabBar>
+#include <QToolButton>
+#endif
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -25,6 +36,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -41,11 +53,39 @@ Settings::Settings()
     QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
   });
 
-  Config::AddConfigChangedCallback(
-      [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
+  Config::AddConfigChangedCallback([this] {
+    static std::atomic<bool> do_once{true};
+    if (do_once.exchange(false))
+    {
+      // Calling ConfigChanged() with a "delay" can have risks, for example, if from
+      // code we change some configs that result in Qt greying out some setting, we could
+      // end up editing that setting before its greyed out, sending out an event,
+      // which might not be expected or handled by the code, potentially crashing.
+      // The only safe option would be to wait on the Qt thread to have finished executing this.
+      QueueOnObject(this, [this] {
+        do_once = true;
+        emit ConfigChanged();
+      });
+    }
+  });
 
-  g_controller_interface.RegisterDevicesChangedCallback(
-      [this] { QueueOnObject(this, [this] { emit DevicesChanged(); }); });
+  g_controller_interface.RegisterDevicesChangedCallback([this] {
+    if (Host::GetInstance()->IsHostThread())
+    {
+      emit DevicesChanged();
+    }
+    else
+    {
+      // Any device shared_ptr in the host thread needs to be released immediately as otherwise
+      // they'd continue living until the queued event has run, but some devices can't be recreated
+      // until they are destroyed.
+      // This is safe from any thread. Devices will be refreshed and re-acquired and in
+      // DevicesChanged(). Calling it without queueing shouldn't cause any deadlocks but is slow.
+      emit ReleaseDevices();
+
+      QueueOnObject(this, [this] { emit DevicesChanged(); });
+    }
+  });
 }
 
 Settings::~Settings() = default;
@@ -66,7 +106,7 @@ QSettings& Settings::GetQSettings()
 
 void Settings::SetThemeName(const QString& theme_name)
 {
-  SConfig::GetInstance().theme_name = theme_name.toStdString();
+  Config::SetBaseOrCurrent(Config::MAIN_THEME_NAME, theme_name.toStdString());
   emit ThemeChanged();
 }
 
@@ -115,6 +155,22 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
             .arg(border_color.rgba(), 0, 16);
     stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
   }
+#ifdef _WIN32
+  // MSVC has a bug causing QTabBar scroll buttons to be partially transparent when they inherit any
+  // stylesheet (see https://bugreports.qt.io/browse/QTBUG-74187) which is triggered when setting
+  // qApp's stylesheet below. Setting the scroll buttons' color directly fixes the problem.
+
+  // Create a temporary QToolButton that's a child of a QTabBar in case that has different styling
+  // than a plain QToolButton.
+  const auto tab_bar = std::make_unique<QTabBar>();
+  auto* const tool_button = new QToolButton(tab_bar.get());
+
+  const QRgb background_color = tool_button->palette().color(QPalette::Button).rgba();
+
+  const std::string style_var =
+      fmt::format("QTabBar QToolButton {{ background-color: #{:08x}; }}", background_color);
+  stylesheet_contents.append(QString::fromStdString(style_var));
+#endif
 
   qApp->setStyleSheet(stylesheet_contents);
 
@@ -160,7 +216,7 @@ void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
 QStringList Settings::GetPaths() const
 {
   QStringList list;
-  for (const auto& path : SConfig::GetInstance().m_ISOFolder)
+  for (const auto& path : Config::GetIsoPaths())
     list << QString::fromStdString(path);
   return list;
 }
@@ -168,25 +224,27 @@ QStringList Settings::GetPaths() const
 void Settings::AddPath(const QString& qpath)
 {
   std::string path = qpath.toStdString();
+  std::vector<std::string> paths = Config::GetIsoPaths();
 
-  std::vector<std::string>& paths = SConfig::GetInstance().m_ISOFolder;
   if (std::find(paths.begin(), paths.end(), path) != paths.end())
     return;
 
   paths.emplace_back(path);
+  Config::SetIsoPaths(paths);
   emit PathAdded(qpath);
 }
 
 void Settings::RemovePath(const QString& qpath)
 {
   std::string path = qpath.toStdString();
-  std::vector<std::string>& paths = SConfig::GetInstance().m_ISOFolder;
+  std::vector<std::string> paths = Config::GetIsoPaths();
 
   auto new_end = std::remove(paths.begin(), paths.end(), path);
   if (new_end == paths.end())
     return;
 
   paths.erase(new_end, paths.end());
+  Config::SetIsoPaths(paths);
   emit PathRemoved(qpath);
 }
 
@@ -269,26 +327,26 @@ void Settings::SetStateSlot(int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-void Settings::SetHideCursor(bool hide_cursor)
+void Settings::SetCursorVisibility(Config::ShowCursor hideCursor)
 {
-  SConfig::GetInstance().bHideCursor = hide_cursor;
-  emit HideCursorChanged();
+  Config::SetBaseOrCurrent(Config::MAIN_SHOW_CURSOR, hideCursor);
+  emit CursorVisibilityChanged();
 }
 
-bool Settings::GetHideCursor() const
+Config::ShowCursor Settings::GetCursorVisibility() const
 {
-  return SConfig::GetInstance().bHideCursor;
+  return Config::Get(Config::MAIN_SHOW_CURSOR);
 }
 
 void Settings::SetLockCursor(bool lock_cursor)
 {
-  SConfig::GetInstance().bLockCursor = lock_cursor;
+  Config::SetBaseOrCurrent(Config::MAIN_LOCK_CURSOR, lock_cursor);
   emit LockCursorChanged();
 }
 
 bool Settings::GetLockCursor() const
 {
-  return SConfig::GetInstance().bLockCursor;
+  return Config::Get(Config::MAIN_LOCK_CURSOR);
 }
 
 void Settings::SetKeepWindowOnTop(bool top)
@@ -307,14 +365,14 @@ bool Settings::IsKeepWindowOnTopEnabled() const
 
 int Settings::GetVolume() const
 {
-  return SConfig::GetInstance().m_Volume;
+  return Config::Get(Config::MAIN_AUDIO_VOLUME);
 }
 
 void Settings::SetVolume(int volume)
 {
   if (GetVolume() != volume)
   {
-    SConfig::GetInstance().m_Volume = volume;
+    Config::SetBaseOrCurrent(Config::MAIN_AUDIO_VOLUME, volume);
     emit VolumeChanged(volume);
   }
 }
@@ -384,14 +442,14 @@ void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
 
 bool Settings::GetCheatsEnabled() const
 {
-  return SConfig::GetInstance().bEnableCheats;
+  return Config::Get(Config::MAIN_ENABLE_CHEATS);
 }
 
 void Settings::SetCheatsEnabled(bool enabled)
 {
-  if (SConfig::GetInstance().bEnableCheats != enabled)
+  if (Config::Get(Config::MAIN_ENABLE_CHEATS) != enabled)
   {
-    SConfig::GetInstance().bEnableCheats = enabled;
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, enabled);
     emit EnableCheatsChanged(enabled);
   }
 }
@@ -400,7 +458,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 {
   if (IsDebugModeEnabled() != enabled)
   {
-    SConfig::GetInstance().bEnableDebugging = enabled;
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
     emit DebugModeToggled(enabled);
   }
   if (enabled)
@@ -409,7 +467,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 
 bool Settings::IsDebugModeEnabled() const
 {
-  return SConfig::GetInstance().bEnableDebugging;
+  return Config::Get(Config::MAIN_ENABLE_DEBUGGING);
 }
 
 void Settings::SetRegistersVisible(bool enabled)
@@ -557,14 +615,14 @@ void Settings::SetAutoUpdateTrack(const QString& mode)
   if (mode == GetAutoUpdateTrack())
     return;
 
-  SConfig::GetInstance().m_auto_update_track = mode.toStdString();
+  Config::SetBase(Config::MAIN_AUTOUPDATE_UPDATE_TRACK, mode.toStdString());
 
   emit AutoUpdateTrackChanged(mode);
 }
 
 QString Settings::GetAutoUpdateTrack() const
 {
-  return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
+  return QString::fromStdString(Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 }
 
 void Settings::SetFallbackRegion(const DiscIO::Region& region)
@@ -638,32 +696,28 @@ void Settings::SetBatchModeEnabled(bool batch)
 
 bool Settings::IsSDCardInserted() const
 {
-  return SConfig::GetInstance().m_WiiSDCard;
+  return Config::Get(Config::MAIN_WII_SD_CARD);
 }
 
 void Settings::SetSDCardInserted(bool inserted)
 {
   if (IsSDCardInserted() != inserted)
   {
-    SConfig::GetInstance().m_WiiSDCard = inserted;
+    Config::SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, inserted);
     emit SDCardInsertionChanged(inserted);
-
-    auto* ios = IOS::HLE::GetIOS();
-    if (ios)
-      ios->SDIO_EventNotify();
   }
 }
 
 bool Settings::IsUSBKeyboardConnected() const
 {
-  return SConfig::GetInstance().m_WiiKeyboard;
+  return Config::Get(Config::MAIN_WII_KEYBOARD);
 }
 
 void Settings::SetUSBKeyboardConnected(bool connected)
 {
   if (IsUSBKeyboardConnected() != connected)
   {
-    SConfig::GetInstance().m_WiiKeyboard = connected;
+    Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
     emit USBKeyboardConnectionChanged(connected);
   }
 }

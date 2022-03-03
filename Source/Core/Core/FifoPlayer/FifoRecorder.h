@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -9,6 +8,7 @@
 #include <mutex>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 
 class FifoRecorder
@@ -48,6 +48,8 @@ public:
   static FifoRecorder& GetInstance();
 
 private:
+  class FifoRecordAnalyzer;
+
   // Accessed from both GUI and video threads
 
   std::recursive_mutex m_mutex;
@@ -66,6 +68,7 @@ private:
   bool m_SkipFutureData = true;
   bool m_FrameEnded = false;
   FifoFrameInfo m_CurrentFrame;
+  std::unique_ptr<FifoRecordAnalyzer> m_record_analyzer;
   std::vector<u8> m_FifoData;
   std::vector<u8> m_Ram;
   std::vector<u8> m_ExRam;

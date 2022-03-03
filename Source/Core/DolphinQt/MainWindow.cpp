@@ -1,6 +1,7 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "DolphinQt/MainWindow.h"
 
 #include <QApplication>
 #include <QCloseEvent>
@@ -8,7 +9,6 @@
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
@@ -39,10 +39,12 @@
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/GBAPad.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -59,7 +61,9 @@
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
 
+#include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/CheatsManager.h"
@@ -85,12 +89,12 @@
 #include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
-#include "DolphinQt/MainWindow.h"
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
+#include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
@@ -100,6 +104,7 @@
 #include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/ResourcePackManager.h"
 #include "DolphinQt/Resources.h"
+#include "DolphinQt/RiivolutionBootWidget.h"
 #include "DolphinQt/SearchBar.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/TAS/GCTASInputWindow.h"
@@ -202,7 +207,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
                        const std::string& movie_path)
     : QMainWindow(nullptr)
 {
-  setWindowTitle(QString::fromStdString(Common::scm_rev_str));
+  setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
   setWindowIcon(Resources::GetAppIcon());
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
@@ -219,6 +224,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   ConnectStack();
   ConnectMenuBar();
   ConnectHotkeys();
+
+  connect(m_cheats_manager, &CheatsManager::OpenGeneralSettings, this,
+          &MainWindow::ShowGeneralWindow);
 
   InitCoreCallbacks();
 
@@ -238,8 +246,13 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 
     if (!movie_path.empty())
     {
-      if (Movie::PlayInput(movie_path, &m_pending_boot->savestate_path))
+      std::optional<std::string> savestate_path;
+      if (Movie::PlayInput(movie_path, &savestate_path))
+      {
+        m_pending_boot->boot_session_data.SetSavestateData(std::move(savestate_path),
+                                                           DeleteSavestateAfterBoot::No);
         emit RecordingStatusChanged(true);
+      }
     }
   }
 
@@ -255,8 +268,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
   Settings::Instance().RefreshWidgetVisibility();
 
   if (!ResourcePack::Init())
+  {
     ModalMessageBox::critical(this, tr("Error"),
-                              tr("Error occured while loading some texture packs"));
+                              tr("Error occurred while loading some texture packs"));
+  }
 
   for (auto& pack : ResourcePack::GetPacks())
   {
@@ -306,7 +321,15 @@ void MainWindow::InitControllers()
     return;
 
   g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
+  if (!g_controller_interface.HasDefaultDevice())
+  {
+    // Note that the CI default device could be still temporarily removed at any time
+    WARN_LOG(CONTROLLERINTERFACE,
+             "No default device has been added in time. EmulatedController(s) defaulting adds"
+             " input mappings made for a specific default device depending on the platform");
+  }
   Pad::Initialize();
+  Pad::InitializeGBA();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   FreeLook::Initialize();
@@ -321,6 +344,9 @@ void MainWindow::InitControllers()
   Pad::LoadConfig();
   Pad::GetConfig()->SaveConfig();
 
+  Pad::LoadGBAConfig();
+  Pad::GetGBAConfig()->SaveConfig();
+
   Keyboard::LoadConfig();
   Keyboard::GetConfig()->SaveConfig();
 
@@ -333,6 +359,7 @@ void MainWindow::ShutdownControllers()
   m_hotkey_scheduler->Stop();
 
   Pad::Shutdown();
+  Pad::ShutdownGBA();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   HotkeyManagerEmu::Shutdown();
@@ -411,7 +438,7 @@ void MainWindow::CreateComponents()
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
-  m_cheats_manager = new CheatsManager(m_game_list->GetGameListModel(), this);
+  m_cheats_manager = new CheatsManager(this);
 
   const auto request_watch = [this](QString name, u32 addr) {
     m_watch_widget->AddWatch(name, addr);
@@ -580,6 +607,7 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::SetStateSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StartRecording, this,
           &MainWindow::OnStartRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::PlayRecording, this, &MainWindow::OnPlayRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
           &MainWindow::OnExportRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
@@ -632,6 +660,8 @@ void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, [this]() { Play(); });
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
+  connect(m_game_list, &GameList::OnStartWithRiivolution, this,
+          &MainWindow::ShowRiivolutionBootWidget);
 
   connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
 }
@@ -701,11 +731,13 @@ void MainWindow::RefreshGameList()
 QStringList MainWindow::PromptFileNames()
 {
   auto& settings = Settings::Instance().GetQSettings();
-  QStringList paths = QFileDialog::getOpenFileNames(
+  QStringList paths = DolphinFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
-         "*.dff *.m3u);;All Files (*)"));
+      QStringLiteral("%1 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
+                     "*.dff *.m3u *.json);;%2 (*)")
+          .arg(tr("All GC/Wii files"))
+          .arg(tr("All Files")));
 
   if (!paths.isEmpty())
   {
@@ -752,14 +784,16 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
-      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes, savestate_path);
+      StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes,
+                std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
     }
     else
     {
       const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
-        StartGame(default_path, ScanForSecondDisc::Yes, savestate_path);
+        StartGame(default_path, ScanForSecondDisc::Yes,
+                  std::make_unique<BootSessionData>(savestate_path, DeleteSavestateAfterBoot::No));
       }
       else
       {
@@ -789,7 +823,7 @@ void MainWindow::TogglePause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  HideRenderWidget();
+  HideRenderWidget(true, m_exit_requested);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -828,7 +862,7 @@ bool MainWindow::RequestStop()
   else
     FullScreen();
 
-  if (SConfig::GetInstance().bConfirmStop)
+  if (Config::Get(Config::MAIN_CONFIRM_ON_STOP))
   {
     if (std::exchange(m_stop_confirm_showing, true))
       return true;
@@ -962,7 +996,7 @@ void MainWindow::ScreenShot()
 }
 
 void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
-                                               const std::optional<std::string>& savestate_path)
+                                               std::unique_ptr<BootSessionData> boot_session_data)
 {
   auto second_game = m_game_list->FindSecondDisc(game);
 
@@ -970,35 +1004,37 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
 
-  StartGame(paths, savestate_path);
+  StartGame(paths, std::move(boot_session_data));
 }
 
 void MainWindow::StartGame(const QString& path, ScanForSecondDisc scan,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
-  StartGame(path.toStdString(), scan, savestate_path);
+  StartGame(path.toStdString(), scan, std::move(boot_session_data));
 }
 
 void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
   if (scan == ScanForSecondDisc::Yes)
   {
     std::shared_ptr<const UICommon::GameFile> game = m_game_list->FindGame(path);
     if (game != nullptr)
     {
-      ScanForSecondDiscAndStartGame(*game, savestate_path);
+      ScanForSecondDiscAndStartGame(*game, std::move(boot_session_data));
       return;
     }
   }
 
-  StartGame(BootParameters::GenerateFromFile(path, savestate_path));
+  StartGame(BootParameters::GenerateFromFile(
+      path, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
 }
 
 void MainWindow::StartGame(const std::vector<std::string>& paths,
-                           const std::optional<std::string>& savestate_path)
+                           std::unique_ptr<BootSessionData> boot_session_data)
 {
-  StartGame(BootParameters::GenerateFromFile(paths, savestate_path));
+  StartGame(BootParameters::GenerateFromFile(
+      paths, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
 }
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
@@ -1099,7 +1135,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget(bool reinit)
+void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
 {
   if (m_rendering_to_main)
   {
@@ -1110,7 +1146,7 @@ void MainWindow::HideRenderWidget(bool reinit)
     m_rendering_to_main = false;
     m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
-    setWindowTitle(QString::fromStdString(Common::scm_rev_str));
+    setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
   }
 
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
@@ -1136,7 +1172,9 @@ void MainWindow::HideRenderWidget(bool reinit)
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core
     // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window);
+    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window,
+                                        is_exit ? ControllerInterface::WindowChangeReason::Exit :
+                                                  ControllerInterface::WindowChangeReason::Other);
   }
 }
 
@@ -1265,15 +1303,17 @@ void MainWindow::ShowFIFOPlayer()
 
 void MainWindow::StateLoad()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::LoadAs(path.toStdString());
 }
 
 void MainWindow::StateSave()
 {
-  QString path = QFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
-                                              tr("All Save States (*.sav *.s##);; All Files (*)"));
+  QString path =
+      DolphinFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+                                         tr("All Save States (*.sav *.s##);; All Files (*)"));
   State::SaveAs(path.toStdString());
 }
 
@@ -1343,13 +1383,15 @@ void MainWindow::NetPlayInit()
 {
   const auto& game_list_model = m_game_list->GetGameListModel();
   m_netplay_setup_dialog = new NetPlaySetupDialog(game_list_model, this);
-  m_netplay_dialog = new NetPlayDialog(game_list_model);
+  m_netplay_dialog = new NetPlayDialog(
+      game_list_model,
+      [this](const std::string& path, std::unique_ptr<BootSessionData> boot_session_data) {
+        StartGame(path, ScanForSecondDisc::Yes, std::move(boot_session_data));
+      });
 #ifdef USE_DISCORD_PRESENCE
   m_netplay_discord = new DiscordHandler(this);
 #endif
 
-  connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
-          [this](const QString& path) { StartGame(path, ScanForSecondDisc::Yes); });
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::ForceStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
@@ -1370,16 +1412,15 @@ bool MainWindow::NetPlayJoin()
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1438,16 +1479,15 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
   if (Core::IsRunning())
   {
-    ModalMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        QObject::tr("Can't start a NetPlay Session while a game is still running!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("Can't start a NetPlay Session while a game is still running!"));
     return false;
   }
 
   if (m_netplay_dialog->isVisible())
   {
-    ModalMessageBox::critical(nullptr, QObject::tr("Error"),
-                              QObject::tr("A NetPlay Session is already in progress!"));
+    ModalMessageBox::critical(nullptr, tr("Error"),
+                              tr("A NetPlay Session is already in progress!"));
     return false;
   }
 
@@ -1471,9 +1511,8 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
     ModalMessageBox::critical(
-        nullptr, QObject::tr("Failed to open server"),
-        QObject::tr(
-            "Failed to listen on port %1. Is another instance of the NetPlay server running?")
+        nullptr, tr("Failed to open server"),
+        tr("Failed to listen on port %1. Is another instance of the NetPlay server running?")
             .arg(host_port));
     NetPlayQuit();
     return false;
@@ -1602,9 +1641,10 @@ void MainWindow::OnImportNANDBackup()
   if (response == QMessageBox::No)
     return;
 
-  QString file = QFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
-                                              tr("BootMii NAND backup file (*.bin);;"
-                                                 "All Files (*)"));
+  QString file =
+      DolphinFileDialog::getOpenFileName(this, tr("Select the save file"), QDir::currentPath(),
+                                         tr("BootMii NAND backup file (*.bin);;"
+                                            "All Files (*)"));
 
   if (file.isEmpty())
     return;
@@ -1627,10 +1667,10 @@ void MainWindow::OnImportNANDBackup()
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
-            return QFileDialog::getOpenFileName(this, tr("Select the keys file (OTP/SEEPROM dump)"),
-                                                QDir::currentPath(),
-                                                tr("BootMii keys file (*.bin);;"
-                                                   "All Files (*)"))
+            return DolphinFileDialog::getOpenFileName(
+                       this, tr("Select the keys file (OTP/SEEPROM dump)"), QDir::currentPath(),
+                       tr("BootMii keys file (*.bin);;"
+                          "All Files (*)"))
                 .toStdString();
           });
           if (keys_file)
@@ -1649,8 +1689,8 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
-                                                  tr("Dolphin TAS Movies (*.dtm)"));
+  QString dtm_file = DolphinFileDialog::getOpenFileName(
+      this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
     return;
@@ -1684,18 +1724,22 @@ void MainWindow::OnStartRecording()
     emit ReadOnlyModeChanged(true);
   }
 
-  int controllers = 0;
+  Movie::ControllerTypeArray controllers{};
+  Movie::WiimoteEnabledArray wiimotes{};
 
   for (int i = 0; i < 4; i++)
   {
-    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
-      controllers |= (1 << i);
-
-    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
-      controllers |= (1 << (i + 4));
+    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+      controllers[i] = Movie::ControllerType::GBA;
+    else if (SerialInterface::SIDevice_IsGCController(si_device))
+      controllers[i] = Movie::ControllerType::GC;
+    else
+      controllers[i] = Movie::ControllerType::None;
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
-  if (Movie::BeginRecordingInput(controllers))
+  if (Movie::BeginRecordingInput(controllers, wiimotes))
   {
     emit RecordingStatusChanged(true);
 
@@ -1716,8 +1760,8 @@ void MainWindow::OnStopRecording()
 void MainWindow::OnExportRecording()
 {
   Core::RunAsCPUThread([this] {
-    QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"),
-                                                    QString(), tr("Dolphin TAS Movies (*.dtm)"));
+    QString dtm_file = DolphinFileDialog::getSaveFileName(
+        this, tr("Save Recording File As"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
     if (!dtm_file.isEmpty())
       Movie::SaveRecording(dtm_file.toStdString());
   });
@@ -1740,8 +1784,9 @@ void MainWindow::ShowTASInput()
 {
   for (int i = 0; i < num_gc_controllers; i++)
   {
-    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
-        SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
+    const auto si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device != SerialInterface::SIDEVICE_NONE &&
+        si_device != SerialInterface::SIDEVICE_GC_GBA)
     {
       m_gc_tas_input_windows[i]->show();
       m_gc_tas_input_windows[i]->raise();
@@ -1751,7 +1796,7 @@ void MainWindow::ShowTASInput()
 
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
+    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
       m_wii_tas_input_windows[i]->show();
@@ -1789,6 +1834,29 @@ void MainWindow::ShowResourcePackManager()
 void MainWindow::ShowCheatsManager()
 {
   m_cheats_manager->show();
+}
+
+void MainWindow::ShowRiivolutionBootWidget(const UICommon::GameFile& game)
+{
+  auto second_game = m_game_list->FindSecondDisc(game);
+  std::vector<std::string> paths = {game.GetFilePath()};
+  if (second_game != nullptr)
+    paths.push_back(second_game->GetFilePath());
+  std::unique_ptr<BootParameters> boot_params = BootParameters::GenerateFromFile(paths);
+  if (!boot_params)
+    return;
+  if (!std::holds_alternative<BootParameters::Disc>(boot_params->parameters))
+    return;
+
+  auto& disc = std::get<BootParameters::Disc>(boot_params->parameters);
+  RiivolutionBootWidget w(disc.volume->GetGameID(), disc.volume->GetRevision(),
+                          disc.volume->GetDiscNumber(), game.GetFilePath(), this);
+  w.exec();
+  if (!w.ShouldBoot())
+    return;
+
+  AddRiivolutionPatches(boot_params.get(), std::move(w.GetPatches()));
+  StartGame(std::move(boot_params));
 }
 
 void MainWindow::Show()

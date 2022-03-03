@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -11,13 +10,6 @@
 #include <wrl/client.h>
 
 #include "Common/CommonTypes.h"
-
-#define CHECK(cond, Message, ...)                                                                  \
-  if (!(cond))                                                                                     \
-  {                                                                                                \
-    PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__,               \
-               ##__VA_ARGS__);                                                                     \
-  }
 
 struct IDXGIFactory;
 
