@@ -397,6 +397,8 @@
     <string name="cancel">Cancel</string>
     <string name="clear">Clear</string>
     <string name="disabled">Disabled</string>
+    <string name="error">Error</string>
+    <string name="save">Save</string>
     <string name="other">Other</string>
     <string name="continue_anyway">Continue Anyway</string>
 
@@ -430,6 +432,7 @@
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
+    <string name="properties_ini_editor">Ini Editor</string>
     <string name="properties_start_with_riivolution">Start with Riivolution Patches</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
     <string name="properties_convert">Convert File</string>
@@ -595,5 +598,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
     <string name="make_sure_continuous_scan_enabled">Please make sure Continuous Scanning is enabled in Core Settings.</string>
+
+    <!-- Ini Editor Window -->
+    <string name="ini_editor_text">INI Content</string>
 
 </resources>
