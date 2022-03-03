@@ -342,6 +342,9 @@ public:
         bool host;
         std::string netplay_opponent_alias;
 
+        int avg_ping = 0;
+        int lag_spikes = 0;
+
         //Quit?
         std::string quitter_team = "";
 
@@ -527,6 +530,8 @@ public:
     void setRankedStatus(bool inBool);
     void setRecordStatus(bool inBool);
     void setNetplaySession(bool netplay_session, bool is_host=false, std::string opponent_name = "");
+    void setAvgPing(int avgPing);
+    void setLagSpikes(int nLagSpikes);
 
     void Run();
     void lookForTriggerEvents();

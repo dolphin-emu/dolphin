@@ -291,7 +291,8 @@ void GeckoCodeWidget::UpdateList()
 
   for (size_t i = 0; i < m_gecko_codes.size(); i++)
   {
-    const auto& code = m_gecko_codes[i];
+    //const auto& code = m_gecko_codes[i];
+    auto& code = m_gecko_codes[i];
 
     auto* item = new QListWidgetItem(QString::fromStdString(code.name)
                                          .replace(QStringLiteral("&lt;"), QChar::fromLatin1('<'))
@@ -305,6 +306,7 @@ void GeckoCodeWidget::UpdateList()
     if (code.name == "! Required: Project Rio Codes !")
     {
       item->setCheckState(Qt::Checked);
+      code.enabled = true;
     }
 
     m_code_list->addItem(item);

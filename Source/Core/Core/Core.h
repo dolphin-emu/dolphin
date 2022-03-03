@@ -181,6 +181,11 @@ bool isRankedMode();
 void AutoGolfMode();
 void TrainingMode();
 void DisplayBatterFielder();
+void SetAvgPing();
+
+int avgPing = 0;
+int nPing = 0;
+int nLagSpikes = 0;
 
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);
@@ -191,5 +196,26 @@ union{
   u32 num;
   float fnum;
 } float_converter;
+
+static const u32 aOpponentPort = 0x802EBF92;
+static const u32 aFielderPort = 0x802EBF94;
+static const u32 aBatterPort = 0x802EBF95;
+static const u32 aIsField = 0x8089389B;
+static const u32 aIsInGame = 0x80871A6D;
+static const u32 aContactMade = 0x80892ADA;
+static const u32 aContactFrame = 0x80890976;
+static const u32 aTypeOfContact = 0x808909A2;
+static const u32 aChargeUp = 0x80890968;
+static const u32 aChargeDown = 0x8089096C;
+static const u32 aBallAngle = 0x808926D4;
+static const u32 aBallPosition_X = 0x80890B38;
+static const u32 aBallPosition_Y = 0x80890B3C;
+static const u32 aBallPosition_Z = 0x80890B40;
+static const u32 aBallVelocity_X = 0x80890E50;
+static const u32 aBallVelocity_Y = 0x80890E54;
+static const u32 aBallVelocity_Z = 0x80890E58;
+static const u32 aPitchedBallVelocity_X = 0x808909D8;
+static const u32 aPitchedBallVelocity_Y = 0x808909DC;
+static const u32 aPitchedBallVelocity_Z = 0x808909E0;
 
 }  // namespace Core

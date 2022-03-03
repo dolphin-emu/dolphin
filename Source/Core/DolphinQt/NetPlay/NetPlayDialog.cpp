@@ -90,6 +90,7 @@ NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
 
   restoreGeometry(settings.value(QStringLiteral("netplaydialog/geometry")).toByteArray());
   m_splitter->restoreState(settings.value(QStringLiteral("netplaydialog/splitter")).toByteArray());
+  srand(time(0));
 }
 
 NetPlayDialog::~NetPlayDialog()
@@ -108,11 +109,8 @@ void NetPlayDialog::CreateMainLayout()
   m_buffer_size_box = new QSpinBox;
   m_buffer_size_box->setToolTip(tr(
       "Set the buffer based on the ping. The buffer should be ping ÷ 8 (rounded up).\n\n"
-      "Project Rio's Batter Lag Reduction mod removes 2 frames (8 buffer) from swings on NetPlay,\n"
-      "and a 120 Hz or greater monitor reduces another 0.5 frames (2 buffer) of general lag.\n\n"
       "For a simple method, use 8 for 64 ping and less, 12 for 100 ping and less, and 16 for 150 "
-      "ping and less.\n"
-      "Games above 150 ping will be very laggy and are not recommended for competitive play."));
+      "ping and less."));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -428,7 +426,7 @@ void NetPlayDialog::OnCoinFlip()
   if (!IsHosting())
     return;
   int randNum;
-  randNum = 1 + rand() % 2;
+  randNum = rand() % 2;
   Settings::Instance().GetNetPlayClient()->SendCoinFlip(randNum);
 }
 
@@ -973,6 +971,9 @@ void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
   DisplayMessage(tr("Possible desync detected: %1 might have desynced at frame %2")
                      .arg(QString::fromStdString(player), QString::number(frame)),
                  "red", OSD::Duration::VERY_LONG);
+  OSD::AddTypedMessage(OSD::MessageType::NetPlayDesync,
+                       "Possible desync detected. Game restart advised.",
+                       OSD::Duration::VERY_LONG, OSD::Color::RED);
 }
 
 void NetPlayDialog::OnConnectionLost()
