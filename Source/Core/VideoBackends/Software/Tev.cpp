@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Software/Tev.h"
 
@@ -12,9 +11,9 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWBoundingBox.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
@@ -298,7 +297,7 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
 
   s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
   temp <<= m_ScaleLShiftLUT[u32(ac.scale.Value())];
-  temp += (ac.scale != TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
+  temp += (ac.scale == TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
   temp = ac.op == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
   s32 result =
@@ -460,22 +459,22 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
     AlphaBump = AlphaBump & 0xf8;
     break;
   case IndTexFormat::ITF_5:
-    indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x1f) + bias[0];
-    indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x1f) + bias[1];
-    indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x1f) + bias[2];
-    AlphaBump = AlphaBump & 0xe0;
+    indcoord[0] = (indmap[TextureSampler::ALP_SMP] >> 3) + bias[0];
+    indcoord[1] = (indmap[TextureSampler::BLU_SMP] >> 3) + bias[1];
+    indcoord[2] = (indmap[TextureSampler::GRN_SMP] >> 3) + bias[2];
+    AlphaBump = AlphaBump << 5;
     break;
   case IndTexFormat::ITF_4:
-    indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x0f) + bias[0];
-    indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x0f) + bias[1];
-    indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x0f) + bias[2];
-    AlphaBump = AlphaBump & 0xf0;
+    indcoord[0] = (indmap[TextureSampler::ALP_SMP] >> 4) + bias[0];
+    indcoord[1] = (indmap[TextureSampler::BLU_SMP] >> 4) + bias[1];
+    indcoord[2] = (indmap[TextureSampler::GRN_SMP] >> 4) + bias[2];
+    AlphaBump = AlphaBump << 4;
     break;
   case IndTexFormat::ITF_3:
-    indcoord[0] = (indmap[TextureSampler::ALP_SMP] & 0x07) + bias[0];
-    indcoord[1] = (indmap[TextureSampler::BLU_SMP] & 0x07) + bias[1];
-    indcoord[2] = (indmap[TextureSampler::GRN_SMP] & 0x07) + bias[2];
-    AlphaBump = AlphaBump & 0xf8;
+    indcoord[0] = (indmap[TextureSampler::ALP_SMP] >> 5) + bias[0];
+    indcoord[1] = (indmap[TextureSampler::BLU_SMP] >> 5) + bias[1];
+    indcoord[2] = (indmap[TextureSampler::GRN_SMP] >> 5) + bias[2];
+    AlphaBump = AlphaBump << 3;
     break;
   default:
     PanicAlertFmt("Invalid indirect format {}", indirect.fmt);
@@ -715,6 +714,19 @@ void Tev::Draw()
   if (!TevAlphaTest(output[ALP_C]))
     return;
 
+  // Hardware testing indicates that an alpha of 1 can pass an alpha test,
+  // but doesn't do anything in blending
+  // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
+  // alpha test for the FMV in the background fails, since they depend on depth for drawing a yellow
+  // border) and Fortune Street's gameplay (where a rectangle with an alpha value of 1 is drawn over
+  // the center of the screen several times, but those rectangles shouldn't be visible).
+  // Blending seems to result in no changes to the output with an alpha of 1, even if the input
+  // color is white.
+  // TODO: Investigate this further: we might be handling blending incorrectly in general (though
+  // there might not be any good way of changing blending behavior)
+  if (output[ALP_C] == 1)
+    output[ALP_C] = 0;
+
   // z texture
   if (bpmem.ztex2.op != ZTexOp::Disabled)
   {
@@ -815,6 +827,8 @@ void Tev::Draw()
       fog = 1.0f - fog;
       fog = pow(2.0f, -8.0f * fog * fog);
       break;
+    default:
+      break;
     }
 
     // lerp from output to fog color
@@ -840,7 +854,7 @@ void Tev::Draw()
 
   // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
   // extents of these groups, rather than the exact pixel.
-  BoundingBox::Update(static_cast<u16>(Position[0] & ~1), static_cast<u16>(Position[0] | 1),
+  BBoxManager::Update(static_cast<u16>(Position[0] & ~1), static_cast<u16>(Position[0] | 1),
                       static_cast<u16>(Position[1] & ~1), static_cast<u16>(Position[1] | 1));
 
 #if ALLOW_TEV_DUMPS

@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 
@@ -104,6 +103,7 @@ void AdvancedWidget::CreateWidgets()
                                               Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   m_dump_use_ffv1 = new GraphicsBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
   m_dump_bitrate = new GraphicsInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
+  m_png_compression_level = new GraphicsInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL);
 
   dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
@@ -111,6 +111,9 @@ void AdvancedWidget::CreateWidgets()
   dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 1, 0);
   dump_layout->addWidget(m_dump_bitrate, 1, 1);
 #endif
+  dump_layout->addWidget(new QLabel(tr("PNG Compression Level:")), 2, 0);
+  m_png_compression_level->SetTitle(tr("PNG Compression Level"));
+  dump_layout->addWidget(m_png_compression_level, 2, 1);
 
   // Misc.
   auto* misc_box = new QGroupBox(tr("Misc"));
@@ -139,8 +142,11 @@ void AdvancedWidget::CreateWidgets()
 
   m_defer_efb_access_invalidation =
       new GraphicsBool(tr("Defer EFB Cache Invalidation"), Config::GFX_HACK_EFB_DEFER_INVALIDATION);
+  m_manual_texture_sampling =
+      new GraphicsBool(tr("Manual Texture Sampling"), Config::GFX_HACK_FAST_TEXTURE_SAMPLING, true);
 
   experimental_layout->addWidget(m_defer_efb_access_invalidation, 0, 0);
+  experimental_layout->addWidget(m_manual_texture_sampling, 0, 1);
 
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
@@ -200,13 +206,13 @@ void AdvancedWidget::AddDescriptions()
                  "leave this unchecked.</dolphin_emphasis>");
   static const char TR_TEXTURE_FORMAT_DESCRIPTION[] =
       QT_TR_NOOP("Modifies textures to show the format they're encoded in.<br><br>May require "
-                 "an emulation "
-                 "reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
+                 "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
-                 "debugging graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+                 "debugging graphical issues. On the Vulkan and D3D backends, this also enables "
+                 "debug symbols for the compiled shaders.<br><br><dolphin_emphasis>If unsure, "
+                 "leave this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Dumps decoded game textures based on the other flags to "
                  "User/Dump/Textures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave "
@@ -214,9 +220,8 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_DUMP_MIP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump mipmapped game textures to "
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary mipmapped textures if "
-      "'Arbitrary "
-      "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
-      "this checked.</dolphin_emphasis>");
+      "'Arbitrary Mipmap Detection' is enabled in Enhancements.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_DUMP_BASE_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Whether to dump base game textures to "
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary base textures if 'Arbitrary "
@@ -225,36 +230,41 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
                  "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
-                 "unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+                 "unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Caches custom textures to system RAM on startup.<br><br>This can require exponentially "
       "more RAM but fixes possible stuttering.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_EFB_DESCRIPTION[] =
-      QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br "
-                 "/><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+      QT_TR_NOOP("Dumps the contents of EFB copies to User/Dump/Textures/.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_DUMP_XFB_DESCRIPTION[] =
-      QT_TR_NOOP("Dumps the contents of XFB copies to User/Dump/Textures/.<br><br "
-                 "/><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
+      QT_TR_NOOP("Dumps the contents of XFB copies to User/Dump/Textures/.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
       QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
                  "upscaling.<br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
   static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
       "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than "
-      "the size of the window it is displayed within.<br><br>If the aspect ratio is "
-      "widescreen, the "
-      "output image will be scaled horizontally to preserve the vertical resolution.<br><br "
-      "/><dolphin_emphasis>If "
-      "unsure, leave this unchecked.</dolphin_emphasis>");
+      "the size of the window it is displayed within.<br><br>If the aspect ratio is widescreen, "
+      "the output image will be scaled horizontally to preserve the vertical resolution.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 #if defined(HAVE_FFMPEG)
   static const char TR_USE_FFV1_DESCRIPTION[] =
       QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
+  static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
+      QT_TR_NOOP("Specifies the zlib compression level to use when saving PNG images (both for "
+                 "screenshots and framedumping).<br><br>"
+                 "Since PNG uses lossless compression, this does not affect the image quality; "
+                 "instead, it is a trade-off between file size and compression time.<br><br>"
+                 "A value of 0 uses no compression at all.  A value of 1 uses very little "
+                 "compression, while the maximum value of 9 applies a lot of compression.  "
+                 "However, for PNG files, levels between 3 and 6 are generally about as good as "
+                 "level 9 but finish in significantly less time.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
   static const char TR_CROPPING_DESCRIPTION[] = QT_TR_NOOP(
       "Crops the picture from its native aspect ratio to 4:3 or "
       "16:9.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
@@ -265,15 +275,25 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
       QT_TR_NOOP("Enables multithreaded command submission in backends where supported. Enabling "
                  "this option may result in a performance improvement on systems with more than "
-                 "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br "
-                 "/><dolphin_emphasis>If unsure, "
-                 "leave this checked.</dolphin_emphasis>");
+                 "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br>"
+                 "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
       "Defers invalidation of the EFB access cache until a GPU synchronization command "
       "is executed. If disabled, the cache will be invalidated with every draw call. "
       "<br><br>May improve performance in some games which rely on CPU EFB Access at the cost "
       "of stability.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
+  static const char TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION[] = QT_TR_NOOP(
+      "Use a manual implementation of texture sampling instead of the graphics backend's built-in "
+      "functionality.<br><br>"
+      "This setting can fix graphical issues in some games on certain GPUs, most commonly vertical "
+      "lines on FMVs. In addition to this, enabling Manual Texture Sampling will allow for correct "
+      "emulation of texture wrapping special cases (at 1x IR or when scaled EFB is disabled, and "
+      "with custom textures disabled) and better emulates Level of Detail calculation.<br><br>"
+      "This comes at the cost of potentially worse performance, especially at higher internal "
+      "resolutions; additionally, Anisotropic Filtering is currently incompatible with Manual "
+      "Texture Sampling.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
@@ -300,6 +320,7 @@ void AdvancedWidget::AddDescriptions()
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif
+  m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
@@ -307,4 +328,5 @@ void AdvancedWidget::AddDescriptions()
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif
   m_defer_efb_access_invalidation->SetDescription(tr(TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION));
+  m_manual_texture_sampling->SetDescription(tr(TR_MANUAL_TEXTURE_SAMPLING_DESCRIPTION));
 }

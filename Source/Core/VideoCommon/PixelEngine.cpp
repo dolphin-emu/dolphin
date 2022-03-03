@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
@@ -11,14 +10,18 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/System.h"
+
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace PixelEngine
@@ -232,7 +235,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   for (int i = 0; i < 4; ++i)
   {
     mmio->Register(base | (PE_BBOX_LEFT + 2 * i), MMIO::ComplexRead<u16>([i](u32) {
-                     BoundingBox::Disable();
+                     g_renderer->BBoxDisable();
                      return g_video_backend->Video_GetBoundingBox(i);
                    }),
                    MMIO::InvalidWrite<u16>());
@@ -277,7 +280,7 @@ static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
 // Raise the event handler above on the CPU thread.
 // s_token_finish_mutex must be locked.
 // THIS IS EXECUTED FROM VIDEO THREAD
-static void RaiseEvent()
+static void RaiseEvent(int cycles_into_future)
 {
   if (s_event_raised)
     return;
@@ -285,14 +288,21 @@ static void RaiseEvent()
   s_event_raised = true;
 
   CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
-  if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
+  s64 cycles = 0;  // we don't care about timings for dual core mode.
+  if (!Core::System::GetInstance().IsDualCoreMode() || Fifo::UseDeterministicGPUThread())
+  {
     from = CoreTiming::FromThread::CPU;
-  CoreTiming::ScheduleEvent(0, et_SetTokenFinishOnMainThread, 0, from);
+
+    // Hack: Dolphin's single-core gpu timings are way too fast. Enforce a minimum delay to give
+    //       games time to setup any interrupt state
+    cycles = std::max(500, cycles_into_future);
+  }
+  CoreTiming::ScheduleEvent(cycles, et_SetTokenFinishOnMainThread, 0, from);
 }
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void SetToken(const u16 token, const bool interrupt)
+void SetToken(const u16 token, const bool interrupt, int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: {:04x})", token);
 
@@ -301,12 +311,12 @@ void SetToken(const u16 token, const bool interrupt)
   s_token_pending = token;
   s_token_interrupt_pending |= interrupt;
 
-  RaiseEvent();
+  RaiseEvent(cycles_into_future);
 }
 
 // SetFinish
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
-void SetFinish()
+void SetFinish(int cycles_into_future)
 {
   DEBUG_LOG_FMT(PIXELENGINE, "VIDEO Set Finish");
 
@@ -314,7 +324,7 @@ void SetFinish()
 
   s_finish_interrupt_pending |= true;
 
-  RaiseEvent();
+  RaiseEvent(cycles_into_future);
 }
 
 UPEAlphaReadReg GetAlphaReadMode()
@@ -322,4 +332,4 @@ UPEAlphaReadReg GetAlphaReadMode()
   return m_AlphaRead;
 }
 
-}  // end of namespace PixelEngine
+}  // namespace PixelEngine

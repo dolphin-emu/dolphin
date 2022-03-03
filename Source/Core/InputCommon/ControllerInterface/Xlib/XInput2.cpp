@@ -1,6 +1,7 @@
 // Copyright 2013 Max Eliaser
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
@@ -11,8 +12,6 @@
 #include <cstring>
 
 #include <fmt/format.h>
-
-#include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
 #include "Common/StringUtil.h"
 

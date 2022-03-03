@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -19,8 +18,8 @@
 // clang-format on
 
 #include "Common/CommonTypes.h"
-#include "Core/IOS/IOS.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS::HLE
 {
@@ -66,18 +65,18 @@ enum SSL_IOCTL
 
 struct WII_SSL
 {
-  mbedtls_ssl_context ctx;
-  mbedtls_ssl_config config;
-  mbedtls_ssl_session session;
-  mbedtls_entropy_context entropy;
-  mbedtls_ctr_drbg_context ctr_drbg;
-  mbedtls_x509_crt cacert;
-  mbedtls_x509_crt clicert;
-  mbedtls_pk_context pk;
+  mbedtls_ssl_context ctx{};
+  mbedtls_ssl_config config{};
+  mbedtls_ssl_session session{};
+  mbedtls_entropy_context entropy{};
+  mbedtls_ctr_drbg_context ctr_drbg{};
+  mbedtls_x509_crt cacert{};
+  mbedtls_x509_crt clicert{};
+  mbedtls_pk_context pk{};
   int sockfd = -1;
   int hostfd = -1;
   std::string hostname;
-  bool active;
+  bool active = false;
 };
 
 class NetSSLDevice : public Device

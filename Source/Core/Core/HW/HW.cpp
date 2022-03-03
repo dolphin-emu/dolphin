@@ -1,12 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/HW.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -43,10 +43,10 @@ void Init()
   ExpansionInterface::Init();  // Needs to be initialized before Memory
   Memory::Init();              // Needs to be initialized before AddressSpace
   AddressSpace::Init();
-  DSP::Init(SConfig::GetInstance().bDSPHLE);
+  DSP::Init(Config::Get(Config::MAIN_DSP_HLE));
   DVDInterface::Init();
   GPFifo::Init();
-  CPU::Init(SConfig::GetInstance().cpu_core);
+  CPU::Init(Config::Get(Config::MAIN_CPU_CORE));
   SystemTimers::Init();
 
   if (SConfig::GetInstance().bWii)

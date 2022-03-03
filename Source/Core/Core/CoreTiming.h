@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -46,6 +45,8 @@ typedef void (*TimedCallback)(u64 userdata, s64 cyclesLate);
 // doing something evil
 u64 GetTicks();
 u64 GetIdleTicks();
+
+void RefreshConfig();
 
 void DoState(PointerWrap& p);
 

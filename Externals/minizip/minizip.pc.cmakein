@@ -1,0 +1,14 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+sharedlibdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: @PROJECT_NAME@
+Description: Minizip zip file manipulation library
+Version: @VERSION@
+
+Requires: zlib
+Libs: -L${libdir} -L${sharedlibdir} -l@PROJECT_NAME@
+Libs.private:@PC_PRIVATE_LIBS@
+Cflags: -I${includedir}

@@ -15,7 +15,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * OS
     * Windows (7 SP1 or higher).
     * Linux.
-    * macOS (10.12 Sierra or higher).
+    * macOS (10.13 High Sierra or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -39,9 +39,9 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2019 16.3 or later is a hard requirement. Other compilers might be
+Visual Studio 2022 17.0 or later is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
-recommended to be used. Git and Windows 10 SDK must be installed when building.
+recommended to be used. Git and Windows 11 SDK must be installed when building.
 
 Make sure to pull submodules before building:
 ```sh
@@ -62,6 +62,11 @@ Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Man
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
+
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
 
 ### macOS Build Steps:
 
@@ -123,6 +128,11 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 These instructions assume familiarity with Android development. If you do not have an
 Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
 
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
+
 If using Android Studio, import the Gradle project located in `./Source/Android`.
 
 Android apps are compiled using a build system called Gradle. Dolphin's native component,
@@ -144,15 +154,15 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 
 ## Command Line Usage
 
-`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]`
+`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-v <str>] [-a <str>]`
 
 * -h, --help Show this help message
 * -d, --debugger Show the debugger pane and additional View menu options
 * -l, --logger Open the logger
 * -e, --exec=<str> Load the specified file (DOL,ELF,WAD,GCM,ISO)
 * -b, --batch Exit Dolphin with emulator
-* -V, --video_backend=<str> Specify a video backend
-* -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
+* -v, --video_backend=<str> Specify a video backend
+* -a, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
 
 Available DSP emulation engines are HLE (High Level Emulation) and
 LLE (Low Level Emulation). HLE is faster but less accurate whereas
@@ -190,7 +200,6 @@ These folders are installed read-only and should not be changed:
 
 * `GameSettings`: per-game default settings database
 * `GC`: DSP and font dumps
-* `Maps`: symbol tables (dev only)
 * `Shaders`: post-processing shaders
 * `Themes`: icon themes for GUI
 * `Resources`: icons that are theme-agnostic

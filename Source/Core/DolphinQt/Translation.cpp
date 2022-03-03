@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Translation.h"
 
@@ -18,7 +17,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
@@ -311,7 +310,7 @@ void Translation::Initialize()
       [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
-  auto& configured_language = SConfig::GetInstance().m_InterfaceLanguage;
+  std::string configured_language = Config::Get(Config::MAIN_INTERFACE_LANGUAGE);
   if (!configured_language.empty())
   {
     if (TryInstallTranslator(QString::fromStdString(configured_language)))
@@ -320,7 +319,7 @@ void Translation::Initialize()
     ModalMessageBox::warning(
         nullptr, QObject::tr("Error"),
         QObject::tr("Error loading selected language. Falling back to system default."));
-    configured_language.clear();
+    Config::SetBase(Config::MAIN_INTERFACE_LANGUAGE, "");
   }
 
   for (const auto& lang : QLocale::system().uiLanguages())

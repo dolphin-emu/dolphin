@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -21,8 +20,8 @@ struct SCPFifoStruct
   // fifo registers
   std::atomic<u32> CPBase;
   std::atomic<u32> CPEnd;
-  u32 CPHiWatermark;
-  u32 CPLoWatermark;
+  u32 CPHiWatermark = 0;
+  u32 CPLoWatermark = 0;
   std::atomic<u32> CPReadWriteDistance;
   std::atomic<u32> CPWritePointer;
   std::atomic<u32> CPReadPointer;
@@ -41,6 +40,7 @@ struct SCPFifoStruct
   std::atomic<u32> bFF_LoWatermark;
   std::atomic<u32> bFF_HiWatermark;
 
+  void Init();
   void DoState(PointerWrap& p);
 };
 
@@ -97,7 +97,6 @@ enum
 
 enum
 {
-  GATHER_PIPE_SIZE = 32,
   INT_CAUSE_CP = 0x800
 };
 
@@ -169,7 +168,7 @@ void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
 
-void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess);
+void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess);
 
 u32 GetPhysicalAddressMask();
 

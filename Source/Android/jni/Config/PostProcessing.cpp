@@ -1,13 +1,12 @@
 // Copyright 2021 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
 #include <vector>
 
 #include <jni.h>
 
-#include "VideoCommon/PostProcessing.cpp"
+#include "VideoCommon/PostProcessing.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 
 extern "C" {

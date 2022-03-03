@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -150,6 +149,7 @@ public:
   void srri(UDSPInstruction opc);
   void srrn(UDSPInstruction opc);
   void srs(UDSPInstruction opc);
+  void srsh(UDSPInstruction opc);
   void sub(UDSPInstruction opc);
   void subarn(UDSPInstruction opc);
   void subax(UDSPInstruction opc);
@@ -225,6 +225,8 @@ private:
 
   void UpdateSR16(s16 value, bool carry = false, bool overflow = false, bool over_s32 = false);
   void UpdateSR64(s64 value, bool carry = false, bool overflow = false);
+  void UpdateSR64Add(s64 val1, s64 val2, s64 result);
+  void UpdateSR64Sub(s64 val1, s64 val2, s64 result);
   void UpdateSRLogicZero(bool value);
 
   u16 OpReadRegister(int reg_);

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HLE/HLE.h"
 
@@ -9,7 +8,9 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HLE/HLE_Misc.h"
@@ -30,7 +31,7 @@ constexpr std::array<Hook, 23> os_patches{{
     {"FAKE_TO_SKIP_0",               HLE_Misc::UnimplementedFunction,       HookType::Replace, HookFlag::Generic},
 
     // Name doesn't matter, installed in CBoot::BootUp()
-    {"HBReload",                     HLE_Misc::HBReload,                    HookType::Replace, HookFlag::Generic},
+    {"HBReload",                     HLE_Misc::HBReload,                    HookType::Replace, HookFlag::Fixed},
 
     // Debug/OS Support
     {"OSPanic",                      HLE_OS::HLE_OSPanic,                   HookType::Replace, HookFlag::Debug},
@@ -86,7 +87,7 @@ void PatchFixedFunctions()
 
   // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
   // handler
-  if (!SConfig::GetInstance().bEnableCheats)
+  if (!Config::Get(Config::MAIN_ENABLE_CHEATS))
   {
     Patch(0x80001800, "HBReload");
     Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
@@ -188,7 +189,7 @@ HookFlag GetHookFlagsByIndex(u32 index)
 
 bool IsEnabled(HookFlag flag)
 {
-  return flag != HLE::HookFlag::Debug || SConfig::GetInstance().bEnableDebugging ||
+  return flag != HLE::HookFlag::Debug || Config::Get(Config::MAIN_ENABLE_DEBUGGING) ||
          PowerPC::GetMode() == PowerPC::CoreMode::Interpreter;
 }
 
@@ -234,4 +235,21 @@ u32 UnPatch(std::string_view patch_name)
 
   return 0;
 }
-}  // end of namespace HLE
+
+u32 UnpatchRange(u32 start_addr, u32 end_addr)
+{
+  u32 count = 0;
+
+  auto i = s_hooked_addresses.lower_bound(start_addr);
+  while (i != s_hooked_addresses.end() && i->first < end_addr)
+  {
+    INFO_LOG_FMT(OSHLE, "Unpatch HLE hooks [{:08x};{:08x}): {} at {:08x}", start_addr, end_addr,
+                 os_patches[i->second].name, i->first);
+    PowerPC::ppcState.iCache.Invalidate(i->first);
+    i = s_hooked_addresses.erase(i);
+    count += 1;
+  }
+
+  return count;
+}
+}  // namespace HLE

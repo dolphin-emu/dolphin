@@ -1,6 +1,7 @@
 // Copyright 2020 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -10,7 +11,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 namespace ExpansionInterface
 {

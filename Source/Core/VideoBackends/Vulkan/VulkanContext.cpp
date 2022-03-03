@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include <algorithm>
 #include <array>
@@ -12,7 +13,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -225,6 +225,11 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   AddExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, false);
   AddExtension(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, false);
 
+  if (AddExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false))
+  {
+    g_Config.backend_info.bSupportsSettingObjectNames = true;
+  }
+
   return true;
 }
 
@@ -285,7 +290,11 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsBPTCTextures = false;              // Dependent on features.
   config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
   config->backend_info.bSupportsLargePoints = false;               // Dependent on features.
-  config->backend_info.bSupportsFramebufferFetch = false;          // No support.
+  config->backend_info.bSupportsFramebufferFetch = false;          // Dependent on OS and features.
+  config->backend_info.bSupportsCoarseDerivatives = true;          // Assumed support.
+  config->backend_info.bSupportsTextureQueryLevels = true;         // Assumed support.
+  config->backend_info.bSupportsLodBiasInSampler = false;          // Dependent on OS.
+  config->backend_info.bSupportsSettingObjectNames = false;        // Dependent on features.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
@@ -313,6 +322,13 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
   config->backend_info.bSupportsLogicOp = (features.logicOp == VK_TRUE);
 
+#ifdef __APPLE__
+  // Metal doesn't support this.
+  config->backend_info.bSupportsLodBiasInSampler = false;
+#else
+  config->backend_info.bSupportsLodBiasInSampler = true;
+#endif
+
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
   if (!features.shaderTessellationAndGeometryPointSize)
@@ -336,6 +352,15 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsLargePoints = features.largePoints &&
                                               properties.limits.pointSizeRange[0] <= 1.0f &&
                                               properties.limits.pointSizeRange[1] >= 16;
+
+  std::string device_name = properties.deviceName;
+  u32 vendor_id = properties.vendorID;
+
+  // Only Apple family GPUs support framebuffer fetch.
+  if (vendor_id == 0x106B || device_name.find("Apple") != std::string::npos)
+  {
+    config->backend_info.bSupportsFramebufferFetch = true;
+  }
 
   // Our usage of primitive restart appears to be broken on AMD's binary drivers.
   // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
@@ -608,7 +633,8 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   }};
 
   device_info.queueCreateInfoCount = 1;
-  if (m_graphics_queue_family_index != m_present_queue_family_index)
+  if (m_graphics_queue_family_index != m_present_queue_family_index &&
+      m_present_queue_family_index != queue_family_count)
   {
     device_info.queueCreateInfoCount = 2;
   }
@@ -671,13 +697,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT 
   const std::string log_message =
       fmt::format("Vulkan debug report: ({}) {}", pLayerPrefix ? pLayerPrefix : "", pMessage);
   if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LERROR, "{}", log_message);
+    ERROR_LOG_FMT(HOST_GPU, "{}", log_message);
   else if (flags & (VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT))
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LWARNING, "{}", log_message);
+    WARN_LOG_FMT(HOST_GPU, "{}", log_message);
   else if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LINFO, "{}", log_message);
+    INFO_LOG_FMT(HOST_GPU, "{}", log_message);
   else
-    GENERIC_LOG_FMT(Common::Log::HOST_GPU, Common::Log::LDEBUG, "{}", log_message);
+    DEBUG_LOG_FMT(HOST_GPU, "{}", log_message);
 
   return VK_FALSE;
 }
@@ -869,8 +895,8 @@ void VulkanContext::InitDriverDetails()
   {
 // Apart from the driver version, Intel does not appear to provide a way to
 // differentiate between anv and the binary driver (Skylake+). Assume to be
-// using anv if we not running on Windows.
-#ifdef WIN32
+// using anv if we're not running on Windows or macOS.
+#if defined(WIN32) || defined(__APPLE__)
     vendor = DriverDetails::VENDOR_INTEL;
     driver = DriverDetails::DRIVER_INTEL;
 #else
@@ -944,7 +970,8 @@ void VulkanContext::PopulateShaderSubgroupSupport()
                                                          VK_SUBGROUP_FEATURE_BALLOT_BIT;
   m_supports_shader_subgroup_operations =
       (subgroup_properties.supportedOperations & required_operations) == required_operations &&
-      subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT;
+      subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT &&
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_INVOCATION_ID);
 }
 
 bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface)

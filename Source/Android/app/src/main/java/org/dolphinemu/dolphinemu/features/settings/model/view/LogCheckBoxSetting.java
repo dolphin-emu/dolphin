@@ -1,6 +1,6 @@
-package org.dolphinemu.dolphinemu.features.settings.model.view;
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-import android.content.Context;
+package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;

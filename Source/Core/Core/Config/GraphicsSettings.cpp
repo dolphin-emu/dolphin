@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Config/GraphicsSettings.h"
 
@@ -50,6 +49,7 @@ const Info<std::string> GFX_DUMP_PATH{{System::GFX, "Settings", "DumpPath"}, ""}
 const Info<int> GFX_BITRATE_KBPS{{System::GFX, "Settings", "BitrateKbps"}, 25000};
 const Info<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS{
     {System::GFX, "Settings", "InternalResolutionFrameDumps"}, false};
+const Info<int> GFX_PNG_COMPRESSION_LEVEL{{System::GFX, "Settings", "PNGCompressionLevel"}, 6};
 const Info<bool> GFX_ENABLE_GPU_TEXTURE_DECODING{
     {System::GFX, "Settings", "EnableGPUTextureDecoding"}, false};
 const Info<bool> GFX_ENABLE_PIXEL_LIGHTING{{System::GFX, "Settings", "EnablePixelLighting"}, false};
@@ -86,7 +86,7 @@ const Info<ShaderCompilationMode> GFX_SHADER_COMPILATION_MODE{
     {System::GFX, "Settings", "ShaderCompilationMode"}, ShaderCompilationMode::Synchronous};
 const Info<int> GFX_SHADER_COMPILER_THREADS{{System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
 const Info<int> GFX_SHADER_PRECOMPILER_THREADS{
-    {System::GFX, "Settings", "ShaderPrecompilerThreads"}, 1};
+    {System::GFX, "Settings", "ShaderPrecompilerThreads"}, -1};
 const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
     {System::GFX, "Settings", "SaveTextureCacheToState"}, true};
 
@@ -144,10 +144,15 @@ const Info<bool> GFX_HACK_DISABLE_COPY_TO_VRAM{{System::GFX, "Hacks", "DisableCo
 const Info<bool> GFX_HACK_DEFER_EFB_COPIES{{System::GFX, "Hacks", "DeferEFBCopies"}, true};
 const Info<bool> GFX_HACK_IMMEDIATE_XFB{{System::GFX, "Hacks", "ImmediateXFBEnable"}, false};
 const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS{{System::GFX, "Hacks", "SkipDuplicateXFBs"}, true};
+const Info<bool> GFX_HACK_EARLY_XFB_OUTPUT{{System::GFX, "Hacks", "EarlyXFBOutput"}, true};
 const Info<bool> GFX_HACK_COPY_EFB_SCALED{{System::GFX, "Hacks", "EFBScaledCopy"}, true};
 const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES{
     {System::GFX, "Hacks", "EFBEmulateFormatChanges"}, false};
 const Info<bool> GFX_HACK_VERTEX_ROUDING{{System::GFX, "Hacks", "VertexRounding"}, false};
+const Info<u32> GFX_HACK_MISSING_COLOR_VALUE{{System::GFX, "Hacks", "MissingColorValue"},
+                                             0xFFFFFFFF};
+const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING{{System::GFX, "Hacks", "FastTextureSampling"},
+                                                true};
 
 // Graphics.GameSpecific
 

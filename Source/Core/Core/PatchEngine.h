@@ -1,9 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -43,9 +43,14 @@ struct Patch
 const char* PatchTypeAsString(PatchType type);
 
 int GetSpeedhackCycles(const u32 addr);
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni);
+
+std::optional<PatchEntry> DeserializeLine(std::string line);
+std::string SerializeLine(const PatchEntry& entry);
+void LoadPatchSection(const std::string& section, std::vector<Patch>* patches,
+                      const IniFile& globalIni, const IniFile& localIni);
+void SavePatchSection(IniFile* local_ini, const std::vector<Patch>& patches);
 void LoadPatches();
+
 bool ApplyFramePatches();
 void Shutdown();
 void Reload();

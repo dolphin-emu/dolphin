@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -123,7 +122,7 @@ enum class TevScale : u32
 template <>
 struct fmt::formatter<TevScale> : EnumFormatter<TevScale::Divide2>
 {
-  formatter() : EnumFormatter({"1", "2", "4", "0.5"}) {}
+  constexpr formatter() : EnumFormatter({"1", "2", "4", "0.5"}) {}
 };
 
 // TEV combiner operator
@@ -135,7 +134,7 @@ enum class TevOp : u32
 template <>
 struct fmt::formatter<TevOp> : EnumFormatter<TevOp::Sub>
 {
-  formatter() : EnumFormatter({"Add", "Subtract"}) {}
+  constexpr formatter() : EnumFormatter({"Add", "Subtract"}) {}
 };
 
 enum class TevCompareMode : u32
@@ -149,7 +148,7 @@ enum class TevCompareMode : u32
 template <>
 struct fmt::formatter<TevCompareMode> : EnumFormatter<TevCompareMode::RGB8>
 {
-  formatter() : EnumFormatter({"R8", "GR16", "BGR24", "RGB8 / A8"}) {}
+  constexpr formatter() : EnumFormatter({"R8", "GR16", "BGR24", "RGB8 / A8"}) {}
 };
 
 enum class TevComparison : u32
@@ -160,7 +159,7 @@ enum class TevComparison : u32
 template <>
 struct fmt::formatter<TevComparison> : EnumFormatter<TevComparison::EQ>
 {
-  formatter() : EnumFormatter({"Greater than", "Equal to"}) {}
+  constexpr formatter() : EnumFormatter({"Greater than", "Equal to"}) {}
 };
 
 // TEV color combiner input
@@ -190,7 +189,7 @@ struct fmt::formatter<TevColorArg> : EnumFormatter<TevColorArg::Zero>
       "prev.rgb", "prev.aaa", "c0.rgb",  "c0.aaa",  "c1.rgb", "c1.aaa", "c2.rgb",    "c2.aaa",
       "tex.rgb",  "tex.aaa",  "ras.rgb", "ras.aaa", "ONE",    "HALF",   "konst.rgb", "ZERO",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 // TEV alpha combiner input
@@ -211,7 +210,7 @@ struct fmt::formatter<TevAlphaArg> : EnumFormatter<TevAlphaArg::Zero>
   static constexpr array_type names = {
       "prev", "c0", "c1", "c2", "tex", "ras", "konst", "ZERO",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 // TEV output registers
@@ -225,7 +224,7 @@ enum class TevOutput : u32
 template <>
 struct fmt::formatter<TevOutput> : EnumFormatter<TevOutput::Color2>
 {
-  formatter() : EnumFormatter({"prev", "c0", "c1", "c2"}) {}
+  constexpr formatter() : EnumFormatter({"prev", "c0", "c1", "c2"}) {}
 };
 
 // Z-texture formats
@@ -238,11 +237,11 @@ enum class ZTexFormat : u32
 template <>
 struct fmt::formatter<ZTexFormat> : EnumFormatter<ZTexFormat::U24>
 {
-  formatter() : EnumFormatter({"u8", "u16", "u24"}) {}
+  constexpr formatter() : EnumFormatter({"u8", "u16", "u24"}) {}
 };
 
 // Z texture operator
-enum ZTexOp : u32
+enum class ZTexOp : u32
 {
   Disabled = 0,
   Add = 1,
@@ -251,7 +250,7 @@ enum ZTexOp : u32
 template <>
 struct fmt::formatter<ZTexOp> : EnumFormatter<ZTexOp::Replace>
 {
-  formatter() : EnumFormatter({"Disabled", "Add", "Replace"}) {}
+  constexpr formatter() : EnumFormatter({"Disabled", "Add", "Replace"}) {}
 };
 
 // TEV bias value
@@ -259,13 +258,13 @@ enum class TevBias : u32
 {
   Zero = 0,
   AddHalf = 1,
-  Subhalf = 2,
+  SubHalf = 2,
   Compare = 3
 };
 template <>
 struct fmt::formatter<TevBias> : EnumFormatter<TevBias::Compare>
 {
-  formatter() : EnumFormatter({"0", "+0.5", "-0.5", "compare"}) {}
+  constexpr formatter() : EnumFormatter({"0", "+0.5", "-0.5", "compare"}) {}
 };
 
 // Indirect texture format
@@ -279,7 +278,7 @@ enum class IndTexFormat : u32
 template <>
 struct fmt::formatter<IndTexFormat> : EnumFormatter<IndTexFormat::ITF_3>
 {
-  formatter() : EnumFormatter({"ITF_8", "ITF_5", "ITF_4", "ITF_3"}) {}
+  constexpr formatter() : EnumFormatter({"ITF_8", "ITF_5", "ITF_4", "ITF_3"}) {}
 };
 
 // Indirect texture bias
@@ -297,7 +296,7 @@ enum class IndTexBias : u32
 template <>
 struct fmt::formatter<IndTexBias> : EnumFormatter<IndTexBias::STU>
 {
-  formatter() : EnumFormatter({"None", "S", "T", "ST", "U", "SU", "TU", "STU"}) {}
+  constexpr formatter() : EnumFormatter({"None", "S", "T", "ST", "U", "SU", "TU", "STU"}) {}
 };
 
 enum class IndMtxIndex : u32
@@ -310,7 +309,7 @@ enum class IndMtxIndex : u32
 template <>
 struct fmt::formatter<IndMtxIndex> : EnumFormatter<IndMtxIndex::Matrix2>
 {
-  formatter() : EnumFormatter({"Off", "Matrix 0", "Matrix 1", "Matrix 2"}) {}
+  constexpr formatter() : EnumFormatter({"Off", "Matrix 0", "Matrix 1", "Matrix 2"}) {}
 };
 
 enum class IndMtxId : u32
@@ -322,7 +321,7 @@ enum class IndMtxId : u32
 template <>
 struct fmt::formatter<IndMtxId> : EnumFormatter<IndMtxId::T>
 {
-  formatter() : EnumFormatter({"Indirect", "S", "T"}) {}
+  constexpr formatter() : EnumFormatter({"Indirect", "S", "T"}) {}
 };
 
 // Indirect texture bump alpha
@@ -336,7 +335,7 @@ enum class IndTexBumpAlpha : u32
 template <>
 struct fmt::formatter<IndTexBumpAlpha> : EnumFormatter<IndTexBumpAlpha::U>
 {
-  formatter() : EnumFormatter({"Off", "S", "T", "U"}) {}
+  constexpr formatter() : EnumFormatter({"Off", "S", "T", "U"}) {}
 };
 
 // Indirect texture wrap value
@@ -353,7 +352,7 @@ enum class IndTexWrap : u32
 template <>
 struct fmt::formatter<IndTexWrap> : EnumFormatter<IndTexWrap::ITW_0>
 {
-  formatter() : EnumFormatter({"Off", "256", "128", "64", "32", "16", "0"}) {}
+  constexpr formatter() : EnumFormatter({"Off", "256", "128", "64", "32", "16", "0"}) {}
 };
 
 union IND_MTXA
@@ -363,6 +362,20 @@ union IND_MTXA
   BitField<22, 2, u8, u32> s0;  // bits 0-1 of scale factor
   u32 hex;
 };
+template <>
+struct fmt::formatter<IND_MTXA>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXA& col, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(),
+                          "Row 0 (ma): {} ({})\n"
+                          "Row 1 (mb): {} ({})\n"
+                          "Scale bits: {} (shifted: {})",
+                          col.ma / 1024.0f, col.ma, col.mb / 1024.0f, col.mb, col.s0, col.s0);
+  }
+};
 
 union IND_MTXB
 {
@@ -371,13 +384,45 @@ union IND_MTXB
   BitField<22, 2, u8, u32> s1;  // bits 2-3 of scale factor
   u32 hex;
 };
+template <>
+struct fmt::formatter<IND_MTXB>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXB& col, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(),
+                          "Row 0 (mc): {} ({})\n"
+                          "Row 1 (md): {} ({})\n"
+                          "Scale bits: {} (shifted: {})",
+                          col.mc / 1024.0f, col.mc, col.md / 1024.0f, col.md, col.s1, col.s1 << 2);
+  }
+};
 
 union IND_MTXC
 {
   BitField<0, 11, s32> me;
   BitField<11, 11, s32> mf;
-  BitField<22, 2, u8, u32> s2;  // bits 4-5 of scale factor
+  BitField<22, 1, u8, u32> s2;  // bit 4 of scale factor
+  // The SDK treats the scale factor as 6 bits, 2 on each column; however, hardware seems to ignore
+  // the top bit.
+  BitField<22, 2, u8, u32> sdk_s2;
   u32 hex;
+};
+template <>
+struct fmt::formatter<IND_MTXC>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const IND_MTXC& col, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(),
+                          "Row 0 (me): {} ({})\n"
+                          "Row 1 (mf): {} ({})\n"
+                          "Scale bits: {} (shifted: {}), given to SDK as {} ({})",
+                          col.me / 1024.0f, col.me, col.mf / 1024.0f, col.mf, col.s2, col.s2 << 4,
+                          col.sdk_s2, col.sdk_s2 << 4);
+  }
 };
 
 struct IND_MTX
@@ -444,20 +489,108 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevStageCombiner::ColorCombiner& cc, FormatContext& ctx)
+  auto format(const TevStageCombiner::ColorCombiner& cc, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "a: {}\n"
-                     "b: {}\n"
-                     "c: {}\n"
-                     "d: {}\n"
-                     "Bias: {}\n"
-                     "Op: {} / Comparison: {}\n"
-                     "Clamp: {}\n"
-                     "Scale factor: {} / Compare mode: {}\n"
-                     "Dest: {}",
-                     cc.a, cc.b, cc.c, cc.d, cc.bias, cc.op, cc.comparison, cc.clamp ? "Yes" : "No",
-                     cc.scale, cc.compare_mode, cc.dest);
+    auto out = ctx.out();
+    if (cc.bias != TevBias::Compare)
+    {
+      // Generate an equation view, simplifying out addition of zero and multiplication by 1
+      // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
+      // or equivalently and more readably when the terms are not constants:
+      // dest = (d (OP) lerp(a, b, c) + bias) * scale
+      // Note that lerping is more complex than the first form shows; see PixelShaderGen's
+      // WriteTevRegular for more details.
+
+      static constexpr Common::EnumMap<const char*, TevColorArg::Zero> alt_names = {
+          "prev.rgb", "prev.aaa", "c0.rgb",  "c0.aaa",  "c1.rgb", "c1.aaa", "c2.rgb",    "c2.aaa",
+          "tex.rgb",  "tex.aaa",  "ras.rgb", "ras.aaa", "1",      ".5",     "konst.rgb", "0",
+      };
+
+      const bool has_d = cc.d != TevColorArg::Zero;
+      // If c is one, (1 - c) is zero, so (1-c)*a is zero
+      const bool has_ac = cc.a != TevColorArg::Zero && cc.c != TevColorArg::One;
+      // If either b or c is zero, b*c is zero
+      const bool has_bc = cc.b != TevColorArg::Zero && cc.c != TevColorArg::Zero;
+      const bool has_bias = cc.bias != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = cc.scale != TevScale::Scale1;
+
+      const char op = (cc.op == TevOp::Sub ? '-' : '+');
+
+      if (cc.dest == TevOutput::Prev)
+        out = fmt::format_to(out, "dest.rgb = ");
+      else
+        out = fmt::format_to(out, "{:n}.rgb = ", cc.dest);
+
+      if (has_scale)
+        out = fmt::format_to(out, "(");
+      if (has_d)
+        out = fmt::format_to(out, "{}", alt_names[cc.d]);
+      if (has_ac || has_bc)
+      {
+        if (has_d)
+          out = fmt::format_to(out, " {} ", op);
+        else if (cc.op == TevOp::Sub)
+          out = fmt::format_to(out, "{}", op);
+        if (has_ac && has_bc)
+        {
+          if (cc.c == TevColorArg::Half)
+          {
+            // has_a and has_b imply that c is not Zero or One, and Half is the only remaining
+            // numeric constant.  This results in an average.
+            out = fmt::format_to(out, "({} + {})/2", alt_names[cc.a], alt_names[cc.b]);
+          }
+          else
+          {
+            out = fmt::format_to(out, "lerp({}, {}, {})", alt_names[cc.a], alt_names[cc.b],
+                                 alt_names[cc.c]);
+          }
+        }
+        else if (has_ac)
+        {
+          if (cc.c == TevColorArg::Zero)
+            out = fmt::format_to(out, "{}", alt_names[cc.a]);
+          else if (cc.c == TevColorArg::Half)  // 1 - .5 is .5
+            out = fmt::format_to(out, ".5*{}", alt_names[cc.a]);
+          else
+            out = fmt::format_to(out, "(1 - {})*{}", alt_names[cc.c], alt_names[cc.a]);
+        }
+        else  // has_bc
+        {
+          if (cc.c == TevColorArg::One)
+            out = fmt::format_to(out, "{}", alt_names[cc.b]);
+          else
+            out = fmt::format_to(out, "{}*{}", alt_names[cc.c], alt_names[cc.b]);
+        }
+      }
+      if (has_bias)
+      {
+        if (has_ac || has_bc || has_d)
+          out = fmt::format_to(out, "{}", cc.bias == TevBias::AddHalf ? " + .5" : " - .5");
+        else
+          out = fmt::format_to(out, "{}", cc.bias == TevBias::AddHalf ? ".5" : "-.5");
+      }
+      else
+      {
+        // If nothing has been written so far, add a zero
+        if (!(has_ac || has_bc || has_d))
+          out = fmt::format_to(out, "0");
+      }
+      if (has_scale)
+        out = fmt::format_to(out, ") * {:n}", cc.scale);
+      out = fmt::format_to(out, "\n\n");
+    }
+    return fmt::format_to(ctx.out(),
+                          "a: {}\n"
+                          "b: {}\n"
+                          "c: {}\n"
+                          "d: {}\n"
+                          "Bias: {}\n"
+                          "Op: {} / Comparison: {}\n"
+                          "Clamp: {}\n"
+                          "Scale factor: {} / Compare mode: {}\n"
+                          "Dest: {}",
+                          cc.a, cc.b, cc.c, cc.d, cc.bias, cc.op, cc.comparison,
+                          cc.clamp ? "Yes" : "No", cc.scale, cc.compare_mode, cc.dest);
   }
 };
 template <>
@@ -465,22 +598,96 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevStageCombiner::AlphaCombiner& ac, FormatContext& ctx)
+  auto format(const TevStageCombiner::AlphaCombiner& ac, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "a: {}\n"
-                     "b: {}\n"
-                     "c: {}\n"
-                     "d: {}\n"
-                     "Bias: {}\n"
-                     "Op: {} / Comparison: {}\n"
-                     "Clamp: {}\n"
-                     "Scale factor: {} / Compare mode: {}\n"
-                     "Dest: {}\n"
-                     "Ras sel: {}\n"
-                     "Tex sel: {}",
-                     ac.a, ac.b, ac.c, ac.d, ac.bias, ac.op, ac.comparison, ac.clamp ? "Yes" : "No",
-                     ac.scale, ac.compare_mode, ac.dest, ac.rswap, ac.tswap);
+    auto out = ctx.out();
+    if (ac.bias != TevBias::Compare)
+    {
+      // Generate an equation view, simplifying out addition of zero and multiplication by 1
+      // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
+      // or equivalently and more readably when the terms are not constants:
+      // dest = (d (OP) lerp(a, b, c) + bias) * scale
+      // Note that lerping is more complex than the first form shows; see PixelShaderGen's
+      // WriteTevRegular for more details.
+
+      // We don't need an alt_names map here, unlike the color combiner, as the only special term is
+      // Zero, and we we filter that out below.  However, we do need to append ".a" to all
+      // parameters, to make it explicit that these are operations on the alpha term instead of the
+      // 4-element vector.  We also need to use the :n specifier so that the numeric ID isn't shown.
+
+      const bool has_d = ac.d != TevAlphaArg::Zero;
+      // There is no c value for alpha that results in (1 - c) always being zero
+      const bool has_ac = ac.a != TevAlphaArg::Zero;
+      // If either b or c is zero, b*c is zero
+      const bool has_bc = ac.b != TevAlphaArg::Zero && ac.c != TevAlphaArg::Zero;
+      const bool has_bias = ac.bias != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = ac.scale != TevScale::Scale1;
+
+      const char op = (ac.op == TevOp::Sub ? '-' : '+');
+
+      if (ac.dest == TevOutput::Prev)
+        out = fmt::format_to(out, "dest.a = ");
+      else
+        out = fmt::format_to(out, "{:n}.a = ", ac.dest);
+
+      if (has_scale)
+        out = fmt::format_to(out, "(");
+      if (has_d)
+        out = fmt::format_to(out, "{:n}.a", ac.d);
+      if (has_ac || has_bc)
+      {
+        if (has_d)
+          out = fmt::format_to(out, " {} ", op);
+        else if (ac.op == TevOp::Sub)
+          out = fmt::format_to(out, "{}", op);
+        if (has_ac && has_bc)
+        {
+          out = fmt::format_to(out, "lerp({:n}.a, {:n}.a, {:n}.a)", ac.a, ac.b, ac.c);
+        }
+        else if (has_ac)
+        {
+          if (ac.c == TevAlphaArg::Zero)
+            out = fmt::format_to(out, "{:n}.a", ac.a);
+          else
+            out = fmt::format_to(out, "(1 - {:n}.a)*{:n}.a", ac.c, ac.a);
+        }
+        else  // has_bc
+        {
+          out = fmt::format_to(out, "{:n}.a*{:n}.a", ac.c, ac.b);
+        }
+      }
+      if (has_bias)
+      {
+        if (has_ac || has_bc || has_d)
+          out = fmt::format_to(out, "{}", ac.bias == TevBias::AddHalf ? " + .5" : " - .5");
+        else
+          out = fmt::format_to(out, "{}", ac.bias == TevBias::AddHalf ? ".5" : "-.5");
+      }
+      else
+      {
+        // If nothing has been written so far, add a zero
+        if (!(has_ac || has_bc || has_d))
+          out = fmt::format_to(out, "0");
+      }
+      if (has_scale)
+        out = fmt::format_to(out, ") * {:n}", ac.scale);
+      out = fmt::format_to(out, "\n\n");
+    }
+    return fmt::format_to(out,
+                          "a: {}\n"
+                          "b: {}\n"
+                          "c: {}\n"
+                          "d: {}\n"
+                          "Bias: {}\n"
+                          "Op: {} / Comparison: {}\n"
+                          "Clamp: {}\n"
+                          "Scale factor: {} / Compare mode: {}\n"
+                          "Dest: {}\n"
+                          "Ras sel: {}\n"
+                          "Tex sel: {}",
+                          ac.a, ac.b, ac.c, ac.d, ac.bias, ac.op, ac.comparison,
+                          ac.clamp ? "Yes" : "No", ac.scale, ac.compare_mode, ac.dest, ac.rswap,
+                          ac.tswap);
   }
 };
 
@@ -531,22 +738,22 @@ struct fmt::formatter<TevStageIndirect>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevStageIndirect& tevind, FormatContext& ctx)
+  auto format(const TevStageIndirect& tevind, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Indirect tex stage ID: {}\n"
-                     "Format: {}\n"
-                     "Bias: {}\n"
-                     "Bump alpha: {}\n"
-                     "Offset matrix index: {}\n"
-                     "Offset matrix ID: {}\n"
-                     "Regular coord S wrapping factor: {}\n"
-                     "Regular coord T wrapping factor: {}\n"
-                     "Use modified texture coordinates for LOD computation: {}\n"
-                     "Add texture coordinates from previous TEV stage: {}",
-                     tevind.bt, tevind.fmt, tevind.bias, tevind.bs, tevind.matrix_index,
-                     tevind.matrix_id, tevind.sw, tevind.tw, tevind.lb_utclod ? "Yes" : "No",
-                     tevind.fb_addprev ? "Yes" : "No");
+    return fmt::format_to(ctx.out(),
+                          "Indirect tex stage ID: {}\n"
+                          "Format: {}\n"
+                          "Bias: {}\n"
+                          "Bump alpha: {}\n"
+                          "Offset matrix index: {}\n"
+                          "Offset matrix ID: {}\n"
+                          "Regular coord S wrapping factor: {}\n"
+                          "Regular coord T wrapping factor: {}\n"
+                          "Use modified texture coordinates for LOD computation: {}\n"
+                          "Add texture coordinates from previous TEV stage: {}",
+                          tevind.bt, tevind.fmt, tevind.bias, tevind.bs, tevind.matrix_index,
+                          tevind.matrix_id, tevind.sw, tevind.tw, tevind.lb_utclod ? "Yes" : "No",
+                          tevind.fb_addprev ? "Yes" : "No");
   }
 };
 
@@ -565,7 +772,7 @@ struct fmt::formatter<RasColorChan> : EnumFormatter<RasColorChan::Zero>
       "Color chan 0", "Color chan 1", nullptr,           nullptr,
       nullptr,        "Alpha bump",   "Norm alpha bump", "Zero",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union TwoTevStageOrders
@@ -591,16 +798,16 @@ struct fmt::formatter<TwoTevStageOrders>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TwoTevStageOrders& stages, FormatContext& ctx)
+  auto format(const TwoTevStageOrders& stages, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Stage 0 texmap: {}\nStage 0 tex coord: {}\n"
-                     "Stage 0 enable texmap: {}\nStage 0 color channel: {}\n"
-                     "Stage 1 texmap: {}\nStage 1 tex coord: {}\n"
-                     "Stage 1 enable texmap: {}\nStage 1 color channel: {}\n",
-                     stages.texmap0, stages.texcoord0, stages.enable0 ? "Yes" : "No",
-                     stages.colorchan0, stages.texmap1, stages.texcoord1,
-                     stages.enable1 ? "Yes" : "No", stages.colorchan1);
+    return fmt::format_to(ctx.out(),
+                          "Stage 0 texmap: {}\nStage 0 tex coord: {}\n"
+                          "Stage 0 enable texmap: {}\nStage 0 color channel: {}\n"
+                          "Stage 1 texmap: {}\nStage 1 tex coord: {}\n"
+                          "Stage 1 enable texmap: {}\nStage 1 color channel: {}\n",
+                          stages.texmap0, stages.texcoord0, stages.enable0 ? "Yes" : "No",
+                          stages.colorchan0, stages.texmap1, stages.texcoord1,
+                          stages.enable1 ? "Yes" : "No", stages.colorchan1);
   }
 };
 
@@ -617,15 +824,15 @@ struct fmt::formatter<TEXSCALE>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TEXSCALE& scale, FormatContext& ctx)
+  auto format(const TEXSCALE& scale, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Even stage S scale: {} ({})\n"
-                     "Even stage T scale: {} ({})\n"
-                     "Odd stage S scale: {} ({})\n"
-                     "Odd stage T scale: {} ({})",
-                     scale.ss0, 1.f / (1 << scale.ss0), scale.ts0, 1.f / (1 << scale.ts0),
-                     scale.ss1, 1.f / (1 << scale.ss1), scale.ts1, 1.f / (1 << scale.ts1));
+    return fmt::format_to(ctx.out(),
+                          "Even stage S scale: {} ({})\n"
+                          "Even stage T scale: {} ({})\n"
+                          "Odd stage S scale: {} ({})\n"
+                          "Odd stage T scale: {} ({})",
+                          scale.ss0, 1.f / (1 << scale.ss0), scale.ts0, 1.f / (1 << scale.ts0),
+                          scale.ss1, 1.f / (1 << scale.ss1), scale.ts1, 1.f / (1 << scale.ts1));
   }
 };
 
@@ -649,16 +856,16 @@ struct fmt::formatter<RAS1_IREF>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const RAS1_IREF& indref, FormatContext& ctx)
+  auto format(const RAS1_IREF& indref, FormatContext& ctx) const
   {
     // The field names here are suspicious, since there is no bi3 or bc2
-    return format_to(ctx.out(),
-                     "Stage 0 ntexmap: {}\nStage 0 ntexcoord: {}\n"
-                     "Stage 1 ntexmap: {}\nStage 1 ntexcoord: {}\n"
-                     "Stage 2 ntexmap: {}\nStage 2 ntexcoord: {}\n"
-                     "Stage 3 ntexmap: {}\nStage 3 ntexcoord: {}",
-                     indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc2,
-                     indref.bi3, indref.bc3);
+    return fmt::format_to(ctx.out(),
+                          "Stage 0 ntexmap: {}\nStage 0 ntexcoord: {}\n"
+                          "Stage 1 ntexmap: {}\nStage 1 ntexcoord: {}\n"
+                          "Stage 2 ntexmap: {}\nStage 2 ntexcoord: {}\n"
+                          "Stage 3 ntexmap: {}\nStage 3 ntexcoord: {}",
+                          indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc2,
+                          indref.bi3, indref.bc3);
   }
 };
 
@@ -668,11 +875,13 @@ enum class WrapMode : u32
   Clamp = 0,
   Repeat = 1,
   Mirror = 2,
+  // Hardware testing indicates that WrapMode set to 3 behaves the same as clamp, though this is an
+  // invalid value
 };
 template <>
 struct fmt::formatter<WrapMode> : EnumFormatter<WrapMode::Mirror>
 {
-  formatter() : EnumFormatter({"Clamp", "Repeat", "Mirror"}) {}
+  constexpr formatter() : EnumFormatter({"Clamp", "Repeat", "Mirror"}) {}
 };
 
 enum class MipMode : u32
@@ -684,7 +893,7 @@ enum class MipMode : u32
 template <>
 struct fmt::formatter<MipMode> : EnumFormatter<MipMode::Linear>
 {
-  formatter() : EnumFormatter({"None", "Mip point", "Mip linear"}) {}
+  constexpr formatter() : EnumFormatter({"None", "Mip point", "Mip linear"}) {}
 };
 
 enum class FilterMode : u32
@@ -695,7 +904,7 @@ enum class FilterMode : u32
 template <>
 struct fmt::formatter<FilterMode> : EnumFormatter<FilterMode::Linear>
 {
-  formatter() : EnumFormatter({"Near", "Linear"}) {}
+  constexpr formatter() : EnumFormatter({"Near", "Linear"}) {}
 };
 
 enum class LODType : u32
@@ -706,19 +915,19 @@ enum class LODType : u32
 template <>
 struct fmt::formatter<LODType> : EnumFormatter<LODType::Diagonal>
 {
-  formatter() : EnumFormatter({"Edge LOD", "Diagonal LOD"}) {}
+  constexpr formatter() : EnumFormatter({"Edge LOD", "Diagonal LOD"}) {}
 };
 
-enum class MaxAnsio
+enum class MaxAniso
 {
   One = 0,
   Two = 1,
   Four = 2,
 };
 template <>
-struct fmt::formatter<MaxAnsio> : EnumFormatter<MaxAnsio::Four>
+struct fmt::formatter<MaxAniso> : EnumFormatter<MaxAniso::Four>
 {
-  formatter() : EnumFormatter({"1", "2 (requires edge LOD)", "4 (requires edge LOD)"}) {}
+  constexpr formatter() : EnumFormatter({"1", "2", "4"}) {}
 };
 
 union TexMode0
@@ -730,7 +939,7 @@ union TexMode0
   BitField<7, 1, FilterMode> min_filter;
   BitField<8, 1, LODType> diag_lod;
   BitField<9, 8, s32> lod_bias;
-  BitField<19, 2, MaxAnsio> max_aniso;
+  BitField<19, 2, MaxAniso> max_aniso;
   BitField<21, 1, bool, u32> lod_clamp;
   u32 hex;
 };
@@ -739,21 +948,21 @@ struct fmt::formatter<TexMode0>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexMode0& mode, FormatContext& ctx)
+  auto format(const TexMode0& mode, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Wrap S: {}\n"
-                     "Wrap T: {}\n"
-                     "Mag filter: {}\n"
-                     "Mipmap filter: {}\n"
-                     "Min filter: {}\n"
-                     "LOD type: {}\n"
-                     "LOD bias: {} ({})\n"
-                     "Max aniso: {}\n"
-                     "LOD/bias clamp: {}",
-                     mode.wrap_s, mode.wrap_t, mode.mag_filter, mode.mipmap_filter, mode.min_filter,
-                     mode.diag_lod, mode.lod_bias, mode.lod_bias / 32.f, mode.max_aniso,
-                     mode.lod_clamp ? "Yes" : "No");
+    return fmt::format_to(ctx.out(),
+                          "Wrap S: {}\n"
+                          "Wrap T: {}\n"
+                          "Mag filter: {}\n"
+                          "Mipmap filter: {}\n"
+                          "Min filter: {}\n"
+                          "LOD type: {}\n"
+                          "LOD bias: {} ({})\n"
+                          "Max anisotropic filtering: {}\n"
+                          "LOD/bias clamp: {}",
+                          mode.wrap_s, mode.wrap_t, mode.mag_filter, mode.mipmap_filter,
+                          mode.min_filter, mode.diag_lod, mode.lod_bias, mode.lod_bias / 32.f,
+                          mode.max_aniso, mode.lod_clamp ? "Yes" : "No");
   }
 };
 
@@ -768,10 +977,10 @@ struct fmt::formatter<TexMode1>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexMode1& mode, FormatContext& ctx)
+  auto format(const TexMode1& mode, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Min LOD: {} ({})\nMax LOD: {} ({})", mode.min_lod,
-                     mode.min_lod / 16.f, mode.max_lod, mode.max_lod / 16.f);
+    return fmt::format_to(ctx.out(), "Min LOD: {} ({})\nMax LOD: {} ({})", mode.min_lod,
+                          mode.min_lod / 16.f, mode.max_lod, mode.max_lod / 16.f);
   }
 };
 
@@ -787,13 +996,13 @@ struct fmt::formatter<TexImage0>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexImage0& teximg, FormatContext& ctx)
+  auto format(const TexImage0& teximg, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Width: {}\n"
-                     "Height: {}\n"
-                     "Format: {}",
-                     teximg.width + 1, teximg.height + 1, teximg.format);
+    return fmt::format_to(ctx.out(),
+                          "Width: {}\n"
+                          "Height: {}\n"
+                          "Format: {}",
+                          teximg.width + 1, teximg.height + 1, teximg.format);
   }
 };
 
@@ -812,15 +1021,15 @@ struct fmt::formatter<TexImage1>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexImage1& teximg, FormatContext& ctx)
+  auto format(const TexImage1& teximg, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Even TMEM Offset: {:x}\n"
-                     "Even TMEM Width: {}\n"
-                     "Even TMEM Height: {}\n"
-                     "Cache is manually managed: {}",
-                     teximg.tmem_even, teximg.cache_width, teximg.cache_height,
-                     teximg.cache_manually_managed ? "Yes" : "No");
+    return fmt::format_to(ctx.out(),
+                          "Even TMEM Offset: {:x}\n"
+                          "Even TMEM Width: {}\n"
+                          "Even TMEM Height: {}\n"
+                          "Cache is manually managed: {}",
+                          teximg.tmem_even, teximg.cache_width, teximg.cache_height,
+                          teximg.cache_manually_managed ? "Yes" : "No");
   }
 };
 
@@ -836,13 +1045,13 @@ struct fmt::formatter<TexImage2>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexImage2& teximg, FormatContext& ctx)
+  auto format(const TexImage2& teximg, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Odd TMEM Offset: {:x}\n"
-                     "Odd TMEM Width: {}\n"
-                     "Odd TMEM Height: {}",
-                     teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
+    return fmt::format_to(ctx.out(),
+                          "Odd TMEM Offset: {:x}\n"
+                          "Odd TMEM Width: {}\n"
+                          "Odd TMEM Height: {}",
+                          teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
   }
 };
 
@@ -856,10 +1065,10 @@ struct fmt::formatter<TexImage3>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexImage3& teximg, FormatContext& ctx)
+  auto format(const TexImage3& teximg, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Source address (32 byte aligned): 0x{:06X}",
-                     teximg.image_base << 5);
+    return fmt::format_to(ctx.out(), "Source address (32 byte aligned): 0x{:06X}",
+                          teximg.image_base << 5);
   }
 };
 
@@ -874,10 +1083,10 @@ struct fmt::formatter<TexTLUT>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TexTLUT& tlut, FormatContext& ctx)
+  auto format(const TexTLUT& tlut, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Address: {:08x}\nFormat: {}", tlut.tmem_offset << 9,
-                     tlut.tlut_format);
+    return fmt::format_to(ctx.out(), "Address: {:08x}\nFormat: {}", tlut.tmem_offset << 9,
+                          tlut.tlut_format);
   }
 };
 
@@ -898,22 +1107,10 @@ struct fmt::formatter<ZTex2>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const ZTex2& ztex2, FormatContext& ctx)
+  auto format(const ZTex2& ztex2, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Type: {}\nOperation: {}", ztex2.type, ztex2.op);
+    return fmt::format_to(ctx.out(), "Type: {}\nOperation: {}", ztex2.type, ztex2.op);
   }
-};
-
-struct FourTexUnits
-{
-  TexMode0 texMode0[4];
-  TexMode1 texMode1[4];
-  TexImage0 texImage0[4];
-  TexImage1 texImage1[4];
-  TexImage2 texImage2[4];
-  TexImage3 texImage3[4];
-  TexTLUT texTlut[4];
-  u32 unknown[4];
 };
 
 // Geometry/other structs
@@ -933,7 +1130,7 @@ struct fmt::formatter<CullMode> : EnumFormatter<CullMode::All>
       "Front-facing primitives only",
       "All primitives",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union GenMode
@@ -957,22 +1154,22 @@ struct fmt::formatter<GenMode>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const GenMode& mode, FormatContext& ctx)
+  auto format(const GenMode& mode, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Num tex gens: {}\n"
-                     "Num color channels: {}\n"
-                     "Unused bit: {}\n"
-                     "Flat shading (unconfirmed): {}\n"
-                     "Multisampling: {}\n"
-                     "Num TEV stages: {}\n"
-                     "Cull mode: {}\n"
-                     "Num indirect stages: {}\n"
-                     "ZFreeze: {}",
-                     mode.numtexgens, mode.numcolchans, mode.unused,
-                     mode.flat_shading ? "Yes" : "No", mode.multisampling ? "Yes" : "No",
-                     mode.numtevstages + 1, mode.cullmode, mode.numindstages,
-                     mode.zfreeze ? "Yes" : "No");
+    return fmt::format_to(ctx.out(),
+                          "Num tex gens: {}\n"
+                          "Num color channels: {}\n"
+                          "Unused bit: {}\n"
+                          "Flat shading (unconfirmed): {}\n"
+                          "Multisampling: {}\n"
+                          "Num TEV stages: {}\n"
+                          "Cull mode: {}\n"
+                          "Num indirect stages: {}\n"
+                          "ZFreeze: {}",
+                          mode.numtexgens, mode.numcolchans, mode.unused,
+                          mode.flat_shading ? "Yes" : "No", mode.multisampling ? "Yes" : "No",
+                          mode.numtevstages + 1, mode.cullmode, mode.numindstages,
+                          mode.zfreeze ? "Yes" : "No");
   }
 };
 
@@ -984,7 +1181,7 @@ enum class AspectRatioAdjustment
 template <>
 struct fmt::formatter<AspectRatioAdjustment> : EnumFormatter<AspectRatioAdjustment::Adjust>
 {
-  formatter() : EnumFormatter({"Don't adjust", "Adjust"}) {}
+  constexpr formatter() : EnumFormatter({"Don't adjust", "Adjust"}) {}
 };
 
 union LPSize
@@ -1002,16 +1199,16 @@ struct fmt::formatter<LPSize>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const LPSize& lp, FormatContext& ctx)
+  auto format(const LPSize& lp, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Line size: {} ({:.3} pixels)\n"
-                     "Point size: {} ({:.3} pixels)\n"
-                     "Line offset: {}\n"
-                     "Point offset: {}\n"
-                     "Adjust line aspect ratio: {}",
-                     lp.linesize, lp.linesize / 6.f, lp.pointsize, lp.pointsize / 6.f, lp.lineoff,
-                     lp.pointoff, lp.adjust_for_aspect_ratio);
+    return fmt::format_to(ctx.out(),
+                          "Line size: {} ({:.3} pixels)\n"
+                          "Point size: {} ({:.3} pixels)\n"
+                          "Line offset: {}\n"
+                          "Point offset: {}\n"
+                          "Adjust line aspect ratio: {}",
+                          lp.linesize, lp.linesize / 6.f, lp.pointsize, lp.pointsize / 6.f,
+                          lp.lineoff, lp.pointoff, lp.adjust_for_aspect_ratio);
   }
 };
 
@@ -1051,7 +1248,7 @@ struct fmt::formatter<SrcBlendFactor> : EnumFormatter<SrcBlendFactor::InvDstAlph
 {
   static constexpr array_type names = {"0",         "1",           "dst_color", "1-dst_color",
                                        "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class DstBlendFactor : u32
@@ -1070,7 +1267,7 @@ struct fmt::formatter<DstBlendFactor> : EnumFormatter<DstBlendFactor::InvDstAlph
 {
   static constexpr array_type names = {"0",         "1",           "src_color", "1-src_color",
                                        "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class LogicOp : u32
@@ -1113,7 +1310,7 @@ struct fmt::formatter<LogicOp> : EnumFormatter<LogicOp::Set>
       "Nand (~(src & dst))",
       "Set (1)",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union BlendMode
@@ -1137,22 +1334,22 @@ struct fmt::formatter<BlendMode>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const BlendMode& mode, FormatContext& ctx)
+  auto format(const BlendMode& mode, FormatContext& ctx) const
   {
     static constexpr std::array<const char*, 2> no_yes = {"No", "Yes"};
-    return format_to(ctx.out(),
-                     "Enable: {}\n"
-                     "Logic ops: {}\n"
-                     "Dither: {}\n"
-                     "Color write: {}\n"
-                     "Alpha write: {}\n"
-                     "Dest factor: {}\n"
-                     "Source factor: {}\n"
-                     "Subtract: {}\n"
-                     "Logic mode: {}",
-                     no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
-                     no_yes[mode.colorupdate], no_yes[mode.alphaupdate], mode.dstfactor,
-                     mode.srcfactor, no_yes[mode.subtract], mode.logicmode);
+    return fmt::format_to(ctx.out(),
+                          "Enable: {}\n"
+                          "Logic ops: {}\n"
+                          "Dither: {}\n"
+                          "Color write: {}\n"
+                          "Alpha write: {}\n"
+                          "Dest factor: {}\n"
+                          "Source factor: {}\n"
+                          "Subtract: {}\n"
+                          "Logic mode: {}",
+                          no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
+                          no_yes[mode.colorupdate], no_yes[mode.alphaupdate], mode.dstfactor,
+                          mode.srcfactor, no_yes[mode.subtract], mode.logicmode);
   }
 };
 
@@ -1170,10 +1367,10 @@ struct fmt::formatter<FogParam0>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const FogParam0& param, FormatContext& ctx)
+  auto format(const FogParam0& param, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "A value: {}\nMantissa: {}\nExponent: {}\nSign: {}",
-                     param.FloatValue(), param.mant, param.exp, param.sign ? '-' : '+');
+    return fmt::format_to(ctx.out(), "A value: {}\nMantissa: {}\nExponent: {}\nSign: {}",
+                          param.FloatValue(), param.mant, param.exp, param.sign ? '-' : '+');
   }
 };
 
@@ -1185,7 +1382,7 @@ enum class FogProjection : u32
 template <>
 struct fmt::formatter<FogProjection> : EnumFormatter<FogProjection::Orthographic>
 {
-  formatter() : EnumFormatter({"Perspective", "Orthographic"}) {}
+  constexpr formatter() : EnumFormatter({"Perspective", "Orthographic"}) {}
 };
 
 enum class FogType : u32
@@ -1210,7 +1407,7 @@ struct fmt::formatter<FogType> : EnumFormatter<FogType::BackwardsExpSq>
       "Backwards exponential fog",
       "Backwards exponenential-sequared fog",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union FogParam3
@@ -1229,12 +1426,12 @@ struct fmt::formatter<FogParam3>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const FogParam3& param, FormatContext& ctx)
+  auto format(const FogParam3& param, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "C value: {}\nMantissa: {}\nExponent: {}\nSign: {}\nProjection: {}\nFsel: {}",
-                     param.FloatValue(), param.c_mant, param.c_exp, param.c_sign ? '-' : '+',
-                     param.proj, param.fsel);
+    return fmt::format_to(
+        ctx.out(), "C value: {}\nMantissa: {}\nExponent: {}\nSign: {}\nProjection: {}\nFsel: {}",
+        param.FloatValue(), param.c_mant, param.c_exp, param.c_sign ? '-' : '+', param.proj,
+        param.fsel);
   }
 };
 
@@ -1264,10 +1461,10 @@ struct fmt::formatter<FogRangeParams::RangeBase>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const FogRangeParams::RangeBase& range, FormatContext& ctx)
+  auto format(const FogRangeParams::RangeBase& range, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Center: {}\nEnabled: {}", range.Center,
-                     range.Enabled ? "Yes" : "No");
+    return fmt::format_to(ctx.out(), "Center: {}\nEnabled: {}", range.Center,
+                          range.Enabled ? "Yes" : "No");
   }
 };
 template <>
@@ -1275,9 +1472,9 @@ struct fmt::formatter<FogRangeKElement>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const FogRangeKElement& range, FormatContext& ctx)
+  auto format(const FogRangeKElement& range, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "High: {}\nLow: {}", range.HI, range.LO);
+    return fmt::format_to(ctx.out(), "High: {}\nLow: {}", range.HI, range.LO);
   }
 };
 
@@ -1311,9 +1508,9 @@ struct fmt::formatter<FogParams::FogColor>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const FogParams::FogColor& color, FormatContext& ctx)
+  auto format(const FogParams::FogColor& color, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Red: {}\nGreen: {}\nBlue: {}", color.r, color.g, color.b);
+    return fmt::format_to(ctx.out(), "Red: {}\nGreen: {}\nBlue: {}", color.r, color.g, color.b);
   }
 };
 
@@ -1333,7 +1530,7 @@ struct fmt::formatter<CompareMode> : EnumFormatter<CompareMode::Always>
 {
   static constexpr array_type names = {"Never",   "Less",   "Equal",  "LEqual",
                                        "Greater", "NEqual", "GEqual", "Always"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union ZMode
@@ -1349,13 +1546,14 @@ struct fmt::formatter<ZMode>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const ZMode& mode, FormatContext& ctx)
+  auto format(const ZMode& mode, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Enable test: {}\n"
-                     "Compare function: {}\n"
-                     "Enable updates: {}",
-                     mode.testenable ? "Yes" : "No", mode.func, mode.updateenable ? "Yes" : "No");
+    return fmt::format_to(ctx.out(),
+                          "Enable test: {}\n"
+                          "Compare function: {}\n"
+                          "Enable updates: {}",
+                          mode.testenable ? "Yes" : "No", mode.func,
+                          mode.updateenable ? "Yes" : "No");
   }
 };
 
@@ -1370,12 +1568,12 @@ struct fmt::formatter<ConstantAlpha>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const ConstantAlpha& c, FormatContext& ctx)
+  auto format(const ConstantAlpha& c, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Enable: {}\n"
-                     "Alpha value: {:02x}",
-                     c.enable ? "Yes" : "No", c.alpha);
+    return fmt::format_to(ctx.out(),
+                          "Enable: {}\n"
+                          "Alpha value: {:02x}",
+                          c.enable ? "Yes" : "No", c.alpha);
   }
 };
 
@@ -1390,10 +1588,10 @@ struct fmt::formatter<FieldMode>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const FieldMode& mode, FormatContext& ctx)
+  auto format(const FieldMode& mode, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Adjust vertex tex LOD computation to account for interlacing: {}",
-                     mode.texLOD);
+    return fmt::format_to(
+        ctx.out(), "Adjust vertex tex LOD computation to account for interlacing: {}", mode.texLOD);
   }
 };
 
@@ -1405,7 +1603,7 @@ enum class FieldMaskState : u32
 template <>
 struct fmt::formatter<FieldMaskState> : EnumFormatter<FieldMaskState::Write>
 {
-  formatter() : EnumFormatter({"Skipped", "Written"}) {}
+  constexpr formatter() : EnumFormatter({"Skipped", "Written"}) {}
 };
 
 union FieldMask
@@ -1420,9 +1618,9 @@ struct fmt::formatter<FieldMask>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const FieldMask& mask, FormatContext& ctx)
+  auto format(const FieldMask& mask, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Odd field: {}\nEven field: {}", mask.odd, mask.even);
+    return fmt::format_to(ctx.out(), "Odd field: {}\nEven field: {}", mask.odd, mask.even);
   }
 };
 
@@ -1443,7 +1641,7 @@ struct fmt::formatter<PixelFormat> : EnumFormatter<PixelFormat::YUV420>
 {
   static constexpr array_type names = {"RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24",
                                        "Y8",       "U8",        "V8",         "YUV420"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 enum class DepthFormat : u32
@@ -1466,7 +1664,7 @@ struct fmt::formatter<DepthFormat> : EnumFormatter<DepthFormat::ZINV_FAR>
       "linear",     "compressed (near)",     "compressed (mid)",     "compressed (far)",
       "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union PEControl
@@ -1482,13 +1680,13 @@ struct fmt::formatter<PEControl>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const PEControl& config, FormatContext& ctx)
+  auto format(const PEControl& config, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "EFB pixel format: {}\n"
-                     "Depth format: {}\n"
-                     "Early depth test: {}",
-                     config.pixel_format, config.zformat, config.early_ztest ? "Yes" : "No");
+    return fmt::format_to(ctx.out(),
+                          "EFB pixel format: {}\n"
+                          "Depth format: {}\n"
+                          "Early depth test: {}",
+                          config.pixel_format, config.zformat, config.early_ztest ? "Yes" : "No");
   }
 };
 
@@ -1509,17 +1707,17 @@ struct fmt::formatter<TCInfo>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TCInfo& info, FormatContext& ctx)
+  auto format(const TCInfo& info, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Scale: {}\n"
-                     "Range bias: {}\n"
-                     "Cylindric wrap: {}\n"
-                     "Use line offset: {} (s only)\n"
-                     "Use point offset: {} (s only)",
-                     info.scale_minus_1 + 1, info.range_bias ? "Yes" : "No",
-                     info.cylindric_wrap ? "Yes" : "No", info.line_offset ? "Yes" : "No",
-                     info.point_offset ? "Yes" : "No");
+    return fmt::format_to(ctx.out(),
+                          "Scale: {}\n"
+                          "Range bias: {}\n"
+                          "Cylindric wrap: {}\n"
+                          "Use line offset: {} (s only)\n"
+                          "Use point offset: {} (s only)",
+                          info.scale_minus_1 + 1, info.range_bias ? "Yes" : "No",
+                          info.cylindric_wrap ? "Yes" : "No", info.line_offset ? "Yes" : "No",
+                          info.point_offset ? "Yes" : "No");
   }
 };
 
@@ -1537,7 +1735,7 @@ enum class TevRegType : u32
 template <>
 struct fmt::formatter<TevRegType> : EnumFormatter<TevRegType::Constant>
 {
-  formatter() : EnumFormatter({"Color", "Constant"}) {}
+  constexpr formatter() : EnumFormatter({"Color", "Constant"}) {}
 };
 
 struct TevReg
@@ -1568,9 +1766,10 @@ struct fmt::formatter<TevReg::RA>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevReg::RA& ra, FormatContext& ctx)
+  auto format(const TevReg::RA& ra, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Type: {}\nAlpha: {:03x}\nRed: {:03x}", ra.type, ra.alpha, ra.red);
+    return fmt::format_to(ctx.out(), "Type: {}\nAlpha: {:03x}\nRed: {:03x}", ra.type, ra.alpha,
+                          ra.red);
   }
 };
 template <>
@@ -1578,10 +1777,10 @@ struct fmt::formatter<TevReg::BG>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevReg::BG& bg, FormatContext& ctx)
+  auto format(const TevReg::BG& bg, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Type: {}\nGreen: {:03x}\nBlue: {:03x}", bg.type, bg.green,
-                     bg.blue);
+    return fmt::format_to(ctx.out(), "Type: {}\nGreen: {:03x}\nBlue: {:03x}", bg.type, bg.green,
+                          bg.blue);
   }
 };
 template <>
@@ -1589,9 +1788,9 @@ struct fmt::formatter<TevReg>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevReg& reg, FormatContext& ctx)
+  auto format(const TevReg& reg, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "{}\n{}", reg.ra, reg.bg);
+    return fmt::format_to(ctx.out(), "{}\n{}", reg.ra, reg.bg);
   }
 };
 
@@ -1664,7 +1863,7 @@ struct fmt::formatter<KonstSel> : EnumFormatter<KonstSel::K3_A>
       "Konst 2 Alpha",
       "Konst 3 Alpha",
   };
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union TevKSel
@@ -1685,12 +1884,13 @@ struct fmt::formatter<TevKSel>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const TevKSel& ksel, FormatContext& ctx)
+  auto format(const TevKSel& ksel, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Swap 1: {}\nSwap 2: {}\nColor sel 0: {}\nAlpha sel 0: {}\n"
-                     "Color sel 1: {}\nAlpha sel 1: {}",
-                     ksel.swap1, ksel.swap2, ksel.kcsel0, ksel.kasel0, ksel.kcsel1, ksel.kasel1);
+    return fmt::format_to(ctx.out(),
+                          "Swap 1: {}\nSwap 2: {}\nColor sel 0: {}\nAlpha sel 0: {}\n"
+                          "Color sel 1: {}\nAlpha sel 1: {}",
+                          ksel.swap1, ksel.swap2, ksel.kcsel0, ksel.kasel0, ksel.kcsel1,
+                          ksel.kasel1);
   }
 };
 
@@ -1704,7 +1904,7 @@ enum class AlphaTestOp : u32
 template <>
 struct fmt::formatter<AlphaTestOp> : EnumFormatter<AlphaTestOp::Xnor>
 {
-  formatter() : EnumFormatter({"And", "Or", "Xor", "Xnor"}) {}
+  constexpr formatter() : EnumFormatter({"And", "Or", "Xor", "Xnor"}) {}
 };
 
 enum class AlphaTestResult
@@ -1771,13 +1971,13 @@ struct fmt::formatter<AlphaTest>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const AlphaTest& test, FormatContext& ctx)
+  auto format(const AlphaTest& test, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "Test 1: {} (ref: 0x{:02x})\n"
-                     "Test 2: {} (ref: 0x{:02x})\n"
-                     "Logic: {}\n",
-                     test.comp0, test.ref0, test.comp1, test.ref1, test.logic);
+    return fmt::format_to(ctx.out(),
+                          "Test 1: {} (ref: 0x{:02x})\n"
+                          "Test 2: {} (ref: 0x{:02x})\n"
+                          "Logic: {}\n",
+                          test.comp0, test.ref0, test.comp1, test.ref1, test.logic);
   }
 };
 
@@ -1792,7 +1992,7 @@ struct fmt::formatter<FrameToField> : EnumFormatter<FrameToField::InterlacedOdd>
 {
   static constexpr array_type names = {"Progressive", nullptr, "Interlaced (even lines)",
                                        "Interlaced (odd lines)"};
-  formatter() : EnumFormatter(names) {}
+  constexpr formatter() : EnumFormatter(names) {}
 };
 
 union UPE_Copy
@@ -1826,7 +2026,7 @@ struct fmt::formatter<UPE_Copy>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UPE_Copy& copy, FormatContext& ctx)
+  auto format(const UPE_Copy& copy, FormatContext& ctx) const
   {
     static constexpr std::array<const char*, 2> no_yes = {"No", "Yes"};
     std::string_view clamp;
@@ -1858,21 +2058,22 @@ struct fmt::formatter<UPE_Copy>
       break;
     }
 
-    return format_to(ctx.out(),
-                     "Clamping: {}\n"
-                     "Converting from RGB to YUV: {}\n"
-                     "Target pixel format: {}\n"
-                     "Gamma correction: {}\n"
-                     "Mipmap filter: {}\n"
-                     "Vertical scaling: {}\n"
-                     "Clear: {}\n"
-                     "Frame to field: {}\n"
-                     "Copy to XFB: {}\n"
-                     "Intensity format: {}\n"
-                     "Automatic color conversion: {}",
-                     clamp, no_yes[copy.yuv], copy.tp_realFormat(), gamma, no_yes[copy.half_scale],
-                     no_yes[copy.scale_invert], no_yes[copy.clear], copy.frame_to_field,
-                     no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt], no_yes[copy.auto_conv]);
+    return fmt::format_to(ctx.out(),
+                          "Clamping: {}\n"
+                          "Converting from RGB to YUV: {}\n"
+                          "Target pixel format: {}\n"
+                          "Gamma correction: {}\n"
+                          "Half scale: {}\n"
+                          "Vertical scaling: {}\n"
+                          "Clear: {}\n"
+                          "Frame to field: {}\n"
+                          "Copy to XFB: {}\n"
+                          "Intensity format: {}\n"
+                          "Automatic color conversion: {}",
+                          clamp, no_yes[copy.yuv], copy.tp_realFormat(), gamma,
+                          no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
+                          copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
+                          no_yes[copy.auto_conv]);
   }
 };
 
@@ -1915,9 +2116,9 @@ struct fmt::formatter<BPU_PreloadTileInfo>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const BPU_PreloadTileInfo& info, FormatContext& ctx)
+  auto format(const BPU_PreloadTileInfo& info, FormatContext& ctx) const
   {
-    return format_to(ctx.out(), "Type: {}\nCount: {}", info.type, info.count);
+    return fmt::format_to(ctx.out(), "Type: {}\nCount: {}", info.type, info.count);
   }
 };
 
@@ -1931,6 +2132,160 @@ struct BPS_TmemConfig
   u32 tlut_dest;
   u32 texinvalidate;
 };
+
+union AllTexUnits;
+
+// The addressing of the texture units is a bit non-obvious.
+// This struct abstracts the complexity away.
+union TexUnitAddress
+{
+  enum class Register : u32
+  {
+    SETMODE0 = 0,
+    SETMODE1 = 1,
+    SETIMAGE0 = 2,
+    SETIMAGE1 = 3,
+    SETIMAGE2 = 4,
+    SETIMAGE3 = 5,
+    SETTLUT = 6,
+    UNKNOWN = 7,
+  };
+
+  BitField<0, 2, u32> UnitIdLow;
+  BitField<2, 3, Register> Reg;
+  BitField<5, 1, u32> UnitIdHigh;
+
+  BitField<0, 6, u32> FullAddress;
+  u32 hex;
+
+  TexUnitAddress() : hex(0) {}
+  TexUnitAddress(u32 unit_id, Register reg = Register::SETMODE0) : hex(0)
+  {
+    UnitIdLow = unit_id & 3;
+    UnitIdHigh = unit_id >> 2;
+    Reg = reg;
+  }
+
+  static TexUnitAddress FromBPAddress(u32 Address)
+  {
+    TexUnitAddress Val;
+    // Clear upper two bits (which should always be 0x80)
+    Val.FullAddress = Address & 0x3f;
+    return Val;
+  }
+
+  u32 GetUnitID() const { return UnitIdLow | (UnitIdHigh << 2); }
+
+private:
+  friend AllTexUnits;
+
+  size_t GetOffset() const { return FullAddress; }
+  size_t GetBPAddress() const { return FullAddress | 0x80; }
+
+  static constexpr size_t ComputeOffset(u32 unit_id)
+  {
+    // FIXME: Would be nice to construct a TexUnitAddress and get its offset,
+    // but that doesn't seem to be possible in c++17
+
+    // So we manually re-implement the calculation
+    return (unit_id & 3) | ((unit_id & 4) << 3);
+  }
+};
+static_assert(sizeof(TexUnitAddress) == sizeof(u32));
+
+// A view of the registers of a single TexUnit
+struct TexUnit
+{
+  TexMode0 texMode0;
+  u32 : 32;  // doing u32 : 96 is legal according to the standard, but msvc
+  u32 : 32;  // doesn't like it. So we stack multiple lines of u32 : 32;
+  u32 : 32;
+  TexMode1 texMode1;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage0 texImage0;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage1 texImage1;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage2 texImage2;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexImage3 texImage3;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  TexTLUT texTlut;
+  u32 : 32;
+  u32 : 32;
+  u32 : 32;
+  u32 unknown;
+};
+static_assert(sizeof(TexUnit) == sizeof(u32) * 4 * 7 + sizeof(u32));
+
+union AllTexUnits
+{
+  std::array<u32, 8 * 8> AllRegisters;
+
+  const TexUnit& GetUnit(u32 UnitId) const
+  {
+    auto address = TexUnitAddress(UnitId);
+    const u32* ptr = &AllRegisters[address.GetOffset()];
+    return *reinterpret_cast<const TexUnit*>(ptr);
+  }
+
+private:
+  // For debuggers since GetUnit can be optimised out in release builds
+  template <u32 UnitId>
+  struct TexUnitPadding
+  {
+    static_assert(UnitId != 0, "Can't use 0 as sizeof(std::array<u32, 0>) != 0");
+    std::array<u32, TexUnitAddress::ComputeOffset(UnitId)> pad;
+  };
+
+  TexUnit tex0;
+  struct
+  {
+    TexUnitPadding<1> pad1;
+    TexUnit tex1;
+  };
+  struct
+  {
+    TexUnitPadding<2> pad2;
+    TexUnit tex2;
+  };
+  struct
+  {
+    TexUnitPadding<3> pad3;
+    TexUnit tex3;
+  };
+  struct
+  {
+    TexUnitPadding<4> pad4;
+    TexUnit tex4;
+  };
+  struct
+  {
+    TexUnitPadding<5> pad5;
+    TexUnit tex5;
+  };
+  struct
+  {
+    TexUnitPadding<6> pad6;
+    TexUnit tex6;
+  };
+  struct
+  {
+    TexUnitPadding<7> pad7;
+    TexUnit tex7;
+  };
+};
+static_assert(sizeof(AllTexUnits) == 8 * 8 * sizeof(u32));
 
 // All of BP memory
 
@@ -1996,7 +2351,7 @@ struct BPMemory
   FieldMode fieldmode;                // 68
   u32 unknown10[7];                   // 69-6F
   u32 unknown11[16];                  // 70-7F
-  FourTexUnits tex[2];                // 80-bf
+  AllTexUnits tex;                    // 80-bf
   TevStageCombiner combiners[16];     // 0xC0-0xDF
   TevReg tevregs[4];                  // 0xE0
   FogRangeParams fogRange;            // 0xE8
@@ -2016,7 +2371,7 @@ struct BPMemory
 
 extern BPMemory bpmem;
 
-void LoadBPReg(u32 value0);
-void LoadBPRegPreprocess(u32 value0);
+void LoadBPReg(u8 reg, u32 value, int cycles_into_future);
+void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future);
 
 std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata);

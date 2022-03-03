@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -132,7 +131,7 @@ public:
   u32 GetImportsNameTable() const;
 
 private:
-  RSOHeader m_header;
+  RSOHeader m_header{};
   std::string m_name;
   u32 m_address = 0;
 };

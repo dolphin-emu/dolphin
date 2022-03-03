@@ -1,11 +1,13 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <string>
+#include <utility>
+#include <variant>
 #include <vector>
+
 #include "Common/CommonTypes.h"
 
 class IniFile;
@@ -14,10 +16,10 @@ namespace ActionReplay
 {
 struct AREntry
 {
-  AREntry() {}
+  AREntry() = default;
   AREntry(u32 _addr, u32 _value) : cmd_addr(_addr), value(_value) {}
-  u32 cmd_addr;
-  u32 value;
+  u32 cmd_addr = 0;
+  u32 value = 0;
 };
 constexpr bool operator==(const AREntry& left, const AREntry& right)
 {
@@ -44,6 +46,10 @@ void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
 
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
 void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes);
+
+using EncryptedLine = std::string;
+std::variant<std::monostate, AREntry, EncryptedLine> DeserializeLine(const std::string& line);
+std::string SerializeLine(const AREntry& op);
 
 void EnableSelfLogging(bool enable);
 std::vector<std::string> GetSelfLog();

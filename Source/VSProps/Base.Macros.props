@@ -11,6 +11,7 @@
     <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
     <SourceDir>$(DolphinRootDir)Source\</SourceDir>
     <CoreDir>$(SourceDir)Core\</CoreDir>
+    <CScript>%windir%\System32\cscript</CScript>
     <VSPropsDir>$(SourceDir)VSProps\</VSPropsDir>
   </PropertyGroup>
   <PropertyGroup>

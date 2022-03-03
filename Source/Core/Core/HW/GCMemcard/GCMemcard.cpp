@@ -1,11 +1,9 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstring>
 #include <utility>
 #include <vector>
@@ -114,7 +112,7 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
 
   // read the entire card into memory
   GCMemcard card;
-  file.Seek(0, SEEK_SET);
+  file.Seek(0, File::SeekOrigin::Begin);
   if (!file.ReadBytes(&card.m_header_block, BLOCK_SIZE) ||
       !file.ReadBytes(&card.m_directory_blocks[0], BLOCK_SIZE) ||
       !file.ReadBytes(&card.m_directory_blocks[1], BLOCK_SIZE) ||
@@ -312,7 +310,7 @@ bool GCMemcard::IsShiftJIS() const
 bool GCMemcard::Save()
 {
   File::IOFile mcdFile(m_filename, "wb");
-  mcdFile.Seek(0, SEEK_SET);
+  mcdFile.Seek(0, File::SeekOrigin::Begin);
 
   mcdFile.WriteBytes(&m_header_block, BLOCK_SIZE);
   mcdFile.WriteBytes(&m_directory_blocks[0], BLOCK_SIZE);
@@ -673,7 +671,7 @@ std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
 BlockAlloc::BlockAlloc(u16 size_mbits)
 {
   memset(this, 0, BLOCK_SIZE);
-  m_free_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
+  m_free_blocks = MbitToFreeBlocks(size_mbits);
   m_last_allocated_block = 4;
   FixChecksums();
 }

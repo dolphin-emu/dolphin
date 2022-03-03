@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/StringUtil.h"
 
@@ -343,19 +342,6 @@ std::string PathToFileName(std::string_view path)
   return file_name + extension;
 }
 
-void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
-                           std::string_view filename)
-{
-  complete_filename = path;
-
-  // check for seperator
-  if (DIR_SEP_CHR != *complete_filename.rbegin())
-    complete_filename += DIR_SEP_CHR;
-
-  // add the filename
-  complete_filename += filename;
-}
-
 std::vector<std::string> SplitString(const std::string& str, const char delim)
 {
   std::istringstream iss(str);
@@ -683,3 +669,16 @@ std::string GetEscapedHtml(std::string html)
   }
   return html;
 }
+
+namespace Common
+{
+void ToLower(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+}
+
+void ToUpper(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+}
+}  // namespace Common

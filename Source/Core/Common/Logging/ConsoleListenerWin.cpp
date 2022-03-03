@@ -1,10 +1,10 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/Logging/ConsoleListener.h"
 
 #include <windows.h>
 
-#include "Common/Logging/ConsoleListener.h"
 #include "Common/StringUtil.h"
 
 ConsoleListener::ConsoleListener()
@@ -15,7 +15,7 @@ ConsoleListener::~ConsoleListener()
 {
 }
 
-void ConsoleListener::Log([[maybe_unused]] Common::Log::LOG_LEVELS level, const char* text)
+void ConsoleListener::Log([[maybe_unused]] Common::Log::LogLevel level, const char* text)
 {
   ::OutputDebugStringW(UTF8ToWString(text).c_str());
 }

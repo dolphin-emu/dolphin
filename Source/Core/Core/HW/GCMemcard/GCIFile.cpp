@@ -1,10 +1,7 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCMemcard/GCIFile.h"
-
-#include <cinttypes>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -58,7 +55,7 @@ bool GCIFile::LoadSaveBlocks()
     }
 
     m_save_data.resize(num_blocks);
-    save_file.Seek(DENTRY_SIZE, SEEK_SET);
+    save_file.Seek(DENTRY_SIZE, File::SeekOrigin::Begin);
     if (!save_file.ReadBytes(m_save_data.data(), size))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "Failed to read data from GCI file {}", m_filename);

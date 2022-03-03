@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/GCPadEmu.h"
 
@@ -198,10 +197,6 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   // Start
   m_buttons->SetControlExpression(5, "`Return`");
 #endif
-
-  // stick modifiers to 50 %
-  m_main_stick->controls[4]->control_ref->range = 0.5f;
-  m_c_stick->controls[4]->control_ref->range = 0.5f;
 
   // D-Pad
   m_dpad->SetControlExpression(0, "`T`");  // Up

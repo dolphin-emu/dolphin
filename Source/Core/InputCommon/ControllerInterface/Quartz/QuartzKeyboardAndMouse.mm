@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
@@ -136,7 +135,7 @@ std::string KeyboardAndMouse::Key::GetName() const
   return m_name;
 }
 
-KeyboardAndMouse::KeyboardAndMouse(void* window)
+KeyboardAndMouse::KeyboardAndMouse(void* view)
 {
   // All keycodes in <HIToolbox/Events.h> are 0x7e or lower. If you notice
   // keys that aren't being recognized, bump this number up!
@@ -148,7 +147,20 @@ KeyboardAndMouse::KeyboardAndMouse(void* window)
   AddCombinedInput("Shift", {"Left Shift", "Right Shift"});
   AddCombinedInput("Ctrl", {"Left Control", "Right Control"});
 
-  m_windowid = [[reinterpret_cast<NSView*>(window) window] windowNumber];
+  NSView* cocoa_view = reinterpret_cast<NSView*>(view);
+
+  // PopulateDevices may be called on the Emuthread, so we need to ensure that
+  // these UI APIs are only ever called on the main thread.
+  if ([NSThread isMainThread])
+  {
+    m_windowid = [[cocoa_view window] windowNumber];
+  }
+  else
+  {
+    dispatch_sync(dispatch_get_main_queue(), ^{
+      m_windowid = [[cocoa_view window] windowNumber];
+    });
+  }
 
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)

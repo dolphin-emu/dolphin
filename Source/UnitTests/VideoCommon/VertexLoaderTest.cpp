@@ -1,6 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <limits>
 #include <memory>
@@ -24,12 +23,11 @@ TEST(VertexLoaderUID, UniqueEnough)
   std::unordered_set<VertexLoaderUID> uids;
 
   TVtxDesc vtx_desc;
-  memset(&vtx_desc, 0, sizeof(vtx_desc));
   VAT vat;
-  memset(&vat, 0, sizeof(vat));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
-  vtx_desc.SetLegacyHex(0xFEDCBA9876543210ull);
+  vtx_desc.low.Hex = 0x76543210;
+  vtx_desc.high.Hex = 0xFEDCBA98;
   EXPECT_EQ(uids.end(), uids.find(VertexLoaderUID(vtx_desc, vat)));
   uids.insert(VertexLoaderUID(vtx_desc, vat));
 
@@ -51,8 +49,12 @@ protected:
     memset(input_memory, 0, sizeof(input_memory));
     memset(output_memory, 0xFF, sizeof(input_memory));
 
-    memset(&m_vtx_desc, 0, sizeof(m_vtx_desc));
-    memset(&m_vtx_attr, 0, sizeof(m_vtx_attr));
+    m_vtx_desc.low.Hex = 0;
+    m_vtx_desc.high.Hex = 0;
+
+    m_vtx_attr.g0.Hex = 0;
+    m_vtx_attr.g1.Hex = 0;
+    m_vtx_attr.g2.Hex = 0;
 
     m_loader = nullptr;
 
@@ -172,8 +174,8 @@ TEST_P(VertexLoaderParamTest, PositionAll)
         Input<u8>(i);
       else
         Input<u16>(i);
-    VertexLoaderManager::cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
-    g_main_cp_state.array_strides[ARRAY_POSITION] = elem_count * elem_size;
+    VertexLoaderManager::cached_arraybases[CPArray::Position] = m_src.GetPointer();
+    g_main_cp_state.array_strides[CPArray::Position] = elem_count * elem_size;
   }
   CreateAndCheckSizes(input_size, elem_count * sizeof(float));
   for (float value : values)
@@ -241,8 +243,8 @@ TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
   CreateAndCheckSizes(sizeof(u16), 2 * sizeof(float));
   Input<u16>(1);
   Input<u16>(0);
-  VertexLoaderManager::cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
-  g_main_cp_state.array_strides[ARRAY_POSITION] = sizeof(float);  // ;)
+  VertexLoaderManager::cached_arraybases[CPArray::Position] = m_src.GetPointer();
+  g_main_cp_state.array_strides[CPArray::Position] = sizeof(float);  // ;)
   Input(1.f);
   Input(2.f);
   Input(3.f);
@@ -355,8 +357,8 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
   for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
   {
-    VertexLoaderManager::cached_arraybases[i] = m_src.GetPointer();
-    g_main_cp_state.array_strides[i] = 129;
+    VertexLoaderManager::cached_arraybases[static_cast<CPArray>(i)] = m_src.GetPointer();
+    g_main_cp_state.array_strides[static_cast<CPArray>(i)] = 129;
   }
 
   // This test is only done 100x in a row since it's ~20x slower using the

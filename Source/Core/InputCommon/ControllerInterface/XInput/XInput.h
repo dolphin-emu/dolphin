@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // XInput suffers a similar issue as XAudio2. Since Win8, it is part of the OS.
 // However, unlike XAudio2 they have not made the API incompatible - so we just
@@ -32,6 +31,7 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
   std::optional<int> GetPreferredId() const override;
+  int GetSortPriority() const override { return -1; }
 
   void UpdateInput() override;
 

@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -87,7 +86,7 @@ private:
 
   struct SwapChainImage
   {
-    VkImage image;
+    VkImage image{};
     std::unique_ptr<VKTexture> texture;
     std::unique_ptr<VKFramebuffer> framebuffer;
   };
@@ -95,7 +94,7 @@ private:
   WindowSystemInfo m_wsi;
   VkSurfaceKHR m_surface = VK_NULL_HANDLE;
   VkSurfaceFormatKHR m_surface_format = {};
-  VkPresentModeKHR m_present_mode = VK_PRESENT_MODE_RANGE_SIZE_KHR;
+  VkPresentModeKHR m_present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
   AbstractTextureFormat m_texture_format = AbstractTextureFormat::Undefined;
   bool m_vsync_enabled = false;
   bool m_fullscreen_supported = false;

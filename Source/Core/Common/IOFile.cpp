@@ -1,6 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/IOFile.h"
 
 #include <cstddef>
 #include <cstdio>
@@ -23,7 +24,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IOFile.h"
 
 namespace File
 {
@@ -94,7 +94,7 @@ bool IOFile::Close()
 void IOFile::SetHandle(std::FILE* file)
 {
   Close();
-  Clear();
+  ClearError();
   m_file = file;
 }
 
@@ -106,9 +106,25 @@ u64 IOFile::GetSize() const
     return 0;
 }
 
-bool IOFile::Seek(s64 off, int origin)
+bool IOFile::Seek(s64 offset, SeekOrigin origin)
 {
-  if (!IsOpen() || 0 != fseeko(m_file, off, origin))
+  int fseek_origin;
+  switch (origin)
+  {
+  case SeekOrigin::Begin:
+    fseek_origin = SEEK_SET;
+    break;
+  case SeekOrigin::Current:
+    fseek_origin = SEEK_CUR;
+    break;
+  case SeekOrigin::End:
+    fseek_origin = SEEK_END;
+    break;
+  default:
+    return false;
+  }
+
+  if (!IsOpen() || 0 != fseeko(m_file, offset, fseek_origin))
     m_good = false;
 
   return m_good;

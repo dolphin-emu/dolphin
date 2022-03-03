@@ -1,7 +1,6 @@
-package org.dolphinemu.dolphinemu.ui.platform;
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-import androidx.annotation.Nullable;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+package org.dolphinemu.dolphinemu.ui.platform;
 
 /**
  * Abstraction for a screen representing a single platform's games.

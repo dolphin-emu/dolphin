@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // No Wii socket support while using NetPlay or TAS
 #include "Core/IOS/Network/Socket.h"
@@ -323,7 +322,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
         ReturnValue = WiiSockMan::GetInstance().AddSocket(ret, true);
 
-        ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::IOS_NET);
+        ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::LogType::IOS_NET);
         break;
       }
       default:

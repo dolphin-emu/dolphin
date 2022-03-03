@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 
@@ -364,7 +363,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       File::OpenFStream(file, filename, std::ios_base::out);
       file << s_glsl_header << code << info_log;
       file << "\n";
-      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
@@ -409,7 +408,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
 
       file << info_log;
       file << "\n";
-      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
@@ -693,7 +692,6 @@ void ProgramShaderCache::CreateHeader()
   {
   case EsFbFetchType::FbFetchExt:
     framebuffer_fetch_string = "#extension GL_EXT_shader_framebuffer_fetch: enable\n"
-                               "#define FB_FETCH_VALUE real_ocol0\n"
                                "#define FRAGMENT_INOUT inout";
     break;
   case EsFbFetchType::FbFetchArm:
@@ -748,6 +746,8 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // shader image load store
       "%s\n"  // shader framebuffer fetch
       "%s\n"  // shader thread shuffle
+      "%s\n"  // derivative control
+      "%s\n"  // query levels
 
       // Precision defines for GLSL ES
       "%s\n"
@@ -827,12 +827,18 @@ void ProgramShaderCache::CreateHeader()
           "#extension GL_ARB_shader_image_load_store : enable" :
           "",
       framebuffer_fetch_string.c_str(), shader_shuffle_string.c_str(),
+      g_ActiveConfig.backend_info.bSupportsCoarseDerivatives ?
+          "#extension GL_ARB_derivative_control : enable" :
+          "",
+      g_ActiveConfig.backend_info.bSupportsTextureQueryLevels ?
+          "#extension GL_ARB_texture_query_levels : enable" :
+          "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
-      v > GlslEs300 ? "precision highp sampler2DMS;" : "",
+      v > GlslEs300 ? "precision highp sampler2DMSArray;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
 }
 

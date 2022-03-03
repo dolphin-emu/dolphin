@@ -1,4 +1,4 @@
-// This file is public domain, in case it's useful to anyone. -comex
+// SPDX-License-Identifier: CC0-1.0
 
 #include "Common/TraversalClient.h"
 
@@ -194,7 +194,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     break;
   }
   default:
-    WARN_LOG_FMT(NETPLAY, "Received unknown packet with type {}", packet->type);
+    WARN_LOG_FMT(NETPLAY, "Received unknown packet with type {}", static_cast<int>(packet->type));
     break;
   }
   if (packet->type != TraversalPacketType::Ack)

@@ -1,1 +1,0 @@
-MoltenVK from https://vulkan.lunarg.com/sdk/home#mac, version 1.2.170.0

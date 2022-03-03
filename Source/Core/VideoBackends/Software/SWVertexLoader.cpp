@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/Software/SWVertexLoader.h"
 
@@ -37,24 +36,29 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
 {
   DebugUtil::OnObjectBegin();
 
-  u8 primitiveType = 0;
+  using OpcodeDecoder::Primitive;
+  Primitive primitive_type = Primitive::GX_DRAW_QUADS;
   switch (m_current_primitive_type)
   {
   case PrimitiveType::Points:
-    primitiveType = OpcodeDecoder::GX_DRAW_POINTS;
+    primitive_type = Primitive::GX_DRAW_POINTS;
     break;
   case PrimitiveType::Lines:
-    primitiveType = OpcodeDecoder::GX_DRAW_LINES;
+    primitive_type = Primitive::GX_DRAW_LINES;
     break;
   case PrimitiveType::Triangles:
-    primitiveType = OpcodeDecoder::GX_DRAW_TRIANGLES;
+    primitive_type = Primitive::GX_DRAW_TRIANGLES;
     break;
   case PrimitiveType::TriangleStrip:
-    primitiveType = OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP;
+    primitive_type = Primitive::GX_DRAW_TRIANGLE_STRIP;
     break;
   }
 
-  m_setup_unit.Init(primitiveType);
+  // Flush bounding box here because software overrides the base function
+  if (g_renderer->IsBBoxEnabled())
+    g_renderer->BBoxFlush();
+
+  m_setup_unit.Init(primitive_type);
 
   // set all states with are stored within video sw
   for (int i = 0; i < 4; i++)
@@ -71,7 +75,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
 
     // parse the videocommon format to our own struct format (m_vertex)
-    SetFormat(g_main_cp_state.last_id, primitiveType);
+    SetFormat();
     ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
 
     // transform this vertex so that it can be used for rasterization (outVertex)
@@ -95,7 +99,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   DebugUtil::OnObjectEnd();
 }
 
-void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
+void SWVertexLoader::SetFormat()
 {
   // matrix index from xf regs or cp memory?
   if (xfmem.MatrixIndexA.PosNormalMtxIdx != g_main_cp_state.matrix_index_a.PosNormalMtxIdx ||
@@ -141,7 +145,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
   if (format.enable)
   {
     src.Skip(format.offset);
-    src.Skip(base_component * (1 << (format.type >> 1)));
+    src.Skip(base_component * GetElementSize(format.type));
 
     int i;
     for (i = 0; i < std::min(format.components - base_component, components); i++)
@@ -149,24 +153,24 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
       int i_dst = reverse ? components - i - 1 : i;
       switch (format.type)
       {
-      case VAR_UNSIGNED_BYTE:
+      case ComponentFormat::UByte:
         dst[i_dst] = ReadNormalized<T, u8>(src.Read<u8, swap>());
         break;
-      case VAR_BYTE:
+      case ComponentFormat::Byte:
         dst[i_dst] = ReadNormalized<T, s8>(src.Read<s8, swap>());
         break;
-      case VAR_UNSIGNED_SHORT:
+      case ComponentFormat::UShort:
         dst[i_dst] = ReadNormalized<T, u16>(src.Read<u16, swap>());
         break;
-      case VAR_SHORT:
+      case ComponentFormat::Short:
         dst[i_dst] = ReadNormalized<T, s16>(src.Read<s16, swap>());
         break;
-      case VAR_FLOAT:
+      case ComponentFormat::Float:
         dst[i_dst] = ReadNormalized<T, float>(src.Read<float, swap>());
         break;
       }
 
-      ASSERT_MSG(VIDEO, !format.integer || format.type != VAR_FLOAT,
+      ASSERT_MSG(VIDEO, !format.integer || format.type != ComponentFormat::Float,
                  "only non-float values are allowed to be streamed as integer");
     }
     for (; i < components; i++)
@@ -180,14 +184,11 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
 static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
                                  const PortableVertexDeclaration& vdec)
 {
-  const auto set_default_color = [](u8* color, int i) {
-    // The default alpha channel seems to depend on the number of components in the vertex format.
-    const auto& g0 = g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0;
-    const auto color_elements = i == 0 ? g0.Color0Elements.Value() : g0.Color1Elements.Value();
-    color[0] = color_elements == ColorComponentCount::RGB ? 255 : 0;
-    color[1] = 255;
-    color[2] = 255;
-    color[3] = 255;
+  const auto set_default_color = [](std::array<u8, 4>& color) {
+    color[Tev::ALP_C] = g_ActiveConfig.iMissingColorValue & 0xFF;
+    color[Tev::BLU_C] = (g_ActiveConfig.iMissingColorValue >> 8) & 0xFF;
+    color[Tev::GRN_C] = (g_ActiveConfig.iMissingColorValue >> 16) & 0xFF;
+    color[Tev::RED_C] = (g_ActiveConfig.iMissingColorValue >> 24) & 0xFF;
   };
 
   if (vdec.colors[0].enable)
@@ -197,7 +198,7 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
     if (vdec.colors[1].enable)
       ReadVertexAttribute<u8>(dst->color[1].data(), src, vdec.colors[1], 0, 4, true);
     else
-      set_default_color(dst->color[1].data(), 1);
+      set_default_color(dst->color[1]);
   }
   else
   {
@@ -205,8 +206,8 @@ static void ParseColorAttributes(InputVertexData* dst, DataReader& src,
     if (vdec.colors[1].enable)
       ReadVertexAttribute<u8>(dst->color[0].data(), src, vdec.colors[1], 0, 4, true);
     else
-      set_default_color(dst->color[0].data(), 0);
-    set_default_color(dst->color[1].data(), 1);
+      set_default_color(dst->color[0]);
+    set_default_color(dst->color[1]);
   }
 }
 

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -111,12 +110,9 @@ private:
   struct ExecutingCommandInfo
   {
     ExecutingCommandInfo() {}
-    ExecutingCommandInfo(u32 request_address)
-        : m_request_address(request_address), m_copy_diimmbuf(false)
-    {
-    }
-    u32 m_request_address;
-    bool m_copy_diimmbuf;
+    ExecutingCommandInfo(u32 request_address) : m_request_address(request_address) {}
+    u32 m_request_address = 0;
+    bool m_copy_diimmbuf = false;
   };
 
   friend class ::CBoot;

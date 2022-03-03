@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DSPLLE/DSPLLE.h"
 
@@ -16,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DSP/DSPAccelerator.h"
@@ -25,7 +25,6 @@
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitterBase.h"
-#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 
@@ -122,11 +121,11 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
   opts->core_type = DSPInitOptions::CoreType::Interpreter;
 #ifdef _M_X86
-  if (SConfig::GetInstance().m_DSPEnableJIT)
+  if (Config::Get(Config::MAIN_DSP_JIT))
     opts->core_type = DSPInitOptions::CoreType::JIT64;
 #endif
 
-  if (SConfig::GetInstance().m_DSPCaptureLog)
+  if (Config::Get(Config::MAIN_DSP_CAPTURE_LOG))
   {
     const std::string pcap_path = File::GetUserPath(D_DUMPDSP_IDX) + "dsp.pcap";
     opts->capture_logger = new PCAPDSPCaptureLogger(pcap_path);
@@ -186,7 +185,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 value)
 {
   m_dsp_core.GetInterpreter().WriteCR(value);
 
-  if ((value & 2) != 0)
+  if ((value & CR_EXTERNAL_INT) != 0)
   {
     if (m_is_dsp_on_thread)
     {
@@ -265,7 +264,7 @@ void DSPLLE::DSP_Update(int cycles)
       DSP_StopSoundStream();
       m_is_dsp_on_thread = false;
       m_request_disable_thread = false;
-      SConfig::GetInstance().bDSPThread = false;
+      Config::SetBaseOrCurrent(Config::MAIN_DSP_THREAD, false);
     }
   }
 

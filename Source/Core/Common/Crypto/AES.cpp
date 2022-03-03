@@ -1,10 +1,9 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
-
-#include <mbedtls/aes.h>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/Crypto/AES.h"
+
+#include <mbedtls/aes.h>
 
 namespace Common::AES
 {

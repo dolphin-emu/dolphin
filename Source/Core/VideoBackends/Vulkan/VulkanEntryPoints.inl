@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Expands the VULKAN_ENTRY_POINT macro for each function when this file is included.
 // Parameters: Function name, is required
@@ -62,6 +61,7 @@ VULKAN_INSTANCE_ENTRY_POINT(vkDestroyDebugReportCallbackEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkDebugReportMessageEXT, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceProperties2, false)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceSurfaceCapabilities2KHR, false)
+VULKAN_INSTANCE_ENTRY_POINT(vkSetDebugUtilsObjectNameEXT, false)
 
 #endif  // VULKAN_INSTANCE_ENTRY_POINT
 

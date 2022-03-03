@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/HW/WiimoteReal/IOhidapi.h"
 
 #include <algorithm>
 
@@ -8,7 +9,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
-#include "Core/HW/WiimoteReal/IOhidapi.h"
 
 using namespace WiimoteCommon;
 using namespace WiimoteReal;

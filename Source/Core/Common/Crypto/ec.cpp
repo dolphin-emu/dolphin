@@ -1,24 +1,16 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
-
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
-// Licensed under the terms of the GNU GPL, version 2
-// http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/Crypto/ec.h"
 
 #include <algorithm>
 #include <cstring>
 
 #include "Common/Crypto/bn.h"
-#include "Common/Crypto/ec.h"
 #include "Common/Inline.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4505)
-#endif
 
 namespace Common::ec
 {
@@ -302,7 +294,4 @@ std::array<u8, 60> ComputeSharedSecret(const u8* private_key, const u8* public_k
   std::copy_n(data.Data(), shared_secret.size(), shared_secret.begin());
   return shared_secret;
 }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 }  // namespace Common::ec

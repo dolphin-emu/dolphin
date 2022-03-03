@@ -1,6 +1,5 @@
 // Copyright 2011 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -171,14 +170,14 @@ private:
   void MovToMemory(size_t reg);
   void FlushMemBackedRegs();
 
-  std::array<DynamicReg, 37> m_regs;
-  std::array<X64CachedReg, 16> m_xregs;
+  std::array<DynamicReg, 37> m_regs{};
+  std::array<X64CachedReg, 16> m_xregs{};
 
   DSPEmitter& m_emitter;
   bool m_is_temporary;
-  bool m_is_merged;
+  bool m_is_merged = false;
 
-  int m_use_ctr;
+  int m_use_ctr = 0;
 };
 
 }  // namespace DSP::JIT::x64

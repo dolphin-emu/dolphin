@@ -1,13 +1,16 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <d3d11.h>
 #include <memory>
+#include <string>
+#include <string_view>
+
 #include "Common/CommonTypes.h"
 
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -19,7 +22,7 @@ class DXTexture final : public AbstractTexture
 public:
   ~DXTexture();
 
-  static std::unique_ptr<DXTexture> Create(const TextureConfig& config);
+  static std::unique_ptr<DXTexture> Create(const TextureConfig& config, std::string_view name);
   static std::unique_ptr<DXTexture> CreateAdopted(ComPtr<ID3D11Texture2D> texture);
 
   void CopyRectangleFromTexture(const AbstractTexture* src,
@@ -36,7 +39,7 @@ public:
   ID3D11UnorderedAccessView* GetD3DUAV() const { return m_uav.Get(); }
 
 private:
-  DXTexture(const TextureConfig& config, ComPtr<ID3D11Texture2D> texture);
+  DXTexture(const TextureConfig& config, ComPtr<ID3D11Texture2D> texture, std::string_view name);
 
   bool CreateSRV();
   bool CreateUAV();
@@ -44,6 +47,7 @@ private:
   ComPtr<ID3D11Texture2D> m_texture;
   ComPtr<ID3D11ShaderResourceView> m_srv;
   ComPtr<ID3D11UnorderedAccessView> m_uav;
+  std::string m_name;
 };
 
 class DXStagingTexture final : public AbstractStagingTexture

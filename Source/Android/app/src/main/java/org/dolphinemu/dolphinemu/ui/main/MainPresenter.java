@@ -1,32 +1,37 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.ui.main;
 
-import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 
+import androidx.activity.ComponentActivity;
 import androidx.appcompat.app.AlertDialog;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.OnlineUpdateProgressBarDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 public final class MainPresenter
 {
@@ -40,14 +45,13 @@ public final class MainPresenter
   private static boolean sShouldRescanLibrary = true;
 
   private final MainView mView;
-  private final Context mContext;
-  private BroadcastReceiver mBroadcastReceiver = null;
+  private final FragmentActivity mActivity;
   private String mDirToAdd;
 
-  public MainPresenter(MainView view, Context context)
+  public MainPresenter(MainView view, FragmentActivity activity)
   {
     mView = view;
-    mContext = context;
+    mActivity = activity;
   }
 
   public void onCreate()
@@ -55,34 +59,18 @@ public final class MainPresenter
     String versionName = BuildConfig.VERSION_NAME;
     mView.setVersionString(versionName);
 
-    IntentFilter filter = new IntentFilter();
-    filter.addAction(GameFileCacheService.CACHE_UPDATED);
-    filter.addAction(GameFileCacheService.DONE_LOADING);
-    mBroadcastReceiver = new BroadcastReceiver()
+    GameFileCacheManager.getGameFiles().observe(mActivity, (gameFiles) -> mView.showGames());
+
+    Observer<Boolean> refreshObserver = (isLoading) ->
     {
-      @Override
-      public void onReceive(Context context, Intent intent)
-      {
-        switch (intent.getAction())
-        {
-          case GameFileCacheService.CACHE_UPDATED:
-            mView.showGames();
-            break;
-          case GameFileCacheService.DONE_LOADING:
-            mView.setRefreshing(false);
-            break;
-        }
-      }
+      mView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
     };
-    LocalBroadcastManager.getInstance(mContext).registerReceiver(mBroadcastReceiver, filter);
+    GameFileCacheManager.isLoading().observe(mActivity, refreshObserver);
+    GameFileCacheManager.isRescanning().observe(mActivity, refreshObserver);
   }
 
   public void onDestroy()
   {
-    if (mBroadcastReceiver != null)
-    {
-      LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiver);
-    }
   }
 
   public void onFabClick()
@@ -90,7 +78,7 @@ public final class MainPresenter
     mView.launchFileListActivity();
   }
 
-  public boolean handleOptionSelection(int itemId, Context context)
+  public boolean handleOptionSelection(int itemId, ComponentActivity activity)
   {
     switch (itemId)
     {
@@ -100,7 +88,7 @@ public final class MainPresenter
 
       case R.id.menu_refresh:
         mView.setRefreshing(true);
-        GameFileCacheService.startRescan(context);
+        GameFileCacheManager.startRescan(activity);
         return true;
 
       case R.id.button_add_directory:
@@ -111,18 +99,26 @@ public final class MainPresenter
         mView.launchOpenFileActivity(REQUEST_GAME_FILE);
         return true;
 
+      case R.id.menu_load_wii_system_menu:
+        launchWiiSystemMenu();
+        return true;
+
+      case R.id.menu_online_system_update:
+        launchOnlineUpdate();
+        return true;
+
       case R.id.menu_install_wad:
-        new AfterDirectoryInitializationRunner().run(context, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
                 () -> mView.launchOpenFileActivity(REQUEST_WAD_FILE));
         return true;
 
       case R.id.menu_import_wii_save:
-        new AfterDirectoryInitializationRunner().run(context, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
                 () -> mView.launchOpenFileActivity(REQUEST_WII_SAVE_FILE));
         return true;
 
       case R.id.menu_import_nand_backup:
-        new AfterDirectoryInitializationRunner().run(context, true,
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
                 () -> mView.launchOpenFileActivity(REQUEST_NAND_BIN_FILE));
         return true;
     }
@@ -138,13 +134,9 @@ public final class MainPresenter
       mDirToAdd = null;
     }
 
-    if (sShouldRescanLibrary && !GameFileCacheService.isRescanning())
+    if (sShouldRescanLibrary)
     {
-      new AfterDirectoryInitializationRunner().run(mContext, false, () ->
-      {
-        mView.setRefreshing(true);
-        GameFileCacheService.startRescan(mContext);
-      });
+      GameFileCacheManager.startRescan(mActivity);
     }
 
     sShouldRescanLibrary = true;
@@ -170,48 +162,46 @@ public final class MainPresenter
     if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
             FileBrowserHelper.getExtension(name, false))))
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
-      builder.setMessage(mContext.getString(R.string.wrong_file_extension_in_directory,
+      AlertDialog.Builder builder = new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+      builder.setMessage(mActivity.getString(R.string.wrong_file_extension_in_directory,
               FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)));
       builder.setPositiveButton(R.string.ok, null);
       builder.show();
     }
 
-    ContentResolver contentResolver = mContext.getContentResolver();
+    ContentResolver contentResolver = mActivity.getContentResolver();
     Uri canonicalizedUri = contentResolver.canonicalize(uri);
     if (canonicalizedUri != null)
       uri = canonicalizedUri;
 
     int takeFlags = result.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
-    mContext.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+    mActivity.getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
     mDirToAdd = uri.toString();
   }
 
   public void installWAD(String path)
   {
-    runOnThreadAndShowResult(R.string.import_in_progress, 0, () ->
+    ThreadUtil.runOnThreadAndShowResult(mActivity, R.string.import_in_progress, 0, () ->
     {
       boolean success = WiiUtils.installWAD(path);
       int message = success ? R.string.wad_install_success : R.string.wad_install_failure;
-      return mContext.getResources().getString(message);
+      return mActivity.getResources().getString(message);
     });
   }
 
   public void importWiiSave(String path)
   {
-    final Activity mainPresenterActivity = (Activity) mContext;
-
     CompletableFuture<Boolean> canOverwriteFuture = new CompletableFuture<>();
 
-    runOnThreadAndShowResult(R.string.import_in_progress, 0, () ->
+    ThreadUtil.runOnThreadAndShowResult(mActivity, R.string.import_in_progress, 0, () ->
     {
       BooleanSupplier canOverwrite = () ->
       {
-        mainPresenterActivity.runOnUiThread(() ->
+        mActivity.runOnUiThread(() ->
         {
           AlertDialog.Builder builder =
-                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+                  new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
           builder.setMessage(R.string.wii_save_exists);
           builder.setCancelable(false);
           builder.setPositiveButton(R.string.yes, (dialog, i) -> canOverwriteFuture.complete(true));
@@ -250,14 +240,14 @@ public final class MainPresenter
           message = R.string.wii_save_import_error;
           break;
       }
-      return mContext.getResources().getString(message);
+      return mActivity.getResources().getString(message);
     });
   }
 
   public void importNANDBin(String path)
   {
     AlertDialog.Builder builder =
-            new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+            new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
 
     builder.setMessage(R.string.nand_import_warning);
     builder.setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
@@ -265,51 +255,60 @@ public final class MainPresenter
     {
       dialog.dismiss();
 
-      runOnThreadAndShowResult(R.string.import_in_progress, R.string.do_not_close_app, () ->
-      {
-        // ImportNANDBin doesn't provide any result value, unfortunately...
-        // It does however show a panic alert if something goes wrong.
-        WiiUtils.importNANDBin(path);
-        return null;
-      });
+      ThreadUtil.runOnThreadAndShowResult(mActivity, R.string.import_in_progress,
+              R.string.do_not_close_app, () ->
+              {
+                // ImportNANDBin unfortunately doesn't provide any result value...
+                // It does however show a panic alert if something goes wrong.
+                WiiUtils.importNANDBin(path);
+                return null;
+              });
     });
 
     builder.show();
   }
 
-  private void runOnThreadAndShowResult(int progressTitle, int progressMessage, Supplier<String> f)
-  {
-    final Activity mainPresenterActivity = (Activity) mContext;
-
-    AlertDialog progressDialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
-            .create();
-    progressDialog.setTitle(progressTitle);
-    if (progressMessage != 0)
-      progressDialog.setMessage(mContext.getResources().getString(progressMessage));
-    progressDialog.setCancelable(false);
-    progressDialog.show();
-
-    new Thread(() ->
-    {
-      String result = f.get();
-      mainPresenterActivity.runOnUiThread(() ->
-      {
-        progressDialog.dismiss();
-
-        if (result != null)
-        {
-          AlertDialog.Builder builder =
-                  new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
-          builder.setMessage(result);
-          builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
-          builder.show();
-        }
-      });
-    }, mContext.getResources().getString(progressMessage)).start();
-  }
-
   public static void skipRescanningLibrary()
   {
     sShouldRescanLibrary = false;
+  }
+
+  private void launchOnlineUpdate()
+  {
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      SystemUpdateViewModel viewModel =
+              new ViewModelProvider(mActivity).get(SystemUpdateViewModel.class);
+      viewModel.setRegion(-1);
+      OnlineUpdateProgressBarDialogFragment progressBarFragment =
+              new OnlineUpdateProgressBarDialogFragment();
+      progressBarFragment
+              .show(mActivity.getSupportFragmentManager(), "OnlineUpdateProgressBarDialogFragment");
+      progressBarFragment.setCancelable(false);
+    }
+    else
+    {
+      SystemMenuNotInstalledDialogFragment dialogFragment =
+              new SystemMenuNotInstalledDialogFragment();
+      dialogFragment
+              .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+    }
+  }
+
+  private void launchWiiSystemMenu()
+  {
+    WiiUtils.isSystemMenuInstalled();
+
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      EmulationActivity.launchSystemMenu(mActivity);
+    }
+    else
+    {
+      SystemMenuNotInstalledDialogFragment dialogFragment =
+              new SystemMenuNotInstalledDialogFragment();
+      dialogFragment
+              .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+    }
   }
 }

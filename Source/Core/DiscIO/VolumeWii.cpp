@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DiscIO/VolumeWii.h"
 
@@ -28,6 +27,7 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
+#include "DiscIO/DiscUtils.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
@@ -82,9 +82,10 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
       };
 
       auto get_tmd = [this, partition]() -> IOS::ES::TMDReader {
-        const std::optional<u32> tmd_size = m_reader->ReadSwapped<u32>(partition.offset + 0x2a4);
-        const std::optional<u64> tmd_address =
-            ReadSwappedAndShifted(partition.offset + 0x2a8, PARTITION_NONE);
+        const std::optional<u32> tmd_size =
+            m_reader->ReadSwapped<u32>(partition.offset + WII_PARTITION_TMD_SIZE_ADDRESS);
+        const std::optional<u64> tmd_address = ReadSwappedAndShifted(
+            partition.offset + WII_PARTITION_TMD_OFFSET_ADDRESS, PARTITION_NONE);
         if (!tmd_size || !tmd_address)
           return INVALID_TMD;
         if (!IOS::ES::IsValidTMDSize(*tmd_size))
@@ -101,9 +102,10 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
       };
 
       auto get_cert_chain = [this, partition]() -> std::vector<u8> {
-        const std::optional<u32> size = m_reader->ReadSwapped<u32>(partition.offset + 0x2ac);
-        const std::optional<u64> address =
-            ReadSwappedAndShifted(partition.offset + 0x2b0, PARTITION_NONE);
+        const std::optional<u32> size =
+            m_reader->ReadSwapped<u32>(partition.offset + WII_PARTITION_CERT_CHAIN_SIZE_ADDRESS);
+        const std::optional<u64> address = ReadSwappedAndShifted(
+            partition.offset + WII_PARTITION_CERT_CHAIN_OFFSET_ADDRESS, PARTITION_NONE);
         if (!size || !address)
           return {};
         std::vector<u8> cert_chain(*size);
@@ -115,12 +117,13 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
       auto get_h3_table = [this, partition]() -> std::vector<u8> {
         if (!m_encrypted)
           return {};
-        const std::optional<u64> h3_table_offset =
-            ReadSwappedAndShifted(partition.offset + 0x2b4, PARTITION_NONE);
+        const std::optional<u64> h3_table_offset = ReadSwappedAndShifted(
+            partition.offset + WII_PARTITION_H3_OFFSET_ADDRESS, PARTITION_NONE);
         if (!h3_table_offset)
           return {};
-        std::vector<u8> h3_table(H3_TABLE_SIZE);
-        if (!m_reader->Read(partition.offset + *h3_table_offset, H3_TABLE_SIZE, h3_table.data()))
+        std::vector<u8> h3_table(WII_PARTITION_H3_SIZE);
+        if (!m_reader->Read(partition.offset + *h3_table_offset, WII_PARTITION_H3_SIZE,
+                            h3_table.data()))
           return {};
         return h3_table;
       };
@@ -396,7 +399,7 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
   const PartitionDetails& partition_details = it->second;
 
   const std::vector<u8>& h3_table = *partition_details.h3_table;
-  if (h3_table.size() != H3_TABLE_SIZE)
+  if (h3_table.size() != WII_PARTITION_H3_SIZE)
     return false;
 
   const IOS::ES::TMDReader& tmd = *partition_details.tmd;

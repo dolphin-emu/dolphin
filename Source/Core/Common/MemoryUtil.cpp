@@ -1,6 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Common/MemoryUtil.h"
 
 #include <cstddef>
 #include <cstdlib>
@@ -9,7 +10,6 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 
 #ifdef _WIN32

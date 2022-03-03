@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/HttpRequest.h"
 
@@ -229,7 +228,8 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
     else
     {
       ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {} and body\n\x1b[0m{:.{}}",
-                    type, url, response_code, buffer.data(), static_cast<int>(buffer.size()));
+                    type, url, response_code, reinterpret_cast<char*>(buffer.data()),
+                    static_cast<int>(buffer.size()));
     }
     return {};
   }

@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -50,12 +49,12 @@ public:
     return Gen::M(m_const_pool.GetConstant(&value, sizeof(T), N, index));
   }
 
+  // Writes upper 15 bits of physical address to addr and clobbers the lower 17 bits of addr.
+  // Jumps to the returned FixupBranch if lookup fails.
+  Gen::FixupBranch BATAddressLookup(Gen::X64Reg addr, Gen::X64Reg tmp, const void* bat_table);
+
   Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
                                       BitSet32 registers_in_use);
-  void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize,
-                          s32 offset = 0, bool signExtend = false);
-  void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize,
-                                s32 offset, bool signExtend = false);
   // these return the address of the MOV, for backpatching
   void UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize,
                            s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
@@ -117,14 +116,12 @@ public:
               void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&, u8), Gen::X64Reg regOp,
               const Gen::OpArg& arg1, const Gen::OpArg& arg2, u8 imm);
 
-  void ForceSinglePrecision(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
-                            bool duplicate = false);
   void Force25BitPrecision(Gen::X64Reg output, const Gen::OpArg& input, Gen::X64Reg tmp);
 
   // RSCRATCH might get trashed
   void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
   void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
-  void SetFPRF(Gen::X64Reg xmm);
+  void SetFPRF(Gen::X64Reg xmm, bool single);
   void Clear();
 
 protected:
@@ -133,9 +130,9 @@ protected:
   FarCodeCache m_far_code;
 
   // Backed up when we switch to far code.
-  u8* m_near_code;
-  u8* m_near_code_end;
-  bool m_near_code_write_failed;
+  u8* m_near_code = nullptr;
+  u8* m_near_code_end = nullptr;
+  bool m_near_code_write_failed = false;
 
   std::unordered_map<u8*, TrampolineInfo> m_back_patch_info;
   std::unordered_map<u8*, u8*> m_exception_handler_at_loc;

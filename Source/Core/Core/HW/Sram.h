@@ -1,6 +1,5 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Modified code taken from libogc
 /*-------------------------------------------------------------
@@ -35,8 +34,14 @@ distribution.
 #pragma once
 
 #include <array>
+
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+
+namespace ExpansionInterface
+{
+enum class Slot : int;
+};
 
 using CardFlashId = std::array<u8, 12>;
 
@@ -129,7 +134,7 @@ static_assert(sizeof(Sram) == 0x44);
 #pragma pack(pop)
 
 void InitSRAM();
-void SetCardFlashID(const u8* buffer, u8 card_index);
+void SetCardFlashID(const u8* buffer, ExpansionInterface::Slot card_slot);
 void FixSRAMChecksums();
 
 extern Sram g_SRAM;

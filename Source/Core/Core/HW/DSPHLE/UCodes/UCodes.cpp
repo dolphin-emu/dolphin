@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
@@ -17,6 +16,7 @@
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
@@ -184,7 +184,7 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
         Common::HashEctor(static_cast<u8*>(HLEMemory_Get_Pointer(m_next_ucode.iram_mram_addr)),
                           m_next_ucode.iram_size);
 
-    if (SConfig::GetInstance().m_DumpUCode)
+    if (Config::Get(Config::MAIN_DUMP_UCODE))
     {
       DSP::DumpDSPCode(Memory::GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size,
                        ector_crc);
@@ -276,7 +276,8 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0xfa450138:  // Wii Sports - PAL
   case 0xadbc06bd:  // Elebits
   case 0x4cc52064:  // Bleach: Versus Crusade
-  case 0xd9c4bf34:  // WiiMenu
+  case 0xd9c4bf34:  // Wii System Menu 1.0
+  case 0x7699af32:  // Wii Startup Menu
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: Wii - AXWii chosen", crc);
     return std::make_unique<AXWiiUCode>(dsphle, crc);
 

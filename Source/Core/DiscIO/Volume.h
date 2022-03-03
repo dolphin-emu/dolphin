@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -183,8 +182,11 @@ protected:
   static const std::vector<u8> INVALID_CERT_CHAIN;
 };
 
+std::unique_ptr<VolumeDisc> CreateDisc(std::unique_ptr<BlobReader> reader);
 std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path);
+std::unique_ptr<VolumeWAD> CreateWAD(std::unique_ptr<BlobReader> reader);
 std::unique_ptr<VolumeWAD> CreateWAD(const std::string& path);
+std::unique_ptr<Volume> CreateVolume(std::unique_ptr<BlobReader> reader);
 std::unique_ptr<Volume> CreateVolume(const std::string& path);
 
 }  // namespace DiscIO

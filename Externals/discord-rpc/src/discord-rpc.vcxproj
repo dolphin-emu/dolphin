@@ -26,7 +26,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\discord_rpc.h" />
-    <ClInclude Include="..\discord_register.h" />
+    <ClInclude Include="..\include\discord_register.h" />
     <ClInclude Include="rpc_connection.h" />
     <ClInclude Include="serialization.h" />
     <ClInclude Include="connection.h" />

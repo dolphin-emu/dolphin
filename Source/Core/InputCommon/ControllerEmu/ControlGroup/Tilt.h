@@ -1,6 +1,5 @@
 // Copyright 2017 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -32,6 +31,8 @@ public:
   ControlState GetMaxRotationalVelocity() const;
 
 private:
+  Control* GetModifierInput() const override;
+
   SettingValue<double> m_max_angle_setting;
   SettingValue<double> m_max_rotational_velocity;
 };

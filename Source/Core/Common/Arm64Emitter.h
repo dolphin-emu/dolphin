@@ -1,17 +1,21 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <cstring>
 #include <functional>
+#include <optional>
+#include <utility>
 
 #include "Common/ArmCommon.h"
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
+#include "Common/BitUtils.h"
 #include "Common/CodeBlock.h"
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 namespace Arm64Gen
 {
@@ -497,13 +501,242 @@ public:
   bool IsExtended() const { return m_type == TypeSpecifier::ExtendedReg; }
 };
 
+struct LogicalImm
+{
+  constexpr LogicalImm() {}
+
+  constexpr LogicalImm(u8 r_, u8 s_, bool n_) : r(r_), s(s_), n(n_), valid(true) {}
+
+  constexpr LogicalImm(u64 value, u32 width)
+  {
+    bool negate = false;
+
+    // Logical immediates are encoded using parameters n, imm_s and imm_r using
+    // the following table:
+    //
+    //    N   imms    immr    size        S             R
+    //    1  ssssss  rrrrrr    64    UInt(ssssss)  UInt(rrrrrr)
+    //    0  0sssss  xrrrrr    32    UInt(sssss)   UInt(rrrrr)
+    //    0  10ssss  xxrrrr    16    UInt(ssss)    UInt(rrrr)
+    //    0  110sss  xxxrrr     8    UInt(sss)     UInt(rrr)
+    //    0  1110ss  xxxxrr     4    UInt(ss)      UInt(rr)
+    //    0  11110s  xxxxxr     2    UInt(s)       UInt(r)
+    // (s bits must not be all set)
+    //
+    // A pattern is constructed of size bits, where the least significant S+1 bits
+    // are set. The pattern is rotated right by R, and repeated across a 32 or
+    // 64-bit value, depending on destination register width.
+    //
+    // Put another way: the basic format of a logical immediate is a single
+    // contiguous stretch of 1 bits, repeated across the whole word at intervals
+    // given by a power of 2. To identify them quickly, we first locate the
+    // lowest stretch of 1 bits, then the next 1 bit above that; that combination
+    // is different for every logical immediate, so it gives us all the
+    // information we need to identify the only logical immediate that our input
+    // could be, and then we simply check if that's the value we actually have.
+    //
+    // (The rotation parameter does give the possibility of the stretch of 1 bits
+    // going 'round the end' of the word. To deal with that, we observe that in
+    // any situation where that happens the bitwise NOT of the value is also a
+    // valid logical immediate. So we simply invert the input whenever its low bit
+    // is set, and then we know that the rotated case can't arise.)
+
+    if (value & 1)
+    {
+      // If the low bit is 1, negate the value, and set a flag to remember that we
+      // did (so that we can adjust the return values appropriately).
+      negate = true;
+      value = ~value;
+    }
+
+    constexpr int kWRegSizeInBits = 32;
+
+    if (width == kWRegSizeInBits)
+    {
+      // To handle 32-bit logical immediates, the very easiest thing is to repeat
+      // the input value twice to make a 64-bit word. The correct encoding of that
+      // as a logical immediate will also be the correct encoding of the 32-bit
+      // value.
+
+      // The most-significant 32 bits may not be zero (ie. negate is true) so
+      // shift the value left before duplicating it.
+      value <<= kWRegSizeInBits;
+      value |= value >> kWRegSizeInBits;
+    }
+
+    // The basic analysis idea: imagine our input word looks like this.
+    //
+    //    0011111000111110001111100011111000111110001111100011111000111110
+    //                                                          c  b    a
+    //                                                          |<--d-->|
+    //
+    // We find the lowest set bit (as an actual power-of-2 value, not its index)
+    // and call it a. Then we add a to our original number, which wipes out the
+    // bottommost stretch of set bits and replaces it with a 1 carried into the
+    // next zero bit. Then we look for the new lowest set bit, which is in
+    // position b, and subtract it, so now our number is just like the original
+    // but with the lowest stretch of set bits completely gone. Now we find the
+    // lowest set bit again, which is position c in the diagram above. Then we'll
+    // measure the distance d between bit positions a and c (using CLZ), and that
+    // tells us that the only valid logical immediate that could possibly be equal
+    // to this number is the one in which a stretch of bits running from a to just
+    // below b is replicated every d bits.
+    u64 a = Common::LargestPowerOf2Divisor(value);
+    u64 value_plus_a = value + a;
+    u64 b = Common::LargestPowerOf2Divisor(value_plus_a);
+    u64 value_plus_a_minus_b = value_plus_a - b;
+    u64 c = Common::LargestPowerOf2Divisor(value_plus_a_minus_b);
+
+    int d = 0, clz_a = 0, out_n = 0;
+    u64 mask = 0;
+
+    if (c != 0)
+    {
+      // The general case, in which there is more than one stretch of set bits.
+      // Compute the repeat distance d, and set up a bitmask covering the basic
+      // unit of repetition (i.e. a word with the bottom d bits set). Also, in all
+      // of these cases the N bit of the output will be zero.
+      clz_a = Common::CountLeadingZeros(a);
+      int clz_c = Common::CountLeadingZeros(c);
+      d = clz_a - clz_c;
+      mask = ((UINT64_C(1) << d) - 1);
+      out_n = 0;
+    }
+    else
+    {
+      // Handle degenerate cases.
+      //
+      // If any of those 'find lowest set bit' operations didn't find a set bit at
+      // all, then the word will have been zero thereafter, so in particular the
+      // last lowest_set_bit operation will have returned zero. So we can test for
+      // all the special case conditions in one go by seeing if c is zero.
+      if (a == 0)
+      {
+        // The input was zero (or all 1 bits, which will come to here too after we
+        // inverted it at the start of the function), which is invalid.
+        return;
+      }
+      else
+      {
+        // Otherwise, if c was zero but a was not, then there's just one stretch
+        // of set bits in our word, meaning that we have the trivial case of
+        // d == 64 and only one 'repetition'. Set up all the same variables as in
+        // the general case above, and set the N bit in the output.
+        clz_a = Common::CountLeadingZeros(a);
+        d = 64;
+        mask = ~UINT64_C(0);
+        out_n = 1;
+      }
+    }
+
+    // If the repeat period d is not a power of two, it can't be encoded.
+    if (!MathUtil::IsPow2<u64>(d))
+      return;
+
+    // If the bit stretch (b - a) does not fit within the mask derived from the
+    // repeat period, then fail.
+    if (((b - a) & ~mask) != 0)
+      return;
+
+    // The only possible option is b - a repeated every d bits. Now we're going to
+    // actually construct the valid logical immediate derived from that
+    // specification, and see if it equals our original input.
+    //
+    // To repeat a value every d bits, we multiply it by a number of the form
+    // (1 + 2^d + 2^(2d) + ...), i.e. 0x0001000100010001 or similar. These can
+    // be derived using a table lookup on CLZ(d).
+    constexpr std::array<u64, 6> multipliers = {{
+        0x0000000000000001UL,
+        0x0000000100000001UL,
+        0x0001000100010001UL,
+        0x0101010101010101UL,
+        0x1111111111111111UL,
+        0x5555555555555555UL,
+    }};
+
+    const int multiplier_idx = Common::CountLeadingZeros((u64)d) - 57;
+
+    // Ensure that the index to the multipliers array is within bounds.
+    DEBUG_ASSERT((multiplier_idx >= 0) &&
+                 (static_cast<size_t>(multiplier_idx) < multipliers.size()));
+
+    const u64 multiplier = multipliers[multiplier_idx];
+    const u64 candidate = (b - a) * multiplier;
+
+    // The candidate pattern doesn't match our input value, so fail.
+    if (value != candidate)
+      return;
+
+    // We have a match! This is a valid logical immediate, so now we have to
+    // construct the bits and pieces of the instruction encoding that generates
+    // it.
+    n = out_n;
+
+    // Count the set bits in our basic stretch. The special case of clz(0) == -1
+    // makes the answer come out right for stretches that reach the very top of
+    // the word (e.g. numbers like 0xffffc00000000000).
+    const int clz_b = (b == 0) ? -1 : Common::CountLeadingZeros(b);
+    s = clz_a - clz_b;
+
+    // Decide how many bits to rotate right by, to put the low bit of that basic
+    // stretch in position a.
+    if (negate)
+    {
+      // If we inverted the input right at the start of this function, here's
+      // where we compensate: the number of set bits becomes the number of clear
+      // bits, and the rotation count is based on position b rather than position
+      // a (since b is the location of the 'lowest' 1 bit after inversion).
+      s = d - s;
+      r = (clz_b + 1) & (d - 1);
+    }
+    else
+    {
+      r = (clz_a + 1) & (d - 1);
+    }
+
+    // Now we're done, except for having to encode the S output in such a way that
+    // it gives both the number of set bits and the length of the repeated
+    // segment. The s field is encoded like this:
+    //
+    //     imms    size        S
+    //    ssssss    64    UInt(ssssss)
+    //    0sssss    32    UInt(sssss)
+    //    10ssss    16    UInt(ssss)
+    //    110sss     8    UInt(sss)
+    //    1110ss     4    UInt(ss)
+    //    11110s     2    UInt(s)
+    //
+    // So we 'or' (-d << 1) with our computed s to form imms.
+    s = ((-d << 1) | (s - 1)) & 0x3f;
+
+    valid = true;
+  }
+
+  constexpr operator bool() const { return valid; }
+
+  u8 r = 0;
+  u8 s = 0;
+  bool n = false;
+  bool valid = false;
+};
+
 class ARM64XEmitter
 {
   friend class ARM64FloatEmitter;
 
 private:
-  u8* m_code;
-  u8* m_lastCacheFlushEnd;
+  // Pointer to memory where code will be emitted to.
+  u8* m_code = nullptr;
+
+  // Pointer past the end of the memory region we're allowed to emit to.
+  // Writes that would reach this memory are refused and will set the m_write_failed flag instead.
+  u8* m_code_end = nullptr;
+
+  u8* m_lastCacheFlushEnd = nullptr;
+
+  // Set to true when a write request happens that would write past m_code_end.
+  // Must be cleared with SetCodePtr() afterwards.
+  bool m_write_failed = false;
 
   void AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags);
   void EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr);
@@ -531,11 +764,13 @@ private:
   void EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
   void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
   void EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd);
-  void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, int n);
+  void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
   void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn,
                            s32 imm);
   void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
   void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+
+  FixupBranch WriteFixupBranch();
 
   template <typename T>
   void MOVI2RImpl(ARM64Reg Rd, T imm);
@@ -544,27 +779,30 @@ protected:
   void Write32(u32 value);
 
 public:
-  ARM64XEmitter() : m_code(nullptr), m_lastCacheFlushEnd(nullptr) {}
-  ARM64XEmitter(u8* code_ptr)
+  ARM64XEmitter() = default;
+  ARM64XEmitter(u8* code, u8* code_end)
+      : m_code(code), m_code_end(code_end), m_lastCacheFlushEnd(code)
   {
-    m_code = code_ptr;
-    m_lastCacheFlushEnd = code_ptr;
   }
 
   virtual ~ARM64XEmitter() {}
 
-  // 'end' and 'write_failed' are unused in the ARM code emitter at the moment.
-  // They're just here for interface compatibility with the x64 code emitter.
   void SetCodePtr(u8* ptr, u8* end, bool write_failed = false);
 
-  void SetCodePtrUnsafe(u8* ptr);
+  void SetCodePtrUnsafe(u8* ptr, u8* end, bool write_failed = false);
+  const u8* GetCodePtr() const;
+  u8* GetWritableCodePtr();
+  const u8* GetCodeEnd() const;
+  u8* GetWritableCodeEnd();
   void ReserveCodeSpace(u32 bytes);
   u8* AlignCode16();
   u8* AlignCodePage();
-  const u8* GetCodePtr() const;
   void FlushIcache();
   void FlushIcacheSection(u8* start, u8* end);
-  u8* GetWritableCodePtr();
+
+  // Should be checked after a block of code has been generated to see if the code has been
+  // successfully written to memory. Do not call the generated code when this returns true!
+  bool HasWriteFailed() const { return m_write_failed; }
 
   // FixupBranch branching
   void SetJumpTarget(FixupBranch const& branch);
@@ -673,7 +911,15 @@ public:
     CSINV(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
   }
   void NEG(ARM64Reg Rd, ARM64Reg Rs) { SUB(Rd, Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR, Rs); }
+  void NEG(ARM64Reg Rd, ARM64Reg Rs, ArithOption Option)
+  {
+    SUB(Rd, Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR, Rs, Option);
+  }
   void NEGS(ARM64Reg Rd, ARM64Reg Rs) { SUBS(Rd, Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR, Rs); }
+  void NEGS(ARM64Reg Rd, ARM64Reg Rs, ArithOption Option)
+  {
+    SUBS(Rd, Is64Bit(Rd) ? ARM64Reg::ZR : ARM64Reg::WZR, Rs, Option);
+  }
   // Data-Processing 1 source
   void RBIT(ARM64Reg Rd, ARM64Reg Rn);
   void REV16(ARM64Reg Rd, ARM64Reg Rn);
@@ -772,17 +1018,18 @@ public:
   void ROR(ARM64Reg Rd, ARM64Reg Rm, int shift);
 
   // Logical (immediate)
-  void AND(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
-  void ANDS(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
-  void EOR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
-  void ORR(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
-  void TST(ARM64Reg Rn, u32 immr, u32 imms, bool invert = false);
+  void AND(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
+  void ANDS(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
+  void EOR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
+  void ORR(ARM64Reg Rd, ARM64Reg Rn, LogicalImm imm);
+  void TST(ARM64Reg Rn, LogicalImm imm);
   // Add/subtract (immediate)
   void ADD(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
   void ADDS(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
   void SUB(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
   void SUBS(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift = false);
   void CMP(ARM64Reg Rn, u32 imm, bool shift = false);
+  void CMN(ARM64Reg Rn, u32 imm, bool shift = false);
 
   // Data Processing (Immediate)
   void MOVZ(ARM64Reg Rd, u32 imm, ShiftAmount pos = ShiftAmount::Shift0);
@@ -894,17 +1141,17 @@ public:
     MOVI2R(Rd, (uintptr_t)ptr);
   }
 
-  // Wrapper around AND x, y, imm etc. If you are sure the imm will work, no need to pass a scratch
-  // register.
-  void ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
-  void ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
-  void TSTI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG)
+  // Wrapper around AND x, y, imm etc.
+  // If you are sure the imm will work, preferably construct a LogicalImm directly instead,
+  // since that is constexpr and thus can be done at compile-time for constant values.
+  void ANDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
+  void ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
+  void TSTI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     ANDSI2R(Is64Bit(Rn) ? ARM64Reg::ZR : ARM64Reg::WZR, Rn, imm, scratch);
   }
-  void ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
-  void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
-  void CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void ORRI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
+  void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch);
 
   void ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                        ARM64Reg scratch);
@@ -912,6 +1159,7 @@ public:
   void ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
   void SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
+  void CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = ARM64Reg::INVALID_REG);
 
   bool TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
   bool TrySUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
@@ -922,6 +1170,8 @@ public:
   bool TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm);
 
   // ABI related
+  static constexpr BitSet32 CALLER_SAVED_GPRS = BitSet32(0x4007FFFF);
+  static constexpr BitSet32 CALLER_SAVED_FPRS = BitSet32(0xFFFF00FF);
   void ABI_PushRegisters(BitSet32 registers);
   void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
 
@@ -995,6 +1245,7 @@ public:
   void FABS(ARM64Reg Rd, ARM64Reg Rn);
   void FNEG(ARM64Reg Rd, ARM64Reg Rn);
   void FSQRT(ARM64Reg Rd, ARM64Reg Rn);
+  void FRINTI(ARM64Reg Rd, ARM64Reg Rn);
   void FMOV(ARM64Reg Rd, ARM64Reg Rn, bool top = false);  // Also generalized move between GPR/FP
   void FRECPE(ARM64Reg Rd, ARM64Reg Rn);
   void FRSQRTE(ARM64Reg Rd, ARM64Reg Rn);
@@ -1024,6 +1275,8 @@ public:
   void ADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void BIC(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void BIF(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+  void BIT(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
   void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
   void FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn);

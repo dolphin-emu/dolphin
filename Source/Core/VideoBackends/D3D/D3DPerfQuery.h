@@ -1,6 +1,5 @@
 // Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -27,7 +26,7 @@ private:
   struct ActiveQuery
   {
     ComPtr<ID3D11Query> query;
-    PerfQueryGroup query_type;
+    PerfQueryGroup query_type{};
   };
 
   void WeakFlush();

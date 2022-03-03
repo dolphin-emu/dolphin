@@ -1,6 +1,7 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "DolphinQt/Config/PropertiesDialog.h"
 
 #include <memory>
 
@@ -18,7 +19,6 @@
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 #include "DolphinQt/Config/InfoWidget.h"
 #include "DolphinQt/Config/PatchesWidget.h"
-#include "DolphinQt/Config/PropertiesDialog.h"
 #include "DolphinQt/Config/VerifyWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
@@ -38,8 +38,9 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   QTabWidget* tab_widget = new QTabWidget(this);
   InfoWidget* info = new InfoWidget(game);
 
-  ARCodeWidget* ar = new ARCodeWidget(game);
-  GeckoCodeWidget* gecko = new GeckoCodeWidget(game);
+  ARCodeWidget* ar = new ARCodeWidget(game.GetGameID(), game.GetRevision());
+  GeckoCodeWidget* gecko =
+      new GeckoCodeWidget(game.GetGameID(), game.GetGameTDBID(), game.GetRevision());
   PatchesWidget* patches = new PatchesWidget(game);
   GameConfigWidget* game_config = new GameConfigWidget(game);
 

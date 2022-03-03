@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 
@@ -20,6 +19,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "Core/ConfigManager.h"
@@ -94,6 +94,7 @@ const std::map<Config::System, int> system_to_ini = {
     {Config::System::Debugger, F_DEBUGGERCONFIG_IDX},
     {Config::System::DualShockUDPClient, F_DUALSHOCKUDPCLIENTCONFIG_IDX},
     {Config::System::FreeLook, F_FREELOOKCONFIG_IDX},
+    // Config::System::Session should not be added to this list
 };
 
 // INI layer configuration loader
@@ -103,6 +104,11 @@ public:
   BaseConfigLayerLoader() : ConfigLayerLoader(Config::LayerType::Base) {}
   void Load(Config::Layer* layer) override
   {
+    // List of settings that under no circumstances should be loaded from the global config INI.
+    static const auto s_setting_disallowed = {
+        &Config::MAIN_MEMORY_CARD_SIZE.GetLocation(),
+    };
+
     LoadFromSYSCONF(layer);
     for (const auto& system : system_to_ini)
     {
@@ -118,6 +124,12 @@ public:
         for (const auto& value : section_map)
         {
           const Config::Location location{system.first, section_name, value.first};
+          const bool load_disallowed =
+              std::any_of(begin(s_setting_disallowed), end(s_setting_disallowed),
+                          [&location](const Config::Location* l) { return *l == location; });
+          if (load_disallowed)
+            continue;
+
           layer->Set(location, value.second);
         }
       }
@@ -142,6 +154,9 @@ public:
 
       // Done by SaveToSYSCONF
       if (location.system == Config::System::SYSCONF)
+        continue;
+
+      if (location.system == Config::System::Session)
         continue;
 
       auto ini = inis.find(location.system);

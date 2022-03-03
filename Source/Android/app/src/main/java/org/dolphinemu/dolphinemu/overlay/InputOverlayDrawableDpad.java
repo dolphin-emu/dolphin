@@ -1,7 +1,6 @@
 /*
  * Copyright 2016 Dolphin Emulator Project
- * Licensed under GPLv2+
- * Refer to the license.txt file included.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 package org.dolphinemu.dolphinemu.overlay;
@@ -186,6 +185,8 @@ public final class InputOverlayDrawableDpad
   public void setOpacity(int value)
   {
     mDefaultStateBitmap.setAlpha(value);
+    mPressedOneDirectionStateBitmap.setAlpha(value);
+    mPressedTwoDirectionsStateBitmap.setAlpha(value);
   }
 
   public Rect getBounds()

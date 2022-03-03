@@ -1,15 +1,17 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <array>
 #include <string>
+#include <string_view>
 
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/RenderBase.h"
+
+class BoundingBox;
 
 namespace OGL
 {
@@ -92,13 +94,15 @@ public:
   bool Initialize() override;
   void Shutdown() override;
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
+                                                 std::string_view name) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                         std::string_view source) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                                                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
-                                                         size_t length) override;
+                                                         size_t length,
+                                                         std::string_view name) override;
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
@@ -125,10 +129,6 @@ public:
                              u32 groups_z) override;
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
-
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
-  void BBoxFlushImpl() override;
 
   void BeginUtilityDrawing() override;
   void EndUtilityDrawing() override;
@@ -161,6 +161,9 @@ public:
 
   // Restores FBO binding after it's been changed.
   void RestoreFramebufferBinding();
+
+protected:
+  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   void CheckForSurfaceChange();

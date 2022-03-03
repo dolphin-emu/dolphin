@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "jni/GameList/GameFile.h"
 
@@ -37,9 +36,7 @@ jobject GameFileToJava(JNIEnv* env, std::shared_ptr<const UICommon::GameFile> ga
       reinterpret_cast<jlong>(new std::shared_ptr<const UICommon::GameFile>(std::move(game_file))));
 }
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_finalize(JNIEnv* env,
                                                                               jobject obj)
@@ -163,6 +160,12 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_isDatel
   return static_cast<jboolean>(GetRef(env, obj)->IsDatelDisc());
 }
 
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_isNKit(JNIEnv* env,
+                                                                                jobject obj)
+{
+  return static_cast<jboolean>(GetRef(env, obj)->IsNKit());
+}
+
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBanner(JNIEnv* env,
                                                                                     jobject obj)
 {
@@ -196,7 +199,4 @@ JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JN
 
   return GameFileToJava(env, game_file);
 }
-
-#ifdef __cplusplus
 }
-#endif

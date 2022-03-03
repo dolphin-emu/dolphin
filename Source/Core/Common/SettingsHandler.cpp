@@ -1,6 +1,5 @@
 // Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Thanks to Treeki for writing the original class - 29/01/2012
 
@@ -141,6 +140,6 @@ std::string SettingsHandler::GenerateSerialNumber()
   // Must be 9 characters at most; otherwise the serial number will be rejected by SDK libraries,
   // as there is a check to ensure the string length is strictly lower than 10.
   // 3 for %j, 2 for %H, 2 for %M, 2 for %S.
-  return fmt::format("{:%j%H%M%S}", *std::localtime(&t));
+  return fmt::format("{:%j%H%M%S}", fmt::localtime(t));
 }
 }  // namespace Common

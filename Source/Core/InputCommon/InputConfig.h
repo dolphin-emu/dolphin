@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -25,7 +24,14 @@ public:
 
   ~InputConfig();
 
-  bool LoadConfig(bool isGC);
+  enum class InputClass
+  {
+    GC,
+    Wii,
+    GBA,
+  };
+
+  bool LoadConfig(InputClass type);
   void SaveConfig();
 
   template <typename T, typename... Args>

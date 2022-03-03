@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/PowerPC/BreakPoints.h"
 
@@ -294,7 +293,7 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 addr, bool write,
+bool TMemCheck::Action(Common::DebugInterface* debug_interface, u64 value, u32 addr, bool write,
                        size_t size, u32 pc)
 {
   if (!is_enabled)

@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/SI/SI_DeviceGCController.h"
 
@@ -11,6 +10,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -34,6 +34,14 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_numb
   m_origin.origin_stick_y = GCPadStatus::MAIN_STICK_CENTER_Y;
   m_origin.substick_x = GCPadStatus::C_STICK_CENTER_X;
   m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
+
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+CSIDevice_GCController::~CSIDevice_GCController()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
@@ -46,20 +54,20 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     return -1;
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
+  const auto command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
   {
-  case CMD_RESET:
-  case CMD_ID:
+  case EBufferCommands::CMD_STATUS:
+  case EBufferCommands::CMD_RESET:
   {
     u32 id = Common::swap32(SI_GC_CONTROLLER);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
 
-  case CMD_DIRECT:
+  case EBufferCommands::CMD_DIRECT:
   {
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Direct (Request length: {})", request_length);
     u32 high, low;
@@ -72,7 +80,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     return sizeof(high) + sizeof(low);
   }
 
-  case CMD_ORIGIN:
+  case EBufferCommands::CMD_ORIGIN:
   {
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Get Origin");
 
@@ -85,7 +93,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   }
 
   // Recalibrate (FiRES: i am not 100 percent sure about this)
-  case CMD_RECALIBRATE:
+  case EBufferCommands::CMD_RECALIBRATE:
   {
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Recalibrate");
 
@@ -100,8 +108,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   // DEFAULT
   default:
   {
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", command);
-    PanicAlertFmt("SI: Unknown command ({:#x})", command);
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unknown SI command     ({:#x})", static_cast<u8>(command));
+    PanicAlertFmt("SI: Unknown command ({:#x})", static_cast<u8>(command));
   }
   break;
   }
@@ -109,27 +117,27 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
   return 0;
 }
 
-void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)
+void CSIDevice_GCController::HandleMoviePadStatus(int device_number, GCPadStatus* pad_status)
 {
-  Movie::CallGCInputManip(pad_status, m_device_number);
+  Movie::CallGCInputManip(pad_status, device_number);
 
   Movie::SetPolledDevice();
-  if (NetPlay_GetInput(m_device_number, pad_status))
+  if (NetPlay_GetInput(device_number, pad_status))
   {
   }
   else if (Movie::IsPlayingInput())
   {
-    Movie::PlayController(pad_status, m_device_number);
+    Movie::PlayController(pad_status, device_number);
     Movie::InputUpdate();
   }
   else if (Movie::IsRecordingInput())
   {
-    Movie::RecordInput(pad_status, m_device_number);
+    Movie::RecordInput(pad_status, device_number);
     Movie::InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(pad_status, m_device_number);
+    Movie::CheckPadStatus(pad_status, device_number);
   }
 }
 
@@ -144,7 +152,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
     pad_status = Pad::GetStatus(m_device_number);
   }
 
-  HandleMoviePadStatus(&pad_status);
+  HandleMoviePadStatus(m_device_number, &pad_status);
 
   // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
   // Watch for this to calibrate real controllers on connection.
@@ -291,13 +299,7 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 {
   UCommand controller_command(command);
 
-  switch (controller_command.command)
-  {
-  // Costis sent it in some demos :)
-  case 0x00:
-    break;
-
-  case CMD_WRITE:
+  if (static_cast<EDirectCommands>(controller_command.command) == EDirectCommands::CMD_WRITE)
   {
     const u32 type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 
@@ -306,10 +308,11 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 
     if (pad_num < 4)
     {
+      const SIDevices device = m_config_si_devices[pad_num];
       if (type == 1)
-        CSIDevice_GCController::Rumble(pad_num, 1.0);
+        CSIDevice_GCController::Rumble(pad_num, 1.0, device);
       else
-        CSIDevice_GCController::Rumble(pad_num, 0.0);
+        CSIDevice_GCController::Rumble(pad_num, 0.0, device);
     }
 
     if (poll == 0)
@@ -318,14 +321,11 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
       INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
     }
   }
-  break;
-
-  default:
+  else if (controller_command.command != 0x00)
   {
+    // Costis sent 0x00 in some demos :)
     ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);
     PanicAlertFmt("SI: Unknown direct command");
-  }
-  break;
   }
 }
 
@@ -336,6 +336,15 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_mode);
   p.Do(m_timer_button_combo_start);
   p.Do(m_last_button_combo);
+}
+
+void CSIDevice_GCController::RefreshConfig()
+{
+  for (int i = 0; i < 4; ++i)
+  {
+    const SerialInterface::SIDevices device = Config::Get(Config::GetInfoForSIDevice(i));
+    m_config_si_devices[i] = device;
+  }
 }
 
 CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)

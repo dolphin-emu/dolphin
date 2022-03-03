@@ -1,6 +1,7 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoCommon/TextureDecoder.h"
 
 #include <algorithm>
 #include <cmath>
@@ -17,7 +18,6 @@
 #include "Common/Swap.h"
 
 #include "VideoCommon/LookUpTables.h"
-#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureDecoder_Util.h"
 
 // GameCube/Wii texture decoder

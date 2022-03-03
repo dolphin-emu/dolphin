@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.dolphinemu.dolphinemu.ui.platform;
 
 import android.os.Bundle;
@@ -15,7 +17,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 
 public final class PlatformGamesFragment extends Fragment implements PlatformGamesView
 {
@@ -71,7 +73,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
     mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
 
-    setRefreshing(GameFileCacheService.isLoading());
+    setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
 
     showGames();
   }
@@ -94,7 +96,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
     if (mAdapter != null)
     {
       Platform platform = (Platform) getArguments().getSerializable(ARG_PLATFORM);
-      mAdapter.swapDataSet(GameFileCacheService.getGameFilesForPlatform(platform));
+      mAdapter.swapDataSet(GameFileCacheManager.getGameFilesForPlatform(platform));
     }
   }
 

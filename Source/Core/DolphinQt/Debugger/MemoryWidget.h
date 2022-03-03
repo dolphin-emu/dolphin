@@ -1,11 +1,11 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <vector>
 
+#include <QByteArray>
 #include <QDockWidget>
 
 #include "Common/CommonTypes.h"
@@ -57,7 +57,8 @@ private:
   void OnDumpARAM();
   void OnDumpFakeVMEM();
 
-  std::vector<u8> GetValueData() const;
+  bool IsValueValid() const;
+  QByteArray GetValueData() const;
 
   void FindValue(bool next);
 

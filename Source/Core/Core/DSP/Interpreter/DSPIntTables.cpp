@@ -1,6 +1,5 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/DSP/Interpreter/DSPIntTables.h"
 
@@ -20,7 +19,7 @@ struct InterpreterOpInfo
 };
 
 // clang-format off
-constexpr std::array<InterpreterOpInfo, 124> s_opcodes
+constexpr std::array<InterpreterOpInfo, 125> s_opcodes
 {{
   {0x0000, 0xfffc, &Interpreter::nop},
 
@@ -33,7 +32,7 @@ constexpr std::array<InterpreterOpInfo, 124> s_opcodes
 
   {0x02d0, 0xfff0, &Interpreter::ret},
 
-  {0x02ff, 0xffff, &Interpreter::rti},
+  {0x02f0, 0xfff0, &Interpreter::rti},
 
   {0x02b0, 0xfff0, &Interpreter::call},
 
@@ -102,7 +101,8 @@ constexpr std::array<InterpreterOpInfo, 124> s_opcodes
 
   // 2
   {0x2000, 0xf800, &Interpreter::lrs},
-  {0x2800, 0xf800, &Interpreter::srs},
+  {0x2800, 0xfe00, &Interpreter::srsh},
+  {0x2c00, 0xfc00, &Interpreter::srs},
 
   // opcodes that can be extended
 

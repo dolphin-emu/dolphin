@@ -1,6 +1,5 @@
 // Copyright 2021 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -25,10 +24,11 @@ public:
   struct NameDetails
   {
     std::string base_name;
+    std::string texture_name;
     std::string tlut_name;
     std::string format_name;
 
-    std::string GetFullName() const { return base_name + tlut_name + format_name; }
+    std::string GetFullName() const;
   };
   NameDetails CalculateTextureName();
 

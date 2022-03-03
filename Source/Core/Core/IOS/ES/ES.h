@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -378,9 +377,9 @@ private:
   struct OpenedContent
   {
     bool m_opened = false;
-    u64 m_fd;
+    u64 m_fd = 0;
     u64 m_title_id = 0;
-    ES::Content m_content;
+    ES::Content m_content{};
     u32 m_uid = 0;
   };
 

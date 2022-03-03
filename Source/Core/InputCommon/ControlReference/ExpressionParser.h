@@ -1,6 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -182,7 +181,7 @@ public:
   static ParseResult MakeSuccessfulResult(std::unique_ptr<Expression>&& expr);
   static ParseResult MakeErrorResult(Token token, std::string description);
 
-  ParseStatus status;
+  ParseStatus status = ParseStatus::EmptyExpression;
   std::unique_ptr<Expression> expr;
 
   // Used for parse errors:

@@ -42,6 +42,7 @@ add_library(common
   ENetUtil.cpp
   ENetUtil.h
   EnumFormatter.h
+  EnumMap.h
   Event.h
   FileSearch.cpp
   FileSearch.h
@@ -61,6 +62,8 @@ add_library(common
   HttpRequest.h
   Image.cpp
   Image.h
+  ImageC.c
+  ImageC.h
   IniFile.cpp
   IniFile.h
   Inline.h
@@ -78,9 +81,6 @@ add_library(common
   MathUtil.h
   Matrix.cpp
   Matrix.h
-  MD5.cpp
-  MD5.h
-  MemArena.cpp
   MemArena.h
   MemoryUtil.cpp
   MemoryUtil.h
@@ -164,7 +164,7 @@ elseif(WIN32)
     winmm.lib
   )
   if (_M_X86_64)
-	  target_link_libraries(common PRIVATE opengl32.lib)
+    target_link_libraries(common PRIVATE opengl32.lib)
   endif()
 elseif (ANDROID)
   target_link_libraries(common
@@ -180,16 +180,19 @@ if(ANDROID)
     AndroidAnalytics.cpp
     AndroidAnalytics.h
     Logging/ConsoleListenerDroid.cpp
+    MemArenaAndroid.cpp
   )
 elseif(WIN32)
   target_sources(common PRIVATE
     LdrWatcher.cpp
     LdrWatcher.h
     Logging/ConsoleListenerWin.cpp
+    MemArenaWin.cpp
   )
 else()
   target_sources(common PRIVATE
     Logging/ConsoleListenerNix.cpp
+    MemArenaUnix.cpp
   )
 endif()
 
@@ -281,6 +284,10 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(common PUBLIC dl rt)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  target_sources(common PUBLIC HRWrap.h HRWrap.cpp)
 endif()
 
 if(USE_UPNP)

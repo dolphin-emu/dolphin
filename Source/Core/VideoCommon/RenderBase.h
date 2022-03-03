@@ -1,6 +1,5 @@
 // Copyright 2010 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
@@ -39,6 +38,7 @@ class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
+class BoundingBox;
 class NativeVertexFormat;
 class NetPlayChatUI;
 class PointerWrap;
@@ -94,7 +94,8 @@ public:
   virtual bool IsFullscreen() const { return false; }
   virtual void BeginUtilityDrawing();
   virtual void EndUtilityDrawing();
-  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
+                                                         std::string_view name = "") = 0;
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractFramebuffer>
@@ -126,9 +127,11 @@ public:
 
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                                 std::string_view source) = 0;
-  virtual std::unique_ptr<AbstractShader>
-  CreateShaderFromBinary(ShaderStage stage, const void* data, size_t length) = 0;
+                                                                 std::string_view source,
+                                                                 std::string_view name = "") = 0;
+  virtual std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage,
+                                                                 const void* data, size_t length,
+                                                                 std::string_view name = "") = 0;
   virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
   virtual std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
@@ -211,8 +214,11 @@ public:
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
   virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
-  u16 BBoxRead(int index);
-  void BBoxWrite(int index, u16 value);
+  bool IsBBoxEnabled() const;
+  void BBoxEnable();
+  void BBoxDisable();
+  u16 BBoxRead(u32 index);
+  void BBoxWrite(u32 index, u16 value);
   void BBoxFlush();
 
   virtual void Flush() {}
@@ -301,9 +307,7 @@ protected:
   // Should be called with the ImGui lock held.
   void DrawImGui();
 
-  virtual u16 BBoxReadImpl(int index) = 0;
-  virtual void BBoxWriteImpl(int index, u16 value) = 0;
-  virtual void BBoxFlushImpl() {}
+  virtual std::unique_ptr<BoundingBox> CreateBoundingBox() const = 0;
 
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
@@ -393,6 +397,8 @@ private:
   u32 m_last_xfb_width = 0;
   u32 m_last_xfb_stride = 0;
   u32 m_last_xfb_height = 0;
+
+  std::unique_ptr<BoundingBox> m_bounding_box;
 
   // Nintendo's SDK seems to write "default" bounding box values before every draw (1023 0 1023 0
   // are the only values encountered so far, which happen to be the extents allowed by the BP

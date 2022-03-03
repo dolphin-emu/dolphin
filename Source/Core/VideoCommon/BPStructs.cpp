@@ -1,9 +1,9 @@
 // Copyright 2009 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/BPStructs.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -32,6 +32,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TMEM.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -49,7 +50,7 @@ void BPInit()
   bpmem.bpMask = 0xFFFFFF;
 }
 
-static void BPWritten(const BPCmd& bp)
+static void BPWritten(const BPCmd& bp, int cycles_into_future)
 {
   /*
   ----------------------------------------------------------------------------------------------------------------
@@ -179,7 +180,7 @@ static void BPWritten(const BPCmd& bp)
       g_texture_cache->FlushEFBCopies();
       g_framebuffer_manager->InvalidatePeekCache(false);
       if (!Fifo::UseDeterministicGPUThread())
-        PixelEngine::SetFinish();  // may generate interrupt
+        PixelEngine::SetFinish(cycles_into_future);  // may generate interrupt
       DEBUG_LOG_FMT(VIDEO, "GXSetDrawDone SetPEFinish (value: {:#04X})", bp.newvalue & 0xFFFF);
       return;
 
@@ -192,14 +193,14 @@ static void BPWritten(const BPCmd& bp)
     g_texture_cache->FlushEFBCopies();
     g_framebuffer_manager->InvalidatePeekCache(false);
     if (!Fifo::UseDeterministicGPUThread())
-      PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false);
+      PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false, cycles_into_future);
     DEBUG_LOG_FMT(VIDEO, "SetPEToken {:#06X}", bp.newvalue & 0xFFFF);
     return;
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
     g_texture_cache->FlushEFBCopies();
     g_framebuffer_manager->InvalidatePeekCache(false);
     if (!Fifo::UseDeterministicGPUThread())
-      PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true);
+      PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true, cycles_into_future);
     DEBUG_LOG_FMT(VIDEO, "SetPEToken + INT {:#06X}", bp.newvalue & 0xFFFF);
     return;
 
@@ -226,6 +227,8 @@ static void BPWritten(const BPCmd& bp)
     srcRect.right = bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1;
     srcRect.bottom = bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1;
 
+    const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+
     // Since the copy X and Y coordinates/sizes are 10-bit, the game can configure a copy region up
     // to 1024x1024. Hardware tests have found that the number of bytes written does not depend on
     // the configured stride, instead it is based on the size registers, writing beyond the length
@@ -238,47 +241,53 @@ static void BPWritten(const BPCmd& bp)
     // writing the junk data, we don't write anything to RAM at all for over-sized copies, and clamp
     // to the EFB borders for over-offset copies. The arcade virtual console games (e.g. 1942) are
     // known for configuring these out-of-range copies.
-    u32 copy_width = srcRect.GetWidth();
-    u32 copy_height = srcRect.GetHeight();
-    if (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT)
-    {
-      WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", copy_width,
-                   copy_height, srcRect.left, srcRect.top, destStride);
 
-      // Adjust the copy size to fit within the EFB. So that we don't end up with a stretched image,
-      // instead of clamping the source rectangle, we reduce it by the over-sized amount.
-      if (copy_width > EFB_WIDTH)
+    if (u32(srcRect.right) > EFB_WIDTH || u32(srcRect.bottom) > EFB_HEIGHT)
+    {
+      WARN_LOG_FMT(VIDEO, "Oversized EFB copy: {}x{} (offset {},{} stride {})", srcRect.GetWidth(),
+                   srcRect.GetHeight(), srcRect.left, srcRect.top, destStride);
+
+      if (u32(srcRect.left) >= EFB_WIDTH || u32(srcRect.top) >= EFB_HEIGHT)
       {
-        srcRect.right -= copy_width - EFB_WIDTH;
-        copy_width = EFB_WIDTH;
+        // This is not a sane src rectangle, it doesn't touch any valid image data at all
+        // Just ignore it
+        // Apparently Mario Kart Wii in wifi mode can generate a deformed EFB copy of size 4x4
+        // at offset (328,1020)
+        if (PE_copy.copy_to_xfb == 1)
+        {
+          // Make sure we disable Bounding box to match the side effects of the non-failure path
+          g_renderer->BBoxDisable();
+        }
+
+        return;
       }
-      if (copy_height > EFB_HEIGHT)
-      {
-        srcRect.bottom -= copy_height - EFB_HEIGHT;
-        copy_height = EFB_HEIGHT;
-      }
+
+      // Clamp the copy region to fit within EFB. So that we don't end up with a stretched image.
+      srcRect.right = std::clamp<int>(srcRect.right, 0, EFB_WIDTH);
+      srcRect.bottom = std::clamp<int>(srcRect.bottom, 0, EFB_HEIGHT);
     }
 
+    const u32 copy_width = srcRect.GetWidth();
+    const u32 copy_height = srcRect.GetHeight();
+
     // Check if we are to copy from the EFB or draw to the XFB
-    const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
     if (PE_copy.copy_to_xfb == 0)
     {
       // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
-      static constexpr CopyFilterCoefficients::Values filter_coefficients = {
-          {0, 0, 21, 22, 21, 0, 0}};
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
           srcRect, PE_copy.intensity_fmt, PE_copy.half_scale, 1.0f, 1.0f,
-          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom, filter_coefficients);
+          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom,
+          bpmem.copyfilter.GetCoefficients());
     }
     else
     {
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
-      BoundingBox::Disable();
+      g_renderer->BBoxDisable();
 
       float yScale;
       if (PE_copy.scale_invert)
@@ -344,7 +353,7 @@ static void BPWritten(const BPCmd& bp)
     if (OpcodeDecoder::g_record_fifo_data)
       FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
 
-    TextureCacheBase::InvalidateAllBindPoints();
+    TMEM::InvalidateAll();
 
     return;
   }
@@ -443,15 +452,14 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_CLEARBBOX2:
   {
     const u8 offset = bp.address & 2;
-    BoundingBox::Enable();
+    g_renderer->BBoxEnable();
 
     g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
     g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
   }
     return;
   case BPMEM_TEXINVALIDATE:
-    // TODO: Needs some restructuring in TextureCacheBase.
-    TextureCacheBase::InvalidateAllBindPoints();
+    TMEM::Invalidate(bp.newvalue);
     return;
 
   case BPMEM_ZCOMPARE:  // Set the Z-Compare and EFB pixel format
@@ -559,7 +567,7 @@ static void BPWritten(const BPCmd& bp)
       if (OpcodeDecoder::g_record_fifo_data)
         FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
 
-      TextureCacheBase::InvalidateAllBindPoints();
+      TMEM::InvalidateAll();
     }
     return;
 
@@ -637,48 +645,48 @@ static void BPWritten(const BPCmd& bp)
       GeometryShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
     }
     return;
-  // ------------------------
-  // BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS,
-  // DiagLoad, Min Filter, Mag Filter, Wrap T, S
-  // BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
-  // ------------------------
-  case BPMEM_TX_SETMODE0:  // (0x90 for linear)
-  case BPMEM_TX_SETMODE0_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
+  }
 
-  case BPMEM_TX_SETMODE1:
-  case BPMEM_TX_SETMODE1_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
-  // --------------------------------------------
-  // BPMEM_TX_SETIMAGE0 - Texture width, height, format
-  // BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width, TMEM
-  // Offset
-  // BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width, TMEM Offset
-  // BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
-  // --------------------------------------------
-  case BPMEM_TX_SETIMAGE0:
-  case BPMEM_TX_SETIMAGE0_4:
-  case BPMEM_TX_SETIMAGE1:
-  case BPMEM_TX_SETIMAGE1_4:
-  case BPMEM_TX_SETIMAGE2:
-  case BPMEM_TX_SETIMAGE2_4:
-  case BPMEM_TX_SETIMAGE3:
-  case BPMEM_TX_SETIMAGE3_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
-  // -------------------------------
-  // Set a TLUT
-  // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
-  // -------------------------------
-  case BPMEM_TX_SETTLUT:
-  case BPMEM_TX_SETTLUT_4:
-    TextureCacheBase::InvalidateAllBindPoints();
-    return;
+  if ((bp.address & 0xc0) == 0x80)
+  {
+    auto tex_address = TexUnitAddress::FromBPAddress(bp.address);
 
-  default:
-    break;
+    switch (tex_address.Reg)
+    {
+    // ------------------------
+    // BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS,
+    // DiagLoad, Min Filter, Mag Filter, Wrap T, S
+    // BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
+    // ------------------------
+    case TexUnitAddress::Register::SETMODE0:
+    case TexUnitAddress::Register::SETMODE1:
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
+      return;
+
+    // --------------------------------------------
+    // BPMEM_TX_SETIMAGE0 - Texture width, height, format
+    // BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width,
+    //                      TMEM Offset
+    // BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width, TMEM Offset
+    // BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
+    // --------------------------------------------
+    case TexUnitAddress::Register::SETIMAGE0:
+    case TexUnitAddress::Register::SETIMAGE1:
+    case TexUnitAddress::Register::SETIMAGE2:
+    case TexUnitAddress::Register::SETIMAGE3:
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
+      return;
+
+    // -------------------------------
+    // Set a TLUT
+    // BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
+    // -------------------------------
+    case TexUnitAddress::Register::SETTLUT:
+      TMEM::ConfigurationChanged(tex_address, bp.newvalue);
+      return;
+    case TexUnitAddress::Register::UNKNOWN:
+      break;  // Not handled
+    }
   }
 
   switch (bp.address & 0xF0)
@@ -708,39 +716,37 @@ static void BPWritten(const BPCmd& bp)
                bp.newvalue);
 }
 
-// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
-void LoadBPReg(u32 value0)
+// Call browser: OpcodeDecoding.cpp RunCallback::OnBP()
+void LoadBPReg(u8 reg, u32 value, int cycles_into_future)
 {
-  int regNum = value0 >> 24;
-  int oldval = ((u32*)&bpmem)[regNum];
-  int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
+  int oldval = ((u32*)&bpmem)[reg];
+  int newval = (oldval & ~bpmem.bpMask) | (value & bpmem.bpMask);
   int changes = (oldval ^ newval) & 0xFFFFFF;
 
-  BPCmd bp = {regNum, changes, newval};
+  BPCmd bp = {reg, changes, newval};
 
   // Reset the mask register if we're not trying to set it ourselves.
-  if (regNum != BPMEM_BP_MASK)
+  if (reg != BPMEM_BP_MASK)
     bpmem.bpMask = 0xFFFFFF;
 
-  BPWritten(bp);
+  BPWritten(bp, cycles_into_future);
 }
 
-void LoadBPRegPreprocess(u32 value0)
+void LoadBPRegPreprocess(u8 reg, u32 value, int cycles_into_future)
 {
-  int regNum = value0 >> 24;
-  // masking could hypothetically be a problem
-  u32 newval = value0 & 0xffffff;
-  switch (regNum)
+  // masking via BPMEM_BP_MASK could hypothetically be a problem
+  u32 newval = value & 0xffffff;
+  switch (reg)
   {
   case BPMEM_SETDRAWDONE:
     if ((newval & 0xff) == 0x02)
-      PixelEngine::SetFinish();
+      PixelEngine::SetFinish(cycles_into_future);
     break;
   case BPMEM_PE_TOKEN_ID:
-    PixelEngine::SetToken(newval & 0xffff, false);
+    PixelEngine::SetToken(newval & 0xffff, false, cycles_into_future);
     break;
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
-    PixelEngine::SetToken(newval & 0xffff, true);
+    PixelEngine::SetToken(newval & 0xffff, true, cycles_into_future);
     break;
   }
 }
@@ -765,35 +771,25 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     // TODO: Description
 
   case BPMEM_IND_MTXA:  // 0x06
-  case BPMEM_IND_MTXB:  // 0x07
-  case BPMEM_IND_MTXC:  // 0x08
   case BPMEM_IND_MTXA + 3:
-  case BPMEM_IND_MTXB + 3:
-  case BPMEM_IND_MTXC + 3:
   case BPMEM_IND_MTXA + 6:
+    return std::make_pair(fmt::format("BPMEM_IND_MTXA Matrix {}", (cmd - BPMEM_IND_MTXA) / 3),
+                          fmt::format("Matrix {} column A\n{}", (cmd - BPMEM_IND_MTXA) / 3,
+                                      IND_MTXA{.hex = cmddata}));
+
+  case BPMEM_IND_MTXB:  // 0x07
+  case BPMEM_IND_MTXB + 3:
   case BPMEM_IND_MTXB + 6:
+    return std::make_pair(fmt::format("BPMEM_IND_MTXB Matrix {}", (cmd - BPMEM_IND_MTXB) / 3),
+                          fmt::format("Matrix {} column B\n{}", (cmd - BPMEM_IND_MTXB) / 3,
+                                      IND_MTXB{.hex = cmddata}));
+
+  case BPMEM_IND_MTXC:  // 0x08
+  case BPMEM_IND_MTXC + 3:
   case BPMEM_IND_MTXC + 6:
-  {
-    const u32 matrix_num = (cmd - BPMEM_IND_MTXA) / 3;
-    const u32 matrix_col = (cmd - BPMEM_IND_MTXA) % 3;
-    // These all use the same structure, though the meaning is *slightly* different;
-    // for conveninece implement it only once
-    const s32 row0 = cmddata & 0x0007ff;           // ma or mc or me
-    const s32 row1 = (cmddata & 0x3ff800) >> 11;   // mb or md or mf
-    const u32 scale = (cmddata & 0xc00000) >> 22;  // 2 bits of a 6-bit field for each column
-
-    const float row0f = static_cast<float>(row0) / (1 << 10);
-    const float row1f = static_cast<float>(row0) / (1 << 10);
-
-    return std::make_pair(fmt::format("BPMEM_IND_MTX{} Matrix {}", "ABC"[matrix_col], matrix_num),
-                          fmt::format("Matrix {} column {} ({})\n"
-                                      "Row 0 (m{}): {} ({})\n"
-                                      "Row 1 (m{}): {} ({})\n"
-                                      "Scale bits: {} (shifted: {})",
-                                      matrix_num, matrix_col, "ABC"[matrix_col], "ace"[matrix_col],
-                                      row0f, row0, "bdf"[matrix_col], row1f, row1, scale,
-                                      scale << (2 * matrix_col)));
-  }
+    return std::make_pair(fmt::format("BPMEM_IND_MTXC Matrix {}", (cmd - BPMEM_IND_MTXC) / 3),
+                          fmt::format("Matrix {} column C\n{}", (cmd - BPMEM_IND_MTXC) / 3,
+                                      IND_MTXC{.hex = cmddata}));
 
   case BPMEM_IND_IMASK:  // 0x0F
     return DescriptionlessReg(BPMEM_IND_IMASK);

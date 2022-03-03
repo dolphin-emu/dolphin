@@ -1,11 +1,12 @@
 // Copyright 2018 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "UICommon/AutoUpdate.h"
 
-#include <picojson.h>
 #include <string>
+
+#include <fmt/format.h>
+#include <picojson.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -13,7 +14,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
-#include "Core/ConfigManager.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -150,22 +150,20 @@ static std::string GetPlatformID()
 #endif
 }
 
-void AutoUpdateChecker::CheckForUpdate()
+void AutoUpdateChecker::CheckForUpdate(std::string_view update_track,
+                                       std::string_view hash_override)
 {
   // Don't bother checking if updates are not supported or not enabled.
-  if (!SystemSupportsAutoUpdates() || SConfig::GetInstance().m_auto_update_track.empty())
+  if (!SystemSupportsAutoUpdates() || update_track.empty())
     return;
 
 #ifdef OS_SUPPORTS_UPDATER
   CleanupFromPreviousUpdate();
 #endif
 
-  std::string version_hash = SConfig::GetInstance().m_auto_update_hash_override.empty() ?
-                                 Common::scm_rev_git_str :
-                                 SConfig::GetInstance().m_auto_update_hash_override;
-  std::string url = "https://dolphin-emu.org/update/check/v1/" +
-                    SConfig::GetInstance().m_auto_update_track + "/" + version_hash + "/" +
-                    GetPlatformID();
+  std::string_view version_hash = hash_override.empty() ? Common::GetScmRevGitStr() : hash_override;
+  std::string url = fmt::format("https://dolphin-emu.org/update/check/v1/{}/{}/{}", update_track,
+                                version_hash, GetPlatformID());
 
   Common::HttpRequest req{std::chrono::seconds{10}};
   auto resp = req.Get(url);
@@ -227,7 +225,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["parent-pid"] = std::to_string(getpid());
 #endif
   updater_flags["install-base-path"] = File::GetExeDirectory();
-  updater_flags["log-file"] = File::GetExeDirectory() + DIR_SEP + UPDATER_LOG_FILE;
+  updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILE;
 
   if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
     updater_flags["binary-to-restart"] = File::GetExePath();

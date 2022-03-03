@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/HW/CPU.h"
 
@@ -13,6 +12,7 @@
 #include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/Fifo.h"
 
@@ -87,12 +87,17 @@ static void ExecutePendingJobs(std::unique_lock<std::mutex>& state_lock)
 
 void Run()
 {
+  // Updating the host CPU's rounding mode must be done on the CPU thread.
+  // We can't rely on PowerPC::Init doing it, since it's called from EmuThread.
+  PowerPC::RoundingModeUpdated();
+
   std::unique_lock state_lock(s_state_change_lock);
   while (s_state != State::PowerDown)
   {
     s_state_cpu_cvar.wait(state_lock, [] { return !s_state_paused_and_locked; });
     ExecutePendingJobs(state_lock);
 
+    Common::Event gdb_step_sync_event;
     switch (s_state)
     {
     case State::Running:
@@ -126,8 +131,27 @@ void Run()
 
     case State::Stepping:
       // Wait for step command.
-      s_state_cpu_cvar.wait(state_lock, [&state_lock] {
+      s_state_cpu_cvar.wait(state_lock, [&state_lock, &gdb_step_sync_event] {
         ExecutePendingJobs(state_lock);
+        state_lock.unlock();
+        if (GDBStub::IsActive() && GDBStub::HasControl())
+        {
+          if (!GDBStub::JustConnected())
+            GDBStub::SendSignal(GDBStub::Signal::Sigtrap);
+          GDBStub::ProcessCommands(true);
+          // If we are still going to step, emulate the fact we just sent a step command
+          if (GDBStub::HasControl())
+          {
+            // Make sure the previous step by gdb was serviced
+            if (s_state_cpu_step_instruction_sync &&
+                s_state_cpu_step_instruction_sync != &gdb_step_sync_event)
+              s_state_cpu_step_instruction_sync->Set();
+
+            s_state_cpu_step_instruction = true;
+            s_state_cpu_step_instruction_sync = &gdb_step_sync_event;
+          }
+        }
+        state_lock.lock();
         return s_state_cpu_step_instruction || !IsStepping();
       });
       if (!IsStepping())
@@ -277,6 +301,12 @@ void Break()
   // finish resulting in the CPU loop never terminating.
   SetStateLocked(State::Stepping);
   RunAdjacentSystems(false);
+}
+
+void Continue()
+{
+  CPU::EnableStepping(false);
+  Core::CallOnStateChangedCallbacks(Core::State::Running);
 }
 
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)

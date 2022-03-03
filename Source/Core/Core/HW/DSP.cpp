@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // AID / AUDIO_DMA controls pushing audio out to the SRC and then the speakers.
 // The audio DMA pushes audio through a small FIFO 32 bytes at a time, as

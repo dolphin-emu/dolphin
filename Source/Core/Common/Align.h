@@ -1,4 +1,4 @@
-// This file is under the public domain.
+// SPDX-License-Identifier: CC0-1.0
 
 #pragma once
 

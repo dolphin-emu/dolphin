@@ -1,6 +1,7 @@
 // Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "VideoCommon/FPSCounter.h"
 
 #include <fstream>
 #include <iomanip>
@@ -9,7 +10,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Timer.h"
 #include "Core/Core.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoConfig.h"
 
 static constexpr u64 FPS_REFRESH_INTERVAL = 250000;

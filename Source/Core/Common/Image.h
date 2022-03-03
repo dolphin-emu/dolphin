@@ -1,6 +1,5 @@
 // Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -21,9 +20,9 @@ enum class ImageByteFormat
 };
 
 bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u32 width,
-             u32 height, int stride = 0);
+             u32 height, int stride, int level = 6);
 bool ConvertRGBAToRGBAndSavePNG(const std::string& path, const u8* input, u32 width, u32 height,
-                                int stride = 0);
+                                int stride, int level);
 
 std::vector<u8> RGBAToRGB(const u8* input, u32 width, u32 height, int row_stride = 0);
 

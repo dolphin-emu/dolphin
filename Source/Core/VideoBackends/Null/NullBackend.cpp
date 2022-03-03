@@ -1,20 +1,20 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 // Null Backend Documentation
 
 // This backend tries not to do anything in the backend,
 // but everything in VideoCommon.
 
-#include "VideoBackends/Null/NullRender.h"
-#include "VideoBackends/Null/NullVertexManager.h"
-#include "VideoBackends/Null/PerfQuery.h"
-#include "VideoBackends/Null/TextureCache.h"
 #include "VideoBackends/Null/VideoBackend.h"
 
 #include "Common/Common.h"
 #include "Common/MsgHandler.h"
+
+#include "VideoBackends/Null/NullRender.h"
+#include "VideoBackends/Null/NullVertexManager.h"
+#include "VideoBackends/Null/PerfQuery.h"
+#include "VideoBackends/Null/TextureCache.h"
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -56,6 +56,10 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsPartialDepthCopies = false;
   g_Config.backend_info.bSupportsShaderBinaries = false;
   g_Config.backend_info.bSupportsPipelineCacheData = false;
+  g_Config.backend_info.bSupportsCoarseDerivatives = false;
+  g_Config.backend_info.bSupportsTextureQueryLevels = false;
+  g_Config.backend_info.bSupportsLodBiasInSampler = false;
+  g_Config.backend_info.bSupportsSettingObjectNames = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();

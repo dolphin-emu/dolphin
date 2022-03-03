@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -31,10 +30,10 @@ public:
 
   struct FrameData
   {
-    const u8* data;
-    int width;
-    int height;
-    int stride;
+    const u8* data = nullptr;
+    int width = 0;
+    int height = 0;
+    int stride = 0;
     FrameState state;
   };
 

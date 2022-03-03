@@ -1,6 +1,5 @@
 // Copyright 2019 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -9,9 +8,10 @@
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "VideoCommon/RenderBase.h"
 
+class BoundingBox;
+
 namespace DX12
 {
-class BoundingBox;
 class DXFramebuffer;
 class DXTexture;
 class DXShader;
@@ -31,25 +31,23 @@ public:
   bool Initialize() override;
   void Shutdown() override;
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config,
+                                                 std::string_view name) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
   std::unique_ptr<AbstractFramebuffer>
   CreateFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment) override;
 
-  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage,
-                                                         std::string_view source) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, std::string_view source,
+                                                         std::string_view name) override;
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
-                                                         size_t length) override;
+                                                         size_t length,
+                                                         std::string_view name) override;
   std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config,
                                                    const void* cache_data = nullptr,
                                                    size_t cache_data_length = 0) override;
-
-  u16 BBoxReadImpl(int index) override;
-  void BBoxWriteImpl(int index, u16 value) override;
-  void BBoxFlushImpl() override;
 
   void Flush() override;
   void WaitForGPUIdle() override;
@@ -98,6 +96,8 @@ public:
 
 protected:
   void OnConfigChanged(u32 bits) override;
+
+  std::unique_ptr<BoundingBox> CreateBoundingBox() const override;
 
 private:
   static const u32 MAX_TEXTURES = 8;
@@ -149,7 +149,6 @@ private:
 
   // Owned objects
   std::unique_ptr<SwapChain> m_swap_chain;
-  std::unique_ptr<BoundingBox> m_bounding_box;
 
   // Current state
   struct

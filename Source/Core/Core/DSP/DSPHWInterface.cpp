@@ -1,7 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // Copyright 2004 Duddie & Tratax
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "Core/DSP/DSPCore.h"
 
 #include <atomic>
 #include <cstddef>
@@ -15,7 +16,6 @@
 #include "Common/Swap.h"
 
 #include "Core/DSP/DSPAccelerator.h"
-#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 
@@ -48,7 +48,7 @@ u16 SDSP::ReadMailboxLow(Mailbox mailbox)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
-  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:0x{:#010x} (pc={:#06x})", type, mailbox,
+  DEBUG_LOG_FMT(DSP_MAIL, "{}(RM) B:{} M:0x{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
                 PeekMailbox(mailbox), pc);
 #endif
 
@@ -75,7 +75,7 @@ void SDSP::WriteMailboxLow(Mailbox mailbox, u16 value)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   const char* const type = mailbox == Mailbox::DSP ? "DSP" : "CPU";
-  DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, mailbox,
+  DEBUG_LOG_FMT(DSP_MAIL, "{}(WM) B:{} M:{:#010x} (pc={:#06x})", type, static_cast<int>(mailbox),
                 PeekMailbox(mailbox), pc);
 #endif
 }

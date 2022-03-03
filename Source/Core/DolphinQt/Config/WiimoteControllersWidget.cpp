@@ -1,6 +1,5 @@
 // Copyright 2021 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/WiimoteControllersWidget.h"
 
@@ -18,6 +17,10 @@
 #include <map>
 #include <optional>
 
+#include "Common/Config/Config.h"
+
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -301,15 +304,15 @@ void WiimoteControllersWidget::LoadSettings()
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    m_wiimote_boxes[i]->setCurrentIndex(int(WiimoteCommon::GetSource(u32(i))));
+    m_wiimote_boxes[i]->setCurrentIndex(int(Config::Get(Config::GetInfoForWiimoteSource(int(i)))));
   }
-  m_wiimote_real_balance_board->setChecked(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) ==
+  m_wiimote_real_balance_board->setChecked(Config::Get(Config::WIIMOTE_BB_SOURCE) ==
                                            WiimoteSource::Real);
-  m_wiimote_speaker_data->setChecked(SConfig::GetInstance().m_WiimoteEnableSpeaker);
-  m_wiimote_ciface->setChecked(SConfig::GetInstance().connect_wiimotes_for_ciface);
-  m_wiimote_continuous_scanning->setChecked(SConfig::GetInstance().m_WiimoteContinuousScanning);
+  m_wiimote_speaker_data->setChecked(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
+  m_wiimote_ciface->setChecked(Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE));
+  m_wiimote_continuous_scanning->setChecked(Config::Get(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING));
 
-  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
     m_wiimote_passthrough->setChecked(true);
   else
     m_wiimote_emu->setChecked(true);
@@ -319,22 +322,24 @@ void WiimoteControllersWidget::LoadSettings()
 
 void WiimoteControllersWidget::SaveSettings()
 {
-  SConfig::GetInstance().m_WiimoteEnableSpeaker = m_wiimote_speaker_data->isChecked();
-  SConfig::GetInstance().connect_wiimotes_for_ciface = m_wiimote_ciface->isChecked();
-  SConfig::GetInstance().m_WiimoteContinuousScanning = m_wiimote_continuous_scanning->isChecked();
-  SConfig::GetInstance().m_bt_passthrough_enabled = m_wiimote_passthrough->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_ENABLE_SPEAKER,
+                           m_wiimote_speaker_data->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE,
+                           m_wiimote_ciface->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING,
+                           m_wiimote_continuous_scanning->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED,
+                           m_wiimote_passthrough->isChecked());
 
-  WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, m_wiimote_real_balance_board->isChecked() ?
-                                                      WiimoteSource::Real :
-                                                      WiimoteSource::None);
+  const WiimoteSource bb_source =
+      m_wiimote_real_balance_board->isChecked() ? WiimoteSource::Real : WiimoteSource::None;
+  Config::SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     const int index = m_wiimote_boxes[i]->currentIndex();
-    WiimoteCommon::SetSource(u32(i), WiimoteSource(index));
+    Config::SetBaseOrCurrent(Config::GetInfoForWiimoteSource(int(i)), WiimoteSource(index));
   }
-
-  UICommon::SaveWiimoteSources();
 
   SConfig::GetInstance().SaveSettings();
 }

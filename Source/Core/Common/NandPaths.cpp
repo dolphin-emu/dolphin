@@ -1,6 +1,5 @@
 // Copyright 2008 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/NandPaths.h"
 
@@ -20,7 +19,9 @@ namespace Common
 std::string RootUserPath(FromWhichRoot from)
 {
   int idx = from == FROM_CONFIGURED_ROOT ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
-  return File::GetUserPath(idx);
+  std::string dir = File::GetUserPath(idx);
+  dir.pop_back();  // remove trailing path separator
+  return dir;
 }
 
 static std::string RootUserPath(std::optional<FromWhichRoot> from)

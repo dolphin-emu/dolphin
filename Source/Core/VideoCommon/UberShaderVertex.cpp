@@ -1,6 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoCommon/UberShaderVertex.h"
 
@@ -50,7 +49,8 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   GenerateVSOutputMembers(out, api_type, num_texgen, host_config, "");
   out.Write("}};\n\n");
 
-  WriteUberShaderCommonHeader(out, api_type, host_config);
+  WriteIsNanHeader(out, api_type);
+  WriteBitfieldExtractHeader(out, api_type, host_config);
   WriteLightingFunction(out);
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -189,8 +189,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("for (uint color = 0u; color < {}u; color++) {{\n", NUM_XF_COLOR_CHANNELS);
   out.Write("  if ((color == 0u || use_color_1) && (components & ({}u << color)) != 0u) {{\n",
             VB_HAS_COL0);
-  out.Write("    float4 color_value;\n"
-            "    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are "
+  out.Write("    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are "
             "present.\n"
             "    if (color == 0u)\n"
             "      vertex_color_0 = rawcolor0;\n"
@@ -201,12 +200,10 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   out.Write("    // Use color1 for channel 0 if color0 is not present.\n"
             "    vertex_color_0 = rawcolor1;\n"
             "  }} else {{\n"
-            "    // The default alpha channel depends on the number of components in the vertex.\n"
-            "    float alpha = float((color_chan_alpha >> color) & 1u);\n"
             "    if (color == 0u)\n"
-            "      vertex_color_0 = float4(1.0, 1.0, 1.0, alpha);\n"
+            "      vertex_color_0 = missing_color_value;\n"
             "    else\n"
-            "      vertex_color_1 = float4(1.0, 1.0, 1.0, alpha);\n"
+            "      vertex_color_1 = missing_color_value;\n"
             "  }}\n"
             "}}\n"
             "\n");
@@ -218,20 +215,28 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   if (num_texgen > 0)
     GenVertexShaderTexGens(api_type, num_texgen, out);
 
-  out.Write("if (xfmem_numColorChans == 0u) {{\n"
-            "  if ((components & {}u) != 0u)\n"
-            "    o.colors_0 = rawcolor0;\n"
-            "  else\n"
-            "    o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n"
-            "}}\n",
-            VB_HAS_COL0);
-  out.Write("if (xfmem_numColorChans < 2u) {{\n"
-            "  if ((components & {}u) != 0u)\n"
-            "    o.colors_0 = rawcolor1;\n"
-            "  else\n"
-            "    o.colors_1 = float4(1.0, 1.0, 1.0, 1.0);\n"
-            "}}\n",
-            VB_HAS_COL1);
+  if (per_pixel_lighting)
+  {
+    out.Write("// When per-pixel lighting is enabled, the vertex colors are passed through\n"
+              "// unmodified so we can evaluate the lighting in the pixel shader.\n"
+              "// Lighting is also still computed in the vertex shader since it can be used to\n"
+              "// generate texture coordinates. We generated them above, so now the colors can\n"
+              "// be reverted to their previous stage.\n"
+              "o.colors_0 = vertex_color_0;\n"
+              "o.colors_1 = vertex_color_1;\n"
+              "// Note that the numColorChans logic should be (but currently isn't)\n"
+              "// performed in the pixel shader.\n");
+  }
+  else
+  {
+    out.Write("// The number of colors available to TEV is determined by numColorChans.\n"
+              "// We have to provide the fields to match the interface, so set to zero\n"
+              "// if it's not enabled.\n"
+              "if (xfmem_numColorChans == 0u)\n"
+              "  o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n"
+              "if (xfmem_numColorChans <= 1u)\n"
+              "  o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
+  }
 
   if (!host_config.fast_depth_calc)
   {
@@ -242,26 +247,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   if (per_pixel_lighting)
   {
     out.Write("o.Normal = _norm0;\n"
-              "o.WorldPos = pos.xyz;\n"
-              "// Pass through the vertex colors unmodified so we can evaluate the lighting\n"
-              "// in the same manner.\n");
-    out.Write("if ((components & {}u) != 0u) // VB_HAS_COL0\n"
-              "  o.colors_0 = vertex_color_0;\n",
-              VB_HAS_COL0);
-    out.Write("if ((components & {}u) != 0u) // VB_HAS_COL1\n"
-              "  o.colors_1 = vertex_color_1;\n",
-              VB_HAS_COL1);
-  }
-  else
-  {
-    out.Write("// The number of colors available to TEV is determined by numColorChans.\n"
-              "// We have to provide the fields to match the interface, so set to zero\n"
-              "// if it's not enabled.\n"
-              "if (xfmem_numColorChans == 0u)\n"
-              "  o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n"
-              "if (xfmem_numColorChans <= 1u)\n"
-              "  o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n"
-              "\n");
+              "o.WorldPos = pos.xyz;\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
@@ -438,6 +424,13 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             BitfieldExtract<&TexMtxInfo::inputform>("texMtxInfo"), TexInputForm::AB11);
   out.Write("    coord.z = 1.0f;\n"
             "\n");
+
+  // Convert NaNs to 1 - needed to fix eyelids in Shadow the Hedgehog during cutscenes
+  // See https://bugs.dolphin-emu.org/issues/11458
+  out.Write("  // Convert NaN to 1\n");
+  out.Write("  if (dolphin_isnan(coord.x)) coord.x = 1.0;\n");
+  out.Write("  if (dolphin_isnan(coord.y)) coord.y = 1.0;\n");
+  out.Write("  if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
   out.Write("  // first transformation\n");
   out.Write("  uint texgentype = {};\n", BitfieldExtract<&TexMtxInfo::texgentype>("texMtxInfo"));
