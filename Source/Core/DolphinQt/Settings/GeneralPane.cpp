@@ -76,6 +76,8 @@ void GeneralPane::CreateLayout()
   CreateAnalytics();
 #endif
 
+  CreateSettingReset();
+
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
 }
@@ -129,6 +131,8 @@ void GeneralPane::ConnectLayout()
   connect(m_button_generate_new_identity, &QPushButton::clicked, this,
           &GeneralPane::GenerateNewIdentity);
 #endif
+
+  connect(m_button_reset_settings, &QPushButton::clicked, this, &GeneralPane::ResetSettings);
 }
 
 void GeneralPane::CreateBasic()
@@ -236,6 +240,17 @@ void GeneralPane::CreateAnalytics()
   analytics_group_layout->addWidget(m_button_generate_new_identity);
 }
 #endif
+
+void GeneralPane::CreateSettingReset()
+{
+  auto* group = new QGroupBox(tr("Reset"));
+  auto* group_layout = new QVBoxLayout;
+  group->setLayout(group_layout);
+  m_main_layout->addWidget(group);
+
+  m_button_reset_settings = new QPushButton(tr("Reset Settings to Defaults"));
+  group_layout->addWidget(m_button_reset_settings);
+}
 
 void GeneralPane::LoadConfig()
 {
@@ -377,3 +392,8 @@ void GeneralPane::GenerateNewIdentity()
   message_box.exec();
 }
 #endif
+
+void GeneralPane::ResetSettings()
+{
+  SConfig::ResetSettings();
+}
