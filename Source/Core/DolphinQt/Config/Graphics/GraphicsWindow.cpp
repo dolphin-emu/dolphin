@@ -21,6 +21,7 @@
 #include "DolphinQt/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
+#include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -34,6 +35,9 @@ GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindo
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &GraphicsWindow::CheckForChangedBackend);
 }
 
 void GraphicsWindow::CreateMainLayout()
@@ -81,7 +85,8 @@ void GraphicsWindow::CreateMainLayout()
 
 void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
-  Config::SetBase(Config::MAIN_GFX_BACKEND, backend_name.toStdString());
+  m_active_backend = backend_name.toStdString();
+  Config::SetBase(Config::MAIN_GFX_BACKEND, m_active_backend);
   VideoBackendBase::PopulateBackendInfoFromUI();
 
   setWindowTitle(
@@ -102,4 +107,11 @@ void GraphicsWindow::OnBackendChanged(const QString& backend_name)
   }
 
   emit BackendChanged(backend_name);
+}
+
+void GraphicsWindow::CheckForChangedBackend()
+{
+  std::string current_backend = Config::Get(Config::MAIN_GFX_BACKEND);
+  if (current_backend != m_active_backend)
+    OnBackendChanged(QString::fromStdString(current_backend));
 }
