@@ -50,6 +50,21 @@ add_library(videocommon
   GraphicsModSystem/Config/GraphicsTargetGroup.cpp
   GraphicsModSystem/Config/GraphicsTargetGroup.h
   GraphicsModSystem/Constants.h
+  GraphicsModSystem/Runtime/Actions/MoveAction.cpp
+  GraphicsModSystem/Runtime/Actions/MoveAction.h
+  GraphicsModSystem/Runtime/Actions/PrintAction.cpp
+  GraphicsModSystem/Runtime/Actions/PrintAction.h
+  GraphicsModSystem/Runtime/Actions/ScaleAction.cpp
+  GraphicsModSystem/Runtime/Actions/ScaleAction.h
+  GraphicsModSystem/Runtime/Actions/SkipAction.cpp
+  GraphicsModSystem/Runtime/Actions/SkipAction.h
+  GraphicsModSystem/Runtime/FBInfo.cpp
+  GraphicsModSystem/Runtime/FBInfo.h
+  GraphicsModSystem/Runtime/GraphicsModAction.h
+  GraphicsModSystem/Runtime/GraphicsModActionFactory.cpp
+  GraphicsModSystem/Runtime/GraphicsModActionFactory.h
+  GraphicsModSystem/Runtime/GraphicsModManager.cpp
+  GraphicsModSystem/Runtime/GraphicsModManager.h
   HiresTextures.cpp
   HiresTextures.h
   HiresTextures_DDSLoader.cpp
