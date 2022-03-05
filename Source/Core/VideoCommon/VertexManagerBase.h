@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -173,7 +174,8 @@ protected:
 
   void CalculateZSlope(NativeVertexFormat* format);
   void CalculateBinormals(NativeVertexFormat* format);
-  void LoadTextures();
+
+  BitSet32 UsedTextures() const;
 
   u8* m_cur_buffer_pointer = nullptr;
   u8* m_base_buffer_pointer = nullptr;

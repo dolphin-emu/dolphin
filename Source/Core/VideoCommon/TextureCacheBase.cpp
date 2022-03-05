@@ -36,6 +36,7 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -255,6 +256,7 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
   backup_config.disable_vram_copies = config.bDisableCopyToVRAM;
   backup_config.arbitrary_mipmap_detection = config.bArbitraryMipmapDetection;
+  backup_config.graphics_mods = config.bGraphicMods;
 }
 
 TextureCacheBase::TCacheEntry*
@@ -1205,15 +1207,15 @@ private:
   std::vector<Level> levels;
 };
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
+TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (TMEM::IsValid(stage) && bound_textures[stage])
+  if (TMEM::IsValid(texture_info.GetStage()) && bound_textures[texture_info.GetStage()])
   {
-    TCacheEntry* entry = bound_textures[stage];
+    TCacheEntry* entry = bound_textures[texture_info.GetStage()];
     // If the TMEM configuration is such that this texture is more or less guaranteed to still
     // be in TMEM, then we know we can reuse the old entry without even hashing the memory
-    if (TMEM::IsCached(stage))
+    if (TMEM::IsCached(texture_info.GetStage()))
     {
       return entry;
     }
@@ -1226,26 +1228,29 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     }
   }
 
-  TextureInfo texture_info = TextureInfo::FromStage(stage);
-
   auto entry = GetTexture(g_ActiveConfig.iSafeTextureCache_ColorSamples, texture_info);
 
   if (!entry)
     return nullptr;
 
   entry->frameCount = FRAMECOUNT_INVALID;
-  bound_textures[stage] = entry;
+  if (entry->texture_info_name.empty() && g_ActiveConfig.bGraphicMods)
+  {
+    entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
+  }
+  bound_textures[texture_info.GetStage()] = entry;
 
   // We need to keep track of invalided textures until they have actually been replaced or
   // re-loaded
-  TMEM::Bind(stage, entry->NumBlocksX(), entry->NumBlocksY(), entry->GetNumLevels() > 1,
-             entry->format == TextureFormat::RGBA8);
+  TMEM::Bind(texture_info.GetStage(), entry->NumBlocksX(), entry->NumBlocksY(),
+             entry->GetNumLevels() > 1, entry->format == TextureFormat::RGBA8);
 
   return entry;
 }
 
 TextureCacheBase::TCacheEntry*
-TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info)
+TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
+                             const TextureInfo& texture_info)
 {
   u32 expanded_width = texture_info.GetExpandedWidth();
   u32 expanded_height = texture_info.GetExpandedHeight();
@@ -2118,6 +2123,35 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
   const u32 covered_range = num_blocks_y * dstStride;
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    FBInfo info;
+    info.m_width = tex_w;
+    info.m_height = tex_h;
+    info.m_texture_format = baseFormat;
+    if (is_xfb_copy)
+    {
+      for (const auto action : g_renderer->GetGraphicsModManager().GetXFBActions(info))
+      {
+        action->OnXFB();
+      }
+    }
+    else
+    {
+      bool skip = false;
+      for (const auto action : g_renderer->GetGraphicsModManager().GetEFBActions(info))
+      {
+        action->OnEFB(&skip, tex_w, tex_h, &scaled_tex_w, &scaled_tex_h);
+      }
+      if (skip == true)
+      {
+        if (copy_to_ram)
+          UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
+        return;
+      }
+    }
+  }
 
   if (dstStride < bytes_per_row)
   {

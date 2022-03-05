@@ -30,6 +30,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FrameDump.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 
@@ -268,6 +269,8 @@ public:
   // Will forcibly reload all textures on the next swap
   void ForceReloadTextures();
 
+  const GraphicsModManager& GetGraphicsModManager() const;
+
 protected:
   // Bitmask containing information about which configuration has changed for the backend.
   enum ConfigChangeBits : u32
@@ -447,6 +450,8 @@ private:
   std::unique_ptr<NetPlayChatUI> m_netplay_chat_ui;
 
   Common::Flag m_force_reload_textures;
+
+  GraphicsModManager m_graphics_mod_manager;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

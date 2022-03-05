@@ -213,7 +213,7 @@ void HiresTexture::Prefetch()
                   10000);
 }
 
-std::string HiresTexture::GenBaseName(TextureInfo& texture_info, bool dump)
+std::string HiresTexture::GenBaseName(const TextureInfo& texture_info, bool dump)
 {
   if (!dump && s_textureMap.empty())
     return "";
@@ -261,7 +261,7 @@ u32 HiresTexture::CalculateMipCount(u32 width, u32 height)
   return mip_count;
 }
 
-std::shared_ptr<HiresTexture> HiresTexture::Search(TextureInfo& texture_info)
+std::shared_ptr<HiresTexture> HiresTexture::Search(const TextureInfo& texture_info)
 {
   const std::string base_filename = GenBaseName(texture_info);
 

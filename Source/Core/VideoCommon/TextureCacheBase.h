@@ -155,6 +155,8 @@ public:
     u32 pending_efb_copy_height = 0;
     bool pending_efb_copy_invalidated = false;
 
+    std::string texture_info_name = "";
+
     explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                          std::unique_ptr<AbstractFramebuffer> fb);
 
@@ -239,8 +241,9 @@ public:
 
   void Invalidate();
 
-  TCacheEntry* Load(const u32 stage);
-  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info);
+  TCacheEntry* Load(const TextureInfo& texture_info);
+  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize,
+                          const TextureInfo& texture_info);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
 
@@ -374,6 +377,7 @@ private:
     bool gpu_texture_decoding;
     bool disable_vram_copies;
     bool arbitrary_mipmap_detection;
+    bool graphics_mods;
   };
   BackupConfig backup_config = {};
 
