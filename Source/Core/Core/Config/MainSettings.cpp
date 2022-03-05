@@ -266,7 +266,7 @@ const Info<std::string> MAIN_GDB_SOCKET{{System::Main, "General", "GDBSocket"}, 
 const Info<int> MAIN_GDB_PORT{{System::Main, "General", "GDBPort"}, -1};
 const Info<int> MAIN_ISO_PATH_COUNT{{System::Main, "General", "ISOPaths"}, 0};
 
-static Info<std::string> MakeISOPathConfigInfo(size_t idx)
+Info<std::string> MakeISOPathConfigInfo(size_t idx)
 {
   return Config::Info<std::string>{{Config::System::Main, "General", fmt::format("ISOPath{}", idx)},
                                    ""};

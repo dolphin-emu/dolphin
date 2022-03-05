@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 
 #include "Common/Config/ConfigInfo.h"
@@ -37,6 +38,9 @@ void Save();
 void Init();
 void Shutdown();
 void ClearCurrentRunLayer();
+
+std::set<Location> GetLocations(LayerType layer);
+void DeleteLocations(LayerType layer, const std::set<Location>& locations);
 
 const std::string& GetSystemName(System system);
 std::optional<System> GetSystemFromName(const std::string& system);

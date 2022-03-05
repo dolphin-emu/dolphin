@@ -7,6 +7,7 @@
 #include <climits>
 #include <memory>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -32,8 +33,12 @@
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/Config/FreeLookSettings.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/UISettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
@@ -91,6 +96,120 @@ void SConfig::LoadSettings()
 {
   INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
   Config::Load();
+}
+
+void SConfig::ResetSettings()
+{
+  Config::ConfigChangeCallbackGuard guard;
+
+  // collect all existing keys, then remove those that we don't want to reset
+  std::set<Config::Location> keys_to_delete = Config::GetLocations(Config::LayerType::Base);
+  keys_to_delete.erase(Config::MAIN_DEFAULT_ISO.GetLocation());
+  keys_to_delete.erase(Config::MAIN_MEMCARD_A_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_MEMCARD_B_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_AGP_CART_A_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_AGP_CART_B_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_SLOT_A.GetLocation());
+  keys_to_delete.erase(Config::MAIN_SLOT_B.GetLocation());
+  keys_to_delete.erase(Config::MAIN_SERIAL_PORT_1.GetLocation());
+  keys_to_delete.erase(Config::MAIN_BBA_MAC.GetLocation());
+  keys_to_delete.erase(Config::MAIN_BBA_XLINK_IP.GetLocation());
+  keys_to_delete.erase(Config::MAIN_BBA_XLINK_CHAT_OSD.GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSIDevice(0).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSIDevice(1).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSIDevice(2).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSIDevice(3).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForAdapterRumble(0).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForAdapterRumble(1).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForAdapterRumble(2).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForAdapterRumble(3).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSimulateKonga(0).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSimulateKonga(1).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSimulateKonga(2).GetLocation());
+  keys_to_delete.erase(Config::GetInfoForSimulateKonga(3).GetLocation());
+  keys_to_delete.erase(Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING.GetLocation());
+  keys_to_delete.erase(Config::MAIN_WIIMOTE_ENABLE_SPEAKER.GetLocation());
+  keys_to_delete.erase(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS.GetLocation());
+  keys_to_delete.erase(Config::MAIN_DUMP_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_LOAD_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_RESOURCEPACK_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_FS_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_SD_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_WFS_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_ISO_PATH_COUNT.GetLocation());
+  const size_t iso_path_count =
+      MathUtil::SaturatingCast<size_t>(Config::Get(Config::MAIN_ISO_PATH_COUNT));
+  for (int i = 0; i < iso_path_count; ++i)
+    keys_to_delete.erase(Config::MakeISOPathConfigInfo(i).GetLocation());
+#ifdef HAS_LIBMGBA
+  keys_to_delete.erase(Config::MAIN_GBA_BIOS_PATH.GetLocation());
+  for (const auto& gba_rom_path : Config::MAIN_GBA_ROM_PATHS)
+    keys_to_delete.erase(gba_rom_path.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GBA_SAVES_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GBA_SAVES_IN_ROM_PATH.GetLocation());
+#endif
+  keys_to_delete.erase(Config::MAIN_USE_HIGH_CONTRAST_TOOLTIPS.GetLocation());
+  keys_to_delete.erase(Config::MAIN_INTERFACE_LANGUAGE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_THEME_NAME.GetLocation());
+  keys_to_delete.erase(Config::MAIN_ANALYTICS_ID.GetLocation());
+  keys_to_delete.erase(Config::MAIN_ANALYTICS_ENABLED.GetLocation());
+  keys_to_delete.erase(Config::MAIN_ANALYTICS_PERMISSION_ASKED.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_DRIVES.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_WAD.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_ELF_DOL.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_WII.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_GC.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_JPN.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_PAL.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_USA.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_AUSTRALIA.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_FRANCE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_GERMANY.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_ITALY.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_KOREA.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_NETHERLANDS.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_RUSSIA.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_SPAIN.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_TAIWAN.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_WORLD.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_UNKNOWN.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_SORT.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_LIST_SORT_SECONDARY.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_PLATFORM.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_DESCRIPTION.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_BANNER.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_TITLE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_MAKER.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_FILE_NAME.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_FILE_PATH.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_GAME_ID.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_REGION.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_FILE_SIZE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_FILE_FORMAT.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_BLOCK_SIZE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_COMPRESSION.GetLocation());
+  keys_to_delete.erase(Config::MAIN_GAMELIST_COLUMN_TAGS.GetLocation());
+  keys_to_delete.erase(Config::MAIN_AUTOUPDATE_UPDATE_TRACK.GetLocation());
+  keys_to_delete.erase(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED.GetLocation());
+  keys_to_delete.erase(Config::MAIN_BLUETOOTH_PASSTHROUGH_VID.GetLocation());
+  keys_to_delete.erase(Config::MAIN_BLUETOOTH_PASSTHROUGH_PID.GetLocation());
+  keys_to_delete.erase(Config::MAIN_BLUETOOTH_PASSTHROUGH_LINK_KEYS.GetLocation());
+  keys_to_delete.erase(Config::MAIN_USB_PASSTHROUGH_DEVICES.GetLocation());
+  keys_to_delete.erase(Config::MAIN_INPUT_BACKGROUND_INPUT.GetLocation());
+  keys_to_delete.erase(Config::MAIN_USE_DISCORD_PRESENCE.GetLocation());
+  keys_to_delete.erase(Config::MAIN_USE_GAME_COVERS.GetLocation());
+  keys_to_delete.erase(Config::MAIN_FOCUSED_HOTKEYS.GetLocation());
+  keys_to_delete.erase(Config::MAIN_RECURSIVE_ISO_PATHS.GetLocation());
+  keys_to_delete.erase(Config::WIIMOTE_1_SOURCE.GetLocation());
+  keys_to_delete.erase(Config::WIIMOTE_2_SOURCE.GetLocation());
+  keys_to_delete.erase(Config::WIIMOTE_3_SOURCE.GetLocation());
+  keys_to_delete.erase(Config::WIIMOTE_4_SOURCE.GetLocation());
+  keys_to_delete.erase(Config::WIIMOTE_BB_SOURCE.GetLocation());
+  keys_to_delete.erase(Config::FL1_CONTROL_TYPE.GetLocation());
+  Config::DeleteLocations(Config::LayerType::Base, keys_to_delete);
 }
 
 void SConfig::ResetRunningGameMetadata()
