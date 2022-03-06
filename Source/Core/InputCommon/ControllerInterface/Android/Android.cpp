@@ -3,7 +3,9 @@
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
 
+#include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -57,6 +59,9 @@ jmethodID s_motion_event_get_axis_value;
 jmethodID s_motion_event_get_source;
 
 jintArray s_keycodes_array;
+
+using Clock = std::chrono::steady_clock;
+constexpr Clock::duration ACTIVE_INPUT_TIMEOUT = std::chrono::milliseconds(1000);
 
 std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qualifier;
 
@@ -429,13 +434,20 @@ public:
 
   std::string GetName() const override { return m_name; }
 
-  ControlState GetState() const override { return m_state.load(std::memory_order_relaxed); }
+  ControlState GetState() const override
+  {
+    m_last_polled.store(Clock::now(), std::memory_order_relaxed);
+    return m_state.load(std::memory_order_relaxed);
+  }
 
   void SetState(ControlState state) { m_state.store(state, std::memory_order_relaxed); }
+
+  Clock::time_point GetLastPolled() const { return m_last_polled.load(std::memory_order_relaxed); }
 
 private:
   std::string m_name;
   std::atomic<ControlState> m_state = 0;
+  mutable std::atomic<Clock::time_point> m_last_polled{};
 };
 
 class AndroidKey final : public AndroidInput
@@ -718,13 +730,14 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
     return false;
   }
 
-  static_cast<ciface::Android::AndroidInput*>(input)->SetState(state);
+  auto casted_input = static_cast<ciface::Android::AndroidInput*>(input);
+  casted_input->SetState(state);
+  const Clock::time_point last_polled = casted_input->GetLastPolled();
 
   DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name, device->GetQualifiedName(),
                 state);
 
-  // TODO: Return true when appropriate
-  return JNI_FALSE;
+  return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
 }
 
 JNIEXPORT jboolean JNICALL
@@ -740,6 +753,8 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
 
   const jint source = env->CallIntMethod(motion_event, s_motion_event_get_source);
   const std::string axis_name_prefix = ConstructAxisNamePrefix(source);
+
+  Clock::time_point last_polled{};
 
   for (ciface::Core::Device::Input* input : device->Inputs())
   {
@@ -758,14 +773,16 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
       }
 
       float value = env->CallFloatMethod(motion_event, s_motion_event_get_axis_value, axis_id);
-      static_cast<ciface::Android::AndroidInput*>(input)->SetState(value);
+
+      auto casted_input = static_cast<ciface::Android::AndroidInput*>(input);
+      casted_input->SetState(value);
+      last_polled = std::max(last_polled, casted_input->GetLastPolled());
 
       DEBUG_LOG_FMT(CONTROLLERINTERFACE, "Set {} of {} to {}", input_name,
                     device->GetQualifiedName(), value);
     }
   }
 
-  // TODO: Return true when appropriate
-  return JNI_FALSE;
+  return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
 }
 }
