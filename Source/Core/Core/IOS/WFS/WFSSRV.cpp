@@ -196,28 +196,67 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
   {
     const char* ioctl_name =
         request.request == IOCTL_WFS_OPEN ? "IOCTL_WFS_OPEN" : "IOCTL_WFS_CREATE_OPEN";
-    const u32 mode = request.request == IOCTL_WFS_OPEN ? Memory::Read_U32(request.buffer_in) : 2;
-    const u16 path_len = Memory::Read_U16(request.buffer_in + 0x20);
-    std::string path = Memory::GetString(request.buffer_in + 0x22, path_len);
+    const std::string path = NormalizePath(
+        Memory::GetString(request.buffer_in + 0x22, Memory::Read_U16(request.buffer_in + 0x20)));
+    const std::string native_path = WFS::NativePath(path);
 
-    path = NormalizePath(path);
+    if (request.request == IOCTL_WFS_OPEN)
+    {
+      if (!File::Exists(native_path))
+      {
+        ERROR_LOG_FMT(IOS_WFS, "{}({}): no such file or directory", ioctl_name, path);
+        return_error_code = WFS_ENOENT;
+        break;
+      }
+      if (!File::IsFile(native_path))
+      {
+        ERROR_LOG_FMT(IOS_WFS, "{}({}): is a directory", ioctl_name, path);
+        return_error_code = WFS_EISDIR;
+        break;
+      }
+    }
+    else
+    {
+      if (File::Exists(native_path))
+      {
+        ERROR_LOG_FMT(IOS_WFS, "{}({}): already exists", ioctl_name, path);
+        return_error_code = WFS_EEXIST;
+        break;
+      }
+    }
+
+    bool allow_reads = true, allow_writes = true;
+    if (request.request == IOCTL_WFS_OPEN)
+    {
+      const u32 mode = Memory::Read_U32(request.buffer_in);
+      if (mode == 0 || mode > 3)
+      {
+        ERROR_LOG_FMT(IOS_WFS, "{}({}): invalid mode {}", ioctl_name, path, mode);
+        return_error_code = WFS_EINVAL;
+        break;
+      }
+      allow_reads = mode & 1;
+      allow_writes = mode & 2;
+    }
 
     const u16 fd = GetNewFileDescriptor();
     FileDescriptor* fd_obj = &m_fds[fd];
     fd_obj->in_use = true;
     fd_obj->path = path;
-    fd_obj->mode = mode;
+    fd_obj->allow_reads = allow_reads;
+    fd_obj->allow_writes = allow_writes;
+    fd_obj->must_create = request.request == IOCTL_WFS_CREATE_OPEN;
     fd_obj->position = 0;
 
     if (!fd_obj->Open())
     {
-      ERROR_LOG_FMT(IOS_WFS, "{}({}, {}): error opening file", ioctl_name, path, mode);
+      ERROR_LOG_FMT(IOS_WFS, "{}({}): error opening file", ioctl_name, path);
       ReleaseFileDescriptor(fd);
-      return_error_code = WFS_ENOENT;
+      return_error_code = WFS_EIO;
       break;
     }
 
-    INFO_LOG_FMT(IOS_WFS, "{}({}, {}) -> {}", ioctl_name, path, mode, fd);
+    INFO_LOG_FMT(IOS_WFS, "{}({}) -> {}", ioctl_name, path, fd);
     if (request.request == IOCTL_WFS_OPEN)
     {
       Memory::Write_U16(fd, request.buffer_out + 0x14);
@@ -287,6 +326,13 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
       break;
     }
 
+    if (!fd_obj->allow_reads)
+    {
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_READ: reads are not allowed {}", fd);
+      return_error_code = WFS_EACCES;
+      break;
+    }
+
     const u64 previous_position = fd_obj->file.Tell();
     if (absolute)
     {
@@ -325,6 +371,13 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_WRITE: invalid file descriptor {}", fd);
       return_error_code = WFS_EBADFD;
+      break;
+    }
+
+    if (!fd_obj->allow_writes)
+    {
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_WRITE: writes are not allowed {}", fd);
+      return_error_code = WFS_EACCES;
       break;
     }
 
@@ -462,26 +515,6 @@ void WFSSRVDevice::ReleaseFileDescriptor(u16 fd)
 
 bool WFSSRVDevice::FileDescriptor::Open()
 {
-  const char* mode_string;
-
-  if (mode == 1)
-  {
-    mode_string = "rb";
-  }
-  else if (mode == 2)
-  {
-    mode_string = "wb";
-  }
-  else if (mode == 3)
-  {
-    mode_string = "rwb";
-  }
-  else
-  {
-    ERROR_LOG_FMT(IOS_WFS, "WFSOpen: invalid mode {}", mode);
-    return false;
-  }
-
-  return file.Open(WFS::NativePath(path), mode_string);
+  return file.Open(WFS::NativePath(path), must_create ? "wb+x" : "rb+");
 }
 }  // namespace IOS::HLE

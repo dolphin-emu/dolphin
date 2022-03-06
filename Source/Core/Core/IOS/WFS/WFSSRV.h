@@ -22,9 +22,12 @@ std::string NativePath(const std::string& wfs_path);
 enum
 {
   WFS_EINVAL = -10003,          // Invalid argument.
+  WFS_EIO = -10010,             // Input/output error.
+  WFS_EACCES = -10004,          // Permission denied.
   WFS_EBADFD = -10026,          // Invalid file descriptor.
   WFS_EEXIST = -10027,          // File already exists.
   WFS_ENOENT = -10028,          // No such file or directory.
+  WFS_EISDIR = -10030,          // Is a directory.
   WFS_FILE_IS_OPENED = -10032,  // Cannot perform operation on an opened file.
 };
 
@@ -86,7 +89,9 @@ private:
   {
     bool in_use = false;
     std::string path;
-    int mode = 0;
+    bool allow_reads = false;
+    bool allow_writes = false;
+    bool must_create = false;
     size_t position = 0;
     File::IOFile file;
 
