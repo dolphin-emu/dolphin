@@ -58,6 +58,10 @@ jclass s_motion_event_class;
 jmethodID s_motion_event_get_axis_value;
 jmethodID s_motion_event_get_source;
 
+jclass s_controller_interface_class;
+jmethodID s_controller_interface_register_input_device_listener;
+jmethodID s_controller_interface_unregister_input_device_listener;
+
 jintArray s_keycodes_array;
 
 using Clock = std::chrono::steady_clock;
@@ -635,20 +639,36 @@ void Init()
   s_motion_event_get_axis_value = env->GetMethodID(s_motion_event_class, "getAxisValue", "(I)F");
   s_motion_event_get_source = env->GetMethodID(s_motion_event_class, "getSource", "()I");
 
+  const jclass controller_interface_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/ControllerInterface");
+  s_controller_interface_class =
+      reinterpret_cast<jclass>(env->NewGlobalRef(controller_interface_class));
+  s_controller_interface_register_input_device_listener =
+      env->GetStaticMethodID(s_controller_interface_class, "registerInputDeviceListener", "()V");
+  s_controller_interface_unregister_input_device_listener =
+      env->GetStaticMethodID(s_controller_interface_class, "unregisterInputDeviceListener", "()V");
+
   jintArray keycodes_array = CreateKeyCodesArray(env);
   s_keycodes_array = reinterpret_cast<jintArray>(env->NewGlobalRef(keycodes_array));
   env->DeleteLocalRef(keycodes_array);
+
+  env->CallStaticVoidMethod(s_controller_interface_class,
+                            s_controller_interface_register_input_device_listener);
 }
 
 void Shutdown()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
+  env->CallStaticVoidMethod(s_controller_interface_class,
+                            s_controller_interface_unregister_input_device_listener);
+
   env->DeleteGlobalRef(s_input_device_class);
   env->DeleteGlobalRef(s_motion_range_class);
   env->DeleteGlobalRef(s_input_event_class);
   env->DeleteGlobalRef(s_key_event_class);
   env->DeleteGlobalRef(s_motion_event_class);
+  env->DeleteGlobalRef(s_controller_interface_class);
   env->DeleteGlobalRef(s_keycodes_array);
 }
 
@@ -784,5 +804,12 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_dispatch
   }
 
   return last_polled >= Clock::now() - ACTIVE_INPUT_TIMEOUT;
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_refreshDevices(JNIEnv* env,
+                                                                                       jclass)
+{
+  g_controller_interface.RefreshDevices();
 }
 }
