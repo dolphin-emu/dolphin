@@ -180,6 +180,51 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     break;
   }
 
+  case IOCTL_WFS_DELETE:
+  {
+    const std::string path = NormalizePath(
+        Memory::GetString(request.buffer_in + 0x2, Memory::Read_U16(request.buffer_in)));
+    const std::string native_path = WFS::NativePath(path);
+
+    const bool opened = std::any_of(m_fds.begin(), m_fds.end(),
+                                    [&](const auto& fd) { return fd.in_use && fd.path == path; });
+    if (opened)
+    {
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_DELETE({}): is opened", path);
+      return_error_code = WFS_FILE_IS_OPENED;
+      break;
+    }
+
+    if (!File::Exists(native_path))
+    {
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_DELETE({}): no such file or directory", path);
+      return_error_code = WFS_ENOENT;
+      break;
+    }
+
+    if (File::IsDirectory(native_path))
+    {
+      if (!File::DeleteDir(native_path, File::IfAbsentBehavior::NoConsoleWarning))
+      {
+        ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_DELETE({}): directory deletion failed", path);
+        return_error_code = WFS_EIO;
+        break;
+      }
+    }
+    else
+    {
+      if (!File::Delete(native_path, File::IfAbsentBehavior::NoConsoleWarning))
+      {
+        ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_DELETE({}): file deletion failed", path);
+        return_error_code = WFS_EIO;
+        break;
+      }
+    }
+
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_DELETE({}): deletion succeeded", path);
+    break;
+  }
+
   case IOCTL_WFS_RENAME:
   case IOCTL_WFS_RENAME_2:
   {
