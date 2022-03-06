@@ -221,7 +221,9 @@ const mpn_board_t MP5_BOARDS[] = {{1, 0x76, {"Toy Dream"}, {"mp5-toy"}},
                                   {3, 0x7A, {"Pirate Dream"}, {"mp5-pirate"}},
                                   {4, 0x7C, {"Undersea Dream"}, {"mp5-undersea"}},
                                   {5, 0x7E, {"Future Dream"}, {"mp5-future"}},
-                                  {6, 0x80, {"Bowser Nightmare"}, {"mp5-bowser"}},
+                                  {6, 0x80, {"Sweet Dream"}, {"mp5-sweet"}},
+                                  {7, 0x82, {"Bowser Nightmare"}, {"mp5-bowser"}},
+
 
                                   {NONE, NONE, {""}, ""}};
 
@@ -318,7 +320,8 @@ const mpn_scene_t MP5_GAMESTATES[] = {{NONE, 0x01, {"Title Screen"}, 0},
                                       {NONE, 0x7A, {"Pirate Dream"}, 0},
                                       {NONE, 0x7C, {"Undersea Dream"}, 0},
                                       {NONE, 0x7E, {"Future Dream"}, 0},
-                                      {NONE, 0x80, {"Bowser Nightmare"}, 0},
+                                      {NONE, 0x80, {"Sweet Dream"}, 0},
+                                      {NONE, 0x82, {"Bowser Nightmare"}, 0},
 
                                       {NONE, NONE, {""}}};
 

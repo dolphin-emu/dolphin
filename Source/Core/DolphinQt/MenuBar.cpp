@@ -60,6 +60,7 @@
 
 #include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
+#include <qprocess.h>
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
@@ -543,15 +544,12 @@ void MenuBar::AddOptionsMenu()
 
 void MenuBar::InstallUpdateManually()
 {
-  auto* updater =
-      new Updater(this->parentWidget(), "dev", Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+  QString filename = "Replace.bat";
+  (this);
 
-  if (!updater->CheckForUpdate())
-  {
-    ModalMessageBox::information(
-        this, tr("Update"),
-        tr("You are running the latest version available on this update track."));
-  }
+  hide();  // optional
+
+  QDesktopServices::openUrl(QUrl("file:///" + filename, QUrl::TolerantMode));
 }
 
 void MenuBar::AddHelpMenu()
@@ -579,7 +577,7 @@ void MenuBar::AddHelpMenu()
   {
     help_menu->addSeparator();
 
-    help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
+    help_menu->addAction(tr("&Update Emulator..."), this, &MenuBar::InstallUpdateManually);
   }
 
 #ifndef __APPLE__
