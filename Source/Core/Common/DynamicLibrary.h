@@ -24,6 +24,12 @@ public:
   // Closes the library.
   ~DynamicLibrary();
 
+  DynamicLibrary(const DynamicLibrary&) = delete;
+  DynamicLibrary(DynamicLibrary&&) = delete;
+
+  DynamicLibrary& operator=(const DynamicLibrary&) = delete;
+  DynamicLibrary& operator=(DynamicLibrary&&) = delete;
+
   // Returns the specified library name with the platform-specific suffix added.
   static std::string GetUnprefixedFilename(const char* filename);
 
