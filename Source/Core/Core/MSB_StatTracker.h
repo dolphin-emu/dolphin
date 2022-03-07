@@ -30,6 +30,7 @@ enum class EVENT_STATE
     PLAY_OVER,
     FINAL_RESULT,
     WAITING_FOR_EVENT,
+    GAME_OVER,
 };
 
 //Conversion Maps
@@ -417,10 +418,10 @@ public:
         u8 roster_loc;
         u8 char_id;
         u8 initial_base; //0=Batter, 1=1B, 2=2B, 3=3B
-        u8 out_type = 0xFF;
-        u8 out_location = 0xFF;
-        u8 result_base = 0xFF;
-        u8 steal = 0xFF;
+        u8 out_type = 0;
+        u8 out_location = 0;
+        u8 result_base = 0;
+        u8 steal = 0;
     };
 
     struct Fielder {
@@ -432,7 +433,7 @@ public:
         u32 fielder_x_pos;
         u32 fielder_y_pos;
         u32 fielder_z_pos;
-        u8 bobble = 0xFF; //Bobble info
+        u8 bobble = 0; //Bobble info
         //u8 bobble_fielder_roster_loc;
         //u8 bobble_fielder_pos;
         //u8 bobble_fielder_char_id;
@@ -609,80 +610,52 @@ public:
     };
     GameInfo m_game_info;
 
+    struct FielderInfo{
+        u8 current_pos = 0xFF;
+        u8 previous_pos = 0xFF;
+
+        std::array<int, cNumOfPositions> pitch_count_by_position = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        std::array<int, cNumOfPositions> out_count_by_position   = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    };
+
     struct FielderTracker {
         //Roster_loc, pair<position, changed>
         //Set changed=true any time the sampled position (each pitch) does not match the current position
         //Rest changed upon new batter
-        std::map<u8, std::pair<u8, bool>> fielder_map = {
-            {0, std::make_pair(0xFF, false)},
-            {1, std::make_pair(0xFF, false)},
-            {2, std::make_pair(0xFF, false)},
-            {3, std::make_pair(0xFF, false)},
-            {4, std::make_pair(0xFF, false)},
-            {5, std::make_pair(0xFF, false)},
-            {6, std::make_pair(0xFF, false)},
-            {7, std::make_pair(0xFF, false)},
-            {8, std::make_pair(0xFF, false)}
+        std::map<u8, FielderInfo> fielder_map = {
+            {0, FielderInfo()},
+            {1, FielderInfo()},
+            {2, FielderInfo()},
+            {3, FielderInfo()},
+            {4, FielderInfo()},
+            {5, FielderInfo()},
+            {6, FielderInfo()},
+            {7, FielderInfo()},
+            {8, FielderInfo()}
         };
 
+        bool initialized = false;
         u8 prev_batter_roster_loc = 0xFF; //Used to check each pitch if the batter has changed.
-                                   //Mark current positions when changed
+                                          //Mark current positions when changed
 
-        //Roster loc, array<pitches at position>
-        std::map<u8, std::array<u8, cNumOfPositions>> pitch_count_by_position = {
-            {0, {0}},
-            {1, {0}},
-            {2, {0}},
-            {3, {0}},
-            {4, {0}},
-            {5, {0}},
-            {6, {0}},
-            {7, {0}},
-            {8, {0}}
-        };
+        void initTracker(){
+            initialized = true;
+            for (u8 pos=0; pos < cRosterSize; ++pos){
+                u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
 
-        //Roster loc, array<pitches at position>
-        std::map<u8, std::array<u8, cNumOfPositions>> out_count_by_position = {
-            {0, {0}},
-            {1, {0}},
-            {2, {0}},
-            {3, {0}},
-            {4, {0}},
-            {5, {0}},
-            {6, {0}},
-            {7, {0}},
-            {8, {0}}
-        };
+                u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
 
-        bool anyUninitializedFielders() {
-            for (auto& roster_loc : fielder_map){
-                if (roster_loc.second.first == 0xFF) {return true;}
+                std::cout << "RosterLoc:" << std::to_string(roster_loc) 
+                          << " Init Pos=" << cPosition.at(pos) << std::endl;
+
+                fielder_map[roster_loc].current_pos = pos;
+                fielder_map[roster_loc].previous_pos = pos;
             }
-            return false;
         }
 
-        void resetFielderMap() {
-            bool any_uninitialized_fielders = false;
-            for (auto& roster_loc : fielder_map){
-                if (roster_loc.second.first == 0xFF) {any_uninitialized_fielders = true;}
-                roster_loc.second.second = false; //Reset isChanged bool
-            }
-            //Init fielders - only do this loop at the start of the game
-            if (any_uninitialized_fielders){
-                for (u8 pos=0; pos < cRosterSize; ++pos){
-                    u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
-
-                    u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
-
-                    std::cout << "RosterLoc:" << std::to_string(roster_loc) 
-                                  << " Init Pos=" << cPosition.at(fielder_map[roster_loc].first)
-                                  << " New Pos=" << cPosition.at(pos) << std::endl;
-
-                    if ((fielder_map[roster_loc].first != pos) 
-                    && (fielder_map[roster_loc].first == 0xFF)){
-                        fielder_map[roster_loc].first = pos;
-                    }
-                }
+        void newBatter() {
+            for (auto& kv : fielder_map){
+                kv.second.previous_pos = kv.second.current_pos;
             }
         }
         
@@ -695,25 +668,22 @@ public:
 
                 //If new position, mark changed (unless this is the first pitch of the AB (pos==0xFF))
                 //Then set new position
-                if (fielder_map[roster_loc].first != pos){
-                    if (fielder_map[roster_loc].first != 0xFF){
-                        fielder_map[roster_loc].second = true;
-                        std::cout << "RosterLoc:" << std::to_string(roster_loc) 
-                                  << " swapped from " << cPosition.at(fielder_map[roster_loc].first)
-                                  << " to " << cPosition.at(pos) << std::endl; 
-                    }
-                    fielder_map[roster_loc].first = pos; 
+                if (fielder_map[roster_loc].current_pos != pos){
+                    std::cout << "RosterLoc:" << std::to_string(roster_loc) 
+                                << " swapped from " << cPosition.at(fielder_map[roster_loc].current_pos)
+                                << " to " << cPosition.at(pos) << std::endl; 
+                    fielder_map[roster_loc].current_pos = pos; 
                 }
 
                 //Increment the number of pitches this player has seen at this position
-                ++pitch_count_by_position[roster_loc][pos];
+                ++fielder_map[roster_loc].pitch_count_by_position[pos];
             }
             return;
         }
 
         bool outsAtAnyPosition(u8 roster_loc, int starting_pos) {
             for (int pos=starting_pos; pos < cRosterSize; ++pos){
-                if (out_count_by_position[roster_loc][pos] > 0) { 
+                if (fielder_map[roster_loc].out_count_by_position[pos] > 0) { 
                     return true;
                 }
             }
@@ -721,11 +691,19 @@ public:
         }
         bool pitchesAtAnyPosition(u8 roster_loc, int starting_pos) {
             for (int pos=starting_pos; pos < cRosterSize; ++pos){
-                if (pitch_count_by_position[roster_loc][pos] > 0) { 
+                if (fielder_map[roster_loc].pitch_count_by_position[pos] > 0) { 
                     return true;
                 }
             }
             return false;
+        }
+
+        void incrementOutForPosition(u8 roster_loc, u8 pos){
+            ++fielder_map[roster_loc].out_count_by_position[pos];
+        }
+
+        u8 wasFielderSwappedForBatter(u8 roster_loc){
+            return fielder_map[roster_loc].current_pos != fielder_map[roster_loc].previous_pos;
         }
     };
     std::array<FielderTracker, cNumOfTeams> m_fielder_tracker; //One per team
@@ -777,14 +755,11 @@ public:
     //RunnerInfo
     std::optional<Runner> logRunnerInfo(u8 base);
     bool anyRunnerStealing(Event& in_event);
-    void logRunnerStealing(std::optional<Runner> in_runner);
-    void logRunnerEvents(std::optional<Runner> in_runner);
+    void logRunnerEvents(Runner* in_runner);
 
     //TODO Redo these tuple functions
-    //Function to get fielder who is holding the ball <roster_loc, position, char_id, x_po, y_pos, z_pos, action>
     std::optional<Fielder> logFielderWithBall();
 
-    //Function to get fielder who is holding the ball <roster_loc, position, char_id, x_po, y_pos, z_pos, action, type of bobble>
     std::optional<Fielder> logFielderBobble();
     //Read players from ini file and assign to team
     void readPlayerNames(bool local_game);
