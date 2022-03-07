@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
@@ -99,9 +100,24 @@ private:
   };
   std::vector<FileDescriptor> m_fds;
 
-  FileDescriptor* FindFileDescriptor(u16 fd);
-  u16 GetNewFileDescriptor();
-  void ReleaseFileDescriptor(u16 fd);
+  struct DirectoryDescriptor
+  {
+    bool in_use = false;
+    File::FSTEntry entry;
+    size_t position = 0;
+  };
+  std::vector<DirectoryDescriptor> m_dds;
+
+  s32 GlobNext(const IOCtlRequest& request, DirectoryDescriptor* dd_obj) const;
+
+  template <typename T>
+  std::vector<T>& GetDescriptors(void);
+  template <typename T>
+  T* FindDescriptor(u16 fd);
+  template <typename T>
+  u16 GetNewDescriptor();
+  template <typename T>
+  void ReleaseDescriptor(u16 fd);
 
   // List of addresses of IPC requests left hanging that need closing at
   // shutdown time.

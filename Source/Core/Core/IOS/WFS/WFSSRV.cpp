@@ -118,23 +118,77 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     break;
   }
 
-  // TODO(wfs): Globbing is not really implemented, we just fake the one case
-  // (listing /vol/*) which is required to get the installer to work.
+  // TODO(wfs): Handle more patterns (e.g. with '?')
   case IOCTL_WFS_GLOB_START:
-    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_START({})", request.request);
-    Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
-    Memory::CopyToEmu(request.buffer_out + 0x14, m_device_name.data(), m_device_name.size());
+  {
+    const std::string pattern = NormalizePath(
+        Memory::GetString(request.buffer_in + 0x2, Memory::Read_U16(request.buffer_in)));
+    const size_t size = pattern.size();
+    if (size < 2 || pattern[size - 1] != '*' || pattern[size - 2] != '/')
+    {
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_START({}): unknown pattern", pattern);
+      return_error_code = WFS_EINVAL;
+      break;
+    }
+    const std::string path = pattern.substr(0, size - 2);
+    const std::string native_path = WFS::NativePath(path);
+
+    File::FSTEntry entry;
+    if (path == "/vol" || path == "/dev")
+    {
+      entry.isDirectory = true;
+      entry.size = 1;
+      entry.physicalName = native_path;
+      entry.virtualName = path;
+      entry.children.push_back(File::ScanDirectoryTree(native_path + "/" + m_device_name, false));
+    }
+    else if (File::IsDirectory(native_path))
+    {
+      entry = File::ScanDirectoryTree(native_path, false);
+    }
+    else
+    {
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_START({}): no such directory", pattern);
+      return_error_code = WFS_ENOENT;
+      break;
+    }
+
+    const u16 dd = GetNewDescriptor<DirectoryDescriptor>();
+    DirectoryDescriptor* dd_obj = &m_dds[dd];
+    dd_obj->in_use = true;
+    dd_obj->entry = entry;
+    dd_obj->position = 0;
+
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_START({}) -> {}", path, dd);
+    return_error_code = GlobNext(request, dd_obj);
+    Memory::Write_U16(dd, request.buffer_out + 0x114);
     break;
+  }
 
   case IOCTL_WFS_GLOB_NEXT:
-    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_NEXT({})", request.request);
-    return_error_code = WFS_ENOENT;
+  {
+    const u16 dd = Memory::Read_U16(request.buffer_in);
+
+    DirectoryDescriptor* dd_obj = FindDescriptor<DirectoryDescriptor>(dd);
+    if (dd_obj == nullptr)
+    {
+      ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_NEXT: invalid file descriptor {}", dd);
+      return_error_code = WFS_EBADFD;
+      break;
+    }
+
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_NEXT({})", dd);
+    return_error_code = GlobNext(request, dd_obj);
     break;
+  }
 
   case IOCTL_WFS_GLOB_END:
-    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_END({})", request.request);
-    Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
+  {
+    const u16 dd = Memory::Read_U16(request.buffer_in);
+    INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_GLOB_END({})", dd);
+    ReleaseDescriptor<DirectoryDescriptor>(dd);
     break;
+  }
 
   case IOCTL_WFS_SET_HOMEDIR:
     m_home_directory =
@@ -284,7 +338,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
       allow_writes = mode & 2;
     }
 
-    const u16 fd = GetNewFileDescriptor();
+    const u16 fd = GetNewDescriptor<FileDescriptor>();
     FileDescriptor* fd_obj = &m_fds[fd];
     fd_obj->in_use = true;
     fd_obj->path = path;
@@ -296,7 +350,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     if (!fd_obj->Open())
     {
       ERROR_LOG_FMT(IOS_WFS, "{}({}): error opening file", ioctl_name, path);
-      ReleaseFileDescriptor(fd);
+      ReleaseDescriptor<FileDescriptor>(fd);
       return_error_code = WFS_EIO;
       break;
     }
@@ -316,7 +370,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_WFS_GET_SIZE:
   {
     const u16 fd = Memory::Read_U16(request.buffer_in);
-    FileDescriptor* fd_obj = FindFileDescriptor(fd);
+    FileDescriptor* fd_obj = FindDescriptor<FileDescriptor>(fd);
     if (fd_obj == nullptr)
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_GET_SIZE: invalid file descriptor {}", fd);
@@ -339,7 +393,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
   {
     const u16 fd = Memory::Read_U16(request.buffer_in + 0x4);
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_CLOSE({})", fd);
-    ReleaseFileDescriptor(fd);
+    ReleaseDescriptor<FileDescriptor>(fd);
     break;
   }
 
@@ -349,7 +403,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     // close.
     const u16 fd = Memory::Read_U16(request.buffer_in + 0x4);
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_CLOSE_2({})", fd);
-    ReleaseFileDescriptor(fd);
+    ReleaseDescriptor<FileDescriptor>(fd);
     break;
   }
 
@@ -363,7 +417,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
 
     const bool absolute = request.request == IOCTL_WFS_READ_ABSOLUTE;
 
-    FileDescriptor* fd_obj = FindFileDescriptor(fd);
+    FileDescriptor* fd_obj = FindDescriptor<FileDescriptor>(fd);
     if (fd_obj == nullptr)
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_READ: invalid file descriptor {}", fd);
@@ -411,7 +465,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
 
     const bool absolute = request.request == IOCTL_WFS_WRITE_ABSOLUTE;
 
-    FileDescriptor* fd_obj = FindFileDescriptor(fd);
+    FileDescriptor* fd_obj = FindDescriptor<FileDescriptor>(fd);
     if (fd_obj == nullptr)
     {
       ERROR_LOG_FMT(IOS_WFS, "IOCTL_WFS_WRITE: invalid file descriptor {}", fd);
@@ -457,6 +511,32 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
   }
 
   return IPCReply(return_error_code);
+}
+
+s32 WFSSRVDevice::GlobNext(const IOCtlRequest& request, DirectoryDescriptor* dd_obj) const
+{
+  const std::vector<File::FSTEntry>& children = dd_obj->entry.children;
+  size_t& position = dd_obj->position;
+  while (position < children.size() && children[position].virtualName.size() > 255)
+  {
+    position++;
+  }
+
+  if (position >= children.size())
+  {
+    return WFS_ENOENT;
+  }
+
+  Memory::Memset(request.buffer_out, 0, 0x120);
+  if (File::IsDirectory(children[position].physicalName))
+  {
+    Memory::Write_U32(0x80000000, request.buffer_out + 0x4);
+  }
+  const std::string name = children[position].virtualName;
+  Memory::CopyToEmu(request.buffer_out + 0x14, name.data(), name.size());
+
+  position++;
+  return IPC_SUCCESS;
 }
 
 s32 WFSSRVDevice::Rename(std::string source, std::string dest) const
@@ -520,41 +600,59 @@ std::string WFSSRVDevice::NormalizePath(const std::string& path) const
   return "/" + JoinStrings(normalized_components, "/");
 }
 
-WFSSRVDevice::FileDescriptor* WFSSRVDevice::FindFileDescriptor(u16 fd)
+template <>
+std::vector<WFSSRVDevice::FileDescriptor>& WFSSRVDevice::GetDescriptors(void)
 {
-  if (fd >= m_fds.size() || !m_fds[fd].in_use)
+  return m_fds;
+}
+
+template <>
+std::vector<WFSSRVDevice::DirectoryDescriptor>& WFSSRVDevice::GetDescriptors(void)
+{
+  return m_dds;
+}
+
+template <typename T>
+T* WFSSRVDevice::FindDescriptor(u16 fd)
+{
+  std::vector<T>& descriptors = GetDescriptors<T>();
+  if (fd >= descriptors.size() || !descriptors[fd].in_use)
   {
     return nullptr;
   }
-  return &m_fds[fd];
+  return &descriptors[fd];
 }
 
-u16 WFSSRVDevice::GetNewFileDescriptor()
+template <typename T>
+u16 WFSSRVDevice::GetNewDescriptor()
 {
-  for (u32 i = 0; i < m_fds.size(); ++i)
+  std::vector<T>& descriptors = GetDescriptors<T>();
+  for (u32 i = 0; i < descriptors.size(); ++i)
   {
-    if (!m_fds[i].in_use)
+    if (!descriptors[i].in_use)
     {
       return i;
     }
   }
-  m_fds.resize(m_fds.size() + 1);
-  return static_cast<u16>(m_fds.size() - 1);
+  descriptors.resize(descriptors.size() + 1);
+  return static_cast<u16>(descriptors.size() - 1);
 }
 
-void WFSSRVDevice::ReleaseFileDescriptor(u16 fd)
+template <typename T>
+void WFSSRVDevice::ReleaseDescriptor(u16 fd)
 {
-  FileDescriptor* fd_obj = FindFileDescriptor(fd);
-  if (!fd_obj)
+  T* descriptor = FindDescriptor<T>(fd);
+  if (!descriptor)
   {
     return;
   }
-  fd_obj->in_use = false;
+  descriptor->in_use = false;
 
   // Garbage collect and shrink the array if possible.
-  while (!m_fds.empty() && !m_fds[m_fds.size() - 1].in_use)
+  std::vector<T>& descriptors = GetDescriptors<T>();
+  while (!descriptors.empty() && !descriptors[descriptors.size() - 1].in_use)
   {
-    m_fds.resize(m_fds.size() - 1);
+    descriptors.resize(descriptors.size() - 1);
   }
 }
 
