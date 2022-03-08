@@ -537,6 +537,9 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
 
     json_stream << "  \"Innings Selected\": " << std::to_string(m_game_info.innings_selected) << "," << std::endl;
     json_stream << "  \"Innings Played\": " << std::to_string(m_game_info.innings_played) << "," << std::endl;
+
+    json_stream << "  \"Average Ping\": " << std::to_string(m_game_info.avg_ping) << "," << std::endl;
+    json_stream << "  \"Lag Spikes\": " << std::to_string(m_game_info.lag_spikes) << "," << std::endl;
     
     //Team Captain and Roster
     for (int team=0; team < cNumOfTeams; ++team){
@@ -917,11 +920,11 @@ void StatTracker::setNetplaySession(bool netplay_session, bool is_host, std::str
 
 void StatTracker::setAvgPing(int avgPing) {
   std::cout << "Avg Ping=" << avgPing << std::endl;
-  m_state.m_avg_ping = avgPing;
+  m_game_info.avg_ping = avgPing;
 }
 
 void StatTracker::setLagSpikes(int nLagSpikes)
 {
   std::cout << "Number of Lag Spikes=" << nLagSpikes << std::endl;
-  m_state.m_lag_spikes = nLagSpikes;
+  m_game_info.lag_spikes = nLagSpikes;
 }

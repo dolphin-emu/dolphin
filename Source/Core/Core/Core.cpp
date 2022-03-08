@@ -466,6 +466,9 @@ bool isRankedMode()
 
 void SetAvgPing()
 {
+  if (!NetPlay::IsNetPlayRunning())
+    return;
+
   // checks if GameID is set and that the end game flag hasn't been hit yet
   bool inGame = Memory::Read_U32(0x802EBF8C) != 0 && Memory::Read_U32(0x80892AB3) == 0 ?
                     true :

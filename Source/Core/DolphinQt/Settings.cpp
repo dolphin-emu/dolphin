@@ -118,7 +118,7 @@ void Settings::SetDarkMode(bool enabled)
 
 bool Settings::IsDarkMode()
 {
-  return GetQSettings().value(QStringLiteral("userstyle/darkmode"), true).toBool();
+  return GetQSettings().value(QStringLiteral("userstyle/darkmode"), false).toBool();
 }
 
 

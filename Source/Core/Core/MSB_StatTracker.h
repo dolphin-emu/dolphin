@@ -342,6 +342,9 @@ public:
         bool host;
         std::string netplay_opponent_alias;
 
+        int avg_ping = 0;
+        int lag_spikes = 0;
+
         //Quit?
         std::string quitter_team = "";
 
@@ -516,8 +519,6 @@ public:
         bool m_netplay_session = false;
         bool m_is_host = false;
         std::string m_netplay_opponent_alias = "";
-        int m_avg_ping = 0;
-        int m_lag_spikes = 0;
     } m_state;
 
     union

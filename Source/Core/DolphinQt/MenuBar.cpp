@@ -603,7 +603,7 @@ void MenuBar::AddHelpMenu()
   });
   QAction* github = help_menu->addAction(tr("&GitHub Repository"));
   connect(github, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/CNace13/dolphin")));
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/ProjectRio/ProjectRio")));
   });
   QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
   connect(bugtracker, &QAction::triggered, this, []() {
