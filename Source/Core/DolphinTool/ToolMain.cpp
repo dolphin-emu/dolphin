@@ -25,7 +25,12 @@ int main(int argc, char* argv[])
   if (argc < 2)
     return PrintUsage(1);
 
+#ifdef _WIN32
+  // Convert Windows command line arguments to UTF-8.
+  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+#else
   std::vector<std::string> args(argv, argv + argc);
+#endif
 
   std::string command_str = args.at(1);
 
