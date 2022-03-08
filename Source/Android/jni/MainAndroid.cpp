@@ -521,6 +521,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   Common::AndroidSetReportHandler(&ReportSend);
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
   UICommon::Init();
+  GCAdapter::Init();
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReportStartToAnalytics(JNIEnv*,
