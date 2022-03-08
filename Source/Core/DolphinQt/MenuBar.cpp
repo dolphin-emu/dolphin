@@ -60,6 +60,7 @@
 
 #include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
+#include <qprocess.h>
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
@@ -541,19 +542,6 @@ void MenuBar::AddOptionsMenu()
   m_change_font = options_menu->addAction(tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
-void MenuBar::InstallUpdateManually()
-{
-  auto* updater =
-      new Updater(this->parentWidget(), "dev", Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
-
-  if (!updater->CheckForUpdate())
-  {
-    ModalMessageBox::information(
-        this, tr("Update"),
-        tr("You are running the latest version available on this update track."));
-  }
-}
-
 void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("&Help"));
@@ -574,13 +562,6 @@ void MenuBar::AddHelpMenu()
     QDesktopServices::openUrl(
         QUrl(QStringLiteral("https://bugs.dolphin-emu.org/projects/emulator")));
   });
-
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-  {
-    help_menu->addSeparator();
-
-    help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
-  }
 
 #ifndef __APPLE__
   help_menu->addSeparator();
@@ -1170,7 +1151,7 @@ void MenuBar::CheckNAND()
 
 void MenuBar::NANDExtractCertificates()
 {
-  if (DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX)))
+  if (DiscIO::NANDImporter().ExtractCertificates())
   {
     ModalMessageBox::information(this, tr("Success"),
                                  tr("Successfully extracted certificates from NAND"));
