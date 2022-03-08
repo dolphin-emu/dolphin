@@ -21,6 +21,7 @@
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/GCAdapter.h"
@@ -76,7 +77,7 @@ void GamecubeControllersWidget::CreateLayout()
   {
     auto* gc_label = new QLabel(tr("Port %1").arg(i + 1));
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
-    auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
+    auto* gc_button = m_gc_buttons[i] = new NonDefaultQPushButton(tr("Configure"));
 
     for (const auto& item : s_gc_types)
     {

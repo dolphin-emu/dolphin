@@ -41,6 +41,7 @@
 #include "DolphinQt/GCMemcardCreateNewDialog.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 using namespace ExpansionInterface;
 
@@ -106,9 +107,9 @@ void GCMemcardManager::CreateWidgets()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   // Actions
-  m_select_button = new QPushButton;
-  m_copy_button = new QPushButton;
-  m_delete_button = new QPushButton(tr("&Delete"));
+  m_select_button = new NonDefaultQPushButton;
+  m_copy_button = new NonDefaultQPushButton;
+  m_delete_button = new NonDefaultQPushButton(tr("&Delete"));
 
   m_export_button = new QToolButton(this);
   m_export_menu = new QMenu(m_export_button);
@@ -122,8 +123,8 @@ void GCMemcardManager::CreateWidgets()
   m_export_button->setPopupMode(QToolButton::MenuButtonPopup);
   m_export_button->setMenu(m_export_menu);
 
-  m_import_button = new QPushButton(tr("&Import..."));
-  m_fix_checksums_button = new QPushButton(tr("Fix Checksums"));
+  m_import_button = new NonDefaultQPushButton(tr("&Import..."));
+  m_fix_checksums_button = new NonDefaultQPushButton(tr("Fix Checksums"));
 
   auto* layout = new QGridLayout;
 
@@ -131,8 +132,8 @@ void GCMemcardManager::CreateWidgets()
   {
     m_slot_group[slot] = new QGroupBox(slot == Slot::A ? tr("Slot A") : tr("Slot B"));
     m_slot_file_edit[slot] = new QLineEdit;
-    m_slot_open_button[slot] = new QPushButton(tr("&Open..."));
-    m_slot_create_button[slot] = new QPushButton(tr("&Create..."));
+    m_slot_open_button[slot] = new NonDefaultQPushButton(tr("&Open..."));
+    m_slot_create_button[slot] = new NonDefaultQPushButton(tr("&Create..."));
     m_slot_table[slot] = new QTableWidget;
     m_slot_table[slot]->setTabKeyNavigation(false);
     m_slot_stat_label[slot] = new QLabel;

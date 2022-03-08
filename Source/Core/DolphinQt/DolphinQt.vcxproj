@@ -171,6 +171,7 @@
     <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
+    <ClCompile Include="QtUtils\NonDefaultQPushButton.cpp" />
     <ClCompile Include="QtUtils\PartiallyClosableTabWidget.cpp" />
     <ClCompile Include="QtUtils\UTF8CodePointCountValidator.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
@@ -223,6 +224,7 @@
     <ClInclude Include="QtUtils\FlowLayout.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
+    <ClInclude Include="QtUtils\NonDefaultQPushButton.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
     <ClInclude Include="QtUtils\SignalBlocking.h" />

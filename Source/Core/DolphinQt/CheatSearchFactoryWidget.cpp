@@ -24,6 +24,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 CheatSearchFactoryWidget::CheatSearchFactoryWidget()
 {
@@ -118,7 +119,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
 
   layout->addWidget(data_type_group);
 
-  m_new_search = new QPushButton(tr("New Search"));
+  m_new_search = new NonDefaultQPushButton(tr("New Search"));
   layout->addWidget(m_new_search);
 
   setLayout(layout);

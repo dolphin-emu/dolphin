@@ -19,6 +19,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/Graphics/PostProcessingConfigWindow.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/VideoUtils.h"
@@ -76,7 +77,7 @@ void EnhancementsWidget::CreateWidgets()
                                   Config::GFX_ENHANCE_MAX_ANISOTROPY);
 
   m_pp_effect = new ToolTipComboBox();
-  m_configure_pp_effect = new QPushButton(tr("Configure"));
+  m_configure_pp_effect = new NonDefaultQPushButton(tr("Configure"));
   m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
       new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);

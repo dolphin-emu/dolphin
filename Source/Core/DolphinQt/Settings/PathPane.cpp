@@ -19,6 +19,7 @@
 #include "Core/Config/UISettings.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 PathPane::PathPane(QWidget* parent) : QWidget(parent)
@@ -155,8 +156,8 @@ QGroupBox* PathPane::MakeGameFolderBox()
   QHBoxLayout* hlayout = new QHBoxLayout;
 
   hlayout->addStretch();
-  QPushButton* add = new QPushButton(tr("Add..."));
-  m_remove_path = new QPushButton(tr("Remove"));
+  QPushButton* add = new NonDefaultQPushButton(tr("Add..."));
+  m_remove_path = new NonDefaultQPushButton(tr("Remove"));
 
   m_remove_path->setEnabled(false);
 
@@ -197,7 +198,7 @@ QGridLayout* PathPane::MakePathsLayout()
           [this] { Settings::Instance().SetDefaultGame(m_game_edit->text()); });
   connect(&Settings::Instance(), &Settings::DefaultGameChanged, this,
           [this](const QString& path) { m_game_edit->setText(path); });
-  QPushButton* game_open = new QPushButton(QStringLiteral("..."));
+  QPushButton* game_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);
   layout->addWidget(new QLabel(tr("Default ISO:")), 0, 0);
   layout->addWidget(m_game_edit, 0, 1);
@@ -205,7 +206,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_nand_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_WIIROOT_IDX)));
   connect(m_nand_edit, &QLineEdit::editingFinished, this, &PathPane::OnNANDPathChanged);
-  QPushButton* nand_open = new QPushButton(QStringLiteral("..."));
+  QPushButton* nand_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(nand_open, &QPushButton::clicked, this, &PathPane::BrowseWiiNAND);
   layout->addWidget(new QLabel(tr("Wii NAND Root:")), 1, 0);
   layout->addWidget(m_nand_edit, 1, 1);
@@ -214,7 +215,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_dump_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_DUMP_IDX)));
   connect(m_dump_edit, &QLineEdit::editingFinished,
           [=] { Config::SetBase(Config::MAIN_DUMP_PATH, m_dump_edit->text().toStdString()); });
-  QPushButton* dump_open = new QPushButton(QStringLiteral("..."));
+  QPushButton* dump_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(dump_open, &QPushButton::clicked, this, &PathPane::BrowseDump);
   layout->addWidget(new QLabel(tr("Dump Path:")), 2, 0);
   layout->addWidget(m_dump_edit, 2, 1);
@@ -223,7 +224,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_load_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_LOAD_IDX)));
   connect(m_load_edit, &QLineEdit::editingFinished,
           [=] { Config::SetBase(Config::MAIN_LOAD_PATH, m_load_edit->text().toStdString()); });
-  QPushButton* load_open = new QPushButton(QStringLiteral("..."));
+  QPushButton* load_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(load_open, &QPushButton::clicked, this, &PathPane::BrowseLoad);
   layout->addWidget(new QLabel(tr("Load Path:")), 3, 0);
   layout->addWidget(m_load_edit, 3, 1);
@@ -234,7 +235,7 @@ QGridLayout* PathPane::MakePathsLayout()
   connect(m_resource_pack_edit, &QLineEdit::editingFinished, [=] {
     Config::SetBase(Config::MAIN_RESOURCEPACK_PATH, m_resource_pack_edit->text().toStdString());
   });
-  QPushButton* resource_pack_open = new QPushButton(QStringLiteral("..."));
+  QPushButton* resource_pack_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(resource_pack_open, &QPushButton::clicked, this, &PathPane::BrowseResourcePack);
   layout->addWidget(new QLabel(tr("Resource Pack Path:")), 4, 0);
   layout->addWidget(m_resource_pack_edit, 4, 1);
@@ -242,7 +243,7 @@ QGridLayout* PathPane::MakePathsLayout()
 
   m_sdcard_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARD_IDX)));
   connect(m_sdcard_edit, &QLineEdit::editingFinished, this, &PathPane::OnSDCardPathChanged);
-  QPushButton* sdcard_open = new QPushButton(QStringLiteral("..."));
+  QPushButton* sdcard_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(sdcard_open, &QPushButton::clicked, this, &PathPane::BrowseSDCard);
   layout->addWidget(new QLabel(tr("SD Card Path:")), 5, 0);
   layout->addWidget(m_sdcard_edit, 5, 1);
@@ -251,7 +252,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_wfs_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_WFSROOT_IDX)));
   connect(m_load_edit, &QLineEdit::editingFinished,
           [=] { Config::SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
-  QPushButton* wfs_open = new QPushButton(QStringLiteral("..."));
+  QPushButton* wfs_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(wfs_open, &QPushButton::clicked, this, &PathPane::BrowseWFS);
   layout->addWidget(new QLabel(tr("WFS Path:")), 6, 0);
   layout->addWidget(m_wfs_edit, 6, 1);

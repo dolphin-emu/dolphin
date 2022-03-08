@@ -25,6 +25,7 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
@@ -84,7 +85,7 @@ void NetPlayBrowser::CreateWidgets()
 
   m_status_label = new QLabel;
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  m_button_refresh = new QPushButton(tr("Refresh"));
+  m_button_refresh = new NonDefaultQPushButton(tr("Refresh"));
   m_edit_name = new QLineEdit;
   m_edit_game_id = new QLineEdit;
   m_check_hide_incompatible = new QCheckBox(tr("Hide Incompatible Sessions"));

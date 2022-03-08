@@ -23,6 +23,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
@@ -226,7 +227,8 @@ void GeneralPane::CreateAnalytics()
   m_main_layout->addWidget(analytics_group);
 
   m_checkbox_enable_analytics = new QCheckBox(tr("Enable Usage Statistics Reporting"));
-  m_button_generate_new_identity = new QPushButton(tr("Generate a New Statistics Identity"));
+  m_button_generate_new_identity =
+      new NonDefaultQPushButton(tr("Generate a New Statistics Identity"));
   analytics_group_layout->addWidget(m_checkbox_enable_analytics);
   analytics_group_layout->addWidget(m_button_generate_new_identity);
 }

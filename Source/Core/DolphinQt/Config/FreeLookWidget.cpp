@@ -16,6 +16,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 FreeLookWidget::FreeLookWidget(QWidget* parent) : QWidget(parent)
@@ -34,7 +35,7 @@ void FreeLookWidget::CreateLayout()
   m_enable_freelook->SetDescription(
       tr("Allows manipulation of the in-game camera.<br><br><dolphin_emphasis>If unsure, "
          "leave this unchecked.</dolphin_emphasis>"));
-  m_freelook_controller_configure_button = new QPushButton(tr("Configure Controller"));
+  m_freelook_controller_configure_button = new NonDefaultQPushButton(tr("Configure Controller"));
 
   m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
                                                Config::FL1_CONTROL_TYPE);

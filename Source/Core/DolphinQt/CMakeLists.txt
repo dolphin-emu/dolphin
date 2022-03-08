@@ -290,6 +290,8 @@ add_executable(dolphin-emu
   QtUtils/WrapInScrollArea.h
   QtUtils/AspectRatioWidget.cpp
   QtUtils/AspectRatioWidget.h
+  QtUtils/NonDefaultQPushButton.cpp
+  QtUtils/NonDefaultQPushButton.h
   ResourcePackManager.cpp
   ResourcePackManager.h
   RiivolutionBootWidget.cpp
