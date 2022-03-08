@@ -15,6 +15,8 @@
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/Host.h"
 #include "DolphinLibretro/Input.h"
 #include "DolphinLibretro/Options.h"
@@ -33,6 +35,7 @@
 #define RETRO_DEVICE_WIIMOTE_NC ((3 << 8) | RETRO_DEVICE_JOYPAD)
 #define RETRO_DEVICE_WIIMOTE_CC ((4 << 8) | RETRO_DEVICE_JOYPAD)
 #define RETRO_DEVICE_WIIMOTE_CC_PRO ((5 << 8) | RETRO_DEVICE_JOYPAD)
+#define RETRO_DEVICE_GC_ON_WII ((6 << 8) | RETRO_DEVICE_JOYPAD)
 #define RETRO_DEVICE_REAL_WIIMOTE ((6 << 8) | RETRO_DEVICE_NONE)
 
 namespace Libretro
@@ -397,6 +400,9 @@ static void AddDevicesForPort(unsigned port)
   g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_POINTER, port));
 }
 
+#if 0
+/* Disabled as it messes with the controllers index, so player 2 may end up controlling player 3, etc.
+ * if controllers are not plugged back in the correct order. */
 static void RemoveDevicesForPort(unsigned port)
 {
   g_controller_interface.RemoveDevice([&port](const auto& device) {
@@ -408,6 +414,7 @@ static void RemoveDevicesForPort(unsigned port)
            dynamic_cast<const Device*>(device)->GetPort() == port;
   });
 }
+#endif
 
 void Init()
 {
@@ -421,36 +428,66 @@ void Init()
   Pad::Initialize();
   Keyboard::Initialize();
 
+  int port_max = (SConfig::GetInstance().bWii && Libretro::Options::altGCPorts) ? 8 : 4;
+  for (int i = 0; i < port_max; i++)
+    Libretro::Input::AddDevicesForPort(i);
+
   static const struct retro_controller_description gcpad_desc[] = {
       {"GameCube Controller", RETRO_DEVICE_JOYPAD},
   };
+
   if (SConfig::GetInstance().bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     init_wiimotes = true;
     Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
 
-    static const struct retro_controller_description wiimote_desc[] = {
-        {"WiiMote", RETRO_DEVICE_WIIMOTE},
-        {"WiiMote (sideways)", RETRO_DEVICE_WIIMOTE_SW},
-        {"WiiMote + Nunchuk", RETRO_DEVICE_WIIMOTE_NC},
-        {"WiiMote + Classic Controller", RETRO_DEVICE_WIIMOTE_CC},
-        {"WiiMote + Classic Controller Pro", RETRO_DEVICE_WIIMOTE_CC_PRO},
-        {"Real WiiMote", RETRO_DEVICE_REAL_WIIMOTE},
-    };
+    if (Libretro::Options::altGCPorts) // Wii devices listed in ports 1-4, GC controllers in ports 5-8
+    {
+      static const struct retro_controller_description wiimote_desc[] = {
+          {"WiiMote", RETRO_DEVICE_WIIMOTE},
+          {"WiiMote (sideways)", RETRO_DEVICE_WIIMOTE_SW},
+          {"WiiMote + Nunchuk", RETRO_DEVICE_WIIMOTE_NC},
+          {"WiiMote + Classic Controller", RETRO_DEVICE_WIIMOTE_CC},
+          {"WiiMote + Classic Controller Pro", RETRO_DEVICE_WIIMOTE_CC_PRO},
+          {"Real WiiMote", RETRO_DEVICE_REAL_WIIMOTE},
+      };
 
-    static const struct retro_controller_info ports[] = {
-        {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
-        {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
-        {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
-        {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
-        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
-        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
-        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
-        {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
-        {0},
-    };
+      static const struct retro_controller_info ports[] = {
+          {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
+          {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
+          {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
+          {wiimote_desc, sizeof(wiimote_desc) / sizeof(*wiimote_desc)},
+          {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+          {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+          {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+          {gcpad_desc, sizeof(gcpad_desc) / sizeof(*gcpad_desc)},
+          {0},
+      };
 
-    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+      environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+    }
+    else // Both Wii devices and GC controllers listed in ports 1-4, ports 5-8 are unused
+    {
+      static const struct retro_controller_description wii_and_gc_desc[] = {
+          {"WiiMote", RETRO_DEVICE_WIIMOTE},
+          {"WiiMote (sideways)", RETRO_DEVICE_WIIMOTE_SW},
+          {"WiiMote + Nunchuk", RETRO_DEVICE_WIIMOTE_NC},
+          {"WiiMote + Classic Controller", RETRO_DEVICE_WIIMOTE_CC},
+          {"WiiMote + Classic Controller Pro", RETRO_DEVICE_WIIMOTE_CC_PRO},
+          {"Real WiiMote", RETRO_DEVICE_REAL_WIIMOTE},
+          {"GameCube Controller", RETRO_DEVICE_GC_ON_WII},
+      };
+
+      static const struct retro_controller_info ports[] = {
+          {wii_and_gc_desc, sizeof(wii_and_gc_desc) / sizeof(*wii_and_gc_desc)},
+          {wii_and_gc_desc, sizeof(wii_and_gc_desc) / sizeof(*wii_and_gc_desc)},
+          {wii_and_gc_desc, sizeof(wii_and_gc_desc) / sizeof(*wii_and_gc_desc)},
+          {wii_and_gc_desc, sizeof(wii_and_gc_desc) / sizeof(*wii_and_gc_desc)},
+          {0},
+      };
+
+      environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+    }
   }
   else
   {
@@ -520,7 +557,7 @@ void retro_set_input_state(retro_input_state_t cb)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-  if (port > 7)
+  if (((!SConfig::GetInstance().bWii || !Libretro::Options::altGCPorts) && port > 3) || port > 7)
     return;
 
   Libretro::Input::input_types[port] = device;
@@ -534,12 +571,30 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
   std::string devLightgun = Libretro::Input::GetQualifiedName(port, RETRO_DEVICE_LIGHTGUN);
 #endif
 
-  Libretro::Input::RemoveDevicesForPort(port);
-  if (device != RETRO_DEVICE_NONE && device != RETRO_DEVICE_REAL_WIIMOTE)
-    Libretro::Input::AddDevicesForPort(port);
-
-  if (!SConfig::GetInstance().bWii || port > 3)
+  if (device == RETRO_DEVICE_NONE)
   {
+    if (SConfig::GetInstance().bWii && port < 4)
+      WiimoteCommon::SetSource(port, WiimoteSource::None);
+
+    if (!SConfig::GetInstance().bWii || !Libretro::Options::altGCPorts)
+    {
+      SConfig::GetInstance().m_SIDevice[port] = SerialInterface::SIDEVICE_NONE;
+      SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[port], port);
+    }
+    else if (port > 3)
+    {
+      SConfig::GetInstance().m_SIDevice[port - 4] = SerialInterface::SIDEVICE_NONE;
+      SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[port - 4], port - 4);
+    }
+  }
+  else if (!SConfig::GetInstance().bWii || device == RETRO_DEVICE_GC_ON_WII || port > 3)
+  {
+    if (device == RETRO_DEVICE_GC_ON_WII) // Disconnect Wii device if we're using GC controller as device type to avoid conflict
+      WiimoteCommon::SetSource(port, WiimoteSource::None);
+
+    SConfig::GetInstance().m_SIDevice[port > 3 ? port - 4 : port] = SerialInterface::SIDEVICE_GC_CONTROLLER;
+    SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[port > 3 ? port - 4 : port], port > 3 ? port - 4 : port);
+
     GCPad* gcPad = (GCPad*)Pad::GetConfig()->GetController(port > 3 ? port - 4 : port);
     // load an empty inifile section, clears everything
     IniFile::Section sec;
@@ -590,6 +645,12 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
   }
   else if (!SConfig::GetInstance().m_bt_passthrough_enabled)
   {
+    if (!Libretro::Options::altGCPorts) // Disconnect GC controller to avoid conflict with Wii device
+    {
+      SConfig::GetInstance().m_SIDevice[port] = SerialInterface::SIDEVICE_NONE;
+      SerialInterface::ChangeDevice(SConfig::GetInstance().m_SIDevice[port], port);
+    }
+
     WiimoteEmu::Wiimote* wm = (WiimoteEmu::Wiimote*)Wiimote::GetConfig()->GetController(port);
     // load an empty inifile section, clears everything
     IniFile::Section sec;
@@ -805,17 +866,13 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
     case RETRO_DEVICE_REAL_WIIMOTE:
       WiimoteCommon::SetSource(port, WiimoteSource::Real);
       break;
-
-    default:
-      WiimoteCommon::SetSource(port, WiimoteSource::None);
-      break;
     }
     wm->UpdateReferences(g_controller_interface);
     ::Wiimote::GetConfig()->SaveConfig();
   }
   std::vector<retro_input_descriptor> all_descs;
 
-  int port_max = SConfig::GetInstance().bWii ? 8 : 4;
+  int port_max = (SConfig::GetInstance().bWii && Libretro::Options::altGCPorts) ? 8 : 4;
   for (int i = 0; i < port_max; i++)
   {
     retro_input_descriptor* desc;
@@ -843,7 +900,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       continue;
 
     default:
-      if (!SConfig::GetInstance().bWii || port > 3)
+      if (!SConfig::GetInstance().bWii || i > 3)
       {
         desc = Libretro::Input::descGC;
       }

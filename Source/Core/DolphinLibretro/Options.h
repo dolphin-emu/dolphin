@@ -117,6 +117,7 @@ extern Option<int> irHeight;
 extern Option<bool> enableRumble;
 extern Option<u32> sensorBarPosition;
 extern Option<bool> WiimoteContinuousScanning;
+extern Option<bool> altGCPorts;
 extern Option<unsigned int> audioMixerRate;
 extern Option<bool> DSPHLE;
 extern Option<bool> DSPEnableJIT;
