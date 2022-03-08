@@ -55,7 +55,7 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
-#include <Core/LocalPlayersConfig.h>
+//#include <Core/LocalPlayersConfig.h>
 
 SConfig* SConfig::m_Instance;
 
@@ -91,35 +91,11 @@ void SConfig::SaveSettings()
 
 void SConfig::LoadSettings()
 {
-  LoadLocalSettings();
+  //LoadLocalSettings();
   INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
   Config::Load();
 }
 
-void SConfig::SaveLocalSettings()
-{
-  const auto ini_path = File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX);
-  IniFile ini;
-  ini.Load(ini_path);
-  IniFile::Section* localplayers = ini.GetOrCreateSection("Local Players");
-  localplayers->Set("Player 1", m_local_player_1);
-  localplayers->Set("Player 2", m_local_player_2);
-  localplayers->Set("Player 3", m_local_player_3);
-  localplayers->Set("Player 4", m_local_player_4);
-  ini.Save(ini_path);
-}
-
-void SConfig::LoadLocalSettings()
-{
-  const auto ini_path = std::string(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
-  IniFile local_players_path;
-  local_players_path.Load(ini_path);
-  std::vector<std::string> portPlayers = AddPlayers::LoadPortPlayers(local_players_path);
-  m_local_player_1 = portPlayers[0];
-  m_local_player_2 = portPlayers[1];
-  m_local_player_3 = portPlayers[2];
-  m_local_player_4 = portPlayers[3];
-}
 
 void SConfig::ResetRunningGameMetadata()
 {

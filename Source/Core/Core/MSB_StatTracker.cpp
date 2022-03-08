@@ -823,7 +823,7 @@ void StatTracker::readPlayerNames(bool local_game) {
         std::vector<std::string> lines;
         ini->GetLines("Local_Players_List", &lines, false);
 
-        AddPlayers::AddPlayers player;
+        LocalPlayers::LocalPlayers player;
 
         u8 port = 0;
         for (auto& line : lines)
@@ -840,7 +840,7 @@ void StatTracker::readPlayerNames(bool local_game) {
             case '+':
                 if (!player.username.empty())
                 //players.push_back(player);
-                player = AddPlayers::AddPlayers();
+                  player = LocalPlayers::LocalPlayers();
                 ss.seekg(1, std::ios_base::cur);
                 // read the code name
                 std::getline(ss, player.username,

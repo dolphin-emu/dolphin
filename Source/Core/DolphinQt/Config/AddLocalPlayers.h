@@ -4,6 +4,7 @@
 #pragma once
 
 #include <QDialog>
+#include "Core/LocalPlayers.h"
 
 class QDialogButtonBox;
 class QLabel;
@@ -20,7 +21,7 @@ class AddLocalPlayersEditor : public QDialog
 public:
   explicit AddLocalPlayersEditor(QWidget* parent);
 
-  void SetPlayer(AddPlayers::AddPlayers* name);
+  void SetPlayer(LocalPlayers::LocalPlayers* name);
 
 private:
   void CreateWidgets();
@@ -36,5 +37,5 @@ private:
 
   QDialogButtonBox* m_button_box;
 
-  AddPlayers::AddPlayers* m_local_player = nullptr;
+  LocalPlayers::LocalPlayers* m_local_player = nullptr;
 };

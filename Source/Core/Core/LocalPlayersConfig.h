@@ -9,9 +9,13 @@
 
 class IniFile;
 
-namespace AddPlayers
+namespace LocalPlayers
 {
-  std::vector<AddPlayers> LoadPlayers(const IniFile& localIni);
-  void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& players);
+  //std::vector<LocalPlayers> LoadPlayers(const IniFile& localIni);
+  void SavePlayers(IniFile& inifile, const std::vector<LocalPlayers>& players);
   std::vector<std::string> LoadPortPlayers(IniFile& inifile);
-  }  // namespace AddPlayers
+
+  void SaveLocalPorts();
+  void LoadLocalPorts();
+
+}  // namespace LocalPlayers

@@ -5,18 +5,28 @@
 
 #include <string>
 #include <vector>
+#include "Common/IniFile.h"
 
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
 
-namespace AddPlayers
+namespace LocalPlayers
 {
-class AddPlayers
+class LocalPlayers
 {
 public:
   std::string username, userid;
+  std::vector<LocalPlayers> GetPlayers(const IniFile& localIni);
 
-  bool Exist(u32 address, u32 data) const;
+  std::map<int, LocalPlayers> GetPortPlayers(); // port num to the full local player string <name>[<uid>]
+  LocalPlayers toLocalPlayer(std::string playerStr);
+  std::string LocalPlayerToStr();
+
+  std::string m_local_player_1{"No Player Selected"};
+  std::string m_local_player_2{"No Player Selected"};
+  std::string m_local_player_3{"No Player Selected"};
+  std::string m_local_player_4{"No Player Selected"};
 };
-}  // namespace Gecko
+
+}  // namespace LocalPlayers

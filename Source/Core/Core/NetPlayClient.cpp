@@ -1497,12 +1497,13 @@ void NetPlayClient::OnPlayerDataMsg(sf::Packet& packet)
 {
   u8 port;
   packet >> port;
+
   std::string userinfoStr;
   packet >> userinfoStr;
-  std::vector<std::string> userinfo;
-  auto ss = std::stringstream{userinfoStr};
-  for (std::string line; std::getline(ss, line, '\n');)
-    userinfo.push_back(line);
+
+  LocalPlayers::LocalPlayers i_LocalPlayers;
+  LocalPlayers::LocalPlayers userinfo = i_LocalPlayers.toLocalPlayer(userinfoStr);
+
   NetplayerUserInfo[port] = userinfo;
 }
 
@@ -2945,68 +2946,34 @@ void NetPlay_Disable()
   netplay_client = nullptr;
 }
 
-void NetPlayClient::SendLocalPlayerNetplay(std::vector<std::string> userinfo)
+void NetPlayClient::SendLocalPlayerNetplay(LocalPlayers::LocalPlayers userinfo)
 {
-  sf::Packet packet;
-  packet << MessageID::PlayerData;
-
   u8 portnum = 0;
   for (auto player_id : m_pad_map)
   {
-    portnum += 1;
+    portnum++;
     if (player_id == m_local_player->pid)
-      NetplayerUserInfo[portnum] = userinfo;
+    {
+      sf::Packet packet;
+      packet << MessageID::PlayerData;
+
+      NetplayerUserInfo[portnum] = userinfo;  // if the client is mapped to a port, that port is set to the local player at the client's port 1
+      packet << portnum;
+      packet << userinfo.LocalPlayerToStr();
+
+      SendAsync(std::move(packet));
+    }
   }
 
-  packet << portnum;
-  packet << userinfo[0] + "\n" + userinfo[1] + "\n";
-
-  SendAsync(std::move(packet));
 }
 
-std::vector<std::string> NetPlayClient::GetLocalPlayerNetplay()
+LocalPlayers::LocalPlayers NetPlayClient::GetLocalPlayerNetplay()
 {
   // Eventually replace this with the account information in future official release
-  std::vector<std::string> userinfo;
+  LocalPlayers::LocalPlayers i_LocalPlayers;
+  std::map<int, LocalPlayers::LocalPlayers> userinfo = i_LocalPlayers.GetPortPlayers();
 
-  IniFile local_players_ini;
-  local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
-  for (const IniFile* ini : {&local_players_ini})
-  {
-    std::vector<std::string> lines;
-    ini->GetLines("Local_Players_List", &lines, false);
-    AddPlayers::AddPlayers player;
-    u8 port = 0;
-    for (auto& line : lines)
-    {
-      ++port;
-      std::istringstream ss(line);
-
-      // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
-      // Use the C locale to workaround this behavior
-      ss.imbue(std::locale::classic());
-
-      switch ((line)[0])
-      {
-      case '+':
-        if (!player.username.empty() && !player.userid.empty())
-          // players.push_back(player);
-          player = AddPlayers::AddPlayers();
-        ss.seekg(1, std::ios_base::cur);
-        // read the code name
-        std::getline(ss, player.username,
-                     '[');  // stop at [ character (beginning of contributor name)
-        player.username = StripSpaces(player.username);
-        // read the code creator name
-        std::getline(ss, player.userid, ']');
-        break;
-        break;
-      }
-    }
-    userinfo.push_back(player.username);
-    userinfo.push_back(player.userid);
-  }
-  return userinfo;
+  return userinfo[0];
 }
 
 }  // namespace NetPlay

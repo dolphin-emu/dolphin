@@ -11,7 +11,7 @@
 #include <QStringList>
 #include <QTextEdit>
 
-#include "Core/LocalPlayersConfig.h"
+//#include "Core/LocalPlayersConfig.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
@@ -24,7 +24,7 @@ AddLocalPlayersEditor::AddLocalPlayersEditor(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
 }
 
-void AddLocalPlayersEditor::SetPlayer(AddPlayers::AddPlayers* name)
+void AddLocalPlayersEditor::SetPlayer(LocalPlayers::LocalPlayers* name)
 {
   m_username_edit->setText(QString::fromStdString(name->username));
   m_userid_edit->setText(QString::fromStdString(name->userid));
@@ -38,7 +38,7 @@ void AddLocalPlayersEditor::CreateWidgets()
   m_userid_edit = new QLineEdit;
   m_description = new QLabel(
       tr("\nEnter a Username.\n"
-        "WARNING: the first username entered will\nbe used over NetPlay. You can manually\n"
+        "NOTE: the player at port 1 will\nbe used over NetPlay. You can manually\n"
         "change this by editing LocalPlayers.ini\nin Project Rio/Config/LocalPlayers.ini."));
   /*m_description = new QLabel(
       tr("\nEnter the Username and User ID EXACTLY\nas they appear on projectrio.online.\n"

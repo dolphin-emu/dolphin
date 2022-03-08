@@ -72,6 +72,10 @@
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 
+#include "Core/LocalPlayers.h"
+//#include "Core/LocalPlayersConfig.h"
+
+
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
 #endif
@@ -396,10 +400,13 @@ void DisplayBatterFielder()
   // Run using Local Players
   else
   {
-    std::string P1 = SConfig::GetInstance().m_local_player_1;
-    std::string P2 = SConfig::GetInstance().m_local_player_2;
-    std::string P3 = SConfig::GetInstance().m_local_player_3;
-    std::string P4 = SConfig::GetInstance().m_local_player_4;
+    LocalPlayers::LocalPlayers i_LocalPlayers;
+    std::map<int, LocalPlayers::LocalPlayers> LocalPlayersMap = i_LocalPlayers.GetPortPlayers();
+
+    std::string P1 = LocalPlayersMap[0].LocalPlayerToStr();
+    std::string P2 = LocalPlayersMap[1].LocalPlayerToStr();
+    std::string P3 = LocalPlayersMap[2].LocalPlayerToStr();
+    std::string P4 = LocalPlayersMap[3].LocalPlayerToStr();
     std::vector<std::string> LocalPlayerList{P1, P2, P3, P4};
     std::array<u32, 4> portColor = {
         {OSD::Color::RED, OSD::Color::BLUE, OSD::Color::YELLOW, OSD::Color::GREEN}};
