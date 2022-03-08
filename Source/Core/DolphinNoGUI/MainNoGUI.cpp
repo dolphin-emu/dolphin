@@ -149,6 +149,10 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
   return nullptr;
 }
 
+#ifdef _WIN32
+#define main app_main
+#endif
+
 int main(int argc, char* argv[])
 {
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
@@ -275,3 +279,18 @@ int main(int argc, char* argv[])
 
   return 0;
 }
+
+#ifdef _WIN32
+int wmain(int, wchar_t*[], wchar_t*[])
+{
+  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  const int argc = static_cast<int>(args.size());
+  std::vector<char*> argv(args.size());
+  for (size_t i = 0; i < args.size(); ++i)
+    argv[i] = args[i].data();
+
+  return main(argc, argv.data());
+}
+
+#undef main
+#endif
