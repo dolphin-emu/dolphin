@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/AddLocalPlayers.h"
+#include "Core/LocalPlayersConfig.h"
 
 #include <QDialogButtonBox>
 #include <QFontDatabase>
@@ -24,7 +25,7 @@ AddLocalPlayersEditor::AddLocalPlayersEditor(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
 }
 
-void AddLocalPlayersEditor::SetPlayer(LocalPlayers::LocalPlayers* name)
+void AddLocalPlayersEditor::SetPlayer(LocalPlayers::LocalPlayers::Player* name)
 {
   m_username_edit->setText(QString::fromStdString(name->username));
   m_userid_edit->setText(QString::fromStdString(name->userid));

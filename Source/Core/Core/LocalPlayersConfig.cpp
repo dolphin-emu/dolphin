@@ -22,21 +22,24 @@ namespace LocalPlayers
 //  LocalPlayers player;
 //  return player.GetPlayers(localIni);
 //}
+LocalPlayers::Player m_local_player_1{"No Player Selected", "0"};
+LocalPlayers::Player m_local_player_2{"No Player Selected", "0"};
+LocalPlayers::Player m_local_player_3{"No Player Selected", "0"};
+LocalPlayers::Player m_local_player_4{"No Player Selected", "0"};
 
-
-static void SaveLocalPlayers(std::vector<std::string>& lines, const LocalPlayers& player)
+static void SaveLocalPlayers(std::vector<std::string>& lines, const LocalPlayers::Player& player)
 {
-  LocalPlayers playerObj = player;
+  LocalPlayers::Player playerObj = player;
   lines.push_back(playerObj.LocalPlayerToStr());
 }
 
-void SavePlayers(IniFile& inifile, const std::vector<LocalPlayers>& players)
+void SavePlayers(IniFile& inifile, std::vector<LocalPlayers::Player>& players)
 {
   std::vector<std::string> lines;
 
-  for (const LocalPlayers& player : players)
+  for (unsigned int i = 1; i < players.size(); i++)
   {
-    SaveLocalPlayers(lines, player);
+    SaveLocalPlayers(lines, players[i]);
   }
 
   inifile.SetLines("Local_Players_List", lines);
@@ -59,15 +62,14 @@ std::vector<std::string> LoadPortPlayers(IniFile& inifile)
 
 void SaveLocalPorts()
 {
-  LocalPlayers i_LocalPlayers;
   const auto ini_path = File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX);
   IniFile ini;
   ini.Load(ini_path);
   IniFile::Section* localplayers = ini.GetOrCreateSection("Local Players");
-  localplayers->Set("Player 1", i_LocalPlayers.m_local_player_1);
-  localplayers->Set("Player 2", i_LocalPlayers.m_local_player_2);
-  localplayers->Set("Player 3", i_LocalPlayers.m_local_player_3);
-  localplayers->Set("Player 4", i_LocalPlayers.m_local_player_4);
+  localplayers->Set("Player 1", (m_local_player_1).LocalPlayerToStr());
+  localplayers->Set("Player 2", (m_local_player_2).LocalPlayerToStr());
+  localplayers->Set("Player 3", (m_local_player_3).LocalPlayerToStr());
+  localplayers->Set("Player 4", (m_local_player_4).LocalPlayerToStr());
   ini.Save(ini_path);
 }
 
@@ -78,12 +80,11 @@ void LoadLocalPorts()
   //local_players_path.Load(ini_path);
 
   LocalPlayers i_LocalPlayers;
-  std::map<int, LocalPlayers> portPlayers = i_LocalPlayers.GetPortPlayers();
-  i_LocalPlayers.m_local_player_1 = portPlayers[0].LocalPlayerToStr();
-  i_LocalPlayers.m_local_player_2 = portPlayers[0].LocalPlayerToStr();
-  i_LocalPlayers.m_local_player_3 = portPlayers[0].LocalPlayerToStr();
-  i_LocalPlayers.m_local_player_4 = portPlayers[0].LocalPlayerToStr();
+  std::map<int, LocalPlayers::Player> portPlayers = i_LocalPlayers.GetPortPlayers();
+  m_local_player_1.SetUserInfo(portPlayers[1]);
+  m_local_player_2.SetUserInfo(portPlayers[2]);
+  m_local_player_3.SetUserInfo(portPlayers[3]);
+  m_local_player_4.SetUserInfo(portPlayers[4]);
 }
-
 
 }  // namespace LocalPlayers

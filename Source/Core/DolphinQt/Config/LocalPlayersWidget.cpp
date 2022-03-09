@@ -37,6 +37,7 @@ LocalPlayersWidget::LocalPlayersWidget(QWidget* parent) : QWidget(parent)
   LocalPlayers::LocalPlayers player;
   local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
   m_local_players = player.GetPlayers(local_players_ini);
+  LocalPlayers::LoadLocalPorts();
 
   CreateLayout();
   UpdatePlayers();
@@ -101,12 +102,6 @@ void LocalPlayersWidget::CreateLayout()
 
 void LocalPlayersWidget::UpdatePlayers()
 {
-  // List an option to not select a player
-  m_player_list_1->addItem(tr("No Player Selected"));
-  m_player_list_2->addItem(tr("No Player Selected"));
-  m_player_list_3->addItem(tr("No Player Selected"));
-  m_player_list_4->addItem(tr("No Player Selected"));
-
   // List avalable players in LocalPlayers.ini
   for (size_t i = 0; i < m_local_players.size(); i++)
   {
@@ -132,13 +127,15 @@ void LocalPlayersWidget::SetPlayers()
 {
   LocalPlayers::SaveLocalPorts();
 
-  LocalPlayers::LocalPlayers i_LocalPlayers;
-  std::map<int, LocalPlayers::LocalPlayers> LocalPlayersMap = i_LocalPlayers.GetPortPlayers();
+  //std::string P1 = LocalPlayers::m_local_player_1.LocalPlayerToStr();
+  //std::string P2 = LocalPlayers::m_local_player_2.LocalPlayerToStr();
+  //std::string P3 = LocalPlayers::m_local_player_3.LocalPlayerToStr();
+  //std::string P4 = LocalPlayers::m_local_player_4.LocalPlayerToStr();
 
-  std::string P1 = LocalPlayersMap[0].LocalPlayerToStr();
-  std::string P2 = LocalPlayersMap[1].LocalPlayerToStr();
-  std::string P3 = LocalPlayersMap[2].LocalPlayerToStr();
-  std::string P4 = LocalPlayersMap[3].LocalPlayerToStr();
+  std::string P1 = LocalPlayers::m_local_player_1.GetUsername();
+  std::string P2 = LocalPlayers::m_local_player_2.GetUsername();
+  std::string P3 = LocalPlayers::m_local_player_3.GetUsername();
+  std::string P4 = LocalPlayers::m_local_player_4.GetUsername();
 
   for (int i = 0; i < m_player_list_1->count(); i++)
   {
@@ -155,7 +152,7 @@ void LocalPlayersWidget::SetPlayers()
 
 void LocalPlayersWidget::OnAddPlayers()
 {
-  LocalPlayers::LocalPlayers name;
+  LocalPlayers::LocalPlayers::Player name;
 
   AddLocalPlayersEditor ed(this);
   ed.SetPlayer(&name);
@@ -182,8 +179,7 @@ void LocalPlayersWidget::AddPlayerToList()
 
 void LocalPlayersWidget::SavePlayers()
 {
-  const auto ini_path =
-      std::string(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  const auto ini_path = std::string(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
 
   IniFile local_players_path;
   local_players_path.Load(ini_path);
@@ -191,45 +187,40 @@ void LocalPlayersWidget::SavePlayers()
   local_players_path.Save(ini_path);
 }
 
-void LocalPlayersWidget::SetPlayerOne(const QString& local_player_1)
+void LocalPlayersWidget::SetPlayerOne(const LocalPlayers::LocalPlayers::Player& local_player_1)
 {
-  LocalPlayers::LocalPlayers i_LocalPlayers;
-  i_LocalPlayers.m_local_player_1 = local_player_1.toStdString();
+  LocalPlayers::m_local_player_1.SetUserInfo(local_player_1);
   LocalPlayers::SaveLocalPorts();
 }
 
-void LocalPlayersWidget::SetPlayerTwo(const QString& local_player_2)
+void LocalPlayersWidget::SetPlayerTwo(const LocalPlayers::LocalPlayers::Player& local_player_2)
 {
-  LocalPlayers::LocalPlayers i_LocalPlayers;
-  i_LocalPlayers.m_local_player_2 = local_player_2.toStdString();
+  LocalPlayers::m_local_player_2.SetUserInfo(local_player_2);
   LocalPlayers::SaveLocalPorts();
 }
 
-void LocalPlayersWidget::SetPlayerThree(const QString& local_player_3)
+void LocalPlayersWidget::SetPlayerThree(const LocalPlayers::LocalPlayers::Player& local_player_3)
 {
-  LocalPlayers::LocalPlayers i_LocalPlayers;
-  i_LocalPlayers.m_local_player_3 = local_player_3.toStdString();
+  LocalPlayers::m_local_player_3.SetUserInfo(local_player_3);
   LocalPlayers::SaveLocalPorts();
 }
 
-void LocalPlayersWidget::SetPlayerFour(const QString& local_player_4)
+void LocalPlayersWidget::SetPlayerFour(const LocalPlayers::LocalPlayers::Player& local_player_4)
 {
-  LocalPlayers::LocalPlayers i_LocalPlayers;
-  i_LocalPlayers.m_local_player_4 = local_player_4.toStdString();
+  LocalPlayers::m_local_player_4.SetUserInfo(local_player_4);
   LocalPlayers::SaveLocalPorts();
 }
 
 void LocalPlayersWidget::ConnectWidgets()
 { 
   connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [=](int index) { SetPlayerOne(m_player_list_1->itemText(index)); });
-  connect(
-      m_player_list_2, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [=](int index) { SetPlayerTwo(m_player_list_2->itemText(index)); });
+          [=](int index) { SetPlayerOne(m_local_players[index]); });
+  connect(m_player_list_2, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          [=](int index) { SetPlayerTwo(m_local_players[index]); });
   connect(m_player_list_3, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [=](int index) { SetPlayerThree(m_player_list_3->itemText(index)); });
+          [=](int index) { SetPlayerThree(m_local_players[index]); });
   connect(m_player_list_4, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [=](int index) { SetPlayerFour(m_player_list_4->itemText(index)); });
+          [=](int index) { SetPlayerFour(m_local_players[index]); });
 
 
   connect(m_player_list_1, qOverload<int>(&QComboBox::currentIndexChanged), this,

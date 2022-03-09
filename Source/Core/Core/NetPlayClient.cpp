@@ -73,10 +73,10 @@
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
-#include <Core/LocalPlayers.h>
 #include <Core/ConfigLoaders/GameConfigLoader.h>
 #include <Core/GeckoCodeConfig.h>
 #include "Core/HotkeyManager.h"
+#include "Core/LocalPlayersConfig.h"
 
 namespace NetPlay
 {
@@ -1502,7 +1502,7 @@ void NetPlayClient::OnPlayerDataMsg(sf::Packet& packet)
   packet >> userinfoStr;
 
   LocalPlayers::LocalPlayers i_LocalPlayers;
-  LocalPlayers::LocalPlayers userinfo = i_LocalPlayers.toLocalPlayer(userinfoStr);
+  LocalPlayers::LocalPlayers::Player userinfo = i_LocalPlayers.toLocalPlayer(userinfoStr);
 
   NetplayerUserInfo[port] = userinfo;
 }
@@ -2946,7 +2946,7 @@ void NetPlay_Disable()
   netplay_client = nullptr;
 }
 
-void NetPlayClient::SendLocalPlayerNetplay(LocalPlayers::LocalPlayers userinfo)
+void NetPlayClient::SendLocalPlayerNetplay(LocalPlayers::LocalPlayers::Player userinfo)
 {
   u8 portnum = 0;
   for (auto player_id : m_pad_map)
@@ -2959,7 +2959,7 @@ void NetPlayClient::SendLocalPlayerNetplay(LocalPlayers::LocalPlayers userinfo)
 
       NetplayerUserInfo[portnum] = userinfo;  // if the client is mapped to a port, that port is set to the local player at the client's port 1
       packet << portnum;
-      packet << userinfo.LocalPlayerToStr();
+      packet << userinfo.LocalPlayerToStr();  // have to sent the string ovr netplay; will convert this back later
 
       SendAsync(std::move(packet));
     }
@@ -2967,13 +2967,11 @@ void NetPlayClient::SendLocalPlayerNetplay(LocalPlayers::LocalPlayers userinfo)
 
 }
 
-LocalPlayers::LocalPlayers NetPlayClient::GetLocalPlayerNetplay()
+LocalPlayers::LocalPlayers::Player NetPlayClient::GetLocalPlayerNetplay()
 {
   // Eventually replace this with the account information in future official release
-  LocalPlayers::LocalPlayers i_LocalPlayers;
-  std::map<int, LocalPlayers::LocalPlayers> userinfo = i_LocalPlayers.GetPortPlayers();
-
-  return userinfo[0];
+  // for now, we just reference the player mapped to port 1, which is the intended player 99% of the time anyway
+  return LocalPlayers::m_local_player_1;
 }
 
 }  // namespace NetPlay

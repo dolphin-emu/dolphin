@@ -120,10 +120,10 @@ public:
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;
-  std::map<int, LocalPlayers::LocalPlayers> NetplayerUserInfo; // int is port
+  std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo; // int is port
 
-  void SendLocalPlayerNetplay(LocalPlayers::LocalPlayers userinfo);
-  LocalPlayers::LocalPlayers GetLocalPlayerNetplay();
+  void SendLocalPlayerNetplay(LocalPlayers::LocalPlayers::Player userinfo);
+  LocalPlayers::LocalPlayers::Player GetLocalPlayerNetplay();
 
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
