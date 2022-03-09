@@ -198,11 +198,19 @@ void AutoGolfMode()
 {
   if (IsGolfMode())
   {
-    u8 BatterPort = Memory::Read_U8(aBatterPort);
-    if (BatterPort == 0)
-      return; // means game hasn't started yet
+    u8 BatterPort = Memory::Read_U8(aBatterPort);      
     u8 FielderPort = Memory::Read_U8(aFielderPort);
     bool isField = Memory::Read_U8(aIsField) == 1 ? true : false;
+
+    // add barrel batter functionality
+    if (Memory::Read_U8(aMinigameID) == 3)
+    {
+      BatterPort = Memory::Read_U8(aBarrelBatterPort) + 1;
+      isField = false;
+    }
+
+    if (BatterPort == 0)
+      return;  // means game hasn't started yet
 
     NetPlay::NetPlayClient::AutoGolfMode(isField, BatterPort, FielderPort);
   }

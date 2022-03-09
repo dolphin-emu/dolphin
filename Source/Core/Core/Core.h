@@ -217,5 +217,7 @@ static const u32 aBallVelocity_Z = 0x80890E58;
 static const u32 aPitchedBallVelocity_X = 0x808909D8;
 static const u32 aPitchedBallVelocity_Y = 0x808909DC;
 static const u32 aPitchedBallVelocity_Z = 0x808909E0;
+static const u32 aBarrelBatterPort = 0x80890971; // port of character at bat in barrel batter
+static const u32 aMinigameID = 0x808980DE; // 3 == Barrel Batter
 
 }  // namespace Core
