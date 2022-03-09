@@ -200,7 +200,7 @@ void AutoGolfMode()
   {
     u8 BatterPort = Memory::Read_U8(aBatterPort);      
     u8 FielderPort = Memory::Read_U8(aFielderPort);
-    bool isField = Memory::Read_U8(aIsField) == 1 ? true : false;
+    bool isField = Memory::Read_U8(aIsField) == 1;
 
     // add barrel batter functionality
     if (Memory::Read_U8(aMinigameID) == 3)

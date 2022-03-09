@@ -2538,7 +2538,7 @@ void NetPlayClient::AutoGolfModeLogic(bool isField, int BatPort, int FieldPort)
 {
   int clientID = m_local_player->pid; // refers to netplay client (the computer that's connected)
   int GolfPort = isField ? FieldPort - 1 : BatPort - 1; // subtract 1 since m_pad_map uses 0->3 instead of 1->4
-  if (GolfPort >= 4 || GolfPort < 0 || !PlayerHasControllerMapped(GolfPort)) // something's wrong. probably a CPU player; return to avoid array out-of-range errors
+  if (GolfPort >= 4 || GolfPort < 0 || !PortHasPlayerAssigned(GolfPort)) // something's wrong. probably a CPU player; return to avoid array out-of-range errors
     return;
 
   // this little block makes it so that the auto golf logic will only complete if the client's been the golfer for more than
@@ -2548,7 +2548,7 @@ void NetPlayClient::AutoGolfModeLogic(bool isField, int BatPort, int FieldPort)
     framesAsGolfer = 0;
     return;
   }
-  if (framesAsGolfer <= 255) // don't want a memory overflow here
+  if (framesAsGolfer < 255) // don't want a memory overflow here
     framesAsGolfer += 1;
   if (framesAsGolfer <= 10)
     return;
@@ -2578,6 +2578,13 @@ std::string NetPlayClient::GetCurrentGolfer()
 
 
 // called from ---GUI--- thread
+
+bool NetPlayClient::PortHasPlayerAssigned(int port)
+{
+  return m_pad_map[port] != 0;
+}
+
+
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
   return PlayerHasControllerMapped(m_local_player->pid);

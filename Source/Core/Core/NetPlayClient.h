@@ -161,6 +161,7 @@ public:
   bool PlayerHasControllerMapped(PlayerId pid) const;
   bool LocalPlayerHasControllerMapped() const;
   bool IsLocalPlayer(PlayerId pid) const;
+  bool PortHasPlayerAssigned(int port);
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
