@@ -818,76 +818,76 @@ std::tuple<u8, u8, u8> StatTracker::getCharacterWithBall() {
 
 //Read players from ini file and assign to team
 void StatTracker::readPlayerNames(bool local_game) {
-    IniFile local_players_ini;
-    local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+    //IniFile local_players_ini;
+    //local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
 
-    for (const IniFile* ini : {&local_players_ini})
-    {
-        std::vector<std::string> lines;
-        ini->GetLines("Local_Players_List", &lines, false);
+    //for (const IniFile* ini : {&local_players_ini})
+    //{
+    //    std::vector<std::string> lines;
+    //    ini->GetLines("Local_Players_List", &lines, false);
 
-        AddPlayers::AddPlayers player;
+    //    LocalPlayers::LocalPlayers player;
 
-        u8 port = 0;
-        for (auto& line : lines)
-        {
-            ++port;
-            std::istringstream ss(line);
+    //    u8 port = 0;
+    //    for (auto& line : lines)
+    //    {
+    //        ++port;
+    //        std::istringstream ss(line);
 
-            // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
-            // Use the C locale to workaround this behavior
-            ss.imbue(std::locale::classic());
+    //        // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
+    //        // Use the C locale to workaround this behavior
+    //        ss.imbue(std::locale::classic());
 
-            switch ((line)[0])
-            {
-            case '+':
-                if (!player.username.empty())
-                //players.push_back(player);
-                player = AddPlayers::AddPlayers();
-                ss.seekg(1, std::ios_base::cur);
-                // read the code name
-                std::getline(ss, player.username,
-                            '[');  // stop at [ character (beginning of contributor name)
-                player.username = StripSpaces(player.username);
-                // read the code creator name
-                std::getline(ss, player.userid, ']');
-                if (local_game){
-                    if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
-                    else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
-                }
-                else {
-                    if(m_game_info.host) {
-                        m_game_info.team0_player_name = player.username;
-                    }
-                    else{
-                        m_game_info.team1_player_name = player.username;
-                    }
-                    return;
-                }
-                break;
+    //        switch ((line)[0])
+    //        {
+    //        case '+':
+    //            if (!player.username.empty())
+    //            //players.push_back(player);
+    //              player = LocalPlayers::LocalPlayers();
+    //            ss.seekg(1, std::ios_base::cur);
+    //            // read the code name
+    //            std::getline(ss, player.username,
+    //                        '[');  // stop at [ character (beginning of contributor name)
+    //            player.username = StripSpaces(player.username);
+    //            // read the code creator name
+    //            std::getline(ss, player.userid, ']');
+    //            if (local_game){
+    //                if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
+    //                else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+    //            }
+    //            else {
+    //                if(m_game_info.host) {
+    //                    m_game_info.team0_player_name = player.username;
+    //                }
+    //                else{
+    //                    m_game_info.team1_player_name = player.username;
+    //                }
+    //                return;
+    //            }
+    //            break;
 
-            break;
-            }
-        }
+    //        break;
+    //        }
+    //    }
 
-        // add the last code
-        if (!player.username.empty())
-        {
-            if (local_game){
-                if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
-                else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
-            }
-            else {
-                if(m_game_info.host) {
-                    m_game_info.team0_player_name = player.username;
-                }
-                else{
-                    m_game_info.team1_player_name = player.username;
-                }
-                return;
-            }
-        }
-    }
+    //    // add the last code
+    //    if (!player.username.empty())
+    //    {
+    //        if (local_game){
+    //            if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
+    //            else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
+    //        }
+    //        else {
+    //            if(m_game_info.host) {
+    //                m_game_info.team0_player_name = player.username;
+    //            }
+    //            else{
+    //                m_game_info.team1_player_name = player.username;
+    //            }
+    //            return;
+    //        }
+    //    }
+    //}
 
     return;
 }

@@ -183,9 +183,9 @@ void TrainingMode();
 void DisplayBatterFielder();
 void SetAvgPing();
 
-int avgPing = 0;
-int nPing = 0;
-int nLagSpikes = 0;
+static int avgPing = 0;
+static int nPing = 0;
+static int nLagSpikes = 0;
 
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);

@@ -159,11 +159,6 @@ public:
   bool IsAnalyticsEnabled() const;
   void SetAnalyticsEnabled(bool enabled);
 
-  // Local Players
-  void SetPlayerOne(const QString& m_local_player_1);
-  void SetPlayerTwo(const QString& m_local_player_2);
-  void SetPlayerThree(const QString& m_local_player_3);
-  void SetPlayerFour(const QString& m_local_player_4);
 
 signals:
   void ConfigChanged();

@@ -72,6 +72,10 @@
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 
+//#include "Core/LocalPlayers.h"
+#include "Core/LocalPlayersConfig.h"
+
+
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
 #endif
@@ -403,11 +407,11 @@ void DisplayBatterFielder()
 
   // Run using Local Players
   else
-  {
-    std::string P1 = SConfig::GetInstance().m_local_player_1;
-    std::string P2 = SConfig::GetInstance().m_local_player_2;
-    std::string P3 = SConfig::GetInstance().m_local_player_3;
-    std::string P4 = SConfig::GetInstance().m_local_player_4;
+  {    
+    std::string P1 = LocalPlayers::m_local_player_1.GetUsername();
+    std::string P2 = LocalPlayers::m_local_player_2.GetUsername();
+    std::string P3 = LocalPlayers::m_local_player_3.GetUsername();
+    std::string P4 = LocalPlayers::m_local_player_4.GetUsername();
     std::vector<std::string> LocalPlayerList{P1, P2, P3, P4};
     std::array<u32, 4> portColor = {
         {OSD::Color::RED, OSD::Color::BLUE, OSD::Color::YELLOW, OSD::Color::GREEN}};
@@ -418,17 +422,23 @@ void DisplayBatterFielder()
     if (FielderPort < 5)
       FielderPort--;
 
-    if (LocalPlayerList[BatterPort] != "" && BatterPort < 4) // check for valid user & port
+    if (BatterPort < 4)
     {
-      OSD::AddTypedMessage(OSD::MessageType::CurrentBatter,
-                           fmt::format("Batter: {}", LocalPlayerList[BatterPort]),
-                           OSD::Duration::SHORT, portColor[BatterPort]);
+      if (LocalPlayerList[BatterPort] != "")  // check for valid user & port
+      {
+        OSD::AddTypedMessage(OSD::MessageType::CurrentBatter,
+                             fmt::format("Batter: {}", LocalPlayerList[BatterPort]),
+                             OSD::Duration::SHORT, portColor[BatterPort]);
+      }
     }
-    if (LocalPlayerList[FielderPort] != "" && FielderPort < 4)  // check for valid user & port
+    if (FielderPort < 4)
     {
-      OSD::AddTypedMessage(OSD::MessageType::CurrentFielder,
-                           fmt::format("Fielder: {}", LocalPlayerList[FielderPort]),
-                           OSD::Duration::SHORT, portColor[FielderPort]);
+      if (LocalPlayerList[FielderPort] != "")  // check for valid user & port
+      {
+        OSD::AddTypedMessage(OSD::MessageType::CurrentFielder,
+                             fmt::format("Fielder: {}", LocalPlayerList[FielderPort]),
+                             OSD::Duration::SHORT, portColor[FielderPort]);
+      }
     }
   }
 }

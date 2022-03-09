@@ -22,6 +22,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
+#include "Core/LocalPlayers.h"
 
 class BootSessionData;
 
@@ -119,10 +120,10 @@ public:
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;
-  std::map<int, std::vector<std::string>> NetplayerUserInfo; // int is port, vector[0] is username, vector[1] is user id
+  std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo; // int is port
 
-  void SendLocalPlayerNetplay(std::vector<std::string>);
-  std::vector<std::string> GetLocalPlayerNetplay();
+  void SendLocalPlayerNetplay(LocalPlayers::LocalPlayers::Player userinfo);
+  LocalPlayers::LocalPlayers::Player GetLocalPlayerNetplay();
 
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }

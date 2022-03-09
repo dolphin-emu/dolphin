@@ -25,12 +25,17 @@ public:
   explicit LocalPlayersWidget(QWidget* parent);
 
 private:
-  void LoadPlayers();
+  void SetPlayers();
   void CreateLayout();
   void OnAddPlayers();
   void SavePlayers();
   void UpdatePlayers();
   void AddPlayerToList();
+
+  void SetPlayerOne(const LocalPlayers::LocalPlayers::Player& local_player_1);
+  void SetPlayerTwo(const LocalPlayers::LocalPlayers::Player& local_player_2);
+  void SetPlayerThree(const LocalPlayers::LocalPlayers::Player& local_player_3);
+  void SetPlayerFour(const LocalPlayers::LocalPlayers::Player& local_player_4);
 
   void ConnectWidgets();
 
@@ -44,5 +49,5 @@ private:
 
   QPushButton* m_add_button;
   std::array<QHBoxLayout*, 4> m_player_groups;
-  std::vector<AddPlayers::AddPlayers> m_local_players;
+  std::vector<LocalPlayers::LocalPlayers::Player> m_local_players;
 };
