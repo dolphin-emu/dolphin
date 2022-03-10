@@ -38,7 +38,7 @@ class DefaultGeckoCodes {
     struct DefaultGeckoCode
     {
       u32 addr;
-      u32 conditionalVal;  // set to 0 if no onditional needed
+      u32 conditionalVal;  // set to 0 if no onditional needed; condition is for when we don't want to write at an addr every frame
       std::vector<u32> codeLines;
     };
     // DefaultGeckoCode mGeckoCode;
@@ -284,7 +284,6 @@ class DefaultGeckoCodes {
         0x4182000c, 0x3900000f,
         0x990601d3}
     };
-
 
 
     void WriteAsm(DefaultGeckoCode CodeBlock);

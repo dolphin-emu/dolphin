@@ -6,7 +6,7 @@ void DefaultGeckoCodes::RunCodeInject(bool bUseNetplayEventCode)
 
   Memory::Write_U8(0x1, aControllerRumble);  // enable rumble
 
-  // handle asm writes
+  // handle asm writes for required code
   for (DefaultGeckoCode geckocode : sRequiredCodes)
     WriteAsm(geckocode);
 
@@ -41,7 +41,7 @@ void DefaultGeckoCodes::InjectNetplayEventCode()
   for (int i = 1; i <= 0x8; i++)
     Memory::Write_U8(i, aManualSelect_2 + i);
 
-  // handle asm writes
+  // handle asm writes for netplay codes
   for (DefaultGeckoCode geckocode : sNetplayCodes)
     WriteAsm(geckocode);
 }
@@ -52,16 +52,17 @@ void DefaultGeckoCodes::WriteAsm(DefaultGeckoCode CodeBlock)
 {
   // METHODOLOGY:
   // use aWriteAddr as starting asm write addr
-  // character is converted to u32 function will write a branch at specified inject addr to
-  // aWriteAddr (math needed) function then writes in first instruction in code block to aWriteAddr,
-  // increment aWriteAddr by 4, repeat once code block is finished, write branch back to injection
-  // addr + 4 repeat for all codes
+  // we compute a value, branchAmount, which tells how far we have to branch to get from the injection to aWriteAddr
+  // do fancy bit wise math to formulate the hex value of the desired branch instruction
+  // writes in first instruction in code block to aWriteAddr, increment aWriteAddr by 4, repeat for all code lines
+  // once code block is finished, compute another branch instruction back to injection addr and write it in
+  // repeat for all codes
   u32 branchToCode = 0x48000000;
   u32 baseAddr = aWriteAddr & 0x03ffffff;
   u32 codeAddr = CodeBlock.addr & 0x03ffffff;
   u32 branchAmount = (baseAddr - codeAddr) & 0x03ffffff;
 
-  branchToCode += branchAmount;  // 99% chance this doesn't work lol
+  branchToCode += branchAmount;
 
   for (int i = 0; i < CodeBlock.codeLines.size(); i++)
   {
