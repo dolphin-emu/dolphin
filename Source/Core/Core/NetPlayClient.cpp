@@ -1564,7 +1564,10 @@ void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
   bool fielderExists = FielderPortInt >= 0 && FielderPortInt <= 3 ? true : false;  // checks that the port isn't a CPU
   if (fielderExists)
   {
-    playername = netplay_client->GetPortPlayer(FielderPortInt);
+    playername = netplay_client->NetplayerUserInfo[FielderPortInt + 1].GetUsername();
+    if (playername == "" || playername == "No Player Selected")
+      playername = netplay_client->GetPortPlayer(FielderPortInt);
+
     color = portColor[FielderPortInt];
     OSD::AddTypedMessage(OSD::MessageType::CurrentFielder, fmt::format("Fielder: {}", playername),
                          OSD::Duration::SHORT, color);
@@ -1573,7 +1576,10 @@ void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
   bool batterExists = BatterPortInt >= 0 && BatterPortInt <= 3 ? true : false;  // checks that the port isn't a CPU
   if (batterExists)
   {
-    playername = netplay_client->GetPortPlayer(BatterPortInt);
+    playername = netplay_client->NetplayerUserInfo[BatterPortInt + 1].GetUsername();
+    if (playername == "" || playername == "No Player Selected")
+      playername = netplay_client->GetPortPlayer(BatterPortInt);
+
     color = portColor[BatterPortInt];
     OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
                          OSD::Duration::SHORT, color);

@@ -59,6 +59,7 @@
 #include "Core/NetPlayServer.h"
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
+#include "Core/LocalPlayersConfig.h"
 
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
@@ -287,6 +288,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
       return;
     }
   }
+
+  // lazy fix -- call this here so local players are loaded in every time client launches
+  LocalPlayers::LoadLocalPorts();
 
   Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
 }
