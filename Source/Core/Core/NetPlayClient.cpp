@@ -1802,6 +1802,10 @@ void NetPlayClient::SendActiveGeckoCodes()
 
 void NetPlayClient::GetActiveGeckoCodes()
 {
+  // don't use any gecko codes if playing ranked
+  if (m_ranked_client)
+    return;
+
   // Find all INI files
   const auto game_id = "GYQE01";
   const auto revision = 0;
