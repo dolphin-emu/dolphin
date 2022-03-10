@@ -302,12 +302,6 @@ void GeckoCodeWidget::UpdateList()
                    Qt::ItemIsDragEnabled);
     item->setCheckState(code.enabled ? Qt::Checked : Qt::Unchecked);
     item->setData(Qt::UserRole, static_cast<int>(i));
-    // stop people from being dumb and disabling the required codeset
-    if (code.name == "! Required: Project Rio Codes !")
-    {
-      item->setCheckState(Qt::Checked);
-      code.enabled = true;
-    }
 
     m_code_list->addItem(item);
   }
