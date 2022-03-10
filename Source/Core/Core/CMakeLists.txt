@@ -63,6 +63,8 @@ add_library(core
   Debugger/PPCDebugInterface.h
   Debugger/RSO.cpp
   Debugger/RSO.h
+  DefaultGeckoCodes.cpp
+  DefaultGeckoCodes.h
   DolphinAnalytics.cpp
   DolphinAnalytics.h
   DSP/DSPAccelerator.cpp

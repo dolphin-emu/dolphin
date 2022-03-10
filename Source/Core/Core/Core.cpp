@@ -74,6 +74,7 @@
 
 //#include "Core/LocalPlayers.h"
 #include "Core/LocalPlayersConfig.h"
+#include "Core/DefaultGeckoCodes.h"
 
 
 #ifdef USE_MEMORYWATCHER
@@ -183,6 +184,11 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
+  // always enable netplay event code for ranked games
+  // if not ranked, check if code is checked off
+  DefaultGeckoCodes CodeWriter;
+  CodeWriter.RunCodeInject(Memory::Read_U8(aNetplayEventCode) == 1 || isRankedMode());
+
   AutoGolfMode();
   TrainingMode();
   DisplayBatterFielder();
