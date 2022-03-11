@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>${MacUpdater_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>Dolphin.icns</string>
+	<string>Dolphin-installer.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.dolphinteam.dolphin-updater</string>
 	<key>CFBundleInfoDictionaryVersion</key>
