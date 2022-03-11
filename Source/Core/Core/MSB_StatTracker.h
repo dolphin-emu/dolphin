@@ -104,11 +104,11 @@ static const std::map<u8, std::string> cStadiumIdToStadiumName = {
 
 static const std::map<u8, std::string> cTypeOfContactToHR = {
     {0xFF, "Miss"},
-    {0, "Sour - Inside"},
-    {1, "Nice - Inside"}, 
+    {0, "Sour - Left"},
+    {1, "Nice - Left"}, 
     {2, "Perfect"},
-    {3, "Nice - Outside"}, 
-    {4, "Sour - Outside"}
+    {3, "Nice - Right"}, 
+    {4, "Sour - Right"}
 };
 
 static const std::map<u8, std::string> cHandToHR = {
@@ -173,6 +173,76 @@ static const std::map<u8, std::string> cFielderBobbles = {
     {4, "Fireball"},
     {0x10, "Garlic knockout"},
     {0xFF, "None"}
+};
+
+static const std::map<u8, std::string> cStealType = {
+    {0, "None"},
+    {1, "Ready"},
+    {2, "Normal"},
+    {3, "Perfect"},
+    {0xFF, "None"}
+};
+
+static const std::map<u8, std::string> cOutType = {
+    {0, "None"},
+    {1, "Caught"},
+    {2, "Force"},
+    {3, "Tag"},
+};
+
+static const std::map<u8, std::string> cPitchResult = {
+    {0, "HBP"},
+    {1, "BB"},
+    {2, "Ball"},
+    {3, "Strike-looking"},
+    {4, "Strike-swing"},
+    {5, "Strike-bunting"},
+    {6, "Contact"},
+    {7, "Unknown"}
+};
+
+static const std::map<u8, std::string> cPrimaryContactResult = {
+    {0, "Out"},
+    {1, "Foul"},
+    {2, "Fair"},
+    {3, "Unknown"},
+};
+
+static const std::map<u8, std::string> cSecondaryContactResult = {
+    {0x0,  "Out-caught"},
+    {0x1,  "Out-force"},
+    {0x2,  "Out-tag"},
+    {0x3,  "foul"},
+    {0x7,  "single"},
+    {0x8,  "double"},
+    {0x9,  "triple"},
+    {0xA,  "HR"},
+    {0xB,  "???"},
+    {0xC,  "???"},
+    {0xD,  "Bunt"},
+    {0xE,  "SacFly"},
+    {0xF,  "???"},
+    {0x10, "???"},
+};
+
+static const std::map<u8, std::string> cAtBatResult = {
+    {0x0,  "None"},
+    {0x1,  "Strikeout"},
+    {0x2,  "Walk (BB)"},
+    {0x3,  "Walk (HBP)"},
+    {0x4,  "Out"},
+    {0x5,  "Caught"},
+    {0x6,  "Caught line-drive"},
+    {0x7,  "single"},
+    {0x8,  "double"},
+    {0x9,  "triple"},
+    {0xA,  "HR"},
+    {0xB,  "???"},
+    {0xC,  "???"},
+    {0xD,  "Bunt"},
+    {0xE,  "SacFly"},
+    {0xF,  "???"},
+    {0x10, "???"},
 };
 
 //Const for structs
@@ -771,6 +841,9 @@ public:
         out_float = float_converter.fnum;
         return out_float;
     }
+
+    //The type of value to decode, the value to be decoded, bool for decode if true or original value if false
+    std::string decode(std::string type, u8 value, bool decode);
 
     //Returns JSON, PathToWriteTo
     std::pair<std::string, std::string> getStatJSON(bool inDecode);
