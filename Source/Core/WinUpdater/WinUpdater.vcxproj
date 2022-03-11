@@ -58,6 +58,15 @@
   <ItemGroup>
     <Manifest Include="Updater.exe.manifest" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WinUpdater.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\Installer\DolphinUpdater.ico" />
+  </ItemGroup>
   <Target Name="AfterBuild" Inputs="@(SourceFiles)" Outputs="@(SourceFiles -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
     <Message Text="Copy: @(SourceFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
     <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(BinaryOutputDir)" />
