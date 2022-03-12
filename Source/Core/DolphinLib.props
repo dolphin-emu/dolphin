@@ -631,6 +631,7 @@
     <ClInclude Include="VideoCommon\FreeLookCamera.h" />
     <ClInclude Include="VideoCommon\GeometryShaderGen.h" />
     <ClInclude Include="VideoCommon\GeometryShaderManager.h" />
+    <ClInclude Include="VideoCommon\GraphicsModSystem\Constants.h" />
     <ClInclude Include="VideoCommon\GXPipelineTypes.h" />
     <ClInclude Include="VideoCommon\HiresTextures.h" />
     <ClInclude Include="VideoCommon\ImageWrite.h" />
