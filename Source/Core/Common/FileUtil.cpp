@@ -168,7 +168,7 @@ bool IsFile(const std::string& path)
 // Doesn't supports deleting a directory
 bool Delete(const std::string& filename, IfAbsentBehavior behavior)
 {
-  INFO_LOG_FMT(COMMON, "Delete: file {}", filename);
+  DEBUG_LOG_FMT(COMMON, "Delete: file {}", filename);
 
 #ifdef ANDROID
   if (StringBeginsWith(filename, "content://"))
@@ -219,7 +219,7 @@ bool Delete(const std::string& filename, IfAbsentBehavior behavior)
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string& path)
 {
-  INFO_LOG_FMT(COMMON, "CreateDir: directory {}", path);
+  DEBUG_LOG_FMT(COMMON, "CreateDir: directory {}", path);
 #ifdef _WIN32
   if (::CreateDirectory(UTF8ToTStr(path).c_str(), nullptr))
     return true;
@@ -252,11 +252,11 @@ bool CreateDir(const std::string& path)
 bool CreateFullPath(const std::string& fullPath)
 {
   int panicCounter = 100;
-  INFO_LOG_FMT(COMMON, "CreateFullPath: path {}", fullPath);
+  DEBUG_LOG_FMT(COMMON, "CreateFullPath: path {}", fullPath);
 
   if (Exists(fullPath))
   {
-    INFO_LOG_FMT(COMMON, "CreateFullPath: path exists {}", fullPath);
+    DEBUG_LOG_FMT(COMMON, "CreateFullPath: path exists {}", fullPath);
     return true;
   }
 
@@ -289,7 +289,7 @@ bool CreateFullPath(const std::string& fullPath)
 // Deletes a directory filename, returns true on success
 bool DeleteDir(const std::string& filename, IfAbsentBehavior behavior)
 {
-  INFO_LOG_FMT(COMMON, "DeleteDir: directory {}", filename);
+  DEBUG_LOG_FMT(COMMON, "DeleteDir: directory {}", filename);
 
   // Return true because we care about the directory not being there, not the actual delete.
   if (!File::Exists(filename))
@@ -348,7 +348,7 @@ static bool AttemptMaxTimesWithExponentialDelay(int max_attempts, std::chrono::m
 // renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string& srcFilename, const std::string& destFilename)
 {
-  INFO_LOG_FMT(COMMON, "Rename: {} --> {}", srcFilename, destFilename);
+  DEBUG_LOG_FMT(COMMON, "Rename: {} --> {}", srcFilename, destFilename);
 #ifdef _WIN32
   const std::wstring source_wstring = UTF8ToTStr(srcFilename);
   const std::wstring destination_wstring = UTF8ToTStr(destFilename);
@@ -357,7 +357,8 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename)
   // Retry the operation with increasing delays, and if none of them work there's probably a
   // persistent problem.
   const bool success = AttemptMaxTimesWithExponentialDelay(
-      3, std::chrono::milliseconds(5), "Rename", [&source_wstring, &destination_wstring] {
+      3, std::chrono::milliseconds(5), fmt::format("Rename {} --> {}", srcFilename, destFilename),
+      [&source_wstring, &destination_wstring] {
         if (ReplaceFile(destination_wstring.c_str(), source_wstring.c_str(), nullptr,
                         REPLACEFILE_IGNORE_MERGE_ERRORS, nullptr, nullptr))
         {
@@ -421,7 +422,7 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
 // copies file source_path to destination_path, returns true on success
 bool Copy(const std::string& source_path, const std::string& destination_path)
 {
-  INFO_LOG_FMT(COMMON, "Copy: {} --> {}", source_path, destination_path);
+  DEBUG_LOG_FMT(COMMON, "Copy: {} --> {}", source_path, destination_path);
 #ifdef _WIN32
   if (CopyFile(UTF8ToTStr(source_path).c_str(), UTF8ToTStr(destination_path).c_str(), FALSE))
     return true;
@@ -473,7 +474,7 @@ u64 GetSize(FILE* f)
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename)
 {
-  INFO_LOG_FMT(COMMON, "CreateEmptyFile: {}", filename);
+  DEBUG_LOG_FMT(COMMON, "CreateEmptyFile: {}", filename);
 
   if (!File::IOFile(filename, "wb"))
   {
@@ -495,7 +496,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
     directory.pop_back();
 #endif
 
-  INFO_LOG_FMT(COMMON, "ScanDirectoryTree: directory {}", directory);
+  DEBUG_LOG_FMT(COMMON, "ScanDirectoryTree: directory {}", directory);
   FSTEntry parent_entry;
   parent_entry.physicalName = directory;
   parent_entry.isDirectory = true;
@@ -596,7 +597,7 @@ FSTEntry ScanDirectoryTree(std::string directory, bool recursive)
 // Deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory)
 {
-  INFO_LOG_FMT(COMMON, "DeleteDirRecursively: {}", directory);
+  DEBUG_LOG_FMT(COMMON, "DeleteDirRecursively: {}", directory);
   bool success = true;
 
 #ifdef _WIN32
