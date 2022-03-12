@@ -46,6 +46,14 @@ void StatTracker::lookForTriggerEvents(){
                     init();
                 }
 
+                //End of game. Invalidate current event
+                if (Memory::Read_U8(aEndOfGameFlag) == 1){
+                    auto it = m_game_info.events.find(m_game_info.event_num);
+                    m_game_info.events.erase(it);
+                    m_event_state = EVENT_STATE::GAME_OVER;
+                    break;
+                }
+
                 //Init Ports and players
                 if (Memory::Read_U8(aAB_BatterPort) && (m_game_info.event_num == 0)){
                     //Collect port info for players
@@ -1291,58 +1299,96 @@ std::string StatTracker::decode(std::string type, u8 value, bool decode){
     std::string retVal = "Unable to Decode";
     
     if (type == "Character"){
-        retVal = cCharIdToCharName.at(value);
+        if (cCharIdToCharName.count(value)){
+            retVal = cCharIdToCharName.at(value);
+        }
     }
     else if (type == "Stadium"){
-        retVal = cStadiumIdToStadiumName.at(value);
+        if (cStadiumIdToStadiumName.count(value)){
+            retVal = cStadiumIdToStadiumName.at(value);
+        }
     }
     else if (type == "Contact"){
-        retVal = cTypeOfContactToHR.at(value);
+        if (cTypeOfContactToHR.count(value)){
+            retVal = cTypeOfContactToHR.at(value);
+        }
     }
     else if (type == "Hand"){
-        retVal = cTypeOfContactToHR.at(value);
+        if (cHandToHR.count(value)){
+            retVal = cHandToHR.at(value);
+        }
     }
     else if (type == "Stick"){
-        retVal = cHandToHR.at(value);
+        if (cInputDirectionToHR.count(value)){
+            retVal = cInputDirectionToHR.at(value);
+        }
     }
     else if (type == "Pitch"){
-        retVal = cPitchTypeToHR.at(value);
+        if (cPitchTypeToHR.count(value)){
+            retVal = cPitchTypeToHR.at(value);
+        }
     }
     else if (type == "ChargePitch"){
-        retVal = cChargePitchTypeToHR.at(value);
+        if (cChargePitchTypeToHR.count(value)){
+            retVal = cChargePitchTypeToHR.at(value);
+        }
     }
     else if (type == "Swing"){
-        retVal = cTypeOfSwing.at(value);
+        if (cTypeOfSwing.count(value)){
+            retVal = cTypeOfSwing.at(value);
+        }
     }
     else if (type == "Position"){
-        retVal = cPosition.at(value);
+        if (cPosition.count(value)){
+            retVal = cPosition.at(value);
+        }
     }
     else if (type == "Action"){
-        retVal = cFielderActions.at(value);
+        if (cFielderActions.count(value)){
+            retVal = cFielderActions.at(value);
+        }
     }
     else if (type == "Bobble"){
-        retVal = cFielderBobbles.at(value);
+        if (cFielderBobbles.count(value)){
+            retVal = cFielderBobbles.at(value);
+        }
     }
     else if (type == "Steal"){
-        retVal = cStealType.at(value);
+        if (cStealType.count(value)){
+            retVal = cStealType.at(value);
+        }
     }
     else if (type == "Out"){
-        retVal = cOutType.at(value);
+        if (cOutType.count(value)){
+            retVal = cOutType.at(value);
+        }
     }
     else if (type == "PrimaryContactResult"){
-        retVal = cPrimaryContactResult.at(value);
+        if (cPrimaryContactResult.count(value)){
+            retVal = cPrimaryContactResult.at(value);
+        }
     }
     else if (type == "SecondaryContactResult"){
-        retVal = cSecondaryContactResult.at(value);
+        if (cSecondaryContactResult.count(value)){
+            retVal = cSecondaryContactResult.at(value);
+        }
     }
     else if (type == "PitchResult"){
-        retVal = cPitchResult.at(value);
+        if (cPitchResult.count(value)){
+            retVal = cPitchResult.at(value);
+        }
     }
     else if (type == "AtBatResult"){
-        retVal = cAtBatResult.at(value);
+        if (cAtBatResult.count(value)){
+            retVal = cAtBatResult.at(value);
+        }
     }
     else{
-        retVal += " Invalid Type";
+        retVal += ". Invalid Type (" + type + ")";
     }
-    return retVal;
+    
+    if (retVal == "Unable to Decode"){
+        retVal += ". Invalid Value (" + std::to_string(value) + ").";
+    }
+    return ("\"" + retVal + "\"");
 }
