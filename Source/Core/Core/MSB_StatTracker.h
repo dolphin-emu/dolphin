@@ -161,6 +161,7 @@ static const std::map<u8, std::string> cFielderActions = {
     {1, "Jump"},
     {2, "Sliding"},
     {3, "Walljump"},
+    {0x20, "???"},
     {0xFE, "Inv-jump"},
     {0xFF, "Inv-action"}
 };
@@ -188,6 +189,7 @@ static const std::map<u8, std::string> cOutType = {
     {1, "Caught"},
     {2, "Force"},
     {3, "Tag"},
+    {0x10, "Strike-out"},
 };
 
 static const std::map<u8, std::string> cPitchResult = {
