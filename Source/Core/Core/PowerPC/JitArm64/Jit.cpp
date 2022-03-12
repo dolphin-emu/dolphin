@@ -971,8 +971,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         gpr.DiscardRegisters(op.gprDiscardable);
         fpr.DiscardRegisters(op.fprDiscardable);
       }
-      gpr.StoreRegisters(~op.gprInUse);
-      fpr.StoreRegisters(~op.fprInUse);
+      gpr.StoreRegisters(~op.gprInUse & (op.regsIn | op.regsOut));
+      fpr.StoreRegisters(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
