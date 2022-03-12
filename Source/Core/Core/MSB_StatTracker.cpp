@@ -737,7 +737,11 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     json_stream << "  \"Innings Played\": " << std::to_string(m_game_info.innings_played) << "," << std::endl;
     json_stream << "  \"Quitter Team\": \"" << m_game_info.quitter_team << "\"," << std::endl;
 
+    json_stream << "  \"Average Ping\": " << std::to_string(m_game_info.avg_ping) << "," << std::endl;
+    json_stream << "  \"Lag Spikes\": " << std::to_string(m_game_info.lag_spikes) << "," << std::endl;
+
     json_stream << "  \"Character Game Stats\": {" << std::endl;
+
     //Defensive Stats
     for (int team=0; team < cNumOfTeams; ++team){
         // std::string team_label;
@@ -747,7 +751,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             captain_roster_loc = (m_game_info.home_port == m_game_info.team0_port) ? m_game_info.team0_captain_roster_loc : m_game_info.team1_captain_roster_loc;
             tracker_team = 1;
         }
-        if (team == 1){
+        else{ // team == 1
             captain_roster_loc = (m_game_info.away_port == m_game_info.team0_port) ? m_game_info.team0_captain_roster_loc : m_game_info.team1_captain_roster_loc;
             tracker_team = 0;
         }
@@ -781,6 +785,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Big Plays\": "           << std::to_string(def_stat.big_plays) << "," << std::endl;
             json_stream << "        \"Outs Pitched\": "        << std::to_string(def_stat.outs_pitched) << "," << std::endl;
             json_stream << "        \"Pitches Per Position\": [" << std::endl;
+
             if (m_fielder_tracker[tracker_team].pitchesAtAnyPosition(roster, 0)){
                 json_stream << "          {" << std::endl;
                 for (int pos = 0; pos < cNumOfPositions; ++pos) {
@@ -1221,6 +1226,18 @@ void StatTracker::setNetplaySession(bool netplay_session, bool is_host, std::str
     m_state.m_netplay_session = netplay_session;
     m_state.m_is_host = is_host;
     m_state.m_netplay_opponent_alias = opponent_name;
+}
+
+void StatTracker::setAvgPing(int avgPing)
+{
+  std::cout << "Avg Ping=" << avgPing << std::endl;
+  m_game_info.avg_ping = avgPing;
+}
+
+void StatTracker::setLagSpikes(int nLagSpikes)
+{
+  std::cout << "Number of Lag Spikes=" << nLagSpikes << std::endl;
+  m_game_info.lag_spikes = nLagSpikes;
 }
 
 std::optional<StatTracker::Runner> StatTracker::logRunnerInfo(u8 base){

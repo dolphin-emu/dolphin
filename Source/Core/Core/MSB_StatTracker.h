@@ -648,6 +648,8 @@ public:
         std::string team0_player_name;
         std::string team1_player_name;
         bool ranked;
+        int avg_ping = 0;
+        int lag_spikes = 0;
 
         //Auto capture
         u16 away_score;
