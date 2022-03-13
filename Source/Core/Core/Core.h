@@ -182,6 +182,7 @@ void AutoGolfMode();
 void TrainingMode();
 void DisplayBatterFielder();
 void SetAvgPing();
+void SetNetplayerUserInfo();
 
 static int avgPing = 0;
 static int nPing = 0;
