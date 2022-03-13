@@ -1178,9 +1178,9 @@ void NetPlayDialog::LoadSettings()
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
   const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
-  const bool ranked_mode = Config::Get(Config::NETPLAY_RANKED);
+  //const bool ranked_mode = Config::Get(Config::NETPLAY_RANKED);
 
-  m_ranked_box->setChecked(ranked_mode);
+  //m_ranked_box->setChecked(ranked_mode);
   m_buffer_size_box->setValue(buffer_size);
   m_write_save_data_action->setChecked(write_save_data);
   m_load_wii_action->setChecked(load_wii_save);
@@ -1225,7 +1225,7 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
-  Config::SetBase(Config::NETPLAY_RANKED, m_ranked_box->isChecked());
+  //Config::SetBase(Config::NETPLAY_RANKED, m_ranked_box->isChecked());
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())

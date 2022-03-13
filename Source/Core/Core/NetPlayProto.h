@@ -104,7 +104,7 @@ struct NetSettings
   bool m_GolfMode = false;
   bool m_UseFMA = false;
   bool m_HideRemoteGBAs = false;
-  bool m_RankedMode = false;
+  //bool m_RankedMode = false;
 
   // These aren't sent over the network directly
   bool m_IsHosting = false;

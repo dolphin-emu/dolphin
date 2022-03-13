@@ -919,7 +919,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 
     m_net_settings.m_IsHosting = m_local_player->IsHost();
     m_net_settings.m_HostInputAuthority = m_host_input_authority;
-    m_net_settings.m_RankedMode = m_ranked_client;
+    //m_net_settings.m_RankedMode = m_ranked_client;
   }
 
   m_dialog->OnMsgStartGame();

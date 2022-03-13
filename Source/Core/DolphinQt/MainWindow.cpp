@@ -1498,7 +1498,7 @@ bool MainWindow::NetPlayJoin()
   {
     server->SetHostInputAuthority(host_input_authority);
     server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
-    server->AdjustRankedBox(Config::Get(Config::NETPLAY_RANKED));
+    //server->AdjustRankedBox(Config::Get(Config::NETPLAY_RANKED));
   }
 
   // Create Client
