@@ -646,6 +646,54 @@ void Device::RunTasks()
   }
 }
 
+void Device::StartCalibration(u8 axis_zero, u8 axis_one, u16 sample_count)
+{
+  m_active_accel_calibration = ActiveAccelCalibration{};
+  m_active_accel_calibration->zero_axis = axis_zero;
+  m_active_accel_calibration->one_axis = axis_one;
+  m_active_accel_calibration->target_sample_count = sample_count;
+}
+
+void Device::WriteAccelerometerData()
+{
+  if (!m_accel_calibration)
+    return;
+
+  const auto& accel_data = *m_accel_calibration;
+
+  AccelCalibrationData accel_calibration{};
+  accel_calibration.zero_g.Set(accel_data.zero);
+  accel_calibration.one_g.Set(accel_data.max);
+
+  // wiibrew.org: "On all checked remotes, that byte has been 0x40."
+  accel_calibration.motor = 0;
+  accel_calibration.volume = 0x40;
+
+  std::vector<u8> data_block{sizeof(AccelCalibrationData)};
+  std::copy_n(reinterpret_cast<u8*>(&accel_calibration), data_block.begin(), data_block.size());
+  WiimoteEmu::UpdateCalibrationDataChecksum(data_block, 1);
+
+  // TODO: These are also defined elsewhere.
+  static constexpr u16 ACCEL_CALIBRATION_ADDR = 0x16;
+  static constexpr u16 ACCEL_CALIBRATION_ADDR_ALT = 0x20;
+
+  WriteData(AddressSpace::EEPROM, 0, ACCEL_CALIBRATION_ADDR, std::move(data_block),
+            [this, data_block](ErrorCode block_result) {
+              if (block_result != ErrorCode::Success)
+                return;
+
+              WriteData(AddressSpace::EEPROM, 0, ACCEL_CALIBRATION_ADDR_ALT, std::move(data_block),
+                        [](ErrorCode block_result) {
+                          if (block_result != ErrorCode::Success)
+                            return;
+
+                          INFO_LOG_FMT(
+                              WIIMOTE,
+                              "Both accelerometer calibration blocks written successfully.");
+                        });
+            });
+}
+
 void Device::HandleMotionPlusNonResponse()
 {
   // No need for additional checks if an extension is attached.
@@ -1170,6 +1218,24 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     // FYI: This logic fails to properly handle the (never used) "interleaved" reports.
     AccelData accel_data = {};
     manipulator->GetAccelData(&accel_data);
+
+    if (m_active_accel_calibration)
+    {
+      auto& active_calibration = *m_active_accel_calibration;
+
+      active_calibration.samples_for_zero.Push(accel_data.value.data[active_calibration.zero_axis]);
+      active_calibration.samples_for_one.Push(accel_data.value.data[active_calibration.one_axis]);
+
+      if (active_calibration.samples_for_zero.Count() == active_calibration.target_sample_count)
+      {
+        m_accel_calibration->zero.data[active_calibration.zero_axis] =
+            std::lround(active_calibration.samples_for_zero.Mean());
+        m_accel_calibration->max.data[active_calibration.one_axis] =
+            std::lround(active_calibration.samples_for_one.Mean());
+
+        m_active_accel_calibration = std::nullopt;
+      }
+    }
 
     m_accel_data =
         accel_data.GetNormalizedValue(*m_accel_calibration) * float(MathUtil::GRAVITY_ACCELERATION);

@@ -37,6 +37,10 @@ public:
 
   void UpdateInput() override;
 
+  // TODO: enum for axis?
+  void StartCalibration(u8 axis_zero, u8 axis_one, u16 sample_count);
+  void WriteAccelerometerData();
+
 private:
   using Clock = std::chrono::steady_clock;
 
@@ -229,6 +233,17 @@ private:
   // Accelerometer.
   Common::Vec3 m_accel_data = {};
   std::optional<AccelCalibrationData::Calibration> m_accel_calibration;
+
+  struct ActiveAccelCalibration
+  {
+    MathUtil::RunningMean<float> samples_for_one;
+    MathUtil::RunningMean<float> samples_for_zero;
+    u16 target_sample_count;
+    u8 one_axis;
+    u8 zero_axis;
+  };
+
+  std::optional<ActiveAccelCalibration> m_active_accel_calibration;
 
   // Pitch, Roll, Yaw inputs.
   Common::Vec3 m_rotation_inputs = {};
