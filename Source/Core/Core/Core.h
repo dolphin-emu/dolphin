@@ -177,6 +177,7 @@ float ms_to_mph(float MetersPerSecond);
 float vectorMagnitude(float x, float y, float z);
 float RoundZ(float num);
 bool isRankedMode();
+bool isNight();
 
 void AutoGolfMode();
 void TrainingMode();

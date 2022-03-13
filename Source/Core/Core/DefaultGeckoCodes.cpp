@@ -1,6 +1,6 @@
 #include "Core/DefaultGeckoCodes.h"
 
-void DefaultGeckoCodes::RunCodeInject(bool bUseNetplayEventCode)
+void DefaultGeckoCodes::RunCodeInject(bool bUseNetplayEventCode, bool bUseNightStadium)
 {
   aWriteAddr = 0x802ED200;  // starting asm write addr
 
@@ -12,6 +12,9 @@ void DefaultGeckoCodes::RunCodeInject(bool bUseNetplayEventCode)
 
   if (bUseNetplayEventCode)
     InjectNetplayEventCode();
+
+  if (bUseNightStadium)
+    WriteAsm(sNightStadium);
 }
 
 void DefaultGeckoCodes::InjectNetplayEventCode()

@@ -10,7 +10,7 @@
 
 class DefaultGeckoCodes {
   public:
-    void RunCodeInject(bool bUseNetplayEventCode);
+    void RunCodeInject(bool bUseNetplayEventCode, bool bUseNightStadium);
 
   private:
 
@@ -284,6 +284,11 @@ class DefaultGeckoCodes {
         0x4182000c, 0x3900000f,
         0x990601d3}
     };
+
+    // Night time Mario Stadium [LittleCoaks]
+    const DefaultGeckoCode sNightStadium = {
+        0x80650678, 0x98030058,
+        {0x98030058, 0x89240009, 0x2C090000, 0x4082000C, 0x3A400001, 0x9A44000A}};
 
 
     void WriteAsm(DefaultGeckoCode CodeBlock);

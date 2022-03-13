@@ -469,6 +469,12 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   spac << m_current_ranked_value;
   Send(player.socket, spac);
 
+  // send night stadium state
+  spac.clear();
+  spac << MessageID::NightStadium;
+  spac << m_current_night_value;
+  Send(player.socket, spac);
+
   // send input authority state
   spac.clear();
   spac << MessageID::HostInputAuthority;
@@ -694,6 +700,19 @@ void NetPlayServer::AdjustRankedBox(const bool is_ranked)
   SendAsyncToClients(std::move(spac));
 }
 
+void NetPlayServer::AdjustNightStadium(const bool is_night)
+{
+  std::lock_guard lkg(m_crit.game);
+  m_current_night_value = is_night;
+
+  // tell clients to change ranked box
+  sf::Packet spac;
+  spac << MessageID::NightStadium;
+  spac << m_current_night_value;
+
+  SendAsyncToClients(std::move(spac));
+}
+
 void NetPlayServer::SetHostInputAuthority(const bool enable)
 {
   std::lock_guard lkg(m_crit.game);
@@ -830,6 +849,20 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     sf::Packet spac;
     spac << MessageID::CoinFlip;
     spac << coinNum;
+
+    SendToClients(spac);
+  }
+  break;
+
+  case MessageID::NightStadium:
+  {
+    bool is_night;
+    packet >> is_night;
+
+    // send codes to other clients
+    sf::Packet spac;
+    spac << MessageID::NightStadium;
+    spac << is_night;
 
     SendToClients(spac);
   }

@@ -117,11 +117,12 @@ void NetPlayDialog::CreateMainLayout()
   m_menu_bar = new QMenuBar(this);
   m_ranked_box = new QCheckBox(tr("Ranked"));
   m_ranked_box->setToolTip(tr(
-      "Enabling Ranked Mode will mark down your games as being ranked in the stats files.\nWhen "
-      "sorting through the database, this game will be included as a ranked game.\nThis should "
-      "only be toggled for serious games as to keep our database accurate and organized.\nToggling "
-      "this box will always record & sumit stats, ignoring user configurations."));
+      "Enabling Ranked Mode will mark down your games as being ranked in the stats files\n and "
+      "disable any extra gecko codes as well as Training Mode. This should be toggled for\n"
+      "serious/competitive/ranked games ase accurate and organized. Toggling this box will\n"
+      " always record stats, ignoring user configurations."));
   m_coin_flipper = new QPushButton(tr("Coin Flip"));
+  m_night_stadium = new QCheckBox(tr("Night Mario Stadium"));
   m_spectator_toggle = new QCheckBox(tr("Spectator"));
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
@@ -204,11 +205,12 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 6, Qt::AlignVCenter | Qt::AlignRight);
-  options_widget->setColumnStretch(5, 1000);
+  options_widget->addWidget(m_quit_button, 0, 7, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->setColumnStretch(6, 1000);
   options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
-  options_widget->addWidget(m_coin_flipper, 0, 4, Qt::AlignVCenter);
-  options_widget->addWidget(m_spectator_toggle, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->addWidget(m_night_stadium, 0, 4, Qt::AlignVCenter);
+  options_widget->addWidget(m_coin_flipper, 0, 5, Qt::AlignVCenter);
+  options_widget->addWidget(m_spectator_toggle, 0, 6, Qt::AlignVCenter | Qt::AlignRight);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -323,6 +325,16 @@ void NetPlayDialog::ConnectWidgets()
       server->AdjustRankedBox(is_ranked);
   });
 
+  connect(m_night_stadium, &QCheckBox::stateChanged, [this](bool is_night) {
+    auto client = Settings::Instance().GetNetPlayClient();
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->AdjustNightStadium(is_night);
+    else
+      client->SendNightStadium(is_night);
+  });
+
+
   connect(m_spectator_toggle, &QCheckBox::stateChanged, this, &NetPlayDialog::OnSpectatorToggle);
 
   connect(m_coin_flipper, &QPushButton::clicked, this, &NetPlayDialog::OnCoinFlip);
@@ -436,6 +448,14 @@ void NetPlayDialog::OnCoinFlipResult(int coinNum)
     DisplayMessage(tr("Heads"), "darkorange");
   else
     DisplayMessage(tr("Tails"), "goldenrod");
+}
+
+void NetPlayDialog::OnNightResult(bool is_night)
+{
+  if (is_night)
+    DisplayMessage(tr("Night Stadium Enabled"), "steelblue");
+  else
+    DisplayMessage(tr("Night Stadium Disabled"), "coral");
 }
 
 void NetPlayDialog::DisplayActiveGeckoCodes()
@@ -563,6 +583,8 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_kick_button->setEnabled(false);
   m_ranked_box->setHidden(!is_hosting);
   m_ranked_box->setEnabled(is_hosting);
+  m_night_stadium->setHidden(!is_hosting);
+  m_night_stadium->setEnabled(is_hosting);
   m_coin_flipper->setHidden(!is_hosting);
   m_coin_flipper->setEnabled(is_hosting);
 
@@ -849,6 +871,7 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_golf_mode_action->setEnabled(enabled);
     m_fixed_delay_action->setEnabled(enabled);
     m_ranked_box->setCheckable(enabled);
+    m_night_stadium->setCheckable(enabled);
   }
 
   m_record_input_action->setEnabled(enabled);
@@ -890,6 +913,7 @@ void NetPlayDialog::OnMsgStartGame()
       {
         client->StartGame(game->GetFilePath());
         m_ranked_box->setEnabled(false);
+        m_night_stadium->setEnabled(false);
       }
       else
         PanicAlertFmtT("Selected game doesn't exist in game list!");
@@ -905,8 +929,13 @@ void NetPlayDialog::OnMsgStopGame()
   g_netplay_golf_ui.reset();
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
 
+  auto client = Settings::Instance().GetNetPlayClient();
+
   const bool is_hosting = IsHosting();
   m_ranked_box->setEnabled(is_hosting);
+  m_night_stadium->setEnabled(is_hosting);
+  //m_ranked_box->setChecked(client->m_ranked_client);
+  //m_night_stadium->setChecked(client->m_night_stadium);
   m_spectator_toggle->setEnabled(true);
 }
 

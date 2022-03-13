@@ -477,6 +477,9 @@ void NetPlayClient::OnData(sf::Packet& packet)
   
   case MessageID::CoinFlip:
     OnCoinFlipMsg(packet);
+    break;
+  case MessageID::NightStadium:
+    OnNightMsg(packet);
     break;  
 
   default:
@@ -1532,6 +1535,14 @@ void NetPlayClient::OnCoinFlipMsg(sf::Packet& packet)
   m_dialog->OnCoinFlipResult(coinFlip);
 }
 
+void NetPlayClient::OnNightMsg(sf::Packet& packet)
+{
+  bool is_night;
+  packet >> is_night;
+  m_dialog->OnNightResult(is_night);
+  m_night_stadium = is_night;
+}
+
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
   ENetPacket* epac =
@@ -1551,6 +1562,11 @@ void NetPlayClient::DisplayPlayersPing()
 bool NetPlayClient::isRanked()
 {
   return netplay_client->m_ranked_client;
+}
+
+bool NetPlayClient::isNight()
+{
+  return netplay_client->m_night_stadium;
 }
 
 void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
@@ -1841,6 +1857,15 @@ void NetPlayClient::SendCoinFlip(int randNum)
   sf::Packet packet;
   packet << MessageID::CoinFlip;
   packet << randNum;
+
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::SendNightStadium(bool is_night)
+{
+  sf::Packet packet;
+  packet << MessageID::NightStadium;
+  packet << is_night;
 
   SendAsync(std::move(packet));
 }
