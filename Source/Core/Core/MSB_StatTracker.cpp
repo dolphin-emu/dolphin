@@ -42,9 +42,19 @@ void StatTracker::lookForTriggerEvents(){
                     m_game_info.quitter_team = (quitter_port == m_game_info.away_port);
                     logGameInfo();
                     //Game has ended. Write file but do not submit
-                    std::pair<std::string, std::string> jsonPlusPath = getStatJSON(true);
-                    File::WriteStringToFile(jsonPlusPath.second+".QUIT", jsonPlusPath.first);
+                    std::string jsonPath = getStatJsonPath(true, true);
+                    std::string json = getStatJSON(true);
+                    
+                    File::WriteStringToFile(jsonPath, json);
+
+                    jsonPath = getStatJsonPath(false, true);
+                    json = getStatJSON(false);
+                    
+                    File::WriteStringToFile(jsonPath, json);
+
+                    m_event_state = EVENT_STATE::GAME_OVER;
                     init();
+                    break;
                 }
 
                 //End of game. Invalidate current event
@@ -323,12 +333,16 @@ void StatTracker::lookForTriggerEvents(){
             if ((Memory::Read_U8(aEndOfGameFlag) == 1) && (m_event_state == EVENT_STATE::GAME_OVER) ){
                 logGameInfo();
 
-                std::pair<std::string, std::string> jsonPlusPath = getStatJSON(true);
-                File::WriteStringToFile(jsonPlusPath.second, jsonPlusPath.first);
-                std::cout << "Logging to " << jsonPlusPath.second << std::endl;
+                std::string jsonPath = getStatJsonPath(true, false);
+                std::string json = getStatJSON(true);
+                    
+                File::WriteStringToFile(jsonPath, json);
 
-                std::pair<std::string, std::string> jsonPlusPathEnoded = getStatJSON(false);
-                File::WriteStringToFile(jsonPlusPathEnoded.second + ".encoded", jsonPlusPathEnoded.first);
+                jsonPath = getStatJsonPath(false, false);
+                json = getStatJSON(false);
+
+                File::WriteStringToFile(jsonPath, json);
+                std::cout << "Logging to " << jsonPath << std::endl;
 
                 m_game_state = GAME_STATE::ENDGAME_LOGGED;
 
@@ -706,26 +720,41 @@ void StatTracker::logFinalResults(Event& in_event){
     in_event.pitch->contact->multi_out = (Memory::Read_U8(aAB_NumOutsDuringPlay) > 1);
 }
 
-std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
+std::string StatTracker::getStatJsonPath(bool inDecoded, bool inQuit){
     std::string away_player_name;
     std::string home_player_name;
-    bool team0_is_away;
     if (m_game_info.away_port == m_game_info.team0_port) {
-        team0_is_away = true;
         away_player_name = m_game_info.team0_player_name;
         home_player_name = m_game_info.team1_player_name;
     }
     else{
-        team0_is_away = false;
         away_player_name = m_game_info.team1_player_name;
         home_player_name = m_game_info.team0_player_name;
     }
 
-    std::string file_name = away_player_name 
+    std::string quit = (inQuit) ? "quit." : "";
+    std::string decode = (inDecoded) ? "decoded." : "";
+
+    std::string file_name = quit + decode + away_player_name 
                    + "-Vs-" + home_player_name
                    + "_" + std::to_string(m_game_info.game_id) + ".json";
 
     std::string full_file_path = File::GetUserPath(D_STATFILES_IDX) + file_name;
+
+    return full_file_path;
+}
+
+std::string StatTracker::getStatJSON(bool inDecode){
+    std::string away_player_name;
+    std::string home_player_name;
+    if (m_game_info.away_port == m_game_info.team0_port) {
+        away_player_name = m_game_info.team0_player_name;
+        home_player_name = m_game_info.team1_player_name;
+    }
+    else{
+        away_player_name = m_game_info.team1_player_name;
+        home_player_name = m_game_info.team0_player_name;
+    }
 
     std::stringstream json_stream;
 
@@ -1020,7 +1049,7 @@ std::pair<std::string, std::string> StatTracker::getStatJSON(bool inDecode){
     json_stream << "  ]" << std::endl;
     json_stream << "}" << std::endl;
 
-    return std::make_pair(json_stream.str(), full_file_path);
+    return json_stream.str();
 }
 
 //Scans player for possession

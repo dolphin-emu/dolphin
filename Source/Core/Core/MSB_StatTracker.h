@@ -854,5 +854,7 @@ public:
     std::string decode(std::string type, u8 value, bool decode);
 
     //Returns JSON, PathToWriteTo
-    std::pair<std::string, std::string> getStatJSON(bool inDecode);
+    std::string getStatJSON(bool inDecode);
+    //Returns path to save json
+    std::string getStatJsonPath(bool inDecoded, bool inQuit);
 };
