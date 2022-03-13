@@ -10,6 +10,7 @@
 #include "Common/FileUtil.h"
 #include "Common/CommonPaths.h"
 #include "Common/IniFile.h"
+#include "Core/LocalPlayersConfig.h"
 
 #include "Common/Swap.h"
 
@@ -1136,78 +1137,33 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderBobble() {
 
 //Read players from ini file and assign to team
 void StatTracker::readPlayerNames(bool local_game) {
-    //IniFile local_players_ini;
-    //local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  int team0_port = m_game_info.team0_port;
+  int team1_port = m_game_info.team1_port;
 
-    //for (const IniFile* ini : {&local_players_ini})
-    //{
-    //    std::vector<std::string> lines;
-    //    ini->GetLines("Local_Players_List", &lines, false);
+  if (local_game)
+  {
+    // Player 1
+    if (team0_port == 1)
+      m_game_info.team0_player_name = LocalPlayers::m_local_player_1.GetUsername();
+    else
+      m_game_info.team0_player_name = "CPU";
 
-    //    LocalPlayers::LocalPlayers player;
+    // other player
+    if (team1_port == 2)
+      m_game_info.team1_player_name = LocalPlayers::m_local_player_2.GetUsername();
+    else if (team1_port == 3)
+      m_game_info.team1_player_name = LocalPlayers::m_local_player_3.GetUsername();
+    else if (team1_port == 4)
+      m_game_info.team1_player_name = LocalPlayers::m_local_player_4.GetUsername();
+    else
+      m_game_info.team1_player_name = "CPU";
+  }
 
-    //    u8 port = 0;
-    //    for (auto& line : lines)
-    //    {
-    //        ++port;
-    //        std::istringstream ss(line);
-
-    //        // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
-    //        // Use the C locale to workaround this behavior
-    //        ss.imbue(std::locale::classic());
-
-    //        switch ((line)[0])
-    //        {
-    //        case '+':
-    //            if (!player.username.empty())
-    //            //players.push_back(player);
-    //              player = LocalPlayers::LocalPlayers();
-    //            ss.seekg(1, std::ios_base::cur);
-    //            // read the code name
-    //            std::getline(ss, player.username,
-    //                        '[');  // stop at [ character (beginning of contributor name)
-    //            player.username = StripSpaces(player.username);
-    //            // read the code creator name
-    //            std::getline(ss, player.userid, ']');
-    //            if (local_game){
-    //                if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
-    //                else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
-    //            }
-    //            else {
-    //                if(m_game_info.host) {
-    //                    m_game_info.team0_player_name = player.username;
-    //                }
-    //                else{
-    //                    m_game_info.team1_player_name = player.username;
-    //                }
-    //                return;
-    //            }
-    //            break;
-
-    //        break;
-    //        }
-    //    }
-
-    //    // add the last code
-    //    if (!player.username.empty())
-    //    {
-    //        if (local_game){
-    //            if (port == m_game_info.team0_port) { m_game_info.team0_player_name = player.username; }
-    //            else if (port == m_game_info.team1_port) { m_game_info.team1_player_name = player.username; }
-    //        }
-    //        else {
-    //            if(m_game_info.host) {
-    //                m_game_info.team0_player_name = player.username;
-    //            }
-    //            else{
-    //                m_game_info.team1_player_name = player.username;
-    //            }
-    //            return;
-    //        }
-    //    }
-    //}
-
-    return;
+  else
+  {
+    m_game_info.team0_player_name = m_game_info.NetplayerUserInfo[team0_port].GetUsername();
+    m_game_info.team1_player_name = m_game_info.NetplayerUserInfo[team1_port].GetUsername();
+  }
 }
 
 void StatTracker::setDefaultNames(bool local_game){
@@ -1246,6 +1202,12 @@ void StatTracker::setLagSpikes(int nLagSpikes)
 {
   std::cout << "Number of Lag Spikes=" << nLagSpikes << std::endl;
   m_game_info.lag_spikes = nLagSpikes;
+}
+
+void StatTracker::setNetplayerUserInfo(std::map<int, LocalPlayers::LocalPlayers::Player> userInfo)
+{
+  for (auto player : userInfo)
+    m_game_info.NetplayerUserInfo[player.first] = player.second;
 }
 
 std::optional<StatTracker::Runner> StatTracker::logRunnerInfo(u8 base){

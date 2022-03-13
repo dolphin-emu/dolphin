@@ -1586,6 +1586,13 @@ void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
   }
 }
 
+std::map<int, LocalPlayers::LocalPlayers::Player> NetPlayClient::getNetplayerUserInfo()
+{
+  // send player usernames & keys here
+  netplay_client->SendLocalPlayerNetplay(netplay_client->GetLocalPlayerNetplay());
+  return netplay_client->NetplayerUserInfo;
+}
+
 std::string NetPlayClient::sGetPortPlayer(int PortInt)
 {
   return netplay_client->GetPortPlayer(PortInt - 1);
@@ -1943,9 +1950,6 @@ bool NetPlayClient::StartGame(const std::string& path)
   m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
-
-  // send player usernames & keys here
-  SendLocalPlayerNetplay(GetLocalPlayerNetplay());
 
   return true;
 }
@@ -2954,18 +2958,16 @@ void NetPlay_Disable()
 
 void NetPlayClient::SendLocalPlayerNetplay(LocalPlayers::LocalPlayers::Player userinfo)
 {
-  u8 portnum = 0;
   for (auto player_id : m_pad_map)
   {
-    portnum++;
     if (player_id == m_local_player->pid)
     {
       sf::Packet packet;
       packet << MessageID::PlayerData;
 
-      NetplayerUserInfo[portnum] = userinfo;  // if the client is mapped to a port, that port is set to the local player at the client's port 1
-      packet << portnum;
-      packet << userinfo.LocalPlayerToStr();  // have to sent the string ovr netplay; will convert this back later
+      NetplayerUserInfo[player_id] = userinfo;  // if the client is mapped to a port, that port is set to the local player at the client's port 1
+      packet << player_id;
+      packet << userinfo.LocalPlayerToStr();  // have to sent the string over netplay; will convert this back later
 
       SendAsync(std::move(packet));
     }

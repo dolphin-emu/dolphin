@@ -187,6 +187,7 @@ void OnFrameEnd()
   TrainingMode();
   DisplayBatterFielder();
   SetAvgPing();
+  SetNetplayerUserInfo();
 
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
@@ -473,7 +474,7 @@ void SetAvgPing()
     return;
 
   // checks if GameID is set and that the end game flag hasn't been hit yet
-  bool inGame = Memory::Read_U32(0x802EBF8C) != 0 && Memory::Read_U32(0x80892AB3) == 0 ?
+  bool inGame = Memory::Read_U32(aGameId) != 0 && Memory::Read_U32(aEndOfGameFlag) == 0 ?
                     true :
                     false;
   if (!inGame) {
@@ -501,6 +502,25 @@ void SetAvgPing()
   s_stat_tracker->setAvgPing(avgPing);
   s_stat_tracker->setLagSpikes(nLagSpikes);
 }
+
+void SetNetplayerUserInfo()
+{
+  if (!NetPlay::IsNetPlayRunning())
+    return;
+
+  // checks if GameID is set
+  if (Memory::Read_U32(aGameId) != 0)
+    return;
+
+  // tell the stat tracker what the new avg ping is
+  if (!s_stat_tracker)
+  {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+  s_stat_tracker->setNetplayerUserInfo(NetPlay::NetPlayClient::getNetplayerUserInfo());
+}
+
 
 // Display messages and return values
 

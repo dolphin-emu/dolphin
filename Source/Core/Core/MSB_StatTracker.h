@@ -679,6 +679,7 @@ public:
 
         //All of the events for this game
         std::map<u16, Event> events;
+        std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo;  // int is port
 
         Event& getCurrentEvent() { return events.at(event_num); }
     };
@@ -813,6 +814,7 @@ public:
     void setNetplaySession(bool netplay_session, bool is_host=false, std::string opponent_name = "");
     void setAvgPing(int avgPing);
     void setLagSpikes(int nLagSpikes);
+    void setNetplayerUserInfo(std::map<int, LocalPlayers::LocalPlayers::Player> userInfo);
 
     void Run();
     void lookForTriggerEvents();
