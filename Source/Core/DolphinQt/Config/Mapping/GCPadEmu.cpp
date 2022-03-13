@@ -34,7 +34,11 @@ void GCPadEmu::CreateMainLayout()
                     4);
   layout->addWidget(CreateGroupBox(tr("Rumble"), Pad::GetGroup(GetPort(), PadGroup::Rumble)), 1, 4);
 
-  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
+  layout->addWidget(CreateGroupBox(tr("Force Controller Disconnection"),
+                                   Pad::GetGroup(GetPort(), PadGroup::ForceDisconnect)),
+                    2, 4);
+
+  layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 3,
                     4);
 
   setLayout(layout);

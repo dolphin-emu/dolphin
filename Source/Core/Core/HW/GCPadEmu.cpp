@@ -83,6 +83,11 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   groups.emplace_back(m_mic = new ControllerEmu::Buttons(_trans("Microphone")));
   m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
 
+  // force disconnect
+  groups.emplace_back(m_force_disconnect =
+                          new ControllerEmu::Buttons(_trans("Force Controller Disconnection")));
+  m_force_disconnect->AddInput(ControllerEmu::Translate, _trans("Button"));
+
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
@@ -99,7 +104,8 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
       {_trans("Always Connected"), nullptr,
        _trans("If checked, the emulated controller is always connected.\n"
               "If unchecked, the connection state of the emulated controller is linked\n"
-              "to the connection state of the real default device (if there is one).")},
+              "to the connection state of the real default device (if there is one).\n"
+              "NOTE: Force Controller Disconnection overrides this option.")},
       false);
 }
 
@@ -126,6 +132,8 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
     return m_rumble;
   case PadGroup::Mic:
     return m_mic;
+  case PadGroup::ForceDisconnect:
+    return m_force_disconnect;
   case PadGroup::Options:
     return m_options;
   default:
@@ -138,7 +146,8 @@ GCPadStatus GCPad::GetInput() const
   const auto lock = GetStateLock();
   GCPadStatus pad = {};
 
-  if (!(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected()))
+  if (m_force_disconnect->controls.back()->GetState<bool>() ||
+      !(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected()))
   {
     pad.isConnected = false;
     return pad;
