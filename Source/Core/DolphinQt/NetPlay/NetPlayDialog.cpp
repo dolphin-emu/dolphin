@@ -854,6 +854,20 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
   m_record_input_action->setEnabled(enabled);
 }
 
+void NetPlayDialog::RankedStartingMsg(bool is_ranked) {
+  if (is_ranked)
+  {
+    DisplayMessage(tr("NOTE: Ranked is Enabled. All gecko codes & Training Mode are disabled."), "mediumseagreen");
+    Core::setRankedStatus(is_ranked);
+  }
+  else
+  {
+    DisplayMessage(tr("NOTE: Ranked Mode is Disabled. Custom gecko codes & Training Mode may be enabled."), "crimson");
+    Core::setRankedStatus(is_ranked);
+  }
+}
+
+
 void NetPlayDialog::OnMsgStartGame()
 {
   DisplayMessage(tr("Started game"), "green");

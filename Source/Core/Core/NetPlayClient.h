@@ -68,6 +68,7 @@ public:
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
   virtual void OnRankedEnabled(bool is_ranked) = 0;
+  virtual void RankedStartingMsg(bool is_ranked) = 0;
   virtual void OnCoinFlipResult(int coinFlip) = 0;
   virtual void OnActiveGeckoCodes(std::string codeStr) = 0;
   virtual bool IsSpectating() = 0;

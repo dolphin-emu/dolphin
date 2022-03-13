@@ -920,6 +920,7 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
   }
 
   m_dialog->OnMsgStartGame();
+  m_dialog->RankedStartingMsg(m_ranked_client);
 }
 
 void NetPlayClient::OnStopGame(sf::Packet& packet)

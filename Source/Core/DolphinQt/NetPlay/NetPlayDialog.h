@@ -73,6 +73,7 @@ public:
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
+  void RankedStartingMsg(bool is_ranked) override;
   void OnRankedEnabled(bool is_ranked) override;
   void OnCoinFlipResult(int coinNum);
   void OnActiveGeckoCodes(std::string codeStr);
