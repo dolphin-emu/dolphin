@@ -1196,11 +1196,10 @@ void StatTracker::readPlayerNames(bool local_game) {
 }
 
 void StatTracker::setDefaultNames(bool local_game){
-    if (local_game){
-        if (m_game_info.team0_port == 5) m_game_info.team0_player_name = "CPU";
-        if (m_game_info.team1_port == 5) m_game_info.team1_player_name = "CPU";
-    }
-    else {
+    if (m_game_info.team0_port >= 5) m_game_info.team0_player_name = "CPU";
+    if (m_game_info.team1_port >= 5) m_game_info.team1_player_name = "CPU";
+
+    if (!local_game) {
         if (m_game_info.team0_player_name.empty()) m_game_info.team0_player_name = "Netplayer~" + m_game_info.netplay_opponent_alias;
         if (m_game_info.team1_player_name.empty()) m_game_info.team1_player_name = "Netplayer~" + m_game_info.netplay_opponent_alias;
     }
