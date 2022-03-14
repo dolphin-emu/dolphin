@@ -223,17 +223,22 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-  // Buttons
-  m_buttons->SetControlExpression(0, "`Click 0`");  // A
-  m_buttons->SetControlExpression(1, "SPACE");  // B
-  m_buttons->SetControlExpression(2, "Ctrl");  // X
-  m_buttons->SetControlExpression(3, "F");  // Y
-  m_buttons->SetControlExpression(4, "TAB");  // Z
 #ifdef _WIN32
+  m_buttons->SetControlExpression(0, "`Click 0` | RETURN"); // A
+  m_buttons->SetControlExpression(1, "SPACE");  // B
+  m_buttons->SetControlExpression(4, "TAB");  // Z
   m_buttons->SetControlExpression(5, "GRAVE");  // Start
+  m_triggers->SetControlExpression(0, "`Click 1`"); // Lock-On
 #else
-  m_buttons->SetControlExpression(5, "GRAVE");  // Start
+  m_buttons->SetControlExpression(0, "`Click 1` | RETURN"); // A
+  m_buttons->SetControlExpression(1, "space");  // B
+  m_buttons->SetControlExpression(4, "Tab");  // Z
+  m_buttons->SetControlExpression(5, "grave");  // Start
+  m_triggers->SetControlExpression(0, "`Click 3`"); // Lock-On
 #endif
+
+  m_buttons->SetControlExpression(2, "Ctrl"); // X
+  m_buttons->SetControlExpression(3, "F");  // Y
 
   // D-Pad
   m_dpad->SetControlExpression(0, "E & `1`");  // Up
@@ -268,13 +273,6 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   // Because our defaults use keyboard input, set calibration shapes to squares.
   m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
   m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
-
-  // Lock/Scan/Spider Ball
-#ifdef HAVE_X11
-  m_triggers->SetControlExpression(0, "`Click 3`");
-#else
-  m_triggers->SetControlExpression(0, "`Click 1`");
-#endif
 }
 
 bool GCPad::GetMicButton() const

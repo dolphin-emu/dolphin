@@ -849,31 +849,18 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-  // Fire
-#if defined HAVE_X11 && HAVE_X11
-  m_buttons->SetControlExpression(0, "`Click 1` | RETURN");
+#ifdef _WIN32
+  m_buttons->SetControlExpression(0, "`Click 0` | RETURN"); // Fire
+  m_buttons->SetControlExpression(1, "SPACE"); // Jump
+  m_buttons->SetControlExpression(2, "TAB"); // Map
+  m_buttons->SetControlExpression(3, "GRAVE"); // Pause Menu
 #else
-  m_buttons->SetControlExpression(0, "`Click 0` | RETURN");
+  m_buttons->SetControlExpression(0, "`Click 1` | RETURN"); // Fire
+  m_buttons->SetControlExpression(1, "space"); // Jump
+  m_buttons->SetControlExpression(2, "Tab"); // Map
+  m_buttons->SetControlExpression(3, "`grave`"); // Pause Menu
 #endif
 
-  // Jump
-  // Map screen
-#if defined HAVE_X11 && HAVE_X11
-  m_buttons->SetControlExpression(1, "Space");
-
-  m_buttons->SetControlExpression(2, "Tab");
-#else
-  m_buttons->SetControlExpression(1, "SPACE");
-
-  m_buttons->SetControlExpression(2, "TAB");
-#endif
-
-  // Pause menu
-#if defined HAVE_X11 && HAVE_X11
-  m_buttons->SetControlExpression(3, "`dead_grave`");
-#else
-  m_buttons->SetControlExpression(3, "GRAVE");
-#endif
   // +-
   m_buttons->SetControlExpression(4, "E");
   m_buttons->SetControlExpression(5, "R");
