@@ -132,6 +132,18 @@ bool IsSettingSaveable(const Config::Location& config_location)
 
       // PrimeHack
 
+      &Config::PRIMEHACK_ENABLE.GetLocation(),
+      &Config::PRIMEHACK_INITIAL_RUN.GetLocation(),
+      &Config::PRIMEHACK_PROMPT_TAB.GetLocation(),
+      &Config::PRIMEHACK_NOCLIP.GetLocation(),
+      &Config::PRIMEHACK_INVULNERABILITY.GetLocation(),
+      &Config::PRIMEHACK_SKIPMP2_PORTAL.GetLocation(),
+      &Config::PRIMEHACK_SKIPPABLE_CUTSCENES.GetLocation(),
+      &Config::PRIMEHACK_RESTORE_SCANDASH.GetLocation(),
+      &Config::PRIMEHACK_FRIENDVOUCHERS.GetLocation(),
+      &Config::PRIMEHACK_DISABLE_HUDMEMO.GetLocation(),
+      &Config::PRIMEHACK_UNLOCK_HYPERMODE.GetLocation(),
+
       &Config::TOGGLE_ARM_REPOSITION.GetLocation(),
       &Config::AUTO_EFB.GetLocation(),
       &Config::ARMPOSITION_MODE.GetLocation(),
