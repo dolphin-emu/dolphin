@@ -187,7 +187,7 @@ void OnFrameEnd()
   // always enable netplay event code for ranked games
   // if not ranked, check if code is checked off
   DefaultGeckoCodes CodeWriter;
-  CodeWriter.RunCodeInject(Memory::Read_U8(aNetplayEventCode) == 1 || isRankedMode(), isNight());
+  CodeWriter.RunCodeInject(Memory::Read_U8(aNetplayEventCode) == 1, isRankedMode(), isNight());
 
   AutoGolfMode();
   TrainingMode();
