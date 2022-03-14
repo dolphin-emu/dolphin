@@ -210,6 +210,10 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
         {
         case ENET_EVENT_TYPE_CONNECT:
           m_server = netEvent.peer;
+
+          // Extend reliable traffic timeout
+          enet_peer_timeout(m_server, 0, 30000, 30000);
+
           if (Connect())
           {
             m_connection_state = ConnectionState::Connected;
