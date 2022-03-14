@@ -64,8 +64,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   connect(Host::GetInstance(), &Host::UpdateAndRecenterCursor, this, [this](bool locked) {
     if (locked) {
       QRect render_rect = geometry();
-      cursor().setPos(render_rect.left() + render_rect.width() / 2,
-                      render_rect.top() + render_rect.height() / 2);
+      QPoint center = mapToGlobal(QPoint(render_rect.width() / 2, render_rect.height() / 2));
+      cursor().setPos(windowHandle()->screen(), center);
     }
     setCursor((locked && Settings::Instance().GetCursorVisibility() == Config::Get(Config::MAIN_SHOW_CURSOR) ? Qt::BlankCursor :
                                                                  Qt::ArrowCursor));
