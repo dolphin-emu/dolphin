@@ -767,7 +767,7 @@ void VolumeVerifier::CheckVolumeSize()
   }
 
   if (m_content_index != m_content_offsets.size() || m_group_index != m_groups.size() ||
-      (volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
+      (!m_is_datel && volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
   {
     const bool second_layer_missing = is_disc && volume_size_roughly_known &&
                                       volume_size >= SL_DVD_SIZE && volume_size <= SL_DVD_R_SIZE;
