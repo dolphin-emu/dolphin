@@ -417,7 +417,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
     return ConnectionError::NameTooLong;
 
   // Extend reliable traffic timeout
-  enet_peer_timeout(socket, 0, 30000, 30000);
+  enet_peer_timeout(socket, 0, PEER_TIMEOUT, PEER_TIMEOUT);
 
   // cause pings to be updated
   m_update_pings = true;
