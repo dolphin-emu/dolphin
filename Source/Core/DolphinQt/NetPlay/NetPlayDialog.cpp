@@ -64,6 +64,31 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace
+{
+QString InetAddressToString(const TraversalInetAddress& addr)
+{
+  QString ip;
+
+  if (addr.isIPV6)
+  {
+    ip = QStringLiteral("IPv6-Not-Implemented");
+  }
+  else
+  {
+    const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
+    ip = QString::number(ipv4[0]);
+    for (u32 i = 1; i != 4; ++i)
+    {
+      ip += QStringLiteral(".");
+      ip += QString::number(ipv4[i]);
+    }
+  }
+
+  return QStringLiteral("%1:%2").arg(ip, QString::number(ntohs(addr.port)));
+}
+}  // namespace
+
 NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
                              StartGameCallback start_game_callback, QWidget* parent)
     : QDialog(parent), m_game_list_model(game_list_model),
@@ -270,7 +295,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_room_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &NetPlayDialog::UpdateGUI);
   connect(m_hostcode_action_button, &QPushButton::clicked, [this] {
-    if (m_is_copy_button_retry && m_room_box->currentIndex() == 0)
+    if (m_is_copy_button_retry)
       g_TraversalClient->ReconnectToServer();
     else
       QApplication::clipboard()->setText(m_hostcode_label->text());
@@ -622,20 +647,48 @@ void NetPlayDialog::UpdateGUI()
       m_players_list->selectRow(i);
   }
 
-  // Update Room ID / IP label
-  if (m_use_traversal && m_room_box->currentIndex() == 0)
+  if (m_old_player_count != m_player_count)
+  {
+    UpdateDiscordPresence();
+    m_old_player_count = m_player_count;
+  }
+
+  if (!server)
+    return;
+
+  const bool is_local_ip_selected = m_room_box->currentIndex() > (m_use_traversal ? 1 : 0);
+  if (is_local_ip_selected)
+  {
+    m_hostcode_label->setText(QString::fromStdString(
+        server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
+    m_hostcode_action_button->setEnabled(true);
+    m_hostcode_action_button->setText(tr("Copy"));
+    m_is_copy_button_retry = false;
+  }
+  else if (m_use_traversal)
   {
     switch (g_TraversalClient->GetState())
     {
     case TraversalClient::State::Connecting:
-      m_hostcode_label->setText(tr("..."));
+      m_hostcode_label->setText(tr("Connecting"));
       m_hostcode_action_button->setEnabled(false);
+      m_hostcode_action_button->setText(tr("..."));
       break;
     case TraversalClient::State::Connected:
     {
-      const auto host_id = g_TraversalClient->GetHostID();
-      m_hostcode_label->setText(
-          QString::fromStdString(std::string(host_id.begin(), host_id.end())));
+      if (m_room_box->currentIndex() == 0)
+      {
+        // Display Room ID.
+        const auto host_id = g_TraversalClient->GetHostID();
+        m_hostcode_label->setText(
+            QString::fromStdString(std::string(host_id.begin(), host_id.end())));
+      }
+      else
+      {
+        // Externally mapped IP and port are known when using the traversal server.
+        m_hostcode_label->setText(InetAddressToString(g_TraversalClient->GetExternalAddress()));
+      }
+
       m_hostcode_action_button->setEnabled(true);
       m_hostcode_action_button->setText(tr("Copy"));
       m_is_copy_button_retry = false;
@@ -649,38 +702,24 @@ void NetPlayDialog::UpdateGUI()
       break;
     }
   }
-  else if (server)
+  else
   {
-    if (m_room_box->currentIndex() == (m_use_traversal ? 1 : 0))
+    // Display External IP.
+    if (!m_external_ip_address->empty())
     {
-      if (!m_external_ip_address->empty())
-      {
-        const int port = Settings::Instance().GetNetPlayServer()->GetPort();
-        m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
-            QString::fromStdString(*m_external_ip_address), QString::number(port)));
-        m_hostcode_action_button->setEnabled(true);
-      }
-      else
-      {
-        m_hostcode_label->setText(tr("Unknown"));
-        m_hostcode_action_button->setEnabled(false);
-      }
+      const int port = Settings::Instance().GetNetPlayServer()->GetPort();
+      m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
+          QString::fromStdString(*m_external_ip_address), QString::number(port)));
+      m_hostcode_action_button->setEnabled(true);
     }
     else
     {
-      m_hostcode_label->setText(QString::fromStdString(
-          server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
-      m_hostcode_action_button->setEnabled(true);
+      m_hostcode_label->setText(tr("Unknown"));
+      m_hostcode_action_button->setEnabled(false);
     }
 
     m_hostcode_action_button->setText(tr("Copy"));
     m_is_copy_button_retry = false;
-  }
-
-  if (m_old_player_count != m_player_count)
-  {
-    UpdateDiscordPresence();
-    m_old_player_count = m_player_count;
   }
 }
 

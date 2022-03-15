@@ -29,6 +29,11 @@ TraversalHostId TraversalClient::GetHostID() const
   return m_HostId;
 }
 
+TraversalInetAddress TraversalClient::GetExternalAddress() const
+{
+  return m_external_address;
+}
+
 TraversalClient::State TraversalClient::GetState() const
 {
   return m_State;
@@ -153,6 +158,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
       break;
     }
     m_HostId = packet->helloFromServer.yourHostId;
+    m_external_address = packet->helloFromServer.yourAddress;
     m_State = State::Connected;
     if (m_Client)
       m_Client->OnTraversalStateChanged();
