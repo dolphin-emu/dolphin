@@ -130,7 +130,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_1 = {
-        0x8067AC00, 0,
+        0x8067AC00, 0xb0050148,
         {0xB0050148, 0x7C0E0378, 0x7C0802A6, 0x90010004, 0x9421FF00, 0xBC610008, 0x3E408023,
         0x3A526D30, 0x2C0E0000, 0x4082000C, 0x99F26D39, 0x48000264, 0x3CC08089, 0x60C6389B,
         0x88C60000, 0x2C060000, 0x40820008, 0x4800024C, 0x3B0000FF, 0x71CF0800, 0x2C0F0800,
@@ -159,13 +159,13 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_2 = {
-        0x8069797c, 0,
+        0x8069797c, 0x98dd01d3,
         {0x98dd00e1, 0x98dd01d3}
     };
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_3 = {
-        0x80677950, 0,
+        0x80677950, 0x990a01d3,
         {0x89ca00e1, 0x2c0e0001,
         0x39c00000, 0x41820008,
         0x990a01d3}
@@ -173,7 +173,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_4 = {
-        0x806663c8, 0,
+        0x806663c8, 0x981c01d3,
         {0x39c00000, 0x1dee0268,
         0x3e008088, 0x3a2f7a9d,
         0x3a317a9e, 0x7e108b78,
@@ -204,7 +204,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_6 = {
-        0x80677920, 0,
+        0x80677920, 0xb06600b0,
         {0x7C741B78, 0x7C150378,
         0x7C0802A6, 0x90010004,
         0x9421FF00, 0xBC610008,
@@ -217,7 +217,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_7 = {
-        0x80672B88, 0,
+        0x80672B88, 0xb00300b0,
         {0x7C140378, 0x7C0802A6,
         0x90010004, 0x9421FF00,
         0xBC610008, 0x3D20802E,
@@ -229,7 +229,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_8 = {
-        0x8067A684, 0,
+        0x8067A684, 0xb00300b0,
         {0x7C140378, 0x7C0802A6,
         0x90010004, 0x9421FF00,
         0xBC610008, 0x3D20802E,
@@ -241,7 +241,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_9 = {
-        0x8067AECC, 0,
+        0x8067AECC, 0xb01f00b0,
         {0x7C140378, 0x7C0802A6,
         0x90010004, 0x9421FF00,
         0xBC610008, 0x3D20802E,
@@ -253,7 +253,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_10 = {
-        0x8069628c, 0,
+        0x8069628c, 0x881c01d3,
         {0x881c01d3, 0x3de08088,
         0x61eff368, 0x3a0f15a8,
         0x7c1c7800, 0x41800028,
@@ -266,7 +266,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_11 = {
-        0x80692224, 0,
+        0x80692224, 0x889f01d3,
         {0x889f01d3, 0x3de08088,
         0x61eff368, 0x3a0f15a8,
         0x7c1f7800, 0x41800028,
@@ -279,7 +279,7 @@ class DefaultGeckoCodes {
 
     // Manual Fielder Select 3.2 [PeacockSlayers, LittleCoaks]
     const DefaultGeckoCode sManualSelect_12 = {
-        0x80692224, 0,
+        0x80685060, 0x890601d3,
         {0x890601d3, 0x3de08088,
         0x61eff368, 0x3a0f15a8,
         0x7c067800, 0x41800028,
