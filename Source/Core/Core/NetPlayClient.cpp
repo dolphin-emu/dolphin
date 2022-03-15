@@ -153,7 +153,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     }
 
     // Extend reliable traffic timeout
-    enet_peer_timeout(m_server, 0, 30000, 30000);
+    enet_peer_timeout(m_server, 0, PEER_TIMEOUT, PEER_TIMEOUT);
 
     ENetEvent netEvent;
     int net = enet_host_service(m_client, &netEvent, 5000);
@@ -212,7 +212,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
           m_server = netEvent.peer;
 
           // Extend reliable traffic timeout
-          enet_peer_timeout(m_server, 0, 30000, 30000);
+          enet_peer_timeout(m_server, 0, PEER_TIMEOUT, PEER_TIMEOUT);
 
           if (Connect())
           {
