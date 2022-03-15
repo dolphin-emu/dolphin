@@ -3023,7 +3023,16 @@ LocalPlayers::LocalPlayers::Player NetPlayClient::GetLocalPlayerNetplay()
 {
   // Eventually replace this with the account information in future official release
   // for now, we just reference the player mapped to port 1, which is the intended player 99% of the time anyway
-  return LocalPlayers::m_local_player_1;
+  // if no one is set, use netplay nickname
+  LocalPlayers::LocalPlayers::Player netplay_player;
+  if (LocalPlayers::m_local_player_1.GetUsername() == "" || LocalPlayers::m_local_player_1.GetUsername() == "No Player Selected")
+  {
+    netplay_player.username = m_players[m_local_player->pid].name;
+    netplay_player.userid = "0";
+  }
+  else
+    netplay_player = LocalPlayers::m_local_player_1;
+  return netplay_player;
 }
 
 }  // namespace NetPlay
