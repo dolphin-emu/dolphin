@@ -55,7 +55,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
 
   auto* custom_address_space_layout = new QVBoxLayout();
   custom_address_space_layout->setMargin(6);
-  auto* custom_address_space_button_group = new QButtonGroup();
+  auto* custom_address_space_button_group = new QButtonGroup(this);
   m_custom_virtual_address_space = new QRadioButton(tr("Use virtual addresses when possible"));
   m_custom_virtual_address_space->setChecked(true);
   m_custom_physical_address_space = new QRadioButton(tr("Use physical addresses"));

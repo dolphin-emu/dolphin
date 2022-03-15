@@ -91,9 +91,11 @@ static void InitCustomPaths()
   CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
   CreateWFSPath(Config::Get(Config::MAIN_WFS_PATH));
   File::SetUserPath(F_WIISDCARD_IDX, Config::Get(Config::MAIN_SD_PATH));
+#ifdef HAS_LIBMGBA
   File::SetUserPath(F_GBABIOS_IDX, Config::Get(Config::MAIN_GBA_BIOS_PATH));
   File::SetUserPath(D_GBASAVES_IDX, Config::Get(Config::MAIN_GBA_SAVES_PATH));
   File::CreateFullPath(File::GetUserPath(D_GBASAVES_IDX));
+#endif
 }
 
 void Init()
@@ -106,8 +108,6 @@ void Init()
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  WiimoteReal::LoadSettings();
-  GCAdapter::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
@@ -355,29 +355,6 @@ void SetUserDirectory(std::string custom_path)
   }
 #endif
   File::SetUserPath(D_USER_IDX, std::move(user_path));
-}
-
-void SaveWiimoteSources()
-{
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
-
-  IniFile inifile;
-  inifile.Load(ini_filename);
-
-  for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-  {
-    std::string secname("Wiimote");
-    secname += (char)('1' + i);
-    IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-
-    sec.Set("Source", int(WiimoteCommon::GetSource(i)));
-  }
-
-  std::string secname("BalanceBoard");
-  IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", int(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD)));
-
-  inifile.Save(ini_filename);
 }
 
 bool TriggerSTMPowerEvent()

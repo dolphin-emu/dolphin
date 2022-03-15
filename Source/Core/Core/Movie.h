@@ -37,13 +37,6 @@ class EncryptionKey;
 namespace Movie
 {
 // Enumerations and structs
-enum PlayMode
-{
-  MODE_NONE = 0,
-  MODE_RECORDING,
-  MODE_PLAYING
-};
-
 enum class ControllerType
 {
   None = 0,

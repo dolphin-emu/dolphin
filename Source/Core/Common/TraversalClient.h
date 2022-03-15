@@ -44,6 +44,7 @@ public:
   ~TraversalClient();
 
   TraversalHostId GetHostID() const;
+  TraversalInetAddress GetExternalAddress() const;
   State GetState() const;
   FailureReason GetFailureReason() const;
 
@@ -77,6 +78,7 @@ private:
 
   ENetHost* m_NetHost;
   TraversalHostId m_HostId{};
+  TraversalInetAddress m_external_address{};
   State m_State{};
   FailureReason m_FailureReason{};
   TraversalRequestId m_ConnectRequestId = 0;

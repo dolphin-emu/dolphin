@@ -7,8 +7,6 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
-
 public abstract class CheatItemViewHolder extends RecyclerView.ViewHolder
 {
   public CheatItemViewHolder(@NonNull View itemView)

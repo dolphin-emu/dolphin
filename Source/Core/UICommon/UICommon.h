@@ -27,8 +27,6 @@ void SetUserDirectory(std::string custom_path);
 
 bool TriggerSTMPowerEvent();
 
-void SaveWiimoteSources();
-
 // Return a pretty file size string from byte count.
 // e.g. 1134278 -> "1.08 MiB"
 std::string FormatSize(u64 bytes, int decimals = 2);

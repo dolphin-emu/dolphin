@@ -5,7 +5,6 @@
 
 #include <utility>
 
-#include <QButtonGroup>
 #include <QCursor>
 #include <QHBoxLayout>
 #include <QListWidget>

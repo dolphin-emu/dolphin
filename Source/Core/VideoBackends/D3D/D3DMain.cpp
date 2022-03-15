@@ -111,6 +111,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsTextureQueryLevels = true;
   g_Config.backend_info.bSupportsLodBiasInSampler = true;
   g_Config.backend_info.bSupportsLogicOp = D3D::SupportsLogicOp(g_Config.iAdapter);
+  g_Config.backend_info.bSupportsSettingObjectNames = true;
 
   g_Config.backend_info.Adapters = D3DCommon::GetAdapterNames();
   g_Config.backend_info.AAModes = D3D::GetAAModes(g_Config.iAdapter);

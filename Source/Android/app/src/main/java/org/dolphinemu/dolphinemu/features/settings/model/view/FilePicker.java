@@ -4,11 +4,11 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-
-import androidx.annotation.Nullable;
 
 public final class FilePicker extends SettingsItem
 {
