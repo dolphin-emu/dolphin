@@ -136,7 +136,7 @@ Platform VolumeGC::GetVolumeType() const
 
 bool VolumeGC::IsDatelDisc() const
 {
-  return !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
+  return GetGameID() == "DTLX01" || !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
 }
 
 std::array<u8, 20> VolumeGC::GetSyncHash() const

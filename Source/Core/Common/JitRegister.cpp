@@ -81,14 +81,12 @@ bool IsEnabled()
   return s_is_enabled;
 }
 
-void RegisterV(const void* base_address, u32 code_size, const char* format, va_list args)
+void Register(const void* base_address, u32 code_size, const std::string& symbol_name)
 {
 #if !(defined USE_OPROFILE && USE_OPROFILE) && !defined(USE_VTUNE)
   if (!s_perf_map_file.IsOpen())
     return;
 #endif
-
-  std::string symbol_name = StringFromFormatV(format, args);
 
 #if defined USE_OPROFILE && USE_OPROFILE
   op_write_native_code(s_agent, symbol_name.c_str(), (u64)base_address, base_address, code_size);

@@ -86,6 +86,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsCoarseDerivatives = true;
   g_Config.backend_info.bSupportsTextureQueryLevels = true;
   g_Config.backend_info.bSupportsLodBiasInSampler = true;
+  g_Config.backend_info.bSupportsSettingObjectNames = true;
 
   // We can only check texture support once we have a device.
   if (g_dx_context)

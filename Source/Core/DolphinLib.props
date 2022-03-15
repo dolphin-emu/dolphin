@@ -176,6 +176,7 @@
     <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
     <ClInclude Include="Core\Config\UISettings.h" />
+    <ClInclude Include="Core\Config\WiimoteSettings.h" />
     <ClInclude Include="Core\ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\GameConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\IsSettingSaveable.h" />
@@ -484,6 +485,7 @@
     <ClInclude Include="InputCommon\ControllerInterface\DualShockUDPClient\DualShockUDPProto.h" />
     <ClInclude Include="InputCommon\ControllerInterface\evdev\evdev.h" />
     <ClInclude Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\MappingCommon.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="InputCommon\ControllerInterface\XInput\XInput.h" />
@@ -766,6 +768,7 @@
     <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
     <ClCompile Include="Core\Config\UISettings.cpp" />
+    <ClCompile Include="Core\Config\WiimoteSettings.cpp" />
     <ClCompile Include="Core\ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\GameConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\IsSettingSaveable.cpp" />
@@ -1073,6 +1076,7 @@
     <ClCompile Include="InputCommon\ControllerInterface\DInput\XInputFilter.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\MappingCommon.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\XInput\XInput.cpp" />

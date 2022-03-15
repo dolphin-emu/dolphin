@@ -9,6 +9,8 @@
 
 #include "VideoBackends/OGL/SamplerCache.h"
 
+#include "VideoCommon/VideoConfig.h"
+
 namespace OGL
 {
 namespace
@@ -116,7 +118,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config, std::string_view name)
   glActiveTexture(GL_MUTABLE_TEXTURE_INDEX);
   glBindTexture(target, m_texId);
 
-  if (!m_name.empty())
+  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
   {
     glObjectLabel(GL_TEXTURE, m_texId, -1, m_name.c_str());
   }

@@ -13,7 +13,7 @@
 # MADCreations <http://www.dpro.freehosting.org>, 2011
 # Marinus Schot <marinus@live.com>, 2013
 # Mike van der Kuijl <kuijlmike@gmail.com>, 2019-2020
-# Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2021
+# Mike van der Kuijl <kuijlmike@gmail.com>, 2020-2022
 # Mike van der Kuijl <kuijlmike@gmail.com>, 2021
 # Mourits Pvllen <mauritspullen@gmail.com>, 2014
 # Pierre Bourdon <delroth@gmail.com>, 2014
@@ -24,8 +24,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-18 23:27+0100\n"
-"PO-Revision-Date: 2021-12-22 00:10+0000\n"
+"POT-Creation-Date: 2022-01-30 23:50+0100\n"
+"PO-Revision-Date: 2022-01-19 13:21+0000\n"
 "Last-Translator: Mike van der Kuijl <kuijlmike@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
@@ -523,7 +523,7 @@ msgstr "&Geheugen"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:723
 msgid "&Movie"
-msgstr "&Film"
+msgstr "&Opname"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:420
 msgid "&Mute"
@@ -936,7 +936,7 @@ msgstr ""
 #. i18n: A mysterious debugging/diagnostics peripheral for the GameCube.
 #: Source/Core/Core/HW/EXI/EXI_Device.h:89
 msgid "AD16"
-msgstr ""
+msgstr "AD16"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:114
 msgid ""
@@ -1919,7 +1919,7 @@ msgstr "Kalibratieperiode"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:290
 msgid "Call display list at %1 with size %2"
-msgstr ""
+msgstr "Roep weergave lijst op bij %1 met grootte %2"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:104
 msgid "Callstack"
@@ -1939,7 +1939,7 @@ msgstr "Camera gezichtsveld (beïnvloedt gevoeligheid van het wijzen)."
 msgid "Can only generate AR code for values in virtual memory."
 msgstr "Kan alleen AR code genereren voor waarden in virtueel geheugen."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1771
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1772
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr "Kan Wii-afstandsbediening niet vinden via verbindingshendel {0:02x}"
 
@@ -2168,7 +2168,7 @@ msgstr "Code"
 msgid "Code:"
 msgstr "Code:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1811
+#: Source/Core/Core/NetPlayClient.cpp:1813
 msgid "Codes received!"
 msgstr "Codes ontvangen!"
 
@@ -2388,7 +2388,7 @@ msgstr ""
 "kwaliteit aanzienlijk, maar verhoogt de GPU-belasting enorm en kan problemen "
 "veroorzaken in bepaalde spellen. Over het algemeen geldt dat hoe lager de "
 "interne resolutie is, hoe beter uw prestaties zullen zijn."
-"<br><br><dolphin_emphasis>Bij twijfel, selecteert u Natief.</"
+"<br><br><dolphin_emphasis>In geval van twijfel Native selecteren.</"
 "dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:340
@@ -2553,7 +2553,7 @@ msgstr ""
 "Kon geen updateinformatie van Nintendo downloaden. Controleer uw "
 "internetverbinding en probeer het opnieuw."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:124
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:125
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -2563,7 +2563,7 @@ msgstr ""
 "\n"
 "De geëmuleerde console stopt nu."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:130
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:131
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "The following error occurred when Dolphin tried to use an adapter:\n"
@@ -2835,7 +2835,7 @@ msgstr "Data in onherkenbaar formaat of corrupt."
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr "Data inconsistent in GCMemcardManager, actie afbreken."
 
-#: Source/Core/Core/NetPlayClient.cpp:1769
+#: Source/Core/Core/NetPlayClient.cpp:1771
 msgid "Data received!"
 msgstr "Data ontvangen!"
 
@@ -3231,7 +3231,7 @@ msgstr "Dolphin Signatuur Bestand"
 #: Source/Core/DolphinQt/MainWindow.cpp:1692
 #: Source/Core/DolphinQt/MainWindow.cpp:1763
 msgid "Dolphin TAS Movies (*.dtm)"
-msgstr "Dolphin TAS Films (*.dtm)"
+msgstr "Dolphin TAS Opname (*.dtm)"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:324
 msgid ""
@@ -3539,7 +3539,7 @@ msgstr "Sl&uiten"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:177
 msgid "EFB copy %1"
-msgstr ""
+msgstr "EFB kopie %1"
 
 #: Source/Core/Core/HW/EXI/BBA/TAP_Win32.cpp:216
 msgid ""
@@ -3982,11 +3982,11 @@ msgstr "Fout in het verkrijgen van sessie lijst: %1"
 msgid "Error occurred while loading some texture packs"
 msgstr "Fout opgetreden bij het laden van sommige texture packs"
 
-#: Source/Core/Core/NetPlayClient.cpp:1798
+#: Source/Core/Core/NetPlayClient.cpp:1800
 msgid "Error processing codes."
 msgstr "Fout bij verwerking van codes."
 
-#: Source/Core/Core/NetPlayClient.cpp:1770
+#: Source/Core/Core/NetPlayClient.cpp:1772
 msgid "Error processing data."
 msgstr "Fout bij het verwerken van gegevens."
 
@@ -3994,11 +3994,11 @@ msgstr "Fout bij het verwerken van gegevens."
 msgid "Error reading file: {0}"
 msgstr "Fout bij het lezen van bestand: {0}"
 
-#: Source/Core/Core/NetPlayServer.cpp:1440
+#: Source/Core/Core/NetPlayServer.cpp:1442
 msgid "Error synchronizing cheat codes!"
 msgstr "Fout bij het synchroniseren van cheat codes!"
 
-#: Source/Core/Core/NetPlayServer.cpp:1427
+#: Source/Core/Core/NetPlayServer.cpp:1429
 msgid "Error synchronizing save data!"
 msgstr "Fout bij synchroniseren van save data!"
 
@@ -4264,7 +4264,7 @@ msgstr ""
 msgid "Failed to append to signature file '%1'"
 msgstr "Kon handtekeningsbestand niet toevoegen aan bestand '%1'"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:592
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:593
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Kon geen toegang krijgen tot de interface voor BT passthrough"
 
@@ -4293,14 +4293,14 @@ msgstr "Creëren van D3D12 global resources mislukt"
 msgid "Failed to create DXGI factory"
 msgstr "Kon DXGI factory niet maken"
 
-#: Source/Core/Core/NetPlayClient.cpp:1230
+#: Source/Core/Core/NetPlayClient.cpp:1232
 msgid ""
 "Failed to delete NetPlay GBA{0} save file. Verify your write permissions."
 msgstr ""
 "NetPlay GBA{0} save bestand verwijderen mislukt. Controleer uw "
 "schrijfrechten."
 
-#: Source/Core/Core/NetPlayClient.cpp:1040
+#: Source/Core/Core/NetPlayClient.cpp:1042
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr ""
 "Kon de NetPlay-geheugenkaart niet verwijderen. Controleer uw schrijfrechten."
@@ -4309,7 +4309,7 @@ msgstr ""
 msgid "Failed to delete the selected file."
 msgstr "Kon het geselecteerde bestand niet verwijderen."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:585
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:586
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "Kon kernel driver voor BT passthrough niet ontkoppelen: {0}"
 
@@ -4399,6 +4399,9 @@ msgid ""
 "Make sure your video card supports at least D3D 10.0\n"
 "{0}"
 msgstr ""
+"Direct3D initialisatie mislukt.\n"
+"Zorg ervoor dat uw videokaart ten minste D3D 10.0 ondersteunt.\n"
+"{0}"
 
 #: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:142
 #: Source/Core/VideoBackends/OGL/OGLMain.cpp:197
@@ -4457,7 +4460,7 @@ msgstr ""
 msgid "Failed to open '%1'"
 msgstr "Kon '%1' niet openen"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:571
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:572
 msgid "Failed to open Bluetooth device: {0}"
 msgstr "Kon Bluetooth-apparaat niet openen: {0}"
 
@@ -4553,15 +4556,15 @@ msgstr ""
 msgid "Failed to remove this title from the NAND."
 msgstr "Kon deze titel niet van de NAND verwijderen."
 
-#: Source/Core/Core/NetPlayClient.cpp:1061
+#: Source/Core/Core/NetPlayClient.cpp:1063
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr "Kon NetPlay CGI-map niet resetten. Controleer uw schrijfrechten."
 
-#: Source/Core/Core/NetPlayClient.cpp:1089
+#: Source/Core/Core/NetPlayClient.cpp:1091
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr "Kon NetPlay NAND-map niet resetten. Controleer uw schrijfrechten."
 
-#: Source/Core/Core/NetPlayClient.cpp:1095
+#: Source/Core/Core/NetPlayClient.cpp:1097
 msgid "Failed to reset NetPlay redirect folder. Verify your write permissions."
 msgstr ""
 "Kon omgeleide map van NetPlay niet resetten. Controleer uw schrijfrechten."
@@ -4594,11 +4597,11 @@ msgstr "Het is niet gelukt om het pakket te deïnstalleren: %1"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Het schrijven van BT.DINF naar SYSCONF is mislukt"
 
-#: Source/Core/Core/NetPlayClient.cpp:1123
+#: Source/Core/Core/NetPlayClient.cpp:1125
 msgid "Failed to write Mii data."
 msgstr "Kon Mii data niet schrijven."
 
-#: Source/Core/Core/NetPlayClient.cpp:1199
+#: Source/Core/Core/NetPlayClient.cpp:1201
 msgid "Failed to write Wii save."
 msgstr "Kon Wii-save niet schrijven."
 
@@ -4612,7 +4615,7 @@ msgstr "Kon configuratiebestand niet schrijven!"
 msgid "Failed to write modified memory card to disk."
 msgstr "Schrijven van gewijzigde geheugenkaart naar schijf mislukt."
 
-#: Source/Core/Core/NetPlayClient.cpp:1211
+#: Source/Core/Core/NetPlayClient.cpp:1213
 msgid "Failed to write redirected save."
 msgstr "Schrijven van omgeleide save mislukt."
 
@@ -5096,7 +5099,7 @@ msgstr "GCMemcardDirectory: ClearBlock aangeroepen met ongeldige blok adres"
 msgid "GCZ GC/Wii images (*.gcz)"
 msgstr "GCZ GC/Wii schijfafbeeldingen (*.gcz)"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:615
+#: Source/Core/VideoCommon/CommandProcessor.cpp:628
 msgid ""
 "GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
 "This means one of the following:\n"
@@ -5108,6 +5111,16 @@ msgid ""
 "Further errors will be sent to the Video Backend log and\n"
 "Dolphin will now likely crash or hang. Enjoy."
 msgstr ""
+"GFX FIFO: Onbekende Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
+"Dit betekent een van de volgende dingen:\n"
+"* De geëmuleerde GPU is gedesynchroniseerd, dual core uitschakelen kan "
+"helpen\n"
+"* De commando stroom is gecorrumpeerd door een geheugenfout\n"
+"* Dit is echt een onbekende opcode (onwaarschijnlijk)\n"
+"* Een ander soort fout\n"
+"\n"
+"Verdere fouten zullen naar het Video Backend log gestuurd worden en\n"
+"Dolphin zal nu waarschijnlijk crashen of blijven hangen. Geniet ervan."
 
 #: Source/Core/VideoBackends/OGL/OGLMain.cpp:164
 msgid "GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024."
@@ -5242,7 +5255,7 @@ msgstr "Spelstatus"
 msgid "Game changed to \"%1\""
 msgstr "Spel gewijzigd naar \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1705
+#: Source/Core/Core/NetPlayClient.cpp:1707
 msgid "Game is already running!"
 msgstr "Het spel draait al!"
 
@@ -5698,6 +5711,10 @@ msgid ""
 "<br><br>Causes issues with many fifologs, but can be useful for testing."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
+"Indien ingeschakeld, worden alle geheugenupdates tegelijk uitgevoerd voor "
+"het eerste frame.<br><br>Veroorzaakt problemen met veel fifologs, maar kan "
+"nuttig zijn voor testen<br><br><dolphin_emphasis>In geval van twijfel leeg "
+"laten.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:208
 msgid ""
@@ -5705,6 +5722,10 @@ msgid ""
 "<br><br>This is generally only useful when a frame-dumping option is enabled."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
+"Indien uitgeschakeld, stopt het afspelen van fifolog na het laatste frame."
+"<br><br>Dit is over het algemeen alleen nuttig wanneer een frame-dump optie "
+"is ingeschakeld.<br><br><dolphin_emphasis>In geval van twijfel geselecteerd "
+"laten.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:55
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:728
@@ -6017,7 +6038,7 @@ msgstr "Invalide controlesom."
 msgid "Invalid game."
 msgstr "Ongeldig spel."
 
-#: Source/Core/Core/NetPlayClient.cpp:1929
+#: Source/Core/Core/NetPlayClient.cpp:1931
 msgid "Invalid host"
 msgstr "Ongeldige host"
 
@@ -6562,7 +6583,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:123
 msgid "Loop"
-msgstr ""
+msgstr "Loop"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:896
 msgid "Lost connection to NetPlay server..."
@@ -6638,7 +6659,7 @@ msgstr "Mapping"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:87
 msgid "Mask ROM"
-msgstr ""
+msgstr "Mask ROM"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:641
 msgid "Match Found"
@@ -6848,7 +6869,7 @@ msgstr "Verplaats"
 #: Source/Core/Core/HotkeyManager.cpp:331
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:23
 msgid "Movie"
-msgstr "Film"
+msgstr "Opname"
 
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:722
 msgid "N&o to All"
@@ -6934,11 +6955,11 @@ msgstr "Netplay Instellingen"
 msgid "Netherlands"
 msgstr "Nederland"
 
-#: Source/Core/Core/NetPlayClient.cpp:2765
+#: Source/Core/Core/NetPlayClient.cpp:2767
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "Netplay heeft zich desynced in NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:2147
+#: Source/Core/Core/NetPlayClient.cpp:2149
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 "NetPlay is niet meer gesynchroniseerd. Er is geen manier om dit te "
@@ -7107,7 +7128,7 @@ msgstr "Geen save data gevonden."
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "Geen undo.dtm gevonden, het ongedaan maken van de state laden wordt "
-"afgebroken om film desynchonisatie te voorkomen"
+"afgebroken om opname desynchonisatie te voorkomen"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:517
 msgid "No value provided."
@@ -7477,7 +7498,7 @@ msgstr "Pauze"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:747
 msgid "Pause at End of Movie"
-msgstr "Pauzeer aan het Einde van de Film"
+msgstr "Pauzeer aan het Einde van de Opname"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:171
 msgid "Pause on Focus Loss"
@@ -7620,15 +7641,15 @@ msgstr "Prefetch Aangepaste Textures"
 
 #: Source/Core/Core/Movie.cpp:1185
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
-msgstr "Vroegtijdig film einde in PlayController. {0} + {1} > {2}"
+msgstr "Vroegtijdig opname einde in PlayController. {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1297
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
-msgstr "Vroegtijdig film einde in PlayWiimote. {0} + {1} > {2}"
+msgstr "Vroegtijdig opname einde in PlayWiimote. {0} + {1} > {2}"
 
 #: Source/Core/Core/Movie.cpp:1271
 msgid "Premature movie end in PlayWiimote. {0} > {1}"
-msgstr "Vroegtijdig film einde in PlayWiimote. {0} > {1}"
+msgstr "Vroegtijdig opname einde in PlayWiimote. {0} > {1}"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:92
 msgid ""
@@ -7755,11 +7776,11 @@ msgctxt ""
 msgid "QT_LAYOUT_DIRECTION"
 msgstr "LTR"
 
-#: Source/Core/Core/NetPlayClient.cpp:1536
+#: Source/Core/Core/NetPlayClient.cpp:1538
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "Quality of Service (QoS) kan niet worden geactiveerd."
 
-#: Source/Core/Core/NetPlayClient.cpp:1532
+#: Source/Core/Core/NetPlayClient.cpp:1534
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "Quality of Service (QoS) is succesvol geactiveerd."
 
@@ -8457,7 +8478,7 @@ msgstr "Saves:"
 
 #: Source/Core/Core/Movie.cpp:1015
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
-msgstr "Savestate film {0} is corrupt, film opnemen stopt..."
+msgstr "Savestate opname {0} is corrupt, opname wordt gestopt..."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:80
 msgid "Scaled EFB Copy"
@@ -8629,7 +8650,7 @@ msgstr "Selecteer State Slot 9"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:117
 msgid "Select WFS Path"
-msgstr ""
+msgstr "Selecteer WFS Pad"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:59
 msgid "Select Wii NAND Root"
@@ -8707,8 +8728,8 @@ msgid "Selected controller profile does not exist"
 msgstr "Geselecteerde controller profiel bestaat niet"
 
 #: Source/Core/Core/NetPlayServer.cpp:1282
-#: Source/Core/Core/NetPlayServer.cpp:1621
-#: Source/Core/Core/NetPlayServer.cpp:1906
+#: Source/Core/Core/NetPlayServer.cpp:1625
+#: Source/Core/Core/NetPlayServer.cpp:1907
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:439
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:810
 msgid "Selected game doesn't exist in game list!"
@@ -8834,7 +8855,7 @@ msgstr "Server IP-adres"
 msgid "Server Port"
 msgstr "Server Poort"
 
-#: Source/Core/Core/NetPlayClient.cpp:1926
+#: Source/Core/Core/NetPlayClient.cpp:1928
 msgid "Server rejected traversal attempt"
 msgstr "Server heeft traversal poging geweigerd"
 
@@ -9003,7 +9024,7 @@ msgstr "Toon Italië"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:680
 msgid "Show JPN"
-msgstr ""
+msgstr "Toon JPN"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:687
 msgid "Show Korea"
@@ -9737,15 +9758,15 @@ msgstr ""
 "Synchroniseert de GPU- en CPU-threads om willekeurige vastlopers te "
 "voorkomen in Dual-core modus. (Aan = Compatibel, Uit = Snel)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1370
+#: Source/Core/Core/NetPlayClient.cpp:1372
 msgid "Synchronizing AR codes..."
 msgstr "AR Codes aan het Synchroniseren..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1303
+#: Source/Core/Core/NetPlayClient.cpp:1305
 msgid "Synchronizing Gecko codes..."
 msgstr "Gecko Codes aan het Synchroniseren..."
 
-#: Source/Core/Core/NetPlayClient.cpp:1012
+#: Source/Core/Core/NetPlayClient.cpp:1014
 msgid "Synchronizing save data..."
 msgstr "Synchroniseren van save data..."
 
@@ -9884,7 +9905,7 @@ msgstr ""
 "De datagrootte voor de {0} partitie is niet gelijkmatig deelbaar door de "
 "blokgrootte."
 
-#: Source/Android/jni/WiiUtils.cpp:77
+#: Source/Android/jni/WiiUtils.cpp:111
 msgid "The decryption keys need to be appended to the NAND backup file."
 msgstr ""
 "De decryptie sleutels moeten bijgevoegd worden aan het NAND backupbestand."
@@ -10055,13 +10076,17 @@ msgstr ""
 msgid "The install partition is missing."
 msgstr "De installatiepartitie ontbreekt."
 
-#: Source/Core/Core/HW/EXI/EXI.cpp:54
+#: Source/Core/Core/HW/EXI/EXI.cpp:53
 msgid ""
 "The movie indicates that a memory card should be inserted into {0:n}, but "
 "one is not currently inserted (instead, {1} is inserted).  For the movie to "
 "sync properly, please change the selected device to Memory Card or GCI "
 "Folder."
 msgstr ""
+"De opname geeft aan dat er een geheugenkaart in {0:n} moet worden geplaatst, "
+"maar dat er momenteel geen kaart is geplaatst (in plaats daarvan is {1} "
+"geplaatst). Om de opname correct te synchroniseren, dient u het "
+"geselecteerde apparaat te wijzigen in Geheugenkaart of GCI-map."
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:141
 msgid "The patches in %1 are not for the selected game or game revision."
@@ -10097,6 +10122,8 @@ msgstr "De gedecodeerde AR code bevat geen regels."
 msgid ""
 "The same file can't be used in multiple slots; it is already used by %1."
 msgstr ""
+"Hetzelfde bestand kan niet in meerdere slots worden gebruikt; het wordt al "
+"gebruikt door %1."
 
 #: Source/Core/Core/NetPlayClient.cpp:264
 msgid "The server and client's NetPlay versions are incompatible."
@@ -10633,7 +10660,7 @@ msgstr "Traversalfout"
 msgid "Traversal Server"
 msgstr "Traversal Server"
 
-#: Source/Core/Core/NetPlayClient.cpp:1923
+#: Source/Core/Core/NetPlayClient.cpp:1925
 msgid "Traversal server timed out connecting to the host"
 msgstr "Traversal server time-out tijdens het verbinden met de host"
 
@@ -10647,7 +10674,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:92
 msgid "Triforce AM Baseboard"
-msgstr ""
+msgstr "Triforce AM Baseboard"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:72
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:94
@@ -10767,7 +10794,7 @@ msgstr ""
 "\n"
 "Wilt u deze regel negeren en verder gaan met verwerken?"
 
-#: Source/Core/DiscIO/NANDImporter.cpp:273
+#: Source/Core/DiscIO/NANDImporter.cpp:275
 msgid "Unable to write to file {0}"
 msgstr "Kon niet naar bestand {0} schrijven"
 
@@ -10823,7 +10850,7 @@ msgstr "Onbekend"
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "Onbekend DVD commando {0:08x} - fatale fout"
 
-#: Source/Core/Core/NetPlayClient.cpp:1270
+#: Source/Core/Core/NetPlayClient.cpp:1272
 msgid "Unknown SYNC_CODES message received with id: {0}"
 msgstr "Onbekend SYNC_CODES bericht ontvangen met id: {0}"
 
@@ -10835,7 +10862,7 @@ msgstr ""
 "Onbekend SYNC_GECKO_CODES bericht met ID:{0} ontvangen van speler:{1} Speler "
 "wordt gekickt!"
 
-#: Source/Core/Core/NetPlayClient.cpp:999
+#: Source/Core/Core/NetPlayClient.cpp:1001
 msgid "Unknown SYNC_SAVE_DATA message received with id: {0}"
 msgstr "Onbekend SYNC_SAVE_DATA-bericht ontvangen met id: {0}"
 
@@ -10867,7 +10894,7 @@ msgstr "Onbekende disc"
 msgid "Unknown error occurred."
 msgstr "Onbekende fout opgetreden."
 
-#: Source/Core/Core/NetPlayClient.cpp:1932
+#: Source/Core/Core/NetPlayClient.cpp:1934
 msgid "Unknown error {0:x}"
 msgstr "Onbekende fout {0:x}"
 
@@ -11288,7 +11315,7 @@ msgstr "WASAPI (Exclusieve Modus)"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:256
 msgid "WFS Path:"
-msgstr ""
+msgstr "WFS Pad:"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:350
 msgid "WIA GC/Wii images (*.wia)"
@@ -11377,7 +11404,7 @@ msgid ""
 "continuing, or load this state with read-only mode off."
 msgstr ""
 "Waarschuwing: U hebt een save geladen die zich na het einde van de huidige "
-"film bevindt. (byte {0} > {1}) (input {2} > {3}). U moet een andere save "
+"opname bevindt. (byte {0} > {1}) (input {2} > {3}). U moet een andere save "
 "laden voordat u verdergaat, of deze state laden in alleen-lezen modus."
 
 #: Source/Core/Core/Movie.cpp:1039
@@ -11386,7 +11413,7 @@ msgid ""
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
 "continuing."
 msgstr ""
-"Waarschuwing: U hebt een save geladen waarvan de huidige film eindigt voor "
+"Waarschuwing: U hebt een save geladen waarvan de huidige opname eindigt voor "
 "het huidige beeld in de save (byte {0} < {1}) (frame {2} < {3}). U moet een "
 "andere save laden voordat u verder gaat."
 
@@ -11396,9 +11423,9 @@ msgid ""
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
-"Waarschuwing: U heeft een save geladen waarvan het filmpje niet overeenkomt "
-"op byte {0} ({1:#x}). U dient een andere save te laden voordat u verder "
-"gaat, of deze staat laden met alleen-lezen uitgeschakeld. Anders zullen er "
+"Waarschuwing: U heeft een save geladen waarvan de opname niet overeenkomt op "
+"byte {0} ({1:#x}). U dient een andere save te laden voordat u verder gaat, "
+"of deze staat laden met alleen-lezen uitgeschakeld. Anders zullen er "
 "waarschijnlijk synchronisatieproblemen optreden. "
 
 #: Source/Core/Core/Movie.cpp:1105
@@ -11420,20 +11447,20 @@ msgid ""
 "DLeft={32}, DRight={33}, L={34}, R={35}, LT={36}, RT={37}, AnalogX={38}, "
 "AnalogY={39}, CX={40}, CY={41}, Connected={42}"
 msgstr ""
-"Waarschuwing: U hebt een save geladen waarvan de film niet overeenkomt op "
+"Waarschuwing: U hebt een save geladen waarvan de opname niet overeenkomt op "
 "frame {0}. U dient een andere save te laden voordat u verder gaat, of laad "
 "deze state opnieuw met alleen-lezen modus uitgeschakeld. Anders zullen er "
 "waarschijnlijk synchronisatieproblemen optreden.\n"
 "\n"
-"Meer informatie: De huidige film is {1} frames lang en de film van de "
+"Meer informatie: De huidige opname is {1} frames lang en de opname van de "
 "savestate is {2} frames lang.\n"
 "\n"
-"Op frame {3},  drukt de film van de savestate:\n"
+"Op frame {3},  drukt de opname van de savestate:\n"
 "Start={4}, A={5}, B={6}, X={7}, Y={8}, Z={9}, DOmhoog={10}, DOmlaag={11}, "
 "DLinks={12}, DRechts={13}, L={14}, R={15}, LT={16}, RT={17}, AnaloogX={18}, "
 "AnaloogY={19}, CX={20}, CY={21}, Verbonden={22}\n"
 "\n"
-"Op frame {23},  drukt de film van de savestate:\n"
+"Op frame {23},  drukt de opname van de savestate:\n"
 "Start={24}, A={25}, B={26}, X={27}, Y={28}, Z={29}, DOmhoog={30}, "
 "DOmlaag={31}, DLinks={32}, DRechts={33}, L={34}, R={35}, LT={36}, RT={37}, "
 "AnaloogX={38}, AnaloogY={39}, CX={40}, CY={41}, Verbonden={42}"

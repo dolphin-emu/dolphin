@@ -2,9 +2,6 @@
 
 package org.dolphinemu.dolphinemu.ui.platform;
 
-import androidx.annotation.Nullable;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 /**
  * Abstraction for a screen representing a single platform's games.
  */

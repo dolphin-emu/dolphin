@@ -207,10 +207,10 @@ void RiivolutionBootWidget::MakeGUIForParsedFile(std::string path, std::string r
       connect(selection, qOverload<int>(&QComboBox::currentIndexChanged), this,
               [this, selection](int idx) {
                 const auto gui_index = selection->currentData().value<GuiRiivolutionPatchIndex>();
-                auto& disc = m_discs[gui_index.m_disc_index].disc;
-                auto& section = disc.m_sections[gui_index.m_section_index];
-                auto& option = section.m_options[gui_index.m_option_index];
-                option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
+                auto& selected_disc = m_discs[gui_index.m_disc_index].disc;
+                auto& selected_section = selected_disc.m_sections[gui_index.m_section_index];
+                auto& selected_option = selected_section.m_options[gui_index.m_option_index];
+                selected_option.m_selected_choice = static_cast<u32>(gui_index.m_choice_index);
               });
 
       grid_layout->addWidget(label, row, 0, 1, 1);

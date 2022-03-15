@@ -21,6 +21,8 @@
 #include "VideoBackends/Vulkan/VKStreamBuffer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#include "VideoCommon/VideoConfig.h"
+
 namespace Vulkan
 {
 VKTexture::VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memory, VkImage image,
@@ -29,7 +31,7 @@ VKTexture::VKTexture(const TextureConfig& tex_config, VkDeviceMemory device_memo
     : AbstractTexture(tex_config), m_device_memory(device_memory), m_image(image), m_layout(layout),
       m_compute_layout(compute_layout), m_name(name)
 {
-  if (!m_name.empty() && vkSetDebugUtilsObjectNameEXT)
+  if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
   {
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
