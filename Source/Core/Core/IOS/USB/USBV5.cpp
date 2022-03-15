@@ -85,7 +85,7 @@ struct DeviceEntry
 
 void USBV5ResourceManager::DoState(PointerWrap& p)
 {
-  p.Do(m_devicechange_first_call);
+  p.Do(m_has_pending_changes);
   u32 hook_address = m_devicechange_hook_request ? m_devicechange_hook_request->address : 0;
   p.Do(hook_address);
   if (hook_address != 0)
@@ -119,11 +119,12 @@ std::optional<IPCReply> USBV5ResourceManager::GetDeviceChange(const IOCtlRequest
 
   std::lock_guard lk{m_devicechange_hook_address_mutex};
   m_devicechange_hook_request = std::make_unique<IOCtlRequest>(request.address);
-  // On the first call, the reply is sent immediately (instead of on device insertion/removal)
-  if (m_devicechange_first_call)
+  // If there are pending changes, the reply is sent immediately (instead of on device
+  // insertion/removal).
+  if (m_has_pending_changes)
   {
     TriggerDeviceChangeReply();
-    m_devicechange_first_call = false;
+    m_has_pending_changes = false;
   }
   return std::nullopt;
 }
@@ -226,7 +227,10 @@ void USBV5ResourceManager::OnDeviceChangeEnd()
 void USBV5ResourceManager::TriggerDeviceChangeReply()
 {
   if (!m_devicechange_hook_request)
+  {
+    m_has_pending_changes = true;
     return;
+  }
 
   std::lock_guard lock{m_usbv5_devices_mutex};
   u8 num_devices = 0;
