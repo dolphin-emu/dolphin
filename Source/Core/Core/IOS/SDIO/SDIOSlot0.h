@@ -1,8 +1,6 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// PRELIMINARY - seems to fully work with libogc, writing has yet to be tested
-
 #pragma once
 
 #include <array>
