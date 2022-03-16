@@ -433,17 +433,17 @@ std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_di
     }
   }
 
-  const auto match_gameid = [game_id](const std::string& filename) {
+  const auto match_gameid_or_all = [game_id](const std::string& filename) {
     std::string basename;
     SplitPath(filename, nullptr, &basename, nullptr);
-    return basename == game_id || basename == game_id.substr(0, 3);
+    return basename == game_id || basename == game_id.substr(0, 3) || basename == "all";
   };
 
   // Look for any other directories that might be specific to the given gameid
   const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
   for (const auto& file : files)
   {
-    if (match_gameid(file))
+    if (match_gameid_or_all(file))
     {
       // The following code is used to calculate the top directory
       // of a found gameid.txt file
