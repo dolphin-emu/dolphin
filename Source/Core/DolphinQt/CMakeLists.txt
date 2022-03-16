@@ -73,6 +73,8 @@ add_executable(dolphin-emu
   Config/ControllerInterface/ControllerInterfaceWindow.h
   Config/ControllerInterface/ServerStringValidator.cpp
   Config/ControllerInterface/ServerStringValidator.h
+  Config/ControllerInterface/WiiRemoteWidget.cpp
+  Config/ControllerInterface/WiiRemoteWidget.h
   Config/ControllersWindow.cpp
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp

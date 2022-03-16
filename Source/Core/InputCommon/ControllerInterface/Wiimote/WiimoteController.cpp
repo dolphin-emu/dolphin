@@ -14,8 +14,6 @@
 
 namespace ciface::WiimoteController
 {
-static constexpr char SOURCE_NAME[] = "Bluetooth";
-
 static constexpr size_t IR_SENSITIVITY_LEVEL_COUNT = 5;
 
 template <typename T>
@@ -404,6 +402,9 @@ void Device::RunTasks()
 
                DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read accelerometer calibration.");
 
+               INFO_LOG_FMT(WIIMOTE, "Read accel calibration data: {}",
+                            ArrayToString(response->data(), u32(response->size())));
+
                auto& calibration_data = *response;
 
                const AccelCalibrationData accel_calibration =
@@ -414,7 +415,11 @@ void Device::RunTasks()
 
                // We could potentially try the second block at 0x26 if the checksum is bad.
                if (accel_calibration.checksum != calibration_data.back())
+               {
                  WARN_LOG_FMT(WIIMOTE, "WiiRemote: Bad accelerometer calibration checksum.");
+                 m_accel_calibration->zero = {512, 512, 512};
+                 m_accel_calibration->max = {608, 608, 608};
+               }
              });
 
     return;
@@ -646,7 +651,7 @@ void Device::RunTasks()
   }
 }
 
-void Device::StartCalibration(u8 axis_zero, u8 axis_one, u16 sample_count)
+void Device::StartCalibration(u8 axis_zero, u8 axis_one, u32 sample_count)
 {
   m_active_accel_calibration = ActiveAccelCalibration{};
   m_active_accel_calibration->zero_axis = axis_zero;
@@ -669,13 +674,16 @@ void Device::WriteAccelerometerData()
   accel_calibration.motor = 0;
   accel_calibration.volume = 0x40;
 
-  std::vector<u8> data_block{sizeof(AccelCalibrationData)};
-  std::copy_n(reinterpret_cast<u8*>(&accel_calibration), data_block.begin(), data_block.size());
+  std::vector<u8> data_block(sizeof(AccelCalibrationData));
+  std::copy_n(reinterpret_cast<u8*>(&accel_calibration), data_block.size(), data_block.begin());
   WiimoteEmu::UpdateCalibrationDataChecksum(data_block, 1);
 
   // TODO: These are also defined elsewhere.
   static constexpr u16 ACCEL_CALIBRATION_ADDR = 0x16;
   static constexpr u16 ACCEL_CALIBRATION_ADDR_ALT = 0x20;
+
+  INFO_LOG_FMT(WIIMOTE, "Writing accel calibration data: {}",
+               ArrayToString(data_block.data(), u32(data_block.size())));
 
   WriteData(AddressSpace::EEPROM, 0, ACCEL_CALIBRATION_ADDR, std::move(data_block),
             [this, data_block](ErrorCode block_result) {
@@ -683,13 +691,11 @@ void Device::WriteAccelerometerData()
                 return;
 
               WriteData(AddressSpace::EEPROM, 0, ACCEL_CALIBRATION_ADDR_ALT, std::move(data_block),
-                        [](ErrorCode block_result) {
-                          if (block_result != ErrorCode::Success)
+                        [](ErrorCode block2_result) {
+                          if (block2_result != ErrorCode::Success)
                             return;
 
-                          INFO_LOG_FMT(
-                              WIIMOTE,
-                              "Both accelerometer calibration blocks written successfully.");
+                          INFO_LOG_FMT(WIIMOTE, "Both accelerometer calibration blocks written.");
                         });
             });
 }
@@ -1228,10 +1234,13 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
 
       if (active_calibration.samples_for_zero.Count() == active_calibration.target_sample_count)
       {
-        m_accel_calibration->zero.data[active_calibration.zero_axis] =
-            std::lround(active_calibration.samples_for_zero.Mean());
-        m_accel_calibration->max.data[active_calibration.one_axis] =
-            std::lround(active_calibration.samples_for_one.Mean());
+        const auto cal_zero = std::lround(active_calibration.samples_for_zero.Mean());
+        const auto cal_one = std::lround(active_calibration.samples_for_one.Mean());
+
+        m_accel_calibration->zero.data[active_calibration.zero_axis] = cal_zero;
+        m_accel_calibration->max.data[active_calibration.one_axis] = cal_one;
+
+        WARN_LOG_FMT(WIIMOTE, "Finished calibration: {} {}", cal_zero, cal_one);
 
         m_active_accel_calibration = std::nullopt;
       }

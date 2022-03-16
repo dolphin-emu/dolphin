@@ -12,6 +12,8 @@
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.h"
 #endif
 
+#include "DolphinQt/Config/ControllerInterface/WiiRemoteWidget.h"
+
 ControllerInterfaceWindow::ControllerInterfaceWindow(QWidget* parent) : QDialog(parent)
 {
   CreateMainLayout();
@@ -25,13 +27,16 @@ void ControllerInterfaceWindow::CreateMainLayout()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-  m_tab_widget = new QTabWidget();
+  m_tab_widget = new QTabWidget(this);
 #if defined(CIFACE_USE_DUALSHOCKUDPCLIENT)
   m_dsuclient_widget = new DualShockUDPClientWidget();
   m_tab_widget->addTab(m_dsuclient_widget, tr("DSU Client"));  // TODO: use GetWrappedWidget()?
 #endif
 
-  auto* main_layout = new QVBoxLayout();
+  const auto wii_remote_widget = new WiiRemoteWidget(this);
+  m_tab_widget->addTab(wii_remote_widget, tr("Wii Remotes"));
+
+  auto* main_layout = new QVBoxLayout(this);
   if (m_tab_widget->count() > 0)
   {
     main_layout->addWidget(m_tab_widget);
@@ -42,5 +47,4 @@ void ControllerInterfaceWindow::CreateMainLayout()
                            Qt::AlignVCenter | Qt::AlignHCenter);
   }
   main_layout->addWidget(m_button_box);
-  setLayout(main_layout);
 }

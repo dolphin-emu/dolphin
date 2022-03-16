@@ -20,6 +20,9 @@
 
 namespace ciface::WiimoteController
 {
+// FYI: Code relies on only Wii Remotes using this source name.
+static constexpr char SOURCE_NAME[] = "Bluetooth";
+
 using namespace WiimoteCommon;
 
 void AddDevice(std::unique_ptr<WiimoteReal::Wiimote>);
@@ -38,7 +41,7 @@ public:
   void UpdateInput() override;
 
   // TODO: enum for axis?
-  void StartCalibration(u8 axis_zero, u8 axis_one, u16 sample_count);
+  void StartCalibration(u8 axis_zero, u8 axis_one, u32 sample_count);
   void WriteAccelerometerData();
 
 private:
@@ -238,7 +241,7 @@ private:
   {
     MathUtil::RunningMean<float> samples_for_one;
     MathUtil::RunningMean<float> samples_for_zero;
-    u16 target_sample_count;
+    u32 target_sample_count;
     u8 one_axis;
     u8 zero_axis;
   };
