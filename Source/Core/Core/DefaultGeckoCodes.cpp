@@ -1,6 +1,6 @@
 #include "Core/DefaultGeckoCodes.h"
 
-void DefaultGeckoCodes::RunCodeInject(bool bUseNetplayEventCode, bool bUseNightStadium)
+void DefaultGeckoCodes::RunCodeInject(bool bNetplayEventCode, bool bIsRanked, bool bUseNightStadium)
 {
   aWriteAddr = 0x802ED200;  // starting asm write addr
 
@@ -10,8 +10,11 @@ void DefaultGeckoCodes::RunCodeInject(bool bUseNetplayEventCode, bool bUseNightS
   for (DefaultGeckoCode geckocode : sRequiredCodes)
     WriteAsm(geckocode);
 
-  if (bUseNetplayEventCode)
+  if (bNetplayEventCode || bIsRanked)
     InjectNetplayEventCode();
+
+  if (bIsRanked)
+    AddRankedCodes();
 
   if (bUseNightStadium)
     WriteAsm(sNightStadium);
@@ -47,6 +50,17 @@ void DefaultGeckoCodes::InjectNetplayEventCode()
   // handle asm writes for netplay codes
   for (DefaultGeckoCode geckocode : sNetplayCodes)
     WriteAsm(geckocode);
+}
+
+
+// Adds codes specific to ranked, like the Pitch Clock
+void DefaultGeckoCodes::AddRankedCodes()
+{
+  Memory::Write_U32(0x60000000, aPitchClock_1);
+  Memory::Write_U32(0x60000000, aPitchClock_2);
+  Memory::Write_U32(0x60000000, aPitchClock_3);
+
+  WriteAsm(sPitchClock);
 }
 
 

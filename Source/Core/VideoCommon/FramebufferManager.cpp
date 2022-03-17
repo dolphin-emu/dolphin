@@ -593,6 +593,7 @@ void FramebufferManager::DestroyReadbackFramebuffer()
 
 void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index)
 {
+  FlushEFBPokes();
   g_vertex_manager->OnCPUEFBAccess();
 
   // Force the path through the intermediate texture, as we can't do an image copy from a depth

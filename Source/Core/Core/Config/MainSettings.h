@@ -180,11 +180,13 @@ void SetIsoPaths(const std::vector<std::string>& paths);
 
 // Main.GBA
 
+#ifdef HAS_LIBMGBA
 extern const Info<std::string> MAIN_GBA_BIOS_PATH;
 extern const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS;
 extern const Info<std::string> MAIN_GBA_SAVES_PATH;
 extern const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH;
 extern const Info<bool> MAIN_GBA_THREADS;
+#endif
 
 // Main.Network
 

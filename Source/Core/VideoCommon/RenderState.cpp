@@ -196,7 +196,9 @@ void BlendingState::ApproximateLogicOpWithBlending()
   blendenable = true;
   subtract = approximations[u32(logicmode.Value())].subtract;
   srcfactor = approximations[u32(logicmode.Value())].srcfactor;
+  srcfactoralpha = approximations[u32(logicmode.Value())].srcfactor;
   dstfactor = approximations[u32(logicmode.Value())].dstfactor;
+  dstfactoralpha = approximations[u32(logicmode.Value())].dstfactor;
 }
 
 void SamplerState::Generate(const BPMemory& bp, u32 index)

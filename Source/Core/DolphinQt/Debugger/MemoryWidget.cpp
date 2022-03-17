@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -103,6 +104,12 @@ void MemoryWidget::CreateWidgets()
   m_address_splitter->setCollapsible(0, false);
   m_address_splitter->setStretchFactor(1, 2);
 
+  auto* search_type_group = new QButtonGroup(this);
+  m_find_ascii = new QRadioButton(tr("ASCII"));
+  m_find_hex = new QRadioButton(tr("Hex string"));
+  search_type_group->addButton(m_find_ascii);
+  search_type_group->addButton(m_find_hex);
+
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
   m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
@@ -116,8 +123,6 @@ void MemoryWidget::CreateWidgets()
 
   m_find_next = new QPushButton(tr("Find &Next"));
   m_find_previous = new QPushButton(tr("Find &Previous"));
-  m_find_ascii = new QRadioButton(tr("ASCII"));
-  m_find_hex = new QRadioButton(tr("Hex string"));
   m_result_label = new QLabel;
 
   search_layout->addWidget(m_find_next);

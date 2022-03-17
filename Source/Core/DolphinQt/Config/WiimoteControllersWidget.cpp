@@ -17,7 +17,10 @@
 #include <map>
 #include <optional>
 
+#include "Common/Config/Config.h"
+
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -301,9 +304,9 @@ void WiimoteControllersWidget::LoadSettings()
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    m_wiimote_boxes[i]->setCurrentIndex(int(WiimoteCommon::GetSource(u32(i))));
+    m_wiimote_boxes[i]->setCurrentIndex(int(Config::Get(Config::GetInfoForWiimoteSource(int(i)))));
   }
-  m_wiimote_real_balance_board->setChecked(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) ==
+  m_wiimote_real_balance_board->setChecked(Config::Get(Config::WIIMOTE_BB_SOURCE) ==
                                            WiimoteSource::Real);
   m_wiimote_speaker_data->setChecked(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
   m_wiimote_ciface->setChecked(Config::Get(Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE));
@@ -328,17 +331,15 @@ void WiimoteControllersWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED,
                            m_wiimote_passthrough->isChecked());
 
-  WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, m_wiimote_real_balance_board->isChecked() ?
-                                                      WiimoteSource::Real :
-                                                      WiimoteSource::None);
+  const WiimoteSource bb_source =
+      m_wiimote_real_balance_board->isChecked() ? WiimoteSource::Real : WiimoteSource::None;
+  Config::SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
     const int index = m_wiimote_boxes[i]->currentIndex();
-    WiimoteCommon::SetSource(u32(i), WiimoteSource(index));
+    Config::SetBaseOrCurrent(Config::GetInfoForWiimoteSource(int(i)), WiimoteSource(index));
   }
-
-  UICommon::SaveWiimoteSources();
 
   SConfig::GetInstance().SaveSettings();
 }

@@ -187,7 +187,7 @@ void OnFrameEnd()
   // always enable netplay event code for ranked games
   // if not ranked, check if code is checked off
   DefaultGeckoCodes CodeWriter;
-  CodeWriter.RunCodeInject(Memory::Read_U8(aNetplayEventCode) == 1 || isRankedMode(), isNight());
+  CodeWriter.RunCodeInject(Memory::Read_U8(aNetplayEventCode) == 1, isRankedMode(), isNight());
 
   AutoGolfMode();
   TrainingMode();
@@ -1422,7 +1422,7 @@ int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
 
 bool RemoveOnStateChangedCallback(int* handle)
 {
-  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > *handle)
+  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > static_cast<size_t>(*handle))
   {
     s_on_state_changed_callbacks[*handle] = StateChangedCallbackFunc();
     *handle = -1;

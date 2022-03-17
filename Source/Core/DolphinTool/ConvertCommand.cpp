@@ -10,57 +10,57 @@ namespace DolphinTool
 {
 int ConvertCommand::Main(const std::vector<std::string>& args)
 {
-  auto parser = std::make_unique<optparse::OptionParser>();
+  optparse::OptionParser parser;
 
-  parser->usage("usage: convert [options]... [FILE]...");
+  parser.usage("usage: convert [options]... [FILE]...");
 
-  parser->add_option("-u", "--user")
+  parser.add_option("-u", "--user")
       .action("store")
       .help("User folder path, required for temporary processing files."
             "Will be automatically created if this option is not set.");
 
-  parser->add_option("-i", "--input")
+  parser.add_option("-i", "--input")
       .type("string")
       .action("store")
       .help("Path to disc image FILE.")
       .metavar("FILE");
 
-  parser->add_option("-o", "--output")
+  parser.add_option("-o", "--output")
       .type("string")
       .action("store")
       .help("Path to the destination FILE.")
       .metavar("FILE");
 
-  parser->add_option("-f", "--format")
+  parser.add_option("-f", "--format")
       .type("string")
       .action("store")
       .help("Container format to use. Default is RVZ. [%choices]")
       .choices({"iso", "gcz", "wia", "rvz"});
 
-  parser->add_option("-s", "--scrub")
+  parser.add_option("-s", "--scrub")
       .action("store_true")
       .help("Scrub junk data as part of conversion.");
 
-  parser->add_option("-b", "--block_size")
+  parser.add_option("-b", "--block_size")
       .type("int")
       .action("store")
       .help("Block size for GCZ/WIA/RVZ formats, as an integer. Suggested value for RVZ: 131072 "
             "(128 KiB)");
 
-  parser->add_option("-c", "--compression")
+  parser.add_option("-c", "--compression")
       .type("string")
       .action("store")
       .help("Compression method to use when converting to WIA/RVZ. Suggested value for RVZ: zstd "
             "[%choices]")
       .choices({"none", "zstd", "bzip", "lzma", "lzma2"});
 
-  parser->add_option("-l", "--compression_level")
+  parser.add_option("-l", "--compression_level")
       .type("int")
       .action("store")
       .help("Level of compression for the selected method. Ignored if 'none'. Suggested value for "
             "zstd: 5");
 
-  const optparse::Values& options = parser->parse_args(args);
+  const optparse::Values& options = parser.parse_args(args);
 
   // Initialize the dolphin user directory, required for temporary processing files
   // If this is not set, destructive file operations could occur due to path confusion

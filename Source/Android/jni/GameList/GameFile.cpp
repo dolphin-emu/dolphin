@@ -36,9 +36,7 @@ jobject GameFileToJava(JNIEnv* env, std::shared_ptr<const UICommon::GameFile> ga
       reinterpret_cast<jlong>(new std::shared_ptr<const UICommon::GameFile>(std::move(game_file))));
 }
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_finalize(JNIEnv* env,
                                                                               jobject obj)
@@ -201,7 +199,4 @@ JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JN
 
   return GameFileToJava(env, game_file);
 }
-
-#ifdef __cplusplus
 }
-#endif

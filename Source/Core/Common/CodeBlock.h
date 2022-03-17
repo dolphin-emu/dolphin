@@ -104,6 +104,7 @@ public:
     ASSERT_MSG(DYNA_REC, child_size < GetSpaceLeft(), "Insufficient space for child allocation.");
     u8* child_region = region + region_size - child_size;
     region_size -= child_size;
+    ResetCodePtr();
     return child_region;
   }
   void AddChildCodeSpace(CodeBlock* child, size_t child_size)

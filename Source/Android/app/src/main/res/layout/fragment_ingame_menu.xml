@@ -43,8 +43,9 @@
 
             <Button
                 android:id="@+id/menu_unpause_emulation"
-                android:text="@string/unpause_emulation"
                 style="@style/InGameMenuOption"
+                android:letterSpacing="0"
+                android:text="@string/unpause_emulation"
                 android:visibility="gone"/>
 
             <Button
@@ -55,26 +56,30 @@
 
             <Button
                 android:id="@+id/menu_quicksave"
-                android:text="@string/emulation_quicksave"
                 style="@style/InGameMenuOption"
+                android:letterSpacing="0"
+                android:text="@string/emulation_quicksave"
                 android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_quickload"
-                android:text="@string/emulation_quickload"
                 style="@style/InGameMenuOption"
+                android:letterSpacing="0"
+                android:text="@string/emulation_quickload"
                 android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_emulation_save_root"
-                android:text="@string/emulation_savestate"
                 style="@style/InGameMenuOption"
+                android:letterSpacing="0"
+                android:text="@string/emulation_savestate"
                 android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_emulation_load_root"
-                android:text="@string/emulation_loadstate"
                 style="@style/InGameMenuOption"
+                android:letterSpacing="0"
+                android:text="@string/emulation_loadstate"
                 android:visibility="gone"/>
 
             <Button

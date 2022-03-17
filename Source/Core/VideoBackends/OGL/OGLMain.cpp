@@ -111,6 +111,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsBPTCTextures = false;
   g_Config.backend_info.bSupportsCoarseDerivatives = false;
   g_Config.backend_info.bSupportsTextureQueryLevels = false;
+  g_Config.backend_info.bSupportsSettingObjectNames = false;
 
   g_Config.backend_info.Adapters.clear();
 

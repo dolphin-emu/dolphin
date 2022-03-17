@@ -297,7 +297,7 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
 
   s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
   temp <<= m_ScaleLShiftLUT[u32(ac.scale.Value())];
-  temp += (ac.scale != TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
+  temp += (ac.scale == TevScale::Divide2) ? 0 : (ac.op == TevOp::Sub) ? 127 : 128;
   temp = ac.op == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
   s32 result =
@@ -713,6 +713,19 @@ void Tev::Draw()
 
   if (!TevAlphaTest(output[ALP_C]))
     return;
+
+  // Hardware testing indicates that an alpha of 1 can pass an alpha test,
+  // but doesn't do anything in blending
+  // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
+  // alpha test for the FMV in the background fails, since they depend on depth for drawing a yellow
+  // border) and Fortune Street's gameplay (where a rectangle with an alpha value of 1 is drawn over
+  // the center of the screen several times, but those rectangles shouldn't be visible).
+  // Blending seems to result in no changes to the output with an alpha of 1, even if the input
+  // color is white.
+  // TODO: Investigate this further: we might be handling blending incorrectly in general (though
+  // there might not be any good way of changing blending behavior)
+  if (output[ALP_C] == 1)
+    output[ALP_C] = 0;
 
   // z texture
   if (bpmem.ztex2.op != ZTexOp::Disabled)

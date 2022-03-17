@@ -154,7 +154,7 @@ bool FrameDump::CreateVideoFile()
 
   File::CreateFullPath(dump_path);
 
-  AVOutputFormat* const output_format = av_guess_format(format.c_str(), dump_path.c_str(), nullptr);
+  auto* const output_format = av_guess_format(format.c_str(), dump_path.c_str(), nullptr);
   if (!output_format)
   {
     ERROR_LOG_FMT(FRAMEDUMP, "Invalid format {}", format);
