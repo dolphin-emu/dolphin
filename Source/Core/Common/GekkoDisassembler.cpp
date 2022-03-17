@@ -177,24 +177,23 @@ static u32 HelperRotateMask(int r, int mb, int me)
 static std::string ldst_offs(u32 val)
 {
   if (val == 0)
-  {
     return "0";
-  }
 
   if (val & 0x8000)
-  {
     return fmt::format("-0x{:04X}", ((~val) & 0xffff) + 1);
-  }
 
   return fmt::format("0x{:04X}", val);
 }
 
-static int SEX12(u32 x)
+static std::string psq_offs(u32 val)
 {
-  if ((x & 0x800) != 0)
-    return static_cast<int>(x | 0xFFFFF000);
+  if (val == 0)
+    return "0";
 
-  return static_cast<int>(x);
+  if ((val & 0x800) != 0)
+    return fmt::format("-0x{:04X}", ((~val) & 0xfff) + 1);
+
+  return fmt::format("0x{:04X}", val);
 }
 
 static std::string spr_name(int i)
@@ -452,24 +451,9 @@ std::string GekkoDisassembler::rd_ra_rb(u32 in, int mask)
   return result;
 }
 
-std::string GekkoDisassembler::fd_ra_rb(u32 in, int mask)
+std::string GekkoDisassembler::fd_ra_rb(u32 in)
 {
-  std::string result;
-
-  if (mask)
-  {
-    if (mask & 4)
-      result += fmt::format("f{},", PPCGETD(in));
-    if (mask & 2)
-      result += fmt::format("{},", regnames[PPCGETA(in)]);
-    if (mask & 1)
-      result += fmt::format("{},", regnames[PPCGETB(in)]);
-
-    // Drop the trailing comma
-    result.pop_back();
-  }
-
-  return result;
+  return fmt::format("f{}, {}, {}", PPCGETD(in), regnames[PPCGETA(in)], regnames[PPCGETB(in)]);
 }
 
 void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
@@ -972,25 +956,22 @@ void GekkoDisassembler::fdabc(u32 in, std::string_view name, int mask, unsigned 
 
   m_flags |= dmode;
   m_opcode = fmt::format("f{}{}", name, rcsel[in & 1]);
-  m_operands += fmt::format("f{},", PPCGETD(in));
+  m_operands += fmt::format("f{}", PPCGETD(in));
 
   if (mask & 4)
-    m_operands += fmt::format("f{},", PPCGETA(in));
+    m_operands += fmt::format(", f{}", PPCGETA(in));
   else if ((mask & 8) == 0)
     err |= (int)PPCGETA(in);
 
   if (mask & 2)
-    m_operands += fmt::format("f{},", PPCGETC(in));
+    m_operands += fmt::format(", f{}", PPCGETC(in));
   else if (PPCGETC(in) && (mask & 8) == 0)
     err |= (int)PPCGETC(in);
 
   if (mask & 1)
-    m_operands += fmt::format("f{},", PPCGETB(in));
+    m_operands += fmt::format(", f{}", PPCGETB(in));
   else if (!(mask & 8))
     err |= (int)PPCGETB(in);
-
-  // Drop the trailing comma
-  m_operands.pop_back();
 
   if (err)
     ill(in);
@@ -1003,10 +984,10 @@ void GekkoDisassembler::fmr(u32 in)
 }
 
 // Indexed float instruction: xxxx fD,rA,rB
-void GekkoDisassembler::fdab(u32 in, std::string_view name, int mask)
+void GekkoDisassembler::fdab(u32 in, std::string_view name)
 {
   m_opcode = name;
-  m_operands = fd_ra_rb(in, mask);
+  m_operands = fd_ra_rb(in);
 }
 
 void GekkoDisassembler::fcmp(u32 in, char c)
@@ -1018,7 +999,7 @@ void GekkoDisassembler::fcmp(u32 in, char c)
   else
   {
     m_opcode = fmt::format("fcmp{}", c);
-    m_operands = fmt::format("cr{},f{},f{}", PPCGETCRD(in), PPCGETA(in), PPCGETB(in));
+    m_operands = fmt::format("cr{}, f{}, f{}", PPCGETCRD(in), PPCGETA(in), PPCGETB(in));
   }
 }
 
@@ -1092,7 +1073,7 @@ void GekkoDisassembler::ps(u32 inst)
   {
   case 6:
     m_opcode = inst & 0x40 ? "psq_lux" : "psq_lx";
-    m_operands = fmt::format("p{}, (r{} + r{}), {}, qr{}", FD, RA, RB, WX, IX);
+    m_operands = fmt::format("p{}, r{}, r{}, {}, qr{}", FD, RA, RB, WX, IX);
     return;
 
   case 7:
@@ -1224,22 +1205,22 @@ void GekkoDisassembler::ps(u32 inst)
   }
   case 528:
     m_opcode = "ps_merge00";
-    m_operands = fmt::format("p{}, p{}[0],p{}[0]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[0], p{}[0]", FD, FA, FB);
     return;
 
   case 560:
     m_opcode = "ps_merge01";
-    m_operands = fmt::format("p{}, p{}[0],p{}[1]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[0], p{}[1]", FD, FA, FB);
     return;
 
   case 592:
     m_opcode = "ps_merge10";
-    m_operands = fmt::format("p{}, p{}[1],p{}[0]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[1], p{}[0]", FD, FA, FB);
     return;
 
   case 624:
     m_opcode = "ps_merge11";
-    m_operands = fmt::format("p{}, p{}[1],p{}[1]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[1], p{}[1]", FD, FA, FB);
     return;
 
   case 1014:
@@ -1261,23 +1242,23 @@ void GekkoDisassembler::ps_mem(u32 inst)
   {
   case 56:
     m_opcode = "psq_l";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, psq_offs(inst & 0xFFF), RA, W, I);
     break;
 
   case 57:
     m_opcode = "psq_lu";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, psq_offs(inst & 0xFFF), RA, W, I);
     ;
     break;
 
   case 60:
     m_opcode = "psq_st";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, psq_offs(inst & 0xFFF), RA, W, I);
     break;
 
   case 61:
     m_opcode = "psq_stu";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, psq_offs(inst & 0xFFF), RA, W, I);
     break;
   }
 }
@@ -1924,7 +1905,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 535:
-      fdab(in, "lfsx", 7);
+      fdab(in, "lfsx");
       break;
 
     case 536:
@@ -1940,7 +1921,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 567:
-      fdab(in, "lfsux", 7);
+      fdab(in, "lfsux");
       break;
 
     case 595:
@@ -1956,11 +1937,11 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 599:
-      fdab(in, "lfdx", 7);
+      fdab(in, "lfdx");
       break;
 
     case 631:
-      fdab(in, "lfdux", 7);
+      fdab(in, "lfdux");
       break;
 
     case 659:
@@ -1979,11 +1960,11 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 663:
-      fdab(in, "stfsx", 7);
+      fdab(in, "stfsx");
       break;
 
     case 695:
-      fdab(in, "stfsux", 7);
+      fdab(in, "stfsux");
       break;
 
     case 725:
@@ -1991,11 +1972,11 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 727:
-      fdab(in, "stfdx", 7);
+      fdab(in, "stfdx");
       break;
 
     case 759:
-      fdab(in, "stfdux", 7);
+      fdab(in, "stfdux");
       break;
 
     case 790:
@@ -2044,7 +2025,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
       break;
 
     case 983:
-      fdab(in, "stfiwx", 7);
+      fdab(in, "stfiwx");
       break;
 
     case 986:
