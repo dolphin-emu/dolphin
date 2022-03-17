@@ -409,8 +409,8 @@ static const u32 aFielder_Action = 0x8088F5C1; //Pitcher. 2=Slide, 3=Walljump
 static const u32 aFielder_Bobble = 0x8088F5C0; //Pitcher
 static const u32 aFielder_Knockout = 0x8088F578; //Pitcher
 static const u32 aFielder_Pos_X = 0x8088F368; //Pitcher
-static const u32 aFielder_Pos_Y = 0x8088F370; //Pitcher
-static const u32 aFielder_Pos_Z = 0x8088F374; //Pitcher
+static const u32 aFielder_Pos_Z = 0x8088F370; //Pitcher
+static const u32 aFielder_Pos_Y = 0x8088F374; //Pitcher
 static const u32 cFielder_Offset = 0x268;
 
 //Runner addrs
