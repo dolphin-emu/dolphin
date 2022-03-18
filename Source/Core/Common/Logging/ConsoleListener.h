@@ -14,5 +14,5 @@ public:
   void Log(Common::Log::LogLevel level, const char* text) override;
 
 private:
-  bool m_use_color = false;
+  [[maybe_unused]] bool m_use_color = false;
 };

@@ -89,7 +89,7 @@ protected:
   void TriggerDeviceChangeReply();
   virtual bool HasInterfaceNumberInIDs() const = 0;
 
-  bool m_devicechange_first_call = true;
+  bool m_has_pending_changes = true;
   std::mutex m_devicechange_hook_address_mutex;
   std::unique_ptr<IOCtlRequest> m_devicechange_hook_request;
 

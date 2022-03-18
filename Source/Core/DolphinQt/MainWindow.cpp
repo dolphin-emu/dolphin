@@ -39,6 +39,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
@@ -59,6 +60,7 @@
 #include "Core/NetPlayServer.h"
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
+#include "Core/LocalPlayersConfig.h"
 
 #include "DiscIO/DirectoryBlob.h"
 #include "DiscIO/NANDImporter.h"
@@ -113,6 +115,7 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
@@ -288,6 +291,9 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
     }
   }
 
+  // lazy fix -- call this here so local players are loaded in every time client launches
+  LocalPlayers::LoadLocalPorts();
+
   Host::GetInstance()->SetMainWindowHandle(reinterpret_cast<void*>(winId()));
 }
 
@@ -331,6 +337,7 @@ void MainWindow::InitControllers()
              "No default device has been added in time. EmulatedController(s) defaulting adds"
              " input mappings made for a specific default device depending on the platform");
   }
+  GCAdapter::Init();
   Pad::Initialize();
   Pad::InitializeGBA();
   Keyboard::Initialize();
@@ -1494,7 +1501,7 @@ bool MainWindow::NetPlayJoin()
   {
     server->SetHostInputAuthority(host_input_authority);
     server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
-    server->AdjustRankedBox(Config::Get(Config::NETPLAY_RANKED));
+    //server->AdjustRankedBox(Config::Get(Config::NETPLAY_RANKED));
   }
 
   // Create Client
@@ -1777,7 +1784,7 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
   if (Movie::BeginRecordingInput(controllers, wiimotes))
@@ -1837,7 +1844,7 @@ void MainWindow::ShowTASInput()
 
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
+    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
       m_wii_tas_input_windows[i]->show();

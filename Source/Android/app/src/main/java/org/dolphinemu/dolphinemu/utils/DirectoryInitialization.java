@@ -236,6 +236,11 @@ public final class DirectoryInitialization
     return userPath;
   }
 
+  public static File getGameListCache(Context context)
+  {
+    return new File(context.getExternalCacheDir(), "gamelist.cache");
+  }
+
   private static boolean copyAsset(String asset, File output, Boolean overwrite, Context context)
   {
     Log.verbose("[DirectoryInitialization] Copying File " + asset + " to " + output);

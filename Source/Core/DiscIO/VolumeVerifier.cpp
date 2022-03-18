@@ -767,7 +767,7 @@ void VolumeVerifier::CheckVolumeSize()
   }
 
   if (m_content_index != m_content_offsets.size() || m_group_index != m_groups.size() ||
-      (volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
+      (!m_is_datel && volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
   {
     const bool second_layer_missing = is_disc && volume_size_roughly_known &&
                                       volume_size >= SL_DVD_SIZE && volume_size <= SL_DVD_R_SIZE;
@@ -1113,10 +1113,11 @@ void VolumeVerifier::Process()
     bytes_to_read = Common::AlignUp(content.size, 0x40);
     content_read = true;
 
-    if (m_content_index + 1 < m_content_offsets.size() &&
-        m_content_offsets[m_content_index + 1] < m_progress + bytes_to_read)
+    const u16 next_content_index = m_content_index + 1;
+    if (next_content_index < m_content_offsets.size() &&
+        m_content_offsets[next_content_index] < m_progress + bytes_to_read)
     {
-      excess_bytes = m_progress + bytes_to_read - m_content_offsets[m_content_index + 1];
+      excess_bytes = m_progress + bytes_to_read - m_content_offsets[next_content_index];
     }
   }
   else if (m_content_index < m_content_offsets.size() &&

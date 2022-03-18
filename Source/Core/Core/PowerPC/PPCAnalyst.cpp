@@ -946,8 +946,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     op.gprDiscardable = gprDiscardable;
     op.fprDiscardable = fprDiscardable;
     op.fprInXmm = fprInXmm;
-    gprInUse |= op.regsIn;
-    fprInUse |= op.fregsIn;
+    gprInUse |= op.regsIn | op.regsOut;
+    fprInUse |= op.fregsIn | op.GetFregsOut();
     if (op.canEndBlock || op.canCauseException)
     {
       gprDiscardable = BitSet32{};

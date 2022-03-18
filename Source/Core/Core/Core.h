@@ -177,15 +177,17 @@ float ms_to_mph(float MetersPerSecond);
 float vectorMagnitude(float x, float y, float z);
 float RoundZ(float num);
 bool isRankedMode();
+bool isNight();
 
 void AutoGolfMode();
 void TrainingMode();
 void DisplayBatterFielder();
 void SetAvgPing();
+void SetNetplayerUserInfo();
 
-int avgPing = 0;
-int nPing = 0;
-int nLagSpikes = 0;
+static int avgPing = 0;
+static int nPing = 0;
+static int nLagSpikes = 0;
 
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);
@@ -217,5 +219,8 @@ static const u32 aBallVelocity_Z = 0x80890E58;
 static const u32 aPitchedBallVelocity_X = 0x808909D8;
 static const u32 aPitchedBallVelocity_Y = 0x808909DC;
 static const u32 aPitchedBallVelocity_Z = 0x808909E0;
+static const u32 aBarrelBatterPort = 0x80890971; // port of character at bat in barrel batter
+static const u32 aMinigameID = 0x808980DE; // 3 == Barrel Batter
+static const u32 aNetplayEventCode = 0x802EBF96;
 
 }  // namespace Core

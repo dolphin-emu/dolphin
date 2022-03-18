@@ -36,6 +36,8 @@ add_library(core
   Config/SYSCONFSettings.h
   Config/UISettings.cpp
   Config/UISettings.h
+  Config/WiimoteSettings.cpp
+  Config/WiimoteSettings.h
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/BaseConfigLoader.h
   ConfigLoaders/GameConfigLoader.cpp
@@ -63,6 +65,8 @@ add_library(core
   Debugger/PPCDebugInterface.h
   Debugger/RSO.cpp
   Debugger/RSO.h
+  DefaultGeckoCodes.cpp
+  DefaultGeckoCodes.h
   DolphinAnalytics.cpp
   DolphinAnalytics.h
   DSP/DSPAccelerator.cpp

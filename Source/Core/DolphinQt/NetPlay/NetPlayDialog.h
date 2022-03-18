@@ -73,8 +73,10 @@ public:
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
+  void RankedStartingMsg(bool is_ranked) override;
   void OnRankedEnabled(bool is_ranked) override;
   void OnCoinFlipResult(int coinNum);
+  void OnNightResult(bool is_night);
   void OnActiveGeckoCodes(std::string codeStr);
   bool IsSpectating() override;
   void SetSpectating(bool spectating) override;
@@ -167,6 +169,7 @@ private:
   QCheckBox* m_ranked_box;
   QActionGroup* m_network_mode_group;
   QPushButton* m_coin_flipper;
+  QCheckBox* m_night_stadium;
   QCheckBox* m_spectator_toggle;
 
   QGridLayout* m_main_layout;

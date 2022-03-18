@@ -72,6 +72,11 @@
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 
+//#include "Core/LocalPlayers.h"
+#include "Core/LocalPlayersConfig.h"
+#include "Core/DefaultGeckoCodes.h"
+
+
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
 #endif
@@ -179,10 +184,16 @@ void FrameUpdateOnCPUThread()
 
 void OnFrameEnd()
 {
+  // always enable netplay event code for ranked games
+  // if not ranked, check if code is checked off
+  DefaultGeckoCodes CodeWriter;
+  CodeWriter.RunCodeInject(Memory::Read_U8(aNetplayEventCode) == 1, isRankedMode(), isNight());
+
   AutoGolfMode();
   TrainingMode();
   DisplayBatterFielder();
   SetAvgPing();
+  SetNetplayerUserInfo();
 
 #ifdef USE_MEMORYWATCHER
   if (s_memory_watcher)
@@ -198,11 +209,19 @@ void AutoGolfMode()
 {
   if (IsGolfMode())
   {
-    u8 BatterPort = Memory::Read_U8(aBatterPort);
-    if (BatterPort == 0)
-      return; // means game hasn't started yet
+    u8 BatterPort = Memory::Read_U8(aBatterPort);      
     u8 FielderPort = Memory::Read_U8(aFielderPort);
-    bool isField = Memory::Read_U8(aIsField) == 1 ? true : false;
+    bool isField = Memory::Read_U8(aIsField) == 1;
+
+    // add barrel batter functionality
+    if (Memory::Read_U8(aMinigameID) == 3)
+    {
+      BatterPort = Memory::Read_U8(aBarrelBatterPort) + 1;
+      isField = false;
+    }
+
+    if (BatterPort == 0)
+      return;  // means game hasn't started yet
 
     NetPlay::NetPlayClient::AutoGolfMode(isField, BatterPort, FielderPort);
   }
@@ -395,11 +414,11 @@ void DisplayBatterFielder()
 
   // Run using Local Players
   else
-  {
-    std::string P1 = SConfig::GetInstance().m_local_player_1;
-    std::string P2 = SConfig::GetInstance().m_local_player_2;
-    std::string P3 = SConfig::GetInstance().m_local_player_3;
-    std::string P4 = SConfig::GetInstance().m_local_player_4;
+  {    
+    std::string P1 = LocalPlayers::m_local_player_1.GetUsername();
+    std::string P2 = LocalPlayers::m_local_player_2.GetUsername();
+    std::string P3 = LocalPlayers::m_local_player_3.GetUsername();
+    std::string P4 = LocalPlayers::m_local_player_4.GetUsername();
     std::vector<std::string> LocalPlayerList{P1, P2, P3, P4};
     std::array<u32, 4> portColor = {
         {OSD::Color::RED, OSD::Color::BLUE, OSD::Color::YELLOW, OSD::Color::GREEN}};
@@ -410,17 +429,23 @@ void DisplayBatterFielder()
     if (FielderPort < 5)
       FielderPort--;
 
-    if (LocalPlayerList[BatterPort] != "" && BatterPort < 4) // check for valid user & port
+    if (BatterPort < 4)
     {
-      OSD::AddTypedMessage(OSD::MessageType::CurrentBatter,
-                           fmt::format("Batter: {}", LocalPlayerList[BatterPort]),
-                           OSD::Duration::SHORT, portColor[BatterPort]);
+      if (LocalPlayerList[BatterPort] != "")  // check for valid user & port
+      {
+        OSD::AddTypedMessage(OSD::MessageType::CurrentBatter,
+                             fmt::format("Batter: {}", LocalPlayerList[BatterPort]),
+                             OSD::Duration::SHORT, portColor[BatterPort]);
+      }
     }
-    if (LocalPlayerList[FielderPort] != "" && FielderPort < 4)  // check for valid user & port
+    if (FielderPort < 4)
     {
-      OSD::AddTypedMessage(OSD::MessageType::CurrentFielder,
-                           fmt::format("Fielder: {}", LocalPlayerList[FielderPort]),
-                           OSD::Duration::SHORT, portColor[FielderPort]);
+      if (LocalPlayerList[FielderPort] != "")  // check for valid user & port
+      {
+        OSD::AddTypedMessage(OSD::MessageType::CurrentFielder,
+                             fmt::format("Fielder: {}", LocalPlayerList[FielderPort]),
+                             OSD::Duration::SHORT, portColor[FielderPort]);
+      }
     }
   }
 }
@@ -457,13 +482,20 @@ bool isRankedMode()
   return NetPlay::NetPlayClient::isRanked();
 }
 
+bool isNight()
+{
+  if (!NetPlay::IsNetPlayRunning())
+    return false;
+  return NetPlay::NetPlayClient::isNight();
+}
+
 void SetAvgPing()
 {
   if (!NetPlay::IsNetPlayRunning())
     return;
 
   // checks if GameID is set and that the end game flag hasn't been hit yet
-  bool inGame = Memory::Read_U32(0x802EBF8C) != 0 && Memory::Read_U32(0x80892AB3) == 0 ?
+  bool inGame = Memory::Read_U32(aGameId) != 0 && Memory::Read_U32(aEndOfGameFlag) == 0 ?
                     true :
                     false;
   if (!inGame) {
@@ -491,6 +523,25 @@ void SetAvgPing()
   s_stat_tracker->setAvgPing(avgPing);
   s_stat_tracker->setLagSpikes(nLagSpikes);
 }
+
+void SetNetplayerUserInfo()
+{
+  if (!NetPlay::IsNetPlayRunning())
+    return;
+
+  // checks if GameID is set
+  if (Memory::Read_U32(aGameId) != 0)
+    return;
+
+  // tell the stat tracker what the new avg ping is
+  if (!s_stat_tracker)
+  {
+    s_stat_tracker = std::make_unique<StatTracker>();
+    s_stat_tracker->init();
+  }
+  s_stat_tracker->setNetplayerUserInfo(NetPlay::NetPlayClient::getNetplayerUserInfo());
+}
+
 
 // Display messages and return values
 
@@ -1371,7 +1422,7 @@ int AddOnStateChangedCallback(StateChangedCallbackFunc callback)
 
 bool RemoveOnStateChangedCallback(int* handle)
 {
-  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > *handle)
+  if (handle && *handle >= 0 && s_on_state_changed_callbacks.size() > static_cast<size_t>(*handle))
   {
     s_on_state_changed_callbacks[*handle] = StateChangedCallbackFunc();
     *handle = -1;

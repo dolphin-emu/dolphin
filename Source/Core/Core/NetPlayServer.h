@@ -68,6 +68,7 @@ public:
   void SetHostInputAuthority(bool enable);
 
   void AdjustRankedBox(bool is_ranked);
+  void AdjustNightStadium(bool is_night);
 
   void KickPlayer(PlayerId player);
 
@@ -171,6 +172,7 @@ private:
   PlayerId m_pending_golfer = 0;
 
   bool m_current_ranked_value = false;
+  bool m_current_night_value = false;
 
   std::map<PlayerId, Client> m_players;
 

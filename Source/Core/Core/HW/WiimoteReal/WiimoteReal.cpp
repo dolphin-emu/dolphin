@@ -11,11 +11,14 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Swap.h"
 #include "Common/Thread.h"
+
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -25,6 +28,7 @@
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
+
 #include "InputCommon/ControllerInterface/Wiimote/WiimoteController.h"
 #include "InputCommon/InputConfig.h"
 
@@ -78,8 +82,11 @@ static void TryToFillWiimoteSlot(u32 index)
 {
   std::lock_guard lk(g_wiimotes_mutex);
 
-  if (g_wiimotes[index] || WiimoteCommon::GetSource(index) != WiimoteSource::Real)
+  if (g_wiimotes[index] ||
+      Config::Get(Config::GetInfoForWiimoteSource(index)) != WiimoteSource::Real)
+  {
     return;
+  }
 
   // If the pool is empty, attempt to steal from ControllerInterface.
   if (s_wiimote_pool.empty())
@@ -531,9 +538,11 @@ static unsigned int CalculateWantedWiimotes()
   std::lock_guard lk(g_wiimotes_mutex);
   // Figure out how many real Wiimotes are required
   unsigned int wanted_wiimotes = 0;
-  for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-    if (WiimoteCommon::GetSource(i) == WiimoteSource::Real && !g_wiimotes[i])
+  for (int i = 0; i < MAX_WIIMOTES; ++i)
+  {
+    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Real && !g_wiimotes[i])
       ++wanted_wiimotes;
+  }
   return wanted_wiimotes;
 }
 
@@ -541,9 +550,11 @@ static unsigned int CalculateWantedBB()
 {
   std::lock_guard lk(g_wiimotes_mutex);
   unsigned int wanted_bb = 0;
-  if (WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) == WiimoteSource::Real &&
+  if (Config::Get(Config::WIIMOTE_BB_SOURCE) == WiimoteSource::Real &&
       !g_wiimotes[WIIMOTE_BALANCE_BOARD])
+  {
     ++wanted_bb;
+  }
   return wanted_bb;
 }
 
@@ -823,32 +834,6 @@ int Wiimote::GetIndex() const
   return m_index;
 }
 
-void LoadSettings()
-{
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
-
-  IniFile inifile;
-  inifile.Load(ini_filename);
-
-  for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-  {
-    std::string secname("Wiimote");
-    secname += static_cast<char>('1' + i);
-    IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-
-    unsigned int source = 0;
-    sec.Get("Source", &source, i ? int(WiimoteSource::None) : int(WiimoteSource::Emulated));
-    WiimoteCommon::SetSource(i, WiimoteSource(source));
-  }
-
-  std::string secname("BalanceBoard");
-  IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-
-  unsigned int bb_source = 0;
-  sec.Get("Source", &bb_source, int(WiimoteSource::None));
-  WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, WiimoteSource(bb_source));
-}
-
 // config dialog calls this when some settings change
 void Initialize(::Wiimote::InitializeMode init_mode)
 {
@@ -924,7 +909,7 @@ void Pause()
 // Called from the Wiimote scanner thread (or UI thread on source change)
 static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int i)
 {
-  if (WiimoteCommon::GetSource(i) != WiimoteSource::Real || g_wiimotes[i])
+  if (Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::Real || g_wiimotes[i])
     return false;
 
   if (!wm->Connect(i))

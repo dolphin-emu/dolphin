@@ -14,6 +14,8 @@
 
 namespace NetPlay
 {
+constexpr u32 PEER_TIMEOUT = 30000;
+
 bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
 bool CompressFolderIntoPacket(const std::string& folder_path, sf::Packet& packet);
 bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);

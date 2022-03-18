@@ -13,76 +13,33 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/FileUtil.h"
 
-namespace AddPlayers
+namespace LocalPlayers
 {
-std::vector<AddPlayers> LoadPlayers(const IniFile& localIni)
+//std::vector<LocalPlayers> LoadPlayers(const IniFile& localIni)
+//{
+//  LocalPlayers player;
+//  return player.GetPlayers(localIni);
+//}
+LocalPlayers::Player m_local_player_1{"No Player Selected", "0"};
+LocalPlayers::Player m_local_player_2{"No Player Selected", "0"};
+LocalPlayers::Player m_local_player_3{"No Player Selected", "0"};
+LocalPlayers::Player m_local_player_4{"No Player Selected", "0"};
+
+static void SaveLocalPlayers(std::vector<std::string>& lines, const LocalPlayers::Player& player)
 {
-  std::vector<AddPlayers> players;
-
-  for (const IniFile* ini : {&localIni})
-  {
-    std::vector<std::string> lines;
-    ini->GetLines("Local_Players_List", &lines, false);
-
-    AddPlayers player;
-
-    for (auto& line : lines)
-    {
-      std::istringstream ss(line);
-
-      // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
-      // Use the C locale to workaround this behavior
-      ss.imbue(std::locale::classic());
-
-      switch ((line)[0])
-      {
-      // enabled or disabled code
-      case '+':
-        if (!player.username.empty())
-          players.push_back(player);
-        player = AddPlayers();
-        ss.seekg(1, std::ios_base::cur);
-        // read the code name
-        std::getline(ss, player.username,
-                     '[');  // stop at [ character (beginning of contributor name)
-        player.username = StripSpaces(player.username);
-        // read the code creator name
-        std::getline(ss, player.userid, ']');
-        break;
-
-      break;
-      }
-    }
-
-    // add the last code
-    if (!player.username.empty())
-    {
-      players.push_back(player);
-    }
-  }
-  return players;
+  LocalPlayers::Player playerObj = player;
+  lines.push_back(playerObj.LocalPlayerToStr());
 }
 
-static std::string MakePlayerTitle(const AddPlayers& player)
-{
-  std::string title = '+' + player.username + "[" + player.userid + "]";
-  return title;
-}
-
-
-static void SaveLocalPlayers(std::vector<std::string>& lines, const AddPlayers& player)
-{
-  lines.push_back(MakePlayerTitle(player));
-}
-
-void SavePlayers(IniFile& inifile, const std::vector<AddPlayers>& player)
+void SavePlayers(IniFile& inifile, std::vector<LocalPlayers::Player>& players)
 {
   std::vector<std::string> lines;
 
-  for (const AddPlayers& userName : player)
+  for (unsigned int i = 1; i < players.size(); i++)
   {
-    SaveLocalPlayers(lines, userName);
+    SaveLocalPlayers(lines, players[i]);
   }
 
   inifile.SetLines("Local_Players_List", lines);
@@ -102,4 +59,32 @@ std::vector<std::string> LoadPortPlayers(IniFile& inifile)
 
   return ports;
 }
-}  // namespace AddPlayers
+
+void SaveLocalPorts()
+{
+  const auto ini_path = File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX);
+  IniFile ini;
+  ini.Load(ini_path);
+  IniFile::Section* localplayers = ini.GetOrCreateSection("Local Players");
+  localplayers->Set("Player 1", (m_local_player_1).LocalPlayerToStr());
+  localplayers->Set("Player 2", (m_local_player_2).LocalPlayerToStr());
+  localplayers->Set("Player 3", (m_local_player_3).LocalPlayerToStr());
+  localplayers->Set("Player 4", (m_local_player_4).LocalPlayerToStr());
+  ini.Save(ini_path);
+}
+
+void LoadLocalPorts()
+{
+  //const auto ini_path = std::string(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
+  //IniFile local_players_path;
+  //local_players_path.Load(ini_path);
+
+  LocalPlayers i_LocalPlayers;
+  std::map<int, LocalPlayers::Player> portPlayers = i_LocalPlayers.GetPortPlayers();
+  m_local_player_1.SetUserInfo(portPlayers[1]);
+  m_local_player_2.SetUserInfo(portPlayers[2]);
+  m_local_player_3.SetUserInfo(portPlayers[3]);
+  m_local_player_4.SetUserInfo(portPlayers[4]);
+}
+
+}  // namespace LocalPlayers

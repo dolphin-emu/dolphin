@@ -65,6 +65,31 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace
+{
+QString InetAddressToString(const TraversalInetAddress& addr)
+{
+  QString ip;
+
+  if (addr.isIPV6)
+  {
+    ip = QStringLiteral("IPv6-Not-Implemented");
+  }
+  else
+  {
+    const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
+    ip = QString::number(ipv4[0]);
+    for (u32 i = 1; i != 4; ++i)
+    {
+      ip += QStringLiteral(".");
+      ip += QString::number(ipv4[i]);
+    }
+  }
+
+  return QStringLiteral("%1:%2").arg(ip, QString::number(ntohs(addr.port)));
+}
+}  // namespace
+
 NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
                              StartGameCallback start_game_callback, QWidget* parent)
     : QDialog(parent), m_game_list_model(game_list_model),
@@ -117,11 +142,12 @@ void NetPlayDialog::CreateMainLayout()
   m_menu_bar = new QMenuBar(this);
   m_ranked_box = new QCheckBox(tr("Ranked"));
   m_ranked_box->setToolTip(tr(
-      "Enabling Ranked Mode will mark down your games as being ranked in the stats files.\nWhen "
-      "sorting through the database, this game will be included as a ranked game.\nThis should "
-      "only be toggled for serious games as to keep our database accurate and organized.\nToggling "
-      "this box will always record & sumit stats, ignoring user configurations."));
+      "Enabling Ranked Mode will mark down your games as being ranked in the stats files\n and "
+      "disable any extra gecko codes as well as Training Mode. This should be toggled for\n"
+      "serious/competitive/ranked games ase accurate and organized. Toggling this box will\n"
+      " always record stats, ignoring user configurations."));
   m_coin_flipper = new QPushButton(tr("Coin Flip"));
+  m_night_stadium = new QCheckBox(tr("Night Mario Stadium"));
   m_spectator_toggle = new QCheckBox(tr("Spectator"));
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
@@ -204,11 +230,12 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 6, Qt::AlignVCenter | Qt::AlignRight);
-  options_widget->setColumnStretch(5, 1000);
+  options_widget->addWidget(m_quit_button, 0, 7, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->setColumnStretch(6, 1000);
   options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
-  options_widget->addWidget(m_coin_flipper, 0, 4, Qt::AlignVCenter);
-  options_widget->addWidget(m_spectator_toggle, 0, 5, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->addWidget(m_night_stadium, 0, 4, Qt::AlignVCenter);
+  options_widget->addWidget(m_coin_flipper, 0, 5, Qt::AlignVCenter);
+  options_widget->addWidget(m_spectator_toggle, 0, 6, Qt::AlignVCenter | Qt::AlignRight);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -277,7 +304,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_room_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &NetPlayDialog::UpdateGUI);
   connect(m_hostcode_action_button, &QPushButton::clicked, [this] {
-    if (m_is_copy_button_retry && m_room_box->currentIndex() == 0)
+    if (m_is_copy_button_retry)
       g_TraversalClient->ReconnectToServer();
     else
       QApplication::clipboard()->setText(m_hostcode_label->text());
@@ -322,6 +349,16 @@ void NetPlayDialog::ConnectWidgets()
     if (server)
       server->AdjustRankedBox(is_ranked);
   });
+
+  connect(m_night_stadium, &QCheckBox::stateChanged, [this](bool is_night) {
+    auto client = Settings::Instance().GetNetPlayClient();
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->AdjustNightStadium(is_night);
+    else
+      client->SendNightStadium(is_night);
+  });
+
 
   connect(m_spectator_toggle, &QCheckBox::stateChanged, this, &NetPlayDialog::OnSpectatorToggle);
 
@@ -436,6 +473,14 @@ void NetPlayDialog::OnCoinFlipResult(int coinNum)
     DisplayMessage(tr("Heads"), "darkorange");
   else
     DisplayMessage(tr("Tails"), "goldenrod");
+}
+
+void NetPlayDialog::OnNightResult(bool is_night)
+{
+  if (is_night)
+    DisplayMessage(tr("Night Stadium Enabled"), "steelblue");
+  else
+    DisplayMessage(tr("Night Stadium Disabled"), "coral");
 }
 
 void NetPlayDialog::DisplayActiveGeckoCodes()
@@ -563,6 +608,8 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_kick_button->setEnabled(false);
   m_ranked_box->setHidden(!is_hosting);
   m_ranked_box->setEnabled(is_hosting);
+  m_night_stadium->setHidden(!is_hosting);
+  m_night_stadium->setEnabled(is_hosting);
   m_coin_flipper->setHidden(!is_hosting);
   m_coin_flipper->setEnabled(is_hosting);
 
@@ -692,20 +739,48 @@ void NetPlayDialog::UpdateGUI()
       m_players_list->selectRow(i);
   }
 
-  // Update Room ID / IP label
-  if (m_use_traversal && m_room_box->currentIndex() == 0)
+  if (m_old_player_count != m_player_count)
+  {
+    UpdateDiscordPresence();
+    m_old_player_count = m_player_count;
+  }
+
+  if (!server)
+    return;
+
+  const bool is_local_ip_selected = m_room_box->currentIndex() > (m_use_traversal ? 1 : 0);
+  if (is_local_ip_selected)
+  {
+    m_hostcode_label->setText(QString::fromStdString(
+        server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
+    m_hostcode_action_button->setEnabled(true);
+    m_hostcode_action_button->setText(tr("Copy"));
+    m_is_copy_button_retry = false;
+  }
+  else if (m_use_traversal)
   {
     switch (g_TraversalClient->GetState())
     {
     case TraversalClient::State::Connecting:
-      m_hostcode_label->setText(tr("..."));
+      m_hostcode_label->setText(tr("Connecting"));
       m_hostcode_action_button->setEnabled(false);
+      m_hostcode_action_button->setText(tr("..."));
       break;
     case TraversalClient::State::Connected:
     {
-      const auto host_id = g_TraversalClient->GetHostID();
-      m_hostcode_label->setText(
-          QString::fromStdString(std::string(host_id.begin(), host_id.end())));
+      if (m_room_box->currentIndex() == 0)
+      {
+        // Display Room ID.
+        const auto host_id = g_TraversalClient->GetHostID();
+        m_hostcode_label->setText(
+            QString::fromStdString(std::string(host_id.begin(), host_id.end())));
+      }
+      else
+      {
+        // Externally mapped IP and port are known when using the traversal server.
+        m_hostcode_label->setText(InetAddressToString(g_TraversalClient->GetExternalAddress()));
+      }
+
       m_hostcode_action_button->setEnabled(true);
       m_hostcode_action_button->setText(tr("Copy"));
       m_is_copy_button_retry = false;
@@ -719,38 +794,24 @@ void NetPlayDialog::UpdateGUI()
       break;
     }
   }
-  else if (server)
+  else
   {
-    if (m_room_box->currentIndex() == (m_use_traversal ? 1 : 0))
+    // Display External IP.
+    if (!m_external_ip_address->empty())
     {
-      if (!m_external_ip_address->empty())
-      {
-        const int port = Settings::Instance().GetNetPlayServer()->GetPort();
-        m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
-            QString::fromStdString(*m_external_ip_address), QString::number(port)));
-        m_hostcode_action_button->setEnabled(true);
-      }
-      else
-      {
-        m_hostcode_label->setText(tr("Unknown"));
-        m_hostcode_action_button->setEnabled(false);
-      }
+      const int port = Settings::Instance().GetNetPlayServer()->GetPort();
+      m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
+          QString::fromStdString(*m_external_ip_address), QString::number(port)));
+      m_hostcode_action_button->setEnabled(true);
     }
     else
     {
-      m_hostcode_label->setText(QString::fromStdString(
-          server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
-      m_hostcode_action_button->setEnabled(true);
+      m_hostcode_label->setText(tr("Unknown"));
+      m_hostcode_action_button->setEnabled(false);
     }
 
     m_hostcode_action_button->setText(tr("Copy"));
     m_is_copy_button_retry = false;
-  }
-
-  if (m_old_player_count != m_player_count)
-  {
-    UpdateDiscordPresence();
-    m_old_player_count = m_player_count;
   }
 }
 
@@ -849,10 +910,25 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_golf_mode_action->setEnabled(enabled);
     m_fixed_delay_action->setEnabled(enabled);
     m_ranked_box->setCheckable(enabled);
+    m_night_stadium->setCheckable(enabled);
   }
 
   m_record_input_action->setEnabled(enabled);
 }
+
+void NetPlayDialog::RankedStartingMsg(bool is_ranked) {
+  if (is_ranked)
+  {
+    DisplayMessage(tr("NOTE: Ranked is Enabled. All gecko codes & Training Mode are disabled. 10 second Pitch Clock is active."), "mediumseagreen");
+    Core::setRankedStatus(is_ranked);
+  }
+  else
+  {
+    DisplayMessage(tr("NOTE: Ranked Mode is Disabled. Custom gecko codes & Training Mode may be enabled."), "crimson");
+    Core::setRankedStatus(is_ranked);
+  }
+}
+
 
 void NetPlayDialog::OnMsgStartGame()
 {
@@ -876,6 +952,7 @@ void NetPlayDialog::OnMsgStartGame()
       {
         client->StartGame(game->GetFilePath());
         m_ranked_box->setEnabled(false);
+        m_night_stadium->setEnabled(false);
       }
       else
         PanicAlertFmtT("Selected game doesn't exist in game list!");
@@ -891,8 +968,13 @@ void NetPlayDialog::OnMsgStopGame()
   g_netplay_golf_ui.reset();
   QueueOnObject(this, [this] { UpdateDiscordPresence(); });
 
+  auto client = Settings::Instance().GetNetPlayClient();
+
   const bool is_hosting = IsHosting();
   m_ranked_box->setEnabled(is_hosting);
+  m_night_stadium->setEnabled(is_hosting);
+  //m_ranked_box->setChecked(client->m_ranked_client);
+  //m_night_stadium->setChecked(client->m_night_stadium);
   m_spectator_toggle->setEnabled(true);
 }
 
@@ -1135,9 +1217,9 @@ void NetPlayDialog::LoadSettings()
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
   const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
-  const bool ranked_mode = Config::Get(Config::NETPLAY_RANKED);
+  //const bool ranked_mode = Config::Get(Config::NETPLAY_RANKED);
 
-  m_ranked_box->setChecked(ranked_mode);
+  //m_ranked_box->setChecked(ranked_mode);
   m_buffer_size_box->setValue(buffer_size);
   m_write_save_data_action->setChecked(write_save_data);
   m_load_wii_action->setChecked(load_wii_save);
@@ -1182,7 +1264,7 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
-  Config::SetBase(Config::NETPLAY_RANKED, m_ranked_box->isChecked());
+  //Config::SetBase(Config::NETPLAY_RANKED, m_ranked_box->isChecked());
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())

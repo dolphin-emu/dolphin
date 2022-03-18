@@ -704,6 +704,8 @@ public:
         case VertexComponentFormat::Direct:
           process_simple_component(component_sizes[vtx_attr.GetColorFormat(c)]);
           break;
+        case VertexComponentFormat::NotPresent:
+          break;
         }
       }
       for (u32 t = 0; t < vtx_desc.high.TexCoord.Size(); t++)

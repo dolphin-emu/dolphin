@@ -470,6 +470,10 @@ void DSPEmitter::CompileDispatcher()
   RET();
 }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+#endif
 Gen::OpArg DSPEmitter::M_SDSP_pc()
 {
   return MDisp(R15, static_cast<int>(offsetof(SDSP, pc)));
@@ -503,5 +507,8 @@ Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
   return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs) +
                                      sizeof(SDSP::reg_stack_ptrs[0]) * index));
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 }  // namespace DSP::JIT::x64

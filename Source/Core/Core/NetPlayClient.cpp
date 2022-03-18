@@ -39,6 +39,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/EXI/EXI.h"
@@ -73,10 +74,10 @@
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
-#include <Core/LocalPlayers.h>
 #include <Core/ConfigLoaders/GameConfigLoader.h>
 #include <Core/GeckoCodeConfig.h>
 #include "Core/HotkeyManager.h"
+#include "Core/LocalPlayersConfig.h"
 
 namespace NetPlay
 {
@@ -158,7 +159,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     }
 
     // Extend reliable traffic timeout
-    enet_peer_timeout(m_server, 0, 30000, 30000);
+    enet_peer_timeout(m_server, 0, PEER_TIMEOUT, PEER_TIMEOUT);
 
     ENetEvent netEvent;
     int net = enet_host_service(m_client, &netEvent, 5000);
@@ -215,6 +216,10 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
         {
         case ENET_EVENT_TYPE_CONNECT:
           m_server = netEvent.peer;
+
+          // Extend reliable traffic timeout
+          enet_peer_timeout(m_server, 0, PEER_TIMEOUT, PEER_TIMEOUT);
+
           if (Connect())
           {
             m_connection_state = ConnectionState::Connected;
@@ -477,6 +482,9 @@ void NetPlayClient::OnData(sf::Packet& packet)
   
   case MessageID::CoinFlip:
     OnCoinFlipMsg(packet);
+    break;
+  case MessageID::NightStadium:
+    OnNightMsg(packet);
     break;  
 
   default:
@@ -916,10 +924,11 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
 
     m_net_settings.m_IsHosting = m_local_player->IsHost();
     m_net_settings.m_HostInputAuthority = m_host_input_authority;
-    m_net_settings.m_RankedMode = m_ranked_client;
+    //m_net_settings.m_RankedMode = m_ranked_client;
   }
 
   m_dialog->OnMsgStartGame();
+  m_dialog->RankedStartingMsg(m_ranked_client);
 }
 
 void NetPlayClient::OnStopGame(sf::Packet& packet)
@@ -1497,12 +1506,13 @@ void NetPlayClient::OnPlayerDataMsg(sf::Packet& packet)
 {
   u8 port;
   packet >> port;
+
   std::string userinfoStr;
   packet >> userinfoStr;
-  std::vector<std::string> userinfo;
-  auto ss = std::stringstream{userinfoStr};
-  for (std::string line; std::getline(ss, line, '\n');)
-    userinfo.push_back(line);
+
+  LocalPlayers::LocalPlayers i_LocalPlayers;
+  LocalPlayers::LocalPlayers::Player userinfo = i_LocalPlayers.toLocalPlayer(userinfoStr);
+
   NetplayerUserInfo[port] = userinfo;
 }
 
@@ -1530,6 +1540,14 @@ void NetPlayClient::OnCoinFlipMsg(sf::Packet& packet)
   m_dialog->OnCoinFlipResult(coinFlip);
 }
 
+void NetPlayClient::OnNightMsg(sf::Packet& packet)
+{
+  bool is_night;
+  packet >> is_night;
+  m_dialog->OnNightResult(is_night);
+  m_night_stadium = is_night;
+}
+
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)
 {
   ENetPacket* epac =
@@ -1551,6 +1569,11 @@ bool NetPlayClient::isRanked()
   return netplay_client->m_ranked_client;
 }
 
+bool NetPlayClient::isNight()
+{
+  return netplay_client->m_night_stadium;
+}
+
 void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
 {
   std::string playername = "";
@@ -1563,7 +1586,10 @@ void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
   bool fielderExists = FielderPortInt >= 0 && FielderPortInt <= 3 ? true : false;  // checks that the port isn't a CPU
   if (fielderExists)
   {
-    playername = netplay_client->GetPortPlayer(FielderPortInt);
+    playername = netplay_client->NetplayerUserInfo[FielderPortInt + 1].GetUsername();
+    if (playername == "" || playername == "No Player Selected")
+      playername = netplay_client->GetPortPlayer(FielderPortInt);
+
     color = portColor[FielderPortInt];
     OSD::AddTypedMessage(OSD::MessageType::CurrentFielder, fmt::format("Fielder: {}", playername),
                          OSD::Duration::SHORT, color);
@@ -1572,11 +1598,21 @@ void NetPlayClient::DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt)
   bool batterExists = BatterPortInt >= 0 && BatterPortInt <= 3 ? true : false;  // checks that the port isn't a CPU
   if (batterExists)
   {
-    playername = netplay_client->GetPortPlayer(BatterPortInt);
+    playername = netplay_client->NetplayerUserInfo[BatterPortInt + 1].GetUsername();
+    if (playername == "" || playername == "No Player Selected")
+      playername = netplay_client->GetPortPlayer(BatterPortInt);
+
     color = portColor[BatterPortInt];
     OSD::AddTypedMessage(OSD::MessageType::CurrentBatter, fmt::format("Batter: {}", playername),
                          OSD::Duration::SHORT, color);
   }
+}
+
+std::map<int, LocalPlayers::LocalPlayers::Player> NetPlayClient::getNetplayerUserInfo()
+{
+  // send player usernames & keys here
+  netplay_client->SendLocalPlayerNetplay(netplay_client->GetLocalPlayerNetplay());
+  return netplay_client->NetplayerUserInfo;
 }
 
 std::string NetPlayClient::sGetPortPlayer(int PortInt)
@@ -1795,6 +1831,10 @@ void NetPlayClient::SendActiveGeckoCodes()
 
 void NetPlayClient::GetActiveGeckoCodes()
 {
+  // don't use any gecko codes if playing ranked
+  if (m_ranked_client)
+    return;
+
   // Find all INI files
   const auto game_id = "GYQE01";
   const auto revision = 0;
@@ -1822,6 +1862,15 @@ void NetPlayClient::SendCoinFlip(int randNum)
   sf::Packet packet;
   packet << MessageID::CoinFlip;
   packet << randNum;
+
+  SendAsync(std::move(packet));
+}
+
+void NetPlayClient::SendNightStadium(bool is_night)
+{
+  sf::Packet packet;
+  packet << MessageID::NightStadium;
+  packet << is_night;
 
   SendAsync(std::move(packet));
 }
@@ -1915,30 +1964,29 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   for (unsigned int i = 0; i < 4; ++i)
   {
-    WiimoteCommon::SetSource(i,
-                             m_wiimote_map[i] > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
+    Config::SetCurrent(Config::GetInfoForWiimoteSource(i),
+                       m_wiimote_map[i] > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
   }
 
   // boot game
   auto boot_session_data = std::make_unique<BootSessionData>();
-  boot_session_data->SetWiiSyncData(
-      std::move(m_wii_sync_fs), std::move(m_wii_sync_titles), std::move(m_wii_sync_redirect_folder),
-      [] {
-        // on emulation end clean up the Wii save sync directory -- see OnSyncSaveDataWii()
-        const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
-        if (File::Exists(path))
-          File::DeleteDirRecursively(path);
-        const std::string redirect_path =
-            File::GetUserPath(D_USER_IDX) + "Redirect" GC_MEMCARD_NETPLAY DIR_SEP;
-        if (File::Exists(redirect_path))
-          File::DeleteDirRecursively(redirect_path);
-      });
+  boot_session_data->SetWiiSyncData(std::move(m_wii_sync_fs), std::move(m_wii_sync_titles),
+                                    std::move(m_wii_sync_redirect_folder), [] {
+                                      // on emulation end clean up the Wii save sync directory --
+                                      // see OnSyncSaveDataWii()
+                                      const std::string wii_path = File::GetUserPath(D_USER_IDX) +
+                                                                   "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+                                      if (File::Exists(wii_path))
+                                        File::DeleteDirRecursively(wii_path);
+                                      const std::string redirect_path =
+                                          File::GetUserPath(D_USER_IDX) +
+                                          "Redirect" GC_MEMCARD_NETPLAY DIR_SEP;
+                                      if (File::Exists(redirect_path))
+                                        File::DeleteDirRecursively(redirect_path);
+                                    });
   m_dialog->BootGame(path, std::move(boot_session_data));
 
   UpdateDevices();
-
-  // send player usernames & keys here
-  SendLocalPlayerNetplay(GetLocalPlayerNetplay());
 
   return true;
 }
@@ -2538,7 +2586,7 @@ void NetPlayClient::AutoGolfModeLogic(bool isField, int BatPort, int FieldPort)
 {
   int clientID = m_local_player->pid; // refers to netplay client (the computer that's connected)
   int GolfPort = isField ? FieldPort - 1 : BatPort - 1; // subtract 1 since m_pad_map uses 0->3 instead of 1->4
-  if (GolfPort >= 4 || GolfPort < 0) // something's wrong. probably a CPU player; return to avoid array out-of-range errors
+  if (GolfPort >= 4 || GolfPort < 0 || !PortHasPlayerAssigned(GolfPort)) // something's wrong. probably a CPU player; return to avoid array out-of-range errors
     return;
 
   // this little block makes it so that the auto golf logic will only complete if the client's been the golfer for more than
@@ -2548,7 +2596,7 @@ void NetPlayClient::AutoGolfModeLogic(bool isField, int BatPort, int FieldPort)
     framesAsGolfer = 0;
     return;
   }
-  if (framesAsGolfer <= 255) // don't want a memory overflow here
+  if (framesAsGolfer < 255) // don't want a memory overflow here
     framesAsGolfer += 1;
   if (framesAsGolfer <= 10)
     return;
@@ -2578,6 +2626,13 @@ std::string NetPlayClient::GetCurrentGolfer()
 
 
 // called from ---GUI--- thread
+
+bool NetPlayClient::PortHasPlayerAssigned(int port)
+{
+  return m_pad_map[port] != 0;
+}
+
+
 bool NetPlayClient::LocalPlayerHasControllerMapped() const
 {
   return PlayerHasControllerMapped(m_local_player->pid);
@@ -2945,68 +3000,39 @@ void NetPlay_Disable()
   netplay_client = nullptr;
 }
 
-void NetPlayClient::SendLocalPlayerNetplay(std::vector<std::string> userinfo)
+void NetPlayClient::SendLocalPlayerNetplay(LocalPlayers::LocalPlayers::Player userinfo)
 {
-  sf::Packet packet;
-  packet << MessageID::PlayerData;
-
-  u8 portnum = 0;
   for (auto player_id : m_pad_map)
   {
-    portnum += 1;
     if (player_id == m_local_player->pid)
-      NetplayerUserInfo[portnum] = userinfo;
+    {
+      sf::Packet packet;
+      packet << MessageID::PlayerData;
+
+      NetplayerUserInfo[player_id] = userinfo;  // if the client is mapped to a port, that port is set to the local player at the client's port 1
+      packet << player_id;
+      packet << userinfo.LocalPlayerToStr();  // have to sent the string over netplay; will convert this back later
+
+      SendAsync(std::move(packet));
+    }
   }
 
-  packet << portnum;
-  packet << userinfo[0] + "\n" + userinfo[1] + "\n";
-
-  SendAsync(std::move(packet));
 }
 
-std::vector<std::string> NetPlayClient::GetLocalPlayerNetplay()
+LocalPlayers::LocalPlayers::Player NetPlayClient::GetLocalPlayerNetplay()
 {
   // Eventually replace this with the account information in future official release
-  std::vector<std::string> userinfo;
-
-  IniFile local_players_ini;
-  local_players_ini.Load(File::GetUserPath(F_LOCALPLAYERSCONFIG_IDX));
-  for (const IniFile* ini : {&local_players_ini})
+  // for now, we just reference the player mapped to port 1, which is the intended player 99% of the time anyway
+  // if no one is set, use netplay nickname
+  LocalPlayers::LocalPlayers::Player netplay_player;
+  if (LocalPlayers::m_local_player_1.GetUsername() == "" || LocalPlayers::m_local_player_1.GetUsername() == "No Player Selected")
   {
-    std::vector<std::string> lines;
-    ini->GetLines("Local_Players_List", &lines, false);
-    AddPlayers::AddPlayers player;
-    u8 port = 0;
-    for (auto& line : lines)
-    {
-      ++port;
-      std::istringstream ss(line);
-
-      // Some locales (e.g. fr_FR.UTF-8) don't split the string stream on space
-      // Use the C locale to workaround this behavior
-      ss.imbue(std::locale::classic());
-
-      switch ((line)[0])
-      {
-      case '+':
-        if (!player.username.empty() && !player.userid.empty())
-          // players.push_back(player);
-          player = AddPlayers::AddPlayers();
-        ss.seekg(1, std::ios_base::cur);
-        // read the code name
-        std::getline(ss, player.username,
-                     '[');  // stop at [ character (beginning of contributor name)
-        player.username = StripSpaces(player.username);
-        // read the code creator name
-        std::getline(ss, player.userid, ']');
-        break;
-        break;
-      }
-    }
-    userinfo.push_back(player.username);
-    userinfo.push_back(player.userid);
+    netplay_player.username = m_players[m_local_player->pid].name;
+    netplay_player.userid = "0";
   }
-  return userinfo;
+  else
+    netplay_player = LocalPlayers::m_local_player_1;
+  return netplay_player;
 }
 
 }  // namespace NetPlay

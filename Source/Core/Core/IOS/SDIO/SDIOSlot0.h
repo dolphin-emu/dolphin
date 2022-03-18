@@ -22,6 +22,7 @@ class SDIOSlot0Device : public Device
 {
 public:
   SDIOSlot0Device(Kernel& ios, const std::string& device_name);
+  ~SDIOSlot0Device() override;
 
   void DoState(PointerWrap& p) override;
 
@@ -29,8 +30,6 @@ public:
   std::optional<IPCReply> Close(u32 fd) override;
   std::optional<IPCReply> IOCtl(const IOCtlRequest& request) override;
   std::optional<IPCReply> IOCtlV(const IOCtlVRequest& request) override;
-
-  void EventNotify();
 
 private:
   // SD Host Controller Registers
@@ -124,6 +123,10 @@ private:
     Request request;
   };
 
+  void RefreshConfig();
+
+  void EventNotify();
+
   IPCReply WriteHCRegister(const IOCtlRequest& request);
   IPCReply ReadHCRegister(const IOCtlRequest& request);
   IPCReply ResetCard(const IOCtlRequest& request);
@@ -162,5 +165,8 @@ private:
   std::array<u32, 0x200 / sizeof(u32)> m_registers{};
 
   File::IOFile m_card;
+
+  size_t m_config_callback_id;
+  bool m_sd_card_inserted = false;
 };
 }  // namespace IOS::HLE

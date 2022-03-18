@@ -22,6 +22,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/SyncIdentifier.h"
 #include "InputCommon/GCPadStatus.h"
+#include "Core/LocalPlayers.h"
 
 class BootSessionData;
 
@@ -67,7 +68,9 @@ public:
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
   virtual void OnRankedEnabled(bool is_ranked) = 0;
+  virtual void RankedStartingMsg(bool is_ranked) = 0;
   virtual void OnCoinFlipResult(int coinFlip) = 0;
+  virtual void OnNightResult(bool is_night) = 0;
   virtual void OnActiveGeckoCodes(std::string codeStr) = 0;
   virtual bool IsSpectating() = 0;
   virtual void SetSpectating(bool spectating) = 0;
@@ -119,10 +122,10 @@ public:
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
   std::vector<const Player*> GetPlayers();
   const NetSettings& GetNetSettings() const;
-  std::map<int, std::vector<std::string>> NetplayerUserInfo; // int is port, vector[0] is username, vector[1] is user id
+  std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo; // int is port
 
-  void SendLocalPlayerNetplay(std::vector<std::string>);
-  std::vector<std::string> GetLocalPlayerNetplay();
+  void SendLocalPlayerNetplay(LocalPlayers::LocalPlayers::Player userinfo);
+  LocalPlayers::LocalPlayers::Player GetLocalPlayerNetplay();
 
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
@@ -135,6 +138,7 @@ public:
   void SendActiveGeckoCodes();
   void GetActiveGeckoCodes();
   void SendCoinFlip(int randNum);
+  void SendNightStadium(bool is_night);
   void RequestStopGame();
   void SendPowerButtonEvent();
   void RequestGolfControl(PlayerId pid);
@@ -161,6 +165,7 @@ public:
   bool PlayerHasControllerMapped(PlayerId pid) const;
   bool LocalPlayerHasControllerMapped() const;
   bool IsLocalPlayer(PlayerId pid) const;
+  bool PortHasPlayerAssigned(int port);
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
@@ -168,9 +173,12 @@ public:
   static void AutoGolfMode(bool isField, int BatPort, int FieldPort);
   static void DisplayBatterFielder(u8 BatterPortInt, u8 FielderPortInt);
   static bool isRanked();
+  static bool isNight();
   static u32 sGetPlayersMaxPing();
   static std::string sGetPortPlayer(int PortInt);
+  static std::map<int, LocalPlayers::LocalPlayers::Player> getNetplayerUserInfo();
   bool m_ranked_client = false;
+  bool m_night_stadium = false;
   
   const PadMappingArray& GetPadMapping() const;
   const GBAConfigArray& GetGBAConfig() const;
@@ -325,6 +333,7 @@ private:
   void OnPlayerDataMsg(sf::Packet& packet);
   void OnSendCodesMsg(sf::Packet& packet);
   void OnCoinFlipMsg(sf::Packet& packet);
+  void OnNightMsg(sf::Packet& packet);
 
   int framesAsGolfer = 0;
 
