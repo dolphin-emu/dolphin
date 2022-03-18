@@ -422,6 +422,7 @@ void StatTracker::logDefensiveStats(int in_team_id, int roster_id){
     stat.homeruns_allowed    = Memory::Read_U16(aPitcher_HRsAllowed + offset);
     stat.pitches_thrown      = Memory::Read_U16(aPitcher_PitchesThrown + offset);
     stat.stamina             = Memory::Read_U16(aPitcher_Stamina + offset);
+    std::cout << "Pitcher Stamina Addr=" << std::hex << (aPitcher_Stamina + offset) << std::endl;
     stat.was_pitcher         = Memory::Read_U8(aPitcher_WasPitcher + offset);
     stat.batter_outs         = Memory::Read_U8(aPitcher_BatterOuts + offset);
     stat.outs_pitched        = Memory::Read_U8(aPitcher_OutsPitched + offset);
@@ -498,15 +499,19 @@ void StatTracker::logEventState(Event& in_event){
     in_event.chem_links_ob   = Memory::Read_U8(aAB_ChemLinksOnBase);
 
     //The following stamina lookup requires team_id to be in teams of team0 or team1
+
     u8 pitching_team_0_or_1 = Memory::Read_U8(aAB_PitcherPort) == m_game_info.team1_port;
     u8 pitcher_roster_loc = Memory::Read_U8(aAB_PitcherRosterID);
-
+    std::cout << "Pitcher Port=" << std::to_string(Memory::Read_U8(aAB_PitcherPort)) << " Team1 Port=" << std::to_string(m_game_info.team1_port) << std::endl;
+    
     //Calc the pitcher stamina offset and add it to the base stamina addr - TODO move to EventSummary
     u32 pitcherStaminaOffset = ((pitching_team_0_or_1 * cRosterSize * c_defensive_stat_offset) + (pitcher_roster_loc * c_defensive_stat_offset));
     in_event.pitcher_stamina = Memory::Read_U16(aPitcher_Stamina + pitcherStaminaOffset);
+    std::cout << "Pitcher Stamina Addr=" << std::hex << (aPitcher_Stamina + pitcherStaminaOffset) << std::endl;
 
     in_event.pitcher_roster_loc = Memory::Read_U8(aAB_PitcherRosterID);
     in_event.batter_roster_loc  = Memory::Read_U8(aAB_BatterRosterID);
+    in_event.catcher_roster_loc = Memory::Read_U8(aFielder_RosterLoc + (1 * cFielder_Offset));
 }
 
 void StatTracker::logContact(Event& in_event){
@@ -890,9 +895,11 @@ std::string StatTracker::getStatJSON(bool inDecode){
         json_stream << "      \"Star Chance\": "             << std::to_string(event.is_star_chance) << "," << std::endl;
         json_stream << "      \"Away Stars\": "              << std::to_string(event.home_stars) << "," << std::endl;
         json_stream << "      \"Home Stars\": "              << std::to_string(event.away_stars) << "," << std::endl;
+        json_stream << "      \"Pitcher Stamina\": "         << std::to_string(event.pitcher_stamina) << "," << std::endl;
         json_stream << "      \"Chemistry Links on Base\": " << std::to_string(event.chem_links_ob) << "," << std::endl;
         json_stream << "      \"Pitcher Roster Loc\": "      << std::to_string(event.pitcher_roster_loc) << "," << std::endl;
         json_stream << "      \"Batter Roster Loc\": "       << std::to_string(event.batter_roster_loc) << "," << std::endl;
+        json_stream << "      \"Catcher Roster Loc\": "       << std::to_string(event.catcher_roster_loc) << "," << std::endl;
         json_stream << "      \"RBI\": "                     << std::to_string(event.rbi) << "," << std::endl;
         json_stream << "      \"Result of AB\": "            << decode("AtBatResult", event.result_of_atbat, inDecode) << "," << std::endl;
 
@@ -940,10 +947,13 @@ std::string StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Star Pitch\": "         << std::to_string(pitch->star_pitch) << "," << std::endl;
             json_stream << "        \"Pitch Speed\": "        << std::to_string(pitch->pitch_speed) << "," << std::endl;
             json_stream << "        \"DB\": "                 << std::to_string(pitch->db) << "," << std::endl;
-            json_stream << "        \"Pitch Result\": "       << decode("PitchResult", pitch->pitch_result, inDecode);
+            json_stream << "        \"Pitch Result\": "       << decode("PitchResult", pitch->pitch_result, inDecode) << "," << std::endl;
+            if (pitch->contact.has_value()){
+                json_stream << "        \"Type of Swing\": "      << decode("Swing", pitch->contact->type_of_swing, inDecode);
+            }
             
             //=== Contact ===
-            if (pitch->contact.has_value()){
+            if (pitch->contact.has_value() && pitch->contact->type_of_contact != 0xFF){
                 json_stream << "," << std::endl;
 
                 Contact* contact = &pitch->contact.value();

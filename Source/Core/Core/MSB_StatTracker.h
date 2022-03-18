@@ -619,6 +619,7 @@ public:
 
         u8 pitcher_roster_loc;
         u8 batter_roster_loc;
+        u8 catcher_roster_loc;
 
         u8 balls;
         u8 strikes;
