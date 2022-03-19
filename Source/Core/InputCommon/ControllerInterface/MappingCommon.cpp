@@ -107,16 +107,18 @@ BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>
 
   for (auto& detection : detections)
   {
-    // Remove since released inputs.
+    // Remove since-released inputs.
     for (auto it = pressed_inputs.begin(); it != pressed_inputs.end();)
     {
-      if (!((*it)->release_time > detection.press_time))
+      if ((*it)->release_time && (*it)->release_time <= detection.press_time)
       {
         handle_release();
         it = pressed_inputs.erase(it);
       }
       else
+      {
         ++it;
+      }
     }
 
     handle_press(detection);
