@@ -63,7 +63,7 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFS_DEVICE_INFO:
     INFO_LOG_FMT(IOS_WFS, "IOCTL_WFS_DEVICE_INFO");
-    Memory::Write_U64(16ull << 30, request.buffer_out);  // 16GB storage.
+    Memory::Write_U64(16ull << 30, request.buffer_out);  // 16GiB storage.
     Memory::Write_U8(4, request.buffer_out + 8);
     break;
 

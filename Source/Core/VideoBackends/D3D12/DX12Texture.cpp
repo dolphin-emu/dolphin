@@ -206,7 +206,7 @@ void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
                      size_t buffer_size)
 {
   // Textures greater than 1024*1024 will be put in staging textures that are released after
-  // execution instead. A 2048x2048 texture is 16MB, and we'd only fit four of these in our
+  // execution instead. A 2048x2048 texture is 16MiB, and we'd only fit four of these in our
   // streaming buffer and be blocking frequently. Games are unlikely to have textures this
   // large anyway, so it's only really an issue for HD texture packs, and memory is not
   // a limiting factor in these scenarios anyway.

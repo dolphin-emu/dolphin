@@ -231,7 +231,7 @@ void PushFifoAuxBuffer(const void* ptr, size_t size)
     if (size > (size_t)(s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
     {
       // That will sync us up to the last 32 bytes, so this short region
-      // of FIFO would have to point to a 2MB display list or something.
+      // of FIFO would have to point to a 2MiB display list or something.
       PanicAlertFmt("Absurdly large aux buffer");
       return;
     }

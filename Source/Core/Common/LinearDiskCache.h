@@ -40,7 +40,7 @@ public:
 //
 // Suitable for caching generated shader bytecode between executions.
 // Not tuned for extreme performance but should be reasonably fast.
-// Does not support keys or values larger than 2GB, which should be reasonable.
+// Does not support keys or values larger than 2GiB, which should be reasonable.
 // Keys must have non-zero length; values can have zero length.
 
 // K and V are some POD type

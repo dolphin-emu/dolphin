@@ -83,7 +83,7 @@ constexpr u32 NUM_COMPUTE_TEXEL_BUFFERS = 2;
 constexpr u32 TEXTURE_UPLOAD_BUFFER_SIZE = 32 * 1024 * 1024;
 
 // Textures greater than 1024*1024 will be put in staging textures that are released after
-// execution instead. A 2048x2048 texture is 16MB, and we'd only fit four of these in our
+// execution instead. A 2048x2048 texture is 16MiB, and we'd only fit four of these in our
 // streaming buffer and be blocking frequently. Games are unlikely to have textures this
 // large anyway, so it's only really an issue for HD texture packs, and memory is not
 // a limiting factor in these scenarios anyway.

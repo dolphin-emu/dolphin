@@ -176,7 +176,7 @@ void CBoot::SetupGCMemory()
   // Booted from bootrom. 0xE5207C22 = booted from jtag
   PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020);
 
-  // Physical Memory Size (24MB on retail)
+  // Physical Memory Size (24MiB on retail)
   PowerPC::HostWrite_U32(Memory::GetRamSizeReal(), 0x80000028);
 
   // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
@@ -188,7 +188,7 @@ void CBoot::SetupGCMemory()
   // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
   PowerPC::HostWrite_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x800000CC);
 
-  PowerPC::HostWrite_U32(0x01000000, 0x800000d0);  // ARAM Size. 16MB main + 4/16/32MB external
+  PowerPC::HostWrite_U32(0x01000000, 0x800000d0);  // ARAM Size. 16MiB main + 4/16/32MiB external
                                                    // (retail consoles have no external ARAM)
 
   PowerPC::HostWrite_U32(0x09a7ec80, 0x800000F8);  // Bus Clock Speed
@@ -378,7 +378,7 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
 
   Memory::Write_U32(0x0D15EA5E, 0x00000020);                // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);                // Unknown
-  Memory::Write_U32(Memory::GetRamSizeReal(), 0x00000028);  // MEM1 size 24MB
+  Memory::Write_U32(Memory::GetRamSizeReal(), 0x00000028);  // MEM1 size 24MiB
   const Core::ConsoleType board_model = console_type == IOS::HLE::IOSC::ConsoleType::RVT ?
                                             Core::ConsoleType::NDEV2_1 :
                                             Core::ConsoleType::RVL_Retail3;

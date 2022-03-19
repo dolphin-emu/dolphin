@@ -141,10 +141,10 @@ using namespace PowerPC;
 // our own logic.
 // But when windows reaches the last guard page, it raises a "Stack Overflow"
 // exception which we can hook into, however by default it leaves you with less
-// than 4kb of stack. So we use SetThreadStackGuarantee to trigger the Stack
-// Overflow early while we still have 512kb of stack remaining.
+// than 4KiB of stack. So we use SetThreadStackGuarantee to trigger the Stack
+// Overflow early while we still have 512KiB of stack remaining.
 // After resetting the stack to the top, we call _resetstkoflw() to restore
-// the guard page at the 512kb mark.
+// the guard page at the 512KiB mark.
 
 enum
 {

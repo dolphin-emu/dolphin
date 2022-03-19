@@ -715,7 +715,7 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
 
     u64 total_size = ComputeTotalFileSize(parent_dir);  // "Real" size to convert to nand blocks
 
-    stats.used_clusters = (u32)(total_size / (16 * 1024));  // one block is 16kb
+    stats.used_clusters = (u32)(total_size / (16 * 1024));  // one block is 16KiB
   }
   else
   {

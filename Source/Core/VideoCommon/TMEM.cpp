@@ -46,7 +46,7 @@
 // improved by overlapping the caches of texture units that are drawing the same textures.
 //
 // For trilinear textures, the even/odd banks contain the even/odd LODs of the texture. TMEM has two
-// banks of 512KB each, covering the upper and lower halves of TMEM's address space. The two banks
+// banks of 512KiB each, covering the upper and lower halves of TMEM's address space. The two banks
 // be accessed simultaneously, allowing a trilinear texture sample to be completed at the same cost
 // as a bilinear sample, assuming the even and odd banks are mapped onto different banks.
 //
@@ -211,11 +211,11 @@ static u32 CalculateUnitSize(TextureUnitState::BankConfig bank_config)
   {
     switch (width)
     {
-    case 3:  // 32KB
+    case 3:  // 32KiB
       return 32 * 1024;
-    case 4:  // 128KB
+    case 4:  // 128KiB
       return 128 * 1024;
-    case 5:  // 512KB
+    case 5:  // 512KiB
       return 512 * 1024;
     default:
       break;

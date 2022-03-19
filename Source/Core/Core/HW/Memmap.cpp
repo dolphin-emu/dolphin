@@ -63,7 +63,7 @@ u8* m_pFakeVMEM;
 // s_ram_size is the amount allocated by the emulator, whereas s_ram_size_real
 // is what will be reported in lowmem, and thus used by emulated software.
 // Note: Writing to lowmem is done by IPL. If using retail IPL, it will
-// always be set to 24MB.
+// always be set to 24MiB.
 static u32 s_ram_size_real;
 static u32 s_ram_size;
 static u32 s_ram_mask;
@@ -74,7 +74,7 @@ static u32 s_L1_cache_mask;
 static u32 s_io_size;
 // s_exram_size is the amount allocated by the emulator, whereas s_exram_size_real
 // is what gets used by emulated software.  If using retail IOS, it will
-// always be set to 64MB.
+// always be set to 64MiB.
 static u32 s_exram_size_real;
 static u32 s_exram_size;
 static u32 s_exram_mask;
@@ -185,33 +185,33 @@ struct LogicalMemoryView
 };
 
 // Dolphin allocates memory to represent four regions:
-// - 32MB RAM (actually 24MB on hardware), available on GameCube and Wii
-// - 64MB "EXRAM", RAM only available on Wii
-// - 32MB FakeVMem, allocated in GameCube mode when MMU support is turned off.
+// - 32MiB RAM (actually 24MiB on hardware), available on GameCube and Wii
+// - 64MiB "EXRAM", RAM only available on Wii
+// - 32MiB FakeVMem, allocated in GameCube mode when MMU support is turned off.
 //   This is used to approximate the behavior of a common library which pages
 //   memory to and from the DSP's dedicated RAM. The DSP's RAM (ARAM) isn't
 //   directly addressable on GameCube.
-// - 256KB Locked L1, to represent cache lines allocated out of the L1 data
+// - 256KiB Locked L1, to represent cache lines allocated out of the L1 data
 //   cache in Locked L1 mode.  Dolphin does not emulate this hardware feature
 //   accurately; it just pretends there is extra memory at 0xE0000000.
 //
-// The 4GB starting at physical_base represents access from the CPU
+// The 4GiB starting at physical_base represents access from the CPU
 // with address translation turned off. (This is only used by the CPU;
 // other devices, like the GPU, use other rules, approximated by
 // Memory::GetPointer.) This memory is laid out as follows:
-// [0x00000000, 0x02000000) - 32MB RAM
-// [0x02000000, 0x08000000) - Mirrors of 32MB RAM (not handled here)
+// [0x00000000, 0x02000000) - 32MiB RAM
+// [0x02000000, 0x08000000) - Mirrors of 32MiB RAM (not handled here)
 // [0x08000000, 0x0C000000) - EFB "mapping" (not handled here)
 // [0x0C000000, 0x0E000000) - MMIO etc. (not handled here)
-// [0x10000000, 0x14000000) - 64MB RAM (Wii-only; slightly slower)
+// [0x10000000, 0x14000000) - 64MiB RAM (Wii-only; slightly slower)
 // [0x7E000000, 0x80000000) - FakeVMEM
-// [0xE0000000, 0xE0040000) - 256KB locked L1
+// [0xE0000000, 0xE0040000) - 256KiB locked L1
 //
-// The 4GB starting at logical_base represents access from the CPU
+// The 4GiB starting at logical_base represents access from the CPU
 // with address translation turned on.  This mapping is computed based
 // on the BAT registers.
 //
-// Each of these 4GB regions is followed by 4GB of empty space so overflows
+// Each of these 4GiB regions is followed by 4GiB of empty space so overflows
 // in address computation in the JIT don't access the wrong memory.
 //
 // The neighboring mirrors of RAM ([0x02000000, 0x08000000), etc.) exist because
@@ -222,7 +222,7 @@ struct LogicalMemoryView
 //
 // Dolphin doesn't emulate the difference between cached and uncached access.
 //
-// TODO: The actual size of RAM is 24MB; the other 8MB shouldn't be backed by actual memory.
+// TODO: The actual size of RAM is 24MiB; the other 8MiB shouldn't be backed by actual memory.
 // TODO: Do we want to handle the mirrors of the GC RAM?
 static std::array<PhysicalMemoryRegion, 4> s_physical_regions;
 

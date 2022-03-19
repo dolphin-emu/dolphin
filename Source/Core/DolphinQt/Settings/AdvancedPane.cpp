@@ -281,7 +281,7 @@ void AdvancedPane::Update()
 
   m_mem1_override_slider_label->setText([] {
     const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
-    return tr("%1 MB (MEM1)").arg(QString::number(mem1_size));
+    return tr("%1 MiB (MEM1)").arg(QString::number(mem1_size));
   }());
 
   m_mem2_override_slider->setEnabled(enable_ram_override_widgets && !running);
@@ -295,7 +295,7 @@ void AdvancedPane::Update()
 
   m_mem2_override_slider_label->setText([] {
     const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
-    return tr("%1 MB (MEM2)").arg(QString::number(mem2_size));
+    return tr("%1 MiB (MEM2)").arg(QString::number(mem2_size));
   }());
 
   m_custom_rtc_checkbox->setEnabled(!running);

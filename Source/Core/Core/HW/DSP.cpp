@@ -515,7 +515,7 @@ static void Do_ARAM_DMA()
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from ARAM {:08x} to MRAM {:08x} PC: {:08x}",
                   s_arDMA.Cnt.count, s_arDMA.ARAddr, s_arDMA.MMAddr, PC);
 
-    // Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
+    // Outgoing data from ARAM is mirrored every 64MiB (verified on real HW)
     s_arDMA.ARAddr &= 0x3ffffff;
     s_arDMA.MMAddr &= 0x3ffffff;
 
@@ -562,7 +562,7 @@ static void Do_ARAM_DMA()
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from MRAM {:08x} to ARAM {:08x} PC: {:08x}",
                   s_arDMA.Cnt.count, s_arDMA.MMAddr, s_arDMA.ARAddr, PC);
 
-    // Incoming data into ARAM is mirrored every 64MB (verified on real HW)
+    // Incoming data into ARAM is mirrored every 64MiB (verified on real HW)
     s_arDMA.ARAddr &= 0x3ffffff;
     s_arDMA.MMAddr &= 0x3ffffff;
 

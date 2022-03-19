@@ -155,7 +155,8 @@ void HiresTexture::Prefetch()
   size_t size_sum = 0;
   const size_t sys_mem = Common::MemPhysical();
   const size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
-  // keep 2GB memory for system stability if system RAM is 4GB+ - use half of memory in other cases
+  // keep 2GiB memory for system stability if system RAM is 4GiB+ - use half of memory in other
+  // cases
   const size_t max_mem =
       (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
 
@@ -200,7 +201,7 @@ void HiresTexture::Prefetch()
 
       OSD::AddMessage(
           fmt::format(
-              "Custom Textures prefetching after {:.1f} MB aborted, not enough RAM available",
+              "Custom Textures prefetching after {:.1f} MiB aborted, not enough RAM available",
               size_sum / (1024.0 * 1024.0)),
           10000);
       return;
@@ -208,7 +209,7 @@ void HiresTexture::Prefetch()
   }
 
   const u32 stop_time = Common::Timer::GetTimeMs();
-  OSD::AddMessage(fmt::format("Custom Textures loaded, {:.1f} MB in {:.1f}s",
+  OSD::AddMessage(fmt::format("Custom Textures loaded, {:.1f} MiB in {:.1f}s",
                               size_sum / (1024.0 * 1024.0), (stop_time - start_time) / 1000.0),
                   10000);
 }

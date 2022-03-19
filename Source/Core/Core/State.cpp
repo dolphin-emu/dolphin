@@ -180,8 +180,8 @@ static void DoState(PointerWrap& p)
   if (state_mem1_size != Memory::GetRamSizeReal() || state_mem2_size != Memory::GetExRamSizeReal())
   {
     OSD::AddMessage(fmt::format("Memory size mismatch!\n"
-                                "Current | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)\n"
-                                "State   | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)",
+                                "Current | MEM1 {:08X} ({:3}MiB)    MEM2 {:08X} ({:3}MiB)\n"
+                                "State   | MEM1 {:08X} ({:3}MiB)    MEM2 {:08X} ({:3}MiB)",
                                 Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000U,
                                 Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000U,
                                 state_mem1_size, state_mem1_size / 0x100000U, state_mem2_size,

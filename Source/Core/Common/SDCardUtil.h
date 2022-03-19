@@ -8,5 +8,5 @@
 
 namespace Common
 {
-bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename);
+bool SDCardCreate(u64 disk_size /*in MiB*/, const std::string& filename);
 }  // namespace Common

@@ -198,7 +198,7 @@ void CompatPatchesInstall(LdrWatcher* watcher)
 {
   watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"}, [](const LdrDllLoadEvent& event) {
                       // *EZFRD64 is incldued in software packages for cheapo third-party gamepads
-                      // (and gamepad adapters). The module cannot handle its heap being above 4GB,
+                      // (and gamepad adapters). The module cannot handle its heap being above 4GiB,
                       // which tends to happen very often on modern Windows.
                       // NOTE: The patch will always be applied, but it will only actually avoid the
                       // crash if applied before module initialization (i.e. called on the Ldr

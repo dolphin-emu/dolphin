@@ -24,7 +24,7 @@ enum DSPInterruptType
 // aram size and mask
 enum
 {
-  ARAM_SIZE = 0x01000000,  // 16 MB
+  ARAM_SIZE = 0x01000000,  // 16 MiB
   ARAM_MASK = 0x00FFFFFF,
 };
 

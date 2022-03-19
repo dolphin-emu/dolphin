@@ -61,9 +61,9 @@ bool VertexManager::Initialize()
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
-    // The minimum MAX_TEXTURE_BUFFER_SIZE that the spec mandates is 65KB, we are asking for a 1MB
+    // The minimum MAX_TEXTURE_BUFFER_SIZE that the spec mandates is 65KB, we are asking for a 1MiB
     // buffer here. This buffer is also used as storage for undecoded textures when compute shader
-    // texture decoding is enabled, in which case the requested size is 32MB.
+    // texture decoding is enabled, in which case the requested size is 32MiB.
     GLint max_buffer_size;
     glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &max_buffer_size);
     m_texel_buffer = StreamBuffer::Create(

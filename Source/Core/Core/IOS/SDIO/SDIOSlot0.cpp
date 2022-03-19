@@ -93,7 +93,7 @@ void SDIOSlot0Device::OpenInternal()
   m_card.Open(filename, "r+b");
   if (!m_card)
   {
-    WARN_LOG_FMT(IOS_SD, "Failed to open SD Card image, trying to create a new 128 MB image...");
+    WARN_LOG_FMT(IOS_SD, "Failed to open SD Card image, trying to create a new 128 MiB image...");
     if (Common::SDCardCreate(128, filename))
     {
       INFO_LOG_FMT(IOS_SD, "Successfully created {}", filename);

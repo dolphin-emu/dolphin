@@ -194,14 +194,15 @@ static bool write_empty(File::IOFile& file, std::size_t count)
   return true;
 }
 
-bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
+bool SDCardCreate(u64 disk_size /*in MiB*/, const std::string& filename)
 {
-  // Convert MB to bytes
+  // Convert MiB to bytes
   disk_size *= 1024 * 1024;
 
   if (disk_size < 0x800000 || disk_size > 0x800000000ULL)
   {
-    ERROR_LOG_FMT(COMMON, "Trying to create SD Card image of size {}MB is out of range (8MB-32GB)",
+    ERROR_LOG_FMT(COMMON,
+                  "Trying to create SD Card image of size {}MiB is out of range (8MiB-32GiB)",
                   disk_size / (1024 * 1024));
     return false;
   }

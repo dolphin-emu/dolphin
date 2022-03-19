@@ -84,7 +84,7 @@ bool VertexManager::Initialize()
                                                   g_vulkan_context->GetUniformBufferAlignment()) +
                                   sizeof(GeometryShaderConstants);
 
-  // Prefer an 8MB buffer if possible, but use less if the device doesn't support this.
+  // Prefer an 8MiB buffer if possible, but use less if the device doesn't support this.
   // This buffer is potentially going to be addressed as R8s in the future, so we assume
   // that one element is one byte. This doesn't use min() because of a NDK compiler bug..
   const u32 texel_buffer_size =

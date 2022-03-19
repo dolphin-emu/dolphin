@@ -201,7 +201,7 @@ constexpr u32 BAT_MAPPED_BIT = 0x1;
 constexpr u32 BAT_PHYSICAL_BIT = 0x2;
 constexpr u32 BAT_WI_BIT = 0x4;
 constexpr u32 BAT_RESULT_MASK = UINT32_C(~0x7);
-using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KB
+using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KiB
 extern BatTable ibat_table;
 extern BatTable dbat_table;
 inline bool TranslateBatAddess(const BatTable& bat_table, u32* address, bool* wi)
