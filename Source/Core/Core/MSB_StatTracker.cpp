@@ -693,6 +693,7 @@ void StatTracker::logContactResult(Contact* in_contact){
     }
     else{
         in_contact->primary_contact_result = 3;
+        in_contact->secondary_contact_result = 0xFF; //???
         in_contact->ball_x_pos = Memory::Read_U32(aAB_BallPos_X);
         in_contact->ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
         in_contact->ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);

@@ -225,6 +225,7 @@ static const std::map<u8, std::string> cSecondaryContactResult = {
     {0xE,  "SacFly"},
     {0xF,  "???"},
     {0x10, "???"},
+    {0xFF, "???"},
 };
 
 static const std::map<u8, std::string> cAtBatResult = {
