@@ -26,6 +26,7 @@
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
+#include "DolphinQt/Settings/ResetSettingsDialog.h"
 
 #include "UICommon/AutoUpdate.h"
 #ifdef USE_DISCORD_PRESENCE
@@ -395,5 +396,6 @@ void GeneralPane::GenerateNewIdentity()
 
 void GeneralPane::ResetSettings()
 {
-  SConfig::ResetSettings();
+  ResetSettingsDialog dialog(this);
+  dialog.exec();
 }

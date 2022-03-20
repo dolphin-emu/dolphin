@@ -32,6 +32,36 @@ class TMDReader;
 
 struct BootParameters;
 
+enum class ResetSettingsEnum
+{
+  None = 0,
+  Core = 1,
+  Graphics = 1 << 1,
+  Paths = 1 << 2,
+  GUI = 1 << 3,
+  Controller = 1 << 4,
+  Netplay = 1 << 5,
+};
+
+inline ResetSettingsEnum operator&(ResetSettingsEnum lhs, ResetSettingsEnum rhs)
+{
+  return static_cast<ResetSettingsEnum>(static_cast<int>(lhs) & static_cast<int>(rhs));
+}
+inline ResetSettingsEnum& operator&=(ResetSettingsEnum& lhs, ResetSettingsEnum rhs)
+{
+  lhs = lhs & rhs;
+  return lhs;
+}
+inline ResetSettingsEnum operator|(ResetSettingsEnum lhs, ResetSettingsEnum rhs)
+{
+  return static_cast<ResetSettingsEnum>(static_cast<int>(lhs) | static_cast<int>(rhs));
+}
+inline ResetSettingsEnum& operator|=(ResetSettingsEnum& lhs, ResetSettingsEnum rhs)
+{
+  lhs = lhs | rhs;
+  return lhs;
+}
+
 struct SConfig
 {
   // Settings
@@ -101,7 +131,7 @@ struct SConfig
   // Load settings
   void LoadSettings();
 
-  static void ResetSettings();
+  static void ResetSettings(ResetSettingsEnum settings_to_reset);
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
