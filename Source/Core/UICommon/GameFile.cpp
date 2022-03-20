@@ -180,6 +180,9 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
           m_long_makers.emplace(DiscIO::Language::English, std::move(descriptor->maker));
         m_internal_name = proxy.GetInternalName();
         m_game_id = proxy.GetGameID();
+        m_local_config_override = SConfig::MakeGameID(descriptor->config_ini_override ?
+                                                          descriptor->config_ini_override.value() :
+                                                          PathToFileName(m_file_path));
         m_gametdb_id = proxy.GetGameTDBID();
         m_title_id = proxy.GetTitleID();
         m_maker_id = proxy.GetMakerID();
@@ -360,6 +363,7 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_descriptions);
   p.Do(m_internal_name);
   p.Do(m_game_id);
+  p.Do(m_local_config_override);
   p.Do(m_gametdb_id);
   p.Do(m_title_id);
   p.Do(m_maker_id);
@@ -395,6 +399,26 @@ bool GameFile::IsElfOrDol() const
 {
   const std::string extension = GetExtension();
   return extension == ".elf" || extension == ".dol";
+}
+
+bool GameFile::GameModDescriptorChanged()
+{
+  if (IsModDescriptor())
+  {
+    auto descriptor = DiscIO::ParseGameModDescriptorFile(m_file_path);
+    if (descriptor)
+    {
+      m_pending.local_config_override = SConfig::MakeGameID(
+          descriptor->config_ini_override ? descriptor->config_ini_override.value() :
+                                            PathToFileName(m_file_path));
+    }
+  }
+  return m_pending.local_config_override != m_local_config_override;
+}
+
+void GameFile::GameModDescriptorCommit()
+{
+  m_local_config_override = std::move(m_pending.local_config_override);
 }
 
 bool GameFile::ReadXMLMetadata(const std::string& path)

@@ -26,7 +26,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 23;  // Last changed in PR 10932
+static constexpr u32 CACHE_REVISION = 24;  // Last changed in PR 10470
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -173,6 +173,7 @@ bool GameFileCache::UpdateAdditionalMetadata(
 
 bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file)
 {
+  const bool game_mod_descriptor_changed = (*game_file)->GameModDescriptorChanged();
   const bool xml_metadata_changed = (*game_file)->XMLMetadataChanged();
   const bool wii_banner_changed = (*game_file)->WiiBannerChanged();
   const bool custom_banner_changed = (*game_file)->CustomBannerChanged();
@@ -182,8 +183,8 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   const bool default_cover_changed = (*game_file)->DefaultCoverChanged();
   const bool custom_cover_changed = (*game_file)->CustomCoverChanged();
 
-  if (!xml_metadata_changed && !wii_banner_changed && !custom_banner_changed &&
-      !default_cover_changed && !custom_cover_changed)
+  if (!game_mod_descriptor_changed && !xml_metadata_changed && !wii_banner_changed &&
+      !custom_banner_changed && !default_cover_changed && !custom_cover_changed)
   {
     return false;
   }
@@ -192,6 +193,8 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
   // This makes the usage of cached files in other threads safe.
 
   std::shared_ptr<GameFile> copy = std::make_shared<GameFile>(**game_file);
+  if (game_mod_descriptor_changed)
+    copy->GameModDescriptorCommit();
   if (xml_metadata_changed)
     copy->XMLMetadataCommit();
   if (wii_banner_changed)

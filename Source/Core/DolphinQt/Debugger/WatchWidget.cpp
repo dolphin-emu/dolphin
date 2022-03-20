@@ -272,7 +272,8 @@ void WatchWidget::OnLoad()
 
   std::vector<std::string> watches;
 
-  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
+  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetLocalConfig() +
+                    ".ini",
                 false))
   {
     return;
@@ -290,10 +291,11 @@ void WatchWidget::OnLoad()
 void WatchWidget::OnSave()
 {
   IniFile ini;
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
+  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetLocalConfig() + ".ini",
            false);
   ini.SetLines("Watches", PowerPC::debug_interface.SaveWatchesToStrings());
-  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
+  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetLocalConfig() +
+           ".ini");
 }
 
 void WatchWidget::ShowContextMenu()

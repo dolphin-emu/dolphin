@@ -51,9 +51,10 @@ static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& g
 GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game)
 {
   m_game_id = m_game.GetGameID();
+  m_local_config = m_game.GetLocalConfig();
 
   m_gameini_local_path =
-      QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+      QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_local_config + ".ini");
 
   CreateWidgets();
   LoadSettings();
@@ -61,16 +62,17 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
 
   PopulateTab(m_default_tab, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, m_game_id,
               m_game.GetRevision(), true);
-  PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, m_game.GetRevision(),
-              false);
+  PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_local_config,
+              m_game.GetRevision(), false);
 
   // Always give the user the opportunity to create a new INI
   if (m_local_tab->count() == 0)
   {
     auto* edit = new GameConfigEdit(
-        nullptr, QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
+        nullptr,
+        QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_local_config + ".ini"),
         false);
-    m_local_tab->addTab(edit, QString::fromStdString(m_game_id + ".ini"));
+    m_local_tab->addTab(edit, QString::fromStdString(m_local_config + ".ini"));
   }
 }
 
@@ -267,7 +269,7 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
 void GameConfigWidget::LoadSettings()
 {
   // Reload config
-  m_gameini_local = SConfig::LoadLocalGameIni(m_game_id, m_game.GetRevision());
+  m_gameini_local = SConfig::LoadLocalGameIni(m_local_config, m_game.GetRevision());
   m_gameini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game.GetRevision());
 
   // Load game-specific settings

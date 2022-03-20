@@ -57,13 +57,17 @@ void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
 
   const auto& game_id =
       state != Core::State::Uninitialized ? SConfig::GetInstance().GetGameID() : std::string();
+  const auto& local_config =
+      state != Core::State::Uninitialized ? SConfig::GetInstance().GetLocalConfig() : std::string();
   const auto& game_tdb_id = SConfig::GetInstance().GetGameTDBID();
   const u16 revision = SConfig::GetInstance().GetRevision();
 
-  if (!force && m_game_id == game_id && m_game_tdb_id == game_tdb_id && m_revision == revision)
+  if (!force && m_game_id == game_id && m_local_config == local_config &&
+      m_game_tdb_id == game_tdb_id && m_revision == revision)
     return;
 
   m_game_id = game_id;
+  m_local_config = local_config;
   m_game_tdb_id = game_tdb_id;
   m_revision = revision;
 
@@ -85,8 +89,8 @@ void CheatsManager::RefreshCodeTabs(Core::State state, bool force)
     m_gecko_code = nullptr;
   }
 
-  m_ar_code = new ARCodeWidget(m_game_id, m_revision, false);
-  m_gecko_code = new GeckoCodeWidget(m_game_id, m_game_tdb_id, m_revision, false);
+  m_ar_code = new ARCodeWidget(m_game_id, m_local_config, m_revision, false);
+  m_gecko_code = new GeckoCodeWidget(m_game_id, m_local_config, m_game_tdb_id, m_revision, false);
   m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
   m_tab_widget->insertTab(1, m_gecko_code, tr("Gecko Codes"));
   m_tab_widget->setTabUnclosable(0);

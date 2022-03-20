@@ -75,6 +75,10 @@ public:
   std::vector<DiscIO::Language> GetLanguages() const;
   const std::string& GetInternalName() const { return m_internal_name; }
   const std::string& GetGameID() const { return m_game_id; }
+  const std::string& GetLocalConfig() const
+  {
+    return !m_local_config_override.empty() ? m_local_config_override : m_game_id;
+  }
   const std::string& GetGameTDBID() const { return m_gametdb_id; }
   u64 GetTitleID() const { return m_title_id; }
   const std::string& GetMakerID() const { return m_maker_id; }
@@ -111,6 +115,8 @@ public:
   const GameBanner& GetBannerImage() const;
   const GameCover& GetCoverImage() const;
   void DoState(PointerWrap& p);
+  bool GameModDescriptorChanged();
+  void GameModDescriptorCommit();
   bool XMLMetadataChanged();
   void XMLMetadataCommit();
   bool WiiBannerChanged();
@@ -156,6 +162,7 @@ private:
   std::map<DiscIO::Language, std::string> m_descriptions;
   std::string m_internal_name;
   std::string m_game_id;
+  std::string m_local_config_override;
   std::string m_gametdb_id;
   u64 m_title_id{};
   std::string m_maker_id;
@@ -182,6 +189,7 @@ private:
   // of GameFiles in a threadsafe way. They should not be handled in DoState.
   struct
   {
+    std::string local_config_override;
     std::string custom_name;
     std::string custom_description;
     std::string custom_maker;

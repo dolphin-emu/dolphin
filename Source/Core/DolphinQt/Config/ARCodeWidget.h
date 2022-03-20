@@ -25,7 +25,8 @@ class ARCodeWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required = true);
+  explicit ARCodeWidget(std::string game_id, std::string local_config, u16 game_revision,
+                        bool restart_required = true);
   ~ARCodeWidget() override;
 
   void AddCode(ActionReplay::ARCode code);
@@ -51,6 +52,7 @@ private:
   void OnListReordered();
 
   std::string m_game_id;
+  std::string m_local_config;
   u16 m_game_revision;
 
   CheatWarningWidget* m_warning;

@@ -24,9 +24,10 @@
 
 #include "UICommon/GameFile.h"
 
-ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_required)
-    : m_game_id(std::move(game_id)), m_game_revision(game_revision),
-      m_restart_required(restart_required)
+ARCodeWidget::ARCodeWidget(std::string game_id, std::string local_config, u16 game_revision,
+                           bool restart_required)
+    : m_game_id(std::move(game_id)), m_local_config(std::move(local_config)),
+      m_game_revision(game_revision), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -37,7 +38,7 @@ ARCodeWidget::ARCodeWidget(std::string game_id, u16 game_revision, bool restart_
 
     // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
     // will always be stored in GS/${GAMEID}.ini
-    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + local_config + ".ini");
 
     const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
     m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
@@ -183,7 +184,7 @@ void ARCodeWidget::SaveCodes()
     return;
 
   const auto ini_path =
-      std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_game_id).append(".ini");
+      std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_local_config).append(".ini");
 
   IniFile game_ini_local;
   game_ini_local.Load(ini_path);

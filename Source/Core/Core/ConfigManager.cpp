@@ -179,7 +179,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   Host_TitleChanged();
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
-  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(GetLocalConfig(), revision));
 
   if (Core::IsRunning())
     DolphinAnalytics::Instance().ReportGameStart();
@@ -324,6 +324,7 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
 {
   m_is_mios = false;
   m_disc_booted_from_game_list = false;
+  m_local_config_override = boot.config_override;
   if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
     return false;
 
@@ -393,12 +394,12 @@ IniFile SConfig::LoadDefaultGameIni() const
 
 IniFile SConfig::LoadLocalGameIni() const
 {
-  return LoadLocalGameIni(GetGameID(), m_revision);
+  return LoadLocalGameIni(GetLocalConfig(), m_revision);
 }
 
 IniFile SConfig::LoadGameIni() const
 {
-  return LoadGameIni(GetGameID(), m_revision);
+  return LoadGameIni(GetGameID(), GetLocalConfig(), m_revision);
 }
 
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
@@ -417,12 +418,13 @@ IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revi
   return game_ini;
 }
 
-IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
+IniFile SConfig::LoadGameIni(const std::string& id, const std::string& local_config,
+                             std::optional<u16> revision)
 {
   IniFile game_ini;
   for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(local_config, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
 }

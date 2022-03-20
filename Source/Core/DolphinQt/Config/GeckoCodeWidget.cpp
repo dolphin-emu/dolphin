@@ -30,10 +30,11 @@
 
 #include "UICommon/GameFile.h"
 
-GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u16 game_revision,
-                                 bool restart_required)
-    : m_game_id(std::move(game_id)), m_gametdb_id(std::move(gametdb_id)),
-      m_game_revision(game_revision), m_restart_required(restart_required)
+GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string local_config,
+                                 std::string gametdb_id, u16 game_revision, bool restart_required)
+    : m_game_id(std::move(game_id)), m_local_config(std::move(local_config)),
+      m_gametdb_id(std::move(gametdb_id)), m_game_revision(game_revision),
+      m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -44,7 +45,7 @@ GeckoCodeWidget::GeckoCodeWidget(std::string game_id, std::string gametdb_id, u1
 
     // We don't use LoadLocalGameIni() here because user cheat codes that are installed via the UI
     // will always be stored in GS/${GAMEID}.ini
-    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+    game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_local_config + ".ini");
 
     const IniFile game_ini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game_revision);
     m_gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
@@ -243,7 +244,7 @@ void GeckoCodeWidget::SaveCodes()
     return;
 
   const auto ini_path =
-      std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_game_id).append(".ini");
+      std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(m_local_config).append(".ini");
 
   IniFile game_ini_local;
   game_ini_local.Load(ini_path);
