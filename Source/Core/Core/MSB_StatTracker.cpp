@@ -80,7 +80,7 @@ void StatTracker::lookForTriggerEvents(){
                         if (fielder_port > 1 && fielder_port <= 4){
                             m_game_info.team1_port = fielder_port;
                         }
-                        if (batter_port > 1 && batter_port <= 4){
+                        else if (batter_port > 1 && batter_port <= 4){
                             m_game_info.team1_port = batter_port;
                         }
                         else{
@@ -89,8 +89,8 @@ void StatTracker::lookForTriggerEvents(){
                         }
 
                         //Map home and away ports for scores
-                        m_game_info.away_port = (batter_port > 0 && batter_port <= 4) ? batter_port : 5;
-                        m_game_info.home_port = (fielder_port > 0 && fielder_port <= 4) ? fielder_port : 5;
+                        m_game_info.away_port = batter_port;
+                        m_game_info.home_port = fielder_port;
 
                         readPlayerNames(!m_game_info.netplay);
                         setDefaultNames(!m_game_info.netplay);
@@ -106,7 +106,12 @@ void StatTracker::lookForTriggerEvents(){
                             home_player_name = m_game_info.team0_player_name;
                         }
 
-                        std::cout << "Away Player=" << away_player_name << "(" << std::to_string(m_game_info.away_port) << "), Home Player=" << home_player_name << "(" << std::to_string(m_game_info.home_port) << ")" << std::endl;;
+                        std::cout << "Info:  Fielder Port=" << std::to_string(fielder_port) << ", Batter Port=" << std::to_string(batter_port) << std::endl;
+                        std::cout << "Info:  Team0 Port=" << std::to_string(m_game_info.team0_port) << ", Team1 Port=" << std::to_string(m_game_info.team1_port) << std::endl;
+                        std::cout << "Info:  Away Port=" << std::to_string(m_game_info.away_port) << ", Home Port=" << std::to_string(m_game_info.home_port) << std::endl;
+                        std::cout << "Info:  Away Player=" << (away_player_name) << ", Home Player=" << (home_player_name) << std::endl << std::endl;
+
+                        //std::cout << "Away Player=" << away_player_name << "(" << std::to_string(m_game_info.away_port) << "), Home Player=" << home_player_name << "(" << std::to_string(m_game_info.home_port) << ")" << std::endl;;
                     }
 
                     //Get captain roster positions
