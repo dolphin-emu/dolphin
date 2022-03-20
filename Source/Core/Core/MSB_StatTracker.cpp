@@ -963,7 +963,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
 
                 Contact* contact = &pitch->contact.value();
                 json_stream << "        \"Contact\": {" << std::endl;
-                json_stream << "          \"Type of Swing\": "                    << decode("Swing", contact->type_of_swing, inDecode) << "," << std::endl;
+                //json_stream << "          \"Type of Swing\": "                    << decode("Swing", contact->type_of_swing, inDecode) << "," << std::endl;
                 json_stream << "          \"Type of Contact\": "                  << decode("Contact", contact->type_of_contact, inDecode) << "," << std::endl;
                 json_stream << "          \"Charge Power Up\": "                  << floatConverter(contact->charge_power_up) << "," << std::endl;
                 json_stream << "          \"Charge Power Down\": "                << floatConverter(contact->charge_power_down) << "," << std::endl;
