@@ -555,8 +555,8 @@ void StatTracker::logContact(Event& in_event){
     contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
     contact->ball_z_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
 
-    contact->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
-    contact->ball_z_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
+    contact->batter_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
+    contact->batter_z_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
 
     //Frame collect
     contact->frameOfSwingUponContact = Memory::Read_U16(aAB_FrameOfSwingAnimUponContact);
@@ -969,7 +969,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
                 json_stream << "          \"Charge Power Down\": "                << floatConverter(contact->charge_power_down) << "," << std::endl;
                 json_stream << "          \"Star Swing Five-Star\": "             << std::to_string(contact->moon_shot) << "," << std::endl;
                 json_stream << "          \"Input Direction\": "                  << decode("Stick", contact->input_direction, inDecode) << "," << std::endl;
-                json_stream << "          \"Frame Of Swing Upon Contact\": "      << std::dec << contact->frameOfSwingUponContact << "," << std::endl;
+                json_stream << "          \"Frame of Swing Upon Contact\": "      << std::dec << contact->frameOfSwingUponContact << "," << std::endl;
                 json_stream << "          \"Ball Angle\": \""                     << std::dec << contact->ball_angle << "\"," << std::endl;
                 json_stream << "          \"Ball Vertical Power\": \""            << std::dec << contact->vert_power << "\"," << std::endl;
                 json_stream << "          \"Ball Horizontal Power\": \""          << std::dec << contact->horiz_power << "\"," << std::endl;
