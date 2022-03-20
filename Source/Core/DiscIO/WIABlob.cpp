@@ -56,7 +56,7 @@ static void PushBack(std::vector<u8>* vector, const T& x)
   PushBack(vector, x_ptr, x_ptr + sizeof(T));
 }
 
-std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compression_type)
+std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compression_type, bool gui)
 {
   switch (compression_type)
   {
@@ -68,7 +68,10 @@ std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compressio
     // The actual minimum level can be gotten by calling ZSTD_minCLevel(). However, returning that
     // would make the UI rather weird, because it is a negative number with very large magnitude.
     // Note: Level 0 is a special number which means "default level" (level 3 as of this writing).
-    return {1, ZSTD_maxCLevel()};
+    if (gui)
+      return {1, ZSTD_maxCLevel()};
+    else
+      return {ZSTD_minCLevel(), ZSTD_maxCLevel()};
   default:
     return {0, -1};
   }
@@ -1985,7 +1988,8 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 
   header_2.disc_type = Common::swap32(disc_type);
   header_2.compression_type = Common::swap32(static_cast<u32>(compression_type));
-  header_2.compression_level = Common::swap32(static_cast<u32>(compression_level));
+  header_2.compression_level =
+      static_cast<s32>(Common::swap32(static_cast<u32>(compression_level)));
   header_2.chunk_size = Common::swap32(static_cast<u32>(chunk_size));
 
   header_2.number_of_partition_entries = Common::swap32(static_cast<u32>(partition_entries.size()));
