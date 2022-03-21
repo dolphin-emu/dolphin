@@ -34,6 +34,9 @@
     <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
       <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)FatFs\FatFs.vcxproj">
+      <Project>{3F17D282-A77D-4931-B844-903AD0809A5E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)FreeSurround\FreeSurround.vcxproj">
       <Project>{8498f2fa-5ca6-4169-9971-de5b1fe6132c}</Project>
     </ProjectReference>
