@@ -495,7 +495,7 @@ void SetAvgPing()
     return;
 
   // checks if GameID is set and that the end game flag hasn't been hit yet
-  bool inGame = Memory::Read_U32(aGameId) != 0 && Memory::Read_U32(aEndOfGameFlag) == 0 ?
+  bool inGame = Memory::Read_U32(aGameId) != 0 /*&& Memory::Read_U8(aEndOfGameFlag) == 0*/ ?
                     true :
                     false;
   if (!inGame) {
