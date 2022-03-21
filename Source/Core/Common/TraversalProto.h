@@ -69,7 +69,7 @@ struct TraversalPacket
     {
       u8 ok;
       TraversalHostId yourHostId;
-      TraversalInetAddress yourAddress;  // currently unused
+      TraversalInetAddress yourAddress;
     } helloFromServer;
     struct
     {

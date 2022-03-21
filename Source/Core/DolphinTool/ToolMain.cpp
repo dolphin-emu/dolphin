@@ -10,12 +10,13 @@
 #include "Common/Version.h"
 #include "DolphinTool/Command.h"
 #include "DolphinTool/ConvertCommand.h"
+#include "DolphinTool/HeaderCommand.h"
 #include "DolphinTool/VerifyCommand.h"
 
 static int PrintUsage(int code)
 {
   std::cerr << "usage: dolphin-tool COMMAND -h" << std::endl << std::endl;
-  std::cerr << "commands supported: [convert, verify]" << std::endl;
+  std::cerr << "commands supported: [convert, verify, header]" << std::endl;
 
   return code;
 }
@@ -42,6 +43,8 @@ int main(int argc, char* argv[])
     command = std::make_unique<DolphinTool::ConvertCommand>();
   else if (command_str == "verify")
     command = std::make_unique<DolphinTool::VerifyCommand>();
+  else if (command_str == "header")
+    command = std::make_unique<DolphinTool::HeaderCommand>();
   else
     return PrintUsage(1);
 

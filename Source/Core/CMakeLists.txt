@@ -23,10 +23,10 @@ if (APPLE OR WIN32)
   add_subdirectory(UpdaterCommon)
 endif()
 
-if (APPLE)
+if (APPLE AND ENABLE_AUTOUPDATE)
   add_subdirectory(MacUpdater)
 endif()
 
-if (WIN32)
+if (WIN32 AND ENABLE_AUTOUPDATE)
   add_subdirectory(WinUpdater)
 endif()

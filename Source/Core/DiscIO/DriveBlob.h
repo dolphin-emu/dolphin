@@ -32,6 +32,7 @@ public:
   u64 GetBlockSize() const override { return ECC_BLOCK_SIZE; }
   bool HasFastRandomAccessInBlock() const override { return false; }
   std::string GetCompressionMethod() const override { return {}; }
+  std::optional<int> GetCompressionLevel() const override { return std::nullopt; }
 
 private:
   DriveReader(const std::string& drive);

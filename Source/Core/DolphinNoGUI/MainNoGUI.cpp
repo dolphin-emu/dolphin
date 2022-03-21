@@ -30,6 +30,8 @@
 #endif
 #include "UICommon/UICommon.h"
 
+#include "InputCommon/GCAdapter.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -226,6 +228,7 @@ int main(int argc, char* argv[])
 
   UICommon::SetUserDirectory(user_directory);
   UICommon::Init();
+  GCAdapter::Init();
 
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())

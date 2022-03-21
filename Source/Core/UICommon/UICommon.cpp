@@ -108,7 +108,6 @@ void Init()
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  GCAdapter::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));

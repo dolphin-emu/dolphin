@@ -113,6 +113,7 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
@@ -328,6 +329,7 @@ void MainWindow::InitControllers()
              "No default device has been added in time. EmulatedController(s) defaulting adds"
              " input mappings made for a specific default device depending on the platform");
   }
+  GCAdapter::Init();
   Pad::Initialize();
   Pad::InitializeGBA();
   Keyboard::Initialize();

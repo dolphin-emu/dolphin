@@ -33,6 +33,10 @@ public:
   {
     return m_blob_reader->GetCompressionMethod();
   }
+  std::optional<int> GetCompressionLevel() const override
+  {
+    return m_blob_reader->GetCompressionLevel();
+  }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
 
