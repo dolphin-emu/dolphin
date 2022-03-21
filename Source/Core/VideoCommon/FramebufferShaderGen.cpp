@@ -194,9 +194,9 @@ void EmitPixelMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_colo
     {
       code.Write("VARYING_LOCATION(0) in VertexData {{\n");
       for (u32 i = 0; i < num_tex_inputs; i++)
-        code.Write("  in float3 v_tex{};\n", i);
+        code.Write("  float3 v_tex{};\n", i);
       for (u32 i = 0; i < num_color_inputs; i++)
-        code.Write("  in float4 v_col{};\n", i);
+        code.Write("  float4 v_col{};\n", i);
       code.Write("}};\n");
     }
     else
