@@ -26,6 +26,7 @@ PathPane::PathPane(QWidget* parent) : QWidget(parent)
   setWindowTitle(tr("Paths"));
 
   QVBoxLayout* layout = new QVBoxLayout;
+  layout->addWidget(MakeUserdirBox());
   layout->addWidget(MakeGameFolderBox());
   layout->addLayout(MakePathsLayout());
 
@@ -130,6 +131,33 @@ void PathPane::OnSDCardPathChanged()
 void PathPane::OnNANDPathChanged()
 {
   Config::SetBase(Config::MAIN_FS_PATH, m_nand_edit->text().toStdString());
+}
+
+QGroupBox* PathPane::MakeUserdirBox()
+{
+  auto* group_box = new QGroupBox(tr("Dolphin User Data Directory"));
+  auto* group_layout = new QVBoxLayout();
+  group_box->setLayout(group_layout);
+
+  auto* label_1 = new QLabel(
+      tr("Your user data (settings, saves, etc.) is stored in the following directory:"));
+  label_1->setWordWrap(true);
+  group_layout->addWidget(label_1);
+
+  auto* line_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_USER_IDX)));
+  line_edit->setReadOnly(true);
+  group_layout->addWidget(line_edit);
+
+  auto* label_2 =
+      new QLabel(tr("This directory cannot be changed while Dolphin is running "
+                    "and is displayed for informational purposes only. To change where Dolphin "
+                    "stores your user data, please refer to <a "
+                    "href=\"https://dolphin-emu.org/docs/guides/controlling-global-user-directory/"
+                    "\">Controlling the Global User Directory on dolphin-emu.org</a>."));
+  label_2->setWordWrap(true);
+  group_layout->addWidget(label_2);
+
+  return group_box;
 }
 
 QGroupBox* PathPane::MakeGameFolderBox()

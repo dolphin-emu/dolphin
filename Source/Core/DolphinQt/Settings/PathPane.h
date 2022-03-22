@@ -26,6 +26,7 @@ private:
   void BrowseResourcePack();
   void BrowseSDCard();
   void BrowseWFS();
+  QGroupBox* MakeUserdirBox();
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();
   void RemovePath();
