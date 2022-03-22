@@ -126,6 +126,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_SYNC_GPU_MAX_DISTANCE.GetLocation(),
       &Config::MAIN_SYNC_GPU_MIN_DISTANCE.GetLocation(),
       &Config::MAIN_SYNC_GPU_OVERCLOCK.GetLocation(),
+      &Config::MAIN_OVERRIDE_BOOT_IOS.GetLocation(),
 
       // UI.General
 

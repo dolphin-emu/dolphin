@@ -182,6 +182,7 @@ const Info<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"},
 
 const Info<std::string> MAIN_GPU_DETERMINISM_MODE{{System::Main, "Core", "GPUDeterminismMode"},
                                                   "auto"};
+const Info<s32> MAIN_OVERRIDE_BOOT_IOS{{System::Main, "Core", "OverrideBootIOS"}, -1};
 
 GPUDeterminismMode GetGPUDeterminismMode()
 {
