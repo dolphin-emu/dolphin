@@ -112,8 +112,11 @@ void GeneralPane::ConnectLayout()
   }
 
   // Advanced
-  connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged),
-          [this]() { OnSaveConfig(); });
+  connect(m_combobox_speedlimit, qOverload<int>(&QComboBox::currentIndexChanged), [this]() {
+    Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
+                             m_combobox_speedlimit->currentIndex() * 0.1f);
+    Config::Save();
+  });
 
   connect(m_combobox_fallback_region, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &GeneralPane::OnSaveConfig);
@@ -354,8 +357,6 @@ void GeneralPane::OnSaveConfig()
                            m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
-  Config::SetBaseOrCurrent(Config::MAIN_EMULATION_SPEED,
-                           m_combobox_speedlimit->currentIndex() * 0.1f);
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 
