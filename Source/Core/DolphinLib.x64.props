@@ -47,7 +47,6 @@
     <ClCompile Include="Core\PowerPC\Jit64Common\FarCodeCache.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\TrampolineCache.cpp" />
-    <ClCompile Include="VideoCommon\FrameDump.cpp" />
     <ClCompile Include="VideoCommon\TextureDecoder_x64.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderX64.cpp" />
   </ItemGroup>
