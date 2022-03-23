@@ -20,6 +20,7 @@ extern "C" {
 #include <libavutil/error.h>
 #include <libavutil/log.h>
 #include <libavutil/mathematics.h>
+#include <libavutil/opt.h>
 #include <libswscale/swscale.h>
 }
 
@@ -247,7 +248,20 @@ bool FrameDump::CreateVideoFile()
   m_context->codec->time_base = time_base;
   m_context->codec->gop_size = 1;
   m_context->codec->level = 1;
-  m_context->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGR0 : AV_PIX_FMT_YUV420P;
+
+  if (m_context->codec->codec_id == AV_CODEC_ID_FFV1)
+  {
+    m_context->codec->pix_fmt = AV_PIX_FMT_BGR0;
+  }
+  else if (m_context->codec->codec_id == AV_CODEC_ID_UTVIDEO)
+  {
+    m_context->codec->pix_fmt = AV_PIX_FMT_GBRP;
+    av_opt_set_int(m_context->codec->priv_data, "pred", 3, 0);  // median
+  }
+  else
+  {
+    m_context->codec->pix_fmt = AV_PIX_FMT_YUV420P;
+  }
 
   if (output_format->flags & AVFMT_GLOBALHEADER)
     m_context->codec->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
