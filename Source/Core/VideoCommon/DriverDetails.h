@@ -43,6 +43,7 @@ enum Vendor
   VENDOR_TEGRA,
   VENDOR_VIVANTE,
   VENDOR_MESA,
+  VENDOR_SAMSUNG,
   VENDOR_UNKNOWN
 };
 
@@ -63,6 +64,7 @@ enum Driver
   DRIVER_IMGTEC,       // Official PowerVR driver
   DRIVER_VIVANTE,      // Official Vivante driver
   DRIVER_PORTABILITY,  // Vulkan via Metal on macOS
+  DRIVER_ANGLE,        // OpenGL ES via Vulkan using ANGLE
   DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 };
 
@@ -318,7 +320,11 @@ enum Bug
   // BUG: Multi-threaded shader pre-compilation sometimes crashes
   // Used primarily in Videoconfig.cpp's GetNumAutoShaderPreCompilerThreads()
   // refer to https://github.com/dolphin-emu/dolphin/pull/9414 for initial validation coverage
-  BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION
+  BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION,
+
+  // BUG: Calling glObjectLabel causes ANGLE to crash.
+  // (Only tested with the Samsung Xclipse 920.)
+  BUG_BROKEN_OBJECT_NAMES,
 };
 
 // Initializes our internal vendor, device family, and driver version

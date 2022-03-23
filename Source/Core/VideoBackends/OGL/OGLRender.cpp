@@ -184,6 +184,10 @@ static void InitDriverInfo()
   {
     vendor = DriverDetails::VENDOR_VIVANTE;
   }
+  else if (svendor == "Samsung Electronics Co., Ltd.")
+  {
+    vendor = DriverDetails::VENDOR_SAMSUNG;
+  }
 
   // Get device family and driver version...if we care about it
   switch (vendor)
@@ -316,6 +320,12 @@ static void InitDriverInfo()
   default:
     break;
   }
+
+  if (srenderer.find("ANGLE") != std::string::npos)
+  {
+    driver = DriverDetails::DRIVER_ANGLE;
+  }
+
   DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family);
 }
 
@@ -583,7 +593,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       g_ogl_config.bSupports3DTextureStorageMultisample = true;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
-      g_Config.backend_info.bSupportsSettingObjectNames = true;
+      g_Config.backend_info.bSupportsSettingObjectNames =
+          !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_OBJECT_NAMES);
     }
   }
   else
@@ -629,7 +640,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsSSAA = true;
-      g_Config.backend_info.bSupportsSettingObjectNames = true;
+      g_Config.backend_info.bSupportsSettingObjectNames =
+          !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_OBJECT_NAMES);
 
       // Compute shaders are core in GL4.3.
       g_Config.backend_info.bSupportsComputeShaders = true;
