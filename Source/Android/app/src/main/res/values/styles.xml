@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Inherit from the material theme -->
-    <style name="DolphinBase" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="DolphinBase" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Main theme colors -->
         <!-- Branding color for the app bar -->
         <item name="colorSurface">@color/dolphin_blue</item>
@@ -19,21 +19,23 @@
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="DolphinSettingsBase" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="DolphinSettingsBase" parent="Theme.Material3.DayNight">
         <item name="colorSurface">@color/dolphin_blue</item>
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue</item>
         <item name="colorAccent">@color/dolphin_blue_secondary</item>
+        <item name="titleTextColor">@android:color/white</item>
+        <item name="homeAsUpIndicator">@drawable/ic_back</item>
     </style>
 
     <!-- Themes for Dialogs -->
 
-    <style name="DolphinDialogBase" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+    <style name="DolphinDialogBase" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorAccent">@color/dolphin_blue_secondary</item>
     </style>
 
-    <style name="DolphinEmulationBase" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="DolphinEmulationBase" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue</item>
         <item name="colorAccent">@color/dolphin_blue_secondary</item>
@@ -68,7 +70,7 @@
         <item name="browseTitleViewLayout">@layout/titleview</item>
     </style>
 
-    <style name="InGameMenuOption" parent="Widget.MaterialComponents.Button.TextButton">
+    <style name="InGameMenuOption" parent="Widget.Material3.Button.TextButton">
         <item name="android:textSize">16sp</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
         <item name="android:textColor">@android:color/white</item>
@@ -102,10 +104,10 @@
 
         <!-- If you want to set a specific toolbar theme, do it here -->
 
-        <item name="nnf_toolbarTheme">@style/ThemeOverlay.MaterialComponents.Dark.ActionBar</item>
+        <item name="nnf_toolbarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
     </style>
 
-    <style name="FilePickerAlertDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+    <style name="FilePickerAlertDialogTheme" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="colorSurface">@color/dolphin_blue</item>
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue</item>
