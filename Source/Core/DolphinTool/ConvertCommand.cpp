@@ -2,9 +2,24 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinTool/ConvertCommand.h"
-#include "UICommon/UICommon.h"
+
+#include <iostream>
+#include <limits>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include <OptionParser.h>
+
+#include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/DiscUtils.h"
+#include "DiscIO/ScrubbedBlob.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
+#include "DiscIO/WIABlob.h"
+#include "DolphinTool/Command.h"
+#include "UICommon/UICommon.h"
 
 namespace DolphinTool
 {
@@ -99,21 +114,46 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
   }
   const DiscIO::BlobType format = format_o.value();
 
-  // Open the volume now for inspection
-  std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(input_file_path);
-  if (!volume)
+  // Open the blob reader
+  std::unique_ptr<DiscIO::BlobReader> blob_reader = DiscIO::CreateBlobReader(input_file_path);
+  if (!blob_reader)
   {
-    std::cerr << "Error: Unable to open disc image" << std::endl;
+    std::cerr << "Error: The input file could not be opened." << std::endl;
     return 1;
   }
 
   // --scrub
   const bool scrub = static_cast<bool>(options.get("scrub"));
 
-  if (scrub && volume->IsDatelDisc())
+  // Open the volume
+  std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateDisc(input_file_path);
+  if (!volume)
   {
-    std::cerr << "Error: Scrubbing a Datel disc is not supported";
-    return 1;
+    if (scrub)
+    {
+      std::cerr << "Error: Scrubbing is only supported for GC/Wii disc images." << std::endl;
+      return 1;
+    }
+
+    std::cerr << "Warning: The input file is not a GC/Wii disc image. Continuing anyway."
+              << std::endl;
+  }
+
+  if (scrub)
+  {
+    if (volume->IsDatelDisc())
+    {
+      std::cerr << "Error: Scrubbing a Datel disc is not supported." << std::endl;
+      return 1;
+    }
+
+    blob_reader = DiscIO::ScrubbedBlob::Create(input_file_path);
+
+    if (!blob_reader)
+    {
+      std::cerr << "Error: Unable to process disc image. Try again without --scrub." << std::endl;
+      return 1;
+    }
   }
 
   if (scrub && format == DiscIO::BlobType::RVZ)
@@ -130,7 +170,7 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
               << std::endl;
   }
 
-  if (!scrub && format == DiscIO::BlobType::GCZ &&
+  if (!scrub && format == DiscIO::BlobType::GCZ && volume &&
       volume->GetVolumeType() == DiscIO::Platform::WiiDisc && !volume->IsDatelDisc())
   {
     std::cerr << "Warning: Converting Wii disc images to GCZ without scrubbing may not offer space "
@@ -138,7 +178,7 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
               << std::endl;
   }
 
-  if (volume->IsNKit())
+  if (volume && volume->IsNKit())
   {
     std::cerr << "Warning: Converting an NKit file, output will still be NKit! Continuing anyway."
               << std::endl;
@@ -171,7 +211,7 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
                 << std::endl;
     }
 
-    if (format == DiscIO::BlobType::GCZ &&
+    if (format == DiscIO::BlobType::GCZ && volume &&
         !DiscIO::IsGCZBlockSizeLegacyCompatible(block_size_o.value(), volume->GetSize()))
     {
       std::cerr << "Warning: For GCZs to be compatible with Dolphin < 5.0-11893, "
@@ -230,17 +270,6 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
     }
   }
 
-  // Open the blob reader
-  std::unique_ptr<DiscIO::BlobReader> blob_reader =
-      scrub ? DiscIO::ScrubbedBlob::Create(input_file_path) :
-              DiscIO::CreateBlobReader(input_file_path);
-  if (!blob_reader)
-  {
-    std::cerr << "Error: Unable to process disc image. If --scrub is enabled, try again without it."
-              << std::endl;
-    return 1;
-  }
-
   // Perform the conversion
   const auto NOOP_STATUS_CALLBACK = [](const std::string& text, float percent) { return true; };
 
@@ -249,27 +278,42 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
   switch (format)
   {
   case DiscIO::BlobType::PLAIN:
+  {
     success = DiscIO::ConvertToPlain(blob_reader.get(), input_file_path, output_file_path,
                                      NOOP_STATUS_CALLBACK);
     break;
+  }
 
   case DiscIO::BlobType::GCZ:
-    success = DiscIO::ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path,
-                                   volume->GetVolumeType() == DiscIO::Platform::WiiDisc ? 1 : 0,
+  {
+    u32 sub_type = std::numeric_limits<u32>::max();
+    if (volume)
+    {
+      if (volume->GetVolumeType() == DiscIO::Platform::GameCubeDisc)
+        sub_type = 0;
+      else if (volume->GetVolumeType() == DiscIO::Platform::WiiDisc)
+        sub_type = 1;
+    }
+    success = DiscIO::ConvertToGCZ(blob_reader.get(), input_file_path, output_file_path, sub_type,
                                    block_size_o.value(), NOOP_STATUS_CALLBACK);
     break;
+  }
 
   case DiscIO::BlobType::WIA:
   case DiscIO::BlobType::RVZ:
+  {
     success = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), input_file_path, output_file_path,
                                         format == DiscIO::BlobType::RVZ, compression_o.value(),
                                         compression_level_o.value(), block_size_o.value(),
                                         NOOP_STATUS_CALLBACK);
     break;
+  }
 
   default:
+  {
     ASSERT(false);
     break;
+  }
   }
 
   if (!success)
@@ -282,7 +326,7 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
 }
 
 std::optional<DiscIO::WIARVZCompressionType>
-ConvertCommand::ParseCompressionTypeString(const std::string compression_str)
+ConvertCommand::ParseCompressionTypeString(const std::string& compression_str)
 {
   if (compression_str == "none")
     return DiscIO::WIARVZCompressionType::None;
@@ -300,7 +344,7 @@ ConvertCommand::ParseCompressionTypeString(const std::string compression_str)
     return std::nullopt;
 }
 
-std::optional<DiscIO::BlobType> ConvertCommand::ParseFormatString(const std::string format_str)
+std::optional<DiscIO::BlobType> ConvertCommand::ParseFormatString(const std::string& format_str)
 {
   if (format_str == "iso")
     return DiscIO::BlobType::PLAIN;
