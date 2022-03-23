@@ -292,17 +292,29 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
           std::string key, value;
           ParseLine(line, &key, &value);
 
-          // Lines starting with '$', '*' or '+' are kept verbatim.
-          // Kind of a hack, but the support for raw lines inside an
-          // INI is a hack anyway.
-          if ((key.empty() && value.empty()) ||
-              (!line.empty() && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
+          // hack to support the concept of the gameconfig.txt inside of the ini
+          if (current_section->name == "Gecko_GameConfig")
           {
             current_section->m_lines.emplace_back(line);
+            if (!key.empty() || !value.empty())
+            {
+              current_section->Set(key, value);
+            }
           }
           else
           {
-            current_section->Set(key, value);
+            // Lines starting with '$', '*' or '+' are kept verbatim.
+            // Kind of a hack, but the support for raw lines inside an
+            // INI is a hack anyway.
+            if ((key.empty() && value.empty()) ||
+                (!line.empty() && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
+            {
+              current_section->m_lines.emplace_back(line);
+            }
+            else
+            {
+              current_section->Set(key, value);
+            }
           }
         }
       }
@@ -329,7 +341,8 @@ bool IniFile::Save(const std::string& filename)
     if (!section.keys_order.empty() || !section.m_lines.empty())
       out << '[' << section.name << ']' << std::endl;
 
-    if (section.keys_order.empty())
+    // hack to support the concept of the gameconfig.txt inside of the ini
+    if (section.keys_order.empty() || section.name == "Gecko_GameConfig")
     {
       for (const std::string& s : section.m_lines)
         out << s << std::endl;

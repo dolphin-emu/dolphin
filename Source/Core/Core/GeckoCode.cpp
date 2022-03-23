@@ -15,6 +15,7 @@
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 
+#include <Core/HLE/HLE.h>
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
@@ -52,6 +53,13 @@ bool GeckoCode::Exist(u32 address, u32 data) const
          }) != codes.end();
 }
 
+u32 GeckoGameConfig::GetHLETrampolineAddress()
+{
+  // If the GCT is max-length then this is the second word of the End code (0xF0000000 0x00000000)
+  // If the table is shorter than the max-length then this address is unused / contains trash.
+  return codelist_end - 4;
+}
+
 enum class Installation
 {
   Uninstalled,
@@ -64,6 +72,22 @@ static Installation s_code_handler_installed = Installation::Uninstalled;
 static std::vector<GeckoCode> s_active_codes;
 static std::vector<GeckoCode> s_synced_codes;
 static std::mutex s_active_codes_lock;
+static GeckoGameConfig s_active_gameconfig;
+static GeckoGameConfig s_synced_gameconfig;
+
+u32 GetHLETrampolineAddress()
+{
+  return s_active_gameconfig.GetHLETrampolineAddress();
+}
+
+void SetGameConfig(const GeckoGameConfig& ggameconfig)
+{
+  s_active_gameconfig = ggameconfig;
+
+  // repatch GeckoHandlerReturnTrampoline
+  HLE::UnPatch("GeckoHandlerReturnTrampoline");
+  HLE::Patch(s_active_gameconfig.GetHLETrampolineAddress(), "GeckoHandlerReturnTrampoline");
+}
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
@@ -86,6 +110,13 @@ void SetSyncedCodesAsActive()
   s_active_codes.clear();
   s_active_codes.reserve(s_synced_codes.size());
   s_active_codes = s_synced_codes;
+
+  SetGameConfig(s_synced_gameconfig);
+}
+
+void UpdateSyncedGameConfig(const GeckoGameConfig& ggameconfig)
+{
+  s_synced_gameconfig = ggameconfig;
 }
 
 void UpdateSyncedCodes(const std::vector<GeckoCode>& gcodes)
@@ -153,10 +184,13 @@ static Installation InstallCodeHandlerLocked()
       PowerPC::HostWrite_U32(0x3f000000u | mmio_addr << 8, INSTALLER_BASE_ADDRESS + h);
     }
   }
+  u16 high = (s_active_gameconfig.codelist_start & 0xFFFF0000) >> 16;
+  u16 low = s_active_gameconfig.codelist_start & 0xFFFF;
+  PowerPC::HostWrite_U16(high, CODELIST_PTR_HIGH);
+  PowerPC::HostWrite_U16(low, CODELIST_PTR_LOW);
 
-  const u32 codelist_base_address =
-      INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
-  const u32 codelist_end_address = INSTALLER_END_ADDRESS;
+  const u32 codelist_base_address = s_active_gameconfig.codelist_start;
+  const u32 codelist_end_address = s_active_gameconfig.codelist_end;
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
   // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
@@ -199,15 +233,35 @@ static Installation InstallCodeHandlerLocked()
   // Stop code. Tells the handler that this is the end of the list.
   PowerPC::HostWrite_U32(0xF0000000, next_address);
   PowerPC::HostWrite_U32(0x00000000, next_address + 4);
-  PowerPC::HostWrite_U32(0, HLE_TRAMPOLINE_ADDRESS);
+  PowerPC::HostWrite_U32(0, s_active_gameconfig.GetHLETrampolineAddress());
 
   // Turn on codes
   PowerPC::HostWrite_U8(1, INSTALLER_BASE_ADDRESS + 7);
+
+  const size_t pokecount = s_active_gameconfig.pokevalues.size() / 4;
+  for (size_t j = 0; j < pokecount; ++j)
+  {
+    size_t index = j * 4;
+    u32 testaddr = s_active_gameconfig.pokevalues[index + 0];
+    u32 testval = s_active_gameconfig.pokevalues[index + 1];
+    u32 codeaddr = s_active_gameconfig.pokevalues[index + 2];
+    u32 codeval = s_active_gameconfig.pokevalues[index + 3];
+
+    if (testaddr == 0 || PowerPC::HostRead_U32(testaddr) == testval)
+    {
+      PowerPC::HostWrite_U32(codeval, codeaddr);
+      PowerPC::ppcState.iCache.Invalidate(codeaddr);
+    }
+  }
 
   // Invalidate the icache and any asm codes
   for (unsigned int j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
   {
     PowerPC::ppcState.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
+  }
+  for (unsigned int j = 0; j < (codelist_end_address - codelist_base_address); j += 32)
+  {
+    PowerPC::ppcState.iCache.Invalidate(codelist_base_address + j);
   }
   return Installation::Installed;
 }
@@ -281,7 +335,7 @@ void RunCodeHandler()
                 "GeckoCodes: Initiating phantom branch-and-link. "
                 "PC = {:#010x}, SP = {:#010x}, SFP = {:#010x}",
                 PC, SP, SFP);
-  LR = HLE_TRAMPOLINE_ADDRESS;
+  LR = s_active_gameconfig.GetHLETrampolineAddress();
   PC = NPC = ENTRY_POINT;
 }
 

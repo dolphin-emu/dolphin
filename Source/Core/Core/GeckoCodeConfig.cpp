@@ -127,6 +127,102 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded, bo
   return gcodes;
 }
 
+const std::string GAMECONFIG_CODELISTSTART = "codeliststart = ";
+const std::string GAMECONFIG_CODELISTEND = "codelistend = ";
+const std::string GAMECONFIG_POKE = "poke(";
+const std::string GAMECONFIG_POKEIFEQUAL = "pokeifequal(";
+// MinimaLauncher supports this, but I was unable to find a config example of it, and the code for
+// how it works isn't very understandable, leaving it unimplemented for the time being
+// const std::string GAMECONFIG_SEARCHANDPOKE = "searchandpoke(";
+
+GeckoGameConfig LoadGameConfig(const IniFile& globalIni, const IniFile& localIni)
+{
+  GeckoGameConfig g;
+
+  for (const IniFile* ini : {&globalIni, &localIni})
+  {
+    std::vector<std::string> lines;
+
+    const IniFile::Section* section = ini->GetSection("Gecko_GameConfig");
+    if (!section)
+      continue;
+
+    section->GetLines(&lines, false);
+
+    std::string output;
+    if (section->Get("codeliststart", &output))
+    {
+      TryParse(output, &g.codelist_start, 16);
+    }
+    if (section->Get("codelistend", &output))
+    {
+      TryParse(output, &g.codelist_end, 16);
+    }
+
+    lines.erase(std::remove_if(lines.begin(), lines.end(),
+                               [](const auto& line) { return line.empty() || line[0] == '#'; }),
+                lines.end());
+
+    for (auto& line : lines)
+    {
+      Common::ToLower(&line);
+
+      if (line.find(GAMECONFIG_POKE) == 0)
+      {
+        std::vector<std::string> items = SplitString(line.substr(GAMECONFIG_POKE.length()), ',');
+
+        if (items.size() == 2)
+        {
+          u32 val;
+          g.pokevalues.push_back(0);
+          g.pokevalues.push_back(0);
+          TryParse(items[0], &val, 16);
+          g.pokevalues.push_back(val);
+          TryParse(items[1].substr(0, items[1].length() - 1), &val, 16);
+          g.pokevalues.push_back(val);
+        }
+      }
+      else if (line.find(GAMECONFIG_POKEIFEQUAL) == 0)
+      {
+        std::vector<std::string> items =
+            SplitString(line.substr(GAMECONFIG_POKEIFEQUAL.length()), ',');
+
+        if (items.size() == 4)
+        {
+          u32 val;
+          TryParse(items[0], &val, 16);
+          g.pokevalues.push_back(val);
+          TryParse(items[1], &val, 16);
+          g.pokevalues.push_back(val);
+          TryParse(items[2], &val, 16);
+          g.pokevalues.push_back(val);
+          TryParse(items[3].substr(0, items[3].length() - 1), &val, 16);
+          g.pokevalues.push_back(val);
+        }
+      }
+    }
+  }
+
+  return g;
+}
+
+std::vector<std::string> LoadGameConfigTxt(const IniFile& globalIni, const IniFile& localIni)
+{
+  std::vector<std::string> lines;
+
+  for (const IniFile* ini : {&globalIni, &localIni})
+  {
+    const IniFile::Section* section = ini->GetSection("Gecko_GameConfig");
+    if (!section)
+      continue;
+
+    lines.clear();
+    section->GetLines(&lines, false);
+  }
+
+  return lines;
+}
+
 std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni)
 {
   std::vector<GeckoCode> gcodes;
@@ -239,7 +335,8 @@ static void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcod
     lines.push_back('*' + note);
 }
 
-void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
+void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes,
+               const std::vector<std::string> ggameconfig)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
@@ -256,6 +353,7 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
   inifile.SetLines("Gecko", lines);
   inifile.SetLines("Gecko_Enabled", enabled_lines);
   inifile.SetLines("Gecko_Disabled", disabled_lines);
+  inifile.SetLines("Gecko_GameConfig", ggameconfig);
 }
 
 std::optional<GeckoCode::Code> DeserializeLine(const std::string& line)

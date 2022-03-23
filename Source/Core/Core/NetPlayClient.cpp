@@ -1320,6 +1320,14 @@ void NetPlayClient::OnSyncCodesNotifyGecko(sf::Packet& packet)
   if (m_local_player->IsHost())
     return;
 
+  // Receive Number of Pokevalues to Recieve
+  packet >> m_sync_gecko_gameconfig_pokevalues_count;
+
+  m_sync_gecko_gameconfig_pokevalues_success_count = 0;
+
+  NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} GeckoGameConfig pokevalues",
+                 m_sync_gecko_gameconfig_pokevalues_count);
+
   // Receive Number of Codelines to Receive
   packet >> m_sync_gecko_codes_count;
 
@@ -1328,7 +1336,7 @@ void NetPlayClient::OnSyncCodesNotifyGecko(sf::Packet& packet)
   NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
 
   // Check if no codes to sync, if so return as finished
-  if (m_sync_gecko_codes_count == 0)
+  if (m_sync_gecko_gameconfig_pokevalues_count == 0 && m_sync_gecko_codes_count == 0)
   {
     m_sync_gecko_codes_complete = true;
     SyncCodeResponse(true);
@@ -1344,6 +1352,30 @@ void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
   // Return if this is the host
   if (m_local_player->IsHost())
     return;
+
+  Gecko::GeckoGameConfig synced_gameconfig;
+  synced_gameconfig.pokevalues.reserve(m_sync_gecko_gameconfig_pokevalues_count);
+
+  packet >> synced_gameconfig.codelist_start;
+  packet >> synced_gameconfig.codelist_end;
+
+  bool sync_pokevalues_complete = m_sync_gecko_gameconfig_pokevalues_count == 0;
+  for (u32 i = 0; i < m_sync_gecko_gameconfig_pokevalues_count; i++)
+  {
+    u32 pokevalue;
+    packet >> pokevalue;
+
+    synced_gameconfig.pokevalues.push_back(pokevalue);
+
+    if (++m_sync_gecko_gameconfig_pokevalues_success_count >= pokevalue)
+    {
+      sync_pokevalues_complete = true;
+    }
+  }
+
+  // Clear Vector if received 0 codes (match host's end when using no codes)
+  if (m_sync_gecko_gameconfig_pokevalues_count == 0)
+    synced_gameconfig.pokevalues.clear();
 
   std::vector<Gecko::GeckoCode> synced_codes;
   synced_codes.reserve(m_sync_gecko_codes_count);
@@ -1363,7 +1395,7 @@ void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
 
     gcode.codes.push_back(std::move(new_code));
 
-    if (++m_sync_gecko_codes_success_count >= m_sync_gecko_codes_count)
+    if (++m_sync_gecko_codes_success_count >= m_sync_gecko_codes_count && sync_pokevalues_complete)
     {
       m_sync_gecko_codes_complete = true;
       SyncCodeResponse(true);
@@ -1377,6 +1409,8 @@ void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
   if (m_sync_gecko_codes_count == 0)
     synced_codes.clear();
 
+  // Copy this to the gameconfig located in GeckoCode.cpp
+  Gecko::UpdateSyncedGameConfig(synced_gameconfig);
   // Copy this to the vector located in GeckoCode.cpp
   Gecko::UpdateSyncedCodes(synced_codes);
 }

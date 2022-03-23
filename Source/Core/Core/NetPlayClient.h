@@ -334,6 +334,8 @@ private:
   Common::Event m_wait_on_input_event;
   u8 m_sync_save_data_count = 0;
   u8 m_sync_save_data_success_count = 0;
+  u16 m_sync_gecko_gameconfig_pokevalues_count;
+  u16 m_sync_gecko_gameconfig_pokevalues_success_count;
   u16 m_sync_gecko_codes_count = 0;
   u16 m_sync_gecko_codes_success_count = 0;
   bool m_sync_gecko_codes_complete = false;
