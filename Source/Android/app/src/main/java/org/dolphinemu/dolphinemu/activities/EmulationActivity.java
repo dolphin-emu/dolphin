@@ -189,7 +189,7 @@ public final class EmulationActivity extends AppCompatActivity
               FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) &&
               FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_LOAD_PATH) &&
               FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_PATH))
+              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_IMAGE_PATH))
       {
         continueCallback.run();
       }

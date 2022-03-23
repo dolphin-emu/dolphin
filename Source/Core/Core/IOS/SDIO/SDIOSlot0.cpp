@@ -13,7 +13,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/SDCardUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
@@ -89,22 +88,8 @@ void SDIOSlot0Device::EventNotify()
 
 void SDIOSlot0Device::OpenInternal()
 {
-  const std::string filename = File::GetUserPath(F_WIISDCARD_IDX);
+  const std::string filename = File::GetUserPath(F_WIISDIMAGE_IDX);
   m_card.Open(filename, "r+b");
-  if (!m_card)
-  {
-    WARN_LOG_FMT(IOS_SD, "Failed to open SD Card image, trying to create a new 128 MB image...");
-    if (Common::SDCardCreate(128, filename))
-    {
-      INFO_LOG_FMT(IOS_SD, "Successfully created {}", filename);
-      m_card.Open(filename, "r+b");
-    }
-    if (!m_card)
-    {
-      ERROR_LOG_FMT(IOS_SD, "Could not open SD Card image or create a new one, are you running "
-                            "from a read-only directory?");
-    }
-  }
 }
 
 std::optional<IPCReply> SDIOSlot0Device::Open(const OpenRequest& request)

@@ -403,7 +403,7 @@ public final class SettingsFragmentPresenter
             MainPresenter.REQUEST_DIRECTORY, "/Load"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_RESOURCEPACK_PATH,
             R.string.resource_pack_path, 0, MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
-    sl.add(new FilePicker(mContext, StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
+    sl.add(new FilePicker(mContext, StringSetting.MAIN_SD_IMAGE_PATH, R.string.SD_card_path, 0,
             MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_WFS_PATH, R.string.wfs_path, 0,
             MainPresenter.REQUEST_DIRECTORY, "/WFS"));

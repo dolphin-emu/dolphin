@@ -68,6 +68,7 @@
 #define PASSIVE_DIR "Passive"
 #define PIPES_DIR "Pipes"
 #define MEMORYWATCHER_DIR "MemoryWatcher"
+#define SDFOLDER_DIR "SD"
 #define WFSROOT_DIR "WFS"
 #define BACKUP_DIR "Backup"
 #define RESOURCEPACK_DIR "ResourcePacks"
@@ -127,7 +128,7 @@
 
 #define WII_STATE "state.dat"
 
-#define WII_SDCARD "sd.raw"
+#define WII_SDIMAGE "sd.raw"
 #define WII_BTDINF_BACKUP "btdinf.bak"
 
 #define WII_SETTING "setting.txt"

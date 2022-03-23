@@ -958,6 +958,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_THEMES_IDX] = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
     s_user_paths[D_STYLES_IDX] = s_user_paths[D_USER_IDX] + STYLES_DIR DIR_SEP;
     s_user_paths[D_PIPES_IDX] = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
+    s_user_paths[D_SDFOLDER_IDX] = s_user_paths[D_USER_IDX] + SDFOLDER_DIR DIR_SEP;
     s_user_paths[D_WFSROOT_IDX] = s_user_paths[D_USER_IDX] + WFSROOT_DIR DIR_SEP;
     s_user_paths[D_BACKUP_IDX] = s_user_paths[D_USER_IDX] + BACKUP_DIR DIR_SEP;
     s_user_paths[D_RESOURCEPACK_IDX] = s_user_paths[D_USER_IDX] + RESOURCEPACK_DIR DIR_SEP;
@@ -978,7 +979,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
-    s_user_paths[F_WIISDCARD_IDX] = s_user_paths[D_WIIROOT_IDX] + WII_SDCARD;
+    s_user_paths[F_WIISDIMAGE_IDX] = s_user_paths[D_WIIROOT_IDX] + WII_SDIMAGE;
 
     s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
     s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] =

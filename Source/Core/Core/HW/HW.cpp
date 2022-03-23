@@ -5,6 +5,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/SDCardUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
@@ -30,6 +31,8 @@ namespace HW
 {
 void Init()
 {
+  Common::SDPack();
+
   CoreTiming::Init();
   SystemTimers::PreInit();
 
@@ -74,6 +77,8 @@ void Shutdown()
 
   State::Shutdown();
   CoreTiming::Shutdown();
+
+  Common::SDUnpack();
 }
 
 void DoState(PointerWrap& p)
