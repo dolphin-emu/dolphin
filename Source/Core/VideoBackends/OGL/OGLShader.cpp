@@ -33,7 +33,7 @@ OGLShader::OGLShader(ShaderStage stage, GLenum gl_type, GLuint gl_id, std::strin
 {
   if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
   {
-    glObjectLabel(GetGLShaderTypeForStage(stage), m_gl_id, -1, m_name.c_str());
+    glObjectLabel(GL_SHADER, m_gl_id, -1, m_name.c_str());
   }
 }
 
@@ -44,7 +44,7 @@ OGLShader::OGLShader(GLuint gl_compute_program_id, std::string source, std::stri
 {
   if (!m_name.empty() && g_ActiveConfig.backend_info.bSupportsSettingObjectNames)
   {
-    glObjectLabel(GL_COMPUTE_SHADER, m_gl_compute_program_id, -1, m_name.c_str());
+    glObjectLabel(GL_SHADER, m_gl_compute_program_id, -1, m_name.c_str());
   }
 }
 
