@@ -276,7 +276,10 @@ void CheatSearchWidget::OnNextScanClicked()
   m_session->SetCompareType(m_compare_type_dropdown->currentData().value<Cheats::CompareType>());
   if (filter_type == Cheats::FilterType::CompareAgainstSpecificValue)
   {
-    if (!m_session->SetValueFromString(m_given_value_text->text().toStdString(),
+    QString search_value = m_given_value_text->text();
+    if (m_session->IsIntegerType() || m_session->IsFloatingType())
+      search_value = search_value.simplified().remove(QLatin1Char(' '));
+    if (!m_session->SetValueFromString(search_value.toStdString(),
                                        m_parse_values_as_hex_checkbox->isChecked()))
     {
       m_info_label_1->setText(tr("Failed to parse given value into target data type."));
