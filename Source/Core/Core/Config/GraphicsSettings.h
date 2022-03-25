@@ -27,6 +27,7 @@ extern const Info<bool> GFX_WIDESCREEN_HACK;
 extern const Info<AspectMode> GFX_ASPECT_RATIO;
 extern const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
 extern const Info<bool> GFX_CROP;
+extern const Info<bool> GFX_CUTOUT;
 extern const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
 extern const Info<bool> GFX_SHOW_FPS;
 extern const Info<bool> GFX_SHOW_NETPLAY_PING;

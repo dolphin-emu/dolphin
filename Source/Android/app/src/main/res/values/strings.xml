@@ -311,6 +311,8 @@
     <string name="misc">Misc</string>
     <string name="crop">Crop</string>
     <string name="crop_description">Crops the picture from its native aspect ratio to 4:3 or 16:9. If unsure, leave this unchecked.</string>
+    <string name="cutout">Cutout</string>
+    <string name="cutout_description">Enables the full use of the screen on a phone with a cutout.</string>
     <string name="progressive_scan">Enable Progressive Scan</string>
     <string name="backend_multithreading">Backend Multithreading</string> <!--Backend Multithreading is only disabled by default on Android  -->
     <string name="backend_multithreading_description">Enables graphics backend multithreading (Vulkan only). May affect performance. If unsure, leave this unchecked.</string>

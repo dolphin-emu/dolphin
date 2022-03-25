@@ -711,6 +711,8 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(mContext, R.string.misc, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_CROP, R.string.crop,
             R.string.crop_description));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_CUTOUT, R.string.cutout,
+      R.string.cutout_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_PROGRESSIVE_SCAN,
             R.string.progressive_scan, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_BACKEND_MULTITHREADING,

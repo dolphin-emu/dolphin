@@ -56,6 +56,7 @@ private:
 
   // Misc
   GraphicsBool* m_enable_cropping;
+  GraphicsBool* m_enable_cutout;
   ToolTipCheckBox* m_enable_prog_scan;
   GraphicsBool* m_backend_multithreading;
   GraphicsBool* m_borderless_fullscreen;
