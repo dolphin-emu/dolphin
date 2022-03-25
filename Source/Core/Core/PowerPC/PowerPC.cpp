@@ -148,9 +148,11 @@ void DoState(PointerWrap& p)
 static void ResetRegisters()
 {
   std::fill(std::begin(ppcState.ps), std::end(ppcState.ps), PairedSingle{});
-  std::fill(std::begin(ppcState.sr), std::end(ppcState.sr), 0U);
   std::fill(std::begin(ppcState.gpr), std::end(ppcState.gpr), 0U);
   std::fill(std::begin(ppcState.spr), std::end(ppcState.spr), 0U);
+
+  for (auto& v : ppcState.sr)
+    v.Hex = 0;
 
   // Gamecube:
   // 0x00080200 = lonestar 2.0
@@ -634,7 +636,7 @@ void CheckBreakPoints()
 void PowerPCState::SetSR(u32 index, u32 value)
 {
   DEBUG_LOG_FMT(POWERPC, "{:08x}: MMU: Segment register {} set to {:08x}", pc, index, value);
-  sr[index] = value;
+  sr[index].Hex = value;
 }
 
 // FPSCR update functions

@@ -143,7 +143,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
     return;
   }
 
-  rGPR[inst.RD] = PowerPC::ppcState.sr[inst.SR];
+  rGPR[inst.RD] = PowerPC::ppcState.sr[inst.SR].Hex;
 }
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
@@ -155,7 +155,7 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
   }
 
   const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
-  rGPR[inst.RD] = PowerPC::ppcState.sr[index];
+  rGPR[inst.RD] = PowerPC::ppcState.sr[index].Hex;
 }
 
 void Interpreter::mtmsr(UGeckoInstruction inst)

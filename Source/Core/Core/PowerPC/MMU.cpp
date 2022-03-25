@@ -1309,7 +1309,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
                                   translated_address};
   }
 
-  const auto sr = UReg_SR{ppcState.sr[address.SR]};
+  const auto& sr = ppcState.sr[address.SR];
 
   if (sr.T != 0)
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};

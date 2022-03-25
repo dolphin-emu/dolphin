@@ -417,7 +417,7 @@ static void ReadRegister()
   }
   else if (id >= 71 && id < 87)
   {
-    wbe32hex(reply, PowerPC::ppcState.sr[id - 71]);
+    wbe32hex(reply, PowerPC::ppcState.sr[id - 71].Hex);
   }
   else if (id >= 88 && id < 104)
   {
@@ -629,7 +629,7 @@ static void WriteRegister()
   }
   else if (id >= 71 && id < 87)
   {
-    PowerPC::ppcState.sr[id - 71] = re32hex(bufptr);
+    PowerPC::ppcState.sr[id - 71].Hex = re32hex(bufptr);
   }
   else if (id >= 88 && id < 104)
   {

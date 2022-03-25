@@ -312,8 +312,9 @@ void RegisterWidget::PopulateTable()
   {
     // SR registers
     AddRegister(
-        i, 7, RegisterType::sr, "SR" + std::to_string(i), [i] { return PowerPC::ppcState.sr[i]; },
-        [i](u64 value) { PowerPC::ppcState.sr[i] = value; });
+        i, 7, RegisterType::sr, "SR" + std::to_string(i),
+        [i] { return PowerPC::ppcState.sr[i].Hex; },
+        [i](u64 value) { PowerPC::ppcState.sr[i].Hex = value; });
   }
 
   // Special registers

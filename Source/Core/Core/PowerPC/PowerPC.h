@@ -156,7 +156,7 @@ struct PowerPCState
   alignas(16) PairedSingle ps[32];
 #endif
 
-  u32 sr[16]{};  // Segment registers.
+  UReg_SR sr[16]{};  // Segment registers.
 
   // special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
   // also for power management, but we don't care about that.
