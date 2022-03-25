@@ -34,6 +34,13 @@ signals:
   void RequestWatch(QString name, u32 address);
 
 private:
+  struct TargetAddress
+  {
+    u32 address = 0;
+    bool is_good_address = false;
+    bool is_good_offset = false;
+  };
+
   void CreateWidgets();
   void ConnectWidgets();
 
@@ -59,6 +66,7 @@ private:
 
   bool IsValueValid() const;
   QByteArray GetValueData() const;
+  TargetAddress GetTargetAddress() const;
 
   void FindValue(bool next);
 
