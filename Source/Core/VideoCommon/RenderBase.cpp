@@ -971,6 +971,11 @@ void Renderer::RecordVideoMemory()
 
 bool Renderer::InitializeImGui()
 {
+  if (!IMGUI_CHECKVERSION())
+  {
+    PanicAlertFmt("ImGui version check failed");
+    return false;
+  }
   if (!ImGui::CreateContext())
   {
     PanicAlertFmt("Creating ImGui context failed");
