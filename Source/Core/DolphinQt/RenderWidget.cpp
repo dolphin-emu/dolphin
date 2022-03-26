@@ -60,6 +60,10 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
     resize(w / dpr, h / dpr);
   });
 
+  if(!Config::GFX_CUTOUT){
+  setWindowFlags(windowFlags() & ~Qt::MaximizeUsingFullscreenGeometryHint);
+  }
+
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Running)
       SetImGuiKeyMap();
