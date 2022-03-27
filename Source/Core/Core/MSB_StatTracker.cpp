@@ -72,20 +72,14 @@ void StatTracker::lookForTriggerEvents(){
                         u8 fielder_port = Memory::Read_U8(aAB_FieldingPort);
                         u8 batter_port = Memory::Read_U8(aAB_BattingPort);
                         
-                        //Works off of the assumption that team0 is ALWAYS port1. Will not work in CPU v CPU games
-                        if (fielder_port == 1) { m_game_info.team0_port = fielder_port; }
-                        else if (batter_port == 1) { m_game_info.team0_port = batter_port; }
-                        else { m_game_info.team0_port = 5; }
-
-                        if (fielder_port > 1 && fielder_port <= 4){
-                            m_game_info.team1_port = fielder_port;
-                        }
-                        else if (batter_port > 1 && batter_port <= 4){
+                        //The lower value will always be team0. If CPU vs CPU is on Team0 == 5 and Team1 == 6
+                        if (fielder_port < batter_port) {
+                            m_game_info.team0_port = fielder_port;
                             m_game_info.team1_port = batter_port;
                         }
-                        else{
-                            m_game_info.team1_port = 5;
-                            //TODO - Disable stat submission here
+                        else {
+                            m_game_info.team0_port = batter_port;
+                            m_game_info.team1_port = fielder_port;
                         }
 
                         //Map home and away ports for scores
