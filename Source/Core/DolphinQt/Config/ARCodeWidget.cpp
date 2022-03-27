@@ -20,6 +20,7 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include "UICommon/GameFile.h"
 
@@ -52,9 +53,9 @@ void ARCodeWidget::CreateWidgets()
 {
   m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
   m_code_list = new QListWidget;
-  m_code_add = new QPushButton(tr("&Add New Code..."));
-  m_code_edit = new QPushButton(tr("&Edit Code..."));
-  m_code_remove = new QPushButton(tr("&Remove Code"));
+  m_code_add = new NonDefaultQPushButton(tr("&Add New Code..."));
+  m_code_edit = new NonDefaultQPushButton(tr("&Edit Code..."));
+  m_code_remove = new NonDefaultQPushButton(tr("&Remove Code"));
 
   m_code_list->setEnabled(!m_game_id.empty());
   m_code_add->setEnabled(!m_game_id.empty());

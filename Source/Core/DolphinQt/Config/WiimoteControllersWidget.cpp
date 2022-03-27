@@ -31,6 +31,7 @@
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/UICommon.h"
@@ -89,9 +90,9 @@ void WiimoteControllersWidget::CreateLayout()
   m_wiimote_box->setLayout(m_wiimote_layout);
 
   m_wiimote_passthrough = new QRadioButton(tr("Passthrough a Bluetooth adapter"));
-  m_wiimote_sync = new QPushButton(tr("Sync"));
-  m_wiimote_reset = new QPushButton(tr("Reset"));
-  m_wiimote_refresh = new QPushButton(tr("Refresh"));
+  m_wiimote_sync = new NonDefaultQPushButton(tr("Sync"));
+  m_wiimote_reset = new NonDefaultQPushButton(tr("Reset"));
+  m_wiimote_refresh = new NonDefaultQPushButton(tr("Refresh"));
   m_wiimote_pt_labels[0] = new QLabel(tr("Sync real Wii Remotes and pair them"));
   m_wiimote_pt_labels[1] = new QLabel(tr("Reset all saved Wii Remote pairings"));
   m_wiimote_emu = new QRadioButton(tr("Emulate the Wii's Bluetooth adapter"));
@@ -123,7 +124,7 @@ void WiimoteControllersWidget::CreateLayout()
   {
     auto* wm_label = m_wiimote_labels[i] = new QLabel(tr("Wii Remote %1").arg(i + 1));
     auto* wm_box = m_wiimote_boxes[i] = new QComboBox();
-    auto* wm_button = m_wiimote_buttons[i] = new QPushButton(tr("Configure"));
+    auto* wm_button = m_wiimote_buttons[i] = new NonDefaultQPushButton(tr("Configure"));
 
     for (const auto& item : {tr("None"), tr("Emulated Wii Remote"), tr("Real Wii Remote")})
       wm_box->addItem(item);

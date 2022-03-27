@@ -21,6 +21,7 @@
 #include "Common/Swap.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -82,9 +83,9 @@ void FIFOAnalyzer::CreateWidgets()
 
   m_search_box = new QGroupBox(tr("Search Current Object"));
   m_search_edit = new QLineEdit;
-  m_search_new = new QPushButton(tr("Search"));
-  m_search_next = new QPushButton(tr("Next Match"));
-  m_search_previous = new QPushButton(tr("Previous Match"));
+  m_search_new = new NonDefaultQPushButton(tr("Search"));
+  m_search_next = new NonDefaultQPushButton(tr("Next Match"));
+  m_search_previous = new NonDefaultQPushButton(tr("Previous Match"));
   m_search_label = new QLabel;
 
   m_search_next->setEnabled(false);
