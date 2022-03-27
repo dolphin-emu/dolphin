@@ -77,6 +77,7 @@ public enum IntSetting implements AbstractIntSetting
           MAIN_GC_LANGUAGE,
           MAIN_SLOT_A,  // Can actually be changed, but specific code is required
           MAIN_SLOT_B,  // Can actually be changed, but specific code is required
+          MAIN_FALLBACK_REGION,
           MAIN_SI_DEVICE_0,  // Can actually be changed, but specific code is required
           MAIN_SI_DEVICE_1,  // Can actually be changed, but specific code is required
           MAIN_SI_DEVICE_2,  // Can actually be changed, but specific code is required
