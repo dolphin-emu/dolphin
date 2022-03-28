@@ -51,7 +51,8 @@ static std::mutex s_mutex;
 static u8 s_controller_payload[37];
 static u8 s_controller_payload_swap[37];
 
-static std::atomic<int> s_controller_payload_size = {0};
+// Only access with s_mutex held!
+static int s_controller_payload_size = {0};
 
 static std::thread s_adapter_input_thread;
 static std::thread s_adapter_output_thread;
@@ -101,7 +102,7 @@ static void Read()
     {
       std::lock_guard<std::mutex> lk(s_mutex);
       std::swap(s_controller_payload_swap, s_controller_payload);
-      s_controller_payload_size.store(payload_size);
+      s_controller_payload_size = payload_size;
     }
 
     Common::YieldCPU();
@@ -459,7 +460,7 @@ GCPadStatus Input(int chan)
     std::lock_guard<std::mutex> lk(s_mutex);
     std::copy(std::begin(s_controller_payload), std::end(s_controller_payload),
               std::begin(controller_payload_copy));
-    payload_size = s_controller_payload_size.load();
+    payload_size = s_controller_payload_size;
   }
 
   GCPadStatus pad = {};
