@@ -406,7 +406,7 @@ void ResetRumble()
 {
   unsigned char rumble[5] = {0x11, 0, 0, 0, 0};
   {
-    std::lock_guard<std::mutex> lk(s_read_mutex);
+    std::lock_guard<std::mutex> lk(s_write_mutex);
     memcpy(s_controller_write_payload, rumble, 5);
     s_controller_write_payload_size.store(5);
   }
