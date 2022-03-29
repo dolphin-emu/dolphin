@@ -156,20 +156,12 @@ CodeViewWidget::CodeViewWidget()
 
   FontBasedSizing();
 
+  // State-change updates are called from CodeWidget.
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
   connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
           &CodeViewWidget::FontBasedSizing);
-
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = PC;
-    Update();
-  });
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    m_address = PC;
-    Update();
-  });
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &CodeViewWidget::Update);
 }

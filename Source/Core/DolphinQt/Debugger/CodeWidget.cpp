@@ -45,18 +45,29 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
+  // UpdateDisasmDialog can spam updates from many sources, and can crash dolphin when unpaused.
+  // Update() sends an update to codeview as well.
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
-    if (Core::GetState() == Core::State::Paused)
+    if (Core::GetState() != Core::State::Running)
+    {
       SetAddress(PowerPC::ppcState.pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
-    Update();
+      Update();
+    }
+  });
+
+  // Don't erase the code immediately on unpausing.
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
+    if (Core::GetState() == Core::State::Paused)
+    {
+      SetAddress(PowerPC::ppcState.pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+      Update();
+    }
   });
 
   connect(Host::GetInstance(), &Host::NotifyMapLoaded, this, &CodeWidget::UpdateSymbols);
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
-
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
 
   ConnectWidgets();
 
