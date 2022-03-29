@@ -9,6 +9,7 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <qtimer.h>
 
 #include <cmath>
 
@@ -32,17 +33,29 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setShowGrid(false);
 
-  setFont(Settings::Instance().GetDebugFont());
-
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] { Update(); });
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryViewWidget::Update);
-  connect(this, &MemoryViewWidget::customContextMenuRequested, this,
-          &MemoryViewWidget::OnContextMenu);
-  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
+  setStyleSheet(
+      QStringLiteral("QTableView {selection-background-color: #0090FF; selection-color:#FFFFFF}"));
 
   setContextMenuPolicy(Qt::CustomContextMenu);
 
+  m_timer = new QTimer;
+  m_timer->setInterval(600);
+  m_auto_update_action = new QAction(tr("Auto update memory values (600ms)"), this);
+  m_auto_update_action->setCheckable(true);
+
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::UpdateFont);
+  connect(this, &MemoryViewWidget::customContextMenuRequested, this,
+          &MemoryViewWidget::OnContextMenu);
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
+  connect(m_auto_update_action, &QAction::toggled, [this](bool checked) {
+    if (checked)
+      m_timer->start();
+    else
+      m_timer->stop();
+  });
+  connect(m_timer, &QTimer::timeout, this, &MemoryViewWidget::UpdateTable);
+
+  UpdateFont();
   Update();
 }
 
@@ -63,8 +76,22 @@ static int GetColumnCount(MemoryViewWidget::Type type)
   }
 }
 
+void MemoryViewWidget::UpdateFont()
+{
+  setFont(Settings::Instance().GetDebugFont());
+  const QFontMetrics fm(Settings::Instance().GetDebugFont());
+  m_font_vspace = fm.lineSpacing();
+  m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
+  Update();
+}
+
 void MemoryViewWidget::Update()
 {
+  if (m_updating)
+    return;
+
+  m_updating = true;
+  clear();
   clearSelection();
 
   setColumnCount(2 + GetColumnCount(m_type));
@@ -72,20 +99,21 @@ void MemoryViewWidget::Update()
   if (rowCount() == 0)
     setRowCount(1);
 
-  setRowHeight(0, 24);
-
-  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
+  // This sets all row heights and determines horizontal ascii spacing.
+  verticalHeader()->setDefaultSectionSize(m_font_vspace - 1);
+  verticalHeader()->setMinimumSectionSize(m_font_vspace - 1);
+  horizontalHeader()->setMinimumSectionSize(m_font_width * 2);
 
   // Calculate (roughly) how many rows will fit in our table
   int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
 
   setRowCount(rows);
 
+  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
+
   for (int i = 0; i < rows; i++)
   {
-    setRowHeight(i, 24);
-
-    u32 addr = m_address - ((rowCount() / 2) * 16) + i * 16;
+    u32 addr = m_address_view - ((rowCount() / 2) * 16) + i * 16;
 
     auto* bp_item = new QTableWidgetItem;
     bp_item->setFlags(Qt::ItemIsEnabled);
@@ -100,10 +128,7 @@ void MemoryViewWidget::Update()
 
     setItem(i, 1, addr_item);
 
-    if (addr == m_address)
-      addr_item->setSelected(true);
-
-    if (Core::GetState() != Core::State::Paused || !accessors->IsValidAddress(addr))
+    if (!accessors->IsValidAddress(addr))
     {
       for (int c = 2; c < columnCount(); c++)
       {
@@ -117,98 +142,158 @@ void MemoryViewWidget::Update()
       continue;
     }
 
-    if (m_address_space == AddressSpace::Type::Effective)
+    if (m_address_space == AddressSpace::Type::Effective &&
+        PowerPC::memchecks.OverlapsMemcheck(addr, 16))
     {
-      auto* description_item = new QTableWidgetItem(
-          QString::fromStdString(PowerPC::debug_interface.GetDescription(addr)));
-
-      description_item->setForeground(Qt::blue);
-      description_item->setFlags(Qt::ItemIsEnabled);
-
-      setItem(i, columnCount() - 1, description_item);
-    }
-    bool row_breakpoint = true;
-
-    auto update_values = [&](auto value_to_string) {
-      for (int c = 0; c < GetColumnCount(m_type); c++)
-      {
-        auto* hex_item = new QTableWidgetItem;
-        hex_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-        const u32 address = addr + c * (16 / GetColumnCount(m_type));
-
-        if (m_address_space == AddressSpace::Type::Effective &&
-            PowerPC::memchecks.OverlapsMemcheck(address, 16 / GetColumnCount(m_type)))
-        {
-          hex_item->setBackground(Qt::red);
-        }
-        else
-        {
-          row_breakpoint = false;
-        }
-        setItem(i, 2 + c, hex_item);
-
-        if (accessors->IsValidAddress(address))
-        {
-          hex_item->setText(value_to_string(address));
-          hex_item->setData(Qt::UserRole, address);
-        }
-        else
-        {
-          hex_item->setFlags({});
-          hex_item->setText(QStringLiteral("-"));
-        }
-      }
-    };
-    switch (m_type)
-    {
-    case Type::U8:
-      update_values([&accessors](u32 address) {
-        const u8 value = accessors->ReadU8(address);
-        return QStringLiteral("%1").arg(value, 2, 16, QLatin1Char('0'));
-      });
-      break;
-    case Type::ASCII:
-      update_values([&accessors](u32 address) {
-        const char value = accessors->ReadU8(address);
-        return IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
-                                             QString{QChar::fromLatin1('.')};
-      });
-      break;
-    case Type::U16:
-      update_values([&accessors](u32 address) {
-        const u16 value = accessors->ReadU16(address);
-        return QStringLiteral("%1").arg(value, 4, 16, QLatin1Char('0'));
-      });
-      break;
-    case Type::U32:
-      update_values([&accessors](u32 address) {
-        const u32 value = accessors->ReadU32(address);
-        return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
-      });
-      break;
-    case Type::Float32:
-      update_values(
-          [&accessors](u32 address) { return QString::number(accessors->ReadF32(address)); });
-      break;
+      bp_item->setData(Qt::DecorationRole, Resources::GetScaledThemeIcon("debugger_breakpoint")
+                                               .pixmap(QSize(rowHeight(0) - 3, rowHeight(0) - 3)));
     }
 
-    if (row_breakpoint)
-    {
-      bp_item->setData(Qt::DecorationRole,
-                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
-    }
+    // Has never worked, gets overwritten.
+    // if (m_address_space == AddressSpace::Type::Effective)
+    //{
+    //  auto* description_item = new QTableWidgetItem(
+    //      QString::fromStdString(PowerPC::debug_interface.GetDescription(addr)));
+
+    //  description_item->setForeground(Qt::blue);
+    //  description_item->setFlags(Qt::ItemIsEnabled);
+
+    //  setItem(i, columnCount() - 1, description_item);
+    //}
   }
 
-  setColumnWidth(0, 24 + 5);
-  for (int i = 1; i < columnCount(); i++)
+  UpdateTable();
+
+  setColumnWidth(0, rowHeight(0));
+  int width = 0;
+
+  switch (m_type)
   {
-    resizeColumnToContents(i);
-    // Add some extra spacing because the default width is too small in most cases
-    setColumnWidth(i, columnWidth(i) * 1.1);
+  case Type::U8:
+    width = m_font_width * 3;
+    break;
+  case Type::ASCII:
+    width = m_font_width * 2;
+    break;
+  case Type::U16:
+    width = m_font_width * 5;
+    break;
+  case Type::U32:
+    width = m_font_width * 10;
+    break;
+  case Type::Float32:
+    width = m_font_width * 12;
+    break;
+  }
+
+  for (int i = 2; i < columnCount(); i++)
+  {
+    setColumnWidth(i, width);
   }
 
   viewport()->update();
   update();
+  m_updating = false;
+}
+
+void MemoryViewWidget::UpdateTable()
+{
+  // Seems to prevent memory read errors while game is running.
+  Core::RunAsCPUThread([&] {
+    const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
+    int rows = rowCount();
+
+    for (int i = 0; i < rows; i++)
+    {
+      u32 addr = m_address_view - ((rowCount() / 2) * 16) + i * 16;
+
+      auto update_values = [&](auto value_to_string) {
+        for (int c = 0; c < GetColumnCount(m_type); c++)
+        {
+          QTableWidgetItem* hex_item;
+          if (item(i, c + 2) != 0)
+            hex_item = item(i, c + 2);
+          else
+            hex_item = new QTableWidgetItem;
+
+          hex_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+          const u32 address = addr + c * (16 / GetColumnCount(m_type));
+
+          if (address == m_address_target)
+            hex_item->setBackground(QColor(220, 235, 235, 255));
+          else if (m_address_space == AddressSpace::Type::Effective &&
+                   PowerPC::memchecks.OverlapsMemcheck(address, 16 / GetColumnCount(m_type)))
+          {
+            hex_item->setBackground(Qt::red);
+          }
+
+          setItem(i, 2 + c, hex_item);
+
+          if (accessors->IsValidAddress(address))
+          {
+            QString value = value_to_string(address);
+            QColor bcolor = hex_item->background().color();
+            // Color recently changed items.
+            if (hex_item->text() != value && !hex_item->text().isEmpty())
+            {
+              hex_item->setBackground(QColor(0x77FFFF));
+            }
+            else if (bcolor.red() > 0 && bcolor != QColor(0xFFFFFF) && bcolor != QColor(Qt::red) &&
+                     bcolor != QColor(220, 235, 235, 255))
+            {
+              hex_item->setBackground(hex_item->background().color().lighter(107));
+            }
+
+            hex_item->setText(value);
+            hex_item->setData(Qt::UserRole, address);
+          }
+          else
+          {
+            hex_item->setFlags({});
+            hex_item->setText(QStringLiteral("-"));
+          }
+        }
+      };
+      switch (m_type)
+      {
+      case Type::U8:
+        update_values([&accessors](u32 address) {
+          const u8 value = accessors->ReadU8(address);
+          return QStringLiteral("%1").arg(value, 2, 16, QLatin1Char('0'));
+        });
+        break;
+      case Type::ASCII:
+        update_values([&accessors](u32 address) {
+          const char value = accessors->ReadU8(address);
+          return IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
+                                               QString{QChar::fromLatin1('.')};
+        });
+        break;
+      case Type::U16:
+        update_values([&accessors](u32 address) {
+          const u16 value = accessors->ReadU16(address);
+          return QStringLiteral("%1").arg(value, 4, 16, QLatin1Char('0'));
+        });
+        break;
+      case Type::U32:
+        update_values([&accessors](u32 address) {
+          const u32 value = accessors->ReadU32(address);
+          return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
+        });
+        break;
+      case Type::Float32:
+        update_values([&accessors](u32 address) {
+          QString string = QString::number(accessors->ReadF32(address), 'g', 4);
+          // Align to first digit.
+          if (!string.startsWith(QLatin1Char('-')))
+            string.prepend(QLatin1Char(' '));
+
+          return string;
+        });
+        break;
+      }
+    }
+  });
 }
 
 void MemoryViewWidget::SetAddressSpace(AddressSpace::Type address_space)
@@ -243,10 +328,11 @@ void MemoryViewWidget::SetBPType(BPType type)
 
 void MemoryViewWidget::SetAddress(u32 address)
 {
-  if (m_address == address)
+  if (m_address_view == address)
     return;
 
-  m_address = address;
+  m_address_target = address;
+  m_address_view = address;
   Update();
 }
 
@@ -265,19 +351,19 @@ void MemoryViewWidget::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Up:
-    m_address -= 16;
+    m_address_view -= 16;
     Update();
     return;
   case Qt::Key_Down:
-    m_address += 16;
+    m_address_view += 16;
     Update();
     return;
   case Qt::Key_PageUp:
-    m_address -= rowCount() * 16;
+    m_address_view -= rowCount() * 16;
     Update();
     return;
   case Qt::Key_PageDown:
-    m_address += rowCount() * 16;
+    m_address_view += rowCount() * 16;
     Update();
     return;
   default:
@@ -335,7 +421,8 @@ void MemoryViewWidget::wheelEvent(QWheelEvent* event)
   if (delta == 0)
     return;
 
-  m_address += delta * 16;
+  m_address_view += delta * 16;
+
   Update();
 }
 
@@ -355,7 +442,7 @@ void MemoryViewWidget::mousePressEvent(QMouseEvent* event)
     if (column(item) == 0)
       ToggleRowBreakpoint(true);
     else
-      SetAddress(addr & 0xFFFFFFF0);
+      m_address_view = addr & 0xFFFFFFF0;
 
     Update();
     break;
@@ -407,6 +494,7 @@ void MemoryViewWidget::OnContextMenu()
     emit RequestWatch(name, address);
   });
   menu->addAction(tr("Toggle Breakpoint"), this, &MemoryViewWidget::ToggleBreakpoint);
+  menu->addAction(m_auto_update_action);
 
   menu->exec(QCursor::pos());
 }

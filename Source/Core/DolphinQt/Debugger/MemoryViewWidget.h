@@ -7,6 +7,9 @@
 
 #include "Common/CommonTypes.h"
 
+class QTimer;
+class QAction;
+
 namespace AddressSpace
 {
 enum class Type;
@@ -35,6 +38,8 @@ public:
   explicit MemoryViewWidget(QWidget* parent = nullptr);
 
   void Update();
+  void UpdateFont();
+  void UpdateTable();
   void ToggleBreakpoint();
   void ToggleRowBreakpoint(bool row);
 
@@ -68,5 +73,12 @@ private:
   BPType m_bp_type = BPType::ReadWrite;
   bool m_do_log = true;
   u32 m_context_address;
-  u32 m_address = 0;
+  u32 m_address_view = 0;
+  u32 m_address_target = 0;
+  QTimer* m_timer;
+  QAction* m_auto_update_action;
+
+  bool m_updating = false;
+  int m_font_width = 0;
+  int m_font_vspace = 0;
 };

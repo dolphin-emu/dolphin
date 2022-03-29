@@ -57,8 +57,18 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryWidget::Update);
+  // Leave memory on screen when un-pausing.
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
+    if (Core::GetState() != Core::State::Running)
+      Update();
+  });
+
+  // If signaled while game is running, MemoryViewWidget's Core::RunAsCPUThread will recall it and
+  // make an infinite loop. This updates memory from step actions.
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
+    if (Core::GetState() == Core::State::Paused)
+      Update();
+  });
 
   LoadSettings();
 
