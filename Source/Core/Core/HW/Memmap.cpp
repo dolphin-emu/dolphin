@@ -127,35 +127,28 @@ u32 GetExRamMask()
 // MMIO mapping object.
 std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
-static std::unique_ptr<MMIO::Mapping> InitMMIO()
+static void InitMMIO(bool is_wii)
 {
-  auto mmio = std::make_unique<MMIO::Mapping>();
+  mmio_mapping = std::make_unique<MMIO::Mapping>();
 
-  CommandProcessor::RegisterMMIO(mmio.get(), 0x0C000000);
-  PixelEngine::RegisterMMIO(mmio.get(), 0x0C001000);
-  VideoInterface::RegisterMMIO(mmio.get(), 0x0C002000);
-  ProcessorInterface::RegisterMMIO(mmio.get(), 0x0C003000);
-  MemoryInterface::RegisterMMIO(mmio.get(), 0x0C004000);
-  DSP::RegisterMMIO(mmio.get(), 0x0C005000);
-  DVDInterface::RegisterMMIO(mmio.get(), 0x0C006000);
-  SerialInterface::RegisterMMIO(mmio.get(), 0x0C006400);
-  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0C006800);
-  AudioInterface::RegisterMMIO(mmio.get(), 0x0C006C00);
-
-  return mmio;
-}
-
-static std::unique_ptr<MMIO::Mapping> InitMMIOWii()
-{
-  auto mmio = InitMMIO();
-
-  IOS::RegisterMMIO(mmio.get(), 0x0D000000);
-  DVDInterface::RegisterMMIO(mmio.get(), 0x0D006000);
-  SerialInterface::RegisterMMIO(mmio.get(), 0x0D006400);
-  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
-  AudioInterface::RegisterMMIO(mmio.get(), 0x0D006C00);
-
-  return mmio;
+  CommandProcessor::RegisterMMIO(mmio_mapping.get(), 0x0C000000);
+  PixelEngine::RegisterMMIO(mmio_mapping.get(), 0x0C001000);
+  VideoInterface::RegisterMMIO(mmio_mapping.get(), 0x0C002000);
+  ProcessorInterface::RegisterMMIO(mmio_mapping.get(), 0x0C003000);
+  MemoryInterface::RegisterMMIO(mmio_mapping.get(), 0x0C004000);
+  DSP::RegisterMMIO(mmio_mapping.get(), 0x0C005000);
+  DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006000);
+  SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006400);
+  ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006800);
+  AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006C00);
+  if (is_wii)
+  {
+    IOS::RegisterMMIO(mmio_mapping.get(), 0x0D000000);
+    DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006000);
+    SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006400);
+    ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006800);
+    AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006C00);
+  }
 }
 
 bool IsInitialized()
@@ -302,10 +295,7 @@ void Init()
     }
   }
 
-  if (wii)
-    mmio_mapping = InitMMIOWii();
-  else
-    mmio_mapping = InitMMIO();
+  InitMMIO(wii);
 
   Clear();
 
