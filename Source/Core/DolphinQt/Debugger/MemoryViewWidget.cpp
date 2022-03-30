@@ -9,6 +9,7 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <QtGlobal>
 
 #include <cmath>
 
@@ -32,17 +33,32 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setShowGrid(false);
 
-  setFont(Settings::Instance().GetDebugFont());
+  setContextMenuPolicy(Qt::CustomContextMenu);
 
-  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &MemoryViewWidget::UpdateFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] { Update(); });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryViewWidget::Update);
   connect(this, &MemoryViewWidget::customContextMenuRequested, this,
           &MemoryViewWidget::OnContextMenu);
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
 
-  setContextMenuPolicy(Qt::CustomContextMenu);
+  // Also calls update.
+  UpdateFont();
+}
 
+void MemoryViewWidget::UpdateFont()
+{
+  const QFontMetrics fm(Settings::Instance().GetDebugFont());
+  m_font_vspace = fm.lineSpacing();
+  // BoundingRect is too unpredictable, a custom one would be needed for each view type. Different
+  // fonts have wildly different spacing between two characters and horizontalAdvance includes
+  // spacing.
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+  m_font_width = fm.horizontalAdvance(QLatin1Char('0'));
+#else
+  m_font_width = fm.width(QLatin1Char('0'));
+#endif
+  setFont(Settings::Instance().GetDebugFont());
   Update();
 }
 
@@ -72,7 +88,10 @@ void MemoryViewWidget::Update()
   if (rowCount() == 0)
     setRowCount(1);
 
-  setRowHeight(0, 24);
+  // This sets all row heights and determines horizontal ascii spacing.
+  verticalHeader()->setDefaultSectionSize(m_font_vspace - 1);
+  verticalHeader()->setMinimumSectionSize(m_font_vspace - 1);
+  horizontalHeader()->setMinimumSectionSize(m_font_width * 2);
 
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
 
@@ -83,8 +102,6 @@ void MemoryViewWidget::Update()
 
   for (int i = 0; i < rows; i++)
   {
-    setRowHeight(i, 24);
-
     u32 addr = m_address - ((rowCount() / 2) * 16) + i * 16;
 
     auto* bp_item = new QTableWidgetItem;
@@ -187,25 +204,48 @@ void MemoryViewWidget::Update()
       });
       break;
     case Type::Float32:
-      update_values(
-          [&accessors](u32 address) { return QString::number(accessors->ReadF32(address)); });
+      update_values([&accessors](u32 address) {
+        QString string = QString::number(accessors->ReadF32(address), 'g', 4);
+        // Align to first digit.
+        if (!string.startsWith(QLatin1Char('-')))
+          string.prepend(QLatin1Char(' '));
+
+        return string;
+      });
       break;
     }
 
     if (row_breakpoint)
     {
-      bp_item->setData(Qt::DecorationRole,
-                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
+      bp_item->setData(Qt::DecorationRole, Resources::GetScaledThemeIcon("debugger_breakpoint")
+                                               .pixmap(QSize(rowHeight(0) - 3, rowHeight(0) - 3)));
     }
   }
 
-  setColumnWidth(0, 24 + 5);
-  for (int i = 1; i < columnCount(); i++)
+  setColumnWidth(0, rowHeight(0));
+  int width = 0;
+
+  switch (m_type)
   {
-    resizeColumnToContents(i);
-    // Add some extra spacing because the default width is too small in most cases
-    setColumnWidth(i, columnWidth(i) * 1.1);
+  case Type::U8:
+    width = m_font_width * 3;
+    break;
+  case Type::ASCII:
+    width = m_font_width * 2;
+    break;
+  case Type::U16:
+    width = m_font_width * 5;
+    break;
+  case Type::U32:
+    width = m_font_width * 10;
+    break;
+  case Type::Float32:
+    width = m_font_width * 12;
+    break;
   }
+
+  for (int i = 2; i < columnCount(); i++)
+    setColumnWidth(i, width);
 
   viewport()->update();
   update();
