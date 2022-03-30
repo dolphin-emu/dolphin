@@ -34,6 +34,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
   switch (m_bba_type)
   {
   case Type::Ethernet:
+  case Type::BuiltIn :
     // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
     // interface (physical) like a serial number. "MAC" should be kept in translations.
     address_label = new QLabel(tr("Enter new Broadband Adapter MAC address:"));

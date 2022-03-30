@@ -18,6 +18,8 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
+#define BBA_TRACK_PAGE_PTRS
+
 namespace ExpansionInterface
 {
 // XXX: The BBA stores multi-byte elements as little endian.
@@ -53,6 +55,10 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
     INFO_LOG(SP1, "Created tapserver physical network interface.");
     break;
 #endif
+  case BBADeviceType::BuiltIn:
+    m_network_interface = std::make_unique<BuiltInBBAInterface>(this);
+    INFO_LOG_FMT(SP1, "Created Built in network interface.");
+    break;
   case BBADeviceType::XLINK:
     // TODO start BBA with network link down, bring it up after "connected" response from XLink
 
@@ -532,7 +538,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "RecvHandlePacket {:x}\n{}", mRecvBufferLength,
-               ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100));
+               ArrayToString(mRecvBuffer.get(), mRecvBufferLength, 16));
 
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
                page_ptr(BBA_RHBP));

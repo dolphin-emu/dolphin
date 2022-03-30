@@ -15,6 +15,7 @@
 
 #include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/EXI/BBA/BuiltIn.h"
 
 class PointerWrap;
 
@@ -201,6 +202,9 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
+#if defined(WIN32)
+  BuiltIn,
+#endif
 #if defined(__APPLE__)
   TAPSERVER,
 #endif
@@ -411,6 +415,51 @@ private:
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(XLinkNetworkInterface* self);
 #endif
+  };
+
+
+  class BuiltInBBAInterface : public NetworkInterface
+  {
+  public:
+    BuiltInBBAInterface(CEXIETHERNET* eth_ref) : NetworkInterface(eth_ref){}
+
+  public:
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+    std::string m_mac_id;
+    bool m_bba_link_up = false;
+    bool m_bba_failure_notified = false;
+    bool active = false;
+    u16 ip_frame_id = 0;
+    u8 queue_read = 0;
+    u8 queue_write = 0;
+    u16 queue_data_size[16];
+    char queue_data[16][2048];
+#if defined(WIN32) 
+    sf::UdpSocket udp_socket[10];
+    sf::TcpSocket tcp_socket[10]; //max 10 at same time, i think most gc game had a limit of 8 in the gc framework
+    StackRef NetRef[10];
+    char m_in_frame[9004]{};
+    char m_out_frame[9004]{};
+    std::thread m_read_thread;
+    Common::Flag m_read_enabled;
+    Common::Flag m_read_thread_shutdown;
+    static void ReadThreadHandler(BuiltInBBAInterface* self);
+    const u8 fake_mac[6] = {0,9,33,45,66,44};
+#endif
+    void WriteToQueue(char* data, int length);
+    void HandleARP(net_hw_lvl* hwdata, net_arp_lvl* arpdata);
+    void HandleDHCP(net_hw_lvl* hwdata, net_udp_lvl* udpdata, net_dhcp* request);
+    u8 GetAvaibleSlot(u16 port);
+    void HandleTCPFrame(net_hw_lvl* hwdata, net_ipv4_lvl* ipdata, net_tcp_lvl* tcpdata,
+                        char* data);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;
