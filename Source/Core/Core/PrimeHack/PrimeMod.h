@@ -28,7 +28,9 @@ enum class Game : int {
   PRIME_3_STANDALONE = 6,
   PRIME_1_GCN = 7,
   PRIME_2_GCN = 8,
-  MAX_VAL = PRIME_2_GCN,
+  PRIME_1_GCN_R1 = 9,
+  PRIME_1_GCN_R2 = 10,
+  MAX_VAL = PRIME_1_GCN_R2,
 };
 
 enum class Region : int {

@@ -110,6 +110,19 @@ void DisableHudMemoPopup::init_mod_mp1gc(Region region) {
   } else {}
 }
 
+void DisableHudMemoPopup::init_mod_mp1gc_r1() {
+  // Revision 1 matches revision 0 in behavior
+  const int hudmemo_fix_fn = PowerPC::RegisterVmcall(hudmemo_overlay_adjust_mp1_100);
+  if (hudmemo_fix_fn == -1) {
+    return;
+  }
+  const u32 vmc_fix_time = gen_vmcall(static_cast<u32>(hudmemo_fix_fn), 0);
+  const u32 vmc_fix_justification = gen_vmcall(static_cast<u32>(hudmemo_fix_fn), 1);
+  add_code_change(0x800e8438, 0x48000018);
+  add_code_change(0x800e8460, vmc_fix_time);
+  add_code_change(0x800649a4, vmc_fix_justification);
+}
+
 void DisableHudMemoPopup::init_mod_mp3(Game game, Region region) {
   const int audio_restart_fn = PowerPC::RegisterVmcall(restart_streamed_audio_mp3);
   const u32 vmc_restart_audio = gen_vmcall(static_cast<u32>(audio_restart_fn), 0);
@@ -137,6 +150,11 @@ bool DisableHudMemoPopup::init_mod(Game game, Region region) {
     break;
   case Game::PRIME_1_GCN:
     init_mod_mp1gc(region);
+    break;
+  case Game::PRIME_1_GCN_R1:
+    init_mod_mp1gc_r1();
+    break;
+  case Game::PRIME_1_GCN_R2:
     break;
   case Game::PRIME_2:
     if (region == Region::NTSC_U) {

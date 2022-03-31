@@ -12,6 +12,8 @@ void Noclip::run_mod(Game game, Region region)
     break;
   }
   case Game::PRIME_1_GCN:
+  case Game::PRIME_1_GCN_R1:
+  case Game::PRIME_1_GCN_R2:
     run_mod_mp1_gc(has_control_mp1_gc());
     break;
   case Game::PRIME_2:
@@ -31,11 +33,6 @@ void Noclip::run_mod(Game game, Region region)
 
 bool Noclip::has_control_mp1_gc() {
   LOOKUP(state_manager);
-
-  u8 version = read8(0x80000007);
-  if (version != 0) {
-    return false;
-  }
 
   LOOKUP_DYN(world);
   if (world == 0) {
@@ -123,7 +120,7 @@ void Noclip::run_mod_mp1(bool has_control) {
   }
 
   if (!has_control) {
-    player_tf.read_from(player + 0x2c);
+    player_transform.read_from(player + 0x2c);
     set_state(ModState::CODE_DISABLED);
     apply_instruction_changes();
     had_control = has_control;
@@ -146,27 +143,22 @@ void Noclip::run_mod_mp1(bool has_control) {
   const u16 camera_id = read16(camera_manager);
 
   const u32 camera_tf_addr = read32(object_list + ((camera_id & 0x3ff) << 3) + 4) + 0x2c;
-  vec3 movement_vec = (get_movement_vec(camera_tf_addr) * 0.5f) + player_tf.loc();
+  vec3 movement_vec = (get_movement_vec(camera_tf_addr) * 0.5f) + player_transform.loc();
 
-  player_tf.set_loc(movement_vec);
+  player_transform.set_loc(movement_vec);
   writef32(movement_vec.x, player + 0x2c + 0x0c);
   writef32(movement_vec.y, player + 0x2c + 0x1c);
   writef32(movement_vec.z, player + 0x2c + 0x2c);
 }
 
 void Noclip::run_mod_mp1_gc(bool has_control) {
-  u8 version = read8(0x80000007);
-
-  if (version != 0) {
-    return;
-  }
-
   LOOKUP_DYN(player);
   if (player == 0) {
     return;
   }
+  LOOKUP_DYN(player_xf);
   if (!has_control) {
-    player_tf.read_from(player + 0x34);
+    player_transform.read_from(player_xf);
     set_state(ModState::CODE_DISABLED);
     apply_instruction_changes();
     had_control = has_control;
@@ -196,13 +188,14 @@ void Noclip::run_mod_mp1_gc(bool has_control) {
   u32 camera_offset = (camera_uid & 0x3ff) << 3;
   const u32 camera_address =
       read32(object_list + 4 + camera_offset);
-  vec3 movement_vec = (get_movement_vec(camera_address + 0x34) * 0.5f) + player_tf.loc();
+  vec3 movement_vec = (get_movement_vec(camera_address + 0x34) * 0.5f) + player_transform.loc();
 
-  player_tf.set_loc(movement_vec);
-  writef32(movement_vec.x, player + 0x34 + 0x0c);
-  writef32(movement_vec.y, player + 0x34 + 0x1c);
-  writef32(movement_vec.z, player + 0x34 + 0x2c);
-  write32(0, player + 0x258 + (hack_mgr->get_active_region() == Region::PAL ? 0x10 : 0));
+  LOOKUP_DYN(move_state);
+  player_transform.set_loc(movement_vec);
+  writef32(movement_vec.x, player_xf + 0x0c);
+  writef32(movement_vec.y, player_xf + 0x1c);
+  writef32(movement_vec.z, player_xf + 0x2c);
+  write32(0, move_state);
 }
 
 void Noclip::run_mod_mp2(bool has_control) {
@@ -323,7 +316,6 @@ void Noclip::run_mod_mp3(bool has_control) {
 }
 
 bool Noclip::init_mod(Game game, Region region) {
-  u8 version = read8(0x80000007);
   switch (game) {
   case Game::PRIME_1:
     if (region == Region::NTSC_U) {
@@ -357,21 +349,19 @@ bool Noclip::init_mod(Game game, Region region) {
     break;
   case Game::PRIME_1_GCN:
     if (region == Region::NTSC_U) {
-      if (version == 0) {
-        noclip_code_mp1_gc(0x8046b97c, 0x805afd00, 0x80052e90);
-        // For whatever reason CPlayer::Teleport calls SetTransform then SetTranslation
-        // which the above code changes will mess up, so just force the position to be
-        // used in SetTransform and remove the call to SetTranslation, now Teleport works
-        // when SetTranslation is ignoring the player
-        // This is handled above in mp1 trilogy as well
-        add_code_change(0x80285128, 0x60000000);
-        add_code_change(0x80285138, 0x60000000);
-        add_code_change(0x80285140, 0x60000000);
-        add_code_change(0x80285168, 0xd0010078);
-        add_code_change(0x8028516c, 0xd0210088);
-        add_code_change(0x80285170, 0xd0410098);
-        add_code_change(0x80285174, 0x4808d9cd);
-      }
+      noclip_code_mp1_gc(0x8046b97c, 0x805afd00, 0x80052e90);
+      // For whatever reason CPlayer::Teleport calls SetTransform then SetTranslation
+      // which the above code changes will mess up, so just force the position to be
+      // used in SetTransform and remove the call to SetTranslation, now Teleport works
+      // when SetTranslation is ignoring the player
+      // This is handled above in mp1 trilogy as well
+      add_code_change(0x80285128, 0x60000000);
+      add_code_change(0x80285138, 0x60000000);
+      add_code_change(0x80285140, 0x60000000);
+      add_code_change(0x80285168, 0xd0010078);
+      add_code_change(0x8028516c, 0xd0210088);
+      add_code_change(0x80285170, 0xd0410098);
+      add_code_change(0x80285174, 0x4808d9cd);
     } else if (region == Region::PAL) {
       noclip_code_mp1_gc(0x803f38a4, 0x80471d00, 0x80053fa4);
 
@@ -383,6 +373,19 @@ bool Noclip::init_mod(Game game, Region region) {
       add_code_change(0x802724f4, 0xd0410098);
       add_code_change(0x802724f8, 0x48089419);
     }
+    break;
+  case Game::PRIME_1_GCN_R1:
+    // 0x8046bb5c, 0x805afd00 0x80052f0c
+    noclip_code_mp1_gc(0x8046bb5c, 0x805afd00, 0x80052f0c);
+    add_code_change(0x802851a4, 0x60000000);
+    add_code_change(0x802851b4, 0x60000000);
+    add_code_change(0x802851bc, 0x60000000);
+    add_code_change(0x802851e4, 0xd0010078);
+    add_code_change(0x802851e8, 0xd0210088);
+    add_code_change(0x802851ec, 0xd0410098);
+    add_code_change(0x802851f0, 0x4808da31);
+    break;
+  case Game::PRIME_1_GCN_R2:
     break;
   case Game::PRIME_2:
     if (region == Region::NTSC_U) {
@@ -574,12 +577,13 @@ void Noclip::on_state_change(ModState old_state) {
   if (mod_state() == ModState::ENABLED && old_state != ModState::ENABLED) {
     switch (hack_mgr->get_active_game()) {
     case Game::PRIME_1:
-      player_tf.read_from(player + 0x2c);
+      player_transform.read_from(player + 0x2c);
       old_matexclude_list = read64(player + 0x70);
       write64(0xffffffffffffffff, player + 0x70);
       break;
     case Game::PRIME_1_GCN:
-      player_tf.read_from(player + 0x34);
+    case Game::PRIME_1_GCN_R1:
+      player_transform.read_from(player + 0x34);
       old_matexclude_list = read64(player + 0x78);
       write64(0xffffffffffffffff, player + 0x78);
       break;
@@ -611,6 +615,7 @@ void Noclip::on_state_change(ModState old_state) {
       write64(old_matexclude_list, player + 0x70);
       break;
     case Game::PRIME_1_GCN:
+    case Game::PRIME_1_GCN_R1:
       write64(old_matexclude_list, player + 0x78);
       break;
     case Game::PRIME_2:

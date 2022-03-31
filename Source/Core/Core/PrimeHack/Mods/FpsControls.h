@@ -57,7 +57,7 @@ private:
   void add_control_state_hook_mp3(u32 start_point, Region region);
   // Very large code, apologies for anyone who reads this
   // corresponding assembly is in comments :)
-  void add_strafe_code_mp1_ntsc();
+  void add_strafe_code_mp1_ntsc(Game revision);
   void add_strafe_code_mp1_pal();
 
   void init_mod_menu(Game game, Region region);
@@ -65,6 +65,8 @@ private:
   void init_mod_mp2(Region region);
   void init_mod_mp3(Region region);
   void init_mod_mp1_gc(Region region);
+  void init_mod_mp1_gc_r1();
+  void init_mod_mp1_gc_r2();
   void init_mod_mp2_gc(Region region);
   void init_mod_mp3_standalone(Region region);
 

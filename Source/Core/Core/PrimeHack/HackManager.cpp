@@ -96,8 +96,27 @@ void HackManager::run_active_mods() {
   default:
     u32 region_code = PowerPC::HostRead_U32(0x80000000);
     if (region_code == FOURCC('G', 'M', '8', 'E')) {
-      active_game = Game::PRIME_1_GCN;
       active_region = Region::NTSC_U;
+
+      const u8 version = read8(0x80000007);
+      switch (version) {
+        case 0:
+          active_game = Game::PRIME_1_GCN;
+          break;
+
+        case 1:
+          active_game = Game::PRIME_1_GCN_R1;
+          break;
+
+        case 2:
+          active_game = Game::PRIME_1_GCN_R2;
+          break;
+
+        default:
+          active_game = Game::INVALID_GAME;
+          active_region = Region::INVALID_REGION;
+          break;
+      }
     }
     else if (region_code == FOURCC('G', 'M', '8', 'P')) {
       active_game = Game::PRIME_1_GCN;

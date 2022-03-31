@@ -9,6 +9,7 @@ void ViewModifier::run_mod(Game game, Region region) {
     run_mod_mp1();
     break;
   case Game::PRIME_1_GCN:
+  case Game::PRIME_1_GCN_R1:
     run_mod_mp1_gc();
     break;
   case Game::PRIME_2:
@@ -104,11 +105,6 @@ void ViewModifier::run_mod_mp1() {
 }
 
 void ViewModifier::run_mod_mp1_gc() {
-  u8 version = read8(0x80000007);
-  if (version != 0) {
-    return;
-  }
-
   LOOKUP(fov_fp_offset);
   LOOKUP(fov_tp_offset);
   LOOKUP(gun_pos);
@@ -134,15 +130,16 @@ void ViewModifier::run_mod_mp1_gc() {
   }
 
   // PAL added some stuff related to SFX in CActor, affects all derived
-  const u32 pal_offset = hack_mgr->get_active_region() == Region::PAL ? 0x10 : 0;
+  const u32 version_offset = (hack_mgr->get_active_region() == Region::PAL ||
+                              hack_mgr->get_active_game() == Game::PRIME_1_GCN_R2 ? 0x10 : 0);
 
   const u32 r13 = GPR(13);
   const float fov = std::min(GetFov(), 170.f);
-  writef32(fov, camera + 0x15c + pal_offset);
+  writef32(fov, camera + 0x15c + version_offset);
   writef32(fov, r13 + fov_fp_offset);
   writef32(fov, r13 + fov_tp_offset);
 
-  adjust_viewmodel(fov, gun_pos, camera + 0x160 + pal_offset,
+  adjust_viewmodel(fov, gun_pos, camera + 0x160 + version_offset,
     0x3d200000);
 
   set_code_group_state("culling", (GetCulling() || GetFov() > 101.f) ? ModState::ENABLED : ModState::DISABLED);
@@ -296,6 +293,12 @@ bool ViewModifier::init_mod(Game game, Region region) {
   case Game::PRIME_1_GCN:
     init_mod_mp1_gc(region);
     break;
+  case Game::PRIME_1_GCN_R1:
+    init_mod_mp1_gc_r1();
+    break;
+  case Game::PRIME_1_GCN_R2:
+    init_mod_mp1_gc_r2();
+    break;
   case Game::PRIME_2:
     init_mod_mp2(region);
     break;
@@ -326,17 +329,21 @@ void ViewModifier::init_mod_mp1(Region region) {
 }
 
 void ViewModifier::init_mod_mp1_gc(Region region) {
-  u8 version = read8(0x80000007);
-
   if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(0x80337a24, 0x38600001, "culling");
-      add_code_change(0x80337a24 + 0x4, 0x4e800020, "culling");
-    }
+    add_code_change(0x80337a24, 0x38600001, "culling");
+    add_code_change(0x80337a24 + 0x4, 0x4e800020, "culling");
   } else if (region == Region::PAL) {
     add_code_change(0x80320424, 0x38600001, "culling");
     add_code_change(0x80320424 + 0x4, 0x4e800020, "culling");
   }
+}
+
+void ViewModifier::init_mod_mp1_gc_r1() {
+  add_code_change(0x80337b04, 0x38600001, "culling");
+  add_code_change(0x80337b04 + 0x4, 0x4e800020, "culling");
+}
+
+void ViewModifier::init_mod_mp1_gc_r2() {
 }
 
 void ViewModifier::init_mod_mp2(Region region) {

@@ -14,6 +14,7 @@ public:
 private:
   void init_mod_mp1(Region region);
   void init_mod_mp1gc(Region region);
+  void init_mod_mp1gc_r1();
 
   void init_mod_mp3(Game game, Region region);
 };

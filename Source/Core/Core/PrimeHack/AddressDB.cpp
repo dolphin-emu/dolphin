@@ -10,6 +10,8 @@ AddressDB::AddressDB() {
   addr_mapping.emplace(Game::PRIME_1_GCN, var_map{});
   addr_mapping.emplace(Game::PRIME_2_GCN, var_map{});
   addr_mapping.emplace(Game::PRIME_3_STANDALONE, var_map{});
+  addr_mapping.emplace(Game::PRIME_1_GCN_R1, var_map{});
+  addr_mapping.emplace(Game::PRIME_1_GCN_R2, var_map{});
   
   dyn_addr_mapping.emplace(Game::PRIME_1, dyn_var_map{});
   dyn_addr_mapping.emplace(Game::PRIME_2, dyn_var_map{});
@@ -17,6 +19,8 @@ AddressDB::AddressDB() {
   dyn_addr_mapping.emplace(Game::PRIME_1_GCN, dyn_var_map{});
   dyn_addr_mapping.emplace(Game::PRIME_2_GCN, dyn_var_map{});
   dyn_addr_mapping.emplace(Game::PRIME_3_STANDALONE, dyn_var_map{});
+  dyn_addr_mapping.emplace(Game::PRIME_1_GCN_R1, dyn_var_map{});
+  dyn_addr_mapping.emplace(Game::PRIME_1_GCN_R2, dyn_var_map{});
 }
 
 void AddressDB::register_address(Game game, std::string_view name, u32 addr_ntsc_u, u32 addr_pal, u32 addr_ntsc_j) {

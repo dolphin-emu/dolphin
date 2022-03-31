@@ -32,6 +32,8 @@ private:
 
   void init_mod_mp1(Region region);
   void init_mod_mp1_gc(Region region);
+  void init_mod_mp1_gc_r1();
+  void init_mod_mp1_gc_r2();
   void init_mod_mp2(Region region);
   void init_mod_mp2_gc(Region region);
   void init_mod_mp3(Region region);

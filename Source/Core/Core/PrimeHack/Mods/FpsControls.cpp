@@ -63,6 +63,8 @@ void FpsControls::run_mod(Game game, Region region) {
     run_mod_mp3(game, region);
     break;
   case Game::PRIME_1_GCN:
+  case Game::PRIME_1_GCN_R1:
+  case Game::PRIME_1_GCN_R2:
     run_mod_mp1_gc(region);
     break;
   case Game::PRIME_2_GCN:
@@ -148,7 +150,6 @@ void FpsControls::calculate_pitch_locked(Game game, Region region) {
   pitch = std::clamp(pitch, -1.52f, 1.52f);
 }
 
-#pragma optimize("", off)
 void FpsControls::calculate_pitch_to_target(float target_pitch)
 {
   // Smoothly transitions pitch to target through interpolation
@@ -174,7 +175,6 @@ void FpsControls::calculate_pitch_to_target(float target_pitch)
 
   return;
 }
-#pragma optimize("", on)
 
 float FpsControls::calculate_yaw_vel() {
   return GetHorizontalAxis() * GetSensitivity() * (InvertedX() ? 1.f : -1.f);;
@@ -345,11 +345,6 @@ void FpsControls::run_mod_mp1(Region region) {
 }
 
 void FpsControls::run_mod_mp1_gc(Region region) {
-  u8 version = read8(0x80000007);
-  if (version != 0) {
-    return;
-  }
-
   const bool show_crosshair = GetShowGCCrosshair();
   const u32 crosshair_color_rgba = show_crosshair ? GetGCCrosshairColor() : 0x4b7ea331;
   set_code_group_state("show_crosshair", show_crosshair ? ModState::ENABLED : ModState::DISABLED);
@@ -816,6 +811,12 @@ bool FpsControls::init_mod(Game game, Region region) {
   case Game::PRIME_1_GCN:
     init_mod_mp1_gc(region);
     break;
+  case Game::PRIME_1_GCN_R1:
+    init_mod_mp1_gc_r1();
+    break;
+  case Game::PRIME_1_GCN_R2:
+    init_mod_mp1_gc_r2();
+    break;
   case Game::PRIME_2:
     init_mod_mp2(region);
     break;
@@ -967,7 +968,7 @@ void FpsControls::add_control_state_hook_mp3(u32 start_point, Region region) {
 }
 
 // Truly cursed
-void FpsControls::add_strafe_code_mp1_ntsc() {
+void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
   // calculate side movement @ 805afc00
   // stwu r1, 0x18(r1)
   // mfspr r0, LR
@@ -1060,7 +1061,13 @@ void FpsControls::add_strafe_code_mp1_ntsc() {
   add_code_change(0x805afc80, 0x38610004);
   add_code_change(0x805afc84, 0x389d0034);
   add_code_change(0x805afc88, 0x38bd0138);
-  add_code_change(0x805afc8c, 0x4bd62d99);
+  if (revision == Game::PRIME_1_GCN) {
+    add_code_change(0x805afc8c, 0x4bd62d99);
+  } else if (revision == Game::PRIME_1_GCN_R1) {
+    add_code_change(0x805afc8c, 0x4bd62e79);
+  } else if (revision == Game::PRIME_1_GCN_R2) {
+    // add_code_change(0x805afc8c, 0x4bd62d99);
+  }
   add_code_change(0x805afc90, 0xc0010018);
   add_code_change(0x805afc94, 0xc0210004);
   add_code_change(0x805afc98, 0xec000828);
@@ -1082,6 +1089,14 @@ void FpsControls::add_strafe_code_mp1_ntsc() {
   add_code_change(0x805afcd8, 0x3821ffe8);
   add_code_change(0x805afcdc, 0x4e800020);
 
+  u32 inject_base = 0;
+  if (revision == Game::PRIME_1_GCN) {
+    inject_base = 0x802875c4;
+  } else if (revision == Game::PRIME_1_GCN_R1) {
+    inject_base = 0x80287640;
+  } else if (revision == Game::PRIME_1_GCN_R2) {
+  }
+
   // Apply strafe force instead of torque @ 802875c4
   // lfs f1, -0x4260(r2)
   // lfs f0, -0x41bc(r2)
@@ -1098,30 +1113,47 @@ void FpsControls::add_strafe_code_mp1_ntsc() {
   // stfs f0, 0x14(r1)
   // stfs f0, 0x18(r1)
   // addi r4, r1, 0x10
-  add_code_change(0x802875c4, 0xc022bda0);
-  add_code_change(0x802875c8, 0xc002be44);
-  add_code_change(0x802875cc, 0xec3e0828);
-  add_code_change(0x802875d0, 0xfc200a10);
-  add_code_change(0x802875d4, 0xfc010040);
-  add_code_change(0x802875d8, 0x4081002c);
-  add_code_change(0x802875dc, 0x48328625);
-  add_code_change(0x802875e0, 0x4bd93f55);
-  add_code_change(0x802875e4, 0x7c651b78);
-  add_code_change(0x802875e8, 0x7fa3eb78);
-  add_code_change(0x802875ec, 0xc002bda0);
-  add_code_change(0x802875f0, 0xd0210010);
-  add_code_change(0x802875f4, 0xd0010014);
-  add_code_change(0x802875f8, 0xd0010018);
-  add_code_change(0x802875fc, 0x38810010);
+  add_code_change(inject_base + 0x0, 0xc022bda0);
+  add_code_change(inject_base + 0x4, 0xc002be44);
+  add_code_change(inject_base + 0x8, 0xec3e0828);
+  add_code_change(inject_base + 0xc, 0xfc200a10);
+  add_code_change(inject_base + 0x10, 0xfc010040);
+  add_code_change(inject_base + 0x14, 0x4081002c);
+  if (revision == Game::PRIME_1_GCN) {
+    add_code_change(inject_base + 0x18, 0x48328625);
+    add_code_change(inject_base + 0x1c, 0x4bd93f55);
+  } else if (revision == Game::PRIME_1_GCN_R1) {
+    add_code_change(inject_base + 0x18, 0x483285a9);
+    add_code_change(inject_base + 0x1c, 0x4bd93f55);
+  } else if (revision == Game::PRIME_1_GCN_R2) {
+  }
+  add_code_change(inject_base + 0x20, 0x7c651b78);
+  add_code_change(inject_base + 0x24, 0x7fa3eb78);
+  add_code_change(inject_base + 0x28, 0xc002bda0);
+  add_code_change(inject_base + 0x2c, 0xd0210010);
+  add_code_change(inject_base + 0x30, 0xd0010014);
+  add_code_change(inject_base + 0x34, 0xd0010018);
+  add_code_change(inject_base + 0x38, 0x38810010);
 
   // disable rotation on LR analog
-  add_code_change(0x80286fe0, 0x4bfffc71);
-  add_code_change(0x80286c88, 0x4800000c);
-  add_code_change(0x8028739c, 0x60000000);
-  add_code_change(0x802873e0, 0x60000000);
-  add_code_change(0x8028707c, 0x60000000);
-  add_code_change(0x802871bc, 0x60000000);
-  add_code_change(0x80287288, 0x60000000);
+  if (revision == Game::PRIME_1_GCN) {
+    add_code_change(0x80286fe0, 0x4bfffc71);
+    add_code_change(0x80286c88, 0x4800000c);
+    add_code_change(0x8028739c, 0x60000000);
+    add_code_change(0x802873e0, 0x60000000);
+    add_code_change(0x8028707c, 0x60000000);
+    add_code_change(0x802871bc, 0x60000000);
+    add_code_change(0x80287288, 0x60000000);
+  } else if (revision == Game::PRIME_1_GCN_R1) {
+    add_code_change(0x8028705c, 0x4bfffc71);
+    add_code_change(0x80286d04, 0x4800000c);
+    add_code_change(0x80287418, 0x60000000);
+    add_code_change(0x8028745c, 0x60000000);
+    add_code_change(0x802870f8, 0x60000000);
+    add_code_change(0x80287238, 0x60000000);
+    add_code_change(0x80287288, 0x60000000);
+  } else if (revision == Game::PRIME_1_GCN_R2) {
+  }
 
   // Clamp current xy velocity @ 802872A4
   // lfs f1, -0x7ec0(r2)
@@ -1157,39 +1189,45 @@ void FpsControls::add_strafe_code_mp1_ntsc() {
   // fmuls f2, f3, f2
   // stfs f2, 0x100(r29)
   // b 0xc0
-  add_code_change(0x802872a4, 0xc0228140);
-  add_code_change(0x802872a8, 0xec1e07b2);
-  add_code_change(0x802872ac, 0xfc000840);
-  add_code_change(0x802872b0, 0x40810134);
-  add_code_change(0x802872b4, 0xec1f07f2);
-  add_code_change(0x802872b8, 0xfc000840);
-  add_code_change(0x802872bc, 0x40810128);
-  add_code_change(0x802872c0, 0xc01d0138);
-  add_code_change(0x802872c4, 0xc03d013c);
-  add_code_change(0x802872c8, 0xec000032);
-  add_code_change(0x802872cc, 0xec21007a);
-  add_code_change(0x802872d0, 0xfc200834);
-  add_code_change(0x802872d4, 0xec200830);
-  add_code_change(0x802872d8, 0x3862dfc0);
-  add_code_change(0x802872dc, 0x5400103a);
-  add_code_change(0x802872e0, 0x7c601a14);
-  add_code_change(0x802872e4, 0xc0030000);
-  add_code_change(0x802872e8, 0xfc010040);
-  add_code_change(0x802872ec, 0x408100f8);
-  add_code_change(0x802872f0, 0xc07d00e8);
-  add_code_change(0x802872f4, 0xc05d0138);
-  add_code_change(0x802872f8, 0xec420824);
-  add_code_change(0x802872fc, 0xec4000b2);
-  add_code_change(0x80287300, 0xd05d0138);
-  add_code_change(0x80287304, 0xec4300b2);
-  add_code_change(0x80287308, 0xd05d00fc);
-  add_code_change(0x8028730c, 0xc05d013c);
-  add_code_change(0x80287310, 0xec420824);
-  add_code_change(0x80287314, 0xec4000b2);
-  add_code_change(0x80287318, 0xd05d013c);
-  add_code_change(0x8028731c, 0xec4300b2);
-  add_code_change(0x80287320, 0xd05d0100);
-  add_code_change(0x80287324, 0x480000c0);
+  if (revision == Game::PRIME_1_GCN) {
+    inject_base = 0x802872a4;
+  } else if (revision == Game::PRIME_1_GCN_R1) {
+    inject_base = 0x80287320;
+  } else if (revision == Game::PRIME_1_GCN_R2) {
+  }
+  add_code_change(inject_base + 0x0, 0xc0228140);
+  add_code_change(inject_base + 0x4, 0xec1e07b2);
+  add_code_change(inject_base + 0x8, 0xfc000840);
+  add_code_change(inject_base + 0xc, 0x40810134);
+  add_code_change(inject_base + 0x10, 0xec1f07f2);
+  add_code_change(inject_base + 0x14, 0xfc000840);
+  add_code_change(inject_base + 0x18, 0x40810128);
+  add_code_change(inject_base + 0x1c, 0xc01d0138);
+  add_code_change(inject_base + 0x20, 0xc03d013c);
+  add_code_change(inject_base + 0x24, 0xec000032);
+  add_code_change(inject_base + 0x28, 0xec21007a);
+  add_code_change(inject_base + 0x2c, 0xfc200834);
+  add_code_change(inject_base + 0x30, 0xec200830);
+  add_code_change(inject_base + 0x34, 0x3862dfc0);
+  add_code_change(inject_base + 0x38, 0x5400103a);
+  add_code_change(inject_base + 0x3c, 0x7c601a14);
+  add_code_change(inject_base + 0x40, 0xc0030000);
+  add_code_change(inject_base + 0x44, 0xfc010040);
+  add_code_change(inject_base + 0x48, 0x408100f8);
+  add_code_change(inject_base + 0x4c, 0xc07d00e8);
+  add_code_change(inject_base + 0x50, 0xc05d0138);
+  add_code_change(inject_base + 0x54, 0xec420824);
+  add_code_change(inject_base + 0x58, 0xec4000b2);
+  add_code_change(inject_base + 0x5c, 0xd05d0138);
+  add_code_change(inject_base + 0x60, 0xec4300b2);
+  add_code_change(inject_base + 0x64, 0xd05d00fc);
+  add_code_change(inject_base + 0x68, 0xc05d013c);
+  add_code_change(inject_base + 0x6c, 0xec420824);
+  add_code_change(inject_base + 0x70, 0xec4000b2);
+  add_code_change(inject_base + 0x74, 0xd05d013c);
+  add_code_change(inject_base + 0x78, 0xec4300b2);
+  add_code_change(inject_base + 0x7c, 0xd05d0100);
+  add_code_change(inject_base + 0x80, 0x480000c0);
 
   // max speed values table @ 805afce0
   add_code_change(0x805afce0, 0x41480000);
@@ -1522,32 +1560,28 @@ void FpsControls::init_mod_mp1(Region region) {
 }
 
 void FpsControls::init_mod_mp1_gc(Region region) {
-  u8 version = read8(0x80000007);
-
   if (region == Region::NTSC_U) {
-    if (version == 0) {
-      add_code_change(0x8000f63c, 0x48000048);
-      add_code_change(0x8000e538, 0x60000000);
-      //add_code_change(0x80016ee4, 0x4e800020);
-      add_code_change(0x80014820, 0x4e800020);
-      add_code_change(0x8000e73c, 0x60000000);
-      add_code_change(0x8000f810, 0x48000244);
-      // When attached to a grapple point and spinning around it
-      // the player's yaw is adjusted, this ensures only position is updated
-      // Grapple point yaw fix
-      add_code_change(0x8017a18c, 0x7fa3eb78);
-      add_code_change(0x8017a190, 0x3881006c);
-      add_code_change(0x8017a194, 0x4bed8cf9);
+    add_code_change(0x8000f63c, 0x48000048);
+    add_code_change(0x8000e538, 0x60000000);
+    //add_code_change(0x80016ee4, 0x4e800020);
+    add_code_change(0x80014820, 0x4e800020);
+    add_code_change(0x8000e73c, 0x60000000);
+    add_code_change(0x8000f810, 0x48000244);
+    // When attached to a grapple point and spinning around it
+    // the player's yaw is adjusted, this ensures only position is updated
+    // Grapple point yaw fix
+    add_code_change(0x8017a18c, 0x7fa3eb78);
+    add_code_change(0x8017a190, 0x3881006c);
+    add_code_change(0x8017a194, 0x4bed8cf9);
 
-      // Show crosshair but don't consider pressing R button
-      add_code_change(0x80016ee4, 0x3b000001, "show_crosshair"); // li r24, 1
-      add_code_change(0x80016ee8, 0x8afd09c4, "show_crosshair"); // lbz r23, 0x9c4(r29)
-      add_code_change(0x80016eec, 0x53173672, "show_crosshair"); // rlwimi r23, r24, 6, 25, 25 (00000001)
-      add_code_change(0x80016ef0, 0x9afd09c4, "show_crosshair"); // stb r23, 0x9c4(r29)
-      add_code_change(0x80016ef4, 0x4e800020, "show_crosshair"); // blr
+    // Show crosshair but don't consider pressing R button
+    add_code_change(0x80016ee4, 0x3b000001, "show_crosshair"); // li r24, 1
+    add_code_change(0x80016ee8, 0x8afd09c4, "show_crosshair"); // lbz r23, 0x9c4(r29)
+    add_code_change(0x80016eec, 0x53173672, "show_crosshair"); // rlwimi r23, r24, 6, 25, 25 (00000001)
+    add_code_change(0x80016ef0, 0x9afd09c4, "show_crosshair"); // stb r23, 0x9c4(r29)
+    add_code_change(0x80016ef4, 0x4e800020, "show_crosshair"); // blr
 
-      add_strafe_code_mp1_ntsc();
-    }
+    add_strafe_code_mp1_ntsc(Game::PRIME_1_GCN);
   } else if (region == Region::PAL) {
     add_code_change(0x8000fb4c, 0x48000048);
     add_code_change(0x8000ea60, 0x60000000);
@@ -1570,6 +1604,32 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_strafe_code_mp1_pal();
   } else {}
 }
+
+void FpsControls::init_mod_mp1_gc_r1() {
+  add_code_change(0x8000f6b8, 0x48000048);
+  add_code_change(0x8000e5b4, 0x60000000);
+
+  add_code_change(0x8001489c, 0x4e800020);
+  add_code_change(0x8000e7b8, 0x60000000);
+  add_code_change(0x8000f88c, 0x48000244);
+  // When attached to a grapple point and spinning around it
+  // the player's yaw is adjusted, this ensures only position is updated
+  // Grapple point yaw fix
+  add_code_change(0x8017a208, 0x7fa3eb78);
+  add_code_change(0x8017a20c, 0x3881006c);
+  add_code_change(0x8017a210, 0x4bed8cf9);
+
+  // Show crosshair but don't consider pressing R button
+  add_code_change(0x80016f60, 0x3b000001, "show_crosshair");
+  add_code_change(0x80016f64, 0x8afd09c4, "show_crosshair");
+  add_code_change(0x80016f68, 0x53173672, "show_crosshair");
+  add_code_change(0x80016f6c, 0x9afd09c4, "show_crosshair");
+  add_code_change(0x80016f70, 0x4e800020, "show_crosshair");
+  add_strafe_code_mp1_ntsc(Game::PRIME_1_GCN_R1);
+}
+
+void FpsControls::init_mod_mp1_gc_r2() {}
+
 
 void FpsControls::init_mod_mp2(Region region) {
   prime::GetVariableManager()->register_variable("new_beam");
