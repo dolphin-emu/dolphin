@@ -52,6 +52,9 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 
+  connect(graphics_mod_list, &GraphicsModListWidget::OpenGraphicsSettings, this,
+          &PropertiesDialog::OpenGraphicsSettings);
+
   const int padding_width = 120;
   const int padding_height = 100;
   tab_widget->addTab(GetWrappedWidget(game_config, this, padding_width, padding_height),

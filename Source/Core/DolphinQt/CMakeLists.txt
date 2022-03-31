@@ -131,6 +131,8 @@ add_executable(dolphin-emu
   Config/Graphics/SoftwareRendererWidget.h
   Config/GraphicsModListWidget.cpp
   Config/GraphicsModListWidget.h
+  Config/GraphicsModWarningWidget.cpp
+  Config/GraphicsModWarningWidget.h
   Config/InfoWidget.cpp
   Config/InfoWidget.h
   Config/LogConfigWidget.cpp

@@ -77,6 +77,7 @@
     <ClCompile Include="Config\Graphics\PostProcessingConfigWindow.cpp" />
     <ClCompile Include="Config\Graphics\SoftwareRendererWidget.cpp" />
     <ClCompile Include="Config\GraphicsModListWidget.cpp" />
+    <ClCompile Include="Config\GraphicsModWarningWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
@@ -272,6 +273,7 @@
     <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
     <QtMoc Include="Config\Graphics\SoftwareRendererWidget.h" />
     <QtMoc Include="Config\GraphicsModListWidget.h" />
+    <QtMoc Include="Config\GraphicsModWarningWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />

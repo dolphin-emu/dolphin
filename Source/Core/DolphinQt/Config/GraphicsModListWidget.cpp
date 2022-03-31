@@ -15,6 +15,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "DolphinQt/Config/GraphicsModWarningWidget.h"
 #include "DolphinQt/Settings.h"
 #include "UICommon/GameFile.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
@@ -45,7 +46,9 @@ GraphicsModListWidget::~GraphicsModListWidget()
 
 void GraphicsModListWidget::CreateWidgets()
 {
-  auto* main_layout = new QHBoxLayout(this);
+  auto* main_v_layout = new QVBoxLayout(this);
+
+  auto* main_layout = new QHBoxLayout;
 
   auto* left_v_layout = new QVBoxLayout;
 
@@ -71,15 +74,23 @@ void GraphicsModListWidget::CreateWidgets()
 
   m_mod_meta_layout = new QVBoxLayout;
   right_v_layout->addLayout(m_mod_meta_layout);
+  right_v_layout->addStretch();
 
   main_layout->addLayout(left_v_layout);
   main_layout->addLayout(right_v_layout, 1);
 
-  setLayout(main_layout);
+  m_warning = new GraphicsModWarningWidget(this);
+  main_v_layout->addWidget(m_warning);
+  main_v_layout->addLayout(main_layout);
+
+  setLayout(main_v_layout);
 }
 
 void GraphicsModListWidget::ConnectWidgets()
 {
+  connect(m_warning, &GraphicsModWarningWidget::GraphicsModEnableSettings, this,
+          &GraphicsModListWidget::OpenGraphicsSettings);
+
   connect(m_mod_list, &QListWidget::itemSelectionChanged, this,
           &GraphicsModListWidget::ModSelectionChanged);
 

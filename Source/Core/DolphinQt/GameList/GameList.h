@@ -55,6 +55,7 @@ signals:
   void NetPlayHost(const UICommon::GameFile& game);
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OpenGeneralSettings();
+  void OpenGraphicsSettings();
 
 private:
   void ShowHeaderContextMenu(const QPoint& pos);

@@ -672,6 +672,7 @@ void MainWindow::ConnectGameList()
           &MainWindow::ShowRiivolutionBootWidget);
 
   connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
+  connect(m_game_list, &GameList::OpenGraphicsSettings, this, &MainWindow::ShowGraphicsWindow);
 }
 
 void MainWindow::ConnectRenderWidget()

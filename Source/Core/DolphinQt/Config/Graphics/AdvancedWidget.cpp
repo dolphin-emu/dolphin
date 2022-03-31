@@ -20,6 +20,7 @@
 #include "DolphinQt/Config/Graphics/GraphicsInteger.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -72,7 +73,7 @@ void AdvancedWidget::CreateWidgets()
   m_dump_xfb_target = new GraphicsBool(tr("Dump XFB Target"), Config::GFX_DUMP_XFB_TARGET);
   m_disable_vram_copies =
       new GraphicsBool(tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
-  m_enable_graphics_mods = new GraphicsBool(tr("Enable Graphics Mods"), Config::GFX_MODS_ENABLE);
+  m_enable_graphics_mods = new ToolTipCheckBox(tr("Enable Graphics Mods"));
 
   utility_layout->addWidget(m_load_custom_textures, 0, 0);
   utility_layout->addWidget(m_prefetch_custom_textures, 0, 1);
@@ -167,6 +168,7 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_enable_graphics_mods, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
 
 void AdvancedWidget::LoadSettings()
@@ -177,6 +179,8 @@ void AdvancedWidget::LoadSettings()
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
+
+  SignalBlocking(m_enable_graphics_mods)->setChecked(Settings::Instance().GetGraphicModsEnabled());
 }
 
 void AdvancedWidget::SaveSettings()
@@ -187,6 +191,7 @@ void AdvancedWidget::SaveSettings()
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
+  Settings::Instance().SetGraphicModsEnabled(m_enable_graphics_mods->isChecked());
 }
 
 void AdvancedWidget::OnBackendChanged()

@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 
+class GraphicsModWarningWidget;
 class QHBoxLayout;
 class QLabel;
 class QListWidget;
@@ -31,6 +32,7 @@ class GameFile;
 
 class GraphicsModListWidget : public QWidget
 {
+  Q_OBJECT
 public:
   explicit GraphicsModListWidget(const UICommon::GameFile& game);
   ~GraphicsModListWidget();
@@ -38,6 +40,9 @@ public:
   void SaveToDisk();
 
   const GraphicsModGroupConfig& GetGraphicsModConfig() const;
+
+signals:
+  void OpenGraphicsSettings();
 
 private:
   void CreateWidgets();
@@ -63,6 +68,7 @@ private:
   QVBoxLayout* m_mod_meta_layout;
 
   QPushButton* m_refresh;
+  GraphicsModWarningWidget* m_warning;
 
   std::string m_game_id;
   GraphicsModGroupConfig m_mod_group;
