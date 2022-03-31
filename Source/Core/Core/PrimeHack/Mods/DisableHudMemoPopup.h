@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #include "Core/PrimeHack/PrimeMod.h"
 
