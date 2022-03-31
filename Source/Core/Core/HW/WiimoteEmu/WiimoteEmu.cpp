@@ -575,7 +575,8 @@ void Wiimote::SendDataReport()
     }
 
     Movie::CallWiiInputManip(rpt_builder, m_index, m_active_extension, GetExtensionEncryptionKey());
-    API::GetWiiManip().PerformInputManip(rpt_builder, m_index, m_active_extension, GetExtensionEncryptionKey());
+    API::GetWiiButtonsManip().PerformInputManip(rpt_builder, m_index);
+    API::GetWiiIRManip().PerformInputManip(rpt_builder, m_index);
   }
 
   if (NetPlay::IsNetPlayRunning())

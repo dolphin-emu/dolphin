@@ -47,22 +47,41 @@ private:
   API::ListenerID<API::Events::FrameAdvance> m_frame_advanced_listener;
 };
 
-struct WiiInputOverride
+struct WiiInputButtonsOverride
 {
   WiimoteCommon::ButtonData button_data;
-  // TODO IR and accel data
   ClearOn clear_on;
   bool used;
 };
 
-class WiiManip : public BaseManip<WiiInputOverride>
+struct IRCameraTransform
+{
+  Common::Vec3 position;
+  Common::Vec3 pitch_yaw_roll;
+};
+
+struct WiiInputIROverride
+{
+  IRCameraTransform ircamera_transform;
+  ClearOn clear_on;
+  bool used;
+};
+
+class WiiButtonsManip : public BaseManip<WiiInputButtonsOverride>
 {
 public:
   using BaseManip::BaseManip;
   WiimoteCommon::ButtonData Get(int controller_id);
   void Set(WiimoteCommon::ButtonData button_data, int controller_id, ClearOn clear_on);
-  void PerformInputManip(WiimoteCommon::DataReportBuilder& rpt, int controller_id, int ext,
-                         const WiimoteEmu::EncryptionKey& key);
+  void PerformInputManip(WiimoteCommon::DataReportBuilder& rpt, int controller_id);
+};
+
+class WiiIRManip : public BaseManip<WiiInputIROverride>
+{
+public:
+  using BaseManip::BaseManip;
+  void Set(IRCameraTransform ircamera_transform, int controller_id, ClearOn clear_on);
+  void PerformInputManip(WiimoteCommon::DataReportBuilder& rpt, int controller_id);
 };
 
 struct GCInputOverride
@@ -83,6 +102,7 @@ public:
 
 // global instances
 GCManip& GetGCManip();
-WiiManip& GetWiiManip();
+WiiButtonsManip& GetWiiButtonsManip();
+WiiIRManip& GetWiiIRManip();
 
 }  // namespace API

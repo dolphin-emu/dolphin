@@ -20,13 +20,14 @@ class PyScriptingBackend
 {
 public:
   PyScriptingBackend(std::filesystem::path script_filepath, API::EventHub& event_hub, API::Gui& gui,
-                     API::GCManip& gc_manip, API::WiiManip& wii_manip);
+                     API::GCManip& gc_manip, API::WiiButtonsManip& wii_buttons_manip, API::WiiIRManip& wii_ir_manip);
   ~PyScriptingBackend();
   static PyScriptingBackend* GetCurrent();
   API::EventHub* GetEventHub();
   API::Gui* GetGui();
   API::GCManip* GetGCManip();
-  API::WiiManip* GetWiiManip();
+  API::WiiButtonsManip* GetWiiButtonsManip();
+  API::WiiIRManip* GetWiiIRManip();
 
   // this class somewhat is a wrapper around a python interpreter state,
   // and that isn't copyable, so this class isn't copyable either.
@@ -46,7 +47,8 @@ private:
   API::EventHub& m_event_hub;
   API::Gui& m_gui;
   API::GCManip& m_gc_manip;
-  API::WiiManip& m_wii_manip;
+  API::WiiButtonsManip& m_wii_buttons_manip;
+  API::WiiIRManip& m_wii_ir_manip;
 };
 
 }  // namespace PyScripting

@@ -109,8 +109,10 @@ static void ShutdownMainPythonInterpreter()
 
 PyScriptingBackend::PyScriptingBackend(std::filesystem::path script_filepath,
                                        API::EventHub& event_hub, API::Gui& gui,
-                                       API::GCManip& gc_manip, API::WiiManip& wii_manip)
-    : m_event_hub(event_hub), m_gui(gui), m_gc_manip(gc_manip), m_wii_manip(wii_manip)
+                                       API::GCManip& gc_manip, API::WiiButtonsManip& wii_buttons_manip,
+                                       API::WiiIRManip& wii_ir_manip)
+    : m_event_hub(event_hub), m_gui(gui), m_gc_manip(gc_manip), m_wii_buttons_manip(wii_buttons_manip),
+      m_wii_ir_manip(wii_ir_manip)
 {
   std::lock_guard lock{s_bookkeeping_lock};
   if (s_instances.empty())
@@ -191,9 +193,14 @@ API::GCManip* PyScriptingBackend::GetGCManip()
   return &m_gc_manip;
 }
 
-API::WiiManip* PyScriptingBackend::GetWiiManip()
+API::WiiButtonsManip* PyScriptingBackend::GetWiiButtonsManip()
 {
-  return &m_wii_manip;
+  return &m_wii_buttons_manip;
+}
+
+API::WiiIRManip* PyScriptingBackend::GetWiiIRManip()
+{
+  return &m_wii_ir_manip;
 }
 
 std::map<u64, PyScriptingBackend*> PyScriptingBackend::s_instances;

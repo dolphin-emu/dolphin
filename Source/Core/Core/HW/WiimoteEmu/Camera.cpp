@@ -68,7 +68,13 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
   // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
   if (!IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR])
     return;
+  
+  WriteIRDataForTransform(data.data(), m_reg_data.mode, field_of_view, transform);
+}
 
+void CameraLogic::WriteIRDataForTransform(u8* data, u8 mode, Common::Vec2 field_of_view,
+                                          const Common::Matrix44& transform)
+{
   using Common::Matrix33;
   using Common::Matrix44;
   using Common::Vec3;
@@ -119,7 +125,7 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
     return CameraPoint{{0xffff, 0xffff}, 0xff};
   });
 
-  switch (m_reg_data.mode)
+  switch (mode)
   {
   case IR_MODE_BASIC:
     for (std::size_t i = 0; i != camera_points.size() / 2; ++i)

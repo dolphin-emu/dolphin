@@ -14,7 +14,8 @@ namespace PyScripting
 struct ControllerModuleState
 {
   API::GCManip* gc_manip;
-  API::WiiManip* wii_manip;
+  API::WiiButtonsManip* wii_buttons_manip;
+  API::WiiIRManip* wii_ir_manip;
 };
 
 static PyObject* GCPadStatusToPyDict(GCPadStatus status) {
@@ -185,7 +186,7 @@ static PyObject* get_wii_buttons(PyObject* module, PyObject* args)
     return nullptr;
   int controller_id = std::get<0>(controller_id_opt.value());
   ControllerModuleState* state = Py::GetState<ControllerModuleState>(module);
-  WiimoteCommon::ButtonData status = state->wii_manip->Get(controller_id);
+  WiimoteCommon::ButtonData status = state->wii_buttons_manip->Get(controller_id);
   return WiiButtonDataToPyDict(status);
 }
 
@@ -197,20 +198,36 @@ static PyObject* set_wii_buttons(PyObject* module, PyObject* args)
     return nullptr;
   WiimoteCommon::ButtonData status = WiiButtonDataFromPyDict(dict);
   ControllerModuleState* state = Py::GetState<ControllerModuleState>(module);
-  state->wii_manip->Set(status, controller_id, API::ClearOn::NextFrame);
+  state->wii_buttons_manip->Set(status, controller_id, API::ClearOn::NextFrame);
+  Py_RETURN_NONE;
+}
+
+static PyObject* set_wii_ircamera_transform(PyObject* module, PyObject* args)
+{
+  int controller_id;
+  float x, y;
+  float z = -2; // 2 meters away from sensor bar by default
+  float pitch, yaw, roll;
+  if (!PyArg_ParseTuple(args, "ifff|fff", &controller_id, &x, &y, &z, &pitch, &yaw, &roll))
+    return nullptr;
+  const ControllerModuleState* state = Py::GetState<ControllerModuleState>(module);
+
+  state->wii_ir_manip->Set({{x, y, z}, {pitch, yaw, roll}}, controller_id, API::ClearOn::NextFrame);
   Py_RETURN_NONE;
 }
 
 static void setup_controller_module(PyObject* module, ControllerModuleState* state)
 {
   state->gc_manip = PyScriptingBackend::GetCurrent()->GetGCManip();
-  state->wii_manip = PyScriptingBackend::GetCurrent()->GetWiiManip();
+  state->wii_buttons_manip = PyScriptingBackend::GetCurrent()->GetWiiButtonsManip();
+  state->wii_ir_manip = PyScriptingBackend::GetCurrent()->GetWiiIRManip();
 }
 
 static void cleanup_controller_module(PyObject* module, ControllerModuleState* state)
 {
   state->gc_manip->Clear();
-  state->wii_manip->Clear();
+  state->wii_buttons_manip->Clear();
+  state->wii_ir_manip->Clear();
 }
 
 PyMODINIT_FUNC PyInit_controller()
@@ -220,6 +237,7 @@ PyMODINIT_FUNC PyInit_controller()
       {"set_gc_buttons", set_gc_buttons, METH_VARARGS, ""},
       {"get_wii_buttons", get_wii_buttons, METH_VARARGS, ""},
       {"set_wii_buttons", set_wii_buttons, METH_VARARGS, ""},
+      {"set_wii_ircamera_transform", set_wii_ircamera_transform, METH_VARARGS, ""},
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
