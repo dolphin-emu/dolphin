@@ -87,7 +87,7 @@ def set_wii_ircamera_transform(controller_id: int,
     Places the simulated IR camera at the specified location
     with the specified rotation relative to the sensor bar.
     For example, to move 2 meters away from the sensor,
-    15 centimeters to the left and 5 centimeters down, use:
+    15 centimeters to the right and 5 centimeters down, use:
     `set_wii_ircamera_transform(controller_id, 0.15, -0.05, -2)`
 
     :param controller_id: 0-based index of the controller
