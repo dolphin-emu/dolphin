@@ -60,7 +60,6 @@ public:
 
   bool IsCancelled() const { return m_cancelled.IsSet(); }
 
-private:
   void Shutdown()
   {
     if (m_thread.joinable())
@@ -71,6 +70,7 @@ private:
     }
   }
 
+private:
   void ThreadLoop()
   {
     Common::SetCurrentThreadName("WorkQueueThread");
