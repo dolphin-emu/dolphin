@@ -922,6 +922,12 @@ void VulkanContext::InitDriverDetails()
     vendor = DriverDetails::VENDOR_IMGTEC;
     driver = DriverDetails::DRIVER_IMGTEC;
   }
+  else if (vendor_id == 0x14E4 || device_name.find("V3D 4.2") != std::string::npos)
+  {
+    // support for the Broadcom Videocore IV.
+    vendor = DriverDetails::VENDOR_MESA;
+    driver = DriverDetails::DRIVER_V3D;
+  }
   else
   {
     WARN_LOG_FMT(VIDEO, "Unknown Vulkan driver vendor, please report it to us.");
