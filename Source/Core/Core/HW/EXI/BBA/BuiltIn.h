@@ -6,6 +6,15 @@
 #define TCP_FLAG_FIN 0x100
 #define TCP_FLAG_RST 0x400
 
+struct TcpBuffer
+{
+  bool used;
+  unsigned long long tick;
+  u32 seq_id;
+  u16 data_size;
+  char data[2048];
+
+};
 struct StackRef
 {
   unsigned int ip;
@@ -17,6 +26,8 @@ struct StackRef
   u32 ack_num;
   u16 window_size;
   u16 delay;
+  TcpBuffer TcpBuffers[4];
+  bool ready;
 };
 
 struct net_hw_lvl
