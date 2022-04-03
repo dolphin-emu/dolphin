@@ -37,16 +37,16 @@ namespace prime {
         }
         break;
       case Game::PRIME_1_GCN:
-        if (game == Game::PRIME_1_GCN_R2) {
-          // remove scan visor check
-          add_code_change(0x802888d0, 0x48000018);
-        } else if (region == Region::PAL) {
+        if (region == Region::PAL) {
           // remove scan visor check
           add_code_change(0x80275328, 0x48000018);
         } else if (region == Region::NTSC_J) {
           // remove scan visor check
           add_code_change(0x802770e4, 0x48000018);
         }
+        break;
+      case Game::PRIME_1_GCN_R2:
+        add_code_change(0x802888d0, 0x48000018);
         break;
       case Game::PRIME_2:
         if (region == Region::NTSC_U) {

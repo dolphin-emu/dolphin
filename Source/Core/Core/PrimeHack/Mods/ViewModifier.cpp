@@ -10,6 +10,7 @@ void ViewModifier::run_mod(Game game, Region region) {
     break;
   case Game::PRIME_1_GCN:
   case Game::PRIME_1_GCN_R1:
+  case Game::PRIME_1_GCN_R2:
     run_mod_mp1_gc();
     break;
   case Game::PRIME_2:
@@ -344,6 +345,8 @@ void ViewModifier::init_mod_mp1_gc_r1() {
 }
 
 void ViewModifier::init_mod_mp1_gc_r2() {
+  add_code_change(0x80338474, 0x38600001, "culling");
+  add_code_change(0x80338474 + 0x4, 0x4e800020, "culling");
 }
 
 void ViewModifier::init_mod_mp2(Region region) {

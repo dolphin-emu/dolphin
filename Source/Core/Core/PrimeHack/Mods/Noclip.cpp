@@ -33,18 +33,17 @@ void Noclip::run_mod(Game game, Region region)
 
 bool Noclip::has_control_mp1_gc() {
   LOOKUP(state_manager);
-
   LOOKUP_DYN(world);
   if (world == 0) {
     return false;
   }
 
-  LOOKUP_DYN(player);
+  LOOKUP_DYN(camera_state);
+  if (camera_state == 0) {
+    return false;
+  }
 
-  const int world_load_state = read32(world + 0x4);
-  const int camera_state = read32(player + 0x2f4);
-  const u8 statemgr_flags = read8(state_manager + 0xf94);
-  return (world_load_state == 5) && (camera_state != 4) && (statemgr_flags & 0x80);
+  return (read32(world + 0x4) == 5) && (read32(camera_state) != 4) && (read8(state_manager + 0xf94) & 0x80);
 }
 
 bool Noclip::has_control_mp2() {
@@ -386,6 +385,15 @@ bool Noclip::init_mod(Game game, Region region) {
     add_code_change(0x802851f0, 0x4808da31);
     break;
   case Game::PRIME_1_GCN_R2:
+    noclip_code_mp1_gc(0x8046c9e8, 0x805b0d00, 0x800531d8);
+
+    add_code_change(0x80285a9c, 0x60000000);
+    add_code_change(0x80285aac, 0x60000000);
+    add_code_change(0x80285ab4, 0x60000000);
+    add_code_change(0x80285adc, 0xd0010078);
+    add_code_change(0x80285ae0, 0xd0210088);
+    add_code_change(0x80285ae4, 0xd0410098);
+    add_code_change(0x80285ae8, 0x4808daa9);
     break;
   case Game::PRIME_2:
     if (region == Region::NTSC_U) {
@@ -583,6 +591,7 @@ void Noclip::on_state_change(ModState old_state) {
       break;
     case Game::PRIME_1_GCN:
     case Game::PRIME_1_GCN_R1:
+    case Game::PRIME_1_GCN_R2:
       player_transform.read_from(player + 0x34);
       old_matexclude_list = read64(player + 0x78);
       write64(0xffffffffffffffff, player + 0x78);
@@ -616,6 +625,7 @@ void Noclip::on_state_change(ModState old_state) {
       break;
     case Game::PRIME_1_GCN:
     case Game::PRIME_1_GCN_R1:
+    case Game::PRIME_1_GCN_R2:
       write64(old_matexclude_list, player + 0x78);
       break;
     case Game::PRIME_2:

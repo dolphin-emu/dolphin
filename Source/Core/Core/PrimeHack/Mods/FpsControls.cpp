@@ -45,6 +45,7 @@ bool is_string_ridley(Region active_region, u32 string_base) {
   return str_idx == str_len && read16(string_base) == 0;
 }
 }
+
 void FpsControls::run_mod(Game game, Region region) {
   switch (game) {
   case Game::MENU:
@@ -375,8 +376,8 @@ void FpsControls::run_mod_mp1_gc(Region region) {
     return;
   }
 
-  LOOKUP_DYN(ball_state);
-  if (read32(ball_state) != 0) {
+  LOOKUP_DYN(camera_state);
+  if (read32(camera_state) != 0) {
     vec3 fwd = cplayer_xf.fwd();
     yaw = atan2f(fwd.y, fwd.x);
     return;
@@ -968,7 +969,8 @@ void FpsControls::add_control_state_hook_mp3(u32 start_point, Region region) {
 }
 
 // Truly cursed
-void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
+void FpsControls::add_strafe_code_mp1_100(Game revision) {
+  const bool is_v100 = revision == Game::PRIME_1_GCN;
   // calculate side movement @ 805afc00
   // stwu r1, 0x18(r1)
   // mfspr r0, LR
@@ -1061,13 +1063,7 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
   add_code_change(0x805afc80, 0x38610004);
   add_code_change(0x805afc84, 0x389d0034);
   add_code_change(0x805afc88, 0x38bd0138);
-  if (revision == Game::PRIME_1_GCN) {
-    add_code_change(0x805afc8c, 0x4bd62d99);
-  } else if (revision == Game::PRIME_1_GCN_R1) {
-    add_code_change(0x805afc8c, 0x4bd62e79);
-  } else if (revision == Game::PRIME_1_GCN_R2) {
-    // add_code_change(0x805afc8c, 0x4bd62d99);
-  }
+  add_code_change(0x805afc8c, is_v100 ? 0x4bd62d99 : 0x4bd62e79);
   add_code_change(0x805afc90, 0xc0010018);
   add_code_change(0x805afc94, 0xc0210004);
   add_code_change(0x805afc98, 0xec000828);
@@ -1089,15 +1085,8 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
   add_code_change(0x805afcd8, 0x3821ffe8);
   add_code_change(0x805afcdc, 0x4e800020);
 
-  u32 inject_base = 0;
-  if (revision == Game::PRIME_1_GCN) {
-    inject_base = 0x802875c4;
-  } else if (revision == Game::PRIME_1_GCN_R1) {
-    inject_base = 0x80287640;
-  } else if (revision == Game::PRIME_1_GCN_R2) {
-  }
-
-  // Apply strafe force instead of torque @ 802875c4
+  u32 inject_base = is_v100 ? 0x802875c4 : 0x80287640;
+  // Apply strafe force instead of torque v1.00 @ 802875c4 | v1.01 @ 80287640
   // lfs f1, -0x4260(r2)
   // lfs f0, -0x41bc(r2)
   // fsubs f1, f30, f1
@@ -1119,14 +1108,8 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
   add_code_change(inject_base + 0xc, 0xfc200a10);
   add_code_change(inject_base + 0x10, 0xfc010040);
   add_code_change(inject_base + 0x14, 0x4081002c);
-  if (revision == Game::PRIME_1_GCN) {
-    add_code_change(inject_base + 0x18, 0x48328625);
-    add_code_change(inject_base + 0x1c, 0x4bd93f55);
-  } else if (revision == Game::PRIME_1_GCN_R1) {
-    add_code_change(inject_base + 0x18, 0x483285a9);
-    add_code_change(inject_base + 0x1c, 0x4bd93f55);
-  } else if (revision == Game::PRIME_1_GCN_R2) {
-  }
+  add_code_change(inject_base + 0x18, is_v100 ? 0x48328625 : 0x483285a9);
+  add_code_change(inject_base + 0x1c, is_v100 ? 0x4bd93f55 : 0x4bd93f55);
   add_code_change(inject_base + 0x20, 0x7c651b78);
   add_code_change(inject_base + 0x24, 0x7fa3eb78);
   add_code_change(inject_base + 0x28, 0xc002bda0);
@@ -1136,7 +1119,7 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
   add_code_change(inject_base + 0x38, 0x38810010);
 
   // disable rotation on LR analog
-  if (revision == Game::PRIME_1_GCN) {
+  if (is_v100) {
     add_code_change(0x80286fe0, 0x4bfffc71);
     add_code_change(0x80286c88, 0x4800000c);
     add_code_change(0x8028739c, 0x60000000);
@@ -1144,7 +1127,7 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
     add_code_change(0x8028707c, 0x60000000);
     add_code_change(0x802871bc, 0x60000000);
     add_code_change(0x80287288, 0x60000000);
-  } else if (revision == Game::PRIME_1_GCN_R1) {
+  } else {
     add_code_change(0x8028705c, 0x4bfffc71);
     add_code_change(0x80286d04, 0x4800000c);
     add_code_change(0x80287418, 0x60000000);
@@ -1152,10 +1135,9 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
     add_code_change(0x802870f8, 0x60000000);
     add_code_change(0x80287238, 0x60000000);
     add_code_change(0x80287288, 0x60000000);
-  } else if (revision == Game::PRIME_1_GCN_R2) {
   }
 
-  // Clamp current xy velocity @ 802872A4
+  // Clamp current xy velocity v1.00 @ 802872a4 | v1.01 @ 80287320
   // lfs f1, -0x7ec0(r2)
   // fmuls f0, f30, f30
   // fcmpo cr0, f0, f1
@@ -1189,16 +1171,12 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
   // fmuls f2, f3, f2
   // stfs f2, 0x100(r29)
   // b 0xc0
-  if (revision == Game::PRIME_1_GCN) {
-    inject_base = 0x802872a4;
-  } else if (revision == Game::PRIME_1_GCN_R1) {
-    inject_base = 0x80287320;
-  } else if (revision == Game::PRIME_1_GCN_R2) {
-  }
-  add_code_change(inject_base + 0x0, 0xc0228140);
-  add_code_change(inject_base + 0x4, 0xec1e07b2);
-  add_code_change(inject_base + 0x8, 0xfc000840);
-  add_code_change(inject_base + 0xc, 0x40810134);
+  inject_base = is_v100 ? 0x802872a4 : 0x80287320;
+
+  add_code_change(inject_base + 0x00, 0xc0228140);
+  add_code_change(inject_base + 0x04, 0xec1e07b2);
+  add_code_change(inject_base + 0x08, 0xfc000840);
+  add_code_change(inject_base + 0x0c, 0x40810134);
   add_code_change(inject_base + 0x10, 0xec1f07f2);
   add_code_change(inject_base + 0x14, 0xfc000840);
   add_code_change(inject_base + 0x18, 0x40810128);
@@ -1240,12 +1218,13 @@ void FpsControls::add_strafe_code_mp1_ntsc(Game revision) {
   add_code_change(0x805afcfc, 0x41480000);
 }
 
-void FpsControls::add_strafe_code_mp1_pal() {
+void FpsControls::add_strafe_code_mp1_102(Region region) {
+  const bool is_ntsc = region == Region::NTSC_U;
   // calculate side movement @ 80471c00
   // stwu r1, 0x18(r1)
   // mfspr r0, LR
   // stw r0, 0x1c(r1)
-  // lwz r5, -0x5e70(r13)
+  // lwz r5, -0x5e70(r13) -> -0x5ec8
   // lwz r4, 0x2c0(r29)
   // cmpwi r4, 2
   // li r4, 4
@@ -1262,11 +1241,11 @@ void FpsControls::add_strafe_code_mp1_pal() {
   // lfs f0, 0xa4(r3)
   // stfs f0, 0x10(r1)
   // fmuls f1, f1, f0
-  // lfs f0, -0x4180(r2)
+  // lfs f0, -0x4180(r2) = 0.0f
   // fcmpo cr0, f30, f0
-  // lfs f0, -0x4158(r2)
+  // lfs f0, -0x4158(r2) = -1
   // ble 0x8
-  // lfs f0, -0x41A0(r2)
+  // lfs f0, -0x41A0(r2) = 1
   // fmuls f0, f0, f1
   // lfs f3, 0x10(r1)
   // fsubs f3, f3, f1
@@ -1283,12 +1262,12 @@ void FpsControls::add_strafe_code_mp1_pal() {
   // fsubs f0, f0, f1
   // lfs f1, 0x10(r1)
   // fdivs f0, f0, f1
-  // lfs f1, -0x4158(r2)
+  // lfs f1, -0x4158(r2) = -1
   // fcmpo cr0, f0, f1
   // bge 0xc
   // fmr f0, f1
   // b 0x14
-  // lfs f1, -0x41A0(r2)
+  // lfs f1, -0x41A0(r2) = 1
   // fcmpo cr0, f0, f1
   // ble 0x8
   // fmr f0, f1
@@ -1298,66 +1277,68 @@ void FpsControls::add_strafe_code_mp1_pal() {
   // mtspr LR, r0
   // addi r1, r1, -0x18
   // blr
-  add_code_change(0x80471c00, 0x94210018);
-  add_code_change(0x80471c04, 0x7c0802a6);
-  add_code_change(0x80471c08, 0x9001001c);
-  add_code_change(0x80471c0c, 0x80ada190);
-  add_code_change(0x80471c10, 0x809d02c0);
-  add_code_change(0x80471c14, 0x2c040002);
-  add_code_change(0x80471c18, 0x38800004);
-  add_code_change(0x80471c1c, 0x40820008);
-  add_code_change(0x80471c20, 0x809d02bc);
-  add_code_change(0x80471c24, 0x5484103a);
-  add_code_change(0x80471c28, 0x7c642a14);
-  add_code_change(0x80471c2c, 0xc0230044);
-  add_code_change(0x80471c30, 0xc0430004);
-  add_code_change(0x80471c34, 0xec6206f2);
-  add_code_change(0x80471c38, 0xc01d00f8);
-  add_code_change(0x80471c3c, 0xec210032);
-  add_code_change(0x80471c40, 0xec211824);
-  add_code_change(0x80471c44, 0xc00300a4);
-  add_code_change(0x80471c48, 0xd0010010);
-  add_code_change(0x80471c4c, 0xec210032);
-  add_code_change(0x80471c50, 0xc002be80);
-  add_code_change(0x80471c54, 0xfc1e0040);
-  add_code_change(0x80471c58, 0xc002bea8);
-  add_code_change(0x80471c5c, 0x40810008);
-  add_code_change(0x80471c60, 0xc002be60);
-  add_code_change(0x80471c64, 0xec000072);
-  add_code_change(0x80471c68, 0xc0610010);
-  add_code_change(0x80471c6c, 0xec630828);
-  add_code_change(0x80471c70, 0xec6307b2);
-  add_code_change(0x80471c74, 0xec00182a);
-  add_code_change(0x80471c78, 0xd0010018);
-  add_code_change(0x80471c7c, 0xd0410014);
-  add_code_change(0x80471c80, 0x38610004);
-  add_code_change(0x80471c84, 0x389d0034);
-  add_code_change(0x80471c88, 0x38bd0148);
-  add_code_change(0x80471c8c, 0x4be89b69);
-  add_code_change(0x80471c90, 0xc0010018);
-  add_code_change(0x80471c94, 0xc0210004);
-  add_code_change(0x80471c98, 0xec000828);
-  add_code_change(0x80471c9c, 0xc0210010);
-  add_code_change(0x80471ca0, 0xec000824);
-  add_code_change(0x80471ca4, 0xc022bea8);
-  add_code_change(0x80471ca8, 0xfc000840);
-  add_code_change(0x80471cac, 0x4080000c);
-  add_code_change(0x80471cb0, 0xfc000890);
-  add_code_change(0x80471cb4, 0x48000014);
-  add_code_change(0x80471cb8, 0xc022be60);
-  add_code_change(0x80471cbc, 0xfc000840);
-  add_code_change(0x80471cc0, 0x40810008);
-  add_code_change(0x80471cc4, 0xfc000890);
-  add_code_change(0x80471cc8, 0xc0210014);
-  add_code_change(0x80471ccc, 0xec200072);
-  add_code_change(0x80471cd0, 0x8001001c);
-  add_code_change(0x80471cd4, 0x7c0803a6);
-  add_code_change(0x80471cd8, 0x3821ffe8);
-  add_code_change(0x80471cdc, 0x4e800020);
+  u32 inject_base = is_ntsc ? 0x805b0c00 : 0x80471c00;
+
+  add_code_change(inject_base + 0x00, 0x94210018);
+  add_code_change(inject_base + 0x04, 0x7c0802a6);
+  add_code_change(inject_base + 0x08, 0x9001001c);
+  add_code_change(inject_base + 0x0c, is_ntsc ? 0x80ada138 : 0x80ada190);
+  add_code_change(inject_base + 0x10, 0x809d02c0);
+  add_code_change(inject_base + 0x14, 0x2c040002);
+  add_code_change(inject_base + 0x18, 0x38800004);
+  add_code_change(inject_base + 0x1c, 0x40820008);
+  add_code_change(inject_base + 0x20, 0x809d02bc);
+  add_code_change(inject_base + 0x24, 0x5484103a);
+  add_code_change(inject_base + 0x28, 0x7c642a14);
+  add_code_change(inject_base + 0x2c, 0xc0230044);
+  add_code_change(inject_base + 0x30, 0xc0430004);
+  add_code_change(inject_base + 0x34, 0xec6206f2);
+  add_code_change(inject_base + 0x38, 0xc01d00f8);
+  add_code_change(inject_base + 0x3c, 0xec210032);
+  add_code_change(inject_base + 0x40, 0xec211824);
+  add_code_change(inject_base + 0x44, 0xc00300a4);
+  add_code_change(inject_base + 0x48, 0xd0010010);
+  add_code_change(inject_base + 0x4c, 0xec210032);
+  add_code_change(inject_base + 0x50, is_ntsc ? 0xc002be70 : 0xc002be80);
+  add_code_change(inject_base + 0x54, 0xfc1e0040);
+  add_code_change(inject_base + 0x58, is_ntsc ? 0xc002bdd0 : 0xc002bea8);
+  add_code_change(inject_base + 0x5c, 0x40810008);
+  add_code_change(inject_base + 0x60, is_ntsc ? 0xc002be80 : 0xc002be60);
+  add_code_change(inject_base + 0x64, 0xec000072);
+  add_code_change(inject_base + 0x68, 0xc0610010);
+  add_code_change(inject_base + 0x6c, 0xec630828);
+  add_code_change(inject_base + 0x70, 0xec6307b2);
+  add_code_change(inject_base + 0x74, 0xec00182a);
+  add_code_change(inject_base + 0x78, 0xd0010018);
+  add_code_change(inject_base + 0x7c, 0xd0410014);
+  add_code_change(inject_base + 0x80, 0x38610004);
+  add_code_change(inject_base + 0x84, 0x389d0034);
+  add_code_change(inject_base + 0x88, 0x38bd0148);
+  add_code_change(inject_base + 0x8c, is_ntsc ? 0x4bd627e9 : 0x4be89b69);
+  add_code_change(inject_base + 0x90, 0xc0010018);
+  add_code_change(inject_base + 0x94, 0xc0210004);
+  add_code_change(inject_base + 0x98, 0xec000828);
+  add_code_change(inject_base + 0x9c, 0xc0210010);
+  add_code_change(inject_base + 0xa0, 0xec000824);
+  add_code_change(inject_base + 0xa4, is_ntsc ? 0xc022bdd0 : 0xc022bea8);
+  add_code_change(inject_base + 0xa8, 0xfc000840);
+  add_code_change(inject_base + 0xac, 0x4080000c);
+  add_code_change(inject_base + 0xb0, 0xfc000890);
+  add_code_change(inject_base + 0xb4, 0x48000014);
+  add_code_change(inject_base + 0xb8, is_ntsc ? 0xc022be80 : 0xc022be60);
+  add_code_change(inject_base + 0xbc, 0xfc000840);
+  add_code_change(inject_base + 0xc0, 0x40810008);
+  add_code_change(inject_base + 0xc4, 0xfc000890);
+  add_code_change(inject_base + 0xc8, 0xc0210014);
+  add_code_change(inject_base + 0xcc, 0xec200072);
+  add_code_change(inject_base + 0xd0, 0x8001001c);
+  add_code_change(inject_base + 0xd4, 0x7c0803a6);
+  add_code_change(inject_base + 0xd8, 0x3821ffe8);
+  add_code_change(inject_base + 0xdc, 0x4e800020);
 
   // Apply strafe force instead of torque @ 802749a8
-  // lfs f1, -0x4180(r2)
-  // lfs f0, -0x40DC(r2)
+  // lfs f1, -0x4180(r2) = 0.0f
+  // lfs f0, -0x40DC(r2) = 1e-5
   // fsubs f1, f30, f1
   // fabs f1, f1
   // fcmpo cr0, f1, f0
@@ -1366,38 +1347,50 @@ void FpsControls::add_strafe_code_mp1_pal() {
   // bl 0xffda74e0
   // mr r5, r3
   // mr r3, r29
-  // lfs f0, -0x4180(r2)
+  // lfs f0, -0x4180(r2) = 0.0f
   // stfs f1, 0x10(r1)
   // stfs f0, 0x14(r1)
   // stfs f0, 0x18(r1)
   // addi r4, r1, 0x10
-  add_code_change(0x802749a8, 0xc022be80);
-  add_code_change(0x802749ac, 0xc002bf24);
-  add_code_change(0x802749b0, 0xec3e0828);
-  add_code_change(0x802749b4, 0xfc200a10);
-  add_code_change(0x802749b8, 0xfc010040);
-  add_code_change(0x802749bc, 0x4081002c);
-  add_code_change(0x802749c0, 0x481fd241);
-  add_code_change(0x802749c4, 0x4bda74e1);
-  add_code_change(0x802749c8, 0x7c651b78);
-  add_code_change(0x802749cc, 0x7fa3eb78);
-  add_code_change(0x802749d0, 0xc002be80);
-  add_code_change(0x802749d4, 0xd0210010);
-  add_code_change(0x802749d8, 0xd0010014);
-  add_code_change(0x802749dc, 0xd0010018);
-  add_code_change(0x802749e0, 0x38810010);
+  inject_base = is_ntsc ? 0x80287f50 : 0x802749a8;
+
+  add_code_change(inject_base + 0x00, is_ntsc ? 0xc022be70 : 0xc022be80);
+  add_code_change(inject_base + 0x04, is_ntsc ? 0xc002bc94 : 0xc002bf24);
+  add_code_change(inject_base + 0x08, 0xec3e0828);
+  add_code_change(inject_base + 0x0c, 0xfc200a10);
+  add_code_change(inject_base + 0x10, 0xfc010040);
+  add_code_change(inject_base + 0x14, 0x4081002c);
+  add_code_change(inject_base + 0x18, is_ntsc ? 0x48328c99 : 0x481fd241);
+  add_code_change(inject_base + 0x1c, is_ntsc ? 0x4bd938a9 : 0x4bda74e1);
+  add_code_change(inject_base + 0x20, 0x7c651b78);
+  add_code_change(inject_base + 0x24, 0x7fa3eb78);
+  add_code_change(inject_base + 0x28, is_ntsc ? 0xc002be70 : 0xc002be80);
+  add_code_change(inject_base + 0x2c, 0xd0210010);
+  add_code_change(inject_base + 0x30, 0xd0010014);
+  add_code_change(inject_base + 0x34, 0xd0010018);
+  add_code_change(inject_base + 0x38, 0x38810010);
 
   // disable rotation on LR analog
-  add_code_change(0x802743C4, 0x4bfffc71); // jump/address updated
-  add_code_change(0x8027406C, 0x4800000c); // updated following addresses
-  add_code_change(0x80274780, 0x60000000);
-  add_code_change(0x802747C4, 0x60000000);
-  add_code_change(0x80274460, 0x60000000);
-  add_code_change(0x802745A0, 0x60000000);
-  add_code_change(0x8027466C, 0x60000000);
+  if (is_ntsc) {
+    add_code_change(0x8028796c, 0x4bfffc71); // jump/address updated
+    add_code_change(0x80287614, 0x4800000c); // updated following addresses
+    add_code_change(0x80287d28, 0x60000000);
+    add_code_change(0x80287d6c, 0x60000000);
+    add_code_change(0x80287a08, 0x60000000);
+    add_code_change(0x80287b48, 0x60000000);
+    add_code_change(0x80287c14, 0x60000000);
+  } else {
+    add_code_change(0x802743c4, 0x4bfffc71); // jump/address updated
+    add_code_change(0x8027406c, 0x4800000c); // updated following addresses
+    add_code_change(0x80274780, 0x60000000);
+    add_code_change(0x802747c4, 0x60000000);
+    add_code_change(0x80274460, 0x60000000);
+    add_code_change(0x802745a0, 0x60000000);
+    add_code_change(0x8027466c, 0x60000000);
+  }
 
-  // Clamp current xy velocity @ 80274688
-  // lfs f1, -0x7ec0(r2)
+  // Clamp current xy velocity NTSC @ 80287c30 | PAL @ 80274688
+  // lfs f1, -0x7ec0(r2) = 0.1
   // fmuls f0, f30, f30
   // fcmpo cr0, f0, f1
   // ble 0x134
@@ -1410,7 +1403,7 @@ void FpsControls::add_strafe_code_mp1_pal() {
   // fmadds f1, f1, f1, f0
   // frsqrte f1, f1
   // fres f1, f1
-  // addi r3, r2, -0x2180
+  // addi r3, r2, -0x2180 or -0x2100
   // slwi r0, r0, 2
   // add r3, r0, r3
   // lfs f0, 0(r3)
@@ -1430,50 +1423,53 @@ void FpsControls::add_strafe_code_mp1_pal() {
   // fmuls f2, f3, f2
   // stfs f2, 0x110(r29)
   // b 0xc0
-  add_code_change(0x80274688, 0xc0228140);
-  add_code_change(0x8027468c, 0xec1e07b2);
-  add_code_change(0x80274690, 0xfc000840);
-  add_code_change(0x80274694, 0x40810134);
-  add_code_change(0x80274698, 0xec1f07f2);
-  add_code_change(0x8027469c, 0xfc000840);
-  add_code_change(0x802746a0, 0x40810128);
-  add_code_change(0x802746a4, 0xc01d0148);
-  add_code_change(0x802746a8, 0xc03d014c);
-  add_code_change(0x802746ac, 0xec000032);
-  add_code_change(0x802746b0, 0xec21007a);
-  add_code_change(0x802746b4, 0xfc200834);
-  add_code_change(0x802746b8, 0xec200830);
-  add_code_change(0x802746bc, 0x3862de80);
-  add_code_change(0x802746c0, 0x5400103a);
-  add_code_change(0x802746c4, 0x7c601a14);
-  add_code_change(0x802746c8, 0xc0030000);
-  add_code_change(0x802746cc, 0xfc010040);
-  add_code_change(0x802746d0, 0x408100f8);
-  add_code_change(0x802746d4, 0xc07d00f8);
-  add_code_change(0x802746d8, 0xc05d0148);
-  add_code_change(0x802746dc, 0xec420824);
-  add_code_change(0x802746e0, 0xec4000b2);
-  add_code_change(0x802746e4, 0xd05d0148);
-  add_code_change(0x802746e8, 0xec4300b2);
-  add_code_change(0x802746ec, 0xd05d010c);
-  add_code_change(0x802746f0, 0xc05d014c);
-  add_code_change(0x802746f4, 0xec420824);
-  add_code_change(0x802746f8, 0xec4000b2);
-  add_code_change(0x802746fc, 0xd05d014c);
-  add_code_change(0x80274700, 0xec4300b2);
-  add_code_change(0x80274704, 0xd05d0110);
-  add_code_change(0x80274708, 0x480000c0);
+  inject_base = is_ntsc ? 0x80287c30 : 0x80274688;
+
+  add_code_change(inject_base + 0x00, 0xc0228140);
+  add_code_change(inject_base + 0x04, 0xec1e07b2);
+  add_code_change(inject_base + 0x08, 0xfc000840);
+  add_code_change(inject_base + 0x0c, 0x40810134);
+  add_code_change(inject_base + 0x10, 0xec1f07f2);
+  add_code_change(inject_base + 0x14, 0xfc000840);
+  add_code_change(inject_base + 0x18, 0x40810128);
+  add_code_change(inject_base + 0x1c, 0xc01d0148);
+  add_code_change(inject_base + 0x20, 0xc03d014c);
+  add_code_change(inject_base + 0x24, 0xec000032);
+  add_code_change(inject_base + 0x28, 0xec21007a);
+  add_code_change(inject_base + 0x2c, 0xfc200834);
+  add_code_change(inject_base + 0x30, 0xec200830);
+  add_code_change(inject_base + 0x34, is_ntsc ? 0x3862df00 : 0x3862de80);
+  add_code_change(inject_base + 0x38, 0x5400103a);
+  add_code_change(inject_base + 0x3c, 0x7c601a14);
+  add_code_change(inject_base + 0x40, 0xc0030000);
+  add_code_change(inject_base + 0x44, 0xfc010040);
+  add_code_change(inject_base + 0x48, 0x408100f8);
+  add_code_change(inject_base + 0x4c, 0xc07d00f8);
+  add_code_change(inject_base + 0x50, 0xc05d0148);
+  add_code_change(inject_base + 0x54, 0xec420824);
+  add_code_change(inject_base + 0x58, 0xec4000b2);
+  add_code_change(inject_base + 0x5c, 0xd05d0148);
+  add_code_change(inject_base + 0x60, 0xec4300b2);
+  add_code_change(inject_base + 0x64, 0xd05d010c);
+  add_code_change(inject_base + 0x68, 0xc05d014c);
+  add_code_change(inject_base + 0x6c, 0xec420824);
+  add_code_change(inject_base + 0x70, 0xec4000b2);
+  add_code_change(inject_base + 0x74, 0xd05d014c);
+  add_code_change(inject_base + 0x78, 0xec4300b2);
+  add_code_change(inject_base + 0x7c, 0xd05d0110);
+  add_code_change(inject_base + 0x80, 0x480000c0);
 
   // No change needed
-  // max speed values table @ 80471ce0
-  add_code_change(0x80471ce0, 0x41480000);
-  add_code_change(0x80471ce4, 0x41480000);
-  add_code_change(0x80471ce8, 0x41480000);
-  add_code_change(0x80471cec, 0x41480000);
-  add_code_change(0x80471cf0, 0x41480000);
-  add_code_change(0x80471cf4, 0x41480000);
-  add_code_change(0x80471cf8, 0x41480000);
-  add_code_change(0x80471cfc, 0x41480000);
+  // max speed values table NTSC @ 805b2de0 | PAL @ 80471ce0
+  inject_base = is_ntsc ? 0x805b2de0 : 0x80471ce0;
+  add_code_change(inject_base + 0x00, 0x41480000);
+  add_code_change(inject_base + 0x04, 0x41480000);
+  add_code_change(inject_base + 0x08, 0x41480000);
+  add_code_change(inject_base + 0x0c, 0x41480000);
+  add_code_change(inject_base + 0x10, 0x41480000);
+  add_code_change(inject_base + 0x14, 0x41480000);
+  add_code_change(inject_base + 0x18, 0x41480000);
+  add_code_change(inject_base + 0x1c, 0x41480000);
 }
 
 void FpsControls::init_mod_menu(Game game, Region region)
@@ -1581,7 +1577,7 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80016ef0, 0x9afd09c4, "show_crosshair"); // stb r23, 0x9c4(r29)
     add_code_change(0x80016ef4, 0x4e800020, "show_crosshair"); // blr
 
-    add_strafe_code_mp1_ntsc(Game::PRIME_1_GCN);
+    add_strafe_code_mp1_100(Game::PRIME_1_GCN);
   } else if (region == Region::PAL) {
     add_code_change(0x8000fb4c, 0x48000048);
     add_code_change(0x8000ea60, 0x60000000);
@@ -1601,7 +1597,7 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80017884, 0x9afd09d4, "show_crosshair"); // stb r23, 0x9d4(r29)
     add_code_change(0x80017888, 0x4e800020, "show_crosshair"); // blr
 
-    add_strafe_code_mp1_pal();
+    add_strafe_code_mp1_102(Region::PAL);
   } else {}
 }
 
@@ -1625,11 +1621,30 @@ void FpsControls::init_mod_mp1_gc_r1() {
   add_code_change(0x80016f68, 0x53173672, "show_crosshair");
   add_code_change(0x80016f6c, 0x9afd09c4, "show_crosshair");
   add_code_change(0x80016f70, 0x4e800020, "show_crosshair");
-  add_strafe_code_mp1_ntsc(Game::PRIME_1_GCN_R1);
+  add_strafe_code_mp1_100(Game::PRIME_1_GCN_R1);
 }
 
-void FpsControls::init_mod_mp1_gc_r2() {}
+void FpsControls::init_mod_mp1_gc_r2() {
+  add_code_change(0x8000f8f8, 0x48000048);
+  add_code_change(0x8000e7f4, 0x60000000);
 
+  add_code_change(0x80014aec, 0x4e800020);
+  add_code_change(0x8000e9f8, 0x60000000);
+  add_code_change(0x8000facc, 0x4800022c);
+  // Grapple point yaw fix
+  add_code_change(0x8017a970, 0x7fa3eb78);
+  add_code_change(0x8017a974, 0x3881006c);
+  add_code_change(0x8017a978, 0x4bed885c);
+
+  // Show crosshair but don't consider pressing R button
+  add_code_change(0x800171c4, 0x3b000001, "show_crosshair"); // li r24, 1
+  add_code_change(0x800171c8, 0x8afd09d4, "show_crosshair"); // lbz r23, 0x9d4(r29)
+  add_code_change(0x800171cc, 0x53173672, "show_crosshair"); // rlwimi r23, r24, 6, 25, 25 (00000001)
+  add_code_change(0x800171d0, 0x9afd09d4, "show_crosshair"); // stb r23, 0x9d4(r29)
+  add_code_change(0x800171d4, 0x4e800020, "show_crosshair"); // blr
+
+  add_strafe_code_mp1_102(Region::NTSC_U);
+}
 
 void FpsControls::init_mod_mp2(Region region) {
   prime::GetVariableManager()->register_variable("new_beam");
