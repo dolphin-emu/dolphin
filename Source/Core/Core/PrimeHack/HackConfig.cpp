@@ -76,23 +76,23 @@ void InitializeHack() {
   init_db(*GetAddressDB());
 
   // Create all mods
-  // hack_mgr.add_mod("auto_efb", std::make_unique<AutoEFB>());
-  // hack_mgr.add_mod("cut_beam_fx_mp1", std::make_unique<CutBeamFxMP1>());
-  // hack_mgr.add_mod("bloom_modifier", std::make_unique<DisableBloom>());
-  // hack_mgr.add_mod("bloom_intensity", std::make_unique<BloomIntensityMP3>());
+  hack_mgr.add_mod("auto_efb", std::make_unique<AutoEFB>());
+  hack_mgr.add_mod("cut_beam_fx_mp1", std::make_unique<CutBeamFxMP1>());
+  hack_mgr.add_mod("bloom_modifier", std::make_unique<DisableBloom>());
+  hack_mgr.add_mod("bloom_intensity", std::make_unique<BloomIntensityMP3>());
   hack_mgr.add_mod("fps_controls", std::make_unique<FpsControls>());
   hack_mgr.add_mod("invulnerability", std::make_unique<Invulnerability>());
   hack_mgr.add_mod("noclip", std::make_unique<Noclip>());
   hack_mgr.add_mod("skip_cutscene", std::make_unique<SkipCutscene>());
-  // hack_mgr.add_mod("restore_dashing", std::make_unique<RestoreDashing>());
-  // hack_mgr.add_mod("springball_button", std::make_unique<SpringballButton>());
+  hack_mgr.add_mod("restore_dashing", std::make_unique<RestoreDashing>());
+  hack_mgr.add_mod("springball_button", std::make_unique<SpringballButton>());
   hack_mgr.add_mod("fov_modifier", std::make_unique<ViewModifier>());
-  // hack_mgr.add_mod("context_sensitive_controls", std::make_unique<ContextSensitiveControls>());
-  // hack_mgr.add_mod("portal_skip_mp2", std::make_unique<PortalSkipMP2>());
-  // hack_mgr.add_mod("friend_vouchers_cheat", std::make_unique<FriendVouchers>());
+  hack_mgr.add_mod("context_sensitive_controls", std::make_unique<ContextSensitiveControls>());
+  hack_mgr.add_mod("portal_skip_mp2", std::make_unique<PortalSkipMP2>());
+  hack_mgr.add_mod("friend_vouchers_cheat", std::make_unique<FriendVouchers>());
   hack_mgr.add_mod("disable_hudmemo_popup", std::make_unique<DisableHudMemoPopup>());
-  // hack_mgr.add_mod("elf_mod_loader", std::make_unique<ElfModLoader>());
-  // hack_mgr.add_mod("unlock_hypermode", std::make_unique<UnlockHypermode>());
+  hack_mgr.add_mod("elf_mod_loader", std::make_unique<ElfModLoader>());
+  hack_mgr.add_mod("unlock_hypermode", std::make_unique<UnlockHypermode>());
 
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
