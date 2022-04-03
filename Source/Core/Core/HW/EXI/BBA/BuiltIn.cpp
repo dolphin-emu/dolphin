@@ -236,11 +236,11 @@ u8 CEXIETHERNET::BuiltInBBAInterface::GetAvaibleSlot(u16 port)
   return 0;
 }
 
-int CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 port, u32 ip)
+int CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
 {
 
   for (int i = 0; i < 10; i++)
-    if (NetRef[i].ip == ip && NetRef[i].remote == port)
+    if (NetRef[i].ip == ip && NetRef[i].remote == dst_port && NetRef[i].local == src_port)
       return i;
   
   return -1;
@@ -282,7 +282,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
 
   if (tcpdata->flag_length & TCP_FLAG_FIN)
   {
-    int i = GetTCPSlot(tcpdata->dest_port, ipdata->dest_ip);
+    int i = GetTCPSlot(tcpdata->src_port, tcpdata->dest_port, ipdata->dest_ip);
     if (i == -1)
       return;     //not found
     //int c =
@@ -295,7 +295,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
   else if (tcpdata->flag_length & TCP_FLAG_SIN)
   {
     //new connection
-    int i = GetTCPSlot(tcpdata->dest_port, ipdata->dest_ip);
+    int i = GetTCPSlot(tcpdata->src_port, tcpdata->dest_port, ipdata->dest_ip);
     if (i != -1)
       return;
     i = GetAvaibleSlot(0);
@@ -346,13 +346,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     tcppart->options[7] = 0x01;
     tcppart->crc = CalcIPCRC((u16*)tcppart, 28, ippart->dest_ip, ippart->src_ip, 6);
 
-    WriteToQueue((char*)&m_in_frame, 0x3d);
+    WriteToQueue((char*)&m_in_frame, 0x3e);
     NetRef[i].seq_num++;
   }
   else
   {
     //data packet
-    int i = GetTCPSlot(tcpdata->dest_port, ipdata->dest_ip);
+    int i = GetTCPSlot(tcpdata->src_port, tcpdata->dest_port, ipdata->dest_ip);
     if (i == -1)
       return;  // not found
 

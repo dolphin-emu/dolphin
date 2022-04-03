@@ -468,7 +468,7 @@ private:
     void HandleARP(net_hw_lvl* hwdata, net_arp_lvl* arpdata);
     void HandleDHCP(net_hw_lvl* hwdata, net_udp_lvl* udpdata, net_dhcp* request);
     u8 GetAvaibleSlot(u16 port);
-    int GetTCPSlot(u16 port, u32 ip);
+    int GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
     int BuildFINFrame(char* buf, bool ack, int i);
     void HandleTCPFrame(net_hw_lvl* hwdata, net_ipv4_lvl* ipdata, net_tcp_lvl* tcpdata,
                         char* data);
