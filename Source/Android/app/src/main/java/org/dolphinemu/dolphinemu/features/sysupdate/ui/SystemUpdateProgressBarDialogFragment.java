@@ -14,7 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import org.dolphinemu.dolphinemu.R;
 
-public class OnlineUpdateProgressBarDialogFragment extends DialogFragment
+public class SystemUpdateProgressBarDialogFragment extends DialogFragment
 {
   @NonNull
   @Override
@@ -74,7 +74,7 @@ public class OnlineUpdateProgressBarDialogFragment extends DialogFragment
         return;
       }
 
-      OnlineUpdateResultFragment progressBarFragment = new OnlineUpdateResultFragment();
+      SystemUpdateResultFragment progressBarFragment = new SystemUpdateResultFragment();
       progressBarFragment.show(getParentFragmentManager(), "OnlineUpdateResultFragment");
 
       getActivity().setRequestedOrientation(orientation);
@@ -84,28 +84,7 @@ public class OnlineUpdateProgressBarDialogFragment extends DialogFragment
 
     if (savedInstanceState == null)
     {
-      final String region;
-      int selectedItem = viewModel.getRegion();
-
-      switch (selectedItem)
-      {
-        case 0:
-          region = "EUR";
-          break;
-        case 1:
-          region = "JPN";
-          break;
-        case 2:
-          region = "KOR";
-          break;
-        case 3:
-          region = "USA";
-          break;
-        default:
-          region = "";
-          break;
-      }
-      viewModel.startUpdate(region);
+      viewModel.startUpdate();
     }
     return progressDialog;
   }
