@@ -16,11 +16,14 @@
 #include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
+#include <mutex>
 
 class PointerWrap;
 
 namespace ExpansionInterface
 {
+
+  
 // Network Control Register A
 enum NCRA
 {
@@ -202,9 +205,7 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
-#if defined(WIN32)
   BuiltIn,
-#endif
 #if defined(__APPLE__)
   TAPSERVER,
 #endif
@@ -293,7 +294,7 @@ private:
     return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
   }
 
-  inline u8* ptr_from_page_ptr(int const index) const { return &mBbaMem[page_ptr(index) << 8]; }
+  //inline u8* ptr_from_page_ptr(int const index) const { return &mBbaMem[page_ptr(index) << 8]; }
   bool IsMXCommand(u32 const data);
   bool IsWriteCommand(u32 const data);
   const char* GetRegisterName() const;
@@ -303,10 +304,12 @@ private:
   void SendFromDirectFIFO();
   void SendFromPacketBuffer();
   void SendComplete();
+  void SendCompleteBack();
   u8 HashIndex(const u8* dest_eth_addr);
   bool RecvMACFilter();
   void inc_rwp();
   bool RecvHandlePacket();
+  void Retrigger();
 
   std::unique_ptr<u8[]> mBbaMem;
   std::unique_ptr<u8[]> tx_fifo;
@@ -421,7 +424,10 @@ private:
   class BuiltInBBAInterface : public NetworkInterface
   {
   public:
-    BuiltInBBAInterface(CEXIETHERNET* eth_ref) : NetworkInterface(eth_ref){}
+    BuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip)
+        : NetworkInterface(eth_ref), m_dns_ip(std::move(dns_ip))
+    {
+    }
 
   public:
     bool Activate() override;
@@ -434,18 +440,22 @@ private:
 
   private:
     std::string m_mac_id;
+    std::string m_dns_ip;
     bool m_bba_link_up = false;
     bool m_bba_failure_notified = false;
     bool active = false;
     u16 ip_frame_id = 0;
     u8 queue_read = 0;
     u8 queue_write = 0;
-    u16 queue_data_size[16];
-    char queue_data[16][2048];
-#if defined(WIN32) 
+    u16 queue_data_size[16]{};
+    char queue_data[16][2048]{};
+    std::mutex mtx;
+    bool isSent = false;
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     sf::UdpSocket udp_socket[10];
     sf::TcpSocket tcp_socket[10]; //max 10 at same time, i think most gc game had a limit of 8 in the gc framework
-    StackRef NetRef[10];
+    StackRef NetRef[10]{};
     char m_in_frame[9004]{};
     char m_out_frame[9004]{};
     std::thread m_read_thread;
@@ -458,6 +468,8 @@ private:
     void HandleARP(net_hw_lvl* hwdata, net_arp_lvl* arpdata);
     void HandleDHCP(net_hw_lvl* hwdata, net_udp_lvl* udpdata, net_dhcp* request);
     u8 GetAvaibleSlot(u16 port);
+    int GetTCPSlot(u16 port, u32 ip);
+    int BuildFINFrame(char* buf, bool ack, int i);
     void HandleTCPFrame(net_hw_lvl* hwdata, net_ipv4_lvl* ipdata, net_tcp_lvl* tcpdata,
                         char* data);
   };

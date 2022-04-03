@@ -34,7 +34,6 @@ void BroadbandAdapterSettingsDialog::InitControls()
   switch (m_bba_type)
   {
   case Type::Ethernet:
-  case Type::BuiltIn :
     // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
     // interface (physical) like a serial number. "MAC" should be kept in translations.
     address_label = new QLabel(tr("Enter new Broadband Adapter MAC address:"));
@@ -47,6 +46,19 @@ void BroadbandAdapterSettingsDialog::InitControls()
     // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
     // interface (physical) like a serial number. "MAC" should be kept in translations.
     window_title = tr("Broadband Adapter MAC Address");
+    break;
+
+   case Type::BuiltIn:
+    // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
+    // interface (physical) like a serial number. "MAC" should be kept in translations.
+    address_label = new QLabel(tr("Enter the DNS server to use:"));
+    address_placeholder = QString::fromStdString("8.8.8.8");
+    current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_BUILTIN_DNS));
+    description = new QLabel(tr("Use 8.8.8.8 for normal DNS, else enter your custom one"));
+
+    // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
+    // interface (physical) like a serial number. "MAC" should be kept in translations.
+    window_title = tr("Broadband Adapter DNS setting");
     break;
 
   case Type::XLinkKai:
@@ -104,6 +116,9 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
     Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, bba_new_address);
     break;
 
+   case Type::BuiltIn:
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_BUILTIN_DNS, bba_new_address);
+     break;
   case Type::XLinkKai:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_XLINK_IP, bba_new_address);
     break;

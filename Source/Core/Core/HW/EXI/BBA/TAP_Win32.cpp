@@ -273,57 +273,49 @@ bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 
 void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
 {
-  u8* write_ptr;
-  u8* read_ptr;
   while (!self->readThreadShutdown.IsSet())
   {
     DWORD transferred;
-    write_ptr = self->m_eth_ref->ptr_from_page_ptr(BBA_RWP);
-    write_ptr += 4;
-    if (write_ptr == self->m_eth_ref->ptr_from_page_ptr(BBA_RHBP))
-      write_ptr = self->m_eth_ref->ptr_from_page_ptr(BBA_BP);
-    read_ptr = self->m_eth_ref->ptr_from_page_ptr(BBA_RRP);
-    if (write_ptr != read_ptr)  // only if the BBA buffer isnt full
+
+    // Read from TAP into internal buffer.
+    if (ReadFile(self->mHAdapter, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
+                  &self->mReadOverlapped))
     {
-      // Read from TAP into internal buffer.
-      if (ReadFile(self->mHAdapter, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
-                   &self->mReadOverlapped))
+      // Returning immediately is not likely to happen, but if so, reset the event state manually.
+      ResetEvent(self->mReadOverlapped.hEvent);
+    }
+    else
+    {
+      // IO should be pending.
+      if (GetLastError() != ERROR_IO_PENDING)
       {
-        // Returning immediately is not likely to happen, but if so, reset the event state manually.
-        ResetEvent(self->mReadOverlapped.hEvent);
-      }
-      else
-      {
-        // IO should be pending.
-        if (GetLastError() != ERROR_IO_PENDING)
-        {
-          ERROR_LOG_FMT(SP1, "ReadFile failed (err={:#x})", GetLastError());
-          continue;
-        }
-
-        // Block until the read completes.
-        if (!GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, &transferred, TRUE))
-        {
-          // If CancelIO was called, we should exit (the flag will be set).
-          if (GetLastError() == ERROR_OPERATION_ABORTED)
-            continue;
-
-          // Something else went wrong.
-          ERROR_LOG_FMT(SP1, "GetOverlappedResult failed (err={:#x})", GetLastError());
-          continue;
-        }
+        ERROR_LOG_FMT(SP1, "ReadFile failed (err={:#x})", GetLastError());
+        continue;
       }
 
-      // Copy to BBA buffer, and fire interrupt if enabled.
-      DEBUG_LOG_FMT(SP1, "Received {} bytes:\n {}", transferred,
-                    ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10));
-      if (self->readEnabled.IsSet())
+      // Block until the read completes.
+      if (!GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped, &transferred, TRUE))
       {
-        self->m_eth_ref->mRecvBufferLength = transferred;
-        self->m_eth_ref->RecvHandlePacket();
+        // If CancelIO was called, we should exit (the flag will be set).
+        if (GetLastError() == ERROR_OPERATION_ABORTED)
+          continue;
+
+        // Something else went wrong.
+        ERROR_LOG_FMT(SP1, "GetOverlappedResult failed (err={:#x})", GetLastError());
+        continue;
       }
     }
+
+    // Copy to BBA buffer, and fire interrupt if enabled.
+    DEBUG_LOG_FMT(SP1, "Received {} bytes:\n {}", transferred,
+                  ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10));
+    if (self->readEnabled.IsSet())
+    {
+      self->m_eth_ref->mRecvBufferLength = transferred;
+      self->m_eth_ref->RecvHandlePacket();
+    }
   }
+  
 }
 
 bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)

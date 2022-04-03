@@ -18,7 +18,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
-#define BBA_TRACK_PAGE_PTRS
+//#define BBA_TRACK_PAGE_PTRS
 
 namespace ExpansionInterface
 {
@@ -56,7 +56,8 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
     break;
 #endif
   case BBADeviceType::BuiltIn:
-    m_network_interface = std::make_unique<BuiltInBBAInterface>(this);
+    m_network_interface =
+        std::make_unique<BuiltInBBAInterface>(this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS));
     INFO_LOG_FMT(SP1, "Created Built in network interface.");
     break;
   case BBADeviceType::XLINK:
@@ -88,6 +89,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
   tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
   mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
   mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
+  //hwd = new std::mutex();
 
   MXHardReset();
 
@@ -161,6 +163,18 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
     {
     case INTERRUPT:
       exi_status.interrupt &= data ^ 0xff;
+      //raise back if there is still data
+      if (page_ptr(BBA_RRP) != page_ptr(BBA_RWP))
+      {
+        if (mBbaMem[BBA_IMR] & INT_R)
+        {
+          mBbaMem[BBA_IR] |= INT_R;
+
+          exi_status.interrupt |= exi_status.TRANSFER;
+          ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
+        }
+      }
+        
       break;
     case INTERRUPT_MASK:
       exi_status.interrupt_mask = data;
@@ -234,9 +248,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
   DEBUG_LOG_FMT(SP1, "DMA read: {:08x} {:x}", addr, size);
-
   Memory::CopyToEmu(addr, &mBbaMem[transfer.address], size);
-
   transfer.address += size;
 }
 
@@ -354,7 +366,6 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
       // MXSoftReset();
       m_network_interface->Activate();
     }
-
     if (((mBbaMem[BBA_NCRA] & NCRA_SR) ^ (data & NCRA_SR)) != 0)
     {
       DEBUG_LOG_FMT(SP1, "{} rx", (data & NCRA_SR) ? "start" : "stop");
@@ -421,7 +432,6 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
 {
   // In direct mode, the hardware handles creating the state required by the
   // GMAC instead of finagling with packet descriptors and such
-
   u16* tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
 
   memcpy(tx_fifo.get() + *tx_fifo_count, data, size);
@@ -435,6 +445,7 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
 
 void CEXIETHERNET::SendFromDirectFIFO()
 {
+  DEBUG_LOG_FMT(SP1, "Frame sent: {:x}", *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
   m_network_interface->SendFrame(tx_fifo.get(), *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
 }
 
@@ -445,6 +456,7 @@ void CEXIETHERNET::SendFromPacketBuffer()
 
 void CEXIETHERNET::SendComplete()
 {
+  DEBUG_LOG_FMT(SP1, "Frame completed");
   mBbaMem[BBA_NCRA] &= ~(NCRA_ST0 | NCRA_ST1);
   *(u16*)&mBbaMem[BBA_TXFIFOCNT] = 0;
 
@@ -458,6 +470,7 @@ void CEXIETHERNET::SendComplete()
 
   mBbaMem[BBA_LTPS] = 0;
 }
+
 
 inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
 {
@@ -516,10 +529,23 @@ inline void CEXIETHERNET::inc_rwp()
 {
   u16* rwp = (u16*)&mBbaMem[BBA_RWP];
 
-  if (*rwp + 1 == page_ptr(BBA_RHBP))
+  if (*rwp == page_ptr(BBA_RHBP))
     *rwp = page_ptr(BBA_BP);
   else
     (*rwp)++;
+}
+
+void CEXIETHERNET::Retrigger()
+{
+  if (mBbaMem[BBA_IMR] & (INT_R | INT_T))
+  {
+    if (mBbaMem[BBA_IMR] & INT_R)
+      mBbaMem[BBA_IR] |= INT_R;
+    //if (mBbaMem[BBA_IMR] & INT_T)
+    //  mBbaMem[BBA_IR] |= INT_T;
+    exi_status.interrupt |= exi_status.TRANSFER;
+    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
+  }
 }
 
 // This function is on the critical path for receiving data.
@@ -527,12 +553,11 @@ inline void CEXIETHERNET::inc_rwp()
 bool CEXIETHERNET::RecvHandlePacket()
 {
   u8* write_ptr;
-  u8* end_ptr;
-  u8* read_ptr;
+  //u8* end_ptr;
+  //u8* read_ptr;
   Descriptor* descriptor;
   u32 status = 0;
   u16 rwp_initial = page_ptr(BBA_RWP);
-
   if (!RecvMACFilter())
     goto wait_for_next;
 
@@ -544,42 +569,39 @@ bool CEXIETHERNET::RecvHandlePacket()
                page_ptr(BBA_RHBP));
 #endif
 
-  write_ptr = ptr_from_page_ptr(BBA_RWP);
-  end_ptr = ptr_from_page_ptr(BBA_RHBP);
-  read_ptr = ptr_from_page_ptr(BBA_RRP);
+  write_ptr = &mBbaMem[page_ptr(BBA_RWP) << 8];
 
   descriptor = (Descriptor*)write_ptr;
-  write_ptr += 4;
-
-  for (u32 i = 0, off = 4; i < mRecvBufferLength; ++i, ++off)
+  //write_ptr += 4;
+  DEBUG_LOG_FMT(SP1, "Frame recv: {:x}", mRecvBufferLength);
+  for (u32 i = 0, off = 4; i < mRecvBufferLength; i++, off++)
   {
-    *write_ptr++ = mRecvBuffer[i];
+    write_ptr[off] = mRecvBuffer[i];
 
     if (off == 0xff)
     {
-      off = 0;
+      off = -1;
       inc_rwp();
-    }
+      int c = page_ptr(BBA_RWP);
+      write_ptr = &mBbaMem[c << 8];
 
-    if (write_ptr == end_ptr)
-      write_ptr = ptr_from_page_ptr(BBA_BP);
-
-    if (write_ptr == read_ptr)
-    {
-      /*
-      halt copy
-      if (cur_packet_size >= PAGE_SIZE)
-        desc.status |= FO | BF
-      if (RBFIM)
-        raise RBFI
-      if (AUTORCVR)
-        discard bad packet
-      else
-        inc MPC instead of receiving packets
-      */
-      status |= DESC_FO | DESC_BF;
-      mBbaMem[BBA_IR] |= mBbaMem[BBA_IMR] & INT_RBF;
-      break;
+      if (page_ptr(BBA_RRP) == page_ptr(BBA_RWP))
+      {
+        /*
+        halt copy
+        if (cur_packet_size >= PAGE_SIZE)
+          desc.status |= FO | BF
+        if (RBFIM)
+          raise RBFI
+        if (AUTORCVR)
+          discard bad packet
+        else
+          inc MPC instead of receiving packets
+        */
+        status |= DESC_FO | DESC_BF;
+        mBbaMem[BBA_IR] |= mBbaMem[BBA_IMR] & INT_RBF;
+        break;
+      }
     }
   }
 
@@ -598,7 +620,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
   if ((status & DESC_BF) != 0)
   {
-    if ((mBbaMem[BBA_MISC2] & MISC2_AUTORCVR) != 0)
+    if (mBbaMem[BBA_MISC2] & MISC2_AUTORCVR)
     {
       *(u16*)&mBbaMem[BBA_RWP] = rwp_initial;
     }
@@ -613,7 +635,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   mBbaMem[BBA_LRPS] = status;
 
   // Raise interrupt
-  if ((mBbaMem[BBA_IMR] & INT_R) != 0)
+  if (mBbaMem[BBA_IMR] & INT_R)
   {
     mBbaMem[BBA_IR] |= INT_R;
 
@@ -632,4 +654,6 @@ wait_for_next:
 
   return true;
 }
+
+
 }  // namespace ExpansionInterface

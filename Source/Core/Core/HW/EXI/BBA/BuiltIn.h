@@ -1,7 +1,8 @@
 #pragma once
-
+#include <SFML/Network.hpp>
 #define TCP_FLAG_SIN 0x200
 #define TCP_FLAG_ACK 0x1000
+#define TCP_FLAG_PSH 0x800
 #define TCP_FLAG_FIN 0x100
 
 struct StackRef
@@ -14,6 +15,7 @@ struct StackRef
   u32 seq_num;
   u32 ack_num;
   u16 window_size;
+  u16 delay;
 };
 
 struct net_hw_lvl
@@ -69,6 +71,7 @@ struct net_tcp_lvl //6
   u16 win_size;
   u16 crc;
   u16 ptr;
+  u8 options[32];
 };
 
 struct net_dhcp
