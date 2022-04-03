@@ -16,7 +16,7 @@
 
 #include <cstring>
 
-//#define BBA_TRACK_PAGE_PTRS
+#define BBA_TRACK_PAGE_PTRS
 
 
 
@@ -269,7 +269,7 @@ int CEXIETHERNET::BuiltInBBAInterface::BuildFINFrame(char* buf, bool ack, int i)
   tcppart->dest_port = NetRef[i].local;
   tcppart->seq_num = Common::swap32(NetRef[i].seq_num);
   tcppart->ack_num = Common::swap32(NetRef[i].ack_num);
-  tcppart->flag_length = (0x50 | TCP_FLAG_FIN | TCP_FLAG_ACK);
+  tcppart->flag_length = (0x50 | TCP_FLAG_FIN | TCP_FLAG_ACK | TCP_FLAG_RST);
   tcppart->win_size = 0x7c;
   tcppart->crc = CalcIPCRC((u16*)tcppart, 20, ippart->dest_ip, ippart->src_ip, 6);
   return 0x36;
@@ -280,7 +280,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
 {
   sf::IpAddress target;
 
-  if (tcpdata->flag_length & TCP_FLAG_FIN)
+  if (tcpdata->flag_length & (TCP_FLAG_FIN | TCP_FLAG_RST))
   {
     int i = GetTCPSlot(tcpdata->src_port, tcpdata->dest_port, ipdata->dest_ip);
     if (i == -1)
@@ -526,7 +526,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         wp += 16;
 
       // process queue file first
-      if ((wp-rp) < 10)
+      if ((wp-rp) < 8)
       {
 #ifdef BBA_TRACK_PAGE_PTRS
         if (!ready)

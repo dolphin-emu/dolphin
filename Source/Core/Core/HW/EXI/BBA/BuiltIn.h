@@ -4,6 +4,7 @@
 #define TCP_FLAG_ACK 0x1000
 #define TCP_FLAG_PSH 0x800
 #define TCP_FLAG_FIN 0x100
+#define TCP_FLAG_RST 0x400
 
 struct StackRef
 {

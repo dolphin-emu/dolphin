@@ -18,7 +18,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
-//#define BBA_TRACK_PAGE_PTRS
+#define BBA_TRACK_PAGE_PTRS
 
 namespace ExpansionInterface
 {
@@ -89,7 +89,6 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
   tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
   mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
   mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
-  //hwd = new std::mutex();
 
   MXHardReset();
 
@@ -171,7 +170,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
           mBbaMem[BBA_IR] |= INT_R;
 
           exi_status.interrupt |= exi_status.TRANSFER;
-          ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
+          //ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
         }
       }
         
