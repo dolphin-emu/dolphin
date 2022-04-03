@@ -287,7 +287,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
       return;     //not found
     //int c =
     BuildFINFrame((char*)&m_in_frame, true, i);
-    WriteToQueue((char*)&m_in_frame, 0x50);
+    WriteToQueue((char*)&m_in_frame, 0x36);
     NetRef[i].ip = 0;
     tcp_socket[i].disconnect();
 
@@ -346,7 +346,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     tcppart->options[7] = 0x01;
     tcppart->crc = CalcIPCRC((u16*)tcppart, 28, ippart->dest_ip, ippart->src_ip, 6);
 
-    WriteToQueue((char*)&m_in_frame, 0x50);
+    WriteToQueue((char*)&m_in_frame, 0x3d);
     NetRef[i].seq_num++;
   }
   else
