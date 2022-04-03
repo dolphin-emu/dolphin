@@ -4,7 +4,7 @@
 
 namespace prime {
 namespace {
-void hudmemo_overlay_adjust_mp1_102(u32 job) {
+void hudmemo_overlay_adjust_mp1(u32 job) {
   if (job == 0) {  // Fix time
     const u32 time_addr = GPR(28) + 0x30;
     writef32(std::max(readf32(time_addr), 3.f), time_addr);
@@ -21,7 +21,7 @@ void hudmemo_overlay_adjust_mp1_102(u32 job) {
   } else {}
 }
 
-void hudmemo_overlay_adjust_mp1_100(u32 job) {
+void hudmemo_overlay_adjust_mp1_gc(u32 job) {
   if (job == 0) {  // Fix time
     const u32 time_addr = GPR(28) + 0x34;
     writef32(std::max(readf32(time_addr), 3.f), time_addr);
@@ -69,7 +69,7 @@ void DisableHudMemoPopup::run_mod(Game game, Region region) {
 }
 
 void DisableHudMemoPopup::init_mod_mp1(Region region) {
-  const int hudmemo_fix_fn = PowerPC::RegisterVmcall(hudmemo_overlay_adjust_mp1_102);
+  const int hudmemo_fix_fn = PowerPC::RegisterVmcall(hudmemo_overlay_adjust_mp1);
   if (hudmemo_fix_fn == -1) {
     // HOW??? I SURE DO I USE THIS COOL FEATURE ENOUGH TO BE A PROBLEM :)
     return;
@@ -93,7 +93,7 @@ void DisableHudMemoPopup::init_mod_mp1(Region region) {
 }
 
 void DisableHudMemoPopup::init_mod_mp1gc(Region region) {
-  const int hudmemo_fix_fn = PowerPC::RegisterVmcall(region == Region::NTSC_U ? hudmemo_overlay_adjust_mp1_100 : hudmemo_overlay_adjust_mp1_102);
+  const int hudmemo_fix_fn = PowerPC::RegisterVmcall(hudmemo_overlay_adjust_mp1_gc);
   if (hudmemo_fix_fn == -1) {
     return;
   }
@@ -108,6 +108,31 @@ void DisableHudMemoPopup::init_mod_mp1gc(Region region) {
     add_code_change(0x800e03f0, vmc_fix_time);
     add_code_change(0x800657c4, vmc_fix_justification);
   } else {}
+}
+
+void DisableHudMemoPopup::init_mod_mp1gc_r1() {
+  // Revision 1 matches revision 0 in behavior
+  const int hudmemo_fix_fn = PowerPC::RegisterVmcall(hudmemo_overlay_adjust_mp1_gc);
+  if (hudmemo_fix_fn == -1) {
+    return;
+  }
+  const u32 vmc_fix_time = gen_vmcall(static_cast<u32>(hudmemo_fix_fn), 0);
+  const u32 vmc_fix_justification = gen_vmcall(static_cast<u32>(hudmemo_fix_fn), 1);
+  add_code_change(0x800e8438, 0x48000018);
+  add_code_change(0x800e8460, vmc_fix_time);
+  add_code_change(0x800649a4, vmc_fix_justification);
+}
+
+void DisableHudMemoPopup::init_mod_mp1gc_r2() {
+  const int hudmemo_fix_fn = PowerPC::RegisterVmcall(hudmemo_overlay_adjust_mp1_gc);
+  if (hudmemo_fix_fn == -1) {
+    return;
+  }
+  const u32 vmc_fix_time = gen_vmcall(static_cast<u32>(hudmemo_fix_fn), 0);
+  const u32 vmc_fix_justification = gen_vmcall(static_cast<u32>(hudmemo_fix_fn), 1);
+  add_code_change(0x800e8940, 0x48000018);
+  add_code_change(0x800e8968, vmc_fix_time);
+  add_code_change(0x80064eac, vmc_fix_justification);
 }
 
 void DisableHudMemoPopup::init_mod_mp3(Game game, Region region) {
@@ -137,6 +162,12 @@ bool DisableHudMemoPopup::init_mod(Game game, Region region) {
     break;
   case Game::PRIME_1_GCN:
     init_mod_mp1gc(region);
+    break;
+  case Game::PRIME_1_GCN_R1:
+    init_mod_mp1gc_r1();
+    break;
+  case Game::PRIME_1_GCN_R2:
+    init_mod_mp1gc_r2();
     break;
   case Game::PRIME_2:
     if (region == Region::NTSC_U) {

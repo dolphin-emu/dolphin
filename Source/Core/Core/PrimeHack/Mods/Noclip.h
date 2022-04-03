@@ -32,7 +32,7 @@ private:
 
   u64 old_matexclude_list;
 
-  Transform player_tf;
+  Transform player_transform;
   vec3 player_vec;
 
   bool had_control = true;

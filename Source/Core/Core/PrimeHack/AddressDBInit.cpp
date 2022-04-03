@@ -62,9 +62,48 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "orbit_state", "player", {rt(0x304, 0x314, 0)});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "angular_vel", "player", {rt(0x14c, 0x15c, 0)});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "firstperson_pitch", "player", {rt(0x3ec, 0x3fc, 0)});
-  addr_db.register_dynamic_address(Game::PRIME_1_GCN, "ball_state", "player", {rt(0x2f4, 0x304, 0)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN, "camera_state", "player", {rt(0x2f4, 0x304, 0)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN, "move_state", "player", {rt(0x258, 0x268, 0)});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "freelook_rotation_speed", "tweak_player", { mrt1(0x280) });
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "air_transitional_friction", "tweak_player", { mrt1(0x180) });
+
+  addr_db.register_address(Game::PRIME_1_GCN_R1, "state_manager", 0x8045a388);
+  addr_db.register_address(Game::PRIME_1_GCN_R1, "fov_fp_offset", -0x7ff0);
+  addr_db.register_address(Game::PRIME_1_GCN_R1, "fov_tp_offset", -0x7fec);
+  addr_db.register_address(Game::PRIME_1_GCN_R1, "gun_pos", 0x8045bec8); // [r13-5ecc]+4c
+  addr_db.register_address(Game::PRIME_1_GCN_R1, "tweak_player", 0x8045c3e8);
+  addr_db.register_address(Game::PRIME_1_GCN_R1, "crosshair_color", 0x8045b698); // [r13 - 5ec0]+1c0
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "world", "state_manager", {mrt1(0x850), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "player", "state_manager", {mrt1(0x84c), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "camera_manager", "state_manager", {mrt1(0x86c), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "object_list", "state_manager", {mrt1(0x810), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "player_xf", "player", {mrt1(0x34)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "orbit_state", "player", {mrt1(0x304)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "angular_vel", "player", {mrt1(0x14c)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "firstperson_pitch", "player", {mrt1(0x3ec)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "camera_state", "player", {mrt1(0x2f4)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "move_state", "player", {mrt1(0x258)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "freelook_rotation_speed", "tweak_player", {mrt1(0x280)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "air_transitional_friction", "tweak_player", {mrt1(0x180)});
+
+  addr_db.register_address(Game::PRIME_1_GCN_R2, "state_manager", 0x8045b208);
+  addr_db.register_address(Game::PRIME_1_GCN_R2, "fov_fp_offset", -0x7ff0);
+  addr_db.register_address(Game::PRIME_1_GCN_R2, "fov_tp_offset", -0x7fec);
+  addr_db.register_address(Game::PRIME_1_GCN_R2, "gun_pos", 0x8045cd48); // [r13-5ecc]+4c
+  addr_db.register_address(Game::PRIME_1_GCN_R2, "tweak_player", 0x8045d268);
+  addr_db.register_address(Game::PRIME_1_GCN_R2, "crosshair_color", 0x8045c6d8); // [r13 - 5ec0]+1c0
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "world", "state_manager", {mrt1(0x850), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "player", "state_manager", {mrt1(0x84c), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "camera_manager", "state_manager", {mrt1(0x86c), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "object_list", "state_manager", {mrt1(0x810), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "player_xf", "player", {mrt1(0x34)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "orbit_state", "player", {mrt1(0x314)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "angular_vel", "player", {mrt1(0x15c)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "firstperson_pitch", "player", {mrt1(0x3fc)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "camera_state", "player", {mrt1(0x304)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "move_state", "player", {mrt1(0x268)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "freelook_rotation_speed", "tweak_player", {mrt1(0x280)});
+  addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "air_transitional_friction", "tweak_player", {mrt1(0x180)});
 
   // object list = state mgr + x810
   // camera mgr = state mgr + x870

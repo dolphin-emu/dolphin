@@ -7,8 +7,6 @@ class SkipCutscene : public PrimeMod {
 public:
   void run_mod(Game game, Region region) override { }
   bool init_mod(Game game, Region region) override {
-    u8 version = read8(0x80000007);
-
     switch (game) {
     case Game::PRIME_1:
       if (region == Region::NTSC_U) {
@@ -21,14 +19,16 @@ public:
       break;
     case Game::PRIME_1_GCN:
       if (region == Region::NTSC_U) {
-        if (version == 0) {
-          add_return_one(0x801d5528);
-        } else if (version == 2) {
-          add_return_one(0x8015204c);
-        }
+        add_return_one(0x801d5528);
       } else if (region == Region::PAL) {
         add_return_one(0x801c6640);
       }
+      break;
+    case Game::PRIME_1_GCN_R1:
+      add_return_one(0x8015204c);
+      break;
+    case Game::PRIME_1_GCN_R2:
+      add_return_one(0x801d5d78);
       break;
     case Game::PRIME_2:
       if (region == Region::NTSC_U) {
