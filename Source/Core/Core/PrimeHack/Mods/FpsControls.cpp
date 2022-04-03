@@ -1557,7 +1557,8 @@ void FpsControls::init_mod_mp1(Region region) {
 
 void FpsControls::init_mod_mp1_gc(Region region) {
   if (region == Region::NTSC_U) {
-    add_code_change(0x8000f63c, 0x48000048);
+    //add_code_change(0x8000f63c, 0x48000048);
+    add_code_change(0x800ea15c, 0x38810044); // output cannon bob only for viewbob
     add_code_change(0x8000e538, 0x60000000);
     //add_code_change(0x80016ee4, 0x4e800020);
     add_code_change(0x80014820, 0x4e800020);
@@ -1579,7 +1580,8 @@ void FpsControls::init_mod_mp1_gc(Region region) {
 
     add_strafe_code_mp1_100(Game::PRIME_1_GCN);
   } else if (region == Region::PAL) {
-    add_code_change(0x8000fb4c, 0x48000048);
+    //add_code_change(0x8000fb4c, 0x48000048);
+    add_code_change(0x800e2190, 0x38810044); // output cannon bob only for viewbob
     add_code_change(0x8000ea60, 0x60000000);
     //add_code_change(0x80017878, 0x4e800020);
     add_code_change(0x80015258, 0x4e800020);
@@ -1602,7 +1604,9 @@ void FpsControls::init_mod_mp1_gc(Region region) {
 }
 
 void FpsControls::init_mod_mp1_gc_r1() {
-  add_code_change(0x8000f6b8, 0x48000048);
+  //add_code_change(0x8000f6b8, 0x48000048);
+  add_code_change(0x800ea1d8, 0x38810044); // output cannon bob only for viewbob
+
   add_code_change(0x8000e5b4, 0x60000000);
 
   add_code_change(0x8001489c, 0x4e800020);
@@ -1625,7 +1629,9 @@ void FpsControls::init_mod_mp1_gc_r1() {
 }
 
 void FpsControls::init_mod_mp1_gc_r2() {
-  add_code_change(0x8000f8f8, 0x48000048);
+  //add_code_change(0x8000f8f8, 0x48000048);
+  add_code_change(0x800ea6e0, 0x38810044); // output cannon bob only for viewbob
+
   add_code_change(0x8000e7f4, 0x60000000);
 
   add_code_change(0x80014aec, 0x4e800020);
@@ -1709,7 +1715,9 @@ void FpsControls::init_mod_mp2(Region region) {
 
 void FpsControls::init_mod_mp2_gc(Region region) {
   if (region == Region::NTSC_U) {
-    add_code_change(0x801b00b4, 0x48000050);
+    //add_code_change(0x801b00b4, 0x48000050);
+    add_code_change(0x800bcd44, 0x38810044); // output cannon bob only for viewbob
+
     add_code_change(0x801aef58, 0x60000000);
     add_code_change(0x800129c8, 0x4e800020);
     add_code_change(0x801af160, 0x60000000);
@@ -1733,6 +1741,7 @@ void FpsControls::init_mod_mp2_gc(Region region) {
     u32 null_players_vmc = gen_vmcall(null_players_vmc_idx, 0);
     add_code_change(0x80042994, null_players_vmc);
   } else if (region == Region::NTSC_J) {
+    // TODO: Enable arm cannon bobbing for JP
     add_code_change(0x801b1e6c, 0x48000050);
     add_code_change(0x801b0d10, 0x60000000);
     add_code_change(0x80013414, 0x4e800020);
@@ -1754,7 +1763,9 @@ void FpsControls::init_mod_mp2_gc(Region region) {
 
     add_code_change(0x80061fc0, 0xc022d400);
   } else if (region == Region::PAL) {
-    add_code_change(0x801b03c0, 0x48000050);
+    //add_code_change(0x801b03c0, 0x48000050);
+    add_code_change(0x800bcdd0, 0x38810044); // output cannon bob only for viewbob
+
     add_code_change(0x801af264, 0x60000000);
     add_code_change(0x80012a2c, 0x4e800020);
     add_code_change(0x801af46c, 0x60000000);
