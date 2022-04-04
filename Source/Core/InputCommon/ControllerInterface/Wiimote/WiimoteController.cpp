@@ -323,7 +323,7 @@ std::string Device::GetSource() const
 // Always add these at the end, given their hotplug nature
 int Device::GetSortPriority() const
 {
-  return -3;
+  return -4;
 }
 
 void Device::RunTasks()
