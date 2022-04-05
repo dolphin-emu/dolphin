@@ -864,12 +864,6 @@ public final class EmulationActivity extends AppCompatActivity
     int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
             R.array.doubleTapWithClassic : R.array.doubleTap;
 
-    if (currentController != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
-            currentValue == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
-    {
-      currentValue = InputOverlay.OVERLAY_WIIMOTE;
-    }
-
     int checkedItem = -1;
     int itemCount = getResources().getStringArray(buttonList).length;
     for (int i = 0; i < itemCount; i++)
