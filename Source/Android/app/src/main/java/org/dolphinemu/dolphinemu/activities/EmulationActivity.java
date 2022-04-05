@@ -870,7 +870,18 @@ public final class EmulationActivity extends AppCompatActivity
       currentValue = InputOverlay.OVERLAY_WIIMOTE;
     }
 
-    builder.setSingleChoiceItems(buttonList, currentValue,
+    int checkedItem = -1;
+    int itemCount = getResources().getStringArray(buttonList).length;
+    for (int i = 0; i < itemCount; i++)
+    {
+      if (InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(i) == currentValue)
+      {
+        checkedItem = i;
+        break;
+      }
+    }
+
+    builder.setSingleChoiceItems(buttonList, checkedItem,
             (DialogInterface dialog, int which) -> IntSetting.MAIN_DOUBLE_TAP_BUTTON
                     .setInt(mSettings, InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
 
