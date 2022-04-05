@@ -1,5 +1,7 @@
 #pragma once
 #include <SFML/Network.hpp>
+#include "Common/CommonTypes.h"
+
 #define TCP_FLAG_SIN 0x200
 #define TCP_FLAG_ACK 0x1000
 #define TCP_FLAG_PSH 0x800
@@ -24,6 +26,7 @@ struct StackRef
   sf::IpAddress target;
   u32 seq_num;
   u32 ack_num;
+  u32 ack_base;
   u16 window_size;
   u16 delay;
   TcpBuffer TcpBuffers[4];

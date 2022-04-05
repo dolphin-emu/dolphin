@@ -98,6 +98,7 @@ u16 CalcCRC(u16* data, u8 size)
     result += *data;
     data++;
   }
+  result = (result & 0xffff) + (result >> 16);
   result = ((result & 0xffff) + (result >> 16)) ^ 0xffff;
   return result;
 }
@@ -115,6 +116,7 @@ u16 CalcIPCRC(u16* data, u16 size, u32 dest, u32 src, u16 type)
     result += *data;
     data++;
   }
+  result = (result & 0xffff) + (result >> 16);
   result = ((result & 0xffff) + (result >> 16)) ^ 0xffff;
   return result;
 }
@@ -197,7 +199,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(net_hw_lvl* hwdata, net_udp_l
     ippart->src_ip = 0x0101a8c0;
     ippart->header = 0x45;
     ippart->protocol = 17;
-    ippart->seqId = htons(++ip_frame_id);
+    //ippart->seqId = htons(++ip_frame_id);
     ippart->size = htons(328);
     ippart->ttl = 64;
 
@@ -227,7 +229,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(net_hw_lvl* hwdata, net_udp_l
     AddDHCPOption(reply, 0, 255, 0, 0, 0, 0); //end
 
     udppart->crc = CalcIPCRC((u16*)udppart, 308, ippart->dest_ip, ippart->src_ip, 17);
-    ippart->crc = CalcCRC((u16*)ippart, 10);
+    //ippart->crc = CalcCRC((u16*)ippart, 10);
 
     WriteToQueue((char*)&m_in_frame, 0x156);
 
@@ -271,7 +273,7 @@ int CEXIETHERNET::BuiltInBBAInterface::BuildFINFrame(char* buf, bool ack, int i)
   ippart->src_ip = NetRef[i].ip;
   ippart->header = 0x45;
   ippart->protocol = 6;
-  ippart->seqId = htons(++ip_frame_id);
+  //ippart->seqId = htons(++ip_frame_id);
   ippart->size = htons(0x28);
   ippart->ttl = 64;
   ippart->crc = CalcCRC((u16*)ippart, 10);
@@ -308,6 +310,9 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     WriteToQueue((char*)&m_in_frame, 0x36);
     NetRef[i].ip = 0;
     tcp_socket[i].disconnect();
+#ifdef BBA_TRACK_PAGE_PTRS
+    INFO_LOG_FMT(SP1, "Socket {:x} disconnected", i);
+#endif
 
   }
   else if (tcpdata->flag_length & TCP_FLAG_SIN)
@@ -318,10 +323,15 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
       return;
     i = GetAvaibleSlot(0);
 
+#ifdef BBA_TRACK_PAGE_PTRS
+    INFO_LOG_FMT(SP1, "New connection {:x}", i);
+#endif
+
     NetRef[i].delay = 0x3000;
     NetRef[i].local = tcpdata->src_port;
     NetRef[i].remote = tcpdata->dest_port;
     NetRef[i].ack_num = Common::swap32(tcpdata->seq_num)+1;
+    NetRef[i].ack_base = NetRef[i].ack_num;
     NetRef[i].seq_num = 0x1000000;
     NetRef[i].window_size = htons(tcpdata->win_size);
     NetRef[i].type = 6;
@@ -345,10 +355,10 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     ippart->src_ip = ipdata->dest_ip;
     ippart->header = 0x45;
     ippart->protocol = 6;
-    ippart->seqId = htons(++ip_frame_id);
+    //ippart->seqId = htons(++ip_frame_id);
     ippart->size = htons(0x30);
     ippart->ttl = 64;
-    ippart->crc = CalcCRC((u16*)ippart, 10);
+    //ippart->crc = CalcCRC((u16*)ippart, 10);
 
     tcppart->src_port = tcpdata->dest_port;
     tcppart->dest_port = tcpdata->src_port;
@@ -391,6 +401,11 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     int size = htons(ipdata->size) - 20 - c;
     NetRef[i].window_size = htons(tcpdata->win_size);
     u32 this_seq = Common::swap32(tcpdata->seq_num);
+#ifdef BBA_TRACK_PAGE_PTRS
+    INFO_LOG_FMT(SP1, "Frame Send socker {:x} size: {:x} seq: {:x} Ack {:x} Window: {:x}", i, size,
+                 this_seq - NetRef[i].ack_base, Common::swap32(tcpdata->ack_num),
+                 NetRef[i].window_size);
+#endif
     if (size > 0)
     {
       //only if data
@@ -398,9 +413,6 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
       {
         tcp_socket[i].send(data, size);
         NetRef[i].ack_num += size;
-#ifdef BBA_TRACK_PAGE_PTRS
-        INFO_LOG_FMT(SP1, "SendData {:x}", size);
-#endif
       }
 
       //send ack
@@ -416,10 +428,10 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
       ippart->src_ip = NetRef[i].ip;
       ippart->header = 0x45;
       ippart->protocol = 6;
-      ippart->seqId = htons(++ip_frame_id);
+      //ippart->seqId = htons(++ip_frame_id);
       ippart->size = htons(0x28);
       ippart->ttl = 64;
-      ippart->crc = CalcCRC((u16*)ippart, 10);
+      //ippart->crc = CalcCRC((u16*)ippart, 10);
 
       tcppart->src_port = NetRef[i].remote;
       tcppart->dest_port = NetRef[i].local;
@@ -433,15 +445,18 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     }
 
     // clear any ack data
-    for (int l = 0; l < 4; l++)
+    if (tcpdata->flag_length & TCP_FLAG_ACK)
     {
-      if (NetRef[i].TcpBuffers[l].used)
+      for (int l = 0; l < 4; l++)
       {
-        if (NetRef[i].TcpBuffers[l].seq_id < this_seq)
+        if (NetRef[i].TcpBuffers[l].used)
         {
-          NetRef[i].TcpBuffers[l].used = false;  // confirmed data received
-          if (!NetRef[i].ready && !NetRef[i].TcpBuffers[0].used)
-            NetRef[i].ready = true;
+          if (NetRef[i].TcpBuffers[l].seq_id < Common::swap32(tcpdata->ack_num))
+          {
+            NetRef[i].TcpBuffers[l].used = false;  // confirmed data received
+            if (!NetRef[i].ready && !NetRef[i].TcpBuffers[0].used)
+              NetRef[i].ready = true;
+          }
         }
       }
     }
@@ -462,11 +477,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
   mtx.lock();
   isSent = true;
   memmove(m_out_frame, frame, size);
-#ifdef BBA_TRACK_PAGE_PTRS
-  INFO_LOG_FMT(SP1, "SendFrame {:x}\n{}", size, ArrayToString((u8 *) &m_out_frame, size, 16));
-#endif
-  DEBUG_LOG_FMT(SP1, "Frame data: {:x}\n{}", size, ArrayToString((u8*)&m_out_frame, size, 16));
-  bool handled = false;
+
   //handle the packet data
   hwdata = (net_hw_lvl*)&m_out_frame[0];
   if (hwdata->protocol == 0x08)
@@ -482,7 +493,6 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
       {
         net_dhcp* request = (net_dhcp*)&m_out_frame[offset];
         HandleDHCP(hwdata, udpdata, request);
-        handled = true;
       }
       else 
       {
@@ -515,7 +525,6 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 
         udp_socket[i].send(&m_out_frame[offset], htons(udpdata->size) - 8, target,
                            htons(udpdata->dest_port));
-        handled = true;
       }
 
 
@@ -525,7 +534,6 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
       tcpdata = (net_tcp_lvl*)&m_out_frame[14 + ((ipdata->header & 0xf) * 4)];
       offset = 14 + ((ipdata->header & 0xf) * 4) + (((tcpdata->flag_length >> 4) & 0xf)*4);
       HandleTCPFrame(hwdata, ipdata, tcpdata, &m_out_frame[offset]);
-      handled = true;
       break;
     }
 
@@ -534,14 +542,8 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
   {
     net_arp_lvl* arpdata = (net_arp_lvl*)&m_out_frame[14];
     HandleARP(hwdata, arpdata);
-    handled = true;
   }
-#ifdef BBA_TRACK_PAGE_PTRS
-  if (!handled)
-  {
-    INFO_LOG_FMT(SP1, "ERROR");
-  }
-#endif
+
   m_eth_ref->SendComplete();
   mtx.unlock();
   return true;
@@ -617,11 +619,11 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                   ipdata->dest_ip = 0xc701a8c0;
                   ipdata->src_ip = self->NetRef[i].ip;
                   ipdata->header = 0x45;
-                  ipdata->seqId = htons(++self->ip_frame_id);
+                  //ipdata->seqId = htons(++self->ip_frame_id);
                   ipdata->size = htons((u16)(datasize + 8 + 20));
                   ipdata->ttl = 64;
                   ipdata->protocol = 17;
-                  ipdata->crc = CalcCRC((u16*)ipdata, 10);
+                  //ipdata->crc = CalcCRC((u16*)ipdata, 10);
                   udpdata->size = htons((u16)(datasize + 8));
                   udpdata->dest_port = self->NetRef[i].local;
                   udpdata->src_port = self->NetRef[i].remote;
@@ -645,7 +647,8 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                     break;  //free holder
                   }
                 }
-                if (l < 4 && self->NetRef[i].ready)
+                datasize = 0;
+                if ((l < 4) && self->NetRef[i].ready)
                   st = self->tcp_socket[i].receive(&buf[0x36], 1460, datasize);
                 
                 if (datasize > 0)
@@ -663,10 +666,10 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                   ippart->src_ip = self->NetRef[i].ip;
                   ippart->header = 0x45;
                   ippart->protocol = 6;
-                  ippart->seqId = htons(++self->ip_frame_id);
+                  //ippart->seqId = htons(++self->ip_frame_id);
                   ippart->size = htons((u16)(datasize + 20 + 20));
                   ippart->ttl = 64;
-                  ippart->crc = CalcCRC((u16*)ippart, 10);
+                  //ippart->crc = CalcCRC((u16*)ippart, 10);
 
                   tcppart->src_port = self->NetRef[i].remote;
                   tcppart->dest_port = self->NetRef[i].local;
@@ -684,6 +687,11 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                   memcpy(&self->NetRef[i].TcpBuffers[l].data[0], &buf[0], datasize + 0x36);
                   self->NetRef[i].TcpBuffers[l].seq_id = self->NetRef[i].seq_num;
                   self->NetRef[i].TcpBuffers[l].used = true;
+
+#ifdef BBA_TRACK_PAGE_PTRS
+                  INFO_LOG_FMT(SP1, "Frame Recv socket {:x} size: {:x} seq: {:x}", i, datasize,
+                               self->NetRef[i].seq_num);
+#endif
 
                   self->NetRef[i].seq_num += (u32)datasize;
                   datasize += 0x36;
@@ -726,8 +734,16 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                   self->mtx.lock();
                   self->queue_data_size[self->queue_write] =
                       self->NetRef[c].TcpBuffers[l].data_size;
-                  memcpy(&self->queue_data[self->queue_write], &self->NetRef[c].TcpBuffers[l].data,
+                  memcpy(&self->queue_data[self->queue_write],
+                         &self->NetRef[c].TcpBuffers[l].data[0],
                          self->NetRef[c].TcpBuffers[l].data_size);
+#ifdef BBA_TRACK_PAGE_PTRS
+                  INFO_LOG_FMT(SP1, "Frame Retry socket {:x} size: {:x} seq: {:x}\n{}", c,
+                               self->NetRef[c].TcpBuffers[l].data_size,
+                               self->NetRef[c].TcpBuffers[l].seq_id,
+                               ArrayToString((u8*) & self->queue_data[self->queue_write],
+                                             self->NetRef[c].TcpBuffers[l].data_size, 16));
+#endif
                   self->queue_write = (self->queue_write + 1) & 15;
                   self->mtx.unlock();
                 }
@@ -740,6 +756,15 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         if (datasize > 0)
         {
           self->mtx.lock();
+          u8* b = &self->m_eth_ref->mRecvBuffer[0];
+          hwdata = (net_hw_lvl*)b;
+          if (hwdata->protocol == 0x8)
+          {
+            ipdata = (net_ipv4_lvl*)&b[14];
+            ipdata->seqId = htons(++self->ip_frame_id);
+            ipdata->crc = 0;
+            ipdata->crc = CalcCRC((u16*)ipdata, 10);
+          }
           self->m_eth_ref->mRecvBufferLength = (u32)datasize;
           self->m_eth_ref->RecvHandlePacket();
           retrigger = 0xf;
