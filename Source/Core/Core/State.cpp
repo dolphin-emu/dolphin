@@ -66,10 +66,10 @@ static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
-static std::vector<u8> g_undo_load_buffer;
-static std::mutex s_load_or_save_in_progress_mutex;
+static std::vector<u8> s_undo_load_buffer;
+static std::mutex s_undo_load_buffer_mutex;
 
-static std::mutex g_cs_undo_load_buffer;
+static std::mutex s_load_or_save_in_progress_mutex;
 
 struct CompressAndDumpState_args
 {
@@ -650,12 +650,13 @@ void LoadAs(const std::string& filename)
         // Save temp buffer for undo load state
         if (!Movie::IsJustStartingRecordingInputFromSaveState())
         {
-          std::lock_guard lk2(g_cs_undo_load_buffer);
-          SaveToBuffer(g_undo_load_buffer);
+          std::lock_guard lk2(s_undo_load_buffer_mutex);
+          SaveToBuffer(s_undo_load_buffer);
+          const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
           if (Movie::IsMovieActive())
-            Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
-          else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))
-            File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+            Movie::SaveRecording(dtmpath);
+          else if (File::Exists(dtmpath))
+            File::Delete(dtmpath);
         }
 
         bool loaded = false;
@@ -734,8 +735,8 @@ void Shutdown()
   // this gives a better guarantee to free the allocated memory right NOW (as opposed to, actually,
   // never)
   {
-    std::lock_guard lk(g_cs_undo_load_buffer);
-    std::vector<u8>().swap(g_undo_load_buffer);
+    std::lock_guard lk(s_undo_load_buffer_mutex);
+    std::vector<u8>().swap(s_undo_load_buffer);
   }
 }
 
@@ -789,18 +790,25 @@ void SaveFirstSaved()
 // Load the last state before loading the state
 void UndoLoadState()
 {
-  std::lock_guard lk(g_cs_undo_load_buffer);
-  if (!g_undo_load_buffer.empty())
+  std::lock_guard lk(s_undo_load_buffer_mutex);
+  if (!s_undo_load_buffer.empty())
   {
-    if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsMovieActive()))
+    if (Movie::IsMovieActive())
     {
-      LoadFromBuffer(g_undo_load_buffer);
-      if (Movie::IsMovieActive())
-        Movie::LoadInput(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+      const std::string dtmpath = File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm";
+      if (File::Exists(dtmpath))
+      {
+        LoadFromBuffer(s_undo_load_buffer);
+        Movie::LoadInput(dtmpath);
+      }
+      else
+      {
+        PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+      }
     }
     else
     {
-      PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+      LoadFromBuffer(s_undo_load_buffer);
     }
   }
   else
