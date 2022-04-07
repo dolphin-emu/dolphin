@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include <QObject>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
@@ -27,6 +29,40 @@ namespace ciface::DInput
 extern double cursor_sensitivity = 15.0;
 extern unsigned char center_mouse_key = 'K';
 extern double snapping_distance = 4.5;
+
+extern void Center_Mouse_Button_Callback()
+{
+  QObject* sender = sender();
+  //static_cast<wxButton*>(_event.GetEventObject())->SetLabel(wxGetTranslation("[ waiting ]"));
+
+  static constexpr unsigned char highest_virtual_key_hex = 0xFE;
+  bool listening = true;
+  while (listening)
+  {
+    for (unsigned char i = 0; i < highest_virtual_key_hex; i++)
+    {
+      if (GetAsyncKeyState(i) & 0x8000)
+      {
+        ciface::DInput::center_mouse_key = i;
+        listening = false;
+        break;
+      }
+    }
+  }
+
+  //static_cast<wxButton*>(_event.GetEventObject())->SetLabel((char)center_mouse_key);
+  Save_Keyboard_and_Mouse_Settings();
+}
+extern void Snapping_Distance_Callback(double value)
+{
+  snapping_distance = value;
+  Save_Keyboard_and_Mouse_Settings();
+}
+extern void Sensitivity_Callback(double value)
+{
+  cursor_sensitivity = value;
+  Save_Keyboard_and_Mouse_Settings();
+}
 
 void Save_Keyboard_and_Mouse_Settings()
 {

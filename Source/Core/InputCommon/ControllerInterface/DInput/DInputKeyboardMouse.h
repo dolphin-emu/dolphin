@@ -13,9 +13,11 @@
 
 namespace ciface::DInput
 {
-
 void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd);
 
+extern void Center_Mouse_Button_Callback();
+extern void Snapping_Distance_Callback(double value);
+extern void Sensitivity_Callback(double value);
 extern void Save_Keyboard_and_Mouse_Settings();
 extern void Load_Keyboard_and_Mouse_Settings();
 

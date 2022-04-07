@@ -15,7 +15,6 @@
 #include "Core/HW/GCPadEmu.h"
 
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
-#include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 #include "InputCommon/InputConfig.h"
 
 GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
@@ -49,6 +48,8 @@ void GCPadEmu::CreateMainLayout()
 
   QHBoxLayout* sensitivity_layout = new QHBoxLayout{};
   QDoubleSpinBox* sensitivity_spin_box = new QDoubleSpinBox{};
+  connect(sensitivity_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+    ::ciface::DInput::Sensitivity_Callback);
   sensitivity_spin_box->setRange(0.00, 100.00);
   sensitivity_spin_box->setDecimals(2);
   sensitivity_spin_box->setSingleStep(1);
@@ -59,6 +60,7 @@ void GCPadEmu::CreateMainLayout()
 
   QHBoxLayout* snapping_distance_layout = new QHBoxLayout{};
   QDoubleSpinBox* snapping_distance_spin_box = new QDoubleSpinBox{};
+  connect(snapping_distance_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [lambda shit here]);
   snapping_distance_spin_box->setRange(0.00, 100.00);
   snapping_distance_spin_box->setDecimals(2);
   snapping_distance_spin_box->setSingleStep(1);
@@ -70,12 +72,11 @@ void GCPadEmu::CreateMainLayout()
   QHBoxLayout* center_mouse_key_layout = new QHBoxLayout{};
   QPushButton* center_mouse_key_button = new QPushButton{};
   center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+  connect(center_mouse_key_button, &QPushButton::clicked,::ciface::DInput::Center_Mouse_Button_Callback);
   QLabel* center_mouse_key_label = new QLabel{};
   center_mouse_key_label->setText(tr("Center Mouse Key"));
   center_mouse_key_layout->addWidget(center_mouse_key_label);
   center_mouse_key_layout->addWidget(center_mouse_key_button);
-
-  //You were adding the callbacks to change the values from UI events
 
   keyboard_and_mouse_layout->addLayout(sensitivity_layout);
   keyboard_and_mouse_layout->addLayout(snapping_distance_layout);
