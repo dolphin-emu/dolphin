@@ -145,6 +145,8 @@ void VideoConfig::Refresh()
   bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
+
+  bGraphicMods = Config::Get(Config::GFX_MODS_ENABLE);
 }
 
 void VideoConfig::VerifyValidity()

@@ -111,6 +111,7 @@ struct VideoConfig final
   bool bBorderlessFullscreen = false;
   bool bEnableGPUTextureDecoding = false;
   int iBitrateKbps = 0;
+  bool bGraphicMods = false;
 
   // Hacks
   bool bEFBAccessEnable = false;
