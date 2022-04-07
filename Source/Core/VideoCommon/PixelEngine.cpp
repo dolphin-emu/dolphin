@@ -1,12 +1,11 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
-
 #include "VideoCommon/PixelEngine.h"
 
 #include <mutex>
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -26,70 +25,115 @@
 
 namespace PixelEngine
 {
+// Note: These enums are (assumed to be) identical to the one in BPMemory, but the base type is set
+// to u16 instead of u32 for BitField
+enum class CompareMode : u16
+{
+  Never = 0,
+  Less = 1,
+  Equal = 2,
+  LEqual = 3,
+  Greater = 4,
+  NEqual = 5,
+  GEqual = 6,
+  Always = 7
+};
+
 union UPEZConfReg
 {
-  u16 Hex;
-  struct
-  {
-    u16 ZCompEnable : 1;  // Z Comparator Enable
-    u16 Function : 3;
-    u16 ZUpdEnable : 1;
-    u16 : 11;
-  };
+  u16 hex;
+  BitField<0, 1, bool, u16> z_comparator_enable;
+  BitField<1, 3, CompareMode, u16> function;
+  BitField<4, 1, bool, u16> z_update_enable;
+};
+
+enum class SrcBlendFactor : u16
+{
+  Zero = 0,
+  One = 1,
+  DstClr = 2,
+  InvDstClr = 3,
+  SrcAlpha = 4,
+  InvSrcAlpha = 5,
+  DstAlpha = 6,
+  InvDstAlpha = 7
+};
+
+enum class DstBlendFactor : u16
+{
+  Zero = 0,
+  One = 1,
+  SrcClr = 2,
+  InvSrcClr = 3,
+  SrcAlpha = 4,
+  InvSrcAlpha = 5,
+  DstAlpha = 6,
+  InvDstAlpha = 7
+};
+
+enum class LogicOp : u16
+{
+  Clear = 0,
+  And = 1,
+  AndReverse = 2,
+  Copy = 3,
+  AndInverted = 4,
+  NoOp = 5,
+  Xor = 6,
+  Or = 7,
+  Nor = 8,
+  Equiv = 9,
+  Invert = 10,
+  OrReverse = 11,
+  CopyInverted = 12,
+  OrInverted = 13,
+  Nand = 14,
+  Set = 15
 };
 
 union UPEAlphaConfReg
 {
-  u16 Hex;
-  struct
-  {
-    u16 BMMath : 1;   // GX_BM_BLEND || GX_BM_SUBSTRACT
-    u16 BMLogic : 1;  // GX_BM_LOGIC
-    u16 Dither : 1;
-    u16 ColorUpdEnable : 1;
-    u16 AlphaUpdEnable : 1;
-    u16 DstFactor : 3;
-    u16 SrcFactor : 3;
-    u16 Substract : 1;  // Additive mode by default
-    u16 BlendOperator : 4;
-  };
+  u16 hex;
+  BitField<0, 1, bool, u16> blend;  // Set for GX_BM_BLEND or GX_BM_SUBTRACT
+  BitField<1, 1, bool, u16> logic;  // Set for GX_BM_LOGIC
+  BitField<2, 1, bool, u16> dither;
+  BitField<3, 1, bool, u16> color_update_enable;
+  BitField<4, 1, bool, u16> alpha_update_enable;
+  BitField<5, 3, DstBlendFactor, u16> dst_factor;
+  BitField<8, 3, SrcBlendFactor, u16> src_factor;
+  BitField<11, 1, bool, u16> subtract;  // Set for GX_BM_SUBTRACT
+  BitField<12, 4, LogicOp, u16> logic_op;
 };
 
 union UPEDstAlphaConfReg
 {
-  u16 Hex;
-  struct
-  {
-    u16 DstAlpha : 8;
-    u16 Enable : 1;
-    u16 : 7;
-  };
+  u16 hex;
+  BitField<0, 8, u8, u16> alpha;
+  BitField<8, 1, bool, u16> enable;
 };
 
 union UPEAlphaModeConfReg
 {
-  u16 Hex;
-  struct
-  {
-    u16 Threshold : 8;
-    u16 CompareMode : 8;
-  };
+  u16 hex;
+  BitField<0, 8, u8, u16> threshold;
+  // Yagcd and libogc use 8 bits for this, but the enum only needs 3
+  BitField<8, 3, CompareMode, u16> compare_mode;
+};
+
+union UPEAlphaReadReg
+{
+  u16 hex;
+  BitField<0, 2, AlphaReadMode, u16> read_mode;
 };
 
 // fifo Control Register
 union UPECtrlReg
 {
-  struct
-  {
-    u16 PETokenEnable : 1;
-    u16 PEFinishEnable : 1;
-    u16 PEToken : 1;   // write only
-    u16 PEFinish : 1;  // write only
-    u16 : 12;
-  };
-  u16 Hex;
-  UPECtrlReg() { Hex = 0; }
-  UPECtrlReg(u16 _hex) { Hex = _hex; }
+  u16 hex;
+  BitField<0, 1, bool, u16> pe_token_enable;
+  BitField<1, 1, bool, u16> pe_finish_enable;
+  BitField<2, 1, bool, u16> pe_token;   // Write only
+  BitField<3, 1, bool, u16> pe_finish;  // Write only
 };
 
 // STATE_TO_SAVE
@@ -142,12 +186,12 @@ static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate);
 
 void Init()
 {
-  m_Control.Hex = 0;
-  m_ZConf.Hex = 0;
-  m_AlphaConf.Hex = 0;
-  m_DstAlphaConf.Hex = 0;
-  m_AlphaModeConf.Hex = 0;
-  m_AlphaRead.Hex = 0;
+  m_Control.hex = 0;
+  m_ZConf.hex = 0;
+  m_AlphaConf.hex = 0;
+  m_DstAlphaConf.hex = 0;
+  m_AlphaModeConf.hex = 0;
+  m_AlphaRead.hex = 0;
 
   s_token = 0;
   s_token_pending = 0;
@@ -170,11 +214,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     u32 addr;
     u16* ptr;
   } directly_mapped_vars[] = {
-      {PE_ZCONF, &m_ZConf.Hex},
-      {PE_ALPHACONF, &m_AlphaConf.Hex},
-      {PE_DSTALPHACONF, &m_DstAlphaConf.Hex},
-      {PE_ALPHAMODE, &m_AlphaModeConf.Hex},
-      {PE_ALPHAREAD, &m_AlphaRead.Hex},
+      {PE_ZCONF, &m_ZConf.hex},
+      {PE_ALPHACONF, &m_AlphaConf.hex},
+      {PE_DSTALPHACONF, &m_DstAlphaConf.hex},
+      {PE_ALPHAMODE, &m_AlphaModeConf.hex},
+      {PE_ALPHAREAD, &m_AlphaRead.hex},
   };
   for (auto& mapped_var : directly_mapped_vars)
   {
@@ -209,20 +253,20 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   // Control register
-  mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_Control.Hex),
+  mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_Control.hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UPECtrlReg tmpCtrl(val);
+                   UPECtrlReg tmpCtrl{.hex = val};
 
-                   if (tmpCtrl.PEToken)
+                   if (tmpCtrl.pe_token)
                      s_signal_token_interrupt = false;
 
-                   if (tmpCtrl.PEFinish)
+                   if (tmpCtrl.pe_finish)
                      s_signal_finish_interrupt = false;
 
-                   m_Control.PETokenEnable = tmpCtrl.PETokenEnable;
-                   m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
-                   m_Control.PEToken = 0;   // this flag is write only
-                   m_Control.PEFinish = 0;  // this flag is write only
+                   m_Control.pe_token_enable = tmpCtrl.pe_token_enable.Value();
+                   m_Control.pe_finish_enable = tmpCtrl.pe_finish_enable.Value();
+                   m_Control.pe_token = false;   // this flag is write only
+                   m_Control.pe_finish = false;  // this flag is write only
 
                    DEBUG_LOG_FMT(PIXELENGINE, "(w16) CTRL_REGISTER: {:#06x}", val);
                    UpdateInterrupts();
@@ -246,11 +290,11 @@ static void UpdateInterrupts()
 {
   // check if there is a token-interrupt
   ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN,
-                                   s_signal_token_interrupt && m_Control.PETokenEnable);
+                                   s_signal_token_interrupt && m_Control.pe_token_enable);
 
   // check if there is a finish-interrupt
   ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH,
-                                   s_signal_finish_interrupt && m_Control.PEFinishEnable);
+                                   s_signal_finish_interrupt && m_Control.pe_finish_enable);
 }
 
 static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
@@ -327,9 +371,9 @@ void SetFinish(int cycles_into_future)
   RaiseEvent(cycles_into_future);
 }
 
-UPEAlphaReadReg GetAlphaReadMode()
+AlphaReadMode GetAlphaReadMode()
 {
-  return m_AlphaRead;
+  return m_AlphaRead.read_mode;
 }
 
 }  // namespace PixelEngine

@@ -247,9 +247,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     // a little-endian value is expected to be returned
     color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
 
-    // check what to do with the alpha channel (GX_PokeAlphaRead)
-    PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
-
     if (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24)
     {
       color = RGBA8ToRGBA6ToRGBA8(color);
@@ -263,17 +260,24 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
       color |= 0xFF000000;
     }
 
-    if (alpha_read_mode.ReadMode == 2)
+    // check what to do with the alpha channel (GX_PokeAlphaRead)
+    PixelEngine::AlphaReadMode alpha_read_mode = PixelEngine::GetAlphaReadMode();
+
+    if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadNone)
     {
-      return color;  // GX_READ_NONE
+      return color;
     }
-    else if (alpha_read_mode.ReadMode == 1)
+    else if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadFF)
     {
-      return color | 0xFF000000;  // GX_READ_FF
+      return color | 0xFF000000;
     }
-    else /*if(alpha_read_mode.ReadMode == 0)*/
+    else
     {
-      return color & 0x00FFFFFF;  // GX_READ_00
+      if (alpha_read_mode != PixelEngine::AlphaReadMode::Read00)
+      {
+        PanicAlertFmt("Invalid PE alpha read mode: {}", static_cast<u16>(alpha_read_mode));
+      }
+      return color & 0x00FFFFFF;
     }
   }
   else  // if (type == EFBAccessType::PeekZ)
