@@ -13,17 +13,17 @@
 
 #include <SFML/Network.hpp>
 
-#include "Common/Flag.h"
-#include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/EXI/BBA/BuiltIn.h"
 #include <mutex>
+#include "Common/Flag.h"
+#include "Core/HW/EXI/BBA/BuiltIn.h"
+#include "Core/HW/EXI/EXI_Device.h"
+
+
 
 class PointerWrap;
 
 namespace ExpansionInterface
 {
-
-  
 // Network Control Register A
 enum NCRA
 {
@@ -294,7 +294,6 @@ private:
     return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
   }
 
-  //inline u8* ptr_from_page_ptr(int const index) const { return &mBbaMem[page_ptr(index) << 8]; }
   bool IsMXCommand(u32 const data);
   bool IsWriteCommand(u32 const data);
   const char* GetRegisterName() const;
@@ -420,7 +419,6 @@ private:
 #endif
   };
 
-
   class BuiltInBBAInterface : public NetworkInterface
   {
   public:
@@ -454,7 +452,8 @@ private:
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     sf::UdpSocket udp_socket[10];
-    sf::TcpSocket tcp_socket[10]; //max 10 at same time, i think most gc game had a limit of 8 in the gc framework
+    sf::TcpSocket tcp_socket[10];  // max 10 at same time, i think most gc game had a limit of 8 in
+                                   // the gc framework
     StackRef NetRef[10]{};
     char m_in_frame[9004]{};
     char m_out_frame[9004]{};
@@ -462,7 +461,7 @@ private:
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(BuiltInBBAInterface* self);
-    const u8 fake_mac[6] = {0,9,33,45,66,44};
+    const u8 fake_mac[6] = {0, 9, 33, 45, 66, 44};
 #endif
     void WriteToQueue(char* data, int length);
     void HandleARP(net_hw_lvl* hwdata, net_arp_lvl* arpdata);
@@ -470,8 +469,7 @@ private:
     u8 GetAvaibleSlot(u16 port);
     int GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
     int BuildFINFrame(char* buf, bool ack, int i);
-    void HandleTCPFrame(net_hw_lvl* hwdata, net_ipv4_lvl* ipdata, net_tcp_lvl* tcpdata,
-                        char* data);
+    void HandleTCPFrame(net_hw_lvl* hwdata, net_ipv4_lvl* ipdata, net_tcp_lvl* tcpdata, char* data);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;

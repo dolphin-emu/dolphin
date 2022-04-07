@@ -653,6 +653,8 @@ elseif(APPLE)
     HW/EXI/BBA/TAP_Apple.cpp
     HW/EXI/BBA/TAPServer_Apple.cpp
     HW/EXI/BBA/XLINK_KAI_BBA.cpp
+    HW/EXI/BBA/BuiltIn.cpp
+    HW/EXI/BBA/BuiltIn.h
   )
   target_link_libraries(core PUBLIC ${IOB_LIBRARY})
 elseif(UNIX)

@@ -162,7 +162,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
     {
     case INTERRUPT:
       exi_status.interrupt &= data ^ 0xff;
-      //raise back if there is still data
+      // raise back if there is still data
       if (page_ptr(BBA_RRP) != page_ptr(BBA_RWP))
       {
         if (mBbaMem[BBA_IMR] & INT_R)
@@ -170,10 +170,9 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
           mBbaMem[BBA_IR] |= INT_R;
 
           exi_status.interrupt |= exi_status.TRANSFER;
-          //ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
         }
       }
-        
+
       break;
     case INTERRUPT_MASK:
       exi_status.interrupt_mask = data;
@@ -470,7 +469,6 @@ void CEXIETHERNET::SendComplete()
   mBbaMem[BBA_LTPS] = 0;
 }
 
-
 inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
 {
   // Calculate CRC
@@ -567,7 +565,6 @@ bool CEXIETHERNET::RecvHandlePacket()
   write_ptr = &mBbaMem[page_ptr(BBA_RWP) << 8];
 
   descriptor = (Descriptor*)write_ptr;
-  //write_ptr += 4;
   DEBUG_LOG_FMT(SP1, "Frame recv: {:x}", mRecvBufferLength);
   for (u32 i = 0, off = 4; i < mRecvBufferLength; i++, off++)
   {
@@ -649,6 +646,5 @@ wait_for_next:
 
   return true;
 }
-
 
 }  // namespace ExpansionInterface

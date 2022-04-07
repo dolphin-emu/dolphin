@@ -279,7 +279,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
 
     // Read from TAP into internal buffer.
     if (ReadFile(self->mHAdapter, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
-                  &self->mReadOverlapped))
+                 &self->mReadOverlapped))
     {
       // Returning immediately is not likely to happen, but if so, reset the event state manually.
       ResetEvent(self->mReadOverlapped.hEvent);
@@ -315,7 +315,6 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
       self->m_eth_ref->RecvHandlePacket();
     }
   }
-  
 }
 
 bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
