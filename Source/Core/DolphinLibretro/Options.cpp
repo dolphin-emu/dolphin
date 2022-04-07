@@ -132,6 +132,7 @@ Option<bool> waitForShaders("dolphin_wait_for_shaders", "Wait for Shaders before
 Option<bool> progressiveScan("dolphin_progressive_scan", "Progressive Scan", true);
 Option<bool> pal60("dolphin_pal60", "PAL60", true);
 Option<int> maxAnisotropy("dolphin_max_anisotropy", "Max Anisotropy", {"1x", "2x", "4x", "8x", "16x"});
+Option<bool> skipDupeFrames("dolphin_skip_dupe_frames", "Skip Presenting Duplicate Frames", true);
 Option<bool> efbScaledCopy("dolphin_efb_scaled_copy", "Scaled EFB Copy", true);
 Option<bool> forceTextureFiltering("dolphin_force_texture_filtering", "Force Texture Filtering", false);
 Option<bool> efbToTexture("dolphin_efb_to_texture", "Store EFB Copies on GPU", true);
