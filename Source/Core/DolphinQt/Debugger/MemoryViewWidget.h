@@ -48,7 +48,7 @@ public:
 
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
-  void SetDisplay(Type type, int bytes_per_row, int alignment);
+  void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
   void SetBPType(BPType type);
   void SetAddress(u32 address);
 
@@ -70,6 +70,8 @@ private:
   void OnContextMenu();
   void OnCopyAddress();
   void OnCopyHex();
+  void UpdateBreakpointTags();
+  void UpdateColumns(Type type, int first_column);
 
   AddressSpace::Type m_address_space{};
   Type m_type = Type::Hex8;
@@ -82,4 +84,5 @@ private:
   int m_font_vspace = 0;
   int m_bytes_per_row = 16;
   int m_alignment = 16;
+  bool m_dual_view = false;
 };

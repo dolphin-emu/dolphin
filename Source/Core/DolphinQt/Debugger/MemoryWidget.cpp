@@ -215,9 +215,12 @@ void MemoryWidget::CreateWidgets()
   m_row_length_combo->addItem(tr("8 Bytes"), 8);
   m_row_length_combo->addItem(tr("16 Bytes"), 16);
 
+  m_dual_check = new QCheckBox(tr("Dual View"));
+
   displaytype_layout->addWidget(m_display_combo);
   displaytype_layout->addWidget(m_align_combo);
   displaytype_layout->addWidget(m_row_length_combo);
+  displaytype_layout->addWidget(m_dual_check);
 
   // MBP options
   auto* bp_group = new QGroupBox(tr("Memory breakpoint options"));
@@ -317,6 +320,8 @@ void MemoryWidget::ConnectWidgets()
     connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &MemoryWidget::OnDisplayChanged);
   }
+
+  connect(m_dual_check, &QCheckBox::toggled, this, &MemoryWidget::OnDisplayChanged);
 
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
@@ -431,6 +436,10 @@ void MemoryWidget::OnDisplayChanged()
   const auto type = static_cast<MemoryViewWidget::Type>(m_display_combo->currentData().toInt());
   int bytes_per_row = m_row_length_combo->currentData().toInt();
   int alignment;
+  bool dual_view = m_dual_check->isChecked();
+
+  if (dual_view)
+    bytes_per_row = 4;
 
   if (type == MemoryViewWidget::Type::Double && bytes_per_row == 4)
     bytes_per_row = 8;
@@ -443,7 +452,7 @@ void MemoryWidget::OnDisplayChanged()
   else
     alignment = m_align_combo->currentData().toInt();
 
-  m_memory_view->SetDisplay(type, bytes_per_row, alignment);
+  m_memory_view->SetDisplay(type, bytes_per_row, alignment, dual_view);
 
   SaveSettings();
 }
