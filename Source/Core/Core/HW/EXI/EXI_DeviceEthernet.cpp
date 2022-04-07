@@ -540,8 +540,6 @@ void CEXIETHERNET::Retrigger()
   {
     if (mBbaMem[BBA_IMR] & INT_R)
       mBbaMem[BBA_IR] |= INT_R;
-    //if (mBbaMem[BBA_IMR] & INT_T)
-    //  mBbaMem[BBA_IR] |= INT_T;
     exi_status.interrupt |= exi_status.TRANSFER;
     ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
   }
@@ -552,8 +550,6 @@ void CEXIETHERNET::Retrigger()
 bool CEXIETHERNET::RecvHandlePacket()
 {
   u8* write_ptr;
-  //u8* end_ptr;
-  //u8* read_ptr;
   Descriptor* descriptor;
   u32 status = 0;
   u16 rwp_initial = page_ptr(BBA_RWP);

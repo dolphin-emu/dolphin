@@ -199,7 +199,6 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(net_hw_lvl* hwdata, net_udp_l
     ippart->src_ip = 0x0101a8c0;
     ippart->header = 0x45;
     ippart->protocol = 17;
-    //ippart->seqId = htons(++ip_frame_id);
     ippart->size = htons(328);
     ippart->ttl = 64;
 
@@ -355,10 +354,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     ippart->src_ip = ipdata->dest_ip;
     ippart->header = 0x45;
     ippart->protocol = 6;
-    //ippart->seqId = htons(++ip_frame_id);
     ippart->size = htons(0x30);
     ippart->ttl = 64;
-    //ippart->crc = CalcCRC((u16*)ippart, 10);
 
     tcppart->src_port = tcpdata->dest_port;
     tcppart->dest_port = tcpdata->src_port;
@@ -382,7 +379,6 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     NetRef[i].ready = false;
     NetRef[i].ip = ipdata->dest_ip;
 
-    //WriteToQueue((char*)&m_in_frame, 0x3e);
     memcpy(&NetRef[i].TcpBuffers[0].data, &m_in_frame, 0x3e);
     NetRef[i].TcpBuffers[0].data_size = 0x3e;
     NetRef[i].TcpBuffers[0].seq_id = NetRef[i].seq_num - 1;
@@ -428,10 +424,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
       ippart->src_ip = NetRef[i].ip;
       ippart->header = 0x45;
       ippart->protocol = 6;
-      //ippart->seqId = htons(++ip_frame_id);
       ippart->size = htons(0x28);
       ippart->ttl = 64;
-      //ippart->crc = CalcCRC((u16*)ippart, 10);
 
       tcppart->src_port = NetRef[i].remote;
       tcppart->dest_port = NetRef[i].local;
@@ -666,10 +660,8 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
                   ippart->src_ip = self->NetRef[i].ip;
                   ippart->header = 0x45;
                   ippart->protocol = 6;
-                  //ippart->seqId = htons(++self->ip_frame_id);
                   ippart->size = htons((u16)(datasize + 20 + 20));
                   ippart->ttl = 64;
-                  //ippart->crc = CalcCRC((u16*)ippart, 10);
 
                   tcppart->src_port = self->NetRef[i].remote;
                   tcppart->dest_port = self->NetRef[i].local;
