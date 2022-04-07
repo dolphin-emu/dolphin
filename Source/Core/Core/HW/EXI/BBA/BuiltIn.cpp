@@ -16,7 +16,7 @@
 
 #include <cstring>
 
-#define BBA_TRACK_PAGE_PTRS
+//#define BBA_TRACK_PAGE_PTRS
 
 
 
@@ -386,7 +386,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
     memcpy(&NetRef[i].TcpBuffers[0].data, &m_in_frame, 0x3e);
     NetRef[i].TcpBuffers[0].data_size = 0x3e;
     NetRef[i].TcpBuffers[0].seq_id = NetRef[i].seq_num - 1;
-    NetRef[i].TcpBuffers[0].tick = GetTickCountStd() - 1500;  //delay
+    NetRef[i].TcpBuffers[0].tick = GetTickCountStd() - 1900;  //delay
     NetRef[i].TcpBuffers[0].used = true;
     
   }
