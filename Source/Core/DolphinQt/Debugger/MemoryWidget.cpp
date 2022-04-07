@@ -531,7 +531,7 @@ void MemoryWidget::ValidateAndPreviewInputValue()
     if (good)
     {
       const u32 hex_out = Common::BitCast<u32>(value_float);
-      hex_string = QString::fromStdString(fmt::format("{:X}", hex_out));
+      hex_string = QString::fromStdString(fmt::format("{:08X}", hex_out));
     }
     break;
   }
@@ -542,7 +542,7 @@ void MemoryWidget::ValidateAndPreviewInputValue()
     if (good)
     {
       const u64 hex_out = Common::BitCast<u64>(value_double);
-      hex_string = QString::fromStdString(fmt::format("{:X}", hex_out));
+      hex_string = QString::fromStdString(fmt::format("{:016X}", hex_out));
     }
     break;
   }
