@@ -39,6 +39,8 @@ add_executable(dolphin-emu
   Main.cpp
   MainWindow.cpp
   MainWindow.h
+  ManualUpdateTrackDialog.cpp
+  ManualUpdateTrackDialog.h
   MenuBar.cpp
   MenuBar.h
   NKitWarningDialog.cpp

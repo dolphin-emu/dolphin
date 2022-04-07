@@ -47,7 +47,7 @@ public:
 
   QMenu* GetListColumnsMenu() const { return m_cols_menu; }
 
-  void InstallUpdateManually();
+  void InstallUpdateManually(const std::string& track);
 
 signals:
   // File
@@ -107,6 +107,9 @@ signals:
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
+
+  // Help
+  void ShowManualUpdateDialog();
 
   // Movie
   void PlayRecording();

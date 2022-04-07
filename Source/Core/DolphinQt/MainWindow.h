@@ -155,6 +155,7 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowNetPlayBrowser();
   void ShowFIFOPlayer();
+  void ShowManualUpdateDialog();
   void ShowMemcardManager();
   void ShowResourcePackManager();
   void ShowCheatsManager();
