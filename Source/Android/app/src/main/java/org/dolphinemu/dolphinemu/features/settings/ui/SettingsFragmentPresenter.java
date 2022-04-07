@@ -4,6 +4,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -290,6 +291,13 @@ public final class SettingsFragmentPresenter
       sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_EMULATION_ORIENTATION,
               R.string.emulation_screen_orientation, 0, R.array.orientationEntries,
               R.array.orientationValues));
+    }
+
+    // Only android 9+ supports this feature.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+    {
+      sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA,
+              R.string.expand_to_cutout_area, R.string.expand_to_cutout_area_description));
     }
 
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_USE_PANIC_HANDLERS,
