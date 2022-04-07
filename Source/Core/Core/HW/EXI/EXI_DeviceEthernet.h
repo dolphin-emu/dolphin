@@ -18,8 +18,6 @@
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
-
-
 class PointerWrap;
 
 namespace ExpansionInterface
@@ -439,8 +437,6 @@ private:
   private:
     std::string m_mac_id;
     std::string m_dns_ip;
-    bool m_bba_link_up = false;
-    bool m_bba_failure_notified = false;
     bool active = false;
     u16 ip_frame_id = 0;
     u8 queue_read = 0;
