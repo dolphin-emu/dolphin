@@ -7,8 +7,11 @@
 #include <optional>
 #include <string>
 
+#include <fmt/printf.h>
+
 #include <QButtonGroup>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -22,6 +25,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
+#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Core/ConfigManager.h"
@@ -92,12 +96,11 @@ void MemoryWidget::CreateWidgets()
 
   m_search_address = new QLineEdit;
   m_search_offset = new QLineEdit;
-  m_data_edit = new QLineEdit;
-  m_set_value = new QPushButton(tr("Set &Value"));
 
+  m_search_address->setMaxLength(8);
+  m_search_offset->setMaxLength(9);
   m_search_address->setPlaceholderText(tr("Search Address"));
   m_search_offset->setPlaceholderText(tr("Offset"));
-  m_data_edit->setPlaceholderText(tr("Value"));
 
   m_address_splitter->addWidget(m_search_address);
   m_address_splitter->addWidget(m_search_offset);
@@ -105,11 +108,34 @@ void MemoryWidget::CreateWidgets()
   m_address_splitter->setCollapsible(0, false);
   m_address_splitter->setStretchFactor(1, 2);
 
-  auto* search_type_group = new QButtonGroup(this);
-  m_find_ascii = new QRadioButton(tr("ASCII"));
-  m_find_hex = new QRadioButton(tr("Hex string"));
-  search_type_group->addButton(m_find_ascii);
-  search_type_group->addButton(m_find_hex);
+  auto* input_layout = new QHBoxLayout;
+  m_data_edit = new QLineEdit;
+  m_base_check = new QCheckBox(tr("Hex"));
+  m_set_value = new QPushButton(tr("Set &Value"));
+  m_data_preview = new QLabel;
+
+  m_base_check->setLayoutDirection(Qt::RightToLeft);
+  m_data_edit->setPlaceholderText(tr("Value"));
+  m_data_preview->setBackgroundRole(QPalette::AlternateBase);
+  m_data_preview->setAutoFillBackground(true);
+
+  input_layout->addWidget(m_data_edit);
+  input_layout->addWidget(m_base_check);
+
+  // Input types
+  m_input_combo = new QComboBox;
+  m_input_combo->setMaxVisibleItems(20);
+  // Order here determines combo list order.
+  m_input_combo->addItem(tr("Hex Byte String"), int(InputID::HEXSTR));
+  m_input_combo->addItem(tr("ASCII"), int(InputID::ASCII));
+  m_input_combo->addItem(tr("Float"), int(InputID::FLOAT));
+  m_input_combo->addItem(tr("Double"), int(InputID::DOUBLE));
+  m_input_combo->addItem(tr("Unsigned 8"), int(InputID::U8));
+  m_input_combo->addItem(tr("Unsigned 16"), int(InputID::U16));
+  m_input_combo->addItem(tr("Unsigned 32"), int(InputID::U32));
+  m_input_combo->addItem(tr("Signed 8"), int(InputID::S8));
+  m_input_combo->addItem(tr("Signed 16"), int(InputID::S16));
+  m_input_combo->addItem(tr("Signed 32"), int(InputID::S32));
 
   // Dump
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
@@ -197,19 +223,11 @@ void MemoryWidget::CreateWidgets()
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
   sidebar_layout->setSpacing(1);
-
   sidebar->setLayout(sidebar_layout);
-
   sidebar_layout->addWidget(m_address_splitter);
-  sidebar_layout->addWidget(m_data_edit);
-
-  auto* types_layout = new QHBoxLayout;
-  types_layout->addWidget(m_find_ascii);
-  types_layout->addItem(new QSpacerItem(20, 1));
-  types_layout->addWidget(m_find_hex);
-  types_layout->setAlignment(Qt::AlignCenter);
-  sidebar_layout->addLayout(types_layout);
-
+  sidebar_layout->addLayout(input_layout);
+  sidebar_layout->addWidget(m_input_combo);
+  sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_set_value);
   sidebar_layout->addItem(new QSpacerItem(1, 20));
   sidebar_layout->addWidget(m_dump_mram);
@@ -247,10 +265,10 @@ void MemoryWidget::ConnectWidgets()
 {
   connect(m_search_address, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
   connect(m_search_offset, &QLineEdit::textChanged, this, &MemoryWidget::OnSearchAddress);
+  connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateAndPreviewInputValue);
 
-  connect(m_data_edit, &QLineEdit::textChanged, this, &MemoryWidget::ValidateSearchValue);
-  connect(m_find_ascii, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
-  connect(m_find_hex, &QRadioButton::toggled, this, &MemoryWidget::ValidateSearchValue);
+  connect(m_input_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &MemoryWidget::ValidateAndPreviewInputValue);
 
   connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
 
@@ -274,6 +292,7 @@ void MemoryWidget::ConnectWidgets()
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
 
+  connect(m_base_check, &QCheckBox::toggled, this, &MemoryWidget::ValidateAndPreviewInputValue);
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
@@ -304,12 +323,9 @@ void MemoryWidget::LoadSettings()
 {
   QSettings& settings = Settings::GetQSettings();
 
-  const bool search_ascii =
-      settings.value(QStringLiteral("memorywidget/searchascii"), true).toBool();
-  const bool search_hex = settings.value(QStringLiteral("memorywidget/searchhex"), false).toBool();
+  const int combo_index = settings.value(QStringLiteral("memorywidget/inputcombo"), 1).toInt();
 
-  m_find_ascii->setChecked(search_ascii);
-  m_find_hex->setChecked(search_hex);
+  m_input_combo->setCurrentIndex(combo_index);
 
   const bool address_space_effective =
       settings.value(QStringLiteral("memorywidget/addrspace_effective"), true).toBool();
@@ -356,8 +372,7 @@ void MemoryWidget::SaveSettings()
 {
   QSettings& settings = Settings::GetQSettings();
 
-  settings.setValue(QStringLiteral("memorywidget/searchascii"), m_find_ascii->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/searchhex"), m_find_hex->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/inputcombo"), m_input_combo->currentIndex());
 
   settings.setValue(QStringLiteral("memorywidget/addrspace_effective"),
                     m_address_space_effective->isChecked());
@@ -409,6 +424,7 @@ void MemoryWidget::OnTypeChanged()
   else
     type = MemoryViewWidget::Type::Float32;
 
+  ValidateAndPreviewInputValue();
   m_memory_view->SetType(type);
 
   SaveSettings();
@@ -476,12 +492,138 @@ void MemoryWidget::OnSearchAddress()
   m_search_offset->setPalette(offset_palette);
 }
 
-void MemoryWidget::ValidateSearchValue()
+void MemoryWidget::ValidateAndPreviewInputValue()
 {
+  m_data_preview->clear();
+  QString input_text = m_data_edit->text();
+  const auto combo_id = static_cast<InputID>(m_input_combo->currentData().toInt());
+
+  m_base_check->setEnabled(combo_id == InputID::U32 || combo_id == InputID::S32 ||
+                           combo_id == InputID::U16 || combo_id == InputID::S16 ||
+                           combo_id == InputID::U8 || combo_id == InputID::S8);
+
+  if (input_text.isEmpty())
+    return;
+
+  // Remove any spaces
+  if (combo_id != InputID::ASCII)
+    input_text.remove(QLatin1Char(' '));
+
   QFont font;
   QPalette palette;
+  QString hex_string;
+  bool good = false;
+  const int radix = (m_base_check->isChecked() && m_base_check->isEnabled()) ? 16 : 0;
 
-  if (!IsValueValid())
+  switch (combo_id)
+  {
+  case InputID::ASCII:
+  {
+    good = true;
+    const QByteArray bytes = input_text.toLatin1();
+    hex_string = QString::fromLatin1(bytes.toHex());
+    break;
+  }
+  case InputID::FLOAT:
+  {
+    const float value_float = input_text.toFloat(&good);
+
+    if (good)
+    {
+      const u32 hex_out = Common::BitCast<u32>(value_float);
+      hex_string = QString::fromStdString(fmt::format("{:X}", hex_out));
+    }
+    break;
+  }
+  case InputID::DOUBLE:
+  {
+    const double value_double = input_text.toDouble(&good);
+
+    if (good)
+    {
+      const u64 hex_out = Common::BitCast<u64>(value_double);
+      hex_string = QString::fromStdString(fmt::format("{:X}", hex_out));
+    }
+    break;
+  }
+  case InputID::S8:
+  {
+    const short value = input_text.toShort(&good, radix);
+    good &= std::numeric_limits<signed char>::min() <= value &&
+            value <= std::numeric_limits<signed char>::max();
+    if (good)
+      hex_string = QString::fromStdString(fmt::sprintf("%02hhX", value));
+    break;
+  }
+  case InputID::S16:
+  {
+    const short value = input_text.toShort(&good, radix);
+    if (good)
+      hex_string = QString::fromStdString(fmt::sprintf("%04hX", value));
+    break;
+  }
+  case InputID::S32:
+  {
+    const int value_int = input_text.toInt(&good, radix);
+    if (good)
+      hex_string = QString::fromStdString(fmt::sprintf("%08X", value_int));
+    break;
+  }
+  case InputID::U8:
+  {
+    const unsigned short value = input_text.toUShort(&good, radix);
+    good &= (value & 0xFF00) == 0;
+    if (good)
+      hex_string = QString::fromStdString(fmt::format("{:02X}", value));
+    break;
+  }
+  case InputID::U16:
+  {
+    const unsigned short value = input_text.toUShort(&good, radix);
+    if (good)
+      hex_string = QString::fromStdString(fmt::format("{:04X}", value));
+    break;
+  }
+  case InputID::U32:
+  {
+    const u32 value = input_text.toUInt(&good, radix);
+    if (good)
+      hex_string = QString::fromStdString(fmt::format("{:08X}", value));
+    break;
+  }
+  case InputID::HEXSTR:
+  {
+    // Confirm it is only hex bytes
+    const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
+                                    QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpressionMatch match = is_hex.match(input_text);
+    good = match.hasMatch();
+    if (good)
+    {
+      const QByteArray hbytes = QByteArray::fromHex(input_text.toUtf8());
+      hex_string = QString::fromLatin1(hbytes.toHex());
+    }
+    break;
+  }
+  }
+
+  if (good)
+  {
+    int output_length = hex_string.length();
+
+    if (output_length > 16)
+    {
+      hex_string.truncate(16);
+      output_length = hex_string.length();
+      hex_string.append(QStringLiteral("..."));
+    }
+
+    for (int i = 2; i < output_length; i += 2)
+      hex_string.insert(output_length - i, QLatin1Char{' '});
+
+    m_data_preview->setText(hex_string);
+  }
+  else
   {
     font.setBold(true);
     palette.setColor(QPalette::Text, Qt::red);
@@ -489,6 +631,26 @@ void MemoryWidget::ValidateSearchValue()
 
   m_data_edit->setFont(font);
   m_data_edit->setPalette(palette);
+}
+
+QByteArray MemoryWidget::GetInputData() const
+{
+  // Empty or invalid input data returns an empty array.
+  if (m_data_preview->text().isEmpty())
+    return QByteArray();
+
+  const auto combo_id = static_cast<InputID>(m_input_combo->currentData().toInt());
+
+  // Ascii might be truncated, pull from data edit box.
+  if (combo_id == InputID::ASCII)
+    return QByteArray(m_data_edit->text().toUtf8());
+
+  // If we are doing a large aray of hex bytes
+  if (combo_id == InputID::HEXSTR)
+    return QByteArray::fromHex(m_data_edit->text().toUtf8());
+
+  // Data preview has exactly what we want to input, so pull it from there.
+  return QByteArray::fromHex(m_data_preview->text().toUtf8());
 }
 
 void MemoryWidget::OnSetValue()
@@ -510,13 +672,10 @@ void MemoryWidget::OnSetValue()
     return;
   }
 
-  if (m_data_edit->text().isEmpty())
-  {
-    ModalMessageBox::critical(this, tr("Error"), tr("No value provided."));
-    return;
-  }
+  const QByteArray bytes = GetInputData();
 
-  if (!IsValueValid())
+  // Invalid input will give an empty array.
+  if (bytes.isEmpty())
   {
     ModalMessageBox::critical(this, tr("Error"), tr("Bad value provided."));
     return;
@@ -524,7 +683,6 @@ void MemoryWidget::OnSetValue()
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
 
-  const QByteArray bytes = GetValueData();
   for (const char c : bytes)
     accessors->WriteU8(target_addr.address++, static_cast<u8>(c));
 
@@ -582,29 +740,6 @@ void MemoryWidget::OnDumpFakeVMEM()
             std::distance(accessors->begin(), accessors->end()));
 }
 
-bool MemoryWidget::IsValueValid() const
-{
-  if (m_find_ascii->isChecked())
-    return true;
-  const QRegularExpression is_hex(QStringLiteral("^([0-9A-F]{2})*$"),
-                                  QRegularExpression::CaseInsensitiveOption);
-  const QRegularExpressionMatch match = is_hex.match(m_data_edit->text());
-  return match.hasMatch();
-}
-
-QByteArray MemoryWidget::GetValueData() const
-{
-  if (!IsValueValid())
-    return QByteArray();
-
-  const QByteArray value = m_data_edit->text().toUtf8();
-
-  if (m_find_ascii->isChecked())
-    return value;
-
-  return QByteArray::fromHex(value);
-}
-
 MemoryWidget::TargetAddress MemoryWidget::GetTargetAddress() const
 {
   TargetAddress target;
@@ -646,18 +781,18 @@ void MemoryWidget::FindValue(bool next)
     return;
   }
 
+  const QByteArray search_for = GetInputData();
+
+  if (search_for.isEmpty())
+  {
+    m_result_label->setText(tr("Bad Value Given"));
+    return;
+  }
+
   if (!m_search_address->text().isEmpty())
   {
     // skip the quoted address so we don't potentially refind the last result
     target_addr.address += next ? 1 : -1;
-  }
-
-  const QByteArray search_for = GetValueData();
-
-  if (search_for.isEmpty())
-  {
-    m_result_label->setText(tr("No value provided."));
-    return;
   }
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
