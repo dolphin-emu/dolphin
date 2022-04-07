@@ -556,9 +556,10 @@ void MenuBar::AddOptionsMenu()
 
 void MenuBar::InstallUpdateManually()
 {
-  auto* updater =
-      new Updater(this->parentWidget(), Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK),
-                  Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
+  const std::string autoupdate_track = Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK);
+  const std::string manual_track = autoupdate_track.empty() ? "dev" : autoupdate_track;
+  auto* const updater = new Updater(this->parentWidget(), manual_track,
+                                    Config::Get(Config::MAIN_AUTOUPDATE_HASH_OVERRIDE));
 
   if (!updater->CheckForUpdate())
   {

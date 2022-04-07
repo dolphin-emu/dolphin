@@ -265,7 +265,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   # Fix non-conformant lambda behavior (constexpr variables shouldn't need capturing)
   add_compile_options(/experimental:newLambdaProcessor)
   # Fix various other non-conformant behaviors
-  add_compile_options(/Zc:externConstexpr,lambda,preprocessor)
+  add_compile_options(/Zc:__cplusplus,externConstexpr,lambda,preprocessor)
 
   # Temporarily disable warnings to enable /Zc:preprocessor compatibility with WinSDK headers.
   add_compile_options(
@@ -485,8 +485,12 @@ if(ENABLE_EGL)
 endif()
 
 if(ENCODE_FRAMEDUMPS)
-  if(WIN32 AND _M_X86_64)
-    set(FFMPEG_DIR Externals/ffmpeg)
+  if(WIN32)
+    if(_M_X86_64)
+      set(FFMPEG_DIR Externals/FFmpeg-bin/x64)
+    elseif(_M_ARM_64)
+      set(FFMPEG_DIR Externals/FFmpeg-bin/ARM64)
+    endif()
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
   if(FFmpeg_FOUND)

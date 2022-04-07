@@ -7,6 +7,7 @@
 #include <QString>
 
 #include "Common/CommonTypes.h"
+#include "DolphinQt/Debugger/CodeDiffDialog.h"
 #include "DolphinQt/Debugger/CodeViewWidget.h"
 
 class QCloseEvent;
@@ -14,6 +15,7 @@ class QLineEdit;
 class QShowEvent;
 class QSplitter;
 class QListWidget;
+class QPushButton;
 class QTableWidget;
 
 namespace Common
@@ -35,6 +37,7 @@ public:
   void ShowPC();
   void SetPC();
 
+  void OnDiff();
   void ToggleBreakpoint();
   void AddBreakpoint();
   void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
@@ -63,8 +66,10 @@ private:
   void closeEvent(QCloseEvent*) override;
   void showEvent(QShowEvent* event) override;
 
+  CodeDiffDialog* m_diff_dialog = nullptr;
   QLineEdit* m_search_address;
   QLineEdit* m_search_symbols;
+  QPushButton* m_code_diff;
 
   QListWidget* m_callstack_list;
   QListWidget* m_symbols_list;
