@@ -1193,6 +1193,7 @@
     <ClCompile Include="VideoCommon\FPSCounter.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
+    <ClCompile Include="VideoCommon\FrameDump.cpp" />
     <ClCompile Include="VideoCommon\FreeLookCamera.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderGen.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderManager.cpp" />

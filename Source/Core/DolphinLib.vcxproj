@@ -32,6 +32,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\HW\EXI\BBA\BuiltIn.h" />
+    <ClCompile Include="InputCommon\ControllerInterface\WGInput\WGInput.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="InputCommon\ControllerInterface\WGInput\WGInput.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

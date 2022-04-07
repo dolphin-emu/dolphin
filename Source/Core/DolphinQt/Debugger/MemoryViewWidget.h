@@ -35,6 +35,7 @@ public:
   explicit MemoryViewWidget(QWidget* parent = nullptr);
 
   void Update();
+  void UpdateFont();
   void ToggleBreakpoint();
   void ToggleRowBreakpoint(bool row);
 
@@ -69,4 +70,6 @@ private:
   bool m_do_log = true;
   u32 m_context_address;
   u32 m_address = 0;
+  int m_font_width = 0;
+  int m_font_vspace = 0;
 };
