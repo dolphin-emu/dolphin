@@ -28,11 +28,6 @@ extern double cursor_sensitivity = 15.0;
 extern unsigned char center_mouse_key = 'K';
 extern double snapping_distance = 4.5;
 
-void Pass_Render_Widget_to_Keyboard_and_Mouse(RenderWidget* _render_widget)
-{
-  render_widget = _render_widget;
-}
-
 void Save_Keyboard_and_Mouse_Settings()
 {
   std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + "Mouse_and_Keyboard_Settings.ini";

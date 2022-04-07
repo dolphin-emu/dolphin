@@ -6,7 +6,6 @@
 #include <windows.h>
 
 #include "Common/Matrix.h"
-#include "DolphinQt/RenderWidget.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
@@ -16,9 +15,6 @@ namespace ciface::DInput
 {
 
 void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd);
-
-extern void Pass_Render_Widget_to_Keyboard_and_Mouse(RenderWidget* _render_widget);
-static const RenderWidget* render_widget = nullptr;
 
 extern void Save_Keyboard_and_Mouse_Settings();
 extern void Load_Keyboard_and_Mouse_Settings();
