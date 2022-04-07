@@ -5,11 +5,13 @@
 
 #include <algorithm>
 
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "Core/Host.h"
 
 // (lower would be more sensitive) user can lower sensitivity by setting range
 // seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
@@ -25,6 +27,57 @@ namespace ciface::DInput
 extern double cursor_sensitivity = 15.0;
 extern unsigned char center_mouse_key = 'K';
 extern double snapping_distance = 4.5;
+
+void Pass_Render_Widget_to_Keyboard_and_Mouse(RenderWidget* _render_widget)
+{
+  render_widget = _render_widget;
+}
+
+void Save_Keyboard_and_Mouse_Settings()
+{
+  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + "Mouse_and_Keyboard_Settings.ini";
+  IniFile inifile;
+  inifile.Load(ini_filename);
+
+  IniFile::Section* section = inifile.GetOrCreateSection("MouseAndKeyboardSettings");
+  section->Set("MouseCursorSensitivity", cursor_sensitivity);
+  section->Set("CenterMouseKey", std::to_string(center_mouse_key));
+  section->Set("SnappingDistance", std::to_string(snapping_distance));
+  inifile.Save(ini_filename);
+}
+
+void Load_Keyboard_and_Mouse_Settings()
+{
+  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + "Mouse_and_Keyboard_Settings.ini";
+  IniFile inifile;
+  inifile.Load(ini_filename);
+
+  IniFile::Section* section = inifile.GetOrCreateSection("MouseAndKeyboardSettings");
+
+  // Sage 3/26/2022: The extra faffing about with the string instead of reading it in with a default
+  // value 				  was added because Inifile doesn't support chars as numbers for some reason.
+  if (section->Exists("CenterMouseKey"))
+  {
+    std::string temp_string{};
+    section->Get("CenterMouseKey", &temp_string);
+    if (temp_string.size() == 0)
+    {
+      center_mouse_key = 'K';
+    }
+    else
+    {
+      center_mouse_key = static_cast<unsigned char>(std::stoul(temp_string));
+    }
+  }
+  else
+  {
+    center_mouse_key = 'K';
+  }
+
+  section->Get("MouseCursorSensitivity", &cursor_sensitivity, 15.0);
+  section->Get("SnappingDistance", &snapping_distance, 4.5);
+}
+
 class RelativeMouseAxis final : public Core::Device::RelativeInput
 {
 public:
@@ -558,60 +611,59 @@ void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
 
 void KeyboardMouse::UpdateCursorInput()
 {
-  POINT temporary_point = {0, 0};
-  GetCursorPos(&temporary_point);
+    POINT temporary_point = {0, 0};
+    GetCursorPos(&temporary_point);
 
-  // Sage 3/20/2022: This was for debugging before I figured out how to get the main frame renderer
-  // focus
-  /*if (!(GetAsyncKeyState(release_mouse_from_screen_jail) & 0x8000)
-    && ::Core::IsRunningAndStarted()
-    && main_frame->RendererHasFocus())*/
-  if (::Core::IsRunningAndStarted() && render_widget.hasFocus())
-  {
-    // Sage 3/20/2020: I hate the way this Show Cursor function works. This is the only function I
-    // have ever actively despised
+    if (::Core::IsRunningAndStarted() && Host_RendererHasFocus())
+    {
+      // Sage 3/20/2020: I hate the way this Show Cursor function works. This is the only function I
+      // have ever actively despised
 
-    ShowCursor(FALSE);  // decrement so I can acquire the actual value
-    int show_cursor_number =
-        ShowCursor(TRUE);  // acquire actual value on increment so the number is unchanged
-    if (show_cursor_number >=
-        0)  // check to see if the number is greater than or equal to 0 because the cursor is shown
-            // if the number is greater than or equal to 0
-      ShowCursor(FALSE);  // decrement the value so the cursor is actually invisible
+      ShowCursor(FALSE);  // decrement so I can acquire the actual value
+      int show_cursor_number =
+          ShowCursor(TRUE);  // acquire actual value on increment so the number is unchanged
+      if (show_cursor_number >=
+          0)  // check to see if the number is greater than or equal to 0 because the cursor is
+              // shown if the number is greater than or equal to 0
+        ShowCursor(FALSE);  // decrement the value so the cursor is actually invisible
 
-    Lock_Mouse_In_Jail(temporary_point);
+      Lock_Mouse_In_Jail(temporary_point);
 
-    SetCursorPos(temporary_point.x, temporary_point.y);
-  }
-  else
-  {
-    ShowCursor(FALSE);  // decrement so I can acquire the actual value
-    int show_cursor_number =
-        ShowCursor(TRUE);         // acquire actual value on increment so the number is unchanged
-    if (show_cursor_number <= 0)  // check to see if the number is less than or equal to 0 because
-                                  // the cursor is shown if the number is greater than or equal to 0
-      ShowCursor(TRUE);  // decrement the value so the cursor is actually invisible
-  }
+      SetCursorPos(temporary_point.x, temporary_point.y);
+    }
+    else
+    {
+      ShowCursor(FALSE);  // decrement so I can acquire the actual value
+      int show_cursor_number =
+          ShowCursor(TRUE);  // acquire actual value on increment so the number is unchanged
+      if (show_cursor_number <=
+          0)               // check to see if the number is less than or equal to 0 because
+                           // the cursor is shown if the number is greater than or equal to 0
+        ShowCursor(TRUE);  // decrement the value so the cursor is actually invisible
+    }
 
-  // See If Origin Reset Is Pressed
-  if (player_requested_mouse_center ||
-      (::Core::GetState() == ::Core::State::Uninitialized &&
-       main_frame->RendererHasFocus()))  // Sage 3/20/2022: I don't think this works very well with
-                                         // boot to pause, but it does work with normal boot
-  {
-    // Move cursor to the center of the screen if the origin reset key is pressed
-    SetCursorPos(center_of_screen.x, center_of_screen.y);
-    temporary_point.x = center_of_screen.x;
-    temporary_point.y = center_of_screen.y;
-  }
+    // See If Origin Reset Is Pressed
+    if (player_requested_mouse_center ||
+        (::Core::GetState() == ::Core::State::Uninitialized &&
+         Host_RendererHasFocus()))  // Sage 3/20/2022: I don't think this works very well with
+                                      // boot to pause, but it does work with normal boot
+    {
+      // Move cursor to the center of the screen if the origin reset key is pressed
+      SetCursorPos(center_of_screen.x, center_of_screen.y);
+      temporary_point.x = center_of_screen.x;
+      temporary_point.y = center_of_screen.y;
+    }
 
-  // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the controller's
-  // state is to normalize the coordinates since it seems like dolphin wants the inputs from -1.0
-  // to 1.0
-  current_state.cursor.x = ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
-       (cursor_sensitivity * screen_ratio);
-  current_state.cursor.y = ((ControlState)((temporary_point.y) / (ControlState)screen_height) - 0.5) *
-       cursor_sensitivity;
+    // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the
+    // controller's state is to normalize the coordinates since it seems like dolphin wants the
+    // inputs from -1.0 to 1.0
+    current_state.cursor.x =
+        ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
+        (cursor_sensitivity * screen_ratio);
+    current_state.cursor.y =
+        ((ControlState)((temporary_point.y) / (ControlState)screen_height) - 0.5) *
+        cursor_sensitivity;
+
 }
 
 void KeyboardMouse::UpdateInput()
