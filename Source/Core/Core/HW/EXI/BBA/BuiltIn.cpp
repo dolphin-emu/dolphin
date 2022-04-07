@@ -435,7 +435,6 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(net_hw_lvl* hwdata, net_i
   }
 }
 
-
 bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 {
   net_hw_lvl* hwdata;
