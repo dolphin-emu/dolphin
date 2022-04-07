@@ -11,9 +11,9 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
-#include "Core/Host.h"
 
 // (lower would be more sensitive) user can lower sensitivity by setting range
 // seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
@@ -37,7 +37,7 @@ void Save_Keyboard_and_Mouse_Settings()
   inifile.Load(ini_filename);
 
   IniFile::Section* section = inifile.GetOrCreateSection("MouseAndKeyboardSettings");
-  section->Set("MouseCursorSensitivity", cursor_sensitivity);
+  section->Set("MouseCursorSensitivity", std::to_string(cursor_sensitivity));
   section->Set("CenterMouseKey", std::to_string(center_mouse_key));
   section->Set("SnappingDistance", std::to_string(snapping_distance));
   inifile.Save(ini_filename);
@@ -52,7 +52,7 @@ void Load_Keyboard_and_Mouse_Settings()
   IniFile::Section* section = inifile.GetOrCreateSection("MouseAndKeyboardSettings");
 
   // Sage 3/26/2022: The extra faffing about with the string instead of reading it in with a default
-  // value 				  was added because Inifile doesn't support chars as numbers for some reason.
+  // value was added because Inifile doesn't support chars as numbers for some reason.
   if (section->Exists("CenterMouseKey"))
   {
     std::string temp_string{};
@@ -173,6 +173,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
                              const LPDIRECTINPUTDEVICE8 mo_device)
     : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), current_state()
 {
+  Load_Keyboard_and_Mouse_Settings();
   s_keyboard_mouse_exists = true;
 
   if (FAILED(m_kb_device->Acquire()))
@@ -611,37 +612,18 @@ void KeyboardMouse::UpdateCursorInput()
     POINT temporary_point = {0, 0};
     GetCursorPos(&temporary_point);
 
-    if (::Core::IsRunningAndStarted() && Host_RendererHasFocus())
+    if ((::Core::GetState() == ::Core::State::Running ||
+         ::Core::GetState() == ::Core::State::Paused) &&
+        Host_RendererHasFocus())
     {
-      // Sage 3/20/2020: I hate the way this Show Cursor function works. This is the only function I
-      // have ever actively despised
-
-      ShowCursor(FALSE);  // decrement so I can acquire the actual value
-      int show_cursor_number =
-          ShowCursor(TRUE);  // acquire actual value on increment so the number is unchanged
-      if (show_cursor_number >=
-          0)  // check to see if the number is greater than or equal to 0 because the cursor is
-              // shown if the number is greater than or equal to 0
-        ShowCursor(FALSE);  // decrement the value so the cursor is actually invisible
-
       Lock_Mouse_In_Jail(temporary_point);
 
       SetCursorPos(temporary_point.x, temporary_point.y);
     }
-    else
-    {
-      ShowCursor(FALSE);  // decrement so I can acquire the actual value
-      int show_cursor_number =
-          ShowCursor(TRUE);  // acquire actual value on increment so the number is unchanged
-      if (show_cursor_number <=
-          0)               // check to see if the number is less than or equal to 0 because
-                           // the cursor is shown if the number is greater than or equal to 0
-        ShowCursor(TRUE);  // decrement the value so the cursor is actually invisible
-    }
 
     // See If Origin Reset Is Pressed
     if (player_requested_mouse_center ||
-        (::Core::GetState() == ::Core::State::Uninitialized &&
+        (::Core::GetState() == ::Core::State::Starting &&
          Host_RendererHasFocus()))  // Sage 3/20/2022: I don't think this works very well with
                                       // boot to pause, but it does work with normal boot
     {

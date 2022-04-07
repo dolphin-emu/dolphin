@@ -50,19 +50,31 @@ void GCPadEmu::CreateMainLayout()
 
   QHBoxLayout* sensitivity_layout = new QHBoxLayout{};
   QDoubleSpinBox* sensitivity_spin_box = new QDoubleSpinBox{};
+  //Sage 4/7/2022: The range of the sensitivity slider must be set before the
+  //               value changed callback is connected or the sensitivity will
+  //               always be 1.00. Doesn't happen with the snapping distance box
+  //               so I think it's emitting a valueChanged signal when anything
+  //               but the default values are used.
+  sensitivity_spin_box->setRange(1.00, 100.00);
   //Sage 4/7/2022: I'm not sure what QOverland does in this, but it was in the example in the
   //               qt documentation and it doesn't work without it. 
-  connect(sensitivity_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),[sensitivity_spin_box](double value)
+  connect(sensitivity_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+    [](double value)
     {
       ::ciface::DInput::cursor_sensitivity = value;
       ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
     });
-  sensitivity_spin_box->setRange(1.00, 100.00);
   sensitivity_spin_box->setDecimals(2);
   sensitivity_spin_box->setSingleStep(1.0);
   sensitivity_spin_box->setWrapping(true);
   sensitivity_spin_box->setValue(::ciface::DInput::cursor_sensitivity);
+  sensitivity_spin_box->setToolTip(
+      tr("Adjusts how quickly the mouse cursor moves the emulated analog stick."
+         "\nChanges the size of the gates and may make your snapping feel wrong after adjusting."));
   QLabel* sensitivity_label = new QLabel{};
+  sensitivity_label->setToolTip(
+      tr("Adjusts how quickly the mouse cursor moves the emulated analog stick."
+         "\nChanges the size of the gates and may make your snapping feel wrong after adjusting."));
   sensitivity_label->setText(tr("Sensitivity"));
   sensitivity_layout->addWidget(sensitivity_label);
   sensitivity_layout->addWidget(sensitivity_spin_box);
@@ -81,9 +93,14 @@ void GCPadEmu::CreateMainLayout()
   snapping_distance_spin_box->setSingleStep(1.0);
   snapping_distance_spin_box->setValue(::ciface::DInput::snapping_distance);
   snapping_distance_spin_box->setWrapping(true);
-  snapping_distance_spin_box->setToolTip(tr("Distance around gates where cursor snaps to gate."));
+  snapping_distance_spin_box->setToolTip(
+      tr("Distance around gates where cursor snaps to gate.\nMouse is only locked into gates and "
+         "snapping will only occur when the game is started and has focus."));
   QLabel* snapping_distance_label = new QLabel{};
   snapping_distance_label->setText(tr("Snapping Distance"));
+  snapping_distance_label->setToolTip(
+      tr("Distance around gates where cursor snaps to gate.\nMouse is only locked into gates and "
+         "snapping will only occur when the game is started and has focus."));
   snapping_distance_layout->addWidget(snapping_distance_label);
   snapping_distance_layout->addWidget(snapping_distance_spin_box);
 
@@ -108,12 +125,13 @@ void GCPadEmu::CreateMainLayout()
       }
       ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
       center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
-      
     });
   center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
   center_mouse_key_button->setToolTip(tr("Centers the cursor after 2 frames."));
   QLabel* center_mouse_key_label = new QLabel{};
   center_mouse_key_label->setText(tr("Center Mouse Key"));
+  center_mouse_key_label->setToolTip(tr("Centers the cursor after 2 frames."));
+
   center_mouse_key_layout->addWidget(center_mouse_key_label);
   center_mouse_key_layout->addWidget(center_mouse_key_button);
 

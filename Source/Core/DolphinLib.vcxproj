@@ -14,7 +14,25 @@
     <Import Project="$(VSPropsDir)Base.props" />
     <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="..\VSProps\QtCompile.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <Import Project="..\VSProps\QtCompile.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="..\VSProps\QtCompile.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <Import Project="..\VSProps\QtCompile.props" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(QtIncludeDir);$(QtIncludeDir)QtCore\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(QtIncludeDir);$(QtIncludeDir)QtCore\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <Import Project="DolphinLib.props" />
   <ImportGroup Condition="'$(Platform)'=='x64'">
     <Import Project="DolphinLib.x64.props" />
