@@ -13,7 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
-public class OnlineUpdateResultFragment extends DialogFragment
+public class SystemUpdateResultFragment extends DialogFragment
 {
   private int mResult;
 

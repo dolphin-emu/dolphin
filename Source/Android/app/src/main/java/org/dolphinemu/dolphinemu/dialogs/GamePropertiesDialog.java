@@ -21,6 +21,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AlertDialogItemsBuilder;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -99,6 +100,12 @@ public class GamePropertiesDialog extends DialogFragment
     {
       itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
               ConvertActivity.launch(getContext(), path));
+    }
+
+    if (isDisc && isWii)
+    {
+      itemsBuilder.add(R.string.properties_system_update, (dialog, i) ->
+              MainPresenter.launchDiscUpdate(path, requireActivity()));
     }
 
     itemsBuilder.add(R.string.properties_edit_game_settings, (dialog, i) ->

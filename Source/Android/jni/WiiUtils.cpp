@@ -63,7 +63,7 @@ static jint ConvertUpdateResult(WiiUtils::UpdateResult result)
     return 8;
   default:
     ASSERT(false);
-    return 1;
+    return 7;
   }
 
   static_assert(static_cast<int>(WiiUtils::UpdateResult::NumberOfEntries) == 9);
@@ -128,6 +128,27 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doOnlineUpd
   };
 
   WiiUtils::UpdateResult result = WiiUtils::DoOnlineUpdate(callback, region);
+
+  return ConvertUpdateResult(result);
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_utils_WiiUtils_doDiscUpdate(JNIEnv* env,
+                                                                                  jclass,
+                                                                                  jstring jPath,
+                                                                                  jobject jCallback)
+{
+  const std::string path = GetJString(env, jPath);
+
+  jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
+  Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });
+
+  const auto callback = [&jCallbackGlobal](int processed, int total, u64 title_id) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    return static_cast<bool>(env->CallBooleanMethod(
+        jCallbackGlobal, IDCache::GetWiiUpdateCallbackFunction(), processed, total, title_id));
+  };
+
+  WiiUtils::UpdateResult result = WiiUtils::DoDiscUpdate(callback, path);
 
   return ConvertUpdateResult(result);
 }
