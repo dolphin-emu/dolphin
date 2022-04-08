@@ -278,6 +278,7 @@ extern const Info<bool> MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES;
 // Main.AutoUpdate
 
 extern const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK;
+extern const Info<bool> MAIN_AUTOUPDATE_ENABLE;
 extern const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE;
 
 // Main.Movie

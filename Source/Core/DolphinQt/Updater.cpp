@@ -20,8 +20,9 @@
 
 // Refer to docs/autoupdate_overview.md for a detailed overview of the autoupdate process
 
-Updater::Updater(QWidget* parent, std::string update_track, std::string hash_override)
-    : m_parent(parent), m_update_track(std::move(update_track)),
+Updater::Updater(QWidget* parent, std::string update_track, bool update_enabled,
+                 std::string hash_override)
+    : m_parent(parent), m_update_track(std::move(update_track)), m_update_enabled(update_enabled),
       m_hash_override(std::move(hash_override))
 {
   connect(this, &QThread::finished, this, &QObject::deleteLater);
@@ -29,13 +30,13 @@ Updater::Updater(QWidget* parent, std::string update_track, std::string hash_ove
 
 void Updater::run()
 {
-  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_update_enabled, m_hash_override);
 }
 
 bool Updater::CheckForUpdate()
 {
   m_update_available = false;
-  AutoUpdateChecker::CheckForUpdate(m_update_track, m_hash_override);
+  AutoUpdateChecker::CheckForUpdate(m_update_track, m_update_enabled, m_hash_override);
 
   return m_update_available;
 }
@@ -84,7 +85,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
     layout->addWidget(buttons);
 
     connect(never_btn, &QPushButton::clicked, [dialog] {
-      Settings::Instance().SetAutoUpdateTrack(QString{});
+      Settings::Instance().SetAutoUpdateEnabled(false);
       dialog->reject();
     });
 
