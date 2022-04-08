@@ -94,7 +94,7 @@ void InitAVCodec()
         // keep libav debug messages visible in release build of dolphin
         log_level = Common::Log::LogLevel::LINFO;
 
-      GENERIC_LOG(Common::Log::LogType::FRAMEDUMP, log_level, fmt, vl);
+      GENERIC_LOG_V(Common::Log::LogType::FRAMEDUMP, log_level, fmt, vl);
     });
 
     // TODO: We never call avformat_network_deinit.
