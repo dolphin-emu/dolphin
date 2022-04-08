@@ -235,6 +235,15 @@ static bool IsBranchInstructionWithLink(std::string_view ins)
          StringEndsWith(ins, "la+") || StringEndsWith(ins, "l-") || StringEndsWith(ins, "la-");
 }
 
+static bool IsInstructionLoadStore(std::string_view ins)
+{
+  // Could add check for context address being near PC, because we need gprs to be correct for the
+  // load/store.
+  return (StringBeginsWith(ins, "l") && !StringBeginsWith(ins, "li")) ||
+         StringBeginsWith(ins, "st") || StringBeginsWith(ins, "psq_l") ||
+         StringBeginsWith(ins, "psq_s");
+}
+
 void CodeViewWidget::Update()
 {
   if (!isVisible())
@@ -530,7 +539,10 @@ void CodeViewWidget::OnContextMenu()
   auto* copy_hex_action = menu->addAction(tr("Copy &hex"), this, &CodeViewWidget::OnCopyHex);
 
   menu->addAction(tr("Show in &memory"), this, &CodeViewWidget::OnShowInMemory);
-
+  auto* show_target_memory =
+      menu->addAction(tr("Show target in memor&y"), this, &CodeViewWidget::OnShowTargetInMemory);
+  auto* copy_target_memory =
+      menu->addAction(tr("Copy tar&get address"), this, &CodeViewWidget::OnCopyTargetAddress);
   menu->addSeparator();
 
   auto* symbol_rename_action =
@@ -561,6 +573,14 @@ void CodeViewWidget::OnContextMenu()
   for (auto* action : {symbol_rename_action, symbol_size_action, symbol_end_action})
     action->setEnabled(has_symbol);
 
+  const bool valid_load_store = Core::GetState() == Core::State::Paused &&
+                                IsInstructionLoadStore(PowerPC::debug_interface.Disassemble(addr));
+
+  for (auto* action : {copy_target_memory, show_target_memory})
+  {
+    action->setEnabled(valid_load_store);
+  }
+
   restore_action->setEnabled(running && PowerPC::debug_interface.HasEnabledPatch(addr));
 
   menu->exec(QCursor::pos());
@@ -574,9 +594,43 @@ void CodeViewWidget::OnCopyAddress()
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 }
 
+void CodeViewWidget::OnCopyTargetAddress()
+{
+  if (Core::GetState() != Core::State::Paused)
+    return;
+
+  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+
+  if (!IsInstructionLoadStore(code_line))
+    return;
+
+  const std::optional<u32> addr =
+      PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
+
+  if (addr)
+    QApplication::clipboard()->setText(QStringLiteral("%1").arg(*addr, 8, 16, QLatin1Char('0')));
+}
+
 void CodeViewWidget::OnShowInMemory()
 {
   emit ShowMemory(GetContextAddress());
+}
+
+void CodeViewWidget::OnShowTargetInMemory()
+{
+  if (Core::GetState() != Core::State::Paused)
+    return;
+
+  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+
+  if (!IsInstructionLoadStore(code_line))
+    return;
+
+  const std::optional<u32> addr =
+      PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
+
+  if (addr)
+    emit ShowMemory(*addr);
 }
 
 void CodeViewWidget::OnCopyCode()
