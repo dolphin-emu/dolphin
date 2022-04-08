@@ -44,7 +44,7 @@ void GCPadEmu::CreateMainLayout()
 
   layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
                     4);
-
+  #ifdef WIN32
   //Keyboard and Mouse Settings
   ::ciface::DInput::Load_Keyboard_and_Mouse_Settings();
   QGroupBox* keyboard_and_mouse_box = new QGroupBox{tr("Mouse")};
@@ -192,6 +192,7 @@ void GCPadEmu::CreateMainLayout()
 
   layout->addWidget(keyboard_and_mouse_box, 1, 1);
   //End Keyboard and Mouse Settings
+  #endif
 
   setLayout(layout);
 }
