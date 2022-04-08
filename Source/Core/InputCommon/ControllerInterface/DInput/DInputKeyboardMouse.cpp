@@ -49,7 +49,7 @@ void Load_Keyboard_and_Mouse_Settings()
 {
   std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + "Mouse_and_Keyboard_Settings.ini";
   IniFile inifile;
-  if(!inifile.Load(ini_filename))
+  if (!inifile.Load(ini_filename))
   {
     Save_Keyboard_and_Mouse_Settings();
   }
@@ -569,14 +569,13 @@ void KeyboardMouse::Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT 
 void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
 {
   // Sage 3/30/2022: Locks the mouse into an octagon (like the case on a real controller)
-  //
-  //				  The plan to make the octagonal locking happen is to rotate the point so
-  //				  four octagon edges mark the top, bottom, and sides of the octagon
-  //				  (try to make one of the flat edges on a real controller the bottom instead of the
-  //				  notch). Then the octagon is just a square with its corners cut off. So, we generate a
-  //square 				  and cut the corners of the square off in order to make the octagon. Then we check if 				  the
-  //point is in those corners that were cut off and if it is, we move it towards the center 				  until it
-  //is inside the octagon.
+  //                The plan to make the octagonal locking happen is to rotate the point so
+  //                four octagon edges mark the top, bottom, and sides of the octagon
+  //                (try to make one of the flat edges on a real controller the bottom instead
+  //                of the notch). Then the octagon is just a square with its corners cut off.
+  //                So, we generate a square and cut the corners of the square off in order
+  //                to make the octagon. Then we check if the point is in those corners that were
+  //                cut off and if it is,we move it towardsthe center until it is inside the octagon.
 
   POINT octagon_points[8] = {0};
 
@@ -591,26 +590,26 @@ void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
     Move_Mouse_Point_Along_Gate(mouse_point, octagon_points);
   }
 
-   /* //Sage 3 / 30 / 2022 : Locks the mouse into a square
-   //Sage 4/3/2022: Please do not remove this code. It is an earlier version of the mouse jail
-   //and I'd like it here if I ever want to go back.
+  /* //Sage 3 / 30 / 2022 : Locks the mouse into a square
+  //Sage 4/3/2022: Please do not remove this code. It is an earlier version of the mouse jail
+  //and I'd like it here if I ever want to go back.
 
-   double fraction_of_screen_to_lock_mouse_in_x = screen_width / (cursor_sensitivity *
-   screen_ratio); double fraction_of_screen_to_lock_mouse_in_y = screen_height /
-   cursor_sensitivity ;
-  // bind x value of mouse pos to within a fraction of the screen from center
-   if (mouse_point.x > (center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x))
-  	mouse_point.x = static_cast<long>(center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x);
+  double fraction_of_screen_to_lock_mouse_in_x = screen_width / (cursor_sensitivity *
+  screen_ratio); double fraction_of_screen_to_lock_mouse_in_y = screen_height /
+  cursor_sensitivity ;
+ // bind x value of mouse pos to within a fraction of the screen from center
+  if (mouse_point.x > (center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x))
+ 	mouse_point.x = static_cast<long>(center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x);
 
-   if (mouse_point.x < (center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x))
-  	mouse_point.x = static_cast<long>(center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x);
+  if (mouse_point.x < (center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x))
+ 	mouse_point.x = static_cast<long>(center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x);
 
-  // bind y value of mouse pos to within a fraction of the screen from center
-   if (mouse_point.y > (center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y))
-  	mouse_point.y = static_cast<long>(center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y);
+ // bind y value of mouse pos to within a fraction of the screen from center
+  if (mouse_point.y > (center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y))
+ 	mouse_point.y = static_cast<long>(center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y);
 
-   if (mouse_point.y < (center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y))
-  	mouse_point.y = static_cast<long>(center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y);*/
+  if (mouse_point.y < (center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y))
+ 	mouse_point.y = static_cast<long>(center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y);*/
 }
 
 void KeyboardMouse::UpdateCursorInput()
@@ -620,8 +619,7 @@ void KeyboardMouse::UpdateCursorInput()
 
   if ((::Core::GetState() == ::Core::State::Running ||
        ::Core::GetState() == ::Core::State::Paused) &&
-      Host_RendererHasFocus() &&
-      octagon_gates_are_enabled)
+      Host_RendererHasFocus() && octagon_gates_are_enabled)
   {
     Lock_Mouse_In_Jail(temporary_point);
 
@@ -629,17 +627,17 @@ void KeyboardMouse::UpdateCursorInput()
   }
 
   if (player_requested_mouse_center ||
-      (::Core::GetState() == ::Core::State::Starting &&
-       Host_RendererHasFocus() && octagon_gates_are_enabled))  // Sage 3/20/2022: I don't think this works very well with
-                                      // boot to pause, but it does work with normal boot
+      (::Core::GetState() == ::Core::State::Starting && Host_RendererHasFocus() &&
+       octagon_gates_are_enabled))  // Sage 3/20/2022: I don't think this works very well with
+                                     // boot to pause, but it does work with normal boot
   {
     SetCursorPos(center_of_screen.x, center_of_screen.y);
     temporary_point.x = center_of_screen.x;
     temporary_point.y = center_of_screen.y;
   }
-    // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the
-    // controller's state is to normalize the coordinates since it seems like dolphin wants the
-    // inputs from -1.0 to 1.0
+  // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the
+  // controller's state is to normalize the coordinates since it seems like dolphin wants the
+  // inputs from -1.0 to 1.0
   current_state.cursor.x =
       ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
       (cursor_sensitivity * screen_ratio);
@@ -655,8 +653,8 @@ void KeyboardMouse::UpdateInput()
   DIMOUSESTATE2 tmp_mouse;
 
   // if mouse position hasn't been updated in a short while, skip a dev state
-  //DWORD cur_time = GetTickCount();
-  //if (cur_time - m_last_update > DROP_INPUT_TIME)
+  // DWORD cur_time = GetTickCount();
+  // if (cur_time - m_last_update > DROP_INPUT_TIME)
   //{
   //  // set axes to zero
   //  current_state.mouse = {};
@@ -666,7 +664,7 @@ void KeyboardMouse::UpdateInput()
   //  m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   //}
 
- /* m_last_update = cur_time;*/
+  /* m_last_update = cur_time;*/
 
   HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
@@ -685,7 +683,8 @@ void KeyboardMouse::UpdateInput()
       ((&current_state.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
 
     // copy over the buttons
-    std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), current_state.mouse.rgbButtons);
+    std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons),
+                current_state.mouse.rgbButtons);
   }
 
   HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(current_state.keyboard), &current_state.keyboard);

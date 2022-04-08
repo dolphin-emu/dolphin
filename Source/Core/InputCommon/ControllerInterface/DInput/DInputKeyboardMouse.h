@@ -118,11 +118,10 @@ private:
   void UpdateCursorInput();
   void Generate_Octagon_Points(POINT octagon_points[8]);
   bool Point_Is_Inside_Octagon(const POINT& mouse_point, const POINT octagon_points[8]);
-  double Calculate_Distance_between_Points(const POINT& first_point,const POINT& second_point);
+  double Calculate_Distance_between_Points(const POINT& first_point, const POINT& second_point);
   long Find_Second_Line_Point(const POINT& mouse_point, const POINT octagon_points[8],
                               long index_of_min_octagon_point);
-  void Move_Mouse_Point_Along_Gate(POINT& mouse_point,
-                                   const POINT octagon_points[8]);
+  void Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT octagon_points[8]);
   void Lock_Mouse_In_Jail(POINT& mouse_point);
 
   bool player_requested_mouse_center = false;

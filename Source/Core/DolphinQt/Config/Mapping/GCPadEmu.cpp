@@ -6,12 +6,12 @@
 #include <string>
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QCheckBox>
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
@@ -44,28 +44,27 @@ void GCPadEmu::CreateMainLayout()
 
   layout->addWidget(CreateGroupBox(tr("Options"), Pad::GetGroup(GetPort(), PadGroup::Options)), 2,
                     4);
-  #ifdef WIN32
-  //Keyboard and Mouse Settings
+#ifdef WIN32
+  // Keyboard and Mouse Settings
   ::ciface::DInput::Load_Keyboard_and_Mouse_Settings();
   QGroupBox* keyboard_and_mouse_box = new QGroupBox{tr("Mouse")};
   QVBoxLayout* keyboard_and_mouse_layout = new QVBoxLayout{};
 
   QHBoxLayout* sensitivity_layout = new QHBoxLayout{};
   QDoubleSpinBox* sensitivity_spin_box = new QDoubleSpinBox{};
-  //Sage 4/7/2022: The range of the sensitivity slider must be set before the
+  // Sage 4/7/2022: The range of the sensitivity slider must be set before the
   //               value changed callback is connected or the sensitivity will
   //               always be 1.00. Doesn't happen with the snapping distance box
   //               so I think it's emitting a valueChanged signal when anything
   //               but the default values are used.
   sensitivity_spin_box->setRange(1.00, 100.00);
-  //Sage 4/7/2022: I'm not sure what QOverland does in this, but it was in the example in the
-  //               qt documentation and it doesn't work without it. 
+  // Sage 4/7/2022: I'm not sure what QOverland does in this, but it was in the example in the
+  //               qt documentation and it doesn't work without it.
   connect(sensitivity_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-    [](double value)
-    {
-      ::ciface::DInput::cursor_sensitivity = value;
-      ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
-    });
+          [](double value){
+            ::ciface::DInput::cursor_sensitivity = value;
+            ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+          });
   sensitivity_spin_box->setDecimals(2);
   sensitivity_spin_box->setSingleStep(1.0);
   sensitivity_spin_box->setWrapping(true);
@@ -73,7 +72,7 @@ void GCPadEmu::CreateMainLayout()
   sensitivity_spin_box->setToolTip(
       tr("Adjusts how quickly the mouse cursor moves the emulated analog stick."
          "\nChanges the size of the gates and may make your snapping feel wrong after adjusting."
-        "\n\n2.0 sensitivity maps the mouse to the full screen"));
+         "\n\n2.0 sensitivity maps the mouse to the full screen"));
   QLabel* sensitivity_label = new QLabel{};
   sensitivity_label->setToolTip(
       tr("Adjusts how quickly the mouse cursor moves the emulated analog stick."
@@ -84,6 +83,8 @@ void GCPadEmu::CreateMainLayout()
 
   QHBoxLayout* snapping_distance_layout = new QHBoxLayout{};
   QDoubleSpinBox* snapping_distance_spin_box = new QDoubleSpinBox{};
+
+
   // Sage 4/7/2022: I'm not sure what QOverland does in this, but it was in the example in the
   //               qt documentation and it doesn't work without it. 
   connect(snapping_distance_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
@@ -109,44 +110,43 @@ void GCPadEmu::CreateMainLayout()
 
   QHBoxLayout* center_mouse_key_layout = new QHBoxLayout{};
   RightClickButton* center_mouse_key_button = new RightClickButton{};
-  connect(center_mouse_key_button, &RightClickButton::Left_Click, [center_mouse_key_button]() 
+  connect(center_mouse_key_button, &RightClickButton::Left_Click, [center_mouse_key_button](){
+    center_mouse_key_button->setText(tr("..."));
+    static constexpr unsigned char highest_virtual_key_hex = 0xFE;
+    bool listening = true;
+    while (listening)
     {
-      center_mouse_key_button->setText(tr("..."));
-      static constexpr unsigned char highest_virtual_key_hex = 0xFE;
-      bool listening = true;
-      while (listening)
+      QApplication::processEvents();
+      for (unsigned char i = 0; i < highest_virtual_key_hex; i++)
       {
-        QApplication::processEvents();
-        for (unsigned char i = 0; i < highest_virtual_key_hex; i++)
+        if (GetAsyncKeyState(i) & 0x8000)
         {
-          if (GetAsyncKeyState(i) & 0x8000)
+          if (i == VK_LBUTTON)
           {
-            if (i == VK_LBUTTON)
-            {
-              continue;
-            }
-            ciface::DInput::center_mouse_key = i;
-            listening = false;
-            break;
+            continue;
           }
+          ciface::DInput::center_mouse_key = i;
+          listening = false;
+          break;
         }
       }
-      ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
-      if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
-      {
-        center_mouse_key_button->setText(tr(" "));
-      }
-      else
-      {
-        center_mouse_key_button->setText(
-            tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
-      }
-    });
+    }
+    ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+    if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
+    {
+      center_mouse_key_button->setText(tr(" "));
+    }
+    else
+    {
+      center_mouse_key_button->setText(
+          tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+    }
+  });
   connect(center_mouse_key_button, &RightClickButton::Right_Click, [center_mouse_key_button]() {
-            center_mouse_key_button->setText(tr(" "));
-            ::ciface::DInput::center_mouse_key = 0xFF;
-            ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
-          });
+    center_mouse_key_button->setText(tr(" "));
+    ::ciface::DInput::center_mouse_key = 0xFF;
+    ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+  });
   if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
   {
     center_mouse_key_button->setText(tr(" "));
@@ -192,7 +192,7 @@ void GCPadEmu::CreateMainLayout()
 
   layout->addWidget(keyboard_and_mouse_box, 1, 1);
   //End Keyboard and Mouse Settings
-  #endif
+#endif
 
   setLayout(layout);
 }
