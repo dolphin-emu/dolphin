@@ -11,6 +11,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QCheckBox>
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
@@ -71,7 +72,8 @@ void GCPadEmu::CreateMainLayout()
   sensitivity_spin_box->setValue(::ciface::DInput::cursor_sensitivity);
   sensitivity_spin_box->setToolTip(
       tr("Adjusts how quickly the mouse cursor moves the emulated analog stick."
-         "\nChanges the size of the gates and may make your snapping feel wrong after adjusting."));
+         "\nChanges the size of the gates and may make your snapping feel wrong after adjusting."
+        "\n\n2.0 sensitivity maps the mouse to the full screen"));
   QLabel* sensitivity_label = new QLabel{};
   sensitivity_label->setToolTip(
       tr("Adjusts how quickly the mouse cursor moves the emulated analog stick."
@@ -130,27 +132,61 @@ void GCPadEmu::CreateMainLayout()
         }
       }
       ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
-      center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+      if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
+      {
+        center_mouse_key_button->setText(tr(" "));
+      }
+      else
+      {
+        center_mouse_key_button->setText(
+            tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+      }
     });
   connect(center_mouse_key_button, &RightClickButton::Right_Click, [center_mouse_key_button]() {
             center_mouse_key_button->setText(tr(" "));
             ::ciface::DInput::center_mouse_key = 0xFF;
             ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
           });
-  center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+  if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
+  {
+    center_mouse_key_button->setText(tr(" "));
+  }
+  else
+  {
+    center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+  }
   center_mouse_key_button->setToolTip(tr("Centers the cursor after 2 frames."
                                          "\nLeft-click to detect. Right-click to clear"));
   QLabel* center_mouse_key_label = new QLabel{};
   center_mouse_key_label->setText(tr("Center Mouse Key"));
   center_mouse_key_label->setToolTip(tr("Centers the cursor after 2 frames."
                                         "\nLeft-click to detect. Right-click to clear"));
-
   center_mouse_key_layout->addWidget(center_mouse_key_label);
   center_mouse_key_layout->addWidget(center_mouse_key_button);
+
+  QHBoxLayout* octagon_points_are_enabled_layout = new QHBoxLayout{};
+  QCheckBox* octagon_points_are_enabled_check_box = new QCheckBox{};
+  octagon_points_are_enabled_check_box->setChecked(::ciface::DInput::octagon_gates_are_enabled);
+  connect(octagon_points_are_enabled_check_box, &QCheckBox::stateChanged,[](int state)
+    {
+      ::ciface::DInput::octagon_gates_are_enabled = state;
+      ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+    });
+  octagon_points_are_enabled_check_box->setToolTip(
+      tr("Locks the mouse cursor into a simulated octagonal gate"
+         "\n\nSnapping is disabled if this is disabled"));
+  QLabel* octagon_points_are_enabled_text = new QLabel{};
+  octagon_points_are_enabled_text->setText(tr("Enable Octagon Gates"));
+  octagon_points_are_enabled_text->setToolTip(
+      tr("Locks the mouse cursor into a simulated octagonal gate"
+          "\n\nSnapping is disabled if this is disabled"));
+  octagon_points_are_enabled_layout->addWidget(octagon_points_are_enabled_text);
+  octagon_points_are_enabled_layout->addWidget(octagon_points_are_enabled_check_box);
 
   keyboard_and_mouse_layout->addLayout(sensitivity_layout);
   keyboard_and_mouse_layout->addLayout(snapping_distance_layout);
   keyboard_and_mouse_layout->addLayout(center_mouse_key_layout);
+  keyboard_and_mouse_layout->addLayout(octagon_points_are_enabled_layout);
 
   keyboard_and_mouse_box->setLayout(keyboard_and_mouse_layout);
 

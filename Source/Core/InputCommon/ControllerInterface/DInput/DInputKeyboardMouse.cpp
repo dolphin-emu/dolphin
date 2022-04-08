@@ -26,9 +26,10 @@
 
 namespace ciface::DInput
 {
-extern double cursor_sensitivity = 15.0;
-extern unsigned char center_mouse_key = 'K';
-extern double snapping_distance = 4.5;
+extern double cursor_sensitivity = 2.0;
+extern unsigned char center_mouse_key = 0xFF;
+extern double snapping_distance = 0.0;
+extern bool octagon_gates_are_enabled = false;
 
 void Save_Keyboard_and_Mouse_Settings()
 {
@@ -40,6 +41,7 @@ void Save_Keyboard_and_Mouse_Settings()
   section->Set("MouseCursorSensitivity", std::to_string(cursor_sensitivity));
   section->Set("CenterMouseKey", std::to_string(center_mouse_key));
   section->Set("SnappingDistance", std::to_string(snapping_distance));
+  section->Set("OctagonGates", octagon_gates_are_enabled);
   inifile.Save(ini_filename);
 }
 
@@ -58,24 +60,25 @@ void Load_Keyboard_and_Mouse_Settings()
   // value was added because Inifile doesn't support chars as numbers for some reason.
   if (section->Exists("CenterMouseKey"))
   {
-    std::string temp_string{};
-    section->Get("CenterMouseKey", &temp_string);
-    if (temp_string.size() == 0)
+    std::string center_mouse_key_string{};
+    section->Get("CenterMouseKey", &center_mouse_key_string);
+    if (center_mouse_key_string.size() == 0)
     {
-      center_mouse_key = 'K';
+      center_mouse_key = 0xFF;
     }
     else
     {
-      center_mouse_key = static_cast<unsigned char>(std::stoul(temp_string));
+      center_mouse_key = static_cast<unsigned char>(std::stoul(center_mouse_key_string));
     }
   }
   else
   {
-    center_mouse_key = 'K';
+    center_mouse_key = 0xFF;
   }
 
-  section->Get("MouseCursorSensitivity", &cursor_sensitivity, 15.0);
-  section->Get("SnappingDistance", &snapping_distance, 4.5);
+  section->Get("MouseCursorSensitivity", &cursor_sensitivity, 2.0);
+  section->Get("SnappingDistance", &snapping_distance, 0.0);
+  section->Get("OctagonGates", &octagon_gates_are_enabled, false);
 }
 
 class RelativeMouseAxis final : public Core::Device::RelativeInput
@@ -612,26 +615,24 @@ void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
 
 void KeyboardMouse::UpdateCursorInput()
 {
-  
   POINT temporary_point = {0, 0};
   GetCursorPos(&temporary_point);
 
   if ((::Core::GetState() == ::Core::State::Running ||
        ::Core::GetState() == ::Core::State::Paused) &&
-      Host_RendererHasFocus())
+      Host_RendererHasFocus() &&
+      octagon_gates_are_enabled)
   {
     Lock_Mouse_In_Jail(temporary_point);
 
     SetCursorPos(temporary_point.x, temporary_point.y);
   }
 
-  // See If Origin Reset Is Pressed
   if (player_requested_mouse_center ||
       (::Core::GetState() == ::Core::State::Starting &&
-       Host_RendererHasFocus()))  // Sage 3/20/2022: I don't think this works very well with
+       Host_RendererHasFocus() && octagon_gates_are_enabled))  // Sage 3/20/2022: I don't think this works very well with
                                       // boot to pause, but it does work with normal boot
   {
-    // Move cursor to the center of the screen if the origin reset key is pressed
     SetCursorPos(center_of_screen.x, center_of_screen.y);
     temporary_point.x = center_of_screen.x;
     temporary_point.y = center_of_screen.y;

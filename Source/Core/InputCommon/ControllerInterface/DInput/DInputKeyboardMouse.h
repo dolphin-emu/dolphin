@@ -24,6 +24,8 @@ void SetKeyboardMouseWindow(HWND hwnd);
 extern double cursor_sensitivity;  // 2 for full screen mapping
 extern unsigned char center_mouse_key;
 extern double snapping_distance;
+extern bool octagon_gates_are_enabled;
+
 
 class KeyboardMouse : public Core::Device
 {
@@ -125,11 +127,10 @@ private:
 
   bool player_requested_mouse_center = false;
   const double screen_height = static_cast<double>(GetSystemMetrics(SM_CYFULLSCREEN));
-  const double screen_width = static_cast<double>(GetSystemMetrics(SM_CXFULLSCREEN));  // there may be a better cast, i've not used them much
+  const double screen_width = static_cast<double>(GetSystemMetrics(SM_CXFULLSCREEN));
   const double screen_ratio = screen_width / screen_height;
   const POINT center_of_screen =
       POINT{static_cast<long>(screen_width / 2.0), static_cast<long>(screen_height / 2.0)};
-
   enum octagon_points
   {
     SOUTH,
