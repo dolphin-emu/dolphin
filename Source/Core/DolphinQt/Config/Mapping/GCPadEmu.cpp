@@ -5,6 +5,7 @@
 
 #include <string>
 
+#include <QApplication>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -13,10 +14,10 @@
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
-
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 #include "InputCommon/InputConfig.h"
+#include "RightClickButton.h"
 
 GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
 {
@@ -45,7 +46,7 @@ void GCPadEmu::CreateMainLayout()
 
   //Keyboard and Mouse Settings
   ::ciface::DInput::Load_Keyboard_and_Mouse_Settings();
-  QGroupBox* keyboard_and_mouse_box = new QGroupBox{tr("Keyboard and Mouse")};
+  QGroupBox* keyboard_and_mouse_box = new QGroupBox{tr("Mouse")};
   QVBoxLayout* keyboard_and_mouse_layout = new QVBoxLayout{};
 
   QHBoxLayout* sensitivity_layout = new QHBoxLayout{};
@@ -105,18 +106,23 @@ void GCPadEmu::CreateMainLayout()
   snapping_distance_layout->addWidget(snapping_distance_spin_box);
 
   QHBoxLayout* center_mouse_key_layout = new QHBoxLayout{};
-  QPushButton* center_mouse_key_button = new QPushButton{};
-  connect(center_mouse_key_button, &QPushButton::clicked, [center_mouse_key_button]()
+  RightClickButton* center_mouse_key_button = new RightClickButton{};
+  connect(center_mouse_key_button, &RightClickButton::Left_Click, [center_mouse_key_button]() 
     {
       center_mouse_key_button->setText(tr("..."));
       static constexpr unsigned char highest_virtual_key_hex = 0xFE;
       bool listening = true;
       while (listening)
       {
+        QApplication::processEvents();
         for (unsigned char i = 0; i < highest_virtual_key_hex; i++)
         {
           if (GetAsyncKeyState(i) & 0x8000)
           {
+            if (i == VK_LBUTTON)
+            {
+              continue;
+            }
             ciface::DInput::center_mouse_key = i;
             listening = false;
             break;
@@ -126,11 +132,18 @@ void GCPadEmu::CreateMainLayout()
       ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
       center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
     });
+  connect(center_mouse_key_button, &RightClickButton::Right_Click, [center_mouse_key_button]() {
+            center_mouse_key_button->setText(tr(" "));
+            ::ciface::DInput::center_mouse_key = 0xFF;
+            ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+          });
   center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
-  center_mouse_key_button->setToolTip(tr("Centers the cursor after 2 frames."));
+  center_mouse_key_button->setToolTip(tr("Centers the cursor after 2 frames."
+                                         "\nLeft-click to detect. Right-click to clear"));
   QLabel* center_mouse_key_label = new QLabel{};
   center_mouse_key_label->setText(tr("Center Mouse Key"));
-  center_mouse_key_label->setToolTip(tr("Centers the cursor after 2 frames."));
+  center_mouse_key_label->setToolTip(tr("Centers the cursor after 2 frames."
+                                        "\nLeft-click to detect. Right-click to clear"));
 
   center_mouse_key_layout->addWidget(center_mouse_key_label);
   center_mouse_key_layout->addWidget(center_mouse_key_button);

@@ -47,7 +47,10 @@ void Load_Keyboard_and_Mouse_Settings()
 {
   std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + "Mouse_and_Keyboard_Settings.ini";
   IniFile inifile;
-  inifile.Load(ini_filename);
+  if(!inifile.Load(ini_filename))
+  {
+    Save_Keyboard_and_Mouse_Settings();
+  }
 
   IniFile::Section* section = inifile.GetOrCreateSection("MouseAndKeyboardSettings");
 
@@ -609,40 +612,39 @@ void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
 
 void KeyboardMouse::UpdateCursorInput()
 {
-    POINT temporary_point = {0, 0};
-    GetCursorPos(&temporary_point);
+  
+  POINT temporary_point = {0, 0};
+  GetCursorPos(&temporary_point);
 
-    if ((::Core::GetState() == ::Core::State::Running ||
-         ::Core::GetState() == ::Core::State::Paused) &&
-        Host_RendererHasFocus())
-    {
-      Lock_Mouse_In_Jail(temporary_point);
+  if ((::Core::GetState() == ::Core::State::Running ||
+       ::Core::GetState() == ::Core::State::Paused) &&
+      Host_RendererHasFocus())
+  {
+    Lock_Mouse_In_Jail(temporary_point);
 
-      SetCursorPos(temporary_point.x, temporary_point.y);
-    }
+    SetCursorPos(temporary_point.x, temporary_point.y);
+  }
 
-    // See If Origin Reset Is Pressed
-    if (player_requested_mouse_center ||
-        (::Core::GetState() == ::Core::State::Starting &&
-         Host_RendererHasFocus()))  // Sage 3/20/2022: I don't think this works very well with
+  // See If Origin Reset Is Pressed
+  if (player_requested_mouse_center ||
+      (::Core::GetState() == ::Core::State::Starting &&
+       Host_RendererHasFocus()))  // Sage 3/20/2022: I don't think this works very well with
                                       // boot to pause, but it does work with normal boot
-    {
-      // Move cursor to the center of the screen if the origin reset key is pressed
-      SetCursorPos(center_of_screen.x, center_of_screen.y);
-      temporary_point.x = center_of_screen.x;
-      temporary_point.y = center_of_screen.y;
-    }
-
+  {
+    // Move cursor to the center of the screen if the origin reset key is pressed
+    SetCursorPos(center_of_screen.x, center_of_screen.y);
+    temporary_point.x = center_of_screen.x;
+    temporary_point.y = center_of_screen.y;
+  }
     // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the
     // controller's state is to normalize the coordinates since it seems like dolphin wants the
     // inputs from -1.0 to 1.0
-    current_state.cursor.x =
-        ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
-        (cursor_sensitivity * screen_ratio);
-    current_state.cursor.y =
-        ((ControlState)((temporary_point.y) / (ControlState)screen_height) - 0.5) *
-        cursor_sensitivity;
-
+  current_state.cursor.x =
+      ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
+      (cursor_sensitivity * screen_ratio);
+  current_state.cursor.y =
+      ((ControlState)((temporary_point.y) / (ControlState)screen_height) - 0.5) *
+      cursor_sensitivity;
 }
 
 void KeyboardMouse::UpdateInput()
