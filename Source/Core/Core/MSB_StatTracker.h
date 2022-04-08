@@ -189,6 +189,7 @@ static const std::map<u8, std::string> cOutType = {
     {1, "Caught"},
     {2, "Force"},
     {3, "Tag"},
+    {4, "Force Back"},
     {0x10, "Strike-out"},
 };
 
@@ -404,6 +405,7 @@ static const u32 aAB_BattingPort = 0x802EBF95;
 //Fielder addrs
 //All of these addrs start with the pitcher. The rest are 0x268 away
 static const u32 aFielder_ControlStatus = 0x8088F53B; //0xA=Fielder is holding ball
+static const u32 aFielder_CharId = 0x8088F4E3; //Pitcher. Use Filder_Offset to calc the rest 
 static const u32 aFielder_RosterLoc = 0x8088F4E1; //Pitcher. Use Filder_Offset to calc the rest 
 static const u32 aFielder_AnyJump = 0x8088F56B; //Pitcher
 static const u32 aFielder_Action = 0x8088F5C1; //Pitcher. 2=Slide, 3=Walljump
@@ -696,6 +698,8 @@ public:
     };
 
     struct FielderTracker {
+
+        u8 team_id = 0xFF;
         //Roster_loc, pair<position, changed>
         //Set changed=true any time the sampled position (each pitch) does not match the current position
         //Rest changed upon new batter
@@ -715,7 +719,8 @@ public:
         u8 prev_batter_roster_loc = 0xFF; //Used to check each pitch if the batter has changed.
                                           //Mark current positions when changed
 
-        void initTracker(){
+        void initTracker(u8 inTeamId){
+            team_id = inTeamId;
             initialized = true;
             for (u8 pos=0; pos < cRosterSize; ++pos){
                 u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
@@ -746,7 +751,7 @@ public:
                 //If new position, mark changed (unless this is the first pitch of the AB (pos==0xFF))
                 //Then set new position
                 if (fielder_map[roster_loc].current_pos != pos){
-                    std::cout << "RosterLoc:" << std::to_string(roster_loc) 
+                    std::cout << " Team=" << std::to_string(team_id) << " RosterLoc:" << std::to_string(roster_loc) 
                                 << " swapped from " << cPosition.at(fielder_map[roster_loc].current_pos)
                                 << " to " << cPosition.at(pos) << std::endl; 
                     fielder_map[roster_loc].current_pos = pos; 
@@ -754,6 +759,8 @@ public:
 
                 //Increment the number of pitches this player has seen at this position
                 ++fielder_map[roster_loc].pitch_count_by_position[pos];
+                std::cout << " Team=" << std::to_string(team_id) << " RosterLoc=" << std::to_string(roster_loc)
+                          << " Pos=" << std::to_string(pos) << "++" << std::endl; 
             }
             return;
         }
@@ -766,6 +773,7 @@ public:
             }
             return false;
         }
+
         bool pitchesAtAnyPosition(u8 roster_loc, int starting_pos) {
             for (int pos=starting_pos; pos < cRosterSize; ++pos){
                 if (fielder_map[roster_loc].pitch_count_by_position[pos] > 0) { 
@@ -780,7 +788,10 @@ public:
         }
 
         u8 wasFielderSwappedForBatter(u8 roster_loc){
-            return fielder_map[roster_loc].current_pos != fielder_map[roster_loc].previous_pos;
+            if (fielder_map[roster_loc].current_pos != fielder_map[roster_loc].previous_pos){
+                return 1;
+            }
+            return 0;
         }
     };
     std::array<FielderTracker, cNumOfTeams> m_fielder_tracker; //One per team
@@ -857,6 +868,7 @@ public:
 
     //Returns JSON, PathToWriteTo
     std::string getStatJSON(bool inDecode);
+    std::string getEventJSON(u16 in_event_num, Event& in_event, bool inDecode);
     //Returns path to save json
-    std::string getStatJsonPath(bool inDecoded, bool inQuit);
+    std::string getStatJsonPath(std::string prefix);
 };
