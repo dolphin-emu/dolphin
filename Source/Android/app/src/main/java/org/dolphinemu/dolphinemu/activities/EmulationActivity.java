@@ -879,13 +879,18 @@ public final class EmulationActivity extends AppCompatActivity
     int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
             R.array.doubleTapWithClassic : R.array.doubleTap;
 
-    if (currentController != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
-            currentValue == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
+    int checkedItem = -1;
+    int itemCount = getResources().getStringArray(buttonList).length;
+    for (int i = 0; i < itemCount; i++)
     {
-      currentValue = InputOverlay.OVERLAY_WIIMOTE;
+      if (InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(i) == currentValue)
+      {
+        checkedItem = i;
+        break;
+      }
     }
 
-    builder.setSingleChoiceItems(buttonList, currentValue,
+    builder.setSingleChoiceItems(buttonList, checkedItem,
             (DialogInterface dialog, int which) -> IntSetting.MAIN_DOUBLE_TAP_BUTTON
                     .setInt(mSettings, InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
 
