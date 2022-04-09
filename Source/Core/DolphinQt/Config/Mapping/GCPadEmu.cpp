@@ -61,7 +61,7 @@ void GCPadEmu::CreateMainLayout()
   // Sage 4/7/2022: I'm not sure what QOverland does in this, but it was in the example in the
   //               qt documentation and it doesn't work without it.
   connect(sensitivity_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-          [](double value){
+          [](double value) {
             ::ciface::DInput::cursor_sensitivity = value;
             ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
           });
@@ -84,9 +84,8 @@ void GCPadEmu::CreateMainLayout()
   QHBoxLayout* snapping_distance_layout = new QHBoxLayout{};
   QDoubleSpinBox* snapping_distance_spin_box = new QDoubleSpinBox{};
 
-
   // Sage 4/7/2022: I'm not sure what QOverland does in this, but it was in the example in the
-  //               qt documentation and it doesn't work without it. 
+  //               qt documentation and it doesn't work without it.
   connect(snapping_distance_spin_box, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
           [](double value) {
             ::ciface::DInput::snapping_distance = value;
@@ -104,13 +103,13 @@ void GCPadEmu::CreateMainLayout()
   snapping_distance_label->setText(tr("Snapping Distance"));
   snapping_distance_label->setToolTip(
       tr("Distance around gates where cursor snaps to gate.\nMouse is only locked into gates and "
-         "snapping will only occur when the game is started and has focus."));
+         "snapping will only occur when a game is started and has focus."));
   snapping_distance_layout->addWidget(snapping_distance_label);
   snapping_distance_layout->addWidget(snapping_distance_spin_box);
 
   QHBoxLayout* center_mouse_key_layout = new QHBoxLayout{};
   RightClickButton* center_mouse_key_button = new RightClickButton{};
-  connect(center_mouse_key_button, &RightClickButton::Left_Click, [center_mouse_key_button](){
+  connect(center_mouse_key_button, &RightClickButton::LeftClick, [center_mouse_key_button]() {
     center_mouse_key_button->setText(tr("..."));
     static constexpr unsigned char highest_virtual_key_hex = 0xFE;
     bool listening = true;
@@ -142,7 +141,7 @@ void GCPadEmu::CreateMainLayout()
           tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
     }
   });
-  connect(center_mouse_key_button, &RightClickButton::Right_Click, [center_mouse_key_button]() {
+  connect(center_mouse_key_button, &RightClickButton::RightClick, [center_mouse_key_button]() {
     center_mouse_key_button->setText(tr(" "));
     ::ciface::DInput::center_mouse_key = 0xFF;
     ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
@@ -153,7 +152,8 @@ void GCPadEmu::CreateMainLayout()
   }
   else
   {
-    center_mouse_key_button->setText(tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+    center_mouse_key_button->setText(
+        tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
   }
   center_mouse_key_button->setToolTip(tr("Centers the cursor after 2 frames."
                                          "\nLeft-click to detect. Right-click to clear"));
@@ -167,11 +167,10 @@ void GCPadEmu::CreateMainLayout()
   QHBoxLayout* octagon_points_are_enabled_layout = new QHBoxLayout{};
   QCheckBox* octagon_points_are_enabled_check_box = new QCheckBox{};
   octagon_points_are_enabled_check_box->setChecked(::ciface::DInput::octagon_gates_are_enabled);
-  connect(octagon_points_are_enabled_check_box, &QCheckBox::stateChanged,[](int state)
-    {
-      ::ciface::DInput::octagon_gates_are_enabled = state;
-      ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
-    });
+  connect(octagon_points_are_enabled_check_box, &QCheckBox::stateChanged, [](int state) {
+    ::ciface::DInput::octagon_gates_are_enabled = state;
+    ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+  });
   octagon_points_are_enabled_check_box->setToolTip(
       tr("Locks the mouse cursor into a simulated octagonal gate"
          "\n\nSnapping is disabled if this is disabled"));
@@ -179,7 +178,8 @@ void GCPadEmu::CreateMainLayout()
   octagon_points_are_enabled_text->setText(tr("Enable Octagon Gates"));
   octagon_points_are_enabled_text->setToolTip(
       tr("Locks the mouse cursor into a simulated octagonal gate"
-          "\n\nSnapping is disabled if this is disabled"));
+         "\n\nSnapping is disabled if this is disabled"
+         "\nLocking and snapping only occur when a game is started and focused"));
   octagon_points_are_enabled_layout->addWidget(octagon_points_are_enabled_text);
   octagon_points_are_enabled_layout->addWidget(octagon_points_are_enabled_check_box);
 
@@ -191,7 +191,7 @@ void GCPadEmu::CreateMainLayout()
   keyboard_and_mouse_box->setLayout(keyboard_and_mouse_layout);
 
   layout->addWidget(keyboard_and_mouse_box, 1, 1);
-  //End Keyboard and Mouse Settings
+// End Keyboard and Mouse Settings
 #endif
 
   setLayout(layout);

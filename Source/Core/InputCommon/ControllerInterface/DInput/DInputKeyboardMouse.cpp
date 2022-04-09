@@ -234,7 +234,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   }
 }
 
-void KeyboardMouse::Generate_Octagon_Points(POINT octagon_points[8])
+void KeyboardMouse::GenerateOctagonPoints(POINT octagon_points[8])
 {
   // the enum which addresses the octagon_points is in the header if you need the actual value of
   // the enum
@@ -292,7 +292,7 @@ void KeyboardMouse::Generate_Octagon_Points(POINT octagon_points[8])
                                                     percentage_reduction_for_corner_gates))};
 }
 
-bool KeyboardMouse::Point_Is_Inside_Octagon(const POINT& mouse_point, const POINT octagon_points[8])
+bool KeyboardMouse::IsPointInsideOctagon(const POINT& mouse_point, const POINT octagon_points[8])
 {
   // This function uses the raycasting method to figure out if it's inside the octagon
   // casting a ray horizontally in one direction from the mouse point and if the
@@ -351,8 +351,8 @@ bool KeyboardMouse::Point_Is_Inside_Octagon(const POINT& mouse_point, const POIN
   }
 }
 
-double KeyboardMouse::Calculate_Distance_between_Points(const POINT& first_point,
-                                                        const POINT& second_point)
+double KeyboardMouse::CalculateDistanceBetweenPoints(const POINT& first_point,
+                                                     const POINT& second_point)
 {
   // Pythagorean theoreom used to calculate the distance between points
   // the hypotenuse of the right triangle is the distance.
@@ -363,12 +363,12 @@ double KeyboardMouse::Calculate_Distance_between_Points(const POINT& first_point
   return sqrt((x_difference * x_difference) + (y_difference * y_difference));
 }
 
-long KeyboardMouse::Find_Second_Line_Point(const POINT& mouse_point, const POINT octagon_points[8],
-                                           long index_of_min_octagon_point)
+long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const POINT octagon_points[8],
+                                        long _index_of_closest_octagon_point)
 {
-  if (mouse_point.y < octagon_points[index_of_min_octagon_point].y)
+  if (mouse_point.y < octagon_points[_index_of_closest_octagon_point].y)
   {
-    switch (index_of_min_octagon_point)
+    switch (_index_of_closest_octagon_point)
     {
     case SOUTH:
 
@@ -396,9 +396,9 @@ long KeyboardMouse::Find_Second_Line_Point(const POINT& mouse_point, const POINT
       break;
     }
   }
-  if (mouse_point.x < octagon_points[index_of_min_octagon_point].x)
+  if (mouse_point.x < octagon_points[_index_of_closest_octagon_point].x)
   {
-    switch (index_of_min_octagon_point)
+    switch (_index_of_closest_octagon_point)
     {
     case SOUTH:
       return SOUTH_WEST;
@@ -426,9 +426,9 @@ long KeyboardMouse::Find_Second_Line_Point(const POINT& mouse_point, const POINT
       break;
     }
   }
-  if (mouse_point.y > octagon_points[index_of_min_octagon_point].y)
+  if (mouse_point.y > octagon_points[_index_of_closest_octagon_point].y)
   {
-    switch (index_of_min_octagon_point)
+    switch (_index_of_closest_octagon_point)
     {
     case SOUTH:
 
@@ -456,9 +456,9 @@ long KeyboardMouse::Find_Second_Line_Point(const POINT& mouse_point, const POINT
       break;
     }
   }
-  if (mouse_point.x > octagon_points[index_of_min_octagon_point].x)
+  if (mouse_point.x > octagon_points[_index_of_closest_octagon_point].x)
   {
-    switch (index_of_min_octagon_point)
+    switch (_index_of_closest_octagon_point)
     {
     case SOUTH:
       return SOUTH_EAST;
@@ -489,7 +489,7 @@ long KeyboardMouse::Find_Second_Line_Point(const POINT& mouse_point, const POINT
   return 0;
 }
 
-void KeyboardMouse::Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT octagon_points[8])
+void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const POINT octagon_points[8])
 {
   // Sage 4/2/2022: Gameplan is to move the mouse towards the nearest gate if the distance the mouse
   // is outside of the octagon is large enough to overcome friction.The amount the mouse will move
@@ -504,8 +504,7 @@ void KeyboardMouse::Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT 
   long distance_to_octagon_points[8] = {0};
   for (int i = 0; i < 8; i++)
   {
-    distance_to_octagon_points[i] =
-        Calculate_Distance_between_Points(mouse_point, octagon_points[i]);
+    distance_to_octagon_points[i] = CalculateDistanceBetweenPoints(mouse_point, octagon_points[i]);
   }
 
   long min_distance = distance_to_octagon_points[0];
@@ -520,7 +519,7 @@ void KeyboardMouse::Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT 
   }
 
   long index_of_second_line_point =
-      Find_Second_Line_Point(mouse_point, octagon_points, index_of_closest_octagon_point);
+      FindSecondLinePoint(mouse_point, octagon_points, index_of_closest_octagon_point);
 
   double rise = static_cast<double>(octagon_points[index_of_second_line_point].y) -
                 static_cast<double>(octagon_points[index_of_closest_octagon_point].y);
@@ -557,8 +556,8 @@ void KeyboardMouse::Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT 
   point_of_intersection.y = static_cast<long>(
       round((slope_of_octagon_line * point_of_intersection.x) + y_intercept_of_octagon_line));
 
-  if (Calculate_Distance_between_Points(
-          mouse_point, octagon_points[index_of_closest_octagon_point]) < snapping_distance)
+  if (CalculateDistanceBetweenPoints(mouse_point, octagon_points[index_of_closest_octagon_point]) <
+      snapping_distance)
   {
     point_of_intersection = octagon_points[index_of_closest_octagon_point];
   }
@@ -566,7 +565,7 @@ void KeyboardMouse::Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT 
   mouse_point = point_of_intersection;
 }
 
-void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
+void KeyboardMouse::LockMouseInJail(POINT& mouse_point)
 {
   // Sage 3/30/2022: Locks the mouse into an octagon (like the case on a real controller)
   //                The plan to make the octagonal locking happen is to rotate the point so
@@ -575,19 +574,20 @@ void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
   //                of the notch). Then the octagon is just a square with its corners cut off.
   //                So, we generate a square and cut the corners of the square off in order
   //                to make the octagon. Then we check if the point is in those corners that were
-  //                cut off and if it is,we move it towardsthe center until it is inside the octagon.
+  //                cut off and if it is,we move it towardsthe center until it is inside the
+  //                octagon.
 
   POINT octagon_points[8] = {0};
 
-  Generate_Octagon_Points(octagon_points);
+  GenerateOctagonPoints(octagon_points);
 
-  if (Point_Is_Inside_Octagon(mouse_point, octagon_points))
+  if (IsPointInsideOctagon(mouse_point, octagon_points))
   {
     return;
   }
   else
   {
-    Move_Mouse_Point_Along_Gate(mouse_point, octagon_points);
+    MoveMousePointAlongGate(mouse_point, octagon_points);
   }
 
   /* //Sage 3 / 30 / 2022 : Locks the mouse into a square
@@ -599,17 +599,17 @@ void KeyboardMouse::Lock_Mouse_In_Jail(POINT& mouse_point)
   cursor_sensitivity ;
  // bind x value of mouse pos to within a fraction of the screen from center
   if (mouse_point.x > (center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x))
- 	mouse_point.x = static_cast<long>(center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x);
+  mouse_point.x = static_cast<long>(center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x);
 
   if (mouse_point.x < (center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x))
- 	mouse_point.x = static_cast<long>(center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x);
+  mouse_point.x = static_cast<long>(center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x);
 
  // bind y value of mouse pos to within a fraction of the screen from center
   if (mouse_point.y > (center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y))
- 	mouse_point.y = static_cast<long>(center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y);
+  mouse_point.y = static_cast<long>(center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y);
 
   if (mouse_point.y < (center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y))
- 	mouse_point.y = static_cast<long>(center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y);*/
+  mouse_point.y = static_cast<long>(center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y);*/
 }
 
 void KeyboardMouse::UpdateCursorInput()
@@ -621,7 +621,7 @@ void KeyboardMouse::UpdateCursorInput()
        ::Core::GetState() == ::Core::State::Paused) &&
       Host_RendererHasFocus() && octagon_gates_are_enabled)
   {
-    Lock_Mouse_In_Jail(temporary_point);
+    LockMouseInJail(temporary_point);
 
     SetCursorPos(temporary_point.x, temporary_point.y);
   }
@@ -629,7 +629,7 @@ void KeyboardMouse::UpdateCursorInput()
   if (player_requested_mouse_center ||
       (::Core::GetState() == ::Core::State::Starting && Host_RendererHasFocus() &&
        octagon_gates_are_enabled))  // Sage 3/20/2022: I don't think this works very well with
-                                     // boot to pause, but it does work with normal boot
+                                    // boot to pause, but it does work with normal boot
   {
     SetCursorPos(center_of_screen.x, center_of_screen.y);
     temporary_point.x = center_of_screen.x;
@@ -687,7 +687,8 @@ void KeyboardMouse::UpdateInput()
                 current_state.mouse.rgbButtons);
   }
 
-  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(current_state.keyboard), &current_state.keyboard);
+  HRESULT kb_hr =
+      m_kb_device->GetDeviceState(sizeof(current_state.keyboard), &current_state.keyboard);
   if (kb_hr == DIERR_INPUTLOST || kb_hr == DIERR_NOTACQUIRED)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");

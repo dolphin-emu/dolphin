@@ -10,7 +10,6 @@
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 
-
 namespace ciface::DInput
 {
 void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd);
@@ -25,7 +24,6 @@ extern double cursor_sensitivity;  // 2 for full screen mapping
 extern unsigned char center_mouse_key;
 extern double snapping_distance;
 extern bool octagon_gates_are_enabled;
-
 
 class KeyboardMouse : public Core::Device
 {
@@ -116,13 +114,13 @@ public:
 
 private:
   void UpdateCursorInput();
-  void Generate_Octagon_Points(POINT octagon_points[8]);
-  bool Point_Is_Inside_Octagon(const POINT& mouse_point, const POINT octagon_points[8]);
-  double Calculate_Distance_between_Points(const POINT& first_point, const POINT& second_point);
-  long Find_Second_Line_Point(const POINT& mouse_point, const POINT octagon_points[8],
-                              long index_of_min_octagon_point);
-  void Move_Mouse_Point_Along_Gate(POINT& mouse_point, const POINT octagon_points[8]);
-  void Lock_Mouse_In_Jail(POINT& mouse_point);
+  void GenerateOctagonPoints(POINT octagon_points[8]);
+  bool IsPointInsideOctagon(const POINT& mouse_point, const POINT octagon_points[8]);
+  double CalculateDistanceBetweenPoints(const POINT& first_point, const POINT& second_point);
+  long FindSecondLinePoint(const POINT& mouse_point, const POINT octagon_points[8],
+                           long index_of_closest_octagon_point);
+  void MoveMousePointAlongGate(POINT& mouse_point, const POINT octagon_points[8]);
+  void LockMouseInJail(POINT& mouse_point);
 
   bool player_requested_mouse_center = false;
   const double screen_height = static_cast<double>(GetSystemMetrics(SM_CYFULLSCREEN));
