@@ -5,8 +5,6 @@
 
 #include <algorithm>
 
-#include <QObject>
-
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
