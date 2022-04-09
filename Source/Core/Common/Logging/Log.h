@@ -103,6 +103,9 @@ void GenericLog(LogLevel level, LogType type, const char* file, int line, const 
     __attribute__((format(printf, 5, 6)))
 #endif
     ;
+
+void GenericLogV(LogLevel level, LogType type, const char* file, int line, const char* fmt,
+                 va_list args);
 }  // namespace Common::Log
 
 // Let the compiler optimize this out
@@ -137,6 +140,13 @@ void GenericLog(LogLevel level, LogType type, const char* file, int line, const 
   do                                                                                               \
   {                                                                                                \
     GENERIC_LOG(Common::Log::LogType::t, Common::Log::LogLevel::LDEBUG, __VA_ARGS__);              \
+  } while (0)
+
+#define GENERIC_LOG_V(t, v, fmt, args)                                                             \
+  do                                                                                               \
+  {                                                                                                \
+    if (v <= Common::Log::MAX_LOGLEVEL)                                                            \
+      Common::Log::GenericLogV(v, t, __FILE__, __LINE__, fmt, args);                               \
   } while (0)
 
 // fmtlib capable API
