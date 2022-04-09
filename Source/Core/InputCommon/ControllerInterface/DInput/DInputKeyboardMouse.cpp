@@ -234,7 +234,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   }
 }
 
-void KeyboardMouse::GenerateOctagonPoints(POINT octagon_points[8])
+void KeyboardMouse::GenerateOctagonPoints(std::array<POINT, 8> octagon_points) const
 {
   // the enum which addresses the octagon_points is in the header if you need the actual value of
   // the enum
@@ -292,7 +292,7 @@ void KeyboardMouse::GenerateOctagonPoints(POINT octagon_points[8])
                                                     percentage_reduction_for_corner_gates))};
 }
 
-bool KeyboardMouse::IsPointInsideOctagon(const POINT& mouse_point, const POINT octagon_points[8])
+bool KeyboardMouse::IsPointInsideOctagon(const POINT& mouse_point, const std::array<POINT, 8> octagon_points) const
 {
   // This function uses the raycasting method to figure out if it's inside the octagon
   // casting a ray horizontally in one direction from the mouse point and if the
@@ -313,10 +313,6 @@ bool KeyboardMouse::IsPointInsideOctagon(const POINT& mouse_point, const POINT o
     double run = static_cast<double>(octagon_points[next_index].x) -
                  static_cast<double>(octagon_points[i].x);
     double slope = rise / run;
-
-    // double temp_1 = mouse_point.y - octagon_points[i].y;
-    // double temp_2 = temp_1 / slope;
-    // double temp_3 = temp_2 + octagon_points[i].x;
 
     double temp_x = ((mouse_point.y - octagon_points[i].y) / slope) + octagon_points[i].x;
 
@@ -352,7 +348,7 @@ bool KeyboardMouse::IsPointInsideOctagon(const POINT& mouse_point, const POINT o
 }
 
 double KeyboardMouse::CalculateDistanceBetweenPoints(const POINT& first_point,
-                                                     const POINT& second_point)
+                                                     const POINT& second_point) const 
 {
   // Pythagorean theoreom used to calculate the distance between points
   // the hypotenuse of the right triangle is the distance.
@@ -363,36 +359,28 @@ double KeyboardMouse::CalculateDistanceBetweenPoints(const POINT& first_point,
   return sqrt((x_difference * x_difference) + (y_difference * y_difference));
 }
 
-long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const POINT octagon_points[8],
-                                        long _index_of_closest_octagon_point)
+long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const std::array<POINT, 8> octagon_points,
+                                        long _index_of_closest_octagon_point) const 
 {
   if (mouse_point.y < octagon_points[_index_of_closest_octagon_point].y)
   {
     switch (_index_of_closest_octagon_point)
     {
     case SOUTH:
-
       break;
     case SOUTH_EAST:
-
       break;
     case EAST:
       return NORTH_EAST;
-      break;
     case NORTH_EAST:
-
       break;
     case NORTH:
-
       break;
     case NORTH_WEST:
-
       break;
     case WEST:
       return NORTH_WEST;
-      break;
     case SOUTH_WEST:
-
       break;
     }
   }
@@ -402,28 +390,20 @@ long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const POINT oc
     {
     case SOUTH:
       return SOUTH_WEST;
-      break;
     case SOUTH_EAST:
       return SOUTH;
-      break;
     case EAST:
-
       break;
     case NORTH_EAST:
       return NORTH;
-      break;
     case NORTH:
       return NORTH_WEST;
-      break;
     case NORTH_WEST:
       return WEST;
-      break;
     case WEST:
-
       break;
     case SOUTH_WEST:
       return WEST;
-      break;
     }
   }
   if (mouse_point.y > octagon_points[_index_of_closest_octagon_point].y)
@@ -431,28 +411,20 @@ long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const POINT oc
     switch (_index_of_closest_octagon_point)
     {
     case SOUTH:
-
       break;
     case SOUTH_EAST:
-
       break;
     case EAST:
       return SOUTH_EAST;
-      break;
     case NORTH_EAST:
-
       break;
     case NORTH:
-
       break;
     case NORTH_WEST:
-
       break;
     case WEST:
       return SOUTH_WEST;
-      break;
     case SOUTH_WEST:
-
       break;
     }
   }
@@ -462,34 +434,26 @@ long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const POINT oc
     {
     case SOUTH:
       return SOUTH_EAST;
-      break;
     case SOUTH_EAST:
       return EAST;
-      break;
     case EAST:
-
       break;
     case NORTH_EAST:
       return EAST;
-      break;
     case NORTH:
       return NORTH_EAST;
-      break;
     case NORTH_WEST:
       return NORTH;
-      break;
     case WEST:
-
       break;
     case SOUTH_WEST:
       return SOUTH;
-      break;
     }
   }
   return 0;
 }
 
-void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const POINT octagon_points[8])
+void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 8> octagon_points) const
 {
   // Sage 4/2/2022: Gameplan is to move the mouse towards the nearest gate if the distance the mouse
   // is outside of the octagon is large enough to overcome friction.The amount the mouse will move
@@ -501,7 +465,7 @@ void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const POINT octa
   // need to bring the mouse a tiny bit inside of the octagon instead of directly on the nearest
   // line if the section of the code that determines whether or not the mouse is inside of the
   // octagon struggles with the mouse_point being directly on the line.
-  long distance_to_octagon_points[8] = {0};
+  std::array<long, 8> distance_to_octagon_points = {};
   for (int i = 0; i < 8; i++)
   {
     distance_to_octagon_points[i] = CalculateDistanceBetweenPoints(mouse_point, octagon_points[i]);
@@ -533,7 +497,8 @@ void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const POINT octa
   rise = static_cast<double>(center_of_screen.y) - static_cast<double>(mouse_point.y);
   run = static_cast<double>(center_of_screen.x) - static_cast<double>(mouse_point.x);
   double slope_of_line_from_center_to_mouse = rise / run;
-  if (abs(run) < 1 /*Magic number is range around 0 where we just say the slope is zero*/)
+  //Magic number is range around 0 where we just say the slope is zero
+  if (abs(run) < 1 )
   {
     if (mouse_point.y < center_of_screen.y)
     {
@@ -548,7 +513,7 @@ void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const POINT octa
   double y_intercept_of_line_from_center_to_mouse =
       slope_of_line_from_center_to_mouse * (0 - center_of_screen.x) + center_of_screen.y;
 
-  POINT point_of_intersection = {0};
+  POINT point_of_intersection = {};
 
   point_of_intersection.x = static_cast<long>(
       round(((y_intercept_of_octagon_line - y_intercept_of_line_from_center_to_mouse) /
@@ -565,19 +530,19 @@ void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const POINT octa
   mouse_point = point_of_intersection;
 }
 
-void KeyboardMouse::LockMouseInJail(POINT& mouse_point)
+void KeyboardMouse::LockMouseInJail(POINT& mouse_point) const 
 {
   // Sage 3/30/2022: Locks the mouse into an octagon (like the case on a real controller)
-  //                The plan to make the octagonal locking happen is to rotate the point so
-  //                four octagon edges mark the top, bottom, and sides of the octagon
-  //                (try to make one of the flat edges on a real controller the bottom instead
-  //                of the notch). Then the octagon is just a square with its corners cut off.
-  //                So, we generate a square and cut the corners of the square off in order
-  //                to make the octagon. Then we check if the point is in those corners that were
-  //                cut off and if it is,we move it towardsthe center until it is inside the
-  //                octagon.
+  //                 The plan to make the octagonal locking happen is to rotate the point so
+  //                 four octagon edges mark the top, bottom, and sides of the octagon
+  //                 (try to make one of the flat edges on a real controller the bottom instead
+  //                 of the notch). Then the octagon is just a square with its corners cut off.
+  //                 So, we generate a square and cut the corners of the square off in order
+  //                 to make the octagon. Then we check if the point is in those corners that were
+  //                 cut off and if it is,we move it towardsthe center until it is inside the
+  //                 octagon.
 
-  POINT octagon_points[8] = {0};
+  std::array<POINT, 8> octagon_points = {};
 
   GenerateOctagonPoints(octagon_points);
 
@@ -589,27 +554,6 @@ void KeyboardMouse::LockMouseInJail(POINT& mouse_point)
   {
     MoveMousePointAlongGate(mouse_point, octagon_points);
   }
-
-  /* //Sage 3 / 30 / 2022 : Locks the mouse into a square
-  //Sage 4/3/2022: Please do not remove this code. It is an earlier version of the mouse jail
-  //and I'd like it here if I ever want to go back.
-
-  double fraction_of_screen_to_lock_mouse_in_x = screen_width / (cursor_sensitivity *
-  screen_ratio); double fraction_of_screen_to_lock_mouse_in_y = screen_height /
-  cursor_sensitivity ;
- // bind x value of mouse pos to within a fraction of the screen from center
-  if (mouse_point.x > (center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x))
-  mouse_point.x = static_cast<long>(center_of_screen.x + fraction_of_screen_to_lock_mouse_in_x);
-
-  if (mouse_point.x < (center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x))
-  mouse_point.x = static_cast<long>(center_of_screen.x - fraction_of_screen_to_lock_mouse_in_x);
-
- // bind y value of mouse pos to within a fraction of the screen from center
-  if (mouse_point.y > (center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y))
-  mouse_point.y = static_cast<long>(center_of_screen.y + fraction_of_screen_to_lock_mouse_in_y);
-
-  if (mouse_point.y < (center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y))
-  mouse_point.y = static_cast<long>(center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y);*/
 }
 
 void KeyboardMouse::UpdateCursorInput()
@@ -636,8 +580,8 @@ void KeyboardMouse::UpdateCursorInput()
     temporary_point.y = center_of_screen.y;
   }
   // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the
-  // controller's state is to normalize the coordinates since it seems like dolphin wants the
-  // inputs from -1.0 to 1.0
+  //                controller's state is to normalize the coordinates since it seems like dolphin wants the
+  //                inputs from -1.0 to 1.0
   current_state.cursor.x =
       ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
       (cursor_sensitivity * screen_ratio);
@@ -651,20 +595,6 @@ void KeyboardMouse::UpdateInput()
   UpdateCursorInput();
 
   DIMOUSESTATE2 tmp_mouse;
-
-  // if mouse position hasn't been updated in a short while, skip a dev state
-  // DWORD cur_time = GetTickCount();
-  // if (cur_time - m_last_update > DROP_INPUT_TIME)
-  //{
-  //  // set axes to zero
-  //  current_state.mouse = {};
-  //  current_state.relative_mouse = {};
-
-  //  // skip this input state
-  //  m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
-  //}
-
-  /* m_last_update = cur_time;*/
 
   HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
   if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)

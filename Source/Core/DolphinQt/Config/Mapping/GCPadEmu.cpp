@@ -15,10 +15,10 @@
 
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
+#include "DolphinQt/QtUtils/LeftAndRightClickButton.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 #include "InputCommon/InputConfig.h"
-#include "RightClickButton.h"
 
 GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
 {
@@ -108,8 +108,8 @@ void GCPadEmu::CreateMainLayout()
   snapping_distance_layout->addWidget(snapping_distance_spin_box);
 
   QHBoxLayout* center_mouse_key_layout = new QHBoxLayout{};
-  RightClickButton* center_mouse_key_button = new RightClickButton{};
-  connect(center_mouse_key_button, &RightClickButton::LeftClick, [center_mouse_key_button]() {
+  LeftAndRightClickButton* center_mouse_key_button = new LeftAndRightClickButton{};
+  connect(center_mouse_key_button, &LeftAndRightClickButton::LeftClick, [center_mouse_key_button]() {
     center_mouse_key_button->setText(tr("..."));
     static constexpr unsigned char highest_virtual_key_hex = 0xFE;
     bool listening = true;
@@ -141,7 +141,7 @@ void GCPadEmu::CreateMainLayout()
           tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
     }
   });
-  connect(center_mouse_key_button, &RightClickButton::RightClick, [center_mouse_key_button]() {
+  connect(center_mouse_key_button, &LeftAndRightClickButton::RightClick, [center_mouse_key_button]() {
     center_mouse_key_button->setText(tr(" "));
     ::ciface::DInput::center_mouse_key = 0xFF;
     ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();

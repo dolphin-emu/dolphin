@@ -1,14 +1,15 @@
 #pragma once
 
-#include <QMouseEvent>
 #include <QPushButton>
 
-class RightClickButton : public QPushButton
+class QMouseEvent;
+
+class LeftAndRightClickButton : public QPushButton
 {
   Q_OBJECT
 
 public:
-  RightClickButton(QWidget* parent = 0);
+  explicit LeftAndRightClickButton(QWidget* parent = 0);
 
 signals:
   void RightClick();

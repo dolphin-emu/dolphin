@@ -5,6 +5,8 @@
 
 #include <windows.h>
 
+#include <array>
+
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
@@ -114,13 +116,13 @@ public:
 
 private:
   void UpdateCursorInput();
-  void GenerateOctagonPoints(POINT octagon_points[8]);
-  bool IsPointInsideOctagon(const POINT& mouse_point, const POINT octagon_points[8]);
-  double CalculateDistanceBetweenPoints(const POINT& first_point, const POINT& second_point);
-  long FindSecondLinePoint(const POINT& mouse_point, const POINT octagon_points[8],
-                           long index_of_closest_octagon_point);
-  void MoveMousePointAlongGate(POINT& mouse_point, const POINT octagon_points[8]);
-  void LockMouseInJail(POINT& mouse_point);
+  void GenerateOctagonPoints(std::array<POINT, 8> octagon_points) const ;
+  bool IsPointInsideOctagon(const POINT& mouse_point, const std::array<POINT, 8> octagon_points) const;
+  double CalculateDistanceBetweenPoints(const POINT& first_point, const POINT& second_point) const;
+  long FindSecondLinePoint(const POINT& mouse_point, const std::array<POINT, 8> octagon_points,
+                           long index_of_closest_octagon_point) const;
+  void MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 8> octagon_points) const;
+  void LockMouseInJail(POINT& mouse_point) const ;
 
   bool player_requested_mouse_center = false;
   const double screen_height = static_cast<double>(GetSystemMetrics(SM_CYFULLSCREEN));
