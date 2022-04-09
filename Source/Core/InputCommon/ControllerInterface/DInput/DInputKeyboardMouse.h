@@ -116,36 +116,13 @@ public:
 
 private:
   void UpdateCursorInput();
-  void GenerateOctagonPoints(std::array<POINT, 8> octagon_points) const ;
-  bool IsPointInsideOctagon(const POINT& mouse_point, const std::array<POINT, 8> octagon_points) const;
-  double CalculateDistanceBetweenPoints(const POINT& first_point, const POINT& second_point) const;
-  long FindSecondLinePoint(const POINT& mouse_point, const std::array<POINT, 8> octagon_points,
-                           long index_of_closest_octagon_point) const;
-  void MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 8> octagon_points) const;
-  void LockMouseInJail(POINT& mouse_point) const ;
-
-  bool player_requested_mouse_center = false;
-  const double screen_height = static_cast<double>(GetSystemMetrics(SM_CYFULLSCREEN));
-  const double screen_width = static_cast<double>(GetSystemMetrics(SM_CXFULLSCREEN));
-  const double screen_ratio = screen_width / screen_height;
-  const POINT center_of_screen =
-      POINT{static_cast<long>(screen_width / 2.0), static_cast<long>(screen_height / 2.0)};
-  enum octagon_points
-  {
-    SOUTH,
-    SOUTH_EAST,
-    EAST,
-    NORTH_EAST,
-    NORTH,
-    NORTH_WEST,
-    WEST,
-    SOUTH_WEST
-  };
+  
+  bool m_player_requested_mouse_center = false;
 
   const LPDIRECTINPUTDEVICE8 m_kb_device;
   const LPDIRECTINPUTDEVICE8 m_mo_device;
 
   DWORD m_last_update;
-  State current_state;
+  State m_current_state;
 };
 }  // namespace ciface::DInput

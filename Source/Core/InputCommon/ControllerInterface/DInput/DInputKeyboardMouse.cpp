@@ -31,6 +31,24 @@ extern unsigned char center_mouse_key = 0xFF;
 extern double snapping_distance = 0.0;
 extern bool octagon_gates_are_enabled = false;
 
+const double screen_height = static_cast<double>(GetSystemMetrics(SM_CYFULLSCREEN));
+const double screen_width = static_cast<double>(GetSystemMetrics(SM_CXFULLSCREEN));
+const double screen_ratio = screen_width / screen_height;
+const POINT center_of_screen =
+    POINT{static_cast<long>(screen_width / 2.0), static_cast<long>(screen_height / 2.0)};
+
+const enum OctagonPoint
+{
+  SOUTH,
+  SOUTH_EAST,
+  EAST,
+  NORTH_EAST,
+  NORTH,
+  NORTH_WEST,
+  WEST,
+  SOUTH_WEST
+};
+
 void Save_Keyboard_and_Mouse_Settings()
 {
   std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + "Mouse_and_Keyboard_Settings.ini";
@@ -177,7 +195,7 @@ KeyboardMouse::~KeyboardMouse()
 
 KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
                              const LPDIRECTINPUTDEVICE8 mo_device)
-    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), current_state()
+    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), m_current_state()
 {
   Load_Keyboard_and_Mouse_Settings();
   s_keyboard_mouse_exists = true;
@@ -190,7 +208,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   // KEYBOARD
   // add keys
   for (u8 i = 0; i < sizeof(named_keys) / sizeof(*named_keys); ++i)
-    AddInput(new Key(i, current_state.keyboard[named_keys[i].code]));
+    AddInput(new Key(i, m_current_state.keyboard[named_keys[i].code]));
 
   // Add combined left/right modifiers with consistent naming across platforms.
   AddCombinedInput("Alt", {"LMENU", "RMENU"});
@@ -203,11 +221,11 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   m_mo_device->GetCapabilities(&mouse_caps);
   // mouse buttons
   for (u8 i = 0; i < mouse_caps.dwButtons; ++i)
-    AddInput(new Button(i, current_state.mouse.rgbButtons[i]));
+    AddInput(new Button(i, m_current_state.mouse.rgbButtons[i]));
   // mouse axes
   for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)
   {
-    const LONG& ax = (&current_state.mouse.lX)[i];
+    const LONG& ax = (&m_current_state.mouse.lX)[i];
 
     // each axis gets a negative and a positive input instance associated with it
     AddInput(new Axis(i, ax, (2 == i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
@@ -217,25 +235,26 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   //  Cursor Position
   //  X input (0 index_of_closest_octagon_point (first value in cursor construction), as far as I
   //  can tell) (false means the direction is negative) Left (-X) (Negative Direction)
-  AddInput(new Cursor(0, current_state.cursor.x, false));
+  AddInput(new Cursor(0, m_current_state.cursor.x, false));
   // Right (+X) (Positive Direction)
-  AddInput(new Cursor(0, current_state.cursor.x, true));
+  AddInput(new Cursor(0, m_current_state.cursor.x, true));
 
   // Y input (1 index_of_closest_octagon_point (first value in cursor construction), as far as I can
   // tell) (false means the direction is negative) Up (-Y) (Negative Direction)
-  AddInput(new Cursor(1, current_state.cursor.y, false));
+  AddInput(new Cursor(1, m_current_state.cursor.y, false));
   // Down (+Y) (Positive Direction)
-  AddInput(new Cursor(1, current_state.cursor.y, true));
+  AddInput(new Cursor(1, m_current_state.cursor.y, true));
   // Raw relative mouse movement.
   for (unsigned int i = 0; i != mouse_caps.dwAxes; ++i)
   {
-    AddInput(new RelativeMouseAxis(i, false, &current_state.relative_mouse));
-    AddInput(new RelativeMouseAxis(i, true, &current_state.relative_mouse));
+    AddInput(new RelativeMouseAxis(i, false, &m_current_state.relative_mouse));
+    AddInput(new RelativeMouseAxis(i, true, &m_current_state.relative_mouse));
   }
 }
 
-void KeyboardMouse::GenerateOctagonPoints(std::array<POINT, 8> octagon_points) const
+static std::array<POINT, 8> GenerateOctagonPoints()
 {
+  std::array<POINT, 8> octagon_points;
   // the enum which addresses the octagon_points is in the header if you need the actual value of
   // the enum
   double fraction_of_screen_to_lock_mouse_in_x = screen_width / (cursor_sensitivity * screen_ratio);
@@ -290,9 +309,10 @@ void KeyboardMouse::GenerateOctagonPoints(std::array<POINT, 8> octagon_points) c
                                                     percentage_reduction_for_corner_gates)),
             static_cast<long>(center_of_screen.y - (fraction_of_screen_to_lock_mouse_in_y *
                                                     percentage_reduction_for_corner_gates))};
+  return octagon_points;
 }
 
-bool KeyboardMouse::IsPointInsideOctagon(const POINT& mouse_point, const std::array<POINT, 8> octagon_points) const
+static bool IsPointInsideOctagon(const POINT& mouse_point, const std::array<POINT, 8>& octagon_points)
 {
   // This function uses the raycasting method to figure out if it's inside the octagon
   // casting a ray horizontally in one direction from the mouse point and if the
@@ -347,8 +367,8 @@ bool KeyboardMouse::IsPointInsideOctagon(const POINT& mouse_point, const std::ar
   }
 }
 
-double KeyboardMouse::CalculateDistanceBetweenPoints(const POINT& first_point,
-                                                     const POINT& second_point) const 
+static double CalculateDistanceBetweenPoints(const POINT& first_point,
+                                                     const POINT& second_point) 
 {
   // Pythagorean theoreom used to calculate the distance between points
   // the hypotenuse of the right triangle is the distance.
@@ -359,8 +379,8 @@ double KeyboardMouse::CalculateDistanceBetweenPoints(const POINT& first_point,
   return sqrt((x_difference * x_difference) + (y_difference * y_difference));
 }
 
-long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const std::array<POINT, 8> octagon_points,
-                                        long _index_of_closest_octagon_point) const 
+static long FindSecondLinePoint(const POINT& mouse_point, const std::array<POINT, 8>& octagon_points,
+                                        long _index_of_closest_octagon_point) 
 {
   if (mouse_point.y < octagon_points[_index_of_closest_octagon_point].y)
   {
@@ -453,7 +473,7 @@ long KeyboardMouse::FindSecondLinePoint(const POINT& mouse_point, const std::arr
   return 0;
 }
 
-void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 8> octagon_points) const
+static void MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 8>& octagon_points)
 {
   // Sage 4/2/2022: Gameplan is to move the mouse towards the nearest gate if the distance the mouse
   // is outside of the octagon is large enough to overcome friction.The amount the mouse will move
@@ -530,7 +550,7 @@ void KeyboardMouse::MoveMousePointAlongGate(POINT& mouse_point, const std::array
   mouse_point = point_of_intersection;
 }
 
-void KeyboardMouse::LockMouseInJail(POINT& mouse_point) const 
+static void LockMouseInJail(POINT& mouse_point) 
 {
   // Sage 3/30/2022: Locks the mouse into an octagon (like the case on a real controller)
   //                 The plan to make the octagonal locking happen is to rotate the point so
@@ -542,9 +562,7 @@ void KeyboardMouse::LockMouseInJail(POINT& mouse_point) const
   //                 cut off and if it is,we move it towardsthe center until it is inside the
   //                 octagon.
 
-  std::array<POINT, 8> octagon_points = {};
-
-  GenerateOctagonPoints(octagon_points);
+  std::array<POINT, 8> octagon_points = GenerateOctagonPoints();
 
   if (IsPointInsideOctagon(mouse_point, octagon_points))
   {
@@ -570,7 +588,7 @@ void KeyboardMouse::UpdateCursorInput()
     SetCursorPos(temporary_point.x, temporary_point.y);
   }
 
-  if (player_requested_mouse_center ||
+  if (m_player_requested_mouse_center ||
       (::Core::GetState() == ::Core::State::Starting && Host_RendererHasFocus() &&
        octagon_gates_are_enabled))  // Sage 3/20/2022: I don't think this works very well with
                                     // boot to pause, but it does work with normal boot
@@ -582,10 +600,10 @@ void KeyboardMouse::UpdateCursorInput()
   // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the
   //                controller's state is to normalize the coordinates since it seems like dolphin wants the
   //                inputs from -1.0 to 1.0
-  current_state.cursor.x =
+  m_current_state.cursor.x =
       ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
       (cursor_sensitivity * screen_ratio);
-  current_state.cursor.y =
+  m_current_state.cursor.y =
       ((ControlState)((temporary_point.y) / (ControlState)screen_height) - 0.5) *
       cursor_sensitivity;
 }
@@ -605,33 +623,33 @@ void KeyboardMouse::UpdateInput()
   }
   else if (SUCCEEDED(mo_hr))
   {
-    current_state.relative_mouse.Move({tmp_mouse.lX, tmp_mouse.lY, tmp_mouse.lZ});
-    current_state.relative_mouse.Update();
+    m_current_state.relative_mouse.Move({tmp_mouse.lX, tmp_mouse.lY, tmp_mouse.lZ});
+    m_current_state.relative_mouse.Update();
 
     // need to smooth out the axes, otherwise it doesn't work for shit
     for (unsigned int i = 0; i < 3; ++i)
-      ((&current_state.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
+      ((&m_current_state.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
 
     // copy over the buttons
     std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons),
-                current_state.mouse.rgbButtons);
+                m_current_state.mouse.rgbButtons);
   }
 
   HRESULT kb_hr =
-      m_kb_device->GetDeviceState(sizeof(current_state.keyboard), &current_state.keyboard);
+      m_kb_device->GetDeviceState(sizeof(m_current_state.keyboard), &m_current_state.keyboard);
   if (kb_hr == DIERR_INPUTLOST || kb_hr == DIERR_NOTACQUIRED)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");
     if (SUCCEEDED(m_kb_device->Acquire()))
-      m_kb_device->GetDeviceState(sizeof(current_state.keyboard), &current_state.keyboard);
+      m_kb_device->GetDeviceState(sizeof(m_current_state.keyboard), &m_current_state.keyboard);
     else
       INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to re-acquire, we'll retry later");
   }
 
   if (GetAsyncKeyState(center_mouse_key) && 0x8000)
-    player_requested_mouse_center = true;
+    m_player_requested_mouse_center = true;
   else
-    player_requested_mouse_center = false;
+    m_player_requested_mouse_center = false;
 }
 
 std::string KeyboardMouse::GetName() const
