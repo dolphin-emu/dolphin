@@ -82,9 +82,12 @@ public class InputOverlayPointer
 
   public void onTouch(MotionEvent event)
   {
-    int pointerIndex = event.getActionIndex();
+    int action = event.getActionMasked();
+    boolean firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
+            action != MotionEvent.ACTION_POINTER_UP;
+    int pointerIndex = firstPointer ? 0 : event.getActionIndex();
 
-    switch (event.getAction() & MotionEvent.ACTION_MASK)
+    switch (action)
     {
       case MotionEvent.ACTION_DOWN:
       case MotionEvent.ACTION_POINTER_DOWN:
