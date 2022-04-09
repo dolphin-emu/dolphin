@@ -1,8 +1,8 @@
 
 #include "LeftAndRightClickButton.h"
 
-#include <QPushButton>
 #include <QMouseEvent>
+#include <QPushButton>
 
 LeftAndRightClickButton::LeftAndRightClickButton(QWidget* parent) : QPushButton(parent)
 {

@@ -35,8 +35,7 @@ const double screen_ratio = screen_width / screen_height;
 const POINT center_of_screen =
     POINT{static_cast<long>(screen_width / 2.0), static_cast<long>(screen_height / 2.0)};
 
-const enum OctagonPoint
-{
+const enum OctagonPoint {
   SOUTH,
   SOUTH_EAST,
   EAST,
@@ -193,7 +192,8 @@ KeyboardMouse::~KeyboardMouse()
 
 KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
                              const LPDIRECTINPUTDEVICE8 mo_device)
-    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), m_current_state()
+    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()),
+      m_current_state()
 {
   Load_Keyboard_and_Mouse_Settings();
   s_keyboard_mouse_exists = true;
@@ -310,7 +310,8 @@ static std::array<POINT, 8> GenerateOctagonPoints()
   return octagon_points;
 }
 
-static bool IsPointInsideOctagon(const POINT& mouse_point, const std::array<POINT, 8>& octagon_points)
+static bool IsPointInsideOctagon(const POINT& mouse_point,
+                                 const std::array<POINT, 8>& octagon_points)
 {
   // This function uses the raycasting method to figure out if it's inside the octagon
   // casting a ray horizontally in one direction from the mouse point and if the
@@ -365,8 +366,7 @@ static bool IsPointInsideOctagon(const POINT& mouse_point, const std::array<POIN
   }
 }
 
-static double CalculateDistanceBetweenPoints(const POINT& first_point,
-                                                     const POINT& second_point) 
+static double CalculateDistanceBetweenPoints(const POINT& first_point, const POINT& second_point)
 {
   // Pythagorean theoreom used to calculate the distance between points
   // the hypotenuse of the right triangle is the distance.
@@ -377,8 +377,9 @@ static double CalculateDistanceBetweenPoints(const POINT& first_point,
   return sqrt((x_difference * x_difference) + (y_difference * y_difference));
 }
 
-static long FindSecondLinePoint(const POINT& mouse_point, const std::array<POINT, 8>& octagon_points,
-                                        long _index_of_closest_octagon_point) 
+static long FindSecondLinePoint(const POINT& mouse_point,
+                                const std::array<POINT, 8>& octagon_points,
+                                long _index_of_closest_octagon_point)
 {
   if (mouse_point.y < octagon_points[_index_of_closest_octagon_point].y)
   {
@@ -515,8 +516,8 @@ static void MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 
   rise = static_cast<double>(center_of_screen.y) - static_cast<double>(mouse_point.y);
   run = static_cast<double>(center_of_screen.x) - static_cast<double>(mouse_point.x);
   double slope_of_line_from_center_to_mouse = rise / run;
-  //Magic number is range around 0 where we just say the slope is zero
-  if (abs(run) < 1 )
+  // Magic number is range around 0 where we just say the slope is zero
+  if (abs(run) < 1)
   {
     if (mouse_point.y < center_of_screen.y)
     {
@@ -548,7 +549,7 @@ static void MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 
   mouse_point = point_of_intersection;
 }
 
-static void LockMouseInJail(POINT& mouse_point) 
+static void LockMouseInJail(POINT& mouse_point)
 {
   // Sage 3/30/2022: Locks the mouse into an octagon (like the case on a real controller)
   //                 The plan to make the octagonal locking happen is to rotate the point so
@@ -596,8 +597,8 @@ void KeyboardMouse::UpdateCursorInput()
     temporary_point.y = center_of_screen.y;
   }
   // Sage 3/7/2022: Everything more than assigning point.x and point.y directly to the
-  //                controller's state is to normalize the coordinates since it seems like dolphin wants the
-  //                inputs from -1.0 to 1.0
+  //                controller's state is to normalize the coordinates since it seems like dolphin
+  //                wants the inputs from -1.0 to 1.0
   m_current_state.cursor.x =
       ((ControlState)((temporary_point.x) / (ControlState)screen_width) - 0.5) *
       (cursor_sensitivity * screen_ratio);

@@ -3,8 +3,9 @@
 
 #pragma once
 
+#ifdef WIN32
 #include <windows.h>
-
+#endif
 #include <array>
 
 #include "Common/Matrix.h"
@@ -116,7 +117,7 @@ public:
 
 private:
   void UpdateCursorInput();
-  
+
   bool m_player_requested_mouse_center = false;
 
   const LPDIRECTINPUTDEVICE8 m_kb_device;

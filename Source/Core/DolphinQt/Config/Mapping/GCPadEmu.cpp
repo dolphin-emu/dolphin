@@ -109,43 +109,45 @@ void GCPadEmu::CreateMainLayout()
 
   QHBoxLayout* center_mouse_key_layout = new QHBoxLayout{};
   LeftAndRightClickButton* center_mouse_key_button = new LeftAndRightClickButton{};
-  connect(center_mouse_key_button, &LeftAndRightClickButton::LeftClick, [center_mouse_key_button]() {
-    center_mouse_key_button->setText(tr("..."));
-    static constexpr unsigned char highest_virtual_key_hex = 0xFE;
-    bool listening = true;
-    while (listening)
-    {
-      QApplication::processEvents();
-      for (unsigned char i = 0; i < highest_virtual_key_hex; i++)
-      {
-        if (GetAsyncKeyState(i) & 0x8000)
+  connect(
+      center_mouse_key_button, &LeftAndRightClickButton::LeftClick, [center_mouse_key_button]() {
+        center_mouse_key_button->setText(tr("..."));
+        static constexpr unsigned char highest_virtual_key_hex = 0xFE;
+        bool listening = true;
+        while (listening)
         {
-          if (i == VK_LBUTTON)
+          QApplication::processEvents();
+          for (unsigned char i = 0; i < highest_virtual_key_hex; i++)
           {
-            continue;
+            if (GetAsyncKeyState(i) & 0x8000)
+            {
+              if (i == VK_LBUTTON)
+              {
+                continue;
+              }
+              ciface::DInput::center_mouse_key = i;
+              listening = false;
+              break;
+            }
           }
-          ciface::DInput::center_mouse_key = i;
-          listening = false;
-          break;
         }
-      }
-    }
-    ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
-    if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
-    {
-      center_mouse_key_button->setText(tr(" "));
-    }
-    else
-    {
-      center_mouse_key_button->setText(
-          tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
-    }
-  });
-  connect(center_mouse_key_button, &LeftAndRightClickButton::RightClick, [center_mouse_key_button]() {
-    center_mouse_key_button->setText(tr(" "));
-    ::ciface::DInput::center_mouse_key = 0xFF;
-    ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
-  });
+        ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+        if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
+        {
+          center_mouse_key_button->setText(tr(" "));
+        }
+        else
+        {
+          center_mouse_key_button->setText(
+              tr(std::string{(char)::ciface::DInput::center_mouse_key}.c_str()));
+        }
+      });
+  connect(center_mouse_key_button, &LeftAndRightClickButton::RightClick,
+          [center_mouse_key_button]() {
+            center_mouse_key_button->setText(tr(" "));
+            ::ciface::DInput::center_mouse_key = 0xFF;
+            ::ciface::DInput::Save_Keyboard_and_Mouse_Settings();
+          });
   if (::ciface::DInput::center_mouse_key == 0xFF /*magic number that says nothing is bound*/)
   {
     center_mouse_key_button->setText(tr(" "));
