@@ -45,6 +45,7 @@ extern const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES;
 extern const Info<bool> GFX_USE_FFV1;
 extern const Info<std::string> GFX_DUMP_FORMAT;
 extern const Info<std::string> GFX_DUMP_CODEC;
+extern const Info<std::string> GFX_DUMP_PIXEL_FORMAT;
 extern const Info<std::string> GFX_DUMP_ENCODER;
 extern const Info<std::string> GFX_DUMP_PATH;
 extern const Info<int> GFX_BITRATE_KBPS;

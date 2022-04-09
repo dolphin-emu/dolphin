@@ -21,6 +21,7 @@ extern "C" {
 #include <libavutil/log.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/opt.h>
+#include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
 
@@ -249,19 +250,30 @@ bool FrameDump::CreateVideoFile()
   m_context->codec->gop_size = 1;
   m_context->codec->level = 1;
 
-  if (m_context->codec->codec_id == AV_CODEC_ID_FFV1)
+  AVPixelFormat pix_fmt = AV_PIX_FMT_NONE;
+
+  const std::string& pixel_format_string = g_Config.sDumpPixelFormat;
+  if (!pixel_format_string.empty())
   {
-    m_context->codec->pix_fmt = AV_PIX_FMT_BGR0;
+    pix_fmt = av_get_pix_fmt(pixel_format_string.c_str());
+    if (pix_fmt == AV_PIX_FMT_NONE)
+      WARN_LOG_FMT(FRAMEDUMP, "Invalid pixel format {}", pixel_format_string);
   }
-  else if (m_context->codec->codec_id == AV_CODEC_ID_UTVIDEO)
+
+  if (pix_fmt == AV_PIX_FMT_NONE)
   {
-    m_context->codec->pix_fmt = AV_PIX_FMT_GBRP;
+    if (m_context->codec->codec_id == AV_CODEC_ID_FFV1)
+      pix_fmt = AV_PIX_FMT_BGR0;
+    else if (m_context->codec->codec_id == AV_CODEC_ID_UTVIDEO)
+      pix_fmt = AV_PIX_FMT_GBRP;
+    else
+      pix_fmt = AV_PIX_FMT_YUV420P;
+  }
+
+  m_context->codec->pix_fmt = pix_fmt;
+
+  if (m_context->codec->codec_id == AV_CODEC_ID_UTVIDEO)
     av_opt_set_int(m_context->codec->priv_data, "pred", 3, 0);  // median
-  }
-  else
-  {
-    m_context->codec->pix_fmt = AV_PIX_FMT_YUV420P;
-  }
 
   if (output_format->flags & AVFMT_GLOBALHEADER)
     m_context->codec->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
