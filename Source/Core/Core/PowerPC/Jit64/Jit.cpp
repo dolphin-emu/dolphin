@@ -251,6 +251,8 @@ bool Jit64::BackPatch(SContext* ctx)
 
 void Jit64::Init()
 {
+  RefreshConfig();
+
   EnableBlockLink();
 
   auto& memory = m_system.GetMemory();
@@ -258,7 +260,6 @@ void Jit64::Init()
   jo.fastmem_arena = m_fastmem_enabled && memory.InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
-  UpdateMemoryAndExceptionOptions();
   js.fastmemLoadStore = nullptr;
   js.compilerPC = 0;
 
@@ -306,7 +307,7 @@ void Jit64::ClearCache()
   m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
-  UpdateMemoryAndExceptionOptions();
+  RefreshConfig();
   ResetFreeMemoryRanges();
 }
 
