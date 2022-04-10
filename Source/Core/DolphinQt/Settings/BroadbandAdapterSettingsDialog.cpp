@@ -49,15 +49,11 @@ void BroadbandAdapterSettingsDialog::InitControls()
     break;
 
   case Type::BuiltIn:
-    // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
-    // interface (physical) like a serial number. "MAC" should be kept in translations.
     address_label = new QLabel(tr("Enter the DNS server to use:"));
     address_placeholder = QString::fromStdString("8.8.8.8");
     current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_BUILTIN_DNS));
     description = new QLabel(tr("Use 8.8.8.8 for normal DNS, else enter your custom one"));
 
-    // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
-    // interface (physical) like a serial number. "MAC" should be kept in translations.
     window_title = tr("Broadband Adapter DNS setting");
     break;
 

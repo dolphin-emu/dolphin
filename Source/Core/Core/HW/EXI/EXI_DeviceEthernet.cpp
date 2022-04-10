@@ -18,7 +18,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
-//#define BBA_TRACK_PAGE_PTRS
+// #define BBA_TRACK_PAGE_PTRS
 
 namespace ExpansionInterface
 {
@@ -612,7 +612,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
   if ((status & DESC_BF) != 0)
   {
-    if (mBbaMem[BBA_MISC2] & MISC2_AUTORCVR)
+    if ((mBbaMem[BBA_MISC2] & MISC2_AUTORCVR) != 0)
     {
       *(u16*)&mBbaMem[BBA_RWP] = rwp_initial;
     }
@@ -627,7 +627,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   mBbaMem[BBA_LRPS] = status;
 
   // Raise interrupt
-  if (mBbaMem[BBA_IMR] & INT_R)
+  if ((mBbaMem[BBA_IMR] & INT_R) != 0)
   {
     mBbaMem[BBA_IR] |= INT_R;
 

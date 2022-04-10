@@ -116,9 +116,11 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::Dummy,
            EXIDeviceType::Ethernet,
            EXIDeviceType::EthernetXLink,
-           EXIDeviceType::BuiltIn,
 #ifdef __APPLE__
            EXIDeviceType::EthernetTapServer,
+#endif
+#ifndef __APPLE__
+           EXIDeviceType::EthernetBuiltIn,
 #endif
        })
   {
@@ -260,7 +262,7 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
                   device == ExpansionInterface::EXIDeviceType::EthernetXLink ||
-                  device == ExpansionInterface::EXIDeviceType::BuiltIn);
+                  device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn);
     break;
   }
 
@@ -294,7 +296,7 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
     BroadbandAdapterSettingsDialog(this, BroadbandAdapterSettingsDialog::Type::XLinkKai).exec();
     return;
   }
-  case ExpansionInterface::EXIDeviceType::BuiltIn:
+  case ExpansionInterface::EXIDeviceType::EthernetBuiltIn:
   {
     BroadbandAdapterSettingsDialog(this, BroadbandAdapterSettingsDialog::Type::BuiltIn).exec();
     return;

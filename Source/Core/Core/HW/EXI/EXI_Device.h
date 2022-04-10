@@ -37,7 +37,7 @@ enum class EXIDeviceType : int
   EthernetXLink,
   // Only used on Apple devices.
   EthernetTapServer,
-  BuiltIn,
+  EthernetBuiltIn,
   None = 0xFF
 };
 
@@ -80,7 +80,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(EXIDeviceType device_type, int chan
 
 template <>
 struct fmt::formatter<ExpansionInterface::EXIDeviceType>
-    : EnumFormatter<ExpansionInterface::EXIDeviceType::BuiltIn>
+    : EnumFormatter<ExpansionInterface::EXIDeviceType::EthernetBuiltIn>
 {
   static constexpr array_type names = {
       _trans("Dummy"),

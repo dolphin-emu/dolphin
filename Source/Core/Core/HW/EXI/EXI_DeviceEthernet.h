@@ -15,6 +15,7 @@
 
 #include <mutex>
 #include "Common/Flag.h"
+#include <Common/Network.h>
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -203,10 +204,10 @@ enum class BBADeviceType
 {
   TAP,
   XLINK,
-  BuiltIn,
 #if defined(__APPLE__)
   TAPSERVER,
 #endif
+  BuiltIn,
 };
 
 class CEXIETHERNET : public IEXIDevice
@@ -447,25 +448,26 @@ private:
     bool isSent = false;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    sf::UdpSocket udp_socket[10];
-    sf::TcpSocket tcp_socket[10];  // max 10 at same time, i think most gc game had a limit of 8 in
-                                   // the gc framework
-    StackRef NetRef[10]{};
+    StackRef network_ref[10]{};  // max 10 at same time, i think most gc game had a limit of 8 in
+                                 // the gc framework
     char m_in_frame[9004]{};
     char m_out_frame[9004]{};
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(BuiltInBBAInterface* self);
-    const u8 fake_mac[6] = {0, 9, 33, 45, 66, 44};
+    Common::MACAddress fake_mac{};
 #endif
     void WriteToQueue(char* data, int length);
-    void HandleARP(net_hw_lvl* hwdata, net_arp_lvl* arpdata);
-    void HandleDHCP(net_hw_lvl* hwdata, net_udp_lvl* udpdata, net_dhcp* request);
+    void HandleARP(Common::EthernetHeader* hwdata, Common::ARPHeader* arpdata);
+    void HandleDHCP(Common::EthernetHeader* hwdata, Common::UDPHeader* udpdata,
+                    Common::DHCPBody* request);
     u8 GetAvaibleSlot(u16 port);
     int GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
-    int BuildFINFrame(char* buf, bool ack, int i);
-    void HandleTCPFrame(net_hw_lvl* hwdata, net_ipv4_lvl* ipdata, net_tcp_lvl* tcpdata, char* data);
+    void HandleTCPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
+                        Common::TCPHeader* tcpdata, char* data);
+    void HandleUDPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
+                        Common::UDPHeader* udpdata, char* data);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;

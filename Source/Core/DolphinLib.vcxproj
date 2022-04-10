@@ -28,10 +28,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\HW\EXI\BBA\BuiltIn.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Core\HW\EXI\BBA\BuiltIn.h" />
     <ClCompile Include="InputCommon\ControllerInterface\WGInput\WGInput.cpp" />
   </ItemGroup>
   <ItemGroup>
