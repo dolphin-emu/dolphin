@@ -89,7 +89,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       {
         // Metal doesn't support a single unified variable for both input and output,
         // so when using framebuffer fetch, we declare the input separately below.
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {}};\n",
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
                   use_framebuffer_fetch ? "real_ocol0" : "ocol0");
       }
 
