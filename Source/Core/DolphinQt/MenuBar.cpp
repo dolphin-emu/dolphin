@@ -139,19 +139,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_jit_interpreter_core->setEnabled(running);
   m_jit_block_linking->setEnabled(!running);
   m_jit_disable_cache->setEnabled(!running);
-  m_jit_disable_fastmem->setEnabled(!running);
   m_jit_clear_cache->setEnabled(running);
   m_jit_log_coverage->setEnabled(!running);
   m_jit_search_instruction->setEnabled(running);
-
-  for (QAction* action :
-       {m_jit_off, m_jit_loadstore_off, m_jit_loadstore_lbzx_off, m_jit_loadstore_lxz_off,
-        m_jit_loadstore_lwz_off, m_jit_loadstore_floating_off, m_jit_loadstore_paired_off,
-        m_jit_floatingpoint_off, m_jit_integer_off, m_jit_paired_off, m_jit_systemregisters_off,
-        m_jit_branch_off, m_jit_register_cache_off})
-  {
-    action->setEnabled(running && !playing);
-  }
 
   // Symbols
   m_symbols->setEnabled(running);
