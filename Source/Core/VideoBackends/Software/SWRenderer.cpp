@@ -20,6 +20,7 @@
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -132,6 +133,27 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 
     // rgba to argb
     value = (color >> 8) | (color & 0xff) << 24;
+
+    // check what to do with the alpha channel (GX_PokeAlphaRead)
+    PixelEngine::AlphaReadMode alpha_read_mode = PixelEngine::GetAlphaReadMode();
+
+    if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadNone)
+    {
+      // value is OK as it is
+    }
+    else if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadFF)
+    {
+      value |= 0xFF000000;
+    }
+    else
+    {
+      if (alpha_read_mode != PixelEngine::AlphaReadMode::Read00)
+      {
+        PanicAlertFmt("Invalid PE alpha read mode: {}", static_cast<u16>(alpha_read_mode));
+      }
+      value &= 0x00FFFFFF;
+    }
+
     break;
   }
   default:

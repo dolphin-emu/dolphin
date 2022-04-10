@@ -73,6 +73,7 @@ void VideoConfig::Refresh()
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
+  sDumpPixelFormat = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
   sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
   sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
   iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
@@ -134,7 +135,7 @@ void VideoConfig::Refresh()
   bSkipPresentingDuplicateXFBs = Config::Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
   bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
-  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
+  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   iMissingColorValue = Config::Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
   bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);

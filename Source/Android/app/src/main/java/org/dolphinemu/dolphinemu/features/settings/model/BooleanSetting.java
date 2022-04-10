@@ -42,6 +42,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   MAIN_DSP_JIT(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "EnableJIT", true),
 
+  MAIN_EXPAND_TO_CUTOUT_AREA(Settings.FILE_DOLPHIN, Settings.SECTION_INI_INTERFACE,
+          "ExpandToCutoutArea", false),
   MAIN_USE_PANIC_HANDLERS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_INTERFACE,
           "UsePanicHandlers", true),
   MAIN_OSD_MESSAGES(Settings.FILE_DOLPHIN, Settings.SECTION_INI_INTERFACE,
@@ -225,7 +227,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   GFX_HACK_COPY_EFB_SCALED(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "EFBScaledCopy", true),
   GFX_HACK_EFB_EMULATE_FORMAT_CHANGES(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
           "EFBEmulateFormatChanges", false),
-  GFX_HACK_VERTEX_ROUDING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "VertexRounding", false),
+  GFX_HACK_VERTEX_ROUNDING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS, "VertexRounding", false),
   GFX_HACK_FAST_TEXTURE_SAMPLING(Settings.FILE_GFX, Settings.SECTION_GFX_HACKS,
           "FastTextureSampling", true),
 

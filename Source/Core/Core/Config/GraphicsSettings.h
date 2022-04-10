@@ -45,6 +45,7 @@ extern const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES;
 extern const Info<bool> GFX_USE_FFV1;
 extern const Info<std::string> GFX_DUMP_FORMAT;
 extern const Info<std::string> GFX_DUMP_CODEC;
+extern const Info<std::string> GFX_DUMP_PIXEL_FORMAT;
 extern const Info<std::string> GFX_DUMP_ENCODER;
 extern const Info<std::string> GFX_DUMP_PATH;
 extern const Info<int> GFX_BITRATE_KBPS;
@@ -122,7 +123,7 @@ extern const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS;
 extern const Info<bool> GFX_HACK_EARLY_XFB_OUTPUT;
 extern const Info<bool> GFX_HACK_COPY_EFB_SCALED;
 extern const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
-extern const Info<bool> GFX_HACK_VERTEX_ROUDING;
+extern const Info<bool> GFX_HACK_VERTEX_ROUNDING;
 extern const Info<u32> GFX_HACK_MISSING_COLOR_VALUE;
 extern const Info<bool> GFX_HACK_FAST_TEXTURE_SAMPLING;
 

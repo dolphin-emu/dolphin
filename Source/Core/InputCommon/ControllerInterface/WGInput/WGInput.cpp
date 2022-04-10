@@ -12,11 +12,17 @@
 #include <windows.gaming.input.h>
 #include <wrl.h>
 
+#include "Common/DynamicLibrary.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#pragma comment(lib, "runtimeobject.lib")
+using PIsApiSetImplemented = BOOL(APIENTRY*)(PCSTR Contract);
+using PRoInitialize = decltype(&RoInitialize);
+using PRoUninitialize = decltype(&RoUninitialize);
+using PRoGetActivationFactory = decltype(&RoGetActivationFactory);
+using PWindowsCreateStringReference = decltype(&WindowsCreateStringReference);
+using PWindowsGetStringRawBuffer = decltype(&WindowsGetStringRawBuffer);
 
 namespace WGI = ABI::Windows::Gaming::Input;
 using ABI::Windows::Foundation::Collections::IVectorView;
@@ -26,6 +32,11 @@ namespace
 {
 bool g_runtime_initialized = false;
 bool g_runtime_needs_deinit = false;
+PRoInitialize g_RoInitialize_address = nullptr;
+PRoUninitialize g_RoUninitialize_address = nullptr;
+PRoGetActivationFactory g_RoGetActivationFactory_address = nullptr;
+PWindowsCreateStringReference g_WindowsCreateStringReference_address = nullptr;
+PWindowsGetStringRawBuffer g_WindowsGetStringRawBuffer_address = nullptr;
 }  // namespace
 
 namespace ciface::WGInput
@@ -571,12 +582,77 @@ private:
   ControlState m_battery_level = 0;
 };
 
+static bool LoadFunctionPointers()
+{
+  static Common::DynamicLibrary winrt_l1_1_0_handle;
+  static Common::DynamicLibrary winrt_string_l1_1_0_handle;
+  if (!winrt_l1_1_0_handle.IsOpen() && !winrt_string_l1_1_0_handle.IsOpen())
+  {
+    Common::DynamicLibrary kernelBase("KernelBase.dll");
+    if (!kernelBase.IsOpen())
+      return false;
+
+    void* const IsApiSetImplemented_address = kernelBase.GetSymbolAddress("IsApiSetImplemented");
+    if (!IsApiSetImplemented_address)
+      return false;
+    if (!static_cast<PIsApiSetImplemented>(IsApiSetImplemented_address)(
+            "api-ms-win-core-winrt-l1-1-0"))
+    {
+      return false;
+    }
+    if (!static_cast<PIsApiSetImplemented>(IsApiSetImplemented_address)(
+            "api-ms-win-core-winrt-string-l1-1-0"))
+    {
+      return false;
+    }
+
+    winrt_l1_1_0_handle.Open("api-ms-win-core-winrt-l1-1-0.dll");
+    winrt_string_l1_1_0_handle.Open("api-ms-win-core-winrt-string-l1-1-0.dll");
+  }
+
+  if (!winrt_l1_1_0_handle.IsOpen() || !winrt_string_l1_1_0_handle.IsOpen())
+    return false;
+
+  g_RoInitialize_address =
+      static_cast<PRoInitialize>(winrt_l1_1_0_handle.GetSymbolAddress("RoInitialize"));
+  if (!g_RoInitialize_address)
+    return false;
+
+  g_RoUninitialize_address =
+      static_cast<PRoUninitialize>(winrt_l1_1_0_handle.GetSymbolAddress("RoUninitialize"));
+  if (!g_RoUninitialize_address)
+    return false;
+
+  g_RoGetActivationFactory_address = static_cast<PRoGetActivationFactory>(
+      winrt_l1_1_0_handle.GetSymbolAddress("RoGetActivationFactory"));
+  if (!g_RoGetActivationFactory_address)
+    return false;
+
+  g_WindowsCreateStringReference_address = static_cast<PWindowsCreateStringReference>(
+      winrt_string_l1_1_0_handle.GetSymbolAddress("WindowsCreateStringReference"));
+  if (!g_WindowsCreateStringReference_address)
+    return false;
+
+  g_WindowsGetStringRawBuffer_address = static_cast<PWindowsGetStringRawBuffer>(
+      winrt_string_l1_1_0_handle.GetSymbolAddress("WindowsGetStringRawBuffer"));
+  if (!g_WindowsGetStringRawBuffer_address)
+    return false;
+
+  return true;
+}
+
 void Init()
 {
   if (g_runtime_initialized)
     return;
 
-  const HRESULT hr = RoInitialize(RO_INIT_MULTITHREADED);
+  if (!LoadFunctionPointers())
+  {
+    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: System lacks support, skipping init.");
+    return;
+  }
+
+  const HRESULT hr = g_RoInitialize_address(RO_INIT_MULTITHREADED);
   switch (hr)
   {
   case S_OK:
@@ -602,11 +678,19 @@ void DeInit()
 
   if (g_runtime_needs_deinit)
   {
-    RoUninitialize();
+    g_RoUninitialize_address();
     g_runtime_needs_deinit = false;
   }
 
   g_runtime_initialized = false;
+}
+
+template <unsigned int size>
+static HRESULT WindowsCreateStringReferenceAutoSizeWrapper(wchar_t const (&source_string)[size],
+                                                           HSTRING_HEADER* hstring_header,
+                                                           HSTRING* hstring)
+{
+  return g_WindowsCreateStringReference_address(source_string, size - 1, hstring_header, hstring);
 }
 
 void PopulateDevices()
@@ -617,8 +701,6 @@ void PopulateDevices()
   g_controller_interface.RemoveDevice(
       [](const auto* dev) { return dev->GetSource() == SOURCE_NAME; });
 
-  using Microsoft::WRL::Wrappers::HStringReference;
-
   // WGI Interfaces to potentially use:
   // Gamepad: Buttons, 2x Sticks and 2x Triggers, 4x Vibration Motors
   // RawGameController: Buttons, Switches (Hats), Axes, Haptics
@@ -628,18 +710,36 @@ void PopulateDevices()
   // RacingWheel: Buttons, Clutch, Handbrake, PatternShifterGear, Throttle, Wheel, WheelMotor
   // UINavigationController: Directions, Scrolling, etc.
 
+  HSTRING_HEADER header_raw_game_controller;
+  HSTRING hstr_raw_game_controller;
+  if (FAILED(WindowsCreateStringReferenceAutoSizeWrapper(L"Windows.Gaming.Input.RawGameController",
+                                                         &header_raw_game_controller,
+                                                         &hstr_raw_game_controller)))
+  {
+    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to create string reference.");
+    return;
+  }
+
+  HSTRING_HEADER header_gamepad;
+  HSTRING hstr_gamepad;
+  if (FAILED(WindowsCreateStringReferenceAutoSizeWrapper(L"Windows.Gaming.Input.Gamepad",
+                                                         &header_gamepad, &hstr_gamepad)))
+  {
+    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to create string reference.");
+    return;
+  }
+
   ComPtr<WGI::IRawGameControllerStatics> raw_stats;
-  if (FAILED(
-          RoGetActivationFactory(HStringReference(L"Windows.Gaming.Input.RawGameController").Get(),
-                                 __uuidof(WGI::IRawGameControllerStatics), &raw_stats)))
+  if (FAILED(g_RoGetActivationFactory_address(
+          hstr_raw_game_controller, __uuidof(WGI::IRawGameControllerStatics), &raw_stats)))
   {
     ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get IRawGameControllerStatics.");
     return;
   }
 
   ComPtr<WGI::IGamepadStatics2> gamepad_stats;
-  if (FAILED(RoGetActivationFactory(HStringReference(L"Windows.Gaming.Input.Gamepad").Get(),
-                                    __uuidof(WGI::IGamepadStatics2), &gamepad_stats)))
+  if (FAILED(g_RoGetActivationFactory_address(hstr_gamepad, __uuidof(WGI::IGamepadStatics2),
+                                              &gamepad_stats)))
   {
     ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get IGamepadStatics2.");
     return;
@@ -667,7 +767,10 @@ void PopulateDevices()
       {
         HSTRING hstr = {};
         if (SUCCEEDED(rgc2->get_DisplayName(&hstr)) && hstr)
-          device_name = StripSpaces(WStringToUTF8(WindowsGetStringRawBuffer(hstr, nullptr)));
+        {
+          device_name =
+              StripSpaces(WStringToUTF8(g_WindowsGetStringRawBuffer_address(hstr, nullptr)));
+        }
       }
 
       if (device_name.empty())

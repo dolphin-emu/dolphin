@@ -155,8 +155,6 @@
     <string name="fallback_region">Fallback Region</string>
     <string name="enable_save_states">Enable Savestates</string>
     <string name="enable_save_states_description">WARNING: Savestates may not be compatible with future versions of Dolphin and can make it impossible to create normal saves in some cases. Never use savestates as the only way of saving your progress.</string>
-    <string name="lock_emulation_landscape">Lock screen to landscape</string>
-    <string name="lock_emulation_landscape_desc">Some touch controls will require additional tweaking if played in portrait</string>
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="analytics_new_id">Generate a New Statistics Identity</string>
@@ -165,6 +163,8 @@
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
     <string name="emulation_screen_orientation">Screen Orientation During Emulation</string>
+    <string name="expand_to_cutout_area">Expand to Cutout Area</string>
+    <string name="expand_to_cutout_area_description">Expands the display area to include the cutout (or notch) area.</string>
     <string name="panic_handlers">Use Panic Handlers</string>
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
@@ -287,7 +287,7 @@
     <string name="disable_bbox">Disable Bounding Box</string>
     <string name="disable_bbox_description">Disables bounding box emulation. This may improve GPU performance significantly, but some games will break. If unsure, leave this checked.</string>
     <string name="vertex_rounding">Vertex Rounding</string>
-    <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
+    <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
     <string name="texture_cache_to_state">Save Texture Cache to State</string>
     <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
@@ -433,6 +433,7 @@
     <string name="properties_start_with_riivolution">Start with Riivolution Patches</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
     <string name="properties_convert">Convert File</string>
+    <string name="properties_system_update">Perform System Update</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>
     <string name="properties_edit_cheats">Edit Cheats</string>
     <string name="properties_clear_game_settings">Clear Game Settings and Cheats</string>

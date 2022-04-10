@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.SparseIntArray;
@@ -17,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -372,6 +374,19 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onResume()
   {
     super.onResume();
+
+    // Only android 9+ support this feature.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+    {
+      WindowManager.LayoutParams attributes = getWindow().getAttributes();
+
+      attributes.layoutInDisplayCutoutMode =
+              BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA.getBoolean(mSettings) ?
+                      WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES :
+                      WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+
+      getWindow().setAttributes(attributes);
+    }
 
     updateOrientation();
 
@@ -864,13 +879,18 @@ public final class EmulationActivity extends AppCompatActivity
     int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
             R.array.doubleTapWithClassic : R.array.doubleTap;
 
-    if (currentController != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
-            currentValue == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
+    int checkedItem = -1;
+    int itemCount = getResources().getStringArray(buttonList).length;
+    for (int i = 0; i < itemCount; i++)
     {
-      currentValue = InputOverlay.OVERLAY_WIIMOTE;
+      if (InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(i) == currentValue)
+      {
+        checkedItem = i;
+        break;
+      }
     }
 
-    builder.setSingleChoiceItems(buttonList, currentValue,
+    builder.setSingleChoiceItems(buttonList, checkedItem,
             (DialogInterface dialog, int which) -> IntSetting.MAIN_DOUBLE_TAP_BUTTON
                     .setInt(mSettings, InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
 

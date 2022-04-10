@@ -80,6 +80,22 @@ void GenericLog(LogLevel level, LogType type, const char* file, int line, const 
   instance->Log(level, type, file, line, message);
 }
 
+void GenericLogV(LogLevel level, LogType type, const char* file, int line, const char* fmt,
+                 va_list args)
+{
+  auto* instance = LogManager::GetInstance();
+  if (instance == nullptr)
+    return;
+
+  if (!instance->IsEnabled(type, level))
+    return;
+
+  char message[MAX_MSGLEN];
+  CharArrayFromFormatV(message, MAX_MSGLEN, fmt, args);
+
+  instance->Log(level, type, file, line, message);
+}
+
 void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
                        fmt::string_view format, const fmt::format_args& args)
 {

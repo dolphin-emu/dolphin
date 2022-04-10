@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
-import org.dolphinemu.dolphinemu.features.sysupdate.ui.OnlineUpdateProgressBarDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateProgressBarDialogFragment;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
@@ -280,11 +280,7 @@ public final class MainPresenter
       SystemUpdateViewModel viewModel =
               new ViewModelProvider(mActivity).get(SystemUpdateViewModel.class);
       viewModel.setRegion(-1);
-      OnlineUpdateProgressBarDialogFragment progressBarFragment =
-              new OnlineUpdateProgressBarDialogFragment();
-      progressBarFragment
-              .show(mActivity.getSupportFragmentManager(), "OnlineUpdateProgressBarDialogFragment");
-      progressBarFragment.setCancelable(false);
+      launchUpdateProgressBarFragment(mActivity);
     }
     else
     {
@@ -293,6 +289,23 @@ public final class MainPresenter
       dialogFragment
               .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
     }
+  }
+
+  public static void launchDiscUpdate(String path, FragmentActivity activity)
+  {
+    SystemUpdateViewModel viewModel =
+            new ViewModelProvider(activity).get(SystemUpdateViewModel.class);
+    viewModel.setDiscPath(path);
+    launchUpdateProgressBarFragment(activity);
+  }
+
+  private static void launchUpdateProgressBarFragment(FragmentActivity activity)
+  {
+    SystemUpdateProgressBarDialogFragment progressBarFragment =
+            new SystemUpdateProgressBarDialogFragment();
+    progressBarFragment
+            .show(activity.getSupportFragmentManager(), "SystemUpdateProgressBarDialogFragment");
+    progressBarFragment.setCancelable(false);
   }
 
   private void launchWiiSystemMenu()

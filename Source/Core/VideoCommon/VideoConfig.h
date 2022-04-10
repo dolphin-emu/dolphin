@@ -102,6 +102,7 @@ struct VideoConfig final
   bool bDumpFramesAsImages = false;
   bool bUseFFV1 = false;
   std::string sDumpCodec;
+  std::string sDumpPixelFormat;
   std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;

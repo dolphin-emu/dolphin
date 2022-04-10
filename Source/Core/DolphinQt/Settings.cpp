@@ -606,6 +606,7 @@ void Settings::SetDebugFont(QFont font)
 QFont Settings::GetDebugFont() const
 {
   QFont default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+  default_font.setPointSizeF(9.0);
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }

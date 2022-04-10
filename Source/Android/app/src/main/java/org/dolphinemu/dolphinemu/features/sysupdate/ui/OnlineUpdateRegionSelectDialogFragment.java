@@ -31,8 +31,8 @@ public class OnlineUpdateRegionSelectDialogFragment extends DialogFragment
                       new ViewModelProvider(requireActivity()).get(SystemUpdateViewModel.class);
               viewModel.setRegion(which);
 
-              OnlineUpdateProgressBarDialogFragment progressBarFragment =
-                      new OnlineUpdateProgressBarDialogFragment();
+              SystemUpdateProgressBarDialogFragment progressBarFragment =
+                      new SystemUpdateProgressBarDialogFragment();
               progressBarFragment
                       .show(getParentFragmentManager(), "OnlineUpdateProgressBarDialogFragment");
               progressBarFragment.setCancelable(false);
