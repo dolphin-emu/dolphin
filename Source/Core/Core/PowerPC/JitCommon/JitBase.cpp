@@ -119,8 +119,6 @@ void JitBase::RefreshConfig()
   for (const auto& [member, config_info] : JIT_SETTINGS)
     this->*member = Config::Get(*config_info);
 
-  m_mmu_enabled = m_system.IsMMUMode();
-  m_pause_on_panic_enabled = m_system.IsPauseOnPanicMode();
   if (m_accurate_cpu_cache_enabled)
   {
     m_fastmem_enabled = false;
@@ -135,7 +133,7 @@ void JitBase::RefreshConfig()
 
   bool any_watchpoints = m_system.GetPowerPC().GetMemChecks().HasAny();
   jo.fastmem = m_fastmem_enabled && jo.fastmem_arena && (m_ppc_state.msr.DR || !any_watchpoints);
-  jo.memcheck = m_mmu_enabled || m_pause_on_panic_enabled || any_watchpoints;
+  jo.memcheck = m_system.IsMMUMode() || m_system.IsPauseOnPanicMode() || any_watchpoints;
   jo.fp_exceptions = m_enable_float_exceptions;
   jo.div_by_zero_exceptions = m_enable_div_by_zero_exceptions;
 }

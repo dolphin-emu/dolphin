@@ -49,7 +49,7 @@ void JitArm64::Init()
 {
   RefreshConfig();
 
-  const size_t child_code_size = m_mmu_enabled ? FARCODE_SIZE_MMU : FARCODE_SIZE;
+  const size_t child_code_size = jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&m_far_code, child_code_size);
 
