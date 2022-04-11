@@ -373,6 +373,12 @@ void StatTracker::lookForTriggerEvents(){
                 jsonPath = getStatJsonPath("");
                 json = getStatJSON(false);
 
+                //Clean up partial files
+                std::string jsonPath = getStatJsonPath("partial.");
+                File::Delete(jsonPath);
+                std::string jsonPath = getStatJsonPath("partial.decoded.");
+                File::Delete(jsonPath);
+
                 File::WriteStringToFile(jsonPath, json);
                 std::cout << "Logging to " << jsonPath << std::endl;
 

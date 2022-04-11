@@ -906,6 +906,13 @@ public:
             json = getStatJSON(false);
             
             File::WriteStringToFile(jsonPath, json);
+
+            //Clean up partial files
+            std::string jsonPath = getStatJsonPath("partial.");
+            File::Delete(jsonPath);
+            std::string jsonPath = getStatJsonPath("partial.decoded.");
+            File::Delete(jsonPath);
+
             init();
         }
     }
