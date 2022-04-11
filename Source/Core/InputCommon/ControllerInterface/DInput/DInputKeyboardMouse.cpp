@@ -24,6 +24,10 @@
 
 namespace ciface::DInput
 {
+// Sage 4/11/2022: I knew adding the varaibles below into the global variable space was
+//                 a bad idea when I did it. I have no clue how to do what I needed
+//                 to do and keep these variables out of the global scope since they
+//                 need to be accessed in GCPadEmu.cpp without an instance of
 extern double cursor_sensitivity = 2.0;
 extern unsigned char center_mouse_key = 0xFF;
 extern double snapping_distance = 0.0;
@@ -72,7 +76,7 @@ void Load_Keyboard_and_Mouse_Settings()
   IniFile::Section* section = inifile.GetOrCreateSection("MouseAndKeyboardSettings");
 
   // Sage 3/26/2022: The extra faffing about with the string instead of reading it in with a default
-  // value was added because Inifile doesn't support chars as numbers for some reason.
+  //                 value was added because Inifile doesn't support chars as numbers.
   if (section->Exists("CenterMouseKey"))
   {
     std::string center_mouse_key_string{};
@@ -253,10 +257,11 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
 static std::array<POINT, 8> GenerateOctagonPoints()
 {
   std::array<POINT, 8> octagon_points;
-  // the enum which addresses the octagon_points is in the header if you need the actual value of
-  // the enum
+
   double fraction_of_screen_to_lock_mouse_in_x = screen_width / (cursor_sensitivity * screen_ratio);
   double fraction_of_screen_to_lock_mouse_in_y = screen_height / cursor_sensitivity;
+
+  // Sage 4/11/2022:
   // I did my best to make sure this as close to the actual gamecube octagonal gates using desmos,
   // but there definitely could be a mathmatical way to make these better
   //
@@ -264,10 +269,11 @@ static std::array<POINT, 8> GenerateOctagonPoints()
   // 0.75 so I am inclined to believe them.
   constexpr double percentage_reduction_for_corner_gates = 0.7;
 
+  // Sage 4/11/2022:
   // Southernmost point is cardinal direction and we want to make sure we're inputting the maximum
   // value in the negative Y direction so we floor the calculation to make sure the point the mouse
   // gets held in is the max-value cardinal direction. erring on the side of too far down instead of
-  // not far enough. This will be repeated for the cardinal directions.
+  // not far enough. Erring on the side of too far will be repeated for the cardinal directions.
   octagon_points[NORTH] =
       POINT{center_of_screen.x,
             static_cast<long>(floor(center_of_screen.y - fraction_of_screen_to_lock_mouse_in_y))};
@@ -313,12 +319,13 @@ static std::array<POINT, 8> GenerateOctagonPoints()
 static bool IsPointInsideOctagon(const POINT& mouse_point,
                                  const std::array<POINT, 8>& octagon_points)
 {
-  // This function uses the raycasting method to figure out if it's inside the octagon
-  // casting a ray horizontally in one direction from the mouse point and if the
-  // casted ray intersects with the edges of the octagon an even number of times (0 counts)
-  // the point is outside of the octagon. If the ray intersects an odd number of times, the
-  // ray is inside of the polygon. Jordan Curve Thereom is the name I was told
-  // https://erich.realtimerendering.com/ptinpoly/
+  // Sage 4/11/2022
+  //  This function uses the raycasting method to figure out if it's inside the octagon
+  //  casting a ray horizontally in one direction from the mouse point and if the
+  //  casted ray intersects with the edges of the octagon an even number of times (0 counts)
+  //  the point is outside of the octagon. If the ray intersects an odd number of times, the
+  //  ray is inside of the polygon. Jordan Curve Thereom is the name I was told
+  //  https://erich.realtimerendering.com/ptinpoly/
   unsigned int number_of_intersections = 0;
 
   for (int i = 0; i < 8; i++)
@@ -368,6 +375,7 @@ static bool IsPointInsideOctagon(const POINT& mouse_point,
 
 static double CalculateDistanceBetweenPoints(const POINT& first_point, const POINT& second_point)
 {
+  // Sage 4/11/2022:
   // Pythagorean theoreom used to calculate the distance between points
   // the hypotenuse of the right triangle is the distance.
   // the x_difference and y_difference are the two legs of the triangle.
@@ -472,18 +480,11 @@ static long FindSecondLinePoint(const POINT& mouse_point,
   return 0;
 }
 
-static void MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 8>& octagon_points)
+static void SnapMouseToJail(POINT& mouse_point, const std::array<POINT, 8>& octagon_points)
 {
-  // Sage 4/2/2022: Gameplan is to move the mouse towards the nearest gate if the distance the mouse
-  // is outside of the octagon is large enough to overcome friction.The amount the mouse will move
-  // towards the gate will be the distance outside of the octagon minus friction. This is to
-  // simulate the force required to get a real stick into gates while keeping the ability to hit the
-  // values in between gates consistently. If the distance outside of the octagon is not large
-  // enough to overcome friction, the mouse will get moved to the closest point inside of the
-  // octagon. This is almost always going to be directly on the line between octagon points. I may
-  // need to bring the mouse a tiny bit inside of the octagon instead of directly on the nearest
-  // line if the section of the code that determines whether or not the mouse is inside of the
-  // octagon struggles with the mouse_point being directly on the line.
+  // Sage 4/11/2022: Snaps to the edge of the jail in almost all cases. Exception is if
+  //                 the mouse is within the snapping distance of an octagon_point.
+
   std::array<long, 8> distance_to_octagon_points = {};
   for (int i = 0; i < 8; i++)
   {
@@ -551,16 +552,6 @@ static void MoveMousePointAlongGate(POINT& mouse_point, const std::array<POINT, 
 
 static void LockMouseInJail(POINT& mouse_point)
 {
-  // Sage 3/30/2022: Locks the mouse into an octagon (like the case on a real controller)
-  //                 The plan to make the octagonal locking happen is to rotate the point so
-  //                 four octagon edges mark the top, bottom, and sides of the octagon
-  //                 (try to make one of the flat edges on a real controller the bottom instead
-  //                 of the notch). Then the octagon is just a square with its corners cut off.
-  //                 So, we generate a square and cut the corners of the square off in order
-  //                 to make the octagon. Then we check if the point is in those corners that were
-  //                 cut off and if it is,we move it towardsthe center until it is inside the
-  //                 octagon.
-
   std::array<POINT, 8> octagon_points = GenerateOctagonPoints();
 
   if (IsPointInsideOctagon(mouse_point, octagon_points))
@@ -569,7 +560,7 @@ static void LockMouseInJail(POINT& mouse_point)
   }
   else
   {
-    MoveMousePointAlongGate(mouse_point, octagon_points);
+    SnapMouseToJail(mouse_point, octagon_points);
   }
 }
 
