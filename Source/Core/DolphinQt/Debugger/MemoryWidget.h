@@ -73,6 +73,7 @@ private:
   void OnFindPreviousValue();
 
   void OnSetValue();
+  void OnSetValueFromFile();
 
   void OnDumpMRAM();
   void OnDumpExRAM();
@@ -95,6 +96,7 @@ private:
   QCheckBox* m_base_check;
   QLabel* m_data_preview;
   QPushButton* m_set_value;
+  QPushButton* m_from_file;
   QPushButton* m_dump_mram;
   QPushButton* m_dump_exram;
   QPushButton* m_dump_aram;
