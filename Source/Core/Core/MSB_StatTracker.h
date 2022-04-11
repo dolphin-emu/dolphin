@@ -9,6 +9,9 @@
 #include <iostream>
 #include "Core/HW/Memmap.h"
 
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+
 #include "Core/LocalPlayers.h"
 
 enum class GAME_STATE
@@ -158,18 +161,16 @@ static const std::map<u8, std::string> cPosition = {
 
 static const std::map<u8, std::string> cFielderActions = {
     {0, "None"},
-    {1, "Jump"},
+    {1, "???"},
     {2, "Sliding"},
     {3, "Walljump"},
-    {0x20, "???"},
-    {0xFE, "Inv-jump"},
-    {0xFF, "Inv-action"}
+    {0x11, "Jump"}
 };
 
 static const std::map<u8, std::string> cFielderBobbles = {
     {0, "None"},
     {1, "Slide/stun lock"},
-    {2, "Unknown"},
+    {2, "Fumble"},
     {3, "Bobble"},
     {4, "Fireball"},
     {0x10, "Garlic knockout"},
@@ -208,7 +209,8 @@ static const std::map<u8, std::string> cPrimaryContactResult = {
     {0, "Out"},
     {1, "Foul"},
     {2, "Fair"},
-    {3, "Unknown"},
+    {3, "Fielded"},
+    {4, "Unknown"},
 };
 
 static const std::map<u8, std::string> cSecondaryContactResult = {
@@ -287,6 +289,7 @@ static const u32 aInGame_CharAttributes_BattingHand  = 0x80353C07;
 //Addrs for DefensiveStats
 static const u32 aPitcher_BattersFaced      = 0x803535C9;
 static const u32 aPitcher_RunsAllowed       = 0x803535CA;
+static const u32 aPitcher_EarnedRuns        = 0x803535CC;
 static const u32 aPitcher_BattersWalked     = 0x803535CE;
 static const u32 aPitcher_BattersHit        = 0x803535D0;
 static const u32 aPitcher_HitsAllowed       = 0x803535D2;
@@ -380,6 +383,10 @@ static const u32 aAB_StarSwing      = 0x808909B4;
 static const u32 aAB_MoonShot       = 0x808909B5;
 static const u32 aAB_TypeOfContact  = 0x808909A2; //0=Sour, 1=Nice, 2=Perfect, 3=Nice, 4=Sour
 static const u32 aAB_RBI            = 0x80892962; //RBI for the AB
+
+static const u32 aAB_ControlStickInput = 0x8089392C; //P1
+static const u8 cControl_Offset = 0x10;
+
 //At-Bat Miss
 static const u32 aAB_Miss_SwingOrBunt = 0x808909A9; //(0=NoSwing, 1=Swing, 2=Bunt)
 static const u32 aAB_Miss_AnyStrike = 0x80890B17;
@@ -441,6 +448,7 @@ public:
     struct EndGameRosterDefensiveStats{
         u8  batters_faced;
         u16 runs_allowed;
+        u16 earned_runs;
         u16 batters_walked;
         u16 batters_hit;
         u16 hits_allowed;
@@ -504,7 +512,8 @@ public:
         u8 fielder_pos;
         u8 fielder_char_id;
         u8 fielder_swapped_for_batter;
-        u8 fielder_action; //1=jump, 2=slide, 3=walljump
+        u8 fielder_action; //2=slide, 3=walljump
+        u8 fielder_jump; //1=Jump
         u32 fielder_x_pos;
         u32 fielder_y_pos;
         u32 fielder_z_pos;
@@ -529,7 +538,8 @@ public:
         u32 charge_power_down;
         u8 star_swing;
         u8 moon_shot;
-        u8 input_direction;
+        u8 input_direction_push_pull;
+        u8 input_direction_stick;
         u8 batter_handedness;
         u8 hit_by_pitch;
 
@@ -553,6 +563,9 @@ public:
         u32 ball_x_pos, prev_ball_x_pos;
         u32 ball_y_pos, prev_ball_y_pos;
         u32 ball_z_pos, prev_ball_z_pos;
+
+        //More ball flight info
+        u32 ball_y_pos_max_height = 0;
 
         //Double play or more
         u8 multi_out;
@@ -674,6 +687,9 @@ public:
         //Quit?
         std::string quitter_team = "";
 
+        //Partial game. indicates this game has not been finished
+        u8 partial;
+
         //Bookkeeping
         //int pitch_num = 0;
         int event_num = 0;
@@ -751,16 +767,16 @@ public:
                 //If new position, mark changed (unless this is the first pitch of the AB (pos==0xFF))
                 //Then set new position
                 if (fielder_map[roster_loc].current_pos != pos){
-                    std::cout << " Team=" << std::to_string(team_id) << " RosterLoc:" << std::to_string(roster_loc) 
-                                << " swapped from " << cPosition.at(fielder_map[roster_loc].current_pos)
-                                << " to " << cPosition.at(pos) << std::endl; 
+                    //std::cout << " Team=" << std::to_string(team_id) << " RosterLoc:" << std::to_string(roster_loc) 
+                    //            << " swapped from " << cPosition.at(fielder_map[roster_loc].current_pos)
+                    //            << " to " << cPosition.at(pos) << std::endl; 
                     fielder_map[roster_loc].current_pos = pos; 
                 }
 
                 //Increment the number of pitches this player has seen at this position
                 ++fielder_map[roster_loc].pitch_count_by_position[pos];
-                std::cout << " Team=" << std::to_string(team_id) << " RosterLoc=" << std::to_string(roster_loc)
-                          << " Pos=" << std::to_string(pos) << "++" << std::endl; 
+                //std::cout << " Team=" << std::to_string(team_id) << " RosterLoc=" << std::to_string(roster_loc)
+                //          << " Pos=" << std::to_string(pos) << "++" << std::endl; 
             }
             return;
         }
@@ -799,6 +815,8 @@ public:
     void init(){
         //Reset all game info
         m_game_info = GameInfo();
+        m_fielder_tracker[0] = FielderTracker();
+        m_fielder_tracker[1] = FielderTracker();
 
         //Reset state machines
         m_game_state  = GAME_STATE::PREGAME;
@@ -871,4 +889,24 @@ public:
     std::string getEventJSON(u16 in_event_num, Event& in_event, bool inDecode);
     //Returns path to save json
     std::string getStatJsonPath(std::string prefix);
+
+    //If mid-game, dump game
+    void dumpGame(){
+        if (Memory::Read_U32(aGameId) != 0){
+            m_game_info.quitter_team = "Crash";
+            logGameInfo();
+
+            //Game has ended. Write file but do not submit
+            std::string jsonPath = getStatJsonPath("crash.decode.");
+            std::string json = getStatJSON(true);
+            
+            File::WriteStringToFile(jsonPath, json);
+
+            jsonPath = getStatJsonPath("quit.");
+            json = getStatJSON(false);
+            
+            File::WriteStringToFile(jsonPath, json);
+            init();
+        }
+    }
 };
