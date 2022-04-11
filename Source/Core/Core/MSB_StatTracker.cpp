@@ -96,12 +96,12 @@ void StatTracker::lookForTriggerEvents(){
                         std::string away_player_name;
                         std::string home_player_name;
                         if (m_game_info.away_port == m_game_info.team0_port) {
-                            away_player_name = m_game_info.team0_player_name;
-                            home_player_name = m_game_info.team1_player_name;
+                            away_player_name = m_game_info.team0_player.GetUsername();
+                            home_player_name = m_game_info.team1_player.GetUsername();
                         }
                         else{
-                            away_player_name = m_game_info.team1_player_name;
-                            home_player_name = m_game_info.team0_player_name;
+                            away_player_name = m_game_info.team1_player.GetUsername();
+                            home_player_name = m_game_info.team0_player.GetUsername();
                         }
 
                         std::cout << "Info:  Fielder Port=" << std::to_string(fielder_port) << ", Batter Port=" << std::to_string(batter_port) << std::endl;
@@ -790,12 +790,12 @@ std::string StatTracker::getStatJsonPath(std::string prefix){
     std::string away_player_name;
     std::string home_player_name;
     if (m_game_info.away_port == m_game_info.team0_port) {
-        away_player_name = m_game_info.team0_player_name;
-        home_player_name = m_game_info.team1_player_name;
+        away_player_name = m_game_info.team0_player.GetUsername();
+        home_player_name = m_game_info.team1_player.GetUsername();
     }
     else{
-        away_player_name = m_game_info.team1_player_name;
-        home_player_name = m_game_info.team0_player_name;
+        away_player_name = m_game_info.team1_player.GetUsername();
+        home_player_name = m_game_info.team0_player.GetUsername();
     }
 
     std::string file_name = prefix + away_player_name 
@@ -808,16 +808,8 @@ std::string StatTracker::getStatJsonPath(std::string prefix){
 }
 
 std::string StatTracker::getStatJSON(bool inDecode){
-    std::string away_player_name;
-    std::string home_player_name;
-    if (m_game_info.away_port == m_game_info.team0_port) {
-        away_player_name = m_game_info.team0_player_name;
-        home_player_name = m_game_info.team1_player_name;
-    }
-    else{
-        away_player_name = m_game_info.team1_player_name;
-        home_player_name = m_game_info.team0_player_name;
-    }
+    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUserID() : m_game_info.getAwayTeamPlayer().GetUsername();
+    std::string home_player_info = (inDecode) ? m_game_info.getHomeTeamPlayer().GetUserID() : m_game_info.getHomeTeamPlayer().GetUsername();
 
     std::stringstream json_stream;
 
@@ -828,8 +820,8 @@ std::string StatTracker::getStatJSON(bool inDecode){
     json_stream << "  \"Date\": \"" << date_time << "\"," << std::endl;
     json_stream << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
     json_stream << "  \"StadiumID\": " << decode("Stadium", m_game_info.stadium, inDecode) << "," << std::endl;
-    json_stream << "  \"Away Player\": \"" << away_player_name << "\"," << std::endl; //TODO MAKE THIS AN ID
-    json_stream << "  \"Home Player\": \"" << home_player_name << "\"," << std::endl;
+    json_stream << "  \"Away Player\": \"" << away_player_info << "\"," << std::endl; //TODO MAKE THIS AN ID
+    json_stream << "  \"Home Player\": \"" << home_player_info << "\"," << std::endl;
 
     json_stream << "  \"Away Score\": " << std::dec << m_game_info.away_score << "," << std::endl;
     json_stream << "  \"Home Score\": " << std::dec << m_game_info.home_score << "," << std::endl;
@@ -1429,36 +1421,42 @@ void StatTracker::readPlayerNames(bool local_game) {
   {
     // Player 1
     if (team0_port == 1)
-      m_game_info.team0_player_name = LocalPlayers::m_local_player_1.GetUsername();
-    else
-      m_game_info.team0_player_name = "CPU";
+        m_game_info.team0_player = LocalPlayers::m_local_player_1;
+    else {
+        m_game_info.team0_player = LocalPlayers::LocalPlayers::Player();
+        m_game_info.team0_player.username = "CPU";
+        m_game_info.team0_player.userid = "CPU";
+    }
 
     // other player
     if (team1_port == 2)
-      m_game_info.team1_player_name = LocalPlayers::m_local_player_2.GetUsername();
+        m_game_info.team1_player = LocalPlayers::m_local_player_2;
     else if (team1_port == 3)
-      m_game_info.team1_player_name = LocalPlayers::m_local_player_3.GetUsername();
+        m_game_info.team1_player = LocalPlayers::m_local_player_3;
     else if (team1_port == 4)
-      m_game_info.team1_player_name = LocalPlayers::m_local_player_4.GetUsername();
-    else
-      m_game_info.team1_player_name = "CPU";
+        m_game_info.team1_player = LocalPlayers::m_local_player_4;
+    else {
+        m_game_info.team1_player = LocalPlayers::LocalPlayers::Player();
+        m_game_info.team1_player.username = "CPU";
+        m_game_info.team1_player.userid = "CPU";
+    }
   }
 
   else
   {
-    m_game_info.team0_player_name = m_game_info.NetplayerUserInfo[team0_port].GetUsername();
-    m_game_info.team1_player_name = m_game_info.NetplayerUserInfo[team1_port].GetUsername();
+    m_game_info.team0_player = m_game_info.NetplayerUserInfo[team0_port];
+    m_game_info.team1_player = m_game_info.NetplayerUserInfo[team1_port];
   }
 }
 
 void StatTracker::setDefaultNames(bool local_game){
-    if (m_game_info.team0_port >= 5) m_game_info.team0_player_name = "CPU";
-    if (m_game_info.team1_port >= 5) m_game_info.team1_player_name = "CPU";
+    //if (m_game_info.team0_port >= 5) m_game_info.team0_player_name = "CPU";
+    //if (m_game_info.team1_port >= 5) m_game_info.team1_player_name = "CPU";
 
-    if (!local_game) {
-        if (m_game_info.team0_player_name.empty()) m_game_info.team0_player_name = "Netplayer~" + m_game_info.netplay_opponent_alias;
-        if (m_game_info.team1_player_name.empty()) m_game_info.team1_player_name = "Netplayer~" + m_game_info.netplay_opponent_alias;
-    }
+    //if (!local_game) {
+    //    if (m_game_info.team0_player.GetUsername().empty()) m_game_info.team0_player = "Netplayer~" + m_game_info.netplay_opponent_alias;
+    //    if (m_game_info.team1_player.GetUsername().empty()) m_game_info.team1_player = "Netplayer~" + m_game_info.netplay_opponent_alias;
+    //}
 }
 void StatTracker::setRankedStatus(bool inBool) {
     std::cout << "Ranked Status=" << inBool << std::endl;

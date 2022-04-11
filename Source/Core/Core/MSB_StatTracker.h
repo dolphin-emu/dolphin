@@ -133,7 +133,6 @@ static const std::map<u8, std::string> cPitchTypeToHR = {
 
 static const std::map<u8, std::string> cChargePitchTypeToHR = {
     {0, "N/A"},
-    {1, "???"},
     {2, "Slider"},
     {3, "Perfect"}
 };
@@ -161,10 +160,8 @@ static const std::map<u8, std::string> cPosition = {
 
 static const std::map<u8, std::string> cFielderActions = {
     {0, "None"},
-    {1, "???"},
     {2, "Sliding"},
     {3, "Walljump"},
-    {0x11, "Jump"}
 };
 
 static const std::map<u8, std::string> cFielderBobbles = {
@@ -222,13 +219,8 @@ static const std::map<u8, std::string> cSecondaryContactResult = {
     {0x8,  "double"},
     {0x9,  "triple"},
     {0xA,  "HR"},
-    {0xB,  "???"},
-    {0xC,  "???"},
     {0xD,  "Bunt"},
     {0xE,  "SacFly"},
-    {0xF,  "???"},
-    {0x10, "???"},
-    {0xFF, "???"},
 };
 
 static const std::map<u8, std::string> cAtBatResult = {
@@ -243,12 +235,8 @@ static const std::map<u8, std::string> cAtBatResult = {
     {0x8,  "double"},
     {0x9,  "triple"},
     {0xA,  "HR"},
-    {0xB,  "???"},
-    {0xC,  "???"},
     {0xD,  "Bunt"},
-    {0xE,  "SacFly"},
-    {0xF,  "???"},
-    {0x10, "???"},
+    {0xE,  "SacFly"}
 };
 
 //Const for structs
@@ -664,8 +652,8 @@ public:
         u8 team0_captain_roster_loc = 0xFF;
         u8 team1_captain_roster_loc = 0xFF;
 
-        std::string team0_player_name;
-        std::string team1_player_name;
+        LocalPlayers::LocalPlayers::Player team0_player;
+        LocalPlayers::LocalPlayers::Player team1_player;
         bool ranked;
         int avg_ping = 0;
         int lag_spikes = 0;
@@ -702,6 +690,23 @@ public:
         std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo;  // int is port
 
         Event& getCurrentEvent() { return events.at(event_num); }
+
+        LocalPlayers::LocalPlayers::Player getAwayTeamPlayer() { 
+            if (team0_port == away_port) {
+                return team0_player;
+            }
+            else{
+                return team1_player;
+            }
+        }
+        LocalPlayers::LocalPlayers::Player getHomeTeamPlayer() { 
+            if (team0_port == home_port) {
+                return team0_player;
+            }
+            else{
+                return team1_player;
+            }
+        }
     };
     GameInfo m_game_info;
 
