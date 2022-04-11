@@ -12,6 +12,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/EnumMap.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
@@ -522,5 +523,52 @@ std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist()
 void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
 {
   Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
+}
+
+// The reason we need this function is because some memory card code
+// expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
+DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
+{
+  if (region != DiscIO::Region::NTSC_K)
+    return region;
+
+  // GameCube has no NTSC-K region. No choice of replacement value is completely
+  // non-arbitrary, but let's go with NTSC-J since Korean GameCubes are NTSC-J.
+  return DiscIO::Region::NTSC_J;
+}
+
+const char* GetDirectoryForRegion(DiscIO::Region region)
+{
+  if (region == DiscIO::Region::Unknown)
+    region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
+
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
+    return JAP_DIR;
+
+  case DiscIO::Region::NTSC_U:
+    return USA_DIR;
+
+  case DiscIO::Region::PAL:
+    return EUR_DIR;
+
+  case DiscIO::Region::NTSC_K:
+    ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
+    return JAP_DIR;  // See ToGameCubeRegion
+
+  default:
+    ASSERT_MSG(BOOT, false, "Default case should not be reached");
+    return EUR_DIR;
+  }
+}
+
+std::string GetBootROMPath(const std::string& region_directory)
+{
+  const std::string path =
+      File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + region_directory + DIR_SEP GC_IPL;
+  if (!File::Exists(path))
+    return File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region_directory + DIR_SEP GC_IPL;
+  return path;
 }
 }  // namespace Config

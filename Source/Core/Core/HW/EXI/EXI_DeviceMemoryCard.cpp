@@ -162,8 +162,8 @@ CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_fo
   if (use_movie_folder)
     path += "Movie" DIR_SEP;
 
-  const DiscIO::Region region = SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region);
-  path = path + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+  const DiscIO::Region region = Config::ToGameCubeRegion(SConfig::GetInstance().m_region);
+  path = path + Config::GetDirectoryForRegion(region) + DIR_SEP +
          fmt::format("Card {}", s_card_short_names[card_slot]);
   return {std::move(path), !use_movie_folder};
 }
@@ -227,7 +227,7 @@ void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
   }
 
   const std::string region_dir =
-      SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
+      Config::GetDirectoryForRegion(Config::ToGameCubeRegion(SConfig::GetInstance().m_region));
   MemoryCard::CheckPath(filename, region_dir, m_card_slot);
 
   if (size_mb < Memcard::MBIT_SIZE_MEMORY_CARD_2043)
