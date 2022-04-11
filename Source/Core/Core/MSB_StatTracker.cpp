@@ -1074,6 +1074,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
                     json_stream << "            \"Fielder Action\": "          << decode("Action", fielder->fielder_action, inDecode) << "," << std::endl;
                     json_stream << "            \"Fielder Jump\": "            << std::to_string(fielder->fielder_jump) << "," << std::endl;
                     json_stream << "            \"Fielder Swap\": "            << std::to_string(fielder->fielder_swapped_for_batter) << "," << std::endl;
+                    json_stream << "            \"Fielder Manual Selected\": " << "TODO" << "," << std::endl;
                     json_stream << "            \"Fielder Position - X\": "    << floatConverter(fielder->fielder_x_pos) << "," << std::endl;
                     json_stream << "            \"Fielder Position - Y\": "    << floatConverter(fielder->fielder_y_pos) << "," << std::endl;
                     json_stream << "            \"Fielder Position - Z\": "    << floatConverter(fielder->fielder_z_pos) << "," << std::endl;
@@ -1265,6 +1266,7 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
                 json_stream << "          \"Fielder Action\": "          << decode("Action", fielder->fielder_action, inDecode) << "," << std::endl;
                 json_stream << "          \"Fielder Jump\": "            << std::to_string(fielder->fielder_jump) << "," << std::endl;
                 json_stream << "          \"Fielder Swap\": "            << std::to_string(fielder->fielder_swapped_for_batter) << "," << std::endl;
+                json_stream << "          \"Fielder Manual Selected\": " << "TODO" << "," << std::endl;
                 json_stream << "          \"Fielder Position - X\": "    << floatConverter(fielder->fielder_x_pos) << "," << std::endl;
                 json_stream << "          \"Fielder Position - Y\": "    << floatConverter(fielder->fielder_y_pos) << "," << std::endl;
                 json_stream << "          \"Fielder Position - Z\": "    << floatConverter(fielder->fielder_z_pos) << "," << std::endl;
