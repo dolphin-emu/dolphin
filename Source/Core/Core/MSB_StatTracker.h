@@ -902,15 +902,15 @@ public:
             
             File::WriteStringToFile(jsonPath, json);
 
-            jsonPath = getStatJsonPath("quit.");
+            jsonPath = getStatJsonPath("crash.");
             json = getStatJSON(false);
             
             File::WriteStringToFile(jsonPath, json);
 
             //Clean up partial files
-            std::string jsonPath = getStatJsonPath("partial.");
+            jsonPath = getStatJsonPath("partial.");
             File::Delete(jsonPath);
-            std::string jsonPath = getStatJsonPath("partial.decoded.");
+            jsonPath = getStatJsonPath("partial.decoded.");
             File::Delete(jsonPath);
 
             init();

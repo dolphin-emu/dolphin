@@ -51,9 +51,9 @@ void StatTracker::lookForTriggerEvents(){
                     File::WriteStringToFile(jsonPath, json);
 
                     //Clean up partial files
-                    std::string jsonPath = getStatJsonPath("partial.");
+                    jsonPath = getStatJsonPath("partial.");
                     File::Delete(jsonPath);
-                    std::string jsonPath = getStatJsonPath("partial.decoded.");
+                    jsonPath = getStatJsonPath("partial.decoded.");
                     File::Delete(jsonPath);
 
                     m_event_state = EVENT_STATE::GAME_OVER;
@@ -380,9 +380,9 @@ void StatTracker::lookForTriggerEvents(){
                 json = getStatJSON(false);
 
                 //Clean up partial files
-                std::string jsonPath = getStatJsonPath("partial.");
+                jsonPath = getStatJsonPath("partial.");
                 File::Delete(jsonPath);
-                std::string jsonPath = getStatJsonPath("partial.decoded.");
+                jsonPath = getStatJsonPath("partial.decoded.");
                 File::Delete(jsonPath);
 
                 File::WriteStringToFile(jsonPath, json);
@@ -768,7 +768,7 @@ void StatTracker::logFinalResults(Event& in_event){
         if (in_event.result_of_atbat >= 0x7 && in_event.result_of_atbat <= 0xF){
             //0x10 in runner_batter denotes strikeout
             contact->secondary_contact_result = in_event.result_of_atbat;
-            contact->primary_contact_result = 1; // Correct if set to foul
+            contact->primary_contact_result = 2; // Correct if set to foul
         }
         else if ((in_event.runner_batter->out_type == 2) || (in_event.runner_batter->out_type == 3)){
             contact->secondary_contact_result = in_event.runner_batter->out_type;
@@ -966,7 +966,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
         json_stream << "      \"Batter Roster Loc\": "       << std::to_string(event.batter_roster_loc) << "," << std::endl;
         json_stream << "      \"Catcher Roster Loc\": "       << std::to_string(event.catcher_roster_loc) << "," << std::endl;
         json_stream << "      \"RBI\": "                     << std::to_string(event.rbi) << "," << std::endl;
-        json_stream << "      \"Result of AB\": "            << decode("AtBatResult", event.result_of_atbat, inDecode) << std::endl;
+        json_stream << "      \"Result of AB\": "            << decode("AtBatResult", event.result_of_atbat, inDecode) << "," << std::endl;
 
         //=== Runners ===
         //Build vector of <Runner*, Label/Name>
@@ -1135,7 +1135,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
 std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool inDecode){
     std::stringstream json_stream;
 
-    if (event.inning == 0) {
+    if (in_event.inning == 0) {
         return "{}";
     }
 
