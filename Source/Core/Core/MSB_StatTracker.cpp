@@ -50,6 +50,12 @@ void StatTracker::lookForTriggerEvents(){
                     
                     File::WriteStringToFile(jsonPath, json);
 
+                    //Clean up partial files
+                    std::string jsonPath = getStatJsonPath("partial.");
+                    File::Delete(jsonPath);
+                    std::string jsonPath = getStatJsonPath("partial.decoded.");
+                    File::Delete(jsonPath);
+
                     m_event_state = EVENT_STATE::GAME_OVER;
                     init();
                     break;
@@ -831,7 +837,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
     json_stream << "  \"Innings Selected\": " << std::to_string(m_game_info.innings_selected) << "," << std::endl;
     json_stream << "  \"Innings Played\": " << std::to_string(m_game_info.innings_played) << "," << std::endl;
     json_stream << "  \"Quitter Team\": \"" << m_game_info.quitter_team << "\"," << std::endl;
-    json_stream << "  \"Partial Game\": \"" << std::to_string(m_game_info.partial) << "\"," << std::endl;
+    //json_stream << "  \"Partial Game\": \"" << std::to_string(m_game_info.partial) << "\"," << std::endl;
 
     json_stream << "  \"Average Ping\": " << std::to_string(m_game_info.avg_ping) << "," << std::endl;
     json_stream << "  \"Lag Spikes\": " << std::to_string(m_game_info.lag_spikes) << "," << std::endl;
