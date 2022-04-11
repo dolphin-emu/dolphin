@@ -12,6 +12,7 @@
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -112,6 +113,7 @@ void MemoryWidget::CreateWidgets()
   m_data_edit = new QLineEdit;
   m_base_check = new QCheckBox(tr("Hex"));
   m_set_value = new QPushButton(tr("Set &Value"));
+  m_from_file = new QPushButton(tr("Set Value From File"));
   m_data_preview = new QLabel;
 
   m_base_check->setLayoutDirection(Qt::RightToLeft);
@@ -229,6 +231,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(m_input_combo);
   sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_set_value);
+  sidebar_layout->addWidget(m_from_file);
   sidebar_layout->addItem(new QSpacerItem(1, 20));
   sidebar_layout->addWidget(m_dump_mram);
   sidebar_layout->addWidget(m_dump_exram);
@@ -271,6 +274,7 @@ void MemoryWidget::ConnectWidgets()
           &MemoryWidget::ValidateAndPreviewInputValue);
 
   connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
+  connect(m_from_file, &QPushButton::clicked, this, &MemoryWidget::OnSetValueFromFile);
 
   connect(m_dump_mram, &QPushButton::clicked, this, &MemoryWidget::OnDumpMRAM);
   connect(m_dump_exram, &QPushButton::clicked, this, &MemoryWidget::OnDumpExRAM);
@@ -685,6 +689,56 @@ void MemoryWidget::OnSetValue()
 
   for (const char c : bytes)
     accessors->WriteU8(target_addr.address++, static_cast<u8>(c));
+
+  Update();
+}
+
+void MemoryWidget::OnSetValueFromFile()
+{
+  if (!Core::IsRunning())
+    return;
+
+  auto target_addr = GetTargetAddress();
+
+  if (!target_addr.is_good_address)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad address provided."));
+    return;
+  }
+
+  if (!target_addr.is_good_offset)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Bad offset provided."));
+    return;
+  }
+
+  QString path = QFileDialog::getOpenFileName(this, tr("Select a file"), QDir::currentPath(),
+                                              tr("All files (*)"));
+  if (path.isNull())
+  {
+    return;
+  }
+
+  File::IOFile f(path.toStdString(), "rb");
+
+  if (!f)
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Unable to open file."));
+    return;
+  }
+
+  const u64 file_length = f.GetSize();
+  std::vector<u8> file_contents(file_length);
+  if (!f.ReadBytes(file_contents.data(), file_length))
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Unable to read file."));
+    return;
+  }
+
+  AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+
+  for (u8 b : file_contents)
+    accessors->WriteU8(target_addr.address++, b);
 
   Update();
 }
