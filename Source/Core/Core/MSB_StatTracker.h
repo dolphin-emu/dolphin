@@ -239,6 +239,12 @@ static const std::map<u8, std::string> cAtBatResult = {
     {0xE,  "SacFly"}
 };
 
+static const std::map<u8, std::string> cManualSelectDecode = {
+    {0x0,  "No Selected Char"},
+    {0x1,  "Selected Other Char"},
+    {0x2,  "Selected This Char"},
+};
+
 //Const for structs
 static const int cRosterSize = 9;
 static const int cNumOfTeams = 2;
@@ -409,6 +415,7 @@ static const u32 aFielder_Knockout = 0x8088F578; //Pitcher
 static const u32 aFielder_Pos_X = 0x8088F368; //Pitcher
 static const u32 aFielder_Pos_Z = 0x8088F370; //Pitcher
 static const u32 aFielder_Pos_Y = 0x8088F374; //Pitcher
+static const u32 aFielder_ManualSelectLock = 0x8088F449; //Pitcher
 static const u32 cFielder_Offset = 0x268;
 
 //Runner addrs
@@ -502,6 +509,7 @@ public:
         u8 fielder_swapped_for_batter;
         u8 fielder_action; //2=slide, 3=walljump
         u8 fielder_jump; //1=Jump
+        u8 fielder_manual_select_lock; //0=No one selected, 1=Other player selected, 2=This player selected
         u32 fielder_x_pos;
         u32 fielder_y_pos;
         u32 fielder_z_pos;
@@ -634,6 +642,8 @@ public:
         std::optional<Runner> runner_2;
         std::optional<Runner> runner_3;
         std::optional<Pitch>  pitch;
+
+        std::array<u8, cRosterSize> manual_select_locks;
 
         u8 rbi;
         u8 result_of_atbat;
@@ -865,6 +875,7 @@ public:
     void logPitch(Event& in_event);
     void logContactResult(Contact* in_contact);
     void logFinalResults(Event& in_event);
+    void logManualSelectLocks(Event& in_event);
 
     //RunnerInfo
     std::optional<Runner> logRunnerInfo(u8 base);

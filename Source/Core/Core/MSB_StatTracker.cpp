@@ -238,6 +238,10 @@ void StatTracker::lookForTriggerEvents(){
                     //Returns a fielder that has bobbled if any exist. Otherwise optional is nullptr
                     m_game_info.getCurrentEvent().pitch->contact->first_fielder = logFielderBobble();
                 }
+
+                //See if any fielder is selected
+                logManualSelectLocks(m_game_info.getCurrentEvent());
+
                 break;
             case (EVENT_STATE::LOG_FIELDER):
                 //Look for bobble if we haven't seen any fielder touch the ball yet
@@ -256,6 +260,9 @@ void StatTracker::lookForTriggerEvents(){
                         m_event_state = EVENT_STATE::MONITOR_RUNNERS;
                     }
                 }
+
+                //See if any fielder is selected
+                logManualSelectLocks(m_game_info.getCurrentEvent());
 
                 //Break out if play ends without fielding the ball (HR or other play ending hit)
                 if (!Memory::Read_U8(aAB_PitchThrown)) {
@@ -363,8 +370,8 @@ void StatTracker::lookForTriggerEvents(){
 
                 m_game_state = GAME_STATE::INGAME;
                 std::cout << "PREGAME->INGAME (GameID=" << std::to_string(m_game_info.game_id) << ", Ranked=" << m_game_info.ranked <<")" << std::endl;
-                std::cout << "                (Netplay=" << m_game_info.netplay << ", Host=" << m_game_info.host 
-                          << ", Netplay Opponent Alias=" << m_game_info.netplay_opponent_alias << ")" << std::endl; 
+                std::cout << "                (Netplay=" << m_game_info.netplay << ", Host=" << m_game_info.host << ")" << std::endl
+                          << "                (AwayTeam=" << m_game_info.getAwayTeamPlayer().GetUsername() << ", HomeTeam=" << m_game_info.getHomeTeamPlayer().GetUsername() << ")" << std::endl; 
             }
             break;
         case (GAME_STATE::INGAME):
@@ -819,6 +826,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
     json_stream << "  \"GameID\": \"" << std::hex << m_game_info.game_id << "\"," << std::endl;
     json_stream << "  \"Date\": \"" << date_time << "\"," << std::endl;
     json_stream << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
+    json_stream << "  \"Netplay\": " << std::to_string(m_game_info.netplay) << "," << std::endl;
     json_stream << "  \"StadiumID\": " << decode("Stadium", m_game_info.stadium, inDecode) << "," << std::endl;
     json_stream << "  \"Away Player\": \"" << away_player_info << "\"," << std::endl; //TODO MAKE THIS AN ID
     json_stream << "  \"Home Player\": \"" << home_player_info << "\"," << std::endl;
@@ -1066,7 +1074,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
                     json_stream << "            \"Fielder Action\": "          << decode("Action", fielder->fielder_action, inDecode) << "," << std::endl;
                     json_stream << "            \"Fielder Jump\": "            << std::to_string(fielder->fielder_jump) << "," << std::endl;
                     json_stream << "            \"Fielder Swap\": "            << std::to_string(fielder->fielder_swapped_for_batter) << "," << std::endl;
-                    json_stream << "            \"Fielder Manual Selected\": " << "TODO" << "," << std::endl;
+                    json_stream << "            \"Fielder Manual Selected\": " << decode("ManualSelect", fielder->fielder_manual_select_lock, inDecode) << "," << std::endl;
                     json_stream << "            \"Fielder Position - X\": "    << floatConverter(fielder->fielder_x_pos) << "," << std::endl;
                     json_stream << "            \"Fielder Position - Y\": "    << floatConverter(fielder->fielder_y_pos) << "," << std::endl;
                     json_stream << "            \"Fielder Position - Z\": "    << floatConverter(fielder->fielder_z_pos) << "," << std::endl;
@@ -1258,7 +1266,7 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
                 json_stream << "          \"Fielder Action\": "          << decode("Action", fielder->fielder_action, inDecode) << "," << std::endl;
                 json_stream << "          \"Fielder Jump\": "            << std::to_string(fielder->fielder_jump) << "," << std::endl;
                 json_stream << "          \"Fielder Swap\": "            << std::to_string(fielder->fielder_swapped_for_batter) << "," << std::endl;
-                json_stream << "          \"Fielder Manual Selected\": " << "TODO" << "," << std::endl;
+                json_stream << "          \"Fielder Manual Selected\": " << decode("ManualSelect", fielder->fielder_manual_select_lock, inDecode) << "," << std::endl;
                 json_stream << "          \"Fielder Position - X\": "    << floatConverter(fielder->fielder_x_pos) << "," << std::endl;
                 json_stream << "          \"Fielder Position - Y\": "    << floatConverter(fielder->fielder_y_pos) << "," << std::endl;
                 json_stream << "          \"Fielder Position - Z\": "    << floatConverter(fielder->fielder_z_pos) << "," << std::endl;
@@ -1325,6 +1333,8 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderWithBall() {
         u32 aFielderRosterLoc = aFielder_RosterLoc + (pos * cFielder_Offset);
         u32 aFielderCharId = aFielder_CharId + (pos * cFielder_Offset);
 
+        u32 aFielderManualSelectLock = aFielder_ManualSelectLock + (pos * cFielder_Offset);
+
         bool fielder_has_ball = (Memory::Read_U8(aFielderControlStatus) == 0xA);
 
         if (fielder_has_ball) {
@@ -1344,8 +1354,25 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderWithBall() {
             if (Memory::Read_U8(aFielderJump)) {
                 fielder_with_ball.fielder_jump = Memory::Read_U8(aFielderJump); //1 = jump
             }
+
+            //Have to read from the array that the StatTracker maintains because if the fielder is holding the ball the flags are cleared
+            std::cout << "Manual Select Locks=[" << std::to_string(in_event.manual_select_locks.at(0)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(1)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(2)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(3)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(4)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(5)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(6)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(7)) << ", "
+                                         << std::to_string(in_event.manual_select_locks.at(8)) << "]" << std::endl;
+                                         
+            fielder_with_ball.fielder_manual_select_lock = m_game_info.getCurrentEvent().manual_select_locks.at(pos);
+
+            std::cout << "Manual Select Addr=" << std::hex << aFielderManualSelectLock << " Value=" << fielder_with_ball.fielder_manual_select_lock << std::endl;
+
             std::cout << "Fielder Pos=" << std::to_string(pos) << " Fielder RosterLoc=" << std::to_string(fielder_with_ball.fielder_roster_loc)
                       << " Fielder Action: " << std::to_string(fielder_with_ball.fielder_action)
+                      << " Manual Select=" << std::to_string(fielder_with_ball.fielder_manual_select_lock)
                       << " Jump=" << std::to_string(fielder_with_ball.fielder_jump) << std::endl;
 
             std::cout << "Logging Fielder" << std::endl;
@@ -1371,6 +1398,8 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderBobble() {
 
         u32 aFielderRosterLoc = aFielder_RosterLoc + (pos * cFielder_Offset);
         u32 aFielderCharId = aFielder_CharId + (pos * cFielder_Offset);
+
+        u32 aFielderManualSelectLock = aFielder_ManualSelectLock + (pos * cFielder_Offset);
         
         u8 typeOfFielderDisruption = 0x0;
         u8 bobble_addr = Memory::Read_U8(aFielderBobbleStatus);
@@ -1400,9 +1429,14 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderBobble() {
             if (Memory::Read_U8(aFielderJump)) {
                 fielder_that_bobbled.fielder_jump = Memory::Read_U8(aFielderJump); //1 = jump
             }
+
+            //We can read manual select now because we don't have the ball
+            fielder_that_bobbled.fielder_manual_select_lock = Memory::Read_U8(aFielderManualSelectLock);
+
             std::cout << "Fielder Pos=" << std::to_string(pos) << " Fielder RosterLoc=" << std::to_string(fielder_that_bobbled.fielder_roster_loc)
                       << " Fielder Action: " << std::to_string(fielder_that_bobbled.fielder_action) 
-                      << " Jump=" << std::to_string(fielder_that_bobbled.fielder_jump) 
+                      << " Jump=" << std::to_string(fielder_that_bobbled.fielder_jump)
+                      << " Manual Select=" << std::to_string(fielder_that_bobbled.fielder_manual_select_lock)
                       << " Bobble=" << std::to_string(fielder_that_bobbled.bobble) << std::endl;
                       
             fielder = std::make_optional(fielder_that_bobbled);
@@ -1410,6 +1444,14 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderBobble() {
         }
     }
     return std::nullopt;
+}
+
+void StatTracker::logManualSelectLocks(Event& in_event){
+    for (u8 pos=0; pos < cRosterSize; ++pos){
+        u32 aFielderManualSelectLock = aFielder_ManualSelectLock + (pos * cFielder_Offset);
+
+        in_event.manual_select_locks.at(pos) = Memory::Read_U8(aFielderManualSelectLock);
+    }
 }
 
 //Read players from ini file and assign to team
@@ -1622,6 +1664,11 @@ std::string StatTracker::decode(std::string type, u8 value, bool decode){
     else if (type == "Bobble"){
         if (cFielderBobbles.count(value)){
             retVal = cFielderBobbles.at(value);
+        }
+    }
+    else if (type == "ManualSelect"){
+        if (cManualSelectDecode.count(value)){
+            retVal = cManualSelectDecode.at(value);
         }
     }
     else if (type == "Steal"){
