@@ -815,8 +815,8 @@ std::string StatTracker::getStatJsonPath(std::string prefix){
 }
 
 std::string StatTracker::getStatJSON(bool inDecode){
-    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUserID() : m_game_info.getAwayTeamPlayer().GetUsername();
-    std::string home_player_info = (inDecode) ? m_game_info.getHomeTeamPlayer().GetUserID() : m_game_info.getHomeTeamPlayer().GetUsername();
+    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUsername() : m_game_info.getAwayTeamPlayer().GetUserID();
+    std::string home_player_info = (inDecode) ? m_game_info.getHomeTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUserID();
 
     std::stringstream json_stream;
 
@@ -1365,7 +1365,7 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderWithBall() {
                                          << std::to_string(in_event.manual_select_locks.at(6)) << ", "
                                          << std::to_string(in_event.manual_select_locks.at(7)) << ", "
                                          << std::to_string(in_event.manual_select_locks.at(8)) << "]" << std::endl;
-                                         
+
             fielder_with_ball.fielder_manual_select_lock = m_game_info.getCurrentEvent().manual_select_locks.at(pos);
 
             std::cout << "Manual Select Addr=" << std::hex << aFielderManualSelectLock << " Value=" << fielder_with_ball.fielder_manual_select_lock << std::endl;
