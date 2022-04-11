@@ -1123,6 +1123,10 @@ std::string StatTracker::getStatJSON(bool inDecode){
 std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool inDecode){
     std::stringstream json_stream;
 
+    if (event.inning == 0) {
+        return "{}";
+    }
+
     json_stream << "\"Latest Event\": {" << std::endl;
 
     json_stream << "  {" << std::endl;
@@ -1263,7 +1267,7 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
     json_stream << "}" << std::endl;
 
     
-
+    /* Fixed the bug that called for this debugging. Remove as soon as you are sure its fixed
     u8 fielding_team = (Memory::Read_U8(aAB_BatterPort) == m_game_info.away_port) ? 1 : 0;
 
     for (int roster=0; roster < cRosterSize; ++roster){
@@ -1295,6 +1299,7 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
         std::string comma = (roster == 8) ? "," : "";
         json_stream << "}" << comma << std::endl;
     }
+    */
 
     return json_stream.str();
 }
