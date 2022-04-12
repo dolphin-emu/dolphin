@@ -197,8 +197,8 @@ int BuildFINFrame(StackRef* ref, char* buf)
   tcppart->checksum =
       Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart, 28, IPPROTO_TCP);
 
-  for (int l = 0; l < MAX_TCP_BUFFER; l++)
-    ref->TcpBuffers[l].used = false;
+  for (auto& tcp_buf : ref->TcpBuffers)
+    tcp_buf.used = false;
 
   return 0x36;
 }
@@ -239,8 +239,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     network_ref[i].seq_num = 0x1000000;
     network_ref[i].window_size = Common::swap16(tcpdata->window_size);
     network_ref[i].type = IPPROTO_TCP;
-    for (int l = 0; l < MAX_TCP_BUFFER; l++)
-      network_ref[i].TcpBuffers[l].used = false;
+    for (auto& tcp_buf : network_ref[i].TcpBuffers)
+      tcp_buf.used = false;
     network_ref[i].from.sin_addr.s_addr = *(u32*)&ipdata->destination_addr;
     network_ref[i].from.sin_port = tcpdata->destination_port;
     network_ref[i].to.sin_addr.s_addr = *(u32*)&ipdata->source_addr;
@@ -327,16 +327,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     // clear any ack data
     if (tcpdata->properties & TCP_FLAG_ACK)
     {
-      for (int l = 0; l < MAX_TCP_BUFFER; l++)
+      for (auto& tcp_buf : network_ref[i].TcpBuffers)
       {
-        if (network_ref[i].TcpBuffers[l].used)
+        if (tcp_buf.used && tcp_buf.seq_id < Common::swap32(tcpdata->acknowledgement_number))
         {
-          if (network_ref[i].TcpBuffers[l].seq_id < Common::swap32(tcpdata->acknowledgement_number))
-          {
-            network_ref[i].TcpBuffers[l].used = false;  // confirmed data received
-            if (!network_ref[i].ready && !network_ref[i].TcpBuffers[0].used)
-              network_ref[i].ready = true;
-          }
+          tcp_buf.used = false;  // confirmed data received
+          if (!network_ref[i].ready && !network_ref[i].TcpBuffers[0].used)
+            network_ref[i].ready = true;
         }
       }
     }
@@ -564,12 +561,11 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         else
         {
           // test connections data
-          for (int i = 0; i < std::size(self->network_ref); i++)
+          for (auto& net_ref : self->network_ref)
           {
-            if (self->network_ref[i].ip != 0)
+            if (net_ref.ip != 0)
             {
-              datasize =
-                  TryGetDataFromSocket(&self->network_ref[i], self->m_eth_ref->mRecvBuffer.get());
+              datasize = TryGetDataFromSocket(&net_ref, self->m_eth_ref->mRecvBuffer.get());
               if (datasize > 0)
                 break;
             }
@@ -577,26 +573,24 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         }
 
         // test and add any sleeping tcp data
-        for (int c = 0; c < std::size(self->network_ref); c++)
+        for (auto& net_ref : self->network_ref)
         {
-          if (self->network_ref[c].ip != 0 && self->network_ref[c].type == IPPROTO_TCP)
+          if (net_ref.ip != 0 && net_ref.type == IPPROTO_TCP)
           {
-            for (int l = 0; l < MAX_TCP_BUFFER; l++)
+            for (auto& tcp_buf : net_ref.TcpBuffers)
             {
-              if (self->network_ref[c].TcpBuffers[l].used)
+              if (tcp_buf.used)
               {
-                if (GetTickCountStd() - self->network_ref[c].TcpBuffers[l].tick > 2000)
+                if (GetTickCountStd() - tcp_buf.tick > 2000)
                 {
-                  self->network_ref[c].TcpBuffers[l].tick = GetTickCountStd();
+                  tcp_buf.tick = GetTickCountStd();
                   // late data, resend
                   if (((self->queue_write + 1) & 15) != self->queue_read)
                   {
                     self->mtx.lock();
-                    self->queue_data_size[self->queue_write] =
-                        self->network_ref[c].TcpBuffers[l].data_size;
-                    memcpy(&self->queue_data[self->queue_write],
-                           &self->network_ref[c].TcpBuffers[l].data[0],
-                           self->network_ref[c].TcpBuffers[l].data_size);
+                    self->queue_data_size[self->queue_write] = tcp_buf.data_size;
+                    memcpy(&self->queue_data[self->queue_write], &tcp_buf.data[0],
+                           tcp_buf.data_size);
                     self->queue_write = (self->queue_write + 1) & 15;
                     self->mtx.unlock();
                   }
@@ -641,16 +635,15 @@ void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
 {
   m_read_enabled.Clear();
-  for (int i = 0; i < std::size(network_ref); i++)
+  for (auto& net_ref : network_ref)
   {
-    if (network_ref[i].ip != 0)
+    if (net_ref.ip != 0)
     {
-      network_ref[i].type == IPPROTO_TCP ? network_ref[i].tcp_socket.disconnect() :
-                                           network_ref[i].udp_socket.unbind();
+      net_ref.type == IPPROTO_TCP ? net_ref.tcp_socket.disconnect() : net_ref.udp_socket.unbind();
     }
-    network_ref[i].ip = 0;
-    queue_read = 0;
-    queue_write = 0;
+    net_ref.ip = 0;
   }
+  queue_read = 0;
+  queue_write = 0;
 }
 }  // namespace ExpansionInterface
