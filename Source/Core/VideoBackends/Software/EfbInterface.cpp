@@ -16,6 +16,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace EfbInterface
@@ -411,6 +412,12 @@ static void Dither(u16 x, u16 y, u8* color)
 void BlendTev(u16 x, u16 y, u8* color)
 {
   const u32 offset = GetColorOffset(x, y);
+  if (VertexShaderManager::g_UsingSpecularLight)
+  {
+    u8 black[4] = {0, 0, 0, 0};
+    SetPixelColorOnly(offset, black);
+    return;
+  }
   u32 dstClr = GetPixelColor(offset);
 
   u8* dstClrPtr = (u8*)&dstClr;

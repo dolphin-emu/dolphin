@@ -240,6 +240,19 @@ void LoadXFReg(u16 base_address, u8 transfer_size, const u8* data)
       XFRegWritten(address, value);
       ((u32*)&xfmem)[address] = value;
 
+      if (address == XFMEM_SETCHAN0_COLOR || address == XFMEM_SETCHAN0_ALPHA ||
+          address == XFMEM_SETCHAN1_COLOR || address == XFMEM_SETCHAN1_ALPHA ||
+          address == XFMEM_SETNUMCHAN)
+      {
+        VertexShaderManager::g_UsingSpecularLight =
+            (xfmem.numChan.numColorChans >= 1 &&
+             (xfmem.color[0].attnfunc == AttenuationFunc::Spec ||
+              xfmem.alpha[0].attnfunc == AttenuationFunc::Spec)) ||
+            (xfmem.numChan.numColorChans >= 2 &&
+             (xfmem.color[1].attnfunc == AttenuationFunc::Spec ||
+              xfmem.alpha[1].attnfunc == AttenuationFunc::Spec));
+      }
+
       data += 4;
     }
   }

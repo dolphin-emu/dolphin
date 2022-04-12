@@ -40,4 +40,5 @@ public:
 
   static VertexShaderConstants constants;
   static bool dirty;
+  static bool g_UsingSpecularLight;
 };

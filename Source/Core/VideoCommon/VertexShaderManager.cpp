@@ -48,6 +48,7 @@ static Common::Matrix44 s_viewportCorrection;
 
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
+bool VertexShaderManager::g_UsingSpecularLight = false;
 
 // Viewport correction:
 // In D3D, the viewport rectangle must fit within the render target.
