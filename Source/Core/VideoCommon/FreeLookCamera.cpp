@@ -16,6 +16,8 @@
 
 #include "VideoCommon/VideoCommon.h"
 
+#include <iostream>
+
 FreeLookCamera g_freelook_camera;
 
 namespace
@@ -30,10 +32,139 @@ std::string to_string(FreeLook::ControlType type)
     return "First Person";
   case FreeLook::ControlType::Orbital:
     return "Orbital";
+  case FreeLook::ControlType::RioCam:
+    return "Rio Cam";
   }
-
   return "";
 }
+
+class RioCamController final : public CameraControllerInput
+{
+public:
+  Common::Matrix44 GetView() const override
+  {
+    if (use_mat) { return m_mat; }
+    return Common::Matrix44::FromQuaternion(m_rotate_quat) *
+           Common::Matrix44::Translate(m_position);
+  }
+
+  void MoveVertical(float amt) override
+  {
+    if (amt > 0){ // Dugout
+      use_mat = true;
+      m_mat = Common::Matrix44::FromArray({0.545977,-0.253666,-0.798475,-16.638653,
+                                           -0.061070,0.938476,-0.339901,-1.409028,
+                                           0.835570,0.234341,0.496894,-26.413183,
+                                           0.000000,0.000000,0.000000,1.000000});
+
+    }
+    else { //LF Pole
+      use_mat = true;
+      m_mat = Common::Matrix44::FromArray({-0.542877,-0.241105,-0.804458,-26.235294,
+                                           0.000098,0.957884,-0.287154,-1.449248,
+                                           0.839813,-0.155968,-0.519989,-83.894585,
+                                           0.000000,0.000000,0.000000,1.000000});
+    }
+  }
+
+  void MoveHorizontal(float amt) override
+  {
+    if (amt > 0){ //Directly behind HP
+      use_mat = false;
+      m_rotation.x = 0.357953;
+      m_rotation.y = 0.000000;
+      m_rotation.z = 0.000000;
+
+      m_position.x = 0.000000;
+      m_position.y = -4.889825;
+      m_position.z = 0.288412;
+    }
+    else { //RF Grandstand
+      use_mat = true;
+      m_mat = Common::Matrix44::FromArray({-0.762376,0.180257,0.621523,24.537916,
+                                           -0.111071,0.909723,-0.400084,-5.326676,
+                                           -0.637532,-0.374047,-0.673530,-115.002136,
+                                           0.000000,0.000000,0.000000,1.000000});
+    }
+
+    using Common::Quaternion;
+    m_rotate_quat =
+        (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
+  }
+
+  void MoveForward(float amt) override
+  {
+    use_mat = false;
+    if (amt > 0){ // Over the pitcher shoulder
+      m_rotation.x = -0.333371;
+      m_rotation.y =  3.147738;
+      m_rotation.z = -0.000247;
+      m_position.x =  2.287449;
+      m_position.y =  7.688197;
+      m_position.z = 37.479488;
+    }
+    else{ // High above the plate, looking down
+      m_rotation.x = -0.081675;
+      m_rotation.y = 0.000000;
+      m_rotation.z = 0.000000;
+
+      m_position.x = 0.000000;
+      m_position.y = 6.358200;
+      m_position.z = -19.586224;
+    }
+    using Common::Quaternion;
+    m_rotate_quat =
+        (Quaternion::RotateX(m_rotation.x) * Quaternion::RotateY(m_rotation.y)).Normalized();
+  }
+
+  void Rotate(const Common::Vec3& amt) override
+  {
+    if (amt.Length() == 0)
+      return;
+    
+    use_mat = true;
+    m_mat = Common::Matrix44::FromArray({-0.518640,0.215621,0.827358,28.380379,
+                                         -0.149931,0.929747,-0.336291,-12.713995,
+                                         -0.841743,-0.298461,-0.449876,-82.801498,
+                                         0.000000,0.000000,0.000000,1.000000});
+  }
+
+  void Rotate(const Common::Quaternion& quat) override
+  {
+    Rotate(Common::FromQuaternionToEuler(quat));
+  }
+
+  void Reset() override
+  {
+    use_mat = false;
+    CameraControllerInput::Reset();
+    m_position = Common::Vec3{};
+    m_rotation = Common::Vec3{};
+    m_rotate_quat = Common::Quaternion::Identity();
+  }
+
+  void DoState(PointerWrap& p) override
+  {
+    CameraControllerInput::DoState(p);
+    p.Do(m_rotation);
+    p.Do(m_rotate_quat);
+    p.Do(m_position);
+  }
+
+private:
+  Common::Vec3 m_rotation = Common::Vec3{};
+  Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
+  Common::Vec3 m_position = Common::Vec3{};
+
+  Common::Vec3 m_rotation_print = Common::Vec3{};
+  Common::Vec3 m_position_print = Common::Vec3{};
+
+  //Matrix used to get certain views
+  Common::Matrix44 m_mat = Common::Matrix44::Identity();
+  bool use_mat = false;
+};
+
+//=============================================================================================
 
 class SixAxisController final : public CameraControllerInput
 {
@@ -45,23 +176,43 @@ public:
   void MoveVertical(float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, amt, 0}) * m_mat;
+
+    //std::cout << "POSITION: X=" << std::to_string(m_position.x) << " Y=" << std::to_string(m_position.y) << " Z=" << std::to_string(m_position.z) << std::endl; 
   }
 
   void MoveHorizontal(float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{amt, 0, 0}) * m_mat;
+
+
+    //std::cout << "POSITION: X=" << std::to_string(m_position.x) << " Y=" << std::to_string(m_position.y) << " Z=" << std::to_string(m_position.z) << std::endl; 
   }
 
   void MoveForward(float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
+
+    //std::cout << "POSITION: X=" << std::to_string(m_position.x) << " Y=" << std::to_string(m_position.y) << " Z=" << std::to_string(m_position.z) << std::endl; 
   }
 
   void Rotate(const Common::Vec3& amt) override { Rotate(Common::Quaternion::RotateXYZ(amt)); }
 
   void Rotate(const Common::Quaternion& quat) override
   {
+    Common::Matrix44 m_mat_prev = m_mat;
     m_mat = Common::Matrix44::FromQuaternion(quat) * m_mat;
+
+    if (!(m_mat == m_mat_prev)){
+      for (int x = 0; x < 16; ++x){
+        if (x == 0) {
+          std::cout << " Matrix Data = {";
+        }
+        std::cout << std::to_string(m_mat.data[x]) << ",";
+        if (x == 15) {
+          std::cout << " }" << std::endl;
+        }
+      }
+    }
   }
 
   void Reset() override
@@ -93,6 +244,27 @@ public:
   {
     const Common::Vec3 up = m_rotate_quat.Conjugate() * Common::Vec3{0, 1, 0};
     m_position += up * amt;
+
+    if ((m_rotation.x != m_rotation_print.x) || (m_position.x != m_position_print.x)){
+      std::cout << "Position: " << std::endl; 
+      std::cout << "    m_position.x = " << std::to_string(m_position.x) << ";" << std::endl;
+      std::cout << "    m_position.y = " << std::to_string(m_position.y) << ";" << std::endl;
+      std::cout << "    m_position.z = " << std::to_string(m_position.z) << ";" << std::endl; 
+
+      std::cout << "Rotation: " << std::endl; 
+      std::cout << "    m_rotation.x = " << std::to_string(m_rotation.x) << ";" << std::endl;
+      std::cout << "    m_rotation.y = " << std::to_string(m_rotation.y) << ";" << std::endl;
+      std::cout << "    m_rotation.z = " << std::to_string(m_rotation.z) << ";" << std::endl;
+      std::cout << std::endl;
+
+      m_rotation_print.x = m_rotation.x;
+      m_rotation_print.y = m_rotation.y;
+      m_rotation_print.z = m_rotation.z;
+
+      m_position_print.x = m_position.x;
+      m_position_print.y = m_position.y;
+      m_position_print.z = m_position.z;
+    }
   }
 
   void MoveHorizontal(float amt) override
@@ -144,6 +316,9 @@ private:
   Common::Vec3 m_rotation = Common::Vec3{};
   Common::Quaternion m_rotate_quat = Common::Quaternion::Identity();
   Common::Vec3 m_position = Common::Vec3{};
+
+  Common::Vec3 m_rotation_print = Common::Vec3{};
+  Common::Vec3 m_position_print = Common::Vec3{};
 };
 
 class OrbitalController final : public CameraControllerInput
@@ -281,6 +456,12 @@ void FreeLookCamera::SetControlType(FreeLook::ControlType type)
   else if (type == FreeLook::ControlType::FPS)
   {
     m_camera_controller = std::make_unique<FPSController>();
+    std::cout << " FPS selected" << std::endl;
+  }
+  else if (type == FreeLook::ControlType::RioCam)
+  {
+    m_camera_controller = std::make_unique<RioCamController>();
+    std::cout << " RioCam selected" << std::endl;
   }
 
   m_current_type = type;

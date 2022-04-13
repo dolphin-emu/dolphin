@@ -36,11 +36,13 @@ void FreeLookWidget::CreateLayout()
          "leave this unchecked.</dolphin_emphasis>"));
   m_freelook_controller_configure_button = new QPushButton(tr("Configure Controller"));
 
-  m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
+  m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital"), tr("RioCam")},
                                                Config::FL1_CONTROL_TYPE);
   m_freelook_control_type->SetTitle(tr("Free Look Control Type"));
   m_freelook_control_type->SetDescription(tr(
       "Changes the in-game camera type during Free Look.<br><br>"
+      "Rio Cam: Provides a number of fixed camera positions to use during broadcasts <br> "
+      "<br>"
       "Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero "
       "gravity. This is the most powerful Free Look option but is the most challenging to use.<br> "
       "<br>"
