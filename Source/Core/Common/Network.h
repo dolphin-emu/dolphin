@@ -22,7 +22,15 @@ enum class MACConsumer
 
 enum
 {
-  MAC_ADDRESS_SIZE = 6
+  BBA_HARDWARE_TYPE = 1,
+  MAC_ADDRESS_SIZE = 6,
+  IPV4_HEADER_TYPE = 8
+};
+
+enum DHCPConst
+{
+  MESSAGE_QUERY = 1,
+  MESSAGE_REPLY = 2
 };
 
 using MACAddress = std::array<u8, MAC_ADDRESS_SIZE>;
@@ -126,7 +134,7 @@ struct DHCPBody
 {
   DHCPBody();
   DHCPBody(u32 transaction, MACAddress client_address, u32 new_ip, u32 serv_ip);
-  void AddDHCPOption(u8 size, u8 fnc, u8 params[]);
+  void AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params);
   u8 message_type = 0;
   u8 hardware_type = 0;
   u8 hardware_addr = 0;

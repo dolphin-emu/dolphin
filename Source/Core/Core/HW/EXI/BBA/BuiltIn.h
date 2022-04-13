@@ -23,21 +23,20 @@
 
 constexpr u8 MAX_TCP_BUFFER = 4;
 
-
 struct TcpBuffer
 {
   bool used;
-  unsigned long long tick;
+  u64 tick;
   u32 seq_id;
   u16 data_size;
-  char data[2048];
+  u8 data[2048];
 };
 struct StackRef
 {
-  unsigned int ip;
-  unsigned short local;
-  unsigned short remote;
-  unsigned short type;
+  u32 ip;
+  u16 local;
+  u16 remote;
+  u16 type;
   sf::IpAddress target;
   u32 seq_num;
   u32 ack_num;

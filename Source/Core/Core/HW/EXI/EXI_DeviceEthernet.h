@@ -13,9 +13,9 @@
 
 #include <SFML/Network.hpp>
 
+#include <Common/Network.h>
 #include <mutex>
 #include "Common/Flag.h"
-#include <Common/Network.h>
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -443,31 +443,31 @@ private:
     u8 queue_read = 0;
     u8 queue_write = 0;
     u16 queue_data_size[16]{};
-    char queue_data[16][2048]{};
+    u8* queue_data[16];
     std::mutex mtx;
     bool isSent = false;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     StackRef network_ref[10]{};  // max 10 at same time, i think most gc game had a limit of 8 in
                                  // the gc framework
-    char m_in_frame[9004]{};
-    char m_out_frame[9004]{};
+    u8* m_in_frame;
+    u8* m_out_frame;
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(BuiltInBBAInterface* self);
     Common::MACAddress fake_mac{};
 #endif
-    void WriteToQueue(char* data, int length);
+    void WriteToQueue(u8* data, int length);
     void HandleARP(Common::EthernetHeader* hwdata, Common::ARPHeader* arpdata);
     void HandleDHCP(Common::EthernetHeader* hwdata, Common::UDPHeader* udpdata,
                     Common::DHCPBody* request);
     u8 GetAvaibleSlot(u16 port);
     int GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
     void HandleTCPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
-                        Common::TCPHeader* tcpdata, char* data);
+                        Common::TCPHeader* tcpdata, u8* data);
     void HandleUDPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
-                        Common::UDPHeader* udpdata, char* data);
+                        Common::UDPHeader* udpdata, u8* data);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;

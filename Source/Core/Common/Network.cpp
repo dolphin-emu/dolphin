@@ -143,8 +143,8 @@ TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, co
 
 TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags)
 {
-  std::memcpy(&source_port, &from.sin_port, 2);
-  std::memcpy(&destination_port, &to.sin_port, 2);
+  source_port = from.sin_port;
+  destination_port = to.sin_port;
   sequence_number = htonl(seq);
   acknowledgement_number = htonl(ack);
   properties = 0x50 | flags;
@@ -186,10 +186,10 @@ ARPHeader::ARPHeader() = default;
 
 ARPHeader::ARPHeader(u32 from_ip, MACAddress from_mac, u32 to_ip, MACAddress to_mac)
 {
-  hardware_type = 0x100;
-  protocol_type = 8;
-  hardware_size = 6;
-  protocol_size = 4;
+  hardware_type = htons(BBA_HARDWARE_TYPE);
+  protocol_type = IPV4_HEADER_TYPE;
+  hardware_size = MAC_ADDRESS_SIZE;
+  protocol_size = IPV4_ADDR_LEN;
   opcode = 0x200;
   sender_ip = from_ip;
   target_ip = to_ip;
@@ -207,23 +207,31 @@ DHCPBody::DHCPBody() = default;
 DHCPBody::DHCPBody(u32 transaction, MACAddress client_address, u32 new_ip, u32 serv_ip)
 {
   transaction_id = transaction;
-  message_type = 2;
-  hardware_type = 1;
-  hardware_addr = 6;
+  message_type = DHCPConst::MESSAGE_REPLY;
+  hardware_type = BBA_HARDWARE_TYPE;
+  hardware_addr = MAC_ADDRESS_SIZE;
   client_mac = client_address;
   your_ip = new_ip;
   server_ip = serv_ip;
 }
 
 // Add an option to the DHCP Body
-void DHCPBody::AddDHCPOption(u8 size, u8 fnc, u8 params[])
+void DHCPBody::AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params)
 {
   int i = 0;
   while (options[i] != 0)
+  {
     i += options[i + 1] + 2;
+    if (i >= std::size(options))
+    {
+      throw std::invalid_argument("Exceeded option size");
+    }
+  }
+    
   options[i++] = fnc;
   options[i++] = size;
-  memcpy(&options[i], &params[0], size);
+  for (auto val : params)
+    options[i++] = val;
 }
 
 // Compute the network checksum with a 32-bit accumulator using the
