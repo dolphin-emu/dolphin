@@ -119,8 +119,9 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
     {
       CMP(32, R(count_reg), Imm8(3));
       FixupBranch dont_store = J_CC(CC_A);
-      LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
-      MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
+      LEA(32, scratch3,
+          MScaled(count_reg, SCALE_4, -int(VertexLoaderManager::position_cache[0].size())));
+      MOVUPS(MPIC(VertexLoaderManager::position_cache.data(), scratch3, SCALE_4), coords);
       SetJumpTarget(dont_store);
     }
   };
@@ -408,7 +409,8 @@ void VertexLoaderX64::GenerateVertexLoader()
     // zfreeze
     CMP(32, R(count_reg), Imm8(3));
     FixupBranch dont_store = J_CC(CC_A);
-    MOV(32, MPIC(VertexLoaderManager::position_matrix_index, count_reg, SCALE_4), R(scratch1));
+    MOV(32, MPIC(VertexLoaderManager::position_matrix_index_cache.data(), count_reg, SCALE_4),
+        R(scratch1));
     SetJumpTarget(dont_store);
 
     m_native_vtx_decl.posmtx.components = 4;

@@ -211,10 +211,11 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
   {
     CMP(count_reg, 3);
     FixupBranch dont_store = B(CC_GT);
-    MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_cache);
+    MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_cache.data());
     ADD(EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch2_reg), EncodeRegTo64(count_reg),
         ArithOption(EncodeRegTo64(count_reg), ShiftType::LSL, 4));
-    m_float_emit.STUR(write_size, coords, EncodeRegTo64(scratch1_reg), -16);
+    m_float_emit.STUR(write_size, coords, EncodeRegTo64(scratch1_reg),
+                      -int(sizeof(decltype(VertexLoaderManager::position_cache[0]))));
     SetJumpTarget(dont_store);
   }
 
@@ -422,7 +423,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     // Z-Freeze
     CMP(count_reg, 3);
     FixupBranch dont_store = B(CC_GT);
-    MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_matrix_index);
+    MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_matrix_index_cache.data());
     STR(scratch1_reg, EncodeRegTo64(scratch2_reg), ArithOption(count_reg, true));
     SetJumpTarget(dont_store);
 

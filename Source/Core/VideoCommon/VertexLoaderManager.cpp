@@ -31,11 +31,11 @@
 
 namespace VertexLoaderManager
 {
-float position_cache[3][4];
-
+// Used by zfreeze
+std::array<std::array<float, 4>, 3> position_cache;
 // The counter added to the address of the array is 1, 2, or 3, but never zero.
 // So only index 1 - 3 are used.
-u32 position_matrix_index[4];
+std::array<u32, 4> position_matrix_index_cache;
 
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;

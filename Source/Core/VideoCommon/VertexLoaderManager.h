@@ -53,8 +53,8 @@ void UpdateVertexArrayPointers();
 
 // Position cache for zfreeze (3 vertices, 4 floats each to allow SIMD overwrite).
 // These arrays are in reverse order.
-extern float position_cache[3][4];
-extern u32 position_matrix_index[4];
+extern std::array<std::array<float, 4>, 3> position_cache;
+extern std::array<u32, 4> position_matrix_index_cache;
 
 // VB_HAS_X. Bitmask telling what vertex components are present.
 extern u32 g_current_components;
