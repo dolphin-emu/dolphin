@@ -12,6 +12,8 @@
 
 #include "Common/Swap.h"
 
+#include <iostream>
+
 void StatTracker::Run(){
     lookForTriggerEvents();
 }
@@ -1140,27 +1142,26 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
         return "{}";
     }
 
-    json_stream << "\"Latest Event\": {" << std::endl;
+    json_stream << "{" << std::endl;
 
-    json_stream << "  {" << std::endl;
-    json_stream << "    \"Event Num\": "               << std::to_string(in_event_num) << "," << std::endl;
-    json_stream << "    \"Inning\": "                  << std::to_string(in_event.inning) << "," << std::endl;
-    json_stream << "    \"Half Inning\": "             << std::to_string(in_event.half_inning) << "," << std::endl;
-    json_stream << "    \"Away Score\": "              << std::dec << in_event.away_score << "," << std::endl;
-    json_stream << "    \"Home Score\": "              << std::dec << in_event.home_score << "," << std::endl;
-    json_stream << "    \"Balls\": "                   << std::to_string(in_event.balls) << "," << std::endl;
-    json_stream << "    \"Strikes\": "                 << std::to_string(in_event.strikes) << "," << std::endl;
-    json_stream << "    \"Outs\": "                    << std::to_string(in_event.outs) << "," << std::endl;
-    json_stream << "    \"Star Chance\": "             << std::to_string(in_event.is_star_chance) << "," << std::endl;
-    json_stream << "    \"Away Stars\": "              << std::to_string(in_event.home_stars) << "," << std::endl;
-    json_stream << "    \"Home Stars\": "              << std::to_string(in_event.away_stars) << "," << std::endl;
-    json_stream << "    \"Pitcher Stamina\": "         << std::to_string(in_event.pitcher_stamina) << "," << std::endl;
-    json_stream << "    \"Chemistry Links on Base\": " << std::to_string(in_event.chem_links_ob) << "," << std::endl;
-    json_stream << "    \"Pitcher Roster Loc\": "      << std::to_string(in_event.pitcher_roster_loc) << "," << std::endl;
-    json_stream << "    \"Batter Roster Loc\": "       << std::to_string(in_event.batter_roster_loc) << "," << std::endl;
-    json_stream << "    \"Catcher Roster Loc\": "       << std::to_string(in_event.catcher_roster_loc) << "," << std::endl;
-    json_stream << "    \"RBI\": "                     << std::to_string(in_event.rbi) << "," << std::endl;
-    json_stream << "    \"Result of AB\": "            << decode("AtBatResult", in_event.result_of_atbat, inDecode) << "," << std::endl;
+    json_stream << "  \"Event Num\": "               << std::to_string(in_event_num) << "," << std::endl;
+    json_stream << "  \"Inning\": "                  << std::to_string(in_event.inning) << "," << std::endl;
+    json_stream << "  \"Half Inning\": "             << std::to_string(in_event.half_inning) << "," << std::endl;
+    json_stream << "  \"Away Score\": "              << std::dec << in_event.away_score << "," << std::endl;
+    json_stream << "  \"Home Score\": "              << std::dec << in_event.home_score << "," << std::endl;
+    json_stream << "  \"Balls\": "                   << std::to_string(in_event.balls) << "," << std::endl;
+    json_stream << "  \"Strikes\": "                 << std::to_string(in_event.strikes) << "," << std::endl;
+    json_stream << "  \"Outs\": "                    << std::to_string(in_event.outs) << "," << std::endl;
+    json_stream << "  \"Star Chance\": "             << std::to_string(in_event.is_star_chance) << "," << std::endl;
+    json_stream << "  \"Away Stars\": "              << std::to_string(in_event.home_stars) << "," << std::endl;
+    json_stream << "  \"Home Stars\": "              << std::to_string(in_event.away_stars) << "," << std::endl;
+    json_stream << "  \"Pitcher Stamina\": "         << std::to_string(in_event.pitcher_stamina) << "," << std::endl;
+    json_stream << "  \"Chemistry Links on Base\": " << std::to_string(in_event.chem_links_ob) << "," << std::endl;
+    json_stream << "  \"Pitcher Roster Loc\": "      << std::to_string(in_event.pitcher_roster_loc) << "," << std::endl;
+    json_stream << "  \"Batter Roster Loc\": "       << std::to_string(in_event.batter_roster_loc) << "," << std::endl;
+    json_stream << "  \"Catcher Roster Loc\": "       << std::to_string(in_event.catcher_roster_loc) << "," << std::endl;
+    json_stream << "  \"RBI\": "                     << std::to_string(in_event.rbi) << "," << std::endl;
+    json_stream << "  \"Result of AB\": "            << decode("AtBatResult", in_event.result_of_atbat, inDecode) << "," << std::endl;
 
     //=== Runners ===
     //Build vector of <Runner*, Label/Name>
@@ -1182,32 +1183,32 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
         Runner* runner_info = runner->first;
         std::string& label = runner->second;
 
-        json_stream << "    \"Runner " << label << "\": {" << std::endl;
-        json_stream << "      \"Runner Roster Loc\": "   << std::to_string(runner_info->roster_loc) << "," << std::endl;
-        json_stream << "      \"Runner Char Id\": "      << decode("Character", runner_info->char_id, inDecode) << "," << std::endl;
-        json_stream << "      \"Runner Initial Base\": " << std::to_string(runner_info->initial_base) << "," << std::endl;
-        json_stream << "      \"Out Type\": "            << decode("Out", runner_info->out_type, inDecode) << "," << std::endl;
-        json_stream << "      \"Out Location\": "        << std::to_string(runner_info->out_location) << "," << std::endl;
-        json_stream << "      \"Steal\": "               << decode("Steal", runner_info->steal, inDecode) << "," << std::endl;
-        json_stream << "      \"Runner Result Base\": "  << std::to_string(runner_info->result_base) << std::endl;
+        json_stream << "  \"Runner " << label << "\": {" << std::endl;
+        json_stream << "    \"Runner Roster Loc\": "   << std::to_string(runner_info->roster_loc) << "," << std::endl;
+        json_stream << "    \"Runner Char Id\": "      << decode("Character", runner_info->char_id, inDecode) << "," << std::endl;
+        json_stream << "    \"Runner Initial Base\": " << std::to_string(runner_info->initial_base) << "," << std::endl;
+        json_stream << "    \"Out Type\": "            << decode("Out", runner_info->out_type, inDecode) << "," << std::endl;
+        json_stream << "    \"Out Location\": "        << std::to_string(runner_info->out_location) << "," << std::endl;
+        json_stream << "    \"Steal\": "               << decode("Steal", runner_info->steal, inDecode) << "," << std::endl;
+        json_stream << "    \"Runner Result Base\": "  << std::to_string(runner_info->result_base) << std::endl;
         std::string comma = (std::next(runner) == runners.end() && !in_event.pitch.has_value()) ? "" : ",";
-        json_stream << "    }," << std::endl;
+        json_stream << "  }," << std::endl;
     }
 
     //=== Pitch ===
     if (in_event.pitch.has_value()){
         Pitch* pitch = &in_event.pitch.value();
-        json_stream << "    \"Pitch\": {" << std::endl;
-        json_stream << "      \"Pitcher Team Id\": "    << std::to_string(pitch->pitcher_team_id) << "," << std::endl;
-        json_stream << "      \"Pitcher Char Id\": "    << decode("Character", pitch->pitcher_char_id, inDecode) << "," << std::endl;
-        json_stream << "      \"Pitch Type\": "         << decode("Pitch", pitch->pitch_type, inDecode) << "," << std::endl;
-        json_stream << "      \"Charge Type\": "        << decode("ChargePitch", pitch->charge_type, inDecode) << "," << std::endl;
-        json_stream << "      \"Star Pitch\": "         << std::to_string(pitch->star_pitch) << "," << std::endl;
-        json_stream << "      \"Pitch Speed\": "        << std::to_string(pitch->pitch_speed) << "," << std::endl;
-        json_stream << "      \"DB\": "                 << std::to_string(pitch->db) << "," << std::endl;
-        json_stream << "      \"Pitch Result\": "       << decode("PitchResult", pitch->pitch_result, inDecode) << "," << std::endl;
+        json_stream << "  \"Pitch\": {" << std::endl;
+        json_stream << "    \"Pitcher Team Id\": "    << std::to_string(pitch->pitcher_team_id) << "," << std::endl;
+        json_stream << "    \"Pitcher Char Id\": "    << decode("Character", pitch->pitcher_char_id, inDecode) << "," << std::endl;
+        json_stream << "    \"Pitch Type\": "         << decode("Pitch", pitch->pitch_type, inDecode) << "," << std::endl;
+        json_stream << "    \"Charge Type\": "        << decode("ChargePitch", pitch->charge_type, inDecode) << "," << std::endl;
+        json_stream << "    \"Star Pitch\": "         << std::to_string(pitch->star_pitch) << "," << std::endl;
+        json_stream << "    \"Pitch Speed\": "        << std::to_string(pitch->pitch_speed) << "," << std::endl;
+        json_stream << "    \"DB\": "                 << std::to_string(pitch->db) << "," << std::endl;
+        json_stream << "    \"Pitch Result\": "       << decode("PitchResult", pitch->pitch_result, inDecode) << "," << std::endl;
         if (pitch->contact.has_value()){
-            json_stream << "      \"Type of Swing\": "      << decode("Swing", pitch->contact->type_of_swing, inDecode);
+            json_stream << "    \"Type of Swing\": "      << decode("Swing", pitch->contact->type_of_swing, inDecode);
         }
         
         //=== Contact ===
@@ -1215,36 +1216,36 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
             json_stream << "," << std::endl;
 
             Contact* contact = &pitch->contact.value();
-            json_stream << "      \"Contact\": {" << std::endl;
-            json_stream << "        \"Type of Contact\": "                  << decode("Contact", contact->type_of_contact, inDecode) << "," << std::endl;
-            json_stream << "        \"Charge Power Up\": "                  << floatConverter(contact->charge_power_up) << "," << std::endl;
-            json_stream << "        \"Charge Power Down\": "                << floatConverter(contact->charge_power_down) << "," << std::endl;
-            json_stream << "        \"Star Swing Five-Star\": "             << std::to_string(contact->moon_shot) << "," << std::endl;
-            json_stream << "        \"Input Direction - Push/Pull\": "      << decode("Stick", contact->input_direction_push_pull, inDecode) << "," << std::endl;
-            json_stream << "        \"Input Direction - Stick\": "          << decode("StickVec", contact->input_direction_stick, inDecode) << "," << std::endl;
-            json_stream << "        \"Frame of Swing Upon Contact\": "      << std::dec << contact->frameOfSwingUponContact << "," << std::endl;
-            json_stream << "        \"Ball Angle\": \""                     << std::dec << contact->ball_angle << "\"," << std::endl;
-            json_stream << "        \"Ball Vertical Power\": \""            << std::dec << contact->vert_power << "\"," << std::endl;
-            json_stream << "        \"Ball Horizontal Power\": \""          << std::dec << contact->horiz_power << "\"," << std::endl;
-            json_stream << "        \"Ball Velocity - X\": "                << floatConverter(contact->ball_x_velocity) << "," << std::endl;
-            json_stream << "        \"Ball Velocity - Y\": "                << floatConverter(contact->ball_y_velocity) << "," << std::endl;
-            json_stream << "        \"Ball Velocity - Z\": "                << floatConverter(contact->ball_z_velocity) << "," << std::endl;
+            json_stream << "    \"Contact\": {" << std::endl;
+            json_stream << "      \"Type of Contact\": "                  << decode("Contact", contact->type_of_contact, inDecode) << "," << std::endl;
+            json_stream << "      \"Charge Power Up\": "                  << floatConverter(contact->charge_power_up) << "," << std::endl;
+            json_stream << "      \"Charge Power Down\": "                << floatConverter(contact->charge_power_down) << "," << std::endl;
+            json_stream << "      \"Star Swing Five-Star\": "             << std::to_string(contact->moon_shot) << "," << std::endl;
+            json_stream << "      \"Input Direction - Push/Pull\": "      << decode("Stick", contact->input_direction_push_pull, inDecode) << "," << std::endl;
+            json_stream << "      \"Input Direction - Stick\": "          << decode("StickVec", contact->input_direction_stick, inDecode) << "," << std::endl;
+            json_stream << "      \"Frame of Swing Upon Contact\": "      << std::dec << contact->frameOfSwingUponContact << "," << std::endl;
+            json_stream << "      \"Ball Angle\": \""                     << std::dec << contact->ball_angle << "\"," << std::endl;
+            json_stream << "      \"Ball Vertical Power\": \""            << std::dec << contact->vert_power << "\"," << std::endl;
+            json_stream << "      \"Ball Horizontal Power\": \""          << std::dec << contact->horiz_power << "\"," << std::endl;
+            json_stream << "      \"Ball Velocity - X\": "                << floatConverter(contact->ball_x_velocity) << "," << std::endl;
+            json_stream << "      \"Ball Velocity - Y\": "                << floatConverter(contact->ball_y_velocity) << "," << std::endl;
+            json_stream << "      \"Ball Velocity - Z\": "                << floatConverter(contact->ball_z_velocity) << "," << std::endl;
             //json_stream << "        \"Ball Acceleration - X\": "            << ball_x_accel << "," << std::endl;
             //json_stream << "        \"Ball Acceleration - Y\": "            << ball_y_accel << "," << std::endl;
             //json_stream << "        \"Ball Acceleration - Z\": "            << ball_z_accel << "," << std::endl;
-            json_stream << "        \"Ball Landing Position - X\": "        << floatConverter(contact->ball_x_pos) << "," << std::endl;
-            json_stream << "        \"Ball Landing Position - Y\": "        << floatConverter(contact->ball_y_pos) << "," << std::endl;
-            json_stream << "        \"Ball Landing Position - Z\": "        << floatConverter(contact->ball_z_pos) << "," << std::endl;
+            json_stream << "      \"Ball Landing Position - X\": "        << floatConverter(contact->ball_x_pos) << "," << std::endl;
+            json_stream << "      \"Ball Landing Position - Y\": "        << floatConverter(contact->ball_y_pos) << "," << std::endl;
+            json_stream << "      \"Ball Landing Position - Z\": "        << floatConverter(contact->ball_z_pos) << "," << std::endl;
 
-            json_stream << "        \"Ball Max Height\": "                  << floatConverter(contact->ball_y_pos_max_height) << "," << std::endl;
+            json_stream << "      \"Ball Max Height\": "                  << floatConverter(contact->ball_y_pos_max_height) << "," << std::endl;
 
-            json_stream << "        \"Ball Position Upon Contact - X\": "   << floatConverter(contact->ball_x_pos_upon_hit) << "," << std::endl;
-            json_stream << "        \"Ball Position Upon Contact - Z\": "   << floatConverter(contact->ball_z_pos_upon_hit) << "," << std::endl;
-            json_stream << "        \"Batter Position Upon Contact - X\": " << floatConverter(contact->batter_x_pos_upon_hit) << "," << std::endl;
-            json_stream << "        \"Batter Position Upon Contact - Z\": " << floatConverter(contact->batter_z_pos_upon_hit) << "," << std::endl;
-            json_stream << "        \"Multi-out\": "                        << std::to_string(contact->multi_out) << "," << std::endl;
-            json_stream << "        \"Contact Result - Primary\": "         << decode("PrimaryContactResult", contact->primary_contact_result, inDecode) << "," << std::endl;
-            json_stream << "        \"Contact Result - Secondary\": "       << decode("SecondaryContactResult", contact->secondary_contact_result, inDecode);
+            json_stream << "      \"Ball Position Upon Contact - X\": "   << floatConverter(contact->ball_x_pos_upon_hit) << "," << std::endl;
+            json_stream << "      \"Ball Position Upon Contact - Z\": "   << floatConverter(contact->ball_z_pos_upon_hit) << "," << std::endl;
+            json_stream << "      \"Batter Position Upon Contact - X\": " << floatConverter(contact->batter_x_pos_upon_hit) << "," << std::endl;
+            json_stream << "      \"Batter Position Upon Contact - Z\": " << floatConverter(contact->batter_z_pos_upon_hit) << "," << std::endl;
+            json_stream << "      \"Multi-out\": "                        << std::to_string(contact->multi_out) << "," << std::endl;
+            json_stream << "      \"Contact Result - Primary\": "         << decode("PrimaryContactResult", contact->primary_contact_result, inDecode) << "," << std::endl;
+            json_stream << "      \"Contact Result - Secondary\": "       << decode("SecondaryContactResult", contact->secondary_contact_result, inDecode);
 
             //=== Fielder ===
             //TODO could be reworked
@@ -1259,25 +1260,30 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
                 if (contact->first_fielder.has_value()) { fielder = &contact->first_fielder.value(); }
                 else {fielder = &contact->collect_fielder.value();}
 
-                json_stream << "        \"First Fielder\": {" << std::endl;
-                json_stream << "          \"Fielder Roster Location\": " << std::to_string(fielder->fielder_roster_loc) << "," << std::endl;
-                json_stream << "          \"Fielder Position\": "        << decode("Position", fielder->fielder_pos, inDecode) << "," << std::endl;
-                json_stream << "          \"Fielder Character\": "       << decode("Character", fielder->fielder_char_id, inDecode) << "," << std::endl;
-                json_stream << "          \"Fielder Action\": "          << decode("Action", fielder->fielder_action, inDecode) << "," << std::endl;
-                json_stream << "          \"Fielder Jump\": "            << std::to_string(fielder->fielder_jump) << "," << std::endl;
-                json_stream << "          \"Fielder Swap\": "            << std::to_string(fielder->fielder_swapped_for_batter) << "," << std::endl;
-                json_stream << "          \"Fielder Manual Selected\": " << decode("ManualSelect", fielder->fielder_manual_select_lock, inDecode) << "," << std::endl;
-                json_stream << "          \"Fielder Position - X\": "    << floatConverter(fielder->fielder_x_pos) << "," << std::endl;
-                json_stream << "          \"Fielder Position - Y\": "    << floatConverter(fielder->fielder_y_pos) << "," << std::endl;
-                json_stream << "          \"Fielder Position - Z\": "    << floatConverter(fielder->fielder_z_pos) << "," << std::endl;
-                json_stream << "          \"Fielder Bobble\": "          << decode("Bobble", fielder->bobble, inDecode) << std::endl;
-                json_stream << "        }" << std::endl;
+                json_stream << "      \"First Fielder\": {" << std::endl;
+                json_stream << "        \"Fielder Roster Location\": " << std::to_string(fielder->fielder_roster_loc) << "," << std::endl;
+                json_stream << "        \"Fielder Position\": "        << decode("Position", fielder->fielder_pos, inDecode) << "," << std::endl;
+                json_stream << "        \"Fielder Character\": "       << decode("Character", fielder->fielder_char_id, inDecode) << "," << std::endl;
+                json_stream << "        \"Fielder Action\": "          << decode("Action", fielder->fielder_action, inDecode) << "," << std::endl;
+                json_stream << "        \"Fielder Jump\": "            << std::to_string(fielder->fielder_jump) << "," << std::endl;
+                json_stream << "        \"Fielder Swap\": "            << std::to_string(fielder->fielder_swapped_for_batter) << "," << std::endl;
+                json_stream << "        \"Fielder Manual Selected\": " << decode("ManualSelect", fielder->fielder_manual_select_lock, inDecode) << "," << std::endl;
+                json_stream << "        \"Fielder Position - X\": "    << floatConverter(fielder->fielder_x_pos) << "," << std::endl;
+                json_stream << "        \"Fielder Position - Y\": "    << floatConverter(fielder->fielder_y_pos) << "," << std::endl;
+                json_stream << "        \"Fielder Position - Z\": "    << floatConverter(fielder->fielder_z_pos) << "," << std::endl;
+                json_stream << "        \"Fielder Bobble\": "          << decode("Bobble", fielder->bobble, inDecode) << std::endl;
+                json_stream << "      }" << std::endl;
+            }
+            else{ //Finish contact section
+                json_stream << std::endl;
             }
             json_stream << "      }" << std::endl; //close contact
         }
+        else { //Finish pitch section
+            json_stream << std::endl;
+        }
         json_stream << "    }" << std::endl; //Close pitch
     }
-    json_stream << "  }" << std::endl;
     json_stream << "}" << std::endl;
 
     
@@ -1356,15 +1362,15 @@ std::optional<StatTracker::Fielder> StatTracker::logFielderWithBall() {
             }
 
             //Have to read from the array that the StatTracker maintains because if the fielder is holding the ball the flags are cleared
-            std::cout << "Manual Select Locks=[" << std::to_string(in_event.manual_select_locks.at(0)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(1)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(2)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(3)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(4)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(5)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(6)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(7)) << ", "
-                                         << std::to_string(in_event.manual_select_locks.at(8)) << "]" << std::endl;
+            std::cout << "Manual Select Locks=[" << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(0)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(1)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(2)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(3)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(4)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(5)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(6)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(7)) << ", "
+                                         << std::to_string(m_game_info.getCurrentEvent().manual_select_locks.at(8)) << "]" << std::endl;
 
             fielder_with_ball.fielder_manual_select_lock = m_game_info.getCurrentEvent().manual_select_locks.at(pos);
 
