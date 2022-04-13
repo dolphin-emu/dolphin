@@ -47,6 +47,9 @@ private:
   GraphicsChoice* m_aspect_combo;
   GraphicsBool* m_enable_vsync;
   GraphicsBool* m_enable_fullscreen;
+#if defined(__APPLE__)
+  GraphicsBool* m_enable_metal_double_buffering;
+#endif
 
   // Options
   GraphicsBool* m_show_fps;

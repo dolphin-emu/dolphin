@@ -65,6 +65,10 @@ struct VideoConfig final
   bool bCrop = false;  // Aspect ratio controls.
   bool bShaderCache = false;
 
+#ifdef __APPLE__
+  bool bMetalDoubleBuffer = false;
+#endif
+
   // Enhancements
   u32 iMultisamples = 0;
   bool bSSAA = false;

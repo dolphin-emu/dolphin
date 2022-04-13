@@ -73,6 +73,10 @@ extern const Info<int> GFX_SHADER_COMPILER_THREADS;
 extern const Info<int> GFX_SHADER_PRECOMPILER_THREADS;
 extern const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE;
 
+#if defined(__APPLE__)
+extern const Info<bool> GFX_METAL_DOUBLE_BUFFER;
+#endif
+
 extern const Info<bool> GFX_SW_ZCOMPLOC;
 extern const Info<bool> GFX_SW_ZFREEZE;
 extern const Info<bool> GFX_SW_DUMP_OBJECTS;

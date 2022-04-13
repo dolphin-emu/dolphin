@@ -89,6 +89,11 @@ void VideoConfig::Refresh()
   bWireFrame = Config::Get(Config::GFX_ENABLE_WIREFRAME);
   bDisableFog = Config::Get(Config::GFX_DISABLE_FOG);
   bBorderlessFullscreen = Config::Get(Config::GFX_BORDERLESS_FULLSCREEN);
+
+#ifdef __APPLE__
+  bMetalDoubleBuffer = Config::Get(Config::GFX_METAL_DOUBLE_BUFFER);
+#endif
+
   bEnableValidationLayer = Config::Get(Config::GFX_ENABLE_VALIDATION_LAYER);
   bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
