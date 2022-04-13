@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -134,7 +135,7 @@ struct DHCPBody
 {
   DHCPBody();
   DHCPBody(u32 transaction, MACAddress client_address, u32 new_ip, u32 serv_ip);
-  void AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params);
+  bool AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params);
   u8 message_type = 0;
   u8 hardware_type = 0;
   u8 hardware_addr = 0;

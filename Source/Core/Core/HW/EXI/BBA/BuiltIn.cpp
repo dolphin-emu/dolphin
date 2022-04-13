@@ -147,7 +147,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   // options
   request->options[2] == 1 ? reply->AddDHCPOption(1, 53, std::vector<u8>{2}) :
                              reply->AddDHCPOption(1, 53, std::vector<u8>{5});
-  reply->AddDHCPOption(4, 54, std::vector<u8>{192, 168, 1, 1});  // dhcp server ip
+  reply->AddDHCPOption(4, 54, std::vector<u8>{192, 168, 1, 1});    // dhcp server ip
   reply->AddDHCPOption(4, 51, std::vector<u8>{0, 1, 0x51, 0x80});  // lease time 24h
   reply->AddDHCPOption(4, 58, std::vector<u8>{0, 1, 0x51, 0x80});  // renewal
   reply->AddDHCPOption(4, 59, std::vector<u8>{0, 1, 0x51, 0x80});  // rebind
@@ -156,7 +156,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   reply->AddDHCPOption(4, 6, std::vector<u8>{192, 168, 1, 1});     // dns server
   reply->AddDHCPOption(3, 15, std::vector<u8>{0x6c, 0x61, 0x6e});  // domaine name "lan"
   reply->AddDHCPOption(4, 3, std::vector<u8>{192, 168, 1, 1});     // router ip
-  reply->AddDHCPOption(0, 255, {});                          // end
+  reply->AddDHCPOption(0, 255, {});                                // end
 
   udppart->checksum = Common::ComputeTCPNetworkChecksum(from, to, udppart, 308, IPPROTO_UDP);
 

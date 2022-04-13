@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <string_view>
+#include <vector>
 
 #ifndef _WIN32
 #include <netinet/in.h>
@@ -216,7 +217,7 @@ DHCPBody::DHCPBody(u32 transaction, MACAddress client_address, u32 new_ip, u32 s
 }
 
 // Add an option to the DHCP Body
-void DHCPBody::AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params)
+bool DHCPBody::AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params)
 {
   int i = 0;
   while (options[i] != 0)
@@ -224,14 +225,15 @@ void DHCPBody::AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params)
     i += options[i + 1] + 2;
     if (i >= std::size(options))
     {
-      throw std::invalid_argument("Exceeded option size");
+      return false;
     }
   }
-    
+
   options[i++] = fnc;
   options[i++] = size;
   for (auto val : params)
     options[i++] = val;
+  return true;
 }
 
 // Compute the network checksum with a 32-bit accumulator using the
