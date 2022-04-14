@@ -534,13 +534,19 @@ void FpsControls::run_mod_mp2_gc(Region region) {
   if (show_crosshair) {
     write32(crosshair_color_rgba, crosshair_color_addr);
   }
-
+  
+  LOOKUP_DYN(player_xf);
+  Transform cplayer_xf(player_xf);
   LOOKUP_DYN(orbit_state);
   LOOKUP_DYN(firstperson_pitch);
   if (read32(orbit_state) != ORBIT_STATE_GRAPPLE &&
       read32(orbit_state) != 0) {
     calculate_pitch_locked(Game::PRIME_2_GCN, region);
     writef32(FpsControls::pitch, firstperson_pitch);
+
+    vec3 fwd = cplayer_xf.fwd();
+    yaw = atan2f(fwd.y, fwd.x);
+
     return;
   }
 
@@ -559,8 +565,10 @@ void FpsControls::run_mod_mp2_gc(Region region) {
     }
   }
 
-  calculate_pitch_delta();
+  calculate_pitchyaw_delta();
   writef32(FpsControls::pitch, firstperson_pitch);
+  cplayer_xf.build_rotation(yaw);
+  cplayer_xf.write_to(player_xf);
 
   LOOKUP_DYN(ball_state);
   if (read32(ball_state) == 0) {
