@@ -5,7 +5,7 @@
 
 namespace prime {
 
-constexpr float kPi = 3.141592654;
+constexpr float kPi = 3.141592654f;
 namespace {
 void rotate_map_mp1_gc(u32 job) {
   MapController* const map_controller = static_cast<MapController*>(GetHackManager()->get_mod("map_controller"));

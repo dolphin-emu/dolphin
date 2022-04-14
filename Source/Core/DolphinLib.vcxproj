@@ -44,6 +44,7 @@
     <ClCompile Include="Core\PrimeHack\Mods\DisableHudMemoPopup.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\ElfModLoader.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\FpsControls.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\MapController.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\Noclip.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\PortalSkipMP2.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\BloomIntensityMP3.cpp" />
@@ -51,6 +52,7 @@
     <ClCompile Include="Core\PrimeHack\Mods\ViewModifier.cpp" />
     <ClCompile Include="Core\PrimeHack\PrimeMod.cpp" />
     <ClCompile Include="Core\PrimeHack\PrimeUtils.cpp" />
+    <ClCompile Include="Core\PrimeHack\Quaternion.cpp" />
     <ClCompile Include="Core\PrimeHack\Transform.cpp" />
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackModes.cpp" />
     <ClCompile Include="InputCommon\DInputMouseAbsolute.cpp" />
@@ -72,6 +74,7 @@
     <ClInclude Include="Core\PrimeHack\Mods\FriendVouchers.h" />
     <ClInclude Include="Core\PrimeHack\Mods\BloomIntensityMP3.h" />
     <ClInclude Include="Core\PrimeHack\Mods\Invulnerability.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\MapController.h" />
     <ClInclude Include="Core\PrimeHack\Mods\Noclip.h" />
     <ClInclude Include="Core\PrimeHack\Mods\PortalSkipMP2.h" />
     <ClInclude Include="Core\PrimeHack\Mods\RestoreDashing.h" />
@@ -80,6 +83,7 @@
     <ClInclude Include="Core\PrimeHack\Mods\ViewModifier.h" />
     <ClInclude Include="Core\PrimeHack\PrimeMod.h" />
     <ClInclude Include="Core\PrimeHack\PrimeUtils.h" />
+    <ClInclude Include="Core\PrimeHack\Quaternion.h" />
     <ClInclude Include="Core\PrimeHack\Transform.h" />
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackModes.h" />
     <ClInclude Include="InputCommon\DInputMouseAbsolute.h" />
