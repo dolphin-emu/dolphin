@@ -844,12 +844,12 @@ void Tev::Draw()
   if (late_ztest && bpmem.zmode.testenable)
   {
     // TODO: Check against hw if these values get incremented even if depth testing is disabled
-    EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT);
+    EfbInterface::IncPerfCounterPixelCount(PQ_ZCOMP_INPUT);
 
     if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
       return;
 
-    EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT);
+    EfbInterface::IncPerfCounterPixelCount(PQ_ZCOMP_OUTPUT);
   }
 
   // The GC/Wii GPU rasterizes in 2x2 pixel groups, so bounding box values will be rounded to the
@@ -878,7 +878,7 @@ void Tev::Draw()
 #endif
 
   INCSTAT(g_stats.this_frame.tev_pixels_out);
-  EfbInterface::IncPerfCounterQuadCount(PQ_BLEND_INPUT);
+  EfbInterface::IncPerfCounterPixelCount(PQ_BLEND_INPUT);
 
   EfbInterface::BlendTev(Position[0], Position[1], output);
 }
