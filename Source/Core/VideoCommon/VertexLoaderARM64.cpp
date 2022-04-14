@@ -423,7 +423,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     CMP(count_reg, 3);
     FixupBranch dont_store = B(CC_GT);
     MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_matrix_index);
-    STR(IndexType::Unsigned, scratch1_reg, EncodeRegTo64(scratch2_reg), 0);
+    STR(scratch1_reg, EncodeRegTo64(scratch2_reg), ArithOption(count_reg, true));
     SetJumpTarget(dont_store);
 
     m_native_vtx_decl.posmtx.components = 4;
