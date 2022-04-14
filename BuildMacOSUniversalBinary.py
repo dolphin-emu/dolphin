@@ -337,7 +337,7 @@ def build(config):
             if not os.path.exists(arch):
                 os.mkdir(arch)
 
-            print("Building and running unit tests for: {arch}")
+            print(f"Building and running unit tests for: {arch}")
             unit_test_results[arch] = \
                 subprocess.call(["cmake", "--build", ".",
                                  "--config", config["build_type"],
