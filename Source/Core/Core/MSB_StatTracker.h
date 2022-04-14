@@ -697,6 +697,10 @@ public:
 
         //All of the events for this game
         std::map<u16, Event> events;
+        Event current_state;
+        bool write_hud = false;
+
+
         std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo;  // int is port
 
         Event& getCurrentEvent() { return events.at(event_num); }
@@ -726,6 +730,7 @@ public:
 
         std::array<int, cNumOfPositions> pitch_count_by_position = {0, 0, 0, 0, 0, 0, 0, 0, 0};
         std::array<int, cNumOfPositions> out_count_by_position   = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        std::array<int, cNumOfPositions> batter_outs_by_position   = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     };
 
     struct FielderTracker {
@@ -814,8 +819,28 @@ public:
             return false;
         }
 
+        bool batterOutsAtAnyPosition(u8 roster_loc, int starting_pos) {
+            for (int pos=starting_pos; pos < cRosterSize; ++pos){
+                if (fielder_map[roster_loc].batter_outs_by_position[pos] > 0) { 
+                    return true;
+                }
+            }
+            return false;
+        }
+
         void incrementOutForPosition(u8 roster_loc, u8 pos){
             ++fielder_map[roster_loc].out_count_by_position[pos];
+        }
+
+        void incrementBatterOutForPosition(){
+            for (u8 pos=0; pos < cRosterSize; ++pos){
+                u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
+
+                u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
+                //Increment the number of batter outs this player has seen at this position
+                ++fielder_map[roster_loc].batter_outs_by_position[pos]; 
+            }
+            return;
         }
 
         u8 wasFielderSwappedForBatter(u8 roster_loc){
@@ -903,6 +928,7 @@ public:
     //Returns JSON, PathToWriteTo
     std::string getStatJSON(bool inDecode);
     std::string getEventJSON(u16 in_event_num, Event& in_event, bool inDecode);
+    std::string getHUDJSON(u16 in_event_num, Event& in_event, bool inDecode);
     //Returns path to save json
     std::string getStatJsonPath(std::string prefix);
 
