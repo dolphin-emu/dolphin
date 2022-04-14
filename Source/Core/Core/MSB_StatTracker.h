@@ -651,8 +651,10 @@ public:
     
     struct GameInfo{
         u32 game_id;
-        std::string unix_date_time;
-        std::string local_date_time;
+        std::string start_unix_date_time;
+        std::string start_local_date_time;
+        std::string end_unix_date_time;
+        std::string end_local_date_time;
 
         u8 team0_port = 0xFF;
         u8 team1_port = 0xFF;

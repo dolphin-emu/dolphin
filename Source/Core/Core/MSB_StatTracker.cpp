@@ -76,6 +76,11 @@ void StatTracker::lookForTriggerEvents(){
 
                 //Init Ports and players
                 if (Memory::Read_U8(aAB_BatterPort) && (m_game_info.event_num == 0)){
+                    //Reaad start time
+                    std::time_t unix_time = std::time(nullptr);
+                    m_game_info.start_unix_date_time = std::to_string(unix_time);
+                    m_game_info.start_local_date_time = std::asctime(std::localtime(&unix_time));
+                    m_game_info.start_local_date_time.pop_back();
                     //Collect port info for players
                     if (m_game_info.team0_port == 0xFF && m_game_info.team1_port == 0xFF){
                         u8 fielder_port = Memory::Read_U8(aAB_FieldingPort);
@@ -439,9 +444,9 @@ void StatTracker::logGameInfo(){
 
     std::time_t unix_time = std::time(nullptr);
 
-    m_game_info.unix_date_time = std::to_string(unix_time);
-    m_game_info.local_date_time = std::asctime(std::localtime(&unix_time));
-    m_game_info.local_date_time.pop_back();
+    m_game_info.end_unix_date_time = std::to_string(unix_time);
+    m_game_info.end_local_date_time = std::asctime(std::localtime(&unix_time));
+    m_game_info.end_local_date_time.pop_back();
 
     m_game_info.stadium = Memory::Read_U8(aStadiumId);
 
@@ -850,9 +855,11 @@ std::string StatTracker::getStatJSON(bool inDecode){
 
     json_stream << "{" << std::endl;
     std::string stadium = (inDecode) ? "\"" + cStadiumIdToStadiumName.at(m_game_info.stadium) + "\"" : std::to_string(m_game_info.stadium);
-    std::string date_time = (inDecode) ? m_game_info.local_date_time : m_game_info.unix_date_time;
+    std::string start_date_time = (inDecode) ? m_game_info.start_local_date_time : m_game_info.start_unix_date_time;
+    std::string end_date_time = (inDecode) ? m_game_info.end_local_date_time : m_game_info.end_unix_date_time;
     json_stream << "  \"GameID\": \"" << std::hex << m_game_info.game_id << "\"," << std::endl;
-    json_stream << "  \"Date\": \"" << date_time << "\"," << std::endl;
+    json_stream << "  \"Date - Start\": \"" << start_date_time << "\"," << std::endl;
+    json_stream << "  \"Date - End\": \"" << end_date_time << "\"," << std::endl;
     json_stream << "  \"Ranked\": " << std::to_string(m_game_info.ranked) << "," << std::endl;
     json_stream << "  \"Netplay\": " << std::to_string(m_game_info.netplay) << "," << std::endl;
     json_stream << "  \"StadiumID\": " << decode("Stadium", m_game_info.stadium, inDecode) << "," << std::endl;
