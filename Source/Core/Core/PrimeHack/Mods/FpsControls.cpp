@@ -565,17 +565,12 @@ void FpsControls::run_mod_mp2_gc(Region region) {
     }
   }
 
-  calculate_pitchyaw_delta();
-  writef32(FpsControls::pitch, firstperson_pitch);
-  cplayer_xf.build_rotation(yaw);
-  cplayer_xf.write_to(player_xf);
-
   LOOKUP_DYN(ball_state);
   if (read32(ball_state) == 0) {
-    // Forgot to note this in MP1 GC, in trilogy we were using angular momentum
-    // whereas we're using angvel here, so divide out Samus' mass (200)
-    LOOKUP_DYN(angular_vel);
-    writef32(calculate_yaw_vel() / 200.f, angular_vel);
+    calculate_pitchyaw_delta();
+    writef32(FpsControls::pitch, firstperson_pitch);
+    cplayer_xf.build_rotation(yaw);
+    cplayer_xf.write_to(player_xf);
   }
 }
 
