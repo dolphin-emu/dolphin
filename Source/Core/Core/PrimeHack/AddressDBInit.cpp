@@ -54,6 +54,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_1_GCN, "gun_pos", 0x8045bce8, 0x803e3c14);
   addr_db.register_address(Game::PRIME_1_GCN, "tweak_player", 0x8045c208, 0x803e4134);
   addr_db.register_address(Game::PRIME_1_GCN, "crosshair_color", 0x8045b678, 0x803e35a4);
+  addr_db.register_address(Game::PRIME_1_GCN, "transform_offset", 0x34, 0x34);
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "world", "state_manager", {mrt1(0x850), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "player", "state_manager", {mrt1(0x84c), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN, "camera_manager", "state_manager", {mrt1(0x86c), rt0});
@@ -73,6 +74,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_1_GCN_R1, "gun_pos", 0x8045bec8); // [r13-5ecc]+4c
   addr_db.register_address(Game::PRIME_1_GCN_R1, "tweak_player", 0x8045c3e8);
   addr_db.register_address(Game::PRIME_1_GCN_R1, "crosshair_color", 0x8045b698); // [r13 - 5ec0]+1c0
+  addr_db.register_address(Game::PRIME_1_GCN_R1, "transform_offset", 0x34);
   addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "world", "state_manager", {mrt1(0x850), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "player", "state_manager", {mrt1(0x84c), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN_R1, "camera_manager", "state_manager", {mrt1(0x86c), rt0});
@@ -92,6 +94,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_1_GCN_R2, "gun_pos", 0x8045cd48); // [r13-5ecc]+4c
   addr_db.register_address(Game::PRIME_1_GCN_R2, "tweak_player", 0x8045d268);
   addr_db.register_address(Game::PRIME_1_GCN_R2, "crosshair_color", 0x8045c6d8); // [r13 - 5ec0]+1c0
+  addr_db.register_address(Game::PRIME_1_GCN_R2, "transform_offset", 0x34);
   addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "world", "state_manager", {mrt1(0x850), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "player", "state_manager", {mrt1(0x84c), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1_GCN_R2, "camera_manager", "state_manager", {mrt1(0x86c), rt0});
@@ -154,6 +157,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_vec_offset", 0x3c, 0x3c, 0x3c);
   addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_fire_size", 0x18, 0x18, 0x18);
   addr_db.register_address(Game::PRIME_2_GCN, "seq_timer_time_offset", 0x10, 0x10, 0x10);
+  addr_db.register_address(Game::PRIME_2_GCN, "transform_offset", 0x24, 0x24, 0x24);
   addr_db.register_dynamic_address(Game::PRIME_2_GCN, "camera_manager", "state_manager", {mrt1(0x151c), mrt1(0x14)});
   addr_db.register_dynamic_address(Game::PRIME_2_GCN, "object_list", "state_manager", {mrt1(0x810), rt0});
   addr_db.register_dynamic_address(Game::PRIME_2_GCN, "world", "state_manager", {mrt1(0x1604), rt0});

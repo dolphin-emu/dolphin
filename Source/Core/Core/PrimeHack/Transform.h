@@ -36,6 +36,10 @@ struct vec3 {
     return x * other.x + y * other.y + z * other.z;
   }
 
+  vec3 cross(vec3 const& rhs) const {
+    return vec3(y * rhs.z - z * rhs.y, z * rhs.x - x * rhs.z, x * rhs.y - y * rhs.x);
+  }
+
   void read_from(u32 address);
   void write_to(u32 address);
 };
