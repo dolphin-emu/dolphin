@@ -114,6 +114,17 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
 
   X64Reg coords = XMM0;
 
+  const auto write_zfreeze = [&]() {  // zfreeze
+    if (native_format == &m_native_vtx_decl.position)
+    {
+      CMP(32, R(count_reg), Imm8(3));
+      FixupBranch dont_store = J_CC(CC_A);
+      LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
+      MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
+      SetJumpTarget(dont_store);
+    }
+  };
+
   int elem_size = GetElementSize(format);
   int load_bytes = elem_size * count_in;
   OpArg dest = MDisp(dst_reg, m_dst_ofs);
@@ -217,16 +228,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
         }
       }
 
-      // zfreeze
-      if (native_format == &m_native_vtx_decl.position)
-      {
-        CMP(32, R(count_reg), Imm8(3));
-        FixupBranch dont_store = J_CC(CC_A);
-        LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
-        MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
-        SetJumpTarget(dont_store);
-      }
-      return load_bytes;
+      write_zfreeze();
     }
   }
 
@@ -251,15 +253,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
     break;
   }
 
-  // zfreeze
-  if (native_format == &m_native_vtx_decl.position)
-  {
-    CMP(32, R(count_reg), Imm8(3));
-    FixupBranch dont_store = J_CC(CC_A);
-    LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
-    MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
-    SetJumpTarget(dont_store);
-  }
+  write_zfreeze();
 
   return load_bytes;
 }
