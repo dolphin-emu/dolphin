@@ -119,9 +119,7 @@ void GameCubePane::CreateWidgets()
 #ifdef __APPLE__
            EXIDeviceType::EthernetTapServer,
 #endif
-#ifndef __APPLE__
            EXIDeviceType::EthernetBuiltIn,
-#endif
        })
   {
     m_slot_combos[ExpansionInterface::Slot::SP1]->addItem(tr(fmt::format("{:n}", device).c_str()),
