@@ -26,7 +26,9 @@ static const X64Reg dst_reg = ABI_PARAM2;
 static const X64Reg scratch1 = RAX;
 static const X64Reg scratch2 = ABI_PARAM3;
 static const X64Reg scratch3 = ABI_PARAM4;
-static const X64Reg count_reg = R10;
+// The remaining number of vertices to be processed.  Starts at count - 1, and the final loop has it
+// at 0.
+static const X64Reg remaining_reg = R10;
 static const X64Reg skipped_reg = R11;
 static const X64Reg base_reg = RBX;
 
@@ -117,10 +119,11 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
   const auto write_zfreeze = [&]() {  // zfreeze
     if (native_format == &m_native_vtx_decl.position)
     {
-      CMP(32, R(count_reg), Imm8(3));
-      FixupBranch dont_store = J_CC(CC_A);
-      LEA(32, scratch3,
-          MScaled(count_reg, SCALE_4, -int(VertexLoaderManager::position_cache[0].size())));
+      CMP(32, R(remaining_reg), Imm8(3));
+      FixupBranch dont_store = J_CC(CC_AE);
+      // The position cache is composed of 3 rows of 4 floats each; since each float is 4 bytes,
+      // we need to scale by 4 twice to cover the 4 floats.
+      LEA(32, scratch3, MScaled(remaining_reg, SCALE_4, 0));
       MOVUPS(MPIC(VertexLoaderManager::position_cache.data(), scratch3, SCALE_4), coords);
       SetJumpTarget(dont_store);
     }
@@ -380,8 +383,8 @@ void VertexLoaderX64::ReadColor(OpArg data, VertexComponentFormat attribute, Col
 
 void VertexLoaderX64::GenerateVertexLoader()
 {
-  BitSet32 regs = {src_reg,  dst_reg,   scratch1,    scratch2,
-                   scratch3, count_reg, skipped_reg, base_reg};
+  BitSet32 regs = {src_reg,  dst_reg,       scratch1,    scratch2,
+                   scratch3, remaining_reg, skipped_reg, base_reg};
   regs &= ABI_ALL_CALLEE_SAVED;
   ABI_PushRegistersAndAdjustStack(regs, 0);
 
@@ -389,7 +392,9 @@ void VertexLoaderX64::GenerateVertexLoader()
   PUSH(32, R(ABI_PARAM3));
 
   // ABI_PARAM3 is one of the lower registers, so free it for scratch2.
-  MOV(32, R(count_reg), R(ABI_PARAM3));
+  // We also have it end at a value of 0, to simplify indexing for zfreeze;
+  // this requires subtracting 1 at the start.
+  LEA(32, remaining_reg, MDisp(ABI_PARAM3, -1));
 
   MOV(64, R(base_reg), R(ABI_PARAM4));
 
@@ -407,9 +412,9 @@ void VertexLoaderX64::GenerateVertexLoader()
     MOV(32, MDisp(dst_reg, m_dst_ofs), R(scratch1));
 
     // zfreeze
-    CMP(32, R(count_reg), Imm8(3));
-    FixupBranch dont_store = J_CC(CC_A);
-    MOV(32, MPIC(VertexLoaderManager::position_matrix_index_cache.data(), count_reg, SCALE_4),
+    CMP(32, R(remaining_reg), Imm8(3));
+    FixupBranch dont_store = J_CC(CC_AE);
+    MOV(32, MPIC(VertexLoaderManager::position_matrix_index_cache.data(), remaining_reg, SCALE_4),
         R(scratch1));
     SetJumpTarget(dont_store);
 
@@ -509,8 +514,8 @@ void VertexLoaderX64::GenerateVertexLoader()
   const u8* cont = GetCodePtr();
   ADD(64, R(src_reg), Imm32(m_src_ofs));
 
-  SUB(32, R(count_reg), Imm8(1));
-  J_CC(CC_NZ, loop_start);
+  SUB(32, R(remaining_reg), Imm8(1));
+  J_CC(CC_AE, loop_start);
 
   // Get the original count.
   POP(32, R(ABI_RETURN));

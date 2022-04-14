@@ -41,8 +41,8 @@ void Pos_ReadDirect(VertexLoader* loader)
   for (int i = 0; i < N; ++i)
   {
     const float value = PosScale(src.Read<T>(), scale);
-    if (loader->m_counter < 3)
-      VertexLoaderManager::position_cache[loader->m_counter][i] = value;
+    if (loader->m_remaining < 3)
+      VertexLoaderManager::position_cache[loader->m_remaining][i] = value;
     dst.Write(value);
   }
 
@@ -68,8 +68,8 @@ void Pos_ReadIndex(VertexLoader* loader)
   for (int i = 0; i < N; ++i)
   {
     const float value = PosScale(Common::FromBigEndian(data[i]), scale);
-    if (loader->m_counter < 3)
-      VertexLoaderManager::position_cache[loader->m_counter][i] = value;
+    if (loader->m_remaining < 3)
+      VertexLoaderManager::position_cache[loader->m_remaining][i] = value;
     dst.Write(value);
   }
 

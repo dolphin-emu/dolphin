@@ -14,7 +14,7 @@ using namespace Arm64Gen;
 
 constexpr ARM64Reg src_reg = ARM64Reg::X0;
 constexpr ARM64Reg dst_reg = ARM64Reg::X1;
-constexpr ARM64Reg count_reg = ARM64Reg::W2;
+constexpr ARM64Reg remaining_reg = ARM64Reg::W2;
 constexpr ARM64Reg skipped_reg = ARM64Reg::W17;
 constexpr ARM64Reg scratch1_reg = ARM64Reg::W16;
 constexpr ARM64Reg scratch2_reg = ARM64Reg::W15;
@@ -209,13 +209,10 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
   // Z-Freeze
   if (native_format == &m_native_vtx_decl.position)
   {
-    CMP(count_reg, 3);
-    FixupBranch dont_store = B(CC_GT);
+    CMP(remaining_reg, 3);
+    FixupBranch dont_store = B(CC_GE);
     MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_cache.data());
-    ADD(EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch2_reg), EncodeRegTo64(count_reg),
-        ArithOption(EncodeRegTo64(count_reg), ShiftType::LSL, 4));
-    m_float_emit.STUR(write_size, coords, EncodeRegTo64(scratch1_reg),
-                      -int(sizeof(decltype(VertexLoaderManager::position_cache[0]))));
+    m_float_emit.STR(128, coords, EncodeRegTo64(scratch2_reg), ArithOption(remaining_reg, true));
     SetJumpTarget(dont_store);
   }
 
@@ -404,7 +401,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   AlignCode16();
   if (IsIndexed(m_VtxDesc.low.Position))
     MOV(skipped_reg, ARM64Reg::WZR);
-  MOV(saved_count, count_reg);
+  ADD(saved_count, remaining_reg, 1);
 
   MOVP2R(stride_reg, g_main_cp_state.array_strides.data());
   MOVP2R(arraybase_reg, VertexLoaderManager::cached_arraybases.data());
@@ -421,10 +418,10 @@ void VertexLoaderARM64::GenerateVertexLoader()
     STR(IndexType::Unsigned, scratch1_reg, dst_reg, m_dst_ofs);
 
     // Z-Freeze
-    CMP(count_reg, 3);
-    FixupBranch dont_store = B(CC_GT);
+    CMP(remaining_reg, 3);
+    FixupBranch dont_store = B(CC_GE);
     MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_matrix_index_cache.data());
-    STR(scratch1_reg, EncodeRegTo64(scratch2_reg), ArithOption(count_reg, true));
+    STR(scratch1_reg, EncodeRegTo64(scratch2_reg), ArithOption(remaining_reg, true));
     SetJumpTarget(dont_store);
 
     m_native_vtx_decl.posmtx.components = 4;
@@ -584,8 +581,8 @@ void VertexLoaderARM64::GenerateVertexLoader()
   const u8* cont = GetCodePtr();
   ADD(src_reg, src_reg, m_src_ofs);
 
-  SUB(count_reg, count_reg, 1);
-  CBNZ(count_reg, loop_start);
+  SUBS(remaining_reg, remaining_reg, 1);
+  B(CCFlags::CC_GE, loop_start);
 
   if (IsIndexed(m_VtxDesc.low.Position))
   {
@@ -612,5 +609,5 @@ int VertexLoaderARM64::RunVertices(DataReader src, DataReader dst, int count)
 {
   m_numLoadedVertices += count;
   return ((int (*)(u8 * src, u8 * dst, int count)) region)(src.GetPointer(), dst.GetPointer(),
-                                                           count);
+                                                           count - 1);
 }
