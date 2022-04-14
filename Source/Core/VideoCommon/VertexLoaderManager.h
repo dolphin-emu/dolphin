@@ -55,6 +55,10 @@ void UpdateVertexArrayPointers();
 // These arrays are in reverse order.
 extern std::array<std::array<float, 4>, 3> position_cache;
 extern std::array<u32, 3> position_matrix_index_cache;
+// Store the tangent and binormal vectors for games that use emboss texgens when the vertex format
+// doesn't include them (e.g. RS2 and RS3).  These too are 4 floats each for SIMD overwrites.
+extern std::array<float, 4> tangent_cache;
+extern std::array<float, 4> binormal_cache;
 
 // VB_HAS_X. Bitmask telling what vertex components are present.
 extern u32 g_current_components;

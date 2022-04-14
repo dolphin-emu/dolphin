@@ -90,22 +90,14 @@ void TransformPosition(const InputVertexData* src, OutputVertexData* dst)
   }
 }
 
-void TransformNormal(const InputVertexData* src, bool nbt, OutputVertexData* dst)
+void TransformNormal(const InputVertexData* src, OutputVertexData* dst)
 {
   const float* mat = &xfmem.normalMatrices[(src->posMtx & 31) * 3];
 
-  if (nbt)
-  {
-    MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
-    MultiplyVec3Mat33(src->normal[1], mat, dst->normal[1]);
-    MultiplyVec3Mat33(src->normal[2], mat, dst->normal[2]);
-    dst->normal[0].Normalize();
-  }
-  else
-  {
-    MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
-    dst->normal[0].Normalize();
-  }
+  MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
+  MultiplyVec3Mat33(src->normal[1], mat, dst->normal[1]);
+  MultiplyVec3Mat33(src->normal[2], mat, dst->normal[2]);
+  dst->normal[0].Normalize();
 }
 
 static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum,

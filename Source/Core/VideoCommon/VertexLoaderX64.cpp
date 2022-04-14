@@ -127,6 +127,22 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
       MOVUPS(MPIC(VertexLoaderManager::position_cache.data(), scratch3, SCALE_4), coords);
       SetJumpTarget(dont_store);
     }
+    else if (native_format == &m_native_vtx_decl.normals[1])
+    {
+      TEST(32, R(remaining_reg), R(remaining_reg));
+      FixupBranch dont_store = J_CC(CC_NZ);
+      // For similar reasons, the cached tangent and binormal are 4 floats each
+      MOVUPS(MPIC(VertexLoaderManager::tangent_cache.data()), coords);
+      SetJumpTarget(dont_store);
+    }
+    else if (native_format == &m_native_vtx_decl.normals[2])
+    {
+      CMP(32, R(remaining_reg), R(remaining_reg));
+      FixupBranch dont_store = J_CC(CC_NZ);
+      // For similar reasons, the cached tangent and binormal are 4 floats each
+      MOVUPS(MPIC(VertexLoaderManager::binormal_cache.data()), coords);
+      SetJumpTarget(dont_store);
+    }
   };
 
   int elem_size = GetElementSize(format);
@@ -217,7 +233,9 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
         dest.AddMemOffset(sizeof(float));
 
         // zfreeze
-        if (native_format == &m_native_vtx_decl.position)
+        if (native_format == &m_native_vtx_decl.position ||
+            native_format == &m_native_vtx_decl.normals[1] ||
+            native_format == &m_native_vtx_decl.normals[2])
         {
           if (cpu_info.bSSE4_1)
           {

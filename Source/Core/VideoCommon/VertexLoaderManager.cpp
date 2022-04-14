@@ -35,6 +35,8 @@ namespace VertexLoaderManager
 std::array<u32, 3> position_matrix_index_cache;
 // 3 vertices, 4 floats each to allow SIMD overwrite
 alignas(sizeof(std::array<float, 4>)) std::array<std::array<float, 4>, 3> position_cache;
+alignas(sizeof(std::array<float, 4>)) std::array<float, 4> tangent_cache;
+alignas(sizeof(std::array<float, 4>)) std::array<float, 4> binormal_cache;
 
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;

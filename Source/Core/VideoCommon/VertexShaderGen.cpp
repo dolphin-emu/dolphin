@@ -253,23 +253,24 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n");
   if ((uid_data->components & VB_HAS_NORMAL) != 0)
   {
+    if ((uid_data->components & VB_HAS_TANGENT) == 0)
+      out.Write("float3 rawtangent = " I_CACHED_TANGENT ".xyz;\n");
+    if ((uid_data->components & VB_HAS_BINORMAL) == 0)
+      out.Write("float3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
+
     // Only the first normal gets normalized (TODO: why?)
     out.Write("float3 _normal = normalize(float3(dot(N0, rawnormal), dot(N1, rawnormal), dot(N2, "
-              "rawnormal)));\n");
+              "rawnormal)));\n"
+              "float3 _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, "
+              "rawtangent));\n"
+              "float3 _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
+              "rawbinormal));\n");
   }
   else
   {
     out.Write("float3 _normal = float3(0.0, 0.0, 0.0);\n");
-  }
-  if ((uid_data->components & VB_HAS_TANGENT) != 0)
-  {
-    out.Write("float3 _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, "
-              "rawtangent));\n");
-  }
-  if ((uid_data->components & VB_HAS_BINORMAL) != 0)
-  {
-    out.Write("float3 _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
-              "rawbinormal));\n");
+    out.Write("float3 _binormal = float3(0.0, 0.0, 0.0);\n");
+    out.Write("float3 _tangent = float3(0.0, 0.0, 0.0);\n");
   }
 
   out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
@@ -341,22 +342,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
-      if ((uid_data->components & (VB_HAS_TANGENT | VB_HAS_BINORMAL)) != 0)
-      {
-        // transform the light dir into tangent space
-        out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                  LIGHT_POS_PARAMS(texinfo.embosslightshift));
-        out.Write(
-            "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
-            i, texinfo.embosssourceshift);
-      }
-      else
-      {
-        // The following assert was triggered in House of the Dead Overkill and Star Wars Rogue
-        // Squadron 2
-        // ASSERT(0); // should have normals
-        out.Write("o.tex{}.xyz = o.tex{}.xyz;\n", i, texinfo.embosssourceshift);
-      }
+      // transform the light dir into tangent space
+      out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
+                LIGHT_POS_PARAMS(texinfo.embosslightshift));
+      out.Write(
+          "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
+          i, texinfo.embosssourceshift);
 
       break;
     case TexGenType::Color0:

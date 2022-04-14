@@ -169,12 +169,18 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "if ((components & {}u) != 0u) // VB_HAS_TANGENT\n",
             VB_HAS_TANGENT);
   out.Write("  _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, rawtangent));\n"
+            "else\n"
+            "  _tangent = float3(dot(N0, " I_CACHED_TANGENT ".xyz), dot(N1, " I_CACHED_TANGENT
+            ".xyz), dot(N2, " I_CACHED_TANGENT ".xyz));\n"
             "\n"
             "float3 _binormal = float3(0.0, 0.0, 0.0);\n"
             "if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n",
             VB_HAS_BINORMAL);
   out.Write("  _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
             "rawbinormal));\n"
+            "else\n"
+            "  _binormal = float3(dot(N0, " I_CACHED_BINORMAL ".xyz), dot(N1, " I_CACHED_BINORMAL
+            ".xyz), dot(N2, " I_CACHED_BINORMAL ".xyz));\n"
             "\n");
 
   // Hardware Lighting
@@ -449,12 +455,9 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   for (u32 i = 0; i < num_texgen; i++)
     out.Write("      case {}u: output_tex.xyz = o.tex{}; break;\n", i, i);
   out.Write("      default: output_tex.xyz = float3(0.0, 0.0, 0.0); break;\n"
-            "      }}\n");
-  out.Write("      if ((components & {}u) != 0u) {{ // VB_HAS_TANGENT | VB_HAS_BINORMAL\n",
-            VB_HAS_TANGENT | VB_HAS_BINORMAL);
-  out.Write("        float3 ldir = normalize(" I_LIGHTS "[light].pos.xyz - pos.xyz);\n"
-            "        output_tex.xyz += float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n"
             "      }}\n"
+            "      float3 ldir = normalize(" I_LIGHTS "[light].pos.xyz - pos.xyz);\n"
+            "      output_tex.xyz += float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n"
             "    }}\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", TexGenType::Color0);
