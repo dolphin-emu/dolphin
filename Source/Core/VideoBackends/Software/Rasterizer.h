@@ -11,19 +11,12 @@ namespace Rasterizer
 {
 void Init();
 
+void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
+                  const OutputVertexData* v2);
 void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
                            const OutputVertexData* v2);
 
 void SetTevReg(int reg, int comp, s16 color);
-
-struct Slope
-{
-  float dfdx;
-  float dfdy;
-  float f0;
-
-  float GetValue(float dx, float dy) const { return f0 + (dfdx * dx) + (dfdy * dy); }
-};
 
 struct RasterBlockPixel
 {

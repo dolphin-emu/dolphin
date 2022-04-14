@@ -98,8 +98,6 @@ void VideoConfig::Refresh()
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
-  bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
-  bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
   bDumpObjects = Config::Get(Config::GFX_SW_DUMP_OBJECTS);
   bDumpTevStages = Config::Get(Config::GFX_SW_DUMP_TEV_STAGES);
   bDumpTevTextureFetches = Config::Get(Config::GFX_SW_DUMP_TEV_TEX_FETCHES);

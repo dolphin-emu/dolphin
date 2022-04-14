@@ -91,8 +91,6 @@ const Info<int> GFX_SHADER_PRECOMPILER_THREADS{
 const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
     {System::GFX, "Settings", "SaveTextureCacheToState"}, true};
 
-const Info<bool> GFX_SW_ZCOMPLOC{{System::GFX, "Settings", "SWZComploc"}, true};
-const Info<bool> GFX_SW_ZFREEZE{{System::GFX, "Settings", "SWZFreeze"}, true};
 const Info<bool> GFX_SW_DUMP_OBJECTS{{System::GFX, "Settings", "SWDumpObjects"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_STAGES{{System::GFX, "Settings", "SWDumpTevStages"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_TEX_FETCHES{{System::GFX, "Settings", "SWDumpTevTexFetches"},
