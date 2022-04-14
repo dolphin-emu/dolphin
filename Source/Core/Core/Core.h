@@ -169,4 +169,8 @@ void DoFrameStep();
 
 void UpdateInputGate(bool require_focus, bool require_full_focus = false);
 
+void setRecordStatus(bool inNewStatus);
+void setSubmitStatus(bool inNewStatus);
+void setRankedStatus(bool inNewStatus);
+
 }  // namespace Core

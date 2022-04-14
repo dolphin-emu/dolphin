@@ -7,6 +7,7 @@
 #include <QActionGroup>
 #include <QApplication>
 #include <QClipboard>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QGridLayout>
@@ -134,6 +135,10 @@ void NetPlayDialog::CreateMainLayout()
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
   m_menu_bar = new QMenuBar(this);
+  m_ranked_box = new QCheckBox(tr("Ranked"));
+  m_ranked_box->setToolTip(
+      tr("Enabling Ranked Mode will report your games to the ranked bot,\n"
+         "turn competetive gameplay settings on, and disable any extra gecko codes.\n"));
 
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
@@ -181,6 +186,7 @@ void NetPlayDialog::CreateMainLayout()
   m_network_mode_group->addAction(m_host_input_authority_action);
   m_network_mode_group->addAction(m_golf_mode_action);
   m_fixed_delay_action->setChecked(true);
+  m_ranked_box->setChecked(false);
 
   m_md5_menu = m_menu_bar->addMenu(tr("Checksum"));
   m_md5_menu->addAction(tr("Current game"), this, [this] {
@@ -225,8 +231,9 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
-  options_widget->addWidget(m_quit_button, 0, 3, Qt::AlignVCenter | Qt::AlignRight);
-  options_widget->setColumnStretch(3, 1000);
+  options_widget->addWidget(m_quit_button, 0, 7, Qt::AlignVCenter | Qt::AlignRight);
+  options_widget->setColumnStretch(6, 1000);
+  options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);
@@ -336,6 +343,13 @@ void NetPlayDialog::ConnectWidgets()
       client->AdjustPadBufferSize(value);
   });
 
+  connect(m_ranked_box, &QCheckBox::stateChanged, [this](bool is_ranked) {
+    auto client = Settings::Instance().GetNetPlayClient();
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->AdjustRankedBox(is_ranked);
+  });
+
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
     {
@@ -424,6 +438,20 @@ void NetPlayDialog::OnChat()
 
     SendMessage(msg);
   });
+}
+
+void NetPlayDialog::OnRankedEnabled(bool is_ranked)
+{
+  if (is_ranked)
+  {
+    DisplayMessage(tr("Ranked Mode Enabled"), "mediumseagreen");
+    Core::setRankedStatus(is_ranked);
+  }
+  else
+  {
+    DisplayMessage(tr("Ranked Mode Disabled"), "crimson");
+    Core::setRankedStatus(is_ranked);
+  }
 }
 
 void NetPlayDialog::OnIndexAdded(bool success, const std::string error)
@@ -823,6 +851,23 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
   }
 
   m_record_input_action->setEnabled(enabled);
+}
+
+void NetPlayDialog::RankedStartingMsg(bool is_ranked)
+{
+  if (is_ranked)
+  {
+    DisplayMessage(tr("NOTE: Ranked is Enabled. Community standard gecko codes are enabled and all others are disabled. 10 "),
+                   "mediumseagreen");
+    Core::setRankedStatus(is_ranked);
+  }
+  else
+  {
+    DisplayMessage(
+        tr("NOTE: Ranked Mode is Disabled. Custom gecko codes may be enabled."),
+        "crimson");
+    Core::setRankedStatus(is_ranked);
+  }
 }
 
 void NetPlayDialog::OnMsgStartGame()

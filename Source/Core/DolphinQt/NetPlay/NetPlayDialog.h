@@ -72,6 +72,9 @@ public:
   void OnGameStartAborted() override;
   void OnGolferChanged(bool is_golfer, const std::string& golfer_name) override;
 
+  void RankedStartingMsg(bool is_ranked);
+  void OnRankedEnabled(bool is_ranked);
+
   void OnIndexAdded(bool success, const std::string error) override;
   void OnIndexRefreshFailed(const std::string error) override;
 
@@ -157,6 +160,7 @@ private:
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
   QActionGroup* m_network_mode_group;
+  QCheckBox* m_ranked_box;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
@@ -174,6 +178,7 @@ private:
   int m_player_count = 0;
   int m_old_player_count = 0;
   bool m_host_input_authority = false;
+  bool m_current_ranked_value = false;
 
   StartGameCallback m_start_game_callback;
 };

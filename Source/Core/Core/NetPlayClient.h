@@ -67,6 +67,8 @@ public:
   virtual void OnGameStartAborted() = 0;
   virtual void OnGolferChanged(bool is_golfer, const std::string& golfer_name) = 0;
 
+  virtual void OnRankedEnabled(bool is_ranked) = 0;
+
   virtual bool IsRecording() = 0;
   virtual std::shared_ptr<const UICommon::GameFile>
   FindGameFile(const SyncIdentifier& sync_identifier,
@@ -150,6 +152,8 @@ public:
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
+
+  bool m_ranked_client = false;
 
   const PadMappingArray& GetPadMapping() const;
   const GBAConfigArray& GetGBAConfig() const;
@@ -330,6 +334,8 @@ private:
   std::unique_ptr<IOS::HLE::FS::FileSystem> m_wii_sync_fs;
   std::vector<u64> m_wii_sync_titles;
   std::string m_wii_sync_redirect_folder;
+
+  void OnRankedBoxMsg(sf::Packet& packet);
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

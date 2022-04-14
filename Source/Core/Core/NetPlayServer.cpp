@@ -672,6 +672,19 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
   }
 }
 
+void NetPlayServer::AdjustRankedBox(const bool is_ranked)
+{
+  std::lock_guard lkg(m_crit.game);
+  m_current_ranked_value = is_ranked;
+
+  // tell clients to change ranked box
+  sf::Packet spac;
+  spac << MessageID::RankedBox;
+  spac << m_current_ranked_value;
+
+  SendAsyncToClients(std::move(spac));
+}
+
 void NetPlayServer::SetHostInputAuthority(const bool enable)
 {
   std::lock_guard lkg(m_crit.game);

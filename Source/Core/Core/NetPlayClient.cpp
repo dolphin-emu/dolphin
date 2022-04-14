@@ -462,6 +462,10 @@ void NetPlayClient::OnData(sf::Packet& packet)
     OnMD5Abort();
     break;
 
+  case MessageID::RankedBox:
+    OnRankedBoxMsg(packet);
+    break;
+
   default:
     PanicAlertFmtT("Unknown message received with id : {0}", static_cast<u8>(mid));
     break;
@@ -1461,6 +1465,12 @@ void NetPlayClient::OnMD5Abort()
 {
   m_should_compute_MD5 = false;
   m_dialog->AbortMD5();
+}
+
+void NetPlayClient::OnRankedBoxMsg(sf::Packet& packet)
+{
+  packet >> m_ranked_client;
+  m_dialog->OnRankedEnabled(m_ranked_client);
 }
 
 void NetPlayClient::Send(const sf::Packet& packet, const u8 channel_id)

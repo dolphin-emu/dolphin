@@ -3025,7 +3025,7 @@ inline namespace literals {
     fmt::print("Elapsed time: {s:.2f} seconds", "s"_a=1.23);
   \endrst
  */
-#  if FMT_USE_NONTYPE_TEMPLATE_PARAMETERS
+#if FMT_USE_NONTYPE_TEMPLATE_PARAMETERS
 template <detail_exported::fixed_string Str>
 constexpr auto operator""_a()
     -> detail::udl_arg<remove_cvref_t<decltype(Str.data[0])>,
