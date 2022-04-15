@@ -12,14 +12,14 @@
 #include "Common/CommonTypes.h"
 #include "Common/Network.h"
 
-#define TCP_FLAG_SIN 0x200
-#define TCP_FLAG_ACK 0x1000
-#define TCP_FLAG_PSH 0x800
-#define TCP_FLAG_FIN 0x100
-#define TCP_FLAG_RST 0x400
+constexpr u16 TCP_FLAG_SIN = 0x200;
+constexpr u16 TCP_FLAG_ACK = 0x1000;
+constexpr u16 TCP_FLAG_PSH = 0x800;
+constexpr u16 TCP_FLAG_FIN = 0x100;
+constexpr u16 TCP_FLAG_RST = 0x400;
 
-#define IP_PROTOCOL 0x800
-#define ARP_PROTOCOL 0x806
+constexpr u16 IP_PROTOCOL = 0x800;
+constexpr u16 ARP_PROTOCOL = 0x806;
 
 constexpr u8 MAX_TCP_BUFFER = 4;
 
@@ -31,6 +31,7 @@ struct TcpBuffer
   u16 data_size;
   u8 data[2048];
 };
+
 struct StackRef
 {
   u32 ip;
@@ -43,7 +44,7 @@ struct StackRef
   u32 ack_base;
   u16 window_size;
   u16 delay;
-  TcpBuffer TcpBuffers[MAX_TCP_BUFFER];
+  TcpBuffer tcp_buffers[MAX_TCP_BUFFER];
   bool ready;
   sockaddr_in from;
   sockaddr_in to;

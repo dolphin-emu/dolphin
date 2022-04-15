@@ -263,7 +263,7 @@ u16 ComputeTCPNetworkChecksum(const sockaddr_in& from, const sockaddr_in& to, co
   const u32 initial_value = (source_addr >> 16) + (source_addr & 0xFFFF) +
                             (destination_addr >> 16) + (destination_addr & 0xFFFF) + protocol +
                             length;
-  u32 tcp_checksum = ComputeNetworkChecksum(data, length, initial_value);
+  const u32 tcp_checksum = ComputeNetworkChecksum(data, length, initial_value);
   return htons(static_cast<u16>(tcp_checksum));
 }
 }  // namespace Common

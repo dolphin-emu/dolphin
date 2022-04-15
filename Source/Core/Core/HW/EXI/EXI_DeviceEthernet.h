@@ -443,15 +443,14 @@ private:
     u8 queue_read = 0;
     u8 queue_write = 0;
     u16 queue_data_size[16]{};
-    u8* queue_data[16];
+    std::unique_ptr<u8[]> queue_data[16];
     std::mutex mtx;
-    bool isSent = false;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     StackRef network_ref[10]{};  // max 10 at same time, i think most gc game had a limit of 8 in
                                  // the gc framework
-    u8* m_in_frame;
-    u8* m_out_frame;
+    std::unique_ptr<u8[]> m_in_frame;
+    std::unique_ptr<u8[]> m_out_frame;
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
@@ -466,6 +465,7 @@ private:
     int GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
     void HandleTCPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
                         Common::TCPHeader* tcpdata, u8* data);
+    void InitMKDD();
     void HandleUDPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
                         Common::UDPHeader* udpdata, u8* data);
   };
