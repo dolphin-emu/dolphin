@@ -28,6 +28,18 @@ void rotate_map_mp1_gc(u32 job) {
     r.write_to(GPR(29) + 0xc8);
   }
 }
+void rotate_map_mp1(u32 job) {
+  MapController* const map_controller = static_cast<MapController*>(GetHackManager()->get_mod("map_controller"));
+  if (job == 0) {
+    if (GPR(31) == 1 && read32(GPR(29) + 0x1d0) == 0) {
+      map_controller->reset_rotation(map_controller->get_player_yaw(), readf32(GPR(29) + 0xd8) * -(kPi / 180.f));
+    }
+    GPR(24) = read32(GPR(29) + 0x1d4);
+  } else if (job == 1) {
+    quat r = map_controller->compute_orientation();
+    r.write_to(GPR(29) + 0xc4);
+  }
+}
 void rotate_map_mp2_gc(u32 job) {
   MapController* const map_controller = static_cast<MapController*>(GetHackManager()->get_mod("map_controller"));
   if (job == 0) {
@@ -38,6 +50,18 @@ void rotate_map_mp2_gc(u32 job) {
   } else if (job == 1) {  // Hooks ProcessMapRotateInput
     quat r = map_controller->compute_orientation();
     r.write_to(GPR(29) + 0xf4);
+  }
+}
+void rotate_map_mp2(u32 job) {
+  MapController* const map_controller = static_cast<MapController*>(GetHackManager()->get_mod("map_controller"));
+  if (job == 0) {
+    if (GPR(31) == 1 && read32(GPR(29) + 0x1f8) == 0) {
+      map_controller->reset_rotation(map_controller->get_player_yaw(), readf32(GPR(29) + 0x100) * -(kPi / 180.f));
+    }
+    GPR(24) = read32(GPR(29) + 0x1fc);
+  } else if (job == 1) {  // Hooks ProcessMapRotateInput
+    quat r = map_controller->compute_orientation();
+    r.write_to(GPR(29) + 0xec);
   }
 }
 }
@@ -89,10 +113,16 @@ quat MapController::compute_orientation() {
 
 bool MapController::init_mod(Game game, Region region) {
   switch (game) {
+  case Game::PRIME_1:
+    init_mod_mp1(region);
+    break;
   case Game::PRIME_1_GCN:
   case Game::PRIME_1_GCN_R1:
   case Game::PRIME_1_GCN_R2:
     init_mod_mp1_gc(game, region);
+    break;
+  case Game::PRIME_2:
+    init_mod_mp2(region);
     break;
   case Game::PRIME_2_GCN:
     init_mod_mp2_gc(region);
@@ -144,14 +174,32 @@ void MapController::init_mod_mp1_gc(Game game, Region region) {
   }
 }
 
+void MapController::init_mod_mp1(Region region) {
+  const int map_controller_rotate = PowerPC::RegisterVmcall(rotate_map_mp1);
+  if (map_controller_rotate == -1) {
+    return;
+  }
+  const u32 vmc_update_rotation = gen_vmcall(static_cast<u32>(map_controller_rotate), 0);
+  const u32 vmc_rotate_map = gen_vmcall(static_cast<u32>(map_controller_rotate), 1);
+
+  if (region == Region::NTSC_U || region == Region::PAL) {
+    add_code_change(0x80029070, vmc_update_rotation);
+    add_code_change(0x80025ab8, vmc_rotate_map);
+    add_code_change(0x80026350, 0x3880002b);
+    add_code_change(0x80026388, 0x3880002c);
+    add_code_change(0x800263a4, 0x3880002d);
+    add_code_change(0x800263c0, 0x3880002e);
+  }
+}
+
 void MapController::init_mod_mp2_gc(Region region) {
+  const int map_controller_rotate = PowerPC::RegisterVmcall(rotate_map_mp2_gc);
+  if (map_controller_rotate == -1) {
+    return;
+  }
+  const u32 vmc_update_rotation = gen_vmcall(static_cast<u32>(map_controller_rotate), 0);
+  const u32 vmc_rotate_map = gen_vmcall(static_cast<u32>(map_controller_rotate), 1);
   if (region == Region::NTSC_U) {
-    const int map_controller_rotate = PowerPC::RegisterVmcall(rotate_map_mp2_gc);
-    if (map_controller_rotate == -1) {
-      return;
-    }
-    const u32 vmc_update_rotation = gen_vmcall(static_cast<u32>(map_controller_rotate), 0);
-    const u32 vmc_rotate_map = gen_vmcall(static_cast<u32>(map_controller_rotate), 1);
     add_code_change(0x80088f48, vmc_update_rotation);
     add_code_change(0x8008e648, vmc_rotate_map);
     add_code_change(0x8008d63c, 0x3880002c);
@@ -159,18 +207,36 @@ void MapController::init_mod_mp2_gc(Region region) {
     add_code_change(0x8008d670, 0x3880002e);
     add_code_change(0x8008d68c, 0x3880002d);
   } else if (region == Region::PAL) {
-    const int map_controller_rotate = PowerPC::RegisterVmcall(rotate_map_mp2_gc);
-    if (map_controller_rotate == -1) {
-      return;
-    }
-    const u32 vmc_update_rotation = gen_vmcall(static_cast<u32>(map_controller_rotate), 0);
-    const u32 vmc_rotate_map = gen_vmcall(static_cast<u32>(map_controller_rotate), 1);
     add_code_change(0x80089084, vmc_update_rotation);
     add_code_change(0x8008e784, vmc_rotate_map);
     add_code_change(0x8008d778, 0x3880002c);
     add_code_change(0x8008d790, 0x3880002b);
     add_code_change(0x8008d7ac, 0x3880002e);
     add_code_change(0x8008d7c8, 0x3880002d);
+  }
+}
+
+void MapController::init_mod_mp2(Region region) {
+  const int map_controller_rotate = PowerPC::RegisterVmcall(rotate_map_mp2);
+  if (map_controller_rotate == -1) {
+    return;
+  }
+  const u32 vmc_update_rotation = gen_vmcall(static_cast<u32>(map_controller_rotate), 0);
+  const u32 vmc_rotate_map = gen_vmcall(static_cast<u32>(map_controller_rotate), 1);
+  if (region == Region::NTSC_U) {
+    add_code_change(0x8002eadc, vmc_update_rotation);
+    add_code_change(0x800293d0, vmc_rotate_map);
+    add_code_change(0x80029d48, 0x38a0002b);
+    add_code_change(0x80029d68, 0x38a0002c);
+    add_code_change(0x80029d88, 0x38a0002d);
+    add_code_change(0x80029da8, 0x38a0002e);
+  } else if (region == Region::PAL) {
+    add_code_change(0x80030030, vmc_update_rotation);
+    add_code_change(0x80029440, vmc_rotate_map);
+    add_code_change(0x80029db8, 0x38a0002b);
+    add_code_change(0x80029dd8, 0x38a0002c);
+    add_code_change(0x80029df8, 0x38a0002d);
+    add_code_change(0x80029e18, 0x38a0002e);
   }
 }
 

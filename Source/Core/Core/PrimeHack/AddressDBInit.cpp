@@ -22,6 +22,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_1, "powerups_size", 8, 8, 8);
   addr_db.register_address(Game::PRIME_1, "powerups_offset", 0x30, 0x30, 0x30);
   addr_db.register_address(Game::PRIME_1, "holster_timer_offset", 0x4, 0x4, 0x4);
+  addr_db.register_address(Game::PRIME_1, "transform_offset", 0x2c, 0x2c, 0x2c);
   addr_db.register_dynamic_address(Game::PRIME_1, "object_list", "state_manager", {mrt1(0x810), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1, "player", "state_manager", {mrt1(0x84c), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1, "firstperson_pitch", "player", {mrt1(0x3dc)});
@@ -127,6 +128,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_2, "seq_timer_fire_size", 0x14, 0x14, 0x14);
   addr_db.register_address(Game::PRIME_2, "seq_timer_time_offset", 0xc, 0xc, 0xc);
   addr_db.register_address(Game::PRIME_2, "holster_timer_offset", -0x20, -0x20, -0x20);
+  addr_db.register_address(Game::PRIME_2, "transform_offset", 0x20, 0x20, 0x20);
   addr_db.register_dynamic_address(Game::PRIME_2, "player", "state_manager", {mrt1(0x14f4), rt0});
   addr_db.register_dynamic_address(Game::PRIME_2, "object_list", "state_manager", {mrt1(0x810), rt0});
   addr_db.register_dynamic_address(Game::PRIME_2, "camera_manager", "state_manager", {mrt1(0x1514), mrt1(0x10)});

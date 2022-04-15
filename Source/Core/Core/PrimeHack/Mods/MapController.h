@@ -16,7 +16,9 @@ public:
 
 private:
   void init_mod_mp1_gc(Game game, Region region);
+  void init_mod_mp1(Region region);
   void init_mod_mp2_gc(Region region);
+  void init_mod_mp2(Region region);
 
   float x_rot, y_rot;
 };
