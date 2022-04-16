@@ -18,7 +18,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QRadioButton>
 #include <QRegularExpression>
 #include <QScrollArea>
 #include <QSpacerItem>
@@ -69,7 +68,7 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 
   ConnectWidgets();
   OnAddressSpaceChanged();
-  OnTypeChanged();
+  OnDisplayChanged();
 }
 
 MemoryWidget::~MemoryWidget()
@@ -140,10 +139,18 @@ void MemoryWidget::CreateWidgets()
   m_input_combo->addItem(tr("Signed 32"), int(InputID::S32));
 
   // Dump
+  auto* dump_group = new QGroupBox(tr("Dump"));
+  auto* dump_layout = new QVBoxLayout;
+  dump_group->setLayout(dump_layout);
   m_dump_mram = new QPushButton(tr("Dump &MRAM"));
   m_dump_exram = new QPushButton(tr("Dump &ExRAM"));
   m_dump_aram = new QPushButton(tr("Dump &ARAM"));
   m_dump_fake_vmem = new QPushButton(tr("Dump &FakeVMEM"));
+
+  dump_layout->addWidget(m_dump_mram);
+  dump_layout->addWidget(m_dump_exram);
+  dump_layout->addWidget(m_dump_aram);
+  dump_layout->addWidget(m_dump_fake_vmem);
 
   // Search Options
   auto* search_group = new QGroupBox(tr("Search"));
@@ -179,22 +186,38 @@ void MemoryWidget::CreateWidgets()
   address_space_layout->setSpacing(1);
 
   // Data Type
-  auto* datatype_group = new QGroupBox(tr("Data Type"));
-  auto* datatype_layout = new QVBoxLayout;
-  datatype_group->setLayout(datatype_layout);
+  auto* displaytype_group = new QGroupBox(tr("Display Type"));
+  auto* displaytype_layout = new QVBoxLayout;
+  displaytype_group->setLayout(displaytype_layout);
 
-  m_type_u8 = new QRadioButton(tr("U&8"));
-  m_type_u16 = new QRadioButton(tr("U&16"));
-  m_type_u32 = new QRadioButton(tr("U&32"));
-  m_type_ascii = new QRadioButton(tr("ASCII"));
-  m_type_float = new QRadioButton(tr("Float"));
+  m_display_combo = new QComboBox;
+  m_display_combo->setMaxVisibleItems(20);
+  m_display_combo->addItem(tr("Hex 8"), int(MemoryViewWidget::Type::Hex8));
+  m_display_combo->addItem(tr("Hex 16"), int(MemoryViewWidget::Type::Hex16));
+  m_display_combo->addItem(tr("Hex 32"), int(MemoryViewWidget::Type::Hex32));
+  m_display_combo->addItem(tr("Unsigned 8"), int(MemoryViewWidget::Type::Unsigned8));
+  m_display_combo->addItem(tr("Unsigned 16"), int(MemoryViewWidget::Type::Unsigned16));
+  m_display_combo->addItem(tr("Unsigned 32"), int(MemoryViewWidget::Type::Unsigned32));
+  m_display_combo->addItem(tr("Signed 8"), int(MemoryViewWidget::Type::Signed8));
+  m_display_combo->addItem(tr("Signed 16"), int(MemoryViewWidget::Type::Signed16));
+  m_display_combo->addItem(tr("Signed 32"), int(MemoryViewWidget::Type::Signed32));
+  m_display_combo->addItem(tr("ASCII"), int(MemoryViewWidget::Type::ASCII));
+  m_display_combo->addItem(tr("Float"), int(MemoryViewWidget::Type::Float32));
+  m_display_combo->addItem(tr("Double"), int(MemoryViewWidget::Type::Double));
 
-  datatype_layout->addWidget(m_type_u8);
-  datatype_layout->addWidget(m_type_u16);
-  datatype_layout->addWidget(m_type_u32);
-  datatype_layout->addWidget(m_type_ascii);
-  datatype_layout->addWidget(m_type_float);
-  datatype_layout->setSpacing(1);
+  m_align_combo = new QComboBox;
+  m_align_combo->addItem(tr("Fixed Alignment"));
+  m_align_combo->addItem(tr("Type-based Alignment"), 0);
+  m_align_combo->addItem(tr("No Alignment"), 1);
+
+  m_row_length_combo = new QComboBox;
+  m_row_length_combo->addItem(tr("4 Bytes"), 4);
+  m_row_length_combo->addItem(tr("8 Bytes"), 8);
+  m_row_length_combo->addItem(tr("16 Bytes"), 16);
+
+  displaytype_layout->addWidget(m_display_combo);
+  displaytype_layout->addWidget(m_align_combo);
+  displaytype_layout->addWidget(m_row_length_combo);
 
   // MBP options
   auto* bp_group = new QGroupBox(tr("Memory breakpoint options"));
@@ -232,16 +255,16 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_set_value);
   sidebar_layout->addWidget(m_from_file);
-  sidebar_layout->addItem(new QSpacerItem(1, 20));
-  sidebar_layout->addWidget(m_dump_mram);
-  sidebar_layout->addWidget(m_dump_exram);
-  sidebar_layout->addWidget(m_dump_aram);
-  sidebar_layout->addWidget(m_dump_fake_vmem);
-  sidebar_layout->addItem(new QSpacerItem(1, 15));
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(search_group);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
+  sidebar_layout->addWidget(displaytype_group);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(address_space_group);
-  sidebar_layout->addWidget(datatype_group);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(bp_group);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
+  sidebar_layout->addWidget(dump_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
   // Splitter
@@ -289,9 +312,11 @@ void MemoryWidget::ConnectWidgets()
   {
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnAddressSpaceChanged);
   }
-
-  for (auto* radio : {m_type_u8, m_type_u16, m_type_u32, m_type_ascii, m_type_float})
-    connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnTypeChanged);
+  for (auto* combo : {m_display_combo, m_align_combo, m_row_length_combo})
+  {
+    connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &MemoryWidget::OnDisplayChanged);
+  }
 
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
@@ -342,17 +367,9 @@ void MemoryWidget::LoadSettings()
   m_address_space_auxiliary->setChecked(address_space_auxiliary);
   m_address_space_physical->setChecked(address_space_physical);
 
-  const bool type_u8 = settings.value(QStringLiteral("memorywidget/typeu8"), true).toBool();
-  const bool type_u16 = settings.value(QStringLiteral("memorywidget/typeu16"), false).toBool();
-  const bool type_u32 = settings.value(QStringLiteral("memorywidget/typeu32"), false).toBool();
-  const bool type_float = settings.value(QStringLiteral("memorywidget/typefloat"), false).toBool();
-  const bool type_ascii = settings.value(QStringLiteral("memorywidget/typeascii"), false).toBool();
+  const int display_index = settings.value(QStringLiteral("memorywidget/display_type"), 1).toInt();
 
-  m_type_u8->setChecked(type_u8);
-  m_type_u16->setChecked(type_u16);
-  m_type_u32->setChecked(type_u32);
-  m_type_float->setChecked(type_float);
-  m_type_ascii->setChecked(type_ascii);
+  m_display_combo->setCurrentIndex(display_index);
 
   bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
@@ -385,11 +402,7 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/addrspace_physical"),
                     m_address_space_physical->isChecked());
 
-  settings.setValue(QStringLiteral("memorywidget/typeu8"), m_type_u8->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typeu16"), m_type_u16->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typeu32"), m_type_u32->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typeascii"), m_type_ascii->isChecked());
-  settings.setValue(QStringLiteral("memorywidget/typefloat"), m_type_float->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/display_type"), m_display_combo->currentIndex());
 
   settings.setValue(QStringLiteral("memorywidget/bpreadwrite"), m_bp_read_write->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
@@ -413,23 +426,24 @@ void MemoryWidget::OnAddressSpaceChanged()
   SaveSettings();
 }
 
-void MemoryWidget::OnTypeChanged()
+void MemoryWidget::OnDisplayChanged()
 {
-  MemoryViewWidget::Type type;
+  const auto type = static_cast<MemoryViewWidget::Type>(m_display_combo->currentData().toInt());
+  int bytes_per_row = m_row_length_combo->currentData().toInt();
+  int alignment;
 
-  if (m_type_u8->isChecked())
-    type = MemoryViewWidget::Type::U8;
-  else if (m_type_u16->isChecked())
-    type = MemoryViewWidget::Type::U16;
-  else if (m_type_u32->isChecked())
-    type = MemoryViewWidget::Type::U32;
-  else if (m_type_ascii->isChecked())
-    type = MemoryViewWidget::Type::ASCII;
+  if (type == MemoryViewWidget::Type::Double && bytes_per_row == 4)
+    bytes_per_row = 8;
+
+  // Alignment: First (fixed) option equals bytes per row. 'currentData' is correct for other
+  // options. Type-based must be calculated in memoryviewwidget and is left at 0. No alignment is
+  // equivalent to a value of 1.
+  if (m_align_combo->currentIndex() == 0)
+    alignment = bytes_per_row;
   else
-    type = MemoryViewWidget::Type::Float32;
+    alignment = m_align_combo->currentData().toInt();
 
-  ValidateAndPreviewInputValue();
-  m_memory_view->SetType(type);
+  m_memory_view->SetDisplay(type, bytes_per_row, alignment);
 
   SaveSettings();
 }

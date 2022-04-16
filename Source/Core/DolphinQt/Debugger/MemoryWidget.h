@@ -64,7 +64,7 @@ private:
   void SaveSettings();
 
   void OnAddressSpaceChanged();
-  void OnTypeChanged();
+  void OnDisplayChanged();
   void OnBPLogChanged();
   void OnBPTypeChanged();
 
@@ -95,6 +95,9 @@ private:
   QLineEdit* m_data_edit;
   QCheckBox* m_base_check;
   QLabel* m_data_preview;
+  QComboBox* m_display_combo;
+  QComboBox* m_align_combo;
+  QComboBox* m_row_length_combo;
   QPushButton* m_set_value;
   QPushButton* m_from_file;
   QPushButton* m_dump_mram;
@@ -112,13 +115,6 @@ private:
   QRadioButton* m_address_space_physical;
   QRadioButton* m_address_space_effective;
   QRadioButton* m_address_space_auxiliary;
-
-  // Datatypes
-  QRadioButton* m_type_u8;
-  QRadioButton* m_type_u16;
-  QRadioButton* m_type_u32;
-  QRadioButton* m_type_ascii;
-  QRadioButton* m_type_float;
 
   // Breakpoint options
   QRadioButton* m_bp_read_write;
