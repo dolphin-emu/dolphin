@@ -151,8 +151,9 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   const int i = indexed ? inst.Ix : inst.I;
   const int w = indexed ? inst.Wx : inst.W;
 
+  fpr.Lock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
-    fpr.Lock(ARM64Reg::Q0, ARM64Reg::Q1);
+    fpr.Lock(ARM64Reg::Q1);
 
   const bool have_single = fpr.IsSingle(inst.RS);
 
@@ -259,9 +260,10 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
     fpr.Unlock(VS);
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  fpr.Unlock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
   {
     gpr.Unlock(ARM64Reg::W2);
-    fpr.Unlock(ARM64Reg::Q0, ARM64Reg::Q1);
+    fpr.Unlock(ARM64Reg::Q1);
   }
 }
