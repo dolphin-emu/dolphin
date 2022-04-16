@@ -82,6 +82,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_BBA_MAC.GetLocation(),
       &Config::MAIN_BBA_XLINK_IP.GetLocation(),
       &Config::MAIN_BBA_BUILTIN_DNS.GetLocation(),
+      &Config::MAIN_BBA_BUILTIN_IP.GetLocation(),
       &Config::MAIN_BBA_XLINK_CHAT_OSD.GetLocation(),
       &Config::MAIN_OVERRIDE_REGION_SETTINGS.GetLocation(),
       &Config::MAIN_CUSTOM_RTC_ENABLE.GetLocation(),

@@ -37,6 +37,9 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   for (auto& buf : queue_data)
     buf = std::make_unique<u8[]>(2048);
   fake_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+  m_local_ip == "" ? m_current_ip = htonl(sf::IpAddress::getLocalAddress().toInteger()) :
+                     m_current_ip = htonl(sf::IpAddress(m_local_ip).toInteger());
+  m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
   // clear all ref
   for (int i = 0; i < std::size(network_ref); i++)
   {
@@ -77,7 +80,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::IsActivated()
   return active;
 }
 
-void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(u8* data, int length)
+void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const u8* data, int length)
 {
   queue_data_size[queue_write] = length;
   memcpy(&queue_data[queue_write][0], data, length);
@@ -101,13 +104,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleARP(Common::EthernetHeader* hwdata
   Common::MACAddress bba_mac;
 
   memcpy(&bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
-  if (arpdata->target_ip == 0xc701a8c0)
+  if (arpdata->target_ip == m_current_ip)
   {
-    *arppart = Common::ARPHeader(arpdata->target_ip, bba_mac, 0xc701a8c0, bba_mac);
+    *arppart = Common::ARPHeader(arpdata->target_ip, bba_mac, m_current_ip, bba_mac);
   }
   else
   {
-    *arppart = Common::ARPHeader(arpdata->target_ip, fake_mac, 0xc701a8c0, bba_mac);
+    *arppart = Common::ARPHeader(arpdata->target_ip, fake_mac, m_current_ip, bba_mac);
   }
 
   WriteToQueue(&m_in_frame[0], 0x2a);
@@ -130,62 +133,74 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   memcpy(&hwpart->destination, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
   hwpart->source = fake_mac;
 
-  from.sin_addr.s_addr = 0x0101a8c0;
+  from.sin_addr.s_addr = m_router_ip;
   from.sin_family = IPPROTO_UDP;
   from.sin_port = htons(67);
-  to.sin_addr.s_addr = 0xc701a8c0;
+  to.sin_addr.s_addr = m_current_ip;
   to.sin_family = IPPROTO_UDP;
   to.sin_port = udpdata->source_port;
+  const u8* ip_part = (u8*)&m_router_ip;
 
   *ippart = Common::IPv4Header(308, IPPROTO_UDP, from, to);
 
   *udppart = Common::UDPHeader(from, to, 300);
 
   *reply = Common::DHCPBody(request->transaction_id,
-                            *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0], 0xc701a8c0,
-                            0x0101a8c0);
+                            *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0], m_current_ip,
+                            m_router_ip);
 
   // options
   request->options[2] == 1 ? reply->AddDHCPOption(1, 53, std::vector<u8>{2}) :
                              reply->AddDHCPOption(1, 53, std::vector<u8>{5});
-  reply->AddDHCPOption(4, 54, std::vector<u8>{192, 168, 1, 1});    // dhcp server ip
-  reply->AddDHCPOption(4, 51, std::vector<u8>{0, 1, 0x51, 0x80});  // lease time 24h
-  reply->AddDHCPOption(4, 58, std::vector<u8>{0, 1, 0x51, 0x80});  // renewal
-  reply->AddDHCPOption(4, 59, std::vector<u8>{0, 1, 0x51, 0x80});  // rebind
-  reply->AddDHCPOption(4, 1, std::vector<u8>{255, 255, 255, 0});   // submask
-  reply->AddDHCPOption(4, 28, std::vector<u8>{192, 168, 1, 255});  // broadcast ip
-  reply->AddDHCPOption(4, 6, std::vector<u8>{192, 168, 1, 1});     // dns server
-  reply->AddDHCPOption(3, 15, std::vector<u8>{0x6c, 0x61, 0x6e});  // domaine name "lan"
-  reply->AddDHCPOption(4, 3, std::vector<u8>{192, 168, 1, 1});     // router ip
-  reply->AddDHCPOption(0, 255, {});                                // end
+  reply->AddDHCPOption(
+      4, 54, std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], ip_part[3]});     // dhcp server ip
+  reply->AddDHCPOption(4, 51, std::vector<u8>{0, 1, 0x51, 0x80});                  // lease time 24h
+  reply->AddDHCPOption(4, 58, std::vector<u8>{0, 1, 0x51, 0x80});                  // renewal
+  reply->AddDHCPOption(4, 59, std::vector<u8>{0, 1, 0x51, 0x80});                  // rebind
+  reply->AddDHCPOption(4, 1, std::vector<u8>{255, 255, 255, 0});                   // submask
+  reply->AddDHCPOption(4, 28,
+                       std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], 255});  // broadcast ip
+  reply->AddDHCPOption(
+      4, 6, std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], ip_part[3]});      // dns server
+  reply->AddDHCPOption(3, 15, std::vector<u8>{0x6c, 0x61, 0x6e});                  // domaine name "lan"
+  reply->AddDHCPOption(
+      4, 3, std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], ip_part[3]});      // router ip
+  reply->AddDHCPOption(0, 255, {});                                                // end
 
   udppart->checksum = Common::ComputeTCPNetworkChecksum(from, to, udppart, 308, IPPROTO_UDP);
 
   WriteToQueue(&m_in_frame[0], 0x156);
 }
 
-u8 CEXIETHERNET::BuiltInBBAInterface::GetAvaibleSlot(u16 port)
+StackRef* CEXIETHERNET::BuiltInBBAInterface::GetAvaibleSlot(u16 port)
 {
   if (port > 0)  // existing connection?
   {
     for (int i = 0; i < std::size(network_ref); i++)
+    {
       if (network_ref[i].ip != 0 && network_ref[i].local == port)
-        return i;
+        return &network_ref[i];
+    }
   }
   for (int i = 0; i < std::size(network_ref); i++)
+  {
     if (network_ref[i].ip == 0)
-      return i;
-  return 0;
+      return &network_ref[i];
+  }
+  return nullptr;
 }
 
-int CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
+StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_port, u32 ip)
 {
   for (int i = 0; i < std::size(network_ref); i++)
+  {
     if (network_ref[i].ip == ip && network_ref[i].remote == dst_port &&
         network_ref[i].local == src_port)
-      return i;
-
-  return -1;
+    {
+      return &network_ref[i];
+    }
+  }
+  return nullptr;
 }
 
 int BuildFINFrame(StackRef* ref, u8* buf)
@@ -217,46 +232,43 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
                                                        Common::TCPHeader* tcpdata, u8* data)
 {
   sf::IpAddress target;
-
+  StackRef* ref =
+      GetTCPSlot(tcpdata->source_port, tcpdata->destination_port, *(u32*)&ipdata->destination_addr);
   if (tcpdata->properties & (TCP_FLAG_FIN | TCP_FLAG_RST))
   {
-    int i = GetTCPSlot(tcpdata->source_port, tcpdata->destination_port,
-                       *(u32*)&ipdata->destination_addr);
-    if (i == -1)
+    if (ref == nullptr)
       return;  // not found
 
-    network_ref[i].ack_num++;
-    int size = BuildFINFrame(&network_ref[i], &m_in_frame[0]);
+    ref->ack_num++;
+    const int size = BuildFINFrame(ref, &m_in_frame[0]);
     WriteToQueue(&m_in_frame[0], size);
-    network_ref[i].ip = 0;
-    network_ref[i].tcp_socket.disconnect();
+    ref->ip = 0;
+    ref->tcp_socket.disconnect();
   }
   else if (tcpdata->properties & TCP_FLAG_SIN)
   {
     // new connection
-    int i = GetTCPSlot(tcpdata->source_port, tcpdata->destination_port,
-                       *(u32*)&ipdata->destination_addr);
-    if (i != -1)
+    if (ref != nullptr)
       return;
-    i = GetAvaibleSlot(0);
+    ref = GetAvaibleSlot(0);
 
-    network_ref[i].delay = 0x3000;
-    network_ref[i].local = tcpdata->source_port;
-    network_ref[i].remote = tcpdata->destination_port;
-    network_ref[i].ack_num = Common::swap32(tcpdata->sequence_number) + 1;
-    network_ref[i].ack_base = network_ref[i].ack_num;
-    network_ref[i].seq_num = 0x1000000;
-    network_ref[i].window_size = Common::swap16(tcpdata->window_size);
-    network_ref[i].type = IPPROTO_TCP;
-    for (auto& tcp_buf : network_ref[i].tcp_buffers)
+    ref->delay = 0x3000;
+    ref->local = tcpdata->source_port;
+    ref->remote = tcpdata->destination_port;
+    ref->ack_num = Common::swap32(tcpdata->sequence_number) + 1;
+    ref->ack_base = ref->ack_num;
+    ref->seq_num = 0x1000000;
+    ref->window_size = Common::swap16(tcpdata->window_size);
+    ref->type = IPPROTO_TCP;
+    for (auto& tcp_buf : ref->tcp_buffers)
       tcp_buf.used = false;
-    network_ref[i].from.sin_addr.s_addr = *(u32*)&ipdata->destination_addr;
-    network_ref[i].from.sin_port = tcpdata->destination_port;
-    network_ref[i].to.sin_addr.s_addr = *(u32*)&ipdata->source_addr;
-    network_ref[i].to.sin_port = tcpdata->source_port;
-    memcpy(&network_ref[i].bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
-    network_ref[i].my_mac = fake_mac;
-    network_ref[i].tcp_socket.setBlocking(false);
+    ref->from.sin_addr.s_addr = *(u32*)&ipdata->destination_addr;
+    ref->from.sin_port = tcpdata->destination_port;
+    ref->to.sin_addr.s_addr = *(u32*)&ipdata->source_addr;
+    ref->to.sin_port = tcpdata->source_port;
+    memcpy(&ref->bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+    ref->my_mac = fake_mac;
+    ref->tcp_socket.setBlocking(false);
 
     // reply with a sin_ack
     memset(&m_in_frame[0], 0, 0x100);
@@ -265,51 +277,49 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     Common::TCPHeader* tcppart = (Common::TCPHeader*)&m_in_frame[0x22];
 
     *hwpart = Common::EthernetHeader(IP_PROTOCOL);
-    hwpart->destination = network_ref[i].bba_mac;
+    hwpart->destination = ref->bba_mac;
     hwpart->source = fake_mac;
 
-    *ippart = Common::IPv4Header(28, IPPROTO_TCP, network_ref[i].from, network_ref[i].to);
+    *ippart = Common::IPv4Header(28, IPPROTO_TCP, ref->from, ref->to);
 
-    *tcppart = Common::TCPHeader(network_ref[i].from, network_ref[i].to, network_ref[i].seq_num,
-                                 network_ref[i].ack_num, 0x70 | TCP_FLAG_SIN | TCP_FLAG_ACK);
-    u8 options[] = {0x02, 0x04, 0x05, 0xb4, 0x01, 0x01, 0x01, 0x01};
+    *tcppart = Common::TCPHeader(ref->from, ref->to, ref->seq_num, ref->ack_num,
+                                 0x70 | TCP_FLAG_SIN | TCP_FLAG_ACK);
+    const u8 options[] = {0x02, 0x04, 0x05, 0xb4, 0x01, 0x01, 0x01, 0x01};
     memcpy(&m_in_frame[0x36], options, std::size(options));
 
     // do checksum
-    tcppart->checksum = Common::ComputeTCPNetworkChecksum(network_ref[i].from, network_ref[i].to,
-                                                          tcppart, 28, IPPROTO_TCP);
+    tcppart->checksum =
+        Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart, 28, IPPROTO_TCP);
 
-    network_ref[i].seq_num++;
+    ref->seq_num++;
     target = sf::IpAddress(Common::swap32(ipdata->destination_addr));
-    network_ref[i].tcp_socket.connect(target, Common::swap16(tcpdata->destination_port));
-    network_ref[i].ready = false;
-    network_ref[i].ip = *(u32*)ipdata->destination_addr;
+    ref->tcp_socket.connect(target, Common::swap16(tcpdata->destination_port));
+    ref->ready = false;
+    ref->ip = *(u32*)ipdata->destination_addr;
 
-    memcpy(&network_ref[i].tcp_buffers[0].data, &m_in_frame[0], 0x3e);
-    network_ref[i].tcp_buffers[0].data_size = 0x3e;
-    network_ref[i].tcp_buffers[0].seq_id = network_ref[i].seq_num - 1;
-    network_ref[i].tcp_buffers[0].tick = GetTickCountStd() - 1900;  // delay
-    network_ref[i].tcp_buffers[0].used = true;
+    memcpy(&ref->tcp_buffers[0].data, &m_in_frame[0], 0x3e);
+    ref->tcp_buffers[0].data_size = 0x3e;
+    ref->tcp_buffers[0].seq_id = ref->seq_num - 1;
+    ref->tcp_buffers[0].tick = GetTickCountStd() - 1900;  // delay
+    ref->tcp_buffers[0].used = true;
   }
   else
   {
     // data packet
-    int i = GetTCPSlot(tcpdata->source_port, tcpdata->destination_port,
-                       *(u32*)ipdata->destination_addr);
-    if (i == -1)
+    if (ref == nullptr)
       return;  // not found
 
-    int c = (tcpdata->properties & 0xf0) >> 2;  // header size
-    int size = Common::swap16(ipdata->total_len) - 20 - c;
-    u32 this_seq = Common::swap32(tcpdata->sequence_number);
+    const int c = (tcpdata->properties & 0xf0) >> 2;  // header size
+    const int size = Common::swap16(ipdata->total_len) - 20 - c;
+    const u32 this_seq = Common::swap32(tcpdata->sequence_number);
 
     if (size > 0)
     {
       // only if data
-      if ((int)(this_seq - network_ref[i].ack_num) >= 0)
+      if ((int)(this_seq - ref->ack_num) >= 0)
       {
-        network_ref[i].tcp_socket.send(data, size);
-        network_ref[i].ack_num += size;
+        ref->tcp_socket.send(data, size);
+        ref->ack_num += size;
       }
 
       // send ack
@@ -322,12 +332,12 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
       memcpy(&hwpart->destination, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
       hwpart->source = fake_mac;
 
-      *ippart = Common::IPv4Header(20, IPPROTO_TCP, network_ref[i].from, network_ref[i].to);
+      *ippart = Common::IPv4Header(20, IPPROTO_TCP, ref->from, ref->to);
 
-      *tcppart = Common::TCPHeader(network_ref[i].from, network_ref[i].to, network_ref[i].seq_num,
-                                   network_ref[i].ack_num, TCP_FLAG_ACK);
-      tcppart->checksum = Common::ComputeTCPNetworkChecksum(network_ref[i].from, network_ref[i].to,
-                                                            tcppart, 20, IPPROTO_TCP);
+      *tcppart =
+          Common::TCPHeader(ref->from, ref->to, ref->seq_num, ref->ack_num, TCP_FLAG_ACK);
+      tcppart->checksum =
+          Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart, 20, IPPROTO_TCP);
 
       WriteToQueue(&m_in_frame[0], 0x36);
     }
@@ -335,14 +345,14 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     // clear any ack data
     if (tcpdata->properties & TCP_FLAG_ACK)
     {
-      for (auto& tcp_buf : network_ref[i].tcp_buffers)
+      for (auto& tcp_buf : ref->tcp_buffers)
       {
-        if (tcp_buf.used && tcp_buf.seq_id < Common::swap32(tcpdata->acknowledgement_number))
-        {
-          tcp_buf.used = false;  // confirmed data received
-          if (!network_ref[i].ready && !network_ref[i].tcp_buffers[0].used)
-            network_ref[i].ready = true;
-        }
+        if (!tcp_buf.used || tcp_buf.seq_id >= Common::swap32(tcpdata->acknowledgement_number))
+          continue;
+
+        tcp_buf.used = false;  // confirmed data received
+        if (!ref->ready && !ref->tcp_buffers[0].used)
+          ref->ready = true;
       }
     }
   }
@@ -352,23 +362,23 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
 /// This is a litle hack, Mario Kart open some UDP port
 /// and listen to it. We open it on our side manualy.
 /// </summary>
-void CEXIETHERNET::BuiltInBBAInterface::InitMKDD()
+void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
 {
-  int i = GetAvaibleSlot(htons(26512));
-  if (network_ref[i].ip != 0)
+  StackRef* ref = GetAvaibleSlot(htons(port));
+  if (ref == nullptr || ref->ip != 0)
     return;
-  network_ref[i].ip = 0x08080808;  // change for ip
-  network_ref[i].local = htons(26512);
-  network_ref[i].remote = htons(26512);
-  network_ref[i].type = 17;
-  memcpy(&network_ref[i].bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
-  network_ref[i].my_mac = fake_mac;
-  network_ref[i].from.sin_addr.s_addr = 0;
-  network_ref[i].from.sin_port = htons(26512);
-  network_ref[i].to.sin_addr.s_addr = 0xc701a8c0;
-  network_ref[i].to.sin_port = htons(26512);
-  network_ref[i].udp_socket.setBlocking(false);
-  if (network_ref[i].udp_socket.bind(26512) != sf::Socket::Done)
+  ref->ip = 0x08080808;  // change for ip
+  ref->local = htons(port);
+  ref->remote = htons(port);
+  ref->type = 17;
+  memcpy(&ref->bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+  ref->my_mac = fake_mac;
+  ref->from.sin_addr.s_addr = 0;
+  ref->from.sin_port = htons(port);
+  ref->to.sin_addr.s_addr = m_current_ip;
+  ref->to.sin_port = htons(port);
+  ref->udp_socket.setBlocking(false);
+  if (ref->udp_socket.bind(port) != sf::Socket::Done)
   {
     ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
     return;
@@ -382,25 +392,25 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(Common::EthernetHeader* h
   sf::IpAddress target;
 
   if (*(u32*)ipdata->destination_addr == 0)
-    *(u32*)ipdata->destination_addr = 0x0101a8c0;
+    *(u32*)ipdata->destination_addr = m_router_ip;
   // dns request
-  int i = GetAvaibleSlot(udpdata->source_port);
-  if (network_ref[i].ip == 0)
+  StackRef* ref = GetAvaibleSlot(udpdata->source_port);
+  if (ref->ip == 0)
   {
-    network_ref[i].ip = *(u32*)ipdata->destination_addr;  // change for ip
-    network_ref[i].local = udpdata->source_port;
-    network_ref[i].remote = udpdata->destination_port;
-    network_ref[i].type = 17;
-    memcpy(&network_ref[i].bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
-    network_ref[i].my_mac = fake_mac;
-    network_ref[i].from.sin_addr.s_addr = *(u32*)&ipdata->destination_addr;
-    network_ref[i].from.sin_port = udpdata->destination_port;
-    network_ref[i].to.sin_addr.s_addr = *(u32*)&ipdata->source_addr;
-    network_ref[i].to.sin_port = udpdata->source_port;
-    network_ref[i].udp_socket.setBlocking(false);
-    if (network_ref[i].udp_socket.bind(htons(udpdata->source_port)) != sf::Socket::Done)
+    ref->ip = *(u32*)ipdata->destination_addr;  // change for ip
+    ref->local = udpdata->source_port;
+    ref->remote = udpdata->destination_port;
+    ref->type = 17;
+    memcpy(&ref->bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+    ref->my_mac = fake_mac;
+    ref->from.sin_addr.s_addr = *(u32*)&ipdata->destination_addr;
+    ref->from.sin_port = udpdata->destination_port;
+    ref->to.sin_addr.s_addr = *(u32*)&ipdata->source_addr;
+    ref->to.sin_port = udpdata->source_port;
+    ref->udp_socket.setBlocking(false);
+    if (ref->udp_socket.bind(htons(udpdata->source_port)) != sf::Socket::Done)
     {
-      if (network_ref[i].udp_socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
+      if (ref->udp_socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
       {
         ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
         return;
@@ -408,7 +418,24 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(Common::EthernetHeader* h
     }
   }
   if (Common::swap16(udpdata->destination_port) == 1900)
-    InitMKDD();
+  {
+    InitUDPPort(26512);  // MK DD and 1080
+    InitUDPPort(26502);  // Air Ride
+    if (*(u32*)ipdata->destination_addr == 0xFAFFFFEF)  // force real broadcast
+      *(u32*)ipdata->destination_addr = 0xFFFFFFFF;     // Multi cast cannot be read
+    if (udpdata->length > 150)
+    {
+      // Quick hack to unlock the connection, throw it back at him
+      Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&m_in_frame[0];
+      Common::IPv4Header* ippart = (Common::IPv4Header*)&m_in_frame[14];
+      memcpy(&m_in_frame[0], hwdata, htons(ipdata->total_len) + 14);
+      hwpart->destination = hwdata->source;
+      hwpart->source = hwdata->destination;
+      *(u32*)ippart->destination_addr = *(u32*)ipdata->source_addr;
+      *(u32*)ippart->source_addr = *(u32*)ipdata->destination_addr;
+      WriteToQueue(&m_in_frame[0], htons(ipdata->total_len) + 14);
+    }
+  }
   if (Common::swap16(udpdata->destination_port) == 53)
   {
     target = sf::IpAddress(m_dns_ip.c_str());  // dns server ip
@@ -417,8 +444,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(Common::EthernetHeader* h
   {
     target = sf::IpAddress(Common::swap32(*(u32*)ipdata->destination_addr));
   }
-
-  network_ref[i].udp_socket.send(data, Common::swap16(udpdata->length) - 8, target,
+  ref->udp_socket.send(data, Common::swap16(udpdata->length) - 8, target,
                                  Common::swap16(udpdata->destination_port));
 }
 
@@ -478,14 +504,13 @@ size_t TryGetDataFromSocket(StackRef* ref, u8* buffer)
   Common::IPv4Header* ipdata;
   Common::UDPHeader* udpdata;
   Common::TCPHeader* tcpdata;
-  size_t datasize = 0;
-  unsigned short prt;
-  int l;
+  size_t datasize = 0;  // this will be filled by the socket read later
+  unsigned short remote_port;
 
   switch (ref->type)
   {
   case IPPROTO_UDP:
-    ref->udp_socket.receive(&buffer[0x2a], 1500, datasize, ref->target, prt);
+    ref->udp_socket.receive(&buffer[0x2a], 1500, datasize, ref->target, remote_port);
     if (datasize > 0)
     {
       memset(&buffer[0], 0, 0x2a);
@@ -498,8 +523,8 @@ size_t TryGetDataFromSocket(StackRef* ref, u8* buffer)
       hwdata->destination = ref->bba_mac;
       hwdata->source = ref->my_mac;
 
-      ref->from.sin_port = htons(prt);
-      ref->from.sin_addr.S_un.S_addr = htonl(ref->target.toInteger());
+      ref->from.sin_port = htons(remote_port);
+      ref->from.sin_addr.s_addr = htonl(ref->target.toInteger());
       *ipdata = Common::IPv4Header((u16)(datasize + 8), IPPROTO_UDP, ref->from, ref->to);
 
       *udpdata = Common::UDPHeader(ref->from, ref->to, (u16)datasize);
@@ -510,17 +535,19 @@ size_t TryGetDataFromSocket(StackRef* ref, u8* buffer)
     break;
 
   case IPPROTO_TCP:
-    l = MAX_TCP_BUFFER;
     sf::Socket::Status st = sf::Socket::Status::Done;
-    for (l = 0; l < MAX_TCP_BUFFER; l++)
+    TcpBuffer* tcp_buffer = nullptr;
+    for (auto& buffer_ref : ref->tcp_buffers)
     {
-      if (!ref->tcp_buffers[l].used)
-      {
-        break;  // free holder
-      }
+      if (buffer_ref.used)
+        continue;
+      tcp_buffer = &buffer_ref;
+      break;  // free holder
     }
+
+    // set default size to 0 to avoid issue
     datasize = 0;
-    if ((l < MAX_TCP_BUFFER) && ref->ready)
+    if ((tcp_buffer != nullptr) && ref->ready)
       st = ref->tcp_socket.receive(&buffer[0x36], 1460, datasize);
 
     if (datasize > 0)
@@ -541,27 +568,24 @@ size_t TryGetDataFromSocket(StackRef* ref, u8* buffer)
                                                             (u16)(datasize + 20), IPPROTO_TCP);
 
       // build buffer
-      ref->tcp_buffers[l].seq_id = ref->seq_num;
-      ref->tcp_buffers[l].data_size = (u16)datasize + 0x36;
-      ref->tcp_buffers[l].tick = GetTickCountStd();
-      memcpy(&ref->tcp_buffers[l].data[0], &buffer[0], datasize + 0x36);
-      ref->tcp_buffers[l].seq_id = ref->seq_num;
-      ref->tcp_buffers[l].used = true;
+      tcp_buffer->seq_id = ref->seq_num;
+      tcp_buffer->data_size = (u16)datasize + 0x36;
+      tcp_buffer->tick = GetTickCountStd();
+      memcpy(&tcp_buffer->data[0], &buffer[0], datasize + 0x36);
+      tcp_buffer->seq_id = ref->seq_num;
+      tcp_buffer->used = true;
       ref->seq_num += (u32)datasize;
       datasize += 0x36;
     }
-    if (ref->delay == 0)
-    {
-      if (st == sf::Socket::Disconnected || st == sf::Socket::Error)
-      {
-        ref->ip = 0;
-        ref->tcp_socket.disconnect();
-        datasize = BuildFINFrame(ref, buffer);
-      }
-    }
-    else
+    if (ref->delay != 0)
     {
       ref->delay--;
+    }
+    else if (st == sf::Socket::Disconnected || st == sf::Socket::Error)
+    {
+      ref->ip = 0;
+      ref->tcp_socket.disconnect();
+      datasize = BuildFINFrame(ref, buffer);
     }
     break;
   }
@@ -577,84 +601,77 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
   while (!self->m_read_thread_shutdown.IsSet())
   {
     // test every open connection for incomming data / disconnection
-    if (self->m_read_enabled.IsSet())
+    if (!self->m_read_enabled.IsSet())
+      continue;
+    size_t datasize = 0;
+
+    u8 wp = self->m_eth_ref->page_ptr(BBA_RWP);
+    const u8 rp = self->m_eth_ref->page_ptr(BBA_RRP);
+    if (rp > wp)
+      wp += 16;
+
+    if ((wp - rp) >= 8)
+      continue;
+
+    // process queue file first
+    if (self->queue_read != self->queue_write)
     {
-      size_t datasize = 0;
-
-      u8 wp, rp;
-      wp = self->m_eth_ref->page_ptr(BBA_RWP);
-      rp = self->m_eth_ref->page_ptr(BBA_RRP);
-      if (rp > wp)
-        wp += 16;
-
-      // process queue file first
-      if ((wp - rp) < 8)
+      datasize = self->queue_data_size[self->queue_read];
+      memcpy(self->m_eth_ref->mRecvBuffer.get(), &self->queue_data[self->queue_read][0],
+              datasize);
+      self->queue_read++;
+      self->queue_read &= 15;
+    }
+    else
+    {
+      // test connections data
+      for (auto& net_ref : self->network_ref)
       {
-        if (self->queue_read != self->queue_write)
-        {
-          datasize = self->queue_data_size[self->queue_read];
-          memcpy(self->m_eth_ref->mRecvBuffer.get(), &self->queue_data[self->queue_read][0],
-                 datasize);
-          self->queue_read++;
-          self->queue_read &= 15;
-        }
-        else
-        {
-          // test connections data
-          for (auto& net_ref : self->network_ref)
-          {
-            if (net_ref.ip != 0)
-            {
-              datasize = TryGetDataFromSocket(&net_ref, self->m_eth_ref->mRecvBuffer.get());
-              if (datasize > 0)
-                break;
-            }
-          }
-        }
-
-        // test and add any sleeping tcp data
-        for (auto& net_ref : self->network_ref)
-        {
-          if (net_ref.ip != 0 && net_ref.type == IPPROTO_TCP)
-          {
-            for (auto& tcp_buf : net_ref.tcp_buffers)
-            {
-              if (tcp_buf.used)
-              {
-                if (GetTickCountStd() - tcp_buf.tick > 2000)
-                {
-                  tcp_buf.tick = GetTickCountStd();
-                  // late data, resend
-                  if (((self->queue_write + 1) & 15) != self->queue_read)
-                  {
-                    std::lock_guard<std::mutex> lock(self->mtx);
-                    self->queue_data_size[self->queue_write] = tcp_buf.data_size;
-                    memcpy(&self->queue_data[self->queue_write][0], &tcp_buf.data[0],
-                           tcp_buf.data_size);
-                    self->queue_write = (self->queue_write + 1) & 15;
-                  }
-                }
-              }
-            }
-          }
-        }
-
+        if (net_ref.ip == 0)
+          continue;
+        datasize = TryGetDataFromSocket(&net_ref, self->m_eth_ref->mRecvBuffer.get());
         if (datasize > 0)
+          break;
+      }
+    }
+
+    // test and add any sleeping tcp data
+    for (auto& net_ref : self->network_ref)
+    {
+      if (net_ref.ip == 0 || net_ref.type != IPPROTO_TCP)
+        continue;
+      for (auto& tcp_buf : net_ref.tcp_buffers)
+      {
+        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 2000)
+          continue;
+
+        tcp_buf.tick = GetTickCountStd();
+        // late data, resend
+        if (((self->queue_write + 1) & 15) != self->queue_read)
         {
           std::lock_guard<std::mutex> lock(self->mtx);
-          u8* b = &self->m_eth_ref->mRecvBuffer[0];
-          hwdata = (Common::EthernetHeader*)b;
-          if (hwdata->ethertype == 0x8)  // IP_PROTOCOL
-          {
-            ipdata = (Common::IPv4Header*)&b[14];
-            ipdata->identification = Common::swap16(++self->ip_frame_id);
-            ipdata->header_checksum = 0;
-            ipdata->header_checksum = htons(Common::ComputeNetworkChecksum(ipdata, 20));
-          }
-          self->m_eth_ref->mRecvBufferLength = (u32)datasize;
-          self->m_eth_ref->RecvHandlePacket();
+          self->queue_data_size[self->queue_write] = tcp_buf.data_size;
+          memcpy(&self->queue_data[self->queue_write][0], &tcp_buf.data[0],
+                  tcp_buf.data_size);
+          self->queue_write = (self->queue_write + 1) & 15;
         }
       }
+    }
+
+    if (datasize > 0)
+    {
+      std::lock_guard<std::mutex> lock(self->mtx);
+      u8* b = &self->m_eth_ref->mRecvBuffer[0];
+      hwdata = (Common::EthernetHeader*)b;
+      if (hwdata->ethertype == 0x8)  // IP_PROTOCOL
+      {
+        ipdata = (Common::IPv4Header*)&b[14];
+        ipdata->identification = Common::swap16(++self->ip_frame_id);
+        ipdata->header_checksum = 0;
+        ipdata->header_checksum = htons(Common::ComputeNetworkChecksum(ipdata, 20));
+      }
+      self->m_eth_ref->mRecvBufferLength = (u32)datasize;
+      self->m_eth_ref->RecvHandlePacket();
     }
   }
 }

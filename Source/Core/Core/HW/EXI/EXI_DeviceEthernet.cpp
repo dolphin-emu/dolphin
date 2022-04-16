@@ -18,7 +18,7 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
-//#define BBA_TRACK_PAGE_PTRS
+#define BBA_TRACK_PAGE_PTRS
 
 namespace ExpansionInterface
 {
@@ -56,8 +56,8 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
     break;
 #endif
   case BBADeviceType::BuiltIn:
-    m_network_interface =
-        std::make_unique<BuiltInBBAInterface>(this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS));
+    m_network_interface = std::make_unique<BuiltInBBAInterface>(
+        this, Config::Get(Config::MAIN_BBA_BUILTIN_DNS), Config::Get(Config::MAIN_BBA_BUILTIN_IP));
     INFO_LOG_FMT(SP1, "Created Built in network interface.");
     break;
   case BBADeviceType::XLINK:
