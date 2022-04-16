@@ -157,9 +157,17 @@ std::vector<std::string> SplitString(const std::string& str, char delim);
 std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
+// This requires forward slashes to be used for the path separators, even on Windows.
 bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
                std::string* extension);
 
+// Converts the path separators of a path into forward slashes on Windows, which is assumed to be
+// true for paths at various places in the codebase.
+void UnifyPathSeparators(std::string& path);
+std::string WithUnifiedPathSeparators(std::string path);
+
+// Extracts just the filename (including extension) from a full path.
+// This requires forward slashes to be used for the path separators, even on Windows.
 std::string PathToFileName(std::string_view path);
 
 bool StringBeginsWith(std::string_view str, std::string_view begin);
