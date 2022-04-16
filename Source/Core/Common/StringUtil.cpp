@@ -279,12 +279,12 @@ std::string ValueToString(u64 value)
 
 std::string ValueToString(float value)
 {
-  return fmt::format("{:#.9g}", value);
+  return fmt::format("{:#}", value);
 }
 
 std::string ValueToString(double value)
 {
-  return fmt::format("{:#.17g}", value);
+  return fmt::format("{:#}", value);
 }
 
 std::string ValueToString(int value)
