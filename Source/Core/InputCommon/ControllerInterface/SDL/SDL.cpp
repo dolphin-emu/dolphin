@@ -77,6 +77,73 @@ static bool HandleEventAndContinue(const SDL_Event& e)
 }
 #endif
 
+static void EnableSDLLogging()
+{
+  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
+  SDL_LogSetOutputFunction(
+      [](void*, int category, SDL_LogPriority priority, const char* message) {
+        std::string category_name;
+        switch (category)
+        {
+        case SDL_LOG_CATEGORY_APPLICATION:
+          category_name = "app";
+          break;
+        case SDL_LOG_CATEGORY_ERROR:
+          category_name = "error";
+          break;
+        case SDL_LOG_CATEGORY_ASSERT:
+          category_name = "assert";
+          break;
+        case SDL_LOG_CATEGORY_SYSTEM:
+          category_name = "system";
+          break;
+        case SDL_LOG_CATEGORY_AUDIO:
+          category_name = "audio";
+          break;
+        case SDL_LOG_CATEGORY_VIDEO:
+          category_name = "video";
+          break;
+        case SDL_LOG_CATEGORY_RENDER:
+          category_name = "render";
+          break;
+        case SDL_LOG_CATEGORY_INPUT:
+          category_name = "input";
+          break;
+        case SDL_LOG_CATEGORY_TEST:
+          category_name = "test";
+          break;
+        default:
+          category_name = fmt::format("unknown({})", category);
+          break;
+        }
+
+        auto log_level = Common::Log::LogLevel::LNOTICE;
+        switch (priority)
+        {
+        case SDL_LOG_PRIORITY_VERBOSE:
+        case SDL_LOG_PRIORITY_DEBUG:
+          log_level = Common::Log::LogLevel::LDEBUG;
+          break;
+        case SDL_LOG_PRIORITY_INFO:
+          log_level = Common::Log::LogLevel::LINFO;
+          break;
+        case SDL_LOG_PRIORITY_WARN:
+          log_level = Common::Log::LogLevel::LWARNING;
+          break;
+        case SDL_LOG_PRIORITY_ERROR:
+          log_level = Common::Log::LogLevel::LERROR;
+          break;
+        case SDL_LOG_PRIORITY_CRITICAL:
+          log_level = Common::Log::LogLevel::LNOTICE;
+          break;
+        }
+
+        GENERIC_LOG_FMT(Common::Log::LogType::CONTROLLERINTERFACE, log_level, "{}: {}",
+                        category_name, message);
+      },
+      nullptr);
+}
+
 void Init()
 {
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
@@ -89,6 +156,8 @@ void Init()
   SDL_InitSubSystem(SDL_INIT_JOYSTICK);
   SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 #endif
+
+  EnableSDLLogging();
 
 #if SDL_VERSION_ATLEAST(2, 0, 9)
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
@@ -205,39 +274,40 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
     AddAnalogInputs(new Axis(i, m_joystick, -32768), new Axis(i, m_joystick, 32767));
   }
 
-  m_haptic = nullptr;
-
 #ifdef USE_SDL_HAPTIC
-  m_haptic = SDL_HapticOpenFromJoystick(m_joystick);
-  if (m_haptic)
+  if (SDL_JoystickIsHaptic(m_joystick))
   {
-    const unsigned int supported_effects = SDL_HapticQuery(m_haptic);
-
-    // Disable autocenter:
-    if (supported_effects & SDL_HAPTIC_AUTOCENTER)
-      SDL_HapticSetAutocenter(m_haptic, 0);
-
-    // Constant
-    if (supported_effects & SDL_HAPTIC_CONSTANT)
-      AddOutput(new ConstantEffect(m_haptic));
-
-    // Ramp
-    if (supported_effects & SDL_HAPTIC_RAMP)
-      AddOutput(new RampEffect(m_haptic));
-
-    // Periodic
-    for (auto waveform :
-         {SDL_HAPTIC_SINE, SDL_HAPTIC_TRIANGLE, SDL_HAPTIC_SAWTOOTHUP, SDL_HAPTIC_SAWTOOTHDOWN})
+    m_haptic = SDL_HapticOpenFromJoystick(m_joystick);
+    if (m_haptic)
     {
-      if (supported_effects & waveform)
-        AddOutput(new PeriodicEffect(m_haptic, waveform));
-    }
+      const unsigned int supported_effects = SDL_HapticQuery(m_haptic);
 
-    // LeftRight
-    if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
-    {
-      AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Strong));
-      AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
+      // Disable autocenter:
+      if (supported_effects & SDL_HAPTIC_AUTOCENTER)
+        SDL_HapticSetAutocenter(m_haptic, 0);
+
+      // Constant
+      if (supported_effects & SDL_HAPTIC_CONSTANT)
+        AddOutput(new ConstantEffect(m_haptic));
+
+      // Ramp
+      if (supported_effects & SDL_HAPTIC_RAMP)
+        AddOutput(new RampEffect(m_haptic));
+
+      // Periodic
+      for (auto waveform :
+           {SDL_HAPTIC_SINE, SDL_HAPTIC_TRIANGLE, SDL_HAPTIC_SAWTOOTHUP, SDL_HAPTIC_SAWTOOTHDOWN})
+      {
+        if (supported_effects & waveform)
+          AddOutput(new PeriodicEffect(m_haptic, waveform));
+      }
+
+      // LeftRight
+      if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
+      {
+        AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Strong));
+        AddOutput(new LeftRightEffect(m_haptic, LeftRightEffect::Motor::Weak));
+      }
     }
   }
 #endif
@@ -250,32 +320,34 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
 #endif
 
 #ifdef USE_SDL_GAMECONTROLLER
-  m_controller = SDL_GameControllerOpen(sdl_index);
-
-  if (m_controller)
+  if (SDL_IsGameController(sdl_index))
   {
-    if (SDL_GameControllerSetSensorEnabled(m_controller, SDL_SENSOR_ACCEL, SDL_TRUE) == 0)
+    m_controller = SDL_GameControllerOpen(sdl_index);
+    if (m_controller)
     {
-      AddInput(new MotionInput("Accel Up", m_controller, SDL_SENSOR_ACCEL, 1, 1));
-      AddInput(new MotionInput("Accel Down", m_controller, SDL_SENSOR_ACCEL, 1, -1));
+      if (SDL_GameControllerSetSensorEnabled(m_controller, SDL_SENSOR_ACCEL, SDL_TRUE) == 0)
+      {
+        AddInput(new MotionInput("Accel Up", m_controller, SDL_SENSOR_ACCEL, 1, 1));
+        AddInput(new MotionInput("Accel Down", m_controller, SDL_SENSOR_ACCEL, 1, -1));
 
-      AddInput(new MotionInput("Accel Left", m_controller, SDL_SENSOR_ACCEL, 0, -1));
-      AddInput(new MotionInput("Accel Right", m_controller, SDL_SENSOR_ACCEL, 0, 1));
+        AddInput(new MotionInput("Accel Left", m_controller, SDL_SENSOR_ACCEL, 0, -1));
+        AddInput(new MotionInput("Accel Right", m_controller, SDL_SENSOR_ACCEL, 0, 1));
 
-      AddInput(new MotionInput("Accel Forward", m_controller, SDL_SENSOR_ACCEL, 2, -1));
-      AddInput(new MotionInput("Accel Backward", m_controller, SDL_SENSOR_ACCEL, 2, 1));
-    }
+        AddInput(new MotionInput("Accel Forward", m_controller, SDL_SENSOR_ACCEL, 2, -1));
+        AddInput(new MotionInput("Accel Backward", m_controller, SDL_SENSOR_ACCEL, 2, 1));
+      }
 
-    if (SDL_GameControllerSetSensorEnabled(m_controller, SDL_SENSOR_GYRO, SDL_TRUE) == 0)
-    {
-      AddInput(new MotionInput("Gyro Pitch Up", m_controller, SDL_SENSOR_GYRO, 0, 1));
-      AddInput(new MotionInput("Gyro Pitch Down", m_controller, SDL_SENSOR_GYRO, 0, -1));
+      if (SDL_GameControllerSetSensorEnabled(m_controller, SDL_SENSOR_GYRO, SDL_TRUE) == 0)
+      {
+        AddInput(new MotionInput("Gyro Pitch Up", m_controller, SDL_SENSOR_GYRO, 0, 1));
+        AddInput(new MotionInput("Gyro Pitch Down", m_controller, SDL_SENSOR_GYRO, 0, -1));
 
-      AddInput(new MotionInput("Gyro Roll Left", m_controller, SDL_SENSOR_GYRO, 2, 1));
-      AddInput(new MotionInput("Gyro Roll Right", m_controller, SDL_SENSOR_GYRO, 2, -1));
+        AddInput(new MotionInput("Gyro Roll Left", m_controller, SDL_SENSOR_GYRO, 2, 1));
+        AddInput(new MotionInput("Gyro Roll Right", m_controller, SDL_SENSOR_GYRO, 2, -1));
 
-      AddInput(new MotionInput("Gyro Yaw Left", m_controller, SDL_SENSOR_GYRO, 1, 1));
-      AddInput(new MotionInput("Gyro Yaw Right", m_controller, SDL_SENSOR_GYRO, 1, -1));
+        AddInput(new MotionInput("Gyro Yaw Left", m_controller, SDL_SENSOR_GYRO, 1, 1));
+        AddInput(new MotionInput("Gyro Yaw Right", m_controller, SDL_SENSOR_GYRO, 1, -1));
+      }
     }
   }
 #endif
@@ -283,13 +355,22 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
 
 Joystick::~Joystick()
 {
+#ifdef USE_SDL_GAMECONTROLLER
+  if (m_controller)
+  {
+    SDL_GameControllerClose(m_controller);
+    m_controller = nullptr;
+  }
+#endif
+
 #ifdef USE_SDL_HAPTIC
   if (m_haptic)
   {
     // stop/destroy all effects
     SDL_HapticStopAll(m_haptic);
-    // close haptic first
+    // close haptic before joystick
     SDL_HapticClose(m_haptic);
+    m_haptic = nullptr;
   }
 #endif
 

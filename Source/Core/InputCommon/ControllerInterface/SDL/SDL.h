@@ -5,8 +5,6 @@
 
 #include <SDL.h>
 
-#define INIT_FLAGS SDL_INIT_JOYSTICK
-
 #if SDL_VERSION_ATLEAST(1, 3, 0)
 #define USE_SDL_HAPTIC
 #endif
@@ -198,11 +196,11 @@ private:
   std::string m_name;
 
 #ifdef USE_SDL_HAPTIC
-  SDL_Haptic* m_haptic;
+  SDL_Haptic* m_haptic = nullptr;
 #endif
 
 #ifdef USE_SDL_GAMECONTROLLER
-  SDL_GameController* m_controller;
+  SDL_GameController* m_controller = nullptr;
 #endif
 };
 }  // namespace ciface::SDL
