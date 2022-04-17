@@ -22,6 +22,9 @@
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
     </Link>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpplatest</LanguageStandard>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
