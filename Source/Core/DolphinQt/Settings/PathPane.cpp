@@ -102,7 +102,8 @@ void PathPane::BrowseResourcePack()
 void PathPane::BrowseSDCard()
 {
   QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
-      this, tr("Select a SD Card Image"), QString::fromStdString(Config::Get(Config::MAIN_SD_PATH)),
+      this, tr("Select a SD Card Image"),
+      QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)),
       tr("SD Card Image (*.raw);;"
          "All Files (*)")));
   if (!file.isEmpty())
@@ -125,7 +126,7 @@ void PathPane::BrowseWFS()
 
 void PathPane::OnSDCardPathChanged()
 {
-  Config::SetBase(Config::MAIN_SD_PATH, m_sdcard_edit->text().toStdString());
+  Config::SetBase(Config::MAIN_WII_SD_CARD_IMAGE_PATH, m_sdcard_edit->text().toStdString());
 }
 
 void PathPane::OnNANDPathChanged()
@@ -241,7 +242,7 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(m_resource_pack_edit, 4, 1);
   layout->addWidget(resource_pack_open, 4, 2);
 
-  m_sdcard_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARD_IDX)));
+  m_sdcard_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX)));
   connect(m_sdcard_edit, &QLineEdit::editingFinished, this, &PathPane::OnSDCardPathChanged);
   QPushButton* sdcard_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(sdcard_open, &QPushButton::clicked, this, &PathPane::BrowseSDCard);

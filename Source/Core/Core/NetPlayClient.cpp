@@ -2479,7 +2479,7 @@ void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
 
   std::string file;
   if (sync_identifier == GetSDCardIdentifier())
-    file = File::GetUserPath(F_WIISDCARD_IDX);
+    file = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
   else if (auto game = m_dialog->FindGameFile(sync_identifier))
     file = game->GetFilePath();
 
