@@ -68,6 +68,9 @@ bool GetCulling();
 bool HandleReticleLockOn();
 void SetReticleLock(bool lock);
 
+bool NewMapControlsEnabled();
+void SetNewMapControls(bool new_controls);
+
 enum CameraLock { Centre, Angle45, Unlocked };
 
 void SetLockCamera(CameraLock lock);

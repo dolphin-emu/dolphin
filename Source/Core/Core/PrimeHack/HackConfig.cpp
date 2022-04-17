@@ -65,6 +65,7 @@ EmuVariableManager var_mgr;
 bool is_running = false;
 CameraLock lock_camera = CameraLock::Unlocked;
 bool reticle_lock = false;
+bool new_map_controls = false;
 
 std::string pending_modfile = "";
 bool mod_suspended = false;
@@ -100,7 +101,7 @@ void InitializeHack() {
   hack_mgr.enable_mod("fov_modifier");
   hack_mgr.enable_mod("bloom_modifier");
   hack_mgr.enable_mod("bloom_intensity");
-  // hack_mgr.enable_mod("map_controller");
+  hack_mgr.enable_mod("map_controller");
 
   // Enable no PrimeHack control mods
   if (!Config::Get(Config::PRIMEHACK_ENABLE))
@@ -286,13 +287,13 @@ void ChangeControllerProfileMorphBall(std::string profile_path)
 
 void UpdateHackSettings() {
   double camera, cursor;
-  bool invertx, inverty, scale_sens = false, lock = false;
+  bool invertx, inverty, scale_sens = false, lock = false, new_controls;
 
   if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN)
-    std::tie<double, double, bool, bool>(camera, cursor, invertx, inverty) =
+    std::tie<double, double, bool, bool, bool>(camera, cursor, invertx, inverty, new_controls) =
       Pad::PrimeSettings();
   else
-    std::tie<double, double, bool, bool, bool>(camera, cursor, invertx, inverty, scale_sens, lock) =
+    std::tie<double, double, bool, bool, bool, bool>(camera, cursor, invertx, inverty, scale_sens, lock, new_controls) =
       Wiimote::PrimeSettings();
 
   SetSensitivity((float)camera);
@@ -301,6 +302,7 @@ void UpdateHackSettings() {
   SetInvertedY(inverty);
   SetScaleCursorSensitivity(scale_sens);
   SetReticleLock(lock);
+  SetNewMapControls(new_controls);
 }
 
 float GetSensitivity() {
@@ -314,6 +316,16 @@ void SetSensitivity(float sens) {
 bool HandleReticleLockOn()
 {
   return reticle_lock;
+}
+
+bool NewMapControlsEnabled()
+{
+  return new_map_controls;
+}
+
+void SetNewMapControls(bool new_controls)
+{
+  new_map_controls = new_controls;
 }
 
 void SetReticleLock(bool lock)

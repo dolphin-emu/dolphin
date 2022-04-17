@@ -160,7 +160,7 @@ public:
   std::tuple<double, double> GetPrimeStickXY();
   bool CheckPitchRecentre();
 
-  std::tuple <double, double, bool, bool, bool, bool> GetPrimeSettings();
+  std::tuple <double, double, bool, bool, bool, bool, bool> GetPrimeSettings();
 
   void Reset();
 
@@ -325,6 +325,7 @@ private:
   ControllerEmu::SettingValue<bool> m_primehack_tapping_grapple;
   ControllerEmu::SettingValue<bool> m_primehack_scalesens;
   ControllerEmu::SettingValue<bool> m_primehack_movereticle;
+  ControllerEmu::SettingValue<bool> m_primehack_remap_map_controls;
 
   static constexpr u8 STICK_GATE_RADIUS = 0x60;
   static constexpr u8 STICK_CENTER = 0x80;

@@ -220,6 +220,7 @@ void HackManager::update_mod_states() {
     disable_mod("fps_controls");
     disable_mod("springball_button");
     disable_mod("context_sensitive_controls");
+    disable_mod("map_controller");
 
     return;
   } else {
@@ -234,6 +235,11 @@ void HackManager::update_mod_states() {
         return;
       }
       result->second->set_state(ModState::CODE_DISABLED);
+    }
+    if (NewMapControlsEnabled()) {
+      enable_mod("map_controller");
+    } else {
+      disable_mod("map_controller");
     }
   }
 }

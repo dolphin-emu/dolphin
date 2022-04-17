@@ -118,6 +118,11 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
     &m_primehack_camera_sensitivity,
     {"Camera Sensitivity", nullptr, nullptr, _trans("Camera Sensitivity")}, 15, 1, 100);
 
+  m_primehack_camera->AddSetting(
+    &m_primehack_remap_map_controls,
+    {"Rotate Map with Mouse", nullptr, nullptr, _trans("Rotate Map with Mouse")}, false
+);
+
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_primehack_stick =
     new ControllerEmu::OctagonAnalogStick(_trans("Camera Control"), gate_radius));
@@ -344,12 +349,13 @@ void GCPad::SetPrimeMode(bool controller)
   m_primehack_modes->SetSelectedDevice(controller ? 1 : 0);
 }
 
-std::tuple<double, double, bool, bool> GCPad::GetPrimeSettings()
+std::tuple<double, double, bool, bool, bool> GCPad::GetPrimeSettings()
 {
   std::tuple t = std::make_tuple(
     m_primehack_camera_sensitivity.GetValue(), 0.f,
     m_primehack_invert_x.GetValue(),
-    m_primehack_invert_y.GetValue());
+    m_primehack_invert_y.GetValue(),
+    m_primehack_remap_map_controls.GetValue());
 
   return t;
 }

@@ -46,5 +46,5 @@ bool CheckJump();
 
 std::tuple<double, double> GetPrimeStickXY();
 
-std::tuple<double, double, bool, bool> PrimeSettings();
+std::tuple<double, double, bool, bool, bool> PrimeSettings();
 }  // namespace Pad

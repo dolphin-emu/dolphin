@@ -141,7 +141,7 @@ bool CheckJump() {
   return gcpad->groups[0]->controls[1]->control_ref->State() > 0.5;
 }
 
-std::tuple<double, double, bool, bool> PrimeSettings()
+std::tuple<double, double, bool, bool, bool> PrimeSettings()
 {
   GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(0));
 
