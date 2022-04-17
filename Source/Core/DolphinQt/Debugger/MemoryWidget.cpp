@@ -215,6 +215,7 @@ void MemoryWidget::CreateWidgets()
   m_row_length_combo->addItem(tr("8 Bytes"), 8);
   m_row_length_combo->addItem(tr("16 Bytes"), 16);
 
+  m_row_length_combo->setCurrentIndex(2);
   m_dual_check = new QCheckBox(tr("Dual View"));
 
   displaytype_layout->addWidget(m_display_combo);
@@ -438,14 +439,11 @@ void MemoryWidget::OnDisplayChanged()
   int alignment;
   bool dual_view = m_dual_check->isChecked();
 
-  if (dual_view)
-    bytes_per_row = 4;
-
   if (type == MemoryViewWidget::Type::Double && bytes_per_row == 4)
     bytes_per_row = 8;
 
   // Alignment: First (fixed) option equals bytes per row. 'currentData' is correct for other
-  // options. Type-based must be calculated in memoryviewwidget and is left at 0. No alignment is
+  // options. Type-based must be calculated in memoryviewwidget and is left at 0. "No alignment" is
   // equivalent to a value of 1.
   if (m_align_combo->currentIndex() == 0)
     alignment = bytes_per_row;

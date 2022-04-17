@@ -21,6 +21,7 @@ public:
     Hex8 = 1,
     Hex16,
     Hex32,
+    Hex64,
     Unsigned8,
     Unsigned16,
     Unsigned32,
@@ -74,7 +75,7 @@ private:
   void UpdateColumns(Type type, int first_column);
 
   AddressSpace::Type m_address_space{};
-  Type m_type = Type::Hex8;
+  Type m_type = Type::Hex32;
   BPType m_bp_type = BPType::ReadWrite;
   bool m_do_log = true;
   u32 m_context_address;
