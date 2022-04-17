@@ -821,8 +821,8 @@ void FpsControls::CheckBeamVisorSetting(Game game)
 }
 
 bool FpsControls::init_mod(Game game, Region region) {
-  next_mapper_state = 1;
-  cur_mapper_state = 1;
+  next_gui_state = 1;
+  cur_gui_state = 1;
 
   switch (game) {
   case Game::MENU_PRIME_1:
