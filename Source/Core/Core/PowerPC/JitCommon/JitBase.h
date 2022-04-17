@@ -134,6 +134,7 @@ protected:
   bool m_accurate_nans = false;
   bool m_fastmem_enabled = false;
   bool m_mmu_enabled = false;
+  bool m_pause_on_panic_enabled = false;
 
   void RefreshConfig();
 
