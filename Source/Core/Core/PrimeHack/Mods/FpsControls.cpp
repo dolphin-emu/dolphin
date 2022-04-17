@@ -1,5 +1,6 @@
 #include "Core/PrimeHack/Mods/FpsControls.h"
 
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PrimeHack/Mods/ContextSensitiveControls.h"
 #include "Core/PrimeHack/PrimeUtils.h"  //Loads HackConfig.h for us
 
@@ -44,6 +45,16 @@ bool is_string_ridley(Region active_region, u32 string_base) {
   }
   return str_idx == str_len && read16(string_base) == 0;
 }
+void on_guistate_transition_begin(u32) {
+  FpsControls* const fps = static_cast<FpsControls*>(GetHackManager()->get_mod("fps_controls"));
+  fps->guistate_transition(GPR(4));
+  GPR(0) = LR;
+}
+void on_guistate_transition_end(u32) {
+  FpsControls* const fps = static_cast<FpsControls*>(GetHackManager()->get_mod("fps_controls"));
+  fps->guistate_transition_done();
+  LR = GPR(0);
+}
 }
 
 void FpsControls::run_mod(Game game, Region region) {
@@ -77,6 +88,9 @@ void FpsControls::run_mod(Game game, Region region) {
 }
 
 void FpsControls::calculate_pitch_delta() {
+  if (input_disabled()) {
+    return;
+  }
   const float compensated_sens = GetSensitivity() * kTurnrateRatio / 60.f;
 
   if (CheckPitchRecentre()) {
@@ -93,6 +107,9 @@ void FpsControls::calculate_pitch_delta() {
 }
 
 void FpsControls::calculate_pitchyaw_delta() {
+  if (input_disabled()) {
+    return;
+  }
   constexpr auto yaw_clamp = [](float t) -> float {
     constexpr float PI = 3.141592654f;
     constexpr float TWO_PI = PI * 2.f;
@@ -804,6 +821,9 @@ void FpsControls::CheckBeamVisorSetting(Game game)
 }
 
 bool FpsControls::init_mod(Game game, Region region) {
+  next_mapper_state = 1;
+  cur_mapper_state = 1;
+
   switch (game) {
   case Game::MENU_PRIME_1:
   case Game::MENU_PRIME_2:
@@ -1498,6 +1518,10 @@ void FpsControls::init_mod_menu(Game game, Region region)
 }
 
 void FpsControls::init_mod_mp1(Region region) {
+  const int guistate_transition = PowerPC::RegisterVmcall(on_guistate_transition_begin);
+  const int guistate_transition_end = PowerPC::RegisterVmcall(on_guistate_transition_end);
+  const u32 guistate_transition_vmc = gen_vmcall(guistate_transition, 0);
+  const u32 guistate_transition_end_vmc = gen_vmcall(guistate_transition_end, 0);
   prime::GetVariableManager()->register_variable("new_beam");
   prime::GetVariableManager()->register_variable("beamchange_flag");
   if (region == Region::NTSC_U) {
@@ -1523,6 +1547,9 @@ void FpsControls::init_mod_mp1(Region region) {
 
     // Steps over bounds checking on the reticle
     add_code_change(0x80015164, 0x4800010c);
+
+    add_code_change(0x800fddfc, guistate_transition_vmc);
+    add_code_change(0x800fdbd8, guistate_transition_end_vmc);
   } else if (region == Region::PAL) {
     // Same as NTSC but slightly offset
     add_code_change(0x80099068, 0xec010072);
@@ -1540,6 +1567,9 @@ void FpsControls::init_mod_mp1(Region region) {
 
     // Steps over bounds checking on the reticle
     add_code_change(0x80015164, 0x4800010c);
+
+    add_code_change(0x800fdf14, guistate_transition_vmc);
+    add_code_change(0x800fdcf0, guistate_transition_end_vmc);
   } else { // region == Region::NTSC-J
     // Same as NTSC but slightly offset
     add_code_change(0x80099060, 0xec010072);
@@ -1559,6 +1589,10 @@ void FpsControls::init_mod_mp1(Region region) {
 }
 
 void FpsControls::init_mod_mp1_gc(Region region) {
+  const int guistate_transition = PowerPC::RegisterVmcall(on_guistate_transition_begin);
+  const int guistate_transition_end = PowerPC::RegisterVmcall(on_guistate_transition_end);
+  const u32 guistate_transition_vmc = gen_vmcall(guistate_transition, 0);
+  const u32 guistate_transition_end_vmc = gen_vmcall(guistate_transition_end, 0);
   if (region == Region::NTSC_U) {
     //add_code_change(0x8000f63c, 0x48000048);
     add_code_change(0x800ea15c, 0x38810044); // output cannon bob only for viewbob
@@ -1582,6 +1616,9 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80016ef4, 0x4e800020, "show_crosshair"); // blr
 
     add_strafe_code_mp1_100(Game::PRIME_1_GCN);
+
+    add_code_change(0x80107644, guistate_transition_vmc);
+    add_code_change(0x80107b78, guistate_transition_end_vmc);
   } else if (region == Region::PAL) {
     //add_code_change(0x8000fb4c, 0x48000048);
     add_code_change(0x800e2190, 0x38810044); // output cannon bob only for viewbob
@@ -1603,10 +1640,17 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     add_code_change(0x80017888, 0x4e800020, "show_crosshair"); // blr
 
     add_strafe_code_mp1_102(Region::PAL);
+
+    add_code_change(0x800ff144, guistate_transition_vmc);
+    add_code_change(0x800ff5d4, guistate_transition_end_vmc);
   } else {}
 }
 
 void FpsControls::init_mod_mp1_gc_r1() {
+  const int guistate_transition = PowerPC::RegisterVmcall(on_guistate_transition_begin);
+  const int guistate_transition_end = PowerPC::RegisterVmcall(on_guistate_transition_end);
+  const u32 guistate_transition_vmc = gen_vmcall(guistate_transition, 0);
+  const u32 guistate_transition_end_vmc = gen_vmcall(guistate_transition_end, 0);
   //add_code_change(0x8000f6b8, 0x48000048);
   add_code_change(0x800ea1d8, 0x38810044); // output cannon bob only for viewbob
 
@@ -1629,9 +1673,16 @@ void FpsControls::init_mod_mp1_gc_r1() {
   add_code_change(0x80016f6c, 0x9afd09c4, "show_crosshair");
   add_code_change(0x80016f70, 0x4e800020, "show_crosshair");
   add_strafe_code_mp1_100(Game::PRIME_1_GCN_R1);
+
+  add_code_change(0x801076c0, guistate_transition_vmc);
+  add_code_change(0x80107bf4, guistate_transition_end_vmc);
 }
 
 void FpsControls::init_mod_mp1_gc_r2() {
+  const int guistate_transition = PowerPC::RegisterVmcall(on_guistate_transition_begin);
+  const int guistate_transition_end = PowerPC::RegisterVmcall(on_guistate_transition_end);
+  const u32 guistate_transition_vmc = gen_vmcall(guistate_transition, 0);
+  const u32 guistate_transition_end_vmc = gen_vmcall(guistate_transition_end, 0);
   //add_code_change(0x8000f8f8, 0x48000048);
   add_code_change(0x800ea6e0, 0x38810044); // output cannon bob only for viewbob
 
@@ -1653,9 +1704,16 @@ void FpsControls::init_mod_mp1_gc_r2() {
   add_code_change(0x800171d4, 0x4e800020, "show_crosshair"); // blr
 
   add_strafe_code_mp1_102(Region::NTSC_U);
+
+  add_code_change(0x80107cd8, guistate_transition_vmc);
+  add_code_change(0x8010820c, guistate_transition_end_vmc);
 }
 
 void FpsControls::init_mod_mp2(Region region) {
+  const int guistate_transition = PowerPC::RegisterVmcall(on_guistate_transition_begin);
+  const int guistate_transition_end = PowerPC::RegisterVmcall(on_guistate_transition_end);
+  const u32 guistate_transition_vmc = gen_vmcall(guistate_transition, 0);
+  const u32 guistate_transition_end_vmc = gen_vmcall(guistate_transition_end, 0);
   prime::GetVariableManager()->register_variable("new_beam");
   prime::GetVariableManager()->register_variable("beamchange_flag");
   if (region == Region::NTSC_U) {
@@ -1677,6 +1735,9 @@ void FpsControls::init_mod_mp2(Region region) {
 
     // Steps over bounds checking on the reticle
     add_code_change(0x80018528, 0x48000144);
+
+    add_code_change(0x8015933c, guistate_transition_vmc);
+    add_code_change(0x8015932c, guistate_transition_end_vmc);
   } else if (region == Region::PAL) {
     add_code_change(0x8008e30c, 0xc0430184);
     add_code_change(0x8008e360, 0x60000000);
@@ -1696,6 +1757,9 @@ void FpsControls::init_mod_mp2(Region region) {
 
     // Steps over bounds checking on the reticle
     add_code_change(0x80018528, 0x48000144);
+
+    add_code_change(0x8015aab4, guistate_transition_vmc);
+    add_code_change(0x8015aaa4, guistate_transition_end_vmc);
   } else if (region == Region::NTSC_J) {
     add_code_change(0x8008c944, 0xc0430184);
     add_code_change(0x8008c998, 0x60000000);
@@ -1717,6 +1781,10 @@ void FpsControls::init_mod_mp2(Region region) {
 }
 
 void FpsControls::init_mod_mp2_gc(Region region) {
+  const int guistate_transition = PowerPC::RegisterVmcall(on_guistate_transition_begin);
+  const int guistate_transition_end = PowerPC::RegisterVmcall(on_guistate_transition_end);
+  const u32 guistate_transition_vmc = gen_vmcall(guistate_transition, 0);
+  const u32 guistate_transition_end_vmc = gen_vmcall(guistate_transition_end, 0);
   if (region == Region::NTSC_U) {
     //add_code_change(0x801b00b4, 0x48000050);
     add_code_change(0x800bcd44, 0x38810044); // output cannon bob only for viewbob
@@ -1743,6 +1811,9 @@ void FpsControls::init_mod_mp2_gc(Region region) {
     const int null_players_vmc_idx = PowerPC::RegisterVmcall(null_players_on_destruct_mp2_gc);
     u32 null_players_vmc = gen_vmcall(null_players_vmc_idx, 0);
     add_code_change(0x80042994, null_players_vmc);
+
+    add_code_change(0x80223fcc, guistate_transition_vmc);
+    add_code_change(0x8022419c, guistate_transition_end_vmc);
   } else if (region == Region::NTSC_J) {
     // TODO: Enable arm cannon bobbing for JP
     add_code_change(0x801b1e6c, 0x48000050);
@@ -1791,6 +1862,9 @@ void FpsControls::init_mod_mp2_gc(Region region) {
     const int null_players_vmc_idx = PowerPC::RegisterVmcall(null_players_on_destruct_mp2_gc);
     u32 null_players_vmc = gen_vmcall(null_players_vmc_idx, 0);
     add_code_change(0x80042b04, null_players_vmc);
+
+    add_code_change(0x80224304, guistate_transition_vmc);
+    add_code_change(0x802244d4, guistate_transition_end_vmc);
   } else {}
 }
 
