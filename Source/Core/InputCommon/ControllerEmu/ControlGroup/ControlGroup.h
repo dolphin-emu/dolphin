@@ -44,7 +44,7 @@ enum class GroupType
   IMUGyroscope,
   IMUCursor,
   PrimeHackMode,
-  PrimeHackMorph
+  PrimeHackAltProfile
 };
 
 class ControlGroup

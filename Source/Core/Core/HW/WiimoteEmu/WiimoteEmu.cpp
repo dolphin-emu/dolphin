@@ -38,7 +38,7 @@
 #include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackAltProfile.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
@@ -343,7 +343,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_primehack_visors->AddSetting(
     &m_primehack_visor_menu, {"Enable Visor Menu", nullptr, nullptr, _trans("Enable Visor Menu")}, false);
 
-  groups.emplace_back(m_primehack_morphball_controls = new ControllerEmu::PrimeHackMorph(_trans("PrimeHack"), ""));
+  groups.emplace_back(m_primehack_altprofile_controls =
+                          new ControllerEmu::PrimeHackAltProfile(_trans("PrimeHack"), ""));
 
   groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
 
@@ -488,8 +489,8 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
     return m_primehack_stick;
   case WiimoteGroup::Modes:
     return m_primehack_modes;
-  case WiimoteGroup::MorphballControls:
-    return m_primehack_morphball_controls;
+  case WiimoteGroup::AltProfileControls:
+    return m_primehack_altprofile_controls;
   default:
     ASSERT(false);
     return nullptr;

@@ -16,13 +16,13 @@
 
 namespace ControllerEmu
 {
-  class PrimeHackMorph : public ControlGroup
+class PrimeHackAltProfile : public ControlGroup
   {
   public:
-    explicit PrimeHackMorph(const std::string& name, const std::string& default_selection);
+    explicit PrimeHackAltProfile(const std::string& name, const std::string& default_selection);
 
-    const std::string& GetMorphBallProfileName() const;
-    void SetMorphBallProfileName(std::string& val);
+    const std::string& GetAltProfileName() const;
+    void SetAltProfileName(std::string& val);
 
   private:
     std::string m_selection_value;

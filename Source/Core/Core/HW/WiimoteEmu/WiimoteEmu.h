@@ -24,7 +24,7 @@ namespace ControllerEmu
 {
 class Attachments;
 class PrimeHackModes;
-class PrimeHackMorph;
+class PrimeHackAltProfile;
 class Buttons;
 class ControlGroup;
 class Cursor;
@@ -63,7 +63,7 @@ enum class WiimoteGroup
   Misc,
   ControlStick,
   Modes,
-  MorphballControls
+  AltProfileControls
 };
 
 enum class NunchukGroup;
@@ -299,7 +299,7 @@ private:
   ControllerEmu::ControlGroup* m_primehack_motionhacks;
   ControllerEmu::ControlGroup* m_primehack_camera;
   ControllerEmu::ControlGroup* m_primehack_misc;
-  ControllerEmu::PrimeHackMorph* m_primehack_morphball_controls;
+  ControllerEmu::PrimeHackAltProfile* m_primehack_altprofile_controls;
   ControllerEmu::PrimeHackModes* m_primehack_modes;
   ControllerEmu::AnalogStick* m_primehack_stick;
 

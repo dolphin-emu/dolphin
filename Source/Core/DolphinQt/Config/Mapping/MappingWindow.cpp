@@ -57,7 +57,7 @@
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackAltProfile.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/InputConfig.h"

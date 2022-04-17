@@ -28,7 +28,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackAltProfile.h"
 #include "InputCommon/InputConfig.h"
 
 
@@ -100,11 +100,11 @@ void WiimoteEmuMetroid::PopulateMorphBallProfiles()
     }
   }
 
-  auto* morph_group = static_cast<ControllerEmu::PrimeHackMorph*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morph_group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
 
-  QString text = tr(morph_group->GetMorphBallProfileName().c_str());
-  std::string cstring = morph_group->GetMorphBallProfileName();
+  QString text = tr(morph_group->GetAltProfileName().c_str());
+  std::string cstring = morph_group->GetAltProfileName();
   m_morphball_combobox->setCurrentIndex(m_morphball_combobox->findText(text));
 }
 
@@ -159,11 +159,10 @@ void WiimoteEmuMetroid::CreateMainLayout()
       GetPort(), WiimoteEmu::WiimoteGroup::Visors));
   groupbox1->addWidget(visor_box);
 
-  auto* morphball_control_box = CreateGroupBox(tr("Morphball Profile"), Wiimote::GetWiimoteGroup(
-    GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morphball_control_box = CreateGroupBox(tr("Morphball & Map Profile"), Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
   groupbox1->addWidget(morphball_control_box);
   m_morphball_combobox = (morphball_control_box->findChild<QComboBox*>(tr("ProfileList")));
-  m_morphball_combobox->setToolTip(tr("Set the controller profile to use\nwhen in Morph Ball."));
+  m_morphball_combobox->setToolTip(tr("Set the controller profile to use\nwhen in Morph Ball and Map."));
   m_morphball_combobox->setEditable(false);
 
   PopulateMorphBallProfiles();
@@ -260,12 +259,12 @@ void WiimoteEmuMetroid::OnDeviceSelected()
 void WiimoteEmuMetroid::OnMorphControlSelectionChanged()
 {
   //Called as soon as our selection is changed to update the controller preset for Morphball mode.
-  auto* morph_group = static_cast<ControllerEmu::PrimeHackMorph*>(
-      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morph_group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
 
   std::string curr_text = m_morphball_combobox->currentText().toStdString();
   if (!curr_text.empty())
-    morph_group->SetMorphBallProfileName(curr_text);
+    morph_group->SetAltProfileName(curr_text);
 
   ConfigChanged();
   SaveSettings();
@@ -282,12 +281,12 @@ void WiimoteEmuMetroid::MappingWindowProfileLoad()
 
 void WiimoteEmuMetroid::MappingWindowProfileSave()
 {
-  auto* morph_group = static_cast<ControllerEmu::PrimeHackMorph*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morph_group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
 
   std::string curr_text = m_morphball_combobox->currentText().toStdString();
   if (!curr_text.empty())
-    morph_group->SetMorphBallProfileName(curr_text);
+    morph_group->SetAltProfileName(curr_text);
 
   PopulateMorphBallProfiles();
   SaveSettings();
@@ -317,8 +316,8 @@ void WiimoteEmuMetroid::LoadSettings()
 {
   Wiimote::LoadConfig(); // No need to update hack settings since it's already in LoadConfig.
 
-  auto* morph_group = static_cast<ControllerEmu::PrimeHackMorph*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morph_group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
 
   auto* modes = static_cast<ControllerEmu::PrimeHackModes*>(
     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes));
@@ -339,7 +338,7 @@ void WiimoteEmuMetroid::LoadSettings()
   m_radio_controller->setChecked(!checked);
   camera_control->setEnabled(!checked);
 
-  QString text = tr(morph_group->GetMorphBallProfileName().c_str());
+  QString text = tr(morph_group->GetAltProfileName().c_str());
 
   m_morphball_combobox->setCurrentIndex(m_morphball_combobox->findText(text));
 

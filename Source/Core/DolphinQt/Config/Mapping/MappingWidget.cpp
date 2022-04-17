@@ -94,7 +94,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     indicator = new AnalogStickIndicator(*static_cast<ControllerEmu::ReshapableInput*>(group));
     break;
 
-  case ControllerEmu::GroupType::PrimeHackMorph:
+  case ControllerEmu::GroupType::PrimeHackAltProfile:
     m_morph_profiles_layout = new QHBoxLayout();
     m_morph_profiles_combo = new QComboBox();
     m_morph_profiles_combo->setObjectName(tr("ProfileList"));

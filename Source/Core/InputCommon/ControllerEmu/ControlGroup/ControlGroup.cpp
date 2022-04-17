@@ -18,7 +18,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackAltProfile.h"
 
 namespace ControllerEmu
 {
@@ -129,13 +129,13 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
     ext->SetSelectedDevice(stoi(i));
   }
 
-  if (type == GroupType::PrimeHackMorph)
+  if (type == GroupType::PrimeHackAltProfile)
   {
-    auto* const ext = static_cast<PrimeHackMorph*>(this);
+    auto* const ext = static_cast<PrimeHackAltProfile*>(this);
 
     std::string prof;
-    sec->Get(base + name + "/MorphBallProfile", &prof);
-    ext->SetMorphBallProfileName(prof);
+    sec->Get(base + name + "/AltProfile", &prof);
+    ext->SetAltProfileName(prof);
   }
 }
 
@@ -199,14 +199,14 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
     sec->Set(base + name + "/Mode", std::to_string(ext->GetSelectedDevice()), "0");
   }
 
-  if (type == GroupType::PrimeHackMorph)
+  if (type == GroupType::PrimeHackAltProfile)
   {
-    auto* const ext = static_cast<PrimeHackMorph*>(this);
+    auto* const ext = static_cast<PrimeHackAltProfile*>(this);
 
-    std::string morph_prof = ext->GetMorphBallProfileName();
+    std::string morph_prof = ext->GetAltProfileName();
     if (morph_prof.empty())
       morph_prof = "Disabled";
-    sec->Set(base + name + "/MorphBallProfile", morph_prof);
+    sec->Set(base + name + "/AltProfile", morph_prof);
 
 
     // Go ahead and save out the backup of this profile for when in-game.

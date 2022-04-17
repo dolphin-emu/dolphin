@@ -80,7 +80,7 @@ bool CheckPitchRecentre();
 bool ControllerMode();
 
 std::pair<std::string, std::string> GetProfiles();
-void ChangeControllerProfileMorphBall(std::string profile);
+void ChangeControllerProfileAlt(std::string profile);
 
 double GetHorizontalAxis();
 double GetVerticalAxis();

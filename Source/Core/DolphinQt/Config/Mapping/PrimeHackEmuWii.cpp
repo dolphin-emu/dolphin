@@ -20,7 +20,7 @@
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackAltProfile.h"
 
 #include "Core/PrimeHack/HackConfig.h"
 
@@ -71,10 +71,10 @@ void PrimeHackEmuWii::CreateMainLayout()
   //TODO:  Look into shrinking this by MAYBE shrinking the button padding to 1 instead of 2???
   m_morphball_combobox = new QComboBox();
   m_morphball_combobox->setObjectName(tr("ProfileList"));
-  m_morphball_combobox->setToolTip(tr("Set the controller profile to use\nwhen in Morph Ball."));
+  m_morphball_combobox->setToolTip(tr("Set the controller profile to use\nwhen in Morph Ball and Map."));
   m_morphball_combobox->setEditable(false);
   QFormLayout* misc_box_layout = static_cast<QFormLayout*>(misc_box->layout());
-  misc_box_layout->addRow(tr("Morphball Profile"), m_morphball_combobox);
+  misc_box_layout->addRow(tr("Morphball & Map Profile"), m_morphball_combobox);
 
   PopulateMorphBallProfiles();
 
@@ -117,12 +117,12 @@ void PrimeHackEmuWii::CreateMainLayout()
 void PrimeHackEmuWii::OnMorphControlSelectionChanged()
 {
   //Called as soon as our selection is changed to update the controller preset for Morphball mode.
-  auto* morph_group = static_cast<ControllerEmu::PrimeHackMorph*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morph_group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
 
   std::string curr_text = m_morphball_combobox->currentText().toStdString();
   if (!curr_text.empty())
-    morph_group->SetMorphBallProfileName(curr_text);
+    morph_group->SetAltProfileName(curr_text);
 
   ConfigChanged();
   SaveSettings();
@@ -175,22 +175,22 @@ void PrimeHackEmuWii::PopulateMorphBallProfiles()
     }
   }
 
-  auto* morph_group = static_cast<ControllerEmu::PrimeHackMorph*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morph_group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
 
-  QString text = tr(morph_group->GetMorphBallProfileName().c_str());
-  std::string cstring = morph_group->GetMorphBallProfileName();
+  QString text = tr(morph_group->GetAltProfileName().c_str());
+  std::string cstring = morph_group->GetAltProfileName();
   m_morphball_combobox->setCurrentIndex(m_morphball_combobox->findText(text));
 }
 
 void PrimeHackEmuWii::MappingWindowProfileSave()
 {
-  auto* morph_group = static_cast<ControllerEmu::PrimeHackMorph*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* morph_group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::AltProfileControls));
 
   std::string curr_text = m_morphball_combobox->currentText().toStdString();
   if (!curr_text.empty())
-    morph_group->SetMorphBallProfileName(curr_text);
+    morph_group->SetAltProfileName(curr_text);
 
   PopulateMorphBallProfiles();
   SaveSettings();

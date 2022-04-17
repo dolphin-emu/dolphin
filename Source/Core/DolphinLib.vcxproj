@@ -57,7 +57,7 @@
     <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackModes.cpp" />
     <ClCompile Include="InputCommon\DInputMouseAbsolute.cpp" />
     <ClCompile Include="InputCommon\GenericMouse.cpp" />
-    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackMorph.cpp" />
+    <ClCompile Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackAltProfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\PrimeHack\AddressDB.h" />
@@ -88,7 +88,7 @@
     <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackModes.h" />
     <ClInclude Include="InputCommon\DInputMouseAbsolute.h" />
     <ClInclude Include="InputCommon\GenericMouse.h" />
-    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackMorph.h" />
+    <ClInclude Include="InputCommon\ControllerEmu\ControlGroup\PrimeHackAltProfile.h" />
     <ClInclude Include="VideoCommon\PrimePixelErrorTextures.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -43,7 +43,7 @@
 #include "Common/Config/Config.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMorph.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackAltProfile.h"
 #include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -254,27 +254,27 @@ std::tuple<float, float, float> GetArmXYZ() {
 
 
 std::pair<std::string, std::string> GetProfiles() {
-  auto* group = static_cast<ControllerEmu::PrimeHackMorph*>(
-    Wiimote::GetWiimoteGroup(0, WiimoteEmu::WiimoteGroup::MorphballControls));
+  auto* group = static_cast<ControllerEmu::PrimeHackAltProfile*>(
+    Wiimote::GetWiimoteGroup(0, WiimoteEmu::WiimoteGroup::AltProfileControls));
 
-  const std::string morph_profname = group->GetMorphBallProfileName();
-  std::string morph_profile_path;
+  const std::string alt_profname = group->GetAltProfileName();
+  std::string alt_profile_path;
   std::string main_profile_path;
 
-  if (!morph_profname.empty() && (morph_profname != std::string("Disabled"))) {
-    morph_profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
-      Wiimote::GetConfig()->GetProfileName() + "/" + group->GetMorphBallProfileName() +
+  if (!alt_profname.empty() && (alt_profname != std::string("Disabled"))) {
+    alt_profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
+                         Wiimote::GetConfig()->GetProfileName() + "/" + group->GetAltProfileName() +
       ".ini";
   } else {
-    morph_profile_path = "";
+    alt_profile_path = "";
   }
 
   main_profile_path = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME + "_Backup.ini";
 
-  return { morph_profile_path, main_profile_path };
+  return { alt_profile_path, main_profile_path };
 }
 
-void ChangeControllerProfileMorphBall(std::string profile_path)
+void ChangeControllerProfileAlt(std::string profile_path)
 {
   IniFile ini;
   ini.Load(profile_path);

@@ -45,6 +45,7 @@ bool is_string_ridley(Region active_region, u32 string_base) {
   }
   return str_idx == str_len && read16(string_base) == 0;
 }
+
 void on_guistate_transition_begin(u32) {
   FpsControls* const fps = static_cast<FpsControls*>(GetHackManager()->get_mod("fps_controls"));
   fps->guistate_transition(GPR(4));
@@ -358,7 +359,8 @@ void FpsControls::run_mod_mp1(Region region) {
       writef32(calculate_yaw_vel(), angular_momentum);
     }
 
-    swap_morph_profiles(read32(ball_state));
+    LOOKUP(state_manager);
+    swap_alt_profiles(read32(ball_state), read32(state_manager + 0x117C));
   }
 }
 
@@ -515,7 +517,8 @@ void FpsControls::run_mod_mp2(Region region) {
     // Nothing new here
     write32(0, angular_momentum + 0x18);
 
-    swap_morph_profiles(read32(ball_state));
+    LOOKUP(state_manager);
+    swap_alt_profiles(read32(ball_state), read32(state_manager + 0x2C0C));
   }
 }
 
@@ -692,6 +695,11 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
 
   };
 
+  LOOKUP(state_manager);
+  LOOKUP_DYN(ball_state);
+
+  swap_alt_profiles(read32(ball_state), read32(state_manager + 0x32C));
+
   // Handles menu screen cursor
   LOOKUP(cursor_dlg_enabled);
   if (read8(cursor_dlg_enabled)) {
@@ -701,7 +709,6 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
 
   // In NTSC-J version there is a quiz to select the difficulty
   // This checks if we are ingame
-  LOOKUP(state_manager);
   // I won't add (state_manager + 0x29C) to the address db, not sure what it is
   if (active_region == Region::NTSC_J && read32(state_manager + 0x29C) == 0xffffffff) {
     mp3_handle_cursor(false, false);
@@ -791,15 +798,12 @@ void FpsControls::run_mod_mp3(Game active_game, Region active_region) {
   write32(0, rtoc_gun_damp);
   writef32(FpsControls::pitch, firstperson_pitch);
 
-  LOOKUP_DYN(ball_state);
   if (read32(ball_state) == 0) {
     writef32(calculate_yaw_vel(), angular_momentum);
   }
 
   // Nothing new here
   write32(0, angular_momentum + 0x18);
-
-  swap_morph_profiles(read32(ball_state));
 }
 
 void FpsControls::CheckBeamVisorSetting(Game game)
@@ -823,6 +827,7 @@ void FpsControls::CheckBeamVisorSetting(Game game)
 bool FpsControls::init_mod(Game game, Region region) {
   next_gui_state = 1;
   cur_gui_state = 1;
+  swap_alt_profiles(0, 0);
 
   switch (game) {
   case Game::MENU_PRIME_1:
