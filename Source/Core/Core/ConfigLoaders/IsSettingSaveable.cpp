@@ -110,6 +110,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_FASTMEM.GetLocation(),
       &Config::MAIN_TIMING_VARIANCE.GetLocation(),
       &Config::MAIN_WII_SD_CARD.GetLocation(),
+      &Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC.GetLocation(),
       &Config::MAIN_WII_KEYBOARD.GetLocation(),
       &Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING.GetLocation(),
       &Config::MAIN_WIIMOTE_ENABLE_SPEAKER.GetLocation(),
