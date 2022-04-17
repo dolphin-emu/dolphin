@@ -22,8 +22,6 @@ public:
   void run_mod(Game game, Region region) override;
   bool init_mod(Game game, Region region) override;
   void on_state_change(ModState old_state) override {}
-  void guistate_transition(u32 gui_state) { next_gui_state = gui_state; }
-  void guistate_transition_done() { cur_gui_state = next_gui_state; }
 
 private:
   // ------------------------------
@@ -102,12 +100,6 @@ private:
   // Check if we were in the morph ball state last frame.
   bool was_in_morph_ball = false;
 
-  // Checking if map screen is opened
-  u32 next_gui_state = 1;
-  u32 cur_gui_state = 1;
-
-  bool input_disabled() const {
-    return next_gui_state != cur_gui_state || cur_gui_state != 1;
-  }
+  bool input_disabled() const;
 };
 }

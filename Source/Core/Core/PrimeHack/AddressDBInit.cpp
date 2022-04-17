@@ -24,6 +24,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_1, "holster_timer_offset", 0x4, 0x4, 0x4);
   addr_db.register_address(Game::PRIME_1, "transform_offset", 0x2c, 0x2c, 0x2c);
   addr_db.register_dynamic_address(Game::PRIME_1, "object_list", "state_manager", {mrt1(0x810), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_1, "menu_state", "state_manager",  {mrt1(0x117C)});
   addr_db.register_dynamic_address(Game::PRIME_1, "player", "state_manager", {mrt1(0x84c), rt0});
   addr_db.register_dynamic_address(Game::PRIME_1, "firstperson_pitch", "player", {mrt1(0x3dc)});
   addr_db.register_dynamic_address(Game::PRIME_1, "angular_momentum", "player", {mrt1(0x118)});
@@ -131,6 +132,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_address(Game::PRIME_2, "transform_offset", 0x20, 0x20, 0x20);
   addr_db.register_dynamic_address(Game::PRIME_2, "player", "state_manager", {mrt1(0x14f4), rt0});
   addr_db.register_dynamic_address(Game::PRIME_2, "object_list", "state_manager", {mrt1(0x810), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_2, "menu_state", "state_manager", {mrt1(0x2C0C)});
   addr_db.register_dynamic_address(Game::PRIME_2, "camera_manager", "state_manager", {mrt1(0x1514), mrt1(0x10)});
   addr_db.register_dynamic_address(Game::PRIME_2, "load_state", "state_manager", {mrt1(0x153c)});
   addr_db.register_dynamic_address(Game::PRIME_2, "beamvisor_menu_state", "beamvisor_menu_base", {rt0, mrt1(0x340)});
@@ -190,6 +192,7 @@ void init_db(AddressDB& addr_db) {
   addr_db.register_dynamic_address(Game::PRIME_3, "camera_manager", "state_manager", {mrt1(0x10), mrt1(0xc), mrt1(0x16)});
   addr_db.register_dynamic_address(Game::PRIME_3, "perspective_info", "camera_manager", {mrt1(0x2), mrt1(0x14), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3, "object_list", "state_manager", {rt0, mrt1(0x1010), rt0});
+  addr_db.register_dynamic_address(Game::PRIME_3, "menu_state", "state_manager", {mrt1(0x32C)});
   addr_db.register_dynamic_address(Game::PRIME_3, "player", "state_manager", {rt0, mrt1(0x2184), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3, "cursor", "cursor_base", {rt0, rt(0xc54, 0xd04, 0xc54), rt0});
   addr_db.register_dynamic_address(Game::PRIME_3, "powerups_array", "player", {mrt1(0x35a8), rt0});
