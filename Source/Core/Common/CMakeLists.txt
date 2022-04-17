@@ -45,6 +45,7 @@ add_library(common
   EnumMap.h
   Event.h
   FatFsUtil.cpp
+  FatFsUtil.h
   FileSearch.cpp
   FileSearch.h
   FileUtil.cpp
