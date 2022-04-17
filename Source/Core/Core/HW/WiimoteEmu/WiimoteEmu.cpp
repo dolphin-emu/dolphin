@@ -361,7 +361,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
     &m_primehack_movereticle, {"Control Reticle When Locked-On", nullptr, nullptr, _trans("Control Reticle When Locked-On")}, false);
   m_primehack_camera->AddSetting(
     &m_primehack_remap_map_controls,
-    {"Rotate Map with Mouse", nullptr, nullptr, _trans("Rotate Map with Mouse")}, false);
+    {"Rotate Map with Mouse", nullptr, nullptr, _trans("Rotate Map with Mouse")}, true);
 
   m_primehack_camera->AddSetting(
       &m_primehack_camera_sensitivity,
