@@ -24,6 +24,7 @@ private:
   void CreateLayout();
   void ConnectLayout();
   void CreateMisc();
+  void CreateSDCard();
   void CreateWhitelistedUSBPassthroughDevices();
   void CreateWiiRemoteSettings();
 
@@ -42,8 +43,6 @@ private:
   // Misc Settings
   QCheckBox* m_screensaver_checkbox;
   QCheckBox* m_pal60_mode_checkbox;
-  QCheckBox* m_sd_card_checkbox;
-  QCheckBox* m_allow_sd_writes_checkbox;
   QCheckBox* m_connect_keyboard_checkbox;
   QComboBox* m_system_language_choice;
   QLabel* m_system_language_choice_label;
@@ -51,6 +50,11 @@ private:
   QLabel* m_aspect_ratio_choice_label;
   QComboBox* m_sound_mode_choice;
   QLabel* m_sound_mode_choice_label;
+
+  // SD Card Settings
+  QCheckBox* m_sd_card_checkbox;
+  QCheckBox* m_allow_sd_writes_checkbox;
+  QCheckBox* m_sync_sd_folder_checkbox;
 
   // Whitelisted USB Passthrough Devices
   QListWidget* m_whitelist_usb_list;
