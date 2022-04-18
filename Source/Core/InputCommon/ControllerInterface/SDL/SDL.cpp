@@ -159,6 +159,11 @@ void Init()
 
   EnableSDLLogging();
 
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+  // This is required on windows so that SDL's joystick code properly pumps window messages
+  SDL_SetHint(SDL_HINT_JOYSTICK_THREAD, "1");
+#endif
+
 #if SDL_VERSION_ATLEAST(2, 0, 9)
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
 #endif
