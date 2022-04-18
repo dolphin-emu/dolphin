@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <PropertyGroup Label="UserMacros">
     <QTDIRDefault Condition="'$(Platform)'=='x64'">$(ExternalsDir)Qt\Qt5.15.0\msvc2019_64\</QTDIRDefault>
     <QTDIRDefault Condition="'$(Platform)'=='ARM64'">$(ExternalsDir)Qt\Qt5.15.0\msvc2019_arm64\</QTDIRDefault>

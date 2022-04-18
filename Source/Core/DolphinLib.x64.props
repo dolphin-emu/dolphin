@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <ItemGroup>
     <ClInclude Include="Common\x64ABI.h" />
     <ClInclude Include="Common\x64Emitter.h" />

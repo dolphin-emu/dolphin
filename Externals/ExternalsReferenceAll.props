@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
