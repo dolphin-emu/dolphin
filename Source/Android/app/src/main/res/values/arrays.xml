@@ -210,14 +210,14 @@
         <item>@string/extension_drums</item>
         <item>@string/extension_turntable</item>
     </string-array>
-    <string-array name="wiimoteExtensionsValues">
-        <item>None</item>
-        <item>Nunchuk</item>
-        <item>Classic</item>
-        <item>Guitar</item>
-        <item>Drums</item>
-        <item>Turntable</item>
-    </string-array>
+    <integer-array name="wiimoteExtensionsValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries">

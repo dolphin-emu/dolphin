@@ -12,6 +12,21 @@ import androidx.annotation.Keep;
  */
 public class ControlGroup
 {
+  public static final int TYPE_OTHER = 0;
+  public static final int TYPE_STICK = 1;
+  public static final int TYPE_MIXED_TRIGGERS = 2;
+  public static final int TYPE_BUTTONS = 3;
+  public static final int TYPE_FORCE = 4;
+  public static final int TYPE_ATTACHMENTS = 5;
+  public static final int TYPE_TILT = 6;
+  public static final int TYPE_CURSOR = 7;
+  public static final int TYPE_TRIGGERS = 8;
+  public static final int TYPE_SLIDER = 9;
+  public static final int TYPE_SHAKE = 10;
+  public static final int TYPE_IMU_ACCELEROMETER = 11;
+  public static final int TYPE_IMU_GYROSCOPE = 12;
+  public static final int TYPE_IMU_CURSOR = 13;
+
   @Keep
   private final long mPointer;
 
@@ -23,6 +38,8 @@ public class ControlGroup
 
   public native String getUiName();
 
+  public native int getGroupType();
+
   public native int getControlCount();
 
   public native Control getControl(int i);
@@ -30,4 +47,10 @@ public class ControlGroup
   public native int getNumericSettingCount();
 
   public native NumericSetting getNumericSetting(int i);
+
+  /**
+   * If getGroupType returns TYPE_ATTACHMENTS, this returns the attachment selection setting.
+   * Otherwise, undefined behavior!
+   */
+  public native NumericSetting getAttachmentSetting();
 }

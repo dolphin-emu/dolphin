@@ -16,6 +16,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.UserDataActivity;
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting;
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting;
+import org.dolphinemu.dolphinemu.features.input.model.InputMappingIntSetting;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
@@ -1115,6 +1116,15 @@ public final class SettingsFragmentPresenter
       for (int j = 0; j < controlCount; j++)
       {
         sl.add(new InputMappingControlSetting(group.getControl(j), controller));
+      }
+
+      if (group.getGroupType() == ControlGroup.TYPE_ATTACHMENTS)
+      {
+        NumericSetting attachmentSetting = group.getAttachmentSetting();
+        sl.add(new SingleChoiceSetting(mContext, new InputMappingIntSetting(attachmentSetting),
+                R.string.wiimote_extensions, 0, R.array.wiimoteExtensionsEntries,
+                R.array.wiimoteExtensionsValues,
+                MenuTag.getWiimoteExtensionMenuTag(mControllerNumber)));
       }
 
       int numericSettingCount = group.getNumericSettingCount();

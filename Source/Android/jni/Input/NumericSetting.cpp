@@ -81,6 +81,27 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_NumericSetting
   return ControlReferenceToJava(env, &GetPointer(env, obj)->GetInputReference());
 }
 
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_NumericSetting_getIntValue(
+    JNIEnv* env, jobject obj)
+{
+  return GetPointer<int>(env, obj)->GetValue();
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_NumericSetting_setIntValue(
+    JNIEnv* env, jobject obj, jint value)
+{
+  GetPointer<int>(env, obj)->SetValue(value);
+}
+
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_NumericSetting_getIntDefaultValue(
+    JNIEnv* env, jobject obj)
+{
+  return GetPointer<int>(env, obj)->GetDefaultValue();
+}
+
 JNIEXPORT jdouble JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_NumericSetting_getDoubleValue(
     JNIEnv* env, jobject obj)

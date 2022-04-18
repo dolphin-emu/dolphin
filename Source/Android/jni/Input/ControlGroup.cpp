@@ -6,6 +6,7 @@
 #include <jni.h>
 
 #include "Common/MsgHandler.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
@@ -37,6 +38,13 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_g
 }
 
 JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getGroupType(
+    JNIEnv* env, jobject obj)
+{
+  return static_cast<jint>(GetPointer(env, obj)->type);
+}
+
+JNIEXPORT jint JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getControlCount(
     JNIEnv* env, jobject obj)
 {
@@ -62,5 +70,13 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_g
     JNIEnv* env, jobject obj, jint i)
 {
   return NumericSettingToJava(env, GetPointer(env, obj)->numeric_settings[i].get());
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getAttachmentSetting(
+    JNIEnv* env, jobject obj)
+{
+  auto* group = reinterpret_cast<ControllerEmu::Attachments*>(GetPointer(env, obj));
+  return NumericSettingToJava(env, &group->GetSelectionSetting());
 }
 }

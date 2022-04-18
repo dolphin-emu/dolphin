@@ -48,6 +48,21 @@ public class NumericSetting
   public native ControlReference getControlReference();
 
   /**
+   * If the type is TYPE_INT, gets the current value. Otherwise, undefined behavior!
+   */
+  public native int getIntValue();
+
+  /**
+   * If the type is TYPE_INT, sets the current value. Otherwise, undefined behavior!
+   */
+  public native void setIntValue(int value);
+
+  /**
+   * If the type is TYPE_INT, gets the default value. Otherwise, undefined behavior!
+   */
+  public native int getIntDefaultValue();
+
+  /**
    * If the type is TYPE_DOUBLE, gets the current value. Otherwise, undefined behavior!
    */
   public native double getDoubleValue();
