@@ -230,14 +230,14 @@ bool GameFileCache::SyncCacheFile(bool save)
   {
     // Measure the size of the buffer.
     u8* ptr = nullptr;
-    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
-    DoState(&p);
+    PointerWrap p_measure(&ptr, 0, PointerWrap::MODE_MEASURE);
+    DoState(&p_measure);
     const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
     // Then actually do the write.
     std::vector<u8> buffer(buffer_size);
-    ptr = &buffer[0];
-    p.SetMode(PointerWrap::MODE_WRITE);
+    ptr = buffer.data();
+    PointerWrap p(&ptr, buffer_size, PointerWrap::MODE_WRITE);
     DoState(&p, buffer_size);
     if (f.WriteBytes(buffer.data(), buffer.size()))
       success = true;
@@ -248,7 +248,7 @@ bool GameFileCache::SyncCacheFile(bool save)
     if (!buffer.empty() && f.ReadBytes(buffer.data(), buffer.size()))
     {
       u8* ptr = buffer.data();
-      PointerWrap p(&ptr, PointerWrap::MODE_READ);
+      PointerWrap p(&ptr, buffer.size(), PointerWrap::MODE_READ);
       DoState(&p, buffer.size());
       if (p.GetMode() == PointerWrap::MODE_READ)
         success = true;
