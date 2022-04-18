@@ -15,6 +15,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef _WIN32
+#include <Windows.h>
+
 #pragma comment(lib, "SDL2.lib")
 #endif
 
@@ -204,11 +206,34 @@ void Init()
       }
     }
 
+#ifdef _WIN32
+    // This is a hack to workaround SDL_hidapi using window messages to detect device
+    // removal/arrival, yet no part of SDL pumps messages for it. It can hopefully be removed in the
+    // future when SDL fixes the issue. Note this is a separate issue from SDL_HINT_JOYSTICK_THREAD.
+    // Also note that SDL_WaitEvent may block while device detection window messages get queued up,
+    // causing some noticible stutter. This is just another reason it should be fixed properly by
+    // SDL...
+    const auto window_handle =
+        FindWindowEx(HWND_MESSAGE, nullptr, TEXT("SDL_HIDAPI_DEVICE_DETECTION"), nullptr);
+#endif
+
     SDL_Event e;
     while (SDL_WaitEvent(&e) != 0)
     {
       if (!HandleEventAndContinue(e))
         return;
+
+#ifdef _WIN32
+      MSG msg;
+      while (window_handle && PeekMessage(&msg, window_handle, 0, 0, PM_NOREMOVE))
+      {
+        if (GetMessageA(&msg, window_handle, 0, 0) != 0)
+        {
+          TranslateMessage(&msg);
+          DispatchMessage(&msg);
+        }
+      }
+#endif
     }
   });
 
