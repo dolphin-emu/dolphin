@@ -60,20 +60,20 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
     m_triggers->AddInput(ControllerEmu::Translate, named_trigger);
   }
 
-  // rumble
-  groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(RUMBLE_GROUP));
-  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
-
-  // Microphone
-  groups.emplace_back(m_mic = new ControllerEmu::Buttons(MIC_GROUP));
-  m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
-
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
   for (const char* named_direction : named_directions)
   {
     m_dpad->AddInput(ControllerEmu::Translate, named_direction);
   }
+
+  // Microphone
+  groups.emplace_back(m_mic = new ControllerEmu::Buttons(MIC_GROUP));
+  m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
+
+  // rumble
+  groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(RUMBLE_GROUP));
+  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(OPTIONS_GROUP));

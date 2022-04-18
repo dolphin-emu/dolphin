@@ -214,21 +214,22 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   }
   m_buttons->AddInput(ControllerEmu::DoNotTranslate, HOME_BUTTON, "HOME");
 
-  // Pointing (IR)
+  // D-Pad
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
+  for (const char* named_direction : named_directions)
+  {
+    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
+  }
+
   // i18n: "Point" refers to the action of pointing a Wii Remote.
   groups.emplace_back(m_ir = new ControllerEmu::Cursor(IR_GROUP, _trans("Point")));
-  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
-  groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
   groups.emplace_back(m_shake = new ControllerEmu::Shake(_trans("Shake")));
-  groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
-                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
-  groups.emplace_back(m_imu_gyroscope =
-                          new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
-  groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
+  groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
+  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
 
+  groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
   const auto fov_default =
       Common::DVec2(CameraLogic::CAMERA_FOV_X, CameraLogic::CAMERA_FOV_Y) / MathUtil::TAU * 360;
-
   m_imu_ir->AddSetting(&m_fov_x_setting,
                        // i18n: FOV stands for "Field of view".
                        {_trans("Horizontal FOV"),
@@ -237,7 +238,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                         // i18n: Refers to emulated wii remote camera properties.
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.x, 0.01, 180);
-
   m_imu_ir->AddSetting(&m_fov_y_setting,
                        // i18n: FOV stands for "Field of view".
                        {_trans("Vertical FOV"),
@@ -246,6 +246,21 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
                         // i18n: Refers to emulated wii remote camera properties.
                         _trans("Camera field of view (affects sensitivity of pointing).")},
                        fov_default.y, 0.01, 180);
+
+  groups.emplace_back(m_imu_accelerometer = new ControllerEmu::IMUAccelerometer(
+                          ACCELEROMETER_GROUP, _trans("Accelerometer")));
+  groups.emplace_back(m_imu_gyroscope =
+                          new ControllerEmu::IMUGyroscope(GYROSCOPE_GROUP, _trans("Gyroscope")));
+
+  // Hotkeys
+  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
+  // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
+  // this setting modifier is toggled
+  m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
+  m_hotkeys->AddInput(_trans("Upright Toggle"), true);
+  // this setting modifier is not toggled
+  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
+  m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
@@ -265,13 +280,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   // Rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
   m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
-
-  // D-Pad
-  groups.emplace_back(m_dpad = new ControllerEmu::Buttons(DPAD_GROUP));
-  for (const char* named_direction : named_directions)
-  {
-    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
-  }
 
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
@@ -296,16 +304,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_options->AddSetting(&m_sideways_setting,
                         {"Sideways Wiimote", nullptr, nullptr, _trans("Sideways Wii Remote")},
                         false);
-
-  // Hotkeys
-  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
-  // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
-  // this setting modifier is toggled
-  m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
-  m_hotkeys->AddInput(_trans("Upright Toggle"), true);
-  // this setting modifier is not toggled
-  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
-  m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   Reset();
 
