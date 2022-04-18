@@ -132,6 +132,15 @@
         them to be redefined), which could have unexpected results.
       -->
       <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
+      <!--
+        pathmap replaces path prefixes of source files with a hardcoded value, assisting with keeping output
+        files uniform even if actually built from different locations. The mapped path doesn't really need full
+        drive prefix, but it keeps things human readable. Note the trailing "\" is actually to be escaped by a
+        preceeding "\" in the expanded variable.
+      -->
+      <AdditionalOptions>/pathmap:"$(DolphinRootDir)\"=d:\ %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/pathmap:"$(WindowsSdkDir)\"=w:\ %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/pathmap:"$(VCToolsetsDir)\"=v:\ %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
