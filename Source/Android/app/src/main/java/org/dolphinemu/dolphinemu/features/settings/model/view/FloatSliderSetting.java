@@ -19,6 +19,13 @@ public class FloatSliderSetting extends SliderSetting
     mSetting = setting;
   }
 
+  public FloatSliderSetting(AbstractFloatSetting setting, CharSequence name,
+          CharSequence description, int min, int max, String units)
+  {
+    super(name, description, min, max, units);
+    mSetting = setting;
+  }
+
   public int getSelectedValue(Settings settings)
   {
     return Math.round(mSetting.getFloat(settings));

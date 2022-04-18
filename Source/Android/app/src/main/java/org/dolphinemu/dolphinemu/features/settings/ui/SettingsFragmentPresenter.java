@@ -14,8 +14,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.UserDataActivity;
+import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting;
+import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
+import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
@@ -30,6 +33,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.DateTimeChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SwitchSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
+import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HyperLinkHeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting;
@@ -1112,6 +1116,28 @@ public final class SettingsFragmentPresenter
       {
         sl.add(new InputMappingControlSetting(group.getControl(j), controller));
       }
+
+      int numericSettingCount = group.getNumericSettingCount();
+      for (int j = 0; j < numericSettingCount; j++)
+      {
+        addNumericSetting(sl, group.getNumericSetting(j));
+      }
+    }
+  }
+
+  private void addNumericSetting(ArrayList<SettingsItem> sl, NumericSetting setting)
+  {
+    switch (setting.getType())
+    {
+      case NumericSetting.TYPE_DOUBLE:
+        sl.add(new FloatSliderSetting(new InputMappingDoubleSetting(setting), setting.getUiName(),
+                "", (int) Math.ceil(setting.getDoubleMin()),
+                (int) Math.floor(setting.getDoubleMax()), setting.getUiSuffix()));
+        break;
+      case NumericSetting.TYPE_BOOLEAN:
+        sl.add(new SwitchSetting(new InputMappingBooleanSetting(setting), setting.getUiName(),
+                setting.getUiDescription()));
+        break;
     }
   }
 

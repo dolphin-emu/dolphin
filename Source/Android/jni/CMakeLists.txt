@@ -19,6 +19,8 @@ add_library(main SHARED
   Input/EmulatedController.cpp
   Input/InputOverrider.cpp
   Input/MappingCommon.cpp
+  Input/NumericSetting.cpp
+  Input/NumericSetting.h
   IniFile.cpp
   MainAndroid.cpp
   RiivolutionPatches.cpp

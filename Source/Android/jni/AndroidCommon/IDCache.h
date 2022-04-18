@@ -98,4 +98,8 @@ jclass GetEmulatedControllerClass();
 jfieldID GetEmulatedControllerPointer();
 jmethodID GetEmulatedControllerConstructor();
 
+jclass GetNumericSettingClass();
+jfieldID GetNumericSettingPointer();
+jmethodID GetNumericSettingConstructor();
+
 }  // namespace IDCache

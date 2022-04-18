@@ -10,6 +10,7 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/Input/Control.h"
+#include "jni/Input/NumericSetting.h"
 
 static ControllerEmu::ControlGroup* GetPointer(JNIEnv* env, jobject obj)
 {
@@ -47,5 +48,19 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_g
     JNIEnv* env, jobject obj, jint i)
 {
   return ControlToJava(env, GetPointer(env, obj)->controls[i].get());
+}
+
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getNumericSettingCount(
+    JNIEnv* env, jobject obj)
+{
+  return static_cast<jint>(GetPointer(env, obj)->numeric_settings.size());
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getNumericSetting(
+    JNIEnv* env, jobject obj, jint i)
+{
+  return NumericSettingToJava(env, GetPointer(env, obj)->numeric_settings[i].get());
 }
 }

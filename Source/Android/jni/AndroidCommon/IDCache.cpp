@@ -87,6 +87,10 @@ static jclass s_control_class;
 static jfieldID s_control_pointer;
 static jmethodID s_control_constructor;
 
+static jclass s_numeric_setting_class;
+static jfieldID s_numeric_setting_pointer;
+static jmethodID s_numeric_setting_constructor;
+
 static jclass s_control_group_class;
 static jfieldID s_control_group_pointer;
 static jmethodID s_control_group_constructor;
@@ -459,6 +463,21 @@ jmethodID GetEmulatedControllerConstructor()
   return s_emulated_controller_constructor;
 }
 
+jclass GetNumericSettingClass()
+{
+  return s_numeric_setting_class;
+}
+
+jfieldID GetNumericSettingPointer()
+{
+  return s_numeric_setting_pointer;
+}
+
+jmethodID GetNumericSettingConstructor()
+{
+  return s_numeric_setting_constructor;
+}
+
 }  // namespace IDCache
 
 extern "C" {
@@ -646,6 +665,13 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_emulated_controller_constructor = env->GetMethodID(emulated_controller_class, "<init>", "(J)V");
   env->DeleteLocalRef(emulated_controller_class);
 
+  const jclass numeric_setting_class =
+      env->FindClass("org/dolphinemu/dolphinemu/features/input/model/controlleremu/NumericSetting");
+  s_numeric_setting_class = reinterpret_cast<jclass>(env->NewGlobalRef(numeric_setting_class));
+  s_numeric_setting_pointer = env->GetFieldID(numeric_setting_class, "mPointer", "J");
+  s_numeric_setting_constructor = env->GetMethodID(numeric_setting_class, "<init>", "(J)V");
+  env->DeleteLocalRef(numeric_setting_class);
+
   return JNI_VERSION;
 }
 
@@ -677,5 +703,6 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_control_group_class);
   env->DeleteGlobalRef(s_control_reference_class);
   env->DeleteGlobalRef(s_emulated_controller_class);
+  env->DeleteGlobalRef(s_numeric_setting_class);
 }
 }

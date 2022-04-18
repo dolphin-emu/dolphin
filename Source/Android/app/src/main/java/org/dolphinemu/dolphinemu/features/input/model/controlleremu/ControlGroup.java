@@ -26,4 +26,8 @@ public class ControlGroup
   public native int getControlCount();
 
   public native Control getControl(int i);
+
+  public native int getNumericSettingCount();
+
+  public native NumericSetting getNumericSetting(int i);
 }
