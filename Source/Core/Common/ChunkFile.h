@@ -46,6 +46,7 @@ public:
     MODE_VERIFY,    // compare
   };
 
+private:
   u8** ptr;
   Mode mode;
 
