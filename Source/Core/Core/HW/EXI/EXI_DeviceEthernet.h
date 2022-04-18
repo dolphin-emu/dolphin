@@ -306,6 +306,7 @@ private:
   u8 HashIndex(const u8* dest_eth_addr);
   bool RecvMACFilter();
   void inc_rwp();
+  void set_rwp(u16 value);
   bool RecvHandlePacket();
   void Retrigger();
 

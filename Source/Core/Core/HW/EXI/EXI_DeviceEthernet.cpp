@@ -532,6 +532,12 @@ inline void CEXIETHERNET::inc_rwp()
     (*rwp)++;
 }
 
+inline void CEXIETHERNET::set_rwp(u16 value)
+{
+  u16* rwp = (u16*)&mBbaMem[BBA_RWP];
+  *rwp = value;
+}
+
 void CEXIETHERNET::Retrigger()
 {
   if (mBbaMem[BBA_IMR] & (INT_R | INT_T))
@@ -551,6 +557,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   Descriptor* descriptor;
   u32 status = 0;
   u16 rwp_initial = page_ptr(BBA_RWP);
+  u16 current_rwp = 0;
   if (!RecvMACFilter())
     goto wait_for_next;
 
@@ -565,6 +572,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   write_ptr = &mBbaMem[page_ptr(BBA_RWP) << 8];
 
   descriptor = (Descriptor*)write_ptr;
+  current_rwp = page_ptr(BBA_RWP);
   DEBUG_LOG_FMT(SP1, "Frame recv: {:x}", mRecvBufferLength);
   for (u32 i = 0, off = 4; i < mRecvBufferLength; i++, off++)
   {
@@ -573,11 +581,13 @@ bool CEXIETHERNET::RecvHandlePacket()
     if (off == 0xff)
     {
       off = -1;
-      inc_rwp();
-      int c = page_ptr(BBA_RWP);
-      write_ptr = &mBbaMem[c << 8];
+      current_rwp == page_ptr(BBA_RHBP) ? current_rwp = page_ptr(BBA_BP) :
+                                          current_rwp++;  // avoid increasing while copying
+                                                          // sometime the OS can try to process
+                                                          // when it's not completed
+      write_ptr = &mBbaMem[current_rwp << 8];
 
-      if (page_ptr(BBA_RRP) == page_ptr(BBA_RWP))
+      if (page_ptr(BBA_RRP) == current_rwp)
       {
         /*
         halt copy
@@ -599,7 +609,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
   // Align up to next page
   if ((mRecvBufferLength + 4) % 256)
-    inc_rwp();
+    current_rwp == page_ptr(BBA_RHBP) ? current_rwp = page_ptr(BBA_BP) : current_rwp++;
 
 #ifdef BBA_TRACK_PAGE_PTRS
   INFO_LOG_FMT(SP1, "{:x} {:x} {:x} {:x}", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
@@ -622,7 +632,9 @@ bool CEXIETHERNET::RecvHandlePacket()
     }
   }
 
-  descriptor->set(*(u16*)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, status);
+  descriptor->set(current_rwp, 4 + mRecvBufferLength, status);
+
+  set_rwp(current_rwp);
 
   mBbaMem[BBA_LRPS] = status;
 
