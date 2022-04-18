@@ -5,7 +5,7 @@
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>$(IntDir)bin\</OutDir>
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
-    <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with /Brepro)-->
+    <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with deterministic build)-->
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
@@ -126,7 +126,6 @@
       4946  Reinterpret cast between related types
       -->
       <AdditionalOptions>/w44263 /w44265 /w44946 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
       <!--
         A (currently) hidden switch, like /Brepro, furthermore enabling warnings about non-deterministic code.
         This may be advantageous over /Brepro, which inits __DATE__, __TIME__, etc. equal to 1 (and allows
@@ -158,7 +157,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <!--Link Release-->
     <Link Condition="'$(Configuration)'=='Release'">
@@ -184,7 +183,7 @@
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
       <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
-      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup />
