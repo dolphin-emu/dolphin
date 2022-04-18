@@ -19,6 +19,7 @@ import org.dolphinemu.dolphinemu.features.input.model.InputMappingBooleanSetting
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingDoubleSetting;
 import org.dolphinemu.dolphinemu.features.input.model.InputMappingIntSetting;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.ControlGroup;
+import org.dolphinemu.dolphinemu.features.input.model.ControlGroupEnabledSetting;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController;
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.NumericSetting;
 import org.dolphinemu.dolphinemu.features.input.model.view.InputMappingControlSetting;
@@ -1177,6 +1178,12 @@ public final class SettingsFragmentPresenter
         continue;
 
       sl.add(new HeaderSetting(group.getUiName(), ""));
+
+      if (group.getDefaultEnabledValue() != ControlGroup.DEFAULT_ENABLED_ALWAYS)
+      {
+        sl.add(new SwitchSetting(mContext, new ControlGroupEnabledSetting(group), R.string.enabled,
+                0));
+      }
 
       int controlCount = group.getControlCount();
       for (int j = 0; j < controlCount; j++)

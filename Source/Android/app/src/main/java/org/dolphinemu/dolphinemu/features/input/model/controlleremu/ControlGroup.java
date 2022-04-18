@@ -27,6 +27,10 @@ public class ControlGroup
   public static final int TYPE_IMU_GYROSCOPE = 12;
   public static final int TYPE_IMU_CURSOR = 13;
 
+  public static final int DEFAULT_ENABLED_ALWAYS = 0;
+  public static final int DEFAULT_ENABLED_YES = 1;
+  public static final int DEFAULT_ENABLED_NO = 2;
+
   @Keep
   private final long mPointer;
 
@@ -39,6 +43,12 @@ public class ControlGroup
   public native String getUiName();
 
   public native int getGroupType();
+
+  public native int getDefaultEnabledValue();
+
+  public native boolean getEnabled();
+
+  public native void setEnabled(boolean value);
 
   public native int getControlCount();
 

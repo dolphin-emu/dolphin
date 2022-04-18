@@ -585,6 +585,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="unavailable_paths">Dolphin does not have permission to access one or more configured paths. Would you like to fix this before starting?</string>
 
     <!-- Misc -->
+    <string name="enabled">Enabled</string>
     <string name="pitch">Total Pitch</string>
     <string name="yaw">Total Yaw</string>
     <string name="vertical_offset">Vertical Offset</string>

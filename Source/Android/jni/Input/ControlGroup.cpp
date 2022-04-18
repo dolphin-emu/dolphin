@@ -45,6 +45,27 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_g
 }
 
 JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getDefaultEnabledValue(
+    JNIEnv* env, jobject obj)
+{
+  return static_cast<jint>(GetPointer(env, obj)->default_value);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getEnabled(
+    JNIEnv* env, jobject obj)
+{
+  return static_cast<jboolean>(GetPointer(env, obj)->enabled);
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_setEnabled(
+    JNIEnv* env, jobject obj, jboolean value)
+{
+  GetPointer(env, obj)->enabled = value;
+}
+
+JNIEXPORT jint JNICALL
 Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_ControlGroup_getControlCount(
     JNIEnv* env, jobject obj)
 {
