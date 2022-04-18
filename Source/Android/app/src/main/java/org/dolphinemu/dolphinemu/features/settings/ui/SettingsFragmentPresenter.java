@@ -10,6 +10,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.collection.ArraySet;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -56,8 +57,11 @@ import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public final class SettingsFragmentPresenter
 {
@@ -246,6 +250,27 @@ public final class SettingsFragmentPresenter
       case WIIMOTE_EXTENSION_3:
       case WIIMOTE_EXTENSION_4:
         addExtensionTypeSettings(sl, mControllerNumber, mControllerType);
+        break;
+
+      case WIIMOTE_GENERAL_1:
+      case WIIMOTE_GENERAL_2:
+      case WIIMOTE_GENERAL_3:
+      case WIIMOTE_GENERAL_4:
+        addWiimoteGeneralSubSettings(sl, mControllerNumber);
+        break;
+
+      case WIIMOTE_MOTION_SIMULATION_1:
+      case WIIMOTE_MOTION_SIMULATION_2:
+      case WIIMOTE_MOTION_SIMULATION_3:
+      case WIIMOTE_MOTION_SIMULATION_4:
+        addWiimoteMotionSimulationSubSettings(sl, mControllerNumber);
+        break;
+
+      case WIIMOTE_MOTION_INPUT_1:
+      case WIIMOTE_MOTION_INPUT_2:
+      case WIIMOTE_MOTION_INPUT_3:
+      case WIIMOTE_MOTION_INPUT_4:
+        addWiimoteMotionInputSubSettings(sl, mControllerNumber);
         break;
 
       default:
@@ -1081,7 +1106,7 @@ public final class SettingsFragmentPresenter
   {
     if (gcPadType == 6) // Emulated
     {
-      addControllerSettings(sl, EmulatedController.getGcPad(gcPadNumber));
+      addControllerSettings(sl, EmulatedController.getGcPad(gcPadNumber), null);
     }
     else if (gcPadType == 12) // Adapter
     {
@@ -1094,22 +1119,61 @@ public final class SettingsFragmentPresenter
 
   private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
-    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber));
+    sl.add(new HeaderSetting(mContext, R.string.wiimote, 0));
+    sl.add(new SubmenuSetting(mContext, R.string.wiimote_general,
+            MenuTag.getWiimoteGeneralMenuTag(wiimoteNumber)));
+    sl.add(new SubmenuSetting(mContext, R.string.wiimote_motion_simulation,
+            MenuTag.getWiimoteMotionSimulationMenuTag(wiimoteNumber)));
+    sl.add(new SubmenuSetting(mContext, R.string.wiimote_motion_input,
+            MenuTag.getWiimoteMotionInputMenuTag(wiimoteNumber)));
+
+    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+            Collections.singleton(ControlGroup.TYPE_ATTACHMENTS));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
           int extensionType)
   {
     addControllerSettings(sl,
-            EmulatedController.getWiimoteAttachment(wiimoteNumber, extensionType));
+            EmulatedController.getWiimoteAttachment(wiimoteNumber, extensionType), null);
   }
 
-  private void addControllerSettings(ArrayList<SettingsItem> sl, EmulatedController controller)
+  private void addWiimoteGeneralSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
+  {
+    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+            new ArraySet<>(Arrays.asList(ControlGroup.TYPE_BUTTONS, ControlGroup.TYPE_OTHER)));
+  }
+
+  private void addWiimoteMotionSimulationSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
+  {
+    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+            new ArraySet<>(Arrays.asList(ControlGroup.TYPE_FORCE, ControlGroup.TYPE_TILT,
+                    ControlGroup.TYPE_CURSOR, ControlGroup.TYPE_SHAKE)));
+  }
+
+  private void addWiimoteMotionInputSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
+  {
+    addControllerSettings(sl, EmulatedController.getWiimote(wiimoteNumber),
+            new ArraySet<>(Arrays.asList(ControlGroup.TYPE_IMU_ACCELEROMETER,
+                    ControlGroup.TYPE_IMU_GYROSCOPE, ControlGroup.TYPE_IMU_CURSOR)));
+  }
+
+  /**
+   * @param sl The list to place controller settings into.
+   * @param controller The controller to add settings for.
+   * @param groupTypeFilter If this is non-null, only groups whose types match this are considered.
+   */
+  private void addControllerSettings(ArrayList<SettingsItem> sl, EmulatedController controller,
+          Set<Integer> groupTypeFilter)
   {
     int groupCount = controller.getGroupCount();
     for (int i = 0; i < groupCount; i++)
     {
       ControlGroup group = controller.getGroup(i);
+      int groupType = group.getGroupType();
+      if (groupTypeFilter != null && !groupTypeFilter.contains(groupType))
+        continue;
+
       sl.add(new HeaderSetting(group.getUiName(), ""));
 
       int controlCount = group.getControlCount();
@@ -1118,7 +1182,7 @@ public final class SettingsFragmentPresenter
         sl.add(new InputMappingControlSetting(group.getControl(j), controller));
       }
 
-      if (group.getGroupType() == ControlGroup.TYPE_ATTACHMENTS)
+      if (groupType == ControlGroup.TYPE_ATTACHMENTS)
       {
         NumericSetting attachmentSetting = group.getAttachmentSetting();
         sl.add(new SingleChoiceSetting(mContext, new InputMappingIntSetting(attachmentSetting),

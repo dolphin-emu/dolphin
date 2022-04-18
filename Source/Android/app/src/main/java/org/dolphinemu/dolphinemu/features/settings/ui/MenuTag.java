@@ -38,7 +38,19 @@ public enum MenuTag
   WIIMOTE_EXTENSION_1("wiimote_extension", 0),
   WIIMOTE_EXTENSION_2("wiimote_extension", 1),
   WIIMOTE_EXTENSION_3("wiimote_extension", 2),
-  WIIMOTE_EXTENSION_4("wiimote_extension", 3);
+  WIIMOTE_EXTENSION_4("wiimote_extension", 3),
+  WIIMOTE_GENERAL_1("wiimote_general", 0),
+  WIIMOTE_GENERAL_2("wiimote_general", 1),
+  WIIMOTE_GENERAL_3("wiimote_general", 2),
+  WIIMOTE_GENERAL_4("wiimote_general", 3),
+  WIIMOTE_MOTION_SIMULATION_1("wiimote_motion_simulation", 0),
+  WIIMOTE_MOTION_SIMULATION_2("wiimote_motion_simulation", 1),
+  WIIMOTE_MOTION_SIMULATION_3("wiimote_motion_simulation", 2),
+  WIIMOTE_MOTION_SIMULATION_4("wiimote_motion_simulation", 3),
+  WIIMOTE_MOTION_INPUT_1("wiimote_motion_input", 0),
+  WIIMOTE_MOTION_INPUT_2("wiimote_motion_input", 1),
+  WIIMOTE_MOTION_INPUT_3("wiimote_motion_input", 2),
+  WIIMOTE_MOTION_INPUT_4("wiimote_motion_input", 3);
 
   private String tag;
   private int subType = -1;
@@ -110,6 +122,21 @@ public enum MenuTag
   public static MenuTag getWiimoteExtensionMenuTag(int subtype)
   {
     return getMenuTag("wiimote_extension", subtype);
+  }
+
+  public static MenuTag getWiimoteGeneralMenuTag(int subtype)
+  {
+    return getMenuTag("wiimote_general", subtype);
+  }
+
+  public static MenuTag getWiimoteMotionSimulationMenuTag(int subtype)
+  {
+    return getMenuTag("wiimote_motion_simulation", subtype);
+  }
+
+  public static MenuTag getWiimoteMotionInputMenuTag(int subtype)
+  {
+    return getMenuTag("wiimote_motion_input", subtype);
   }
 
   private static MenuTag getMenuTag(String tag, int subtype)

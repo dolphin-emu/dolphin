@@ -75,6 +75,18 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.WIIMOTE_EXTENSION_2, R.string.wiimote_extension_1);
     titles.put(MenuTag.WIIMOTE_EXTENSION_3, R.string.wiimote_extension_2);
     titles.put(MenuTag.WIIMOTE_EXTENSION_4, R.string.wiimote_extension_3);
+    titles.put(MenuTag.WIIMOTE_GENERAL_1, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_GENERAL_2, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_GENERAL_3, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_GENERAL_4, R.string.wiimote_general);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_1, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_2, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_3, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_SIMULATION_4, R.string.wiimote_motion_simulation);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_1, R.string.wiimote_motion_input);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_2, R.string.wiimote_motion_input);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_3, R.string.wiimote_motion_input);
+    titles.put(MenuTag.WIIMOTE_MOTION_INPUT_4, R.string.wiimote_motion_input);
   }
 
   private FragmentSettingsBinding mBinding;
