@@ -153,9 +153,7 @@ static u64 s_last_init = 0;
 static std::optional<size_t> s_config_callback_id = std::nullopt;
 static std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS>
     s_config_si_device_type{};
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enabled{};
-#endif
 
 static void Read()
 {
@@ -400,9 +398,7 @@ static void RefreshConfig()
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     s_config_si_device_type[i] = Config::Get(Config::GetInfoForSIDevice(i));
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
     s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
-#endif
   }
 }
 
@@ -865,11 +861,11 @@ static void ResetRumbleLockNeeded()
 
 void Output(int chan, u8 rumble_command)
 {
-  if (!UseAdapter())
+  if (!UseAdapter() || !s_config_rumble_enabled[chan])
     return;
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-  if (s_handle == nullptr || !s_config_rumble_enabled[chan])
+  if (s_handle == nullptr)
     return;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   if (!s_detected || !s_fd)
