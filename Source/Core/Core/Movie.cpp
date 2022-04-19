@@ -3,6 +3,11 @@
 
 #include "Core/Movie.h"
 
+#include <filesystem>  // C++17
+#include <iostream>
+namespace fs = std::filesystem;
+#include "unzip.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -69,6 +74,7 @@
 
 #include "InputCommon/GCPadStatus.h"
 
+#include <direct.h>
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -943,13 +949,130 @@ void ReadHeader()
   s_DSPcoefHash = tmpHeader.DSPcoefHash;
 }
 
+#define dir_delimter '/'
+#define MAX_FILENAME 512
+#define READ_SIZE 8192
 // NOTE: Host Thread
 bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path)
 {
+  // movie_path is a const and trying to change that breaks a lot of things
+  std::string actual_movie_path = movie_path;
+
   if (s_playMode != PlayMode::None)
     return false;
 
-  File::IOFile recording_file(movie_path, "rb");
+  // check if it's a citrus playback file
+  fs::path temp_movie_path = movie_path;
+  if (temp_movie_path.extension() == ".cit")
+  {
+    // unzip and store the dtm file path to movie_path
+    unzFile zipfile = unzOpen(movie_path.c_str());
+    if (zipfile == NULL)
+    {
+      printf("not found");
+    }
+
+    // Get info about the zip file
+    unz_global_info global_info;
+    if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
+    {
+      printf("could not read file global info\n");
+      unzClose(zipfile);
+    }
+
+    // Buffer to hold data read from the zip file.
+    char read_buffer[READ_SIZE];
+
+    // Loop to extract all files
+    float i;
+    for (i = 0; i < global_info.number_entry; ++i)
+    {
+      // Get info about current file.
+      unz_file_info file_info;
+      char filename[MAX_FILENAME];
+      if (unzGetCurrentFileInfo(zipfile, &file_info, filename, MAX_FILENAME, NULL, 0, NULL, 0) !=
+          UNZ_OK)
+      {
+        printf("could not read file info\n");
+        unzClose(zipfile);
+      }
+
+      // Check if this entry is a directory or file.
+      const size_t filename_length = strlen(filename);
+      if (filename[filename_length - 1] == dir_delimter)
+      {
+        // Entry is a directory, so create it.
+        printf("dir:%s\n", filename);
+        _mkdir(filename);
+      }
+      else
+      {
+        // Entry is a file, so extract it.
+        printf("file:%s\n", filename);
+
+        // check if this is our movie (dtm file). if it is we need to make that our movie path
+        fs::path foundDTMFile = filename;
+        if (foundDTMFile.extension() == ".dtm")
+        {
+          // fs::path directory{movie_path};
+          // std::string path_of_movie_path_string{path_of_movie_path.string()};
+          fs::path directory = fs::path(movie_path).parent_path();
+          directory /= filename;
+          actual_movie_path = directory.string();
+        }
+        if (unzOpenCurrentFile(zipfile) != UNZ_OK)
+        {
+          printf("could not open file\n");
+          unzClose(zipfile);
+        }
+
+        // Open a file to write out the data.
+        FILE* out = fopen(filename, "wb");
+        if (out == NULL)
+        {
+          printf("could not open destination file\n");
+          unzCloseCurrentFile(zipfile);
+          unzClose(zipfile);
+        }
+
+        int error = UNZ_OK;
+        do
+        {
+          error = unzReadCurrentFile(zipfile, read_buffer, READ_SIZE);
+          if (error < 0)
+          {
+            printf("error %d\n", error);
+            unzCloseCurrentFile(zipfile);
+            unzClose(zipfile);
+          }
+
+          // Write data to file.
+          if (error > 0)
+          {
+            fwrite(read_buffer, error, 1, out);  // You should check return of fwrite...
+          }
+        } while (error > 0);
+
+        fclose(out);
+      }
+
+      unzCloseCurrentFile(zipfile);
+
+      // Go the the next entry listed in the zip file.
+      if ((i + 1) < global_info.number_entry)
+      {
+        if (unzGoToNextFile(zipfile) != UNZ_OK)
+        {
+          printf("cound not read next file\n");
+          unzClose(zipfile);
+        }
+      }
+    }
+
+    unzClose(zipfile);
+  }
+
+  File::IOFile recording_file(actual_movie_path, "rb");
   if (!recording_file.ReadArray(&tmpHeader, 1))
     return false;
 
@@ -983,11 +1106,11 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   // Load savestate (and skip to frame data)
   if (tmpHeader.bFromSaveState && savestate_path)
   {
-    const std::string savestate_path_temp = movie_path + ".sav";
+    const std::string savestate_path_temp = actual_movie_path + ".sav";
     if (File::Exists(savestate_path_temp))
       *savestate_path = savestate_path_temp;
     s_bRecordingFromSaveState = true;
-    Movie::LoadInput(movie_path);
+    Movie::LoadInput(actual_movie_path);
   }
 
   return true;
