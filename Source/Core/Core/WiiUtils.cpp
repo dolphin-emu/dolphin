@@ -458,11 +458,10 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
   doc.save(stream);
   const std::string request = stream.str();
 
-  // Note: We don't use HTTPS because that would require the user to have
-  // a device certificate which cannot be redistributed with Dolphin.
-  // This is fine, because IOS has signature checks.
+  const std::string url =
+      fmt::format("{}/nus/services/NetUpdateSOAP", Config::Get(Config::MAIN_WII_NUS_SHOP_URL));
   const Common::HttpRequest::Response response =
-      m_http.Post("http://nus.shop.wii.com/nus/services/NetUpdateSOAP", request,
+      m_http.Post(url, request,
                   {
                       {"SOAPAction", "urn:nus.wsapi.broadon.com/GetSystemUpdate"},
                       {"User-Agent", "wii libnup/1.0"},

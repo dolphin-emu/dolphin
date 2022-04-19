@@ -210,6 +210,12 @@ const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates
 const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS{
     {System::Main, "Core", "RealWiiRemoteRepeatReports"}, true};
 
+// Note: We don't use HTTPS because that would require the user to have
+// a device certificate which cannot be redistributed with Dolphin.
+// This is fine, because IOS has signature checks.
+const Info<std::string> MAIN_WII_NUS_SHOP_URL{{System::Main, "Core", "WiiNusShopUrl"},
+                                              "http://nus.shop.wii.com"};
+
 // Main.Display
 
 const Info<std::string> MAIN_FULLSCREEN_DISPLAY_RES{
