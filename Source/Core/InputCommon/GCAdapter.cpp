@@ -82,9 +82,15 @@ static bool s_detected = false;
 static int s_fd = 0;
 #endif
 
-static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_type = {
-    ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
-    ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
+enum class ControllerType : u8
+{
+  None = 0,
+  Wired = 1,
+  Wireless = 2,
+};
+
+static std::array<ControllerType, SerialInterface::MAX_SI_CHANNELS> s_controller_type = {
+    ControllerType::None, ControllerType::None, ControllerType::None, ControllerType::None};
 static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_rumble{};
 
 constexpr size_t CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE = 37;
@@ -471,7 +477,7 @@ static void Setup()
   if (s_status < 0)
     s_status = NO_ADAPTER_DETECTED;
 
-  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
+  s_controller_type.fill(ControllerType::None);
   s_controller_rumble.fill(0);
 
   s_libusb_context->GetDeviceList([](libusb_device* device) {
@@ -667,7 +673,7 @@ static void Reset()
     s_read_adapter_thread.join();
 #endif
 
-  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
+  s_controller_type.fill(ControllerType::None);
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   s_status = NO_ADAPTER_DETECTED;
@@ -731,9 +737,9 @@ GCPadStatus Input(int chan)
   else
   {
     bool get_origin = false;
-    u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
-    if (type != ControllerTypes::CONTROLLER_NONE &&
-        s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
+    // TODO: What do the other bits here indicate?  Does casting to an enum like this make sense?
+    const auto type = static_cast<ControllerType>(controller_payload_copy[1 + (9 * chan)] >> 4);
+    if (type != ControllerType::None && s_controller_type[chan] == ControllerType::None)
     {
       NOTICE_LOG_FMT(CONTROLLERINTERFACE, "New device connected to Port {} of Type: {:02x}",
                      chan + 1, controller_payload_copy[1 + (9 * chan)]);
@@ -742,7 +748,7 @@ GCPadStatus Input(int chan)
 
     s_controller_type[chan] = type;
 
-    if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE)
+    if (s_controller_type[chan] != ControllerType::None)
     {
       u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
       u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
@@ -801,12 +807,12 @@ GCPadStatus Input(int chan)
 
 bool DeviceConnected(int chan)
 {
-  return s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE;
+  return s_controller_type[chan] != ControllerType::None;
 }
 
 void ResetDeviceType(int chan)
 {
-  s_controller_type[chan] = ControllerTypes::CONTROLLER_NONE;
+  s_controller_type[chan] = ControllerType::None;
 }
 
 bool UseAdapter()
@@ -874,7 +880,7 @@ void Output(int chan, u8 rumble_command)
 
   // Skip over rumble commands if it has not changed or the controller is wireless
   if (rumble_command != s_controller_rumble[chan] &&
-      s_controller_type[chan] != ControllerTypes::CONTROLLER_WIRELESS)
+      s_controller_type[chan] != ControllerType::Wireless)
   {
     s_controller_rumble[chan] = rumble_command;
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
