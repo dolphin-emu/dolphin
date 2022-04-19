@@ -25,6 +25,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/DolphinAnalytics.h"
+#include "Core/PrimeHack/HackConfig.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
@@ -260,6 +261,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
       ModalMessageBox::primehack_initialrun(&win);
       Config::SetBase(Config::PRIMEHACK_INITIAL_RUN, true);
     }
+
+    std::thread([] {
+      Common::HttpRequest motd_req;
+      auto get_resp = motd_req.Get("https://gist.githubusercontent.com/shiiion/366c2421f650d456ddfb3803c06b49fd/raw/");
+      if (get_resp) {
+        prime::SetMotd(std::string(get_resp->begin(), get_resp->end()));
+      }
+    }).detach();
 
 // Don't send analytics, this is a fork.
 //#if defined(USE_ANALYTICS) && USE_ANALYTICS

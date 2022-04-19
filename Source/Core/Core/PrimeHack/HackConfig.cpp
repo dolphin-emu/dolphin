@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <mutex>
 
 #include "Common/IniFile.h"
 #include "Common/CommonPaths.h"
@@ -21,6 +22,7 @@
 #include "Core/PrimeHack/Mods/RestoreDashing.h"
 #include "Core/PrimeHack/Mods/Invulnerability.h"
 #include "Core/PrimeHack/Mods/MapController.h"
+#include "Core/PrimeHack/Mods/Motd.h"
 #include "Core/PrimeHack/Mods/Noclip.h"
 #include "Core/PrimeHack/Mods/SkipCutscene.h"
 #include "Core/PrimeHack/Mods/SpringballButton.h"
@@ -69,6 +71,9 @@ bool new_map_controls = false;
 
 std::string pending_modfile = "";
 bool mod_suspended = false;
+
+std::string trilogy_motd = "Thanks for using PrimeHack!\nPlease see our wiki for help!";
+std::mutex motd_lock;
 }
 
 void InitializeHack() {
@@ -96,12 +101,14 @@ void InitializeHack() {
   hack_mgr.add_mod("elf_mod_loader", std::make_unique<ElfModLoader>());
   hack_mgr.add_mod("unlock_hypermode", std::make_unique<UnlockHypermode>());
   hack_mgr.add_mod("map_controller", std::make_unique<MapController>());
+  hack_mgr.add_mod("motd", std::make_unique<Motd>());
 
   hack_mgr.enable_mod("skip_cutscene");
   hack_mgr.enable_mod("fov_modifier");
   hack_mgr.enable_mod("bloom_modifier");
   hack_mgr.enable_mod("bloom_intensity");
   hack_mgr.enable_mod("map_controller");
+  hack_mgr.enable_mod("motd");
 
   // Enable no PrimeHack control mods
   if (!Config::Get(Config::PRIMEHACK_ENABLE))
@@ -479,5 +486,15 @@ void SuspendMod() {
 
 void ResumeMod() {
   mod_suspended = false;
+}
+
+void SetMotd(std::string const& motd) {
+  auto lock = std::lock_guard<std::mutex>(motd_lock);
+  trilogy_motd = motd;
+}
+
+std::string GetMotd() {
+  auto lock = std::lock_guard<std::mutex>(motd_lock);
+  return trilogy_motd;
 }
 }  // namespace prime

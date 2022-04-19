@@ -492,6 +492,8 @@ add_library(core
   PrimeHack/Mods/FpsControls.cpp
   PrimeHack/Mods/Invulnerability.h
   PrimeHack/Mods/MapController.cpp
+  PrimeHack/Mods/Motd.h
+  PrimeHack/Mods/Motd.cpp
   PrimeHack/Mods/Noclip.cpp
   PrimeHack/Mods/SkipCutscene.h
   PrimeHack/Mods/SpringballButton.cpp

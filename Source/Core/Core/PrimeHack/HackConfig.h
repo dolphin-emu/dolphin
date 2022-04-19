@@ -99,4 +99,7 @@ void SetPendingModfile(std::string const& path);
 bool ModSuspended();
 void SuspendMod();
 void ResumeMod();
+
+void SetMotd(std::string const& motd);
+std::string GetMotd();
 }
