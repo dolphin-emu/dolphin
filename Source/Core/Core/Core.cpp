@@ -661,8 +661,6 @@ void Stop()  // - Hammertime!
 
   s_timer.Stop();
 
-  s_stat_tracker->init(); // Stop blank stat file from being output if a game is closed out before json output
-
   CallOnStateChangedCallbacks(State::Stopping);
 
   // Dump left over jobs
@@ -687,6 +685,12 @@ void Stop()  // - Hammertime!
   }
 
   s_last_actual_emulation_speed = 1.0;
+
+  if (s_stat_tracker) {
+    s_stat_tracker->dumpGame();
+    std::cout << "Emulation stopped. Dumping game." << std::endl;
+    s_stat_tracker->init();
+  }
 }
 
 void DeclareAsCPUThread()

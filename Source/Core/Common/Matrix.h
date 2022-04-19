@@ -430,6 +430,15 @@ public:
   std::array<float, 16> data;
 };
 
+inline bool operator==(Matrix44 lhs, const Matrix44& rhs){
+  for (int x = 0; x < 16; ++x){
+    if (lhs.data[x] != rhs.data[x]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 inline Matrix44 operator*(Matrix44 lhs, const Matrix44& rhs)
 {
   return lhs *= rhs;
