@@ -77,8 +77,7 @@ void FpsControls::run_mod(Game game, Region region) {
   }
 }
 
-bool FpsControls::input_disabled() const
-{
+bool FpsControls::input_disabled() const {
   LOOKUP_DYN(menu_state);
   return read32(menu_state) != 0;
 }

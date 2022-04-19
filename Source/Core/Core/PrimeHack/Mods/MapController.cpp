@@ -100,9 +100,9 @@ void MapController::reset_rotation(float horiztontal, float vertical) {
 
 quat MapController::compute_orientation() {
   const float compensated_sens = GetSensitivity() * kTurnrateRatio / 60.f;
-  y_rot -= static_cast<float>(GetVerticalAxis()) * compensated_sens *
+  y_rot -= static_cast<float>(frame_dy) * compensated_sens *
     (InvertedY() ? 1.f : -1.f);
-  x_rot += static_cast<float>(GetHorizontalAxis()) * compensated_sens *
+  x_rot += static_cast<float>(frame_dx) * compensated_sens *
     (InvertedX() ? 1.f : -1.f);
   y_rot = std::clamp(y_rot, -kPi / 2.f + 0.01f, 0.f);
   quat r = quat();
@@ -238,6 +238,11 @@ void MapController::init_mod_mp2(Region region) {
     add_code_change(0x80029df8, 0x38a0002d);
     add_code_change(0x80029e18, 0x38a0002e);
   }
+}
+
+void MapController::run_mod(Game game, Region region) {
+  frame_dx = GetHorizontalAxis();
+  frame_dy = GetVerticalAxis();
 }
 
 }
