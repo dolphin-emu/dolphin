@@ -52,7 +52,6 @@ void PrimeWidget::CreateWidgets()
 
   graphics_box->setLayout(graphics_layout);
 
-  m_autoefb = new GraphicsBool(tr("Auto Toggle EFB copies to Texture"), Config::AUTO_EFB);
   m_motions_lock =
       new GraphicsBool(tr("Lock Camera in Motion Puzzles"), Config::LOCKCAMERA_IN_PUZZLES);
   m_toggle_arm_position =
@@ -63,7 +62,6 @@ void PrimeWidget::CreateWidgets()
   m_toggle_gc_show_crosshair =
       new GraphicsBool(tr("Show GCN Crosshair"), Config::GC_SHOW_CROSSHAIR);
 
-  graphics_layout->addWidget(m_autoefb, 0, 0);
   graphics_layout->addWidget(m_motions_lock, 1, 0);
   graphics_layout->addWidget(m_toggle_secondaryFX, 2, 0);
   graphics_layout->addWidget(m_toggle_arm_position, 3, 0);
@@ -255,11 +253,6 @@ void PrimeWidget::SaveSettings()
 
 void PrimeWidget::AddDescriptions()
 {
-  static const char TR_AUTO_EFB[] =
-      QT_TR_NOOP("Automatically disables 'Store EFB Copies to Texture Only'"
-                 "while the Scan Visor is active in Metroid Prime 2 and Metroid Prime 3. \n\n"
-                 "While 'Store EFB Copies to Texture Only' may improve performance, having it "
-                 "enabled will break the scan visor in Metroid Prime 2 and Metroid Prime 3.");
   static const char TR_GUNEFFECTS[] = QT_TR_NOOP(
       "Reintroduce the original secondary gun effects that were in the GameCube version of Metroid "
       "Prime 1\n"
@@ -300,7 +293,6 @@ void PrimeWidget::AddDescriptions()
                  "more glitches you may encounter."
                  "\n\nGenerally the best FOV values are between 75 and 100.");
 
-  m_autoefb->SetDescription(tr(TR_AUTO_EFB));
   m_motions_lock->SetDescription(tr(TR_MOTION_LOCK));
   m_toggle_secondaryFX->SetDescription(tr(TR_GUNEFFECTS));
   m_disable_bloom->SetDescription(tr(TR_DISABLE_BLOOM));
