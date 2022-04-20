@@ -453,6 +453,7 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Resize:
   {
+#if defined(CIFACE_USE_WIN32) || defined(CIFACE_USE_XLIB) 
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
     QSize new_size = se->size();
 
@@ -465,6 +466,7 @@ bool RenderWidget::event(QEvent* event)
     win_h = (new_size.height() * dpr) / 2;
 
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
+#endif
 
     break;
   }
