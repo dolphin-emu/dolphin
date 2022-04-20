@@ -29,7 +29,6 @@
     </style>
 
     <!-- Themes for Dialogs -->
-
     <style name="DolphinDialogBase" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorAccent">@color/dolphin_blue_secondary</item>
@@ -70,6 +69,10 @@
         <item name="browseTitleViewLayout">@layout/titleview</item>
     </style>
 
+    <style name="InGameScrollView">
+        <item name="android:colorEdgeEffect">@color/dolphin_blue_secondary</item>
+    </style>
+
     <style name="InGameMenuOption" parent="Widget.Material3.Button.TextButton">
         <item name="android:textSize">16sp</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
@@ -81,6 +84,7 @@
         <item name="android:paddingLeft">32dp</item>
         <item name="android:paddingRight">32dp</item>
         <item name="android:layout_margin">0dp</item>
+        <item name="rippleColor">@color/dolphin_blue_secondary</item>
     </style>
 
     <style name="OverlayInGameMenuOption" parent="InGameMenuOption">
