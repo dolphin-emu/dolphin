@@ -258,7 +258,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     if ((uid_data->components & VB_HAS_BINORMAL) == 0)
       out.Write("float3 rawbinormal = " I_CACHED_BINORMAL ".xyz;\n");
 
-    // Only the first normal gets normalized (TODO: why?)
+    // The scale of the transform matrix is used to control the size of the emboss map effect, by
+    // changing the scale of the transformed binormals (which only get used by emboss map texgens).
+    // By normalising the first transformed normal (which is used by lighting calculations and needs
+    // to be unit length), the same transform matrix can do double duty, scaling for emboss mapping,
+    // and not scaling for lighting.
     out.Write("float3 _normal = normalize(float3(dot(N0, rawnormal), dot(N1, rawnormal), dot(N2, "
               "rawnormal)));\n"
               "float3 _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, "

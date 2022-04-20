@@ -158,7 +158,11 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n"
             "\n"
-            "// Only the first normal gets normalized (TODO: why?)\n"
+            "// The scale of the transform matrix is used to control the size of the emboss map\n"
+            "// effect by changing the scale of the transformed binormals (which only get used by\n"
+            "// emboss map texgens). By normalising the first transformed normal (which is used\n"
+            "// by lighting calculations and needs to be unit length), the same transform matrix\n"
+            "// can do double duty, scaling for emboss mapping, and not scaling for lighting.\n"
             "float3 _normal = float3(0.0, 0.0, 0.0);\n"
             "if ((components & {}u) != 0u) // VB_HAS_NORMAL\n",
             VB_HAS_NORMAL);
