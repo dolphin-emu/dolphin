@@ -36,9 +36,7 @@
 
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 #include "Common/ScopeGuard.h"
-#include "Core/ConfigManager.h"
 #include "Core/LibusbUtils.h"
-#include "Core/NetPlayProto.h"
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
 #include "jni/AndroidCommon/IDCache.h"
 #endif
