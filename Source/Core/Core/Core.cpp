@@ -70,6 +70,9 @@
 #include "Core/System.h"
 #include "Core/WiiRoot.h"
 
+#include "Core/HW/Memmap.h"
+#include "Core/Config/WiimoteSettings.h"
+
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
 #endif
@@ -90,9 +93,12 @@
 #ifdef ANDROID
 #include "jni/AndroidCommon/IDCache.h"
 #endif
+#include <Core/HW/SI/SI_Device.h>
 
 namespace Core
 {
+static bool boolMatchStart = false;
+static bool boolMatchEnd = false;
 static bool s_wants_determinism;
 
 // Declarations and definitions
@@ -157,8 +163,44 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
-}
+  static const u32 matchStart = 0x80400000;
+  static const u32 matchEnd = 0x80400001;
 
+  // c2 gecko for hud (800f83bc) must be on to make this happen
+  // movie cannot be playing input back since we do not want to record that
+  if (Memory::Read_U8(matchStart) == 1 && !boolMatchStart && !Movie::IsPlayingInput())
+  {
+    boolMatchStart = true;
+    // begin recording
+
+    Movie::SetReadOnly(false);
+    Movie::ControllerTypeArray controllers{};
+    Movie::WiimoteEnabledArray wiimotes{};
+
+    for (int i = 0; i < 4; i++)
+    {
+      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+      if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+        controllers[i] = Movie::ControllerType::GBA;
+      else if (SerialInterface::SIDevice_IsGCController(si_device))
+        controllers[i] = Movie::ControllerType::GC;
+      else
+        controllers[i] = Movie::ControllerType::None;
+      wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+    }
+
+    Movie::BeginRecordingInput(controllers, wiimotes);
+  }
+
+  if (Memory::Read_U8(matchEnd) == 1 && !boolMatchEnd && !Movie::IsPlayingInput())
+  {
+    boolMatchEnd = true;
+    if (Movie::IsRecordingInput())
+      Movie::SaveRecording("C:\\Users\\Brian\\Desktop\\throw dtm here\\53.dtm");
+    if (Movie::IsMovieActive())
+      Movie::EndPlayInput(false);
+  }
+}
 // Display messages and return values
 
 // Formatted stop message
