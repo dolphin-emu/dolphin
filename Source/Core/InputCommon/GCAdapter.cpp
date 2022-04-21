@@ -95,38 +95,32 @@ constexpr size_t CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE = 37;
 constexpr size_t CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE = 1;
 constexpr size_t CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE = 5;
 
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-static std::mutex s_mutex;
 static std::array<u8, CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE> s_controller_payload;
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 static std::array<u8, CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE> s_controller_payload_swap;
+#endif
 
 // Only access with s_mutex held!
 static int s_controller_payload_size = {0};
 
-static std::thread s_adapter_input_thread;
-static std::thread s_adapter_output_thread;
-static Common::Flag s_adapter_thread_running;
-
-static Common::Event s_rumble_data_available;
-
-static std::mutex s_init_mutex;
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-// Input handling
-static std::mutex s_read_mutex;
-static std::array<u8, CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE> s_controller_payload;
-static int s_controller_payload_size = {0};
-
-// Output handling
-static std::mutex s_write_mutex;
+#if GCADAPTER_USE_ANDROID_IMPLEMENTATION
 static std::array<u8, CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> s_controller_write_payload;
 static std::atomic<int> s_controller_write_payload_size{0};
+#endif
 
-// Adapter running thread
 static std::thread s_read_adapter_thread;
-static Common::Flag s_read_adapter_thread_running;
-
-static Common::Flag s_write_adapter_thread_running;
+static std::thread s_write_adapter_thread;
 static Common::Event s_write_happened;
+
+#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
+static std::mutex s_mutex;
+static std::mutex s_init_mutex;
+static Common::Flag s_adapter_thread_running;
+#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+static std::mutex s_read_mutex;
+static std::mutex s_write_mutex;
+static Common::Flag s_read_adapter_thread_running;
+static Common::Flag s_write_adapter_thread_running;
 #endif
 
 static std::thread s_adapter_detect_thread;
@@ -201,7 +195,7 @@ static void Read()
   if (connected)
   {
     s_write_adapter_thread_running.Set(true);
-    std::thread write_adapter_thread(Write);
+    s_write_adapter_thread = std::thread(Write);
 
     // Reset rumble once on initial reading
     ResetRumble();
@@ -253,7 +247,7 @@ static void Write()
 
   while (true)
   {
-    s_rumble_data_available.Wait();
+    s_write_happened.Wait();
 
     if (!s_adapter_thread_running.IsSet())
       return;
@@ -615,8 +609,8 @@ static void AddGCAdapter(libusb_device* device)
                             CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE, &size, 16);
 
   s_adapter_thread_running.Set(true);
-  s_adapter_input_thread = std::thread(Read);
-  s_adapter_output_thread = std::thread(Write);
+  s_read_adapter_thread = std::thread(Read);
+  s_write_adapter_thread = std::thread(Write);
 
   s_status = ADAPTER_DETECTED;
   if (s_detect_callback != nullptr)
@@ -659,9 +653,9 @@ static void Reset()
 
   if (s_adapter_thread_running.TestAndClear())
   {
-    s_rumble_data_available.Set();
-    s_adapter_input_thread.join();
-    s_adapter_output_thread.join();
+    s_write_happened.Set();
+    s_read_adapter_thread.join();
+    s_write_adapter_thread.join();
   }
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
   if (!s_detected)
@@ -878,9 +872,7 @@ void Output(int chan, u8 rumble_command)
       s_controller_type[chan] != ControllerType::Wireless)
   {
     s_controller_rumble[chan] = rumble_command;
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-    s_rumble_data_available.Set();
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+#if GCADAPTER_USE_ANDROID_IMPLEMENTATION
     std::array<u8, CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE> rumble = {
         0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
         s_controller_rumble[3]};
@@ -889,8 +881,8 @@ void Output(int chan, u8 rumble_command)
       s_controller_write_payload = rumble;
       s_controller_write_payload_size.store(CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE);
     }
-    s_write_happened.Set();
 #endif
+    s_write_happened.Set();
   }
 }
 
