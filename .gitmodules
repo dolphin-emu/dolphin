@@ -13,3 +13,6 @@
 	url = https://github.com/dolphin-emu/ext-win-ffmpeg.git
 	branch = master
 	shallow = true
+[submodule "libusb"]
+	path = Externals/libusb/libusb
+	url = https://github.com/libusb/libusb.git
