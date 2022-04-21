@@ -447,9 +447,12 @@ bool RenderWidget::event(QEvent* event)
     emit FocusChanged(false);
     break;
   case QEvent::Move:
+#if defined(CIFACE_USE_WIN32) || defined(CIFACE_USE_XLIB) 
     SetCursorLocked(m_cursor_locked);
     win_w = size().width() / 2;
     win_h = size().height() / 2;
+#endif
+
     break;
   case QEvent::Resize:
   {
