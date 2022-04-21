@@ -98,9 +98,7 @@ constexpr size_t CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE = 1;
 constexpr size_t CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE = 5;
 
 static std::array<u8, CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE> s_controller_payload;
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
 static std::array<u8, CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE> s_controller_payload_swap;
-#endif
 
 // Only access with s_mutex held!
 static int s_controller_payload_size = {0};
@@ -114,11 +112,10 @@ static std::thread s_write_adapter_thread;
 static Common::Flag s_write_adapter_thread_running;
 static Common::Event s_write_happened;
 
+static std::mutex s_read_mutex;
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-static std::mutex s_mutex;
 static std::mutex s_init_mutex;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-static std::mutex s_read_mutex;
 static std::mutex s_write_mutex;
 #endif
 
@@ -157,9 +154,7 @@ static void Read()
   Common::SetCurrentThreadName("GCAdapter Read Thread");
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GCAdapter read thread started");
 
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-  int payload_size = 0;
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+#if GCADAPTER_USE_ANDROID_IMPLEMENTATION
   bool first_read = true;
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -193,27 +188,24 @@ static void Read()
   while (s_read_adapter_thread_running.IsSet())
   {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
+    int payload_size = 0;
     int err = libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap.data(),
                                         CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE, &payload_size, 16);
     if (err)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "adapter libusb read failed: err={}",
                     libusb_error_name(err));
-
+#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
+    int payload_size = env->CallStaticIntMethod(s_adapter_class, input_func);
+    jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
+    std::copy(java_data, java_data + CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE,
+              s_controller_payload_swap.begin());
+#endif
     {
-      std::lock_guard<std::mutex> lk(s_mutex);
+      std::lock_guard<std::mutex> lk(s_read_mutex);
       std::swap(s_controller_payload_swap, s_controller_payload);
       s_controller_payload_size = payload_size;
     }
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-    int read_size = env->CallStaticIntMethod(s_adapter_class, input_func);
-
-    jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
-    {
-      std::lock_guard<std::mutex> lk(s_read_mutex);
-      std::copy(java_data, java_data + CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE,
-                s_controller_payload.begin());
-      s_controller_payload_size = read_size;
-    }
+#if GCADAPTER_USE_ANDROID_IMPLEMENTATION
     env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
 
     if (first_read)
@@ -683,11 +675,7 @@ GCPadStatus Input(int chan)
   std::array<u8, CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE> controller_payload_copy{};
 
   {
-#if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-    std::lock_guard<std::mutex> lk(s_mutex);
-#elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
     std::lock_guard<std::mutex> lk(s_read_mutex);
-#endif
     controller_payload_copy = s_controller_payload;
     payload_size = s_controller_payload_size;
   }
