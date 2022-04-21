@@ -46,11 +46,17 @@ public:
     MODE_VERIFY,    // compare
   };
 
-  u8** ptr;
+private:
+  u8** m_ptr_current;
+  u8* m_ptr_end;
   Mode mode;
 
 public:
-  PointerWrap(u8** ptr_, Mode mode_) : ptr(ptr_), mode(mode_) {}
+  PointerWrap(u8** ptr, size_t size, Mode mode_)
+      : m_ptr_current(ptr), m_ptr_end(*ptr + size), mode(mode_)
+  {
+  }
+
   void SetMode(Mode mode_) { mode = mode_; }
   Mode GetMode() const { return mode; }
   template <typename K, class V>
@@ -208,8 +214,13 @@ public:
   [[nodiscard]] u8* DoExternal(u32& count)
   {
     Do(count);
-    u8* current = *ptr;
-    *ptr += count;
+    u8* current = *m_ptr_current;
+    *m_ptr_current += count;
+    if (mode != MODE_MEASURE && *m_ptr_current > m_ptr_end)
+    {
+      // trying to read/write past the end of the buffer, prevent this
+      mode = MODE_MEASURE;
+    }
     return current;
   }
 
@@ -319,26 +330,32 @@ private:
 
   DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
   {
+    if (mode != MODE_MEASURE && (*m_ptr_current + size) > m_ptr_end)
+    {
+      // trying to read/write past the end of the buffer, prevent this
+      mode = MODE_MEASURE;
+    }
+
     switch (mode)
     {
     case MODE_READ:
-      memcpy(data, *ptr, size);
+      memcpy(data, *m_ptr_current, size);
       break;
 
     case MODE_WRITE:
-      memcpy(*ptr, data, size);
+      memcpy(*m_ptr_current, data, size);
       break;
 
     case MODE_MEASURE:
       break;
 
     case MODE_VERIFY:
-      DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *ptr, size),
+      DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *m_ptr_current, size),
                        "Savestate verification failure: buf {} != {} (size {}).\n", fmt::ptr(data),
-                       fmt::ptr(*ptr), size);
+                       fmt::ptr(*m_ptr_current), size);
       break;
     }
 
-    *ptr += size;
+    *m_ptr_current += size;
   }
 };

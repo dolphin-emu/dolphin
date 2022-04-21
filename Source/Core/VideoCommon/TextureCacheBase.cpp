@@ -459,6 +459,12 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
     // needing to allocate/free an extra buffer.
     u8* texture_data = p.DoExternal(total_size);
 
+    if (p.GetMode() == PointerWrap::MODE_MEASURE)
+    {
+      ERROR_LOG_FMT(VIDEO, "Couldn't acquire {} bytes for serializing texture.", total_size);
+      return;
+    }
+
     if (!skip_readback)
     {
       // Save out each layer of the texture to the pointer.
