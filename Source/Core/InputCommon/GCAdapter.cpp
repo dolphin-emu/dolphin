@@ -192,43 +192,49 @@ static void Read()
 
   bool connected = env->CallStaticBooleanMethod(s_adapter_class, openadapter_func);
 
-  if (connected)
+  if (!connected)
   {
-    s_write_adapter_thread_running.Set(true);
-    s_write_adapter_thread = std::thread(Write);
+    s_fd = 0;
+    s_detected = false;
 
-    // Reset rumble once on initial reading
-    ResetRumble();
+    NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter failed to open!");
+    return;
+  }
 
-    while (s_read_adapter_thread_running.IsSet())
+  s_write_adapter_thread_running.Set(true);
+  s_write_adapter_thread = std::thread(Write);
+
+  // Reset rumble once on initial reading
+  ResetRumble();
+
+  while (s_read_adapter_thread_running.IsSet())
+  {
+    int read_size = env->CallStaticIntMethod(s_adapter_class, input_func);
+
+    jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
     {
-      int read_size = env->CallStaticIntMethod(s_adapter_class, input_func);
+      std::lock_guard<std::mutex> lk(s_read_mutex);
+      std::copy(java_data, java_data + CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE,
+                s_controller_payload.begin());
+      s_controller_payload_size = read_size;
+    }
+    env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
 
-      jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
-      {
-        std::lock_guard<std::mutex> lk(s_read_mutex);
-        std::copy(java_data, java_data + CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE,
-                  s_controller_payload.begin());
-        s_controller_payload_size = read_size;
-      }
-      env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
-
-      if (first_read)
-      {
-        first_read = false;
-        s_fd = env->CallStaticIntMethod(s_adapter_class, getfd_func);
-      }
-
-      Common::YieldCPU();
+    if (first_read)
+    {
+      first_read = false;
+      s_fd = env->CallStaticIntMethod(s_adapter_class, getfd_func);
     }
 
-    // Terminate the write thread on leaving
-    if (s_write_adapter_thread_running.TestAndClear())
-    {
-      s_controller_write_payload_size.store(0);
-      s_write_happened.Set();  // Kick the waiting event
-      write_adapter_thread.join();
-    }
+    Common::YieldCPU();
+  }
+
+  // Terminate the write thread on leaving
+  if (s_write_adapter_thread_running.TestAndClear())
+  {
+    s_controller_write_payload_size.store(0);
+    s_write_happened.Set();  // Kick the waiting event
+    write_adapter_thread.join();
   }
 
   s_fd = 0;
