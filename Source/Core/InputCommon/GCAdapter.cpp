@@ -286,13 +286,7 @@ static void Write()
       }
 
       env->ReleaseByteArrayElements(jrumble_array, jrumble, 0);
-      int size = env->CallStaticIntMethod(s_adapter_class, output_func, jrumble_array);
-      // Netplay sends invalid data which results in size = 0x00.  Ignore it.
-      if (size != write_size && size != 0x00)
-      {
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "error writing rumble (size: {})", size);
-        Reset();
-      }
+      env->CallStaticIntMethod(s_adapter_class, output_func, jrumble_array);
     }
 
     Common::YieldCPU();
