@@ -59,11 +59,11 @@ bool Motd::init_mod(Game game, Region region) {
   new_message = GetMotd();
   if (game == Game::MENU && region == Region::NTSC_U) {
     old_message = "Nunchuk is required.";
-    add_motd_hook(0x80626000, 0x8039e628, old_message.length() + 1);
+    add_motd_hook(0x80626000, 0x8039e628, static_cast<u32>(old_message.length() + 1));
     add_code_change(0x8037e3f0, gen_branch_link(0x8037e3f0, 0x80626000));
   } else if (game == Game::MENU && region == Region::PAL) {
     old_message = "These games use the Nunchuk.";
-    add_motd_hook(0x8062b800, 0x8039e274, old_message.length() + 1);
+    add_motd_hook(0x8062b800, 0x8039e274, static_cast<u32>(old_message.length() + 1));
     add_code_change(0x8037e03c, gen_branch_link(0x8037e03c, 0x8062b800));
   }
   return true;
@@ -71,11 +71,11 @@ bool Motd::init_mod(Game game, Region region) {
 
 void Motd::run_mod(Game game, Region region) {
   constexpr auto write_string = [](std::string const& str, u32 addr) {
-    write32(str.length() + 1, addr);
+    write32(static_cast<u32>(str.length() + 1), addr);
     for (size_t i = 0; i < str.length(); i++) {
-      write8(str[i], addr + 4 + i);
+      write8(str[i], addr + 4 + static_cast<u32>(i));
     }
-    write8(0, addr + 4 + str.length());
+    write8(0, addr + 4 + static_cast<u32>(str.length()));
   };
   if (game == Game::MENU && (region == Region::NTSC_U || region == Region::PAL)) {
     write_string(old_message, old_msg_start);

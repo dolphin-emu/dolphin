@@ -45,6 +45,7 @@
     <ClCompile Include="Core\PrimeHack\Mods\ElfModLoader.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\FpsControls.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\MapController.cpp" />
+    <ClCompile Include="Core\PrimeHack\Mods\Motd.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\Noclip.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\PortalSkipMP2.cpp" />
     <ClCompile Include="Core\PrimeHack\Mods\BloomIntensityMP3.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="Core\PrimeHack\Mods\BloomIntensityMP3.h" />
     <ClInclude Include="Core\PrimeHack\Mods\Invulnerability.h" />
     <ClInclude Include="Core\PrimeHack\Mods\MapController.h" />
+    <ClInclude Include="Core\PrimeHack\Mods\Motd.h" />
     <ClInclude Include="Core\PrimeHack\Mods\Noclip.h" />
     <ClInclude Include="Core\PrimeHack\Mods\PortalSkipMP2.h" />
     <ClInclude Include="Core\PrimeHack\Mods\RestoreDashing.h" />
