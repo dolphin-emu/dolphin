@@ -1046,7 +1046,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
             json_stream << "        \"Steal\": "               << decode("Steal", runner_info->steal, inDecode) << "," << std::endl;
             json_stream << "        \"Runner Result Base\": "  << std::to_string(runner_info->result_base) << std::endl;
             std::string comma = (std::next(runner) == runners.end() && !event.pitch.has_value()) ? "" : ",";
-            json_stream << "      }," << std::endl;
+            json_stream << "      }" << comma << std::endl;
         }
 
 
@@ -1234,7 +1234,7 @@ std::string StatTracker::getHUDJSON(u16 in_event_num, Event& in_event, bool inDe
         json_stream << "    \"Runner Char Id\": "      << decode("Character", runner_info->char_id, inDecode) << "," << std::endl;
         json_stream << "    \"Runner Initial Base\": " << std::to_string(runner_info->initial_base) << std::endl;
         std::string comma = (std::next(runner) == runners.end() && !in_event.pitch.has_value()) ? "" : ",";
-        json_stream << "  }," << std::endl;
+        json_stream << "  }" << comma << std::endl;
     }
 
     for (int team=0; team < 2; ++team){
@@ -1403,7 +1403,7 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
         json_stream << "    \"Steal\": "               << decode("Steal", runner_info->steal, inDecode) << "," << std::endl;
         json_stream << "    \"Runner Result Base\": "  << std::to_string(runner_info->result_base) << std::endl;
         std::string comma = (std::next(runner) == runners.end() && !in_event.pitch.has_value()) ? "" : ",";
-        json_stream << "  }," << std::endl;
+        json_stream << "  }" << comma << std::endl;
     }
 
     //=== Pitch ===
