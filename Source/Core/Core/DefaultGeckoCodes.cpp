@@ -6,6 +6,13 @@ void DefaultGeckoCodes::RunCodeInject(bool bNetplayEventCode, bool bIsRanked, bo
 
   Memory::Write_U8(0x1, aControllerRumble);  // enable rumble
 
+  // Never Cull Characters
+  Memory::Write_U32(0x38000007, aNeverCull_1);
+  if (Memory::Read_U32(aNeverCull_2) == 0x38000002)
+    Memory::Write_U32(0x38600001, aNeverCull_2);
+  if (Memory::Read_U32(aNeverCull_3) == 0x38000000)
+    Memory::Write_U32(0x38600001, aNeverCull_3);
+
   // handle asm writes for required code
   for (DefaultGeckoCode geckocode : sRequiredCodes)
     WriteAsm(geckocode);

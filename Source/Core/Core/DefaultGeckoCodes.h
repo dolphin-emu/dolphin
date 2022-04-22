@@ -35,6 +35,10 @@ class DefaultGeckoCodes {
     static const u32 aPitchClock_2 = 0x806b42d0;
     static const u32 aPitchClock_3 = 0x806b46b8;
 
+    static const u32 aNeverCull_1 = 0x8001dcf8;
+    static const u32 aNeverCull_2 = 0x806aa4e4;
+    static const u32 aNeverCull_3 = 0x806ab8b4;
+
 
     void InjectNetplayEventCode();
     void AddRankedCodes();
@@ -301,7 +305,6 @@ class DefaultGeckoCodes {
         {0x3DC08089, 0x61CE0AE0, 0xA1CE0000, 0x2C0E0258, // last 4 bytes of this instruction determine pitch clock length
         0x40820008, 0x38000100, 0x540005EF}
     };
-
 
     void WriteAsm(DefaultGeckoCode CodeBlock);
     u32 aWriteAddr;  // address where the first code gets written to
