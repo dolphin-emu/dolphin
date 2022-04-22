@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/PrimeHack/HackConfig.h"
+#include "InputCommon/GenericMouse.h"
 
 #ifdef CIFACE_USE_WIN32
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
@@ -164,6 +165,9 @@ void ControllerInterface::RefreshDevices(RefreshReason reason)
   // Every platform that adds a device that is meant to be used as default device should try to not
   // do it async, to not risk the emulated controllers default config loading not finding a default
   // device.
+
+  // An empty mouse class for when no platform specific one exists.
+  prime::g_mouse_input = new prime::NullMouse();
 
 #ifdef CIFACE_USE_WIN32
   ciface::Win32::PopulateDevices(m_wsi.render_surface);

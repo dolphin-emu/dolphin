@@ -24,6 +24,13 @@ protected:
   int32_t dx, dy;
 };
 
+class NullMouse : public GenericMouse {
+public:
+  NullMouse() {}
+  void UpdateInput() override {}
+  void LockCursorToGameWindow() override {}
+};
+
 extern GenericMouse* g_mouse_input;
 
 }  // namespace prime
