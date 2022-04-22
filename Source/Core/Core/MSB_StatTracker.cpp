@@ -1233,8 +1233,7 @@ std::string StatTracker::getHUDJSON(u16 in_event_num, Event& in_event, bool inDe
         json_stream << "    \"Runner Roster Loc\": "   << std::to_string(runner_info->roster_loc) << "," << std::endl;
         json_stream << "    \"Runner Char Id\": "      << decode("Character", runner_info->char_id, inDecode) << "," << std::endl;
         json_stream << "    \"Runner Initial Base\": " << std::to_string(runner_info->initial_base) << std::endl;
-        std::string comma = (std::next(runner) == runners.end() && !in_event.pitch.has_value()) ? "" : ",";
-        json_stream << "  }" << comma << std::endl;
+        json_stream << "  }," << std::endl;
     }
 
     for (int team=0; team < 2; ++team){
