@@ -25,6 +25,15 @@
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
+#if defined(LIBUSB_API_VERSION)
+#define LIBUSB_API_VERSION_EXIST 1
+#else
+#define LIBUSB_API_VERSION_EXIST 0
+#endif
+
+#define LIBUSB_API_VERSION_ATLEAST(v) (LIBUSB_API_VERSION_EXIST && LIBUSB_API_VERSION >= (v))
+#define LIBUSB_API_HAS_HOTPLUG LIBUSB_API_VERSION_ATLEAST(0x01000102)
+
 namespace GCAdapter
 {
 static bool CheckDeviceAccess(libusb_device* device);
@@ -71,7 +80,7 @@ static bool s_libusb_hotplug_enabled = true;
 #else
 static bool s_libusb_hotplug_enabled = false;
 #endif
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 static libusb_hotplug_callback_handle s_hotplug_handle;
 #endif
 
@@ -138,7 +147,7 @@ static void Write()
   }
 }
 
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotplug_event event,
                            void* user_data)
 {
@@ -169,7 +178,7 @@ static void ScanThreadFunc()
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter scanning thread started");
 
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 #ifndef __FreeBSD__
   s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
 #endif
@@ -402,7 +411,7 @@ static void AddGCAdapter(libusb_device* device)
 void Shutdown()
 {
   StopScanThread();
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
   if (s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
     libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
