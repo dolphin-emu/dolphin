@@ -37,8 +37,9 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   for (auto& buf : queue_data)
     buf = std::make_unique<u8[]>(2048);
   fake_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
-  m_local_ip == "" ? m_current_ip = htonl(sf::IpAddress::getLocalAddress().toInteger()) :
-                     m_current_ip = htonl(sf::IpAddress(m_local_ip).toInteger());
+  const u32 ip = m_local_ip.empty() ? sf::IpAddress::getLocalAddress().toInteger() :
+                                      sf::IpAddress(m_local_ip).toInteger();
+  m_current_ip = htonl(ip);
   m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
   // clear all ref
   for (int i = 0; i < std::size(network_ref); i++)
@@ -83,7 +84,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::IsActivated()
 void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const u8* data, int length)
 {
   queue_data_size[queue_write] = length;
-  memcpy(&queue_data[queue_write][0], data, length);
+  std::memcpy(queue_data[queue_write].get(), data, length);
   if (((queue_write + 1) & 15) == queue_read)
   {
     return;
@@ -94,18 +95,19 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const u8* data, int length)
 void CEXIETHERNET::BuiltInBBAInterface::HandleARP(Common::EthernetHeader* hwdata,
                                                   Common::ARPHeader* arpdata)
 {
-  memset(&m_in_frame[0], 0, 0x30);
-  Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&m_in_frame[0];
+  std::memset(m_in_frame.get(), 0, 0x30);
+  Common::EthernetHeader* hwpart = (Common::EthernetHeader*)m_in_frame.get();
   *hwpart = Common::EthernetHeader(ARP_PROTOCOL);
-  memcpy(&hwpart->destination, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+  hwpart->destination = *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
   hwpart->source = fake_mac;
 
   Common::ARPHeader* arppart = (Common::ARPHeader*)&m_in_frame[14];
   Common::MACAddress bba_mac;
 
-  memcpy(&bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+  bba_mac = *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
   if (arpdata->target_ip == m_current_ip)
   {
+    // game asked for himself, reply with his mac address
     *arppart = Common::ARPHeader(arpdata->target_ip, bba_mac, m_current_ip, bba_mac);
   }
   else
@@ -123,14 +125,14 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   Common::DHCPBody* reply = (Common::DHCPBody*)&m_in_frame[0x2a];
   sockaddr_in from;
   sockaddr_in to;
-  memset(&m_in_frame[0], 0, 0x156);
+  std::memset(m_in_frame.get(), 0, 0x156);
 
   // build layer
-  Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&m_in_frame[0];
+  Common::EthernetHeader* hwpart = (Common::EthernetHeader*)m_in_frame.get();
   Common::IPv4Header* ippart = (Common::IPv4Header*)&m_in_frame[14];
   Common::UDPHeader* udppart = (Common::UDPHeader*)&m_in_frame[0x22];
   *hwpart = Common::EthernetHeader(IP_PROTOCOL);
-  memcpy(&hwpart->destination, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+  hwpart->destination = *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
   hwpart->source = fake_mac;
 
   from.sin_addr.s_addr = m_router_ip;
@@ -139,7 +141,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   to.sin_addr.s_addr = m_current_ip;
   to.sin_family = IPPROTO_UDP;
   to.sin_port = udpdata->source_port;
-  const u8* ip_part = (u8*)&m_router_ip;
+  const std::vector<u8> ip_part = {((u8*)&m_router_ip)[0], ((u8*)&m_router_ip)[1], ((u8*)&m_router_ip)[2],
+                                   ((u8*)&m_router_ip)[3]};
 
   *ippart = Common::IPv4Header(308, IPPROTO_UDP, from, to);
 
@@ -152,24 +155,21 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   // options
   request->options[2] == 1 ? reply->AddDHCPOption(1, 53, std::vector<u8>{2}) :
                              reply->AddDHCPOption(1, 53, std::vector<u8>{5});
-  reply->AddDHCPOption(
-      4, 54, std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], ip_part[3]});  // dhcp server ip
-  reply->AddDHCPOption(4, 51, std::vector<u8>{0, 1, 0x51, 0x80});               // lease time 24h
-  reply->AddDHCPOption(4, 58, std::vector<u8>{0, 1, 0x51, 0x80});               // renewal
-  reply->AddDHCPOption(4, 59, std::vector<u8>{0, 1, 0x51, 0x80});               // rebind
-  reply->AddDHCPOption(4, 1, std::vector<u8>{255, 255, 255, 0});                // submask
+  reply->AddDHCPOption(4, 54, ip_part);                            // dhcp server ip
+  reply->AddDHCPOption(4, 51, std::vector<u8>{0, 1, 0x51, 0x80});  // lease time 24h
+  reply->AddDHCPOption(4, 58, std::vector<u8>{0, 1, 0x51, 0x80});  // renewal
+  reply->AddDHCPOption(4, 59, std::vector<u8>{0, 1, 0x51, 0x80});  // rebind
+  reply->AddDHCPOption(4, 1, std::vector<u8>{255, 255, 255, 0});   // submask
   reply->AddDHCPOption(4, 28,
                        std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], 255});  // broadcast ip
-  reply->AddDHCPOption(
-      4, 6, std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], ip_part[3]});  // dns server
-  reply->AddDHCPOption(3, 15, std::vector<u8>{0x6c, 0x61, 0x6e});              // domaine name "lan"
-  reply->AddDHCPOption(
-      4, 3, std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], ip_part[3]});  // router ip
-  reply->AddDHCPOption(0, 255, {});                                            // end
+  reply->AddDHCPOption(4, 6, ip_part);                                             // dns server
+  reply->AddDHCPOption(3, 15, std::vector<u8>{0x6c, 0x61, 0x6e});                  // domaine name "lan"
+  reply->AddDHCPOption(4, 3, ip_part);                                             // router ip
+  reply->AddDHCPOption(0, 255, {});                                                // end
 
   udppart->checksum = Common::ComputeTCPNetworkChecksum(from, to, udppart, 308, IPPROTO_UDP);
 
-  WriteToQueue(&m_in_frame[0], 0x156);
+  WriteToQueue(m_in_frame.get(), 0x156);
 }
 
 StackRef* CEXIETHERNET::BuiltInBBAInterface::GetAvaibleSlot(u16 port)
@@ -205,7 +205,7 @@ StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_po
 
 int BuildFINFrame(StackRef* ref, u8* buf)
 {
-  memset(buf, 0, 0x36);
+  std::memset(buf, 0, 0x36);
   Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&buf[0];
   Common::IPv4Header* ippart = (Common::IPv4Header*)&buf[14];
   Common::TCPHeader* tcppart = (Common::TCPHeader*)&buf[0x22];
@@ -219,10 +219,30 @@ int BuildFINFrame(StackRef* ref, u8* buf)
   *tcppart = Common::TCPHeader(ref->from, ref->to, ref->seq_num, ref->ack_num,
                                TCP_FLAG_FIN | TCP_FLAG_ACK | TCP_FLAG_RST);
   tcppart->checksum =
-      Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart, 28, IPPROTO_TCP);
+      Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart, 20, IPPROTO_TCP);
 
   for (auto& tcp_buf : ref->tcp_buffers)
     tcp_buf.used = false;
+
+  return 0x36;
+}
+
+int BuildAckFrame(StackRef* ref, u8* buf)
+{
+  std::memset(buf, 0, 0x36);
+  Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&buf[0];
+  Common::IPv4Header* ippart = (Common::IPv4Header*)&buf[14];
+  Common::TCPHeader* tcppart = (Common::TCPHeader*)&buf[0x22];
+
+  *hwpart = Common::EthernetHeader(IP_PROTOCOL);
+  hwpart->destination = ref->bba_mac;
+  hwpart->source = ref->my_mac;
+
+  *ippart = Common::IPv4Header(20, IPPROTO_TCP, ref->from, ref->to);
+
+  *tcppart = Common::TCPHeader(ref->from, ref->to, ref->seq_num, ref->ack_num, TCP_FLAG_ACK);
+  tcppart->checksum =
+      Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart, 20, IPPROTO_TCP);
 
   return 0x36;
 }
@@ -240,8 +260,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
       return;  // not found
 
     ref->ack_num++;
-    const int size = BuildFINFrame(ref, &m_in_frame[0]);
-    WriteToQueue(&m_in_frame[0], size);
+    const int size = BuildFINFrame(ref, m_in_frame.get());
+    WriteToQueue(m_in_frame.get(), size);
     ref->ip = 0;
     ref->tcp_socket.disconnect();
   }
@@ -252,7 +272,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
       return;
     ref = GetAvaibleSlot(0);
 
-    ref->delay = 0x3000;
+    ref->delay = GetTickCountStd();
     ref->local = tcpdata->source_port;
     ref->remote = tcpdata->destination_port;
     ref->ack_num = Common::swap32(tcpdata->sequence_number) + 1;
@@ -266,13 +286,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     ref->from.sin_port = tcpdata->destination_port;
     ref->to.sin_addr.s_addr = *(u32*)&ipdata->source_addr;
     ref->to.sin_port = tcpdata->source_port;
-    memcpy(&ref->bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+    ref->bba_mac = *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
     ref->my_mac = fake_mac;
     ref->tcp_socket.setBlocking(false);
 
     // reply with a sin_ack
-    memset(&m_in_frame[0], 0, 0x100);
-    Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&m_in_frame[0];
+    std::memset(m_in_frame.get(), 0, 0x100);
+    Common::EthernetHeader* hwpart = (Common::EthernetHeader*)m_in_frame.get();
     Common::IPv4Header* ippart = (Common::IPv4Header*)&m_in_frame[14];
     Common::TCPHeader* tcppart = (Common::TCPHeader*)&m_in_frame[0x22];
 
@@ -285,7 +305,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     *tcppart = Common::TCPHeader(ref->from, ref->to, ref->seq_num, ref->ack_num,
                                  0x70 | TCP_FLAG_SIN | TCP_FLAG_ACK);
     const u8 options[] = {0x02, 0x04, 0x05, 0xb4, 0x01, 0x01, 0x01, 0x01};
-    memcpy(&m_in_frame[0x36], options, std::size(options));
+    std::memcpy(&m_in_frame[0x36], options, std::size(options));
 
     // do checksum
     tcppart->checksum =
@@ -297,10 +317,10 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     ref->ready = false;
     ref->ip = *(u32*)ipdata->destination_addr;
 
-    memcpy(&ref->tcp_buffers[0].data, &m_in_frame[0], 0x3e);
+    std::memcpy(&ref->tcp_buffers[0].data, m_in_frame.get(), 0x3e);
     ref->tcp_buffers[0].data_size = 0x3e;
     ref->tcp_buffers[0].seq_id = ref->seq_num - 1;
-    ref->tcp_buffers[0].tick = GetTickCountStd() - 1900;  // delay
+    ref->tcp_buffers[0].tick = GetTickCountStd() - 900;  // delay
     ref->tcp_buffers[0].used = true;
   }
   else
@@ -323,22 +343,9 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
       }
 
       // send ack
-      memset(&m_in_frame[0], 0, 0x36);
-      Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&m_in_frame[0];
-      Common::IPv4Header* ippart = (Common::IPv4Header*)&m_in_frame[14];
-      Common::TCPHeader* tcppart = (Common::TCPHeader*)&m_in_frame[0x22];
+      BuildAckFrame(ref, m_in_frame.get());
 
-      *hwpart = Common::EthernetHeader(IP_PROTOCOL);
-      memcpy(&hwpart->destination, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
-      hwpart->source = fake_mac;
-
-      *ippart = Common::IPv4Header(20, IPPROTO_TCP, ref->from, ref->to);
-
-      *tcppart = Common::TCPHeader(ref->from, ref->to, ref->seq_num, ref->ack_num, TCP_FLAG_ACK);
-      tcppart->checksum =
-          Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart, 20, IPPROTO_TCP);
-
-      WriteToQueue(&m_in_frame[0], 0x36);
+      WriteToQueue(m_in_frame.get(), 0x36);
     }
     // update windows size
     ref->window_size = htons(tcpdata->window_size);
@@ -346,13 +353,32 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
     // clear any ack data
     if (tcpdata->properties & TCP_FLAG_ACK)
     {
+      const u32 ack_num = Common::swap32(tcpdata->acknowledgement_number);
       for (auto& tcp_buf : ref->tcp_buffers)
       {
-        if (!tcp_buf.used || tcp_buf.seq_id >= Common::swap32(tcpdata->acknowledgement_number))
+        if (!tcp_buf.used || tcp_buf.seq_id >= ack_num)
           continue;
-        tcp_buf.used = false;  // confirmed data received
-        if (!ref->ready && !ref->tcp_buffers[0].used)
-          ref->ready = true;
+        Common::TCPHeader* tcppart = (Common::TCPHeader*)&tcp_buf.data[0x22];
+        const u32 seq_end = tcp_buf.seq_id + tcp_buf.data_size - ((tcppart->properties & 0xf0) >> 2) - 34;
+        if (seq_end <= ack_num)
+        {
+          tcp_buf.used = false;  // confirmed data received
+          if (!ref->ready && !ref->tcp_buffers[0].used)
+            ref->ready = true;
+          continue;
+        }
+        // partial data, adjust the packet for next ack
+        const u16 ack_size = ack_num - tcp_buf.seq_id;
+        const u16 new_data_size = tcp_buf.data_size - 0x36 - ack_size;
+        std::memmove(&tcp_buf.data[0x36], &tcp_buf.data[0x36 + ack_size], new_data_size);
+        tcp_buf.data_size -= ack_size;
+        tcp_buf.seq_id += ack_size;
+        tcppart->sequence_number = htonl(tcp_buf.seq_id);
+        Common::IPv4Header* ippart = (Common::IPv4Header*)&tcp_buf.data[14];
+        ippart->total_len = htons(tcp_buf.data_size - 14);
+        tcppart->checksum = 0;
+        tcppart->checksum = Common::ComputeTCPNetworkChecksum(ref->from, ref->to, tcppart,
+                                                              new_data_size + 20, IPPROTO_TCP);
       }
     }
   }
@@ -371,7 +397,7 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   ref->local = htons(port);
   ref->remote = htons(port);
   ref->type = 17;
-  memcpy(&ref->bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+  ref->bba_mac = *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
   ref->my_mac = fake_mac;
   ref->from.sin_addr.s_addr = 0;
   ref->from.sin_port = htons(port);
@@ -401,7 +427,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(Common::EthernetHeader* h
     ref->local = udpdata->source_port;
     ref->remote = udpdata->destination_port;
     ref->type = 17;
-    memcpy(&ref->bba_mac, &m_eth_ref->mBbaMem[BBA_NAFR_PAR0], Common::MAC_ADDRESS_SIZE);
+    ref->bba_mac = *(Common::MACAddress*) & m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
     ref->my_mac = fake_mac;
     ref->from.sin_addr.s_addr = *(u32*)&ipdata->destination_addr;
     ref->from.sin_port = udpdata->destination_port;
@@ -426,14 +452,14 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(Common::EthernetHeader* h
     if (udpdata->length > 150)
     {
       // Quick hack to unlock the connection, throw it back at him
-      Common::EthernetHeader* hwpart = (Common::EthernetHeader*)&m_in_frame[0];
+      Common::EthernetHeader* hwpart = (Common::EthernetHeader*)m_in_frame.get();
       Common::IPv4Header* ippart = (Common::IPv4Header*)&m_in_frame[14];
-      memcpy(&m_in_frame[0], hwdata, htons(ipdata->total_len) + 14);
+      std::memcpy(m_in_frame.get(), hwdata, htons(ipdata->total_len) + 14);
       hwpart->destination = hwdata->source;
       hwpart->source = hwdata->destination;
       *(u32*)ippart->destination_addr = *(u32*)ipdata->source_addr;
       *(u32*)ippart->source_addr = *(u32*)ipdata->destination_addr;
-      WriteToQueue(&m_in_frame[0], htons(ipdata->total_len) + 14);
+      WriteToQueue(m_in_frame.get(), htons(ipdata->total_len) + 14);
     }
   }
   if (Common::swap16(udpdata->destination_port) == 53)
@@ -457,10 +483,10 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 
   int offset = 0;
   std::lock_guard<std::mutex> lock(mtx);
-  memmove(&m_out_frame[0], frame, size);
-  INFO_LOG_FMT(SP1, "Sending packet {:x}\n{}", size, ArrayToString(&m_out_frame[0], size, 16));
+  std::memcpy(m_out_frame.get(), frame, size);
+  INFO_LOG_FMT(SP1, "Sending packet {:x}\n{}", size, ArrayToString(m_out_frame.get(), size, 16));
   // handle the packet data
-  hwdata = (Common::EthernetHeader*)&m_out_frame[0];
+  hwdata = (Common::EthernetHeader*)m_out_frame.get();
   if (hwdata->ethertype == 0x08)  // IPV4
   {
     // IP sub
@@ -468,8 +494,9 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
     switch (ipdata->protocol)
     {
     case IPPROTO_UDP:
-      udpdata = (Common::UDPHeader*)&m_out_frame[14 + ((ipdata->version_ihl & 0xf) * 4)];
-      offset = 14 + ((ipdata->version_ihl & 0xf) * 4) + 8;
+      offset = 14 + (ipdata->version_ihl & 0xf) * 4;
+      udpdata = (Common::UDPHeader*)&m_out_frame[offset];
+      offset += Common::UDPHeader::SIZE;
       if (Common::swap16(udpdata->destination_port) == 67)
       {
         Common::DHCPBody* request = (Common::DHCPBody*)&m_out_frame[offset];
@@ -482,8 +509,9 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
       break;
 
     case IPPROTO_TCP:
-      tcpdata = (Common::TCPHeader*)&m_out_frame[14 + ((ipdata->version_ihl & 0xf) * 4)];
-      offset = 14 + ((ipdata->version_ihl & 0xf) * 4) + (((tcpdata->properties >> 4) & 0xf) * 4);
+      offset = 14 + (ipdata->version_ihl & 0xf) * 4;
+      tcpdata = (Common::TCPHeader*)&m_out_frame[offset];
+      offset += (tcpdata->properties & 0xf0) >> 2;
       HandleTCPFrame(hwdata, ipdata, tcpdata, &m_out_frame[offset]);
       break;
     }
@@ -513,8 +541,8 @@ size_t TryGetDataFromSocket(StackRef* ref, u8* buffer)
     ref->udp_socket.receive(&buffer[0x2a], 1500, datasize, ref->target, remote_port);
     if (datasize > 0)
     {
-      memset(&buffer[0], 0, 0x2a);
-      hwdata = (Common::EthernetHeader*)&buffer[0];
+      std::memset(buffer, 0, 0x2a);
+      hwdata = (Common::EthernetHeader*)buffer;
       ipdata = (Common::IPv4Header*)&buffer[14];
       udpdata = (Common::UDPHeader*)&buffer[0x22];
 
@@ -547,13 +575,14 @@ size_t TryGetDataFromSocket(StackRef* ref, u8* buffer)
 
     // set default size to 0 to avoid issue
     datasize = 0;
-    if ((tcp_buffer != nullptr) && ref->ready && ref->window_size > 2500)
+    const bool can_go = (GetTickCountStd() - ref->poke_time > 100 || ref->window_size > 2000);
+    if (tcp_buffer != nullptr && ref->ready && can_go)
       st = ref->tcp_socket.receive(&buffer[0x36], 440, datasize);
 
     if (datasize > 0)
     {
-      memset(&buffer[0], 0, 0x36);
-      hwdata = (Common::EthernetHeader*)&buffer[0];
+      std::memset(buffer, 0, 0x36);
+      hwdata = (Common::EthernetHeader*)buffer;
       ipdata = (Common::IPv4Header*)&buffer[14];
       tcpdata = (Common::TCPHeader*)&buffer[0x22];
 
@@ -571,21 +600,21 @@ size_t TryGetDataFromSocket(StackRef* ref, u8* buffer)
       tcp_buffer->seq_id = ref->seq_num;
       tcp_buffer->data_size = (u16)datasize + 0x36;
       tcp_buffer->tick = GetTickCountStd();
-      memcpy(&tcp_buffer->data[0], &buffer[0], datasize + 0x36);
+      std::memcpy(&tcp_buffer->data[0], buffer, datasize + 0x36);
       tcp_buffer->seq_id = ref->seq_num;
       tcp_buffer->used = true;
       ref->seq_num += (u32)datasize;
+      ref->poke_time = GetTickCountStd();
       datasize += 0x36;
     }
-    if (ref->delay != 0)
+    if (GetTickCountStd() - ref->delay > 3000)
     {
-      ref->delay--;
-    }
-    else if (st == sf::Socket::Disconnected || st == sf::Socket::Error)
-    {
-      ref->ip = 0;
-      ref->tcp_socket.disconnect();
-      datasize = BuildFINFrame(ref, buffer);
+      if (st == sf::Socket::Disconnected || st == sf::Socket::Error)
+      {
+        ref->ip = 0;
+        ref->tcp_socket.disconnect();
+        datasize = BuildFINFrame(ref, buffer);
+      }
     }
     break;
   }
@@ -617,7 +646,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
     if (self->queue_read != self->queue_write)
     {
       datasize = self->queue_data_size[self->queue_read];
-      memcpy(self->m_eth_ref->mRecvBuffer.get(), &self->queue_data[self->queue_read][0], datasize);
+      std::memcpy(self->m_eth_ref->mRecvBuffer.get(), &self->queue_data[self->queue_read][0], datasize);
       self->queue_read++;
       self->queue_read &= 15;
     }
@@ -641,7 +670,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         continue;
       for (auto& tcp_buf : net_ref.tcp_buffers)
       {
-        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 2000)
+        if (!tcp_buf.used || (GetTickCountStd() - tcp_buf.tick) <= 1000)
           continue;
 
         tcp_buf.tick = GetTickCountStd();
@@ -650,7 +679,8 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         {
           std::lock_guard<std::mutex> lock(self->mtx);
           self->queue_data_size[self->queue_write] = tcp_buf.data_size;
-          memcpy(&self->queue_data[self->queue_write][0], &tcp_buf.data[0], tcp_buf.data_size);
+          std::memcpy(self->queue_data[self->queue_write].get(), &tcp_buf.data[0],
+                      tcp_buf.data_size);
           self->queue_write = (self->queue_write + 1) & 15;
         }
       }

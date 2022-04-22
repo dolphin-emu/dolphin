@@ -43,7 +43,7 @@ struct StackRef
   u32 ack_num;
   u32 ack_base;
   u16 window_size;
-  u16 delay;
+  u64 delay;
   TcpBuffer tcp_buffers[MAX_TCP_BUFFER];
   bool ready;
   sockaddr_in from;
@@ -52,4 +52,5 @@ struct StackRef
   Common::MACAddress my_mac{};
   sf::UdpSocket udp_socket;
   sf::TcpSocket tcp_socket;
+  u64 poke_time;
 };
