@@ -52,18 +52,18 @@ public:
   {
     if (amt > 0){ // Dugout
       use_mat = true;
-      m_mat = Common::Matrix44::FromArray({0.545977,-0.253666,-0.798475,-16.638653,
-                                           -0.061070,0.938476,-0.339901,-1.409028,
-                                           0.835570,0.234341,0.496894,-26.413183,
-                                           0.000000,0.000000,0.000000,1.000000});
+      m_mat = Common::Matrix44::FromArray({0.545977f,-0.253666f,-0.798475f,-16.638653f,
+                                           -0.061070f,0.938476f,-0.339901f,-1.409028f,
+                                           0.835570f,0.234341f,0.496894f,-26.413183f,
+                                           0.000000f,0.000000f,0.000000f,1.000000f});
 
     }
     else { //LF Pole
       use_mat = true;
-      m_mat = Common::Matrix44::FromArray({-0.542877,-0.241105,-0.804458,-26.235294,
-                                           0.000098,0.957884,-0.287154,-1.449248,
-                                           0.839813,-0.155968,-0.519989,-83.894585,
-                                           0.000000,0.000000,0.000000,1.000000});
+      m_mat = Common::Matrix44::FromArray({-0.542877f,-0.241105f,-0.804458f,-26.235294f,
+                                           0.000098f,0.957884f,-0.287154f,-1.449248f,
+                                           0.839813f,-0.155968f,-0.519989f,-83.894585f,
+                                           0.000000f,0.000000f,0.000000f,1.000000f});
     }
   }
 
@@ -71,20 +71,20 @@ public:
   {
     if (amt > 0){ //Directly behind HP
       use_mat = false;
-      m_rotation.x = 0.357953;
-      m_rotation.y = 0.000000;
-      m_rotation.z = 0.000000;
+      m_rotation.x = 0.357953f;
+      m_rotation.y = 0.000000f;
+      m_rotation.z = 0.000000f;
 
-      m_position.x = 0.000000;
-      m_position.y = -4.889825;
-      m_position.z = 0.288412;
+      m_position.x = 0.000000f;
+      m_position.y = -4.889825f;
+      m_position.z = 0.288412f;
     }
     else { //RF Grandstand
       use_mat = true;
-      m_mat = Common::Matrix44::FromArray({-0.762376,0.180257,0.621523,24.537916,
-                                           -0.111071,0.909723,-0.400084,-5.326676,
-                                           -0.637532,-0.374047,-0.673530,-115.002136,
-                                           0.000000,0.000000,0.000000,1.000000});
+      m_mat = Common::Matrix44::FromArray({-0.762376f,0.180257f,0.621523f,24.537916f,
+                                           -0.111071f,0.909723f,-0.400084f,-5.326676f,
+                                           -0.637532f,-0.374047f,-0.673530f,-115.002136f,
+                                           0.000000f,0.000000f,0.000000f,1.000000f});
     }
 
     using Common::Quaternion;
@@ -96,21 +96,21 @@ public:
   {
     use_mat = false;
     if (amt > 0){ // Over the pitcher shoulder
-      m_rotation.x = -0.333371;
-      m_rotation.y =  3.147738;
-      m_rotation.z = -0.000247;
-      m_position.x =  2.287449;
-      m_position.y =  7.688197;
-      m_position.z = 37.479488;
+      m_rotation.x = -0.333371f;
+      m_rotation.y =  3.147738f;
+      m_rotation.z = -0.000247f;
+      m_position.x =  2.287449f;
+      m_position.y =  7.688197f;
+      m_position.z = 37.479488f;
     }
     else{ // High above the plate, looking down
-      m_rotation.x = -0.081675;
-      m_rotation.y = 0.000000;
-      m_rotation.z = 0.000000;
+      m_rotation.x = -0.081675f;
+      m_rotation.y = 0.000000f;
+      m_rotation.z = 0.000000f;
 
-      m_position.x = 0.000000;
-      m_position.y = 6.358200;
-      m_position.z = -19.586224;
+      m_position.x = 0.000000f;
+      m_position.y = 6.358200f;
+      m_position.z = -19.586224f;
     }
     using Common::Quaternion;
     m_rotate_quat =
@@ -123,10 +123,10 @@ public:
       return;
     
     use_mat = true;
-    m_mat = Common::Matrix44::FromArray({-0.518640,0.215621,0.827358,28.380379,
-                                         -0.149931,0.929747,-0.336291,-12.713995,
-                                         -0.841743,-0.298461,-0.449876,-82.801498,
-                                         0.000000,0.000000,0.000000,1.000000});
+    m_mat = Common::Matrix44::FromArray({-0.518640f,0.215621f,0.827358f,28.380379f,
+                                         -0.149931f,0.929747f,-0.336291f,-12.713995f,
+                                         -0.841743f,-0.298461f,-0.449876f,-82.801498f,
+                                         0.000000f,0.000000f,0.000000f,1.000000f});
   }
 
   void Rotate(const Common::Quaternion& quat) override
