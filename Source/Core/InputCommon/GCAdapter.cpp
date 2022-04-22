@@ -339,8 +339,12 @@ static bool CheckDeviceAccess(libusb_device* device)
   ret = libusb_kernel_driver_active(s_handle, 0);
   if (ret == 1)
   {
+    // On macos detaching would fail without root or entitlement.
+    // We assume user is using GCAdapterDriver and therefor don't want to detach anything
+#if !defined(__APPLE__)
     ret = libusb_detach_kernel_driver(s_handle, 0);
     detach_failed = ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND && ret != LIBUSB_ERROR_NOT_SUPPORTED;
+#endif
     if (detach_failed)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed with error: {}", ret);
   }
