@@ -171,6 +171,7 @@ static std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage,
     stream << "\n";
     stream << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
     stream << "Video Backend: " + g_video_backend->GetDisplayName();
+    stream.close();
 
     PanicAlertFmt("{} (written to {})", msg, filename);
   };
