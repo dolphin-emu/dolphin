@@ -151,9 +151,9 @@ u32 VertexLoaderBase::GetVertexComponents(const TVtxDesc& vtx_desc, const VAT& v
   // Vertices always have positions; thus there is no VB_HAS_POS as it would always be set
   if (vtx_desc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    components |= VB_HAS_NRM0;
+    components |= VB_HAS_NORMAL;
     if (vtx_attr.g0.NormalElements == NormalComponentCount::NBT)
-      components |= VB_HAS_NRM1 | VB_HAS_NRM2;
+      components |= VB_HAS_TANGENT | VB_HAS_BINORMAL;
   }
   for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
   {

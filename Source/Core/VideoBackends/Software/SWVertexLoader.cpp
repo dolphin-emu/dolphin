@@ -89,10 +89,10 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     OutputVertexData* outVertex = m_setup_unit.GetVertex();
     TransformUnit::TransformPosition(&m_vertex, outVertex);
     outVertex->normal = {};
-    if (VertexLoaderManager::g_current_components & VB_HAS_NRM0)
+    if (VertexLoaderManager::g_current_components & VB_HAS_NORMAL)
     {
       TransformUnit::TransformNormal(
-          &m_vertex, (VertexLoaderManager::g_current_components & VB_HAS_NRM2) != 0, outVertex);
+          &m_vertex, (VertexLoaderManager::g_current_components & VB_HAS_BINORMAL) != 0, outVertex);
     }
     TransformUnit::TransformColor(&m_vertex, outVertex);
     TransformUnit::TransformTexCoord(&m_vertex, outVertex);

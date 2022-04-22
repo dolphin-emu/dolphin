@@ -139,9 +139,9 @@ void SHADER::SetProgramBindings(bool is_compute)
     glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "rawcolor0");
     glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "rawcolor1");
 
-    glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
-    glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-    glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
+    glBindAttribLocation(glprogid, SHADER_NORMAL_ATTRIB, "rawnormal");
+    glBindAttribLocation(glprogid, SHADER_TANGENT_ATTRIB, "rawtangent");
+    glBindAttribLocation(glprogid, SHADER_BINORMAL_ATTRIB, "rawbinormal");
   }
 
   for (int i = 0; i < 8; i++)
