@@ -415,8 +415,8 @@ void Shutdown()
   if (s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
     libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
-  s_libusb_context.reset();
   Reset();
+  s_libusb_context.reset();
 
   s_status = NO_ADAPTER_DETECTED;
 
