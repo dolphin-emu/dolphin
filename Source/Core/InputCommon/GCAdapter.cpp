@@ -89,6 +89,8 @@ static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enable
 
 static void Read()
 {
+  Common::SetCurrentThreadName("GCAdapter Read Thread");
+
   int payload_size = 0;
   while (s_adapter_thread_running.IsSet())
   {
@@ -110,6 +112,8 @@ static void Read()
 
 static void Write()
 {
+  Common::SetCurrentThreadName("GCAdapter Write Thread");
+
   int size = 0;
 
   while (true)
