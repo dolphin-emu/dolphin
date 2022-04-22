@@ -335,11 +335,13 @@ static bool CheckDeviceAccess(libusb_device* device)
     return false;
   }
 
+  bool detach_failed = false;
   ret = libusb_kernel_driver_active(s_handle, 0);
   if (ret == 1)
   {
     ret = libusb_detach_kernel_driver(s_handle, 0);
-    if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+    detach_failed = ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND && ret != LIBUSB_ERROR_NOT_SUPPORTED;
+    if (detach_failed)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed with error: {}", ret);
   }
 
@@ -351,7 +353,7 @@ static bool CheckDeviceAccess(libusb_device* device)
 
   // this split is needed so that we don't avoid claiming the interface when
   // detaching the kernel driver is successful
-  if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+  if (detach_failed)
   {
     libusb_close(s_handle);
     s_handle = nullptr;
