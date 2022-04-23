@@ -172,6 +172,7 @@ protected:
   u32 GetRemainingIndices(OpcodeDecoder::Primitive primitive) const;
 
   void CalculateZSlope(NativeVertexFormat* format);
+  void CalculateBinormals(NativeVertexFormat* format);
   void LoadTextures();
 
   u8* m_cur_buffer_pointer = nullptr;

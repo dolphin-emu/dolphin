@@ -31,11 +31,12 @@
 
 namespace VertexLoaderManager
 {
-float position_cache[3][4];
-
-// The counter added to the address of the array is 1, 2, or 3, but never zero.
-// So only index 1 - 3 are used.
-u32 position_matrix_index[4];
+// Used by zfreeze
+std::array<u32, 3> position_matrix_index_cache;
+// 3 vertices, 4 floats each to allow SIMD overwrite
+alignas(sizeof(std::array<float, 4>)) std::array<std::array<float, 4>, 3> position_cache;
+alignas(sizeof(std::array<float, 4>)) std::array<float, 4> tangent_cache;
+alignas(sizeof(std::array<float, 4>)) std::array<float, 4> binormal_cache;
 
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
@@ -251,8 +252,9 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 int RunVertices(int vtx_attr_group, OpcodeDecoder::Primitive primitive, int count, DataReader src,
                 bool is_preprocess)
 {
-  if (!count)
+  if (count == 0)
     return 0;
+  ASSERT(count > 0);
 
   VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 

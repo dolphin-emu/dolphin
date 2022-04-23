@@ -22,8 +22,8 @@ u8* g_vertex_manager_write_ptr;
 static void PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
   u32 posmtx = DataRead<u8>() & 0x3f;
-  if (loader->m_counter < 3)
-    VertexLoaderManager::position_matrix_index[loader->m_counter + 1] = posmtx;
+  if (loader->m_remaining < 3)
+    VertexLoaderManager::position_matrix_index_cache[loader->m_remaining] = posmtx;
   DataWrite<u32>(posmtx);
   PRIM_LOG("posmtx: {}, ", posmtx);
 }
@@ -257,7 +257,7 @@ int VertexLoader::RunVertices(DataReader src, DataReader dst, int count)
   m_numLoadedVertices += count;
   m_skippedVertices = 0;
 
-  for (m_counter = count - 1; m_counter >= 0; m_counter--)
+  for (m_remaining = count - 1; m_remaining >= 0; m_remaining--)
   {
     m_tcIndex = 0;
     m_colIndex = 0;

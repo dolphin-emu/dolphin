@@ -53,8 +53,12 @@ void UpdateVertexArrayPointers();
 
 // Position cache for zfreeze (3 vertices, 4 floats each to allow SIMD overwrite).
 // These arrays are in reverse order.
-extern float position_cache[3][4];
-extern u32 position_matrix_index[4];
+extern std::array<std::array<float, 4>, 3> position_cache;
+extern std::array<u32, 3> position_matrix_index_cache;
+// Store the tangent and binormal vectors for games that use emboss texgens when the vertex format
+// doesn't include them (e.g. RS2 and RS3).  These too are 4 floats each for SIMD overwrites.
+extern std::array<float, 4> tangent_cache;
+extern std::array<float, 4> binormal_cache;
 
 // VB_HAS_X. Bitmask telling what vertex components are present.
 extern u32 g_current_components;

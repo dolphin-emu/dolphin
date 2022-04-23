@@ -9,7 +9,7 @@ struct OutputVertexData;
 namespace TransformUnit
 {
 void TransformPosition(const InputVertexData* src, OutputVertexData* dst);
-void TransformNormal(const InputVertexData* src, bool nbt, OutputVertexData* dst);
+void TransformNormal(const InputVertexData* src, OutputVertexData* dst);
 void TransformColor(const InputVertexData* src, OutputVertexData* dst);
 void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst);
 }  // namespace TransformUnit
