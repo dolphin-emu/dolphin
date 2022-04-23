@@ -145,7 +145,7 @@ void StatTracker::lookForTriggerEvents(){
                 }
 
                 //If HUD not produced for this event, produce HUD JSON
-                if (m_game_info.write_hud && Memory::Read_U8(aAB_Inning) != 0){
+                if (m_game_info.write_hud && Memory::Read_U8(aAB_BatterPort) && Memory::Read_U8(aAB_Inning) != 0){
                     m_game_info.write_hud = false;
 
                     //Fill in current state for HUD
@@ -346,6 +346,19 @@ void StatTracker::lookForTriggerEvents(){
                     File::WriteStringToFile(latest_event_file_path, json);
                 }
 
+                //Log HUD to file
+                if (m_game_info.write_hud && Memory::Read_U8(aAB_BatterPort) && Memory::Read_U8(aAB_Inning) != 0){
+                    m_game_info.write_hud = false;
+
+                    //Fill in current state for HUD
+                    logGameInfo();
+
+                    std::string hud_file_path = File::GetUserPath(D_STATFILES_IDX) + "decoded.hud.json";
+                    std::string json = getHUDJSON(m_game_info.event_num, m_game_info.getCurrentEvent(), true);
+                    File::Delete(hud_file_path);
+                    File::WriteStringToFile(hud_file_path, json);
+                }
+
                 //If End of Inning log entire file
                 if ((Memory::Read_U8(aAB_NumOutsDuringPlay) + m_game_info.getCurrentEvent().outs) >= 3){
                     m_game_info.partial = 1;
@@ -390,6 +403,7 @@ void StatTracker::lookForTriggerEvents(){
             //Start recording when GameId is set AND record button is pressed
             if ((Memory::Read_U32(aGameId) != 0) && (mTrackerInfo.mRecord)){
                 m_game_info.game_id = Memory::Read_U32(aGameId);
+                m_game_info.game_active = true;
                 //Sample settings
                 m_game_info.ranked  = m_state.m_ranked_status;
                 m_game_info.netplay = m_state.m_netplay_session;
@@ -413,6 +427,7 @@ void StatTracker::lookForTriggerEvents(){
 
                 jsonPath = getStatJsonPath("");
                 json = getStatJSON(false);
+                File::WriteStringToFile(jsonPath, json);
 
                 //Clean up partial files
                 jsonPath = getStatJsonPath("partial.");
@@ -420,7 +435,6 @@ void StatTracker::lookForTriggerEvents(){
                 jsonPath = getStatJsonPath("partial.decoded.");
                 File::Delete(jsonPath);
 
-                File::WriteStringToFile(jsonPath, json);
                 std::cout << "Logging to " << jsonPath << std::endl;
 
                 m_game_state = GAME_STATE::ENDGAME_LOGGED;
@@ -430,6 +444,7 @@ void StatTracker::lookForTriggerEvents(){
             break;
         case (GAME_STATE::ENDGAME_LOGGED):
             if (Memory::Read_U32(aGameId) == 0){
+                m_game_info.game_active = false;
                 m_game_state = GAME_STATE::PREGAME;
                 init();
 
@@ -848,8 +863,9 @@ std::string StatTracker::getStatJsonPath(std::string prefix){
 }
 
 std::string StatTracker::getStatJSON(bool inDecode){
-    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUsername() : m_game_info.getAwayTeamPlayer().GetUserID();
-    std::string home_player_info = (inDecode) ? m_game_info.getHomeTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUserID();
+    //TODO switch to IDs when submitting game
+    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUsername(); //m_game_info.getAwayTeamPlayer().GetUserID();
+    std::string home_player_info = (inDecode) ? m_game_info.getHomeTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUsername(); //m_game_info.getHomeTeamPlayer().GetUserID();
 
     std::stringstream json_stream;
 
@@ -1007,8 +1023,8 @@ std::string StatTracker::getStatJSON(bool inDecode){
         json_stream << "      \"Strikes\": "                 << std::to_string(event.strikes) << "," << std::endl;
         json_stream << "      \"Outs\": "                    << std::to_string(event.outs) << "," << std::endl;
         json_stream << "      \"Star Chance\": "             << std::to_string(event.is_star_chance) << "," << std::endl;
-        json_stream << "      \"Away Stars\": "              << std::to_string(event.home_stars) << "," << std::endl;
-        json_stream << "      \"Home Stars\": "              << std::to_string(event.away_stars) << "," << std::endl;
+        json_stream << "      \"Away Stars\": "              << std::to_string(event.away_stars) << "," << std::endl;
+        json_stream << "      \"Home Stars\": "              << std::to_string(event.home_stars) << "," << std::endl;
         json_stream << "      \"Pitcher Stamina\": "         << std::to_string(event.pitcher_stamina) << "," << std::endl;
         json_stream << "      \"Chemistry Links on Base\": " << std::to_string(event.chem_links_ob) << "," << std::endl;
         json_stream << "      \"Pitcher Roster Loc\": "      << std::to_string(event.pitcher_roster_loc) << "," << std::endl;
@@ -1202,8 +1218,8 @@ std::string StatTracker::getHUDJSON(u16 in_event_num, Event& in_event, bool inDe
     json_stream << "  \"Strikes\": "                 << std::to_string(in_event.strikes) << "," << std::endl;
     json_stream << "  \"Outs\": "                    << std::to_string(in_event.outs) << "," << std::endl;
     json_stream << "  \"Star Chance\": "             << std::to_string(in_event.is_star_chance) << "," << std::endl;
-    json_stream << "  \"Away Stars\": "              << std::to_string(in_event.home_stars) << "," << std::endl;
-    json_stream << "  \"Home Stars\": "              << std::to_string(in_event.away_stars) << "," << std::endl;
+    json_stream << "  \"Away Stars\": "              << std::to_string(in_event.away_stars) << "," << std::endl;
+    json_stream << "  \"Home Stars\": "              << std::to_string(in_event.home_stars) << "," << std::endl;
     json_stream << "  \"Pitcher Stamina\": "         << std::to_string(in_event.pitcher_stamina) << "," << std::endl;
     json_stream << "  \"Chemistry Links on Base\": " << std::to_string(in_event.chem_links_ob) << "," << std::endl;
     json_stream << "  \"Pitcher Roster Loc\": "      << std::to_string(in_event.pitcher_roster_loc) << "," << std::endl;
@@ -1363,8 +1379,8 @@ std::string StatTracker::getEventJSON(u16 in_event_num, Event& in_event, bool in
     json_stream << "  \"Strikes\": "                 << std::to_string(in_event.strikes) << "," << std::endl;
     json_stream << "  \"Outs\": "                    << std::to_string(in_event.outs) << "," << std::endl;
     json_stream << "  \"Star Chance\": "             << std::to_string(in_event.is_star_chance) << "," << std::endl;
-    json_stream << "  \"Away Stars\": "              << std::to_string(in_event.home_stars) << "," << std::endl;
-    json_stream << "  \"Home Stars\": "              << std::to_string(in_event.away_stars) << "," << std::endl;
+    json_stream << "  \"Away Stars\": "              << std::to_string(in_event.away_stars) << "," << std::endl;
+    json_stream << "  \"Home Stars\": "              << std::to_string(in_event.home_stars) << "," << std::endl;
     json_stream << "  \"Pitcher Stamina\": "         << std::to_string(in_event.pitcher_stamina) << "," << std::endl;
     json_stream << "  \"Chemistry Links on Base\": " << std::to_string(in_event.chem_links_ob) << "," << std::endl;
     json_stream << "  \"Pitcher Roster Loc\": "      << std::to_string(in_event.pitcher_roster_loc) << "," << std::endl;
@@ -1698,13 +1714,13 @@ void StatTracker::setNetplaySession(bool netplay_session, bool is_host, std::str
 
 void StatTracker::setAvgPing(int avgPing)
 {
-  std::cout << "Avg Ping=" << avgPing << std::endl;
+  //std::cout << "Avg Ping=" << avgPing << std::endl;
   m_game_info.avg_ping = avgPing;
 }
 
 void StatTracker::setLagSpikes(int nLagSpikes)
 {
-  std::cout << "Number of Lag Spikes=" << nLagSpikes << std::endl;
+  //std::cout << "Number of Lag Spikes=" << nLagSpikes << std::endl;
   m_game_info.lag_spikes = nLagSpikes;
 }
 

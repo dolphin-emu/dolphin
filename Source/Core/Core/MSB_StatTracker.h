@@ -651,6 +651,7 @@ public:
     
     struct GameInfo{
         u32 game_id;
+        bool game_active = false;
         std::string start_unix_date_time;
         std::string start_local_date_time;
         std::string end_unix_date_time;
@@ -738,7 +739,7 @@ public:
     struct FielderTracker {
 
         u8 team_id = 0xFF;
-        //Roster_loc, pair<position, changed>
+        //Roster_loc, Fielder Info
         //Set changed=true any time the sampled position (each pitch) does not match the current position
         //Rest changed upon new batter
         std::map<u8, FielderInfo> fielder_map = {
@@ -840,7 +841,7 @@ public:
 
                 u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
                 //Increment the number of batter outs this player has seen at this position
-                ++fielder_map[roster_loc].batter_outs_by_position[pos]; 
+                fielder_map[roster_loc].batter_outs_by_position[pos] = fielder_map[roster_loc].batter_outs_by_position[pos] + 1; 
             }
             return;
         }
@@ -936,7 +937,8 @@ public:
 
     //If mid-game, dump game
     void dumpGame(){
-        if (Memory::Read_U32(aGameId) != 0){
+        if ((Memory::Read_U32(aGameId) != 0) && m_game_info.game_active){
+            m_game_info.game_active = false;
             m_game_info.quitter_team = "Crash";
             logGameInfo();
 
