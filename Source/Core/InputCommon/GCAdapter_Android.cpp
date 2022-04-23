@@ -41,7 +41,7 @@ static u8 s_controller_rumble[4];
 // Input handling
 static std::mutex s_read_mutex;
 static std::array<u8, 37> s_controller_payload;
-static std::atomic<int> s_controller_payload_size{0};
+static int s_controller_payload_size{0};
 
 // Output handling
 static std::mutex s_write_mutex;
@@ -164,7 +164,7 @@ static void Read()
       {
         std::lock_guard<std::mutex> lk(s_read_mutex);
         std::copy(java_data, java_data + s_controller_payload.size(), s_controller_payload.begin());
-        s_controller_payload_size.store(read_size);
+        s_controller_payload_size = read_size;
       }
       env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
 
@@ -284,7 +284,7 @@ GCPadStatus Input(int chan)
   {
     std::lock_guard<std::mutex> lk(s_read_mutex);
     controller_payload_copy = s_controller_payload;
-    payload_size = s_controller_payload_size.load();
+    payload_size = s_controller_payload_size;
   }
 
   GCPadStatus pad = {};
@@ -406,7 +406,7 @@ void ResetRumble()
 {
   unsigned char rumble[5] = {0x11, 0, 0, 0, 0};
   {
-    std::lock_guard<std::mutex> lk(s_read_mutex);
+    std::lock_guard<std::mutex> lk(s_write_mutex);
     memcpy(s_controller_write_payload, rumble, 5);
     s_controller_write_payload_size.store(5);
   }

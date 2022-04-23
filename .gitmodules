@@ -16,3 +16,5 @@
 [submodule "libusb"]
 	path = Externals/libusb/libusb
 	url = https://github.com/libusb/libusb.git
+	branch = master
+	shallow = true
