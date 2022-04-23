@@ -48,6 +48,12 @@ public final class InputMappingControlSetting extends SettingsItem
     return null;
   }
 
+  @Override
+  public boolean isEditable()
+  {
+    return true;
+  }
+
   public EmulatedController getController()
   {
     return mController;

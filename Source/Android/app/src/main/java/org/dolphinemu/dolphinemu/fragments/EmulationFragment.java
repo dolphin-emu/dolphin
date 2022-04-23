@@ -133,6 +133,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void onResume()
   {
     super.onResume();
+
+    if (mInputOverlay != null && NativeLibrary.IsGameMetadataValid())
+      mInputOverlay.refreshControls();
+
     run(activity.isActivityRecreated());
   }
 

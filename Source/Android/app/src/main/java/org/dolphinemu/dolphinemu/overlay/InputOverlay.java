@@ -131,10 +131,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (!mPreferences.getBoolean("OverlayInitV3", false))
       defaultOverlay();
 
-    // Load the controls if we can. If not, EmulationActivity has to do it later.
-    if (NativeLibrary.IsGameMetadataValid())
-      refreshControls();
-
     // Set the on touch listener.
     setOnTouchListener(this);
 

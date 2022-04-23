@@ -51,6 +51,12 @@ public class InputDeviceSetting extends StringSingleChoiceSetting
   }
 
   @Override
+  public boolean isEditable()
+  {
+    return true;
+  }
+
+  @Override
   public boolean canClear()
   {
     return true;

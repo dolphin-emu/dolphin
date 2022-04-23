@@ -293,13 +293,10 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(mContext, R.string.config, MenuTag.CONFIG));
     sl.add(new SubmenuSetting(mContext, R.string.graphics_settings, MenuTag.GRAPHICS));
 
-    if (!NativeLibrary.IsRunning())
+    sl.add(new SubmenuSetting(mContext, R.string.gcpad_settings, MenuTag.GCPAD_TYPE));
+    if (mSettings.isWii())
     {
-      sl.add(new SubmenuSetting(mContext, R.string.gcpad_settings, MenuTag.GCPAD_TYPE));
-      if (mSettings.isWii())
-      {
-        sl.add(new SubmenuSetting(mContext, R.string.wiimote_settings, MenuTag.WIIMOTE));
-      }
+      sl.add(new SubmenuSetting(mContext, R.string.wiimote_settings, MenuTag.WIIMOTE));
     }
 
     sl.add(new HeaderSetting(mContext, R.string.setting_clear_info, 0));
