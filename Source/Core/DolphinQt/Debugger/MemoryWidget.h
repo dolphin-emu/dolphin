@@ -98,6 +98,7 @@ private:
   QComboBox* m_display_combo;
   QComboBox* m_align_combo;
   QComboBox* m_row_length_combo;
+  QCheckBox* m_dual_check;
   QPushButton* m_set_value;
   QPushButton* m_from_file;
   QPushButton* m_dump_mram;

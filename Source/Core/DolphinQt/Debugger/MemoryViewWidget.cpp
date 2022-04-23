@@ -64,7 +64,7 @@ void MemoryViewWidget::UpdateFont()
   Update();
 }
 
-static int GetTypeSize(MemoryViewWidget::Type type)
+constexpr int GetTypeSize(MemoryViewWidget::Type type)
 {
   switch (type)
   {
@@ -83,39 +83,43 @@ static int GetTypeSize(MemoryViewWidget::Type type)
   case MemoryViewWidget::Type::Float32:
     return 4;
   case MemoryViewWidget::Type::Double:
+  case MemoryViewWidget::Type::Hex64:
     return 8;
   default:
     return 1;
   }
 }
 
-static int GetCharacterCount(MemoryViewWidget::Type type)
+constexpr int GetCharacterCount(MemoryViewWidget::Type type)
 {
+  // Max number of characters +1 for spacing between columns.
   switch (type)
   {
-  case MemoryViewWidget::Type::ASCII:
-    return 1;
-  case MemoryViewWidget::Type::Hex8:
+  case MemoryViewWidget::Type::ASCII:  // A
     return 2;
-  case MemoryViewWidget::Type::Unsigned8:
+  case MemoryViewWidget::Type::Hex8:  // Byte = FF
     return 3;
-  case MemoryViewWidget::Type::Hex16:
-  case MemoryViewWidget::Type::Signed8:
+  case MemoryViewWidget::Type::Unsigned8:  // UCHAR_MAX = 255
     return 4;
-  case MemoryViewWidget::Type::Unsigned16:
+  case MemoryViewWidget::Type::Hex16:    // 2 Bytes = FFFF
+  case MemoryViewWidget::Type::Signed8:  // CHAR_MIN = -128
     return 5;
-  case MemoryViewWidget::Type::Signed16:
+  case MemoryViewWidget::Type::Unsigned16:  // USHORT_MAX = 65535
     return 6;
-  case MemoryViewWidget::Type::Hex32:
-    return 8;
-  case MemoryViewWidget::Type::Float32:
+  case MemoryViewWidget::Type::Signed16:  // SHORT_MIN = -32768
+    return 7;
+  case MemoryViewWidget::Type::Hex32:  // 4 Bytes = FFFFFFFF
     return 9;
-  case MemoryViewWidget::Type::Double:
-  case MemoryViewWidget::Type::Unsigned32:
-  case MemoryViewWidget::Type::Signed32:
-    return 10;
+  case MemoryViewWidget::Type::Float32:     // Rounded and Negative FLT_MAX = -3.403e+38
+  case MemoryViewWidget::Type::Unsigned32:  // UINT_MAX = 4294967295
+    return 11;
+  case MemoryViewWidget::Type::Double:    // Rounded and Negative DBL_MAX = -1.798e+308
+  case MemoryViewWidget::Type::Signed32:  // INT_MIN = -2147483648
+    return 12;
+  case MemoryViewWidget::Type::Hex64:  // For dual_view + Double. 8 Bytes = FFFFFFFFFFFFFFFF
+    return 17;
   default:
-    return 8;
+    return 10;
   }
 }
 
@@ -128,7 +132,10 @@ void MemoryViewWidget::Update()
 
   const int data_columns = m_bytes_per_row / GetTypeSize(m_type);
 
-  setColumnCount(2 + data_columns);
+  if (m_dual_view)
+    setColumnCount(2 + 2 * data_columns);
+  else
+    setColumnCount(2 + data_columns);
 
   if (rowCount() == 0)
     setRowCount(1);
@@ -179,33 +186,79 @@ void MemoryViewWidget::Update()
 
       continue;
     }
+  }
 
-    bool row_breakpoint = true;
+  int starting_column = 2;
+
+  if (m_dual_view)
+  {
+    // Match left columns to number of right columns.
+    Type left_type = Type::Hex32;
+    if (GetTypeSize(m_type) == 1)
+      left_type = Type::Hex8;
+    else if (GetTypeSize(m_type) == 2)
+      left_type = Type::Hex16;
+    else if (GetTypeSize(m_type) == 8)
+      left_type = Type::Hex64;
+
+    UpdateColumns(left_type, starting_column);
+
+    const int column_count = m_bytes_per_row / GetTypeSize(left_type);
+
+    // Update column width
+    for (int i = starting_column; i < starting_column + column_count - 1; i++)
+      setColumnWidth(i, m_font_width * GetCharacterCount(left_type));
+
+    // Extra spacing between dual views.
+    setColumnWidth(starting_column + column_count - 1,
+                   m_font_width * (GetCharacterCount(left_type) + 2));
+
+    starting_column += column_count;
+  }
+
+  UpdateColumns(m_type, starting_column);
+  UpdateBreakpointTags();
+
+  setColumnWidth(0, rowHeight(0));
+
+  for (int i = starting_column; i <= columnCount(); i++)
+    setColumnWidth(i, m_font_width * GetCharacterCount(m_type));
+
+  viewport()->update();
+  update();
+}
+
+void MemoryViewWidget::UpdateColumns(Type type, int first_column)
+{
+  if (Core::GetState() != Core::State::Paused)
+    return;
+
+  const int data_columns = m_bytes_per_row / GetTypeSize(type);
+  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
+
+  auto text_alignment = Qt::AlignLeft;
+  if (type == Type::Signed32 || type == Type::Unsigned32 || type == Type::Signed16 ||
+      type == Type::Unsigned16 || type == Type::Signed8 || type == Type::Unsigned8)
+  {
+    text_alignment = Qt::AlignRight;
+  }
+
+  for (int i = 0; i < rowCount(); i++)
+  {
+    u32 row_address = item(i, 1)->data(Qt::UserRole).toUInt();
+    if (!accessors->IsValidAddress(row_address))
+      continue;
 
     auto update_values = [&](auto value_to_string) {
       for (int c = 0; c < data_columns; c++)
       {
         auto* cell_item = new QTableWidgetItem;
         cell_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+        cell_item->setTextAlignment(text_alignment);
 
-        if (m_type == Type::Signed32 || m_type == Type::Unsigned32 || m_type == Type::Signed16 ||
-            m_type == Type::Unsigned16 || m_type == Type::Signed8 || m_type == Type::Unsigned8)
-          cell_item->setTextAlignment(Qt::AlignRight);
+        const u32 cell_address = row_address + c * GetTypeSize(type);
 
-        const u32 cell_address = row_address + c * GetTypeSize(m_type);
-
-        // GetMemCheck is more accurate than OverlapsMemcheck, unless standard alginments are
-        // enforced.
-        if (m_address_space == AddressSpace::Type::Effective &&
-            PowerPC::memchecks.GetMemCheck(cell_address, GetTypeSize(m_type)) != nullptr)
-        {
-          cell_item->setBackground(Qt::red);
-        }
-        else
-        {
-          row_breakpoint = false;
-        }
-        setItem(i, 2 + c, cell_item);
+        setItem(i, first_column + c, cell_item);
 
         if (accessors->IsValidAddress(cell_address))
         {
@@ -219,7 +272,7 @@ void MemoryViewWidget::Update()
         }
       }
     };
-    switch (m_type)
+    switch (type)
     {
     case Type::Hex8:
       update_values([&accessors](u32 address) {
@@ -244,6 +297,12 @@ void MemoryViewWidget::Update()
       update_values([&accessors](u32 address) {
         const u32 value = accessors->ReadU32(address);
         return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
+      });
+      break;
+    case Type::Hex64:
+      update_values([&accessors](u32 address) {
+        const u64 value = accessors->ReadU64(address);
+        return QStringLiteral("%1").arg(value, 16, 16, QLatin1Char('0'));
       });
       break;
     case Type::Unsigned8:
@@ -295,29 +354,47 @@ void MemoryViewWidget::Update()
       });
       break;
     }
+  }
+}
+
+void MemoryViewWidget::UpdateBreakpointTags()
+{
+  if (Core::GetState() != Core::State::Paused)
+    return;
+
+  for (int i = 0; i < rowCount(); i++)
+  {
+    bool row_breakpoint = false;
+
+    for (int c = 2; c < columnCount(); c++)
+    {
+      // Pull address from cell itself, helpful for dual column view.
+      auto cell = item(i, c);
+      u32 address = cell->data(Qt::UserRole).toUInt();
+
+      if (address == 0)
+      {
+        row_breakpoint = false;
+        continue;
+      }
+
+      // In dual view the only sizes that dont match up on both left and right views are for
+      // Double, which uses two or four columns of hex32.
+      if (m_address_space == AddressSpace::Type::Effective &&
+          PowerPC::memchecks.GetMemCheck(address, GetTypeSize(m_type)) != nullptr)
+      {
+        row_breakpoint = true;
+        cell->setBackground(Qt::red);
+      }
+    }
 
     if (row_breakpoint)
     {
-      bp_item->setData(Qt::DecorationRole, Resources::GetScaledThemeIcon("debugger_breakpoint")
-                                               .pixmap(QSize(rowHeight(0) - 3, rowHeight(0) - 3)));
+      item(i, 0)->setData(Qt::DecorationRole,
+                          Resources::GetScaledThemeIcon("debugger_breakpoint")
+                              .pixmap(QSize(rowHeight(0) - 3, rowHeight(0) - 3)));
     }
   }
-
-  setColumnWidth(0, rowHeight(0));
-
-  // Number of characters possible.
-  int max_length = GetCharacterCount(m_type);
-
-  // Column width is the max number of characters + 1 or 2 for the space between columns. A longer
-  // length means less columns, so a bigger spacing is fine.
-  max_length += max_length < 8 ? 1 : 2;
-  const int width = m_font_width * max_length;
-
-  for (int i = 2; i < columnCount(); i++)
-    setColumnWidth(i, width);
-
-  viewport()->update();
-  update();
 }
 
 void MemoryViewWidget::SetAddressSpace(AddressSpace::Type address_space)
@@ -335,12 +412,12 @@ AddressSpace::Type MemoryViewWidget::GetAddressSpace() const
 {
   return m_address_space;
 }
+void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view)
 
-void MemoryViewWidget::SetDisplay(Type type, int bytes_per_row, int alignment)
 {
   m_type = type;
   m_bytes_per_row = bytes_per_row;
-
+  m_dual_view = dual_view;
   if (alignment == 0)
     m_alignment = GetTypeSize(type);
   else
@@ -407,16 +484,28 @@ u32 MemoryViewWidget::GetContextAddress() const
 
 void MemoryViewWidget::ToggleRowBreakpoint(bool row)
 {
-  TMemCheck check;
+  if (m_address_space != AddressSpace::Type::Effective)
+    return;
 
   const u32 addr = row ? m_base_address : GetContextAddress();
-  const auto length = row ? m_bytes_per_row : GetTypeSize(m_type);
+  const auto length = GetTypeSize(m_type);
+  const int breaks = row ? (m_bytes_per_row / length) : 1;
+  bool overlap = false;
 
-  if (m_address_space == AddressSpace::Type::Effective)
+  // Row breakpoint should either remove any breakpoint left on the row, or activate all
+  // breakpoints.
+  if (row && PowerPC::memchecks.OverlapsMemcheck(addr, m_bytes_per_row))
+    overlap = true;
+
+  for (int i = 0; i < breaks; i++)
   {
-    if (!PowerPC::memchecks.OverlapsMemcheck(addr, length))
+    u32 address = addr + length * i;
+    TMemCheck* check_ptr = PowerPC::memchecks.GetMemCheck(address, length);
+
+    if (check_ptr == nullptr && !overlap)
     {
-      check.start_address = addr;
+      TMemCheck check;
+      check.start_address = address;
       check.end_address = check.start_address + length - 1;
       check.is_ranged = length > 0;
       check.is_break_on_read = (m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite);
@@ -426,9 +515,10 @@ void MemoryViewWidget::ToggleRowBreakpoint(bool row)
 
       PowerPC::memchecks.Add(check);
     }
-    else
+    else if (check_ptr != nullptr)
     {
-      PowerPC::memchecks.Remove(addr);
+      // Using the pointer fixes misaligned breakpoints (0x11 breakpoint in 0x10 aligned view).
+      PowerPC::memchecks.Remove(check_ptr->start_address);
     }
   }
 
