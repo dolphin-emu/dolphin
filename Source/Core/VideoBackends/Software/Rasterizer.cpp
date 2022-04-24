@@ -5,11 +5,16 @@
 
 #include <algorithm>
 #include <cstring>
+#include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Tev.h"
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
@@ -23,14 +28,14 @@ static constexpr int BLOCK_SIZE = 2;
 struct SlopeContext
 {
   SlopeContext(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-               s32 x0, s32 y0)
+               s32 x0, s32 y0, s32 x_off, s32 y_off)
       : x0(x0), y0(y0)
   {
     // adjust a little less than 0.5
     const float adjust = 0.495f;
 
-    xOff = ((float)x0 - v0->screenPosition.x) + adjust;
-    yOff = ((float)y0 - v0->screenPosition.y) + adjust;
+    xOff = ((float)x0 - (v0->screenPosition.x - x_off)) + adjust;
+    yOff = ((float)y0 - (v0->screenPosition.y - y_off)) + adjust;
 
     dx10 = v1->screenPosition.x - v0->screenPosition.x;
     dx20 = v2->screenPosition.x - v0->screenPosition.x;
@@ -99,6 +104,8 @@ static Slope TexSlopes[8][3];
 static Tev tev;
 static RasterBlock rasterBlock;
 
+static std::vector<BPFunctions::ScissorRect> scissors;
+
 void Init()
 {
   tev.Init();
@@ -106,6 +113,11 @@ void Init()
   // The other slopes are set each for each primitive drawn, but zfreeze means that the z slope
   // needs to be set to an (untested) default value.
   ZSlope = Slope();
+}
+
+void ScissorChanged()
+{
+  scissors = std::move(BPFunctions::ComputeScissorRects().m_result);
 }
 
 // Returns approximation of log2(f) in s28.4
@@ -302,37 +314,36 @@ static void BuildBlock(s32 blockX, s32 blockY)
 }
 
 void UpdateZSlope(const OutputVertexData* v0, const OutputVertexData* v1,
-                  const OutputVertexData* v2)
+                  const OutputVertexData* v2, s32 x_off, s32 y_off)
 {
   if (!bpmem.genMode.zfreeze)
   {
-    const s32 X1 = iround(16.0f * v0->screenPosition[0]) - 9;
-    const s32 Y1 = iround(16.0f * v0->screenPosition[1]) - 9;
-    const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4);
+    const s32 X1 = iround(16.0f * (v0->screenPosition.x - x_off)) - 9;
+    const s32 Y1 = iround(16.0f * (v0->screenPosition.y - y_off)) - 9;
+    const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4, x_off, y_off);
     ZSlope = Slope(v0->screenPosition.z, v1->screenPosition.z, v2->screenPosition.z, ctx);
   }
 }
 
-void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
-                           const OutputVertexData* v2)
+static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
+                                  const OutputVertexData* v2,
+                                  const BPFunctions::ScissorRect& scissor)
 {
-  INCSTAT(g_stats.this_frame.num_triangles_drawn);
-
   // The zslope should be updated now, even if the triangle is rejected by the scissor test, as
   // zfreeze depends on it
-  UpdateZSlope(v0, v1, v2);
+  UpdateZSlope(v0, v1, v2, scissor.x_off, scissor.y_off);
 
   // adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
   // 28.4 fixed-pou32 coordinates. rounded to nearest and adjusted to match hardware output
   // could also take floor and adjust -8
-  const s32 Y1 = iround(16.0f * v0->screenPosition[1]) - 9;
-  const s32 Y2 = iround(16.0f * v1->screenPosition[1]) - 9;
-  const s32 Y3 = iround(16.0f * v2->screenPosition[1]) - 9;
+  const s32 Y1 = iround(16.0f * (v0->screenPosition.y - scissor.y_off)) - 9;
+  const s32 Y2 = iround(16.0f * (v1->screenPosition.y - scissor.y_off)) - 9;
+  const s32 Y3 = iround(16.0f * (v2->screenPosition.y - scissor.y_off)) - 9;
 
-  const s32 X1 = iround(16.0f * v0->screenPosition[0]) - 9;
-  const s32 X2 = iround(16.0f * v1->screenPosition[0]) - 9;
-  const s32 X3 = iround(16.0f * v2->screenPosition[0]) - 9;
+  const s32 X1 = iround(16.0f * (v0->screenPosition.x - scissor.x_off)) - 9;
+  const s32 X2 = iround(16.0f * (v1->screenPosition.x - scissor.x_off)) - 9;
+  const s32 X3 = iround(16.0f * (v2->screenPosition.x - scissor.x_off)) - 9;
 
   // Deltas
   const s32 DX12 = X1 - X2;
@@ -359,35 +370,22 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   s32 maxy = (std::max(std::max(Y1, Y2), Y3) + 0xF) >> 4;
 
   // scissor
-  s32 xoff = bpmem.scissorOffset.x * 2;
-  s32 yoff = bpmem.scissorOffset.y * 2;
+  ASSERT(scissor.rect.left >= 0);
+  ASSERT(scissor.rect.right <= EFB_WIDTH);
+  ASSERT(scissor.rect.top >= 0);
+  ASSERT(scissor.rect.bottom <= EFB_HEIGHT);
 
-  s32 scissorLeft = bpmem.scissorTL.x - xoff;
-  if (scissorLeft < 0)
-    scissorLeft = 0;
-
-  s32 scissorTop = bpmem.scissorTL.y - yoff;
-  if (scissorTop < 0)
-    scissorTop = 0;
-
-  s32 scissorRight = bpmem.scissorBR.x - xoff + 1;
-  if (scissorRight > s32(EFB_WIDTH))
-    scissorRight = EFB_WIDTH;
-
-  s32 scissorBottom = bpmem.scissorBR.y - yoff + 1;
-  if (scissorBottom > s32(EFB_HEIGHT))
-    scissorBottom = EFB_HEIGHT;
-
-  minx = std::max(minx, scissorLeft);
-  maxx = std::min(maxx, scissorRight);
-  miny = std::max(miny, scissorTop);
-  maxy = std::min(maxy, scissorBottom);
+  minx = std::max(minx, scissor.rect.left);
+  maxx = std::min(maxx, scissor.rect.right);
+  miny = std::max(miny, scissor.rect.top);
+  maxy = std::min(maxy, scissor.rect.bottom);
 
   if (minx >= maxx || miny >= maxy)
     return;
 
   // Set up the remaining slopes
-  const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4);
+  const SlopeContext ctx(v0, v1, v2, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4, scissor.x_off,
+                         scissor.y_off);
 
   float w[3] = {1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w,
                 1.0f / v2->projectedPosition.w};
@@ -421,20 +419,23 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
   if (DY31 < 0 || (DY31 == 0 && DX31 > 0))
     C3++;
 
-  // Start in corner of 8x8 block
-  minx &= ~(BLOCK_SIZE - 1);
-  miny &= ~(BLOCK_SIZE - 1);
+  // Start in corner of 2x2 block
+  s32 block_minx = minx & ~(BLOCK_SIZE - 1);
+  s32 block_miny = miny & ~(BLOCK_SIZE - 1);
 
   // Loop through blocks
-  for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
+  for (s32 y = block_miny & ~(BLOCK_SIZE - 1); y < maxy; y += BLOCK_SIZE)
   {
-    for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
+    for (s32 x = block_minx; x < maxx; x += BLOCK_SIZE)
     {
+      s32 x1_ = (x + BLOCK_SIZE - 1);
+      s32 y1_ = (y + BLOCK_SIZE - 1);
+
       // Corners of block
       s32 x0 = x << 4;
-      s32 x1 = (x + BLOCK_SIZE - 1) << 4;
+      s32 x1 = x1_ << 4;
       s32 y0 = y << 4;
-      s32 y1 = (y + BLOCK_SIZE - 1) << 4;
+      s32 y1 = y1_ << 4;
 
       // Evaluate half-space functions
       bool a00 = C1 + DX12 * y0 - DY12 * x0 > 0;
@@ -462,7 +463,8 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
       BuildBlock(x, y);
 
       // Accept whole block when totally covered
-      if (a == 0xF && b == 0xF && c == 0xF)
+      // We still need to check min/max x/y because of the scissor
+      if (a == 0xF && b == 0xF && c == 0xF && x >= minx && x1_ < maxx && y >= miny && y1_ < maxy)
       {
         for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
         {
@@ -488,7 +490,10 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
           {
             if (CX1 > 0 && CX2 > 0 && CX3 > 0)
             {
-              Draw(x + ix, y + iy, ix, iy);
+              // This check enforces the scissor rectangle, since it might not be aligned with the
+              // blocks
+              if (x + ix >= minx && x + ix < maxx && y + iy >= miny && y + iy < maxy)
+                Draw(x + ix, y + iy, ix, iy);
             }
 
             CX1 -= FDY12;
@@ -503,5 +508,14 @@ void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v
       }
     }
   }
+}
+
+void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertexData* v1,
+                           const OutputVertexData* v2)
+{
+  INCSTAT(g_stats.this_frame.num_triangles_drawn);
+
+  for (const auto& scissor : scissors)
+    DrawTriangleFrontFace(v0, v1, v2, scissor);
 }
 }  // namespace Rasterizer

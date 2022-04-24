@@ -958,7 +958,7 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable,
     glDepthMask(m_current_depth_state.updateenable);
 
   // Scissor rect must be restored.
-  BPFunctions::SetScissor();
+  BPFunctions::SetScissorAndViewport();
 }
 
 void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
