@@ -549,25 +549,19 @@ void MemoryViewWidget::wheelEvent(QWheelEvent* event)
 
 void MemoryViewWidget::mousePressEvent(QMouseEvent* event)
 {
-  auto* item_selected = itemAt(event->pos());
-  if (item_selected == nullptr)
+  if (event->button() != Qt::LeftButton)
     return;
 
-  const u32 address = item(row(item_selected), 1)->data(USER_ROLE_CELL_ADDRESS).toUInt();
+  auto* item = itemAt(event->pos());
+  if (!item)
+    return;
 
-  switch (event->button())
-  {
-  case Qt::LeftButton:
-    if (column(item_selected) == 0)
-      ToggleBreakpoint(address, true);
-    else
-      SetAddress(address);
-
-    Update();
-    break;
-  default:
-    break;
-  }
+  const u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
+  if (item->data(USER_ROLE_IS_ROW_BREAKPOINT_CELL).toBool())
+    ToggleBreakpoint(address, true);
+  else
+    SetAddress(address);
+  Update();
 }
 
 void MemoryViewWidget::OnCopyAddress(u32 addr)
