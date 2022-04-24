@@ -215,10 +215,29 @@ protected:
   // Dump a memory range of code
   void DumpCode(const u8* start, const u8* end);
 
-  // Backpatching routines
+  // This is the core routine for accessing emulated memory, with support for
+  // many different kinds of loads and stores as well as fastmem backpatching.
+  //
+  // Registers used:
+  //                 addr     scratch
+  // Store:          X1       X0
+  // Load:           X0
+  // Zero 256:       X0       X30
+  // Store float:    X1       Q0
+  // Load float:     X0
+  //
+  // If fastmem && !do_farcode, the addr argument can be any register.
+  // Otherwise it must be the register listed in the table above.
+  //
+  // Additional scratch registers are used in the following situations:
+  // fastmem && do_farcode && emitting_routine:                                            X2
+  // fastmem && do_farcode && emitting_routine && (flags & BackPatchInfo::FLAG_STORE):     X0
+  // fastmem && do_farcode && emitting_routine && !(flags & BackPatchInfo::FLAG_STORE):    X3
+  // !fastmem || do_farcode:    X30 (plus lots more unless you set gprs_to_push and fprs_to_push)
   void EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
+
   // Loadstore routines
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset, bool update);
