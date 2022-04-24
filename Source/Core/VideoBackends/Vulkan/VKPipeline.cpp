@@ -132,53 +132,65 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
   };
 }
 
-static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const BlendingState& state)
+static VkPipelineColorBlendAttachmentState
+GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage usage)
 {
   VkPipelineColorBlendAttachmentState vk_state = {};
-  vk_state.blendEnable = static_cast<VkBool32>(state.blendenable);
-  vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
-  vk_state.alphaBlendOp = state.subtractAlpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
 
   bool use_dual_source =
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
+  bool use_shader_blend = !use_dual_source && state.usedualsrc && state.dstalpha &&
+                          g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
 
-  if (use_dual_source)
+  if (use_shader_blend || (usage == AbstractPipelineUsage::GX &&
+                           DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)))
   {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-
-    vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
-    vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
-    vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
-    vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+    vk_state.blendEnable = VK_FALSE;
   }
   else
   {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    vk_state.blendEnable = static_cast<VkBool32>(state.blendenable);
+    vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
+    vk_state.alphaBlendOp = state.subtractAlpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
 
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+    if (use_dual_source)
+    {
+      static constexpr std::array<VkBlendFactor, 8> src_factors = {
+          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
+           VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+      static constexpr std::array<VkBlendFactor, 8> dst_factors = {
+          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
+           VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
 
-    vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
-    vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
-    vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
-    vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+      vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
+      vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
+      vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
+      vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+    }
+    else
+    {
+      static constexpr std::array<VkBlendFactor, 8> src_factors = {
+          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
+           VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+
+      static constexpr std::array<VkBlendFactor, 8> dst_factors = {
+          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
+           VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
+           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+
+      vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor.Value())];
+      vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha.Value())];
+      vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor.Value())];
+      vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha.Value())];
+    }
   }
 
   if (state.colorupdate)
@@ -338,7 +350,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   VkPipelineDepthStencilStateCreateInfo depth_stencil_state =
       GetVulkanDepthStencilState(config.depth_state);
   VkPipelineColorBlendAttachmentState blend_attachment_state =
-      GetVulkanAttachmentBlendState(config.blending_state);
+      GetVulkanAttachmentBlendState(config.blending_state, config.usage);
   VkPipelineColorBlendStateCreateInfo blend_state =
       GetVulkanColorBlendState(config.blending_state, &blend_attachment_state, 1);
 

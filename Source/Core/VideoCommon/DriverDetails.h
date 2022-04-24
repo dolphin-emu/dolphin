@@ -43,6 +43,7 @@ enum Vendor
   VENDOR_TEGRA,
   VENDOR_VIVANTE,
   VENDOR_MESA,
+  VENDOR_APPLE,
   VENDOR_UNKNOWN
 };
 
@@ -318,7 +319,15 @@ enum Bug
   // BUG: Multi-threaded shader pre-compilation sometimes crashes
   // Used primarily in Videoconfig.cpp's GetNumAutoShaderPreCompilerThreads()
   // refer to https://github.com/dolphin-emu/dolphin/pull/9414 for initial validation coverage
-  BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION
+  BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION,
+
+  // BUG: Some driver and Apple Silicon GPU combinations have problems with fragment discard when
+  // early depth test is enabled. Discarded fragments may appear corrupted (Super Mario Sunshine,
+  // Sonic Adventure 2: Battle, Phantasy Star Online Epsiodes 1 & 2, etc).
+  // Affected devices: Apple Silicon GPUs of Apple family 4 and newer.
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_DISCARD_WITH_EARLY_Z,
 };
 
 // Initializes our internal vendor, device family, and driver version

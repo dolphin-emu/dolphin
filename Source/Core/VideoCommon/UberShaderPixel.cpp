@@ -57,7 +57,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
   const bool use_shader_logic_op =
       !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
-  const bool use_framebuffer_fetch = use_shader_blend || use_shader_logic_op;
+  const bool use_framebuffer_fetch =
+      use_shader_blend || use_shader_logic_op ||
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
   const bool bounding_box = host_config.bounding_box;
@@ -1007,8 +1009,21 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
   }
 
-  out.Write("  // Alpha Test\n"
-            "  if (bpmem_alphaTest != 0u) {{\n"
+  out.Write("  // Alpha Test\n");
+
+  if (early_depth && DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+  {
+    // Instead of using discard, fetch the framebuffer's color value and use it as the output
+    // for this fragment.
+    out.Write("  #define discard_fragment {{ {} = float4(initial_ocol0.xyz, 1.0); return; }}\n",
+              use_shader_blend ? "real_ocol0" : "ocol0");
+  }
+  else
+  {
+    out.Write("  #define discard_fragment discard\n");
+  }
+
+  out.Write("  if (bpmem_alphaTest != 0u) {{\n"
             "    bool comp0 = alphaCompare(TevResult.a, " I_ALPHA ".r, {});\n",
             BitfieldExtract<&AlphaTest::comp0>("bpmem_alphaTest"));
   out.Write("    bool comp1 = alphaCompare(TevResult.a, " I_ALPHA ".g, {});\n",
@@ -1019,13 +1034,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    switch ({}) {{\n",
             BitfieldExtract<&AlphaTest::logic>("bpmem_alphaTest"));
   out.Write("    case 0u: // AND\n"
-            "      if (comp0 && comp1) break; else discard; break;\n"
+            "      if (comp0 && comp1) break; else discard_fragment; break;\n"
             "    case 1u: // OR\n"
-            "      if (comp0 || comp1) break; else discard; break;\n"
+            "      if (comp0 || comp1) break; else discard_fragment; break;\n"
             "    case 2u: // XOR\n"
-            "      if (comp0 != comp1) break; else discard; break;\n"
+            "      if (comp0 != comp1) break; else discard_fragment; break;\n"
             "    case 3u: // XNOR\n"
-            "      if (comp0 == comp1) break; else discard; break;\n"
+            "      if (comp0 == comp1) break; else discard_fragment; break;\n"
             "    }}\n"
             "  }}\n"
             "\n");
@@ -1194,8 +1209,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_src.rgb = float3(1,1,1);",                      // ONE
         "blend_src.rgb = initial_ocol0.rgb;",                  // DSTCLR
         "blend_src.rgb = float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
-        "blend_src.rgb = ocol1.aaa;",                          // SRCALPHA
-        "blend_src.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_src.rgb = src_color.aaa;",                      // SRCALPHA
+        "blend_src.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
         "blend_src.rgb = initial_ocol0.aaa;",                  // DSTALPHA
         "blend_src.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
     };
@@ -1204,8 +1219,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_src.a = 1.0;",                    // ONE
         "blend_src.a = initial_ocol0.a;",        // DSTCLR
         "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTCLR
-        "blend_src.a = ocol1.a;",                // SRCALPHA
-        "blend_src.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_src.a = src_color.a;",            // SRCALPHA
+        "blend_src.a = 1.0 - src_color.a;",      // INVSRCALPHA
         "blend_src.a = initial_ocol0.a;",        // DSTALPHA
         "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
     };
@@ -1214,8 +1229,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_dst.rgb = float3(1,1,1);",                      // ONE
         "blend_dst.rgb = ocol0.rgb;",                          // SRCCLR
         "blend_dst.rgb = float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "blend_dst.rgb = ocol1.aaa;",                          // SRCALHA
-        "blend_dst.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_dst.rgb = src_color.aaa;",                      // SRCALHA
+        "blend_dst.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
         "blend_dst.rgb = initial_ocol0.aaa;",                  // DSTALPHA
         "blend_dst.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
     };
@@ -1224,13 +1239,19 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_dst.a = 1.0;",                    // ONE
         "blend_dst.a = ocol0.a;",                // SRCCLR
         "blend_dst.a = 1.0 - ocol0.a;",          // INVSRCCLR
-        "blend_dst.a = ocol1.a;",                // SRCALPHA
-        "blend_dst.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_dst.a = src_color.a;",            // SRCALPHA
+        "blend_dst.a = 1.0 - src_color.a;",      // INVSRCALPHA
         "blend_dst.a = initial_ocol0.a;",        // DSTALPHA
         "blend_dst.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
     };
 
     out.Write("  if (blend_enable) {{\n"
+              "    float4 src_color;\n"
+              "    if (bpmem_dstalpha != 0u) {{\n"
+              "      src_color = ocol1;\n"
+              "    }} else {{\n"
+              "      src_color = ocol0;\n"
+              "    }}"
               "    float4 blend_src;\n");
     WriteSwitch(out, api_type, "blend_src_factor", blendSrcFactor, 4, true);
     WriteSwitch(out, api_type, "blend_src_factor_alpha", blendSrcFactorAlpha, 4, true);
