@@ -836,12 +836,9 @@ public:
         }
 
         void incrementBatterOutForPosition(){
-            for (u8 pos=0; pos < cRosterSize; ++pos){
-                u32 aFielderRosterLoc_calc = aFielder_RosterLoc + (pos * cFielder_Offset);
-
-                u8 roster_loc = Memory::Read_U8(aFielderRosterLoc_calc);
+            for (u8 roster=0; roster < cRosterSize; ++roster){
                 //Increment the number of batter outs this player has seen at this position
-                fielder_map[roster_loc].batter_outs_by_position[pos] = fielder_map[roster_loc].batter_outs_by_position[pos] + 1; 
+                ++fielder_map[roster].batter_outs_by_position[fielder_map[roster].current_pos];
             }
             return;
         }

@@ -429,13 +429,13 @@ void StatTracker::lookForTriggerEvents(){
                 json = getStatJSON(false);
                 File::WriteStringToFile(jsonPath, json);
 
+                std::cout << "Logging to " << jsonPath << std::endl;
+                
                 //Clean up partial files
                 jsonPath = getStatJsonPath("partial.");
                 File::Delete(jsonPath);
                 jsonPath = getStatJsonPath("partial.decoded.");
                 File::Delete(jsonPath);
-
-                std::cout << "Logging to " << jsonPath << std::endl;
 
                 m_game_state = GAME_STATE::ENDGAME_LOGGED;
 
@@ -838,6 +838,18 @@ void StatTracker::logFinalResults(Event& in_event){
     //Any out, increment all fielders batter out counts
     if (Memory::Read_U8(aAB_NumOutsDuringPlay) > 0) {
         m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].incrementBatterOutForPosition();
+    }
+
+    //If the runner got out at first (forced), increment outs for the fielder who first touched the ball
+    if (in_event.runner_batter->out_type == 2) {
+        //First fielder to touch the ball
+        Fielder* fielder;
+
+        //If the fielder bobbled but the same fielder collected the ball OR there was no bobble, log single fielde
+        if (in_event.pitch->contact->first_fielder.has_value()) { fielder = &in_event.pitch->contact->first_fielder.value(); }
+        else {fielder = &in_event.pitch->contact->collect_fielder.value();}
+
+        m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].incrementOutForPosition(fielder->fielder_roster_loc, fielder->fielder_pos);
     }
 }
 
