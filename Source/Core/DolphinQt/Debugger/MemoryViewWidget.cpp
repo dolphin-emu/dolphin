@@ -28,6 +28,10 @@
 // 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
 constexpr double SCROLL_FRACTION_DEGREES = 15.;
 
+constexpr auto USER_ROLE_IS_ROW_BREAKPOINT_CELL = Qt::UserRole;
+constexpr auto USER_ROLE_CELL_ADDRESS = Qt::UserRole + 1;
+constexpr auto USER_ROLE_HAS_VALUE = Qt::UserRole + 2;
+
 MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
 {
   horizontalHeader()->hide();
@@ -158,15 +162,19 @@ void MemoryViewWidget::Update()
 
     auto* bp_item = new QTableWidgetItem;
     bp_item->setFlags(Qt::ItemIsEnabled);
-    bp_item->setData(Qt::UserRole, row_address);
+    bp_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, true);
+    bp_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
+    bp_item->setData(USER_ROLE_HAS_VALUE, false);
 
     setItem(i, 0, bp_item);
 
     auto* row_item =
         new QTableWidgetItem(QStringLiteral("%1").arg(row_address, 8, 16, QLatin1Char('0')));
 
-    row_item->setData(Qt::UserRole, row_address);
     row_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    row_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+    row_item->setData(USER_ROLE_CELL_ADDRESS, row_address);
+    row_item->setData(USER_ROLE_HAS_VALUE, false);
 
     setItem(i, 1, row_item);
 
@@ -179,7 +187,9 @@ void MemoryViewWidget::Update()
       {
         auto* item = new QTableWidgetItem(QStringLiteral("-"));
         item->setFlags(Qt::ItemIsEnabled);
-        item->setData(Qt::UserRole, row_address);
+        item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+        item->setData(USER_ROLE_CELL_ADDRESS, row_address);
+        item->setData(USER_ROLE_HAS_VALUE, false);
 
         setItem(i, c, item);
       }
@@ -245,7 +255,7 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
 
   for (int i = 0; i < rowCount(); i++)
   {
-    u32 row_address = item(i, 1)->data(Qt::UserRole).toUInt();
+    u32 row_address = item(i, 1)->data(USER_ROLE_CELL_ADDRESS).toUInt();
     if (!accessors->IsValidAddress(row_address))
       continue;
 
@@ -263,12 +273,17 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
         if (accessors->IsValidAddress(cell_address))
         {
           cell_item->setText(value_to_string(cell_address));
-          cell_item->setData(Qt::UserRole, cell_address);
+          cell_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+          cell_item->setData(USER_ROLE_CELL_ADDRESS, cell_address);
+          cell_item->setData(USER_ROLE_HAS_VALUE, true);
         }
         else
         {
           cell_item->setFlags({});
           cell_item->setText(QStringLiteral("-"));
+          cell_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
+          cell_item->setData(USER_ROLE_CELL_ADDRESS, cell_address);
+          cell_item->setData(USER_ROLE_HAS_VALUE, false);
         }
       }
     };
@@ -370,7 +385,7 @@ void MemoryViewWidget::UpdateBreakpointTags()
     {
       // Pull address from cell itself, helpful for dual column view.
       auto cell = item(i, c);
-      u32 address = cell->data(Qt::UserRole).toUInt();
+      u32 address = cell->data(USER_ROLE_CELL_ADDRESS).toUInt();
 
       if (address == 0)
       {
@@ -477,17 +492,11 @@ void MemoryViewWidget::keyPressEvent(QKeyEvent* event)
   }
 }
 
-u32 MemoryViewWidget::GetContextAddress() const
-{
-  return m_context_address;
-}
-
-void MemoryViewWidget::ToggleRowBreakpoint(bool row)
+void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
 {
   if (m_address_space != AddressSpace::Type::Effective)
     return;
 
-  const u32 addr = row ? m_base_address : GetContextAddress();
   const auto length = GetTypeSize(m_type);
   const int breaks = row ? (m_bytes_per_row / length) : 1;
   bool overlap = false;
@@ -526,11 +535,6 @@ void MemoryViewWidget::ToggleRowBreakpoint(bool row)
   Update();
 }
 
-void MemoryViewWidget::ToggleBreakpoint()
-{
-  ToggleRowBreakpoint(false);
-}
-
 void MemoryViewWidget::wheelEvent(QWheelEvent* event)
 {
   auto delta =
@@ -545,40 +549,28 @@ void MemoryViewWidget::wheelEvent(QWheelEvent* event)
 
 void MemoryViewWidget::mousePressEvent(QMouseEvent* event)
 {
-  auto* item_selected = itemAt(event->pos());
-  if (item_selected == nullptr)
+  if (event->button() != Qt::LeftButton)
     return;
 
-  const u32 addr = item_selected->data(Qt::UserRole).toUInt();
+  auto* item = itemAt(event->pos());
+  if (!item)
+    return;
 
-  m_context_address = addr;
-  m_base_address = item(row(item_selected), 1)->data(Qt::UserRole).toUInt();
-
-  switch (event->button())
-  {
-  case Qt::LeftButton:
-    if (column(item_selected) == 0)
-      ToggleRowBreakpoint(true);
-    else
-      SetAddress(m_base_address);
-
-    Update();
-    break;
-  default:
-    break;
-  }
+  const u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
+  if (item->data(USER_ROLE_IS_ROW_BREAKPOINT_CELL).toBool())
+    ToggleBreakpoint(address, true);
+  else
+    SetAddress(address);
+  Update();
 }
 
-void MemoryViewWidget::OnCopyAddress()
+void MemoryViewWidget::OnCopyAddress(u32 addr)
 {
-  u32 addr = GetContextAddress();
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 }
 
-void MemoryViewWidget::OnCopyHex()
+void MemoryViewWidget::OnCopyHex(u32 addr)
 {
-  u32 addr = GetContextAddress();
-
   const auto length = GetTypeSize(m_type);
 
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
@@ -588,30 +580,48 @@ void MemoryViewWidget::OnCopyHex()
       QStringLiteral("%1").arg(value, sizeof(u64) * 2, 16, QLatin1Char('0')).left(length * 2));
 }
 
-void MemoryViewWidget::OnContextMenu()
+void MemoryViewWidget::OnContextMenu(const QPoint& pos)
 {
+  auto* item_selected = itemAt(pos);
+
+  // We don't have a meaningful context menu to show for when the user right-clicks either free
+  // space in the table or the row breakpoint cell.
+  if (!item_selected || item_selected->data(USER_ROLE_IS_ROW_BREAKPOINT_CELL).toBool())
+    return;
+
+  const bool item_has_value = item_selected->data(USER_ROLE_HAS_VALUE).toBool();
+  const u32 addr = item_selected->data(USER_ROLE_CELL_ADDRESS).toUInt();
+
   auto* menu = new QMenu(this);
 
-  menu->addAction(tr("Copy Address"), this, &MemoryViewWidget::OnCopyAddress);
+  menu->addAction(tr("Copy Address"), this, [this, addr] { OnCopyAddress(addr); });
 
-  auto* copy_hex = menu->addAction(tr("Copy Hex"), this, &MemoryViewWidget::OnCopyHex);
+  auto* copy_hex = menu->addAction(tr("Copy Hex"), this, [this, addr] { OnCopyHex(addr); });
 
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
-  copy_hex->setEnabled(Core::GetState() != Core::State::Uninitialized &&
-                       accessors->IsValidAddress(GetContextAddress()));
+  copy_hex->setEnabled(item_has_value && Core::GetState() != Core::State::Uninitialized &&
+                       accessors->IsValidAddress(addr));
 
-  menu->addSeparator();
-
-  menu->addAction(tr("Show in code"), this, [this] { emit ShowCode(GetContextAddress()); });
-
-  menu->addSeparator();
-
-  menu->addAction(tr("Add to watch"), this, [this] {
-    const u32 address = GetContextAddress();
-    const QString name = QStringLiteral("mem_%1").arg(address, 8, 16, QLatin1Char('0'));
-    emit RequestWatch(name, address);
+  auto* copy_value = menu->addAction(tr("Copy Value"), this, [this, &pos] {
+    // Re-fetch the item in case the underlying table has refreshed since the menu was opened.
+    auto* item = itemAt(pos);
+    if (item && item->data(USER_ROLE_HAS_VALUE).toBool())
+      QApplication::clipboard()->setText(item->text());
   });
-  menu->addAction(tr("Toggle Breakpoint"), this, &MemoryViewWidget::ToggleBreakpoint);
+  copy_value->setEnabled(item_has_value);
+
+  menu->addSeparator();
+
+  menu->addAction(tr("Show in code"), this, [this, addr] { emit ShowCode(addr); });
+
+  menu->addSeparator();
+
+  menu->addAction(tr("Add to watch"), this, [this, addr] {
+    const QString name = QStringLiteral("mem_%1").arg(addr, 8, 16, QLatin1Char('0'));
+    emit RequestWatch(name, addr);
+  });
+
+  menu->addAction(tr("Toggle Breakpoint"), this, [this, addr] { ToggleBreakpoint(addr, false); });
 
   menu->exec(QCursor::pos());
 }

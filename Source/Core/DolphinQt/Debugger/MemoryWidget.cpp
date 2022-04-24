@@ -277,12 +277,13 @@ void MemoryWidget::CreateWidgets()
   auto* sidebar_scroll = new QScrollArea;
   sidebar_scroll->setWidget(sidebar);
   sidebar_scroll->setWidgetResizable(true);
-  sidebar_scroll->setFixedWidth(190);
 
   m_memory_view = new MemoryViewWidget(this);
 
   m_splitter->addWidget(m_memory_view);
   m_splitter->addWidget(sidebar_scroll);
+  m_splitter->setStretchFactor(0, 3);
+  m_splitter->setStretchFactor(1, 1);
 
   layout->addWidget(m_splitter);
 
