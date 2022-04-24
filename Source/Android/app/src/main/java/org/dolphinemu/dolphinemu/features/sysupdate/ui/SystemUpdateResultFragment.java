@@ -88,7 +88,7 @@ public class SystemUpdateResultFragment extends DialogFragment
         throw new IllegalStateException("Unexpected value: " + mResult);
     }
 
-    return new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase)
+    return new AlertDialog.Builder(requireContext())
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(R.string.ok, (dialog, which) ->

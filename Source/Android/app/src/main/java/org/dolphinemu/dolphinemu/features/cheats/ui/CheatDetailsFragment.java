@@ -89,7 +89,7 @@ public class CheatDetailsFragment extends Fragment
   private void onDeleteClicked(View view)
   {
     AlertDialog.Builder builder =
-            new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase);
+            new AlertDialog.Builder(requireContext());
     builder.setMessage(getString(R.string.cheats_delete_confirmation, mCheat.getName()));
     builder.setPositiveButton(R.string.yes, (dialog, i) -> mViewModel.deleteSelectedCheat());
     builder.setNegativeButton(R.string.no, null);

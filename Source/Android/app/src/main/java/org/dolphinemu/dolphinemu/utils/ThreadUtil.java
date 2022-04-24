@@ -27,7 +27,7 @@ public class ThreadUtil
           @Nullable DialogInterface.OnDismissListener onResultDismiss)
   {
     Resources resources = activity.getResources();
-    AlertDialog progressDialog = new AlertDialog.Builder(activity, R.style.DolphinDialogBase)
+    AlertDialog progressDialog = new AlertDialog.Builder(activity)
             .create();
     progressDialog.setTitle(progressTitle);
     if (progressMessage != 0)
@@ -45,7 +45,7 @@ public class ThreadUtil
         if (result != null)
         {
           AlertDialog.Builder builder =
-                  new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
+                  new AlertDialog.Builder(activity);
           builder.setMessage(result);
           builder.setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
           builder.setOnDismissListener(onResultDismiss);

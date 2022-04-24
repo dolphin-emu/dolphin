@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base theme -->
+    <style name="Theme.Dolphin.Main" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorSurface">@color/dolphin_blue</item>
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
+
+        <item name="android:colorControlHighlight">?attr/colorAccent</item>
+
+        <item name="android:colorEdgeEffect">@color/dolphin_blue_secondary</item>
+
+        <!-- Enable window content transitions -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <!-- Global alert dialog style -->
+        <item name="alertDialogTheme">@style/DolphinDialogBase</item>
+    </style>
+
+    <style name="Theme.Dolphin.Settings" parent="Theme.Material3.DayNight">
+        <item name="colorSurface">@color/dolphin_blue</item>
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
+
+        <item name="titleTextColor">@android:color/white</item>
+        <item name="homeAsUpIndicator">@drawable/ic_back</item>
+
+        <!-- Global alert dialog style -->
+        <item name="alertDialogTheme">@style/DolphinDialogBase</item>
+    </style>
+
+    <style name="Theme.Dolphin.Main.Emulation" parent="Theme.Dolphin.Main">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+    <!-- Inherit from a base file picker theme that handles day/night -->
+    <style name="Theme.Dolphin.FilePicker" parent="FilePickerBaseTheme">
+        <item name="colorPrimary">@color/dolphin_blue</item>
+        <item name="colorPrimaryDark">@color/dolphin_blue</item>
+        <item name="colorAccent">@color/dolphin_blue_secondary</item>
+
+        <!-- Setting a divider is entirely optional -->
+        <item name="nnf_list_item_divider">?android:attr/listDivider</item>
+
+        <!-- If you want to set a specific toolbar theme, do it here -->
+        <item name="nnf_toolbarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+
+        <!-- Global alert dialog style -->
+        <item name="alertDialogTheme">@style/DolphinDialogBase</item>
+    </style>
+
+    <style name="Theme.Dolphin.TV" parent="Theme.Leanback.Browse">
+        <!-- Enable window content transitions -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <!-- Use CustomTitleView as the leanback title view. -->
+        <item name="browseTitleViewLayout">@layout/titleview</item>
+
+        <!-- Global alert dialog style -->
+        <item name="alertDialogTheme">@style/DolphinDialogBase</item>
+    </style>
+</resources>
