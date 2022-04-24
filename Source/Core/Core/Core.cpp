@@ -502,17 +502,19 @@ void SetAvgPing()
     avgPing = 0;
     nPing = 0;
     nLagSpikes = 0;
+    previousPing = 50;
     return;
   }
-  u32 currentPing = NetPlay::NetPlayClient::sGetPlayersMaxPing();
+  int currentPing = NetPlay::NetPlayClient::sGetPlayersMaxPing();
   nPing += 1;
   avgPing = ((avgPing * (nPing - 1)) + currentPing) / nPing;
 
   // "Lag Spike" definition; currently just checks if ping is more than 150
   // should probably make a better definition in the future
-  if (currentPing >= 150) {
+  if (currentPing >= avgPing * 2 && currentPing >= 40 && previousPing <= avgPing * 1.2) {
     nLagSpikes += 1;
   }
+  previousPing = currentPing;
 
   // tell the stat tracker what the new avg ping is
   if (!s_stat_tracker)

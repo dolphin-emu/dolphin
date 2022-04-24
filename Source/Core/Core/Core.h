@@ -188,6 +188,7 @@ void SetNetplayerUserInfo();
 static int avgPing = 0;
 static int nPing = 0;
 static int nLagSpikes = 0;
+static int previousPing = 0;
 
 //void setRankedStatus(bool inNewStatus);
 void setRecordStatus(bool inNewStatus);
