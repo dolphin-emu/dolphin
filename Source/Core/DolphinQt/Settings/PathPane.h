@@ -21,7 +21,6 @@ private:
   void Browse();
   void BrowseDefaultGame();
   void BrowseWiiNAND();
-  void BrowseGC();
   void BrowseDump();
   void BrowseLoad();
   void BrowseResourcePack();
@@ -33,12 +32,10 @@ private:
 
   void OnSDCardPathChanged();
   void OnNANDPathChanged();
-  void OnGCPathChanged();
 
   QListWidget* m_path_list;
   QLineEdit* m_game_edit;
   QLineEdit* m_nand_edit;
-  QLineEdit* m_gc_edit;
   QLineEdit* m_dump_edit;
   QLineEdit* m_load_edit;
   QLineEdit* m_resource_pack_edit;
