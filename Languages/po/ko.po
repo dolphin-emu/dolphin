@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-10 19:43+0200\n"
+"POT-Creation-Date: 2022-04-24 10:06+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2022\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -697,6 +697,10 @@ msgstr "/ 나누기"
 msgid "128 Mbit (2043 blocks)"
 msgstr "128 Mbit (2043 블락)"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
+msgid "16 Bytes"
+msgstr ""
+
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:28
 msgid "16 Mbit (251 blocks)"
 msgstr "16 Mbit (251 블락)"
@@ -781,6 +785,10 @@ msgstr "3x"
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x 원본 (1920x1584) 1080p용"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
+msgid "4 Bytes"
+msgstr ""
+
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:26
 msgid "4 Mbit (59 blocks)"
 msgstr "4 Mbit (59 블락)"
@@ -828,6 +836,10 @@ msgstr "6x 원본 (3840x3168) 4K용"
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:56
 msgid "7x Native (4480x3696)"
 msgstr "7x 원본 (4480x3696)"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:215
+msgid "8 Bytes"
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:27
 msgid "8 Mbit (123 blocks)"
@@ -963,8 +975,8 @@ msgstr "AR 코드"
 msgid "AR Codes"
 msgstr "AR 코드"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:187
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:131
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:204
 msgid "ASCII"
 msgstr "애스키"
 
@@ -1145,7 +1157,7 @@ msgstr "메모리 중단점 추가"
 msgid "Add to &watch"
 msgstr "관찰에 추가 (&w)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:444
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:609
 msgid "Add to watch"
 msgstr "관찰에 추가"
 
@@ -1173,7 +1185,7 @@ msgid "Address"
 msgstr "주소"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:44
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:161
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:170
 msgid "Address Space"
 msgstr "주소 공간"
 
@@ -1281,6 +1293,10 @@ msgstr "모든 저장 상태 (*.sav *.s##);; 모든 파일 (*)"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
 msgid "All devices"
 msgstr "모든 장치"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
+msgid "All files (*)"
+msgstr ""
 
 #: Source/Core/Core/NetPlayServer.cpp:1170
 msgid "All players' codes synchronized."
@@ -1525,7 +1541,7 @@ msgstr ""
 "면, 체크 해제해 두세요.</dolphin_emphasis>"
 
 #. i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:169
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:178
 msgid "Auxiliary"
 msgstr "보조"
 
@@ -1589,12 +1605,13 @@ msgstr "백그라운드 입력"
 msgid "Backward"
 msgstr "뒤로"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:788
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:863
 msgid "Bad Value Given"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:665
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:774
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:849
 msgid "Bad address provided."
 msgstr "안 좋은 주소가 제공되었습니다."
 
@@ -1602,12 +1619,13 @@ msgstr "안 좋은 주소가 제공되었습니다."
 msgid "Bad dump"
 msgstr "안 좋은 덤프"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:671
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:780
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:855
 msgid "Bad offset provided."
 msgstr "안 좋은 오프셋이 제공되었습니다."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:680
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
 msgid "Bad value provided."
 msgstr "안 좋은 값이 제공되었습니다."
 
@@ -2491,7 +2509,7 @@ msgstr "함수 복사 (&f)"
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:430
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:595
 msgid "Copy Address"
 msgstr "주소 복사"
 
@@ -2499,7 +2517,7 @@ msgstr "주소 복사"
 msgid "Copy Failed"
 msgstr "복사가 실패했습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:432
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
 msgid "Copy Hex"
 msgstr "헥스 복사"
 
@@ -2824,7 +2842,6 @@ msgid "Data Transfer"
 msgstr "데이터 전송"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:88
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:180
 msgid "Data Type"
 msgstr "데이터 타입"
 
@@ -3157,6 +3174,10 @@ msgstr "디스크"
 msgid "Discard"
 msgstr "폐기"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
+msgid "Display Type"
+msgstr ""
+
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:231
 msgid "Display values in Hex"
 msgstr "값들을 Hex 로 보여주기"
@@ -3321,7 +3342,8 @@ msgid "Done compressing disc image."
 msgstr "디스크 이미지 압축이 완료되었습니다."
 
 #. i18n: A double precision floating point number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:206
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:150
 msgid "Double"
 msgstr "더블"
@@ -3374,23 +3396,31 @@ msgstr "드럼 키트"
 msgid "Dual Core"
 msgstr "듀얼 코어"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:219
+msgid "Dual View"
+msgstr ""
+
 #: Source/Core/Core/HW/EXI/EXI_Device.h:85
 msgid "Dummy"
 msgstr "더미"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:143
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
+msgid "Dump"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 msgid "Dump &ARAM"
 msgstr "ARAM 덤프(&A)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:146
 msgid "Dump &ExRAM"
 msgstr "확장램 덤프(&E)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:144
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
 msgid "Dump &FakeVMEM"
 msgstr "가짜가상메모리 덤프(&F)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:145
 msgid "Dump &MRAM"
 msgstr "MRAM 덤프(&M)"
 
@@ -3586,7 +3616,7 @@ msgstr "효과"
 
 #. i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
 #. translation via the MMU to physical addresses.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:167
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:176
 msgid "Effective"
 msgstr "효과적인"
 
@@ -3606,7 +3636,7 @@ msgstr "디스크 꺼내기"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "내장형 프레임 버퍼 (EFB)"
 
-#: Source/Core/Core/State.cpp:466
+#: Source/Core/Core/State.cpp:468
 msgid "Empty"
 msgstr "비어있음"
 
@@ -3909,11 +3939,15 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:665
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:671
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:680
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:702
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:709
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:777
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:784
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -4002,7 +4036,7 @@ msgstr "저장 데이터 동기화 에러!"
 msgid "Error writing file: {0}"
 msgstr "파일 쓰기 에러: {0}"
 
-#: Source/Core/Common/ChunkFile.h:284
+#: Source/Core/Common/ChunkFile.h:295
 msgid ""
 "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:"
 "#x}). Aborting savestate load..."
@@ -4335,11 +4369,11 @@ msgstr "블투 패스쓰루용 커널 드라이버를 분리하는데에 실패�
 msgid "Failed to download codes."
 msgstr "코드 다운로드에 실패했습니다."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:703
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
 msgid "Failed to dump %1: Can't open file"
 msgstr "덤프에 실패했습니다 %1: 파일을 열 수 없습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:710
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "덤프에 실패했습니다 %1: 파일에 쓰기를 실패했습니다"
 
@@ -4782,11 +4816,11 @@ msgstr ""
 "게임에서 이슈를 일으킬 것입니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체"
 "크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:151
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:160
 msgid "Find &Next"
 msgstr "다음 찾기(&N)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:152
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:161
 msgid "Find &Previous"
 msgstr "이전 찾기(&P)"
 
@@ -4814,6 +4848,10 @@ msgstr "체크섬을 고치기"
 msgid "Fix Checksums Failed"
 msgstr "실패한 체크섬 고치기"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
+msgid "Fixed Alignment"
+msgstr ""
+
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
@@ -4823,8 +4861,8 @@ msgstr "플래그"
 
 #. i18n: A floating point number
 #. i18n: Floating-point (non-integer) number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:131
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:188
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:148
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:161
 msgid "Float"
@@ -5467,7 +5505,19 @@ msgstr "도움"
 msgid "Hex"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:129
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:196
+msgid "Hex 16"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
+msgid "Hex 32"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:195
+msgid "Hex 8"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
 msgid "Hex Byte String"
 msgstr ""
 
@@ -5999,7 +6049,7 @@ msgstr "내부 LZO 오류 - 압축 실패했습니다"
 msgid "Internal LZO Error - decompression failed"
 msgstr "내부 LZO 오류 - 압축해제를 실패했습니다"
 
-#: Source/Core/Core/State.cpp:528
+#: Source/Core/Core/State.cpp:530
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -6007,7 +6057,7 @@ msgstr ""
 "내부 LZO 오류 - 압축풀기 실패했습니다({0}) ({1}, {2}) \n"
 "상태 로딩을 다시 해보세요"
 
-#: Source/Core/Core/State.cpp:633
+#: Source/Core/Core/State.cpp:635
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "내부 LZO 오류 -  lzo_init() 실패했습니다"
 
@@ -6573,7 +6623,7 @@ msgid "Lock Mouse Cursor"
 msgstr "마우스 커서 가두기"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:34
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:243
 msgid "Log"
 msgstr "로그"
 
@@ -6687,7 +6737,7 @@ msgstr "매핑"
 msgid "Mask ROM"
 msgstr "마스크 롬"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:806
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:881
 msgid "Match Found"
 msgstr "일치 발견"
 
@@ -6750,7 +6800,7 @@ msgstr ""
 msgid "Memory Override"
 msgstr "메모리 오버라이드"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:227
 msgid "Memory breakpoint options"
 msgstr "메모리 중단점 옵션"
 
@@ -7063,6 +7113,10 @@ msgstr "아니요"
 msgid "No Adapter Detected"
 msgstr "감지된 어댑터가 없습니다"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
+msgid "No Alignment"
+msgstr ""
+
 #: Source/Core/Core/Config/MainSettings.h:16
 msgid "No Audio Output"
 msgstr "오디오 출력 없음"
@@ -7073,7 +7127,7 @@ msgstr "오디오 출력 없음"
 msgid "No Compression"
 msgstr "압축하지 않음"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:818
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:893
 msgid "No Match"
 msgstr "일치 없음"
 
@@ -7144,7 +7198,7 @@ msgstr "로드된 녹화가 없습니다."
 msgid "No save data found."
 msgstr "발견된 저장 데이터가 없습니다."
 
-#: Source/Core/Core/State.cpp:724
+#: Source/Core/Core/State.cpp:726
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "undo.dtm 이 없습니다, 무비 갈림을 막기위해서 상태로드 되돌리기를 취소합니다"
@@ -7547,7 +7601,7 @@ msgstr "시스텝 업데이트 하기"
 
 #. i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
 #. physically wired up.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:172
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:181
 msgid "Physical"
 msgstr "피지컬"
 
@@ -7867,14 +7921,14 @@ msgstr "읽기"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation or write operation occurs.
 #. The string is not a command to read and write something or to allow reading and writing.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:234
 msgid "Read and write"
 msgstr "읽고 쓰기"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation occurs.
 #. The string does not mean "read-only" in the sense that something cannot be written to.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:238
 msgid "Read only"
 msgstr "읽기 전용"
 
@@ -8502,7 +8556,7 @@ msgstr "스캔을 성공했습니다."
 msgid "ScrShot"
 msgstr "스크린샷"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:156
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
 #: Source/Core/DolphinQt/MenuBar.cpp:514
 msgid "Search"
@@ -8687,6 +8741,10 @@ msgstr "게임 선택"
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:105
 msgid "Select a SD Card Image"
 msgstr "SD 카드 이미지 선택"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:736
+msgid "Select a file"
+msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/GameListDialog.cpp:18
 msgid "Select a game"
@@ -8876,6 +8934,10 @@ msgstr ""
 #: Source/Core/Core/HotkeyManager.cpp:73 Source/Core/DolphinQt/ToolBar.cpp:114
 msgid "Set PC"
 msgstr "PC 설정"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
+msgid "Set Value From File"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:372
 msgid "Set as &Default ISO"
@@ -9132,7 +9194,7 @@ msgstr "세계"
 msgid "Show in &memory"
 msgstr "메모리로 보기 (&m)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:440
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
 msgid "Show in code"
 msgstr "코드로 보기"
 
@@ -9208,15 +9270,18 @@ msgstr "Wii 리모트 옆으로"
 msgid "Signature Database"
 msgstr "서명 데이터베이스"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
 msgid "Signed 16"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:203
 msgid "Signed 32"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:201
 msgid "Signed 8"
 msgstr ""
 
@@ -10237,7 +10302,7 @@ msgstr "{0} 파티션은 올바르게 정렬되어 있지 않습니다."
 msgid "There are too many partitions in the first partition table."
 msgstr "첫 파티션 테이블에 너무 많은 파티션들이 있습니다."
 
-#: Source/Core/Core/State.cpp:729
+#: Source/Core/Core/State.cpp:731
 msgid "There is nothing to undo!"
 msgstr "되돌릴 것이 없습니다!"
 
@@ -10560,7 +10625,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "종횡비 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:449
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:614
 msgid "Toggle Breakpoint"
 msgstr "중단점 토글"
 
@@ -10713,21 +10778,13 @@ msgstr "트리거"
 msgid "Type"
 msgstr "타입"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:210
+msgid "Type-based Alignment"
+msgstr ""
+
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:48
 msgid "Typical GameCube/Wii Address Space"
 msgstr "전형적 게임큐브/Wii 주소 공간"
-
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:185
-msgid "U&16"
-msgstr "U&16"
-
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:186
-msgid "U&32"
-msgstr "U&32"
-
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:184
-msgid "U&8"
-msgstr "U&8"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:288
 msgid "UNKNOWN"
@@ -10789,6 +10846,10 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "RSO 모듈을 자동-감지할 수 없습니다"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
+msgid "Unable to open file."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:150
 msgid ""
 "Unable to parse line %1 of the entered AR code as a valid encrypted or "
@@ -10812,6 +10873,10 @@ msgstr ""
 "했는지 확인하세요.\n"
 "\n"
 "이 라인을 무시하고 분석을 계속합니까?"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
+msgid "Unable to read file."
+msgstr ""
 
 #: Source/Core/DiscIO/NANDImporter.cpp:268
 msgid "Unable to write to file {0}"
@@ -10853,7 +10918,7 @@ msgstr ""
 msgid "United States"
 msgstr "미국"
 
-#: Source/Core/Core/State.cpp:470 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:472 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -10945,15 +11010,18 @@ msgstr "마우스 커서 풀기"
 msgid "Unpacking"
 msgstr "풀기"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:199
 msgid "Unsigned 16"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:200
 msgid "Unsigned 32"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
 msgid "Unsigned 8"
 msgstr ""
 
@@ -11206,7 +11274,7 @@ msgstr "유틸리티"
 msgid "V-Sync"
 msgstr "수직-동기화"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:118
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:119
 msgid "Value"
 msgstr "값"
 
@@ -11663,7 +11731,7 @@ msgstr "저장 데이터 쓰기"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
 #. The string does not mean "write-only" in the sense that something cannot be read from.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:213
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:242
 msgid "Write only"
 msgstr "쓰기 전용"
 

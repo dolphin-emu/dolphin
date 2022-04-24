@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-10 19:43+0200\n"
+"POT-Creation-Date: 2022-04-24 10:06+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2022\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
@@ -462,7 +462,7 @@ msgstr "GitHub 资源库(&G)"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:442
 msgid "&Go to start of function"
-msgstr ""
+msgstr "转到函数起始位置(&G)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:523
 msgid "&Graphics Settings"
@@ -704,6 +704,10 @@ msgstr "/ 除"
 msgid "128 Mbit (2043 blocks)"
 msgstr "128 Mbit (2043 区块)"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
+msgid "16 Bytes"
+msgstr ""
+
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:28
 msgid "16 Mbit (251 blocks)"
 msgstr "16 Mbit (251 区块)"
@@ -788,6 +792,10 @@ msgstr "3x"
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x 原生 (1920x1584) 适合 1080p"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
+msgid "4 Bytes"
+msgstr ""
+
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:26
 msgid "4 Mbit (59 blocks)"
 msgstr "4 Mbit (59 区块)"
@@ -835,6 +843,10 @@ msgstr "6x 原生  (3840x3168) 适合 4K"
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:56
 msgid "7x Native (4480x3696)"
 msgstr "7x 原生 (4480x3696)"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:215
+msgid "8 Bytes"
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:27
 msgid "8 Mbit (123 blocks)"
@@ -967,8 +979,8 @@ msgstr "AR 代码"
 msgid "AR Codes"
 msgstr "AR 代码"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:187
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:131
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:204
 msgid "ASCII"
 msgstr "ASCII"
 
@@ -1145,7 +1157,7 @@ msgstr "添加内存断点"
 msgid "Add to &watch"
 msgstr "添加到监视(&W)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:444
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:609
 msgid "Add to watch"
 msgstr "添加到监视"
 
@@ -1173,7 +1185,7 @@ msgid "Address"
 msgstr "地址"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:44
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:161
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:170
 msgid "Address Space"
 msgstr "地址空间"
 
@@ -1277,6 +1289,10 @@ msgstr "所有状态存档 (*.sav *.s##);; 所有文件 (*)"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
 msgid "All devices"
 msgstr "所有设备"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
+msgid "All files (*)"
+msgstr ""
 
 #: Source/Core/Core/NetPlayServer.cpp:1170
 msgid "All players' codes synchronized."
@@ -1520,7 +1536,7 @@ msgstr ""
 "勾选此项。</dolphin_emphasis>"
 
 #. i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:169
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:178
 msgid "Auxiliary"
 msgstr "副内存"
 
@@ -1583,12 +1599,13 @@ msgstr "后台输入"
 msgid "Backward"
 msgstr "后"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:788
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:863
 msgid "Bad Value Given"
-msgstr ""
+msgstr "给定值错误"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:665
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:774
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:849
 msgid "Bad address provided."
 msgstr "地址格式不正确。"
 
@@ -1596,12 +1613,13 @@ msgstr "地址格式不正确。"
 msgid "Bad dump"
 msgstr "错误的转储"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:671
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:780
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:855
 msgid "Bad offset provided."
 msgstr "提交的偏移量不正确。"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:680
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
 msgid "Bad value provided."
 msgstr "值格式不正确。"
 
@@ -2139,20 +2157,20 @@ msgstr "代码"
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:168
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:178
 msgid "Code Diff Tool"
-msgstr ""
+msgstr "代码差异工具"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:401
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:420
 msgid "Code Diff Tool Help"
-msgstr ""
+msgstr "代码差异工具帮助"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:52
 msgid "Code did not get executed"
-msgstr ""
+msgstr "代码未执行"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:53
 msgid "Code has been executed"
-msgstr ""
+msgstr "代码已执行"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:93
 msgid "Code:"
@@ -2470,7 +2488,7 @@ msgstr "复制函数(&F)"
 msgid "Copy &hex"
 msgstr "复制十六进制(&H)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:430
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:595
 msgid "Copy Address"
 msgstr "复制地址"
 
@@ -2478,7 +2496,7 @@ msgstr "复制地址"
 msgid "Copy Failed"
 msgstr "复制失败"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:432
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
 msgid "Copy Hex"
 msgstr "复制十六进制"
 
@@ -2492,7 +2510,7 @@ msgstr "复制失败"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:545
 msgid "Copy tar&get address"
-msgstr ""
+msgstr "复制目标地址(&G)"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:242
 msgid "Copy to A"
@@ -2793,7 +2811,6 @@ msgid "Data Transfer"
 msgstr "数据传输"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:88
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:180
 msgid "Data Type"
 msgstr "数据类型"
 
@@ -3011,7 +3028,7 @@ msgstr "无法将 %1 识别为有效的 Riivolution XML 文件。"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:99
 msgid "Diff"
-msgstr ""
+msgstr "差异"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:142
 msgid "Dims the screen after five minutes of inactivity."
@@ -3117,6 +3134,10 @@ msgstr "光盘"
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:734
 msgid "Discard"
 msgstr "丢弃"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
+msgid "Display Type"
+msgstr ""
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:231
 msgid "Display values in Hex"
@@ -3277,7 +3298,8 @@ msgid "Done compressing disc image."
 msgstr "光盘镜像已压缩完成。"
 
 #. i18n: A double precision floating point number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:206
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:150
 msgid "Double"
 msgstr "双精度"
@@ -3330,23 +3352,31 @@ msgstr "架子鼓"
 msgid "Dual Core"
 msgstr "双核"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:219
+msgid "Dual View"
+msgstr ""
+
 #: Source/Core/Core/HW/EXI/EXI_Device.h:85
 msgid "Dummy"
 msgstr "虚设"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:143
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
+msgid "Dump"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 msgid "Dump &ARAM"
 msgstr "转储副内存(&A)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:146
 msgid "Dump &ExRAM"
 msgstr "转储扩展内存(&E)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:144
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
 msgid "Dump &FakeVMEM"
 msgstr "转储伪显存(&F)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:145
 msgid "Dump &MRAM"
 msgstr "转储主内存(&M)"
 
@@ -3538,7 +3568,7 @@ msgstr "效果"
 
 #. i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
 #. translation via the MMU to physical addresses.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:167
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:176
 msgid "Effective"
 msgstr "有效"
 
@@ -3558,7 +3588,7 @@ msgstr "弹出光盘"
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "内置帧缓冲 (EFB)"
 
-#: Source/Core/Core/State.cpp:466
+#: Source/Core/Core/State.cpp:468
 msgid "Empty"
 msgstr "空"
 
@@ -3591,7 +3621,7 @@ msgstr "模拟速度"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:169
 msgid "Emulation must be started to record."
-msgstr ""
+msgstr "必须要开始模拟才能录制。"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:29
 #: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:33
@@ -3850,11 +3880,15 @@ msgstr "请输入 RSO 模块地址:"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:665
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:671
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:680
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:702
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:709
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:777
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:784
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -3942,7 +3976,7 @@ msgstr "同步存档数据时出错！"
 msgid "Error writing file: {0}"
 msgstr "写入文件时出错：{0}"
 
-#: Source/Core/Common/ChunkFile.h:284
+#: Source/Core/Common/ChunkFile.h:295
 msgid ""
 "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:"
 "#x}). Aborting savestate load..."
@@ -4034,15 +4068,27 @@ msgid ""
 "\n"
 "Right click -> 'Set blr' will place a blr at the top of the symbol.\n"
 msgstr ""
+"例子：\n"
+"你想找到一个在修改 HP 时运行的函数。\n"
+"1. 在不修改 HP 的情况下开始录制并运行游戏，然后点“代码未执行”。\n"
+"2. 立即增加或减少 HP 并点“代码已执行”。\n"
+"3. 重复 1 或 2 以缩小结果范围。\n"
+"应该会（代码已执行后）出现较短的录制，这里面有你想要的。\n"
+"\n"
+"如点两次“代码已执行”将仅保留对两个录制运行的函数。命中数将更新以反映最后一个"
+"录制的命中数量。总命中数将反映一个函数执行的总次数，直到使用重置命令清除列"
+"表。\n"
+"\n"
+"右键单击 -> “设置 blr” 将在符号顶部放置一个 blr。\n"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:134
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:390
 msgid "Excluded: %1"
-msgstr ""
+msgstr "已排除: %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:68
 msgid "Excluded: 0"
-msgstr ""
+msgstr "已排除: 0"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:116
 msgid "Exclusive Ubershaders"
@@ -4275,11 +4321,11 @@ msgstr "分离蓝牙直通内核驱动失败: {0}"
 msgid "Failed to download codes."
 msgstr "下载代码失败。"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:703
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
 msgid "Failed to dump %1: Can't open file"
 msgstr "转储 %1 失败：无法打开文件"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:710
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "转储 %1 失败：无法写入文件"
 
@@ -4709,11 +4755,11 @@ msgstr ""
 "理质量，但会导致另一些游戏出现问题。<br><br><dolphin_emphasis>如果不确定，请"
 "不要勾选此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:151
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:160
 msgid "Find &Next"
 msgstr "查找下一个(&N)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:152
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:161
 msgid "Find &Previous"
 msgstr "查找上一个(&P)"
 
@@ -4741,6 +4787,10 @@ msgstr "修正校验和"
 msgid "Fix Checksums Failed"
 msgstr "修正校验和失败"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
+msgid "Fixed Alignment"
+msgstr ""
+
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
@@ -4750,8 +4800,8 @@ msgstr "标记"
 
 #. i18n: A floating point number
 #. i18n: Floating-point (non-integer) number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:131
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:188
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:148
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:161
 msgid "Float"
@@ -5387,11 +5437,23 @@ msgstr "帮助"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:113
 msgid "Hex"
+msgstr "十六进制"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:196
+msgid "Hex 16"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:129
-msgid "Hex Byte String"
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
+msgid "Hex 32"
 msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:195
+msgid "Hex 8"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
+msgid "Hex Byte String"
+msgstr "十六进制字节字符串"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:144
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:155
@@ -5436,7 +5498,7 @@ msgstr "敲击力度"
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
 msgid "Hits"
-msgstr ""
+msgstr "命中数"
 
 #. i18n: FOV stands for "Field of view".
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:223
@@ -5746,11 +5808,11 @@ msgstr "游戏中？"
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:135
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:391
 msgid "Included: %1"
-msgstr ""
+msgstr "已包含: %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:69
 msgid "Included: 0"
-msgstr ""
+msgstr "已包含: 0"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:273
 msgid ""
@@ -5847,7 +5909,7 @@ msgstr "插入 SD 卡"
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
 msgid "Inspected"
-msgstr ""
+msgstr "已检查"
 
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:39
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:319
@@ -5909,7 +5971,7 @@ msgstr "内部 LZO 错误 - 压缩失败"
 msgid "Internal LZO Error - decompression failed"
 msgstr "内部 LZO 错误 - 解压失败"
 
-#: Source/Core/Core/State.cpp:528
+#: Source/Core/Core/State.cpp:530
 msgid ""
 "Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
 "Try loading the state again"
@@ -5917,7 +5979,7 @@ msgstr ""
 "内部 LZO 错误 - 解压失败 ({0}) ({1}, {2})\n"
 "请尝试重新加载状态"
 
-#: Source/Core/Core/State.cpp:633
+#: Source/Core/Core/State.cpp:635
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "内部 LZO 错误 - lzo_init() 失败"
 
@@ -6483,7 +6545,7 @@ msgid "Lock Mouse Cursor"
 msgstr "锁定鼠标光标"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:34
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:243
 msgid "Log"
 msgstr "日志"
 
@@ -6596,7 +6658,7 @@ msgstr "映射"
 msgid "Mask ROM"
 msgstr "伪装 ROM"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:806
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:881
 msgid "Match Found"
 msgstr "找到匹配"
 
@@ -6658,7 +6720,7 @@ msgstr ""
 msgid "Memory Override"
 msgstr "内存覆盖"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:227
 msgid "Memory breakpoint options"
 msgstr "内存断点选项"
 
@@ -6969,6 +7031,10 @@ msgstr "否"
 msgid "No Adapter Detected"
 msgstr "未检测到适配器"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
+msgid "No Alignment"
+msgstr ""
+
 #: Source/Core/Core/Config/MainSettings.h:16
 msgid "No Audio Output"
 msgstr "无音频输出"
@@ -6979,7 +7045,7 @@ msgstr "无音频输出"
 msgid "No Compression"
 msgstr "不压缩"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:818
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:893
 msgid "No Match"
 msgstr "无匹配"
 
@@ -7022,7 +7088,7 @@ msgstr "在 M3U 文件 “{0}” 中找不到路径"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:387
 msgid "No possible functions left. Reset."
-msgstr ""
+msgstr "未发现可能的函数，重置。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1379
 msgid "No problems were found."
@@ -7049,7 +7115,7 @@ msgstr "没有录制被载入。"
 msgid "No save data found."
 msgstr "没有找到存档数据。"
 
-#: Source/Core/Core/State.cpp:724
+#: Source/Core/Core/State.cpp:726
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr "未找到 undo.dtm 文件，为防止影片出现不同步撤销载入状态操作被取消。"
 
@@ -7446,7 +7512,7 @@ msgstr "执行系统更新"
 
 #. i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
 #. physically wired up.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:172
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:181
 msgid "Physical"
 msgstr "物理"
 
@@ -7759,14 +7825,14 @@ msgstr "读取"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation or write operation occurs.
 #. The string is not a command to read and write something or to allow reading and writing.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:234
 msgid "Read and write"
 msgstr "读取和写入"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation occurs.
 #. The string does not mean "read-only" in the sense that something cannot be written to.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:238
 msgid "Read only"
 msgstr "只读"
 
@@ -7979,7 +8045,7 @@ msgstr "重置"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:87
 msgid "Reset All"
-msgstr ""
+msgstr "全部重置"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:547
 msgid "Reset Ignore Panic Handler"
@@ -8121,6 +8187,9 @@ msgid ""
 "used.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
+"将 2D 顶点舍入为整数像素并将视口大小舍入为整数。<br><br>修正部分游戏在较高内"
+"部分辨率下的图像问题。该选项在使用原生内部分辨率时没有效果。"
+"<br><br><dolphin_emphasis>如果不确定，请不要勾选此项。</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:79
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:254
@@ -8390,7 +8459,7 @@ msgstr "扫描成功。"
 msgid "ScrShot"
 msgstr "截图"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:156
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
 #: Source/Core/DolphinQt/MenuBar.cpp:514
 msgid "Search"
@@ -8574,6 +8643,10 @@ msgstr "选择游戏"
 msgid "Select a SD Card Image"
 msgstr "选择 SD 卡镜像"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:736
+msgid "Select a file"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/GameListDialog.cpp:18
 msgid "Select a game"
 msgstr "选择游戏"
@@ -8749,12 +8822,16 @@ msgstr "设置值(&V)"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:443
 msgid "Set &blr"
-msgstr ""
+msgstr "设置 blr (&B)"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
 #: Source/Core/Core/HotkeyManager.cpp:73 Source/Core/DolphinQt/ToolBar.cpp:114
 msgid "Set PC"
 msgstr "设置 PC"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
+msgid "Set Value From File"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:372
 msgid "Set as &Default ISO"
@@ -9008,7 +9085,7 @@ msgstr "显示全球"
 msgid "Show in &memory"
 msgstr "在内存中显示(&M)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:440
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
 msgid "Show in code"
 msgstr "在代码中显示"
 
@@ -9018,7 +9095,7 @@ msgstr "在服务器浏览器中显示"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:543
 msgid "Show target in memor&y"
-msgstr ""
+msgstr "在内存中显示目标(&Y)"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:165
 msgid ""
@@ -9081,17 +9158,20 @@ msgstr "横握 Wii 遥控器"
 msgid "Signature Database"
 msgstr "签名数据库"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
-msgid "Signed 16"
-msgstr ""
-
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
-msgid "Signed 32"
-msgstr ""
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
+msgid "Signed 16"
+msgstr "有符号 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:203
+msgid "Signed 32"
+msgstr "有符号 32"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:201
 msgid "Signed 8"
-msgstr ""
+msgstr "有符号 8"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:145
 msgid "Signed Integer"
@@ -9426,7 +9506,7 @@ msgstr "停止播放/录制输入"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:192
 msgid "Stop Recording"
-msgstr ""
+msgstr "停止录制"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:381
 msgid "Stopped game"
@@ -9617,6 +9697,11 @@ msgid ""
 "Symbols -> Generate Symbols From ->\n"
 "\tAddress | Signature Database | RSO Modules"
 msgstr ""
+"未找到符号映射。\n"
+"\n"
+"如果不存在，你可以从菜单栏生成一个：\n"
+"符号 -> 生成符号自 ->\n"
+"\t地址 | 签名数据库 | RSO 模块"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:736
 msgid "Symbol name:"
@@ -10081,7 +10166,7 @@ msgstr "分区 {0} 未正确对齐。"
 msgid "There are too many partitions in the first partition table."
 msgstr "第一个分区表中的分区太多。"
 
-#: Source/Core/Core/State.cpp:729
+#: Source/Core/Core/State.cpp:731
 msgid "There is nothing to undo!"
 msgstr "没有需要撤销的操作。"
 
@@ -10386,7 +10471,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "切换长宽比"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:449
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:614
 msgid "Toggle Breakpoint"
 msgstr "切换断点"
 
@@ -10458,7 +10543,7 @@ msgstr "上下"
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
 msgid "Total Hits"
-msgstr ""
+msgstr "总命中数"
 
 #. i18n: Refers to an amount of rotational movement about the "pitch" axis.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:55
@@ -10537,21 +10622,13 @@ msgstr "扳机"
 msgid "Type"
 msgstr "类型"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:210
+msgid "Type-based Alignment"
+msgstr ""
+
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:48
 msgid "Typical GameCube/Wii Address Space"
 msgstr "典型 GameCube/Wii 地址空间"
-
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:185
-msgid "U&16"
-msgstr "U&16"
-
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:186
-msgid "U&32"
-msgstr "U&32"
-
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:184
-msgid "U&8"
-msgstr "U&8"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:288
 msgid "UNKNOWN"
@@ -10610,6 +10687,10 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "无法自动检测 RSO 模块"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
+msgid "Unable to open file."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:150
 msgid ""
 "Unable to parse line %1 of the entered AR code as a valid encrypted or "
@@ -10632,6 +10713,10 @@ msgstr ""
 "不能将所输入 AR 代码的第 %1 行作为有效代码进行分析。请确保代码输入正确。\n"
 "\n"
 "是否要忽略此行继续分析？"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
+msgid "Unable to read file."
+msgstr ""
 
 #: Source/Core/DiscIO/NANDImporter.cpp:268
 msgid "Unable to write to file {0}"
@@ -10673,7 +10758,7 @@ msgstr ""
 msgid "United States"
 msgstr "美国"
 
-#: Source/Core/Core/State.cpp:470 Source/Core/DiscIO/Enums.cpp:63
+#: Source/Core/Core/State.cpp:472 Source/Core/DiscIO/Enums.cpp:63
 #: Source/Core/DiscIO/Enums.cpp:107
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:85
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:43
@@ -10760,17 +10845,20 @@ msgstr "解锁光标"
 msgid "Unpacking"
 msgstr "正在解包"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
-msgid "Unsigned 16"
-msgstr ""
-
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
-msgid "Unsigned 32"
-msgstr ""
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:199
+msgid "Unsigned 16"
+msgstr "无符号 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:200
+msgid "Unsigned 32"
+msgstr "无符号 32"
+
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
 msgid "Unsigned 8"
-msgstr ""
+msgstr "无符号 8"
 
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:146
 msgid "Unsigned Integer"
@@ -10925,6 +11013,19 @@ msgid ""
 "You can continue to use 'Code did not get executed'/'Code has been executed' "
 "to narrow down the results."
 msgstr ""
+"用于根据应该运行的时间来查找函数。\n"
+"类似于 Cheat Engine 终极映射。\n"
+"使用前必须加载符号映射。\n"
+"包含/排除列表将在结束/重启模拟时持续存在。\n"
+"这些列表在 Dolphin 关闭时不会保留。\n"
+"\n"
+"“开始录制”：跟踪运行的函数。\n"
+"“停止录制”：擦除当前录制内容但不更改到列表。\n"
+"“代码未执行”：录制时点击，则将录制的函数添加到排除列表，然后重置录制列表。\n"
+"“代码已执行”：录制时点击，则将录制的函数添加到包含列表，然后重置录制列表。\n"
+"\n"
+"在你同时使用排除和包含一次后，将从包含列表中减去排除列表，并显示任意剩余的包"
+"含数。你可以继续使用“代码未执行”/“代码已执行”来缩小结果范围。"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:178
 msgid "User Config"
@@ -11014,7 +11115,7 @@ msgstr "实用功能"
 msgid "V-Sync"
 msgstr "垂直同步"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:118
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:119
 msgid "Value"
 msgstr "值"
 
@@ -11453,7 +11554,7 @@ msgstr "写入存档数据"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
 #. The string does not mean "write-only" in the sense that something cannot be read from.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:213
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:242
 msgid "Write only"
 msgstr "只写"
 
