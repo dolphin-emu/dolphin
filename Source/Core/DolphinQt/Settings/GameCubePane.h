@@ -38,6 +38,7 @@ private:
   void OnConfigPressed(ExpansionInterface::Slot slot);
 
   void BrowseMemcard(ExpansionInterface::Slot slot);
+  void BrowseGCIFolder(ExpansionInterface::Slot slot);
   void BrowseAGPRom(ExpansionInterface::Slot slot);
   void BrowseGBABios();
   void BrowseGBARom(size_t index);

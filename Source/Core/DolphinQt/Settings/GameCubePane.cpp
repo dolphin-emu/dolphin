@@ -254,7 +254,8 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   case ExpansionInterface::Slot::B:
     has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
                   device == ExpansionInterface::EXIDeviceType::AGP ||
-                  device == ExpansionInterface::EXIDeviceType::Microphone);
+                  device == ExpansionInterface::EXIDeviceType::Microphone ||
+                  device == ExpansionInterface::EXIDeviceType::MemoryCardFolder);
     break;
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
@@ -281,6 +282,9 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   case ExpansionInterface::EXIDeviceType::Microphone:
     // TODO: convert MappingWindow to use Slot?
     MappingWindow(this, MappingWindow::Type::MAPPING_GC_MICROPHONE, static_cast<int>(slot)).exec();
+    return;
+  case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
+    BrowseGCIFolder(slot);
     return;
   case ExpansionInterface::EXIDeviceType::Ethernet:
   {
@@ -362,6 +366,28 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
     // ChangeDevice unplugs the device for 1 second, which means that games should notice that
     // the path has changed and thus the memory card contents have changed
     ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCard);
+  }
+}
+
+void GameCubePane::BrowseGCIFolder(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+
+  QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
+      this, tr("Choose a folder to open"),
+      QString::fromStdString(File::GetUserPath(D_GCUSER_IDX))));
+
+  if (dir.isEmpty())
+    return;
+
+  QString dir_old = QString::fromStdString(Config::Get(Config::GetInfoForGCIPathOverride(slot)));
+
+  Config::SetBase(Config::GetInfoForGCIPathOverride(slot), dir.toStdString());
+
+  if (Core::IsRunning() && dir != dir_old)
+  {
+    // If it was done for memcards and AGP we'll do it for GCI folders it should be kept consistant.
+    ExpansionInterface::ChangeDevice(slot, ExpansionInterface::EXIDeviceType::MemoryCardFolder);
   }
 }
 

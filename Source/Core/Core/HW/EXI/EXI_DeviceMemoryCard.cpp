@@ -147,12 +147,12 @@ CEXIMemoryCard::CEXIMemoryCard(const Slot slot, bool gci_folder,
 std::pair<std::string /* path */, bool /* migrate */>
 CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_folder)
 {
-  std::string path_override = Config::Get(Config::GetInfoForGCIPathOverride(card_slot));
+  std::string path = Config::Get(Config::GetInfoForGCIPathOverride(card_slot));
 
-  if (!path_override.empty())
-    return {std::move(path_override), false};
-
-  std::string path = File::GetUserPath(D_GCUSER_IDX);
+  if (path.empty())
+    path = File::GetUserPath(D_GCUSER_IDX);
+  else
+    path += DIR_SEP;
 
   const bool use_movie_folder = allow_movie_folder == AllowMovieFolder::Yes &&
                                 Movie::IsPlayingInput() && Movie::IsConfigSaved() &&
