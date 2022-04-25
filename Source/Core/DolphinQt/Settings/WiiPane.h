@@ -12,6 +12,7 @@ class QListWidget;
 class QPushButton;
 class QComboBox;
 class QCheckBox;
+class QLineEdit;
 
 class WiiPane : public QWidget
 {
@@ -51,6 +52,8 @@ private:
   QLabel* m_aspect_ratio_choice_label;
   QComboBox* m_sound_mode_choice;
   QLabel* m_sound_mode_choice_label;
+  QLabel* m_nus_url_label;
+  QLineEdit* m_nus_url_edit;
 
   // Whitelisted USB Passthrough Devices
   QListWidget* m_whitelist_usb_list;

@@ -9,6 +9,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSlider>
@@ -80,6 +81,7 @@ void WiiPane::ConnectLayout()
           &QCheckBox::setChecked);
   connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
           m_connect_keyboard_checkbox, &QCheckBox::setChecked);
+  connect(m_nus_url_edit, &QLineEdit::editingFinished, this, &WiiPane::OnSaveConfig);
 
   // Whitelisted USB Passthrough Devices
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
@@ -137,12 +139,17 @@ void WiiPane::CreateMisc()
   // i18n: Surround audio (Dolby Pro Logic II)
   m_sound_mode_choice->addItem(tr("Surround"));
 
+  m_nus_url_label = new QLabel(tr("Online Update Server:"));
+  m_nus_url_edit = new QLineEdit();
+
   m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
                                        "(576i) for PAL games.\nMay not work for all games."));
   m_screensaver_checkbox->setToolTip(tr("Dims the screen after five minutes of inactivity."));
   m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
   m_sd_card_checkbox->setToolTip(tr("Supports SD and SDHC. Default size is 128 MB."));
   m_connect_keyboard_checkbox->setToolTip(tr("May cause slow down in Wii Menu and some games."));
+  m_nus_url_edit->setToolTip(tr("The server used for checking if a system update is available."
+                                "\nIf unsure, do not change the default value."));
 
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_sd_card_checkbox, 0, 1, 1, 1);
@@ -155,6 +162,8 @@ void WiiPane::CreateMisc()
   misc_settings_group_layout->addWidget(m_system_language_choice, 4, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_sound_mode_choice_label, 5, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_sound_mode_choice, 5, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_nus_url_label, 6, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_nus_url_edit, 6, 1, 1, 1);
 }
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
@@ -233,6 +242,7 @@ void WiiPane::LoadConfig()
   m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
   m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
   m_sound_mode_choice->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
+  m_nus_url_edit->setText(QString::fromStdString(Config::Get(Config::MAIN_WII_NUS_SHOP_URL)));
 
   PopulateUSBPassthroughListWidget();
 
@@ -252,6 +262,16 @@ void WiiPane::OnSaveConfig()
   Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
   Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
+
+  std::string nus_url = m_nus_url_edit->text().toStdString();
+  if (nus_url.compare(0, 4, "http"))
+  {
+    nus_url.insert(0, "http://");
+  }
+
+  m_nus_url_edit->setText(QString::fromStdString(nus_url));
+
+  Config::SetBase(Config::MAIN_WII_NUS_SHOP_URL, m_nus_url_edit->text().toStdString());
 
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
                        TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
