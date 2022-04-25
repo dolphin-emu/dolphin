@@ -204,6 +204,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STATFILES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_HUDFILES_IDX));
 #ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));
