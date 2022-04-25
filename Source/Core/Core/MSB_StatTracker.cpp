@@ -9,6 +9,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/IniFile.h"
 #include "Core/LocalPlayersConfig.h"
+#include "Common/Version.h"
 
 #include "Common/Swap.h"
 
@@ -906,6 +907,7 @@ std::string StatTracker::getStatJSON(bool inDecode){
 
     json_stream << "  \"Average Ping\": " << std::to_string(m_game_info.avg_ping) << "," << std::endl;
     json_stream << "  \"Lag Spikes\": " << std::to_string(m_game_info.lag_spikes) << "," << std::endl;
+    json_stream << "  \"Version\": \"" << Common::GetRioRevStr() << "\"," << std::endl;
 
     json_stream << "  \"Character Game Stats\": {" << std::endl;
 
