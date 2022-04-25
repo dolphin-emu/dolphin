@@ -584,7 +584,7 @@ bool CEXIETHERNET::RecvHandlePacket()
       // avoid increasing the BBA register while copying
       // sometime the OS can try to process when it's not completed
       current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : ++current_rwp;
-      
+
       write_ptr = &mBbaMem[current_rwp << 8];
 
       if (page_ptr(BBA_RRP) == current_rwp)

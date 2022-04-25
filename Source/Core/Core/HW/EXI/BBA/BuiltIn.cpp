@@ -141,8 +141,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   to.sin_addr.s_addr = m_current_ip;
   to.sin_family = IPPROTO_UDP;
   to.sin_port = udpdata->source_port;
-  const std::vector<u8> ip_part = {((u8*)&m_router_ip)[0], ((u8*)&m_router_ip)[1], ((u8*)&m_router_ip)[2],
-                                   ((u8*)&m_router_ip)[3]};
+  const std::vector<u8> ip_part = {((u8*)&m_router_ip)[0], ((u8*)&m_router_ip)[1],
+                                   ((u8*)&m_router_ip)[2], ((u8*)&m_router_ip)[3]};
 
   *ippart = Common::IPv4Header(308, IPPROTO_UDP, from, to);
 
@@ -163,9 +163,9 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(Common::EthernetHeader* hwdat
   reply->AddDHCPOption(4, 28,
                        std::vector<u8>{ip_part[0], ip_part[1], ip_part[2], 255});  // broadcast ip
   reply->AddDHCPOption(4, 6, ip_part);                                             // dns server
-  reply->AddDHCPOption(3, 15, std::vector<u8>{0x6c, 0x61, 0x6e});                  // domaine name "lan"
-  reply->AddDHCPOption(4, 3, ip_part);                                             // router ip
-  reply->AddDHCPOption(0, 255, {});                                                // end
+  reply->AddDHCPOption(3, 15, std::vector<u8>{0x6c, 0x61, 0x6e});  // domaine name "lan"
+  reply->AddDHCPOption(4, 3, ip_part);                             // router ip
+  reply->AddDHCPOption(0, 255, {});                                // end
 
   udppart->checksum = Common::ComputeTCPNetworkChecksum(from, to, udppart, 308, IPPROTO_UDP);
 
@@ -359,7 +359,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(Common::EthernetHeader* h
         if (!tcp_buf.used || tcp_buf.seq_id >= ack_num)
           continue;
         Common::TCPHeader* tcppart = (Common::TCPHeader*)&tcp_buf.data[0x22];
-        const u32 seq_end = tcp_buf.seq_id + tcp_buf.data_size - ((tcppart->properties & 0xf0) >> 2) - 34;
+        const u32 seq_end =
+            tcp_buf.seq_id + tcp_buf.data_size - ((tcppart->properties & 0xf0) >> 2) - 34;
         if (seq_end <= ack_num)
         {
           tcp_buf.used = false;  // confirmed data received
@@ -427,7 +428,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(Common::EthernetHeader* h
     ref->local = udpdata->source_port;
     ref->remote = udpdata->destination_port;
     ref->type = 17;
-    ref->bba_mac = *(Common::MACAddress*) & m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
+    ref->bba_mac = *(Common::MACAddress*)&m_eth_ref->mBbaMem[BBA_NAFR_PAR0];
     ref->my_mac = fake_mac;
     ref->from.sin_addr.s_addr = *(u32*)&ipdata->destination_addr;
     ref->from.sin_port = udpdata->destination_port;
@@ -646,7 +647,8 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
     if (self->queue_read != self->queue_write)
     {
       datasize = self->queue_data_size[self->queue_read];
-      std::memcpy(self->m_eth_ref->mRecvBuffer.get(), &self->queue_data[self->queue_read][0], datasize);
+      std::memcpy(self->m_eth_ref->mRecvBuffer.get(), &self->queue_data[self->queue_read][0],
+                  datasize);
       self->queue_read++;
       self->queue_read &= 15;
     }
