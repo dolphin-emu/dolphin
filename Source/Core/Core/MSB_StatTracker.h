@@ -215,9 +215,9 @@ static const std::map<u8, std::string> cSecondaryContactResult = {
     {0x1,  "Out-force"},
     {0x2,  "Out-tag"},
     {0x3,  "foul"},
-    {0x7,  "single"},
-    {0x8,  "double"},
-    {0x9,  "triple"},
+    {0x7,  "Single"},
+    {0x8,  "Double"},
+    {0x9,  "Triple"},
     {0xA,  "HR"},
     {0xD,  "Bunt"},
     {0xE,  "SacFly"},
@@ -231,12 +231,16 @@ static const std::map<u8, std::string> cAtBatResult = {
     {0x4,  "Out"},
     {0x5,  "Caught"},
     {0x6,  "Caught line-drive"},
-    {0x7,  "single"},
-    {0x8,  "double"},
-    {0x9,  "triple"},
+    {0x7,  "Single"},
+    {0x8,  "Double"},
+    {0x9,  "Triple"},
     {0xA,  "HR"},
+    {0xB,  "Error - Input"},
+    {0xC,  "Error - Chem"},
     {0xD,  "Bunt"},
-    {0xE,  "SacFly"}
+    {0xE,  "SacFly"},
+    {0xF,  "Ground ball double Play"},
+    {0x10, "Foul catch"}
 };
 
 static const std::map<u8, std::string> cManualSelectDecode = {
@@ -701,6 +705,7 @@ public:
         //All of the events for this game
         std::map<u16, Event> events;
         Event current_state;
+        Event previous_state;
         bool write_hud = false;
 
 
@@ -928,7 +933,7 @@ public:
     //Returns JSON, PathToWriteTo
     std::string getStatJSON(bool inDecode);
     std::string getEventJSON(u16 in_event_num, Event& in_event, bool inDecode);
-    std::string getHUDJSON(u16 in_event_num, Event& in_event, bool inDecode);
+    std::string getHUDJSON(std::string in_event_num, Event& in_curr_event, std::optional<Event> in_prev_event, bool inDecode);
     //Returns path to save json
     std::string getStatJsonPath(std::string prefix);
 
