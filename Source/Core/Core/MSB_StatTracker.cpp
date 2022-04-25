@@ -210,6 +210,7 @@ void StatTracker::lookForTriggerEvents(){
                 }
                 //HBP or miss
                 if ((Memory::Read_U8(aAB_HitByPitch) == 1) || (Memory::Read_U8(aAB_PitchThrown) == 0)){
+                    m_game_info.getCurrentEvent().result_of_atbat = Memory::Read_U8(aAB_FinalResult);
                     logPitch(m_game_info.getCurrentEvent());
                     logContactMiss(m_game_info.getCurrentEvent()); //Strike or Swing or Bunt
                     m_event_state = EVENT_STATE::MONITOR_RUNNERS;
@@ -294,11 +295,13 @@ void StatTracker::lookForTriggerEvents(){
 
                 //Break out if play ends without fielding the ball (HR or other play ending hit)
                 if (!Memory::Read_U8(aAB_PitchThrown)) {
+                    m_game_info.getCurrentEvent().result_of_atbat = Memory::Read_U8(aAB_FinalResult);
                     m_event_state = EVENT_STATE::PLAY_OVER;
                 }
                 break;
             case (EVENT_STATE::MONITOR_RUNNERS):
                 if (!Memory::Read_U8(aAB_PitchThrown) && !Memory::Read_U8(aAB_PickoffAttempt)){
+                    m_game_info.getCurrentEvent().result_of_atbat = Memory::Read_U8(aAB_FinalResult);
                     m_event_state = EVENT_STATE::PLAY_OVER;
                 }
                 else {
