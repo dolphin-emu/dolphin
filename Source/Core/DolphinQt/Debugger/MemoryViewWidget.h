@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <QTableWidget>
+#include <QWidget>
 
 #include "Common/CommonTypes.h"
 
@@ -14,7 +14,9 @@ namespace AddressSpace
 enum class Type;
 }
 
-class MemoryViewWidget : public QTableWidget
+class MemoryViewTable;
+
+class MemoryViewWidget final : public QWidget
 {
   Q_OBJECT
 public:
@@ -56,11 +58,6 @@ public:
 
   void SetBPLoggingEnabled(bool enabled);
 
-  void resizeEvent(QResizeEvent*) override;
-  void keyPressEvent(QKeyEvent* event) override;
-  void mousePressEvent(QMouseEvent* event) override;
-  void wheelEvent(QWheelEvent* event) override;
-
 signals:
   void BreakpointsChanged();
   void ShowCode(u32 address);
@@ -73,6 +70,7 @@ private:
   void UpdateBreakpointTags();
   void UpdateColumns(Type type, int first_column);
 
+  MemoryViewTable* m_table;
   AddressSpace::Type m_address_space{};
   Type m_type = Type::Hex32;
   BPType m_bp_type = BPType::ReadWrite;
@@ -83,4 +81,6 @@ private:
   int m_bytes_per_row = 16;
   int m_alignment = 16;
   bool m_dual_view = false;
+
+  friend class MemoryViewTable;
 };
