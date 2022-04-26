@@ -471,19 +471,19 @@ void MemoryViewWidget::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Up:
-    m_address -= 16;
+    m_address -= m_bytes_per_row;
     Update();
     return;
   case Qt::Key_Down:
-    m_address += 16;
+    m_address += m_bytes_per_row;
     Update();
     return;
   case Qt::Key_PageUp:
-    m_address -= rowCount() * 16;
+    m_address -= rowCount() * m_bytes_per_row;
     Update();
     return;
   case Qt::Key_PageDown:
-    m_address += rowCount() * 16;
+    m_address += rowCount() * m_bytes_per_row;
     Update();
     return;
   default:
