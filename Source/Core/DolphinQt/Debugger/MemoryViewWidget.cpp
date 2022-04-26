@@ -51,6 +51,7 @@ public:
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setShowGrid(false);
     setContextMenuPolicy(Qt::CustomContextMenu);
+    setSelectionMode(SingleSelection);
 
     connect(this, &MemoryViewTable::customContextMenuRequested, m_view,
             &MemoryViewWidget::OnContextMenu);
@@ -105,12 +106,16 @@ public:
     if (!item)
       return;
 
-    const u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
     if (item->data(USER_ROLE_IS_ROW_BREAKPOINT_CELL).toBool())
+    {
+      const u32 address = item->data(USER_ROLE_CELL_ADDRESS).toUInt();
       m_view->ToggleBreakpoint(address, true);
+      m_view->Update();
+    }
     else
-      m_view->SetAddress(address);
-    m_view->Update();
+    {
+      QTableWidget::mousePressEvent(event);
+    }
   }
 
 private:
@@ -284,7 +289,7 @@ void MemoryViewWidget::Update()
       for (int c = 2; c < m_table->columnCount(); c++)
       {
         auto* item = new QTableWidgetItem(QStringLiteral("-"));
-        item->setFlags(Qt::ItemIsEnabled);
+        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
         item->setData(USER_ROLE_CELL_ADDRESS, row_address);
         item->setData(USER_ROLE_HAS_VALUE, false);
@@ -378,7 +383,6 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
         }
         else
         {
-          cell_item->setFlags({});
           cell_item->setText(QStringLiteral("-"));
           cell_item->setData(USER_ROLE_IS_ROW_BREAKPOINT_CELL, false);
           cell_item->setData(USER_ROLE_CELL_ADDRESS, cell_address);
