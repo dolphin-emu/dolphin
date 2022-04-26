@@ -34,6 +34,13 @@ constexpr auto USER_ROLE_IS_ROW_BREAKPOINT_CELL = Qt::UserRole;
 constexpr auto USER_ROLE_CELL_ADDRESS = Qt::UserRole + 1;
 constexpr auto USER_ROLE_HAS_VALUE = Qt::UserRole + 2;
 
+// Numbers for the scrollbar. These affect how much big the draggable part of the scrollbar is, how
+// smooth it scrolls, and how much memory it traverses while dragging.
+constexpr int SCROLLBAR_MINIMUM = 0;
+constexpr int SCROLLBAR_PAGESTEP = 250;
+constexpr int SCROLLBAR_MAXIMUM = 20000;
+constexpr int SCROLLBAR_CENTER = SCROLLBAR_MAXIMUM / 2;
+
 class MemoryViewTable final : public QTableWidget
 {
 public:
@@ -117,6 +124,19 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QWidget(parent)
 
   m_table = new MemoryViewTable(this);
   layout->addWidget(m_table);
+
+  // Since the Memory View is infinitely long -- it wraps around -- we can't use a normal scroll
+  // bar, so this initializes a custom one that is always centered but otherwise still behaves more
+  // or less like a regular scrollbar.
+  m_scrollbar = new QScrollBar(this);
+  m_scrollbar->setRange(SCROLLBAR_MINIMUM, SCROLLBAR_MAXIMUM);
+  m_scrollbar->setPageStep(SCROLLBAR_PAGESTEP);
+  m_scrollbar->setValue(SCROLLBAR_CENTER);
+  connect(m_scrollbar, &QScrollBar::actionTriggered, this,
+          &MemoryViewWidget::ScrollbarActionTriggered);
+  connect(m_scrollbar, &QScrollBar::sliderReleased, this,
+          &MemoryViewWidget::ScrollbarSliderReleased);
+  layout->addWidget(m_scrollbar);
 
   this->setLayout(layout);
 
@@ -644,4 +664,40 @@ void MemoryViewWidget::OnContextMenu(const QPoint& pos)
   menu->addAction(tr("Toggle Breakpoint"), this, [this, addr] { ToggleBreakpoint(addr, false); });
 
   menu->exec(QCursor::pos());
+}
+
+void MemoryViewWidget::ScrollbarActionTriggered(int action)
+{
+  const int difference = m_scrollbar->sliderPosition() - m_scrollbar->value();
+  if (difference == 0)
+    return;
+
+  if (m_scrollbar->isSliderDown())
+  {
+    // User is currently dragging the scrollbar.
+    // Adjust the memory view by the exact drag difference.
+    SetAddress(m_address + difference * m_bytes_per_row);
+  }
+  else
+  {
+    if (std::abs(difference) == 1)
+    {
+      // User clicked the arrows at the top or bottom, go up/down one row.
+      SetAddress(m_address + difference * m_bytes_per_row);
+    }
+    else
+    {
+      // User clicked the free part of the scrollbar, go up/down one page.
+      SetAddress(m_address + (difference < 0 ? -1 : 1) * m_bytes_per_row * m_table->rowCount());
+    }
+
+    // Manually reset the draggable part of the bar back to the center.
+    m_scrollbar->setSliderPosition(SCROLLBAR_CENTER);
+  }
+}
+
+void MemoryViewWidget::ScrollbarSliderReleased()
+{
+  // Reset the draggable part of the bar back to the center.
+  m_scrollbar->setValue(SCROLLBAR_CENTER);
 }

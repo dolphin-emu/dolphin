@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 
 class QPoint;
+class QScrollBar;
 
 namespace AddressSpace
 {
@@ -69,8 +70,11 @@ private:
   void OnCopyHex(u32 addr);
   void UpdateBreakpointTags();
   void UpdateColumns(Type type, int first_column);
+  void ScrollbarActionTriggered(int action);
+  void ScrollbarSliderReleased();
 
   MemoryViewTable* m_table;
+  QScrollBar* m_scrollbar;
   AddressSpace::Type m_address_space{};
   Type m_type = Type::Hex32;
   BPType m_bp_type = BPType::ReadWrite;
