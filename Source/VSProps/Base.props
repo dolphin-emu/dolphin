@@ -55,7 +55,6 @@
       <ExternalTemplatesDiagnostics>true</ExternalTemplatesDiagnostics>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
-      <PreprocessorDefinitions>FMT_HEADER_ONLY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
         It would be a good idea to disable _CRT_SECURE_NO_WARNINGS and get rid of e.g. C string parsing funcs
         Unfortunately this also complains about FILE* APIs, which can be inconvenient to replace.
