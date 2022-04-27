@@ -5,7 +5,7 @@
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>$(IntDir)bin\</OutDir>
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
-    <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with /Brepro)-->
+    <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with deterministic build)-->
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
@@ -126,13 +126,21 @@
       4946  Reinterpret cast between related types
       -->
       <AdditionalOptions>/w44263 /w44265 /w44946 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
       <!--
         A (currently) hidden switch, like /Brepro, furthermore enabling warnings about non-deterministic code.
         This may be advantageous over /Brepro, which inits __DATE__, __TIME__, etc. equal to 1 (and allows
         them to be redefined), which could have unexpected results.
       -->
       <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
+      <!--
+        pathmap replaces path prefixes of source files with a hardcoded value, assisting with keeping output
+        files uniform even if actually built from different locations. The mapped path doesn't really need full
+        drive prefix, but it keeps things human readable. Note the trailing "\" is actually to be escaped by a
+        preceeding "\" in the expanded variable.
+      -->
+      <AdditionalOptions>/pathmap:"$(DolphinRootDir)\"=d:\ %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/pathmap:"$(WindowsSdkDir)\"=w:\ %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/pathmap:"$(VCToolsetsDir)\"=v:\ %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
@@ -158,7 +166,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/PDBALTPATH:Build\$(Platform)\$(Configuration)\$(ProjectName)\bin\%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <!--Link Release-->
     <Link Condition="'$(Configuration)'=='Release'">
@@ -184,7 +193,7 @@
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
       <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
-      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup />
