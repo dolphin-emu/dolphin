@@ -502,6 +502,12 @@ if(ENCODE_FRAMEDUMPS)
     endif()
     message(STATUS "libav/ffmpeg found, enabling AVI frame dumps")
     add_definitions(-DHAVE_FFMPEG)
+    if(WIN32)
+      # Our prebuilt binaries depend on Bcrypt
+      set_property(TARGET FFmpeg::avutil APPEND PROPERTY
+        INTERFACE_LINK_LIBRARIES "Bcrypt.lib"
+      )
+    endif()
   else()
     message(STATUS "libav/ffmpeg not found, disabling AVI frame dumps")
   endif()
