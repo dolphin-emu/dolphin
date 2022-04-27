@@ -7,6 +7,8 @@
 #include <iostream>
 namespace fs = std::filesystem;
 #include "unzip.h"
+#define WINDOWS_LEAN_AND_MEAN
+#include <Windows.h>
 
 #include <algorithm>
 #include <array>
@@ -1472,6 +1474,8 @@ void EndPlayInput(bool cont)
     Core::QueueHostJob([=] { Core::UpdateWantDeterminism(); });
   }
 }
+
+
 
 // NOTE: Save State + Host Thread
 void SaveRecording(const std::string& filename)

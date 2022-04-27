@@ -157,6 +157,24 @@ void FrameUpdateOnCPUThread()
     NetPlay::NetPlayClient::SendTimeBase();
 }
 
+std::wstring GetEnvString()
+{
+  wchar_t* env = GetEnvironmentStrings();
+  if (!env)
+    abort();
+  const wchar_t* var = env;
+  size_t totallen = 0;
+  size_t len;
+  while ((len = wcslen(var)) > 0)
+  {
+    totallen += len + 1;
+    var += len + 1;
+  }
+  std::wstring result(env, totallen);
+  FreeEnvironmentStrings(env);
+  return result;
+}
+
 void OnFrameEnd()
 {
 #ifdef USE_MEMORYWATCHER
@@ -165,42 +183,52 @@ void OnFrameEnd()
 #endif
   static const u32 matchStart = 0x80400000;
   static const u32 matchEnd = 0x80400001;
+  static const u32 sceneID = 0x81440ce3;
 
   // c2 gecko for hud (800f83bc) must be on to make this happen
   // movie cannot be playing input back since we do not want to record that
-  if (Memory::Read_U8(matchStart) == 1 && !boolMatchStart && !Movie::IsPlayingInput())
+  if (Memory::Read_U8(sceneID) == 8 && !boolMatchStart && !Movie::IsPlayingInput() && !Movie::IsRecordingInput())
   {
     boolMatchStart = true;
+
     // begin recording
 
-    Movie::SetReadOnly(false);
-    Movie::ControllerTypeArray controllers{};
-    Movie::WiimoteEnabledArray wiimotes{};
+    keybd_event(VK_HOME, 0x24, 0, 0);
+    keybd_event(VK_HOME, 0x24, KEYEVENTF_KEYUP, 0);
+    //Movie::SetReadOnly(false);
+    //Movie::ControllerTypeArray controllers{};
+    //Movie::WiimoteEnabledArray wiimotes{};
 
-    for (int i = 0; i < 4; i++)
-    {
-      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
-      if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
-        controllers[i] = Movie::ControllerType::GBA;
-      else if (SerialInterface::SIDevice_IsGCController(si_device))
-        controllers[i] = Movie::ControllerType::GC;
-      else
-        controllers[i] = Movie::ControllerType::None;
-      wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
-    }
+    //for (int i = 0; i < 4; i++)
+    //{
+    //  const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    //  if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+    //    controllers[i] = Movie::ControllerType::GBA;
+    //  else if (SerialInterface::SIDevice_IsGCController(si_device))
+    //    controllers[i] = Movie::ControllerType::GC;
+    //  else
+    //    controllers[i] = Movie::ControllerType::None;
+    //  wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+    //}
 
-    Movie::BeginRecordingInput(controllers, wiimotes);
+    //Movie::BeginRecordingInput(controllers, wiimotes);
   }
 
-  if (Memory::Read_U8(matchEnd) == 1 && !boolMatchEnd && !Movie::IsPlayingInput())
+  if (Memory::Read_U8(sceneID) == 9 && !boolMatchEnd && !Movie::IsPlayingInput() &&
+      Movie::IsRecordingInput())
   {
     boolMatchEnd = true;
     if (Movie::IsRecordingInput())
-      Movie::SaveRecording("C:\\Users\\Brian\\Desktop\\throw dtm here\\53.dtm");
+      RunAsCPUThread(
+          [] { Movie::SaveRecording("C:\\Users\\PoolBoi\\Desktop\\throw dtm here\\test.dtm");
+        });
+      // call my batch script to move dtms into cits here. not needed til i get dtm working.
+      //Movie::SaveRecording("C:\\Users\\PoolBoi\\Desktop\\throw dtm here\\53.dtm");
     if (Movie::IsMovieActive())
       Movie::EndPlayInput(false);
   }
 }
+
 // Display messages and return values
 
 // Formatted stop message

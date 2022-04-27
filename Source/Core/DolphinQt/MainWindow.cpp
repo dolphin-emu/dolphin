@@ -1692,7 +1692,7 @@ void MainWindow::OnImportNANDBackup()
 void MainWindow::OnPlayRecording()
 {
   QString dtm_file = DolphinFileDialog::getOpenFileName(
-      this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm)"));
+      this, tr("Select the Recording File to Play"), QString(), tr("Dolphin TAS Movies (*.dtm);;Citrus Replay Files (*.cit)"));
 
   if (dtm_file.isEmpty())
     return;
