@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="..\Source\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
@@ -24,7 +24,7 @@
     <MoFiles Include="@(PoFiles -> '$(OutDir)%(Filename).mo')" />
     <MoFilesDst Include="@(MoFiles -> '$(BinaryOutputDir)Languages\%(Filename)%(Extension)')" />
   </ItemGroup>
-  <Target Name="MsgFmtCompile" BeforeTargets="Midl" AfterTargets="CustomBuild" Inputs="@(PoFiles)" Outputs="@(MoFiles)">
+  <Target Name="MsgFmtCompile" BeforeTargets="BuildGenerateSources" Inputs="@(PoFiles)" Outputs="@(MoFiles)">
     <Exec Command='$(msgfmt) -o "$(OutDir)%(PoFiles.Filename).mo" "@(PoFiles)"' />
   </Target>
   <Target Name="MsgFmtCopy" AfterTargets="MsgFmtCompile" Inputs="@(MoFiles)" Outputs="@(MoFilesDst)">
