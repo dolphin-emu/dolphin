@@ -287,7 +287,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_sources(common PUBLIC HRWrap.h HRWrap.cpp)
+  target_sources(common PRIVATE HRWrap.h HRWrap.cpp)
 endif()
 
 if(USE_UPNP)
