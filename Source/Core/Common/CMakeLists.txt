@@ -308,3 +308,14 @@ if(UNIX)
 elseif(WIN32)
   target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
 endif()
+
+if(MSVC)
+  # Add precompiled header
+  # it will propergate down to everything that depends on common
+  target_link_libraries(common PUBLIC pch)
+
+  # We need to disable PCH for this one file, because it's C and our PCH is C++
+  set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ImageC.c
+    PROPERTIES COMPILE_FLAGS "/Y- /I${CMAKE_SOURCE_DIR}/Source/PCH/nopch")
+endif()
