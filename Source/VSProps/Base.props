@@ -7,6 +7,14 @@
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
     <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with deterministic build)-->
     <LinkIncremental>false</LinkIncremental>
+    <!--
+      This works around some dependency tracking bugs where msbuild sees project outputs (object files) as inputs
+      to that same project, causing unstable build. see https://developercommunity.visualstudio.com/t/1703887
+      It also tends to poorly predict how much resources will actually be used in solutions with many diverse
+      project sizes (like dolphin...)
+      TODO This should be the default behavior in VS 17.2
+      -->
+    <UseMSBuildResourceManager>false</UseMSBuildResourceManager>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
