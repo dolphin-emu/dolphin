@@ -382,9 +382,6 @@ if (WIN32)
 endif()
 
 if (MSVC)
-  # Don't propogate warnings in qt headers to Dolphin
-  target_compile_options(dolphin-emu PRIVATE /experimental:external)
-  target_compile_options(dolphin-emu PRIVATE /external:W0)
   set(qtGui "")
   set(qtGuiPriv "")
   set(qtWidgetsPriv "")
