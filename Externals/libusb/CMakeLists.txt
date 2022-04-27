@@ -26,6 +26,7 @@ if(WIN32 OR CYGWIN)
       libusb/libusb/os/windows_common.c
       libusb/libusb/os/windows_usbdk.c
       libusb/libusb/os/windows_winusb.c
+      libusb/libusb/os/events_windows.c
     )
     set(PLATFORM_WINDOWS TRUE)
 elseif(APPLE)
