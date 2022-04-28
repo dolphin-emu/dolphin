@@ -16,6 +16,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
 
+# Required for cmake to select the correct runtime library in MSVC builds.
+cmake_policy(SET CMP0091 NEW)
+
 project(dolphin-emu)
 
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
