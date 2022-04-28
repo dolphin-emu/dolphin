@@ -9,15 +9,19 @@ cmake_minimum_required(VERSION 3.10)
 # MacOS prior to 10.14 did not support aligned alloc which is used to implement
 # std::unique_ptr in the arm64 C++ standard library. x86_64 builds can override
 # this to 10.13.0 using -DCMAKE_OSX_DEPLOYMENT_TARGET="10.13.0" without issue.
-# This is done in the universal binary building script to build a binary that 
+# This is done in the universal binary building script to build a binary that
 # runs on 10.13 on x86_64 computers, while still containing an arm64 slice.
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
 
-# Required for cmake to select the correct runtime library in MSVC builds.
-cmake_policy(SET CMP0091 NEW)
+# Optionally enable these polcies so older versions of cmake don't break.
+# we only need them for MSVC
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW) # MSVC runtime library flags are selected by an abstraction.
+  cmake_policy(SET CMP0092 NEW) # MSVC warning flags are not in CMAKE_{C,CXX}_FLAGS by default.
+endif()
 
 project(dolphin-emu)
 
@@ -81,7 +85,7 @@ endif()
 
 if(APPLE)
   option(MACOS_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
-  option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF) 
+  option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
   # Enable adhoc code signing by default (otherwise makefile builds on ARM will not work)
   option(MACOS_CODE_SIGNING "Enable codesigning" ON)
   set(MACOS_CODE_SIGNING_IDENTITY "-" CACHE STRING "The identity used for codesigning.")
@@ -247,7 +251,14 @@ elseif(CMAKE_GENERATOR MATCHES "Visual Studio")
   add_compile_options("/MP")
 endif()
 
-if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+if(MSVC)
+  if(POLICY CMP0091)
+    # cmake is a weird language. You can't do if(not POLICY)
+  else()
+    # We really kind of want this policy
+    message(FATAL_ERROR "please update cmake to at least 3.15")
+  endif()
+
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
@@ -497,7 +508,7 @@ if(ENCODE_FRAMEDUMPS)
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swresample swscale)
   if(FFmpeg_FOUND)
-    if(APPLE) 
+    if(APPLE)
       find_library(COREMEDIA_LIBRARY CoreMedia)
       find_library(VIDEOTOOLBOX_LIBRARY VideoToolbox)
       find_library(COREVIDEO_LIBRARY CoreVideo)
