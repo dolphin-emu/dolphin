@@ -35,9 +35,9 @@ enum class RegisterType
   pt_hashmask  // ???
 };
 
-enum class RegisterDisplay
+enum class RegisterDisplay : int
 {
-  Hex,
+  Hex = 0,
   SInt32,
   UInt32,
   Float,
