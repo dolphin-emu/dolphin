@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-24 10:06+0200\n"
+"POT-Creation-Date: 2022-04-30 23:46+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2022\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -1157,7 +1157,7 @@ msgstr "메모리 중단점 추가"
 msgid "Add to &watch"
 msgstr "관찰에 추가 (&w)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:609
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:619
 msgid "Add to watch"
 msgstr "관찰에 추가"
 
@@ -1294,7 +1294,7 @@ msgstr "모든 저장 상태 (*.sav *.s##);; 모든 파일 (*)"
 msgid "All devices"
 msgstr "모든 장치"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:738
 msgid "All files (*)"
 msgstr ""
 
@@ -1605,13 +1605,13 @@ msgstr "백그라운드 입력"
 msgid "Backward"
 msgstr "뒤로"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:863
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:864
 msgid "Bad Value Given"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:849
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:850
 msgid "Bad address provided."
 msgstr "안 좋은 주소가 제공되었습니다."
 
@@ -1619,13 +1619,13 @@ msgstr "안 좋은 주소가 제공되었습니다."
 msgid "Bad dump"
 msgstr "안 좋은 덤프"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:855
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:856
 msgid "Bad offset provided."
 msgstr "안 좋은 오프셋이 제공되었습니다."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
 msgid "Bad value provided."
 msgstr "안 좋은 값이 제공되었습니다."
 
@@ -2509,7 +2509,7 @@ msgstr "함수 복사 (&f)"
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:595
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
 msgid "Copy Address"
 msgstr "주소 복사"
 
@@ -2517,9 +2517,13 @@ msgstr "주소 복사"
 msgid "Copy Failed"
 msgstr "복사가 실패했습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:599
 msgid "Copy Hex"
 msgstr "헥스 복사"
+
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
+msgid "Copy Value"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:538
 msgid "Copy code &line"
@@ -3939,15 +3943,15 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:777
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:784
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -4331,16 +4335,16 @@ msgstr "Redump.org 연결에 실패했습니다"
 msgid "Failed to connect to server: %1"
 msgstr "서버 연결에 실패했습니다: %1"
 
-#: Source/Core/VideoBackends/D3D/D3DMain.cpp:150
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:125
+#: Source/Core/VideoBackends/D3D/D3DMain.cpp:149
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:124
 msgid "Failed to create D3D swap chain"
 msgstr "D3D 스왑 체인 생성에 실패했습니다"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:107
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:106
 msgid "Failed to create D3D12 context"
 msgstr "D3D12 맥락 생성에 실패했습니다"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:116
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:115
 msgid "Failed to create D3D12 global resources"
 msgstr "D3D12 글로벌 리소스 생성에 실패했습니다"
 
@@ -4369,11 +4373,11 @@ msgstr "블투 패스쓰루용 커널 드라이버를 분리하는데에 실패�
 msgid "Failed to download codes."
 msgstr "코드 다운로드에 실패했습니다."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:779
 msgid "Failed to dump %1: Can't open file"
 msgstr "덤프에 실패했습니다 %1: 파일을 열 수 없습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:786
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "덤프에 실패했습니다 %1: 파일에 쓰기를 실패했습니다"
 
@@ -4455,8 +4459,8 @@ msgstr ""
 "비디오 카드가 적어도 D3D 10.0 지원하는지 확인하세요\n"
 "{0}"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:143
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:198
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:142
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:197
 msgid "Failed to initialize renderer classes"
 msgstr "렌더러 클래스 초기화에 실패했습니다"
 
@@ -4994,7 +4998,7 @@ msgstr "프레임 덤핑"
 msgid "Frame Range"
 msgstr "프레임 범위"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1765
+#: Source/Core/VideoCommon/RenderBase.cpp:1766
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "프레임 덤프 이미지(들) '{0}' 가 이미 존재합니다. 덮어쓰시겠습니까?"
 
@@ -5170,7 +5174,7 @@ msgstr ""
 "추가로 에러들은 비디오 백엔드 로그에 보내질 것이며\n"
 "돌핀은 이제 깨지거나 멈추려 할 것입니다. 즐기세요."
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:165
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:164
 msgid "GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024."
 msgstr "GL_MAX_TEXTURE_SIZE 가 {0} 입니다 - 적어도 1024 이어야만 합니다."
 
@@ -5186,7 +5190,7 @@ msgstr ""
 "GPU: 에러: 멀티 렌더 타겟을 위해 GL_ARB_framebuffer_object 가 필요합니다.\n"
 "GPU: 당신의 비디오 카드가 OpenGL 3.0 을 지원합니까?"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:129
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:128
 msgid "GPU: OGL ERROR: Does your video card support OpenGL 2.0?"
 msgstr "GPU: OGL 에러: 당신의 비디오 카드가 OpenGL 2.0 을 지원합니까?"
 
@@ -5222,7 +5226,7 @@ msgstr ""
 "GPU: OGL 에러:  GL_ARB_vertex_array_object 가 필요합니다.\n"
 "GPU: 당신의 비디오 카드가 OpenGL 3.0 을 지원합니까?"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:136
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:135
 msgid ""
 "GPU: OGL ERROR: Need OpenGL version 3.\n"
 "GPU: Does your video card support OpenGL 3?"
@@ -5240,7 +5244,7 @@ msgstr ""
 "GPU: 당신의 비디오 카드가  OpenGL 3.0 을 지원합니까?\n"
 "GPU: 당신의 드라이버는 GLSL {0} 을 지원합니다"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:153
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:152
 msgid ""
 "GPU: OGL ERROR: Number of attributes {0} not enough.\n"
 "GPU: Does your video card support OpenGL 2.x?"
@@ -6737,7 +6741,7 @@ msgstr "매핑"
 msgid "Mask ROM"
 msgstr "마스크 롬"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:881
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:882
 msgid "Match Found"
 msgstr "일치 발견"
 
@@ -7127,7 +7131,7 @@ msgstr "오디오 출력 없음"
 msgid "No Compression"
 msgstr "압축하지 않음"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:893
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:894
 msgid "No Match"
 msgstr "일치 없음"
 
@@ -7267,7 +7271,7 @@ msgid "Notice"
 msgstr "알림"
 
 #. i18n: Null is referring to the null video backend, which renders nothing
-#: Source/Core/VideoBackends/Null/NullBackend.cpp:110
+#: Source/Core/VideoBackends/Null/NullBackend.cpp:109
 msgid "Null"
 msgstr "없음"
 
@@ -8742,7 +8746,7 @@ msgstr "게임 선택"
 msgid "Select a SD Card Image"
 msgstr "SD 카드 이미지 선택"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:736
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
 msgid "Select a file"
 msgstr ""
 
@@ -9194,7 +9198,7 @@ msgstr "세계"
 msgid "Show in &memory"
 msgstr "메모리로 보기 (&m)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:615
 msgid "Show in code"
 msgstr "코드로 보기"
 
@@ -10625,7 +10629,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "종횡비 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:624
 msgid "Toggle Breakpoint"
 msgstr "중단점 토글"
 
@@ -10846,7 +10850,7 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "RSO 모듈을 자동-감지할 수 없습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
 msgid "Unable to open file."
 msgstr ""
 
@@ -10874,7 +10878,7 @@ msgstr ""
 "\n"
 "이 라인을 무시하고 분석을 계속합니까?"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
 msgid "Unable to read file."
 msgstr ""
 

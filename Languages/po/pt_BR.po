@@ -46,7 +46,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-24 10:06+0200\n"
+"POT-Creation-Date: 2022-04-30 23:46+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Runo <i.am.runo@gmail.com>, 2013\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
@@ -734,7 +734,7 @@ msgstr "128 Mbits (2043 blocos)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
 msgid "16 Bytes"
-msgstr ""
+msgstr "16 Bytes"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:28
 msgid "16 Mbit (251 blocks)"
@@ -822,7 +822,7 @@ msgstr "3x Nativa (1920x1584) para 1080p"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
 msgid "4 Bytes"
-msgstr ""
+msgstr "4 Bytes"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:26
 msgid "4 Mbit (59 blocks)"
@@ -874,7 +874,7 @@ msgstr "7x Nativa (4480x3696)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:215
 msgid "8 Bytes"
-msgstr ""
+msgstr "8 Bytes"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:27
 msgid "8 Mbit (123 blocks)"
@@ -1199,7 +1199,7 @@ msgstr "Adicionar ponto de interrupção da memória"
 msgid "Add to &watch"
 msgstr "Adicionar a &observação"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:609
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:619
 msgid "Add to watch"
 msgstr "Adicionar a observação"
 
@@ -1338,9 +1338,9 @@ msgstr "Todos os Estados Salvos (*.sav *.s##);;Todos os arquivos (*)"
 msgid "All devices"
 msgstr "Todos os dispositivos"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:738
 msgid "All files (*)"
-msgstr ""
+msgstr "Todos os arquivos (*)"
 
 #: Source/Core/Core/NetPlayServer.cpp:1170
 msgid "All players' codes synchronized."
@@ -1652,13 +1652,13 @@ msgstr "Entrada de Dados em Segundo Plano"
 msgid "Backward"
 msgstr "Para trás"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:863
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:864
 msgid "Bad Value Given"
 msgstr "Valor Ruim Dado"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:849
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:850
 msgid "Bad address provided."
 msgstr "Endereço ruim fornecido."
 
@@ -1666,13 +1666,13 @@ msgstr "Endereço ruim fornecido."
 msgid "Bad dump"
 msgstr "Cópia com erros"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:855
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:856
 msgid "Bad offset provided."
 msgstr "Deslocamento ruim fornecido."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
 msgid "Bad value provided."
 msgstr "Valor ruim fornecido."
 
@@ -2001,13 +2001,14 @@ msgstr "Só é possível gerar códigos AR para valores na memória virtual."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1772
 msgid "Can't find Wii Remote by connection handle {0:02x}"
-msgstr "Não consegue achar o Wii Remote pela manipulação da conexão {0:02x}"
+msgstr ""
+"Não foi possível encontrar o Wii Remote pelo identificador de conexão {0:02x}"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1418
 #: Source/Core/DolphinQt/MainWindow.cpp:1485
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr ""
-"Não pode iniciar uma Sessão do NetPlay enquanto um jogo ainda está em "
+"Não é possível iniciar uma sessão do NetPlay enquanto um jogo está em "
 "execução!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
@@ -2571,7 +2572,7 @@ msgstr "Copiar &função"
 msgid "Copy &hex"
 msgstr "Copiar &hex"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:595
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
 msgid "Copy Address"
 msgstr "Copiar Endereço"
 
@@ -2579,9 +2580,13 @@ msgstr "Copiar Endereço"
 msgid "Copy Failed"
 msgstr "Falha ao Copiar"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:599
 msgid "Copy Hex"
 msgstr "Copiar Hex"
+
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
+msgid "Copy Value"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:538
 msgid "Copy code &line"
@@ -3255,7 +3260,7 @@ msgstr "Descartar"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
 msgid "Display Type"
-msgstr ""
+msgstr "Tipo de Exibição"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:231
 msgid "Display values in Hex"
@@ -3329,7 +3334,7 @@ msgstr "Arquivo do Mapa do Dolphin (*.map)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:69
 msgid "Dolphin Signature CSV File"
-msgstr "Arquivo CSV da Assinatura do Dolphin"
+msgstr "Arquivo CSV de Assinatura do Dolphin"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:69
 msgid "Dolphin Signature File"
@@ -3482,7 +3487,7 @@ msgstr "Dual Core"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:219
 msgid "Dual View"
-msgstr ""
+msgstr "Visualização Dupla"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:85
 msgid "Dummy"
@@ -3490,7 +3495,7 @@ msgstr "Dummy"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
 msgid "Dump"
-msgstr ""
+msgstr "Dumpar"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 msgid "Dump &ARAM"
@@ -4037,15 +4042,15 @@ msgstr "Insira o endereço do módulo do RSO:"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:777
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:784
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -4446,16 +4451,16 @@ msgstr "Falha na conexão com Redump.org"
 msgid "Failed to connect to server: %1"
 msgstr "Falha na conexão com o servidor: %1"
 
-#: Source/Core/VideoBackends/D3D/D3DMain.cpp:150
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:125
+#: Source/Core/VideoBackends/D3D/D3DMain.cpp:149
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:124
 msgid "Failed to create D3D swap chain"
 msgstr "Falha ao criar a cadeia de swap do Direct3D"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:107
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:106
 msgid "Failed to create D3D12 context"
 msgstr "Falha ao criar o contexto do Direct3D 12"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:116
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:115
 msgid "Failed to create D3D12 global resources"
 msgstr "Falha ao criar recursos globais do Direct3D 12"
 
@@ -4490,11 +4495,11 @@ msgstr ""
 msgid "Failed to download codes."
 msgstr "Falha ao baixar os códigos."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:779
 msgid "Failed to dump %1: Can't open file"
 msgstr "Falha no despejo de %1: Não foi possível abrir o arquivo"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:786
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "Falha no despejo de %1: Falha ao escrever no arquivo"
 
@@ -4577,8 +4582,8 @@ msgstr ""
 "Certifique-se de que sua GPU suporta pelo menos a versão 10.0 do Direct3D.\n"
 "{0}"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:143
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:198
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:142
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:197
 msgid "Failed to initialize renderer classes"
 msgstr "Falha ao inicializar as classes do renderizador"
 
@@ -4985,7 +4990,7 @@ msgstr "Falhou em Consertar os Checksums"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
 msgid "Fixed Alignment"
-msgstr ""
+msgstr "Alinhamento Fixo"
 
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
@@ -5134,7 +5139,7 @@ msgstr "Exportação de Quadros"
 msgid "Frame Range"
 msgstr "Intervalo de Quadros"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1765
+#: Source/Core/VideoCommon/RenderBase.cpp:1766
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr "A(s) imagem(ns) do dump do frame '{0}' já existe(m). Sobrescrever?"
 
@@ -5312,7 +5317,7 @@ msgstr ""
 "Erros subsequentes serão enviados para o log \"Video Backend\" e o Dolphin "
 "provavelmente irá travar ou congelar agora. Aproveite!"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:165
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:164
 msgid "GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024."
 msgstr "O GL_MAX_TEXTURE_SIZE é {0} - deve ser pelo menos 1024."
 
@@ -5329,7 +5334,7 @@ msgstr ""
 "renderização.\n"
 "GPU: Sua placa de vídeo suporta o OpenGL 3.0?"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:129
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:128
 msgid "GPU: OGL ERROR: Does your video card support OpenGL 2.0?"
 msgstr "GPU: ERRO do OGL: Sua placa de vídeo suporta o OpenGL 2.0?"
 
@@ -5365,7 +5370,7 @@ msgstr ""
 "GPU: ERRO do OGL: Precisa do GL_ARB_vertex_array_object.\n"
 "GPU: Sua placa de vídeo suporta o OpenGL 3.0?"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:136
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:135
 msgid ""
 "GPU: OGL ERROR: Need OpenGL version 3.\n"
 "GPU: Does your video card support OpenGL 3?"
@@ -5383,7 +5388,7 @@ msgstr ""
 "GPU: Sua placa de vídeo suporta o OpenGL 3.0?\n"
 "GPU: Seu driver suporta GLSL {0}"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:153
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:152
 msgid ""
 "GPU: OGL ERROR: Number of attributes {0} not enough.\n"
 "GPU: Does your video card support OpenGL 2.x?"
@@ -5652,15 +5657,15 @@ msgstr "Hex"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:196
 msgid "Hex 16"
-msgstr ""
+msgstr "Hex 16"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
 msgid "Hex 32"
-msgstr ""
+msgstr "Hex 32"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:195
 msgid "Hex 8"
-msgstr ""
+msgstr "Hex 8"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
 msgid "Hex Byte String"
@@ -6900,7 +6905,7 @@ msgstr "Mapeamento"
 msgid "Mask ROM"
 msgstr "Mask ROM"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:881
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:882
 msgid "Match Found"
 msgstr "Combinação Achada"
 
@@ -7285,7 +7290,7 @@ msgstr "Nenhum Adaptador Detectado"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
 msgid "No Alignment"
-msgstr ""
+msgstr "Sem Alinhamento"
 
 #: Source/Core/Core/Config/MainSettings.h:16
 msgid "No Audio Output"
@@ -7297,7 +7302,7 @@ msgstr "Desativar Saída de Áudio"
 msgid "No Compression"
 msgstr "Sem Compressão"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:893
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:894
 msgid "No Match"
 msgstr "Sem Combinação"
 
@@ -7439,7 +7444,7 @@ msgid "Notice"
 msgstr "Notificação"
 
 #. i18n: Null is referring to the null video backend, which renders nothing
-#: Source/Core/VideoBackends/Null/NullBackend.cpp:110
+#: Source/Core/VideoBackends/Null/NullBackend.cpp:109
 msgid "Null"
 msgstr "Nulo"
 
@@ -8931,9 +8936,9 @@ msgstr "Selecione um Jogo"
 msgid "Select a SD Card Image"
 msgstr "Selecione uma Imagem do Cartão SD"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:736
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
 msgid "Select a file"
-msgstr ""
+msgstr "Selecione um arquivo"
 
 #: Source/Core/DolphinQt/NetPlay/GameListDialog.cpp:18
 msgid "Select a game"
@@ -9132,7 +9137,7 @@ msgstr "Definir PC"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
 msgid "Set Value From File"
-msgstr ""
+msgstr "Definir o Valor do Arquivo"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:372
 msgid "Set as &Default ISO"
@@ -9389,7 +9394,7 @@ msgstr "Global"
 msgid "Show in &memory"
 msgstr "Mostrar na &memória"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:615
 msgid "Show in code"
 msgstr "Mostrar no código"
 
@@ -10855,7 +10860,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "Alternar Proporção de Tela"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:624
 msgid "Toggle Breakpoint"
 msgstr "Ativar/Desativar Pontos de Interrupção"
 
@@ -11010,7 +11015,7 @@ msgstr "Tipo"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:210
 msgid "Type-based Alignment"
-msgstr ""
+msgstr "Alinhamento baseado no tipo"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:48
 msgid "Typical GameCube/Wii Address Space"
@@ -11078,9 +11083,9 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "Incapaz de auto-detectar o módulo do RSO"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
 msgid "Unable to open file."
-msgstr ""
+msgstr "Não foi possível abrir o arquivo."
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:150
 msgid ""
@@ -11107,9 +11112,9 @@ msgstr ""
 "\n"
 "Você gostaria de ignorar esta linha e continuar a analisar?"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
 msgid "Unable to read file."
-msgstr ""
+msgstr "Não foi possível ler o arquivo."
 
 #: Source/Core/DiscIO/NANDImporter.cpp:268
 msgid "Unable to write to file {0}"

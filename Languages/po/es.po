@@ -31,9 +31,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-24 10:06+0200\n"
+"POT-Creation-Date: 2022-04-30 23:46+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
-"Last-Translator: Petiso_Carambanal <diegoae@gmail.com>, 2013-2017,2020-2022\n"
+"Last-Translator: Víctor González, 2021-2022\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"
@@ -51,7 +51,7 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Es posible que haya problemas que Dolphin no pueda detectar ya que las "
+"Es posible que haya problemas que Dolphin no pueda detectar, ya que las "
 "imágenes de disco de GameCube contienen muy pocos datos de verificación."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1408
@@ -484,7 +484,7 @@ msgstr "Ajustes de &gráficos"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:574
 msgid "&Help"
-msgstr "&Ayuda"
+msgstr "A&yuda"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:527
 msgid "&Hotkey Settings"
@@ -536,7 +536,7 @@ msgstr "&Memoria"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:733
 msgid "&Movie"
-msgstr "G&rabación"
+msgstr "&Grabación"
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:420
 msgid "&Mute"
@@ -599,7 +599,7 @@ msgstr "&Renombrar símbolo"
 #: Source/Core/DolphinQt/GBAWidget.cpp:400
 #: Source/Core/DolphinQt/MenuBar.cpp:312
 msgid "&Reset"
-msgstr "&Restablecer"
+msgstr "&Reiniciar"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:228
 msgid "&Resource Pack Manager"
@@ -720,7 +720,7 @@ msgstr "128 Mbit (2043 bloques)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
 msgid "16 Bytes"
-msgstr ""
+msgstr "16 bytes"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:28
 msgid "16 Mbit (251 blocks)"
@@ -808,7 +808,7 @@ msgstr "Nativa x3 (1920x1584) a 1080p"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
 msgid "4 Bytes"
-msgstr ""
+msgstr "4 bytes"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:26
 msgid "4 Mbit (59 blocks)"
@@ -860,7 +860,7 @@ msgstr "Nativa x7 (4480x3696)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:215
 msgid "8 Bytes"
-msgstr ""
+msgstr "8 bytes"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:27
 msgid "8 Mbit (123 blocks)"
@@ -1183,7 +1183,7 @@ msgstr "Añadir punto de interrupción de memoria"
 msgid "Add to &watch"
 msgstr "Añadir a &variables vigiladas"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:609
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:619
 msgid "Add to watch"
 msgstr "Añadir a variables vigiladas"
 
@@ -1233,12 +1233,12 @@ msgid ""
 "garbled in certain games.<br><br><dolphin_emphasis>If unsure, select the "
 "rightmost value.</dolphin_emphasis>"
 msgstr ""
-"Ajusta la precisión con la que la GPU recibe las actualizaciones de textura "
-"de la RAM.<br><br>La opción «Seguro» elimina la posibilidad de que a la GPU "
-"le falten las actualizaciones de texturas de la RAM. Las precisiones más "
-"bajas provocan que el texto en algunos juegos se vea borroso. "
-"<br><br><dolphin_emphasis>Si tienes dudas, selecciona el valor más a la "
-"derecha.</dolphin_emphasis>"
+"Ajusta la precisión con la que la GPU recibirá las actualizaciones de "
+"textura de la RAM.<br><br>La opción «Segura» eliminará la posibilidad de que "
+"a la GPU le falten las actualizaciones de texturas de la RAM. Una precisión "
+"más baja provocará que el texto de algunos juegos se vea borroso."
+"<br><br><dolphin_emphasis>Si tienes dudas, selecciona el valor a la derecha "
+"del todo.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:132
 msgid ""
@@ -1324,9 +1324,9 @@ msgstr "Todos los estados guardados (*.sav *.s##);; Todos los archivos (*)"
 msgid "All devices"
 msgstr "Todos los dispositivos"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:738
 msgid "All files (*)"
-msgstr ""
+msgstr "Todos los archivos (*)"
 
 #: Source/Core/Core/NetPlayServer.cpp:1170
 msgid "All players' codes synchronized."
@@ -1384,7 +1384,7 @@ msgstr "Se esperaba la inserción de un disco pero no se encontró ninguno."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:121
 msgid "Anaglyph"
-msgstr "Anaglifos"
+msgstr "Anaglifo"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:166
 msgid "Analyze"
@@ -1455,7 +1455,7 @@ msgstr "Aplicar archivo de firma"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:92
 msgid "Arbitrary Mipmap Detection"
-msgstr "Detección arbitraria de Mipmap"
+msgstr "Detección arbitraria de mipmaps"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:252
 msgid "Are you sure that you want to delete '%1'?"
@@ -1630,7 +1630,7 @@ msgstr "Motor:"
 
 #: Source/Core/DolphinQt/Config/CommonControllersWidget.cpp:29
 msgid "Background Input"
-msgstr "Func. en segundo plano"
+msgstr "Funcionar en segundo plano"
 
 #: Source/Core/Core/FreeLookManager.cpp:87
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
@@ -1639,13 +1639,13 @@ msgstr "Func. en segundo plano"
 msgid "Backward"
 msgstr "Atrás"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:863
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:864
 msgid "Bad Value Given"
 msgstr "Se ha proporcionado un valor incorrecto"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:849
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:850
 msgid "Bad address provided."
 msgstr "La dirección elegida no existe."
 
@@ -1653,13 +1653,13 @@ msgstr "La dirección elegida no existe."
 msgid "Bad dump"
 msgstr "Volcado malo"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:855
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:856
 msgid "Bad offset provided."
 msgstr "Ajuste proporcionado incorrecto."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
 msgid "Bad value provided."
 msgstr "El valor elegido no es correcto."
 
@@ -1863,8 +1863,8 @@ msgid ""
 "Please either install the closed-source GPU driver or update your Mesa 3D "
 "version."
 msgstr ""
-"Driver de la GPU defectuoso. Instala la versión propietaria o actualiza tu "
-"versión de Mesa 3D"
+"Driver de la GPU defectuoso.\n"
+"Instala la versión propietaria o actualiza tu versión de Mesa 3D."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:84
 msgid "Button"
@@ -1895,7 +1895,7 @@ msgstr "Botones"
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:31
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:26
 msgid "C Stick"
-msgstr "Palanca C"
+msgstr "Stick C"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:989
 msgid "C&reate Signature File..."
@@ -1928,7 +1928,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 "Almacena en caché texturas personalizadas en la RAM del sistema al inicio."
-"<br><br>Esto puede requerir exponencialmente más RAM pero corrige posibles "
+"<br><br>Esto puede requerir exponencialmente más RAM, pero corrige posibles "
 "parones. <br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
 "desactivada.</dolphin_emphasis>"
 
@@ -1943,11 +1943,11 @@ msgid ""
 "less noticeable.<br><br />Rarely causes slowdowns or graphical issues."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Calcular la iluminación de los objectos 3D por píxel en lugar de por "
-"vértice. Disminuye de forma imperceptible la velocidad de emulación, "
-"mejorando considerablemente el aspecto de los polígonos iluminados.<br><br /"
-"> Raramente causa problemas.<br><br><dolphin_emphasis>Si tienes dudas, deja "
-"esta opción desactivada.</dolphin_emphasis>"
+"Calcula la iluminación de los objetos 3D por píxeles en lugar de por "
+"vértices, suavizando el aspecto de los polígonos iluminados y reduciendo la "
+"visibilidad de sus triángulos.<br><br />No suele provocar ralentizaciones o "
+"fallos gráficos.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
+"desactivada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:897
 msgid "Calibrate"
@@ -2339,7 +2339,7 @@ msgstr "Conectar"
 
 #: Source/Core/Core/HotkeyManager.cpp:84 Source/Core/DolphinQt/MenuBar.cpp:302
 msgid "Connect Balance Board"
-msgstr "Conectar la «Balance Board»"
+msgstr "Conectar la Balance Board"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:113
 msgid "Connect USB Keyboard"
@@ -2405,7 +2405,7 @@ msgstr "Controlar el modo golf del juego en red"
 #: Source/Core/Core/HW/GCPadEmu.cpp:67
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:29
 msgid "Control Stick"
-msgstr "Palanca analógica"
+msgstr "Stick de control"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:444
 msgid "Controller Profile"
@@ -2442,10 +2442,10 @@ msgid ""
 "higher value creates stronger out-of-screen effects while a lower value is "
 "more comfortable."
 msgstr ""
-"Controla la distancia del plano de convergencia. Esta es la distancia desde "
-"la que objetos virtuales parecerán salirse del plano visual de la pantalla."
-"<br><br>Un valor alto crea fuertes efectos fuera de pantalla, mientras que "
-"un valor pequeño es más agradable."
+"Controla la distancia del plano de convergencia. Esta es la distancia a "
+"partir de la cual los objetos virtuales parecerán salirse del plano visual "
+"de la pantalla.<br><br>Un valor alto creará fuertes efectos fuera de "
+"pantalla, mientras que un valor pequeño es más agradable."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:291
 msgid ""
@@ -2558,7 +2558,7 @@ msgstr "Copiar &función"
 msgid "Copy &hex"
 msgstr "Copiar código &hexadecimal"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:595
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
 msgid "Copy Address"
 msgstr "Copiar dirección"
 
@@ -2566,9 +2566,13 @@ msgstr "Copiar dirección"
 msgid "Copy Failed"
 msgstr "Se produjo un fallo al copiar"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:599
 msgid "Copy Hex"
 msgstr "Copiar en hexadecimal"
+
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
+msgid "Copy Value"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:538
 msgid "Copy code &line"
@@ -2773,16 +2777,16 @@ msgstr "Crítico"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:123
 msgid "Crop"
-msgstr "Recortar"
+msgstr "Recortar imagen"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:269
 msgid ""
 "Crops the picture from its native aspect ratio to 4:3 or 16:9."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Recorta la imagen de su relación de aspecto original de 4:3 o "
-"16:9<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada."
-"</dolphin_emphasis>"
+"Recorta la imagen a partir de su relación de aspecto original de 4:3 o 16:9."
+"<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:78
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:173
@@ -2840,7 +2844,7 @@ msgstr "El tamaño del archivo DFF es 0, ¿el archivo está dañado o incompleto
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:47
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:147
 msgid "DJ Turntable"
-msgstr "Mesa de mezcla DJ"
+msgstr "Mesa de mezclas DJ"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:35
 msgid "DK Bongos"
@@ -3004,11 +3008,11 @@ msgstr "Hilo predeterminado"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:144
 msgid "Defer EFB Cache Invalidation"
-msgstr "Retrasar invalidación de caché EFB"
+msgstr "Retrasar invalidación de caché del EFB"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:51
 msgid "Defer EFB Copies to RAM"
-msgstr "Retrasar copias de EFB a la RAM"
+msgstr "Retrasar copias del EFB a la RAM"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:281
 msgid ""
@@ -3018,12 +3022,12 @@ msgid ""
 "EFB Access at the cost of stability.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Retrasa la invalidación de la caché de acceso EFB hasta que se ejecute un "
-"comando de sincronización de la GPU. Si se desactiva, la caché se invalidará "
-"con cada llamada de dibujo.<br><br>Puede mejorar el rendimiento en algunos "
-"juegos que dependen del acceso EFB CPU a costa de la estabilidad."
-"<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
-"dolphin_emphasis>"
+"Retrasa la invalidación de la caché de acceso del EFB hasta que se ejecute "
+"un comando de sincronización de la GPU. Si se desactiva, la caché se "
+"invalidará con cada llamada de dibujo.<br><br>Puede mejorar el rendimiento "
+"en algunos juegos que dependen del acceso del EFB a la CPU a costa de la "
+"estabilidad.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
+"desactivada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:116
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:107
@@ -3168,7 +3172,7 @@ msgstr "Desactivar filtrado de copia"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:74
 msgid "Disable EFB VRAM Copies"
-msgstr "Desactivar copias de EFB VRAM"
+msgstr "Desactivar copias del EFB a la VRAM"
 
 #: Source/Core/Core/HotkeyManager.cpp:47
 msgid "Disable Emulation Speed Limit"
@@ -3196,7 +3200,7 @@ msgid ""
 "significantly, but some games will break.<br><br><dolphin_emphasis>If "
 "unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"Desactiva la emulación del cuadro delimitador.<br><br>Esto puede mejorar "
+"Desactiva la emulación del delimitado rectangular.<br><br>Puede mejorar "
 "significativamente el rendimiento de la GPU, pero algunos juegos se romperán."
 "<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción activada.</"
 "dolphin_emphasis>"
@@ -3207,9 +3211,9 @@ msgid ""
 "upscaling.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
-"Desactiva la copia de VRAM de la EFB, forzando un viaje de ida y vuelta a la "
-"RAM. Inhibe todo aumento de escala.<br><br><dolphin_emphasis>Si tienes "
-"dudas, deja esta opción desactivada.</dolphin_emphasis>"
+"Desactiva la copia que tiene la VRAM del EFB, forzando un viaje de ida y "
+"vuelta a la RAM. Inhibe todo aumento de escala.<br><br><dolphin_emphasis>Si "
+"tienes dudas, deja esta opción desactivada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:361
 msgid ""
@@ -3219,12 +3223,12 @@ msgid ""
 "Causes few graphical issues.<br><br><dolphin_emphasis>If unsure, leave this "
 "checked.</dolphin_emphasis>"
 msgstr ""
-"Desactiva la combinación de filas adyacentes al copiar el EFB. Esto se "
-"conoce en algunos juegos como \"parpadeo\" o \"suavizado\"."
-"<br><br>Deshabilitar el filtro no tiene ningún efecto en el rendimiento, "
-"pero puede dar como resultado una imagen más nítida. Causa pocos problemas "
-"gráficos.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
-"activada.</dolphin_emphasis>"
+"Desactiva la fusión de filas adyacentes al copiar el EFB. Esto se conoce en "
+"algunos juegos como «efecto antiparpadeo (deflickering)» o «suavizado "
+"(smoothing)».<br>Deshabilitar el filtro no afectará al rendimiento, pero "
+"puede producir una imagen más nítida. Causa pocos problemas gráficos."
+"<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción activada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:95
 msgid "Disc"
@@ -3236,7 +3240,7 @@ msgstr "Descartar"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
 msgid "Display Type"
-msgstr ""
+msgstr "Tipo de visualización"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:231
 msgid "Display values in Hex"
@@ -3282,7 +3286,7 @@ msgstr "¿Seguro que quieres borrar la lista de nombres simbólicos?"
 #, c-format
 msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
-msgstr "¿Quieres eliminar los %n archivos de guardado elegidos?"
+msgstr "¿Quieres borrar el(los) %n archivo(s) de guardado elegido(s)?"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:897
 msgid "Do you want to stop the current emulation?"
@@ -3455,7 +3459,7 @@ msgstr "Tableta Drawsome"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:54
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:71
 msgid "Drum Kit"
-msgstr "Kit de Tambor"
+msgstr "Batería"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:210
 msgid "Dual Core"
@@ -3463,7 +3467,7 @@ msgstr "Doble núcleo"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:219
 msgid "Dual View"
-msgstr ""
+msgstr "Vista doble"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:85
 msgid "Dummy"
@@ -3471,7 +3475,7 @@ msgstr "Dispositivo falso"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
 msgid "Dump"
-msgstr ""
+msgstr "Volcar"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 msgid "Dump &ARAM"
@@ -3499,7 +3503,7 @@ msgstr "Volcar texturas base"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
 msgid "Dump EFB Target"
-msgstr "Volcar superficie EFB"
+msgstr "Volcar superficie del EFB"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:796
 msgid "Dump Frames"
@@ -3507,7 +3511,7 @@ msgstr "Volcar fotogramas"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
 msgid "Dump Mip Maps"
-msgstr "Volcar Mip Maps"
+msgstr "Volcar mipmaps"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:67
 msgid "Dump Objects"
@@ -3607,7 +3611,7 @@ msgid ""
 "Dumps the contents of EFB copies to User/Dump/Textures/."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Vuelca el contenido de las copias de EFB en User/Dump/Textures/.<br><br /"
+"Vuelca el contenido de las copias del EFB en User/Dump/Textures/.<br><br /"
 "><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
 "dolphin_emphasis>"
 
@@ -3616,7 +3620,7 @@ msgid ""
 "Dumps the contents of XFB copies to User/Dump/Textures/."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Vuelca el contenido de las copias de XFB en User/Dump/Textures/.<br><br /"
+"Vuelca el contenido de las copias del XFB en User/Dump/Textures/.<br><br /"
 "><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
 "dolphin_emphasis>"
 
@@ -3640,7 +3644,7 @@ msgstr "&Salir"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:178
 msgid "EFB copy %1"
-msgstr "Copia EFB %1"
+msgstr "Copia del EFB %1"
 
 #: Source/Core/Core/HW/EXI/BBA/TAP_Win32.cpp:216
 msgid ""
@@ -3704,7 +3708,7 @@ msgstr "Expulsar disco"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:41
 msgid "Embedded Frame Buffer (EFB)"
-msgstr "Búfer de fotogramas empotrado (EFB)"
+msgstr "Búfer de imagen integrado (EFB)"
 
 #: Source/Core/Core/State.cpp:468
 msgid "Empty"
@@ -3865,14 +3869,15 @@ msgid ""
 "Texture Decoding.<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
-"Permite la detección de mipmaps arbitrarios, que algunos juegos utilizan "
-"para efectos especiales basados en la distancia.<br><br>Puede tener falsos "
-"positivos que resulta en texturas borrosas con una mayor resolución interna, "
-"como en los juegos que utilizan mipmaps de muy baja resolución. Desactivando "
-"esto también puede reducir los parones en juegos que frecuentemente cargan "
-"nuevas texturas. Esta función no es compatible con la función de "
-"decodificación de texturas de la GPU.<br><br><dolphin_emphasis>Si tienes "
-"dudas, deja esta opción activada.</dolphin_emphasis>"
+"Permite la detección de «mipmaps» arbitrarios, usados por algunos juegos "
+"para renderizar efectos especiales basados en la distancia.<br><br>Puede "
+"tener falsos positivos y provocar texturas borrosas con una mayor resolución "
+"interna, por ejemplo, en aquellos juegos que usen «mipmaps» de muy baja "
+"resolución. Al desactivar esta opción también se pueden reducir los parones "
+"en juegos que carguen texturas nuevas con frecuencia. Esta función no es "
+"compatible con la función de decodificación de texturas de la GPU."
+"<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción activada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:276
 msgid ""
@@ -3910,9 +3915,10 @@ msgid ""
 "</dolphin_emphasis>"
 msgstr ""
 "Permite decodificar las texturas con la GPU en vez de la CPU.<br><br>Puede "
-"mejorar el rendimiento en algunas situaciones en las que la CPU es peor que "
-"tu tarjeta gráfica.<br><br><dolphin_emphasis>Si tienes dudas, deja esta "
-"opción desactivada.</dolphin_emphasis>"
+"mejorar el rendimiento en algunas situaciones puntuales o en aquellos "
+"sistemas donde la CPU sea peor que la tarjeta gráfica."
+"<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:99
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:68
@@ -3921,7 +3927,7 @@ msgid ""
 "OFF = Fast)"
 msgstr ""
 "Activa la Memory Management Unit (unidad de gestión de memoria), que es "
-"necesaria para algunos juegos.  (Activado: el ajuste más compatible; "
+"necesaria para algunos juegos. (Activado: el ajuste más compatible; "
 "Desactivado: el ajuste más rápido)."
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:212
@@ -3942,7 +3948,7 @@ msgid ""
 "Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Codificar el volcado de fotogramas usando el códec FFV1."
+"Codifica el volcado de fotogramas usando el códec FFV1."
 "<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
 "dolphin_emphasis>"
 
@@ -4023,15 +4029,15 @@ msgstr "Escribe la dirección del módulo RSO:"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:690
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:696
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:705
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:726
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:732
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:777
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:784
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -4359,7 +4365,7 @@ msgstr "Externo"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:83
 msgid "External Frame Buffer (XFB)"
-msgstr "Superficie de dibujado externo (XFB)"
+msgstr "Búfer de imagen externo (XFB)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:262
 msgid "Extract Certificates from NAND"
@@ -4421,7 +4427,7 @@ msgstr "No se ha podido añadir esta sesión al índice de juego en red: %1"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1625
 msgid "Failed to append to signature file '%1'"
-msgstr "No se ha podido añadir al archivo de firma '%1'"
+msgstr "No se ha podido añadir al archivo de firma «%1»"
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:593
 msgid "Failed to claim interface for BT passthrough"
@@ -4435,16 +4441,16 @@ msgstr "No se ha podido conectar con redump.org"
 msgid "Failed to connect to server: %1"
 msgstr "No se ha podido conectar al servidor: %1"
 
-#: Source/Core/VideoBackends/D3D/D3DMain.cpp:150
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:125
+#: Source/Core/VideoBackends/D3D/D3DMain.cpp:149
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:124
 msgid "Failed to create D3D swap chain"
 msgstr "No se ha podido crear la cadena de intercambio D3D"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:107
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:106
 msgid "Failed to create D3D12 context"
 msgstr "No se ha podido crear el contexto D312"
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:116
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:115
 msgid "Failed to create D3D12 global resources"
 msgstr "No se ha podido crear los recursos globales de D3D12"
 
@@ -4473,25 +4479,25 @@ msgstr "No se ha podido borrar el archivo seleccionado."
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr ""
 "No se ha podido desvincular el controlador del kernel para ejecutar el "
-"acceso directo a BT: [0]"
+"acceso directo a BT: {0}"
 
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:319
 msgid "Failed to download codes."
 msgstr "No se ha podido descargar los códigos."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:779
 msgid "Failed to dump %1: Can't open file"
 msgstr "No se ha podido volcar %1: Hubo un fallo al abrir el archivo"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:786
 msgid "Failed to dump %1: Failed to write to file"
 msgstr ""
-"No se ha podido volcar %1: Hubo un fallo al escribir los datos en el archivo"
+"No se ha podido volcar %1: no se han podido escribir los datos en el archivo"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:487
 msgctxt ""
 msgid "Failed to export %n out of %1 save file(s)."
-msgstr "No se ha podido exportar %n de %1 archivos de guardado"
+msgstr "No se ha(n) podido exportar %n de %1 archivo(s) de guardado."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:532
 msgid "Failed to export the following save files:"
@@ -4525,7 +4531,7 @@ msgstr "No se ha podido encontrar uno o más símbolos D3D"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:564
 msgid "Failed to import \"%1\"."
-msgstr "No se ha podido importar \"%1\"."
+msgstr "No se ha podido importar «%1»."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1095
 msgid ""
@@ -4567,8 +4573,8 @@ msgstr ""
 "Asegúrate de que tu tarjeta de vídeo soporta al menos D3D 10.0\n"
 "{0} "
 
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:143
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:198
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:142
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:197
 msgid "Failed to initialize renderer classes"
 msgstr "No se han podido iniciar las clases de renderizado"
 
@@ -4604,7 +4610,7 @@ msgstr "No se ha podido cargar dxgi.dll"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1564
 msgid "Failed to load map file '%1'"
-msgstr "No se ha podido cargar el archivo de mapa '%1'"
+msgstr "No se ha podido cargar el archivo de mapa «%1»"
 
 #: Source/Core/Core/Boot/Boot.cpp:534
 msgid "Failed to load the executable to memory."
@@ -4615,7 +4621,7 @@ msgid ""
 "Failed to load {0}. If you are using Windows 7, try installing the KB4019990 "
 "update package."
 msgstr ""
-"No se ha podido cargar {0}. Si utilizas Windows 7 prueba instalando el "
+"No se ha podido cargar {0}. Si utilizas Windows 7, prueba a instalar el "
 "paquete de actualización KB4019990."
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:571
@@ -4699,7 +4705,7 @@ msgstr "No se ha podido leer el archivo de entrada «{0}»."
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:640
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr ""
-"No se ha podido leer los archivos seleccionados de la tarjeta de memoria."
+"No se han podido leer los archivos seleccionados de la tarjeta de memoria."
 
 #: Source/Core/Core/Movie.cpp:1015
 msgid "Failed to read {0}"
@@ -4826,7 +4832,7 @@ msgstr "Región de respaldo:"
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:232
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:79
 msgid "Fast"
-msgstr "Rápido"
+msgstr "Rápida"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:103
 msgid "Fast Depth Calculation"
@@ -4935,8 +4941,8 @@ msgid ""
 "but will cause issues in others.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Filtra todas las texturas, incluyendo las que el juego establece "
-"explícitamente como no filtradas.<br><br>Puede mejorar la calidad de ciertas "
+"Filtra todas las texturas, incluyendo aquellas que establezca explícitamente "
+"el juego como no filtradas.<br><br>Puede mejorar la calidad de ciertas "
 "texturas en algunos juegos, pero puede causar problemas en otros."
 "<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
 "dolphin_emphasis>"
@@ -4975,7 +4981,7 @@ msgstr "Error al reparar las sumas de verificación"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
 msgid "Fixed Alignment"
-msgstr ""
+msgstr "Alineación fija"
 
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
@@ -5048,14 +5054,14 @@ msgid ""
 "widescreen patches.<br><br><dolphin_emphasis>If unsure, leave this unchecked."
 "</dolphin_emphasis>"
 msgstr ""
-"Fuerza al juego a mostrar los gráficos en cierta relación de aspecto o "
-"formato panorámico.Utilízalo junto con «relación de aspecto» configurada en "
-"«forzar 16:9» para hacer que juegos 4:3 aparezcan en 16:9.<br><br>Raramente "
-"produce resultados satisfactorios, a menudo oscureciendo o o mostrando de "
-"forma incorrecta interfaces y efectos varios.Innecesario (e incluso "
-"perjudicial) al usar cualquier tipo de parche panorámico utilizando códigos "
-"AR ó Gecko.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
-"desactivada.</dolphin_emphasis>"
+"Fuerza al juego a mostrar los gráficos en una relación de aspecto que no sea "
+"la original. Cambia también el ajuste «Relación de aspecto» a «Forzar 16:9» "
+"para que los juegos que solo se muestren en formato 4:3 lo hagan en 16:9."
+"<br><br>No suele producir resultados satisfactorios y a menudo muestra de "
+"forma incorrecta los gráficos o la interfaz de los juegos. Es una opción "
+"innecesaria (e incluso perjudicial) si se utilizan parches AR o Gecko para "
+"forzar una imagen panorámica.<br><br><dolphin_emphasis>Si tienes dudas, deja "
+"esta opción desactivada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:351
 msgid ""
@@ -5064,10 +5070,11 @@ msgid ""
 "performance and causes few graphical issues.<br><br><dolphin_emphasis>If "
 "unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"Fuerza al juego a renderizar los canales de color RGB en 24 bits, aumentando "
-"la calidad reduciendo las bandas de color<br><br>No tiene impacto en el "
-"rendimiento y  provoca pocos fallos gráficos<br><br><dolphin_emphasis>Si "
-"tienes dudas, deja esta opción activada.</dolphin_emphasis>"
+"Fuerza al juego a renderizar los canales de color RGB en 24 bits, lo que "
+"reducirá el efecto de bandas de colores y aumentará la calidad.<br><br>No "
+"afecta al rendimiento y provoca pocos fallos gráficos."
+"<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción activada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:57
 msgid "Format:"
@@ -5123,7 +5130,7 @@ msgstr "Volcado de fotogramas"
 msgid "Frame Range"
 msgstr "Información de la grabación"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1765
+#: Source/Core/VideoCommon/RenderBase.cpp:1766
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr ""
 "Ya existe un volcado de imagen(es) llamado «{0}». ¿Quieres sustituirlo?"
@@ -5304,7 +5311,7 @@ msgstr ""
 "Se enviará más información de los errores al registro del motor de vídeo y "
 "es probable que Dolphin se cuelgue en breve. ¡Buena suerte!"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:165
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:164
 msgid "GL_MAX_TEXTURE_SIZE is {0} - must be at least 1024."
 msgstr "GL_MAX_TEXTURE_SIZE es {0} - debe ser al menos 1024."
 
@@ -5321,7 +5328,7 @@ msgstr ""
 "renderizar objetivos múltiples.\n"
 "GPU: ¿Tu tarjeta gráfica es compatible con OpenGL 3.0?"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:129
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:128
 msgid "GPU: OGL ERROR: Does your video card support OpenGL 2.0?"
 msgstr "GPU: ERROR DE OGL: ¿Tu tarjeta gráfica es compatible con OpenGL 2.0?"
 
@@ -5357,7 +5364,7 @@ msgstr ""
 "GPU: ERROR DE OGL: Es necesaria la función GL_ARB_vertex_array_object.\n"
 "GPU: ¿Tu tarjeta gráfica es compatible con OpenGL 3.0?"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:136
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:135
 msgid ""
 "GPU: OGL ERROR: Need OpenGL version 3.\n"
 "GPU: Does your video card support OpenGL 3?"
@@ -5375,7 +5382,7 @@ msgstr ""
 "GPU: ¿Tu tarjeta gráfica es compatible con OpenGL 3.0?\n"
 "GPU: Tus drivers admiten GLSL {0}"
 
-#: Source/Core/VideoBackends/OGL/OGLMain.cpp:153
+#: Source/Core/VideoBackends/OGL/OGLMain.cpp:152
 msgid ""
 "GPU: OGL ERROR: Number of attributes {0} not enough.\n"
 "GPU: Does your video card support OpenGL 2.x?"
@@ -5590,7 +5597,7 @@ msgid ""
 msgstr ""
 "Aumenta en gran medida la calidad de las texturas generadas usando efectos "
 "de renderizar a textura.<br><br>El aumento de la resolución interna mejorará "
-"el efecto de este ajuste.Aumenta ligeramente la carga de GPU y causa "
+"el efecto de este ajuste. Aumenta ligeramente la carga de GPU y causa "
 "relativamente pocos problemas gráficos.<br><br><dolphin_emphasis>Si tienes "
 "dudas, deja esta opción activada.</dolphin_emphasis>"
 
@@ -5644,15 +5651,15 @@ msgstr "Hexadecimal"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:196
 msgid "Hex 16"
-msgstr ""
+msgstr "16 (hexad.)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
 msgid "Hex 32"
-msgstr ""
+msgstr "32 (hexad.)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:195
 msgid "Hex 8"
-msgstr ""
+msgstr "8 (hexad.)"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
 msgid "Hex Byte String"
@@ -5956,10 +5963,10 @@ msgid ""
 "number of other games.<br><br><dolphin_emphasis>If unsure, leave this "
 "checked.</dolphin_emphasis>"
 msgstr ""
-"Ignora cualquier cambio en el formato EFB.<br><br>Mejora el rendimiento en "
-"muchos juegos sin ningún efecto negativo. Causa defectos gráficos en unos "
-"pocos juegos.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
-"activada.</dolphin_emphasis>"
+"Ignora cualquier cambio en el formato del EFB.<br><br>Mejorará el "
+"rendimiento de muchos juegos sin ningún efecto negativo. Causará defectos "
+"gráficos en unos pocos juegos.<br><br><dolphin_emphasis>Si tienes dudas, "
+"deja esta opción activada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:214
 msgid ""
@@ -5968,9 +5975,9 @@ msgid ""
 "graphical effects or gameplay-related features.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Ignorar cualquier petición de la CPU para leer o escribir en la EFB."
-"<br><br>Mejora el rendimiento en algunos juegos, pero podría desactivar "
-"algunas funciones relacionadas con el juego o sus efectos gráficos."
+"Ignora cualquier petición de la CPU para leer o escribir el EFB."
+"<br><br>Mejorará el rendimiento de algunos juegos, pero podría desactivar "
+"aquellas funciones relacionadas con el juego o sus efectos gráficos."
 "<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
 "dolphin_emphasis>"
 
@@ -6045,10 +6052,10 @@ msgid ""
 "when loading states at the cost of additional save/load time."
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
-"Incluye el contenido del búfer de marco incrustado (EFB) y las copias de EFB "
-"mejoradas en los estados de guardado. Corrige texturas / objetos faltantes "
-"y / o no escalados al cargar estados a costa de un tiempo adicional de "
-"guardar / cargar.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
+"Incluye el contenido del búfer de imagen integrado (EFB) y las copias "
+"mejoradas del EFB en los estados de guardado. Corregirá texturas/objetos "
+"faltantes o no escalados al cargar estados a costa de tardar más tiempo en "
+"guardar/cargar.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
 "activada.</dolphin_emphasis>"
 
 #: Source/Core/Core/FreeLookManager.cpp:92
@@ -6560,17 +6567,17 @@ msgid ""
 "Middle-click to clear.\n"
 "Right-click for more options."
 msgstr ""
-"Clic izq. para detectar la entrada.\n"
-"Clic medio para borrar.\n"
-"Clic der. para más opciones."
+"Clic izquierdo para detectar la entrada.\n"
+"Clic medio para borrar la asignación.\n"
+"Clic derecho para ver más opciones."
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingButton.cpp:93
 msgid ""
 "Left/Right-click to configure output.\n"
 "Middle-click to clear."
 msgstr ""
-"Clic izquierdo/derecho para configurar la salida\n"
-"Click medio para borrar."
+"Clic izquierdo/derecho para configurar la salida.\n"
+"Clic medio para borrar."
 
 #: Source/Core/DolphinQt/AboutDialog.cpp:67
 msgid "License"
@@ -6870,9 +6877,9 @@ msgid ""
 msgstr ""
 "Visibiliza los objetos más distantes que estén ocultos por la niebla, "
 "aumentando el detalle en general.<br><br>Desactivar la niebla provocará "
-"defectos gráficos en algunos juegos que dependan por jugabilidad de una "
-"correcta emulación del efecto.<br><br><dolphin_emphasis>Si tienes dudas, "
-"deja esta opción desactivada.</dolphin_emphasis>"
+"defectos gráficos en aquellos juegos que dependan de una correcta emulación "
+"del efecto.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción "
+"desactivada.</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:258
 msgid "Manage NAND"
@@ -6890,7 +6897,7 @@ msgstr "Mapeando"
 msgid "Mask ROM"
 msgstr "Enmascarar ROM"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:881
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:882
 msgid "Match Found"
 msgstr "Se han encontrado coincidencias"
 
@@ -7274,7 +7281,7 @@ msgstr "No se ha detectado ningún adaptador"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
 msgid "No Alignment"
-msgstr ""
+msgstr "Sin alineación"
 
 #: Source/Core/Core/Config/MainSettings.h:16
 msgid "No Audio Output"
@@ -7286,7 +7293,7 @@ msgstr "Sin salida de audio"
 msgid "No Compression"
 msgstr "Sin compresión"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:893
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:894
 msgid "No Match"
 msgstr "Sin coincidencias"
 
@@ -7396,7 +7403,7 @@ msgid ""
 "required."
 msgstr ""
 "No hay suficientes bloques libres en la tarjeta de memoria elegida. Se "
-"requieren al menos %n bloques libres."
+"requiere(n) al menos %n bloque(s) libre(s)."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:520
 #, c-format
@@ -7406,7 +7413,7 @@ msgid ""
 "required."
 msgstr ""
 "No hay suficientes archivos libres en la tarjeta de memoria elegida. Se "
-"requieren al menos %n archivos libres"
+"requiere(n) al menos %n archivo(s) libre(s)."
 
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookRotation.cpp:27
 msgid ""
@@ -7429,7 +7436,7 @@ msgid "Notice"
 msgstr "Aviso"
 
 #. i18n: Null is referring to the null video backend, which renders nothing
-#: Source/Core/VideoBackends/Null/NullBackend.cpp:110
+#: Source/Core/VideoBackends/Null/NullBackend.cpp:109
 msgid "Null"
 msgstr "Nulo"
 
@@ -7441,7 +7448,7 @@ msgstr "NumExec"
 #. i18n: Refering to emulated wii remote movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:155
 msgid "Number of shakes per second."
-msgstr "Numero de sacudidas por segundo"
+msgstr "Número de sacudidas por segundo."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:35
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:102
@@ -7832,7 +7839,7 @@ msgstr ""
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:208
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
 msgid "Point"
-msgstr "Punto"
+msgstr "Puntero"
 
 #: Source/Core/DolphinQt/Config/GamecubeControllersWidget.cpp:78
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:63
@@ -7996,7 +8003,7 @@ msgstr "Vaciar la caché de la lista de juegos"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:459
 msgid "Put IPL ROMs in User/GC/<region>."
-msgstr "Guarda tus roms del IPL en User/GC/<region>."
+msgstr "Debes guardar tus ROMs del IPL en User/GC/<region>."
 
 #: qtbase/src/gui/kernel/qguiapplication.cpp:234
 msgctxt ""
@@ -8110,7 +8117,7 @@ msgstr "Modo de solo lectura"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:100
 msgid "Real Balance Board"
-msgstr "«Balance Board» real"
+msgstr "Balance Board real"
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:129
 msgid "Real Wii Remote"
@@ -8229,7 +8236,7 @@ msgstr "Entrada relativa"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:33
 msgid "Relative Input Hold"
-msgstr "Entrada relativa de sujetar"
+msgstr "Parar entrada relativa"
 
 #: Source/Core/DolphinQt/Updater.cpp:75
 msgid "Remind Me Later"
@@ -8328,11 +8335,11 @@ msgstr "Reiniciar resultados"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:389
 msgid "Reset Traversal Server"
-msgstr "Restablecer servidor de paso"
+msgstr "Restablecer servidor transversal"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:390
 msgid "Reset Traversal Server to %1:%2"
-msgstr "Restablecer servidor de paso a %1:%2"
+msgstr "Restablecer servidor transversal a %1:%2"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:91
 msgid "Reset Traversal Settings"
@@ -8459,9 +8466,9 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 "Redondea los vértices 2D a píxeles enteros y redondea el tamaño del área de "
-"visualización a un múltiplo entero.<br><br> Arregla ciertos problemas "
-"gráficos al utilizar resoluciones internas muy grandes. No sirve de nada "
-"cuando se emplea la resolución original de la consola."
+"visualización a un múltiplo entero.<br><br>Arregla problemas gráficos en "
+"algunos juegos al utilizar resoluciones internas muy grandes. No sirve de "
+"nada cuando se emplea la resolución original de la consola."
 "<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción desactivada.</"
 "dolphin_emphasis>"
 
@@ -8533,7 +8540,7 @@ msgstr "Gua&rdar estado"
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:224
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:71
 msgid "Safe"
-msgstr "Seguro"
+msgstr "Segura"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:21
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:115
@@ -8713,7 +8720,9 @@ msgstr "Guardar..."
 
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:246
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
-msgstr "Solo es posible reemparejar los mandos de Wii en mitad de la partida."
+msgstr ""
+"Solo se pueden reemparejar los mandos de Wii en mitad de una partida con un "
+"juego para Wii."
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:172
 msgid "Saves:"
@@ -8721,12 +8730,11 @@ msgstr "Guardados:"
 
 #: Source/Core/Core/Movie.cpp:1024
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
-msgstr ""
-"El estado de la grabación {0} está corrupto, deteniendo la grabación..."
+msgstr "El estado de la grabación {0} está dañado, deteniendo la grabación..."
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:81
 msgid "Scaled EFB Copy"
-msgstr "Copia de EFB a escala"
+msgstr "Copia del EFB a escala"
 
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:295
 msgid "Scan succeeded."
@@ -8924,9 +8932,9 @@ msgstr "Elige un juego"
 msgid "Select a SD Card Image"
 msgstr "Elige una imagen de tarjeta SD"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:736
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
 msgid "Select a file"
-msgstr ""
+msgstr "Elige un archivo"
 
 #: Source/Core/DolphinQt/NetPlay/GameListDialog.cpp:18
 msgid "Select a game"
@@ -8998,16 +9006,18 @@ msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>%1 doesn't "
 "support this feature.</dolphin_emphasis>"
 msgstr ""
-"Elige un adaptador de hardware para usar<br><br><dolphin_emphasis>%1 no "
-"soporta esta característica.</dolphin_emphasis>"
+"Selecciona el adaptador de hardware que quieras usar."
+"<br><br><dolphin_emphasis>%1 no soporta esta característica.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:324
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
 "select the first one.</dolphin_emphasis>"
 msgstr ""
-"Elige el adaptador de hardware que quieras usar.<br><br><dolphin_emphasis>Si "
-"tienes dudas, selecciona la primera opción.</dolphin_emphasis>"
+"Selecciona el adaptador de hardware que quieras usar."
+"<br><br><dolphin_emphasis>Si tienes dudas, selecciona la primera opción.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:334
 msgid ""
@@ -9019,14 +9029,15 @@ msgid ""
 "<br>Passive is another type of 3D used by some TVs."
 "<br><br><dolphin_emphasis>If unsure, select Off.</dolphin_emphasis>"
 msgstr ""
-"Selecciona el modo estereoscópico 3D. La estereoscopia permite un mejor "
-"sensación de profundidad si el hardware necesario esta presente. Reduce la "
-"velocidad de emulación en gran medida y algunas veces causa problemas."
-"<br><br>Lado a Lado y Arriba y Abajo son usados en la mayoría de "
-"televisiones 3D.<br>Anaglifo es usado para lentes 3D Rojo-Azul<br>HDMI 3D es "
-"usado cuando el monitor soporta resoluciones de pantalla 3D.<br>Pasivo es "
-"otro tipo de 3D usado por otras TVs.<br><br><dolphin_emphasis>Si tienes "
-"dudas, selecciona Desactivado.</dolphin_emphasis>"
+"Selecciona el modo 3D estereoscópico. La estereoscopia mejora la sensación "
+"de profundidad si el hardware necesario está presente. Reducirá la velocidad "
+"de emulación en gran medida y algunas veces causará problemas.<br><br>Los "
+"modos en paralelo («Side-by-Side») y por encima/por debajo («Top-and-"
+"Bottom») se utilizan en la mayoría de televisiones 3D.<br>Anaglifo sirve "
+"para su uso con gafas 3D rojo-azul.<br>HDMI 3D sirve para aquellos monitores "
+"compatibles con resoluciones de pantalla en 3D.<br>Pasivo es otro tipo de 3D "
+"usado por ciertos televisores.<br><br><dolphin_emphasis>Si tienes dudas, "
+"selecciona «No».</dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:158
 msgid ""
@@ -9125,7 +9136,7 @@ msgstr "Establecer PC"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
 msgid "Set Value From File"
-msgstr ""
+msgstr "Establecer valor a partir de archivo"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:372
 msgid "Set as &Default ISO"
@@ -9207,7 +9218,7 @@ msgstr "Compilación de sombreadores"
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:211
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:29
 msgid "Shake"
-msgstr "Sacudir"
+msgstr "Sacudidas"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:41
 msgid ""
@@ -9383,7 +9394,7 @@ msgstr "Mostrar juegos internacionales"
 msgid "Show in &memory"
 msgstr "Mostrar en &memoria"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:615
 msgid "Show in code"
 msgstr "Mostrar en código"
 
@@ -9443,7 +9454,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:120
 msgid "Side-by-Side"
-msgstr "Lado a lado"
+msgstr "En paralelo"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:295
 msgid "Sideways Hold"
@@ -9534,12 +9545,12 @@ msgid ""
 "optimal frame pacing.<br><br><dolphin_emphasis>If unsure, leave this checked."
 "</dolphin_emphasis>"
 msgstr ""
-"Salta la presentación de fotogramas duplicados (copias de XFB) en juegos a "
-"25fps/30fps. Puede mejorar el rendimiento en equipos de bajos recursos, "
-"causando un paso de fotogramas menos consistente.<br><br /> Deshabilita esta "
-"opción mientras V-Sync esté activado para obtener un paso de fotogramas "
-"óptimo.<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción activada."
-"</dolphin_emphasis>"
+"Omite la presentación de fotogramas duplicados (copias del XFB) en juegos a "
+"25 fps/30 fps. Puede mejorar el rendimiento en equipos de gama baja, pero la "
+"duración de cada fotograma en pantalla será menos consistente.<br><br /"
+">Desactiva esta opción y activa también la sincronización vertical para que "
+"la duración de cada fotograma sea la óptima.<br><br><dolphin_emphasis>Si "
+"tienes dudas, deja esta opción activada.</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:93
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:138
@@ -9564,8 +9575,7 @@ msgstr "Ranura B:"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
 msgid "Snap the thumbstick position to the nearest octagonal axis."
-msgstr ""
-"Mueva el joystick a una posición lo más cercana posible al eje octogonal."
+msgstr "Limita la posición del joystick a la más cercana al eje octogonal."
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:299
 msgid "Socket table"
@@ -9830,7 +9840,7 @@ msgstr "Juego detenido"
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:216
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:48
 msgid "Store EFB Copies to Texture Only"
-msgstr "Almacenar copias de EFB como de solo lectura"
+msgstr "Almacenar copias del EFB como de solo lectura"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:219
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:87
@@ -9845,11 +9855,12 @@ msgid ""
 "Texture)<br><br><dolphin_emphasis>If unsure, leave this checked.</"
 "dolphin_emphasis>"
 msgstr ""
-"Almacena copias del EFB exclusivamente en la GPU, sin pasar por la memoria "
-"del sistema. Causa defectos gráficos en un pequeño número de juegos."
-"<br><br>Habilitado = Copias de EFB a la textura<br>Deshabilitado = Copias de "
-"EFB a la RAM (y textura)<br><br><dolphin_emphasis>Si tienes dudas, deja esta "
-"opción activada.</dolphin_emphasis>"
+"Almacena las copias del EFB exclusivamente en la GPU, sin pasar por la "
+"memoria del sistema. Causará defectos gráficos en un pequeño número de "
+"juegos.<br><br>Habilitado = El EFB pasará sus copias a la textura."
+"<br>Deshabilitado = El EFB pasará sus copias a la RAM (y a las texturas)."
+"<br><br><dolphin_emphasis>Si tienes dudas, deja esta opción activada.</"
+"dolphin_emphasis>"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:243
 msgid ""
@@ -9979,15 +9990,15 @@ msgid ""
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
-"Intercambia el ojo izquierdo y el derecho. Más útil en el modo de "
-"estereoscopia lado a lado.<br><br><dolphin_emphasis>Si tienes dudas, deja "
-"esta opción desactivada.</dolphin_emphasis>"
+"Intercambia las imágenes para los ojos izquierdo y derecho. Más útil con el "
+"modo de estereoscopia en paralelo.<br><br><dolphin_emphasis>Si tienes dudas, "
+"deja esta opción desactivada.</dolphin_emphasis>"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:48
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:209
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:35
 msgid "Swing"
-msgstr "Oscilar"
+msgstr "Oscilación"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:241
 msgid "Switch to A"
@@ -10007,7 +10018,7 @@ msgstr "Símbolo"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:795
 msgid "Symbol (%1) end address:"
-msgstr "Dirección final del símbolo (%s):"
+msgstr "Dirección final del símbolo (%1):"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:179
 msgid ""
@@ -10202,8 +10213,8 @@ msgid ""
 "NetPlay with anyone who is using a good dump."
 msgstr ""
 "La partición de datos no está en su posición normal. Esto afectará a los "
-"tiempos de carga emulados. No podrás compartir las grabaciones de entrada y "
-"usar juego en red con nadie que esté usando un buen volcado."
+"tiempos de carga emulados. No podrás compartir las grabaciones de entrada ni "
+"jugar en red con nadie que esté usando un buen volcado."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:593
 msgid ""
@@ -10391,8 +10402,8 @@ msgid ""
 "sync properly, please change the selected device to Memory Card or GCI "
 "Folder."
 msgstr ""
-"La grabación tiene indicado que debería haber una tarjeta de memoria "
-"introducida en [0:n], pero actualmente no hay ninguna (en su lugar se ha "
+"La grabación tiene indicada que debería haber una tarjeta de memoria "
+"introducida en {0:n}, pero actualmente no hay ninguna (en su lugar se ha "
 "conectado: {1}). Si quieres que la grabación se sincronice correctamente, "
 "debes cambiar el dispositivo seleccionado a una tarjeta de memoria o una "
 "carpeta GCI."
@@ -10658,10 +10669,10 @@ msgid ""
 "pre-rendered videos, extra languages or entire game modes will be broken. "
 "This problem generally only exists in illegal copies of games."
 msgstr ""
-"Este juego ha sido hackeado para que quepa en un DVD de una sola capa. "
-"Algunos contenidos, como los vídeos pre-procesados, los idiomas adicionales "
-"o los modos de juego completos, se romperán. Este problema habitualmente "
-"solo existe en las copias ilegales de juegos."
+"Este juego ha sido manipulado para que quepa en un DVD de una sola capa. "
+"Algunos contenidos, como los vídeos prerenderizados, los idiomas ajenos al "
+"inglés o japonés o incluso modos de juego completos darán problemas. Este "
+"problema únicamente suele ocurrir en las copias ilegales de juegos."
 
 #: Source/Core/VideoCommon/VideoBackendBase.cpp:178
 msgid ""
@@ -10784,10 +10795,10 @@ msgid ""
 "May prevent desync in some games that use EFB reads. Please ensure everyone "
 "uses the same video backend."
 msgstr ""
-"Esto sincronizará la configuración de gráficos adicionales y forzará a todos "
-"a la misma resolución interna.\n"
-"Puede impedir la desincronización en algunos juegos que utilizan lecturas "
-"EFB. Por favor asegúrese de que todos usen el mismo motor de vídeo."
+"Sincronizará la configuración adicional de gráficos y forzará a todos a la "
+"misma resolución interna.\n"
+"Puede impedir la desincronización en algunos juegos que utilizan lecturas al "
+"EFB. Asegúrate de que todos los jugadores utilizan el mismo motor de vídeo."
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:142
 msgid "Thread context"
@@ -10837,7 +10848,7 @@ msgstr "A:"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:313
 msgid "Toggle &Fullscreen"
-msgstr "Alternar pantalla &completa"
+msgstr "Alternar &pantalla completa"
 
 #: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Toggle 3D Anaglyph"
@@ -10845,7 +10856,7 @@ msgstr "Alternar anaglifos 3D"
 
 #: Source/Core/Core/HotkeyManager.cpp:122
 msgid "Toggle 3D Side-by-Side"
-msgstr "Alternar 3D de imagenes paralelas (SBS)"
+msgstr "Alternar 3D de imágenes paralelas (SBS)"
 
 #: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Toggle 3D Top-Bottom"
@@ -10860,7 +10871,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "Alternar relación de aspecto"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:624
 msgid "Toggle Breakpoint"
 msgstr "Alternar punto de interrupción"
 
@@ -10874,7 +10885,7 @@ msgstr "Alternar texturas personalizadas"
 
 #: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Toggle EFB Copies"
-msgstr "Copias de EFB"
+msgstr "Copias del EFB"
 
 #: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Toggle Fog"
@@ -10926,7 +10937,7 @@ msgstr "Superior"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:120
 msgid "Top-and-Bottom"
-msgstr "Arriba-y-Abajo"
+msgstr "Por encima/Por debajo"
 
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:77
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
@@ -11017,7 +11028,7 @@ msgstr "Tipo"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:210
 msgid "Type-based Alignment"
-msgstr ""
+msgstr "Alineación según tipo"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:48
 msgid "Typical GameCube/Wii Address Space"
@@ -11085,9 +11096,9 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "No se puede detectar el módulo RSO"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:747
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
 msgid "Unable to open file."
-msgstr ""
+msgstr "No se ha podido abrir el archivo."
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:150
 msgid ""
@@ -11113,9 +11124,9 @@ msgstr ""
 "\n"
 "¿Te gustaría hacer caso omiso de esta línea y continuar el análisis?"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:755
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
 msgid "Unable to read file."
-msgstr ""
+msgstr "No se ha podido leer el archivo."
 
 #: Source/Core/DiscIO/NANDImporter.cpp:268
 msgid "Unable to write to file {0}"
@@ -11379,7 +11390,7 @@ msgstr ""
 "concretas, principalmente, la aparición de líneas verticales en los vídeos "
 "FMV. Además, al activar el muestreo manual de texturas, se podrán emular "
 "correctamente ciertos casos especiales de aplicación de texturas (con una "
-"resolución interna de 1x o cuando la opción Copia de EFB a escala esté "
+"resolución interna de 1x o cuando la opción Copia del EFB a escala esté "
 "desactivada y sin utilizar texturas personalizadas) y se emularán mejor los "
 "cálculos del nivel de detalle.<br><br>Esto puede empeorar el rendimiento, "
 "sobre todo con resoluciones internas elevadas; por otro lado, el filtrado "
@@ -11592,7 +11603,7 @@ msgstr "FOV vertical"
 #. i18n: Refers to a positional offset applied to an emulated wiimote.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:39
 msgid "Vertical Offset"
-msgstr "Desplazamiento Vertical"
+msgstr "Desplazamiento vertical"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:214
 msgid "Video"
@@ -11757,11 +11768,11 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 "Espera hasta que el juego se sincronice con la GPU emulada antes de escribir "
-"el contenido de las copias EFB en la RAM.<br><br> Reduce la sobrecarga de "
-"las copias EFB RAM, proporcionando un aumento de rendimiento en muchos "
-"juegos, a riesgo de romper aquellas que no se sincronizan de forma segura "
-"con la GPU emulada.<br><br><dolphin_emphasis>Si tienes dudas, deja esta "
-"opción activada.</dolphin_emphasis>"
+"el contenido de las copias del EFB en la RAM.<br><br> Reduce la sobrecarga "
+"de las copias del EFB a la RAM, lo que aumentará el rendimiento en muchos "
+"juegos, pero con el riesgo de romper aquellos que no se sincronicen de forma "
+"segura con la GPU emulada.<br><br><dolphin_emphasis>Si tienes dudas, deja "
+"esta opción activada.</dolphin_emphasis>"
 
 #: Source/Core/Common/MsgHandler.cpp:61
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
@@ -11912,7 +11923,7 @@ msgstr "Dispositivos USB permitidos para acceso directo a Bluetooth"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:86
 msgid "Widescreen Hack"
-msgstr "Hack de pantalla panorámica"
+msgstr "Arreglo para pantallas panorámicas"
 
 #: Source/Core/Core/HotkeyManager.cpp:335
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyWii.cpp:20
@@ -11982,7 +11993,7 @@ msgstr "Los datos de Wii todavía no son públicos"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1068
 msgid "Wii save files (*.bin);;All Files (*)"
-msgstr "Archivos de partida Wii (*.bin);;Todos los archivos (*)"
+msgstr "Archivos de guardado de Wii (*.bin);;Todos los archivos (*)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:70
 msgid "WiiTools Signature MEGA File"
@@ -12115,8 +12126,9 @@ msgid ""
 "\n"
 "Are you sure you want to continue anyway?"
 msgstr ""
-"Estás a punto de ejecutar una imagen de disco NKit. Estas provocan una serie "
-"de problemas que no suceden con las imágenes normales, como, por ejemplo:\n"
+"Estás a punto de ejecutar una imagen de disco NKit. Las imágenes NKit "
+"producen una serie de problemas que no suceden con las imágenes normales, "
+"como, por ejemplo:\n"
 "\n"
 "• Los tiempos de carga son mayores\n"
 "• No podrás jugar en red con quienes tengan una imagen normal del juego\n"
@@ -12138,10 +12150,11 @@ msgid ""
 "10.14 (Mojave) or newer. Please do not report any issues encountered unless "
 "they also occur on 10.14+."
 msgstr ""
-"Estas tratando de usar el motor Vulkan (Metal) en un sistema operativo no "
-"soportado. Para toda la funcionalidad tienes que usar macOS 10.14 (Mojave) o "
-"superior. Por favor no reportes problemas que encuentres a no ser que "
-"también ocurran en 10.14+"
+"Estás tratando de usar el motor Vulkan (Metal) en un sistema operativo no "
+"compatible. Tienes que utilizar la versión de macOS 10.14 (Mojave) o "
+"superior para poder activar todas sus prestaciones. Por favor, no informes "
+"de ningún problema que encuentres a no menos que también aparezcan en las "
+"versiones 10.14 o posteriores."
 
 #: Source/Core/DolphinQt/MenuBar.cpp:568
 msgid "You are running the latest version available on this update track."
@@ -12163,8 +12176,8 @@ msgstr ""
 "Debido a las mejoras en la exactitud de la emulación, esta ROM ya no "
 "funciona correctamente.\n"
 "\n"
-"Elimina los archivos dsp_rom.bin y dsp_coef.bin de la carpeta GC en la "
-"carpeta global del usuario para utilizar la ROM del DSP gratuita o "
+"Elimina los archivos dsp_rom.bin y dsp_coef.bin de la carpeta GC, en la "
+"carpeta global del usuario, para utilizar la ROM del DSP gratuita o "
 "sustitúyelos por volcados correctos extraídos de una GameCube o Wii real.\n"
 "\n"
 "¿Quieres parar para resolver el problema?\n"
