@@ -172,10 +172,11 @@ extern const Info<bool> GFX_HACK_NO_MIPMAPPING;
 #endif
 
 // Graphics.Hacks EFB Scale exclusion settings
-extern const Info<int> GFX_EFB_SCALE_EXCLUDE_WIDTH;
-extern const Info<bool> GFX_EFB_SCALE_EXCLUDE_ALT;
-extern const Info<bool> GFX_EFB_SCALE_EXCLUDE_BLUR;
-extern const Info<bool> GFX_EFB_SCALE_EXCLUDE_ENABLED;
+extern const Info<bool> GFX_EFB_BLOOM_FIX_ENABLED;
+extern const Info<int> GFX_EFB_BLOOM_FIX_WIDTH;
+extern const Info<bool> GFX_EFB_BLOOM_FIX_DOWNSCALE;
+extern const Info<bool> GFX_EFB_BLOOM_FIX_ALT_FILTER;
+extern const Info<bool> GFX_EFB_BLOOM_FIX_SKIP_FIRST;
 
 // Graphics.GameSpecific
 

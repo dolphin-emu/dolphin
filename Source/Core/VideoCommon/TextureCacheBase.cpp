@@ -2173,7 +2173,7 @@ void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
     if (srcrect.GetWidth() != dstrect.GetWidth() || srcrect.GetHeight() != dstrect.GetHeight())
     {
       g_gfx->ScaleTexture(stitched_entry->framebuffer.get(), dstrect, entry->texture.get(),
-                               srcrect);
+                          srcrect);
     }
     else
     {
@@ -2327,33 +2327,34 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   u32 tex_h = height;
   u32 scaled_tex_w = g_framebuffer_manager->EFBToScaledX(width);
   u32 scaled_tex_h = g_framebuffer_manager->EFBToScaledY(height);
-  bool EFBSkipUpscale = false;
-  bool EFBBlur = false;
+  bool efb_skip_upscale = false;
+  bool efb_blur = false;
 
   if (is_xfb_copy)
   {
-    m_efb_num = 0;
-    EFBSkipUpscale = false;
+    m_bloom_hit = false;
+    efb_skip_upscale = false;
   }
   else if (!g_ActiveConfig.bCopyEFBScaled)
   {
-    EFBSkipUpscale = true;
+    efb_skip_upscale = true;
   }
-  else if (g_ActiveConfig.bEFBExcludeEnabled && width <= g_ActiveConfig.iEFBExcludeWidth &&
-           m_efb_num > 1)
+  else if (g_ActiveConfig.bEFBBloomFixEnabled && width <= g_ActiveConfig.iEFBBloomFixWidth)
   {
     // Could add option for texture formats here. Note: Mario Sunshine's graffiti has a non-standard
     // texture that benefits from excluding from upscaling.
     // Could maybe increase the efb_num check more.
-    if (!g_ActiveConfig.bEFBExcludeAlt)
-      EFBSkipUpscale = true;
+    if (!m_bloom_hit && g_ActiveConfig.bEFBBloomFixSkipFirst)
+      m_bloom_hit = true;
+    else if (!g_ActiveConfig.bEFBBloomFixAltFilter)
+      efb_blur = true;
     else if (m_bloom_dst_check == dst)
-      EFBSkipUpscale = true;
+      efb_blur = true;
 
-    if (g_ActiveConfig.bEFBBlur && EFBSkipUpscale == true)
+    if (g_ActiveConfig.bEFBBloomFixDownscale && efb_blur)
     {
-      EFBSkipUpscale = false;
-      EFBBlur = true;
+      efb_skip_upscale = true;
+      efb_blur = false;
     }
   }
 
@@ -2365,14 +2366,13 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     scaled_tex_h /= 2;
   }
 
-  if (EFBSkipUpscale)
+  if (efb_skip_upscale)
   {
     // No upscaling
     scaled_tex_w = tex_w;
     scaled_tex_h = tex_h;
   }
 
-  m_efb_num += 1;
   m_bloom_dst_check = dst;
 
   // Get the base (in memory) format of this efb copy.
@@ -2475,7 +2475,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
       // Bloom fix
-      if (EFBBlur == true &&
+      if (efb_blur == true &&
           (baseFormat == TextureFormat::RGB565 || baseFormat == TextureFormat::RGBA8))
       {
         BlurCopy(entry);
@@ -3035,7 +3035,7 @@ void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_c
   g_gfx->SetPipeline(copy_pipeline);
   g_gfx->SetTexture(0, src_texture);
   g_gfx->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
-                                                 RenderState::GetPointSamplerState());
+                                            RenderState::GetPointSamplerState());
   g_gfx->Draw(0, 3);
   g_gfx->EndUtilityDrawing();
   entry->texture->FinishedRendering();
@@ -3112,7 +3112,7 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   g_gfx->SetPipeline(copy_pipeline);
   g_gfx->SetTexture(0, src_texture);
   g_gfx->SetSamplerState(0, linear_filter ? RenderState::GetLinearSamplerState() :
-                                                 RenderState::GetPointSamplerState());
+                                            RenderState::GetPointSamplerState());
   g_gfx->Draw(0, 3);
   dst->CopyFromTexture(m_efb_encoding_texture.get(), encode_rect, 0, 0, encode_rect);
   g_gfx->EndUtilityDrawing();
@@ -3173,7 +3173,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, c
   auto dispatch_groups =
       TextureConversionShaderTiled::GetDispatchCount(info, aligned_width, aligned_height);
   g_gfx->DispatchComputeShader(shader, info->group_size_x, info->group_size_y, 1,
-                                    dispatch_groups.first, dispatch_groups.second, 1);
+                               dispatch_groups.first, dispatch_groups.second, 1);
 
   // Copy from decoding texture -> final texture
   // This is because we don't want to have to create compute view for every layer

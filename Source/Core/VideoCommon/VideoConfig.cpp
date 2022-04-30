@@ -133,10 +133,11 @@ void VideoConfig::Refresh()
   iMultisamples = Config::Get(Config::GFX_MSAA);
   bSSAA = Config::Get(Config::GFX_SSAA);
   iEFBScale = Config::Get(Config::GFX_EFB_SCALE);
-  bEFBBlur = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_BLUR);
-  iEFBExcludeWidth = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_WIDTH);
-  bEFBExcludeAlt = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_ALT);
-  bEFBExcludeEnabled = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);
+  bEFBBloomFixEnabled = Config::Get(Config::GFX_EFB_BLOOM_FIX_ENABLED);
+  iEFBBloomFixWidth = Config::Get(Config::GFX_EFB_BLOOM_FIX_WIDTH);
+  bEFBBloomFixDownscale = Config::Get(Config::GFX_EFB_BLOOM_FIX_DOWNSCALE);
+  bEFBBloomFixAltFilter = Config::Get(Config::GFX_EFB_BLOOM_FIX_ALT_FILTER);
+  bEFBBloomFixSkipFirst = Config::Get(Config::GFX_EFB_BLOOM_FIX_SKIP_FIRST);
   bTexFmtOverlayEnable = Config::Get(Config::GFX_TEXFMT_OVERLAY_ENABLE);
   bTexFmtOverlayCenter = Config::Get(Config::GFX_TEXFMT_OVERLAY_CENTER);
   bWireFrame = Config::Get(Config::GFX_ENABLE_WIREFRAME);

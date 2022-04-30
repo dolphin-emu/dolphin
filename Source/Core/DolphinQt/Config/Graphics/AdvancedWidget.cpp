@@ -180,39 +180,39 @@ void AdvancedWidget::CreateWidgets()
 #endif
 
   // Scaled EFB Copy Exclusions
-  auto* efb_box = new QGroupBox(tr("Scaled EFB Copy Exclusions"));
+  auto* efb_box = new QGroupBox(tr("Fix Bloom"));
   auto* efb_layout = new QVBoxLayout();
   auto* efb_layout_width_integer = new QHBoxLayout();
   auto* efb_layout_top = new QHBoxLayout();
   efb_box->setLayout(efb_layout);
 
-  m_scaled_efb_exclude_enable =
-      new ConfigBool(tr("Enabled"), Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);
-  m_scaled_efb_exclude_alt = new ConfigBool(
-      tr("Use alternative method to exclude fewer EFB copies"), Config::GFX_EFB_SCALE_EXCLUDE_ALT);
-  m_scaled_efb_exclude_slider_width =
-      new ConfigSlider(0, EFB_WIDTH, Config::GFX_EFB_SCALE_EXCLUDE_WIDTH, 1);
-  m_scaled_efb_exclude_integer_width =
-      new ConfigInteger(0, EFB_WIDTH, Config::GFX_EFB_SCALE_EXCLUDE_WIDTH, 1);
+  m_bloom_fix_enable = new ConfigBool(tr("Enabled"), Config::GFX_EFB_BLOOM_FIX_ENABLED);
+  m_bloom_fix_skip = new ConfigBool(tr("Skip First"), Config::GFX_EFB_BLOOM_FIX_SKIP_FIRST);
+  m_bloom_fix_alt = new ConfigBool(tr("Filter Less"), Config::GFX_EFB_BLOOM_FIX_ALT_FILTER);
+  m_bloom_fix_downscale = new ConfigBool(tr("Downscale"), Config::GFX_EFB_BLOOM_FIX_DOWNSCALE);
+  m_bloom_fix_slider_width = new ConfigSlider(0, EFB_WIDTH, Config::GFX_EFB_BLOOM_FIX_WIDTH, 1);
+  m_bloom_fix_integer_width = new ConfigInteger(0, EFB_WIDTH, Config::GFX_EFB_BLOOM_FIX_WIDTH, 1);
 
-  if (!m_scaled_efb_exclude_enable->isChecked())
+  if (!m_bloom_fix_enable->isChecked())
   {
-    m_scaled_efb_exclude_slider_width->setEnabled(false);
-    m_scaled_efb_exclude_alt->setEnabled(false);
-    m_scaled_efb_exclude_blur->setEnabled(false);
-    m_scaled_efb_exclude_integer_width->setEnabled(false);
+    m_bloom_fix_slider_width->setEnabled(false);
+    m_bloom_fix_alt->setEnabled(false);
+    m_bloom_fix_skip->setEnabled(false);
+    m_bloom_fix_downscale->setEnabled(false);
+    m_bloom_fix_integer_width->setEnabled(false);
   }
 
   QFontMetrics fm(font());
-  m_scaled_efb_exclude_integer_width->setFixedWidth(fm.lineSpacing() * 4);
+  m_bloom_fix_integer_width->setFixedWidth(fm.lineSpacing() * 4);
 
-  efb_layout_top->addWidget(m_scaled_efb_exclude_enable);
+  efb_layout_top->addWidget(m_bloom_fix_enable);
   efb_layout_top->addStretch();
-  efb_layout_top->addWidget(m_scaled_efb_exclude_alt);
-  efb_layout_top->addWidget(m_scaled_efb_exclude_blur);
+  efb_layout_top->addWidget(m_bloom_fix_skip);
+  efb_layout_top->addWidget(m_bloom_fix_alt);
+  efb_layout_top->addWidget(m_bloom_fix_downscale);
   efb_layout_width_integer->addWidget(new QLabel(tr("Width < ")));
-  efb_layout_width_integer->addWidget(m_scaled_efb_exclude_integer_width);
-  efb_layout_width_integer->addWidget(m_scaled_efb_exclude_slider_width);
+  efb_layout_width_integer->addWidget(m_bloom_fix_integer_width);
+  efb_layout_width_integer->addWidget(m_bloom_fix_slider_width);
   efb_layout->addLayout(efb_layout_top);
   efb_layout->addLayout(efb_layout_width_integer);
 
@@ -247,18 +247,18 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
-  connect(m_scaled_efb_exclude_enable, &QCheckBox::toggled, [=](bool checked) {
-    m_scaled_efb_exclude_slider_width->setEnabled(checked);
-    m_scaled_efb_exclude_alt->setEnabled(checked);
-    m_scaled_efb_exclude_blur->setEnabled(checked);
-    m_scaled_efb_exclude_integer_width->setEnabled(checked);
+  connect(m_bloom_fix_enable, &QCheckBox::toggled, [=](bool checked) {
+    m_bloom_fix_slider_width->setEnabled(checked);
+    m_bloom_fix_alt->setEnabled(checked);
+    m_bloom_fix_skip->setEnabled(checked);
+    m_bloom_fix_downscale->setEnabled(checked);
+    m_bloom_fix_integer_width->setEnabled(checked);
   });
 
   // A &QSlider signal won't fire when game ini's trigger a change, due to a signalblock in
   // ConfigSlider
-  connect(m_scaled_efb_exclude_slider_width, &ConfigSlider::valueChanged, [=] {
-    m_scaled_efb_exclude_integer_width->setValue(m_scaled_efb_exclude_slider_width->value());
-  });
+  connect(m_bloom_fix_slider_width, &ConfigSlider::valueChanged,
+          [=] { m_bloom_fix_integer_width->setValue(m_bloom_fix_slider_width->value()); });
 
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
@@ -449,29 +449,31 @@ void AdvancedWidget::AddDescriptions()
       "resolutions; additionally, Anisotropic Filtering is currently incompatible with Manual "
       "Texture Sampling.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
-  static const char TR_SCALED_EFB_EXCLUDE_DESCRIPTION[] = QT_TR_NOOP(
-      "EFB copies can have different sizes. Scaling up small EFB copies can create graphical "
-      "issues, like poor bloom. These sliders will exclude efb copies from scaling based on their "
-      "width and/or height in pixels. <br><br><dolphin_emphasis>If unsure, leave this "
+  static const char TR_BLOOM_FIX_DESCRIPTION[] = QT_TR_NOOP(
+      "Games use downscaled EFB copies to produce certain effects. Using \"Scaled EFB Copy\" on "
+      "small EFB copies can create graphical issues. The slider will filter efb copies based "
+      "on their width in pixels. By default, the filtered efb copies will then be blurred to "
+      "correct bloom issues. If Downscale is enabled, no blurring will occur and the efb copy will "
+      "not be upscaled at all. Downscaling may rarely be used to fix non-bloom "
+      "issues.<br><br><dolphin_emphasis>If unsure, leave this "
       "unchecked.</dolphin_emphasis>");
-  static const char TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION[] = QT_TR_NOOP(
-      "This slider will exclude EFB copies from scaling based on their "
-      "width in pixels. <br><br>0 = "
-      "exclude nothing. <br><br>640 = exclude everything, the same as Scaled EFB Copy = "
-      "off.<br><br>"
-      "Start on the left and slowly move the slider to the right until the graphical issue "
-      "improves. Values of 161, 300 or 630 may "
-      "be good.");
-  static const char TR_SCALED_EFB_EXCLUDE_BLUR_DESCRIPTION[] =
-      QT_TR_NOOP("Allows EFB to be upscaled, but then Blurs it to produce a higher quality bloom. "
-                 "Fixes shimmering issues that the normal bloom exclusions cause in various games "
-                 "with large bloom EFBs. Can fail to fix bloom in games with small bloom EFBs."
-                 "<br><br><dolphin_emphasis>If unsure, leave this "
-                 "unchecked.</dolphin_emphasis>");
-  static const char TR_SCALED_EFB_EXCLUDE_ALT_DESCRIPTION[] =
-      QT_TR_NOOP("Only excludes textures that are written on top of eachother. Fixes low-res "
-                 "issues in some games."
-                 "<br><br><dolphin_emphasis>If unsure, leave this "
+  static const char TR_BLOOM_FIX_WIDTH_DESCRIPTION[] = QT_TR_NOOP(
+      "This slider will filter the efb copies that need correcting based on their width in pixels. "
+      "<br><br> 0 = filters nothing, same as being off. <br><br>640 = Filters everything, Not "
+      "recommended.<br><br> Start on the left and slowly move the slider to the right until the "
+      "graphical issue improves. Values of 80, 160, 260, 300, 320, or 630 may be good.");
+  static const char TR_BLOOM_FIX_DOWNSCALE_DESCRIPTION[] = QT_TR_NOOP(
+      "Downscales the bloom EFB instead of blurring it. Can produces a more accurate bloom in "
+      "games that use very small efb copies for bloom. Will produce a bad shimmering effect in "
+      "most games that use large efb copies for bloom. Can also be used to fix non-bloom issues. "
+      "<br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
+  static const char TR_BLOOM_FIX_SKIP_DESCRIPTION[] =
+      QT_TR_NOOP("Skips modifying the first efb that would be changed. Fixes issues in some games. "
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_BLOOM_FIX_ALT_FILTER_DESCRIPTION[] =
+      QT_TR_NOOP("Only fixes efbs that are written on top of eachother. Fixes low-res "
+                 "issues in some games. <br><br><dolphin_emphasis>If unsure, leave this "
                  "unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
@@ -511,16 +513,18 @@ void AdvancedWidget::AddDescriptions()
   m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
   m_use_fullres_framedumps->SetDescription(tr(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
 
-  m_scaled_efb_exclude_enable->SetTitle(tr("Scaled EFB Copy Exclusions"));
-  m_scaled_efb_exclude_enable->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_DESCRIPTION));
-  m_scaled_efb_exclude_integer_width->SetTitle(tr("Width"));
-  m_scaled_efb_exclude_integer_width->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
-  m_scaled_efb_exclude_slider_width->SetTitle(tr("Width"));
-  m_scaled_efb_exclude_slider_width->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
-  m_scaled_efb_exclude_alt->SetTitle(tr("Reduce amount of exclusions"));
-  m_scaled_efb_exclude_alt->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_ALT_DESCRIPTION));
-  m_scaled_efb_exclude_blur->SetTitle(tr("Upscale and blur"));
-  m_scaled_efb_exclude_blur->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_BLUR_DESCRIPTION));
+  m_bloom_fix_enable->SetTitle(tr("Fix Bloom"));
+  m_bloom_fix_enable->SetDescription(tr(TR_BLOOM_FIX_DESCRIPTION));
+  m_bloom_fix_integer_width->SetTitle(tr("Width"));
+  m_bloom_fix_integer_width->SetDescription(tr(TR_BLOOM_FIX_WIDTH_DESCRIPTION));
+  m_bloom_fix_slider_width->SetTitle(tr("Width"));
+  m_bloom_fix_slider_width->SetDescription(tr(TR_BLOOM_FIX_WIDTH_DESCRIPTION));
+  m_bloom_fix_alt->SetTitle(tr("Reduce amount of efbs modified"));
+  m_bloom_fix_alt->SetDescription(tr(TR_BLOOM_FIX_ALT_FILTER_DESCRIPTION));
+  m_bloom_fix_skip->SetTitle(tr("Skips modifying first efb hit"));
+  m_bloom_fix_skip->SetDescription(tr(TR_BLOOM_FIX_SKIP_DESCRIPTION));
+  m_bloom_fix_downscale->SetTitle(tr("Downscale Bloom"));
+  m_bloom_fix_downscale->SetDescription(tr(TR_BLOOM_FIX_DOWNSCALE_DESCRIPTION));
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif
