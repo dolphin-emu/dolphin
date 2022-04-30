@@ -11,14 +11,14 @@ public class RoundTransform implements com.squareup.picasso.Transformation {
 
   private final int cornerRadius;
 
-  // Radius is corner rounding in dp
+  // Radius is corner rounding in px
   public RoundTransform(int cornerRadius) {
     this.cornerRadius = cornerRadius;
   }
 
   @Override
   public Bitmap transform(Bitmap source) {
-    final Paint paint = new Paint();
+    Paint paint = new Paint();
     paint.setAntiAlias(true);
     paint.setShader(new BitmapShader(source, Shader.TileMode.CLAMP,
       Shader.TileMode.CLAMP));
@@ -29,8 +29,7 @@ public class RoundTransform implements com.squareup.picasso.Transformation {
     canvas.drawRoundRect(new RectF(0, 0, source.getWidth(),
       source.getHeight()), cornerRadius, cornerRadius, paint);
 
-    if (source != output)
-      source.recycle();
+    source.recycle();
 
     return output;
   }
