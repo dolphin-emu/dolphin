@@ -78,9 +78,10 @@ private:
   ConfigBool* m_manual_texture_sampling;
 
   // EFB exclusions
-  ConfigBool* m_scaled_efb_exclude_enable;
-  ConfigBool* m_scaled_efb_exclude_alt;
-  ConfigBool* m_scaled_efb_exclude_blur;
-  ConfigSlider* m_scaled_efb_exclude_slider_width;
-  ConfigInteger* m_scaled_efb_exclude_integer_width;
+  ConfigBool* m_bloom_fix_enable;
+  ConfigBool* m_bloom_fix_downscale;
+  ConfigBool* m_bloom_fix_alt;
+  ConfigBool* m_bloom_fix_skip;
+  ConfigSlider* m_bloom_fix_slider_width;
+  ConfigInteger* m_bloom_fix_integer_width;
 };
