@@ -48,25 +48,41 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CC" == "clang" ]]; then
       export CC=clang-3.6 CXX=clang++-3.6;
     fi
-  # Download Android NDK and Android CMake toolchain file.
+  # Download a recent Android NDK and use its android.toolchain.cmake file.
   - if [[ "$BUILD_NDK" == "ON" ]]; then
-      git clone --depth=1 https://github.com/urho3d/android-ndk.git $HOME/android-ndk;
       export ANDROID_NDK=$HOME/android-ndk;
-      git clone --depth=1 https://github.com/taka-no-me/android-cmake.git $HOME/android-cmake;
-      export TOOLCHAIN_PATH=$HOME/android-cmake/android.toolchain.cmake;
+      git init $ANDROID_NDK;
+      pushd $ANDROID_NDK;
+        git remote add dneto0 https://github.com/dneto0/android-ndk.git;
+        git fetch --depth=1 dneto0 r17b-strip;
+        git checkout FETCH_HEAD;
+      popd;
+      export TOOLCHAIN_PATH=$ANDROID_NDK/build/cmake/android.toolchain.cmake;
     fi
 
 before_script:
-  - git clone --depth=1 https://github.com/google/googletest.git External/googletest
+  # check out pre-breakage version of googletest; can be deleted when
+  # issue 3128 is fixed
+  # git clone --depth=1 https://github.com/google/googletest.git External/googletest
+  - mkdir -p External/googletest
+  - cd External/googletest
+  - git init
+  - git remote add origin https://github.com/google/googletest.git
+  - git fetch --depth 1 origin 0c400f67fcf305869c5fb113dd296eca266c9725
+  - git reset --hard FETCH_HEAD
+  - cd ../..
+  # get spirv-tools and spirv-headers
   - ./update_glslang_sources.py
 
 script:
   - mkdir build && cd build
   # For Android, do release building using NDK without testing.
+  # Use android-14, the oldest native API level supporeted by NDK r17b.
+  # We can use newer API levels if we want.
   # For Linux and macOS, do debug/release building with testing.
   - if [[ "$BUILD_NDK" == "ON" ]]; then
       cmake -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_PATH}
-            -DANDROID_NATIVE_API_LEVEL=android-12
+            -DANDROID_NATIVE_API_LEVEL=android-14
             -DCMAKE_BUILD_TYPE=Release
             -DANDROID_ABI="armeabi-v7a with NEON"
             -DBUILD_TESTING=OFF ..;
@@ -93,9 +109,11 @@ after_success:
       zip ${TARBALL}
         bin/glslangValidator
         include/glslang/*
-        include/SPIRV/*
+        lib/libGenericCodeGen${SUFFIX}.a
         lib/libglslang${SUFFIX}.a
+        lib/libglslang-default-resource-limits${SUFFIX}.a
         lib/libHLSL${SUFFIX}.a
+        lib/libMachineIndependent${SUFFIX}.a
         lib/libOGLCompiler${SUFFIX}.a
         lib/libOSDependent${SUFFIX}.a
         lib/libSPIRV${SUFFIX}.a

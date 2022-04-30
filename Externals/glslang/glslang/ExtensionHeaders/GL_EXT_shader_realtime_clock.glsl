@@ -1,5 +1,9 @@
 //
-// Copyright (C) 2018 The Khronos Group Inc.
+// Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
+// Copyright (C) 2013-2016 LunarG, Inc.
+// Copyright (C) 2016-2020 Google, Inc.
+// Modifications Copyright(C) 2021 Advanced Micro Devices, Inc.All rights reserved.
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,4 +36,3 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include "pch.h"
