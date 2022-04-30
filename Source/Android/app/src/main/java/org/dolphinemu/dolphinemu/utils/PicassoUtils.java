@@ -19,6 +19,10 @@ import java.io.File;
 
 public class PicassoUtils
 {
+
+  // Corner radius for images in dp
+  private static final int CORNER_RADIUS = 8;
+
   public static void loadGameBanner(ImageView imageView, GameFile gameFile)
   {
     Picasso picassoInstance = new Picasso.Builder(imageView.getContext())
@@ -47,7 +51,7 @@ public class PicassoUtils
               .noPlaceholder()
               .fit()
               .centerInside()
-              .config(Bitmap.Config.ARGB_8888)
+              .transform(new RoundTransform(CORNER_RADIUS))
               .error(R.drawable.no_banner)
               .into(imageView);
     }
@@ -59,7 +63,7 @@ public class PicassoUtils
               .noPlaceholder()
               .fit()
               .centerInside()
-              .config(Bitmap.Config.ARGB_8888)
+              .transform(new RoundTransform(CORNER_RADIUS))
               .error(R.drawable.no_banner)
               .into(imageView);
     }
@@ -73,7 +77,7 @@ public class PicassoUtils
               .noPlaceholder()
               .fit()
               .centerInside()
-              .config(Bitmap.Config.ARGB_8888)
+              .transform(new RoundTransform(CORNER_RADIUS))
               .error(R.drawable.no_banner)
               .into(imageView, new Callback()
               {
@@ -94,7 +98,7 @@ public class PicassoUtils
                           .fit()
                           .centerInside()
                           .noPlaceholder()
-                          .config(Bitmap.Config.ARGB_8888)
+                          .transform(new RoundTransform(CORNER_RADIUS))
                           .error(R.drawable.no_banner)
                           .into(imageView, new Callback()
                           {
@@ -116,7 +120,7 @@ public class PicassoUtils
                                       .fit()
                                       .centerInside()
                                       .noPlaceholder()
-                                      .config(Bitmap.Config.ARGB_8888)
+                                      .transform(new RoundTransform(CORNER_RADIUS))
                                       .error(R.drawable.no_banner)
                                       .into(imageView, new Callback()
                                       {
@@ -147,7 +151,7 @@ public class PicassoUtils
               .noPlaceholder()
               .fit()
               .centerInside()
-              .config(Bitmap.Config.ARGB_8888)
+              .transform(new RoundTransform(CORNER_RADIUS))
               .into(imageView);
     }
   }
