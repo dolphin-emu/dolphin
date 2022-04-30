@@ -13,6 +13,7 @@ public enum MenuTag
   CONFIG_AUDIO("config_audio"),
   CONFIG_PATHS("config_paths"),
   CONFIG_GAME_CUBE("config_gamecube"),
+  CONFIG_SERIALPORT1("config_serialport1"),
   CONFIG_WII("config_wii"),
   CONFIG_ADVANCED("config_advanced"),
   CONFIG_LOG("config_log"),
@@ -72,6 +73,11 @@ public enum MenuTag
   public int getSubType()
   {
     return subType;
+  }
+
+  public boolean isSerialPort1Menu()
+  {
+    return this == CONFIG_SERIALPORT1;
   }
 
   public boolean isGCPadMenu()

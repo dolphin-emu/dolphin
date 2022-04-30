@@ -10,6 +10,7 @@ import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -29,12 +30,15 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.InputStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.CheckBoxSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderHyperLinkViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputStringSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RumbleBindingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RunRunnableViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHolder;
@@ -119,6 +123,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
         return new RunRunnableViewHolder(view, this, mContext);
 
+      case SettingsItem.TYPE_STRING:
+        view = inflater.inflate(R.layout.list_item_setting, parent, false);
+        return new InputStringSettingViewHolder(view, this);
+
+      case SettingsItem.TYPE_HYPERLINK_HEADER:
+        view = inflater.inflate(R.layout.list_item_header, parent, false);
+        return new HeaderHyperLinkViewHolder(view, this, mContext);
+
       default:
         throw new IllegalArgumentException("Invalid view type: " + viewType);
     }
@@ -186,6 +198,34 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     notifyItemChanged(position);
 
     mView.onSettingChanged();
+  }
+
+  public void onInputStringClick(InputStringSetting item, int position)
+  {
+    LayoutInflater inflater = LayoutInflater.from(mContext);
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+    View dialogView = inflater.inflate(R.layout.dialog_input_string, null);
+    EditText input = (EditText) dialogView.findViewById(R.id.input);
+    input.setText(item.getSelectedValue(getSettings()));
+
+    builder.setView(dialogView);
+    builder.setMessage(item.getDescription());
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+    {
+      String editTextInput = input.getText().toString();
+
+      if (!item.getSelectedValue(mView.getSettings()).equals(editTextInput))
+      {
+        notifyItemChanged(position);
+        mView.onSettingChanged();
+      }
+
+      item.setSelectedValue(mView.getSettings(), editTextInput);
+    });
+    builder.setNegativeButton(R.string.cancel, null);
+
+    mDialog = builder.show();
   }
 
   public void onSingleChoiceClick(SingleChoiceSetting item, int position)
@@ -364,6 +404,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     if (menuTag != null)
     {
+      if (menuTag.isSerialPort1Menu())
+      {
+        mView.onSerialPort1SettingChanged(menuTag, value);
+      }
+
       if (menuTag.isGCPadMenu())
       {
         mView.onGcPadSettingChanged(menuTag, value);
