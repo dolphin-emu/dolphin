@@ -89,12 +89,13 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
   const int ret = m_context.GetDeviceList([this](libusb_device* device) {
     libusb_device_descriptor device_descriptor;
     libusb_get_device_descriptor(device, &device_descriptor);
-    auto [ret, config_descriptor] = LibusbUtils::MakeConfigDescriptor(device);
-    if (ret != LIBUSB_SUCCESS || !config_descriptor)
+    auto [make_config_descriptor_ret, config_descriptor] =
+        LibusbUtils::MakeConfigDescriptor(device);
+    if (make_config_descriptor_ret != LIBUSB_SUCCESS || !config_descriptor)
     {
       ERROR_LOG_FMT(IOS_WIIMOTE, "Failed to get config descriptor for device {:04x}:{:04x}: {}",
                     device_descriptor.idVendor, device_descriptor.idProduct,
-                    LibusbUtils::ErrorWrap(ret));
+                    LibusbUtils::ErrorWrap(make_config_descriptor_ret));
       return true;
     }
 

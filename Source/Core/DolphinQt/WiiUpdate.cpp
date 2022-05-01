@@ -10,6 +10,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 
@@ -70,6 +71,9 @@ static void ShowResult(QWidget* parent, WiiUtils::UpdateResult result)
     ModalMessageBox::critical(parent, QObject::tr("Update failed"),
                               QObject::tr("The game disc does not contain any usable "
                                           "update information."));
+    break;
+  default:
+    ASSERT(false);
     break;
   }
 }

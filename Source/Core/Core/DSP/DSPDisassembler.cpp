@@ -194,7 +194,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, size_t binbuf_size, u
   // Size 2 - the op has a large immediate.
   if (opc->size == 2)
   {
-    if (wrapped_pc + 1 >= binbuf_size)
+    if (wrapped_pc + 1u >= binbuf_size)
     {
       if (settings_.show_hex)
         dest += fmt::format("{:04x} ???? ", op1);

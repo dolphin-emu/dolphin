@@ -28,14 +28,14 @@ static constexpr int BLOCK_SIZE = 2;
 struct SlopeContext
 {
   SlopeContext(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-               s32 x0, s32 y0, s32 x_off, s32 y_off)
-      : x0(x0), y0(y0)
+               s32 x0_, s32 y0_, s32 x_off, s32 y_off)
+      : x0(x0_), y0(y0_)
   {
     // adjust a little less than 0.5
     const float adjust = 0.495f;
 
-    xOff = ((float)x0 - (v0->screenPosition.x - x_off)) + adjust;
-    yOff = ((float)y0 - (v0->screenPosition.y - y_off)) + adjust;
+    xOff = ((float)x0_ - (v0->screenPosition.x - x_off)) + adjust;
+    yOff = ((float)y0_ - (v0->screenPosition.y - y_off)) + adjust;
 
     dx10 = v1->screenPosition.x - v0->screenPosition.x;
     dx20 = v2->screenPosition.x - v0->screenPosition.x;
@@ -55,10 +55,10 @@ struct SlopeContext
 struct Slope
 {
   Slope() = default;
-  Slope(float f0, float f1, float f2, const SlopeContext& ctx) : f0(f0)
+  Slope(float f0_, float f1, float f2, const SlopeContext& ctx) : f0(f0_)
   {
-    float delta_20 = f2 - f0;
-    float delta_10 = f1 - f0;
+    float delta_20 = f2 - f0_;
+    float delta_10 = f1 - f0_;
 
     //        x2 - x0    y1 - y0    x1 - x0    y2 - y0
     float a = delta_20 * ctx.dy10 - delta_10 * ctx.dy20;
@@ -371,9 +371,9 @@ static void DrawTriangleFrontFace(const OutputVertexData* v0, const OutputVertex
 
   // scissor
   ASSERT(scissor.rect.left >= 0);
-  ASSERT(scissor.rect.right <= EFB_WIDTH);
+  ASSERT(scissor.rect.right <= static_cast<int>(EFB_WIDTH));
   ASSERT(scissor.rect.top >= 0);
-  ASSERT(scissor.rect.bottom <= EFB_HEIGHT);
+  ASSERT(scissor.rect.bottom <= static_cast<int>(EFB_HEIGHT));
 
   minx = std::max(minx, scissor.rect.left);
   maxx = std::min(maxx, scissor.rect.right);
