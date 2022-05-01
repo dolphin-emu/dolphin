@@ -16,7 +16,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
-import android.media.tv.TvContract;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PersistableBundle;

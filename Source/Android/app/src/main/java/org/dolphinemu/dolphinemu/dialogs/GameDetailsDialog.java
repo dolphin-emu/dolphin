@@ -16,7 +16,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
-import org.dolphinemu.dolphinemu.utils.PicassoUtils;
+import org.dolphinemu.dolphinemu.utils.GlideUtils;
 
 public final class GameDetailsDialog extends DialogFragment
 {
@@ -114,7 +114,7 @@ public final class GameDetailsDialog extends DialogFragment
       }
     }
 
-    PicassoUtils.loadGameBanner(banner, gameFile);
+    GlideUtils.loadGameBanner(banner, gameFile);
 
     builder.setView(contents);
     return builder.create();
