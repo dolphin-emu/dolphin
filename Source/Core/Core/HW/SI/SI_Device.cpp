@@ -14,6 +14,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Core/HW/SI/SI_DeviceBaseboard.h"
 #include "Core/HW/SI/SI_DeviceDanceMat.h"
 #include "Core/HW/SI/SI_DeviceGBA.h"
 #ifdef HAS_LIBMGBA
@@ -202,7 +203,9 @@ std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int por
   case SIDEVICE_GC_KEYBOARD:
     return std::make_unique<CSIDevice_Keyboard>(device, port_number);
 
-  case SIDEVICE_AM_BASEBOARD:
+  case SIDEVICE_BASEBOARD:
+    return std::make_unique<CSIDevice_Baseboard>(device, port_number);
+
   case SIDEVICE_NONE:
   default:
     return std::make_unique<CSIDevice_Null>(device, port_number);

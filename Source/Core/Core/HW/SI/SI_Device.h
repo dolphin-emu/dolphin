@@ -38,7 +38,7 @@ enum TSIDevices : u32
   SI_GC_STEERING =
       SI_TYPE_GC,  // (shuffle2)I think the "chainsaw" is the same (Or else it's just standard)
   SI_DANCEMAT = (SI_TYPE_GC | SI_GC_STANDARD | 0x00000300),
-  SI_AM_BASEBOARD = 0x10110800  // gets ORd with dipswitch state
+  SI_BASEBOARD = 0x00060000
 };
 
 // Commands
@@ -89,9 +89,7 @@ enum SIDevices : int
   SIDEVICE_GC_STEERING,
   SIDEVICE_DANCEMAT,
   SIDEVICE_GC_TARUKONGA,
-  // Was used for Triforce in the past, but the implementation is no longer in Dolphin.
-  // It's kept here so that values below will stay constant.
-  SIDEVICE_AM_BASEBOARD,
+  SIDEVICE_BASEBOARD,
   SIDEVICE_WIIU_ADAPTER,
   SIDEVICE_GC_GBA_EMULATED,
   // Not a valid device. Used for checking whether enum values are valid.

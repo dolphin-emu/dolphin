@@ -295,6 +295,7 @@
     <ClInclude Include="Core\HW\MMIOHandlers.h" />
     <ClInclude Include="Core\HW\ProcessorInterface.h" />
     <ClInclude Include="Core\HW\SI\SI_Device.h" />
+    <ClInclude Include="Core\HW\SI\SI_DeviceBaseboard.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceDanceMat.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBA.h" />
     <ClInclude Include="Core\HW\SI\SI_DeviceGBAEmu.h" />
@@ -916,6 +917,7 @@
     <ClCompile Include="Core\HW\MMIO.cpp" />
     <ClCompile Include="Core\HW\ProcessorInterface.cpp" />
     <ClCompile Include="Core\HW\SI\SI_Device.cpp" />
+    <ClCompile Include="Core\HW\SI\SI_DeviceBaseboard.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGBA.cpp" />
     <ClCompile Include="Core\HW\SI\SI_DeviceGBAEmu.cpp" />

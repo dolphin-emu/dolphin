@@ -246,6 +246,8 @@ add_library(core
   HW/ProcessorInterface.h
   HW/SI/SI_Device.cpp
   HW/SI/SI_Device.h
+  HW/SI/SI_DeviceBaseboard.h
+  HW/SI/SI_DeviceBaseboard.cpp
   HW/SI/SI_DeviceDanceMat.cpp
   HW/SI/SI_DeviceDanceMat.h
   HW/SI/SI_DeviceGBA.cpp
