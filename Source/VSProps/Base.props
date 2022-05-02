@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="Base.Macros.props" Condition="'$(BaseMacrosImported)'==''" />
   <PropertyGroup>
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
@@ -7,6 +7,14 @@
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
     <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with deterministic build)-->
     <LinkIncremental>false</LinkIncremental>
+    <!--
+      This works around some dependency tracking bugs where msbuild sees project outputs (object files) as inputs
+      to that same project, causing unstable build. see https://developercommunity.visualstudio.com/t/1703887
+      It also tends to poorly predict how much resources will actually be used in solutions with many diverse
+      project sizes (like dolphin...)
+      TODO This should be the default behavior in VS 17.2
+      -->
+    <UseMSBuildResourceManager>false</UseMSBuildResourceManager>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->

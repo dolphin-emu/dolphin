@@ -19,6 +19,11 @@
 #include "Common/StringUtil.h"
 #include "Common/x64Emitter.h"
 
+#ifdef _MSC_VER
+// This file is extremely slow to optimize (40s on amd 3990x), so just disable optimizations
+#pragma optimize("", off)
+#endif
+
 namespace Gen
 {
 struct NamedReg
@@ -1243,3 +1248,7 @@ FMA4_TEST(VFMADDSUB, P, true)
 FMA4_TEST(VFMSUBADD, P, true)
 
 }  // namespace Gen
+
+#ifdef _MSC_VER
+#pragma optimize("", on)
+#endif
