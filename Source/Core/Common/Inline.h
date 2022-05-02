@@ -3,7 +3,7 @@
 
 #pragma once
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #define DOLPHIN_FORCE_INLINE __forceinline
 #else
 #define DOLPHIN_FORCE_INLINE inline __attribute__((always_inline))
