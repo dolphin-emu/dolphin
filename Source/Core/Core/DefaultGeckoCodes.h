@@ -35,10 +35,6 @@ class DefaultGeckoCodes {
     static const u32 aPitchClock_2 = 0x806b42d0;
     static const u32 aPitchClock_3 = 0x806b46b8;
 
-    static const u32 aNeverCull_1 = 0x8001dcf8;
-    static const u32 aNeverCull_2 = 0x806aa4e4;
-    static const u32 aNeverCull_3 = 0x806ab8b4;
-
 
     void InjectNetplayEventCode();
     void AddRankedCodes();
