@@ -31,7 +31,7 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
 
   parser.add_option("-u", "--user")
       .action("store")
-      .help("User folder path, required for temporary processing files."
+      .help("User folder path, required for temporary processing files. "
             "Will be automatically created if this option is not set.");
 
   parser.add_option("-i", "--input")
