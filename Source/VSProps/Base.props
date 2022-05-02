@@ -38,6 +38,7 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)glslang;$(ExternalsDir)glslang\StandAlone;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)spirv_cross\SPIRV-Cross;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)liblzma\api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -89,6 +90,7 @@
       <PreprocessorDefinitions>HAS_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>HAS_LIBMGBA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>AUTOUPDATE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
       Make sure we include a clean version of windows.h.
       -->
