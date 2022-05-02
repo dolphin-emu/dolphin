@@ -877,7 +877,7 @@ std::string StatTracker::getStatJsonPath(std::string prefix){
 
 std::string StatTracker::getStatJSON(bool inDecode){
     //TODO switch to IDs when submitting game
-    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUsername(); //m_game_info.getAwayTeamPlayer().GetUserID();
+    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUsername() : m_game_info.getAwayTeamPlayer().GetUsername(); //m_game_info.getAwayTeamPlayer().GetUserID();
     std::string home_player_info = (inDecode) ? m_game_info.getHomeTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUsername(); //m_game_info.getHomeTeamPlayer().GetUserID();
 
     std::stringstream json_stream;
