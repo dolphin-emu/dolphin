@@ -145,16 +145,13 @@ void StatTracker::lookForTriggerEvents(){
                     }
                 }
 
-                //If HUD not produced for this event, produce HUD JSON
-                if (Memory::Read_U8(aAB_BatterPort) && Memory::Read_U8(aAB_Inning) != 0){
-
-                    //Fill in current state for HUD
-                    logEventState(m_game_info.current_state);
+                //One time HUD write if there is no previous event AKA start of game
+                if (!m_game_info.previous_state.has_value() && Memory::Read_U8(aAB_BatterPort) && Memory::Read_U8(aAB_Inning) != 0){
                     logGameInfo();
                     m_game_info.current_state.runner_batter = logRunnerInfo(0);
-                    m_game_info.current_state.runner_1 = m_game_info.getCurrentEvent().runner_1;
-                    m_game_info.current_state.runner_2 = m_game_info.getCurrentEvent().runner_2;
-                    m_game_info.current_state.runner_3 = m_game_info.getCurrentEvent().runner_3;
+                    m_game_info.current_state.runner_1 = logRunnerInfo(1);
+                    m_game_info.current_state.runner_2 = logRunnerInfo(2);
+                    m_game_info.current_state.runner_3 = logRunnerInfo(3);
 
                     std::string hud_file_path = File::GetUserPath(D_HUDFILES_IDX) + "decoded.hud.json";
                     std::string json = getHUDJSON(std::to_string(m_game_info.event_num) + "a", m_game_info.current_state, m_game_info.previous_state, true);
@@ -174,6 +171,19 @@ void StatTracker::lookForTriggerEvents(){
 
                     //Get batter runner info
                     m_game_info.getCurrentEvent().runner_batter = logRunnerInfo(0);
+
+                    //If HUD not produced for this event, produce HUD JSON
+                    //Todo maybe ditch current state
+                    logGameInfo();
+                    m_game_info.current_state.runner_batter = logRunnerInfo(0);
+                    m_game_info.current_state.runner_1 = logRunnerInfo(1);
+                    m_game_info.current_state.runner_2 = logRunnerInfo(2);
+                    m_game_info.current_state.runner_3 = logRunnerInfo(3);
+
+                    std::string hud_file_path = File::GetUserPath(D_HUDFILES_IDX) + "decoded.hud.json";
+                    std::string json = getHUDJSON(std::to_string(m_game_info.event_num) + "a", m_game_info.current_state, m_game_info.previous_state, true);
+                    File::Delete(hud_file_path);
+                    File::WriteStringToFile(hud_file_path, json);
 
                     if(Memory::Read_U8(aAB_PitchThrown)){
                         std::cout << "Pitch detected!" << std::endl;
@@ -335,19 +345,6 @@ void StatTracker::lookForTriggerEvents(){
                 //runner_batter out, contact_secondary
                 logFinalResults(m_game_info.getCurrentEvent());
 
-                //Log latest event to file
-                if (true) { //Eventually tie to a parm or something
-                    std::string latest_event_file_path = File::GetUserPath(D_HUDFILES_IDX) + "decoded.latest_event.json";
-                    std::string json = getEventJSON(m_game_info.event_num, m_game_info.getCurrentEvent(), true);
-                    File::Delete(latest_event_file_path);
-                    File::WriteStringToFile(latest_event_file_path, json);
-
-                    latest_event_file_path = File::GetUserPath(D_HUDFILES_IDX) + "latest_event.json";
-                    json = getEventJSON(m_game_info.event_num, m_game_info.getCurrentEvent(), false);
-                    File::Delete(latest_event_file_path);
-                    File::WriteStringToFile(latest_event_file_path, json);
-                }
-
                 //Log post event HUD to file
                 if (true){
 
@@ -422,6 +419,8 @@ void StatTracker::lookForTriggerEvents(){
             break;
         case (GAME_STATE::INGAME):
             if ((Memory::Read_U8(aEndOfGameFlag) == 1) && (m_event_state == EVENT_STATE::GAME_OVER) ){
+                m_game_info.game_active = false; //Game is over and logged
+
                 logGameInfo();
                 std::cout << "Logging Character Stats" << std::endl;
 
@@ -449,7 +448,6 @@ void StatTracker::lookForTriggerEvents(){
             break;
         case (GAME_STATE::ENDGAME_LOGGED):
             if (Memory::Read_U32(aGameId) == 0){
-                m_game_info.game_active = false;
                 m_game_state = GAME_STATE::PREGAME;
                 init();
 
@@ -879,7 +877,7 @@ std::string StatTracker::getStatJsonPath(std::string prefix){
 
 std::string StatTracker::getStatJSON(bool inDecode){
     //TODO switch to IDs when submitting game
-    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUsername(); //m_game_info.getAwayTeamPlayer().GetUserID();
+    std::string away_player_info = (inDecode) ? m_game_info.getAwayTeamPlayer().GetUsername() : m_game_info.getAwayTeamPlayer().GetUsername(); //m_game_info.getAwayTeamPlayer().GetUserID();
     std::string home_player_info = (inDecode) ? m_game_info.getHomeTeamPlayer().GetUsername() : m_game_info.getHomeTeamPlayer().GetUsername(); //m_game_info.getHomeTeamPlayer().GetUserID();
 
     std::stringstream json_stream;

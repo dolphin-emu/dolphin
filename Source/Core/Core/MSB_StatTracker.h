@@ -219,8 +219,12 @@ static const std::map<u8, std::string> cSecondaryContactResult = {
     {0x8,  "Double"},
     {0x9,  "Triple"},
     {0xA,  "HR"},
+    {0xB,  "Error - Input"},
+    {0xC,  "Error - Chem"},
     {0xD,  "Bunt"},
     {0xE,  "SacFly"},
+    {0xF,  "Ground ball double Play"},
+    {0x10, "Foul catch"}
 };
 
 static const std::map<u8, std::string> cAtBatResult = {
@@ -705,7 +709,7 @@ public:
         //All of the events for this game
         std::map<u16, Event> events;
         Event current_state;
-        Event previous_state;
+        std::optional<Event> previous_state;
         bool write_hud = false;
 
 
