@@ -461,6 +461,7 @@ private:
 
   Common::EventHook m_frame_event =
       AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
+  u8* m_bloom_dst_check = nullptr;
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;
