@@ -12,6 +12,7 @@
 #include <utility>
 #include <variant>
 #include <thread>
+#include <ctime>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -189,10 +190,9 @@ void OnFrameEnd()
 
   // c2 gecko for hud (800f83bc) must be on to make this happen
   // movie cannot be playing input back since we do not want to record that
-  if (Memory::Read_U8(sceneID) == 8 && !boolMatchStart && !Movie::IsPlayingInput() && !Movie::IsRecordingInput())
+  if (Memory::Read_U8(matchStart) == 1 && !boolMatchStart && !Movie::IsPlayingInput() && !Movie::IsRecordingInput())
   {
     boolMatchStart = true;
-
     // begin recording
 
     
@@ -214,19 +214,30 @@ void OnFrameEnd()
 
     //Movie::BeginRecordingInput(controllers, wiimotes);
     StateAuxillary::startRecording(controllers, wiimotes);
+    boolMatchEnd = false;
     //StateAuxillary someObj;
     //std::thread t1(StateAuxillary::saveState, "C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
     //someObj->saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav", true);
     //StateAuxillary::saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
   }
 
-  if (Memory::Read_U8(sceneID) == 100 && !boolMatchEnd && !Movie::IsPlayingInput() &&
+  if (Memory::Read_U8(matchEnd) == 1 && !boolMatchEnd && !Movie::IsPlayingInput() &&
       Movie::IsRecordingInput())
   {
     boolMatchEnd = true;
+    time_t curr_time;
+    tm* curr_tm;
+    char date_string[100];
+
+    time(&curr_time);
+    curr_tm = localtime(&curr_time);
+    strftime(date_string, 50, "%B_%d_%Y_%OH_%OM", curr_tm);
+    std::string fileName = "C:\\Users\\Brian\\Desktop\\throw dtm here\\Game_";
+    fileName += date_string;
+    fileName += ".dtm";
     if (Movie::IsRecordingInput())
-      RunAsCPUThread(
-          [=] { Movie::SaveRecording("C:\\Users\\Brian\\Desktop\\throw dtm here\\test.dtm");
+      RunAsCPUThread([=] {
+        Movie::SaveRecording(fileName);
         });
       // call my batch script to move dtms into cits here. not needed til i get dtm working.
       //Movie::SaveRecording("C:\\Users\\PoolBoi\\Desktop\\throw dtm here\\53.dtm");
@@ -234,7 +245,7 @@ void OnFrameEnd()
       RunAsCPUThread(
           [] { Movie::EndPlayInput(false);
         });
-    
+    boolMatchStart = false;
   }
 }
 
