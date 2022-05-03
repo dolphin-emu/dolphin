@@ -133,6 +133,7 @@ void VideoConfig::Refresh()
   iMultisamples = Config::Get(Config::GFX_MSAA);
   bSSAA = Config::Get(Config::GFX_SSAA);
   iEFBScale = Config::Get(Config::GFX_EFB_SCALE);
+  bEFBBlur = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_BLUR);
   iEFBExcludeWidth = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_WIDTH);
   bEFBExcludeAlt = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_ALT);
   bEFBExcludeEnabled = Config::Get(Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);

@@ -491,6 +491,41 @@ std::string GenerateFormatConversionShader(EFBReinterpretType convtype, u32 samp
   return code.GetBuffer();
 }
 
+std::string GenerateTextureBlurShader()
+{
+  ShaderCode code;
+  EmitUniformBufferDeclaration(code);
+  code.Write("{{"
+             "  float width;\n"
+             "  float height;\n"
+             "  float blur_radius;\n"
+             "}};\n\n");
+
+  EmitSamplerDeclarations(code, 0, 1, false);
+  EmitPixelMainDeclaration(code, 1, 0, "float4", "", true);
+  code.Write("  {{\n"
+             "  float layer = v_tex0.z;\n"
+             "  float r = blur_radius;\n"
+             "  float dx = 1/width; float dy = 1/height; float x; float y;\n"
+             "  float4 count = float4(0.0f,0.0f,0.0f,0.0f);\n"
+             "  float4 col = float4(0.0f,0.0f,0.0f,0.0f);\n");
+  code.Write("  for (x = -r; x <= r; x++)\n "
+             "  {{\n "
+             "  for (y = -r; y <= r; y++)\n"
+             "  {{\n"
+             "  count += float4(1.0f,1.0f,1.0f,1.0f);\n"
+             "  float3 coords = float3(v_tex0.x + x*dx, v_tex0.y + y*dy, layer);\n");
+
+  if (GetAPIType() == APIType::D3D)
+    code.Write("  col += tex0.Sample(samp0, coords);\n");
+  else
+    code.Write("  col += texture(samp0, coords);\n");
+
+  code.Write("  }}}}\n");
+  code.Write("ocol0 = col / count;}}\n");
+  return code.GetBuffer();
+}
+
 std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureFormat to_format)
 {
   ShaderCode code;

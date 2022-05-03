@@ -355,6 +355,8 @@ private:
 
   RcTcacheEntry ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette, TLUTFormat tlutfmt);
 
+  void BlurCopy(RcTcacheEntry& existing_entry);
+
   RcTcacheEntry ReinterpretEntry(const RcTcacheEntry& existing_entry, TextureFormat new_format);
 
   RcTcacheEntry DoPartialTextureUpdates(RcTcacheEntry& entry_to_update, const u8* palette,
@@ -460,6 +462,7 @@ private:
   Common::EventHook m_frame_event =
       AfterFrameEvent::Register([this] { OnFrameEnd(); }, "TextureCache");
   u8* m_bloom_dst_check = nullptr;
+  int m_efb_num = 0;
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;

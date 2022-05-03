@@ -222,6 +222,7 @@ struct VideoConfig final
 #ifdef __APPLE__
   bool bNoMipmapping = false;  // Used by macOS fifoci to work around an M1 bug
 #endif
+  bool bEFBBlur = false;
   unsigned int iEFBExcludeWidth = 0;
   bool bEFBExcludeAlt = false;
   bool bEFBExcludeEnabled = false;
