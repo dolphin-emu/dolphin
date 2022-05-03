@@ -195,7 +195,7 @@ void OnFrameEnd()
 
     // begin recording
 
-    /*
+    
     Movie::SetReadOnly(false);
     Movie::ControllerTypeArray controllers{};
     Movie::WiimoteEnabledArray wiimotes{};
@@ -212,12 +212,12 @@ void OnFrameEnd()
       wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
     }
 
-    Movie::BeginRecordingInput(controllers, wiimotes);
-    */
+    //Movie::BeginRecordingInput(controllers, wiimotes);
+    StateAuxillary::startRecording(controllers, wiimotes);
     //StateAuxillary someObj;
     //std::thread t1(StateAuxillary::saveState, "C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
     //someObj->saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav", true);
-    StateAuxillary::saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
+    //StateAuxillary::saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
   }
 
   if (Memory::Read_U8(sceneID) == 100 && !boolMatchEnd && !Movie::IsPlayingInput() &&
