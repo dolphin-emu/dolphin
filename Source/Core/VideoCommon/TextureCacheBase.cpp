@@ -2262,6 +2262,23 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   u32 tex_h = height;
   u32 scaled_tex_w = g_framebuffer_manager->EFBToScaledX(width);
   u32 scaled_tex_h = g_framebuffer_manager->EFBToScaledY(height);
+  bool EFBSkipUpscale = false;
+
+  if (is_xfb_copy)
+  {
+    EFBSkipUpscale = false;
+  }
+  else if (!g_ActiveConfig.bCopyEFBScaled)
+  {
+    EFBSkipUpscale = true;
+  }
+  else if (g_ActiveConfig.bEFBExcludeEnabled && width <= g_ActiveConfig.iEFBExcludeWidth)
+  {
+    if (!g_ActiveConfig.bEFBExcludeAlt)
+      EFBSkipUpscale = true;
+    else if (m_bloom_dst_check == dst)
+      EFBSkipUpscale = true;
+  }
 
   if (scaleByHalf)
   {
@@ -2271,12 +2288,14 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     scaled_tex_h /= 2;
   }
 
-  if (!is_xfb_copy && !g_ActiveConfig.bCopyEFBScaled)
+  if (EFBSkipUpscale)
   {
     // No upscaling
     scaled_tex_w = tex_w;
     scaled_tex_h = tex_h;
   }
+
+  m_bloom_dst_check = dst;
 
   // Get the base (in memory) format of this efb copy.
   TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);

@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QVBoxLayout>
+#include "QFontMetrics"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
@@ -18,6 +19,7 @@
 #include "DolphinQt/Config/ConfigControls/ConfigBool.h"
 #include "DolphinQt/Config/ConfigControls/ConfigChoice.h"
 #include "DolphinQt/Config/ConfigControls/ConfigInteger.h"
+#include "DolphinQt/Config/ConfigControls/ConfigSlider.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
@@ -177,6 +179,41 @@ void AdvancedWidget::CreateWidgets()
   misc_layout->addWidget(m_borderless_fullscreen, 2, 1);
 #endif
 
+  // Scaled EFB Copy Exclusions
+  auto* efb_box = new QGroupBox(tr("Scaled EFB Copy Exclusions"));
+  auto* efb_layout = new QVBoxLayout();
+  auto* efb_layout_width_integer = new QHBoxLayout();
+  auto* efb_layout_top = new QHBoxLayout();
+  efb_box->setLayout(efb_layout);
+
+  m_scaled_efb_exclude_enable =
+      new ConfigBool(tr("Enabled"), Config::GFX_EFB_SCALE_EXCLUDE_ENABLED);
+  m_scaled_efb_exclude_alt = new ConfigBool(
+      tr("Use alternative method to exclude fewer EFB copies"), Config::GFX_EFB_SCALE_EXCLUDE_ALT);
+  m_scaled_efb_exclude_slider_width =
+      new ConfigSlider(0, EFB_WIDTH, Config::GFX_EFB_SCALE_EXCLUDE_WIDTH, 1);
+  m_scaled_efb_exclude_integer_width =
+      new ConfigInteger(0, EFB_WIDTH, Config::GFX_EFB_SCALE_EXCLUDE_WIDTH, 1);
+
+  if (!m_scaled_efb_exclude_enable->isChecked())
+  {
+    m_scaled_efb_exclude_slider_width->setEnabled(false);
+    m_scaled_efb_exclude_alt->setEnabled(false);
+    m_scaled_efb_exclude_integer_width->setEnabled(false);
+  }
+
+  QFontMetrics fm(font());
+  m_scaled_efb_exclude_integer_width->setFixedWidth(fm.lineSpacing() * 4);
+
+  efb_layout_top->addWidget(m_scaled_efb_exclude_enable);
+  efb_layout_top->addStretch();
+  efb_layout_top->addWidget(m_scaled_efb_exclude_alt);
+  efb_layout_width_integer->addWidget(new QLabel(tr("Width < ")));
+  efb_layout_width_integer->addWidget(m_scaled_efb_exclude_integer_width);
+  efb_layout_width_integer->addWidget(m_scaled_efb_exclude_slider_width);
+  efb_layout->addLayout(efb_layout_top);
+  efb_layout->addLayout(efb_layout_width_integer);
+
   // Experimental.
   auto* experimental_box = new QGroupBox(tr("Experimental"));
   auto* experimental_layout = new QGridLayout();
@@ -196,6 +233,7 @@ void AdvancedWidget::CreateWidgets()
   main_layout->addWidget(texture_dump_box);
   main_layout->addWidget(dump_box);
   main_layout->addWidget(misc_box);
+  main_layout->addWidget(efb_box);
   main_layout->addWidget(experimental_box);
   main_layout->addStretch();
 
@@ -207,6 +245,18 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_scaled_efb_exclude_enable, &QCheckBox::toggled, [=](bool checked) {
+    m_scaled_efb_exclude_slider_width->setEnabled(checked);
+    m_scaled_efb_exclude_alt->setEnabled(checked);
+    m_scaled_efb_exclude_integer_width->setEnabled(checked);
+  });
+
+  // A &QSlider signal won't fire when game ini's trigger a change, due to a signalblock in
+  // ConfigSlider
+  connect(m_scaled_efb_exclude_slider_width, &ConfigSlider::valueChanged, [=] {
+    m_scaled_efb_exclude_integer_width->setValue(m_scaled_efb_exclude_slider_width->value());
+  });
+
   connect(m_dump_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_graphics_mods, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
@@ -396,6 +446,24 @@ void AdvancedWidget::AddDescriptions()
       "resolutions; additionally, Anisotropic Filtering is currently incompatible with Manual "
       "Texture Sampling.<br><br>"
       "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_DESCRIPTION[] = QT_TR_NOOP(
+      "EFB copies can have different sizes. Scaling up small EFB copies can create graphical "
+      "issues, like poor bloom. These sliders will exclude efb copies from scaling based on their "
+      "width and/or height in pixels. <br><br><dolphin_emphasis>If unsure, leave this "
+      "unchecked.</dolphin_emphasis>");
+  static const char TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION[] = QT_TR_NOOP(
+      "This slider will exclude EFB copies from scaling based on their "
+      "width in pixels. <br><br>0 = "
+      "exclude nothing. <br><br>640 = exclude everything, the same as Scaled EFB Copy = "
+      "off.<br><br>"
+      "Start on the left and slowly move the slider to the right until the graphical issue "
+      "improves. Values of 161, 300 or 630 may "
+      "be good.");
+  static const char TR_SCALED_EFB_EXCLUDE_ALT_DESCRIPTION[] =
+      QT_TR_NOOP("Only excludes textures that are written on top of eachother. Fixes low-res "
+                 "issues in some games."
+                 "<br><br><dolphin_emphasis>If unsure, leave this "
+                 "unchecked.</dolphin_emphasis>");
 
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
@@ -433,6 +501,15 @@ void AdvancedWidget::AddDescriptions()
   m_disable_vram_copies->SetDescription(tr(TR_DISABLE_VRAM_COPIES_DESCRIPTION));
   m_enable_graphics_mods->SetDescription(tr(TR_LOAD_GRAPHICS_MODS_DESCRIPTION));
   m_use_fullres_framedumps->SetDescription(tr(TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION));
+
+  m_scaled_efb_exclude_enable->SetTitle(tr("Scaled EFB Copy Exclusions"));
+  m_scaled_efb_exclude_enable->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_DESCRIPTION));
+  m_scaled_efb_exclude_integer_width->SetTitle(tr("Width"));
+  m_scaled_efb_exclude_integer_width->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
+  m_scaled_efb_exclude_slider_width->SetTitle(tr("Width"));
+  m_scaled_efb_exclude_slider_width->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_WIDTH_DESCRIPTION));
+  m_scaled_efb_exclude_alt->SetTitle(tr("Reduce amount of exclusions"));
+  m_scaled_efb_exclude_alt->SetDescription(tr(TR_SCALED_EFB_EXCLUDE_ALT_DESCRIPTION));
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif

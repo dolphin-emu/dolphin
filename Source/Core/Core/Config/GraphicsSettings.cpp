@@ -110,6 +110,11 @@ const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS{
 const Info<TriState> GFX_MTL_USE_PRESENT_DRAWABLE{
     {System::GFX, "Settings", "MTLUsePresentDrawable"}, TriState::Auto};
 
+const Info<int> GFX_EFB_SCALE_EXCLUDE_WIDTH{{System::GFX, "Settings", "EFBScaledExcludeWidth"}, 0};
+const Info<bool> GFX_EFB_SCALE_EXCLUDE_ALT{{System::GFX, "Settings", "EFBScaledExcludeAlt"}, false};
+const Info<bool> GFX_EFB_SCALE_EXCLUDE_ENABLED{{System::GFX, "Settings", "EFBScaledExcludeEnabled"},
+                                               false};
+
 const Info<bool> GFX_SW_DUMP_OBJECTS{{System::GFX, "Settings", "SWDumpObjects"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_STAGES{{System::GFX, "Settings", "SWDumpTevStages"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_TEX_FETCHES{{System::GFX, "Settings", "SWDumpTevTexFetches"},
