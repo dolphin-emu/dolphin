@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Core/Core.h"
+#include "Core/StateAuxillary.h"
 
 #include <algorithm>
 #include <atomic>
@@ -10,6 +11,7 @@
 #include <queue>
 #include <utility>
 #include <variant>
+#include <thread>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -193,39 +195,46 @@ void OnFrameEnd()
 
     // begin recording
 
-    keybd_event(VK_HOME, 0x24, 0, 0);
-    keybd_event(VK_HOME, 0x24, KEYEVENTF_KEYUP, 0);
-    //Movie::SetReadOnly(false);
-    //Movie::ControllerTypeArray controllers{};
-    //Movie::WiimoteEnabledArray wiimotes{};
+    /*
+    Movie::SetReadOnly(false);
+    Movie::ControllerTypeArray controllers{};
+    Movie::WiimoteEnabledArray wiimotes{};
 
-    //for (int i = 0; i < 4; i++)
-    //{
-    //  const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
-    //  if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
-    //    controllers[i] = Movie::ControllerType::GBA;
-    //  else if (SerialInterface::SIDevice_IsGCController(si_device))
-    //    controllers[i] = Movie::ControllerType::GC;
-    //  else
-    //    controllers[i] = Movie::ControllerType::None;
-    //  wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
-    //}
+    for (int i = 0; i < 4; i++)
+    {
+      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+      if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+        controllers[i] = Movie::ControllerType::GBA;
+      else if (SerialInterface::SIDevice_IsGCController(si_device))
+        controllers[i] = Movie::ControllerType::GC;
+      else
+        controllers[i] = Movie::ControllerType::None;
+      wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+    }
 
-    //Movie::BeginRecordingInput(controllers, wiimotes);
+    Movie::BeginRecordingInput(controllers, wiimotes);
+    */
+    //StateAuxillary someObj;
+    //std::thread t1(StateAuxillary::saveState, "C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
+    //someObj->saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav", true);
+    StateAuxillary::saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
   }
 
-  if (Memory::Read_U8(sceneID) == 9 && !boolMatchEnd && !Movie::IsPlayingInput() &&
+  if (Memory::Read_U8(sceneID) == 100 && !boolMatchEnd && !Movie::IsPlayingInput() &&
       Movie::IsRecordingInput())
   {
     boolMatchEnd = true;
     if (Movie::IsRecordingInput())
       RunAsCPUThread(
-          [] { Movie::SaveRecording("C:\\Users\\PoolBoi\\Desktop\\throw dtm here\\test.dtm");
+          [=] { Movie::SaveRecording("C:\\Users\\Brian\\Desktop\\throw dtm here\\test.dtm");
         });
       // call my batch script to move dtms into cits here. not needed til i get dtm working.
       //Movie::SaveRecording("C:\\Users\\PoolBoi\\Desktop\\throw dtm here\\53.dtm");
     if (Movie::IsMovieActive())
-      Movie::EndPlayInput(false);
+      RunAsCPUThread(
+          [] { Movie::EndPlayInput(false);
+        });
+    
   }
 }
 
