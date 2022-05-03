@@ -174,7 +174,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions>/PDBALTPATH:Build\$(Platform)\$(Configuration)\$(ProjectName)\bin\%_PDB% %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <!--Link Release-->
     <Link Condition="'$(Configuration)'=='Release'">
