@@ -25,15 +25,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/dolphin_blue"
-            app:tabGravity="fill"
             app:tabIndicatorColor="@color/dolphin_white"
-            app:tabIndicatorHeight="3dp"
-            app:tabMode="fixed"
-            app:tabTextAppearance="@style/MyCustomTextAppearance" />
+            app:tabIndicatorHeight="3dp" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.viewpager.widget.ViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/pager_platforms"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

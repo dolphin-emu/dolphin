@@ -15,10 +15,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -39,13 +40,13 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 /**
- * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
- * individually display a grid of available games for each Fragment, in a tabbed layout.
+ * Manages several PlatformGamesFragments, which individually display a grid of available
+ * games for each Fragment, in a tabbed layout.
  */
 public final class MainActivity extends AppCompatActivity
         implements MainView, SwipeRefreshLayout.OnRefreshListener
 {
-  private ViewPager mViewPager;
+  private ViewPager2 mViewPager;
   private Toolbar mToolbar;
   private TabLayout mTabLayout;
   private FloatingActionButton mFab;
@@ -322,27 +323,34 @@ public final class MainActivity extends AppCompatActivity
   @Nullable
   private PlatformGamesView getPlatformGamesView(Platform platform)
   {
-    String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform.toInt();
-
+    String fragmentTag = "f" + platform.toInt();
     return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
   }
 
   // Don't call this before DirectoryInitialization completes.
   private void setPlatformTabsAndStartGameFileCacheService()
   {
-    PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-            getSupportFragmentManager(), this, this);
+    PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(this, this);
     mViewPager.setAdapter(platformPagerAdapter);
-    mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
-    mTabLayout.setupWithViewPager(mViewPager);
-    mTabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager)
+    mViewPager.setOffscreenPageLimit(platformPagerAdapter.getItemCount());
+    new TabLayoutMediator(mTabLayout, mViewPager, (((tab, position) ->
+            tab.setIcon(PlatformPagerAdapter.TAB_ICONS[position])))).attach();
+
+    mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener()
     {
       @Override
-      public void onTabSelected(@NonNull TabLayout.Tab tab)
+      public void onTabSelected(TabLayout.Tab tab)
       {
-        super.onTabSelected(tab);
         IntSetting.MAIN_LAST_PLATFORM_TAB.setIntGlobal(NativeConfig.LAYER_BASE, tab.getPosition());
       }
+
+      @Override
+      public void onTabUnselected(TabLayout.Tab tab)
+      { /* No-op */ }
+
+      @Override
+      public void onTabReselected(TabLayout.Tab tab)
+      { /* No-op */ }
     });
 
     mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());

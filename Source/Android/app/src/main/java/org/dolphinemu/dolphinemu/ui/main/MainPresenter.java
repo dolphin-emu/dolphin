@@ -26,7 +26,6 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
@@ -63,9 +62,7 @@ public final class MainPresenter
     GameFileCacheManager.getGameFiles().observe(mActivity, (gameFiles) -> mView.showGames());
 
     Observer<Boolean> refreshObserver = (isLoading) ->
-    {
-      mView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
-    };
+            mView.setRefreshing(GameFileCacheManager.isLoadingOrRescanning());
     GameFileCacheManager.isLoading().observe(mActivity, refreshObserver);
     GameFileCacheManager.isRescanning().observe(mActivity, refreshObserver);
   }
