@@ -324,6 +324,7 @@ void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 extern const Info<bool> PRIMEHACK_ENABLE;
 extern const Info<bool> PRIMEHACK_INITIAL_RUN;
 extern const Info<bool> PRIMEHACK_PROMPT_TAB;
+
 extern const Info<bool> PRIMEHACK_NOCLIP;
 extern const Info<bool> PRIMEHACK_INVULNERABILITY;
 extern const Info<bool> PRIMEHACK_SKIPMP2_PORTAL;

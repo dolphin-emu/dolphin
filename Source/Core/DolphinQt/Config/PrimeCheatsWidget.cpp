@@ -12,6 +12,7 @@
 PrimeCheatsWidget::PrimeCheatsWidget()
 {
   CreateWidgets();
+  OnLoadConfig();
   ConnectWidgets();
   AddDescriptions();
 }
@@ -70,6 +71,7 @@ void PrimeCheatsWidget::OnSaveConfig()
   Config::SetBaseOrCurrent(Config::PRIMEHACK_FRIENDVOUCHERS, m_checkbox_friendvouchers->isChecked());
   Config::SetBaseOrCurrent(Config::PRIMEHACK_DISABLE_HUDMEMO, m_checkbox_hudmemo->isChecked());
   Config::SetBaseOrCurrent(Config::PRIMEHACK_UNLOCK_HYPERMODE, m_checkbox_hypermode->isChecked());
+  Config::Save();
 }
 
 void PrimeCheatsWidget::OnLoadConfig()
