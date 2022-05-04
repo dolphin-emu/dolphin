@@ -29,26 +29,13 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 
 static void WriteHeader(APIType api_type, ShaderCode& out)
 {
-  if (api_type == APIType::D3D)
-  {
-    out.Write("cbuffer PSBlock : register(b0) {{\n"
-              "  float2 src_offset, src_size;\n"
-              "  float3 filter_coefficients;\n"
-              "  float gamma_rcp;\n"
-              "  float2 clamp_tb;\n"
-              "  float pixel_height;\n"
-              "}};\n\n");
-  }
-  else if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
-              "  float2 src_offset, src_size;\n"
-              "  float3 filter_coefficients;\n"
-              "  float gamma_rcp;\n"
-              "  float2 clamp_tb;\n"
-              "  float pixel_height;\n"
-              "}};\n");
-  }
+  out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
+            "  float2 src_offset, src_size;\n"
+            "  float3 filter_coefficients;\n"
+            "  float gamma_rcp;\n"
+            "  float2 clamp_tb;\n"
+            "  float pixel_height;\n"
+            "}};\n");
 }
 
 ShaderCode GenerateVertexShader(APIType api_type)
@@ -56,27 +43,19 @@ ShaderCode GenerateVertexShader(APIType api_type)
   ShaderCode out;
   WriteHeader(api_type, out);
 
-  if (api_type == APIType::D3D)
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    out.Write("void main(in uint id : SV_VertexID, out float3 v_tex0 : TEXCOORD0,\n"
-              "          out float4 opos : SV_Position) {{\n");
+    out.Write("VARYING_LOCATION(0) out VertexData {{\n"
+              "  float3 v_tex0;\n"
+              "}};\n");
   }
-  else if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  else
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      out.Write("VARYING_LOCATION(0) out VertexData {{\n"
-                "  float3 v_tex0;\n"
-                "}};\n");
-    }
-    else
-    {
-      out.Write("VARYING_LOCATION(0) out float3 v_tex0;\n");
-    }
-    out.Write("#define id gl_VertexID\n"
-              "#define opos gl_Position\n"
-              "void main() {{\n");
+    out.Write("VARYING_LOCATION(0) out float3 v_tex0;\n");
   }
+  out.Write("#define id gl_VertexID\n"
+            "#define opos gl_Position\n"
+            "void main() {{\n");
   out.Write("  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n");
   out.Write(
       "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n");
@@ -98,38 +77,24 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   ShaderCode out;
   WriteHeader(api_type, out);
 
-  if (api_type == APIType::D3D)
+  out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+  out.Write("float4 SampleEFB(float3 uv, float y_offset) {{\n"
+            "  return texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * pixel_height), "
+            "clamp_tb.x, clamp_tb.y), {}));\n"
+            "}}\n",
+            mono_depth ? "0.0" : "uv.z");
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    out.Write("Texture2DArray tex0 : register(t0);\n"
-              "SamplerState samp0 : register(s0);\n"
-              "float4 SampleEFB(float3 uv, float y_offset) {{\n"
-              "  return tex0.Sample(samp0, float3(uv.x, clamp(uv.y + (y_offset * pixel_height), "
-              "clamp_tb.x, clamp_tb.y), {}));\n"
-              "}}\n\n",
-              mono_depth ? "0.0" : "uv.z");
-    out.Write("void main(in float3 v_tex0 : TEXCOORD0, out float4 ocol0 : SV_Target)\n{{\n");
+    out.Write("VARYING_LOCATION(0) in VertexData {{\n"
+              "  float3 v_tex0;\n"
+              "}};\n");
   }
-  else if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  else
   {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
-    out.Write("float4 SampleEFB(float3 uv, float y_offset) {{\n"
-              "  return texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * pixel_height), "
-              "clamp_tb.x, clamp_tb.y), {}));\n"
-              "}}\n",
-              mono_depth ? "0.0" : "uv.z");
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      out.Write("VARYING_LOCATION(0) in VertexData {{\n"
-                "  float3 v_tex0;\n"
-                "}};\n");
-    }
-    else
-    {
-      out.Write("VARYING_LOCATION(0) in vec3 v_tex0;\n");
-    }
-    out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
-              "void main()\n{{\n");
+    out.Write("VARYING_LOCATION(0) in vec3 v_tex0;\n");
   }
+  out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
+            "void main()\n{{\n");
 
   // The copy filter applies to both color and depth copies. This has been verified on hardware.
   // The filter is only applied to the RGB channels, the alpha channel is left intact.

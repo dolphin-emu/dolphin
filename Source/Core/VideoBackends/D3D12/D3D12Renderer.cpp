@@ -578,6 +578,8 @@ bool Renderer::ApplyState()
     {
       cmdlist->SetGraphicsRootConstantBufferView(ROOT_PARAMETER_VS_CBV,
                                                  m_state.constant_buffers[1]);
+      cmdlist->SetGraphicsRootConstantBufferView(ROOT_PARAMETER_VS_CBV2,
+                                                 m_state.constant_buffers[1]);
 
       if (g_ActiveConfig.bEnablePixelLighting)
       {

@@ -379,23 +379,10 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
             "int3 iround(float3 x) {{ return int3(round(x)); }}\n"
             "int4 iround(float4 x) {{ return int4(round(x)); }}\n\n");
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
-  }
-  else  // D3D
-  {
-    // Declare samplers
-    out.Write("SamplerState samp[8] : register(s0);\n"
-              "\n"
-              "Texture2DArray tex[8] : register(t0);\n");
-  }
+  out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
   out.Write("\n");
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n");
-  else
-    out.Write("cbuffer PSBlock : register(b0) {{\n");
+  out.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n");
 
   out.Write("\tint4 " I_COLORS "[4];\n"
             "\tint4 " I_KCOLORS "[4];\n"
@@ -445,10 +432,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
   {
     out.Write("{}", s_lighting_struct);
 
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
-    else
-      out.Write("cbuffer VSBlock : register(b1) {{\n");
+    out.Write("UBO_BINDING(std140, 2) uniform VSBlock {{\n");
 
     out.Write("{}", s_shader_uniforms);
     out.Write("}};\n");
@@ -456,18 +440,9 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
 
   if (bounding_box)
   {
-    if (api_type == APIType::D3D)
-    {
-      out.Write("globallycoherent RWBuffer<int> bbox_data : register(u2);\n"
-                "#define atomicMin InterlockedMin\n"
-                "#define atomicMax InterlockedMax");
-    }
-    else
-    {
-      out.Write("SSBO_BINDING(0) buffer BBox {{\n"
-                "  int bbox_data[4];\n"
-                "}};");
-    }
+    out.Write("SSBO_BINDING(0) buffer BBox {{\n"
+              "  int bbox_data[4];\n"
+              "}};");
 
     out.Write(R"(
 #define bbox_left bbox_data[0]
@@ -535,24 +510,12 @@ void UpdateBoundingBox(float2 rawpos) {{
 
   if (host_config.manual_texture_sampling)
   {
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    {
-      out.Write(R"(
+    out.Write(R"(
 int4 readTexture(in sampler2DArray tex, uint u, uint v, int layer, int lod) {{
   return iround(texelFetch(tex, int3(u, v, layer), lod) * 255.0);
 }}
 
 int4 readTextureLinear(in sampler2DArray tex, uint2 uv1, uint2 uv2, int layer, int lod, int2 frac_uv) {{)");
-    }
-    else if (api_type == APIType::D3D)
-    {
-      out.Write(R"(
-int4 readTexture(in Texture2DArray tex, uint u, uint v, int layer, int lod) {{
-  return iround(tex.Load(int4(u, v, layer, lod)) * 255.0);
-}}
-
-int4 readTextureLinear(in Texture2DArray tex, uint2 uv1, uint2 uv2, int layer, int lod, int2 frac_uv) {{)");
-    }
 
     out.Write(R"(
   int4 result =
@@ -621,41 +584,26 @@ uint WrapCoord(int coord, uint wrap, int size) {{
     }
   }
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("\nint4 sampleTexture(uint texmap, in sampler2DArray tex, int2 uv, int layer) {{\n");
-  }
-  else if (api_type == APIType::D3D)
-  {
-    out.Write("\nint4 sampleTexture(uint texmap, in Texture2DArray tex, in SamplerState tex_samp, "
-              "int2 uv, int layer) {{\n");
-  }
+  out.Write("\nint4 sampleTexture(uint texmap, in sampler2DArray tex, int2 uv, int layer) {{\n");
 
   if (!host_config.manual_texture_sampling)
   {
     out.Write("  float size_s = float(" I_TEXDIMS "[texmap].x * 128);\n"
               "  float size_t = float(" I_TEXDIMS "[texmap].y * 128);\n"
               "  float3 coords = float3(float(uv.x) / size_s, float(uv.y) / size_t, layer);\n");
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    if (!host_config.backend_sampler_lod_bias)
     {
-      if (!host_config.backend_sampler_lod_bias)
-      {
-        out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
-                  "  float lod_bias = float({}) / 256.0f;\n"
-                  "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
-                  BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
-      }
-      else
-      {
-        out.Write("  return iround(255.0 * texture(tex, coords));\n");
-      }
+      out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
+                "  float lod_bias = float({}) / 256.0f;\n"
+                "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
+                BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
+    }
+    else
+    {
+      out.Write("  return iround(255.0 * texture(tex, coords));\n");
+    }
 
-      out.Write("}}\n");
-    }
-    else if (api_type == APIType::D3D)
-    {
-      out.Write("  return iround(255.0 * tex.Sample(tex_samp, coords));\n}}\n");
-    }
+    out.Write("}}\n");
   }
   else
   {
@@ -694,31 +642,20 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int native_size_t = )" I_TEXDIMS R"([texmap].y;
 )");
 
-      if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      {
-        out.Write(R"(
+      out.Write(R"(
   int3 size = textureSize(tex, 0);
   int size_s = size.x;
   int size_t = size.y;
 )");
-        if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
-        {
-          out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
-        }
-        else
-        {
-          out.Write("  int number_of_levels = 256;  // textureQueryLevels is not supported\n");
-          ERROR_LOG_FMT(VIDEO, "textureQueryLevels is not supported!  Odd graphical results may "
-                               "occur if custom textures are in use!");
-        }
-      }
-      else if (api_type == APIType::D3D)
+      if (g_ActiveConfig.backend_info.bSupportsTextureQueryLevels)
       {
-        ASSERT(g_ActiveConfig.backend_info.bSupportsTextureQueryLevels);
-        out.Write(R"(
-  int size_s, size_t, layers, number_of_levels;
-  tex.GetDimensions(0, size_s, size_t, layers, number_of_levels);
-)");
+        out.Write("  int number_of_levels = textureQueryLevels(tex);\n");
+      }
+      else
+      {
+        out.Write("  int number_of_levels = 256;  // textureQueryLevels is not supported\n");
+        ERROR_LOG_FMT(VIDEO, "textureQueryLevels is not supported!  Odd graphical results may "
+                             "occur if custom textures are in use!");
       }
 
       out.Write(R"(
@@ -737,34 +674,23 @@ uint WrapCoord(int coord, uint wrap, int size) {{
 )");
     }
 
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
     {
-      if (g_ActiveConfig.backend_info.bSupportsCoarseDerivatives)
-      {
-        // The software renderer uses the equivalent of coarse derivatives, so use them here for
-        // consistency.  This hasn't been hardware tested.
-        // Note that bSupportsCoarseDerivatives being false only means dFdxCoarse and dFdxFine don't
-        // exist.  The GPU may still implement dFdx using coarse derivatives; we just don't have the
-        // ability to specifically require it.
-        out.Write(R"(
+      // The software renderer uses the equivalent of coarse derivatives, so use them here for
+      // consistency.  This hasn't been hardware tested.
+      // Note that bSupportsCoarseDerivatives being false only means dFdxCoarse and dFdxFine don't
+      // exist.  The GPU may still implement dFdx using coarse derivatives; we just don't have the
+      // ability to specifically require it.
+      out.Write(R"(
   float2 uv_delta_x = abs(dFdxCoarse(float2(uv)));
   float2 uv_delta_y = abs(dFdyCoarse(float2(uv)));
 )");
-      }
-      else
-      {
-        out.Write(R"(
+    }
+    else
+    {
+      out.Write(R"(
   float2 uv_delta_x = abs(dFdx(float2(uv)));
   float2 uv_delta_y = abs(dFdy(float2(uv)));
-)");
-      }
-    }
-    else if (api_type == APIType::D3D)
-    {
-      ASSERT(g_ActiveConfig.backend_info.bSupportsCoarseDerivatives);
-      out.Write(R"(
-  float2 uv_delta_x = abs(ddx_coarse(float2(uv)));
-  float2 uv_delta_y = abs(ddy_coarse(float2(uv)));
 )");
     }
 
@@ -869,16 +795,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   WriteBitfieldExtractHeader(out, api_type, host_config);
   WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
-              "sampleTexture(texmap, samp[texmap], uv, layer)\n");
-  }
-  else if (api_type == APIType::D3D)
-  {
-    out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
-              "sampleTexture(texmap, tex[texmap], samp[texmap], uv, layer)\n");
-  }
+  out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
+            "sampleTexture(texmap, samp[texmap], uv, layer)\n");
 
   if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
@@ -915,16 +833,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // all of the
     // ARB_image_load_store extension yet.
 
-    // D3D11 also has a way to force the driver to enable early-z, so we're fine here.
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    {
-      // This is a #define which signals whatever early-z method the driver supports.
-      out.Write("FORCE_EARLY_Z; \n");
-    }
-    else
-    {
-      out.Write("[earlydepthstencil]\n");
-    }
+    // This is a #define which signals whatever early-z method the driver supports.
+    out.Write("FORCE_EARLY_Z; \n");
   }
 
   // Only use dual-source blending when required on drivers that don't support it very well.
@@ -943,166 +853,119 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       use_shader_blend || use_shader_logic_op ||
       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
 #ifdef __APPLE__
-    // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
-    // if we want to use it.
-    if (api_type == APIType::Vulkan)
+  // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
+  // if we want to use it.
+  if (api_type == APIType::Vulkan)
+  {
+    if (use_dual_source)
     {
-      if (use_dual_source)
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
-                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
-                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
-      }
-      else
-      {
-        // Metal doesn't support a single unified variable for both input and output,
-        // so when using framebuffer fetch, we declare the input separately below.
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
-                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
-      }
-
-      if (use_framebuffer_fetch)
-      {
-        // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
-        out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
-      }
-    }
-    else
-#endif
-    {
-      bool has_broken_decoration =
-          DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
-
-      out.Write("{} {} vec4 {};\n",
-                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
-                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
-                use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
+                "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
                 use_framebuffer_fetch ? "real_ocol0" : "ocol0");
-
-      if (use_dual_source)
-      {
-        out.Write("{} out vec4 ocol1;\n", has_broken_decoration ?
-                                              "FRAGMENT_OUTPUT_LOCATION(1)" :
-                                              "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)");
-      }
-    }
-
-    if (uid_data->per_pixel_depth)
-      out.Write("#define depth gl_FragDepth\n");
-
-    if (host_config.backend_geometry_shaders)
-    {
-      out.Write("VARYING_LOCATION(0) in VertexData {{\n");
-      GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
-                              GetInterpolationQualifier(msaa, ssaa, true, true));
-
-      if (stereo)
-        out.Write("\tflat int layer;\n");
-
-      out.Write("}};\n");
     }
     else
     {
-      // Let's set up attributes
-      u32 counter = 0;
-      out.Write("VARYING_LOCATION({}) {} in float4 colors_0;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      out.Write("VARYING_LOCATION({}) {} in float4 colors_1;\n", counter++,
-                GetInterpolationQualifier(msaa, ssaa));
-      for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
-      {
-        out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa), i);
-      }
-      if (!host_config.fast_depth_calc)
-      {
-        out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
-      if (per_pixel_lighting)
-      {
-        out.Write("VARYING_LOCATION({}) {} in float3 Normal;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-        out.Write("VARYING_LOCATION({}) {} in float3 WorldPos;\n", counter++,
-                  GetInterpolationQualifier(msaa, ssaa));
-      }
+      // Metal doesn't support a single unified variable for both input and output,
+      // so when using framebuffer fetch, we declare the input separately below.
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
+                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
     }
-
-    out.Write("void main()\n{{\n");
-    out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 
     if (use_framebuffer_fetch)
     {
-      // Store off a copy of the initial framebuffer value.
-      //
-      // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
-      // framebuffer), we read from real_ocol0.
-      out.Write("#ifdef FB_FETCH_VALUE\n"
-                "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
-                "#else\n"
-                "\tfloat4 initial_ocol0 = real_ocol0;\n"
-                "#endif\n");
-
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so we pull out the "real" output
-      // value above and use a temporary for calculations, then set the output value once at the
-      // end of the shader.
-      out.Write("\tfloat4 ocol0;\n");
-    }
-
-    if (use_shader_blend)
-    {
-      out.Write("\tfloat4 ocol1;\n");
+      // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
+      out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
     }
   }
-  else  // D3D
+  else
+#endif
   {
-    out.Write("void main(\n");
-    if (uid_data->uint_output)
-    {
-      out.Write("  out uint4 ocol0 : SV_Target,\n");
-    }
-    else
-    {
-      out.Write("  out float4 ocol0 : SV_Target0,\n"
-                "  out float4 ocol1 : SV_Target1,\n");
-    }
-    out.Write("{}"
-              "  in float4 rawpos : SV_Position,\n",
-              uid_data->per_pixel_depth ? "  out float depth : SV_Depth,\n" : "");
+    bool has_broken_decoration =
+        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
 
-    out.Write("  in {} float4 colors_0 : COLOR0,\n", GetInterpolationQualifier(msaa, ssaa));
-    out.Write("  in {} float4 colors_1 : COLOR1\n", GetInterpolationQualifier(msaa, ssaa));
+    out.Write("{} {} {} {};\n",
+              has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
+                                      "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
+              use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+              uid_data->uint_output ? "uvec4" : "vec4",
+              use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
-    // compute window position if needed because binding semantic WPOS is not widely supported
+    if (use_dual_source)
+    {
+      out.Write("{} out {} ocol1;\n",
+                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
+                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
+                uid_data->uint_output ? "uvec4" : "vec4");
+    }
+  }
+
+  if (uid_data->per_pixel_depth)
+    out.Write("#define depth gl_FragDepth\n");
+
+  if (host_config.backend_geometry_shaders)
+  {
+    out.Write("VARYING_LOCATION(0) in VertexData {{\n");
+    GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
+                            GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
+
+    if (stereo)
+      out.Write("\tflat int layer;\n");
+
+    out.Write("}};\n");
+  }
+  else
+  {
+    // Let's set up attributes
+    u32 counter = 0;
+    out.Write("VARYING_LOCATION({}) {} in float4 colors_0;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
+    out.Write("VARYING_LOCATION({}) {} in float4 colors_1;\n", counter++,
+              GetInterpolationQualifier(msaa, ssaa));
     for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
-      out.Write(",\n  in {} float3 tex{} : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa), i,
-                i);
+      out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa), i);
     }
     if (!host_config.fast_depth_calc)
     {
-      out.Write(",\n  in {} float4 clipPos : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa),
-                uid_data->genMode_numtexgens);
+      out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
     }
     if (per_pixel_lighting)
     {
-      out.Write(",\n  in {} float3 Normal : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa),
-                uid_data->genMode_numtexgens + 1);
-      out.Write(",\n  in {} float3 WorldPos : TEXCOORD{}", GetInterpolationQualifier(msaa, ssaa),
-                uid_data->genMode_numtexgens + 2);
+      out.Write("VARYING_LOCATION({}) {} in float3 Normal;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION({}) {} in float3 WorldPos;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
     }
-    if (host_config.backend_geometry_shaders)
-    {
-      out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n"
-                ",\n  in float clipDist1 : SV_ClipDistance1\n");
-    }
-    if (stereo)
-      out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
-    out.Write("        ) {{\n");
+  }
+
+  out.Write("void main()\n{{\n");
+  out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
+
+  if (use_framebuffer_fetch)
+  {
+    // Store off a copy of the initial framebuffer value.
+    //
+    // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
+    // framebuffer), we read from real_ocol0.
+    out.Write("#ifdef FB_FETCH_VALUE\n"
+              "\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
+              "#else\n"
+              "\tfloat4 initial_ocol0 = real_ocol0;\n"
+              "#endif\n");
+
+    // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+    // intermediate value with multiple reads & modifications, so we pull out the "real" output
+    // value above and use a temporary for calculations, then set the output value once at the
+    // end of the shader.
+    out.Write("\tfloat4 ocol0;\n");
+  }
+
+  if (use_shader_blend)
+  {
+    out.Write("\tfloat4 ocol1;\n");
   }
   if (!stereo)
     out.Write("\tint layer = 0;\n");

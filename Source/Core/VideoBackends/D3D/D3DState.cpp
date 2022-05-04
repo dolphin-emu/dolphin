@@ -76,6 +76,7 @@ void StateManager::Apply()
     if (m_current.vertexConstants != m_pending.vertexConstants)
     {
       D3D::context->VSSetConstantBuffers(0, 1, &m_pending.vertexConstants);
+      D3D::context->VSSetConstantBuffers(1, 1, &m_pending.vertexConstants);
       m_current.vertexConstants = m_pending.vertexConstants;
     }
 

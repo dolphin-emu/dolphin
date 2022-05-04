@@ -103,7 +103,8 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
             "}};\n");
 
   out.Write("struct VS_OUTPUT {{\n");
-  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "");
+  GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config, "",
+                          ShaderStage::Geometry);
   out.Write("}};\n");
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -113,12 +114,14 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, true));
+                            GetInterpolationQualifier(msaa, ssaa, true, true),
+                            ShaderStage::Geometry);
     out.Write("}} vs[{}];\n", vertex_in);
 
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
-                            GetInterpolationQualifier(msaa, ssaa, true, false));
+                            GetInterpolationQualifier(msaa, ssaa, true, false),
+                            ShaderStage::Geometry);
 
     if (stereo)
       out.Write("\tflat int layer;\n");
@@ -134,6 +137,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
 
     if (stereo)
       out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
+    out.Write("\tfloat4 posout : SV_Position;\n");
 
     out.Write("}};\n");
 
@@ -344,6 +348,7 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
   else
   {
     out.Write("\tps.o = {};\n", vertex);
+    out.Write("\tps.posout = {}.pos;\n", vertex);
   }
 
   if (stereo)
