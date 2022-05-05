@@ -5,6 +5,7 @@
 #include <processthreadsapi.h>
 #include <WinBase.h>
 #include <WinUser.h>
+#include <ShlObj_core.h>
 
 // VARIABLES
 
@@ -105,45 +106,38 @@ std::wstring GetEnvString()
 
 void Metadata::writeJSON(std::string jsonString, bool callBatch)
 {
-  std::string file_path = "C:\\Users\\Brian\\Desktop\\throw dtm here";
-  file_path += "\\output.json";
-  File::WriteStringToFile(file_path, jsonString);
+  //std::string file_path = "C:\\Users\\Brian\\Desktop\\throw dtm here";
+  //file_path += "\\output.json";
+  //std::string file_path;
+
+  PWSTR path;
+  SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
+  std::wstring strpath(path);
+  CoTaskMemFree(path);
+  std::string documents_file_path(strpath.begin(), strpath.end());
+  std::string replays_path = documents_file_path;
+  replays_path += "\\Citrus_Replays";
+  // C://Users//Brian//Documents//Citrus Replays
+  std::string json_output_path = replays_path;
+  json_output_path += "\\output.json";
+
+  File::WriteStringToFile(json_output_path, jsonString);
+
   if (callBatch)
   {
-    WinExec("C:\\Users\\Brian\\Desktop\\createcit.bat Game_Test", SW_HIDE);
-    /*
-    std::wstring env = GetEnvString();
-    env.push_back('\0');  // somewhat awkward way to embed a null-terminator
-    STARTUPINFO si = {sizeof(STARTUPINFO)};
-    si.dwFlags = STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_MINIMIZE;
-    PROCESS_INFORMATION pi;
-
     char date_string[100];
     strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", matchDateTime);
-    //std::string convertedDateString(date_string);
-    //std::wstring wsTmp(convertedDateString.begin(), convertedDateString.end());
-    //std::wstring simple_date_string(L"cmd.exe /C C:\\Users\\Brian\\Desktop\\createcit.bat Game_");
-    //simple_date_string += wsTmp;
-    //const wchar_t* helpLine[] = {simple_date_string.c_str()};
-    //wchar_t cmdline[] = L"cmd.exe /C C:\\Users\\Brian\\Desktop\\createcit.bat Game_";
-
-    char text[] = "Game_";
-    strcat(text, date_string);
-    wchar_t wtext[300];
-    mbstowcs(wtext, text, strlen(text) + 1);  // Plus null
-    LPWSTR ptr = wtext;
-
-    if (!CreateProcess(L"cmd.exe /C C:\\Users\\Brian\\Desktop\\createcit.bat", ptr, NULL, NULL, false,
-                       CREATE_UNICODE_ENVIRONMENT,
-                       (LPVOID)env.c_str(), NULL, &si, &pi))
-    {
-      abort();
-    }
-
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-    */
+    std::string someDate(date_string);
+    std::string gameVar = " Game_";
+    gameVar += someDate;
+    // Game_May_05_2022_11_51_34
+    gameVar += " ";
+    gameVar += replays_path;
+    // Game_May_05_2022_11_51_34 C://Users//Brian//Documents//Citrus Replays
+    // we need to pass the path the replays are held in in order to CD into them in the batch file
+    std::string batchPath("./createcit.bat");
+    batchPath += gameVar;
+    WinExec(batchPath.c_str(), SW_HIDE);
   }
 }
 

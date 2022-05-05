@@ -98,6 +98,8 @@
 #include "jni/AndroidCommon/IDCache.h"
 #endif
 #include <Core/HW/SI/SI_Device.h>
+#include <ShlObj_core.h>
+#include <codecvt>
 
 namespace Core
 {
@@ -216,10 +218,17 @@ void OnFrameEnd()
     //Movie::BeginRecordingInput(controllers, wiimotes);
     StateAuxillary::startRecording(controllers, wiimotes);
     boolMatchEnd = false;
-    //StateAuxillary someObj;
-    //std::thread t1(StateAuxillary::saveState, "C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
-    //someObj->saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav", true);
-    //StateAuxillary::saveState("C:\\Users\\Brian\\Desktop\\throw dtm here\\dichotomy.sav");
+
+    // Create the Citrus Replays directory to ensure writing works
+    PWSTR path;
+    SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
+    std::wstring strpath(path);
+    CoTaskMemFree(path);
+    std::string documents_file_path(strpath.begin(), strpath.end());
+    std::string replays_path = documents_file_path;
+    replays_path += "\\Citrus_Replays";
+    std::wstring wide_replays_path = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(replays_path);
+    CreateDirectory(wide_replays_path.c_str(), NULL);
   }
 
   if (Memory::Read_U8(matchEnd) == 1 && !boolMatchEnd && !Movie::IsPlayingInput() &&
@@ -233,16 +242,22 @@ void OnFrameEnd()
     time(&curr_time);
     curr_tm = localtime(&curr_time);
     strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", curr_tm);
-    std::string fileName = "C:\\Users\\Brian\\Desktop\\throw dtm here\\output.dtm";
-    //fileName += date_string;
-    //fileName += ".dtm";
+
+    PWSTR path;
+    SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
+    std::wstring strpath(path);
+    CoTaskMemFree(path);
+    std::string documents_file_path(strpath.begin(), strpath.end());
+    std::string replays_path = documents_file_path;
+    replays_path += "\\Citrus_Replays";
+    // C://Users//Brian//Documents//Citrus Replays
+
+    std::string fileName = "\\output.dtm";
+    replays_path += fileName;
     if (Movie::IsRecordingInput())
       RunAsCPUThread([=] {
-        Movie::SaveRecording(fileName);
+        Movie::SaveRecording(replays_path);
         });
-    // write to json
-      // call my batch script to move dtms into cits here. not needed til i get dtm working.
-      //Movie::SaveRecording("C:\\Users\\PoolBoi\\Desktop\\throw dtm here\\53.dtm");
     if (Movie::IsMovieActive())
       RunAsCPUThread(
           [] { Movie::EndPlayInput(false);

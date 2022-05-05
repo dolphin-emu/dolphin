@@ -40,3 +40,6 @@ CMakeLists.txt.user
 # Ignore Visual Studio Code's working dir
 /.vscode/
 /Source/Core/DolphinQt/uh.dtm
+/Source/Core/DolphinQt/output.dtm
+/Source/Core/DolphinQt/output.dtm.sav
+/Source/Core/DolphinQt/output.json
