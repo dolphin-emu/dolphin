@@ -3,6 +3,7 @@
 
 #include "Core/Core.h"
 #include "Core/StateAuxillary.h"
+#include "Core/Metadata.h"
 
 #include <algorithm>
 #include <atomic>
@@ -231,14 +232,15 @@ void OnFrameEnd()
 
     time(&curr_time);
     curr_tm = localtime(&curr_time);
-    strftime(date_string, 50, "%B_%d_%Y_%OH_%OM", curr_tm);
-    std::string fileName = "C:\\Users\\Brian\\Desktop\\throw dtm here\\Game_";
-    fileName += date_string;
-    fileName += ".dtm";
+    strftime(date_string, 50, "%B_%d_%Y_%OH_%OM_%OS", curr_tm);
+    std::string fileName = "C:\\Users\\Brian\\Desktop\\throw dtm here\\output.dtm";
+    //fileName += date_string;
+    //fileName += ".dtm";
     if (Movie::IsRecordingInput())
       RunAsCPUThread([=] {
         Movie::SaveRecording(fileName);
         });
+    // write to json
       // call my batch script to move dtms into cits here. not needed til i get dtm working.
       //Movie::SaveRecording("C:\\Users\\PoolBoi\\Desktop\\throw dtm here\\53.dtm");
     if (Movie::IsMovieActive())
@@ -246,6 +248,9 @@ void OnFrameEnd()
           [] { Movie::EndPlayInput(false);
         });
     boolMatchStart = false;
+    Metadata::setMatchMetadata(curr_tm);
+    std::string jsonString = Metadata::getJSONString();
+    Metadata::writeJSON(jsonString, true);
   }
 }
 
