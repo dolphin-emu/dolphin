@@ -293,6 +293,7 @@ extern const Info<bool> MAIN_MOVIE_SHOW_RERECORD;
 // Main.Input
 
 extern const Info<bool> MAIN_INPUT_BACKGROUND_INPUT;
+extern const Info<bool> MAIN_INPUT_BUFFER_JOYSTICK_INPUTS;
 
 // Main.Debug
 

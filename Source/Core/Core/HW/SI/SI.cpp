@@ -28,6 +28,8 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "debugapi.h"
+
 namespace SerialInterface
 {
 // SI Interrupt Types
@@ -683,6 +685,14 @@ void UpdateDevices()
   // Update channels and set the status bit if there's new data
   s_status_reg.RDST0 =
       !!s_channel[0].device->GetData(s_channel[0].in_hi.hex, s_channel[0].in_lo.hex);
+  std::stringstream debug_string_stream{};
+  debug_string_stream << std::hex << "Hi Hex: " << s_channel[0].in_hi.hex << '\n';
+  OutputDebugStringA(debug_string_stream.str().c_str());
+
+  debug_string_stream.str("");
+  debug_string_stream << std::hex << "Lo Hex: " <<s_channel[0].in_lo.hex << '\n';
+  OutputDebugStringA(debug_string_stream.str().c_str());
+
   s_status_reg.RDST1 =
       !!s_channel[1].device->GetData(s_channel[1].in_hi.hex, s_channel[1].in_lo.hex);
   s_status_reg.RDST2 =

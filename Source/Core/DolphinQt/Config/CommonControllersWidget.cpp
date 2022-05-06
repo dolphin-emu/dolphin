@@ -27,10 +27,16 @@ void CommonControllersWidget::CreateLayout()
   m_common_box = new QGroupBox(tr("Common"));
   m_common_layout = new QVBoxLayout();
   m_common_bg_input = new QCheckBox(tr("Background Input"));
+  #ifdef _WIN32
+  m_common_buffer_joystick_inputs = new QCheckBox(tr("Background Input"));
+  #endif
   m_common_configure_controller_interface =
       new NonDefaultQPushButton(tr("Alternate Input Sources"));
 
   m_common_layout->addWidget(m_common_bg_input);
+#ifdef _WIN32
+  m_common_layout->addWidget(m_common_buffer_joystick_inputs);
+#endif
   m_common_layout->addWidget(m_common_configure_controller_interface);
 
   m_common_box->setLayout(m_common_layout);
@@ -45,6 +51,10 @@ void CommonControllersWidget::CreateLayout()
 void CommonControllersWidget::ConnectWidgets()
 {
   connect(m_common_bg_input, &QCheckBox::toggled, this, &CommonControllersWidget::SaveSettings);
+#ifdef _WIN32
+  connect(m_common_buffer_joystick_inputs, &QCheckBox::toggled, this,
+          &CommonControllersWidget::SaveSettings);
+#endif
   connect(m_common_configure_controller_interface, &QPushButton::clicked, this,
           &CommonControllersWidget::OnControllerInterfaceConfigure);
 }
@@ -60,10 +70,17 @@ void CommonControllersWidget::OnControllerInterfaceConfigure()
 void CommonControllersWidget::LoadSettings()
 {
   m_common_bg_input->setChecked(Config::Get(Config::MAIN_INPUT_BACKGROUND_INPUT));
+#ifdef _WIN32
+  m_common_bg_input->setChecked(Config::Get(Config::MAIN_INPUT_BUFFER_JOYSTICK_INPUTS));
+#endif
 }
 
 void CommonControllersWidget::SaveSettings()
 {
   Config::SetBaseOrCurrent(Config::MAIN_INPUT_BACKGROUND_INPUT, m_common_bg_input->isChecked());
+#ifdef _WIN32
+  Config::SetBaseOrCurrent(Config::MAIN_INPUT_BUFFER_JOYSTICK_INPUTS,
+                           m_common_buffer_joystick_inputs->isChecked());
+#endif
   Config::Save();
 }

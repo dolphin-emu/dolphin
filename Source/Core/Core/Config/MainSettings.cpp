@@ -438,6 +438,7 @@ const Info<bool> MAIN_MOVIE_SHOW_RERECORD{{System::Main, "Movie", "ShowRerecord"
 // Main.Input
 
 const Info<bool> MAIN_INPUT_BACKGROUND_INPUT{{System::Main, "Input", "BackgroundInput"}, false};
+const Info<bool> MAIN_INPUT_BUFFER_JOYSTICK_INPUTS{{System::Main, "Input", "BufferJoystickInputs"}, false};
 
 // Main.Debug
 

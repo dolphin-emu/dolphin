@@ -12,6 +12,7 @@
 
 #include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
+#include "Core/Config/MainSettings.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
@@ -114,7 +115,14 @@ Joystick::Joystick(const LPDIRECTINPUTDEVICE8 device) : m_device(device)
   dipdw.dwData = DATA_BUFFER_SIZE;
   // set the buffer size,
   // if we can't set the property, we can't use buffered data
-  m_buffered = SUCCEEDED(m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
+  if (Config::Get(Config::MAIN_INPUT_BUFFER_JOYSTICK_INPUTS))
+  {
+    m_buffered = SUCCEEDED(m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
+  }
+  else
+  {
+    m_buffered = false;
+  }
 
   // seems this needs to be done after SetProperty of buffer size
   m_device->Acquire();
