@@ -451,8 +451,6 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "  {{\n");
   out.Write("  case {:s}:\n", TexGenType::EmbossMap);
   out.Write("    {{\n");
-  out.Write("      uint light = {};\n",
-            BitfieldExtract<&TexMtxInfo::embosslightshift>("texMtxInfo"));
   out.Write("      uint source = {};\n",
             BitfieldExtract<&TexMtxInfo::embosssourceshift>("texMtxInfo"));
   out.Write("      switch (source) {{\n");
@@ -460,8 +458,6 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
     out.Write("      case {}u: output_tex.xyz = o.tex{}; break;\n", i, i);
   out.Write("      default: output_tex.xyz = float3(0.0, 0.0, 0.0); break;\n"
             "      }}\n"
-            "      float3 ldir = normalize(" I_LIGHTS "[light].pos.xyz - pos.xyz);\n"
-            "      output_tex.xyz += float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n"
             "    }}\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", TexGenType::Color0);

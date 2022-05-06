@@ -346,12 +346,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     {
     case TexGenType::EmbossMap:  // calculate tex coords into bump map
 
-      // transform the light dir into tangent space
-      out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                LIGHT_POS_PARAMS(texinfo.embosslightshift));
-      out.Write(
-          "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n",
-          i, texinfo.embosssourceshift);
+      out.Write("o.tex{}.xyz = o.tex{}.xyz;\n", i, texinfo.embosssourceshift);
 
       break;
     case TexGenType::Color0:

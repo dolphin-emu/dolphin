@@ -409,14 +409,8 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst)
       break;
     case TexGenType::EmbossMap:
     {
-      const LightPointer* light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
-
-      Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
-      float d1 = ldir * dst->normal[1];
-      float d2 = ldir * dst->normal[2];
-
-      dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x + d1;
-      dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y + d2;
+      dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x;
+      dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y;
       dst->texCoords[coordNum].z = dst->texCoords[texinfo.embosssourceshift].z;
     }
     break;
