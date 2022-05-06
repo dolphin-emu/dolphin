@@ -28,7 +28,7 @@ void CommonControllersWidget::CreateLayout()
   m_common_layout = new QVBoxLayout();
   m_common_bg_input = new QCheckBox(tr("Background Input"));
   #ifdef _WIN32
-  m_common_buffer_joystick_inputs = new QCheckBox(tr("Background Input"));
+  m_common_buffer_joystick_inputs = new QCheckBox(tr("Buffer Joystick Inputs"));
   #endif
   m_common_configure_controller_interface =
       new NonDefaultQPushButton(tr("Alternate Input Sources"));
