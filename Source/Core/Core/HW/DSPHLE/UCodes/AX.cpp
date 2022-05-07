@@ -307,6 +307,8 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
     if (mixer_control & 0x0008)
     {
       ret |= MIX_L_RAMP | MIX_R_RAMP;
+      if (ret & MIX_S)
+        ret |= MIX_S_RAMP;
       if (ret & MIX_AUXA_L)
         ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
       if (ret & MIX_AUXB_L)
