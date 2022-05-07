@@ -199,11 +199,27 @@ static T ReadFromHardware(u32 em_address)
     em_address = translated_addr.address;
   }
 
+  if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
+  {
+    if (em_address < 0x0c000000)
+      return EFB_Read(em_address);
+    else
+      return static_cast<T>(Memory::mmio_mapping->Read<std::make_unsigned_t<T>>(em_address));
+  }
+
+  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
+  if (Memory::m_pL1Cache && (em_address >> 28) == 0xE &&
+      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  {
+    T value;
+    std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
+    return bswap(value);
+  }
+
   if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    // TODO: Only the first GetRamSizeReal() is supposed to be backed by actual memory.
     T value;
     std::memcpy(&value, &Memory::m_pRAM[em_address & Memory::GetRamMask()], sizeof(T));
     return bswap(value);
@@ -217,14 +233,6 @@ static T ReadFromHardware(u32 em_address)
     return bswap(value);
   }
 
-  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (Memory::m_pL1Cache && (em_address >> 28) == 0xE &&
-      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
-  {
-    T value;
-    std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
-    return bswap(value);
-  }
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
@@ -233,14 +241,6 @@ static T ReadFromHardware(u32 em_address)
     T value;
     std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], sizeof(T));
     return bswap(value);
-  }
-
-  if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
-  {
-    if (em_address < 0x0c000000)
-      return EFB_Read(em_address);
-    else
-      return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
   }
 
   PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PC);
