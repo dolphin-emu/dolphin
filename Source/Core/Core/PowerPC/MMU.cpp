@@ -173,8 +173,8 @@ static void GenerateDSIException(u32 effective_address, bool write);
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
 static T ReadFromHardware(u32 em_address)
 {
-  const u32 em_address_start_page = em_address & ~(HW_PAGE_SIZE - 1);
-  const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
+  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
+  const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
   if (em_address_start_page != em_address_end_page)
   {
     // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
@@ -252,8 +252,8 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
 {
   DEBUG_ASSERT(size <= 4);
 
-  const u32 em_address_start_page = em_address & ~(HW_PAGE_SIZE - 1);
-  const u32 em_address_end_page = (em_address + size - 1) & ~(HW_PAGE_SIZE - 1);
+  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
+  const u32 em_address_end_page = (em_address + size - 1) & ~HW_PAGE_MASK;
   if (em_address_start_page != em_address_end_page)
   {
     // The write crosses a page boundary. Break it up into two writes.
