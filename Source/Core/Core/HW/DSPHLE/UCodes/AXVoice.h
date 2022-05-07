@@ -361,10 +361,10 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u32 count, u16* pvol, s16* dpop, bool ramp)
+void MixAdd(int* out, const s16* input, u32 count, VolumeData* vd, s16* dpop, bool ramp)
 {
-  u16& volume = pvol[0];
-  u16 volume_delta = pvol[1];
+  u16& volume = vd->volume;
+  u16 volume_delta = vd->volume_delta;
 
   // If volume ramping is disabled, set volume_delta to 0. That way, the
   // mixing loop can avoid testing if volume ramping is enabled at each step,
@@ -411,8 +411,8 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
   // Apply a global volume ramp using the volume envelope parameters.
   for (u32 i = 0; i < count; ++i)
   {
-    samples[i] = std::clamp(((s32)samples[i] * pb.vol_env.cur_volume) >> 15, -32767,
-                            32767);  // -32768 ?
+    const s32 sample = ((s32)samples[i] * pb.vol_env.cur_volume) >> 15;
+    samples[i] = std::clamp(sample, -32767, 32767);  // -32768 ?
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }
 
