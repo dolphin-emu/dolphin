@@ -59,7 +59,7 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
 
     mCheckbox.toggle();
 
-    getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());
+    getAdapter().onBooleanClick(mItem, getBindingAdapterPosition(), mCheckbox.isChecked());
 
     setStyle(mTextSettingName, mItem);
   }

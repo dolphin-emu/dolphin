@@ -98,7 +98,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       return;
     }
 
-    int position = getAdapterPosition();
+    int position = getBindingAdapterPosition();
     if (mItem instanceof SingleChoiceSetting)
     {
       getAdapter().onSingleChoiceClick((SingleChoiceSetting) mItem, position);

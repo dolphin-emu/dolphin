@@ -67,7 +67,7 @@ public final class SliderViewHolder extends SettingViewHolder
       return;
     }
 
-    getAdapter().onSliderClick(mItem, getAdapterPosition());
+    getAdapter().onSliderClick(mItem, getBindingAdapterPosition());
 
     setStyle(mTextSettingName, mItem);
   }
