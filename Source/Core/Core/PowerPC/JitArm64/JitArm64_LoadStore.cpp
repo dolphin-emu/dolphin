@@ -6,6 +6,7 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -770,7 +771,22 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
 
-  ARM64Reg addr_reg = ARM64Reg::W0;
+  Common::ScopeGuard register_guard([&] { gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30); });
+
+  constexpr ARM64Reg addr_reg = ARM64Reg::W0;
+  constexpr ARM64Reg temp_reg = ARM64Reg::W30;
+
+  // HACK: Don't clear any memory in the [0x8000'0000, 0x8000'8000) region.
+  FixupBranch end_dcbz_hack;
+  bool using_dcbz_hack = false;
+  const auto emit_low_dcbz_hack = [&](ARM64Reg reg) {
+    if (m_low_dcbz_hack)
+    {
+      CMPI2R(reg, 0x8000'8000, temp_reg);
+      end_dcbz_hack = B(CCFlags::CC_LT);
+      using_dcbz_hack = true;
+    }
+  };
 
   if (a)
   {
@@ -781,6 +797,8 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     {
       // full imm_addr
       u32 imm_addr = gpr.GetImm(b) + gpr.GetImm(a);
+      if (m_low_dcbz_hack && imm_addr >= 0x8000'0000 && imm_addr < 0x8000'8000)
+        return;
       MOVI2R(addr_reg, imm_addr & ~31);
     }
     else if (is_imm_a || is_imm_b)
@@ -789,12 +807,14 @@ void JitArm64::dcbz(UGeckoInstruction inst)
       ARM64Reg base = is_imm_a ? gpr.R(b) : gpr.R(a);
       u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
       ADDI2R(addr_reg, base, imm_offset, addr_reg);
+      emit_low_dcbz_hack(addr_reg);
       AND(addr_reg, addr_reg, LogicalImm(~31, 32));
     }
     else
     {
       // Both are registers
       ADD(addr_reg, gpr.R(a), gpr.R(b));
+      emit_low_dcbz_hack(addr_reg);
       AND(addr_reg, addr_reg, LogicalImm(~31, 32));
     }
   }
@@ -804,10 +824,13 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     if (gpr.IsImm(b))
     {
       u32 imm_addr = gpr.GetImm(b);
+      if (m_low_dcbz_hack && imm_addr >= 0x8000'0000 && imm_addr < 0x8000'8000)
+        return;
       MOVI2R(addr_reg, imm_addr & ~31);
     }
     else
     {
+      emit_low_dcbz_hack(gpr.R(b));
       AND(addr_reg, gpr.R(b), LogicalImm(~31, 32));
     }
   }
@@ -819,7 +842,8 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, jo.fastmem, jo.fastmem, ARM64Reg::W0,
                        EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
 
-  gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
+  if (using_dcbz_hack)
+    SetJumpTarget(end_dcbz_hack);
 }
 
 void JitArm64::eieio(UGeckoInstruction inst)
