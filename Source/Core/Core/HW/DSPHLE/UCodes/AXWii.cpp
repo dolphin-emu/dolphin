@@ -331,15 +331,15 @@ AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
   u32 ret = 0;
 
   if (mixer_control & 0x00000001)
-    ret |= MIX_L;
+    ret |= MIX_MAIN_L;
   if (mixer_control & 0x00000002)
-    ret |= MIX_R;
+    ret |= MIX_MAIN_R;
   if (mixer_control & 0x00000004)
-    ret |= MIX_L_RAMP | MIX_R_RAMP;
+    ret |= MIX_MAIN_L_RAMP | MIX_MAIN_R_RAMP;
   if (mixer_control & 0x00000008)
-    ret |= MIX_S;
+    ret |= MIX_MAIN_S;
   if (mixer_control & 0x00000010)
-    ret |= MIX_S_RAMP;
+    ret |= MIX_MAIN_S_RAMP;
   if (mixer_control & 0x00010000)
     ret |= MIX_AUXA_L;
   if (mixer_control & 0x00020000)

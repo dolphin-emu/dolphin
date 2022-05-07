@@ -428,44 +428,70 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 #define MIX_ON(C) (0 != (mctrl & MIX_##C))
 #define RAMP_ON(C) (0 != (mctrl & MIX_##C##_RAMP))
 
-  if (MIX_ON(L))
-    MixAdd(buffers.main_left, samples, count, &pb.mixer.main_left, &pb.dpop.left, RAMP_ON(L));
-  if (MIX_ON(R))
-    MixAdd(buffers.main_right, samples, count, &pb.mixer.main_right, &pb.dpop.right, RAMP_ON(R));
-  if (MIX_ON(S))
-    MixAdd(buffers.main_surround, samples, count, &pb.mixer.main_surround, &pb.dpop.surround,
-           RAMP_ON(S));
+  if (MIX_ON(MAIN_L))
+  {
+    MixAdd(buffers.main_left, samples, count, &pb.mixer.main_left, &pb.dpop.main_left,
+           RAMP_ON(MAIN_L));
+  }
+  if (MIX_ON(MAIN_R))
+  {
+    MixAdd(buffers.main_right, samples, count, &pb.mixer.main_right, &pb.dpop.main_right,
+           RAMP_ON(MAIN_R));
+  }
+  if (MIX_ON(MAIN_S))
+  {
+    MixAdd(buffers.main_surround, samples, count, &pb.mixer.main_surround, &pb.dpop.main_surround,
+           RAMP_ON(MAIN_S));
+  }
 
   if (MIX_ON(AUXA_L))
+  {
     MixAdd(buffers.auxA_left, samples, count, &pb.mixer.auxA_left, &pb.dpop.auxA_left,
            RAMP_ON(AUXA_L));
+  }
   if (MIX_ON(AUXA_R))
+  {
     MixAdd(buffers.auxA_right, samples, count, &pb.mixer.auxA_right, &pb.dpop.auxA_right,
            RAMP_ON(AUXA_R));
+  }
   if (MIX_ON(AUXA_S))
+  {
     MixAdd(buffers.auxA_surround, samples, count, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround,
            RAMP_ON(AUXA_S));
+  }
 
   if (MIX_ON(AUXB_L))
+  {
     MixAdd(buffers.auxB_left, samples, count, &pb.mixer.auxB_left, &pb.dpop.auxB_left,
            RAMP_ON(AUXB_L));
+  }
   if (MIX_ON(AUXB_R))
+  {
     MixAdd(buffers.auxB_right, samples, count, &pb.mixer.auxB_right, &pb.dpop.auxB_right,
            RAMP_ON(AUXB_R));
+  }
   if (MIX_ON(AUXB_S))
+  {
     MixAdd(buffers.auxB_surround, samples, count, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround,
            RAMP_ON(AUXB_S));
+  }
 
 #ifdef AX_WII
   if (MIX_ON(AUXC_L))
+  {
     MixAdd(buffers.auxC_left, samples, count, &pb.mixer.auxC_left, &pb.dpop.auxC_left,
            RAMP_ON(AUXC_L));
+  }
   if (MIX_ON(AUXC_R))
+  {
     MixAdd(buffers.auxC_right, samples, count, &pb.mixer.auxC_right, &pb.dpop.auxC_right,
            RAMP_ON(AUXC_R));
+  }
   if (MIX_ON(AUXC_S))
+  {
     MixAdd(buffers.auxC_surround, samples, count, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround,
            RAMP_ON(AUXC_S));
+  }
 #endif
 
 #undef MIX_ON
