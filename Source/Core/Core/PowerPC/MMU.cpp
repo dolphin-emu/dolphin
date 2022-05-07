@@ -173,6 +173,20 @@ static void GenerateDSIException(u32 effective_address, bool write);
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
 static T ReadFromHardware(u32 em_address)
 {
+  const u32 em_address_start_page = em_address & ~(HW_PAGE_SIZE - 1);
+  const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
+  if (em_address_start_page != em_address_end_page)
+  {
+    // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
+    // way isn't too terrible.
+    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
+    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
+    u64 var = 0;
+    for (u32 i = 0; i < sizeof(T); ++i)
+      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(em_address + i);
+    return static_cast<T>(var);
+  }
+
   if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
@@ -182,34 +196,8 @@ static T ReadFromHardware(u32 em_address)
         GenerateDSIException(em_address, false);
       return 0;
     }
-    if ((em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
-    {
-      // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
-      // way isn't too terrible.
-      // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-      // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-      u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-      auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
-      if (!addr_next_page.Success())
-      {
-        if (flag == XCheckTLBFlag::Read)
-          GenerateDSIException(em_address_next_page, false);
-        return 0;
-      }
-      T var = 0;
-      u32 addr_translated = translated_addr.address;
-      for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, addr_translated++)
-      {
-        if (addr == em_address_next_page)
-          addr_translated = addr_next_page.address;
-        var = (var << 8) | ReadFromHardware<flag, u8, true>(addr_translated);
-      }
-      return var;
-    }
     em_address = translated_addr.address;
   }
-
-  // TODO: Make sure these are safe for unaligned addresses.
 
   if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
   {
