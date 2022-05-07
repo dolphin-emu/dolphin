@@ -265,7 +265,7 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
     int* ptr;
     u32 samples;
   } buffers[] = {
-      {m_samples_left, 32},      {m_samples_right, 32},      {m_samples_surround, 32},
+      {m_samples_main_left, 32}, {m_samples_main_right, 32}, {m_samples_main_surround, 32},
       {m_samples_auxA_left, 32}, {m_samples_auxA_right, 32}, {m_samples_auxA_surround, 32},
       {m_samples_auxB_left, 32}, {m_samples_auxB_right, 32}, {m_samples_auxB_surround, 32},
       {m_samples_auxC_left, 32}, {m_samples_auxC_right, 32}, {m_samples_auxC_surround, 32},
@@ -306,8 +306,8 @@ void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
     if (neg)
       val = -val;
 
-    m_samples_left[i] += val;
-    m_samples_right[i] += val;
+    m_samples_main_left[i] += val;
+    m_samples_main_right[i] += val;
   }
 }
 
@@ -317,12 +317,12 @@ void AXWiiUCode::AddSubToLR(u32 val_addr)
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
-    m_samples_left[i] += val;
+    m_samples_main_left[i] += val;
   }
   for (int i = 0; i < 32 * 3; ++i)
   {
     int val = (int)Common::swap32(*ptr++);
-    m_samples_right[i] -= val;
+    m_samples_main_right[i] -= val;
   }
 }
 
@@ -453,7 +453,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
 
   while (pb_addr)
   {
-    AXBuffers buffers = {{m_samples_left,      m_samples_right,      m_samples_surround,
+    AXBuffers buffers = {{m_samples_main_left, m_samples_main_right, m_samples_main_surround,
                           m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
                           m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround,
                           m_samples_auxC_left, m_samples_auxC_right, m_samples_auxC_surround,
@@ -498,9 +498,9 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   m_last_aux_volumes[aux_id] = volume;
 
   std::array<int*, 3> main_buffers{
-      m_samples_left,
-      m_samples_right,
-      m_samples_surround,
+      m_samples_main_left,
+      m_samples_main_right,
+      m_samples_main_surround,
   };
 
   std::array<const int*, 3> buffers{};
@@ -578,7 +578,8 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
   GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
   m_last_aux_volumes[aux_id] = volume;
 
-  int* mix_dest[4] = {m_samples_left, m_samples_right, m_samples_surround, m_samples_auxC_left};
+  int* mix_dest[4] = {m_samples_main_left, m_samples_main_right, m_samples_main_surround,
+                      m_samples_auxC_left};
   for (u32 mix_i = 0; mix_i < 4; ++mix_i)
   {
     int* dl_ptr = (int*)HLEMemory_Get_Pointer(addresses[2 + mix_i]);
@@ -603,7 +604,7 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
   std::array<int, 3 * 32> upload_buffer{};
 
   for (size_t i = 0; i < upload_buffer.size(); ++i)
-    upload_buffer[i] = Common::swap32(m_samples_surround[i]);
+    upload_buffer[i] = Common::swap32(m_samples_main_surround[i]);
   memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer.data(), sizeof(upload_buffer));
 
   if (upload_auxc)
@@ -617,22 +618,22 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
   // Clamp internal buffers to 16 bits.
   for (size_t i = 0; i < volume_ramp.size(); ++i)
   {
-    int left = m_samples_left[i];
-    int right = m_samples_right[i];
+    int left = m_samples_main_left[i];
+    int right = m_samples_main_right[i];
 
     // Apply global volume. Cast to s64 to avoid overflow.
     left = ((s64)left * volume_ramp[i]) >> 15;
     right = ((s64)right * volume_ramp[i]) >> 15;
 
-    m_samples_left[i] = std::clamp(left, -32767, 32767);
-    m_samples_right[i] = std::clamp(right, -32767, 32767);
+    m_samples_main_left[i] = std::clamp(left, -32767, 32767);
+    m_samples_main_right[i] = std::clamp(right, -32767, 32767);
   }
 
   std::array<s16, 3 * 32 * 2> buffer;
   for (size_t i = 0; i < 3 * 32; ++i)
   {
-    buffer[2 * i] = Common::swap16(m_samples_right[i]);
-    buffer[2 * i + 1] = Common::swap16(m_samples_left[i]);
+    buffer[2 * i] = Common::swap16(m_samples_main_right[i]);
+    buffer[2 * i + 1] = Common::swap16(m_samples_main_left[i]);
   }
 
   memcpy(HLEMemory_Get_Pointer(lr_addr), buffer.data(), sizeof(buffer));

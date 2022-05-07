@@ -9,10 +9,10 @@ namespace DSP::HLE
 {
 struct PBMixer
 {
-  u16 left;
-  u16 left_delta;
-  u16 right;
-  u16 right_delta;
+  u16 main_left;
+  u16 main_left_delta;
+  u16 main_right;
+  u16 main_right_delta;
 
   u16 auxA_left;
   u16 auxA_left_delta;
@@ -26,8 +26,8 @@ struct PBMixer
 
   u16 auxB_surround;
   u16 auxB_surround_delta;
-  u16 surround;
-  u16 surround_delta;
+  u16 main_surround;
+  u16 main_surround_delta;
   u16 auxA_surround;
   u16 auxA_surround_delta;
 };
@@ -35,10 +35,10 @@ struct PBMixer
 struct PBMixerWii
 {
   // volume mixing values in .15, 0x8000 = ca. 1.0
-  u16 left;
-  u16 left_delta;
-  u16 right;
-  u16 right_delta;
+  u16 main_left;
+  u16 main_left_delta;
+  u16 main_right;
+  u16 main_right_delta;
 
   u16 auxA_left;
   u16 auxA_left_delta;
@@ -57,8 +57,8 @@ struct PBMixerWii
   u16 auxC_right;
   u16 auxC_right_delta;
 
-  u16 surround;
-  u16 surround_delta;
+  u16 main_surround;
+  u16 main_surround_delta;
   u16 auxA_surround;
   u16 auxA_surround_delta;
   u16 auxB_surround;

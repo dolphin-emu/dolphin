@@ -51,9 +51,9 @@ union AXBuffers
 {
   struct
   {
-    int* left;
-    int* right;
-    int* surround;
+    int* main_left;
+    int* main_right;
+    int* main_surround;
 
     int* auxA_left;
     int* auxA_right;
@@ -429,11 +429,12 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 #define RAMP_ON(C) (0 != (mctrl & MIX_##C##_RAMP))
 
   if (MIX_ON(L))
-    MixAdd(buffers.left, samples, count, &pb.mixer.left, &pb.dpop.left, RAMP_ON(L));
+    MixAdd(buffers.main_left, samples, count, &pb.mixer.main_left, &pb.dpop.left, RAMP_ON(L));
   if (MIX_ON(R))
-    MixAdd(buffers.right, samples, count, &pb.mixer.right, &pb.dpop.right, RAMP_ON(R));
+    MixAdd(buffers.main_right, samples, count, &pb.mixer.main_right, &pb.dpop.right, RAMP_ON(R));
   if (MIX_ON(S))
-    MixAdd(buffers.surround, samples, count, &pb.mixer.surround, &pb.dpop.surround, RAMP_ON(S));
+    MixAdd(buffers.main_surround, samples, count, &pb.mixer.main_surround, &pb.dpop.surround,
+           RAMP_ON(S));
 
   if (MIX_ON(AUXA_L))
     MixAdd(buffers.auxA_left, samples, count, &pb.mixer.auxA_left, &pb.dpop.auxA_left,
