@@ -362,7 +362,7 @@ void AXUCode::SetupProcessing(u32 init_addr)
     init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
 
   // List of all buffers we have to initialize
-  int* buffers[] = {m_samples_left,      m_samples_right,      m_samples_surround,
+  int* buffers[] = {m_samples_main_left, m_samples_main_right, m_samples_main_surround,
                     m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
                     m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround};
 
@@ -391,7 +391,7 @@ void AXUCode::SetupProcessing(u32 init_addr)
 
 void AXUCode::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb)
 {
-  int* buffers_main[3] = {m_samples_left, m_samples_right, m_samples_surround};
+  int* buffers_main[3] = {m_samples_main_left, m_samples_main_right, m_samples_main_surround};
   int* buffers_auxa[3] = {m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround};
   int* buffers_auxb[3] = {m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround};
   int** buffers[3] = {buffers_main, buffers_auxa, buffers_auxb};
@@ -424,9 +424,9 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 
   while (pb_addr)
   {
-    AXBuffers buffers = {{m_samples_left, m_samples_right, m_samples_surround, m_samples_auxA_left,
-                          m_samples_auxA_right, m_samples_auxA_surround, m_samples_auxB_left,
-                          m_samples_auxB_right, m_samples_auxB_surround}};
+    AXBuffers buffers = {{m_samples_main_left, m_samples_main_right, m_samples_main_surround,
+                          m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
+                          m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround}};
 
     ReadPB(pb_addr, pb, m_crc);
 
@@ -481,11 +481,11 @@ void AXUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
   // Then, we read the new temp from the CPU and add to our current
   // temp.
   int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
-  for (auto& sample : m_samples_left)
+  for (auto& sample : m_samples_main_left)
     sample += (int)Common::swap32(*ptr++);
-  for (auto& sample : m_samples_right)
+  for (auto& sample : m_samples_main_right)
     sample += (int)Common::swap32(*ptr++);
-  for (auto& sample : m_samples_surround)
+  for (auto& sample : m_samples_main_surround)
     sample += (int)Common::swap32(*ptr++);
 }
 
@@ -495,9 +495,9 @@ void AXUCode::UploadLRS(u32 dst_addr)
 
   for (u32 i = 0; i < 5 * 32; ++i)
   {
-    buffers[0][i] = Common::swap32(m_samples_left[i]);
-    buffers[1][i] = Common::swap32(m_samples_right[i]);
-    buffers[2][i] = Common::swap32(m_samples_surround[i]);
+    buffers[0][i] = Common::swap32(m_samples_main_left[i]);
+    buffers[1][i] = Common::swap32(m_samples_main_right[i]);
+    buffers[2][i] = Common::swap32(m_samples_main_surround[i]);
   }
   memcpy(HLEMemory_Get_Pointer(dst_addr), buffers, sizeof(buffers));
 }
@@ -508,9 +508,9 @@ void AXUCode::SetMainLR(u32 src_addr)
   for (u32 i = 0; i < 5 * 32; ++i)
   {
     int samp = (int)Common::swap32(*ptr++);
-    m_samples_left[i] = samp;
-    m_samples_right[i] = samp;
-    m_samples_surround[i] = 0;
+    m_samples_main_left[i] = samp;
+    m_samples_main_right[i] = samp;
+    m_samples_main_surround[i] = 0;
   }
 }
 
@@ -520,8 +520,8 @@ void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u
   bool triggered = false;
   for (u32 i = 0; i < 32 * millis; ++i)
   {
-    if (std::abs(m_samples_left[i]) > int(threshold) ||
-        std::abs(m_samples_right[i]) > int(threshold))
+    if (std::abs(m_samples_main_left[i]) > int(threshold) ||
+        std::abs(m_samples_main_right[i]) > int(threshold))
     {
       triggered = true;
       break;
@@ -555,8 +555,8 @@ void AXUCode::RunCompressor(u16 threshold, u16 release_frames, u32 table_addr, u
   for (u32 i = 0; i < 32 * millis; ++i)
   {
     u16 coef = Common::swap16(*ramp++);
-    m_samples_left[i] = (s64(m_samples_left[i]) * coef) >> 15;
-    m_samples_right[i] = (s64(m_samples_right[i]) * coef) >> 15;
+    m_samples_main_left[i] = (s64(m_samples_main_left[i]) * coef) >> 15;
+    m_samples_main_right[i] = (s64(m_samples_main_right[i]) * coef) >> 15;
   }
 }
 
@@ -565,7 +565,7 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
   int surround_buffer[5 * 32];
 
   for (u32 i = 0; i < 5 * 32; ++i)
-    surround_buffer[i] = Common::swap32(m_samples_surround[i]);
+    surround_buffer[i] = Common::swap32(m_samples_main_surround[i]);
   memcpy(HLEMemory_Get_Pointer(surround_addr), surround_buffer, sizeof(surround_buffer));
 
   // 32 samples per ms, 5 ms, 2 channels
@@ -574,8 +574,8 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
   // Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
   for (u32 i = 0; i < 5 * 32; ++i)
   {
-    int left = std::clamp(m_samples_left[i], -32767, 32767);
-    int right = std::clamp(m_samples_right[i], -32767, 32767);
+    int left = std::clamp(m_samples_main_left[i], -32767, 32767);
+    int right = std::clamp(m_samples_main_right[i], -32767, 32767);
 
     buffer[2 * i + 0] = Common::swap16(right);
     buffer[2 * i + 1] = Common::swap16(left);
@@ -599,13 +599,13 @@ void AXUCode::MixAUXBLR(u32 ul_addr, u32 dl_addr)
   {
     int samp = Common::swap32(*ptr++);
     m_samples_auxB_left[i] = samp;
-    m_samples_left[i] += samp;
+    m_samples_main_left[i] += samp;
   }
   for (u32 i = 0; i < 5 * 32; ++i)
   {
     int samp = Common::swap32(*ptr++);
     m_samples_auxB_right[i] = samp;
-    m_samples_right[i] += samp;
+    m_samples_main_right[i] += samp;
   }
 }
 
@@ -615,9 +615,9 @@ void AXUCode::SetOppositeLR(u32 src_addr)
   for (u32 i = 0; i < 5 * 32; ++i)
   {
     int inp = Common::swap32(*ptr++);
-    m_samples_left[i] = -inp;
-    m_samples_right[i] = inp;
-    m_samples_surround[i] = 0;
+    m_samples_main_left[i] = -inp;
+    m_samples_main_right[i] = inp;
+    m_samples_main_surround[i] = 0;
   }
 }
 
@@ -646,8 +646,8 @@ void AXUCode::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 
 
   // Download buffers and addresses
   const std::array<int*, 4> dl_buffers{
-      m_samples_left,
-      m_samples_right,
+      m_samples_main_left,
+      m_samples_main_right,
       m_samples_auxB_left,
       m_samples_auxB_right,
   };
@@ -745,9 +745,9 @@ void AXUCode::DoAXState(PointerWrap& p)
   p.Do(m_cmdlist);
   p.Do(m_cmdlist_size);
 
-  p.Do(m_samples_left);
-  p.Do(m_samples_right);
-  p.Do(m_samples_surround);
+  p.Do(m_samples_main_left);
+  p.Do(m_samples_main_right);
+  p.Do(m_samples_main_surround);
   p.Do(m_samples_auxA_left);
   p.Do(m_samples_auxA_right);
   p.Do(m_samples_auxA_surround);

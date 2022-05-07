@@ -82,9 +82,9 @@ protected:
   };
 
   // 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
-  int m_samples_left[32 * 5]{};
-  int m_samples_right[32 * 5]{};
-  int m_samples_surround[32 * 5]{};
+  int m_samples_main_left[32 * 5]{};
+  int m_samples_main_right[32 * 5]{};
+  int m_samples_main_surround[32 * 5]{};
   int m_samples_auxA_left[32 * 5]{};
   int m_samples_auxA_right[32 * 5]{};
   int m_samples_auxA_surround[32 * 5]{};
