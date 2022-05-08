@@ -87,8 +87,8 @@ void IRWidget::handleMouseEvent(QMouseEvent* event)
   else
   {
     // convert from widget space to value space
-    int new_x = ir_max_x - (event->x() * ir_max_x) / width();
-    int new_y = (event->y() * ir_max_y) / height();
+    int new_x = ir_max_x - (event->pos().x() * ir_max_x) / width();
+    int new_y = (event->pos().y() * ir_max_y) / height();
 
     m_x = std::max(0, std::min(static_cast<int>(ir_max_x), new_x));
     m_y = std::max(0, std::min(static_cast<int>(ir_max_y), new_y));

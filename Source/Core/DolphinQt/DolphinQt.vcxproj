@@ -13,14 +13,11 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
-    <Import Project="$(VSPropsDir)PCHUse.props" />
     <Import Project="$(VSPropsDir)QtCompile.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <!-- 5054  operator '+': deprecated between enumerations of different types (types defined in Qt headers) -->
-      <DisableSpecificWarnings>5054;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)Config\Graphics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)Config\ControllerInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -33,6 +30,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir)Settings;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)TAS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!--Ignore warnings in locally-instantiated fmt templates-->
+      <ExternalTemplatesDiagnostics>false</ExternalTemplatesDiagnostics>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -380,6 +379,9 @@
     <ResourceCompile Include="DolphinQt.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Natvis Include="qt6.natvis" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
     </ProjectReference>
@@ -388,6 +390,16 @@
     </ProjectReference>
     <ProjectReference Include="$(DolphinRootDir)Languages\Languages.vcxproj">
       <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
+    </ProjectReference>
+    <!--
+      This project doesn't use PCH during compile (because RTTI setting differs),
+      but we still must link it for the dependants (DolphinLib)
+    -->
+    <ProjectReference Include="$(SourceDir)PCH\pch.vcxproj">
+      <Project>{76563A7F-1011-4EAD-B667-7BB18D09568E}</Project>
+      <Private>false</Private>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(ExternalsDir)ExternalsReferenceAll.props" />

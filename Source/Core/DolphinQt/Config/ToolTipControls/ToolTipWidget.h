@@ -22,7 +22,11 @@ public:
   void SetDescription(QString description) { m_description = std::move(description); }
 
 private:
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   void enterEvent(QEvent* event) override
+#else
+  void enterEvent(QEnterEvent* event) override
+#endif
   {
     if (m_timer_id)
       return;
