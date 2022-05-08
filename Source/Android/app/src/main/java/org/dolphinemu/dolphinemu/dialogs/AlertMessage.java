@@ -47,8 +47,7 @@ public final class AlertMessage extends DialogFragment
     boolean isWarning = requireArguments().getBoolean(ARG_IS_WARNING);
     setCancelable(false);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
-            R.style.DolphinDialogBase)
+    AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
             .setTitle(title)
             .setMessage(message);
 

@@ -49,7 +49,7 @@
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true"
-            android:theme="@style/DolphinBase">
+            android:theme="@style/Theme.Dolphin.Main">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
@@ -62,7 +62,7 @@
         <activity
             android:name=".ui.main.TvMainActivity"
             android:exported="true"
-            android:theme="@style/DolphinTvBase">
+            android:theme="@style/Theme.Dolphin.TV">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
@@ -76,26 +76,26 @@
             android:name=".features.settings.ui.SettingsActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/DolphinSettingsBase"
+            android:theme="@style/Theme.Dolphin.Settings"
             android:label="@string/settings"/>
 
         <activity
             android:name=".features.cheats.ui.CheatsActivity"
             android:exported="false"
-            android:theme="@style/DolphinSettingsBase"
+            android:theme="@style/Theme.Dolphin.Settings"
             android:label="@string/cheats"/>
 
         <activity
             android:name=".activities.EmulationActivity"
             android:exported="false"
-            android:theme="@style/DolphinEmulationBase"
+            android:theme="@style/Theme.Dolphin.Main.Emulation"
             android:preferMinimalPostProcessing="true"/>
 
         <activity
             android:name=".activities.CustomFilePickerActivity"
             android:exported="false"
             android:label="@string/app_name"
-            android:theme="@style/FilePickerTheme">
+            android:theme="@style/Theme.Dolphin.FilePicker">
 
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT"/>
@@ -119,18 +119,18 @@
         <activity
             android:name=".activities.ConvertActivity"
             android:exported="false"
-            android:theme="@style/DolphinBase" />
+            android:theme="@style/Theme.Dolphin.Main" />
 
         <activity
             android:name=".activities.UserDataActivity"
             android:exported="false"
             android:label="@string/user_data_submenu"
-            android:theme="@style/DolphinSettingsBase" />
+            android:theme="@style/Theme.Dolphin.Settings" />
 
         <activity
             android:name=".features.riivolution.ui.RiivolutionBootActivity"
             android:exported="false"
-            android:theme="@style/DolphinBase" />
+            android:theme="@style/Theme.Dolphin.Main" />
 
         <service
             android:name=".services.SyncChannelJobService"

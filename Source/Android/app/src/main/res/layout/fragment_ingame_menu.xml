@@ -27,8 +27,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:scrollbarSize="8dp"
-        android:fadeScrollbars="false"
-        android:theme="@style/InGameScrollView">
+        android:fadeScrollbars="false">
 
         <LinearLayout
             android:id="@+id/layout_options"

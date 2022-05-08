@@ -361,7 +361,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     return () ->
     {
       Context context = requireContext();
-      AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+      AlertDialog.Builder builder = new AlertDialog.Builder(context);
       builder.setMessage(warning_text)
               .setPositiveButton(R.string.yes, (dialog, i) -> action.run())
               .setNegativeButton(R.string.no, null);
@@ -459,7 +459,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
         {
           progressDialog.dismiss();
 
-          AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+          AlertDialog.Builder builder = new AlertDialog.Builder(context);
           if (success)
           {
             builder.setMessage(R.string.convert_success_message)

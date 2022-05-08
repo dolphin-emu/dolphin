@@ -23,7 +23,7 @@ public class OnlineUpdateRegionSelectDialogFragment extends DialogFragment
             R.string.japan), getString(R.string.korea), getString(R.string.united_states)};
     int checkedItem = -1;
 
-    return new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase)
+    return new AlertDialog.Builder(requireContext())
             .setTitle(R.string.region_select_title)
             .setSingleChoiceItems(items, checkedItem, (dialog, which) ->
             {
