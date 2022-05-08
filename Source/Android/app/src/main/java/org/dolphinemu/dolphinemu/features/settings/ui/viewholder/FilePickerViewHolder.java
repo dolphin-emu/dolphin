@@ -90,7 +90,7 @@ public final class FilePickerViewHolder extends SettingViewHolder
       return;
     }
 
-    int position = getAdapterPosition();
+    int position = getBindingAdapterPosition();
     if (mFilePicker.getRequestType() == MainPresenter.REQUEST_DIRECTORY)
     {
       getAdapter().onFilePickerDirectoryClick(mItem, position);

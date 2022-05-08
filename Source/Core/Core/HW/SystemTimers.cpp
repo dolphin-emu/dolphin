@@ -81,11 +81,6 @@ CoreTiming::EventType* et_Throttle;
 
 u32 s_cpu_core_clock = 486000000u;  // 486 mhz (its not 485, stop bugging me!)
 
-// These two are badly educated guesses.
-// Feel free to experiment. Set them in Init below.
-
-// This is a fixed value, don't change it
-int s_audio_dma_period;
 // This is completely arbitrary. If we find that we need lower latency,
 // we can just increase this number.
 int s_ipc_hle_period;
@@ -112,11 +107,16 @@ void DSPCallback(u64 userdata, s64 cyclesLate)
   CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
+int GetAudioDMACallbackPeriod()
+{
+  // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
+  return s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
+}
+
 void AudioDMACallback(u64 userdata, s64 cyclesLate)
 {
-  int period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
   DSP::UpdateAudioDMA();  // Push audio to speakers.
-  CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
+  CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod() - cyclesLate, et_AudioDMA);
 }
 
 void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
@@ -173,8 +173,8 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
   u64 time = Common::Timer::GetTimeUs();
 
   s64 diff = last_time - time;
-  const SConfig& config = SConfig::GetInstance();
-  bool frame_limiter = config.m_EmulationSpeed > 0.0f && !Core::GetIsThrottlerTempDisabled();
+  const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
+  bool frame_limiter = emulation_speed > 0.0f && !Core::GetIsThrottlerTempDisabled();
   u32 next_event = GetTicksPerSecond() / 1000;
 
   {
@@ -186,9 +186,9 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
 
   if (frame_limiter)
   {
-    if (config.m_EmulationSpeed != 1.0f)
-      next_event = u32(next_event * config.m_EmulationSpeed);
-    const s64 max_fallback = config.iTimingVariance * 1000;
+    if (emulation_speed != 1.0f)
+      next_event = u32(next_event * emulation_speed);
+    const s64 max_fallback = Config::Get(Config::MAIN_TIMING_VARIANCE) * 1000;
     if (std::abs(diff) > max_fallback)
     {
       DEBUG_LOG_FMT(COMMON, "system too {}, {} ms skipped", diff < 0 ? "slow" : "fast",
@@ -300,9 +300,6 @@ void Init()
     s_ipc_hle_period = GetTicksPerSecond() / freq;
   }
 
-  // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
-  s_audio_dma_period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
-
   Common::Timer::IncreaseResolution();
   // store and convert localtime at boot to timebase ticks
   if (Config::Get(Config::MAIN_CUSTOM_RTC_ENABLE))
@@ -330,7 +327,7 @@ void Init()
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
   CoreTiming::ScheduleEvent(0, et_DSP);
-  CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
+  CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
   CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeUs());
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);

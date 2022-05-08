@@ -103,7 +103,7 @@ void HacksWidget::CreateWidgets()
       new GraphicsBool(tr("Fast Depth Calculation"), Config::GFX_FAST_DEPTH_CALC);
   m_disable_bounding_box =
       new GraphicsBool(tr("Disable Bounding Box"), Config::GFX_HACK_BBOX_ENABLE, true);
-  m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUDING);
+  m_vertex_rounding = new GraphicsBool(tr("Vertex Rounding"), Config::GFX_HACK_VERTEX_ROUNDING);
   m_save_texture_cache_state =
       new GraphicsBool(tr("Save Texture Cache to State"), Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE);
 
@@ -153,6 +153,9 @@ void HacksWidget::LoadSettings()
 {
   const QSignalBlocker blocker(m_accuracy);
   auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+
+  // Re-enable the slider in case it was disabled because of a custom value
+  m_accuracy->setEnabled(true);
 
   int slider_pos = 0;
 
@@ -272,10 +275,10 @@ void HacksWidget::AddDescriptions()
                  "states at the cost of additional save/load time.<br><br><dolphin_emphasis>If "
                  "unsure, leave this checked.</dolphin_emphasis>");
   static const char TR_VERTEX_ROUNDING_DESCRIPTION[] = QT_TR_NOOP(
-      "Rounds 2D vertices to whole pixels.<br><br>Fixes graphical problems in some games at "
-      "higher internal resolutions. This setting has no effect when native internal "
-      "resolution is used.<br><br><dolphin_emphasis>If unsure, leave this "
-      "unchecked.</dolphin_emphasis>");
+      "Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number.<br><br>"
+      "Fixes graphical problems in some games at higher internal resolutions. This setting has no "
+      "effect when native internal resolution is used.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
 
   m_skip_efb_cpu->SetDescription(tr(TR_SKIP_EFB_CPU_ACCESS_DESCRIPTION));
   m_ignore_format_changes->SetDescription(tr(TR_IGNORE_FORMAT_CHANGE_DESCRIPTION));

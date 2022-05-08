@@ -220,7 +220,8 @@ static void InitializeCPUCore(CPUCore cpu_core)
     s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
-      WARN_LOG_FMT(POWERPC, "CPU core {} not available. Falling back to default.", cpu_core);
+      WARN_LOG_FMT(POWERPC, "CPU core {} not available. Falling back to default.",
+                   static_cast<int>(cpu_core));
       s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
     }
     break;
@@ -600,7 +601,7 @@ void CheckExternalExceptions()
     }
     else
     {
-      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
+      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == {:08x}", exceptions);
       ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
                     exceptions);
     }

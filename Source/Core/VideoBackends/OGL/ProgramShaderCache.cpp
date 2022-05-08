@@ -139,9 +139,9 @@ void SHADER::SetProgramBindings(bool is_compute)
     glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "rawcolor0");
     glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "rawcolor1");
 
-    glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
-    glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-    glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
+    glBindAttribLocation(glprogid, SHADER_NORMAL_ATTRIB, "rawnormal");
+    glBindAttribLocation(glprogid, SHADER_TANGENT_ATTRIB, "rawtangent");
+    glBindAttribLocation(glprogid, SHADER_BINORMAL_ATTRIB, "rawbinormal");
   }
 
   for (int i = 0; i < 8; i++)
@@ -363,7 +363,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       File::OpenFStream(file, filename, std::ios_base::out);
       file << s_glsl_header << code << info_log;
       file << "\n";
-      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
@@ -408,7 +408,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
 
       file << info_log;
       file << "\n";
-      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Dolphin Version: " + Common::GetScmRevStr() + "\n";
       file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 

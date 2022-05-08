@@ -32,13 +32,7 @@
 
 namespace OpcodeDecoder
 {
-static bool s_is_fifo_error_seen = false;
 bool g_record_fifo_data = false;
-
-void Init()
-{
-  s_is_fifo_error_seen = false;
-}
 
 template <bool is_preprocess>
 class RunCallback final : public Callback
@@ -193,13 +187,7 @@ public:
   }
   OPCODE_CALLBACK(void OnUnknown(u8 opcode, const u8* data))
   {
-    if (static_cast<Opcode>(opcode) == Opcode::GX_UNKNOWN_RESET)
-    {
-      // Datel software uses this command
-      m_cycles += 6;
-      DEBUG_LOG_FMT(VIDEO, "GX Reset?");
-    }
-    else if (static_cast<Opcode>(opcode) == Opcode::GX_CMD_UNKNOWN_METRICS)
+    if (static_cast<Opcode>(opcode) == Opcode::GX_CMD_UNKNOWN_METRICS)
     {
       // 'Zelda Four Swords' calls it and checks the metrics registers after that
       m_cycles += 6;
@@ -213,11 +201,7 @@ public:
     }
     else
     {
-      if (!s_is_fifo_error_seen)
-        CommandProcessor::HandleUnknownOpcode(opcode, data, is_preprocess);
-      ERROR_LOG_FMT(VIDEO, "FIFO: Unknown Opcode({:#04x} @ {}, preprocessing = {})", opcode,
-                    fmt::ptr(data), is_preprocess ? "yes" : "no");
-      s_is_fifo_error_seen = true;
+      CommandProcessor::HandleUnknownOpcode(opcode, data, is_preprocess);
       m_cycles += 1;
     }
   }

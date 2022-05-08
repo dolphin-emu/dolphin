@@ -195,7 +195,7 @@ std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int por
 #ifdef HAS_LIBMGBA
     return std::make_unique<CSIDevice_GBAEmu>(device, port_number);
 #else
-    PanicAlertT("Error: This build does not support emulated GBA controllers");
+    PanicAlertFmtT("Error: This build does not support emulated GBA controllers");
     return std::make_unique<CSIDevice_Null>(device, port_number);
 #endif
 

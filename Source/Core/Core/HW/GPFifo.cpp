@@ -29,7 +29,7 @@ namespace GPFifo
 // the same function could use both methods. Compile 2 different versions of each such block?
 
 // More room for the fastmodes
-alignas(32) static u8 s_gather_pipe[GATHER_PIPE_SIZE * 16];
+alignas(GATHER_PIPE_SIZE) static u8 s_gather_pipe[GATHER_PIPE_EXTRA_SIZE];
 
 static size_t GetGatherPipeCount()
 {

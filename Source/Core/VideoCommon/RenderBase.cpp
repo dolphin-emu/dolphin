@@ -160,8 +160,7 @@ void Renderer::EndUtilityDrawing()
 {
   // Reset framebuffer/scissor/viewport. Pipeline will be reset at next draw.
   g_framebuffer_manager->BindEFBFramebuffer();
-  BPFunctions::SetScissor();
-  BPFunctions::SetViewport();
+  BPFunctions::SetScissorAndViewport();
 }
 
 void Renderer::SetFramebuffer(AbstractFramebuffer* framebuffer)
@@ -247,9 +246,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     // a little-endian value is expected to be returned
     color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
 
-    // check what to do with the alpha channel (GX_PokeAlphaRead)
-    PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
-
     if (bpmem.zcontrol.pixel_format == PixelFormat::RGBA6_Z24)
     {
       color = RGBA8ToRGBA6ToRGBA8(color);
@@ -263,17 +259,24 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
       color |= 0xFF000000;
     }
 
-    if (alpha_read_mode.ReadMode == 2)
+    // check what to do with the alpha channel (GX_PokeAlphaRead)
+    PixelEngine::AlphaReadMode alpha_read_mode = PixelEngine::GetAlphaReadMode();
+
+    if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadNone)
     {
-      return color;  // GX_READ_NONE
+      return color;
     }
-    else if (alpha_read_mode.ReadMode == 1)
+    else if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadFF)
     {
-      return color | 0xFF000000;  // GX_READ_FF
+      return color | 0xFF000000;
     }
-    else /*if(alpha_read_mode.ReadMode == 0)*/
+    else
     {
-      return color & 0x00FFFFFF;  // GX_READ_00
+      if (alpha_read_mode != PixelEngine::AlphaReadMode::Read00)
+      {
+        PanicAlertFmt("Invalid PE alpha read mode: {}", static_cast<u16>(alpha_read_mode));
+      }
+      return color & 0x00FFFFFF;
     }
   }
   else  // if (type == EFBAccessType::PeekZ)
@@ -539,8 +542,7 @@ void Renderer::CheckForConfigChanges()
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   if (changed_bits & CONFIG_CHANGE_BIT_TARGET_SIZE)
   {
-    BPFunctions::SetViewport();
-    BPFunctions::SetScissor();
+    BPFunctions::SetScissorAndViewport();
   }
 
   // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
@@ -624,6 +626,9 @@ void Renderer::DrawDebugText()
 
   if (g_ActiveConfig.bOverlayProjStats)
     g_stats.DisplayProj();
+
+  if (g_ActiveConfig.bOverlayScissorStats)
+    g_stats.DisplayScissor();
 
   const std::string profile_output = Common::Profiler::ToString();
   if (!profile_output.empty())
@@ -971,6 +976,11 @@ void Renderer::RecordVideoMemory()
 
 bool Renderer::InitializeImGui()
 {
+  if (!IMGUI_CHECKVERSION())
+  {
+    PanicAlertFmt("ImGui version check failed");
+    return false;
+  }
   if (!ImGui::CreateContext())
   {
     PanicAlertFmt("Creating ImGui context failed");

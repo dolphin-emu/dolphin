@@ -9,7 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/DriverDetails.h"
@@ -24,7 +24,7 @@ static bool IsVSyncActive(bool enabled)
 {
   // Vsync is disabled when the throttler is disabled by the tab key.
   return enabled && !Core::GetIsThrottlerTempDisabled() &&
-         SConfig::GetInstance().m_EmulationSpeed == 1.0;
+         Config::Get(Config::MAIN_EMULATION_SPEED) == 1.0;
 }
 
 void UpdateActiveConfig()
@@ -62,6 +62,7 @@ void VideoConfig::Refresh()
   bLogRenderTimeToFile = Config::Get(Config::GFX_LOG_RENDER_TIME_TO_FILE);
   bOverlayStats = Config::Get(Config::GFX_OVERLAY_STATS);
   bOverlayProjStats = Config::Get(Config::GFX_OVERLAY_PROJ_STATS);
+  bOverlayScissorStats = Config::Get(Config::GFX_OVERLAY_SCISSOR_STATS);
   bDumpTextures = Config::Get(Config::GFX_DUMP_TEXTURES);
   bDumpMipmapTextures = Config::Get(Config::GFX_DUMP_MIP_TEXTURES);
   bDumpBaseTextures = Config::Get(Config::GFX_DUMP_BASE_TEXTURES);
@@ -73,6 +74,7 @@ void VideoConfig::Refresh()
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
+  sDumpPixelFormat = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
   sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
   sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
   iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
@@ -97,8 +99,6 @@ void VideoConfig::Refresh()
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
-  bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
-  bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
   bDumpObjects = Config::Get(Config::GFX_SW_DUMP_OBJECTS);
   bDumpTevStages = Config::Get(Config::GFX_SW_DUMP_TEV_STAGES);
   bDumpTevTextureFetches = Config::Get(Config::GFX_SW_DUMP_TEV_TEX_FETCHES);
@@ -134,7 +134,7 @@ void VideoConfig::Refresh()
   bSkipPresentingDuplicateXFBs = Config::Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
   bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
-  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
+  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   iMissingColorValue = Config::Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
   bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
@@ -206,16 +206,9 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
   if (!backend_info.bSupportsBackgroundCompiling)
     return 0;
 
-  const bool bugDatabaseSupported =
-      backend_info.api_type == APIType::OpenGL || backend_info.api_type == APIType::Vulkan;
-  // DirectX has always worked in our tests in PR#9414
-  const bool multiThreadingWorking =
-      !bugDatabaseSupported ||
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION);
-
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
-  else if (multiThreadingWorking)
+  else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION))
     return GetNumAutoShaderPreCompilerThreads();
   else
     return 1;

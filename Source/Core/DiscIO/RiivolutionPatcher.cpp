@@ -4,7 +4,6 @@
 #include "DiscIO/RiivolutionPatcher.h"
 
 #include <algorithm>
-#include <cctype>
 #include <locale>
 #include <string>
 #include <string_view>
@@ -324,9 +323,8 @@ static bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
 {
   if (a.size() != b.size())
     return false;
-  return std::equal(a.begin(), a.end(), b.begin(), [](char ca, char cb) {
-    return std::tolower(ca, std::locale::classic()) == std::tolower(cb, std::locale::classic());
-  });
+  return std::equal(a.begin(), a.end(), b.begin(),
+                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
 }
 
 static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTBuilderNode>* fst,

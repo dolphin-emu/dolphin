@@ -164,7 +164,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       doubleTapButton = InputOverlayPointer.DOUBLE_TAP_A;
     }
 
-    overlayPointer = new InputOverlayPointer(mSurfacePosition, doubleTapButton);
+    overlayPointer = new InputOverlayPointer(mSurfacePosition, doubleTapButton,
+            IntSetting.MAIN_IR_MODE.getIntGlobal(),
+            BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBooleanGlobal());
   }
 
   @Override
@@ -196,14 +198,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       return onTouchWhileEditing(event);
     }
 
-    int pointerIndex = event.getActionIndex();
+    int action = event.getActionMasked();
+    boolean firstPointer = action != MotionEvent.ACTION_POINTER_DOWN &&
+            action != MotionEvent.ACTION_POINTER_UP;
+    int pointerIndex = firstPointer ? 0 : event.getActionIndex();
     // Tracks if any button/joystick is pressed down
     boolean pressed = false;
 
     for (InputOverlayDrawableButton button : overlayButtons)
     {
       // Determine the button state to apply based on the MotionEvent action flag.
-      switch (event.getAction() & MotionEvent.ACTION_MASK)
+      switch (action)
       {
         case MotionEvent.ACTION_DOWN:
         case MotionEvent.ACTION_POINTER_DOWN:
@@ -767,6 +772,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     }
     mIsFirstRun = false;
     invalidate();
+  }
+
+  public void refreshOverlayPointer(Settings settings)
+  {
+    if (overlayPointer != null)
+    {
+      overlayPointer.setMode(IntSetting.MAIN_IR_MODE.getInt(settings));
+      overlayPointer.setRecenter(BooleanSetting.MAIN_IR_ALWAYS_RECENTER.getBoolean(settings));
+    }
   }
 
   public void resetButtonPlacement()

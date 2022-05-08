@@ -45,7 +45,7 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
       return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }
 
-    return fmt::format(include_prefix ? "P{}" : "{}", partition_type);
+    return fmt::format("{}{}", include_prefix ? "P" : "", partition_type);
   }
 }
 

@@ -14,9 +14,10 @@
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/SDCardUtil.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SessionSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/VersionInfo.h"
@@ -28,6 +29,29 @@ SDIOSlot0Device::SDIOSlot0Device(Kernel& ios, const std::string& device_name)
 {
   if (!Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     INFO_LOG_FMT(IOS_SD, "Writes to SD card disabled by user");
+
+  m_config_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  m_sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+}
+
+SDIOSlot0Device::~SDIOSlot0Device()
+{
+  Config::RemoveConfigChangedCallback(m_config_callback_id);
+}
+
+void SDIOSlot0Device::RefreshConfig()
+{
+  if (m_sd_card_inserted != Config::Get(Config::MAIN_WII_SD_CARD))
+  {
+    Core::RunAsCPUThread([this] {
+      const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+      if (m_sd_card_inserted != sd_card_inserted)
+      {
+        m_sd_card_inserted = sd_card_inserted;
+        EventNotify();
+      }
+    });
+  }
 }
 
 void SDIOSlot0Device::DoState(PointerWrap& p)
@@ -49,11 +73,15 @@ void SDIOSlot0Device::EventNotify()
 {
   if (!m_event)
     return;
-  // Accessing SConfig variables like this isn't really threadsafe,
-  // but this is how it's done all over the place...
-  if ((SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_INSERT) ||
-      (!SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_REMOVE))
+
+  if ((m_sd_card_inserted && m_event->type == EVENT_INSERT) ||
+      (!m_sd_card_inserted && m_event->type == EVENT_REMOVE))
   {
+    if (m_sd_card_inserted)
+      INFO_LOG_FMT(IOS_SD, "Notifying PPC of SD card insertion");
+    else
+      INFO_LOG_FMT(IOS_SD, "Notifying PPC of SD card removal");
+
     m_ios.EnqueueIPCReply(m_event->request, m_event->type);
     m_event.reset();
   }
@@ -252,8 +280,8 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);
 
-      if (!m_card.Seek(address, SEEK_SET))
-        ERROR_LOG_FMT(IOS_SD, "Seek failed WTF");
+      if (!m_card.Seek(address, File::SeekOrigin::Begin))
+        ERROR_LOG_FMT(IOS_SD, "Seek failed");
 
       if (m_card.ReadBytes(Memory::GetPointer(req.addr), size))
       {
@@ -282,8 +310,8 @@ s32 SDIOSlot0Device::ExecuteCommand(const Request& request, u32 buffer_in, u32 b
       const u32 size = req.bsize * req.blocks;
       const u64 address = GetAddressFromRequest(req.arg);
 
-      if (!m_card.Seek(address, SEEK_SET))
-        ERROR_LOG_FMT(IOS_SD, "fseeko failed WTF");
+      if (!m_card.Seek(address, File::SeekOrigin::Begin))
+        ERROR_LOG_FMT(IOS_SD, "Seek failed");
 
       if (!m_card.WriteBytes(Memory::GetPointer(req.addr), size))
       {
@@ -440,8 +468,8 @@ IPCReply SDIOSlot0Device::GetStatus(const IOCtlRequest& request)
 
   // Evaluate whether a card is currently inserted (config value).
   // Make sure we don't modify m_status so we don't lose track of whether the card is SDHC.
-  const u32 status =
-      SConfig::GetInstance().m_WiiSDCard ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
+  const bool sd_card_inserted = Config::Get(Config::MAIN_WII_SD_CARD);
+  const u32 status = sd_card_inserted ? (m_status | CARD_INSERTED) : CARD_NOT_EXIST;
 
   INFO_LOG_FMT(IOS_SD, "IOCTL_GETSTATUS. Replying that {} card is {}{}",
                (status & CARD_SDHC) ? "SDHC" : "SD",

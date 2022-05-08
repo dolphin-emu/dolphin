@@ -332,7 +332,7 @@ void Jit64::Init()
 {
   EnableBlockLink();
 
-  jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
+  jo.fastmem_arena = m_fastmem_enabled && Memory::InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
   UpdateMemoryAndExceptionOptions();
@@ -355,8 +355,7 @@ void Jit64::Init()
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
-  m_enable_blr_optimization =
-      jo.enableBlocklink && SConfig::GetInstance().bFastmem && !m_enable_debugging;
+  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
   m_stack = nullptr;
@@ -1019,7 +1018,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
 
     // Gather pipe writes using an immediate address are explicitly tracked.
-    if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
+    if (jo.optimizeGatherPipe &&
+        (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
     {
       js.fifoBytesSinceCheck = 0;
       js.mustCheckFifo = false;
@@ -1143,7 +1143,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         // it.
         FixupBranch memException;
         ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
-                   "Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!",
+                   "Fastmem loadstores shouldn't have exception handler fixups (PC={:x})!",
                    op.address);
         if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
         {
@@ -1184,8 +1184,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         gpr.Discard(op.gprDiscardable);
         fpr.Discard(op.fprDiscardable);
       }
-      gpr.Flush(~op.gprInUse);
-      fpr.Flush(~op.fprInUse);
+      gpr.Flush(~op.gprInUse & (op.regsIn | op.regsOut));
+      fpr.Flush(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;

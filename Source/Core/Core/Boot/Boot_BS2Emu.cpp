@@ -478,8 +478,11 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
   Memory::Write_U32(0, 0x3194);
   Memory::Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
 
+  const s32 ios_override = Config::Get(Config::MAIN_OVERRIDE_BOOT_IOS);
+  const u64 ios = ios_override >= 0 ? Titles::IOS(static_cast<u32>(ios_override)) : tmd.GetIOSId();
+
   const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
-  if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
+  if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(ios))
     return false;
 
   auto di =

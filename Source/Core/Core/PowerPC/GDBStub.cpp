@@ -40,7 +40,7 @@ typedef SSIZE_T ssize_t;
 
 namespace GDBStub
 {
-std::optional<Common::SocketContext> s_socket_context;
+static std::optional<Common::SocketContext> s_socket_context;
 
 #define GDB_BFR_MAX 10000
 
@@ -633,7 +633,7 @@ static void WriteRegister()
   }
   else if (id >= 88 && id < 104)
   {
-    PowerPC::ppcState.sr[SPR_IBAT0U + id - 88] = re32hex(bufptr);
+    PowerPC::ppcState.spr[SPR_IBAT0U + id - 88] = re32hex(bufptr);
   }
   else
   {
@@ -848,7 +848,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
   if (type == BreakpointType::ExecuteHard || type == BreakpointType::ExecuteSoft)
   {
     PowerPC::breakpoints.Add(addr);
-    INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}", type, len, addr);
+    INFO_LOG_FMT(GDB_STUB, "gdb: added {} breakpoint: {:08x} bytes at {:08x}",
+                 static_cast<int>(type), len, addr);
   }
   else
   {
@@ -864,7 +865,8 @@ static bool AddBreakpoint(BreakpointType type, u32 addr, u32 len)
     new_memcheck.log_on_hit = false;
     new_memcheck.is_enabled = true;
     PowerPC::memchecks.Add(new_memcheck);
-    INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", type, len, addr);
+    INFO_LOG_FMT(GDB_STUB, "gdb: added {} memcheck: {:08x} bytes at {:08x}", static_cast<int>(type),
+                 len, addr);
   }
   return true;
 }
@@ -1111,7 +1113,8 @@ bool JustConnected()
 void SendSignal(Signal signal)
 {
   char bfr[128] = {};
-  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", signal, 64, PC, 1, GPR(1));
+  fmt::format_to(bfr, "T{:02x}{:02x}:{:08x};{:02x}:{:08x};", static_cast<u8>(signal), 64, PC, 1,
+                 GPR(1));
   SendReply(bfr);
 }
 }  // namespace GDBStub

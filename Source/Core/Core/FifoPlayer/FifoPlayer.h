@@ -122,9 +122,7 @@ public:
   void SetObjectRangeStart(u32 start) { m_ObjectRangeStart = start; }
   u32 GetObjectRangeEnd() const { return m_ObjectRangeEnd; }
   void SetObjectRangeEnd(u32 end) { m_ObjectRangeEnd = end; }
-  // If enabled then all memory updates happen at once before the first frame
-  // Default is disabled
-  void SetEarlyMemoryUpdates(bool enabled) { m_EarlyMemoryUpdates = enabled; }
+
   // Callbacks
   void SetFileLoadedCallback(CallbackFunc callback);
   void SetFrameWrittenCallback(CallbackFunc callback) { m_FrameWrittenCb = std::move(callback); }
@@ -172,7 +170,11 @@ private:
   static bool IsIdleSet();
   static bool IsHighWatermarkSet();
 
-  bool m_Loop;
+  void RefreshConfig();
+
+  bool m_Loop = true;
+  // If enabled then all memory updates happen at once before the first frame
+  bool m_EarlyMemoryUpdates = false;
 
   u32 m_CurrentFrame = 0;
   u32 m_FrameRangeStart = 0;
@@ -181,14 +183,13 @@ private:
   u32 m_ObjectRangeStart = 0;
   u32 m_ObjectRangeEnd = 10000;
 
-  bool m_EarlyMemoryUpdates = false;
-
   u64 m_CyclesPerFrame = 0;
   u32 m_ElapsedCycles = 0;
   u32 m_FrameFifoSize = 0;
 
   CallbackFunc m_FileLoadedCb = nullptr;
   CallbackFunc m_FrameWrittenCb = nullptr;
+  size_t m_config_changed_callback_id;
 
   std::unique_ptr<FifoDataFile> m_File;
 

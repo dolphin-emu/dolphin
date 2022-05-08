@@ -17,6 +17,11 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
@@ -25,11 +30,6 @@ import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.StringRes;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
 
 public class ConvertFragment extends Fragment implements View.OnClickListener
 {
@@ -361,7 +361,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     return () ->
     {
       Context context = requireContext();
-      AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+      AlertDialog.Builder builder = new AlertDialog.Builder(context);
       builder.setMessage(warning_text)
               .setPositiveButton(R.string.yes, (dialog, i) -> action.run())
               .setNegativeButton(R.string.no, null);
@@ -459,7 +459,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
         {
           progressDialog.dismiss();
 
-          AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+          AlertDialog.Builder builder = new AlertDialog.Builder(context);
           if (success)
           {
             builder.setMessage(R.string.convert_success_message)

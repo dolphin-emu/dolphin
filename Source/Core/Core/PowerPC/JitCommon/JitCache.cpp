@@ -13,7 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
@@ -40,7 +40,7 @@ JitBaseBlockCache::~JitBaseBlockCache() = default;
 
 void JitBaseBlockCache::Init()
 {
-  JitRegister::Init(SConfig::GetInstance().m_perfDir);
+  JitRegister::Init(Config::Get(Config::MAIN_PERF_MAP_DIR));
 
   Clear();
 }
@@ -131,12 +131,12 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
   if (JitRegister::IsEnabled() &&
       (symbol = g_symbolDB.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
-    JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_%s_%08x",
+    JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{}_{:08x}",
                           symbol->function_name.c_str(), block.physicalAddress);
   }
   else
   {
-    JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_%08x",
+    JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_{:08x}",
                           block.physicalAddress);
   }
 }

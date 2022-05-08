@@ -25,46 +25,15 @@ struct Partition;
 class Volume;
 }  // namespace DiscIO
 
-namespace ExpansionInterface
-{
-enum TEXIDevices : int;
-}  // namespace ExpansionInterface
-
 namespace IOS::ES
 {
 class TMDReader;
 }  // namespace IOS::ES
 
-namespace PowerPC
-{
-enum class CPUCore;
-}  // namespace PowerPC
-
-namespace SerialInterface
-{
-enum SIDevices : int;
-}  // namespace SerialInterface
-
 struct BootParameters;
-
-enum class GPUDeterminismMode
-{
-  Auto,
-  Disabled,
-  // This is currently the only mode.  There will probably be at least
-  // one more at some point.
-  FakeCompletion,
-};
 
 struct SConfig
 {
-  // Wii Devices
-  bool m_WiiSDCard;
-  bool m_WiiKeyboard;
-  bool m_WiimoteContinuousScanning;
-  bool m_WiimoteEnableSpeaker;
-  bool connect_wiimotes_for_ciface;
-
   // Settings
   bool bAutomaticStart = false;
   bool bBootToPause = false;
@@ -72,38 +41,16 @@ struct SConfig
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
 
-  bool bFastmem;
-  bool bDisableICache = false;
-
-  int iTimingVariance = 40;  // in milli secounds
-  bool bCPUThread = true;
-  bool bSyncGPUOnSkipIdleHack = true;
   bool bCopyWiiSaveNetplay = true;
-
-  bool bMMU = false;
-  int iBBDumpPort = 0;
-  bool bFastDiscSpeed = false;
-
-  bool bSyncGPU = false;
-  int iSyncGpuMaxDistance;
-  int iSyncGpuMinDistance;
-  float fSyncGpuOverclock;
 
   bool bWii = false;
   bool m_is_mios = false;
 
   DiscIO::Region m_region;
 
-  std::string m_strGPUDeterminismMode;
-
-  // set based on the string version
-  GPUDeterminismMode m_GPUDeterminismMode;
-
   // files
   std::string m_strBootROM;
   std::string m_strSRAM;
-
-  std::string m_perfDir;
 
   std::string m_debugger_game_id;
   // TODO: remove this as soon as the ticket view hack in IOS/ES/Views is dropped.
@@ -143,11 +90,6 @@ struct SConfig
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
 
-  ExpansionInterface::TEXIDevices m_EXIDevice[3];
-  SerialInterface::SIDevices m_SIDevice[4];
-
-  float m_EmulationSpeed;
-
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
@@ -167,10 +109,6 @@ struct SConfig
 private:
   SConfig();
   ~SConfig();
-
-  void SaveCoreSettings(IniFile& ini);
-
-  void LoadCoreSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, const std::string& gametdb_id,
                               u64 title_id, u16 revision, DiscIO::Region region);

@@ -279,12 +279,12 @@ std::string ValueToString(u64 value)
 
 std::string ValueToString(float value)
 {
-  return fmt::format("{:#.9g}", value);
+  return fmt::format("{:#}", value);
 }
 
 std::string ValueToString(double value)
 {
-  return fmt::format("{:#.17g}", value);
+  return fmt::format("{:#}", value);
 }
 
 std::string ValueToString(int value)
@@ -669,3 +669,16 @@ std::string GetEscapedHtml(std::string html)
   }
   return html;
 }
+
+namespace Common
+{
+void ToLower(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToLower(c); });
+}
+
+void ToUpper(std::string* str)
+{
+  std::transform(str->begin(), str->end(), str->begin(), [](char c) { return Common::ToUpper(c); });
+}
+}  // namespace Common

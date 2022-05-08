@@ -133,7 +133,7 @@ public final class TvMainActivity extends FragmentActivity
 
     // Set display parameters for the BrowseFragment
     mBrowseFragment.setHeadersState(BrowseSupportFragment.HEADERS_ENABLED);
-    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
+    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_secondary));
     buildRowsAdapter();
 
     mBrowseFragment.setOnItemViewClickedListener(
@@ -359,7 +359,7 @@ public final class TvMainActivity extends FragmentActivity
     ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowPresenter());
 
     rowItems.add(new TvSettingsItem(R.id.menu_settings,
-            R.drawable.ic_settings_tv,
+            R.drawable.ic_settings,
             R.string.grid_menu_settings));
 
     rowItems.add(new TvSettingsItem(R.id.button_add_directory,
@@ -367,7 +367,7 @@ public final class TvMainActivity extends FragmentActivity
             R.string.add_directory_title));
 
     rowItems.add(new TvSettingsItem(R.id.menu_refresh,
-            R.drawable.ic_refresh_tv,
+            R.drawable.ic_refresh,
             R.string.grid_menu_refresh));
 
     rowItems.add(new TvSettingsItem(R.id.menu_open_file,
@@ -378,6 +378,10 @@ public final class TvMainActivity extends FragmentActivity
             R.drawable.ic_folder,
             R.string.grid_menu_install_wad));
 
+    rowItems.add(new TvSettingsItem(R.id.menu_load_wii_system_menu,
+            R.drawable.ic_folder,
+            R.string.grid_menu_load_wii_system_menu));
+
     rowItems.add(new TvSettingsItem(R.id.menu_import_wii_save,
             R.drawable.ic_folder,
             R.string.grid_menu_import_wii_save));
@@ -385,6 +389,10 @@ public final class TvMainActivity extends FragmentActivity
     rowItems.add(new TvSettingsItem(R.id.menu_import_nand_backup,
             R.drawable.ic_folder,
             R.string.grid_menu_import_nand_backup));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_online_system_update,
+            R.drawable.ic_folder,
+            R.string.grid_menu_online_system_update));
 
     // Create a header for this row.
     HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));

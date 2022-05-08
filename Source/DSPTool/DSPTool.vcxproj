@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
@@ -37,6 +37,9 @@
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)fmt\fmt.vcxproj">
+      <Project>{4BC5A148-0AB3-440F-A980-A29B4B999190}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

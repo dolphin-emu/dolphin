@@ -12,7 +12,7 @@
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI/SI.h"
@@ -41,7 +41,7 @@ static u8 s_controller_rumble[4];
 // Input handling
 static std::mutex s_read_mutex;
 static std::array<u8, 37> s_controller_payload;
-static std::atomic<int> s_controller_payload_size{0};
+static int s_controller_payload_size{0};
 
 // Output handling
 static std::mutex s_write_mutex;
@@ -60,6 +60,16 @@ static std::thread s_adapter_detect_thread;
 static Common::Flag s_adapter_detect_thread_running;
 
 static u64 s_last_init = 0;
+
+static std::optional<size_t> s_config_callback_id = std::nullopt;
+static std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS>
+    s_config_si_device_type{};
+
+static void RefreshConfig()
+{
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+    s_config_si_device_type[i] = Config::Get(Config::GetInfoForSIDevice(i));
+}
 
 static void ScanThreadFunc()
 {
@@ -154,7 +164,7 @@ static void Read()
       {
         std::lock_guard<std::mutex> lk(s_read_mutex);
         std::copy(java_data, java_data + s_controller_payload.size(), s_controller_payload.begin());
-        s_controller_payload_size.store(read_size);
+        s_controller_payload_size = read_size;
       }
       env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
 
@@ -200,6 +210,10 @@ void Init()
   jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
 
+  if (!s_config_callback_id)
+    s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
+
   if (UseAdapter())
     StartScanThread();
 }
@@ -236,6 +250,12 @@ void Shutdown()
 {
   StopScanThread();
   Reset();
+
+  if (s_config_callback_id)
+  {
+    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    s_config_callback_id = std::nullopt;
+  }
 }
 
 void StartScanThread()
@@ -264,7 +284,7 @@ GCPadStatus Input(int chan)
   {
     std::lock_guard<std::mutex> lk(s_read_mutex);
     controller_payload_copy = s_controller_payload;
-    payload_size = s_controller_payload_size.load();
+    payload_size = s_controller_payload_size;
   }
 
   GCPadStatus pad = {};
@@ -376,8 +396,7 @@ void ResetDeviceType(int chan)
 
 bool UseAdapter()
 {
-  const auto& si_devices = SConfig::GetInstance().m_SIDevice;
-
+  const auto& si_devices = s_config_si_device_type;
   return std::any_of(std::begin(si_devices), std::end(si_devices), [](const auto device_type) {
     return device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER;
   });
@@ -387,7 +406,7 @@ void ResetRumble()
 {
   unsigned char rumble[5] = {0x11, 0, 0, 0, 0};
   {
-    std::lock_guard<std::mutex> lk(s_read_mutex);
+    std::lock_guard<std::mutex> lk(s_write_mutex);
     memcpy(s_controller_write_payload, rumble, 5);
     s_controller_write_payload_size.store(5);
   }

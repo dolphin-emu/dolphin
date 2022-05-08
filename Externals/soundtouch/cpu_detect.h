@@ -51,6 +51,8 @@
 #define SUPPORT_SSE         0x0008
 #define SUPPORT_SSE2        0x0010
 
+using namespace soundtouch;
+
 /// Checks which instruction set extensions are supported by the CPU.
 ///
 /// \return A bitmask of supported extensions, see SUPPORT_... defines.

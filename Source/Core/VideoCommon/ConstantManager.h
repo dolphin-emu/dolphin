@@ -90,6 +90,9 @@ struct VertexShaderConstants
 
   // .x - texMtxInfo, .y - postMtxInfo, [0..1].z = color, [0..1].w = alpha
   std::array<uint4, 8> xfmem_pack1;
+
+  float4 cached_tangent;
+  float4 cached_binormal;
 };
 
 struct GeometryShaderConstants

@@ -30,7 +30,6 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
   g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = false;
@@ -59,6 +58,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsCoarseDerivatives = false;
   g_Config.backend_info.bSupportsTextureQueryLevels = false;
   g_Config.backend_info.bSupportsLodBiasInSampler = false;
+  g_Config.backend_info.bSupportsSettingObjectNames = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();

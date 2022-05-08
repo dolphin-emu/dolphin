@@ -463,9 +463,9 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_UNDO_SAVE_STATE, hotkey_string({"Shift", "F12"}));
 
   // GBA
-  set_key_expression(HK_GBA_LOAD, hotkey_string({"`Shift`", "`O`"}));
-  set_key_expression(HK_GBA_UNLOAD, hotkey_string({"`Shift`", "`W`"}));
-  set_key_expression(HK_GBA_RESET, hotkey_string({"`Shift`", "`R`"}));
+  set_key_expression(HK_GBA_LOAD, hotkey_string({"`Ctrl`", "`Shift`", "`O`"}));
+  set_key_expression(HK_GBA_UNLOAD, hotkey_string({"`Ctrl`", "`Shift`", "`W`"}));
+  set_key_expression(HK_GBA_RESET, hotkey_string({"`Ctrl`", "`Shift`", "`R`"}));
 
 #ifdef _WIN32
   set_key_expression(HK_GBA_VOLUME_DOWN, "`SUBTRACT`");

@@ -120,17 +120,6 @@ public final class SettingsActivityPresenter
     }
   }
 
-  public boolean handleOptionsItem(int itemId)
-  {
-    if (itemId == R.id.menu_save_exit)
-    {
-      mView.finish();
-      return true;
-    }
-
-    return false;
-  }
-
   public void onSettingChanged()
   {
     mShouldSave = true;
@@ -151,7 +140,7 @@ public final class SettingsActivityPresenter
     if (value != 0) // Not disabled
     {
       Bundle bundle = new Bundle();
-      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value / 6);
+      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
       mView.showSettingsFragment(key, bundle, true, mGameId);
     }
   }

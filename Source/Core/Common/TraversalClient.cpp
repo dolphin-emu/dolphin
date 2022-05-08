@@ -29,6 +29,11 @@ TraversalHostId TraversalClient::GetHostID() const
   return m_HostId;
 }
 
+TraversalInetAddress TraversalClient::GetExternalAddress() const
+{
+  return m_external_address;
+}
+
 TraversalClient::State TraversalClient::GetState() const
 {
   return m_State;
@@ -153,6 +158,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
       break;
     }
     m_HostId = packet->helloFromServer.yourHostId;
+    m_external_address = packet->helloFromServer.yourAddress;
     m_State = State::Connected;
     if (m_Client)
       m_Client->OnTraversalStateChanged();
@@ -194,7 +200,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     break;
   }
   default:
-    WARN_LOG_FMT(NETPLAY, "Received unknown packet with type {}", packet->type);
+    WARN_LOG_FMT(NETPLAY, "Received unknown packet with type {}", static_cast<int>(packet->type));
     break;
   }
   if (packet->type != TraversalPacketType::Ack)

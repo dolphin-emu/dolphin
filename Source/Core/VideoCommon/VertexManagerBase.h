@@ -99,8 +99,8 @@ public:
 
   PrimitiveType GetCurrentPrimitiveType() const { return m_current_primitive_type; }
   void AddIndices(OpcodeDecoder::Primitive primitive, u32 num_vertices);
-  DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count, u32 stride,
-                                      bool cullall);
+  virtual DataReader PrepareForAdditionalData(OpcodeDecoder::Primitive primitive, u32 count,
+                                              u32 stride, bool cullall);
   void FlushData(u32 count, u32 stride);
 
   void Flush();
@@ -172,6 +172,7 @@ protected:
   u32 GetRemainingIndices(OpcodeDecoder::Primitive primitive) const;
 
   void CalculateZSlope(NativeVertexFormat* format);
+  void CalculateBinormals(NativeVertexFormat* format);
   void LoadTextures();
 
   u8* m_cur_buffer_pointer = nullptr;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
 #include "Common/CommonTypes.h"
 
@@ -30,11 +31,16 @@ struct InstructionCache
   std::array<u8, 1 << 21> lookup_table_ex{};
   std::array<u8, 1 << 20> lookup_table_vmem{};
 
+  bool m_disable_icache = false;
+  std::optional<size_t> m_config_callback_id = std::nullopt;
+
   InstructionCache() = default;
+  ~InstructionCache();
   u32 ReadInstruction(u32 addr);
   void Invalidate(u32 addr);
   void Init();
   void Reset();
   void DoState(PointerWrap& p);
+  void RefreshConfig();
 };
 }  // namespace PowerPC

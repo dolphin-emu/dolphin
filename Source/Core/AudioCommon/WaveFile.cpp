@@ -95,11 +95,10 @@ bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRa
 
 void WaveFileWriter::Stop()
 {
-  // u32 file_size = (u32)ftello(file);
-  file.Seek(4, SEEK_SET);
+  file.Seek(4, File::SeekOrigin::Begin);
   Write(audio_size + 36);
 
-  file.Seek(40, SEEK_SET);
+  file.Seek(40, File::SeekOrigin::Begin);
   Write(audio_size);
 
   file.Close();

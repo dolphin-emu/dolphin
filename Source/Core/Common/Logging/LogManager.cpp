@@ -80,6 +80,22 @@ void GenericLog(LogLevel level, LogType type, const char* file, int line, const 
   instance->Log(level, type, file, line, message);
 }
 
+void GenericLogV(LogLevel level, LogType type, const char* file, int line, const char* fmt,
+                 va_list args)
+{
+  auto* instance = LogManager::GetInstance();
+  if (instance == nullptr)
+    return;
+
+  if (!instance->IsEnabled(type, level))
+    return;
+
+  char message[MAX_MSGLEN];
+  CharArrayFromFormatV(message, MAX_MSGLEN, fmt, args);
+
+  instance->Log(level, type, file, line, message);
+}
+
 void GenericLogFmtImpl(LogLevel level, LogType type, const char* file, int line,
                        fmt::string_view format, const fmt::format_args& args)
 {
@@ -101,8 +117,7 @@ static size_t DeterminePathCutOffPoint()
   constexpr const char* pattern2 = "\\source\\core\\";
 #endif
   std::string path = __FILE__;
-  std::transform(path.begin(), path.end(), path.begin(),
-                 [](char c) { return std::tolower(c, std::locale::classic()); });
+  Common::ToLower(&path);
   size_t pos = path.find(pattern);
 #ifdef _WIN32
   if (pos == std::string::npos)

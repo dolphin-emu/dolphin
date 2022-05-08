@@ -48,11 +48,11 @@ JitArm64::~JitArm64() = default;
 
 void JitArm64::Init()
 {
-  const size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
+  const size_t child_code_size = m_mmu_enabled ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&m_far_code, child_code_size);
 
-  jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
+  jo.fastmem_arena = m_fastmem_enabled && Memory::InitFastmemArena();
   jo.enableBlocklink = true;
   jo.optimizeGatherPipe = true;
   UpdateMemoryAndExceptionOptions();
@@ -67,8 +67,7 @@ void JitArm64::Init()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
-  m_enable_blr_optimization =
-      jo.enableBlocklink && SConfig::GetInstance().bFastmem && !m_enable_debugging;
+  m_enable_blr_optimization = jo.enableBlocklink && m_fastmem_enabled && !m_enable_debugging;
   m_cleanup_after_stackfault = false;
 
   AllocStack();
@@ -716,8 +715,9 @@ void JitArm64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
     return;
   }
 
-  PanicAlertT("JIT failed to find code space after a cache clear. This should never happen. Please "
-              "report this incident on the bug tracker. Dolphin will now exit.");
+  PanicAlertFmtT(
+      "JIT failed to find code space after a cache clear. This should never happen. Please "
+      "report this incident on the bug tracker. Dolphin will now exit.");
   exit(-1);
 }
 
@@ -835,7 +835,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     // Gather pipe writes using a non-immediate address are discovered by profiling.
     bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
 
-    if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
+    if (jo.optimizeGatherPipe &&
+        (js.fifoBytesSinceCheck >= GPFifo::GATHER_PIPE_SIZE || js.mustCheckFifo))
     {
       js.fifoBytesSinceCheck = 0;
       js.mustCheckFifo = false;
@@ -970,8 +971,8 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         gpr.DiscardRegisters(op.gprDiscardable);
         fpr.DiscardRegisters(op.fprDiscardable);
       }
-      gpr.StoreRegisters(~op.gprInUse);
-      fpr.StoreRegisters(~op.fprInUse);
+      gpr.StoreRegisters(~op.gprInUse & (op.regsIn | op.regsOut));
+      fpr.StoreRegisters(~op.fprInUse & (op.fregsIn | op.GetFregsOut()));
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;

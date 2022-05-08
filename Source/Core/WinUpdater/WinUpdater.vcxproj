@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="..\..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
@@ -35,6 +35,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)ed25519\ed25519.vcxproj">
       <Project>{5bdf4b91-1491-4fb0-bc27-78e9a8e97dc3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)fmt\fmt.vcxproj">
+      <Project>{4BC5A148-0AB3-440F-A980-A29B4B999190}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>

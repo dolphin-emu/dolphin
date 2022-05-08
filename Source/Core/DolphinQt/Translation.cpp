@@ -275,7 +275,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     std::string lang = qlang.toStdString();
     auto filename =
 #if defined _WIN32
-        File::GetExeDirectory() + StringFromFormat("/Languages/%s/dolphin-emu.mo", lang.c_str())
+        File::GetExeDirectory() + StringFromFormat("/Languages/%s.mo", lang.c_str())
 #elif defined __APPLE__
         File::GetBundleDirectory() +
         StringFromFormat("/Contents/Resources/%s.lproj/dolphin-emu.mo", lang.c_str())

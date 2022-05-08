@@ -30,13 +30,13 @@ std::unique_ptr<PlainFileReader> PlainFileReader::Create(File::IOFile file)
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-  if (m_file.Seek(offset, SEEK_SET) && m_file.ReadBytes(out_ptr, nbytes))
+  if (m_file.Seek(offset, File::SeekOrigin::Begin) && m_file.ReadBytes(out_ptr, nbytes))
   {
     return true;
   }
   else
   {
-    m_file.Clear();
+    m_file.ClearError();
     return false;
   }
 }

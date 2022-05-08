@@ -127,7 +127,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
     {
       out.Write("VARYING_LOCATION(0) in vec3 v_tex0;\n");
     }
-    out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;"
+    out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
               "void main()\n{{\n");
   }
 

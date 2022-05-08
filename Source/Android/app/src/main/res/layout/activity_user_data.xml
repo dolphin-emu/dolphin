@@ -16,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/text_path"
         app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintWidth_max="400dp"/>
+        app:layout_constraintWidth_max="400dp" />
 
     <TextView
         android:id="@+id/text_path"
@@ -34,7 +34,9 @@
         android:id="@+id/text_android_11"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/spacing_medlarge"
+        android:layout_marginHorizontal="@dimen/spacing_medlarge"
+        android:layout_marginTop="@dimen/spacing_medlarge"
+        android:layout_marginBottom="24dp"
         android:text="@string/user_data_new_location_android_11"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -46,11 +48,36 @@
         android:id="@+id/button_open_system_file_manager"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/spacing_medlarge"
+        android:layout_margin="@dimen/spacing_small"
         android:text="@string/user_data_open_system_file_manager"
+        android:textColor="@color/dolphin_white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_android_11"
+        app:layout_constraintBottom_toTopOf="@id/button_import_user_data" />
+
+    <Button
+        android:id="@+id/button_import_user_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_small"
+        android:text="@string/user_data_import"
+        android:textColor="@color/dolphin_white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_open_system_file_manager"
+        app:layout_constraintBottom_toTopOf="@id/button_export_user_data" />
+
+    <Button
+        android:id="@+id/button_export_user_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_small"
+        android:text="@string/user_data_export"
+        android:textColor="@color/dolphin_white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_import_user_data"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

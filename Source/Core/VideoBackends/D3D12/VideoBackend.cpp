@@ -51,7 +51,6 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsOversizedViewports = false;
   g_Config.backend_info.bSupportsGeometryShaders = true;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsEarlyZ = true;
@@ -86,6 +85,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsCoarseDerivatives = true;
   g_Config.backend_info.bSupportsTextureQueryLevels = true;
   g_Config.backend_info.bSupportsLodBiasInSampler = true;
+  g_Config.backend_info.bSupportsSettingObjectNames = true;
 
   // We can only check texture support once we have a device.
   if (g_dx_context)

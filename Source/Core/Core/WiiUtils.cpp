@@ -458,11 +458,24 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
   doc.save(stream);
   const std::string request = stream.str();
 
-  // Note: We don't use HTTPS because that would require the user to have
-  // a device certificate which cannot be redistributed with Dolphin.
-  // This is fine, because IOS has signature checks.
+  std::string base_url = Config::Get(Config::MAIN_WII_NUS_SHOP_URL);
+  if (base_url.empty())
+  {
+    // The NUS servers for the Wii are offline (https://bugs.dolphin-emu.org/issues/12865),
+    // but the backing data CDN is still active and accessible from other URLs. We take advantage
+    // of this by hosting our own NetUpdateSOAP endpoint which serves the correct list of titles to
+    // install along with URLs for the Wii U CDN.
+#ifdef ANDROID
+    // HTTPS is unsupported on Android (https://bugs.dolphin-emu.org/issues/11772).
+    base_url = "http://fakenus.dolphin-emu.org";
+#else
+    base_url = "https://fakenus.dolphin-emu.org";
+#endif
+  }
+
+  const std::string url = fmt::format("{}/nus/services/NetUpdateSOAP", base_url);
   const Common::HttpRequest::Response response =
-      m_http.Post("http://nus.shop.wii.com/nus/services/NetUpdateSOAP", request,
+      m_http.Post(url, request,
                   {
                       {"SOAPAction", "urn:nus.wsapi.broadon.com/GetSystemUpdate"},
                       {"User-Agent", "wii libnup/1.0"},

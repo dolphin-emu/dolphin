@@ -149,22 +149,19 @@ public final class InputOverlayDrawableDpad
 
   public void onConfigureTouch(MotionEvent event)
   {
-    int pointerIndex = event.getActionIndex();
-    int fingerPositionX = (int) event.getX(pointerIndex);
-    int fingerPositionY = (int) event.getY(pointerIndex);
     switch (event.getAction())
     {
       case MotionEvent.ACTION_DOWN:
-        mPreviousTouchX = fingerPositionX;
-        mPreviousTouchY = fingerPositionY;
+        mPreviousTouchX = (int) event.getX();
+        mPreviousTouchY = (int) event.getY();
         break;
       case MotionEvent.ACTION_MOVE:
-        mControlPositionX += fingerPositionX - mPreviousTouchX;
-        mControlPositionY += fingerPositionY - mPreviousTouchY;
+        mControlPositionX += (int) event.getX() - mPreviousTouchX;
+        mControlPositionY += (int) event.getY() - mPreviousTouchY;
         setBounds(mControlPositionX, mControlPositionY, getWidth() + mControlPositionX,
                 getHeight() + mControlPositionY);
-        mPreviousTouchX = fingerPositionX;
-        mPreviousTouchY = fingerPositionY;
+        mPreviousTouchX = (int) event.getX();
+        mPreviousTouchY = (int) event.getY();
         break;
     }
   }

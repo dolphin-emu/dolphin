@@ -39,6 +39,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
@@ -112,6 +113,7 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
@@ -206,7 +208,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
                        const std::string& movie_path)
     : QMainWindow(nullptr)
 {
-  setWindowTitle(QString::fromStdString(Common::scm_rev_str));
+  setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
   setWindowIcon(Resources::GetAppIcon());
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
@@ -327,6 +329,7 @@ void MainWindow::InitControllers()
              "No default device has been added in time. EmulatedController(s) defaulting adds"
              " input mappings made for a specific default device depending on the platform");
   }
+  GCAdapter::Init();
   Pad::Initialize();
   Pad::InitializeGBA();
   Keyboard::Initialize();
@@ -822,7 +825,7 @@ void MainWindow::TogglePause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  HideRenderWidget(true, m_exit_requested);
+  HideRenderWidget(!m_exit_requested, m_exit_requested);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -831,7 +834,7 @@ void MainWindow::OnStopComplete()
   SetFullScreenResolution(false);
 
   if (m_exit_requested || Settings::Instance().IsBatchModeEnabled())
-    QGuiApplication::instance()->quit();
+    QGuiApplication::exit(0);
 
   // If the current emulation prevented the booting of another, do that now
   if (m_pending_boot != nullptr)
@@ -1145,7 +1148,7 @@ void MainWindow::HideRenderWidget(bool reinit, bool is_exit)
     m_rendering_to_main = false;
     m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
-    setWindowTitle(QString::fromStdString(Common::scm_rev_str));
+    setWindowTitle(QString::fromStdString(Common::GetScmRevStr()));
   }
 
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
@@ -1728,13 +1731,14 @@ void MainWindow::OnStartRecording()
 
   for (int i = 0; i < 4; i++)
   {
-    if (SConfig::GetInstance().m_SIDevice[i] == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
       controllers[i] = Movie::ControllerType::GBA;
-    else if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+    else if (SerialInterface::SIDevice_IsGCController(si_device))
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
   if (Movie::BeginRecordingInput(controllers, wiimotes))
@@ -1782,8 +1786,9 @@ void MainWindow::ShowTASInput()
 {
   for (int i = 0; i < num_gc_controllers; i++)
   {
-    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
-        SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
+    const auto si_device = Config::Get(Config::GetInfoForSIDevice(i));
+    if (si_device != SerialInterface::SIDEVICE_NONE &&
+        si_device != SerialInterface::SIDEVICE_GC_GBA)
     {
       m_gc_tas_input_windows[i]->show();
       m_gc_tas_input_windows[i]->raise();
@@ -1793,7 +1798,7 @@ void MainWindow::ShowTASInput()
 
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
+    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
       m_wii_tas_input_windows[i]->show();

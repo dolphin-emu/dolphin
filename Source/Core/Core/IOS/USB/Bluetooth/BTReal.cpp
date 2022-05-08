@@ -108,7 +108,8 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
                                          sizeof(serial_number));
       NOTICE_LOG_FMT(IOS_WIIMOTE, "Using device {:04x}:{:04x} (rev {:x}) for Bluetooth: {} {} {}",
                      device_descriptor.idVendor, device_descriptor.idProduct,
-                     device_descriptor.bcdDevice, manufacturer, product, serial_number);
+                     device_descriptor.bcdDevice, reinterpret_cast<char*>(manufacturer),
+                     reinterpret_cast<char*>(product), reinterpret_cast<char*>(serial_number));
       m_is_wii_bt_module =
           device_descriptor.idVendor == 0x57e && device_descriptor.idProduct == 0x305;
       return false;

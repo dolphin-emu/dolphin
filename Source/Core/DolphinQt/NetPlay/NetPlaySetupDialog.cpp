@@ -21,6 +21,7 @@
 #include "Core/NetPlayProto.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/UTF8CodePointCountValidator.h"
 #include "DolphinQt/Settings.h"
 
@@ -87,7 +88,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel);
   m_nickname_edit = new QLineEdit;
   m_connection_type = new QComboBox;
-  m_reset_traversal_button = new QPushButton(tr("Reset Traversal Settings"));
+  m_reset_traversal_button = new NonDefaultQPushButton(tr("Reset Traversal Settings"));
   m_tab_widget = new QTabWidget;
 
   m_nickname_edit->setValidator(
@@ -101,7 +102,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_ip_edit = new QLineEdit;
   m_connect_port_label = new QLabel(tr("Port:"));
   m_connect_port_box = new QSpinBox;
-  m_connect_button = new QPushButton(tr("Connect"));
+  m_connect_button = new NonDefaultQPushButton(tr("Connect"));
 
   m_connect_port_box->setMaximum(65535);
 
@@ -144,7 +145,7 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_host_upnp = new QCheckBox(tr("Forward port (UPnP)"));
 #endif
   m_host_games = new QListWidget;
-  m_host_button = new QPushButton(tr("Host"));
+  m_host_button = new NonDefaultQPushButton(tr("Host"));
 
   m_host_port_box->setMaximum(65535);
   m_host_force_port_box->setMaximum(65535);

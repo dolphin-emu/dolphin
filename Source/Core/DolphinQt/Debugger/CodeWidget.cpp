@@ -9,6 +9,7 @@
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPushButton>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QWidget>
@@ -95,6 +96,7 @@ void CodeWidget::CreateWidgets()
 
   m_search_address = new QLineEdit;
   m_search_symbols = new QLineEdit;
+  m_code_diff = new QPushButton(tr("Diff"));
   m_code_view = new CodeViewWidget;
 
   m_search_address->setPlaceholderText(tr("Search Address"));
@@ -146,6 +148,7 @@ void CodeWidget::CreateWidgets()
 
   layout->addWidget(m_search_address, 0, 0);
   layout->addWidget(m_search_symbols, 0, 1);
+  layout->addWidget(m_code_diff, 0, 2);
   layout->addWidget(m_code_splitter, 1, 0, -1, -1);
 
   QWidget* widget = new QWidget(this);
@@ -158,6 +161,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_address, &QLineEdit::returnPressed, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
+  connect(m_code_diff, &QPushButton::pressed, this, &CodeWidget::OnDiff);
 
   connect(m_symbols_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectSymbol);
   connect(m_callstack_list, &QListWidget::itemPressed, this, &CodeWidget::OnSelectCallstack);
@@ -174,6 +178,16 @@ void CodeWidget::ConnectWidgets()
   connect(m_code_view, &CodeViewWidget::RequestPPCComparison, this,
           &CodeWidget::RequestPPCComparison);
   connect(m_code_view, &CodeViewWidget::ShowMemory, this, &CodeWidget::ShowMemory);
+}
+
+void CodeWidget::OnDiff()
+{
+  if (!m_diff_dialog)
+    m_diff_dialog = new CodeDiffDialog(this);
+  m_diff_dialog->setWindowFlag(Qt::WindowMinimizeButtonHint);
+  m_diff_dialog->show();
+  m_diff_dialog->raise();
+  m_diff_dialog->activateWindow();
 }
 
 void CodeWidget::OnSearchAddress()

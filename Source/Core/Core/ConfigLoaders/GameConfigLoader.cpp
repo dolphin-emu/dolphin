@@ -26,6 +26,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
@@ -75,6 +76,15 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.GetLocation()}},
       {{"Core", "HLE_BS2"}, {Config::MAIN_SKIP_IPL.GetLocation()}},
       {{"Core", "GameCubeLanguage"}, {Config::MAIN_GC_LANGUAGE.GetLocation()}},
+      {{"Controls", "PadType0"}, {Config::GetInfoForSIDevice(0).GetLocation()}},
+      {{"Controls", "PadType1"}, {Config::GetInfoForSIDevice(1).GetLocation()}},
+      {{"Controls", "PadType2"}, {Config::GetInfoForSIDevice(2).GetLocation()}},
+      {{"Controls", "PadType3"}, {Config::GetInfoForSIDevice(3).GetLocation()}},
+      {{"Controls", "WiimoteSource0"}, {Config::WIIMOTE_1_SOURCE.GetLocation()}},
+      {{"Controls", "WiimoteSource1"}, {Config::WIIMOTE_2_SOURCE.GetLocation()}},
+      {{"Controls", "WiimoteSource2"}, {Config::WIIMOTE_3_SOURCE.GetLocation()}},
+      {{"Controls", "WiimoteSource3"}, {Config::WIIMOTE_4_SOURCE.GetLocation()}},
+      {{"Controls", "WiimoteSourceBB"}, {Config::WIIMOTE_BB_SOURCE.GetLocation()}},
   };
   return ini_to_location;
 }
@@ -86,6 +96,7 @@ static const INIToSectionMap& GetINIToSectionMap()
 {
   static const INIToSectionMap ini_to_section = {
       {"Core", {Config::System::Main, "Core"}},
+      {"DSP", {Config::System::Main, "DSP"}},
       {"Display", {Config::System::Main, "Display"}},
       {"Video_Hardware", {Config::System::GFX, "Hardware"}},
       {"Video_Settings", {Config::System::GFX, "Settings"}},

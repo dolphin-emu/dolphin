@@ -98,18 +98,13 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
   return false;
 }
 
-#ifndef _WIN32
+#ifdef _WIN32
+#define main app_main
+#endif
+
 int main(int argc, char* argv[])
 {
-#else
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
-{
-  std::vector<std::string> utf8_args = CommandLineToUtf8Argv(GetCommandLineW());
-  const int utf8_argc = static_cast<int>(utf8_args.size());
-  std::vector<char*> utf8_argv(utf8_args.size());
-  for (size_t i = 0; i < utf8_args.size(); ++i)
-    utf8_argv[i] = utf8_args[i].data();
-
+#ifdef _WIN32
   const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
   HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
   if (console_attached && stdout_handle)
@@ -134,16 +129,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #endif
 
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  const optparse::Values& options =
-#ifdef _WIN32
-      CommandLineParse::ParseArguments(parser.get(), utf8_argc, utf8_argv.data());
-#else
-      CommandLineParse::ParseArguments(parser.get(), argc, argv);
-#endif
+  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   const std::vector<std::string> args = parser->args();
 
+  // setHighDpiScaleFactorRoundingPolicy was added in 5.14, but default behavior changed in 6.0
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+  // Set to the previous default behavior
+  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
+#else
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
+
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
@@ -154,7 +151,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   QApplication app(argc, argv);
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
   // On Windows, Qt 5's default system font (MS Shell Dlg 2) is outdated.
   // Interestingly, the QMenu font is correct and comes from lfMenuFont
   // (Segoe UI on English computers).
@@ -300,3 +297,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   return retval;
 }
+
+#ifdef _WIN32
+int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
+{
+  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  const int argc = static_cast<int>(args.size());
+  std::vector<char*> argv(args.size());
+  for (size_t i = 0; i < args.size(); ++i)
+    argv[i] = args[i].data();
+
+  return main(argc, argv.data());
+}
+
+#undef main
+#endif

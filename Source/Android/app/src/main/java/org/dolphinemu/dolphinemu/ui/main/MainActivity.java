@@ -36,6 +36,7 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -142,6 +143,14 @@ public final class MainActivity extends AppCompatActivity
   {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.menu_game_grid, menu);
+
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      menu.findItem(R.id.menu_load_wii_system_menu).setTitle(
+              getString(R.string.grid_menu_load_wii_system_menu_installed,
+                      WiiUtils.getSystemMenuVersion()));
+    }
+
     return true;
   }
 

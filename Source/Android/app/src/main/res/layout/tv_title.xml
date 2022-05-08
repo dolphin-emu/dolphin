@@ -25,7 +25,7 @@
             android:id="@+id/badge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_launcher"/>
+            android:src="@drawable/ic_dolphin"/>
 
     </RelativeLayout>
 </androidx.leanback.widget.TitleView>

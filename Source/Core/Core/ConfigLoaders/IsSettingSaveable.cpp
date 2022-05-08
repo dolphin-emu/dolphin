@@ -10,6 +10,7 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
+#include "Core/Config/WiimoteSettings.h"
 
 namespace ConfigLoaders
 {
@@ -38,9 +39,10 @@ bool IsSettingSaveable(const Config::Location& config_location)
     // TODO: Kill the current Android controller mappings system
     if (config_location.section == "Android")
     {
-      static constexpr std::array<const char*, 8> android_setting_saveable = {
-          "ControlScale",    "ControlOpacity", "EmulationOrientation", "JoystickRelCenter",
-          "LastPlatformTab", "MotionControls", "PhoneRumble",          "ShowInputOverlay"};
+      static constexpr std::array<const char*, 10> android_setting_saveable = {
+          "ControlScale",    "ControlOpacity",  "EmulationOrientation", "JoystickRelCenter",
+          "LastPlatformTab", "MotionControls",  "PhoneRumble",          "ShowInputOverlay",
+          "IRMode",          "IRAlwaysRecenter"};
 
       return std::any_of(
           android_setting_saveable.cbegin(), android_setting_saveable.cend(),
@@ -97,10 +99,46 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::GetInfoForSimulateKonga(1).GetLocation(),
       &Config::GetInfoForSimulateKonga(2).GetLocation(),
       &Config::GetInfoForSimulateKonga(3).GetLocation(),
+      &Config::MAIN_EMULATION_SPEED.GetLocation(),
+      &Config::MAIN_PERF_MAP_DIR.GetLocation(),
+      &Config::MAIN_GPU_DETERMINISM_MODE.GetLocation(),
+      &Config::MAIN_DISABLE_ICACHE.GetLocation(),
+      &Config::MAIN_FAST_DISC_SPEED.GetLocation(),
+      &Config::MAIN_SYNC_ON_SKIP_IDLE.GetLocation(),
+      &Config::MAIN_FASTMEM.GetLocation(),
+      &Config::MAIN_TIMING_VARIANCE.GetLocation(),
+      &Config::MAIN_WII_SD_CARD.GetLocation(),
+      &Config::MAIN_WII_KEYBOARD.GetLocation(),
+      &Config::MAIN_WIIMOTE_CONTINUOUS_SCANNING.GetLocation(),
+      &Config::MAIN_WIIMOTE_ENABLE_SPEAKER.GetLocation(),
+      &Config::MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE.GetLocation(),
+      &Config::MAIN_SLOT_A.GetLocation(),
+      &Config::MAIN_SLOT_B.GetLocation(),
+      &Config::MAIN_SERIAL_PORT_1.GetLocation(),
+      &Config::GetInfoForSIDevice(0).GetLocation(),
+      &Config::GetInfoForSIDevice(1).GetLocation(),
+      &Config::GetInfoForSIDevice(2).GetLocation(),
+      &Config::GetInfoForSIDevice(3).GetLocation(),
+      &Config::MAIN_CPU_THREAD.GetLocation(),
+      &Config::MAIN_MMU.GetLocation(),
+      &Config::MAIN_BB_DUMP_PORT.GetLocation(),
+      &Config::MAIN_SYNC_GPU.GetLocation(),
+      &Config::MAIN_SYNC_GPU_MAX_DISTANCE.GetLocation(),
+      &Config::MAIN_SYNC_GPU_MIN_DISTANCE.GetLocation(),
+      &Config::MAIN_SYNC_GPU_OVERCLOCK.GetLocation(),
+      &Config::MAIN_OVERRIDE_BOOT_IOS.GetLocation(),
 
       // UI.General
 
       &Config::MAIN_USE_DISCORD_PRESENCE.GetLocation(),
+
+      // Wiimote
+
+      &Config::WIIMOTE_1_SOURCE.GetLocation(),
+      &Config::WIIMOTE_2_SOURCE.GetLocation(),
+      &Config::WIIMOTE_3_SOURCE.GetLocation(),
+      &Config::WIIMOTE_4_SOURCE.GetLocation(),
+      &Config::WIIMOTE_BB_SOURCE.GetLocation(),
   };
 
   return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),

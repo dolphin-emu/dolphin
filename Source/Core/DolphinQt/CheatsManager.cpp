@@ -127,7 +127,9 @@ void CheatsManager::OnNewSessionCreated(const Cheats::CheatSearchSessionBase& se
 
 void CheatsManager::OnTabCloseRequested(int index)
 {
-  m_tab_widget->removeTab(index);
+  auto* w = m_tab_widget->widget(index);
+  if (w)
+    w->deleteLater();
 }
 
 void CheatsManager::ConnectWidgets()

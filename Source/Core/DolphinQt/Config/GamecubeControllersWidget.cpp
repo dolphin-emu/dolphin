@@ -21,6 +21,7 @@
 
 #include "DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/GCAdapter.h"
@@ -76,7 +77,7 @@ void GamecubeControllersWidget::CreateLayout()
   {
     auto* gc_label = new QLabel(tr("Port %1").arg(i + 1));
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
-    auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
+    auto* gc_button = m_gc_buttons[i] = new NonDefaultQPushButton(tr("Configure"));
 
     for (const auto& item : s_gc_types)
     {
@@ -91,7 +92,7 @@ void GamecubeControllersWidget::CreateLayout()
   m_gc_box->setLayout(m_gc_layout);
 
   auto* layout = new QVBoxLayout;
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
   layout->addWidget(m_gc_box);
   setLayout(layout);
@@ -178,7 +179,8 @@ void GamecubeControllersWidget::LoadSettings()
 {
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
-    const SerialInterface::SIDevices si_device = SConfig::GetInstance().m_SIDevice[i];
+    const SerialInterface::SIDevices si_device =
+        Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
     const std::optional<int> gc_index = ToGCMenuIndex(si_device);
     if (gc_index)
     {
@@ -194,7 +196,7 @@ void GamecubeControllersWidget::SaveSettings()
   {
     const int index = m_gc_controller_boxes[i]->currentIndex();
     const SerialInterface::SIDevices si_device = FromGCMenuIndex(index);
-    SConfig::GetInstance().m_SIDevice[i] = si_device;
+    Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), si_device);
 
     if (Core::IsRunning())
       SerialInterface::ChangeDevice(si_device, static_cast<s32>(i));

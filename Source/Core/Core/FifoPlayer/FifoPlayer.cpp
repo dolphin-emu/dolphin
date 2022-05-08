@@ -163,12 +163,15 @@ void FifoPlaybackAnalyzer::OnCommand(const u8* data, u32 size)
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
-FifoPlayer::FifoPlayer() : m_Loop{Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY)}
+FifoPlayer::FifoPlayer()
 {
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
 }
 
 FifoPlayer::~FifoPlayer()
 {
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 bool FifoPlayer::Open(const std::string& filename)
@@ -296,6 +299,12 @@ std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
     return nullptr;
 
   return std::make_unique<CPUCore>(this);
+}
+
+void FifoPlayer::RefreshConfig()
+{
+  m_Loop = Config::Get(Config::MAIN_FIFOPLAYER_LOOP_REPLAY);
+  m_EarlyMemoryUpdates = Config::Get(Config::MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES);
 }
 
 void FifoPlayer::SetFileLoadedCallback(CallbackFunc callback)

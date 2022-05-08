@@ -606,6 +606,7 @@ void Settings::SetDebugFont(QFont font)
 QFont Settings::GetDebugFont() const
 {
   QFont default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+  default_font.setPointSizeF(9.0);
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }
@@ -696,32 +697,28 @@ void Settings::SetBatchModeEnabled(bool batch)
 
 bool Settings::IsSDCardInserted() const
 {
-  return SConfig::GetInstance().m_WiiSDCard;
+  return Config::Get(Config::MAIN_WII_SD_CARD);
 }
 
 void Settings::SetSDCardInserted(bool inserted)
 {
   if (IsSDCardInserted() != inserted)
   {
-    SConfig::GetInstance().m_WiiSDCard = inserted;
+    Config::SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, inserted);
     emit SDCardInsertionChanged(inserted);
-
-    auto* ios = IOS::HLE::GetIOS();
-    if (ios)
-      ios->SDIO_EventNotify();
   }
 }
 
 bool Settings::IsUSBKeyboardConnected() const
 {
-  return SConfig::GetInstance().m_WiiKeyboard;
+  return Config::Get(Config::MAIN_WII_KEYBOARD);
 }
 
 void Settings::SetUSBKeyboardConnected(bool connected)
 {
   if (IsUSBKeyboardConnected() != connected)
   {
-    SConfig::GetInstance().m_WiiKeyboard = connected;
+    Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
     emit USBKeyboardConnectionChanged(connected);
   }
 }

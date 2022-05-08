@@ -280,6 +280,7 @@ public:
   u64 GetBlockSize() const override { return 0; }
   bool HasFastRandomAccessInBlock() const override { return true; }
   std::string GetCompressionMethod() const override { return {}; }
+  std::optional<int> GetCompressionLevel() const override { return std::nullopt; }
 
 private:
   struct PartitionWithType

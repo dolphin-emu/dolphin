@@ -3,6 +3,7 @@
 
 #include <array>
 
+#include "Common/Assert.h"
 #include "Common/EnumMap.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
@@ -114,11 +115,12 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
 
   for (int i = 0; i < 3; i++)
   {
+    static constexpr std::array<const char*, 3> NAMES = {"NORMAL", "TANGENT", "BINORMAL"};
     format = &vtx_decl.normals[i];
     if (format->enable)
     {
-      m_elems[m_num_elems].SemanticName = "NORMAL";
-      m_elems[m_num_elems].SemanticIndex = i;
+      m_elems[m_num_elems].SemanticName = NAMES[i];
+      m_elems[m_num_elems].SemanticIndex = 0;
       m_elems[m_num_elems].AlignedByteOffset = format->offset;
       m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
       m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -182,7 +184,7 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(const void* vs_bytecode, size
 
   HRESULT hr = D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode,
                                               vs_bytecode_size, &layout);
-  CHECK(SUCCEEDED(hr), "Failed to create input layout");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create input layout: {}", DX11HRWrap(hr));
 
   // This method can be called from multiple threads, so ensure that only one thread sets the
   // cached input layout pointer. If another thread beats this thread, use the existing layout.

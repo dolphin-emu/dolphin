@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="..\..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
@@ -15,14 +15,6 @@
     <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;rpcrt4.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <SubSystem>Console</SubSystem>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
@@ -38,6 +30,7 @@
   <ItemGroup>
     <ClCompile Include="ConvertCommand.cpp" />
     <ClCompile Include="VerifyCommand.cpp" />
+    <ClCompile Include="HeaderCommand.cpp" />
     <ClCompile Include="ToolHeadlessPlatform.cpp" />
     <ClCompile Include="ToolMain.cpp" />
   </ItemGroup>
@@ -52,6 +45,7 @@
     <ClInclude Include="Command.h" />
     <ClInclude Include="ConvertCommand.h" />
     <ClInclude Include="VerifyCommand.h" />
+    <ClInclude Include="HeaderCommand.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="DolphinTool.exe.manifest" />

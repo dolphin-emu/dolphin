@@ -16,6 +16,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
@@ -411,7 +412,7 @@ void Init()
       }
       else if (Movie::IsUsingPad(i))
       {
-        SIDevices current = SConfig::GetInstance().m_SIDevice[i];
+        SIDevices current = Config::Get(Config::GetInfoForSIDevice(i));
         // GC pad-compatible devices can be used for both playing and recording
         if (Movie::IsUsingBongo(i))
           s_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
@@ -423,7 +424,7 @@ void Init()
     }
     else if (!NetPlay::IsNetPlayRunning())
     {
-      s_desired_device_types[i] = SConfig::GetInstance().m_SIDevice[i];
+      s_desired_device_types[i] = Config::Get(Config::GetInfoForSIDevice(i));
     }
 
     AddDevice(s_desired_device_types[i], i);

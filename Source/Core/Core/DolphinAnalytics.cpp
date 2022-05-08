@@ -248,10 +248,10 @@ void DolphinAnalytics::MakeBaseBuilder()
   Common::AnalyticsReportBuilder builder;
 
   // Version information.
-  builder.AddData("version-desc", Common::scm_desc_str);
-  builder.AddData("version-hash", Common::scm_rev_git_str);
-  builder.AddData("version-branch", Common::scm_branch_str);
-  builder.AddData("version-dist", Common::scm_distributor_str);
+  builder.AddData("version-desc", Common::GetScmDescStr());
+  builder.AddData("version-hash", Common::GetScmRevGitStr());
+  builder.AddData("version-branch", Common::GetScmBranchStr());
+  builder.AddData("version-dist", Common::GetScmDistributorStr());
 
   // Auto-Update information.
   builder.AddData("update-track", Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
@@ -359,9 +359,9 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-dsp-hle", Config::Get(Config::MAIN_DSP_HLE));
   builder.AddData("cfg-dsp-jit", Config::Get(Config::MAIN_DSP_JIT));
   builder.AddData("cfg-dsp-thread", Config::Get(Config::MAIN_DSP_THREAD));
-  builder.AddData("cfg-cpu-thread", SConfig::GetInstance().bCPUThread);
-  builder.AddData("cfg-fastmem", SConfig::GetInstance().bFastmem);
-  builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
+  builder.AddData("cfg-cpu-thread", Config::Get(Config::MAIN_CPU_THREAD));
+  builder.AddData("cfg-fastmem", Config::Get(Config::MAIN_FASTMEM));
+  builder.AddData("cfg-syncgpu", Config::Get(Config::MAIN_SYNC_GPU));
   builder.AddData("cfg-audio-backend", Config::Get(Config::MAIN_AUDIO_BACKEND));
   builder.AddData("cfg-oc-enable", Config::Get(Config::MAIN_OVERCLOCK_ENABLE));
   builder.AddData("cfg-oc-factor", Config::Get(Config::MAIN_OVERCLOCK));
@@ -406,7 +406,6 @@ void DolphinAnalytics::MakePerGameBuilder()
                   g_Config.backend_info.bSupportsExclusiveFullscreen);
   builder.AddData("gpu-has-dual-source-blend", g_Config.backend_info.bSupportsDualSourceBlend);
   builder.AddData("gpu-has-primitive-restart", g_Config.backend_info.bSupportsPrimitiveRestart);
-  builder.AddData("gpu-has-oversized-viewports", g_Config.backend_info.bSupportsOversizedViewports);
   builder.AddData("gpu-has-geometry-shaders", g_Config.backend_info.bSupportsGeometryShaders);
   builder.AddData("gpu-has-3d-vision", g_Config.backend_info.bSupports3DVision);
   builder.AddData("gpu-has-early-z", g_Config.backend_info.bSupportsEarlyZ);

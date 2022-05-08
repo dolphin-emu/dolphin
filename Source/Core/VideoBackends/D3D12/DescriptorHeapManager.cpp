@@ -20,7 +20,7 @@ bool DescriptorHeapManager::Create(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_T
                                      D3D12_DESCRIPTOR_HEAP_FLAG_NONE};
 
   HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
-  CHECK(SUCCEEDED(hr), "Create descriptor heap");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create descriptor heap: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 
@@ -176,7 +176,7 @@ bool SamplerHeapManager::Create(ID3D12Device* device, u32 num_descriptors)
 {
   const D3D12_DESCRIPTOR_HEAP_DESC desc = {D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, num_descriptors};
   HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_descriptor_heap));
-  CHECK(SUCCEEDED(hr), "Failed to create sampler descriptor heap");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create sampler descriptor heap: {}", DX12HRWrap(hr));
   if (FAILED(hr))
     return false;
 

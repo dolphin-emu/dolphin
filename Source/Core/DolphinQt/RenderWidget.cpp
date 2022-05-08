@@ -502,8 +502,8 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
     // coordinates (as if the screen was standard dpi). We need to update the mouse position in
     // native coordinates, as the UI (and game) is rendered at native resolution.
     const float scale = devicePixelRatio();
-    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->x() * scale;
-    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->y() * scale;
+    ImGui::GetIO().MousePos.x = static_cast<const QMouseEvent*>(event)->pos().x() * scale;
+    ImGui::GetIO().MousePos.y = static_cast<const QMouseEvent*>(event)->pos().y() * scale;
   }
   break;
 

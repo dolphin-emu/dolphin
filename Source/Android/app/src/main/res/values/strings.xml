@@ -6,13 +6,10 @@
     <string name="host">app</string>
     <string name="scheme">dolphinemu</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop. -->
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
     <string name="controller_2">GameCube Controller 3</string>
     <string name="controller_3">GameCube Controller 4</string>
-    <!-- END WARNING -->
 
     <string name="controller_control">Control Stick</string>
     <string name="controller_c">C Stick</string>
@@ -22,23 +19,15 @@
     <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop.
-            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
     <string name="wiimote_4">Wii Remote 1</string>
     <string name="wiimote_5">Wii Remote 2</string>
     <string name="wiimote_6">Wii Remote 3</string>
     <string name="wiimote_7">Wii Remote 4</string>
-    <!-- END WARNING -->
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop.
-            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
     <string name="wiimote_extension_4">Wii Remote Extension 1</string>
     <string name="wiimote_extension_5">Wii Remote Extension 2</string>
     <string name="wiimote_extension_6">Wii Remote Extension 3</string>
     <string name="wiimote_extension_7">Wii Remote Extension 4</string>
-    <!-- END WARNING -->
 
     <string name="wiimote_extensions">Extension</string>
     <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
@@ -166,8 +155,6 @@
     <string name="fallback_region">Fallback Region</string>
     <string name="enable_save_states">Enable Savestates</string>
     <string name="enable_save_states_description">WARNING: Savestates may not be compatible with future versions of Dolphin and can make it impossible to create normal saves in some cases. Never use savestates as the only way of saving your progress.</string>
-    <string name="lock_emulation_landscape">Lock screen to landscape</string>
-    <string name="lock_emulation_landscape_desc">Some touch controls will require additional tweaking if played in portrait</string>
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="analytics_new_id">Generate a New Statistics Identity</string>
@@ -176,11 +163,36 @@
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
     <string name="emulation_screen_orientation">Screen Orientation During Emulation</string>
+    <string name="expand_to_cutout_area">Expand to Cutout Area</string>
+    <string name="expand_to_cutout_area_description">Expands the display area to include the cutout (or notch) area.</string>
     <string name="panic_handlers">Use Panic Handlers</string>
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
     <string name="download_game_covers">Download Game Covers from GameTDB.com</string>
+
+    <!-- Online Update Region Select Fragment -->
+    <string name="region_select_title">Please select a region</string>
+    <string name="europe">Europe</string>
+    <string name="japan">Japan</string>
+    <string name="korea">Korea</string>
+    <string name="united_states">United States</string>
+
+    <!-- Online Update Progress Bar Fragment -->
+    <string name="updating">Updating</string>
+    <string name="updating_message">Updating title %016x...\nThis can take a while.</string>
+    <string name="update_success">The emulated Wii console has been updated.</string>
+    <string name="already_up_to_date">The emulated Wii console is already up-to-date.</string>
+    <string name="region_mismatch">The game\'s region does not match your console\'s. To avoid issues with the system menu, it is not possible to update the emulated console using this disc.</string>
+    <string name="missing_update_partition">The game disc does not contain any usable update information.</string>
+    <string name="disc_read_failed">The game disc does not contain any usable update information.</string>
+    <string name="server_failed">"Could not download update information from Nintendo. Please check your Internet connection and try again.</string>
+    <string name="download_failed">Could not download update files from Nintendo. Please check your Internet connection and try again.</string>
+    <string name="import_failed">"Could not install an update to the Wii system memory. Please refer to logs for more information.</string>
+    <string name="update_cancelled">The update has been cancelled. It is strongly recommended to finish it in order to avoid inconsistent system software versions.</string>
+    <string name="update_success_title">Update completed</string>
+    <string name="update_failed_title">Update failed</string>
+    <string name="update_cancelled_title">Update cancelled</string>
 
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
@@ -275,7 +287,7 @@
     <string name="disable_bbox">Disable Bounding Box</string>
     <string name="disable_bbox_description">Disables bounding box emulation. This may improve GPU performance significantly, but some games will break. If unsure, leave this checked.</string>
     <string name="vertex_rounding">Vertex Rounding</string>
-    <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
+    <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
     <string name="texture_cache_to_state">Save Texture Cache to State</string>
     <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
@@ -293,9 +305,9 @@
     <string name="dump_texture">Dump Textures</string>
     <string name="dump_texture_description">Dumps decoded game textures based on the other flags to User/Dump/Textures/&lt;game_id&gt;/. If unsure, leave this unchecked.</string>
     <string name="dump_base_texture">Dump Base Textures</string>
-    <string name="dump_base_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_base_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="dump_mip_texture">Dump Mip Maps</string>
-    <string name="dump_mip_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_mip_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="misc">Misc</string>
     <string name="crop">Crop</string>
     <string name="crop_description">Crops the picture from its native aspect ratio to 4:3 or 16:9. If unsure, leave this unchecked.</string>
@@ -361,13 +373,21 @@
 
     <!-- User Data -->
     <string name="user_data_submenu">User Data</string>
-    <string name="user_data_old_location">Your user data is stored in a location which will <b>not</b> be deleted when you uninstall the app:</string>
-    <string name="user_data_new_location">Your user data is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
+    <string name="user_data_old_location">Your user data (settings, saves, etc.) is stored in a location which will <b>not</b> be deleted when you uninstall the app:</string>
+    <string name="user_data_new_location">Your user data (settings, saves, etc.) is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
     <!-- Android 10 and up support android:hasFragileUserData -->
-    <string name="user_data_new_location_android_10">Your user data is stored in a location which by default <b>will be deleted</b> when you uninstall the app:</string>
-    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, not all file manager apps can access this location. However, you can access it using the system file manager (if present on your device), or by connecting your device to a PC.</string>
+    <string name="user_data_new_location_android_10">Your user data (settings, saves, etc.) is stored in a location which by default <b>will be deleted</b> when you uninstall the app:</string>
+    <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, file manager apps can\'t access this folder in the same way as regular folders. You might be able to access the folder using the system file manager (if present on your device), or by connecting your device to a PC.</string>
     <string name="user_data_open_system_file_manager">Open System File Manager</string>
+    <string name="user_data_import">Import User Data</string>
+    <string name="user_data_export">Export User Data</string>
     <string name="user_data_open_system_file_manager_failed">Sorry, Dolphin couldn\'t find the system file manager on your device.</string>
+    <string name="user_data_import_warning">Are you sure you want to replace your user data with the data in this file? All existing user data will be deleted!</string>
+    <string name="user_data_import_invalid_file">This file doesn\'t seem to contain Dolphin user data.</string>
+    <string name="user_data_import_success">The user data has been imported.</string>
+    <string name="user_data_import_failure">Failed to import user data.</string>
+    <string name="user_data_export_success">Your user data has been exported.</string>
+    <string name="user_data_export_failure">Failed to export user data.</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
@@ -391,7 +411,11 @@
     <string name="grid_menu_install_wad">Install WAD</string>
     <string name="grid_menu_import_wii_save">Import Wii Save</string>
     <string name="grid_menu_import_nand_backup">Import BootMii NAND Backup</string>
+    <string name="grid_menu_online_system_update">Perform Online System Update</string>
+    <string name="grid_menu_load_wii_system_menu">Load Wii System Menu</string>
+    <string name="grid_menu_load_wii_system_menu_installed">Load Wii System Menu (%s)</string>
     <string name="import_in_progress">Importing...</string>
+    <string name="export_in_progress">Exporting...</string>
     <string name="do_not_close_app">Do not close the app!</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>
@@ -401,12 +425,15 @@
     <string name="wii_save_import_corruped_source">Failed to import save file. The given file appears to be corrupted or is not a valid Wii save.</string>
     <string name="wii_save_import_title_missing">Failed to import save file. Please launch the game once, then try again.</string>
     <string name="nand_import_warning">Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?</string>
+    <string name="system_menu_not_installed_title">Not installed</string>
+    <string name="system_menu_not_installed_message">The Wii Menu is currently not installed. Would you like to install it now?\nAn internet connection is required to download the update. It is recommended to download the update on Wi-Fi, as the amount of data downloaded may be large.</string>
 
     <!-- Game Properties Screen -->
     <string name="properties_details">Details</string>
     <string name="properties_start_with_riivolution">Start with Riivolution Patches</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
     <string name="properties_convert">Convert File</string>
+    <string name="properties_system_update">Perform System Update</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>
     <string name="properties_edit_cheats">Edit Cheats</string>
     <string name="properties_clear_game_settings">Clear Game Settings and Cheats</string>
@@ -517,6 +544,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_menu_help">Press Back to access the menu.\nLong press Back to exit emulation.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_ir_group">Touch IR Pointer</string>
+    <string name="emulation_ir_recenter">Always recenter</string>
+    <string name="emulation_ir_mode">IR Mode</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
     <string name="emulation_motion_controls">Motion Controls</string>

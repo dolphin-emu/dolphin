@@ -193,7 +193,7 @@ struct fmt::formatter<BitField<position, bits, T, S>>
   fmt::formatter<T> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitField<position, bits, T, S>& bitfield, FormatContext& ctx)
+  auto format(const BitField<position, bits, T, S>& bitfield, FormatContext& ctx) const
   {
     return m_formatter.format(bitfield.Value(), ctx);
   }
@@ -479,7 +479,7 @@ struct fmt::formatter<BitFieldArrayRef<position, bits, size, T, S>>
   fmt::formatter<T> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitFieldArrayRef<position, bits, size, T, S>& ref, FormatContext& ctx)
+  auto format(const BitFieldArrayRef<position, bits, size, T, S>& ref, FormatContext& ctx) const
   {
     return m_formatter.format(ref.Value(), ctx);
   }
@@ -491,7 +491,8 @@ struct fmt::formatter<BitFieldArrayConstRef<position, bits, size, T, S>>
   fmt::formatter<T> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitFieldArrayConstRef<position, bits, size, T, S>& ref, FormatContext& ctx)
+  auto format(const BitFieldArrayConstRef<position, bits, size, T, S>& ref,
+              FormatContext& ctx) const
   {
     return m_formatter.format(ref.Value(), ctx);
   }

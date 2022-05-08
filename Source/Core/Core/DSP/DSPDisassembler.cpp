@@ -203,7 +203,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, u16* pc, std::string&
   if (is_extended)
     opname += fmt::format("{}{}", settings_.ext_separator, opc_ext->name);
   if (settings_.lower_case_ops)
-    std::transform(opname.begin(), opname.end(), opname.begin(), ::tolower);
+    Common::ToLower(&opname);
 
   if (settings_.print_tabs)
     dest += fmt::format("{}\t", opname);

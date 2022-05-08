@@ -21,6 +21,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AlertDialogItemsBuilder;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
@@ -101,6 +102,12 @@ public class GamePropertiesDialog extends DialogFragment
               ConvertActivity.launch(getContext(), path));
     }
 
+    if (isDisc && isWii)
+    {
+      itemsBuilder.add(R.string.properties_system_update, (dialog, i) ->
+              MainPresenter.launchDiscUpdate(path, requireActivity()));
+    }
+
     itemsBuilder.add(R.string.properties_edit_game_settings, (dialog, i) ->
             SettingsActivity.launch(getContext(), MenuTag.SETTINGS, gameId, revision, isWii));
 
@@ -110,8 +117,7 @@ public class GamePropertiesDialog extends DialogFragment
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettingsWithConfirmation(gameId));
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(),
-            R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
     itemsBuilder.applyToBuilder(builder);
     builder.setTitle(requireContext()
             .getString(R.string.preferences_game_properties_with_game_id, gameId));
@@ -120,7 +126,7 @@ public class GamePropertiesDialog extends DialogFragment
 
   private void clearGameSettingsWithConfirmation(String gameId)
   {
-    new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase)
+    new AlertDialog.Builder(requireContext())
             .setTitle(R.string.properties_clear_game_settings)
             .setMessage(R.string.properties_clear_game_settings_confirmation)
             .setPositiveButton(R.string.yes, (dialog, i) -> clearGameSettings(gameId))

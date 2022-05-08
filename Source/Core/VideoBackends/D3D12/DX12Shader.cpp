@@ -3,6 +3,7 @@
 
 #include "VideoBackends/D3D12/DX12Shader.h"
 
+#include "Common/Assert.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D12/Common.h"
@@ -51,7 +52,7 @@ bool DXShader::CreateComputePipeline()
 
   HRESULT hr = g_dx_context->GetDevice()->CreateComputePipelineState(
       &desc, IID_PPV_ARGS(&m_compute_pipeline));
-  CHECK(SUCCEEDED(hr), "Creating compute pipeline failed");
+  ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Creating compute pipeline failed: {}", DX12HRWrap(hr));
 
   if (m_compute_pipeline && !m_name.empty())
     m_compute_pipeline->SetName(m_name.c_str());

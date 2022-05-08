@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <iterator>
@@ -388,6 +387,7 @@ std::string GameFile::GetExtension() const
 {
   std::string extension;
   SplitPath(m_file_path, nullptr, nullptr, &extension);
+  Common::ToLower(&extension);
   return extension;
 }
 
@@ -611,7 +611,7 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   int disc_number = GetDiscNumber() + 1;
 
   std::string lower_name = name;
-  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+  Common::ToLower(&lower_name);
   if (disc_number > 1 &&
       lower_name.find(fmt::format("disc {}", disc_number)) == std::string::npos &&
       lower_name.find(fmt::format("disc{}", disc_number)) == std::string::npos)
@@ -787,7 +787,7 @@ std::string GameFile::GetFileFormatName() const
   case DiscIO::Platform::ELFOrDOL:
   {
     std::string extension = GetExtension();
-    std::transform(extension.begin(), extension.end(), extension.begin(), ::toupper);
+    Common::ToUpper(&extension);
 
     // substr removes the dot
     return extension.substr(std::min<size_t>(1, extension.size()));

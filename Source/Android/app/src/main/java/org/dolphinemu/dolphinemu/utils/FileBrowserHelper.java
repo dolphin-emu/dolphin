@@ -118,7 +118,7 @@ public final class FileBrowserHelper
               setToSortedDelimitedString(validExtensions));
     }
 
-    new AlertDialog.Builder(context, R.style.DolphinDialogBase)
+    new AlertDialog.Builder(context)
             .setMessage(message)
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> runnable.run())
             .setNegativeButton(R.string.no, null)

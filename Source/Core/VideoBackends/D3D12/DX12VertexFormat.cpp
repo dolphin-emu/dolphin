@@ -92,7 +92,8 @@ void DXVertexFormat::MapAttributes()
   {
     if (m_decl.normals[i].enable)
     {
-      AddAttribute("NORMAL", i, 0,
+      static constexpr std::array<const char*, 3> NAMES = {"NORMAL", "TANGENT", "BINORMAL"};
+      AddAttribute(NAMES[i], 0, 0,
                    VarToDXGIFormat(m_decl.normals[i].type, m_decl.normals[i].components,
                                    m_decl.normals[i].integer),
                    m_decl.normals[i].offset);

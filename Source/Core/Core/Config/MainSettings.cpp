@@ -8,12 +8,16 @@
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/EnumMap.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -47,26 +51,81 @@ const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, fals
 const Info<int> MAIN_AUDIO_STRETCH_LATENCY{{System::Main, "Core", "AudioStretchMaxLatency"}, 80};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
+const Info<std::string>& GetInfoForMemcardPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_MEMCARD_A_PATH,
+          &MAIN_MEMCARD_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const Info<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
+const Info<std::string>& GetInfoForAGPCartPath(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_AGP_CART_A_PATH,
+          &MAIN_AGP_CART_B_PATH,
+      };
+  return *infos[slot];
+}
 const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
 const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
     {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
-const Info<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
-                            ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
-const Info<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"}, ExpansionInterface::EXIDEVICE_NONE};
-const Info<int> MAIN_SERIAL_PORT_1{{System::Main, "Core", "SerialPort1"},
-                                   ExpansionInterface::EXIDEVICE_NONE};
+const Info<std::string>& GetInfoForGCIPathOverride(ExpansionInterface::Slot slot)
+{
+  ASSERT(ExpansionInterface::IsMemcardSlot(slot));
+  static constexpr Common::EnumMap<const Info<std::string>*, ExpansionInterface::MAX_MEMCARD_SLOT>
+      infos{
+          &MAIN_GCI_FOLDER_A_PATH_OVERRIDE,
+          &MAIN_GCI_FOLDER_B_PATH_OVERRIDE,
+      };
+  return *infos[slot];
+}
+
+const Info<int> MAIN_MEMORY_CARD_SIZE{{System::Main, "Core", "MemoryCardSize"}, -1};
+
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A{
+    {System::Main, "Core", "SlotA"}, ExpansionInterface::EXIDeviceType::MemoryCardFolder};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
+                                                          ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
+    {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
+
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
+{
+  static constexpr Common::EnumMap<const Info<ExpansionInterface::EXIDeviceType>*,
+                                   ExpansionInterface::MAX_SLOT>
+      infos{
+          &MAIN_SLOT_A,
+          &MAIN_SLOT_B,
+          &MAIN_SERIAL_PORT_1,
+      };
+  return *infos[slot];
+}
+
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
 const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
 const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
 
-Info<u32> GetInfoForSIDevice(u32 channel)
+const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 {
-  return {{System::Main, "Core", fmt::format("SIDevice{}", channel)},
-          static_cast<u32>(channel == 0 ? SerialInterface::SIDEVICE_GC_CONTROLLER :
-                                          SerialInterface::SIDEVICE_NONE)};
+  static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice0"},
+                                       SerialInterface::SIDEVICE_GC_CONTROLLER},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice1"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice2"},
+                                       SerialInterface::SIDEVICE_NONE},
+      Info<SerialInterface::SIDevices>{{System::Main, "Core", "SIDevice3"},
+                                       SerialInterface::SIDEVICE_NONE},
+  };
+  return infos[channel];
 }
 
 const Info<bool>& GetInfoForAdapterRumble(int channel)
@@ -96,6 +155,8 @@ const Info<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false}
 const Info<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{
     {System::Main, "Core", "WiimoteContinuousScanning"}, false};
 const Info<bool> MAIN_WIIMOTE_ENABLE_SPEAKER{{System::Main, "Core", "WiimoteEnableSpeaker"}, false};
+const Info<bool> MAIN_CONNECT_WIIMOTES_FOR_CONTROLLER_INTERFACE{
+    {System::Main, "Core", "WiimoteControllerInterface"}, false};
 const Info<bool> MAIN_MMU{{System::Main, "Core", "MMU"}, false};
 const Info<int> MAIN_BB_DUMP_PORT{{System::Main, "Core", "BBDumpPort"}, -1};
 const Info<bool> MAIN_SYNC_GPU{{System::Main, "Core", "SyncGPU"}, false};
@@ -118,8 +179,25 @@ const Info<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, Memory::MEM1_
 const Info<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, Memory::MEM2_SIZE_RETAIL};
 const Info<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"},
                                          VideoBackendBase::GetDefaultBackendName()};
+
 const Info<std::string> MAIN_GPU_DETERMINISM_MODE{{System::Main, "Core", "GPUDeterminismMode"},
                                                   "auto"};
+const Info<s32> MAIN_OVERRIDE_BOOT_IOS{{System::Main, "Core", "OverrideBootIOS"}, -1};
+
+GPUDeterminismMode GetGPUDeterminismMode()
+{
+  auto mode = Config::Get(Config::MAIN_GPU_DETERMINISM_MODE);
+  if (mode == "auto")
+    return GPUDeterminismMode::Auto;
+  if (mode == "none")
+    return GPUDeterminismMode::Disabled;
+  if (mode == "fake-completion")
+    return GPUDeterminismMode::FakeCompletion;
+
+  NOTICE_LOG_FMT(CORE, "Unknown GPU determinism mode {}", mode);
+  return GPUDeterminismMode::Auto;
+}
+
 const Info<std::string> MAIN_PERF_MAP_DIR{{System::Main, "Core", "PerfMapDir"}, ""};
 const Info<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCustomRTC"}, false};
 // Default to seconds between 1.1.1970 and 1.1.2000
@@ -131,6 +209,9 @@ const Info<bool> MAIN_ALLOW_SD_WRITES{{System::Main, "Core", "WiiSDCardAllowWrit
 const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates"}, false};
 const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS{
     {System::Main, "Core", "RealWiiRemoteRepeatReports"}, true};
+
+// Empty means use the Dolphin default URL
+const Info<std::string> MAIN_WII_NUS_SHOP_URL{{System::Main, "Core", "WiiNusShopUrl"}, ""};
 
 // Main.Display
 
@@ -233,6 +314,7 @@ void SetIsoPaths(const std::vector<std::string>& paths)
 
 // Main.GBA
 
+#ifdef HAS_LIBMGBA
 const Info<std::string> MAIN_GBA_BIOS_PATH{{System::Main, "GBA", "BIOS"}, ""};
 const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
     Info<std::string>{{System::Main, "GBA", "Rom1"}, ""},
@@ -242,6 +324,7 @@ const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
 const Info<std::string> MAIN_GBA_SAVES_PATH{{System::Main, "GBA", "SavesPath"}, ""};
 const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH{{System::Main, "GBA", "SavesInRomPath"}, false};
 const Info<bool> MAIN_GBA_THREADS{{System::Main, "GBA", "Threads"}, true};
+#endif
 
 // Main.Network
 
@@ -336,11 +419,13 @@ const Info<bool> MAIN_GAMELIST_COLUMN_TAGS{{System::Main, "GameList", "ColumnTag
 // Main.FifoPlayer
 
 const Info<bool> MAIN_FIFOPLAYER_LOOP_REPLAY{{System::Main, "FifoPlayer", "LoopReplay"}, true};
+const Info<bool> MAIN_FIFOPLAYER_EARLY_MEMORY_UPDATES{
+    {System::Main, "FifoPlayer", "EarlyMemoryUpdates"}, false};
 
 // Main.AutoUpdate
 
 const Info<std::string> MAIN_AUTOUPDATE_UPDATE_TRACK{{System::Main, "AutoUpdate", "UpdateTrack"},
-                                                     Common::scm_update_track_str};
+                                                     Common::GetScmUpdateTrackStr()};
 const Info<std::string> MAIN_AUTOUPDATE_HASH_OVERRIDE{{System::Main, "AutoUpdate", "HashOverride"},
                                                       ""};
 

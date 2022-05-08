@@ -55,8 +55,7 @@ public final class DirectoryInitialization
     directoryState.setValue(DirectoryInitializationState.INITIALIZING);
 
     // Can take a few seconds to run, so don't block UI thread.
-    //noinspection TrivialFunctionalExpressionUsage
-    ((Runnable) () -> init(context)).run();
+    new Thread(() -> init(context)).start();
   }
 
   private static void init(Context context)
@@ -234,6 +233,11 @@ public final class DirectoryInitialization
               "DirectoryInitialization must run before accessing the user directory!");
     }
     return userPath;
+  }
+
+  public static File getGameListCache(Context context)
+  {
+    return new File(context.getExternalCacheDir(), "gamelist.cache");
   }
 
   private static boolean copyAsset(String asset, File output, Boolean overwrite, Context context)

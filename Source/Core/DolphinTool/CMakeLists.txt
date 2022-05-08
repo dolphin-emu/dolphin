@@ -5,6 +5,8 @@ add_executable(dolphin-tool
   ConvertCommand.h
   VerifyCommand.cpp
   VerifyCommand.h
+  HeaderCommand.cpp
+  HeaderCommand.h
   ToolMain.cpp
 )
 
@@ -14,7 +16,6 @@ target_link_libraries(dolphin-tool
 PRIVATE
   discio
   uicommon
-  videocommon
   cpp-optparse
 )
 

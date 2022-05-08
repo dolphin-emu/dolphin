@@ -12,6 +12,7 @@
 #include <array>
 #include <cstring>
 #include <memory>
+#include <tuple>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -21,6 +22,7 @@
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -33,6 +35,7 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
 
@@ -126,35 +129,28 @@ u32 GetExRamMask()
 // MMIO mapping object.
 std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
-static std::unique_ptr<MMIO::Mapping> InitMMIO()
+static void InitMMIO(bool is_wii)
 {
-  auto mmio = std::make_unique<MMIO::Mapping>();
+  mmio_mapping = std::make_unique<MMIO::Mapping>();
 
-  CommandProcessor::RegisterMMIO(mmio.get(), 0x0C000000);
-  PixelEngine::RegisterMMIO(mmio.get(), 0x0C001000);
-  VideoInterface::RegisterMMIO(mmio.get(), 0x0C002000);
-  ProcessorInterface::RegisterMMIO(mmio.get(), 0x0C003000);
-  MemoryInterface::RegisterMMIO(mmio.get(), 0x0C004000);
-  DSP::RegisterMMIO(mmio.get(), 0x0C005000);
-  DVDInterface::RegisterMMIO(mmio.get(), 0x0C006000);
-  SerialInterface::RegisterMMIO(mmio.get(), 0x0C006400);
-  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0C006800);
-  AudioInterface::RegisterMMIO(mmio.get(), 0x0C006C00);
-
-  return mmio;
-}
-
-static std::unique_ptr<MMIO::Mapping> InitMMIOWii()
-{
-  auto mmio = InitMMIO();
-
-  IOS::RegisterMMIO(mmio.get(), 0x0D000000);
-  DVDInterface::RegisterMMIO(mmio.get(), 0x0D006000);
-  SerialInterface::RegisterMMIO(mmio.get(), 0x0D006400);
-  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
-  AudioInterface::RegisterMMIO(mmio.get(), 0x0D006C00);
-
-  return mmio;
+  CommandProcessor::RegisterMMIO(mmio_mapping.get(), 0x0C000000);
+  PixelEngine::RegisterMMIO(mmio_mapping.get(), 0x0C001000);
+  VideoInterface::RegisterMMIO(mmio_mapping.get(), 0x0C002000);
+  ProcessorInterface::RegisterMMIO(mmio_mapping.get(), 0x0C003000);
+  MemoryInterface::RegisterMMIO(mmio_mapping.get(), 0x0C004000);
+  DSP::RegisterMMIO(mmio_mapping.get(), 0x0C005000);
+  DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006000);
+  SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006400);
+  ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006800);
+  AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006C00);
+  if (is_wii)
+  {
+    IOS::RegisterMMIO(mmio_mapping.get(), 0x0D000000);
+    DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006000);
+    SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006400);
+    ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006800);
+    AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006C00);
+  }
 }
 
 bool IsInitialized()
@@ -260,7 +256,7 @@ void Init()
                            false};
 
   const bool wii = SConfig::GetInstance().bWii;
-  const bool mmu = SConfig::GetInstance().bMMU;
+  const bool mmu = Core::System::GetInstance().IsMMUMode();
 
   bool fake_vmem = false;
 #ifndef _ARCH_32
@@ -301,10 +297,7 @@ void Init()
     }
   }
 
-  if (wii)
-    mmio_mapping = InitMMIOWii();
-  else
-    mmio_mapping = InitMMIO();
+  InitMMIO(wii);
 
   Clear();
 
@@ -403,15 +396,50 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 
 void DoState(PointerWrap& p)
 {
-  bool wii = SConfig::GetInstance().bWii;
-  p.DoArray(m_pRAM, GetRamSize());
-  p.DoArray(m_pL1Cache, GetL1CacheSize());
+  const u32 current_ram_size = GetRamSize();
+  const u32 current_l1_cache_size = GetL1CacheSize();
+  const bool current_have_fake_vmem = !!m_pFakeVMEM;
+  const u32 current_fake_vmem_size = current_have_fake_vmem ? GetFakeVMemSize() : 0;
+  const bool current_have_exram = !!m_pEXRAM;
+  const u32 current_exram_size = current_have_exram ? GetExRamSize() : 0;
+
+  u32 state_ram_size = current_ram_size;
+  u32 state_l1_cache_size = current_l1_cache_size;
+  bool state_have_fake_vmem = current_have_fake_vmem;
+  u32 state_fake_vmem_size = current_fake_vmem_size;
+  bool state_have_exram = current_have_exram;
+  u32 state_exram_size = current_exram_size;
+
+  p.Do(state_ram_size);
+  p.Do(state_l1_cache_size);
+  p.Do(state_have_fake_vmem);
+  p.Do(state_fake_vmem_size);
+  p.Do(state_have_exram);
+  p.Do(state_exram_size);
+
+  // If we're loading a savestate and any of the above differs between the savestate and the current
+  // state, cancel the load. This is technically possible to support but would require a bunch of
+  // reinitialization of things that depend on these.
+  if (std::tie(state_ram_size, state_l1_cache_size, state_have_fake_vmem, state_fake_vmem_size,
+               state_have_exram, state_exram_size) !=
+      std::tie(current_ram_size, current_l1_cache_size, current_have_fake_vmem,
+               current_fake_vmem_size, current_have_exram, current_exram_size))
+  {
+    Core::DisplayMessage("State is incompatible with current memory settings (MMU and/or memory "
+                         "overrides). Aborting load state.",
+                         3000);
+    p.SetMode(PointerWrap::MODE_VERIFY);
+    return;
+  }
+
+  p.DoArray(m_pRAM, current_ram_size);
+  p.DoArray(m_pL1Cache, current_l1_cache_size);
   p.DoMarker("Memory RAM");
-  if (m_pFakeVMEM)
-    p.DoArray(m_pFakeVMEM, GetFakeVMemSize());
+  if (current_have_fake_vmem)
+    p.DoArray(m_pFakeVMEM, current_fake_vmem_size);
   p.DoMarker("Memory FakeVMEM");
-  if (wii)
-    p.DoArray(m_pEXRAM, GetExRamSize());
+  if (current_have_exram)
+    p.DoArray(m_pEXRAM, current_exram_size);
   p.DoMarker("Memory EXRAM");
 }
 

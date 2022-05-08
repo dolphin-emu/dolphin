@@ -3,7 +3,6 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 
-#include <cinttypes>
 #include <cstddef>
 #include <optional>
 #include <string>

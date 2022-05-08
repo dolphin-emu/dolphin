@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="..\Source\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
@@ -8,52 +8,26 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VSPropsDir)Configuration.Utility.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-    <Import Project="po.props" />
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemGroup>
-    <msgfmt Include="po\ar.po" />
-    <msgfmt Include="po\ca.po" />
-    <msgfmt Include="po\cs.po" />
-    <msgfmt Include="po\da.po" />
-    <msgfmt Include="po\de.po" />
-    <msgfmt Include="po\el.po" />
-    <msgfmt Include="po\en.po" />
-    <msgfmt Include="po\es.po" />
-    <msgfmt Include="po\fa.po" />
-    <msgfmt Include="po\fr.po" />
-    <msgfmt Include="po\hr.po" />
-    <msgfmt Include="po\hu.po" />
-    <msgfmt Include="po\it.po" />
-    <msgfmt Include="po\ja.po" />
-    <msgfmt Include="po\ko.po" />
-    <msgfmt Include="po\ms.po" />
-    <msgfmt Include="po\nb.po" />
-    <msgfmt Include="po\nl.po" />
-    <msgfmt Include="po\pl.po" />
-    <msgfmt Include="po\pt.po" />
-    <msgfmt Include="po\pt_BR.po" />
-    <msgfmt Include="po\ro.po" />
-    <msgfmt Include="po\ru.po" />
-    <msgfmt Include="po\sr.po" />
-    <msgfmt Include="po\sv.po" />
-    <msgfmt Include="po\tr.po" />
-    <msgfmt Include="po\zh_CN.po" />
-    <msgfmt Include="po\zh_TW.po" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="po.targets" />
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
+  <PropertyGroup>
+    <msgfmt>..\Externals\gettext\msgfmt</msgfmt>
+  </PropertyGroup>
   <ItemGroup>
-    <PoFiles Include="$(OutDir)\**\*.*" />
+    <PoFiles Include="po\*.po" />
+    <MoFiles Include="@(PoFiles -> '$(OutDir)%(Filename).mo')" />
+    <MoFilesDst Include="@(MoFiles -> '$(BinaryOutputDir)Languages\%(Filename)%(Extension)')" />
   </ItemGroup>
-  <Target Name="AfterBuild" Inputs="@(PoFiles)" Outputs="@(PoFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
-    <Copy SourceFiles="@(PoFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" />
+  <Target Name="MsgFmtCompile" BeforeTargets="BuildGenerateSources" Inputs="@(PoFiles)" Outputs="@(MoFiles)">
+    <Exec Command='$(msgfmt) -o "$(OutDir)%(PoFiles.Filename).mo" "@(PoFiles)"' />
+  </Target>
+  <Target Name="MsgFmtCopy" AfterTargets="MsgFmtCompile" Inputs="@(MoFiles)" Outputs="@(MoFilesDst)">
+    <Copy SourceFiles="@(MoFiles)" DestinationFiles="@(MoFilesDst)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

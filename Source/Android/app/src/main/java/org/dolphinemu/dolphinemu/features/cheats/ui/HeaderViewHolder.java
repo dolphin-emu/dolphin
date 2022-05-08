@@ -8,7 +8,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 
 public class HeaderViewHolder extends CheatItemViewHolder
 {

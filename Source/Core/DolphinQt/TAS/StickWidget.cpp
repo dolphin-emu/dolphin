@@ -90,8 +90,8 @@ void StickWidget::handleMouseEvent(QMouseEvent* event)
   else
   {
     // convert from widget space to value space
-    int new_x = (event->x() * m_max_x) / width();
-    int new_y = m_max_y - (event->y() * m_max_y) / height();
+    int new_x = (event->pos().x() * m_max_x) / width();
+    int new_y = m_max_y - (event->pos().y() * m_max_y) / height();
 
     m_x = std::max(0, std::min(static_cast<int>(m_max_x), new_x));
     m_y = std::max(0, std::min(static_cast<int>(m_max_y), new_y));

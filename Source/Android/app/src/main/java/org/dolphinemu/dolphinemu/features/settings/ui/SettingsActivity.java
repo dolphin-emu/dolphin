@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -61,7 +60,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     super.onCreate(savedInstanceState);
 
-    MainPresenter.skipRescanningLibrary();
+    // If we came here from the game list, we don't want to rescan when returning to the game list.
+    // But if we came here after UserDataActivity restarted the app, we do want to rescan.
+    if (savedInstanceState == null)
+    {
+      MainPresenter.skipRescanningLibrary();
+    }
 
     setContentView(R.layout.activity_settings);
 
@@ -75,6 +79,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
     mPresenter = new SettingsActivityPresenter(this, getSettings());
     mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, isWii, this);
+
+    // show up button
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   @Override
@@ -84,12 +91,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     inflater.inflate(R.menu.menu_settings, menu);
 
     return true;
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item)
-  {
-    return mPresenter.handleOptionsItem(item.getItemId());
   }
 
   @Override
@@ -227,7 +228,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   @Override
   public void showGameIniJunkDeletionQuestion()
   {
-    new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+    new AlertDialog.Builder(this)
             .setTitle(getString(R.string.game_ini_junk_title))
             .setMessage(getString(R.string.game_ini_junk_question))
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> mPresenter.clearSettings())
@@ -292,6 +293,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void onExtensionSettingChanged(MenuTag menuTag, int value)
   {
     mPresenter.onExtensionSettingChanged(menuTag, value);
+  }
+
+  @Override
+  public boolean onSupportNavigateUp()
+  {
+    onBackPressed();
+    return true;
   }
 
   private SettingsFragment getFragment()
