@@ -74,7 +74,7 @@ static std::recursive_mutex g_save_thread_mutex;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 139;  // Last changed in PR 8350
+constexpr u32 STATE_VERSION = 140;  // Last changed in PR 10591
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
