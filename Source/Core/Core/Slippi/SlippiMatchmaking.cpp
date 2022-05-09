@@ -309,13 +309,34 @@ void SlippiMatchmaking::startMatchmaking()
   //    it didn't work on Linux/Mac but I haven't tested it.
   // I left this logic on for now under the assumption that it will help more people than
   // it will hurt
-  char lan_addr[30] = "";
+  char lan_addr[30]{};
 
   char host[256];
-  char ip[INET_ADDRSTRLEN] = "";
+  char ip[INET_ADDRSTRLEN]{};
   struct hostent* host_entry;
   int hostname;
   hostname = gethostname(host, sizeof(host));  // find the host name
+  // attempt at using getaddrinfo, only ever sees 127.0.0.1 for some reason. for now the existing
+  // impl will work because we only use ipv4.
+  // struct addrinfo hints = {0}, *addrs;
+  // hints.ai_family = AF_INET;
+  // const int status = getaddrinfo(nullptr, std::to_string(m_hostPort).c_str(), &hints, &addrs);
+  // if (status != 0)
+  // {
+  //   ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Error finding LAN address");
+  //   return;
+  // }
+  // for (struct addrinfo* addrinfo = addrs; addrinfo != nullptr; addrinfo = addrinfo->ai_next)
+  // {
+  //   if (getnameinfo(addrs->ai_addr, static_cast<socklen_t>(addrs->ai_addrlen), lan_addr,
+  //                   sizeof(lan_addr), nullptr, 0, NI_NUMERICHOST))
+  //   {
+  //     continue;
+  //   }
+  //   WARN_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] IP via getaddrinfo {}", lan_addr);
+  // }
+
+  // freeaddrinfo(addrs);
   if (hostname == -1)
   {
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Error finding LAN address");
