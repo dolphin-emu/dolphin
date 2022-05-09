@@ -71,6 +71,7 @@
 #define BACKUP_DIR "Backup"
 #define RESOURCEPACK_DIR "ResourcePacks"
 #define DYNAMICINPUT_DIR "DynamicInputTextures"
+#define SLIPPI_DIR "Slippi"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"

@@ -29,6 +29,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
 #include "Core/Slippi/SlippiPlayback.h"
+#include "Core/Slippi/SlippiPremadeText.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/State.h"
 
@@ -120,6 +121,8 @@ CEXISlippi::CEXISlippi()
   gameFileLoader = std::make_unique<SlippiGameFileLoader>();
   game_reporter = std::make_unique<SlippiGameReporter>(user.get());
   g_replayComm = std::make_unique<SlippiReplayComm>();
+  directCodes = std::make_unique<SlippiDirectCodes>("direct-codes.json");
+  teamsCodes = std::make_unique<SlippiDirectCodes>("teams-codes.json");
 
   generator = std::default_random_engine(Common::Timer::GetTimeMs());
 
@@ -1829,6 +1832,20 @@ void CEXISlippi::startFindMatch(u8* payload)
   shiftJisCode.insert(shiftJisCode.begin(), &payload[1], &payload[1] + 18);
   shiftJisCode.erase(std::find(shiftJisCode.begin(), shiftJisCode.end(), 0x00), shiftJisCode.end());
 
+  // Log the direct code to file.
+  if (search.mode == SlippiMatchmaking::DIRECT)
+  {
+    // Make sure to convert to UTF8, otherwise json library will fail when
+    // calling dump().
+    std::string utf8Code = SHIFTJISToUTF8(shiftJisCode);
+    directCodes->AddOrUpdateCode(utf8Code);
+  }
+  else if (search.mode == SlippiMatchmaking::TEAMS)
+  {
+    std::string utf8Code = SHIFTJISToUTF8(shiftJisCode);
+    teamsCodes->AddOrUpdateCode(utf8Code);
+  }
+
   // TODO: Make this work so we dont have to pass shiftJis to mm server
   // search.connectCode = SHIFTJISToUTF8(shiftJisCode).c_str();
   search.connectCode = shiftJisCode;
@@ -1871,6 +1888,123 @@ void CEXISlippi::startFindMatch(u8* payload)
 
   matchmaking->FindMatch(search);
 #endif
+}
+
+bool CEXISlippi::doesTagMatchInput(u8* input, u8 inputLen, std::string tag)
+{
+  auto jisTag = UTF8ToSHIFTJIS(tag);
+
+  // Check if this tag matches what has been input so far
+  bool isMatch = true;
+  for (int i = 0; i < inputLen; i++)
+  {
+    // ERROR_LOG(SLIPPI_ONLINE, "Entered: %X%X. History: %X%X", input[i * 3], input[i * 3 + 1],
+    // (u8)jisTag[i * 2],
+    //          (u8)jisTag[i * 2 + 1]);
+    if (input[i * 3] != (u8)jisTag[i * 2] || input[i * 3 + 1] != (u8)jisTag[i * 2 + 1])
+    {
+      isMatch = false;
+      break;
+    }
+  }
+
+  return isMatch;
+}
+
+void CEXISlippi::handleNameEntryLoad(u8* payload)
+{
+  u8 inputLen = payload[24];
+  u32 initialIndex = payload[25] << 24 | payload[26] << 16 | payload[27] << 8 | payload[28];
+  u8 scrollDirection = payload[29];
+  u8 curMode = payload[30];
+
+  auto codeHistory = directCodes.get();
+  if (curMode == SlippiMatchmaking::TEAMS)
+  {
+    codeHistory = teamsCodes.get();
+  }
+
+  // Adjust index
+  u32 curIndex = initialIndex;
+  if (scrollDirection == 1)
+  {
+    curIndex++;
+  }
+  else if (scrollDirection == 2)
+  {
+    curIndex = curIndex > 0 ? curIndex - 1 : curIndex;
+  }
+  else if (scrollDirection == 3)
+  {
+    curIndex = 0;
+  }
+
+  // Scroll to next tag that
+  std::string tagAtIndex = "1";
+  while (curIndex >= 0 && curIndex < (u32)codeHistory->length())
+  {
+    tagAtIndex = codeHistory->get(curIndex);
+
+    // Break if we have found a tag that matches
+    if (doesTagMatchInput(payload, inputLen, tagAtIndex))
+      break;
+
+    curIndex = scrollDirection == 2 ? curIndex - 1 : curIndex + 1;
+  }
+
+  INFO_LOG(SLIPPI_ONLINE, "Idx: %d, InitIdx: %d, Scroll: %d. Len: %d", curIndex, initialIndex,
+           scrollDirection, inputLen);
+
+  tagAtIndex = codeHistory->get(curIndex);
+  if (tagAtIndex == "1")
+  {
+    // If we failed to find a tag at the current index, try the initial index again.
+    // If the initial index matches the filter, preserve that suggestion. Without
+    // this logic, the suggestion would get cleared
+    auto initialTag = codeHistory->get(initialIndex);
+    if (doesTagMatchInput(payload, inputLen, initialTag))
+    {
+      tagAtIndex = initialTag;
+      curIndex = initialIndex;
+    }
+  }
+
+  INFO_LOG(SLIPPI_ONLINE, "Retrieved tag: %s", tagAtIndex.c_str());
+  std::string jisCode;
+  m_read_queue.clear();
+
+  if (tagAtIndex == "1")
+  {
+    m_read_queue.push_back(0);
+    m_read_queue.insert(m_read_queue.end(), payload, payload + 3 * inputLen);
+    m_read_queue.insert(m_read_queue.end(), 3 * (8 - inputLen), 0);
+    m_read_queue.push_back(inputLen);
+    appendWordToBuffer(&m_read_queue, initialIndex);
+    return;
+  }
+
+  // Indicate we have a suggestion
+  m_read_queue.push_back(1);
+
+  // Convert to tag to shift jis and write to response
+  jisCode = UTF8ToSHIFTJIS(tagAtIndex);
+
+  // Write out connect code into buffer, injection null terminator after each letter
+  for (int i = 0; i < 8; i++)
+  {
+    for (int j = i * 2; j < i * 2 + 2; j++)
+    {
+      m_read_queue.push_back(j < jisCode.length() ? jisCode[j] : 0);
+    }
+
+    m_read_queue.push_back(0x0);
+  }
+
+  INFO_LOG(SLIPPI_ONLINE, "New Idx: %d. Jis Code length: %d", curIndex, (u8)(jisCode.length() / 2));
+
+  // Write length of tag
+  m_read_queue.push_back(static_cast<u8>(jisCode.length() / 2));
+  appendWordToBuffer(&m_read_queue, curIndex);
 }
 
 void CEXISlippi::prepareOnlineMatchState()
@@ -1925,7 +2059,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
   if (mmState == SlippiMatchmaking::ProcessState::CONNECTION_SUCCESS)
   {
-    localPlayerIndex = matchmaking->LocalPlayerIndex();
+    m_local_player_index = matchmaking->LocalPlayerIndex();
 
     if (!slippi_netplay)
     {
@@ -1972,14 +2106,14 @@ void CEXISlippi::prepareOnlineMatchState()
       if (remotePlayerCount == 1)
       {
         auto isDecider = slippi_netplay->IsDecider();
-        localPlayerIndex = isDecider ? 0 : 1;
-        remotePlayerIndex = isDecider ? 1 : 0;
+        m_local_player_index = isDecider ? 0 : 1;
+        m_remote_player_index = isDecider ? 1 : 0;
       }
 #endif
 
       auto isDecider = slippi_netplay->IsDecider();
-      localPlayerIndex = isDecider ? 0 : 1;
-      remotePlayerIndex = isDecider ? 1 : 0;
+      m_local_player_index = isDecider ? 0 : 1;
+      m_remote_player_index = isDecider ? 1 : 0;
     }
     else
     {
@@ -2022,7 +2156,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
 #ifdef LOCAL_TESTING
   localPlayerIndex = 0;
-  chatMessageId = localChatMessageId;
+  sentChatMessageId = localChatMessageId;
   chatMessagePlayerIdx = 0;
   localChatMessageId = 0;
   // in CSS p1 is always current player and p2 is opponent
@@ -2030,18 +2164,39 @@ void CEXISlippi::prepareOnlineMatchState()
   oppName = p2Name = "Player 2";
 #endif
 
-  m_read_queue.push_back(localPlayerReady);    // Local player ready
-  m_read_queue.push_back(remotePlayersReady);  // Remote players ready
-  m_read_queue.push_back(localPlayerIndex);    // Local player index
-  m_read_queue.push_back(remotePlayerIndex);   // Remote player index
+  m_read_queue.push_back(localPlayerReady);       // Local player ready
+  m_read_queue.push_back(remotePlayersReady);     // Remote players ready
+  m_read_queue.push_back(m_local_player_index);   // Local player index
+  m_read_queue.push_back(m_remote_player_index);  // Remote player index
 
   // Set chat message if any
   if (slippi_netplay)
   {
-    auto remoteMessageSelection = slippi_netplay->GetSlippiRemoteChatMessage();
-    chatMessageId = remoteMessageSelection.messageId;
-    chatMessagePlayerIdx = remoteMessageSelection.playerIdx;
+    auto isSingleMode = matchmaking && matchmaking->RemotePlayerCount() == 1;
     sentChatMessageId = slippi_netplay->GetSlippiRemoteSentChatMessage();
+    // Prevent processing a message in the same frame
+    if (sentChatMessageId <= 0)
+    {
+      auto remoteMessageSelection = slippi_netplay->GetSlippiRemoteChatMessage();
+      chatMessageId = remoteMessageSelection.messageId;
+      chatMessagePlayerIdx = remoteMessageSelection.playerIdx;
+      if (chatMessageId == SlippiPremadeText::CHAT_MSG_CHAT_DISABLED && !isSingleMode)
+      {
+        // Clear remote chat messages if we are on teams and the player has chat disabled.
+        // Could also be handled on SlippiNetplay if the instance had acccess to the current
+        // connection mode
+        chatMessageId = chatMessagePlayerIdx = 0;
+      }
+    }
+    else
+    {
+      chatMessagePlayerIdx = m_local_player_index;
+    }
+
+    if (isSingleMode || !matchmaking)
+    {
+      chatMessagePlayerIdx = sentChatMessageId > 0 ? m_local_player_index : m_remote_player_index;
+    }
     // in CSS p1 is always current player and p2 is opponent
     localPlayerName = p1Name = userInfo.display_name;
   }
@@ -2111,7 +2266,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
     // Overwrite stage information. Make sure everyone loads the same stage
     u16 stageId = 0x1F;  // Default to battlefield if there was no selection
-    for (auto selections : orderedSelections)
+    for (const auto& selections : orderedSelections)
     {
       if (!selections.isStageSelected)
         continue;
@@ -2254,11 +2409,11 @@ void CEXISlippi::prepareOnlineMatchState()
   }
 
   // Create the opponent string using the names of all players on opposing teams
-  int teamIdx = onlineMatchBlock[0x69 + localPlayerIndex * 0x24];
+  int teamIdx = onlineMatchBlock[0x69 + m_local_player_index * 0x24];
   std::string oppText = "";
   for (int i = 0; i < 4; i++)
   {
-    if (i == localPlayerIndex)
+    if (i == m_local_player_index)
       continue;
 
     if (onlineMatchBlock[0x69 + i * 0x24] != teamIdx)
@@ -2270,7 +2425,7 @@ void CEXISlippi::prepareOnlineMatchState()
     }
   }
   if (matchmaking->RemotePlayerCount() == 1)
-    oppText = matchmaking->GetPlayerName(remotePlayerIndex);
+    oppText = matchmaking->GetPlayerName(m_remote_player_index);
   oppName = ConvertStringForGame(oppText, MAX_NAME_LENGTH * 2 + 1);
   m_read_queue.insert(m_read_queue.end(), oppName.begin(), oppName.end());
 
@@ -2405,6 +2560,70 @@ void CEXISlippi::prepareGctLoad(u8* payload)
   INFO_LOG(SLIPPI, "Preparing to write gecko codes at: 0x%X", address);
 
   m_read_queue.insert(m_read_queue.end(), gct.begin(), gct.end());
+}
+
+std::vector<u8> CEXISlippi::loadPremadeText(u8* payload)
+{
+  u8 textId = payload[0];
+  std::vector<u8> premadeTextData;
+  auto spt = SlippiPremadeText();
+
+  if (textId >= SlippiPremadeText::SPT_CHAT_P1 && textId <= SlippiPremadeText::SPT_CHAT_P4)
+  {
+    auto port = textId - 1;
+    std::string playerName;
+    if (matchmaking)
+      playerName = matchmaking->GetPlayerName(port);
+#ifdef LOCAL_TESTING
+    std::string defaultNames[] = {"Player 1", "lol u lost 2 dk", "Player 3", "Player 4"};
+    playerName = defaultNames[port];
+#endif
+
+    u8 paramId = payload[1];
+
+    for (auto it = spt.unsupportedStringMap.begin(); it != spt.unsupportedStringMap.end(); it++)
+    {
+      playerName = ReplaceAll(playerName.c_str(), it->second, "");  // Remove unsupported chars
+      playerName = ReplaceAll(playerName.c_str(), it->first,
+                              it->second);  // Remap delimiters for premade text
+    }
+
+    // Replaces spaces with premade text space
+    playerName = ReplaceAll(playerName.c_str(), " ", "<S>");
+
+    if (paramId == SlippiPremadeText::CHAT_MSG_CHAT_DISABLED)
+    {
+      return premadeTextData =
+                 spt.GetPremadeTextData(SlippiPremadeText::SPT_CHAT_DISABLED, playerName.c_str());
+    }
+    auto chatMessage = spt.premadeTextsParams.at(paramId);
+    std::string param = ReplaceAll(chatMessage.c_str(), " ", "<S>");
+    premadeTextData = spt.GetPremadeTextData(textId, playerName.c_str(), param.c_str());
+  }
+  else
+  {
+    premadeTextData = spt.GetPremadeTextData(textId);
+  }
+
+  return premadeTextData;
+}
+
+void CEXISlippi::preparePremadeTextLength(u8* payload)
+{
+  std::vector<u8> premadeTextData = loadPremadeText(payload);
+
+  m_read_queue.clear();
+  // Write size to output
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(premadeTextData.size()));
+}
+
+void CEXISlippi::preparePremadeTextLoad(u8* payload)
+{
+  std::vector<u8> premadeTextData = loadPremadeText(payload);
+
+  m_read_queue.clear();
+  // Write data to output
+  m_read_queue.insert(m_read_queue.end(), premadeTextData.begin(), premadeTextData.end());
 }
 
 void CEXISlippi::handleChatMessage(u8* payload)
@@ -2694,8 +2913,17 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
     case CMD_FILE_LENGTH:
       prepareFileLength(&memPtr[bufLoc + 1]);
       break;
+    case CMD_FETCH_CODE_SUGGESTION:
+      handleNameEntryLoad(&memPtr[bufLoc + 1]);
+      break;
     case CMD_FILE_LOAD:
       prepareFileLoad(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_PREMADE_TEXT_LENGTH:
+      preparePremadeTextLength(&memPtr[bufLoc + 1]);
+      break;
+    case CMD_PREMADE_TEXT_LOAD:
+      preparePremadeTextLoad(&memPtr[bufLoc + 1]);
       break;
     case CMD_OPEN_LOGIN:
       handleLogInRequest();
@@ -2747,7 +2975,7 @@ void CEXISlippi::DMARead(u32 addr, u32 size)
 {
   if (m_read_queue.empty())
   {
-    INFO_LOG(EXPANSIONINTERFACE, "EXI SLIPPI DMARead: Empty");
+    ERROR_LOG(SLIPPI, "EXI SLIPPI DMARead: Empty");
     return;
   }
 

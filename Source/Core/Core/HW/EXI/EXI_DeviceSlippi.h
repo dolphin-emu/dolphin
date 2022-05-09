@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Core/Slippi/SlippiDirectCodes.h"
 #include "Core/Slippi/SlippiGameFileLoader.h"
 #include "Core/Slippi/SlippiGameReporter.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
@@ -74,6 +75,7 @@ private:
     CMD_SEND_CHAT_MESSAGE = 0xBB,
     CMD_GET_NEW_SEED = 0xBC,
     CMD_REPORT_GAME = 0xBD,
+    CMD_FETCH_CODE_SUGGESTION = 0xBE,
 
     // Misc
     CMD_LOG_MESSAGE = 0xD0,
@@ -82,6 +84,8 @@ private:
     CMD_GCT_LENGTH = 0xD3,
     CMD_GCT_LOAD = 0xD4,
     CMD_GET_DELAY = 0xD5,
+    CMD_PREMADE_TEXT_LENGTH = 0xE1,
+    CMD_PREMADE_TEXT_LOAD = 0xE2,
   };
 
   enum
@@ -122,6 +126,7 @@ private:
       {CMD_CLEANUP_CONNECTION, 0},
       {CMD_GET_NEW_SEED, 0},
       {CMD_REPORT_GAME, 16},
+      {CMD_FETCH_CODE_SUGGESTION, 31},
 
       // Misc
       {CMD_LOG_MESSAGE, 0xFFFF},  // Variable size... will only work if by itself
@@ -130,6 +135,8 @@ private:
       {CMD_GCT_LENGTH, 0x0},
       {CMD_GCT_LOAD, 0x4},
       {CMD_GET_DELAY, 0x0},
+      {CMD_PREMADE_TEXT_LENGTH, 0x2},
+      {CMD_PREMADE_TEXT_LOAD, 0x2},
   };
 
   struct WriteMessage
@@ -170,6 +177,8 @@ private:
   void handleSendInputs(u8* payload);
   void handleCaptureSavestate(u8* payload);
   void handleLoadSavestate(u8* payload);
+  void handleNameEntryAutoComplete(u8* payload);
+  void handleNameEntryLoad(u8* payload);
   void startFindMatch(u8* payload);
   void prepareOnlineMatchState();
   void setMatchSelections(u8* payload);
@@ -198,6 +207,12 @@ private:
   void prepareGctLength();
   void prepareGctLoad(u8* payload);
   void prepareDelayResponse();
+  void preparePremadeTextLength(u8* payload);
+  void preparePremadeTextLoad(u8* payload);
+  bool doesTagMatchInput(u8* input, u8 inputLen, std::string tag);
+
+  std::vector<u8> loadPremadeText(u8* payload);
+  int getCharColor(u8 charId, u8 teamId);
 
   void FileWriteThread(void);
 
@@ -233,8 +248,8 @@ private:
 
   // We put these at the class level to preserve values in the case of a disconnect
   // while loading. Without this, someone could load into a game playing the wrong char
-  u8 localPlayerIndex = 0;
-  u8 remotePlayerIndex = 1;
+  u8 m_local_player_index = 0;
+  u8 m_remote_player_index = 1;
 
   // Frame skipping variables
   int framesToSkip = 0;
@@ -251,6 +266,8 @@ private:
   std::unique_ptr<SlippiNetplayClient> slippi_netplay;
   std::unique_ptr<SlippiMatchmaking> matchmaking;
   std::unique_ptr<SlippiGameReporter> game_reporter;
+  std::unique_ptr<SlippiDirectCodes> directCodes;
+  std::unique_ptr<SlippiDirectCodes> teamsCodes;
 
   std::map<s32, std::unique_ptr<SlippiSavestate>> activeSavestates;
   std::deque<std::unique_ptr<SlippiSavestate>> availableSavestates;
