@@ -62,6 +62,48 @@ namespace fs = std::filesystem;
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
+static std::vector<std::string> ReadGameFile(const std::string& game_path,
+                                            const std::string& folder_path)
+{
+#ifndef HAS_STD_FILESYSTEM
+  ASSERT(folder_path.back() == '/');
+#endif
+
+  std::vector<std::string> result;
+  std::vector<std::string> nonexistent;
+
+  std::string game_filename = game_path.substr(game_path.find('/'));
+  std::string game_filename_lc = game_filename;
+  Common::ToLower(&game_filename_lc);
+  if (game_filename_lc.find("disc 1") != std::string::npos)
+  {
+    int disc_num = 1;
+    std::string line;
+    while(true)
+    {
+      std::string disc_ref = game_filename.substr(game_filename_lc.find("disc "+std::to_string(disc_num)), 5);
+
+      #ifdef HAS_STD_FILESYSTEM
+            const std::string path_to_add = PathToString(StringToPath(folder_path) / StringToPath(line));
+      #else
+            const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
+      #endif
+      
+      (File::Exists(path_to_add) ? result : nonexistent).push_back(path_to_add);
+      
+      line = game_filename.replace( game_filename.find(disc_ref) + 5, 1, std::to_string( ++disc_num ));
+    }
+  }
+
+  if (!nonexistent.empty())
+  {
+    return {};
+  }
+
+  return result;
+}
+
+
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
 {
@@ -215,6 +257,14 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
     SplitPath(paths.front(), nullptr, nullptr, &extension);
     Common::ToLower(&extension);
+  }
+  else {
+    paths = ReadGameFile(paths.front(), folder_path);
+    if (!paths.empty())
+    {
+      SplitPath(paths.front(), nullptr, nullptr, &extension);
+      Common::ToLower(&extension);
+    }
   }
 
   std::string path = paths.front();
