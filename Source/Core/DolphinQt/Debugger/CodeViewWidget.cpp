@@ -8,6 +8,7 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QKeyEvent>
@@ -17,6 +18,7 @@
 #include <QResizeEvent>
 #include <QScrollBar>
 #include <QStyledItemDelegate>
+#include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QWheelEvent>
 
@@ -47,73 +49,13 @@ constexpr u32 WIDTH_PER_BRANCH_ARROW = 16;
 class BranchDisplayDelegate : public QStyledItemDelegate
 {
 public:
-  BranchDisplayDelegate(CodeViewWidget* parent) : m_parent(parent) {}
+  explicit BranchDisplayDelegate(CodeViewTable* parent);
 
 private:
-  CodeViewWidget* m_parent;
+  CodeViewTable* m_parent;
 
   void paint(QPainter* painter, const QStyleOptionViewItem& option,
-             const QModelIndex& index) const override
-  {
-    QStyledItemDelegate::paint(painter, option, index);
-
-    painter->save();
-    painter->setClipRect(option.rect);
-    painter->setPen(m_parent->palette().text().color());
-
-    constexpr u32 x_offset_in_branch_for_vertical_line = 10;
-    const u32 addr = m_parent->AddressForRow(index.row());
-    for (const CodeViewBranch& branch : m_parent->m_branches)
-    {
-      const int y_center = option.rect.top() + option.rect.height() / 2;
-      const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * branch.indentation;
-      const int x_right = x_left + x_offset_in_branch_for_vertical_line;
-
-      if (branch.is_link)
-      {
-        // just draw an arrow pointing right from the branch instruction for link branches, they
-        // rarely are close enough to actually see the target and are just visual noise otherwise
-        if (addr == branch.src_addr)
-        {
-          painter->drawLine(x_left, y_center, x_right, y_center);
-          painter->drawLine(x_right, y_center, x_right - 6, y_center - 3);
-          painter->drawLine(x_right, y_center, x_right - 6, y_center + 3);
-        }
-      }
-      else
-      {
-        const u32 addr_lower = std::min(branch.src_addr, branch.dst_addr);
-        const u32 addr_higher = std::max(branch.src_addr, branch.dst_addr);
-        const bool in_range = addr >= addr_lower && addr <= addr_higher;
-
-        if (in_range)
-        {
-          const bool is_lowest = addr == addr_lower;
-          const bool is_highest = addr == addr_higher;
-          const int top = (is_lowest ? y_center : option.rect.top());
-          const int bottom = (is_highest ? y_center : option.rect.bottom());
-
-          // draw vertical part of the branch line
-          painter->drawLine(x_right, top, x_right, bottom);
-
-          if (is_lowest || is_highest)
-          {
-            // draw horizontal part of the branch line if this is either the source or destination
-            painter->drawLine(x_left, y_center, x_right, y_center);
-          }
-
-          if (addr == branch.dst_addr)
-          {
-            // draw arrow if this is the destination address
-            painter->drawLine(x_left, y_center, x_left + 6, y_center - 3);
-            painter->drawLine(x_left, y_center, x_left + 6, y_center + 3);
-          }
-        }
-      }
-    }
-
-    painter->restore();
-  }
+             const QModelIndex& index) const override;
 };
 
 // "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
@@ -130,34 +72,193 @@ constexpr int CODE_VIEW_COLUMN_DESCRIPTION = 4;
 constexpr int CODE_VIEW_COLUMN_BRANCH_ARROWS = 5;
 constexpr int CODE_VIEW_COLUMNCOUNT = 6;
 
+class CodeViewTable final : public QTableWidget
+{
+public:
+  explicit CodeViewTable(CodeViewWidget* parent) : QTableWidget(parent), m_view(parent)
+  {
+    setColumnCount(CODE_VIEW_COLUMNCOUNT);
+    setShowGrid(false);
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    setSelectionMode(QAbstractItemView::SingleSelection);
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+    verticalHeader()->hide();
+    horizontalHeader()->setSectionResizeMode(CODE_VIEW_COLUMN_BREAKPOINT, QHeaderView::Fixed);
+    horizontalHeader()->setStretchLastSection(true);
+    setHorizontalHeaderItem(CODE_VIEW_COLUMN_BREAKPOINT, new QTableWidgetItem());
+    setHorizontalHeaderItem(CODE_VIEW_COLUMN_ADDRESS, new QTableWidgetItem(tr("Address")));
+    setHorizontalHeaderItem(CODE_VIEW_COLUMN_INSTRUCTION, new QTableWidgetItem(tr("Instr.")));
+    setHorizontalHeaderItem(CODE_VIEW_COLUMN_PARAMETERS, new QTableWidgetItem(tr("Parameters")));
+    setHorizontalHeaderItem(CODE_VIEW_COLUMN_DESCRIPTION, new QTableWidgetItem(tr("Symbols")));
+    setHorizontalHeaderItem(CODE_VIEW_COLUMN_BRANCH_ARROWS, new QTableWidgetItem(tr("Branches")));
+
+    setFont(Settings::Instance().GetDebugFont());
+    setItemDelegateForColumn(CODE_VIEW_COLUMN_BRANCH_ARROWS, new BranchDisplayDelegate(this));
+
+    connect(this, &CodeViewTable::customContextMenuRequested, m_view,
+            &CodeViewWidget::OnContextMenu);
+    connect(this, &CodeViewTable::itemSelectionChanged, m_view,
+            &CodeViewWidget::OnSelectionChanged);
+  }
+
+  void resizeEvent(QResizeEvent* event) override
+  {
+    QTableWidget::resizeEvent(event);
+    m_view->Update();
+  }
+
+  void keyPressEvent(QKeyEvent* event) override
+  {
+    switch (event->key())
+    {
+    case Qt::Key_Up:
+      m_view->m_address -= sizeof(u32);
+      m_view->Update();
+      return;
+    case Qt::Key_Down:
+      m_view->m_address += sizeof(u32);
+      m_view->Update();
+      return;
+    case Qt::Key_PageUp:
+      m_view->m_address -= rowCount() * sizeof(u32);
+      m_view->Update();
+      return;
+    case Qt::Key_PageDown:
+      m_view->m_address += rowCount() * sizeof(u32);
+      m_view->Update();
+      return;
+    default:
+      QWidget::keyPressEvent(event);
+      break;
+    }
+  }
+
+  void wheelEvent(QWheelEvent* event) override
+  {
+    auto delta =
+        -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
+
+    if (delta == 0)
+      return;
+
+    m_view->m_address += delta * sizeof(u32);
+    m_view->Update();
+  }
+
+  void mousePressEvent(QMouseEvent* event) override
+  {
+    auto* item = itemAt(event->pos());
+    if (item == nullptr)
+      return;
+
+    const u32 addr = item->data(Qt::UserRole).toUInt();
+
+    m_view->m_context_address = addr;
+
+    switch (event->button())
+    {
+    case Qt::LeftButton:
+      if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
+        m_view->ToggleBreakpoint();
+      else
+        m_view->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
+
+      m_view->Update();
+      break;
+    default:
+      break;
+    }
+  }
+
+private:
+  CodeViewWidget* m_view;
+
+  friend class BranchDisplayDelegate;
+};
+
+BranchDisplayDelegate::BranchDisplayDelegate(CodeViewTable* parent) : m_parent(parent)
+{
+}
+
+void BranchDisplayDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
+                                  const QModelIndex& index) const
+{
+  QStyledItemDelegate::paint(painter, option, index);
+
+  painter->save();
+  painter->setClipRect(option.rect);
+  painter->setPen(m_parent->palette().text().color());
+
+  constexpr u32 x_offset_in_branch_for_vertical_line = 10;
+  const u32 addr = m_parent->m_view->AddressForRow(index.row());
+  for (const CodeViewBranch& branch : m_parent->m_view->m_branches)
+  {
+    const int y_center = option.rect.top() + option.rect.height() / 2;
+    const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * branch.indentation;
+    const int x_right = x_left + x_offset_in_branch_for_vertical_line;
+
+    if (branch.is_link)
+    {
+      // just draw an arrow pointing right from the branch instruction for link branches, they
+      // rarely are close enough to actually see the target and are just visual noise otherwise
+      if (addr == branch.src_addr)
+      {
+        painter->drawLine(x_left, y_center, x_right, y_center);
+        painter->drawLine(x_right, y_center, x_right - 6, y_center - 3);
+        painter->drawLine(x_right, y_center, x_right - 6, y_center + 3);
+      }
+    }
+    else
+    {
+      const u32 addr_lower = std::min(branch.src_addr, branch.dst_addr);
+      const u32 addr_higher = std::max(branch.src_addr, branch.dst_addr);
+      const bool in_range = addr >= addr_lower && addr <= addr_higher;
+
+      if (in_range)
+      {
+        const bool is_lowest = addr == addr_lower;
+        const bool is_highest = addr == addr_higher;
+        const int top = (is_lowest ? y_center : option.rect.top());
+        const int bottom = (is_highest ? y_center : option.rect.bottom());
+
+        // draw vertical part of the branch line
+        painter->drawLine(x_right, top, x_right, bottom);
+
+        if (is_lowest || is_highest)
+        {
+          // draw horizontal part of the branch line if this is either the source or destination
+          painter->drawLine(x_left, y_center, x_right, y_center);
+        }
+
+        if (addr == branch.dst_addr)
+        {
+          // draw arrow if this is the destination address
+          painter->drawLine(x_left, y_center, x_left + 6, y_center - 3);
+          painter->drawLine(x_left, y_center, x_left + 6, y_center + 3);
+        }
+      }
+    }
+  }
+
+  painter->restore();
+}
+
 CodeViewWidget::CodeViewWidget()
 {
-  setColumnCount(CODE_VIEW_COLUMNCOUNT);
-  setShowGrid(false);
-  setContextMenuPolicy(Qt::CustomContextMenu);
-  setSelectionMode(QAbstractItemView::SingleSelection);
-  setSelectionBehavior(QAbstractItemView::SelectRows);
+  auto* layout = new QHBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
 
-  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  m_table = new CodeViewTable(this);
+  layout->addWidget(m_table);
 
-  verticalHeader()->hide();
-  horizontalHeader()->setSectionResizeMode(CODE_VIEW_COLUMN_BREAKPOINT, QHeaderView::Fixed);
-  horizontalHeader()->setStretchLastSection(true);
-  setHorizontalHeaderItem(CODE_VIEW_COLUMN_BREAKPOINT, new QTableWidgetItem());
-  setHorizontalHeaderItem(CODE_VIEW_COLUMN_ADDRESS, new QTableWidgetItem(tr("Address")));
-  setHorizontalHeaderItem(CODE_VIEW_COLUMN_INSTRUCTION, new QTableWidgetItem(tr("Instr.")));
-  setHorizontalHeaderItem(CODE_VIEW_COLUMN_PARAMETERS, new QTableWidgetItem(tr("Parameters")));
-  setHorizontalHeaderItem(CODE_VIEW_COLUMN_DESCRIPTION, new QTableWidgetItem(tr("Symbols")));
-  setHorizontalHeaderItem(CODE_VIEW_COLUMN_BRANCH_ARROWS, new QTableWidgetItem(tr("Branches")));
-
-  setFont(Settings::Instance().GetDebugFont());
-  setItemDelegateForColumn(CODE_VIEW_COLUMN_BRANCH_ARROWS, new BranchDisplayDelegate(this));
+  this->setLayout(layout);
 
   FontBasedSizing();
 
-  connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
-  connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
           &CodeViewWidget::FontBasedSizing);
@@ -196,11 +297,11 @@ void CodeViewWidget::FontBasedSizing()
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
 
   const int rowh = fm.height() + 1;
-  verticalHeader()->setMaximumSectionSize(rowh);
-  horizontalHeader()->setMinimumSectionSize(rowh + 5);
-  setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
-  setColumnWidth(CODE_VIEW_COLUMN_ADDRESS,
-                 fm.boundingRect(QStringLiteral("80000000")).width() + extra_text_width);
+  m_table->verticalHeader()->setMaximumSectionSize(rowh);
+  m_table->horizontalHeader()->setMinimumSectionSize(rowh + 5);
+  m_table->setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
+  m_table->setColumnWidth(CODE_VIEW_COLUMN_ADDRESS,
+                          fm.boundingRect(QStringLiteral("80000000")).width() + extra_text_width);
 
   // The longest instruction is technically 'ps_merge00' (0x10000420u), but those instructions are
   // very rare and would needlessly increase the column size, so let's go with 'rlwinm.' instead.
@@ -211,12 +312,13 @@ void CodeViewWidget::FontBasedSizing()
   const auto split = disas.find('\t');
   const std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
   const std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
-  setColumnWidth(CODE_VIEW_COLUMN_INSTRUCTION,
-                 fm.boundingRect(QString::fromStdString(ins)).width() + extra_text_width);
-  setColumnWidth(CODE_VIEW_COLUMN_PARAMETERS,
-                 fm.boundingRect(QString::fromStdString(param)).width() + extra_text_width);
-  setColumnWidth(CODE_VIEW_COLUMN_DESCRIPTION,
-                 fm.boundingRect(QChar(u'0')).width() * 25 + extra_text_width);
+  m_table->setColumnWidth(CODE_VIEW_COLUMN_INSTRUCTION,
+                          fm.boundingRect(QString::fromStdString(ins)).width() + extra_text_width);
+  m_table->setColumnWidth(CODE_VIEW_COLUMN_PARAMETERS,
+                          fm.boundingRect(QString::fromStdString(param)).width() +
+                              extra_text_width);
+  m_table->setColumnWidth(CODE_VIEW_COLUMN_DESCRIPTION,
+                          fm.boundingRect(QChar(u'0')).width() * 25 + extra_text_width);
 
   Update();
 }
@@ -225,7 +327,7 @@ u32 CodeViewWidget::AddressForRow(int row) const
 {
   // m_address is defined as the center row of the table, so we have rowCount/2 instructions above
   // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
-  const u32 row_zero_address = m_address - ((rowCount() / 2) * 4);
+  const u32 row_zero_address = m_address - ((m_table->rowCount() / 2) * 4);
   return row_zero_address + row * 4;
 }
 
@@ -254,20 +356,20 @@ void CodeViewWidget::Update()
 
   m_updating = true;
 
-  clearSelection();
-  if (rowCount() == 0)
-    setRowCount(1);
+  m_table->clearSelection();
+  if (m_table->rowCount() == 0)
+    m_table->setRowCount(1);
 
   // Calculate (roughly) how many rows will fit in our table
-  int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
+  int rows = std::round((height() / static_cast<float>(m_table->rowHeight(0))) - 0.25);
 
-  setRowCount(rows);
+  m_table->setRowCount(rows);
 
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
   const int rowh = fm.height() + 1;
 
   for (int i = 0; i < rows; i++)
-    setRowHeight(i, rowh);
+    m_table->setRowHeight(i, rowh);
 
   u32 pc = PowerPC::ppcState.pc;
 
@@ -278,7 +380,7 @@ void CodeViewWidget::Update()
 
   m_branches.clear();
 
-  for (int i = 0; i < rowCount(); i++)
+  for (int i = 0; i < m_table->rowCount(); i++)
   {
     const u32 addr = AddressForRow(i);
     const u32 color = PowerPC::debug_interface.GetColor(addr);
@@ -362,16 +464,16 @@ void CodeViewWidget::Update()
       bp_item->setData(Qt::DecorationRole, icon);
     }
 
-    setItem(i, CODE_VIEW_COLUMN_BREAKPOINT, bp_item);
-    setItem(i, CODE_VIEW_COLUMN_ADDRESS, addr_item);
-    setItem(i, CODE_VIEW_COLUMN_INSTRUCTION, ins_item);
-    setItem(i, CODE_VIEW_COLUMN_PARAMETERS, param_item);
-    setItem(i, CODE_VIEW_COLUMN_DESCRIPTION, description_item);
-    setItem(i, CODE_VIEW_COLUMN_BRANCH_ARROWS, branch_item);
+    m_table->setItem(i, CODE_VIEW_COLUMN_BREAKPOINT, bp_item);
+    m_table->setItem(i, CODE_VIEW_COLUMN_ADDRESS, addr_item);
+    m_table->setItem(i, CODE_VIEW_COLUMN_INSTRUCTION, ins_item);
+    m_table->setItem(i, CODE_VIEW_COLUMN_PARAMETERS, param_item);
+    m_table->setItem(i, CODE_VIEW_COLUMN_DESCRIPTION, description_item);
+    m_table->setItem(i, CODE_VIEW_COLUMN_BRANCH_ARROWS, branch_item);
 
     if (addr == GetAddress())
     {
-      selectRow(addr_item->row());
+      m_table->selectRow(addr_item->row());
     }
   }
 
@@ -385,7 +487,7 @@ void CodeViewWidget::Update()
 
 void CodeViewWidget::CalculateBranchIndentation()
 {
-  const u32 rows = rowCount();
+  const u32 rows = m_table->rowCount();
   const size_t columns = m_branches.size();
   if (rows < 1 || columns < 1)
     return;
@@ -835,72 +937,9 @@ void CodeViewWidget::OnRestoreInstruction()
   Update();
 }
 
-void CodeViewWidget::resizeEvent(QResizeEvent*)
-{
-  Update();
-}
-
 void CodeViewWidget::keyPressEvent(QKeyEvent* event)
 {
-  switch (event->key())
-  {
-  case Qt::Key_Up:
-    m_address -= sizeof(u32);
-    Update();
-    return;
-  case Qt::Key_Down:
-    m_address += sizeof(u32);
-    Update();
-    return;
-  case Qt::Key_PageUp:
-    m_address -= rowCount() * sizeof(u32);
-    Update();
-    return;
-  case Qt::Key_PageDown:
-    m_address += rowCount() * sizeof(u32);
-    Update();
-    return;
-  default:
-    QWidget::keyPressEvent(event);
-    break;
-  }
-}
-
-void CodeViewWidget::wheelEvent(QWheelEvent* event)
-{
-  auto delta =
-      -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
-
-  if (delta == 0)
-    return;
-
-  m_address += delta * sizeof(u32);
-  Update();
-}
-
-void CodeViewWidget::mousePressEvent(QMouseEvent* event)
-{
-  auto* item = itemAt(event->pos());
-  if (item == nullptr)
-    return;
-
-  const u32 addr = item->data(Qt::UserRole).toUInt();
-
-  m_context_address = addr;
-
-  switch (event->button())
-  {
-  case Qt::LeftButton:
-    if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
-      ToggleBreakpoint();
-    else
-      SetAddress(addr, SetAddressUpdate::WithDetailedUpdate);
-
-    Update();
-    break;
-  default:
-    break;
-  }
+  m_table->keyPressEvent(event);
 }
 
 void CodeViewWidget::showEvent(QShowEvent* event)
