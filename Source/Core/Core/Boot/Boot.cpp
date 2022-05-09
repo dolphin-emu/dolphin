@@ -70,7 +70,6 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
 #endif
 
   std::vector<std::string> result;
-  std::vector<std::string> nonexistent;
 
   std::string game_filename = game_path.substr(game_path.find('/'));
   std::string game_filename_lc = game_filename;
@@ -78,10 +77,14 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   if (game_filename_lc.find("disc 1") != std::string::npos)
   {
     int disc_num = 1;
-    std::string line;
+    std::string line = game_filename;
     while(true)
-    {
-      std::string disc_ref = game_filename.substr(game_filename_lc.find("disc "+std::to_string(disc_num)), 5);
+    {      
+      if (disc_num++ > 1)
+      {
+        std::string disc_ref = game_filename.substr(game_filename_lc.find("disc "+std::to_string(disc_num)), 5);
+        line.replace( game_filename.find(disc_ref) + 5, 1, std::to_string( disc_num ));
+      }
 
       #ifdef HAS_STD_FILESYSTEM
             const std::string path_to_add = PathToString(StringToPath(folder_path) / StringToPath(line));
@@ -89,17 +92,12 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
             const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
       #endif
       
-      (File::Exists(path_to_add) ? result : nonexistent).push_back(path_to_add);
-      
-      line = game_filename.replace( game_filename.find(disc_ref) + 5, 1, std::to_string( ++disc_num ));
+      if (File::Exists(path_to_add))
+        result.push_back(path_to_add);
+      else
+        break;
     }
   }
-
-  if (!nonexistent.empty())
-  {
-    return {};
-  }
-
   return result;
 }
 
