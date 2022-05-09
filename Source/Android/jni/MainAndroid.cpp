@@ -174,6 +174,14 @@ void Host_TitleChanged()
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnTitleChanged());
 }
 
+void Host_EnableTASInput()
+{
+}
+
+void Host_DisableTASInput()
+{
+}
+
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
   return nullptr;

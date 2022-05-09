@@ -90,6 +90,14 @@ void Host_UpdateMainFrame()
   s_update_main_frame_event.Set();
 }
 
+void Host_EnableTASInput()
+{
+}
+
+void Host_DisableTASInput()
+{
+}
+
 void Host_RequestRenderWindowSize(int width, int height)
 {
 }

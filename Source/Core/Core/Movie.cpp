@@ -59,6 +59,7 @@
 #include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
 
+#include "Core/Host.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/NetPlayProto.h"
@@ -1152,6 +1153,7 @@ void LoadInput(const std::string& movie_path)
       {
         s_playMode = PlayMode::Playing;
         Core::UpdateWantDeterminism();
+        Host_DisableTASInput();
         Core::DisplayMessage("Switched to playback", 2000);
       }
     }
@@ -1161,6 +1163,7 @@ void LoadInput(const std::string& movie_path)
       {
         s_playMode = PlayMode::Recording;
         Core::UpdateWantDeterminism();
+        Host_EnableTASInput();
         Core::DisplayMessage("Switched to recording", 2000);
       }
     }
@@ -1328,6 +1331,7 @@ void EndPlayInput(bool cont)
 
     s_playMode = PlayMode::Recording;
     Core::DisplayMessage("Reached movie end. Resuming recording.", 2000);
+    Host_EnableTASInput();
   }
   else if (s_playMode != PlayMode::None)
   {
@@ -1339,6 +1343,7 @@ void EndPlayInput(bool cont)
     s_currentByte = 0;
     s_playMode = PlayMode::None;
     Core::DisplayMessage("Movie End.", 2000);
+    Host_EnableTASInput();
     s_bRecordingFromSaveState = false;
     // we don't clear these things because otherwise we can't resume playback if we load a movie
     // state later

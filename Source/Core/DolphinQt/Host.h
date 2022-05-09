@@ -41,6 +41,8 @@ signals:
   void RequestTitle(const QString& title);
   void RequestStop();
   void RequestRenderSize(int w, int h);
+  void EnableTASInput();
+  void DisableTASInput();
   void UpdateDisasmDialog();
   void NotifyMapLoaded();
 

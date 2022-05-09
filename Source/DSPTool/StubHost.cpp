@@ -31,6 +31,12 @@ void Host_UpdateDisasmDialog()
 void Host_UpdateMainFrame()
 {
 }
+void Host_EnableTASInput()
+{
+}
+void Host_DisableTASInput()
+{
+}
 void Host_RequestRenderWindowSize(int, int)
 {
 }

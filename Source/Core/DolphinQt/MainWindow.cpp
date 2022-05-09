@@ -682,6 +682,8 @@ void MainWindow::ConnectRenderWidget()
 void MainWindow::ConnectHost()
 {
   connect(Host::GetInstance(), &Host::RequestStop, this, &MainWindow::RequestStop);
+  connect(Host::GetInstance(), &Host::EnableTASInput, this, [this] { SetTASInputEnabled(true); });
+  connect(Host::GetInstance(), &Host::DisableTASInput, this, [this] { SetTASInputEnabled(false); });
 }
 
 void MainWindow::ConnectStack()
@@ -802,6 +804,8 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
         Open();
       }
     }
+
+    SetTASInputEnabled(true);
   }
 }
 
@@ -1710,6 +1714,9 @@ void MainWindow::OnPlayRecording()
     emit RecordingStatusChanged(true);
 
     Play(savestate_path);
+
+    // Disable all TAS Input windows so they can be used as a read-only input viewer during playback
+    SetTASInputEnabled(false);
   }
 }
 
@@ -1724,6 +1731,7 @@ void MainWindow::OnStartRecording()
     // The user just chose to record a movie, so that should take precedence
     Movie::SetReadOnly(false);
     emit ReadOnlyModeChanged(true);
+    SetTASInputEnabled(true);
   }
 
   Movie::ControllerTypeArray controllers{};
@@ -1871,5 +1879,28 @@ void MainWindow::Show()
   {
     StartGame(std::move(m_pending_boot));
     m_pending_boot.reset();
+  }
+}
+
+void MainWindow::SetTASInputEnabled(bool enabled)
+{
+  for (int i = 0; i < num_gc_controllers; i++)
+  {
+    QList<QWidget*> widgets = m_gc_tas_input_windows[i]->findChildren<QWidget*>();
+
+    foreach (QWidget* widget, widgets)
+    {
+      widget->setEnabled(enabled);
+    }
+  }
+
+  for (int i = 0; i < num_wii_controllers; i++)
+  {
+    QList<QWidget*> widgets = m_wii_tas_input_windows[i]->findChildren<QWidget*>();
+
+    foreach (QWidget* widget, widgets)
+    {
+      widget->setEnabled(enabled);
+    }
   }
 }

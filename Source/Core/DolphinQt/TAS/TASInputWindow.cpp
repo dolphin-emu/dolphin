@@ -16,6 +16,8 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/Movie.h"
+
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Resources.h"
@@ -174,7 +176,7 @@ template <typename UX>
 void TASInputWindow::GetButton(TASCheckBox* checkbox, UX& buttons, UX mask)
 {
   const bool pressed = (buttons & mask) != 0;
-  if (m_use_controller->isChecked())
+  if (m_use_controller->isChecked() || Movie::IsPlayingInput())
   {
     if (pressed)
     {
@@ -198,7 +200,7 @@ template void TASInputWindow::GetButton<u16>(TASCheckBox* button, u16& pad, u16 
 
 void TASInputWindow::GetSpinBoxU8(QSpinBox* spin, u8& controller_value)
 {
-  if (m_use_controller->isChecked())
+  if (m_use_controller->isChecked() || Movie::IsPlayingInput())
   {
     if (!m_spinbox_most_recent_values_u8.count(spin) ||
         m_spinbox_most_recent_values_u8[spin] != controller_value)
@@ -218,7 +220,7 @@ void TASInputWindow::GetSpinBoxU8(QSpinBox* spin, u8& controller_value)
 
 void TASInputWindow::GetSpinBoxU16(QSpinBox* spin, u16& controller_value)
 {
-  if (m_use_controller->isChecked())
+  if (m_use_controller->isChecked() || Movie::IsPlayingInput())
   {
     if (!m_spinbox_most_recent_values_u16.count(spin) ||
         m_spinbox_most_recent_values_u16[spin] != controller_value)
