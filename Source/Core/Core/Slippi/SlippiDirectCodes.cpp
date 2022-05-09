@@ -47,7 +47,7 @@ void SlippiDirectCodes::ReadFile()
   if (!File::Exists(directCodesFilePath))
   {
     // Attempt to create empty file with array as parent json item.
-    if (File::CreateEmptyFile(directCodesFilePath))
+    if (File::CreateFullPath(directCodesFilePath) && File::CreateEmptyFile(directCodesFilePath))
     {
       File::WriteStringToFile("[\n]", directCodesFilePath);
     }
@@ -180,11 +180,8 @@ std::string SlippiDirectCodes::getCodesFilePath()
 #if defined(__APPLE__)
   std::string directCodesPath =
       File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + m_fileName;
-#elif defined(_WIN32)
-  std::string directCodesPath = File::GetExeDirectory() + DIR_SEP + m_fileName;
 #else
-  std::string directCodesPath = File::GetUserPath(D_USER_IDX) + m_fileName;
-//	directCodesPath.pop_back();
+  std::string directCodesPath = File::GetUserPath(D_SLIPPI_IDX) + m_fileName;
 #endif
   return directCodesPath;
 }
