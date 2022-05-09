@@ -145,12 +145,7 @@ int main(int argc, char* argv[])
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
   QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
 
-#ifdef _WIN32
-  QApplication app(__argc, __argv);
-#else
   QApplication app(argc, argv);
-#endif
-
 #if defined(_WIN32) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
   // On Windows, Qt 5's default system font (MS Shell Dlg 2) is outdated.
   // Interestingly, the QMenu font is correct and comes from lfMenuFont
