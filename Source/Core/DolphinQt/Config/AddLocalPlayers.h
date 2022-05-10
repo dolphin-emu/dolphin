@@ -6,6 +6,8 @@
 #include <QDialog>
 #include "Core/LocalPlayers.h"
 
+#include "Common/HttpRequest.h"
+
 class QDialogButtonBox;
 class QLabel;
 class QLineEdit;
@@ -38,4 +40,6 @@ private:
   QDialogButtonBox* m_button_box;
 
   LocalPlayers::LocalPlayers::Player* m_local_player = nullptr;
+  
+  Common::HttpRequest m_http{std::chrono::minutes{3}};
 };

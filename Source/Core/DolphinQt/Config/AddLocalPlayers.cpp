@@ -41,10 +41,11 @@ void AddLocalPlayersEditor::CreateWidgets()
       tr("\nEnter a Username.\n\n"
         "NOTE: the player at port 1 will\nbe used over NetPlay."));
 
-  /*m_description = new QLabel(
-      tr("\nEnter the Username and User ID EXACTLY\nas they appear on projectrio.online.\n"
+  m_description = new QLabel(
+      tr("\n***CLOSED BETA - PATRONS ONLY***\nEnter the Username and User ID EXACTLY\nas they appear on projectrio.online.\n"
          "This is necessary to send stat files to\nour database properly. If you enter an\n"
-         "invalid Username and/or User ID, your\nstats will not be saved to the database.\n"));*/
+         "invalid Username and/or User ID, your\nstats will not be saved to the database.\n\n***ALL OTHER USERS***\n"
+         "Enter any info, your stats are not being tracked yet"));
 
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Save);
 
@@ -53,8 +54,8 @@ void AddLocalPlayersEditor::CreateWidgets()
 
   grid_layout->addWidget(new QLabel(tr("Username:")), 0, 0);
   grid_layout->addWidget(m_username_edit, 0, 1);
-  //grid_layout->addWidget(new QLabel(tr("User ID:")), 1, 0);
-  // grid_layout->addWidget(m_userid_edit, 1, 1);
+  grid_layout->addWidget(new QLabel(tr("User ID:")), 1, 0);
+  grid_layout->addWidget(m_userid_edit, 1, 1);
   grid_layout->addWidget(m_description, 3, 1);
   grid_layout->addWidget(m_button_box, 4, 1);
 
@@ -106,7 +107,6 @@ bool AddLocalPlayersEditor::AcceptPlayer()
     ModalMessageBox::critical(this, tr("Error"), tr("Username cannot begin with \"+\"."));
     return false;
   }
-  /*
   m_local_player->userid = m_userid_edit->text().toStdString();
 
   if (m_local_player->userid.empty())
@@ -114,14 +114,21 @@ bool AddLocalPlayersEditor::AcceptPlayer()
     ModalMessageBox::critical(this, tr("Error"), tr("You must enter a User ID"));
     return false;
   }
+  
+  
+  std::string url = "http://127.0.0.1:5000/validate_user_from_client/?username=" 
+                  + m_local_player->username
+                  + "&rio_key=" + m_local_player->userid;
+  const Common::HttpRequest::Response response = m_http.Get(url);
+  if (!response){
+    //TODO Error if user is not validated when full beta releases
+    //ModalMessageBox::critical(this, tr("Error"), tr("Username and Rio Key could not be validated"));
+    //return false;
 
-  // checks if the userid is the correct length of 22
-  if (22 != m_local_player->userid.length())
-  {
-    ModalMessageBox::critical(this, tr("Error"), tr("You must enter a valid User ID"));
-    return false;
+    ModalMessageBox::warning(this, tr("Warning"), tr("Username and Rio Key could not be validated.\n"
+                                                     "If you are part of the beta please double check your\n"
+                                                     "info otherwise please ignore and continue"));
   }
-  */
   return true;
 }
 
