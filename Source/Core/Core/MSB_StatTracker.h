@@ -9,6 +9,8 @@
 #include <iostream>
 #include "Core/HW/Memmap.h"
 
+#include "Common/HttpRequest.h"
+
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 
@@ -268,6 +270,10 @@ static const u32 aAB_ContactResult   = 0x808926B3; //0=InAir, 1=Landed, 2=Fielde
 static const u32 aAB_ContactMade     = 0x80892ADA;
 static const u32 aAB_PickoffAttempt  = 0x80892857;
 
+static const u32 aAB_GameIsLive  = 0x8036F3A9; //0 at beginning of game and inbetween innings/changes
+static const u32 aAB_PlayIsReadyToStart  = 0x808909AA; //Key addr that tells us when all addrs have been initialized for the play
+static const u32 aAB_IsReplay  = 0x80872540;
+
 //Addrs for GameInfo
 static const u32 aStadiumId = 0x800E8705;
 
@@ -385,6 +391,8 @@ static const u32 aAB_StarSwing      = 0x808909B4;
 static const u32 aAB_MoonShot       = 0x808909B5;
 static const u32 aAB_TypeOfContact  = 0x808909A2; //0=Sour, 1=Nice, 2=Perfect, 3=Nice, 4=Sour
 static const u32 aAB_RBI            = 0x80892962; //RBI for the AB
+static const u32 aAB_FramesUnitlBallArrivesBatter  = 0x80890AF2;
+static const u32 aAB_TotalFramesOfPitch            = 0x80890AF4;
 
 static const u32 aAB_ControlStickInput = 0x8089392C; //P1
 static const u8 cControl_Offset = 0x10;
@@ -427,6 +435,7 @@ static const u32 aFielder_ManualSelectLock = 0x8088F449; //Pitcher
 static const u32 cFielder_Offset = 0x268;
 
 //Runner addrs
+static const u32 aRunner_BasepathPercentage = 0x8088EE7C;
 static const u32 aRunner_RosterLoc = 0x8088EEF9;
 static const u32 aRunner_CharId = 0x8088EEFB;
 static const u32 aRunner_OutType = 0x8088EF44;
@@ -434,8 +443,6 @@ static const u32 aRunner_OutLoc = 0x8088EF3F; //Technically holds the next base
 static const u32 aRunner_CurrentBase = 0x8088EF3D;
 static const u32 aRunner_Stealing = 0x8088EF66;
 static const u32 cRunner_Offset = 0x154;
-
-
 
 
 class StatTracker{
@@ -508,6 +515,7 @@ public:
         u8 out_location = 0;
         u8 result_base = 0;
         u8 steal = 0;
+        u32 basepath_location = 0;
     };
 
     struct Fielder {
@@ -548,12 +556,6 @@ public:
         u8 hit_by_pitch;
 
         u16 frameOfSwingUponContact;
-
-        u32 ball_x_pos_upon_hit;
-        u32 ball_z_pos_upon_hit;
-
-        u32 batter_x_pos_upon_hit;
-        u32 batter_z_pos_upon_hit;
     
         //  Ball Calcs
         u16 ball_angle;
@@ -597,6 +599,7 @@ public:
 
     struct Pitch{
         //Pitcher Status
+        bool logged = false;
         u8 pitcher_team_id;
         u8 pitcher_char_id;
         u8 pitch_type;
@@ -606,6 +609,13 @@ public:
 
         u8 batter_roster_loc;
         u8 batter_id;
+
+        //Ball and batter pos for pitch visualization
+        u32 ball_x_pos_upon_hit;
+        u32 ball_z_pos_upon_hit;
+
+        u32 batter_x_pos_upon_hit;
+        u32 batter_z_pos_upon_hit;
 
         //For integrosity - TODO
         u8 db = 0;
@@ -694,7 +704,7 @@ public:
         std::string netplay_opponent_alias;
 
         //Quit?
-        std::string quitter_team = "";
+        u8 quitter_team = 0xFF;
 
         //Partial game. indicates this game has not been finished
         u8 partial;
@@ -710,8 +720,11 @@ public:
         std::map<u16, Event> events;
         Event current_state;
         std::optional<Event> previous_state;
-        bool write_hud = false;
+        bool write_hud = true;
 
+        //Buffer used to delay the event init by num of frames (60 for now)
+        u8 event_init_frame_buffer = 0;
+        u8 cNumOfFramesBeforeEventInit = 60;
 
         std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo;  // int is port
 
@@ -931,6 +944,8 @@ public:
         return out_float;
     }
 
+    Common::HttpRequest m_http{std::chrono::minutes{3}};
+
     //The type of value to decode, the value to be decoded, bool for decode if true or original value if false
     std::string decode(std::string type, u8 value, bool decode);
 
@@ -941,12 +956,19 @@ public:
     //Returns path to save json
     std::string getStatJsonPath(std::string prefix);
 
+    void initPlayerInfo();
+    bool newPitch();
+
     //If mid-game, dump game
     void dumpGame(){
         if ((Memory::Read_U32(aGameId) != 0) && m_game_info.game_active){
             m_game_info.game_active = false;
-            m_game_info.quitter_team = "Crash";
+            m_game_info.quitter_team = 2;
             logGameInfo();
+
+            //Remove current event, wasn't finished
+            auto it = m_game_info.events.find(m_game_info.event_num);
+            m_game_info.events.erase(it);
 
             //Game has ended. Write file but do not submit
             std::string jsonPath = getStatJsonPath("crash.decode.");
