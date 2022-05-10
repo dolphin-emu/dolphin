@@ -80,7 +80,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
     std::string line = game_filename;
     while(true)
     {      
-      if (disc_num++ > 1)
+      if (++disc_num > 1)
       {
         std::string disc_ref = game_filename.substr(game_filename_lc.find("disc "+std::to_string(disc_num)), 5);
         line.replace( game_filename.find(disc_ref) + 5, 1, std::to_string( disc_num ));
