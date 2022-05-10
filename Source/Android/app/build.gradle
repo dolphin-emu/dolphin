@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 32
-    ndkVersion "23.0.7599858"
+    ndkVersion "23.1.7779620"
 
     compileOptions {
         // Flag to enable support for the new language APIs
@@ -100,7 +100,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.4.1'
     implementation 'androidx.fragment:fragment:1.4.1'
     implementation 'androidx.slidingpanelayout:slidingpanelayout:1.2.0'
-    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'com.google.android.material:material:1.6.0'
 
     // Android TV UI libraries.
     implementation 'androidx.leanback:leanback:1.0.0'
