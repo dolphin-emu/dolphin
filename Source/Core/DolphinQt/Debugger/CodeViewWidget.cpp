@@ -108,8 +108,6 @@ public:
 
     connect(this, &CodeViewTable::customContextMenuRequested, m_view,
             &CodeViewWidget::OnContextMenu);
-    connect(this, &CodeViewTable::itemSelectionChanged, m_view,
-            &CodeViewWidget::OnSelectionChanged);
   }
 
   void resizeEvent(QResizeEvent* event) override
@@ -170,11 +168,15 @@ public:
     {
     case Qt::LeftButton:
       if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
+      {
         m_view->ToggleBreakpoint();
+        m_view->Update();
+      }
       else
-        m_view->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
+      {
+        QTableWidget::mousePressEvent(event);
+      }
 
-      m_view->Update();
       break;
     default:
       break;
@@ -436,6 +438,11 @@ void CodeViewWidget::Update()
         item->setBackground(QColor(Qt::green));
         item->setForeground(QColor(Qt::black));
       }
+      else if (addr == m_address && item != bp_item)
+      {
+        item->setBackground(QColor(Qt::cyan));
+        item->setForeground(QColor(Qt::black));
+      }
       else if (color != 0xFFFFFF)
       {
         item->setBackground(dark_theme ? QColor(color).darker(240) : QColor(color));
@@ -489,11 +496,6 @@ void CodeViewWidget::Update()
     m_table->setItem(i, CODE_VIEW_COLUMN_PARAMETERS, param_item);
     m_table->setItem(i, CODE_VIEW_COLUMN_DESCRIPTION, description_item);
     m_table->setItem(i, CODE_VIEW_COLUMN_BRANCH_ARROWS, branch_item);
-
-    if (addr == GetAddress())
-    {
-      m_table->selectRow(addr_item->row());
-    }
   }
 
   CalculateBranchIndentation();
@@ -902,19 +904,6 @@ void CodeViewWidget::OnRenameSymbol()
     symbol->Rename(name.toStdString());
     emit SymbolsChanged();
     Update();
-  }
-}
-
-void CodeViewWidget::OnSelectionChanged()
-{
-  if (m_address == PowerPC::ppcState.pc)
-  {
-    setStyleSheet(
-        QStringLiteral("QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
-  }
-  else if (!styleSheet().isEmpty())
-  {
-    setStyleSheet(QString{});
   }
 }
 
