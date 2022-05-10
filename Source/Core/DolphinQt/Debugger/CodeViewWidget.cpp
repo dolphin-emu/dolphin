@@ -121,20 +121,20 @@ public:
     switch (event->key())
     {
     case Qt::Key_Up:
-      m_view->m_address -= sizeof(u32);
-      m_view->Update();
+      m_view->SetAddress(m_view->m_address - sizeof(u32),
+                         CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
       return;
     case Qt::Key_Down:
-      m_view->m_address += sizeof(u32);
-      m_view->Update();
+      m_view->SetAddress(m_view->m_address + sizeof(u32),
+                         CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
       return;
     case Qt::Key_PageUp:
-      m_view->m_address -= rowCount() * sizeof(u32);
-      m_view->Update();
+      m_view->SetAddress(m_view->m_address - rowCount() * sizeof(u32),
+                         CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
       return;
     case Qt::Key_PageDown:
-      m_view->m_address += rowCount() * sizeof(u32);
-      m_view->Update();
+      m_view->SetAddress(m_view->m_address + rowCount() * sizeof(u32),
+                         CodeViewWidget::SetAddressUpdate::WithDetailedUpdate);
       return;
     default:
       QWidget::keyPressEvent(event);
