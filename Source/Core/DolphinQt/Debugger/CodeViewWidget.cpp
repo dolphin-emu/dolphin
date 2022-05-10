@@ -318,11 +318,15 @@ void CodeViewWidget::FontBasedSizing()
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
 
   const int rowh = fm.height() + 1;
+  m_row_height = rowh;
   m_table->verticalHeader()->setMaximumSectionSize(rowh);
   m_table->horizontalHeader()->setMinimumSectionSize(rowh + 5);
   m_table->setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
   m_table->setColumnWidth(CODE_VIEW_COLUMN_ADDRESS,
                           fm.boundingRect(QStringLiteral("80000000")).width() + extra_text_width);
+
+  for (int i = 0; i < m_table->rowCount(); ++i)
+    m_table->setRowHeight(i, rowh);
 
   // The longest instruction is technically 'ps_merge00' (0x10000420u), but those instructions are
   // very rare and would needlessly increase the column size, so let's go with 'rlwinm.' instead.
@@ -377,22 +381,20 @@ void CodeViewWidget::Update()
 
   m_updating = true;
 
-  m_table->clearSelection();
-  if (m_table->rowCount() == 0)
-    m_table->setRowCount(1);
-
   // Calculate (roughly) how many rows will fit in our table
-  int rows = std::round((height() / static_cast<float>(m_table->rowHeight(0))) - 0.25);
+  const int rowh = m_row_height;
+  int rows =
+      std::max(1, static_cast<int>(std::round((height() / static_cast<float>(rowh)) - 0.25)));
 
-  m_table->setRowCount(rows);
+  if (m_table->rowCount() != rows)
+  {
+    m_table->setRowCount(rows);
 
-  const QFontMetrics fm(Settings::Instance().GetDebugFont());
-  const int rowh = fm.height() + 1;
+    for (int i = 0; i < rows; ++i)
+      m_table->setRowHeight(i, rowh);
+  }
 
-  for (int i = 0; i < rows; i++)
-    m_table->setRowHeight(i, rowh);
-
-  u32 pc = PowerPC::ppcState.pc;
+  const u32 pc = PowerPC::ppcState.pc;
 
   if (Core::GetState() != Core::State::Paused && PowerPC::debug_interface.IsBreakpoint(pc))
     Core::SetState(Core::State::Paused);

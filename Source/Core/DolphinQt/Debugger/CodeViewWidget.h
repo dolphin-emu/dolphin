@@ -97,6 +97,7 @@ private:
 
   u32 m_address = 0;
   u32 m_context_address = 0;
+  u32 m_row_height = 0;
 
   std::vector<CodeViewBranch> m_branches;
 
