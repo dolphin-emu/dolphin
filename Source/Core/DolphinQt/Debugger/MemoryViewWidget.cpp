@@ -57,7 +57,11 @@ public:
             &MemoryViewWidget::OnContextMenu);
   }
 
-  void resizeEvent(QResizeEvent*) override { m_view->Update(); }
+  void resizeEvent(QResizeEvent* event) override
+  {
+    QTableWidget::resizeEvent(event);
+    m_view->Update();
+  }
 
   void keyPressEvent(QKeyEvent* event) override
   {
