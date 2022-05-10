@@ -73,6 +73,7 @@ android {
             version "3.18.1"
         }
     }
+    namespace 'org.dolphinemu.dolphinemu'
 
     defaultConfig {
         externalNativeBuild {
