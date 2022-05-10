@@ -223,7 +223,6 @@ int BuildFINFrame(StackRef* ref, u8* buf)
 
   for (auto& tcp_buf : ref->tcp_buffers)
     tcp_buf.used = false;
-
   return 0x36;
 }
 
@@ -435,13 +434,11 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(Common::EthernetHeader* h
     ref->to.sin_addr.s_addr = *(u32*)&ipdata->source_addr;
     ref->to.sin_port = udpdata->source_port;
     ref->udp_socket.setBlocking(false);
-    if (ref->udp_socket.bind(htons(udpdata->source_port)) != sf::Socket::Done)
+    if (ref->udp_socket.bind(htons(udpdata->source_port)) != sf::Socket::Done &&
+        ref->udp_socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
     {
-      if (ref->udp_socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
-      {
-        ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
-        return;
-      }
+      ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
+      return;
     }
   }
   if (Common::swap16(udpdata->destination_port) == 1900)
@@ -481,11 +478,12 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
   Common::IPv4Header* ipdata;
   Common::UDPHeader* udpdata;
   Common::TCPHeader* tcpdata;
-
   int offset = 0;
-  std::lock_guard<std::mutex> lock(mtx);
+
   std::memcpy(m_out_frame.get(), frame, size);
-  INFO_LOG_FMT(SP1, "Sending packet {:x}\n{}", size, ArrayToString(m_out_frame.get(), size, 16));
+
+  std::lock_guard<std::mutex> lock(mtx);
+
   // handle the packet data
   hwdata = (Common::EthernetHeader*)m_out_frame.get();
   if (hwdata->ethertype == 0x08)  // IPV4
@@ -630,7 +628,9 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
 
   while (!self->m_read_thread_shutdown.IsSet())
   {
-    // test every open connection for incomming data / disconnection
+    // make thread less cpu hungry
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
     if (!self->m_read_enabled.IsSet())
       continue;
     size_t datasize = 0;
@@ -643,6 +643,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
     if ((wp - rp) >= 8)
       continue;
 
+    std::lock_guard<std::mutex> lock(self->mtx);
     // process queue file first
     if (self->queue_read != self->queue_write)
     {
@@ -679,18 +680,13 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         // late data, resend
         if (((self->queue_write + 1) & 15) != self->queue_read)
         {
-          std::lock_guard<std::mutex> lock(self->mtx);
-          self->queue_data_size[self->queue_write] = tcp_buf.data_size;
-          std::memcpy(self->queue_data[self->queue_write].get(), &tcp_buf.data[0],
-                      tcp_buf.data_size);
-          self->queue_write = (self->queue_write + 1) & 15;
+          self->WriteToQueue(&tcp_buf.data[0], tcp_buf.data_size);
         }
       }
     }
 
     if (datasize > 0)
     {
-      std::lock_guard<std::mutex> lock(self->mtx);
       u8* b = &self->m_eth_ref->mRecvBuffer[0];
       hwdata = (Common::EthernetHeader*)b;
       if (hwdata->ethertype == 0x8)  // IP_PROTOCOL
@@ -700,7 +696,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
         ipdata->header_checksum = 0;
         ipdata->header_checksum = htons(Common::ComputeNetworkChecksum(ipdata, 20));
       }
-      self->m_eth_ref->mRecvBufferLength = (u32)datasize;
+      self->m_eth_ref->mRecvBufferLength = datasize > 64 ? (u32)datasize : 64;
       self->m_eth_ref->RecvHandlePacket();
     }
   }
