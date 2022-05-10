@@ -1702,11 +1702,11 @@ template <typename Context, typename T>
 FMT_CONSTEXPR FMT_INLINE auto make_value(T&& val) -> value<Context> {
   const auto& arg = arg_mapper<Context>().map(std::forward<T>(val));
 
-  constexpr bool formattable_char =
+  [[maybe_unused]] constexpr bool formattable_char =
       !std::is_same<decltype(arg), const unformattable_char&>::value;
   static_assert(formattable_char, "Mixing character types is disallowed.");
 
-  constexpr bool formattable_const =
+  [[maybe_unused]] constexpr bool formattable_const =
       !std::is_same<decltype(arg), const unformattable_const&>::value;
   static_assert(formattable_const, "Cannot format a const argument.");
 
@@ -1714,12 +1714,12 @@ FMT_CONSTEXPR FMT_INLINE auto make_value(T&& val) -> value<Context> {
   // a pointer cast it to "void *" or "const void *". In particular, this
   // forbids formatting of "[const] volatile char *" which is printed as bool
   // by iostreams.
-  constexpr bool formattable_pointer =
+  [[maybe_unused]] constexpr bool formattable_pointer =
       !std::is_same<decltype(arg), const unformattable_pointer&>::value;
   static_assert(formattable_pointer,
                 "Formatting of non-void pointers is disallowed.");
 
-  constexpr bool formattable =
+  [[maybe_unused]] constexpr bool formattable =
       !std::is_same<decltype(arg), const unformattable&>::value;
   static_assert(
       formattable,
