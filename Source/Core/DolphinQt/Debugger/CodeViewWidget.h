@@ -12,6 +12,7 @@
 class QKeyEvent;
 class QMouseEvent;
 class QResizeEvent;
+class QScrollBar;
 class QShowEvent;
 
 struct CodeViewBranch;
@@ -87,8 +88,11 @@ private:
   void OnRestoreInstruction();
 
   void CalculateBranchIndentation();
+  void ScrollbarActionTriggered(int action);
+  void ScrollbarSliderReleased();
 
   CodeViewTable* m_table;
+  QScrollBar* m_scrollbar;
 
   bool m_updating = false;
 

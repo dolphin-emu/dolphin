@@ -72,6 +72,13 @@ constexpr int CODE_VIEW_COLUMN_DESCRIPTION = 4;
 constexpr int CODE_VIEW_COLUMN_BRANCH_ARROWS = 5;
 constexpr int CODE_VIEW_COLUMNCOUNT = 6;
 
+// Numbers for the scrollbar. These affect how much big the draggable part of the scrollbar is, how
+// smooth it scrolls, and how much memory it traverses while dragging.
+constexpr int SCROLLBAR_MINIMUM = 0;
+constexpr int SCROLLBAR_PAGESTEP = 250;
+constexpr int SCROLLBAR_MAXIMUM = 20000;
+constexpr int SCROLLBAR_CENTER = SCROLLBAR_MAXIMUM / 2;
+
 class CodeViewTable final : public QTableWidget
 {
 public:
@@ -254,6 +261,18 @@ CodeViewWidget::CodeViewWidget()
 
   m_table = new CodeViewTable(this);
   layout->addWidget(m_table);
+
+  // Since the Memory View is infinitely long -- it wraps around -- we can't use a normal scroll
+  // bar, so this initializes a custom one that is always centered but otherwise still behaves more
+  // or less like a regular scrollbar.
+  m_scrollbar = new QScrollBar(this);
+  m_scrollbar->setRange(SCROLLBAR_MINIMUM, SCROLLBAR_MAXIMUM);
+  m_scrollbar->setPageStep(SCROLLBAR_PAGESTEP);
+  m_scrollbar->setValue(SCROLLBAR_CENTER);
+  connect(m_scrollbar, &QScrollBar::actionTriggered, this,
+          &CodeViewWidget::ScrollbarActionTriggered);
+  connect(m_scrollbar, &QScrollBar::sliderReleased, this, &CodeViewWidget::ScrollbarSliderReleased);
+  layout->addWidget(m_scrollbar);
 
   this->setLayout(layout);
 
@@ -583,6 +602,46 @@ void CodeViewWidget::CalculateBranchIndentation()
       add_branch_arrow(branch, 0x00000000, addr_zero_row, last_visible_addr);
     }
   }
+}
+
+void CodeViewWidget::ScrollbarActionTriggered(int action)
+{
+  const int difference = m_scrollbar->sliderPosition() - m_scrollbar->value();
+  if (difference == 0)
+    return;
+
+  if (m_scrollbar->isSliderDown())
+  {
+    // User is currently dragging the scrollbar.
+    // Adjust the memory view by the exact drag difference.
+    SetAddress(m_address + difference * sizeof(u32), SetAddressUpdate::WithUpdate);
+  }
+  else
+  {
+    if (std::abs(difference) == 1)
+    {
+      // User clicked the arrows at the top or bottom, go up/down one row.
+      SetAddress(m_address + difference * sizeof(u32), SetAddressUpdate::WithDetailedUpdate);
+    }
+    else
+    {
+      // User clicked the free part of the scrollbar, go up/down one page.
+      SetAddress(m_address + (difference < 0 ? -1 : 1) * sizeof(u32) * m_table->rowCount(),
+                 SetAddressUpdate::WithDetailedUpdate);
+    }
+
+    // Manually reset the draggable part of the bar back to the center.
+    m_scrollbar->setSliderPosition(SCROLLBAR_CENTER);
+  }
+}
+
+void CodeViewWidget::ScrollbarSliderReleased()
+{
+  // Reset the draggable part of the bar back to the center.
+  m_scrollbar->setValue(SCROLLBAR_CENTER);
+
+  // Update the other views to the new address (callers/callees).
+  emit UpdateCodeWidget();
 }
 
 u32 CodeViewWidget::GetAddress() const
