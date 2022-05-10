@@ -71,7 +71,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
 
   std::vector<std::string> result;
 
-  std::string game_filename = game_path.substr(game_path.find('/'));
+  std::string game_filename = game_path.substr(game_path.find_last_of('/'));
   std::string game_filename_lc = game_filename;
   Common::ToLower(&game_filename_lc);
   if (game_filename_lc.find("disc 1") != std::string::npos)
