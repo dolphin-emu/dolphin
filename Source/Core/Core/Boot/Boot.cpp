@@ -80,7 +80,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   Common::ToLower(&game_filename_lc);  
   NOTICE_LOG_FMT(BOOT, "game_filename_lc: {}", game_filename_lc);
 
-  if (game_filename_lc.find("disc 1") != std::string::npos)
+  /*if (game_filename_lc.find("disc 1") != std::string::npos)
   {
     int disc_num = 0;
     std::string line = game_filename;
@@ -103,7 +103,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
       else
         break;
     }
-  }
+  }*/
   return result;
 }
 
