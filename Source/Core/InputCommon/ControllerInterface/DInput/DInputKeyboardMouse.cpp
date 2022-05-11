@@ -7,6 +7,7 @@
 
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 
@@ -170,6 +171,10 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
 
 void KeyboardMouse::UpdateCursorInput()
 {
+  const double scale_x = Config::Get(Config::MAIN_MOUSE_CURSOR_SCALE_HORIZONTAL);
+  const double scale_y = Config::Get(Config::MAIN_MOUSE_CURSOR_SCALE_VERTICAL);
+  const bool gate_enabled = Config::Get(Config::MAIN_MOUSE_STICK_GATE_ENABLED);
+
   // Get the size of the current window (in my case Rect.top and Rect.left was zero).
   RECT rect;
   GetClientRect(s_hwnd, &rect);
@@ -196,13 +201,37 @@ void KeyboardMouse::UpdateCursorInput()
     // Get the cursor position relative to the upper left corner of the current window
     // (separate or render to main)
     ScreenToClient(s_hwnd, &point);
+
+    if (gate_enabled && Host_RendererHasFocus() && ::Core::GetState() == ::Core::State::Running)
+    {
+      const auto locked = m_mouse_stick_gate.LockMouseInGate(
+          static_cast<int>(rect.left), static_cast<int>(rect.right), static_cast<int>(rect.top),
+          static_cast<int>(rect.bottom), static_cast<int>(point.x), static_cast<int>(point.y),
+          Config::Get(Config::MAIN_MOUSE_STICK_GATE_RADIUS),
+          Config::Get(Config::MAIN_MOUSE_STICK_GATE_SNAPPING_DISTANCE));
+      if (locked)
+      {
+        if (locked->x != static_cast<int>(point.x) || locked->y != static_cast<int>(point.y))
+        {
+          point.x = static_cast<LONG>(locked->x);
+          point.y = static_cast<LONG>(locked->y);
+          POINT screen_point = point;
+          ClientToScreen(s_hwnd, &screen_point);
+          SetCursorPos(screen_point.x, screen_point.y);
+        }
+
+        m_state_in.cursor = m_mouse_stick_gate.CalculateRelativeCursorPosition(
+            static_cast<int>(point.x), static_cast<int>(point.y), scale_x, scale_y);
+        return;
+      }
+    }
   }
 
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
   // Convert the cursor position to a range from -1 to 1.
-  m_state_in.cursor.x = (ControlState(point.x) / win_width * 2 - 1) * window_scale.x;
-  m_state_in.cursor.y = (ControlState(point.y) / win_height * 2 - 1) * window_scale.y;
+  m_state_in.cursor.x = (ControlState(point.x) / win_width * 2 - 1) * scale_x * window_scale.x;
+  m_state_in.cursor.y = (ControlState(point.y) / win_height * 2 - 1) * scale_y * window_scale.y;
 }
 
 void KeyboardMouse::UpdateInput()

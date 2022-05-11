@@ -115,6 +115,7 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
+    <ClCompile Include="Config\MouseSettingsWindow.cpp" />
     <ClCompile Include="Config\NewPatchDialog.cpp" />
     <ClCompile Include="Config\PatchesWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
@@ -315,6 +316,7 @@
     <QtMoc Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControl.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
+    <QtMoc Include="Config\MouseSettingsWindow.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <ClInclude Include="Config\ToolTipControls\ToolTipCheckBox.h" />

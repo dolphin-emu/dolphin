@@ -8,6 +8,7 @@
 class QCheckBox;
 class QComboBox;
 class QLabel;
+class QPushButton;
 class QRadioButton;
 class QVBoxLayout;
 
@@ -27,6 +28,7 @@ private:
   void OnCursorVisibleMovement();
   void OnCursorVisibleNever();
   void OnCursorVisibleAlways();
+  void OpenAdvancedMouseSettings();
 
   QVBoxLayout* m_main_layout;
   QComboBox* m_combobox_language;
@@ -51,4 +53,5 @@ private:
   QRadioButton* m_radio_cursor_visible_never;
   QRadioButton* m_radio_cursor_visible_always;
   QCheckBox* m_checkbox_lock_mouse;
+  QPushButton* m_button_advanced_mouse_settings;
 };

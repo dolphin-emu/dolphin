@@ -9,6 +9,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseGate.h"
 
 namespace ciface::DInput
 {
@@ -112,5 +113,7 @@ private:
 
   DWORD m_last_update;
   State m_state_in;
+
+  ciface::OctagonalMouseGate m_mouse_stick_gate;
 };
 }  // namespace ciface::DInput
