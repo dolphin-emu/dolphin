@@ -74,17 +74,17 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   std::string game_filename = (std::string) game_path;
   if (game_path.find_last_of('/') != std::string::npos)
     game_filename = game_path.substr(game_path.find_last_of('/'));
-  //NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
+  NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
 
-  //std::string game_filename_lc = game_filename;
-  //Common::ToLower(&game_filename_lc);  
-  //NOTICE_LOG_FMT(BOOT, "game_filename_lc: {}", game_filename_lc);
+  std::string game_filename_lc = game_filename;
+  Common::ToLower(&game_filename_lc);  
+  NOTICE_LOG_FMT(BOOT, "game_filename_lc: {}", game_filename_lc);
 
-  /*if (game_filename_lc.find("disc 1") != std::string::npos)
+  if (game_filename_lc.find("disc 1") != std::string::npos)
   {
     int disc_num = 0;
     std::string line = game_filename;
-    while(true)
+    /*while(true)
     {      
       if (++disc_num > 1)
       {
@@ -102,8 +102,8 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
         result.push_back(path_to_add);
       else
         break;
-    }
-  }*/
+    }*/
+  }
   return result;
 }
 
