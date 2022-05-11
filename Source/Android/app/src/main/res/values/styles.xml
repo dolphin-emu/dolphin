@@ -48,6 +48,11 @@
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
+    <!-- Hax to make Tablayout render icons -->
+    <style name="MyCustomTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
+    </style>
+
     <!-- Android TV Themes -->
     <style name="DolphinTvBase" parent="Theme.Leanback.Browse">
         <item name="colorSurface">@color/dolphin_blue</item>
