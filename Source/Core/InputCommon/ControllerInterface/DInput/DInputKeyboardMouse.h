@@ -111,6 +111,6 @@ private:
   const LPDIRECTINPUTDEVICE8 m_mo_device;
 
   DWORD m_last_update;
-  State m_state_in;
+  State m_current_state;
 };
 }  // namespace ciface::DInput

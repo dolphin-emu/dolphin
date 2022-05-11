@@ -39,6 +39,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/MouseSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
@@ -78,6 +79,7 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseJail.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "VideoCommon/AsyncRequests.h"
@@ -649,6 +651,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   {
     PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
   }
+
+  if (Config::Get(Config::MOUSE_OCTAGONAL_JAIL_ENABLED))
+    ciface::OctagonalMouseJail::GetInstance().m_player_gets_center = true;
 
   // ENTER THE VIDEO THREAD LOOP
   if (system.IsDualCoreMode())

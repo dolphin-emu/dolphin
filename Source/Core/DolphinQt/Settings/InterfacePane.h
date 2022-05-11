@@ -10,6 +10,7 @@ class QComboBox;
 class QLabel;
 class QRadioButton;
 class QVBoxLayout;
+class MouseSettingsWidget;
 
 class InterfacePane final : public QWidget
 {
@@ -21,6 +22,7 @@ private:
   void CreateLayout();
   void CreateUI();
   void CreateInGame();
+  void CreateMouseSettings();
   void ConnectLayout();
   void LoadConfig();
   void OnSaveConfig();
@@ -51,4 +53,6 @@ private:
   QRadioButton* m_radio_cursor_visible_never;
   QRadioButton* m_radio_cursor_visible_always;
   QCheckBox* m_checkbox_lock_mouse;
+
+  MouseSettingsWidget* m_mouse_settings_widget;
 };

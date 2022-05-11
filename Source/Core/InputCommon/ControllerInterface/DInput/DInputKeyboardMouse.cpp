@@ -7,9 +7,12 @@
 
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 
+#include "Core/Config/MouseSettings.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseJail.h"
 
 // (lower would be more sensitive) user can lower sensitivity by setting range
 // seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
@@ -118,7 +121,8 @@ KeyboardMouse::~KeyboardMouse()
 
 KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
                              const LPDIRECTINPUTDEVICE8 mo_device)
-    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()), m_state_in()
+    : m_kb_device(kb_device), m_mo_device(mo_device), m_last_update(GetTickCount()),
+      m_current_state()
 {
   s_keyboard_mouse_exists = true;
 
@@ -130,7 +134,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   // KEYBOARD
   // add keys
   for (u8 i = 0; i < sizeof(named_keys) / sizeof(*named_keys); ++i)
-    AddInput(new Key(i, m_state_in.keyboard[named_keys[i].code]));
+    AddInput(new Key(i, m_current_state.keyboard[named_keys[i].code]));
 
   // Add combined left/right modifiers with consistent naming across platforms.
   AddCombinedInput("Alt", {"LMENU", "RMENU"});
@@ -143,11 +147,11 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   m_mo_device->GetCapabilities(&mouse_caps);
   // mouse buttons
   for (u8 i = 0; i < mouse_caps.dwButtons; ++i)
-    AddInput(new Button(i, m_state_in.mouse.rgbButtons[i]));
+    AddInput(new Button(i, m_current_state.mouse.rgbButtons[i]));
   // mouse axes
   for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)
   {
-    const LONG& ax = (&m_state_in.mouse.lX)[i];
+    const LONG& ax = (&m_current_state.mouse.lX)[i];
 
     // each axis gets a negative and a positive input instance associated with it
     AddInput(new Axis(i, ax, (2 == i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
@@ -156,38 +160,96 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
 
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)
-    AddInput(new Cursor(!!(i & 2), (&m_state_in.cursor.x)[i / 2], !!(i & 1)));
+    AddInput(new Cursor(!!(i & 2), (&m_current_state.cursor.x)[i / 2], !!(i & 1)));
 
   // Raw relative mouse movement.
   for (unsigned int i = 0; i != mouse_caps.dwAxes; ++i)
   {
-    AddInput(new RelativeMouseAxis(i, false, &m_state_in.relative_mouse));
-    AddInput(new RelativeMouseAxis(i, true, &m_state_in.relative_mouse));
+    AddInput(new RelativeMouseAxis(i, false, &m_current_state.relative_mouse));
+    AddInput(new RelativeMouseAxis(i, true, &m_current_state.relative_mouse));
   }
+}
+
+std::pair<double, double> CalculateFinalCursorValue(double window_width, double window_height,
+                                                    double sensitivity, double window_ratio,
+                                                    const Point& raw_mouse_point)
+{
+  std::pair<double, double> return_pair;
+  return_pair.first = ((raw_mouse_point.x / window_width) - 0.5) * sensitivity * window_ratio;
+  return_pair.second = ((raw_mouse_point.y / window_height) - 0.5) * sensitivity;
+  return return_pair;
 }
 
 void KeyboardMouse::UpdateCursorInput()
 {
-  POINT point = {};
-  GetCursorPos(&point);
+  POINT raw_mouse_point = {0, 0};
+  GetCursorPos(&raw_mouse_point);
 
-  // Get the cursor position relative to the upper left corner of the current window
-  // (separate or render to main)
-  ScreenToClient(s_hwnd, &point);
+  ExtendedWindowInfo render_window_info =
+      OctagonalMouseJail::GetInstance().GetExtendedRenderWindowInfo();
+  double sensitivity = Config::Get(Config::MOUSE_SENSITIVITY) *
+                       Config::scaling_factor_to_make_mouse_sensitivity_one_for_fullscreen;
+  bool jail_enabled = Config::Get(Config::MOUSE_OCTAGONAL_JAIL_ENABLED);
+  const Common::Vec2 window_scale = g_controller_interface.GetWindowInputScale();
+  if ((OctagonalMouseJail::GetInstance().m_player_gets_center && Host_RendererHasFocus()))
+  {
+    SetCursorPos(static_cast<long>(render_window_info.center.x),
+                 static_cast<long>(render_window_info.center.y));
+    OctagonalMouseJail::GetInstance().m_player_gets_center = false;
+    return;
+  }
 
-  // Get the size of the current window (in my case Rect.top and Rect.left was zero).
-  RECT rect;
-  GetClientRect(s_hwnd, &rect);
+  if (render_window_info.handle == nullptr)
+  {
+    ScreenToClient(s_hwnd, &raw_mouse_point);
+    Point mouse_point{static_cast<double>(raw_mouse_point.x),
+                      static_cast<double>(raw_mouse_point.y)};
+    RECT current_window_info{};
+    GetClientRect(s_hwnd, &current_window_info);
 
-  // Width and height are the size of the rendering window. They could be 0
-  const auto win_width = std::max(rect.right - rect.left, 1l);
-  const auto win_height = std::max(rect.bottom - rect.top, 1l);
+    double current_window_width =
+        std::max(current_window_info.right - current_window_info.left, 1l);
+    double current_window_height =
+        std::max(current_window_info.bottom - current_window_info.top, 1l);
+    double current_window_screen_ratio = current_window_width / current_window_height;
+    current_window_screen_ratio = jail_enabled ? current_window_screen_ratio : 1.0;
 
-  const auto window_scale = g_controller_interface.GetWindowInputScale();
+    auto [x, y] = CalculateFinalCursorValue(current_window_width, current_window_height,
+                                            sensitivity, current_window_screen_ratio, mouse_point);
 
-  // Convert the cursor position to a range from -1 to 1.
-  m_state_in.cursor.x = (ControlState(point.x) / win_width * 2 - 1) * window_scale.x;
-  m_state_in.cursor.y = (ControlState(point.y) / win_height * 2 - 1) * window_scale.y;
+    m_current_state.cursor.x = x * window_scale.x;
+    m_current_state.cursor.y = y * window_scale.y;
+    return;
+  }
+
+  if (jail_enabled)
+  {
+    auto [locked_x, locked_y] =
+        OctagonalMouseJail::GetInstance().LockMouseInJail(raw_mouse_point.x, raw_mouse_point.y);
+    POINT locked_cursor_pos{static_cast<long>(locked_x), static_cast<long>(locked_y)};
+    SetCursorPos(locked_cursor_pos.x, locked_cursor_pos.y);
+    ScreenToClient(static_cast<HWND>(render_window_info.handle), &locked_cursor_pos);
+    auto [x, y] = CalculateFinalCursorValue(
+        render_window_info.width, render_window_info.height, sensitivity, render_window_info.ratio,
+        Point{static_cast<double>(locked_cursor_pos.x), static_cast<double>(locked_cursor_pos.y)});
+    m_current_state.cursor.x = x;
+    m_current_state.cursor.y = y;
+  }
+  else
+  {
+    ScreenToClient(static_cast<HWND>(render_window_info.handle), &raw_mouse_point);
+    auto [x, y] = CalculateFinalCursorValue(
+        render_window_info.width, render_window_info.height, sensitivity, 1.0,
+        Point{static_cast<double>(raw_mouse_point.x), static_cast<double>(raw_mouse_point.y)});
+
+    m_current_state.cursor.x = x * window_scale.x;
+    m_current_state.cursor.y = y * window_scale.y;
+  }
+
+  if (OctagonalMouseJail::GetInstance().m_player_requested_center)
+  {
+    OctagonalMouseJail::GetInstance().m_player_gets_center = true;
+  }
 }
 
 void KeyboardMouse::UpdateInput()
@@ -201,8 +263,8 @@ void KeyboardMouse::UpdateInput()
   if (cur_time - m_last_update > DROP_INPUT_TIME)
   {
     // set axes to zero
-    m_state_in.mouse = {};
-    m_state_in.relative_mouse = {};
+    m_current_state.mouse = {};
+    m_current_state.relative_mouse = {};
 
     // skip this input state
     m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
@@ -219,23 +281,25 @@ void KeyboardMouse::UpdateInput()
   }
   else if (SUCCEEDED(mo_hr))
   {
-    m_state_in.relative_mouse.Move({tmp_mouse.lX, tmp_mouse.lY, tmp_mouse.lZ});
-    m_state_in.relative_mouse.Update();
+    m_current_state.relative_mouse.Move({tmp_mouse.lX, tmp_mouse.lY, tmp_mouse.lZ});
+    m_current_state.relative_mouse.Update();
 
     // need to smooth out the axes, otherwise it doesn't work for shit
     for (unsigned int i = 0; i < 3; ++i)
-      ((&m_state_in.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
+      ((&m_current_state.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
 
     // copy over the buttons
-    std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons), m_state_in.mouse.rgbButtons);
+    std::copy_n(tmp_mouse.rgbButtons, std::size(tmp_mouse.rgbButtons),
+                m_current_state.mouse.rgbButtons);
   }
 
-  HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+  HRESULT kb_hr =
+      m_kb_device->GetDeviceState(sizeof(m_current_state.keyboard), &m_current_state.keyboard);
   if (kb_hr == DIERR_INPUTLOST || kb_hr == DIERR_NOTACQUIRED)
   {
     INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to get state");
     if (SUCCEEDED(m_kb_device->Acquire()))
-      m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+      m_kb_device->GetDeviceState(sizeof(m_current_state.keyboard), &m_current_state.keyboard);
     else
       INFO_LOG_FMT(CONTROLLERINTERFACE, "Keyboard device failed to re-acquire, we'll retry later");
   }

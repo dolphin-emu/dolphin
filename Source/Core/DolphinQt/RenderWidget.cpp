@@ -31,6 +31,7 @@
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseJail.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -95,6 +96,11 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   // We need a native window to render into.
   setAttribute(Qt::WA_NativeWindow);
   setAttribute(Qt::WA_PaintOnScreen);
+}
+
+RenderWidget::~RenderWidget()
+{
+  Host::GetInstance()->SetRenderHandle(nullptr);
 }
 
 QPaintEngine* RenderWidget::paintEngine() const
@@ -377,6 +383,7 @@ bool RenderWidget::event(QEvent* event)
       setCursor(Qt::ArrowCursor);
       m_mouse_timer->start(MOUSE_HIDE_DELAY);
     }
+    ciface::OctagonalMouseJail::GetInstance().m_non_client_area_interaction = false;
     break;
   case QEvent::WinIdChange:
     emit HandleChanged(reinterpret_cast<void*>(winId()));
@@ -431,8 +438,11 @@ bool RenderWidget::event(QEvent* event)
     emit FocusChanged(false);
     break;
   case QEvent::Move:
+  {
     SetCursorLocked(m_cursor_locked);
-    break;
+    ciface::OctagonalMouseJail::GetInstance().UpdateRenderWindowInfo();
+  }
+  break;
   case QEvent::Resize:
   {
     SetCursorLocked(m_cursor_locked);
@@ -445,6 +455,8 @@ bool RenderWidget::event(QEvent* event)
     const auto dpr = screen->devicePixelRatio();
 
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
+
+    ciface::OctagonalMouseJail::GetInstance().UpdateRenderWindowInfo();
     break;
   }
   // Happens when we add/remove the widget from the main window instead of the dedicated one
@@ -459,6 +471,14 @@ bool RenderWidget::event(QEvent* event)
   case QEvent::Close:
     emit Closed();
     break;
+  case QEvent::NonClientAreaMouseButtonPress:
+  case QEvent::NonClientAreaMouseButtonDblClick:
+  case QEvent::NonClientAreaMouseButtonRelease:
+  case QEvent::NonClientAreaMouseMove:
+  {
+    ciface::OctagonalMouseJail::GetInstance().m_non_client_area_interaction = true;
+  }
+  break;
   default:
     break;
   }

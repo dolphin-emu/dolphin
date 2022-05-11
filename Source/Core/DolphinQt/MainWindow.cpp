@@ -113,6 +113,7 @@
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseJail.h"
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"

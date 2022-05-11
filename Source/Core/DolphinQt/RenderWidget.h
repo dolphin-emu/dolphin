@@ -15,6 +15,7 @@ class RenderWidget final : public QWidget
 
 public:
   explicit RenderWidget(QWidget* parent = nullptr);
+  ~RenderWidget();
 
   bool event(QEvent* event) override;
   void showFullScreen();

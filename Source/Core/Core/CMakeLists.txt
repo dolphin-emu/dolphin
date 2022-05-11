@@ -28,6 +28,8 @@ add_library(core
   Config/GraphicsSettings.h
   Config/MainSettings.cpp
   Config/MainSettings.h
+  Config/MouseSettings.cpp
+  Config/MouseSettings.h
   Config/NetplaySettings.cpp
   Config/NetplaySettings.h
   Config/SessionSettings.cpp

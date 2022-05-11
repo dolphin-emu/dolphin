@@ -172,6 +172,7 @@
     <ClInclude Include="Core\Config\FreeLookSettings.h" />
     <ClInclude Include="Core\Config\GraphicsSettings.h" />
     <ClInclude Include="Core\Config\MainSettings.h" />
+    <ClInclude Include="Core\Config\MouseSettings.h" />
     <ClInclude Include="Core\Config\NetplaySettings.h" />
     <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
@@ -489,6 +490,7 @@
     <ClInclude Include="InputCommon\ControllerInterface\evdev\evdev.h" />
     <ClInclude Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
     <ClInclude Include="InputCommon\ControllerInterface\MappingCommon.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\OctagonalMouseJail.h" />
     <ClInclude Include="InputCommon\ControllerInterface\WGInput\WGInput.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Win32\Win32.h" />
@@ -784,6 +786,7 @@
     <ClCompile Include="Core\Config\FreeLookSettings.cpp" />
     <ClCompile Include="Core\Config\GraphicsSettings.cpp" />
     <ClCompile Include="Core\Config\MainSettings.cpp" />
+    <ClCompile Include="Core\Config\MouseSettings.cpp" />
     <ClCompile Include="Core\Config\NetplaySettings.cpp" />
     <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
@@ -1100,6 +1103,7 @@
     <ClCompile Include="InputCommon\ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\MappingCommon.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\OctagonalMouseJail.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\WGInput\WGInput.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Win32\Win32.cpp" />

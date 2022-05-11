@@ -121,6 +121,11 @@ void Host_TitleChanged()
 #endif
 }
 
+WindowInfo Host_GetRenderWindowInfo()
+{
+  return WindowInfo{};
+}
+
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core)
 {
   return nullptr;

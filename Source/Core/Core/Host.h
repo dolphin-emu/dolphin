@@ -26,6 +26,12 @@
 // The host can be just a command line app that opens a window, or a full blown debugger
 // interface.
 
+struct WindowInfo
+{
+  void* handle;
+  double top, left, bottom, right;
+};
+
 namespace HW::GBA
 {
 class Core;
@@ -63,5 +69,6 @@ void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_YieldToUI();
 void Host_TitleChanged();
+WindowInfo Host_GetRenderWindowInfo();
 
 std::unique_ptr<GBAHostInterface> Host_CreateGBAHost(std::weak_ptr<HW::GBA::Core> core);

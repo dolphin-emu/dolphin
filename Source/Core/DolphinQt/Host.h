@@ -12,6 +12,7 @@
 // the Host class communicates with it via signals/slots only.
 
 // Many of the Host_* functions are ignored, and some shouldn't exist.
+struct WindowInfo;
 class Host final : public QObject
 {
   Q_OBJECT
@@ -27,6 +28,7 @@ public:
   bool GetRenderFocus();
   bool GetRenderFullFocus();
   bool GetRenderFullscreen();
+  WindowInfo GetRenderWindowInfo();
   bool GetGBAFocus();
 
   void SetMainWindowHandle(void* handle);

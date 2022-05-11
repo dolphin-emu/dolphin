@@ -38,6 +38,7 @@
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseJail.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -234,6 +235,13 @@ void HotkeyScheduler::Run()
       // Unlock Cursor
       if (IsHotkey(HK_UNLOCK_CURSOR))
         emit UnlockCursor();
+
+      const bool center_mouse_state = IsHotkey(HK_CENTER_MOUSE, true);
+      if (center_mouse_state)
+      {
+        emit CenterMouse();
+        ciface::OctagonalMouseJail::GetInstance().m_player_requested_center = center_mouse_state;
+      }
 
       auto& settings = Settings::Instance();
 

@@ -8,6 +8,7 @@
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QLocale>
+#include <QWindow>
 
 #include <imgui.h>
 
@@ -175,6 +176,24 @@ bool Host::GetRenderFullscreen()
   return m_render_fullscreen;
 }
 
+WindowInfo Host::GetRenderWindowInfo()
+{
+  if (m_render_handle.load() != nullptr)
+  {
+    QWindow* render_window = QWindow::fromWinId(reinterpret_cast<WId>(m_render_handle.load()));
+    double render_window_top = static_cast<double>(render_window->y());
+    double render_window_left = static_cast<double>(render_window->x());
+    double render_window_bottom = render_window_top + static_cast<double>(render_window->height());
+    double render_window_right = render_window_left + static_cast<double>(render_window->width());
+    return WindowInfo{m_render_handle.load(), render_window_top, render_window_left,
+                      render_window_bottom, render_window_right};
+  }
+  else
+  {
+    return WindowInfo{};
+  }
+}
+
 void Host::SetRenderFullscreen(bool fullscreen)
 {
   m_render_fullscreen = fullscreen;
@@ -285,6 +304,11 @@ void Host_TitleChanged()
   if (!NetPlay::IsNetPlayRunning())
     Discord::UpdateDiscordPresence();
 #endif
+}
+
+WindowInfo Host_GetRenderWindowInfo()
+{
+  return WindowInfo{Host::GetInstance()->GetRenderWindowInfo()};
 }
 
 #ifndef HAS_LIBMGBA

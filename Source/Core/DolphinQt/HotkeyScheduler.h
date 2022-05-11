@@ -27,6 +27,7 @@ signals:
 
   void ExitHotkey();
   void UnlockCursor();
+  void CenterMouse();
   void ActivateChat();
   void RequestGolfControl();
   void FullScreenHotkey();

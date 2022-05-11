@@ -22,6 +22,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
+#include "DolphinQt/Config/MouseSettingsWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -91,6 +92,7 @@ void InterfacePane::CreateLayout()
   // Create layout here
   CreateUI();
   CreateInGame();
+  CreateMouseSettings();
 
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
@@ -203,6 +205,12 @@ void InterfacePane::CreateInGame()
 #ifdef _WIN32
   groupbox_layout->addWidget(m_checkbox_lock_mouse);
 #endif
+}
+
+void InterfacePane::CreateMouseSettings()
+{
+  m_mouse_settings_widget = new MouseSettingsWidget{this};
+  m_main_layout->addWidget(m_mouse_settings_widget);
 }
 
 void InterfacePane::ConnectLayout()
