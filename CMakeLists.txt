@@ -434,6 +434,11 @@ if(ENABLE_HEADLESS)
   set(USE_DISCORD_PRESENCE 0)
 endif()
 
+if(ENABLE_AUTODISC)
+  message(STATUS "Enabling automatic disc loading support")
+  add_definitions(-DAUTODISC=1)
+endif()
+
 # Set file offset size to 64 bits.
 #
 # On modern Unixes, this is typically already the case. The lone exception is
@@ -545,11 +550,6 @@ endif()
 if(ENABLE_AUTOUPDATE)
   message(STATUS "Enabling automatic update support")
   add_definitions(-DAUTOUPDATE=1)
-endif()
-
-if(ENABLE_AUTODISC)
-  message(STATUS "Enabling automatic disc loading support")
-  add_definitions(-DAUTODISC=1)
 endif()
 
 ########################################
