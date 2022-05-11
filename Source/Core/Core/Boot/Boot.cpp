@@ -84,7 +84,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   {
     int disc_num = 0;
     std::string line = game_filename;
-    /*while(true)
+    while(true)
     {      
       if (++disc_num > 1)
       {
@@ -102,7 +102,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
         result.push_back(path_to_add);
       else
         break;
-    }*/
+    }
   }
   return result;
 }
