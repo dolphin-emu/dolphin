@@ -75,17 +75,13 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   std::string game_filename = (std::string) game_path;
   if (game_path.find_last_of('/') != std::string::npos)
     game_filename = game_path.substr(game_path.find_last_of('/'));
-  //NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
 
-  //std::string game_filename_lc = game_filename;
-  //Common::ToLower(&game_filename_lc);  
-  //NOTICE_LOG_FMT(BOOT, "game_filename_lc: {}", game_filename_lc);
-  std::regex str_expr ("(disc)\s*[0-9]{1}", std::regex_constants::icase);
+	std::regex str_expr (".*(disc\\s*\\d)[^\\d].*", std::regex_constants::icase);
   if (std::regex_match(game_filename,str_expr))
   {
     int disc_num = 0;
     std::string line = game_filename;
-    
+
     std::smatch matches;
     std::regex_search(game_filename, matches, str_expr);
     std::string disc_ref;
@@ -95,7 +91,6 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
     while(true)
     {      
       disc_num++;
-      //std::string disc_ref = game_filename.substr(game_filename_lc.find("disc "), 5);
       line.replace( game_filename.find(disc_ref) + disc_ref.length()-1, 1, std::to_string( disc_num ));
 
 #ifdef HAS_STD_FILESYSTEM
