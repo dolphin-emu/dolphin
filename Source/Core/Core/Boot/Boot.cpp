@@ -76,7 +76,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   if (game_path.find_last_of('/') != std::string::npos)
     game_filename = game_path.substr(game_path.find_last_of('/'));
 
-	std::regex str_expr (".*(disc\\s*\\d)[^\\d].*", std::regex_constants::icase);
+	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
   if (std::regex_match(game_filename,str_expr))
   {
     int disc_num = 0;
