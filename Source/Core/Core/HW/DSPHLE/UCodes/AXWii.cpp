@@ -335,41 +335,41 @@ AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
   if (mixer_control & 0x00000002)
     ret |= MIX_MAIN_R;
   if (mixer_control & 0x00000004)
-    ret |= MIX_MAIN_L_RAMP | MIX_MAIN_R_RAMP;
+    ret |= MIX_MAIN_L | MIX_MAIN_R | MIX_MAIN_L_RAMP | MIX_MAIN_R_RAMP;
   if (mixer_control & 0x00000008)
     ret |= MIX_MAIN_S;
   if (mixer_control & 0x00000010)
-    ret |= MIX_MAIN_S_RAMP;
+    ret |= MIX_MAIN_S | MIX_MAIN_S_RAMP;
   if (mixer_control & 0x00010000)
     ret |= MIX_AUXA_L;
   if (mixer_control & 0x00020000)
     ret |= MIX_AUXA_R;
   if (mixer_control & 0x00040000)
-    ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
+    ret |= MIX_AUXA_L | MIX_AUXA_R | MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
   if (mixer_control & 0x00080000)
     ret |= MIX_AUXA_S;
   if (mixer_control & 0x00100000)
-    ret |= MIX_AUXA_S_RAMP;
+    ret |= MIX_AUXA_S | MIX_AUXA_S_RAMP;
   if (mixer_control & 0x00200000)
     ret |= MIX_AUXB_L;
   if (mixer_control & 0x00400000)
     ret |= MIX_AUXB_R;
   if (mixer_control & 0x00800000)
-    ret |= MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
+    ret |= MIX_AUXB_L | MIX_AUXB_R | MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
   if (mixer_control & 0x01000000)
     ret |= MIX_AUXB_S;
   if (mixer_control & 0x02000000)
-    ret |= MIX_AUXB_S_RAMP;
+    ret |= MIX_AUXB_S | MIX_AUXB_S_RAMP;
   if (mixer_control & 0x04000000)
     ret |= MIX_AUXC_L;
   if (mixer_control & 0x08000000)
     ret |= MIX_AUXC_R;
   if (mixer_control & 0x10000000)
-    ret |= MIX_AUXC_L_RAMP | MIX_AUXC_R_RAMP;
+    ret |= MIX_AUXC_L | MIX_AUXC_R | MIX_AUXC_L_RAMP | MIX_AUXC_R_RAMP;
   if (mixer_control & 0x20000000)
     ret |= MIX_AUXC_S;
   if (mixer_control & 0x40000000)
-    ret |= MIX_AUXC_S_RAMP;
+    ret |= MIX_AUXC_S | MIX_AUXC_S_RAMP;
 
   return (AXMixControl)ret;
 }
