@@ -72,10 +72,12 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
 
   std::vector<std::string> result;
 
+  NOTICE_LOG_FMT(BOOT, "game_path: {}", game_path);
   std::string game_filename = (std::string) game_path;
   if (game_path.find_last_of('/') != std::string::npos)
     game_filename = game_path.substr(game_path.find_last_of('/'));
-
+  NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
+  
 	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
   if (std::regex_match(game_filename,str_expr))
   {
@@ -85,9 +87,11 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
     std::smatch matches;
     std::regex_search(game_filename, matches, str_expr);
     std::string disc_ref;
-    for (auto x : matches)
+    for (auto x : matches) {
       disc_ref = x;
-    
+      NOTICE_LOG_FMT(BOOT, "matches: {}", matches);
+    }
+
     while(true)
     {      
       disc_num++;
@@ -99,6 +103,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
       const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
 #endif
 
+      NOTICE_LOG_FMT(BOOT, "path_to_add: {}", path_to_add);
       if (File::Exists(path_to_add))
         result.push_back(path_to_add);
       else
@@ -283,6 +288,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   {
     if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE))
     {
+      NOTICE_LOG_FMT(BOOT, "MAIN_AUTO_DISC_CHANGE");
       paths = ReadGameFile(paths.front(), folder_path);
       if (!paths.empty())
       {
@@ -292,7 +298,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       if (paths.size() == 1)
         paths.clear();
     }
-
+    NOTICE_LOG_FMT(BOOT, "path: {}", path);
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
     {
