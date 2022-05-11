@@ -286,14 +286,18 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
-    paths = ReadGameFile(paths.front(), folder_path);
-    if (!paths.empty())
+    if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE))
     {
-      SplitPath(paths.front(), nullptr, nullptr, &extension);
+      paths = ReadGameFile(paths.front(), folder_path);
+      if (!paths.empty())
+      {
+        path = paths.front();
+        SplitPath(paths.front(), nullptr, nullptr, &extension);
+      }
+      if (paths.size() == 1)
+        paths.clear();
     }
-    if (paths.size() == 1)
-      paths.clear();
-    
+
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
     {
