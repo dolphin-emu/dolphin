@@ -286,6 +286,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
+    NOTICE_LOG_FMT(BOOT, "original file: {}", path);
 
 #ifdef AUTODISC
     NOTICE_LOG_FMT(BOOT, "MAIN_AUTO_DISC_CHANGE");
