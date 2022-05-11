@@ -26,8 +26,7 @@ namespace prime {
           add_code_change(0x80194df8, 0x4800001c);
           // stop dash when done dashing
           add_code_change(0x80192f58, 0x881f037c); // CPlayer + 0x37c
-        }
-        else { // region == Region::NTSC-J
+        } else { // region == Region::NTSC-J
           // remove scan visor check
           add_code_change(0x80193eb4, 0x48000018);
           // restore dashing speed

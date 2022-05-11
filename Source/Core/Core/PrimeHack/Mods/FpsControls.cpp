@@ -1500,6 +1500,8 @@ void FpsControls::init_mod_menu(Game game, Region region)
       // prevent wiimote pointer feedback to move the cursor
       add_code_change(0x80487160, 0x60000000);
       add_code_change(0x80487164, 0x60000000);
+      // Prevent recentering the cursor on X axis
+      add_code_change(0x80487090, 0x60000000);
       // Prevent recentering the cursor on Y axis
       add_code_change(0x80487098, 0x60000000);
     }
