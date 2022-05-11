@@ -89,7 +89,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
     std::string disc_ref;
     for (auto x : matches) {
       disc_ref = x;
-      NOTICE_LOG_FMT(BOOT, "matches: {}", matches);
+      NOTICE_LOG_FMT(BOOT, "matches: {}", disc_ref);
     }
 
     while(true)
