@@ -287,7 +287,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
 
-#ifdef AUTO_DISC
+#ifdef AUTODISC
       NOTICE_LOG_FMT(BOOT, "MAIN_AUTO_DISC_CHANGE");
       paths = ReadGameFile(paths.front(), folder_path);
       if (!paths.empty())
