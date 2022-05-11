@@ -112,6 +112,7 @@ void StatTracker::lookForTriggerEvents(){
                     File::Delete(jsonPath);
 
                     m_event_state = EVENT_STATE::GAME_OVER;
+                    m_game_state = GAME_STATE::ENDGAME_LOGGED;
                     break;
                 }
 
@@ -133,8 +134,7 @@ void StatTracker::lookForTriggerEvents(){
                         std::cout << "Pitch detected!" << std::endl;
 
                         //Check for fielder swaps
-                        u8 team_id = (Memory::Read_U8(aAB_BatterPort) == m_game_info.away_port) ? 1 : 0;
-                        m_fielder_tracker[team_id].evaluateFielders();
+                        m_fielder_tracker[!m_game_info.getCurrentEvent().half_inning].evaluateFielders();
 
                         m_game_info.getCurrentEvent().pitch = std::make_optional(Pitch());
 
@@ -165,13 +165,15 @@ void StatTracker::lookForTriggerEvents(){
                 }
                 //If the ball gets behind the batter, record ball position for visualization
                 if (!m_game_info.getCurrentEvent().pitch->logged 
-                && (Memory::Read_U8(aAB_FramesUnitlBallArrivesBatter) <= 1)){
-                    logPitch(m_game_info.getCurrentEvent());
+                && (Memory::Read_U16(aAB_FramesUnitlBallArrivesBatter) == 1)
+                && (Memory::Read_U8(aAB_PitcherHasCtrlofPitch) == 1)){
+                    logPitchCoords(m_game_info.getCurrentEvent());
                 }
                 //HBP or miss
                 if ((Memory::Read_U8(aAB_HitByPitch) == 1) || (Memory::Read_U8(aAB_PitchThrown) == 0)){
                     m_game_info.getCurrentEvent().result_of_atbat = Memory::Read_U8(aAB_FinalResult);
                     logContactMiss(m_game_info.getCurrentEvent()); //Strike or Swing or Bunt
+                    logPitch(m_game_info.getCurrentEvent());
                     m_event_state = EVENT_STATE::MONITOR_RUNNERS;
                 }
                 //Contact
@@ -369,8 +371,6 @@ void StatTracker::lookForTriggerEvents(){
             break;
         case (GAME_STATE::INGAME):
             if ((Memory::Read_U8(aEndOfGameFlag) == 1)){
-                m_game_info.game_active = false; //Game is over and logged
-
                 logGameInfo();
                 std::cout << "Logging Character Stats" << std::endl;
 
@@ -405,6 +405,7 @@ void StatTracker::lookForTriggerEvents(){
             break;
         case (GAME_STATE::ENDGAME_LOGGED):
             if (Memory::Read_U32(aGameId) == 0){
+                m_game_info.game_active = false; //Game is over and logged
                 m_game_state = GAME_STATE::PREGAME;
                 init();
 
@@ -522,10 +523,6 @@ void StatTracker::logOffensiveStats(int in_team_id, int roster_id){
 }
 
 void StatTracker::logEventState(Event& in_event){
-
-    //Team Id (0=Home is batting, Away is batting)
-    u8 batting_team_id = (Memory::Read_U8(aAB_BatterPort) == m_game_info.away_port) ? 1 : 0;
-
     in_event.inning          = Memory::Read_U8(aAB_Inning);
     in_event.half_inning     = Memory::Read_U8(aAB_HalfInning);
 
@@ -570,6 +567,7 @@ void StatTracker::logContact(Event& in_event){
     Pitch* pitch = &in_event.pitch.value();
     //Create contact object to populate and get a ptr to it
     pitch->contact = std::make_optional(Contact());
+    std::cout << "  Pitch Type: " << std::to_string(in_event.pitch->pitch_type) << std::endl;
     Contact* contact = &in_event.pitch->contact.value();
 
     contact->type_of_contact   = Memory::Read_U8(aAB_TypeOfContact);
@@ -609,6 +607,7 @@ void StatTracker::logContactMiss(Event& in_event){
     std::cout << "Logging Miss" << std::endl;
 
     Pitch* pitch = &in_event.pitch.value();
+
     //Create contact object to populate and get a ptr to it
     pitch->contact = std::make_optional(Contact());
     Contact* contact = &in_event.pitch->contact.value();
@@ -685,16 +684,17 @@ void StatTracker::logPitch(Event& in_event){
     in_event.pitch->pitcher_char_id    = Memory::Read_U8(aAB_PitcherID);
     in_event.pitch->pitch_type         = Memory::Read_U8(aAB_PitchType);
     in_event.pitch->charge_type        = Memory::Read_U8(aAB_ChargePitchType);
-    in_event.pitch->star_pitch         = Memory::Read_U8(aAB_StarPitch);
+    in_event.pitch->star_pitch         = ((Memory::Read_U8(aAB_StarPitch_NonCaptain) > 0) || (Memory::Read_U8(aAB_StarPitch_Captain) > 0));
     in_event.pitch->pitch_speed        = Memory::Read_U8(aAB_PitchSpeed);
+}
 
+void StatTracker::logPitchCoords(Event& in_event){
+    std::cout << "Logging Pitch coords" << std::endl;
     in_event.pitch->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
     in_event.pitch->ball_z_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
 
     in_event.pitch->batter_x_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_X_Upon_Hit);
     in_event.pitch->batter_z_pos_upon_hit = Memory::Read_U32(aAB_BatterPos_Z_Upon_Hit);
-
-    std::cout << "  Pitch Type: " << std::to_string(in_event.pitch->pitch_type) << std::endl;
 }
 
 void StatTracker::logContactResult(Contact* in_contact){
@@ -710,7 +710,7 @@ void StatTracker::logContactResult(Contact* in_contact){
         in_contact->ball_y_pos = Memory::Read_U32(aAB_BallPos_Y);
         in_contact->ball_z_pos = Memory::Read_U32(aAB_BallPos_Z);
     }
-    if (result == 2){ //Pretty sure means the ball landed and immediately was fielded
+    else if (result == 2){ //Pretty sure means the ball landed and immediately was fielded
         in_contact->primary_contact_result = 3; //Landed Fair
         m_event_state = EVENT_STATE::LOG_FIELDER;
         in_contact->ball_x_pos = Memory::Read_U32(aAB_BallPos_X);

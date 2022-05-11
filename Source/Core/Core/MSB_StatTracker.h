@@ -352,14 +352,15 @@ static const u32 aAB_RunnerOn2       = 0x8088F1F1;
 static const u32 aAB_RunnerOn3       = 0x8088F345;
 
 //Pitch
-static const u32 aAB_PitcherRosterID   = 0x80890AD9;
-static const u32 aAB_PitcherID         = 0x80890ADB;
-static const u32 aAB_PitcherHandedness = 0x80890B01;
-static const u32 aAB_PitchType         = 0x80890B21; //0=Curve, Charge=1, ChangeUp=2
-static const u32 aAB_ChargePitchType   = 0x80890B1F; //2=Slider, 3=Perfect
-static const u32 aAB_StarPitch         = 0x80890B34;
-static const u32 aAB_PitchSpeed        = 0x80890B0A;
-static const u32 aAB_PitchCurveInput   = 0x80890A24; //0 if no curve is applied, otherwise its non-zero
+static const u32 aAB_PitcherRosterID       = 0x80890AD9;
+static const u32 aAB_PitcherID             = 0x80890ADB;
+static const u32 aAB_PitcherHandedness     = 0x80890B01;
+static const u32 aAB_PitchType             = 0x80890B21; //0=Curve, Charge=1, ChangeUp=2
+static const u32 aAB_ChargePitchType       = 0x80890B1F; //2=Slider, 3=Perfect
+static const u32 aAB_StarPitch_Captain     = 0x80890B34;
+static const u32 aAB_StarPitch_NonCaptain  = 0x80890B34;
+static const u32 aAB_PitchSpeed            = 0x80890B0A;
+static const u32 aAB_PitchCurveInput       = 0x80890A24; //0 if no curve is applied, otherwise its non-zero
 static const u32 aAB_PitcherHasCtrlofPitch = 0x80890B12; //Above addr is valid when this addr =1
 
 //At-Bat Hit
@@ -920,6 +921,7 @@ public:
     void logContactMiss(Event& in_event);
     void logContact(Event& in_event);
     void logPitch(Event& in_event);
+    void logPitchCoords(Event& in_event);
     void logContactResult(Contact* in_contact);
     void logFinalResults(Event& in_event);
     void logManualSelectLocks(Event& in_event);
