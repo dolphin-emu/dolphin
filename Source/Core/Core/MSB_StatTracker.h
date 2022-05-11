@@ -357,7 +357,7 @@ static const u32 aAB_PitcherID             = 0x80890ADB;
 static const u32 aAB_PitcherHandedness     = 0x80890B01;
 static const u32 aAB_PitchType             = 0x80890B21; //0=Curve, Charge=1, ChangeUp=2
 static const u32 aAB_ChargePitchType       = 0x80890B1F; //2=Slider, 3=Perfect
-static const u32 aAB_StarPitch_Captain     = 0x80890B34;
+static const u32 aAB_StarPitch_Captain     = 0x80890B25;
 static const u32 aAB_StarPitch_NonCaptain  = 0x80890B34;
 static const u32 aAB_PitchSpeed            = 0x80890B0A;
 static const u32 aAB_PitchCurveInput       = 0x80890A24; //0 if no curve is applied, otherwise its non-zero
@@ -391,7 +391,7 @@ static const u32 aAB_InputDirection = 0x808909B9; //0=None, 1=PullingStickToward
 static const u32 aAB_StarSwing      = 0x808909B4;
 static const u32 aAB_MoonShot       = 0x808909B5;
 static const u32 aAB_TypeOfContact  = 0x808909A2; //0=Sour, 1=Nice, 2=Perfect, 3=Nice, 4=Sour
-static const u32 aAB_RBI            = 0x80892962; //RBI for the AB
+static const u32 aAB_RBI            = 0x80893B9A; //RBI for the AB
 static const u32 aAB_FramesUnitlBallArrivesBatter  = 0x80890AF2;
 static const u32 aAB_TotalFramesOfPitch            = 0x80890AF4;
 
@@ -921,7 +921,6 @@ public:
     void logContactMiss(Event& in_event);
     void logContact(Event& in_event);
     void logPitch(Event& in_event);
-    void logPitchCoords(Event& in_event);
     void logContactResult(Contact* in_contact);
     void logFinalResults(Event& in_event);
     void logManualSelectLocks(Event& in_event);
@@ -959,7 +958,6 @@ public:
     std::string getStatJsonPath(std::string prefix);
 
     void initPlayerInfo();
-    bool newPitch();
 
     //If mid-game, dump game
     void dumpGame(){

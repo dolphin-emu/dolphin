@@ -32,7 +32,6 @@ void StatTracker::lookForTriggerEvents(){
                  && (Memory::Read_U8(aAB_BatterPort) != 0)                  //BatterPort initialized
                  && (Memory::Read_U8(aAB_Inning) != 0)                      //Inning initialized
                  && (Memory::Read_U8(aAB_IsReplay) == 0)){
-                 //&& ( (m_game_info.event_num == 0) || newPitch())){  //New batter is up or new team is up OR this is the first event
 
                     if (m_game_info.event_num == 0) {
                         initPlayerInfo();
@@ -164,16 +163,17 @@ void StatTracker::lookForTriggerEvents(){
                     }
                 }
                 //If the ball gets behind the batter, record ball position for visualization
-                if (!m_game_info.getCurrentEvent().pitch->logged 
-                && (Memory::Read_U16(aAB_FramesUnitlBallArrivesBatter) == 1)
-                && (Memory::Read_U8(aAB_PitcherHasCtrlofPitch) == 1)){
-                    logPitchCoords(m_game_info.getCurrentEvent());
+                if ((Memory::Read_U16(aAB_FramesUnitlBallArrivesBatter) == 1)
+                && (Memory::Read_U16(aAB_FramesUnitlBallArrivesBatter) != 0)){
+                    logPitch(m_game_info.getCurrentEvent());
+                    m_game_info.getCurrentEvent().pitch->logged = true;
+
                 }
                 //HBP or miss
                 if ((Memory::Read_U8(aAB_HitByPitch) == 1) || (Memory::Read_U8(aAB_PitchThrown) == 0)){
                     m_game_info.getCurrentEvent().result_of_atbat = Memory::Read_U8(aAB_FinalResult);
                     logContactMiss(m_game_info.getCurrentEvent()); //Strike or Swing or Bunt
-                    logPitch(m_game_info.getCurrentEvent());
+                    if (!m_game_info.getCurrentEvent().pitch->logged) { logPitch(m_game_info.getCurrentEvent()); }
                     m_event_state = EVENT_STATE::MONITOR_RUNNERS;
                 }
                 //Contact
@@ -686,10 +686,7 @@ void StatTracker::logPitch(Event& in_event){
     in_event.pitch->charge_type        = Memory::Read_U8(aAB_ChargePitchType);
     in_event.pitch->star_pitch         = ((Memory::Read_U8(aAB_StarPitch_NonCaptain) > 0) || (Memory::Read_U8(aAB_StarPitch_Captain) > 0));
     in_event.pitch->pitch_speed        = Memory::Read_U8(aAB_PitchSpeed);
-}
 
-void StatTracker::logPitchCoords(Event& in_event){
-    std::cout << "Logging Pitch coords" << std::endl;
     in_event.pitch->ball_x_pos_upon_hit = Memory::Read_U32(aAB_BallPos_X_Upon_Hit);
     in_event.pitch->ball_z_pos_upon_hit = Memory::Read_U32(aAB_BallPos_Z_Upon_Hit);
 
@@ -1704,28 +1701,6 @@ void StatTracker::initPlayerInfo(){
     }
 }
 
-/*
-bool StatTracker::newPitch(){
-    if (!m_game_info.previous_state.has_value()) { return true; }
-
-    u8 half_inning = (Memory::Read_U8(aAB_BatterPort) == m_game_info.away_port) ? 0 : 1;
-    
-    bool new_batter = (m_game_info.previous_state->runner_batter->roster_loc != Memory::Read_U8(aRunner_RosterLoc));
-    bool new_half_inning = m_game_info.previous_state->half_inning != half_inning;
-    bool new_count = ((m_game_info.previous_state->balls != Memory::Read_U8(aAB_Balls)
-                   || (m_game_info.previous_state->strikes != Memory::Read_U8(aAB_Strikes)));
-
-    if (new_batter) { std::cout << "New batter (" << std::to_string(m_game_info.previous_state->runner_batter->roster_loc)
-                                << "->" << std::to_string(Memory::Read_U8(aRunner_RosterLoc)) << std::endl; }
-    if (new_half_inning) { std::cout << "New half inning (" << std::to_string(m_game_info.previous_state->half_inning)
-                                     << "->" << std::to_string(half_inning) << std::endl; }
-    if (new_count) { std::cout << "New count (" << std::to_string(m_game_info.previous_state->balls) 
-                               << "/" <<std::to_string(m_game_info.previous_state->strikes)
-                               << "->" << std::to_string(Memory::Read_U8(aAB_Balls)) 
-                               << "/" <<  std::to_string(Memory::Read_U8(aAB_Strikes)) << std::endl; }
-    return (new_batter || new_half_inning || new_count);
-}
-*/
 std::optional<StatTracker::Runner> StatTracker::logRunnerInfo(u8 base){
     std::optional<Runner> runner;
     //See if there is a runner in this pos
