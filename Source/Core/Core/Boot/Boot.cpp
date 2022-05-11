@@ -16,6 +16,7 @@ namespace fs = std::filesystem;
 #include <numeric>
 #include <optional>
 #include <string>
+#include <regex>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -76,19 +77,26 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
     game_filename = game_path.substr(game_path.find_last_of('/'));
   //NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
 
-  std::string game_filename_lc = game_filename;
-  Common::ToLower(&game_filename_lc);  
+  //std::string game_filename_lc = game_filename;
+  //Common::ToLower(&game_filename_lc);  
   //NOTICE_LOG_FMT(BOOT, "game_filename_lc: {}", game_filename_lc);
-
-  if (game_filename_lc.find("disc") != std::string::npos)
+  std::regex str_expr ("(disc) *[0-9]{1}", std::regex_constants::icase);
+  if (std::regex_match(game_filename,str_expr))
   {
     int disc_num = 0;
     std::string line = game_filename;
+    
+    std::smatch matches;
+    std::regex_search(game_filename, matches, str_expr);
+    std::string disc_ref;
+    for (auto x : matches)
+      disc_ref = x;
+    
     while(true)
     {      
       disc_num++;
-      std::string disc_ref = game_filename.substr(game_filename_lc.find("disc "), 5);
-      line.replace( game_filename.find(disc_ref) + 5, 1, std::to_string( disc_num ));
+      //std::string disc_ref = game_filename.substr(game_filename_lc.find("disc "), 5);
+      line.replace( game_filename.find(disc_ref) + disc_ref.length()-1, 1, std::to_string( disc_num ));
 
 #ifdef HAS_STD_FILESYSTEM
       const std::string path_to_add = PathToString(StringToPath(folder_path) / StringToPath(line));
