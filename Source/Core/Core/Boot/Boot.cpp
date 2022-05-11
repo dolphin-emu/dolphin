@@ -72,9 +72,9 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   std::vector<std::string> result;
 
   std::string game_filename = (std::string) game_path;
-  if (game_path.find_last_of('/') != std::string::npos)
-    game_filename = game_path.substr(game_path.find_last_of('/'));
-  NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
+  //if (game_path.find_last_of('/') != std::string::npos)
+  //  game_filename = game_path.substr(game_path.find_last_of('/'));
+  //NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
 
   //std::string game_filename_lc = game_filename;
   //Common::ToLower(&game_filename_lc);  
@@ -262,14 +262,6 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
     SplitPath(paths.front(), nullptr, nullptr, &extension);
     Common::ToLower(&extension);
   }
-  else {
-    paths = ReadGameFile(paths.front(), folder_path);
-    if (!paths.empty())
-    {
-      SplitPath(paths.front(), nullptr, nullptr, &extension);
-      Common::ToLower(&extension);
-    }
-  }
 
   std::string path = paths.front();
   if (paths.size() == 1)
@@ -288,6 +280,14 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
+    paths = ReadGameFile(paths.front(), folder_path);
+    if (!paths.empty())
+    {
+      SplitPath(paths.front(), nullptr, nullptr, &extension);
+    }
+    if (paths.size() == 1)
+      paths.clear();
+    
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
     {
