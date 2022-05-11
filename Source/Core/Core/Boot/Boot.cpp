@@ -72,8 +72,8 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   std::vector<std::string> result;
 
   std::string game_filename = (std::string) game_path;
-  //if (game_path.find_last_of('/') != std::string::npos)
-  //  game_filename = game_path.substr(game_path.find_last_of('/'));
+  if (game_path.find_last_of('/') != std::string::npos)
+    game_filename = game_path.substr(game_path.find_last_of('/'));
   //NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
 
   //std::string game_filename_lc = game_filename;
