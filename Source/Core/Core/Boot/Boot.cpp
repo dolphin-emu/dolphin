@@ -288,15 +288,15 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   {
 
 #ifdef AUTODISC
-      NOTICE_LOG_FMT(BOOT, "MAIN_AUTO_DISC_CHANGE");
-      paths = ReadGameFile(paths.front(), folder_path);
-      if (!paths.empty())
-      {
-        path = paths.front();
-      }
-      if (paths.size() == 1)
-        paths.clear();
+    NOTICE_LOG_FMT(BOOT, "MAIN_AUTO_DISC_CHANGE");
+    paths = ReadGameFile(paths.front(), folder_path);
+    if (!paths.empty())
+    {
+      path = paths.front();
     }
+    if (paths.size() == 1)
+      paths.clear();
+
     NOTICE_LOG_FMT(BOOT, "path: {}", path);
 #endif
 
