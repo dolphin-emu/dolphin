@@ -244,7 +244,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
                                                                  BootSessionData boot_session_data_)
 {
   ASSERT(!paths.empty());
-
+  NOTICE_LOG_FMT(BOOT, "GenerateFromFile");
   const bool is_drive = Common::IsCDROMDevice(paths.front());
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
