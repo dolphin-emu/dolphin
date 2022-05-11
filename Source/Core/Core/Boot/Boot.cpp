@@ -80,7 +80,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   //std::string game_filename_lc = game_filename;
   //Common::ToLower(&game_filename_lc);  
   //NOTICE_LOG_FMT(BOOT, "game_filename_lc: {}", game_filename_lc);
-  std::regex str_expr ("(disc) *[0-9]{1}", std::regex_constants::icase);
+  std::regex str_expr ("(disc)\s*[0-9]{1}", std::regex_constants::icase);
   if (std::regex_match(game_filename,str_expr))
   {
     int disc_num = 0;
@@ -292,7 +292,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       if (!paths.empty())
       {
         path = paths.front();
-        SplitPath(paths.front(), nullptr, nullptr, &extension);
+        //SplitPath(paths.front(), nullptr, nullptr, &extension);
       }
       if (paths.size() == 1)
         paths.clear();
