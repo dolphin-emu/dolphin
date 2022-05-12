@@ -86,7 +86,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
     fprintf(stdout, "regex_match\n");
     int disc_num = 0;
     std::string line = game_filename;
-    std::string disc_ref = (std::string) matches[0].second;
+    std::string disc_ref = (std::string) matches[matches.size()-1].str();
 
     fprintf(stdout, "matches: %s\n", disc_ref.c_str());
 
