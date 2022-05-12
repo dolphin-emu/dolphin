@@ -245,6 +245,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 {
   ASSERT(!paths.empty());
   NOTICE_LOG_FMT(BOOT, "GenerateFromFile");
+  fprintf(stdout, "GenerateFromFile\n");
   const bool is_drive = Common::IsCDROMDevice(paths.front());
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
@@ -282,12 +283,6 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   }
 #endif
 
-  static const std::unordered_set<std::string> disc_image_extensions = {
-      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};
-  if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
-  {
-    NOTICE_LOG_FMT(BOOT, "original file: {}", path);
-
 #ifdef AUTODISC
     NOTICE_LOG_FMT(BOOT, "MAIN_AUTO_DISC_CHANGE");
     paths = ReadGameFile(paths.front(), folder_path);
@@ -300,6 +295,12 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
     NOTICE_LOG_FMT(BOOT, "path: {}", path);
 #endif
+
+  static const std::unordered_set<std::string> disc_image_extensions = {
+      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};
+  if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
+  {
+    NOTICE_LOG_FMT(BOOT, "original file: {}", path);
 
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
