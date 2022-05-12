@@ -63,7 +63,7 @@ namespace fs = std::filesystem;
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
-static std::vector<std::string> ReadGameFile(const std::string& game_path,
+static std::vector<std::string> ReadMultiFile(const std::string& game_path,
                                             const std::string& folder_path)
 {
 #ifndef HAS_STD_FILESYSTEM
@@ -72,24 +72,24 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
 
   std::vector<std::string> result;
 
-  fprintf(stdout, "game_path: %s\n", game_path.c_str());
+  //fprintf(stdout, "game_path: %s\n", game_path.c_str());
   std::string game_filename = (std::string) game_path;
   if (game_path.find_last_of('/') != std::string::npos)
     game_filename = game_path.substr(game_path.find_last_of('/')+1);
-  fprintf(stdout, "game_filename: %s\n", game_filename.c_str());
+  //fprintf(stdout, "game_filename: %s\n", game_filename.c_str());
   
 	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
   std::smatch matches;
-  fprintf(stdout, "here1\n");
+  //fprintf(stdout, "here1\n");
   std::regex_search(game_filename, matches, str_expr);
   if (matches.size() > 0)
   {
-    fprintf(stdout, "regex_match\n");
+    //fprintf(stdout, "regex_match\n");
     int disc_num = 0;
     std::string line = game_filename;
     std::string disc_ref = (std::string) matches[matches.size()-1].str();
 
-    fprintf(stdout, "matches: %s\n", disc_ref.c_str());
+    //fprintf(stdout, "matches: %s\n", disc_ref.c_str());
 
     while(true)
     {      
@@ -102,14 +102,14 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
       const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
 #endif
 
-      fprintf(stdout, "path_to_add: %s\n", path_to_add.c_str());
+      //fprintf(stdout, "path_to_add: %s\n", path_to_add.c_str());
       if (File::Exists(path_to_add))
         result.push_back(path_to_add);
       else
         break;
     }
   }
-  fprintf(stdout, "regex_no_match\n");
+  //fprintf(stdout, "regex_no_match\n");
   return result;
 }
 
@@ -272,13 +272,14 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
     SplitPath(paths.front(), nullptr, nullptr, &extension);
     Common::ToLower(&extension);
   }
+
 #ifdef AUTODISC
-  else
+  if (!(extension == ".m3u" || extension == ".m3u8"))
   {
     fprintf(stdout, "MAIN_AUTO_DISC_CHANGE\n");
-    std::vector<std::string> paths_tmp = ReadGameFile(paths.front(), folder_path);
+    std::vector<std::string> paths_tmp = ReadMultiFile(paths.front(), folder_path);
     if (!paths_tmp.empty()) {
-      fprintf(stdout, "path: %s\n", paths.front().c_str());
+      //fprintf(stdout, "path: %s\n", paths.front().c_str());
       paths = paths_tmp;
     }
   }
@@ -301,7 +302,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
       {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz", ".wia", ".rvz", ".dol", ".elf"}};
   if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
   {
-    fprintf(stdout, "path file: %s\n", path.c_str());
+    //fprintf(stdout, "path file: %s\n", path.c_str());
 
     std::unique_ptr<DiscIO::VolumeDisc> disc = DiscIO::CreateDisc(path);
     if (disc)
