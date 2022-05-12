@@ -277,10 +277,10 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   {
     fprintf(stdout, "MAIN_AUTO_DISC_CHANGE\n");
     std::vector<std::string> paths_tmp = ReadGameFile(paths.front(), folder_path);
-  }
-  if (!paths_tmp.empty()) {
-    fprintf(stdout, "path: %s\n", paths.front().c_str());
-    paths = paths_tmp;
+    if (!paths_tmp.empty()) {
+      fprintf(stdout, "path: %s\n", paths.front().c_str());
+      paths = paths_tmp;
+    }
   }
 #endif
 
