@@ -985,7 +985,16 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   {
     const std::string savestate_path_temp = movie_path + ".sav";
     if (File::Exists(savestate_path_temp))
+    {
       *savestate_path = savestate_path_temp;
+    }
+    else
+    {
+      PanicAlertFmtT("Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
+                     "The movie will likely not sync!",
+                     movie_path, savestate_path_temp);
+    }
+
     s_bRecordingFromSaveState = true;
     Movie::LoadInput(movie_path);
   }

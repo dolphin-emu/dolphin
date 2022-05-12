@@ -37,10 +37,12 @@ enum class Slot : int
   B,
   SP1,
 };
-static constexpr auto SLOTS = {Slot::A, Slot::B, Slot::SP1};
-static constexpr auto MAX_SLOT = Slot::SP1;
-static constexpr auto MEMCARD_SLOTS = {Slot::A, Slot::B};
-static constexpr auto MAX_MEMCARD_SLOT = Slot::B;
+// Note: using auto here results in a false warning on GCC
+// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80351
+constexpr std::initializer_list<Slot> SLOTS = {Slot::A, Slot::B, Slot::SP1};
+constexpr auto MAX_SLOT = Slot::SP1;
+constexpr std::initializer_list<Slot> MEMCARD_SLOTS = {Slot::A, Slot::B};
+constexpr auto MAX_MEMCARD_SLOT = Slot::B;
 constexpr bool IsMemcardSlot(Slot slot)
 {
   return slot == Slot::A || slot == Slot::B;

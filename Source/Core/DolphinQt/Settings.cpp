@@ -155,22 +155,6 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
             .arg(border_color.rgba(), 0, 16);
     stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
   }
-#ifdef _WIN32
-  // MSVC has a bug causing QTabBar scroll buttons to be partially transparent when they inherit any
-  // stylesheet (see https://bugreports.qt.io/browse/QTBUG-74187) which is triggered when setting
-  // qApp's stylesheet below. Setting the scroll buttons' color directly fixes the problem.
-
-  // Create a temporary QToolButton that's a child of a QTabBar in case that has different styling
-  // than a plain QToolButton.
-  const auto tab_bar = std::make_unique<QTabBar>();
-  auto* const tool_button = new QToolButton(tab_bar.get());
-
-  const QRgb background_color = tool_button->palette().color(QPalette::Button).rgba();
-
-  const std::string style_var =
-      fmt::format("QTabBar QToolButton {{ background-color: #{:08x}; }}", background_color);
-  stylesheet_contents.append(QString::fromStdString(style_var));
-#endif
 
   qApp->setStyleSheet(stylesheet_contents);
 
