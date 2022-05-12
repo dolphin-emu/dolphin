@@ -26,12 +26,13 @@ void StatTracker::lookForTriggerEvents(){
             case (EVENT_STATE::INIT):
                 //Create new event, collect runner data
                 //Game is live (not inbetween innings), and has been initialized
-                if ((m_game_info.event_init_frame_buffer == 0)
+                if (((m_game_info.event_init_frame_buffer == 0)
                  && (Memory::Read_U8(aAB_GameIsLive) == 1)                  //Not at pause menu or inbetween innings
                  && (Memory::Read_U8(aAB_PlayIsReadyToStart) == 1)          //Pitcher ready to pitch, vars initialized
                  && (Memory::Read_U8(aAB_BatterPort) != 0)                  //BatterPort initialized
                  && (Memory::Read_U8(aAB_Inning) != 0)                      //Inning initialized
-                 && (Memory::Read_U8(aAB_IsReplay) == 0)){
+                 && (Memory::Read_U8(aAB_IsReplay) == 0))
+                 ||  Memory::Read_U8(aAB_PitchThrown)){
 
                     if (m_game_info.event_num == 0) {
                         initPlayerInfo();
@@ -56,12 +57,7 @@ void StatTracker::lookForTriggerEvents(){
                         m_fielder_tracker[team_id].initTracker(team_id);
                         m_fielder_tracker[team_id].prev_batter_roster_loc = Memory::Read_U8(aAB_BatterRosterID);
                     }
-                    if (Memory::Read_U8(aAB_BatterRosterID) != m_fielder_tracker[team_id].prev_batter_roster_loc) {
-                        std::cout << "BatterSwitch. Team=" << std::to_string(team_id) << std::endl;
-                        m_fielder_tracker[team_id].prev_batter_roster_loc = Memory::Read_U8(aAB_BatterRosterID);
-                        m_fielder_tracker[team_id].newBatter();
-                    }
-
+                    
                     //Produce HUD file
                     std::string hud_file_path = File::GetUserPath(D_HUDFILES_IDX) + "decoded.hud.json";
                     std::string json = getHUDJSON(std::to_string(m_game_info.event_num) + "a", m_game_info.getCurrentEvent(), m_game_info.previous_state, true);
@@ -69,46 +65,45 @@ void StatTracker::lookForTriggerEvents(){
                     File::WriteStringToFile(hud_file_path, json);
                     std::cout << "Init HUD" << std::endl;
 
+                    //If we had to rely on pitch being thrown to bail us out print why
+                    if (Memory::Read_U8(aAB_PitchThrown)){
+                        std::cout << "  Frame=" << std::to_string(m_game_info.event_init_frame_buffer) << std::endl;
+                        std::cout << "  Live=" << std::to_string(Memory::Read_U8(aAB_GameIsLive)) << ":1" << std::endl;
+                        std::cout << "  Actionable=" << std::to_string(Memory::Read_U8(aAB_PlayIsReadyToStart)) << ":1" << std::endl;
+                        std::cout << "  BatterPort=" << std::to_string(Memory::Read_U8(aAB_BatterPort)) << std::endl;
+                        std::cout << "  Inning=" << std::to_string(Memory::Read_U8(aAB_Inning)) << std::endl;
+                        std::cout << "  Replay=" << std::to_string(Memory::Read_U8(aAB_IsReplay)) << ":0" << std::endl;
+                    }
+
                     m_event_state = EVENT_STATE::WAITING_FOR_EVENT;
                 }
                 else if (Memory::Read_U8(aEndOfGameFlag) == 1){
                     m_event_state = EVENT_STATE::GAME_OVER;
                 }
 
-                if (m_game_info.event_init_frame_buffer > 0) { --m_game_info.event_init_frame_buffer; }
+                if (m_game_info.event_init_frame_buffer > 0) { 
+                    --m_game_info.event_init_frame_buffer;
+                    std::cout << "  Frame=" << std::to_string(m_game_info.event_init_frame_buffer) << std::endl; 
+                }
+
+                //If game is quit before the init
+                if (Memory::Read_U32(aGameId) == 0){
+                    onGameQuit();
+                    m_event_state = EVENT_STATE::GAME_OVER;
+                    m_game_state = GAME_STATE::ENDGAME_LOGGED;
+                    break;
+                }
+
                 break;
             //Look for Pitch
             case (EVENT_STATE::WAITING_FOR_EVENT):
                 //Handle quit to main menu
                 if (Memory::Read_U32(aGameId) == 0){
-                    u8 quitter_port = Memory::Read_U8(aWhoQuit);
-                    m_game_info.quitter_team = (quitter_port == m_game_info.away_port);
-                    logGameInfo();
+                    onGameQuit();
 
-                    std::cout << "Quit detected" << std::endl;
-
-                    //Game has ended. Write file but do not submit
-                    std::string jsonPath = getStatJsonPath("quit.decode.");
-                    std::string json = getStatJSON(true);
-                    
-                    File::WriteStringToFile(jsonPath, json);
-
-                    jsonPath = getStatJsonPath("quit.");
-                    json = getStatJSON(false);
-                    
-                    File::WriteStringToFile(jsonPath, json);
-                    const Common::HttpRequest::Response response =
-                    m_http.Post("http://127.0.0.1:5000/populate_db/", json,
-                        {
-                            {"Content-Type", "application/json"},
-                        }
-                    );
-
-                    //Clean up partial files
-                    jsonPath = getStatJsonPath("partial.");
-                    File::Delete(jsonPath);
-                    jsonPath = getStatJsonPath("partial.decoded.");
-                    File::Delete(jsonPath);
+                    //Remove current event, wasn't finished
+                    auto it = m_game_info.events.find(m_game_info.event_num);
+                    m_game_info.events.erase(it);
 
                     m_event_state = EVENT_STATE::GAME_OVER;
                     m_game_state = GAME_STATE::ENDGAME_LOGGED;
@@ -1699,6 +1694,37 @@ void StatTracker::initPlayerInfo(){
         m_game_info.team0_captain_roster_loc = Memory::Read_U8(aTeam0_Captain_Roster_Loc);
         m_game_info.team1_captain_roster_loc = Memory::Read_U8(aTeam1_Captain_Roster_Loc);
     }
+}
+
+void StatTracker::onGameQuit(){
+    u8 quitter_port = Memory::Read_U8(aWhoQuit);
+    m_game_info.quitter_team = (quitter_port == m_game_info.away_port);
+    logGameInfo();
+
+    std::cout << "Quit detected" << std::endl;
+
+    //Game has ended. Write file but do not submit
+    std::string jsonPath = getStatJsonPath("quit.decode.");
+    std::string json = getStatJSON(true);
+    
+    File::WriteStringToFile(jsonPath, json);
+
+    jsonPath = getStatJsonPath("quit.");
+    json = getStatJSON(false);
+    
+    File::WriteStringToFile(jsonPath, json);
+    const Common::HttpRequest::Response response =
+    m_http.Post("http://127.0.0.1:5000/populate_db/", json,
+        {
+            {"Content-Type", "application/json"},
+        }
+    );
+
+    //Clean up partial files
+    jsonPath = getStatJsonPath("partial.");
+    File::Delete(jsonPath);
+    jsonPath = getStatJsonPath("partial.decoded.");
+    File::Delete(jsonPath);
 }
 
 std::optional<StatTracker::Runner> StatTracker::logRunnerInfo(u8 base){

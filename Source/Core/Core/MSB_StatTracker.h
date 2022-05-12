@@ -725,7 +725,7 @@ public:
 
         //Buffer used to delay the event init by num of frames (60 for now)
         u8 event_init_frame_buffer = 0;
-        u8 cNumOfFramesBeforeEventInit = 60;
+        u8 cNumOfFramesBeforeEventInit = 20;
 
         std::map<int, LocalPlayers::LocalPlayers::Player> NetplayerUserInfo;  // int is port
 
@@ -924,6 +924,9 @@ public:
     void logContactResult(Contact* in_contact);
     void logFinalResults(Event& in_event);
     void logManualSelectLocks(Event& in_event);
+
+    //Quit function
+    void onGameQuit();
 
     //RunnerInfo
     std::optional<Runner> logRunnerInfo(u8 base);
