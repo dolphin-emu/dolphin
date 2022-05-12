@@ -16,6 +16,7 @@ namespace fs = std::filesystem;
 #include <numeric>
 #include <optional>
 #include <string>
+#include <regex>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -61,6 +62,50 @@ namespace fs = std::filesystem;
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
+
+#ifdef MULTIDISC
+static std::vector<std::string> ReadMultiFile(const std::string& game_path,
+                                            const std::string& folder_path)
+{
+#ifndef HAS_STD_FILESYSTEM
+  ASSERT(folder_path.back() == '/');
+#endif
+
+  std::vector<std::string> result;
+
+  std::string game_filename = (std::string) game_path;
+  if (game_path.find_last_of('/') != std::string::npos)
+    game_filename = game_path.substr(game_path.find_last_of('/')+1);
+
+	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
+  std::smatch matches;
+  std::regex_search(game_filename, matches, str_expr);
+  if (matches.size() > 0)
+  {
+    int disc_num = 0;
+    std::string line = game_filename;
+    std::string disc_ref = (std::string) matches[matches.size()-1].str();
+
+    while(true)
+    {
+      disc_num++;
+      line.replace( game_filename.find(disc_ref) + disc_ref.length()-1, 1, std::to_string( disc_num ));
+
+#ifdef HAS_STD_FILESYSTEM
+      const std::string path_to_add = PathToString(StringToPath(folder_path) / StringToPath(line));
+#else
+      const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
+#endif
+
+      if (File::Exists(path_to_add))
+        result.push_back(path_to_add);
+      else
+        break;
+    }
+  }
+  return result;
+}
+#endif
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
@@ -216,6 +261,16 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
     SplitPath(paths.front(), nullptr, nullptr, &extension);
     Common::ToLower(&extension);
   }
+
+#ifdef MULTIDISC
+  if (!(extension == ".m3u" || extension == ".m3u8"))
+  {
+    std::vector<std::string> paths_tmp = ReadMultiFile(paths.front(), folder_path);
+    if (!paths_tmp.empty()) {
+      paths = paths_tmp;
+    }
+  }
+#endif
 
   std::string path = paths.front();
   if (paths.size() == 1)
