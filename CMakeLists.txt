@@ -51,7 +51,7 @@ option(ENABLE_VULKAN "Enables vulkan video backend" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
-option(ENABLE_AUTODISC "Enables support for automatic disc loading" OFF)
+option(ENABLE_MULTIDISC "Enables support for automatic multiple disc loading" OFF)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -434,9 +434,9 @@ if(ENABLE_HEADLESS)
   set(USE_DISCORD_PRESENCE 0)
 endif()
 
-if(ENABLE_AUTODISC)
+if(ENABLE_MULTIDISC)
   message(STATUS "Enabling automatic disc loading support")
-  add_definitions(-DAUTODISC=1)
+  add_definitions(-DMULTIDISC=1)
 endif()
 
 # Set file offset size to 64 bits.

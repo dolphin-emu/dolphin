@@ -63,6 +63,7 @@ namespace fs = std::filesystem;
 #include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
+#ifdef MULTIDISC
 static std::vector<std::string> ReadMultiFile(const std::string& game_path,
                                             const std::string& folder_path)
 {
@@ -112,7 +113,7 @@ static std::vector<std::string> ReadMultiFile(const std::string& game_path,
   //fprintf(stdout, "regex_no_match\n");
   return result;
 }
-
+#endif
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
                                             const std::string& folder_path)
@@ -273,7 +274,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
     Common::ToLower(&extension);
   }
 
-#ifdef AUTODISC
+#ifdef MULTIDISC
   if (!(extension == ".m3u" || extension == ".m3u8"))
   {
     fprintf(stdout, "MAIN_AUTO_DISC_CHANGE\n");
