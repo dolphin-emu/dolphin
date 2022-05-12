@@ -72,11 +72,11 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
 
   std::vector<std::string> result;
 
-  NOTICE_LOG_FMT(BOOT, "game_path: {}", game_path);
+  fprintf(stdout, "game_path: %s\n", game_path);
   std::string game_filename = (std::string) game_path;
   if (game_path.find_last_of('/') != std::string::npos)
     game_filename = game_path.substr(game_path.find_last_of('/'));
-  NOTICE_LOG_FMT(BOOT, "game_filename: {}", game_filename);
+  fprintf(stdout, "game_filename: %s\n", game_filename);
   
 	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
   if (std::regex_match(game_filename,str_expr))
@@ -89,7 +89,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
     std::string disc_ref;
     for (auto x : matches) {
       disc_ref = x;
-      NOTICE_LOG_FMT(BOOT, "matches: {}", disc_ref);
+      fprintf(stdout, "matches: %s\n", disc_ref);
     }
 
     while(true)
@@ -103,7 +103,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
       const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
 #endif
 
-      NOTICE_LOG_FMT(BOOT, "path_to_add: {}", path_to_add);
+      fprintf(stdout, "path_to_add: %s\n", path_to_add);
       if (File::Exists(path_to_add))
         result.push_back(path_to_add);
       else
@@ -244,7 +244,7 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
                                                                  BootSessionData boot_session_data_)
 {
   ASSERT(!paths.empty());
-  NOTICE_LOG_FMT(BOOT, "GenerateFromFile");
+  //NOTICE_LOG_FMT(BOOT, "GenerateFromFile");
   fprintf(stdout, "GenerateFromFile\n");
   const bool is_drive = Common::IsCDROMDevice(paths.front());
   // Check if the file exist, we may have gotten it from a --elf command line
@@ -260,8 +260,8 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   SplitPath(paths.front(), &folder_path, nullptr, &extension);
   Common::ToLower(&extension);
   
-  NOTICE_LOG_FMT(BOOT, "file: {}", paths.front());
-  NOTICE_LOG_FMT(BOOT, "extension: {}", extension);
+  fprintf(stdout, "file: %s\n", paths.front());
+  fprintf(stdout, "extension: %s\n", extension);
   
   if (extension == ".m3u" || extension == ".m3u8")
   {
@@ -272,6 +272,20 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
     SplitPath(paths.front(), nullptr, nullptr, &extension);
     Common::ToLower(&extension);
   }
+#ifdef AUTODISC
+  else
+  {
+    fprintf(stdout, "MAIN_AUTO_DISC_CHANGE\n");
+    paths = ReadGameFile(paths.front(), folder_path);
+    if (!paths.empty())
+    {
+      path = paths.front();
+    }
+    if (paths.size() == 1)
+      paths.clear();
+  }
+  fprintf(stdout, "path: %s\n", path);
+#endif
 
   std::string path = paths.front();
   if (paths.size() == 1)
@@ -284,19 +298,6 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
     SplitPath(display_name, nullptr, nullptr, &extension);
     Common::ToLower(&extension);
   }
-#endif
-
-#ifdef AUTODISC
-    NOTICE_LOG_FMT(BOOT, "MAIN_AUTO_DISC_CHANGE");
-    paths = ReadGameFile(paths.front(), folder_path);
-    if (!paths.empty())
-    {
-      path = paths.front();
-    }
-    if (paths.size() == 1)
-      paths.clear();
-
-    NOTICE_LOG_FMT(BOOT, "path: {}", path);
 #endif
 
   static const std::unordered_set<std::string> disc_image_extensions = {
