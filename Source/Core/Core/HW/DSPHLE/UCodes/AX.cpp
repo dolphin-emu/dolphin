@@ -291,42 +291,33 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
   // TODO: find other UCode versions with different mixer_control values
   if (m_crc == 0x4e8a8b21)
   {
-    ret |= MIX_L | MIX_R;
+    ret |= MIX_MAIN_L | MIX_MAIN_R;
     if (mixer_control & 0x0001)
       ret |= MIX_AUXA_L | MIX_AUXA_R;
     if (mixer_control & 0x0002)
       ret |= MIX_AUXB_L | MIX_AUXB_R;
     if (mixer_control & 0x0004)
     {
-      ret |= MIX_S;
+      ret |= MIX_MAIN_S;
       if (ret & MIX_AUXA_L)
         ret |= MIX_AUXA_S;
       if (ret & MIX_AUXB_L)
         ret |= MIX_AUXB_S;
     }
     if (mixer_control & 0x0008)
-    {
-      ret |= MIX_L_RAMP | MIX_R_RAMP;
-      if (ret & MIX_AUXA_L)
-        ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
-      if (ret & MIX_AUXB_L)
-        ret |= MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
-      if (ret & MIX_AUXA_S)
-        ret |= MIX_AUXA_S_RAMP;
-      if (ret & MIX_AUXB_S)
-        ret |= MIX_AUXB_S_RAMP;
-    }
+      ret |= MIX_ALL_RAMPS;
   }
   else
   {
+    // newer GameCube ucodes
     if (mixer_control & 0x0001)
-      ret |= MIX_L;
+      ret |= MIX_MAIN_L;
     if (mixer_control & 0x0002)
-      ret |= MIX_R;
+      ret |= MIX_MAIN_R;
     if (mixer_control & 0x0004)
-      ret |= MIX_S;
+      ret |= MIX_MAIN_S;
     if (mixer_control & 0x0008)
-      ret |= MIX_L_RAMP | MIX_R_RAMP | MIX_S_RAMP;
+      ret |= MIX_MAIN_L_RAMP | MIX_MAIN_R_RAMP | MIX_MAIN_S_RAMP;
     if (mixer_control & 0x0010)
       ret |= MIX_AUXA_L;
     if (mixer_control & 0x0020)
