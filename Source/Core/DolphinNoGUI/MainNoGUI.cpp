@@ -188,7 +188,6 @@ int main(int argc, char* argv[])
 
   std::unique_ptr<BootParameters> boot;
   bool game_specified = false;
-
   if (options.is_set("exec"))
   {
     const std::list<std::string> paths_list = options.all("exec");

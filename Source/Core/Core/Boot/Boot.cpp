@@ -73,24 +73,18 @@ static std::vector<std::string> ReadMultiFile(const std::string& game_path,
 
   std::vector<std::string> result;
 
-  //fprintf(stdout, "game_path: %s\n", game_path.c_str());
   std::string game_filename = (std::string) game_path;
   if (game_path.find_last_of('/') != std::string::npos)
     game_filename = game_path.substr(game_path.find_last_of('/')+1);
-  //fprintf(stdout, "game_filename: %s\n", game_filename.c_str());
   
 	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
   std::smatch matches;
-  //fprintf(stdout, "here1\n");
   std::regex_search(game_filename, matches, str_expr);
   if (matches.size() > 0)
   {
-    //fprintf(stdout, "regex_match\n");
     int disc_num = 0;
     std::string line = game_filename;
     std::string disc_ref = (std::string) matches[matches.size()-1].str();
-
-    //fprintf(stdout, "matches: %s\n", disc_ref.c_str());
 
     while(true)
     {      
@@ -103,14 +97,12 @@ static std::vector<std::string> ReadMultiFile(const std::string& game_path,
       const std::string path_to_add = line.front() != '/' ? folder_path + line : line;
 #endif
 
-      //fprintf(stdout, "path_to_add: %s\n", path_to_add.c_str());
       if (File::Exists(path_to_add))
         result.push_back(path_to_add);
       else
         break;
     }
   }
-  //fprintf(stdout, "regex_no_match\n");
   return result;
 }
 #endif
@@ -245,8 +237,6 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
                                                                  BootSessionData boot_session_data_)
 {
   ASSERT(!paths.empty());
-  //NOTICE_LOG_FMT(BOOT, "GenerateFromFile");
-  fprintf(stdout, "GenerateFromFile\n");
   const bool is_drive = Common::IsCDROMDevice(paths.front());
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
@@ -261,9 +251,6 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   SplitPath(paths.front(), &folder_path, nullptr, &extension);
   Common::ToLower(&extension);
   
-  fprintf(stdout, "file: %s\n", paths.front().c_str());
-  fprintf(stdout, "extension: %s\n", extension.c_str());
-  
   if (extension == ".m3u" || extension == ".m3u8")
   {
     paths = ReadM3UFile(paths.front(), folder_path);
@@ -277,10 +264,8 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 #ifdef MULTIDISC
   if (!(extension == ".m3u" || extension == ".m3u8"))
   {
-    fprintf(stdout, "MAIN_AUTO_DISC_CHANGE\n");
     std::vector<std::string> paths_tmp = ReadMultiFile(paths.front(), folder_path);
     if (!paths_tmp.empty()) {
-      //fprintf(stdout, "path: %s\n", paths.front().c_str());
       paths = paths_tmp;
     }
   }
