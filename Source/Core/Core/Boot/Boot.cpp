@@ -79,21 +79,16 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   fprintf(stdout, "game_filename: %s\n", game_filename.c_str());
   
 	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
-  if (std::regex_match(game_filename.c_str(),str_expr))
+  std::smatch matches;
+  std::regex_search(game_filename, matches, str_expr);
+  if (matches.size() > 0)
   {
     fprintf(stdout, "regex_match\n");
     int disc_num = 0;
     std::string line = game_filename;
-
-    std::smatch matches;
-    std::regex_search(game_filename.c_str(), matches, str_expr);
-    std::string disc_ref;
-    //for (auto x : matches) {
-    if (matches.size() > 0)
-      disc_ref = (std::string) matches.str(matches.size()-1);
+    std::string disc_ref = (std::string) matches.str(matches.size()-1);
 
     fprintf(stdout, "matches: %s\n", disc_ref.c_str());
-    //}
 
     while(true)
     {      
