@@ -152,7 +152,7 @@ void StatTracker::lookForTriggerEvents(){
                 //If the pitcher started in the center of the mound this is a potential DB
                 //If the ball curves at any point it is no longer a DB
                 if (m_game_info.getCurrentEvent().pitch->potential_db && (Memory::Read_U8(aAB_PitcherHasCtrlofPitch) == 1)) {
-                    if (Memory::Read_U32(aAB_PitchCurveInput) != 0) {
+                    if (floatConverter(Memory::Read_U32(aAB_PitchCurveInput)) != 0) {
                         std::cout << "No longer potential DB!" << std::endl;
                         m_game_info.getCurrentEvent().pitch->potential_db = false;
                     }
