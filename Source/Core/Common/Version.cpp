@@ -16,7 +16,7 @@ namespace Common
 #else
 #define BUILD_TYPE_STR ""
 #endif
-#define RIO_REV_STR "0.1.7.a"
+#define RIO_REV_STR "0.1.8"
 
 const std::string& GetScmRevStr()
 {
