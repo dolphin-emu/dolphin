@@ -80,6 +80,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
   
 	std::regex str_expr (".*(disc\\s*\\d)[^\\d]{0,1}.*", std::regex_constants::icase);
   std::smatch matches;
+  fprintf(stdout, "here1\n");
   std::regex_search(game_filename, matches, str_expr);
   if (matches.size() > 0)
   {
@@ -108,6 +109,7 @@ static std::vector<std::string> ReadGameFile(const std::string& game_path,
         break;
     }
   }
+  fprintf(stdout, "regex_no_match\n");
   return result;
 }
 
@@ -274,10 +276,12 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   else
   {
     fprintf(stdout, "MAIN_AUTO_DISC_CHANGE\n");
-    paths = ReadGameFile(paths.front(), folder_path);
+    std::vector<std::string> paths_tmp = ReadGameFile(paths.front(), folder_path);
   }
-  if (!paths.empty())
+  if (!paths_tmp.empty()) {
     fprintf(stdout, "path: %s\n", paths.front().c_str());
+    paths = paths_tmp;
+  }
 #endif
 
   std::string path = paths.front();
