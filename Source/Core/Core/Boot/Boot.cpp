@@ -259,7 +259,10 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
   std::string extension;
   SplitPath(paths.front(), &folder_path, nullptr, &extension);
   Common::ToLower(&extension);
-
+  
+  NOTICE_LOG_FMT(BOOT, "file: {}", path.front());
+  NOTICE_LOG_FMT(BOOT, "extension: {}", extension);
+  
   if (extension == ".m3u" || extension == ".m3u8")
   {
     paths = ReadM3UFile(paths.front(), folder_path);
