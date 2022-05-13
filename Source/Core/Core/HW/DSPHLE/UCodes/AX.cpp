@@ -291,18 +291,31 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
   // TODO: find other UCode versions with different mixer_control values
   if (m_crc == 0x4e8a8b21)
   {
-    ret |= MIX_MAIN_L | MIX_MAIN_R;
-    if (mixer_control & 0x0001)
-      ret |= MIX_AUXA_L | MIX_AUXA_R;
-    if (mixer_control & 0x0002)
-      ret |= MIX_AUXB_L | MIX_AUXB_R;
-    if (mixer_control & 0x0004)
+    if (mixer_control & 0x0010)
     {
-      ret |= MIX_MAIN_S;
-      if (ret & MIX_AUXA_L)
-        ret |= MIX_AUXA_S;
-      if (ret & MIX_AUXB_L)
-        ret |= MIX_AUXB_S;
+      // DPL2 mixing
+      ret |= MIX_MAIN_L | MIX_MAIN_R;
+      if ((mixer_control & 0x0006) == 0)
+        ret |= MIX_AUXB_L | MIX_AUXB_R;
+      if ((mixer_control & 0x0007) == 1)
+        ret |= MIX_AUXA_L | MIX_AUXA_R | MIX_AUXA_S;
+    }
+    else
+    {
+      // non-DPL2 mixing
+      ret |= MIX_MAIN_L | MIX_MAIN_R;
+      if (mixer_control & 0x0001)
+        ret |= MIX_AUXA_L | MIX_AUXA_R;
+      if (mixer_control & 0x0002)
+        ret |= MIX_AUXB_L | MIX_AUXB_R;
+      if (mixer_control & 0x0004)
+      {
+        ret |= MIX_MAIN_S;
+        if (ret & MIX_AUXA_L)
+          ret |= MIX_AUXA_S;
+        if (ret & MIX_AUXB_L)
+          ret |= MIX_AUXB_S;
+      }
     }
     if (mixer_control & 0x0008)
       ret |= MIX_ALL_RAMPS;
@@ -318,6 +331,7 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
       ret |= MIX_MAIN_S;
     if (mixer_control & 0x0008)
       ret |= MIX_MAIN_L_RAMP | MIX_MAIN_R_RAMP | MIX_MAIN_S_RAMP;
+
     if (mixer_control & 0x0010)
       ret |= MIX_AUXA_L;
     if (mixer_control & 0x0020)
@@ -328,6 +342,7 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
       ret |= MIX_AUXA_S;
     if (mixer_control & 0x0100)
       ret |= MIX_AUXA_S_RAMP;
+
     if (mixer_control & 0x0200)
       ret |= MIX_AUXB_L;
     if (mixer_control & 0x0400)
@@ -340,6 +355,8 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
       ret |= MIX_AUXB_S_RAMP;
 
     // TODO: 0x4000 is used for Dolby Pro 2 sound mixing
+    // It selects the input surround channel for all AUXB mixing channels.
+    // This will only matter once we have ITD support.
   }
 
   return (AXMixControl)ret;
