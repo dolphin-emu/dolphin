@@ -57,9 +57,9 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   {
     out.Write("ATTRIBUTE_LOCATION({}) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
     out.Write("ATTRIBUTE_LOCATION({}) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnorm0;\n", SHADER_NORM0_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnorm1;\n", SHADER_NORM1_ATTRIB);
-    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawnormal;\n", SHADER_NORMAL_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawtangent;\n", SHADER_TANGENT_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION({}) in float3 rawbinormal;\n", SHADER_BINORMAL_ATTRIB);
     out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor0;\n", SHADER_COLOR0_ATTRIB);
     out.Write("ATTRIBUTE_LOCATION({}) in float4 rawcolor1;\n", SHADER_COLOR1_ATTRIB);
     for (int i = 0; i < 8; ++i)
@@ -106,9 +106,9 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
     out.Write("VS_OUTPUT main(\n");
 
     // inputs
-    out.Write("  float3 rawnorm0 : NORMAL0,\n"
-              "  float3 rawnorm1 : NORMAL1,\n"
-              "  float3 rawnorm2 : NORMAL2,\n"
+    out.Write("  float3 rawnormal : NORMAL,\n"
+              "  float3 rawtangent : TANGENT,\n"
+              "  float3 rawbinormal : BINORMAL,\n"
               "  float4 rawcolor0 : COLOR0,\n"
               "  float4 rawcolor1 : COLOR1,\n");
     for (int i = 0; i < 8; ++i)
@@ -131,7 +131,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "float3 N1;\n"
             "float3 N2;\n"
             "\n"
-            "if ((components & {}u) != 0u) {{// VB_HAS_POSMTXIDX\n",
+            "if ((components & {}u) != 0u) {{ // VB_HAS_POSMTXIDX\n",
             VB_HAS_POSMTXIDX);
   out.Write("  // Vertex format has a per-vertex matrix\n"
             "  int posidx = int(posmtx.r);\n"
@@ -153,26 +153,38 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "  N2 = " I_POSNORMALMATRIX "[5].xyz;\n"
             "}}\n"
             "\n"
+            "// Multiply the position vector by the position matrix\n"
             "float4 pos = float4(dot(P0, rawpos), dot(P1, rawpos), dot(P2, rawpos), 1.0);\n"
             "o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
             "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n"
             "\n"
-            "// Only the first normal gets normalized (TODO: why?)\n"
-            "float3 _norm0 = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_NRM0\n",
-            VB_HAS_NRM0);
-  out.Write(
-      "  _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0)));\n"
-      "\n"
-      "float3 _norm1 = float3(0.0, 0.0, 0.0);\n"
-      "if ((components & {}u) != 0u) // VB_HAS_NRM1\n",
-      VB_HAS_NRM1);
-  out.Write("  _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n"
+            "// The scale of the transform matrix is used to control the size of the emboss map\n"
+            "// effect by changing the scale of the transformed binormals (which only get used by\n"
+            "// emboss map texgens). By normalising the first transformed normal (which is used\n"
+            "// by lighting calculations and needs to be unit length), the same transform matrix\n"
+            "// can do double duty, scaling for emboss mapping, and not scaling for lighting.\n"
+            "float3 _normal = float3(0.0, 0.0, 0.0);\n"
+            "if ((components & {}u) != 0u) // VB_HAS_NORMAL\n",
+            VB_HAS_NORMAL);
+  out.Write("  _normal = normalize(float3(dot(N0, rawnormal), dot(N1, rawnormal), dot(N2, "
+            "rawnormal)));\n"
             "\n"
-            "float3 _norm2 = float3(0.0, 0.0, 0.0);\n"
-            "if ((components & {}u) != 0u) // VB_HAS_NRM2\n",
-            VB_HAS_NRM2);
-  out.Write("  _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n"
+            "float3 _tangent = float3(0.0, 0.0, 0.0);\n"
+            "if ((components & {}u) != 0u) // VB_HAS_TANGENT\n",
+            VB_HAS_TANGENT);
+  out.Write("  _tangent = float3(dot(N0, rawtangent), dot(N1, rawtangent), dot(N2, rawtangent));\n"
+            "else\n"
+            "  _tangent = float3(dot(N0, " I_CACHED_TANGENT ".xyz), dot(N1, " I_CACHED_TANGENT
+            ".xyz), dot(N2, " I_CACHED_TANGENT ".xyz));\n"
+            "\n"
+            "float3 _binormal = float3(0.0, 0.0, 0.0);\n"
+            "if ((components & {}u) != 0u) // VB_HAS_BINORMAL\n",
+            VB_HAS_BINORMAL);
+  out.Write("  _binormal = float3(dot(N0, rawbinormal), dot(N1, rawbinormal), dot(N2, "
+            "rawbinormal));\n"
+            "else\n"
+            "  _binormal = float3(dot(N0, " I_CACHED_BINORMAL ".xyz), dot(N1, " I_CACHED_BINORMAL
+            ".xyz), dot(N2, " I_CACHED_BINORMAL ".xyz));\n"
             "\n");
 
   // Hardware Lighting
@@ -208,7 +220,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "}}\n"
             "\n");
 
-  WriteVertexLighting(out, api_type, "pos.xyz", "_norm0", "vertex_color_0", "vertex_color_1",
+  WriteVertexLighting(out, api_type, "pos.xyz", "_normal", "vertex_color_0", "vertex_color_1",
                       "o.colors_0", "o.colors_1");
 
   // Texture Coordinates
@@ -246,7 +258,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
 
   if (per_pixel_lighting)
   {
-    out.Write("o.Normal = _norm0;\n"
+    out.Write("o.Normal = _normal;\n"
               "o.WorldPos = pos.xyz;\n");
   }
 
@@ -393,19 +405,19 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("    coord.xyz = rawpos.xyz;\n");
   out.Write("    break;\n\n");
   out.Write("  case {:s}:\n", SourceRow::Normal);
-  out.Write(
-      "    coord.xyz = ((components & {}u /* VB_HAS_NRM0 */) != 0u) ? rawnorm0.xyz : coord.xyz;",
-      VB_HAS_NRM0);
+  out.Write("    coord.xyz = ((components & {}u /* VB_HAS_NORMAL */) != 0u) ? rawnormal.xyz : "
+            "coord.xyz;",
+            VB_HAS_NORMAL);
   out.Write("    break;\n\n");
   out.Write("  case {:s}:\n", SourceRow::BinormalT);
-  out.Write(
-      "    coord.xyz = ((components & {}u /* VB_HAS_NRM1 */) != 0u) ? rawnorm1.xyz : coord.xyz;",
-      VB_HAS_NRM1);
+  out.Write("    coord.xyz = ((components & {}u /* VB_HAS_TANGENT */) != 0u) ? rawtangent.xyz : "
+            "coord.xyz;",
+            VB_HAS_TANGENT);
   out.Write("    break;\n\n");
   out.Write("  case {:s}:\n", SourceRow::BinormalB);
-  out.Write(
-      "    coord.xyz = ((components & {}u /* VB_HAS_NRM2 */) != 0u) ? rawnorm2.xyz : coord.xyz;",
-      VB_HAS_NRM2);
+  out.Write("    coord.xyz = ((components & {}u /* VB_HAS_BINORMAL */) != 0u) ? rawbinormal.xyz : "
+            "coord.xyz;",
+            VB_HAS_BINORMAL);
   out.Write("    break;\n\n");
   for (u32 i = 0; i < 8; i++)
   {
@@ -447,12 +459,9 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   for (u32 i = 0; i < num_texgen; i++)
     out.Write("      case {}u: output_tex.xyz = o.tex{}; break;\n", i, i);
   out.Write("      default: output_tex.xyz = float3(0.0, 0.0, 0.0); break;\n"
-            "      }}\n");
-  out.Write("      if ((components & {}u) != 0u) {{ // VB_HAS_NRM1 | VB_HAS_NRM2\n",
-            VB_HAS_NRM1 | VB_HAS_NRM2);  // Should this be VB_HAS_NRM1 | VB_HAS_NRM2
-  out.Write("        float3 ldir = normalize(" I_LIGHTS "[light].pos.xyz - pos.xyz);\n"
-            "        output_tex.xyz += float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n"
             "      }}\n"
+            "      float3 ldir = normalize(" I_LIGHTS "[light].pos.xyz - pos.xyz);\n"
+            "      output_tex.xyz += float3(dot(ldir, _tangent), dot(ldir, _binormal), 0.0);\n"
             "    }}\n"
             "    break;\n\n");
   out.Write("  case {:s}:\n", TexGenType::Color0);

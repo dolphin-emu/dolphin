@@ -28,33 +28,37 @@ class DSPHLE;
 // mixer_control value to an AXMixControl bitfield.
 enum AXMixControl
 {
-  MIX_L = 0x000001,
-  MIX_L_RAMP = 0x000002,
-  MIX_R = 0x000004,
-  MIX_R_RAMP = 0x000008,
-  MIX_S = 0x000010,
-  MIX_S_RAMP = 0x000020,
+  // clang-format off
+  MIX_MAIN_L      = 0x000001,
+  MIX_MAIN_L_RAMP = 0x000002,
+  MIX_MAIN_R      = 0x000004,
+  MIX_MAIN_R_RAMP = 0x000008,
+  MIX_MAIN_S      = 0x000010,
+  MIX_MAIN_S_RAMP = 0x000020,
 
-  MIX_AUXA_L = 0x000040,
+  MIX_AUXA_L      = 0x000040,
   MIX_AUXA_L_RAMP = 0x000080,
-  MIX_AUXA_R = 0x000100,
+  MIX_AUXA_R      = 0x000100,
   MIX_AUXA_R_RAMP = 0x000200,
-  MIX_AUXA_S = 0x000400,
+  MIX_AUXA_S      = 0x000400,
   MIX_AUXA_S_RAMP = 0x000800,
 
-  MIX_AUXB_L = 0x001000,
+  MIX_AUXB_L      = 0x001000,
   MIX_AUXB_L_RAMP = 0x002000,
-  MIX_AUXB_R = 0x004000,
+  MIX_AUXB_R      = 0x004000,
   MIX_AUXB_R_RAMP = 0x008000,
-  MIX_AUXB_S = 0x010000,
+  MIX_AUXB_S      = 0x010000,
   MIX_AUXB_S_RAMP = 0x020000,
 
-  MIX_AUXC_L = 0x040000,
+  MIX_AUXC_L      = 0x040000,
   MIX_AUXC_L_RAMP = 0x080000,
-  MIX_AUXC_R = 0x100000,
+  MIX_AUXC_R      = 0x100000,
   MIX_AUXC_R_RAMP = 0x200000,
-  MIX_AUXC_S = 0x400000,
-  MIX_AUXC_S_RAMP = 0x800000
+  MIX_AUXC_S      = 0x400000,
+  MIX_AUXC_S_RAMP = 0x800000,
+
+  MIX_ALL_RAMPS   = 0xAAAAAA,
+  // clang-format on
 };
 
 class AXUCode : public UCodeInterface
@@ -82,9 +86,9 @@ protected:
   };
 
   // 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
-  int m_samples_left[32 * 5]{};
-  int m_samples_right[32 * 5]{};
-  int m_samples_surround[32 * 5]{};
+  int m_samples_main_left[32 * 5]{};
+  int m_samples_main_right[32 * 5]{};
+  int m_samples_main_surround[32 * 5]{};
   int m_samples_auxA_left[32 * 5]{};
   int m_samples_auxA_right[32 * 5]{};
   int m_samples_auxA_surround[32 * 5]{};

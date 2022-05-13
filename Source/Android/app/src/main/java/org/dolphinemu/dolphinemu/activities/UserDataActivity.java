@@ -100,7 +100,7 @@ public class UserDataActivity extends AppCompatActivity
     {
       Uri uri = data.getData();
 
-      AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
       builder.setMessage(R.string.user_data_import_warning);
       builder.setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
@@ -148,7 +148,7 @@ public class UserDataActivity extends AppCompatActivity
       {
         // Activity not found. Perhaps it was removed by the OEM, or by some new Android version
         // that didn't exist at the time of writing. Not much we can do other than tell the user
-        new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+        new AlertDialog.Builder(this)
                 .setMessage(R.string.user_data_open_system_file_manager_failed)
                 .setPositiveButton(R.string.ok, null)
                 .show();

@@ -1,17 +1,28 @@
-if (NOT Qt5_DIR AND MSVC)
+if(POLICY CMP0084)
+  # Disable trying to search for Qt3/4 if what we actually want is not found
+  cmake_policy(SET CMP0084 NEW)
+endif()
+
+if (NOT QT_DIR AND MSVC)
   if(_M_ARM_64)
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_arm64/lib/cmake/Qt5")
+    set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/ARM64/lib/cmake/Qt6")
   else()
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_64/lib/cmake/Qt5")
+    set(QT_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt6.3.0/x64/lib/cmake/Qt6")
   endif()
 endif()
 
-find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
-
-set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
-message(STATUS "Found Qt version ${Qt5Core_VERSION}")
-
 set(CMAKE_AUTOMOC ON)
+
+# For some reason the method in Qt6 documentation is not working (at least on ubuntu jammy)
+# When Qt5 and Qt6 are given in same NAMES entry, only Qt5 is ever found.
+find_package(QT NAMES Qt6 COMPONENTS Core Gui Widgets)
+if(NOT QT_DIR)
+  find_package(QT NAMES Qt5 COMPONENTS Core Gui Widgets)
+endif()
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
+message(STATUS "Found Qt version ${QT_VERSION}")
+
+set_property(TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 
 add_executable(dolphin-emu
   AboutDialog.cpp
@@ -351,13 +362,13 @@ PRIVATE
 target_include_directories(dolphin-emu
 PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
+  ${Qt${QT_VERSION_MAJOR}Gui_PRIVATE_INCLUDE_DIRS}
 )
 
 target_link_libraries(dolphin-emu
 PRIVATE
   core
-  Qt5::Widgets
+  Qt${QT_VERSION_MAJOR}::Widgets
   uicommon
   imgui
 )
@@ -377,9 +388,9 @@ if (MSVC)
   set(qtGui "")
   set(qtGuiPriv "")
   set(qtWidgetsPriv "")
-  list(TRANSFORM Qt5Gui_INCLUDE_DIRS PREPEND "/external:I" OUTPUT_VARIABLE qtGui)
-  list(TRANSFORM Qt5Gui_PRIVATE_INCLUDE_DIRS PREPEND "/external:I" OUTPUT_VARIABLE qtGuiPriv)
-  list(TRANSFORM Qt5Widgets_PRIVATE_INCLUDE_DIRS PREPEND "/external:I" OUTPUT_VARIABLE qtWidgetsPriv)
+  list(TRANSFORM Qt6Gui_INCLUDE_DIRS PREPEND "/external:I" OUTPUT_VARIABLE qtGui)
+  list(TRANSFORM Qt6Gui_PRIVATE_INCLUDE_DIRS PREPEND "/external:I" OUTPUT_VARIABLE qtGuiPriv)
+  list(TRANSFORM Qt6Widgets_PRIVATE_INCLUDE_DIRS PREPEND "/external:I" OUTPUT_VARIABLE qtWidgetsPriv)
   target_compile_options(dolphin-emu PRIVATE "${qtGui}")
   target_compile_options(dolphin-emu PRIVATE "${qtGuiPriv}")
   target_compile_options(dolphin-emu PRIVATE "${qtWidgets}")
@@ -415,7 +426,7 @@ if(WIN32)
   )
 
   # Delegate to Qt's official deployment binary on Windows to copy over the necessary Qt-specific libraries, etc.
-  get_target_property(MOC_EXECUTABLE_LOCATION Qt5::moc IMPORTED_LOCATION)
+  get_target_property(MOC_EXECUTABLE_LOCATION Qt${QT_VERSION_MAJOR}::moc IMPORTED_LOCATION)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
   find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
 
@@ -520,12 +531,18 @@ if(APPLE)
   target_sources(dolphin-emu PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
   set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
+  # Plugins have to be manually included with Qt 6
+  if (QT_VERSION_MAJOR EQUAL 6)
+    find_package(Qt6QMacStylePlugin REQUIRED PATHS ${Qt6Widgets_DIR})
+    find_package(Qt6QCocoaIntegrationPlugin REQUIRED PATHS ${Qt6Gui_DIR})
+  endif()
+
   # Copy Qt plugins into the bundle
-  get_target_property(qtcocoa_location Qt5::QCocoaIntegrationPlugin LOCATION)
+  get_target_property(qtcocoa_location Qt${QT_VERSION_MAJOR}::QCocoaIntegrationPlugin LOCATION)
   target_sources(dolphin-emu PRIVATE "${qtcocoa_location}")
   set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
 
-  get_target_property(qtmacstyle_location Qt5::QMacStylePlugin LOCATION)
+  get_target_property(qtmacstyle_location Qt${QT_VERSION_MAJOR}::QMacStylePlugin LOCATION)
   target_sources(dolphin-emu PRIVATE "${qtmacstyle_location}")
   set_source_files_properties("${qtmacstyle_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/styles)
 

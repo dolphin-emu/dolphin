@@ -117,8 +117,7 @@ public class GamePropertiesDialog extends DialogFragment
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettingsWithConfirmation(gameId));
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(),
-            R.style.DolphinDialogBase);
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
     itemsBuilder.applyToBuilder(builder);
     builder.setTitle(requireContext()
             .getString(R.string.preferences_game_properties_with_game_id, gameId));
@@ -127,7 +126,7 @@ public class GamePropertiesDialog extends DialogFragment
 
   private void clearGameSettingsWithConfirmation(String gameId)
   {
-    new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase)
+    new AlertDialog.Builder(requireContext())
             .setTitle(R.string.properties_clear_game_settings)
             .setMessage(R.string.properties_clear_game_settings_confirmation)
             .setPositiveButton(R.string.yes, (dialog, i) -> clearGameSettings(gameId))

@@ -54,7 +54,7 @@ public final class RunRunnableViewHolder extends SettingViewHolder
 
     if (alertTextID > 0)
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
+      AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
               .setTitle(mItem.getName())
               .setMessage(alertTextID);
 

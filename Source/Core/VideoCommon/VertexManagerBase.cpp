@@ -453,6 +453,7 @@ void VertexManagerBase::Flush()
     }
   }
 
+  CalculateBinormals(VertexLoaderManager::GetCurrentVertexFormat());
   // Calculate ZSlope for zfreeze
   VertexShaderManager::SetConstants();
   if (!bpmem.genMode.zfreeze)
@@ -558,7 +559,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   {
     // If this vertex format has per-vertex position matrix IDs, look it up.
     if (vert_decl.posmtx.enable)
-      mtxIdx = VertexLoaderManager::position_matrix_index[3 - i];
+      mtxIdx = VertexLoaderManager::position_matrix_index_cache[2 - i];
 
     if (vert_decl.position.components == 2)
       VertexLoaderManager::position_cache[2 - i][2] = 0;
@@ -593,6 +594,31 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   m_zslope.dfdy = -b / c;
   m_zslope.f0 = out[2] - (out[0] * m_zslope.dfdx + out[1] * m_zslope.dfdy);
   m_zslope.dirty = true;
+}
+
+void VertexManagerBase::CalculateBinormals(NativeVertexFormat* format)
+{
+  const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
+
+  // Only update the binormal/tangent vertex shader constants if the vertex format lacks binormals
+  // (VertexLoaderManager::binormal_cache gets updated by the vertex loader when binormals are
+  // present, though)
+  if (vert_decl.normals[1].enable)
+    return;
+
+  VertexLoaderManager::tangent_cache[3] = 0;
+  VertexLoaderManager::binormal_cache[3] = 0;
+
+  if (VertexShaderManager::constants.cached_tangent != VertexLoaderManager::tangent_cache)
+  {
+    VertexShaderManager::constants.cached_tangent = VertexLoaderManager::tangent_cache;
+    VertexShaderManager::dirty = true;
+  }
+  if (VertexShaderManager::constants.cached_binormal != VertexLoaderManager::binormal_cache)
+  {
+    VertexShaderManager::constants.cached_binormal = VertexLoaderManager::binormal_cache;
+    VertexShaderManager::dirty = true;
+  }
 }
 
 void VertexManagerBase::UpdatePipelineConfig()

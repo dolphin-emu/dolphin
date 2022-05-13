@@ -173,6 +173,20 @@ static void GenerateDSIException(u32 effective_address, bool write);
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
 static T ReadFromHardware(u32 em_address)
 {
+  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
+  const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
+  if (em_address_start_page != em_address_end_page)
+  {
+    // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
+    // way isn't too terrible.
+    // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
+    // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
+    u64 var = 0;
+    for (u32 i = 0; i < sizeof(T); ++i)
+      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(em_address + i);
+    return static_cast<T>(var);
+  }
+
   if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
@@ -182,40 +196,30 @@ static T ReadFromHardware(u32 em_address)
         GenerateDSIException(em_address, false);
       return 0;
     }
-    if ((em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
-    {
-      // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
-      // way isn't too terrible.
-      // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-      // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-      u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-      auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
-      if (!addr_next_page.Success())
-      {
-        if (flag == XCheckTLBFlag::Read)
-          GenerateDSIException(em_address_next_page, false);
-        return 0;
-      }
-      T var = 0;
-      u32 addr_translated = translated_addr.address;
-      for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, addr_translated++)
-      {
-        if (addr == em_address_next_page)
-          addr_translated = addr_next_page.address;
-        var = (var << 8) | ReadFromHardware<flag, u8, true>(addr_translated);
-      }
-      return var;
-    }
     em_address = translated_addr.address;
   }
 
-  // TODO: Make sure these are safe for unaligned addresses.
+  if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
+  {
+    if (em_address < 0x0c000000)
+      return EFB_Read(em_address);
+    else
+      return static_cast<T>(Memory::mmio_mapping->Read<std::make_unsigned_t<T>>(em_address));
+  }
+
+  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
+  if (Memory::m_pL1Cache && (em_address >> 28) == 0xE &&
+      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
+  {
+    T value;
+    std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
+    return bswap(value);
+  }
 
   if (Memory::m_pRAM && (em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    // TODO: Only the first GetRamSizeReal() is supposed to be backed by actual memory.
     T value;
     std::memcpy(&value, &Memory::m_pRAM[em_address & Memory::GetRamMask()], sizeof(T));
     return bswap(value);
@@ -229,14 +233,6 @@ static T ReadFromHardware(u32 em_address)
     return bswap(value);
   }
 
-  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (Memory::m_pL1Cache && (em_address >> 28) == 0xE &&
-      (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
-  {
-    T value;
-    std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
-    return bswap(value);
-  }
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
@@ -245,14 +241,6 @@ static T ReadFromHardware(u32 em_address)
     T value;
     std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::GetFakeVMemMask()], sizeof(T));
     return bswap(value);
-  }
-
-  if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
-  {
-    if (em_address < 0x0c000000)
-      return EFB_Read(em_address);
-    else
-      return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
   }
 
   PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, PC);
@@ -264,8 +252,8 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
 {
   DEBUG_ASSERT(size <= 4);
 
-  const u32 em_address_start_page = em_address & ~(HW_PAGE_SIZE - 1);
-  const u32 em_address_end_page = (em_address + size - 1) & ~(HW_PAGE_SIZE - 1);
+  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
+  const u32 em_address_end_page = (em_address + size - 1) & ~HW_PAGE_MASK;
   if (em_address_start_page != em_address_end_page)
   {
     // The write crosses a page boundary. Break it up into two writes.

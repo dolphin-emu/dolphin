@@ -16,7 +16,7 @@ public class SystemMenuNotInstalledDialogFragment extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    return new AlertDialog.Builder(requireContext(), R.style.DolphinDialogBase)
+    return new AlertDialog.Builder(requireContext())
             .setTitle(R.string.system_menu_not_installed_title)
             .setMessage(R.string.system_menu_not_installed_message)
             .setPositiveButton(R.string.yes, (dialog, which) ->

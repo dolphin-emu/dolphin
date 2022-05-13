@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="..\..\Source\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
@@ -18,6 +18,13 @@
   <ItemGroup>
     <ClCompile Include="glslang\GenericCodeGen\CodeGen.cpp" />
     <ClCompile Include="glslang\GenericCodeGen\Link.cpp" />
+    <!--<ClCompile Include="glslang\HLSL\hlslAttributes.cpp" />
+    <ClCompile Include="glslang\HLSL\hlslGrammar.cpp" />
+    <ClCompile Include="glslang\HLSL\hlslOpMap.cpp" />
+    <ClCompile Include="glslang\HLSL\hlslParseables.cpp" />
+    <ClCompile Include="glslang\HLSL\hlslParseHelper.cpp" />
+    <ClCompile Include="glslang\HLSL\hlslScanContext.cpp" />
+    <ClCompile Include="glslang\HLSL\hlslTokenStream.cpp" />-->
     <ClCompile Include="glslang\MachineIndependent\attribute.cpp" />
     <ClCompile Include="glslang\MachineIndependent\Constant.cpp" />
     <ClCompile Include="glslang\MachineIndependent\glslang_tab.cpp" />
@@ -43,6 +50,7 @@
     <ClCompile Include="glslang\MachineIndependent\RemoveTree.cpp" />
     <ClCompile Include="glslang\MachineIndependent\Scan.cpp" />
     <ClCompile Include="glslang\MachineIndependent\ShaderLang.cpp" />
+    <ClCompile Include="glslang\MachineIndependent\SpirvIntrinsics.cpp" />
     <ClCompile Include="glslang\MachineIndependent\SymbolTable.cpp" />
     <ClCompile Include="glslang\MachineIndependent\Versions.cpp" />
     <ClCompile Include="glslang\OSDependent\Windows\ossource.cpp" />
@@ -58,6 +66,15 @@
     <ClCompile Include="StandAlone\ResourceLimits.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <!--<ClInclude Include="glslang\HLSL\hlslAttributes.h" />
+    <ClInclude Include="glslang\HLSL\hlslGrammar.h" />
+    <ClInclude Include="glslang\HLSL\hlslOpMap.h" />
+    <ClInclude Include="glslang\HLSL\hlslParseables.h" />
+    <ClInclude Include="glslang\HLSL\hlslParseHelper.h" />
+    <ClInclude Include="glslang\HLSL\hlslScanContext.h" />
+    <ClInclude Include="glslang\HLSL\hlslTokens.h" />
+    <ClInclude Include="glslang\HLSL\hlslTokenStream.h" />
+    <ClInclude Include="glslang\HLSL\pch.h" />-->
     <ClInclude Include="glslang\Include\arrays.h" />
     <ClInclude Include="glslang\Include\BaseTypes.h" />
     <ClInclude Include="glslang\Include\Common.h" />
@@ -68,6 +85,7 @@
     <ClInclude Include="glslang\Include\PoolAlloc.h" />
     <ClInclude Include="glslang\Include\revision.h" />
     <ClInclude Include="glslang\Include\ShHandle.h" />
+    <ClInclude Include="glslang\Include\SpirvIntrinsics.h" />
     <ClInclude Include="glslang\Include\Types.h" />
     <ClInclude Include="glslang\MachineIndependent\attribute.h" />
     <ClInclude Include="glslang\MachineIndependent\glslang_tab.cpp.h" />
@@ -95,6 +113,7 @@
     <ClInclude Include="SPIRV\GLSL.std.450.h" />
     <ClInclude Include="SPIRV\GlslangToSpv.h" />
     <ClInclude Include="SPIRV\Logger.h" />
+    <ClInclude Include="SPIRV\NonSemanticDebugPrintf.h" />
     <ClInclude Include="SPIRV\spirv.hpp" />
     <ClInclude Include="SPIRV\SpvBuilder.h" />
     <ClInclude Include="SPIRV\spvIR.h" />

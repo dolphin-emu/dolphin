@@ -108,14 +108,14 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
   // conceptually as 'control plus' (which is then interpreted as an appropriate zooming action)
   // instead of the technically correct 'control equal'. Qt doesn't account for this convention so
   // an alternate shortcut is needed to avoid counterintuitive behavior.
-  const auto* zoom_in_alternate = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Equal), this);
+  const auto* zoom_in_alternate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Equal), this);
   connect(zoom_in_alternate, &QShortcut::activated, this, &GameList::ZoomIn);
 
   // The above correction introduces a different inconsistency: now zooming in can be done using
   // conceptual 'control plus' or 'control shift plus', while zooming out can only be done using
   // 'control minus'. Adding an alternate shortcut representing 'control shift minus' restores
   // consistency.
-  const auto* zoom_out_alternate = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Underscore), this);
+  const auto* zoom_out_alternate = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Underscore), this);
   connect(zoom_out_alternate, &QShortcut::activated, this, &GameList::ZoomOut);
 
   connect(&Settings::Instance(), &Settings::MetadataRefreshCompleted, this,

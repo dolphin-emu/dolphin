@@ -94,8 +94,7 @@ void GenericLogFmt(LogLevel level, LogType type, const char* file, int line, con
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
-  GenericLogFmtImpl(level, type, file, line, format,
-                    fmt::make_args_checked<Args...>(format, args...));
+  GenericLogFmtImpl(level, type, file, line, format, fmt::make_format_args(args...));
 }
 
 void GenericLog(LogLevel level, LogType type, const char* file, int line, const char* fmt, ...)

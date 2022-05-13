@@ -72,8 +72,8 @@ QGroupBox* TASInputWindow::CreateStickInputs(QString name, QSpinBox*& x_value, Q
                                              u16 max_x, u16 max_y, Qt::Key x_shortcut_key,
                                              Qt::Key y_shortcut_key)
 {
-  const QKeySequence x_shortcut_key_sequence = QKeySequence(Qt::ALT + x_shortcut_key);
-  const QKeySequence y_shortcut_key_sequence = QKeySequence(Qt::ALT + y_shortcut_key);
+  const QKeySequence x_shortcut_key_sequence = QKeySequence(Qt::ALT | x_shortcut_key);
+  const QKeySequence y_shortcut_key_sequence = QKeySequence(Qt::ALT | y_shortcut_key);
 
   auto* box =
       new QGroupBox(QStringLiteral("%1 (%2/%3)")
@@ -119,7 +119,7 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*&
                                                         int default_, u16 max, Qt::Key shortcut_key,
                                                         QWidget* shortcut_widget, bool invert)
 {
-  const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT + shortcut_key);
+  const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT | shortcut_key);
 
   auto* label = new QLabel(QStringLiteral("%1 (%2)").arg(
       name, shortcut_key_sequence.toString(QKeySequence::NativeText)));

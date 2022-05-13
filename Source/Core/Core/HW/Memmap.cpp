@@ -12,6 +12,7 @@
 #include <array>
 #include <cstring>
 #include <memory>
+#include <tuple>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -21,6 +22,7 @@
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -394,15 +396,50 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 
 void DoState(PointerWrap& p)
 {
-  bool wii = SConfig::GetInstance().bWii;
-  p.DoArray(m_pRAM, GetRamSize());
-  p.DoArray(m_pL1Cache, GetL1CacheSize());
+  const u32 current_ram_size = GetRamSize();
+  const u32 current_l1_cache_size = GetL1CacheSize();
+  const bool current_have_fake_vmem = !!m_pFakeVMEM;
+  const u32 current_fake_vmem_size = current_have_fake_vmem ? GetFakeVMemSize() : 0;
+  const bool current_have_exram = !!m_pEXRAM;
+  const u32 current_exram_size = current_have_exram ? GetExRamSize() : 0;
+
+  u32 state_ram_size = current_ram_size;
+  u32 state_l1_cache_size = current_l1_cache_size;
+  bool state_have_fake_vmem = current_have_fake_vmem;
+  u32 state_fake_vmem_size = current_fake_vmem_size;
+  bool state_have_exram = current_have_exram;
+  u32 state_exram_size = current_exram_size;
+
+  p.Do(state_ram_size);
+  p.Do(state_l1_cache_size);
+  p.Do(state_have_fake_vmem);
+  p.Do(state_fake_vmem_size);
+  p.Do(state_have_exram);
+  p.Do(state_exram_size);
+
+  // If we're loading a savestate and any of the above differs between the savestate and the current
+  // state, cancel the load. This is technically possible to support but would require a bunch of
+  // reinitialization of things that depend on these.
+  if (std::tie(state_ram_size, state_l1_cache_size, state_have_fake_vmem, state_fake_vmem_size,
+               state_have_exram, state_exram_size) !=
+      std::tie(current_ram_size, current_l1_cache_size, current_have_fake_vmem,
+               current_fake_vmem_size, current_have_exram, current_exram_size))
+  {
+    Core::DisplayMessage("State is incompatible with current memory settings (MMU and/or memory "
+                         "overrides). Aborting load state.",
+                         3000);
+    p.SetMode(PointerWrap::MODE_VERIFY);
+    return;
+  }
+
+  p.DoArray(m_pRAM, current_ram_size);
+  p.DoArray(m_pL1Cache, current_l1_cache_size);
   p.DoMarker("Memory RAM");
-  if (m_pFakeVMEM)
-    p.DoArray(m_pFakeVMEM, GetFakeVMemSize());
+  if (current_have_fake_vmem)
+    p.DoArray(m_pFakeVMEM, current_fake_vmem_size);
   p.DoMarker("Memory FakeVMEM");
-  if (wii)
-    p.DoArray(m_pEXRAM, GetExRamSize());
+  if (current_have_exram)
+    p.DoArray(m_pEXRAM, current_exram_size);
   p.DoMarker("Memory EXRAM");
 }
 

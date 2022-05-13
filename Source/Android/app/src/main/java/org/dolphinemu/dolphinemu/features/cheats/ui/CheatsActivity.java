@@ -191,7 +191,7 @@ public class CheatsActivity extends AppCompatActivity
 
   public void downloadGeckoCodes()
   {
-    AlertDialog progressDialog = new AlertDialog.Builder(this, R.style.DolphinDialogBase).create();
+    AlertDialog progressDialog = new AlertDialog.Builder(this).create();
     progressDialog.setTitle(R.string.cheats_downloading);
     progressDialog.setCancelable(false);
     progressDialog.show();
@@ -206,14 +206,14 @@ public class CheatsActivity extends AppCompatActivity
 
         if (codes == null)
         {
-          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+          new AlertDialog.Builder(this)
                   .setMessage(getString(R.string.cheats_download_failed))
                   .setPositiveButton(R.string.ok, null)
                   .show();
         }
         else if (codes.length == 0)
         {
-          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+          new AlertDialog.Builder(this)
                   .setMessage(getString(R.string.cheats_download_empty))
                   .setPositiveButton(R.string.ok, null)
                   .show();
@@ -223,7 +223,7 @@ public class CheatsActivity extends AppCompatActivity
           int cheatsAdded = mViewModel.addDownloadedGeckoCodes(codes);
           String message = getString(R.string.cheats_download_succeeded, codes.length, cheatsAdded);
 
-          new AlertDialog.Builder(this, R.style.DolphinDialogBase)
+          new AlertDialog.Builder(this)
                   .setMessage(message)
                   .setPositiveButton(R.string.ok, null)
                   .show();

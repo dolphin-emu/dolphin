@@ -1212,22 +1212,62 @@ struct fmt::formatter<LPSize>
   }
 };
 
-union X12Y12
+union ScissorPos
 {
-  BitField<0, 12, u32> y;
-  BitField<12, 12, u32> x;
+  // The top bit is ignored, and not included in the mask used by GX SDK functions
+  // (though libogc includes it for the bottom coordinate (only) for some reason)
+  // x_full and y_full include that bit for the FIFO analyzer, though it is usually unset.
+  // The SDK also adds 342 to these values.
+  BitField<0, 11, u32> y;
+  BitField<0, 12, u32> y_full;
+  BitField<12, 11, u32> x;
+  BitField<12, 12, u32> x_full;
   u32 hex;
 };
+template <>
+struct fmt::formatter<ScissorPos>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const ScissorPos& pos, FormatContext& ctx)
+  {
+    return fmt::format_to(ctx.out(),
+                          "X: {} (raw: {})\n"
+                          "Y: {} (raw: {})",
+                          pos.x - 342, pos.x_full, pos.y - 342, pos.y_full);
+  }
+};
+
+union ScissorOffset
+{
+  // The scissor offset ignores the top bit (though it isn't masked off by the GX SDK).
+  // Each value is also divided by 2 (so 0-511 map to 0-1022).
+  // x_full and y_full include that top bit for the FIFO analyzer, though it is usually unset.
+  // The SDK also adds 342 to each value (before dividing it).
+  BitField<0, 9, u32> x;
+  BitField<0, 10, u32> x_full;
+  BitField<10, 9, u32> y;
+  BitField<10, 10, u32> y_full;
+  u32 hex;
+};
+template <>
+struct fmt::formatter<ScissorOffset>
+{
+  constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const ScissorOffset& off, FormatContext& ctx)
+  {
+    return fmt::format_to(ctx.out(),
+                          "X: {} (raw: {})\n"
+                          "Y: {} (raw: {})",
+                          (off.x << 1) - 342, off.x_full, (off.y << 1) - 342, off.y_full);
+  }
+};
+
 union X10Y10
 {
   BitField<0, 10, u32> x;
   BitField<10, 10, u32> y;
-  u32 hex;
-};
-union S32X10Y10
-{
-  BitField<0, 10, s32> x;
-  BitField<10, 10, s32> y;
   u32 hex;
 };
 
@@ -2309,8 +2349,8 @@ struct BPMemory
   IND_MTX indmtx[3];               // 06-0e GXSetIndTexMtx, 2x3 matrices
   IND_IMASK imask;                 // 0f
   TevStageIndirect tevind[16];     // 10 GXSetTevIndirect
-  X12Y12 scissorTL;                // 20
-  X12Y12 scissorBR;                // 21
+  ScissorPos scissorTL;            // 20
+  ScissorPos scissorBR;            // 21
   LPSize lineptwidth;              // 22 line and point width
   u32 sucounter;                   // 23
   u32 rascounter;                  // 24
@@ -2344,7 +2384,7 @@ struct BPMemory
   u32 boundbox0;                      // 55
   u32 boundbox1;                      // 56
   u32 unknown7[2];                    // 57,58
-  S32X10Y10 scissorOffset;            // 59
+  ScissorOffset scissorOffset;        // 59
   u32 unknown8[6];                    // 5a,5b,5c,5d, 5e,5f
   BPS_TmemConfig tmem_config;         // 60-66
   u32 metric;                         // 67

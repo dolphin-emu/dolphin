@@ -26,6 +26,7 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
@@ -92,7 +93,8 @@ public final class MainPresenter
         return true;
 
       case R.id.button_add_directory:
-        mView.launchFileListActivity();
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+                mView::launchFileListActivity);
         return true;
 
       case R.id.menu_open_file:
@@ -104,7 +106,8 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_online_system_update:
-        launchOnlineUpdate();
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+                this::launchOnlineUpdate);
         return true;
 
       case R.id.menu_install_wad:
@@ -162,7 +165,7 @@ public final class MainPresenter
     if (Arrays.stream(childNames).noneMatch((name) -> FileBrowserHelper.GAME_EXTENSIONS.contains(
             FileBrowserHelper.getExtension(name, false))))
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+      AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
       builder.setMessage(mActivity.getString(R.string.wrong_file_extension_in_directory,
               FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)));
       builder.setPositiveButton(R.string.ok, null);
@@ -201,7 +204,7 @@ public final class MainPresenter
         mActivity.runOnUiThread(() ->
         {
           AlertDialog.Builder builder =
-                  new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+                  new AlertDialog.Builder(mActivity);
           builder.setMessage(R.string.wii_save_exists);
           builder.setCancelable(false);
           builder.setPositiveButton(R.string.yes, (dialog, i) -> canOverwriteFuture.complete(true));
@@ -247,7 +250,7 @@ public final class MainPresenter
   public void importNANDBin(String path)
   {
     AlertDialog.Builder builder =
-            new AlertDialog.Builder(mActivity, R.style.DolphinDialogBase);
+            new AlertDialog.Builder(mActivity);
 
     builder.setMessage(R.string.nand_import_warning);
     builder.setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
@@ -310,18 +313,20 @@ public final class MainPresenter
 
   private void launchWiiSystemMenu()
   {
-    WiiUtils.isSystemMenuInstalled();
-
     if (WiiUtils.isSystemMenuInstalled())
     {
       EmulationActivity.launchSystemMenu(mActivity);
     }
     else
     {
-      SystemMenuNotInstalledDialogFragment dialogFragment =
-              new SystemMenuNotInstalledDialogFragment();
-      dialogFragment
-              .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+      new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, true, () ->
+      {
+        SystemMenuNotInstalledDialogFragment dialogFragment =
+                new SystemMenuNotInstalledDialogFragment();
+        dialogFragment
+                .show(mActivity.getSupportFragmentManager(),
+                        "SystemMenuNotInstalledDialogFragment");
+      });
     }
   }
 }

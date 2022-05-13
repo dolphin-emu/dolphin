@@ -25,6 +25,15 @@
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
+#if defined(LIBUSB_API_VERSION)
+#define LIBUSB_API_VERSION_EXIST 1
+#else
+#define LIBUSB_API_VERSION_EXIST 0
+#endif
+
+#define LIBUSB_API_VERSION_ATLEAST(v) (LIBUSB_API_VERSION_EXIST && LIBUSB_API_VERSION >= (v))
+#define LIBUSB_API_HAS_HOTPLUG LIBUSB_API_VERSION_ATLEAST(0x01000102)
+
 namespace GCAdapter
 {
 static bool CheckDeviceAccess(libusb_device* device);
@@ -51,7 +60,8 @@ static std::mutex s_mutex;
 static u8 s_controller_payload[37];
 static u8 s_controller_payload_swap[37];
 
-static std::atomic<int> s_controller_payload_size = {0};
+// Only access with s_mutex held!
+static int s_controller_payload_size = {0};
 
 static std::thread s_adapter_input_thread;
 static std::thread s_adapter_output_thread;
@@ -71,7 +81,7 @@ static bool s_libusb_hotplug_enabled = true;
 #else
 static bool s_libusb_hotplug_enabled = false;
 #endif
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 static libusb_hotplug_callback_handle s_hotplug_handle;
 #endif
 
@@ -89,6 +99,8 @@ static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enable
 
 static void Read()
 {
+  Common::SetCurrentThreadName("GCAdapter Read Thread");
+
   int payload_size = 0;
   while (s_adapter_thread_running.IsSet())
   {
@@ -101,7 +113,7 @@ static void Read()
     {
       std::lock_guard<std::mutex> lk(s_mutex);
       std::swap(s_controller_payload_swap, s_controller_payload);
-      s_controller_payload_size.store(payload_size);
+      s_controller_payload_size = payload_size;
     }
 
     Common::YieldCPU();
@@ -110,6 +122,8 @@ static void Read()
 
 static void Write()
 {
+  Common::SetCurrentThreadName("GCAdapter Write Thread");
+
   int size = 0;
 
   while (true)
@@ -134,7 +148,7 @@ static void Write()
   }
 }
 
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotplug_event event,
                            void* user_data)
 {
@@ -165,7 +179,7 @@ static void ScanThreadFunc()
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter scanning thread started");
 
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 #ifndef __FreeBSD__
   s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
 #endif
@@ -322,11 +336,17 @@ static bool CheckDeviceAccess(libusb_device* device)
     return false;
   }
 
+  bool detach_failed = false;
   ret = libusb_kernel_driver_active(s_handle, 0);
   if (ret == 1)
   {
+    // On macos detaching would fail without root or entitlement.
+    // We assume user is using GCAdapterDriver and therefor don't want to detach anything
+#if !defined(__APPLE__)
     ret = libusb_detach_kernel_driver(s_handle, 0);
-    if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+    detach_failed = ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND && ret != LIBUSB_ERROR_NOT_SUPPORTED;
+#endif
+    if (detach_failed)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed with error: {}", ret);
   }
 
@@ -338,7 +358,7 @@ static bool CheckDeviceAccess(libusb_device* device)
 
   // this split is needed so that we don't avoid claiming the interface when
   // detaching the kernel driver is successful
-  if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+  if (detach_failed)
   {
     libusb_close(s_handle);
     s_handle = nullptr;
@@ -398,12 +418,12 @@ static void AddGCAdapter(libusb_device* device)
 void Shutdown()
 {
   StopScanThread();
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
   if (s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
     libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
-  s_libusb_context.reset();
   Reset();
+  s_libusb_context.reset();
 
   s_status = NO_ADAPTER_DETECTED;
 
@@ -459,7 +479,7 @@ GCPadStatus Input(int chan)
     std::lock_guard<std::mutex> lk(s_mutex);
     std::copy(std::begin(s_controller_payload), std::end(s_controller_payload),
               std::begin(controller_payload_copy));
-    payload_size = s_controller_payload_size.load();
+    payload_size = s_controller_payload_size;
   }
 
   GCPadStatus pad = {};

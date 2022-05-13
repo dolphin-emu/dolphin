@@ -74,7 +74,7 @@ static int GetLayoutHorizontalSpacing(const QGridLayout* layout)
   float pixel_ratio = QGuiApplication::primaryScreen()->devicePixelRatio();
 #ifdef __APPLE__
   // TODO is this still required?
-  hspacing = pixel_ratio * style->pixelMetric(QStyle::PM_DefaultLayoutSpacing);
+  hspacing = pixel_ratio * style->pixelMetric(QStyle::PM_LayoutHorizontalSpacing);
   if (hspacing >= 0)
     return hspacing;
 #endif
@@ -145,7 +145,7 @@ void WiimoteControllersWidget::CreateLayout()
   m_wiimote_layout->addWidget(m_wiimote_refresh, continuous_scanning_row, 3);
 
   auto* layout = new QVBoxLayout;
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignTop);
   layout->addWidget(m_wiimote_box);
   setLayout(layout);

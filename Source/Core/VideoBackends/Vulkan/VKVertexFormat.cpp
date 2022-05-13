@@ -73,7 +73,7 @@ void VertexFormat::MapAttributes()
   for (uint32_t i = 0; i < 3; i++)
   {
     if (m_decl.normals[i].enable)
-      AddAttribute(SHADER_NORM0_ATTRIB + i, 0,
+      AddAttribute(SHADER_NORMAL_ATTRIB + i, 0,
                    VarToVkFormat(m_decl.normals[i].type, m_decl.normals[i].components,
                                  m_decl.normals[i].integer),
                    m_decl.normals[i].offset);

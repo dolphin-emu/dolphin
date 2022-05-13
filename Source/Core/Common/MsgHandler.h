@@ -43,7 +43,7 @@ bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, cons
                 "too many arguments?");
   static_assert(fmt::is_compile_string<S>::value);
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, format,
-                         fmt::make_args_checked<Args...>(format, args...));
+                         fmt::make_format_args(args...));
 }
 
 template <std::size_t NumFields, bool has_non_positional_args, typename S, typename... Args>
@@ -57,12 +57,7 @@ bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, con
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
   static_assert(fmt::is_compile_string<S>::value);
-  // It's only possible for us to compile-time check the English-language string.
-  // make_args_checked uses static_asserts to verify that a string is formattable with the given
-  // arguments.  But it can't do that if the string varies at runtime, so we can't check
-  // translations.  Still, verifying that the English string is correct will help ensure that
-  // translations use valid strings.
-  auto arg_list = fmt::make_args_checked<Args...>(format, args...);
+  auto arg_list = fmt::make_format_args(args...);
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, translated_format, arg_list);
 }
 
