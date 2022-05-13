@@ -967,7 +967,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   fs::path temp_movie_path = movie_path;
   if (temp_movie_path.extension() == ".cit")
   {
-    // unzip and store the dtm file path to movie_path
+    // unzip and store the cit file path to movie_path
     unzFile zipfile = unzOpen(movie_path.c_str());
     if (zipfile == NULL)
     {
@@ -1014,12 +1014,14 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
 
         // check if this is our movie (dtm file). if it is we need to make that our movie path
         fs::path foundDTMFile = filename;
+        fs::path directory = fs::path(movie_path).parent_path();
+        directory /= filename;
+        std::string extractHere = directory.string();
         if (foundDTMFile.extension() == ".dtm")
         {
           // fs::path directory{movie_path};
           // std::string path_of_movie_path_string{path_of_movie_path.string()};
-          fs::path directory = fs::path(movie_path).parent_path();
-          directory /= filename;
+
           actual_movie_path = directory.string();
         }
         if (unzOpenCurrentFile(zipfile) != UNZ_OK)
@@ -1029,7 +1031,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
         }
 
         // Open a file to write out the data.
-        FILE* out = fopen(filename, "wb");
+        FILE* out = fopen(extractHere.c_str(), "wb");
         if (out == NULL)
         {
           printf("could not open destination file\n");

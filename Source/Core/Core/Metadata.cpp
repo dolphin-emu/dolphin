@@ -135,7 +135,9 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     gameVar += replays_path;
     // Game_May_05_2022_11_51_34 C://Users//Brian//Documents//Citrus Replays
     // we need to pass the path the replays are held in in order to CD into them in the batch file
-    std::string batchPath("./createcit.bat");
+    std::filesystem::path cwd = std::filesystem::current_path() / "createcit.bat";
+    std::string batchPath = cwd.string();
+    //std::string batchPath("./createcit.bat");
     batchPath += gameVar;
     WinExec(batchPath.c_str(), SW_HIDE);
   }

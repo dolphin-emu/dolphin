@@ -193,16 +193,28 @@ void OnFrameEnd()
 
   // c2 gecko for hud (800f83bc) must be on to make this happen
   // movie cannot be playing input back since we do not want to record that
+
+  //match start
   if (Memory::Read_U8(matchStart) == 1 && !boolMatchStart && !Movie::IsPlayingInput() && !Movie::IsRecordingInput())
   {
     boolMatchStart = true;
     // begin recording
 
-    
+    /*
     Movie::SetReadOnly(false);
     Movie::ControllerTypeArray controllers{};
     Movie::WiimoteEnabledArray wiimotes{};
+    */
 
+    /*
+    if (NetPlay::IsNetPlayRunning())
+    {
+      // stub for netplay stuff
+    }
+    */
+
+    /*
+    // this is how they're set up in mainwindow.cpp
     for (int i = 0; i < 4; i++)
     {
       const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
@@ -214,12 +226,11 @@ void OnFrameEnd()
         controllers[i] = Movie::ControllerType::None;
       wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
     }
-
-    //Movie::BeginRecordingInput(controllers, wiimotes);
-    StateAuxillary::startRecording(controllers, wiimotes);
+    */
+    StateAuxillary::startRecording();
     boolMatchEnd = false;
 
-    // Create the Citrus Replays directory to ensure writing works
+    // Create the Citrus Replays directory to ensure writing works (will not overwrite already created dir)
     PWSTR path;
     SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
     std::wstring strpath(path);
@@ -231,6 +242,7 @@ void OnFrameEnd()
     CreateDirectory(wide_replays_path.c_str(), NULL);
   }
 
+  //match end
   if (Memory::Read_U8(matchEnd) == 1 && !boolMatchEnd && !Movie::IsPlayingInput() &&
       Movie::IsRecordingInput())
   {
@@ -254,6 +266,9 @@ void OnFrameEnd()
 
     std::string fileName = "\\output.dtm";
     replays_path += fileName;
+    StateAuxillary::stopRecording(replays_path, curr_tm);
+    boolMatchStart = false;
+    /*
     if (Movie::IsRecordingInput())
       RunAsCPUThread([=] {
         Movie::SaveRecording(replays_path);
@@ -262,10 +277,12 @@ void OnFrameEnd()
       RunAsCPUThread(
           [] { Movie::EndPlayInput(false);
         });
-    boolMatchStart = false;
+    */
+    /*
     Metadata::setMatchMetadata(curr_tm);
     std::string jsonString = Metadata::getJSONString();
     Metadata::writeJSON(jsonString, true);
+    */
   }
 }
 
@@ -1164,7 +1181,8 @@ void UpdateWantDeterminism(bool initial)
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
-  bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
+  // should be || NetPlay::IsNetPlayRunning()
+  bool new_want_determinism = Movie::IsMovieActive();
   if (new_want_determinism != s_wants_determinism || initial)
   {
     NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
