@@ -116,7 +116,7 @@ bool AddLocalPlayersEditor::AcceptPlayer()
   }
   
   
-  std::string url = "http://127.0.0.1:5000/validate_user_from_client/?username=" 
+  std::string url = "https://projectrio-api-1.api.projectrio.app/?username=" 
                   + m_local_player->username
                   + "&rio_key=" + m_local_player->userid;
   const Common::HttpRequest::Response response = m_http.Get(url);
