@@ -260,10 +260,12 @@ def build(config):
         if not os.path.exists(arch):
             os.mkdir(arch)
 
+        # Place Qt on the prefix path.
+        prefix_path = config[arch+"_qt5_path"]+';'+config[arch+"_cmake_prefix"]
+
         env = os.environ.copy()
-        env["QT_DIR"] = config[arch+"_qt5_path"]
         env["CMAKE_OSX_ARCHITECTURES"] = arch
-        env["CMAKE_PREFIX_PATH"] = config[arch+"_cmake_prefix"]
+        env["CMAKE_PREFIX_PATH"] = prefix_path
 
         # Add the other architecture's prefix path to the ignore path so that
         # CMake doesn't try to pick up the wrong architecture's libraries when
@@ -281,7 +283,7 @@ def build(config):
                 # System name needs to be specified for CMake to use
                 # the specified CMAKE_SYSTEM_PROCESSOR
                 "-DCMAKE_SYSTEM_NAME=Darwin",
-                "-DCMAKE_PREFIX_PATH="+config[arch+"_cmake_prefix"],
+                "-DCMAKE_PREFIX_PATH="+prefix_path,
                 "-DCMAKE_SYSTEM_PROCESSOR="+arch,
                 "-DCMAKE_IGNORE_PATH="+ignore_path,
                 "-DCMAKE_OSX_DEPLOYMENT_TARGET="
