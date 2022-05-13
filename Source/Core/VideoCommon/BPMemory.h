@@ -1231,10 +1231,10 @@ struct fmt::formatter<ScissorPos>
   template <typename FormatContext>
   auto format(const ScissorPos& pos, FormatContext& ctx)
   {
-    return format_to(ctx.out(),
-                     "X: {} (raw: {})\n"
-                     "Y: {} (raw: {})",
-                     pos.x - 342, pos.x_full, pos.y - 342, pos.y_full);
+    return fmt::format_to(ctx.out(),
+                          "X: {} (raw: {})\n"
+                          "Y: {} (raw: {})",
+                          pos.x - 342, pos.x_full, pos.y - 342, pos.y_full);
   }
 };
 
@@ -1257,10 +1257,10 @@ struct fmt::formatter<ScissorOffset>
   template <typename FormatContext>
   auto format(const ScissorOffset& off, FormatContext& ctx)
   {
-    return format_to(ctx.out(),
-                     "X: {} (raw: {})\n"
-                     "Y: {} (raw: {})",
-                     (off.x << 1) - 342, off.x_full, (off.y << 1) - 342, off.y_full);
+    return fmt::format_to(ctx.out(),
+                          "X: {} (raw: {})\n"
+                          "Y: {} (raw: {})",
+                          (off.x << 1) - 342, off.x_full, (off.y << 1) - 342, off.y_full);
   }
 };
 
