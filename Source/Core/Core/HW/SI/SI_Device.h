@@ -6,6 +6,7 @@
 #include <iosfwd>
 #include <memory>
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -63,16 +64,14 @@ enum class EDirectCommands : u8
   CMD_POLL = 0x54
 };
 
-union UCommand
+struct UCommand : BitField2<u32>
 {
-  u32 hex = 0;
-
-  BitField<0, 8, u32> parameter1;
-  BitField<8, 8, u32> parameter2;
-  BitField<16, 8, EDirectCommands, u32> command;
+  FIELD(u32, 0, 8, parameter1);
+  FIELD(u32, 8, 8, parameter2);
+  FIELD(EDirectCommands, 16, 8, command);
 
   UCommand() = default;
-  UCommand(u32 value) : hex{value} {}
+  UCommand(u32 val) : BitField2(val) {}
 };
 
 // For configuration use, since some devices can have the same SI Device ID
