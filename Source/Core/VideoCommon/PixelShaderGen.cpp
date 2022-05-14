@@ -215,8 +215,8 @@ PixelShaderUid GetPixelShaderUid()
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
       // optional perspective divides
-      uid_data->texMtxInfo_n_projection |= static_cast<u32>(xfmem.texMtxInfo[i].projection.Value())
-                                           << i;
+      uid_data->texMtxInfo_n_projection[i] |=
+          static_cast<bool>(xfmem.texMtxInfo[i].projection.Value());
     }
   }
 
@@ -253,10 +253,10 @@ PixelShaderUid GetPixelShaderUid()
         ac.c == TevAlphaArg::RasAlpha || ac.d == TevAlphaArg::RasAlpha)
     {
       const int i = bpmem.combiners[n].alphaC.rswap;
-      uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i * 2].swap1;
-      uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i * 2].swap2;
-      uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i * 2 + 1].swap1;
-      uid_data->stagehash[n].tevksel_swap2b = bpmem.tevksel[i * 2 + 1].swap2;
+      uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i * 2].swap1.Value();
+      uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i * 2].swap2.Value();
+      uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i * 2 + 1].swap1.Value();
+      uid_data->stagehash[n].tevksel_swap2b = bpmem.tevksel[i * 2 + 1].swap2.Value();
       uid_data->stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
     }
 
@@ -264,10 +264,10 @@ PixelShaderUid GetPixelShaderUid()
     if (uid_data->stagehash[n].tevorders_enable)
     {
       const int i = bpmem.combiners[n].alphaC.tswap;
-      uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1;
-      uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2;
-      uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
-      uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
+      uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1.Value();
+      uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2.Value();
+      uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1.Value();
+      uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2.Value();
       uid_data->stagehash[n].tevorders_texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
     }
 
@@ -350,7 +350,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
   if (api_type != APIType::D3D || !host_config.backend_logic_op)
-    uid_data->uint_output = 0;
+    uid_data->uint_output = false;
 
   // If bounding box is enabled when a UID cache is created, then later disabled, we shouldn't
   // emit the bounding box portion of the shader.
@@ -1498,15 +1498,15 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("\tkonsttemp = int4({}, {});\n", tev_ksel_table_c[stage.tevksel_kc],
               tev_ksel_table_a[stage.tevksel_ka]);
 
-    if (u32(stage.tevksel_kc) > 7)
+    if (u32(stage.tevksel_kc.Value()) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_kc) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc.Value()) - 0xc) % 4),
+                           C_KCOLORS + ((u32(stage.tevksel_kc.Value()) - 0xc) % 4));
     }
-    if (u32(stage.tevksel_ka) > 7)
+    if (u32(stage.tevksel_ka.Value()) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_ka) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka.Value()) - 0xc) % 4),
+                           C_KCOLORS + ((u32(stage.tevksel_ka.Value()) - 0xc) % 4));
     }
   }
 

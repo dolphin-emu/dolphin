@@ -382,18 +382,18 @@ void RegisterWidget::PopulateTable()
 
   // XER
   AddRegister(
-      21, 5, RegisterType::xer, "XER", [] { return PowerPC::GetXER().Hex; },
+      21, 5, RegisterType::xer, "XER", [] { return PowerPC::GetXER(); },
       [](u64 value) { PowerPC::SetXER(UReg_XER(value)); });
 
   // FPSCR
   AddRegister(
-      22, 5, RegisterType::fpscr, "FPSCR", [] { return PowerPC::ppcState.fpscr.Hex; },
+      22, 5, RegisterType::fpscr, "FPSCR", [] { return PowerPC::ppcState.fpscr; },
       [](u64 value) { PowerPC::ppcState.fpscr = static_cast<u32>(value); });
 
   // MSR
   AddRegister(
-      23, 5, RegisterType::msr, "MSR", [] { return PowerPC::ppcState.msr.Hex; },
-      [](u64 value) { PowerPC::ppcState.msr.Hex = value; });
+      23, 5, RegisterType::msr, "MSR", [] { return PowerPC::ppcState.msr; },
+      [](u64 value) { PowerPC::ppcState.msr = value; });
 
   // SRR 0-1
   AddRegister(

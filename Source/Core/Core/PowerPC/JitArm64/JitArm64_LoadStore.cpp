@@ -621,9 +621,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   // - addi rX,rX,32
   // - bdnz+ -8
   const bool make_loop = a == 0 && b != 0 && CanMergeNextInstructions(2) &&
-                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
-                         js.op[1].inst.RA_6 == b && js.op[1].inst.RD_2 == b &&
-                         js.op[2].inst.hex == 0x4200fff8;
+                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 && js.op[1].inst.RA == b &&
+                         js.op[1].inst.RD == b && js.op[2].inst.hex == 0x4200fff8;
 
   gpr.Lock(ARM64Reg::W0);
   if (make_loop)
@@ -705,7 +704,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   // Translate effective address to physical address.
   const u8* loop_start = GetCodePtr();
   FixupBranch bat_lookup_failed;
-  if (MSR.IR)
+  if (MSR.IR())
   {
     bat_lookup_failed =
         BATAddressLookup(physical_addr, effective_addr, WA, PowerPC::ibat_table.data());
@@ -734,7 +733,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
 
   SwitchToFarCode();
   SetJumpTarget(invalidate_needed);
-  if (MSR.IR)
+  if (MSR.IR())
     SetJumpTarget(bat_lookup_failed);
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();

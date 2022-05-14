@@ -64,7 +64,7 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
-  const auto primitive_type = static_cast<PrimitiveType>(uid_data->primitive_type);
+  const auto primitive_type = static_cast<PrimitiveType>(uid_data->primitive_type.Value());
   const u32 vertex_in = vertex_in_map[primitive_type];
   u32 vertex_out = vertex_out_map[primitive_type];
 

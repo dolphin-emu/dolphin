@@ -27,33 +27,33 @@ enum class FPCC
 
 inline void CheckFPExceptions(UReg_FPSCR fpscr)
 {
-  if (fpscr.FEX && (MSR.FE0 || MSR.FE1))
+  if (fpscr.FEX() && (MSR.FE0() || MSR.FE1()))
     GenerateProgramException(ProgramExceptionCause::FloatingPoint);
 }
 
 inline void UpdateFPExceptionSummary(UReg_FPSCR* fpscr)
 {
-  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
-  fpscr->FEX = ((fpscr->Hex >> 22) & (fpscr->Hex & FPSCR_ANY_E)) != 0;
+  fpscr->VX() = (*fpscr & FPSCR_VX_ANY) != 0;
+  fpscr->FEX() = ((*fpscr >> 22) & (*fpscr & FPSCR_ANY_E)) != 0;
 
   CheckFPExceptions(*fpscr);
 }
 
 inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
 {
-  if ((fpscr->Hex & mask) != mask)
+  if ((*fpscr & mask) != mask)
   {
-    fpscr->FX = 1;
+    fpscr->FX() = 1;
   }
 
-  fpscr->Hex |= mask;
+  *fpscr |= mask;
   UpdateFPExceptionSummary(fpscr);
 }
 
 inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 {
   float x = static_cast<float>(value);
-  if (!cpu_info.bFlushToZero && fpscr.NI)
+  if (!cpu_info.bFlushToZero && fpscr.NI())
   {
     x = Common::FlushToZero(x);
   }
@@ -62,7 +62,7 @@ inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
 
 inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
 {
-  if (!cpu_info.bFlushToZero && fpscr.NI)
+  if (!cpu_info.bFlushToZero && fpscr.NI())
   {
     d = Common::FlushToZero(d);
   }

@@ -154,12 +154,12 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
     return 1;
   }
 
-  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address, MSR.Hex);
+  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address, MSR);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address - 4 * i, MSR.Hex);
+      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address - 4 * i, MSR);
       if (block)
         break;
     }

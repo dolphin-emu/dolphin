@@ -187,7 +187,7 @@ static T ReadFromHardware(u32 em_address)
     return static_cast<T>(var);
   }
 
-  if (!never_translate && MSR.DR)
+  if (!never_translate && MSR.DR())
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -269,7 +269,7 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
 
   bool wi = false;
 
-  if (!never_translate && MSR.DR)
+  if (!never_translate && MSR.DR())
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -422,7 +422,7 @@ u32 Read_Opcode(u32 address)
 TryReadInstResult TryReadInstruction(u32 address)
 {
   bool from_bat = true;
-  if (MSR.IR)
+  if (MSR.IR())
   {
     auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
     if (!tlb_addr.Success())
@@ -465,7 +465,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
   case RequestedAddressSpace::Effective:
   {
     const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
-    return ReadResult<u32>(!!MSR.DR, value);
+    return ReadResult<u32>(!!MSR.DR(), value);
   }
   case RequestedAddressSpace::Physical:
   {
@@ -474,7 +474,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
   }
   case RequestedAddressSpace::Virtual:
   {
-    if (!MSR.DR)
+    if (!MSR.DR())
       return std::nullopt;
     const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
     return ReadResult<u32>(true, value);
@@ -574,7 +574,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   case RequestedAddressSpace::Effective:
   {
     T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
-    return ReadResult<T>(!!MSR.DR, std::move(value));
+    return ReadResult<T>(!!MSR.DR(), std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
@@ -583,7 +583,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   }
   case RequestedAddressSpace::Virtual:
   {
-    if (!MSR.DR)
+    if (!MSR.DR())
       return std::nullopt;
     T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
     return ReadResult<T>(true, std::move(value));
@@ -763,12 +763,12 @@ static std::optional<WriteResult> HostTryWriteUX(const u32 var, const u32 addres
   {
   case RequestedAddressSpace::Effective:
     WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
-    return WriteResult(!!MSR.DR);
+    return WriteResult(!!MSR.DR());
   case RequestedAddressSpace::Physical:
     WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size);
     return WriteResult(false);
   case RequestedAddressSpace::Virtual:
-    if (!MSR.DR)
+    if (!MSR.DR())
       return std::nullopt;
     WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
     return WriteResult(true);
@@ -863,7 +863,7 @@ bool IsOptimizableRAMAddress(const u32 address)
   if (PowerPC::memchecks.HasAny())
     return false;
 
-  if (!MSR.DR)
+  if (!MSR.DR())
     return false;
 
   // TODO: This API needs to take an access size
@@ -912,11 +912,11 @@ bool HostIsRAMAddress(u32 address, RequestedAddressSpace space)
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    return IsRAMAddress<XCheckTLBFlag::NoException>(address, MSR.DR);
+    return IsRAMAddress<XCheckTLBFlag::NoException>(address, MSR.DR());
   case RequestedAddressSpace::Physical:
     return IsRAMAddress<XCheckTLBFlag::NoException>(address, false);
   case RequestedAddressSpace::Virtual:
-    if (!MSR.DR)
+    if (!MSR.DR())
       return false;
     return IsRAMAddress<XCheckTLBFlag::NoException>(address, true);
   }
@@ -934,11 +934,11 @@ bool HostIsInstructionRAMAddress(u32 address, RequestedAddressSpace space)
   switch (space)
   {
   case RequestedAddressSpace::Effective:
-    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, MSR.IR);
+    return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, MSR.IR());
   case RequestedAddressSpace::Physical:
     return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, false);
   case RequestedAddressSpace::Virtual:
-    if (!MSR.IR)
+    if (!MSR.IR())
       return false;
     return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, true);
   }
@@ -1022,7 +1022,7 @@ void DMA_MemoryToLC(const u32 cache_address, const u32 mem_address, const u32 nu
 void ClearCacheLine(u32 address)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
-  if (MSR.DR)
+  if (MSR.DR())
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResultEnum::DIRECT_STORE_SEGMENT)
@@ -1052,7 +1052,7 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 access_size)
   if (PowerPC::memchecks.HasAny())
     return 0;
 
-  if (!MSR.DR)
+  if (!MSR.DR())
     return 0;
 
   // Translate address
@@ -1075,7 +1075,7 @@ bool IsOptimizableGatherPipeWrite(u32 address)
   if (PowerPC::memchecks.HasAny())
     return false;
 
-  if (!MSR.DR)
+  if (!MSR.DR())
     return false;
 
   // Translate address, only check BAT mapping.
@@ -1091,7 +1091,7 @@ bool IsOptimizableGatherPipeWrite(u32 address)
 
 TranslateResult JitCache_TranslateAddress(u32 address)
 {
-  if (!MSR.IR)
+  if (!MSR.IR())
     return TranslateResult{address};
 
   // TODO: We shouldn't use FLAG_OPCODE if the caller is the debugger.
@@ -1168,7 +1168,7 @@ static void GenerateISIException(u32 effective_address)
 void SDRUpdated()
 {
   const auto sdr = UReg_SDR1{ppcState.spr[SPR_SDR]};
-  const u32 htabmask = sdr.htabmask;
+  const u32 htabmask = sdr.htabmask();
 
   if (!Common::IsValidLowMask(htabmask))
     WARN_LOG_FMT(POWERPC, "Invalid HTABMASK: 0b{:032b}", htabmask);
@@ -1177,7 +1177,7 @@ void SDRUpdated()
   // must be equal to the number of trailing ones in the mask (i.e. HTABORG must be
   // properly aligned), this is actually not a hard requirement. Real hardware will just OR
   // the base address anyway. Ignoring SDR changes would lead to incorrect emulation.
-  const u32 htaborg = sdr.htaborg;
+  const u32 htaborg = sdr.htaborg();
   if ((htaborg & htabmask) != 0)
     WARN_LOG_FMT(POWERPC, "Invalid HTABORG: htaborg=0x{:08x} htabmask=0x{:08x}", htaborg, htabmask);
 
@@ -1205,10 +1205,10 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (pte2.C == 0)
+      if (pte2.C() == 0)
       {
-        pte2.C = 1;
-        tlbe.pte[0] = pte2.Hex;
+        pte2.C() = 1;
+        tlbe.pte[0] = pte2;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1217,7 +1217,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 0;
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
-    *wi = (pte2.WIMG & 0b1100) != 0;
+    *wi = (pte2.WIMG() & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
@@ -1228,10 +1228,10 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (pte2.C == 0)
+      if (pte2.C() == 0)
       {
-        pte2.C = 1;
-        tlbe.pte[1] = pte2.Hex;
+        pte2.C() = 1;
+        tlbe.pte[1] = pte2;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1240,7 +1240,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       tlbe.recent = 1;
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
-    *wi = (pte2.WIMG & 0b1100) != 0;
+    *wi = (pte2.WIMG() & 0b1100) != 0;
 
     return TLBLookupResult::Found;
   }
@@ -1256,8 +1256,8 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE_Hi pte2, const u32 add
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
   const u32 index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
   tlbe.recent = index;
-  tlbe.paddr[index] = pte2.RPN << HW_PAGE_INDEX_SHIFT;
-  tlbe.pte[index] = pte2.Hex;
+  tlbe.paddr[index] = pte2.RPN() << HW_PAGE_INDEX_SHIFT;
+  tlbe.pte[index] = pte2;
   tlbe.tag[index] = tag;
 }
 
@@ -1299,29 +1299,29 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
   const auto sr = UReg_SR{ppcState.sr[address.SR]};
 
-  if (sr.T != 0)
+  if (sr.T() != 0)
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
 
   // TODO: Handle KS/KP segment register flags.
 
   // No-execute segment register flag.
-  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) && sr.N != 0)
+  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) && sr.N() != 0)
   {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
   }
 
   const u32 offset = address.offset;          // 12 bit
   const u32 page_index = address.page_index;  // 16 bit
-  const u32 VSID = sr.VSID;                   // 24 bit
+  const u32 VSID = sr.VSID();                 // 24 bit
   const u32 api = address.API;                //  6 bit (part of page_index)
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
 
-  UPTE_Lo pte1;
-  pte1.VSID = VSID;
-  pte1.API = api;
-  pte1.V = 1;
+  UPTE_Lo pte1 = 0;
+  pte1.VSID() = VSID;
+  pte1.API() = api;
+  pte1.V() = 1;
 
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
@@ -1329,7 +1329,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
     if (hash_func == 1)
     {
       hash = ~hash;
-      pte1.H = 1;
+      pte1.H() = 1;
     }
 
     u32 pteg_addr =
@@ -1339,7 +1339,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
     {
       const u32 pteg = Memory::Read_U32(pteg_addr);
 
-      if (pte1.Hex == pteg)
+      if (pte1 == pteg)
       {
         UPTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
 
@@ -1350,30 +1350,30 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
         case XCheckTLBFlag::OpcodeNoException:
           break;
         case XCheckTLBFlag::Read:
-          pte2.R = 1;
+          pte2.R() = 1;
           break;
         case XCheckTLBFlag::Write:
-          pte2.R = 1;
-          pte2.C = 1;
+          pte2.R() = 1;
+          pte2.C() = 1;
           break;
         case XCheckTLBFlag::Opcode:
-          pte2.R = 1;
+          pte2.R() = 1;
           break;
         }
 
         if (!IsNoExceptionFlag(flag))
         {
-          Memory::Write_U32(pte2.Hex, pteg_addr + 4);
+          Memory::Write_U32(pte2, pteg_addr + 4);
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLBLookupResult::UpdateC)
           UpdateTLBEntry(flag, pte2, address.Hex);
 
-        *wi = (pte2.WIMG & 0b1100) != 0;
+        *wi = (pte2.WIMG() & 0b1100) != 0;
 
         return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
-                                      (pte2.RPN << 12) | offset};
+                                      (pte2.RPN() << 12) | offset};
       }
     }
   }
@@ -1392,10 +1392,10 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
     const u32 spr = base_spr + i * 2;
     const UReg_BAT_Up batu{ppcState.spr[spr]};
     const UReg_BAT_Lo batl{ppcState.spr[spr + 1]};
-    if (batu.VS == 0 && batu.VP == 0)
+    if (batu.VS() == 0 && batu.VP() == 0)
       continue;
 
-    if ((batu.BEPI & batu.BL) != 0)
+    if ((batu.BEPI() & batu.BL()) != 0)
     {
       // With a valid BAT, the simplest way to match is
       // (input & ~BL_mask) == BEPI. For now, assume it's
@@ -1403,14 +1403,14 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
       WARN_LOG_FMT(POWERPC, "Bad BAT setup: BEPI overlaps BL");
       continue;
     }
-    if ((batl.BRPN & batu.BL) != 0)
+    if ((batl.BRPN() & batu.BL()) != 0)
     {
       // With a valid BAT, the simplest way to translate is
       // (input & BL_mask) | BRPN_address. For now, assume it's
       // implemented this way for invalid BATs as well.
       WARN_LOG_FMT(POWERPC, "Bad BAT setup: BPRN overlaps BL");
     }
-    if (!Common::IsValidLowMask((u32)batu.BL))
+    if (!Common::IsValidLowMask((u32)batu.BL()))
     {
       // With a valid BAT, the simplest way of masking is
       // (input & ~BL_mask) for matching and (input & BL_mask) for
@@ -1418,22 +1418,22 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
       // invalid BATs as well.
       WARN_LOG_FMT(POWERPC, "Bad BAT setup: invalid mask in BL");
     }
-    for (u32 j = 0; j <= batu.BL; ++j)
+    for (u32 j = 0; j <= batu.BL(); ++j)
     {
       // Enumerate all bit-patterns which fit within the given mask.
-      if ((j & batu.BL) == j)
+      if ((j & batu.BL()) == j)
       {
         // This bit is a little weird: if BRPN & j != 0, we end up with
         // a strange mapping. Need to check on hardware.
-        u32 physical_address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
-        u32 virtual_address = (batu.BEPI | j) << BAT_INDEX_SHIFT;
+        u32 physical_address = (batl.BRPN() | j) << BAT_INDEX_SHIFT;
+        u32 virtual_address = (batu.BEPI() | j) << BAT_INDEX_SHIFT;
 
         // BAT_MAPPED_BIT is whether the translation is valid
         // BAT_PHYSICAL_BIT is whether we can use the fastmem arena
         // BAT_WI_BIT is whether either W or I (of WIMG) is set
         u32 valid_bit = BAT_MAPPED_BIT;
 
-        const bool wi = (batl.WIMG & 0b1100) != 0;
+        const bool wi = (batl.WIMG() & 0b1100) != 0;
         if (wi)
           valid_bit |= BAT_WI_BIT;
 
@@ -1493,7 +1493,7 @@ void DBATUpdated()
 {
   dbat_table = {};
   UpdateBATs(dbat_table, SPR_DBAT0U);
-  bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
+  bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE();
   if (extended_bats)
     UpdateBATs(dbat_table, SPR_DBAT4U);
   if (Memory::m_pFakeVMEM)
@@ -1515,7 +1515,7 @@ void IBATUpdated()
 {
   ibat_table = {};
   UpdateBATs(ibat_table, SPR_IBAT0U);
-  bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
+  bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE();
   if (extended_bats)
     UpdateBATs(ibat_table, SPR_IBAT4U);
   if (Memory::m_pFakeVMEM)

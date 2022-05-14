@@ -15,6 +15,7 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/BitField.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -2486,11 +2487,9 @@ void ARM64FloatEmitter::EncodeModImm(bool Q, u8 op, u8 cmode, u8 o2, ARM64Reg Rd
   union
   {
     u8 hex;
-    struct
-    {
-      unsigned defgh : 5;
-      unsigned abc : 3;
-    };
+
+    BitField<0, 5, u8> defgh;
+    BitField<5, 3, u8> abc;
   } v;
   v.hex = abcdefgh;
   Write32((Q << 30) | (op << 29) | (0xF << 24) | (v.abc << 16) | (cmode << 12) | (o2 << 11) |

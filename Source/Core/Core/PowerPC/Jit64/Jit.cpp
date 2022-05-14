@@ -528,7 +528,7 @@ bool Jit64::Cleanup()
   }
 
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
-  if (MMCR0.Hex || MMCR1.Hex)
+  if (MMCR0 || MMCR1)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
@@ -756,7 +756,7 @@ void Jit64::Trace()
   DEBUG_LOG_FMT(DYNA_REC,
                 "JIT64 PC: {:08x} SRR0: {:08x} SRR1: {:08x} FPSCR: {:08x} "
                 "MSR: {:08x} LR: {:08x} {} {}",
-                PC, SRR0, SRR1, FPSCR.Hex, MSR.Hex, PowerPC::ppcState.spr[8], regs, fregs);
+                PC, SRR0, SRR1, FPSCR, MSR, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
 void Jit64::Jit(u32 em_address)

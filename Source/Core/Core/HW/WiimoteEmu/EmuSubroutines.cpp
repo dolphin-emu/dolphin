@@ -255,8 +255,8 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
 
   const u16 address = Common::swap16(wd.address);
 
-  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::WriteData: {:#04x} @ {:#04x} @ {:#04x} ({})", wd.space,
-                wd.slave_address, address, wd.size);
+  DEBUG_LOG_FMT(WIIMOTE, "Wiimote::WriteData: {:#04x} @ {:#04x} @ {:#04x} ({})",
+                (u8)wd.space.Value(), wd.slave_address, address, wd.size);
 
   if (0 == wd.size || wd.size > 16)
   {
@@ -267,7 +267,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
 
   ErrorCode error_code = ErrorCode::Success;
 
-  switch (static_cast<AddressSpace>(wd.space))
+  switch (wd.space)
   {
   case AddressSpace::EEPROM:
   {
@@ -306,7 +306,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
   break;
 
   default:
-    WARN_LOG_FMT(WIIMOTE, "WriteData: invalid address space: {:#x}", wd.space);
+    WARN_LOG_FMT(WIIMOTE, "WriteData: invalid address space: {:#x}", (u8)wd.space.Value());
     // A real wiimote gives error 6:
     error_code = ErrorCode::InvalidSpace;
     break;
@@ -325,7 +325,7 @@ void Wiimote::HandleReportRumble(const WiimoteCommon::OutputReportRumble& rpt)
 
 void Wiimote::HandleReportLeds(const WiimoteCommon::OutputReportLeds& rpt)
 {
-  m_status.leds = rpt.leds;
+  m_status.leds = rpt.leds.Value();
 
   if (rpt.ack)
     SendAck(OutputReportID::LED, ErrorCode::Success);
@@ -363,7 +363,7 @@ void Wiimote::HandleSpeakerMute(const WiimoteCommon::OutputReportEnableFeature& 
 
 void Wiimote::HandleSpeakerEnable(const WiimoteCommon::OutputReportEnableFeature& rpt)
 {
-  m_status.speaker = rpt.enable;
+  m_status.speaker = rpt.enable.Value();
 
   if (rpt.ack)
     SendAck(OutputReportID::SpeakerEnable, ErrorCode::Success);
@@ -406,7 +406,7 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   }
 
   // Save the request and process it on the next "Update()" call(s)
-  m_read_request.space = static_cast<AddressSpace>(rd.space);
+  m_read_request.space = rd.space;
   m_read_request.slave_address = rd.slave_address;
   m_read_request.address = Common::swap16(rd.address);
   // A zero size request is just ignored, like on the real wiimote.
@@ -531,7 +531,7 @@ bool Wiimote::ProcessReadDataRequest()
     m_read_request.size -= bytes_to_read;
   }
 
-  reply.error = static_cast<u8>(error_code);
+  reply.error = error_code;
 
   InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 

@@ -289,25 +289,25 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_XFBInfoTop.Hi = val;
                    if (m_XFBInfoTop.CLRPOFF)
-                     m_XFBInfoTop.POFF = 0;
+                     m_XFBInfoTop.POFF = false;
                  }));
   mmio->Register(base | VI_FB_LEFT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_XFBInfoBottom.Hi),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_XFBInfoBottom.Hi = val;
                    if (m_XFBInfoBottom.CLRPOFF)
-                     m_XFBInfoBottom.POFF = 0;
+                     m_XFBInfoBottom.POFF = false;
                  }));
   mmio->Register(base | VI_FB_RIGHT_TOP_HI, MMIO::DirectRead<u16>(&m_3DFBInfoTop.Hi),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_3DFBInfoTop.Hi = val;
                    if (m_3DFBInfoTop.CLRPOFF)
-                     m_3DFBInfoTop.POFF = 0;
+                     m_3DFBInfoTop.POFF = false;
                  }));
   mmio->Register(base | VI_FB_RIGHT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_3DFBInfoBottom.Hi),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_3DFBInfoBottom.Hi = val;
                    if (m_3DFBInfoBottom.CLRPOFF)
-                     m_3DFBInfoBottom.POFF = 0;
+                     m_3DFBInfoBottom.POFF = false;
                  }));
 
   // MMIOs with unimplemented writes that trigger warnings.
@@ -378,17 +378,17 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | VI_CONTROL_REGISTER, MMIO::DirectRead<u16>(&m_DisplayControlRegister.Hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    UVIDisplayControlRegister tmpConfig(val);
-                   m_DisplayControlRegister.ENB = tmpConfig.ENB;
-                   m_DisplayControlRegister.NIN = tmpConfig.NIN;
-                   m_DisplayControlRegister.DLR = tmpConfig.DLR;
-                   m_DisplayControlRegister.LE0 = tmpConfig.LE0;
-                   m_DisplayControlRegister.LE1 = tmpConfig.LE1;
-                   m_DisplayControlRegister.FMT = tmpConfig.FMT;
+                   m_DisplayControlRegister.ENB = tmpConfig.ENB.Value();
+                   m_DisplayControlRegister.NIN = tmpConfig.NIN.Value();
+                   m_DisplayControlRegister.DLR = tmpConfig.DLR.Value();
+                   m_DisplayControlRegister.LE0 = tmpConfig.LE0.Value();
+                   m_DisplayControlRegister.LE1 = tmpConfig.LE1.Value();
+                   m_DisplayControlRegister.FMT = tmpConfig.FMT.Value();
 
                    if (tmpConfig.RST)
                    {
                      // shuffle2 clear all data, reset to default vals, and enter idle mode
-                     m_DisplayControlRegister.RST = 0;
+                     m_DisplayControlRegister.RST = false;
                      m_InterruptRegister = {};
                      UpdateInterrupts();
                    }
@@ -921,7 +921,7 @@ void Update(u64 ticks)
     u32 target_halfline = (reg.HCT > m_HTiming0.HLW) ? 1 : 0;
     if ((1 + (s_half_line_count) / 2 == reg.VCT) && ((s_half_line_count & 1) == target_halfline))
     {
-      reg.IR_INT = 1;
+      reg.IR_INT = true;
     }
   }
 

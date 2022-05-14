@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/BitField.h"
+
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -32,23 +34,26 @@ class Turntable : public Extension1stParty
 public:
   struct DataFormat
   {
-    u8 sx : 6;
-    u8 rtable3 : 2;
+    union
+    {
+      BitField<0, 6, u32> sx;
+      BitField<6, 2, u32> rtable3;
 
-    u8 sy : 6;
-    u8 rtable2 : 2;
+      BitField<8, 6, u32> sy;
+      BitField<14, 2, u32> rtable2;
 
-    u8 rtable4 : 1;
-    u8 slider : 4;
-    u8 dial2 : 2;
-    u8 rtable1 : 1;
+      BitField<16, 1, u32> rtable4;
+      BitField<17, 4, u32> slider;
+      BitField<21, 2, u32> dial2;
+      BitField<23, 1, u32> rtable1;
 
-    u8 ltable1 : 5;
-    u8 dial1 : 3;
+      BitField<24, 5, u32> ltable1;
+      BitField<29, 3, u32> dial1;
+    };
 
     union
     {
-      u16 ltable2 : 1;
+      BitField<0, 1, u16> ltable2;
       u16 bt;  // buttons
     };
   };

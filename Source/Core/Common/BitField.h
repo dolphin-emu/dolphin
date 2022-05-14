@@ -36,8 +36,6 @@
 #include <limits>
 #include <type_traits>
 
-#include "Common/Inline.h"
-
 /*
  * Abstract bitfield class
  *
@@ -104,6 +102,13 @@
  * handles this conversion automatically.
  *
  * 2)
+ * Copy assignment gives unexpected results, meaning the following syntax should never be used:
+ * some_register.next_eight_bits = other_register.next_eight_bits;
+ * To work around this, do the following:
+ * some_register.next_eight_bits = other_register.next_eight_bits.Value();
+ * If you don't, a deprecated function warning will occur.  See below for more details.
+ *
+ * 3)
  * Not really a caveat, but potentially irritating: This class is used in some
  * packed structures that do not guarantee proper alignment. Therefore we have
  * to use #pragma pack here not to pack the members of the class, but instead
@@ -133,21 +138,72 @@ public:
   // so that we can use this within unions
   constexpr BitField() = default;
 
-  // We explicitly delete the copy assignment operator here, because the
-  // default copy assignment would copy the full storage value, rather than
-  // just the bits relevant to this particular bit field.
-  // Ideally, we would just implement the copy assignment to copy only the
-  // relevant bits, but we're prevented from doing that because the savestate
-  // code expects that this class is trivially copyable.
-  BitField& operator=(const BitField&) = delete;
+  // The default copy-assignment copies the full storage value, rather than just the bits relevant
+  // to this particular BitField.  Ideally, we would just implement the copy assignment to copy only
+  // the relevant bits, but we're prevented from doing that because many classes containing a union
+  // with BitFields must be trivially copyable.  Savestate code is a great example.  At the same
+  // time, explicitly deleting copy-assignment would be undesireable, because all classes containing
+  // a union with BitFields would implicitly delete copy-assignment as well.  This would restrict
+  // simple things like array initialization, std::swap, std::fill, std::memcpy, etc.  The only real
+  // solution is to allow copy-assignment to exist, albeit with a warning so that code-review is not
+  // impossible.  Also, disable clang-format for now.  C++11 attributes have limited
+  // formatting options as of this writing, and the alternative is ugly.
+  // clang-format off
+  [[deprecated("If you can see this warning, you might be using BitField the wrong way.")]]
+  constexpr BitField& operator=(const BitField&) = default;
+  // clang-format on
 
-  DOLPHIN_FORCE_INLINE BitField& operator=(T val)
+  constexpr BitField& operator=(T rhs)
   {
-    storage = (storage & ~GetMask()) | ((static_cast<StorageType>(val) << position) & GetMask());
+    SetValue(rhs);
+    return *this;
+  }
+  constexpr BitField& operator+=(T rhs)
+  {
+    SetValue(Value() + rhs);
+    return *this;
+  }
+  constexpr BitField& operator-=(T rhs)
+  {
+    SetValue(Value() - rhs);
+    return *this;
+  }
+  constexpr BitField& operator*=(T rhs)
+  {
+    SetValue(Value() * rhs);
+    return *this;
+  }
+  constexpr BitField& operator/=(T rhs)
+  {
+    SetValue(Value() / rhs);
+    return *this;
+  }
+  constexpr BitField& operator%=(T rhs)
+  {
+    SetValue(Value() % rhs);
+    return *this;
+  }
+  constexpr BitField& operator^=(T rhs)
+  {
+    SetValue(Value() ^ rhs);
+    return *this;
+  }
+  constexpr BitField& operator&=(T rhs)
+  {
+    SetValue(Value() & rhs);
+    return *this;
+  }
+  constexpr BitField& operator|=(T rhs)
+  {
+    SetValue(Value() | rhs);
     return *this;
   }
 
   constexpr T Value() const { return Value(std::is_signed<T>()); }
+  constexpr void SetValue(T val)
+  {
+    storage = (storage & ~GetMask()) | ((static_cast<StorageType>(val) << position) & GetMask());
+  }
   constexpr operator T() const { return Value(); }
   static constexpr bool IsSigned() { return std::is_signed<T>(); }
   static constexpr std::size_t StartBit() { return position; }
@@ -236,13 +292,20 @@ public:
   // so that we can use this within unions
   constexpr BitFieldArray() = default;
 
-  // We explicitly delete the copy assignment operator here, because the
-  // default copy assignment would copy the full storage value, rather than
-  // just the bits relevant to this particular bit field.
-  // Ideally, we would just implement the copy assignment to copy only the
-  // relevant bits, but we're prevented from doing that because the savestate
-  // code expects that this class is trivially copyable.
-  BitFieldArray& operator=(const BitFieldArray&) = delete;
+  // The default copy-assignment copies the full storage value, rather than just the bits relevant
+  // to this particular BitFieldArray.  Ideally, we would just implement the copy assignment to copy
+  // only the relevant bits, but we're prevented from doing that because many classes containing a
+  // union with BitFieldArrays must be trivially copyable.  Savestate code is a great example.  At
+  // the same time, explicitly deleting copy-assignment would be undesireable, because all classes
+  // containing a union with BitFieldArrays would implicitly delete copy-assignment as well.  This
+  // would restrict simple things like array initialization, std::swap, std::fill, std::memcpy etc.
+  // The only real solution is to allow copy-assignment to exist, albeit with a warning so that
+  // code-review is not impossible.  Also, disable clang-format for now.  C++11 attributes
+  // have limited formatting options as of this writing, and the alternative is ugly.
+  // clang-format off
+  [[deprecated("If you can see this warning, you might be using BitFieldArray the wrong way.")]]
+  BitFieldArray& operator=(const BitFieldArray&) = default;
+  // clang-format on
 
 public:
   constexpr bool IsSigned() const { return std::is_signed<T>(); }
@@ -335,15 +398,25 @@ class BitFieldArrayRef
 public:
   constexpr T Value() const { return m_array->Value(m_index); };
   constexpr operator T() const { return Value(); }
-  T operator=(const BitFieldArrayRef<position, bits, size, T, S>& value) const
+  T operator=(const BitFieldArrayRef<position, bits, size, T, S>& rhs) const
   {
-    m_array->SetValue(m_index, value);
-    return value;
+    m_array->SetValue(m_index, rhs);
+    return *this;
   }
-  T operator=(T value) const
+  T operator|=(const BitFieldArrayRef<position, bits, size, T, S>& rhs) const
   {
-    m_array->SetValue(m_index, value);
-    return value;
+    m_array->SetValue(m_index, Value() | rhs);
+    return *this;
+  }
+  T operator=(T rhs) const
+  {
+    m_array->SetValue(m_index, rhs);
+    return *this;
+  }
+  T operator|=(T rhs) const
+  {
+    m_array->SetValue(m_index, Value() | rhs);
+    return *this;
   }
 
 private:

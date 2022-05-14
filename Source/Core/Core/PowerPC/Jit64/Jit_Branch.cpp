@@ -125,7 +125,7 @@ void Jit64::bcx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
   }
 
   if (inst.LK)
@@ -182,10 +182,10 @@ void Jit64::bcctrx(UGeckoInstruction inst)
   JITDISABLE(bJITBranchOff);
 
   // bcctrx doesn't decrement and/or test CTR
-  DEBUG_ASSERT_MSG(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
+  DEBUG_ASSERT_MSG(POWERPC, inst.BO & BO_DONT_DECREMENT_FLAG,
                    "bcctrx with decrement and test CTR option is invalid!");
 
-  if (inst.BO_2 & BO_DONT_CHECK_CONDITION)
+  if (inst.BO & BO_DONT_CHECK_CONDITION)
   {
     // BO_2 == 1z1zz -> b always
 
@@ -194,10 +194,10 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     fpr.Flush();
 
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
-    if (inst.LK_3)
+    if (inst.LK)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-    WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+    WriteExitDestInRSCRATCH(inst.LK, js.compilerPC + 4);
   }
   else
   {
@@ -207,11 +207,11 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     // BO_2 == 011zy -> b if true
 
     FixupBranch b =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     // MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
-    if (inst.LK_3)
+    if (inst.LK)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
     {
@@ -219,7 +219,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
       RCForkGuard fpr_guard = fpr.Fork();
       gpr.Flush();
       fpr.Flush();
-      WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+      WriteExitDestInRSCRATCH(inst.LK, js.compilerPC + 4);
       // Would really like to continue the block here, but it ends. TODO.
     }
     SetJumpTarget(b);
@@ -252,7 +252,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
   }
 
 // This below line can be used to prove that blr "eats flags" in practice.

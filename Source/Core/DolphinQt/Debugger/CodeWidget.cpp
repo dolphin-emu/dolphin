@@ -438,11 +438,10 @@ static bool WillInstructionReturn(UGeckoInstruction inst)
   // Is a rfi instruction
   if (inst.hex == 0x4C000064u)
     return true;
-  bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO_2 >> 1 & 1) != 0);
-  bool condition =
-      inst.BO_2 >> 4 != 0 || PowerPC::ppcState.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
-  bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
-  return isBclr && counter && condition && !inst.LK_3;
+  bool counter = (inst.BO >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO >> 1 & 1) != 0);
+  bool condition = inst.BO >> 4 != 0 || PowerPC::ppcState.cr.GetBit(inst.BI) == (inst.BO >> 3 & 1);
+  bool isBclr = inst.OPCD == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
+  return isBclr && counter && condition && !inst.LK;
 }
 
 void CodeWidget::StepOut()

@@ -6,6 +6,8 @@
 #include <array>
 #include <memory>
 
+#include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
@@ -29,7 +31,7 @@ public:
   ~CEXIChannel();
 
   // get device
-  IEXIDevice* GetDevice(u8 chip_select);
+  IEXIDevice* GetDevice(const u32 chip_select);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
@@ -60,44 +62,38 @@ private:
   };
 
   // EXI Status Register - "Channel Parameter Register"
-  union UEXI_STATUS
+  struct UEXI_STATUS : BitField2<u32>
   {
-    u32 Hex = 0;
-    // DO NOT obey the warning and give this struct a name. Things will fail.
-    struct
-    {
-      // Indentation Meaning:
-      // Channels 0, 1, 2
-      //  Channels 0, 1 only
-      //      Channel 0 only
-      u32 EXIINTMASK : 1;
-      u32 EXIINT : 1;
-      u32 TCINTMASK : 1;
-      u32 TCINT : 1;
-      u32 CLK : 3;
-      u32 CHIP_SELECT : 3;  // CS1 and CS2 are Channel 0 only
-      u32 EXTINTMASK : 1;
-      u32 EXTINT : 1;
-      u32 EXT : 1;     // External Insertion Status (1: External EXI device present)
-      u32 ROMDIS : 1;  // ROM Disable
-      u32 : 18;
-    };
+    FIELD(bool, 0, 1, EXIINTMASK);
+    FIELD(bool, 1, 1, EXIINT);
+    FIELD(bool, 2, 1, TCINTMASK);
+    FIELD(bool, 3, 1, TCINT);
+    FIELD(u32, 4, 3, CLK);
+    FIELD(bool, 7, 1, CS0);
+    FIELD(bool, 8, 1, CS1);          // Channel 0 only
+    FIELD(bool, 9, 1, CS2);          // Channel 0 only
+    FIELD(bool, 10, 1, EXTINTMASK);  // Channel 0, 1 only
+    FIELD(bool, 11, 1, EXTINT);      // Channel 0, 1 only
+    FIELD(bool, 12, 1, EXT);         // Channel 0, 1 only
+                                     // True means external EXI device present
+    FIELD(bool, 13, 1, ROMDIS);      // Channel 0 only
+                                     // ROM Disable
+    FIELD(u32, 7, 3, CHIP_SELECT);   // CS0, CS1, and CS2 merged for convenience.
+
     UEXI_STATUS() = default;
-    explicit UEXI_STATUS(u32 hex) : Hex{hex} {}
+    constexpr UEXI_STATUS(u32 val) : BitField2(val) {}
   };
 
   // EXI Control Register
-  union UEXI_CONTROL
+  struct UEXI_CONTROL : BitField2<u32>
   {
-    u32 Hex = 0;
-    struct
-    {
-      u32 TSTART : 1;
-      u32 DMA : 1;
-      u32 RW : 2;
-      u32 TLEN : 2;
-      u32 : 26;
-    };
+    FIELD(bool, 0, 1, TSTART);
+    FIELD(bool, 1, 1, DMA);
+    FIELD(u32, 2, 2, RW);
+    FIELD(u32, 4, 2, TLEN);
+
+    UEXI_CONTROL() = default;
+    constexpr UEXI_CONTROL(u32 val) : BitField2(val) {}
   };
 
   // STATE_TO_SAVE

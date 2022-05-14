@@ -23,18 +23,6 @@ union RasterizationState
   void Generate(const BPMemory& bp, PrimitiveType primitive_type);
 
   RasterizationState() = default;
-  RasterizationState(const RasterizationState&) = default;
-  RasterizationState& operator=(const RasterizationState& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
-  RasterizationState(RasterizationState&&) = default;
-  RasterizationState& operator=(RasterizationState&& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
 
   bool operator==(const RasterizationState& rhs) const { return hex == rhs.hex; }
   bool operator!=(const RasterizationState& rhs) const { return !operator==(rhs); }
@@ -49,18 +37,6 @@ union RasterizationState
 union FramebufferState
 {
   FramebufferState() = default;
-  FramebufferState(const FramebufferState&) = default;
-  FramebufferState& operator=(const FramebufferState& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
-  FramebufferState(FramebufferState&&) = default;
-  FramebufferState& operator=(FramebufferState&& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
 
   bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
   bool operator!=(const FramebufferState& rhs) const { return !operator==(rhs); }
@@ -78,18 +54,6 @@ union DepthState
   void Generate(const BPMemory& bp);
 
   DepthState() = default;
-  DepthState(const DepthState&) = default;
-  DepthState& operator=(const DepthState& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
-  DepthState(DepthState&&) = default;
-  DepthState& operator=(DepthState&& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
 
   bool operator==(const DepthState& rhs) const { return hex == rhs.hex; }
   bool operator!=(const DepthState& rhs) const { return !operator==(rhs); }
@@ -111,18 +75,6 @@ union BlendingState
   void ApproximateLogicOpWithBlending();
 
   BlendingState() = default;
-  BlendingState(const BlendingState&) = default;
-  BlendingState& operator=(const BlendingState& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
-  BlendingState(BlendingState&&) = default;
-  BlendingState& operator=(BlendingState&& rhs)
-  {
-    hex = rhs.hex;
-    return *this;
-  }
 
   bool operator==(const BlendingState& rhs) const { return hex == rhs.hex; }
   bool operator!=(const BlendingState& rhs) const { return !operator==(rhs); }
@@ -150,20 +102,6 @@ struct SamplerState
   void Generate(const BPMemory& bp, u32 index);
 
   SamplerState() = default;
-  SamplerState(const SamplerState&) = default;
-  SamplerState& operator=(const SamplerState& rhs)
-  {
-    tm0.hex = rhs.tm0.hex;
-    tm1.hex = rhs.tm1.hex;
-    return *this;
-  }
-  SamplerState(SamplerState&&) = default;
-  SamplerState& operator=(SamplerState&& rhs)
-  {
-    tm0.hex = rhs.tm0.hex;
-    tm1.hex = rhs.tm1.hex;
-    return *this;
-  }
 
   bool operator==(const SamplerState& rhs) const { return Hex() == rhs.Hex(); }
   bool operator!=(const SamplerState& rhs) const { return !operator==(rhs); }

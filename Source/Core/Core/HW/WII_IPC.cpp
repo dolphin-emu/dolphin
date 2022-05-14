@@ -3,6 +3,7 @@
 
 #include "Core/HW/WII_IPC.h"
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -54,18 +55,21 @@ enum
   UNK_1D0 = 0x1d0,
 };
 
-struct CtrlRegister
+union UCtrlRegister
 {
-  u8 X1 : 1;
-  u8 X2 : 1;
-  u8 Y1 : 1;
-  u8 Y2 : 1;
-  u8 IX1 : 1;
-  u8 IX2 : 1;
-  u8 IY1 : 1;
-  u8 IY2 : 1;
+  u8 hex = 0;
 
-  CtrlRegister() { X1 = X2 = Y1 = Y2 = IX1 = IX2 = IY1 = IY2 = 0; }
+  BitField<0, 1, bool, u8> X1;
+  BitField<1, 1, bool, u8> X2;
+  BitField<2, 1, bool, u8> Y1;
+  BitField<3, 1, bool, u8> Y2;
+  BitField<4, 1, bool, u8> IX1;
+  BitField<5, 1, bool, u8> IX2;
+  BitField<6, 1, bool, u8> IY1;
+  BitField<7, 1, bool, u8> IY2;
+
+  UCtrlRegister() = default;
+  explicit UCtrlRegister(u8 _hex) : hex{_hex} {}
   inline u8 ppc() { return (IY2 << 5) | (IY1 << 4) | (X2 << 3) | (Y1 << 2) | (Y2 << 1) | X1; }
   inline u8 arm() { return (IX2 << 5) | (IX1 << 4) | (Y2 << 3) | (X1 << 2) | (X2 << 1) | Y1; }
   inline void ppc(u32 v)
@@ -96,7 +100,7 @@ struct CtrlRegister
 // STATE_TO_SAVE
 static u32 ppc_msg;
 static u32 arm_msg;
-static CtrlRegister ctrl;
+static UCtrlRegister ctrl;
 
 static u32 ppc_irq_flags;
 static u32 ppc_irq_masks;
@@ -128,7 +132,7 @@ void DoState(PointerWrap& p)
 
 static void InitState()
 {
-  ctrl = CtrlRegister();
+  ctrl = UCtrlRegister();
   ppc_msg = 0;
   arm_msg = 0;
 

@@ -57,7 +57,7 @@ long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* in
   if (mic->samples_avail > mic->stream_size)
   {
     mic->samples_avail = 0;
-    mic->status.buff_ovrflw = 1;
+    mic->status.buff_ovrflw = true;
   }
 
   return nframes;
@@ -228,7 +228,7 @@ void CEXIMic::TransferByte(u8& byte)
     byte = status.U8[pos ^ 1];
 
     if (pos == 1)
-      status.buff_ovrflw = 0;
+      status.buff_ovrflw = false;
     break;
 
   case cmdSetStatus:

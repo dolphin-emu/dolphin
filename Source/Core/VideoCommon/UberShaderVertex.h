@@ -9,9 +9,9 @@
 namespace UberShader
 {
 #pragma pack(1)
-struct vertex_ubershader_uid_data
+union vertex_ubershader_uid_data
 {
-  u32 num_texgens : 4;
+  BitField<0, 4, u8> num_texgens;
 
   u32 NumValues() const { return sizeof(vertex_ubershader_uid_data); }
 };

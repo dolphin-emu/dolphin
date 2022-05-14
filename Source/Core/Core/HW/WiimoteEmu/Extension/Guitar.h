@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -32,17 +33,20 @@ class Guitar : public Extension1stParty
 public:
   struct DataFormat
   {
-    u8 sx : 6;
-    u8 pad1 : 2;  // 1 on gh3, 0 on ghwt
+    union
+    {
+      BitField<0, 6, u32> sx;
+      BitField<6, 2, u32> pad1;  // 1 on gh3, 0 on ghwt
 
-    u8 sy : 6;
-    u8 pad2 : 2;  // 1 on gh3, 0 on ghwt
+      BitField<8, 6, u32> sy;
+      BitField<14, 2, u32> pad2;  // 1 on gh3, 0 on ghwt
 
-    u8 sb : 5;    // not used in gh3
-    u8 pad3 : 3;  // always 0
+      BitField<16, 5, u32> sb;    // not used in gh3
+      BitField<21, 3, u32> pad3;  // always 0
 
-    u8 whammy : 5;
-    u8 pad4 : 3;  // always 0
+      BitField<24, 5, u32> whammy;
+      BitField<29, 3, u32> pad4;  // always 0
+    };
 
     u16 bt;  // buttons
   };

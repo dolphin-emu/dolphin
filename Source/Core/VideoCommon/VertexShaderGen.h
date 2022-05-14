@@ -8,9 +8,9 @@
 #include "VideoCommon/ShaderGenCommon.h"
 
 enum class APIType;
-enum class TexInputForm : u32;
-enum class TexGenType : u32;
-enum class SourceRow : u32;
+enum class TexInputForm : u16;
+enum class TexGenType : u16;
+enum class SourceRow : u16;
 
 // TODO should be reordered
 enum : int
@@ -38,32 +38,33 @@ enum : int
 struct vertex_shader_uid_data
 {
   u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
-  u32 components : 23;
-  u32 numTexGens : 4;
-  u32 numColorChans : 2;
-  u32 dualTexTrans_enabled : 1;
 
-  u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the texMtxInfo struct is
-                                     // 8 bits wide
-  u32 pad : 18;
-
-  struct
+  union
   {
-    TexInputForm inputform : 2;
-    TexGenType texgentype : 3;
-    SourceRow sourcerow : 5;
-    u32 embosssourceshift : 3;
-    u32 embosslightshift : 3;
+    BitField<0, 23, u32> components;
+    BitField<23, 4, u32> numTexGens;
+    BitField<27, 2, u32> numColorChans;
+    BitField<29, 1, bool, u32> dualTexTrans_enabled;
+  };
+
+  union
+  {
+    BitField<0, 2, TexInputForm, u16> inputform;
+    BitField<2, 3, TexGenType, u16> texgentype;
+    BitField<5, 5, SourceRow, u16> sourcerow;
+    BitField<10, 3, u16> embosssourceshift;
+    BitField<13, 3, u16> embosslightshift;
   } texMtxInfo[8];
 
-  struct
+  union
   {
-    u32 index : 6;
-    u32 normalize : 1;
-    u32 pad : 1;
+    BitField<0, 6, u8> index;
+    BitField<6, 1, bool, u8> normalize;
   } postMtxInfo[8];
 
   LightingUidData lighting;
+  // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
+  BitFieldArray<0, 1, 16, bool, u16> texMtxInfo_n_projection;
 };
 #pragma pack()
 

@@ -238,7 +238,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   // - bdnz+ -8
   const bool make_loop = inst.RA == 0 && inst.RB != 0 && CanMergeNextInstructions(2) &&
                          (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
-                         js.op[1].inst.RA_6 == inst.RB && js.op[1].inst.RD_2 == inst.RB &&
+                         js.op[1].inst.RA == inst.RB && js.op[1].inst.RD == inst.RB &&
                          js.op[2].inst.hex == 0x4200fff8;
 
   RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
@@ -318,7 +318,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   FixupBranch bat_lookup_failed;
   MOV(32, R(effective_address), R(addr));
   const u8* loop_start = GetCodePtr();
-  if (MSR.IR)
+  if (MSR.IR())
   {
     // Translate effective address to physical address.
     bat_lookup_failed = BATAddressLookup(addr, tmp, PowerPC::ibat_table.data());
@@ -347,7 +347,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
   SwitchToFarCode();
   SetJumpTarget(invalidate_needed);
-  if (MSR.IR)
+  if (MSR.IR())
     SetJumpTarget(bat_lookup_failed);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -420,7 +420,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     end_dcbz_hack = J_CC(CC_L);
   }
 
-  bool emit_fast_path = MSR.DR && m_jit.jo.fastmem_arena;
+  bool emit_fast_path = MSR.DR() && m_jit.jo.fastmem_arena;
 
   if (emit_fast_path)
   {

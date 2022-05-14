@@ -176,7 +176,7 @@ static void ResetRegisters()
   ppcState.spr[SPR_ECID_M] = 0x1840c00d;
   ppcState.spr[SPR_ECID_L] = 0x82bb08e8;
 
-  ppcState.fpscr.Hex = 0;
+  ppcState.fpscr = 0;
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;
@@ -199,7 +199,7 @@ static void ResetRegisters()
   SystemTimers::TimeBaseSet();
 
   // MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}
-  ppcState.msr.Hex = 0;
+  ppcState.msr = 0;
   rDEC = 0xFFFFFFFF;
   SystemTimers::DecrementerSet();
 }
@@ -389,7 +389,7 @@ void WriteFullTimeBaseValue(u64 value)
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
 {
-  switch (MMCR0.PMC1SELECT)
+  switch (MMCR0.PMC1SELECT())
   {
   case 0:  // No change
     break;
@@ -400,7 +400,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR0.PMC2SELECT)
+  switch (MMCR0.PMC2SELECT())
   {
   case 0:  // No change
     break;
@@ -414,7 +414,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR1.PMC3SELECT)
+  switch (MMCR1.PMC3SELECT())
   {
   case 0:  // No change
     break;
@@ -428,7 +428,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR1.PMC4SELECT)
+  switch (MMCR1.PMC4SELECT())
   {
   case 0:  // No change
     break;
@@ -439,10 +439,10 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  if ((MMCR0.PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
+  if ((MMCR0.PMC1INTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
+      (MMCR0.PMCINTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
+      (MMCR0.PMCINTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
+      (MMCR0.PMCINTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
     PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
 }
 
@@ -475,9 +475,9 @@ void CheckExceptions()
   {
     SRR0 = NPC;
     // Page fault occurred
-    SRR1 = (MSR.Hex & 0x87C0FFFF) | (1 << 30);
-    MSR.LE = MSR.ILE;
-    MSR.Hex &= ~0x04EF36;
+    SRR1 = (MSR & 0x87C0FFFF) | (1 << 30);
+    MSR.LE() = MSR.ILE();
+    MSR &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_ISI");
@@ -487,9 +487,9 @@ void CheckExceptions()
   {
     SRR0 = PC;
     // SRR1 was partially set by GenerateProgramException, so bitwise or is used here
-    SRR1 |= MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
-    MSR.Hex &= ~0x04EF36;
+    SRR1 |= MSR & 0x87C0FFFF;
+    MSR.LE() = MSR.ILE();
+    MSR &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PROGRAM");
@@ -498,9 +498,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_SYSCALL)
   {
     SRR0 = NPC;
-    SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
-    MSR.Hex &= ~0x04EF36;
+    SRR1 = MSR & 0x87C0FFFF;
+    MSR.LE() = MSR.ILE();
+    MSR &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_SYSCALL (PC={:08x})", PC);
@@ -510,9 +510,9 @@ void CheckExceptions()
   {
     // This happens a lot - GameCube OS uses deferred FPU context switching
     SRR0 = PC;  // re-execute the instruction
-    SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
-    MSR.Hex &= ~0x04EF36;
+    SRR1 = MSR & 0x87C0FFFF;
+    MSR.LE() = MSR.ILE();
+    MSR &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
     DEBUG_LOG_FMT(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
@@ -525,9 +525,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_DSI)
   {
     SRR0 = PC;
-    SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
-    MSR.Hex &= ~0x04EF36;
+    SRR1 = MSR & 0x87C0FFFF;
+    MSR.LE() = MSR.ILE();
+    MSR &= ~0x04EF36;
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
@@ -537,9 +537,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
     SRR0 = PC;
-    SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
-    MSR.Hex &= ~0x04EF36;
+    SRR1 = MSR & 0x87C0FFFF;
+    MSR.LE() = MSR.ILE();
+    MSR &= ~0x04EF36;
     PC = NPC = 0x00000600;
 
     // TODO crazy amount of DSISR options to check out
@@ -561,15 +561,15 @@ void CheckExternalExceptions()
 
   // EXTERNAL INTERRUPT
   // Handling is delayed until MSR.EE=1.
-  if (exceptions && MSR.EE)
+  if (exceptions && MSR.EE())
   {
     if (exceptions & EXCEPTION_EXTERNAL_INT)
     {
       // Pokemon gets this "too early", it hasn't a handler yet
       SRR0 = NPC;
-      SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE = MSR.ILE;
-      MSR.Hex &= ~0x04EF36;
+      SRR1 = MSR & 0x87C0FFFF;
+      MSR.LE() = MSR.ILE();
+      MSR &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_EXTERNAL_INT");
@@ -580,9 +580,9 @@ void CheckExternalExceptions()
     else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
     {
       SRR0 = NPC;
-      SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE = MSR.ILE;
-      MSR.Hex &= ~0x04EF36;
+      SRR1 = MSR & 0x87C0FFFF;
+      MSR.LE() = MSR.ILE();
+      MSR &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
@@ -591,9 +591,9 @@ void CheckExternalExceptions()
     else if (exceptions & EXCEPTION_DECREMENTER)
     {
       SRR0 = NPC;
-      SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE = MSR.ILE;
-      MSR.Hex &= ~0x04EF36;
+      SRR1 = MSR & 0x87C0FFFF;
+      MSR.LE() = MSR.ILE();
+      MSR &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
       DEBUG_LOG_FMT(POWERPC, "EXCEPTION_DECREMENTER");
@@ -641,12 +641,12 @@ void PowerPCState::SetSR(u32 index, u32 value)
 
 void UpdateFPRFDouble(double dvalue)
 {
-  FPSCR.FPRF = Common::ClassifyDouble(dvalue);
+  FPSCR.FPRF() = Common::ClassifyDouble(dvalue);
 }
 
 void UpdateFPRFSingle(float fvalue)
 {
-  FPSCR.FPRF = Common::ClassifyFloat(fvalue);
+  FPSCR.FPRF() = Common::ClassifyFloat(fvalue);
 }
 
 void RoundingModeUpdated()
@@ -654,7 +654,7 @@ void RoundingModeUpdated()
   // The rounding mode is separate for each thread, so this must run on the CPU thread
   ASSERT(Core::IsCPUThread());
 
-  FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
+  FPURoundMode::SetSIMDMode(FPSCR.RN(), FPSCR.NI());
 }
 
 }  // namespace PowerPC

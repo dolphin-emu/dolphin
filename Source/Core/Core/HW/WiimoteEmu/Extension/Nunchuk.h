@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitField.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
@@ -37,16 +38,13 @@ public:
   {
     u8 hex;
 
-    struct
-    {
-      u8 z : 1;
-      u8 c : 1;
+    BitField<0, 1, bool, u8> z;
+    BitField<1, 1, bool, u8> c;
 
-      // LSBs of accelerometer
-      u8 acc_x_lsb : 2;
-      u8 acc_y_lsb : 2;
-      u8 acc_z_lsb : 2;
-    };
+    // LSBs of accelerometer
+    BitField<2, 2, u8> acc_x_lsb;
+    BitField<4, 2, u8> acc_y_lsb;
+    BitField<6, 2, u8> acc_z_lsb;
   };
   static_assert(sizeof(ButtonFormat) == 1, "Wrong size");
 

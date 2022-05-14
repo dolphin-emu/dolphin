@@ -1775,7 +1775,7 @@ void Jit64::arithXex(UGeckoInstruction inst)
   bool mex = !!(inst.SUBOP10 & 32);       // addmex/subfmex or addzex/subfzex
   bool add = !!(inst.SUBOP10 & 2);        // add or sub
   int a = inst.RA;
-  int b = regsource ? inst.RB : a;
+  int b = regsource ? inst.RB.Value() : a;
   int d = inst.RD;
   bool same_input_sub = !add && regsource && a == b;
 

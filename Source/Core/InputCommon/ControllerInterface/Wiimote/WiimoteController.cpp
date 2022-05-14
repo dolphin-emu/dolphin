@@ -1466,7 +1466,7 @@ void Device::ReadData(AddressSpace space, u8 slave, u16 address, u16 size,
                       std::function<void(ReadResponse)> callback)
 {
   OutputReportReadData read_data{};
-  read_data.space = u8(space);
+  read_data.space = space;
   read_data.slave_address = slave;
   read_data.address[0] = u8(address >> 8);
   read_data.address[1] = u8(address);
@@ -1494,9 +1494,9 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
     if (Common::swap16(reply.address) != address)
       return ReportHandler::HandlerResult::NotHandled;
 
-    if (reply.error != u8(ErrorCode::Success))
+    if (reply.error != ErrorCode::Success)
     {
-      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", int(reply.error));
+      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", int(reply.error.Value()));
       callback(ReadResponse{});
 
       return ReportHandler::HandlerResult::Handled;
@@ -1531,7 +1531,7 @@ template <typename T, typename C>
 void Device::WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& callback)
 {
   OutputReportWriteData write_data = {};
-  write_data.space = u8(space);
+  write_data.space = space;
   write_data.slave_address = slave;
   write_data.address[0] = u8(address >> 8);
   write_data.address[1] = u8(address);

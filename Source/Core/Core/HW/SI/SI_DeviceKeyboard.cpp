@@ -84,12 +84,12 @@ void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)
 {
   UCommand keyboard_command(command);
 
-  if (static_cast<EDirectCommands>(keyboard_command.command) == EDirectCommands::CMD_POLL)
+  if (keyboard_command.command == EDirectCommands::CMD_POLL)
   {
     m_counter++;
     m_counter &= 15;
   }
-  else if (keyboard_command.command != 0x00)
+  else if (keyboard_command.command != EDirectCommands::CMD_NULL)
   {
     ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);
   }

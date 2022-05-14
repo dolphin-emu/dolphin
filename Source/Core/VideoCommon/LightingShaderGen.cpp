@@ -88,15 +88,15 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
   {
     object.Write("{{\n");
 
-    const bool colormatsource = !!(uid_data.matsource & (1 << j));
+    const bool colormatsource = !!(uid_data.matsource & (1ull << j));
     if (colormatsource)  // from vertex
       object.Write("int4 mat = int4(round({}{} * 255.0));\n", in_color_name, j);
     else  // from color
       object.Write("int4 mat = {}[{}];\n", I_MATERIALS, j + 2);
 
-    if ((uid_data.enablelighting & (1 << j)) != 0)
+    if ((uid_data.enablelighting & (1ull << j)) != 0)
     {
-      if ((uid_data.ambsource & (1 << j)) != 0)  // from vertex
+      if ((uid_data.ambsource & (1ull << j)) != 0)  // from vertex
         object.Write("lacc = int4(round({}{} * 255.0));\n", in_color_name, j);
       else  // from color
         object.Write("lacc = {}[{}];\n", I_MATERIALS, j);
@@ -107,7 +107,7 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
     }
 
     // check if alpha is different
-    const bool alphamatsource = !!(uid_data.matsource & (1 << (j + 2)));
+    const bool alphamatsource = !!(uid_data.matsource & (1ull << (j + 2)));
     if (alphamatsource != colormatsource)
     {
       if (alphamatsource)  // from vertex
@@ -116,9 +116,9 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
         object.Write("mat.w = {}[{}].w;\n", I_MATERIALS, j + 2);
     }
 
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)
+    if ((uid_data.enablelighting & (1ull << (j + 2))) != 0)
     {
-      if ((uid_data.ambsource & (1 << (j + 2))) != 0)  // from vertex
+      if ((uid_data.ambsource & (1ull << (j + 2))) != 0)  // from vertex
         object.Write("lacc.w = int(round({}{}.w * 255.0));\n", in_color_name, j);
       else  // from color
         object.Write("lacc.w = {}[{}].w;\n", I_MATERIALS, j);
@@ -128,19 +128,19 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
       object.Write("lacc.w = 255;\n");
     }
 
-    if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
+    if ((uid_data.enablelighting & (1ull << j)) != 0)  // Color lights
     {
       for (int i = 0; i < 8; ++i)
       {
-        if ((uid_data.light_mask & (1 << (i + 8 * j))) != 0)
+        if ((uid_data.light_mask & (1ull << (i + 8 * j))) != 0)
           GenerateLightShader(object, uid_data, i, j, false);
       }
     }
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
+    if ((uid_data.enablelighting & (1ull << (j + 2))) != 0)  // Alpha lights
     {
       for (int i = 0; i < 8; ++i)
       {
-        if ((uid_data.light_mask & (1 << (i + 8 * (j + 2)))) != 0)
+        if ((uid_data.light_mask & (1ull << (i + 8 * (j + 2)))) != 0)
           GenerateLightShader(object, uid_data, i, j + 2, true);
       }
     }
@@ -159,14 +159,14 @@ void GetLightingShaderUid(LightingUidData& uid_data)
     uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
     uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j + 2);
 
-    if ((uid_data.enablelighting & (1 << j)) != 0)  // Color lights
+    if ((uid_data.enablelighting & (1ull << j)) != 0)  // Color lights
     {
       uid_data.ambsource |= static_cast<u32>(xfmem.color[j].ambsource.Value()) << j;
       uid_data.attnfunc |= static_cast<u32>(xfmem.color[j].attnfunc.Value()) << (2 * j);
       uid_data.diffusefunc |= static_cast<u32>(xfmem.color[j].diffusefunc.Value()) << (2 * j);
       uid_data.light_mask |= xfmem.color[j].GetFullLightMask() << (8 * j);
     }
-    if ((uid_data.enablelighting & (1 << (j + 2))) != 0)  // Alpha lights
+    if ((uid_data.enablelighting & (1ull << (j + 2))) != 0)  // Alpha lights
     {
       uid_data.ambsource |= static_cast<u32>(xfmem.alpha[j].ambsource.Value()) << (j + 2);
       uid_data.attnfunc |= static_cast<u32>(xfmem.alpha[j].attnfunc.Value()) << (2 * (j + 2));

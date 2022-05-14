@@ -254,7 +254,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0 || MSR.LE)
+  if ((address & 0b11) != 0 || MSR.LE())
   {
     GenerateAlignmentException(address);
     return;
@@ -282,7 +282,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(PowerPC::ppcState, inst);
 
-  if ((address & 0b11) != 0 || MSR.LE)
+  if ((address & 0b11) != 0 || MSR.LE())
   {
     GenerateAlignmentException(address);
     return;
@@ -450,7 +450,7 @@ void Interpreter::dcbf(UGeckoInstruction inst)
 
 void Interpreter::dcbi(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -480,7 +480,7 @@ void Interpreter::dcbst(UGeckoInstruction inst)
 
 void Interpreter::dcbt(UGeckoInstruction inst)
 {
-  if (HID0.NOOPTI)
+  if (HID0.NOOPTI())
     return;
 
   // TODO: Implement some sort of L2 emulation.
@@ -488,7 +488,7 @@ void Interpreter::dcbt(UGeckoInstruction inst)
 
 void Interpreter::dcbtst(UGeckoInstruction inst)
 {
-  if (HID0.NOOPTI)
+  if (HID0.NOOPTI())
     return;
 
   // TODO: Implement some sort of L2 emulation.
@@ -498,7 +498,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 {
   const u32 dcbz_addr = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (!HID0.DCE)
+  if (!HID0.DCE())
   {
     GenerateAlignmentException(dcbz_addr);
     return;
@@ -517,7 +517,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 
 void Interpreter::dcbz_l(UGeckoInstruction inst)
 {
-  if (!HID2.LCE)
+  if (!HID2.LCE())
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -525,7 +525,7 @@ void Interpreter::dcbz_l(UGeckoInstruction inst)
 
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (!HID0.DCE)
+  if (!HID0.DCE())
   {
     GenerateAlignmentException(address);
     return;
@@ -671,7 +671,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (MSR.LE)
+  if (MSR.LE())
   {
     GenerateAlignmentException(EA);
     return;
@@ -851,7 +851,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
   if (inst.RA != 0)
     EA = rGPR[inst.RA];
 
-  if (MSR.LE)
+  if (MSR.LE())
   {
     GenerateAlignmentException(EA);
     return;
@@ -898,7 +898,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
   if (inst.RA != 0)
     EA = rGPR[inst.RA];
 
-  if (MSR.LE)
+  if (MSR.LE())
   {
     GenerateAlignmentException(EA);
     return;
@@ -936,7 +936,7 @@ void Interpreter::stswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(PowerPC::ppcState, inst);
 
-  if (MSR.LE)
+  if (MSR.LE())
   {
     GenerateAlignmentException(EA);
     return;
@@ -1044,7 +1044,7 @@ void Interpreter::sync(UGeckoInstruction inst)
 
 void Interpreter::tlbie(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -1058,7 +1058,7 @@ void Interpreter::tlbie(UGeckoInstruction inst)
 
 void Interpreter::tlbsync(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
   }

@@ -12,12 +12,12 @@ enum class APIType;
 namespace UberShader
 {
 #pragma pack(1)
-struct pixel_ubershader_uid_data
+union pixel_ubershader_uid_data
 {
-  u32 num_texgens : 4;
-  u32 early_depth : 1;
-  u32 per_pixel_depth : 1;
-  u32 uint_output : 1;
+  BitField<0, 4, u8> num_texgens;
+  BitField<4, 1, bool, u8> early_depth;
+  BitField<5, 1, bool, u8> per_pixel_depth;
+  BitField<6, 1, bool, u8> uint_output;
 
   u32 NumValues() const { return sizeof(pixel_ubershader_uid_data); }
 };

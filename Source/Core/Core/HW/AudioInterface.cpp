@@ -74,31 +74,26 @@ union AICR
 {
   AICR() = default;
   explicit AICR(u32 hex_) : hex{hex_} {}
-  struct
-  {
-    u32 PSTAT : 1;     // sample counter/playback enable
-    u32 AISFR : 1;     // AIS Frequency (0=32khz 1=48khz)
-    u32 AIINTMSK : 1;  // 0=interrupt masked 1=interrupt enabled
-    u32 AIINT : 1;     // audio interrupt status
-    u32 AIINTVLD : 1;  // This bit controls whether AIINT is affected by the Interrupt Timing
-                       // register
-                       // matching the sample counter. Once set, AIINT will hold its last value
-    u32 SCRESET : 1;   // write to reset counter
-    u32 AIDFR : 1;     // AID Frequency (0=48khz 1=32khz)
-    u32 : 25;
-  };
+
+  BitField<0, 1, bool, u32> PSTAT;     // sample counter/playback enable
+  BitField<1, 1, bool, u32> AISFR;     // AIS Frequency (0=32khz 1=48khz)
+  BitField<2, 1, bool, u32> AIINTMSK;  // 0=interrupt masked 1=interrupt enabled
+  BitField<3, 1, bool, u32> AIINT;     // audio interrupt status
+  BitField<4, 1, bool, u32> AIINTVLD;  // This bit controls whether AIINT is affected by the
+                                       // Interrupt Timing register matching the sample counter.
+                                       // Once set, AIINT will hold its last value
+  BitField<5, 1, bool, u32> SCRESET;   // write to reset counter
+  BitField<6, 1, bool, u32> AIDFR;     // AID Frequency (0=48khz 1=32khz)
+
   u32 hex = 0;
 };
 
 // AI Volume Register
 union AIVR
 {
-  struct
-  {
-    u32 left : 8;
-    u32 right : 8;
-    u32 : 16;
-  };
+  BitField<0, 8, u32> left;
+  BitField<8, 8, u32> right;
+
   u32 hex = 0;
 };
 
@@ -173,13 +168,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         if (s_control.AIINTMSK != tmp_ai_ctrl.AIINTMSK)
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTMSK to {}", tmp_ai_ctrl.AIINTMSK);
-          s_control.AIINTMSK = tmp_ai_ctrl.AIINTMSK;
+          s_control.AIINTMSK = tmp_ai_ctrl.AIINTMSK.Value();
         }
 
         if (s_control.AIINTVLD != tmp_ai_ctrl.AIINTVLD)
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIINTVLD to {}", tmp_ai_ctrl.AIINTVLD);
-          s_control.AIINTVLD = tmp_ai_ctrl.AIINTVLD;
+          s_control.AIINTVLD = tmp_ai_ctrl.AIINTVLD.Value();
         }
 
         // Set frequency of streaming audio
@@ -188,7 +183,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           // AISFR rates below are intentionally inverted wrt yagcd
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AISFR to {}",
                         tmp_ai_ctrl.AISFR ? "48khz" : "32khz");
-          s_control.AISFR = tmp_ai_ctrl.AISFR;
+          s_control.AISFR = tmp_ai_ctrl.AISFR.Value();
           s_ais_sample_rate_divisor =
               tmp_ai_ctrl.AISFR ? Get48KHzSampleRateDivisor() : Get32KHzSampleRateDivisor();
           g_sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(s_ais_sample_rate_divisor);
@@ -200,7 +195,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIDFR to {}",
                         tmp_ai_ctrl.AIDFR ? "32khz" : "48khz");
-          s_control.AIDFR = tmp_ai_ctrl.AIDFR;
+          s_control.AIDFR = tmp_ai_ctrl.AIDFR.Value();
           s_aid_sample_rate_divisor =
               tmp_ai_ctrl.AIDFR ? Get32KHzSampleRateDivisor() : Get48KHzSampleRateDivisor();
           g_sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(s_aid_sample_rate_divisor);
@@ -211,7 +206,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "{} streaming audio",
                         tmp_ai_ctrl.PSTAT ? "start" : "stop");
-          s_control.PSTAT = tmp_ai_ctrl.PSTAT;
+          s_control.PSTAT = tmp_ai_ctrl.PSTAT.Value();
           s_last_cpu_time = CoreTiming::GetTicks();
 
           CoreTiming::RemoveEvent(event_type_ai);

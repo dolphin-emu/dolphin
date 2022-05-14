@@ -17,7 +17,7 @@ VertexShaderUid GetVertexShaderUid()
   VertexShaderUid out;
 
   vertex_ubershader_uid_data* const uid_data = out.GetUidData();
-  uid_data->num_texgens = xfmem.numTexGen.numTexGens;
+  uid_data->num_texgens = xfmem.numTexGen.numTexGens.Value();
 
   return out;
 }
@@ -393,7 +393,7 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("    break;\n\n");
   for (u32 i = 0; i < 8; i++)
   {
-    out.Write("  case {:s}:\n", static_cast<SourceRow>(static_cast<u32>(SourceRow::Tex0) + i));
+    out.Write("  case {:s}:\n", static_cast<SourceRow>(static_cast<u16>(SourceRow::Tex0) + i));
     out.Write(
         "    coord = ((components & {}u /* VB_HAS_UV{} */) != 0u) ? float4(rawtex{}.x, rawtex{}.y, "
         "1.0, 1.0) : coord;\n",

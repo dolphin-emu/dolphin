@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitField.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -30,29 +31,32 @@ class Drums : public Extension1stParty
 public:
   struct DataFormat
   {
-    u8 stick_x : 6;
-    // Seemingly random.
-    u8 unk1 : 2;
+    union
+    {
+      BitField<0, 6, u32> stick_x;
+      // Seemingly random.
+      BitField<6, 2, u32> unk1;
 
-    u8 stick_y : 6;
-    // Seemingly random.
-    u8 unk2 : 2;
+      BitField<8, 6, u32> stick_y;
+      // Seemingly random.
+      BitField<14, 2, u32> unk2;
 
-    // Always 1 with no velocity data and seemingly random otherwise.
-    u8 unk3 : 1;
-    // For which "pad" the velocity data is for.
-    u8 velocity_id : 7;
+      // Always 1 with no velocity data and seemingly random otherwise.
+      BitField<16, 1, bool, u32> unk3;
+      // For which "pad" the velocity data is for.
+      BitField<17, 7, u32> velocity_id;
 
-    // Always 1 with no velocity data and seemingly random otherwise.
-    u8 unk4 : 1;
-    // 1 with no velocity data and 0 when velocity data is present.
-    u8 no_velocity_data_1 : 1;
-    // These two bits seem to always be set. (0b11)
-    u8 unk5 : 2;
-    // 1 with no velocity data and 0 when velocity data is present.
-    u8 no_velocity_data_2 : 1;
-    // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
-    u8 softness : 3;
+      // Always 1 with no velocity data and seemingly random otherwise.
+      BitField<24, 1, bool, u32> unk4;
+      // 1 with no velocity data and 0 when velocity data is present.
+      BitField<25, 1, bool, u32> no_velocity_data_1;
+      // These two bits seem to always be set. (0b11)
+      BitField<26, 2, u32> unk5;
+      // 1 with no velocity data and 0 when velocity data is present.
+      BitField<28, 1, bool, u32> no_velocity_data_2;
+      // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
+      BitField<29, 3, u32> softness;
+    };
 
     // Button bits.
     u8 buttons;

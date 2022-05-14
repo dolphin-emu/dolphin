@@ -178,7 +178,7 @@ struct PowerPCState
 
   void UpdateCR1()
   {
-    cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
+    cr.SetField(1, (fpscr.FX() << 3) | (fpscr.FEX() << 2) | (fpscr.VX() << 1) | fpscr.OX());
   }
 
   void SetSR(u32 index, u32 value);
@@ -286,9 +286,9 @@ inline UReg_XER GetXER()
 
 inline void SetXER(UReg_XER new_xer)
 {
-  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
-  PowerPC::ppcState.xer_ca = new_xer.CA;
-  PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
+  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT() + (new_xer.BYTE_CMP() << 8);
+  PowerPC::ppcState.xer_ca = new_xer.CA();
+  PowerPC::ppcState.xer_so_ov = (new_xer.SO() << 1) + new_xer.OV();
 }
 
 inline u32 GetXER_SO()

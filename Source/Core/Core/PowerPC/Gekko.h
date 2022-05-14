@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
 
@@ -17,281 +18,81 @@ union UGeckoInstruction
 
   UGeckoInstruction() = default;
   UGeckoInstruction(u32 hex_) : hex(hex_) {}
-  struct
-  {
-    // Record bit
-    // 1, if the condition register should be updated by this instruction
-    u32 Rc : 1;
-    u32 SUBOP10 : 10;
-    // Source GPR
-    u32 RB : 5;
-    // Source or destination GPR
-    u32 RA : 5;
-    // Destination GPR
-    u32 RD : 5;
-    // Primary opcode
-    u32 OPCD : 6;
-  };
-  struct
-  {
-    // Immediate, signed 16-bit
-    signed SIMM_16 : 16;
-    u32 : 5;
-    // Conditions on which to trap
-    u32 TO : 5;
-    u32 OPCD_2 : 6;
-  };
-  struct
-  {
-    u32 Rc_2 : 1;
-    u32 : 10;
-    u32 : 5;
-    u32 : 5;
-    // Source GPR
-    u32 RS : 5;
-    u32 OPCD_3 : 6;
-  };
-  struct
-  {
-    // Immediate, unsigned 16-bit
-    u32 UIMM : 16;
-    u32 : 5;
-    u32 : 5;
-    u32 OPCD_4 : 6;
-  };
-  struct
-  {
-    // Link bit
-    // 1, if branch instructions should put the address of the next instruction into the link
-    // register
-    u32 LK : 1;
-    // Absolute address bit
-    // 1, if the immediate field represents an absolute address
-    u32 AA : 1;
-    // Immediate, signed 24-bit
-    u32 LI : 24;
-    u32 OPCD_5 : 6;
-  };
-  struct
-  {
-    u32 LK_2 : 1;
-    u32 AA_2 : 1;
-    // Branch displacement, signed 14-bit (right-extended by 0b00)
-    u32 BD : 14;
-    // Branch condition
-    u32 BI : 5;
-    // Conditional branch control
-    u32 BO : 5;
-    u32 OPCD_6 : 6;
-  };
-  struct
-  {
-    u32 LK_3 : 1;
-    u32 : 10;
-    u32 : 5;
-    u32 BI_2 : 5;
-    u32 BO_2 : 5;
-    u32 OPCD_7 : 6;
-  };
-  struct
-  {
-    u32 : 11;
-    u32 RB_2 : 5;
-    u32 RA_2 : 5;
-    // ?
-    u32 L : 1;
-    u32 : 1;
-    // Destination field in CR or FPSCR
-    u32 CRFD : 3;
-    u32 OPCD_8 : 6;
-  };
-  struct
-  {
-    signed SIMM_16_2 : 16;
-    u32 RA_3 : 5;
-    u32 L_2 : 1;
-    u32 : 1;
-    u32 CRFD_2 : 3;
-    u32 OPCD_9 : 6;
-  };
-  struct
-  {
-    u32 UIMM_2 : 16;
-    u32 RA_4 : 5;
-    u32 L_3 : 1;
-    u32 : 1;
-    u32 CRFD_3 : 3;
-    u32 OPCD_A : 6;
-  };
-  struct
-  {
-    u32 : 1;
-    u32 SUBOP10_2 : 10;
-    u32 RB_5 : 5;
-    u32 RA_5 : 5;
-    u32 L_4 : 1;
-    u32 : 1;
-    u32 CRFD_4 : 3;
-    u32 OPCD_B : 6;
-  };
-  struct
-  {
-    u32 : 16;
-    // Segment register
-    u32 SR : 4;
-    u32 : 1;
-    u32 RS_2 : 5;
-    u32 OPCD_C : 6;
-  };
 
-  // Table 59
-  struct
-  {
-    u32 Rc_4 : 1;
-    u32 SUBOP5 : 5;
-    // ?
-    u32 RC : 5;
-    u32 : 5;
-    u32 RA_6 : 5;
-    u32 RD_2 : 5;
-    u32 OPCD_D : 6;
-  };
+  // Opcode
+  BitField<26, 6, u32> OPCD;     // Primary opcode
+  BitField<1, 5, u32> SUBOP5;    // A-Form Extended Opcode
+  BitField<1, 10, u32> SUBOP10;  // X, XL, XFX, XFL-Form Extended Opcode
+  BitField<1, 6, u32> SUBOP6;    // Variation of X-Form Extended Opcode (paired singles indexed)
 
-  struct
-  {
-    u32 : 10;
-    // Overflow enable
-    u32 OE : 1;
-    // Special-purpose register
-    u32 SPR : 10;
-    u32 : 11;
-  };
-  struct
-  {
-    u32 : 10;
-    u32 OE_3 : 1;
-    // Upper special-purpose register
-    u32 SPRU : 5;
-    // Lower special-purpose register
-    u32 SPRL : 5;
-    u32 : 11;
-  };
+  // Branch
+  BitField<0, 1, bool, u32> LK;  // Link bit
+                                 // 1, if branch instructions should put the address of the next
+                                 // instruction into the link register
+  BitField<1, 1, bool, u32> AA;  // Absolute address bit
+                                 // 1, if the immediate field represents an absolute address
+  BitField<2, 24, s32> LI;  // 24-bit signed immediate, right-extended by 0b00 (branch displacement)
+  BitField<2, 14, s32> BD;  // 14-bit signed immediate, right-extended by 0b00 (branch displacement)
+  BitField<16, 5, u32> BI;  // Branch condition
+  BitField<21, 5, u32> BO;  // Conditional branch control
 
-  // rlwinmx
-  struct
-  {
-    u32 Rc_3 : 1;
-    // Mask end
-    u32 ME : 5;
-    // Mask begin
-    u32 MB : 5;
-    // Shift amount
-    u32 SH : 5;
-    u32 : 16;
-  };
+  // General-Purpose Register
+  BitField<11, 5, u32> RB;  // Source GPR
+  BitField<16, 5, u32> RA;  // Source GPR
+  BitField<21, 5, u32> RS;  // Source GPR
+  BitField<21, 5, u32> RD;  // Destination GPR
 
-  // crxor
-  struct
-  {
-    u32 : 11;
-    // Source bit in the CR
-    u32 CRBB : 5;
-    // Source bit in the CR
-    u32 CRBA : 5;
-    // Destination bit in the CR
-    u32 CRBD : 5;
-    u32 : 6;
-  };
+  // Floating-Point Register
+  BitField<6, 5, u32> FC;   // Source FPR
+  BitField<11, 5, u32> FB;  // Source FPR
+  BitField<16, 5, u32> FA;  // Source FPR
+  BitField<21, 5, u32> FS;  // Source FPR
+  BitField<21, 5, u32> FD;  // Destination FPR
 
-  // mftb
-  struct
-  {
-    u32 : 11;
-    // Time base register
-    u32 TBR : 10;
-    u32 : 11;
-  };
+  // Compare Register Bit (crxor)
+  BitField<11, 5, u32> CRBB;  // Source bit in the CR
+  BitField<16, 5, u32> CRBA;  // Source bit in the CR
+  BitField<21, 5, u32> CRBD;  // Destination bit in the CR
 
-  struct
-  {
-    u32 : 11;
-    // Upper time base register
-    u32 TBRU : 5;
-    // Lower time base register
-    u32 TBRL : 5;
-    u32 : 11;
-  };
+  // Compare Register Field
+  BitField<18, 3, u32> CRFS;  // Source field in the CR or FPSCR
+  BitField<23, 3, u32> CRFD;  // Destination field in CR or FPSCR
 
-  struct
-  {
-    u32 : 18;
-    // Source field in the CR or FPSCR
-    u32 CRFS : 3;
-    u32 : 2;
-    u32 CRFD_5 : 3;
-    u32 : 6;
-  };
+  // Other Register Types
+  BitField<11, 10, u32> SPR;  // Special-purpose register
+  BitField<11, 5, u32> SPRU;  // Upper special-purpose register
+  BitField<16, 5, u32> SPRL;  // Lower special-purpose register
+  BitField<11, 10, u32> TBR;  // Time base register (mftb)
+  BitField<11, 5, u32> TBRU;  // Upper time base register
+  BitField<16, 5, u32> TBRL;  // Lower time base register
+  BitField<16, 4, u32> SR;    // Segment register
 
-  struct
-  {
-    u32 : 12;
-    // Field mask, identifies the CR fields to be updated by mtcrf
-    u32 CRM : 8;
-    u32 : 1;
-    // Destination FPR
-    u32 FD : 5;
-    u32 : 6;
-  };
-  struct
-  {
-    u32 : 6;
-    // Source FPR
-    u32 FC : 5;
-    // Source FPR
-    u32 FB : 5;
-    // Source FPR
-    u32 FA : 5;
-    // Source FPR
-    u32 FS : 5;
-    u32 : 6;
-  };
-  struct
-  {
-    u32 : 17;
-    // Field mask, identifies the FPSCR fields to be updated by mtfsf
-    u32 FM : 8;
-    u32 : 7;
-  };
+  // Immediate
+  u16 UIMM;                      // 16-bit unsigned immediate
+  s16 SIMM_16;                   // 16-bit signed immediate
+  BitField<0, 12, s32> SIMM_12;  // 12-bit signed immediate (Paired-Singles Load/Store)
+  BitField<11, 5, u32> NB;       // Number of bytes to use in lswi/stswi (0 means 32 bytes)
 
-  // paired single quantized load/store
-  struct
-  {
-    u32 : 1;
-    u32 SUBOP6 : 6;
-    // Graphics quantization register to use
-    u32 Ix : 3;
-    // 0: paired single, 1: scalar
-    u32 Wx : 1;
-    u32 : 1;
-    // Graphics quantization register to use
-    u32 I : 3;
-    // 0: paired single, 1: scalar
-    u32 W : 1;
-    u32 : 16;
-  };
+  // Shift / Rotate (rlwinmx)
+  BitField<1, 5, u32> ME;   // Mask end
+  BitField<6, 5, u32> MB;   // Mask begin
+  BitField<11, 5, u32> SH;  // Shift amount
 
-  struct
-  {
-    signed SIMM_12 : 12;
-    u32 : 20;
-  };
+  // Paired Single Quantized Load/Store
+  BitField<12, 3, u32> I;         // Graphics quantization register to use
+  BitField<15, 1, bool, u32> W;   // 0: paired single, 1: scalar
+  BitField<7, 3, u32> Ix;         // Graphics quantization register to use (indexed)
+  BitField<10, 1, bool, u32> Wx;  // 0: paired single, 1: scalar (indexed)
 
-  struct
-  {
-    u32 : 11;
-    // Number of bytes to use in lswi/stswi (0 means 32 bytes)
-    u32 NB : 5;
-  };
+  // Other
+  BitField<0, 1, bool, u32> Rc;   // Record bit
+                                  // 1, if the condition register should be updated by this
+                                  // instruction
+  BitField<10, 1, bool, u32> OE;  // Overflow enable
+  BitField<12, 8, u32> CRM;       // Field mask, identifies the CR fields to be updated by mtcrf
+  BitField<17, 8, u32> FM;        // Field mask, identifies the FPSCR fields to be updated by mtfsf
+  BitField<21, 5, u32> TO;        // Conditions on which to trap
+  BitField<21, 1, bool, u32> L;   // Use low 32 bits for comparison (invalid for 32-bit CPUs)
 };
 
 // Used in implementations of rlwimi, rlwinm, and rlwnm
@@ -329,17 +130,15 @@ enum EQuantizeType : u32
 };
 
 // GQR Register
-union UGQR
+struct UGQR : BitField2<u32>
 {
-  BitField<0, 3, EQuantizeType> st_type;
-  BitField<8, 6, u32> st_scale;
-  BitField<16, 3, EQuantizeType> ld_type;
-  BitField<24, 6, u32> ld_scale;
-
-  u32 Hex = 0;
+  FIELD(EQuantizeType, 0, 3, st_type)
+  FIELD(u32, 8, 6, st_scale)
+  FIELD(EQuantizeType, 16, 3, ld_type)
+  FIELD(u32, 24, 6, ld_scale)
 
   UGQR() = default;
-  explicit UGQR(u32 hex_) : Hex{hex_} {}
+  constexpr UGQR(u32 val) : BitField2{val} {}
 };
 
 #define XER_CA_SHIFT 29
@@ -348,50 +147,46 @@ union UGQR
 #define XER_OV_MASK 1
 #define XER_SO_MASK 2
 // XER
-union UReg_XER
+struct UReg_XER : BitField2<u32>
 {
-  BitField<0, 7, u32> BYTE_COUNT;
-  BitField<7, 1, u32> reserved_1;
-  BitField<8, 8, u32> BYTE_CMP;
-  BitField<16, 13, u32> reserved_2;
-  BitField<29, 1, u32> CA;
-  BitField<30, 1, u32> OV;
-  BitField<31, 1, u32> SO;
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 7, BYTE_COUNT)
+  FIELD(u32, 7, 1, reserved_1)
+  FIELD(u32, 8, 8, BYTE_CMP)
+  FIELD(u32, 16, 13, reserved_2)
+  FIELD(u32, 29, 1, CA)
+  FIELD(u32, 30, 1, OV)
+  FIELD(u32, 31, 1, SO)
 
   UReg_XER() = default;
-  explicit UReg_XER(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_XER(u32 val) : BitField2{val} {}
 };
 
 // Machine State Register
-union UReg_MSR
+struct UReg_MSR : BitField2<u32>
 {
-  BitField<0, 1, u32> LE;
-  BitField<1, 1, u32> RI;
-  BitField<2, 1, u32> PM;
-  BitField<3, 1, u32> reserved_1;
-  BitField<4, 1, u32> DR;
-  BitField<5, 1, u32> IR;
-  BitField<6, 1, u32> IP;
-  BitField<7, 1, u32> reserved_2;
-  BitField<8, 1, u32> FE1;
-  BitField<9, 1, u32> BE;
-  BitField<10, 1, u32> SE;
-  BitField<11, 1, u32> FE0;
-  BitField<12, 1, u32> MCHECK;
-  BitField<13, 1, u32> FP;
-  BitField<14, 1, u32> PR;
-  BitField<15, 1, u32> EE;
-  BitField<16, 1, u32> ILE;
-  BitField<17, 1, u32> reserved_3;
-  BitField<18, 1, u32> POW;
-  BitField<19, 13, u32> reserved_4;
-
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, LE);
+  FIELD(bool, 1, 1, RI);
+  FIELD(bool, 2, 1, PM);
+  FIELD(u32, 3, 1, reserved_1);
+  FIELD(bool, 4, 1, DR);
+  FIELD(bool, 5, 1, IR);
+  FIELD(bool, 6, 1, IP);
+  FIELD(u32, 7, 1, reserved_2);
+  FIELD(bool, 8, 1, FE1);
+  FIELD(bool, 9, 1, BE);
+  FIELD(bool, 10, 1, SE);
+  FIELD(bool, 11, 1, FE0);
+  FIELD(bool, 12, 1, MCHECK);
+  FIELD(bool, 13, 1, FP);
+  FIELD(bool, 14, 1, PR);
+  FIELD(bool, 15, 1, EE);
+  FIELD(bool, 16, 1, ILE);
+  FIELD(u32, 17, 1, reserved_3);
+  FIELD(bool, 18, 1, POW);
+  FIELD(u32, 19, 13, reserved_4);
 
   UReg_MSR() = default;
-  explicit UReg_MSR(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_MSR(u32 val) : BitField2{val} {}
 };
 
 #define FPRF_SHIFT 12
@@ -433,65 +228,63 @@ enum FPSCRExceptionFlag : u32
 };
 
 // Floating Point Status and Control Register
-union UReg_FPSCR
+struct UReg_FPSCR : BitField2<u32>
 {
   // Rounding mode (towards: nearest, zero, +inf, -inf)
-  BitField<0, 2, FPURoundMode::RoundMode> RN;
+  FIELD(FPURoundMode::RoundMode, 0, 2, RN);
   // Non-IEEE mode enable (aka flush-to-zero)
-  BitField<2, 1, u32> NI;
+  FIELD(bool, 2, 1, NI);
   // Inexact exception enable
-  BitField<3, 1, u32> XE;
+  FIELD(bool, 3, 1, XE);
   // IEEE division by zero exception enable
-  BitField<4, 1, u32> ZE;
+  FIELD(bool, 4, 1, ZE);
   // IEEE underflow exception enable
-  BitField<5, 1, u32> UE;
+  FIELD(bool, 5, 1, UE);
   // IEEE overflow exception enable
-  BitField<6, 1, u32> OE;
+  FIELD(bool, 6, 1, OE);
   // Invalid operation exception enable
-  BitField<7, 1, u32> VE;
+  FIELD(bool, 7, 1, VE);
   // Invalid operation exception for integer conversion (sticky)
-  BitField<8, 1, u32> VXCVI;
+  FIELD(bool, 8, 1, VXCVI);
   // Invalid operation exception for square root (sticky)
-  BitField<9, 1, u32> VXSQRT;
+  FIELD(bool, 9, 1, VXSQRT);
   // Invalid operation exception for software request (sticky)
-  BitField<10, 1, u32> VXSOFT;
+  FIELD(bool, 10, 1, VXSOFT);
   // reserved
-  BitField<11, 1, u32> reserved;
+  FIELD(bool, 11, 1, reserved);
   // Floating point result flags (includes FPCC) (not sticky)
   // from more to less significand: class, <, >, =, ?
-  BitField<12, 5, u32> FPRF;
+  FIELD(bool, 12, 5, FPRF);
   // Fraction inexact (not sticky)
-  BitField<17, 1, u32> FI;
+  FIELD(bool, 17, 1, FI);
   // Fraction rounded (not sticky)
-  BitField<18, 1, u32> FR;
+  FIELD(bool, 18, 1, FR);
   // Invalid operation exception for invalid comparison (sticky)
-  BitField<19, 1, u32> VXVC;
+  FIELD(bool, 19, 1, VXVC);
   // Invalid operation exception for inf * 0 (sticky)
-  BitField<20, 1, u32> VXIMZ;
+  FIELD(bool, 20, 1, VXIMZ);
   // Invalid operation exception for 0 / 0 (sticky)
-  BitField<21, 1, u32> VXZDZ;
+  FIELD(bool, 21, 1, VXZDZ);
   // Invalid operation exception for inf / inf (sticky)
-  BitField<22, 1, u32> VXIDI;
+  FIELD(bool, 22, 1, VXIDI);
   // Invalid operation exception for inf - inf (sticky)
-  BitField<23, 1, u32> VXISI;
+  FIELD(bool, 23, 1, VXISI);
   // Invalid operation exception for SNaN (sticky)
-  BitField<24, 1, u32> VXSNAN;
+  FIELD(bool, 24, 1, VXSNAN);
   // Inexact exception (sticky)
-  BitField<25, 1, u32> XX;
+  FIELD(bool, 25, 1, XX);
   // Division by zero exception (sticky)
-  BitField<26, 1, u32> ZX;
+  FIELD(bool, 26, 1, ZX);
   // Underflow exception (sticky)
-  BitField<27, 1, u32> UX;
+  FIELD(bool, 27, 1, UX);
   // Overflow exception (sticky)
-  BitField<28, 1, u32> OX;
+  FIELD(bool, 28, 1, OX);
   // Invalid operation exception summary (not sticky)
-  BitField<29, 1, u32> VX;
+  FIELD(bool, 29, 1, VX);
   // Enabled exception summary (not sticky)
-  BitField<30, 1, u32> FEX;
+  FIELD(bool, 30, 1, FEX);
   // Exception summary (sticky)
-  BitField<31, 1, u32> FX;
-
-  u32 Hex = 0;
+  FIELD(bool, 31, 1, FX);
 
   // The FPSCR's 20th bit (11th from a little endian perspective)
   // is defined as reserved and set to zero. Attempts to modify it
@@ -499,310 +292,287 @@ union UReg_FPSCR
   static constexpr u32 mask = 0xFFFFF7FF;
 
   UReg_FPSCR() = default;
-  explicit UReg_FPSCR(u32 hex_) : Hex{hex_ & mask} {}
+  constexpr UReg_FPSCR(u32 val) : BitField2{val & mask} {}
 
   UReg_FPSCR& operator=(u32 value)
   {
-    Hex = value & mask;
+    BitField2::operator=(value& mask);
     return *this;
   }
 
   UReg_FPSCR& operator|=(u32 value)
   {
-    Hex |= value & mask;
+    BitField2::operator|=(value& mask);
     return *this;
   }
 
   UReg_FPSCR& operator&=(u32 value)
   {
-    Hex &= value;
+    BitField2::operator&=(value& mask);
     return *this;
   }
 
   UReg_FPSCR& operator^=(u32 value)
   {
-    Hex ^= value & mask;
+    BitField2::operator^=(value& mask);
     return *this;
   }
 
   void ClearFIFR()
   {
-    FI = 0;
-    FR = 0;
+    FI() = 0;
+    FR() = 0;
   }
 };
 
 // Hardware Implementation-Dependent Register 0
-union UReg_HID0
+struct UReg_HID0 : BitField2<u32>
 {
-  BitField<0, 1, u32> NOOPTI;
-  BitField<1, 1, u32> reserved_1;
-  BitField<2, 1, u32> BHT;
-  BitField<3, 1, u32> ABE;
-  BitField<4, 1, u32> reserved_2;
-  BitField<5, 1, u32> BTIC;
-  BitField<6, 1, u32> DCFA;
-  BitField<7, 1, u32> SGE;
-  BitField<8, 1, u32> IFEM;
-  BitField<9, 1, u32> SPD;
-  BitField<10, 1, u32> DCFI;
-  BitField<11, 1, u32> ICFI;
-  BitField<12, 1, u32> DLOCK;
-  BitField<13, 1, u32> ILOCK;
-  BitField<14, 1, u32> DCE;
-  BitField<15, 1, u32> ICE;
-  BitField<16, 1, u32> NHR;
-  BitField<17, 3, u32> reserved_3;
-  BitField<20, 1, u32> DPM;
-  BitField<21, 1, u32> SLEEP;
-  BitField<22, 1, u32> NAP;
-  BitField<23, 1, u32> DOZE;
-  BitField<24, 1, u32> PAR;
-  BitField<25, 1, u32> ECLK;
-  BitField<26, 1, u32> reserved_4;
-  BitField<27, 1, u32> BCLK;
-  BitField<28, 1, u32> EBD;
-  BitField<29, 1, u32> EBA;
-  BitField<30, 1, u32> DBP;
-  BitField<31, 1, u32> EMCP;
+  FIELD(bool, 0, 1, NOOPTI);
+  FIELD(bool, 1, 1, reserved_1);
+  FIELD(bool, 2, 1, BHT);
+  FIELD(bool, 3, 1, ABE);
+  FIELD(bool, 4, 1, reserved_2);
+  FIELD(bool, 5, 1, BTIC);
+  FIELD(bool, 6, 1, DCFA);
+  FIELD(bool, 7, 1, SGE);
+  FIELD(bool, 8, 1, IFEM);
+  FIELD(bool, 9, 1, SPD);
+  FIELD(bool, 10, 1, DCFI);
+  FIELD(bool, 11, 1, ICFI);
+  FIELD(bool, 12, 1, DLOCK);
+  FIELD(bool, 13, 1, ILOCK);
+  FIELD(bool, 14, 1, DCE);
+  FIELD(bool, 15, 1, ICE);
+  FIELD(bool, 16, 1, NHR);
+  FIELD(bool, 17, 3, reserved_3);
+  FIELD(bool, 20, 1, DPM);
+  FIELD(bool, 21, 1, SLEEP);
+  FIELD(bool, 22, 1, NAP);
+  FIELD(bool, 23, 1, DOZE);
+  FIELD(bool, 24, 1, PAR);
+  FIELD(bool, 25, 1, ECLK);
+  FIELD(bool, 26, 1, reserved_4);
+  FIELD(bool, 27, 1, BCLK);
+  FIELD(bool, 28, 1, EBD);
+  FIELD(bool, 29, 1, EBA);
+  FIELD(bool, 30, 1, DBP);
+  FIELD(bool, 31, 1, EMCP);
 
-  u32 Hex = 0;
+  UReg_HID0() = default;
+  constexpr UReg_HID0(u32 val) : BitField2(val) {}
 };
 
 // Hardware Implementation-Dependent Register 2
-union UReg_HID2
+struct UReg_HID2 : BitField2<u32>
 {
-  BitField<0, 16, u32> reserved;
-  BitField<16, 1, u32> DQOEE;
-  BitField<17, 1, u32> DCMEE;
-  BitField<18, 1, u32> DNCEE;
-  BitField<19, 1, u32> DCHEE;
-  BitField<20, 1, u32> DQOERR;
-  BitField<21, 1, u32> DCMERR;
-  BitField<22, 1, u32> DNCERR;
-  BitField<23, 1, u32> DCHERR;
-  BitField<24, 4, u32> DMAQL;
-  BitField<28, 1, u32> LCE;
-  BitField<29, 1, u32> PSE;
-  BitField<30, 1, u32> WPE;
-  BitField<31, 1, u32> LSQE;
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 16, reserved);
+  FIELD(bool, 16, 1, DQOEE);
+  FIELD(bool, 17, 1, DCMEE);
+  FIELD(bool, 18, 1, DNCEE);
+  FIELD(bool, 19, 1, DCHEE);
+  FIELD(bool, 20, 1, DQOERR);
+  FIELD(bool, 21, 1, DCMERR);
+  FIELD(bool, 22, 1, DNCERR);
+  FIELD(bool, 23, 1, DCHERR);
+  FIELD(bool, 24, 4, DMAQL);
+  FIELD(bool, 28, 1, LCE);
+  FIELD(bool, 29, 1, PSE);
+  FIELD(bool, 30, 1, WPE);
+  FIELD(bool, 31, 1, LSQE);
 
   UReg_HID2() = default;
-  explicit UReg_HID2(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_HID2(u32 val) : BitField2(val) {}
 };
 
 // Hardware Implementation-Dependent Register 4
-union UReg_HID4
+struct UReg_HID4 : BitField2<u32>
 {
-  BitField<0, 20, u32> reserved_1;
-  BitField<20, 1, u32> L2CFI;
-  BitField<21, 1, u32> L2MUM;
-  BitField<22, 1, u32> DBP;
-  BitField<23, 1, u32> LPE;
-  BitField<24, 1, u32> ST0;
-  BitField<25, 1, u32> SBE;
-  BitField<26, 1, u32> reserved_2;
-  BitField<27, 2, u32> BPD;
-  BitField<29, 2, u32> L2FM;
-  BitField<31, 1, u32> reserved_3;
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 20, reserved_1);
+  FIELD(bool, 20, 1, L2CFI);
+  FIELD(bool, 21, 1, L2MUM);
+  FIELD(bool, 22, 1, DBP);
+  FIELD(bool, 23, 1, LPE);
+  FIELD(bool, 24, 1, ST0);
+  FIELD(bool, 25, 1, SBE);
+  FIELD(u32, 26, 1, reserved_2);
+  FIELD(bool, 27, 2, BPD);
+  FIELD(bool, 29, 2, L2FM);
+  FIELD(u32, 31, 1, reserved_3);
 
   UReg_HID4() = default;
-  explicit UReg_HID4(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_HID4(u32 val) : BitField2(val) {}
 };
 
 // SDR1 - Page Table format
-union UReg_SDR1
+struct UReg_SDR1 : BitField2<u32>
 {
-  BitField<0, 9, u32> htabmask;
-  BitField<9, 7, u32> reserved;
-  BitField<16, 16, u32> htaborg;
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 9, htabmask);
+  FIELD(u32, 9, 7, reserved);
+  FIELD(u32, 16, 16, htaborg);
 
   UReg_SDR1() = default;
-  explicit UReg_SDR1(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_SDR1(u32 val) : BitField2(val) {}
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
-union UReg_MMCR0
+struct UReg_MMCR0 : BitField2<u32>
 {
-  BitField<0, 6, u32> PMC2SELECT;
-  BitField<6, 7, u32> PMC1SELECT;
-  BitField<13, 1, u32> PMCTRIGGER;
-  BitField<14, 1, u32> PMCINTCONTROL;
-  BitField<15, 1, u32> PMC1INTCONTROL;
-  BitField<16, 6, u32> THRESHOLD;
-  BitField<22, 1, u32> INTONBITTRANS;
-  BitField<23, 2, u32> RTCSELECT;
-  BitField<25, 1, u32> DISCOUNT;
-  BitField<26, 1, u32> ENINT;
-  BitField<27, 1, u32> DMR;
-  BitField<28, 1, u32> DMS;
-  BitField<29, 1, u32> DU;
-  BitField<30, 1, u32> DP;
-  BitField<31, 1, u32> DIS;
+  FIELD(u32, 0, 6, PMC2SELECT);
+  FIELD(u32, 6, 7, PMC1SELECT);
+  FIELD(bool, 13, 1, PMCTRIGGER);
+  FIELD(bool, 14, 1, PMCINTCONTROL);
+  FIELD(bool, 15, 1, PMC1INTCONTROL);
+  FIELD(u32, 16, 6, THRESHOLD);
+  FIELD(bool, 22, 1, INTONBITTRANS);
+  FIELD(u32, 23, 2, RTCSELECT);
+  FIELD(bool, 25, 1, DISCOUNT);
+  FIELD(bool, 26, 1, ENINT);
+  FIELD(bool, 27, 1, DMR);
+  FIELD(bool, 28, 1, DMS);
+  FIELD(bool, 29, 1, DU);
+  FIELD(bool, 30, 1, DP);
+  FIELD(bool, 31, 1, DIS);
 
-  u32 Hex = 0;
+  UReg_MMCR0() = default;
+  constexpr UReg_MMCR0(u32 val) : BitField2(val) {}
 };
 
 // MMCR1 - Monitor Mode Control Register 1 format
-union UReg_MMCR1
+struct UReg_MMCR1 : BitField2<u32>
 {
-  BitField<0, 22, u32> reserved;
-  BitField<22, 5, u32> PMC4SELECT;
-  BitField<27, 5, u32> PMC3SELECT;
+  FIELD(u32, 0, 22, reserved);
+  FIELD(u32, 22, 5, PMC4SELECT);
+  FIELD(u32, 27, 5, PMC3SELECT);
 
-  u32 Hex = 0;
+  UReg_MMCR1() = default;
+  UReg_MMCR1(u32 val) : BitField2(val) {}
 };
 
 // Write Pipe Address Register
-union UReg_WPAR
+struct UReg_WPAR : BitField2<u32>
 {
-  BitField<0, 1, u32> BNE;
-  BitField<1, 4, u32> reserved;
-  BitField<5, 27, u32> GB_ADDR;
-
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, BNE);
+  FIELD(u32, 1, 4, reserved);
+  FIELD(u32, 5, 27, GB_ADDR);
 
   UReg_WPAR() = default;
-  explicit UReg_WPAR(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_WPAR(u32 val) : BitField2(val) {}
 };
 
 // Direct Memory Access Upper register
-union UReg_DMAU
+struct UReg_DMAU : BitField2<u32>
 {
-  BitField<0, 5, u32> DMA_LEN_U;
-  BitField<5, 27, u32> MEM_ADDR;
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 5, DMA_LEN_U);
+  FIELD(u32, 5, 27, MEM_ADDR);
 
   UReg_DMAU() = default;
-  explicit UReg_DMAU(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_DMAU(u32 val) : BitField2(val) {}
 };
 
 // Direct Memory Access Lower (DMAL) register
-union UReg_DMAL
+struct UReg_DMAL : BitField2<u32>
 {
-  BitField<0, 1, u32> DMA_F;
-  BitField<1, 1, u32> DMA_T;
-  BitField<2, 2, u32> DMA_LEN_L;
-  BitField<4, 1, u32> DMA_LD;
-  BitField<5, 27, u32> LC_ADDR;
-
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, DMA_F);
+  FIELD(bool, 1, 1, DMA_T);
+  FIELD(u32, 2, 2, DMA_LEN_L);
+  FIELD(u32, 4, 1, DMA_LD);
+  FIELD(u32, 5, 27, LC_ADDR);
 
   UReg_DMAL() = default;
-  explicit UReg_DMAL(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_DMAL(u32 val) : BitField2(val) {}
 };
 
-union UReg_BAT_Up
+struct UReg_BAT_Up : BitField2<u32>
 {
-  BitField<0, 1, u32> VP;
-  BitField<1, 1, u32> VS;
-  BitField<2, 11, u32> BL;  // Block length (aka block size mask)
-  BitField<13, 4, u32> reserved;
-  BitField<17, 15, u32> BEPI;
-
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, VP);
+  FIELD(bool, 1, 1, VS);
+  FIELD(u32, 2, 11, BL);  // Block length (aka block size mask)
+  FIELD(u32, 13, 4, reserved);
+  FIELD(u32, 17, 15, BEPI);
 
   UReg_BAT_Up() = default;
-  explicit UReg_BAT_Up(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_BAT_Up(u32 val) : BitField2(val) {}
 };
 
-union UReg_BAT_Lo
+struct UReg_BAT_Lo : BitField2<u32>
 {
-  BitField<0, 2, u32> PP;
-  BitField<2, 1, u32> reserved_1;
-  BitField<3, 4, u32> WIMG;
-  BitField<7, 10, u32> reserved_2;
-  BitField<17, 15, u32> BRPN;  // Physical Block Number
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 2, PP);
+  FIELD(u32, 2, 1, reserved_1);
+  FIELD(u32, 3, 4, WIMG);
+  FIELD(u32, 7, 10, reserved_2);
+  FIELD(u32, 17, 15, BRPN);  // Physical Block Number
 
   UReg_BAT_Lo() = default;
-  explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_BAT_Lo(u32 val) : BitField2(val) {}
 };
 
 // Segment register
-union UReg_SR
+struct UReg_SR : BitField2<u32>
 {
-  BitField<0, 24, u32> VSID;      // Virtual segment ID
-  BitField<24, 4, u32> reserved;  // Reserved
-  BitField<28, 1, u32> N;         // No-execute protection
-  BitField<29, 1, u32> Kp;        // User-state protection
-  BitField<30, 1, u32> Ks;        // Supervisor-state protection
-  BitField<31, 1, u32> T;         // Segment register format selector
+  FIELD(u32, 0, 24, VSID);      // Virtual segment ID
+  FIELD(u32, 24, 4, reserved);  // Reserved
+  FIELD(bool, 28, 1, N);        // No-execute protection
+  FIELD(bool, 29, 1, Kp);       // User-state protection
+  FIELD(bool, 30, 1, Ks);       // Supervisor-state protection
+  FIELD(bool, 31, 1, T);        // Segment register format selector
 
   // These override other fields if T = 1
 
-  BitField<0, 20, u32> CNTLR_SPEC;  // Device-specific data for I/O controller
-  BitField<20, 9, u32> BUID;        // Bus unit ID
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 20, CNTLR_SPEC);  // Device-specific data for I/O controller
+  FIELD(u32, 20, 9, BUID);        // Bus unit ID
 
   UReg_SR() = default;
-  explicit UReg_SR(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_SR(u32 val) : BitField2(val) {}
 };
 
-union UReg_THRM12
+struct UReg_THRM12 : BitField2<u32>
 {
-  BitField<0, 1, u32> V;    // Valid
-  BitField<1, 1, u32> TIE;  // Thermal Interrupt Enable
-  BitField<2, 1, u32> TID;  // Thermal Interrupt Direction
-  BitField<3, 20, u32> reserved;
-  BitField<23, 7, u32> THRESHOLD;  // Temperature Threshold, 0-127°C
-  BitField<30, 1, u32> TIV;        // Thermal Interrupt Valid
-  BitField<31, 1, u32> TIN;        // Thermal Interrupt
-
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, V);    // Valid
+  FIELD(bool, 1, 1, TIE);  // Thermal Interrupt Enable
+  FIELD(bool, 2, 1, TID);  // Thermal Interrupt Direction
+  FIELD(u32, 3, 20, reserved);
+  FIELD(u32, 23, 7, THRESHOLD);  // Temperature Threshold, 0-127°C
+  FIELD(bool, 30, 1, TIV);       // Thermal Interrupt Valid
+  FIELD(bool, 31, 1, TIN);       // Thermal Interrupt
 
   UReg_THRM12() = default;
-  explicit UReg_THRM12(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_THRM12(u32 val) : BitField2(val) {}
 };
 
-union UReg_THRM3
+struct UReg_THRM3 : BitField2<u32>
 {
-  BitField<0, 1, u32> E;      // Enable
-  BitField<1, 13, u32> SITV;  // Sample Interval Timer Value
-  BitField<14, 18, u32> reserved;
-
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, E);     // Enable
+  FIELD(u32, 1, 13, SITV);  // Sample Interval Timer Value
+  FIELD(u32, 14, 18, reserved);
 
   UReg_THRM3() = default;
-  explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
+  constexpr UReg_THRM3(u32 val) : BitField2(val) {}
 };
 
-union UPTE_Lo
+struct UPTE_Lo : BitField2<u32>
 {
-  BitField<0, 6, u32> API;
-  BitField<6, 1, u32> H;
-  BitField<7, 24, u32> VSID;
-  BitField<31, 1, u32> V;
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 6, API);
+  FIELD(bool, 6, 1, H);
+  FIELD(u32, 7, 24, VSID);
+  FIELD(bool, 31, 1, V);
 
   UPTE_Lo() = default;
-  explicit UPTE_Lo(u32 hex_) : Hex{hex_} {}
+  constexpr UPTE_Lo(u32 val) : BitField2(val) {}
 };
 
-union UPTE_Hi
+struct UPTE_Hi : BitField2<u32>
 {
-  BitField<0, 2, u32> PP;
-  BitField<2, 1, u32> reserved_1;
-  BitField<3, 4, u32> WIMG;
-  BitField<7, 1, u32> C;
-  BitField<8, 1, u32> R;
-  BitField<9, 3, u32> reserved_2;
-  BitField<12, 20, u32> RPN;
-
-  u32 Hex = 0;
+  FIELD(u32, 0, 2, PP);
+  FIELD(u32, 2, 1, reserved_1);
+  FIELD(u32, 3, 4, WIMG);
+  FIELD(bool, 7, 1, C);
+  FIELD(bool, 8, 1, R);
+  FIELD(u32, 9, 3, reserved_2);
+  FIELD(u32, 12, 20, RPN);
 
   UPTE_Hi() = default;
-  explicit UPTE_Hi(u32 hex_) : Hex{hex_} {}
+  constexpr UPTE_Hi(u32 val) : BitField2(val) {}
 };
 
 //

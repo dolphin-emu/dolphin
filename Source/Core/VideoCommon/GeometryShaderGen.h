@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 #include <functional>
 
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/RenderState.h"
@@ -14,13 +15,13 @@
 enum class APIType;
 
 #pragma pack(1)
-struct geometry_shader_uid_data
+union geometry_shader_uid_data
 {
   u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
   bool IsPassthrough() const;
 
-  u32 numTexGens : 4;
-  u32 primitive_type : 2;
+  BitField<0, 4, u8> numTexGens;
+  BitField<4, 2, u8> primitive_type;
 };
 #pragma pack()
 

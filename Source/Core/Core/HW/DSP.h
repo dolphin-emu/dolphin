@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -30,32 +32,29 @@ enum
 
 // UDSPControl
 constexpr u16 DSP_CONTROL_MASK = 0x0C07;
-union UDSPControl
+struct UDSPControl : BitField2<u16>
 {
-  u16 Hex;
-  struct
-  {
-    // DSP Control
-    u16 DSPReset : 1;  // Write 1 to reset and waits for 0
-    u16 DSPAssertInt : 1;
-    u16 DSPHalt : 1;
-    // Interrupt for DMA to the AI/speakers
-    u16 AID : 1;
-    u16 AID_mask : 1;
-    // ARAM DMA interrupt
-    u16 ARAM : 1;
-    u16 ARAM_mask : 1;
-    // DSP DMA interrupt
-    u16 DSP : 1;
-    u16 DSP_mask : 1;
-    // Other ???
-    u16 DMAState : 1;     // DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it too...maybe
-                          // it's just general DMA flag
-    u16 DSPInitCode : 1;  // Indicator that the DSP was initialized?
-    u16 DSPInit : 1;      // DSPInit() writes to this flag
-    u16 pad : 4;
-  };
-  UDSPControl(u16 hex = 0) : Hex(hex) {}
+  // DSP Control
+  FIELD(bool, 0, 1, DSPReset);  // Write 1 to reset and waits for 0
+  FIELD(bool, 1, 1, DSPAssertInt);
+  FIELD(bool, 2, 1, DSPHalt);
+  // Interrupt for DMA to the AI/speakers
+  FIELD(bool, 3, 1, AID);
+  FIELD(bool, 4, 1, AID_mask);
+  // ARAM DMA interrupt
+  FIELD(bool, 5, 1, ARAM);
+  FIELD(bool, 6, 1, ARAM_mask);
+  // DSP DMA interrupt
+  FIELD(bool, 7, 1, DSP);
+  FIELD(bool, 8, 1, DSP_mask);
+  // Other ???
+  FIELD(bool, 9, 1, DMAState);      // DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it
+                                    // too...maybe it's just general DMA flag
+  FIELD(bool, 10, 1, DSPInitCode);  // Indicator that the DSP was initialized?
+  FIELD(bool, 11, 1, DSPInit);      // DSPInit() writes to this flag
+  FIELD(u16, 12, 4, pad);
+
+  constexpr UDSPControl(u16 val = 0) : BitField2(val) {}
 };
 
 void Init(bool hle);

@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -97,17 +98,26 @@ public:
     u8 roll1;
     u8 pitch1;
 
-    u8 pitch_slow : 1;
-    u8 yaw_slow : 1;
-    u8 yaw2 : 6;
+    union
+    {
+      BitField<0, 1, bool, u8> pitch_slow;
+      BitField<1, 1, bool, u8> yaw_slow;
+      BitField<2, 6, u8> yaw2;
+    };
 
-    u8 extension_connected : 1;
-    u8 roll_slow : 1;
-    u8 roll2 : 6;
+    union
+    {
+      BitField<0, 1, bool, u8> extension_connected;
+      BitField<1, 1, bool, u8> roll_slow;
+      BitField<2, 6, u8> roll2;
+    };
 
-    u8 zero : 1;
-    u8 is_mp_data : 1;
-    u8 pitch2 : 6;
+    union
+    {
+      BitField<0, 1, bool, u8> zero;
+      BitField<1, 1, bool, u8> is_mp_data;
+      BitField<2, 6, u8> pitch2;
+    };
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 #pragma pack(pop)

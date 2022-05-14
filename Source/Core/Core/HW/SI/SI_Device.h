@@ -5,6 +5,7 @@
 
 #include <iosfwd>
 #include <memory>
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -56,6 +57,7 @@ enum class EBufferCommands : u8
 
 enum class EDirectCommands : u8
 {
+  CMD_NULL = 0x00,
   CMD_FORCE = 0x30,
   CMD_WRITE = 0x40,
   CMD_POLL = 0x54
@@ -64,13 +66,11 @@ enum class EDirectCommands : u8
 union UCommand
 {
   u32 hex = 0;
-  struct
-  {
-    u32 parameter1 : 8;
-    u32 parameter2 : 8;
-    u32 command : 8;
-    u32 : 8;
-  };
+
+  BitField<0, 8, u32> parameter1;
+  BitField<8, 8, u32> parameter2;
+  BitField<16, 8, EDirectCommands, u32> command;
+
   UCommand() = default;
   UCommand(u32 value) : hex{value} {}
 };

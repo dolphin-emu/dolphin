@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 #include <string>
 
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/ShaderGenCommon.h"
@@ -20,12 +21,14 @@ struct UidData
 {
   u32 NumValues() const { return sizeof(UidData); }
   EFBCopyFormat dst_format;
-
-  u32 efb_has_alpha : 1;
-  u32 is_depth_copy : 1;
-  u32 is_intensity : 1;
-  u32 scale_by_half : 1;
-  u32 copy_filter : 1;
+  union
+  {
+    BitField<0, 1, bool, u32> efb_has_alpha;
+    BitField<1, 1, bool, u32> is_depth_copy;
+    BitField<2, 1, bool, u32> is_intensity;
+    BitField<3, 1, bool, u32> scale_by_half;
+    BitField<4, 1, bool, u32> copy_filter;
+  };
 };
 #pragma pack()
 

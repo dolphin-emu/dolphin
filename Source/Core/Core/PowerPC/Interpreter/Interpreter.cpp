@@ -63,10 +63,10 @@ bool IsPairedSingleInstruction(UGeckoInstruction inst)
 // but HID2.LSQE is not set.
 bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
 {
-  if (!HID2.PSE && IsPairedSingleInstruction(inst))
+  if (!HID2.PSE() && IsPairedSingleInstruction(inst))
     return true;
 
-  return HID2.PSE && !HID2.LSQE && IsPairedSingleQuantizedNonIndexedInstruction(inst);
+  return HID2.PSE() && !HID2.LSQE() && IsPairedSingleQuantizedNonIndexedInstruction(inst);
 }
 
 void UpdatePC()
@@ -128,7 +128,7 @@ static void Trace(const UGeckoInstruction& inst)
   DEBUG_LOG_FMT(POWERPC,
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
-                PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex, MSR.Hex,
+                PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR, MSR,
                 PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
 }
 
@@ -169,7 +169,7 @@ int Interpreter::SingleStepInner()
       GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
       CheckExceptions();
     }
-    else if (MSR.FP)
+    else if (MSR.FP())
     {
       m_op_table[m_prev_inst.OPCD](m_prev_inst);
       if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)

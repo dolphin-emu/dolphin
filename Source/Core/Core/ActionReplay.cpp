@@ -31,6 +31,8 @@
 
 #include <fmt/format.h>
 
+#include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -91,23 +93,15 @@ static std::atomic<bool> s_use_internal_log{false};
 static const ARCode* s_current_code = nullptr;
 static bool s_disable_logging = false;
 
-struct ARAddr
+struct ARAddr : BitField2<u32>
 {
-  union
-  {
-    u32 address;
-    struct
-    {
-      u32 gcaddr : 25;
-      u32 size : 2;
-      u32 type : 3;
-      u32 subtype : 2;
-    };
-  };
+  FIELD(u32, 0, 25, gcaddr);
+  FIELD(u32, 25, 2, size);
+  FIELD(u32, 27, 3, type);
+  FIELD(u32, 30, 2, subtype);
 
-  ARAddr(const u32 addr) : address(addr) {}
-  u32 GCAddress() const { return gcaddr | 0x80000000; }
-  operator u32() const { return address; }
+  ARAddr(const u32 addr) : BitField2(addr) {}
+  u32 GCAddress() const { return gcaddr() | 0x80000000; }
 };
 
 // ----------------------
@@ -363,9 +357,9 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
   const u32 new_addr = addr.GCAddress();
 
   LogInfo("Hardware Address: {:08x}", new_addr);
-  LogInfo("Size: {:08x}", addr.size);
+  LogInfo("Size: {:08x}", addr.size());
 
-  switch (addr.size)
+  switch (addr.size())
   {
   case DATATYPE_8BIT:
   {
@@ -408,7 +402,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
     LogInfo("Bad Size");
     PanicAlertFmtT("Action Replay Error: Invalid size "
                    "({0:08x} : address = {1:08x}) in Ram Write And Fill ({2})",
-                   addr.size, addr.gcaddr, s_current_code->name);
+                   addr.size(), addr.gcaddr(), s_current_code->name);
     return false;
   }
 
@@ -421,9 +415,9 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
   const u32 ptr = PowerPC::HostRead_U32(new_addr);
 
   LogInfo("Hardware Address: {:08x}", new_addr);
-  LogInfo("Size: {:08x}", addr.size);
+  LogInfo("Size: {:08x}", addr.size());
 
-  switch (addr.size)
+  switch (addr.size())
   {
   case DATATYPE_8BIT:
   {
@@ -468,7 +462,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
     LogInfo("Bad Size");
     PanicAlertFmtT("Action Replay Error: Invalid size "
                    "({0:08x} : address = {1:08x}) in Write To Pointer ({2})",
-                   addr.size, addr.gcaddr, s_current_code->name);
+                   addr.size(), addr.gcaddr(), s_current_code->name);
     return false;
   }
   return true;
@@ -480,9 +474,9 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
   const u32 new_addr = addr.GCAddress();
 
   LogInfo("Hardware Address: {:08x}", new_addr);
-  LogInfo("Size: {:08x}", addr.size);
+  LogInfo("Size: {:08x}", addr.size());
 
-  switch (addr.size)
+  switch (addr.size())
   {
   case DATATYPE_8BIT:
     LogInfo("8-bit Add");
@@ -530,7 +524,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("Bad Size");
     PanicAlertFmtT("Action Replay Error: Invalid size "
                    "({0:08x} : address = {1:08x}) in Add Code ({2})",
-                   addr.size, addr.gcaddr, s_current_code->name);
+                   addr.size(), addr.gcaddr(), s_current_code->name);
     return false;
   }
   return true;
@@ -553,7 +547,7 @@ static bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 d
 static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const u32 data)
 {
   const u32 new_addr = ARAddr(val_last).GCAddress();
-  const u8 size = ARAddr(val_last).size;
+  const u8 size = ARAddr(val_last).size();
 
   const s16 addr_incr = static_cast<s16>(data & 0xFFFF);
   const s8 val_incr = static_cast<s8>(data >> 24);
@@ -563,7 +557,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
   u32 curr_addr = new_addr;
 
   LogInfo("Current Hardware Address: {:08x}", new_addr);
-  LogInfo("Size: {:08x}", addr.size);
+  LogInfo("Size: {:08x}", addr.size());
   LogInfo("Write Num: {:08x}", write_num);
   LogInfo("Address Increment: {}", addr_incr);
   LogInfo("Value Increment: {}", s32{val_incr});
@@ -683,7 +677,7 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 
 static bool NormalCode(const ARAddr& addr, const u32 data)
 {
-  switch (addr.subtype)
+  switch (addr.subtype())
   {
   case SUB_RAM_WRITE:  // Ram write (and fill)
     LogInfo("Doing Ram Write And Fill");
@@ -711,7 +705,7 @@ static bool NormalCode(const ARAddr& addr, const u32 data)
 
   default:
     LogInfo("Bad Subtype");
-    PanicAlertFmtT("Action Replay: Normal Code 0: Invalid Subtype {0:08x} ({1})", addr.subtype,
+    PanicAlertFmtT("Action Replay: Normal Code 0: Invalid Subtype {0:08x} ({1})", addr.subtype(),
                    s_current_code->name);
     return false;
   }
@@ -763,29 +757,29 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 {
   const u32 new_addr = addr.GCAddress();
 
-  LogInfo("Size: {:08x}", addr.size);
+  LogInfo("Size: {:08x}", addr.size());
   LogInfo("Hardware Address: {:08x}", new_addr);
 
   bool result = true;
 
-  switch (addr.size)
+  switch (addr.size())
   {
   case DATATYPE_8BIT:
-    result = CompareValues(PowerPC::HostRead_U8(new_addr), (data & 0xFF), addr.type);
+    result = CompareValues(PowerPC::HostRead_U8(new_addr), (data & 0xFF), addr.type());
     break;
 
   case DATATYPE_16BIT:
-    result = CompareValues(PowerPC::HostRead_U16(new_addr), (data & 0xFFFF), addr.type);
+    result = CompareValues(PowerPC::HostRead_U16(new_addr), (data & 0xFFFF), addr.type());
     break;
 
   case DATATYPE_32BIT_FLOAT:
   case DATATYPE_32BIT:
-    result = CompareValues(PowerPC::HostRead_U32(new_addr), data, addr.type);
+    result = CompareValues(PowerPC::HostRead_U32(new_addr), data, addr.type());
     break;
 
   default:
     LogInfo("Bad Size");
-    PanicAlertFmtT("Action Replay: Conditional Code: Invalid Size {0:08x} ({1})", addr.size,
+    PanicAlertFmtT("Action Replay: Conditional Code: Invalid Size {0:08x} ({1})", addr.size(),
                    s_current_code->name);
     return false;
   }
@@ -793,24 +787,24 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
   // if the comparison failed we need to skip some lines
   if (false == result)
   {
-    switch (addr.subtype)
+    switch (addr.subtype())
     {
     case CONDTIONAL_ONE_LINE:
     case CONDTIONAL_TWO_LINES:
-      *pSkipCount = addr.subtype + 1;  // Skip 1 or 2 lines
+      *pSkipCount = addr.subtype() + 1;  // Skip 1 or 2 lines
       break;
 
     // Skip all lines,
     // Skip lines until a "00000000 40000000" line is reached
     case CONDTIONAL_ALL_LINES:
     case CONDTIONAL_ALL_LINES_UNTIL:
-      *pSkipCount = -static_cast<int>(addr.subtype);
+      *pSkipCount = -static_cast<int>(addr.subtype());
       break;
 
     default:
       LogInfo("Bad Subtype");
       PanicAlertFmtT("Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})", 1,
-                     addr.subtype, s_current_code->name);
+                     addr.subtype(), s_current_code->name);
       return false;
     }
   }
@@ -866,7 +860,7 @@ static bool RunCodeLocked(const ARCode& arcode)
       continue;
     }
 
-    LogInfo("--- Running Code: {:08x} {:08x} ---", addr.address, data);
+    LogInfo("--- Running Code: {:08x} {:08x} ---", addr, data);
 
     // Do Fill & Slide
     if (do_fill_and_slide)
@@ -956,10 +950,10 @@ static bool RunCodeLocked(const ARCode& arcode)
     }
 
     // Normal codes
-    LogInfo("Doing Normal Code {:08x}", addr.type);
-    LogInfo("Subtype: {:08x}", addr.subtype);
+    LogInfo("Doing Normal Code {:08x}", addr.type());
+    LogInfo("Subtype: {:08x}", addr.subtype());
 
-    switch (addr.type)
+    switch (addr.type())
     {
     case 0x00:
       if (false == NormalCode(addr, data))

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string_view>
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 
 class ShaderCode;
@@ -26,14 +27,14 @@ class ShaderCode;
 /**
  * Common uid data used for shader generators that use lighting calculations.
  */
-struct LightingUidData
+union LightingUidData
 {
-  u32 matsource : 4;       // 4x1 bit
-  u32 enablelighting : 4;  // 4x1 bit
-  u32 ambsource : 4;       // 4x1 bit
-  u32 diffusefunc : 8;     // 4x2 bits
-  u32 attnfunc : 8;        // 4x2 bits
-  u32 light_mask : 32;     // 4x8 bits
+  BitField<0, 4, u64> matsource;       // 4x1 bit
+  BitField<4, 4, u64> enablelighting;  // 4x1 bit
+  BitField<8, 4, u64> ambsource;       // 4x1 bit
+  BitField<16, 8, u64> diffusefunc;    // 4x2 bits
+  BitField<24, 8, u64> attnfunc;       // 4x2 bits
+  BitField<32, 32, u64> light_mask;    // 4x8 bits
 };
 
 constexpr char s_lighting_struct[] = "struct Light {\n"

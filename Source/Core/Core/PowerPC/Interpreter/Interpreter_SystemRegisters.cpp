@@ -35,7 +35,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
 {
   u32 b = 0x80000000 >> inst.CRBD;
 
-  FPSCR.Hex &= ~b;
+  FPSCR &= ~b;
   FPSCRUpdated(&FPSCR);
 
   if (inst.Rc)
@@ -66,7 +66,7 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
   const u32 mask = (pre_shifted_mask >> (4 * field));
   const u32 imm = (inst.hex << 16) & pre_shifted_mask;
 
-  FPSCR = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
+  FPSCR = (FPSCR & ~mask) | (imm >> (4 * field));
 
   FPSCRUpdated(&FPSCR);
 
@@ -84,7 +84,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
       m |= (0xFU << (i * 4));
   }
 
-  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
+  FPSCR = (FPSCR & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
   FPSCRUpdated(&FPSCR);
 
   if (inst.Rc)
@@ -93,7 +93,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetField(inst.CRFD, PowerPC::GetXER().Hex >> 28);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, PowerPC::GetXER() >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
@@ -126,18 +126,18 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
 
 void Interpreter::mfmsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
-  rGPR[inst.RD] = MSR.Hex;
+  rGPR[inst.RD] = MSR;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -148,7 +148,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -160,13 +160,13 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
 
 void Interpreter::mtmsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
   }
 
-  MSR.Hex = rGPR[inst.RS];
+  MSR = rGPR[inst.RS];
 
   // FE0/FE1 may have been set
   CheckFPExceptions(FPSCR);
@@ -179,7 +179,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
 
 void Interpreter::mtsr(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -192,7 +192,7 @@ void Interpreter::mtsr(UGeckoInstruction inst)
 
 void Interpreter::mtsrin(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -215,7 +215,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   const u32 index = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
 
   // XER, LR, CTR, and timebase halves are the only ones available in user mode.
-  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
+  if (MSR.PR() && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
       index != SPR_TU)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
@@ -248,7 +248,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   }
   break;
   case SPR_XER:
-    rSPR(index) = PowerPC::GetXER().Hex;
+    rSPR(index) = PowerPC::GetXER();
     break;
   }
   rGPR[inst.RD] = rSPR(index);
@@ -259,7 +259,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
   // XER, LR, and CTR are the only ones available to be written to in user mode
-  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
+  if (MSR.PR() && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -295,20 +295,19 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
   case SPR_HID0:  // HID0
   {
-    UReg_HID0 old_hid0;
-    old_hid0.Hex = old_value;
-    if (HID0.ICE != old_hid0.ICE)
+    UReg_HID0 old_hid0 = old_value;
+    if (HID0.ICE() != old_hid0.ICE())
     {
-      INFO_LOG_FMT(POWERPC, "Instruction Cache Enable (HID0.ICE) = {}", HID0.ICE);
+      INFO_LOG_FMT(POWERPC, "Instruction Cache Enable (HID0.ICE) = {}", HID0.ICE());
     }
-    if (HID0.ILOCK != old_hid0.ILOCK)
+    if (HID0.ILOCK() != old_hid0.ILOCK())
     {
-      INFO_LOG_FMT(POWERPC, "Instruction Cache Lock (HID0.ILOCK) = {}", HID0.ILOCK);
+      INFO_LOG_FMT(POWERPC, "Instruction Cache Lock (HID0.ILOCK) = {}", HID0.ILOCK());
     }
-    if (HID0.ICFI)
+    if (HID0.ICFI())
     {
-      HID0.ICFI = 0;
-      INFO_LOG_FMT(POWERPC, "Flush Instruction Cache! ICE={}", HID0.ICE);
+      HID0.ICFI() = 0;
+      INFO_LOG_FMT(POWERPC, "Flush Instruction Cache! ICE={}", HID0.ICE());
       // this is rather slow
       // most games do it only once during initialization
       PowerPC::ppcState.iCache.Reset();
@@ -359,20 +358,20 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_DMAL:
     // Locked cache<->Memory DMA
     // Total fake, we ignore that DMAs take time.
-    if (DMAL.DMA_T)
+    if (DMAL.DMA_T())
     {
-      const u32 mem_address = DMAU.MEM_ADDR << 5;
-      const u32 cache_address = DMAL.LC_ADDR << 5;
-      u32 length = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
+      const u32 mem_address = DMAU.MEM_ADDR() << 5;
+      const u32 cache_address = DMAL.LC_ADDR() << 5;
+      u32 length = ((DMAU.DMA_LEN_U() << 2) | DMAL.DMA_LEN_L());
 
       if (length == 0)
         length = 128;
-      if (DMAL.DMA_LD)
+      if (DMAL.DMA_LD())
         PowerPC::DMA_MemoryToLC(cache_address, mem_address, length);
       else
         PowerPC::DMA_LCToMemory(mem_address, cache_address, length);
     }
-    DMAL.DMA_T = 0;
+    DMAL.DMA_T() = 0;
     break;
 
   case SPR_L2CR:
@@ -455,17 +454,17 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     constexpr u32 SIMULATED_TEMP = 42;  // °C
 
     auto UpdateThermalReg = [](UReg_THRM12* reg) {
-      if (!THRM3.E || !reg->V)
+      if (!THRM3.E() || !reg->V())
       {
-        reg->TIV = 0;
+        reg->TIV() = 0;
       }
       else
       {
-        reg->TIV = 1;
-        if (reg->TID)
-          reg->TIN = SIMULATED_TEMP < reg->THRESHOLD;
+        reg->TIV() = 1;
+        if (reg->TID())
+          reg->TIN() = SIMULATED_TEMP < reg->THRESHOLD();
         else
-          reg->TIN = SIMULATED_TEMP > reg->THRESHOLD;
+          reg->TIN() = SIMULATED_TEMP > reg->THRESHOLD();
       }
     };
 
@@ -556,10 +555,10 @@ void Interpreter::isync(UGeckoInstruction inst)
 void Interpreter::mcrfs(UGeckoInstruction inst)
 {
   const u32 shift = 4 * (7 - inst.CRFS);
-  const u32 fpflags = (FPSCR.Hex >> shift) & 0xF;
+  const u32 fpflags = (FPSCR >> shift) & 0xF;
 
   // If any exception bits were read, clear them
-  FPSCR.Hex &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
+  FPSCR &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
   FPSCRUpdated(&FPSCR);
 
   PowerPC::ppcState.cr.SetField(inst.CRFD, fpflags);
@@ -567,7 +566,7 @@ void Interpreter::mcrfs(UGeckoInstruction inst)
 
 void Interpreter::mffsx(UGeckoInstruction inst)
 {
-  rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR.Hex);
+  rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR);
 
   if (inst.Rc)
     PowerPC::ppcState.UpdateCR1();

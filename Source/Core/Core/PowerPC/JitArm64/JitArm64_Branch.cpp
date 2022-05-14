@@ -140,7 +140,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
   }
 
   FixupBranch far_addr = B();
@@ -194,21 +194,21 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   JITDISABLE(bJITBranchOff);
 
   // Rare condition seen in (just some versions of?) Nintendo's NES Emulator
-  // BO_2 == 001zy -> b if false
-  // BO_2 == 011zy -> b if true
-  FALLBACK_IF(!(inst.BO_2 & BO_DONT_CHECK_CONDITION));
+  // BO == 001zy -> b if false
+  // BO == 011zy -> b if true
+  FALLBACK_IF(!(inst.BO & BO_DONT_CHECK_CONDITION));
 
   // bcctrx doesn't decrement and/or test CTR
-  ASSERT_MSG(DYNA_REC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
+  ASSERT_MSG(DYNA_REC, inst.BO & BO_DONT_DECREMENT_FLAG,
              "bcctrx with decrement and test CTR option is invalid!");
 
-  // BO_2 == 1z1zz -> b always
+  // BO == 1z1zz -> b always
 
   // NPC = CTR & 0xfffffffc;
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-  if (inst.LK_3)
+  if (inst.LK)
   {
     ARM64Reg WB = gpr.GetReg();
     MOVI2R(WB, js.compilerPC + 4);
@@ -221,7 +221,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
   AND(WA, WA, LogicalImm(~0x3, 32));
 
-  WriteExit(WA, inst.LK_3, js.compilerPC + 4);
+  WriteExit(WA, inst.LK, js.compilerPC + 4);
 
   gpr.Unlock(WA);
 }
@@ -254,7 +254,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
   }
 
   if (conditional)

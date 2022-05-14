@@ -175,8 +175,8 @@ static void Helper_Quantize(const PowerPC::PowerPCState* ppcs, u32 addr, u32 ins
                             u32 instW)
 {
   const UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
-  const EQuantizeType st_type = gqr.st_type;
-  const u32 st_scale = gqr.st_scale;
+  const EQuantizeType st_type = gqr.st_type();
+  const u32 st_scale = gqr.st_scale();
 
   const double ps0 = ppcs->ps[instRS].PS0AsDouble();
   const double ps1 = ppcs->ps[instRS].PS1AsDouble();
@@ -252,8 +252,8 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
                               u32 instW)
 {
   const UGQR gqr(ppcs->spr[SPR_GQR0 + instI]);
-  const EQuantizeType ld_type = gqr.ld_type;
-  const u32 ld_scale = gqr.ld_scale;
+  const EQuantizeType ld_type = gqr.ld_type();
+  const u32 ld_scale = gqr.ld_scale();
 
   double ps0 = 0.0;
   double ps1 = 0.0;
@@ -310,7 +310,7 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
 
 void Interpreter::psq_l(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2.LSQE() == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -322,7 +322,7 @@ void Interpreter::psq_l(UGeckoInstruction inst)
 
 void Interpreter::psq_lu(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2.LSQE() == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -341,7 +341,7 @@ void Interpreter::psq_lu(UGeckoInstruction inst)
 
 void Interpreter::psq_st(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2.LSQE() == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -353,7 +353,7 @@ void Interpreter::psq_st(UGeckoInstruction inst)
 
 void Interpreter::psq_stu(UGeckoInstruction inst)
 {
-  if (HID2.LSQE == 0)
+  if (HID2.LSQE() == 0)
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;

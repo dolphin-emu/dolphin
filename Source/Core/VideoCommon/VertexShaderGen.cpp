@@ -55,8 +55,8 @@ VertexShaderUid GetVertexShaderUid()
       break;
     case TexGenType::Regular:
     default:
-      uid_data->texMtxInfo_n_projection |= static_cast<u32>(xfmem.texMtxInfo[i].projection.Value())
-                                           << i;
+      uid_data->texMtxInfo_n_projection[i] |=
+          static_cast<bool>(xfmem.texMtxInfo[i].projection.Value());
       break;
     }
 
@@ -65,8 +65,8 @@ VertexShaderUid GetVertexShaderUid()
     if (uid_data->dualTexTrans_enabled && texinfo.texgentype == TexGenType::Regular)
     {
       auto& postInfo = uid_data->postMtxInfo[i];
-      postInfo.index = xfmem.postMtxInfo[i].index;
-      postInfo.normalize = xfmem.postMtxInfo[i].normalize;
+      postInfo.index = xfmem.postMtxInfo[i].index.Value();
+      postInfo.normalize = xfmem.postMtxInfo[i].normalize.Value();
     }
   }
 
@@ -292,7 +292,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       break;
     default:
       ASSERT(texinfo.sourcerow >= SourceRow::Tex0 && texinfo.sourcerow <= SourceRow::Tex7);
-      u32 texnum = static_cast<u32>(texinfo.sourcerow) - static_cast<u32>(SourceRow::Tex0);
+      u32 texnum = static_cast<u32>(texinfo.sourcerow.Value()) - static_cast<u32>(SourceRow::Tex0);
       if ((uid_data->components & (VB_HAS_UV0 << (texnum))) != 0)
       {
         out.Write("coord = float4(rawtex{}.x, rawtex{}.y, 1.0, 1.0);\n", texnum, texnum);
@@ -335,7 +335,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       if ((uid_data->components & (VB_HAS_TEXMTXIDX0 << i)) != 0)
       {
         out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (static_cast<TexSize>(uid_data->texMtxInfo_n_projection[i].Value()) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -351,7 +351,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        if (static_cast<TexSize>((uid_data->texMtxInfo_n_projection >> i) & 1) == TexSize::STQ)
+        if (static_cast<TexSize>(uid_data->texMtxInfo_n_projection[i].Value()) == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES

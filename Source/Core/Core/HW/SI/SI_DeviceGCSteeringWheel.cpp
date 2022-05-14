@@ -101,7 +101,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
 {
   UCommand wheel_command(command);
 
-  if (static_cast<EDirectCommands>(wheel_command.command) == EDirectCommands::CMD_FORCE)
+  if (wheel_command.command == EDirectCommands::CMD_FORCE)
   {
     // get the correct pad number that should rumble locally when using netplay
     const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);

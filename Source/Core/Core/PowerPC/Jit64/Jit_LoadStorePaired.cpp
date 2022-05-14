@@ -23,13 +23,13 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
 
   // For performance, the AsmCommon routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  FALLBACK_IF(!MSR.DR());
 
   s32 offset = inst.SIMM_12;
   bool indexed = inst.OPCD == 4;
   bool update = (inst.OPCD == 61 && offset) || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
   int a = inst.RA;
-  int b = indexed ? inst.RB : a;
+  int b = indexed ? inst.RB.Value() : a;
   int s = inst.FS;
   int i = indexed ? inst.Ix : inst.I;
   int w = indexed ? inst.Wx : inst.W;
@@ -114,13 +114,13 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
 
   // For performance, the AsmCommon routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  FALLBACK_IF(!MSR.DR());
 
   s32 offset = inst.SIMM_12;
   bool indexed = inst.OPCD == 4;
   bool update = (inst.OPCD == 57 && offset) || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
   int a = inst.RA;
-  int b = indexed ? inst.RB : a;
+  int b = indexed ? inst.RB.Value() : a;
   int s = inst.FS;
   int i = indexed ? inst.Ix : inst.I;
   int w = indexed ? inst.Wx : inst.W;

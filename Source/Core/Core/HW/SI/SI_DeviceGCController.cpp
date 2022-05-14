@@ -299,7 +299,7 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 {
   UCommand controller_command(command);
 
-  if (static_cast<EDirectCommands>(controller_command.command) == EDirectCommands::CMD_WRITE)
+  if (controller_command.command == EDirectCommands::CMD_WRITE)
   {
     const u32 type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 
@@ -321,7 +321,7 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
       INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
     }
   }
-  else if (controller_command.command != 0x00)
+  else if (controller_command.command != EDirectCommands::CMD_NULL)
   {
     // Costis sent 0x00 in some demos :)
     ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);

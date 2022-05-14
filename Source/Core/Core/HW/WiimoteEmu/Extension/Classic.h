@@ -5,6 +5,7 @@
 
 #include <limits>
 
+#include "Common/BitField.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
@@ -35,26 +36,22 @@ public:
   {
     u16 hex;
 
-    struct
-    {
-      u8 : 1;
-      u8 rt : 1;  // right trigger
-      u8 plus : 1;
-      u8 home : 1;
-      u8 minus : 1;
-      u8 lt : 1;  // left trigger
-      u8 dpad_down : 1;
-      u8 dpad_right : 1;
+    BitField<1, 1, bool, u16> rt;  // right trigger
+    BitField<2, 1, bool, u16> plus;
+    BitField<3, 1, bool, u16> home;
+    BitField<4, 1, bool, u16> minus;
+    BitField<5, 1, bool, u16> lt;  // left trigger
+    BitField<6, 1, bool, u16> dpad_down;
+    BitField<7, 1, bool, u16> dpad_right;
 
-      u8 dpad_up : 1;
-      u8 dpad_left : 1;
-      u8 zr : 1;
-      u8 x : 1;
-      u8 a : 1;
-      u8 y : 1;
-      u8 b : 1;
-      u8 zl : 1;  // left z button
-    };
+    BitField<8, 1, bool, u16> dpad_up;
+    BitField<9, 1, bool, u16> dpad_left;
+    BitField<10, 1, bool, u16> zr;
+    BitField<11, 1, bool, u16> x;
+    BitField<12, 1, bool, u16> a;
+    BitField<13, 1, bool, u16> y;
+    BitField<14, 1, bool, u16> b;
+    BitField<15, 1, bool, u16> zl;  // left z button
   };
   static_assert(sizeof(ButtonFormat) == 2, "Wrong size");
 
@@ -112,18 +109,21 @@ public:
       bt.hex = ~value;
     }
 
-    u8 lx : 6;  // byte 0
-    u8 rx3 : 2;
+    union
+    {
+      BitField<0, 6, u32> lx;  // byte 0
+      BitField<6, 2, u32> rx3;
 
-    u8 ly : 6;  // byte 1
-    u8 rx2 : 2;
+      BitField<8, 6, u32> ly;  // byte 1
+      BitField<14, 2, u32> rx2;
 
-    u8 ry : 5;
-    u8 lt2 : 2;
-    u8 rx1 : 1;
+      BitField<16, 5, u32> ry;  // byte 2
+      BitField<21, 2, u32> lt2;
+      BitField<23, 1, u32> rx1;
 
-    u8 rt : 5;
-    u8 lt1 : 3;
+      BitField<24, 5, u32> rt;  // byte 3
+      BitField<29, 3, u32> lt1;
+    };
 
     ButtonFormat bt;  // byte 4, 5
   };

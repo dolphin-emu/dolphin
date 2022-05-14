@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -23,10 +24,13 @@ struct IRBasic
 
   u8 x1;
   u8 y1;
-  u8 x2hi : 2;
-  u8 y2hi : 2;
-  u8 x1hi : 2;
-  u8 y1hi : 2;
+  union
+  {
+    BitField<0, 2, u8> x2hi;
+    BitField<2, 2, u8> y2hi;
+    BitField<4, 2, u8> x1hi;
+    BitField<6, 2, u8> y1hi;
+  };
   u8 x2;
   u8 y2;
 
@@ -55,9 +59,12 @@ struct IRExtended
 {
   u8 x;
   u8 y;
-  u8 size : 4;
-  u8 xhi : 2;
-  u8 yhi : 2;
+  union
+  {
+    BitField<0, 4, u8> size;
+    BitField<4, 2, u8> xhi;
+    BitField<6, 2, u8> yhi;
+  };
 
   auto GetPosition() const { return IRBasic::IRObject(xhi << 8 | x, yhi << 8 | y); }
   void SetPosition(const IRBasic::IRObject& obj)
@@ -74,14 +81,13 @@ static_assert(sizeof(IRExtended) == 3, "Wrong size");
 // first 3 bytes are the same as extended
 struct IRFull : IRExtended
 {
-  u8 xmin : 7;
-  u8 : 1;
-  u8 ymin : 7;
-  u8 : 1;
-  u8 xmax : 7;
-  u8 : 1;
-  u8 ymax : 7;
-  u8 : 1;
+  union
+  {
+    BitField<0, 7, u32> xmin;
+    BitField<8, 7, u32> ymin;
+    BitField<16, 7, u32> xmax;
+    BitField<24, 7, u32> ymax;
+  };
   u8 zero;
   u8 intensity;
 };

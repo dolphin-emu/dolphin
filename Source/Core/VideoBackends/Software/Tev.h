@@ -3,22 +3,23 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "VideoCommon/BPMemory.h"
 
 class Tev
 {
-  struct InputRegType
+  union InputRegType
   {
-    unsigned a : 8;
-    unsigned b : 8;
-    unsigned c : 8;
-    signed d : 11;
+    BitField<0, 8, u64> a;
+    BitField<8, 8, u64> b;
+    BitField<16, 8, u64> c;
+    BitField<24, 11, s64> d;
   };
 
-  struct TextureCoordinateType
+  union TextureCoordinateType
   {
-    signed s : 24;
-    signed t : 24;
+    BitField<0, 24, s64> s;
+    BitField<24, 24, s64> t;
   };
 
   // color order: ABGR

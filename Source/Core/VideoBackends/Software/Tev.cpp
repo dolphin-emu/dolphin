@@ -283,9 +283,9 @@ void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const Inpu
     }
 
     if (cc.comparison == TevComparison::GT)
-      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
+      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a > b) ? inputs[i].c.Value() : 0);
     else
-      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
+      Reg[u32(cc.dest.Value())][i] = inputs[i].d + ((a == b) ? inputs[i].c.Value() : 0);
   }
 }
 
@@ -339,9 +339,9 @@ void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const Inpu
   }
 
   if (ac.comparison == TevComparison::GT)
-    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
+    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c.Value() : 0);
   else
-    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
+    Reg[u32(ac.dest.Value())][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c.Value() : 0);
 }
 
 static bool AlphaCompare(int alpha, int ref, CompareMode comp)
@@ -653,7 +653,7 @@ void Tev::Draw()
     SetRasColor(order.getColorChan(stageOdd), ac.rswap * 2);
 
     // combine inputs
-    InputRegType inputs[4];
+    InputRegType inputs[4] = {};
     for (int i = 0; i < 3; i++)
     {
       inputs[BLU_C + i].a = *m_ColorInputLUT[u32(cc.a.Value())][i];

@@ -57,16 +57,16 @@ void Interpreter::bcx(UGeckoInstruction inst)
 
 void Interpreter::bcctrx(UGeckoInstruction inst)
 {
-  DEBUG_ASSERT_MSG(POWERPC, (inst.BO_2 & BO_DONT_DECREMENT_FLAG) != 0,
+  DEBUG_ASSERT_MSG(POWERPC, (inst.BO & BO_DONT_DECREMENT_FLAG) != 0,
                    "bcctrx with decrement and test CTR option is invalid!");
 
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI) == ((inst.BO >> 3) & 1))) & 1;
 
   if (condition != 0)
   {
     NPC = CTR & (~3);
-    if (inst.LK_3)
+    if (inst.LK)
       LR = PC + 4;
   }
 
@@ -75,17 +75,17 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
 
 void Interpreter::bclrx(UGeckoInstruction inst)
 {
-  if ((inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
 
-  const u32 counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
+  const u32 counter = ((inst.BO >> 2) | ((CTR != 0) ^ (inst.BO >> 1))) & 1;
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI) == ((inst.BO >> 3) & 1))) & 1;
 
   if ((counter & condition) != 0)
   {
     NPC = LR & (~3);
-    if (inst.LK_3)
+    if (inst.LK)
       LR = PC + 4;
   }
 
@@ -100,7 +100,7 @@ void Interpreter::HLEFunction(UGeckoInstruction inst)
 
 void Interpreter::rfi(UGeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -109,9 +109,9 @@ void Interpreter::rfi(UGeckoInstruction inst)
   // Restore saved bits from SRR1 to MSR.
   // Gecko/Broadway can save more bits than explicitly defined in ppc spec
   const u32 mask = 0x87C0FFFF;
-  MSR.Hex = (MSR.Hex & ~mask) | (SRR1 & mask);
+  MSR = (MSR & ~mask) | (SRR1 & mask);
   // MSR[13] is set to 0.
-  MSR.Hex &= 0xFFFBFFFF;
+  MSR = MSR & 0xFFFBFFFF;
   // Here we should check if there are pending exceptions, and if their corresponding enable bits
   // are set
   // if above is true, we'd do:

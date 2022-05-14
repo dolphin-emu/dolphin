@@ -603,11 +603,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
     code->regsIn[code->inst.RB] = true;
     block->m_gpa->SetInputRegister(code->inst.RB, index);
   }
-  if (opinfo->flags & FL_IN_C)
-  {
-    code->regsIn[code->inst.RC] = true;
-    block->m_gpa->SetInputRegister(code->inst.RC, index);
-  }
   if (opinfo->flags & FL_IN_S)
   {
     code->regsIn[code->inst.RS] = true;
@@ -872,7 +867,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
         // tw/twi tests and raises an exception
         conditional_continue = true;
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 528 && (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 528 && (inst.BO & BO_DONT_CHECK_CONDITION) == 0)
       {
         // Rare bcctrx with conditional branch
         // Seen in NES games
