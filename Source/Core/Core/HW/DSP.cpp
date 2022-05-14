@@ -27,6 +27,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
@@ -68,21 +69,23 @@ enum
 };
 
 // UARAMCount
-union UARAMCount
+struct UARAMCount : BitField2<u32>
 {
-  u32 Hex = 0;
+  FIELD(u32, 0, 31, count);
+  FIELD(bool, 31, 1, dir);  // 0: MRAM -> ARAM 1: ARAM -> MRAM
 
-  BitField<0, 31, u32> count;
-  BitField<31, 1, bool, u32> dir;  // 0: MRAM -> ARAM 1: ARAM -> MRAM
+  UARAMCount() = default;
+  constexpr UARAMCount(u32 val) : BitField2(val) {}
 };
 
 // Blocks are 32 bytes.
-union UAudioDMAControl
+struct UAudioDMAControl : BitField2<u16>
 {
-  u16 Hex = 0;
+  FIELD(u16, 0, 15, NumBlocks);
+  FIELD(bool, 15, 1, Enable);
 
-  BitField<0, 15, u16> NumBlocks;
-  BitField<15, 1, bool, u16> Enable;
+  UAudioDMAControl() = default;
+  constexpr UAudioDMAControl(u32 val) : BitField2(val) {}
 };
 
 // AudioDMA
@@ -111,12 +114,13 @@ struct ARAMInfo
   u8* ptr = nullptr;  // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
 };
 
-union ARAM_Info
+struct ARAM_Info : BitField2<u16>
 {
-  u16 Hex = 0;
+  FIELD(u16, 0, 6, size);
+  FIELD(u16, 6, 1, unk);
 
-  BitField<0, 6, u16> size;
-  BitField<6, 1, u16> unk;
+  ARAM_Info() = default;
+  ARAM_Info(u16 val) : BitField2(val) {}
 };
 
 // STATE_TO_SAVE
@@ -206,7 +210,7 @@ void Reinit(bool hle)
   s_dspState = 0;
   s_dspState.DSPHalt() = 1;
 
-  s_ARAM_Info.Hex = 0;
+  s_ARAM_Info = 0;
   s_AR_MODE = 1;       // ARAM Controller has init'd
   s_AR_REFRESH = 156;  // 156MHz
 }
@@ -245,7 +249,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {AR_MODE, &s_AR_MODE, WMASK_NONE},
 
       // For these registers, only some bits can be set
-      {AR_INFO, &s_ARAM_Info.Hex, WMASK_AR_INFO},
+      {AR_INFO, &s_ARAM_Info.GetStorageRef(), WMASK_AR_INFO},
       {AR_REFRESH, &s_AR_REFRESH, WMASK_AR_REFRESH},
 
       // For AR_DMA_*_H registers, only bits 0x03ff can be set
@@ -255,7 +259,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {AR_DMA_ARADDR_H, MMIO::Utils::HighPart(&s_arDMA.ARAddr), WMASK_AR_HI_RESTRICT},
       {AR_DMA_ARADDR_L, MMIO::Utils::LowPart(&s_arDMA.ARAddr), WMASK_LO_ALIGN_32BIT},
       // For this register, the topmost (dir) bit can also be set
-      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.Hex),
+      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.GetStorageRef()),
        WMASK_AR_HI_RESTRICT | WMASK_AR_CNT_DIR_BIT},
       // AR_DMA_CNT_L triggers DMA
 
@@ -317,7 +321,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         // only viewable to DSP emulator
         if (val & 1 /*DSPReset*/)
         {
-          s_audioDMA.AudioDMAControl.Hex = 0;
+          s_audioDMA.AudioDMAControl = 0;
         }
 
         // Update DSP related flags
@@ -353,9 +357,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }));
 
   // ARAM MMIO controlling the DMA start.
-  mmio->Register(base | AR_DMA_CNT_L, MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&s_arDMA.Cnt.Hex)),
+  mmio->Register(base | AR_DMA_CNT_L,
+                 MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&s_arDMA.Cnt.GetStorageRef())),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   s_arDMA.Cnt.Hex = (s_arDMA.Cnt.Hex & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
+                   s_arDMA.Cnt = (s_arDMA.Cnt & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
                    Do_ARAM_DMA();
                  }));
 
@@ -368,33 +373,35 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   // Audio DMA MMIO controlling the DMA start.
-  mmio->Register(
-      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.Hex),
-      MMIO::ComplexWrite<u16>([](u32, u16 val) {
-        bool already_enabled = s_audioDMA.AudioDMAControl.Enable;
-        s_audioDMA.AudioDMAControl.Hex = val;
+  mmio->Register(base | AUDIO_DMA_CONTROL_LEN,
+                 MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.GetStorageRef()),
+                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
+                   bool already_enabled = s_audioDMA.AudioDMAControl.Enable();
+                   s_audioDMA.AudioDMAControl = val;
 
-        // Only load new values if were not already doing a DMA transfer,
-        // otherwise just let the new values be autoloaded in when the
-        // current transfer ends.
-        if (!already_enabled && s_audioDMA.AudioDMAControl.Enable)
-        {
-          s_audioDMA.current_source_address = s_audioDMA.SourceAddress;
-          s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks;
+                   // Only load new values if were not already doing a DMA transfer,
+                   // otherwise just let the new values be autoloaded in when the
+                   // current transfer ends.
+                   if (!already_enabled && s_audioDMA.AudioDMAControl.Enable())
+                   {
+                     s_audioDMA.current_source_address = s_audioDMA.SourceAddress;
+                     s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks();
 
-          INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
-                       s_audioDMA.AudioDMAControl.NumBlocks, s_audioDMA.SourceAddress);
+                     INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
+                                  s_audioDMA.AudioDMAControl.NumBlocks(), s_audioDMA.SourceAddress);
 
-          // We make the samples ready as soon as possible
-          void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
-          AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks * 8);
+                     // We make the samples ready as soon as possible
+                     void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
+                     AudioCommon::SendAIBuffer((short*)address,
+                                               s_audioDMA.AudioDMAControl.NumBlocks() * 8);
 
-          // TODO: need hardware tests for the timing of this interrupt.
-          // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
-          // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
-        }
-      }));
+                     // TODO: need hardware tests for the timing of this interrupt.
+                     // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the
+                     // future. Other Namco games crash too, see issue 9509. For now we will just
+                     // push it to 200 cycles
+                     CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
+                   }
+                 }));
 
   // Audio DMA blocks remaining is invalid to write to, and requires logic on
   // the read side.
@@ -463,7 +470,7 @@ void UpdateDSPSlice(int cycles)
 void UpdateAudioDMA()
 {
   static short zero_samples[8 * 2] = {0};
-  if (s_audioDMA.AudioDMAControl.Enable)
+  if (s_audioDMA.AudioDMAControl.Enable())
   {
     // Read audio at g_audioDMA.current_source_address in RAM and push onto an
     // external audio fifo in the emulator, to be mixed with the disc
@@ -478,13 +485,13 @@ void UpdateAudioDMA()
     if (s_audioDMA.remaining_blocks_count == 0)
     {
       s_audioDMA.current_source_address = s_audioDMA.SourceAddress;
-      s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks;
+      s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks();
 
       if (s_audioDMA.remaining_blocks_count != 0)
       {
         // We make the samples ready as soon as possible
         void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
-        AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks * 8);
+        AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks() * 8);
       }
       GenerateDSPInterrupt(DSP::INT_AID);
     }
@@ -500,15 +507,15 @@ static void Do_ARAM_DMA()
   s_dspState.DMAState() = 1;
 
   // ARAM DMA transfer rate has been measured on real hw
-  int ticksToTransfer = (s_arDMA.Cnt.count / 32) * 246;
+  int ticksToTransfer = (s_arDMA.Cnt.count() / 32) * 246;
   CoreTiming::ScheduleEvent(ticksToTransfer, s_et_CompleteARAM);
 
   // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
-  if (s_arDMA.Cnt.dir)
+  if (s_arDMA.Cnt.dir())
   {
     // ARAM -> MRAM
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from ARAM {:08x} to MRAM {:08x} PC: {:08x}",
-                  s_arDMA.Cnt.count, s_arDMA.ARAddr, s_arDMA.MMAddr, PC);
+                  s_arDMA.Cnt.count(), s_arDMA.ARAddr, s_arDMA.MMAddr, PC);
 
     // Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
     s_arDMA.ARAddr &= 0x3ffffff;
@@ -516,15 +523,15 @@ static void Do_ARAM_DMA()
 
     if (s_arDMA.ARAddr < s_ARAM.size)
     {
-      while (s_arDMA.Cnt.count)
+      while (s_arDMA.Cnt.count())
       {
         // These are logically separated in code to show that a memory map has been set up
         // See below in the write section for more information
-        if ((s_ARAM_Info.Hex & 0xf) == 3)
+        if ((s_ARAM_Info & 0xf) == 3)
         {
           Memory::Write_U64_Swap(*(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask], s_arDMA.MMAddr);
         }
-        else if ((s_ARAM_Info.Hex & 0xf) == 4)
+        else if ((s_ARAM_Info & 0xf) == 4)
         {
           Memory::Write_U64_Swap(*(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask], s_arDMA.MMAddr);
         }
@@ -535,17 +542,17 @@ static void Do_ARAM_DMA()
 
         s_arDMA.MMAddr += 8;
         s_arDMA.ARAddr += 8;
-        s_arDMA.Cnt.count -= 8;
+        s_arDMA.Cnt.count() -= 8;
       }
     }
     else if (!s_ARAM.wii_mode)
     {
-      while (s_arDMA.Cnt.count)
+      while (s_arDMA.Cnt.count())
       {
         Memory::Write_U64(HSP::Read(s_arDMA.ARAddr), s_arDMA.MMAddr);
         s_arDMA.MMAddr += 8;
         s_arDMA.ARAddr += 8;
-        s_arDMA.Cnt.count -= 8;
+        s_arDMA.Cnt.count() -= 8;
       }
     }
   }
@@ -553,7 +560,7 @@ static void Do_ARAM_DMA()
   {
     // MRAM -> ARAM
     DEBUG_LOG_FMT(DSPINTERFACE, "DMA {:08x} bytes from MRAM {:08x} to ARAM {:08x} PC: {:08x}",
-                  s_arDMA.Cnt.count, s_arDMA.MMAddr, s_arDMA.ARAddr, PC);
+                  s_arDMA.Cnt.count(), s_arDMA.MMAddr, s_arDMA.ARAddr, PC);
 
     // Incoming data into ARAM is mirrored every 64MB (verified on real HW)
     s_arDMA.ARAddr &= 0x3ffffff;
@@ -561,14 +568,14 @@ static void Do_ARAM_DMA()
 
     if (s_arDMA.ARAddr < s_ARAM.size)
     {
-      while (s_arDMA.Cnt.count)
+      while (s_arDMA.Cnt.count())
       {
-        if ((s_ARAM_Info.Hex & 0xf) == 3)
+        if ((s_ARAM_Info & 0xf) == 3)
         {
           *(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask] =
               Common::swap64(Memory::Read_U64(s_arDMA.MMAddr));
         }
-        else if ((s_ARAM_Info.Hex & 0xf) == 4)
+        else if ((s_ARAM_Info & 0xf) == 4)
         {
           if (s_arDMA.ARAddr < 0x400000)
           {
@@ -586,18 +593,18 @@ static void Do_ARAM_DMA()
 
         s_arDMA.MMAddr += 8;
         s_arDMA.ARAddr += 8;
-        s_arDMA.Cnt.count -= 8;
+        s_arDMA.Cnt.count() -= 8;
       }
     }
     else if (!s_ARAM.wii_mode)
     {
-      while (s_arDMA.Cnt.count)
+      while (s_arDMA.Cnt.count())
       {
         HSP::Write(s_arDMA.ARAddr, Memory::Read_U64(s_arDMA.MMAddr));
 
         s_arDMA.MMAddr += 8;
         s_arDMA.ARAddr += 8;
-        s_arDMA.Cnt.count -= 8;
+        s_arDMA.Cnt.count() -= 8;
       }
     }
   }

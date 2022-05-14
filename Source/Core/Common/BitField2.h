@@ -17,6 +17,7 @@ struct BitField2
 public:
   DOLPHIN_FORCE_INLINE StorageType Get() const { return storage; }
   DOLPHIN_FORCE_INLINE void Set(StorageType val) { storage = val; }
+  constexpr StorageType& GetStorageRef() { return storage; }
 
   BitField2() = default;
   // Bare statement alternative for Set()
@@ -30,21 +31,13 @@ public:
     Set(rhs);
     return *this;
   }
-  constexpr BitField2& operator|=(StorageType rhs)
-  {
-    Set(Get() | rhs);
-    return *this;
-  }
-  constexpr BitField2& operator&=(StorageType rhs)
-  {
-    Set(Get() & rhs);
-    return *this;
-  }
-  constexpr BitField2& operator^=(StorageType rhs)
-  {
-    Set(Get() ^ rhs);
-    return *this;
-  }
+  constexpr BitField2& operator+=(StorageType rhs) { return operator=(Get() + rhs); }
+  constexpr BitField2& operator-=(StorageType rhs) { return operator=(Get() - rhs); }
+  constexpr BitField2& operator*=(StorageType rhs) { return operator=(Get() * rhs); }
+  constexpr BitField2& operator/=(StorageType rhs) { return operator=(Get() / rhs); }
+  constexpr BitField2& operator|=(StorageType rhs) { return operator=(Get() | rhs); }
+  constexpr BitField2& operator&=(StorageType rhs) { return operator=(Get() & rhs); }
+  constexpr BitField2& operator^=(StorageType rhs) { return operator=(Get() ^ rhs); }
 
 public:
   StorageType storage;
@@ -89,11 +82,15 @@ public:
       Set(rhs);
       return *this;
     }
-    DOLPHIN_FORCE_INLINE FixedView& operator=(FixedView& rhs)
-    {
-      Set(rhs.Get());
-      return *this;
-    }
+    DOLPHIN_FORCE_INLINE FixedView& operator=(FixedView& rhs) { return operator=(rhs.Get()); }
+    DOLPHIN_FORCE_INLINE FixedView& operator+=(FieldType rhs) { return operator=(Get() + rhs); }
+    DOLPHIN_FORCE_INLINE FixedView& operator-=(FieldType rhs) { return operator=(Get() - rhs); }
+    DOLPHIN_FORCE_INLINE FixedView& operator*=(FieldType rhs) { return operator=(Get() * rhs); }
+    DOLPHIN_FORCE_INLINE FixedView& operator/=(FieldType rhs) { return operator=(Get() / rhs); }
+    DOLPHIN_FORCE_INLINE FixedView& operator|=(FieldType rhs) { return operator=(Get() / rhs); }
+    DOLPHIN_FORCE_INLINE FixedView& operator&=(FieldType rhs) { return operator=(Get() & rhs); }
+    DOLPHIN_FORCE_INLINE FixedView& operator^=(FieldType rhs) { return operator=(Get() ^ rhs); }
+
     DOLPHIN_FORCE_INLINE bool operator!() { return !Get(); }
     // Do not overload && or || because it incurs a penalty from losing short-circuit evaluation
 
@@ -172,41 +169,14 @@ public:
       Set(rhs);
       return *this;
     }
-    DOLPHIN_FORCE_INLINE View& operator=(View& rhs)
-    {
-      Set(rhs.Get());
-      return *this;
-    }
-    DOLPHIN_FORCE_INLINE View& operator|=(FieldType rhs)
-    {
-      Set(Get() | rhs);
-      return *this;
-    }
-    DOLPHIN_FORCE_INLINE View& operator|=(View& rhs)
-    {
-      Set(Get() | rhs.Get());
-      return *this;
-    }
-    DOLPHIN_FORCE_INLINE View& operator&=(FieldType rhs)
-    {
-      Set(Get() & rhs);
-      return *this;
-    }
-    DOLPHIN_FORCE_INLINE View& operator&=(View& rhs)
-    {
-      Set(Get() & rhs.Get());
-      return *this;
-    }
-    DOLPHIN_FORCE_INLINE View& operator^=(FieldType rhs)
-    {
-      Set(Get() ^ rhs);
-      return *this;
-    }
-    DOLPHIN_FORCE_INLINE View& operator^=(View& rhs)
-    {
-      Set(Get() ^ rhs.Get());
-      return *this;
-    }
+    DOLPHIN_FORCE_INLINE View& operator=(View& rhs) { return operator=(rhs.Get()); }
+    DOLPHIN_FORCE_INLINE View& operator+=(FieldType rhs) { return operator=(Get() + rhs); }
+    DOLPHIN_FORCE_INLINE View& operator-=(FieldType rhs) { return operator=(Get() - rhs); }
+    DOLPHIN_FORCE_INLINE View& operator*=(FieldType rhs) { return operator=(Get() * rhs); }
+    DOLPHIN_FORCE_INLINE View& operator/=(FieldType rhs) { return operator=(Get() / rhs); }
+    DOLPHIN_FORCE_INLINE View& operator|=(FieldType rhs) { return operator=(Get() | rhs); }
+    DOLPHIN_FORCE_INLINE View& operator&=(FieldType rhs) { return operator=(Get() & rhs); }
+    DOLPHIN_FORCE_INLINE View& operator^=(FieldType rhs) { return operator=(Get() ^ rhs); }
 
     DOLPHIN_FORCE_INLINE bool operator!() { return !Get(); }
     // Do not overload && or || because it incurs a penalty from losing short-circuit evaluation

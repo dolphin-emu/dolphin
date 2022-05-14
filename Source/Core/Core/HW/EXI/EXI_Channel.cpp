@@ -98,7 +98,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&m_dma_memory_address));
   mmio->Register(base + EXI_DMA_LENGTH, MMIO::DirectRead<u32>(&m_dma_length),
                  MMIO::DirectWrite<u32>(&m_dma_length));
-  mmio->Register(base + EXI_DMA_CONTROL, MMIO::DirectRead<u32>(&m_control.storage),
+  mmio->Register(base + EXI_DMA_CONTROL, MMIO::DirectRead<u32>(&m_control.GetStorageRef()),
                  MMIO::ComplexWrite<u32>([this](u32, u32 val) {
                    m_control = val;
 
