@@ -18,6 +18,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "VideoCommon/Fifo.h"
 
 namespace ProcessorInterface
 {
@@ -111,7 +112,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | PI_FIFO_RESET, MMIO::InvalidRead<u32>(),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   WARN_LOG_FMT(PROCESSORINTERFACE, "Fifo reset ({:08x})", val);
+                   // Used by GXAbortFrame
+                   INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_FIFO_RESET: {:08x}", val);
+                   if ((val & 1) != 0)
+                     Fifo::ResetVideoBuffer();
                  }));
 
   mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](u32) {
