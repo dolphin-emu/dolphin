@@ -253,18 +253,7 @@ void AXWiiUCode::HandleCommandList()
 
 void AXWiiUCode::SetupProcessing(u32 init_addr)
 {
-  // TODO: should be easily factorizable with AX
-  s16 init_data[60];
-
-  for (u32 i = 0; i < 60; ++i)
-    init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
-
-  // List of all buffers we have to initialize
-  struct
-  {
-    int* ptr;
-    u32 samples;
-  } buffers[] = {
+  const std::array<BufferDesc, 20> buffers = {{
       {m_samples_main_left, 32}, {m_samples_main_right, 32}, {m_samples_main_surround, 32},
       {m_samples_auxA_left, 32}, {m_samples_auxA_right, 32}, {m_samples_auxA_surround, 32},
       {m_samples_auxB_left, 32}, {m_samples_auxB_right, 32}, {m_samples_auxB_surround, 32},
@@ -272,29 +261,9 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
 
       {m_samples_wm0, 6},        {m_samples_aux0, 6},        {m_samples_wm1, 6},
       {m_samples_aux1, 6},       {m_samples_wm2, 6},         {m_samples_aux2, 6},
-      {m_samples_wm3, 6},        {m_samples_aux3, 6}};
-
-  u32 init_idx = 0;
-  for (auto& buffer : buffers)
-  {
-    s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
-    s16 delta = (s16)init_data[init_idx + 2];
-
-    init_idx += 3;
-
-    if (!init_val)
-    {
-      memset(buffer.ptr, 0, 3 * buffer.samples * sizeof(int));
-    }
-    else
-    {
-      for (u32 j = 0; j < 3 * buffer.samples; ++j)
-      {
-        buffer.ptr[j] = init_val;
-        init_val += delta;
-      }
-    }
-  }
+      {m_samples_wm3, 6},        {m_samples_aux3, 6},
+  }};
+  InitMixingBuffers<3 /*ms*/>(init_addr, buffers);
 }
 
 void AXWiiUCode::AddToLR(u32 val_addr, bool neg)

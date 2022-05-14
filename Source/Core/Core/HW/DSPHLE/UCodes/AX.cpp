@@ -364,37 +364,18 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
 
 void AXUCode::SetupProcessing(u32 init_addr)
 {
-  u16 init_data[0x20];
-
-  for (u32 i = 0; i < 0x20; ++i)
-    init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
-
-  // List of all buffers we have to initialize
-  int* buffers[] = {m_samples_main_left, m_samples_main_right, m_samples_main_surround,
-                    m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround,
-                    m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround};
-
-  u32 init_idx = 0;
-  for (auto& buffer : buffers)
-  {
-    s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
-    s16 delta = (s16)init_data[init_idx + 2];
-
-    init_idx += 3;
-
-    if (!init_val)
-    {
-      memset(buffer, 0, 5 * 32 * sizeof(int));
-    }
-    else
-    {
-      for (u32 j = 0; j < 32 * 5; ++j)
-      {
-        buffer[j] = init_val;
-        init_val += delta;
-      }
-    }
-  }
+  const std::array<BufferDesc, 9> buffers = {{
+      {m_samples_main_left, 32},
+      {m_samples_main_right, 32},
+      {m_samples_main_surround, 32},
+      {m_samples_auxA_left, 32},
+      {m_samples_auxA_right, 32},
+      {m_samples_auxA_surround, 32},
+      {m_samples_auxB_left, 32},
+      {m_samples_auxB_right, 32},
+      {m_samples_auxB_surround, 32},
+  }};
+  InitMixingBuffers<5 /*ms*/>(init_addr, buffers);
 }
 
 void AXUCode::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb)
