@@ -13,9 +13,9 @@
 
 #include <SFML/Network.hpp>
 
-#include <Common/Network.h>
 #include <mutex>
 #include "Common/Flag.h"
+#include "Common/Network.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -443,16 +443,15 @@ private:
     u16 ip_frame_id = 0;
     u8 queue_read = 0;
     u8 queue_write = 0;
-    u16 queue_data_size[16]{};
-    std::unique_ptr<u8[]> queue_data[16];
+    std::array<std::vector<u8>, 16> queue_data;
     std::mutex mtx;
     std::string m_local_ip;
     u32 m_current_ip = 0;
     u32 m_router_ip = 0;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
-    StackRef network_ref[10]{};  // max 10 at same time, i think most gc game had a limit of 8 in
-                                 // the gc framework
+    std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
+                                             // limit of 8 in the gc framework
     std::unique_ptr<u8[]> m_in_frame;
     std::unique_ptr<u8[]> m_out_frame;
     std::thread m_read_thread;

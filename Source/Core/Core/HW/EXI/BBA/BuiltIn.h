@@ -29,7 +29,7 @@ struct TcpBuffer
   u64 tick;
   u32 seq_id;
   u16 data_size;
-  u8 data[2048];
+  std::array<u8, 2048> data;
 };
 
 struct StackRef
@@ -44,7 +44,7 @@ struct StackRef
   u32 ack_base;
   u16 window_size;
   u64 delay;
-  TcpBuffer tcp_buffers[MAX_TCP_BUFFER];
+  std::array<TcpBuffer, MAX_TCP_BUFFER> tcp_buffers;
   bool ready;
   sockaddr_in from;
   sockaddr_in to;

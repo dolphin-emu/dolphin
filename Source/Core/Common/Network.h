@@ -116,7 +116,7 @@ struct ARPHeader
   ARPHeader(u32 from_ip, MACAddress from_mac, u32 to_ip, MACAddress to_mac);
   u16 Size() const;
 
-  static constexpr std::size_t SIZE = 32;
+  static constexpr std::size_t SIZE = 28;
 
   u16 hardware_type = 0;
   u16 protocol_type = 0;
@@ -128,7 +128,7 @@ struct ARPHeader
   MACAddress targer_address{};
   u32 target_ip = 0;
 };
-static_assert(sizeof(UDPHeader) == UDPHeader::SIZE);
+static_assert(sizeof(ARPHeader) == ARPHeader::SIZE);
 #pragma pack(pop)
 
 struct DHCPBody
@@ -136,6 +136,7 @@ struct DHCPBody
   DHCPBody();
   DHCPBody(u32 transaction, MACAddress client_address, u32 new_ip, u32 serv_ip);
   bool AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params);
+  static constexpr std::size_t SIZE = 540;
   u8 message_type = 0;
   u8 hardware_type = 0;
   u8 hardware_addr = 0;
@@ -154,6 +155,7 @@ struct DHCPBody
   u32 magic_cookie = 0x63538263;
   u8 options[300]{};
 };
+static_assert(sizeof(DHCPBody) == DHCPBody::SIZE);
 
 MACAddress GenerateMacAddress(MACConsumer type);
 std::string MacAddressToString(const MACAddress& mac);

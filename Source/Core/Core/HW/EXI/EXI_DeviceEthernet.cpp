@@ -558,6 +558,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   u32 status = 0;
   u16 rwp_initial = page_ptr(BBA_RWP);
   u16 current_rwp = 0;
+  u32 off = 4;
   if (!RecvMACFilter())
     goto wait_for_next;
 
@@ -574,13 +575,13 @@ bool CEXIETHERNET::RecvHandlePacket()
   descriptor = (Descriptor*)write_ptr;
   current_rwp = page_ptr(BBA_RWP);
   DEBUG_LOG_FMT(SP1, "Frame recv: {:x}", mRecvBufferLength);
-  for (u32 i = 0, off = 4; i < mRecvBufferLength; i++, off++)
+  for (u32 i = 0; i < mRecvBufferLength; i++)
   {
     write_ptr[off] = mRecvBuffer[i];
-
-    if (off == 0xff)
+    off++;
+    if (off == 0x100)
     {
-      off = -1;
+      off = 0;
       // avoid increasing the BBA register while copying
       // sometime the OS can try to process when it's not completed
       current_rwp = current_rwp == page_ptr(BBA_RHBP) ? page_ptr(BBA_BP) : ++current_rwp;
