@@ -444,14 +444,14 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
     pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
   }
 
-  // Optionally, execute a low pass filter
-  if (pb.lpf.enabled)
+  // Optionally, execute a low-pass and/or biquad filter.
+  if (pb.lpf.on != 0)
   {
     LowPassFilter(samples, count, pb.lpf);
   }
 
 #ifdef AX_WII
-  if (pb.biquad.on)
+  if (pb.biquad.on != 0)
   {
     BiquadFilter(samples, count, pb.biquad);
   }

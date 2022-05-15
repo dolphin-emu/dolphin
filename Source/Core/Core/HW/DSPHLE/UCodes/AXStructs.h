@@ -177,7 +177,7 @@ struct PBADPCMLoopInfo
 
 struct PBLowPassFilter
 {
-  u16 enabled;
+  u16 on;
   s16 yn1;
   u16 a0;
   u16 b0;
@@ -215,7 +215,7 @@ struct AXPB
 
 struct PBBiquadFilter
 {
-  u16 on;   // on = 2, off = 0
+  u16 on;
   s16 xn1;  // History data
   s16 xn2;
   s16 yn1;
@@ -229,7 +229,7 @@ struct PBBiquadFilter
 
 union PBInfImpulseResponseWM
 {
-  u16 on;
+  u16 on;  // 0: off, 2: biquad, other: low-pass
   PBLowPassFilter lpf;
   PBBiquadFilter biquad;
 };
