@@ -562,6 +562,19 @@ void ProcessVoice(HLEAccelerator* accelerator, PB_TYPE& pb, const AXBuffers& buf
   // Wiimote mixing.
   if (pb.remote)
   {
+    if (new_filter && pb.remote_iir.on != 0)
+    {
+      // Only one filter at most for Wiimotes.
+      if (pb.remote_iir.on == 2)
+      {
+        BiquadFilter(samples, count, pb.remote_iir.biquad);
+      }
+      else
+      {
+        LowPassFilter(samples, count, pb.remote_iir.lpf);
+      }
+    }
+
     // Old AXWii versions process ms per ms.
     u16 wm_count = count == 96 ? 18 : 6;
 

@@ -229,6 +229,7 @@ struct PBBiquadFilter
 
 union PBInfImpulseResponseWM
 {
+  u16 on;  // 0: off, 2: biquad, other: low-pass
   PBLowPassFilter lpf;
   PBBiquadFilter biquad;
 };
