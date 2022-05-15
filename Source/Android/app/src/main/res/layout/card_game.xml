@@ -12,24 +12,20 @@
     android:paddingStart="4dp"
     android:paddingTop="8dp"
     android:paddingEnd="4dp"
-    android:transitionName="card_game"
-    tools:layout_width="160dp">
+    android:transitionName="card_game">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_game_art"
-        android:layout_width="match_parent"
-        android:layout_height="159dp"
+        android:layout_width="115dp"
+        android:layout_height="161dp"
         android:layout_gravity="center"
-        app:cardCornerRadius="4dp"
-        tools:layout_width="140dp">
+        app:cardCornerRadius="4dp">
 
         <ImageView
             android:id="@+id/image_game_screen"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            tools:scaleType="centerCrop"
-            tools:src="@drawable/placeholder_screenshot" />
+            android:layout_weight="1"/>
     </androidx.cardview.widget.CardView>
 
     <TextView
