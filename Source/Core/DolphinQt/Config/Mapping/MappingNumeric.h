@@ -14,13 +14,13 @@ class MappingWidget;
 class MappingDouble : public QDoubleSpinBox
 {
 public:
-  MappingDouble(MappingWidget* parent, ControllerEmu::NumericSetting<double>* setting);
+  MappingDouble(QWidget* parent, ControllerEmu::NumericSetting<double>* setting,
+                bool is_in_mapping_widget);
+  void ConfigChanged();
 
 private:
-  void fixup(QString& input) const override;
-
-  void ConfigChanged();
   void Update();
+  void fixup(QString& input) const override;
 
   ControllerEmu::NumericSetting<double>& m_setting;
 };
@@ -28,10 +28,11 @@ private:
 class MappingBool : public QCheckBox
 {
 public:
-  MappingBool(MappingWidget* widget, ControllerEmu::NumericSetting<bool>* setting);
+  MappingBool(MappingWidget* widget, ControllerEmu::NumericSetting<bool>* setting,
+              bool is_in_mapping_widget);
+  void ConfigChanged();
 
 private:
-  void ConfigChanged();
   void Update();
 
   ControllerEmu::NumericSetting<bool>& m_setting;

@@ -20,12 +20,14 @@ public:
   ReshapeData GetReshapableState(bool adjusted) const final override;
   ControlState GetGateRadiusAtAngle(double ang) const override;
 
+  std::shared_ptr<StickGate> GetStickGate();
+
   StateData GetState() const;
 
 private:
   Control* GetModifierInput() const override;
 
-  std::unique_ptr<StickGate> m_stick_gate;
+  std::shared_ptr<StickGate> m_stick_gate;
 };
 
 // An AnalogStick with an OctagonStickGate

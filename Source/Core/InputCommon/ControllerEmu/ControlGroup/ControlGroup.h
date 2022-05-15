@@ -75,10 +75,11 @@ public:
   template <typename T>
   void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,
                   std::common_type_t<T> default_value_, std::common_type_t<T> min_value = {},
-                  std::common_type_t<T> max_value = T(100))
+                  std::common_type_t<T> max_value = T(100),
+                  std::function<void()> callback = nullptr)
   {
-    numeric_settings.emplace_back(
-        std::make_unique<NumericSetting<T>>(value, details, default_value_, min_value, max_value));
+    numeric_settings.emplace_back(std::make_unique<NumericSetting<T>>(
+        value, details, default_value_, min_value, max_value, callback));
   }
 
   void AddVirtualNotchSetting(SettingValue<double>* value, double max_virtual_notch_deg);

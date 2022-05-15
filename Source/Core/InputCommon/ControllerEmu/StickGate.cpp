@@ -72,6 +72,10 @@ std::optional<u32> StickGate::GetIdealCalibrationSampleCount() const
   return std::nullopt;
 }
 
+void StickGate::SetRadius(ControlState radius)
+{
+}
+
 OctagonStickGate::OctagonStickGate(ControlState radius) : m_radius(radius)
 {
 }
@@ -90,6 +94,11 @@ ControlState OctagonStickGate::GetRadiusAtAngle(double angle) const
 std::optional<u32> OctagonStickGate::GetIdealCalibrationSampleCount() const
 {
   return 8;
+}
+
+void OctagonStickGate::SetRadius(ControlState radius)
+{
+  m_radius = radius;
 }
 
 RoundStickGate::RoundStickGate(ControlState radius) : m_radius(radius)

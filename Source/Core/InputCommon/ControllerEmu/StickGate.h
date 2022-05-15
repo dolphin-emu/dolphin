@@ -28,6 +28,8 @@ public:
   // calibration points that are saved in our config.
   virtual std::optional<u32> GetIdealCalibrationSampleCount() const;
 
+  virtual void SetRadius(ControlState radius);
+
   virtual ~StickGate() = default;
 };
 
@@ -39,9 +41,10 @@ public:
   explicit OctagonStickGate(ControlState radius);
   ControlState GetRadiusAtAngle(double ang) const override final;
   std::optional<u32> GetIdealCalibrationSampleCount() const override final;
+  void SetRadius(ControlState radius) override final;
 
 private:
-  const ControlState m_radius;
+  ControlState m_radius;
 };
 
 // A round-shaped stick gate. Possibly found on 3rd-party accessories.

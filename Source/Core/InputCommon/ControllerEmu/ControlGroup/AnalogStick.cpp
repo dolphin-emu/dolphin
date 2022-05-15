@@ -53,6 +53,11 @@ ControlState AnalogStick::GetGateRadiusAtAngle(double ang) const
   return m_stick_gate->GetRadiusAtAngle(ang);
 }
 
+std::shared_ptr<StickGate> AnalogStick::GetStickGate()
+{
+  return m_stick_gate;
+}
+
 Control* AnalogStick::GetModifierInput() const
 {
   return controls[4].get();

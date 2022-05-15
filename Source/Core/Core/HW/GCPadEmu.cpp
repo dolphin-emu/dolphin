@@ -65,9 +65,20 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   // sticks
   groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
                           "Main Stick", _trans("Control Stick"), MAIN_STICK_GATE_RADIUS));
+  m_main_stick->AddSetting(
+      &m_main_stick_gate_radius,
+      {_trans("Stick Gate Radius"), nullptr,
+       _trans("Adjusts what percentage of the stick gate radius is used."), nullptr, true},
+      MAIN_STICK_GATE_RADIUS * 100.0, 0.0, 100.0,
+      [this] { SetMainStickGateRadius(m_main_stick_gate_radius.GetValue() / 100.0); });
   groups.emplace_back(m_c_stick = new ControllerEmu::OctagonAnalogStick(
                           "C-Stick", _trans("C Stick"), C_STICK_GATE_RADIUS));
-
+  m_c_stick->AddSetting(&m_c_stick_gate_radius,
+                        {_trans("Stick Gate Radius"), nullptr,
+                         _trans("Adjusts what percentage of the stick gate radius is used."),
+                         nullptr, true},
+                        C_STICK_GATE_RADIUS * 100.0, 0.0, 100.0,
+                        [this] { SetCStickGateRadius(m_c_stick_gate_radius.GetValue() / 100.0); });
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (const char* named_trigger : named_triggers)
@@ -239,6 +250,26 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   // Triggers
   m_triggers->SetControlExpression(0, "`Q`");  // L
   m_triggers->SetControlExpression(1, "`W`");  // R
+}
+
+void GCPad::SetMainStickGateRadius(double new_radius)
+{
+  m_main_stick->GetStickGate()->SetRadius(new_radius);
+}
+
+void GCPad::SetCStickGateRadius(double new_radius)
+{
+  m_c_stick->GetStickGate()->SetRadius(new_radius);
+}
+
+void GCPad::ResetMainStickGateRadius(double new_radius)
+{
+  m_main_stick->GetStickGate()->SetRadius(MAIN_STICK_GATE_RADIUS);
+}
+
+void GCPad::ResetCStickGateRadius(double new_radius)
+{
+  m_c_stick->GetStickGate()->SetRadius(C_STICK_GATE_RADIUS);
 }
 
 bool GCPad::GetMicButton() const

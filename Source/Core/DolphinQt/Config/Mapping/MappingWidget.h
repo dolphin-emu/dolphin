@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -60,4 +61,5 @@ protected:
 
 private:
   MappingWindow* m_parent;
+  std::map<std::string, std::vector<QWidget*>> m_settings_widgets;
 };

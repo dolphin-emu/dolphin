@@ -60,6 +60,14 @@ private:
   ControllerEmu::ControlGroup* m_options;
 
   ControllerEmu::SettingValue<bool> m_always_connected_setting;
+  ControllerEmu::SettingValue<double> m_main_stick_gate_radius;
+  ControllerEmu::SettingValue<double> m_c_stick_gate_radius;
 
   const unsigned int m_index;
+
+private:
+  void SetMainStickGateRadius(double new_radius);
+  void SetCStickGateRadius(double new_radius);
+  void ResetMainStickGateRadius(double new_radius);
+  void ResetCStickGateRadius(double new_radius);
 };

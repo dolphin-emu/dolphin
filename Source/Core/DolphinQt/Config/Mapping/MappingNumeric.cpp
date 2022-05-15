@@ -10,7 +10,8 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSetting<double>* setting)
+MappingDouble::MappingDouble(QWidget* parent, ControllerEmu::NumericSetting<double>* setting,
+                             bool is_in_mapping_widget)
     : QDoubleSpinBox(parent), m_setting(*setting)
 {
   setDecimals(2);
@@ -19,14 +20,27 @@ MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSettin
     setToolTip(tr(ui_description));
 
   connect(this, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
-          [this, parent](double value) {
+          [this, parent, is_in_mapping_widget](double value) {
             m_setting.SetValue(value);
             ConfigChanged();
-            parent->SaveSettings();
+            if (is_in_mapping_widget)
+              static_cast<MappingWidget*>(parent)->SaveSettings();
+            m_setting.Callback();
           });
-
-  connect(parent, &MappingWidget::ConfigChanged, this, &MappingDouble::ConfigChanged);
-  connect(parent, &MappingWidget::Update, this, &MappingDouble::Update);
+  if (is_in_mapping_widget)
+  {
+    connect(static_cast<MappingWidget*>(parent), &MappingWidget::ConfigChanged, this,
+            &MappingDouble::ConfigChanged);
+    connect(static_cast<MappingWidget*>(parent), &MappingWidget::Update, this,
+            &MappingDouble::Update);
+  }
+  else
+  {
+    connect(static_cast<MappingWidget*>(parent->parentWidget()), &MappingWidget::ConfigChanged,
+            this, &MappingDouble::ConfigChanged);
+    connect(static_cast<MappingWidget*>(parent->parentWidget()), &MappingWidget::Update, this,
+            &MappingDouble::Update);
+  }
 }
 
 // Overriding QDoubleSpinBox's fixup to set the default value when input is cleared.
@@ -37,8 +51,6 @@ void MappingDouble::fixup(QString& input) const
 
 void MappingDouble::ConfigChanged()
 {
-  const QSignalBlocker blocker(this);
-
   QString suffix;
 
   if (const auto ui_suffix = m_setting.GetUISuffix())
@@ -71,7 +83,8 @@ void MappingDouble::Update()
   setValue(m_setting.GetValue());
 }
 
-MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bool>* setting)
+MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bool>* setting,
+                         bool is_in_mapping_widget)
     : QCheckBox(parent), m_setting(*setting)
 {
   if (const auto ui_description = m_setting.GetUIDescription())
@@ -81,18 +94,29 @@ MappingBool::MappingBool(MappingWidget* parent, ControllerEmu::NumericSetting<bo
     m_setting.SetValue(value != 0);
     ConfigChanged();
     parent->SaveSettings();
+    m_setting.Callback();
   });
 
-  connect(parent, &MappingWidget::ConfigChanged, this, &MappingBool::ConfigChanged);
-  connect(parent, &MappingWidget::Update, this, &MappingBool::Update);
+  if (is_in_mapping_widget)
+  {
+    connect(static_cast<MappingWidget*>(parent), &MappingWidget::ConfigChanged, this,
+            &MappingBool::ConfigChanged);
+    connect(static_cast<MappingWidget*>(parent), &MappingWidget::Update, this,
+            &MappingBool::Update);
+  }
+  else
+  {
+    connect(static_cast<MappingWidget*>(parent->parentWidget()), &MappingWidget::ConfigChanged,
+            this, &MappingBool::ConfigChanged);
+    connect(static_cast<MappingWidget*>(parent->parentWidget()), &MappingWidget::Update, this,
+            &MappingBool::Update);
+  }
 
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
 }
 
 void MappingBool::ConfigChanged()
 {
-  const QSignalBlocker blocker(this);
-
   if (m_setting.IsSimpleValue())
     setText({});
   else

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <atomic>
+#include <functional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -24,9 +25,9 @@ struct NumericSettingDetails
 {
   NumericSettingDetails(const char* const _ini_name, const char* const _ui_suffix = nullptr,
                         const char* const _ui_description = nullptr,
-                        const char* const _ui_name = nullptr)
+                        const char* const _ui_name = nullptr, const bool _is_advanced = false)
       : ini_name(_ini_name), ui_suffix(_ui_suffix), ui_description(_ui_description),
-        ui_name(_ui_name ? _ui_name : _ini_name)
+        ui_name(_ui_name ? _ui_name : _ini_name), is_advanced(_is_advanced)
   {
   }
 
@@ -41,6 +42,9 @@ struct NumericSettingDetails
 
   // The name used in the UI (if different from ini file).
   const char* const ui_name;
+
+  // Determines whether this setting will be put in the advanced window
+  const bool is_advanced;
 };
 
 class NumericSettingBase
@@ -61,6 +65,16 @@ public:
   // Convert a literal expression e.g. "7.0" to a regular value. (disables expression parsing)
   virtual void SimplifyIfPossible() = 0;
 
+  virtual void ResetToDefaultValue() = 0;
+
+  void Callback()
+  {
+    if (m_callback == nullptr)
+      return;
+    else
+      m_callback();
+  }
+
   // Convert a regular value to an expression. (used before expression editing)
   virtual void SetExpressionFromValue() = 0;
 
@@ -69,9 +83,11 @@ public:
   const char* GetUIName() const;
   const char* GetUISuffix() const;
   const char* GetUIDescription() const;
+  bool IsAdvanced() const;
 
 protected:
   NumericSettingDetails m_details;
+  std::function<void()> m_callback = nullptr;
 };
 
 template <typename T>
@@ -88,11 +104,13 @@ public:
                 "NumericSetting is only implemented for int, double, and bool.");
 
   NumericSetting(SettingValue<ValueType>* value, const NumericSettingDetails& details,
-                 ValueType default_value, ValueType min_value, ValueType max_value)
+                 ValueType default_value, ValueType min_value, ValueType max_value,
+                 std::function<void()> callback = nullptr)
       : NumericSettingBase(details), m_value(*value), m_default_value(default_value),
         m_min_value(min_value), m_max_value(max_value)
   {
     m_value.SetValue(m_default_value);
+    m_callback = callback;
   }
 
   void LoadFromIni(const IniFile::Section& section, const std::string& group_name) override
@@ -141,6 +159,7 @@ public:
   void SetValue(ValueType value) { m_value.SetValue(value); }
 
   ValueType GetDefaultValue() const { return m_default_value; }
+  void ResetToDefaultValue() override final { m_value.SetValue(m_default_value); }
   ValueType GetMinValue() const { return m_min_value; }
   ValueType GetMaxValue() const { return m_max_value; }
 
