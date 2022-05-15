@@ -546,6 +546,14 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
     // Old AXWii versions process ms per ms.
     u16 wm_count = count == 96 ? 18 : 6;
 
+    if (pb.remote_iir.on)
+    {
+      if (pb.remote_iir.on == 2)
+        BiquadFilter(samples, wm_count, pb.remote_iir.biquad);
+      else
+        LowPassFilter(samples, wm_count, pb.remote_iir.lpf);
+    }
+
     // Interpolate at most 18 samples from the 96 samples we read before.
     s16 wm_samples[18];
 
