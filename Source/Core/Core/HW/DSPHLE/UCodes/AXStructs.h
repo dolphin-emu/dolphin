@@ -177,7 +177,7 @@ struct PBADPCMLoopInfo
 
 struct PBLowPassFilter
 {
-  u16 enabled;
+  u16 on;
   s16 yn1;
   u16 a0;
   u16 b0;
@@ -215,16 +215,16 @@ struct AXPB
 
 struct PBBiquadFilter
 {
-  u16 on;   // on = 2, off = 0
-  u16 xn1;  // History data
-  u16 xn2;
-  u16 yn1;
-  u16 yn2;
-  u16 b0;  // Filter coefficients
-  u16 b1;
-  u16 b2;
-  u16 a1;
-  u16 a2;
+  u16 on;
+  s16 xn1;  // History data
+  s16 xn2;
+  s16 yn1;
+  s16 yn2;
+  s16 b0;  // Filter coefficients
+  s16 b1;
+  s16 b2;
+  s16 a1;
+  s16 a2;
 };
 
 union PBInfImpulseResponseWM
