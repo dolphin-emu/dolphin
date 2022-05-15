@@ -432,7 +432,7 @@ It is possible to both read and write to DMEM, but coefficient data cannot be wr
 
 \section{Initialization}
 
-The DSP is initialized before it is used.  This is done by copying a small program to physical address \Address{0x01000000} (virtual \Address{0x81000000}) in GameCube/Wii main memory, and then writing to \Register{DSP\_CONTROL\_STATUS} at \texttt{0xCC00500A} with the 11th and 0th bits set (SDK titles write \Value{0x08ad}).  The 11th bit being set appears to cause data from \Address{0x01000000} to be DMAd to the start of IMEM; at least 128 bytes of data (64 DSP words) are transferred.  (None of this has been extensively hardware tested, and is instead based on libogc's \Code{\_\_dsp\_bootstrap}.)
+The DSP is initialized before it is used.  This is done by copying a small program to physical address \Address{0x01000000} (virtual \Address{0x81000000}) in GameCube/Wii main memory, and then writing to \Register{DSP\_CONTROL\_STATUS} at \texttt{0xCC00500A} with the 11th and 0th bits set (SDK titles write \Value{0x08ad}).  The 11th bit being set appears to cause data from \Address{0x01000000} to be DMAd to the start of IMEM; a basic hardware test (sending increasingly larger payloads until they fail) indicates 1024 bytes of data (512 DSP words) are transferred.  (None of this has been extensively hardware tested, and is instead based on libogc's \Code{\_\_dsp\_bootstrap}.)
 
 The program that SDK titles send does the following:
 \begin{enumerate}
