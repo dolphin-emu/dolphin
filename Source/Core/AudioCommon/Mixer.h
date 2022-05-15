@@ -5,6 +5,7 @@
 
 #include <array>
 #include <atomic>
+#include <vector>
 
 #include "AudioCommon/AudioStretcher.h"
 #include "AudioCommon/SurroundDecoder.h"
@@ -23,6 +24,7 @@ public:
 
   // Called from audio threads
   unsigned int Mix(short* samples, unsigned int numSamples);
+  unsigned int Mix(std::vector<short>& samples, unsigned int numSamples);
   unsigned int MixSurround(float* samples, unsigned int num_samples);
 
   // Called from main thread
@@ -75,6 +77,8 @@ private:
     void PushSamples(const short* samples, unsigned int num_samples);
     unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit,
                      float emulationspeed, int timing_variance);
+    unsigned int Mix(std::vector<short>& samples, unsigned int numSamples, bool consider_framelimit,
+                     float emulationspeed, int timing_variance);
     void SetInputSampleRateDivisor(unsigned int rate_divisor);
     unsigned int GetInputSampleRateDivisor() const;
     void SetVolume(unsigned int lvolume, unsigned int rvolume);
@@ -109,7 +113,7 @@ private:
   bool m_is_stretching = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
-  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer{};
+  std::vector<short> m_scratch_buffer{};
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;

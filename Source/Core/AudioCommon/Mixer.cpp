@@ -153,6 +153,15 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   return actual_sample_count;
 }
 
+unsigned int Mixer::MixerFifo::Mix(std::vector<short>& samples, unsigned int numSamples,
+                                   bool consider_framelimit, float emulationspeed,
+                                   int timing_variance)
+{
+  if (samples.size() < numSamples * 2)
+    samples.resize(numSamples * 2);
+  return Mix(samples.data(), numSamples, consider_framelimit, emulationspeed, timing_variance);
+}
+
 unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 {
   if (!samples)
@@ -167,18 +176,16 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
     unsigned int available_samples =
         std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
 
-    m_scratch_buffer.fill(0);
+    std::fill(m_scratch_buffer.begin(), m_scratch_buffer.end(), 0);
 
-    m_dma_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                    timing_variance);
-    m_streaming_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+    m_dma_mixer.Mix(m_scratch_buffer, available_samples, false, emulation_speed, timing_variance);
+    m_streaming_mixer.Mix(m_scratch_buffer, available_samples, false, emulation_speed,
                           timing_variance);
-    m_wiimote_speaker_mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
+    m_wiimote_speaker_mixer.Mix(m_scratch_buffer, available_samples, false, emulation_speed,
                                 timing_variance);
     for (auto& mixer : m_gba_mixers)
     {
-      mixer.Mix(m_scratch_buffer.data(), available_samples, false, emulation_speed,
-                timing_variance);
+      mixer.Mix(m_scratch_buffer, available_samples, false, emulation_speed, timing_variance);
     }
 
     if (!m_is_stretching)
@@ -202,6 +209,13 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
   return num_samples;
 }
 
+unsigned int Mixer::Mix(std::vector<short>& samples, unsigned int num_samples)
+{
+  if (samples.size() < num_samples * 2)
+    samples.resize(num_samples * 2);
+  return Mix(samples.data(), num_samples);
+}
+
 unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
 {
   if (!num_samples)
@@ -213,7 +227,7 @@ unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
 
   // Mix() may also use m_scratch_buffer internally, but is safe because it alternates reads
   // and writes.
-  size_t available_frames = Mix(m_scratch_buffer.data(), static_cast<u32>(needed_frames));
+  size_t available_frames = Mix(m_scratch_buffer, static_cast<u32>(needed_frames));
   if (available_frames != needed_frames)
   {
     ERROR_LOG_FMT(AUDIO, "Error decoding surround frames.");
