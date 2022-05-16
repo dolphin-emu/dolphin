@@ -6,6 +6,7 @@
 #include <limits>
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
@@ -32,26 +33,26 @@ enum class ClassicGroup
 class Classic : public Extension1stParty
 {
 public:
-  union ButtonFormat
+  struct ButtonFormat : BitField2<u16>
   {
-    u16 hex;
+    FIELD(bool, 1, 1, rt);  // right trigger
+    FIELD(bool, 2, 1, plus);
+    FIELD(bool, 3, 1, home);
+    FIELD(bool, 4, 1, minus);
+    FIELD(bool, 5, 1, lt);  // left trigger
+    FIELD(bool, 6, 1, dpad_down);
+    FIELD(bool, 7, 1, dpad_right);
+    FIELD(bool, 8, 1, dpad_up);
+    FIELD(bool, 9, 1, dpad_left);
+    FIELD(bool, 10, 1, zr);
+    FIELD(bool, 11, 1, x);
+    FIELD(bool, 12, 1, a);
+    FIELD(bool, 13, 1, y);
+    FIELD(bool, 14, 1, b);
+    FIELD(bool, 15, 1, zl);  // left z button
 
-    BitField<1, 1, bool, u16> rt;  // right trigger
-    BitField<2, 1, bool, u16> plus;
-    BitField<3, 1, bool, u16> home;
-    BitField<4, 1, bool, u16> minus;
-    BitField<5, 1, bool, u16> lt;  // left trigger
-    BitField<6, 1, bool, u16> dpad_down;
-    BitField<7, 1, bool, u16> dpad_right;
-
-    BitField<8, 1, bool, u16> dpad_up;
-    BitField<9, 1, bool, u16> dpad_left;
-    BitField<10, 1, bool, u16> zr;
-    BitField<11, 1, bool, u16> x;
-    BitField<12, 1, bool, u16> a;
-    BitField<13, 1, bool, u16> y;
-    BitField<14, 1, bool, u16> b;
-    BitField<15, 1, bool, u16> zl;  // left z button
+    ButtonFormat() = default;
+    constexpr ButtonFormat(u16 val) : BitField2(val) {}
   };
   static_assert(sizeof(ButtonFormat) == 2, "Wrong size");
 
@@ -59,6 +60,7 @@ public:
   static constexpr int RIGHT_STICK_BITS = 5;
   static constexpr int TRIGGER_BITS = 5;
 
+#pragma pack(1)
   struct DataFormat
   {
     using StickType = Common::TVec2<u8>;
@@ -69,63 +71,58 @@ public:
     using TriggerRawValue = ControllerEmu::RawValue<TriggerType, TRIGGER_BITS>;
 
     // 6-bit X and Y values (0-63)
-    auto GetLeftStick() const { return LeftStickRawValue{StickType(lx, ly)}; };
+    auto GetLeftStick() const { return LeftStickRawValue{StickType(lx(), ly())}; };
     void SetLeftStick(const StickType& value)
     {
-      lx = value.x;
-      ly = value.y;
+      lx() = value.x;
+      ly() = value.y;
     }
     // 5-bit X and Y values (0-31)
     auto GetRightStick() const
     {
-      return RightStickRawValue{StickType(rx1 | rx2 << 1 | rx3 << 3, ry)};
+      return RightStickRawValue{StickType(rx1() | rx2() << 1 | rx3() << 3, ry())};
     };
     void SetRightStick(const StickType& value)
     {
-      rx1 = value.x & 0b1;
-      rx2 = (value.x >> 1) & 0b11;
-      rx3 = (value.x >> 3) & 0b11;
-      ry = value.y;
+      rx1() = value.x & 0b1;
+      rx2() = (value.x >> 1) & 0b11;
+      rx3() = (value.x >> 3) & 0b11;
+      ry() = value.y;
     }
     // 5-bit values (0-31)
-    auto GetLeftTrigger() const { return TriggerRawValue(lt1 | lt2 << 3); }
+    auto GetLeftTrigger() const { return TriggerRawValue(lt1() | lt2() << 3); }
     void SetLeftTrigger(TriggerType value)
     {
-      lt1 = value & 0b111;
-      lt2 = (value >> 3) & 0b11;
+      lt1() = value & 0b111;
+      lt2() = (value >> 3) & 0b11;
     }
-    auto GetRightTrigger() const { return TriggerRawValue(rt); }
-    void SetRightTrigger(TriggerType value) { rt = value; }
+    auto GetRightTrigger() const { return TriggerRawValue(rt()); }
+    void SetRightTrigger(TriggerType value) { rt() = value; }
 
     u16 GetButtons() const
     {
       // 0 == pressed.
-      return ~bt.hex;
+      return ~bt;
     }
 
     void SetButtons(u16 value)
     {
       // 0 == pressed.
-      bt.hex = ~value;
+      bt = ~value;
     }
 
-    union
-    {
-      BitField<0, 6, u32> lx;  // byte 0
-      BitField<6, 2, u32> rx3;
+    BitField2<u32> sticks_and_triggers;  // byte 0, 1, 2, 3
+    ButtonFormat bt;                     // byte 4, 5
 
-      BitField<8, 6, u32> ly;  // byte 1
-      BitField<14, 2, u32> rx2;
-
-      BitField<16, 5, u32> ry;  // byte 2
-      BitField<21, 2, u32> lt2;
-      BitField<23, 1, u32> rx1;
-
-      BitField<24, 5, u32> rt;  // byte 3
-      BitField<29, 3, u32> lt1;
-    };
-
-    ButtonFormat bt;  // byte 4, 5
+    FIELD_IN(sticks_and_triggers, u32, 0, 6, lx);
+    FIELD_IN(sticks_and_triggers, u32, 6, 2, rx3);
+    FIELD_IN(sticks_and_triggers, u32, 8, 6, ly);
+    FIELD_IN(sticks_and_triggers, u32, 14, 2, rx2);
+    FIELD_IN(sticks_and_triggers, u32, 16, 5, ry);
+    FIELD_IN(sticks_and_triggers, u32, 21, 2, lt2);
+    FIELD_IN(sticks_and_triggers, u32, 23, 1, rx1);
+    FIELD_IN(sticks_and_triggers, u32, 24, 5, rt);
+    FIELD_IN(sticks_and_triggers, u32, 29, 3, lt1);
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 

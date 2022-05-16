@@ -788,33 +788,33 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     Classic::DataFormat cc;
     memcpy(&cc, extData, sizeof(cc));
     key.Decrypt((u8*)&cc, 0, sizeof(cc));
-    cc.bt.hex = cc.bt.hex ^ 0xFFFF;
+    cc.bt = cc.bt ^ 0xFFFF;
 
-    if (cc.bt.dpad_left)
+    if (cc.bt.dpad_left())
       display_str += " LEFT";
-    if (cc.bt.dpad_right)
+    if (cc.bt.dpad_right())
       display_str += " RIGHT";
-    if (cc.bt.dpad_down)
+    if (cc.bt.dpad_down())
       display_str += " DOWN";
-    if (cc.bt.dpad_up)
+    if (cc.bt.dpad_up())
       display_str += " UP";
-    if (cc.bt.a)
+    if (cc.bt.a())
       display_str += " A";
-    if (cc.bt.b)
+    if (cc.bt.b())
       display_str += " B";
-    if (cc.bt.x)
+    if (cc.bt.x())
       display_str += " X";
-    if (cc.bt.y)
+    if (cc.bt.y())
       display_str += " Y";
-    if (cc.bt.zl)
+    if (cc.bt.zl())
       display_str += " ZL";
-    if (cc.bt.zr)
+    if (cc.bt.zr())
       display_str += " ZR";
-    if (cc.bt.plus)
+    if (cc.bt.plus())
       display_str += " +";
-    if (cc.bt.minus)
+    if (cc.bt.minus())
       display_str += " -";
-    if (cc.bt.home)
+    if (cc.bt.home())
       display_str += " HOME";
 
     display_str += Analog1DToString(cc.GetLeftTrigger().value, " L", 31);
