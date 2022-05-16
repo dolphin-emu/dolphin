@@ -43,12 +43,15 @@ public:
   // Memory Patches
   virtual void SetPatch(u32 address, u32 value) = 0;
   virtual void SetPatch(u32 address, std::vector<u8> value) = 0;
+  virtual const Debug::MemoryPatch& GetPatch(std::size_t index) const = 0;
   virtual const std::vector<Debug::MemoryPatch>& GetPatches() const = 0;
   virtual void UnsetPatch(u32 address) = 0;
   virtual void EnablePatch(std::size_t index) = 0;
   virtual void DisablePatch(std::size_t index) = 0;
   virtual bool HasEnabledPatch(u32 address) const = 0;
   virtual void RemovePatch(std::size_t index) = 0;
+  virtual void LoadPatchesFromStrings(const std::vector<std::string>& watches) = 0;
+  virtual std::vector<std::string> SavePatchesToStrings() const = 0;
   virtual void ClearPatches() = 0;
 
   // Threads

@@ -26,19 +26,27 @@
 void PPCPatches::Patch(std::size_t index)
 {
   auto& patch = m_patches[index];
-  if (patch.value.empty())
+  if (patch.patch_value.empty())
     return;
 
   const u32 address = patch.address;
-  const std::size_t size = patch.value.size();
+  const std::size_t size = patch.patch_value.size();
   if (!PowerPC::HostIsRAMAddress(address))
     return;
 
+  const bool is_enabled = patch.is_enabled == Common::Debug::MemoryPatch::State::Enabled;
   for (u32 offset = 0; offset < size; ++offset)
   {
-    const u8 value = PowerPC::HostRead_U8(address + offset);
-    PowerPC::HostWrite_U8(patch.value[offset], address + offset);
-    patch.value[offset] = value;
+    if (is_enabled)
+    {
+      const u8 original_value = PowerPC::HostRead_U8(address + offset);
+      PowerPC::HostWrite_U8(patch.patch_value[offset], address + offset);
+      patch.original_value.push_back(original_value);
+    }
+    else
+    {
+      PowerPC::HostWrite_U8(patch.original_value[offset], address + offset);
+    }
 
     if (((address + offset) % 4) == 3)
       PowerPC::ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
@@ -133,6 +141,11 @@ void PPCDebugInterface::SetPatch(u32 address, std::vector<u8> value)
   m_patches.SetPatch(address, std::move(value));
 }
 
+const Common::Debug::MemoryPatch& PPCDebugInterface::GetPatch(std::size_t index) const
+{
+  return m_patches.GetPatch(index);
+}
+
 const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() const
 {
   return m_patches.GetPatches();
@@ -161,6 +174,16 @@ bool PPCDebugInterface::HasEnabledPatch(u32 address) const
 void PPCDebugInterface::RemovePatch(std::size_t index)
 {
   m_patches.RemovePatch(index);
+}
+
+void PPCDebugInterface::LoadPatchesFromStrings(const std::vector<std::string>& patches)
+{
+  m_patches.LoadFromStrings(patches);
+}
+
+std::vector<std::string> PPCDebugInterface::SavePatchesToStrings() const
+{
+  return m_patches.SaveToStrings();
 }
 
 void PPCDebugInterface::ClearPatches()
