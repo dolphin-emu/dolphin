@@ -18,6 +18,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/Memmap.h"
 
 namespace DSP::HLE
 {
@@ -141,6 +142,33 @@ protected:
   virtual void HandleCommandList();
   void SignalWorkEnd();
 
+  struct BufferDesc
+  {
+    int* ptr;
+    int samples_per_milli;
+  };
+
+  template <int Millis, size_t BufCount>
+  void InitMixingBuffers(u32 init_addr, const std::array<BufferDesc, BufCount>& buffers)
+  {
+    std::array<u16, 3 * BufCount> init_array;
+    Memory::CopyFromEmuSwapped(init_array.data(), init_addr, sizeof(init_array));
+    for (size_t i = 0; i < BufCount; ++i)
+    {
+      const BufferDesc& buf = buffers[i];
+      s32 value = s32((u32(init_array[3 * i]) << 16) | init_array[3 * i + 1]);
+      s16 delta = init_array[3 * i + 2];
+      if (value == 0)
+      {
+        memset(buf.ptr, 0, Millis * buf.samples_per_milli * sizeof(int));
+      }
+      else
+      {
+        for (int j = 0; j < Millis * buf.samples_per_milli; ++j)
+          buf.ptr[j] = value + j * delta;
+      }
+    }
+  }
   void SetupProcessing(u32 init_addr);
   void DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb);
   void ProcessPBList(u32 pb_addr);
