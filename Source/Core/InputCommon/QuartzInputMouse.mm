@@ -1,6 +1,3 @@
-#include <iostream>
-#include <math.h>
-
 #include "QuartzInputMouse.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "Core/Host.h"
