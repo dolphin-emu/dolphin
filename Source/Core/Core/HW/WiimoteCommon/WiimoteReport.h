@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
@@ -16,41 +17,34 @@ namespace WiimoteCommon
 #pragma pack(push, 1)
 struct OutputReportGeneric
 {
-  OutputReportID rpt_id;
-
   static constexpr int HEADER_SIZE = sizeof(OutputReportID);
 
-  union
-  {
-    // Actual size varies
-    u8 data[1];
-    // Enable/disable rumble. (Valid for ALL output reports)
-    BitField<0, 1, bool, u8> rumble;
-  };
+  OutputReportID rpt_id;
+  BitField2<u8> rpt_stub;
+
+  // Enable/disable rumble. (Valid for ALL output reports)
+  FIELD_IN(rpt_stub, bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportGeneric) == 2, "Wrong size");
 
 // TODO: The following structs don't have the report_id header byte.
 // This is fine but the naming conventions are poor.
 
-struct OutputReportRumble
+struct OutputReportRumble : BitField2<u8>
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::Rumble;
 
-  BitField<0, 1, bool, u8> rumble;
+  FIELD(bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportRumble) == 1, "Wrong size");
 
-struct OutputReportEnableFeature
+struct OutputReportEnableFeature : BitField2<u8>
 {
-  union
-  {
-    BitField<0, 1, bool, u8> rumble;
-    // Respond with an ack.
-    BitField<1, 1, bool, u8> ack;
-    // Enable/disable certain feature.
-    BitField<2, 1, bool, u8> enable;
-  };
+  FIELD(bool, 0, 1, rumble);
+  // Respond with an ack.
+  FIELD(bool, 1, 1, ack);
+  // Enable/disable certain feature.
+  FIELD(bool, 2, 1, enable);
 };
 static_assert(sizeof(OutputReportEnableFeature) == 1, "Wrong size");
 
@@ -78,54 +72,47 @@ struct OutputReportSpeakerMute : OutputReportEnableFeature
 };
 static_assert(sizeof(OutputReportSpeakerMute) == 1, "Wrong size");
 
-struct OutputReportLeds
+struct OutputReportLeds : BitField2<u8>
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::LED;
 
-  union
-  {
-    BitField<0, 1, bool, u8> rumble;
-    BitField<1, 1, bool, u8> ack;
-    BitField<4, 4, u8> leds;
-  };
+  FIELD(bool, 0, 1, rumble);
+  FIELD(bool, 1, 1, ack);
+  FIELD(u8, 4, 4, leds);
 };
 static_assert(sizeof(OutputReportLeds) == 1, "Wrong size");
 
-struct OutputReportMode
+struct OutputReportMode : BitField2<u8>
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::ReportMode;
 
-  union
-  {
-    BitField<0, 1, bool, u8> rumble;
-    BitField<1, 1, bool, u8> ack;
-    BitField<2, 1, bool, u8> continuous;
-  };
+  FIELD(bool, 0, 1, rumble);
+  FIELD(bool, 1, 1, ack);
+  FIELD(bool, 2, 1, continuous);
+
   InputReportID mode;
 };
 static_assert(sizeof(OutputReportMode) == 2, "Wrong size");
 
-struct OutputReportRequestStatus
+struct OutputReportRequestStatus : BitField2<u8>
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::RequestStatus;
 
-  BitField<0, 1, bool, u8> rumble;
+  FIELD(bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportRequestStatus) == 1, "Wrong size");
 
-struct OutputReportWriteData
+struct OutputReportWriteData : BitField2<u16>
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::WriteData;
 
-  union
-  {
-    BitField<0, 1, bool, u16> rumble;
-    BitField<2, 2, AddressSpace, u16> space;
-    // A real wiimote ignores the i2c read/write bit.
-    BitField<0, 1, bool, u16> i2c_rw_ignored;
-    // Used only for register space (i2c bus) (7-bits):
-    BitField<1, 7, u8, u16> slave_address;
-  };
+  FIELD(bool, 0, 1, rumble);
+  FIELD(AddressSpace, 2, 2, space);
+  // A real wiimote ignores the i2c read/write bit.
+  FIELD(bool, 0, 1, i2c_rw_ignored);
+  // Used only for register space (i2c bus) (7-bits):
+  FIELD(u8, 1, 7, slave_address);
+
   // big endian:
   u8 address[2];
   u8 size;
@@ -133,64 +120,61 @@ struct OutputReportWriteData
 };
 static_assert(sizeof(OutputReportWriteData) == 21, "Wrong size");
 
-struct OutputReportReadData
+struct OutputReportReadData : BitField2<u16>
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::ReadData;
 
-  union
-  {
-    BitField<0, 1, bool, u16> rumble;
-    BitField<2, 2, AddressSpace, u16> space;
-    // A real wiimote ignores the i2c read/write bit.
-    BitField<0, 1, bool, u16> i2c_rw_ignored;
-    // Used only for register space (i2c bus) (7-bits):
-    BitField<1, 7, u8, u16> slave_address;
-  };
+  FIELD(bool, 0, 1, rumble);
+  FIELD(AddressSpace, 2, 2, space);
+  // A real wiimote ignores the i2c read/write bit.
+  FIELD(bool, 0, 1, i2c_rw_ignored);
+  // Used only for register space (i2c bus) (7-bits):
+  FIELD(u8, 1, 7, slave_address);
+
   // big endian:
   u8 address[2];
   u8 size[2];
 };
 static_assert(sizeof(OutputReportReadData) == 6, "Wrong size");
 
-struct OutputReportSpeakerData
+struct OutputReportSpeakerData : BitField2<u8>
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::SpeakerData;
 
-  union
-  {
-    BitField<0, 1, bool, u8> rumble;
-    BitField<3, 5, u8> length;
-  };
+  FIELD(bool, 0, 1, rumble);
+  FIELD(u8, 3, 5, length);
+
   u8 data[20];
 };
 static_assert(sizeof(OutputReportSpeakerData) == 21, "Wrong size");
 
 // FYI: Also contains LSB of accel data:
-union ButtonData
+struct ButtonData : BitField2<u16>
 {
   static constexpr u16 BUTTON_MASK = ~0x60e0;
 
-  u16 hex;
-
-  BitField<0, 1, bool, u16> left;
-  BitField<1, 1, bool, u16> right;
-  BitField<2, 1, bool, u16> down;
-  BitField<3, 1, bool, u16> up;
-  BitField<4, 1, bool, u16> plus;
+  FIELD(bool, 0, 1, left);
+  FIELD(bool, 1, 1, right);
+  FIELD(bool, 2, 1, down);
+  FIELD(bool, 3, 1, up);
+  FIELD(bool, 4, 1, plus);
   // For most input reports this is the 2 LSbs of accel.x:
   // For interleaved reports this is alternating bits of accel.z:
-  BitField<5, 2, u16> acc_bits;
-  BitField<7, 1, u16> unknown;
+  FIELD(u16, 5, 2, acc_bits);
+  FIELD(u16, 7, 1, unknown);
 
-  BitField<8, 1, bool, u16> two;
-  BitField<9, 1, bool, u16> one;
-  BitField<10, 1, bool, u16> b;
-  BitField<11, 1, bool, u16> a;
-  BitField<12, 1, bool, u16> minus;
+  FIELD(bool, 8, 1, two);
+  FIELD(bool, 9, 1, one);
+  FIELD(bool, 10, 1, b);
+  FIELD(bool, 11, 1, a);
+  FIELD(bool, 12, 1, minus);
   // For most input reports this is bits of accel.y/z:
   // For interleaved reports this is alternating bits of accel.z:
-  BitField<13, 2, u16> acc_bits2;
-  BitField<15, 1, bool, u16> home;
+  FIELD(u16, 13, 2, acc_bits2);
+  FIELD(bool, 15, 1, home);
+
+  ButtonData() = default;
+  constexpr ButtonData(u16 val) : BitField2(val) {}
 };
 static_assert(sizeof(ButtonData) == 2, "Wrong size");
 
@@ -199,16 +183,15 @@ struct InputReportStatus
   static constexpr InputReportID REPORT_ID = InputReportID::Status;
 
   ButtonData buttons;
-  union
-  {
-    BitField<0, 1, bool, u8> battery_low;
-    BitField<1, 1, bool, u8> extension;
-    BitField<2, 1, bool, u8> speaker;
-    BitField<3, 1, bool, u8> ir;
-    BitField<4, 4, u8> leds;
-  };
-  u16 : 16;
+  BitField2<u8> status;
+  u16 : 16;  // padding
   u8 battery;
+
+  FIELD_IN(status, bool, 0, 1, battery_low);
+  FIELD_IN(status, bool, 1, 1, extension);
+  FIELD_IN(status, bool, 2, 1, speaker);
+  FIELD_IN(status, bool, 3, 1, ir);
+  FIELD_IN(status, u8, 4, 4, leds);
 
   constexpr float GetEstimatedCharge() const
   {
@@ -243,14 +226,13 @@ struct InputReportReadDataReply
   static constexpr InputReportID REPORT_ID = InputReportID::ReadDataReply;
 
   ButtonData buttons;
-  union
-  {
-    BitField<0, 4, ErrorCode, u8> error;
-    BitField<4, 4, u8> size_minus_one;
-  };
+  BitField2<u8> read_data_reply;
   // big endian:
   u16 address;
   u8 data[16];
+
+  FIELD_IN(read_data_reply, ErrorCode, 0, 4, error);
+  FIELD_IN(read_data_reply, u8, 4, 4, size_minus_one);
 };
 static_assert(sizeof(InputReportReadDataReply) == 21, "Wrong size");
 

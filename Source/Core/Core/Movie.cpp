@@ -713,27 +713,27 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     ButtonData buttons;
     rpt.GetCoreData(&buttons);
 
-    if (buttons.left)
+    if (buttons.left())
       display_str += " LEFT";
-    if (buttons.right)
+    if (buttons.right())
       display_str += " RIGHT";
-    if (buttons.down)
+    if (buttons.down())
       display_str += " DOWN";
-    if (buttons.up)
+    if (buttons.up())
       display_str += " UP";
-    if (buttons.a)
+    if (buttons.a())
       display_str += " A";
-    if (buttons.b)
+    if (buttons.b())
       display_str += " B";
-    if (buttons.plus)
+    if (buttons.plus())
       display_str += " +";
-    if (buttons.minus)
+    if (buttons.minus())
       display_str += " -";
-    if (buttons.one)
+    if (buttons.one())
       display_str += " 1";
-    if (buttons.two)
+    if (buttons.two())
       display_str += " 2";
-    if (buttons.home)
+    if (buttons.home())
       display_str += " HOME";
   }
 

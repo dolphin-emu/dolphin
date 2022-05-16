@@ -181,7 +181,7 @@ void Wiimote::Reset()
   m_status = {};
   // This will suppress a status report on connect when an extension is already attached.
   // TODO: I am not 100% sure if this is proper.
-  m_status.extension = m_extension_port.IsDeviceConnected();
+  m_status.extension() = m_extension_port.IsDeviceConnected();
 
   // Dynamics:
   m_swing_state = {};
@@ -405,7 +405,7 @@ bool Wiimote::ProcessExtensionPortEvent()
   // WiiBrew: Following a connection or disconnection event on the Extension Port,
   // data reporting is disabled and the Data Reporting Mode must be reset before new data can
   // arrive.
-  if (m_extension_port.IsDeviceConnected() == m_status.extension)
+  if (m_extension_port.IsDeviceConnected() == m_status.extension())
     return false;
 
   // FYI: This happens even during a read request which continues after the status report is sent.
@@ -421,10 +421,11 @@ bool Wiimote::ProcessExtensionPortEvent()
 // Update buttons in status struct from user input.
 void Wiimote::UpdateButtonsStatus()
 {
-  m_status.buttons.hex = 0;
+  m_status.buttons = 0;
 
-  m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
-  m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+  m_buttons->GetState(&m_status.buttons.storage, button_bitmasks);
+  m_dpad->GetState(&m_status.buttons.storage,
+                   IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
