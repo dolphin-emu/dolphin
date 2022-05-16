@@ -9,6 +9,7 @@
 #include <Cocoa/Cocoa.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/QuartzInputMouse.h"
 
 namespace ciface::Quartz
 {
@@ -141,7 +142,7 @@ KeyboardAndMouse::KeyboardAndMouse(void* view)
   // keys that aren't being recognized, bump this number up!
   for (int keycode = 0; keycode < 0x80; ++keycode)
     AddInput(new Key(keycode));
-
+  
   // Add combined left/right modifiers with consistent naming across platforms.
   AddCombinedInput("Alt", {"Left Alt", "Right Alt"});
   AddCombinedInput("Shift", {"Left Shift", "Right Shift"});
@@ -161,6 +162,7 @@ KeyboardAndMouse::KeyboardAndMouse(void* view)
       m_windowid = [[cocoa_view window] windowNumber];
     });
   }
+  prime::InitCocoaInputMouse(&m_windowid);
 
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)
@@ -175,6 +177,7 @@ void KeyboardAndMouse::UpdateInput()
 {
   CGRect bounds = CGRectZero;
   CGWindowID windowid[1] = {m_windowid};
+  
   CFArrayRef windowArray = CFArrayCreate(nullptr, (const void**)windowid, 1, nullptr);
   CFArrayRef windowDescriptions = CGWindowListCreateDescriptionFromArray(windowArray);
   CFDictionaryRef windowDescription =
