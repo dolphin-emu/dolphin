@@ -15,8 +15,8 @@ template <typename StorageType>
 struct BitField2
 {
 public:
-  DOLPHIN_FORCE_INLINE StorageType Get() const { return storage; }
-  DOLPHIN_FORCE_INLINE void Set(StorageType val) { storage = val; }
+  constexpr StorageType Get() const { return storage; }
+  constexpr void Set(StorageType val) { storage = val; }
   constexpr StorageType& GetStorageRef() { return storage; }
 
   BitField2() = default;
@@ -82,7 +82,6 @@ public:
       Set(rhs);
       return *this;
     }
-    DOLPHIN_FORCE_INLINE FixedView& operator=(FixedView& rhs) { return operator=(rhs.Get()); }
     DOLPHIN_FORCE_INLINE FixedView& operator+=(FieldType rhs) { return operator=(Get() + rhs); }
     DOLPHIN_FORCE_INLINE FixedView& operator-=(FieldType rhs) { return operator=(Get() - rhs); }
     DOLPHIN_FORCE_INLINE FixedView& operator*=(FieldType rhs) { return operator=(Get() * rhs); }
@@ -90,6 +89,8 @@ public:
     DOLPHIN_FORCE_INLINE FixedView& operator|=(FieldType rhs) { return operator=(Get() / rhs); }
     DOLPHIN_FORCE_INLINE FixedView& operator&=(FieldType rhs) { return operator=(Get() & rhs); }
     DOLPHIN_FORCE_INLINE FixedView& operator^=(FieldType rhs) { return operator=(Get() ^ rhs); }
+
+    DOLPHIN_FORCE_INLINE FixedView& operator=(FixedView& rhs) { return operator=(rhs.Get()); }
 
     DOLPHIN_FORCE_INLINE bool operator!() { return !Get(); }
     // Do not overload && or || because it incurs a penalty from losing short-circuit evaluation
@@ -169,7 +170,6 @@ public:
       Set(rhs);
       return *this;
     }
-    DOLPHIN_FORCE_INLINE View& operator=(View& rhs) { return operator=(rhs.Get()); }
     DOLPHIN_FORCE_INLINE View& operator+=(FieldType rhs) { return operator=(Get() + rhs); }
     DOLPHIN_FORCE_INLINE View& operator-=(FieldType rhs) { return operator=(Get() - rhs); }
     DOLPHIN_FORCE_INLINE View& operator*=(FieldType rhs) { return operator=(Get() * rhs); }
@@ -177,6 +177,8 @@ public:
     DOLPHIN_FORCE_INLINE View& operator|=(FieldType rhs) { return operator=(Get() | rhs); }
     DOLPHIN_FORCE_INLINE View& operator&=(FieldType rhs) { return operator=(Get() & rhs); }
     DOLPHIN_FORCE_INLINE View& operator^=(FieldType rhs) { return operator=(Get() ^ rhs); }
+
+    DOLPHIN_FORCE_INLINE View& operator=(View& rhs) { return operator=(rhs.Get()); }
 
     DOLPHIN_FORCE_INLINE bool operator!() { return !Get(); }
     // Do not overload && or || because it incurs a penalty from losing short-circuit evaluation
@@ -494,21 +496,53 @@ struct fmt::formatter<typename BitField2<StorageType>::template ConstView<FieldT
 */
 // FMT library stuff ^^^^^^
 
-#define FIELD(FieldType, start, width, name)                                                       \
-  DOLPHIN_FORCE_INLINE auto name() { return FixedView<FieldType, start, width>(this); }            \
-  DOLPHIN_FORCE_INLINE auto name() const                                                           \
+// For inheritance-based polymorphism, assume the this pointer is the host BitField.
+#define CONSTFIELD(FieldType, start, width, name)                                                  \
+  DOLPHIN_FORCE_INLINE ConstFixedView<const FieldType, start, width> name() const                  \
   {                                                                                                \
     return ConstFixedView<const FieldType, start, width>(this);                                    \
   }
-
-#define FIELDARRAY(FieldType, start, width, length, name)                                          \
-  DOLPHIN_FORCE_INLINE auto name()                                                                 \
+#define FIELD(FieldType, start, width, name)                                                       \
+  DOLPHIN_FORCE_INLINE FixedView<FieldType, start, width> name()                                   \
   {                                                                                                \
-    return FixedViewArray<FieldType, start, width, length>(this);                                  \
+    return FixedView<FieldType, start, width>(this);                                               \
   }                                                                                                \
-  DOLPHIN_FORCE_INLINE auto name() const                                                           \
+  CONSTFIELD(FieldType, start, width, name)
+#define CONSTFIELDARRAY(FieldType, start, width, length, name)                                     \
+  DOLPHIN_FORCE_INLINE ConstFixedViewArray<const FieldType, start, width, length> name() const     \
   {                                                                                                \
     return ConstFixedViewArray<const FieldType, start, width, length>(this);                       \
   }
+#define FIELDARRAY(FieldType, start, width, length, name)                                          \
+  DOLPHIN_FORCE_INLINE FixedViewArray<FieldType, start, width, length> name()                      \
+  {                                                                                                \
+    return FixedViewArray<FieldType, start, width, length>(this);                                  \
+  }                                                                                                \
+  CONSTFIELDARRAY(FieldType, start, width, length, name)
+
+// For composition-based polymorphism, give the ability to specify a host BitField.
+#define CONSTFIELD_IN(host, FieldType, start, width, name)                                         \
+  DOLPHIN_FORCE_INLINE decltype(host)::ConstFixedView<const FieldType, start, width> name() const  \
+  {                                                                                                \
+    return decltype(host)::ConstFixedView<const FieldType, start, width>(&host);                   \
+  }
+#define FIELD_IN(host, FieldType, start, width, name)                                              \
+  DOLPHIN_FORCE_INLINE decltype(host)::FixedView<FieldType, start, width> name()                   \
+  {                                                                                                \
+    return decltype(host)::FixedView<FieldType, start, width>(&host);                              \
+  }                                                                                                \
+  CONSTFIELD_IN(host, FieldType, start, width, name)
+#define CONSTFIELDARRAY_IN(host, FieldType, start, width, length, name)                            \
+  DOLPHIN_FORCE_INLINE decltype(host)::ConstFixedViewArray<const FieldType, start, width, length>  \
+  name() const                                                                                     \
+  {                                                                                                \
+    return decltype(host)::ConstFixedViewArray<const FieldType, start, width, length>(&host);      \
+  }
+#define FIELDARRAY_IN(host, FieldType, start, width, length, name)                                 \
+  DOLPHIN_FORCE_INLINE decltype(host)::FixedViewArray<FieldType, start, width, length> name()      \
+  {                                                                                                \
+    return decltype(host)::FixedViewArray<FieldType, start, width, length>(&host);                 \
+  }                                                                                                \
+  CONSTFIELDARRAY_IN(host, FieldType, start, width, length, name)
 
 // TODO ConstFixedViewArray

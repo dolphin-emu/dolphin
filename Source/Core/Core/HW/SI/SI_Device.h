@@ -71,7 +71,7 @@ struct UCommand : BitField2<u32>
   FIELD(EDirectCommands, 16, 8, command);
 
   UCommand() = default;
-  UCommand(u32 val) : BitField2(val) {}
+  constexpr UCommand(u32 val) : BitField2(val) {}
 };
 
 // For configuration use, since some devices can have the same SI Device ID

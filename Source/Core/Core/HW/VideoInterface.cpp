@@ -118,60 +118,60 @@ void Preset(bool _bNTSC)
   //	variables are not going to start zeroed if another game has been run
   //	previously (and mutated everything).
 
-  m_VerticalTimingRegister.EQU = 6;
-  m_VerticalTimingRegister.ACV = 0;
+  m_VerticalTimingRegister.EQU() = 6;
+  m_VerticalTimingRegister.ACV() = 0;
 
-  m_DisplayControlRegister.ENB = 1;
-  m_DisplayControlRegister.RST = 0;
-  m_DisplayControlRegister.NIN = 0;
-  m_DisplayControlRegister.DLR = 0;
-  m_DisplayControlRegister.LE0 = 0;
-  m_DisplayControlRegister.LE1 = 0;
-  m_DisplayControlRegister.FMT = _bNTSC ? 0 : 1;
+  m_DisplayControlRegister.ENB() = 1;
+  m_DisplayControlRegister.RST() = 0;
+  m_DisplayControlRegister.NIN() = 0;
+  m_DisplayControlRegister.DLR() = 0;
+  m_DisplayControlRegister.LE0() = 0;
+  m_DisplayControlRegister.LE1() = 0;
+  m_DisplayControlRegister.FMT() = _bNTSC ? 0 : 1;
 
-  m_HTiming0.HLW = 429;
-  m_HTiming0.HCE = 105;
-  m_HTiming0.HCS = 71;
-  m_HTiming1.HSY = 64;
-  m_HTiming1.HBE640 = 162;
-  m_HTiming1.HBS640 = 373;
+  m_HTiming0.HLW() = 429;
+  m_HTiming0.HCE() = 105;
+  m_HTiming0.HCS() = 71;
+  m_HTiming1.HSY() = 64;
+  m_HTiming1.HBE640() = 162;
+  m_HTiming1.HBS640() = 373;
 
-  m_VBlankTimingOdd.PRB = 502;
-  m_VBlankTimingOdd.PSB = 5;
-  m_VBlankTimingEven.PRB = 503;
-  m_VBlankTimingEven.PSB = 4;
+  m_VBlankTimingOdd.PRB() = 502;
+  m_VBlankTimingOdd.PSB() = 5;
+  m_VBlankTimingEven.PRB() = 503;
+  m_VBlankTimingEven.PSB() = 4;
 
-  m_BurstBlankingOdd.BS0 = 12;
-  m_BurstBlankingOdd.BE0 = 520;
-  m_BurstBlankingOdd.BS2 = 12;
-  m_BurstBlankingOdd.BE2 = 520;
-  m_BurstBlankingEven.BS0 = 13;
-  m_BurstBlankingEven.BE0 = 519;
-  m_BurstBlankingEven.BS2 = 13;
-  m_BurstBlankingEven.BE2 = 519;
+  m_BurstBlankingOdd.BS0() = 12;
+  m_BurstBlankingOdd.BE0() = 520;
+  m_BurstBlankingOdd.BS2() = 12;
+  m_BurstBlankingOdd.BE2() = 520;
+  m_BurstBlankingEven.BS0() = 13;
+  m_BurstBlankingEven.BE0() = 519;
+  m_BurstBlankingEven.BS2() = 13;
+  m_BurstBlankingEven.BE2() = 519;
 
-  m_XFBInfoTop.Hex = 0;
-  m_XFBInfoBottom.Hex = 0;
-  m_3DFBInfoTop.Hex = 0;
-  m_3DFBInfoBottom.Hex = 0;
+  m_XFBInfoTop = 0;
+  m_XFBInfoBottom = 0;
+  m_3DFBInfoTop = 0;
+  m_3DFBInfoBottom = 0;
 
-  m_InterruptRegister[0].HCT = 430;
-  m_InterruptRegister[0].VCT = 263;
-  m_InterruptRegister[0].IR_MASK = 1;
-  m_InterruptRegister[0].IR_INT = 0;
-  m_InterruptRegister[1].HCT = 1;
-  m_InterruptRegister[1].VCT = 1;
-  m_InterruptRegister[1].IR_MASK = 1;
-  m_InterruptRegister[1].IR_INT = 0;
-  m_InterruptRegister[2].Hex = 0;
-  m_InterruptRegister[3].Hex = 0;
+  m_InterruptRegister[0].HCT() = 430;
+  m_InterruptRegister[0].VCT() = 263;
+  m_InterruptRegister[0].IR_MASK() = 1;
+  m_InterruptRegister[0].IR_INT() = 0;
+  m_InterruptRegister[1].HCT() = 1;
+  m_InterruptRegister[1].VCT() = 1;
+  m_InterruptRegister[1].IR_MASK() = 1;
+  m_InterruptRegister[1].IR_INT() = 0;
+  m_InterruptRegister[2] = 0;
+  m_InterruptRegister[3] = 0;
 
   m_LatchRegister = {};
 
-  m_PictureConfiguration.STD = 40;
-  m_PictureConfiguration.WPL = 40;
+  m_PictureConfiguration.STD() = 40;
+  m_PictureConfiguration.WPL() = 40;
 
-  m_HorizontalScaling.Hex = 0;
+  m_HorizontalScaling = 0;
   m_FilterCoefTables = {};
   m_UnkAARegister = 0;
 
@@ -181,11 +181,11 @@ void Preset(bool _bNTSC)
   m_Clock = DiscIO::IsNTSC(region);
 
   // Say component cable is plugged
-  m_DTVStatus.component_plugged = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
-  m_DTVStatus.ntsc_j = region == DiscIO::Region::NTSC_J;
+  m_DTVStatus.component_plugged() = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  m_DTVStatus.ntsc_j() = region == DiscIO::Region::NTSC_J;
 
-  m_FBWidth.Hex = 0;
-  m_BorderHBlank.Hex = 0;
+  m_FBWidth = 0;
+  m_BorderHBlank = 0;
 
   s_ticks_last_line_start = 0;
   s_half_line_count = 0;
@@ -208,7 +208,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   };
 
   std::array<MappedVar, 46> directly_mapped_vars{{
-      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex},
+      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.GetStorageRef()},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
       {VI_HORIZONTAL_TIMING_1_HI, &m_HTiming1.Hi},
@@ -233,8 +233,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_DISPLAY_LATCH_0_LO, &m_LatchRegister[0].Lo},
       {VI_DISPLAY_LATCH_1_HI, &m_LatchRegister[1].Hi},
       {VI_DISPLAY_LATCH_1_LO, &m_LatchRegister[1].Lo},
-      {VI_HSCALEW, &m_PictureConfiguration.Hex},
-      {VI_HSCALER, &m_HorizontalScaling.Hex},
+      {VI_HSCALEW, &m_PictureConfiguration.GetStorageRef()},
+      {VI_HSCALER, &m_HorizontalScaling.GetStorageRef()},
       {VI_FILTER_COEF_0_HI, &m_FilterCoefTables.Tables02[0].Hi},
       {VI_FILTER_COEF_0_LO, &m_FilterCoefTables.Tables02[0].Lo},
       {VI_FILTER_COEF_1_HI, &m_FilterCoefTables.Tables02[1].Hi},
@@ -250,8 +250,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_FILTER_COEF_6_HI, &m_FilterCoefTables.Tables36[3].Hi},
       {VI_FILTER_COEF_6_LO, &m_FilterCoefTables.Tables36[3].Lo},
       {VI_CLOCK, &m_Clock},
-      {VI_DTV_STATUS, &m_DTVStatus.Hex},
-      {VI_FBWIDTH, &m_FBWidth.Hex},
+      {VI_DTV_STATUS, &m_DTVStatus.GetStorageRef()},
+      {VI_FBWIDTH, &m_FBWidth.GetStorageRef()},
       {VI_BORDER_BLANK_END, &m_BorderHBlank.Lo},
       {VI_BORDER_BLANK_START, &m_BorderHBlank.Hi},
   }};
@@ -264,7 +264,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   std::array<MappedVar, 8> update_params_on_read_vars{{
-      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex},
+      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.GetStorageRef()},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
       {VI_VBLANK_TIMING_ODD_HI, &m_VBlankTimingOdd.Hi},
@@ -288,26 +288,26 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | VI_FB_LEFT_TOP_HI, MMIO::DirectRead<u16>(&m_XFBInfoTop.Hi),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_XFBInfoTop.Hi = val;
-                   if (m_XFBInfoTop.CLRPOFF)
-                     m_XFBInfoTop.POFF = false;
+                   if (m_XFBInfoTop.CLRPOFF())
+                     m_XFBInfoTop.POFF() = false;
                  }));
   mmio->Register(base | VI_FB_LEFT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_XFBInfoBottom.Hi),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_XFBInfoBottom.Hi = val;
-                   if (m_XFBInfoBottom.CLRPOFF)
-                     m_XFBInfoBottom.POFF = false;
+                   if (m_XFBInfoBottom.CLRPOFF())
+                     m_XFBInfoBottom.POFF() = false;
                  }));
   mmio->Register(base | VI_FB_RIGHT_TOP_HI, MMIO::DirectRead<u16>(&m_3DFBInfoTop.Hi),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_3DFBInfoTop.Hi = val;
-                   if (m_3DFBInfoTop.CLRPOFF)
-                     m_3DFBInfoTop.POFF = false;
+                   if (m_3DFBInfoTop.CLRPOFF())
+                     m_3DFBInfoTop.POFF() = false;
                  }));
   mmio->Register(base | VI_FB_RIGHT_BOTTOM_HI, MMIO::DirectRead<u16>(&m_3DFBInfoBottom.Hi),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    m_3DFBInfoBottom.Hi = val;
-                   if (m_3DFBInfoBottom.CLRPOFF)
-                     m_3DFBInfoBottom.POFF = false;
+                   if (m_3DFBInfoBottom.CLRPOFF())
+                     m_3DFBInfoBottom.POFF() = false;
                  }));
 
   // MMIOs with unimplemented writes that trigger warnings.
@@ -321,10 +321,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }));
   mmio->Register(
       base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](u32) {
-        u16 value = static_cast<u16>(1 + m_HTiming0.HLW *
+        u16 value = static_cast<u16>(1 + m_HTiming0.HLW() *
                                              (CoreTiming::GetTicks() - s_ticks_last_line_start) /
                                              (GetTicksPerHalfLine()));
-        return std::clamp<u16>(value, 1, m_HTiming0.HLW * 2);
+        return std::clamp<u16>(value, 1, m_HTiming0.HLW() * 2);
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
         WARN_LOG_FMT(
@@ -375,20 +375,21 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // Control register writes only updates some select bits, and additional
   // processing needs to be done if a reset is requested.
-  mmio->Register(base | VI_CONTROL_REGISTER, MMIO::DirectRead<u16>(&m_DisplayControlRegister.Hex),
+  mmio->Register(base | VI_CONTROL_REGISTER,
+                 MMIO::DirectRead<u16>(&m_DisplayControlRegister.GetStorageRef()),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    UVIDisplayControlRegister tmpConfig(val);
-                   m_DisplayControlRegister.ENB = tmpConfig.ENB.Value();
-                   m_DisplayControlRegister.NIN = tmpConfig.NIN.Value();
-                   m_DisplayControlRegister.DLR = tmpConfig.DLR.Value();
-                   m_DisplayControlRegister.LE0 = tmpConfig.LE0.Value();
-                   m_DisplayControlRegister.LE1 = tmpConfig.LE1.Value();
-                   m_DisplayControlRegister.FMT = tmpConfig.FMT.Value();
+                   m_DisplayControlRegister.ENB() = tmpConfig.ENB();
+                   m_DisplayControlRegister.NIN() = tmpConfig.NIN();
+                   m_DisplayControlRegister.DLR() = tmpConfig.DLR();
+                   m_DisplayControlRegister.LE0() = tmpConfig.LE0();
+                   m_DisplayControlRegister.LE1() = tmpConfig.LE1();
+                   m_DisplayControlRegister.FMT() = tmpConfig.FMT();
 
-                   if (tmpConfig.RST)
+                   if (tmpConfig.RST())
                    {
                      // shuffle2 clear all data, reset to default vals, and enter idle mode
-                     m_DisplayControlRegister.RST = false;
+                     m_DisplayControlRegister.RST() = false;
                      m_InterruptRegister = {};
                      UpdateInterrupts();
                    }
@@ -414,10 +415,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void UpdateInterrupts()
 {
-  if ((m_InterruptRegister[0].IR_INT && m_InterruptRegister[0].IR_MASK) ||
-      (m_InterruptRegister[1].IR_INT && m_InterruptRegister[1].IR_MASK) ||
-      (m_InterruptRegister[2].IR_INT && m_InterruptRegister[2].IR_MASK) ||
-      (m_InterruptRegister[3].IR_INT && m_InterruptRegister[3].IR_MASK))
+  if ((m_InterruptRegister[0].IR_INT() && m_InterruptRegister[0].IR_MASK()) ||
+      (m_InterruptRegister[1].IR_INT() && m_InterruptRegister[1].IR_MASK()) ||
+      (m_InterruptRegister[2].IR_INT() && m_InterruptRegister[2].IR_MASK()) ||
+      (m_InterruptRegister[3].IR_INT() && m_InterruptRegister[3].IR_MASK()))
   {
     ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_VI, true);
   }
@@ -429,31 +430,31 @@ void UpdateInterrupts()
 
 u32 GetXFBAddressTop()
 {
-  if (m_XFBInfoTop.POFF)
-    return m_XFBInfoTop.FBB << 5;
+  if (m_XFBInfoTop.POFF())
+    return m_XFBInfoTop.FBB() << 5;
   else
-    return m_XFBInfoTop.FBB;
+    return m_XFBInfoTop.FBB();
 }
 
 u32 GetXFBAddressBottom()
 {
   // POFF for XFB bottom is connected to POFF for XFB top
-  if (m_XFBInfoTop.POFF)
-    return m_XFBInfoBottom.FBB << 5;
+  if (m_XFBInfoTop.POFF())
+    return m_XFBInfoBottom.FBB() << 5;
   else
-    return m_XFBInfoBottom.FBB;
+    return m_XFBInfoBottom.FBB();
 }
 
 static u32 GetHalfLinesPerEvenField()
 {
-  return (3 * m_VerticalTimingRegister.EQU + m_VBlankTimingEven.PRB +
-          2 * m_VerticalTimingRegister.ACV + m_VBlankTimingEven.PSB);
+  return (3 * m_VerticalTimingRegister.EQU() + m_VBlankTimingEven.PRB() +
+          2 * m_VerticalTimingRegister.ACV() + m_VBlankTimingEven.PSB());
 }
 
 static u32 GetHalfLinesPerOddField()
 {
-  return (3 * m_VerticalTimingRegister.EQU + m_VBlankTimingOdd.PRB +
-          2 * m_VerticalTimingRegister.ACV + m_VBlankTimingOdd.PSB);
+  return (3 * m_VerticalTimingRegister.EQU() + m_VBlankTimingOdd.PRB() +
+          2 * m_VerticalTimingRegister.ACV() + m_VBlankTimingOdd.PSB());
 }
 
 static u32 GetTicksPerEvenField()
@@ -483,8 +484,8 @@ float GetAspectRatio()
   // multiply the result by 1.33333..
 
   // 1. Get our active area in BT.601 samples (more or less pixels)
-  int active_lines = m_VerticalTimingRegister.ACV;
-  int active_width_samples = (m_HTiming0.HLW + m_HTiming1.HBS640 - m_HTiming1.HBE640);
+  int active_lines = m_VerticalTimingRegister.ACV();
+  int active_width_samples = (m_HTiming0.HLW() + m_HTiming1.HBS640() - m_HTiming1.HBE640());
 
   // 2. TVs are analog and don't have pixels. So we convert to seconds.
   float tick_length = (1.0f / SystemTimers::GetTicksPerSecond());
@@ -509,7 +510,7 @@ float GetAspectRatio()
   //    NOTE: With the exception of selecting between PAL-M and NTSC color encoding on Brazilian
   //          GameCubes, the FMT field doesn't actually do anything on real hardware. But
   //          Nintendo's SDK always sets it appropriately to match the number of lines.
-  if (m_DisplayControlRegister.FMT == 1)  // 625 line TV (PAL)
+  if (m_DisplayControlRegister.FMT() == 1)  // 625 line TV (PAL)
   {
     // PAL defines the horizontal active area as 52us of the 64us line.
     // BT.470-6 defines the blanking period as 12.0us +0.0 -0.3 [table on page 5]
@@ -690,12 +691,12 @@ float GetAspectRatio()
 
 void UpdateParameters()
 {
-  u32 equ_hl = 3 * m_VerticalTimingRegister.EQU;
-  u32 acv_hl = 2 * m_VerticalTimingRegister.ACV;
-  s_odd_field_first_hl = equ_hl + m_VBlankTimingOdd.PRB;
+  u32 equ_hl = 3 * m_VerticalTimingRegister.EQU();
+  u32 acv_hl = 2 * m_VerticalTimingRegister.ACV();
+  s_odd_field_first_hl = equ_hl + m_VBlankTimingOdd.PRB();
   s_odd_field_last_hl = s_odd_field_first_hl + acv_hl - 1;
 
-  s_even_field_first_hl = equ_hl + m_VBlankTimingEven.PRB + GetHalfLinesPerOddField();
+  s_even_field_first_hl = equ_hl + m_VBlankTimingEven.PRB() + GetHalfLinesPerOddField();
   s_even_field_last_hl = s_even_field_first_hl + acv_hl - 1;
 
   s_target_refresh_rate_numerator = SystemTimers::GetTicksPerSecond() * 2;
@@ -726,7 +727,7 @@ u32 GetTicksPerSample()
 
 u32 GetTicksPerHalfLine()
 {
-  return GetTicksPerSample() * m_HTiming0.HLW;
+  return GetTicksPerSample() * m_HTiming0.HLW();
 }
 
 u32 GetTicksPerField()
@@ -748,14 +749,13 @@ static void LogField(FieldType field, u32 xfb_address)
   DEBUG_LOG_FMT(VIDEOINTERFACE,
                 "(VI->BeginField): Address: {:08X} | WPL {} | STD {} | EQ {} | PRB {} | "
                 "ACV {} | PSB {} | Field {}",
-                xfb_address, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
-                m_VerticalTimingRegister.EQU, vert_timing[field_index]->PRB,
-                m_VerticalTimingRegister.ACV, vert_timing[field_index]->PSB,
+                xfb_address, m_PictureConfiguration.WPL(), m_PictureConfiguration.STD(),
+                m_VerticalTimingRegister.EQU(), vert_timing[field_index]->PRB(),
+                m_VerticalTimingRegister.ACV(), vert_timing[field_index]->PSB(),
                 field_type_names[field_index]);
 
-  DEBUG_LOG_FMT(VIDEOINTERFACE, "HorizScaling: {:04x} | fbwidth {} | {} | {}",
-                m_HorizontalScaling.Hex, m_FBWidth.Hex, GetTicksPerEvenField(),
-                GetTicksPerOddField());
+  DEBUG_LOG_FMT(VIDEOINTERFACE, "HorizScaling: {:04x} | fbwidth {} | {} | {}", m_HorizontalScaling,
+                m_FBWidth, GetTicksPerEvenField(), GetTicksPerOddField());
 }
 
 static void OutputField(FieldType field, u64 ticks)
@@ -763,14 +763,14 @@ static void OutputField(FieldType field, u64 ticks)
   // Could we fit a second line of data in the stride?
   // (Datel's Wii FreeLoaders are the only titles known to set WPL to 0)
   bool potentially_interlaced_xfb =
-      m_PictureConfiguration.WPL != 0 &&
-      ((m_PictureConfiguration.STD / m_PictureConfiguration.WPL) == 2);
+      m_PictureConfiguration.WPL() != 0 &&
+      ((m_PictureConfiguration.STD() / m_PictureConfiguration.WPL()) == 2);
   // Are there an odd number of half-lines per field (definition of interlaced video)
   bool interlaced_video_mode = (GetHalfLinesPerEvenField() & 1) == 1;
 
-  u32 fbStride = m_PictureConfiguration.STD * 16;
-  u32 fbWidth = m_PictureConfiguration.WPL * 16;
-  u32 fbHeight = m_VerticalTimingRegister.ACV;
+  u32 fbStride = m_PictureConfiguration.STD() * 16;
+  u32 fbWidth = m_PictureConfiguration.WPL() * 16;
+  u32 fbHeight = m_VerticalTimingRegister.ACV();
 
   u32 xfbAddr;
 
@@ -803,10 +803,12 @@ static void OutputField(FieldType field, u64 ticks)
     // has the first line. For the field with the second line, we
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
-    if (field == FieldType::Odd && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 && xfbAddr)
+    if (field == FieldType::Odd && m_VBlankTimingOdd.PRB() == m_VBlankTimingEven.PRB() + 1 &&
+        xfbAddr)
       xfbAddr -= fbStride;
 
-    if (field == FieldType::Even && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 && xfbAddr)
+    if (field == FieldType::Even && m_VBlankTimingOdd.PRB() == m_VBlankTimingEven.PRB() - 1 &&
+        xfbAddr)
       xfbAddr -= fbStride;
   }
 
@@ -918,10 +920,10 @@ void Update(u64 ticks)
 
   for (UVIInterruptRegister& reg : m_InterruptRegister)
   {
-    u32 target_halfline = (reg.HCT > m_HTiming0.HLW) ? 1 : 0;
-    if ((1 + (s_half_line_count) / 2 == reg.VCT) && ((s_half_line_count & 1) == target_halfline))
+    u32 target_halfline = (reg.HCT() > m_HTiming0.HLW()) ? 1 : 0;
+    if ((1 + (s_half_line_count) / 2 == reg.VCT()) && ((s_half_line_count & 1) == target_halfline))
     {
-      reg.IR_INT = true;
+      reg.IR_INT() = true;
     }
   }
 
@@ -938,16 +940,16 @@ void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height)
     fb_stride = fb_stride * 2;
   }
 
-  m_XFBInfoTop.POFF = 1;
-  m_XFBInfoBottom.POFF = 1;
-  m_VerticalTimingRegister.ACV = fb_height;
-  m_VerticalTimingRegister.EQU = 6;
-  m_VBlankTimingOdd.PRB = 502 - fb_height * 2;
-  m_VBlankTimingOdd.PSB = 5;
-  m_VBlankTimingEven.PRB = 503 - fb_height * 2;
-  m_VBlankTimingEven.PSB = 4;
-  m_PictureConfiguration.WPL = fb_width / 16;
-  m_PictureConfiguration.STD = (fb_stride / 2) / 16;
+  m_XFBInfoTop.POFF() = 1;
+  m_XFBInfoBottom.POFF() = 1;
+  m_VerticalTimingRegister.ACV() = fb_height;
+  m_VerticalTimingRegister.EQU() = 6;
+  m_VBlankTimingOdd.PRB() = 502 - fb_height * 2;
+  m_VBlankTimingOdd.PSB() = 5;
+  m_VBlankTimingEven.PRB() = 503 - fb_height * 2;
+  m_VBlankTimingEven.PSB() = 4;
+  m_PictureConfiguration.WPL() = fb_width / 16;
+  m_PictureConfiguration.STD() = (fb_stride / 2) / 16;
 
   UpdateParameters();
 
@@ -957,12 +959,12 @@ void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height)
       (s_half_line_count - s_odd_field_first_hl) % total_halflines)
   {
     // Even/Bottom field is next.
-    m_XFBInfoBottom.FBB = interlaced ? (xfb_address + fb_width * 2) >> 5 : xfb_address >> 5;
+    m_XFBInfoBottom.FBB() = interlaced ? (xfb_address + fb_width * 2) >> 5 : xfb_address >> 5;
   }
   else
   {
     // Odd/Top field is next
-    m_XFBInfoTop.FBB = (xfb_address >> 5);
+    m_XFBInfoTop.FBB() = (xfb_address >> 5);
   }
 }
 

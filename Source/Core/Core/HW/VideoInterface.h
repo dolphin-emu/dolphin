@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -79,178 +80,211 @@ enum
   // VI_INTERLACE                      = 0x850, // ??? MYSTERY OLD CODE
 };
 
-union UVIVerticalTimingRegister
+struct UVIVerticalTimingRegister : BitField2<u16>
 {
-  u16 Hex = 0;
-
-  BitField<0, 4, u16> EQU;   // Equalization pulse in half lines
-  BitField<4, 10, u16> ACV;  // Active video in lines per field (seems always zero)
+  FIELD(u16, 0, 4, EQU);   // Equalization pulse in half lines
+  FIELD(u16, 4, 10, ACV);  // Active video in lines per field (seems always zero)
 
   UVIVerticalTimingRegister() = default;
-  explicit UVIVerticalTimingRegister(u16 hex) : Hex{hex} {}
+  constexpr UVIVerticalTimingRegister(u16 val) : BitField2(val) {}
 };
 
-union UVIDisplayControlRegister
+struct UVIDisplayControlRegister : BitField2<u16>
 {
-  u16 Hex = 0;
-
-  BitField<0, 1, bool, u16> ENB;  // Enables video timing generation and data request
-  BitField<1, 1, bool, u16> RST;  // Clears all data requests and puts VI into its idle state
-  BitField<2, 1, bool, u16> NIN;  // 0: Interlaced, 1: Non-Interlaced: top field drawn at field rate
-                                  // and bottom field is not displayed
-  BitField<3, 1, bool, u16> DLR;  // Selects 3D Display Mode
-  BitField<4, 2, u16> LE0;        // Display Latch
-                                  // 0: Off, 1: On for 1 field, 2: On for 2 fields, 3: Always on
-  BitField<6, 2, u16> LE1;
-  BitField<8, 2, u16> FMT;  // 0: NTSC, 1: PAL, 2: MPAL, 3: Debug
+  FIELD(bool, 0, 1, ENB);  // Enables video timing generation and data request
+  FIELD(bool, 1, 1, RST);  // Clears all data requests and puts VI into its idle state
+  FIELD(bool, 2, 1, NIN);  // 0: Interlaced, 1: Non-Interlaced: top field drawn at field rate and
+                           // bottom field is not displayed
+  FIELD(bool, 3, 1, DLR);  // Selects 3D Display Mode
+  FIELD(u16, 4, 2, LE0);   // Display Latch
+                           // 0: Off, 1: On for 1 field, 2: On for 2 fields, 3: Always on
+  FIELD(u16, 6, 2, LE1);
+  FIELD(u16, 8, 2, FMT);  // 0: NTSC, 1: PAL, 2: MPAL, 3: Debug
 
   UVIDisplayControlRegister() = default;
-  explicit UVIDisplayControlRegister(u16 hex) : Hex{hex} {}
+  constexpr UVIDisplayControlRegister(u16 val) : BitField2(val) {}
 };
 
 union UVIHorizontalTiming0
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 10, u32> HLW;  // Halfline Width (W*16 = Width (720))
-  BitField<16, 7, u32> HCE;  // Horizontal Sync Start to Color Burst End
-  BitField<24, 7, u32> HCS;  // Horizontal Sync Start to Color Burst Start
+  FIELD_IN(full, u32, 0, 10, HLW);  // Halfline Width (W*16 = Width (720))
+  FIELD_IN(full, u32, 16, 7, HCE);  // Horizontal Sync Start to Color Burst End
+  FIELD_IN(full, u32, 24, 7, HCS);  // Horizontal Sync Start to Color Burst Start
+
+  UVIHorizontalTiming0() = default;
+  constexpr UVIHorizontalTiming0(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 union UVIHorizontalTiming1
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 7, u32> HSY;       // Horizontal Sync Width
-  BitField<7, 10, u32> HBE640;   // Horizontal Sync Start to horizontal blank end
-  BitField<17, 10, u32> HBS640;  // Half line to horizontal blanking start
+  FIELD_IN(full, u32, 0, 7, HSY);       // Horizontal Sync Width
+  FIELD_IN(full, u32, 7, 10, HBE640);   // Horizontal Sync Start to horizontal blank end
+  FIELD_IN(full, u32, 17, 10, HBS640);  // Half line to horizontal blanking start
+
+  UVIHorizontalTiming1() = default;
+  constexpr UVIHorizontalTiming1(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 // Exists for both odd and even fields
 union UVIVBlankTimingRegister
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 10, u32> PRB;   // Pre-blanking in half lines
-  BitField<16, 10, u32> PSB;  // Post blanking in half lines
+  FIELD_IN(full, u32, 0, 10, PRB);   // Pre-blanking in half lines
+  FIELD_IN(full, u32, 16, 10, PSB);  // Post blanking in half lines
+
+  UVIVBlankTimingRegister() = default;
+  constexpr UVIVBlankTimingRegister(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 // Exists for both odd and even fields
 union UVIBurstBlankingRegister
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 5, u32> BS0;    // Field x start to burst blanking start in halflines
-  BitField<5, 11, u32> BE0;   // Field x start to burst blanking end in halflines
-  BitField<16, 5, u32> BS2;   // Field x+2 start to burst blanking start in halflines
-  BitField<21, 11, u32> BE2;  // Field x+2 start to burst blanking end in halflines
+  FIELD_IN(full, u32, 0, 5, BS0);    // Field x start to burst blanking start in halflines
+  FIELD_IN(full, u32, 5, 11, BE0);   // Field x start to burst blanking end in halflines
+  FIELD_IN(full, u32, 16, 5, BS2);   // Field x+2 start to burst blanking start in halflines
+  FIELD_IN(full, u32, 21, 11, BE2);  // Field x+2 start to burst blanking end in halflines
+
+  UVIBurstBlankingRegister() = default;
+  constexpr UVIBurstBlankingRegister(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 union UVIFBInfoRegister
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
+
   // TODO: mask out lower 9bits/align to 9bits???
-  BitField<0, 24, u32> FBB;  // Base address of the framebuffer in external mem
+  FIELD_IN(full, u32, 0, 24, FBB);  // Base address of the framebuffer in external mem
   // POFF only seems to exist in the top reg. XOFF, unknown.
-  BitField<24, 4, u32> XOFF;  // Horizontal Offset of the left-most pixel within the first word
-                              // of the fetched picture
-  BitField<28, 1, bool, u32> POFF;  // Page offest: 1: fb address is (address>>5)
-  BitField<29, 3, u32> CLRPOFF;     // ? setting bit 31 clears POFF
+  FIELD_IN(full, u32, 24, 4, XOFF);     // Horizontal Offset of the left-most pixel within the first
+                                        // word of the fetched picture
+  FIELD_IN(full, bool, 28, 1, POFF);    // Page offest: 1: fb address is (address>>5)
+  FIELD_IN(full, u32, 29, 3, CLRPOFF);  // ? setting bit 31 clears POFF
+
+  UVIFBInfoRegister() = default;
+  constexpr UVIFBInfoRegister(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 // VI Interrupt Register
 union UVIInterruptRegister
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
-  BitField<0, 11, u32> HCT;            // Horizontal Position
-  BitField<16, 11, u32> VCT;           // Vertical Position
-  BitField<28, 1, bool, u32> IR_MASK;  // Interrupt Mask Bit
-  BitField<31, 1, bool, u32> IR_INT;   // Interrupt Status (1=Active, 0=Clear)
+
+  FIELD_IN(full, u32, 0, 11, HCT);       // Horizontal Position
+  FIELD_IN(full, u32, 16, 11, VCT);      // Vertical Position
+  FIELD_IN(full, bool, 28, 1, IR_MASK);  // Interrupt Mask Bit
+  FIELD_IN(full, bool, 31, 1, IR_INT);   // Interrupt Status (1=Active, 0=Clear)
+
+  UVIInterruptRegister() = default;
+  constexpr UVIInterruptRegister(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 union UVILatchRegister
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 11, u32> HCT;        // Horizontal Count
-  BitField<16, 11, u32> VCT;       // Vertical Count
-  BitField<31, 1, bool, u32> TRG;  // Trigger Flag
+  FIELD_IN(full, u32, 0, 11, HCT);   // Horizontal Count
+  FIELD_IN(full, u32, 16, 11, VCT);  // Vertical Count
+  FIELD_IN(full, bool, 31, 1, TRG);  // Trigger Flag
+
+  UVILatchRegister() = default;
+  constexpr UVILatchRegister(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
-union PictureConfigurationRegister
+struct PictureConfigurationRegister : BitField2<u16>
 {
-  u16 Hex;
+  FIELD(u16, 0, 8, STD);
+  FIELD(u16, 8, 7, WPL);
 
-  BitField<0, 8, u16> STD;
-  BitField<8, 7, u16> WPL;
+  PictureConfigurationRegister() = default;
+  constexpr PictureConfigurationRegister(u32 val) : BitField2(val) {}
 };
 
-union UVIHorizontalScaling
+struct UVIHorizontalScaling : BitField2<u16>
 {
-  u16 Hex = 0;
-
-  BitField<0, 9, u16> STP;  // Horizontal stepping size (U1.8 Scaler Value) (0x160 Works for 320)
-  BitField<12, 1, bool, u16> HS_EN;  // Enable Horizontal Scaling
+  FIELD(u16, 0, 9, STP);      // Horizontal stepping size (U1.8 Scaler Value) (0x160 Works for 320)
+  FIELD(bool, 12, 1, HS_EN);  // Enable Horizontal Scaling
 
   UVIHorizontalScaling() = default;
-  explicit UVIHorizontalScaling(u16 hex) : Hex{hex} {}
+  constexpr UVIHorizontalScaling(u16 val) : BitField2(val) {}
 };
 
 // Used for tables 0-2
 union UVIFilterCoefTable3
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 10, u32> Tap0;
-  BitField<10, 10, u32> Tap1;
-  BitField<20, 10, u32> Tap2;
+  FIELD_IN(full, u32, 0, 10, Tap0);
+  FIELD_IN(full, u32, 10, 10, Tap1);
+  FIELD_IN(full, u32, 20, 10, Tap2);
+
+  UVIFilterCoefTable3() = default;
+  constexpr UVIFilterCoefTable3(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 // Used for tables 3-6
 union UVIFilterCoefTable4
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 8, u32> Tap0;
-  BitField<8, 8, u32> Tap1;
-  BitField<16, 8, u32> Tap2;
-  BitField<24, 8, u32> Tap3;
+  FIELD_IN(full, u32, 0, 8, Tap0);
+  FIELD_IN(full, u32, 8, 8, Tap1);
+  FIELD_IN(full, u32, 16, 8, Tap2);
+  FIELD_IN(full, u32, 24, 8, Tap3);
+
+  UVIFilterCoefTable4() = default;
+  constexpr UVIFilterCoefTable4(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 struct SVIFilterCoefTables
@@ -262,31 +296,37 @@ struct SVIFilterCoefTables
 // Debug video mode only, probably never used in Dolphin...
 union UVIBorderBlankRegister
 {
-  u32 Hex;
+  BitField2<u32> full;
   struct
   {
     u16 Lo, Hi;
   };
 
-  BitField<0, 10, u32> HBE656;         // Border Horizontal Blank End
-  BitField<21, 10, u32> HBS656;        // Border Horizontal Blank start
-  BitField<31, 1, bool, u32> BRDR_EN;  // Border Enable
+  FIELD_IN(full, u32, 0, 10, HBE656);    // Border Horizontal Blank End
+  FIELD_IN(full, u32, 21, 10, HBS656);   // Border Horizontal Blank start
+  FIELD_IN(full, bool, 31, 1, BRDR_EN);  // Border Enable
+
+  UVIBorderBlankRegister() = default;
+  constexpr UVIBorderBlankRegister(u32 val) : full(val) {}
+  constexpr operator u32() const { return full.Get(); }
 };
 
 // ntsc-j and component cable bits
-union UVIDTVStatus
+struct UVIDTVStatus : BitField2<u16>
 {
-  u16 Hex;
+  FIELD(bool, 0, 1, component_plugged);
+  FIELD(bool, 1, 1, ntsc_j);
 
-  BitField<0, 1, bool, u16> component_plugged;
-  BitField<1, 1, bool, u16> ntsc_j;
+  UVIDTVStatus() = default;
+  constexpr UVIDTVStatus(u16 val) : BitField2(val) {}
 };
 
-union UVIHorizontalStepping
+struct UVIHorizontalStepping : BitField2<u16>
 {
-  u16 Hex;
+  FIELD(u16, 0, 10, srcwidth);
 
-  BitField<0, 10, u16> srcwidth;
+  UVIHorizontalStepping() = default;
+  constexpr UVIHorizontalStepping(u16 val) : BitField2(val) {}
 };
 
 // For BS2 HLE
