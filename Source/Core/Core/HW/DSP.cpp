@@ -373,35 +373,34 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   // Audio DMA MMIO controlling the DMA start.
-  mmio->Register(base | AUDIO_DMA_CONTROL_LEN,
-                 MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.storage),
-                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   bool already_enabled = s_audioDMA.AudioDMAControl.Enable();
-                   s_audioDMA.AudioDMAControl = val;
+  mmio->Register(
+      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.storage),
+      MMIO::ComplexWrite<u16>([](u32, u16 val) {
+        bool already_enabled = s_audioDMA.AudioDMAControl.Enable();
+        s_audioDMA.AudioDMAControl = val;
 
-                   // Only load new values if were not already doing a DMA transfer,
-                   // otherwise just let the new values be autoloaded in when the
-                   // current transfer ends.
-                   if (!already_enabled && s_audioDMA.AudioDMAControl.Enable())
-                   {
-                     s_audioDMA.current_source_address = s_audioDMA.SourceAddress;
-                     s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks();
+        // Only load new values if were not already doing a DMA transfer,
+        // otherwise just let the new values be autoloaded in when the
+        // current transfer ends.
+        if (!already_enabled && s_audioDMA.AudioDMAControl.Enable())
+        {
+          s_audioDMA.current_source_address = s_audioDMA.SourceAddress;
+          s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks();
 
-                     INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
-                                  s_audioDMA.AudioDMAControl.NumBlocks(), s_audioDMA.SourceAddress);
+          INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
+                       s_audioDMA.AudioDMAControl.NumBlocks(), s_audioDMA.SourceAddress);
 
-                     // We make the samples ready as soon as possible
-                     void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
-                     AudioCommon::SendAIBuffer((short*)address,
-                                               s_audioDMA.AudioDMAControl.NumBlocks() * 8);
+          // We make the samples ready as soon as possible
+          void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
+          AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks() * 8);
 
-                     // TODO: need hardware tests for the timing of this interrupt.
-                     // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the
-                     // future. Other Namco games crash too, see issue 9509. For now we will just
-                     // push it to 200 cycles
-                     CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
-                   }
-                 }));
+          // TODO: need hardware tests for the timing of this interrupt.
+          // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the
+          // future. Other Namco games crash too, see issue 9509. For now we will just
+          // push it to 200 cycles
+          CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
+        }
+      }));
 
   // Audio DMA blocks remaining is invalid to write to, and requires logic on
   // the read side.

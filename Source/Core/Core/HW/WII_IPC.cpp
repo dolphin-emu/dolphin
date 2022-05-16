@@ -4,6 +4,7 @@
 #include "Core/HW/WII_IPC.h"
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -55,45 +56,49 @@ enum
   UNK_1D0 = 0x1d0,
 };
 
-union UCtrlRegister
+struct UCtrlRegister : BitField2<u8>
 {
-  u8 hex = 0;
-
-  BitField<0, 1, bool, u8> X1;
-  BitField<1, 1, bool, u8> X2;
-  BitField<2, 1, bool, u8> Y1;
-  BitField<3, 1, bool, u8> Y2;
-  BitField<4, 1, bool, u8> IX1;
-  BitField<5, 1, bool, u8> IX2;
-  BitField<6, 1, bool, u8> IY1;
-  BitField<7, 1, bool, u8> IY2;
+  FIELD(bool, 0, 1, X1);
+  FIELD(bool, 1, 1, X2);
+  FIELD(bool, 2, 1, Y1);
+  FIELD(bool, 3, 1, Y2);
+  FIELD(bool, 4, 1, IX1);
+  FIELD(bool, 5, 1, IX2);
+  FIELD(bool, 6, 1, IY1);
+  FIELD(bool, 7, 1, IY2);
 
   UCtrlRegister() = default;
-  explicit UCtrlRegister(u8 _hex) : hex{_hex} {}
-  inline u8 ppc() { return (IY2 << 5) | (IY1 << 4) | (X2 << 3) | (Y1 << 2) | (Y2 << 1) | X1; }
-  inline u8 arm() { return (IX2 << 5) | (IX1 << 4) | (Y2 << 3) | (X1 << 2) | (X2 << 1) | Y1; }
+  constexpr UCtrlRegister(u8 val) : BitField2(val) {}
+  inline u8 ppc()
+  {
+    return (IY2() << 5) | (IY1() << 4) | (X2() << 3) | (Y1() << 2) | (Y2() << 1) | X1();
+  }
+  inline u8 arm()
+  {
+    return (IX2() << 5) | (IX1() << 4) | (Y2() << 3) | (X1() << 2) | (X2() << 1) | Y1();
+  }
   inline void ppc(u32 v)
   {
-    X1 = v & 1;
-    X2 = (v >> 3) & 1;
+    X1() = v & 1;
+    X2() = (v >> 3) & 1;
     if ((v >> 2) & 1)
-      Y1 = 0;
+      Y1() = 0;
     if ((v >> 1) & 1)
-      Y2 = 0;
-    IY1 = (v >> 4) & 1;
-    IY2 = (v >> 5) & 1;
+      Y2() = 0;
+    IY1() = (v >> 4) & 1;
+    IY2() = (v >> 5) & 1;
   }
 
   inline void arm(u32 v)
   {
-    Y1 = v & 1;
-    Y2 = (v >> 3) & 1;
+    Y1() = v & 1;
+    Y2() = (v >> 3) & 1;
     if ((v >> 2) & 1)
-      X1 = 0;
+      X1() = 0;
     if ((v >> 1) & 1)
-      X2 = 0;
-    IX1 = (v >> 4) & 1;
-    IX2 = (v >> 5) & 1;
+      X2() = 0;
+    IX1() = (v >> 4) & 1;
+    IX2() = (v >> 5) & 1;
   }
 };
 
@@ -183,9 +188,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    ctrl.ppc(val);
                    // The IPC interrupt is triggered when IY1/IY2 is set and
                    // Y1/Y2 is written to -- even when this results in clearing the bit.
-                   if ((val >> 2 & 1 && ctrl.IY1) || (val >> 1 & 1 && ctrl.IY2))
+                   if ((val >> 2 & 1 && ctrl.IY1()) || (val >> 1 & 1 && ctrl.IY2()))
                      ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
-                   if (ctrl.X1)
+                   if (ctrl.X1())
                      HLE::GetIOS()->EnqueueIPCRequest(ppc_msg);
                    HLE::GetIOS()->UpdateIPC();
                    CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
@@ -289,12 +294,12 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 static void UpdateInterrupts(u64 userdata, s64 cyclesLate)
 {
-  if ((ctrl.Y1 & ctrl.IY1) || (ctrl.Y2 & ctrl.IY2))
+  if ((ctrl.Y1() & ctrl.IY1()) || (ctrl.Y2() & ctrl.IY2()))
   {
     ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
   }
 
-  if ((ctrl.X1 & ctrl.IX1) || (ctrl.X2 & ctrl.IX2))
+  if ((ctrl.X1() & ctrl.IX1()) || (ctrl.X2() & ctrl.IX2()))
   {
     ppc_irq_flags |= INT_CAUSE_IPC_STARLET;
   }
@@ -306,14 +311,14 @@ static void UpdateInterrupts(u64 userdata, s64 cyclesLate)
 
 void ClearX1()
 {
-  ctrl.X1 = 0;
+  ctrl.X1() = 0;
 }
 
 void GenerateAck(u32 address)
 {
-  ctrl.Y2 = 1;
-  DEBUG_LOG_FMT(WII_IPC, "GenerateAck: {:08x} | {:08x} [R:{} A:{} E:{}]", ppc_msg, address, ctrl.Y1,
-                ctrl.Y2, ctrl.X1);
+  ctrl.Y2() = 1;
+  DEBUG_LOG_FMT(WII_IPC, "GenerateAck: {:08x} | {:08x} [R:{} A:{} E:{}]", ppc_msg, address,
+                ctrl.Y1(), ctrl.Y2(), ctrl.X1());
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y2 is seen in the control register.
   CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);
@@ -322,9 +327,9 @@ void GenerateAck(u32 address)
 void GenerateReply(u32 address)
 {
   arm_msg = address;
-  ctrl.Y1 = 1;
+  ctrl.Y1() = 1;
   DEBUG_LOG_FMT(WII_IPC, "GenerateReply: {:08x} | {:08x} [R:{} A:{} E:{}]", ppc_msg, address,
-                ctrl.Y1, ctrl.Y2, ctrl.X1);
+                ctrl.Y1(), ctrl.Y2(), ctrl.X1());
   // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
   // after Y1 is seen in the control register.
   CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);
@@ -332,6 +337,6 @@ void GenerateReply(u32 address)
 
 bool IsReady()
 {
-  return ((ctrl.Y1 == 0) && (ctrl.Y2 == 0) && ((ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
+  return ((ctrl.Y1() == 0) && (ctrl.Y2() == 0) && ((ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
 }
 }  // namespace IOS
