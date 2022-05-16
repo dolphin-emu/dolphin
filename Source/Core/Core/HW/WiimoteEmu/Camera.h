@@ -78,18 +78,19 @@ static_assert(sizeof(IRExtended) == 3, "Wrong size");
 
 // Nine bytes for one object
 // first 3 bytes are the same as extended
-#pragma pack(1)
 struct IRFull : IRExtended
 {
-  BitField2<u32> _bf2;
-
-  FIELD_IN(_bf2, u32, 0, 7, xmin);
-  FIELD_IN(_bf2, u32, 8, 7, ymin);
-  FIELD_IN(_bf2, u32, 16, 7, xmax);
-  FIELD_IN(_bf2, u32, 24, 7, ymax);
-
+  BitField2<u8> _byte3;
+  BitField2<u8> _byte4;
+  BitField2<u8> _byte5;
+  BitField2<u8> _byte6;
   u8 zero;
   u8 intensity;
+
+  FIELD_IN(_byte3, u8, 0, 7, xmin);
+  FIELD_IN(_byte4, u8, 0, 7, ymin);
+  FIELD_IN(_byte5, u8, 0, 7, xmax);
+  FIELD_IN(_byte6, u8, 0, 7, ymax);
 };
 static_assert(sizeof(IRFull) == 9, "Wrong size");
 
