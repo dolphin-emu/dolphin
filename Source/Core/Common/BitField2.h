@@ -17,7 +17,6 @@ struct BitField2
 public:
   constexpr StorageType Get() const { return storage; }
   constexpr void Set(StorageType val) { storage = val; }
-  constexpr StorageType& GetStorageRef() { return storage; }
 
   BitField2() = default;
   // Bare statement alternative for Set()

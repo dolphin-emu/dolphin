@@ -208,7 +208,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   };
 
   std::array<MappedVar, 46> directly_mapped_vars{{
-      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.GetStorageRef()},
+      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.storage},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
       {VI_HORIZONTAL_TIMING_1_HI, &m_HTiming1.Hi},
@@ -233,8 +233,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_DISPLAY_LATCH_0_LO, &m_LatchRegister[0].Lo},
       {VI_DISPLAY_LATCH_1_HI, &m_LatchRegister[1].Hi},
       {VI_DISPLAY_LATCH_1_LO, &m_LatchRegister[1].Lo},
-      {VI_HSCALEW, &m_PictureConfiguration.GetStorageRef()},
-      {VI_HSCALER, &m_HorizontalScaling.GetStorageRef()},
+      {VI_HSCALEW, &m_PictureConfiguration.storage},
+      {VI_HSCALER, &m_HorizontalScaling.storage},
       {VI_FILTER_COEF_0_HI, &m_FilterCoefTables.Tables02[0].Hi},
       {VI_FILTER_COEF_0_LO, &m_FilterCoefTables.Tables02[0].Lo},
       {VI_FILTER_COEF_1_HI, &m_FilterCoefTables.Tables02[1].Hi},
@@ -250,8 +250,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_FILTER_COEF_6_HI, &m_FilterCoefTables.Tables36[3].Hi},
       {VI_FILTER_COEF_6_LO, &m_FilterCoefTables.Tables36[3].Lo},
       {VI_CLOCK, &m_Clock},
-      {VI_DTV_STATUS, &m_DTVStatus.GetStorageRef()},
-      {VI_FBWIDTH, &m_FBWidth.GetStorageRef()},
+      {VI_DTV_STATUS, &m_DTVStatus.storage},
+      {VI_FBWIDTH, &m_FBWidth.storage},
       {VI_BORDER_BLANK_END, &m_BorderHBlank.Lo},
       {VI_BORDER_BLANK_START, &m_BorderHBlank.Hi},
   }};
@@ -264,7 +264,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   std::array<MappedVar, 8> update_params_on_read_vars{{
-      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.GetStorageRef()},
+      {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.storage},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
       {VI_VBLANK_TIMING_ODD_HI, &m_VBlankTimingOdd.Hi},
@@ -376,7 +376,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Control register writes only updates some select bits, and additional
   // processing needs to be done if a reset is requested.
   mmio->Register(base | VI_CONTROL_REGISTER,
-                 MMIO::DirectRead<u16>(&m_DisplayControlRegister.GetStorageRef()),
+                 MMIO::DirectRead<u16>(&m_DisplayControlRegister.storage),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    UVIDisplayControlRegister tmpConfig(val);
                    m_DisplayControlRegister.ENB() = tmpConfig.ENB();

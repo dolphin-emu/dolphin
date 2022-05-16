@@ -249,7 +249,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {AR_MODE, &s_AR_MODE, WMASK_NONE},
 
       // For these registers, only some bits can be set
-      {AR_INFO, &s_ARAM_Info.GetStorageRef(), WMASK_AR_INFO},
+      {AR_INFO, &s_ARAM_Info.storage, WMASK_AR_INFO},
       {AR_REFRESH, &s_AR_REFRESH, WMASK_AR_REFRESH},
 
       // For AR_DMA_*_H registers, only bits 0x03ff can be set
@@ -259,7 +259,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {AR_DMA_ARADDR_H, MMIO::Utils::HighPart(&s_arDMA.ARAddr), WMASK_AR_HI_RESTRICT},
       {AR_DMA_ARADDR_L, MMIO::Utils::LowPart(&s_arDMA.ARAddr), WMASK_LO_ALIGN_32BIT},
       // For this register, the topmost (dir) bit can also be set
-      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.GetStorageRef()),
+      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.storage),
        WMASK_AR_HI_RESTRICT | WMASK_AR_CNT_DIR_BIT},
       // AR_DMA_CNT_L triggers DMA
 
@@ -358,7 +358,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // ARAM MMIO controlling the DMA start.
   mmio->Register(base | AR_DMA_CNT_L,
-                 MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&s_arDMA.Cnt.GetStorageRef())),
+                 MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&s_arDMA.Cnt.storage)),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    s_arDMA.Cnt = (s_arDMA.Cnt & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
                    Do_ARAM_DMA();
@@ -374,7 +374,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // Audio DMA MMIO controlling the DMA start.
   mmio->Register(base | AUDIO_DMA_CONTROL_LEN,
-                 MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.GetStorageRef()),
+                 MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.storage),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    bool already_enabled = s_audioDMA.AudioDMAControl.Enable();
                    s_audioDMA.AudioDMAControl = val;
