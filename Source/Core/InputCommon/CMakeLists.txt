@@ -111,6 +111,8 @@ if(WIN32)
   )
 elseif(APPLE)
   target_sources(inputcommon PRIVATE
+    QuartzInputMouse.h
+    QuartzInputMouse.mm
     ControllerInterface/OSX/OSX.h
     ControllerInterface/OSX/OSX.mm
     ControllerInterface/OSX/OSXJoystick.h
