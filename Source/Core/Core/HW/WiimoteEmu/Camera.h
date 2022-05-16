@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -24,32 +25,31 @@ struct IRBasic
 
   u8 x1;
   u8 y1;
-  union
-  {
-    BitField<0, 2, u8> x2hi;
-    BitField<2, 2, u8> y2hi;
-    BitField<4, 2, u8> x1hi;
-    BitField<6, 2, u8> y1hi;
-  };
+  BitField2<u8> _bf;
   u8 x2;
   u8 y2;
 
-  auto GetObject1() const { return IRObject(x1hi << 8 | x1, y1hi << 8 | y1); }
-  auto GetObject2() const { return IRObject(x2hi << 8 | x2, y2hi << 8 | y2); }
+  FIELD_IN(_bf, u8, 0, 2, x2hi);
+  FIELD_IN(_bf, u8, 2, 2, y2hi);
+  FIELD_IN(_bf, u8, 4, 2, x1hi);
+  FIELD_IN(_bf, u8, 6, 2, y1hi);
+
+  auto GetObject1() const { return IRObject(x1hi() << 8 | x1, y1hi() << 8 | y1); }
+  auto GetObject2() const { return IRObject(x2hi() << 8 | x2, y2hi() << 8 | y2); }
 
   void SetObject1(const IRObject& obj)
   {
     x1 = obj.x;
-    x1hi = obj.x >> 8;
+    x1hi() = obj.x >> 8;
     y1 = obj.y;
-    y1hi = obj.y >> 8;
+    y1hi() = obj.y >> 8;
   }
   void SetObject2(const IRObject& obj)
   {
     x2 = obj.x;
-    x2hi = obj.x >> 8;
+    x2hi() = obj.x >> 8;
     y2 = obj.y;
-    y2hi = obj.y >> 8;
+    y2hi() = obj.y >> 8;
   }
 };
 static_assert(sizeof(IRBasic) == 5, "Wrong size");
@@ -59,35 +59,35 @@ struct IRExtended
 {
   u8 x;
   u8 y;
-  union
-  {
-    BitField<0, 4, u8> size;
-    BitField<4, 2, u8> xhi;
-    BitField<6, 2, u8> yhi;
-  };
+  BitField2<u8> _bf;
 
-  auto GetPosition() const { return IRBasic::IRObject(xhi << 8 | x, yhi << 8 | y); }
+  FIELD_IN(_bf, u8, 0, 4, size);
+  FIELD_IN(_bf, u8, 4, 2, xhi);
+  FIELD_IN(_bf, u8, 6, 2, yhi);
+
+  auto GetPosition() const { return IRBasic::IRObject(xhi() << 8 | x, yhi() << 8 | y); }
   void SetPosition(const IRBasic::IRObject& obj)
   {
     x = obj.x;
-    xhi = obj.x >> 8;
+    xhi() = obj.x >> 8;
     y = obj.y;
-    yhi = obj.y >> 8;
+    yhi() = obj.y >> 8;
   }
 };
 static_assert(sizeof(IRExtended) == 3, "Wrong size");
 
 // Nine bytes for one object
 // first 3 bytes are the same as extended
+#pragma pack(1)
 struct IRFull : IRExtended
 {
-  union
-  {
-    BitField<0, 7, u32> xmin;
-    BitField<8, 7, u32> ymin;
-    BitField<16, 7, u32> xmax;
-    BitField<24, 7, u32> ymax;
-  };
+  BitField2<u32> _bf2;
+
+  FIELD_IN(_bf2, u32, 0, 7, xmin);
+  FIELD_IN(_bf2, u32, 8, 7, ymin);
+  FIELD_IN(_bf2, u32, 16, 7, xmax);
+  FIELD_IN(_bf2, u32, 24, 7, ymax);
+
   u8 zero;
   u8 intensity;
 };
