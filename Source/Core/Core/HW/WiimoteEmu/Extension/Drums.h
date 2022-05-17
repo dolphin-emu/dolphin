@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -29,43 +30,6 @@ enum class DrumsGroup
 class Drums : public Extension1stParty
 {
 public:
-  struct DataFormat
-  {
-    union
-    {
-      BitField<0, 6, u32> stick_x;
-      // Seemingly random.
-      BitField<6, 2, u32> unk1;
-
-      BitField<8, 6, u32> stick_y;
-      // Seemingly random.
-      BitField<14, 2, u32> unk2;
-
-      // Always 1 with no velocity data and seemingly random otherwise.
-      BitField<16, 1, bool, u32> unk3;
-      // For which "pad" the velocity data is for.
-      BitField<17, 7, u32> velocity_id;
-
-      // Always 1 with no velocity data and seemingly random otherwise.
-      BitField<24, 1, bool, u32> unk4;
-      // 1 with no velocity data and 0 when velocity data is present.
-      BitField<25, 1, bool, u32> no_velocity_data_1;
-      // These two bits seem to always be set. (0b11)
-      BitField<26, 2, u32> unk5;
-      // 1 with no velocity data and 0 when velocity data is present.
-      BitField<28, 1, bool, u32> no_velocity_data_2;
-      // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
-      BitField<29, 3, u32> softness;
-    };
-
-    // Button bits.
-    u8 buttons;
-
-    // Drum-pad bits.
-    u8 drum_pads;
-  };
-  static_assert(sizeof(DataFormat) == 6, "Wrong size");
-
   enum class VelocityID : u8
   {
     None = 0b1111111,
@@ -78,6 +42,43 @@ public:
     Orange = 0b1001110,
     Green = 0b1010010,
   };
+
+#pragma pack(1)
+  struct DataFormat
+  {
+    BitField2<u32> _data;
+
+    // Button bits.
+    u8 buttons;
+
+    // Drum-pad bits.
+    u8 drum_pads;
+
+    FIELD_IN(_data, u32, 0, 6, stick_x);
+    // Seemingly random.
+    FIELD_IN(_data, u32, 6, 2, unk1);
+
+    FIELD_IN(_data, u32, 8, 6, stick_y);
+    // Seemingly random.
+    FIELD_IN(_data, u32, 14, 2, unk2);
+
+    // Always 1 with no velocity data and seemingly random otherwise.
+    FIELD_IN(_data, u32, 16, 1, unk3);
+    // For which "pad" the velocity data is for.
+    FIELD_IN(_data, VelocityID, 17, 7, velocity_id);
+
+    // Always 1 with no velocity data and seemingly random otherwise.
+    FIELD_IN(_data, u32, 24, 1, unk4);
+    // 1 with no velocity data and 0 when velocity data is present.
+    FIELD_IN(_data, bool, 25, 1, no_velocity_data_1);
+    // These two bits seem to always be set. (0b11)
+    FIELD_IN(_data, u32, 26, 2, unk5);
+    // 1 with no velocity data and 0 when velocity data is present.
+    FIELD_IN(_data, bool, 28, 1, no_velocity_data_2);
+    // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
+    FIELD_IN(_data, u32, 29, 3, softness);
+  };
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   Drums();
 
