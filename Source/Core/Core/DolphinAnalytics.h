@@ -87,6 +87,10 @@ enum class GameQuirk
   MISMATCHED_GPU_COLORS_BETWEEN_CP_AND_XF,
   MISMATCHED_GPU_NORMALS_BETWEEN_CP_AND_XF,
   MISMATCHED_GPU_TEX_COORDS_BETWEEN_CP_AND_XF,
+  // Both CP and XF have normally-identical matrix index information.  We currently always
+  // use the CP one in the hardware renderers and the XF one in the software renderer,
+  // but testing is needed to find out which of these is actually used for what.
+  MISMATCHED_GPU_MATRIX_INDICES_BETWEEN_CP_AND_XF,
 
   COUNT,
 };
