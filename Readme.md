@@ -13,7 +13,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ### Desktop
 
 * OS
-    * Windows (7 SP1 or higher).
+    * Windows (10 or higher).
     * Linux.
     * macOS (10.13 High Sierra or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
@@ -39,7 +39,7 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2022 17.0 or later is a hard requirement. Other compilers might be
+Visual Studio 2022 17.2 or later is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 11 SDK must be installed when building.
 
