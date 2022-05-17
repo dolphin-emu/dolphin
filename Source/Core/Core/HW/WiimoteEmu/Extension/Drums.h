@@ -47,12 +47,8 @@ public:
   struct DataFormat
   {
     BitField2<u32> _data;
-
-    // Button bits.
-    u8 buttons;
-
-    // Drum-pad bits.
-    u8 drum_pads;
+    u8 buttons;    // Button bits.
+    u8 drum_pads;  // Drum-pad bits.
 
     FIELD_IN(_data, u32, 0, 6, stick_x);
     // Seemingly random.

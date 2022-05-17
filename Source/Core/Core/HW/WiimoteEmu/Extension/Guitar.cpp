@@ -101,8 +101,8 @@ void Guitar::Update()
   {
     const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    guitar_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
-    guitar_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
+    guitar_data.sx() = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
+    guitar_data.sy() = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
   }
 
   // slider bar
@@ -111,17 +111,17 @@ void Guitar::Update()
   {
     const ControllerEmu::Slider::StateData slider_data = m_slider_bar->GetState();
 
-    guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_data.value)->second;
+    guitar_data.sb() = s_slider_bar_control_codes.lower_bound(slider_data.value)->second;
   }
   else
   {
     // if user has not mapped controls for slider bar, tell game it's untouched
-    guitar_data.sb = 0x0F;
+    guitar_data.sb() = 0x0F;
   }
 
   // whammy bar
   const ControllerEmu::Triggers::StateData whammy_state = m_whammy->GetState();
-  guitar_data.whammy = static_cast<u8>(whammy_state.data[0] * 0x1F);
+  guitar_data.whammy() = static_cast<u8>(whammy_state.data[0] * 0x1F);
 
   // buttons
   m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data());

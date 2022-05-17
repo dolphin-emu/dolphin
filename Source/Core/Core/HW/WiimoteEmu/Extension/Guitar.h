@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -31,24 +32,20 @@ enum class GuitarGroup
 class Guitar : public Extension1stParty
 {
 public:
+#pragma pack(1)
   struct DataFormat
   {
-    union
-    {
-      BitField<0, 6, u32> sx;
-      BitField<6, 2, u32> pad1;  // 1 on gh3, 0 on ghwt
-
-      BitField<8, 6, u32> sy;
-      BitField<14, 2, u32> pad2;  // 1 on gh3, 0 on ghwt
-
-      BitField<16, 5, u32> sb;    // not used in gh3
-      BitField<21, 3, u32> pad3;  // always 0
-
-      BitField<24, 5, u32> whammy;
-      BitField<29, 3, u32> pad4;  // always 0
-    };
-
+    BitField2<u32> _data;
     u16 bt;  // buttons
+
+    FIELD_IN(_data, u32, 0, 6, sx);
+    FIELD_IN(_data, u32, 6, 2, pad1);  // 1 on gh3, 0 on ghwt
+    FIELD_IN(_data, u32, 8, 6, sy);
+    FIELD_IN(_data, u32, 14, 2, pad2);  // 1 on gh3, 0 on ghwt
+    FIELD_IN(_data, u32, 16, 5, sb);    // not used in gh3
+    FIELD_IN(_data, u32, 21, 3, pad3);  // always 0
+    FIELD_IN(_data, u32, 24, 5, whammy);
+    FIELD_IN(_data, u32, 29, 3, pad4);  // always 0
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
