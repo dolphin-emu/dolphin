@@ -1,10 +1,9 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <iterator>
 #include <limits>
-
-#include "Common/CommonTypes.h"
 
 template <typename StorageType>
 struct BitField2
