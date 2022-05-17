@@ -81,6 +81,13 @@ enum class GameQuirk
   SETS_XF_CLIPDISABLE_BIT_1,
   SETS_XF_CLIPDISABLE_BIT_2,
 
+  // Similar to the XF-BP mismatch, CP and XF might be configured with different vertex formats.
+  // Real hardware seems to hang in this case, so games probably don't do this, but it would
+  // be good to know if anything does it.
+  MISMATCHED_GPU_COLORS_BETWEEN_CP_AND_XF,
+  MISMATCHED_GPU_NORMALS_BETWEEN_CP_AND_XF,
+  MISMATCHED_GPU_TEX_COORDS_BETWEEN_CP_AND_XF,
+
   COUNT,
 };
 
