@@ -34,17 +34,18 @@ enum class NunchukGroup
 class Nunchuk : public Extension1stParty
 {
 public:
-  union ButtonFormat
+  struct ButtonFormat : BitField2<u8>
   {
-    u8 hex;
-
-    BitField<0, 1, bool, u8> z;
-    BitField<1, 1, bool, u8> c;
+    FIELD(bool, 0, 1, z);
+    FIELD(bool, 1, 1, c);
 
     // LSBs of accelerometer
-    BitField<2, 2, u8> acc_x_lsb;
-    BitField<4, 2, u8> acc_y_lsb;
-    BitField<6, 2, u8> acc_z_lsb;
+    FIELD(u8, 2, 2, acc_x_lsb);
+    FIELD(u8, 4, 2, acc_y_lsb);
+    FIELD(u8, 6, 2, acc_z_lsb);
+
+    ButtonFormat() = default;
+    constexpr ButtonFormat(u8 val) : BitField2(val) {}
   };
   static_assert(sizeof(ButtonFormat) == 1, "Wrong size");
 
@@ -59,25 +60,25 @@ public:
     auto GetStick() const { return StickRawValue(StickType(jx, jy)); }
 
     // Components have 10 bits of precision.
-    u16 GetAccelX() const { return ax << 2 | bt.acc_x_lsb; }
-    u16 GetAccelY() const { return ay << 2 | bt.acc_y_lsb; }
-    u16 GetAccelZ() const { return az << 2 | bt.acc_z_lsb; }
+    u16 GetAccelX() const { return ax << 2 | bt.acc_x_lsb(); }
+    u16 GetAccelY() const { return ay << 2 | bt.acc_y_lsb(); }
+    u16 GetAccelZ() const { return az << 2 | bt.acc_z_lsb(); }
     auto GetAccel() const { return AccelData{AccelType{GetAccelX(), GetAccelY(), GetAccelZ()}}; }
 
     void SetAccelX(u16 val)
     {
       ax = val >> 2;
-      bt.acc_x_lsb = val & 0b11;
+      bt.acc_x_lsb() = val & 0b11;
     }
     void SetAccelY(u16 val)
     {
       ay = val >> 2;
-      bt.acc_y_lsb = val & 0b11;
+      bt.acc_y_lsb() = val & 0b11;
     }
     void SetAccelZ(u16 val)
     {
       az = val >> 2;
-      bt.acc_z_lsb = val & 0b11;
+      bt.acc_z_lsb() = val & 0b11;
     }
     void SetAccel(const AccelType& accel)
     {
@@ -89,13 +90,13 @@ public:
     u8 GetButtons() const
     {
       // 0 == pressed.
-      return ~bt.hex & (BUTTON_C | BUTTON_Z);
+      return ~bt & (BUTTON_C | BUTTON_Z);
     }
     void SetButtons(u8 value)
     {
       // 0 == pressed.
-      bt.hex |= (BUTTON_C | BUTTON_Z);
-      bt.hex ^= value & (BUTTON_C | BUTTON_Z);
+      bt |= (BUTTON_C | BUTTON_Z);
+      bt ^= value & (BUTTON_C | BUTTON_Z);
     }
 
     // joystick x, y

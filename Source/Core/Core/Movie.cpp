@@ -767,14 +767,14 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     Nunchuk::DataFormat nunchuk;
     memcpy(&nunchuk, extData, sizeof(nunchuk));
     key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
-    nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
+    nunchuk.bt = nunchuk.bt ^ 0x3;
 
     const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
                                           nunchuk.GetAccelY(), nunchuk.GetAccelZ());
 
-    if (nunchuk.bt.c)
+    if (nunchuk.bt.c())
       display_str += " C";
-    if (nunchuk.bt.z)
+    if (nunchuk.bt.z())
       display_str += " Z";
     display_str += accel;
     display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
