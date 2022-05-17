@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"

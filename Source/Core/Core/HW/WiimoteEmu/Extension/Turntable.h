@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
@@ -32,30 +33,28 @@ enum class TurntableGroup
 class Turntable : public Extension1stParty
 {
 public:
+#pragma pack(1)
   struct DataFormat
   {
+    BitField2<u32> _data1;
     union
     {
-      BitField<0, 6, u32> sx;
-      BitField<6, 2, u32> rtable3;
-
-      BitField<8, 6, u32> sy;
-      BitField<14, 2, u32> rtable2;
-
-      BitField<16, 1, u32> rtable4;
-      BitField<17, 4, u32> slider;
-      BitField<21, 2, u32> dial2;
-      BitField<23, 1, u32> rtable1;
-
-      BitField<24, 5, u32> ltable1;
-      BitField<29, 3, u32> dial1;
-    };
-
-    union
-    {
-      BitField<0, 1, u16> ltable2;
+      BitField2<u16> _data2;
       u16 bt;  // buttons
     };
+
+    FIELD_IN(_data1, u32, 0, 6, sx);
+    FIELD_IN(_data1, u32, 6, 2, rtable3);
+    FIELD_IN(_data1, u32, 8, 6, sy);
+    FIELD_IN(_data1, u32, 14, 2, rtable2);
+    FIELD_IN(_data1, u32, 16, 1, rtable4);
+    FIELD_IN(_data1, u32, 17, 4, slider);
+    FIELD_IN(_data1, u32, 21, 2, dial2);
+    FIELD_IN(_data1, u32, 23, 1, rtable1);
+    FIELD_IN(_data1, u32, 24, 5, ltable1);
+    FIELD_IN(_data1, u32, 29, 3, dial1);
+
+    FIELD_IN(_data2, u16, 0, 1, ltable2);
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
