@@ -44,13 +44,13 @@ struct fmt::formatter<TexInputForm> : EnumFormatter<TexInputForm::ABC1>
 enum class NormalCount : u32
 {
   None = 0,
-  Normals = 1,
-  NormalsBinormals = 2
+  Normal = 1,
+  NormalTangentBinormal = 2
 };
 template <>
-struct fmt::formatter<NormalCount> : EnumFormatter<NormalCount::NormalsBinormals>
+struct fmt::formatter<NormalCount> : EnumFormatter<NormalCount::NormalTangentBinormal>
 {
-  constexpr formatter() : EnumFormatter({"None", "Normals only", "Normals and binormals"}) {}
+  constexpr formatter() : EnumFormatter({"None", "Normal only", "Normal, tangent, and binormal"}) {}
 };
 
 // Texture generation type
