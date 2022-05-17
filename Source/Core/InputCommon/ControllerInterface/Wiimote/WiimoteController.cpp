@@ -1311,7 +1311,7 @@ void Device::ProcessMotionPlusExtensionData(const u8* ext_data, u32 ext_size)
   const WiimoteEmu::MotionPlus::DataFormat mplus_data =
       Common::BitCastPtr<WiimoteEmu::MotionPlus::DataFormat>(ext_data);
 
-  const bool is_ext_connected = mplus_data.extension_connected;
+  const bool is_ext_connected = mplus_data.extension_connected();
 
   // Handle passthrough extension change.
   if (is_ext_connected != m_mplus_state.passthrough_port)
@@ -1327,7 +1327,7 @@ void Device::ProcessMotionPlusExtensionData(const u8* ext_data, u32 ext_size)
     ProcessExtensionEvent(is_ext_connected);
   }
 
-  if (mplus_data.is_mp_data)
+  if (mplus_data.is_mp_data())
   {
     m_mplus_state.ProcessData(mplus_data);
     return;

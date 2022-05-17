@@ -416,7 +416,7 @@ void MotionPlus::Update()
   const bool is_ext_connected = m_extension_port.IsDeviceConnected();
 
   // Check for extension change:
-  if (is_ext_connected != mplus_data.extension_connected)
+  if (is_ext_connected != mplus_data.extension_connected())
   {
     if (is_ext_connected)
     {
@@ -454,7 +454,7 @@ void MotionPlus::Update()
     }
 
     // Update flag in register:
-    mplus_data.extension_connected = is_ext_connected;
+    mplus_data.extension_connected() = is_ext_connected;
     Common::BitCastPtr<DataFormat>(data) = mplus_data;
   }
 
@@ -538,14 +538,14 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
 
   // Maintain the current state of this bit rather than reading from the port.
   // We update this bit elsewhere and performs some tasks on change.
-  const bool is_ext_connected = mplus_data.extension_connected;
+  const bool is_ext_connected = mplus_data.extension_connected();
 
   // After the first "garbage" report a real M+ alternates between M+ and EXT data.
   // Failure to read from the extension results in a fallback to M+ data.
-  mplus_data.is_mp_data ^= true;
+  mplus_data.is_mp_data() ^= true;
 
   // If the last frame had M+ data try to send some non-M+ data:
-  if (!mplus_data.is_mp_data)
+  if (!mplus_data.is_mp_data())
   {
     // Real M+ only ever reads 6 bytes from the extension which is triggered by a read at 0x00.
     // Data after 6 bytes seems to be zero-filled.
@@ -561,7 +561,7 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
     case PassthroughMode::Disabled:
     {
       // Passthrough disabled, always send M+ data:
-      mplus_data.is_mp_data = true;
+      mplus_data.is_mp_data() = true;
       break;
     }
     case PassthroughMode::Nunchuk:
@@ -572,25 +572,25 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
         mplus_data = Common::BitCastPtr<DataFormat>(data);
 
         // Bit 0 and 1 of byte 5 contain a M+ flag and a zero bit which is set below.
-        mplus_data.is_mp_data = false;
+        mplus_data.is_mp_data() = false;
       }
       else
       {
         // Read failed (extension unplugged), Send M+ data instead
-        mplus_data.is_mp_data = true;
+        mplus_data.is_mp_data() = true;
       }
       break;
     default:
       // This really shouldn't happen as the M+ deactivates on an invalid mode write.
       ERROR_LOG_FMT(WIIMOTE, "M+ unknown passthrough-mode {}",
                     static_cast<int>(GetPassthroughMode()));
-      mplus_data.is_mp_data = true;
+      mplus_data.is_mp_data() = true;
       break;
     }
   }
 
   // If the above logic determined this should be M+ data, update it here.
-  if (mplus_data.is_mp_data)
+  if (mplus_data.is_mp_data())
   {
     constexpr int BITS_OF_PRECISION = 14;
 
@@ -613,16 +613,16 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
 
     // Slow (high precision) scaling can be used if it fits in the sensor range.
     const float yaw = angular_velocity.z;
-    mplus_data.yaw_slow = (std::abs(yaw) < SLOW_MAX_RAD_PER_SEC);
-    s32 yaw_value = yaw * (mplus_data.yaw_slow ? SLOW_SCALE : FAST_SCALE);
+    mplus_data.yaw_slow() = (std::abs(yaw) < SLOW_MAX_RAD_PER_SEC);
+    s32 yaw_value = yaw * (mplus_data.yaw_slow() ? SLOW_SCALE : FAST_SCALE);
 
     const float roll = angular_velocity.y;
-    mplus_data.roll_slow = (std::abs(roll) < SLOW_MAX_RAD_PER_SEC);
-    s32 roll_value = roll * (mplus_data.roll_slow ? SLOW_SCALE : FAST_SCALE);
+    mplus_data.roll_slow() = (std::abs(roll) < SLOW_MAX_RAD_PER_SEC);
+    s32 roll_value = roll * (mplus_data.roll_slow() ? SLOW_SCALE : FAST_SCALE);
 
     const float pitch = angular_velocity.x;
-    mplus_data.pitch_slow = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
-    s32 pitch_value = pitch * (mplus_data.pitch_slow ? SLOW_SCALE : FAST_SCALE);
+    mplus_data.pitch_slow() = (std::abs(pitch) < SLOW_MAX_RAD_PER_SEC);
+    s32 pitch_value = pitch * (mplus_data.pitch_slow() ? SLOW_SCALE : FAST_SCALE);
 
     yaw_value = std::clamp(yaw_value + ZERO_VALUE, 0, MAX_VALUE);
     roll_value = std::clamp(roll_value + ZERO_VALUE, 0, MAX_VALUE);
@@ -634,13 +634,13 @@ void MotionPlus::PrepareInput(const Common::Vec3& angular_velocity)
     mplus_data.pitch1 = u8(pitch_value);
 
     // Bits 8-13
-    mplus_data.yaw2 = u8(yaw_value >> 8);
-    mplus_data.roll2 = u8(roll_value >> 8);
-    mplus_data.pitch2 = u8(pitch_value >> 8);
+    mplus_data.yaw2() = u8(yaw_value >> 8);
+    mplus_data.roll2() = u8(roll_value >> 8);
+    mplus_data.pitch2() = u8(pitch_value >> 8);
   }
 
-  mplus_data.extension_connected = is_ext_connected;
-  mplus_data.zero = 0;
+  mplus_data.extension_connected() = is_ext_connected;
+  mplus_data.zero() = 0;
 
   Common::BitCastPtr<DataFormat>(data) = mplus_data;
 }

@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -87,8 +88,8 @@ public:
     auto GetData() const
     {
       return Data{
-          GyroRawValue{GyroType(pitch1 | pitch2 << 8, roll1 | roll2 << 8, yaw1 | yaw2 << 8)},
-          SlowType(pitch_slow, roll_slow, yaw_slow)};
+          GyroRawValue{GyroType(pitch1 | pitch2() << 8, roll1 | roll2() << 8, yaw1 | yaw2() << 8)},
+          SlowType(pitch_slow(), roll_slow(), yaw_slow())};
     }
 
     // yaw1, roll1, pitch1: Bits 0-7
@@ -98,26 +99,21 @@ public:
     u8 roll1;
     u8 pitch1;
 
-    union
-    {
-      BitField<0, 1, bool, u8> pitch_slow;
-      BitField<1, 1, bool, u8> yaw_slow;
-      BitField<2, 6, u8> yaw2;
-    };
+    BitField2<u8> _data1;
+    BitField2<u8> _data2;
+    BitField2<u8> _data3;
 
-    union
-    {
-      BitField<0, 1, bool, u8> extension_connected;
-      BitField<1, 1, bool, u8> roll_slow;
-      BitField<2, 6, u8> roll2;
-    };
+    FIELD_IN(_data1, bool, 0, 1, pitch_slow);
+    FIELD_IN(_data1, bool, 1, 1, yaw_slow);
+    FIELD_IN(_data1, u8, 2, 6, yaw2);
 
-    union
-    {
-      BitField<0, 1, bool, u8> zero;
-      BitField<1, 1, bool, u8> is_mp_data;
-      BitField<2, 6, u8> pitch2;
-    };
+    FIELD_IN(_data2, bool, 0, 1, extension_connected);
+    FIELD_IN(_data2, bool, 1, 1, roll_slow);
+    FIELD_IN(_data2, u8, 2, 6, roll2);
+
+    FIELD_IN(_data3, bool, 0, 1, zero);
+    FIELD_IN(_data3, bool, 1, 1, is_mp_data);
+    FIELD_IN(_data3, u8, 2, 6, pitch2);
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 #pragma pack(pop)
