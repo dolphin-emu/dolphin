@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -43,11 +44,9 @@ public:
     // Y increases from bottom to top
     u8 stylus_x1;
     u8 stylus_y1;
-    union
-    {
-      BitField<0, 4, u8> stylus_x2;
-      BitField<4, 4, u8> stylus_y2;
-    };
+    BitField2<u8> _x2y2;
+    FIELD_IN(_x2y2, u8, 0, 4, stylus_x2);
+    FIELD_IN(_x2y2, u8, 4, 4, stylus_y2);
 
     // Valid even when stylus is lifted
     u8 pressure;

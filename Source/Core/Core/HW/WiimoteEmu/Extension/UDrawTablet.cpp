@@ -91,9 +91,9 @@ void UDrawTablet::Update()
   }
 
   tablet_data.stylus_x1 = stylus_x & 0xff;
-  tablet_data.stylus_x2 = stylus_x >> 8;
+  tablet_data.stylus_x2() = stylus_x >> 8;
   tablet_data.stylus_y1 = stylus_y & 0xff;
-  tablet_data.stylus_y2 = stylus_y >> 8;
+  tablet_data.stylus_y2() = stylus_y >> 8;
 
   // Buttons:
   m_buttons->GetState(&tablet_data.buttons, udraw_tablet_button_bitmasks.data());
