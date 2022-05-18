@@ -13,6 +13,7 @@
 
 #include "Common/Align.h"
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -77,59 +78,49 @@ constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
 constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
 // DI Status Register
-union UDISR
+struct UDISR : BitField2<u32>
 {
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, BREAK);      // Stop the Device + Interrupt
+  FIELD(bool, 1, 1, DEINTMASK);  // Access Device Error Int Mask
+  FIELD(bool, 2, 1, DEINT);      // Access Device Error Int
+  FIELD(bool, 3, 1, TCINTMASK);  // Transfer Complete Int Mask
+  FIELD(bool, 4, 1, TCINT);      // Transfer Complete Int
+  FIELD(bool, 5, 1, BRKINTMASK);
+  FIELD(bool, 6, 1, BRKINT);  // w 1: clear brkint
+  FIELD(u32, 7, 25, reserved);
 
-  BitField<0, 1, u32> BREAK;      // Stop the Device + Interrupt
-  BitField<1, 1, u32> DEINTMASK;  // Access Device Error Int Mask
-  BitField<2, 1, u32> DEINT;      // Access Device Error Int
-  BitField<3, 1, u32> TCINTMASK;  // Transfer Complete Int Mask
-  BitField<4, 1, u32> TCINT;      // Transfer Complete Int
-  BitField<5, 1, u32> BRKINTMASK;
-  BitField<6, 1, u32> BRKINT;  // w 1: clear brkint
-  BitField<7, 25, u32> reserved;
-
-  UDISR() = default;
-  explicit UDISR(u32 hex) : Hex{hex} {}
+  constexpr UDISR(u32 val = 0) : BitField2(val) {}
 };
 
 // DI Cover Register
-union UDICVR
+struct UDICVR : BitField2<u32>
 {
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, CVR);         // 0: Cover closed  1: Cover open
+  FIELD(bool, 1, 1, CVRINTMASK);  // 1: Interrupt enabled
+  FIELD(bool, 2, 1, CVRINT);      // r 1: Interrupt requested w 1: Interrupt clear
+  FIELD(u32, 3, 29, reserved);
 
-  BitField<0, 1, u32> CVR;         // 0: Cover closed  1: Cover open
-  BitField<1, 1, u32> CVRINTMASK;  // 1: Interrupt enabled
-  BitField<2, 1, u32> CVRINT;      // r 1: Interrupt requested w 1: Interrupt clear
-  BitField<3, 29, u32> reserved;
-
-  UDICVR() = default;
-  explicit UDICVR(u32 hex) : Hex{hex} {}
+  constexpr UDICVR(u32 val = 0) : BitField2(val) {}
 };
 
 // DI DMA Control Register
-union UDICR
+struct UDICR : BitField2<u32>
 {
-  u32 Hex = 0;
+  FIELD(bool, 0, 1, TSTART);  // w:1 start   r:0 ready
+  FIELD(bool, 1, 1, DMA);  // 0: Immediate Mode (can only do Access Register Command)   1: DMA Mode
+  FIELD(bool, 2, 1, RW);   // 0: Read Command (DVD to Memory)   1: Write Command (Memory to DVD)
+  FIELD(u32, 3, 29, reserved);
 
-  BitField<0, 1, u32> TSTART;  // w:1 start   r:0 ready
-  BitField<1, 1, u32> DMA;     // 1: DMA Mode
-                               // 0: Immediate Mode (can only do Access Register Command)
-  BitField<2, 1, u32> RW;      // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
-  BitField<3, 29, u32> reserved;
+  constexpr UDICR(u32 val = 0) : BitField2(val) {}
 };
 
 // DI Config Register
-union UDICFG
+struct UDICFG : BitField2<u32>
 {
-  u32 Hex = 0;
+  FIELD(u32, 0, 8, CONFIG);
+  FIELD(u32, 8, 24, reserved);
 
-  BitField<0, 8, u32> CONFIG;
-  BitField<8, 24, u32> reserved;
-
-  UDICFG() = default;
-  explicit UDICFG(u32 hex) : Hex{hex} {}
+  constexpr UDICFG(u32 val = 0) : BitField2(val) {}
 };
 
 // STATE_TO_SAVE
@@ -354,17 +345,17 @@ void Init()
 
   DVDThread::Start();
 
-  s_DISR.Hex = 0;
-  s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
+  s_DISR = 0;
+  s_DICVR = 1;  // Disc Channel relies on cover being open when no disc is inserted
   s_DICMDBUF[0] = 0;
   s_DICMDBUF[1] = 0;
   s_DICMDBUF[2] = 0;
   s_DIMAR = 0;
   s_DILENGTH = 0;
-  s_DICR.Hex = 0;
+  s_DICR = 0;
   s_DIIMMBUF = 0;
-  s_DICFG.Hex = 0;
-  s_DICFG.CONFIG = 1;  // Disable bootrom descrambler
+  s_DICFG = 0;
+  s_DICFG.CONFIG() = 1;  // Disable bootrom descrambler
 
   ResetDrive(false);
 
@@ -592,9 +583,9 @@ bool AutoChangeDisc()
 
 static void SetLidOpen()
 {
-  const u32 old_value = s_DICVR.CVR;
-  s_DICVR.CVR = IsDiscInside() ? 0 : 1;
-  if (s_DICVR.CVR != old_value)
+  const u32 old_value = s_DICVR.CVR();
+  s_DICVR.CVR() = IsDiscInside() ? 0 : 1;
+  if (s_DICVR.CVR() != old_value)
     GenerateDIInterrupt(DIInterruptType::CVRINT);
 }
 
@@ -608,25 +599,25 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id)
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.Hex),
+  mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.storage),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    const UDISR tmp_status_reg(val);
 
-                   s_DISR.DEINTMASK = tmp_status_reg.DEINTMASK.Value();
-                   s_DISR.TCINTMASK = tmp_status_reg.TCINTMASK.Value();
-                   s_DISR.BRKINTMASK = tmp_status_reg.BRKINTMASK.Value();
-                   s_DISR.BREAK = tmp_status_reg.BREAK.Value();
+                   s_DISR.DEINTMASK() = tmp_status_reg.DEINTMASK();
+                   s_DISR.TCINTMASK() = tmp_status_reg.TCINTMASK();
+                   s_DISR.BRKINTMASK() = tmp_status_reg.BRKINTMASK();
+                   s_DISR.BREAK() = tmp_status_reg.BREAK();
 
-                   if (tmp_status_reg.DEINT)
-                     s_DISR.DEINT = 0;
+                   if (tmp_status_reg.DEINT())
+                     s_DISR.DEINT() = 0;
 
-                   if (tmp_status_reg.TCINT)
-                     s_DISR.TCINT = 0;
+                   if (tmp_status_reg.TCINT())
+                     s_DISR.TCINT() = 0;
 
-                   if (tmp_status_reg.BRKINT)
-                     s_DISR.BRKINT = 0;
+                   if (tmp_status_reg.BRKINT())
+                     s_DISR.BRKINT() = 0;
 
-                   if (s_DISR.BREAK)
+                   if (s_DISR.BREAK())
                    {
                      DEBUG_ASSERT(0);
                    }
@@ -634,14 +625,14 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    UpdateInterrupts();
                  }));
 
-  mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&s_DICVR.Hex),
+  mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&s_DICVR.storage),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    const UDICVR tmp_cover_reg(val);
 
-                   s_DICVR.CVRINTMASK = tmp_cover_reg.CVRINTMASK.Value();
+                   s_DICVR.CVRINTMASK() = tmp_cover_reg.CVRINTMASK();
 
-                   if (tmp_cover_reg.CVRINT)
-                     s_DICVR.CVRINT = 0;
+                   if (tmp_cover_reg.CVRINT())
+                     s_DICVR.CVRINT() = 0;
 
                    UpdateInterrupts();
                  }));
@@ -661,10 +652,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&s_DIMAR, ~0x1F));
   mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&s_DILENGTH),
                  MMIO::DirectWrite<u32>(&s_DILENGTH, ~0x1F));
-  mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_DICR.Hex),
+  mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_DICR.storage),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   s_DICR.Hex = val & 7;
-                   if (s_DICR.TSTART)
+                   s_DICR = val & 7;
+                   if (s_DICR.TSTART())
                    {
                      ExecuteCommand(ReplyType::Interrupt);
                    }
@@ -674,15 +665,16 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&s_DIIMMBUF));
 
   // DI config register is read only.
-  mmio->Register(base | DI_CONFIG_REGISTER, MMIO::DirectRead<u32>(&s_DICFG.Hex),
+  mmio->Register(base | DI_CONFIG_REGISTER, MMIO::DirectRead<u32>(&s_DICFG.storage),
                  MMIO::InvalidWrite<u32>());
 }
 
 static void UpdateInterrupts()
 {
-  const bool set_mask =
-      (s_DISR.DEINT & s_DISR.DEINTMASK) != 0 || (s_DISR.TCINT & s_DISR.TCINTMASK) != 0 ||
-      (s_DISR.BRKINT & s_DISR.BRKINTMASK) != 0 || (s_DICVR.CVRINT & s_DICVR.CVRINTMASK) != 0;
+  const bool set_mask = (s_DISR.DEINT() & s_DISR.DEINTMASK()) != 0 ||
+                        (s_DISR.TCINT() & s_DISR.TCINTMASK()) != 0 ||
+                        (s_DISR.BRKINT() & s_DISR.BRKINTMASK()) != 0 ||
+                        (s_DICVR.CVRINT() & s_DICVR.CVRINTMASK()) != 0;
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
@@ -695,16 +687,16 @@ static void GenerateDIInterrupt(DIInterruptType dvd_interrupt)
   switch (dvd_interrupt)
   {
   case DIInterruptType::DEINT:
-    s_DISR.DEINT = true;
+    s_DISR.DEINT() = true;
     break;
   case DIInterruptType::TCINT:
-    s_DISR.TCINT = true;
+    s_DISR.TCINT() = true;
     break;
   case DIInterruptType::BRKINT:
-    s_DISR.BRKINT = true;
+    s_DISR.BRKINT() = true;
     break;
   case DIInterruptType::CVRINT:
-    s_DICVR.CVRINT = true;
+    s_DICVR.CVRINT() = true;
     break;
   }
 
@@ -716,16 +708,16 @@ void SetInterruptEnabled(DIInterruptType interrupt, bool enabled)
   switch (interrupt)
   {
   case DIInterruptType::DEINT:
-    s_DISR.DEINTMASK = enabled;
+    s_DISR.DEINTMASK() = enabled;
     break;
   case DIInterruptType::TCINT:
-    s_DISR.TCINTMASK = enabled;
+    s_DISR.TCINTMASK() = enabled;
     break;
   case DIInterruptType::BRKINT:
-    s_DISR.BRKINTMASK = enabled;
+    s_DISR.BRKINTMASK() = enabled;
     break;
   case DIInterruptType::CVRINT:
-    s_DICVR.CVRINTMASK = enabled;
+    s_DICVR.CVRINTMASK() = enabled;
     break;
   }
 }
@@ -735,16 +727,16 @@ void ClearInterrupt(DIInterruptType interrupt)
   switch (interrupt)
   {
   case DIInterruptType::DEINT:
-    s_DISR.DEINT = false;
+    s_DISR.DEINT() = false;
     break;
   case DIInterruptType::TCINT:
-    s_DISR.TCINT = false;
+    s_DISR.TCINT() = false;
     break;
   case DIInterruptType::BRKINT:
-    s_DISR.BRKINT = false;
+    s_DISR.BRKINT() = false;
     break;
   case DIInterruptType::CVRINT:
-    s_DICVR.CVRINT = false;
+    s_DICVR.CVRINT() = false;
     break;
   }
 }
@@ -1352,9 +1344,9 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::Interrupt:
   {
-    if (s_DICR.TSTART)
+    if (s_DICR.TSTART())
     {
-      s_DICR.TSTART = 0;
+      s_DICR.TSTART() = 0;
       GenerateDIInterrupt(interrupt_type);
     }
     break;
