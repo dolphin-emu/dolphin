@@ -12,87 +12,86 @@
 
 // --- Gekko Instruction ---
 
-union UGeckoInstruction
+struct UGeckoInstruction : BitField2<u32>
 {
-  u32 hex = 0;
-
   UGeckoInstruction() = default;
-  UGeckoInstruction(u32 hex_) : hex(hex_) {}
+  constexpr UGeckoInstruction(u32 val) : BitField2(val) {}
+  constexpr operator u32() { return Get(); }
 
   // Opcode
-  BitField<26, 6, u32> OPCD;     // Primary opcode
-  BitField<1, 5, u32> SUBOP5;    // A-Form Extended Opcode
-  BitField<1, 10, u32> SUBOP10;  // X, XL, XFX, XFL-Form Extended Opcode
-  BitField<1, 6, u32> SUBOP6;    // Variation of X-Form Extended Opcode (paired singles indexed)
+  FIELD(u32, 26, 6, OPCD);     // Primary opcode
+  FIELD(u32, 1, 5, SUBOP5);    // A-Form Extended Opcode
+  FIELD(u32, 1, 10, SUBOP10);  // X, XL, XFX, XFL-Form Extended Opcode
+  FIELD(u32, 1, 6, SUBOP6);    // Variation of X-Form Extended Opcode (paired singles indexed)
 
   // Branch
-  BitField<0, 1, bool, u32> LK;  // Link bit
-                                 // 1, if branch instructions should put the address of the next
-                                 // instruction into the link register
-  BitField<1, 1, bool, u32> AA;  // Absolute address bit
-                                 // 1, if the immediate field represents an absolute address
-  BitField<2, 24, s32> LI;  // 24-bit signed immediate, right-extended by 0b00 (branch displacement)
-  BitField<2, 14, s32> BD;  // 14-bit signed immediate, right-extended by 0b00 (branch displacement)
-  BitField<16, 5, u32> BI;  // Branch condition
-  BitField<21, 5, u32> BO;  // Conditional branch control
+  FIELD(bool, 0, 1, LK);  // Link bit
+                          // 1, if branch instructions should put the address of the next
+                          // instruction into the link register
+  FIELD(bool, 1, 1, AA);  // Absolute address bit
+                          // 1, if the immediate field represents an absolute address
+  FIELD(s32, 2, 24, LI);  // 24-bit signed immediate, right-extended by 0b00 (branch displacement)
+  FIELD(s32, 2, 14, BD);  // 14-bit signed immediate, right-extended by 0b00 (branch displacement)
+  FIELD(u32, 16, 5, BI);  // Branch condition
+  FIELD(u32, 21, 5, BO);  // Conditional branch control
 
   // General-Purpose Register
-  BitField<11, 5, u32> RB;  // Source GPR
-  BitField<16, 5, u32> RA;  // Source GPR
-  BitField<21, 5, u32> RS;  // Source GPR
-  BitField<21, 5, u32> RD;  // Destination GPR
+  FIELD(u32, 11, 5, RB);  // Source GPR
+  FIELD(u32, 16, 5, RA);  // Source GPR
+  FIELD(u32, 21, 5, RS);  // Source GPR
+  FIELD(u32, 21, 5, RD);  // Destination GPR
 
   // Floating-Point Register
-  BitField<6, 5, u32> FC;   // Source FPR
-  BitField<11, 5, u32> FB;  // Source FPR
-  BitField<16, 5, u32> FA;  // Source FPR
-  BitField<21, 5, u32> FS;  // Source FPR
-  BitField<21, 5, u32> FD;  // Destination FPR
+  FIELD(u32, 6, 5, FC);   // Source FPR
+  FIELD(u32, 11, 5, FB);  // Source FPR
+  FIELD(u32, 16, 5, FA);  // Source FPR
+  FIELD(u32, 21, 5, FS);  // Source FPR
+  FIELD(u32, 21, 5, FD);  // Destination FPR
 
   // Compare Register Bit (crxor)
-  BitField<11, 5, u32> CRBB;  // Source bit in the CR
-  BitField<16, 5, u32> CRBA;  // Source bit in the CR
-  BitField<21, 5, u32> CRBD;  // Destination bit in the CR
+  FIELD(u32, 11, 5, CRBB);  // Source bit in the CR
+  FIELD(u32, 16, 5, CRBA);  // Source bit in the CR
+  FIELD(u32, 21, 5, CRBD);  // Destination bit in the CR
 
   // Compare Register Field
-  BitField<18, 3, u32> CRFS;  // Source field in the CR or FPSCR
-  BitField<23, 3, u32> CRFD;  // Destination field in CR or FPSCR
+  FIELD(u32, 18, 3, CRFS);  // Source field in the CR or FPSCR
+  FIELD(u32, 23, 3, CRFD);  // Destination field in CR or FPSCR
 
   // Other Register Types
-  BitField<11, 10, u32> SPR;  // Special-purpose register
-  BitField<11, 5, u32> SPRU;  // Upper special-purpose register
-  BitField<16, 5, u32> SPRL;  // Lower special-purpose register
-  BitField<11, 10, u32> TBR;  // Time base register (mftb)
-  BitField<11, 5, u32> TBRU;  // Upper time base register
-  BitField<16, 5, u32> TBRL;  // Lower time base register
-  BitField<16, 4, u32> SR;    // Segment register
+  FIELD(u32, 11, 10, SPR);  // Special-purpose register
+  FIELD(u32, 11, 5, SPRU);  // Upper special-purpose register
+  FIELD(u32, 16, 5, SPRL);  // Lower special-purpose register
+  FIELD(u32, 11, 10, TBR);  // Time base register (mftb)
+  FIELD(u32, 11, 5, TBRU);  // Upper time base register
+  FIELD(u32, 16, 5, TBRL);  // Lower time base register
+  FIELD(u32, 16, 4, SR);    // Segment register
 
   // Immediate
-  u16 UIMM;                      // 16-bit unsigned immediate
-  s16 SIMM_16;                   // 16-bit signed immediate
-  BitField<0, 12, s32> SIMM_12;  // 12-bit signed immediate (Paired-Singles Load/Store)
-  BitField<11, 5, u32> NB;       // Number of bytes to use in lswi/stswi (0 means 32 bytes)
+  FIELD(u16, 0, 16, UIMM);     // 16-bit unsigned immediate
+  FIELD(s16, 0, 16, SIMM_16);  // 16-bit signed immediate
+  FIELD(s16, 0, 12, SIMM_12);  // 12-bit signed immediate (Paired-Singles Load/Store)
+  FIELD(u32, 11, 5, NB);       // Number of bytes to use in lswi/stswi (0 means 32 bytes)
 
   // Shift / Rotate (rlwinmx)
-  BitField<1, 5, u32> ME;   // Mask end
-  BitField<6, 5, u32> MB;   // Mask begin
-  BitField<11, 5, u32> SH;  // Shift amount
+  FIELD(u32, 1, 5, ME);   // Mask end
+  FIELD(u32, 6, 5, MB);   // Mask begin
+  FIELD(u32, 11, 5, SH);  // Shift amount
 
   // Paired Single Quantized Load/Store
-  BitField<12, 3, u32> I;         // Graphics quantization register to use
-  BitField<15, 1, bool, u32> W;   // 0: paired single, 1: scalar
-  BitField<7, 3, u32> Ix;         // Graphics quantization register to use (indexed)
-  BitField<10, 1, bool, u32> Wx;  // 0: paired single, 1: scalar (indexed)
+  FIELD(u32, 12, 3, I);    // Graphics quantization register to use
+  FIELD(bool, 15, 1, W);   // 0: paired single, 1: scalar
+  FIELD(u32, 7, 3, Ix);    // Graphics quantization register to use (indexed)
+  FIELD(bool, 10, 1, Wx);  // 0: paired single, 1: scalar (indexed)
 
   // Other
-  BitField<0, 1, bool, u32> Rc;   // Record bit
-                                  // 1, if the condition register should be updated by this
-                                  // instruction
-  BitField<10, 1, bool, u32> OE;  // Overflow enable
-  BitField<12, 8, u32> CRM;       // Field mask, identifies the CR fields to be updated by mtcrf
-  BitField<17, 8, u32> FM;        // Field mask, identifies the FPSCR fields to be updated by mtfsf
-  BitField<21, 5, u32> TO;        // Conditions on which to trap
-  BitField<21, 1, bool, u32> L;   // Use low 32 bits for comparison (invalid for 32-bit CPUs)
+  FIELD(bool, 0, 1, Rc);   // Record bit
+                           // 1, if the condition register should be updated by this
+                           // instruction
+  FIELD(bool, 10, 1, OE);  // Overflow enable
+  FIELD(u32, 12, 8, CRM);  // Field mask, identifies the CR fields to be updated by mtcrf
+  FIELD(u32, 17, 8, FM);   // Field mask, identifies the FPSCR fields to be updated by mtfsf
+  FIELD(u32, 21, 5, TO);   // Conditions on which to trap
+  FIELD(bool, 21, 1, L);   // Use low 32 bits for comparison (invalid for 32-bit CPUs)
 };
 
 // Used in implementations of rlwimi, rlwinm, and rlwnm
