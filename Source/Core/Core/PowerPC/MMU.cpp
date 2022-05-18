@@ -1269,17 +1269,14 @@ void InvalidateTLBEntry(u32 address)
   ppcState.tlb[1][entry_index].Invalidate();
 }
 
-union EffectiveAddress
+struct EffectiveAddress : BitField2<u32>
 {
-  BitField<0, 12, u32> offset;
-  BitField<12, 16, u32> page_index;
-  BitField<22, 6, u32> API;
-  BitField<28, 4, u32> SR;
+  FIELD(u32, 0, 12, offset);
+  FIELD(u32, 12, 16, page_index);
+  FIELD(u32, 22, 6, API);
+  FIELD(u32, 28, 4, SR);
 
-  u32 Hex = 0;
-
-  EffectiveAddress() = default;
-  explicit EffectiveAddress(u32 address) : Hex{address} {}
+  constexpr EffectiveAddress(u32 address = 0) : BitField2(address) {}
 };
 
 // Page Address Translation
@@ -1290,14 +1287,14 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
   // benefit much from optimization.
   u32 translated_address = 0;
-  const TLBLookupResult res = LookupTLBPageAddress(flag, address.Hex, &translated_address, wi);
+  const TLBLookupResult res = LookupTLBPageAddress(flag, address, &translated_address, wi);
   if (res == TLBLookupResult::Found)
   {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
                                   translated_address};
   }
 
-  const auto sr = UReg_SR{ppcState.sr[address.SR]};
+  const auto sr = UReg_SR{ppcState.sr[address.SR()]};
 
   if (sr.T() != 0)
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
@@ -1310,10 +1307,10 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
   }
 
-  const u32 offset = address.offset;          // 12 bit
-  const u32 page_index = address.page_index;  // 16 bit
-  const u32 VSID = sr.VSID();                 // 24 bit
-  const u32 api = address.API;                //  6 bit (part of page_index)
+  const u32 offset = address.offset();          // 12 bit
+  const u32 page_index = address.page_index();  // 16 bit
+  const u32 VSID = sr.VSID();                   // 24 bit
+  const u32 api = address.API();                //  6 bit (part of page_index)
 
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
@@ -1368,7 +1365,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLBLookupResult::UpdateC)
-          UpdateTLBEntry(flag, pte2, address.Hex);
+          UpdateTLBEntry(flag, pte2, address);
 
         *wi = (pte2.WIMG() & 0b1100) != 0;
 
