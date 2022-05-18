@@ -60,7 +60,7 @@ public:
   static constexpr int RIGHT_STICK_BITS = 5;
   static constexpr int TRIGGER_BITS = 5;
 
-#pragma pack(1)
+#pragma pack(push, 1)
   struct DataFormat
   {
     using StickType = Common::TVec2<u8>;
@@ -124,6 +124,7 @@ public:
     FIELD_IN(sticks_and_triggers, u32, 24, 5, rt);
     FIELD_IN(sticks_and_triggers, u32, 29, 3, lt1);
   };
+#pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   static constexpr int CAL_STICK_BITS = 8;

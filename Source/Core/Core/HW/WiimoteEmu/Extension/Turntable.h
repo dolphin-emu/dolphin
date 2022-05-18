@@ -33,7 +33,7 @@ enum class TurntableGroup
 class Turntable : public Extension1stParty
 {
 public:
-#pragma pack(1)
+#pragma pack(push, 1)
   struct DataFormat
   {
     BitField2<u32> _data1;
@@ -56,6 +56,7 @@ public:
 
     FIELD_IN(_data2, u16, 0, 1, ltable2);
   };
+#pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   Turntable();

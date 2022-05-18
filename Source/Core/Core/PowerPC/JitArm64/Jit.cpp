@@ -178,7 +178,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   MOVP2R(ARM64Reg::X8, instr);
-  MOVI2R(ARM64Reg::W0, inst.hex);
+  MOVI2R(ARM64Reg::W0, inst);
   BLR(ARM64Reg::X8);
 
   // If the instruction wrote to any registers which were marked as discarded,
@@ -240,7 +240,7 @@ void JitArm64::DoNothing(UGeckoInstruction inst)
 
 void JitArm64::Break(UGeckoInstruction inst)
 {
-  WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst.hex);
+  WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst);
   std::exit(0);
 }
 

@@ -50,7 +50,7 @@ struct BitField2
     constexpr FieldType Get() const
     {
       // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-      if (std::is_signed<FieldType>())
+      if constexpr (std::is_signed<FieldType>())
         return static_cast<FieldType>(static_cast<StorageTypeS>(host->Get() << lshift) >> rshift);
       else
         return static_cast<FieldType>(static_cast<StorageTypeU>(host->Get() << lshift) >> rshift);
@@ -95,7 +95,7 @@ struct BitField2
     constexpr const FieldType Get() const
     {
       // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-      if (std::is_signed<FieldType>())
+      if constexpr (std::is_signed<FieldType>())
         return static_cast<FieldType>(static_cast<StorageTypeS>(host->Get() << lshift) >> rshift);
       else
         return static_cast<FieldType>(static_cast<StorageTypeU>(host->Get() << lshift) >> rshift);
@@ -122,7 +122,7 @@ struct BitField2
       const std::size_t rshift = 8 * sizeof(StorageType) - width;
       const std::size_t lshift = rshift - start;
       // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-      if (std::is_signed<FieldType>())
+      if constexpr (std::is_signed<FieldType>())
         return static_cast<FieldType>(static_cast<StorageTypeS>(host->Get() << lshift) >> rshift);
       else
         return static_cast<FieldType>(static_cast<StorageTypeU>(host->Get() << lshift) >> rshift);
@@ -170,7 +170,7 @@ struct BitField2
       const std::size_t rshift = 8 * sizeof(StorageType) - width;
       const std::size_t lshift = rshift - start;
       // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-      if (std::is_signed<FieldType>())
+      if constexpr (std::is_signed<FieldType>())
         return static_cast<FieldType>(static_cast<StorageTypeS>(host->Get() << lshift) >> rshift);
       else
         return static_cast<FieldType>(static_cast<StorageTypeU>(host->Get() << lshift) >> rshift);
@@ -310,7 +310,7 @@ struct BitField2
       assert(idx < length);  // Index out of range
       const std::size_t lshift = rshift - (start + width * idx);
       // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-      if (std::is_signed<FieldType>())
+      if constexpr (std::is_signed<FieldType>())
         return static_cast<FieldType>(static_cast<StorageTypeS>(host->Get() << lshift) >> rshift);
       else
         return static_cast<FieldType>(static_cast<StorageTypeU>(host->Get() << lshift) >> rshift);
@@ -366,7 +366,7 @@ struct BitField2
       assert(idx < length);  // Index out of range
       const std::size_t lshift = rshift - (start + width * idx);
       // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-      if (std::is_signed<FieldType>())
+      if constexpr (std::is_signed<FieldType>())
         return static_cast<FieldType>(static_cast<StorageTypeS>(host->Get() << lshift) >> rshift);
       else
         return static_cast<FieldType>(static_cast<StorageTypeU>(host->Get() << lshift) >> rshift);
@@ -391,6 +391,9 @@ struct BitField2
     const BitField2<StorageType>* const host;
   };
 };
+
+// Something about non-deduced context
+// https://stackoverflow.com/questions/25245453/what-is-a-nondeduced-context
 
 // FMT library stuff vvvvvvv
 /*

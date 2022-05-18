@@ -43,7 +43,7 @@ public:
     Green = 0b1010010,
   };
 
-#pragma pack(1)
+#pragma pack(push, 1)
   struct DataFormat
   {
     BitField2<u32> _data;
@@ -74,6 +74,7 @@ public:
     // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
     FIELD_IN(_data, u32, 29, 3, softness);
   };
+#pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   Drums();

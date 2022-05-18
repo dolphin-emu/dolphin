@@ -32,7 +32,7 @@ enum class GuitarGroup
 class Guitar : public Extension1stParty
 {
 public:
-#pragma pack(1)
+#pragma pack(push, 1)
   struct DataFormat
   {
     BitField2<u32> _data;
@@ -47,6 +47,7 @@ public:
     FIELD_IN(_data, u32, 24, 5, whammy);
     FIELD_IN(_data, u32, 29, 3, pad4);  // always 0
   };
+#pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   Guitar();
