@@ -621,9 +621,8 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   // - addi rX,rX,32
   // - bdnz+ -8
   const bool make_loop = a == 0 && b != 0 && CanMergeNextInstructions(2) &&
-                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
-                         js.op[1].inst.RA() == b && js.op[1].inst.RD() == b &&
-                         js.op[2].inst.hex == 0x4200fff8;
+                         (js.op[1].inst & 0xfc00'ffff) == 0x38000020 && js.op[1].inst.RA() == b &&
+                         js.op[1].inst.RD() == b && js.op[2].inst == 0x4200fff8;
 
   gpr.Lock(ARM64Reg::W0);
   if (make_loop)
