@@ -30,18 +30,19 @@ void Jit64::lXXx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int a = inst.RA, b = inst.RB, d = inst.RD;
+  int a = inst.RA(), b = inst.RB(), d = inst.RD();
 
   // Skip disabled JIT instructions
-  FALLBACK_IF(bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
-  FALLBACK_IF(bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
-  FALLBACK_IF(bJITLoadStorelwzOff && (inst.OPCD == 32));
+  FALLBACK_IF(bJITLoadStorelbzxOff && (inst.OPCD() == 31) && (inst.SUBOP10() == 87));
+  FALLBACK_IF(bJITLoadStorelXzOff &&
+              ((inst.OPCD() == 34) || (inst.OPCD() == 40) || (inst.OPCD() == 32)));
+  FALLBACK_IF(bJITLoadStorelwzOff && (inst.OPCD() == 32));
 
   // Determine memory access size and sign extend
   int accessSize = 0;
   bool signExtend = false;
   bool byte_reversed = false;
-  switch (inst.OPCD)
+  switch (inst.OPCD())
   {
   case 32:  // lwz
   case 33:  // lwzu
@@ -68,7 +69,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     break;
 
   case 31:
-    switch (inst.SUBOP10)
+    switch (inst.SUBOP10())
     {
     case 534:  // lwbrx
       byte_reversed = true;
@@ -110,24 +111,24 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
   // PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find
   // it.
-  if (CanMergeNextInstructions(1) && accessSize == 8 && js.op[1].inst.OPCD == 31 &&
-      js.op[1].inst.SUBOP10 == 954 && js.op[1].inst.RS == inst.RD && js.op[1].inst.RA == inst.RD &&
-      !js.op[1].inst.Rc)
+  if (CanMergeNextInstructions(1) && accessSize == 8 && js.op[1].inst.OPCD() == 31 &&
+      js.op[1].inst.SUBOP10() == 954 && js.op[1].inst.RS() == inst.RD() &&
+      js.op[1].inst.RA() == inst.RD() && !js.op[1].inst.Rc())
   {
     js.downcountAmount++;
     js.skipInstructions = 1;
     signExtend = true;
   }
 
-  // Determine whether this instruction updates inst.RA
+  // Determine whether this instruction updates inst.RA()
   bool update;
-  if (inst.OPCD == 31)
-    update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.IsImm(b) || gpr.Imm32(b) != 0);
+  if (inst.OPCD() == 31)
+    update = ((inst.SUBOP10() & 0x20) != 0) && (!gpr.IsImm(b) || gpr.Imm32(b) != 0);
   else
-    update = ((inst.OPCD & 1) != 0) && inst.SIMM_16 != 0;
+    update = ((inst.OPCD() & 1) != 0) && inst.SIMM_16() != 0;
 
-  // Determine whether this instruction indexes with inst.RB
-  const bool indexed = inst.OPCD == 31;
+  // Determine whether this instruction indexes with inst.RB()
+  const bool indexed = inst.OPCD() == 31;
 
   bool storeAddress = false;
   s32 loadOffset = 0;
@@ -145,7 +146,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     }
     else
     {
-      opAddress = RCOpArg::Imm32((u32)(s32)inst.SIMM_16);
+      opAddress = RCOpArg::Imm32((u32)(s32)inst.SIMM_16());
     }
   }
   else if (update && ((a == 0) || (d == a)))
@@ -156,7 +157,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
   {
     if (!indexed && gpr.IsImm(a) && !jo.memcheck)
     {
-      u32 val = gpr.Imm32(a) + inst.SIMM_16;
+      u32 val = gpr.Imm32(a) + inst.SIMM_16();
       opAddress = RCOpArg::Imm32(val);
       if (update)
         gpr.SetImmediate32(a, val);
@@ -175,7 +176,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
       s32 offset = 0;
       if (use_constant_offset)
-        offset = indexed ? gpr.SImm32(b) : (s32)inst.SIMM_16;
+        offset = indexed ? gpr.SImm32(b) : (s32)inst.SIMM_16();
 
       RCOpArg Rb = use_constant_offset ? RCOpArg{} : gpr.Use(b, RCMode::Read);
 
@@ -236,13 +237,13 @@ void Jit64::dcbx(UGeckoInstruction inst)
   // - dcbx rX
   // - addi rX,rX,32
   // - bdnz+ -8
-  const bool make_loop = inst.RA == 0 && inst.RB != 0 && CanMergeNextInstructions(2) &&
-                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
-                         js.op[1].inst.RA == inst.RB && js.op[1].inst.RD == inst.RB &&
-                         js.op[2].inst.hex == 0x4200fff8;
+  const bool make_loop = inst.RA() == 0 && inst.RB() != 0 && CanMergeNextInstructions(2) &&
+                         (js.op[1].inst & 0xfc00'ffff) == 0x38000020 &&
+                         js.op[1].inst.RA() == inst.RB() && js.op[1].inst.RD() == inst.RB() &&
+                         js.op[2].inst == 0x4200fff8;
 
-  RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
-  RCX64Reg Rb = gpr.Bind(inst.RB, make_loop ? RCMode::ReadWrite : RCMode::Read);
+  RCOpArg Ra = inst.RA() ? gpr.Use(inst.RA(), RCMode::Read) : RCOpArg::Imm32(0);
+  RCX64Reg Rb = gpr.Bind(inst.RB(), make_loop ? RCMode::ReadWrite : RCMode::Read);
   RegCache::Realize(Ra, Rb);
 
   RCX64Reg loop_counter;
@@ -387,8 +388,8 @@ void Jit64::dcbt(UGeckoInstruction inst)
   // This is important because invalidating the block cache when we don't
   // need to is terrible for performance.
   // (Invalidating the jit block cache on dcbst is a heuristic.)
-  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
-      js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB)
+  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD() == 31 && js.op[1].inst.SUBOP10() == 54 &&
+      js.op[1].inst.RA() == inst.RA() && js.op[1].inst.RB() == inst.RB())
   {
     js.skipInstructions = 1;
   }
@@ -400,8 +401,8 @@ void Jit64::dcbz(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int a = inst.RA;
-  int b = inst.RB;
+  int a = inst.RA();
+  int b = inst.RB();
 
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
@@ -463,16 +464,16 @@ void Jit64::stX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int s = inst.RS;
-  int a = inst.RA;
-  s32 offset = (s32)(s16)inst.SIMM_16;
-  bool update = (inst.OPCD & 1) && offset;
+  int s = inst.RS();
+  int a = inst.RA();
+  s32 offset = (s32)(s16)inst.SIMM_16();
+  bool update = (inst.OPCD() & 1) && offset;
 
   if (!a && update)
     PanicAlertFmt("Invalid stX");
 
   int accessSize;
-  switch (inst.OPCD & ~1)
+  switch (inst.OPCD() & ~1)
   {
   case 36:  // stw
     accessSize = 32;
@@ -541,13 +542,13 @@ void Jit64::stXx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int a = inst.RA, b = inst.RB, s = inst.RS;
-  bool update = !!(inst.SUBOP10 & 32);
-  bool byte_reverse = !!(inst.SUBOP10 & 512);
+  int a = inst.RA(), b = inst.RB(), s = inst.RS();
+  bool update = !!(inst.SUBOP10() & 32);
+  bool byte_reverse = !!(inst.SUBOP10() & 512);
   FALLBACK_IF(!a || (update && a == s) || (update && jo.memcheck && a == b));
 
   int accessSize;
-  switch (inst.SUBOP10 & ~32)
+  switch (inst.SUBOP10() & ~32)
   {
   case 151:
   case 662:
@@ -596,13 +597,13 @@ void Jit64::lmw(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int a = inst.RA, d = inst.RD;
+  int a = inst.RA(), d = inst.RD();
 
   // TODO: This doesn't handle rollback on DSI correctly
   {
     RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
     RegCache::Realize(Ra);
-    MOV_sum(32, RSCRATCH2, Ra, Imm32((u32)(s32)inst.SIMM_16));
+    MOV_sum(32, RSCRATCH2, Ra, Imm32((u32)(s32)inst.SIMM_16()));
   }
   for (int i = d; i < 32; i++)
   {
@@ -619,7 +620,7 @@ void Jit64::stmw(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  int a = inst.RA, d = inst.RD;
+  int a = inst.RA(), d = inst.RD();
 
   // TODO: This doesn't handle rollback on DSI correctly
   for (int i = d; i < 32; i++)
@@ -637,7 +638,7 @@ void Jit64::stmw(UGeckoInstruction inst)
       MOV(32, R(RSCRATCH2), Ri);
       Ri = RCOpArg::R(RSCRATCH2);
     }
-    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + (u32)(s32)inst.SIMM_16,
+    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + (u32)(s32)inst.SIMM_16(),
                       CallerSavedRegistersInUse());
   }
 }

@@ -465,32 +465,32 @@ constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable63 = [] {
 
 void JitArm64::DynaRunTable4(UGeckoInstruction inst)
 {
-  (this->*dynaOpTable4[inst.SUBOP10])(inst);
+  (this->*dynaOpTable4[inst.SUBOP10()])(inst);
 }
 
 void JitArm64::DynaRunTable19(UGeckoInstruction inst)
 {
-  (this->*dynaOpTable19[inst.SUBOP10])(inst);
+  (this->*dynaOpTable19[inst.SUBOP10()])(inst);
 }
 
 void JitArm64::DynaRunTable31(UGeckoInstruction inst)
 {
-  (this->*dynaOpTable31[inst.SUBOP10])(inst);
+  (this->*dynaOpTable31[inst.SUBOP10()])(inst);
 }
 
 void JitArm64::DynaRunTable59(UGeckoInstruction inst)
 {
-  (this->*dynaOpTable59[inst.SUBOP5])(inst);
+  (this->*dynaOpTable59[inst.SUBOP5()])(inst);
 }
 
 void JitArm64::DynaRunTable63(UGeckoInstruction inst)
 {
-  (this->*dynaOpTable63[inst.SUBOP10])(inst);
+  (this->*dynaOpTable63[inst.SUBOP10()])(inst);
 }
 
 void JitArm64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-  (this->*dynaOpTable[op.inst.OPCD])(op.inst);
+  (this->*dynaOpTable[op.inst.OPCD()])(op.inst);
 
   GekkoOPInfo* info = op.opinfo;
   if (info)

@@ -66,7 +66,7 @@ void Jit64::bx(UGeckoInstruction inst)
 
   // We must always process the following sentence
   // even if the blocks are merged by PPCAnalyst::Flatten().
-  if (inst.LK)
+  if (inst.LK())
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
   // If this is not the last instruction of a block,
@@ -74,7 +74,7 @@ void Jit64::bx(UGeckoInstruction inst)
   // Because PPCAnalyst::Flatten() merged the blocks.
   if (!js.isLastInstruction)
   {
-    if (inst.LK && !js.op->skipLRStack)
+    if (inst.LK() && !js.op->skipLRStack)
     {
       // We have to fake the stack as the RET instruction was not
       // found in the same block. This is a big overhead, but still
@@ -88,7 +88,7 @@ void Jit64::bx(UGeckoInstruction inst)
   fpr.Flush();
 
 #ifdef ACID_TEST
-  if (inst.LK)
+  if (inst.LK())
     AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
   if (js.op->branchIsIdleLoop)
@@ -97,7 +97,7 @@ void Jit64::bx(UGeckoInstruction inst)
   }
   else
   {
-    WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+    WriteExit(js.op->branchTo, inst.LK(), js.compilerPC + 4);
   }
 }
 
@@ -112,32 +112,32 @@ void Jit64::bcx(UGeckoInstruction inst)
   // USES_CR
 
   FixupBranch pCTRDontBranch;
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
     SUB(32, PPCSTATE_CTR, Imm8(1));
-    if (inst.BO & BO_BRANCH_IF_CTR_0)
+    if (inst.BO() & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = J_CC(CC_NZ, true);
     else
       pCTRDontBranch = J_CC(CC_Z, true);
   }
 
   FixupBranch pConditionDontBranch;
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI() >> 2, 3 - (inst.BI() & 3), !(inst.BO() & BO_BRANCH_IF_TRUE));
   }
 
-  if (inst.LK)
+  if (inst.LK())
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
   // If this is not the last instruction of a block
   // and an unconditional branch, we will skip the rest process.
   // Because PPCAnalyst::Flatten() merged the blocks.
-  if (!js.isLastInstruction && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-      (inst.BO & BO_DONT_CHECK_CONDITION))
+  if (!js.isLastInstruction && (inst.BO() & BO_DONT_DECREMENT_FLAG) &&
+      (inst.BO() & BO_DONT_CHECK_CONDITION))
   {
-    if (inst.LK && !js.op->skipLRStack)
+    if (inst.LK() && !js.op->skipLRStack)
     {
       // We have to fake the stack as the RET instruction was not
       // found in the same block. This is a big overhead, but still
@@ -159,13 +159,13 @@ void Jit64::bcx(UGeckoInstruction inst)
     }
     else
     {
-      WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+      WriteExit(js.op->branchTo, inst.LK(), js.compilerPC + 4);
     }
   }
 
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
@@ -182,10 +182,10 @@ void Jit64::bcctrx(UGeckoInstruction inst)
   JITDISABLE(bJITBranchOff);
 
   // bcctrx doesn't decrement and/or test CTR
-  DEBUG_ASSERT_MSG(POWERPC, inst.BO & BO_DONT_DECREMENT_FLAG,
+  DEBUG_ASSERT_MSG(POWERPC, inst.BO() & BO_DONT_DECREMENT_FLAG,
                    "bcctrx with decrement and test CTR option is invalid!");
 
-  if (inst.BO & BO_DONT_CHECK_CONDITION)
+  if (inst.BO() & BO_DONT_CHECK_CONDITION)
   {
     // BO_2 == 1z1zz -> b always
 
@@ -194,10 +194,10 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     fpr.Flush();
 
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
-    if (inst.LK)
+    if (inst.LK())
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-    WriteExitDestInRSCRATCH(inst.LK, js.compilerPC + 4);
+    WriteExitDestInRSCRATCH(inst.LK(), js.compilerPC + 4);
   }
   else
   {
@@ -207,11 +207,11 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     // BO_2 == 011zy -> b if true
 
     FixupBranch b =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI() >> 2, 3 - (inst.BI() & 3), !(inst.BO() & BO_BRANCH_IF_TRUE));
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     // MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
-    if (inst.LK)
+    if (inst.LK())
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
     {
@@ -219,7 +219,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
       RCForkGuard fpr_guard = fpr.Fork();
       gpr.Flush();
       fpr.Flush();
-      WriteExitDestInRSCRATCH(inst.LK, js.compilerPC + 4);
+      WriteExitDestInRSCRATCH(inst.LK(), js.compilerPC + 4);
       // Would really like to continue the block here, but it ends. TODO.
     }
     SetJumpTarget(b);
@@ -239,20 +239,20 @@ void Jit64::bclrx(UGeckoInstruction inst)
   JITDISABLE(bJITBranchOff);
 
   FixupBranch pCTRDontBranch;
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
     SUB(32, PPCSTATE_CTR, Imm8(1));
-    if (inst.BO & BO_BRANCH_IF_CTR_0)
+    if (inst.BO() & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = J_CC(CC_NZ, true);
     else
       pCTRDontBranch = J_CC(CC_Z, true);
   }
 
   FixupBranch pConditionDontBranch;
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI() >> 2, 3 - (inst.BI() & 3), !(inst.BO() & BO_BRANCH_IF_TRUE));
   }
 
 // This below line can be used to prove that blr "eats flags" in practice.
@@ -269,7 +269,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
   // good. If it doesn't match, the mispredicted-BLR code handles the fixup.
   if (!m_enable_blr_optimization)
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-  if (inst.LK)
+  if (inst.LK())
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
   {
@@ -288,9 +288,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
     }
   }
 
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))

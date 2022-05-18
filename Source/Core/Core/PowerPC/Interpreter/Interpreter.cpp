@@ -47,13 +47,13 @@ namespace
 // In other words, if the instruction is psq_l, psq_lu, psq_st, or psq_stu
 bool IsPairedSingleQuantizedNonIndexedInstruction(UGeckoInstruction inst)
 {
-  const u32 opcode = inst.OPCD;
+  const u32 opcode = inst.OPCD();
   return opcode == 0x38 || opcode == 0x39 || opcode == 0x3C || opcode == 0x3D;
 }
 
 bool IsPairedSingleInstruction(UGeckoInstruction inst)
 {
-  return inst.OPCD == 4 || IsPairedSingleQuantizedNonIndexedInstruction(inst);
+  return inst.OPCD() == 4 || IsPairedSingleQuantizedNonIndexedInstruction(inst);
 }
 
 // Checks if a given instruction would be illegal to execute if it's a paired single instruction.
@@ -78,23 +78,23 @@ void UpdatePC()
 
 void Interpreter::RunTable4(UGeckoInstruction inst)
 {
-  m_op_table4[inst.SUBOP10](inst);
+  m_op_table4[inst.SUBOP10()](inst);
 }
 void Interpreter::RunTable19(UGeckoInstruction inst)
 {
-  m_op_table19[inst.SUBOP10](inst);
+  m_op_table19[inst.SUBOP10()](inst);
 }
 void Interpreter::RunTable31(UGeckoInstruction inst)
 {
-  m_op_table31[inst.SUBOP10](inst);
+  m_op_table31[inst.SUBOP10()](inst);
 }
 void Interpreter::RunTable59(UGeckoInstruction inst)
 {
-  m_op_table59[inst.SUBOP5](inst);
+  m_op_table59[inst.SUBOP5()](inst);
 }
 void Interpreter::RunTable63(UGeckoInstruction inst)
 {
-  m_op_table63[inst.SUBOP10](inst);
+  m_op_table63[inst.SUBOP10()](inst);
 }
 
 void Interpreter::Init()
@@ -124,12 +124,12 @@ static void Trace(const UGeckoInstruction& inst)
     fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());
   }
 
-  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
+  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst, PC);
   DEBUG_LOG_FMT(POWERPC,
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
                 PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR, MSR,
-                PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
+                PowerPC::ppcState.spr[8], regs, inst, ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
@@ -149,7 +149,7 @@ int Interpreter::SingleStepInner()
   }
 
   NPC = PC + sizeof(UGeckoInstruction);
-  m_prev_inst.hex = PowerPC::Read_Opcode(PC);
+  m_prev_inst = PowerPC::Read_Opcode(PC);
 
   // Uncomment to trace the interpreter
   // if ((PC & 0x00FFFFFF) >= 0x000AB54C && (PC & 0x00FFFFFF) <= 0x000AB624)
@@ -162,7 +162,7 @@ int Interpreter::SingleStepInner()
     Trace(m_prev_inst);
   }
 
-  if (m_prev_inst.hex != 0)
+  if (m_prev_inst != 0)
   {
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
@@ -171,7 +171,7 @@ int Interpreter::SingleStepInner()
     }
     else if (MSR.FP())
     {
-      m_op_table[m_prev_inst.OPCD](m_prev_inst);
+      m_op_table[m_prev_inst.OPCD()](m_prev_inst);
       if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
       {
         CheckExceptions();
@@ -187,7 +187,7 @@ int Interpreter::SingleStepInner()
       }
       else
       {
-        m_op_table[m_prev_inst.OPCD](m_prev_inst);
+        m_op_table[m_prev_inst.OPCD()](m_prev_inst);
         if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
         {
           CheckExceptions();
@@ -331,8 +331,8 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   Dolphin_Debugger::PrintCallstack(Common::Log::LogType::POWERPC, Common::Log::LogLevel::LNOTICE);
   NOTICE_LOG_FMT(
       POWERPC,
-      "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-      inst.hex, PC, last_pc, LR);
+      "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n", inst,
+      PC, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
   {
     NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i, rGPR[i],
@@ -340,7 +340,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-             inst.hex, PC, last_pc, LR);
+             inst, PC, last_pc, LR);
 }
 
 void Interpreter::ClearCache()

@@ -426,7 +426,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionC(instr, inst.hex);
+  ABI_CallFunctionC(instr, inst);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
   // If the instruction wrote to any registers which were marked as discarded,
@@ -1315,7 +1315,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
   for (size_t i = 0; i < size; i++)
   {
     const PPCAnalyst::CodeOp& op = code_buffer[i];
-    const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
+    const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst, op.address);
     DEBUG_LOG_FMT(DYNA_REC, "IR_X86 PPC: {:08x} {}\n", op.address, disasm);
   }
 

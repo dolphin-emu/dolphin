@@ -16,7 +16,6 @@ struct UGeckoInstruction : BitField2<u32>
 {
   UGeckoInstruction() = default;
   constexpr UGeckoInstruction(u32 val) : BitField2(val) {}
-  constexpr operator u32() { return Get(); }
 
   // Opcode
   FIELD(u32, 26, 6, OPCD);     // Primary opcode

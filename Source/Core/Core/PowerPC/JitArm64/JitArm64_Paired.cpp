@@ -22,11 +22,11 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  const u32 a = inst.FA;
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
+  const u32 a = inst.FA();
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
 
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b);
   const RegType type = singles ? RegType::Single : RegType::Register;
@@ -37,7 +37,7 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
   const ARM64Reg VB = fpr.R(b, type);
   const ARM64Reg VD = fpr.RW(d, type);
 
-  switch (inst.SUBOP10)
+  switch (inst.SUBOP10())
   {
   case 528:  // 00
     m_float_emit.TRN1(size, VD, VA, VB);
@@ -77,17 +77,17 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  const u32 a = inst.FA;
-  const u32 c = inst.FC;
-  const u32 d = inst.FD;
+  const u32 a = inst.FA();
+  const u32 c = inst.FC();
+  const u32 d = inst.FD();
 
-  const bool upper = inst.SUBOP5 == 13;
+  const bool upper = inst.SUBOP5() == 13;
 
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(c);
-  const bool round_c = !js.op->fprIsSingle[inst.FC];
+  const bool round_c = !js.op->fprIsSingle[inst.FC()];
   const RegType type = singles ? RegType::Single : RegType::Register;
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
@@ -128,18 +128,18 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  const u32 a = inst.FA;
-  const u32 b = inst.FB;
-  const u32 c = inst.FC;
-  const u32 d = inst.FD;
-  const u32 op5 = inst.SUBOP5;
+  const u32 a = inst.FA();
+  const u32 b = inst.FB();
+  const u32 c = inst.FC();
+  const u32 d = inst.FD();
+  const u32 op5 = inst.SUBOP5();
 
   const bool inaccurate_fma = !Config::Get(Config::SESSION_USE_FMA);
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
-  const bool round_c = !js.op->fprIsSingle[inst.FC];
+  const bool round_c = !js.op->fprIsSingle[inst.FC()];
   const RegType type = singles ? RegType::Single : RegType::Register;
   const u8 size = singles ? 32 : 64;
   const auto reg_encoder = singles ? EncodeRegToDouble : EncodeRegToQuad;
@@ -308,12 +308,12 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  const u32 a = inst.FA;
-  const u32 b = inst.FB;
-  const u32 c = inst.FC;
-  const u32 d = inst.FD;
+  const u32 a = inst.FA();
+  const u32 b = inst.FB();
+  const u32 c = inst.FC();
+  const u32 d = inst.FD();
 
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
   const RegType type = singles ? RegType::Single : RegType::Register;
@@ -348,15 +348,15 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  const u32 a = inst.FA;
-  const u32 b = inst.FB;
-  const u32 c = inst.FC;
-  const u32 d = inst.FD;
+  const u32 a = inst.FA();
+  const u32 b = inst.FB();
+  const u32 c = inst.FC();
+  const u32 d = inst.FD();
 
-  const bool upper = inst.SUBOP5 == 11;
+  const bool upper = inst.SUBOP5() == 11;
 
   const bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
   const RegType type = singles ? RegType::Single : RegType::Register;
@@ -395,11 +395,11 @@ void JitArm64::ps_res(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
@@ -428,11 +428,11 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W2, ARM64Reg::W3, ARM64Reg::W4, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
@@ -463,6 +463,6 @@ void JitArm64::ps_cmpXX(UGeckoInstruction inst)
   JITDISABLE(bJITPairedOff);
   FALLBACK_IF(jo.fp_exceptions);
 
-  const bool upper = inst.SUBOP10 & 64;
+  const bool upper = inst.SUBOP10() & 64;
   FloatCompare(inst, upper);
 }

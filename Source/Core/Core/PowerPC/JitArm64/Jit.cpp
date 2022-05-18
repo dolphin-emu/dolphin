@@ -824,7 +824,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     // Skip calling UpdateLastUsed for lmw/stmw - it usually hurts more than it helps
-    if (op.inst.OPCD != 46 && op.inst.OPCD != 47)
+    if (op.inst.OPCD() != 46 && op.inst.OPCD() != 47)
       gpr.UpdateLastUsed(op.regsIn | op.regsOut);
 
     BitSet32 fpr_used = op.fregsIn;

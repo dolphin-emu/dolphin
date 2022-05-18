@@ -33,19 +33,19 @@ static void FPSCRUpdated(UReg_FPSCR* fpscr)
 
 void Interpreter::mtfsb0x(UGeckoInstruction inst)
 {
-  u32 b = 0x80000000 >> inst.CRBD;
+  u32 b = 0x80000000 >> inst.CRBD();
 
   FPSCR &= ~b;
   FPSCRUpdated(&FPSCR);
 
-  if (inst.Rc)
+  if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }
 
 // This instruction can affect FX
 void Interpreter::mtfsb1x(UGeckoInstruction inst)
 {
-  const u32 bit = inst.CRBD;
+  const u32 bit = inst.CRBD();
   const u32 b = 0x80000000 >> bit;
 
   if ((b & FPSCR_ANY_X) != 0)
@@ -55,28 +55,28 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
 
   FPSCRUpdated(&FPSCR);
 
-  if (inst.Rc)
+  if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }
 
 void Interpreter::mtfsfix(UGeckoInstruction inst)
 {
-  const u32 field = inst.CRFD;
+  const u32 field = inst.CRFD();
   const u32 pre_shifted_mask = 0xF0000000;
   const u32 mask = (pre_shifted_mask >> (4 * field));
-  const u32 imm = (inst.hex << 16) & pre_shifted_mask;
+  const u32 imm = (inst << 16) & pre_shifted_mask;
 
   FPSCR = (FPSCR & ~mask) | (imm >> (4 * field));
 
   FPSCRUpdated(&FPSCR);
 
-  if (inst.Rc)
+  if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }
 
 void Interpreter::mtfsfx(UGeckoInstruction inst)
 {
-  const u32 fm = inst.FM;
+  const u32 fm = inst.FM();
   u32 m = 0;
   for (u32 i = 0; i < 8; i++)
   {
@@ -84,31 +84,31 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
       m |= (0xFU << (i * 4));
   }
 
-  FPSCR = (FPSCR & ~m) | (static_cast<u32>(rPS(inst.FB).PS0AsU64()) & m);
+  FPSCR = (FPSCR & ~m) | (static_cast<u32>(rPS(inst.FB()).PS0AsU64()) & m);
   FPSCRUpdated(&FPSCR);
 
-  if (inst.Rc)
+  if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetField(inst.CRFD, PowerPC::GetXER() >> 28);
+  PowerPC::ppcState.cr.SetField(inst.CRFD(), PowerPC::GetXER() >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
 
 void Interpreter::mfcr(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = PowerPC::ppcState.cr.Get();
+  rGPR[inst.RD()] = PowerPC::ppcState.cr.Get();
 }
 
 void Interpreter::mtcrf(UGeckoInstruction inst)
 {
-  const u32 crm = inst.CRM;
+  const u32 crm = inst.CRM();
   if (crm == 0xFF)
   {
-    PowerPC::ppcState.cr.Set(rGPR[inst.RS]);
+    PowerPC::ppcState.cr.Set(rGPR[inst.RS()]);
   }
   else
   {
@@ -120,7 +120,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
         mask |= 0xFU << (i * 4);
     }
 
-    PowerPC::ppcState.cr.Set((PowerPC::ppcState.cr.Get() & ~mask) | (rGPR[inst.RS] & mask));
+    PowerPC::ppcState.cr.Set((PowerPC::ppcState.cr.Get() & ~mask) | (rGPR[inst.RS()] & mask));
   }
 }
 
@@ -132,7 +132,7 @@ void Interpreter::mfmsr(UGeckoInstruction inst)
     return;
   }
 
-  rGPR[inst.RD] = MSR;
+  rGPR[inst.RD()] = MSR;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
@@ -143,7 +143,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
     return;
   }
 
-  rGPR[inst.RD] = PowerPC::ppcState.sr[inst.SR];
+  rGPR[inst.RD()] = PowerPC::ppcState.sr[inst.SR()];
 }
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
@@ -154,8 +154,8 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
     return;
   }
 
-  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
-  rGPR[inst.RD] = PowerPC::ppcState.sr[index];
+  const u32 index = (rGPR[inst.RB()] >> 28) & 0xF;
+  rGPR[inst.RD()] = PowerPC::ppcState.sr[index];
 }
 
 void Interpreter::mtmsr(UGeckoInstruction inst)
@@ -166,7 +166,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
     return;
   }
 
-  MSR = rGPR[inst.RS];
+  MSR = rGPR[inst.RS()];
 
   // FE0/FE1 may have been set
   CheckFPExceptions(FPSCR);
@@ -185,8 +185,8 @@ void Interpreter::mtsr(UGeckoInstruction inst)
     return;
   }
 
-  const u32 index = inst.SR;
-  const u32 value = rGPR[inst.RS];
+  const u32 index = inst.SR();
+  const u32 value = rGPR[inst.RS()];
   PowerPC::ppcState.SetSR(index, value);
 }
 
@@ -198,21 +198,21 @@ void Interpreter::mtsrin(UGeckoInstruction inst)
     return;
   }
 
-  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
-  const u32 value = rGPR[inst.RS];
+  const u32 index = (rGPR[inst.RB()] >> 28) & 0xF;
+  const u32 value = rGPR[inst.RS()];
   PowerPC::ppcState.SetSR(index, value);
 }
 
 void Interpreter::mftb(UGeckoInstruction inst)
 {
-  [[maybe_unused]] const u32 index = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
+  [[maybe_unused]] const u32 index = (inst.TBR() >> 5) | ((inst.TBR() & 0x1F) << 5);
   DEBUG_ASSERT_MSG(POWERPC, (index == SPR_TL) || (index == SPR_TU), "Invalid mftb");
   mfspr(inst);
 }
 
 void Interpreter::mfspr(UGeckoInstruction inst)
 {
-  const u32 index = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
+  const u32 index = ((inst.SPR() & 0x1F) << 5) + ((inst.SPR() >> 5) & 0x1F);
 
   // XER, LR, CTR, and timebase halves are the only ones available in user mode.
   if (MSR.PR() && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
@@ -251,12 +251,12 @@ void Interpreter::mfspr(UGeckoInstruction inst)
     rSPR(index) = PowerPC::GetXER();
     break;
   }
-  rGPR[inst.RD] = rSPR(index);
+  rGPR[inst.RD()] = rSPR(index);
 }
 
 void Interpreter::mtspr(UGeckoInstruction inst)
 {
-  const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+  const u32 index = (inst.SPRU() << 5) | (inst.SPRL() & 0x1F);
 
   // XER, LR, and CTR are the only ones available to be written to in user mode
   if (MSR.PR() && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
@@ -266,7 +266,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   }
 
   const u32 old_value = rSPR(index);
-  rSPR(index) = rGPR[inst.RD];
+  rSPR(index) = rGPR[inst.RD()];
 
   // Our DMA emulation is highly inaccurate - instead of properly emulating the queue
   // and so on, we simply make all DMA:s complete instantaneously.
@@ -279,12 +279,12 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_TL_W:
-    TL = rGPR[inst.RD];
+    TL = rGPR[inst.RD()];
     SystemTimers::TimeBaseSet();
     break;
 
   case SPR_TU_W:
-    TU = rGPR[inst.RD];
+    TU = rGPR[inst.RD()];
     SystemTimers::TimeBaseSet();
     break;
 
@@ -340,7 +340,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_WPAR:
-    ASSERT_MSG(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ {:08x}", PC);
+    ASSERT_MSG(POWERPC, rGPR[inst.RD()] == 0x0C008000, "Gather pipe @ {:08x}", PC);
     GPFifo::ResetGatherPipe();
     break;
 
@@ -379,7 +379,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
   case SPR_DEC:
     // Top bit from 0 to 1
-    if ((old_value >> 31) == 0 && (rGPR[inst.RD] >> 31) != 0)
+    if ((old_value >> 31) == 0 && (rGPR[inst.RD()] >> 31) != 0)
     {
       INFO_LOG_FMT(POWERPC, "Software triggered Decrementer exception");
       PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
@@ -477,72 +477,72 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
 void Interpreter::crand(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, a & b);
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), a & b);
 }
 
 void Interpreter::crandc(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, a & (1 ^ b));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), a & (1 ^ b));
 }
 
 void Interpreter::creqv(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (a ^ b));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), 1 ^ (a ^ b));
 }
 
 void Interpreter::crnand(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (a & b));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), 1 ^ (a & b));
 }
 
 void Interpreter::crnor(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, 1 ^ (a | b));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), 1 ^ (a | b));
 }
 
 void Interpreter::cror(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, a | b);
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), a | b);
 }
 
 void Interpreter::crorc(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, a | (1 ^ b));
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), a | (1 ^ b));
 }
 
 void Interpreter::crxor(UGeckoInstruction inst)
 {
-  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA);
-  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB);
+  const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
+  const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
 
-  PowerPC::ppcState.cr.SetBit(inst.CRBD, a ^ b);
+  PowerPC::ppcState.cr.SetBit(inst.CRBD(), a ^ b);
 }
 
 void Interpreter::mcrf(UGeckoInstruction inst)
 {
-  const u32 cr_f = PowerPC::ppcState.cr.GetField(inst.CRFS);
-  PowerPC::ppcState.cr.SetField(inst.CRFD, cr_f);
+  const u32 cr_f = PowerPC::ppcState.cr.GetField(inst.CRFS());
+  PowerPC::ppcState.cr.SetField(inst.CRFD(), cr_f);
 }
 
 void Interpreter::isync(UGeckoInstruction inst)
@@ -554,20 +554,20 @@ void Interpreter::isync(UGeckoInstruction inst)
 
 void Interpreter::mcrfs(UGeckoInstruction inst)
 {
-  const u32 shift = 4 * (7 - inst.CRFS);
+  const u32 shift = 4 * (7 - inst.CRFS());
   const u32 fpflags = (FPSCR >> shift) & 0xF;
 
   // If any exception bits were read, clear them
   FPSCR &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
   FPSCRUpdated(&FPSCR);
 
-  PowerPC::ppcState.cr.SetField(inst.CRFD, fpflags);
+  PowerPC::ppcState.cr.SetField(inst.CRFD(), fpflags);
 }
 
 void Interpreter::mffsx(UGeckoInstruction inst)
 {
-  rPS(inst.FD).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR);
+  rPS(inst.FD()).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR);
 
-  if (inst.Rc)
+  if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }

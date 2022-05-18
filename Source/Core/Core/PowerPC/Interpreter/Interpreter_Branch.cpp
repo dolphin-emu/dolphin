@@ -12,12 +12,12 @@
 
 void Interpreter::bx(UGeckoInstruction inst)
 {
-  if (inst.LK)
+  if (inst.LK())
     LR = PC + 4;
 
-  const auto address = u32(SignExt26(inst.LI << 2));
+  const auto address = u32(SignExt26(inst.LI() << 2));
 
-  if (inst.AA)
+  if (inst.AA())
     NPC = address;
   else
     NPC = PC + address;
@@ -28,25 +28,25 @@ void Interpreter::bx(UGeckoInstruction inst)
 // bcx - ugly, straight from PPC manual equations :)
 void Interpreter::bcx(UGeckoInstruction inst)
 {
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
 
-  const bool true_false = ((inst.BO >> 3) & 1) != 0;
-  const bool only_counter_check = ((inst.BO >> 4) & 1) != 0;
-  const bool only_condition_check = ((inst.BO >> 2) & 1) != 0;
-  const u32 ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
+  const bool true_false = ((inst.BO() >> 3) & 1) != 0;
+  const bool only_counter_check = ((inst.BO() >> 4) & 1) != 0;
+  const bool only_condition_check = ((inst.BO() >> 2) & 1) != 0;
+  const u32 ctr_check = ((CTR != 0) ^ (inst.BO() >> 1)) & 1;
   const bool counter = only_condition_check || ctr_check != 0;
   const bool condition =
-      only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI) == u32(true_false));
+      only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI()) == u32(true_false));
 
   if (counter && condition)
   {
-    if (inst.LK)
+    if (inst.LK())
       LR = PC + 4;
 
-    const auto address = u32(SignExt16(s16(inst.BD << 2)));
+    const auto address = u32(SignExt16(s16(inst.BD() << 2)));
 
-    if (inst.AA)
+    if (inst.AA())
       NPC = address;
     else
       NPC = PC + address;
@@ -57,16 +57,16 @@ void Interpreter::bcx(UGeckoInstruction inst)
 
 void Interpreter::bcctrx(UGeckoInstruction inst)
 {
-  DEBUG_ASSERT_MSG(POWERPC, (inst.BO & BO_DONT_DECREMENT_FLAG) != 0,
+  DEBUG_ASSERT_MSG(POWERPC, (inst.BO() & BO_DONT_DECREMENT_FLAG) != 0,
                    "bcctrx with decrement and test CTR option is invalid!");
 
   const u32 condition =
-      ((inst.BO >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI) == ((inst.BO >> 3) & 1))) & 1;
+      ((inst.BO() >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI()) == ((inst.BO() >> 3) & 1))) & 1;
 
   if (condition != 0)
   {
     NPC = CTR & (~3);
-    if (inst.LK)
+    if (inst.LK())
       LR = PC + 4;
   }
 
@@ -75,17 +75,17 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
 
 void Interpreter::bclrx(UGeckoInstruction inst)
 {
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
 
-  const u32 counter = ((inst.BO >> 2) | ((CTR != 0) ^ (inst.BO >> 1))) & 1;
+  const u32 counter = ((inst.BO() >> 2) | ((CTR != 0) ^ (inst.BO() >> 1))) & 1;
   const u32 condition =
-      ((inst.BO >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI) == ((inst.BO >> 3) & 1))) & 1;
+      ((inst.BO() >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI()) == ((inst.BO() >> 3) & 1))) & 1;
 
   if ((counter & condition) != 0)
   {
     NPC = LR & (~3);
-    if (inst.LK)
+    if (inst.LK())
       LR = PC + 4;
   }
 
@@ -95,7 +95,7 @@ void Interpreter::bclrx(UGeckoInstruction inst)
 void Interpreter::HLEFunction(UGeckoInstruction inst)
 {
   m_end_block = true;
-  HLE::Execute(PC, inst.hex);
+  HLE::Execute(PC, inst);
 }
 
 void Interpreter::rfi(UGeckoInstruction inst)

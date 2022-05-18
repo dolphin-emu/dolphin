@@ -226,7 +226,7 @@ std::string PPCDebugInterface::Disassemble(u32 address) const
     std::string disasm = Common::GekkoDisassembler::Disassemble(op, address);
     const UGeckoInstruction inst{op};
 
-    if (inst.OPCD == 1)
+    if (inst.OPCD() == 1)
     {
       disasm += " (hle)";
     }

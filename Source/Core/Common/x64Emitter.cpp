@@ -239,7 +239,7 @@ void OpArg::WriteREX(XEmitter* emit, int opBits, int bits, int customOp) const
   if (customOp == -1)
     customOp = operandReg;
   u8 op = 0x40;
-  // REX.W (whether operation is a 64-bit operation)
+  // REX.W() (whether operation is a 64-bit operation)
   if (opBits == 64)
     op |= 8;
   // REX.R (whether ModR/M reg field refers to R8-R15.

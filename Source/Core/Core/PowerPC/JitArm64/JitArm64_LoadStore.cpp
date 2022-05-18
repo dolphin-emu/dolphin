@@ -362,17 +362,17 @@ void JitArm64::lXX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  u32 a = inst.RA, b = inst.RB, d = inst.RD;
-  s32 offset = inst.SIMM_16;
+  u32 a = inst.RA(), b = inst.RB(), d = inst.RD();
+  s32 offset = inst.SIMM_16();
   s32 offsetReg = -1;
   u32 flags = BackPatchInfo::FLAG_LOAD;
   bool update = false;
 
-  switch (inst.OPCD)
+  switch (inst.OPCD())
   {
   case 31:
     offsetReg = b;
-    switch (inst.SUBOP10)
+    switch (inst.SUBOP10())
     {
     case 55:  // lwzux
       update = true;
@@ -440,16 +440,16 @@ void JitArm64::stX(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  u32 a = inst.RA, b = inst.RB, s = inst.RS;
-  s32 offset = inst.SIMM_16;
+  u32 a = inst.RA(), b = inst.RB(), s = inst.RS();
+  s32 offset = inst.SIMM_16();
   s32 regOffset = -1;
   u32 flags = BackPatchInfo::FLAG_STORE;
   bool update = false;
-  switch (inst.OPCD)
+  switch (inst.OPCD())
   {
   case 31:
     regOffset = b;
-    switch (inst.SUBOP10)
+    switch (inst.SUBOP10())
     {
     case 183:  // stwux
       update = true;
@@ -505,8 +505,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  u32 a = inst.RA, d = inst.RD;
-  s32 offset = inst.SIMM_16;
+  u32 a = inst.RA(), d = inst.RD();
+  s32 offset = inst.SIMM_16();
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
   if (!jo.fastmem_arena)
@@ -563,8 +563,8 @@ void JitArm64::stmw(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  u32 a = inst.RA, s = inst.RS;
-  s32 offset = inst.SIMM_16;
+  u32 a = inst.RA(), s = inst.RS();
+  s32 offset = inst.SIMM_16();
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
   if (!jo.fastmem_arena)
@@ -614,15 +614,16 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
-  u32 a = inst.RA, b = inst.RB;
+  u32 a = inst.RA(), b = inst.RB();
 
   // Check if the next instructions match a known looping pattern:
   // - dcbx rX
   // - addi rX,rX,32
   // - bdnz+ -8
   const bool make_loop = a == 0 && b != 0 && CanMergeNextInstructions(2) &&
-                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 && js.op[1].inst.RA == b &&
-                         js.op[1].inst.RD == b && js.op[2].inst.hex == 0x4200fff8;
+                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
+                         js.op[1].inst.RA() == b && js.op[1].inst.RD() == b &&
+                         js.op[2].inst.hex == 0x4200fff8;
 
   gpr.Lock(ARM64Reg::W0);
   if (make_loop)
@@ -778,8 +779,8 @@ void JitArm64::dcbt(UGeckoInstruction inst)
   // This is important because invalidating the block cache when we don't
   // need to is terrible for performance.
   // (Invalidating the jit block cache on dcbst is a heuristic.)
-  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 54 &&
-      js.op[1].inst.RA == inst.RA && js.op[1].inst.RB == inst.RB)
+  if (CanMergeNextInstructions(1) && js.op[1].inst.OPCD() == 31 && js.op[1].inst.SUBOP10() == 54 &&
+      js.op[1].inst.RA() == inst.RA() && js.op[1].inst.RB() == inst.RB())
   {
     js.skipInstructions = 1;
   }
@@ -791,7 +792,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(m_low_dcbz_hack);
 
-  int a = inst.RA, b = inst.RB;
+  int a = inst.RA(), b = inst.RB();
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
   if (!jo.fastmem_arena)
