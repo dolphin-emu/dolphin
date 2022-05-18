@@ -245,25 +245,25 @@ using AccelData = ControllerEmu::RawValue<AccelType, 10>;
 struct AccelCalibrationPoint
 {
   // All components have 10 bits of precision.
-  u16 GetX() const { return x2 << 2 | x1; }
-  u16 GetY() const { return y2 << 2 | y1; }
-  u16 GetZ() const { return z2 << 2 | z1; }
+  u16 GetX() const { return x2 << 2 | x1(); }
+  u16 GetY() const { return y2 << 2 | y1(); }
+  u16 GetZ() const { return z2 << 2 | z1(); }
   auto Get() const { return AccelType{GetX(), GetY(), GetZ()}; }
 
   void SetX(u16 x)
   {
     x2 = x >> 2;
-    x1 = x;
+    x1() = x;
   }
   void SetY(u16 y)
   {
     y2 = y >> 2;
-    y1 = y;
+    y1() = y;
   }
   void SetZ(u16 z)
   {
     z2 = z >> 2;
-    z1 = z;
+    z1() = z;
   }
   void Set(AccelType accel)
   {
@@ -273,12 +273,11 @@ struct AccelCalibrationPoint
   }
 
   u8 x2, y2, z2;
-  union
-  {
-    BitField<0, 2, u8> z1;
-    BitField<2, 2, u8> y1;
-    BitField<4, 2, u8> x1;
-  };
+  BitField2<u8> _x1y1z1;
+
+  FIELD_IN(_x1y1z1, u8, 0, 2, z1);
+  FIELD_IN(_x1y1z1, u8, 2, 2, y1);
+  FIELD_IN(_x1y1z1, u8, 4, 2, x1);
 };
 
 // Located at 0x16 and 0x20 of Wii Remote EEPROM.
@@ -291,12 +290,11 @@ struct AccelCalibrationData
   AccelCalibrationPoint zero_g;
   AccelCalibrationPoint one_g;
 
-  union
-  {
-    BitField<0, 7, u8> volume;
-    BitField<7, 1, bool, u8> motor;
-  };
+  BitField2<u8> _data1;
   u8 checksum;
+
+  FIELD_IN(_data1, u8, 0, 7, volume);
+  FIELD_IN(_data1, bool, 7, 1, motor);
 };
 
 }  // namespace WiimoteCommon
