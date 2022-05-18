@@ -583,7 +583,7 @@ bool AutoChangeDisc()
 
 static void SetLidOpen()
 {
-  const u32 old_value = s_DICVR.CVR();
+  const bool old_value = s_DICVR.CVR();
   s_DICVR.CVR() = IsDiscInside() ? 0 : 1;
   if (s_DICVR.CVR() != old_value)
     GenerateDIInterrupt(DIInterruptType::CVRINT);
