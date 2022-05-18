@@ -77,6 +77,7 @@ union USIChannelIn
   BitField2<u64> full;
   struct
   {
+    // These are named backwards because big endian
     u32 hi, lo;
   };
   FIELD_IN(full, u8, 0, 8, INPUT7);
