@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Common/BitField.h"
+#include "Common/BitField2.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
@@ -54,70 +55,76 @@ enum
 
 union MIRegion
 {
-  u32 hex = 0;
+  u32 hex;
   struct
   {
     u16 first_page;
     u16 last_page;
   };
+
+  constexpr MIRegion(u32 val = 0) : hex(val) {}
 };
 
-union MIProtType
+struct MIProtType : BitField2<u16>
 {
-  u16 hex = 0;
+  FIELD(u16, 0, 2, reg0);
+  FIELD(u16, 2, 2, reg1);
+  FIELD(u16, 4, 2, reg2);
+  FIELD(u16, 6, 2, reg3);
+  FIELD(u16, 8, 8, reserved);
 
-  BitField<0, 2, u16> reg0;
-  BitField<2, 2, u16> reg1;
-  BitField<4, 2, u16> reg2;
-  BitField<6, 2, u16> reg3;
-  BitField<8, 8, u16> reserved;
+  constexpr MIProtType(u16 val = 0) : BitField2(val) {}
 };
 
-union MIIRQMask
+struct MIIRQMask : BitField2<u16>
 {
-  u16 hex = 0;
+  FIELD(bool, 0, 1, reg0);
+  FIELD(bool, 1, 1, reg1);
+  FIELD(bool, 2, 1, reg2);
+  FIELD(bool, 3, 1, reg3);
+  FIELD(u16, 4, 1, all_regs);
+  FIELD(u16, 5, 11, reserved);
 
-  BitField<0, 1, u16> reg0;
-  BitField<1, 1, u16> reg1;
-  BitField<2, 1, u16> reg2;
-  BitField<3, 1, u16> reg3;
-  BitField<4, 1, u16> all_regs;
-  BitField<5, 11, u16> reserved;
+  constexpr MIIRQMask(u16 val = 0) : BitField2(val) {}
 };
 
-union MIIRQFlag
+struct MIIRQFlag : BitField2<u16>
 {
-  u16 hex = 0;
+  FIELD(bool, 0, 1, reg0);
+  FIELD(bool, 1, 1, reg1);
+  FIELD(bool, 2, 1, reg2);
+  FIELD(bool, 3, 1, reg3);
+  FIELD(u16, 4, 1, all_regs);
+  FIELD(u16, 5, 11, reserved);
 
-  BitField<0, 1, u16> reg0;
-  BitField<1, 1, u16> reg1;
-  BitField<2, 1, u16> reg2;
-  BitField<3, 1, u16> reg3;
-  BitField<4, 1, u16> all_regs;
-  BitField<5, 11, u16> reserved;
+  constexpr MIIRQFlag(u16 val = 0) : BitField2(val) {}
 };
 
 union MIProtAddr
 {
-  u32 hex = 0;
+  BitField2<u32> full;
   struct
   {
     u16 lo;
     u16 hi;
   };
-  BitField<0, 5, u32> reserved_1;
-  BitField<5, 25, u32> addr;
-  BitField<30, 2, u32> reserved_2;
+  FIELD_IN(full, u32, 0, 5, reserved_1);
+  FIELD_IN(full, u32, 5, 25, addr);
+  FIELD_IN(full, u32, 30, 2, reserved_2);
+
+  constexpr MIProtAddr(u32 val = 0) : full(val) {}
 };
 
 union MITimer
 {
-  u32 hex = 0;
+  u32 hex;
   struct
   {
     u16 lo;
     u16 hi;
   };
+
+  constexpr MITimer(u32 val = 0) : hex(val) {}
 };
 
 struct MIMemStruct
@@ -151,14 +158,14 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    MMIO::DirectWrite<u16>(&region.last_page));
   }
 
-  mmio->Register(base | MI_PROT_TYPE, MMIO::DirectRead<u16>(&g_mi_mem.prot_type.hex),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.prot_type.hex));
+  mmio->Register(base | MI_PROT_TYPE, MMIO::DirectRead<u16>(&g_mi_mem.prot_type.storage),
+                 MMIO::DirectWrite<u16>(&g_mi_mem.prot_type.storage));
 
-  mmio->Register(base | MI_IRQMASK, MMIO::DirectRead<u16>(&g_mi_mem.irq_mask.hex),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.irq_mask.hex));
+  mmio->Register(base | MI_IRQMASK, MMIO::DirectRead<u16>(&g_mi_mem.irq_mask.storage),
+                 MMIO::DirectWrite<u16>(&g_mi_mem.irq_mask.storage));
 
-  mmio->Register(base | MI_IRQFLAG, MMIO::DirectRead<u16>(&g_mi_mem.irq_flag.hex),
-                 MMIO::DirectWrite<u16>(&g_mi_mem.irq_flag.hex));
+  mmio->Register(base | MI_IRQFLAG, MMIO::DirectRead<u16>(&g_mi_mem.irq_flag.storage),
+                 MMIO::DirectWrite<u16>(&g_mi_mem.irq_flag.storage));
 
   mmio->Register(base | MI_UNKNOWN1, MMIO::DirectRead<u16>(&g_mi_mem.unknown1),
                  MMIO::DirectWrite<u16>(&g_mi_mem.unknown1));
