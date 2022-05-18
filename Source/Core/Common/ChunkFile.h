@@ -40,32 +40,37 @@ class PointerWrap
 public:
   enum Mode
   {
-    MODE_READ = 1,  // load
-    MODE_WRITE,     // save
-    MODE_MEASURE,   // calculate size
-    MODE_VERIFY,    // compare
+    MODE_READ,
+    MODE_WRITE,
+    MODE_MEASURE,
+    MODE_VERIFY,
   };
 
 private:
   u8** m_ptr_current;
   u8* m_ptr_end;
-  Mode mode;
+  Mode m_mode;
 
 public:
-  PointerWrap(u8** ptr, size_t size, Mode mode_)
-      : m_ptr_current(ptr), m_ptr_end(*ptr + size), mode(mode_)
+  PointerWrap(u8** ptr, size_t size, Mode mode)
+      : m_ptr_current(ptr), m_ptr_end(*ptr + size), m_mode(mode)
   {
   }
 
-  void SetMode(Mode mode_) { mode = mode_; }
-  Mode GetMode() const { return mode; }
+  void SetMeasureMode() { m_mode = Mode::MODE_MEASURE; }
+  void SetVerifyMode() { m_mode = Mode::MODE_VERIFY; }
+  bool IsReadMode() const { return m_mode == Mode::MODE_READ; }
+  bool IsWriteMode() const { return m_mode == Mode::MODE_WRITE; }
+  bool IsMeasureMode() const { return m_mode == Mode::MODE_MEASURE; }
+  bool IsVerifyMode() const { return m_mode == Mode::MODE_VERIFY; }
+
   template <typename K, class V>
   void Do(std::map<K, V>& x)
   {
     u32 count = (u32)x.size();
     Do(count);
 
-    switch (mode)
+    switch (m_mode)
     {
     case MODE_READ:
       for (x.clear(); count != 0; --count)
@@ -95,7 +100,7 @@ public:
     u32 count = (u32)x.size();
     Do(count);
 
-    switch (mode)
+    switch (m_mode)
     {
     case MODE_READ:
       for (x.clear(); count != 0; --count)
@@ -154,7 +159,7 @@ public:
     bool present = x.has_value();
     Do(present);
 
-    switch (mode)
+    switch (m_mode)
     {
     case MODE_READ:
       if (present)
@@ -216,10 +221,10 @@ public:
     Do(count);
     u8* current = *m_ptr_current;
     *m_ptr_current += count;
-    if (mode != MODE_MEASURE && *m_ptr_current > m_ptr_end)
+    if (!IsMeasureMode() && *m_ptr_current > m_ptr_end)
     {
       // trying to read/write past the end of the buffer, prevent this
-      mode = MODE_MEASURE;
+      SetMeasureMode();
     }
     return current;
   }
@@ -228,7 +233,7 @@ public:
   {
     bool s = flag.IsSet();
     Do(s);
-    if (mode == MODE_READ)
+    if (IsReadMode())
       flag.Set(s);
   }
 
@@ -237,7 +242,7 @@ public:
   {
     T temp = atomic.load(std::memory_order_relaxed);
     Do(temp);
-    if (mode == MODE_READ)
+    if (IsReadMode())
       atomic.store(temp, std::memory_order_relaxed);
   }
 
@@ -267,7 +272,7 @@ public:
 
     Do(stable);
 
-    if (mode == MODE_READ)
+    if (IsReadMode())
       x = stable != 0;
   }
 
@@ -278,7 +283,7 @@ public:
     // much range
     ptrdiff_t offset = x - base;
     Do(offset);
-    if (mode == MODE_READ)
+    if (IsReadMode())
     {
       x = base + offset;
     }
@@ -289,13 +294,13 @@ public:
     u32 cookie = arbitraryNumber;
     Do(cookie);
 
-    if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
+    if (IsReadMode() && cookie != arbitraryNumber)
     {
       PanicAlertFmtT(
           "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:#x}). Aborting "
           "savestate load...",
           prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
-      mode = PointerWrap::MODE_MEASURE;
+      SetMeasureMode();
     }
   }
 
@@ -330,13 +335,13 @@ private:
 
   DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
   {
-    if (mode != MODE_MEASURE && (*m_ptr_current + size) > m_ptr_end)
+    if (!IsMeasureMode() && (*m_ptr_current + size) > m_ptr_end)
     {
       // trying to read/write past the end of the buffer, prevent this
-      mode = MODE_MEASURE;
+      SetMeasureMode();
     }
 
-    switch (mode)
+    switch (m_mode)
     {
     case MODE_READ:
       memcpy(data, *m_ptr_current, size);

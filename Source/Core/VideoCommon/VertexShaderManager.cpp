@@ -635,7 +635,7 @@ void VertexShaderManager::DoState(PointerWrap& p)
 
   p.Do(constants);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     Dirty();
   }

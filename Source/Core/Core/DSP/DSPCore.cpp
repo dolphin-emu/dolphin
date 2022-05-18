@@ -398,7 +398,7 @@ void SDSP::DoState(PointerWrap& p)
   Common::WriteProtectMemory(iram, DSP_IRAM_BYTE_SIZE, false);
   // TODO: This uses the wrong endianness (producing bad disassembly)
   // and a bogus byte count (producing bad hashes)
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
     Host::CodeLoaded(m_dsp_core, reinterpret_cast<const u8*>(iram), DSP_IRAM_BYTE_SIZE);
   p.DoArray(dram, DSP_DRAM_SIZE);
 }

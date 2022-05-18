@@ -428,7 +428,7 @@ void DoState(PointerWrap& p)
     Core::DisplayMessage("State is incompatible with current memory settings (MMU and/or memory "
                          "overrides). Aborting load state.",
                          3000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
     return;
   }
 

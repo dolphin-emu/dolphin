@@ -94,7 +94,7 @@ void DoState(PointerWrap& p)
   p.DoPointer(write_ptr, s_video_buffer);
   s_video_buffer_write_ptr = write_ptr;
   p.DoPointer(s_video_buffer_read_ptr, s_video_buffer);
-  if (p.GetMode() == PointerWrap::MODE_READ && s_use_deterministic_gpu_thread)
+  if (p.IsReadMode() && s_use_deterministic_gpu_thread)
   {
     // We're good and paused, right?
     s_video_buffer_seen_ptr = s_video_buffer_pp_read_ptr = s_video_buffer_read_ptr;

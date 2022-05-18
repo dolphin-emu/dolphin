@@ -132,7 +132,7 @@ void DoState(PointerWrap& p)
 
   ppcState.iCache.DoState(p);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     RoundingModeUpdated();
     IBATUpdated();

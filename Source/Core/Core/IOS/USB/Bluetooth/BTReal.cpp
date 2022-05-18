@@ -268,28 +268,28 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
 {
   bool passthrough_bluetooth = true;
   p.Do(passthrough_bluetooth);
-  if (!passthrough_bluetooth && p.GetMode() == PointerWrap::MODE_READ)
+  if (!passthrough_bluetooth && p.IsReadMode())
   {
     Core::DisplayMessage("State needs Bluetooth passthrough to be disabled. Aborting load.", 4000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
     return;
   }
 
   // Prevent the transfer callbacks from messing with m_current_transfers after we have started
   // writing a savestate. We cannot use a scoped lock here because DoState is called twice and
   // we would lose the lock between the two calls.
-  if (p.GetMode() == PointerWrap::MODE_MEASURE || p.GetMode() == PointerWrap::MODE_VERIFY)
+  if (p.IsMeasureMode() || p.IsVerifyMode())
     m_transfers_mutex.lock();
 
   std::vector<u32> addresses_to_discard;
-  if (p.GetMode() != PointerWrap::MODE_READ)
+  if (!p.IsReadMode())
   {
     // Save addresses of transfer commands to discard on savestate load.
     for (const auto& transfer : m_current_transfers)
       addresses_to_discard.push_back(transfer.second.command->ios_request.address);
   }
   p.Do(addresses_to_discard);
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     // On load, discard any pending transfer to make sure the emulated software is not stuck
     // waiting for the previous request to complete. This is usually not an issue as long as
@@ -305,7 +305,7 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
                     OSD::Duration::NORMAL);
   }
 
-  if (!s_has_shown_savestate_warning && p.GetMode() == PointerWrap::MODE_WRITE)
+  if (!s_has_shown_savestate_warning && p.IsWriteMode())
   {
     OSD::AddMessage("Savestates may not work with Bluetooth passthrough in all cases.\n"
                     "They will only work if no remote is connected when restoring the state,\n"
@@ -315,7 +315,7 @@ void BluetoothRealDevice::DoState(PointerWrap& p)
   }
 
   // We have finished the savestate now, so the transfers mutex can be unlocked.
-  if (p.GetMode() == PointerWrap::MODE_WRITE)
+  if (p.IsWriteMode())
     m_transfers_mutex.unlock();
 }
 
