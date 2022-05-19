@@ -8,6 +8,7 @@
 
 namespace UICommon::Steam
 {
+bool IsRelaunchRequired();
 void Init();
 void Shutdown();
 }  // namespace Steam
