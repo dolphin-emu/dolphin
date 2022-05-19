@@ -61,6 +61,11 @@ static void ASAN_DISABLE perform_invalid_access(void* data)
 
 TEST(PageFault, PageFault)
 {
+  if (!EMM::IsExceptionHandlerSupported())
+  {
+    // TODO: Use GTEST_SKIP() instead when GTest is updated to 1.10+
+    return;
+  }
   EMM::InstallExceptionHandler();
   void* data = Common::AllocateMemoryPages(PAGE_GRAN);
   EXPECT_NE(data, nullptr);
