@@ -13,6 +13,7 @@
 #include <wrl.h>
 
 #include "Common/DynamicLibrary.h"
+#include "Common/HRWrap.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -481,8 +482,8 @@ private:
 
         if (!waveform_name.data())
         {
-          WARN_LOG(CONTROLLERINTERFACE, "WGInput: Unknown haptics feedback waveform: %d.",
-                   waveform);
+          WARN_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Unknown haptics feedback waveform: 0x{:04x}.",
+                       waveform);
           continue;
         }
 
@@ -502,23 +503,31 @@ private:
     const auto switch_count = UINT32(m_switches.size());
     const auto axis_count = UINT32(m_axes.size());
     UINT64 timestamp = 0;
-    if (FAILED(m_raw_controller->GetCurrentReading(button_count, m_buttons.data(), switch_count,
-                                                   m_switches.data(), axis_count, m_axes.data(),
-                                                   &timestamp)))
+    const HRESULT raw_result = m_raw_controller->GetCurrentReading(
+        button_count, m_buttons.data(), switch_count, m_switches.data(), axis_count, m_axes.data(),
+        &timestamp);
+    if (FAILED(raw_result))
     {
-      ERROR_LOG(CONTROLLERINTERFACE, "WGInput: IRawGameController::GetCurrentReading failed.");
+      ERROR_LOG_FMT(CONTROLLERINTERFACE,
+                    "WGInput: IRawGameController::GetCurrentReading failed: {}",
+                    Common::HRWrap(raw_result));
     }
 
     // IGamepad:
-    if (m_gamepad && FAILED(m_gamepad->GetCurrentReading(&m_gamepad_reading)))
+    if (m_gamepad)
     {
-      ERROR_LOG(CONTROLLERINTERFACE, "WGInput: IGamepad::GetCurrentReading failed.");
+      const HRESULT gamepad_result = m_gamepad->GetCurrentReading(&m_gamepad_reading);
+      if (FAILED(gamepad_result))
+      {
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: IGamepad::GetCurrentReading failed: {}",
+                      Common::HRWrap(gamepad_result));
+      }
     }
 
     // IGameControllerBatteryInfo:
     if (m_controller_battery && !UpdateBatteryLevel())
     {
-      DEBUG_LOG(CONTROLLERINTERFACE, "WGInput: UpdateBatteryLevel failed.");
+      DEBUG_LOG_FMT(CONTROLLERINTERFACE, "WGInput: UpdateBatteryLevel failed.");
     }
   }
 
@@ -648,7 +657,7 @@ void Init()
 
   if (!LoadFunctionPointers())
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: System lacks support, skipping init.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: System lacks support, skipping init.");
     return;
   }
 
@@ -666,7 +675,7 @@ void Init()
     break;
 
   default:
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: RoInitialize failed.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: RoInitialize failed: {}", Common::HRWrap(hr));
     break;
   }
 }
@@ -712,43 +721,49 @@ void PopulateDevices()
 
   HSTRING_HEADER header_raw_game_controller;
   HSTRING hstr_raw_game_controller;
-  if (FAILED(WindowsCreateStringReferenceAutoSizeWrapper(L"Windows.Gaming.Input.RawGameController",
-                                                         &header_raw_game_controller,
-                                                         &hstr_raw_game_controller)))
+  HRESULT hr;
+  if (FAILED(hr = WindowsCreateStringReferenceAutoSizeWrapper(
+                 L"Windows.Gaming.Input.RawGameController", &header_raw_game_controller,
+                 &hstr_raw_game_controller)))
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to create string reference.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to create string reference: {}",
+                  Common::HRWrap(hr));
     return;
   }
 
   HSTRING_HEADER header_gamepad;
   HSTRING hstr_gamepad;
-  if (FAILED(WindowsCreateStringReferenceAutoSizeWrapper(L"Windows.Gaming.Input.Gamepad",
-                                                         &header_gamepad, &hstr_gamepad)))
+  if (FAILED(hr = WindowsCreateStringReferenceAutoSizeWrapper(L"Windows.Gaming.Input.Gamepad",
+                                                              &header_gamepad, &hstr_gamepad)))
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to create string reference.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to create string reference: {}",
+                  Common::HRWrap(hr));
     return;
   }
 
   ComPtr<WGI::IRawGameControllerStatics> raw_stats;
-  if (FAILED(g_RoGetActivationFactory_address(
-          hstr_raw_game_controller, __uuidof(WGI::IRawGameControllerStatics), &raw_stats)))
+  if (FAILED(hr = g_RoGetActivationFactory_address(
+                 hstr_raw_game_controller, __uuidof(WGI::IRawGameControllerStatics), &raw_stats)))
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get IRawGameControllerStatics.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to get IRawGameControllerStatics: {}",
+                  Common::HRWrap(hr));
     return;
   }
 
   ComPtr<WGI::IGamepadStatics2> gamepad_stats;
-  if (FAILED(g_RoGetActivationFactory_address(hstr_gamepad, __uuidof(WGI::IGamepadStatics2),
-                                              &gamepad_stats)))
+  if (FAILED(hr = g_RoGetActivationFactory_address(hstr_gamepad, __uuidof(WGI::IGamepadStatics2),
+                                                   &gamepad_stats)))
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get IGamepadStatics2.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to get IGamepadStatics2: {}",
+                  Common::HRWrap(hr));
     return;
   }
 
   IVectorView<WGI::RawGameController*>* raw_controllers;
-  if (FAILED(raw_stats->get_RawGameControllers(&raw_controllers)))
+  if (FAILED(hr = raw_stats->get_RawGameControllers(&raw_controllers)))
   {
-    ERROR_LOG(CONTROLLERINTERFACE, "WGInput: get_RawGameControllers failed.");
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: get_RawGameControllers failed: {}",
+                  Common::HRWrap(hr));
     return;
   }
 
@@ -763,10 +778,10 @@ void PopulateDevices()
 
       // Attempt to get the controller's name.
       WGI::IRawGameController2* rgc2 = nullptr;
-      if (SUCCEEDED(raw_controller->QueryInterface(&rgc2)) && rgc2)
+      if (SUCCEEDED(hr = raw_controller->QueryInterface(&rgc2)) && rgc2)
       {
         HSTRING hstr = {};
-        if (SUCCEEDED(rgc2->get_DisplayName(&hstr)) && hstr)
+        if (SUCCEEDED(hr = rgc2->get_DisplayName(&hstr)) && hstr)
         {
           device_name =
               StripSpaces(WStringToUTF8(g_WindowsGetStringRawBuffer_address(hstr, nullptr)));
@@ -775,7 +790,8 @@ void PopulateDevices()
 
       if (device_name.empty())
       {
-        ERROR_LOG(CONTROLLERINTERFACE, "WGInput: Failed to get device name.");
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "WGInput: Failed to get device name: {}",
+                      Common::HRWrap(hr));
         // Set a default name if we couldn't query the name or it was empty.
         device_name = "Device";
       }

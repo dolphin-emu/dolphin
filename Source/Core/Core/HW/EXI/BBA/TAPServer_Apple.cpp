@@ -8,6 +8,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -29,7 +30,7 @@ bool CEXIETHERNET::TAPServerNetworkInterface::Activate()
   sockaddr_un sun = {};
   if (sizeof(socket_path) > sizeof(sun.sun_path))
   {
-    ERROR_LOG(SP1, "Socket path is too long, unable to init BBA");
+    ERROR_LOG_FMT(SP1, "Socket path is too long, unable to init BBA");
     return false;
   }
   sun.sun_family = AF_UNIX;
@@ -38,19 +39,19 @@ bool CEXIETHERNET::TAPServerNetworkInterface::Activate()
   fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (fd == -1)
   {
-    ERROR_LOG(SP1, "Couldn't create socket, unable to init BBA");
+    ERROR_LOG_FMT(SP1, "Couldn't create socket, unable to init BBA");
     return false;
   }
 
   if (connect(fd, reinterpret_cast<sockaddr*>(&sun), sizeof(sun)) == -1)
   {
-    ERROR_LOG(SP1, "Couldn't connect socket (%d), unable to init BBA", errno);
+    ERROR_LOG_FMT(SP1, "Couldn't connect socket ({}), unable to init BBA", LastStrerrorString());
     close(fd);
     fd = -1;
     return false;
   }
 
-  INFO_LOG(SP1, "BBA initialized.\n");
+  INFO_LOG_FMT(SP1, "BBA initialized.");
   return RecvInit();
 }
 
@@ -58,20 +59,20 @@ bool CEXIETHERNET::TAPServerNetworkInterface::SendFrame(const u8* frame, u32 siz
 {
   {
     const std::string s = ArrayToString(frame, size, 0x10);
-    INFO_LOG(SP1, "SendFrame %x\n%s\n", size, s.c_str());
+    INFO_LOG_FMT(SP1, "SendFrame {}\n{}", size, s);
   }
 
   auto size16 = u16(size);
   if (write(fd, &size16, 2) != 2)
   {
-    ERROR_LOG(SP1, "SendFrame(): could not write size field\n");
+    ERROR_LOG_FMT(SP1, "SendFrame(): could not write size field");
     return false;
   }
   int written_bytes = write(fd, frame, size);
   if (u32(written_bytes) != size)
   {
-    ERROR_LOG(SP1, "SendFrame(): expected to write %d bytes, instead wrote %d", size,
-              written_bytes);
+    ERROR_LOG_FMT(SP1, "SendFrame(): expected to write {} bytes, instead wrote {}", size,
+                  written_bytes);
     return false;
   }
   else
@@ -98,19 +99,19 @@ void CEXIETHERNET::TAPServerNetworkInterface::ReadThreadHandler()
     u16 size;
     if (read(fd, &size, 2) != 2)
     {
-      ERROR_LOG(SP1, "Failed to read size field from BBA, err=%d", errno);
+      ERROR_LOG_FMT(SP1, "Failed to read size field from BBA: {}", LastStrerrorString());
     }
     else
     {
       int read_bytes = read(fd, m_eth_ref->mRecvBuffer.get(), size);
       if (read_bytes < 0)
       {
-        ERROR_LOG(SP1, "Failed to read packet data from BBA, err=%d", errno);
+        ERROR_LOG_FMT(SP1, "Failed to read packet data from BBA: {}", LastStrerrorString());
       }
       else if (readEnabled.IsSet())
       {
         std::string data_string = ArrayToString(m_eth_ref->mRecvBuffer.get(), read_bytes, 0x10);
-        INFO_LOG(SP1, "Read data: %s", data_string.c_str());
+        INFO_LOG_FMT(SP1, "Read data: {}", data_string);
         m_eth_ref->mRecvBufferLength = read_bytes;
         m_eth_ref->RecvHandlePacket();
       }

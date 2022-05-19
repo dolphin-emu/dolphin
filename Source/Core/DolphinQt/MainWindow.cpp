@@ -325,9 +325,9 @@ void MainWindow::InitControllers()
   if (!g_controller_interface.HasDefaultDevice())
   {
     // Note that the CI default device could be still temporarily removed at any time
-    WARN_LOG(CONTROLLERINTERFACE,
-             "No default device has been added in time. EmulatedController(s) defaulting adds"
-             " input mappings made for a specific default device depending on the platform");
+    WARN_LOG_FMT(CONTROLLERINTERFACE,
+                 "No default device has been added in time. EmulatedController(s) defaulting adds"
+                 " input mappings made for a specific default device depending on the platform");
   }
   GCAdapter::Init();
   Pad::Initialize();
