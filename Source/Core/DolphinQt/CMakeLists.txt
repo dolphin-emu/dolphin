@@ -565,6 +565,11 @@ if(APPLE)
     set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
   endif()
 
+  if(STEAM)
+    target_sources(dolphin-emu PRIVATE "${SteamworksSDK_LIBRARY}")
+    set_source_files_properties("${SteamworksSDK_LIBRARY}" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
+  endif()
+
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)
   dolphin_postprocess_bundle(dolphin-emu)
