@@ -96,57 +96,7 @@ void GenericLogFmt(LogLevel level, LogType type, const char* file, int line, con
                 "too many arguments?");
   GenericLogFmtImpl(level, type, file, line, format, fmt::make_format_args(args...));
 }
-
-void GenericLog(LogLevel level, LogType type, const char* file, int line, const char* fmt, ...)
-#ifdef __GNUC__
-    __attribute__((format(printf, 5, 6)))
-#endif
-    ;
-
-void GenericLogV(LogLevel level, LogType type, const char* file, int line, const char* fmt,
-                 va_list args);
 }  // namespace Common::Log
-
-// Let the compiler optimize this out
-#define GENERIC_LOG(t, v, ...)                                                                     \
-  do                                                                                               \
-  {                                                                                                \
-    if (v <= Common::Log::MAX_LOGLEVEL)                                                            \
-      Common::Log::GenericLog(v, t, __FILE__, __LINE__, __VA_ARGS__);                              \
-  } while (0)
-
-#define ERROR_LOG(t, ...)                                                                          \
-  do                                                                                               \
-  {                                                                                                \
-    GENERIC_LOG(Common::Log::LogType::t, Common::Log::LogLevel::LERROR, __VA_ARGS__);              \
-  } while (0)
-#define WARN_LOG(t, ...)                                                                           \
-  do                                                                                               \
-  {                                                                                                \
-    GENERIC_LOG(Common::Log::LogType::t, Common::Log::LogLevel::LWARNING, __VA_ARGS__);            \
-  } while (0)
-#define NOTICE_LOG(t, ...)                                                                         \
-  do                                                                                               \
-  {                                                                                                \
-    GENERIC_LOG(Common::Log::LogType::t, Common::Log::LogLevel::LNOTICE, __VA_ARGS__);             \
-  } while (0)
-#define INFO_LOG(t, ...)                                                                           \
-  do                                                                                               \
-  {                                                                                                \
-    GENERIC_LOG(Common::Log::LogType::t, Common::Log::LogLevel::LINFO, __VA_ARGS__);               \
-  } while (0)
-#define DEBUG_LOG(t, ...)                                                                          \
-  do                                                                                               \
-  {                                                                                                \
-    GENERIC_LOG(Common::Log::LogType::t, Common::Log::LogLevel::LDEBUG, __VA_ARGS__);              \
-  } while (0)
-
-#define GENERIC_LOG_V(t, v, fmt, args)                                                             \
-  do                                                                                               \
-  {                                                                                                \
-    if (v <= Common::Log::MAX_LOGLEVEL)                                                            \
-      Common::Log::GenericLogV(v, t, __FILE__, __LINE__, fmt, args);                               \
-  } while (0)
 
 // fmtlib capable API
 
