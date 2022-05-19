@@ -26,7 +26,10 @@ message(STATUS "Fixing up application bundle: ${DOLPHIN_BUNDLE_PATH}")
 
 # Make sure to fix up any additional shared libraries (like plugins) that are
 # needed.
-file(GLOB_RECURSE extra_libs "${DOLPHIN_BUNDLE_PATH}/Contents/MacOS/*.dylib")
+file(GLOB_RECURSE extra_libs
+	"${DOLPHIN_BUNDLE_PATH}/Contents/MacOS/*.dylib"
+	"${DOLPHIN_BUNDLE_PATH}/Contents/Frameworks/*.dylib"
+)
 
 # BundleUtilities doesn't support DYLD_FALLBACK_LIBRARY_PATH behavior, which
 # makes it sometimes break on libraries that do weird things with @rpath. Specify
