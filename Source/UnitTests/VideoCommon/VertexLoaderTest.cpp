@@ -330,7 +330,7 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
   m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
   m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
-  m_vtx_attr.g0.NormalElements = NormalComponentCount::NBT;
+  m_vtx_attr.g0.NormalElements = NormalComponentCount::NTB;
   m_vtx_attr.g0.NormalFormat = ComponentFormat::Float;
   m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
   m_vtx_attr.g0.Color0Comp = ColorFormat::RGBA8888;
