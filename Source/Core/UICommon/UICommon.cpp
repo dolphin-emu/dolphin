@@ -37,6 +37,7 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
+#include "UICommon/SteamIntegration.h"
 #include "UICommon/USBUtils.h"
 
 #ifdef HAVE_X11
@@ -107,6 +108,7 @@ void Init()
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   Discord::Init();
+  Steam::Init();
   Common::Log::LogManager::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
@@ -119,6 +121,7 @@ void Shutdown()
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
   Common::Log::LogManager::Shutdown();
+  Steam::Shutdown();
   Discord::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();

@@ -13,6 +13,8 @@ add_library(uicommon
   GameFileCache.h
   NetPlayIndex.cpp
   NetPlayIndex.h
+  SteamIntegration.cpp
+  SteamIntegration.h
   ResourcePack/Manager.cpp
   ResourcePack/Manager.h
   ResourcePack/Manifest.cpp
@@ -38,6 +40,13 @@ PRIVATE
   fmt::fmt
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
+
+if(STEAM)
+  target_link_libraries(uicommon
+  PRIVATE
+    SteamworksSDK::SteamworksSDK
+  )
+endif()
 
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
     (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
