@@ -50,7 +50,7 @@ CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 #if defined(__APPLE__)
   case BBADeviceType::TAPSERVER:
     m_network_interface = std::make_unique<TAPServerNetworkInterface>(this);
-    INFO_LOG(SP1, "Created tapserver physical network interface.");
+    INFO_LOG_FMT(SP1, "Created tapserver physical network interface.");
     break;
 #endif
   case BBADeviceType::XLINK:
