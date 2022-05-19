@@ -53,7 +53,7 @@ public:
 private:
   void ProcessVertexComponent(CPArray array_index, VertexComponentFormat array_type,
                               u32 component_offset, u32 vertex_size, u16 num_vertices,
-                              const u8* vertex_data);
+                              const u8* vertex_data, u32 byte_offset = 0);
 
   FifoRecorder* const m_owner;
   CPState m_cpmem;
@@ -98,8 +98,35 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
   const u32 norm_size =
       VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
                                    vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
-  ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset, vertex_size, num_vertices,
-                         vertex_data);
+  if (vtx_attr.g0.NormalIndex3 && IsIndexed(vtx_desc.low.Normal) &&
+      vtx_attr.g0.NormalElements == NormalComponentCount::NTB)
+  {
+    // We're in 3-index mode, and we're using an indexed format and have the
+    // normal/tangent/binormal, so we actually need to deal with 3-index mode.
+    const u32 index_size = vtx_desc.low.Normal == VertexComponentFormat::Index16 ? 2 : 1;
+    ASSERT(norm_size == index_size * 3);
+    // 3-index mode uses one index each for the normal, tangent and binormal;
+    // the tangent and binormal are internally offset.
+    // The offset is based on the component size, not to the index itself;
+    // for instance, with 32-bit float normals, each normal vector is 3*sizeof(float) = 12 bytes,
+    // so the normal vector is offset by 0 bytes, the tangent by 12, and the binormal by 24.
+    // Using a byte offset instead of increasing the index means that using the same index for all
+    // elements is the same as not using the 3-index mode (increasing the index would give differing
+    // results if the normal array's stride was something other than 12, for instance if vertices
+    // were contiguous in main memory instead of individual components being used).
+    const u32 element_size = GetElementSize(vtx_attr.g0.NormalFormat) * 3;
+    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset, vertex_size, num_vertices,
+                           vertex_data);
+    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset + index_size, vertex_size,
+                           num_vertices, vertex_data, element_size);
+    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset + 2 * index_size,
+                           vertex_size, num_vertices, vertex_data, 2 * element_size);
+  }
+  else
+  {
+    ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Normal, offset, vertex_size, num_vertices,
+                           vertex_data);
+  }
   offset += norm_size;
 
   for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
@@ -123,11 +150,9 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
 }
 
 // If a component is indexed, the array it indexes into for data must be saved.
-void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(CPArray array_index,
-                                                              VertexComponentFormat array_type,
-                                                              u32 component_offset, u32 vertex_size,
-                                                              u16 num_vertices,
-                                                              const u8* vertex_data)
+void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(
+    CPArray array_index, VertexComponentFormat array_type, u32 component_offset, u32 vertex_size,
+    u16 num_vertices, const u8* vertex_data, u32 byte_offset)
 {
   // Skip if not indexed array
   if (!IsIndexed(array_type))
@@ -167,7 +192,7 @@ void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(CPArray array_inde
     }
   }
 
-  const u32 array_start = m_cpmem.array_bases[array_index];
+  const u32 array_start = m_cpmem.array_bases[array_index] + byte_offset;
   const u32 array_size = m_cpmem.array_strides[array_index] * (max_index + 1);
 
   m_owner->UseMemory(array_start, array_size, MemoryUpdate::VERTEX_STREAM);
