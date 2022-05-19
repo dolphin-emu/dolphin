@@ -864,6 +864,8 @@ else()
 endif()
 
 if(STEAM)
+  set(SteamworksSDK_DIR Externals/SteamworksSDK)
+  find_package(SteamworksSDK REQUIRED)
   add_definitions(-DSTEAM)
 endif()
 
