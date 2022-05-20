@@ -76,9 +76,12 @@ public:
 
   virtual SettingType GetType() const = 0;
 
+  virtual void SetToDefault() = 0;
+
   const char* GetUIName() const;
   const char* GetUISuffix() const;
   const char* GetUIDescription() const;
+  SettingVisibility GetVisibility() const;
 
 protected:
   NumericSettingDetails m_details;
@@ -102,8 +105,10 @@ public:
       : NumericSettingBase(details), m_value(*value), m_default_value(default_value),
         m_min_value(min_value), m_max_value(max_value)
   {
-    m_value.SetValue(m_default_value);
+    SetToDefault();
   }
+
+  void SetToDefault() override { m_value.SetValue(m_default_value); }
 
   void LoadFromIni(const IniFile::Section& section, const std::string& group_name) override
   {

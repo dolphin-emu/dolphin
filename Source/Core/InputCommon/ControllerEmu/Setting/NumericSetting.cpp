@@ -26,6 +26,11 @@ const char* NumericSettingBase::GetUIDescription() const
   return m_details.ui_description;
 }
 
+SettingVisibility NumericSettingBase::GetVisibility() const
+{
+  return m_details.visibility;
+}
+
 template <>
 void NumericSetting<int>::SetExpressionFromValue()
 {
