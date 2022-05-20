@@ -427,6 +427,13 @@ if(WIN32)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
   find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
 
+  if ("${QT_VERSION_MAJOR}" LESS 6)
+    set(NO_ANGLE_PARAM "--no-angle")
+  else()
+    # parameter no longer exists in Qt6
+    set(NO_ANGLE_PARAM "")
+  endif()
+
   # Note: We set the PATH for the duration of this command so that the
   #       deployment application is able to locate the Qt libraries to copy.
   #       if the necessary paths aren't already set beforehand.
@@ -449,7 +456,7 @@ if(WIN32)
                                  --no-translations
                                  --no-compiler-runtime
                                  --no-system-d3d-compiler
-                                 --no-angle
+                                 "${NO_ANGLE_PARAM}"
                                  --no-opengl-sw
                                  "$<TARGET_FILE:dolphin-emu>"
   )
