@@ -70,6 +70,28 @@
 
 #include "UICommon/GameFile.h"
 
+namespace
+{
+class GameListTableView : public QTableView
+{
+public:
+  explicit GameListTableView(QWidget* parent = nullptr) : QTableView(parent) {}
+
+protected:
+  QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) override
+  {
+    // QTableView::moveCursor handles home by moving to the first column and end by moving to the
+    // last column, unless control is held in which case it ALSO moves to the first/last row.
+    // Columns are irrelevant for the game list, so treat the home/end press as if control were
+    // held.
+    if (cursorAction == CursorAction::MoveHome || cursorAction == CursorAction::MoveEnd)
+      return QTableView::moveCursor(cursorAction, modifiers | Qt::ControlModifier);
+    else
+      return QTableView::moveCursor(cursorAction, modifiers);
+  }
+};
+}  // namespace
+
 GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
   m_list_proxy = new ListProxyModel(this);
@@ -129,7 +151,7 @@ void GameList::PurgeCache()
 
 void GameList::MakeListView()
 {
-  m_list = new QTableView(this);
+  m_list = new GameListTableView(this);
   m_list->setModel(m_list_proxy);
 
   m_list->setTabKeyNavigation(false);
