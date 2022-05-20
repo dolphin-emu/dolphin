@@ -11,15 +11,13 @@ CGPoint getWindowCenter(uint32_t* m_windowid);
 class CocoaInputMouse: public GenericMouse
 {
 public:
-  CocoaInputMouse(uint32_t* windowid);
+  explicit CocoaInputMouse(uint32_t* windowid);
   void UpdateInput() override;
   void LockCursorToGameWindow() override;
 
 private:
-  bool isFullScreen();
-  CGPoint current_loc, last_loc, origin;
+  CGPoint current_loc, center;
   CGEventRef event;
-  static const uint8 WINDOW_CHROME_OFFSET = 13;
   uint32_t* m_windowid;
 };
 

@@ -1,6 +1,12 @@
 #include "QuartzInputMouse.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "Core/Host.h"
+
+/**
+ * This interface works by centering the cursor within the window
+ * ever time the `UpdateInput` method is called. It then calculates
+ * the delta based on how far the mouse has moved from the center of
+ * the screen before it is re-centered.
+ */
 
 
 int win_w = 0, win_h = 0;
@@ -17,7 +23,7 @@ bool InitCocoaInputMouse(uint32_t* windowid)
 CocoaInputMouse::CocoaInputMouse(uint32_t* windowid)
 {
   m_windowid = windowid;
-  origin = last_loc = getWindowCenter(m_windowid);
+  center = getWindowCenter(m_windowid);
 }
 
 void CocoaInputMouse::UpdateInput() 
@@ -25,44 +31,32 @@ void CocoaInputMouse::UpdateInput()
   event = CGEventCreate(nil);
   current_loc = CGEventGetLocation(event);
   CFRelease(event);
-  origin = getWindowCenter(m_windowid);
-
-  if (cursor_locked)
+  center = getWindowCenter(m_windowid);
+  if (Host_RendererHasFocus() && cursor_locked)
   {
-      this->dx += current_loc.x - origin.x;
-      this->dy += current_loc.y - origin.y;
-      if (!isFullScreen()) {
-        this->dy -= WINDOW_CHROME_OFFSET;
-      }
-      last_loc = current_loc;
+    this->dx += current_loc.x - center.x;
+    this->dy += current_loc.y - center.y;
   }
   LockCursorToGameWindow();
-
 }
 
 void CocoaInputMouse::LockCursorToGameWindow()
 {
   if (Host_RendererHasFocus() && cursor_locked)
   {
-    Host_RendererUpdateCursor(true);
-    CGDisplayHideCursor(CGMainDisplayID());
+    // Hack to avoid short bit of input supression after warp
+    // Credit/explanation: https://stackoverflow.com/a/17559012/7341382
+      CGWarpMouseCursorPosition(center);
+      CGAssociateMouseAndMouseCursorPosition(true);
+      CGDisplayHideCursor(CGMainDisplayID());
   }
   else
   {
     cursor_locked = false;
     Host_RendererUpdateCursor(false);
+    CGAssociateMouseAndMouseCursorPosition(true);
     CGDisplayShowCursor(CGMainDisplayID());
   }
-}
-
-bool CocoaInputMouse::isFullScreen()
-{
-  // TODO: Right now the game must be played on the main display.
-  auto bounds = getBounds(m_windowid);
-  auto mainDisplayId = CGMainDisplayID();
-  auto width = CGDisplayPixelsWide(mainDisplayId);
-  auto height = CGDisplayPixelsHigh(mainDisplayId);
-  return (bounds.size.width == width && bounds.size.height == height);
 }
 
 CGRect getBounds(uint32_t* m_windowid)
