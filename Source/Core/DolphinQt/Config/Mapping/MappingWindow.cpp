@@ -44,6 +44,7 @@
 #include "DolphinQt/Config/Mapping/WiimoteEmuGeneral.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControl.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.h"
+#include "DolphinQt/Config/WiimoteControllersWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -561,4 +562,10 @@ void MappingWindow::ShowExtensionMotionTabs(bool show)
     m_tab_widget->removeTab(5);
     m_tab_widget->removeTab(4);
   }
+}
+
+void MappingWindow::OnExtensionChanged(int port, int extension)
+{
+  WiimoteControllersWidget* wiimote_parent = static_cast<WiimoteControllersWidget*>(parent());
+  wiimote_parent->WiimoteExtChanged(port, extension);
 }

@@ -98,6 +98,8 @@ void WiimoteEmuGeneral::OnAttachmentSelected(int extension)
 
   ce_extension->SetSelectedAttachment(extension);
 
+  GetParent()->OnExtensionChanged(GetPort(), extension);
+
   ConfigChanged();
   SaveSettings();
 }
