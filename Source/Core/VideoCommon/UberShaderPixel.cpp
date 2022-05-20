@@ -103,17 +103,19 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     bool has_broken_decoration =
         DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
 
-    out.Write("{} {} vec4 {};\n",
+    out.Write("{} {} {} {};\n",
               has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
                                       "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
               use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+              uid_data->uint_output ? "uvec4" : "vec4",
               use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
     if (use_dual_source)
     {
-      out.Write("{} out vec4 ocol1;\n", has_broken_decoration ?
-                                            "FRAGMENT_OUTPUT_LOCATION(1)" :
-                                            "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)");
+      out.Write("{} out {} ocol1;\n",
+                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
+                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
+                uid_data->uint_output ? "uvec4" : "vec4");
     }
   }
 
