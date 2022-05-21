@@ -77,6 +77,8 @@ static const std::map<u32, u32> UCODE_FLAGS = {
                      WEIRD_CMD_0C},
     // GameCube IPL/BIOS, PAL.
     {0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | NO_CMD_0D},
+    // Pikmin 1 GC NTSC Demo.
+    {0xDF059F68, LIGHT_PROTOCOL | NO_CMD_0D | SUPPORTS_GBA_CRYPTO},
     // Pikmin 1 GC NTSC.
     // Animal Crossing.
     {0x4BE6A5CB, LIGHT_PROTOCOL | NO_CMD_0D | SUPPORTS_GBA_CRYPTO},
