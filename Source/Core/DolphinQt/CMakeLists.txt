@@ -391,6 +391,13 @@ if (MSVC)
   target_compile_options(dolphin-emu PRIVATE "${qtGui}")
   target_compile_options(dolphin-emu PRIVATE "${qtGuiPriv}")
   target_compile_options(dolphin-emu PRIVATE "${qtWidgets}")
+
+  if ("${QT_VERSION_MAJOR}" GREATER_EQUAL 6)
+    # Qt6 requires RTTI
+    foreach (flag CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+      string(REGEX REPLACE " /GR- " " /GR " ${flag} "${${flag}}")
+    endforeach()
+  endif()
 endif()
 
 if(WIN32)

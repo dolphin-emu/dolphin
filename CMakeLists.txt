@@ -270,12 +270,59 @@ if(MSVC)
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
+  # Disable RTTI
+  # Unfortunately /GR is in the default compile flags for MSVC so we have to find and replace it.
+  foreach (flag CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    string(REGEX REPLACE " /GR " " /GR- " ${flag} "${${flag}}")
+  endforeach()
+
+  # Set warning level 4 (the highest)
+  add_compile_options(/W4)
+
+  # Treat all warnings as errors
+  add_compile_options(/WX)
+
+  # Disable some warnings
+  add_compile_options(
+    /wd4201 # nonstandard extension used : nameless struct/union
+    /wd4127 # conditional expression is constant
+    /wd4100 # 'identifier' : unreferenced formal parameter
+    /wd4200 # InputCommon fix temp.
+    /wd4244 # 'conversion' conversion from 'type1' to 'type2', possible loss of data
+    /wd4121 # 'symbol' : alignment of a member was sensitive to packing
+    /wd4324 # Padding was added at the end of a structure because you specified a __declspec(align) value.
+    /wd4714 # function 'function' marked as __forceinline not inlined
+    /wd4351 # new behavior: elements of array 'array' will be default initialized
+    # TODO: Enable this warning once possible
+    /wd4245 # conversion from 'type1' to 'type2', signed/unsigned mismatch
+    # Currently jits use some annoying code patterns which makes this common
+  )
+
+  # Additional warnings
+  add_compile_options(
+    /w44263 # Non-virtual member function hides base class virtual function
+    /w44265 # Class has virtual functions, but destructor is not virtual
+    /w44946 # Reinterpret cast between related types
+  )
+
+  # All files are encoded as UTF-8
+  add_compile_options(/utf-8)
+
+  # Ignore warnings in external headers
+  add_compile_options(/external:anglebrackets)
+  add_compile_options(/external:W0)
+  add_compile_options(/external:templates-)
+
+  # Request deterministic builds
+  add_compile_options(/experimental:deterministic)
+  add_link_options(/experimental:deterministic)
+
   # Enable function-level linking
   add_compile_options(/Gy)
   # Generate intrinsic functions
   add_compile_options(/Oi)
-  # Disable buffer security check
-  add_compile_options(/GS-)
+  # Enable buffer security check on Debug, disable otherwise
+  add_compile_options($<IF:$<CONFIG:Debug>,/GS,/GS->)
   # Enforce C++ standard conforming conversion rules to catch possible bugs
   add_compile_options(/permissive-)
   # Remove unreferenced inline functions/data to reduce link time and catch bugs
@@ -293,6 +340,9 @@ if(MSVC)
   add_compile_options(
     /wd5105 # macro expansion producing 'defined' has undefined behavior
   )
+
+  # Use 'precise' floating point model
+  add_compile_options(/fp:precise)
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
   # Generate debug data

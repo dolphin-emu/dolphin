@@ -27,53 +27,8 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (MSVC)
-  # TODO: Use https://cmake.org/cmake/help/latest/policy/CMP0092.html instead (once we can require CMake >= 3.15)
-  # Taken from http://www.cmake.org/Wiki/CMake_FAQ#Dynamic_Replace.
-  foreach(flag_var
-          CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-          MAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-    # Replaces /W3 with /W4 in defaults (add_compile_options would cause very annoying warnings here)
-    string(REPLACE "/W3" "/W4" ${flag_var} "${${flag_var}}")
-  endforeach()
-
-  # Disable some warnings
-  add_compile_options(
-    /wd4201 # nonstandard extension used : nameless struct/union
-    /wd4127 # conditional expression is constant
-    /wd4100 # 'identifier' : unreferenced formal parameter
-    /wd4200 # InputCommon fix temp.
-    /wd4244 # 'conversion' conversion from 'type1' to 'type2', possible loss of data
-    /wd4121 # 'symbol' : alignment of a member was sensitive to packing
-    /wd4324 # Padding was added at the end of a structure because you specified a __declspec(align) value.
-    /wd4714 # function 'function' marked as __forceinline not inlined
-    /wd4351 # new behavior: elements of array 'array' will be default initialized
-    # TODO: Enable this warning once possible
-    /wd4245 # conversion from 'type1' to 'type2', signed/unsigned mismatch
-    # Currently jits use some annoying code patterns which makes this common
-  )
-
-  # Additional warnings
-  add_compile_options(
-    /w44263 # Non-virtual member function hides base class virtual function
-    /w44265 # Class has virtual functions, but destructor is not virtual
-  )
-
-  # Treat all warnings as errors
-  add_compile_options(/WX)
-
-  # All files are encoded as UTF-8
-  add_compile_options(/utf-8)
-
-  # Ignore warnings in external headers
-  add_compile_options(/external:anglebrackets)
-  add_compile_options(/external:W0)
-  add_compile_options(/external:templates-)
-
   # Compile PCH
   add_subdirectory(PCH)
-
-  # Don't include timestamps in binaries
-  add_link_options(/Brepro)
 else()
   check_and_add_flag(HAVE_WALL -Wall)
   # TODO: would like these but they produce overwhelming amounts of warnings
