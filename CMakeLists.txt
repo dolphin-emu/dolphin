@@ -128,6 +128,7 @@ include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
 include(CheckVendoringApproved)
 include(DolphinCompileDefinitions)
+include(DolphinDisableWarningsMSVC)
 include(RemoveCompileFlag)
 
 # Enable folders for IDE

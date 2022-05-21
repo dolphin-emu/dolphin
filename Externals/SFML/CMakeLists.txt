@@ -25,3 +25,5 @@ set(SRC_SYSTEM
 
 add_library(sfml-network ${SRC_NETWORK})
 add_library(sfml-system ${SRC_SYSTEM})
+dolphin_disable_warnings_msvc(sfml-network)
+dolphin_disable_warnings_msvc(sfml-system)

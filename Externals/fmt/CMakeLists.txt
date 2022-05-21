@@ -229,6 +229,7 @@ else()
 endif ()
 
 add_library(fmt ${FMT_SOURCES} ${FMT_HEADERS} README.rst ChangeLog.rst)
+dolphin_disable_warnings_msvc(fmt)
 add_library(fmt::fmt ALIAS fmt)
 
 if (FMT_WERROR)

@@ -12,6 +12,7 @@ set(SRCS
 )
 
 add_library(imgui STATIC ${SRCS})
+dolphin_disable_warnings_msvc(imgui)
 target_include_directories(imgui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_link_libraries(imgui

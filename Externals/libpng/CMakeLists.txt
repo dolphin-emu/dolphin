@@ -39,6 +39,8 @@ add_library(png STATIC
   pngwutil.c
 )
 
+dolphin_disable_warnings_msvc(png)
+
 option(PNG_HARDWARE_OPTIMIZATIONS "Enable hardware optimizations for libpng" OFF)
 
 if(PNG_HARDWARE_OPTIMIZATIONS)

@@ -48,6 +48,7 @@ add_library(cubeb
   src/cubeb_log.cpp
   src/cubeb_strings.c
    $<TARGET_OBJECTS:speex>)
+dolphin_disable_warnings_msvc(cubeb)
 target_include_directories(cubeb
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
@@ -100,6 +101,7 @@ install(
 
 add_library(speex OBJECT
   src/speex/resample.c)
+dolphin_disable_warnings_msvc(speex)
 set_target_properties(speex PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 target_compile_definitions(speex PRIVATE OUTSIDE_SPEEX)
 target_compile_definitions(speex PRIVATE FLOATING_POINT)
