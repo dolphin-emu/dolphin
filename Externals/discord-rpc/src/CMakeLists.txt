@@ -4,7 +4,9 @@ option(ENABLE_IO_THREAD "Start up a separate I/O thread, otherwise I'd need to c
 option(USE_STATIC_CRT "Use /MT[d] for dynamic library" OFF)
 option(WARNINGS_AS_ERRORS "When enabled, compiles with `-Werror` (on *nix platforms)." OFF)
 
-set(CMAKE_CXX_STANDARD 14)
+if (NOT MSVC)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
 set(BASE_RPC_SRC
     ${PROJECT_SOURCE_DIR}/include/discord_rpc.h

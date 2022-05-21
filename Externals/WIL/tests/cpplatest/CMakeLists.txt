@@ -1,7 +1,9 @@
 
 # Compilers often don't use the latest C++ standard as the default. Periodically update this value (possibly conditioned
 # on compiler) as new standards are ratified/support is available
-set(CMAKE_CXX_STANDARD 17)
+if (NOT MSVC)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
 project(witest.cpplatest)
 add_executable(witest.cpplatest)

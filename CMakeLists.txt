@@ -25,6 +25,14 @@ endif()
 
 project(dolphin-emu)
 
+if (MSVC)
+  set(CMAKE_C_STANDARD 99)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std:c++latest")
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
+
 # Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
 # unofficial builds) please consider identifying your distribution with a
 # unique name here.
