@@ -123,9 +123,6 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
                             GetInterpolationQualifier(msaa, ssaa, true, false),
                             ShaderStage::Geometry);
 
-    if (stereo)
-      out.Write("\tflat int layer;\n");
-
     out.Write("}} ps;\n");
 
     out.Write("void main()\n{{\n");
@@ -136,7 +133,9 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     out.Write("\tVS_OUTPUT o;\n");
 
     if (stereo)
+    {
       out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
+    }
     out.Write("\tfloat4 posout : SV_Position;\n");
 
     out.Write("}};\n");
@@ -354,9 +353,12 @@ static void EmitVertex(ShaderCode& out, const ShaderHostConfig& host_config,
   if (stereo)
   {
     // Select the output layer
-    out.Write("\tps.layer = eye;\n");
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
       out.Write("\tgl_Layer = eye;\n");
+    else
+    {
+      out.Write("\tps.layer = eye;\n");
+    }
   }
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)

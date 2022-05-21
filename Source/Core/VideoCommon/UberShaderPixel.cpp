@@ -128,9 +128,6 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     GenerateVSOutputMembers(out, api_type, numTexgen, host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
 
-    if (stereo)
-      out.Write("  flat int layer;\n");
-
     out.Write("}};\n\n");
   }
   else
@@ -538,8 +535,15 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     out.Write("  float4 ocol1;\n");
   }
-  if (!stereo)
-    out.Write("  int layer = 0;\n");
+
+  if (host_config.backend_geometry_shaders && stereo)
+  {
+    out.Write("\tint layer = gl_Layer;\n");
+  }
+  else
+  {
+    out.Write("\tint layer = 0;\n");
+  }
 
   out.Write("  int3 tevcoord = int3(0, 0, 0);\n"
             "  State s;\n"

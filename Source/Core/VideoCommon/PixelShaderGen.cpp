@@ -909,9 +909,6 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
 
-    if (stereo)
-      out.Write("\tflat int layer;\n");
-
     out.Write("}};\n");
   }
   else
@@ -967,8 +964,15 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   {
     out.Write("\tfloat4 ocol1;\n");
   }
-  if (!stereo)
+
+  if (host_config.backend_geometry_shaders && stereo)
+  {
+    out.Write("\tint layer = gl_Layer;\n");
+  }
+  else
+  {
     out.Write("\tint layer = 0;\n");
+  }
 
   out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
             "[3], prev = " I_COLORS "[0];\n"
