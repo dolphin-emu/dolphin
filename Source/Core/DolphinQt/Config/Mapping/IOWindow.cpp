@@ -427,6 +427,7 @@ void IOWindow::Update()
 void IOWindow::ConnectWidgets()
 {
   connect(m_select_button, &QPushButton::clicked, [this] { AppendSelectedOption(); });
+  connect(m_option_list, &QTableWidget::cellDoubleClicked, [this] { AppendSelectedOption(); });
   connect(&Settings::Instance(), &Settings::ReleaseDevices, this, &IOWindow::ReleaseDevices);
   connect(&Settings::Instance(), &Settings::DevicesChanged, this, &IOWindow::UpdateDeviceList);
 
