@@ -1,0 +1,21 @@
+diff --git a/MoltenVK/MoltenVK/GPUObjects/MVKBuffer.mm b/MoltenVK/MoltenVK/GPUObjects/MVKBuffer.mm
+index 7975f72b..6239b967 100644
+--- a/MoltenVK/MoltenVK/GPUObjects/MVKBuffer.mm
++++ b/MoltenVK/MoltenVK/GPUObjects/MVKBuffer.mm
+@@ -311,7 +311,16 @@
+                                                                             width: _textureSize.width
+                                                                            height: _textureSize.height
+                                                                         mipmapped: NO];
++#if MVK_MACOS
++        // Textures on Mac cannot use shared storage, so force managed.
++        if (_buffer->getMTLBuffer().storageMode == MTLStorageModeShared) {
++            mtlTexDesc.storageMode = MTLStorageModeManaged;
++        } else {
++            mtlTexDesc.storageMode = _buffer->getMTLBuffer().storageMode;
++        }
++#else
+             mtlTexDesc.storageMode = mtlBuff.storageMode;
++#endif
+             mtlTexDesc.cpuCacheMode = mtlBuff.cpuCacheMode;
+             mtlTexDesc.usage = usage;
+         }
