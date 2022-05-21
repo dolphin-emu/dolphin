@@ -200,8 +200,10 @@ GPUDeterminismMode GetGPUDeterminismMode()
 
 const Info<std::string> MAIN_PERF_MAP_DIR{{System::Main, "Core", "PerfMapDir"}, ""};
 const Info<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCustomRTC"}, false};
-// Default to seconds between 1.1.1970 and 1.1.2000
-const Info<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCValue"}, 946684800};
+// Measured in seconds since the unix epoch (1.1.1970).  Default is 1.1.2000; there are 7 leap years
+// between those dates.
+const Info<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCValue"},
+                                      (30 * 365 + 7) * 24 * 60 * 60};
 const Info<DiscIO::Region> MAIN_FALLBACK_REGION{{System::Main, "Core", "FallbackRegion"},
                                                 GetDefaultRegion()};
 const Info<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
