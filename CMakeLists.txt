@@ -3,6 +3,14 @@
 #
 cmake_minimum_required(VERSION 3.10)
 
+# Weird chicken-and-egg problem: We can't check the compiler before the project() call, but we have to set the policies before it.
+# So we do this in two steps: Set the policies if they exist, then error out afterwards if we end up being MSVC and they don't exist.
+if (POLICY CMP0117)
+  cmake_policy(SET CMP0091 NEW) # MSVC runtime library flags are selected by an abstraction.
+  cmake_policy(SET CMP0092 NEW) # MSVC warning flags are not in CMAKE_{C,CXX}_FLAGS by default.
+  cmake_policy(SET CMP0117 NEW) # MSVC RTTI flag will not be added by default.
+endif()
+
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
 
@@ -16,16 +24,15 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
 
-# Optionally enable these polcies so older versions of cmake don't break.
-# we only need them for MSVC
-if(POLICY CMP0091)
-  cmake_policy(SET CMP0091 NEW) # MSVC runtime library flags are selected by an abstraction.
-  cmake_policy(SET CMP0092 NEW) # MSVC warning flags are not in CMAKE_{C,CXX}_FLAGS by default.
-endif()
-
 project(dolphin-emu)
 
 if (MSVC)
+  if (POLICY CMP0117)
+    # cmake is a weird language. You can't do if(not POLICY)
+  else()
+    message(FATAL_ERROR "Please update to CMake 3.20 or higher.")
+  endif()
+
   set(CMAKE_C_STANDARD 99)
   set(CMAKE_CXX_STANDARD 23)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -121,6 +128,7 @@ include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
 include(CheckVendoringApproved)
 include(DolphinCompileDefinitions)
+include(RemoveCompileFlag)
 
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -258,21 +266,11 @@ elseif(CMAKE_GENERATOR MATCHES "Visual Studio")
 endif()
 
 if(MSVC)
-  if(POLICY CMP0091)
-    # cmake is a weird language. You can't do if(not POLICY)
-  else()
-    # We really kind of want this policy
-    message(FATAL_ERROR "please update cmake to at least 3.15")
-  endif()
-
   check_and_add_flag(EXCEPTIONS /EHsc)
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
   # Disable RTTI
-  # Unfortunately /GR is in the default compile flags for MSVC so we have to find and replace it.
-  foreach (flag CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-    string(REGEX REPLACE " /GR " " /GR- " ${flag} "${${flag}}")
-  endforeach()
+  add_compile_options(/GR-)
 
   # Set warning level 4 (the highest)
   add_compile_options(/W4)

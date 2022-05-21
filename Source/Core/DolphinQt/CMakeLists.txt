@@ -394,9 +394,8 @@ if (MSVC)
 
   if ("${QT_VERSION_MAJOR}" GREATER_EQUAL 6)
     # Qt6 requires RTTI
-    foreach (flag CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-      string(REGEX REPLACE " /GR- " " /GR " ${flag} "${${flag}}")
-    endforeach()
+    remove_cxx_flag_from_target(dolphin-emu "/GR-")
+    target_compile_options(dolphin-emu PRIVATE "/GR")
   endif()
 endif()
 
