@@ -558,9 +558,11 @@ if(APPLE)
     set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
   endif()
 
-  # Update library references to make the bundle portable
-  include(DolphinPostprocessBundle)
-  dolphin_postprocess_bundle(dolphin-emu)
+  if(NOT APPLE)
+    # Update library references to make the bundle portable
+    include(DolphinPostprocessBundle)
+    dolphin_postprocess_bundle(dolphin-emu)
+ endif()
   # Fix rpath
   add_custom_command(TARGET dolphin-emu
     POST_BUILD COMMAND
