@@ -396,6 +396,9 @@ if (MSVC)
     # Qt6 requires RTTI
     remove_cxx_flag_from_target(dolphin-emu "/GR-")
     target_compile_options(dolphin-emu PRIVATE "/GR")
+  else()
+    # Add precompiled header
+    target_link_libraries(audiocommon PRIVATE use_pch)
   endif()
 endif()
 

@@ -77,3 +77,8 @@ PRIVATE
   pugixml
   ZLIB::ZLIB
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(discio PRIVATE use_pch)
+endif()

@@ -62,3 +62,8 @@ SYSTEM PRIVATE
   ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
   ${CMAKE_SOURCE_DIR}/Externals/glslang
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videovulkan PRIVATE use_pch)
+endif()

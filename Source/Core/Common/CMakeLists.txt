@@ -311,8 +311,7 @@ endif()
 
 if(MSVC)
   # Add precompiled header
-  # it will propergate down to everything that depends on common
-  target_link_libraries(common PUBLIC use_pch)
+  target_link_libraries(common PRIVATE use_pch)
 
   # We need to disable PCH for this one file, because it's C and our PCH is C++
   set_source_files_properties(
