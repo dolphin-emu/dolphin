@@ -119,6 +119,7 @@ LogManager::LogManager()
   m_log[LogType::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
   m_log[LogType::GPFIFO] = {"GP", "GatherPipe FIFO"};
   m_log[LogType::HOST_GPU] = {"Host GPU", "Host GPU"};
+  m_log[LogType::HSP] = {"HSP", "High-Speed Port (HSP)"};
   m_log[LogType::IOS] = {"IOS", "IOS"};
   m_log[LogType::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
   m_log[LogType::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
