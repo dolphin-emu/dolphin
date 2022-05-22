@@ -166,12 +166,6 @@ void GameList::MakeListView()
   // Have 1 pixel of padding above and below the 32 pixel banners.
   m_list->verticalHeader()->setDefaultSectionSize(32 + 2);
 
-  connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
-  connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
-          [this](const QItemSelection&, const QItemSelection&) {
-            emit SelectionChanged(GetSelectedGame());
-          });
-
   QHeaderView* hor_header = m_list->horizontalHeader();
 
   hor_header->restoreState(
@@ -230,6 +224,20 @@ void GameList::MakeListView()
 
   hor_header->setSectionsMovable(true);
   hor_header->setHighlightSections(false);
+
+  // Work around a Qt bug where clicking in the background (below the last game) as the first
+  // action and then pressing a key (e.g. page down or end) selects the first entry in the list
+  // instead of performing that key's action.  This workaround does not work if there are no games
+  // when the view first appears, but then games are added (e.g. due to no game folders being
+  // present, and then the user adding one), but that is an infrequent situation.
+  m_list->selectRow(0);
+  m_list->clearSelection();
+
+  connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
+  connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
+          [this](const QItemSelection&, const QItemSelection&) {
+            emit SelectionChanged(GetSelectedGame());
+          });
 }
 
 GameList::~GameList()
@@ -323,6 +331,15 @@ void GameList::MakeGridView()
   m_grid->setUniformItemSizes(true);
   m_grid->setContextMenuPolicy(Qt::CustomContextMenu);
   m_grid->setFrameStyle(QFrame::NoFrame);
+
+  // Work around a Qt bug where clicking in the background (below the last game) as the first action
+  // and then pressing a key (e.g. page down or end) selects the first entry in the list instead of
+  // performing that key's action.  This workaround does not work if there are no games when the
+  // view first appears, but then games are added (e.g. due to no game folders being present,
+  // and then the user adding one), but that is an infrequent situation.
+  m_grid->setCurrentIndex(m_grid->indexAt(QPoint(0, 0)));
+  m_grid->clearSelection();
+
   connect(m_grid, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
   connect(m_grid->selectionModel(), &QItemSelectionModel::selectionChanged,
           [this](const QItemSelection&, const QItemSelection&) {
