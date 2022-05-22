@@ -16,8 +16,23 @@
 
 namespace DSP::Interpreter
 {
-// Not needed for game ucodes (it slows down interpreter + easier to compare int VS
-// dspjit64 without it)
+// Correctly handle instructions such as `INC'L $ac0 : $ac0.l, @$ar0` (encoded as 0x7660) where both
+// the main opcode and the extension opcode modify the same register. See the "Extended opcodes"
+// section in the manual for more details.  No official uCode writes to the same register twice like
+// this, so we don't emulate it by default (and also don't support it in the recompiler).
+//
+// Dolphin only supports this behavior in the interpreter when PRECISE_BACKLOG is defined.
+// In ExecuteInstruction, if an extended opcode is in use, the extended opcode's behavior is
+// executed first, followed by the main opcode's behavior. The extended opcode does not directly
+// write to registers, but instead records the writes into a backlog (WriteToBackLog). The main
+// opcode calls ZeroWriteBackLog after it is done reading the register values; this directly
+// writes zero to all registers that have pending writes in the backlog. The main opcode then is
+// free to write directly to registers it changes. Afterwards, ApplyWriteBackLog bitwise-ors the
+// value of the register and the value in the backlog; if the main opcode didn't write to the
+// register then ZeroWriteBackLog means that the pending value is being or'd with zero, so it's
+// used without changes. When PRECISE_BACKLOG is not defined, ZeroWriteBackLog does nothing and
+// ApplyWriteBackLog overwrites the register value with the value from the backlog (so writes from
+// extended opcodes "win" over the main opcode).
 //#define PRECISE_BACKLOG
 
 Interpreter::Interpreter(DSPCore& dsp) : m_dsp_core{dsp}
@@ -809,7 +824,7 @@ void Interpreter::ConditionalExtendAccum(int reg)
 void Interpreter::ApplyWriteBackLog()
 {
   // Always make sure to have an extra entry at the end w/ -1 to avoid
-  // infinitive loops
+  // infinite loops
   for (int i = 0; m_write_back_log_idx[i] != -1; i++)
   {
     u16 value = m_write_back_log[i];
@@ -823,6 +838,11 @@ void Interpreter::ApplyWriteBackLog()
   }
 }
 
+// The ext ops are calculated in parallel with the actual op. That means that
+// both the main op and the ext op see the same register state as input. The
+// output is simple as long as the main and ext ops don't change the same
+// register. If they do the output is the bitwise OR of the result of both the
+// main and ext ops.
 void Interpreter::WriteToBackLog(int i, int idx, u16 value)
 {
   m_write_back_log[i] = value;
@@ -840,7 +860,7 @@ void Interpreter::ZeroWriteBackLog()
 {
 #ifdef PRECISE_BACKLOG
   // always make sure to have an extra entry at the end w/ -1 to avoid
-  // infinitive loops
+  // infinite loops
   for (int i = 0; m_write_back_log_idx[i] != -1; i++)
   {
     OpWriteRegister(m_write_back_log_idx[i], 0);

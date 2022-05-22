@@ -235,11 +235,6 @@ private:
 
   void ConditionalExtendAccum(int reg);
 
-  // The ext ops are calculated in parallel with the actual op. That means that
-  // both the main op and the ext op see the same register state as input. The
-  // output is simple as long as the main and ext ops don't change the same
-  // register. If they do the output is the bitwise OR of the result of both the
-  // main and ext ops.
   void WriteToBackLog(int i, int idx, u16 value);
   void ZeroWriteBackLog();
   void ZeroWriteBackLogPreserveAcc(u8 acc);

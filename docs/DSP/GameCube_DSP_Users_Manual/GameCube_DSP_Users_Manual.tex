@@ -4339,8 +4339,15 @@ Extended opcodes do not exist on their own. These opcodes can only be attached t
 Specifically, opcodes where the first nybble is 0, 1, or 2 cannot be extended.
 Opcodes where the first nybble is 4 or higher can be extended, using the 8 lower bits.
 Opcodes where the first nybble is 3 can also be extended, but the main opcode is 9 bits and the extension opcode is 7 bits.  For these instructions, the extension opcode is treated as if the first bit were 0 (i.e. \texttt{0xxxxxxx}).
+(\Opcode{NX} has no behavior of its own, so it can be used to get an extended opcode's behavior on its own.)
 
 Extended opcodes do not modify the program counter (\Register{\$pc} register).
+
+Extended opcodes are run \textit{in parallel} with the main opcode; they see the same register state as the input. (For instance, \texttt{\Opcode{MOVR}\Opcode{'MV} \Register{\$ac1}, \Register{\$ax0.l} : \Register{\$ax0.l}, \Register{\$ac1.m}} (encoded as \Value{0x6113}) \textit{swaps} the values of \Register{\$ac1.m} and \Register{\$ax0.l} (and also extends the new value of \Register{\$ac1.m} into \Register{\$ac1.l} and \Register{\$ac1.h}).)
+
+Since they are executed in parallel, the main and extension opcodes could theoretically write to the same registers. All opcodes that support extension only modify a main accumulator \Register{\$acD}, as well as \Register{\$prod}, \Register{\$sr}, and/or \Register{\$pc}, while the extension opcodes themselves generally only modify an additional accumulator \Register{\$axD} and addressing registers \Register{\$arS}. The exception is \Opcode{'L} and \Opcode{'LN}, which has the option of writing to \Register{\$acD}. Thus, \texttt{\Opcode{INC}\Opcode{'L} \Register{\$ac0} : \Register{\$ac0.l}, @\Register{\$ar0}} (encoded as \Value{0x7660}) increments \Register{\$ac0} (and thus \Register{\$ac0.l}), but also sets \Register{\$ac0.l} to the value in data memory at address \Register{\$ar0} and increments \Register{\$ar0}.
+
+When the main and extension opcodes write to the same register, the register is set to the two values bitwise-or'd together. For the above example, \Register{\$ar0.l} would be set to \InlineExpression{(\Register{\$ar0.l} + 1) | MEM[\Register{\$ar0}]}. \textbf{Note that no official uCode writes to the same register twice like this.}
 
 \pagebreak{}
 
