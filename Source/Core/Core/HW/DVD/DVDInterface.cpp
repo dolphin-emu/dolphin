@@ -19,6 +19,7 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/SessionSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/AudioInterface.h"
@@ -462,6 +463,14 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
       WARN_LOG_FMT(DVDINTERFACE, "Unknown disc size, guessing {0} bytes", s_disc_end_offset);
 
     const DiscIO::BlobReader& blob = disc->GetBlobReader();
+
+    // DirectoryBlobs (including Riivolution-patched discs) may end up larger than a real physical
+    // Wii disc, which triggers Error #001. In those cases we manually make the check succeed to
+    // avoid problems.
+    const bool should_fake_error_001 =
+        SConfig::GetInstance().bWii && blob.GetBlobType() == DiscIO::BlobType::DIRECTORY;
+    Config::SetCurrent(Config::SESSION_SHOULD_FAKE_ERROR_001, should_fake_error_001);
+
     if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)
     {
       OSD::AddMessage("You are running a disc image with a very large block size.", 60000);
@@ -1261,6 +1270,22 @@ void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
         MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
         s_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
+}
+
+void ForceOutOfBoundsRead(ReplyType reply_type)
+{
+  INFO_LOG_FMT(DVDINTERFACE, "Forcing an out-of-bounds disc read.");
+
+  if (s_drive_state == DriveState::ReadyNoReadsMade)
+    SetDriveState(DriveState::Ready);
+
+  SetDriveError(DriveError::BlockOOB);
+
+  // TODO: Needs testing to determine if MINIMUM_COMMAND_LATENCY_US is accurate for this
+  const DIInterruptType interrupt_type = DIInterruptType::DEINT;
+  CoreTiming::ScheduleEvent(
+      MINIMUM_COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+      s_finish_executing_command, PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
 }
 
 void AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length)
