@@ -13,7 +13,10 @@
 
 #include <SFML/Network.hpp>
 
+#include <mutex>
 #include "Common/Flag.h"
+#include "Common/Network.h"
+#include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
@@ -204,6 +207,7 @@ enum class BBADeviceType
 #if defined(__APPLE__)
   TAPSERVER,
 #endif
+  BuiltIn,
 };
 
 class CEXIETHERNET : public IEXIDevice
@@ -289,7 +293,6 @@ private:
     return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
   }
 
-  inline u8* ptr_from_page_ptr(int const index) const { return &mBbaMem[page_ptr(index) << 8]; }
   bool IsMXCommand(u32 const data);
   bool IsWriteCommand(u32 const data);
   const char* GetRegisterName() const;
@@ -299,9 +302,11 @@ private:
   void SendFromDirectFIFO();
   void SendFromPacketBuffer();
   void SendComplete();
+  void SendCompleteBack();
   u8 HashIndex(const u8* dest_eth_addr);
   bool RecvMACFilter();
   void inc_rwp();
+  void set_rwp(u16 value);
   bool RecvHandlePacket();
 
   std::unique_ptr<u8[]> mBbaMem;
@@ -411,6 +416,60 @@ private:
     Common::Flag m_read_thread_shutdown;
     static void ReadThreadHandler(XLinkNetworkInterface* self);
 #endif
+  };
+
+  class BuiltInBBAInterface : public NetworkInterface
+  {
+  public:
+    BuiltInBBAInterface(CEXIETHERNET* eth_ref, std::string dns_ip, std::string local_ip)
+        : NetworkInterface(eth_ref), m_dns_ip(std::move(dns_ip)), m_local_ip(std::move(local_ip))
+    {
+    }
+
+  public:
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+    std::string m_mac_id;
+    std::string m_dns_ip;
+    bool active = false;
+    u16 ip_frame_id = 0;
+    u8 queue_read = 0;
+    u8 queue_write = 0;
+    std::array<std::vector<u8>, 16> queue_data;
+    std::mutex mtx;
+    std::string m_local_ip;
+    u32 m_current_ip = 0;
+    u32 m_router_ip = 0;
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
+    std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
+                                             // limit of 8 in the gc framework
+    std::unique_ptr<u8[]> m_in_frame;
+    std::unique_ptr<u8[]> m_out_frame;
+    std::thread m_read_thread;
+    Common::Flag m_read_enabled;
+    Common::Flag m_read_thread_shutdown;
+    static void ReadThreadHandler(BuiltInBBAInterface* self);
+    Common::MACAddress fake_mac{};
+#endif
+    void WriteToQueue(const u8* data, int length);
+    void HandleARP(Common::EthernetHeader* hwdata, Common::ARPHeader* arpdata);
+    void HandleDHCP(Common::EthernetHeader* hwdata, Common::UDPHeader* udpdata,
+                    Common::DHCPBody* request);
+    StackRef* GetAvaibleSlot(u16 port);
+    StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
+    void HandleTCPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
+                        Common::TCPHeader* tcpdata, u8* data);
+    void InitUDPPort(u16 port);
+    void HandleUDPFrame(Common::EthernetHeader* hwdata, Common::IPv4Header* ipdata,
+                        Common::UDPHeader* udpdata, u8* data);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;

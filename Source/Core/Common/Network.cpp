@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <string_view>
+#include <vector>
 
 #ifndef _WIN32
 #include <netinet/in.h>
@@ -141,6 +142,18 @@ TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, co
   checksum = htons(static_cast<u16>(tcp_checksum));
 }
 
+TCPHeader::TCPHeader(const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags)
+{
+  source_port = from.sin_port;
+  destination_port = to.sin_port;
+  sequence_number = htonl(seq);
+  acknowledgement_number = htonl(ack);
+  properties = 0x50 | flags;
+
+  window_size = 0x7c;
+  checksum = 0;
+}
+
 u16 TCPHeader::Size() const
 {
   return static_cast<u16>(SIZE);
@@ -170,6 +183,59 @@ u8 UDPHeader::IPProto() const
   return static_cast<u8>(IPPROTO_UDP);
 }
 
+ARPHeader::ARPHeader() = default;
+
+ARPHeader::ARPHeader(u32 from_ip, MACAddress from_mac, u32 to_ip, MACAddress to_mac)
+{
+  hardware_type = htons(BBA_HARDWARE_TYPE);
+  protocol_type = IPV4_HEADER_TYPE;
+  hardware_size = MAC_ADDRESS_SIZE;
+  protocol_size = IPV4_ADDR_LEN;
+  opcode = 0x200;
+  sender_ip = from_ip;
+  target_ip = to_ip;
+  targer_address = to_mac;
+  sender_address = from_mac;
+}
+
+u16 ARPHeader::Size() const
+{
+  return static_cast<u16>(SIZE);
+}
+
+DHCPBody::DHCPBody() = default;
+
+DHCPBody::DHCPBody(u32 transaction, MACAddress client_address, u32 new_ip, u32 serv_ip)
+{
+  transaction_id = transaction;
+  message_type = DHCPConst::MESSAGE_REPLY;
+  hardware_type = BBA_HARDWARE_TYPE;
+  hardware_addr = MAC_ADDRESS_SIZE;
+  client_mac = client_address;
+  your_ip = new_ip;
+  server_ip = serv_ip;
+}
+
+// Add an option to the DHCP Body
+bool DHCPBody::AddDHCPOption(u8 size, u8 fnc, const std::vector<u8>& params)
+{
+  int i = 0;
+  while (options[i] != 0)
+  {
+    i += options[i + 1] + 2;
+    if (i >= std::size(options))
+    {
+      return false;
+    }
+  }
+
+  options[i++] = fnc;
+  options[i++] = size;
+  for (auto val : params)
+    options[i++] = val;
+  return true;
+}
+
 // Compute the network checksum with a 32-bit accumulator using the
 // "Normal" order, see RFC 1071 for more details.
 u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value)
@@ -185,6 +251,20 @@ u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value)
   while (checksum > 0xFFFF)
     checksum = (checksum >> 16) + (checksum & 0xFFFF);
   return ~static_cast<u16>(checksum);
+}
+
+// Compute the TCP network checksum with a fake header
+u16 ComputeTCPNetworkChecksum(const sockaddr_in& from, const sockaddr_in& to, const void* data,
+                              u16 length, u8 protocol)
+{
+  // Compute the TCP checksum with its pseudo header
+  const u32 source_addr = ntohl(from.sin_addr.s_addr);
+  const u32 destination_addr = ntohl(to.sin_addr.s_addr);
+  const u32 initial_value = (source_addr >> 16) + (source_addr & 0xFFFF) +
+                            (destination_addr >> 16) + (destination_addr & 0xFFFF) + protocol +
+                            length;
+  const u32 tcp_checksum = ComputeNetworkChecksum(data, length, initial_value);
+  return htons(static_cast<u16>(tcp_checksum));
 }
 
 NetworkErrorState SaveNetworkErrorState()

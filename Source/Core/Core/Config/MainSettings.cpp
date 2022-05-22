@@ -116,6 +116,11 @@ const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};
 const Info<std::string> MAIN_BBA_XLINK_IP{{System::Main, "Core", "BBA_XLINK_IP"}, "127.0.0.1"};
 const Info<bool> MAIN_BBA_XLINK_CHAT_OSD{{System::Main, "Core", "BBA_XLINK_CHAT_OSD"}, true};
 
+// Schthack PSO Server - https://schtserv.com/
+const Info<std::string> MAIN_BBA_BUILTIN_DNS{{System::Main, "Core", "BBA_BUILTIN_DNS"},
+                                             "149.56.167.128"};
+const Info<std::string> MAIN_BBA_BUILTIN_IP{{System::Main, "Core", "BBA_BUILTIN_IP"}, ""};
+
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel)
 {
   static const std::array<const Info<SerialInterface::SIDevices>, 4> infos{
