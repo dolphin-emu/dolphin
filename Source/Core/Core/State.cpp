@@ -226,7 +226,7 @@ void LoadFromBuffer(std::vector<u8>& buffer)
   Core::RunOnCPUThread(
       [&] {
         u8* ptr = buffer.data();
-        PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::MODE_READ);
+        PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
         DoState(p);
       },
       true);
@@ -237,14 +237,14 @@ void SaveToBuffer(std::vector<u8>& buffer)
   Core::RunOnCPUThread(
       [&] {
         u8* ptr = nullptr;
-        PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::MODE_MEASURE);
+        PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
 
         DoState(p_measure);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
         buffer.resize(buffer_size);
 
         ptr = buffer.data();
-        PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::MODE_WRITE);
+        PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
         DoState(p);
       },
       true);
@@ -412,7 +412,7 @@ void SaveAs(const std::string& filename, bool wait)
       [&] {
         // Measure the size of the buffer.
         u8* ptr = nullptr;
-        PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::MODE_MEASURE);
+        PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
         DoState(p_measure);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
@@ -422,7 +422,7 @@ void SaveAs(const std::string& filename, bool wait)
           std::lock_guard lk(g_cs_current_buffer);
           g_current_buffer.resize(buffer_size);
           ptr = g_current_buffer.data();
-          PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::MODE_WRITE);
+          PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
           DoState(p);
           is_write_mode = p.IsWriteMode();
         }
@@ -591,7 +591,7 @@ void LoadAs(const std::string& filename)
           if (!buffer.empty())
           {
             u8* ptr = buffer.data();
-            PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::MODE_READ);
+            PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
             DoState(p);
             loaded = true;
             loadedSuccessfully = p.IsReadMode();
