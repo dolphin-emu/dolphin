@@ -382,9 +382,6 @@ if (WIN32)
 endif()
 
 if (MSVC)
-  # Don't propogate warnings in qt headers to Dolphin
-  target_compile_options(dolphin-emu PRIVATE /experimental:external)
-  target_compile_options(dolphin-emu PRIVATE /external:W0)
   set(qtGui "")
   set(qtGuiPriv "")
   set(qtWidgetsPriv "")
@@ -394,6 +391,15 @@ if (MSVC)
   target_compile_options(dolphin-emu PRIVATE "${qtGui}")
   target_compile_options(dolphin-emu PRIVATE "${qtGuiPriv}")
   target_compile_options(dolphin-emu PRIVATE "${qtWidgets}")
+
+  if ("${QT_VERSION_MAJOR}" GREATER_EQUAL 6)
+    # Qt6 requires RTTI
+    remove_cxx_flag_from_target(dolphin-emu "/GR-")
+    target_compile_options(dolphin-emu PRIVATE "/GR")
+  else()
+    # Add precompiled header
+    target_link_libraries(audiocommon PRIVATE use_pch)
+  endif()
 endif()
 
 if(WIN32)
@@ -430,6 +436,13 @@ if(WIN32)
   get_filename_component(QT_BINARY_DIRECTORY "${MOC_EXECUTABLE_LOCATION}" DIRECTORY)
   find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
 
+  if ("${QT_VERSION_MAJOR}" LESS 6)
+    set(NO_ANGLE_PARAM "--no-angle")
+  else()
+    # parameter no longer exists in Qt6
+    set(NO_ANGLE_PARAM "")
+  endif()
+
   # Note: We set the PATH for the duration of this command so that the
   #       deployment application is able to locate the Qt libraries to copy.
   #       if the necessary paths aren't already set beforehand.
@@ -452,7 +465,7 @@ if(WIN32)
                                  --no-translations
                                  --no-compiler-runtime
                                  --no-system-d3d-compiler
-                                 --no-angle
+                                 "${NO_ANGLE_PARAM}"
                                  --no-opengl-sw
                                  "$<TARGET_FILE:dolphin-emu>"
   )

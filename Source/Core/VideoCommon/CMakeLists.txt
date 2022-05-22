@@ -180,3 +180,8 @@ if(FFmpeg_FOUND)
     )
   endif()
 endif()
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videocommon PRIVATE use_pch)
+endif()

@@ -1,6 +1,8 @@
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+if (NOT MSVC)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 set(SRCS
   imgui.cpp
@@ -10,10 +12,10 @@ set(SRCS
 )
 
 add_library(imgui STATIC ${SRCS})
+dolphin_disable_warnings_msvc(imgui)
 target_include_directories(imgui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_link_libraries(imgui
 PRIVATE
-  common
   fmt::fmt
 )

@@ -26,6 +26,11 @@ PRIVATE
   cpp-optparse
 )
 
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(dolphin-nogui PRIVATE use_pch)
+endif()
+
 if(USE_DISCORD_PRESENCE)
   target_compile_definitions(dolphin-nogui PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()

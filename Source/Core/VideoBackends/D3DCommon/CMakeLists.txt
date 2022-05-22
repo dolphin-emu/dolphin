@@ -12,3 +12,8 @@ PUBLIC
   common
   videocommon
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videod3dcommon PRIVATE use_pch)
+endif()

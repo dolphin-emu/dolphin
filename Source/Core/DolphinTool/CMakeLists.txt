@@ -19,5 +19,10 @@ PRIVATE
   cpp-optparse
 )
 
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(dolphin-tool PRIVATE use_pch)
+endif()
+
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-tool)
 install(TARGETS dolphin-tool RUNTIME DESTINATION ${bindir})

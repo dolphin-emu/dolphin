@@ -73,6 +73,7 @@ endif()
 endif()
 
 add_library(glslang STATIC ${SRCS})
+dolphin_disable_warnings_msvc(glslang)
 
 target_include_directories(glslang
 PRIVATE

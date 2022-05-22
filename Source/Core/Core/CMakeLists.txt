@@ -702,3 +702,8 @@ if(UNIX)
     MemoryWatcher.h
   )
 endif()
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(core PRIVATE use_pch)
+endif()
