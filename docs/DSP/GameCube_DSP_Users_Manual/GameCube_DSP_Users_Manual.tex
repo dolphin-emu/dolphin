@@ -1217,12 +1217,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ADDI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0000} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    ADDI $amR, #I
+    ADDI $amD, #I
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -1356,7 +1356,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ANDCF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1384,7 +1384,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ANDF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1412,7 +1412,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ANDI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0100} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1953,7 +1953,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{CMPI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1000} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -3629,7 +3629,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ORI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0110} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0110} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -4286,7 +4286,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{XORI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -4960,13 +4960,13 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0000 0010 1101 cccc}{RETcc}
 \OpcodeRow{0000 0010 1111 cccc}{RTIcc}
 \OpcodeRowSkip
-\OpcodeRow{0000 001r 0000 0000 iiii iiii iiii iiii}{ADDI}
-\OpcodeRow{0000 001r 0010 0000 iiii iiii iiii iiii}{XORI}
-\OpcodeRow{0000 001r 0100 0000 iiii iiii iiii iiii}{ANDI}
-\OpcodeRow{0000 001r 0110 0000 iiii iiii iiii iiii}{ORI}
-\OpcodeRow{0000 001r 1000 0000 iiii iiii iiii iiii}{CMPI}
-\OpcodeRow{0000 001r 1010 0000 iiii iiii iiii iiii}{ANDF}
-\OpcodeRow{0000 001r 1100 0000 iiii iiii iiii iiii}{ANDCF}
+\OpcodeRow{0000 001d 0000 0000 iiii iiii iiii iiii}{ADDI}
+\OpcodeRow{0000 001d 0010 0000 iiii iiii iiii iiii}{XORI}
+\OpcodeRow{0000 001d 0100 0000 iiii iiii iiii iiii}{ANDI}
+\OpcodeRow{0000 001d 0110 0000 iiii iiii iiii iiii}{ORI}
+\OpcodeRow{0000 001d 1000 0000 iiii iiii iiii iiii}{CMPI}
+\OpcodeRow{0000 001d 1010 0000 iiii iiii iiii iiii}{ANDF}
+\OpcodeRow{0000 001d 1100 0000 iiii iiii iiii iiii}{ANDCF}
 \OpcodeRowSkip
 \OpcodeRow{0000 0010 1100 1010}{LSRN}
 \OpcodeRow{0000 0010 1100 1011}{ASRN}

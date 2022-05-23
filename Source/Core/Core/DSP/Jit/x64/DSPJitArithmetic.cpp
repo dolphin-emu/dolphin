@@ -53,7 +53,7 @@ void DSPEmitter::clrl(const UDSPInstruction opc)
 //----
 
 // ANDCF $acD.m, #I
-// 0000 001r 1100 0000
+// 0000 001d 1100 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logic AND of
 // accumulator mid part $acD.m with immediate value I is equal to I.
@@ -88,7 +88,7 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
 }
 
 // ANDF $acD.m, #I
-// 0000 001r 1010 0000
+// 0000 001d 1010 0000
 // iiii iiii iiii iiii
 // Set logic zero (LZ) flag in status register $sr if result of logical AND
 // operation of accumulator mid part $acD.m with immediate value I is equal
@@ -221,7 +221,7 @@ void DSPEmitter::cmpaxh(const UDSPInstruction opc)
 }
 
 // CMPI $amD, #I
-// 0000 001r 1000 0000
+// 0000 001d 1000 0000
 // iiii iiii iiii iiii
 // Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I.
 // Although flags are being set regarding whole accumulator register.
@@ -458,7 +458,7 @@ void DSPEmitter::notc(const UDSPInstruction opc)
 }
 
 // XORI $acD.m, #I
-// 0000 001r 0010 0000
+// 0000 001d 0010 0000
 // iiii iiii iiii iiii
 // Logic exclusive or (XOR) of accumulator mid part $acD.m with
 // immediate value I.
@@ -482,7 +482,7 @@ void DSPEmitter::xori(const UDSPInstruction opc)
 }
 
 // ANDI $acD.m, #I
-// 0000 001r 0100 0000
+// 0000 001d 0100 0000
 // iiii iiii iiii iiii
 // Logic AND of accumulator mid part $acD.m with immediate value I.
 //
@@ -505,7 +505,7 @@ void DSPEmitter::andi(const UDSPInstruction opc)
 }
 
 // ORI $acD.m, #I
-// 0000 001r 0110 0000
+// 0000 001d 0110 0000
 // iiii iiii iiii iiii
 // Logic OR of accumulator mid part $acD.m with immediate value I.
 //
@@ -686,8 +686,8 @@ void DSPEmitter::addaxl(const UDSPInstruction opc)
   }
 }
 
-// ADDI $amR, #I
-// 0000 001r 0000 0000
+// ADDI $amD, #I
+// 0000 001d 0000 0000
 // iiii iiii iiii iiii
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
 //
