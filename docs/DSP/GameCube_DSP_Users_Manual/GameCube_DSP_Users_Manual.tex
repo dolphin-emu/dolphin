@@ -1222,7 +1222,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    ADDI $amD, #I
+    ADDI $acD, #I
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -1958,12 +1958,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    CMPI $amD, #I
+    CMPI $acD, #I
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Compares mid accumulator \Register{\$acD.hm} (\Register{\$amD}) with sign-extended immediate value \Value{I}.
-          However, flags are set with regards to the whole accumulator register.
+    \item Compares accumulator with immediate. Comparison is performed by subtracting the immediate (16-bit sign-extended)
+          from mid accumulator \Register{\$acD.hm} and computing flags based on whole accumulator \Register{\$acD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}

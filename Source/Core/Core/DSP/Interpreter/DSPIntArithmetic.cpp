@@ -143,11 +143,12 @@ void Interpreter::cmpaxh(const UDSPInstruction opc)
   ZeroWriteBackLog();
 }
 
-// CMPI $amD, #I
+// CMPI $acD, #I
 // 0000 001d 1000 0000
 // iiii iiii iiii iiii
-// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I.
-// Although flags are being set regarding whole accumulator register.
+// Compares accumulator with immediate. Comparison is executed
+// by subtracting the immediate (16-bit sign extended) from mid accumulator
+// $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
 void Interpreter::cmpi(const UDSPInstruction opc)
@@ -166,8 +167,8 @@ void Interpreter::cmpi(const UDSPInstruction opc)
 
 // CMPIS $acD, #I
 // 0000 011d iiii iiii
-// Compares accumulator with short immediate. Comaprison is executed
-// by subtracting short immediate (8bit sign extended) from mid accumulator
+// Compares accumulator with short immediate. Comparison is executed
+// by subtracting the short immediate (8-bit sign extended) from mid accumulator
 // $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
@@ -489,7 +490,7 @@ void Interpreter::addaxl(const UDSPInstruction opc)
   UpdateSR64Add(acc, acx, GetLongAcc(dreg));
 }
 
-// ADDI $amD, #I
+// ADDI $acD, #I
 // 0000 001d 0000 0000
 // iiii iiii iiii iiii
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
