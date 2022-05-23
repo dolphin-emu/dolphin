@@ -126,7 +126,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 
 // TST
 // 1011 r001 xxxx xxxx
-// Test accumulator %acR.
+// Test accumulator $acR.
 //
 // flags out: --xx xx00
 void DSPEmitter::tst(const UDSPInstruction opc)
