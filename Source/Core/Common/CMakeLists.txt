@@ -4,6 +4,7 @@ add_library(common
   Assert.h
   BitField.h
   BitField2.h
+  BitField3.h
   BitSet.h
   BitUtils.h
   BlockingLoop.h
