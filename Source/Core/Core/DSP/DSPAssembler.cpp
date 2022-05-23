@@ -751,7 +751,7 @@ void DSPAssembler::InitPass(int pass)
 
 bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 {
-  int disable_text = 0;  // modified by Hermes
+  bool disable_text = false;  // modified by Hermes
 
   std::istringstream fsrc(text);
 
@@ -781,10 +781,10 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       // modified by Hermes : added // and /* */ for long commentaries
       if (c == '/')
       {
-        if (i < 1023)
+        if (i + 1 < LINEBUF_SIZE)
         {
           if (line[i + 1] == '/')
-            c = 0x00;
+            c = '\0';
           else if (line[i + 1] == '*')
           {
             // toggle comment mode.
@@ -794,28 +794,28 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       }
       else if (c == '*')
       {
-        if (i < 1023 && line[i + 1] == '/' && disable_text)
+        if (i + 1 < LINEBUF_SIZE && line[i + 1] == '/' && disable_text)
         {
-          disable_text = 0;
-          c = 32;
-          line[i + 1] = 32;
+          disable_text = false;
+          c = ' ';
+          line[i + 1] = ' ';
         }
       }
 
       // turn text into spaces if disable_text is on (in a comment).
-      if (disable_text && ((unsigned char)c) > 32)
-        c = 32;
+      if (disable_text && ((unsigned char)c) > ' ')
+        c = ' ';
 
-      if (c == 0x0a || c == 0x0d || c == ';')
-        c = 0x00;
-      if (c == 0x09)  // tabs to spaces
+      if (c == '\r' || c == '\n' || c == ';')
+        c = '\0';
+      if (c == '\t')  // tabs to spaces
         c = ' ';
       if (c == '"')
         upper = !upper;
       if (upper && c >= 'a' && c <= 'z')  // convert to uppercase
         c = c - 'a' + 'A';
       line[i] = c;
-      if (c == 0)
+      if (c == '\0')
         break;  // modified by Hermes
     }
     char* ptr = line;
