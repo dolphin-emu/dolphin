@@ -35,13 +35,7 @@ bool Assemble(const std::string& text, std::vector<u16>& code, bool force)
 
   // TODO: fix the terrible api of the assembler.
   DSPAssembler assembler(settings);
-  if (!assembler.Assemble(text, code))
-  {
-    std::cerr << assembler.GetErrorString() << std::endl;
-    return false;
-  }
-
-  return true;
+  return assembler.Assemble(text, code);
 }
 
 bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& text)
