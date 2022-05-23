@@ -16,22 +16,22 @@ namespace prime
 
 bool InitCocoaInputMouse(uint32_t* windowid)
 {
-  g_mouse_input = new CocoaInputMouse(windowid);
+  g_mouse_input = new QuartzInputMouse(windowid);
   return true;
 }
 
-CocoaInputMouse::CocoaInputMouse(uint32_t* windowid)
+QuartzInputMouse::QuartzInputMouse(uint32_t* windowid)
 {
   m_windowid = windowid;
-  center = getWindowCenter(m_windowid);
+  center = current_loc = getWindowCenter();
 }
 
-void CocoaInputMouse::UpdateInput() 
+void QuartzInputMouse::UpdateInput()
 {
   event = CGEventCreate(nil);
   current_loc = CGEventGetLocation(event);
   CFRelease(event);
-  center = getWindowCenter(m_windowid);
+  center = getWindowCenter();
   if (Host_RendererHasFocus() && cursor_locked)
   {
     this->dx += current_loc.x - center.x;
@@ -40,11 +40,11 @@ void CocoaInputMouse::UpdateInput()
   LockCursorToGameWindow();
 }
 
-void CocoaInputMouse::LockCursorToGameWindow()
+void QuartzInputMouse::LockCursorToGameWindow()
 {
   if (Host_RendererHasFocus() && cursor_locked)
   {
-    // Hack to avoid short bit of input supression after warp
+    // Hack to avoid short bit of input suppression after warp
     // Credit/explanation: https://stackoverflow.com/a/17559012/7341382
       CGWarpMouseCursorPosition(center);
       CGAssociateMouseAndMouseCursorPosition(true);
@@ -59,7 +59,7 @@ void CocoaInputMouse::LockCursorToGameWindow()
   }
 }
 
-CGRect getBounds(uint32_t* m_windowid)
+CGRect QuartzInputMouse::getBounds()
 {
   CGRect bounds = CGRectZero;
   CGWindowID windowid[1] = {*m_windowid};
@@ -83,13 +83,12 @@ CGRect getBounds(uint32_t* m_windowid)
   return bounds;
 }
 
-CGPoint getWindowCenter(uint32_t* m_windowid)
+CGPoint QuartzInputMouse::getWindowCenter()
 {
-  auto bounds = getBounds(m_windowid);
-  double x = bounds.origin.x + (bounds.size.width / 2);
-  double y = bounds.origin.y + (bounds.size.height / 2);
-  CGPoint center = {x, y};
-  return center;
+  const auto bounds = getBounds();
+  const double x = bounds.origin.x + (bounds.size.width / 2);
+  const double y = bounds.origin.y + (bounds.size.height / 2);
+  return CGPointMake(x, y);
 }
 
 }
