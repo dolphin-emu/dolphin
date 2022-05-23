@@ -13,7 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/DSP/Interpreter/DSPIntTables.h"
+#include "Core/DSP/DSPCore.h"
 
 namespace DSP
 {
@@ -451,44 +451,44 @@ const std::array<pdlabel_t, 96> pdlabels =
 
 const std::array<pdlabel_t, 36> regnames =
 {{
-  {0x00, "AR0",       "Addr Reg 00",},
-  {0x01, "AR1",       "Addr Reg 01",},
-  {0x02, "AR2",       "Addr Reg 02",},
-  {0x03, "AR3",       "Addr Reg 03",},
-  {0x04, "IX0",       "Index Reg 0",},
-  {0x05, "IX1",       "Index Reg 1",},
-  {0x06, "IX2",       "Index Reg 2",},
-  {0x07, "IX3",       "Index Reg 3",},
-  {0x08, "WR0",       "Wrapping Register 0",},
-  {0x09, "WR1",       "Wrapping Register 1",},
-  {0x0a, "WR2",       "Wrapping Register 2",},
-  {0x0b, "WR3",       "Wrapping Register 3",},
-  {0x0c, "ST0",       "Call stack",},
-  {0x0d, "ST1",       "Data stack",},
-  {0x0e, "ST2",       "Loop addr stack",},
-  {0x0f, "ST3",       "Loop counter stack",},
-  {0x10, "AC0.H",     "Accu High 0",},
-  {0x11, "AC1.H",     "Accu High 1",},
-  {0x12, "CR",        "Config Register",},
-  {0x13, "SR",        "Special Register",},
-  {0x14, "PROD.L",    "Prod L",},
-  {0x15, "PROD.M1",   "Prod M1",},
-  {0x16, "PROD.H",    "Prod H",},
-  {0x17, "PROD.M2",   "Prod M2",},
-  {0x18, "AX0.L",     "Extra Accu L 0",},
-  {0x19, "AX1.L",     "Extra Accu L 1",},
-  {0x1a, "AX0.H",     "Extra Accu H 0",},
-  {0x1b, "AX1.H",     "Extra Accu H 1",},
-  {0x1c, "AC0.L",     "Accu Low 0",},
-  {0x1d, "AC1.L",     "Accu Low 1",},
-  {0x1e, "AC0.M",     "Accu Mid 0",},
-  {0x1f, "AC1.M",     "Accu Mid 1",},
+  {DSP_REG_AR0,    "AR0",     "Addr Reg 00",},
+  {DSP_REG_AR1,    "AR1",     "Addr Reg 01",},
+  {DSP_REG_AR2,    "AR2",     "Addr Reg 02",},
+  {DSP_REG_AR3,    "AR3",     "Addr Reg 03",},
+  {DSP_REG_IX0,    "IX0",     "Index Reg 0",},
+  {DSP_REG_IX1,    "IX1",     "Index Reg 1",},
+  {DSP_REG_IX2,    "IX2",     "Index Reg 2",},
+  {DSP_REG_IX3,    "IX3",     "Index Reg 3",},
+  {DSP_REG_WR0,    "WR0",     "Wrapping Register 0",},
+  {DSP_REG_WR1,    "WR1",     "Wrapping Register 1",},
+  {DSP_REG_WR2,    "WR2",     "Wrapping Register 2",},
+  {DSP_REG_WR3,    "WR3",     "Wrapping Register 3",},
+  {DSP_REG_ST0,    "ST0",     "Call stack",},
+  {DSP_REG_ST1,    "ST1",     "Data stack",},
+  {DSP_REG_ST2,    "ST2",     "Loop addr stack",},
+  {DSP_REG_ST3,    "ST3",     "Loop counter stack",},
+  {DSP_REG_ACH0,   "AC0.H",   "Accu High 0",},
+  {DSP_REG_ACH1,   "AC1.H",   "Accu High 1",},
+  {DSP_REG_CR,     "CR",      "Config Register",},
+  {DSP_REG_SR,     "SR",      "Special Register",},
+  {DSP_REG_PRODL,  "PROD.L",  "Prod L",},
+  {DSP_REG_PRODM,  "PROD.M1", "Prod M1",},
+  {DSP_REG_PRODH,  "PROD.H",  "Prod H",},
+  {DSP_REG_PRODM2, "PROD.M2", "Prod M2",},
+  {DSP_REG_AXL0,   "AX0.L",   "Extra Accu L 0",},
+  {DSP_REG_AXL1,   "AX1.L",   "Extra Accu L 1",},
+  {DSP_REG_AXH0,   "AX0.H",   "Extra Accu H 0",},
+  {DSP_REG_AXH1,   "AX1.H",   "Extra Accu H 1",},
+  {DSP_REG_ACL0,   "AC0.L",   "Accu Low 0",},
+  {DSP_REG_ACL1,   "AC1.L",   "Accu Low 1",},
+  {DSP_REG_ACM0,   "AC0.M",   "Accu Mid 0",},
+  {DSP_REG_ACM1,   "AC1.M",   "Accu Mid 1",},
 
   // To resolve combined register names.
-  {0x20, "ACC0",      "Accu Full 0",},
-  {0x21, "ACC1",      "Accu Full 1",},
-  {0x22, "AX0",       "Extra Accu 0",},
-  {0x23, "AX1",       "Extra Accu 1",},
+  {DSP_REG_ACC0_FULL, "ACC0", "Accu Full 0",},
+  {DSP_REG_ACC1_FULL, "ACC1", "Accu Full 1",},
+  {DSP_REG_AX0_FULL,  "AX0",  "Extra Accu 0",},
+  {DSP_REG_AX1_FULL,  "AX1",  "Extra Accu 1",},
 }};
 // clang-format on
 

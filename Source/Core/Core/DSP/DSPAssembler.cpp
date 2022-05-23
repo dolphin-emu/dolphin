@@ -22,6 +22,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 
@@ -483,17 +484,15 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
 
       if ((opc->params[i].type & P_REG) && (par[i].type & P_REG))
       {
-        // Just a temp. Should be replaced with more purposeful vars.
-        int value;
-
         // modified by Hermes: test the register range
-        switch ((unsigned)opc->params[i].type)
+        switch (opc->params[i].type)
         {
         case P_REG18:
         case P_REG19:
         case P_REG1A:
         case P_REG1C:
-          value = (opc->params[i].type >> 8) & 31;
+        {
+          int value = (opc->params[i].type >> 8) & 0x1f;
           if ((int)par[i].val < value ||
               (int)par[i].val > value + get_mask_shifted_down(opc->params[i].mask))
           {
@@ -504,8 +503,9 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
             ShowError(AssemblerError::InvalidRegister);
           }
           break;
+        }
         case P_PRG:
-          if ((int)par[i].val < 0 || (int)par[i].val > 0x3)
+          if ((int)par[i].val < DSP_REG_AR0 || (int)par[i].val > DSP_REG_AR3)
           {
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
@@ -515,12 +515,12 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           }
           break;
         case P_ACC:
-          if ((int)par[i].val < 0x20 || (int)par[i].val > 0x21)
+          if ((int)par[i].val < DSP_REG_ACC0_FULL || (int)par[i].val > DSP_REG_ACC1_FULL)
           {
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
-            if (par[i].val >= 0x1e && par[i].val <= 0x1f)
+            if (par[i].val >= DSP_REG_ACM0 && par[i].val <= DSP_REG_ACM1)
             {
               fprintf(stderr, "%i : %s ", m_code_line, m_cur_line.c_str());
               fprintf(stderr,
@@ -529,7 +529,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
                       (par[i].val & 1), (par[i].val & 1), m_code_line, current_param,
                       static_cast<int>(type));
             }
-            else if (par[i].val >= 0x1c && par[i].val <= 0x1d)
+            else if (par[i].val >= DSP_REG_ACL0 && par[i].val <= DSP_REG_ACL1)
             {
               fprintf(
                   stderr,
@@ -543,19 +543,19 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           }
           break;
         case P_ACCM:
-          if ((int)par[i].val < 0x1e || (int)par[i].val > 0x1f)
+          if ((int)par[i].val < DSP_REG_ACM0 || (int)par[i].val > DSP_REG_ACM1)
           {
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
-            if (par[i].val >= 0x1c && par[i].val <= 0x1d)
+            if (par[i].val >= DSP_REG_ACL0 && par[i].val <= DSP_REG_ACL1)
             {
               fprintf(
                   stderr,
                   "WARNING: $ACL%d register used instead of $ACM%d register Line: %d Param: %zu\n",
                   (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
-            else if (par[i].val >= 0x20 && par[i].val <= 0x21)
+            else if (par[i].val >= DSP_REG_ACC0_FULL && par[i].val <= DSP_REG_ACC1_FULL)
             {
               fprintf(
                   stderr,
@@ -570,12 +570,12 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
           break;
 
         case P_ACCL:
-          if ((int)par[i].val < 0x1c || (int)par[i].val > 0x1d)
+          if ((int)par[i].val < DSP_REG_ACL0 || (int)par[i].val > DSP_REG_ACL1)
           {
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
-            if (par[i].val >= 0x1e && par[i].val <= 0x1f)
+            if (par[i].val >= DSP_REG_ACM0 && par[i].val <= DSP_REG_ACM1)
             {
               fprintf(stderr, "%s ", m_cur_line.c_str());
               fprintf(
@@ -583,7 +583,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
                   "WARNING: $ACM%d register used instead of $ACL%d register Line: %d Param: %zu\n",
                   (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
-            else if (par[i].val >= 0x20 && par[i].val <= 0x21)
+            else if (par[i].val >= DSP_REG_ACC0_FULL && par[i].val <= DSP_REG_ACC1_FULL)
             {
               fprintf(stderr, "%s ", m_cur_line.c_str());
               fprintf(
