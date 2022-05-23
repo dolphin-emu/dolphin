@@ -70,7 +70,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
-class BitFieldConstFixedView
+class ConstBitFieldFixedView
 {
   // This code is only sane for integral types
   static_assert(std::is_integral_v<host_t_> || std::is_enum_v<host_t_>);
@@ -90,8 +90,8 @@ private:
   const host_t& host;
 
 public:
-  BitFieldConstFixedView() = delete;
-  constexpr BitFieldConstFixedView(const host_t& host_) : host(host_){};
+  ConstBitFieldFixedView() = delete;
+  constexpr ConstBitFieldFixedView(const host_t& host_) : host(host_){};
 
   constexpr operator field_t() const { return Get(); }
 
@@ -168,7 +168,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename host_t_, typename field_t_>
-class BitFieldConstView
+class ConstBitFieldView
 {
   // This code is only sane for integral types
   static_assert(std::is_integral_v<host_t_> || std::is_enum_v<host_t_>);
@@ -186,8 +186,8 @@ private:
   const std::size_t width;
 
 public:
-  BitFieldConstView() = delete;
-  constexpr BitFieldConstView(const host_t& host_, const std::size_t start_,
+  ConstBitFieldView() = delete;
+  constexpr ConstBitFieldView(const host_t& host_, const std::size_t start_,
                               const std::size_t width_)
       : host(host_), start(start_), width(width_){};
 
@@ -216,7 +216,7 @@ struct FixedViewArrayConstIterator;
 
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_,
           std::size_t length_>
-class FixedViewArray
+class BitFieldFixedViewArray
 {
   // This code is only sane for integral types
   static_assert(std::is_integral_v<host_t_> || std::is_enum_v<host_t_>);
@@ -238,8 +238,8 @@ private:
   host_t& host;
 
 public:
-  FixedViewArray() = delete;
-  constexpr FixedViewArray(host_t& host_) : host(host_) {}
+  BitFieldFixedViewArray() = delete;
+  constexpr BitFieldFixedViewArray(host_t& host_) : host(host_) {}
 
   constexpr field_t Get(const std::size_t idx) const
   {
@@ -263,10 +263,10 @@ public:
     assert(idx < length);  // Index out of range
     return BitFieldView<host_t, field_t>(host, start + width * idx, width);
   }
-  constexpr BitFieldConstView<host_t, field_t> operator[](const std::size_t idx) const
+  constexpr ConstBitFieldView<host_t, field_t> operator[](const std::size_t idx) const
   {
     assert(idx < length);  // Index out of range
-    return BitFieldConstView<host_t, field_t>(host, start + width * idx, width);
+    return ConstBitFieldView<host_t, field_t>(host, start + width * idx, width);
   }
 
   constexpr Iterator begin() { return Iterator(host, 0); }
@@ -283,7 +283,7 @@ public:
 
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_,
           std::size_t length_>
-class ConstFixedViewArray
+class ConstBitFieldFixedViewArray
 {
   // This code is only sane for integral types
   static_assert(std::is_integral_v<host_t_> || std::is_enum_v<host_t_>);
@@ -304,8 +304,8 @@ private:
   const host_t& host;
 
 public:
-  ConstFixedViewArray() = delete;
-  constexpr ConstFixedViewArray(const host_t& host_) : host(host_) {}
+  ConstBitFieldFixedViewArray() = delete;
+  constexpr ConstBitFieldFixedViewArray(const host_t& host_) : host(host_) {}
 
   constexpr field_t Get(const std::size_t idx) const
   {
@@ -318,10 +318,10 @@ public:
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
   }
 
-  BitFieldConstView<host_t, field_t> operator[](const std::size_t idx) const
+  ConstBitFieldView<host_t, field_t> operator[](const std::size_t idx) const
   {
     assert(idx < length);  // Index out of range
-    return BitFieldConstView<host_t, field_t>(host, start + width * idx, width);
+    return ConstBitFieldView<host_t, field_t>(host, start + width * idx, width);
   }
 
   constexpr ConstIterator begin() const { return ConstIterator(host, 0); }
@@ -402,7 +402,7 @@ public:
   using value_type = field_t;
   using difference_type = ptrdiff_t;
   using pointer = void;
-  using reference = BitFieldConstView<host_t, field_t>;
+  using reference = ConstBitFieldView<host_t, field_t>;
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
 
@@ -461,36 +461,36 @@ MakeBitFieldFixedView(host_t& host)
   return BitFieldFixedView<host_t, field_t, start, width>(host);
 }
 template <typename field_t, const std::size_t start, const std::size_t width, typename host_t>
-constexpr BitFieldConstFixedView<host_t, field_t, start, width>
-MakeBitFieldConstFixedView(const host_t& host)
+constexpr ConstBitFieldFixedView<host_t, field_t, start, width>  //
+MakeConstBitFieldFixedView(const host_t& host)
 {
-  return BitFieldConstFixedView<host_t, field_t, start, width>(host);
+  return ConstBitFieldFixedView<host_t, field_t, start, width>(host);
 }
 template <typename field_t, typename host_t>
-constexpr BitFieldView<host_t, field_t> MakeBitfieldView(host_t& host, const std::size_t start,
-                                                         const std::size_t width)
+constexpr BitFieldView<host_t, field_t>  //
+MakeBitfieldView(host_t& host, const std::size_t start, const std::size_t width)
 {
   return BitFieldView<host_t, field_t>(host, start, width);
 }
 template <typename field_t, typename host_t>
-constexpr BitFieldView<host_t, field_t>
-MakeBitFieldConstView(const host_t& host, const std::size_t start, const std::size_t width)
+constexpr ConstBitFieldView<host_t, field_t>  //
+MakeConstBitFieldView(const host_t& host, const std::size_t start, const std::size_t width)
 {
-  return BitFieldView<host_t, field_t>(host, start, width);
+  return ConstBitFieldView<host_t, field_t>(host, start, width);
 }
 template <typename field_t, const std::size_t start, const std::size_t width,
           const std::size_t length, typename host_t>
-constexpr FixedViewArray<host_t, field_t, start, width, length>
+constexpr BitFieldFixedViewArray<host_t, field_t, start, width, length>  //
 MakeBitFieldFixedViewArray(host_t& host)
 {
-  return FixedViewArray<host_t, field_t, start, width, length>(host);
+  return BitFieldFixedViewArray<host_t, field_t, start, width, length>(host);
 }
 template <typename field_t, const std::size_t start, const std::size_t width,
           const std::size_t length, typename host_t>
-constexpr ConstFixedViewArray<host_t, field_t, start, width, length>
-MakeBitFieldConstFixedViewArray(const host_t& host)
+constexpr ConstBitFieldFixedViewArray<host_t, field_t, start, width, length>  //
+MakeConstBitFieldFixedViewArray(const host_t& host)
 {
-  return ConstFixedViewArray<host_t, field_t, start, width, length>(host);
+  return ConstBitFieldFixedViewArray<host_t, field_t, start, width, length>(host);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -500,19 +500,20 @@ MakeBitFieldConstFixedViewArray(const host_t& host)
   {                                                                                                \
     return BitFieldFixedView<decltype(host), field_t, start, width>(host);                         \
   }                                                                                                \
-  constexpr BitFieldConstFixedView<decltype(host), field_t, start, width> name() const             \
+  constexpr ConstBitFieldFixedView<decltype(host), field_t, start, width> name() const             \
   {                                                                                                \
-    return BitFieldConstFixedView<decltype(host), field_t, start, width>(host);                    \
+    return ConstBitFieldFixedView<decltype(host), field_t, start, width>(host);                    \
   }
 
 #define BITFIELDARRAY_IN(host, field_t, start, width, length, name)                                \
-  constexpr FixedViewArray<decltype(host), field_t, start, width, length> name()                   \
+  constexpr BitFieldFixedViewArray<decltype(host), field_t, start, width, length> name()           \
   {                                                                                                \
-    return FixedViewArray<decltype(host), field_t, start, width, length>(host);                    \
+    return BitFieldFixedViewArray<decltype(host), field_t, start, width, length>(host);            \
   }                                                                                                \
-  constexpr ConstFixedViewArray<decltype(host), field_t, start, width, length> name() const        \
+  constexpr ConstBitFieldFixedViewArray<decltype(host), field_t, start, width, length> name()      \
+      const                                                                                        \
   {                                                                                                \
-    return ConstFixedViewArray<decltype(host), field_t, start, width, length>(host);               \
+    return ConstBitFieldFixedViewArray<decltype(host), field_t, start, width, length>(host);       \
   }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -532,12 +533,12 @@ struct fmt::formatter<BitFieldFixedView<host_t, field_t, start, width>>
 };
 
 template <typename host_t, typename field_t, std::size_t start, std::size_t width>
-struct fmt::formatter<BitFieldConstFixedView<host_t, field_t, start, width>>
+struct fmt::formatter<ConstBitFieldFixedView<host_t, field_t, start, width>>
 {
   fmt::formatter<field_t> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitFieldConstFixedView<host_t, field_t, start, width>& ref,
+  auto format(const ConstBitFieldFixedView<host_t, field_t, start, width>& ref,
               FormatContext& ctx) const
   {
     return m_formatter.format(ref.Get(), ctx);
@@ -557,12 +558,12 @@ struct fmt::formatter<BitFieldView<host_t, field_t>>
 };
 
 template <typename host_t, typename field_t>
-struct fmt::formatter<BitFieldConstView<host_t, field_t>>
+struct fmt::formatter<ConstBitFieldView<host_t, field_t>>
 {
   fmt::formatter<field_t> m_formatter;
   constexpr auto parse(format_parse_context& ctx) { return m_formatter.parse(ctx); }
   template <typename FormatContext>
-  auto format(const BitFieldConstView<host_t, field_t>& ref, FormatContext& ctx) const
+  auto format(const ConstBitFieldView<host_t, field_t>& ref, FormatContext& ctx) const
   {
     return m_formatter.format(ref.Get(), ctx);
   }
