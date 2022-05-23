@@ -213,19 +213,19 @@ test_cond:
 	ADDARN $AR0, $IX0
 
 	LRI $IX0, #0x0100
-	CW 0x0278         ; IFx8
+	IFx8
 	ADDARN $AR0, $IX0
 
 	LRI $IX0, #0x0200
-	CW 0x0279         ; IFx9
+	IFx9
 	ADDARN $AR0, $IX0
 
 	LRI $IX0, #0x0400
-	CW 0x027A         ; IFxA
+	IFxA
 	ADDARN $AR0, $IX0
 
 	LRI $IX0, #0x0800
-	CW 0x027B         ; IFxB
+	IFxB
 	ADDARN $AR0, $IX0
 
 	LRI $IX0, #0x1000
