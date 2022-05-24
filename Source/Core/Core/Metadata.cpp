@@ -44,15 +44,28 @@ static u16 rightSidePerfectPasses;
 std::string Metadata::getJSONString()
 {
   char date_string[100];
+  char file_name[100];
   strftime(date_string, 50, "%B %d %Y %OH:%OM:%OS", matchDateTime);
+  strftime(file_name, 50, "%B_%d_%Y_%OH_%OM_%OS", matchDateTime);
+  std::string convertedDate(file_name);
+  std::string file_name_string = "Game_" + convertedDate + ".cit";
 
   std::stringstream json_stream;
   json_stream << "{" << std::endl;
+  json_stream << "  \"File Name\": \"" << file_name_string << "\"," << std::endl;
   json_stream << "  \"Date\": \"" << date_string << "\"," << std::endl;
   json_stream << "  \"Controller Port Info\": {" << std::endl;
   for (int i = 0; i < 4; i++)
   {
-    json_stream << "    \"Controller Port " + std::to_string(i) + "\": " << std::to_string(controllerMap.at(i)) << "," << std::endl;
+    if (i != 3)
+    {
+      json_stream << "    \"Controller Port " + std::to_string(i) + "\": " << std::to_string(controllerMap.at(i)) << "," << std::endl;
+    }
+    else
+    {
+      // no comma cuz end
+      json_stream << "    \"Controller Port " + std::to_string(i) + "\": " << std::to_string(controllerMap.at(i)) << std::endl;
+    }
   }
   json_stream << "   }," << std::endl;
   json_stream << "  \"Left Side Captain ID\": \"" << leftSideCaptainID << "\"," << std::endl;
@@ -63,22 +76,22 @@ std::string Metadata::getJSONString()
   json_stream << "  \"Stadium ID\": \"" << stadiumID << "\"," << std::endl;
 
   json_stream << "  \"Left Side Match Stats\": {" << std::endl;
-  json_stream << "    \"Goals\": \"" << leftSideScore << "," << std::endl;
-  json_stream << "    \"Shots\": \"" << leftSideShots << "," << std::endl;
-  json_stream << "    \"Hits\": \"" << leftSideHits << "," << std::endl;
-  json_stream << "    \"Steals\": \"" << leftSideSteals << "," << std::endl;
-  json_stream << "    \"Super Strikes\": \"" << leftSideSuperStrikes << "," << std::endl;
-  json_stream << "    \"Perfect Passes\": \"" << leftSidePerfectPasses << "," << std::endl;
+  json_stream << "    \"Goals\": \"" << leftSideScore << "\"," << std::endl;
+  json_stream << "    \"Shots\": \"" << leftSideShots << "\"," << std::endl;
+  json_stream << "    \"Hits\": \"" << leftSideHits << "\"," << std::endl;
+  json_stream << "    \"Steals\": \"" << leftSideSteals << "\"," << std::endl;
+  json_stream << "    \"Super Strikes\": \"" << leftSideSuperStrikes << "\"," << std::endl;
+  json_stream << "    \"Perfect Passes\": \"" << leftSidePerfectPasses << "\"" << std::endl;
   json_stream << "   }," << std::endl;
 
   json_stream << "  \"Right Side Match Stats\": {" << std::endl;
-  json_stream << "    \"Goals\": \"" << rightSideScore << "," << std::endl;
-  json_stream << "    \"Shots\": \"" << rightSideShots << "," << std::endl;
-  json_stream << "    \"Hits\": \"" << rightSideHits << "," << std::endl;
-  json_stream << "    \"Steals\": \"" << rightSideSteals << "," << std::endl;
-  json_stream << "    \"Super Strikes\": \"" << rightSideSuperStrikes << "," << std::endl;
-  json_stream << "    \"Perfect Passes\": \"" << rightSidePerfectPasses << "," << std::endl;
-  json_stream << "   }," << std::endl;
+  json_stream << "    \"Goals\": \"" << rightSideScore << "\"," << std::endl;
+  json_stream << "    \"Shots\": \"" << rightSideShots << "\"," << std::endl;
+  json_stream << "    \"Hits\": \"" << rightSideHits << "\"," << std::endl;
+  json_stream << "    \"Steals\": \"" << rightSideSteals << "\"," << std::endl;
+  json_stream << "    \"Super Strikes\": \"" << rightSideSuperStrikes << "\"," << std::endl;
+  json_stream << "    \"Perfect Passes\": \"" << rightSidePerfectPasses << "\"" << std::endl;
+  json_stream << "   }" << std::endl;
 
   json_stream << "}" << std::endl;
 
@@ -115,11 +128,14 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
   std::wstring strpath(path);
   CoTaskMemFree(path);
   std::string documents_file_path(strpath.begin(), strpath.end());
-  std::string replays_path = documents_file_path;
-  replays_path += "\\Citrus_Replays";
-  // C://Users//Brian//Documents//Citrus Replays
-  std::string json_output_path = replays_path;
+  std::string replays_path = "\"";
+  replays_path += documents_file_path;                   
+  replays_path += "\\Citrus Replays";
+  // "C://Users//Brian//Documents//Citrus Replays
+  std::string json_output_path = documents_file_path + "\\Citrus Replays";
   json_output_path += "\\output.json";
+  replays_path += "\"";
+  // "C://Users//Brian//Documents//Citrus Replays"
 
   File::WriteStringToFile(json_output_path, jsonString);
 
@@ -139,7 +155,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     std::string batchPath = cwd.string();
     //std::string batchPath("./createcit.bat");
     batchPath += gameVar;
-    WinExec(batchPath.c_str(), SW_HIDE);
+    WinExec(batchPath.c_str(), SW_NORMAL);
   }
 }
 

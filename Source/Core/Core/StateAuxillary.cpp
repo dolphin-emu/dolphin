@@ -8,6 +8,8 @@
 #include <Core/Core.h>
 #include <Core/Metadata.h>
 
+static NetPlay::PadMappingArray netplayGCMap;
+
 void StateAuxillary::saveState(const std::string& filename, bool wait) {
   std::thread t1(&State::SaveAs, filename, wait);
   //State::SaveAs(filename, wait);
@@ -20,16 +22,34 @@ void StateAuxillary::startRecording()
   Movie::ControllerTypeArray controllers{};
   Movie::WiimoteEnabledArray wiimotes{};
   // this is how they're set up in mainwindow.cpp
-  for (int i = 0; i < 4; i++)
+
+  if (NetPlay::IsNetPlayRunning())
   {
-    const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
-    if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
-      controllers[i] = Movie::ControllerType::GBA;
-    else if (SerialInterface::SIDevice_IsGCController(si_device))
-      controllers[i] = Movie::ControllerType::GC;
-    else
-      controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+      if (netplayGCMap[i] > 0)
+      {
+        controllers[i] = Movie::ControllerType::GC;
+      }
+      else
+      {
+        controllers[i] = Movie::ControllerType::None;
+      }
+    }
+  }
+  else
+  {
+    for (int i = 0; i < 4; i++)
+    {
+      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
+      if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
+        controllers[i] = Movie::ControllerType::GBA;
+      else if (SerialInterface::SIDevice_IsGCController(si_device))
+        controllers[i] = Movie::ControllerType::GC;
+      else
+        controllers[i] = Movie::ControllerType::None;
+      wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
+    }
   }
   std::thread t2(&Movie::BeginRecordingInput, controllers, wiimotes);
   t2.detach();
@@ -43,8 +63,15 @@ void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateT
       Movie::SaveRecording(replay_path);
     });
   if (Movie::IsMovieActive())
+  {
     Movie::EndPlayInput(false);
+  }
   Metadata::setMatchMetadata(matchDateTimeParam);
   std::string jsonString = Metadata::getJSONString();
   Metadata::writeJSON(jsonString, true);
+}
+
+void StateAuxillary::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map)
+{
+  netplayGCMap = m_pad_map;
 }

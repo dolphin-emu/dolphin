@@ -72,6 +72,7 @@
 #include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
+#include <Core/StateAuxillary.h>
 
 namespace NetPlay
 {
@@ -1752,6 +1753,10 @@ bool NetPlayClient::StartGame(const std::string& path)
       wiimotes[i] = m_wiimote_map[i] > 0;
     }
     Movie::BeginRecordingInput(controllers, wiimotes);
+  }
+  else
+  {
+    StateAuxillary::setNetPlayControllers(m_pad_map);
   }
 
   for (unsigned int i = 0; i < 4; ++i)

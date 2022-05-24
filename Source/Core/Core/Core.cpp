@@ -236,8 +236,9 @@ void OnFrameEnd()
     std::wstring strpath(path);
     CoTaskMemFree(path);
     std::string documents_file_path(strpath.begin(), strpath.end());
-    std::string replays_path = documents_file_path;
-    replays_path += "\\Citrus_Replays";
+    std::string replays_path = "";
+    replays_path += documents_file_path;
+    replays_path += "\\Citrus Replays";
     std::wstring wide_replays_path = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(replays_path);
     CreateDirectory(wide_replays_path.c_str(), NULL);
   }
@@ -260,8 +261,9 @@ void OnFrameEnd()
     std::wstring strpath(path);
     CoTaskMemFree(path);
     std::string documents_file_path(strpath.begin(), strpath.end());
-    std::string replays_path = documents_file_path;
-    replays_path += "\\Citrus_Replays";
+    std::string replays_path = "";
+    replays_path += documents_file_path;
+    replays_path += "\\Citrus Replays";
     // C://Users//Brian//Documents//Citrus Replays
 
     std::string fileName = "\\output.dtm";
