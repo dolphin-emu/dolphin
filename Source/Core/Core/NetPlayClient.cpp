@@ -1588,49 +1588,6 @@ void NetPlayClient::ThreadFunc()
 }
 
 // called from ---GUI--- thread
-void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
-{
-  std::lock_guard lkp(m_crit.players);
-
-  std::ostringstream ss;
-
-  for (const auto& entry : m_players)
-  {
-    const Player& player = entry.second;
-    ss << player.name << "[" << static_cast<int>(player.pid) << "] : " << player.revision << " | "
-       << GetPlayerMappingString(player.pid, m_pad_map, m_gba_config, m_wiimote_map) << " |\n";
-
-    ss << "Ping: " << player.ping << "ms\n";
-    ss << "Status: ";
-
-    switch (player.game_status)
-    {
-    case SyncIdentifierComparison::SameGame:
-      ss << "ready";
-      break;
-
-    case SyncIdentifierComparison::DifferentVersion:
-      ss << "wrong game version";
-      break;
-
-    case SyncIdentifierComparison::DifferentGame:
-      ss << "game missing";
-      break;
-
-    default:
-      ss << "unknown";
-      break;
-    }
-
-    ss << "\n\n";
-
-    pid_list.push_back(player.pid);
-  }
-
-  list = ss.str();
-}
-
-// called from ---GUI--- thread
 std::vector<const Player*> NetPlayClient::GetPlayers()
 {
   std::lock_guard lkp(m_crit.players);
