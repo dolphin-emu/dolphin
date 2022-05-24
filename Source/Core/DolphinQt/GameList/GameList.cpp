@@ -70,6 +70,28 @@
 
 #include "UICommon/GameFile.h"
 
+namespace
+{
+class GameListTableView : public QTableView
+{
+public:
+  explicit GameListTableView(QWidget* parent = nullptr) : QTableView(parent) {}
+
+protected:
+  QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) override
+  {
+    // QTableView::moveCursor handles home by moving to the first column and end by moving to the
+    // last column, unless control is held in which case it ALSO moves to the first/last row.
+    // Columns are irrelevant for the game list, so treat the home/end press as if control were
+    // held.
+    if (cursorAction == CursorAction::MoveHome || cursorAction == CursorAction::MoveEnd)
+      return QTableView::moveCursor(cursorAction, modifiers | Qt::ControlModifier);
+    else
+      return QTableView::moveCursor(cursorAction, modifiers);
+  }
+};
+}  // namespace
+
 GameList::GameList(QWidget* parent) : QStackedWidget(parent), m_model(this)
 {
   m_list_proxy = new ListProxyModel(this);
@@ -129,7 +151,7 @@ void GameList::PurgeCache()
 
 void GameList::MakeListView()
 {
-  m_list = new QTableView(this);
+  m_list = new GameListTableView(this);
   m_list->setModel(m_list_proxy);
 
   m_list->setTabKeyNavigation(false);
@@ -143,12 +165,6 @@ void GameList::MakeListView()
   m_list->setWordWrap(false);
   // Have 1 pixel of padding above and below the 32 pixel banners.
   m_list->verticalHeader()->setDefaultSectionSize(32 + 2);
-
-  connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
-  connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
-          [this](const QItemSelection&, const QItemSelection&) {
-            emit SelectionChanged(GetSelectedGame());
-          });
 
   QHeaderView* hor_header = m_list->horizontalHeader();
 
@@ -208,6 +224,20 @@ void GameList::MakeListView()
 
   hor_header->setSectionsMovable(true);
   hor_header->setHighlightSections(false);
+
+  // Work around a Qt bug where clicking in the background (below the last game) as the first
+  // action and then pressing a key (e.g. page down or end) selects the first entry in the list
+  // instead of performing that key's action.  This workaround does not work if there are no games
+  // when the view first appears, but then games are added (e.g. due to no game folders being
+  // present, and then the user adding one), but that is an infrequent situation.
+  m_list->selectRow(0);
+  m_list->clearSelection();
+
+  connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
+  connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
+          [this](const QItemSelection&, const QItemSelection&) {
+            emit SelectionChanged(GetSelectedGame());
+          });
 }
 
 GameList::~GameList()
@@ -301,6 +331,15 @@ void GameList::MakeGridView()
   m_grid->setUniformItemSizes(true);
   m_grid->setContextMenuPolicy(Qt::CustomContextMenu);
   m_grid->setFrameStyle(QFrame::NoFrame);
+
+  // Work around a Qt bug where clicking in the background (below the last game) as the first action
+  // and then pressing a key (e.g. page down or end) selects the first entry in the list instead of
+  // performing that key's action.  This workaround does not work if there are no games when the
+  // view first appears, but then games are added (e.g. due to no game folders being present,
+  // and then the user adding one), but that is an infrequent situation.
+  m_grid->setCurrentIndex(m_grid->indexAt(QPoint(0, 0)));
+  m_grid->clearSelection();
+
   connect(m_grid, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
   connect(m_grid->selectionModel(), &QItemSelectionModel::selectionChanged,
           [this](const QItemSelection&, const QItemSelection&) {
