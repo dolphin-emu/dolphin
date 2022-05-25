@@ -52,8 +52,8 @@ void Shutdown()
 
 static void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
 {
-  u32 width = bpmem.tex.GetUnit(texmap).texImage0.width + 1;
-  u32 height = bpmem.tex.GetUnit(texmap).texImage0.height + 1;
+  u32 width = bpmem.tex.GetUnit(texmap).texImage0.width() + 1;
+  u32 height = bpmem.tex.GetUnit(texmap).texImage0.height() + 1;
 
   auto data = std::make_unique<u8[]>(width * height * 4);
 
@@ -75,7 +75,7 @@ void GetTextureRGBA(u8* dst, u32 texmap, s32 mip, u32 width, u32 height)
 
 static s32 GetMaxTextureLod(u32 texmap)
 {
-  u8 maxLod = bpmem.tex.GetUnit(texmap).texMode1.max_lod;
+  u8 maxLod = bpmem.tex.GetUnit(texmap).texMode1.max_lod();
   u8 mip = maxLod >> 4;
   u8 fract = maxLod & 0xf;
 
@@ -87,7 +87,7 @@ static s32 GetMaxTextureLod(u32 texmap)
 
 void DumpActiveTextures()
 {
-  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages(); stageNum++)
   {
     u32 texmap = bpmem.tevindref.getTexMap(stageNum);
 
@@ -101,7 +101,7 @@ void DumpActiveTextures()
     }
   }
 
-  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages(); stageNum++)
   {
     int stageNum2 = stageNum >> 1;
     int stageOdd = stageNum & 1;

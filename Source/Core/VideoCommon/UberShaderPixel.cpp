@@ -24,11 +24,11 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->early_depth = bpmem.UseEarlyDepthTest() &&
                           (g_ActiveConfig.bFastDepthCalc ||
                            bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
-                          !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+                          !(bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
   uid_data->per_pixel_depth =
-      (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.UseLateDepthTest()) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
-      (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+      (bpmem.ztex2.op() != ZTexOp::Disabled && bpmem.UseLateDepthTest()) ||
+      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable() && !uid_data->early_depth) ||
+      (bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
   return out;
@@ -265,8 +265,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  // AKA: Color Channel Swapping\n"
             "\n"
             "  int4 ret;\n");
-  out.Write("  ret.r = color[{}];\n", BitfieldExtract<&TevKSel::swap1>("bpmem_tevksel(s * 2u)"));
-  out.Write("  ret.g = color[{}];\n", BitfieldExtract<&TevKSel::swap2>("bpmem_tevksel(s * 2u)"));
+  out.Write("  ret.r = color[{}];\n", Bitfield2Extract(TevKSel::swap1(), "bpmem_tevksel(s * 2u)"));
+  out.Write("  ret.g = color[{}];\n", Bitfield2Extract(TevKSel::swap2(), "bpmem_tevksel(s * 2u)"));
   out.Write("  ret.b = color[{}];\n",
             BitfieldExtract<&TevKSel::swap1>("bpmem_tevksel(s * 2u + 1u)"));
   out.Write("  ret.a = color[{}];\n",
@@ -570,16 +570,17 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("  // Main tev loop\n");
 
-  out.Write("  for(uint stage = 0u; stage <= num_stages; stage++)\n"
-            "  {{\n"
-            "    StageState ss;\n"
-            "    ss.stage = stage;\n"
-            "    ss.cc = bpmem_combiners(stage).x;\n"
-            "    ss.ac = bpmem_combiners(stage).y;\n"
-            "    ss.order = bpmem_tevorder(stage>>1);\n"
-            "    if ((stage & 1u) == 1u)\n"
-            "      ss.order = ss.order >> {};\n\n",
-            int(TwoTevStageOrders().enable1.StartBit() - TwoTevStageOrders().enable0.StartBit()));
+  out.Write(
+      "  for(uint stage = 0u; stage <= num_stages; stage++)\n"
+      "  {{\n"
+      "    StageState ss;\n"
+      "    ss.stage = stage;\n"
+      "    ss.cc = bpmem_combiners(stage).x;\n"
+      "    ss.ac = bpmem_combiners(stage).y;\n"
+      "    ss.order = bpmem_tevorder(stage>>1);\n"
+      "    if ((stage & 1u) == 1u)\n"
+      "      ss.order = ss.order >> {};\n\n",
+      int(TwoTevStageOrders().enable1().StartBit() - TwoTevStageOrders().enable0().StartBit()));
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
@@ -897,7 +898,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     // Zfreeze forces early depth off
     out.Write("  // ZFreeze\n"
               "  if ((bpmem_genmode & {}u) != 0u) {{\n",
-              1 << GenMode().zfreeze.StartBit());
+              1 << GenMode().zfreeze().StartBit());
     out.Write("    float2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
     if (api_type == APIType::OpenGL)
     {

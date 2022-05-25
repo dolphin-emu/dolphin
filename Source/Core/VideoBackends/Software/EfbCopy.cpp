@@ -19,10 +19,10 @@ void ClearEfb()
   u32 clearColor = (bpmem.clearcolorAR & 0xff) << 24 | bpmem.clearcolorGB << 8 |
                    (bpmem.clearcolorAR & 0xff00) >> 8;
 
-  int left = bpmem.copyTexSrcXY.x;
-  int top = bpmem.copyTexSrcXY.y;
-  int right = left + bpmem.copyTexSrcWH.x;
-  int bottom = top + bpmem.copyTexSrcWH.y;
+  int left = bpmem.copyTexSrcXY.x();
+  int top = bpmem.copyTexSrcXY.y();
+  int right = left + bpmem.copyTexSrcWH.x();
+  int bottom = top + bpmem.copyTexSrcWH.y();
 
   for (u16 y = top; y <= bottom; y++)
   {

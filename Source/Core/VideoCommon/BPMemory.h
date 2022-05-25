@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
@@ -355,12 +356,13 @@ struct fmt::formatter<IndTexWrap> : EnumFormatter<IndTexWrap::ITW_0>
   constexpr formatter() : EnumFormatter({"Off", "256", "128", "64", "32", "16", "0"}) {}
 };
 
-union IND_MTXA
+struct IND_MTXA
 {
-  BitField<0, 11, s32> ma;
-  BitField<11, 11, s32> mb;
-  BitField<22, 2, u8, u32> s0;  // bits 0-1 of scale factor
   u32 hex;
+
+  BFVIEW_M(hex, s32, 0, 11, ma);
+  BFVIEW_M(hex, s32, 11, 11, mb);
+  BFVIEW_M(hex, u8, 22, 2, s0);  // bits 0-1 of scale factor
 };
 template <>
 struct fmt::formatter<IND_MTXA>
@@ -373,16 +375,18 @@ struct fmt::formatter<IND_MTXA>
                           "Row 0 (ma): {} ({})\n"
                           "Row 1 (mb): {} ({})\n"
                           "Scale bits: {} (shifted: {})",
-                          col.ma / 1024.0f, col.ma, col.mb / 1024.0f, col.mb, col.s0, col.s0);
+                          col.ma() / 1024.0f, col.ma(), col.mb() / 1024.0f, col.mb(), col.s0(),
+                          col.s0());
   }
 };
 
-union IND_MTXB
+struct IND_MTXB
 {
-  BitField<0, 11, s32> mc;
-  BitField<11, 11, s32> md;
-  BitField<22, 2, u8, u32> s1;  // bits 2-3 of scale factor
   u32 hex;
+
+  BFVIEW_M(hex, s32, 0, 11, mc);
+  BFVIEW_M(hex, s32, 11, 11, md);
+  BFVIEW_M(hex, u8, 22, 2, s1);  // bits 2-3 of scale factor
 };
 template <>
 struct fmt::formatter<IND_MTXB>
@@ -395,19 +399,21 @@ struct fmt::formatter<IND_MTXB>
                           "Row 0 (mc): {} ({})\n"
                           "Row 1 (md): {} ({})\n"
                           "Scale bits: {} (shifted: {})",
-                          col.mc / 1024.0f, col.mc, col.md / 1024.0f, col.md, col.s1, col.s1 << 2);
+                          col.mc() / 1024.0f, col.mc(), col.md() / 1024.0f, col.md(), col.s1(),
+                          col.s1() << 2);
   }
 };
 
-union IND_MTXC
+struct IND_MTXC
 {
-  BitField<0, 11, s32> me;
-  BitField<11, 11, s32> mf;
-  BitField<22, 1, u8, u32> s2;  // bit 4 of scale factor
+  u32 hex;
+
+  BFVIEW_M(hex, s32, 0, 11, me);
+  BFVIEW_M(hex, s32, 11, 11, mf);
+  BFVIEW_M(hex, u8, 22, 1, s2);  // bit 4 of scale factor
   // The SDK treats the scale factor as 6 bits, 2 on each column; however, hardware seems to ignore
   // the top bit.
-  BitField<22, 2, u8, u32> sdk_s2;
-  u32 hex;
+  BFVIEW_M(hex, u8, 22, 2, sdk_s2);
 };
 template <>
 struct fmt::formatter<IND_MTXC>
@@ -420,8 +426,8 @@ struct fmt::formatter<IND_MTXC>
                           "Row 0 (me): {} ({})\n"
                           "Row 1 (mf): {} ({})\n"
                           "Scale bits: {} (shifted: {}), given to SDK as {} ({})",
-                          col.me / 1024.0f, col.me, col.mf / 1024.0f, col.mf, col.s2, col.s2 << 4,
-                          col.sdk_s2, col.sdk_s2 << 4);
+                          col.me() / 1024.0f, col.me(), col.mf() / 1024.0f, col.mf(), col.s2(),
+                          col.s2() << 4, col.sdk_s2(), col.sdk_s2() << 4);
   }
 };
 
@@ -430,55 +436,56 @@ struct IND_MTX
   IND_MTXA col0;
   IND_MTXB col1;
   IND_MTXC col2;
-  u8 GetScale() const { return (col0.s0 << 0) | (col1.s1 << 2) | (col2.s2 << 4); }
+  u8 GetScale() const { return (col0.s0() << 0) | (col1.s1() << 2) | (col2.s2() << 4); }
 };
 
-union IND_IMASK
+struct IND_IMASK
 {
-  BitField<0, 24, u32> mask;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 24, mask);
 };
 
 struct TevStageCombiner
 {
-  union ColorCombiner
+  struct ColorCombiner
   {
+    u32 hex;
+
     // abc=8bit,d=10bit
-    BitField<0, 4, TevColorArg> d;
-    BitField<4, 4, TevColorArg> c;
-    BitField<8, 4, TevColorArg> b;
-    BitField<12, 4, TevColorArg> a;
+    BFVIEW_M(hex, TevColorArg, 0, 4, d);
+    BFVIEW_M(hex, TevColorArg, 4, 4, c);
+    BFVIEW_M(hex, TevColorArg, 8, 4, b);
+    BFVIEW_M(hex, TevColorArg, 12, 4, a);
 
-    BitField<16, 2, TevBias> bias;
-    BitField<18, 1, TevOp> op;                  // Applies when bias is not compare
-    BitField<18, 1, TevComparison> comparison;  // Applies when bias is compare
-    BitField<19, 1, bool, u32> clamp;
+    BFVIEW_M(hex, TevBias, 16, 2, bias);
+    BFVIEW_M(hex, TevOp, 18, 1, op);                  // Applies when bias is not compare
+    BFVIEW_M(hex, TevComparison, 18, 1, comparison);  // Applies when bias is compare
+    BFVIEW_M(hex, bool, 19, 1, clamp);
 
-    BitField<20, 2, TevScale> scale;               // Applies when bias is not compare
-    BitField<20, 2, TevCompareMode> compare_mode;  // Applies when bias is compare
-    BitField<22, 2, TevOutput> dest;
-
-    u32 hex;
+    BFVIEW_M(hex, TevScale, 20, 2, scale);               // Applies when bias is not compare
+    BFVIEW_M(hex, TevCompareMode, 20, 2, compare_mode);  // Applies when bias is compare
+    BFVIEW_M(hex, TevOutput, 22, 2, dest);
   };
-  union AlphaCombiner
+  struct AlphaCombiner
   {
-    BitField<0, 2, u32> rswap;
-    BitField<2, 2, u32> tswap;
-    BitField<4, 3, TevAlphaArg> d;
-    BitField<7, 3, TevAlphaArg> c;
-    BitField<10, 3, TevAlphaArg> b;
-    BitField<13, 3, TevAlphaArg> a;
-
-    BitField<16, 2, TevBias> bias;
-    BitField<18, 1, TevOp> op;                  // Applies when bias is not compare
-    BitField<18, 1, TevComparison> comparison;  // Applies when bias is compare
-    BitField<19, 1, bool, u32> clamp;
-
-    BitField<20, 2, TevScale> scale;               // Applies when bias is not compare
-    BitField<20, 2, TevCompareMode> compare_mode;  // Applies when bias is compare
-    BitField<22, 2, TevOutput> dest;
-
     u32 hex;
+
+    BFVIEW_M(hex, u32, 0, 2, rswap);
+    BFVIEW_M(hex, u32, 2, 2, tswap);
+    BFVIEW_M(hex, TevAlphaArg, 4, 3, d);
+    BFVIEW_M(hex, TevAlphaArg, 7, 3, c);
+    BFVIEW_M(hex, TevAlphaArg, 10, 3, b);
+    BFVIEW_M(hex, TevAlphaArg, 13, 3, a);
+
+    BFVIEW_M(hex, TevBias, 16, 2, bias);
+    BFVIEW_M(hex, TevOp, 18, 1, op);                  // Applies when bias is not compare
+    BFVIEW_M(hex, TevComparison, 18, 1, comparison);  // Applies when bias is compare
+    BFVIEW_M(hex, bool, 19, 1, clamp);
+
+    BFVIEW_M(hex, TevScale, 20, 2, scale);               // Applies when bias is not compare
+    BFVIEW_M(hex, TevCompareMode, 20, 2, compare_mode);  // Applies when bias is compare
+    BFVIEW_M(hex, TevOutput, 22, 2, dest);
   };
 
   ColorCombiner colorC;
@@ -492,7 +499,7 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
   auto format(const TevStageCombiner::ColorCombiner& cc, FormatContext& ctx) const
   {
     auto out = ctx.out();
-    if (cc.bias != TevBias::Compare)
+    if (cc.bias() != TevBias::Compare)
     {
       // Generate an equation view, simplifying out addition of zero and multiplication by 1
       // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
@@ -506,68 +513,70 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
           "tex.rgb",  "tex.aaa",  "ras.rgb", "ras.aaa", "1",      ".5",     "konst.rgb", "0",
       };
 
-      const bool has_d = cc.d != TevColorArg::Zero;
+      const bool has_d = cc.d() != TevColorArg::Zero;
       // If c is one, (1 - c) is zero, so (1-c)*a is zero
-      const bool has_ac = cc.a != TevColorArg::Zero && cc.c != TevColorArg::One;
+      const bool has_ac = cc.a() != TevColorArg::Zero && cc.c() != TevColorArg::One;
       // If either b or c is zero, b*c is zero
-      const bool has_bc = cc.b != TevColorArg::Zero && cc.c != TevColorArg::Zero;
-      const bool has_bias = cc.bias != TevBias::Zero;  // != Compare is already known
-      const bool has_scale = cc.scale != TevScale::Scale1;
+      const bool has_bc = cc.b() != TevColorArg::Zero && cc.c() != TevColorArg::Zero;
+      const bool has_bias = cc.bias() != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = cc.scale() != TevScale::Scale1;
 
-      const char op = (cc.op == TevOp::Sub ? '-' : '+');
+      const char op = (cc.op() == TevOp::Sub ? '-' : '+');
 
-      if (cc.dest == TevOutput::Prev)
+      if (cc.dest() == TevOutput::Prev)
         out = fmt::format_to(out, "dest.rgb = ");
       else
-        out = fmt::format_to(out, "{:n}.rgb = ", cc.dest);
+        out = fmt::format_to(out, "{:n}.rgb = ", cc.dest().Get());
 
       if (has_scale)
         out = fmt::format_to(out, "(");
       if (has_d)
-        out = fmt::format_to(out, "{}", alt_names[cc.d]);
+        out = fmt::format_to(out, "{}", alt_names[cc.d().Get()]);
       if (has_ac || has_bc)
       {
         if (has_d)
           out = fmt::format_to(out, " {} ", op);
-        else if (cc.op == TevOp::Sub)
+        else if (cc.op() == TevOp::Sub)
           out = fmt::format_to(out, "{}", op);
         if (has_ac && has_bc)
         {
-          if (cc.c == TevColorArg::Half)
+          if (cc.c() == TevColorArg::Half)
           {
             // has_a and has_b imply that c is not Zero or One, and Half is the only remaining
             // numeric constant.  This results in an average.
-            out = fmt::format_to(out, "({} + {})/2", alt_names[cc.a], alt_names[cc.b]);
+            out = fmt::format_to(out, "({} + {})/2", alt_names[cc.a().Get()],
+                                 alt_names[cc.b().Get()]);
           }
           else
           {
-            out = fmt::format_to(out, "lerp({}, {}, {})", alt_names[cc.a], alt_names[cc.b],
-                                 alt_names[cc.c]);
+            out = fmt::format_to(out, "lerp({}, {}, {})", alt_names[cc.a().Get()],
+                                 alt_names[cc.b().Get()], alt_names[cc.c().Get()]);
           }
         }
         else if (has_ac)
         {
-          if (cc.c == TevColorArg::Zero)
-            out = fmt::format_to(out, "{}", alt_names[cc.a]);
-          else if (cc.c == TevColorArg::Half)  // 1 - .5 is .5
-            out = fmt::format_to(out, ".5*{}", alt_names[cc.a]);
+          if (cc.c() == TevColorArg::Zero)
+            out = fmt::format_to(out, "{}", alt_names[cc.a().Get()]);
+          else if (cc.c() == TevColorArg::Half)  // 1 - .5 is .5
+            out = fmt::format_to(out, ".5*{}", alt_names[cc.a().Get()]);
           else
-            out = fmt::format_to(out, "(1 - {})*{}", alt_names[cc.c], alt_names[cc.a]);
+            out = fmt::format_to(out, "(1 - {})*{}", alt_names[cc.c().Get()],
+                                 alt_names[cc.a().Get()]);
         }
         else  // has_bc
         {
-          if (cc.c == TevColorArg::One)
-            out = fmt::format_to(out, "{}", alt_names[cc.b]);
+          if (cc.c() == TevColorArg::One)
+            out = fmt::format_to(out, "{}", alt_names[cc.b().Get()]);
           else
-            out = fmt::format_to(out, "{}*{}", alt_names[cc.c], alt_names[cc.b]);
+            out = fmt::format_to(out, "{}*{}", alt_names[cc.c().Get()], alt_names[cc.b().Get()]);
         }
       }
       if (has_bias)
       {
         if (has_ac || has_bc || has_d)
-          out = fmt::format_to(out, "{}", cc.bias == TevBias::AddHalf ? " + .5" : " - .5");
+          out = fmt::format_to(out, "{}", cc.bias() == TevBias::AddHalf ? " + .5" : " - .5");
         else
-          out = fmt::format_to(out, "{}", cc.bias == TevBias::AddHalf ? ".5" : "-.5");
+          out = fmt::format_to(out, "{}", cc.bias() == TevBias::AddHalf ? ".5" : "-.5");
       }
       else
       {
@@ -576,7 +585,7 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
           out = fmt::format_to(out, "0");
       }
       if (has_scale)
-        out = fmt::format_to(out, ") * {:n}", cc.scale);
+        out = fmt::format_to(out, ") * {:n}", cc.scale().Get());
       out = fmt::format_to(out, "\n\n");
     }
     return fmt::format_to(ctx.out(),
@@ -589,8 +598,9 @@ struct fmt::formatter<TevStageCombiner::ColorCombiner>
                           "Clamp: {}\n"
                           "Scale factor: {} / Compare mode: {}\n"
                           "Dest: {}",
-                          cc.a, cc.b, cc.c, cc.d, cc.bias, cc.op, cc.comparison,
-                          cc.clamp ? "Yes" : "No", cc.scale, cc.compare_mode, cc.dest);
+                          cc.a().Get(), cc.b().Get(), cc.c().Get(), cc.d().Get(), cc.bias().Get(),
+                          cc.op().Get(), cc.comparison().Get(), cc.clamp() ? "Yes" : "No",
+                          cc.scale().Get(), cc.compare_mode().Get(), cc.dest().Get());
   }
 };
 template <>
@@ -601,7 +611,7 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
   auto format(const TevStageCombiner::AlphaCombiner& ac, FormatContext& ctx) const
   {
     auto out = ctx.out();
-    if (ac.bias != TevBias::Compare)
+    if (ac.bias() != TevBias::Compare)
     {
       // Generate an equation view, simplifying out addition of zero and multiplication by 1
       // dest = (d (OP) ((1 - c)*a + c*b) + bias) * scale
@@ -615,53 +625,54 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
       // parameters, to make it explicit that these are operations on the alpha term instead of the
       // 4-element vector.  We also need to use the :n specifier so that the numeric ID isn't shown.
 
-      const bool has_d = ac.d != TevAlphaArg::Zero;
+      const bool has_d = ac.d() != TevAlphaArg::Zero;
       // There is no c value for alpha that results in (1 - c) always being zero
-      const bool has_ac = ac.a != TevAlphaArg::Zero;
+      const bool has_ac = ac.a() != TevAlphaArg::Zero;
       // If either b or c is zero, b*c is zero
-      const bool has_bc = ac.b != TevAlphaArg::Zero && ac.c != TevAlphaArg::Zero;
-      const bool has_bias = ac.bias != TevBias::Zero;  // != Compare is already known
-      const bool has_scale = ac.scale != TevScale::Scale1;
+      const bool has_bc = ac.b() != TevAlphaArg::Zero && ac.c() != TevAlphaArg::Zero;
+      const bool has_bias = ac.bias() != TevBias::Zero;  // != Compare is already known
+      const bool has_scale = ac.scale() != TevScale::Scale1;
 
-      const char op = (ac.op == TevOp::Sub ? '-' : '+');
+      const char op = (ac.op() == TevOp::Sub ? '-' : '+');
 
-      if (ac.dest == TevOutput::Prev)
+      if (ac.dest() == TevOutput::Prev)
         out = fmt::format_to(out, "dest.a = ");
       else
-        out = fmt::format_to(out, "{:n}.a = ", ac.dest);
+        out = fmt::format_to(out, "{:n}.a = ", ac.dest().Get());
 
       if (has_scale)
         out = fmt::format_to(out, "(");
       if (has_d)
-        out = fmt::format_to(out, "{:n}.a", ac.d);
+        out = fmt::format_to(out, "{:n}.a", ac.d().Get());
       if (has_ac || has_bc)
       {
         if (has_d)
           out = fmt::format_to(out, " {} ", op);
-        else if (ac.op == TevOp::Sub)
+        else if (ac.op() == TevOp::Sub)
           out = fmt::format_to(out, "{}", op);
         if (has_ac && has_bc)
         {
-          out = fmt::format_to(out, "lerp({:n}.a, {:n}.a, {:n}.a)", ac.a, ac.b, ac.c);
+          out = fmt::format_to(out, "lerp({:n}.a, {:n}.a, {:n}.a)", ac.a().Get(), ac.b().Get(),
+                               ac.c().Get());
         }
         else if (has_ac)
         {
-          if (ac.c == TevAlphaArg::Zero)
-            out = fmt::format_to(out, "{:n}.a", ac.a);
+          if (ac.c() == TevAlphaArg::Zero)
+            out = fmt::format_to(out, "{:n}.a", ac.a().Get());
           else
-            out = fmt::format_to(out, "(1 - {:n}.a)*{:n}.a", ac.c, ac.a);
+            out = fmt::format_to(out, "(1 - {:n}.a)*{:n}.a", ac.c().Get(), ac.a().Get());
         }
         else  // has_bc
         {
-          out = fmt::format_to(out, "{:n}.a*{:n}.a", ac.c, ac.b);
+          out = fmt::format_to(out, "{:n}.a*{:n}.a", ac.c().Get(), ac.b().Get());
         }
       }
       if (has_bias)
       {
         if (has_ac || has_bc || has_d)
-          out = fmt::format_to(out, "{}", ac.bias == TevBias::AddHalf ? " + .5" : " - .5");
+          out = fmt::format_to(out, "{}", ac.bias() == TevBias::AddHalf ? " + .5" : " - .5");
         else
-          out = fmt::format_to(out, "{}", ac.bias == TevBias::AddHalf ? ".5" : "-.5");
+          out = fmt::format_to(out, "{}", ac.bias() == TevBias::AddHalf ? ".5" : "-.5");
       }
       else
       {
@@ -670,7 +681,7 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
           out = fmt::format_to(out, "0");
       }
       if (has_scale)
-        out = fmt::format_to(out, ") * {:n}", ac.scale);
+        out = fmt::format_to(out, ") * {:n}", ac.scale().Get());
       out = fmt::format_to(out, "\n\n");
     }
     return fmt::format_to(out,
@@ -685,9 +696,10 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
                           "Dest: {}\n"
                           "Ras sel: {}\n"
                           "Tex sel: {}",
-                          ac.a, ac.b, ac.c, ac.d, ac.bias, ac.op, ac.comparison,
-                          ac.clamp ? "Yes" : "No", ac.scale, ac.compare_mode, ac.dest, ac.rswap,
-                          ac.tswap);
+                          ac.a().Get(), ac.b().Get(), ac.c().Get(), ac.d().Get(), ac.bias().Get(),
+                          ac.op().Get(), ac.comparison().Get(), ac.clamp() ? "Yes" : "No",
+                          ac.scale().Get(), ac.compare_mode().Get(), ac.dest().Get(), ac.rswap(),
+                          ac.tswap());
   }
 };
 
@@ -700,38 +712,47 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
 //  GXSetTevIndirect(tevstage+1, indstage, 0, 3, realmat+4, 6, 6, 1, 0, 0)
 //  GXSetTevIndirect(tevstage+2, indstage, 0, 0, 0, 0, 0, 1, 0, 0)
 
-union TevStageIndirect
+struct TevStageIndirect
 {
-  BitField<0, 2, u32> bt;  // Indirect tex stage ID
-  BitField<2, 2, IndTexFormat> fmt;
-  BitField<4, 3, IndTexBias> bias;
-  BitField<4, 1, bool, u32> bias_s;
-  BitField<5, 1, bool, u32> bias_t;
-  BitField<6, 1, bool, u32> bias_u;
-  BitField<7, 2, IndTexBumpAlpha> bs;  // Indicates which coordinate will become the 'bump alpha'
-  // Indicates which indirect matrix is used when matrix_id is Indirect.
-  // Also always indicates which indirect matrix to use for the scale factor, even with S or T.
-  BitField<9, 2, IndMtxIndex> matrix_index;
-  // Should be set to Indirect (0) if matrix_index is Off (0)
-  BitField<11, 2, IndMtxId> matrix_id;
-  BitField<13, 3, IndTexWrap> sw;         // Wrapping factor for S of regular coord
-  BitField<16, 3, IndTexWrap> tw;         // Wrapping factor for T of regular coord
-  BitField<19, 1, bool, u32> lb_utclod;   // Use modified or unmodified texture
-                                          // coordinates for LOD computation
-  BitField<20, 1, bool, u32> fb_addprev;  // true if the texture coordinate results from the
-                                          // previous TEV stage should be added
-
-  struct
+  union
   {
-    u32 hex : 21;
-    u32 unused : 11;
+    u32 fullhex;
+    struct
+    {
+      u32 hex : 21;
+      u32 unused : 11;
+    };
   };
 
-  u32 fullhex;
+  // Indirect tex stage ID
+  BFVIEW_M(fullhex, u32, 0, 2, bt);
+  BFVIEW_M(fullhex, IndTexFormat, 2, 2, fmt);
+  BFVIEW_M(fullhex, IndTexBias, 4, 3, bias);
+  BFVIEW_M(fullhex, bool, 4, 1, bias_s);
+  BFVIEW_M(fullhex, bool, 5, 1, bias_t);
+  BFVIEW_M(fullhex, bool, 6, 1, bias_u);
+  // Indicates which coordinate will become the 'bump alpha'
+  BFVIEW_M(fullhex, IndTexBumpAlpha, 7, 2, bs);
+  // Indicates which indirect matrix is used when matrix_id is Indirect.  Also always indicates
+  // which indirect matrix to use for the scale factor, even with S or T.
+  BFVIEW_M(fullhex, IndMtxIndex, 9, 2, matrix_index);
+  // Should be set to Indirect (0) if matrix_index is Off (0)
+  BFVIEW_M(fullhex, IndMtxId, 11, 2, matrix_id);
+  // Wrapping factor for S of regular coord
+  BFVIEW_M(fullhex, IndTexWrap, 13, 3, sw);
+  // Wrapping factor for T of regular coord
+  BFVIEW_M(fullhex, IndTexWrap, 16, 3, tw);
+  // Use modified or unmodified texture coordinates for LOD computation
+  BFVIEW_M(fullhex, bool, 19, 1, lb_utclod);
+  // True if the texture coordinate results from the previous TEV stage should be added
+  BFVIEW_M(fullhex, bool, 20, 1, fb_addprev);
 
   // If bs and matrix are zero, the result of the stage is independent of
   // the texture sample data, so we can skip sampling the texture.
-  bool IsActive() const { return bs != IndTexBumpAlpha::Off || matrix_index != IndMtxIndex::Off; }
+  bool IsActive() const
+  {
+    return bs() != IndTexBumpAlpha::Off || matrix_index() != IndMtxIndex::Off;
+  }
 };
 template <>
 struct fmt::formatter<TevStageIndirect>
@@ -751,9 +772,10 @@ struct fmt::formatter<TevStageIndirect>
                           "Regular coord T wrapping factor: {}\n"
                           "Use modified texture coordinates for LOD computation: {}\n"
                           "Add texture coordinates from previous TEV stage: {}",
-                          tevind.bt, tevind.fmt, tevind.bias, tevind.bs, tevind.matrix_index,
-                          tevind.matrix_id, tevind.sw, tevind.tw, tevind.lb_utclod ? "Yes" : "No",
-                          tevind.fb_addprev ? "Yes" : "No");
+                          tevind.bt(), tevind.fmt().Get(), tevind.bias().Get(), tevind.bs().Get(),
+                          tevind.matrix_index().Get(), tevind.matrix_id().Get(), tevind.sw().Get(),
+                          tevind.tw().Get(), tevind.lb_utclod() ? "Yes" : "No",
+                          tevind.fb_addprev() ? "Yes" : "No");
   }
 };
 
@@ -775,23 +797,24 @@ struct fmt::formatter<RasColorChan> : EnumFormatter<RasColorChan::Zero>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union TwoTevStageOrders
+struct TwoTevStageOrders
 {
-  BitField<0, 3, u32> texmap0;  // Indirect tex stage texmap
-  BitField<3, 3, u32> texcoord0;
-  BitField<6, 1, bool, u32> enable0;  // true if should read from texture
-  BitField<7, 3, RasColorChan> colorchan0;
-
-  BitField<12, 3, u32> texmap1;
-  BitField<15, 3, u32> texcoord1;
-  BitField<18, 1, bool, u32> enable1;  // true if should read from texture
-  BitField<19, 3, RasColorChan> colorchan1;
-
   u32 hex;
-  u32 getTexMap(int i) const { return i ? texmap1.Value() : texmap0.Value(); }
-  u32 getTexCoord(int i) const { return i ? texcoord1.Value() : texcoord0.Value(); }
-  u32 getEnable(int i) const { return i ? enable1.Value() : enable0.Value(); }
-  RasColorChan getColorChan(int i) const { return i ? colorchan1.Value() : colorchan0.Value(); }
+
+  BFVIEW_M(hex, u32, 0, 3, texmap0);  // Indirect tex stage texmap
+  BFVIEW_M(hex, u32, 3, 3, texcoord0);
+  BFVIEW_M(hex, bool, 6, 1, enable0);  // true if should read from texture
+  BFVIEW_M(hex, RasColorChan, 7, 3, colorchan0);
+
+  BFVIEW_M(hex, u32, 12, 3, texmap1);
+  BFVIEW_M(hex, u32, 15, 3, texcoord1);
+  BFVIEW_M(hex, bool, 18, 1, enable1);  // true if should read from texture
+  BFVIEW_M(hex, RasColorChan, 19, 3, colorchan1);
+
+  u32 getTexMap(int i) const { return i ? texmap1() : texmap0(); }
+  u32 getTexCoord(int i) const { return i ? texcoord1() : texcoord0(); }
+  u32 getEnable(int i) const { return i ? enable1() : enable0(); }
+  RasColorChan getColorChan(int i) const { return i ? colorchan1().Get() : colorchan0().Get(); }
 };
 template <>
 struct fmt::formatter<TwoTevStageOrders>
@@ -805,19 +828,20 @@ struct fmt::formatter<TwoTevStageOrders>
                           "Stage 0 enable texmap: {}\nStage 0 color channel: {}\n"
                           "Stage 1 texmap: {}\nStage 1 tex coord: {}\n"
                           "Stage 1 enable texmap: {}\nStage 1 color channel: {}\n",
-                          stages.texmap0, stages.texcoord0, stages.enable0 ? "Yes" : "No",
-                          stages.colorchan0, stages.texmap1, stages.texcoord1,
-                          stages.enable1 ? "Yes" : "No", stages.colorchan1);
+                          stages.texmap0(), stages.texcoord0(), stages.enable0() ? "Yes" : "No",
+                          stages.colorchan0().Get(), stages.texmap1(), stages.texcoord1(),
+                          stages.enable1() ? "Yes" : "No", stages.colorchan1().Get());
   }
 };
 
-union TEXSCALE
+struct TEXSCALE
 {
-  BitField<0, 4, u32> ss0;   // Indirect tex stage 0, 2^(-ss0)
-  BitField<4, 4, u32> ts0;   // Indirect tex stage 0
-  BitField<8, 4, u32> ss1;   // Indirect tex stage 1
-  BitField<12, 4, u32> ts1;  // Indirect tex stage 1
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 4, ss0);   // Indirect tex stage 0, 2^(-ss0)
+  BFVIEW_M(hex, u32, 4, 4, ts0);   // Indirect tex stage 0
+  BFVIEW_M(hex, u32, 8, 4, ss1);   // Indirect tex stage 1
+  BFVIEW_M(hex, u32, 12, 4, ts1);  // Indirect tex stage 1
 };
 template <>
 struct fmt::formatter<TEXSCALE>
@@ -831,22 +855,24 @@ struct fmt::formatter<TEXSCALE>
                           "Even stage T scale: {} ({})\n"
                           "Odd stage S scale: {} ({})\n"
                           "Odd stage T scale: {} ({})",
-                          scale.ss0, 1.f / (1 << scale.ss0), scale.ts0, 1.f / (1 << scale.ts0),
-                          scale.ss1, 1.f / (1 << scale.ss1), scale.ts1, 1.f / (1 << scale.ts1));
+                          scale.ss0(), 1.f / (1 << scale.ss0()), scale.ts0(),
+                          1.f / (1 << scale.ts0()), scale.ss1(), 1.f / (1 << scale.ss1()),
+                          scale.ts1(), 1.f / (1 << scale.ts1()));
   }
 };
 
-union RAS1_IREF
+struct RAS1_IREF
 {
-  BitField<0, 3, u32> bi0;  // Indirect tex stage 0 ntexmap
-  BitField<3, 3, u32> bc0;  // Indirect tex stage 0 ntexcoord
-  BitField<6, 3, u32> bi1;
-  BitField<9, 3, u32> bc1;
-  BitField<12, 3, u32> bi2;
-  BitField<15, 3, u32> bc2;
-  BitField<18, 3, u32> bi3;
-  BitField<21, 3, u32> bc3;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 3, bi0);  // Indirect tex stage 0 ntexmap
+  BFVIEW_M(hex, u32, 3, 3, bc0);  // Indirect tex stage 0 ntexcoord
+  BFVIEW_M(hex, u32, 6, 3, bi1);
+  BFVIEW_M(hex, u32, 9, 3, bc1);
+  BFVIEW_M(hex, u32, 12, 3, bi2);
+  BFVIEW_M(hex, u32, 15, 3, bc2);
+  BFVIEW_M(hex, u32, 18, 3, bi3);
+  BFVIEW_M(hex, u32, 21, 3, bc3);
 
   u32 getTexCoord(int i) const { return (hex >> (6 * i + 3)) & 7; }
   u32 getTexMap(int i) const { return (hex >> (6 * i)) & 7; }
@@ -864,8 +890,8 @@ struct fmt::formatter<RAS1_IREF>
                           "Stage 1 ntexmap: {}\nStage 1 ntexcoord: {}\n"
                           "Stage 2 ntexmap: {}\nStage 2 ntexcoord: {}\n"
                           "Stage 3 ntexmap: {}\nStage 3 ntexcoord: {}",
-                          indref.bi0, indref.bc0, indref.bi1, indref.bc1, indref.bi2, indref.bc2,
-                          indref.bi3, indref.bc3);
+                          indref.bi0(), indref.bc0(), indref.bi1(), indref.bc1(), indref.bi2(),
+                          indref.bc2(), indref.bi3(), indref.bc3());
   }
 };
 
@@ -930,18 +956,19 @@ struct fmt::formatter<MaxAniso> : EnumFormatter<MaxAniso::Four>
   constexpr formatter() : EnumFormatter({"1", "2", "4"}) {}
 };
 
-union TexMode0
+struct TexMode0
 {
-  BitField<0, 2, WrapMode> wrap_s;
-  BitField<2, 2, WrapMode> wrap_t;
-  BitField<4, 1, FilterMode> mag_filter;
-  BitField<5, 2, MipMode> mipmap_filter;
-  BitField<7, 1, FilterMode> min_filter;
-  BitField<8, 1, LODType> diag_lod;
-  BitField<9, 8, s32> lod_bias;
-  BitField<19, 2, MaxAniso> max_aniso;
-  BitField<21, 1, bool, u32> lod_clamp;
   u32 hex;
+
+  BFVIEW_M(hex, WrapMode, 0, 2, wrap_s);
+  BFVIEW_M(hex, WrapMode, 2, 2, wrap_t);
+  BFVIEW_M(hex, FilterMode, 4, 1, mag_filter);
+  BFVIEW_M(hex, MipMode, 5, 2, mipmap_filter);
+  BFVIEW_M(hex, FilterMode, 7, 1, min_filter);
+  BFVIEW_M(hex, LODType, 8, 1, diag_lod);
+  BFVIEW_M(hex, s32, 9, 8, lod_bias);
+  BFVIEW_M(hex, MaxAniso, 19, 2, max_aniso);
+  BFVIEW_M(hex, bool, 21, 1, lod_clamp);
 };
 template <>
 struct fmt::formatter<TexMode0>
@@ -960,17 +987,19 @@ struct fmt::formatter<TexMode0>
                           "LOD bias: {} ({})\n"
                           "Max anisotropic filtering: {}\n"
                           "LOD/bias clamp: {}",
-                          mode.wrap_s, mode.wrap_t, mode.mag_filter, mode.mipmap_filter,
-                          mode.min_filter, mode.diag_lod, mode.lod_bias, mode.lod_bias / 32.f,
-                          mode.max_aniso, mode.lod_clamp ? "Yes" : "No");
+                          mode.wrap_s().Get(), mode.wrap_t().Get(), mode.mag_filter().Get(),
+                          mode.mipmap_filter().Get(), mode.min_filter().Get(),
+                          mode.diag_lod().Get(), mode.lod_bias(), mode.lod_bias() / 32.f,
+                          mode.max_aniso().Get(), mode.lod_clamp() ? "Yes" : "No");
   }
 };
 
-union TexMode1
+struct TexMode1
 {
-  BitField<0, 8, u32> min_lod;
-  BitField<8, 8, u32> max_lod;
   u32 hex;
+
+  BFVIEW_M(hex, u8, 0, 8, min_lod);
+  BFVIEW_M(hex, u8, 8, 8, max_lod);
 };
 template <>
 struct fmt::formatter<TexMode1>
@@ -979,17 +1008,18 @@ struct fmt::formatter<TexMode1>
   template <typename FormatContext>
   auto format(const TexMode1& mode, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Min LOD: {} ({})\nMax LOD: {} ({})", mode.min_lod,
-                          mode.min_lod / 16.f, mode.max_lod, mode.max_lod / 16.f);
+    return fmt::format_to(ctx.out(), "Min LOD: {} ({})\nMax LOD: {} ({})", mode.min_lod(),
+                          mode.min_lod() / 16.f, mode.max_lod(), mode.max_lod() / 16.f);
   }
 };
 
-union TexImage0
+struct TexImage0
 {
-  BitField<0, 10, u32> width;    // Actually w-1
-  BitField<10, 10, u32> height;  // Actually h-1
-  BitField<20, 4, TextureFormat> format;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 10, width);    // Actually w-1
+  BFVIEW_M(hex, u32, 10, 10, height);  // Actually h-1
+  BFVIEW_M(hex, TextureFormat, 20, 4, format);
 };
 template <>
 struct fmt::formatter<TexImage0>
@@ -1002,19 +1032,20 @@ struct fmt::formatter<TexImage0>
                           "Width: {}\n"
                           "Height: {}\n"
                           "Format: {}",
-                          teximg.width + 1, teximg.height + 1, teximg.format);
+                          teximg.width() + 1, teximg.height() + 1, teximg.format().Get());
   }
 };
 
-union TexImage1
+struct TexImage1
 {
-  BitField<0, 15, u32> tmem_even;  // TMEM line index for even LODs
-  BitField<15, 3, u32> cache_width;
-  BitField<18, 3, u32> cache_height;
+  u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 15, tmem_even);  // TMEM line index for even LODs
+  BFVIEW_M(hex, u32, 15, 3, cache_width);
+  BFVIEW_M(hex, u32, 18, 3, cache_height);
   // true if this texture is managed manually (false means we'll
   // autofetch the texture data whenever it changes)
-  BitField<21, 1, bool, u32> cache_manually_managed;
-  u32 hex;
+  BFVIEW_M(hex, bool, 21, 1, cache_manually_managed);
 };
 template <>
 struct fmt::formatter<TexImage1>
@@ -1028,17 +1059,18 @@ struct fmt::formatter<TexImage1>
                           "Even TMEM Width: {}\n"
                           "Even TMEM Height: {}\n"
                           "Cache is manually managed: {}",
-                          teximg.tmem_even, teximg.cache_width, teximg.cache_height,
-                          teximg.cache_manually_managed ? "Yes" : "No");
+                          teximg.tmem_even(), teximg.cache_width(), teximg.cache_height(),
+                          teximg.cache_manually_managed() ? "Yes" : "No");
   }
 };
 
-union TexImage2
+struct TexImage2
 {
-  BitField<0, 15, u32> tmem_odd;  // tmem line index for odd LODs
-  BitField<15, 3, u32> cache_width;
-  BitField<18, 3, u32> cache_height;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 15, tmem_odd);  // tmem line index for odd LODs
+  BFVIEW_M(hex, u32, 15, 3, cache_width);
+  BFVIEW_M(hex, u32, 18, 3, cache_height);
 };
 template <>
 struct fmt::formatter<TexImage2>
@@ -1051,14 +1083,15 @@ struct fmt::formatter<TexImage2>
                           "Odd TMEM Offset: {:x}\n"
                           "Odd TMEM Width: {}\n"
                           "Odd TMEM Height: {}",
-                          teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
+                          teximg.tmem_odd(), teximg.cache_width(), teximg.cache_height());
   }
 };
 
-union TexImage3
+struct TexImage3
 {
-  BitField<0, 24, u32> image_base;  // address in memory >> 5 (was 20 for GC)
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 24, image_base);  // address in memory >> 5 (was 20 for GC)
 };
 template <>
 struct fmt::formatter<TexImage3>
@@ -1068,15 +1101,16 @@ struct fmt::formatter<TexImage3>
   auto format(const TexImage3& teximg, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "Source address (32 byte aligned): 0x{:06X}",
-                          teximg.image_base << 5);
+                          teximg.image_base() << 5);
   }
 };
 
-union TexTLUT
+struct TexTLUT
 {
-  BitField<0, 10, u32> tmem_offset;
-  BitField<10, 2, TLUTFormat> tlut_format;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 10, tmem_offset);
+  BFVIEW_M(hex, TLUTFormat, 10, 2, tlut_format);
 };
 template <>
 struct fmt::formatter<TexTLUT>
@@ -1085,22 +1119,24 @@ struct fmt::formatter<TexTLUT>
   template <typename FormatContext>
   auto format(const TexTLUT& tlut, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Address: {:08x}\nFormat: {}", tlut.tmem_offset << 9,
-                          tlut.tlut_format);
+    return fmt::format_to(ctx.out(), "Address: {:08x}\nFormat: {}", tlut.tmem_offset() << 9,
+                          tlut.tlut_format().Get());
   }
 };
 
-union ZTex1
+struct ZTex1
 {
-  BitField<0, 24, u32> bias;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 24, bias);
 };
 
-union ZTex2
+struct ZTex2
 {
-  BitField<0, 2, ZTexFormat> type;
-  BitField<2, 2, ZTexOp> op;
   u32 hex;
+
+  BFVIEW_M(hex, ZTexFormat, 0, 2, type);
+  BFVIEW_M(hex, ZTexOp, 2, 2, op);
 };
 template <>
 struct fmt::formatter<ZTex2>
@@ -1109,7 +1145,8 @@ struct fmt::formatter<ZTex2>
   template <typename FormatContext>
   auto format(const ZTex2& ztex2, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Type: {}\nOperation: {}", ztex2.type, ztex2.op);
+    return fmt::format_to(ctx.out(), "Type: {}\nOperation: {}", ztex2.type().Get(),
+                          ztex2.op().Get());
   }
 };
 
@@ -1133,21 +1170,21 @@ struct fmt::formatter<CullMode> : EnumFormatter<CullMode::All>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union GenMode
+struct GenMode
 {
-  BitField<0, 4, u32> numtexgens;
-  BitField<4, 3, u32> numcolchans;
-  BitField<7, 1, u32> unused;              // 1 bit unused?
-  BitField<8, 1, bool, u32> flat_shading;  // unconfirmed
-  BitField<9, 1, bool, u32> multisampling;
+  u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 4, numtexgens);
+  BFVIEW_M(hex, u32, 4, 3, numcolchans);
+  BFVIEW_M(hex, u32, 7, 1, unused);         // 1 bit unused?
+  BFVIEW_M(hex, bool, 8, 1, flat_shading);  // unconfirmed
+  BFVIEW_M(hex, bool, 9, 1, multisampling);
   // This value is 1 less than the actual number (0-15 map to 1-16).
   // In other words there is always at least 1 tev stage
-  BitField<10, 4, u32> numtevstages;
-  BitField<14, 2, CullMode> cullmode;
-  BitField<16, 3, u32> numindstages;
-  BitField<19, 1, bool, u32> zfreeze;
-
-  u32 hex;
+  BFVIEW_M(hex, u32, 10, 4, numtevstages);
+  BFVIEW_M(hex, CullMode, 14, 2, cullmode);
+  BFVIEW_M(hex, u32, 16, 3, numindstages);
+  BFVIEW_M(hex, bool, 19, 1, zfreeze);
 };
 template <>
 struct fmt::formatter<GenMode>
@@ -1166,10 +1203,10 @@ struct fmt::formatter<GenMode>
                           "Cull mode: {}\n"
                           "Num indirect stages: {}\n"
                           "ZFreeze: {}",
-                          mode.numtexgens, mode.numcolchans, mode.unused,
-                          mode.flat_shading ? "Yes" : "No", mode.multisampling ? "Yes" : "No",
-                          mode.numtevstages + 1, mode.cullmode, mode.numindstages,
-                          mode.zfreeze ? "Yes" : "No");
+                          mode.numtexgens(), mode.numcolchans(), mode.unused(),
+                          mode.flat_shading() ? "Yes" : "No", mode.multisampling() ? "Yes" : "No",
+                          mode.numtevstages() + 1, mode.cullmode().Get(), mode.numindstages(),
+                          mode.zfreeze() ? "Yes" : "No");
   }
 };
 
@@ -1184,15 +1221,16 @@ struct fmt::formatter<AspectRatioAdjustment> : EnumFormatter<AspectRatioAdjustme
   constexpr formatter() : EnumFormatter({"Don't adjust", "Adjust"}) {}
 };
 
-union LPSize
+struct LPSize
 {
-  BitField<0, 8, u32> linesize;   // in 1/6th pixels
-  BitField<8, 8, u32> pointsize;  // in 1/6th pixels
-  BitField<16, 3, u32> lineoff;
-  BitField<19, 3, u32> pointoff;
-  // interlacing: adjust for pixels having AR of 1/2
-  BitField<22, 1, AspectRatioAdjustment> adjust_for_aspect_ratio;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 8, linesize);   // in 1/6th pixels
+  BFVIEW_M(hex, u32, 8, 8, pointsize);  // in 1/6th pixels
+  BFVIEW_M(hex, u32, 16, 3, lineoff);
+  BFVIEW_M(hex, u32, 19, 3, pointoff);
+  // interlacing: adjust for pixels having AR of 1/2
+  BFVIEW_M(hex, AspectRatioAdjustment, 22, 1, adjust_for_aspect_ratio);
 };
 template <>
 struct fmt::formatter<LPSize>
@@ -1207,22 +1245,23 @@ struct fmt::formatter<LPSize>
                           "Line offset: {}\n"
                           "Point offset: {}\n"
                           "Adjust line aspect ratio: {}",
-                          lp.linesize, lp.linesize / 6.f, lp.pointsize, lp.pointsize / 6.f,
-                          lp.lineoff, lp.pointoff, lp.adjust_for_aspect_ratio);
+                          lp.linesize(), lp.linesize() / 6.f, lp.pointsize(), lp.pointsize() / 6.f,
+                          lp.lineoff(), lp.pointoff(), lp.adjust_for_aspect_ratio().Get());
   }
 };
 
-union ScissorPos
+struct ScissorPos
 {
+  u32 hex;
+
   // The top bit is ignored, and not included in the mask used by GX SDK functions
   // (though libogc includes it for the bottom coordinate (only) for some reason)
   // x_full and y_full include that bit for the FIFO analyzer, though it is usually unset.
   // The SDK also adds 342 to these values.
-  BitField<0, 11, u32> y;
-  BitField<0, 12, u32> y_full;
-  BitField<12, 11, u32> x;
-  BitField<12, 12, u32> x_full;
-  u32 hex;
+  BFVIEW_M(hex, u32, 0, 11, y);
+  BFVIEW_M(hex, u32, 0, 12, y_full);
+  BFVIEW_M(hex, u32, 12, 11, x);
+  BFVIEW_M(hex, u32, 12, 12, x_full);
 };
 template <>
 struct fmt::formatter<ScissorPos>
@@ -1234,21 +1273,22 @@ struct fmt::formatter<ScissorPos>
     return fmt::format_to(ctx.out(),
                           "X: {} (raw: {})\n"
                           "Y: {} (raw: {})",
-                          pos.x - 342, pos.x_full, pos.y - 342, pos.y_full);
+                          pos.x() - 342, pos.x_full(), pos.y() - 342, pos.y_full());
   }
 };
 
-union ScissorOffset
+struct ScissorOffset
 {
+  u32 hex;
+
   // The scissor offset ignores the top bit (though it isn't masked off by the GX SDK).
   // Each value is also divided by 2 (so 0-511 map to 0-1022).
   // x_full and y_full include that top bit for the FIFO analyzer, though it is usually unset.
   // The SDK also adds 342 to each value (before dividing it).
-  BitField<0, 9, u32> x;
-  BitField<0, 10, u32> x_full;
-  BitField<10, 9, u32> y;
-  BitField<10, 10, u32> y_full;
-  u32 hex;
+  BFVIEW_M(hex, u32, 0, 9, x);
+  BFVIEW_M(hex, u32, 0, 10, x_full);
+  BFVIEW_M(hex, u32, 10, 9, y);
+  BFVIEW_M(hex, u32, 10, 10, y_full);
 };
 template <>
 struct fmt::formatter<ScissorOffset>
@@ -1260,15 +1300,16 @@ struct fmt::formatter<ScissorOffset>
     return fmt::format_to(ctx.out(),
                           "X: {} (raw: {})\n"
                           "Y: {} (raw: {})",
-                          (off.x << 1) - 342, off.x_full, (off.y << 1) - 342, off.y_full);
+                          (off.x() << 1) - 342, off.x_full(), (off.y() << 1) - 342, off.y_full());
   }
 };
 
-union X10Y10
+struct X10Y10
 {
-  BitField<0, 10, u32> x;
-  BitField<10, 10, u32> y;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 10, x);
+  BFVIEW_M(hex, u32, 10, 10, y);
 };
 
 // Framebuffer/pixel stuff (incl fog)
@@ -1353,19 +1394,18 @@ struct fmt::formatter<LogicOp> : EnumFormatter<LogicOp::Set>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union BlendMode
+struct BlendMode
 {
-  BitField<0, 1, bool, u32> blendenable;
-  BitField<1, 1, bool, u32> logicopenable;
-  BitField<2, 1, bool, u32> dither;
-  BitField<3, 1, bool, u32> colorupdate;
-  BitField<4, 1, bool, u32> alphaupdate;
-  BitField<5, 3, DstBlendFactor> dstfactor;
-  BitField<8, 3, SrcBlendFactor> srcfactor;
-  BitField<11, 1, bool, u32> subtract;
-  BitField<12, 4, LogicOp> logicmode;
-
   u32 hex;
+  BFVIEW_M(hex, bool, 0, 1, blendenable);
+  BFVIEW_M(hex, bool, 1, 1, logicopenable);
+  BFVIEW_M(hex, bool, 2, 1, dither);
+  BFVIEW_M(hex, bool, 3, 1, colorupdate);
+  BFVIEW_M(hex, bool, 4, 1, alphaupdate);
+  BFVIEW_M(hex, DstBlendFactor, 5, 3, dstfactor);
+  BFVIEW_M(hex, SrcBlendFactor, 8, 3, srcfactor);
+  BFVIEW_M(hex, bool, 11, 1, subtract);
+  BFVIEW_M(hex, LogicOp, 12, 4, logicmode);
 
   bool UseLogicOp() const;
 };
@@ -1387,19 +1427,22 @@ struct fmt::formatter<BlendMode>
                           "Source factor: {}\n"
                           "Subtract: {}\n"
                           "Logic mode: {}",
-                          no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
-                          no_yes[mode.colorupdate], no_yes[mode.alphaupdate], mode.dstfactor,
-                          mode.srcfactor, no_yes[mode.subtract], mode.logicmode);
+                          no_yes[mode.blendenable().Get()], no_yes[mode.logicopenable().Get()],
+                          no_yes[mode.dither().Get()], no_yes[mode.colorupdate().Get()],
+                          no_yes[mode.alphaupdate().Get()], mode.dstfactor().Get(),
+                          mode.srcfactor().Get(), no_yes[mode.subtract().Get()],
+                          mode.logicmode().Get());
   }
 };
 
-union FogParam0
+struct FogParam0
 {
-  BitField<0, 11, u32> mant;
-  BitField<11, 8, u32> exp;
-  BitField<19, 1, u32> sign;
-
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 11, mant);
+  BFVIEW_M(hex, u32, 11, 8, exp);
+  BFVIEW_M(hex, bool, 19, 1, sign);
+
   float FloatValue() const;
 };
 template <>
@@ -1410,7 +1453,7 @@ struct fmt::formatter<FogParam0>
   auto format(const FogParam0& param, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "A value: {}\nMantissa: {}\nExponent: {}\nSign: {}",
-                          param.FloatValue(), param.mant, param.exp, param.sign ? '-' : '+');
+                          param.FloatValue(), param.mant(), param.exp(), param.sign() ? '-' : '+');
   }
 };
 
@@ -1450,15 +1493,16 @@ struct fmt::formatter<FogType> : EnumFormatter<FogType::BackwardsExpSq>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union FogParam3
+struct FogParam3
 {
-  BitField<0, 11, u32> c_mant;
-  BitField<11, 8, u32> c_exp;
-  BitField<19, 1, u32> c_sign;
-  BitField<20, 1, FogProjection> proj;
-  BitField<21, 3, FogType> fsel;
-
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 11, c_mant);
+  BFVIEW_M(hex, u32, 11, 8, c_exp);
+  BFVIEW_M(hex, bool, 19, 1, c_sign);
+  BFVIEW_M(hex, FogProjection, 20, 1, proj);
+  BFVIEW_M(hex, FogType, 21, 3, fsel);
+
   float FloatValue() const;
 };
 template <>
@@ -1470,28 +1514,30 @@ struct fmt::formatter<FogParam3>
   {
     return fmt::format_to(
         ctx.out(), "C value: {}\nMantissa: {}\nExponent: {}\nSign: {}\nProjection: {}\nFsel: {}",
-        param.FloatValue(), param.c_mant, param.c_exp, param.c_sign ? '-' : '+', param.proj,
-        param.fsel);
+        param.FloatValue(), param.c_mant(), param.c_exp(), param.c_sign() ? '-' : '+',
+        param.proj().Get(), param.fsel().Get());
   }
 };
 
-union FogRangeKElement
+struct FogRangeKElement
 {
-  BitField<0, 12, u32> HI;
-  BitField<12, 12, u32> LO;
+  u32 HEX;
+
+  BFVIEW_M(HEX, u32, 0, 12, HI);
+  BFVIEW_M(HEX, u32, 12, 12, LO);
 
   // TODO: Which scaling coefficient should we use here? This is just a guess!
-  float GetValue(int i) const { return (i ? HI.Value() : LO.Value()) / 256.f; }
-  u32 HEX;
+  float GetValue(int i) const { return (i ? HI() : LO()) / 256.f; }
 };
 
 struct FogRangeParams
 {
-  union RangeBase
+  struct RangeBase
   {
-    BitField<0, 10, u32> Center;  // viewport center + 342
-    BitField<10, 1, bool, u32> Enabled;
     u32 hex;
+
+    BFVIEW_M(hex, u32, 0, 10, Center);  // viewport center + 342
+    BFVIEW_M(hex, bool, 10, 1, Enabled);
   };
   RangeBase Base;
   FogRangeKElement K[5];
@@ -1503,8 +1549,8 @@ struct fmt::formatter<FogRangeParams::RangeBase>
   template <typename FormatContext>
   auto format(const FogRangeParams::RangeBase& range, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Center: {}\nEnabled: {}", range.Center,
-                          range.Enabled ? "Yes" : "No");
+    return fmt::format_to(ctx.out(), "Center: {}\nEnabled: {}", range.Center(),
+                          range.Enabled() ? "Yes" : "No");
   }
 };
 template <>
@@ -1514,7 +1560,7 @@ struct fmt::formatter<FogRangeKElement>
   template <typename FormatContext>
   auto format(const FogRangeKElement& range, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "High: {}\nLow: {}", range.HI, range.LO);
+    return fmt::format_to(ctx.out(), "High: {}\nLow: {}", range.HI(), range.LO());
   }
 };
 
@@ -1526,12 +1572,13 @@ struct FogParams
   u32 b_shift;  // b's exp + 1?
   FogParam3 c_proj_fsel;
 
-  union FogColor
+  struct FogColor
   {
-    BitField<0, 8, u32> b;
-    BitField<8, 8, u32> g;
-    BitField<16, 8, u32> r;
     u32 hex;
+
+    BFVIEW_M(hex, u8, 0, 8, b);
+    BFVIEW_M(hex, u8, 8, 8, g);
+    BFVIEW_M(hex, u8, 16, 8, r);
   };
 
   FogColor color;  // 0:b 8:g 16:r - nice!
@@ -1550,7 +1597,8 @@ struct fmt::formatter<FogParams::FogColor>
   template <typename FormatContext>
   auto format(const FogParams::FogColor& color, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Red: {}\nGreen: {}\nBlue: {}", color.r, color.g, color.b);
+    return fmt::format_to(ctx.out(), "Red: {}\nGreen: {}\nBlue: {}", color.r(), color.g(),
+                          color.b());
   }
 };
 
@@ -1573,13 +1621,13 @@ struct fmt::formatter<CompareMode> : EnumFormatter<CompareMode::Always>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union ZMode
+struct ZMode
 {
-  BitField<0, 1, bool, u32> testenable;
-  BitField<1, 3, CompareMode> func;
-  BitField<4, 1, bool, u32> updateenable;
-
   u32 hex;
+
+  BFVIEW_M(hex, bool, 0, 1, testenable);
+  BFVIEW_M(hex, CompareMode, 1, 3, func);
+  BFVIEW_M(hex, bool, 4, 1, updateenable);
 };
 template <>
 struct fmt::formatter<ZMode>
@@ -1592,16 +1640,17 @@ struct fmt::formatter<ZMode>
                           "Enable test: {}\n"
                           "Compare function: {}\n"
                           "Enable updates: {}",
-                          mode.testenable ? "Yes" : "No", mode.func,
-                          mode.updateenable ? "Yes" : "No");
+                          mode.testenable() ? "Yes" : "No", mode.func().Get(),
+                          mode.updateenable() ? "Yes" : "No");
   }
 };
 
-union ConstantAlpha
+struct ConstantAlpha
 {
-  BitField<0, 8, u32> alpha;
-  BitField<8, 1, bool, u32> enable;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 8, alpha);
+  BFVIEW_M(hex, bool, 8, 1, enable);
 };
 template <>
 struct fmt::formatter<ConstantAlpha>
@@ -1613,15 +1662,16 @@ struct fmt::formatter<ConstantAlpha>
     return fmt::format_to(ctx.out(),
                           "Enable: {}\n"
                           "Alpha value: {:02x}",
-                          c.enable ? "Yes" : "No", c.alpha);
+                          c.enable() ? "Yes" : "No", c.alpha());
   }
 };
 
-union FieldMode
+struct FieldMode
 {
-  // adjust vertex tex LOD computation to account for interlacing
-  BitField<0, 1, AspectRatioAdjustment> texLOD;
   u32 hex;
+
+  // adjust vertex tex LOD computation to account for interlacing
+  BFVIEW_M(hex, AspectRatioAdjustment, 0, 1, texLOD);
 };
 template <>
 struct fmt::formatter<FieldMode>
@@ -1630,8 +1680,9 @@ struct fmt::formatter<FieldMode>
   template <typename FormatContext>
   auto format(const FieldMode& mode, FormatContext& ctx) const
   {
-    return fmt::format_to(
-        ctx.out(), "Adjust vertex tex LOD computation to account for interlacing: {}", mode.texLOD);
+    return fmt::format_to(ctx.out(),
+                          "Adjust vertex tex LOD computation to account for interlacing: {}",
+                          mode.texLOD().Get());
   }
 };
 
@@ -1646,12 +1697,13 @@ struct fmt::formatter<FieldMaskState> : EnumFormatter<FieldMaskState::Write>
   constexpr formatter() : EnumFormatter({"Skipped", "Written"}) {}
 };
 
-union FieldMask
+struct FieldMask
 {
-  // Fields are written to the EFB only if their bit is set to write.
-  BitField<0, 1, FieldMaskState> odd;
-  BitField<1, 1, FieldMaskState> even;
   u32 hex;
+
+  // Fields are written to the EFB only if their bit is set to write.
+  BFVIEW_M(hex, FieldMaskState, 0, 1, odd);
+  BFVIEW_M(hex, FieldMaskState, 1, 1, even);
 };
 template <>
 struct fmt::formatter<FieldMask>
@@ -1660,7 +1712,8 @@ struct fmt::formatter<FieldMask>
   template <typename FormatContext>
   auto format(const FieldMask& mask, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Odd field: {}\nEven field: {}", mask.odd, mask.even);
+    return fmt::format_to(ctx.out(), "Odd field: {}\nEven field: {}", mask.odd().Get(),
+                          mask.even().Get());
   }
 };
 
@@ -1707,13 +1760,13 @@ struct fmt::formatter<DepthFormat> : EnumFormatter<DepthFormat::ZINV_FAR>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union PEControl
+struct PEControl
 {
-  BitField<0, 3, PixelFormat> pixel_format;
-  BitField<3, 3, DepthFormat> zformat;
-  BitField<6, 1, bool, u32> early_ztest;
-
   u32 hex;
+
+  BFVIEW_M(hex, PixelFormat, 0, 3, pixel_format);
+  BFVIEW_M(hex, DepthFormat, 3, 3, zformat);
+  BFVIEW_M(hex, bool, 6, 1, early_ztest);
 };
 template <>
 struct fmt::formatter<PEControl>
@@ -1726,21 +1779,23 @@ struct fmt::formatter<PEControl>
                           "EFB pixel format: {}\n"
                           "Depth format: {}\n"
                           "Early depth test: {}",
-                          config.pixel_format, config.zformat, config.early_ztest ? "Yes" : "No");
+                          config.pixel_format().Get(), config.zformat().Get(),
+                          config.early_ztest() ? "Yes" : "No");
   }
 };
 
 // Texture coordinate stuff
 
-union TCInfo
+struct TCInfo
 {
-  BitField<0, 16, u32> scale_minus_1;
-  BitField<16, 1, bool, u32> range_bias;
-  BitField<17, 1, bool, u32> cylindric_wrap;
-  // These bits only have effect in the s field of TCoordInfo
-  BitField<18, 1, bool, u32> line_offset;
-  BitField<19, 1, bool, u32> point_offset;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 16, scale_minus_1);
+  BFVIEW_M(hex, bool, 16, 1, range_bias);
+  BFVIEW_M(hex, bool, 17, 1, cylindric_wrap);
+  // These bits only have effect in the s field of TCoordInfo
+  BFVIEW_M(hex, bool, 18, 1, line_offset);
+  BFVIEW_M(hex, bool, 19, 1, point_offset);
 };
 template <>
 struct fmt::formatter<TCInfo>
@@ -1755,9 +1810,9 @@ struct fmt::formatter<TCInfo>
                           "Cylindric wrap: {}\n"
                           "Use line offset: {} (s only)\n"
                           "Use point offset: {} (s only)",
-                          info.scale_minus_1 + 1, info.range_bias ? "Yes" : "No",
-                          info.cylindric_wrap ? "Yes" : "No", info.line_offset ? "Yes" : "No",
-                          info.point_offset ? "Yes" : "No");
+                          info.scale_minus_1() + 1, info.range_bias() ? "Yes" : "No",
+                          info.cylindric_wrap() ? "Yes" : "No", info.line_offset() ? "Yes" : "No",
+                          info.point_offset() ? "Yes" : "No");
   }
 };
 
@@ -1781,21 +1836,21 @@ struct fmt::formatter<TevRegType> : EnumFormatter<TevRegType::Constant>
 struct TevReg
 {
   // TODO: Check if Konst uses all 11 bits or just 8
-  union RA
+  struct RA
   {
     u32 hex;
 
-    BitField<0, 11, s32> red;
-    BitField<12, 11, s32> alpha;
-    BitField<23, 1, TevRegType, u32> type;
+    BFVIEW_M(hex, s32, 0, 11, red);
+    BFVIEW_M(hex, s32, 12, 11, alpha);
+    BFVIEW_M(hex, TevRegType, 23, 1, type);
   };
-  union BG
+  struct BG
   {
     u32 hex;
 
-    BitField<0, 11, s32> blue;
-    BitField<12, 11, s32> green;
-    BitField<23, 1, TevRegType, u32> type;
+    BFVIEW_M(hex, s32, 0, 11, blue);
+    BFVIEW_M(hex, s32, 12, 11, green);
+    BFVIEW_M(hex, TevRegType, 23, 1, type);
   };
 
   RA ra;
@@ -1808,8 +1863,8 @@ struct fmt::formatter<TevReg::RA>
   template <typename FormatContext>
   auto format(const TevReg::RA& ra, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Type: {}\nAlpha: {:03x}\nRed: {:03x}", ra.type, ra.alpha,
-                          ra.red);
+    return fmt::format_to(ctx.out(), "Type: {}\nAlpha: {:03x}\nRed: {:03x}", ra.type().Get(),
+                          ra.alpha(), ra.red());
   }
 };
 template <>
@@ -1819,8 +1874,8 @@ struct fmt::formatter<TevReg::BG>
   template <typename FormatContext>
   auto format(const TevReg::BG& bg, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Type: {}\nGreen: {:03x}\nBlue: {:03x}", bg.type, bg.green,
-                          bg.blue);
+    return fmt::format_to(ctx.out(), "Type: {}\nGreen: {:03x}\nBlue: {:03x}", bg.type().Get(),
+                          bg.green(), bg.blue());
   }
 };
 template <>
@@ -1906,18 +1961,19 @@ struct fmt::formatter<KonstSel> : EnumFormatter<KonstSel::K3_A>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union TevKSel
+struct TevKSel
 {
-  BitField<0, 2, u32> swap1;
-  BitField<2, 2, u32> swap2;
-  BitField<4, 5, KonstSel> kcsel0;
-  BitField<9, 5, KonstSel> kasel0;
-  BitField<14, 5, KonstSel> kcsel1;
-  BitField<19, 5, KonstSel> kasel1;
   u32 hex;
 
-  KonstSel getKC(int i) const { return i ? kcsel1.Value() : kcsel0.Value(); }
-  KonstSel getKA(int i) const { return i ? kasel1.Value() : kasel0.Value(); }
+  BFVIEW_M(hex, u32, 0, 2, swap1);
+  BFVIEW_M(hex, u32, 2, 2, swap2);
+  BFVIEW_M(hex, KonstSel, 4, 5, kcsel0);
+  BFVIEW_M(hex, KonstSel, 9, 5, kasel0);
+  BFVIEW_M(hex, KonstSel, 14, 5, kcsel1);
+  BFVIEW_M(hex, KonstSel, 19, 5, kasel1);
+
+  KonstSel getKC(int i) const { return i ? kcsel1().Get() : kcsel0().Get(); }
+  KonstSel getKA(int i) const { return i ? kasel1().Get() : kasel0().Get(); }
 };
 template <>
 struct fmt::formatter<TevKSel>
@@ -1929,8 +1985,8 @@ struct fmt::formatter<TevKSel>
     return fmt::format_to(ctx.out(),
                           "Swap 1: {}\nSwap 2: {}\nColor sel 0: {}\nAlpha sel 0: {}\n"
                           "Color sel 1: {}\nAlpha sel 1: {}",
-                          ksel.swap1, ksel.swap2, ksel.kcsel0, ksel.kasel0, ksel.kcsel1,
-                          ksel.kasel1);
+                          ksel.swap1(), ksel.swap2(), ksel.kcsel0().Get(), ksel.kasel0().Get(),
+                          ksel.kcsel1().Get(), ksel.kasel1().Get());
   }
 };
 
@@ -1954,49 +2010,49 @@ enum class AlphaTestResult
   Pass = 2,
 };
 
-union AlphaTest
+struct AlphaTest
 {
-  BitField<0, 8, u32> ref0;
-  BitField<8, 8, u32> ref1;
-  BitField<16, 3, CompareMode> comp0;
-  BitField<19, 3, CompareMode> comp1;
-  BitField<22, 2, AlphaTestOp> logic;
-
   u32 hex;
+
+  BFVIEW_M(hex, u8, 0, 8, ref0);
+  BFVIEW_M(hex, u8, 8, 8, ref1);
+  BFVIEW_M(hex, CompareMode, 16, 3, comp0);
+  BFVIEW_M(hex, CompareMode, 19, 3, comp1);
+  BFVIEW_M(hex, AlphaTestOp, 22, 2, logic);
 
   DOLPHIN_FORCE_INLINE AlphaTestResult TestResult() const
   {
-    switch (logic)
+    switch (logic())
     {
     case AlphaTestOp::And:
-      if (comp0 == CompareMode::Always && comp1 == CompareMode::Always)
+      if (comp0() == CompareMode::Always && comp1() == CompareMode::Always)
         return AlphaTestResult::Pass;
-      if (comp0 == CompareMode::Never || comp1 == CompareMode::Never)
+      if (comp0() == CompareMode::Never || comp1() == CompareMode::Never)
         return AlphaTestResult::Fail;
       break;
 
     case AlphaTestOp::Or:
-      if (comp0 == CompareMode::Always || comp1 == CompareMode::Always)
+      if (comp0() == CompareMode::Always || comp1() == CompareMode::Always)
         return AlphaTestResult::Pass;
-      if (comp0 == CompareMode::Never && comp1 == CompareMode::Never)
+      if (comp0() == CompareMode::Never && comp1() == CompareMode::Never)
         return AlphaTestResult::Fail;
       break;
 
     case AlphaTestOp::Xor:
-      if ((comp0 == CompareMode::Always && comp1 == CompareMode::Never) ||
-          (comp0 == CompareMode::Never && comp1 == CompareMode::Always))
+      if ((comp0() == CompareMode::Always && comp1() == CompareMode::Never) ||
+          (comp0() == CompareMode::Never && comp1() == CompareMode::Always))
         return AlphaTestResult::Pass;
-      if ((comp0 == CompareMode::Always && comp1 == CompareMode::Always) ||
-          (comp0 == CompareMode::Never && comp1 == CompareMode::Never))
+      if ((comp0() == CompareMode::Always && comp1() == CompareMode::Always) ||
+          (comp0() == CompareMode::Never && comp1() == CompareMode::Never))
         return AlphaTestResult::Fail;
       break;
 
     case AlphaTestOp::Xnor:
-      if ((comp0 == CompareMode::Always && comp1 == CompareMode::Never) ||
-          (comp0 == CompareMode::Never && comp1 == CompareMode::Always))
+      if ((comp0() == CompareMode::Always && comp1() == CompareMode::Never) ||
+          (comp0() == CompareMode::Never && comp1() == CompareMode::Always))
         return AlphaTestResult::Fail;
-      if ((comp0 == CompareMode::Always && comp1 == CompareMode::Always) ||
-          (comp0 == CompareMode::Never && comp1 == CompareMode::Never))
+      if ((comp0() == CompareMode::Always && comp1() == CompareMode::Always) ||
+          (comp0() == CompareMode::Never && comp1() == CompareMode::Never))
         return AlphaTestResult::Pass;
       break;
 
@@ -2017,7 +2073,8 @@ struct fmt::formatter<AlphaTest>
                           "Test 1: {} (ref: 0x{:02x})\n"
                           "Test 2: {} (ref: 0x{:02x})\n"
                           "Logic: {}\n",
-                          test.comp0, test.ref0, test.comp1, test.ref1, test.logic);
+                          test.comp0().Get(), test.ref0(), test.comp1().Get(), test.ref1(),
+                          test.logic().Get());
   }
 };
 
@@ -2035,30 +2092,35 @@ struct fmt::formatter<FrameToField> : EnumFormatter<FrameToField::InterlacedOdd>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-union UPE_Copy
+struct UPE_Copy
 {
   u32 Hex;
 
-  BitField<0, 1, bool, u32> clamp_top;      // if set clamp top
-  BitField<1, 1, bool, u32> clamp_bottom;   // if set clamp bottom
-  BitField<2, 1, bool, u32> yuv;            // if set, color conversion from RGB to YUV
-  BitField<3, 4, u32> target_pixel_format;  // realformat is (fmt/2)+((fmt&1)*8).... for some reason
-                                            // the msb is the lsb (pattern: cycling right shift)
+  // if set clamp top
+  BFVIEW_M(Hex, bool, 0, 1, clamp_top);
+  // if set clamp bottom
+  BFVIEW_M(Hex, bool, 1, 1, clamp_bottom);
+  // if set, color conversion from RGB to YUV
+  BFVIEW_M(Hex, bool, 2, 1, yuv);
+  // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb
+  // (pattern: cycling right shift)
+  BFVIEW_M(Hex, u32, 3, 4, target_pixel_format);
   // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-  BitField<7, 2, u32> gamma;
+  BFVIEW_M(Hex, u32, 7, 2, gamma);
   // "mipmap" filter... false = no filter (scale 1:1) ; true = box filter (scale 2:1)
-  BitField<9, 1, bool, u32> half_scale;
-  BitField<10, 1, bool, u32> scale_invert;  // if set vertical scaling is on
-  BitField<11, 1, bool, u32> clear;
-  BitField<12, 2, FrameToField> frame_to_field;
-  BitField<14, 1, bool, u32> copy_to_xfb;
-  BitField<15, 1, bool, u32> intensity_fmt;  // if set, is an intensity format (I4,I8,IA4,IA8)
+  BFVIEW_M(Hex, bool, 9, 1, half_scale);
+  BFVIEW_M(Hex, bool, 10, 1, scale_invert);  // if set vertical scaling is on
+  BFVIEW_M(Hex, bool, 11, 1, clear);
+  BFVIEW_M(Hex, FrameToField, 12, 2, frame_to_field);
+  BFVIEW_M(Hex, bool, 14, 1, copy_to_xfb);
+  // if set, is an intensity format (I4,I8,IA4,IA8)
+  BFVIEW_M(Hex, bool, 15, 1, intensity_fmt);
   // if false automatic color conversion by texture format and pixel type
-  BitField<16, 1, bool, u32> auto_conv;
+  BFVIEW_M(Hex, bool, 16, 1, auto_conv);
 
   EFBCopyFormat tp_realFormat() const
   {
-    return static_cast<EFBCopyFormat>(target_pixel_format / 2 + (target_pixel_format & 1) * 8);
+    return static_cast<EFBCopyFormat>(target_pixel_format() / 2 + (target_pixel_format() & 1) * 8);
   }
 };
 template <>
@@ -2070,22 +2132,22 @@ struct fmt::formatter<UPE_Copy>
   {
     static constexpr std::array<const char*, 2> no_yes = {"No", "Yes"};
     std::string_view clamp;
-    if (copy.clamp_top)
+    if (copy.clamp_top())
     {
-      if (copy.clamp_bottom)
+      if (copy.clamp_bottom())
         clamp = "Top and Bottom";
       else
         clamp = "Top only";
     }
     else
     {
-      if (copy.clamp_bottom)
+      if (copy.clamp_bottom())
         clamp = "Bottom only";
       else
         clamp = "None";
     }
     std::string_view gamma = "Invalid";
-    switch (copy.gamma)
+    switch (copy.gamma())
     {
     case 0:
       gamma = "1.0";
@@ -2098,58 +2160,59 @@ struct fmt::formatter<UPE_Copy>
       break;
     }
 
-    return fmt::format_to(ctx.out(),
-                          "Clamping: {}\n"
-                          "Converting from RGB to YUV: {}\n"
-                          "Target pixel format: {}\n"
-                          "Gamma correction: {}\n"
-                          "Half scale: {}\n"
-                          "Vertical scaling: {}\n"
-                          "Clear: {}\n"
-                          "Frame to field: {}\n"
-                          "Copy to XFB: {}\n"
-                          "Intensity format: {}\n"
-                          "Automatic color conversion: {}",
-                          clamp, no_yes[copy.yuv], copy.tp_realFormat(), gamma,
-                          no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
-                          copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
-                          no_yes[copy.auto_conv]);
+    return fmt::format_to(
+        ctx.out(),
+        "Clamping: {}\n"
+        "Converting from RGB to YUV: {}\n"
+        "Target pixel format: {}\n"
+        "Gamma correction: {}\n"
+        "Half scale: {}\n"
+        "Vertical scaling: {}\n"
+        "Clear: {}\n"
+        "Frame to field: {}\n"
+        "Copy to XFB: {}\n"
+        "Intensity format: {}\n"
+        "Automatic color conversion: {}",
+        clamp, no_yes[copy.yuv()], copy.tp_realFormat(), gamma, no_yes[copy.half_scale()],
+        no_yes[copy.scale_invert()], no_yes[copy.clear()], copy.frame_to_field().Get(),
+        no_yes[copy.copy_to_xfb()], no_yes[copy.intensity_fmt()], no_yes[copy.auto_conv()]);
   }
 };
 
-union CopyFilterCoefficients
+struct CopyFilterCoefficients
 {
   using Values = std::array<u8, 7>;
 
-  u64 Hex;
+  u64 hex;
 
-  BitField<0, 6, u64> w0;
-  BitField<6, 6, u64> w1;
-  BitField<12, 6, u64> w2;
-  BitField<18, 6, u64> w3;
-  BitField<32, 6, u64> w4;
-  BitField<38, 6, u64> w5;
-  BitField<44, 6, u64> w6;
+  BFVIEW_M(hex, u8, 0, 6, w0);
+  BFVIEW_M(hex, u8, 6, 6, w1);
+  BFVIEW_M(hex, u8, 12, 6, w2);
+  BFVIEW_M(hex, u8, 18, 6, w3);
+  BFVIEW_M(hex, u8, 32, 6, w4);
+  BFVIEW_M(hex, u8, 38, 6, w5);
+  BFVIEW_M(hex, u8, 44, 6, w6);
 
   Values GetCoefficients() const
   {
     return {{
-        static_cast<u8>(w0),
-        static_cast<u8>(w1),
-        static_cast<u8>(w2),
-        static_cast<u8>(w3),
-        static_cast<u8>(w4),
-        static_cast<u8>(w5),
-        static_cast<u8>(w6),
+        static_cast<u8>(w0()),
+        static_cast<u8>(w1()),
+        static_cast<u8>(w2()),
+        static_cast<u8>(w3()),
+        static_cast<u8>(w4()),
+        static_cast<u8>(w5()),
+        static_cast<u8>(w6()),
     }};
   }
 };
 
-union BPU_PreloadTileInfo
+struct BPU_PreloadTileInfo
 {
-  BitField<0, 15, u32> count;
-  BitField<15, 2, u32> type;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 15, count);
+  BFVIEW_M(hex, u32, 15, 2, type);
 };
 template <>
 struct fmt::formatter<BPU_PreloadTileInfo>
@@ -2158,7 +2221,7 @@ struct fmt::formatter<BPU_PreloadTileInfo>
   template <typename FormatContext>
   auto format(const BPU_PreloadTileInfo& info, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Type: {}\nCount: {}", info.type, info.count);
+    return fmt::format_to(ctx.out(), "Type: {}\nCount: {}", info.type(), info.count());
   }
 };
 
@@ -2177,8 +2240,10 @@ union AllTexUnits;
 
 // The addressing of the texture units is a bit non-obvious.
 // This struct abstracts the complexity away.
-union TexUnitAddress
+struct TexUnitAddress
 {
+  u32 hex;
+
   enum class Register : u32
   {
     SETMODE0 = 0,
@@ -2191,36 +2256,35 @@ union TexUnitAddress
     UNKNOWN = 7,
   };
 
-  BitField<0, 2, u32> UnitIdLow;
-  BitField<2, 3, Register> Reg;
-  BitField<5, 1, u32> UnitIdHigh;
+  BFVIEW_M(hex, u32, 0, 2, UnitIdLow);
+  BFVIEW_M(hex, Register, 2, 3, Reg);
+  BFVIEW_M(hex, u32, 5, 1, UnitIdHigh);
 
-  BitField<0, 6, u32> FullAddress;
-  u32 hex;
+  BFVIEW_M(hex, u32, 0, 6, FullAddress);
 
   TexUnitAddress() : hex(0) {}
   TexUnitAddress(u32 unit_id, Register reg = Register::SETMODE0) : hex(0)
   {
-    UnitIdLow = unit_id & 3;
-    UnitIdHigh = unit_id >> 2;
-    Reg = reg;
+    UnitIdLow() = unit_id & 3;
+    UnitIdHigh() = unit_id >> 2;
+    Reg() = reg;
   }
 
   static TexUnitAddress FromBPAddress(u32 Address)
   {
     TexUnitAddress Val;
     // Clear upper two bits (which should always be 0x80)
-    Val.FullAddress = Address & 0x3f;
+    Val.FullAddress() = Address & 0x3f;
     return Val;
   }
 
-  u32 GetUnitID() const { return UnitIdLow | (UnitIdHigh << 2); }
+  u32 GetUnitID() const { return UnitIdLow() | (UnitIdHigh() << 2); }
 
 private:
   friend AllTexUnits;
 
-  size_t GetOffset() const { return FullAddress; }
-  size_t GetBPAddress() const { return FullAddress | 0x80; }
+  size_t GetOffset() const { return FullAddress(); }
+  size_t GetBPAddress() const { return FullAddress() | 0x80; }
 
   static constexpr size_t ComputeOffset(u32 unit_id)
   {
@@ -2289,41 +2353,27 @@ private:
   };
 
   TexUnit tex0;
-  struct
-  {
-    TexUnitPadding<1> pad1;
-    TexUnit tex1;
-  };
-  struct
-  {
-    TexUnitPadding<2> pad2;
-    TexUnit tex2;
-  };
-  struct
-  {
-    TexUnitPadding<3> pad3;
-    TexUnit tex3;
-  };
-  struct
-  {
-    TexUnitPadding<4> pad4;
-    TexUnit tex4;
-  };
-  struct
-  {
-    TexUnitPadding<5> pad5;
-    TexUnit tex5;
-  };
-  struct
-  {
-    TexUnitPadding<6> pad6;
-    TexUnit tex6;
-  };
-  struct
-  {
-    TexUnitPadding<7> pad7;
-    TexUnit tex7;
-  };
+
+  TexUnitPadding<1> pad1;
+  TexUnit tex1;
+
+  TexUnitPadding<2> pad2;
+  TexUnit tex2;
+
+  TexUnitPadding<3> pad3;
+  TexUnit tex3;
+
+  TexUnitPadding<4> pad4;
+  TexUnit tex4;
+
+  TexUnitPadding<5> pad5;
+  TexUnit tex5;
+
+  TexUnitPadding<6> pad6;
+  TexUnit tex6;
+
+  TexUnitPadding<7> pad7;
+  TexUnit tex7;
 };
 static_assert(sizeof(AllTexUnits) == 8 * 8 * sizeof(u32));
 
@@ -2403,8 +2453,8 @@ struct BPMemory
   u32 bpMask;          // 0xFE
   u32 unknown18;       // ff
 
-  bool UseEarlyDepthTest() const { return zcontrol.early_ztest && zmode.testenable; }
-  bool UseLateDepthTest() const { return !zcontrol.early_ztest && zmode.testenable; }
+  bool UseEarlyDepthTest() const { return zcontrol.early_ztest() && zmode.testenable(); }
+  bool UseLateDepthTest() const { return !zcontrol.early_ztest() && zmode.testenable(); }
 };
 
 #pragma pack()

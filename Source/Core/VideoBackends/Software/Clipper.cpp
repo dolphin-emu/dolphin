@@ -301,26 +301,28 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 
   if (!backface)
   {
-    if (bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All)
+    if (bpmem.genMode.cullmode() == CullMode::Back || bpmem.genMode.cullmode() == CullMode::All)
     {
       // cull frontfacing - we still need to update the slope for zfreeze
       PerspectiveDivide(v0);
       PerspectiveDivide(v1);
       PerspectiveDivide(v2);
-      Rasterizer::UpdateZSlope(v0, v1, v2, bpmem.scissorOffset.x * 2, bpmem.scissorOffset.y * 2);
+      Rasterizer::UpdateZSlope(v0, v1, v2, bpmem.scissorOffset.x() * 2,
+                               bpmem.scissorOffset.y() * 2);
       INCSTAT(g_stats.this_frame.num_triangles_culled)
       return;
     }
   }
   else
   {
-    if (bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All)
+    if (bpmem.genMode.cullmode() == CullMode::Front || bpmem.genMode.cullmode() == CullMode::All)
     {
       // cull backfacing - we still need to update the slope for zfreeze
       PerspectiveDivide(v0);
       PerspectiveDivide(v2);
       PerspectiveDivide(v1);
-      Rasterizer::UpdateZSlope(v0, v2, v1, bpmem.scissorOffset.x * 2, bpmem.scissorOffset.y * 2);
+      Rasterizer::UpdateZSlope(v0, v2, v1, bpmem.scissorOffset.x() * 2,
+                               bpmem.scissorOffset.y() * 2);
       INCSTAT(g_stats.this_frame.num_triangles_culled)
       return;
     }
@@ -386,7 +388,7 @@ constexpr std::array<float, 8> LINE_PT_TEX_OFFSETS = {
 static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, int px, int py,
                            bool apply_line_offset)
 {
-  const float line_half_width = bpmem.lineptwidth.linesize / 12.0f;
+  const float line_half_width = bpmem.lineptwidth.linesize() / 12.0f;
 
   dst->projectedPosition = src->projectedPosition;
   dst->screenPosition.x = src->screenPosition.x + px * line_half_width;
@@ -398,14 +400,14 @@ static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, i
 
   dst->texCoords = src->texCoords;
 
-  if (apply_line_offset && LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff] != 0)
+  if (apply_line_offset && LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff()] != 0)
   {
     for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
     {
-      if (bpmem.texcoords[coord_num].s.line_offset)
+      if (bpmem.texcoords[coord_num].s.line_offset())
       {
-        dst->texCoords[coord_num].x += (bpmem.texcoords[coord_num].s.scale_minus_1 + 1) *
-                                       LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+        dst->texCoords[coord_num].x += (bpmem.texcoords[coord_num].s.scale_minus_1() + 1) *
+                                       LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff()];
       }
     }
   }
@@ -465,7 +467,7 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 
 static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, bool px, bool py)
 {
-  const float point_radius = bpmem.lineptwidth.pointsize / 12.0f;
+  const float point_radius = bpmem.lineptwidth.pointsize() / 12.0f;
 
   dst->projectedPosition = src->projectedPosition;
   dst->screenPosition.x = src->screenPosition.x + (px ? 1 : -1) * point_radius;
@@ -477,18 +479,18 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
 
   dst->texCoords = src->texCoords;
 
-  const float point_offset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+  const float point_offset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff()];
   if (point_offset != 0)
   {
     for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
     {
       const auto coord_info = bpmem.texcoords[coord_num];
-      if (coord_info.s.point_offset)
+      if (coord_info.s.point_offset())
       {
         if (px)
-          dst->texCoords[coord_num].x += (coord_info.s.scale_minus_1 + 1) * point_offset;
+          dst->texCoords[coord_num].x += (coord_info.s.scale_minus_1() + 1) * point_offset;
         if (py)
-          dst->texCoords[coord_num].y += (coord_info.t.scale_minus_1 + 1) * point_offset;
+          dst->texCoords[coord_num].y += (coord_info.t.scale_minus_1() + 1) * point_offset;
       }
     }
   }

@@ -110,20 +110,20 @@ void ConfigurationChanged(TexUnitAddress bp_addr, u32 config)
   unit_state.state = TextureUnitState::State::INVALID;
 
   // Note: BPStructs has already filtered out NOP changes before calling us
-  switch (bp_addr.Reg)
+  switch (bp_addr.Reg())
   {
   case TexUnitAddress::Register::SETIMAGE1:
   {
     // Image Type and Even bank's Cache Height, Cache Width, TMEM Offset
     TexImage1 even = {.hex = config};
-    unit_state.even = {even.cache_width, even.cache_height, even.tmem_even << 5, 0};
+    unit_state.even = {even.cache_width(), even.cache_height(), even.tmem_even() << 5, 0};
     break;
   }
   case TexUnitAddress::Register::SETIMAGE2:
   {
     // Odd bank's Cache Height, Cache Width, TMEM Offset
     TexImage2 odd = {.hex = config};
-    unit_state.odd = {odd.cache_width, odd.cache_height, odd.tmem_odd << 5, 0};
+    unit_state.odd = {odd.cache_width(), odd.cache_height(), odd.tmem_odd() << 5, 0};
     break;
   }
   default:

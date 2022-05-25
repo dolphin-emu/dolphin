@@ -217,6 +217,8 @@ std::string BitfieldExtract(std::string_view source)
                      static_cast<u32>(BitFieldT::NumBits()));
 }
 
+// bitfieldExtract generator for BitFieldView types>
+
 template <auto last_member, typename = decltype(last_member)>
 void WriteSwitch(ShaderCode& out, APIType ApiType, std::string_view variable,
                  const Common::EnumMap<std::string_view, last_member>& values, int indent,

@@ -4,22 +4,27 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "VideoCommon/BPMemory.h"
 
 class Tev
 {
-  union InputRegType
+  struct InputRegType
   {
-    BitField<0, 8, u64> a;
-    BitField<8, 8, u64> b;
-    BitField<16, 8, u64> c;
-    BitField<24, 11, s64> d;
+    u64 hex;
+
+    BFVIEW_M(hex, u32, 0, 8, a);
+    BFVIEW_M(hex, u32, 8, 8, b);
+    BFVIEW_M(hex, u32, 16, 8, c);
+    BFVIEW_M(hex, s32, 24, 11, d);
   };
 
-  union TextureCoordinateType
+  struct TextureCoordinateType
   {
-    BitField<0, 24, s64> s;
-    BitField<24, 24, s64> t;
+    u64 hex;
+
+    BFVIEW_M(hex, s32, 0, 24, s);
+    BFVIEW_M(hex, s32, 24, 24, t);
   };
 
   // color order: ABGR

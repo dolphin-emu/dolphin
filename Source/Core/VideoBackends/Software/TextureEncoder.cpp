@@ -205,8 +205,8 @@ static void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16* sBlkCou
                                u16* sBlkSize, u16* tBlkSize)
 {
   // if half_scale is 1 then the size is cut in half
-  u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
-  u32 height = bpmem.copyTexSrcWH.y >> bpmem.triggerEFBCopy.half_scale;
+  u32 width = bpmem.copyTexSrcWH.x() >> bpmem.triggerEFBCopy.half_scale();
+  u32 height = bpmem.copyTexSrcWH.y() >> bpmem.triggerEFBCopy.half_scale();
 
   *sBlkCount = (width >> blkWidthLog2) + 1;
   *tBlkCount = (height >> blkHeightLog2) + 1;
@@ -219,10 +219,10 @@ static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32*
                      s32* writeStride)
 {
   // width is 1 less than the number of pixels of width
-  u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
+  u32 width = bpmem.copyTexSrcWH.x() >> bpmem.triggerEFBCopy.half_scale();
   u32 alignedWidth = Common::AlignUp(width + 1, sBlkSize);
 
-  u32 readStride = 3 << bpmem.triggerEFBCopy.half_scale;
+  u32 readStride = 3 << bpmem.triggerEFBCopy.half_scale();
 
   *tSpan = (640 - sBlkSize) *
            readStride;  // bytes to advance src pointer after each row of texels in a block

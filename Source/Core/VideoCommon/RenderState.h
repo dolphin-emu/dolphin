@@ -130,8 +130,8 @@ struct SamplerState
   union TM1
   {
     // Min is guaranteed to be less than or equal to max
-    BitField<0, 8, u32> min_lod;  // multiplied by 16
-    BitField<8, 8, u32> max_lod;  // multiplied by 16
+    BitField<0, 8, u8, u32> min_lod;  // multiplied by 16
+    BitField<8, 8, u8, u32> max_lod;  // multiplied by 16
     u32 hex;
   };
 
