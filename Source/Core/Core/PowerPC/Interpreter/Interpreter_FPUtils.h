@@ -33,20 +33,20 @@ inline void CheckFPExceptions(UReg_FPSCR fpscr)
 
 inline void UpdateFPExceptionSummary(UReg_FPSCR* fpscr)
 {
-  fpscr->VX() = (*fpscr & FPSCR_VX_ANY) != 0;
-  fpscr->FEX() = ((*fpscr >> 22) & (*fpscr & FPSCR_ANY_E)) != 0;
+  fpscr->VX() = (fpscr->Hex & FPSCR_VX_ANY) != 0;
+  fpscr->FEX() = ((fpscr->Hex >> 22) & (fpscr->Hex & FPSCR_ANY_E)) != 0;
 
   CheckFPExceptions(*fpscr);
 }
 
 inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
 {
-  if ((*fpscr & mask) != mask)
+  if ((fpscr->Hex & mask) != mask)
   {
     fpscr->FX() = 1;
   }
 
-  *fpscr |= mask;
+  fpscr->Hex |= mask;
   UpdateFPExceptionSummary(fpscr);
 }
 

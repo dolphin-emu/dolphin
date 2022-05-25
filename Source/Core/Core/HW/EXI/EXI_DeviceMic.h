@@ -6,7 +6,7 @@
 #include <mutex>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -43,25 +43,23 @@ private:
 
   u32 m_position;
   int command;
-  struct UStatus : BitField2<u16>
+  struct UStatus
   {
-    FIELDARRAY(u8, 0, 8, 2, byte);
+    u16 U16;
+    u8 U8[2];
 
-    FIELD(u16, 0, 4, out);           // MICSet/GetOut...???
-    FIELD(u16, 4, 1, id);            // Used for MICGetDeviceID (always 0)
-    FIELD(u16, 5, 3, button_unk);    // Button bits which appear unused
-    FIELD(bool, 8, 1, button);       // The actual button on the mic
-    FIELD(bool, 9, 1, buff_ovrflw);  // Ring buffer wrote over bytes which weren't read by
-                                     // console
-    FIELD(bool, 10, 1, gain);        // Gain: 0dB or 15dB
-    FIELD(u16, 11, 2, sample_rate);  // Sample rate
-                                     // 00-11025, 01-22050, 10-44100, 11-??
-    FIELD(u16, 13, 2, buff_size);    // Ring buffer size in bytes
-                                     // 00-32, 01-64, 10-128, 11-???
-    FIELD(bool, 15, 1, is_active);   // If we are sampling or not
-
-    UStatus() = default;
-    UStatus(u16 val) : BitField2(val) {}
+    BFVIEW_M(U16, u16, 0, 4, out);           // MICSet/GetOut...???
+    BFVIEW_M(U16, u16, 4, 1, id);            // Used for MICGetDeviceID (always 0)
+    BFVIEW_M(U16, u16, 5, 3, button_unk);    // Button bits which appear unused
+    BFVIEW_M(U16, bool, 8, 1, button);       // The actual button on the mic
+    BFVIEW_M(U16, bool, 9, 1, buff_ovrflw);  // Ring buffer wrote over bytes which weren't read
+                                             // by console
+    BFVIEW_M(U16, bool, 10, 1, gain);        // Gain: 0dB or 15dB
+    BFVIEW_M(U16, u16, 11, 2, sample_rate);  // Sample rate
+                                             // 00-11025, 01-22050, 10-44100, 11-??
+    BFVIEW_M(U16, u16, 13, 2, buff_size);    // Ring buffer size in bytes
+                                             // 00-32, 01-64, 10-128, 11-???
+    BFVIEW_M(U16, bool, 15, 1, is_active);   // If we are sampling or not
   };
 
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,

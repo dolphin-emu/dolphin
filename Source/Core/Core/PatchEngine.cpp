@@ -292,7 +292,7 @@ bool ApplyFramePatches()
     DEBUG_LOG_FMT(ACTIONREPLAY,
                   "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
                   "MSR = {:#010x}",
-                  PC, MSR);
+                  PC, MSR.Hex);
     return false;
   }
 

@@ -329,7 +329,7 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
 
     using EmuWiimote = WiimoteEmu::Wiimote;
 
-    u16& buttons = core.storage;
+    u16& buttons = core.hex;
     GetButton<u16>(m_a_button, buttons, EmuWiimote::BUTTON_A);
     GetButton<u16>(m_b_button, buttons, EmuWiimote::BUTTON_B);
     GetButton<u16>(m_1_button, buttons, EmuWiimote::BUTTON_ONE);

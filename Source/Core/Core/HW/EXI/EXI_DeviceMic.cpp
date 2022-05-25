@@ -147,7 +147,7 @@ CEXIMic::CEXIMic(int index) : slot(index)
 {
   m_position = 0;
   command = 0;
-  status = 0;
+  status.U16 = 0;
 
   sample_rate = rate_base;
   buff_size = ring_base;
@@ -225,7 +225,7 @@ void CEXIMic::TransferByte(u8& byte)
     if (pos == 0)
       status.button() = Pad::GetMicButton(slot);
 
-    byte = status.byte()[pos ^ 1];
+    byte = status.U8[pos ^ 1];
 
     if (pos == 1)
       status.buff_ovrflw() = false;
@@ -234,7 +234,7 @@ void CEXIMic::TransferByte(u8& byte)
   case cmdSetStatus:
   {
     bool wasactive = status.is_active();
-    status.byte()[pos ^ 1] = byte;
+    status.U8[pos ^ 1] = byte;
 
     // safe to do since these can only be entered if both bytes of status have been written
     if (!wasactive && status.is_active())

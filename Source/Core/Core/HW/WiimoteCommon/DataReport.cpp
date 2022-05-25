@@ -38,7 +38,7 @@ struct IncludeCore : virtual DataReportManipulator
     *result = Common::BitCastPtr<CoreData>(data_ptr);
 
     // Remove accel LSBs.
-    *result &= CoreData::BUTTON_MASK;
+    result->hex &= CoreData::BUTTON_MASK;
   }
 
   void SetCoreData(const CoreData& new_core) override
@@ -46,8 +46,8 @@ struct IncludeCore : virtual DataReportManipulator
     CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
 
     // Don't overwrite accel LSBs.
-    core.storage &= ~CoreData::BUTTON_MASK;
-    core |= new_core & CoreData::BUTTON_MASK;
+    core.hex &= ~CoreData::BUTTON_MASK;
+    core.hex |= new_core.hex & CoreData::BUTTON_MASK;
 
     Common::BitCastPtr<CoreData>(data_ptr) = core;
   }

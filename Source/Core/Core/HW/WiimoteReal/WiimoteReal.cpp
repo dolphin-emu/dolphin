@@ -489,7 +489,7 @@ bool Wiimote::IsButtonPressed()
       ButtonData buttons = {};
       builder->GetCoreData(&buttons);
 
-      return buttons != 0;
+      return buttons.hex != 0;
     }
   }
   return false;

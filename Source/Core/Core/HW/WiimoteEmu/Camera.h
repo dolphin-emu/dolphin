@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -25,14 +24,14 @@ struct IRBasic
 
   u8 x1;
   u8 y1;
-  BitField2<u8> _bf;
+  u8 _bf;
   u8 x2;
   u8 y2;
 
-  FIELD_IN(_bf, u8, 0, 2, x2hi);
-  FIELD_IN(_bf, u8, 2, 2, y2hi);
-  FIELD_IN(_bf, u8, 4, 2, x1hi);
-  FIELD_IN(_bf, u8, 6, 2, y1hi);
+  BFVIEW_M(_bf, u8, 0, 2, x2hi);
+  BFVIEW_M(_bf, u8, 2, 2, y2hi);
+  BFVIEW_M(_bf, u8, 4, 2, x1hi);
+  BFVIEW_M(_bf, u8, 6, 2, y1hi);
 
   auto GetObject1() const { return IRObject(x1hi() << 8 | x1, y1hi() << 8 | y1); }
   auto GetObject2() const { return IRObject(x2hi() << 8 | x2, y2hi() << 8 | y2); }
@@ -59,11 +58,11 @@ struct IRExtended
 {
   u8 x;
   u8 y;
-  BitField2<u8> _bf;
+  u8 _bf;
 
-  FIELD_IN(_bf, u8, 0, 4, size);
-  FIELD_IN(_bf, u8, 4, 2, xhi);
-  FIELD_IN(_bf, u8, 6, 2, yhi);
+  BFVIEW_M(_bf, u8, 0, 4, size);
+  BFVIEW_M(_bf, u8, 4, 2, xhi);
+  BFVIEW_M(_bf, u8, 6, 2, yhi);
 
   auto GetPosition() const { return IRBasic::IRObject(xhi() << 8 | x, yhi() << 8 | y); }
   void SetPosition(const IRBasic::IRObject& obj)
@@ -80,17 +79,18 @@ static_assert(sizeof(IRExtended) == 3, "Wrong size");
 // first 3 bytes are the same as extended
 struct IRFull : IRExtended
 {
-  BitField2<u8> _byte3;
-  BitField2<u8> _byte4;
-  BitField2<u8> _byte5;
-  BitField2<u8> _byte6;
+  u8 _byte3;
+  u8 _byte4;
+  u8 _byte5;
+  u8 _byte6;
+
+  BFVIEW_M(_byte3, u8, 0, 7, xmin);
+  BFVIEW_M(_byte4, u8, 0, 7, ymin);
+  BFVIEW_M(_byte5, u8, 0, 7, xmax);
+  BFVIEW_M(_byte6, u8, 0, 7, ymax);
+
   u8 zero;
   u8 intensity;
-
-  FIELD_IN(_byte3, u8, 0, 7, xmin);
-  FIELD_IN(_byte4, u8, 0, 7, ymin);
-  FIELD_IN(_byte5, u8, 0, 7, xmax);
-  FIELD_IN(_byte6, u8, 0, 7, ymax);
 };
 static_assert(sizeof(IRFull) == 9, "Wrong size");
 

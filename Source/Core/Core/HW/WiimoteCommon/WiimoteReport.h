@@ -6,9 +6,10 @@
 #include <vector>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
+#include "Common/Swap.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
@@ -17,34 +18,39 @@ namespace WiimoteCommon
 #pragma pack(push, 1)
 struct OutputReportGeneric
 {
+  OutputReportID rpt_id;
+
   static constexpr int HEADER_SIZE = sizeof(OutputReportID);
 
-  OutputReportID rpt_id;
-  BitField2<u8> rpt_stub;
+  u8 rpt_stub;
 
   // Enable/disable rumble. (Valid for ALL output reports)
-  FIELD_IN(rpt_stub, bool, 0, 1, rumble);
+  BFVIEW_M(rpt_stub, bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportGeneric) == 2, "Wrong size");
 
 // TODO: The following structs don't have the report_id header byte.
 // This is fine but the naming conventions are poor.
 
-struct OutputReportRumble : BitField2<u8>
+struct OutputReportRumble
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::Rumble;
 
-  FIELD(bool, 0, 1, rumble);
+  u8 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportRumble) == 1, "Wrong size");
 
-struct OutputReportEnableFeature : BitField2<u8>
+struct OutputReportEnableFeature
 {
-  FIELD(bool, 0, 1, rumble);
+  u8 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
   // Respond with an ack.
-  FIELD(bool, 1, 1, ack);
+  BFVIEW_M(rpt, bool, 1, 1, ack);
   // Enable/disable certain feature.
-  FIELD(bool, 2, 1, enable);
+  BFVIEW_M(rpt, bool, 2, 1, enable);
 };
 static_assert(sizeof(OutputReportEnableFeature) == 1, "Wrong size");
 
@@ -72,46 +78,54 @@ struct OutputReportSpeakerMute : OutputReportEnableFeature
 };
 static_assert(sizeof(OutputReportSpeakerMute) == 1, "Wrong size");
 
-struct OutputReportLeds : BitField2<u8>
+struct OutputReportLeds
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::LED;
 
-  FIELD(bool, 0, 1, rumble);
-  FIELD(bool, 1, 1, ack);
-  FIELD(u8, 4, 4, leds);
+  u8 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(rpt, bool, 1, 1, ack);
+  BFVIEW_M(rpt, u8, 4, 4, leds);
 };
 static_assert(sizeof(OutputReportLeds) == 1, "Wrong size");
 
-struct OutputReportMode : BitField2<u8>
+struct OutputReportMode
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::ReportMode;
 
-  FIELD(bool, 0, 1, rumble);
-  FIELD(bool, 1, 1, ack);
-  FIELD(bool, 2, 1, continuous);
+  u8 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(rpt, bool, 1, 1, ack);
+  BFVIEW_M(rpt, bool, 2, 1, continuous);
 
   InputReportID mode;
 };
 static_assert(sizeof(OutputReportMode) == 2, "Wrong size");
 
-struct OutputReportRequestStatus : BitField2<u8>
+struct OutputReportRequestStatus
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::RequestStatus;
 
-  FIELD(bool, 0, 1, rumble);
+  u8 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportRequestStatus) == 1, "Wrong size");
 
-struct OutputReportWriteData : BitField2<u16>
+struct OutputReportWriteData
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::WriteData;
 
-  FIELD(bool, 0, 1, rumble);
-  FIELD(AddressSpace, 2, 2, space);
+  u16 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(rpt, AddressSpace, 2, 2, space);
   // A real wiimote ignores the i2c read/write bit.
-  FIELD(bool, 0, 1, i2c_rw_ignored);
+  BFVIEW_M(rpt, bool, 0, 1, i2c_rw_ignored);
   // Used only for register space (i2c bus) (7-bits):
-  FIELD(u8, 1, 7, slave_address);
+  BFVIEW_M(rpt, u8, 1, 7, slave_address);
 
   // big endian:
   u8 address[2];
@@ -120,16 +134,18 @@ struct OutputReportWriteData : BitField2<u16>
 };
 static_assert(sizeof(OutputReportWriteData) == 21, "Wrong size");
 
-struct OutputReportReadData : BitField2<u16>
+struct OutputReportReadData
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::ReadData;
 
-  FIELD(bool, 0, 1, rumble);
-  FIELD(AddressSpace, 2, 2, space);
+  u16 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(rpt, AddressSpace, 2, 2, space);
   // A real wiimote ignores the i2c read/write bit.
-  FIELD(bool, 0, 1, i2c_rw_ignored);
+  BFVIEW_M(rpt, bool, 0, 1, i2c_rw_ignored);
   // Used only for register space (i2c bus) (7-bits):
-  FIELD(u8, 1, 7, slave_address);
+  BFVIEW_M(rpt, u8, 1, 7, slave_address);
 
   // big endian:
   u8 address[2];
@@ -137,44 +153,45 @@ struct OutputReportReadData : BitField2<u16>
 };
 static_assert(sizeof(OutputReportReadData) == 6, "Wrong size");
 
-struct OutputReportSpeakerData : BitField2<u8>
+struct OutputReportSpeakerData
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::SpeakerData;
 
-  FIELD(bool, 0, 1, rumble);
-  FIELD(u8, 3, 5, length);
+  u8 rpt;
+
+  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(rpt, u8, 3, 5, length);
 
   u8 data[20];
 };
 static_assert(sizeof(OutputReportSpeakerData) == 21, "Wrong size");
 
 // FYI: Also contains LSB of accel data:
-struct ButtonData : BitField2<u16>
+struct ButtonData
 {
   static constexpr u16 BUTTON_MASK = ~0x60e0;
 
-  FIELD(bool, 0, 1, left);
-  FIELD(bool, 1, 1, right);
-  FIELD(bool, 2, 1, down);
-  FIELD(bool, 3, 1, up);
-  FIELD(bool, 4, 1, plus);
+  u16 hex;
+
+  BFVIEW_M(hex, bool, 0, 1, left);
+  BFVIEW_M(hex, bool, 1, 1, right);
+  BFVIEW_M(hex, bool, 2, 1, down);
+  BFVIEW_M(hex, bool, 3, 1, up);
+  BFVIEW_M(hex, bool, 4, 1, plus);
   // For most input reports this is the 2 LSbs of accel.x:
   // For interleaved reports this is alternating bits of accel.z:
-  FIELD(u16, 5, 2, acc_bits);
-  FIELD(u16, 7, 1, unknown);
+  BFVIEW_M(hex, u16, 5, 2, acc_bits);
+  BFVIEW_M(hex, u16, 7, 1, unknown);
 
-  FIELD(bool, 8, 1, two);
-  FIELD(bool, 9, 1, one);
-  FIELD(bool, 10, 1, b);
-  FIELD(bool, 11, 1, a);
-  FIELD(bool, 12, 1, minus);
+  BFVIEW_M(hex, bool, 8, 1, two);
+  BFVIEW_M(hex, bool, 9, 1, one);
+  BFVIEW_M(hex, bool, 10, 1, b);
+  BFVIEW_M(hex, bool, 11, 1, a);
+  BFVIEW_M(hex, bool, 12, 1, minus);
   // For most input reports this is bits of accel.y/z:
   // For interleaved reports this is alternating bits of accel.z:
-  FIELD(u16, 13, 2, acc_bits2);
-  FIELD(bool, 15, 1, home);
-
-  ButtonData() = default;
-  constexpr ButtonData(u16 val) : BitField2(val) {}
+  BFVIEW_M(hex, u16, 13, 2, acc_bits2);
+  BFVIEW_M(hex, bool, 15, 1, home);
 };
 static_assert(sizeof(ButtonData) == 2, "Wrong size");
 
@@ -183,15 +200,15 @@ struct InputReportStatus
   static constexpr InputReportID REPORT_ID = InputReportID::Status;
 
   ButtonData buttons;
-  BitField2<u8> status;
+  u8 status;
   u16 : 16;  // padding
   u8 battery;
 
-  FIELD_IN(status, bool, 0, 1, battery_low);
-  FIELD_IN(status, bool, 1, 1, extension);
-  FIELD_IN(status, bool, 2, 1, speaker);
-  FIELD_IN(status, bool, 3, 1, ir);
-  FIELD_IN(status, u8, 4, 4, leds);
+  BFVIEW_M(status, bool, 0, 1, battery_low);
+  BFVIEW_M(status, bool, 1, 1, extension);
+  BFVIEW_M(status, bool, 2, 1, speaker);
+  BFVIEW_M(status, bool, 3, 1, ir);
+  BFVIEW_M(status, u8, 4, 4, leds);
 
   constexpr float GetEstimatedCharge() const
   {
@@ -226,13 +243,13 @@ struct InputReportReadDataReply
   static constexpr InputReportID REPORT_ID = InputReportID::ReadDataReply;
 
   ButtonData buttons;
-  BitField2<u8> read_data_reply;
+  u8 read_data_reply;
   // big endian:
   u16 address;
   u8 data[16];
 
-  FIELD_IN(read_data_reply, ErrorCode, 0, 4, error);
-  FIELD_IN(read_data_reply, u8, 4, 4, size_minus_one);
+  BFVIEW_M(read_data_reply, ErrorCode, 0, 4, error);
+  BFVIEW_M(read_data_reply, u8, 4, 4, size_minus_one);
 };
 static_assert(sizeof(InputReportReadDataReply) == 21, "Wrong size");
 
@@ -273,11 +290,11 @@ struct AccelCalibrationPoint
   }
 
   u8 x2, y2, z2;
-  BitField2<u8> _x1y1z1;
+  u8 _x1y1z1;
 
-  FIELD_IN(_x1y1z1, u8, 0, 2, z1);
-  FIELD_IN(_x1y1z1, u8, 2, 2, y1);
-  FIELD_IN(_x1y1z1, u8, 4, 2, x1);
+  BFVIEW_M(_x1y1z1, u8, 0, 2, z1);
+  BFVIEW_M(_x1y1z1, u8, 2, 2, y1);
+  BFVIEW_M(_x1y1z1, u8, 4, 2, x1);
 };
 
 // Located at 0x16 and 0x20 of Wii Remote EEPROM.
@@ -290,11 +307,11 @@ struct AccelCalibrationData
   AccelCalibrationPoint zero_g;
   AccelCalibrationPoint one_g;
 
-  BitField2<u8> _data1;
+  u8 _data1;
   u8 checksum;
 
-  FIELD_IN(_data1, u8, 0, 7, volume);
-  FIELD_IN(_data1, bool, 7, 1, motor);
+  BFVIEW_M(_data1, u8, 0, 7, volume);
+  BFVIEW_M(_data1, bool, 7, 1, motor);
 };
 
 }  // namespace WiimoteCommon

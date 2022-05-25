@@ -124,12 +124,12 @@ static void Trace(const UGeckoInstruction& inst)
     fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());
   }
 
-  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst, PC);
+  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
   DEBUG_LOG_FMT(POWERPC,
                 "INTER PC: {:08x} SRR0: {:08x} SRR1: {:08x} CRval: {:016x} "
                 "FPSCR: {:08x} MSR: {:08x} LR: {:08x} {} {:08x} {}",
-                PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR, MSR,
-                PowerPC::ppcState.spr[8], regs, inst, ppc_inst);
+                PC, SRR0, SRR1, PowerPC::ppcState.cr.fields[0], FPSCR.Hex, MSR.Hex,
+                PowerPC::ppcState.spr[8], regs, inst.hex, ppc_inst);
 }
 
 bool Interpreter::HandleFunctionHooking(u32 address)
@@ -162,7 +162,7 @@ int Interpreter::SingleStepInner()
     Trace(m_prev_inst);
   }
 
-  if (m_prev_inst != 0)
+  if (m_prev_inst.hex != 0)
   {
     if (IsInvalidPairedSingleExecution(m_prev_inst))
     {
@@ -331,8 +331,8 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   Dolphin_Debugger::PrintCallstack(Common::Log::LogType::POWERPC, Common::Log::LogLevel::LNOTICE);
   NOTICE_LOG_FMT(
       POWERPC,
-      "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n", inst,
-      PC, last_pc, LR);
+      "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
+      inst.hex, PC, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
   {
     NOTICE_LOG_FMT(POWERPC, "r{}: {:#010x} r{}: {:#010x} r{}: {:#010x} r{}: {:#010x}", i, rGPR[i],
@@ -340,7 +340,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction {:08x} at PC = {:08x}  last_PC = {:08x}  LR = {:08x}\n",
-             inst, PC, last_pc, LR);
+             inst.hex, PC, last_pc, LR);
 }
 
 void Interpreter::ClearCache()

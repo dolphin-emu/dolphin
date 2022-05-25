@@ -13,7 +13,7 @@
 
 #include "Common/Align.h"
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -78,49 +78,60 @@ constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
 constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
 // DI Status Register
-struct UDISR : BitField2<u32>
+struct UDISR
 {
-  FIELD(bool, 0, 1, BREAK);      // Stop the Device + Interrupt
-  FIELD(bool, 1, 1, DEINTMASK);  // Access Device Error Int Mask
-  FIELD(bool, 2, 1, DEINT);      // Access Device Error Int
-  FIELD(bool, 3, 1, TCINTMASK);  // Transfer Complete Int Mask
-  FIELD(bool, 4, 1, TCINT);      // Transfer Complete Int
-  FIELD(bool, 5, 1, BRKINTMASK);
-  FIELD(bool, 6, 1, BRKINT);  // w 1: clear brkint
-  FIELD(u32, 7, 25, reserved);
+  u32 Hex = 0;
 
-  constexpr UDISR(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(Hex, bool, 0, 1, BREAK);      // Stop the Device + Interrupt
+  BFVIEW_M(Hex, bool, 1, 1, DEINTMASK);  // Access Device Error Int Mask
+  BFVIEW_M(Hex, bool, 2, 1, DEINT);      // Access Device Error Int
+  BFVIEW_M(Hex, bool, 3, 1, TCINTMASK);  // Transfer Complete Int Mask
+  BFVIEW_M(Hex, bool, 4, 1, TCINT);      // Transfer Complete Int
+  BFVIEW_M(Hex, bool, 5, 1, BRKINTMASK);
+  BFVIEW_M(Hex, bool, 6, 1, BRKINT);  // w 1: clear brkint
+  BFVIEW_M(Hex, u32, 7, 25, reserved);
+
+  UDISR() = default;
+  explicit UDISR(u32 hex) : Hex{hex} {}
 };
 
 // DI Cover Register
-struct UDICVR : BitField2<u32>
+struct UDICVR
 {
-  FIELD(bool, 0, 1, CVR);         // 0: Cover closed  1: Cover open
-  FIELD(bool, 1, 1, CVRINTMASK);  // 1: Interrupt enabled
-  FIELD(bool, 2, 1, CVRINT);      // r 1: Interrupt requested w 1: Interrupt clear
-  FIELD(u32, 3, 29, reserved);
+  u32 Hex = 0;
 
-  constexpr UDICVR(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(Hex, bool, 0, 1, CVR);         // 0: Cover closed  1: Cover open
+  BFVIEW_M(Hex, bool, 1, 1, CVRINTMASK);  // 1: Interrupt enabled
+  BFVIEW_M(Hex, bool, 2, 1, CVRINT);      // r 1: Interrupt requested w 1: Interrupt clear
+  BFVIEW_M(Hex, u32, 3, 29, reserved);
+
+  UDICVR() = default;
+  explicit UDICVR(u32 hex) : Hex{hex} {}
 };
 
 // DI DMA Control Register
-struct UDICR : BitField2<u32>
+struct UDICR
 {
-  FIELD(bool, 0, 1, TSTART);  // w:1 start   r:0 ready
-  FIELD(bool, 1, 1, DMA);  // 0: Immediate Mode (can only do Access Register Command)   1: DMA Mode
-  FIELD(bool, 2, 1, RW);   // 0: Read Command (DVD to Memory)   1: Write Command (Memory to DVD)
-  FIELD(u32, 3, 29, reserved);
+  u32 Hex = 0;
 
-  constexpr UDICR(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(Hex, bool, 0, 1, TSTART);  // w:1 start   r:0 ready
+  BFVIEW_M(Hex, bool, 1, 1, DMA);     // 0: Immediate Mode (can only do Access Register Command)
+                                      // 1: DMA Mode
+  BFVIEW_M(Hex, bool, 2, 1, RW);      // 0: Read Command (DVD to Memory)
+                                      // 1: Write Command (Memory to DVD)
+  BFVIEW_M(Hex, u32, 3, 29, reserved);
 };
 
 // DI Config Register
-struct UDICFG : BitField2<u32>
+struct UDICFG
 {
-  FIELD(u32, 0, 8, CONFIG);
-  FIELD(u32, 8, 24, reserved);
+  u32 Hex = 0;
 
-  constexpr UDICFG(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(Hex, u32, 0, 8, CONFIG);
+  BFVIEW_M(Hex, u32, 8, 24, reserved);
+
+  UDICFG() = default;
+  explicit UDICFG(u32 hex) : Hex{hex} {}
 };
 
 // STATE_TO_SAVE
@@ -345,16 +356,16 @@ void Init()
 
   DVDThread::Start();
 
-  s_DISR = 0;
-  s_DICVR = 1;  // Disc Channel relies on cover being open when no disc is inserted
+  s_DISR.Hex = 0;
+  s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
   s_DICMDBUF[0] = 0;
   s_DICMDBUF[1] = 0;
   s_DICMDBUF[2] = 0;
   s_DIMAR = 0;
   s_DILENGTH = 0;
-  s_DICR = 0;
+  s_DICR.Hex = 0;
   s_DIIMMBUF = 0;
-  s_DICFG = 0;
+  s_DICFG.Hex = 0;
   s_DICFG.CONFIG() = 1;  // Disable bootrom descrambler
 
   ResetDrive(false);
@@ -599,7 +610,7 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id)
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.storage),
+  mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    const UDISR tmp_status_reg(val);
 
@@ -625,7 +636,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    UpdateInterrupts();
                  }));
 
-  mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&s_DICVR.storage),
+  mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&s_DICVR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    const UDICVR tmp_cover_reg(val);
 
@@ -652,9 +663,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&s_DIMAR, ~0x1F));
   mmio->Register(base | DI_DMA_LENGTH_REGISTER, MMIO::DirectRead<u32>(&s_DILENGTH),
                  MMIO::DirectWrite<u32>(&s_DILENGTH, ~0x1F));
-  mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_DICR.storage),
+  mmio->Register(base | DI_DMA_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_DICR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   s_DICR = val & 7;
+                   s_DICR.Hex = val & 7;
                    if (s_DICR.TSTART())
                    {
                      ExecuteCommand(ReplyType::Interrupt);
@@ -665,7 +676,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&s_DIIMMBUF));
 
   // DI config register is read only.
-  mmio->Register(base | DI_CONFIG_REGISTER, MMIO::DirectRead<u32>(&s_DICFG.storage),
+  mmio->Register(base | DI_CONFIG_REGISTER, MMIO::DirectRead<u32>(&s_DICFG.Hex),
                  MMIO::InvalidWrite<u32>());
 }
 

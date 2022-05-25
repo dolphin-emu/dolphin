@@ -1208,7 +1208,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       if (pte2.C() == 0)
       {
         pte2.C() = 1;
-        tlbe.pte[0] = pte2;
+        tlbe.pte[0] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1231,7 +1231,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       if (pte2.C() == 0)
       {
         pte2.C() = 1;
-        tlbe.pte[1] = pte2;
+        tlbe.pte[1] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
     }
@@ -1257,7 +1257,7 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE_Hi pte2, const u32 add
   const u32 index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
   tlbe.recent = index;
   tlbe.paddr[index] = pte2.RPN() << HW_PAGE_INDEX_SHIFT;
-  tlbe.pte[index] = pte2;
+  tlbe.pte[index] = pte2.Hex;
   tlbe.tag[index] = tag;
 }
 
@@ -1269,14 +1269,17 @@ void InvalidateTLBEntry(u32 address)
   ppcState.tlb[1][entry_index].Invalidate();
 }
 
-struct EffectiveAddress : BitField2<u32>
+struct EffectiveAddress
 {
-  FIELD(u32, 0, 12, offset);
-  FIELD(u32, 12, 16, page_index);
-  FIELD(u32, 22, 6, API);
-  FIELD(u32, 28, 4, SR);
+  u32 Hex = 0;
 
-  constexpr EffectiveAddress(u32 address = 0) : BitField2(address) {}
+  BFVIEW_M(Hex, u32, 0, 12, offset);
+  BFVIEW_M(Hex, u32, 12, 16, page_index);
+  BFVIEW_M(Hex, u32, 22, 6, API);
+  BFVIEW_M(Hex, u32, 28, 4, SR);
+
+  EffectiveAddress() = default;
+  explicit EffectiveAddress(u32 address) : Hex{address} {}
 };
 
 // Page Address Translation
@@ -1287,7 +1290,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
   // benefit much from optimization.
   u32 translated_address = 0;
-  const TLBLookupResult res = LookupTLBPageAddress(flag, address, &translated_address, wi);
+  const TLBLookupResult res = LookupTLBPageAddress(flag, address.Hex, &translated_address, wi);
   if (res == TLBLookupResult::Found)
   {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_TABLE_TRANSLATED,
@@ -1315,7 +1318,8 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
 
-  UPTE_Lo pte1 = 0;
+  UPTE_Lo pte1;
+  pte1.Hex = 0;
   pte1.VSID() = VSID;
   pte1.API() = api;
   pte1.V() = 1;
@@ -1336,7 +1340,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
     {
       const u32 pteg = Memory::Read_U32(pteg_addr);
 
-      if (pte1 == pteg)
+      if (pte1.Hex == pteg)
       {
         UPTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
 
@@ -1360,12 +1364,12 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
         if (!IsNoExceptionFlag(flag))
         {
-          Memory::Write_U32(pte2, pteg_addr + 4);
+          Memory::Write_U32(pte2.Hex, pteg_addr + 4);
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
         if (res != TLBLookupResult::UpdateC)
-          UpdateTLBEntry(flag, pte2, address);
+          UpdateTLBEntry(flag, pte2, address.Hex);
 
         *wi = (pte2.WIMG() & 0b1100) != 0;
 

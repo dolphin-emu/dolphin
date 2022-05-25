@@ -16,6 +16,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/BitField.h"
+#include "Common/BitField3.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -2484,16 +2485,16 @@ void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64
 
 void ARM64FloatEmitter::EncodeModImm(bool Q, u8 op, u8 cmode, u8 o2, ARM64Reg Rd, u8 abcdefgh)
 {
-  union
+  struct
   {
     u8 hex;
 
-    BitField<0, 5, u8> defgh;
-    BitField<5, 3, u8> abc;
+    BFVIEW_M(hex, u8, 0, 5, defgh);
+    BFVIEW_M(hex, u8, 5, 3, abc);
   } v;
   v.hex = abcdefgh;
-  Write32((Q << 30) | (op << 29) | (0xF << 24) | (v.abc << 16) | (cmode << 12) | (o2 << 11) |
-          (1 << 10) | (v.defgh << 5) | DecodeReg(Rd));
+  Write32((Q << 30) | (op << 29) | (0xF << 24) | (v.abc() << 16) | (cmode << 12) | (o2 << 11) |
+          (1 << 10) | (v.defgh() << 5) | DecodeReg(Rd));
 }
 
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)

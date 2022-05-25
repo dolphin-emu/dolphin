@@ -4,7 +4,7 @@
 #include "Core/HW/WII_IPC.h"
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -56,19 +56,19 @@ enum
   UNK_1D0 = 0x1d0,
 };
 
-struct UCtrlRegister : BitField2<u8>
+struct CtrlRegister
 {
-  FIELD(bool, 0, 1, X1);
-  FIELD(bool, 1, 1, X2);
-  FIELD(bool, 2, 1, Y1);
-  FIELD(bool, 3, 1, Y2);
-  FIELD(bool, 4, 1, IX1);
-  FIELD(bool, 5, 1, IX2);
-  FIELD(bool, 6, 1, IY1);
-  FIELD(bool, 7, 1, IY2);
+  u8 hex;
 
-  UCtrlRegister() = default;
-  constexpr UCtrlRegister(u8 val) : BitField2(val) {}
+  BFVIEW_M(hex, bool, 0, 1, X1);
+  BFVIEW_M(hex, bool, 1, 1, X2);
+  BFVIEW_M(hex, bool, 2, 1, Y1);
+  BFVIEW_M(hex, bool, 3, 1, Y2);
+  BFVIEW_M(hex, bool, 4, 1, IX1);
+  BFVIEW_M(hex, bool, 5, 1, IX2);
+  BFVIEW_M(hex, bool, 6, 1, IY1);
+  BFVIEW_M(hex, bool, 7, 1, IY2);
+
   inline u8 ppc()
   {
     return (IY2() << 5) | (IY1() << 4) | (X2() << 3) | (Y1() << 2) | (Y2() << 1) | X1();
@@ -105,7 +105,7 @@ struct UCtrlRegister : BitField2<u8>
 // STATE_TO_SAVE
 static u32 ppc_msg;
 static u32 arm_msg;
-static UCtrlRegister ctrl;
+static CtrlRegister ctrl;
 
 static u32 ppc_irq_flags;
 static u32 ppc_irq_masks;
@@ -137,7 +137,7 @@ void DoState(PointerWrap& p)
 
 static void InitState()
 {
-  ctrl = UCtrlRegister();
+  ctrl = CtrlRegister();
   ppc_msg = 0;
   arm_msg = 0;
 

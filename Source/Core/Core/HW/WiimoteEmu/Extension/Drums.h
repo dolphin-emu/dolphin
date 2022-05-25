@@ -6,7 +6,7 @@
 #include <array>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -46,33 +46,34 @@ public:
 #pragma pack(push, 1)
   struct DataFormat
   {
-    BitField2<u32> _data;
+    u32 _data1;
+
+    BFVIEW_M(_data1, u32, 0, 6, stick_x);
+    // Seemingly random.
+    BFVIEW_M(_data1, u32, 6, 2, unk1);
+
+    BFVIEW_M(_data1, u32, 8, 6, stick_y);
+    // Seemingly random.
+    BFVIEW_M(_data1, u32, 14, 2, unk2);
+
+    // Always 1 with no velocity data and seemingly random otherwise.
+    BFVIEW_M(_data1, u32, 16, 1, unk3);
+    // For which "pad" the velocity data is for.
+    BFVIEW_M(_data1, VelocityID, 17, 7, velocity_id);
+
+    // Always 1 with no velocity data and seemingly random otherwise.
+    BFVIEW_M(_data1, u32, 24, 1, unk4);
+    // 1 with no velocity data and 0 when velocity data is present.
+    BFVIEW_M(_data1, bool, 25, 1, no_velocity_data_1);
+    // These two bits seem to always be set. (0b11)
+    BFVIEW_M(_data1, u32, 26, 2, unk5);
+    // 1 with no velocity data and 0 when velocity data is present.
+    BFVIEW_M(_data1, bool, 28, 1, no_velocity_data_2);
+    // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
+    BFVIEW_M(_data1, u32, 29, 3, softness);
+
     u8 buttons;    // Button bits.
     u8 drum_pads;  // Drum-pad bits.
-
-    FIELD_IN(_data, u32, 0, 6, stick_x);
-    // Seemingly random.
-    FIELD_IN(_data, u32, 6, 2, unk1);
-
-    FIELD_IN(_data, u32, 8, 6, stick_y);
-    // Seemingly random.
-    FIELD_IN(_data, u32, 14, 2, unk2);
-
-    // Always 1 with no velocity data and seemingly random otherwise.
-    FIELD_IN(_data, u32, 16, 1, unk3);
-    // For which "pad" the velocity data is for.
-    FIELD_IN(_data, VelocityID, 17, 7, velocity_id);
-
-    // Always 1 with no velocity data and seemingly random otherwise.
-    FIELD_IN(_data, u32, 24, 1, unk4);
-    // 1 with no velocity data and 0 when velocity data is present.
-    FIELD_IN(_data, bool, 25, 1, no_velocity_data_1);
-    // These two bits seem to always be set. (0b11)
-    FIELD_IN(_data, u32, 26, 2, unk5);
-    // 1 with no velocity data and 0 when velocity data is present.
-    FIELD_IN(_data, bool, 28, 1, no_velocity_data_2);
-    // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
-    FIELD_IN(_data, u32, 29, 3, softness);
   };
 #pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");

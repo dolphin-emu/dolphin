@@ -27,7 +27,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
@@ -69,23 +69,21 @@ enum
 };
 
 // UARAMCount
-struct UARAMCount : BitField2<u32>
+struct UARAMCount
 {
-  FIELD(u32, 0, 31, count);
-  FIELD(bool, 31, 1, dir);  // 0: MRAM -> ARAM 1: ARAM -> MRAM
+  u32 Hex = 0;
 
-  UARAMCount() = default;
-  constexpr UARAMCount(u32 val) : BitField2(val) {}
+  BFVIEW_M(Hex, u32, 0, 31, count);
+  BFVIEW_M(Hex, bool, 31, 1, dir);  // 0: MRAM -> ARAM 1: ARAM -> MRAM
 };
 
 // Blocks are 32 bytes.
-struct UAudioDMAControl : BitField2<u16>
+struct UAudioDMAControl
 {
-  FIELD(u16, 0, 15, NumBlocks);
-  FIELD(bool, 15, 1, Enable);
+  u16 Hex = 0;
 
-  UAudioDMAControl() = default;
-  constexpr UAudioDMAControl(u32 val) : BitField2(val) {}
+  BFVIEW_M(Hex, u16, 0, 15, NumBlocks);
+  BFVIEW_M(Hex, bool, 15, 1, Enable);
 };
 
 // AudioDMA
@@ -114,13 +112,12 @@ struct ARAMInfo
   u8* ptr = nullptr;  // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
 };
 
-struct ARAM_Info : BitField2<u16>
+struct ARAM_Info
 {
-  FIELD(u16, 0, 6, size);
-  FIELD(u16, 6, 1, unk);
+  u16 Hex = 0;
 
-  ARAM_Info() = default;
-  ARAM_Info(u16 val) : BitField2(val) {}
+  BFVIEW_M(Hex, u16, 0, 6, size);
+  BFVIEW_M(Hex, u16, 6, 1, unk);
 };
 
 // STATE_TO_SAVE
@@ -210,7 +207,7 @@ void Reinit(bool hle)
   s_dspState = 0;
   s_dspState.DSPHalt() = 1;
 
-  s_ARAM_Info = 0;
+  s_ARAM_Info.Hex = 0;
   s_AR_MODE = 1;       // ARAM Controller has init'd
   s_AR_REFRESH = 156;  // 156MHz
 }
@@ -249,7 +246,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {AR_MODE, &s_AR_MODE, WMASK_NONE},
 
       // For these registers, only some bits can be set
-      {AR_INFO, &s_ARAM_Info.storage, WMASK_AR_INFO},
+      {AR_INFO, &s_ARAM_Info.Hex, WMASK_AR_INFO},
       {AR_REFRESH, &s_AR_REFRESH, WMASK_AR_REFRESH},
 
       // For AR_DMA_*_H registers, only bits 0x03ff can be set
@@ -259,7 +256,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {AR_DMA_ARADDR_H, MMIO::Utils::HighPart(&s_arDMA.ARAddr), WMASK_AR_HI_RESTRICT},
       {AR_DMA_ARADDR_L, MMIO::Utils::LowPart(&s_arDMA.ARAddr), WMASK_LO_ALIGN_32BIT},
       // For this register, the topmost (dir) bit can also be set
-      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.storage),
+      {AR_DMA_CNT_H, MMIO::Utils::HighPart(&s_arDMA.Cnt.Hex),
        WMASK_AR_HI_RESTRICT | WMASK_AR_CNT_DIR_BIT},
       // AR_DMA_CNT_L triggers DMA
 
@@ -308,7 +305,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(
       base | DSP_CONTROL, MMIO::ComplexRead<u16>([](u32) {
-        return (s_dspState & ~DSP_CONTROL_MASK) |
+        return (s_dspState.Hex & ~DSP_CONTROL_MASK) |
                (s_dsp_emulator->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
@@ -321,7 +318,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         // only viewable to DSP emulator
         if (val & 1 /*DSPReset*/)
         {
-          s_audioDMA.AudioDMAControl = 0;
+          s_audioDMA.AudioDMAControl.Hex = 0;
         }
 
         // Update DSP related flags
@@ -357,10 +354,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }));
 
   // ARAM MMIO controlling the DMA start.
-  mmio->Register(base | AR_DMA_CNT_L,
-                 MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&s_arDMA.Cnt.storage)),
+  mmio->Register(base | AR_DMA_CNT_L, MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&s_arDMA.Cnt.Hex)),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   s_arDMA.Cnt = (s_arDMA.Cnt & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
+                   s_arDMA.Cnt.Hex = (s_arDMA.Cnt.Hex & 0xFFFF0000) | (val & WMASK_LO_ALIGN_32BIT);
                    Do_ARAM_DMA();
                  }));
 
@@ -374,10 +370,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   // Audio DMA MMIO controlling the DMA start.
   mmio->Register(
-      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.storage),
+      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.Hex),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
         bool already_enabled = s_audioDMA.AudioDMAControl.Enable();
-        s_audioDMA.AudioDMAControl = val;
+        s_audioDMA.AudioDMAControl.Hex = val;
 
         // Only load new values if were not already doing a DMA transfer,
         // otherwise just let the new values be autoloaded in when the
@@ -427,7 +423,7 @@ static void UpdateInterrupts()
   // to the left of it. By doing:
   // (DSP_CONTROL>>1) & DSP_CONTROL & MASK_OF_ALL_INTERRUPT_BITS
   // We can check if any of the interrupts are enabled and active, all at once.
-  bool ints_set = (((s_dspState >> 1) & s_dspState & (INT_DSP | INT_ARAM | INT_AID)) != 0);
+  bool ints_set = (((s_dspState.Hex >> 1) & s_dspState.Hex & (INT_DSP | INT_ARAM | INT_AID)) != 0);
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
@@ -437,7 +433,7 @@ static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
   // The INT_* enumeration members have values that reflect their bit positions in
   // DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
   // don't call this with bogus values.
-  s_dspState |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
+  s_dspState.Hex |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
   UpdateInterrupts();
 }
 
@@ -526,11 +522,11 @@ static void Do_ARAM_DMA()
       {
         // These are logically separated in code to show that a memory map has been set up
         // See below in the write section for more information
-        if ((s_ARAM_Info & 0xf) == 3)
+        if ((s_ARAM_Info.Hex & 0xf) == 3)
         {
           Memory::Write_U64_Swap(*(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask], s_arDMA.MMAddr);
         }
-        else if ((s_ARAM_Info & 0xf) == 4)
+        else if ((s_ARAM_Info.Hex & 0xf) == 4)
         {
           Memory::Write_U64_Swap(*(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask], s_arDMA.MMAddr);
         }
@@ -569,12 +565,12 @@ static void Do_ARAM_DMA()
     {
       while (s_arDMA.Cnt.count())
       {
-        if ((s_ARAM_Info & 0xf) == 3)
+        if ((s_ARAM_Info.Hex & 0xf) == 3)
         {
           *(u64*)&s_ARAM.ptr[s_arDMA.ARAddr & s_ARAM.mask] =
               Common::swap64(Memory::Read_U64(s_arDMA.MMAddr));
         }
-        else if ((s_ARAM_Info & 0xf) == 4)
+        else if ((s_ARAM_Info.Hex & 0xf) == 4)
         {
           if (s_arDMA.ARAddr < 0x400000)
           {

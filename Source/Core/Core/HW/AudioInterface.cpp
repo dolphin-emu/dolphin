@@ -41,7 +41,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include <algorithm>
 
 #include "AudioCommon/AudioCommon.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
@@ -71,30 +71,31 @@ enum
 };
 
 // AI Control Register
-struct AICR : BitField2<u32>
+struct AICR
 {
-  AICR() = default;
-  constexpr AICR(u32 val) : BitField2(val) {}
+  u32 hex = 0;
 
-  FIELD(bool, 0, 1, PSTAT);     // sample counter/playback enable
-  FIELD(bool, 1, 1, AISFR);     // AIS Frequency (0=32khz 1=48khz)
-  FIELD(bool, 2, 1, AIINTMSK);  // 0=interrupt masked 1=interrupt enabled
-  FIELD(bool, 3, 1, AIINT);     // audio interrupt status
-  FIELD(bool, 4, 1, AIINTVLD);  // This bit controls whether AIINT is affected by the
-                                // Interrupt Timing register matching the sample counter.
-                                // Once set, AIINT will hold its last value
-  FIELD(bool, 5, 1, SCRESET);   // write to reset counter
-  FIELD(bool, 6, 1, AIDFR);     // AID Frequency (0=48khz 1=32khz)
+  BFVIEW_M(hex, bool, 0, 1, PSTAT);     // sample counter/playback enable
+  BFVIEW_M(hex, bool, 1, 1, AISFR);     // AIS Frequency (0=32khz 1=48khz)
+  BFVIEW_M(hex, bool, 2, 1, AIINTMSK);  // 0=interrupt masked 1=interrupt enabled
+  BFVIEW_M(hex, bool, 3, 1, AIINT);     // audio interrupt status
+  BFVIEW_M(hex, bool, 4, 1, AIINTVLD);  // This bit controls whether AIINT is affected by the
+                                        // Interrupt Timing register matching the sample
+                                        // counter. Once set, AIINT will hold its last value
+  BFVIEW_M(hex, bool, 5, 1, SCRESET);   // write to reset counter
+  BFVIEW_M(hex, bool, 6, 1, AIDFR);     // AID Frequency (0=48khz 1=32khz)
+
+  AICR() = default;
+  explicit AICR(u32 hex_) : hex{hex_} {}
 };
 
 // AI Volume Register
-struct AIVR : BitField2<u32>
+struct AIVR
 {
-  AIVR() = default;
-  constexpr AIVR(u32 val) : BitField2(val) {}
+  u32 hex = 0;
 
-  FIELD(u32, 0, 8, left);
-  FIELD(u32, 8, 8, right);
+  BFVIEW_M(hex, u8, 0, 8, left);
+  BFVIEW_M(hex, u8, 8, 8, right);
 };
 
 // STATE_TO_SAVE
@@ -134,10 +135,10 @@ static CoreTiming::EventType* event_type_ai;
 
 void Init()
 {
-  s_control = 0;
+  s_control.hex = 0;
   s_control.AISFR() = AIS_48KHz;
   s_control.AIDFR() = AID_32KHz;
-  s_volume = 0;
+  s_volume.hex = 0;
   s_sample_counter = 0;
   s_interrupt_timing = 0;
 
@@ -161,7 +162,7 @@ void Shutdown()
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   mmio->Register(
-      base | AI_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_control.storage),
+      base | AI_CONTROL_REGISTER, MMIO::DirectRead<u32>(&s_control.hex),
       MMIO::ComplexWrite<u32>([](u32, u32 val) {
         const AICR tmp_ai_ctrl(val);
 
@@ -232,9 +233,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         UpdateInterrupts();
       }));
 
-  mmio->Register(base | AI_VOLUME_REGISTER, MMIO::DirectRead<u32>(&s_volume.storage),
+  mmio->Register(base | AI_VOLUME_REGISTER, MMIO::DirectRead<u32>(&s_volume.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   s_volume = val;
+                   s_volume.hex = val;
                    g_sound_stream->GetMixer()->SetStreamingVolume(s_volume.left(),
                                                                   s_volume.right());
                  }));

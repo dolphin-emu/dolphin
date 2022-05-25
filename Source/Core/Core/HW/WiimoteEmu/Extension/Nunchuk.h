@@ -6,7 +6,7 @@
 #include <array>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
@@ -35,18 +35,17 @@ enum class NunchukGroup
 class Nunchuk : public Extension1stParty
 {
 public:
-  struct ButtonFormat : BitField2<u8>
+  struct ButtonFormat
   {
-    FIELD(bool, 0, 1, z);
-    FIELD(bool, 1, 1, c);
+    u8 hex;
+
+    BFVIEW_M(hex, bool, 0, 1, z);
+    BFVIEW_M(hex, bool, 1, 1, c);
 
     // LSBs of accelerometer
-    FIELD(u8, 2, 2, acc_x_lsb);
-    FIELD(u8, 4, 2, acc_y_lsb);
-    FIELD(u8, 6, 2, acc_z_lsb);
-
-    ButtonFormat() = default;
-    constexpr ButtonFormat(u8 val) : BitField2(val) {}
+    BFVIEW_M(hex, u8, 2, 2, acc_x_lsb);
+    BFVIEW_M(hex, u8, 4, 2, acc_y_lsb);
+    BFVIEW_M(hex, u8, 6, 2, acc_z_lsb);
   };
   static_assert(sizeof(ButtonFormat) == 1, "Wrong size");
 
@@ -91,13 +90,13 @@ public:
     u8 GetButtons() const
     {
       // 0 == pressed.
-      return ~bt & (BUTTON_C | BUTTON_Z);
+      return ~bt.hex & (BUTTON_C | BUTTON_Z);
     }
     void SetButtons(u8 value)
     {
       // 0 == pressed.
-      bt |= (BUTTON_C | BUTTON_Z);
-      bt ^= value & (BUTTON_C | BUTTON_Z);
+      bt.hex |= (BUTTON_C | BUTTON_Z);
+      bt.hex ^= value & (BUTTON_C | BUTTON_Z);
     }
 
     // joystick x, y

@@ -55,7 +55,7 @@ void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneri
     return;
   }
 
-  (this->*handler)(Common::BitCastPtr<T>(&rpt.rpt_stub.storage));
+  (this->*handler)(Common::BitCastPtr<T>(&rpt.rpt_stub));
 }
 
 void Wiimote::EventLinked()

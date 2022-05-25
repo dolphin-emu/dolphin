@@ -12,7 +12,7 @@
 #include <sstream>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -61,37 +61,36 @@ enum
 };
 
 // SI Channel Output
-struct USIChannelOut : BitField2<u32>
+struct USIChannelOut
 {
-  FIELD(u8, 0, 8, OUTPUT1);
-  FIELD(u8, 8, 8, OUTPUT0);
-  FIELD(u8, 16, 8, CMD);
-  FIELD(u8, 24, 8, reserved);
+  u32 hex = 0;
 
-  constexpr USIChannelOut(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(hex, u8, 0, 8, OUTPUT1);
+  BFVIEW_M(hex, u8, 8, 8, OUTPUT0);
+  BFVIEW_M(hex, u8, 16, 8, CMD);
+  BFVIEW_M(hex, u8, 24, 8, reserved);
 };
 
 // SI Channel Input
 union USIChannelIn
 {
-  BitField2<u64> full;
+  u64 hex = 0;
   struct
   {
     // These are named backwards because big endian
     u32 hi, lo;
   };
-  FIELD_IN(full, u8, 0, 8, INPUT7);
-  FIELD_IN(full, u8, 8, 8, INPUT6);
-  FIELD_IN(full, u8, 16, 8, INPUT5);
-  FIELD_IN(full, u8, 24, 8, INPUT4);
-  FIELD_IN(full, u8, 32, 8, INPUT3);
-  FIELD_IN(full, u8, 40, 8, INPUT2);
-  FIELD_IN(full, u8, 48, 8, INPUT1);
-  FIELD_IN(full, u8, 56, 6, INPUT0);
-  FIELD_IN(full, bool, 62, 1, ERRLATCH);  // 0: no error  1: Error latched. Check SISR.
-  FIELD_IN(full, bool, 63, 1, ERRSTAT);   // 0: no error  1: error on last transfer
 
-  constexpr USIChannelIn(u64 val = 0) : full(val) {}
+  BFVIEW_M(hex, u8, 0, 8, INPUT7);
+  BFVIEW_M(hex, u8, 8, 8, INPUT6);
+  BFVIEW_M(hex, u8, 16, 8, INPUT5);
+  BFVIEW_M(hex, u8, 24, 8, INPUT4);
+  BFVIEW_M(hex, u8, 32, 8, INPUT3);
+  BFVIEW_M(hex, u8, 40, 8, INPUT2);
+  BFVIEW_M(hex, u8, 48, 8, INPUT1);
+  BFVIEW_M(hex, u8, 56, 6, INPUT0);
+  BFVIEW_M(hex, bool, 62, 1, ERRLATCH);  // 0: no error  1: Error latched. Check SISR.
+  BFVIEW_M(hex, bool, 63, 1, ERRSTAT);   // 0: no error  1: error on last transfer
 };
 
 // SI Channel
@@ -105,90 +104,99 @@ struct SSIChannel
 };
 
 // SI Poll: Controls how often a device is polled
-struct USIPoll : BitField2<u32>
+struct USIPoll
 {
-  FIELD(bool, 0, 1, VBCPY3);  // 1: write to output buffer only on vblank
-  FIELD(bool, 1, 1, VBCPY2);
-  FIELD(bool, 2, 1, VBCPY1);
-  FIELD(bool, 3, 1, VBCPY0);
-  FIELD(bool, 4, 1, EN3);  // Enable polling of channel
-  FIELD(bool, 5, 1, EN2);  //  does not affect communication RAM transfers
-  FIELD(bool, 6, 1, EN1);
-  FIELD(bool, 7, 1, EN0);
-  FIELD(u8, 8, 8, Y);     // Polls per frame
-  FIELD(u32, 16, 10, X);  // Polls per X lines. begins at vsync, min 7, max depends on video mode
-  FIELD(u32, 26, 6, reserved);
+  u32 hex = 0;
 
-  constexpr USIPoll(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(hex, bool, 0, 1, VBCPY3);  // 1: write to output buffer only on vblank
+  BFVIEW_M(hex, bool, 1, 1, VBCPY2);
+  BFVIEW_M(hex, bool, 2, 1, VBCPY1);
+  BFVIEW_M(hex, bool, 3, 1, VBCPY0);
+  BFVIEW_M(hex, bool, 4, 1, EN3);  // Enable polling of channel
+  BFVIEW_M(hex, bool, 5, 1, EN2);  //  does not affect communication RAM transfers
+  BFVIEW_M(hex, bool, 6, 1, EN1);
+  BFVIEW_M(hex, bool, 7, 1, EN0);
+  BFVIEW_M(hex, u8, 8, 8, Y);     // Polls per frame
+  BFVIEW_M(hex, u32, 16, 10, X);  // Polls per X lines.
+                                  // begins at vsync, min 7, max depends on video mode
+  BFVIEW_M(hex, u32, 26, 6, reserved);
 };
 
 // SI Communication Control Status Register
-struct USIComCSR : BitField2<u32>
+struct USIComCSR
 {
-  FIELD(bool, 0, 1, TSTART);  // write: start transfer  read: transfer status
-  FIELD(u32, 1, 2, CHANNEL);  // determines which SI channel will be
-                              // used on the communication interface.
-  FIELD(u32, 3, 3, reserved_1);
-  FIELD(bool, 6, 1, CALLBEN);  // Callback enable
-  FIELD(bool, 7, 1, CMDEN);    // Command enable?
-  FIELD(u32, 8, 7, INLNGTH);
-  FIELD(bool, 15, 1, reserved_2);
-  FIELD(u32, 16, 7, OUTLNGTH);  // Communication Channel Output Length in bytes
-  FIELD(bool, 23, 1, reserved_3);
-  FIELD(bool, 24, 1, CHANEN);      // Channel enable?
-  FIELD(u32, 25, 2, CHANNUM);      // Channel number?
-  FIELD(bool, 27, 1, RDSTINTMSK);  // Read Status Interrupt Status Mask
-  FIELD(bool, 28, 1, RDSTINT);     // Read Status Interrupt Status
-  FIELD(bool, 29, 1, COMERR);      // Communication Error (set 0)
-  FIELD(bool, 30, 1, TCINTMSK);    // Transfer Complete Interrupt Mask
-  FIELD(bool, 31, 1, TCINT);       // Transfer Complete Interrupt
+  u32 hex = 0;
 
-  constexpr USIComCSR(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(hex, bool, 0, 1, TSTART);  // write: start transfer  read: transfer status
+  BFVIEW_M(hex, u32, 1, 2, CHANNEL);  // determines which SI channel will be
+                                      // used on the communication interface.
+  BFVIEW_M(hex, u32, 3, 3, reserved_1);
+  BFVIEW_M(hex, bool, 6, 1, CALLBEN);  // Callback enable
+  BFVIEW_M(hex, bool, 7, 1, CMDEN);    // Command enable?
+  BFVIEW_M(hex, u32, 8, 7, INLNGTH);
+  BFVIEW_M(hex, bool, 15, 1, reserved_2);
+  BFVIEW_M(hex, u32, 16, 7, OUTLNGTH);  // Communication Channel Output Length in bytes
+  BFVIEW_M(hex, bool, 23, 1, reserved_3);
+  BFVIEW_M(hex, bool, 24, 1, CHANEN);      // Channel enable?
+  BFVIEW_M(hex, u32, 25, 2, CHANNUM);      // Channel number?
+  BFVIEW_M(hex, bool, 27, 1, RDSTINTMSK);  // Read Status Interrupt Status Mask
+  BFVIEW_M(hex, bool, 28, 1, RDSTINT);     // Read Status Interrupt Status
+  BFVIEW_M(hex, bool, 29, 1, COMERR);      // Communication Error (set 0)
+  BFVIEW_M(hex, bool, 30, 1, TCINTMSK);    // Transfer Complete Interrupt Mask
+  BFVIEW_M(hex, bool, 31, 1, TCINT);       // Transfer Complete Interrupt
+
+  USIComCSR() = default;
+  explicit USIComCSR(u32 value) : hex{value} {}
 };
 
 // SI Status Register
-struct USIStatusReg : BitField2<u32>
+struct USIStatusReg
 {
-  FIELD(bool, 0, 1, UNRUN3);       // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  FIELD(bool, 1, 1, OVRUN3);       // (RWC) write 1: bit cleared  read 1: overrun error
-  FIELD(bool, 2, 1, COLL3);        // (RWC) write 1: bit cleared  read 1: collision error
-  FIELD(bool, 3, 1, NOREP3);       // (RWC) write 1: bit cleared  read 1: response error
-  FIELD(bool, 4, 1, WRST3);        // (R) 1: buffer channel0 not copied
-  FIELD(bool, 5, 1, RDST3);        // (R) 1: new Data available
-  FIELD(bool, 6, 2, reserved_1);   // 7:6
-  FIELD(bool, 8, 1, UNRUN2);       // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  FIELD(bool, 9, 1, OVRUN2);       // (RWC) write 1: bit cleared  read 1: overrun error
-  FIELD(bool, 10, 1, COLL2);       // (RWC) write 1: bit cleared  read 1: collision error
-  FIELD(bool, 11, 1, NOREP2);      // (RWC) write 1: bit cleared  read 1: response error
-  FIELD(bool, 12, 1, WRST2);       // (R) 1: buffer channel0 not copied
-  FIELD(bool, 13, 1, RDST2);       // (R) 1: new Data available
-  FIELD(bool, 14, 2, reserved_2);  // 15:14
-  FIELD(bool, 16, 1, UNRUN1);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  FIELD(bool, 17, 1, OVRUN1);      // (RWC) write 1: bit cleared  read 1: overrun error
-  FIELD(bool, 18, 1, COLL1);       // (RWC) write 1: bit cleared  read 1: collision error
-  FIELD(bool, 19, 1, NOREP1);      // (RWC) write 1: bit cleared  read 1: response error
-  FIELD(bool, 20, 1, WRST1);       // (R) 1: buffer channel0 not copied
-  FIELD(bool, 21, 1, RDST1);       // (R) 1: new Data available
-  FIELD(bool, 22, 2, reserved_3);  // 23:22
-  FIELD(bool, 24, 1, UNRUN0);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  FIELD(bool, 25, 1, OVRUN0);      // (RWC) write 1: bit cleared  read 1: overrun error
-  FIELD(bool, 26, 1, COLL0);       // (RWC) write 1: bit cleared  read 1: collision error
-  FIELD(bool, 27, 1, NOREP0);      // (RWC) write 1: bit cleared  read 1: response error
-  FIELD(bool, 28, 1, WRST0);       // (R) 1: buffer channel0 not copied
-  FIELD(bool, 29, 1, RDST0);       // (R) 1: new Data available
-  FIELD(bool, 30, 1, reserved_4);
-  FIELD(bool, 31, 1, WR);  // (RW) write 1 start copy, read 0 copy done
+  u32 hex = 0;
 
-  constexpr USIStatusReg(u32 val = 0) : BitField2(val) {}
+  // clang-format off
+  BFVIEW_M(hex, bool,  0, 1, UNRUN3);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW_M(hex, bool,  1, 1, OVRUN3);      // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW_M(hex, bool,  2, 1, COLL3);       // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW_M(hex, bool,  3, 1, NOREP3);      // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW_M(hex, bool,  4, 1, WRST3);       // (R) 1: buffer channel0 not copied
+  BFVIEW_M(hex, bool,  5, 1, RDST3);       // (R) 1: new Data available
+  BFVIEW_M(hex, bool,  6, 2, reserved_1);  // 7:6
+  BFVIEW_M(hex, bool,  8, 1, UNRUN2);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW_M(hex, bool,  9, 1, OVRUN2);      // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW_M(hex, bool, 10, 1, COLL2);       // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW_M(hex, bool, 11, 1, NOREP2);      // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW_M(hex, bool, 12, 1, WRST2);       // (R) 1: buffer channel0 not copied
+  BFVIEW_M(hex, bool, 13, 1, RDST2);       // (R) 1: new Data available
+  BFVIEW_M(hex, bool, 14, 2, reserved_2);  // 15:14
+  BFVIEW_M(hex, bool, 16, 1, UNRUN1);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW_M(hex, bool, 17, 1, OVRUN1);      // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW_M(hex, bool, 18, 1, COLL1);       // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW_M(hex, bool, 19, 1, NOREP1);      // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW_M(hex, bool, 20, 1, WRST1);       // (R) 1: buffer channel0 not copied
+  BFVIEW_M(hex, bool, 21, 1, RDST1);       // (R) 1: new Data available
+  BFVIEW_M(hex, bool, 22, 2, reserved_3);  // 23:22
+  BFVIEW_M(hex, bool, 24, 1, UNRUN0);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW_M(hex, bool, 25, 1, OVRUN0);      // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW_M(hex, bool, 26, 1, COLL0);       // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW_M(hex, bool, 27, 1, NOREP0);      // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW_M(hex, bool, 28, 1, WRST0);       // (R) 1: buffer channel0 not copied
+  BFVIEW_M(hex, bool, 29, 1, RDST0);       // (R) 1: new Data available
+  BFVIEW_M(hex, bool, 30, 1, reserved_4);
+  BFVIEW_M(hex, bool, 31, 1, WR);          // (RW) write 1 start copy, read 0 copy done
+  // clang-format on
+
+  USIStatusReg() = default;
+  explicit USIStatusReg(u32 value) : hex{value} {}
 };
 
 // SI EXI Clock Count
-struct USIEXIClockCount : BitField2<u32>
+struct USIEXIClockCount
 {
-  FIELD(bool, 0, 1, LOCK);  // 1: prevents CPU from setting EXI clock to 32MHz
-  FIELD(u32, 1, 30, reserved);
+  u32 hex = 0;
 
-  constexpr USIEXIClockCount(u32 val = 0) : BitField2(val) {}
+  BFVIEW_M(hex, bool, 0, 1, LOCK);  // 1: prevents CPU from setting EXI clock to 32MHz
+  BFVIEW_M(hex, u32, 1, 30, reserved);
 };
 
 static CoreTiming::EventType* s_change_device_event;
@@ -389,8 +397,8 @@ void Init()
 
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
-    s_channel[i].out = 0;
-    s_channel[i].in = 0;
+    s_channel[i].out.hex = 0;
+    s_channel[i].in.hex = 0;
     s_channel[i].has_recent_device_change = false;
 
     if (Movie::IsMovieActive())
@@ -421,14 +429,14 @@ void Init()
     AddDevice(s_desired_device_types[i], i);
   }
 
-  s_poll = 0;
+  s_poll.hex = 0;
   s_poll.X() = 492;
 
-  s_com_csr = 0;
+  s_com_csr.hex = 0;
 
-  s_status_reg = 0;
+  s_status_reg.hex = 0;
 
-  s_exi_clock_count = 0;
+  s_exi_clock_count.hex = 0;
 
   // Supposedly set on reset, but logs from real Wii don't look like it is...
   // s_exi_clock_count.LOCK = 1;
@@ -487,28 +495,28 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     const u32 rdst_bit = 8 * (3 - i) + 5;
 
     mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
-                   MMIO::DirectRead<u32>(&s_channel[i].out.storage),
-                   MMIO::DirectWrite<u32>(&s_channel[i].out.storage));
+                   MMIO::DirectRead<u32>(&s_channel[i].out.hex),
+                   MMIO::DirectWrite<u32>(&s_channel[i].out.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     s_status_reg &= ~(1U << rdst_bit);
+                     s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
                      return s_channel[i].in.hi;
                    }),
                    MMIO::DirectWrite<u32>(&s_channel[i].in.hi));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
-                     s_status_reg &= ~(1U << rdst_bit);
+                     s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
                      return s_channel[i].in.lo;
                    }),
                    MMIO::DirectWrite<u32>(&s_channel[i].in.lo));
   }
 
-  mmio->Register(base | SI_POLL, MMIO::DirectRead<u32>(&s_poll.storage),
-                 MMIO::DirectWrite<u32>(&s_poll.storage));
+  mmio->Register(base | SI_POLL, MMIO::DirectRead<u32>(&s_poll.hex),
+                 MMIO::DirectWrite<u32>(&s_poll.hex));
 
-  mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&s_com_csr.storage),
+  mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&s_com_csr.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    const USIComCSR tmp_com_csr(val);
 
@@ -536,7 +544,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      UpdateInterrupts();
                  }));
 
-  mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&s_status_reg.storage),
+  mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&s_status_reg.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    const USIStatusReg tmp_status(val);
 
@@ -580,10 +588,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // send command to devices
                    if (tmp_status.WR())
                    {
-                     s_channel[0].device->SendCommand(s_channel[0].out, s_poll.EN0());
-                     s_channel[1].device->SendCommand(s_channel[1].out, s_poll.EN1());
-                     s_channel[2].device->SendCommand(s_channel[2].out, s_poll.EN2());
-                     s_channel[3].device->SendCommand(s_channel[3].out, s_poll.EN3());
+                     s_channel[0].device->SendCommand(s_channel[0].out.hex, s_poll.EN0());
+                     s_channel[1].device->SendCommand(s_channel[1].out.hex, s_poll.EN1());
+                     s_channel[2].device->SendCommand(s_channel[2].out.hex, s_poll.EN2());
+                     s_channel[3].device->SendCommand(s_channel[3].out.hex, s_poll.EN3());
 
                      s_status_reg.WR() = 0;
                      s_status_reg.WRST0() = 0;
@@ -593,8 +601,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    }
                  }));
 
-  mmio->Register(base | SI_EXI_CLOCK_COUNT, MMIO::DirectRead<u32>(&s_exi_clock_count.storage),
-                 MMIO::DirectWrite<u32>(&s_exi_clock_count.storage));
+  mmio->Register(base | SI_EXI_CLOCK_COUNT, MMIO::DirectRead<u32>(&s_exi_clock_count.hex),
+                 MMIO::DirectWrite<u32>(&s_exi_clock_count.hex));
 }
 
 void RemoveDevice(int device_number)
@@ -635,8 +643,8 @@ static void ChangeDeviceDeterministic(SIDevices device, int channel)
     device = SIDEVICE_NONE;
   }
 
-  s_channel[channel].out = 0;
-  s_channel[channel].in = 0;
+  s_channel[channel].out.hex = 0;
+  s_channel[channel].in.hex = 0;
 
   SetNoResponse(channel);
 

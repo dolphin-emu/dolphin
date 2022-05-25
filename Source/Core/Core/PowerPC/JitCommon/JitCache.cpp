@@ -95,7 +95,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
   JitBlock& b = block_map.emplace(physical_address, JitBlock())->second;
   b.effectiveAddress = em_address;
   b.physicalAddress = physical_address;
-  b.msrBits = MSR & JIT_CACHE_MSR_MASK;
+  b.msrBits = MSR.Hex & JIT_CACHE_MSR_MASK;
   b.linkData.clear();
   b.fast_block_map_index = 0;
   return &b;
@@ -169,8 +169,8 @@ const u8* JitBaseBlockCache::Dispatch()
 {
   JitBlock* block = fast_block_map[FastLookupIndexForAddress(PC)];
 
-  if (!block || block->effectiveAddress != PC || block->msrBits != (MSR & JIT_CACHE_MSR_MASK))
-    block = MoveBlockIntoFastCache(PC, MSR & JIT_CACHE_MSR_MASK);
+  if (!block || block->effectiveAddress != PC || block->msrBits != (MSR.Hex & JIT_CACHE_MSR_MASK))
+    block = MoveBlockIntoFastCache(PC, MSR.Hex & JIT_CACHE_MSR_MASK);
 
   if (!block)
     return nullptr;

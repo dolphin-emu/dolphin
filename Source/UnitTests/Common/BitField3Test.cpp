@@ -19,21 +19,21 @@ struct TestUnion
 {
   u64 hex;
 
-  BITFIELD_IN(hex, u64, 0, 64, full_u64);  // spans whole storage
-  BITFIELD_IN(hex, s64, 0, 64, full_s64);  // spans whole storage
+  BFVIEW_M(hex, u64, 0, 64, full_u64);  // spans whole storage
+  BFVIEW_M(hex, s64, 0, 64, full_s64);  // spans whole storage
 
-  BITFIELD_IN(hex, u64, 9, 3, regular_field_unsigned);   // a plain bitfield
-  BITFIELD_IN(hex, u64, 9, 3, regular_field_unsigned2);  // Just the very same bitfield again
-  BITFIELD_IN(hex, s64, 9, 3, regular_field_signed);     // Same bitfield, but different sign
+  BFVIEW_M(hex, u64, 9, 3, regular_field_unsigned);   // a plain bitfield
+  BFVIEW_M(hex, u64, 9, 3, regular_field_unsigned2);  // Just the very same bitfield again
+  BFVIEW_M(hex, s64, 9, 3, regular_field_signed);     // Same bitfield, but different sign
 
-  BITFIELD_IN(hex, s64, 30, 4, at_dword_boundary);  // goes over the boundary of two u32 values
+  BFVIEW_M(hex, s64, 30, 4, at_dword_boundary);  // goes over the boundary of two u32 values
 
-  BITFIELD_IN(hex, s64, 15, 1, signed_1bit);  // allowed values: -1 and 0
+  BFVIEW_M(hex, s64, 15, 1, signed_1bit);  // allowed values: -1 and 0
 
-  BITFIELD_IN(hex, bool, 63, 1, flag);
+  BFVIEW_M(hex, bool, 63, 1, flag);
 
-  BITFIELD_IN(hex, TestEnum, 16, 2, enum_1);
-  BITFIELD_IN(hex, TestEnum, 48, 2, enum_2);
+  BFVIEW_M(hex, TestEnum, 16, 2, enum_1);
+  BFVIEW_M(hex, TestEnum, 48, 2, enum_2);
 
   TestUnion() = default;
   constexpr TestUnion(u64 val) : hex(val) {}
@@ -246,10 +246,10 @@ struct TestUnion2
 {
   u32 hex;
 
-  BITFIELD_IN(hex, u32, 0, 2, a);
-  BITFIELD_IN(hex, u32, 2, 2, b);
-  BITFIELD_IN(hex, u32, 4, 2, c);
-  BITFIELDARRAY_IN(hex, u32, 0, 2, 3, arr);
+  BFVIEW_M(hex, u32, 0, 2, a);
+  BFVIEW_M(hex, u32, 2, 2, b);
+  BFVIEW_M(hex, u32, 4, 2, c);
+  BFVIEWARRAY_M(hex, u32, 0, 2, 3, arr);
 
   TestUnion2() = default;
   constexpr TestUnion2(u32 val) : hex(val) {}
@@ -325,10 +325,10 @@ struct TestUnion3
 {
   s32 hex;
 
-  BITFIELD_IN(hex, s32, 5, 2, a);
-  BITFIELD_IN(hex, s32, 7, 2, b);
-  BITFIELD_IN(hex, s32, 9, 2, c);
-  BITFIELDARRAY_IN(hex, s32, 5, 2, 3, arr);
+  BFVIEW_M(hex, s32, 5, 2, a);
+  BFVIEW_M(hex, s32, 7, 2, b);
+  BFVIEW_M(hex, s32, 9, 2, c);
+  BFVIEWARRAY_M(hex, s32, 5, 2, 3, arr);
 
   TestUnion3() = default;
   constexpr TestUnion3(s32 val) : hex(val) {}
@@ -403,11 +403,11 @@ struct TestUnion4
 {
   u64 hex;
 
-  BITFIELD_IN(hex, TestEnum, 30, 2, a);
-  BITFIELD_IN(hex, TestEnum, 32, 2, b);
-  BITFIELD_IN(hex, TestEnum, 34, 2, c);
-  BITFIELD_IN(hex, TestEnum, 36, 2, d);
-  BITFIELDARRAY_IN(hex, TestEnum, 30, 2, 4, arr);
+  BFVIEW_M(hex, TestEnum, 30, 2, a);
+  BFVIEW_M(hex, TestEnum, 32, 2, b);
+  BFVIEW_M(hex, TestEnum, 34, 2, c);
+  BFVIEW_M(hex, TestEnum, 36, 2, d);
+  BFVIEWARRAY_M(hex, TestEnum, 30, 2, 4, arr);
 
   TestUnion4() = default;
   constexpr TestUnion4(u64 val) : hex(val) {}
@@ -486,8 +486,8 @@ struct TestUnion5
 {
   u64 hex;
 
-  BITFIELDARRAY_IN(hex, u8, 0, 5, 6, arr1);
-  BITFIELDARRAY_IN(hex, bool, 30, 1, 4, arr2);
+  BFVIEWARRAY_M(hex, u8, 0, 5, 6, arr1);
+  BFVIEWARRAY_M(hex, bool, 30, 1, 4, arr2);
 
   TestUnion5() = default;
   TestUnion5(u64 val) : hex(val) {}

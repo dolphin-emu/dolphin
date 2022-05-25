@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
@@ -62,38 +62,39 @@ private:
   };
 
   // EXI Status Register - "Channel Parameter Register"
-  struct UEXI_STATUS : BitField2<u32>
+  struct UEXI_STATUS
   {
-    FIELD(bool, 0, 1, EXIINTMASK);
-    FIELD(bool, 1, 1, EXIINT);
-    FIELD(bool, 2, 1, TCINTMASK);
-    FIELD(bool, 3, 1, TCINT);
-    FIELD(u32, 4, 3, CLK);
-    FIELD(bool, 7, 1, CS0);
-    FIELD(bool, 8, 1, CS1);          // Channel 0 only
-    FIELD(bool, 9, 1, CS2);          // Channel 0 only
-    FIELD(bool, 10, 1, EXTINTMASK);  // Channel 0, 1 only
-    FIELD(bool, 11, 1, EXTINT);      // Channel 0, 1 only
-    FIELD(bool, 12, 1, EXT);         // Channel 0, 1 only
-                                     // True means external EXI device present
-    FIELD(bool, 13, 1, ROMDIS);      // Channel 0 only
-                                     // ROM Disable
-    FIELD(u32, 7, 3, CHIP_SELECT);   // CS0, CS1, and CS2 merged for convenience.
+    u32 Hex = 0;
+
+    BFVIEW_M(Hex, bool, 0, 1, EXIINTMASK);
+    BFVIEW_M(Hex, bool, 1, 1, EXIINT);
+    BFVIEW_M(Hex, bool, 2, 1, TCINTMASK);
+    BFVIEW_M(Hex, bool, 3, 1, TCINT);
+    BFVIEW_M(Hex, u32, 4, 3, CLK);
+    BFVIEW_M(Hex, bool, 7, 1, CS0);
+    BFVIEW_M(Hex, bool, 8, 1, CS1);          // Channel 0 only
+    BFVIEW_M(Hex, bool, 9, 1, CS2);          // Channel 0 only
+    BFVIEW_M(Hex, bool, 10, 1, EXTINTMASK);  // Channel 0, 1 only
+    BFVIEW_M(Hex, bool, 11, 1, EXTINT);      // Channel 0, 1 only
+    BFVIEW_M(Hex, bool, 12, 1, EXT);         // Channel 0, 1 only
+                                             // True means external EXI device present
+    BFVIEW_M(Hex, bool, 13, 1, ROMDIS);      // Channel 0 only
+                                             // ROM Disable
+    BFVIEW_M(Hex, u32, 7, 3, CHIP_SELECT);  // CS0, CS1, and CS2 merged for convenience.
 
     UEXI_STATUS() = default;
-    constexpr UEXI_STATUS(u32 val) : BitField2(val) {}
+    explicit UEXI_STATUS(u32 hex) : Hex{hex} {}
   };
 
   // EXI Control Register
-  struct UEXI_CONTROL : BitField2<u32>
+  struct UEXI_CONTROL
   {
-    FIELD(bool, 0, 1, TSTART);
-    FIELD(bool, 1, 1, DMA);
-    FIELD(u32, 2, 2, RW);
-    FIELD(u32, 4, 2, TLEN);
+    u32 Hex = 0;
 
-    UEXI_CONTROL() = default;
-    constexpr UEXI_CONTROL(u32 val) : BitField2(val) {}
+    BFVIEW_M(Hex, bool, 0, 1, TSTART);
+    BFVIEW_M(Hex, bool, 1, 1, DMA);
+    BFVIEW_M(Hex, u32, 2, 2, RW);
+    BFVIEW_M(Hex, u32, 4, 2, TLEN);
   };
 
   // STATE_TO_SAVE

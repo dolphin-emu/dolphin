@@ -153,7 +153,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   };
 
   for (auto& button : button_masks)
-    AddInput(new Button<u16>(&m_core_data.storage, button.first, button.second));
+    AddInput(new Button<u16>(&m_core_data.hex, button.first, button.second));
 
   static constexpr u16 dpad_masks[] = {
       EmuWiimote::PAD_UP,
@@ -173,7 +173,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
 
   // Raw accelerometer.
   for (std::size_t i = 0; i != std::size(dpad_masks); ++i)
-    AddInput(new Button<u16>(&m_core_data.storage, dpad_masks[i], named_directions[i]));
+    AddInput(new Button<u16>(&m_core_data.hex, dpad_masks[i], named_directions[i]));
 
   static constexpr std::array<std::array<const char*, 2>, 3> accel_names = {{
       {"Accel Left", "Accel Right"},

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
@@ -44,10 +44,10 @@ public:
 
     u8 pressure1;
 
-    BitField2<u8> _data1;
+    u8 _data1;
 
-    FIELD_IN(_data1, u8, 0, 3, pressure2);
-    FIELD_IN(_data1, u8, 3, 5, status);
+    BFVIEW_M(_data1, u8, 0, 3, pressure2);
+    BFVIEW_M(_data1, u8, 3, 5, status);
   };
 
   static_assert(6 == sizeof(DataFormat), "Wrong size.");

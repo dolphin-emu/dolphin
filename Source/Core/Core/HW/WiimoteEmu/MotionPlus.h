@@ -6,7 +6,7 @@
 #include <array>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -99,21 +99,21 @@ public:
     u8 roll1;
     u8 pitch1;
 
-    BitField2<u8> _data1;
-    BitField2<u8> _data2;
-    BitField2<u8> _data3;
+    u8 _data1;
+    u8 _data2;
+    u8 _data3;
 
-    FIELD_IN(_data1, bool, 0, 1, pitch_slow);
-    FIELD_IN(_data1, bool, 1, 1, yaw_slow);
-    FIELD_IN(_data1, u8, 2, 6, yaw2);
+    BFVIEW_M(_data1, bool, 0, 1, pitch_slow);
+    BFVIEW_M(_data1, bool, 1, 1, yaw_slow);
+    BFVIEW_M(_data1, u8, 2, 6, yaw2);
 
-    FIELD_IN(_data2, bool, 0, 1, extension_connected);
-    FIELD_IN(_data2, bool, 1, 1, roll_slow);
-    FIELD_IN(_data2, u8, 2, 6, roll2);
+    BFVIEW_M(_data2, bool, 0, 1, extension_connected);
+    BFVIEW_M(_data2, bool, 1, 1, roll_slow);
+    BFVIEW_M(_data2, u8, 2, 6, roll2);
 
-    FIELD_IN(_data3, bool, 0, 1, zero);
-    FIELD_IN(_data3, bool, 1, 1, is_mp_data);
-    FIELD_IN(_data3, u8, 2, 6, pitch2);
+    BFVIEW_M(_data3, bool, 0, 1, zero);
+    BFVIEW_M(_data3, bool, 1, 1, is_mp_data);
+    BFVIEW_M(_data3, u8, 2, 6, pitch2);
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 #pragma pack(pop)

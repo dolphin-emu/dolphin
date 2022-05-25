@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
@@ -36,25 +36,25 @@ public:
 #pragma pack(push, 1)
   struct DataFormat
   {
-    BitField2<u32> _data1;
+    u32 _data1;
     union
     {
-      BitField2<u16> _data2;
+      u16 _data2;
       u16 bt;  // buttons
     };
 
-    FIELD_IN(_data1, u32, 0, 6, sx);
-    FIELD_IN(_data1, u32, 6, 2, rtable3);
-    FIELD_IN(_data1, u32, 8, 6, sy);
-    FIELD_IN(_data1, u32, 14, 2, rtable2);
-    FIELD_IN(_data1, u32, 16, 1, rtable4);
-    FIELD_IN(_data1, u32, 17, 4, slider);
-    FIELD_IN(_data1, u32, 21, 2, dial2);
-    FIELD_IN(_data1, u32, 23, 1, rtable1);
-    FIELD_IN(_data1, u32, 24, 5, ltable1);
-    FIELD_IN(_data1, u32, 29, 3, dial1);
+    BFVIEW_M(_data1, u32, 0, 6, sx);
+    BFVIEW_M(_data1, u32, 6, 2, rtable3);
+    BFVIEW_M(_data1, u32, 8, 6, sy);
+    BFVIEW_M(_data1, u32, 14, 2, rtable2);
+    BFVIEW_M(_data1, u32, 16, 1, rtable4);
+    BFVIEW_M(_data1, u32, 17, 4, slider);
+    BFVIEW_M(_data1, u32, 21, 2, dial2);
+    BFVIEW_M(_data1, u32, 23, 1, rtable1);
+    BFVIEW_M(_data1, u32, 24, 5, ltable1);
+    BFVIEW_M(_data1, u32, 29, 3, dial1);
 
-    FIELD_IN(_data2, u16, 0, 1, ltable2);
+    BFVIEW_M(_data2, u16, 0, 1, ltable2);
   };
 #pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");

@@ -6,91 +6,95 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
 
 // --- Gekko Instruction ---
 
-struct UGeckoInstruction : BitField2<u32>
+struct UGeckoInstruction
 {
+  u32 hex = 0;
+
   UGeckoInstruction() = default;
-  constexpr UGeckoInstruction(u32 val) : BitField2(val) {}
+  UGeckoInstruction(u32 hex_) : hex(hex_) {}
 
   // Opcode
-  FIELD(u32, 26, 6, OPCD);     // Primary opcode
-  FIELD(u32, 1, 5, SUBOP5);    // A-Form Extended Opcode
-  FIELD(u32, 1, 10, SUBOP10);  // X, XL, XFX, XFL-Form Extended Opcode
-  FIELD(u32, 1, 6, SUBOP6);    // Variation of X-Form Extended Opcode (paired singles indexed)
+  BFVIEW_M(hex, u32, 26, 6, OPCD);     // Primary opcode
+  BFVIEW_M(hex, u32, 1, 5, SUBOP5);    // A-Form Extended Opcode
+  BFVIEW_M(hex, u32, 1, 10, SUBOP10);  // X, XL, XFX, XFL-Form Extended Opcode
+  BFVIEW_M(hex, u32, 1, 6, SUBOP6);  // Variation of X-Form Extended Opcode (paired singles indexed)
 
   // Branch
-  FIELD(bool, 0, 1, LK);  // Link bit
-                          // 1, if branch instructions should put the address of the next
-                          // instruction into the link register
-  FIELD(bool, 1, 1, AA);  // Absolute address bit
-                          // 1, if the immediate field represents an absolute address
-  FIELD(s32, 2, 24, LI);  // 24-bit signed immediate, right-extended by 0b00 (branch displacement)
-  FIELD(s32, 2, 14, BD);  // 14-bit signed immediate, right-extended by 0b00 (branch displacement)
-  FIELD(u32, 16, 5, BI);  // Branch condition
-  FIELD(u32, 21, 5, BO);  // Conditional branch control
+  BFVIEW_M(hex, bool, 0, 1, LK);  // Link bit
+                                  // 1, if branch instructions should put the address of the next
+                                  // instruction into the link register
+  BFVIEW_M(hex, bool, 1, 1, AA);  // Absolute address bit
+                                  // 1, if the immediate field represents an absolute address
+  BFVIEW_M(hex, s32, 2, 24, LI);  // 24-bit signed immediate, right-extended by 0b00
+                                  // (branch displacement)
+  BFVIEW_M(hex, s32, 2, 14, BD);  // 14-bit signed immediate, right-extended by 0b00
+                                  // (branch displacement)
+  BFVIEW_M(hex, u32, 16, 5, BI);  // Branch condition
+  BFVIEW_M(hex, u32, 21, 5, BO);  // Conditional branch control
 
   // General-Purpose Register
-  FIELD(u32, 11, 5, RB);  // Source GPR
-  FIELD(u32, 16, 5, RA);  // Source GPR
-  FIELD(u32, 21, 5, RS);  // Source GPR
-  FIELD(u32, 21, 5, RD);  // Destination GPR
+  BFVIEW_M(hex, u32, 11, 5, RB);  // Source GPR
+  BFVIEW_M(hex, u32, 16, 5, RA);  // Source GPR
+  BFVIEW_M(hex, u32, 21, 5, RS);  // Source GPR
+  BFVIEW_M(hex, u32, 21, 5, RD);  // Destination GPR
 
   // Floating-Point Register
-  FIELD(u32, 6, 5, FC);   // Source FPR
-  FIELD(u32, 11, 5, FB);  // Source FPR
-  FIELD(u32, 16, 5, FA);  // Source FPR
-  FIELD(u32, 21, 5, FS);  // Source FPR
-  FIELD(u32, 21, 5, FD);  // Destination FPR
+  BFVIEW_M(hex, u32, 6, 5, FC);   // Source FPR
+  BFVIEW_M(hex, u32, 11, 5, FB);  // Source FPR
+  BFVIEW_M(hex, u32, 16, 5, FA);  // Source FPR
+  BFVIEW_M(hex, u32, 21, 5, FS);  // Source FPR
+  BFVIEW_M(hex, u32, 21, 5, FD);  // Destination FPR
 
   // Compare Register Bit (crxor)
-  FIELD(u32, 11, 5, CRBB);  // Source bit in the CR
-  FIELD(u32, 16, 5, CRBA);  // Source bit in the CR
-  FIELD(u32, 21, 5, CRBD);  // Destination bit in the CR
+  BFVIEW_M(hex, u32, 11, 5, CRBB);  // Source bit in the CR
+  BFVIEW_M(hex, u32, 16, 5, CRBA);  // Source bit in the CR
+  BFVIEW_M(hex, u32, 21, 5, CRBD);  // Destination bit in the CR
 
   // Compare Register Field
-  FIELD(u32, 18, 3, CRFS);  // Source field in the CR or FPSCR
-  FIELD(u32, 23, 3, CRFD);  // Destination field in CR or FPSCR
+  BFVIEW_M(hex, u32, 18, 3, CRFS);  // Source field in the CR or FPSCR
+  BFVIEW_M(hex, u32, 23, 3, CRFD);  // Destination field in CR or FPSCR
 
   // Other Register Types
-  FIELD(u32, 11, 10, SPR);  // Special-purpose register
-  FIELD(u32, 11, 5, SPRU);  // Upper special-purpose register
-  FIELD(u32, 16, 5, SPRL);  // Lower special-purpose register
-  FIELD(u32, 11, 10, TBR);  // Time base register (mftb)
-  FIELD(u32, 11, 5, TBRU);  // Upper time base register
-  FIELD(u32, 16, 5, TBRL);  // Lower time base register
-  FIELD(u32, 16, 4, SR);    // Segment register
+  BFVIEW_M(hex, u32, 11, 10, SPR);  // Special-purpose register
+  BFVIEW_M(hex, u32, 11, 5, SPRU);  // Upper special-purpose register
+  BFVIEW_M(hex, u32, 16, 5, SPRL);  // Lower special-purpose register
+  BFVIEW_M(hex, u32, 11, 10, TBR);  // Time base register (mftb)
+  BFVIEW_M(hex, u32, 11, 5, TBRU);  // Upper time base register
+  BFVIEW_M(hex, u32, 16, 5, TBRL);  // Lower time base register
+  BFVIEW_M(hex, u32, 16, 4, SR);    // Segment register
 
   // Immediate
-  FIELD(u16, 0, 16, UIMM);     // 16-bit unsigned immediate
-  FIELD(s16, 0, 16, SIMM_16);  // 16-bit signed immediate
-  FIELD(s16, 0, 12, SIMM_12);  // 12-bit signed immediate (Paired-Singles Load/Store)
-  FIELD(u32, 11, 5, NB);       // Number of bytes to use in lswi/stswi (0 means 32 bytes)
+  BFVIEW_M(hex, u16, 0, 16, UIMM);     // 16-bit unsigned immediate
+  BFVIEW_M(hex, s16, 0, 16, SIMM_16);  // 16-bit signed immediate
+  BFVIEW_M(hex, s16, 0, 12, SIMM_12);  // 12-bit signed immediate (Paired-Singles Load/Store)
+  BFVIEW_M(hex, u32, 11, 5, NB);       // Number of bytes to use in lswi/stswi (0 means 32 bytes)
 
   // Shift / Rotate (rlwinmx)
-  FIELD(u32, 1, 5, ME);   // Mask end
-  FIELD(u32, 6, 5, MB);   // Mask begin
-  FIELD(u32, 11, 5, SH);  // Shift amount
+  BFVIEW_M(hex, u32, 1, 5, ME);   // Mask end
+  BFVIEW_M(hex, u32, 6, 5, MB);   // Mask begin
+  BFVIEW_M(hex, u32, 11, 5, SH);  // Shift amount
 
   // Paired Single Quantized Load/Store
-  FIELD(u32, 12, 3, I);    // Graphics quantization register to use
-  FIELD(bool, 15, 1, W);   // 0: paired single, 1: scalar
-  FIELD(u32, 7, 3, Ix);    // Graphics quantization register to use (indexed)
-  FIELD(bool, 10, 1, Wx);  // 0: paired single, 1: scalar (indexed)
+  BFVIEW_M(hex, u32, 12, 3, I);    // Graphics quantization register to use
+  BFVIEW_M(hex, bool, 15, 1, W);   // 0: paired single, 1: scalar
+  BFVIEW_M(hex, u32, 7, 3, Ix);    // Graphics quantization register to use (indexed)
+  BFVIEW_M(hex, bool, 10, 1, Wx);  // 0: paired single, 1: scalar (indexed)
 
   // Other
-  FIELD(bool, 0, 1, Rc);   // Record bit
-                           // 1, if the condition register should be updated by this
-                           // instruction
-  FIELD(bool, 10, 1, OE);  // Overflow enable
-  FIELD(u32, 12, 8, CRM);  // Field mask, identifies the CR fields to be updated by mtcrf
-  FIELD(u32, 17, 8, FM);   // Field mask, identifies the FPSCR fields to be updated by mtfsf
-  FIELD(u32, 21, 5, TO);   // Conditions on which to trap
-  FIELD(bool, 21, 1, L);   // Use low 32 bits for comparison (invalid for 32-bit CPUs)
+  BFVIEW_M(hex, bool, 0, 1, Rc);   // Record bit
+                                   // 1, if the condition register should be updated by this
+                                   // instruction
+  BFVIEW_M(hex, bool, 10, 1, OE);  // Overflow enable
+  BFVIEW_M(hex, u32, 12, 8, CRM);  // Field mask, identifies the CR fields to be updated by mtcrf
+  BFVIEW_M(hex, u32, 17, 8, FM);   // Field mask, identifies the FPSCR fields to be updated by mtfsf
+  BFVIEW_M(hex, u32, 21, 5, TO);   // Conditions on which to trap
+  BFVIEW_M(hex, bool, 21, 1, L);   // Use low 32 bits for comparison (invalid for 32-bit CPUs)
 };
 
 // Used in implementations of rlwimi, rlwinm, and rlwnm
@@ -128,15 +132,17 @@ enum EQuantizeType : u32
 };
 
 // GQR Register
-struct UGQR : BitField2<u32>
+struct UGQR
 {
-  FIELD(EQuantizeType, 0, 3, st_type)
-  FIELD(u32, 8, 6, st_scale)
-  FIELD(EQuantizeType, 16, 3, ld_type)
-  FIELD(u32, 24, 6, ld_scale)
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, EQuantizeType, 0, 3, st_type)
+  BFVIEW_M(Hex, u32, 8, 6, st_scale)
+  BFVIEW_M(Hex, EQuantizeType, 16, 3, ld_type)
+  BFVIEW_M(Hex, u32, 24, 6, ld_scale)
 
   UGQR() = default;
-  constexpr UGQR(u32 val) : BitField2{val} {}
+  explicit UGQR(u32 hex_) : Hex{hex_} {}
 };
 
 #define XER_CA_SHIFT 29
@@ -145,46 +151,50 @@ struct UGQR : BitField2<u32>
 #define XER_OV_MASK 1
 #define XER_SO_MASK 2
 // XER
-struct UReg_XER : BitField2<u32>
+struct UReg_XER
 {
-  FIELD(u32, 0, 7, BYTE_COUNT)
-  FIELD(u32, 7, 1, reserved_1)
-  FIELD(u32, 8, 8, BYTE_CMP)
-  FIELD(u32, 16, 13, reserved_2)
-  FIELD(u32, 29, 1, CA)
-  FIELD(u32, 30, 1, OV)
-  FIELD(u32, 31, 1, SO)
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 7, BYTE_COUNT)
+  BFVIEW_M(Hex, u32, 7, 1, reserved_1)
+  BFVIEW_M(Hex, u32, 8, 8, BYTE_CMP)
+  BFVIEW_M(Hex, u32, 16, 13, reserved_2)
+  BFVIEW_M(Hex, u32, 29, 1, CA)
+  BFVIEW_M(Hex, u32, 30, 1, OV)
+  BFVIEW_M(Hex, u32, 31, 1, SO)
 
   UReg_XER() = default;
-  constexpr UReg_XER(u32 val) : BitField2{val} {}
+  explicit UReg_XER(u32 hex_) : Hex{hex_} {}
 };
 
 // Machine State Register
-struct UReg_MSR : BitField2<u32>
+struct UReg_MSR
 {
-  FIELD(bool, 0, 1, LE);
-  FIELD(bool, 1, 1, RI);
-  FIELD(bool, 2, 1, PM);
-  FIELD(u32, 3, 1, reserved_1);
-  FIELD(bool, 4, 1, DR);
-  FIELD(bool, 5, 1, IR);
-  FIELD(bool, 6, 1, IP);
-  FIELD(u32, 7, 1, reserved_2);
-  FIELD(bool, 8, 1, FE1);
-  FIELD(bool, 9, 1, BE);
-  FIELD(bool, 10, 1, SE);
-  FIELD(bool, 11, 1, FE0);
-  FIELD(bool, 12, 1, MCHECK);
-  FIELD(bool, 13, 1, FP);
-  FIELD(bool, 14, 1, PR);
-  FIELD(bool, 15, 1, EE);
-  FIELD(bool, 16, 1, ILE);
-  FIELD(u32, 17, 1, reserved_3);
-  FIELD(bool, 18, 1, POW);
-  FIELD(u32, 19, 13, reserved_4);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, bool, 0, 1, LE);
+  BFVIEW_M(Hex, bool, 1, 1, RI);
+  BFVIEW_M(Hex, bool, 2, 1, PM);
+  BFVIEW_M(Hex, u32, 3, 1, reserved_1);
+  BFVIEW_M(Hex, bool, 4, 1, DR);
+  BFVIEW_M(Hex, bool, 5, 1, IR);
+  BFVIEW_M(Hex, bool, 6, 1, IP);
+  BFVIEW_M(Hex, u32, 7, 1, reserved_2);
+  BFVIEW_M(Hex, bool, 8, 1, FE1);
+  BFVIEW_M(Hex, bool, 9, 1, BE);
+  BFVIEW_M(Hex, bool, 10, 1, SE);
+  BFVIEW_M(Hex, bool, 11, 1, FE0);
+  BFVIEW_M(Hex, bool, 12, 1, MCHECK);
+  BFVIEW_M(Hex, bool, 13, 1, FP);
+  BFVIEW_M(Hex, bool, 14, 1, PR);
+  BFVIEW_M(Hex, bool, 15, 1, EE);
+  BFVIEW_M(Hex, bool, 16, 1, ILE);
+  BFVIEW_M(Hex, u32, 17, 1, reserved_3);
+  BFVIEW_M(Hex, bool, 18, 1, POW);
+  BFVIEW_M(Hex, u32, 19, 13, reserved_4);
 
   UReg_MSR() = default;
-  constexpr UReg_MSR(u32 val) : BitField2{val} {}
+  explicit UReg_MSR(u32 hex_) : Hex{hex_} {}
 };
 
 #define FPRF_SHIFT 12
@@ -226,63 +236,65 @@ enum FPSCRExceptionFlag : u32
 };
 
 // Floating Point Status and Control Register
-struct UReg_FPSCR : BitField2<u32>
+struct UReg_FPSCR
 {
+  u32 Hex = 0;
+
   // Rounding mode (towards: nearest, zero, +inf, -inf)
-  FIELD(FPURoundMode::RoundMode, 0, 2, RN);
+  BFVIEW_M(Hex, FPURoundMode::RoundMode, 0, 2, RN);
   // Non-IEEE mode enable (aka flush-to-zero)
-  FIELD(bool, 2, 1, NI);
+  BFVIEW_M(Hex, bool, 2, 1, NI);
   // Inexact exception enable
-  FIELD(bool, 3, 1, XE);
+  BFVIEW_M(Hex, bool, 3, 1, XE);
   // IEEE division by zero exception enable
-  FIELD(bool, 4, 1, ZE);
+  BFVIEW_M(Hex, bool, 4, 1, ZE);
   // IEEE underflow exception enable
-  FIELD(bool, 5, 1, UE);
+  BFVIEW_M(Hex, bool, 5, 1, UE);
   // IEEE overflow exception enable
-  FIELD(bool, 6, 1, OE);
+  BFVIEW_M(Hex, bool, 6, 1, OE);
   // Invalid operation exception enable
-  FIELD(bool, 7, 1, VE);
+  BFVIEW_M(Hex, bool, 7, 1, VE);
   // Invalid operation exception for integer conversion (sticky)
-  FIELD(bool, 8, 1, VXCVI);
+  BFVIEW_M(Hex, bool, 8, 1, VXCVI);
   // Invalid operation exception for square root (sticky)
-  FIELD(bool, 9, 1, VXSQRT);
+  BFVIEW_M(Hex, bool, 9, 1, VXSQRT);
   // Invalid operation exception for software request (sticky)
-  FIELD(bool, 10, 1, VXSOFT);
+  BFVIEW_M(Hex, bool, 10, 1, VXSOFT);
   // reserved
-  FIELD(bool, 11, 1, reserved);
+  BFVIEW_M(Hex, bool, 11, 1, reserved);
   // Floating point result flags (includes FPCC) (not sticky)
   // from more to less significand: class, <, >, =, ?
-  FIELD(bool, 12, 5, FPRF);
+  BFVIEW_M(Hex, bool, 12, 5, FPRF);
   // Fraction inexact (not sticky)
-  FIELD(bool, 17, 1, FI);
+  BFVIEW_M(Hex, bool, 17, 1, FI);
   // Fraction rounded (not sticky)
-  FIELD(bool, 18, 1, FR);
+  BFVIEW_M(Hex, bool, 18, 1, FR);
   // Invalid operation exception for invalid comparison (sticky)
-  FIELD(bool, 19, 1, VXVC);
+  BFVIEW_M(Hex, bool, 19, 1, VXVC);
   // Invalid operation exception for inf * 0 (sticky)
-  FIELD(bool, 20, 1, VXIMZ);
+  BFVIEW_M(Hex, bool, 20, 1, VXIMZ);
   // Invalid operation exception for 0 / 0 (sticky)
-  FIELD(bool, 21, 1, VXZDZ);
+  BFVIEW_M(Hex, bool, 21, 1, VXZDZ);
   // Invalid operation exception for inf / inf (sticky)
-  FIELD(bool, 22, 1, VXIDI);
+  BFVIEW_M(Hex, bool, 22, 1, VXIDI);
   // Invalid operation exception for inf - inf (sticky)
-  FIELD(bool, 23, 1, VXISI);
+  BFVIEW_M(Hex, bool, 23, 1, VXISI);
   // Invalid operation exception for SNaN (sticky)
-  FIELD(bool, 24, 1, VXSNAN);
+  BFVIEW_M(Hex, bool, 24, 1, VXSNAN);
   // Inexact exception (sticky)
-  FIELD(bool, 25, 1, XX);
+  BFVIEW_M(Hex, bool, 25, 1, XX);
   // Division by zero exception (sticky)
-  FIELD(bool, 26, 1, ZX);
+  BFVIEW_M(Hex, bool, 26, 1, ZX);
   // Underflow exception (sticky)
-  FIELD(bool, 27, 1, UX);
+  BFVIEW_M(Hex, bool, 27, 1, UX);
   // Overflow exception (sticky)
-  FIELD(bool, 28, 1, OX);
+  BFVIEW_M(Hex, bool, 28, 1, OX);
   // Invalid operation exception summary (not sticky)
-  FIELD(bool, 29, 1, VX);
+  BFVIEW_M(Hex, bool, 29, 1, VX);
   // Enabled exception summary (not sticky)
-  FIELD(bool, 30, 1, FEX);
+  BFVIEW_M(Hex, bool, 30, 1, FEX);
   // Exception summary (sticky)
-  FIELD(bool, 31, 1, FX);
+  BFVIEW_M(Hex, bool, 31, 1, FX);
 
   // The FPSCR's 20th bit (11th from a little endian perspective)
   // is defined as reserved and set to zero. Attempts to modify it
@@ -290,29 +302,29 @@ struct UReg_FPSCR : BitField2<u32>
   static constexpr u32 mask = 0xFFFFF7FF;
 
   UReg_FPSCR() = default;
-  constexpr UReg_FPSCR(u32 val) : BitField2{val & mask} {}
+  explicit UReg_FPSCR(u32 hex_) : Hex{hex_ & mask} {}
 
   UReg_FPSCR& operator=(u32 value)
   {
-    BitField2::operator=(value& mask);
+    Hex = value & mask;
     return *this;
   }
 
   UReg_FPSCR& operator|=(u32 value)
   {
-    BitField2::operator|=(value& mask);
+    Hex |= value & mask;
     return *this;
   }
 
   UReg_FPSCR& operator&=(u32 value)
   {
-    BitField2::operator&=(value& mask);
+    Hex &= value;
     return *this;
   }
 
   UReg_FPSCR& operator^=(u32 value)
   {
-    BitField2::operator^=(value& mask);
+    Hex ^= value & mask;
     return *this;
   }
 
@@ -324,253 +336,276 @@ struct UReg_FPSCR : BitField2<u32>
 };
 
 // Hardware Implementation-Dependent Register 0
-struct UReg_HID0 : BitField2<u32>
+struct UReg_HID0
 {
-  FIELD(bool, 0, 1, NOOPTI);
-  FIELD(bool, 1, 1, reserved_1);
-  FIELD(bool, 2, 1, BHT);
-  FIELD(bool, 3, 1, ABE);
-  FIELD(bool, 4, 1, reserved_2);
-  FIELD(bool, 5, 1, BTIC);
-  FIELD(bool, 6, 1, DCFA);
-  FIELD(bool, 7, 1, SGE);
-  FIELD(bool, 8, 1, IFEM);
-  FIELD(bool, 9, 1, SPD);
-  FIELD(bool, 10, 1, DCFI);
-  FIELD(bool, 11, 1, ICFI);
-  FIELD(bool, 12, 1, DLOCK);
-  FIELD(bool, 13, 1, ILOCK);
-  FIELD(bool, 14, 1, DCE);
-  FIELD(bool, 15, 1, ICE);
-  FIELD(bool, 16, 1, NHR);
-  FIELD(bool, 17, 3, reserved_3);
-  FIELD(bool, 20, 1, DPM);
-  FIELD(bool, 21, 1, SLEEP);
-  FIELD(bool, 22, 1, NAP);
-  FIELD(bool, 23, 1, DOZE);
-  FIELD(bool, 24, 1, PAR);
-  FIELD(bool, 25, 1, ECLK);
-  FIELD(bool, 26, 1, reserved_4);
-  FIELD(bool, 27, 1, BCLK);
-  FIELD(bool, 28, 1, EBD);
-  FIELD(bool, 29, 1, EBA);
-  FIELD(bool, 30, 1, DBP);
-  FIELD(bool, 31, 1, EMCP);
+  u32 Hex = 0;
 
-  UReg_HID0() = default;
-  constexpr UReg_HID0(u32 val) : BitField2(val) {}
+  BFVIEW_M(Hex, bool, 0, 1, NOOPTI);
+  BFVIEW_M(Hex, bool, 1, 1, reserved_1);
+  BFVIEW_M(Hex, bool, 2, 1, BHT);
+  BFVIEW_M(Hex, bool, 3, 1, ABE);
+  BFVIEW_M(Hex, bool, 4, 1, reserved_2);
+  BFVIEW_M(Hex, bool, 5, 1, BTIC);
+  BFVIEW_M(Hex, bool, 6, 1, DCFA);
+  BFVIEW_M(Hex, bool, 7, 1, SGE);
+  BFVIEW_M(Hex, bool, 8, 1, IFEM);
+  BFVIEW_M(Hex, bool, 9, 1, SPD);
+  BFVIEW_M(Hex, bool, 10, 1, DCFI);
+  BFVIEW_M(Hex, bool, 11, 1, ICFI);
+  BFVIEW_M(Hex, bool, 12, 1, DLOCK);
+  BFVIEW_M(Hex, bool, 13, 1, ILOCK);
+  BFVIEW_M(Hex, bool, 14, 1, DCE);
+  BFVIEW_M(Hex, bool, 15, 1, ICE);
+  BFVIEW_M(Hex, bool, 16, 1, NHR);
+  BFVIEW_M(Hex, bool, 17, 3, reserved_3);
+  BFVIEW_M(Hex, bool, 20, 1, DPM);
+  BFVIEW_M(Hex, bool, 21, 1, SLEEP);
+  BFVIEW_M(Hex, bool, 22, 1, NAP);
+  BFVIEW_M(Hex, bool, 23, 1, DOZE);
+  BFVIEW_M(Hex, bool, 24, 1, PAR);
+  BFVIEW_M(Hex, bool, 25, 1, ECLK);
+  BFVIEW_M(Hex, bool, 26, 1, reserved_4);
+  BFVIEW_M(Hex, bool, 27, 1, BCLK);
+  BFVIEW_M(Hex, bool, 28, 1, EBD);
+  BFVIEW_M(Hex, bool, 29, 1, EBA);
+  BFVIEW_M(Hex, bool, 30, 1, DBP);
+  BFVIEW_M(Hex, bool, 31, 1, EMCP);
 };
 
 // Hardware Implementation-Dependent Register 2
-struct UReg_HID2 : BitField2<u32>
+struct UReg_HID2
 {
-  FIELD(u32, 0, 16, reserved);
-  FIELD(bool, 16, 1, DQOEE);
-  FIELD(bool, 17, 1, DCMEE);
-  FIELD(bool, 18, 1, DNCEE);
-  FIELD(bool, 19, 1, DCHEE);
-  FIELD(bool, 20, 1, DQOERR);
-  FIELD(bool, 21, 1, DCMERR);
-  FIELD(bool, 22, 1, DNCERR);
-  FIELD(bool, 23, 1, DCHERR);
-  FIELD(bool, 24, 4, DMAQL);
-  FIELD(bool, 28, 1, LCE);
-  FIELD(bool, 29, 1, PSE);
-  FIELD(bool, 30, 1, WPE);
-  FIELD(bool, 31, 1, LSQE);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 16, reserved);
+  BFVIEW_M(Hex, bool, 16, 1, DQOEE);
+  BFVIEW_M(Hex, bool, 17, 1, DCMEE);
+  BFVIEW_M(Hex, bool, 18, 1, DNCEE);
+  BFVIEW_M(Hex, bool, 19, 1, DCHEE);
+  BFVIEW_M(Hex, bool, 20, 1, DQOERR);
+  BFVIEW_M(Hex, bool, 21, 1, DCMERR);
+  BFVIEW_M(Hex, bool, 22, 1, DNCERR);
+  BFVIEW_M(Hex, bool, 23, 1, DCHERR);
+  BFVIEW_M(Hex, bool, 24, 4, DMAQL);
+  BFVIEW_M(Hex, bool, 28, 1, LCE);
+  BFVIEW_M(Hex, bool, 29, 1, PSE);
+  BFVIEW_M(Hex, bool, 30, 1, WPE);
+  BFVIEW_M(Hex, bool, 31, 1, LSQE);
 
   UReg_HID2() = default;
-  constexpr UReg_HID2(u32 val) : BitField2(val) {}
+  explicit UReg_HID2(u32 hex_) : Hex{hex_} {}
 };
 
 // Hardware Implementation-Dependent Register 4
-struct UReg_HID4 : BitField2<u32>
+struct UReg_HID4
 {
-  FIELD(u32, 0, 20, reserved_1);
-  FIELD(bool, 20, 1, L2CFI);
-  FIELD(bool, 21, 1, L2MUM);
-  FIELD(bool, 22, 1, DBP);
-  FIELD(bool, 23, 1, LPE);
-  FIELD(bool, 24, 1, ST0);
-  FIELD(bool, 25, 1, SBE);
-  FIELD(u32, 26, 1, reserved_2);
-  FIELD(bool, 27, 2, BPD);
-  FIELD(bool, 29, 2, L2FM);
-  FIELD(u32, 31, 1, reserved_3);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 20, reserved_1);
+  BFVIEW_M(Hex, bool, 20, 1, L2CFI);
+  BFVIEW_M(Hex, bool, 21, 1, L2MUM);
+  BFVIEW_M(Hex, bool, 22, 1, DBP);
+  BFVIEW_M(Hex, bool, 23, 1, LPE);
+  BFVIEW_M(Hex, bool, 24, 1, ST0);
+  BFVIEW_M(Hex, bool, 25, 1, SBE);
+  BFVIEW_M(Hex, u32, 26, 1, reserved_2);
+  BFVIEW_M(Hex, bool, 27, 2, BPD);
+  BFVIEW_M(Hex, bool, 29, 2, L2FM);
+  BFVIEW_M(Hex, u32, 31, 1, reserved_3);
 
   UReg_HID4() = default;
-  constexpr UReg_HID4(u32 val) : BitField2(val) {}
+  explicit UReg_HID4(u32 hex_) : Hex{hex_} {}
 };
 
 // SDR1 - Page Table format
-struct UReg_SDR1 : BitField2<u32>
+struct UReg_SDR1
 {
-  FIELD(u32, 0, 9, htabmask);
-  FIELD(u32, 9, 7, reserved);
-  FIELD(u32, 16, 16, htaborg);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 9, htabmask);
+  BFVIEW_M(Hex, u32, 9, 7, reserved);
+  BFVIEW_M(Hex, u32, 16, 16, htaborg);
 
   UReg_SDR1() = default;
-  constexpr UReg_SDR1(u32 val) : BitField2(val) {}
+  explicit UReg_SDR1(u32 hex_) : Hex{hex_} {}
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
-struct UReg_MMCR0 : BitField2<u32>
+struct UReg_MMCR0
 {
-  FIELD(u32, 0, 6, PMC2SELECT);
-  FIELD(u32, 6, 7, PMC1SELECT);
-  FIELD(bool, 13, 1, PMCTRIGGER);
-  FIELD(bool, 14, 1, PMCINTCONTROL);
-  FIELD(bool, 15, 1, PMC1INTCONTROL);
-  FIELD(u32, 16, 6, THRESHOLD);
-  FIELD(bool, 22, 1, INTONBITTRANS);
-  FIELD(u32, 23, 2, RTCSELECT);
-  FIELD(bool, 25, 1, DISCOUNT);
-  FIELD(bool, 26, 1, ENINT);
-  FIELD(bool, 27, 1, DMR);
-  FIELD(bool, 28, 1, DMS);
-  FIELD(bool, 29, 1, DU);
-  FIELD(bool, 30, 1, DP);
-  FIELD(bool, 31, 1, DIS);
+  u32 Hex = 0;
 
-  UReg_MMCR0() = default;
-  constexpr UReg_MMCR0(u32 val) : BitField2(val) {}
+  BFVIEW_M(Hex, u32, 0, 6, PMC2SELECT);
+  BFVIEW_M(Hex, u32, 6, 7, PMC1SELECT);
+  BFVIEW_M(Hex, bool, 13, 1, PMCTRIGGER);
+  BFVIEW_M(Hex, bool, 14, 1, PMCINTCONTROL);
+  BFVIEW_M(Hex, bool, 15, 1, PMC1INTCONTROL);
+  BFVIEW_M(Hex, u32, 16, 6, THRESHOLD);
+  BFVIEW_M(Hex, bool, 22, 1, INTONBITTRANS);
+  BFVIEW_M(Hex, u32, 23, 2, RTCSELECT);
+  BFVIEW_M(Hex, bool, 25, 1, DISCOUNT);
+  BFVIEW_M(Hex, bool, 26, 1, ENINT);
+  BFVIEW_M(Hex, bool, 27, 1, DMR);
+  BFVIEW_M(Hex, bool, 28, 1, DMS);
+  BFVIEW_M(Hex, bool, 29, 1, DU);
+  BFVIEW_M(Hex, bool, 30, 1, DP);
+  BFVIEW_M(Hex, bool, 31, 1, DIS);
 };
 
 // MMCR1 - Monitor Mode Control Register 1 format
-struct UReg_MMCR1 : BitField2<u32>
+struct UReg_MMCR1
 {
-  FIELD(u32, 0, 22, reserved);
-  FIELD(u32, 22, 5, PMC4SELECT);
-  FIELD(u32, 27, 5, PMC3SELECT);
+  u32 Hex = 0;
 
-  UReg_MMCR1() = default;
-  UReg_MMCR1(u32 val) : BitField2(val) {}
+  BFVIEW_M(Hex, u32, 0, 22, reserved);
+  BFVIEW_M(Hex, u32, 22, 5, PMC4SELECT);
+  BFVIEW_M(Hex, u32, 27, 5, PMC3SELECT);
 };
 
 // Write Pipe Address Register
-struct UReg_WPAR : BitField2<u32>
+struct UReg_WPAR
 {
-  FIELD(bool, 0, 1, BNE);
-  FIELD(u32, 1, 4, reserved);
-  FIELD(u32, 5, 27, GB_ADDR);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, bool, 0, 1, BNE);
+  BFVIEW_M(Hex, u32, 1, 4, reserved);
+  BFVIEW_M(Hex, u32, 5, 27, GB_ADDR);
 
   UReg_WPAR() = default;
-  constexpr UReg_WPAR(u32 val) : BitField2(val) {}
+  explicit UReg_WPAR(u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Upper register
-struct UReg_DMAU : BitField2<u32>
+struct UReg_DMAU
 {
-  FIELD(u32, 0, 5, DMA_LEN_U);
-  FIELD(u32, 5, 27, MEM_ADDR);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 5, DMA_LEN_U);
+  BFVIEW_M(Hex, u32, 5, 27, MEM_ADDR);
 
   UReg_DMAU() = default;
-  constexpr UReg_DMAU(u32 val) : BitField2(val) {}
+  explicit UReg_DMAU(u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Lower (DMAL) register
-struct UReg_DMAL : BitField2<u32>
+struct UReg_DMAL
 {
-  FIELD(bool, 0, 1, DMA_F);
-  FIELD(bool, 1, 1, DMA_T);
-  FIELD(u32, 2, 2, DMA_LEN_L);
-  FIELD(u32, 4, 1, DMA_LD);
-  FIELD(u32, 5, 27, LC_ADDR);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, bool, 0, 1, DMA_F);
+  BFVIEW_M(Hex, bool, 1, 1, DMA_T);
+  BFVIEW_M(Hex, u32, 2, 2, DMA_LEN_L);
+  BFVIEW_M(Hex, u32, 4, 1, DMA_LD);
+  BFVIEW_M(Hex, u32, 5, 27, LC_ADDR);
 
   UReg_DMAL() = default;
-  constexpr UReg_DMAL(u32 val) : BitField2(val) {}
+  explicit UReg_DMAL(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_BAT_Up : BitField2<u32>
+struct UReg_BAT_Up
 {
-  FIELD(bool, 0, 1, VP);
-  FIELD(bool, 1, 1, VS);
-  FIELD(u32, 2, 11, BL);  // Block length (aka block size mask)
-  FIELD(u32, 13, 4, reserved);
-  FIELD(u32, 17, 15, BEPI);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, bool, 0, 1, VP);
+  BFVIEW_M(Hex, bool, 1, 1, VS);
+  BFVIEW_M(Hex, u32, 2, 11, BL);  // Block length (aka block size mask)
+  BFVIEW_M(Hex, u32, 13, 4, reserved);
+  BFVIEW_M(Hex, u32, 17, 15, BEPI);
 
   UReg_BAT_Up() = default;
-  constexpr UReg_BAT_Up(u32 val) : BitField2(val) {}
+  explicit UReg_BAT_Up(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_BAT_Lo : BitField2<u32>
+struct UReg_BAT_Lo
 {
-  FIELD(u32, 0, 2, PP);
-  FIELD(u32, 2, 1, reserved_1);
-  FIELD(u32, 3, 4, WIMG);
-  FIELD(u32, 7, 10, reserved_2);
-  FIELD(u32, 17, 15, BRPN);  // Physical Block Number
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 2, PP);
+  BFVIEW_M(Hex, u32, 2, 1, reserved_1);
+  BFVIEW_M(Hex, u32, 3, 4, WIMG);
+  BFVIEW_M(Hex, u32, 7, 10, reserved_2);
+  BFVIEW_M(Hex, u32, 17, 15, BRPN);  // Physical Block Number
 
   UReg_BAT_Lo() = default;
-  constexpr UReg_BAT_Lo(u32 val) : BitField2(val) {}
+  explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
 };
 
 // Segment register
-struct UReg_SR : BitField2<u32>
+struct UReg_SR
 {
-  FIELD(u32, 0, 24, VSID);      // Virtual segment ID
-  FIELD(u32, 24, 4, reserved);  // Reserved
-  FIELD(bool, 28, 1, N);        // No-execute protection
-  FIELD(bool, 29, 1, Kp);       // User-state protection
-  FIELD(bool, 30, 1, Ks);       // Supervisor-state protection
-  FIELD(bool, 31, 1, T);        // Segment register format selector
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 24, VSID);      // Virtual segment ID
+  BFVIEW_M(Hex, u32, 24, 4, reserved);  // Reserved
+  BFVIEW_M(Hex, bool, 28, 1, N);        // No-execute protection
+  BFVIEW_M(Hex, bool, 29, 1, Kp);       // User-state protection
+  BFVIEW_M(Hex, bool, 30, 1, Ks);       // Supervisor-state protection
+  BFVIEW_M(Hex, bool, 31, 1, T);        // Segment register format selector
 
   // These override other fields if T = 1
 
-  FIELD(u32, 0, 20, CNTLR_SPEC);  // Device-specific data for I/O controller
-  FIELD(u32, 20, 9, BUID);        // Bus unit ID
+  BFVIEW_M(Hex, u32, 0, 20, CNTLR_SPEC);  // Device-specific data for I/O controller
+  BFVIEW_M(Hex, u32, 20, 9, BUID);        // Bus unit ID
 
   UReg_SR() = default;
-  constexpr UReg_SR(u32 val) : BitField2(val) {}
+  explicit UReg_SR(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_THRM12 : BitField2<u32>
+struct UReg_THRM12
 {
-  FIELD(bool, 0, 1, V);    // Valid
-  FIELD(bool, 1, 1, TIE);  // Thermal Interrupt Enable
-  FIELD(bool, 2, 1, TID);  // Thermal Interrupt Direction
-  FIELD(u32, 3, 20, reserved);
-  FIELD(u32, 23, 7, THRESHOLD);  // Temperature Threshold, 0-127°C
-  FIELD(bool, 30, 1, TIV);       // Thermal Interrupt Valid
-  FIELD(bool, 31, 1, TIN);       // Thermal Interrupt
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, bool, 0, 1, V);    // Valid
+  BFVIEW_M(Hex, bool, 1, 1, TIE);  // Thermal Interrupt Enable
+  BFVIEW_M(Hex, bool, 2, 1, TID);  // Thermal Interrupt Direction
+  BFVIEW_M(Hex, u32, 3, 20, reserved);
+  BFVIEW_M(Hex, u32, 23, 7, THRESHOLD);  // Temperature Threshold, 0-127°C
+  BFVIEW_M(Hex, bool, 30, 1, TIV);       // Thermal Interrupt Valid
+  BFVIEW_M(Hex, bool, 31, 1, TIN);       // Thermal Interrupt
 
   UReg_THRM12() = default;
-  constexpr UReg_THRM12(u32 val) : BitField2(val) {}
+  explicit UReg_THRM12(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_THRM3 : BitField2<u32>
+struct UReg_THRM3
 {
-  FIELD(bool, 0, 1, E);     // Enable
-  FIELD(u32, 1, 13, SITV);  // Sample Interval Timer Value
-  FIELD(u32, 14, 18, reserved);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, bool, 0, 1, E);     // Enable
+  BFVIEW_M(Hex, u32, 1, 13, SITV);  // Sample Interval Timer Value
+  BFVIEW_M(Hex, u32, 14, 18, reserved);
 
   UReg_THRM3() = default;
-  constexpr UReg_THRM3(u32 val) : BitField2(val) {}
+  explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
 };
 
-struct UPTE_Lo : BitField2<u32>
+struct UPTE_Lo
 {
-  FIELD(u32, 0, 6, API);
-  FIELD(bool, 6, 1, H);
-  FIELD(u32, 7, 24, VSID);
-  FIELD(bool, 31, 1, V);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 6, API);
+  BFVIEW_M(Hex, bool, 6, 1, H);
+  BFVIEW_M(Hex, u32, 7, 24, VSID);
+  BFVIEW_M(Hex, bool, 31, 1, V);
 
   UPTE_Lo() = default;
-  constexpr UPTE_Lo(u32 val) : BitField2(val) {}
+  explicit UPTE_Lo(u32 hex_) : Hex{hex_} {}
 };
 
-struct UPTE_Hi : BitField2<u32>
+struct UPTE_Hi
 {
-  FIELD(u32, 0, 2, PP);
-  FIELD(u32, 2, 1, reserved_1);
-  FIELD(u32, 3, 4, WIMG);
-  FIELD(bool, 7, 1, C);
-  FIELD(bool, 8, 1, R);
-  FIELD(u32, 9, 3, reserved_2);
-  FIELD(u32, 12, 20, RPN);
+  u32 Hex = 0;
+
+  BFVIEW_M(Hex, u32, 0, 2, PP);
+  BFVIEW_M(Hex, u32, 2, 1, reserved_1);
+  BFVIEW_M(Hex, u32, 3, 4, WIMG);
+  BFVIEW_M(Hex, bool, 7, 1, C);
+  BFVIEW_M(Hex, bool, 8, 1, R);
+  BFVIEW_M(Hex, u32, 9, 3, reserved_2);
+  BFVIEW_M(Hex, u32, 12, 20, RPN);
 
   UPTE_Hi() = default;
-  constexpr UPTE_Hi(u32 val) : BitField2(val) {}
+  explicit UPTE_Hi(u32 hex_) : Hex{hex_} {}
 };
 
 //

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -32,29 +32,31 @@ enum
 
 // UDSPControl
 constexpr u16 DSP_CONTROL_MASK = 0x0C07;
-struct UDSPControl : BitField2<u16>
+struct UDSPControl
 {
-  // DSP Control
-  FIELD(bool, 0, 1, DSPReset);  // Write 1 to reset and waits for 0
-  FIELD(bool, 1, 1, DSPAssertInt);
-  FIELD(bool, 2, 1, DSPHalt);
-  // Interrupt for DMA to the AI/speakers
-  FIELD(bool, 3, 1, AID);
-  FIELD(bool, 4, 1, AID_mask);
-  // ARAM DMA interrupt
-  FIELD(bool, 5, 1, ARAM);
-  FIELD(bool, 6, 1, ARAM_mask);
-  // DSP DMA interrupt
-  FIELD(bool, 7, 1, DSP);
-  FIELD(bool, 8, 1, DSP_mask);
-  // Other ???
-  FIELD(bool, 9, 1, DMAState);      // DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it
-                                    // too...maybe it's just general DMA flag
-  FIELD(bool, 10, 1, DSPInitCode);  // Indicator that the DSP was initialized?
-  FIELD(bool, 11, 1, DSPInit);      // DSPInit() writes to this flag
-  FIELD(u16, 12, 4, pad);
+  u16 Hex;
 
-  constexpr UDSPControl(u16 val = 0) : BitField2(val) {}
+  // DSP Control
+  BFVIEW_M(Hex, bool, 0, 1, DSPReset);  // Write 1 to reset and waits for 0
+  BFVIEW_M(Hex, bool, 1, 1, DSPAssertInt);
+  BFVIEW_M(Hex, bool, 2, 1, DSPHalt);
+  // Interrupt for DMA to the AI/speakers
+  BFVIEW_M(Hex, bool, 3, 1, AID);
+  BFVIEW_M(Hex, bool, 4, 1, AID_mask);
+  // ARAM DMA interrupt
+  BFVIEW_M(Hex, bool, 5, 1, ARAM);
+  BFVIEW_M(Hex, bool, 6, 1, ARAM_mask);
+  // DSP DMA interrupt
+  BFVIEW_M(Hex, bool, 7, 1, DSP);
+  BFVIEW_M(Hex, bool, 8, 1, DSP_mask);
+  // Other ???
+  BFVIEW_M(Hex, bool, 9, 1, DMAState);      // DSPGetDMAStatus() uses this flag. __ARWaitForDMA()
+                                            // uses it too...maybe it's just general DMA flag
+  BFVIEW_M(Hex, bool, 10, 1, DSPInitCode);  // Indicator that the DSP was initialized?
+  BFVIEW_M(Hex, bool, 11, 1, DSPInit);      // DSPInit() writes to this flag
+  BFVIEW_M(Hex, u16, 12, 4, pad);
+
+  UDSPControl(u16 hex = 0) : Hex(hex) {}
 };
 
 void Init(bool hle);

@@ -59,7 +59,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      m_status.EXT() = GetDevice(1)->IsPresent() ? 1 : 0;
                    }
 
-                   return m_status;
+                   return m_status.Hex;
                  }),
                  MMIO::ComplexWrite<u32>([this](u32, u32 val) {
                    UEXI_STATUS new_status(val);
@@ -98,9 +98,9 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&m_dma_memory_address));
   mmio->Register(base + EXI_DMA_LENGTH, MMIO::DirectRead<u32>(&m_dma_length),
                  MMIO::DirectWrite<u32>(&m_dma_length));
-  mmio->Register(base + EXI_DMA_CONTROL, MMIO::DirectRead<u32>(&m_control.storage),
+  mmio->Register(base + EXI_DMA_CONTROL, MMIO::DirectRead<u32>(&m_control.Hex),
                  MMIO::ComplexWrite<u32>([this](u32, u32 val) {
-                   m_control = val;
+                   m_control.Hex = val;
 
                    if (m_control.TSTART())
                    {

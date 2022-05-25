@@ -238,9 +238,9 @@ void Jit64::dcbx(UGeckoInstruction inst)
   // - addi rX,rX,32
   // - bdnz+ -8
   const bool make_loop = inst.RA() == 0 && inst.RB() != 0 && CanMergeNextInstructions(2) &&
-                         (js.op[1].inst & 0xfc00'ffff) == 0x38000020 &&
+                         (js.op[1].inst.hex & 0xfc00'ffff) == 0x38000020 &&
                          js.op[1].inst.RA() == inst.RB() && js.op[1].inst.RD() == inst.RB() &&
-                         js.op[2].inst == 0x4200fff8;
+                         js.op[2].inst.hex == 0x4200fff8;
 
   RCOpArg Ra = inst.RA() ? gpr.Use(inst.RA(), RCMode::Read) : RCOpArg::Imm32(0);
   RCX64Reg Rb = gpr.Bind(inst.RB(), make_loop ? RCMode::ReadWrite : RCMode::Read);

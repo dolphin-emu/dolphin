@@ -40,7 +40,8 @@ public:
 
   constexpr field_t Get() const
   {
-    // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
+    // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
+    // Currently, this is implementaton defined and it is only possible to do so implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
@@ -97,7 +98,8 @@ public:
 
   constexpr field_t Get() const
   {
-    // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
+    // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
+    // Currently, this is implementaton defined and it is only possible to do so implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
@@ -137,8 +139,9 @@ public:
   {
     const std::size_t rshift = 8 * sizeof(host_t) - width;
     const std::size_t lshift = rshift - start;
-    // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-    if constexpr (std::is_signed<field_t>())
+    // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
+    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
@@ -197,8 +200,9 @@ public:
   {
     const std::size_t rshift = 8 * sizeof(host_t) - width;
     const std::size_t lshift = rshift - start;
-    // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-    if constexpr (std::is_signed<field_t>())
+    // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
+    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
@@ -245,8 +249,9 @@ public:
   {
     assert(idx < length);  // Index out of range
     const std::size_t lshift = rshift - (start + width * idx);
-    // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-    if constexpr (std::is_signed<field_t>())
+    // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
+    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
@@ -311,8 +316,9 @@ public:
   {
     assert(idx < length);  // Index out of range
     const std::size_t lshift = rshift - (start + width * idx);
-    // Choose between arithmatic (sign extend) or logical (no sign extend) right-shift.
-    if constexpr (std::is_signed<field_t>())
+    // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
+    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
@@ -454,13 +460,13 @@ public:
 // cannot deduce trailing template parameters for constructors.  For them, it's all or nothing.
 // Functions, however, can.
 
-template <typename field_t, const std::size_t start, const std::size_t width, typename host_t>
+template <typename field_t, std::size_t start, std::size_t width, typename host_t>
 constexpr BitFieldFixedView<host_t, field_t, start, width>  //
 MakeBitFieldFixedView(host_t& host)
 {
   return BitFieldFixedView<host_t, field_t, start, width>(host);
 }
-template <typename field_t, const std::size_t start, const std::size_t width, typename host_t>
+template <typename field_t, std::size_t start, std::size_t width, typename host_t>
 constexpr ConstBitFieldFixedView<host_t, field_t, start, width>  //
 MakeConstBitFieldFixedView(const host_t& host)
 {
@@ -478,15 +484,15 @@ MakeConstBitFieldView(const host_t& host, const std::size_t start, const std::si
 {
   return ConstBitFieldView<host_t, field_t>(host, start, width);
 }
-template <typename field_t, const std::size_t start, const std::size_t width,
-          const std::size_t length, typename host_t>
+template <typename field_t, std::size_t start, std::size_t width, std::size_t length,
+          typename host_t>
 constexpr BitFieldFixedViewArray<host_t, field_t, start, width, length>  //
 MakeBitFieldFixedViewArray(host_t& host)
 {
   return BitFieldFixedViewArray<host_t, field_t, start, width, length>(host);
 }
-template <typename field_t, const std::size_t start, const std::size_t width,
-          const std::size_t length, typename host_t>
+template <typename field_t, std::size_t start, std::size_t width, std::size_t length,
+          typename host_t>
 constexpr ConstBitFieldFixedViewArray<host_t, field_t, start, width, length>  //
 MakeConstBitFieldFixedViewArray(const host_t& host)
 {
@@ -495,7 +501,10 @@ MakeConstBitFieldFixedViewArray(const host_t& host)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define BITFIELD_IN(host, field_t, start, width, name)                                             \
+// BitField View (Array) in Member?  BitField View (Array) Macro?  BitField View (Array) Method?
+// You can believe whatever you want to believe this abbreviation is short for.
+
+#define BFVIEW_M(host, field_t, start, width, name)                                                \
   constexpr BitFieldFixedView<decltype(host), field_t, start, width> name()                        \
   {                                                                                                \
     return BitFieldFixedView<decltype(host), field_t, start, width>(host);                         \
@@ -505,7 +514,7 @@ MakeConstBitFieldFixedViewArray(const host_t& host)
     return ConstBitFieldFixedView<decltype(host), field_t, start, width>(host);                    \
   }
 
-#define BITFIELDARRAY_IN(host, field_t, start, width, length, name)                                \
+#define BFVIEWARRAY_M(host, field_t, start, width, length, name)                                   \
   constexpr BitFieldFixedViewArray<decltype(host), field_t, start, width, length> name()           \
   {                                                                                                \
     return BitFieldFixedViewArray<decltype(host), field_t, start, width, length>(host);            \

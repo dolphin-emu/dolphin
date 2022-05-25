@@ -110,7 +110,7 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
     {
       // BLR or RFI
       // 4e800021 is blrl, not the end of a function
-      if (instr == 0x4e800020 || instr == 0x4C000064)
+      if (instr.hex == 0x4e800020 || instr.hex == 0x4C000064)
       {
         // Not this one, continue..
         if (farthestInternalBranchTarget > addr)
@@ -126,12 +126,12 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
           func.flags |= Common::FFLAG_STRAIGHT;
         return true;
       }
-      else if (instr == 0x4e800021 || instr == 0x4e800420 || instr == 0x4e800421)
+      else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
       {
         func.flags &= ~Common::FFLAG_LEAF;
         func.flags |= Common::FFLAG_EVIL;
       }
-      else if (instr == 0x4c000064)
+      else if (instr.hex == 0x4c000064)
       {
         func.flags &= ~Common::FFLAG_LEAF;
         func.flags |= Common::FFLAG_RFI;
@@ -539,7 +539,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   // Does the instruction output CR0?
   if (opinfo->flags & FL_RC_BIT)
-    code->outputCR0 = code->inst & 1;  // todo fix
+    code->outputCR0 = code->inst.hex & 1;  // todo fix
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD() == 0)
     code->outputCR0 = true;
   else
@@ -547,7 +547,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   // Does the instruction output CR1?
   if (opinfo->flags & FL_RC_BIT_F)
-    code->outputCR1 = code->inst & 1;  // todo fix
+    code->outputCR1 = code->inst.hex & 1;  // todo fix
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD() == 1)
     code->outputCR1 = true;
   else

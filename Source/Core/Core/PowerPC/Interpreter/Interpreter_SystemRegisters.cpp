@@ -64,9 +64,9 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
   const u32 field = inst.CRFD();
   const u32 pre_shifted_mask = 0xF0000000;
   const u32 mask = (pre_shifted_mask >> (4 * field));
-  const u32 imm = (inst << 16) & pre_shifted_mask;
+  const u32 imm = (inst.hex << 16) & pre_shifted_mask;
 
-  FPSCR = (FPSCR & ~mask) | (imm >> (4 * field));
+  FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
 
   FPSCRUpdated(&FPSCR);
 
@@ -84,7 +84,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
       m |= (0xFU << (i * 4));
   }
 
-  FPSCR = (FPSCR & ~m) | (static_cast<u32>(rPS(inst.FB()).PS0AsU64()) & m);
+  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(rPS(inst.FB()).PS0AsU64()) & m);
   FPSCRUpdated(&FPSCR);
 
   if (inst.Rc())
@@ -93,7 +93,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
 {
-  PowerPC::ppcState.cr.SetField(inst.CRFD(), PowerPC::GetXER() >> 28);
+  PowerPC::ppcState.cr.SetField(inst.CRFD(), PowerPC::GetXER().Hex >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
@@ -132,7 +132,7 @@ void Interpreter::mfmsr(UGeckoInstruction inst)
     return;
   }
 
-  rGPR[inst.RD()] = MSR;
+  rGPR[inst.RD()] = MSR.Hex;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
@@ -166,7 +166,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
     return;
   }
 
-  MSR = rGPR[inst.RS()];
+  MSR.Hex = rGPR[inst.RS()];
 
   // FE0/FE1 may have been set
   CheckFPExceptions(FPSCR);
@@ -248,7 +248,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   }
   break;
   case SPR_XER:
-    rSPR(index) = PowerPC::GetXER();
+    rSPR(index) = PowerPC::GetXER().Hex;
     break;
   }
   rGPR[inst.RD()] = rSPR(index);
@@ -295,7 +295,8 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
   case SPR_HID0:  // HID0
   {
-    UReg_HID0 old_hid0 = old_value;
+    UReg_HID0 old_hid0;
+    old_hid0.Hex = old_value;
     if (HID0.ICE() != old_hid0.ICE())
     {
       INFO_LOG_FMT(POWERPC, "Instruction Cache Enable (HID0.ICE) = {}", HID0.ICE());
@@ -555,7 +556,7 @@ void Interpreter::isync(UGeckoInstruction inst)
 void Interpreter::mcrfs(UGeckoInstruction inst)
 {
   const u32 shift = 4 * (7 - inst.CRFS());
-  const u32 fpflags = (FPSCR >> shift) & 0xF;
+  const u32 fpflags = (FPSCR.Hex >> shift) & 0xF;
 
   // If any exception bits were read, clear them
   FPSCR &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
@@ -566,7 +567,7 @@ void Interpreter::mcrfs(UGeckoInstruction inst)
 
 void Interpreter::mffsx(UGeckoInstruction inst)
 {
-  rPS(inst.FD()).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR);
+  rPS(inst.FD()).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR.Hex);
 
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();

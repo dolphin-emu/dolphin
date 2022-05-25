@@ -32,7 +32,7 @@
 #include <fmt/format.h>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
+#include "Common/BitField3.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -93,15 +93,18 @@ static std::atomic<bool> s_use_internal_log{false};
 static const ARCode* s_current_code = nullptr;
 static bool s_disable_logging = false;
 
-struct ARAddr : BitField2<u32>
+struct ARAddr
 {
-  FIELD(u32, 0, 25, gcaddr);
-  FIELD(u32, 25, 2, size);
-  FIELD(u32, 27, 3, type);
-  FIELD(u32, 30, 2, subtype);
+  u32 address;
 
-  ARAddr(const u32 addr) : BitField2(addr) {}
+  BFVIEW_M(address, u32, 0, 25, gcaddr);
+  BFVIEW_M(address, u32, 25, 2, size);
+  BFVIEW_M(address, u32, 27, 3, type);
+  BFVIEW_M(address, u32, 30, 2, subtype);
+
+  ARAddr(const u32 addr) : address(addr) {}
   u32 GCAddress() const { return gcaddr() | 0x80000000; }
+  operator u32() const { return address; }
 };
 
 // ----------------------

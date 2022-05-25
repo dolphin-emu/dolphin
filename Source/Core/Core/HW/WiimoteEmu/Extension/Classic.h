@@ -6,7 +6,6 @@
 #include <limits>
 
 #include "Common/BitField.h"
-#include "Common/BitField2.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
@@ -33,26 +32,25 @@ enum class ClassicGroup
 class Classic : public Extension1stParty
 {
 public:
-  struct ButtonFormat : BitField2<u16>
+  struct ButtonFormat
   {
-    FIELD(bool, 1, 1, rt);  // right trigger
-    FIELD(bool, 2, 1, plus);
-    FIELD(bool, 3, 1, home);
-    FIELD(bool, 4, 1, minus);
-    FIELD(bool, 5, 1, lt);  // left trigger
-    FIELD(bool, 6, 1, dpad_down);
-    FIELD(bool, 7, 1, dpad_right);
-    FIELD(bool, 8, 1, dpad_up);
-    FIELD(bool, 9, 1, dpad_left);
-    FIELD(bool, 10, 1, zr);
-    FIELD(bool, 11, 1, x);
-    FIELD(bool, 12, 1, a);
-    FIELD(bool, 13, 1, y);
-    FIELD(bool, 14, 1, b);
-    FIELD(bool, 15, 1, zl);  // left z button
+    u16 hex;
 
-    ButtonFormat() = default;
-    constexpr ButtonFormat(u16 val) : BitField2(val) {}
+    BFVIEW_M(hex, bool, 1, 1, rt);  // right trigger
+    BFVIEW_M(hex, bool, 2, 1, plus);
+    BFVIEW_M(hex, bool, 3, 1, home);
+    BFVIEW_M(hex, bool, 4, 1, minus);
+    BFVIEW_M(hex, bool, 5, 1, lt);  // left trigger
+    BFVIEW_M(hex, bool, 6, 1, dpad_down);
+    BFVIEW_M(hex, bool, 7, 1, dpad_right);
+    BFVIEW_M(hex, bool, 8, 1, dpad_up);
+    BFVIEW_M(hex, bool, 9, 1, dpad_left);
+    BFVIEW_M(hex, bool, 10, 1, zr);
+    BFVIEW_M(hex, bool, 11, 1, x);
+    BFVIEW_M(hex, bool, 12, 1, a);
+    BFVIEW_M(hex, bool, 13, 1, y);
+    BFVIEW_M(hex, bool, 14, 1, b);
+    BFVIEW_M(hex, bool, 15, 1, zl);  // left z button
   };
   static_assert(sizeof(ButtonFormat) == 2, "Wrong size");
 
@@ -102,27 +100,28 @@ public:
     u16 GetButtons() const
     {
       // 0 == pressed.
-      return ~bt;
+      return ~bt.hex;
     }
 
     void SetButtons(u16 value)
     {
       // 0 == pressed.
-      bt = ~value;
+      bt.hex = ~value;
     }
 
-    BitField2<u32> sticks_and_triggers;  // byte 0, 1, 2, 3
-    ButtonFormat bt;                     // byte 4, 5
+    u32 _data1;  // byte 0, 1, 2, 3
 
-    FIELD_IN(sticks_and_triggers, u32, 0, 6, lx);
-    FIELD_IN(sticks_and_triggers, u32, 6, 2, rx3);
-    FIELD_IN(sticks_and_triggers, u32, 8, 6, ly);
-    FIELD_IN(sticks_and_triggers, u32, 14, 2, rx2);
-    FIELD_IN(sticks_and_triggers, u32, 16, 5, ry);
-    FIELD_IN(sticks_and_triggers, u32, 21, 2, lt2);
-    FIELD_IN(sticks_and_triggers, u32, 23, 1, rx1);
-    FIELD_IN(sticks_and_triggers, u32, 24, 5, rt);
-    FIELD_IN(sticks_and_triggers, u32, 29, 3, lt1);
+    BFVIEW_M(_data1, u32, 0, 6, lx);
+    BFVIEW_M(_data1, u32, 6, 2, rx3);
+    BFVIEW_M(_data1, u32, 8, 6, ly);
+    BFVIEW_M(_data1, u32, 14, 2, rx2);
+    BFVIEW_M(_data1, u32, 16, 5, ry);
+    BFVIEW_M(_data1, u32, 21, 2, lt2);
+    BFVIEW_M(_data1, u32, 23, 1, rx1);
+    BFVIEW_M(_data1, u32, 24, 5, rt);
+    BFVIEW_M(_data1, u32, 29, 3, lt1);
+
+    ButtonFormat bt;  // byte 4, 5
   };
 #pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");

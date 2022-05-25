@@ -21,7 +21,7 @@ struct CachedInterpreter::Instruction
 
   Instruction() {}
   Instruction(const CommonCallback c, UGeckoInstruction i)
-      : common_callback(c), data(i), type(Type::Common)
+      : common_callback(c), data(i.hex), type(Type::Common)
   {
   }
 
@@ -133,29 +133,29 @@ void CachedInterpreter::SingleStep()
 static void EndBlock(UGeckoInstruction data)
 {
   PC = NPC;
-  PowerPC::ppcState.downcount -= data;
-  PowerPC::UpdatePerformanceMonitor(data, 0, 0);
+  PowerPC::ppcState.downcount -= data.hex;
+  PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0);
 }
 
 static void UpdateNumLoadStoreInstructions(UGeckoInstruction data)
 {
-  PowerPC::UpdatePerformanceMonitor(0, data, 0);
+  PowerPC::UpdatePerformanceMonitor(0, data.hex, 0);
 }
 
 static void UpdateNumFloatingPointInstructions(UGeckoInstruction data)
 {
-  PowerPC::UpdatePerformanceMonitor(0, 0, data);
+  PowerPC::UpdatePerformanceMonitor(0, 0, data.hex);
 }
 
 static void WritePC(UGeckoInstruction data)
 {
-  PC = data;
-  NPC = data + 4;
+  PC = data.hex;
+  NPC = data.hex + 4;
 }
 
 static void WriteBrokenBlockNPC(UGeckoInstruction data)
 {
-  NPC = data;
+  NPC = data.hex;
 }
 
 static bool CheckFPU(u32 data)

@@ -95,7 +95,7 @@ void Interpreter::bclrx(UGeckoInstruction inst)
 void Interpreter::HLEFunction(UGeckoInstruction inst)
 {
   m_end_block = true;
-  HLE::Execute(PC, inst);
+  HLE::Execute(PC, inst.hex);
 }
 
 void Interpreter::rfi(UGeckoInstruction inst)
@@ -109,9 +109,9 @@ void Interpreter::rfi(UGeckoInstruction inst)
   // Restore saved bits from SRR1 to MSR.
   // Gecko/Broadway can save more bits than explicitly defined in ppc spec
   const u32 mask = 0x87C0FFFF;
-  MSR = (MSR & ~mask) | (SRR1 & mask);
+  MSR.Hex = (MSR.Hex & ~mask) | (SRR1 & mask);
   // MSR[13] is set to 0.
-  MSR = MSR & 0xFFFBFFFF;
+  MSR.Hex = MSR.Hex & 0xFFFBFFFF;
   // Here we should check if there are pending exceptions, and if their corresponding enable bits
   // are set
   // if above is true, we'd do:

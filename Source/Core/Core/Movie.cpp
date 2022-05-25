@@ -767,7 +767,7 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     Nunchuk::DataFormat nunchuk;
     memcpy(&nunchuk, extData, sizeof(nunchuk));
     key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
-    nunchuk.bt = nunchuk.bt ^ 0x3;
+    nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
     const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
                                           nunchuk.GetAccelY(), nunchuk.GetAccelZ());
@@ -788,7 +788,7 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     Classic::DataFormat cc;
     memcpy(&cc, extData, sizeof(cc));
     key.Decrypt((u8*)&cc, 0, sizeof(cc));
-    cc.bt = cc.bt ^ 0xFFFF;
+    cc.bt.hex = cc.bt.hex ^ 0xFFFF;
 
     if (cc.bt.dpad_left())
       display_str += " LEFT";

@@ -421,11 +421,10 @@ bool Wiimote::ProcessExtensionPortEvent()
 // Update buttons in status struct from user input.
 void Wiimote::UpdateButtonsStatus()
 {
-  m_status.buttons = 0;
+  m_status.buttons.hex = 0;
 
-  m_buttons->GetState(&m_status.buttons.storage, button_bitmasks);
-  m_dpad->GetState(&m_status.buttons.storage,
-                   IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
+  m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
+  m_dpad->GetState(&m_status.buttons.hex, IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks);
 }
 
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)

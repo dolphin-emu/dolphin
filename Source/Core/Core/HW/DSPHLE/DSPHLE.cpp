@@ -25,7 +25,7 @@ bool DSPHLE::Initialize(bool wii, bool dsp_thread)
 
   SetUCode(UCODE_ROM);
 
-  m_dsp_control = 0;
+  m_dsp_control.Hex = 0;
   m_dsp_control.DSPHalt() = 1;
   m_dsp_control.DSPInit() = 1;
   m_mail_handler.SetHalted(m_dsp_control.DSPHalt());
@@ -195,7 +195,8 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 
   if (m_dsp_control.DSPHalt() != temp.DSPHalt())
   {
-    INFO_LOG_FMT(DSPHLE, "DSP_CONTROL halt bit changed: {:04x} -> {:04x}", m_dsp_control, value);
+    INFO_LOG_FMT(DSPHLE, "DSP_CONTROL halt bit changed: {:04x} -> {:04x}", m_dsp_control.Hex,
+                 value);
     m_mail_handler.SetHalted(temp.DSPHalt());
   }
 
@@ -222,8 +223,8 @@ u16 DSPHLE::DSP_WriteControlRegister(u16 value)
     m_control_reg_init_code_clear_time = SystemTimers::GetFakeTimeBase() + 130;
   }
 
-  m_dsp_control = temp;
-  return m_dsp_control;
+  m_dsp_control.Hex = temp.Hex;
+  return m_dsp_control.Hex;
 }
 
 u16 DSPHLE::DSP_ReadControlRegister()
@@ -235,7 +236,7 @@ u16 DSPHLE::DSP_ReadControlRegister()
     else
       CoreTiming::ForceExceptionCheck(50);  // Keep checking
   }
-  return m_dsp_control;
+  return m_dsp_control.Hex;
 }
 
 void DSPHLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)

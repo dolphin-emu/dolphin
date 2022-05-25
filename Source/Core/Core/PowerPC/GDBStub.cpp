@@ -431,7 +431,7 @@ static void ReadRegister()
       wbe32hex(reply, PC);
       break;
     case 65:
-      wbe32hex(reply, MSR);
+      wbe32hex(reply, MSR.Hex);
       break;
     case 66:
       wbe32hex(reply, PowerPC::ppcState.cr.Get());
@@ -446,7 +446,7 @@ static void ReadRegister()
       wbe32hex(reply, PowerPC::ppcState.spr[SPR_XER]);
       break;
     case 70:
-      wbe32hex(reply, FPSCR);
+      wbe32hex(reply, FPSCR.Hex);
       break;
     case 87:
       wbe32hex(reply, PowerPC::ppcState.spr[SPR_PVR]);
@@ -643,7 +643,7 @@ static void WriteRegister()
       PC = re32hex(bufptr);
       break;
     case 65:
-      MSR = re32hex(bufptr);
+      MSR.Hex = re32hex(bufptr);
       break;
     case 66:
       PowerPC::ppcState.cr.Set(re32hex(bufptr));
@@ -658,7 +658,7 @@ static void WriteRegister()
       PowerPC::ppcState.spr[SPR_XER] = re32hex(bufptr);
       break;
     case 70:
-      FPSCR = re32hex(bufptr);
+      FPSCR.Hex = re32hex(bufptr);
       break;
     case 87:
       PowerPC::ppcState.spr[SPR_PVR] = re32hex(bufptr);

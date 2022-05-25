@@ -819,7 +819,7 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  u8 imm = (inst >> (31 - 19)) & 0xF;
+  u8 imm = (inst.hex >> (31 - 19)) & 0xF;
   u32 mask = 0xF0000000 >> (4 * inst.CRFD());
   u32 or_mask = imm << (28 - 4 * inst.CRFD());
   u32 and_mask = ~mask;
