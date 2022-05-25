@@ -395,7 +395,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
-struct FixedViewArrayConstIterator
+class FixedViewArrayConstIterator
 {
   // This code is only sane for integral types
   static_assert(std::is_integral_v<host_t_> || std::is_enum_v<host_t_>);
