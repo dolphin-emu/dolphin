@@ -720,31 +720,57 @@ GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) 
   if ((is_elf_or_dol ? m_file_size : 0) != sync_identifier.dol_elf_size)
     return NetPlay::SyncIdentifierComparison::DifferentGame;
 
-  const auto trim = [](const std::string& str, size_t n) {
-    return std::string_view(str.data(), std::min(n, str.size()));
-  };
-
-  if (trim(m_game_id, 3) != trim(sync_identifier.game_id, 3))
+  if (m_is_datel_disc != sync_identifier.is_datel)
     return NetPlay::SyncIdentifierComparison::DifferentGame;
 
-  if (m_disc_number != sync_identifier.disc_number || m_is_datel_disc != sync_identifier.is_datel)
+  if (m_game_id.size() != sync_identifier.game_id.size())
     return NetPlay::SyncIdentifierComparison::DifferentGame;
 
-  const NetPlay::SyncIdentifierComparison mismatch_result =
-      is_elf_or_dol || m_is_datel_disc ? NetPlay::SyncIdentifierComparison::DifferentGame :
-                                         NetPlay::SyncIdentifierComparison::DifferentVersion;
-
-  if (m_game_id != sync_identifier.game_id)
+  if (!is_elf_or_dol && !m_is_datel_disc && m_game_id.size() >= 4 && m_game_id.size() <= 6)
   {
-    const bool game_id_is_title_id = m_game_id.size() > 6 || sync_identifier.game_id.size() > 6;
-    return game_id_is_title_id ? NetPlay::SyncIdentifierComparison::DifferentGame : mismatch_result;
+    // This is a game ID, following specific rules which we can use to give clearer information to
+    // the user.
+
+    // If the first 3 characters don't match, then these are probably different games.
+    // (There are exceptions; in particular Japanese-region games sometimes use a different ID;
+    // for instance, GOYE69, GOYP69, and GGIJ13 are used by GoldenEye: Rogue Agent.)
+    if (std::string_view(&m_game_id[0], 3) != std::string_view(&sync_identifier.game_id[0], 3))
+      return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+    // If the first 3 characters match but the region doesn't match, reject it as such.
+    if (m_game_id[3] != sync_identifier.game_id[3])
+      return NetPlay::SyncIdentifierComparison::DifferentRegion;
+
+    // If the maker code is present, and doesn't match between the two but the main ID does,
+    // these might be different revisions of the same game (e.g. a rerelease with a different
+    // publisher), which we should treat as a different revision.
+    if (std::string_view(&m_game_id[4]) != std::string_view(&sync_identifier.game_id[4]))
+      return NetPlay::SyncIdentifierComparison::DifferentRevision;
+  }
+  else
+  {
+    // Numeric title ID or another generated ID that does not follow the rules above
+    if (m_game_id != sync_identifier.game_id)
+      return NetPlay::SyncIdentifierComparison::DifferentGame;
   }
 
   if (m_revision != sync_identifier.revision)
-    return mismatch_result;
+    return NetPlay::SyncIdentifierComparison::DifferentRevision;
 
-  return GetSyncHash() == sync_identifier.sync_hash ? NetPlay::SyncIdentifierComparison::SameGame :
-                                                      mismatch_result;
+  if (m_disc_number != sync_identifier.disc_number)
+    return NetPlay::SyncIdentifierComparison::DifferentDiscNumber;
+
+  if (GetSyncHash() != sync_identifier.sync_hash)
+  {
+    // Most Datel titles re-use the same game ID (GNHE5d, with that lowercase D, or DTLX01).
+    // So if the hash differs, then it's probably a different game even if the game ID matches.
+    if (m_is_datel_disc)
+      return NetPlay::SyncIdentifierComparison::DifferentGame;
+    else
+      return NetPlay::SyncIdentifierComparison::DifferentHash;
+  }
+
+  return NetPlay::SyncIdentifierComparison::SameGame;
 }
 
 std::string GameFile::GetWiiFSPath() const

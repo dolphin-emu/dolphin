@@ -611,25 +611,42 @@ void NetPlayDialog::UpdateGUI()
       {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
   m_players_list->setRowCount(m_player_count);
 
-  static const std::map<NetPlay::SyncIdentifierComparison, QString> player_status{
-      {NetPlay::SyncIdentifierComparison::SameGame, tr("OK")},
-      {NetPlay::SyncIdentifierComparison::DifferentVersion, tr("Wrong Version")},
-      {NetPlay::SyncIdentifierComparison::DifferentGame, tr("Not Found")},
-  };
+  static const std::map<NetPlay::SyncIdentifierComparison, std::pair<QString, QString>>
+      player_status{
+          {NetPlay::SyncIdentifierComparison::SameGame, {tr("OK"), tr("OK")}},
+          {NetPlay::SyncIdentifierComparison::DifferentHash,
+           {tr("Wrong hash"),
+            tr("Game file has a different hash; right-click it, select Properties, switch to the "
+               "Verify tab, and select Verify Integrity to check the hash")}},
+          {NetPlay::SyncIdentifierComparison::DifferentDiscNumber,
+           {tr("Wrong disc number"), tr("Game has a different disc number")}},
+          {NetPlay::SyncIdentifierComparison::DifferentRevision,
+           {tr("Wrong revision"), tr("Game has a different revision")}},
+          {NetPlay::SyncIdentifierComparison::DifferentRegion,
+           {tr("Wrong region"), tr("Game region does not match")}},
+          {NetPlay::SyncIdentifierComparison::DifferentGame,
+           {tr("Not found"), tr("No matching game was found")}},
+      };
 
   for (int i = 0; i < m_player_count; i++)
   {
     const auto* p = players[i];
 
     auto* name_item = new QTableWidgetItem(QString::fromStdString(p->name));
-    auto* status_item = new QTableWidgetItem(player_status.count(p->game_status) ?
-                                                 player_status.at(p->game_status) :
-                                                 QStringLiteral("?"));
+    name_item->setToolTip(name_item->text());
+    const auto& status_info = player_status.count(p->game_status) ?
+                                  player_status.at(p->game_status) :
+                                  std::make_pair(QStringLiteral("?"), QStringLiteral("?"));
+    auto* status_item = new QTableWidgetItem(status_info.first);
+    status_item->setToolTip(status_info.second);
     auto* ping_item = new QTableWidgetItem(QStringLiteral("%1 ms").arg(p->ping));
+    ping_item->setToolTip(ping_item->text());
     auto* mapping_item =
         new QTableWidgetItem(QString::fromStdString(NetPlay::GetPlayerMappingString(
             p->pid, client->GetPadMapping(), client->GetGBAConfig(), client->GetWiimoteMapping())));
+    mapping_item->setToolTip(mapping_item->text());
     auto* revision_item = new QTableWidgetItem(QString::fromStdString(p->revision));
+    revision_item->setToolTip(revision_item->text());
 
     for (auto* item : {name_item, status_item, ping_item, mapping_item, revision_item})
     {
