@@ -41,7 +41,7 @@ public:
   constexpr field_t Get() const
   {
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
-    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
@@ -99,7 +99,7 @@ public:
   constexpr field_t Get() const
   {
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
-    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
@@ -140,7 +140,7 @@ public:
     const std::size_t rshift = 8 * sizeof(host_t) - width;
     const std::size_t lshift = rshift - start;
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
-    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
@@ -201,7 +201,7 @@ public:
     const std::size_t rshift = 8 * sizeof(host_t) - width;
     const std::size_t lshift = rshift - start;
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
-    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
@@ -250,7 +250,7 @@ public:
     assert(idx < length);  // Index out of range
     const std::size_t lshift = rshift - (start + width * idx);
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
-    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else
@@ -317,7 +317,7 @@ public:
     assert(idx < length);  // Index out of range
     const std::size_t lshift = rshift - (start + width * idx);
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
-    // Currently, this is implementaton defined and it is only possible to do so implicitly.
+    // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
     if constexpr (std::is_signed_v<field_t>)
       return static_cast<field_t>(static_cast<shost_t>(host << lshift) >> rshift);
     else

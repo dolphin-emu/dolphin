@@ -863,7 +863,7 @@ static bool RunCodeLocked(const ARCode& arcode)
       continue;
     }
 
-    LogInfo("--- Running Code: {:08x} {:08x} ---", addr, data);
+    LogInfo("--- Running Code: {:08x} {:08x} ---", addr.address, data);
 
     // Do Fill & Slide
     if (do_fill_and_slide)

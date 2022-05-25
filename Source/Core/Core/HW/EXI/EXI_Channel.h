@@ -80,7 +80,7 @@ private:
                                              // True means external EXI device present
     BFVIEW_M(Hex, bool, 13, 1, ROMDIS);      // Channel 0 only
                                              // ROM Disable
-    BFVIEW_M(Hex, u32, 7, 3, CHIP_SELECT);  // CS0, CS1, and CS2 merged for convenience.
+    BFVIEW_M(Hex, u32, 7, 3, CHIP_SELECT);   // CS0, CS1, and CS2 merged for convenience.
 
     UEXI_STATUS() = default;
     explicit UEXI_STATUS(u32 hex) : Hex{hex} {}

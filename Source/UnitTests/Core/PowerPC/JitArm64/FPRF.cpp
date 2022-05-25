@@ -60,9 +60,9 @@ public:
 
 static u32 RunUpdateFPRF(const std::function<void()>& f)
 {
-  PowerPC::ppcState.fpscr = 0x12345678;
+  PowerPC::ppcState.fpscr.Hex = 0x12345678;
   f();
-  return PowerPC::ppcState.fpscr;
+  return PowerPC::ppcState.fpscr.Hex;
 }
 
 TEST(JitArm64, FPRF)

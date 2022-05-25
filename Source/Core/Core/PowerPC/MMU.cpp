@@ -1319,7 +1319,6 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   u32 hash = (VSID ^ page_index);
 
   UPTE_Lo pte1;
-  pte1.Hex = 0;
   pte1.VSID() = VSID;
   pte1.API() = api;
   pte1.V() = 1;

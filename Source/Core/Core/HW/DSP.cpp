@@ -204,7 +204,7 @@ void Reinit(bool hle)
   s_audioDMA = {};
   s_arDMA = {};
 
-  s_dspState = 0;
+  s_dspState.Hex = 0;
   s_dspState.DSPHalt() = 1;
 
   s_ARAM_Info.Hex = 0;
@@ -310,8 +310,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
         UDSPControl tmpControl;
-        tmpControl = (val & ~DSP_CONTROL_MASK) |
-                     (s_dsp_emulator->DSP_WriteControlRegister(val) & DSP_CONTROL_MASK);
+        tmpControl.Hex = (val & ~DSP_CONTROL_MASK) |
+                         (s_dsp_emulator->DSP_WriteControlRegister(val) & DSP_CONTROL_MASK);
 
         // Not really sure if this is correct, but it works...
         // Kind of a hack because DSP_CONTROL_MASK should make this bit
@@ -391,9 +391,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks() * 8);
 
           // TODO: need hardware tests for the timing of this interrupt.
-          // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the
-          // future. Other Namco games crash too, see issue 9509. For now we will just
-          // push it to 200 cycles
+          // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
+          // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
           CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
         }
       }));

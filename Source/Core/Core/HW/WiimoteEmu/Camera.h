@@ -24,14 +24,15 @@ struct IRBasic
 
   u8 x1;
   u8 y1;
-  u8 _bf;
+  u8 _data1;
+
+  BFVIEW_M(_data1, u8, 0, 2, x2hi);
+  BFVIEW_M(_data1, u8, 2, 2, y2hi);
+  BFVIEW_M(_data1, u8, 4, 2, x1hi);
+  BFVIEW_M(_data1, u8, 6, 2, y1hi);
+
   u8 x2;
   u8 y2;
-
-  BFVIEW_M(_bf, u8, 0, 2, x2hi);
-  BFVIEW_M(_bf, u8, 2, 2, y2hi);
-  BFVIEW_M(_bf, u8, 4, 2, x1hi);
-  BFVIEW_M(_bf, u8, 6, 2, y1hi);
 
   auto GetObject1() const { return IRObject(x1hi() << 8 | x1, y1hi() << 8 | y1); }
   auto GetObject2() const { return IRObject(x2hi() << 8 | x2, y2hi() << 8 | y2); }
@@ -58,11 +59,11 @@ struct IRExtended
 {
   u8 x;
   u8 y;
-  u8 _bf;
+  u8 _data1;
 
-  BFVIEW_M(_bf, u8, 0, 4, size);
-  BFVIEW_M(_bf, u8, 4, 2, xhi);
-  BFVIEW_M(_bf, u8, 6, 2, yhi);
+  BFVIEW_M(_data1, u8, 0, 4, size);
+  BFVIEW_M(_data1, u8, 4, 2, xhi);
+  BFVIEW_M(_data1, u8, 6, 2, yhi);
 
   auto GetPosition() const { return IRBasic::IRObject(xhi() << 8 | x, yhi() << 8 | y); }
   void SetPosition(const IRBasic::IRObject& obj)

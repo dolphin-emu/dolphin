@@ -72,32 +72,35 @@ struct USIChannelOut
 };
 
 // SI Channel Input
-union USIChannelIn
+struct USIChannelIn_Hi
 {
-  u64 hex = 0;
-  struct
-  {
-    // These are named backwards because big endian
-    u32 hi, lo;
-  };
+  u32 hex = 0;
+
+  BFVIEW_M(hex, u8, 0, 8, INPUT3);
+  BFVIEW_M(hex, u8, 8, 8, INPUT2);
+  BFVIEW_M(hex, u8, 16, 8, INPUT1);
+  BFVIEW_M(hex, u8, 24, 6, INPUT0);
+  BFVIEW_M(hex, bool, 30, 1, ERRLATCH);  // 0: no error  1: Error latched. Check SISR.
+  BFVIEW_M(hex, bool, 31, 1, ERRSTAT);   // 0: no error  1: error on last transfer
+};
+
+// SI Channel Input
+struct USIChannelIn_Lo
+{
+  u32 hex = 0;
 
   BFVIEW_M(hex, u8, 0, 8, INPUT7);
   BFVIEW_M(hex, u8, 8, 8, INPUT6);
   BFVIEW_M(hex, u8, 16, 8, INPUT5);
   BFVIEW_M(hex, u8, 24, 8, INPUT4);
-  BFVIEW_M(hex, u8, 32, 8, INPUT3);
-  BFVIEW_M(hex, u8, 40, 8, INPUT2);
-  BFVIEW_M(hex, u8, 48, 8, INPUT1);
-  BFVIEW_M(hex, u8, 56, 6, INPUT0);
-  BFVIEW_M(hex, bool, 62, 1, ERRLATCH);  // 0: no error  1: Error latched. Check SISR.
-  BFVIEW_M(hex, bool, 63, 1, ERRSTAT);   // 0: no error  1: error on last transfer
 };
 
 // SI Channel
 struct SSIChannel
 {
   USIChannelOut out{};
-  USIChannelIn in{};
+  USIChannelIn_Hi in_hi{};
+  USIChannelIn_Lo in_lo{};
   std::unique_ptr<ISIDevice> device;
 
   bool has_recent_device_change = false;
@@ -334,8 +337,9 @@ void DoState(PointerWrap& p)
 {
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
-    p.Do(s_channel[i].in);
-    p.Do(s_channel[i].out);
+    p.Do(s_channel[i].in_hi.hex);
+    p.Do(s_channel[i].in_lo.hex);
+    p.Do(s_channel[i].out.hex);
     p.Do(s_channel[i].has_recent_device_change);
 
     std::unique_ptr<ISIDevice>& device = s_channel[i].device;
@@ -398,7 +402,8 @@ void Init()
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
     s_channel[i].out.hex = 0;
-    s_channel[i].in.hex = 0;
+    s_channel[i].in_hi.hex = 0;
+    s_channel[i].in_lo.hex = 0;
     s_channel[i].has_recent_device_change = false;
 
     if (Movie::IsMovieActive())
@@ -501,16 +506,16 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
                      s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
-                     return s_channel[i].in.hi;
+                     return s_channel[i].in_hi.hex;
                    }),
-                   MMIO::DirectWrite<u32>(&s_channel[i].in.hi));
+                   MMIO::DirectWrite<u32>(&s_channel[i].in_hi.hex));
     mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
                    MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
                      s_status_reg.hex &= ~(1U << rdst_bit);
                      UpdateInterrupts();
-                     return s_channel[i].in.lo;
+                     return s_channel[i].in_lo.hex;
                    }),
-                   MMIO::DirectWrite<u32>(&s_channel[i].in.lo));
+                   MMIO::DirectWrite<u32>(&s_channel[i].in_lo.hex));
   }
 
   mmio->Register(base | SI_POLL, MMIO::DirectRead<u32>(&s_poll.hex),
@@ -644,7 +649,8 @@ static void ChangeDeviceDeterministic(SIDevices device, int channel)
   }
 
   s_channel[channel].out.hex = 0;
-  s_channel[channel].in.hex = 0;
+  s_channel[channel].in_hi.hex = 0;
+  s_channel[channel].in_lo.hex = 0;
 
   SetNoResponse(channel);
 
@@ -679,10 +685,14 @@ void UpdateDevices()
   g_controller_interface.UpdateInput();
 
   // Update channels and set the status bit if there's new data
-  s_status_reg.RDST0() = !!s_channel[0].device->GetData(s_channel[0].in.hi, s_channel[0].in.lo);
-  s_status_reg.RDST1() = !!s_channel[1].device->GetData(s_channel[1].in.hi, s_channel[1].in.lo);
-  s_status_reg.RDST2() = !!s_channel[2].device->GetData(s_channel[2].in.hi, s_channel[2].in.lo);
-  s_status_reg.RDST3() = !!s_channel[3].device->GetData(s_channel[3].in.hi, s_channel[3].in.lo);
+  s_status_reg.RDST0() =
+      !!s_channel[0].device->GetData(s_channel[0].in_hi.hex, s_channel[0].in_lo.hex);
+  s_status_reg.RDST1() =
+      !!s_channel[1].device->GetData(s_channel[1].in_hi.hex, s_channel[1].in_lo.hex);
+  s_status_reg.RDST2() =
+      !!s_channel[2].device->GetData(s_channel[2].in_hi.hex, s_channel[2].in_lo.hex);
+  s_status_reg.RDST3() =
+      !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
 
   UpdateInterrupts();
 

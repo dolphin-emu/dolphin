@@ -149,7 +149,7 @@ int Interpreter::SingleStepInner()
   }
 
   NPC = PC + sizeof(UGeckoInstruction);
-  m_prev_inst = PowerPC::Read_Opcode(PC);
+  m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
   // Uncomment to trace the interpreter
   // if ((PC & 0x00FFFFFF) >= 0x000AB54C && (PC & 0x00FFFFFF) <= 0x000AB624)

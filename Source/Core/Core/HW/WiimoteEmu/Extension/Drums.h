@@ -72,8 +72,11 @@ public:
     // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
     BFVIEW_M(_data1, u32, 29, 3, softness);
 
-    u8 buttons;    // Button bits.
-    u8 drum_pads;  // Drum-pad bits.
+    // Button bits.
+    u8 buttons;
+
+    // Drum-pad bits.
+    u8 drum_pads;
   };
 #pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");

@@ -1197,7 +1197,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (!gpr.SanityCheck() || !fpr.SanityCheck())
     {
-      const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst, em_address);
+      const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address);
       NOTICE_LOG_FMT(DYNA_REC, "Unflushed register: {}", ppc_inst);
     }
 #endif

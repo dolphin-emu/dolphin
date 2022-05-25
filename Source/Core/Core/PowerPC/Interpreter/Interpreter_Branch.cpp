@@ -111,7 +111,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
   const u32 mask = 0x87C0FFFF;
   MSR.Hex = (MSR.Hex & ~mask) | (SRR1 & mask);
   // MSR[13] is set to 0.
-  MSR.Hex = MSR.Hex & 0xFFFBFFFF;
+  MSR.Hex &= 0xFFFBFFFF;
   // Here we should check if there are pending exceptions, and if their corresponding enable bits
   // are set
   // if above is true, we'd do:

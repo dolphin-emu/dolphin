@@ -100,16 +100,18 @@ public:
     u8 pitch1;
 
     u8 _data1;
-    u8 _data2;
-    u8 _data3;
 
     BFVIEW_M(_data1, bool, 0, 1, pitch_slow);
     BFVIEW_M(_data1, bool, 1, 1, yaw_slow);
     BFVIEW_M(_data1, u8, 2, 6, yaw2);
 
+    u8 _data2;
+
     BFVIEW_M(_data2, bool, 0, 1, extension_connected);
     BFVIEW_M(_data2, bool, 1, 1, roll_slow);
     BFVIEW_M(_data2, u8, 2, 6, roll2);
+
+    u8 _data3;
 
     BFVIEW_M(_data3, bool, 0, 1, zero);
     BFVIEW_M(_data3, bool, 1, 1, is_mp_data);

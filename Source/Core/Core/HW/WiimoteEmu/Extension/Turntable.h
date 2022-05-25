@@ -37,11 +37,6 @@ public:
   struct DataFormat
   {
     u32 _data1;
-    union
-    {
-      u16 _data2;
-      u16 bt;  // buttons
-    };
 
     BFVIEW_M(_data1, u32, 0, 6, sx);
     BFVIEW_M(_data1, u32, 6, 2, rtable3);
@@ -53,6 +48,12 @@ public:
     BFVIEW_M(_data1, u32, 23, 1, rtable1);
     BFVIEW_M(_data1, u32, 24, 5, ltable1);
     BFVIEW_M(_data1, u32, 29, 3, dial1);
+
+    union
+    {
+      u16 _data2;
+      u16 bt;  // buttons
+    };
 
     BFVIEW_M(_data2, u16, 0, 1, ltable2);
   };

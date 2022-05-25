@@ -178,7 +178,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   MOVP2R(ARM64Reg::X8, instr);
-  MOVI2R(ARM64Reg::W0, inst);
+  MOVI2R(ARM64Reg::W0, inst.hex);
   BLR(ARM64Reg::X8);
 
   // If the instruction wrote to any registers which were marked as discarded,
@@ -240,7 +240,7 @@ void JitArm64::DoNothing(UGeckoInstruction inst)
 
 void JitArm64::Break(UGeckoInstruction inst)
 {
-  WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst);
+  WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst.hex);
   std::exit(0);
 }
 
@@ -260,7 +260,7 @@ void JitArm64::Cleanup()
   }
 
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
-  if (MMCR0 || MMCR1)
+  if (MMCR0.Hex || MMCR1.Hex)
   {
     MOVP2R(ARM64Reg::X8, &PowerPC::UpdatePerformanceMonitor);
     MOVI2R(ARM64Reg::X0, js.downcountAmount);

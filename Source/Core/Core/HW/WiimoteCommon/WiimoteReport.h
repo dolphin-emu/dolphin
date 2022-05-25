@@ -9,7 +9,6 @@
 #include "Common/BitField3.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
-#include "Common/Swap.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
@@ -22,6 +21,7 @@ struct OutputReportGeneric
 
   static constexpr int HEADER_SIZE = sizeof(OutputReportID);
 
+  // Actual size varies
   u8 rpt_stub;
 
   // Enable/disable rumble. (Valid for ALL output reports)
@@ -36,21 +36,21 @@ struct OutputReportRumble
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::Rumble;
 
-  u8 rpt;
+  u8 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportRumble) == 1, "Wrong size");
 
 struct OutputReportEnableFeature
 {
-  u8 rpt;
+  u8 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
   // Respond with an ack.
-  BFVIEW_M(rpt, bool, 1, 1, ack);
+  BFVIEW_M(_rpt, bool, 1, 1, ack);
   // Enable/disable certain feature.
-  BFVIEW_M(rpt, bool, 2, 1, enable);
+  BFVIEW_M(_rpt, bool, 2, 1, enable);
 };
 static_assert(sizeof(OutputReportEnableFeature) == 1, "Wrong size");
 
@@ -82,11 +82,11 @@ struct OutputReportLeds
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::LED;
 
-  u8 rpt;
+  u8 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
-  BFVIEW_M(rpt, bool, 1, 1, ack);
-  BFVIEW_M(rpt, u8, 4, 4, leds);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, bool, 1, 1, ack);
+  BFVIEW_M(_rpt, u8, 4, 4, leds);
 };
 static_assert(sizeof(OutputReportLeds) == 1, "Wrong size");
 
@@ -94,11 +94,11 @@ struct OutputReportMode
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::ReportMode;
 
-  u8 rpt;
+  u8 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
-  BFVIEW_M(rpt, bool, 1, 1, ack);
-  BFVIEW_M(rpt, bool, 2, 1, continuous);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, bool, 1, 1, ack);
+  BFVIEW_M(_rpt, bool, 2, 1, continuous);
 
   InputReportID mode;
 };
@@ -108,9 +108,9 @@ struct OutputReportRequestStatus
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::RequestStatus;
 
-  u8 rpt;
+  u8 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
 };
 static_assert(sizeof(OutputReportRequestStatus) == 1, "Wrong size");
 
@@ -118,14 +118,14 @@ struct OutputReportWriteData
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::WriteData;
 
-  u16 rpt;
+  u16 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
-  BFVIEW_M(rpt, AddressSpace, 2, 2, space);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, AddressSpace, 2, 2, space);
   // A real wiimote ignores the i2c read/write bit.
-  BFVIEW_M(rpt, bool, 0, 1, i2c_rw_ignored);
+  BFVIEW_M(_rpt, bool, 0, 1, i2c_rw_ignored);
   // Used only for register space (i2c bus) (7-bits):
-  BFVIEW_M(rpt, u8, 1, 7, slave_address);
+  BFVIEW_M(_rpt, u8, 1, 7, slave_address);
 
   // big endian:
   u8 address[2];
@@ -138,14 +138,14 @@ struct OutputReportReadData
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::ReadData;
 
-  u16 rpt;
+  u16 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
-  BFVIEW_M(rpt, AddressSpace, 2, 2, space);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, AddressSpace, 2, 2, space);
   // A real wiimote ignores the i2c read/write bit.
-  BFVIEW_M(rpt, bool, 0, 1, i2c_rw_ignored);
+  BFVIEW_M(_rpt, bool, 0, 1, i2c_rw_ignored);
   // Used only for register space (i2c bus) (7-bits):
-  BFVIEW_M(rpt, u8, 1, 7, slave_address);
+  BFVIEW_M(_rpt, u8, 1, 7, slave_address);
 
   // big endian:
   u8 address[2];
@@ -157,10 +157,10 @@ struct OutputReportSpeakerData
 {
   static constexpr OutputReportID REPORT_ID = OutputReportID::SpeakerData;
 
-  u8 rpt;
+  u8 _rpt;
 
-  BFVIEW_M(rpt, bool, 0, 1, rumble);
-  BFVIEW_M(rpt, u8, 3, 5, length);
+  BFVIEW_M(_rpt, bool, 0, 1, rumble);
+  BFVIEW_M(_rpt, u8, 3, 5, length);
 
   u8 data[20];
 };
@@ -200,15 +200,16 @@ struct InputReportStatus
   static constexpr InputReportID REPORT_ID = InputReportID::Status;
 
   ButtonData buttons;
-  u8 status;
+  u8 _status;
+
+  BFVIEW_M(_status, bool, 0, 1, battery_low);
+  BFVIEW_M(_status, bool, 1, 1, extension);
+  BFVIEW_M(_status, bool, 2, 1, speaker);
+  BFVIEW_M(_status, bool, 3, 1, ir);
+  BFVIEW_M(_status, u8, 4, 4, leds);
+
   u16 : 16;  // padding
   u8 battery;
-
-  BFVIEW_M(status, bool, 0, 1, battery_low);
-  BFVIEW_M(status, bool, 1, 1, extension);
-  BFVIEW_M(status, bool, 2, 1, speaker);
-  BFVIEW_M(status, bool, 3, 1, ir);
-  BFVIEW_M(status, u8, 4, 4, leds);
 
   constexpr float GetEstimatedCharge() const
   {
@@ -243,13 +244,14 @@ struct InputReportReadDataReply
   static constexpr InputReportID REPORT_ID = InputReportID::ReadDataReply;
 
   ButtonData buttons;
-  u8 read_data_reply;
+  u8 _reply;
+
+  BFVIEW_M(_reply, ErrorCode, 0, 4, error);
+  BFVIEW_M(_reply, u8, 4, 4, size_minus_one);
+
   // big endian:
   u16 address;
   u8 data[16];
-
-  BFVIEW_M(read_data_reply, ErrorCode, 0, 4, error);
-  BFVIEW_M(read_data_reply, u8, 4, 4, size_minus_one);
 };
 static_assert(sizeof(InputReportReadDataReply) == 21, "Wrong size");
 

@@ -35,7 +35,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
 {
   u32 b = 0x80000000 >> inst.CRBD();
 
-  FPSCR &= ~b;
+  FPSCR.Hex &= ~b;
   FPSCRUpdated(&FPSCR);
 
   if (inst.Rc())

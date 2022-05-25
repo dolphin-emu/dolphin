@@ -267,7 +267,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
 
   ErrorCode error_code = ErrorCode::Success;
 
-  switch (wd.space().Get())
+  switch (wd.space())
   {
   case AddressSpace::EEPROM:
   {
