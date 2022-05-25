@@ -855,7 +855,7 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  u8 imm = (inst >> (31 - 19)) & 0xF;
+  u8 imm = (inst.hex >> (31 - 19)) & 0xF;
   u8 shift = 28 - 4 * inst.CRFD();
   u32 mask = 0xF << shift;
 
