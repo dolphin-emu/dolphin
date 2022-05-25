@@ -212,9 +212,9 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
-struct FixedViewArrayIterator;
+class FixedViewArrayIterator;
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
-struct FixedViewArrayConstIterator;
+class FixedViewArrayConstIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
