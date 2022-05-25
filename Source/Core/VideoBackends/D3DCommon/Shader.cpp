@@ -114,7 +114,7 @@ std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view so
   case ShaderStage::Vertex:
   {
     const auto full_source = fmt::format("{}{}", SHADER_HEADER, source);
-    return SPIRV::CompileVertexShader(full_source);
+    return SPIRV::CompileVertexShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0);
   }
 
   case ShaderStage::Geometry:
@@ -126,13 +126,13 @@ std::optional<SPIRV::CodeVector> GetSpirv(ShaderStage stage, std::string_view so
   case ShaderStage::Pixel:
   {
     const auto full_source = fmt::format("{}{}", SHADER_HEADER, source);
-    return SPIRV::CompileFragmentShader(full_source);
+    return SPIRV::CompileFragmentShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0);
   }
 
   case ShaderStage::Compute:
   {
     const auto full_source = fmt::format("{}{}", COMPUTE_SHADER_HEADER, source);
-    return SPIRV::CompileComputeShader(full_source);
+    return SPIRV::CompileComputeShader(full_source, APIType::D3D, glslang::EShTargetSpv_1_0);
   }
   };
 
