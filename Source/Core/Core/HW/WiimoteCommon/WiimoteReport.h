@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Common/BitField.h"
-#include "Common/BitField3.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"

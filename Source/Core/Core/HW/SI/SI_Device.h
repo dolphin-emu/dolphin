@@ -6,7 +6,7 @@
 #include <iosfwd>
 #include <memory>
 #include "Common/BitField.h"
-#include "Common/BitField3.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;

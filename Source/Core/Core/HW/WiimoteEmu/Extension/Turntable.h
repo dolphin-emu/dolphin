@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
-#include "Common/BitField3.h"
+#include "Common/BitFieldView.h"
 
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 

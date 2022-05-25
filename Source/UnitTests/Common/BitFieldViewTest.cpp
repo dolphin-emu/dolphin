@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Common/BitField2.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 
@@ -15,26 +15,28 @@ enum class TestEnum : u64
   D,
 };
 
-struct TestUnion : BitField2<u64>
+struct TestUnion
 {
-  FIELD(u64, 0, 64, full_u64);  // spans whole storage
-  FIELD(s64, 0, 64, full_s64);  // spans whole storage
+  u64 hex;
 
-  FIELD(u64, 9, 3, regular_field_unsigned);   // a plain bitfield
-  FIELD(u64, 9, 3, regular_field_unsigned2);  // Just the very same bitfield again
-  FIELD(s64, 9, 3, regular_field_signed);     // Same bitfield, but different sign
+  BFVIEW_M(hex, u64, 0, 64, full_u64);  // spans whole storage
+  BFVIEW_M(hex, s64, 0, 64, full_s64);  // spans whole storage
 
-  FIELD(s64, 30, 4, at_dword_boundary);  // goes over the boundary of two u32 values
+  BFVIEW_M(hex, u64, 9, 3, regular_field_unsigned);   // a plain bitfield
+  BFVIEW_M(hex, u64, 9, 3, regular_field_unsigned2);  // Just the very same bitfield again
+  BFVIEW_M(hex, s64, 9, 3, regular_field_signed);     // Same bitfield, but different sign
 
-  FIELD(s64, 15, 1, signed_1bit);  // allowed values: -1 and 0
+  BFVIEW_M(hex, s64, 30, 4, at_dword_boundary);  // goes over the boundary of two u32 values
 
-  FIELD(bool, 63, 1, flag);
+  BFVIEW_M(hex, s64, 15, 1, signed_1bit);  // allowed values: -1 and 0
 
-  FIELD(TestEnum, 16, 2, enum_1);
-  FIELD(TestEnum, 48, 2, enum_2);
+  BFVIEW_M(hex, bool, 63, 1, flag);
+
+  BFVIEW_M(hex, TestEnum, 16, 2, enum_1);
+  BFVIEW_M(hex, TestEnum, 48, 2, enum_2);
 
   TestUnion() = default;
-  constexpr TestUnion(u64 val) : BitField2(val) {}
+  constexpr TestUnion(u64 val) : hex(val) {}
 };
 
 // table of raw numbers to test with
@@ -53,7 +55,7 @@ static u64 table[] = {
 };
 
 // Verify that bitfields in a union have the same underlying data
-TEST(BitField2, Storage)
+TEST(BitFieldView, Storage)
 {
   TestUnion object;
 
@@ -62,16 +64,16 @@ TEST(BitField2, Storage)
   for (u64 val : table)
   {
     object = val;
-    EXPECT_EQ(object, object.full_u64());
+    EXPECT_EQ(object.hex, object.full_u64());
     EXPECT_EQ(object.regular_field_unsigned(), object.regular_field_unsigned2());
 
     object.regular_field_unsigned() = val & 0x3;
-    EXPECT_EQ(object, object.full_u64());
+    EXPECT_EQ(object.hex, object.full_u64());
     EXPECT_EQ(object.regular_field_unsigned(), object.regular_field_unsigned2());
   }
 }
 
-TEST(BitField2, Read)
+TEST(BitFieldView, Read)
 {
   TestUnion object;
 
@@ -96,16 +98,16 @@ TEST(BitField2, Read)
     EXPECT_EQ(*(s64*)&val, object.full_s64());
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned());
     EXPECT_EQ((val >> 9) & 0x7, object.regular_field_unsigned2());
-    EXPECT_EQ(((s64)(object << 52)) >> 61, object.regular_field_signed());
-    EXPECT_EQ(((s64)(object << 30)) >> 60, object.at_dword_boundary());
-    EXPECT_EQ(((object >> 15) & 1) ? -1 : 0, object.signed_1bit());
-    EXPECT_EQ((bool)object.flag(), ((object >> 63) & 1));
-    EXPECT_EQ(static_cast<TestEnum>((object >> 16) & 3), object.enum_1());
-    EXPECT_EQ(static_cast<TestEnum>((object >> 48) & 3), object.enum_2());
+    EXPECT_EQ(((s64)(object.hex << 52)) >> 61, object.regular_field_signed());
+    EXPECT_EQ(((s64)(object.hex << 30)) >> 60, object.at_dword_boundary());
+    EXPECT_EQ(((object.hex >> 15) & 1) ? -1 : 0, object.signed_1bit());
+    EXPECT_EQ((bool)object.flag(), ((object.hex >> 63) & 1));
+    EXPECT_EQ(static_cast<TestEnum>((object.hex >> 16) & 3), object.enum_1());
+    EXPECT_EQ(static_cast<TestEnum>((object.hex >> 48) & 3), object.enum_2());
   }
 }
 
-TEST(BitField2, Assignment)
+TEST(BitFieldView, Assignment)
 {
   TestUnion object;
 
@@ -128,7 +130,7 @@ TEST(BitField2, Assignment)
     EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit());
 
     object.regular_field_signed() = val;
-    EXPECT_EQ(((s64)(object.Get() << 61)) >> 61, object.regular_field_signed());
+    EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed());
 
     // Assignment from other BitField
     object.at_dword_boundary() = object.regular_field_signed();
@@ -141,7 +143,7 @@ TEST(BitField2, Assignment)
 }
 
 // Test class behavior on oddly aligned structures.
-TEST(BitField2, Alignment)
+TEST(BitFieldView, Alignment)
 {
 #pragma pack(1)
   struct OddlyAlignedTestStruct
@@ -175,7 +177,7 @@ TEST(BitField2, Alignment)
     EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit());
 
     object.regular_field_signed() = val;
-    EXPECT_EQ(((s64)(object << 61)) >> 61, object.regular_field_signed());
+    EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed());
 
     // Assignment from other BitField
     object.at_dword_boundary() = object.regular_field_signed();
@@ -194,7 +196,7 @@ struct fmt::formatter<TestEnum> : EnumFormatter<TestEnum::D>
 };
 
 // Test behavior of using BitFields with fmt
-TEST(BitField2, Fmt)
+TEST(BitFieldView, Fmt)
 {
   TestUnion object;
 
@@ -216,8 +218,8 @@ TEST(BitField2, Fmt)
     EXPECT_EQ(fmt::to_string(object.signed_1bit()), fmt::to_string(object.signed_1bit().Get()));
     EXPECT_EQ(fmt::to_string(object.flag()), fmt::to_string(object.flag().Get()));
     // The custom enum formatter should be used properly.
-    // EXPECT_EQ(fmt::to_string(object.enum_1()), fmt::to_string(object.enum_1().Get()));
-    // EXPECT_EQ(fmt::to_string(object.enum_2()), fmt::to_string(object.enum_2().Get()));
+    EXPECT_EQ(fmt::to_string(object.enum_1()), fmt::to_string(object.enum_1().Get()));
+    EXPECT_EQ(fmt::to_string(object.enum_2()), fmt::to_string(object.enum_2().Get()));
 
     // Formatting the BitField should respect the format spec
     EXPECT_EQ(fmt::format("{:02x}", object.full_u64()),
@@ -235,23 +237,25 @@ TEST(BitField2, Fmt)
     EXPECT_EQ(fmt::format("{:02x}", object.signed_1bit()),
               fmt::format("{:02x}", object.signed_1bit().Get()));
     EXPECT_EQ(fmt::format("{:02x}", object.flag()), fmt::format("{:02x}", object.flag().Get()));
-    // EXPECT_EQ(fmt::format("{:s}", object.enum_1()), fmt::format("{:s}", object.enum_1().Get()));
-    // EXPECT_EQ(fmt::format("{:s}", object.enum_2()), fmt::format("{:s}", object.enum_2().Get()));
+    EXPECT_EQ(fmt::format("{:s}", object.enum_1()), fmt::format("{:s}", object.enum_1().Get()));
+    EXPECT_EQ(fmt::format("{:s}", object.enum_2()), fmt::format("{:s}", object.enum_2().Get()));
   }
 }
 
-struct TestUnion2 : BitField2<u32>
+struct TestUnion2
 {
-  FIELD(u32, 0, 2, a);
-  FIELD(u32, 2, 2, b);
-  FIELD(u32, 4, 2, c);
-  FIELDARRAY(u32, 0, 2, 3, arr);
+  u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 2, a);
+  BFVIEW_M(hex, u32, 2, 2, b);
+  BFVIEW_M(hex, u32, 4, 2, c);
+  BFVIEWARRAY_M(hex, u32, 0, 2, 3, arr);
 
   TestUnion2() = default;
-  constexpr TestUnion2(u32 val) : BitField2(val) {}
+  constexpr TestUnion2(u32 val) : hex(val) {}
 };
 
-TEST(BitField2Array, Unsigned)
+TEST(BitFieldViewArray, Unsigned)
 {
   TestUnion2 object = 0;
   const TestUnion2& objectc = object;
@@ -264,22 +268,22 @@ TEST(BitField2Array, Unsigned)
   object.arr()[0] = 2;
   EXPECT_EQ(object.arr()[0], 2u);
   EXPECT_EQ(object.a(), 2u);
-  EXPECT_EQ(object, 0b00'00'10u);
+  EXPECT_EQ(object.hex, 0b00'00'10u);
 
   object.arr()[1] = 3;
   EXPECT_EQ(object.arr()[1], 3u);
   EXPECT_EQ(object.b(), 3u);
-  EXPECT_EQ(object, 0b00'11'10u);
+  EXPECT_EQ(object.hex, 0b00'11'10u);
 
   object.arr()[2] = object.arr()[1];
   EXPECT_EQ(object.arr()[2], 3u);
   EXPECT_EQ(object.c(), 3u);
-  EXPECT_EQ(object, 0b11'11'10u);
+  EXPECT_EQ(object.hex, 0b11'11'10u);
 
   object.arr()[1] = objectc.arr()[0];
   EXPECT_EQ(object.arr()[1], 2u);
   EXPECT_EQ(object.b(), 2u);
-  EXPECT_EQ(object, 0b11'10'10u);
+  EXPECT_EQ(object.hex, 0b11'10'10u);
 
   for (auto ref : object.arr())
   {
@@ -288,19 +292,19 @@ TEST(BitField2Array, Unsigned)
   EXPECT_EQ(object.a(), 1u);
   EXPECT_EQ(object.b(), 1u);
   EXPECT_EQ(object.c(), 1u);
-  EXPECT_EQ(object, 0b01'01'01u);
+  EXPECT_EQ(object.hex, 0b01'01'01u);
 
   std::fill_n(object.arr().begin(), object.arr().Size(), 3);
   EXPECT_EQ(object.arr()[0], 3u);
   EXPECT_EQ(object.arr()[1], 3u);
   EXPECT_EQ(object.arr()[2], 3u);
-  EXPECT_EQ(object, 0b11'11'11u);
+  EXPECT_EQ(object.hex, 0b11'11'11u);
 
   for (u32 i = 0; i < object.arr().Size(); i++)
   {
     object.arr()[i] = i;
   }
-  EXPECT_EQ(object, 0b10'01'00u);
+  EXPECT_EQ(object.hex, 0b10'01'00u);
 
   EXPECT_EQ(objectc.arr()[0], 0u);
   EXPECT_EQ(objectc.arr()[1], 1u);
@@ -317,18 +321,20 @@ TEST(BitField2Array, Unsigned)
   EXPECT_EQ("[0b00, 0b01, 0b10]", fmt::format("[{:#04b}]", fmt::join(object.arr(), ", ")));
 }
 
-struct TestUnion3 : BitField2<s32>
+struct TestUnion3
 {
-  FIELD(s32, 5, 2, a);
-  FIELD(s32, 7, 2, b);
-  FIELD(s32, 9, 2, c);
-  FIELDARRAY(s32, 5, 2, 3, arr);
+  s32 hex;
+
+  BFVIEW_M(hex, s32, 5, 2, a);
+  BFVIEW_M(hex, s32, 7, 2, b);
+  BFVIEW_M(hex, s32, 9, 2, c);
+  BFVIEWARRAY_M(hex, s32, 5, 2, 3, arr);
 
   TestUnion3() = default;
-  TestUnion3(s32 val) : BitField2(val) {}
+  constexpr TestUnion3(s32 val) : hex(val) {}
 };
 
-TEST(BitField2Array, Signed)
+TEST(BitFieldViewArray, Signed)
 {
   TestUnion3 object = 0;
   const TestUnion3& objectc = object;
@@ -341,22 +347,22 @@ TEST(BitField2Array, Signed)
   object.arr()[0] = -2;
   EXPECT_EQ(object.arr()[0], -2);
   EXPECT_EQ(object.a(), -2);
-  EXPECT_EQ(object, 0b00'00'10'00000);
+  EXPECT_EQ(object.hex, 0b00'00'10'00000);
 
   object.arr()[1] = -1;
   EXPECT_EQ(object.arr()[1], -1);
   EXPECT_EQ(object.b(), -1);
-  EXPECT_EQ(object, 0b00'11'10'00000);
+  EXPECT_EQ(object.hex, 0b00'11'10'00000);
 
   object.arr()[2] = object.arr()[1];
   EXPECT_EQ(object.arr()[2], -1);
   EXPECT_EQ(object.c(), -1);
-  EXPECT_EQ(object, 0b11'11'10'00000);
+  EXPECT_EQ(object.hex, 0b11'11'10'00000);
 
   object.arr()[1] = objectc.arr()[0];
   EXPECT_EQ(object.arr()[1], -2);
   EXPECT_EQ(object.b(), -2);
-  EXPECT_EQ(object, 0b11'10'10'00000);
+  EXPECT_EQ(object.hex, 0b11'10'10'00000);
 
   for (auto ref : object.arr())
   {
@@ -365,19 +371,19 @@ TEST(BitField2Array, Signed)
   EXPECT_EQ(object.a(), 1);
   EXPECT_EQ(object.b(), 1);
   EXPECT_EQ(object.c(), 1);
-  EXPECT_EQ(object, 0b01'01'01'00000);
+  EXPECT_EQ(object.hex, 0b01'01'01'00000);
 
   std::fill_n(object.arr().begin(), object.arr().Size(), -1);
   EXPECT_EQ(object.arr()[0], -1);
   EXPECT_EQ(object.arr()[1], -1);
   EXPECT_EQ(object.arr()[2], -1);
-  EXPECT_EQ(object, 0b11'11'11'00000);
+  EXPECT_EQ(object.hex, 0b11'11'11'00000);
 
   for (u32 i = 0; i < object.arr().Size(); i++)
   {
     object.arr()[i] = i;
   }
-  EXPECT_EQ(object, 0b10'01'00'00000);
+  EXPECT_EQ(object.hex, 0b10'01'00'00000);
 
   EXPECT_EQ(objectc.arr()[0], 0);
   EXPECT_EQ(objectc.arr()[1], 1);
@@ -393,19 +399,21 @@ TEST(BitField2Array, Signed)
   EXPECT_EQ("[+0b00, +0b01, -0b10]", fmt::format("[{:+#05b}]", fmt::join(object.arr(), ", ")));
 }
 
-struct TestUnion4 : BitField2<u64>
+struct TestUnion4
 {
-  FIELD(TestEnum, 30, 2, a);
-  FIELD(TestEnum, 32, 2, b);
-  FIELD(TestEnum, 34, 2, c);
-  FIELD(TestEnum, 36, 2, d);
-  FIELDARRAY(TestEnum, 30, 2, 4, arr);
+  u64 hex;
+
+  BFVIEW_M(hex, TestEnum, 30, 2, a);
+  BFVIEW_M(hex, TestEnum, 32, 2, b);
+  BFVIEW_M(hex, TestEnum, 34, 2, c);
+  BFVIEW_M(hex, TestEnum, 36, 2, d);
+  BFVIEWARRAY_M(hex, TestEnum, 30, 2, 4, arr);
 
   TestUnion4() = default;
-  TestUnion4(u64 val) : BitField2(val) {}
+  constexpr TestUnion4(u64 val) : hex(val) {}
 };
 
-TEST(BitField2Array, Enum)
+TEST(BitFieldViewArray, Enum)
 {
   TestUnion4 object = 0;
   const TestUnion4& objectc = object;
@@ -418,22 +426,22 @@ TEST(BitField2Array, Enum)
   object.arr()[0] = TestEnum::B;
   EXPECT_EQ(object.arr()[0], TestEnum::B);
   EXPECT_EQ(object.a(), TestEnum::B);
-  EXPECT_EQ(object, 0b00'00'00'01ull << 30);
+  EXPECT_EQ(object.hex, 0b00'00'00'01ull << 30);
 
   object.arr()[1] = TestEnum::C;
   EXPECT_EQ(object.arr()[1], TestEnum::C);
   EXPECT_EQ(object.b(), TestEnum::C);
-  EXPECT_EQ(object, 0b00'00'10'01ull << 30);
+  EXPECT_EQ(object.hex, 0b00'00'10'01ull << 30);
 
   object.arr()[2] = object.arr()[1];
   EXPECT_EQ(object.arr()[2], TestEnum::C);
   EXPECT_EQ(object.c(), TestEnum::C);
-  EXPECT_EQ(object, 0b00'10'10'01ull << 30);
+  EXPECT_EQ(object.hex, 0b00'10'10'01ull << 30);
 
   object.arr()[3] = objectc.arr()[0];
   EXPECT_EQ(object.arr()[3], TestEnum::B);
   EXPECT_EQ(object.d(), TestEnum::B);
-  EXPECT_EQ(object, 0b01'10'10'01ull << 30);
+  EXPECT_EQ(object.hex, 0b01'10'10'01ull << 30);
 
   for (auto ref : object.arr())
   {
@@ -443,20 +451,20 @@ TEST(BitField2Array, Enum)
   EXPECT_EQ(object.b(), TestEnum::D);
   EXPECT_EQ(object.c(), TestEnum::D);
   EXPECT_EQ(object.d(), TestEnum::D);
-  EXPECT_EQ(object, 0b11'11'11'11ull << 30);
+  EXPECT_EQ(object.hex, 0b11'11'11'11ull << 30);
 
   std::fill_n(object.arr().begin(), object.arr().Size(), TestEnum::C);
   EXPECT_EQ(object.a(), TestEnum::C);
   EXPECT_EQ(object.b(), TestEnum::C);
   EXPECT_EQ(object.c(), TestEnum::C);
   EXPECT_EQ(object.d(), TestEnum::C);
-  EXPECT_EQ(object, 0b10'10'10'10ull << 30);
+  EXPECT_EQ(object.hex, 0b10'10'10'10ull << 30);
 
   for (u32 i = 0; i < object.arr().Size(); i++)
   {
     object.arr()[i] = static_cast<TestEnum>(i);
   }
-  EXPECT_EQ(object, 0b11'10'01'00ull << 30);
+  EXPECT_EQ(object.hex, 0b11'10'01'00ull << 30);
 
   EXPECT_EQ(objectc.arr()[0], TestEnum::A);
   EXPECT_EQ(objectc.arr()[1], TestEnum::B);
@@ -469,21 +477,23 @@ TEST(BitField2Array, Enum)
     EXPECT_EQ(value, object.arr()[counter++]);
   }
 
-  // EXPECT_EQ("[A (0), B (1), C (2), D (3)]", fmt::format("[{}]", fmt::join(object.arr(), ", ")));
-  // EXPECT_EQ("[0x0u /* A */, 0x1u /* B */, 0x2u /* C */, 0x3u /* D */]",
-  //          fmt::format("[{:s}]", fmt::join(object.arr(), ", ")));
+  EXPECT_EQ("[A (0), B (1), C (2), D (3)]", fmt::format("[{}]", fmt::join(object.arr(), ", ")));
+  EXPECT_EQ("[0x0u /* A */, 0x1u /* B */, 0x2u /* C */, 0x3u /* D */]",
+            fmt::format("[{:s}]", fmt::join(object.arr(), ", ")));
 }
 
-struct TestUnion5 : BitField2<u64>
+struct TestUnion5
 {
-  FIELDARRAY(u8, 0, 5, 6, arr1);
-  FIELDARRAY(bool, 30, 1, 4, arr2);
+  u64 hex;
+
+  BFVIEWARRAY_M(hex, u8, 0, 5, 6, arr1);
+  BFVIEWARRAY_M(hex, bool, 30, 1, 4, arr2);
 
   TestUnion5() = default;
-  TestUnion5(u64 val) : BitField2(val) {}
+  TestUnion5(u64 val) : hex(val) {}
 };
 
-TEST(BitField2Array, StorageType)
+TEST(BitFieldViewArray, StorageType)
 {
   const u64 arr1_hex = 0b10000'01000'00100'00010'00001'00000;
   const u64 arr2_hex_1 = 0b1010ull << 30;
@@ -503,16 +513,16 @@ TEST(BitField2Array, StorageType)
   object.arr1()[3] = 4;
   object.arr1()[4] = 8;
   object.arr1()[5] = 16;
-  EXPECT_EQ(object, arr1_hex | arr2_hex_1);
+  EXPECT_EQ(object.hex, arr1_hex | arr2_hex_1);
 
   object.arr2()[2] = object.arr2()[0] = true;
   object.arr2()[3] = object.arr2()[1] = false;
-  EXPECT_EQ(object, arr1_hex | arr2_hex_2);
+  EXPECT_EQ(object.hex, arr1_hex | arr2_hex_2);
 
   object.arr2()[2] = object.arr2()[1];
   object.arr2()[3] = objectc.arr2()[0];
   const u64 arr2_hex_3 = 0b1001ull << 30;
-  EXPECT_EQ(object, arr1_hex | arr2_hex_3);
+  EXPECT_EQ(object.hex, arr1_hex | arr2_hex_3);
 
   u32 counter = 0;
   for (u8 value : object.arr1())

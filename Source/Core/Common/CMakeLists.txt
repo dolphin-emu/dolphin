@@ -3,8 +3,7 @@ add_library(common
   Analytics.h
   Assert.h
   BitField.h
-  BitField2.h
-  BitField3.h
+  BitFieldView.h
   BitSet.h
   BitUtils.h
   BlockingLoop.h
