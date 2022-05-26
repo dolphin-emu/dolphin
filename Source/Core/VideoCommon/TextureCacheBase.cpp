@@ -56,6 +56,8 @@ static const u64 TEXHASH_INVALID = 0;
 static const int TEXTURE_KILL_THRESHOLD = 64;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 
+static int xfb_count = 0;
+
 std::unique_ptr<TextureCacheBase> g_texture_cache;
 
 TextureCacheBase::TCacheEntry::TCacheEntry(std::unique_ptr<AbstractTexture> tex,
@@ -1776,12 +1778,20 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
   SETSTAT(g_stats.num_textures_alive, static_cast<int>(textures_by_address.size()));
   INCSTAT(g_stats.num_textures_uploaded);
 
-  if (g_ActiveConfig.bDumpXFBTarget)
+  if (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods)
   {
-    // While this isn't really an xfb copy, we can treat it as such for dumping purposes
-    static int xfb_count = 0;
-    entry->texture->Save(
-        fmt::format("{}xfb_loaded_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++), 0);
+    const std::string id = fmt::format("{}x{}", width, height);
+    if (g_ActiveConfig.bGraphicMods)
+    {
+      entry->texture_info_name = fmt::format("{}_{}", XFB_DUMP_PREFIX, id);
+    }
+
+    if (g_ActiveConfig.bDumpXFBTarget)
+    {
+      entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX),
+                                       XFB_DUMP_PREFIX, xfb_count++, id),
+                           0);
+    }
   }
 
   GetDisplayRectForXFBEntry(entry, width, height, display_rect);
@@ -2209,20 +2219,38 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                           isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
-      if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
+      if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
       {
-        static int efb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}efb_frame_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), efb_count++),
-            0);
-      }
+        const std::string id = fmt::format("{}x{}", tex_w, tex_h);
+        if (g_ActiveConfig.bGraphicMods)
+        {
+          entry->texture_info_name = fmt::format("{}_{}", XFB_DUMP_PREFIX, id);
+        }
 
-      if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
+        if (g_ActiveConfig.bDumpXFBTarget)
+        {
+          entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png",
+                                           File::GetUserPath(D_DUMPTEXTURES_IDX), XFB_DUMP_PREFIX,
+                                           xfb_count++, id),
+                               0);
+        }
+      }
+      else if (g_ActiveConfig.bDumpEFBTarget || g_ActiveConfig.bGraphicMods)
       {
-        static int xfb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}xfb_copy_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++),
-            0);
+        const std::string id = fmt::format("{}x{}_{}", tex_w, tex_h, static_cast<int>(baseFormat));
+        if (g_ActiveConfig.bGraphicMods)
+        {
+          entry->texture_info_name = fmt::format("{}_{}", EFB_DUMP_PREFIX, id);
+        }
+
+        if (g_ActiveConfig.bDumpEFBTarget)
+        {
+          static int efb_count = 0;
+          entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png",
+                                           File::GetUserPath(D_DUMPTEXTURES_IDX), EFB_DUMP_PREFIX,
+                                           efb_count++, id),
+                               0);
+        }
       }
     }
   }
