@@ -15,8 +15,8 @@
 
 VertexShaderUid GetVertexShaderUid()
 {
-  ASSERT(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
-  ASSERT(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
+  ASSERT(bpmem.genMode.numtexgens() == xfmem.numTexGen.numTexGens);
+  ASSERT(bpmem.genMode.numcolchans() == xfmem.numChan.numColorChans);
 
   VertexShaderUid out;
   vertex_shader_uid_data* const uid_data = out.GetUidData();

@@ -6,6 +6,32 @@
 #include <limits>
 #include <type_traits>
 
+template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
+class BitFieldFixedView;
+
+template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
+class ConstBitFieldFixedView;
+
+template <typename host_t_, typename field_t_>
+class BitFieldView;
+
+template <typename host_t_, typename field_t_>
+class ConstBitFieldView;
+
+template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_,
+          std::size_t length_>
+class BitFieldFixedViewArray;
+
+template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_,
+          std::size_t length_>
+class ConstBitFieldFixedViewArray;
+
+template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
+class FixedViewArrayIterator;
+
+template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
+class FixedViewArrayConstIterator;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
@@ -208,13 +234,6 @@ public:
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
   }
 };
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
-class FixedViewArrayIterator;
-template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
-class FixedViewArrayConstIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

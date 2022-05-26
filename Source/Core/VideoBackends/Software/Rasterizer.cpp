@@ -288,7 +288,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
     }
   }
 
-  u32 indref = bpmem.tevindref;
+  u32 indref = bpmem.tevindref.hex;
   for (unsigned int i = 0; i < bpmem.genMode.numindstages(); i++)
   {
     u32 texmap = indref & 3;
