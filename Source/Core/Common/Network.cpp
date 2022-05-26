@@ -186,4 +186,22 @@ u16 ComputeNetworkChecksum(const void* data, u16 length, u32 initial_value)
     checksum = (checksum >> 16) + (checksum & 0xFFFF);
   return ~static_cast<u16>(checksum);
 }
+
+NetworkErrorState SaveNetworkErrorState()
+{
+  return {
+      errno,
+#ifdef _WIN32
+      WSAGetLastError(),
+#endif
+  };
+}
+
+void RestoreNetworkErrorState(const NetworkErrorState& state)
+{
+  errno = state.error;
+#ifdef _WIN32
+  WSASetLastError(state.wsa_error);
+#endif
+}
 }  // namespace Common

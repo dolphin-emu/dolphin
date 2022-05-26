@@ -15,6 +15,7 @@
 #include "Common/IOFile.h"
 #include "Common/Network.h"
 #include "Common/PcapFile.h"
+#include "Common/ScopeGuard.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
@@ -90,24 +91,6 @@ void PCAPSSLCaptureLogger::OnNewSocket(s32 socket)
   m_write_sequence_number[socket] = 0;
 }
 
-PCAPSSLCaptureLogger::ErrorState PCAPSSLCaptureLogger::SaveState() const
-{
-  return {
-      errno,
-#ifdef _WIN32
-      WSAGetLastError(),
-#endif
-  };
-}
-
-void PCAPSSLCaptureLogger::RestoreState(const PCAPSSLCaptureLogger::ErrorState& state) const
-{
-  errno = state.error;
-#ifdef _WIN32
-  WSASetLastError(state.wsa_error);
-#endif
-}
-
 void PCAPSSLCaptureLogger::LogSSLRead(const void* data, std::size_t length, s32 socket)
 {
   if (!Config::Get(Config::MAIN_NETWORK_SSL_DUMP_READ))
@@ -135,7 +118,8 @@ void PCAPSSLCaptureLogger::LogWrite(const void* data, std::size_t length, s32 so
 void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t length, s32 socket,
                                sockaddr* other)
 {
-  const auto state = SaveState();
+  const auto state = Common::SaveNetworkErrorState();
+  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
   sockaddr_in sock;
   sockaddr_in peer;
   sockaddr_in* from;
@@ -144,16 +128,10 @@ void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t l
   socklen_t peer_len = sizeof(sock);
 
   if (getsockname(socket, reinterpret_cast<sockaddr*>(&sock), &sock_len) != 0)
-  {
-    RestoreState(state);
     return;
-  }
 
   if (other == nullptr && getpeername(socket, reinterpret_cast<sockaddr*>(&peer), &peer_len) != 0)
-  {
-    RestoreState(state);
     return;
-  }
 
   if (log_type == LogType::Read)
   {
@@ -168,7 +146,6 @@ void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t l
 
   LogIPv4(log_type, reinterpret_cast<const u8*>(data), static_cast<u16>(length), socket, *from,
           *to);
-  RestoreState(state);
 }
 
 void PCAPSSLCaptureLogger::LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket,
