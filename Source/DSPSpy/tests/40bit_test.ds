@@ -1,0 +1,164 @@
+; This test covers the behavior of 40-bit mode for a variety of values.
+; It takes a while to run completely (~5 minutes), but progress is indicated via mail shown at the
+; top of the screen in DSPSpy.  The value will go from 80000000 to 8041ffff.
+incdir  "tests"
+include "dsp_base.inc"
+
+
+
+test_main:
+	LRI $ar0, #0
+	LRI $ar1, #0
+	LRI $ar2, #0
+	LRI $ar3, #0
+	LRI $ix0, #0
+	LRI $ix1, #0
+	LRI $ix2, #0
+	LRI $ix3, #0
+
+	; Test with $ac0.l from 0xfff0 to 0x0010
+	LRI $ac0.l, #0xfff0
+BLOOPI #0x21, first_loop_last_ins
+	CALL test_saturation
+	IAR $ar0
+first_loop_last_ins:
+	INC $acc0
+
+	; Test with $ac0.l from 0x7ff0 to 0x8010
+	LRI $ac0.l, #0xfff0
+BLOOPI #0x21, second_loop_last_ins
+	CALL test_saturation
+	IAR $ar0
+second_loop_last_ins:
+	INC $acc0
+
+	; We're done.  Report the test results.
+	; $ix1 should be 0, or else saturation occurred on $ac0.l or $ac0.h.
+	; $ix2 should be 0, or else sign-extension occurred on $ac0.l or $ac0.h.
+	; $ix3 should be 0, or else we incorrectly predicted saturation on $ac0.m.
+	; $ar1/$ar2/$ar3 records the number of times it happened
+	CALL send_back
+
+	; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test
+
+
+
+test_saturation:
+	; We start with $ac0.h at -0x80 since we can use the overflow flag to check when wrapping around
+	; occurs; starting at 0 and ending when it wraps back to 0 doesn't work since we can't check the
+	; zero flag since $ac0.l may be nonzero ($ac0.l is used as an input to this subroutine)
+	LRI $ac0.m, #0
+	LRI $ac0.h, #-0x80
+
+loop_start:
+	; Compare the value of $ac0.m when in SET16 mode and in SET40 mode
+	SET40
+	; Reading $ac0.m in SET40 mode results in saturation if $ac0.h doesn't match the sign-extension
+	; of $ac0.h. Also, storing to $ac1.m in SET40 mode clears $ac1.l and sets $ac1.h to the
+	; sign-extension of $ac1.m, and $ac1.l.
+	MRR $ac1.m, $ac0.m
+	SET16
+	; Attempt to compute the saturated value of $ac1.m in $ax1.h,
+	; using what we know of $acc0.
+	TST'MV $acc0 : $ax1.h, $ac0.m
+	JL negative_acc0
+	; $acc0 is nonnegative.
+	JMPx8 check_saturated_ax1h ; If the above s32 bit is not set, we don't need to saturate
+	; If the above s32 bit _is_ set, then saturate $ax1.h.
+	LRI $ax1.h, #0x7fff
+	JMP check_saturated_ax1h
+
+negative_acc0:
+	JMPx8 check_saturated_ax1h ; If the above s32 bit is not set, we don't need to saturate
+	LRI $ax1.h, #0x8000
+	; Fall through to check_saturated_ax1h
+
+check_saturated_ax1h:
+	; $acc1 has the value of $ac0.m in SET40 mode.
+	; And, $ax1.h has what we computed that value should be, and CMPAXH always sign-extends $ax1.h
+	; (and ignores $ax1.l), so we can compare using it directly.
+	CMPAXH $acc1, $ax1.h
+	JZ check_read_low
+	; Our prediction was wrong (shouldn't happen)
+	LRI $ix3, #1
+	IAR $ar3
+	TST $acc0
+	CALL send_back
+	; Fall through to check_read_low
+
+check_read_low:
+	SET40
+	MRR $ac1.m, $ac0.l
+	SET16
+	MRR $ax1.h, $ac0.l
+	CMPAXH $acc1, $ax1.h
+	JZ check_read_high
+	; Reading $ac0.l gave different results in SET40 and SET16 modes (shouldn't happen)
+	LRI $ix1, #1
+	IAR $ar1
+	TST $acc0
+	CALL send_back
+	; Fall through to check_read_high
+
+check_read_high:
+	SET40
+	MRR $ac1.m, $ac0.h
+	SET16
+	MRR $ax1.h, $ac0.h
+	CMPAXH $acc1, $ax1.h
+	JZ check_write_low
+	; Reading $ac0.h gave different results in SET40 and SET16 modes (shouldn't happen)
+	LRI $ix1, #1
+	IAR $ar1
+	TST $acc0
+	CALL send_back
+	; Fall through to check_write_low
+
+check_write_low:
+	MOV $acc1, $acc0
+	SET40
+	MRR $ac1.l, $ac0.l
+	SET16
+	CMP
+	JZ check_write_high
+	; Writing to $ac1.l caused $acc1 to not match $acc0 (shouldn't happen)
+	LRI $ix2, #1
+	IAR $ar2
+	CALL send_back
+	; Fall through to check_write_high
+
+check_write_high:
+	MOV $acc1, $acc0
+	SET40
+	MRR $ac1.h, $ac0.h
+	SET16
+	CMP
+	JZ increment_loop
+	; Writing to $ac1.h caused $acc1 to not match $acc0 (shouldn't happen)
+	LRI $ix2, #1
+	IAR $ar2
+	CALL send_back
+	; Fall through to increment_loop
+
+increment_loop:
+	INCM $ac0.m
+	; If incrementing results in overflowing, then we're done.
+	RETO
+
+	; If ($ac0.m & 0x00ff) != 0, continue the loop without sending mail.
+	ANDF $ac0.m, #0x00ff
+	JLNZ loop_start
+	; Otherwise, send mail to report the progress. (This shows at the top of the screen in DSPSpy,
+	; but otherwise isn't handled in any meaningful way.)
+	MOV $acc1, $acc0
+	LSR $acc1, #-8
+	; Compensate for starting at INT_MIN (0x80'0000'0000) and ending at INT_MAX (0x7f'0000'0000)
+	; instead of going from 0 (0x00'0000'0000) to -1 (0xff'ffff'ffff)
+	XORI $ac1.m, #0x8000
+
+	SR @DMBH, $ar0
+	SR @DMBL, $ac1.m
+	SI @DIRQ, #0x0001
+	; We don't wait for the mail to be read, because we don't care about the response.
+	JMP loop_start
