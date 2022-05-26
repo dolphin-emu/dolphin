@@ -4,7 +4,7 @@
 namespace prime
 {
 
-bool InitCocoaInputMouse(uint32_t* windowid);
+bool InitQuartzInputMouse(uint32_t* windowid);
 
 class QuartzInputMouse: public GenericMouse
 {

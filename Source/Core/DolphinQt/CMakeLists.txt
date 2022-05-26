@@ -562,7 +562,7 @@ if(APPLE)
     # Update library references to make the bundle portable
     include(DolphinPostprocessBundle)
     dolphin_postprocess_bundle(dolphin-emu)
- endif()
+  endif()
   # Fix rpath
   add_custom_command(TARGET dolphin-emu
     POST_BUILD COMMAND

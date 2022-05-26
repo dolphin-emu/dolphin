@@ -14,7 +14,7 @@ int win_w = 0, win_h = 0;
 namespace prime
 {
 
-bool InitCocoaInputMouse(uint32_t* windowid)
+bool InitQuartzInputMouse(uint32_t* windowid)
 {
   g_mouse_input = new QuartzInputMouse(windowid);
   return true;

@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.10)
 # This is done in the universal binary building script to build a binary that 
 # runs on 10.13 on x86_64 computers, while still containing an arm64 slice.
 
- set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
 
