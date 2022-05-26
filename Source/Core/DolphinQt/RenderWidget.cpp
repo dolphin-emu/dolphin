@@ -447,7 +447,7 @@ bool RenderWidget::event(QEvent* event)
     emit FocusChanged(false);
     break;
   case QEvent::Move:
-#if defined(CIFACE_USE_WIN32) || defined(CIFACE_USE_XLIB) 
+#if defined(CIFACE_USE_WIN32) || defined(CIFACE_USE_XLIB) || defined(CIFACE_USE_OSX)
     SetCursorLocked(m_cursor_locked);
     win_w = size().width() / 2;
     win_h = size().height() / 2;
@@ -456,7 +456,7 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::Resize:
   {
-#if defined(CIFACE_USE_WIN32) || defined(CIFACE_USE_XLIB) 
+#if defined(CIFACE_USE_WIN32) || defined(CIFACE_USE_XLIB) || defined(CIFACE_USE_OSX)
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
     QSize new_size = se->size();
 

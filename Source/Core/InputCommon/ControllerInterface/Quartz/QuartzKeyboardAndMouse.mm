@@ -9,6 +9,7 @@
 #include <Cocoa/Cocoa.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/QuartzInputMouse.h"
 
 namespace ciface::Quartz
 {
@@ -161,6 +162,7 @@ KeyboardAndMouse::KeyboardAndMouse(void* view)
       m_windowid = [[cocoa_view window] windowNumber];
     });
   }
+  prime::InitQuartzInputMouse(&m_windowid);
 
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)

@@ -21,7 +21,7 @@ namespace ControllerEmu
   // Check to see if we're on a platform with a mouse class.
   bool PrimeHackModes::GetMouseSupported() const
   {
-#if defined CIFACE_USE_WIN32 || defined CIFACE_USE_XLIB
+#if defined CIFACE_USE_WIN32 || defined CIFACE_USE_XLIB || defined CIFACE_USE_OSX
     return true;
 #else
     return false;
