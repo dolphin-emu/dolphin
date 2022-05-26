@@ -13,6 +13,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
 
 #include "InputCommon/GCPadStatus.h"
@@ -82,6 +83,8 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   layout->addWidget(m_settings_box);
 
   setLayout(layout);
+
+  connect(Host::GetInstance(), &Host::NotifyEndOfFrame, this, &GCTASInputWindow::ToggleTurboValues);
 }
 
 void GCTASInputWindow::GetValues(GCPadStatus* pad)
@@ -120,4 +123,35 @@ void GCTASInputWindow::GetValues(GCPadStatus* pad)
 
   GetSpinBoxU8(m_x_c_stick_value, pad->substickX);
   GetSpinBoxU8(m_y_c_stick_value, pad->substickY);
+}
+
+void GCTASInputWindow::ToggleTurboValues()
+{
+  if (!isVisible())
+    return;
+
+  if (m_a_button->GetIsTurbo() && m_a_button->GetStateChanged())
+    m_a_button->toggle();
+  if (m_b_button->GetIsTurbo() && m_b_button->GetStateChanged())
+    m_b_button->toggle();
+  if (m_x_button->GetIsTurbo() && m_x_button->GetStateChanged())
+    m_x_button->toggle();
+  if (m_y_button->GetIsTurbo() && m_y_button->GetStateChanged())
+    m_y_button->toggle();
+  if (m_z_button->GetIsTurbo() && m_z_button->GetStateChanged())
+    m_z_button->toggle();
+  if (m_l_button->GetIsTurbo() && m_l_button->GetStateChanged())
+    m_l_button->toggle();
+  if (m_r_button->GetIsTurbo() && m_r_button->GetStateChanged())
+    m_r_button->toggle();
+  if (m_left_button->GetIsTurbo() && m_left_button->GetStateChanged())
+    m_left_button->toggle();
+  if (m_up_button->GetIsTurbo() && m_up_button->GetStateChanged())
+    m_up_button->toggle();
+  if (m_down_button->GetIsTurbo() && m_down_button->GetStateChanged())
+    m_down_button->toggle();
+  if (m_right_button->GetIsTurbo() && m_right_button->GetStateChanged())
+    m_right_button->toggle();
+  if (m_start_button->GetIsTurbo() && m_start_button->GetStateChanged())
+    m_right_button->toggle();
 }
