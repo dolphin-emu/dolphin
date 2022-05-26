@@ -16,6 +16,7 @@
 #include <sys/select.h>
 #endif
 
+#include "Common/BitUtils.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Core/Config/MainSettings.h"
@@ -278,8 +279,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
       case IOCTL_SO_BIND:
       {
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_in + 8);
-        WiiSockMan::Convert(*wii_name, local_name);
+        const u8* addr = Memory::GetPointer(ioctl.buffer_in + 8);
+        WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_BIND", false);
@@ -291,8 +292,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
       case IOCTL_SO_CONNECT:
       {
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_in + 8);
-        WiiSockMan::Convert(*wii_name, local_name);
+        const u8* addr = Memory::GetPointer(ioctl.buffer_in + 8);
+        WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_CONNECT", false);
@@ -307,13 +308,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
         if (ioctl.buffer_out_size > 0)
         {
           sockaddr_in local_name;
-          WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_out);
-          WiiSockMan::Convert(*wii_name, local_name);
+          u8* addr = Memory::GetPointer(ioctl.buffer_out);
+          WiiSockMan::ToNativeAddrIn(addr, &local_name);
 
           socklen_t addrlen = sizeof(sockaddr_in);
           ret = static_cast<s32>(accept(fd, (sockaddr*)&local_name, &addrlen));
 
-          WiiSockMan::Convert(local_name, *wii_name, addrlen);
+          WiiSockMan::ToWiiAddrIn(local_name, addr, addrlen);
         }
         else
         {
@@ -564,8 +565,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
           sockaddr_in local_name = {0};
           if (has_destaddr)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn2 + 0x0C);
-            WiiSockMan::Convert(*wii_name, local_name);
+            const u8* addr = Memory::GetPointer(BufferIn2 + 0x0C);
+            WiiSockMan::ToNativeAddrIn(addr, &local_name);
           }
 
           auto* to = has_destaddr ? reinterpret_cast<sockaddr*>(&local_name) : nullptr;
@@ -597,8 +598,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
           if (BufferOutSize2 != 0)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
-            WiiSockMan::Convert(*wii_name, local_name);
+            const u8* addr = Memory::GetPointer(BufferOut2);
+            WiiSockMan::ToNativeAddrIn(addr, &local_name);
           }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
@@ -634,8 +635,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
           if (BufferOutSize2 != 0)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
-            WiiSockMan::Convert(local_name, *wii_name, addrlen);
+            u8* addr = Memory::GetPointer(BufferOut2);
+            WiiSockMan::ToWiiAddrIn(local_name, addr, addrlen);
           }
           break;
         }
@@ -937,11 +938,12 @@ void WiiSockMan::UpdatePollCommands()
       pending_polls.end());
 }
 
-void WiiSockMan::Convert(WiiSockAddrIn const& from, sockaddr_in& to)
+void WiiSockMan::ToNativeAddrIn(const u8* addr, sockaddr_in* to)
 {
-  to.sin_addr.s_addr = from.addr.addr;
-  to.sin_family = from.family;
-  to.sin_port = from.port;
+  const WiiSockAddrIn from = Common::BitCastPtr<WiiSockAddrIn>(addr);
+  to->sin_addr.s_addr = from.addr.addr;
+  to->sin_family = from.family;
+  to->sin_port = from.port;
 }
 
 s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
@@ -981,15 +983,15 @@ s32 WiiSockMan::ConvertEvents(s32 events, ConvertDirection dir)
   return converted_events;
 }
 
-void WiiSockMan::Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen)
+void WiiSockMan::ToWiiAddrIn(const sockaddr_in& from, u8* to, socklen_t addrlen)
 {
-  to.addr.addr = from.sin_addr.s_addr;
-  to.family = from.sin_family & 0xFF;
-  to.port = from.sin_port;
-  if (addrlen < 0 || addrlen > static_cast<s32>(sizeof(WiiSockAddrIn)))
-    to.len = sizeof(WiiSockAddrIn);
-  else
-    to.len = addrlen;
+  to[offsetof(WiiSockAddrIn, len)] =
+      u8(addrlen > sizeof(WiiSockAddrIn) ? sizeof(WiiSockAddrIn) : addrlen);
+  to[offsetof(WiiSockAddrIn, family)] = u8(from.sin_family & 0xFF);
+  const u16& from_port = from.sin_port;
+  memcpy(to + offsetof(WiiSockAddrIn, port), &from_port, sizeof(from_port));
+  const u32& from_addr = from.sin_addr.s_addr;
+  memcpy(to + offsetof(WiiSockAddrIn, addr.addr), &from_addr, sizeof(from_addr));
 }
 
 void WiiSockMan::DoState(PointerWrap& p)
