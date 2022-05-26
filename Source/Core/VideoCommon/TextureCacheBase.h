@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,6 +29,9 @@ class AbstractFramebuffer;
 class AbstractStagingTexture;
 class PointerWrap;
 struct VideoConfig;
+
+constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
+constexpr std::string_view XFB_DUMP_PREFIX = "xfb1";
 
 struct TextureAndTLUTFormat
 {
