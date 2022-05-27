@@ -8,3 +8,13 @@
 	url = https://github.com/mgba-emu/mgba.git
 	branch = master
 	shallow = true
+[submodule "Externals/FFmpeg-bin"]
+	path = Externals/FFmpeg-bin
+	url = https://github.com/dolphin-emu/ext-win-ffmpeg.git
+	branch = master
+	shallow = true
+[submodule "libusb"]
+	path = Externals/libusb/libusb
+	url = https://github.com/libusb/libusb.git
+	branch = master
+	shallow = true

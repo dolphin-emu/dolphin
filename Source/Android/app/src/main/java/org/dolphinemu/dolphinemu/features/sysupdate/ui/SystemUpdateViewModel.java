@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.features.sysupdate.ui;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import org.dolphinemu.dolphinemu.utils.WiiUpdateCallback;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.concurrent.ExecutorService;
@@ -21,6 +22,7 @@ public class SystemUpdateViewModel extends ViewModel
 
   private boolean mCanceled = false;
   private int mRegion;
+  private String mDiscPath;
 
   public SystemUpdateViewModel()
   {
@@ -35,6 +37,16 @@ public class SystemUpdateViewModel extends ViewModel
   public int getRegion()
   {
     return mRegion;
+  }
+
+  public void setDiscPath(String discPath)
+  {
+    mDiscPath = discPath;
+  }
+
+  public String getDiscPath()
+  {
+    return mDiscPath;
   }
 
   public MutableLiveData<Integer> getProgressData()
@@ -62,21 +74,55 @@ public class SystemUpdateViewModel extends ViewModel
     mCanceled = true;
   }
 
-  public void startUpdate(String region)
+  public void startUpdate()
+  {
+    if (!mDiscPath.isEmpty())
+    {
+      startDiscUpdate(mDiscPath);
+    }
+    else
+    {
+      final String region;
+      switch (mRegion)
+      {
+        case 0:
+          region = "EUR";
+          break;
+        case 1:
+          region = "JPN";
+          break;
+        case 2:
+          region = "KOR";
+          break;
+        case 3:
+          region = "USA";
+          break;
+        default:
+          region = "";
+          break;
+      }
+      startOnlineUpdate(region);
+    }
+  }
+
+  public void startOnlineUpdate(String region)
   {
     mCanceled = false;
 
     executor.execute(() ->
     {
-      int result = WiiUtils.doOnlineUpdate(region, ((processed, total, titleId) ->
-      {
-        mProgressData.postValue(processed);
-        mTotalData.postValue(total);
-        mTitleIdData.postValue(titleId);
+      int result = WiiUtils.doOnlineUpdate(region, constructCallback());
+      mResultData.postValue(result);
+    });
+  }
 
-        return !mCanceled;
-      }));
+  public void startDiscUpdate(String path)
+  {
+    mCanceled = false;
 
+    executor.execute(() ->
+    {
+      int result = WiiUtils.doDiscUpdate(path, constructCallback());
       mResultData.postValue(result);
     });
   }
@@ -88,5 +134,19 @@ public class SystemUpdateViewModel extends ViewModel
     mTitleIdData.setValue(0l);
     mResultData.setValue(-1);
     mCanceled = false;
+    mRegion = -1;
+    mDiscPath = "";
+  }
+
+  private WiiUpdateCallback constructCallback()
+  {
+    return (processed, total, titleId) ->
+    {
+      mProgressData.postValue(processed);
+      mTotalData.postValue(total);
+      mTitleIdData.postValue(titleId);
+
+      return !mCanceled;
+    };
   }
 }

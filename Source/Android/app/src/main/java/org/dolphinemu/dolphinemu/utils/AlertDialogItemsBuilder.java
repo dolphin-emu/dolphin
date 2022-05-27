@@ -2,10 +2,10 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
-import androidx.appcompat.app.AlertDialog;
-
 import android.content.Context;
 import android.content.DialogInterface.OnClickListener;
+
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.ArrayList;
 

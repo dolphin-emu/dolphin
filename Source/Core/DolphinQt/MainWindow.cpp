@@ -39,6 +39,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/Config/WiimoteSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FreeLookManager.h"
@@ -113,6 +114,7 @@
 #include "DolphinQt/CVarsWindow.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
@@ -328,6 +330,7 @@ void MainWindow::InitControllers()
              "No default device has been added in time. EmulatedController(s) defaulting adds"
              " input mappings made for a specific default device depending on the platform");
   }
+  GCAdapter::Init();
   Pad::Initialize();
   Pad::InitializeGBA();
   Keyboard::Initialize();
@@ -1750,7 +1753,7 @@ void MainWindow::OnStartRecording()
       controllers[i] = Movie::ControllerType::GC;
     else
       controllers[i] = Movie::ControllerType::None;
-    wiimotes[i] = WiimoteCommon::GetSource(i) != WiimoteSource::None;
+    wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
   }
 
   if (Movie::BeginRecordingInput(controllers, wiimotes))
@@ -1810,8 +1813,8 @@ void MainWindow::ShowTASInput()
 
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
-        WiimoteCommon::GetSource(i) == WiimoteSource::Metroid &&
+    if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
+        Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Metroid &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
       m_wii_tas_input_windows[i]->show();

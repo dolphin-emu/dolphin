@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
@@ -33,6 +33,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
       <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)fmt\fmt.vcxproj">
+      <Project>{4BC5A148-0AB3-440F-A980-A29B4B999190}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)FreeSurround\FreeSurround.vcxproj">
       <Project>{8498f2fa-5ca6-4169-9971-de5b1fe6132c}</Project>

@@ -10,6 +10,7 @@
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
+#include "Core/Config/WiimoteSettings.h"
 
 namespace ConfigLoaders
 {
@@ -125,6 +126,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_SYNC_GPU_MAX_DISTANCE.GetLocation(),
       &Config::MAIN_SYNC_GPU_MIN_DISTANCE.GetLocation(),
       &Config::MAIN_SYNC_GPU_OVERCLOCK.GetLocation(),
+      &Config::MAIN_OVERRIDE_BOOT_IOS.GetLocation(),
 
       // UI.General
 
@@ -157,6 +159,14 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::ENABLE_SECONDARY_GUNFX.GetLocation(),
       &Config::GC_SHOW_CROSSHAIR.GetLocation(),
       &Config::GC_CROSSHAIR_COLOR_RGBA.GetLocation(),
+
+      // Wiimote
+
+      &Config::WIIMOTE_1_SOURCE.GetLocation(),
+      &Config::WIIMOTE_2_SOURCE.GetLocation(),
+      &Config::WIIMOTE_3_SOURCE.GetLocation(),
+      &Config::WIIMOTE_4_SOURCE.GetLocation(),
+      &Config::WIIMOTE_BB_SOURCE.GetLocation(),
   };
 
   return std::any_of(begin(s_setting_saveable), end(s_setting_saveable),

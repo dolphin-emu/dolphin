@@ -35,7 +35,7 @@ public:
   int m_texmtxread;
   bool m_vertexSkip;
   int m_skippedVertices;
-  int m_counter;
+  int m_remaining;
 
 private:
   // Pipeline.

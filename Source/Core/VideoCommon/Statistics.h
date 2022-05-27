@@ -4,6 +4,9 @@
 #pragma once
 
 #include <array>
+#include <vector>
+
+#include "VideoCommon/BPFunctions.h"
 
 struct Statistics
 {
@@ -21,6 +24,16 @@ struct Statistics
   std::array<float, 6> proj;
   std::array<float, 16> gproj;
   std::array<float, 16> g2proj;
+
+  std::vector<BPFunctions::ScissorResult> scissors;
+  size_t current_scissor = 0;  // 0 => all, otherwise index + 1
+  int scissor_scale = 10;
+  int scissor_expected_count = 0;
+  bool allow_duplicate_scissors = false;
+  bool show_scissors = true;
+  bool show_raw_scissors = true;
+  bool show_viewports = false;
+  bool show_text = true;
 
   struct ThisFrame
   {
@@ -62,8 +75,10 @@ struct Statistics
   ThisFrame this_frame;
   void ResetFrame();
   void SwapDL();
+  void AddScissorRect();
   void Display() const;
   void DisplayProj() const;
+  void DisplayScissor();
 };
 
 extern Statistics g_stats;

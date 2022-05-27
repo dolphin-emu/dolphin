@@ -57,7 +57,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
   const bool use_shader_logic_op =
       !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
-  const bool use_framebuffer_fetch = use_shader_blend || use_shader_logic_op;
+  const bool use_framebuffer_fetch =
+      use_shader_blend || use_shader_logic_op ||
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
   const bool bounding_box = host_config.bounding_box;
@@ -81,18 +83,16 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     {
       if (use_dual_source)
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n"
-                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
-      }
-      else if (use_shader_blend)
-      {
-        // Metal doesn't support a single unified variable for both input and output, so we declare
-        // the output separately. The input will be defined later below.
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 real_ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
+                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
+                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
       }
       else
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+        // Metal doesn't support a single unified variable for both input and output,
+        // so when using framebuffer fetch, we declare the input separately below.
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
+                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
       }
 
       if (use_framebuffer_fetch)
@@ -111,7 +111,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
                 has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
                                         "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
                 use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
-                use_shader_blend ? "real_ocol0" : "ocol0");
+                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
       if (use_dual_source)
       {
@@ -334,8 +334,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const auto WriteTevLerp = [&out](std::string_view components) {
     out.Write(
         "// TEV's Linear Interpolate, plus bias, add/subtract and scale\n"
-        "int{0} tevLerp{0}(int{0} A, int{0} B, int{0} C, int{0} D, uint bias, bool op, bool alpha, "
-        "uint shift) {{\n"
+        "int{0} tevLerp{0}(int{0} A, int{0} B, int{0} C, int{0} D, uint bias, bool op, "
+        "uint scale) {{\n"
         " // Scale C from 0..255 to 0..256\n"
         "  C += C >> 7;\n"
         "\n"
@@ -344,12 +344,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "  else if (bias == 2u) D -= 128;\n"
         "\n"
         "  int{0} lerp = (A << 8) + (B - A)*C;\n"
-        "  if (shift != 3u) {{\n"
-        "    lerp = lerp << shift;\n"
-        "    D = D << shift;\n"
+        "  if (scale != 3u) {{\n"
+        "    lerp = lerp << scale;\n"
+        "    D = D << scale;\n"
         "  }}\n"
         "\n"
-        "  if ((shift == 3u) == alpha)\n"
+        "  // TODO: Is this rounding bias still added when the scale is divide by 2?  Currently we "
+        "do not apply it.\n"
+        "  if (scale != 3u)\n"
         "    lerp = lerp + (op ? 127 : 128);\n"
         "\n"
         "  int{0} result = lerp >> 8;\n"
@@ -360,9 +362,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "  else // Add\n"
         "    result = D + result;\n"
         "\n"
-        "  // Most of the Shift was moved inside the lerp for improved precision\n"
+        "  // Most of the Scale was moved inside the lerp for improved precision\n"
         "  // But we still do the divide by 2 here\n"
-        "  if (shift == 3u)\n"
+        "  if (scale == 3u)\n"
         "    result = result >> 1;\n"
         "  return result;\n"
         "}}\n\n",
@@ -534,23 +536,23 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       // Store off a copy of the initial framebuffer value.
       //
       // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
-      // framebuffer), we read from real_ocol0 or ocol0, depending if shader blending is enabled.
+      // framebuffer), we read from real_ocol0.
       out.Write("#ifdef FB_FETCH_VALUE\n"
                 "  float4 initial_ocol0 = FB_FETCH_VALUE;\n"
                 "#else\n"
-                "  float4 initial_ocol0 = {};\n"
-                "#endif\n",
-                use_shader_blend ? "real_ocol0" : "ocol0");
+                "  float4 initial_ocol0 = real_ocol0;\n"
+                "#endif\n");
+
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so we pull out the "real" output
+      // value above and use a temporary for calculations, then set the output value once at the
+      // end of the shader.
+      out.Write("  float4 ocol0;\n");
     }
 
     if (use_shader_blend)
     {
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so we pull out the "real" output
-      // value above and use a temporary for calculations, then set the output value once at the
-      // end of the shader if we are using shader blending.
-      out.Write("  float4 ocol0;\n"
-                "  float4 ocol1;\n");
+      out.Write("  float4 ocol1;\n");
     }
   }
   else  // D3D
@@ -810,13 +812,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             BitfieldExtract<&TevStageCombiner::ColorCombiner::op>("ss.cc"));
   out.Write("      bool color_clamp = bool({});\n",
             BitfieldExtract<&TevStageCombiner::ColorCombiner::clamp>("ss.cc"));
-  out.Write("      uint color_shift = {};\n",
+  out.Write("      uint color_scale = {};\n",
             BitfieldExtract<&TevStageCombiner::ColorCombiner::scale>("ss.cc"));
   out.Write("      uint color_dest = {};\n",
             BitfieldExtract<&TevStageCombiner::ColorCombiner::dest>("ss.cc"));
 
   out.Write(
-      "      uint color_compare_op = color_shift << 1 | uint(color_op);\n"
+      "      uint color_compare_op = color_scale << 1 | uint(color_op);\n"
       "\n"
       "      int3 color_A = selectColorInput(s, ss, {0}colors_0, {0}colors_1, color_a) & "
       "int3(255, 255, 255);\n"
@@ -831,8 +833,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   out.Write(
       "      int3 color;\n"
       "      if (color_bias != 3u) {{ // Normal mode\n"
-      "        color = tevLerp3(color_A, color_B, color_C, color_D, color_bias, color_op, false, "
-      "color_shift);\n"
+      "        color = tevLerp3(color_A, color_B, color_C, color_D, color_bias, color_op, "
+      "color_scale);\n"
       "      }} else {{ // Compare mode\n"
       "        // op 6 and 7 do a select per color channel\n"
       "        if (color_compare_op == 6u) {{\n"
@@ -880,13 +882,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::op>("ss.ac"));
   out.Write("      bool alpha_clamp = bool({});\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::clamp>("ss.ac"));
-  out.Write("      uint alpha_shift = {};\n",
+  out.Write("      uint alpha_scale = {};\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::scale>("ss.ac"));
   out.Write("      uint alpha_dest = {};\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::dest>("ss.ac"));
 
   out.Write(
-      "      uint alpha_compare_op = alpha_shift << 1 | uint(alpha_op);\n"
+      "      uint alpha_compare_op = alpha_scale << 1 | uint(alpha_op);\n"
       "\n"
       "      int alpha_A;\n"
       "      int alpha_B;\n"
@@ -904,7 +906,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "      int alpha;\n"
             "      if (alpha_bias != 3u) {{ // Normal mode\n"
             "        alpha = tevLerp(alpha_A, alpha_B, alpha_C, alpha_D, alpha_bias, alpha_op, "
-            "true, alpha_shift);\n"
+            "alpha_scale);\n"
             "      }} else {{ // Compare mode\n"
             "        if (alpha_compare_op == 6u) {{\n"
             "          // TevCompareMode::A8, TevComparison::GT\n"
@@ -1007,8 +1009,21 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
   }
 
-  out.Write("  // Alpha Test\n"
-            "  if (bpmem_alphaTest != 0u) {{\n"
+  out.Write("  // Alpha Test\n");
+
+  if (early_depth && DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+  {
+    // Instead of using discard, fetch the framebuffer's color value and use it as the output
+    // for this fragment.
+    out.Write("  #define discard_fragment {{ {} = float4(initial_ocol0.xyz, 1.0); return; }}\n",
+              use_shader_blend ? "real_ocol0" : "ocol0");
+  }
+  else
+  {
+    out.Write("  #define discard_fragment discard\n");
+  }
+
+  out.Write("  if (bpmem_alphaTest != 0u) {{\n"
             "    bool comp0 = alphaCompare(TevResult.a, " I_ALPHA ".r, {});\n",
             BitfieldExtract<&AlphaTest::comp0>("bpmem_alphaTest"));
   out.Write("    bool comp1 = alphaCompare(TevResult.a, " I_ALPHA ".g, {});\n",
@@ -1019,17 +1034,20 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    switch ({}) {{\n",
             BitfieldExtract<&AlphaTest::logic>("bpmem_alphaTest"));
   out.Write("    case 0u: // AND\n"
-            "      if (comp0 && comp1) break; else discard; break;\n"
+            "      if (comp0 && comp1) break; else discard_fragment; break;\n"
             "    case 1u: // OR\n"
-            "      if (comp0 || comp1) break; else discard; break;\n"
+            "      if (comp0 || comp1) break; else discard_fragment; break;\n"
             "    case 2u: // XOR\n"
-            "      if (comp0 != comp1) break; else discard; break;\n"
+            "      if (comp0 != comp1) break; else discard_fragment; break;\n"
             "    case 3u: // XNOR\n"
-            "      if (comp0 == comp1) break; else discard; break;\n"
+            "      if (comp0 == comp1) break; else discard_fragment; break;\n"
             "    }}\n"
             "  }}\n"
             "\n");
 
+  out.Write("  // Hardware testing indicates that an alpha of 1 can pass an alpha test,\n"
+            "  // but doesn't do anything in blending\n"
+            "  if (TevResult.a == 1) TevResult.a = 0;\n");
   // =========
   // Dithering
   // =========
@@ -1191,8 +1209,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_src.rgb = float3(1,1,1);",                      // ONE
         "blend_src.rgb = initial_ocol0.rgb;",                  // DSTCLR
         "blend_src.rgb = float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
-        "blend_src.rgb = ocol1.aaa;",                          // SRCALPHA
-        "blend_src.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_src.rgb = src_color.aaa;",                      // SRCALPHA
+        "blend_src.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
         "blend_src.rgb = initial_ocol0.aaa;",                  // DSTALPHA
         "blend_src.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
     };
@@ -1201,8 +1219,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_src.a = 1.0;",                    // ONE
         "blend_src.a = initial_ocol0.a;",        // DSTCLR
         "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTCLR
-        "blend_src.a = ocol1.a;",                // SRCALPHA
-        "blend_src.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_src.a = src_color.a;",            // SRCALPHA
+        "blend_src.a = 1.0 - src_color.a;",      // INVSRCALPHA
         "blend_src.a = initial_ocol0.a;",        // DSTALPHA
         "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
     };
@@ -1211,8 +1229,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_dst.rgb = float3(1,1,1);",                      // ONE
         "blend_dst.rgb = ocol0.rgb;",                          // SRCCLR
         "blend_dst.rgb = float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "blend_dst.rgb = ocol1.aaa;",                          // SRCALHA
-        "blend_dst.rgb = float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "blend_dst.rgb = src_color.aaa;",                      // SRCALHA
+        "blend_dst.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
         "blend_dst.rgb = initial_ocol0.aaa;",                  // DSTALPHA
         "blend_dst.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
     };
@@ -1221,13 +1239,19 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "blend_dst.a = 1.0;",                    // ONE
         "blend_dst.a = ocol0.a;",                // SRCCLR
         "blend_dst.a = 1.0 - ocol0.a;",          // INVSRCCLR
-        "blend_dst.a = ocol1.a;",                // SRCALPHA
-        "blend_dst.a = 1.0 - ocol1.a;",          // INVSRCALPHA
+        "blend_dst.a = src_color.a;",            // SRCALPHA
+        "blend_dst.a = 1.0 - src_color.a;",      // INVSRCALPHA
         "blend_dst.a = initial_ocol0.a;",        // DSTALPHA
         "blend_dst.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
     };
 
     out.Write("  if (blend_enable) {{\n"
+              "    float4 src_color;\n"
+              "    if (bpmem_dstalpha != 0u) {{\n"
+              "      src_color = ocol1;\n"
+              "    }} else {{\n"
+              "      src_color = ocol0;\n"
+              "    }}"
               "    float4 blend_src;\n");
     WriteSwitch(out, api_type, "blend_src_factor", blendSrcFactor, 4, true);
     WriteSwitch(out, api_type, "blend_src_factor_alpha", blendSrcFactorAlpha, 4, true);
@@ -1254,6 +1278,10 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     out.Write("  }} else {{\n"
               "    real_ocol0 = ocol0;\n"
               "  }}\n");
+  }
+  else if (use_framebuffer_fetch)
+  {
+    out.Write("  real_ocol0 = ocol0;\n");
   }
 
   out.Write("}}\n"

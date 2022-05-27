@@ -36,6 +36,7 @@
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/BroadbandAdapterSettingsDialog.h"
 
@@ -94,7 +95,7 @@ void GameCubePane::CreateWidgets()
   {
     m_slot_combos[slot] = new QComboBox(device_box);
     m_slot_combos[slot]->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    m_slot_buttons[slot] = new QPushButton(tr("..."), device_box);
+    m_slot_buttons[slot] = new NonDefaultQPushButton(tr("..."), device_box);
     m_slot_buttons[slot]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
 
@@ -146,7 +147,7 @@ void GameCubePane::CreateWidgets()
   gba_row++;
 
   m_gba_bios_edit = new QLineEdit();
-  m_gba_browse_bios = new QPushButton(QStringLiteral("..."));
+  m_gba_browse_bios = new NonDefaultQPushButton(QStringLiteral("..."));
   gba_layout->addWidget(new QLabel(tr("BIOS:")), gba_row, 0);
   gba_layout->addWidget(m_gba_bios_edit, gba_row, 1);
   gba_layout->addWidget(m_gba_browse_bios, gba_row, 2);
@@ -155,7 +156,7 @@ void GameCubePane::CreateWidgets()
   for (size_t i = 0; i < m_gba_rom_edits.size(); ++i)
   {
     m_gba_rom_edits[i] = new QLineEdit();
-    m_gba_browse_roms[i] = new QPushButton(QStringLiteral("..."));
+    m_gba_browse_roms[i] = new NonDefaultQPushButton(QStringLiteral("..."));
     gba_layout->addWidget(new QLabel(tr("Port %1 ROM:").arg(i + 1)), gba_row, 0);
     gba_layout->addWidget(m_gba_rom_edits[i], gba_row, 1);
     gba_layout->addWidget(m_gba_browse_roms[i], gba_row, 2);
@@ -167,7 +168,7 @@ void GameCubePane::CreateWidgets()
   gba_row++;
 
   m_gba_saves_edit = new QLineEdit();
-  m_gba_browse_saves = new QPushButton(QStringLiteral("..."));
+  m_gba_browse_saves = new NonDefaultQPushButton(QStringLiteral("..."));
   gba_layout->addWidget(new QLabel(tr("Saves:")), gba_row, 0);
   gba_layout->addWidget(m_gba_saves_edit, gba_row, 1);
   gba_layout->addWidget(m_gba_browse_saves, gba_row, 2);

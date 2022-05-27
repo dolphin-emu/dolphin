@@ -44,7 +44,7 @@ inline namespace AXWii
 namespace
 {
 // Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
-#define HILO_TO_32(name) ((name##_hi << 16) | name##_lo)
+#define HILO_TO_32(name) ((u32(name##_hi) << 16) | name##_lo)
 
 // Used to pass a large amount of buffers to the mixing function.
 union AXBuffers

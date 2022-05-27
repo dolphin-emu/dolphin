@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches;
-import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 public class RiivolutionBootActivity extends AppCompatActivity
@@ -53,9 +52,12 @@ public class RiivolutionBootActivity extends AppCompatActivity
     int revision = intent.getIntExtra(ARG_REVISION, -1);
     int discNumber = intent.getIntExtra(ARG_DISC_NUMBER, -1);
 
+    String loadPath = StringSetting.MAIN_LOAD_PATH.getStringGlobal();
+    if (loadPath.isEmpty())
+      loadPath = DirectoryInitialization.getUserDirectory() + "/Load";
+
     TextView textSdRoot = findViewById(R.id.text_sd_root);
-    String riivolutionPath = DirectoryInitialization.getUserDirectory() + "/Load/Riivolution";
-    textSdRoot.setText(getString(R.string.riivolution_sd_root, riivolutionPath));
+    textSdRoot.setText(getString(R.string.riivolution_sd_root, loadPath + "/Riivolution"));
 
     Button buttonStart = findViewById(R.id.button_start);
     buttonStart.setOnClickListener((v) ->

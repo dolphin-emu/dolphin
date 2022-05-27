@@ -7,6 +7,8 @@
 #include <string>
 #include <winerror.h>
 
+#include "Common/CommonTypes.h"
+
 namespace Common
 {
 std::string GetHResultMessage(HRESULT hr);

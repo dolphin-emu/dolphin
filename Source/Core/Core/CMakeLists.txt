@@ -36,6 +36,8 @@ add_library(core
   Config/SYSCONFSettings.h
   Config/UISettings.cpp
   Config/UISettings.h
+  Config/WiimoteSettings.cpp
+  Config/WiimoteSettings.h
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/BaseConfigLoader.h
   ConfigLoaders/GameConfigLoader.cpp

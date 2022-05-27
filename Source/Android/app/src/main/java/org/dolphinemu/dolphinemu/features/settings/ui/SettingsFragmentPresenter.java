@@ -4,10 +4,10 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.UserDataActivity;
@@ -17,8 +17,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyBooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.PostProcessing;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
@@ -41,11 +39,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoice
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
-import org.dolphinemu.dolphinemu.utils.Log;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -296,6 +291,13 @@ public final class SettingsFragmentPresenter
       sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_EMULATION_ORIENTATION,
               R.string.emulation_screen_orientation, 0, R.array.orientationEntries,
               R.array.orientationValues));
+    }
+
+    // Only android 9+ supports this feature.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+    {
+      sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_EXPAND_TO_CUTOUT_AREA,
+              R.string.expand_to_cutout_area, R.string.expand_to_cutout_area_description));
     }
 
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_USE_PANIC_HANDLERS,
@@ -559,51 +561,26 @@ public final class SettingsFragmentPresenter
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)
   {
-    for (int i = 0; i < 4; i++)
-    {
-      // GameCube controller 1 is set to Emulated by default, all others disabled
-      int defaultValue = i == 0 ? 6 : 0;
-
-      LegacyIntSetting gcPadSetting;
-      if (mGameID.equals(""))
-      {
-        gcPadSetting = new LegacyIntSetting(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
-                SettingsFile.KEY_GCPAD_TYPE + i, defaultValue);
-      }
-      else
-      {
-        gcPadSetting = new LegacyIntSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-                Settings.SECTION_CONTROLS, SettingsFile.KEY_GCPAD_G_TYPE + i, defaultValue);
-      }
-      // TODO: This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
-      sl.add(new SingleChoiceSetting(mContext, gcPadSetting, R.string.controller_0 + i, 0,
-              R.array.gcpadTypeEntries, R.array.gcpadTypeValues, MenuTag.getGCPadMenuTag(i)));
-    }
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SI_DEVICE_0, R.string.controller_0, 0,
+            R.array.gcpadTypeEntries, R.array.gcpadTypeValues, MenuTag.getGCPadMenuTag(0)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SI_DEVICE_1, R.string.controller_1, 0,
+            R.array.gcpadTypeEntries, R.array.gcpadTypeValues, MenuTag.getGCPadMenuTag(1)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SI_DEVICE_2, R.string.controller_2, 0,
+            R.array.gcpadTypeEntries, R.array.gcpadTypeValues, MenuTag.getGCPadMenuTag(2)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.MAIN_SI_DEVICE_3, R.string.controller_3, 0,
+            R.array.gcpadTypeEntries, R.array.gcpadTypeValues, MenuTag.getGCPadMenuTag(3)));
   }
 
   private void addWiimoteSettings(ArrayList<SettingsItem> sl)
   {
-    for (int i = 0; i < 4; i++)
-    {
-      // Wii Remote 1 is set to Emulated by default, all others disabled
-      int defaultValue = i == 0 ? 1 : 0;
-
-      LegacyIntSetting wiimoteSetting;
-      if (mGameID.equals(""))
-      {
-        wiimoteSetting = new LegacyIntSetting(Settings.FILE_WIIMOTE,
-                Settings.SECTION_WIIMOTE + (i + 1), SettingsFile.KEY_WIIMOTE_TYPE, defaultValue);
-      }
-      else
-      {
-        wiimoteSetting = new LegacyIntSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-                Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIMOTE_G_TYPE + i, defaultValue);
-      }
-      // TODO: This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
-      sl.add(new SingleChoiceSetting(mContext, wiimoteSetting, R.string.wiimote_4 + i, 0,
-              R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues,
-              MenuTag.getWiimoteMenuTag(i + 4)));
-    }
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_1_SOURCE, R.string.wiimote_4, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(4)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_2_SOURCE, R.string.wiimote_5, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(5)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_3_SOURCE, R.string.wiimote_6, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(6)));
+    sl.add(new SingleChoiceSetting(mContext, IntSetting.WIIMOTE_4_SOURCE, R.string.wiimote_7, 0,
+            R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, MenuTag.getWiimoteMenuTag(7)));
   }
 
   private void addGraphicsSettings(ArrayList<SettingsItem> sl)
@@ -719,7 +696,7 @@ public final class SettingsFragmentPresenter
             R.string.fast_depth_calculation, R.string.fast_depth_calculation_description));
     sl.add(new InvertedCheckBoxSetting(mContext, BooleanSetting.GFX_HACK_BBOX_ENABLE,
             R.string.disable_bbox, R.string.disable_bbox_description));
-    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_VERTEX_ROUDING,
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HACK_VERTEX_ROUNDING,
             R.string.vertex_rounding, R.string.vertex_rounding_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_SAVE_TEXTURE_CACHE_TO_STATE,
             R.string.texture_cache_to_state, R.string.texture_cache_to_state_description));
@@ -895,15 +872,10 @@ public final class SettingsFragmentPresenter
     }
     else if (gcPadType == 12) // Adapter
     {
-      LegacyBooleanSetting rumble = new LegacyBooleanSetting(Settings.FILE_DOLPHIN,
-              Settings.SECTION_INI_CORE, SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, false);
-      LegacyBooleanSetting bongo = new LegacyBooleanSetting(Settings.FILE_DOLPHIN,
-              Settings.SECTION_INI_CORE, SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, false);
-
-      sl.add(new CheckBoxSetting(mContext, rumble, R.string.gc_adapter_rumble,
-              R.string.gc_adapter_rumble_description));
-      sl.add(new CheckBoxSetting(mContext, bongo, R.string.gc_adapter_bongos,
-              R.string.gc_adapter_bongos_description));
+      sl.add(new CheckBoxSetting(mContext, BooleanSetting.getSettingForAdapterRumble(gcPadNumber),
+              R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description));
+      sl.add(new CheckBoxSetting(mContext, BooleanSetting.getSettingForSimulateKonga(gcPadNumber),
+              R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description));
     }
   }
 

@@ -15,7 +15,10 @@
             android:id="@+id/grid_games"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/card_game"/>
+            tools:listitem="@layout/card_game"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

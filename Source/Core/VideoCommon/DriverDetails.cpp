@@ -140,6 +140,8 @@ constexpr BugInfo m_known_bugs[] = {
      -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART,
      -1.0, -1.0, true},
+    {API_VULKAN, OS_OSX, VENDOR_APPLE, DRIVER_PORTABILITY, Family::UNKNOWN,
+     BUG_BROKEN_DISCARD_WITH_EARLY_Z, -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;

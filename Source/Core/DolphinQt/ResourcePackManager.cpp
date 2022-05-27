@@ -13,6 +13,7 @@
 
 #include "Common/FileUtil.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "UICommon/ResourcePack/Manager.h"
 
 ResourcePackManager::ResourcePackManager(QWidget* widget) : QDialog(widget)
@@ -34,12 +35,12 @@ void ResourcePackManager::CreateWidgets()
   m_table_widget = new QTableWidget;
   m_table_widget->setTabKeyNavigation(false);
 
-  m_open_directory_button = new QPushButton(tr("Open Directory..."));
-  m_change_button = new QPushButton(tr("Install"));
-  m_remove_button = new QPushButton(tr("Remove"));
-  m_refresh_button = new QPushButton(tr("Refresh"));
-  m_priority_up_button = new QPushButton(tr("Up"));
-  m_priority_down_button = new QPushButton(tr("Down"));
+  m_open_directory_button = new NonDefaultQPushButton(tr("Open Directory..."));
+  m_change_button = new NonDefaultQPushButton(tr("Install"));
+  m_remove_button = new NonDefaultQPushButton(tr("Remove"));
+  m_refresh_button = new NonDefaultQPushButton(tr("Refresh"));
+  m_priority_up_button = new NonDefaultQPushButton(tr("Up"));
+  m_priority_down_button = new NonDefaultQPushButton(tr("Down"));
 
   auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
 

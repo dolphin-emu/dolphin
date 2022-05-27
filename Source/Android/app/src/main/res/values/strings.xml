@@ -6,13 +6,10 @@
     <string name="host">app</string>
     <string name="scheme">dolphinemu</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop. -->
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
     <string name="controller_2">GameCube Controller 3</string>
     <string name="controller_3">GameCube Controller 4</string>
-    <!-- END WARNING -->
 
     <string name="controller_control">Control Stick</string>
     <string name="controller_c">C Stick</string>
@@ -22,23 +19,15 @@
     <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop.
-            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
     <string name="wiimote_4">Wii Remote 1</string>
     <string name="wiimote_5">Wii Remote 2</string>
     <string name="wiimote_6">Wii Remote 3</string>
     <string name="wiimote_7">Wii Remote 4</string>
-    <!-- END WARNING -->
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop.
-            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
     <string name="wiimote_extension_4">Wii Remote Extension 1</string>
     <string name="wiimote_extension_5">Wii Remote Extension 2</string>
     <string name="wiimote_extension_6">Wii Remote Extension 3</string>
     <string name="wiimote_extension_7">Wii Remote Extension 4</string>
-    <!-- END WARNING -->
 
     <string name="wiimote_extensions">Extension</string>
     <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
@@ -166,8 +155,6 @@
     <string name="fallback_region">Fallback Region</string>
     <string name="enable_save_states">Enable Savestates</string>
     <string name="enable_save_states_description">WARNING: Savestates may not be compatible with future versions of Dolphin and can make it impossible to create normal saves in some cases. Never use savestates as the only way of saving your progress.</string>
-    <string name="lock_emulation_landscape">Lock screen to landscape</string>
-    <string name="lock_emulation_landscape_desc">Some touch controls will require additional tweaking if played in portrait</string>
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="analytics_new_id">Generate a New Statistics Identity</string>
@@ -176,6 +163,8 @@
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
     <string name="emulation_screen_orientation">Screen Orientation During Emulation</string>
+    <string name="expand_to_cutout_area">Expand to Cutout Area</string>
+    <string name="expand_to_cutout_area_description">Expands the display area to include the cutout (or notch) area.</string>
     <string name="panic_handlers">Use Panic Handlers</string>
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
@@ -298,7 +287,7 @@
     <string name="disable_bbox">Disable Bounding Box</string>
     <string name="disable_bbox_description">Disables bounding box emulation. This may improve GPU performance significantly, but some games will break. If unsure, leave this checked.</string>
     <string name="vertex_rounding">Vertex Rounding</string>
-    <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
+    <string name="vertex_rounding_description">Rounds 2D vertices to whole pixels and rounds the viewport size to a whole number. Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used. If unsure, leave this unchecked.</string>
     <string name="texture_cache_to_state">Save Texture Cache to State</string>
     <string name="texture_cache_to_state_description">Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
@@ -316,9 +305,9 @@
     <string name="dump_texture">Dump Textures</string>
     <string name="dump_texture_description">Dumps decoded game textures based on the other flags to User/Dump/Textures/&lt;game_id&gt;/. If unsure, leave this unchecked.</string>
     <string name="dump_base_texture">Dump Base Textures</string>
-    <string name="dump_base_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_base_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="dump_mip_texture">Dump Mip Maps</string>
-    <string name="dump_mip_texture_description">Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
+    <string name="dump_mip_texture_description">Whether to dump mipmapped game textures to User/Dump/Textures/&lt;game_id&gt;/.</string>
     <string name="misc">Misc</string>
     <string name="crop">Crop</string>
     <string name="crop_description">Crops the picture from its native aspect ratio to 4:3 or 16:9. If unsure, leave this unchecked.</string>
@@ -384,10 +373,10 @@
 
     <!-- User Data -->
     <string name="user_data_submenu">User Data</string>
-    <string name="user_data_old_location">Your user data is stored in a location which will <b>not</b> be deleted when you uninstall the app:</string>
-    <string name="user_data_new_location">Your user data is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
+    <string name="user_data_old_location">Your user data (settings, saves, etc.) is stored in a location which will <b>not</b> be deleted when you uninstall the app:</string>
+    <string name="user_data_new_location">Your user data (settings, saves, etc.) is stored in a location which <b>will be deleted</b> when you uninstall the app:</string>
     <!-- Android 10 and up support android:hasFragileUserData -->
-    <string name="user_data_new_location_android_10">Your user data is stored in a location which by default <b>will be deleted</b> when you uninstall the app:</string>
+    <string name="user_data_new_location_android_10">Your user data (settings, saves, etc.) is stored in a location which by default <b>will be deleted</b> when you uninstall the app:</string>
     <string name="user_data_new_location_android_11">Because you\'re using Android 11 or newer, file manager apps can\'t access this folder in the same way as regular folders. You might be able to access the folder using the system file manager (if present on your device), or by connecting your device to a PC.</string>
     <string name="user_data_open_system_file_manager">Open System File Manager</string>
     <string name="user_data_import">Import User Data</string>
@@ -444,6 +433,7 @@
     <string name="properties_start_with_riivolution">Start with Riivolution Patches</string>
     <string name="properties_set_default_iso">Set as Default ISO</string>
     <string name="properties_convert">Convert File</string>
+    <string name="properties_system_update">Perform System Update</string>
     <string name="properties_edit_game_settings">Edit Game Settings</string>
     <string name="properties_edit_cheats">Edit Cheats</string>
     <string name="properties_clear_game_settings">Clear Game Settings and Cheats</string>

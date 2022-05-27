@@ -57,9 +57,6 @@ namespace WiimoteCommon
 {
 class HIDWiimote;
 
-WiimoteSource GetSource(unsigned int index);
-void SetSource(unsigned int index, WiimoteSource source);
-
 // Used to reconnect WiimoteDevice instance to HID source.
 // Must be run from CPU thread.
 void UpdateSource(unsigned int index);
@@ -138,7 +135,5 @@ void Shutdown();
 void Resume();
 void Pause();
 void Refresh();
-
-void LoadSettings();
 
 }  // namespace WiimoteReal

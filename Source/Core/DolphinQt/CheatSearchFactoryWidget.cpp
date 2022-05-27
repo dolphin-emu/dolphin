@@ -24,6 +24,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 CheatSearchFactoryWidget::CheatSearchFactoryWidget()
 {
@@ -55,7 +56,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
 
   auto* custom_address_space_layout = new QVBoxLayout();
   custom_address_space_layout->setMargin(6);
-  auto* custom_address_space_button_group = new QButtonGroup();
+  auto* custom_address_space_button_group = new QButtonGroup(this);
   m_custom_virtual_address_space = new QRadioButton(tr("Use virtual addresses when possible"));
   m_custom_virtual_address_space->setChecked(true);
   m_custom_physical_address_space = new QRadioButton(tr("Use physical addresses"));
@@ -118,7 +119,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
 
   layout->addWidget(data_type_group);
 
-  m_new_search = new QPushButton(tr("New Search"));
+  m_new_search = new NonDefaultQPushButton(tr("New Search"));
   layout->addWidget(m_new_search);
 
   setLayout(layout);

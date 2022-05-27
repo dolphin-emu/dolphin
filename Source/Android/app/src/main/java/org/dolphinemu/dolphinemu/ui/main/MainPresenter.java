@@ -6,8 +6,8 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.activity.ComponentActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
-import org.dolphinemu.dolphinemu.features.sysupdate.ui.OnlineUpdateProgressBarDialogFragment;
+import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateProgressBarDialogFragment;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemMenuNotInstalledDialogFragment;
 import org.dolphinemu.dolphinemu.features.sysupdate.ui.SystemUpdateViewModel;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
@@ -26,13 +26,13 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.CompletableFuture;
 import org.dolphinemu.dolphinemu.utils.ContentHandler;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 public final class MainPresenter
 {
@@ -93,7 +93,8 @@ public final class MainPresenter
         return true;
 
       case R.id.button_add_directory:
-        mView.launchFileListActivity();
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+                mView::launchFileListActivity);
         return true;
 
       case R.id.menu_open_file:
@@ -105,7 +106,8 @@ public final class MainPresenter
         return true;
 
       case R.id.menu_online_system_update:
-        launchOnlineUpdate();
+        new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true,
+                this::launchOnlineUpdate);
         return true;
 
       case R.id.menu_install_wad:
@@ -281,11 +283,7 @@ public final class MainPresenter
       SystemUpdateViewModel viewModel =
               new ViewModelProvider(mActivity).get(SystemUpdateViewModel.class);
       viewModel.setRegion(-1);
-      OnlineUpdateProgressBarDialogFragment progressBarFragment =
-              new OnlineUpdateProgressBarDialogFragment();
-      progressBarFragment
-              .show(mActivity.getSupportFragmentManager(), "OnlineUpdateProgressBarDialogFragment");
-      progressBarFragment.setCancelable(false);
+      launchUpdateProgressBarFragment(mActivity);
     }
     else
     {
@@ -296,20 +294,39 @@ public final class MainPresenter
     }
   }
 
+  public static void launchDiscUpdate(String path, FragmentActivity activity)
+  {
+    SystemUpdateViewModel viewModel =
+            new ViewModelProvider(activity).get(SystemUpdateViewModel.class);
+    viewModel.setDiscPath(path);
+    launchUpdateProgressBarFragment(activity);
+  }
+
+  private static void launchUpdateProgressBarFragment(FragmentActivity activity)
+  {
+    SystemUpdateProgressBarDialogFragment progressBarFragment =
+            new SystemUpdateProgressBarDialogFragment();
+    progressBarFragment
+            .show(activity.getSupportFragmentManager(), "SystemUpdateProgressBarDialogFragment");
+    progressBarFragment.setCancelable(false);
+  }
+
   private void launchWiiSystemMenu()
   {
-    WiiUtils.isSystemMenuInstalled();
-
     if (WiiUtils.isSystemMenuInstalled())
     {
       EmulationActivity.launchSystemMenu(mActivity);
     }
     else
     {
-      SystemMenuNotInstalledDialogFragment dialogFragment =
-              new SystemMenuNotInstalledDialogFragment();
-      dialogFragment
-              .show(mActivity.getSupportFragmentManager(), "SystemMenuNotInstalledDialogFragment");
+      new AfterDirectoryInitializationRunner().runWithLifecycle(mActivity, true, () ->
+      {
+        SystemMenuNotInstalledDialogFragment dialogFragment =
+                new SystemMenuNotInstalledDialogFragment();
+        dialogFragment
+                .show(mActivity.getSupportFragmentManager(),
+                        "SystemMenuNotInstalledDialogFragment");
+      });
     }
   }
 }

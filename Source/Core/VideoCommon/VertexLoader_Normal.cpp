@@ -40,14 +40,22 @@ constexpr float FracAdjust(float val)
 }
 
 template <typename T, u32 N>
-void ReadIndirect(const T* data)
+void ReadIndirect(VertexLoader* loader, const T* data)
 {
   static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
   DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
   for (u32 i = 0; i < N; ++i)
   {
-    dst.Write(FracAdjust(Common::FromBigEndian(data[i])));
+    const float value = FracAdjust(Common::FromBigEndian(data[i]));
+    if (loader->m_remaining == 0)
+    {
+      if (i >= 3 && i < 6)
+        VertexLoaderManager::tangent_cache[i - 3] = value;
+      else if (i >= 6 && i < 9)
+        VertexLoaderManager::binormal_cache[i - 6] = value;
+    }
+    dst.Write(value);
   }
 
   g_vertex_manager_write_ptr = dst.GetPointer();
@@ -57,10 +65,10 @@ void ReadIndirect(const T* data)
 template <typename T, u32 N>
 struct Normal_Direct
 {
-  static void function([[maybe_unused]] VertexLoader* loader)
+  static void function(VertexLoader* loader)
   {
     const auto source = reinterpret_cast<const T*>(DataGetPosition());
-    ReadIndirect<T, N * 3>(source);
+    ReadIndirect<T, N * 3>(loader, source);
     DataSkip<N * 3 * sizeof(T)>();
   }
 
@@ -68,7 +76,7 @@ struct Normal_Direct
 };
 
 template <typename I, typename T, u32 N, u32 Offset>
-void Normal_Index_Offset()
+void Normal_Index_Offset(VertexLoader* loader)
 {
   static_assert(std::is_unsigned_v<I>, "Only unsigned I is sane!");
 
@@ -76,24 +84,24 @@ void Normal_Index_Offset()
   const auto data = reinterpret_cast<const T*>(
       VertexLoaderManager::cached_arraybases[CPArray::Normal] +
       (index * g_main_cp_state.array_strides[CPArray::Normal]) + sizeof(T) * 3 * Offset);
-  ReadIndirect<T, N * 3>(data);
+  ReadIndirect<T, N * 3>(loader, data);
 }
 
 template <typename I, typename T, u32 N>
 struct Normal_Index
 {
-  static void function([[maybe_unused]] VertexLoader* loader) { Normal_Index_Offset<I, T, N, 0>(); }
+  static void function(VertexLoader* loader) { Normal_Index_Offset<I, T, N, 0>(loader); }
   static constexpr u32 size = sizeof(I);
 };
 
 template <typename I, typename T>
 struct Normal_Index_Indices3
 {
-  static void function([[maybe_unused]] VertexLoader* loader)
+  static void function(VertexLoader* loader)
   {
-    Normal_Index_Offset<I, T, 1, 0>();
-    Normal_Index_Offset<I, T, 1, 1>();
-    Normal_Index_Offset<I, T, 1, 2>();
+    Normal_Index_Offset<I, T, 1, 0>(loader);
+    Normal_Index_Offset<I, T, 1, 1>(loader);
+    Normal_Index_Offset<I, T, 1, 2>(loader);
   }
 
   static constexpr u32 size = sizeof(I) * 3;

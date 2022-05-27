@@ -125,8 +125,6 @@ public:
   std::shared_ptr<FSDevice> GetFSDevice();
   std::shared_ptr<ESDevice> GetES();
 
-  void SDIO_EventNotify();
-
   void EnqueueIPCRequest(u32 address);
   void EnqueueIPCReply(const Request& request, s32 return_value, s64 cycles_in_future = 0,
                        CoreTiming::FromThread from = CoreTiming::FromThread::CPU);

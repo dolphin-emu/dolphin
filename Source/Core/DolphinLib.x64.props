@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <ItemGroup>
     <ClInclude Include="Common\x64ABI.h" />
     <ClInclude Include="Common\x64Emitter.h" />
@@ -47,7 +47,6 @@
     <ClCompile Include="Core\PowerPC\Jit64Common\FarCodeCache.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
     <ClCompile Include="Core\PowerPC\Jit64Common\TrampolineCache.cpp" />
-    <ClCompile Include="VideoCommon\FrameDump.cpp" />
     <ClCompile Include="VideoCommon\TextureDecoder_x64.cpp" />
     <ClCompile Include="VideoCommon\VertexLoaderX64.cpp" />
   </ItemGroup>

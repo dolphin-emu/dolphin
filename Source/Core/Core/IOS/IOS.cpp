@@ -63,7 +63,6 @@ static std::unique_ptr<EmulationKernel> s_ios;
 
 constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static CoreTiming::EventType* s_event_enqueue;
-static CoreTiming::EventType* s_event_sdio_notify;
 static CoreTiming::EventType* s_event_finish_ppc_bootstrap;
 static CoreTiming::EventType* s_event_finish_ios_boot;
 
@@ -789,14 +788,6 @@ void Kernel::UpdateWantDeterminism(const bool new_want_determinism)
     device.second->UpdateWantDeterminism(new_want_determinism);
 }
 
-void Kernel::SDIO_EventNotify()
-{
-  // TODO: Potential race condition: If IsRunning() becomes false after
-  // it's checked, an event may be scheduled after CoreTiming shuts down.
-  if (SConfig::GetInstance().bWii && Core::IsRunning())
-    CoreTiming::ScheduleEvent(0, s_event_sdio_notify, 0, CoreTiming::FromThread::NON_CPU);
-}
-
 void Kernel::DoState(PointerWrap& p)
 {
   p.Do(m_request_queue);
@@ -884,16 +875,6 @@ void Init()
   s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", [](u64 userdata, s64) {
     if (s_ios)
       s_ios->HandleIPCEvent(userdata);
-  });
-
-  s_event_sdio_notify = CoreTiming::RegisterEvent("SDIO_EventNotify", [](u64, s64) {
-    if (!s_ios)
-      return;
-
-    auto sdio_slot0 = s_ios->GetDeviceByName("/dev/sdio/slot0");
-    auto device = static_cast<SDIOSlot0Device*>(sdio_slot0.get());
-    if (device)
-      device->EventNotify();
   });
 
   ESDevice::InitializeEmulationState();

@@ -23,6 +23,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
 
@@ -164,8 +165,8 @@ void WiiPane::CreateWhitelistedUSBPassthroughDevices()
   m_whitelist_usb_list = new QListWidget();
   whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0, 1, -1);
   whitelist_layout->setColumnStretch(0, 1);
-  m_whitelist_usb_add_button = new QPushButton(tr("Add..."));
-  m_whitelist_usb_remove_button = new QPushButton(tr("Remove"));
+  m_whitelist_usb_add_button = new NonDefaultQPushButton(tr("Add..."));
+  m_whitelist_usb_remove_button = new NonDefaultQPushButton(tr("Remove"));
   whitelist_layout->addWidget(m_whitelist_usb_add_button, 1, 1);
   whitelist_layout->addWidget(m_whitelist_usb_remove_button, 1, 2);
   whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0);

@@ -13,6 +13,7 @@
 
 #include "Common/Config/Config.h"
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
 DualShockUDPClientWidget::DualShockUDPClientWidget()
@@ -32,10 +33,10 @@ void DualShockUDPClientWidget::CreateWidgets()
   m_server_list = new QListWidget();
   main_layout->addWidget(m_server_list);
 
-  m_add_server = new QPushButton(tr("Add..."));
+  m_add_server = new NonDefaultQPushButton(tr("Add..."));
   m_add_server->setEnabled(m_servers_enabled->isChecked());
 
-  m_remove_server = new QPushButton(tr("Remove"));
+  m_remove_server = new NonDefaultQPushButton(tr("Remove"));
   m_remove_server->setEnabled(m_servers_enabled->isChecked());
 
   QHBoxLayout* hlayout = new QHBoxLayout;

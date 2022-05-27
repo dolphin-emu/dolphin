@@ -19,6 +19,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPushButton>
+#include <QSettings>
 #include <QSignalBlocker>
 #include <QString>
 #include <QTableWidget>
@@ -39,6 +40,7 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
 
@@ -61,7 +63,17 @@ CheatSearchWidget::CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionB
   UpdateGuiTable();
 }
 
-CheatSearchWidget::~CheatSearchWidget() = default;
+CheatSearchWidget::~CheatSearchWidget()
+{
+  auto& settings = Settings::GetQSettings();
+  settings.setValue(QStringLiteral("cheatsearchwidget/displayhex"),
+                    m_display_values_in_hex_checkbox->isChecked());
+  if (m_session->IsIntegerType())
+  {
+    settings.setValue(QStringLiteral("cheatsearchwidget/parsehex"),
+                      m_parse_values_as_hex_checkbox->isChecked());
+  }
+}
 
 Q_DECLARE_METATYPE(Cheats::CompareType);
 Q_DECLARE_METATYPE(Cheats::FilterType);
@@ -193,8 +205,14 @@ void CheatSearchWidget::CreateWidgets()
   m_given_value_text = new QLineEdit();
   value_layout->addWidget(m_given_value_text);
 
+  auto& settings = Settings::GetQSettings();
   m_parse_values_as_hex_checkbox = new QCheckBox(tr("Parse as Hex"));
-  value_layout->addWidget(m_parse_values_as_hex_checkbox);
+  if (m_session->IsIntegerType())
+  {
+    m_parse_values_as_hex_checkbox->setChecked(
+        settings.value(QStringLiteral("cheatsearchwidget/parsehex")).toBool());
+    value_layout->addWidget(m_parse_values_as_hex_checkbox);
+  }
 
   auto* button_layout = new QHBoxLayout();
   m_next_scan_button = new QPushButton(tr("Search and Filter"));
@@ -211,6 +229,8 @@ void CheatSearchWidget::CreateWidgets()
   m_info_label_2 = new QLabel();
 
   m_display_values_in_hex_checkbox = new QCheckBox(tr("Display values in Hex"));
+  m_display_values_in_hex_checkbox->setChecked(
+      settings.value(QStringLiteral("cheatsearchwidget/displayhex")).toBool());
 
   QVBoxLayout* layout = new QVBoxLayout();
   layout->addWidget(session_info_label);
@@ -256,7 +276,10 @@ void CheatSearchWidget::OnNextScanClicked()
   m_session->SetCompareType(m_compare_type_dropdown->currentData().value<Cheats::CompareType>());
   if (filter_type == Cheats::FilterType::CompareAgainstSpecificValue)
   {
-    if (!m_session->SetValueFromString(m_given_value_text->text().toStdString(),
+    QString search_value = m_given_value_text->text();
+    if (m_session->IsIntegerType() || m_session->IsFloatingType())
+      search_value = search_value.simplified().remove(QLatin1Char(' '));
+    if (!m_session->SetValueFromString(search_value.toStdString(),
                                        m_parse_values_as_hex_checkbox->isChecked()))
     {
       m_info_label_1->setText(tr("Failed to parse given value into target data type."));

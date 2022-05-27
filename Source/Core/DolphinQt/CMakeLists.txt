@@ -224,6 +224,8 @@ add_executable(dolphin-emu
   Config/WiimoteControllersWidget.h
   Debugger/BreakpointWidget.cpp
   Debugger/BreakpointWidget.h
+  Debugger/CodeDiffDialog.cpp
+  Debugger/CodeDiffDialog.h
   Debugger/CodeViewWidget.cpp
   Debugger/CodeViewWidget.h
   Debugger/CodeWidget.cpp
@@ -295,6 +297,7 @@ add_executable(dolphin-emu
   QtUtils/PartiallyClosableTabWidget.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
+  QtUtils/SignalBlocking.h
   QtUtils/UTF8CodePointCountValidator.cpp
   QtUtils/UTF8CodePointCountValidator.h
   QtUtils/WindowActivationEventFilter.cpp
@@ -305,6 +308,8 @@ add_executable(dolphin-emu
   QtUtils/WrapInScrollArea.h
   QtUtils/AspectRatioWidget.cpp
   QtUtils/AspectRatioWidget.h
+  QtUtils/NonDefaultQPushButton.cpp
+  QtUtils/NonDefaultQPushButton.h
   ResourcePackManager.cpp
   ResourcePackManager.h
   RiivolutionBootWidget.cpp
@@ -477,11 +482,12 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
   foreach(po ${LINGUAS})
     get_filename_component(lang ${po} NAME_WE)
     if(WIN32)
-      set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages/${lang})
+      set(mo_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Languages)
+      set(mo ${mo_dir}/${lang}.mo)
     else()
       set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+      set(mo ${mo_dir}/dolphin-emu.mo)
     endif()
-    set(mo ${mo_dir}/dolphin-emu.mo)
 
     target_sources(dolphin-emu PRIVATE ${mo})
     source_group("Localization\\\\Generated" FILES ${mo})

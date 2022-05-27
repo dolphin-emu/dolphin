@@ -130,6 +130,8 @@ extern const Info<bool> MAIN_ALLOW_SD_WRITES;
 extern const Info<bool> MAIN_ENABLE_SAVESTATES;
 extern const Info<DiscIO::Region> MAIN_FALLBACK_REGION;
 extern const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS;
+extern const Info<s32> MAIN_OVERRIDE_BOOT_IOS;
+extern const Info<std::string> MAIN_WII_NUS_SHOP_URL;
 
 // Main.DSP
 
@@ -180,11 +182,13 @@ void SetIsoPaths(const std::vector<std::string>& paths);
 
 // Main.GBA
 
+#ifdef HAS_LIBMGBA
 extern const Info<std::string> MAIN_GBA_BIOS_PATH;
 extern const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS;
 extern const Info<std::string> MAIN_GBA_SAVES_PATH;
 extern const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH;
 extern const Info<bool> MAIN_GBA_THREADS;
+#endif
 
 // Main.Network
 

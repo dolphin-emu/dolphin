@@ -12,6 +12,7 @@
 
 #include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWBoundingBox.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWTexture.h"
@@ -20,6 +21,7 @@
 #include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -132,6 +134,27 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 
     // rgba to argb
     value = (color >> 8) | (color & 0xff) << 24;
+
+    // check what to do with the alpha channel (GX_PokeAlphaRead)
+    PixelEngine::AlphaReadMode alpha_read_mode = PixelEngine::GetAlphaReadMode();
+
+    if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadNone)
+    {
+      // value is OK as it is
+    }
+    else if (alpha_read_mode == PixelEngine::AlphaReadMode::ReadFF)
+    {
+      value |= 0xFF000000;
+    }
+    else
+    {
+      if (alpha_read_mode != PixelEngine::AlphaReadMode::Read00)
+      {
+        PanicAlertFmt("Invalid PE alpha read mode: {}", static_cast<u16>(alpha_read_mode));
+      }
+      value &= 0x00FFFFFF;
+    }
+
     break;
   }
   default:
@@ -156,5 +179,14 @@ std::unique_ptr<NativeVertexFormat>
 SWRenderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
   return std::make_unique<NativeVertexFormat>(vtx_decl);
+}
+
+void SWRenderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
+{
+  // BPFunctions calls SetScissorRect with the "best" scissor rect whenever the viewport or scissor
+  // changes.  However, the software renderer is actually able to use multiple scissor rects (which
+  // is necessary in a few renderering edge cases, such as with Major Minor's Majestic March).
+  // Thus, we use this as a signal to update the list of scissor rects, but ignore the parameter.
+  Rasterizer::ScissorChanged();
 }
 }  // namespace SW

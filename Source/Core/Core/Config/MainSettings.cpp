@@ -182,6 +182,7 @@ const Info<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"},
 
 const Info<std::string> MAIN_GPU_DETERMINISM_MODE{{System::Main, "Core", "GPUDeterminismMode"},
                                                   "auto"};
+const Info<s32> MAIN_OVERRIDE_BOOT_IOS{{System::Main, "Core", "OverrideBootIOS"}, -1};
 
 // PrimeHack
 const Info<bool> PRIMEHACK_ENABLE{{System::Main, "Core", "EnablePrimeHack"}, true};
@@ -222,6 +223,9 @@ const Info<bool> MAIN_ALLOW_SD_WRITES{{System::Main, "Core", "WiiSDCardAllowWrit
 const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates"}, false};
 const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS{
     {System::Main, "Core", "RealWiiRemoteRepeatReports"}, true};
+
+// Empty means use the Dolphin default URL
+const Info<std::string> MAIN_WII_NUS_SHOP_URL{{System::Main, "Core", "WiiNusShopUrl"}, ""};
 
 // Main.Display
 
@@ -323,6 +327,7 @@ void SetIsoPaths(const std::vector<std::string>& paths)
 
 // Main.GBA
 
+#ifdef HAS_LIBMGBA
 const Info<std::string> MAIN_GBA_BIOS_PATH{{System::Main, "GBA", "BIOS"}, ""};
 const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
     Info<std::string>{{System::Main, "GBA", "Rom1"}, ""},
@@ -332,6 +337,7 @@ const std::array<Info<std::string>, 4> MAIN_GBA_ROM_PATHS{
 const Info<std::string> MAIN_GBA_SAVES_PATH{{System::Main, "GBA", "SavesPath"}, ""};
 const Info<bool> MAIN_GBA_SAVES_IN_ROM_PATH{{System::Main, "GBA", "SavesInRomPath"}, false};
 const Info<bool> MAIN_GBA_THREADS{{System::Main, "GBA", "Threads"}, true};
+#endif
 
 // Main.Network
 

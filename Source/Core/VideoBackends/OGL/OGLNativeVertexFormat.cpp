@@ -68,7 +68,7 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
   SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, vtx_decl.position);
 
   for (int i = 0; i < 3; i++)
-    SetPointer(SHADER_NORM0_ATTRIB + i, vertex_stride, vtx_decl.normals[i]);
+    SetPointer(SHADER_NORMAL_ATTRIB + i, vertex_stride, vtx_decl.normals[i]);
 
   for (int i = 0; i < 2; i++)
     SetPointer(SHADER_COLOR0_ATTRIB + i, vertex_stride, vtx_decl.colors[i]);

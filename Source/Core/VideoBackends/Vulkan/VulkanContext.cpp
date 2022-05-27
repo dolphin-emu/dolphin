@@ -260,7 +260,6 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
 {
   config->backend_info.api_type = APIType::Vulkan;
   config->backend_info.bSupports3DVision = false;                  // D3D-exclusive.
-  config->backend_info.bSupportsOversizedViewports = true;         // Assumed support.
   config->backend_info.bSupportsEarlyZ = true;                     // Assumed support.
   config->backend_info.bSupportsPrimitiveRestart = true;           // Assumed support.
   config->backend_info.bSupportsBindingLayout = false;             // Assumed support.
@@ -371,6 +370,13 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   // with depth clamping. Fall back to inverted depth range for these.
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_REVERSED_DEPTH_RANGE))
     config->backend_info.bSupportsReversedDepthRange = false;
+
+  // Calling discard when early depth test is enabled can break on some Apple Silicon GPU drivers.
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+  {
+    // We will use shader blending, so disable hardware dual source blending.
+    config->backend_info.bSupportsDualSourceBlend = false;
+  }
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(
@@ -921,6 +927,11 @@ void VulkanContext::InitDriverDetails()
     // Currently only the binary driver exists for PowerVR.
     vendor = DriverDetails::VENDOR_IMGTEC;
     driver = DriverDetails::DRIVER_IMGTEC;
+  }
+  else if (device_name.find("Apple") != std::string::npos)
+  {
+    vendor = DriverDetails::VENDOR_APPLE;
+    driver = DriverDetails::DRIVER_PORTABILITY;
   }
   else
   {

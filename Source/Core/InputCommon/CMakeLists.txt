@@ -66,6 +66,8 @@ add_library(inputcommon
   ControllerInterface/ControllerInterface.h
   ControllerInterface/CoreDevice.cpp
   ControllerInterface/CoreDevice.h
+  ControllerInterface/MappingCommon.cpp
+  ControllerInterface/MappingCommon.h
   ControllerInterface/Wiimote/WiimoteController.cpp
   ControllerInterface/Wiimote/WiimoteController.h
   ControlReference/ControlReference.cpp
@@ -104,6 +106,8 @@ if(WIN32)
     ControllerInterface/DInput/XInputFilter.h
     ControllerInterface/Win32/Win32.cpp
     ControllerInterface/Win32/Win32.h
+    ControllerInterface/WGInput/WGInput.cpp
+    ControllerInterface/WGInput/WGInput.h
     ControllerInterface/XInput/XInput.cpp
     ControllerInterface/XInput/XInput.h
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
