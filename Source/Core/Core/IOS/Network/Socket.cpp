@@ -575,6 +575,16 @@ void WiiSocket::Update(bool read, bool write, bool except)
         {
         case IOCTLV_SO_SENDTO:
         {
+          // The Wii allows a socket with a connection in progress to use
+          // sendto(). This might not be supported by the operating system.
+          // We have to enforce it manually.
+          connecting_state = GetConnectingState();
+          if (nonBlock && IsTCP() && connecting_state == ConnectingState::Connecting)
+          {
+            ReturnValue = -SO_EAGAIN;
+            break;
+          }
+
           u32 flags = Memory::Read_U32(BufferIn2 + 0x04);
           u32 has_destaddr = Memory::Read_U32(BufferIn2 + 0x08);
 
@@ -612,6 +622,16 @@ void WiiSocket::Update(bool read, bool write, bool except)
         }
         case IOCTLV_SO_RECVFROM:
         {
+          // The Wii allows a socket with a connection in progress to use
+          // recvfrom(). This might not be supported by the operating system.
+          // We have to enforce it manually.
+          connecting_state = GetConnectingState();
+          if (nonBlock && IsTCP() && connecting_state == ConnectingState::Connecting)
+          {
+            ReturnValue = -SO_EAGAIN;
+            break;
+          }
+
           u32 flags = Memory::Read_U32(BufferIn + 0x04);
           // Not a string, Windows requires a char* for recvfrom
           char* data = (char*)Memory::GetPointer(BufferOut);
@@ -789,6 +809,18 @@ WiiSocket::ConnectingState WiiSocket::GetConnectingState() const
   }
 
   return connecting_state;
+}
+
+bool WiiSocket::IsTCP() const
+{
+  const auto state = Common::SaveNetworkErrorState();
+  Common::ScopeGuard guard([&state] { Common::RestoreNetworkErrorState(state); });
+
+  int socket_type;
+  socklen_t option_length = sizeof(socket_type);
+  return getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&socket_type),
+                    &option_length) == 0 &&
+         socket_type == SOCK_STREAM;
 }
 
 const WiiSocket::Timeout& WiiSocket::GetTimeout()

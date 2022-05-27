@@ -223,6 +223,7 @@ private:
   void UpdateConnectingState(s32 connect_rv);
   ConnectingState GetConnectingState() const;
   bool IsValid() const { return fd >= 0; }
+  bool IsTCP() const;
 
   s32 fd = -1;
   s32 wii_fd = -1;
