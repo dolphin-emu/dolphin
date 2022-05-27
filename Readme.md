@@ -11,8 +11,8 @@ Get the latest PrimeHackRelease.zip file from https://github.com/shiiion/dolphin
 ### Linux
 [Downloads](https://software.opensuse.org/download.html?project=home%3AKAMiKAZOW%3AEmulators&package=primehack) are provided for various Linux distributions at [home:KAMiKAZOW:Emulators on openSUSE.org](https://build.opensuse.org/package/show/home:KAMiKAZOW:Emulators/primehack). Submit Requests to support additional distributions are accepted over there.
 
-### macOS
-Currently PrimeHack does not support MacOS
+### MacOS
+Primehack is now supported on MacOS thanks to the efforts of [Brandon Sorensen](https://github.com/brandonsorensen)! We do not have any prebuilt binaries as of now, so follow the instructions below on how to build primehack yourself.
 
 # Original Dolphin Readme file contents:
 
@@ -86,7 +86,7 @@ git submodule update --init
 
 ### macOS Build Steps:
 
-A binary supporting a single architecture can be built using the following steps: 
+A binary supporting a single architecture can be built using the following steps:
 
 1. `mkdir build`
 2. `cd build`
@@ -104,8 +104,8 @@ application bundle using the following steps:
 4. Universal binaries will be available in the `universal` folder
 
 Doing this is more complex as it requires installation of library dependencies for both x64 and ARM (or universal library
-equivalents) and may require specifying additional arguments to point to relevant library locations. 
-Execute BuildMacOSUniversalBinary.py --help for more details.  
+equivalents) and may require specifying additional arguments to point to relevant library locations.
+Execute BuildMacOSUniversalBinary.py --help for more details.
 
 ### Linux Global Build Steps:
 
