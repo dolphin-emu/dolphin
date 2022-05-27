@@ -885,7 +885,7 @@ std::string GetExeDirectory()
 #endif
 }
 
-std::string GetSysDirectory()
+static std::string CreateSysDirectoryPath()
 {
   std::string sysDir;
 
@@ -913,8 +913,14 @@ std::string GetSysDirectory()
 #endif
   sysDir += DIR_SEP;
 
-  INFO_LOG_FMT(COMMON, "GetSysDirectory: Setting to {}:", sysDir);
+  INFO_LOG_FMT(COMMON, "CreateSysDirectoryPath: Setting to {}", sysDir);
   return sysDir;
+}
+
+const std::string& GetSysDirectory()
+{
+  static const std::string sys_directory = CreateSysDirectoryPath();
+  return sys_directory;
 }
 
 #ifdef ANDROID
