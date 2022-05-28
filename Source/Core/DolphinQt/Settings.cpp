@@ -119,8 +119,7 @@ QString Settings::GetCurrentUserStyle() const
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
 }
 
-// Calling this before the main window has been created breaks the style of some widgets on
-// Windows 10/Qt 5.15.0. But only if we set a stylesheet that isn't an empty string.
+// Calling this before the main window has been created breaks the style of some widgets.
 void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
 {
   QString stylesheet_contents;
