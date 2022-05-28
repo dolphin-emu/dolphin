@@ -887,8 +887,6 @@ std::string GetExeDirectory()
 
 static std::string CreateSysDirectoryPath()
 {
-  std::string sysDir;
-
 #if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
 #define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
@@ -902,19 +900,18 @@ static std::string CreateSysDirectoryPath()
 #endif
 
 #if defined(__APPLE__)
-  sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
+  const std::string sys_directory = GetBundleDirectory() + DIR_SEP SYSDATA_DIR DIR_SEP;
 #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-  sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
+  const std::string sys_directory = GetExeDirectory() + DIR_SEP SYSDATA_DIR DIR_SEP;
 #elif defined ANDROID
-  sysDir = s_android_sys_directory;
-  ASSERT_MSG(COMMON, !sysDir.empty(), "Sys directory has not been set");
+  const std::string sys_directory = s_android_sys_directory + DIR_SEP;
+  ASSERT_MSG(COMMON, !s_android_sys_directory.empty(), "Sys directory has not been set");
 #else
-  sysDir = SYSDATA_DIR;
+  const std::string sys_directory = SYSDATA_DIR DIR_SEP;
 #endif
-  sysDir += DIR_SEP;
 
-  INFO_LOG_FMT(COMMON, "CreateSysDirectoryPath: Setting to {}", sysDir);
-  return sysDir;
+  INFO_LOG_FMT(COMMON, "CreateSysDirectoryPath: Setting to {}", sys_directory);
+  return sys_directory;
 }
 
 const std::string& GetSysDirectory()
