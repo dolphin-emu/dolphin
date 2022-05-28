@@ -188,12 +188,12 @@ void DSPEmitter::cmp(const UDSPInstruction opc)
   }
 }
 
-// CMPAR $acS axR.h
+// CMPAXH $acS, $axR.h
 // 110r s001 xxxx xxxx
-// Compares accumulator $acS with accumulator $axR.h.
+// Compares accumulator $acS with high part of secondary accumulator $axR.h.
 //
 // flags out: x-xx xxxx
-void DSPEmitter::cmpar(const UDSPInstruction opc)
+void DSPEmitter::cmpaxh(const UDSPInstruction opc)
 {
   if (FlagsNeeded())
   {

@@ -70,7 +70,7 @@ public:
   void clrl(UDSPInstruction opc);
   void clrp(UDSPInstruction opc);
   void cmp(UDSPInstruction opc);
-  void cmpar(UDSPInstruction opc);
+  void cmpaxh(UDSPInstruction opc);
   void cmpi(UDSPInstruction opc);
   void cmpis(UDSPInstruction opc);
   void dar(UDSPInstruction opc);

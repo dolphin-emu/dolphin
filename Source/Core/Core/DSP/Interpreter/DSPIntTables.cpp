@@ -178,7 +178,7 @@ constexpr std::array<InterpreterOpInfo, 125> s_opcodes
 
   // C-D
   {0xc000, 0xe700, &Interpreter::mulc},
-  {0xc100, 0xe700, &Interpreter::cmpar},
+  {0xc100, 0xe700, &Interpreter::cmpaxh},
   {0xc200, 0xe600, &Interpreter::mulcmvz},
   {0xc400, 0xe600, &Interpreter::mulcac},
   {0xc600, 0xe600, &Interpreter::mulcmv},

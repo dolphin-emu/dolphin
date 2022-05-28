@@ -115,7 +115,7 @@ public:
   void tst(UDSPInstruction opc);
   void tstaxh(UDSPInstruction opc);
   void cmp(UDSPInstruction opc);
-  void cmpar(UDSPInstruction opc);
+  void cmpaxh(UDSPInstruction opc);
   void cmpi(UDSPInstruction opc);
   void cmpis(UDSPInstruction opc);
   void xorr(UDSPInstruction opc);
