@@ -140,7 +140,7 @@ PUBLIC
   enet
   fmt::fmt
   ${MBEDTLS_LIBRARIES}
-  minizip
+  minizip-ng
 
 PRIVATE
   ${CURL_LIBRARIES}

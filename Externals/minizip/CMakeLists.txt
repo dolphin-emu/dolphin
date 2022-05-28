@@ -67,4 +67,4 @@ endif()
 
 target_link_libraries(minizip PUBLIC ZLIB::ZLIB)
 
-add_library(MiniZip::minizip ALIAS minizip)
+add_library(minizip-ng ALIAS minizip)

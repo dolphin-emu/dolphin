@@ -31,7 +31,7 @@ target_link_libraries(uicommon
 PUBLIC
   common
   cpp-optparse
-  minizip
+  minizip-ng
   pugixml
 
 PRIVATE
