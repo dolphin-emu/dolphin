@@ -124,12 +124,12 @@ void Interpreter::cmp(const UDSPInstruction)
   ZeroWriteBackLog();
 }
 
-// CMPAR $acS axR.h
+// CMPAXH $acS, $axR.h
 // 110r s001 xxxx xxxx
-// Compares accumulator $acS with accumulator $axR.h.
+// Compares accumulator $acS with high part of secondary accumulator $axR.h.
 //
 // flags out: x-xx xxxx
-void Interpreter::cmpar(const UDSPInstruction opc)
+void Interpreter::cmpaxh(const UDSPInstruction opc)
 {
   const u8 rreg = (opc >> 12) & 0x1;
   const u8 sreg = (opc >> 11) & 0x1;
