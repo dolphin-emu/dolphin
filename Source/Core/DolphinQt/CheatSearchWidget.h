@@ -41,6 +41,7 @@ public:
 
 signals:
   void ActionReplayCodeGenerated(const ActionReplay::ARCode& ar_code);
+  void ShowMemory(const u32 address);
 
 private:
   void CreateWidgets();

@@ -35,6 +35,7 @@ public:
 
 signals:
   void OpenGeneralSettings();
+  void ShowMemory(u32 address);
 
 private:
   void CreateWidgets();
