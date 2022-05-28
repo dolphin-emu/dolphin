@@ -807,7 +807,7 @@ void Kernel::DoState(PointerWrap& p)
   for (const auto& entry : m_device_map)
     entry.second->DoState(p);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     for (u32 i = 0; i < IPC_MAX_FDS; i++)
     {

@@ -100,7 +100,7 @@ std::ostream& operator<<(std::ostream& os, CPUCore core)
 void DoState(PointerWrap& p)
 {
   // some of this code has been disabled, because
-  // it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause
+  // it changes registers even in Mode::Measure (which is suspicious and seems like it could cause
   // desyncs)
   // and because the values it's changing have been added to CoreTiming::DoState, so it might
   // conflict to mess with them here.
@@ -132,7 +132,7 @@ void DoState(PointerWrap& p)
 
   ppcState.iCache.DoState(p);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     RoundingModeUpdated();
     IBATUpdated();

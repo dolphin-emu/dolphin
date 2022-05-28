@@ -230,14 +230,14 @@ bool GameFileCache::SyncCacheFile(bool save)
   {
     // Measure the size of the buffer.
     u8* ptr = nullptr;
-    PointerWrap p_measure(&ptr, 0, PointerWrap::MODE_MEASURE);
+    PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
     DoState(&p_measure);
     const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
     // Then actually do the write.
     std::vector<u8> buffer(buffer_size);
     ptr = buffer.data();
-    PointerWrap p(&ptr, buffer_size, PointerWrap::MODE_WRITE);
+    PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
     DoState(&p, buffer_size);
     if (f.WriteBytes(buffer.data(), buffer.size()))
       success = true;
@@ -248,9 +248,9 @@ bool GameFileCache::SyncCacheFile(bool save)
     if (!buffer.empty() && f.ReadBytes(buffer.data(), buffer.size()))
     {
       u8* ptr = buffer.data();
-      PointerWrap p(&ptr, buffer.size(), PointerWrap::MODE_READ);
+      PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
       DoState(&p, buffer.size());
-      if (p.GetMode() == PointerWrap::MODE_READ)
+      if (p.IsReadMode())
         success = true;
     }
   }
@@ -271,16 +271,16 @@ void GameFileCache::DoState(PointerWrap* p, u64 size)
     u64 expected_size;
   } header = {CACHE_REVISION, size};
   p->Do(header);
-  if (p->GetMode() == PointerWrap::MODE_READ)
+  if (p->IsReadMode())
   {
     if (header.revision != CACHE_REVISION || header.expected_size != size)
     {
-      p->SetMode(PointerWrap::MODE_MEASURE);
+      p->SetMeasureMode();
       return;
     }
   }
   p->DoEachElement(m_cached_files, [](PointerWrap& state, std::shared_ptr<GameFile>& elem) {
-    if (state.GetMode() == PointerWrap::MODE_READ)
+    if (state.IsReadMode())
       elem = std::make_shared<GameFile>();
     elem->DoState(state);
   });

@@ -519,7 +519,7 @@ void VertexManagerBase::Flush()
 
 void VertexManagerBase::DoState(PointerWrap& p)
 {
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     // Flush old vertex data before loading state.
     Flush();

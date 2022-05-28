@@ -192,11 +192,11 @@ void DoState(PointerWrap& p)
     // order (or at all) every time.
     // so, we savestate the event's type's name, and derive ev.type from that when loading.
     std::string name;
-    if (pw.GetMode() != PointerWrap::MODE_READ)
+    if (!pw.IsReadMode())
       name = *ev.type->name;
 
     pw.Do(name);
-    if (pw.GetMode() == PointerWrap::MODE_READ)
+    if (pw.IsReadMode())
     {
       auto itr = s_event_types.find(name);
       if (itr != s_event_types.end())
@@ -217,7 +217,7 @@ void DoState(PointerWrap& p)
   // When loading from a save state, we must assume the Event order is random and meaningless.
   // The exact layout of the heap in memory is implementation defined, therefore it is platform
   // and library version specific.
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
     std::make_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
 }
 

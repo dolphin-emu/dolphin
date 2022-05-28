@@ -542,7 +542,7 @@ void PixelShaderManager::DoState(PointerWrap& p)
 
   p.Do(constants);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     // Fixup the current state from global GPU state
     // NOTE: This requires that all GPU memory has been loaded already.
