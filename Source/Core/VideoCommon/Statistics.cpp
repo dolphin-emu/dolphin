@@ -3,9 +3,11 @@
 
 #include "VideoCommon/Statistics.h"
 
+#include <chrono>
 #include <cstring>
 #include <utility>
 
+#include <fmt/chrono.h>
 #include <imgui.h>
 
 #include "VideoCommon/BPFunctions.h"
@@ -37,7 +39,7 @@ void Statistics::Display() const
 {
   const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
   ImGui::SetNextWindowPos(ImVec2(10.0f * scale, 10.0f * scale), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSizeConstraints(ImVec2(275.0f * scale, 400.0f * scale),
+  ImGui::SetNextWindowSizeConstraints(ImVec2(275.0f * scale, 425.0f * scale),
                                       ImGui::GetIO().DisplaySize);
   if (!ImGui::Begin("Statistics", nullptr, ImGuiWindowFlags_NoNavInputs))
   {
@@ -75,6 +77,9 @@ void Statistics::Display() const
   draw_statistic("pshaders alive", "%d", num_pixel_shaders_alive);
   draw_statistic("vshaders created", "%d", num_vertex_shaders_created);
   draw_statistic("vshaders alive", "%d", num_vertex_shaders_alive);
+
+  const std::string compile_time = fmt::format(fmt::runtime("{:%S}"), shader_compile_time);
+  draw_statistic("shader compile time", "%s", compile_time.c_str());
   draw_statistic("shaders changes", "%d", this_frame.num_shader_changes);
   draw_statistic("dlists called", "%d", this_frame.num_dlists_called);
   draw_statistic("Primitive joins", "%d", this_frame.num_primitive_joins);

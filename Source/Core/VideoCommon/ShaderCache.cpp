@@ -3,6 +3,9 @@
 
 #include "VideoCommon/ShaderCache.h"
 
+#include <chrono>
+#include <string_view>
+
 #include <fmt/format.h>
 
 #include "Common/Assert.h"
@@ -22,6 +25,19 @@
 #include <imgui.h>
 
 std::unique_ptr<VideoCommon::ShaderCache> g_shader_cache;
+
+namespace
+{
+std::unique_ptr<AbstractShader>
+CompileAndTimeShader(ShaderStage stage, const std::string_view source, std::string_view name = "")
+{
+  const auto start = std::chrono::steady_clock::now();
+  auto shader = g_renderer->CreateShaderFromSource(stage, source, name);
+  const auto end = std::chrono::steady_clock::now();
+  ADDSTAT(g_stats.shader_compile_time, end - start);
+  return shader;
+}
+}  // namespace
 
 namespace VideoCommon
 {
@@ -401,6 +417,7 @@ void ShaderCache::ClearCaches()
   SETSTAT(g_stats.num_pixel_shaders_alive, 0);
   SETSTAT(g_stats.num_vertex_shaders_created, 0);
   SETSTAT(g_stats.num_vertex_shaders_alive, 0);
+  SETSTATTIME(g_stats.shader_compile_time, 0);
 }
 
 void ShaderCache::CompileMissingPipelines()
@@ -422,7 +439,7 @@ std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexSha
 {
   const ShaderCode source_code =
       GenerateVertexShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer());
+  return CompileAndTimeShader(ShaderStage::Vertex, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader>
@@ -430,14 +447,14 @@ ShaderCache::CompileVertexUberShader(const UberShader::VertexShaderUid& uid) con
 {
   const ShaderCode source_code =
       UberShader::GenVertexShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer());
+  return CompileAndTimeShader(ShaderStage::Vertex, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader> ShaderCache::CompilePixelShader(const PixelShaderUid& uid) const
 {
   const ShaderCode source_code =
       GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
+  return CompileAndTimeShader(ShaderStage::Pixel, source_code.GetBuffer());
 }
 
 std::unique_ptr<AbstractShader>
@@ -445,7 +462,7 @@ ShaderCache::CompilePixelUberShader(const UberShader::PixelShaderUid& uid) const
 {
   const ShaderCode source_code =
       UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
+  return CompileAndTimeShader(ShaderStage::Pixel, source_code.GetBuffer());
 }
 
 const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid,
@@ -541,8 +558,8 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
   const ShaderCode source_code =
       GenerateGeometryShaderCode(m_api_type, m_host_config, uid.GetUidData());
   std::unique_ptr<AbstractShader> shader =
-      g_renderer->CreateShaderFromSource(ShaderStage::Geometry, source_code.GetBuffer(),
-                                         fmt::format("Geometry shader: {}", *uid.GetUidData()));
+      CompileAndTimeShader(ShaderStage::Geometry, source_code.GetBuffer(),
+                           fmt::format("Geometry shader: {}", *uid.GetUidData()));
 
   auto& entry = m_gs_cache.shader_map[uid];
   entry.pending = false;

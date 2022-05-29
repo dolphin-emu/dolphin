@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <vector>
 
 #include "VideoCommon/BPFunctions.h"
@@ -14,6 +15,7 @@ struct Statistics
   int num_pixel_shaders_alive;
   int num_vertex_shaders_created;
   int num_vertex_shaders_alive;
+  std::chrono::steady_clock::duration shader_compile_time;
 
   int num_textures_created;
   int num_textures_uploaded;
@@ -89,8 +91,10 @@ extern Statistics g_stats;
 #define INCSTAT(a) (a)++;
 #define ADDSTAT(a, b) (a) += (b);
 #define SETSTAT(a, x) (a) = (int)(x);
+#define SETSTATTIME(a, x) (a) = (std::chrono::steady_clock::duration)(x);
 #else
 #define INCSTAT(a) ;
 #define ADDSTAT(a, b) ;
 #define SETSTAT(a, x) ;
+#define SETSTATTIME(a, x) ;
 #endif
