@@ -344,15 +344,34 @@ void SetUserDirectory(std::string custom_path)
   }
 
   if (local)  // Case 1-2
+  {
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  }
   else if (configPath)  // Case 3
+  {
     user_path = TStrToUTF8(configPath.get());
+  }
   else if (old_user_folder && File::Exists(old_user_folder.value()))  // Case 4
+  {
     user_path = old_user_folder.value();
+  }
   else if (appdata_found)  // Case 5
+  {
     user_path = TStrToUTF8(appdata) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+
+    // Set the UserConfigPath value in the registry for backwards compatibility with older Dolphin
+    // builds, which will look for the default User directory in Documents. If we set this key,
+    // they will use this as the User directory instead.
+    // (If we're in this case, then this key doesn't exist, so it's OK to set it.)
+    std::wstring wstr_path = UTF8ToWString(user_path);
+    RegSetKeyValueW(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), TEXT("UserConfigPath"),
+                    REG_SZ, wstr_path.c_str(),
+                    static_cast<DWORD>((wstr_path.size() + 1) * sizeof(wchar_t)));
+  }
   else  // Case 6
+  {
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+  }
 
   CoTaskMemFree(appdata);
   CoTaskMemFree(documents);
