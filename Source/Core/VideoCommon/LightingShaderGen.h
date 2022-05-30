@@ -5,7 +5,9 @@
 
 #include <string_view>
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/XFMemory.h"
 
 class ShaderCode;
 
@@ -27,14 +29,16 @@ class ShaderCode;
 /**
  * Common uid data used for shader generators that use lighting calculations.
  */
-union LightingUidData
+struct LightingUidData
 {
-  BitField<0, 4, u64> matsource;       // 4x1 bit
-  BitField<4, 4, u64> enablelighting;  // 4x1 bit
-  BitField<8, 4, u64> ambsource;       // 4x1 bit
-  BitField<16, 8, u64> diffusefunc;    // 4x2 bits
-  BitField<24, 8, u64> attnfunc;       // 4x2 bits
-  BitField<32, 32, u64> light_mask;    // 4x8 bits
+  u64 hex;
+
+  BFVIEWARRAY_M(hex, MatSource, 0, 1, 4, matsource);        // 4x1 bit
+  BFVIEWARRAY_M(hex, bool, 4, 1, 4, enablelighting);        // 4x1 bit
+  BFVIEWARRAY_M(hex, AmbSource, 8, 1, 4, ambsource);        // 4x1 bit
+  BFVIEWARRAY_M(hex, DiffuseFunc, 16, 2, 4, diffusefunc);   // 4x2 bits
+  BFVIEWARRAY_M(hex, AttenuationFunc, 24, 2, 4, attnfunc);  // 4x2 bits
+  BFVIEWARRAY_M(hex, u8, 32, 8, 4, light_mask);             // 4x8 bits or 4x8x1 bit
 };
 
 constexpr char s_lighting_struct[] = "struct Light {\n"
