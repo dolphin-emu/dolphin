@@ -289,8 +289,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
       int32_t headFrame = remotePadQueue[pIdx].empty() ? 0 : remotePadQueue[pIdx].front()->frame;
       int inputsToCopy = frame - headFrame;
 
-      // Check that the packet actually contains the data it claims to
-      if ((5 + inputsToCopy * SLIPPI_PAD_DATA_SIZE) > (int)packet.getDataSize())
+      // Not sure what the max is here. If we never ack frames it could get big...
+      if (inputsToCopy > 128)
       {
         ERROR_LOG_FMT(
             SLIPPI_ONLINE,
@@ -723,9 +723,9 @@ void SlippiNetplayClient::ThreadFunc()
 
         if (isAlreadyConnected)
         {
-          // Don't add this person again if they are already connected. Not doing this can cause one
-          // person to take up 2 or more spots, denying one or more players from connecting and thus
-          // getting stuck on the "Waiting" step
+          // Don't add this person again if they are already connected. Not doing this can cause
+          // one person to take up 2 or more spots, denying one or more players from connecting
+          // and thus getting stuck on the "Waiting" step
           INFO_LOG(SLIPPI_ONLINE, "Already connected!");
           break;  // Breaks out of case
         }
@@ -735,12 +735,12 @@ void SlippiNetplayClient::ThreadFunc()
           // This check used to check for port as well as host. The problem was that for some
           // people, their internet will switch the port they're sending from. This means these
           // people struggle to connect to others but they sometimes do succeed. When we were
-          // checking for port here though we would get into a state where the person they succeeded
-          // to connect to would not accept the connection with them, this would lead the player
-          // with this internet issue to get stuck waiting for the other player. The only downside
-          // to this that I can guess is that if you fail to connect to one person out of two that
-          // are on your LAN, it might report that you failed to connect to the wrong person. There
-          // might be more problems tho, not sure
+          // checking for port here though we would get into a state where the person they
+          // succeeded to connect to would not accept the connection with them, this would lead
+          // the player with this internet issue to get stuck waiting for the other player. The
+          // only downside to this that I can guess is that if you fail to connect to one person
+          // out of two that are on your LAN, it might report that you failed to connect to the
+          // wrong person. There might be more problems tho, not sure
           INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Comparing connection address: {} - {}",
                        remoteAddrs[i].host, netEvent.peer->address.host);
           if (remoteAddrs[i].host == netEvent.peer->address.host && !connections[i])
@@ -1106,8 +1106,39 @@ u8 SlippiNetplayClient::GetSlippiRemoteSentChatMessage()
   return copiedMessageId;
 }
 
-std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(int32_t curFrame,
-                                                                               int index)
+std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetFakePadOutput(int frame)
+{
+  // Used for testing purposes, will ignore the opponent's actual inputs and provide fake
+  // ones to trigger rollback scenarios
+  std::unique_ptr<SlippiRemotePadOutput> padOutput = std::make_unique<SlippiRemotePadOutput>();
+
+  // Triggers rollback where the first few inputs were correctly predicted
+  if (frame % 60 < 5)
+  {
+    // Return old inputs for a bit
+    padOutput->latestFrame = frame - (frame % 60);
+    padOutput->data.insert(padOutput->data.begin(), SLIPPI_PAD_FULL_SIZE, 0);
+  }
+  else if (frame % 60 == 5)
+  {
+    padOutput->latestFrame = frame;
+    // Add 5 frames of 0'd inputs
+    padOutput->data.insert(padOutput->data.begin(), 5 * SLIPPI_PAD_FULL_SIZE, 0);
+
+    // Press A button for 2 inputs prior to this frame causing a rollback
+    padOutput->data[2 * SLIPPI_PAD_FULL_SIZE] = 1;
+  }
+  else
+  {
+    padOutput->latestFrame = frame;
+    padOutput->data.insert(padOutput->data.begin(), SLIPPI_PAD_FULL_SIZE, 0);
+  }
+
+  return std::move(padOutput);
+}
+
+std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(int index,
+                                                                               int maxFrameCount)
 {
   std::lock_guard<std::mutex> lk(pad_mutex);  // TODO: Is this the correct lock?
 
@@ -1125,21 +1156,37 @@ std::unique_ptr<SlippiRemotePadOutput> SlippiNetplayClient::GetSlippiRemotePad(i
     return std::move(padOutput);
   }
 
+  int inputCount = 0;
+
   padOutput->latestFrame = 0;
-  // Copy the entire remaining remote buffer
-  for (auto it = remotePadQueue[index].begin(); it != remotePadQueue[index].end(); ++it)
+
+  // Copy inputs from the remote pad queue to the output. We iterate backwards because
+  // we want to get the oldest frames possible (will have been cleared to contain the last
+  // finalized frame at the back). I think it's very unlikely but I think before we
+  // iterated from the front and it's possible the 7 frame limit left out an input the
+  // game actually needed.
+  for (auto it = remotePadQueue[index].rbegin(); it != remotePadQueue[index].rend(); ++it)
   {
     if ((*it)->frame > padOutput->latestFrame)
       padOutput->latestFrame = (*it)->frame;
 
+    // NOTICE_LOG(SLIPPI_ONLINE, "[%d] (Remote) P%d %08X %08X %08X", (*it)->frame,
+    //						index >= playerIdx ? index + 1 : index, Common::swap32(&(*it)->padBuf[0]),
+    //						Common::swap32(&(*it)->padBuf[4]), Common::swap32(&(*it)->padBuf[8]));
+
     auto padIt = std::begin((*it)->padBuf);
-    padOutput->data.insert(padOutput->data.end(), padIt, padIt + SLIPPI_PAD_FULL_SIZE);
+    padOutput->data.insert(padOutput->data.begin(), padIt, padIt + SLIPPI_PAD_FULL_SIZE);
+
+    // Limit max amount of inputs to send
+    inputCount++;
+    if (inputCount >= maxFrameCount)
+      break;
   }
 
   return std::move(padOutput);
 }
 
-void SlippiNetplayClient::DropOldRemoteInputs(int32_t curFrame)
+void SlippiNetplayClient::DropOldRemoteInputs(int32_t finalizedFrame)
 {
   std::lock_guard<std::mutex> lk(pad_mutex);
 
@@ -1162,13 +1209,10 @@ void SlippiNetplayClient::DropOldRemoteInputs(int32_t curFrame)
   for (int i = 0; i < m_remotePlayerCount; i++)
   {
     // INFO_LOG_FMT(SLIPPI_ONLINE, "remotePadQueue[{}] size: {}", i, remotePadQueue[i].size());
-    while (remotePadQueue[i].size() > 1 && remotePadQueue[i].back()->frame < lowestCommonFrame &&
-           remotePadQueue[i].back()->frame < curFrame)
-    {
+    while (remotePadQueue[i].size() > 1 && remotePadQueue[i].back()->frame < finalizedFrame)
       /*INFO_LOG_FMT(SLIPPI_ONLINE, "Popping inputs for frame {} from back of player {} queue",
                    remotePadQueue[i].back()->frame, i);*/
       remotePadQueue[i].pop_back();
-    }
   }
 }
 
@@ -1177,23 +1221,19 @@ SlippiMatchInfo* SlippiNetplayClient::GetMatchInfo()
   return &matchInfo;
 }
 
-int32_t SlippiNetplayClient::GetSlippiLatestRemoteFrame()
+int32_t SlippiNetplayClient::GetSlippiLatestRemoteFrame(int maxFrameCount)
 {
-  std::lock_guard<std::mutex> lk(pad_mutex);  // TODO: Is this the correct lock?
-
   // Return the lowest frame among remote queues
   int lowestFrame = 0;
+  bool isFrameSet = false;
   for (int i = 0; i < m_remotePlayerCount; i++)
   {
-    if (remotePadQueue[i].empty())
-    {
-      return 0;
-    }
-
-    int f = remotePadQueue[i].front()->frame;
-    if (f < lowestFrame || lowestFrame == 0)
+    auto rp = GetSlippiRemotePad(i, maxFrameCount);
+    int f = rp->latestFrame;
+    if (f < lowestFrame || !isFrameSet)
     {
       lowestFrame = f;
+      isFrameSet = true;
     }
   }
 
