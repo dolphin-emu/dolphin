@@ -2597,6 +2597,22 @@ void CEXISlippi::prepareOnlineMatchState()
     m_read_queue.insert(m_read_queue.end(), connectCode.begin(), connectCode.end());
   }
 
+#ifdef LOCAL_TESTING
+  std::string defaultUids[] = {"l6dqv4dp38a5ho6z1sue2wx2adlp", "jpvducykgbawuehrjlfbu2qud1nv",
+                               "k0336d0tg3mgcdtaukpkf9jtf2k8", "v8tpb6uj9xil6e33od6mlot4fvdt"};
+#endif
+
+  for (int i = 0; i < 4; i++)
+  {
+    std::string uid = i < playerInfo.size() ? playerInfo[i].uid :
+                                              "";  // UIDs are 28 characters + 1 null terminator
+#ifdef LOCAL_TESTING
+    uid = defaultUids[i];
+#endif
+    uid.resize(29);  // ensure a null terminator at the end
+    m_read_queue.insert(m_read_queue.end(), uid.begin(), uid.end());
+  }
+
   // Add error message if there is one
   auto errorStr = !forcedError.empty() ? forcedError : matchmaking->GetErrorMessage();
   errorStr = ConvertStringForGame(errorStr, 120);
