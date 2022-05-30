@@ -32,6 +32,7 @@
 #include "Core/Slippi/SlippiPremadeText.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/State.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 #define FRAME_INTERVAL 900
 #define SLEEP_TIME_MS 8
@@ -1548,6 +1549,16 @@ void CEXISlippi::handleOnlineInputs(u8* payload)
     isConnectionStalled = false;
     stallFrameCount = 0;
 
+    // Reset skip variables
+    framesToSkip = 0;
+    isCurrentlySkipping = false;
+
+    // Reset advance stuff
+    framesToAdvance = 0;
+    isCurrentlyAdvancing = false;
+    fallBehindCounter = 0;
+    fallFarBehindCounter = 0;
+
     // Reset character selections as they are no longer needed
     localSelections.Reset();
     if (slippi_netplay)
@@ -1619,10 +1630,12 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame)
   if (isTimeSyncFrame == 0 && !isCurrentlySkipping)
   {
     auto offsetUs = slippi_netplay->CalcTimeOffsetUs();
-    INFO_LOG(SLIPPI_ONLINE, "[Frame %d] Offset is: %d us", frame, offsetUs);
+    INFO_LOG_FMT(SLIPPI_ONLINE, "[Frame {}] Offset for skip is: {} us", frame, offsetUs);
 
-    // TODO: figure out a better solution here for doubles?
-    if (offsetUs > 10000)
+    // The decision to skip a frame only happens when we are already pretty far off ahead. The hope
+    // is that this won't really be used much because the frame advance of the slow client will pick
+    // up the difference most of the time. But at some point it's probably better to slow down...
+    if (offsetUs > 26000)
     {
       isCurrentlySkipping = true;
 
@@ -1647,6 +1660,85 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame)
 
   isCurrentlySkipping = false;
 
+  return false;
+}
+
+bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
+{
+  // Return true if we are over 60% of a frame behind our opponent. We limit how often this happens
+  // to get a reliable average to act on. We will allow advancing up to 5 frames (spread out) over
+  // the 30 frame period. This makes the game feel relatively smooth still
+  auto isTimeSyncFrame =
+      (frame % SLIPPI_ONLINE_LOCKSTEP_INTERVAL) == 0;  // Only time sync every 30 frames
+  if (isTimeSyncFrame)
+  {
+    auto offsetUs = slippi_netplay->CalcTimeOffsetUs();
+
+    // Dynamically adjust emulation speed in order to fine-tune time sync to reduce one sided
+    // rollbacks even more
+    auto maxSpeedDeviation = 0.005f;
+    auto deviation = (offsetUs / 33366.0f) * maxSpeedDeviation;
+    if (deviation > maxSpeedDeviation)
+      deviation = maxSpeedDeviation;
+    else if (deviation < -maxSpeedDeviation)
+      deviation = -maxSpeedDeviation;
+
+    // If we are behind (negative offset) we want to go above 100% run speed, so we need to subtract
+    // the deviation value
+    auto dynamicEmulationSpeed = 1.0f - deviation;
+    SConfig::GetInstance().m_EmulationSpeed = dynamicEmulationSpeed;
+    // SConfig::GetInstance().m_EmulationSpeed = 0.97f; // used for testing
+
+    INFO_LOG(SLIPPI_ONLINE, "[Frame %d] Offset for advance is: %d us. New speed: %.2f%%", frame,
+             offsetUs, dynamicEmulationSpeed * 100.0f);
+
+    // Count the number of times we're below a threshold we should easily be able to clear. This is
+    // checked twice per second.
+    fallBehindCounter += offsetUs < -10000 ? 1 : 0;
+    fallFarBehindCounter += offsetUs < -25000 ? 1 : 0;
+
+    bool isSlow = (offsetUs < -10000 && fallBehindCounter > 50) ||
+                  (offsetUs < -25000 && fallFarBehindCounter > 15);
+    if (isSlow && lastSearch.mode != SlippiMatchmaking::OnlinePlayMode::TEAMS)
+    {
+      // We don't show this message for teams because it seems to false positive a lot there, maybe
+      // because the min offset is always selected? Idk I feel like doubles has some perf issues I
+      // don't understand atm.
+      OSD::AddTypedMessage(
+          OSD::MessageType::PerformanceWarning,
+          "Your computer is running slow and is impacting the performance of the match.", 10000,
+          OSD::Color::RED);
+    }
+
+    if (offsetUs < -10000 && !isCurrentlyAdvancing)
+    {
+      isCurrentlyAdvancing = true;
+
+      // On early frames, don't advance any frames. Let the stalling logic handle the initial sync
+      int maxAdvFrames = frame > 120 ? 5 : 0;
+      framesToAdvance = ((-offsetUs - 10000) / 16683) + 1;
+      framesToAdvance = framesToAdvance > maxAdvFrames ? maxAdvFrames : framesToAdvance;
+
+      WARN_LOG(SLIPPI_ONLINE,
+               "Advancing on frame %d due to time sync. Offset: %d us. Frames: %d...", frame,
+               offsetUs, framesToAdvance);
+    }
+  }
+
+  // Handle the skipped frames
+  if (framesToAdvance > 0)
+  {
+    // Only advance once every 5 frames in an attempt to make the speed up feel smoother
+    if (frame % 5 != 0)
+    {
+      return false;
+    }
+
+    framesToAdvance = framesToAdvance - 1;
+    return true;
+  }
+
+  isCurrentlyAdvancing = false;
   return false;
 }
 
@@ -1678,6 +1770,8 @@ void CEXISlippi::prepareOpponentInputs(u8* payload)
 {
   m_read_queue.clear();
 
+  int32_t frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
+
   u8 frameResult = 1;  // Indicates to continue frame
 
   auto state = slippi_netplay->GetSlippiConnectStatus();
@@ -1686,13 +1780,15 @@ void CEXISlippi::prepareOpponentInputs(u8* payload)
   {
     frameResult = 3;  // Indicates we have disconnected
   }
+  else if (shouldAdvanceOnlineFrame(frame))
+  {
+    frameResult = 4;
+  }
 
   m_read_queue.push_back(frameResult);  // Indicate a continue frame
 
   u8 remotePlayerCount = matchmaking->RemotePlayerCount();
   m_read_queue.push_back(remotePlayerCount);  // Indicate the number of remote players
-
-  int32_t frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
 
   std::unique_ptr<SlippiRemotePadOutput> results[SLIPPI_REMOTE_PLAYER_MAX];
   int offset[SLIPPI_REMOTE_PLAYER_MAX];
