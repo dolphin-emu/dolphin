@@ -193,6 +193,10 @@ jobs:
           FILE_NAME=${{ env.CURR_DATE }}-${{ env.GIT_HASH }}-${{ env.GIT_TAG }}-${{ matrix.artifact_name }}.zip
           chmod +x ./*.AppImage
           zip -r "${FILE_NAME}" ./*.AppImage*
+          zip -r -j "${FILE_NAME}" ./*.AppImage*
+          pushd ./AppDir/usr/bin/
+          zip -r -u "../../../${FILE_NAME}" ./Sys
+          popd
           mv "${FILE_NAME}" ./artifact/
       - name: "Publish"
         if: success()
