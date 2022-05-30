@@ -205,6 +205,7 @@ void SlippiReplayComm::loadFile()
     auto queue = res["queue"];
     if (queue.is_array())
     {
+      std::queue<WatchSettings>().swap(commFileSettings.queue);
       int index = 0;
       for (json::iterator it = queue.begin(); it != queue.end(); ++it)
       {
