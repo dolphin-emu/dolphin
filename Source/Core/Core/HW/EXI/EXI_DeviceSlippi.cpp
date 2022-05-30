@@ -2315,10 +2315,15 @@ void CEXISlippi::prepareOnlineMatchState()
         areAllSameTeam = false;
     }
 
-    // Randomize assignments to randomize teams when all same color
-    std::vector<u8> teamAssignments = {0, 0, 1, 1};
-    generator.seed(rngOffset);
-    std::shuffle(teamAssignments.begin(), teamAssignments.end(), generator);
+    // Choose random team assignments
+    // Previously there was a bug here where the shuffle was not consistent across platforms given
+    // the same seed, this would cause desyncs during cross platform play (different teams). Got
+    // around this by no longer using the shuffle function...
+    std::vector<std::vector<u8>> teamAssignmentPermutations = {
+        {0, 0, 1, 1}, {1, 1, 0, 0}, {0, 1, 1, 0}, {1, 0, 0, 1}, {0, 1, 0, 1}, {1, 0, 1, 0},
+    };
+    auto teamAssignments =
+        teamAssignmentPermutations[rngOffset % teamAssignmentPermutations.size()];
 
     // Overwrite player character choices
     for (auto& s : orderedSelections)
