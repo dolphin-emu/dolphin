@@ -2564,6 +2564,9 @@ void CEXISlippi::prepareOnlineMatchState()
       onlineMatchBlock[0x61 + 3 * 0x24] = 0;
     }
 
+    u16* stage = (u16*)&onlineMatchBlock[0xE];
+    *stage = Common::swap16(stageId);
+
     // Turn pause off in unranked/ranked, on in other modes
     auto pauseAllowed = !SlippiMatchmaking::IsFixedRulesMode(lastSearch.mode) &&
                         lastSearch.mode != SlippiMatchmaking::OnlinePlayMode::TEAMS;
