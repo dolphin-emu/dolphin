@@ -318,25 +318,25 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,              // VkStructureType         sType
       nullptr,                                            // const void*             pNext
       0,                                                  // VkSamplerCreateFlags    flags
-      filters[u32(info.tm0.mag_filter.Value())],          // VkFilter                magFilter
-      filters[u32(info.tm0.min_filter.Value())],          // VkFilter                minFilter
-      mipmap_modes[u32(info.tm0.mipmap_filter.Value())],  // VkSamplerMipmapMode mipmapMode
-      address_modes[u32(info.tm0.wrap_u.Value())],        // VkSamplerAddressMode    addressModeU
-      address_modes[u32(info.tm0.wrap_v.Value())],        // VkSamplerAddressMode    addressModeV
+      filters[u32(info.tm0.mag_filter().Get())],          // VkFilter                magFilter
+      filters[u32(info.tm0.min_filter().Get())],          // VkFilter                minFilter
+      mipmap_modes[u32(info.tm0.mipmap_filter().Get())],  // VkSamplerMipmapMode mipmapMode
+      address_modes[u32(info.tm0.wrap_u().Get())],        // VkSamplerAddressMode    addressModeU
+      address_modes[u32(info.tm0.wrap_v().Get())],        // VkSamplerAddressMode    addressModeV
       VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,              // VkSamplerAddressMode    addressModeW
-      info.tm0.lod_bias / 256.0f,                         // float                   mipLodBias
+      info.tm0.lod_bias() / 256.0f,                       // float                   mipLodBias
       VK_FALSE,                                 // VkBool32                anisotropyEnable
       0.0f,                                     // float                   maxAnisotropy
       VK_FALSE,                                 // VkBool32                compareEnable
       VK_COMPARE_OP_ALWAYS,                     // VkCompareOp             compareOp
-      info.tm1.min_lod / 16.0f,                 // float                   minLod
-      info.tm1.max_lod / 16.0f,                 // float                   maxLod
+      info.tm1.min_lod() / 16.0f,               // float                   minLod
+      info.tm1.max_lod() / 16.0f,               // float                   maxLod
       VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,  // VkBorderColor           borderColor
       VK_FALSE                                  // VkBool32                unnormalizedCoordinates
   };
 
   // Can we use anisotropic filtering with this sampler?
-  if (info.tm0.anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
+  if (info.tm0.anisotropic_filtering() && g_vulkan_context->SupportsAnisotropicFiltering())
   {
     // Cap anisotropy to device limits.
     create_info.anisotropyEnable = VK_TRUE;

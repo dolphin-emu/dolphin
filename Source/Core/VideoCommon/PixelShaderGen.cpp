@@ -322,22 +322,22 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (((state.usedualsrc && state.dstalpha) ||
+  if (((state.usedualsrc() && state.dstalpha()) ||
        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
       g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
       !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
-    uid_data->blend_enable = state.blendenable;
-    uid_data->blend_src_factor = state.srcfactor;
-    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
-    uid_data->blend_dst_factor = state.dstfactor;
-    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
-    uid_data->blend_subtract = state.subtract;
-    uid_data->blend_subtract_alpha = state.subtractAlpha;
+    uid_data->blend_enable = state.blendenable();
+    uid_data->blend_src_factor = state.srcfactor();
+    uid_data->blend_src_factor_alpha = state.srcfactoralpha();
+    uid_data->blend_dst_factor = state.dstfactor();
+    uid_data->blend_dst_factor_alpha = state.dstfactoralpha();
+    uid_data->blend_subtract = state.subtract();
+    uid_data->blend_subtract_alpha = state.subtractAlpha();
   }
 
-  uid_data->logic_op_enable = state.logicopenable;
-  uid_data->logic_op_mode = u32(state.logicmode.Value());
+  uid_data->logic_op_enable = state.logicopenable();
+  uid_data->logic_op_mode = u32(state.logicmode().Get());
 
   return out;
 }
@@ -597,7 +597,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
       out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
                 "  float lod_bias = float({}) / 256.0f;\n"
                 "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
-                BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"));
+                BFViewExtract<decltype(SamplerState().tm0.lod_bias())>("texmode0"));
     }
     else
     {
@@ -624,17 +624,17 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int min_lod = int({});
   int max_lod = int({});
 )",
-              BitfieldExtract<&SamplerState::TM0::wrap_u>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::wrap_v>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::mag_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::mipmap_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::min_filter>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::diag_lod>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::lod_bias>("texmode0"),
-              // BitfieldExtract<&SamplerState::TM0::max_aniso>("texmode0"),
-              BitfieldExtract<&SamplerState::TM0::lod_clamp>("texmode0"),
-              BitfieldExtract<&SamplerState::TM1::min_lod>("texmode1"),
-              BitfieldExtract<&SamplerState::TM1::max_lod>("texmode1"));
+              BFViewExtract<decltype(SamplerState().tm0.wrap_u())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm0.wrap_v())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm0.mag_filter())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm0.mipmap_filter())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm0.min_filter())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm0.diag_lod())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm0.lod_bias())>("texmode0"),
+              // BFViewExtract<decltype(SamplerState().tm0.max_aniso())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm0.lod_clamp())>("texmode0"),
+              BFViewExtract<decltype(SamplerState().tm1.min_lod())>("texmode1"),
+              BFViewExtract<decltype(SamplerState().tm1.max_lod())>("texmode1"));
 
     if (host_config.manual_texture_sampling_custom_texture_sizes)
     {

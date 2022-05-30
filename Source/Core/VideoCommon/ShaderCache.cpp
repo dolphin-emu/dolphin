@@ -601,7 +601,7 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
 
   // We can use framebuffer fetch to emulate logic ops in the fragment shader.
-  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
+  if (config.blending_state.logicopenable() && !g_ActiveConfig.backend_info.bSupportsLogicOp &&
       !g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
   {
     WARN_LOG_FMT(VIDEO,
@@ -1132,8 +1132,8 @@ void ShaderCache::QueueUberShaderPipelines()
     if (ps_uid.GetUidData()->uint_output)
     {
       // uint_output is only ever enabled when logic ops are enabled.
-      config.blending_state.logicopenable = true;
-      config.blending_state.logicmode = LogicOp::And;
+      config.blending_state.logicopenable() = true;
+      config.blending_state.logicmode() = LogicOp::And;
     }
 
     auto iter = m_gx_uber_pipeline_cache.find(config);

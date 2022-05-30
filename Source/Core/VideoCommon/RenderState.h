@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
@@ -18,7 +19,7 @@ enum class PrimitiveType : u32
   TriangleStrip,
 };
 
-union RasterizationState
+struct RasterizationState
 {
   void Generate(const BPMemory& bp, PrimitiveType primitive_type);
 
@@ -28,28 +29,28 @@ union RasterizationState
   bool operator!=(const RasterizationState& rhs) const { return !operator==(rhs); }
   bool operator<(const RasterizationState& rhs) const { return hex < rhs.hex; }
 
-  BitField<0, 2, CullMode> cullmode;
-  BitField<3, 2, PrimitiveType> primitive;
-
   u32 hex;
+
+  BFVIEW_M(hex, CullMode, 0, 2, cullmode);
+  BFVIEW_M(hex, PrimitiveType, 3, 2, primitive);
 };
 
-union FramebufferState
+struct FramebufferState
 {
   FramebufferState() = default;
 
   bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
   bool operator!=(const FramebufferState& rhs) const { return !operator==(rhs); }
 
-  BitField<0, 8, AbstractTextureFormat> color_texture_format;
-  BitField<8, 8, AbstractTextureFormat> depth_texture_format;
-  BitField<16, 8, u32> samples;
-  BitField<24, 1, u32> per_sample_shading;
-
   u32 hex;
+
+  BFVIEW_M(hex, AbstractTextureFormat, 0, 8, color_texture_format);
+  BFVIEW_M(hex, AbstractTextureFormat, 8, 8, depth_texture_format);
+  BFVIEW_M(hex, u32, 16, 8, samples);
+  BFVIEW_M(hex, u32, 24, 1, per_sample_shading);
 };
 
-union DepthState
+struct DepthState
 {
   void Generate(const BPMemory& bp);
 
@@ -59,11 +60,11 @@ union DepthState
   bool operator!=(const DepthState& rhs) const { return !operator==(rhs); }
   bool operator<(const DepthState& rhs) const { return hex < rhs.hex; }
 
-  BitField<0, 1, u32> testenable;
-  BitField<1, 1, u32> updateenable;
-  BitField<2, 3, CompareMode> func;
-
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 1, testenable);
+  BFVIEW_M(hex, u32, 1, 1, updateenable);
+  BFVIEW_M(hex, CompareMode, 2, 3, func);
 };
 
 union BlendingState
@@ -80,21 +81,21 @@ union BlendingState
   bool operator!=(const BlendingState& rhs) const { return !operator==(rhs); }
   bool operator<(const BlendingState& rhs) const { return hex < rhs.hex; }
 
-  BitField<0, 1, u32> blendenable;
-  BitField<1, 1, u32> logicopenable;
-  BitField<2, 1, u32> dstalpha;
-  BitField<3, 1, u32> colorupdate;
-  BitField<4, 1, u32> alphaupdate;
-  BitField<5, 1, u32> subtract;
-  BitField<6, 1, u32> subtractAlpha;
-  BitField<7, 1, u32> usedualsrc;
-  BitField<8, 3, DstBlendFactor> dstfactor;
-  BitField<11, 3, SrcBlendFactor> srcfactor;
-  BitField<14, 3, DstBlendFactor> dstfactoralpha;
-  BitField<17, 3, SrcBlendFactor> srcfactoralpha;
-  BitField<20, 4, LogicOp> logicmode;
-
   u32 hex;
+
+  BFVIEW_M(hex, bool, 0, 1, blendenable);
+  BFVIEW_M(hex, bool, 1, 1, logicopenable);
+  BFVIEW_M(hex, bool, 2, 1, dstalpha);
+  BFVIEW_M(hex, bool, 3, 1, colorupdate);
+  BFVIEW_M(hex, bool, 4, 1, alphaupdate);
+  BFVIEW_M(hex, bool, 5, 1, subtract);
+  BFVIEW_M(hex, bool, 6, 1, subtractAlpha);
+  BFVIEW_M(hex, bool, 7, 1, usedualsrc);
+  BFVIEW_M(hex, DstBlendFactor, 8, 3, dstfactor);
+  BFVIEW_M(hex, SrcBlendFactor, 11, 3, srcfactor);
+  BFVIEW_M(hex, DstBlendFactor, 14, 3, dstfactoralpha);
+  BFVIEW_M(hex, SrcBlendFactor, 17, 3, srcfactoralpha);
+  BFVIEW_M(hex, LogicOp, 20, 4, logicmode);
 };
 
 struct SamplerState
@@ -113,26 +114,28 @@ struct SamplerState
   // simplifications
   union TM0
   {
+    u32 hex;
+
     // BP's mipmap_filter can be None, but that is represented here by setting min_lod and max_lod
     // to 0
-    BitField<0, 1, FilterMode> min_filter;
-    BitField<1, 1, FilterMode> mag_filter;
-    BitField<2, 1, FilterMode> mipmap_filter;
+    BFVIEW_M(hex, FilterMode, 0, 1, min_filter);
+    BFVIEW_M(hex, FilterMode, 1, 1, mag_filter);
+    BFVIEW_M(hex, FilterMode, 2, 1, mipmap_filter);
     // Guaranteed to be valid values (i.e. not 3)
-    BitField<3, 2, WrapMode> wrap_u;
-    BitField<5, 2, WrapMode> wrap_v;
-    BitField<7, 1, LODType> diag_lod;
-    BitField<8, 16, s32> lod_bias;         // multiplied by 256, higher precision than normal
-    BitField<24, 1, bool, u32> lod_clamp;  // TODO: This isn't currently implemented
-    BitField<25, 1, bool, u32> anisotropic_filtering;  // TODO: This doesn't use the BP one yet
-    u32 hex;
+    BFVIEW_M(hex, WrapMode, 3, 2, wrap_u);
+    BFVIEW_M(hex, WrapMode, 5, 2, wrap_v);
+    BFVIEW_M(hex, LODType, 7, 1, diag_lod);
+    BFVIEW_M(hex, s32, 8, 16, lod_bias);    // multiplied by 256, higher precision than normal
+    BFVIEW_M(hex, bool, 24, 1, lod_clamp);  // TODO: This isn't currently implemented
+    BFVIEW_M(hex, bool, 25, 1, anisotropic_filtering);  // TODO: This doesn't use the BP one yet
   };
   union TM1
   {
-    // Min is guaranteed to be less than or equal to max
-    BitField<0, 8, u8, u32> min_lod;  // multiplied by 16
-    BitField<8, 8, u8, u32> max_lod;  // multiplied by 16
     u32 hex;
+
+    // Min is guaranteed to be less than or equal to max
+    BFVIEW_M(hex, u8, 0, 8, min_lod);  // multiplied by 16
+    BFVIEW_M(hex, u8, 8, 8, max_lod);  // multiplied by 16
   };
 
   TM0 tm0;

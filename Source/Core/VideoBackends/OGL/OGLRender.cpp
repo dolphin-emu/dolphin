@@ -951,11 +951,11 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable,
   // Restore color/depth mask.
   if (colorEnable || alphaEnable)
   {
-    glColorMask(m_current_blend_state.colorupdate, m_current_blend_state.colorupdate,
-                m_current_blend_state.colorupdate, m_current_blend_state.alphaupdate);
+    glColorMask(m_current_blend_state.colorupdate(), m_current_blend_state.colorupdate(),
+                m_current_blend_state.colorupdate(), m_current_blend_state.alphaupdate());
   }
   if (zEnable)
-    glDepthMask(m_current_depth_state.updateenable);
+    glDepthMask(m_current_depth_state.updateenable());
 
   // Scissor rect must be restored.
   BPFunctions::SetScissorAndViewport();
@@ -1018,11 +1018,11 @@ void Renderer::SetAndClearFramebuffer(AbstractFramebuffer* framebuffer,
   // Restore color/depth mask.
   if (framebuffer->HasColorBuffer())
   {
-    glColorMask(m_current_blend_state.colorupdate, m_current_blend_state.colorupdate,
-                m_current_blend_state.colorupdate, m_current_blend_state.alphaupdate);
+    glColorMask(m_current_blend_state.colorupdate(), m_current_blend_state.colorupdate(),
+                m_current_blend_state.colorupdate(), m_current_blend_state.alphaupdate());
   }
   if (framebuffer->HasDepthBuffer())
-    glDepthMask(m_current_depth_state.updateenable);
+    glDepthMask(m_current_depth_state.updateenable());
 }
 
 void Renderer::BindBackbuffer(const ClearColor& clear_color)
@@ -1123,11 +1123,11 @@ void Renderer::ApplyRasterizationState(const RasterizationState state)
     return;
 
   // none, ccw, cw, ccw
-  if (state.cullmode != CullMode::None)
+  if (state.cullmode() != CullMode::None)
   {
     // TODO: GX_CULL_ALL not supported, yet!
     glEnable(GL_CULL_FACE);
-    glFrontFace(state.cullmode == CullMode::Front ? GL_CCW : GL_CW);
+    glFrontFace(state.cullmode() == CullMode::Front ? GL_CCW : GL_CW);
   }
   else
   {
@@ -1145,11 +1145,11 @@ void Renderer::ApplyDepthState(const DepthState state)
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
-  if (state.testenable)
+  if (state.testenable())
   {
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(state.updateenable ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[u32(state.func.Value())]);
+    glDepthMask(state.updateenable() ? GL_TRUE : GL_FALSE);
+    glDepthFunc(glCmpFuncs[u32(state.func().Get())]);
   }
   else
   {
@@ -1169,10 +1169,10 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     return;
 
   bool useDualSource =
-      state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
+      state.usedualsrc() && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha());
   // Only use shader blend if we need to and we don't support dual-source blending directly
-  bool useShaderBlend = !useDualSource && state.usedualsrc && state.dstalpha &&
+  bool useShaderBlend = !useDualSource && state.usedualsrc() && state.dstalpha() &&
                         g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
 
   if (useShaderBlend)
@@ -1200,7 +1200,7 @@ void Renderer::ApplyBlendingState(const BlendingState state)
                                    GL_DST_ALPHA,
                                    GL_ONE_MINUS_DST_ALPHA};
 
-    if (state.blendenable)
+    if (state.blendenable())
       glEnable(GL_BLEND);
     else
       glDisable(GL_BLEND);
@@ -1209,13 +1209,13 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     // GL_BLEND is disabled, as a workaround for some bugs (possibly graphics
     // driver issues?). See https://bugs.dolphin-emu.org/issues/10120 : "Sonic
     // Adventure 2 Battle: graphics crash when loading first Dark level"
-    GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-    GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+    GLenum equation = state.subtract() ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+    GLenum equationAlpha = state.subtractAlpha() ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     glBlendEquationSeparate(equation, equationAlpha);
-    glBlendFuncSeparate(src_factors[u32(state.srcfactor.Value())],
-                        dst_factors[u32(state.dstfactor.Value())],
-                        src_factors[u32(state.srcfactoralpha.Value())],
-                        dst_factors[u32(state.dstfactoralpha.Value())]);
+    glBlendFuncSeparate(src_factors[u32(state.srcfactor().Get())],
+                        dst_factors[u32(state.dstfactor().Get())],
+                        src_factors[u32(state.srcfactoralpha().Get())],
+                        dst_factors[u32(state.dstfactoralpha().Get())]);
   }
 
   const GLenum logic_op_codes[16] = {
@@ -1226,10 +1226,10 @@ void Renderer::ApplyBlendingState(const BlendingState state)
   // Logic ops aren't available in GLES3
   if (!IsGLES())
   {
-    if (state.logicopenable)
+    if (state.logicopenable())
     {
       glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(logic_op_codes[u32(state.logicmode.Value())]);
+      glLogicOp(logic_op_codes[u32(state.logicmode().Get())]);
     }
     else
     {
@@ -1237,7 +1237,7 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     }
   }
 
-  glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
+  glColorMask(state.colorupdate(), state.colorupdate(), state.colorupdate(), state.alphaupdate());
   m_current_blend_state = state;
 }
 
