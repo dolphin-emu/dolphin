@@ -2302,19 +2302,30 @@ void CEXISlippi::prepareOnlineMatchState()
       }
     }
 
-    // Overwrite local player character
-    onlineMatchBlock[0x60 + (lps.playerIdx) * 0x24] = lps.characterId;
-    onlineMatchBlock[0x63 + (lps.playerIdx) * 0x24] = lps.characterColor;
-    onlineMatchBlock[0x67 + (lps.playerIdx) * 0x24] = 0;
-    onlineMatchBlock[0x69 + (lps.playerIdx) * 0x24] = lps.teamId;
-
-    // Overwrite remote player character
-    for (int i = 0; i < remotePlayerCount; i++)
+    // Check if everyone is the same color
+    auto color = orderedSelections[0].teamId;
+    bool areAllSameTeam = true;
+    for (const auto& s : orderedSelections)
     {
-      u8 idx = rps[i].playerIdx;
-      onlineMatchBlock[0x60 + idx * 0x24] = rps[i].characterId;
-      onlineMatchBlock[0x63 + idx * 0x24] = rps[i].characterColor;
-      onlineMatchBlock[0x69 + idx * 0x24] = rps[i].teamId;
+      if (s.teamId != color)
+        areAllSameTeam = false;
+    }
+
+    // Overwrite player character choices
+    for (auto& s : orderedSelections)
+    {
+      if (areAllSameTeam)
+      {
+        // Overwrite teamId
+        // TODO: overwrite color
+        s.teamId = s.playerIdx <= 1 ? 0 : 1;
+      }
+
+      // Overwrite player character
+      onlineMatchBlock[0x60 + (s.playerIdx) * 0x24] = s.characterId;
+      onlineMatchBlock[0x63 + (s.playerIdx) * 0x24] = s.characterColor;
+      onlineMatchBlock[0x67 + (s.playerIdx) * 0x24] = 0;
+      onlineMatchBlock[0x69 + (s.playerIdx) * 0x24] = s.teamId;
     }
 
     // Handle Singles/Teams specific logic
