@@ -20,16 +20,16 @@ PixelShaderUid GetPixelShaderUid()
   PixelShaderUid out;
 
   pixel_ubershader_uid_data* const uid_data = out.GetUidData();
-  uid_data->num_texgens = xfmem.numTexGen.numTexGens();
-  uid_data->early_depth = bpmem.UseEarlyDepthTest() &&
-                          (g_ActiveConfig.bFastDepthCalc ||
-                           bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
-                          !(bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
-  uid_data->per_pixel_depth =
+  uid_data->num_texgens() = xfmem.numTexGen.numTexGens();
+  uid_data->early_depth() = bpmem.UseEarlyDepthTest() &&
+                            (g_ActiveConfig.bFastDepthCalc ||
+                             bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
+                            !(bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
+  uid_data->per_pixel_depth() =
       (bpmem.ztex2.op() != ZTexOp::Disabled && bpmem.UseLateDepthTest()) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable() && !uid_data->early_depth) ||
+      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable() && !uid_data->early_depth()) ||
       (bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
-  uid_data->uint_output = bpmem.blendmode.UseLogicOp();
+  uid_data->uint_output() = bpmem.blendmode.UseLogicOp();
 
   return out;
 }
@@ -43,7 +43,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
   if (api_type != APIType::D3D || !host_config.backend_logic_op())
-    uid_data->uint_output = 0;
+    uid_data->uint_output() = 0;
 }
 
 ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
@@ -60,10 +60,10 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool use_framebuffer_fetch =
       use_shader_blend || use_shader_logic_op ||
       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
-  const bool early_depth = uid_data->early_depth != 0;
-  const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
+  const bool early_depth = uid_data->early_depth() != 0;
+  const bool per_pixel_depth = uid_data->per_pixel_depth() != 0;
   const bool bounding_box = host_config.bounding_box();
-  const u32 numTexgen = uid_data->num_texgens;
+  const u32 numTexgen = uid_data->num_texgens();
   ShaderCode out;
 
   out.Write("// {}\n", *uid_data);
@@ -107,7 +107,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
                                       "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
               use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
-              uid_data->uint_output ? "uvec4" : "vec4",
+              uid_data->uint_output() ? "uvec4" : "vec4",
               use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
     if (use_dual_source)
@@ -115,7 +115,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("{} out {} ocol1;\n",
                 has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
                                         "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
-                uid_data->uint_output ? "uvec4" : "vec4");
+                uid_data->uint_output() ? "uvec4" : "vec4");
     }
   }
 
@@ -1096,7 +1096,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   }
 
   // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
-  if (api_type == APIType::D3D && uid_data->uint_output)
+  if (api_type == APIType::D3D && uid_data->uint_output())
   {
     out.Write("  if (bpmem_rgba6_format)\n"
               "    ocol0 = uint4(TevResult & 0xFC);\n"
@@ -1264,21 +1264,21 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
   for (u32 texgens = 0; texgens <= 8; texgens++)
   {
     pixel_ubershader_uid_data* const puid = uid.GetUidData();
-    puid->num_texgens = texgens;
+    puid->num_texgens() = texgens;
 
     for (u32 early_depth = 0; early_depth < 2; early_depth++)
     {
-      puid->early_depth = early_depth != 0;
+      puid->early_depth() = early_depth != 0;
       for (u32 per_pixel_depth = 0; per_pixel_depth < 2; per_pixel_depth++)
       {
         // Don't generate shaders where we have early depth tests enabled, and write gl_FragDepth.
         if (early_depth && per_pixel_depth)
           continue;
 
-        puid->per_pixel_depth = per_pixel_depth != 0;
+        puid->per_pixel_depth() = per_pixel_depth != 0;
         for (u32 uint_output = 0; uint_output < 2; uint_output++)
         {
-          puid->uint_output = uint_output;
+          puid->uint_output() = uint_output;
           callback(uid);
         }
       }

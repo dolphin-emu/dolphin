@@ -1129,7 +1129,7 @@ void ShaderCache::QueueUberShaderPipelines()
         RenderState::GetCullBackFaceRasterizationState(gs_uid.GetUidData()->primitive_type());
     config.depth_state = RenderState::GetNoDepthTestingDepthState();
     config.blending_state = RenderState::GetNoBlendingBlendState();
-    if (ps_uid.GetUidData()->uint_output)
+    if (ps_uid.GetUidData()->uint_output())
     {
       // uint_output is only ever enabled when logic ops are enabled.
       config.blending_state.logicopenable() = true;
@@ -1148,7 +1148,7 @@ void ShaderCache::QueueUberShaderPipelines()
   UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& vuid) {
     UberShader::EnumeratePixelShaderUids([&](const UberShader::PixelShaderUid& puid) {
       // UIDs must have compatible texgens, a mismatching combination will never be queried.
-      if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens)
+      if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens())
         return;
 
       UberShader::PixelShaderUid cleared_puid = puid;
