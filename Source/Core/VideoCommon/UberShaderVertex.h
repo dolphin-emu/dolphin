@@ -4,14 +4,18 @@
 #pragma once
 
 #include <functional>
+
+#include "Common/BitFieldView.h"
 #include "VideoCommon/PixelShaderGen.h"
 
 namespace UberShader
 {
 #pragma pack(1)
-union vertex_ubershader_uid_data
+struct vertex_ubershader_uid_data
 {
-  BitField<0, 4, u8> num_texgens;
+  u8 _data1;
+
+  BFVIEW_M(_data1, u8, 0, 4, num_texgens);
 
   u32 NumValues() const { return sizeof(vertex_ubershader_uid_data); }
 };
