@@ -13,6 +13,7 @@
 #include <fmt/format.h>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 #include "Common/StringUtil.h"
@@ -150,33 +151,33 @@ union ShaderHostConfig
 {
   u32 bits;
 
-  BitField<0, 1, bool, u32> msaa;
-  BitField<1, 1, bool, u32> ssaa;
-  BitField<2, 1, bool, u32> stereo;
-  BitField<3, 1, bool, u32> wireframe;
-  BitField<4, 1, bool, u32> per_pixel_lighting;
-  BitField<5, 1, bool, u32> vertex_rounding;
-  BitField<6, 1, bool, u32> fast_depth_calc;
-  BitField<7, 1, bool, u32> bounding_box;
-  BitField<8, 1, bool, u32> backend_dual_source_blend;
-  BitField<9, 1, bool, u32> backend_geometry_shaders;
-  BitField<10, 1, bool, u32> backend_early_z;
-  BitField<11, 1, bool, u32> backend_bbox;
-  BitField<12, 1, bool, u32> backend_gs_instancing;
-  BitField<13, 1, bool, u32> backend_clip_control;
-  BitField<14, 1, bool, u32> backend_ssaa;
-  BitField<15, 1, bool, u32> backend_atomics;
-  BitField<16, 1, bool, u32> backend_depth_clamp;
-  BitField<17, 1, bool, u32> backend_reversed_depth_range;
-  BitField<18, 1, bool, u32> backend_bitfield;
-  BitField<19, 1, bool, u32> backend_dynamic_sampler_indexing;
-  BitField<20, 1, bool, u32> backend_shader_framebuffer_fetch;
-  BitField<21, 1, bool, u32> backend_logic_op;
-  BitField<22, 1, bool, u32> backend_palette_conversion;
-  BitField<23, 1, bool, u32> enable_validation_layer;
-  BitField<24, 1, bool, u32> manual_texture_sampling;
-  BitField<25, 1, bool, u32> manual_texture_sampling_custom_texture_sizes;
-  BitField<26, 1, bool, u32> backend_sampler_lod_bias;
+  BFVIEW_M(bits, bool, 0, 1, msaa);
+  BFVIEW_M(bits, bool, 1, 1, ssaa);
+  BFVIEW_M(bits, bool, 2, 1, stereo);
+  BFVIEW_M(bits, bool, 3, 1, wireframe);
+  BFVIEW_M(bits, bool, 4, 1, per_pixel_lighting);
+  BFVIEW_M(bits, bool, 5, 1, vertex_rounding);
+  BFVIEW_M(bits, bool, 6, 1, fast_depth_calc);
+  BFVIEW_M(bits, bool, 7, 1, bounding_box);
+  BFVIEW_M(bits, bool, 8, 1, backend_dual_source_blend);
+  BFVIEW_M(bits, bool, 9, 1, backend_geometry_shaders);
+  BFVIEW_M(bits, bool, 10, 1, backend_early_z);
+  BFVIEW_M(bits, bool, 11, 1, backend_bbox);
+  BFVIEW_M(bits, bool, 12, 1, backend_gs_instancing);
+  BFVIEW_M(bits, bool, 13, 1, backend_clip_control);
+  BFVIEW_M(bits, bool, 14, 1, backend_ssaa);
+  BFVIEW_M(bits, bool, 15, 1, backend_atomics);
+  BFVIEW_M(bits, bool, 16, 1, backend_depth_clamp);
+  BFVIEW_M(bits, bool, 17, 1, backend_reversed_depth_range);
+  BFVIEW_M(bits, bool, 18, 1, backend_bitfield);
+  BFVIEW_M(bits, bool, 19, 1, backend_dynamic_sampler_indexing);
+  BFVIEW_M(bits, bool, 20, 1, backend_shader_framebuffer_fetch);
+  BFVIEW_M(bits, bool, 21, 1, backend_logic_op);
+  BFVIEW_M(bits, bool, 22, 1, backend_palette_conversion);
+  BFVIEW_M(bits, bool, 23, 1, enable_validation_layer);
+  BFVIEW_M(bits, bool, 24, 1, manual_texture_sampling);
+  BFVIEW_M(bits, bool, 25, 1, manual_texture_sampling_custom_texture_sizes);
+  BFVIEW_M(bits, bool, 26, 1, backend_sampler_lod_bias);
 
   static ShaderHostConfig GetCurrent();
 };

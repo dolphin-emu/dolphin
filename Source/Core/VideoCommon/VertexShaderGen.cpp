@@ -79,9 +79,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   ShaderCode out;
 
   const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
-  const bool msaa = host_config.msaa;
-  const bool ssaa = host_config.ssaa;
-  const bool vertex_rounding = host_config.vertex_rounding;
+  const bool msaa = host_config.msaa();
+  const bool ssaa = host_config.ssaa();
+  const bool vertex_rounding = host_config.vertex_rounding();
 
   out.Write("{}", s_lighting_struct);
 
@@ -124,7 +124,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
   }
 
-  if (host_config.backend_geometry_shaders)
+  if (host_config.backend_geometry_shaders())
   {
     out.Write("VARYING_LOCATION(0) out VertexData {{\n");
     GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, host_config,
@@ -145,7 +145,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc())
     {
       out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -426,7 +426,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // clipPos/w needs to be done in pixel shader, not here
-  if (!host_config.fast_depth_calc)
+  if (!host_config.fast_depth_calc())
     out.Write("o.clipPos = o.pos;\n");
 
   if (per_pixel_lighting)
@@ -438,7 +438,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
   // our own depth clipping and calculate the depth range before the perspective divide if
   // necessary.
-  if (host_config.backend_depth_clamp)
+  if (host_config.backend_depth_clamp())
   {
     // Since we're adjusting z for the depth range before the perspective divide, we have to do our
     // own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0 range.
@@ -448,7 +448,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
               "float clipDist0 = clipDepth + o.pos.w;\n"  // Near: z < -w
               "float clipDist1 = -clipDepth;\n");         // Far: z > 0
 
-    if (host_config.backend_geometry_shaders)
+    if (host_config.backend_geometry_shaders())
     {
       out.Write("o.clipDist0 = clipDist0;\n"
                 "o.clipDist1 = clipDist1;\n");
@@ -475,7 +475,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
             "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
 
-  if (!host_config.backend_clip_control)
+  if (!host_config.backend_clip_control())
   {
     // If the graphics API doesn't support a depth range of 0..1, then we need to map z to
     // the -1..1 range. Unfortunately we have to use a substraction, which is a lossy floating-point
@@ -518,7 +518,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
               "}}\n");
   }
 
-  if (host_config.backend_geometry_shaders)
+  if (host_config.backend_geometry_shaders())
   {
     AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, host_config);
   }
@@ -528,7 +528,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // are not supported, however that will require at least OpenGL 3.2 support.
     for (u32 i = 0; i < uid_data->numTexGens; ++i)
       out.Write("tex{}.xyz = o.tex{};\n", i, i);
-    if (!host_config.fast_depth_calc)
+    if (!host_config.fast_depth_calc())
       out.Write("clipPos = o.clipPos;\n");
     if (per_pixel_lighting)
     {
@@ -539,7 +539,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
               "colors_1 = o.colors_1;\n");
   }
 
-  if (host_config.backend_depth_clamp)
+  if (host_config.backend_depth_clamp())
   {
     out.Write("gl_ClipDistance[0] = clipDist0;\n"
               "gl_ClipDistance[1] = clipDist1;\n");
