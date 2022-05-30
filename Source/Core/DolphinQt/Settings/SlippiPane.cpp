@@ -82,6 +82,8 @@ void SlippiPane::CreateLayout()
   connect(delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
           [](int delay) { SConfig::GetInstance().m_slippiOnlineDelay = delay; });
 
+  // i'd like to note that I hate everything about how this is organized for the next two sections
+  // and a lot of the Qstring bullshit drives me up the wall.
   auto* netplay_port_spin = new QSpinBox();
   netplay_port_spin->setFixedSize(60, 25);
   QSizePolicy sp_retain = netplay_port_spin->sizePolicy();
@@ -110,6 +112,41 @@ void SlippiPane::CreateLayout()
   netplay_port_layout->addWidget(netplay_port_spin, 0, 1, Qt::AlignLeft);
 
   online_settings_layout->addRow(netplay_port_layout);
+
+  auto* netplay_ip_edit = new QLineEdit();
+  netplay_ip_edit->setFixedSize(100, 25);
+  sp_retain = netplay_ip_edit->sizePolicy();
+  sp_retain.setRetainSizeWhenHidden(true);
+  netplay_ip_edit->setSizePolicy(sp_retain);
+  std::string ipRange = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])";
+  // You may want to use QRegularExpression for new code with Qt 5 (not mandatory).
+  QRegularExpression ipRegex(QString::fromStdString(
+      "^" + ipRange + "(\\." + ipRange + ")" + "(\\." + ipRange + ")" + "(\\." + ipRange + ")$"));
+  QRegularExpressionValidator* ipValidator = new QRegularExpressionValidator(ipRegex, this);
+  netplay_ip_edit->setValidator(ipValidator);
+  auto lan_ip = SConfig::GetInstance().m_slippiLanIp;
+  netplay_ip_edit->setText(QString::fromStdString(lan_ip));
+  if (!SConfig::GetInstance().m_slippiForceLanIp)
+  {
+    netplay_ip_edit->hide();
+  }
+  auto* enable_force_netplay_ip_checkbox = new QCheckBox(tr("Force Netplay IP:"));
+  enable_force_netplay_ip_checkbox->setToolTip(
+      tr("Enable this to force Slippi to use a specific LAN IP when connecting to users with a "
+         "matching WAN IP. Should not be required for most users."));
+
+  enable_force_netplay_ip_checkbox->setChecked(SConfig::GetInstance().m_slippiForceLanIp);
+  connect(enable_force_netplay_ip_checkbox, &QCheckBox::toggled, this,
+          [netplay_ip_edit](bool checked) {
+            SConfig::GetInstance().m_slippiForceLanIp = checked;
+            checked ? netplay_ip_edit->show() : netplay_ip_edit->hide();
+          });
+  auto* netplay_ip_layout = new QGridLayout();
+  netplay_ip_layout->setColumnStretch(1, 1);
+  netplay_ip_layout->addWidget(enable_force_netplay_ip_checkbox, 0, 0);
+  netplay_ip_layout->addWidget(netplay_ip_edit, 0, 1, Qt::AlignLeft);
+
+  online_settings_layout->addRow(netplay_ip_layout);
 
 #else
   // Playback Settings

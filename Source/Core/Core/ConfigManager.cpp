@@ -265,6 +265,8 @@ void SConfig::SaveSlippiSettings(IniFile& ini)
   slippi->Set("PlaybackControls", m_slippiEnableSeek);
   slippi->Set("ForceNetplayPort", m_slippiForceNetplayPort);
   slippi->Set("NetplayPort", m_slippiNetplayPort);
+  slippi->Set("ForceLanIP", m_slippiForceLanIp);
+  slippi->Set("LanIP", m_slippiLanIp);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -555,6 +557,8 @@ void SConfig::LoadSlippiSettings(IniFile& ini)
     m_strSlippiReplayDir = default_replay_dir;
   slippi->Get("ForceNetplayPort", &m_slippiForceNetplayPort, false);
   slippi->Get("NetplayPort", &m_slippiNetplayPort, 2626);
+  slippi->Get("ForceLanIP", &m_slippiForceLanIp, false);
+  slippi->Get("LanIP", &m_slippiLanIp, "");
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
