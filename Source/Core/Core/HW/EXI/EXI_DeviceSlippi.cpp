@@ -1006,7 +1006,7 @@ void CEXISlippi::prepareGeckoList()
       0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // Termination sequence
   };
 
-  static std::unordered_map<u32, bool> staticBlacklist = {
+  static std::unordered_map<u32, bool> static_deny_list = {
       {0x8008d698, true},  // Recording/GetLCancelStatus/GetLCancelStatus.asm
       {0x8006c324, true},  // Recording/GetLCancelStatus/ResetLCancelStatus.asm
       {0x800679bc, true},  // Recording/ExtendPlayerBlock.asm
@@ -1058,6 +1058,9 @@ void CEXISlippi::prepareGeckoList()
       {0x8016e9b0, true},  // Common/UseInGameDelay/InitializeInGameDelay.asm
       {0x8000561c, true},  // Common/GetCommonMinorID/GetCommonMinorID.asm
       {0x802f666c, true},  // Common/UseInGameDelay/InitializeInGameDelay.asm v2
+      {0x8000569c, true},  // Common/CompatibilityHooks/GetFighterNum.asm
+      {0x800056a0, true},  // Common/CompatibilityHooks/GetSSMIndex.asm
+      {0x800056a8, true},  // Common/CompatibilityHooks/RequestSSMLoad.asm
 
       {0x801a5b14, true},  // External/Salty Runback/Salty Runback.asm
       {0x801a4570, true},  // External/LagReduction/ForceHD/480pDeflickerOff.asm
@@ -1119,10 +1122,13 @@ void CEXISlippi::prepareGeckoList()
                            // (https://smashboards.com/threads/transparent-hud-v1-1.508509/)
       {0x802F71E0,
        true},  // Smaller "Ready, GO!" (https://smashboards.com/threads/smaller-ready-go.509740/)
+      {0x80071960,
+       true},  // Yellow During IASA
+               // (https://smashboards.com/threads/color-overlays-for-iasa-frames.401474/post-19120928)
   };
 
   std::unordered_map<u32, bool> blacklist;
-  blacklist.insert(staticBlacklist.begin(), staticBlacklist.end());
+  blacklist.insert(static_deny_list.begin(), static_deny_list.end());
 
   auto replayCommSettings = g_replayComm->getSettings();
   if (replayCommSettings.rollbackDisplayMethod == "off")
