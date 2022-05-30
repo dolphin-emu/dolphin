@@ -178,43 +178,27 @@ void SlippiUser::OpenLogInPage()
   RunSystemCommand(command);
 }
 
-void SlippiUser::UpdateApp()
+bool SlippiUser::UpdateApp()
 {
-#ifdef _WIN32
-  auto isoPath = SConfig::GetInstance().m_strIsoPath;
-
-  std::string path = File::GetExeDirectory() + "/dolphin-slippi-tools.exe";
-  std::string echo_msg =
-      "echo Starting update process. If nothing happen after a few "
-      "minutes, you may need to update manually from https://slippi.gg/netplay ...";
-  // std::string command =
-  //    "start /b cmd /c " + echo_msg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath
-  //    +
-  //    "\"";
-  std::string command = "start /b cmd /c " + echo_msg + " && \"" + path +
-                        "\" app-update -launch -iso \"" + isoPath + "\" -version \"" +
-                        Common::scm_slippi_semver_str + "\"";
-  WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
-  RunSystemCommand(command);
-#elif defined(__APPLE__)
-  CriticalAlertT("Automatic updates are not available for macOS; please get the latest update from "
-                 "slippi.gg/netplay.");
+#ifdef defined(__APPLE__) || defined(_WIN32)
+  CriticalAlertT("Dolphin auto updates are not available on standalone builds. Migrate to "
+                 "the Slippi Launcher at your earliest convenience");
+  return false;
 #else
   const char* appimage_path = getenv("APPIMAGE");
   const char* appmount_path = getenv("APPDIR");
   if (!appimage_path)
   {
     CriticalAlertT("Automatic updates are not available for non-AppImage Linux builds.");
-    return;
+    return false;
   }
   std::string path(appimage_path);
   std::string mount_path(appmount_path);
   std::string command = mount_path + "/usr/bin/appimageupdatetool " + path;
   WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
   RunSystemCommand(command);
-  CriticalAlertT(
-      "Restart Dolphin to finish the update. If there was an issue, please head over to the Slippi "
-      "Discord for support.");
+  CriticalAlertT("Dolphin failed to update, please head over to the Slippi Discord for support.");
+  return true;
 #endif
 }
 

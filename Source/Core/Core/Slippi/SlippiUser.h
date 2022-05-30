@@ -28,7 +28,7 @@ public:
 
   bool AttemptLogin();
   void OpenLogInPage();
-  void UpdateApp();
+  bool UpdateApp();
   void ListenForLogIn();
   void LogOut();
   void OverwriteLatestVersion(std::string version);
