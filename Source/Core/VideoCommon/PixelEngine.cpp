@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -39,12 +40,13 @@ enum class CompareMode : u16
   Always = 7
 };
 
-union UPEZConfReg
+struct UPEZConfReg
 {
   u16 hex;
-  BitField<0, 1, bool, u16> z_comparator_enable;
-  BitField<1, 3, CompareMode, u16> function;
-  BitField<4, 1, bool, u16> z_update_enable;
+
+  BFVIEW_M(hex, bool, 0, 1, z_comparator_enable);
+  BFVIEW_M(hex, CompareMode, 1, 3, function);
+  BFVIEW_M(hex, bool, 4, 1, z_update_enable);
 };
 
 enum class SrcBlendFactor : u16
@@ -91,49 +93,54 @@ enum class LogicOp : u16
   Set = 15
 };
 
-union UPEAlphaConfReg
+struct UPEAlphaConfReg
 {
   u16 hex;
-  BitField<0, 1, bool, u16> blend;  // Set for GX_BM_BLEND or GX_BM_SUBTRACT
-  BitField<1, 1, bool, u16> logic;  // Set for GX_BM_LOGIC
-  BitField<2, 1, bool, u16> dither;
-  BitField<3, 1, bool, u16> color_update_enable;
-  BitField<4, 1, bool, u16> alpha_update_enable;
-  BitField<5, 3, DstBlendFactor, u16> dst_factor;
-  BitField<8, 3, SrcBlendFactor, u16> src_factor;
-  BitField<11, 1, bool, u16> subtract;  // Set for GX_BM_SUBTRACT
-  BitField<12, 4, LogicOp, u16> logic_op;
+
+  BFVIEW_M(hex, bool, 0, 1, blend);  // Set for GX_BM_BLEND or GX_BM_SUBTRACT
+  BFVIEW_M(hex, bool, 1, 1, logic);  // Set for GX_BM_LOGIC
+  BFVIEW_M(hex, bool, 2, 1, dither);
+  BFVIEW_M(hex, bool, 3, 1, color_update_enable);
+  BFVIEW_M(hex, bool, 4, 1, alpha_update_enable);
+  BFVIEW_M(hex, DstBlendFactor, 5, 3, dst_factor);
+  BFVIEW_M(hex, SrcBlendFactor, 8, 3, src_factor);
+  BFVIEW_M(hex, bool, 11, 1, subtract);  // Set for GX_BM_SUBTRACT
+  BFVIEW_M(hex, LogicOp, 12, 4, logic_op);
 };
 
-union UPEDstAlphaConfReg
+struct UPEDstAlphaConfReg
 {
   u16 hex;
-  BitField<0, 8, u8, u16> alpha;
-  BitField<8, 1, bool, u16> enable;
+
+  BFVIEW_M(hex, u8, 0, 8, alpha);
+  BFVIEW_M(hex, bool, 8, 1, enable);
 };
 
-union UPEAlphaModeConfReg
+struct UPEAlphaModeConfReg
 {
   u16 hex;
-  BitField<0, 8, u8, u16> threshold;
+
+  BFVIEW_M(hex, u8, 0, 8, threshold);
   // Yagcd and libogc use 8 bits for this, but the enum only needs 3
-  BitField<8, 3, CompareMode, u16> compare_mode;
+  BFVIEW_M(hex, CompareMode, 8, 3, compare_mode);
 };
 
-union UPEAlphaReadReg
+struct UPEAlphaReadReg
 {
   u16 hex;
-  BitField<0, 2, AlphaReadMode, u16> read_mode;
+
+  BFVIEW_M(hex, AlphaReadMode, 0, 2, read_mode);
 };
 
 // fifo Control Register
-union UPECtrlReg
+struct UPECtrlReg
 {
   u16 hex;
-  BitField<0, 1, bool, u16> pe_token_enable;
-  BitField<1, 1, bool, u16> pe_finish_enable;
-  BitField<2, 1, bool, u16> pe_token;   // Write only
-  BitField<3, 1, bool, u16> pe_finish;  // Write only
+
+  BFVIEW_M(hex, bool, 0, 1, pe_token_enable);
+  BFVIEW_M(hex, bool, 1, 1, pe_finish_enable);
+  BFVIEW_M(hex, bool, 2, 1, pe_token);   // Write only
+  BFVIEW_M(hex, bool, 3, 1, pe_finish);  // Write only
 };
 
 // STATE_TO_SAVE
@@ -257,16 +264,16 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    UPECtrlReg tmpCtrl{.hex = val};
 
-                   if (tmpCtrl.pe_token)
+                   if (tmpCtrl.pe_token())
                      s_signal_token_interrupt = false;
 
-                   if (tmpCtrl.pe_finish)
+                   if (tmpCtrl.pe_finish())
                      s_signal_finish_interrupt = false;
 
-                   m_Control.pe_token_enable = tmpCtrl.pe_token_enable.Value();
-                   m_Control.pe_finish_enable = tmpCtrl.pe_finish_enable.Value();
-                   m_Control.pe_token = false;   // this flag is write only
-                   m_Control.pe_finish = false;  // this flag is write only
+                   m_Control.pe_token_enable() = tmpCtrl.pe_token_enable().Get();
+                   m_Control.pe_finish_enable() = tmpCtrl.pe_finish_enable().Get();
+                   m_Control.pe_token() = false;   // this flag is write only
+                   m_Control.pe_finish() = false;  // this flag is write only
 
                    DEBUG_LOG_FMT(PIXELENGINE, "(w16) CTRL_REGISTER: {:#06x}", val);
                    UpdateInterrupts();
@@ -290,11 +297,11 @@ static void UpdateInterrupts()
 {
   // check if there is a token-interrupt
   ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN,
-                                   s_signal_token_interrupt && m_Control.pe_token_enable);
+                                   s_signal_token_interrupt && m_Control.pe_token_enable());
 
   // check if there is a finish-interrupt
   ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH,
-                                   s_signal_finish_interrupt && m_Control.pe_finish_enable);
+                                   s_signal_finish_interrupt && m_Control.pe_finish_enable());
 }
 
 static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
@@ -373,7 +380,7 @@ void SetFinish(int cycles_into_future)
 
 AlphaReadMode GetAlphaReadMode()
 {
-  return m_AlphaRead.read_mode;
+  return m_AlphaRead.read_mode();
 }
 
 }  // namespace PixelEngine
