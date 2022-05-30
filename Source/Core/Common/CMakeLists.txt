@@ -84,6 +84,7 @@ add_library(common
   MemArena.h
   MemoryUtil.cpp
   MemoryUtil.h
+  MinizipUtil.cpp
   MinizipUtil.h
   MsgHandler.cpp
   MsgHandler.h

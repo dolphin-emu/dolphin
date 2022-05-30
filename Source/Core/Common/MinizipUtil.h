@@ -4,6 +4,7 @@
 #pragma once
 
 #include <algorithm>
+#include <string>
 
 #include <unzip.h>
 
@@ -38,4 +39,12 @@ bool ReadFileFromZip(unzFile file, ContiguousContainer* destination)
 
   return true;
 }
+
+// Packs the directory at directory_path into a new zip file at zip_path.
+// If zip_path exists it will be overwritten.
+bool PackDirectoryToZip(const std::string& directory_path, const std::string& zip_path);
+
+// Unpacks the zip file at zip_path into the directory at directory_path.
+// Existing files may be overwritten if the zip file contains a file with the same relative path.
+bool UnpackZipToDirectory(const std::string& zip_path, const std::string& directory_path);
 }  // namespace Common

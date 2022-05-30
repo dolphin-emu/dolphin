@@ -733,6 +733,7 @@
     <ClCompile Include="Common\Matrix.cpp" />
     <ClCompile Include="Common\MemArenaWin.cpp" />
     <ClCompile Include="Common\MemoryUtil.cpp" />
+    <ClCompile Include="Common\MinizipUtil.cpp" />
     <ClCompile Include="Common\MsgHandler.cpp" />
     <ClCompile Include="Common\NandPaths.cpp" />
     <ClCompile Include="Common\Network.cpp" />
