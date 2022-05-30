@@ -1662,7 +1662,7 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame, s32 finalizedFrame)
       isCurrentlySkipping = true;
 
       int maxSkipFrames = frame <= 120 ? 5 : 1;  // On early frames, support skipping more frames
-      framesToSkip = ((offsetUs - 10000) / 16683) + 1;
+      framesToSkip = ((offsetUs - t1) / frameTime) + 1;
       framesToSkip =
           framesToSkip > maxSkipFrames ? maxSkipFrames : framesToSkip;  // Only skip 5 frames max
 
@@ -1732,9 +1732,7 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
       deviation = frameWindowMultiplier * -maxSlowDownAmount;
     }
 
-    // If we are behind (negative offset) we want to go above 100% run speed, so we need to subtract
-    // the deviation value
-    auto dynamicEmulationSpeed = 1.0f - deviation;
+    auto dynamicEmulationSpeed = 1.0f + deviation;
     SConfig::GetInstance().m_EmulationSpeed = dynamicEmulationSpeed;
     // SConfig::GetInstance().m_EmulationSpeed = 0.97f; // used for testing
 
@@ -1867,6 +1865,7 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
     int32_t latestFrame = results[i]->latestFrame;
     if (latestFrame > frame)
       latestFrame = frame;
+    latestFrameRead[i] = latestFrame;
     appendWordToBuffer(&m_read_queue, static_cast<u32>(latestFrame));
     // INFO_LOG(SLIPPI_ONLINE, "Sending frame num %d for pIdx %d (offset: %d)", latestFrame, i,
     // offset[i]);
@@ -1874,6 +1873,7 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
   // Send the current frame for any unused player slots.
   for (int i = remotePlayerCount; i < SLIPPI_REMOTE_PLAYER_MAX; i++)
   {
+    latestFrameRead[i] = frame;
     appendWordToBuffer(&m_read_queue, static_cast<u32>(frame));
   }
 
@@ -1897,8 +1897,6 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
 
     m_read_queue.insert(m_read_queue.end(), tx.begin(), tx.end());
   }
-
-  slippi_netplay->DropOldRemoteInputs(frame);
 
   // ERROR_LOG(SLIPPI_ONLINE, "EXI: [%d] %X %X %X %X %X %X %X %X", latestFrame, m_read_queue[5],
   // m_read_queue[6], m_read_queue[7], m_read_queue[8], m_read_queue[9], m_read_queue[10],

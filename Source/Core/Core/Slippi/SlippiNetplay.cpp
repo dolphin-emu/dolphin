@@ -281,32 +281,37 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
 
       auto packetData = (u8*)packet.getData();
 
-      INFO_LOG_FMT(SLIPPI_ONLINE, "Receiving a packet of inputs [{}]...", frame);
+      // INFO_LOG_FMT(SLIPPI_ONLINE, "Receiving a packet of inputs [{}]...", frame);
 
-      INFO_LOG_FMT(SLIPPI_ONLINE, "Receiving a packet of inputs from player {}({}) [{}]...",
-                   packetPlayerPort, pIdx, frame);
+      // INFO_LOG_FMT(SLIPPI_ONLINE, "Receiving a packet of inputs from player {}({}) [{}]...",
+      //              packetPlayerPort, pIdx, frame);
 
-      int32_t headFrame = remotePadQueue[pIdx].empty() ? 0 : remotePadQueue[pIdx].front()->frame;
-      int inputsToCopy = frame - headFrame;
+      s64 frame64 = static_cast<s64>(frame);
+      s32 headFrame = remotePadQueue[pIdx].empty() ? 0 : remotePadQueue[pIdx].front()->frame;
+      s64 inputsToCopy = frame64 - static_cast<s64>(headFrame);
 
-      // Not sure what the max is here. If we never ack frames it could get big...
-      if (inputsToCopy > 128)
+      // Check that the packet actually contains the data it claims to
+      if ((6 + inputsToCopy * SLIPPI_PAD_DATA_SIZE) > static_cast<s64>(packet.getDataSize()))
       {
         ERROR_LOG_FMT(
             SLIPPI_ONLINE,
             "Netplay packet too small to read pad buffer. Size: {}, Inputs: {}, MinSize: {}",
-            (int)packet.getDataSize(), inputsToCopy, 5 + inputsToCopy * SLIPPI_PAD_DATA_SIZE);
+            static_cast<int>(packet.getDataSize()), inputsToCopy,
+            6 + inputsToCopy * SLIPPI_PAD_DATA_SIZE);
         break;
       }
 
-      for (int i = inputsToCopy - 1; i >= 0; i--)
+      // Not sure what the max is here. If we never ack frames it could get big...
+      if (inputsToCopy > 128)
       {
-        auto pad =
-            std::make_unique<SlippiPad>(frame - i, pIdx, &packetData[6 + i * SLIPPI_PAD_DATA_SIZE]);
-        INFO_LOG(SLIPPI_ONLINE, "Rcv [%d] -> %02X %02X %02X %02X %02X %02X %02X %02X", pad->frame,
-                 pad->padBuf[0], pad->padBuf[1], pad->padBuf[2], pad->padBuf[3], pad->padBuf[4],
-                 pad->padBuf[5], pad->padBuf[6], pad->padBuf[7]);
+        ERROR_LOG_FMT(SLIPPI_ONLINE, "Netplay packet contained too many frames: {}", inputsToCopy);
+        break;
+      }
 
+      for (s64 i = inputsToCopy - 1; i >= 0; i--)
+      {
+        auto pad = std::make_unique<SlippiPad>(static_cast<s32>(frame64 - i), pIdx,
+                                               &packetData[6 + i * SLIPPI_PAD_DATA_SIZE]);
         remotePadQueue[pIdx].push_front(std::move(pad));
       }
     }
@@ -1199,28 +1204,9 @@ void SlippiNetplayClient::DropOldRemoteInputs(int32_t finalizedFrame)
 {
   std::lock_guard<std::mutex> lk(pad_mutex);
 
-  // Remove pad reports that should no longer be needed, compute the lowest frame recieved by
-  // all remote players that can be safely dropped.
-  int lowestCommonFrame = 0;
   for (int i = 0; i < m_remotePlayerCount; i++)
   {
-    int playerFrame = 0;
-    for (auto it = remotePadQueue[i].begin(); it != remotePadQueue[i].end(); ++it)
-    {
-      if (it->get()->frame > playerFrame)
-        playerFrame = it->get()->frame;
-    }
-
-    if (lowestCommonFrame == 0 || playerFrame < lowestCommonFrame)
-      lowestCommonFrame = playerFrame;
-  }
-
-  for (int i = 0; i < m_remotePlayerCount; i++)
-  {
-    // INFO_LOG_FMT(SLIPPI_ONLINE, "remotePadQueue[{}] size: {}", i, remotePadQueue[i].size());
     while (remotePadQueue[i].size() > 1 && remotePadQueue[i].back()->frame < finalizedFrame)
-      /*INFO_LOG_FMT(SLIPPI_ONLINE, "Popping inputs for frame {} from back of player {} queue",
-                   remotePadQueue[i].back()->frame, i);*/
       remotePadQueue[i].pop_back();
   }
 }
