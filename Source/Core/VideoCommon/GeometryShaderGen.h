@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/RenderState.h"
@@ -15,13 +16,15 @@
 enum class APIType;
 
 #pragma pack(1)
-union geometry_shader_uid_data
+struct geometry_shader_uid_data
 {
   u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
   bool IsPassthrough() const;
 
-  BitField<0, 4, u8> numTexGens;
-  BitField<4, 2, u8> primitive_type;
+  u8 _data1;
+
+  BFVIEW_M(_data1, u8, 0, 4, numTexGens);
+  BFVIEW_M(_data1, PrimitiveType, 4, 2, primitive_type);
 };
 #pragma pack()
 
@@ -40,6 +43,6 @@ struct fmt::formatter<geometry_shader_uid_data>
   auto format(const geometry_shader_uid_data& uid, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "passthrough: {}, {} tex gens, primitive type {}",
-                          uid.IsPassthrough(), uid.numTexGens, uid.primitive_type);
+                          uid.IsPassthrough(), uid.numTexGens(), u32(uid.primitive_type().Get()));
   }
 };
