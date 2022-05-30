@@ -206,7 +206,7 @@ PixelShaderUid GetPixelShaderUid()
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
-    uid_data->numColorChans = xfmem.numChan.numColorChans;
+    uid_data->numColorChans = xfmem.numChan.numColorChans();
     GetLightingShaderUid(uid_data->lighting);
   }
 
@@ -216,7 +216,7 @@ PixelShaderUid GetPixelShaderUid()
     {
       // optional perspective divides
       uid_data->texMtxInfo_n_projection[i] |=
-          static_cast<bool>(xfmem.texMtxInfo[i].projection.Value());
+          static_cast<bool>(xfmem.texMtxInfo[i].projection().Get());
     }
   }
 

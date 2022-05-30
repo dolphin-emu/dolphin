@@ -154,23 +154,23 @@ void GetLightingShaderUid(LightingUidData& uid_data)
 {
   for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
   {
-    uid_data.matsource |= static_cast<u32>(xfmem.color[j].matsource.Value()) << j;
-    uid_data.matsource |= static_cast<u32>(xfmem.alpha[j].matsource.Value()) << (j + 2);
-    uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
-    uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j + 2);
+    uid_data.matsource |= static_cast<u32>(xfmem.color[j].matsource().Get()) << j;
+    uid_data.matsource |= static_cast<u32>(xfmem.alpha[j].matsource().Get()) << (j + 2);
+    uid_data.enablelighting |= xfmem.color[j].enablelighting() << j;
+    uid_data.enablelighting |= xfmem.alpha[j].enablelighting() << (j + 2);
 
     if ((uid_data.enablelighting & (1ull << j)) != 0)  // Color lights
     {
-      uid_data.ambsource |= static_cast<u32>(xfmem.color[j].ambsource.Value()) << j;
-      uid_data.attnfunc |= static_cast<u32>(xfmem.color[j].attnfunc.Value()) << (2 * j);
-      uid_data.diffusefunc |= static_cast<u32>(xfmem.color[j].diffusefunc.Value()) << (2 * j);
+      uid_data.ambsource |= static_cast<u32>(xfmem.color[j].ambsource().Get()) << j;
+      uid_data.attnfunc |= static_cast<u32>(xfmem.color[j].attnfunc().Get()) << (2 * j);
+      uid_data.diffusefunc |= static_cast<u32>(xfmem.color[j].diffusefunc().Get()) << (2 * j);
       uid_data.light_mask |= xfmem.color[j].GetFullLightMask() << (8 * j);
     }
     if ((uid_data.enablelighting & (1ull << (j + 2))) != 0)  // Alpha lights
     {
-      uid_data.ambsource |= static_cast<u32>(xfmem.alpha[j].ambsource.Value()) << (j + 2);
-      uid_data.attnfunc |= static_cast<u32>(xfmem.alpha[j].attnfunc.Value()) << (2 * (j + 2));
-      uid_data.diffusefunc |= static_cast<u32>(xfmem.alpha[j].diffusefunc.Value()) << (2 * (j + 2));
+      uid_data.ambsource |= static_cast<u32>(xfmem.alpha[j].ambsource().Get()) << (j + 2);
+      uid_data.attnfunc |= static_cast<u32>(xfmem.alpha[j].attnfunc().Get()) << (2 * (j + 2));
+      uid_data.diffusefunc |= static_cast<u32>(xfmem.alpha[j].diffusefunc().Get()) << (2 * (j + 2));
       uid_data.light_mask |= xfmem.alpha[j].GetFullLightMask() << (8 * (j + 2));
     }
   }

@@ -9,6 +9,7 @@
 #include <array>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"
 #include "VideoCommon/CPMemory.h"
@@ -233,20 +234,21 @@ enum
   XFMEM_REGISTERS_END = 0x1058,
 };
 
-union LitChannel
+struct LitChannel
 {
-  BitField<0, 1, MatSource> matsource;
-  BitField<1, 1, bool, u32> enablelighting;
-  BitField<2, 4, u32> lightMask0_3;
-  BitField<6, 1, AmbSource> ambsource;
-  BitField<7, 2, DiffuseFunc> diffusefunc;
-  BitField<9, 2, AttenuationFunc> attnfunc;
-  BitField<11, 4, u32> lightMask4_7;
   u32 hex;
+
+  BFVIEW_M(hex, MatSource, 0, 1, matsource);
+  BFVIEW_M(hex, bool, 1, 1, enablelighting);
+  BFVIEW_M(hex, u32, 2, 4, lightMask0_3);
+  BFVIEW_M(hex, AmbSource, 6, 1, ambsource);
+  BFVIEW_M(hex, DiffuseFunc, 7, 2, diffusefunc);
+  BFVIEW_M(hex, AttenuationFunc, 9, 2, attnfunc);
+  BFVIEW_M(hex, u32, 11, 4, lightMask4_7);
 
   unsigned int GetFullLightMask() const
   {
-    return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
+    return enablelighting() ? (lightMask0_3() | (lightMask4_7() << 4)) : 0;
   }
 };
 template <>
@@ -260,17 +262,18 @@ struct fmt::formatter<LitChannel>
         ctx.out(),
         "Material source: {0}\nEnable lighting: {1}\nLight mask: {2:x} ({2:08b})\n"
         "Ambient source: {3}\nDiffuse function: {4}\nAttenuation function: {5}",
-        chan.matsource, chan.enablelighting ? "Yes" : "No", chan.GetFullLightMask(), chan.ambsource,
-        chan.diffusefunc, chan.attnfunc);
+        chan.matsource(), chan.enablelighting() ? "Yes" : "No", chan.GetFullLightMask(),
+        chan.ambsource(), chan.diffusefunc(), chan.attnfunc());
   }
 };
 
-union ClipDisable
+struct ClipDisable
 {
-  BitField<0, 1, bool, u32> disable_clipping_detection;
-  BitField<1, 1, bool, u32> disable_trivial_rejection;
-  BitField<2, 1, bool, u32> disable_cpoly_clipping_acceleration;
   u32 hex;
+
+  BFVIEW_M(hex, bool, 0, 1, disable_clipping_detection);
+  BFVIEW_M(hex, bool, 1, 1, disable_trivial_rejection);
+  BFVIEW_M(hex, bool, 2, 1, disable_cpoly_clipping_acceleration);
 };
 template <>
 struct fmt::formatter<ClipDisable>
@@ -283,18 +286,19 @@ struct fmt::formatter<ClipDisable>
                           "Disable clipping detection: {}\n"
                           "Disable trivial rejection: {}\n"
                           "Disable cpoly clipping acceleration: {}",
-                          cd.disable_clipping_detection ? "Yes" : "No",
-                          cd.disable_trivial_rejection ? "Yes" : "No",
-                          cd.disable_cpoly_clipping_acceleration ? "Yes" : "No");
+                          cd.disable_clipping_detection() ? "Yes" : "No",
+                          cd.disable_trivial_rejection() ? "Yes" : "No",
+                          cd.disable_cpoly_clipping_acceleration() ? "Yes" : "No");
   }
 };
 
-union INVTXSPEC
+struct INVTXSPEC
 {
-  BitField<0, 2, u32> numcolors;
-  BitField<2, 2, NormalCount> numnormals;
-  BitField<4, 4, u32> numtextures;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 2, numcolors);
+  BFVIEW_M(hex, NormalCount, 2, 2, numnormals);
+  BFVIEW_M(hex, u32, 4, 4, numtextures);
 };
 template <>
 struct fmt::formatter<INVTXSPEC>
@@ -304,21 +308,22 @@ struct fmt::formatter<INVTXSPEC>
   auto format(const INVTXSPEC& spec, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "Num colors: {}\nNum normals: {}\nNum textures: {}",
-                          spec.numcolors, spec.numnormals, spec.numtextures);
+                          spec.numcolors(), spec.numnormals(), spec.numtextures());
   }
 };
 
-union TexMtxInfo
+struct TexMtxInfo
 {
-  BitField<0, 1, u32> unknown;
-  BitField<1, 1, TexSize, u32> projection;
-  BitField<2, 1, TexInputForm, u32> inputform;
-  BitField<3, 1, u32> unknown2;
-  BitField<4, 3, TexGenType, u32> texgentype;
-  BitField<7, 5, SourceRow, u32> sourcerow;
-  BitField<12, 3, u32> embosssourceshift;  // what generated texcoord to use
-  BitField<15, 3, u32> embosslightshift;   // light index that is used
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 1, unknown);
+  BFVIEW_M(hex, TexSize, 1, 1, projection);
+  BFVIEW_M(hex, TexInputForm, 2, 1, inputform);
+  BFVIEW_M(hex, u32, 3, 1, unknown2);
+  BFVIEW_M(hex, TexGenType, 4, 3, texgentype);
+  BFVIEW_M(hex, SourceRow, 7, 5, sourcerow);
+  BFVIEW_M(hex, u32, 12, 3, embosssourceshift);  // what generated texcoord to use
+  BFVIEW_M(hex, u32, 15, 3, embosslightshift);   // light index that is used
 };
 template <>
 struct fmt::formatter<TexMtxInfo>
@@ -330,17 +335,18 @@ struct fmt::formatter<TexMtxInfo>
     return fmt::format_to(ctx.out(),
                           "Projection: {}\nInput form: {}\nTex gen type: {}\n"
                           "Source row: {}\nEmboss source shift: {}\nEmboss light shift: {}",
-                          i.projection, i.inputform, i.texgentype, i.sourcerow, i.embosssourceshift,
-                          i.embosslightshift);
+                          i.projection(), i.inputform(), i.texgentype(), i.sourcerow(),
+                          i.embosssourceshift(), i.embosslightshift());
   }
 };
 
-union PostMtxInfo
+struct PostMtxInfo
 {
-  BitField<0, 6, u32> index;            // base row of dual transform matrix
-  BitField<6, 2, u32> unused;           //
-  BitField<8, 1, bool, u32> normalize;  // normalize before send operation
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 6, index);       // base row of dual transform matrix
+  BFVIEW_M(hex, u32, 6, 2, unused);      //
+  BFVIEW_M(hex, bool, 8, 1, normalize);  // normalize before send operation
 };
 
 template <>
@@ -350,27 +356,30 @@ struct fmt::formatter<PostMtxInfo>
   template <typename FormatContext>
   auto format(const PostMtxInfo& i, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index,
-                          i.normalize ? "Yes" : "No");
+    return fmt::format_to(ctx.out(), "Index: {}\nNormalize before send operation: {}", i.index(),
+                          i.normalize() ? "Yes" : "No");
   }
 };
 
-union NumColorChannel
+struct NumColorChannel
 {
-  BitField<0, 2, u32> numColorChans;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 2, numColorChans);
 };
 
-union NumTexGen
+struct NumTexGen
 {
-  BitField<0, 4, u32> numTexGens;
   u32 hex;
+
+  BFVIEW_M(hex, u32, 0, 4, numTexGens);
 };
 
-union DualTexInfo
+struct DualTexInfo
 {
-  BitField<0, 1, bool, u32> enabled;
   u32 hex;
+
+  BFVIEW_M(hex, bool, 0, 1, enabled);
 };
 
 struct Light

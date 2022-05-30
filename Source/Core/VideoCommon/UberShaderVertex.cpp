@@ -17,7 +17,7 @@ VertexShaderUid GetVertexShaderUid()
   VertexShaderUid out;
 
   vertex_ubershader_uid_data* const uid_data = out.GetUidData();
-  uid_data->num_texgens = xfmem.numTexGen.numTexGens.Value();
+  uid_data->num_texgens = xfmem.numTexGen.numTexGens();
 
   return out;
 }
@@ -372,7 +372,7 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("  // Texcoord transforms\n");
   out.Write("  float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n"
             "  uint texMtxInfo = xfmem_texMtxInfo(texgen);\n");
-  out.Write("  switch ({}) {{\n", BitfieldExtract<&TexMtxInfo::sourcerow>("texMtxInfo"));
+  out.Write("  switch ({}) {{\n", BFViewExtract<decltype(TexMtxInfo().sourcerow())>("texMtxInfo"));
   out.Write("  case {:s}:\n", SourceRow::Geom);
   out.Write("    coord.xyz = rawpos.xyz;\n");
   out.Write("    break;\n\n");
@@ -405,7 +405,7 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
 
   out.Write("  // Input form of AB11 sets z element to 1.0\n");
   out.Write("  if ({} == {:s}) // inputform == AB11\n",
-            BitfieldExtract<&TexMtxInfo::inputform>("texMtxInfo"), TexInputForm::AB11);
+            BFViewExtract<decltype(TexMtxInfo().inputform())>("texMtxInfo"), TexInputForm::AB11);
   out.Write("    coord.z = 1.0f;\n"
             "\n");
 
@@ -417,16 +417,17 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
   out.Write("  if (dolphin_isnan(coord.z)) coord.z = 1.0;\n");
 
   out.Write("  // first transformation\n");
-  out.Write("  uint texgentype = {};\n", BitfieldExtract<&TexMtxInfo::texgentype>("texMtxInfo"));
+  out.Write("  uint texgentype = {};\n",
+            BFViewExtract<decltype(TexMtxInfo().texgentype())>("texMtxInfo"));
   out.Write("  float3 output_tex;\n"
             "  switch (texgentype)\n"
             "  {{\n");
   out.Write("  case {:s}:\n", TexGenType::EmbossMap);
   out.Write("    {{\n");
   out.Write("      uint light = {};\n",
-            BitfieldExtract<&TexMtxInfo::embosslightshift>("texMtxInfo"));
+            BFViewExtract<decltype(TexMtxInfo().embosslightshift())>("texMtxInfo"));
   out.Write("      uint source = {};\n",
-            BitfieldExtract<&TexMtxInfo::embosssourceshift>("texMtxInfo"));
+            BFViewExtract<decltype(TexMtxInfo().embosssourceshift())>("texMtxInfo"));
   out.Write("      switch (source) {{\n");
   for (u32 i = 0; i < num_texgen; i++)
     out.Write("      case {}u: output_tex.xyz = o.tex{}; break;\n", i, i);
@@ -455,8 +456,8 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
     out.Write("        case {}u: tmp = int(rawtex{}.z); break;\n", i, i);
   out.Write("        }}\n"
             "\n");
-  out.Write("        if ({} == {:s}) {{\n", BitfieldExtract<&TexMtxInfo::projection>("texMtxInfo"),
-            TexSize::STQ);
+  out.Write("        if ({} == {:s}) {{\n",
+            BFViewExtract<decltype(TexMtxInfo().projection())>("texMtxInfo"), TexSize::STQ);
   out.Write("          output_tex.xyz = float3(dot(coord, " I_TRANSFORMMATRICES "[tmp]),\n"
             "                                  dot(coord, " I_TRANSFORMMATRICES "[tmp + 1]),\n"
             "                                  dot(coord, " I_TRANSFORMMATRICES "[tmp + 2]));\n"
@@ -466,8 +467,8 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
             "                                  1.0);\n"
             "        }}\n"
             "      }} else {{\n");
-  out.Write("        if ({} == {:s}) {{\n", BitfieldExtract<&TexMtxInfo::projection>("texMtxInfo"),
-            TexSize::STQ);
+  out.Write("        if ({} == {:s}) {{\n",
+            BFViewExtract<decltype(TexMtxInfo().projection())>("texMtxInfo"), TexSize::STQ);
   out.Write("          output_tex.xyz = float3(dot(coord, " I_TEXMATRICES "[3u * texgen]),\n"
             "                                  dot(coord, " I_TEXMATRICES "[3u * texgen + 1u]),\n"
             "                                  dot(coord, " I_TEXMATRICES "[3u * texgen + 2u]));\n"
@@ -484,12 +485,14 @@ static void GenVertexShaderTexGens(APIType api_type, u32 num_texgen, ShaderCode&
 
   out.Write("  if (xfmem_dualTexInfo != 0u) {{\n");
   out.Write("    uint postMtxInfo = xfmem_postMtxInfo(texgen);");
-  out.Write("    uint base_index = {};\n", BitfieldExtract<&PostMtxInfo::index>("postMtxInfo"));
+  out.Write("    uint base_index = {};\n",
+            BFViewExtract<decltype(PostMtxInfo().index())>("postMtxInfo"));
   out.Write("    float4 P0 = " I_POSTTRANSFORMMATRICES "[base_index & 0x3fu];\n"
             "    float4 P1 = " I_POSTTRANSFORMMATRICES "[(base_index + 1u) & 0x3fu];\n"
             "    float4 P2 = " I_POSTTRANSFORMMATRICES "[(base_index + 2u) & 0x3fu];\n"
             "\n");
-  out.Write("    if ({} != 0u)\n", BitfieldExtract<&PostMtxInfo::normalize>("postMtxInfo"));
+  out.Write("    if ({} != 0u)\n",
+            BFViewExtract<decltype(PostMtxInfo().normalize())>("postMtxInfo"));
   out.Write("      output_tex.xyz = normalize(output_tex.xyz);\n"
             "\n"
             "    // multiply by postmatrix\n"

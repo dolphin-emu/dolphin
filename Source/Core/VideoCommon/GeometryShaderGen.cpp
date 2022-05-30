@@ -42,7 +42,7 @@ GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
 
   geometry_shader_uid_data* const uid_data = out.GetUidData();
   uid_data->primitive_type() = primitive_type;
-  uid_data->numTexGens() = xfmem.numTexGen.numTexGens;
+  uid_data->numTexGens() = xfmem.numTexGen.numTexGens();
 
   return out;
 }
