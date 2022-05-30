@@ -658,7 +658,9 @@ void SlippiMatchmaking::handleConnecting()
           if (p >= m_localPlayerIndex)
             p++;
 
-          err << m_playerInfo[p].display_name << " ";
+          err << m_playerInfo[p].display_name;
+          if (i < failedConns.size() - 1)
+            err << ", ";
         }
         m_errorMsg = err.str();
       }

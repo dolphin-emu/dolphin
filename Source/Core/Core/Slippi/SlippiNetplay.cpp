@@ -529,6 +529,7 @@ void SlippiNetplayClient::ThreadFunc()
     int net = enet_host_service(m_client, &netEvent, 500);
     if (net > 0)
     {
+      sf::Packet rpac;
       switch (netEvent.type)
       {
       case ENET_EVENT_TYPE_RECEIVE:
@@ -537,8 +538,13 @@ void SlippiNetplayClient::ThreadFunc()
           INFO_LOG(SLIPPI_ONLINE, "[Netplay] got receive event with nil peer");
           continue;
         }
-        INFO_LOG(SLIPPI_ONLINE, "[Netplay] got receive event with peer addr %x:%d",
+        ERROR_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got receive event with peer addr {}:{}",
                  netEvent.peer->address.host, netEvent.peer->address.port);
+        rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
+
+        OnData(rpac, netEvent.peer);
+
+        enet_packet_destroy(netEvent.packet);
         break;
 
       case ENET_EVENT_TYPE_DISCONNECT:
@@ -559,8 +565,30 @@ void SlippiNetplayClient::ThreadFunc()
           continue;
         }
 
-        INFO_LOG(SLIPPI_ONLINE, "[Netplay] got connect event with peer addr %x:%d",
+        INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got connect event with peer addr {}:{}",
                  netEvent.peer->address.host, netEvent.peer->address.port);
+
+        auto isAlreadyConnected = false;
+        for (int i = 0; i < m_server.size(); i++)
+        {
+          if (connections[i] && netEvent.peer->address.host == m_server[i]->address.host &&
+              netEvent.peer->address.port == m_server[i]->address.port)
+          {
+            m_server[i] = netEvent.peer;
+            isAlreadyConnected = true;
+            break;
+          }
+        }
+
+        if (isAlreadyConnected)
+        {
+          // Don't add this person again if they are already connected. Not doing this can cause one
+          // person to take up 2 or more spots, denying one or more players from connecting and thus
+          // getting stuck on the "Waiting" step
+          ERROR_LOG(SLIPPI_ONLINE, "Already connected!");
+          break;  // Breaks out of case
+        }
+
         for (int i = 0; i < m_server.size(); i++)
         {
           // This check used to check for port as well as host. The problem was that for some
