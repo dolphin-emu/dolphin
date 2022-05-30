@@ -177,7 +177,6 @@ private:
   void handleSendInputs(u8* payload);
   void handleCaptureSavestate(u8* payload);
   void handleLoadSavestate(u8* payload);
-  void handleNameEntryAutoComplete(u8* payload);
   void handleNameEntryLoad(u8* payload);
   void startFindMatch(u8* payload);
   void prepareOnlineMatchState();

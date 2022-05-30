@@ -125,6 +125,12 @@ SlippiNetplayClient::SlippiNetplayClient(std::vector<std::string> addrs, std::ve
     ENetPeer* peer = enet_host_connect(m_client, &addr, 3, 0);
     m_server.push_back(peer);
 
+    // Store this connection
+    std::stringstream keyStrm;
+    keyStrm << addr.host << "-" << addr.port;
+    activeConnections[keyStrm.str()][peer] = true;
+    INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (constr): {}", keyStrm.str().c_str());
+
     if (peer == nullptr)
     {
       PanicAlertT("Couldn't create peer.");
@@ -466,14 +472,17 @@ void SlippiNetplayClient::Disconnect()
 {
   ENetEvent netEvent;
   slippiConnectStatus = SlippiConnectStatus::NET_CONNECT_STATUS_DISCONNECTED;
-  if (!m_server.empty())
-    for (int i = 0; i < m_server.size(); i++)
-    {
-      INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Disconnecting peer {}", m_server[i]->address.port);
-      enet_peer_disconnect(m_server[i], 0);
-    }
-  else
+  if (activeConnections.empty())
     return;
+
+  for (auto conn : activeConnections)
+  {
+    for (auto peer : conn.second)
+    {
+      INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Disconnecting peer {}", peer.first->address.port);
+      enet_peer_disconnect(peer.first, 0);
+    }
+  }
 
   while (enet_host_service(m_client, &netEvent, 3000) > 0)
   {
@@ -491,10 +500,14 @@ void SlippiNetplayClient::Disconnect()
     }
   }
   // didn't disconnect gracefully force disconnect
-  for (int i = 0; i < m_server.size(); i++)
+  for (auto conn : activeConnections)
   {
-    enet_peer_reset(m_server[i]);
+    for (auto peer : conn.second)
+    {
+      enet_peer_reset(peer.first);
+    }
   }
+  activeConnections.clear();
   m_server.clear();
   SLIPPI_NETPLAY = nullptr;
 }
@@ -539,8 +552,8 @@ void SlippiNetplayClient::ThreadFunc()
           INFO_LOG(SLIPPI_ONLINE, "[Netplay] got receive event with nil peer");
           continue;
         }
-        ERROR_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got receive event with peer addr {}:{}",
-                      netEvent.peer->address.host, netEvent.peer->address.port);
+        INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got receive event with peer addr {}:{}",
+                     netEvent.peer->address.host, netEvent.peer->address.port);
         rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
 
         OnData(rpac, netEvent.peer);
@@ -566,6 +579,11 @@ void SlippiNetplayClient::ThreadFunc()
           continue;
         }
 
+        std::stringstream keyStrm;
+        keyStrm << netEvent.peer->address.host << "-" << netEvent.peer->address.port;
+        activeConnections[keyStrm.str()][netEvent.peer] = true;
+        INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (early): {}", keyStrm.str().c_str());
+
         INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] got connect event with peer addr {}:{}",
                      netEvent.peer->address.host, netEvent.peer->address.port);
 
@@ -586,7 +604,7 @@ void SlippiNetplayClient::ThreadFunc()
           // Don't add this person again if they are already connected. Not doing this can cause one
           // person to take up 2 or more spots, denying one or more players from connecting and thus
           // getting stuck on the "Waiting" step
-          ERROR_LOG(SLIPPI_ONLINE, "Already connected!");
+          INFO_LOG(SLIPPI_ONLINE, "Already connected!");
           break;  // Breaks out of case
         }
 
@@ -639,7 +657,7 @@ void SlippiNetplayClient::ThreadFunc()
     {
       INFO_LOG_FMT(SLIPPI_ONLINE, "m_client peer {} state: {}", i, m_client->peers[i].state);
     }
-    WARN_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Not yet connected. Res: {}, Type: {}", net,
+    INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Not yet connected. Res: {}, Type: {}", net,
                  netEvent.type);
 
     // Time out after enough time has passed
@@ -728,35 +746,74 @@ void SlippiNetplayClient::ThreadFunc()
     if (net > 0)
     {
       sf::Packet rpac;
-      bool isConnectedClient = false;
       switch (netEvent.type)
       {
       case ENET_EVENT_TYPE_RECEIVE:
-        rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
-        OnData(rpac, netEvent.peer);
-
-        enet_packet_destroy(netEvent.packet);
-        break;
-      case ENET_EVENT_TYPE_DISCONNECT:
-        for (int i = 0; i < m_remotePlayerCount; i++)
+      {
+        int oppIdx = 0;
+        for (int i = 0; i < m_server.size(); i++)
         {
-          if (remoteAddrs[i].host == netEvent.peer->address.host &&
-              remoteAddrs[i].port == netEvent.peer->address.port)
+          if (netEvent.peer->address.host == m_server[i]->address.host &&
+              netEvent.peer->address.port == m_server[i]->address.port)
           {
-            isConnectedClient = true;
+            oppIdx = i;
             break;
           }
         }
-        ERROR_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Disconnected Event detected: {}",
-                      isConnectedClient ? "connected client" : "superfluous client");
+
+        // Here we check if we have more than 1 connection for a specific player, this can happen
+        // because both players try to connect to each other at the same time to increase the odds
+        // that one direction might work and for hole punching. That said there's no point in
+        // keeping more than 1 connection alive. I think they might use bandwidth with keep alives
+        // or something. Only the lower port player will initiate the disconnect
+        std::stringstream keyStrm;
+        keyStrm << netEvent.peer->address.host << "-" << netEvent.peer->address.port;
+        if (activeConnections[keyStrm.str()].size() > 1 && m_player_idx <= oppIdx)
+        {
+          m_server[oppIdx] = netEvent.peer;
+          INFO_LOG(SLIPPI_ONLINE, "Multiple connections detected for single peer. Initiating "
+                                  "process to disconnect superfluous connections.");
+          for (auto peer : activeConnections[keyStrm.str()])
+          {
+            if (peer.first == netEvent.peer)
+              continue;
+
+            enet_peer_disconnect(peer.first, 0);
+          }
+        }
+
+        rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
+        OnData(rpac, netEvent.peer);
+        enet_packet_destroy(netEvent.packet);
+        break;
+      }
+      case ENET_EVENT_TYPE_DISCONNECT:
+      {
+        std::stringstream keyStrm;
+        keyStrm << netEvent.peer->address.host << "-" << netEvent.peer->address.port;
+        activeConnections[keyStrm.str()].erase(netEvent.peer);
+
+        /*INFO_LOG_FMT(SLIPPI_ONLINE, "[Netplay] Disconnect late {}:{}. {}. Remaining connections:
+           {}", netEvent.peer->address.host, netEvent.peer->address.port, netEvent.peer,
+                 activeConnections[keyStrm.str()].size());*/
 
         // If the disconnect event doesn't come from the client we are actually listening to,
         // it can be safely ignored
-        if (isConnectedClient)
+        if (activeConnections[keyStrm.str()].empty())
         {
+          INFO_LOG(SLIPPI_ONLINE, "[Netplay] Final disconnect received for a client.");
           m_do_loop.Clear();  // Stop the loop, will trigger a disconnect
         }
         break;
+      }
+      case ENET_EVENT_TYPE_CONNECT:
+      {
+        std::stringstream keyStrm;
+        keyStrm << netEvent.peer->address.host << "-" << netEvent.peer->address.port;
+        activeConnections[keyStrm.str()][netEvent.peer] = true;
+        INFO_LOG_FMT(SLIPPI_ONLINE, "New connection (late): {}", keyStrm.str().c_str());
+        break;
+      }
       default:
         break;
       }
@@ -857,14 +914,14 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
     if (lastFrameAcked[i] < minAckFrame)
       minAckFrame = lastFrameAcked[i];
   }
-  INFO_LOG_FMT(SLIPPI_ONLINE,
+  /*INFO_LOG_FMT(SLIPPI_ONLINE,
                "Checking to drop local inputs, oldest frame: {} | minAckFrame: {} | {}, {}, {}",
                localPadQueue.back()->frame, minAckFrame, lastFrameAcked[0], lastFrameAcked[1],
-               lastFrameAcked[2]);
+               lastFrameAcked[2]);*/
   while (!localPadQueue.empty() && localPadQueue.back()->frame < minAckFrame)
   {
-    INFO_LOG_FMT(SLIPPI_ONLINE, "Dropping local input for frame {} from queue",
-                 localPadQueue.back()->frame);
+    /*INFO_LOG_FMT(SLIPPI_ONLINE, "Dropping local input for frame {} from queue",
+                 localPadQueue.back()->frame);*/
     localPadQueue.pop_back();
   }
 
@@ -997,12 +1054,12 @@ void SlippiNetplayClient::DropOldRemoteInputs(int32_t curFrame)
 
   for (int i = 0; i < m_remotePlayerCount; i++)
   {
-    INFO_LOG_FMT(SLIPPI_ONLINE, "remotePadQueue[{}] size: {}", i, remotePadQueue[i].size());
+    // INFO_LOG_FMT(SLIPPI_ONLINE, "remotePadQueue[{}] size: {}", i, remotePadQueue[i].size());
     while (remotePadQueue[i].size() > 1 && remotePadQueue[i].back()->frame < lowestCommonFrame &&
            remotePadQueue[i].back()->frame < curFrame)
     {
-      INFO_LOG_FMT(SLIPPI_ONLINE, "Popping inputs for frame {} from back of player {} queue",
-                   remotePadQueue[i].back()->frame, i);
+      /*INFO_LOG_FMT(SLIPPI_ONLINE, "Popping inputs for frame {} from back of player {} queue",
+                   remotePadQueue[i].back()->frame, i);*/
       remotePadQueue[i].pop_back();
     }
   }
