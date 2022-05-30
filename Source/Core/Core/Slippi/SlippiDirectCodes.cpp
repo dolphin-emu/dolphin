@@ -6,6 +6,7 @@
 #endif
 
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -42,7 +43,7 @@ void SlippiDirectCodes::ReadFile()
 {
   std::string directCodesFilePath = getCodesFilePath();
 
-  INFO_LOG(SLIPPI_ONLINE, "Looking for direct codes file at %s", directCodesFilePath.c_str());
+  INFO_LOG_FMT(SLIPPI_ONLINE, "Looking for direct codes file at {}", directCodesFilePath.c_str());
 
   if (!File::Exists(directCodesFilePath))
   {
@@ -53,7 +54,7 @@ void SlippiDirectCodes::ReadFile()
     }
     else
     {
-      WARN_LOG(SLIPPI_ONLINE, "Was unable to create %s", directCodesFilePath.c_str());
+      WARN_LOG_FMT(SLIPPI_ONLINE, "Was unable to create {}", directCodesFilePath.c_str());
     }
   }
 
@@ -65,7 +66,7 @@ void SlippiDirectCodes::ReadFile()
 
 void SlippiDirectCodes::AddOrUpdateCode(std::string code)
 {
-  WARN_LOG(SLIPPI_ONLINE, "Attempting to add or update direct code: %s", code.c_str());
+  WARN_LOG_FMT(SLIPPI_ONLINE, "Attempting to add or update direct code: {}", code.c_str());
 
   time_t curTime;
   time(&curTime);
@@ -139,7 +140,7 @@ std::string SlippiDirectCodes::get(int index)
     return directCodeInfos.at(index).connectCode;
   }
 
-  INFO_LOG(SLIPPI_ONLINE, "Out of bounds name entry index %d", index);
+  INFO_LOG_FMT(SLIPPI_ONLINE, "Out of bounds name entry index {}", index);
 
   return (index >= directCodeInfos.size()) ? "1" : "";
 }
@@ -174,8 +175,6 @@ void SlippiDirectCodes::WriteFile()
 
 std::string SlippiDirectCodes::getCodesFilePath()
 {
-  std::string fileName = m_fileName + ".json";
-
   // TODO: Move to User dir
 #if defined(__APPLE__)
   std::string directCodesPath =
