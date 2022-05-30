@@ -18,11 +18,11 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 
   UidData* const uid_data = out.GetUidData();
   uid_data->dst_format = dst_format;
-  uid_data->efb_has_alpha = bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24;
-  uid_data->is_depth_copy = is_depth_copy;
-  uid_data->is_intensity = is_intensity;
-  uid_data->scale_by_half = scale_by_half;
-  uid_data->copy_filter = copy_filter;
+  uid_data->efb_has_alpha() = bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24;
+  uid_data->is_depth_copy() = is_depth_copy;
+  uid_data->is_intensity() = is_intensity;
+  uid_data->scale_by_half() = scale_by_half;
+  uid_data->copy_filter() = copy_filter;
 
   return out;
 }
@@ -72,7 +72,7 @@ ShaderCode GenerateVertexShader(APIType api_type)
 
 ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 {
-  const bool mono_depth = uid_data->is_depth_copy && g_ActiveConfig.bStereoEFBMonoDepth;
+  const bool mono_depth = uid_data->is_depth_copy() && g_ActiveConfig.bStereoEFBMonoDepth;
 
   ShaderCode out;
   WriteHeader(api_type, out);
@@ -98,7 +98,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
 
   // The copy filter applies to both color and depth copies. This has been verified on hardware.
   // The filter is only applied to the RGB channels, the alpha channel is left intact.
-  if (uid_data->copy_filter)
+  if (uid_data->copy_filter())
   {
     out.Write("  float4 prev_row = SampleEFB(v_tex0, -1.0f);\n"
               "  float4 current_row = SampleEFB(v_tex0, 0.0f);\n"
@@ -116,7 +116,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
         "                         current_row.a);\n");
   }
 
-  if (uid_data->is_depth_copy)
+  if (uid_data->is_depth_copy())
   {
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       out.Write("texcol.x = 1.0 - texcol.x;\n");
@@ -179,9 +179,9 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
       break;
     }
   }
-  else if (uid_data->is_intensity)
+  else if (uid_data->is_intensity())
   {
-    if (!uid_data->efb_has_alpha)
+    if (!uid_data->efb_has_alpha())
       out.Write("  texcol.a = 1.0;\n");
 
     bool has_four_bits =
@@ -215,7 +215,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
   }
   else
   {
-    if (!uid_data->efb_has_alpha)
+    if (!uid_data->efb_has_alpha())
       out.Write("  texcol.a = 1.0;\n");
 
     switch (uid_data->dst_format)

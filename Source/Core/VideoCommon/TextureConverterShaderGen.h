@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/ShaderGenCommon.h"
@@ -21,14 +22,14 @@ struct UidData
 {
   u32 NumValues() const { return sizeof(UidData); }
   EFBCopyFormat dst_format;
-  union
-  {
-    BitField<0, 1, bool, u32> efb_has_alpha;
-    BitField<1, 1, bool, u32> is_depth_copy;
-    BitField<2, 1, bool, u32> is_intensity;
-    BitField<3, 1, bool, u32> scale_by_half;
-    BitField<4, 1, bool, u32> copy_filter;
-  };
+
+  u32 _data1;
+
+  BFVIEW_M(_data1, bool, 0, 1, efb_has_alpha);
+  BFVIEW_M(_data1, bool, 1, 1, is_depth_copy);
+  BFVIEW_M(_data1, bool, 2, 1, is_intensity);
+  BFVIEW_M(_data1, bool, 3, 1, scale_by_half);
+  BFVIEW_M(_data1, bool, 4, 1, copy_filter);
 };
 #pragma pack()
 
@@ -57,7 +58,7 @@ struct fmt::formatter<TextureConversionShaderGen::UidData>
     return fmt::format_to(ctx.out(),
                           "dst_format: {}, efb_has_alpha: {}, is_depth_copy: {}, is_intensity: {}, "
                           "scale_by_half: {}, copy_filter: {}",
-                          dst_format, uid.efb_has_alpha, uid.is_depth_copy, uid.is_intensity,
-                          uid.scale_by_half, uid.copy_filter);
+                          dst_format, uid.efb_has_alpha(), uid.is_depth_copy(), uid.is_intensity(),
+                          uid.scale_by_half(), uid.copy_filter());
   }
 };
