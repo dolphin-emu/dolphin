@@ -116,7 +116,11 @@ const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates
 
 const Info<std::string> MAIN_FULLSCREEN_DISPLAY_RES{
     {System::Main, "Display", "FullscreenDisplayRes"}, "Auto"};
+#ifdef IS_PLAYBACK
 const Info<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, false};
+#else
+const Info<bool> MAIN_FULLSCREEN{{System::Main, "Display", "Fullscreen"}, true};
+#endif
 const Info<bool> MAIN_RENDER_TO_MAIN{{System::Main, "Display", "RenderToMain"}, false};
 const Info<int> MAIN_RENDER_WINDOW_XPOS{{System::Main, "Display", "RenderWindowXPos"}, -1};
 const Info<int> MAIN_RENDER_WINDOW_YPOS{{System::Main, "Display", "RenderWindowYPos"}, -1};
