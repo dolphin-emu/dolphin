@@ -1519,12 +1519,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac1.m & 64)
-        IF (ac1.m & 63) != 0
-            $ac0 >>= (64 - (ac1.m & 63))
+    IF ($ac1.m & 64)
+        IF ($ac1.m & 63) != 0
+            $ac0 >>= (64 - ($ac1.m & 63))
         ENDIF
     ELSE
-        $ac0 <<= ac1.m
+        $ac0 <<= $ac1.m
     ENDIF
     FLAGS($ac0)
     $pc++
@@ -1547,12 +1547,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac(1-D).m & 64)
-        IF (ac(1-D).m & 63) != 0
-            $acD >>= (64 - (ac(1-D).m & 63))
+    IF ($ac(1-D).m & 64)
+        IF ($ac(1-D).m & 63) != 0
+            $acD >>= (64 - ($ac(1-D).m & 63))
         ENDIF
     ELSE
-        $acD <<= ac(1-D).m
+        $acD <<= $ac(1-D).m
     ENDIF
     FLAGS($acD)
     $pc++
@@ -1579,12 +1579,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (axS.h & 64)
-        IF (axS.h & 63) != 0
-            $acD >>= (64 - (axS.h & 63))
+    IF ($axS.h & 64)
+        IF ($axS.h & 63) != 0
+            $acD >>= (64 - ($axS.h & 63))
         ENDIF
     ELSE
-        $acD <<= axS.h
+        $acD <<= $axS.h
     ENDIF
     FLAGS($acD)
     $pc++
@@ -2676,12 +2676,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac1.m & 64)
-        IF (ac1.m & 63) != 0
-            $ac0 >>= (64 - (ac1.m & 63))
+    IF ($ac1.m & 64)
+        IF ($ac1.m & 63) != 0
+            $ac0 >>= (64 - ($ac1.m & 63))
         ENDIF
     ELSE
-        $ac0 <<= ac1.m
+        $ac0 <<= $ac1.m
     ENDIF
     FLAGS($ac0)
     $pc++
@@ -2704,12 +2704,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac(1-D).m & 64)
-        IF (ac(1-D).m & 63) != 0
-            $acD >>= (64 - (ac(1-D).m & 63))
+    IF ($ac(1-D).m & 64)
+        IF ($ac(1-D).m & 63) != 0
+            $acD >>= (64 - ($ac(1-D).m & 63))
         ENDIF
     ELSE
-        $acD <<= ac(1-D).m
+        $acD <<= $ac(1-D).m
     ENDIF
     FLAGS($acD)
     $pc++
@@ -2736,12 +2736,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (axS.h & 64)
-        IF (axS.h & 63) != 0
-            $acD >>= (64 - (axS.h & 63))
+    IF ($axS.h & 64)
+        IF ($axS.h & 63) != 0
+            $acD >>= (64 - ($axS.h & 63))
         ENDIF
     ELSE
-        $acD <<= axS.h
+        $acD <<= $axS.h
     ENDIF
     FLAGS($acD)
     $pc++
