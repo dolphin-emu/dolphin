@@ -214,42 +214,42 @@ struct fmt::formatter<TexComponentCount> : EnumFormatter<TexComponentCount::ST>
 
 struct TVtxDesc
 {
-  union Low
+  struct Low
   {
+    u32 Hex = 0;
+
     // false: not present
     // true: present
-    BitField<0, 1, bool, u32> PosMatIdx;
-    BitField<1, 1, bool, u32> Tex0MatIdx;
-    BitField<2, 1, bool, u32> Tex1MatIdx;
-    BitField<3, 1, bool, u32> Tex2MatIdx;
-    BitField<4, 1, bool, u32> Tex3MatIdx;
-    BitField<5, 1, bool, u32> Tex4MatIdx;
-    BitField<6, 1, bool, u32> Tex5MatIdx;
-    BitField<7, 1, bool, u32> Tex6MatIdx;
-    BitField<8, 1, bool, u32> Tex7MatIdx;
-    BitFieldArray<1, 1, 8, bool, u32> TexMatIdx;
+    BFVIEW_M(Hex, bool, 0, 1, PosMatIdx);
+    BFVIEW_M(Hex, bool, 1, 1, Tex0MatIdx);
+    BFVIEW_M(Hex, bool, 2, 1, Tex1MatIdx);
+    BFVIEW_M(Hex, bool, 3, 1, Tex2MatIdx);
+    BFVIEW_M(Hex, bool, 4, 1, Tex3MatIdx);
+    BFVIEW_M(Hex, bool, 5, 1, Tex4MatIdx);
+    BFVIEW_M(Hex, bool, 6, 1, Tex5MatIdx);
+    BFVIEW_M(Hex, bool, 7, 1, Tex6MatIdx);
+    BFVIEW_M(Hex, bool, 8, 1, Tex7MatIdx);
+    BFVIEWARRAY_M(Hex, bool, 1, 1, 8, TexMatIdx);
 
-    BitField<9, 2, VertexComponentFormat> Position;
-    BitField<11, 2, VertexComponentFormat> Normal;
-    BitField<13, 2, VertexComponentFormat> Color0;
-    BitField<15, 2, VertexComponentFormat> Color1;
-    BitFieldArray<13, 2, 2, VertexComponentFormat> Color;
-
-    u32 Hex = 0;
+    BFVIEW_M(Hex, VertexComponentFormat, 9, 2, Position);
+    BFVIEW_M(Hex, VertexComponentFormat, 11, 2, Normal);
+    BFVIEW_M(Hex, VertexComponentFormat, 13, 2, Color0);
+    BFVIEW_M(Hex, VertexComponentFormat, 15, 2, Color1);
+    BFVIEWARRAY_M(Hex, VertexComponentFormat, 13, 2, 2, Color);
   };
-  union High
+  struct High
   {
-    BitField<0, 2, VertexComponentFormat> Tex0Coord;
-    BitField<2, 2, VertexComponentFormat> Tex1Coord;
-    BitField<4, 2, VertexComponentFormat> Tex2Coord;
-    BitField<6, 2, VertexComponentFormat> Tex3Coord;
-    BitField<8, 2, VertexComponentFormat> Tex4Coord;
-    BitField<10, 2, VertexComponentFormat> Tex5Coord;
-    BitField<12, 2, VertexComponentFormat> Tex6Coord;
-    BitField<14, 2, VertexComponentFormat> Tex7Coord;
-    BitFieldArray<0, 2, 8, VertexComponentFormat> TexCoord;
-
     u32 Hex = 0;
+
+    BFVIEW_M(Hex, VertexComponentFormat, 0, 2, Tex0Coord);
+    BFVIEW_M(Hex, VertexComponentFormat, 2, 2, Tex1Coord);
+    BFVIEW_M(Hex, VertexComponentFormat, 4, 2, Tex2Coord);
+    BFVIEW_M(Hex, VertexComponentFormat, 6, 2, Tex3Coord);
+    BFVIEW_M(Hex, VertexComponentFormat, 8, 2, Tex4Coord);
+    BFVIEW_M(Hex, VertexComponentFormat, 10, 2, Tex5Coord);
+    BFVIEW_M(Hex, VertexComponentFormat, 12, 2, Tex6Coord);
+    BFVIEW_M(Hex, VertexComponentFormat, 14, 2, Tex7Coord);
+    BFVIEWARRAY_M(Hex, VertexComponentFormat, 0, 2, 8, TexCoord);
   };
 
   Low low;
@@ -279,10 +279,10 @@ struct fmt::formatter<TVtxDesc::Low>
         "Normal: {}\n"
         "Color 0: {}\n"
         "Color 1: {}",
-        present[desc.PosMatIdx], present[desc.Tex0MatIdx], present[desc.Tex1MatIdx],
-        present[desc.Tex2MatIdx], present[desc.Tex3MatIdx], present[desc.Tex4MatIdx],
-        present[desc.Tex5MatIdx], present[desc.Tex6MatIdx], present[desc.Tex7MatIdx], desc.Position,
-        desc.Normal, desc.Color0, desc.Color1);
+        present[desc.PosMatIdx()], present[desc.Tex0MatIdx()], present[desc.Tex1MatIdx()],
+        present[desc.Tex2MatIdx()], present[desc.Tex3MatIdx()], present[desc.Tex4MatIdx()],
+        present[desc.Tex5MatIdx()], present[desc.Tex6MatIdx()], present[desc.Tex7MatIdx()],
+        desc.Position(), desc.Normal(), desc.Color0(), desc.Color1());
   }
 };
 template <>
@@ -301,8 +301,8 @@ struct fmt::formatter<TVtxDesc::High>
                           "Texture Coord 5: {}\n"
                           "Texture Coord 6: {}\n"
                           "Texture Coord 7: {}",
-                          desc.Tex0Coord, desc.Tex1Coord, desc.Tex2Coord, desc.Tex3Coord,
-                          desc.Tex4Coord, desc.Tex5Coord, desc.Tex6Coord, desc.Tex7Coord);
+                          desc.Tex0Coord(), desc.Tex1Coord(), desc.Tex2Coord(), desc.Tex3Coord(),
+                          desc.Tex4Coord(), desc.Tex5Coord(), desc.Tex6Coord(), desc.Tex7Coord());
   }
 };
 template <>
@@ -319,6 +319,7 @@ struct fmt::formatter<TVtxDesc>
 union UVAT_group0
 {
   u32 Hex = 0;
+
   // 0:8
   BFVIEW_M(Hex, CoordComponentCount, 0, 1, PosElements);
   BFVIEW_M(Hex, ComponentFormat, 1, 3, PosFormat);
@@ -380,6 +381,7 @@ struct fmt::formatter<UVAT_group0>
 struct UVAT_group1
 {
   u32 Hex = 0;
+
   // 0:8
   BFVIEW_M(Hex, TexComponentCount, 0, 1, Tex1CoordElements);
   BFVIEW_M(Hex, ComponentFormat, 1, 3, Tex1CoordFormat);
@@ -429,6 +431,7 @@ struct fmt::formatter<UVAT_group1>
 struct UVAT_group2
 {
   u32 Hex = 0;
+
   // 0:4
   BFVIEW_M(Hex, u8, 0, 5, Tex4Frac);
   // 5:13

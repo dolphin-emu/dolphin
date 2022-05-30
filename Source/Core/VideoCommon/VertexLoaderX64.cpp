@@ -416,14 +416,14 @@ void VertexLoaderX64::GenerateVertexLoader()
 
   MOV(64, R(base_reg), R(ABI_PARAM4));
 
-  if (IsIndexed(m_VtxDesc.low.Position))
+  if (IsIndexed(m_VtxDesc.low.Position()))
     XOR(32, R(skipped_reg), R(skipped_reg));
 
   // TODO: load constants into registers outside the main loop
 
   const u8* loop_start = GetCodePtr();
 
-  if (m_VtxDesc.low.PosMatIdx)
+  if (m_VtxDesc.low.PosMatIdx())
   {
     MOVZX(32, 8, scratch1, MDisp(src_reg, m_src_ofs));
     AND(32, R(scratch1), Imm8(0x3F));
@@ -446,18 +446,18 @@ void VertexLoaderX64::GenerateVertexLoader()
   }
 
   std::array<u32, 8> texmatidx_ofs;
-  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx().Size(); i++)
   {
-    if (m_VtxDesc.low.TexMatIdx[i])
+    if (m_VtxDesc.low.TexMatIdx()[i])
       texmatidx_ofs[i] = m_src_ofs++;
   }
 
-  OpArg data = GetVertexAddr(CPArray::Position, m_VtxDesc.low.Position);
+  OpArg data = GetVertexAddr(CPArray::Position, m_VtxDesc.low.Position());
   int pos_elements = m_VtxAttr.g0.PosElements() == CoordComponentCount::XY ? 2 : 3;
-  ReadVertex(data, m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat(), pos_elements, pos_elements,
+  ReadVertex(data, m_VtxDesc.low.Position(), m_VtxAttr.g0.PosFormat(), pos_elements, pos_elements,
              m_VtxAttr.g0.ByteDequant(), m_VtxAttr.g0.PosFrac(), &m_native_vtx_decl.position);
 
-  if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
+  if (m_VtxDesc.low.Normal() != VertexComponentFormat::NotPresent)
   {
     static const u8 map[8] = {7, 6, 15, 14};
     const u8 scaling_exponent = map[u32(m_VtxAttr.g0.NormalFormat().Get())];
@@ -467,21 +467,21 @@ void VertexLoaderX64::GenerateVertexLoader()
     {
       if (!i || m_VtxAttr.g0.NormalIndex3())
       {
-        data = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
+        data = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal());
         int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat());
         data.AddMemOffset(i * elem_size * 3);
       }
-      data.AddMemOffset(ReadVertex(data, m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat(), 3, 3,
+      data.AddMemOffset(ReadVertex(data, m_VtxDesc.low.Normal(), m_VtxAttr.g0.NormalFormat(), 3, 3,
                                    true, scaling_exponent, &m_native_vtx_decl.normals[i]));
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.low.Color().Size(); i++)
   {
-    if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
+    if (m_VtxDesc.low.Color()[i] != VertexComponentFormat::NotPresent)
     {
-      data = GetVertexAddr(CPArray::Color0 + i, m_VtxDesc.low.Color[i]);
-      ReadColor(data, m_VtxDesc.low.Color[i], m_VtxAttr.GetColorFormat(i));
+      data = GetVertexAddr(CPArray::Color0 + i, m_VtxDesc.low.Color()[i]);
+      ReadColor(data, m_VtxDesc.low.Color()[i], m_VtxAttr.GetColorFormat(i));
       m_native_vtx_decl.colors[i].components = 4;
       m_native_vtx_decl.colors[i].enable = true;
       m_native_vtx_decl.colors[i].offset = m_dst_ofs;
@@ -491,25 +491,25 @@ void VertexLoaderX64::GenerateVertexLoader()
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.high.TexCoord().Size(); i++)
   {
     int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::ST ? 2 : 1;
-    if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
+    if (m_VtxDesc.high.TexCoord()[i] != VertexComponentFormat::NotPresent)
     {
-      data = GetVertexAddr(CPArray::TexCoord0 + i, m_VtxDesc.high.TexCoord[i]);
+      data = GetVertexAddr(CPArray::TexCoord0 + i, m_VtxDesc.high.TexCoord()[i]);
       u8 scaling_exponent = m_VtxAttr.GetTexFrac(i);
-      ReadVertex(data, m_VtxDesc.high.TexCoord[i], m_VtxAttr.GetTexFormat(i), elements,
-                 m_VtxDesc.low.TexMatIdx[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant(),
+      ReadVertex(data, m_VtxDesc.high.TexCoord()[i], m_VtxAttr.GetTexFormat(i), elements,
+                 m_VtxDesc.low.TexMatIdx()[i] ? 2 : elements, m_VtxAttr.g0.ByteDequant(),
                  scaling_exponent, &m_native_vtx_decl.texcoords[i]);
     }
-    if (m_VtxDesc.low.TexMatIdx[i])
+    if (m_VtxDesc.low.TexMatIdx()[i])
     {
       m_native_vtx_decl.texcoords[i].components = 3;
       m_native_vtx_decl.texcoords[i].enable = true;
       m_native_vtx_decl.texcoords[i].type = ComponentFormat::Float;
       m_native_vtx_decl.texcoords[i].integer = false;
       MOVZX(64, 8, scratch1, MDisp(src_reg, texmatidx_ofs[i]));
-      if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)
+      if (m_VtxDesc.high.TexCoord()[i] != VertexComponentFormat::NotPresent)
       {
         CVTSI2SS(XMM0, R(scratch1));
         MOVSS(MDisp(dst_reg, m_dst_ofs), XMM0);
@@ -540,7 +540,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 
   ABI_PopRegistersAndAdjustStack(regs, 0);
 
-  if (IsIndexed(m_VtxDesc.low.Position))
+  if (IsIndexed(m_VtxDesc.low.Position()))
   {
     SUB(32, R(ABI_RETURN), R(skipped_reg));
     RET();

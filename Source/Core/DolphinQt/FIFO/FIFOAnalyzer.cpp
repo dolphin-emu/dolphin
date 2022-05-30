@@ -668,22 +668,22 @@ public:
       ASSERT(i == vertex_num * vertex_size);
 
       text += QLatin1Char{'\n'};
-      if (vtx_desc.low.PosMatIdx)
+      if (vtx_desc.low.PosMatIdx())
         process_simple_component(1);
-      for (auto texmtxidx : vtx_desc.low.TexMatIdx)
+      for (auto texmtxidx : vtx_desc.low.TexMatIdx())
       {
         if (texmtxidx)
           process_simple_component(1);
       }
-      process_component(vtx_desc.low.Position, vtx_attr.g0.PosFormat(),
+      process_component(vtx_desc.low.Position(), vtx_attr.g0.PosFormat(),
                         vtx_attr.g0.PosElements() == CoordComponentCount::XY ? 2 : 3);
       const u32 normal_component_count =
-          vtx_desc.low.Normal == VertexComponentFormat::Direct ? 3 : 1;
+          vtx_desc.low.Normal() == VertexComponentFormat::Direct ? 3 : 1;
       const u32 normal_elements = vtx_attr.g0.NormalElements() == NormalComponentCount::NTB ? 3 : 1;
-      process_component(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat(),
+      process_component(vtx_desc.low.Normal(), vtx_attr.g0.NormalFormat(),
                         normal_component_count * normal_elements,
                         vtx_attr.g0.NormalIndex3() ? normal_elements : 1);
-      for (u32 c = 0; c < vtx_desc.low.Color.Size(); c++)
+      for (u32 c = 0; c < vtx_desc.low.Color().Size(); c++)
       {
         static constexpr Common::EnumMap<u32, ColorFormat::RGBA8888> component_sizes = {
             2,  // RGB565
@@ -693,7 +693,7 @@ public:
             3,  // RGBA6666
             4,  // RGBA8888
         };
-        switch (vtx_desc.low.Color[c])
+        switch (vtx_desc.low.Color()[c])
         {
         case VertexComponentFormat::Index8:
           process_simple_component(1);
@@ -708,9 +708,9 @@ public:
           break;
         }
       }
-      for (u32 t = 0; t < vtx_desc.high.TexCoord.Size(); t++)
+      for (u32 t = 0; t < vtx_desc.high.TexCoord().Size(); t++)
       {
-        process_component(vtx_desc.high.TexCoord[t], vtx_attr.GetTexFormat(t),
+        process_component(vtx_desc.high.TexCoord()[t], vtx_attr.GetTexFormat(t),
                           vtx_attr.GetTexElements(t) == TexComponentCount::ST ? 2 : 1);
       }
     }
