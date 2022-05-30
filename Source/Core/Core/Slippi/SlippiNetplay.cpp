@@ -563,11 +563,18 @@ void SlippiNetplayClient::ThreadFunc()
                  netEvent.peer->address.host, netEvent.peer->address.port);
         for (int i = 0; i < m_server.size(); i++)
         {
-          INFO_LOG(SLIPPI_ONLINE, "[Netplay] Comparing connection address: %x:%d - %x:%d",
-                   remoteAddrs[i].host, remoteAddrs[i].port, netEvent.peer->address.host,
-                   netEvent.peer->address.port);
-          if (remoteAddrs[i].host == netEvent.peer->address.host &&
-              remoteAddrs[i].port == netEvent.peer->address.port)
+          // This check used to check for port as well as host. The problem was that for some
+          // people, their internet will switch the port they're sending from. This means these
+          // people struggle to connect to others but they sometimes do succeed. When we were
+          // checking for port here though we would get into a state where the person they succeeded
+          // to connect to would not accept the connection with them, this would lead the player
+          // with this internet issue to get stuck waiting for the other player. The only downside
+          // to this that I can guess is that if you fail to connect to one person out of two that
+          // are on your LAN, it might report that you failed to connect to the wrong person. There
+          // might be more problems tho, not sure
+          INFO_LOG(SLIPPI_ONLINE, "[Netplay] Comparing connection address: %x - %x",
+                   remoteAddrs[i].host, netEvent.peer->address.host);
+          if (remoteAddrs[i].host == netEvent.peer->address.host && !connections[i])
           {
             INFO_LOG(SLIPPI_ONLINE, "[Netplay] Overwriting ENetPeer for address: %x:%d",
                      netEvent.peer->address.host, netEvent.peer->address.port);
@@ -692,7 +699,7 @@ void SlippiNetplayClient::ThreadFunc()
     if (net > 0)
     {
       sf::Packet rpac;
-      bool sameClient = false;
+      bool isConnectedClient = false;
       switch (netEvent.type)
       {
       case ENET_EVENT_TYPE_RECEIVE:
@@ -707,16 +714,16 @@ void SlippiNetplayClient::ThreadFunc()
           if (remoteAddrs[i].host == netEvent.peer->address.host &&
               remoteAddrs[i].port == netEvent.peer->address.port)
           {
-            sameClient = true;
+            isConnectedClient = true;
             break;
           }
         }
         ERROR_LOG(SLIPPI_ONLINE, "[Netplay] Disconnected Event detected: %s",
-                  sameClient ? "same client" : "diff client");
+                  isConnectedClient ? "connected client" : "superfluous client");
 
         // If the disconnect event doesn't come from the client we are actually listening to,
         // it can be safely ignored
-        if (sameClient)
+        if (isConnectedClient)
         {
           m_do_loop.Clear();  // Stop the loop, will trigger a disconnect
         }
