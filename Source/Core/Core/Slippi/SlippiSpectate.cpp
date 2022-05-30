@@ -192,7 +192,7 @@ void SlippiSpectateServer::handleMessage(u8* buffer, u32 length, u16 peer_id)
 {
   // Unpack the message
   std::string message((char*)buffer, length);
-  json json_message = json::parse(message);
+  json json_message = json::parse(message, nullptr, false);
   if (!json_message.is_discarded() && (json_message.find("type") != json_message.end()))
   {
     // Check what type of message this is

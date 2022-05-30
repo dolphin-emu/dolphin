@@ -348,7 +348,7 @@ void SlippiUser::overwriteFromServer()
   }
 
   // Overwrite user info with data from server
-  auto r = json::parse(resp);
+  auto r = json::parse(resp, nullptr, false);
   m_user_info.connect_code = r.value("connectCode", m_user_info.connect_code);
   m_user_info.latest_version = r.value("latestVersion", m_user_info.latest_version);
   m_user_info.display_name = r.value("displayName", m_user_info.display_name);

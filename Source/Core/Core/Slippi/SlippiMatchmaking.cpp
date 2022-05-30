@@ -130,7 +130,7 @@ int SlippiMatchmaking::receiveMessage(json& msg, int timeoutMs)
                  netEvent.packet->data + netEvent.packet->dataLength);
 
       std::string str(buf.begin(), buf.end());
-      msg = json::parse(str);
+      msg = json::parse(str, nullptr, false);
 
       enet_packet_destroy(netEvent.packet);
       return 0;
