@@ -566,9 +566,9 @@ void CEXISlippi::createNewFile()
     dirpath.push_back('/');
 
     // Append YYYY-MM to the directory path
-    uint8_t yearMonthStrLength = sizeof "2020-06";
+    uint8_t yearMonthStrLength = sizeof "2020-06-Mainline";
     std::vector<char> yearMonthBuf(yearMonthStrLength);
-    strftime(&yearMonthBuf[0], yearMonthStrLength, "%Y-%m", localtime(&gameStartTime));
+    strftime(&yearMonthBuf[0], yearMonthStrLength, "%Y-%m-Mainline", localtime(&gameStartTime));
 
     std::string yearMonth(&yearMonthBuf[0]);
     dirpath.append(yearMonth);
