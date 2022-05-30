@@ -265,12 +265,12 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     s64 frameDiffOffsetUs = 16683 * (timing.frame - frame);
     s64 timeOffsetUs = opponentSendTimeUs - timing.timeUs + frameDiffOffsetUs;
 
-    INFO_LOG_FMT(SLIPPI_ONLINE, "[Offset] Opp Frame: {}, My Frame: {}. Time offset: {}", frame,
-                 timing.frame, timeOffsetUs);
+    // INFO_LOG_FMT(SLIPPI_ONLINE, "[Offset] Opp Frame: {}, My Frame: {}. Time offset: {}", frame,
+    //              timing.frame, timeOffsetUs);
 
     // Add this offset to circular buffer for use later
     if (frameOffsetData[pIdx].buf.size() < SLIPPI_ONLINE_LOCKSTEP_INTERVAL)
-      frameOffsetData[pIdx].buf.push_back((s32)timeOffsetUs);
+      frameOffsetData[pIdx].buf.push_back(static_cast<s32>(timeOffsetUs));
     else
       frameOffsetData[pIdx].buf[frameOffsetData[pIdx].idx] = (s32)timeOffsetUs;
 
@@ -321,8 +321,8 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
     spac << (NetPlay::MessageId)NetPlay::NP_MSG_SLIPPI_PAD_ACK;
     spac << frame;
     spac << m_player_idx;
-    INFO_LOG_FMT(SLIPPI_ONLINE, "Sending ack packet for frame {} (player {}) to peer at {}:{}",
-                 frame, packetPlayerPort, peer->address.host, peer->address.port);
+    // INFO_LOG_FMT(SLIPPI_ONLINE, "Sending ack packet for frame {} (player {}) to peer at {}:{}",
+    //              frame, packetPlayerPort, peer->address.host, peer->address.port);
 
     ENetPacket* epac =
         enet_packet_create(spac.getData(), spac.getDataSize(), ENET_PACKET_FLAG_UNSEQUENCED);
@@ -355,8 +355,9 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet, ENetPeer* peer)
       break;
     }
 
-    INFO_LOG_FMT(SLIPPI_ONLINE, "Received ack packet from player {}({}) [{}]...", packetPlayerPort,
-                 pIdx, frame);
+    // INFO_LOG_FMT(SLIPPI_ONLINE, "Received ack packet from player {}({}) [{}]...",
+    // packetPlayerPort,
+    //              pIdx, frame);
 
     lastFrameAcked[pIdx] = frame > lastFrameAcked[pIdx] ? frame : lastFrameAcked[pIdx];
 

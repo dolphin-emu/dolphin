@@ -107,8 +107,8 @@ std::string ConvertConnectCodeForGame(const std::string& input)
   std::string connectCode(input);
   // SLIPPITODO：Not the best use of ReplaceAll. potential bug if more than one '#' found.
   connectCode = ReplaceAll(connectCode, "#", std::string(fullWidthShiftJisHashtag));
-  connectCode.resize(CONNECT_CODE_LENGTH +
-                     2);  // fixed length + full width (two byte) hashtag +1, null terminator +1
+  // fixed length + full width (two byte) hashtag +1, null terminator +1
+  connectCode.resize(CONNECT_CODE_LENGTH + 2);
   return connectCode;
 }
 
@@ -296,6 +296,7 @@ void CEXISlippi::updateMetadataFields(u8* payload, u32 length)
   characterUsage[playerIndex][internalCharacterId] += 1;
 }
 
+// SLIPPITODO: Maybe support names from regular netplay again
 std::unordered_map<u8, std::string> CEXISlippi::getNetplayNames()
 {
   std::unordered_map<u8, std::string> names;
@@ -319,8 +320,8 @@ std::vector<u8> CEXISlippi::generateMetadata()
   std::vector<char> dateTimeBuf(dateTimeStrLength);
   strftime(&dateTimeBuf[0], dateTimeStrLength, "%FT%TZ", gmtime(&gameStartTime));
   dateTimeBuf.pop_back();  // Removes the \0 from the back of string
-  metadata.insert(metadata.end(),
-                  {'U', 7, 's', 't', 'a', 'r', 't', 'A', 't', 'S', 'U', (u8)dateTimeBuf.size()});
+  metadata.insert(metadata.end(), {'U', 7, 's', 't', 'a', 'r', 't', 'A', 't', 'S', 'U',
+                                   static_cast<u8>(dateTimeBuf.size())});
   metadata.insert(metadata.end(), dateTimeBuf.begin(), dateTimeBuf.end());
 
   // Add game duration
@@ -340,7 +341,7 @@ std::vector<u8> CEXISlippi::generateMetadata()
 
     metadata.push_back('U');
     std::string playerIndexStr = std::to_string(playerIndex);
-    metadata.push_back((u8)playerIndexStr.length());
+    metadata.push_back(static_cast<u8>(playerIndexStr.length()));
     metadata.insert(metadata.end(), playerIndexStr.begin(), playerIndexStr.end());
     metadata.push_back('{');
 
@@ -352,7 +353,7 @@ std::vector<u8> CEXISlippi::generateMetadata()
       auto playerName = playerNames[playerIndex];
       // Add netplay element for this player name
       metadata.insert(metadata.end(), {'U', 7, 'n', 'e', 't', 'p', 'l', 'a', 'y', 'S', 'U'});
-      metadata.push_back((u8)playerName.length());
+      metadata.push_back(static_cast<u8>(playerName.length()));
       metadata.insert(metadata.end(), playerName.begin(), playerName.end());
     }
 
@@ -361,7 +362,7 @@ std::vector<u8> CEXISlippi::generateMetadata()
       auto connectCode = slippi_connect_codes[playerIndex];
       // Add connection code element for this player name
       metadata.insert(metadata.end(), {'U', 4, 'c', 'o', 'd', 'e', 'S', 'U'});
-      metadata.push_back((u8)connectCode.length());
+      metadata.push_back(static_cast<u8>(connectCode.length()));
       metadata.insert(metadata.end(), connectCode.begin(), connectCode.end());
     }
 
@@ -374,7 +375,7 @@ std::vector<u8> CEXISlippi::generateMetadata()
     {
       metadata.push_back('U');
       std::string internalCharIdStr = std::to_string(it2->first);
-      metadata.push_back((u8)internalCharIdStr.length());
+      metadata.push_back(static_cast<u8>(internalCharIdStr.length()));
       metadata.insert(metadata.end(), internalCharIdStr.begin(), internalCharIdStr.end());
 
       metadata.push_back('l');
@@ -450,7 +451,7 @@ void CEXISlippi::writeToFile(std::unique_ptr<WriteMessage> msg)
   }
 
   u8* payload = &msg->data[0];
-  u32 length = (u32)msg->data.size();
+  u32 length = static_cast<u32>(msg->data.size());
   std::string fileOption = msg->operation;
 
   std::vector<u8> dataToWrite;
@@ -557,7 +558,7 @@ void CEXISlippi::createNewFile()
   }
 
   // First, ensure that the root Slippi replay directory is created
-  File::CreateFullPath(dirpath + "/");
+  File::CreateFullPath(dirpath + DIR_SEP);
 
   // Now we have a dir such as /home/Replays but we need to make one such
   // as /home/Replays/2020-06 if month categorization is enabled
@@ -749,7 +750,7 @@ void CEXISlippi::prepareGameInfo(u8* payload)
 
   // Return the size of the gecko code list
   prepareGeckoList();
-  appendWordToBuffer(&m_read_queue, (u32)geckoList.size());
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(geckoList.size()));
 
   // Initialize frame sequence index value for reading rollbacks
   frameSeqIdx = 0;
@@ -1128,8 +1129,8 @@ void CEXISlippi::prepareGeckoList()
                // (https://smashboards.com/threads/color-overlays-for-iasa-frames.401474/post-19120928)
   };
 
-  std::unordered_map<u32, bool> blacklist;
-  blacklist.insert(static_deny_list.begin(), static_deny_list.end());
+  std::unordered_map<u32, bool> deny_list;
+  deny_list.insert(static_deny_list.begin(), static_deny_list.end());
 
   auto replayCommSettings = g_replayComm->getSettings();
   if (replayCommSettings.rollbackDisplayMethod == "off")
@@ -1137,8 +1138,8 @@ void CEXISlippi::prepareGeckoList()
     // Some codes should only be blacklisted when not displaying rollbacks, these are codes
     // that are required for things to not break when using Slippi savestates. Perhaps this
     // should be handled by actually applying these codes in the playback ASM instead? not sure
-    blacklist[0x8038add0] = true;  // Online/Core/PreventFileAlarms/PreventMusicAlarm.asm
-    blacklist[0x80023FFC] = true;  // Online/Core/PreventFileAlarms/MuteMusic.asm
+    deny_list[0x8038add0] = true;  // Online/Core/PreventFileAlarms/PreventMusicAlarm.asm
+    deny_list[0x80023FFC] = true;  // Online/Core/PreventFileAlarms/MuteMusic.asm
   }
 
   geckoList.clear();
@@ -1179,8 +1180,8 @@ void CEXISlippi::prepareGeckoList()
     {
       u32 byteLen =
           source[idx + 4] << 24 | source[idx + 5] << 16 | source[idx + 6] << 8 | source[idx + 7];
-      codeOffset =
-          8 + ((byteLen + 7) & 0xFFFFFFF8);  // Round up to next 8 bytes and add the first 8 bytes
+      // Round up to next 8 bytes and add the first 8 bytes
+      codeOffset = 8 + ((byteLen + 7) & 0xFFFFFFF8);
       break;
     }
     }
@@ -1188,7 +1189,7 @@ void CEXISlippi::prepareGeckoList()
     idx += codeOffset;
 
     // If this address is blacklisted, we don't add it to what we will send to game
-    if (blacklist.count(address))
+    if (deny_list.count(address))
       continue;
 
     INFO_LOG(SLIPPI, "Codetype [%x] Inserting section: %d - %d (%x, %d)", codeType,
@@ -1380,8 +1381,8 @@ void CEXISlippi::prepareFrameData(u8* payload)
 
     if (requestResultCode == FRAME_RESP_TERMINATE)
     {
-      ERROR_LOG(EXPANSIONINTERFACE, "Game should terminate on frame %d [%X]", frameIndex,
-                frameIndex);
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Game should terminate on frame {} [{}]", frameIndex,
+                    frameIndex);
     }
 
     return;
@@ -1402,8 +1403,8 @@ void CEXISlippi::prepareFrameData(u8* payload)
   // Keep track of last FFW frame, used for soft FFW's
   if (shouldFFW)
   {
-    WARN_LOG(SLIPPI, "[Frame %d] FFW frame, behind by: %d frames.", frameIndex,
-             g_playbackStatus->lastFrame - frameIndex);
+    WARN_LOG_FMT(SLIPPI, "[Frame {}] FFW frame, behind by: {} frames.", frameIndex,
+                 g_playbackStatus->lastFrame - frameIndex);
     g_playbackStatus->lastFFWFrame = frameIndex;
   }
 
@@ -1666,8 +1667,9 @@ bool CEXISlippi::shouldSkipOnlineFrame(s32 frame, s32 finalizedFrame)
       framesToSkip =
           framesToSkip > maxSkipFrames ? maxSkipFrames : framesToSkip;  // Only skip 5 frames max
 
-      WARN_LOG(SLIPPI_ONLINE, "Halting on frame %d due to time sync. Offset: %d us. Frames: %d...",
-               frame, offsetUs, framesToSkip);
+      WARN_LOG_FMT(SLIPPI_ONLINE,
+                   "Halting on frame {} due to time sync. Offset: {} us. Frames: {}...", frame,
+                   offsetUs, framesToSkip);
     }
   }
 
@@ -1770,9 +1772,9 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
       framesToAdvance = ((-offsetUs - t1) / frameTime) + 1;
       framesToAdvance = framesToAdvance > maxAdvFrames ? maxAdvFrames : framesToAdvance;
 
-      WARN_LOG(SLIPPI_ONLINE,
-               "Advancing on frame %d due to time sync. Offset: %d us. Frames: %d...", frame,
-               offsetUs, framesToAdvance);
+      WARN_LOG_FMT(SLIPPI_ONLINE,
+                   "Advancing on frame {} due to time sync. Offset: {} us. Frames: {}...", frame,
+                   offsetUs, framesToAdvance);
     }
   }
 
@@ -1905,12 +1907,12 @@ void CEXISlippi::prepareOpponentInputs(s32 frame, bool shouldSkip)
 
 void CEXISlippi::handleCaptureSavestate(u8* payload)
 {
+#ifndef IS_PLAYBACK
   if (isDisconnected())
     return;
+#endif
 
   s32 frame = payload[0] << 24 | payload[1] << 16 | payload[2] << 8 | payload[3];
-
-  u64 startTime = Common::Timer::GetTimeUs();
 
   // Grab an available savestate
   std::unique_ptr<SlippiSavestate> ss;
@@ -1937,9 +1939,9 @@ void CEXISlippi::handleCaptureSavestate(u8* payload)
   ss->Capture();
   activeSavestates[frame] = std::move(ss);
 
-  u32 timeDiff = (u32)(Common::Timer::GetTimeUs() - startTime);
-  INFO_LOG(SLIPPI_ONLINE, "SLIPPI ONLINE: Captured savestate for frame %d in: %f ms", frame,
-           ((double)timeDiff) / 1000);
+  // u32 timeDiff = (u32)(Common::Timer::GetTimeUs() - startTime);
+  // INFO_LOG(SLIPPI_ONLINE, "SLIPPI ONLINE: Captured savestate for frame %d in: %f ms", frame,
+  //          ((double)timeDiff) / 1000);
 }
 
 void CEXISlippi::handleLoadSavestate(u8* payload)
@@ -1950,11 +1952,9 @@ void CEXISlippi::handleLoadSavestate(u8* payload)
   if (!activeSavestates.count(frame))
   {
     // This savestate does not exist... uhhh? What do we do?
-    ERROR_LOG(SLIPPI_ONLINE, "SLIPPI ONLINE: Savestate for frame %d does not exist.", frame);
+    ERROR_LOG_FMT(SLIPPI_ONLINE, "SLIPPI ONLINE: Savestate for frame {} does not exist.", frame);
     return;
   }
-
-  u64 startTime = Common::Timer::GetTimeUs();
 
   // Fetch preservation blocks
   std::vector<SlippiSavestate::PreserveBlock> blocks;
@@ -1980,9 +1980,9 @@ void CEXISlippi::handleLoadSavestate(u8* payload)
 
   activeSavestates.clear();
 
-  u32 timeDiff = (u32)(Common::Timer::GetTimeUs() - startTime);
-  INFO_LOG(SLIPPI_ONLINE, "SLIPPI ONLINE: Loaded savestate for frame %d in: %f ms", frame,
-           ((double)timeDiff) / 1000);
+  // u32 timeDiff = (u32)(Common::Timer::GetTimeUs() - startTime);
+  // INFO_LOG(SLIPPI_ONLINE, "SLIPPI ONLINE: Loaded savestate for frame %d in: %f ms", frame,
+  //          ((double)timeDiff) / 1000);
 }
 
 void CEXISlippi::startFindMatch(u8* payload)
@@ -2053,7 +2053,7 @@ void CEXISlippi::startFindMatch(u8* payload)
     // Initialize enet
     auto res = enet_initialize();
     if (res < 0)
-      ERROR_LOG(SLIPPI_ONLINE, "Failed to initialize enet res: %d", res);
+      ERROR_LOG_FMT(SLIPPI_ONLINE, "Failed to initialize enet res: {}", res);
 
     isEnetInitialized = true;
   }
@@ -2071,8 +2071,7 @@ bool CEXISlippi::doesTagMatchInput(u8* input, u8 inputLen, std::string tag)
   for (int i = 0; i < inputLen; i++)
   {
     // ERROR_LOG(SLIPPI_ONLINE, "Entered: %X%X. History: %X%X", input[i * 3], input[i * 3 + 1],
-    // (u8)jisTag[i * 2],
-    //          (u8)jisTag[i * 2 + 1]);
+    // (u8)jisTag[i * 2], (u8)jisTag[i * 2 + 1]);
     if (input[i * 3] != (u8)jisTag[i * 2] || input[i * 3 + 1] != (u8)jisTag[i * 2 + 1])
     {
       isMatch = false;
@@ -2113,7 +2112,7 @@ void CEXISlippi::handleNameEntryLoad(u8* payload)
 
   // Scroll to next tag that
   std::string tagAtIndex = "1";
-  while (curIndex >= 0 && curIndex < (u32)codeHistory->length())
+  while (curIndex >= 0 && curIndex < static_cast<u32>(codeHistory->length()))
   {
     tagAtIndex = codeHistory->get(curIndex);
 
@@ -2124,8 +2123,9 @@ void CEXISlippi::handleNameEntryLoad(u8* payload)
     curIndex = scrollDirection == 2 ? curIndex - 1 : curIndex + 1;
   }
 
-  INFO_LOG(SLIPPI_ONLINE, "Idx: %d, InitIdx: %d, Scroll: %d. Len: %d", curIndex, initialIndex,
-           scrollDirection, inputLen);
+  // INFO_LOG_FMT(SLIPPI_ONLINE, "Idx: {}, InitIdx: {}, Scroll: {}. Len: {}", curIndex,
+  // initialIndex,
+  //          scrollDirection, inputLen);
 
   tagAtIndex = codeHistory->get(curIndex);
   if (tagAtIndex == "1")
@@ -2141,7 +2141,7 @@ void CEXISlippi::handleNameEntryLoad(u8* payload)
     }
   }
 
-  INFO_LOG(SLIPPI_ONLINE, "Retrieved tag: %s", tagAtIndex.c_str());
+  INFO_LOG_FMT(SLIPPI_ONLINE, "Retrieved tag: {}", tagAtIndex.c_str());
   std::string jisCode;
   m_read_queue.clear();
 
@@ -2172,7 +2172,8 @@ void CEXISlippi::handleNameEntryLoad(u8* payload)
     m_read_queue.push_back(0x0);
   }
 
-  INFO_LOG(SLIPPI_ONLINE, "New Idx: %d. Jis Code length: %d", curIndex, (u8)(jisCode.length() / 2));
+  INFO_LOG_FMT(SLIPPI_ONLINE, "New Idx: {}. Jis Code length: {}", curIndex,
+               static_cast<u8>(jisCode.length() / 2));
 
   // Write length of tag
   m_read_queue.push_back(static_cast<u8>(jisCode.length() / 2));
