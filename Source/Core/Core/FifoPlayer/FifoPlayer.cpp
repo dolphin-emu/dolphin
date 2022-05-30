@@ -778,12 +778,12 @@ bool FifoPlayer::IsIdleSet()
 {
   CommandProcessor::UCPStatusReg status =
       PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
-  return status.CommandIdle;
+  return status.CommandIdle();
 }
 
 bool FifoPlayer::IsHighWatermarkSet()
 {
   CommandProcessor::UCPStatusReg status =
       PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
-  return status.OverflowHiWatermark;
+  return status.OverflowHiWatermark();
 }

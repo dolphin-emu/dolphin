@@ -6,6 +6,7 @@
 #include <atomic>
 
 #include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -102,42 +103,45 @@ enum
 };
 
 // Fifo Status Register
-union UCPStatusReg
+struct UCPStatusReg
 {
-  BitField<0, 1, bool, u16> OverflowHiWatermark;
-  BitField<1, 1, bool, u16> UnderflowLoWatermark;
-  BitField<2, 1, bool, u16> ReadIdle;
-  BitField<3, 1, bool, u16> CommandIdle;
-  BitField<4, 1, bool, u16> Breakpoint;
-
   u16 Hex;
+
+  BFVIEW_M(Hex, bool, 0, 1, OverflowHiWatermark);
+  BFVIEW_M(Hex, bool, 1, 1, UnderflowLoWatermark);
+  BFVIEW_M(Hex, bool, 2, 1, ReadIdle);
+  BFVIEW_M(Hex, bool, 3, 1, CommandIdle);
+  BFVIEW_M(Hex, bool, 4, 1, Breakpoint);
+
   UCPStatusReg() { Hex = 0; }
   UCPStatusReg(u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Control Register
-union UCPCtrlReg
+struct UCPCtrlReg
 {
-  BitField<0, 1, bool, u16> GPReadEnable;
-  BitField<1, 1, bool, u16> BPEnable;
-  BitField<2, 1, bool, u16> FifoOverflowIntEnable;
-  BitField<3, 1, bool, u16> FifoUnderflowIntEnable;
-  BitField<4, 1, bool, u16> GPLinkEnable;
-  BitField<5, 1, bool, u16> BPInt;
-
   u16 Hex;
+
+  BFVIEW_M(Hex, bool, 0, 1, GPReadEnable);
+  BFVIEW_M(Hex, bool, 1, 1, BPEnable);
+  BFVIEW_M(Hex, bool, 2, 1, FifoOverflowIntEnable);
+  BFVIEW_M(Hex, bool, 3, 1, FifoUnderflowIntEnable);
+  BFVIEW_M(Hex, bool, 4, 1, GPLinkEnable);
+  BFVIEW_M(Hex, bool, 5, 1, BPInt);
+
   UCPCtrlReg() { Hex = 0; }
   UCPCtrlReg(u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Clear Register
-union UCPClearReg
+struct UCPClearReg
 {
-  BitField<0, 1, bool, u16> ClearFifoOverflow;
-  BitField<1, 1, bool, u16> ClearFifoUnderflow;
-  BitField<2, 1, bool, u16> ClearMetrices;
-
   u16 Hex;
+
+  BFVIEW_M(Hex, bool, 0, 1, ClearFifoOverflow);
+  BFVIEW_M(Hex, bool, 1, 1, ClearFifoUnderflow);
+  BFVIEW_M(Hex, bool, 2, 1, ClearMetrices);
+
   UCPClearReg() { Hex = 0; }
   UCPClearReg(u16 _hex) { Hex = _hex; }
 };
