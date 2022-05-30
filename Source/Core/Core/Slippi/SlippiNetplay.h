@@ -142,8 +142,8 @@ public:
   void DropOldRemoteInputs(int32_t finalizedFrame);
   SlippiMatchInfo* GetMatchInfo();
   int32_t GetSlippiLatestRemoteFrame(int maxFrameCount);
-  SlippiPlayerSelections GetSlippiRemoteChatMessage();
-  u8 GetSlippiRemoteSentChatMessage();
+  SlippiPlayerSelections GetSlippiRemoteChatMessage(bool isChatEnabled);
+  u8 GetSlippiRemoteSentChatMessage(bool isChatEnabled);
   s32 CalcTimeOffsetUs();
 
   void WriteChatMessageToPacket(sf::Packet& packet, int messageId, u8 playerIdx);

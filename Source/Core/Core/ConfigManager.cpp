@@ -549,7 +549,7 @@ void SConfig::LoadSlippiSettings(IniFile& ini)
   slippi->Get("PlaybackControls", &m_slippiEnableSeek, true);
   slippi->Get("OnlineDelay", &m_slippiOnlineDelay, 2);
   slippi->Get("SaveReplays", &m_slippiSaveReplays, true);
-  slippi->Get("EnableQuickChat", &m_slippiEnableQuickChat, true);
+  slippi->Get("EnableQuickChat", &m_slippiEnableQuickChat, Slippi::Chat::ON);
   slippi->Get("ReplayMonthFolders", &m_slippiReplayMonthFolders, true);
   std::string default_replay_dir = File::GetHomeDirectory() + DIR_SEP + "Slippi";
   slippi->Get("ReplayDir", &m_strSlippiReplayDir, default_replay_dir);

@@ -6,6 +6,7 @@
 
 #include <future>
 #include <limits>
+#include <map>
 #include <optional>
 #include <set>
 #include <string>
@@ -57,6 +58,22 @@ enum class Version
   OTHER,
 };
 }
+
+namespace Slippi
+{
+enum Chat
+{
+  ON,
+  DIRECT_ONLY,
+  OFF
+};
+}
+
+static std::map<Slippi::Chat, std::string> quickChatOptions = {
+    {Slippi::Chat::ON, "Enabled"},
+    {Slippi::Chat::DIRECT_ONLY, "Direct Only"},
+    {Slippi::Chat::OFF, "Disabled"},
+};
 
 struct BootParameters;
 
@@ -169,7 +186,7 @@ struct SConfig
   int m_slippiOnlineDelay = 2;
   bool m_slippiEnableSeek = true;
   bool m_slippiSaveReplays = true;
-  bool m_slippiEnableQuickChat = true;
+  Slippi::Chat m_slippiEnableQuickChat = Slippi::Chat::ON;
   bool m_slippiReplayMonthFolders = true;
   std::string m_strSlippiReplayDir;
   bool m_blockingPipes = false;

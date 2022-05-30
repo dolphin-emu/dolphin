@@ -200,6 +200,7 @@ private:
   void prepareIsFileReady();
 
   // misc stuff
+  bool isSlippiChatEnabled();
   void handleChatMessage(u8* payload);
   void logMessageFromGame(u8* payload);
   void prepareFileLength(u8* payload);

@@ -1,6 +1,7 @@
 #include "DolphinQt/Settings/SlippiPane.h"
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDir>
 #include <QFileDialog>
 #include <QFormLayout>
@@ -82,6 +83,19 @@ void SlippiPane::CreateLayout()
   connect(delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
           [](int delay) { SConfig::GetInstance().m_slippiOnlineDelay = delay; });
 
+  auto* netplay_quick_chat_combo = new QComboBox();
+  for (const auto& item : {tr("Enabled"), tr("Direct Only"), tr("Off")})
+  {
+    netplay_quick_chat_combo->addItem(item);
+  }
+  connect(netplay_quick_chat_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          [](int index) {
+            SConfig::GetInstance().m_slippiEnableQuickChat = static_cast<Slippi::Chat>(index);
+          });
+  netplay_quick_chat_combo->setCurrentIndex(SConfig::GetInstance().m_slippiEnableQuickChat);
+
+  online_settings_layout->addRow(tr("Quick Chat:"), netplay_quick_chat_combo);
+
   // i'd like to note that I hate everything about how this is organized for the next two sections
   // and a lot of the Qstring bullshit drives me up the wall.
   auto* netplay_port_spin = new QSpinBox();
@@ -95,7 +109,7 @@ void SlippiPane::CreateLayout()
   {
     netplay_port_spin->hide();
   }
-  auto* enable_force_netplay_port_checkbox = new QCheckBox(tr("Force Netplay Port:"));
+  auto* enable_force_netplay_port_checkbox = new QCheckBox(tr("Force Netplay Port"));
   enable_force_netplay_port_checkbox->setToolTip(
       tr("Enable this to force Slippi to use a specific network port for online peer-to-peer "
          "connections."));
@@ -130,7 +144,7 @@ void SlippiPane::CreateLayout()
   {
     netplay_ip_edit->hide();
   }
-  auto* enable_force_netplay_ip_checkbox = new QCheckBox(tr("Force Netplay IP:"));
+  auto* enable_force_netplay_ip_checkbox = new QCheckBox(tr("Force Netplay IP"));
   enable_force_netplay_ip_checkbox->setToolTip(
       tr("Enable this to force Slippi to use a specific LAN IP when connecting to users with a "
          "matching WAN IP. Should not be required for most users."));

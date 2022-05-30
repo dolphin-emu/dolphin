@@ -88,8 +88,7 @@ void ControllersWindow::CreateGamecubeLayout()
     auto* gc_button = m_gc_buttons[i] = new QPushButton(tr("Configure"));
 
     for (const auto& item :
-         {tr("None"), tr("Standard Controller"), tr("GameCube Adapter for Wii U"),
-          tr("Steering Wheel"), tr("Dance Mat"), tr("DK Bongos"), tr("GBA"), tr("Keyboard")})
+         {tr("None"), tr("Standard Controller"), tr("GameCube Adapter for Wii U")})
     {
       gc_box->addItem(item);
     }
