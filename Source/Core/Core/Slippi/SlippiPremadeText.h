@@ -58,13 +58,13 @@ public:
       {CHAT_MSG_L_PAD_RIGHT, "thanks"},
       {CHAT_MSG_L_PAD_DOWN, "too good"},
 
-      {CHAT_MSG_R_PAD_UP, "oof"},
+      {CHAT_MSG_R_PAD_UP, "sorry"},
       {CHAT_MSG_R_PAD_LEFT, "my b"},
       {CHAT_MSG_R_PAD_RIGHT, "lol"},
       {CHAT_MSG_R_PAD_DOWN, "wow"},
 
-      {CHAT_MSG_D_PAD_UP, "okay"},
-      {CHAT_MSG_D_PAD_LEFT, "thinking"},
+      {CHAT_MSG_D_PAD_UP, "gotta go"},
+      {CHAT_MSG_D_PAD_LEFT, "one sec"},
       {CHAT_MSG_D_PAD_RIGHT, "lets play again later"},
       {CHAT_MSG_D_PAD_DOWN, "bad connection"},
 
