@@ -170,7 +170,7 @@ struct SConfig
   bool m_slippiEnableSeek = true;
   bool m_slippiSaveReplays = true;
   bool m_slippiEnableQuickChat = true;
-  bool m_slippiReplayMonthFolders = false;
+  bool m_slippiReplayMonthFolders = true;
   std::string m_strSlippiReplayDir;
   bool m_blockingPipes = false;
   bool m_slippiForceNetplayPort = false;
