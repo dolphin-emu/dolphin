@@ -71,7 +71,7 @@ VertexLoader::VertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
   CompileVertexTranslator();
 
   // generate frac factors
-  m_posScale = 1.0f / (1U << m_VtxAttr.g0.PosFrac);
+  m_posScale = 1.0f / (1U << m_VtxAttr.g0.PosFrac());
   for (u32 i = 0; i < 8; i++)
     m_tcScale[i] = 1.0f / (1U << m_VtxAttr.GetTexFrac(i));
 }
@@ -103,10 +103,10 @@ void VertexLoader::CompileVertexTranslator()
   }
 
   // Write vertex position loader
-  WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat,
-                                               m_VtxAttr.g0.PosElements));
+  WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.low.Position, m_VtxAttr.g0.PosFormat(),
+                                               m_VtxAttr.g0.PosElements()));
 
-  int pos_elements = m_VtxAttr.g0.PosElements == CoordComponentCount::XY ? 2 : 3;
+  int pos_elements = m_VtxAttr.g0.PosElements() == CoordComponentCount::XY ? 2 : 3;
   m_native_vtx_decl.position.components = pos_elements;
   m_native_vtx_decl.position.enable = true;
   m_native_vtx_decl.position.offset = nat_offset;
@@ -117,19 +117,19 @@ void VertexLoader::CompileVertexTranslator()
   // Normals
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    TPipelineFunction pFunc =
-        VertexLoader_Normal::GetFunction(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat,
-                                         m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
+    TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(
+        m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat(), m_VtxAttr.g0.NormalElements(),
+        m_VtxAttr.g0.NormalIndex3());
 
     if (pFunc == nullptr)
     {
       PanicAlertFmt("VertexLoader_Normal::GetFunction({} {} {} {}) returned zero!",
-                    m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, m_VtxAttr.g0.NormalElements,
-                    m_VtxAttr.g0.NormalIndex3);
+                    m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat(),
+                    m_VtxAttr.g0.NormalElements(), m_VtxAttr.g0.NormalIndex3());
     }
     WriteCall(pFunc);
 
-    for (int i = 0; i < (m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1); i++)
+    for (int i = 0; i < (m_VtxAttr.g0.NormalElements() == NormalComponentCount::NTB ? 3 : 1); i++)
     {
       m_native_vtx_decl.normals[i].components = 3;
       m_native_vtx_decl.normals[i].enable = true;

@@ -264,7 +264,8 @@ static void CheckCPConfiguration(int vtx_attr_group)
   u32 num_cp_normals;
   if (g_main_cp_state.vtx_desc.low.Normal == VertexComponentFormat::NotPresent)
     num_cp_normals = 0;
-  else if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalElements == NormalComponentCount::NTB)
+  else if (g_main_cp_state.vtx_attr[vtx_attr_group].g0.NormalElements() ==
+           NormalComponentCount::NTB)
     num_cp_normals = 3;
   else
     num_cp_normals = 1;

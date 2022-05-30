@@ -675,14 +675,14 @@ public:
         if (texmtxidx)
           process_simple_component(1);
       }
-      process_component(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
-                        vtx_attr.g0.PosElements == CoordComponentCount::XY ? 2 : 3);
+      process_component(vtx_desc.low.Position, vtx_attr.g0.PosFormat(),
+                        vtx_attr.g0.PosElements() == CoordComponentCount::XY ? 2 : 3);
       const u32 normal_component_count =
           vtx_desc.low.Normal == VertexComponentFormat::Direct ? 3 : 1;
-      const u32 normal_elements = vtx_attr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1;
-      process_component(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
+      const u32 normal_elements = vtx_attr.g0.NormalElements() == NormalComponentCount::NTB ? 3 : 1;
+      process_component(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat(),
                         normal_component_count * normal_elements,
-                        vtx_attr.g0.NormalIndex3 ? normal_elements : 1);
+                        vtx_attr.g0.NormalIndex3() ? normal_elements : 1);
       for (u32 c = 0; c < vtx_desc.low.Color.Size(); c++)
       {
         static constexpr Common::EnumMap<u32, ColorFormat::RGBA8888> component_sizes = {

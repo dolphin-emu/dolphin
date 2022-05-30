@@ -84,15 +84,15 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
     if (texmtxidx)
       offset++;
   }
-  const u32 pos_size = VertexLoader_Position::GetSize(vtx_desc.low.Position, vtx_attr.g0.PosFormat,
-                                                      vtx_attr.g0.PosElements);
+  const u32 pos_size = VertexLoader_Position::GetSize(
+      vtx_desc.low.Position, vtx_attr.g0.PosFormat(), vtx_attr.g0.PosElements());
   ProcessVertexComponent(CPArray::Position, vtx_desc.low.Position, offset, vertex_size,
                          num_vertices, vertex_data);
   offset += pos_size;
 
   const u32 norm_size =
-      VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat,
-                                   vtx_attr.g0.NormalElements, vtx_attr.g0.NormalIndex3);
+      VertexLoader_Normal::GetSize(vtx_desc.low.Normal, vtx_attr.g0.NormalFormat(),
+                                   vtx_attr.g0.NormalElements(), vtx_attr.g0.NormalIndex3());
   ProcessVertexComponent(CPArray::Normal, vtx_desc.low.Position, offset, vertex_size, num_vertices,
                          vertex_data);
   offset += norm_size;
