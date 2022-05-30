@@ -1732,8 +1732,6 @@ bool CEXISlippi::shouldAdvanceOnlineFrame(s32 frame)
       deviation = frameWindowMultiplier * -maxSlowDownAmount;
     }
 
-    auto dynamicEmulationSpeed = 1.0f + deviation;
-
     // If we are behind (negative offset) we want to go above 100% run speed, so we need to subtract
     // the deviation value
     auto dynamicEmulationSpeed = 1.0f - deviation;
