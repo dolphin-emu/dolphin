@@ -6,6 +6,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
+#include "Core/ConfigManager.h"
 
 #if defined __linux__ && HAVE_ALSA
 #elif defined __APPLE__
@@ -218,8 +219,8 @@ void SlippiMatchmaking::startMatchmaking()
   auto userInfo = m_user->GetUserInfo();
   while (m_client == nullptr && retryCount < 15)
   {
-    if (userInfo.port > 0)
-      m_hostPort = userInfo.port;
+    if (SConfig::GetInstance().m_slippiForceNetplayPort)
+      m_hostPort = SConfig::GetInstance().m_slippiNetplayPort;
     else
       m_hostPort = 41000 + (generator() % 10000);
     ERROR_LOG_FMT(SLIPPI_ONLINE, "[Matchmaking] Port to use: {}...", m_hostPort);

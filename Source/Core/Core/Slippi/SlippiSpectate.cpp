@@ -273,7 +273,7 @@ void SlippiSpectateServer::SlippicommSocketThread(void)
 
   ENetAddress server_address = {0};
   server_address.host = ENET_HOST_ANY;
-  server_address.port = SConfig::GetInstance().m_spectator_local_port;
+  server_address.port = SConfig::GetInstance().m_spectatorPort;
 
   // Create the spectator server
   // This call can fail if the system is already listening on the specified port

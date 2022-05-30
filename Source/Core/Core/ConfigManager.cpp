@@ -263,6 +263,8 @@ void SConfig::SaveSlippiSettings(IniFile& ini)
   slippi->Set("ReplayMonthFolders", m_slippiReplayMonthFolders);
   slippi->Set("ReplayDir", m_strSlippiReplayDir);
   slippi->Set("PlaybackControls", m_slippiEnableSeek);
+  slippi->Set("ForceNetplayPort", m_slippiForceNetplayPort);
+  slippi->Set("NetplayPort", m_slippiNetplayPort);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -541,7 +543,7 @@ void SConfig::LoadSlippiSettings(IniFile& ini)
   IniFile::Section* slippi = ini.GetOrCreateSection("Slippi");
 
   slippi->Get("EnableSpectator", &m_enableSpectator, true);
-  slippi->Get("SpectatorLocalPort", &m_spectator_local_port, 51441);
+  slippi->Get("SpectatorPort", &m_spectatorPort, 51441);
   slippi->Get("PlaybackControls", &m_slippiEnableSeek, true);
   slippi->Get("OnlineDelay", &m_slippiOnlineDelay, 2);
   slippi->Get("SaveReplays", &m_slippiSaveReplays, true);
@@ -551,6 +553,8 @@ void SConfig::LoadSlippiSettings(IniFile& ini)
   slippi->Get("ReplayDir", &m_strSlippiReplayDir, default_replay_dir);
   if (m_strSlippiReplayDir.empty())
     m_strSlippiReplayDir = default_replay_dir;
+  slippi->Get("ForceNetplayPort", &m_slippiForceNetplayPort, false);
+  slippi->Get("NetplayPort", &m_slippiNetplayPort, 2626);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

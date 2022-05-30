@@ -312,7 +312,6 @@ SlippiUser::UserInfo SlippiUser::parseFile(std::string file_contents)
   info.play_key = readString(res, "playKey");
   info.connect_code = readString(res, "connectCode");
   info.latest_version = readString(res, "latestVersion");
-  info.port = res.value("port", -1);
 
   return info;
 }

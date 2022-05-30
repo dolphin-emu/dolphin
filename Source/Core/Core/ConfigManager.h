@@ -164,7 +164,7 @@ struct SConfig
   // Slippi
   // enable Slippi Networking output
   bool m_enableSpectator;
-  int m_spectator_local_port;
+  int m_spectatorPort = 51441;
   std::string m_strSlippiInput;
   int m_slippiOnlineDelay = 2;
   bool m_slippiEnableSeek = true;
@@ -173,6 +173,8 @@ struct SConfig
   bool m_slippiReplayMonthFolders = false;
   std::string m_strSlippiReplayDir;
   bool m_blockingPipes = false;
+  bool m_slippiForceNetplayPort = false;
+  int m_slippiNetplayPort = 2626;
 
   // Interface settings
   bool bConfirmStop = false;

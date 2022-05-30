@@ -20,18 +20,6 @@ SlippiPane::SlippiPane(QWidget* parent) : QWidget(parent)
   CreateLayout();
 }
 
-void SlippiPane::BrowseReplayFolder()
-{
-  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
-      this, tr("Select Replay Folder"),
-      QString::fromStdString(SConfig::GetInstance().m_strSlippiReplayDir)));
-  if (!dir.isEmpty())
-  {
-    m_replay_folder_edit->setText(dir);
-    SConfig::GetInstance().m_strSlippiReplayDir = dir.toStdString();
-  }
-}
-
 void SlippiPane::CreateLayout()
 {
   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -84,7 +72,7 @@ void SlippiPane::CreateLayout()
   layout->addWidget(online_settings);
 
   auto* delay_spin = new QSpinBox();
-  delay_spin->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  delay_spin->setFixedSize(30, 25);
   delay_spin->setRange(1, 9);
   delay_spin->setToolTip(tr("Leave this at 2 unless consistently playing on 120+ ping. "
                             "Increasing this can cause unplayable input delay, and lowering it "
@@ -93,6 +81,36 @@ void SlippiPane::CreateLayout()
   delay_spin->setValue(SConfig::GetInstance().m_slippiOnlineDelay);
   connect(delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
           [](int delay) { SConfig::GetInstance().m_slippiOnlineDelay = delay; });
+
+  auto* netplay_port_spin = new QSpinBox();
+  netplay_port_spin->setFixedSize(60, 25);
+  QSizePolicy sp_retain = netplay_port_spin->sizePolicy();
+  sp_retain.setRetainSizeWhenHidden(true);
+  netplay_port_spin->setSizePolicy(sp_retain);
+  netplay_port_spin->setRange(1000, 65535);
+  netplay_port_spin->setValue(SConfig::GetInstance().m_slippiNetplayPort);
+  if (!SConfig::GetInstance().m_slippiForceNetplayPort)
+  {
+    netplay_port_spin->hide();
+  }
+  auto* enable_force_netplay_port_checkbox = new QCheckBox(tr("Force Netplay Port:"));
+  enable_force_netplay_port_checkbox->setToolTip(
+      tr("Enable this to force Slippi to use a specific network port for online peer-to-peer "
+         "connections."));
+
+  enable_force_netplay_port_checkbox->setChecked(SConfig::GetInstance().m_slippiForceNetplayPort);
+  connect(enable_force_netplay_port_checkbox, &QCheckBox::toggled, this,
+          [netplay_port_spin](bool checked) {
+            SConfig::GetInstance().m_slippiForceNetplayPort = checked;
+            checked ? netplay_port_spin->show() : netplay_port_spin->hide();
+          });
+  auto* netplay_port_layout = new QGridLayout();
+  netplay_port_layout->setColumnStretch(1, 1);
+  netplay_port_layout->addWidget(enable_force_netplay_port_checkbox, 0, 0);
+  netplay_port_layout->addWidget(netplay_port_spin, 0, 1, Qt::AlignLeft);
+
+  online_settings_layout->addRow(netplay_port_layout);
+
 #else
   // Playback Settings
   auto* playback_settings = new QGroupBox(tr("Playback Settings"));
@@ -113,4 +131,16 @@ void SlippiPane::CreateLayout()
   connect(enable_playback_seek_checkbox, &QCheckBox::toggled, this,
           [](bool checked) { SConfig::GetInstance().m_slippiEnableSeek = checked; });
 #endif
+}
+
+void SlippiPane::BrowseReplayFolder()
+{
+  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+      this, tr("Select Replay Folder"),
+      QString::fromStdString(SConfig::GetInstance().m_strSlippiReplayDir)));
+  if (!dir.isEmpty())
+  {
+    m_replay_folder_edit->setText(dir);
+    SConfig::GetInstance().m_strSlippiReplayDir = dir.toStdString();
+  }
 }
