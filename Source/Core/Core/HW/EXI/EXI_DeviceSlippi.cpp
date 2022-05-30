@@ -2246,8 +2246,8 @@ void CEXISlippi::prepareOnlineMatchState()
       // returned to us from the matchmaking service and pick a new random stage before sending
       // the selections to the opponent
       allowedStages = matchmaking->GetStages();
-      stagePool
-          .clear();  // Clear stage pool so that when we call getRandomStage it will use full list
+      // Clear stage pool so that when we call getRandomStage it will use full list
+      stagePool.clear();
       localSelections.stageId = getRandomStage();
       slippi_netplay->SetMatchSelections(localSelections);
     }
@@ -2595,12 +2595,12 @@ void CEXISlippi::prepareOnlineMatchState()
   appendWordToBuffer(&m_read_queue, rngOffset);
 
   // Add delay frames to output
-  m_read_queue.push_back((u8)SConfig::GetInstance().m_slippiOnlineDelay);
+  m_read_queue.push_back(static_cast<u8>(SConfig::GetInstance().m_slippiOnlineDelay));
 
   // Add chat messages id
-  m_read_queue.push_back((u8)sentChatMessageId);
-  m_read_queue.push_back((u8)chatMessageId);
-  m_read_queue.push_back((u8)chatMessagePlayerIdx);
+  m_read_queue.push_back(static_cast<u8>(sentChatMessageId));
+  m_read_queue.push_back(static_cast<u8>(chatMessageId));
+  m_read_queue.push_back(static_cast<u8>(chatMessagePlayerIdx));
 
   // Add player groupings for VS splash screen
   leftTeamPlayers.resize(4, 0);
