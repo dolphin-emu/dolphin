@@ -134,3 +134,6 @@
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"
+
+// Slippi
+#define USER_JSON "user.json"
