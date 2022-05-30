@@ -248,8 +248,7 @@ CEXISlippi::~CEXISlippi()
     m_fileWriteThread.join();
   }
 
-  SlippiSpectateServer::getInstance().write(&empty[0], 0);
-  SlippiSpectateServer::getInstance().endGame();
+  SlippiSpectateServer::getInstance().endGame(true);
 
   localSelections.Reset();
 

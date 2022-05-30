@@ -56,7 +56,8 @@ public:
   //  when a new client connects to the server mid-match, it can recieve all
   //  the game events that have happened so far. This buffer needs to be
   //  cleared when a match ends.
-  void endGame();
+  // If this is called due to dolphin closing then dolphin_closed will be true
+  void endGame(bool dolphin_closed = false);
 
 private:
   // ACCESSED FROM BOTH DOLPHIN AND SERVER THREADS

@@ -10,7 +10,6 @@
 #include <cstdio>
 #endif
 
-
 #include <OptionParser.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
@@ -197,10 +196,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     save_state_path = static_cast<const char*>(options.get("save_state"));
   }
 
-#ifndef IS_PLAYBACK
-  SlippiSpectateServer::getInstance().endGame();
-#endif
-
   std::unique_ptr<BootParameters> boot;
   bool game_specified = false;
   if (options.is_set("exec"))
@@ -258,7 +253,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #ifndef IS_PLAYBACK
     if (Settings::Instance().IsBootDefaultISO() && !Settings::Instance().GetDefaultGame().isEmpty())
     {
-      boot = BootParameters::GenerateFromFile(Settings::Instance().GetDefaultGame().toStdString(), save_state_path);
+      boot = BootParameters::GenerateFromFile(Settings::Instance().GetDefaultGame().toStdString(),
+                                              save_state_path);
     }
 #endif
 
