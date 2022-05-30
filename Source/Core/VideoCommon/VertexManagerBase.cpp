@@ -388,8 +388,8 @@ void VertexManagerBase::Flush()
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame{}:\n texgen={}, numchan={}, dualtex={}, ztex={}, cole={}, alpe={}, ze={}",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
-           xfmem.dualTexTrans.enabled, bpmem.ztex2.op.Value(), bpmem.blendmode.colorupdate.Value(),
-           bpmem.blendmode.alphaupdate.Value(), bpmem.zmode.updateenable.Value());
+           xfmem.dualTexTrans.enabled, bpmem.ztex2.op(), bpmem.blendmode.colorupdate(),
+           bpmem.blendmode.alphaupdate(), bpmem.zmode.updateenable());
 
   for (u32 i = 0; i < xfmem.numChan.numColorChans; ++i)
   {

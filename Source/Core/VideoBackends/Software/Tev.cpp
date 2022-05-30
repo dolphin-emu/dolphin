@@ -858,15 +858,15 @@ void Tev::Draw()
 #if ALLOW_TEV_DUMPS
   if (g_ActiveConfig.bDumpTevStages)
   {
-    for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
+    for (u32 i = 0; i < bpmem.genMode.numindstages(); ++i)
       DebugUtil::CopyTempBuffer(Position[0], Position[1], INDIRECT, i, "Indirect");
-    for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
+    for (u32 i = 0; i <= bpmem.genMode.numtevstages(); ++i)
       DebugUtil::CopyTempBuffer(Position[0], Position[1], DIRECT, i, "Stage");
   }
 
   if (g_ActiveConfig.bDumpTevTextureFetches)
   {
-    for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
+    for (u32 i = 0; i <= bpmem.genMode.numtevstages(); ++i)
     {
       TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
       if (order.getEnable(i & 1))
