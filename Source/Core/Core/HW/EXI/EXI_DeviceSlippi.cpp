@@ -2323,10 +2323,13 @@ void CEXISlippi::prepareOnlineMatchState()
     // Overwrite player character choices
     for (auto& s : orderedSelections)
     {
+      if (!s.isCharacterSelected)
+      {
+        continue;
+      }
       if (areAllSameTeam)
       {
-        // Overwrite teamId
-        // TODO: overwrite color
+        // Overwrite teamId. Color is overwritten by ASM
         s.teamId = teamAssignments[s.playerIdx];
       }
 
