@@ -282,13 +282,17 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
-  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+  m_import_wii_save =
+      tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  m_export_wii_saves =
+      tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Import Global User Directory..."), this, &MenuBar::ImportUserDirBackup);
-  tools_menu->addAction(tr("Export Global User Directory..."), this, &MenuBar::ExportUserDirBackup);
+  m_import_userdir = tools_menu->addAction(tr("Import Global User Directory..."), this,
+                                           &MenuBar::ImportUserDirBackup);
+  m_export_userdir = tools_menu->addAction(tr("Export Global User Directory..."), this,
+                                           &MenuBar::ExportUserDirBackup);
 
   QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
@@ -1015,6 +1019,11 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
                         File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
   m_import_backup->setEnabled(!emulation_started);
   m_check_nand->setEnabled(!emulation_started);
+  m_wad_install_action->setEnabled(!emulation_started);
+  m_import_wii_save->setEnabled(!emulation_started);
+  m_export_wii_saves->setEnabled(!emulation_started);
+  m_import_userdir->setEnabled(!emulation_started);
+  m_export_userdir->setEnabled(!emulation_started);
 
   if (!emulation_started)
   {
