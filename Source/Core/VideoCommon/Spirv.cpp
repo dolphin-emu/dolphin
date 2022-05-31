@@ -132,6 +132,11 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
     options.disassemble = false;
     options.validate = true;
   }
+  else
+  {
+    options.disableOptimizer = false;
+    options.stripDebugInfo = true;
+  }
 
   glslang::GlslangToSpv(*intermediate, out_code, &logger, &options);
 
