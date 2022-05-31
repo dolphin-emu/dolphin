@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
@@ -27,21 +28,21 @@ struct pixel_shader_uid_data
   u32 num_values;  // TODO: Shouldn't be a u32
   u32 NumValues() const { return num_values; }
 
-  union
-  {
-    BitField<0, 4, u32> pad0;
-    BitField<4, 1, u32> useDstAlpha;
-    BitField<5, 2, AlphaTestResult, u32> Pretest;
-    BitField<7, 4, u32> nIndirectStagesUsed;
-    BitField<11, 4, u32> genMode_numtexgens;
-    BitField<15, 4, u32> genMode_numtevstages;
-    BitField<19, 3, u32> genMode_numindstages;
-    BitField<22, 3, CompareMode, u32> alpha_test_comp0;
-    BitField<25, 3, CompareMode, u32> alpha_test_comp1;
-    BitField<28, 2, AlphaTestOp, u32> alpha_test_logic;
-    BitField<30, 1, u32> alpha_test_use_zcomploc_hack;
-    BitField<31, 1, FogProjection, u32> fog_proj;
-  };
+  u32 _data1;
+
+  BFVIEW_M(_data1, u32, 0, 4, pad0);
+  BFVIEW_M(_data1, u32, 4, 1, useDstAlpha);
+  BFVIEW_M(_data1, AlphaTestResult, 5, 2, Pretest);
+  BFVIEW_M(_data1, u32, 7, 4, nIndirectStagesUsed);
+  BFVIEW_M(_data1, u32, 11, 4, genMode_numtexgens);
+  BFVIEW_M(_data1, u32, 15, 4, genMode_numtevstages);
+  BFVIEW_M(_data1, u32, 19, 3, genMode_numindstages);
+  BFVIEW_M(_data1, CompareMode, 22, 3, alpha_test_comp0);
+  BFVIEW_M(_data1, CompareMode, 25, 3, alpha_test_comp1);
+  BFVIEW_M(_data1, AlphaTestOp, 28, 2, alpha_test_logic);
+  BFVIEW_M(_data1, u32, 30, 1, alpha_test_use_zcomploc_hack);
+  BFVIEW_M(_data1, FogProjection, 31, 1, fog_proj);
+
   union
   {
     BitField<0, 3, FogType, u32> fog_fsel;

@@ -175,19 +175,19 @@ PixelShaderUid GetPixelShaderUid()
   PixelShaderUid out;
 
   pixel_shader_uid_data* const uid_data = out.GetUidData();
-  uid_data->useDstAlpha = bpmem.dstalpha.enable() && bpmem.blendmode.alphaupdate() &&
-                          bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24;
+  uid_data->useDstAlpha() = bpmem.dstalpha.enable() && bpmem.blendmode.alphaupdate() &&
+                            bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24;
 
-  uid_data->genMode_numindstages = bpmem.genMode.numindstages();
-  uid_data->genMode_numtevstages = bpmem.genMode.numtevstages();
-  uid_data->genMode_numtexgens = bpmem.genMode.numtexgens();
+  uid_data->genMode_numindstages() = bpmem.genMode.numindstages();
+  uid_data->genMode_numtevstages() = bpmem.genMode.numtevstages();
+  uid_data->genMode_numtexgens() = bpmem.genMode.numtexgens();
   uid_data->bounding_box = g_ActiveConfig.bBBoxEnable && g_renderer->IsBBoxEnabled();
   uid_data->rgba6_format =
       bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
   uid_data->dither = bpmem.blendmode.dither() && uid_data->rgba6_format;
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
-  u32 numStages = uid_data->genMode_numtevstages + 1;
+  u32 numStages = uid_data->genMode_numtevstages() + 1;
 
   const bool forced_early_z =
       bpmem.UseEarlyDepthTest() &&
@@ -210,9 +210,9 @@ PixelShaderUid GetPixelShaderUid()
     GetLightingShaderUid(uid_data->lighting);
   }
 
-  if (uid_data->genMode_numtexgens > 0)
+  if (uid_data->genMode_numtexgens() > 0)
   {
-    for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
+    for (unsigned int i = 0; i < uid_data->genMode_numtexgens(); ++i)
     {
       // optional perspective divides
       uid_data->texMtxInfo_n_projection[i] |=
@@ -228,10 +228,10 @@ PixelShaderUid GetPixelShaderUid()
       nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt();
   }
 
-  uid_data->nIndirectStagesUsed = nIndirectStagesUsed;
-  for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
+  uid_data->nIndirectStagesUsed() = nIndirectStagesUsed;
+  for (u32 i = 0; i < uid_data->genMode_numindstages(); ++i)
   {
-    if (uid_data->nIndirectStagesUsed & (1 << i))
+    if (uid_data->nIndirectStagesUsed() & (1 << i))
       uid_data->SetTevindrefValues(i, bpmem.tevindref.getTexCoord(i), bpmem.tevindref.getTexMap(i));
   }
 
@@ -286,18 +286,18 @@ PixelShaderUid GetPixelShaderUid()
                              sizeof(*uid_data) :
                              MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
 
-  uid_data->Pretest = bpmem.alpha_test.TestResult();
+  uid_data->Pretest() = bpmem.alpha_test.TestResult();
   uid_data->late_ztest = bpmem.UseLateDepthTest();
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
-  if (uid_data->Pretest == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->late_ztest))
+  if (uid_data->Pretest() == AlphaTestResult::Undetermined ||
+      (uid_data->Pretest() == AlphaTestResult::Fail && uid_data->late_ztest))
   {
-    uid_data->alpha_test_comp0 = bpmem.alpha_test.comp0();
-    uid_data->alpha_test_comp1 = bpmem.alpha_test.comp1();
-    uid_data->alpha_test_logic = bpmem.alpha_test.logic();
+    uid_data->alpha_test_comp0() = bpmem.alpha_test.comp0();
+    uid_data->alpha_test_comp1() = bpmem.alpha_test.comp1();
+    uid_data->alpha_test_logic() = bpmem.alpha_test.logic();
 
     // ZCOMPLOC HACK:
     // The only way to emulate alpha test + early-z is to force early-z in the shader.
@@ -306,7 +306,7 @@ PixelShaderUid GetPixelShaderUid()
     // Tests seem to have proven that writing depth even when the alpha test fails is more
     // important that a reliable alpha test, so we just force the alpha test to always succeed.
     // At least this seems to be less buggy.
-    uid_data->alpha_test_use_zcomploc_hack =
+    uid_data->alpha_test_use_zcomploc_hack() =
         bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable() &&
         !g_ActiveConfig.backend_info.bSupportsEarlyZ && !bpmem.genMode.zfreeze();
   }
@@ -316,7 +316,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->early_ztest = bpmem.UseEarlyDepthTest();
 
   uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel();
-  uid_data->fog_proj = bpmem.fog.c_proj_fsel.proj();
+  uid_data->fog_proj() = bpmem.fog.c_proj_fsel.proj();
   uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled();
 
   BlendingState state = {};
@@ -786,11 +786,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   const bool msaa = host_config.msaa();
   const bool ssaa = host_config.ssaa();
   const bool stereo = host_config.stereo();
-  const u32 numStages = uid_data->genMode_numtevstages + 1;
+  const u32 numStages = uid_data->genMode_numtevstages() + 1;
 
   out.Write("// Pixel Shader for TEV stages\n");
   out.Write("// {} TEV stages, {} texgens, {} IND stages\n", numStages,
-            uid_data->genMode_numtexgens, uid_data->genMode_numindstages);
+            uid_data->genMode_numtexgens(), uid_data->genMode_numindstages());
 
   // Stuff that is shared between ubershaders and pixelgen.
   WriteBitfieldExtractHeader(out, api_type, host_config);
@@ -842,10 +842,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   const bool use_dual_source =
       host_config.backend_dual_source_blend() &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
-       uid_data->useDstAlpha);
+       uid_data->useDstAlpha());
   const bool use_shader_blend =
       !use_dual_source &&
-      (uid_data->useDstAlpha ||
+      (uid_data->useDstAlpha() ||
        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
       host_config.backend_shader_framebuffer_fetch();
   const bool use_shader_logic_op = !host_config.backend_logic_op() && uid_data->logic_op_enable &&
@@ -907,7 +907,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   if (host_config.backend_geometry_shaders())
   {
     out.Write("VARYING_LOCATION(0) in VertexData {{\n");
-    GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens, host_config,
+    GenerateVSOutputMembers(out, api_type, uid_data->genMode_numtexgens(), host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, true), ShaderStage::Pixel);
 
     out.Write("}};\n");
@@ -920,7 +920,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
               GetInterpolationQualifier(msaa, ssaa));
     out.Write("VARYING_LOCATION({}) {} in float4 colors_1;\n", counter++,
               GetInterpolationQualifier(msaa, ssaa));
-    for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
+    for (u32 i = 0; i < uid_data->genMode_numtexgens(); ++i)
     {
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
@@ -1017,7 +1017,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("col1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
-  if (uid_data->genMode_numtexgens == 0)
+  if (uid_data->genMode_numtexgens() == 0)
   {
     // TODO: This is a hack to ensure that shaders still compile when setting out of bounds tex
     // coord indices to 0.  Ideally, it shouldn't exist at all, but the exact behavior hasn't been
@@ -1026,8 +1026,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
   else
   {
-    out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
-    for (u32 i = 0; i < uid_data->genMode_numtexgens; ++i)
+    out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens() - 1);
+    for (u32 i = 0; i < uid_data->genMode_numtexgens(); ++i)
     {
       out.Write("\tint2 fixpoint_uv{} = int2(", i);
       out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
@@ -1036,9 +1036,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
-  for (u32 i = 0; i < uid_data->genMode_numindstages; ++i)
+  for (u32 i = 0; i < uid_data->genMode_numindstages(); ++i)
   {
-    if ((uid_data->nIndirectStagesUsed & (1U << i)) != 0)
+    if ((uid_data->nIndirectStagesUsed() & (1U << i)) != 0)
     {
       u32 texcoord = uid_data->GetTevindirefCoord(i);
       const u32 texmap = uid_data->GetTevindirefMap(i);
@@ -1047,7 +1047,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       // not exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
       // This affects the Mario portrait in Luigi's Mansion, where the developers forgot to set
       // the number of tex gens to 2 (bug 11462).
-      if (texcoord >= uid_data->genMode_numtexgens)
+      if (texcoord >= uid_data->genMode_numtexgens())
         texcoord = 0;
 
       out.SetConstantsUsed(C_INDTEXSCALE + i / 2, C_INDTEXSCALE + i / 2);
@@ -1070,8 +1070,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // regardless of the used destination register
     TevStageCombiner::ColorCombiner last_cc;
     TevStageCombiner::AlphaCombiner last_ac;
-    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages].cc.Value();
-    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages].ac.Value();
+    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].cc.Value();
+    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].ac.Value();
     if (last_cc.dest() != TevOutput::Prev)
     {
       out.Write("\tprev.rgb = {};\n", tev_c_output_table[last_cc.dest().Get()]);
@@ -1086,8 +1086,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
-  if (uid_data->Pretest == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->late_ztest))
+  if (uid_data->Pretest() == AlphaTestResult::Undetermined ||
+      (uid_data->Pretest() == AlphaTestResult::Fail && uid_data->late_ztest))
   {
     WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
                    use_dual_source || use_shader_blend);
@@ -1216,7 +1216,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does not
   // exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
   u32 texcoord = stage.tevorders_texcoord;
-  const bool has_tex_coord = texcoord < uid_data->genMode_numtexgens;
+  const bool has_tex_coord = texcoord < uid_data->genMode_numtexgens();
   if (!has_tex_coord)
     texcoord = 0;
 
@@ -1230,7 +1230,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     // We need to do *something*, as there won't be an iindtex variable otherwise.
     // Viewtiful Joe hits this case (bug 12525).
     // Wrapping and add to previous still apply in this case (and when the stage is disabled).
-    const bool has_ind_stage = tevind.bt() < uid_data->genMode_numindstages;
+    const bool has_ind_stage = tevind.bt() < uid_data->genMode_numindstages();
 
     // Perform the indirect op on the incoming regular coordinates
     // using iindtex{} as the offset coords
@@ -1469,7 +1469,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("\trastemp = {}.{};\n", tev_ras_table[stage.tevorders_colorchan], rasswap);
   }
 
-  if (stage.tevorders_enable && uid_data->genMode_numtexgens > 0)
+  if (stage.tevorders_enable && uid_data->genMode_numtexgens() > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
     const char texswap[5] = {
@@ -1483,7 +1483,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("\ttextemp = sampleTextureWrapper({0}u, tevcoord.xy, layer).{1};\n",
               stage.tevorders_texmap, texswap);
   }
-  else if (uid_data->genMode_numtexgens == 0)
+  else if (uid_data->genMode_numtexgens() == 0)
   {
     // It seems like the result is always black when no tex coords are enabled, but further testing
     // is needed.
@@ -1713,13 +1713,13 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     out.Write("\tif(!( ");
 
   // Lookup the first component from the alpha function table
-  write_alpha_func(uid_data->alpha_test_comp0, alpha_ref[0]);
+  write_alpha_func(uid_data->alpha_test_comp0(), alpha_ref[0]);
 
   // Lookup the logic op
-  out.Write("{}", tev_alpha_funclogic_table[uid_data->alpha_test_logic]);
+  out.Write("{}", tev_alpha_funclogic_table[uid_data->alpha_test_logic()]);
 
   // Lookup the second component from the alpha function table
-  write_alpha_func(uid_data->alpha_test_comp1, alpha_ref[1]);
+  write_alpha_func(uid_data->alpha_test_comp1(), alpha_ref[1]);
 
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_NEGATED_BOOLEAN))
     out.Write(") == false) {{\n");
@@ -1736,7 +1736,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   }
 
   // ZCOMPLOC HACK:
-  if (!uid_data->alpha_test_use_zcomploc_hack)
+  if (!uid_data->alpha_test_use_zcomploc_hack())
   {
 #ifdef __APPLE__
     if (uid_data->forced_early_z &&
@@ -1779,7 +1779,7 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
   out.SetConstantsUsed(C_FOGI, C_FOGI);
   out.SetConstantsUsed(C_FOGF, C_FOGF + 1);
-  if (uid_data->fog_proj == FogProjection::Perspective)
+  if (uid_data->fog_proj() == FogProjection::Perspective)
   {
     // perspective
     // ze = A/(B - (Zs >> B_SHF)
@@ -1874,7 +1874,7 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
-  if (uid_data->useDstAlpha)
+  if (uid_data->useDstAlpha())
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
     out.Write("\tocol0.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
@@ -1938,7 +1938,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     };
     out.Write("\tfloat4 src_color = {};\n"
               "\tfloat4 blend_src;",
-              uid_data->useDstAlpha ? "ocol1" : "ocol0");
+              uid_data->useDstAlpha() ? "ocol1" : "ocol0");
     out.Write("\tblend_src.rgb = {}\n", blend_src_factor[uid_data->blend_src_factor]);
     out.Write("\tblend_src.a = {}\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
     out.Write("\tfloat4 blend_dst;\n");
