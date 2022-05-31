@@ -33,6 +33,7 @@ u64 GetConfigVersion();
 // Explicit load and save of layers
 void Load();
 void Save();
+void Reload();
 
 void Init();
 void Shutdown();

@@ -12,5 +12,6 @@ class Flag;
 
 namespace UICommon
 {
+bool ImportUserDir(const std::string& archive_path);
 bool ExportUserDir(const std::string& archive_path, Common::Flag* cancel_requested_flag);
 }  // namespace UICommon

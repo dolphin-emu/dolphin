@@ -127,6 +127,19 @@ void Save()
   OnConfigChanged();
 }
 
+void Reload()
+{
+  {
+    WriteLock lock(s_layers_rw_lock);
+
+    for (auto& layer : s_layers)
+      layer.second->DeleteAllKeys();
+    for (auto& layer : s_layers)
+      layer.second->Load();
+  }
+  OnConfigChanged();
+}
+
 void Init()
 {
   // These layers contain temporary values

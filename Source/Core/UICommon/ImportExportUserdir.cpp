@@ -19,6 +19,37 @@
 
 namespace UICommon
 {
+bool ImportUserDir(const std::string& archive_path)
+{
+  const auto& directory_path = File::GetUserPath(D_USER_IDX);
+
+  const auto root = File::ScanDirectoryTree(directory_path, false);
+  for (const auto& file : root.children)
+  {
+    // Skip the Logs directory, it likely contains a file that we're currently writing to.
+    if (file.isDirectory && Common::CaseInsensitiveEquals(file.virtualName, "Logs"))
+      continue;
+
+    if (file.isDirectory)
+    {
+      if (!File::DeleteDirRecursively(file.physicalName))
+        return false;
+    }
+    else
+    {
+      if (!File::Delete(file.physicalName))
+        return false;
+    }
+  }
+
+  if (!Common::UnpackZipToDirectory(archive_path, directory_path))
+    return false;
+
+  // Need to reload the configuration now
+  Config::Reload();
+  return true;
+}
+
 static bool ExportUserDirRecursive(void** writer, const File::FSTEntry& file,
                                    const std::string& root_path,
                                    Common::Flag* cancel_requested_flag)
