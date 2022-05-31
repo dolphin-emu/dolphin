@@ -146,6 +146,8 @@ private:
   void AddJITMenu();
   void AddSymbolsMenu();
 
+  void ExportUserDirBackup();
+
   void UpdateStateSlotMenu();
 
   void InstallWAD();

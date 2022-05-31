@@ -60,6 +60,7 @@
 
 #include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
+#include "UICommon/ImportExportUserdir.h"
 
 QPointer<MenuBar> MenuBar::s_menu_bar;
 
@@ -283,6 +284,10 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
   tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+
+  tools_menu->addSeparator();
+
+  tools_menu->addAction(tr("Export Global User Directory..."), this, &MenuBar::ExportUserDirBackup);
 
   QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
@@ -1038,6 +1043,46 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     wii_remote->setEnabled(enable_wiimotes);
     if (enable_wiimotes)
       wii_remote->setChecked(bt->AccessWiimoteByIndex(i)->IsConnected());
+  }
+}
+
+void MenuBar::ExportUserDirBackup()
+{
+  const QString path = DolphinFileDialog::getSaveFileName(
+      this, tr("Select storage location for Global User Directory backup"), QDir::currentPath(),
+      QStringLiteral("%1 (*.zip);;%2 (*)").arg(tr("ZIP archive")).arg(tr("All Files")));
+  if (path.isEmpty())
+    return;
+
+  ParallelProgressDialog progress(tr("Exporting Global User Directory to %1...").arg(path),
+                                  tr("Cancel"), 0, 0, this);
+  progress.GetRaw()->setWindowTitle(tr("Exporting"));
+  progress.GetRaw()->setWindowModality(Qt::WindowModal);
+
+  Common::Flag cancel_request(false);
+  auto future = std::async(std::launch::async, [&]() -> bool {
+    progress.connect(&progress, &ParallelProgressDialog::Canceled, this,
+                     [&cancel_request]() { cancel_request.Set(); });
+    bool result = UICommon::ExportUserDir(path.toStdString(), &cancel_request);
+    progress.Reset();
+    return result;
+  });
+
+  progress.GetRaw()->exec();
+
+  bool success = future.get();
+
+  if (cancel_request.IsSet())
+    return;
+
+  if (success)
+  {
+    ModalMessageBox::information(this, tr("Success"),
+                                 tr("Successfully exported Global User Directory."));
+  }
+  else
+  {
+    ModalMessageBox::critical(this, tr("Failure"), tr("Exporting Global User Directory failed."));
   }
 }
 
