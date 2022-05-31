@@ -39,32 +39,37 @@ struct vertex_shader_uid_data
 {
   u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
 
-  union
-  {
-    BitField<0, 23, u32> components;
-    BitField<23, 4, u32> numTexGens;
-    BitField<27, 2, u32> numColorChans;
-    BitField<29, 1, bool, u32> dualTexTrans_enabled;
-  };
+  u32 _data1;
 
-  union
+  BFVIEW_M(_data1, u32, 0, 23, components);
+  BFVIEW_M(_data1, u32, 23, 4, numTexGens);
+  BFVIEW_M(_data1, u32, 27, 2, numColorChans);
+  BFVIEW_M(_data1, bool, 29, 1, dualTexTrans_enabled);
+
+  struct
   {
-    BitField<0, 2, TexInputForm, u16> inputform;
-    BitField<2, 3, TexGenType, u16> texgentype;
-    BitField<5, 5, SourceRow, u16> sourcerow;
-    BitField<10, 3, u16> embosssourceshift;
-    BitField<13, 3, u16> embosslightshift;
+    u16 _data2;
+
+    BFVIEW_M(_data2, TexInputForm, 0, 2, inputform);
+    BFVIEW_M(_data2, TexGenType, 2, 3, texgentype);
+    BFVIEW_M(_data2, SourceRow, 5, 5, sourcerow);
+    BFVIEW_M(_data2, u16, 10, 3, embosssourceshift);
+    BFVIEW_M(_data2, u16, 13, 3, embosslightshift);
   } texMtxInfo[8];
 
-  union
+  struct
   {
-    BitField<0, 6, u8> index;
-    BitField<6, 1, bool, u8> normalize;
+    u8 _data3;
+
+    BFVIEW_M(_data3, u8, 0, 6, index);
+    BFVIEW_M(_data3, bool, 6, 1, normalize);
   } postMtxInfo[8];
 
   LightingUidData lighting;
+
   // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
-  BitFieldArray<0, 1, 16, bool, u16> texMtxInfo_n_projection;
+  u16 _data4;
+  BFVIEWARRAY_M(_data4, bool, 0, 1, 16, texMtxInfo_n_projection);
 };
 #pragma pack()
 

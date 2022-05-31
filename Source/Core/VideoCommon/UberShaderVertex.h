@@ -37,6 +37,6 @@ struct fmt::formatter<UberShader::vertex_ubershader_uid_data>
   template <typename FormatContext>
   auto format(const UberShader::vertex_ubershader_uid_data& uid, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "Vertex UberShader for {} texgens", uid.num_texgens);
+    return fmt::format_to(ctx.out(), "Vertex UberShader for {} texgens", uid.num_texgens());
   }
 };
