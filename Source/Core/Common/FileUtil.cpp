@@ -921,6 +921,8 @@ std::string GetSysDirectory()
 void SetSysDirectory(const std::string& path)
 {
   INFO_LOG_FMT(COMMON, "Setting Sys directory to {}", path);
+  ASSERT_MSG(COMMON, s_android_sys_directory.empty(), "Sys directory already set to {}",
+             s_android_sys_directory);
   s_android_sys_directory = path;
 }
 #endif
