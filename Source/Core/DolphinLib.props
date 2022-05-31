@@ -510,6 +510,7 @@
     <ClInclude Include="UICommon\DiscordPresence.h" />
     <ClInclude Include="UICommon\GameFile.h" />
     <ClInclude Include="UICommon\GameFileCache.h" />
+    <ClInclude Include="UICommon\ImportExportUserdir.h" />
     <ClInclude Include="UICommon\NetPlayIndex.h" />
     <ClInclude Include="UICommon\ResourcePack\Manager.h" />
     <ClInclude Include="UICommon\ResourcePack\Manifest.h" />
@@ -1101,6 +1102,7 @@
     <ClCompile Include="UICommon\DiscordPresence.cpp" />
     <ClCompile Include="UICommon\GameFile.cpp" />
     <ClCompile Include="UICommon\GameFileCache.cpp" />
+    <ClCompile Include="UICommon\ImportExportUserdir.cpp" />
     <ClCompile Include="UICommon\NetPlayIndex.cpp" />
     <ClCompile Include="UICommon\ResourcePack\Manager.cpp" />
     <ClCompile Include="UICommon\ResourcePack\Manifest.cpp" />

@@ -11,6 +11,8 @@ add_library(uicommon
   GameFile.h
   GameFileCache.cpp
   GameFileCache.h
+  ImportExportUserdir.cpp
+  ImportExportUserdir.h
   NetPlayIndex.cpp
   NetPlayIndex.h
   ResourcePack/Manager.cpp
