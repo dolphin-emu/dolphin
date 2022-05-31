@@ -1736,7 +1736,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (!uid_data->alpha_test_use_zcomploc_hack())
   {
 #ifdef __APPLE__
-    if (uid_data->forced_early_z &&
+    if (uid_data->forced_early_z() &&
         DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
     {
       // Instead of using discard, fetch the framebuffer's color value and use it as the output
