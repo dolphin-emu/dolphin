@@ -68,67 +68,68 @@ struct pixel_shader_uid_data
   BFVIEW_M(_data2, bool, 30, 1, blend_subtract);
   BFVIEW_M(_data2, bool, 31, 1, blend_subtract_alpha);
 
-  union
-  {
-    BitField<0, 1, bool, u32> logic_op_enable;  // shader_framebuffer_fetch logic ops
-    BitField<1, 4, u32> logic_op_mode;          // shader_framebuffer_fetch logic ops
-    BitField<5, 3, u32> tevindref_bi0;
-    BitField<8, 3, u32> tevindref_bc0;
-    BitField<11, 3, u32> tevindref_bi1;
-    BitField<14, 3, u32> tevindref_bc1;
-    BitField<17, 3, u32> tevindref_bi2;
-    BitField<20, 3, u32> tevindref_bc2;
-    BitField<23, 3, u32> tevindref_bi3;
-    BitField<26, 3, u32> tevindref_bc3;
-  };
+  u32 _data3;
+
+  // shader_framebuffer_fetch logic ops
+  BFVIEW_M(_data3, bool, 0, 1, logic_op_enable);
+  BFVIEW_M(_data3, LogicOp, 1, 4, logic_op_mode);
+
+  BFVIEW_M(_data3, u32, 5, 3, tevindref_bi0);
+  BFVIEW_M(_data3, u32, 8, 3, tevindref_bc0);
+  BFVIEW_M(_data3, u32, 11, 3, tevindref_bi1);
+  BFVIEW_M(_data3, u32, 14, 3, tevindref_bc1);
+  BFVIEW_M(_data3, u32, 17, 3, tevindref_bi2);
+  BFVIEW_M(_data3, u32, 20, 3, tevindref_bc2);
+  BFVIEW_M(_data3, u32, 23, 3, tevindref_bi3);
+  BFVIEW_M(_data3, u32, 26, 3, tevindref_bc3);
 
   void SetTevindrefValues(int index, u32 texcoord, u32 texmap)
   {
     if (index == 0)
     {
-      tevindref_bc0 = texcoord;
-      tevindref_bi0 = texmap;
+      tevindref_bc0() = texcoord;
+      tevindref_bi0() = texmap;
     }
     else if (index == 1)
     {
-      tevindref_bc1 = texcoord;
-      tevindref_bi1 = texmap;
+      tevindref_bc1() = texcoord;
+      tevindref_bi1() = texmap;
     }
     else if (index == 2)
     {
-      tevindref_bc2 = texcoord;
-      tevindref_bi2 = texmap;
+      tevindref_bc2() = texcoord;
+      tevindref_bi2() = texmap;
     }
     else if (index == 3)
     {
-      tevindref_bc3 = texcoord;
-      tevindref_bi3 = texmap;
+      tevindref_bc3() = texcoord;
+      tevindref_bi3() = texmap;
     }
   }
 
   u32 GetTevindirefCoord(int index) const
   {
     if (index == 0)
-      return tevindref_bc0;
+      return tevindref_bc0();
     else if (index == 1)
-      return tevindref_bc1;
+      return tevindref_bc1();
     else if (index == 2)
-      return tevindref_bc2;
+      return tevindref_bc2();
     else if (index == 3)
-      return tevindref_bc3;
+      return tevindref_bc3();
     return 0;
   }
 
   u32 GetTevindirefMap(int index) const
   {
     if (index == 0)
-      return tevindref_bi0;
+      return tevindref_bi0();
     else if (index == 1)
-      return tevindref_bi1;
+      return tevindref_bi1();
     else if (index == 2)
-      return tevindref_bi2;
+      return tevindref_bi2();
     else if (index == 3)
-      return tevindref_bi3;
+      return tevindref_bi3();
     return 0;
   }
 

@@ -336,8 +336,8 @@ PixelShaderUid GetPixelShaderUid()
     uid_data->blend_subtract_alpha() = state.subtractAlpha();
   }
 
-  uid_data->logic_op_enable = state.logicopenable();
-  uid_data->logic_op_mode = u32(state.logicmode().Get());
+  uid_data->logic_op_enable() = state.logicopenable();
+  uid_data->logic_op_mode() = state.logicmode();
 
   return out;
 }
@@ -848,7 +848,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       (uid_data->useDstAlpha() ||
        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
       host_config.backend_shader_framebuffer_fetch();
-  const bool use_shader_logic_op = !host_config.backend_logic_op() && uid_data->logic_op_enable &&
+  const bool use_shader_logic_op = !host_config.backend_logic_op() && uid_data->logic_op_enable() &&
                                    host_config.backend_shader_framebuffer_fetch();
   const bool use_framebuffer_fetch =
       use_shader_blend || use_shader_logic_op ||
@@ -1851,7 +1851,7 @@ static void WriteLogicOp(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   };
 
   out.Write("\tint4 fb_value = iround(initial_ocol0 * 255.0);\n");
-  out.Write("\tprev = ({}) & 0xff;\n", logic_op_mode[uid_data->logic_op_mode]);
+  out.Write("\tprev = ({}) & 0xff;\n", logic_op_mode[u32(uid_data->logic_op_mode().Get())]);
 }
 
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
