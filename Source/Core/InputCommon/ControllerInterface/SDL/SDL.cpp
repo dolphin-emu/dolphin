@@ -83,6 +83,11 @@ void Init()
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
   return;
 #else
+#if defined(__APPLE__) && !SDL_VERSION_ATLEAST(2, 0, 24)
+  // Bug in SDL 2.0.22 requires the first init to be done on the main thread to avoid crashing
+  SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+  SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+#endif
   s_hotplug_thread = std::thread([] {
     Common::ScopeGuard quit_guard([] {
       // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
