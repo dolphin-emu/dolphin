@@ -7,7 +7,7 @@
 
 class ShaderCode;
 enum class APIType;
-union ShaderHostConfig;
+struct ShaderHostConfig;
 
 namespace UberShader
 {

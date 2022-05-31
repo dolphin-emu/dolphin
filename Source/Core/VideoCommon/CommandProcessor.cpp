@@ -130,8 +130,8 @@ static inline void WriteHigh(std::atomic<u32>& reg, u16 highbits)
 void Init()
 {
   m_CPStatusReg.Hex = 0;
-  m_CPStatusReg.CommandIdle() = 1;
-  m_CPStatusReg.ReadIdle() = 1;
+  m_CPStatusReg.CommandIdle() = true;
+  m_CPStatusReg.ReadIdle() = true;
 
   m_CPCtrlReg.Hex = 0;
 

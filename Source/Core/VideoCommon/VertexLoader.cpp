@@ -96,7 +96,7 @@ void VertexLoader::CompileVertexTranslator()
     nat_offset += 4;
   }
 
-  for (auto texmtxidx : m_VtxDesc.low.TexMatIdx())
+  for (bool texmtxidx : m_VtxDesc.low.TexMatIdx())
   {
     if (texmtxidx)
       WriteCall(TexMtx_ReadDirect_UByte);

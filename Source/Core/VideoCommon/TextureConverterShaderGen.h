@@ -20,9 +20,7 @@ namespace TextureConversionShaderGen
 #pragma pack(1)
 struct UidData
 {
-  u32 NumValues() const { return sizeof(UidData); }
   EFBCopyFormat dst_format;
-
   u32 _data1;
 
   BFVIEW_M(_data1, bool, 0, 1, efb_has_alpha);
@@ -30,6 +28,8 @@ struct UidData
   BFVIEW_M(_data1, bool, 2, 1, is_intensity);
   BFVIEW_M(_data1, bool, 3, 1, scale_by_half);
   BFVIEW_M(_data1, bool, 4, 1, copy_filter);
+
+  u32 NumValues() const { return sizeof(UidData); }
 };
 #pragma pack()
 

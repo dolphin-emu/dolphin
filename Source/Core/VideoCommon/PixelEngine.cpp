@@ -270,8 +270,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (tmpCtrl.pe_finish())
                      s_signal_finish_interrupt = false;
 
-                   m_Control.pe_token_enable() = tmpCtrl.pe_token_enable().Get();
-                   m_Control.pe_finish_enable() = tmpCtrl.pe_finish_enable().Get();
+                   m_Control.pe_token_enable() = tmpCtrl.pe_token_enable();
+                   m_Control.pe_finish_enable() = tmpCtrl.pe_finish_enable();
                    m_Control.pe_token() = false;   // this flag is write only
                    m_Control.pe_finish() = false;  // this flag is write only
 

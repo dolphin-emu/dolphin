@@ -60,8 +60,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool use_framebuffer_fetch =
       use_shader_blend || use_shader_logic_op ||
       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
-  const bool early_depth = uid_data->early_depth() != 0;
-  const bool per_pixel_depth = uid_data->per_pixel_depth() != 0;
+  const bool early_depth = uid_data->early_depth();
+  const bool per_pixel_depth = uid_data->per_pixel_depth();
   const bool bounding_box = host_config.bounding_box();
   const u32 numTexgen = uid_data->num_texgens();
   ShaderCode out;

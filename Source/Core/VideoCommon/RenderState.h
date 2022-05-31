@@ -47,7 +47,7 @@ struct FramebufferState
   BFVIEW_M(hex, AbstractTextureFormat, 0, 8, color_texture_format);
   BFVIEW_M(hex, AbstractTextureFormat, 8, 8, depth_texture_format);
   BFVIEW_M(hex, u32, 16, 8, samples);
-  BFVIEW_M(hex, u32, 24, 1, per_sample_shading);
+  BFVIEW_M(hex, bool, 24, 1, per_sample_shading);
 };
 
 struct DepthState
@@ -62,12 +62,12 @@ struct DepthState
 
   u32 hex;
 
-  BFVIEW_M(hex, u32, 0, 1, testenable);
-  BFVIEW_M(hex, u32, 1, 1, updateenable);
+  BFVIEW_M(hex, bool, 0, 1, testenable);
+  BFVIEW_M(hex, bool, 1, 1, updateenable);
   BFVIEW_M(hex, CompareMode, 2, 3, func);
 };
 
-union BlendingState
+struct BlendingState
 {
   void Generate(const BPMemory& bp);
 

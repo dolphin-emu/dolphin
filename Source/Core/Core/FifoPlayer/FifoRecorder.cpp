@@ -79,7 +79,7 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
 
   if (vtx_desc.low.PosMatIdx())
     offset++;
-  for (auto texmtxidx : vtx_desc.low.TexMatIdx())
+  for (bool texmtxidx : vtx_desc.low.TexMatIdx())
   {
     if (texmtxidx)
       offset++;

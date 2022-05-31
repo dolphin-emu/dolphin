@@ -147,7 +147,7 @@ private:
 };
 
 // Host config contains the settings which can influence generated shaders.
-union ShaderHostConfig
+struct ShaderHostConfig
 {
   u32 bits;
 
@@ -207,16 +207,6 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
 // Without MSAA, this flag is defined to have no effect.
 const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interface_block = false,
                                       bool in = false);
-
-// bitfieldExtract generator for BitField types
-template <auto ptr_to_bitfield_member>
-std::string BitfieldExtract(std::string_view source)
-{
-  using BitFieldT = Common::MemberType<ptr_to_bitfield_member>;
-  return fmt::format("bitfieldExtract({}({}), {}, {})", BitFieldT::IsSigned() ? "int" : "uint",
-                     source, static_cast<u32>(BitFieldT::StartBit()),
-                     static_cast<u32>(BitFieldT::NumBits()));
-}
 
 // bitfieldExtract generator for BitFieldView types>
 template <typename BFView_t>

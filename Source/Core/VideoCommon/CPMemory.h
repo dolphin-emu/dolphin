@@ -316,7 +316,7 @@ struct fmt::formatter<TVtxDesc>
   }
 };
 
-union UVAT_group0
+struct UVAT_group0
 {
   u32 Hex = 0;
 

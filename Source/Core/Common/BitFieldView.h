@@ -92,6 +92,8 @@ public:
   constexpr BitFieldFixedView& operator|=(const field_t rhs) { return operator=(Get() / rhs); }
   constexpr BitFieldFixedView& operator&=(const field_t rhs) { return operator=(Get() & rhs); }
   constexpr BitFieldFixedView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
+
+  constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,6 +133,8 @@ public:
     else
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
   }
+
+  constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,6 +196,8 @@ public:
   constexpr BitFieldView& operator|=(const field_t rhs) { return operator=(Get() | rhs); }
   constexpr BitFieldView& operator&=(const field_t rhs) { return operator=(Get() & rhs); }
   constexpr BitFieldView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
+
+  constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -233,6 +239,8 @@ public:
     else
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
   }
+
+  constexpr bool operator!() const { return !static_cast<bool>(Get()); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

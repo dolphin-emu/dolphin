@@ -670,7 +670,7 @@ public:
       text += QLatin1Char{'\n'};
       if (vtx_desc.low.PosMatIdx())
         process_simple_component(1);
-      for (auto texmtxidx : vtx_desc.low.TexMatIdx())
+      for (bool texmtxidx : vtx_desc.low.TexMatIdx())
       {
         if (texmtxidx)
           process_simple_component(1);
