@@ -55,8 +55,7 @@ VertexShaderUid GetVertexShaderUid()
       break;
     case TexGenType::Regular:
     default:
-      uid_data->texMtxInfo_n_projection()[i] |=
-          static_cast<bool>(xfmem.texMtxInfo[i].projection().Get());
+      uid_data->texMtxInfo_n_projection()[i] = xfmem.texMtxInfo[i].projection();
       break;
     }
 
@@ -336,7 +335,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       if ((uid_data->components() & (VB_HAS_TEXMTXIDX0 << i)) != 0)
       {
         out.Write("int tmp = int(rawtex{}.z);\n", i);
-        if (static_cast<TexSize>(uid_data->texMtxInfo_n_projection()[i].Get()) == TexSize::STQ)
+        if (uid_data->texMtxInfo_n_projection()[i] == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -352,7 +351,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       else
       {
-        if (static_cast<TexSize>(uid_data->texMtxInfo_n_projection()[i].Get()) == TexSize::STQ)
+        if (uid_data->texMtxInfo_n_projection()[i] == TexSize::STQ)
         {
           out.Write("o.tex{}.xyz = float3(dot(coord, " I_TEXMATRICES
                     "[{}]), dot(coord, " I_TEXMATRICES "[{}]), dot(coord, " I_TEXMATRICES

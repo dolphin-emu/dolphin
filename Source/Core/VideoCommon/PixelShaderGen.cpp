@@ -215,23 +215,20 @@ PixelShaderUid GetPixelShaderUid()
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens(); ++i)
     {
       // optional perspective divides
-      uid_data->texMtxInfo_n_projection()[i] |=
-          static_cast<bool>(xfmem.texMtxInfo[i].projection().Get());
+      uid_data->texMtxInfo_n_projection()[i] = xfmem.texMtxInfo[i].projection();
     }
   }
 
   // indirect texture map lookup
-  int nIndirectStagesUsed = 0;
   for (unsigned int i = 0; i < numStages; ++i)
   {
     if (bpmem.tevind[i].IsActive())
-      nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt();
+      uid_data->nIndirectStagesUsed()[bpmem.tevind[i].bt()] = true;
   }
 
-  uid_data->nIndirectStagesUsed() = nIndirectStagesUsed;
   for (u32 i = 0; i < uid_data->genMode_numindstages(); ++i)
   {
-    if (uid_data->nIndirectStagesUsed() & (1 << i))
+    if (uid_data->nIndirectStagesUsed()[i])
       uid_data->SetTevindrefValues(i, bpmem.tevindref.getTexCoord(i), bpmem.tevindref.getTexMap(i));
   }
 
@@ -597,7 +594,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
       out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
                 "  float lod_bias = float({}) / 256.0f;\n"
                 "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
-                BFViewExtract<decltype(SamplerState().tm0.lod_bias())>("texmode0"));
+                BFViewExtract<decltype(SamplerState::TM0().lod_bias())>("texmode0"));
     }
     else
     {
@@ -624,17 +621,17 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int min_lod = int({});
   int max_lod = int({});
 )",
-              BFViewExtract<decltype(SamplerState().tm0.wrap_u())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm0.wrap_v())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm0.mag_filter())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm0.mipmap_filter())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm0.min_filter())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm0.diag_lod())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm0.lod_bias())>("texmode0"),
-              // BFViewExtract<decltype(SamplerState().tm0.max_aniso())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm0.lod_clamp())>("texmode0"),
-              BFViewExtract<decltype(SamplerState().tm1.min_lod())>("texmode1"),
-              BFViewExtract<decltype(SamplerState().tm1.max_lod())>("texmode1"));
+              BFViewExtract<decltype(SamplerState::TM0().wrap_u())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM0().wrap_v())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM0().mag_filter())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM0().mipmap_filter())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM0().min_filter())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM0().diag_lod())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM0().lod_bias())>("texmode0"),
+              // BFViewExtract<decltype(SamplerState::TM0().max_aniso())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM0().lod_clamp())>("texmode0"),
+              BFViewExtract<decltype(SamplerState::TM1().min_lod())>("texmode1"),
+              BFViewExtract<decltype(SamplerState::TM1().max_lod())>("texmode1"));
 
     if (host_config.manual_texture_sampling_custom_texture_sizes())
     {
@@ -1038,7 +1035,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   for (u32 i = 0; i < uid_data->genMode_numindstages(); ++i)
   {
-    if ((uid_data->nIndirectStagesUsed() & (1U << i)) != 0)
+    if (uid_data->nIndirectStagesUsed()[i])
     {
       u32 texcoord = uid_data->GetTevindirefCoord(i);
       const u32 texmap = uid_data->GetTevindirefMap(i);

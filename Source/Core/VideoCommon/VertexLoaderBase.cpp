@@ -101,7 +101,7 @@ static void GetComponentSizes(const TVtxDesc& vtx_desc, const VAT& vtx_attr, Fun
 {
   if (vtx_desc.low.PosMatIdx())
     f(1);
-  for (auto texmtxidx : vtx_desc.low.TexMatIdx())
+  for (bool texmtxidx : vtx_desc.low.TexMatIdx())
   {
     if (texmtxidx)
       f(1);

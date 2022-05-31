@@ -37,8 +37,6 @@ enum : int
 
 struct vertex_shader_uid_data
 {
-  u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
-
   u32 _data1;
 
   BFVIEW_M(_data1, u32, 0, 23, components);
@@ -66,10 +64,12 @@ struct vertex_shader_uid_data
   } postMtxInfo[8];
 
   LightingUidData lighting;
+  u16 _data4;
 
   // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
-  u16 _data4;
-  BFVIEWARRAY_M(_data4, bool, 0, 1, 16, texMtxInfo_n_projection);
+  BFVIEWARRAY_M(_data4, TexSize, 0, 1, 16, texMtxInfo_n_projection);
+
+  u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
 };
 #pragma pack()
 

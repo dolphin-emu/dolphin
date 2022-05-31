@@ -40,23 +40,23 @@ struct PixelShaderConstants
   u32 fogRangeBase;             // .y
   u32 dstalpha;                 // .z
   ZTexOp ztex_op;               // .w
-  u32 late_ztest;               // .x (bool)
-  u32 rgba6_format;             // .y (bool)
-  u32 dither;                   // .z (bool)
-  u32 bounding_box;             // .w (bool)
+  u32 late_ztest;               // .x (bool32)
+  u32 rgba6_format;             // .y (bool32)
+  u32 dither;                   // .z (bool32)
+  u32 bounding_box;             // .w (bool32)
   std::array<uint4, 16> pack1;  // .xy - combiners, .z - tevind, .w - iref
   std::array<uint4, 8> pack2;   // .x - tevorder, .y - tevksel, .z/.w - SamplerState tm0/tm1
   std::array<int4, 32> konst;   // .rgba
   // The following are used in ubershaders when using shader_framebuffer_fetch blending
-  u32 blend_enable;
+  u32 blend_enable;  // bool32
   SrcBlendFactor blend_src_factor;
   SrcBlendFactor blend_src_factor_alpha;
   DstBlendFactor blend_dst_factor;
   DstBlendFactor blend_dst_factor_alpha;
-  u32 blend_subtract;
-  u32 blend_subtract_alpha;
+  u32 blend_subtract;        // bool32
+  u32 blend_subtract_alpha;  // bool32
   // For shader_framebuffer_fetch logic ops:
-  u32 logic_op_enable;  // bool
+  u32 logic_op_enable;  // bool32
   LogicOp logic_op_mode;
 };
 
