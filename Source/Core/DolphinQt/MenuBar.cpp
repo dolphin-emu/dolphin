@@ -287,6 +287,7 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
+  tools_menu->addAction(tr("Import Global User Directory..."), this, &MenuBar::ImportUserDirBackup);
   tools_menu->addAction(tr("Export Global User Directory..."), this, &MenuBar::ExportUserDirBackup);
 
   QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
@@ -1043,6 +1044,51 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     wii_remote->setEnabled(enable_wiimotes);
     if (enable_wiimotes)
       wii_remote->setChecked(bt->AccessWiimoteByIndex(i)->IsConnected());
+  }
+}
+
+void MenuBar::ImportUserDirBackup()
+{
+  auto warning_result = ModalMessageBox::question(
+      this, tr("Warning"),
+      tr("Importing a Global User Directory will delete all data currently stored within the "
+         "Global User Directory. This includes save files, controller configuration, and other "
+         "user-configured data. You may want to export your current Global User Directory before "
+         "importing a new one.\n\nAre you sure you want to continue?"));
+  if (warning_result != QMessageBox::Yes)
+    return;
+
+  const QString path = DolphinFileDialog::getOpenFileName(
+      this, tr("Select the Global User Directory backup to import"), QDir::currentPath(),
+      QStringLiteral("%1 (*.zip);;%2 (*)").arg(tr("ZIP archive")).arg(tr("All Files")));
+  if (path.isEmpty())
+    return;
+
+  ParallelProgressDialog progress(tr("Importing Global User Directory from %1...").arg(path),
+                                  QString(), 0, 0, this);
+  progress.GetRaw()->setWindowTitle(tr("Importing"));
+  progress.GetRaw()->setWindowModality(Qt::WindowModal);
+
+  auto future = std::async(std::launch::async, [&]() -> bool {
+    bool result = UICommon::ImportUserDir(path.toStdString());
+    progress.Reset();
+    return result;
+  });
+
+  progress.GetRaw()->exec();
+
+  bool success = future.get();
+  if (success)
+  {
+    ModalMessageBox::information(this, tr("Success"),
+                                 tr("Successfully imported Global User Directory."));
+  }
+  else
+  {
+    ModalMessageBox::critical(this, tr("Failure"),
+                              tr("Importing Global User Directory failed. The directory may now be "
+                                 "in an inconsistent state. It is recommended to close Dolphin and "
+                                 "manually delete the directory before continuing."));
   }
 }
 

@@ -146,6 +146,7 @@ private:
   void AddJITMenu();
   void AddSymbolsMenu();
 
+  void ImportUserDirBackup();
   void ExportUserDirBackup();
 
   void UpdateStateSlotMenu();
