@@ -19,9 +19,39 @@
 
 namespace UICommon
 {
-bool ImportUserDir(const std::string& archive_path)
+ImportUserDirResult ImportUserDir(const std::string& archive_path)
 {
   const auto& directory_path = File::GetUserPath(D_USER_IDX);
+
+  void* reader = nullptr;
+  mz_zip_reader_create(&reader);
+  if (!reader)
+    return ImportUserDirResult::UnknownError;
+
+  Common::ScopeGuard delete_reader_guard([&reader] { mz_zip_reader_delete(&reader); });
+
+  mz_zip_reader_set_encoding(reader, MZ_ENCODING_UTF8);
+
+  if (mz_zip_reader_open_file(reader, archive_path.c_str()) != MZ_OK)
+    return ImportUserDirResult::ArchiveFileError;
+
+  Common::ScopeGuard close_reader_guard([&reader] { mz_zip_reader_close(reader); });
+
+  void* zip_handle = nullptr;
+  if (mz_zip_reader_get_zip_handle(reader, &zip_handle) != MZ_OK || !zip_handle)
+    return ImportUserDirResult::UnknownError;
+  if (mz_zip_entry_is_open(zip_handle) == MZ_OK)
+    mz_zip_reader_entry_close(reader);
+
+  const auto go_to_first_entry_result = mz_zip_locate_first_entry(
+      zip_handle, nullptr, [](void* handle, void* userdata, mz_zip_file* file_info) -> int32_t {
+        const bool is_dolphin_ini =
+            Common::CaseInsensitiveEquals(file_info->filename, "Config/Dolphin.ini") ||
+            Common::CaseInsensitiveEquals(file_info->filename, "Config\\Dolphin.ini");
+        return is_dolphin_ini ? 0 : -1;
+      });
+  if (go_to_first_entry_result != MZ_OK)
+    return ImportUserDirResult::ArchiveDoesNotContainUserdir;
 
   const auto root = File::ScanDirectoryTree(directory_path, false);
   for (const auto& file : root.children)
@@ -33,21 +63,21 @@ bool ImportUserDir(const std::string& archive_path)
     if (file.isDirectory)
     {
       if (!File::DeleteDirRecursively(file.physicalName))
-        return false;
+        return ImportUserDirResult::OldUserdirDeleteError;
     }
     else
     {
       if (!File::Delete(file.physicalName))
-        return false;
+        return ImportUserDirResult::OldUserdirDeleteError;
     }
   }
 
-  if (!Common::UnpackZipToDirectory(archive_path, directory_path))
-    return false;
+  if (mz_zip_reader_save_all(reader, directory_path.c_str()) != MZ_OK)
+    return ImportUserDirResult::ExtractError;
 
   // Need to reload the configuration now
   Config::Reload();
-  return true;
+  return ImportUserDirResult::Success;
 }
 
 static bool ExportUserDirRecursive(void** writer, const File::FSTEntry& file,

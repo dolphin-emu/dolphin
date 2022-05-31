@@ -1078,26 +1078,49 @@ void MenuBar::ImportUserDirBackup()
   progress.GetRaw()->setWindowTitle(tr("Importing"));
   progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
-  auto future = std::async(std::launch::async, [&]() -> bool {
-    bool result = UICommon::ImportUserDir(path.toStdString());
+  auto future = std::async(std::launch::async, [&]() -> UICommon::ImportUserDirResult {
+    auto result = UICommon::ImportUserDir(path.toStdString());
     progress.Reset();
     return result;
   });
 
   progress.GetRaw()->exec();
 
-  bool success = future.get();
-  if (success)
+  auto result = future.get();
+  switch (result)
   {
+  case UICommon::ImportUserDirResult::Success:
     ModalMessageBox::information(this, tr("Success"),
                                  tr("Successfully imported Global User Directory."));
-  }
-  else
-  {
+    break;
+  case UICommon::ImportUserDirResult::ArchiveFileError:
     ModalMessageBox::critical(this, tr("Failure"),
-                              tr("Importing Global User Directory failed. The directory may now be "
-                                 "in an inconsistent state. It is recommended to close Dolphin and "
-                                 "manually delete the directory before continuing."));
+                              tr("Importing Global User Directory failed: The selected archive "
+                                 "could not be opened or is corrupt."));
+    break;
+  case UICommon::ImportUserDirResult::ArchiveDoesNotContainUserdir:
+    ModalMessageBox::critical(this, tr("Failure"),
+                              tr("Importing Global User Directory failed: The selected archive "
+                                 "does not appear to contain a Global User Directory backup."));
+    break;
+  case UICommon::ImportUserDirResult::OldUserdirDeleteError:
+    ModalMessageBox::critical(
+        this, tr("Failure"),
+        tr("Importing Global User Directory failed: Unable to delete the existing Global User "
+           "Directory. The directory may now be in an inconsistent state. It is recommended to "
+           "close Dolphin and manually delete the directory before continuing."));
+    break;
+  case UICommon::ImportUserDirResult::ExtractError:
+    ModalMessageBox::critical(
+        this, tr("Failure"),
+        tr("Importing Global User Directory failed: Failed to extract archive. The archive may be "
+           "corrupt or there may not be enough disk space available. The directory may now be in "
+           "an inconsistent state. It is recommended to close Dolphin and manually delete the "
+           "directory before continuing."));
+    break;
+  default:
+    ModalMessageBox::critical(this, tr("Failure"), tr("Importing Global User Directory failed."));
+    break;
   }
 }
 
