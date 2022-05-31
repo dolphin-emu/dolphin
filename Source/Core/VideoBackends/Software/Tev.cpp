@@ -233,7 +233,7 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
   {
     const InputRegType& InputReg = inputs[i];
 
-    const u16 c = InputReg.c().Get() + (InputReg.c().Get() >> 7);
+    const u16 c = InputReg.c() + (InputReg.c() >> 7);
 
     s32 temp = InputReg.a() * (256 - c) + (InputReg.b() * c);
     temp <<= m_ScaleLShiftLUT[u32(cc.scale().Get())];
