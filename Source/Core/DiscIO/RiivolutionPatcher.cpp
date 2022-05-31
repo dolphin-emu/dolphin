@@ -319,14 +319,6 @@ static void ApplyPatchToFile(const Patch& patch, const File& file_patch,
                    file_patch.m_fileoffset, file_patch.m_length, file_patch.m_resize);
 }
 
-static bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
-{
-  if (a.size() != b.size())
-    return false;
-  return std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
-}
-
 static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTBuilderNode>* fst,
                                          bool create_if_not_exists)
 {
@@ -334,7 +326,7 @@ static FSTBuilderNode* FindFileNodeInFST(std::string_view path, std::vector<FSTB
   const bool is_file = path_separator == std::string_view::npos;
   const std::string_view name = is_file ? path : path.substr(0, path_separator);
   const auto it = std::find_if(fst->begin(), fst->end(), [&](const FSTBuilderNode& node) {
-    return CaseInsensitiveEquals(node.m_filename, name);
+    return Common::CaseInsensitiveEquals(node.m_filename, name);
   });
 
   if (it == fst->end())
@@ -376,7 +368,7 @@ static DiscIO::FSTBuilderNode* FindFilenameNodeInFST(std::string_view filename,
       if (result)
         return result;
     }
-    else if (CaseInsensitiveEquals(node.m_filename, filename))
+    else if (Common::CaseInsensitiveEquals(node.m_filename, filename))
     {
       return &node;
     }
@@ -397,7 +389,7 @@ static void ApplyFilePatchToFST(const Patch& patch, const File& file,
     if (node)
       ApplyPatchToFile(patch, file, node);
   }
-  else if (CaseInsensitiveEquals(file.m_disc, "main.dol"))
+  else if (Common::CaseInsensitiveEquals(file.m_disc, "main.dol"))
   {
     // Special case: If the filename is "main.dol", we want to patch the main executable.
     ApplyPatchToFile(patch, file, dol_node);
