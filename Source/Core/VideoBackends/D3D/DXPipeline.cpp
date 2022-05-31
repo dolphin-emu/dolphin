@@ -37,7 +37,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   ID3D11DepthStencilState* depth_state = state_cache.Get(config.depth_state);
   ID3D11BlendState* blend_state = state_cache.Get(config.blending_state);
   D3D11_PRIMITIVE_TOPOLOGY primitive_topology =
-      StateCache::GetPrimitiveTopology(config.rasterization_state.primitive);
+      StateCache::GetPrimitiveTopology(config.rasterization_state.primitive());
   if (!rasterizer_state || !depth_state || !blend_state)
     return nullptr;
 
@@ -55,7 +55,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
 
   // Only use the integer RTV if logic op is supported, and enabled.
   const bool use_logic_op =
-      config.blending_state.logicopenable && g_ActiveConfig.backend_info.bSupportsLogicOp;
+      config.blending_state.logicopenable() && g_ActiveConfig.backend_info.bSupportsLogicOp;
 
   return std::make_unique<DXPipeline>(input_layout, vertex_shader->GetD3DVertexShader(),
                                       geometry_shader ? geometry_shader->GetD3DGeometryShader() :
