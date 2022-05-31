@@ -155,7 +155,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     std::string batchPath = cwd.string();
     //std::string batchPath("./createcit.bat");
     batchPath += gameVar;
-    WinExec(batchPath.c_str(), SW_NORMAL);
+    WinExec(batchPath.c_str(), SW_HIDE);
   }
 }
 
