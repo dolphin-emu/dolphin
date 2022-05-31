@@ -215,7 +215,7 @@ PixelShaderUid GetPixelShaderUid()
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens(); ++i)
     {
       // optional perspective divides
-      uid_data->texMtxInfo_n_projection[i] |=
+      uid_data->texMtxInfo_n_projection()[i] |=
           static_cast<bool>(xfmem.texMtxInfo[i].projection().Get());
     }
   }
@@ -237,13 +237,13 @@ PixelShaderUid GetPixelShaderUid()
 
   for (unsigned int n = 0; n < numStages; n++)
   {
-    uid_data->stagehash[n].tevorders_texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
-    uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
+    uid_data->stagehash[n].tevorders_texcoord() = bpmem.tevorders[n / 2].getTexCoord(n & 1);
+    uid_data->stagehash[n].tevind() = bpmem.tevind[n].hex;
 
     TevStageCombiner::ColorCombiner& cc = bpmem.combiners[n].colorC;
     TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[n].alphaC;
-    uid_data->stagehash[n].cc = cc.hex & 0xFFFFFF;
-    uid_data->stagehash[n].ac = ac.hex & 0xFFFFF0;  // Storing rswap and tswap later
+    uid_data->stagehash[n].cc() = cc.hex & 0xFFFFFF;
+    uid_data->stagehash[n].ac() = ac.hex & 0xFFFFF0;  // Storing rswap and tswap later
 
     if (cc.a() == TevColorArg::RasAlpha || cc.a() == TevColorArg::RasColor ||
         cc.b() == TevColorArg::RasAlpha || cc.b() == TevColorArg::RasColor ||
@@ -253,22 +253,22 @@ PixelShaderUid GetPixelShaderUid()
         ac.c() == TevAlphaArg::RasAlpha || ac.d() == TevAlphaArg::RasAlpha)
     {
       const int i = bpmem.combiners[n].alphaC.rswap();
-      uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i * 2].swap1();
-      uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i * 2].swap2();
-      uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i * 2 + 1].swap1();
-      uid_data->stagehash[n].tevksel_swap2b = bpmem.tevksel[i * 2 + 1].swap2();
-      uid_data->stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
+      uid_data->stagehash[n].tevksel_swap1a() = bpmem.tevksel[i * 2].swap1();
+      uid_data->stagehash[n].tevksel_swap2a() = bpmem.tevksel[i * 2].swap2();
+      uid_data->stagehash[n].tevksel_swap1b() = bpmem.tevksel[i * 2 + 1].swap1();
+      uid_data->stagehash[n].tevksel_swap2b() = bpmem.tevksel[i * 2 + 1].swap2();
+      uid_data->stagehash[n].tevorders_colorchan() = bpmem.tevorders[n / 2].getColorChan(n & 1);
     }
 
-    uid_data->stagehash[n].tevorders_enable = bpmem.tevorders[n / 2].getEnable(n & 1);
-    if (uid_data->stagehash[n].tevorders_enable)
+    uid_data->stagehash[n].tevorders_enable() = bpmem.tevorders[n / 2].getEnable(n & 1);
+    if (uid_data->stagehash[n].tevorders_enable())
     {
       const int i = bpmem.combiners[n].alphaC.tswap();
-      uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1();
-      uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2();
-      uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1();
-      uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2();
-      uid_data->stagehash[n].tevorders_texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
+      uid_data->stagehash[n].tevksel_swap1c() = bpmem.tevksel[i * 2].swap1();
+      uid_data->stagehash[n].tevksel_swap2c() = bpmem.tevksel[i * 2].swap2();
+      uid_data->stagehash[n].tevksel_swap1d() = bpmem.tevksel[i * 2 + 1].swap1();
+      uid_data->stagehash[n].tevksel_swap2d() = bpmem.tevksel[i * 2 + 1].swap2();
+      uid_data->stagehash[n].tevorders_texmap() = bpmem.tevorders[n / 2].getTexMap(n & 1);
     }
 
     if (cc.a() == TevColorArg::Konst || cc.b() == TevColorArg::Konst ||
@@ -276,8 +276,8 @@ PixelShaderUid GetPixelShaderUid()
         ac.a() == TevAlphaArg::Konst || ac.b() == TevAlphaArg::Konst ||
         ac.c() == TevAlphaArg::Konst || ac.d() == TevAlphaArg::Konst)
     {
-      uid_data->stagehash[n].tevksel_kc = bpmem.tevksel[n / 2].getKC(n & 1);
-      uid_data->stagehash[n].tevksel_ka = bpmem.tevksel[n / 2].getKA(n & 1);
+      uid_data->stagehash[n].tevksel_kc() = bpmem.tevksel[n / 2].getKC(n & 1);
+      uid_data->stagehash[n].tevksel_ka() = bpmem.tevksel[n / 2].getKA(n & 1);
     }
   }
 
@@ -1070,8 +1070,8 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // regardless of the used destination register
     TevStageCombiner::ColorCombiner last_cc;
     TevStageCombiner::AlphaCombiner last_ac;
-    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].cc.Value();
-    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].ac.Value();
+    last_cc.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].cc();
+    last_ac.hex = uid_data->stagehash[uid_data->genMode_numtevstages()].ac();
     if (last_cc.dest() != TevOutput::Prev)
     {
       out.Write("\tprev.rgb = {};\n", tev_c_output_table[last_cc.dest().Get()]);
@@ -1215,13 +1215,13 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
   // Quirk: when the tex coord is not less than the number of tex gens (i.e. the tex coord does not
   // exist), then tex coord 0 is used (though sometimes glitchy effects happen on console).
-  u32 texcoord = stage.tevorders_texcoord;
+  u32 texcoord = stage.tevorders_texcoord();
   const bool has_tex_coord = texcoord < uid_data->genMode_numtexgens();
   if (!has_tex_coord)
     texcoord = 0;
 
   {
-    const TevStageIndirect tevind{.hex = stage.tevind.Value()};
+    const TevStageIndirect tevind{.hex = stage.tevind()};
     out.Write("\t// indirect op\n");
 
     // Quirk: Referencing a stage above the number of ind stages is undefined behavior,
@@ -1447,8 +1447,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 
   TevStageCombiner::ColorCombiner cc;
   TevStageCombiner::AlphaCombiner ac;
-  cc.hex = stage.cc.Value();
-  ac.hex = stage.ac.Value();
+  cc.hex = stage.cc();
+  ac.hex = stage.ac();
 
   if (cc.a() == TevColorArg::RasAlpha || cc.a() == TevColorArg::RasColor ||
       cc.b() == TevColorArg::RasAlpha || cc.b() == TevColorArg::RasColor ||
@@ -1459,29 +1459,29 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   {
     // Generate swizzle string to represent the Ras color channel swapping
     const char rasswap[5] = {
-        "rgba"[stage.tevksel_swap1a],
-        "rgba"[stage.tevksel_swap2a],
-        "rgba"[stage.tevksel_swap1b],
-        "rgba"[stage.tevksel_swap2b],
+        "rgba"[stage.tevksel_swap1a()],
+        "rgba"[stage.tevksel_swap2a()],
+        "rgba"[stage.tevksel_swap1b()],
+        "rgba"[stage.tevksel_swap2b()],
         '\0',
     };
 
-    out.Write("\trastemp = {}.{};\n", tev_ras_table[stage.tevorders_colorchan], rasswap);
+    out.Write("\trastemp = {}.{};\n", tev_ras_table[stage.tevorders_colorchan()], rasswap);
   }
 
-  if (stage.tevorders_enable && uid_data->genMode_numtexgens() > 0)
+  if (stage.tevorders_enable() && uid_data->genMode_numtexgens() > 0)
   {
     // Generate swizzle string to represent the texture color channel swapping
     const char texswap[5] = {
-        "rgba"[stage.tevksel_swap1c],
-        "rgba"[stage.tevksel_swap2c],
-        "rgba"[stage.tevksel_swap1d],
-        "rgba"[stage.tevksel_swap2d],
+        "rgba"[stage.tevksel_swap1c()],
+        "rgba"[stage.tevksel_swap2c()],
+        "rgba"[stage.tevksel_swap1d()],
+        "rgba"[stage.tevksel_swap2d()],
         '\0',
     };
 
     out.Write("\ttextemp = sampleTextureWrapper({0}u, tevcoord.xy, layer).{1};\n",
-              stage.tevorders_texmap, texswap);
+              stage.tevorders_texmap(), texswap);
   }
   else if (uid_data->genMode_numtexgens() == 0)
   {
@@ -1499,18 +1499,18 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       ac.a() == TevAlphaArg::Konst || ac.b() == TevAlphaArg::Konst ||
       ac.c() == TevAlphaArg::Konst || ac.d() == TevAlphaArg::Konst)
   {
-    out.Write("\tkonsttemp = int4({}, {});\n", tev_ksel_table_c[stage.tevksel_kc],
-              tev_ksel_table_a[stage.tevksel_ka]);
+    out.Write("\tkonsttemp = int4({}, {});\n", tev_ksel_table_c[stage.tevksel_kc()],
+              tev_ksel_table_a[stage.tevksel_ka()]);
 
-    if (u32(stage.tevksel_kc.Value()) > 7)
+    if (u32(stage.tevksel_kc().Get()) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc.Value()) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_kc.Value()) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_kc().Get()) - 0xc) % 4),
+                           C_KCOLORS + ((u32(stage.tevksel_kc().Get()) - 0xc) % 4));
     }
-    if (u32(stage.tevksel_ka.Value()) > 7)
+    if (u32(stage.tevksel_ka().Get()) > 7)
     {
-      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka.Value()) - 0xc) % 4),
-                           C_KCOLORS + ((u32(stage.tevksel_ka.Value()) - 0xc) % 4));
+      out.SetConstantsUsed(C_KCOLORS + ((u32(stage.tevksel_ka().Get()) - 0xc) % 4),
+                           C_KCOLORS + ((u32(stage.tevksel_ka().Get()) - 0xc) % 4));
     }
   }
 

@@ -136,43 +136,42 @@ struct pixel_shader_uid_data
   struct
   {
     // TODO: Can save a lot space by removing the padding bits
-    union
-    {
-      BitField<0, 24, u64> cc;
-      BitField<24, 24, u64> ac;  // tswap and rswap are left blank
-                                 // (encoded into the tevksel fields below)
-      BitField<48, 3, u64> tevorders_texmap;
-      BitField<51, 3, u64> tevorders_texcoord;
-      BitField<54, 1, u64> tevorders_enable;
-      BitField<55, 3, RasColorChan, u64> tevorders_colorchan;
-      BitField<58, 6, u64> pad1;
-    };
+    u64 _data4;
+
+    BFVIEW_M(_data4, u64, 0, 24, cc);
+    BFVIEW_M(_data4, u64, 24, 24, ac);  // tswap and rswap are left blank
+                                        // (encoded into the tevksel fields below)
+    BFVIEW_M(_data4, u64, 48, 3, tevorders_texmap);
+    BFVIEW_M(_data4, u64, 51, 3, tevorders_texcoord);
+    BFVIEW_M(_data4, u64, 54, 1, tevorders_enable);
+    BFVIEW_M(_data4, RasColorChan, 55, 3, tevorders_colorchan);
+    BFVIEW_M(_data4, u64, 58, 6, pad1);
 
     // TODO: Clean up the swapXY mess
-    union
-    {
-      BitField<0, 21, u32> tevind;
-      BitField<21, 2, u32> tevksel_swap1a;
-      BitField<23, 2, u32> tevksel_swap2a;
-      BitField<25, 2, u32> tevksel_swap1b;
-      BitField<27, 2, u32> tevksel_swap2b;
-      BitField<29, 3, u32> pad2;
-    };
-    union
-    {
-      BitField<0, 2, u32> tevksel_swap1c;
-      BitField<2, 2, u32> tevksel_swap2c;
-      BitField<4, 2, u32> tevksel_swap1d;
-      BitField<6, 2, u32> tevksel_swap2d;
-      BitField<8, 5, KonstSel, u32> tevksel_kc;
-      BitField<13, 5, KonstSel, u32> tevksel_ka;
-      BitField<18, 14, u32> pad3;
-    };
+    u32 _data5;
+
+    BFVIEW_M(_data5, u32, 0, 21, tevind);
+    BFVIEW_M(_data5, u32, 21, 2, tevksel_swap1a);
+    BFVIEW_M(_data5, u32, 23, 2, tevksel_swap2a);
+    BFVIEW_M(_data5, u32, 25, 2, tevksel_swap1b);
+    BFVIEW_M(_data5, u32, 27, 2, tevksel_swap2b);
+    BFVIEW_M(_data5, u32, 29, 3, pad2);
+
+    u32 _data6;
+
+    BFVIEW_M(_data6, u32, 0, 2, tevksel_swap1c);
+    BFVIEW_M(_data6, u32, 2, 2, tevksel_swap2c);
+    BFVIEW_M(_data6, u32, 4, 2, tevksel_swap1d);
+    BFVIEW_M(_data6, u32, 6, 2, tevksel_swap2d);
+    BFVIEW_M(_data6, KonstSel, 8, 5, tevksel_kc);
+    BFVIEW_M(_data6, KonstSel, 13, 5, tevksel_ka);
+    BFVIEW_M(_data6, u32, 18, 14, pad3);
   } stagehash[16];
 
   LightingUidData lighting;
   // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
-  BitFieldArray<0, 1, 8, bool, u8> texMtxInfo_n_projection;
+  u8 _data7;
+  BFVIEWARRAY_M(_data7, bool, 0, 1, 8, texMtxInfo_n_projection);
 };
 #pragma pack()
 
