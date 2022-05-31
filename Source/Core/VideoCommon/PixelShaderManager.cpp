@@ -473,7 +473,7 @@ void PixelShaderManager::SetBlendModeChanged()
   }
   BlendingState state = {};
   state.Generate(bpmem);
-  if (constants.blend_enable != state.blendenable())
+  if (bool(constants.blend_enable) != state.blendenable())
   {
     constants.blend_enable = state.blendenable();
     dirty = true;
@@ -498,17 +498,17 @@ void PixelShaderManager::SetBlendModeChanged()
     constants.blend_dst_factor_alpha = state.dstfactoralpha();
     dirty = true;
   }
-  if (constants.blend_subtract != state.subtract())
+  if (bool(constants.blend_subtract) != state.subtract())
   {
     constants.blend_subtract = state.subtract();
     dirty = true;
   }
-  if (constants.blend_subtract_alpha != state.subtractAlpha())
+  if (bool(constants.blend_subtract_alpha) != state.subtractAlpha())
   {
     constants.blend_subtract_alpha = state.subtractAlpha();
     dirty = true;
   }
-  if (constants.logic_op_enable != state.logicopenable())
+  if (bool(constants.logic_op_enable) != state.logicopenable())
   {
     constants.logic_op_enable = state.logicopenable();
     dirty = true;
