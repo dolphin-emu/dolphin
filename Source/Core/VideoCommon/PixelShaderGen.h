@@ -43,29 +43,31 @@ struct pixel_shader_uid_data
   BFVIEW_M(_data1, u32, 30, 1, alpha_test_use_zcomploc_hack);
   BFVIEW_M(_data1, FogProjection, 31, 1, fog_proj);
 
-  union
-  {
-    BitField<0, 3, FogType, u32> fog_fsel;
-    BitField<3, 1, bool, u32> fog_RangeBaseEnabled;
-    BitField<4, 2, ZTexOp, u32> ztex_op;
-    BitField<6, 1, bool, u32> per_pixel_depth;
-    BitField<7, 1, bool, u32> forced_early_z;
-    BitField<8, 1, bool, u32> early_ztest;
-    BitField<9, 1, bool, u32> late_ztest;
-    BitField<10, 1, bool, u32> bounding_box;
-    BitField<11, 1, bool, u32> zfreeze;
-    BitField<12, 2, u32> numColorChans;
-    BitField<14, 1, bool, u32> rgba6_format;
-    BitField<15, 1, bool, u32> dither;
-    BitField<16, 1, bool, u32> uint_output;
-    BitField<17, 1, bool, u32> blend_enable;                      // shader_framebuffer_fetch blend
-    BitField<18, 3, SrcBlendFactor, u32> blend_src_factor;        // shader_framebuffer_fetch blend
-    BitField<21, 3, SrcBlendFactor, u32> blend_src_factor_alpha;  // shader_framebuffer_fetch blend
-    BitField<24, 3, DstBlendFactor, u32> blend_dst_factor;        // shader_framebuffer_fetch blend
-    BitField<27, 3, DstBlendFactor, u32> blend_dst_factor_alpha;  // shader_framebuffer_fetch blend
-    BitField<30, 1, bool, u32> blend_subtract;                    // shader_framebuffer_fetch blend
-    BitField<31, 1, bool, u32> blend_subtract_alpha;              // shader_framebuffer_fetch blend
-  };
+  u32 _data2;
+
+  BFVIEW_M(_data2, FogType, 0, 3, fog_fsel);
+  BFVIEW_M(_data2, bool, 3, 1, fog_RangeBaseEnabled);
+  BFVIEW_M(_data2, ZTexOp, 4, 2, ztex_op);
+  BFVIEW_M(_data2, bool, 6, 1, per_pixel_depth);
+  BFVIEW_M(_data2, bool, 7, 1, forced_early_z);
+  BFVIEW_M(_data2, bool, 8, 1, early_ztest);
+  BFVIEW_M(_data2, bool, 9, 1, late_ztest);
+  BFVIEW_M(_data2, bool, 10, 1, bounding_box);
+  BFVIEW_M(_data2, bool, 11, 1, zfreeze);
+  BFVIEW_M(_data2, u32, 12, 2, numColorChans);
+  BFVIEW_M(_data2, bool, 14, 1, rgba6_format);
+  BFVIEW_M(_data2, bool, 15, 1, dither);
+  BFVIEW_M(_data2, bool, 16, 1, uint_output);
+
+  // shader_framebuffer_fetch blend
+  BFVIEW_M(_data2, bool, 17, 1, blend_enable);
+  BFVIEW_M(_data2, SrcBlendFactor, 18, 3, blend_src_factor);
+  BFVIEW_M(_data2, SrcBlendFactor, 21, 3, blend_src_factor_alpha);
+  BFVIEW_M(_data2, DstBlendFactor, 24, 3, blend_dst_factor);
+  BFVIEW_M(_data2, DstBlendFactor, 27, 3, blend_dst_factor_alpha);
+  BFVIEW_M(_data2, bool, 30, 1, blend_subtract);
+  BFVIEW_M(_data2, bool, 31, 1, blend_subtract_alpha);
+
   union
   {
     BitField<0, 1, bool, u32> logic_op_enable;  // shader_framebuffer_fetch logic ops

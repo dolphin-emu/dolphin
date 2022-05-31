@@ -181,11 +181,11 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->genMode_numindstages() = bpmem.genMode.numindstages();
   uid_data->genMode_numtevstages() = bpmem.genMode.numtevstages();
   uid_data->genMode_numtexgens() = bpmem.genMode.numtexgens();
-  uid_data->bounding_box = g_ActiveConfig.bBBoxEnable && g_renderer->IsBBoxEnabled();
-  uid_data->rgba6_format =
+  uid_data->bounding_box() = g_ActiveConfig.bBBoxEnable && g_renderer->IsBBoxEnabled();
+  uid_data->rgba6_format() =
       bpmem.zcontrol.pixel_format() == PixelFormat::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
-  uid_data->dither = bpmem.blendmode.dither() && uid_data->rgba6_format;
-  uid_data->uint_output = bpmem.blendmode.UseLogicOp();
+  uid_data->dither() = bpmem.blendmode.dither() && uid_data->rgba6_format();
+  uid_data->uint_output() = bpmem.blendmode.UseLogicOp();
 
   u32 numStages = uid_data->genMode_numtevstages() + 1;
 
@@ -201,12 +201,12 @@ PixelShaderUid GetPixelShaderUid()
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable() && !forced_early_z) ||
       (bpmem.zmode.testenable() && bpmem.genMode.zfreeze());
 
-  uid_data->per_pixel_depth = per_pixel_depth;
-  uid_data->forced_early_z = forced_early_z;
+  uid_data->per_pixel_depth() = per_pixel_depth;
+  uid_data->forced_early_z() = forced_early_z;
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
-    uid_data->numColorChans = xfmem.numChan.numColorChans();
+    uid_data->numColorChans() = xfmem.numChan.numColorChans();
     GetLightingShaderUid(uid_data->lighting);
   }
 
@@ -287,13 +287,13 @@ PixelShaderUid GetPixelShaderUid()
                              MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
 
   uid_data->Pretest() = bpmem.alpha_test.TestResult();
-  uid_data->late_ztest = bpmem.UseLateDepthTest();
+  uid_data->late_ztest() = bpmem.UseLateDepthTest();
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
   if (uid_data->Pretest() == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest() == AlphaTestResult::Fail && uid_data->late_ztest))
+      (uid_data->Pretest() == AlphaTestResult::Fail && uid_data->late_ztest()))
   {
     uid_data->alpha_test_comp0() = bpmem.alpha_test.comp0();
     uid_data->alpha_test_comp1() = bpmem.alpha_test.comp1();
@@ -311,13 +311,13 @@ PixelShaderUid GetPixelShaderUid()
         !g_ActiveConfig.backend_info.bSupportsEarlyZ && !bpmem.genMode.zfreeze();
   }
 
-  uid_data->zfreeze = bpmem.genMode.zfreeze();
-  uid_data->ztex_op = bpmem.ztex2.op();
-  uid_data->early_ztest = bpmem.UseEarlyDepthTest();
+  uid_data->zfreeze() = bpmem.genMode.zfreeze();
+  uid_data->ztex_op() = bpmem.ztex2.op();
+  uid_data->early_ztest() = bpmem.UseEarlyDepthTest();
 
-  uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel();
+  uid_data->fog_fsel() = bpmem.fog.c_proj_fsel.fsel();
   uid_data->fog_proj() = bpmem.fog.c_proj_fsel.proj();
-  uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled();
+  uid_data->fog_RangeBaseEnabled() = bpmem.fogRange.Base.Enabled();
 
   BlendingState state = {};
   state.Generate(bpmem);
@@ -327,13 +327,13 @@ PixelShaderUid GetPixelShaderUid()
       g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
       !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
-    uid_data->blend_enable = state.blendenable();
-    uid_data->blend_src_factor = state.srcfactor();
-    uid_data->blend_src_factor_alpha = state.srcfactoralpha();
-    uid_data->blend_dst_factor = state.dstfactor();
-    uid_data->blend_dst_factor_alpha = state.dstfactoralpha();
-    uid_data->blend_subtract = state.subtract();
-    uid_data->blend_subtract_alpha = state.subtractAlpha();
+    uid_data->blend_enable() = state.blendenable();
+    uid_data->blend_src_factor() = state.srcfactor();
+    uid_data->blend_src_factor_alpha() = state.srcfactoralpha();
+    uid_data->blend_dst_factor() = state.dstfactor();
+    uid_data->blend_dst_factor_alpha() = state.dstfactoralpha();
+    uid_data->blend_subtract() = state.subtract();
+    uid_data->blend_subtract_alpha() = state.subtractAlpha();
   }
 
   uid_data->logic_op_enable = state.logicopenable();
@@ -351,11 +351,11 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
   if (api_type != APIType::D3D || !host_config.backend_logic_op())
-    uid_data->uint_output = false;
+    uid_data->uint_output() = false;
 
   // If bounding box is enabled when a UID cache is created, then later disabled, we shouldn't
   // emit the bounding box portion of the shader.
-  uid_data->bounding_box &= host_config.bounding_box() & host_config.backend_bbox();
+  uid_data->bounding_box() &= host_config.bounding_box() & host_config.backend_bbox();
 }
 
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
@@ -794,12 +794,12 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   // Stuff that is shared between ubershaders and pixelgen.
   WriteBitfieldExtractHeader(out, api_type, host_config);
-  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box);
+  WritePixelShaderCommonHeader(out, api_type, host_config, uid_data->bounding_box());
 
   out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
             "sampleTexture(texmap, samp[texmap], uv, layer)\n");
 
-  if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  if (uid_data->forced_early_z() && g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
     // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
     // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
@@ -889,7 +889,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
               has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
                                       "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
               use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
-              uid_data->uint_output ? "uvec4" : "vec4",
+              uid_data->uint_output() ? "uvec4" : "vec4",
               use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
     if (use_dual_source)
@@ -897,11 +897,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
       out.Write("{} out {} ocol1;\n",
                 has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
                                         "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)",
-                uid_data->uint_output ? "uvec4" : "vec4");
+                uid_data->uint_output() ? "uvec4" : "vec4");
     }
   }
 
-  if (uid_data->per_pixel_depth)
+  if (uid_data->per_pixel_depth())
     out.Write("#define depth gl_FragDepth\n");
 
   if (host_config.backend_geometry_shaders())
@@ -1011,9 +1011,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // Normally this is performed in the vertex shader after lighting, but with per-pixel lighting,
     // we need to perform it here.  (It needs to be done after lighting, as what was originally
     // black might become a different color after lighting).
-    if (uid_data->numColorChans == 0)
+    if (uid_data->numColorChans() == 0)
       out.Write("col0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-    if (uid_data->numColorChans <= 1)
+    if (uid_data->numColorChans() <= 1)
       out.Write("col1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
@@ -1087,9 +1087,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
   if (uid_data->Pretest() == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest() == AlphaTestResult::Fail && uid_data->late_ztest))
+      (uid_data->Pretest() == AlphaTestResult::Fail && uid_data->late_ztest()))
   {
-    WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
+    WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth(),
                    use_dual_source || use_shader_blend);
   }
 
@@ -1105,7 +1105,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
             "\t// but doesn't do anything in blending\n"
             "\tif (prev.a == 1) prev.a = 0;\n");
 
-  if (uid_data->zfreeze)
+  if (uid_data->zfreeze())
   {
     out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
     out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
@@ -1142,10 +1142,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   // depth texture can safely be ignored if the result won't be written to the depth buffer
   // (early_ztest) and isn't used for fog either
-  const bool skip_ztexture = !uid_data->per_pixel_depth && uid_data->fog_fsel == FogType::Off;
+  const bool skip_ztexture = !uid_data->per_pixel_depth() && uid_data->fog_fsel() == FogType::Off;
 
   // Note: z-textures are not written to depth buffer if early depth test is used
-  if (uid_data->per_pixel_depth && uid_data->early_ztest)
+  if (uid_data->per_pixel_depth() && uid_data->early_ztest())
   {
     if (!host_config.backend_reversed_depth_range())
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
@@ -1156,17 +1156,17 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // Note: depth texture output is only written to depth buffer if late depth test is used
   // theoretical final depth value is used for fog calculation, though, so we have to emulate
   // ztextures anyway
-  if (uid_data->ztex_op != ZTexOp::Disabled && !skip_ztexture)
+  if (uid_data->ztex_op() != ZTexOp::Disabled && !skip_ztexture)
   {
     // use the texture input of the last texture stage (textemp), hopefully this has been read and
     // is in correct format...
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
     out.Write("\tzCoord = idot(" I_ZBIAS "[0].xyzw, textemp.xyzw) + " I_ZBIAS "[1].w {};\n",
-              (uid_data->ztex_op == ZTexOp::Add) ? "+ zCoord" : "");
+              (uid_data->ztex_op() == ZTexOp::Add) ? "+ zCoord" : "");
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
 
-  if (uid_data->per_pixel_depth && uid_data->late_ztest)
+  if (uid_data->per_pixel_depth() && uid_data->late_ztest())
   {
     if (!host_config.backend_reversed_depth_range())
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
@@ -1175,7 +1175,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
 
   // No dithering for RGB8 mode
-  if (uid_data->dither)
+  if (uid_data->dither())
   {
     // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
     // Here the matrix is encoded into the two factor constants
@@ -1197,7 +1197,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   else if (use_framebuffer_fetch)
     out.Write("\treal_ocol0 = ocol0;\n");
 
-  if (uid_data->bounding_box)
+  if (uid_data->bounding_box())
     out.Write("\tUpdateBoundingBox(rawpos.xy);\n");
 
   out.Write("}}\n");
@@ -1727,7 +1727,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     out.Write(")) {{\n");
 
   out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  if (use_dual_source && !(api_type == APIType::D3D && uid_data->uint_output))
+  if (use_dual_source && !(api_type == APIType::D3D && uid_data->uint_output()))
     out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   if (per_pixel_depth)
   {
@@ -1773,7 +1773,7 @@ constexpr Common::EnumMap<const char*, FogType::BackwardsExpSq> tev_fog_funcs_ta
 
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
-  if (uid_data->fog_fsel == FogType::Off)
+  if (uid_data->fog_fsel() == FogType::Off)
     return;  // no Fog
 
   out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
@@ -1799,7 +1799,7 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
   // x_adjust = sqrt((x-center)^2 + k^2)/k
   // ze *= x_adjust
-  if (uid_data->fog_RangeBaseEnabled)
+  if (uid_data->fog_RangeBaseEnabled())
   {
     out.SetConstantsUsed(C_FOGF, C_FOGF);
     out.Write("\tfloat offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
@@ -1815,14 +1815,14 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
   out.Write("\tfloat fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n");
 
-  if (uid_data->fog_fsel >= FogType::Exp)
+  if (uid_data->fog_fsel() >= FogType::Exp)
   {
-    out.Write("{}", tev_fog_funcs_table[uid_data->fog_fsel]);
+    out.Write("{}", tev_fog_funcs_table[uid_data->fog_fsel()]);
   }
   else
   {
-    if (uid_data->fog_fsel != FogType::Linear)
-      WARN_LOG_FMT(VIDEO, "Unknown Fog Type! {}", uid_data->fog_fsel);
+    if (uid_data->fog_fsel() != FogType::Linear)
+      WARN_LOG_FMT(VIDEO, "Unknown Fog Type! {}", uid_data->fog_fsel());
   }
 
   out.Write("\tint ifog = iround(fog * 256.0);\n");
@@ -1858,16 +1858,16 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
                        bool use_dual_source)
 {
   // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
-  if (api_type == APIType::D3D && uid_data->uint_output)
+  if (api_type == APIType::D3D && uid_data->uint_output())
   {
-    if (uid_data->rgba6_format)
+    if (uid_data->rgba6_format())
       out.Write("\tocol0 = uint4(prev & 0xFC);\n");
     else
       out.Write("\tocol0 = uint4(prev);\n");
     return;
   }
 
-  if (uid_data->rgba6_format)
+  if (uid_data->rgba6_format())
     out.Write("\tocol0.rgb = float3(prev.rgb >> 2) / 63.0;\n");
   else
     out.Write("\tocol0.rgb = float3(prev.rgb) / 255.0;\n");
@@ -1893,7 +1893,7 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
 
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
-  if (uid_data->blend_enable)
+  if (uid_data->blend_enable())
   {
     using Common::EnumMap;
     static constexpr EnumMap<const char*, SrcBlendFactor::InvDstAlpha> blend_src_factor{
@@ -1939,14 +1939,14 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     out.Write("\tfloat4 src_color = {};\n"
               "\tfloat4 blend_src;",
               uid_data->useDstAlpha() ? "ocol1" : "ocol0");
-    out.Write("\tblend_src.rgb = {}\n", blend_src_factor[uid_data->blend_src_factor]);
-    out.Write("\tblend_src.a = {}\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha]);
+    out.Write("\tblend_src.rgb = {}\n", blend_src_factor[uid_data->blend_src_factor()]);
+    out.Write("\tblend_src.a = {}\n", blend_src_factor_alpha[uid_data->blend_src_factor_alpha()]);
     out.Write("\tfloat4 blend_dst;\n");
-    out.Write("\tblend_dst.rgb = {}\n", blend_dst_factor[uid_data->blend_dst_factor]);
-    out.Write("\tblend_dst.a = {}\n", blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha]);
+    out.Write("\tblend_dst.rgb = {}\n", blend_dst_factor[uid_data->blend_dst_factor()]);
+    out.Write("\tblend_dst.a = {}\n", blend_dst_factor_alpha[uid_data->blend_dst_factor_alpha()]);
 
     out.Write("\tfloat4 blend_result;\n");
-    if (uid_data->blend_subtract)
+    if (uid_data->blend_subtract())
     {
       out.Write("\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * "
                 "blend_src.rgb;\n");
@@ -1957,7 +1957,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
           "\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * blend_src.rgb;\n");
     }
 
-    if (uid_data->blend_subtract_alpha)
+    if (uid_data->blend_subtract_alpha())
       out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a - ocol0.a * blend_src.a;\n");
     else
       out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a + ocol0.a * blend_src.a;\n");
