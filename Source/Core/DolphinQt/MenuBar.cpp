@@ -289,10 +289,10 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  m_import_userdir = tools_menu->addAction(tr("Import Global User Directory..."), this,
-                                           &MenuBar::ImportUserDirBackup);
-  m_export_userdir = tools_menu->addAction(tr("Export Global User Directory..."), this,
-                                           &MenuBar::ExportUserDirBackup);
+  m_import_userdir =
+      tools_menu->addAction(tr("Import User Directory..."), this, &MenuBar::ImportUserDirBackup);
+  m_export_userdir =
+      tools_menu->addAction(tr("Export User Directory..."), this, &MenuBar::ExportUserDirBackup);
 
   QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
@@ -1060,21 +1060,21 @@ void MenuBar::ImportUserDirBackup()
 {
   auto warning_result = ModalMessageBox::question(
       this, tr("Warning"),
-      tr("Importing a Global User Directory will delete all data currently stored within the "
-         "Global User Directory. This includes save files, controller configuration, and other "
-         "user-configured data. You may want to export your current Global User Directory before "
-         "importing a new one.\n\nAre you sure you want to continue?"));
+      tr("Importing a User Directory will delete all data currently stored within the User "
+         "Directory. This includes save files, controller configuration, and other user-configured "
+         "data. You may want to export your current User Directory before importing a new "
+         "one.\n\nAre you sure you want to continue?"));
   if (warning_result != QMessageBox::Yes)
     return;
 
   const QString path = DolphinFileDialog::getOpenFileName(
-      this, tr("Select the Global User Directory backup to import"), QDir::currentPath(),
+      this, tr("Select the User Directory backup to import"), QDir::currentPath(),
       QStringLiteral("%1 (*.zip);;%2 (*)").arg(tr("ZIP archive")).arg(tr("All Files")));
   if (path.isEmpty())
     return;
 
-  ParallelProgressDialog progress(tr("Importing Global User Directory from %1...").arg(path),
-                                  QString(), 0, 0, this);
+  ParallelProgressDialog progress(tr("Importing User Directory from %1...").arg(path), QString(), 0,
+                                  0, this);
   progress.GetRaw()->setWindowTitle(tr("Importing"));
   progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
@@ -1090,36 +1090,35 @@ void MenuBar::ImportUserDirBackup()
   switch (result)
   {
   case UICommon::ImportUserDirResult::Success:
-    ModalMessageBox::information(this, tr("Success"),
-                                 tr("Successfully imported Global User Directory."));
+    ModalMessageBox::information(this, tr("Success"), tr("Successfully imported User Directory."));
     break;
   case UICommon::ImportUserDirResult::ArchiveFileError:
     ModalMessageBox::critical(this, tr("Failure"),
-                              tr("Importing Global User Directory failed: The selected archive "
-                                 "could not be opened or is corrupt."));
+                              tr("Importing User Directory failed: The selected archive could not "
+                                 "be opened or is corrupt."));
     break;
   case UICommon::ImportUserDirResult::ArchiveDoesNotContainUserdir:
     ModalMessageBox::critical(this, tr("Failure"),
-                              tr("Importing Global User Directory failed: The selected archive "
-                                 "does not appear to contain a Global User Directory backup."));
+                              tr("Importing User Directory failed: The selected archive does not "
+                                 "appear to contain a User Directory backup."));
     break;
   case UICommon::ImportUserDirResult::OldUserdirDeleteError:
     ModalMessageBox::critical(
         this, tr("Failure"),
-        tr("Importing Global User Directory failed: Unable to delete the existing Global User "
-           "Directory. The directory may now be in an inconsistent state. It is recommended to "
-           "close Dolphin and manually delete the directory before continuing."));
+        tr("Importing User Directory failed: Unable to delete the existing User Directory. The "
+           "directory may now be in an inconsistent state. It is recommended to close Dolphin and "
+           "manually delete the directory before continuing."));
     break;
   case UICommon::ImportUserDirResult::ExtractError:
     ModalMessageBox::critical(
         this, tr("Failure"),
-        tr("Importing Global User Directory failed: Failed to extract archive. The archive may be "
-           "corrupt or there may not be enough disk space available. The directory may now be in "
-           "an inconsistent state. It is recommended to close Dolphin and manually delete the "
+        tr("Importing User Directory failed: Failed to extract archive. The archive may be corrupt "
+           "or there may not be enough disk space available. The directory may now be in an "
+           "inconsistent state. It is recommended to close Dolphin and manually delete the "
            "directory before continuing."));
     break;
   default:
-    ModalMessageBox::critical(this, tr("Failure"), tr("Importing Global User Directory failed."));
+    ModalMessageBox::critical(this, tr("Failure"), tr("Importing User Directory failed."));
     break;
   }
 }
@@ -1127,13 +1126,13 @@ void MenuBar::ImportUserDirBackup()
 void MenuBar::ExportUserDirBackup()
 {
   const QString path = DolphinFileDialog::getSaveFileName(
-      this, tr("Select storage location for Global User Directory backup"), QDir::currentPath(),
+      this, tr("Select storage location for User Directory backup"), QDir::currentPath(),
       QStringLiteral("%1 (*.zip);;%2 (*)").arg(tr("ZIP archive")).arg(tr("All Files")));
   if (path.isEmpty())
     return;
 
-  ParallelProgressDialog progress(tr("Exporting Global User Directory to %1...").arg(path),
-                                  tr("Cancel"), 0, 0, this);
+  ParallelProgressDialog progress(tr("Exporting User Directory to %1...").arg(path), tr("Cancel"),
+                                  0, 0, this);
   progress.GetRaw()->setWindowTitle(tr("Exporting"));
   progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
@@ -1155,12 +1154,11 @@ void MenuBar::ExportUserDirBackup()
 
   if (success)
   {
-    ModalMessageBox::information(this, tr("Success"),
-                                 tr("Successfully exported Global User Directory."));
+    ModalMessageBox::information(this, tr("Success"), tr("Successfully exported User Directory."));
   }
   else
   {
-    ModalMessageBox::critical(this, tr("Failure"), tr("Exporting Global User Directory failed."));
+    ModalMessageBox::critical(this, tr("Failure"), tr("Exporting User Directory failed."));
   }
 }
 
