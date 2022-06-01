@@ -31,11 +31,12 @@
 
 #pragma once
 
-#include <cassert>      // assert
 #include <cstddef>      // std::size_t
 #include <iterator>     // std::input_iterator_tag, std::output_iterator_tag
 #include <limits>       // std::numeric_limits
 #include <type_traits>  // std::make_unsigned, std::make_signed, std::is_integral, std::is_enum
+
+#include "Common/Assert.h"  // DEBUG_ASSERT
 
 template <typename host_t_, typename field_t_, std::size_t start_, std::size_t width_>
 class BitFieldFixedView;
@@ -305,7 +306,7 @@ public:
 
   constexpr field_t Get(const std::size_t idx) const
   {
-    assert(idx < length);  // Index out of range
+    DEBUG_ASSERT(idx < length);  // Index out of range
     const std::size_t lshift = rshift - (start + width * idx);
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
     // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
@@ -316,19 +317,19 @@ public:
   }
   constexpr void Set(const std::size_t idx, const field_t val)
   {
-    assert(idx < length);  // Index out of range
+    DEBUG_ASSERT(idx < length);  // Index out of range
     const uhost_t mask = (std::numeric_limits<uhost_t>::max() >> rshift) << (start + width * idx);
     host = (host & ~mask) | ((static_cast<host_t>(val) << (start + width * idx)) & mask);
   }
 
   constexpr BitFieldView<host_t, field_t> operator[](const std::size_t idx)
   {
-    assert(idx < length);  // Index out of range
+    DEBUG_ASSERT(idx < length);  // Index out of range
     return BitFieldView<host_t, field_t>(host, start + width * idx, width);
   }
   constexpr ConstBitFieldView<host_t, field_t> operator[](const std::size_t idx) const
   {
-    assert(idx < length);  // Index out of range
+    DEBUG_ASSERT(idx < length);  // Index out of range
     return ConstBitFieldView<host_t, field_t>(host, start + width * idx, width);
   }
 
@@ -372,7 +373,7 @@ public:
 
   constexpr field_t Get(const std::size_t idx) const
   {
-    assert(idx < length);  // Index out of range
+    DEBUG_ASSERT(idx < length);  // Index out of range
     const std::size_t lshift = rshift - (start + width * idx);
     // Choose between arithmetic (sign extend) or logical (no sign extend) right-shift.
     // Fun fact: This is implementaton defined.  It is only possible to do this implicitly.
@@ -382,9 +383,9 @@ public:
       return static_cast<field_t>(static_cast<uhost_t>(host << lshift) >> rshift);
   }
 
-  ConstBitFieldView<host_t, field_t> operator[](const std::size_t idx) const
+  constexpr ConstBitFieldView<host_t, field_t> operator[](const std::size_t idx) const
   {
-    assert(idx < length);  // Index out of range
+    DEBUG_ASSERT(idx < length);  // Index out of range
     return ConstBitFieldView<host_t, field_t>(host, start + width * idx, width);
   }
 
