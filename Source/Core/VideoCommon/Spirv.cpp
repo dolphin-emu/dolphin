@@ -55,7 +55,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
   glslang::TShader::ForbidIncluder includer;
   EProfile profile = ECoreProfile;
   EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules);
-  if (api_type == APIType::Vulkan)
+  if (api_type == APIType::Vulkan || api_type == APIType::Metal)
     messages = static_cast<EShMessages>(messages | EShMsgVulkanRules);
   int default_version = 450;
 

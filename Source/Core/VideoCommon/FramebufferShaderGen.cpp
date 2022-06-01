@@ -34,6 +34,7 @@ void EmitSamplerDeclarations(ShaderCode& code, u32 start = 0, u32 end = 1,
   switch (GetAPIType())
   {
   case APIType::D3D:
+  case APIType::Metal:
   case APIType::OpenGL:
   case APIType::Vulkan:
   {
@@ -55,6 +56,7 @@ void EmitSampleTexture(ShaderCode& code, u32 n, std::string_view coords)
   switch (GetAPIType())
   {
   case APIType::D3D:
+  case APIType::Metal:
   case APIType::OpenGL:
   case APIType::Vulkan:
     code.Write("texture(samp{}, {})", n, coords);
@@ -72,6 +74,7 @@ void EmitTextureLoad(ShaderCode& code, u32 n, std::string_view coords)
   switch (GetAPIType())
   {
   case APIType::D3D:
+  case APIType::Metal:
   case APIType::OpenGL:
   case APIType::Vulkan:
     code.Write("texelFetch(samp{}, ({}).xyz, ({}).w)", n, coords, coords);
@@ -89,6 +92,7 @@ void EmitVertexMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_col
   switch (GetAPIType())
   {
   case APIType::D3D:
+  case APIType::Metal:
   case APIType::OpenGL:
   case APIType::Vulkan:
   {
@@ -138,6 +142,7 @@ void EmitPixelMainDeclaration(ShaderCode& code, u32 num_tex_inputs, u32 num_colo
   switch (GetAPIType())
   {
   case APIType::D3D:
+  case APIType::Metal:
   case APIType::OpenGL:
   case APIType::Vulkan:
   {

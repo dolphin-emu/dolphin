@@ -60,6 +60,9 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
     case APIType::D3D:
       filename += "D3D";
       break;
+    case APIType::Metal:
+      filename += "Metal";
+      break;
     case APIType::OpenGL:
       filename += "OpenGL";
       break;
