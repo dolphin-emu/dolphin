@@ -2932,18 +2932,6 @@ void CEXISlippi::handleLogOutRequest()
   user->LogOut();
 }
 
-void CEXISlippi::handleUpdateAppRequest()
-{
-#ifdef __APPLE__
-  CriticalAlertT("Automatic updates are not available for macOS, please get the latest update from "
-                 "slippi.gg/netplay.");
-#else
-  Host_LowerWindow();
-  user->UpdateApp();
-  Host_Exit();
-#endif
-}
-
 void CEXISlippi::prepareOnlineStatus()
 {
   m_read_queue.clear();
@@ -3198,7 +3186,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
       handleChatMessage(&memPtr[bufLoc + 1]);
       break;
     case CMD_UPDATE:
-      handleUpdateAppRequest();
+      user->UpdateApp();
       break;
     case CMD_GET_NEW_SEED:
       prepareNewSeed();

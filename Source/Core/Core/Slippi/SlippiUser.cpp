@@ -178,19 +178,19 @@ void SlippiUser::OpenLogInPage()
   RunSystemCommand(command);
 }
 
-bool SlippiUser::UpdateApp()
+void SlippiUser::UpdateApp()
 {
 #if defined(__APPLE__) || defined(_WIN32)
   CriticalAlertT("Dolphin auto updates are not available on standalone builds. Migrate to "
                  "the Slippi Launcher at your earliest convenience");
-  return false;
+  return;
 #else
   const char* appimage_path = getenv("APPIMAGE");
   const char* appmount_path = getenv("APPDIR");
   if (!appimage_path)
   {
     CriticalAlertT("Automatic updates are not available for non-AppImage Linux builds.");
-    return false;
+    return;
   }
   std::string path(appimage_path);
   std::string mount_path(appmount_path);
@@ -198,7 +198,7 @@ bool SlippiUser::UpdateApp()
   WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
   RunSystemCommand(command);
   CriticalAlertT("Dolphin failed to update, please head over to the Slippi Discord for support.");
-  return true;
+  return;
 #endif
 }
 
@@ -261,8 +261,6 @@ std::string SlippiUser::getUserFilePath()
 #if defined(__APPLE__)
   std::string user_file_path =
       File::GetBundleDirectory() + "/Contents/Resources" + DIR_SEP + "user.json";
-#elif defined(_WIN32)
-  std::string user_file_path = File::GetExeDirectory() + DIR_SEP + "user.json";
 #else
   std::string user_file_path = File::GetUserPath(F_USERJSON_IDX);
 #endif

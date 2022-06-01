@@ -185,7 +185,6 @@ private:
   bool shouldAdvanceOnlineFrame(s32 frame);
   void handleLogInRequest();
   void handleLogOutRequest();
-  void handleUpdateAppRequest();
   void prepareOnlineStatus();
   void handleConnectionCleanup();
   void prepareNewSeed();
