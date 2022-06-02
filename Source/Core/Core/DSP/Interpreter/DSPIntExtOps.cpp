@@ -168,7 +168,7 @@ void Interpreter::ln(const UDSPInstruction opc)
   }
 }
 
-// LS $axD.D, $acS.m108
+// LS $axD.D, $acS.m
 // xxxx xxxx 10dd 000s
 // Load register $axD.D with value from memory pointed by register
 // $ar0. Store value from register $acS.m to memory location pointed by
