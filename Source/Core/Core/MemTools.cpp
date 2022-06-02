@@ -113,6 +113,11 @@ void UninstallExceptionHandler()
     s_veh_handle = nullptr;
 }
 
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 
 static void CheckKR(const char* name, kern_return_t kr)
@@ -245,6 +250,11 @@ void UninstallExceptionHandler()
 {
 }
 
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
 
 static struct sigaction old_sa_segv;
@@ -353,13 +363,25 @@ void UninstallExceptionHandler()
   sigaction(SIGBUS, &old_sa_bus, nullptr);
 #endif
 }
+
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #else  // _M_GENERIC or unsupported platform
 
 void InstallExceptionHandler()
 {
 }
+
 void UninstallExceptionHandler()
 {
+}
+
+bool IsExceptionHandlerSupported()
+{
+  return false;
 }
 
 #endif
