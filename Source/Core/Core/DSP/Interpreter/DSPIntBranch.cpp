@@ -179,7 +179,11 @@ void Interpreter::loop(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
   const u16 reg = opc & 0x1f;
-  const u16 cnt = OpReadRegister(reg);
+  u16 cnt;
+  if (reg >= DSP_REG_ACM0)
+    cnt = OpReadRegisterAndSaturate(reg - DSP_REG_ACM0);
+  else
+    cnt = OpReadRegister(reg);
   const u16 loop_pc = state.pc;
 
   if (cnt != 0)
@@ -233,7 +237,11 @@ void Interpreter::bloop(const UDSPInstruction opc)
 {
   auto& state = m_dsp_core.DSPState();
   const u16 reg = opc & 0x1f;
-  const u16 cnt = OpReadRegister(reg);
+  u16 cnt;
+  if (reg >= DSP_REG_ACM0)
+    cnt = OpReadRegisterAndSaturate(reg - DSP_REG_ACM0);
+  else
+    cnt = OpReadRegister(reg);
   const u16 loop_pc = state.FetchInstruction();
 
   if (cnt != 0)
