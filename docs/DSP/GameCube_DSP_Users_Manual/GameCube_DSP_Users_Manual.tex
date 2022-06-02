@@ -4670,6 +4670,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SL} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSM}
@@ -4693,6 +4697,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSNM}
@@ -4717,6 +4725,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLNM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSN}
@@ -4740,6 +4752,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLN} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'MV}
@@ -4837,6 +4853,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LS} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLM}
@@ -4860,6 +4880,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLNM}
@@ -4884,6 +4908,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSNM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLN}
@@ -4907,6 +4935,10 @@ When the main and extension opcodes write to the same register, the register is 
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSN} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SN}
