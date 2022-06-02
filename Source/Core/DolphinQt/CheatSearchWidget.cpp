@@ -448,8 +448,12 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   if (m_address_table->selectedItems().isEmpty())
     return;
 
+  auto* item = m_address_table->selectedItems()[0];
+  const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+
   QMenu* menu = new QMenu(this);
 
+  menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });
   menu->addAction(tr("Generate Action Replay Code"), this, &CheatSearchWidget::GenerateARCode);
 
   menu->exec(QCursor::pos());
