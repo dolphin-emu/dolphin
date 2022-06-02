@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <fmt/format.h>
 #include <functional>
 #include <memory>
 
@@ -39,4 +40,28 @@ private:
 
 using ConfigDescriptor = UniquePtr<libusb_config_descriptor>;
 ConfigDescriptor MakeConfigDescriptor(libusb_device* device, u8 config_num = 0);
+
+// Wrapper for libusb_error to be used with fmt.  Note that we can't create a fmt::formatter
+// directly for libusb_error as it is a plain enum and most libusb functions actually return an
+// int instead of a libusb_error.
+struct ErrorWrap
+{
+  constexpr explicit ErrorWrap(int error) : m_error(error) {}
+  const int m_error;
+
+  const char* GetStrError() const;
+  const char* GetName() const;
+};
 }  // namespace LibusbUtils
+
+template <>
+struct fmt::formatter<LibusbUtils::ErrorWrap>
+{
+  constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+  template <typename FormatContext>
+  auto format(const LibusbUtils::ErrorWrap& wrap, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "{} ({}: {})", wrap.GetStrError(), wrap.m_error,
+                          wrap.GetName());
+  }
+};
