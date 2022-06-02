@@ -189,12 +189,14 @@ static void Read()
   {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
     int payload_size = 0;
-    const int err =
+    const int error =
         libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap.data(),
                                   CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE, &payload_size, 16);
-    if (err)
-      ERROR_LOG_FMT(CONTROLLERINTERFACE, "adapter libusb read failed: err={}",
-                    libusb_error_name(err));
+    if (error != LIBUSB_SUCCESS)
+    {
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "Read: libusb_interrupt_transfer failed: {}",
+                    LibusbUtils::ErrorWrap(error));
+    }
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
     const int payload_size = env->CallStaticIntMethod(s_adapter_class, input_func);
     jbyte* const java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
@@ -255,12 +257,12 @@ static void Write()
     if (write_size)
     {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-      const int err = libusb_interrupt_transfer(
+      const int error = libusb_interrupt_transfer(
           s_handle, s_endpoint_out, s_controller_write_payload.data(), write_size, &size, 16);
-      if (err != 0)
+      if (error != LIBUSB_SUCCESS)
       {
-        ERROR_LOG_FMT(CONTROLLERINTERFACE, "adapter libusb write failed: err={}",
-                      libusb_error_name(err));
+        ERROR_LOG_FMT(CONTROLLERINTERFACE, "Write: libusb_interrupt_transfer failed: {}",
+                      LibusbUtils::ErrorWrap(error));
       }
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
       const jbyteArray jrumble_array = env->NewByteArray(CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE);
@@ -322,15 +324,22 @@ static void ScanThreadFunc()
 #endif
   if (s_libusb_hotplug_enabled)
   {
-    if (libusb_hotplug_register_callback(
-            *s_libusb_context,
-            (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
-                                   LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
-            LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
-            nullptr, &s_hotplug_handle) != LIBUSB_SUCCESS)
-      s_libusb_hotplug_enabled = false;
-    if (s_libusb_hotplug_enabled)
+    const int error = libusb_hotplug_register_callback(
+        *s_libusb_context,
+        (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
+                               LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
+        LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
+        nullptr, &s_hotplug_handle);
+    if (error == LIBUSB_SUCCESS)
+    {
       NOTICE_LOG_FMT(CONTROLLERINTERFACE, "Using libUSB hotplug detection");
+    }
+    else
+    {
+      s_libusb_hotplug_enabled = false;
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "Failed to add libUSB hotplug detection callback: {}",
+                    LibusbUtils::ErrorWrap(error));
+    }
   }
 #endif
 
@@ -483,10 +492,11 @@ static bool CheckDeviceAccess(libusb_device* device)
 {
   libusb_device_descriptor desc;
   int ret = libusb_get_device_descriptor(device, &desc);
-  if (ret != 0)
+  if (ret != LIBUSB_SUCCESS)
   {
     // could not acquire the descriptor, no point in trying to use it.
-    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_get_device_descriptor failed with error: {}", ret);
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_get_device_descriptor failed: {}",
+                  LibusbUtils::ErrorWrap(ret));
     return false;
   }
 
@@ -505,23 +515,23 @@ static bool CheckDeviceAccess(libusb_device* device)
   const u8 bus = libusb_get_bus_number(device);
   const u8 port = libusb_get_device_address(device);
   ret = libusb_open(device, &s_handle);
-  if (ret == LIBUSB_ERROR_ACCESS)
+  if (ret != LIBUSB_SUCCESS)
   {
-    ERROR_LOG_FMT(
-        CONTROLLERINTERFACE,
-        "Dolphin does not have access to this device: Bus {:03d} Device {:03d}: ID {:04X}:{:04X}.",
-        bus, port, desc.idVendor, desc.idProduct);
-    return false;
-  }
-  if (ret != 0)
-  {
-    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_open failed to open device with error = {}", ret);
+    if (ret == LIBUSB_ERROR_ACCESS)
+    {
+      ERROR_LOG_FMT(CONTROLLERINTERFACE,
+                    "Dolphin does not have access to this device: Bus {:03d} Device {:03d}: ID "
+                    "{:04X}:{:04X}.",
+                    bus, port, desc.idVendor, desc.idProduct);
+    }
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_open failed to open device: {}",
+                  LibusbUtils::ErrorWrap(ret));
     return false;
   }
 
   bool detach_failed = false;
   ret = libusb_kernel_driver_active(s_handle, 0);
-  if (ret == 1)
+  if (ret == 1)  // 1: kernel driver is active
   {
     // On macos detaching would fail without root or entitlement.
     // We assume user is using GCAdapterDriver and therefor don't want to detach anything
@@ -530,14 +540,26 @@ static bool CheckDeviceAccess(libusb_device* device)
     detach_failed = ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND && ret != LIBUSB_ERROR_NOT_SUPPORTED;
 #endif
     if (detach_failed)
-      ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed with error: {}", ret);
+    {
+      ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed: {}",
+                    LibusbUtils::ErrorWrap(ret));
+    }
+  }
+  else if (ret != 0)  // 0: kernel driver is not active, but otherwise no error.
+  {
+    // Neither 0 nor 1 means an error occured.
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_kernel_driver_active failed: {}",
+                  LibusbUtils::ErrorWrap(ret));
   }
 
   // This call makes Nyko-brand (and perhaps other) adapters work.
   // However it returns LIBUSB_ERROR_PIPE with Mayflash adapters.
   const int transfer = libusb_control_transfer(s_handle, 0x21, 11, 0x0001, 0, nullptr, 0, 1000);
   if (transfer < 0)
-    WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_control_transfer failed with error: {}", transfer);
+  {
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_control_transfer failed: {}",
+                 LibusbUtils::ErrorWrap(transfer));
+  }
 
   // this split is needed so that we don't avoid claiming the interface when
   // detaching the kernel driver is successful
@@ -549,9 +571,10 @@ static bool CheckDeviceAccess(libusb_device* device)
   }
 
   ret = libusb_claim_interface(s_handle, 0);
-  if (ret != 0)
+  if (ret != LIBUSB_SUCCESS)
   {
-    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_claim_interface failed with error: {}", ret);
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_claim_interface failed: {}",
+                  LibusbUtils::ErrorWrap(ret));
     libusb_close(s_handle);
     s_handle = nullptr;
     return false;
@@ -566,7 +589,11 @@ static bool CheckDeviceAccess(libusb_device* device)
 static void AddGCAdapter(libusb_device* device)
 {
   libusb_config_descriptor* config = nullptr;
-  libusb_get_config_descriptor(device, 0, &config);
+  if (const int error = libusb_get_config_descriptor(device, 0, &config); error != LIBUSB_SUCCESS)
+  {
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_get_config_descriptor failed: {}",
+                 LibusbUtils::ErrorWrap(error));
+  }
   for (u8 ic = 0; ic < config->bNumInterfaces; ic++)
   {
     const libusb_interface* interfaceContainer = &config->interface[ic];
@@ -586,8 +613,13 @@ static void AddGCAdapter(libusb_device* device)
 
   int size = 0;
   std::array<u8, CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE> payload = {0x13};
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, payload.data(),
-                            CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE, &size, 16);
+  const int error = libusb_interrupt_transfer(s_handle, s_endpoint_out, payload.data(),
+                                              CONTROLER_OUTPUT_INIT_PAYLOAD_SIZE, &size, 16);
+  if (error != LIBUSB_SUCCESS)
+  {
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "AddGCAdapter: libusb_interrupt_transfer failed: {}",
+                 LibusbUtils::ErrorWrap(error));
+  }
 
   s_read_adapter_thread_running.Set(true);
   s_read_adapter_thread = std::thread(Read);
@@ -646,7 +678,12 @@ static void Reset()
 
   if (s_handle)
   {
-    libusb_release_interface(s_handle, 0);
+    const int error = libusb_release_interface(s_handle, 0);
+    if (error != LIBUSB_SUCCESS)
+    {
+      WARN_LOG_FMT(CONTROLLERINTERFACE, "libusb_release_interface failed: {}",
+                   LibusbUtils::ErrorWrap(error));
+    }
     libusb_close(s_handle);
     s_handle = nullptr;
   }
@@ -817,8 +854,13 @@ static void ResetRumbleLockNeeded()
       s_controller_rumble[3]};
 
   int size = 0;
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble.data(),
-                            CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE, &size, 16);
+  const int error = libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble.data(),
+                                              CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE, &size, 16);
+  if (error != LIBUSB_SUCCESS)
+  {
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "ResetRumbleLockNeeded: libusb_interrupt_transfer failed: {}",
+                 LibusbUtils::ErrorWrap(error));
+  }
 
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Rumble state reset");
 }
