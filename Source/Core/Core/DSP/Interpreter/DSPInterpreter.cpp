@@ -685,31 +685,29 @@ u16 Interpreter::OpReadRegister(int reg_)
     return state.r.ac[reg - DSP_REG_ACL0].l;
   case DSP_REG_ACM0:
   case DSP_REG_ACM1:
+  {
+    // Saturate reads from $ac0.m or $ac1.m if that mode is enabled.
+    if (IsSRFlagSet(SR_40_MODE_BIT))
+    {
+      const s64 acc = GetLongAcc(reg - DSP_REG_ACM0);
+
+      if (acc != static_cast<s32>(acc))
+      {
+        if (acc > 0)
+          return 0x7fff;
+        else
+          return 0x8000;
+      }
+
+      return state.r.ac[reg - DSP_REG_ACM0].m;
+    }
+
     return state.r.ac[reg - DSP_REG_ACM0].m;
+  }
   default:
     ASSERT_MSG(DSPLLE, 0, "cannot happen");
     return 0;
   }
-}
-
-u16 Interpreter::OpReadRegisterAndSaturate(int reg) const
-{
-  if (IsSRFlagSet(SR_40_MODE_BIT))
-  {
-    const s64 acc = GetLongAcc(reg);
-
-    if (acc != static_cast<s32>(acc))
-    {
-      if (acc > 0)
-        return 0x7fff;
-      else
-        return 0x8000;
-    }
-
-    return m_dsp_core.DSPState().r.ac[reg].m;
-  }
-
-  return m_dsp_core.DSPState().r.ac[reg].m;
 }
 
 void Interpreter::OpWriteRegister(int reg_, u16 val)
