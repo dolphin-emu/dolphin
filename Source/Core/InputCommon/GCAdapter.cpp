@@ -156,18 +156,18 @@ static void Read()
 
 #if GCADAPTER_USE_ANDROID_IMPLEMENTATION
   bool first_read = true;
-  JNIEnv* env = IDCache::GetEnvForThread();
+  JNIEnv* const env = IDCache::GetEnvForThread();
 
-  jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
+  const jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
   jobject payload_object = env->GetStaticObjectField(s_adapter_class, payload_field);
-  auto* java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
+  auto* const java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
 
   // Get function pointers
-  jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
-  jmethodID input_func = env->GetStaticMethodID(s_adapter_class, "Input", "()I");
-  jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
+  const jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
+  const jmethodID input_func = env->GetStaticMethodID(s_adapter_class, "Input", "()I");
+  const jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
 
-  bool connected = env->CallStaticBooleanMethod(s_adapter_class, openadapter_func);
+  const bool connected = env->CallStaticBooleanMethod(s_adapter_class, openadapter_func);
 
   if (!connected)
   {
@@ -189,14 +189,15 @@ static void Read()
   {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
     int payload_size = 0;
-    int err = libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap.data(),
-                                        CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE, &payload_size, 16);
+    const int err =
+        libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap.data(),
+                                  CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE, &payload_size, 16);
     if (err)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "adapter libusb read failed: err={}",
                     libusb_error_name(err));
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-    int payload_size = env->CallStaticIntMethod(s_adapter_class, input_func);
-    jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
+    const int payload_size = env->CallStaticIntMethod(s_adapter_class, input_func);
+    jbyte* const java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
     std::copy(java_data, java_data + CONTROLER_INPUT_PAYLOAD_EXPECTED_SIZE,
               s_controller_payload_swap.begin());
 #endif
@@ -242,15 +243,15 @@ static void Write()
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   int size = 0;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-  JNIEnv* env = IDCache::GetEnvForThread();
-  jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
+  JNIEnv* const env = IDCache::GetEnvForThread();
+  const jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
 #endif
 
   while (s_write_adapter_thread_running.IsSet())
   {
     s_write_happened.Wait();
 
-    int write_size = s_controller_write_payload_size.load();
+    const int write_size = s_controller_write_payload_size.load();
     if (write_size)
     {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
@@ -262,8 +263,8 @@ static void Write()
                       libusb_error_name(err));
       }
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-      jbyteArray jrumble_array = env->NewByteArray(CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE);
-      jbyte* jrumble = env->GetByteArrayElements(jrumble_array, nullptr);
+      const jbyteArray jrumble_array = env->NewByteArray(CONTROLER_OUTPUT_RUMBLE_PAYLOAD_SIZE);
+      jbyte* const jrumble = env->GetByteArrayElements(jrumble_array, nullptr);
 
       {
         std::lock_guard<std::mutex> lk(s_write_mutex);
@@ -347,9 +348,10 @@ static void ScanThreadFunc()
       Common::SleepCurrentThread(500);
   }
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-  JNIEnv* env = IDCache::GetEnvForThread();
+  JNIEnv* const env = IDCache::GetEnvForThread();
 
-  jmethodID queryadapter_func = env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
+  const jmethodID queryadapter_func =
+      env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
 
   while (s_adapter_detect_thread_running.IsSet())
   {
@@ -402,9 +404,9 @@ void Init()
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
   s_status = NO_ADAPTER_DETECTED;
 #elif GCADAPTER_USE_ANDROID_IMPLEMENTATION
-  JNIEnv* env = IDCache::GetEnvForThread();
+  JNIEnv* const env = IDCache::GetEnvForThread();
 
-  jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
+  const jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
 #endif
 
@@ -442,7 +444,7 @@ void StopScanThread()
 static void Setup()
 {
 #if GCADAPTER_USE_LIBUSB_IMPLEMENTATION
-  int prev_status = s_status;
+  const int prev_status = s_status;
 
   // Reset the error status in case the adapter gets unplugged
   if (s_status < 0)
@@ -710,8 +712,8 @@ GCPadStatus Input(int chan)
 
     if (s_controller_type[chan] != ControllerType::None)
     {
-      u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
-      u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
+      const u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
+      const u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 
       if (b1 & (1 << 0))
         pad.button |= PAD_BUTTON_A;
