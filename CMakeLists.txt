@@ -13,13 +13,6 @@ endif()
 
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-
-# MacOS prior to 10.14 did not support aligned alloc which is used to implement
-# std::unique_ptr in the arm64 C++ standard library. x86_64 builds can override
-# this to 10.13.0 using -DCMAKE_OSX_DEPLOYMENT_TARGET="10.13.0" without issue.
-# This is done in the universal binary building script to build a binary that
-# runs on 10.13 on x86_64 computers, while still containing an arm64 slice.
-
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14.0" CACHE STRING "")
 
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMake/FlagsOverride.cmake")
