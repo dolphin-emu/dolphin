@@ -466,11 +466,12 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   return true;
 }
 
-static void SetDefaultDisc()
+static const DiscIO::VolumeDisc* SetDefaultDisc()
 {
   const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
   if (!default_iso.empty())
-    SetDisc(DiscIO::CreateDisc(default_iso));
+    return SetDisc(DiscIO::CreateDisc(default_iso));
+  return nullptr;
 }
 
 static void CopyDefaultExceptionHandlers()
@@ -529,40 +530,48 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!executable.reader->IsValid())
         return false;
 
-      if (!executable.reader->LoadIntoMemory())
+      auto default_disc = SetDefaultDisc();
+      if (default_disc)
       {
-        PanicAlertFmtT("Failed to load the executable to memory.");
-        return false;
-      }
-
-      SetDefaultDisc();
-
-      SetupMSR();
-      SetupBAT(config.bWii);
-      CopyDefaultExceptionHandlers();
-
-      if (config.bWii)
-      {
-        PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
-        PowerPC::ppcState.spr[SPR_HID4] = 0x82000000;
-
-        // Set a value for the SP. It doesn't matter where this points to,
-        // as long as it is a valid location. This value is taken from a homebrew binary.
-        PowerPC::ppcState.gpr[1] = 0x8004d4bc;
-
-        // Because there is no TMD to get the requested system (IOS) version from,
-        // we default to IOS58, which is the version used by the Homebrew Channel.
-        SetupWiiMemory(IOS::HLE::IOSC::ConsoleType::Retail);
-        IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
+        if (!EmulatedBS2(config.bWii, *default_disc, {}))
+          return false;
       }
       else
       {
-        SetupGCMemory();
+        if (!executable.reader->LoadIntoMemory())
+        {
+          PanicAlertFmtT("Failed to load the executable to memory.");
+          return false;
+        }
+
+        SetupMSR();
+        SetupBAT(config.bWii);
+        CopyDefaultExceptionHandlers();
+
+        if (config.bWii)
+        {
+          PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
+          PowerPC::ppcState.spr[SPR_HID4] = 0x82000000;
+
+          // Set a value for the SP. It doesn't matter where this points to,
+          // as long as it is a valid location. This value is taken from a homebrew binary.
+          PowerPC::ppcState.gpr[1] = 0x8004d4bc;
+
+          if (!SetupWiiMemory(IOS::HLE::IOSC::ConsoleType::Retail))
+            return false;
+          // Because there is no TMD to get the requested system (IOS) version from,
+          // we default to IOS58, which is the version used by the Homebrew Channel.
+          IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
+        }
+        else
+        {
+          SetupGCMemory();
+        }
+
+        PC = executable.reader->GetEntryPoint();
       }
 
       SConfig::OnNewTitleLoad();
-
-      PC = executable.reader->GetEntryPoint();
 
       if (executable.reader->LoadSymbols())
       {

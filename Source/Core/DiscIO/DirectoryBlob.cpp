@@ -1087,7 +1087,7 @@ void DirectoryBlobPartition::BuildFST(std::vector<FSTBuilderNode> root_nodes, u6
   // overflow check, compare the aligned name offset with the aligned name table size
   ASSERT(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
-  // write FST size and location
+  // write FST location, size and max size
   Write32((u32)(fst_address >> m_address_shift), 0x0424, &m_disc_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x0428, &m_disc_header);
   Write32((u32)(m_fst_data.size() >> m_address_shift), 0x042c, &m_disc_header);

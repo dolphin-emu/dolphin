@@ -372,7 +372,7 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
   values in this region will also be placed here by the game as it boots.
   They are:
   0x80000038  Start of FST
-  0x8000003c  Size of FST Size
+  0x8000003c  Size of FST
   0x80000060  Copyright code
   */
 
