@@ -49,6 +49,11 @@ static constexpr char UPDATER_COPY_FILENAME[] = ".Dolphin Updater.2.app";
 #ifdef OS_SUPPORTS_UPDATER
 static constexpr char UPDATER_LOG_FILENAME[] = "Updater.log";
 
+std::string GetUpdaterPath()
+{
+  return File::GetExeDirectory() + DIR_SEP_CHR + UPDATER_FILENAME;
+}
+
 std::string GetUpdaterCopyPath()
 {
   return File::GetExeDirectory() + DIR_SEP_CHR + UPDATER_COPY_FILENAME;
@@ -237,7 +242,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
     updater_flags["binary-to-restart"] = File::GetExePath();
 
   // Copy the updater so it can update itself if needed.
-  const std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
+  const std::string updater_path = GetUpdaterPath();
   const std::string updater_copy_path = GetUpdaterCopyPath();
 
 #ifdef __APPLE__
