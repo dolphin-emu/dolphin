@@ -37,25 +37,25 @@ bool s_update_triggered = false;
 #ifdef _WIN32
 
 static constexpr char UPDATER_FILENAME[] = "Updater.exe";
-static constexpr char UPDATER_RELOC_FILENAME[] = "Updater.2.exe";
+static constexpr char UPDATER_COPY_FILENAME[] = "Updater.2.exe";
 
 #elif defined(__APPLE__)
 
 static constexpr char UPDATER_FILENAME[] = "Dolphin Updater.app";
-static constexpr char UPDATER_RELOC_FILENAME[] = ".Dolphin Updater.2.app";
+static constexpr char UPDATER_COPY_FILENAME[] = ".Dolphin Updater.2.app";
 
 #endif
 
 #ifdef OS_SUPPORTS_UPDATER
-static constexpr char UPDATER_LOG_FILE[] = "Updater.log";
+static constexpr char UPDATER_LOG_FILENAME[] = "Updater.log";
 
 std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
 #ifdef __APPLE__
-  std::string cmdline = "\"" + File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME +
+  std::string cmdline = "\"" + File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME +
                         "/Contents/MacOS/Dolphin Updater\"";
 #else
-  std::string cmdline = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
+  std::string cmdline = File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME;
 #endif
 
   cmdline += " ";
@@ -73,12 +73,12 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
 // Used to remove the relocated updater file once we don't need it anymore.
 void CleanupFromPreviousUpdate()
 {
-  std::string reloc_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
+  std::string updater_copy_path = File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME;
 
 #ifdef __APPLE__
-  File::DeleteDirRecursively(reloc_updater_path);
+  File::DeleteDirRecursively(updater_copy_path);
 #else
-  File::Delete(reloc_updater_path);
+  File::Delete(updater_copy_path);
 #endif
 }
 #endif
@@ -229,20 +229,20 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["parent-pid"] = std::to_string(getpid());
 #endif
   updater_flags["install-base-path"] = File::GetExeDirectory();
-  updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILE;
+  updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILENAME;
 
   if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
     updater_flags["binary-to-restart"] = File::GetExePath();
 
   // Copy the updater so it can update itself if needed.
   std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
-  std::string reloc_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
+  std::string updater_copy_path = File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME;
 
 #ifdef __APPLE__
-  File::CopyDir(updater_path, reloc_updater_path);
-  chmod((reloc_updater_path + "/Contents/MacOS/Dolphin Updater").c_str(), 0700);
+  File::CopyDir(updater_path, updater_copy_path);
+  chmod((updater_copy_path + "/Contents/MacOS/Dolphin Updater").c_str(), 0700);
 #else
-  File::Copy(updater_path, reloc_updater_path);
+  File::Copy(updater_path, updater_copy_path);
 #endif
 
   // Run the updater!
@@ -253,7 +253,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   STARTUPINFO sinfo = {sizeof(sinfo)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
-  if (CreateProcessW(UTF8ToWString(reloc_updater_path).c_str(), UTF8ToWString(command_line).data(),
+  if (CreateProcessW(UTF8ToWString(updater_copy_path).c_str(), UTF8ToWString(command_line).data(),
                      nullptr, nullptr, FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
   {
     CloseHandle(pinfo.hThread);
