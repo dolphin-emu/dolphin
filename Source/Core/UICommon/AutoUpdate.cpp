@@ -59,6 +59,11 @@ std::string GetUpdaterCopyPath()
   return File::GetExeDirectory() + DIR_SEP_CHR + UPDATER_COPY_FILENAME;
 }
 
+std::string GetUpdaterLogPath()
+{
+  return File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILENAME;
+}
+
 std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
 #ifdef __APPLE__
@@ -236,7 +241,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["parent-pid"] = std::to_string(getpid());
 #endif
   updater_flags["install-base-path"] = File::GetExeDirectory();
-  updater_flags["log-file"] = File::GetUserPath(D_LOGS_IDX) + UPDATER_LOG_FILENAME;
+  updater_flags["log-file"] = GetUpdaterLogPath();
 
   if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
     updater_flags["binary-to-restart"] = File::GetExePath();
