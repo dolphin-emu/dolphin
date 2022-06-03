@@ -159,18 +159,23 @@ void WiiPane::CreateMisc()
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
 {
-  auto* whitelisted_usb_passthrough_devices_group =
-      new QGroupBox(tr("Whitelisted USB Passthrough Devices"));
-  auto* whitelist_layout = new QGridLayout();
   m_whitelist_usb_list = new QListWidget();
-  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0, 1, -1);
-  whitelist_layout->setColumnStretch(0, 1);
   m_whitelist_usb_add_button = new NonDefaultQPushButton(tr("Add..."));
   m_whitelist_usb_remove_button = new NonDefaultQPushButton(tr("Remove"));
-  whitelist_layout->addWidget(m_whitelist_usb_add_button, 1, 1);
-  whitelist_layout->addWidget(m_whitelist_usb_remove_button, 1, 2);
-  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0);
-  whitelisted_usb_passthrough_devices_group->setLayout(whitelist_layout);
+
+  QHBoxLayout* hlayout = new QHBoxLayout;
+  hlayout->addStretch();
+  hlayout->addWidget(m_whitelist_usb_add_button);
+  hlayout->addWidget(m_whitelist_usb_remove_button);
+
+  QVBoxLayout* vlayout = new QVBoxLayout;
+  vlayout->addWidget(m_whitelist_usb_list);
+  vlayout->addLayout(hlayout);
+
+  auto* whitelisted_usb_passthrough_devices_group =
+      new QGroupBox(tr("Whitelisted USB Passthrough Devices"));
+  whitelisted_usb_passthrough_devices_group->setLayout(vlayout);
+
   m_main_layout->addWidget(whitelisted_usb_passthrough_devices_group);
 }
 
