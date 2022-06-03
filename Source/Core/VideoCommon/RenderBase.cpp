@@ -643,6 +643,9 @@ float Renderer::CalculateDrawAspectRatio() const
   if (aspect_mode == AspectMode::Stretch)
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
 
+  if (aspect_mode == AspectMode::Internal || g_ActiveConfig.bIntegerScaling)
+    return (static_cast<float>(m_last_xfb_width) / static_cast<float>(m_last_xfb_height));
+
   const float aspect_ratio = VideoInterface::GetAspectRatio();
 
   if (aspect_mode == AspectMode::AnalogWide ||
@@ -847,25 +850,40 @@ void Renderer::UpdateDrawRectangle()
   float draw_width = draw_aspect_ratio;
   float draw_height = 1;
 
-  // Crop the picture to a standard aspect ratio. (if enabled)
-  auto [crop_width, crop_height] = ApplyStandardAspectCrop(draw_width, draw_height);
-
-  // scale the picture to fit the rendering window
-  if (win_width / win_height >= crop_width / crop_height)
+  if (g_ActiveConfig.bIntegerScaling && m_last_xfb_width != 0 && m_last_xfb_height != 0)
   {
-    // the window is flatter than the picture
-    draw_width *= win_height / crop_height;
-    crop_width *= win_height / crop_height;
-    draw_height *= win_height / crop_height;
-    crop_height = win_height;
+    // Scale to multiple of xfb size without going past window size.
+    int scale =
+        std::max(m_backbuffer_width / m_last_xfb_width, m_backbuffer_height / m_last_xfb_height);
+
+    if (scale == 0)
+      scale = 1;
+
+    draw_width = static_cast<float>(m_last_xfb_width * scale);
+    draw_height = static_cast<float>(m_last_xfb_height * scale);
   }
   else
   {
-    // the window is skinnier than the picture
-    draw_width *= win_width / crop_width;
-    draw_height *= win_width / crop_width;
-    crop_height *= win_width / crop_width;
-    crop_width = win_width;
+    // Crop the picture to a standard aspect ratio. (if enabled)
+    auto [crop_width, crop_height] = ApplyStandardAspectCrop(draw_width, draw_height);
+
+    // scale the picture to fit the rendering window
+    if (win_width / win_height >= crop_width / crop_height)
+    {
+      // the window is flatter than the picture
+      draw_width *= win_height / crop_height;
+      crop_width *= win_height / crop_height;
+      draw_height *= win_height / crop_height;
+      crop_height = win_height;
+    }
+    else
+    {
+      // the window is skinnier than the picture
+      draw_width *= win_width / crop_width;
+      draw_height *= win_width / crop_width;
+      crop_height *= win_width / crop_width;
+      crop_width = win_width;
+    }
   }
 
   // ensure divisibility by 4 to make it compatible with all the video encoders
@@ -896,7 +914,8 @@ std::tuple<float, float> Renderer::ApplyStandardAspectCrop(float width, float he
 {
   const auto aspect_mode = g_ActiveConfig.aspect_mode;
 
-  if (!g_ActiveConfig.bCrop || aspect_mode == AspectMode::Stretch)
+  if (!g_ActiveConfig.bCrop || aspect_mode == AspectMode::Stretch ||
+      aspect_mode == AspectMode::Internal)
     return {width, height};
 
   // Force 4:3 or 16:9 by cropping the image.

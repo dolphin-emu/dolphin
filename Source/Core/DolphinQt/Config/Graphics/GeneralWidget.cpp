@@ -55,12 +55,13 @@ void GeneralWidget::CreateWidgets()
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new ToolTipComboBox();
-  m_aspect_combo =
-      new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
-                         Config::GFX_ASPECT_RATIO);
+  m_aspect_combo = new GraphicsChoice(
+      {tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Internal"), tr("Stretch to Window")},
+      Config::GFX_ASPECT_RATIO);
   m_adapter_combo = new ToolTipComboBox;
   m_enable_vsync = new GraphicsBool(tr("V-Sync"), Config::GFX_VSYNC);
   m_enable_fullscreen = new GraphicsBool(tr("Start in Fullscreen"), Config::MAIN_FULLSCREEN);
+  m_enable_integer_scaling = new GraphicsBool(tr("Integer Scaling"), Config::GFX_INTEGER_SCALING);
 
   m_video_box->setLayout(m_video_layout);
 
@@ -81,6 +82,8 @@ void GeneralWidget::CreateWidgets()
 
   m_video_layout->addWidget(m_enable_vsync, 4, 0);
   m_video_layout->addWidget(m_enable_fullscreen, 4, 1);
+
+  m_video_layout->addWidget(m_enable_integer_scaling, 5, 0);
 
   // Other
   auto* m_options_box = new QGroupBox(tr("Other"));

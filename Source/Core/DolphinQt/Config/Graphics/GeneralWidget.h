@@ -47,6 +47,7 @@ private:
   GraphicsChoice* m_aspect_combo;
   GraphicsBool* m_enable_vsync;
   GraphicsBool* m_enable_fullscreen;
+  GraphicsBool* m_enable_integer_scaling;
 
   // Options
   GraphicsBool* m_show_fps;

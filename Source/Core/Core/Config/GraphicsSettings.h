@@ -24,6 +24,7 @@ extern const Info<int> GFX_ADAPTER;
 // Graphics.Settings
 
 extern const Info<bool> GFX_WIDESCREEN_HACK;
+extern const Info<bool> GFX_INTEGER_SCALING;
 extern const Info<AspectMode> GFX_ASPECT_RATIO;
 extern const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
 extern const Info<bool> GFX_CROP;
