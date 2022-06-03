@@ -12,6 +12,7 @@
 
 #include "Core/Config/MainSettings.h"
 #include "DiscIO/Enums.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Core
 {
@@ -43,6 +44,8 @@ public:
   Settings& operator=(Settings&&) = delete;
 
   ~Settings();
+
+  void UnregisterDevicesChangedCallback();
 
   static Settings& Instance();
   static QSettings& GetQSettings();
@@ -199,10 +202,12 @@ signals:
   void USBKeyboardConnectionChanged(bool connected);
 
 private:
+  Settings();
+
   bool m_batch = false;
   std::shared_ptr<NetPlay::NetPlayClient> m_client;
   std::shared_ptr<NetPlay::NetPlayServer> m_server;
-  Settings();
+  ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
 };
 
 Q_DECLARE_METATYPE(Core::State);
