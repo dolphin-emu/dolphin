@@ -36,18 +36,18 @@ namespace
 bool s_update_triggered = false;
 #ifdef _WIN32
 
-const char UPDATER_FILENAME[] = "Updater.exe";
-const char UPDATER_RELOC_FILENAME[] = "Updater.2.exe";
+static constexpr char UPDATER_FILENAME[] = "Updater.exe";
+static constexpr char UPDATER_RELOC_FILENAME[] = "Updater.2.exe";
 
 #elif defined(__APPLE__)
 
-const char UPDATER_FILENAME[] = "Dolphin Updater.app";
-const char UPDATER_RELOC_FILENAME[] = ".Dolphin Updater.2.app";
+static constexpr char UPDATER_FILENAME[] = "Dolphin Updater.app";
+static constexpr char UPDATER_RELOC_FILENAME[] = ".Dolphin Updater.2.app";
 
 #endif
 
 #ifdef OS_SUPPORTS_UPDATER
-const char UPDATER_LOG_FILE[] = "Updater.log";
+static constexpr char UPDATER_LOG_FILE[] = "Updater.log";
 
 std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
