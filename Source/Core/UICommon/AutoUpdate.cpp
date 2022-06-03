@@ -49,13 +49,17 @@ static constexpr char UPDATER_COPY_FILENAME[] = ".Dolphin Updater.2.app";
 #ifdef OS_SUPPORTS_UPDATER
 static constexpr char UPDATER_LOG_FILENAME[] = "Updater.log";
 
+std::string GetUpdaterCopyPath()
+{
+  return File::GetExeDirectory() + DIR_SEP_CHR + UPDATER_COPY_FILENAME;
+}
+
 std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
 #ifdef __APPLE__
-  std::string cmdline = "\"" + File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME +
-                        "/Contents/MacOS/Dolphin Updater\"";
+  std::string cmdline = "\"" + GetUpdaterCopyPath() + "/Contents/MacOS/Dolphin Updater\"";
 #else
-  std::string cmdline = File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME;
+  std::string cmdline = GetUpdaterCopyPath();
 #endif
 
   cmdline += " ";
@@ -73,12 +77,10 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
 // Used to remove the relocated updater file once we don't need it anymore.
 void CleanupFromPreviousUpdate()
 {
-  std::string updater_copy_path = File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME;
-
 #ifdef __APPLE__
-  File::DeleteDirRecursively(updater_copy_path);
+  File::DeleteDirRecursively(GetUpdaterCopyPath());
 #else
-  File::Delete(updater_copy_path);
+  File::Delete(GetUpdaterCopyPath(), File::IfAbsentBehavior::NoConsoleWarning);
 #endif
 }
 #endif
@@ -235,8 +237,8 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
     updater_flags["binary-to-restart"] = File::GetExePath();
 
   // Copy the updater so it can update itself if needed.
-  std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
-  std::string updater_copy_path = File::GetExeDirectory() + DIR_SEP + UPDATER_COPY_FILENAME;
+  const std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
+  const std::string updater_copy_path = GetUpdaterCopyPath();
 
 #ifdef __APPLE__
   File::CopyDir(updater_path, updater_copy_path);
