@@ -69,7 +69,7 @@ Settings::Settings()
     }
   });
 
-  g_controller_interface.RegisterDevicesChangedCallback([this] {
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
     if (Host::GetInstance()->IsHostThread())
     {
       emit DevicesChanged();
@@ -89,6 +89,11 @@ Settings::Settings()
 }
 
 Settings::~Settings() = default;
+
+void Settings::UnregisterDevicesChangedCallback()
+{
+  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+}
 
 Settings& Settings::Instance()
 {
