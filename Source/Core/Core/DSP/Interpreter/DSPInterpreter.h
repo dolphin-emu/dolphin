@@ -230,7 +230,6 @@ private:
   void UpdateSRLogicZero(bool value);
 
   u16 OpReadRegister(int reg_);
-  u16 OpReadRegisterAndSaturate(int reg) const;
   void OpWriteRegister(int reg_, u16 val);
 
   void ConditionalExtendAccum(int reg);

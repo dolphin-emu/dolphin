@@ -196,35 +196,6 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
   }
 }
 
-void DSPEmitter::dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg,
-                                               RegisterExtension extend)
-{
-  switch (reg & 0x1f)
-  {
-  case DSP_REG_ST0:
-  case DSP_REG_ST1:
-  case DSP_REG_ST2:
-  case DSP_REG_ST3:
-    dsp_reg_load_stack(static_cast<StackRegister>(reg - DSP_REG_ST0), host_dreg);
-    switch (extend)
-    {
-    case RegisterExtension::Sign:
-      MOVSX(64, 16, host_dreg, R(host_dreg));
-      break;
-    case RegisterExtension::Zero:
-      MOVZX(64, 16, host_dreg, R(host_dreg));
-      break;
-    case RegisterExtension::None:
-    default:
-      break;
-    }
-    return;
-  default:
-    m_gpr.ReadReg(reg, host_dreg, extend);
-    return;
-  }
-}
-
 void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, RegisterExtension extend)
 {
   switch (reg & 0x1f)
