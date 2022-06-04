@@ -26,6 +26,7 @@
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 #include "UICommon/GameFile.h"
 
@@ -77,10 +78,10 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_view->setReadOnly(true);
   m_code_view->setFixedHeight(line_height * 10);
 
-  m_add_code = new QPushButton(tr("&Add New Code..."));
-  m_edit_code = new QPushButton(tr("&Edit Code..."));
-  m_remove_code = new QPushButton(tr("&Remove Code"));
-  m_download_codes = new QPushButton(tr("Download Codes"));
+  m_add_code = new NonDefaultQPushButton(tr("&Add New Code..."));
+  m_edit_code = new NonDefaultQPushButton(tr("&Edit Code..."));
+  m_remove_code = new NonDefaultQPushButton(tr("&Remove Code"));
+  m_download_codes = new NonDefaultQPushButton(tr("Download Codes"));
 
   m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
 

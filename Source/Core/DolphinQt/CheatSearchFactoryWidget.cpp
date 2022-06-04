@@ -20,8 +20,11 @@
 #include "Core/CheatSearch.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 
 CheatSearchFactoryWidget::CheatSearchFactoryWidget()
 {
@@ -52,8 +55,8 @@ void CheatSearchFactoryWidget::CreateWidgets()
   label_standard_address_space->setWordWrap(true);
 
   auto* custom_address_space_layout = new QVBoxLayout();
-  custom_address_space_layout->setMargin(6);
-  auto* custom_address_space_button_group = new QButtonGroup();
+  custom_address_space_layout->setContentsMargins(6, 6, 6, 6);
+  auto* custom_address_space_button_group = new QButtonGroup(this);
   m_custom_virtual_address_space = new QRadioButton(tr("Use virtual addresses when possible"));
   m_custom_virtual_address_space->setChecked(true);
   m_custom_physical_address_space = new QRadioButton(tr("Use physical addresses"));
@@ -116,7 +119,7 @@ void CheatSearchFactoryWidget::CreateWidgets()
 
   layout->addWidget(data_type_group);
 
-  m_new_search = new QPushButton(tr("New Search"));
+  m_new_search = new NonDefaultQPushButton(tr("New Search"));
   layout->addWidget(m_new_search);
 
   setLayout(layout);
@@ -152,6 +155,15 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
   PowerPC::RequestedAddressSpace address_space;
   if (m_standard_address_space->isChecked())
   {
+    const Core::State core_state = Core::GetState();
+    if (core_state != Core::State::Running && core_state != Core::State::Paused)
+    {
+      ModalMessageBox::warning(
+          this, tr("No game running."),
+          tr("Please start a game before starting a search with standard memory regions."));
+      return;
+    }
+
     memory_ranges.emplace_back(0x80000000, Memory::GetRamSizeReal());
     if (SConfig::GetInstance().bWii)
       memory_ranges.emplace_back(0x90000000, Memory::GetExRamSizeReal());

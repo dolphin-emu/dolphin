@@ -1,55 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-                                    xmlns:tools="http://schemas.android.com/tools"
-                                    android:layout_width="match_parent"
-                                    tools:layout_width="160dp"
-                                    android:layout_height="270dp"
-                                    android:transitionName="card_game"
-                                    android:focusable="true"
-                                    android:clickable="true"
-                                    android:foreground="?android:attr/selectableItemBackground">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:clipToPadding="false"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:paddingStart="4dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="4dp"
+    android:transitionName="card_game">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_game_art"
+        android:layout_width="115dp"
+        android:layout_height="161dp"
+        android:layout_gravity="center"
+        app:cardCornerRadius="4dp">
 
         <ImageView
             android:id="@+id/image_game_screen"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            tools:src="@drawable/placeholder_screenshot"
-            tools:scaleType="centerCrop"/>
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+    </androidx.cardview.widget.CardView>
 
-        <TextView
-            android:id="@+id/text_game_title"
-            style="@android:style/TextAppearance.Material.Subhead"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_marginTop="16dp"
-            android:ellipsize="end"
-            android:lines="1"
-            android:maxLines="1"
-            tools:text="The Legend of Zelda: The Wind Waker"/>
+    <TextView
+        android:id="@+id/text_game_title"
+        style="@android:style/TextAppearance.Material.Subhead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        tools:layout_width="140dp"
+        tools:text="The Legend of Zelda: The Wind Waker" />
 
-        <TextView
-            android:id="@+id/text_game_caption"
-            style="@android:style/TextAppearance.Material.Caption"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:ellipsize="end"
-            android:lines="1"
-            android:maxLines="1"
-            tools:text="Nintendo"/>
+    <TextView
+        android:id="@+id/text_game_caption"
+        style="@android:style/TextAppearance.Material.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:ellipsize="end"
+        android:lines="1"
+        android:maxLines="1"
+        tools:layout_width="140dp"
+        tools:text="Nintendo" />
 
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
-
+</LinearLayout>

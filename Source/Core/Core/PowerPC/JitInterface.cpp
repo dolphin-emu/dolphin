@@ -4,7 +4,6 @@
 #include "Core/PowerPC/JitInterface.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstdio>
 #include <string>
 #include <unordered_set>
@@ -48,7 +47,7 @@ void SetJit(JitBase* jit)
 }
 void DoState(PointerWrap& p)
 {
-  if (g_jit && p.GetMode() == PointerWrap::MODE_READ)
+  if (g_jit && p.IsReadMode())
     g_jit->ClearCache();
 }
 CPUCoreBase* InitJitCore(PowerPC::CPUCore core)

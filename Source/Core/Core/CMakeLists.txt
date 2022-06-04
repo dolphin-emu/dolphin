@@ -44,6 +44,8 @@ add_library(core
   Config/SYSCONFSettings.h
   Config/UISettings.cpp
   Config/UISettings.h
+  Config/WiimoteSettings.cpp
+  Config/WiimoteSettings.h
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/BaseConfigLoader.h
   ConfigLoaders/GameConfigLoader.cpp
@@ -111,16 +113,10 @@ add_library(core
   DSP/LabelMap.h
   DSPEmulator.cpp
   DSPEmulator.h
-  FifoPlayer/FifoAnalyzer.cpp
-  FifoPlayer/FifoAnalyzer.h
   FifoPlayer/FifoDataFile.cpp
   FifoPlayer/FifoDataFile.h
-  FifoPlayer/FifoPlaybackAnalyzer.cpp
-  FifoPlayer/FifoPlaybackAnalyzer.h
   FifoPlayer/FifoPlayer.cpp
   FifoPlayer/FifoPlayer.h
-  FifoPlayer/FifoRecordAnalyzer.cpp
-  FifoPlayer/FifoRecordAnalyzer.h
   FifoPlayer/FifoRecorder.cpp
   FifoPlayer/FifoRecorder.h
   FreeLookConfig.cpp
@@ -232,6 +228,14 @@ add_library(core
   HW/GCPadEmu.h
   HW/GPFifo.cpp
   HW/GPFifo.h
+  HW/HSP/HSP.cpp
+  HW/HSP/HSP.h
+  HW/HSP/HSP_Device.cpp
+  HW/HSP/HSP_Device.h
+  HW/HSP/HSP_DeviceARAMExpansion.cpp
+  HW/HSP/HSP_DeviceARAMExpansion.h
+  HW/HSP/HSP_DeviceNull.cpp
+  HW/HSP/HSP_DeviceNull.h
   HW/HW.cpp
   HW/HW.h
   HW/Memmap.cpp
@@ -460,6 +464,8 @@ add_library(core
   PowerPC/JitCommon/JitCache.h
   PowerPC/JitInterface.cpp
   PowerPC/JitInterface.h
+  PowerPC/GDBStub.cpp
+  PowerPC/GDBStub.h
   PowerPC/MMU.cpp
   PowerPC/MMU.h
   PowerPC/PowerPC.cpp
@@ -708,16 +714,14 @@ if(TARGET Hidapi::Hidapi)
   target_compile_definitions(core PRIVATE -DHAVE_HIDAPI=1)
 endif()
 
-if(GDBSTUB)
-  target_sources(core PRIVATE
-    PowerPC/GDBStub.cpp
-    PowerPC/GDBStub.h
-  )
-endif()
-
 if(UNIX)
   target_sources(core PRIVATE
     MemoryWatcher.cpp
     MemoryWatcher.h
   )
+endif()
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(core PRIVATE use_pch)
 endif()

@@ -64,16 +64,17 @@ static AfterLoadCallbackFunc s_on_after_load_callback;
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
-static bool s_load_or_save_in_progress;
+static std::mutex s_load_or_save_in_progress_mutex;
 
 static std::mutex g_cs_undo_load_buffer;
 static std::mutex g_cs_current_buffer;
 static Common::Event g_compressAndDumpStateSyncEvent;
 
+static std::recursive_mutex g_save_thread_mutex;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-constexpr u32 STATE_VERSION = 139;  // Last changed in PR 8350
+constexpr u32 STATE_VERSION = 141;  // Last changed in PR 8067
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -116,7 +117,7 @@ static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
     version = cookie - COOKIE_BASE;
   }
 
-  *version_created_by = Common::scm_rev_str;
+  *version_created_by = Common::GetScmRevStr();
   if (version > 42)
     p.Do(*version_created_by);
   else
@@ -155,7 +156,7 @@ static void DoState(PointerWrap& p)
             "This savestate was created using an incompatible version of Dolphin" :
             "This savestate was created using the incompatible version " + version_created_by;
     Core::DisplayMessage(message, OSD::Duration::NORMAL);
-    p.SetMode(PointerWrap::MODE_MEASURE);
+    p.SetMeasureMode();
     return;
   }
 
@@ -167,7 +168,7 @@ static void DoState(PointerWrap& p)
     OSD::AddMessage(fmt::format("Cannot load a savestate created under {} mode in {} mode",
                                 is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
                     OSD::Duration::NORMAL, OSD::Color::RED);
-    p.SetMode(PointerWrap::MODE_MEASURE);
+    p.SetMeasureMode();
     return;
   }
 
@@ -185,7 +186,7 @@ static void DoState(PointerWrap& p)
                                 Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000U,
                                 state_mem1_size, state_mem1_size / 0x100000U, state_mem2_size,
                                 state_mem2_size / 0x100000U));
-    p.SetMode(PointerWrap::MODE_MEASURE);
+    p.SetMeasureMode();
     return;
   }
 
@@ -224,8 +225,8 @@ void LoadFromBuffer(std::vector<u8>& buffer)
 
   Core::RunOnCPUThread(
       [&] {
-        u8* ptr = &buffer[0];
-        PointerWrap p(&ptr, PointerWrap::MODE_READ);
+        u8* ptr = buffer.data();
+        PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
         DoState(p);
       },
       true);
@@ -236,14 +237,14 @@ void SaveToBuffer(std::vector<u8>& buffer)
   Core::RunOnCPUThread(
       [&] {
         u8* ptr = nullptr;
-        PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+        PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
 
-        DoState(p);
+        DoState(p_measure);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
         buffer.resize(buffer_size);
 
-        ptr = &buffer[0];
-        p.SetMode(PointerWrap::MODE_WRITE);
+        ptr = buffer.data();
+        PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
         DoState(p);
       },
       true);
@@ -403,29 +404,30 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 void SaveAs(const std::string& filename, bool wait)
 {
-  if (s_load_or_save_in_progress)
+  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  if (!lk)
     return;
-
-  s_load_or_save_in_progress = true;
 
   Core::RunOnCPUThread(
       [&] {
         // Measure the size of the buffer.
         u8* ptr = nullptr;
-        PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
-        DoState(p);
+        PointerWrap p_measure(&ptr, 0, PointerWrap::Mode::Measure);
+        DoState(p_measure);
         const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
         // Then actually do the write.
+        bool is_write_mode;
         {
           std::lock_guard lk(g_cs_current_buffer);
           g_current_buffer.resize(buffer_size);
-          ptr = &g_current_buffer[0];
-          p.SetMode(PointerWrap::MODE_WRITE);
+          ptr = g_current_buffer.data();
+          PointerWrap p(&ptr, buffer_size, PointerWrap::Mode::Write);
           DoState(p);
+          is_write_mode = p.IsWriteMode();
         }
 
-        if (p.GetMode() == PointerWrap::MODE_WRITE)
+        if (is_write_mode)
         {
           Core::DisplayMessage("Saving State...", 1000);
 
@@ -435,8 +437,12 @@ void SaveAs(const std::string& filename, bool wait)
           save_args.filename = filename;
           save_args.wait = wait;
 
-          Flush();
-          g_save_thread = std::thread(CompressAndDumpState, save_args);
+          {
+            std::lock_guard lk(g_save_thread_mutex);
+            Flush();
+            g_save_thread = std::thread(CompressAndDumpState, save_args);
+          }
+
           g_compressAndDumpStateSyncEvent.Wait();
         }
         else
@@ -446,8 +452,6 @@ void SaveAs(const std::string& filename, bool wait)
         }
       },
       true);
-
-  s_load_or_save_in_progress = false;
 }
 
 bool ReadHeader(const std::string& filename, StateHeader& header)
@@ -550,17 +554,18 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 void LoadAs(const std::string& filename)
 {
-  if (!Core::IsRunning() || s_load_or_save_in_progress)
-  {
+  if (!Core::IsRunning())
     return;
-  }
-  else if (NetPlay::IsNetPlayRunning())
+
+  if (NetPlay::IsNetPlayRunning())
   {
     OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
     return;
   }
 
-  s_load_or_save_in_progress = true;
+  std::unique_lock lk(s_load_or_save_in_progress_mutex, std::try_to_lock);
+  if (!lk)
+    return;
 
   Core::RunOnCPUThread(
       [&] {
@@ -585,11 +590,11 @@ void LoadAs(const std::string& filename)
 
           if (!buffer.empty())
           {
-            u8* ptr = &buffer[0];
-            PointerWrap p(&ptr, PointerWrap::MODE_READ);
+            u8* ptr = buffer.data();
+            PointerWrap p(&ptr, buffer.size(), PointerWrap::Mode::Read);
             DoState(p);
             loaded = true;
-            loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
+            loadedSuccessfully = p.IsReadMode();
           }
         }
 
@@ -617,8 +622,6 @@ void LoadAs(const std::string& filename)
           s_on_after_load_callback();
       },
       true);
-
-  s_load_or_save_in_progress = false;
 }
 
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
@@ -699,6 +702,8 @@ void SaveFirstSaved()
 
 void Flush()
 {
+  std::lock_guard lk(g_save_thread_mutex);
+
   // If already saving state, wait for it to finish
   if (g_save_thread.joinable())
     g_save_thread.join();

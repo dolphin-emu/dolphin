@@ -12,8 +12,9 @@ class PointerWrap;
 class MemoryCardBase
 {
 public:
-  explicit MemoryCardBase(int card_index = 0, int size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043)
-      : m_card_index(card_index), m_nintendo_card_id(size_mbits)
+  explicit MemoryCardBase(ExpansionInterface::Slot card_slot,
+                          int size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043)
+      : m_card_slot(card_slot), m_nintendo_card_id(size_mbits)
   {
   }
   virtual ~MemoryCardBase() = default;
@@ -25,6 +26,6 @@ public:
   u32 GetCardId() const { return m_nintendo_card_id; }
 
 protected:
-  int m_card_index;
+  ExpansionInterface::Slot m_card_slot;
   u16 m_nintendo_card_id;
 };

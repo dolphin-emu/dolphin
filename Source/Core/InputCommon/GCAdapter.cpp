@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <libusb.h>
 #include <mutex>
+#include <optional>
 
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -21,6 +24,15 @@
 
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
+
+#if defined(LIBUSB_API_VERSION)
+#define LIBUSB_API_VERSION_EXIST 1
+#else
+#define LIBUSB_API_VERSION_EXIST 0
+#endif
+
+#define LIBUSB_API_VERSION_ATLEAST(v) (LIBUSB_API_VERSION_EXIST && LIBUSB_API_VERSION >= (v))
+#define LIBUSB_API_HAS_HOTPLUG LIBUSB_API_VERSION_ATLEAST(0x01000102)
 
 namespace GCAdapter
 {
@@ -48,7 +60,8 @@ static std::mutex s_mutex;
 static u8 s_controller_payload[37];
 static u8 s_controller_payload_swap[37];
 
-static std::atomic<int> s_controller_payload_size = {0};
+// Only access with s_mutex held!
+static int s_controller_payload_size = {0};
 
 static std::thread s_adapter_input_thread;
 static std::thread s_adapter_output_thread;
@@ -68,19 +81,26 @@ static bool s_libusb_hotplug_enabled = true;
 #else
 static bool s_libusb_hotplug_enabled = false;
 #endif
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 static libusb_hotplug_callback_handle s_hotplug_handle;
 #endif
 
-static LibusbUtils::Context s_libusb_context;
+static std::unique_ptr<LibusbUtils::Context> s_libusb_context;
 
 static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
 
 static u64 s_last_init = 0;
 
+static std::optional<size_t> s_config_callback_id = std::nullopt;
+static std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS>
+    s_config_si_device_type{};
+static std::array<bool, SerialInterface::MAX_SI_CHANNELS> s_config_rumble_enabled{};
+
 static void Read()
 {
+  Common::SetCurrentThreadName("GCAdapter Read Thread");
+
   int payload_size = 0;
   while (s_adapter_thread_running.IsSet())
   {
@@ -93,7 +113,7 @@ static void Read()
     {
       std::lock_guard<std::mutex> lk(s_mutex);
       std::swap(s_controller_payload_swap, s_controller_payload);
-      s_controller_payload_size.store(payload_size);
+      s_controller_payload_size = payload_size;
     }
 
     Common::YieldCPU();
@@ -102,6 +122,8 @@ static void Read()
 
 static void Write()
 {
+  Common::SetCurrentThreadName("GCAdapter Write Thread");
+
   int size = 0;
 
   while (true)
@@ -126,7 +148,7 @@ static void Write()
   }
 }
 
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotplug_event event,
                            void* user_data)
 {
@@ -157,14 +179,14 @@ static void ScanThreadFunc()
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG_FMT(CONTROLLERINTERFACE, "GC Adapter scanning thread started");
 
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#if LIBUSB_API_HAS_HOTPLUG
 #ifndef __FreeBSD__
   s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
 #endif
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
-            s_libusb_context,
+            *s_libusb_context,
             (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
                                    LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
             LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
@@ -196,10 +218,21 @@ void SetAdapterCallback(std::function<void()> func)
   s_detect_callback = func;
 }
 
+static void RefreshConfig()
+{
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
+  {
+    s_config_si_device_type[i] = Config::Get(Config::GetInfoForSIDevice(i));
+    s_config_rumble_enabled[i] = Config::Get(Config::GetInfoForAdapterRumble(i));
+  }
+}
+
 void Init()
 {
   if (s_handle != nullptr)
     return;
+
+  s_libusb_context = std::make_unique<LibusbUtils::Context>();
 
   if (Core::GetState() != Core::State::Uninitialized && Core::GetState() != Core::State::Starting)
   {
@@ -211,6 +244,10 @@ void Init()
 
   s_status = NO_ADAPTER_DETECTED;
 
+  if (!s_config_callback_id)
+    s_config_callback_id = Config::AddConfigChangedCallback(RefreshConfig);
+  RefreshConfig();
+
   if (UseAdapter())
     StartScanThread();
 }
@@ -219,7 +256,7 @@ void StartScanThread()
 {
   if (s_adapter_detect_thread_running.IsSet())
     return;
-  if (!s_libusb_context.IsValid())
+  if (!s_libusb_context->IsValid())
     return;
   s_adapter_detect_thread_running.Set(true);
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
@@ -245,7 +282,7 @@ static void Setup()
   s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
   s_controller_rumble.fill(0);
 
-  s_libusb_context.GetDeviceList([](libusb_device* device) {
+  s_libusb_context->GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
     {
       // Only connect to a single adapter in case the user has multiple connected
@@ -299,11 +336,17 @@ static bool CheckDeviceAccess(libusb_device* device)
     return false;
   }
 
+  bool detach_failed = false;
   ret = libusb_kernel_driver_active(s_handle, 0);
   if (ret == 1)
   {
+    // On macos detaching would fail without root or entitlement.
+    // We assume user is using GCAdapterDriver and therefor don't want to detach anything
+#if !defined(__APPLE__)
     ret = libusb_detach_kernel_driver(s_handle, 0);
-    if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+    detach_failed = ret < 0 && ret != LIBUSB_ERROR_NOT_FOUND && ret != LIBUSB_ERROR_NOT_SUPPORTED;
+#endif
+    if (detach_failed)
       ERROR_LOG_FMT(CONTROLLERINTERFACE, "libusb_detach_kernel_driver failed with error: {}", ret);
   }
 
@@ -315,7 +358,7 @@ static bool CheckDeviceAccess(libusb_device* device)
 
   // this split is needed so that we don't avoid claiming the interface when
   // detaching the kernel driver is successful
-  if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+  if (detach_failed)
   {
     libusb_close(s_handle);
     s_handle = nullptr;
@@ -375,13 +418,20 @@ static void AddGCAdapter(libusb_device* device)
 void Shutdown()
 {
   StopScanThread();
-#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
-  if (s_libusb_context.IsValid() && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(s_libusb_context, s_hotplug_handle);
+#if LIBUSB_API_HAS_HOTPLUG
+  if (s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
+    libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
   Reset();
+  s_libusb_context.reset();
 
   s_status = NO_ADAPTER_DETECTED;
+
+  if (s_config_callback_id)
+  {
+    Config::RemoveConfigChangedCallback(*s_config_callback_id);
+    s_config_callback_id = std::nullopt;
+  }
 }
 
 static void Reset()
@@ -429,7 +479,7 @@ GCPadStatus Input(int chan)
     std::lock_guard<std::mutex> lk(s_mutex);
     std::copy(std::begin(s_controller_payload), std::end(s_controller_payload),
               std::begin(controller_payload_copy));
-    payload_size = s_controller_payload_size.load();
+    payload_size = s_controller_payload_size;
   }
 
   GCPadStatus pad = {};
@@ -520,9 +570,8 @@ void ResetDeviceType(int chan)
 
 bool UseAdapter()
 {
-  const auto& si_devices = SConfig::GetInstance().m_SIDevice;
-
-  return std::any_of(std::begin(si_devices), std::end(si_devices), [](const auto device_type) {
+  const auto& si_devices = s_config_si_device_type;
+  return std::any_of(si_devices.begin(), si_devices.end(), [](const auto device_type) {
     return device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER;
   });
 }
@@ -557,7 +606,7 @@ static void ResetRumbleLockNeeded()
 
 void Output(int chan, u8 rumble_command)
 {
-  if (s_handle == nullptr || !UseAdapter() || !SConfig::GetInstance().m_AdapterRumble[chan])
+  if (s_handle == nullptr || !UseAdapter() || !s_config_rumble_enabled[chan])
     return;
 
   // Skip over rumble commands if it has not changed or the controller is wireless

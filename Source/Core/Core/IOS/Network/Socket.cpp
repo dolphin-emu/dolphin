@@ -322,7 +322,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
         ReturnValue = WiiSockMan::GetInstance().AddSocket(ret, true);
 
-        ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::IOS_NET);
+        ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::LogType::IOS_NET);
         break;
       }
       default:
@@ -994,8 +994,7 @@ void WiiSockMan::Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen
 
 void WiiSockMan::DoState(PointerWrap& p)
 {
-  bool saving =
-      p.mode == PointerWrap::Mode::MODE_WRITE || p.mode == PointerWrap::Mode::MODE_MEASURE;
+  bool saving = p.IsWriteMode() || p.IsMeasureMode();
   auto size = pending_polls.size();
   p.Do(size);
   if (!saving)

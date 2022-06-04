@@ -70,7 +70,6 @@ add_library(videocommon
   RenderBase.h
   RenderState.cpp
   RenderState.h
-  SamplerCommon.h
   ShaderCache.cpp
   ShaderCache.h
   ShaderGenCommon.cpp
@@ -180,4 +179,9 @@ if(FFmpeg_FOUND)
       ${AUDIOTOOLBOX_LIBRARY}
     )
   endif()
+endif()
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(videocommon PRIVATE use_pch)
 endif()

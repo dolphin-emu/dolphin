@@ -15,8 +15,10 @@ void ProcessLine(OutputVertexData* v0, OutputVertexData* v1);
 
 void ProcessPoint(OutputVertexData* v);
 
-bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-              bool& backface);
+bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
+                         const OutputVertexData* v2);
+
+bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2);
 
 void PerspectiveDivide(OutputVertexData* vertex);
 }  // namespace Clipper

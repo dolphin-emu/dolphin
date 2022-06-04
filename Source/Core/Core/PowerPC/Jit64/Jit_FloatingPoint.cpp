@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/Jit64/Jit.h"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -14,7 +16,6 @@
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -37,7 +38,7 @@ void Jit64::SetFPRFIfNeeded(const OpArg& input, bool single)
   // As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
   // FPRF is fast enough in JIT that we might as well just enable it for every float instruction
   // if the FPRF flag is set.
-  if (!SConfig::GetInstance().bFPRF || !js.op->wantsFPRF)
+  if (!m_fprf || !js.op->wantsFPRF)
     return;
 
   X64Reg xmm = XMM0;
@@ -101,7 +102,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
   // Dragon Ball: Revenge of King Piccolo requires generated NaNs
   // to be positive, so we'll have to handle them manually.
 
-  if (!SConfig::GetInstance().bAccurateNaNs)
+  if (!m_accurate_nans)
   {
     if (xmm_out != xmm)
       MOVAPD(xmm_out, R(xmm));
@@ -229,7 +230,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     packed = false;
 
   bool round_input = single && !js.op->fprIsSingle[inst.FC];
-  bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
+  bool preserve_inputs = m_accurate_nans;
 
   const auto fp_tri_op = [&](int op1, int op2, bool reversible,
                              void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
@@ -474,7 +475,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   if (negate)
     XORPD(result_xmm, MConst(packed ? psSignBits2 : psSignBits));
 
-  if (SConfig::GetInstance().bAccurateNaNs && result_xmm == XMM0)
+  if (m_accurate_nans && result_xmm == XMM0)
   {
     // HandleNaNs needs to clobber XMM0
     MOVAPD(Rd, R(result_xmm));
@@ -631,7 +632,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-  bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
+  bool fprf = m_fprf && js.op->wantsFPRF;
   // bool ordered = !!(inst.SUBOP10 & 32);
   int a = inst.FA;
   int b = inst.FB;

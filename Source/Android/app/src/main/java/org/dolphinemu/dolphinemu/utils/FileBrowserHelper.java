@@ -30,7 +30,7 @@ import java.util.Set;
 public final class FileBrowserHelper
 {
   public static final HashSet<String> GAME_EXTENSIONS = new HashSet<>(Arrays.asList(
-          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wia", "rvz", "wad", "dol", "elf"));
+          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wia", "rvz", "wad", "dol", "elf", "json"));
 
   public static final HashSet<String> GAME_LIKE_EXTENSIONS = new HashSet<>(GAME_EXTENSIONS);
 
@@ -118,7 +118,7 @@ public final class FileBrowserHelper
               setToSortedDelimitedString(validExtensions));
     }
 
-    new AlertDialog.Builder(context, R.style.DolphinDialogBase)
+    new AlertDialog.Builder(context)
             .setMessage(message)
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> runnable.run())
             .setNegativeButton(R.string.no, null)

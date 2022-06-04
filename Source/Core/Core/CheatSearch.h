@@ -132,7 +132,7 @@ public:
   virtual void SetFilterType(FilterType filter_type) = 0;
 
   // Set the value of the CompareAgainstSpecificValue filter used by subsequent searches.
-  virtual bool SetValueFromString(const std::string& value_as_string) = 0;
+  virtual bool SetValueFromString(const std::string& value_as_string, bool force_parse_as_hex) = 0;
 
   // Resets the search results, causing the next search to act as a new search.
   virtual void ResetResults() = 0;
@@ -140,11 +140,14 @@ public:
   // Run either a new search or a next search based on the current state of this session.
   virtual SearchErrorCode RunSearch() = 0;
 
-  virtual size_t GetMemoryRangeCount() = 0;
-  virtual MemoryRange GetMemoryRange(size_t index) = 0;
-  virtual PowerPC::RequestedAddressSpace GetAddressSpace() = 0;
-  virtual DataType GetDataType() = 0;
-  virtual bool GetAligned() = 0;
+  virtual size_t GetMemoryRangeCount() const = 0;
+  virtual MemoryRange GetMemoryRange(size_t index) const = 0;
+  virtual PowerPC::RequestedAddressSpace GetAddressSpace() const = 0;
+  virtual DataType GetDataType() const = 0;
+  virtual bool GetAligned() const = 0;
+
+  virtual bool IsIntegerType() const = 0;
+  virtual bool IsFloatingType() const = 0;
 
   virtual size_t GetResultCount() const = 0;
   virtual size_t GetValidValueCount() const = 0;
@@ -165,7 +168,7 @@ public:
 };
 
 template <typename T>
-class CheatSearchSession : public CheatSearchSessionBase
+class CheatSearchSession final : public CheatSearchSessionBase
 {
 public:
   CheatSearchSession(std::vector<MemoryRange> memory_ranges,
@@ -178,16 +181,19 @@ public:
 
   void SetCompareType(CompareType compare_type) override;
   void SetFilterType(FilterType filter_type) override;
-  bool SetValueFromString(const std::string& value_as_string) override;
+  bool SetValueFromString(const std::string& value_as_string, bool force_parse_as_hex) override;
 
   void ResetResults() override;
   SearchErrorCode RunSearch() override;
 
-  size_t GetMemoryRangeCount() override;
-  MemoryRange GetMemoryRange(size_t index) override;
-  PowerPC::RequestedAddressSpace GetAddressSpace() override;
-  DataType GetDataType() override;
-  bool GetAligned() override;
+  size_t GetMemoryRangeCount() const override;
+  MemoryRange GetMemoryRange(size_t index) const override;
+  PowerPC::RequestedAddressSpace GetAddressSpace() const override;
+  DataType GetDataType() const override;
+  bool GetAligned() const override;
+
+  bool IsIntegerType() const override;
+  bool IsFloatingType() const override;
 
   size_t GetResultCount() const override;
   size_t GetValidValueCount() const override;

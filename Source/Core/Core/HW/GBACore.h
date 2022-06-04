@@ -68,6 +68,8 @@ public:
 
   void ImportState(std::string_view state_path);
   void ExportState(std::string_view state_path);
+  void ImportSave(std::string_view save_path);
+  void ExportSave(std::string_view save_path);
   void DoState(PointerWrap& p);
 
   static bool GetRomInfo(const char* rom_path, std::array<u8, 20>& hash, std::string& title);

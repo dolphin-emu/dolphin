@@ -15,6 +15,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/Config/SessionSettings.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders
@@ -37,9 +38,9 @@ public:
     layer->Set(Config::MAIN_DSP_HLE, m_settings.m_DSPHLE);
     layer->Set(Config::MAIN_OVERCLOCK_ENABLE, m_settings.m_OCEnable);
     layer->Set(Config::MAIN_OVERCLOCK, m_settings.m_OCFactor);
-    layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
-    layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
-    layer->Set(Config::MAIN_SERIAL_PORT_1, static_cast<int>(m_settings.m_EXIDevice[2]));
+    for (ExpansionInterface::Slot slot : ExpansionInterface::SLOTS)
+      layer->Set(Config::GetInfoForEXIDevice(slot), m_settings.m_EXIDevice[slot]);
+    layer->Set(Config::MAIN_MEMORY_CARD_SIZE, m_settings.m_MemcardSizeOverride);
     layer->Set(Config::SESSION_SAVE_DATA_WRITABLE, m_settings.m_WriteToMemcard);
     layer->Set(Config::MAIN_RAM_OVERRIDE_ENABLE, m_settings.m_RAMOverrideEnable);
     layer->Set(Config::MAIN_MEM1_SIZE, m_settings.m_Mem1Size);
@@ -93,9 +94,11 @@ public:
 
     layer->Set(Config::SESSION_USE_FMA, m_settings.m_UseFMA);
 
+    layer->Set(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED, false);
+
     if (m_settings.m_StrictSettingsSync)
     {
-      layer->Set(Config::GFX_HACK_VERTEX_ROUDING, m_settings.m_VertexRounding);
+      layer->Set(Config::GFX_HACK_VERTEX_ROUNDING, m_settings.m_VertexRounding);
       layer->Set(Config::GFX_EFB_SCALE, m_settings.m_InternalResolution);
       layer->Set(Config::GFX_HACK_COPY_EFB_SCALED, m_settings.m_EFBScaledCopy);
       layer->Set(Config::GFX_FAST_DEPTH_CALC, m_settings.m_FastDepthCalc);
@@ -136,10 +139,12 @@ public:
       layer->Set(Config::SESSION_GCI_FOLDER_CURRENT_GAME_ONLY, true);
     }
 
+#ifdef HAS_LIBMGBA
     for (size_t i = 0; i < m_settings.m_GBARomPaths.size(); ++i)
     {
       layer->Set(Config::MAIN_GBA_ROM_PATHS[i], m_settings.m_GBARomPaths[i]);
     }
+#endif
 
     // Check To Override Client's Cheat Codes
     if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)

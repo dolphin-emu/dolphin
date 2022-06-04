@@ -113,6 +113,11 @@ void UninstallExceptionHandler()
     s_veh_handle = nullptr;
 }
 
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 
 static void CheckKR(const char* name, kern_return_t kr)
@@ -245,6 +250,11 @@ void UninstallExceptionHandler()
 {
 }
 
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
 
 static struct sigaction old_sa_segv;
@@ -328,7 +338,7 @@ void InstallExceptionHandler()
   signal_stack.ss_size = SIGSTKSZ;
   signal_stack.ss_flags = 0;
   if (sigaltstack(&signal_stack, nullptr))
-    PanicAlert("sigaltstack failed");
+    PanicAlertFmt("sigaltstack failed");
   struct sigaction sa;
   sa.sa_handler = nullptr;
   sa.sa_sigaction = &sigsegv_handler;
@@ -353,13 +363,25 @@ void UninstallExceptionHandler()
   sigaction(SIGBUS, &old_sa_bus, nullptr);
 #endif
 }
+
+bool IsExceptionHandlerSupported()
+{
+  return true;
+}
+
 #else  // _M_GENERIC or unsupported platform
 
 void InstallExceptionHandler()
 {
 }
+
 void UninstallExceptionHandler()
 {
+}
+
+bool IsExceptionHandlerSupported()
+{
+  return false;
 }
 
 #endif

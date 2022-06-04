@@ -23,6 +23,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Settings/USBDeviceAddToWhitelistDialog.h"
 
@@ -158,18 +159,23 @@ void WiiPane::CreateMisc()
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
 {
+  m_whitelist_usb_list = new QListWidget();
+  m_whitelist_usb_add_button = new NonDefaultQPushButton(tr("Add..."));
+  m_whitelist_usb_remove_button = new NonDefaultQPushButton(tr("Remove"));
+
+  QHBoxLayout* hlayout = new QHBoxLayout;
+  hlayout->addStretch();
+  hlayout->addWidget(m_whitelist_usb_add_button);
+  hlayout->addWidget(m_whitelist_usb_remove_button);
+
+  QVBoxLayout* vlayout = new QVBoxLayout;
+  vlayout->addWidget(m_whitelist_usb_list);
+  vlayout->addLayout(hlayout);
+
   auto* whitelisted_usb_passthrough_devices_group =
       new QGroupBox(tr("Whitelisted USB Passthrough Devices"));
-  auto* whitelist_layout = new QGridLayout();
-  m_whitelist_usb_list = new QListWidget();
-  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0, 1, -1);
-  whitelist_layout->setColumnStretch(0, 1);
-  m_whitelist_usb_add_button = new QPushButton(tr("Add..."));
-  m_whitelist_usb_remove_button = new QPushButton(tr("Remove"));
-  whitelist_layout->addWidget(m_whitelist_usb_add_button, 1, 1);
-  whitelist_layout->addWidget(m_whitelist_usb_remove_button, 1, 2);
-  whitelist_layout->addWidget(m_whitelist_usb_list, 0, 0);
-  whitelisted_usb_passthrough_devices_group->setLayout(whitelist_layout);
+  whitelisted_usb_passthrough_devices_group->setLayout(vlayout);
+
   m_main_layout->addWidget(whitelisted_usb_passthrough_devices_group);
 }
 
@@ -283,14 +289,17 @@ void WiiPane::OnUSBWhitelistRemoveButton()
   QString pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
-  SConfig::GetInstance().m_usb_passthrough_devices.erase({vid_u16, pid_u16});
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+  whitelist.erase({vid_u16, pid_u16});
+  Config::SetUSBDeviceWhitelist(whitelist);
   PopulateUSBPassthroughListWidget();
 }
 
 void WiiPane::PopulateUSBPassthroughListWidget()
 {
   m_whitelist_usb_list->clear();
-  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+  auto whitelist = Config::GetUSBDeviceWhitelist();
+  for (const auto& device : whitelist)
   {
     QListWidgetItem* usb_lwi =
         new QListWidgetItem(QString::fromStdString(USBUtils::GetDeviceName(device)));

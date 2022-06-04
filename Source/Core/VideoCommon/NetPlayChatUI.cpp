@@ -45,7 +45,7 @@ void NetPlayChatUI::Display()
 
   if (m_scroll_to_bottom)
   {
-    ImGui::SetScrollHere(1.0f);
+    ImGui::SetScrollHereY(1.0f);
     m_scroll_to_bottom = false;
   }
 

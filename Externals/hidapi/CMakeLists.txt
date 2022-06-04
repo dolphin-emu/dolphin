@@ -1,6 +1,7 @@
 project(hidapi)
 
 add_library(hidapi STATIC hidapi/hidapi.h)
+dolphin_disable_warnings_msvc(hidapi)
 target_include_directories(hidapi PUBLIC hidapi)
 
 if(APPLE)

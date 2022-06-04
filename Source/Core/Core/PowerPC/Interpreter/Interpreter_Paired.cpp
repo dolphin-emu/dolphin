@@ -1,11 +1,12 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+
 #include <cmath>
 
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 

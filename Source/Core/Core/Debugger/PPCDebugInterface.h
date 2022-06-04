@@ -76,6 +76,7 @@ public:
 
   u32 ReadExtraMemory(int memory, u32 address) const override;
   u32 ReadInstruction(u32 address) const override;
+  std::optional<u32> GetMemoryAddressFromInstruction(const std::string& instruction) const override;
   u32 GetPC() const override;
   void SetPC(u32 address) override;
   void Step() override {}

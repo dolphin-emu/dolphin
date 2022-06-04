@@ -25,8 +25,11 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/Flag.h"
 #include "Common/Inline.h"
 #include "Common/Logging/Log.h"
@@ -35,30 +38,41 @@
 class PointerWrap
 {
 public:
-  enum Mode
+  enum class Mode
   {
-    MODE_READ = 1,  // load
-    MODE_WRITE,     // save
-    MODE_MEASURE,   // calculate size
-    MODE_VERIFY,    // compare
+    Read,
+    Write,
+    Measure,
+    Verify,
   };
 
-  u8** ptr;
-  Mode mode;
+private:
+  u8** m_ptr_current;
+  u8* m_ptr_end;
+  Mode m_mode;
 
 public:
-  PointerWrap(u8** ptr_, Mode mode_) : ptr(ptr_), mode(mode_) {}
-  void SetMode(Mode mode_) { mode = mode_; }
-  Mode GetMode() const { return mode; }
+  PointerWrap(u8** ptr, size_t size, Mode mode)
+      : m_ptr_current(ptr), m_ptr_end(*ptr + size), m_mode(mode)
+  {
+  }
+
+  void SetMeasureMode() { m_mode = Mode::Measure; }
+  void SetVerifyMode() { m_mode = Mode::Verify; }
+  bool IsReadMode() const { return m_mode == Mode::Read; }
+  bool IsWriteMode() const { return m_mode == Mode::Write; }
+  bool IsMeasureMode() const { return m_mode == Mode::Measure; }
+  bool IsVerifyMode() const { return m_mode == Mode::Verify; }
+
   template <typename K, class V>
   void Do(std::map<K, V>& x)
   {
     u32 count = (u32)x.size();
     Do(count);
 
-    switch (mode)
+    switch (m_mode)
     {
-    case MODE_READ:
+    case Mode::Read:
       for (x.clear(); count != 0; --count)
       {
         std::pair<K, V> pair;
@@ -68,9 +82,9 @@ public:
       }
       break;
 
-    case MODE_WRITE:
-    case MODE_MEASURE:
-    case MODE_VERIFY:
+    case Mode::Write:
+    case Mode::Measure:
+    case Mode::Verify:
       for (auto& elem : x)
       {
         Do(elem.first);
@@ -86,9 +100,9 @@ public:
     u32 count = (u32)x.size();
     Do(count);
 
-    switch (mode)
+    switch (m_mode)
     {
-    case MODE_READ:
+    case Mode::Read:
       for (x.clear(); count != 0; --count)
       {
         V value;
@@ -97,9 +111,9 @@ public:
       }
       break;
 
-    case MODE_WRITE:
-    case MODE_MEASURE:
-    case MODE_VERIFY:
+    case Mode::Write:
+    case Mode::Measure:
+    case Mode::Verify:
       for (const V& val : x)
       {
         Do(val);
@@ -145,9 +159,9 @@ public:
     bool present = x.has_value();
     Do(present);
 
-    switch (mode)
+    switch (m_mode)
     {
-    case MODE_READ:
+    case Mode::Read:
       if (present)
       {
         x = std::make_optional<T>();
@@ -159,9 +173,9 @@ public:
       }
       break;
 
-    case MODE_WRITE:
-    case MODE_MEASURE:
-    case MODE_VERIFY:
+    case Mode::Write:
+    case Mode::Measure:
+    case Mode::Verify:
       if (present)
         Do(x.value());
 
@@ -171,6 +185,12 @@ public:
 
   template <typename T, std::size_t N>
   void DoArray(std::array<T, N>& x)
+  {
+    DoArray(x.data(), static_cast<u32>(x.size()));
+  }
+
+  template <typename V, auto last_member, typename = decltype(last_member)>
+  void DoArray(Common::EnumMap<V, last_member>& x)
   {
     DoArray(x.data(), static_cast<u32>(x.size()));
   }
@@ -199,8 +219,13 @@ public:
   [[nodiscard]] u8* DoExternal(u32& count)
   {
     Do(count);
-    u8* current = *ptr;
-    *ptr += count;
+    u8* current = *m_ptr_current;
+    *m_ptr_current += count;
+    if (!IsMeasureMode() && *m_ptr_current > m_ptr_end)
+    {
+      // trying to read/write past the end of the buffer, prevent this
+      SetMeasureMode();
+    }
     return current;
   }
 
@@ -208,7 +233,7 @@ public:
   {
     bool s = flag.IsSet();
     Do(s);
-    if (mode == MODE_READ)
+    if (IsReadMode())
       flag.Set(s);
   }
 
@@ -217,7 +242,7 @@ public:
   {
     T temp = atomic.load(std::memory_order_relaxed);
     Do(temp);
-    if (mode == MODE_READ)
+    if (IsReadMode())
       atomic.store(temp, std::memory_order_relaxed);
   }
 
@@ -247,7 +272,7 @@ public:
 
     Do(stable);
 
-    if (mode == MODE_READ)
+    if (IsReadMode())
       x = stable != 0;
   }
 
@@ -258,7 +283,7 @@ public:
     // much range
     ptrdiff_t offset = x - base;
     Do(offset);
-    if (mode == MODE_READ)
+    if (IsReadMode())
     {
       x = base + offset;
     }
@@ -269,13 +294,13 @@ public:
     u32 cookie = arbitraryNumber;
     Do(cookie);
 
-    if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
+    if (IsReadMode() && cookie != arbitraryNumber)
     {
       PanicAlertFmtT(
           "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:#x}). Aborting "
           "savestate load...",
           prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
-      mode = PointerWrap::MODE_MEASURE;
+      SetMeasureMode();
     }
   }
 
@@ -310,26 +335,32 @@ private:
 
   DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
   {
-    switch (mode)
+    if (!IsMeasureMode() && (*m_ptr_current + size) > m_ptr_end)
     {
-    case MODE_READ:
-      memcpy(data, *ptr, size);
+      // trying to read/write past the end of the buffer, prevent this
+      SetMeasureMode();
+    }
+
+    switch (m_mode)
+    {
+    case Mode::Read:
+      memcpy(data, *m_ptr_current, size);
       break;
 
-    case MODE_WRITE:
-      memcpy(*ptr, data, size);
+    case Mode::Write:
+      memcpy(*m_ptr_current, data, size);
       break;
 
-    case MODE_MEASURE:
+    case Mode::Measure:
       break;
 
-    case MODE_VERIFY:
-      DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *ptr, size),
-                       "Savestate verification failure: buf %p != %p (size %u).\n", data, *ptr,
-                       size);
+    case Mode::Verify:
+      DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *m_ptr_current, size),
+                       "Savestate verification failure: buf {} != {} (size {}).\n", fmt::ptr(data),
+                       fmt::ptr(*m_ptr_current), size);
       break;
     }
 
-    *ptr += size;
+    *m_ptr_current += size;
   }
 };

@@ -18,6 +18,7 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/API/Controller.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -302,6 +303,14 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   Reset();
+
+  m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
+  RefreshConfig();
+}
+
+Wiimote::~Wiimote()
+{
+  Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
 std::string Wiimote::GetName() const
@@ -731,6 +740,11 @@ void Wiimote::SetRumble(bool on)
 {
   const auto lock = GetStateLock();
   m_rumble->controls.front()->control_ref->State(on);
+}
+
+void Wiimote::RefreshConfig()
+{
+  m_speaker_logic.SetSpeakerEnabled(Config::Get(Config::MAIN_WIIMOTE_ENABLE_SPEAKER));
 }
 
 void Wiimote::StepDynamics()

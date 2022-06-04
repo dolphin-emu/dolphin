@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <ItemGroup>
     <ClInclude Include="AudioCommon\AudioCommon.h" />
     <ClInclude Include="AudioCommon\AudioStretcher.h" />
@@ -43,6 +43,7 @@
     <ClInclude Include="Common\DynamicLibrary.h" />
     <ClInclude Include="Common\ENetUtil.h" />
     <ClInclude Include="Common\EnumFormatter.h" />
+    <ClInclude Include="Common\EnumMap.h" />
     <ClInclude Include="Common\Event.h" />
     <ClInclude Include="Common\FileSearch.h" />
     <ClInclude Include="Common\FileUtil.h" />
@@ -106,8 +107,10 @@
     <ClInclude Include="Common\GL\GLUtil.h" />
     <ClInclude Include="Common\GL\GLX11Window.h" />
     <ClInclude Include="Common\Hash.h" />
+    <ClInclude Include="Common\HRWrap.h" />
     <ClInclude Include="Common\HttpRequest.h" />
     <ClInclude Include="Common\Image.h" />
+    <ClInclude Include="Common\ImageC.h" />
     <ClInclude Include="Common\IniFile.h" />
     <ClInclude Include="Common\Inline.h" />
     <ClInclude Include="Common\Intrinsics.h" />
@@ -121,7 +124,6 @@
     <ClInclude Include="Common\Logging\LogManager.h" />
     <ClInclude Include="Common\MathUtil.h" />
     <ClInclude Include="Common\Matrix.h" />
-    <ClInclude Include="Common\MD5.h" />
     <ClInclude Include="Common\MemArena.h" />
     <ClInclude Include="Common\MemoryUtil.h" />
     <ClInclude Include="Common\MinizipUtil.h" />
@@ -178,6 +180,7 @@
     <ClInclude Include="Core\Config\SessionSettings.h" />
     <ClInclude Include="Core\Config\SYSCONFSettings.h" />
     <ClInclude Include="Core\Config\UISettings.h" />
+    <ClInclude Include="Core\Config\WiimoteSettings.h" />
     <ClInclude Include="Core\ConfigLoaders\BaseConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\GameConfigLoader.h" />
     <ClInclude Include="Core\ConfigLoaders\IsSettingSaveable.h" />
@@ -218,11 +221,8 @@
     <ClInclude Include="Core\DSP\Jit\x64\DSPJitTables.h" />
     <ClInclude Include="Core\DSP\LabelMap.h" />
     <ClInclude Include="Core\DSPEmulator.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoDataFile.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoPlayer.h" />
-    <ClInclude Include="Core\FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="Core\FifoPlayer\FifoRecorder.h" />
     <ClInclude Include="Core\FreeLookConfig.h" />
     <ClInclude Include="Core\FreeLookManager.h" />
@@ -283,6 +283,10 @@
     <ClInclude Include="Core\HW\GCPad.h" />
     <ClInclude Include="Core\HW\GCPadEmu.h" />
     <ClInclude Include="Core\HW\GPFifo.h" />
+    <ClInclude Include="Core\HW\HSP\HSP.h" />
+    <ClInclude Include="Core\HW\HSP\HSP_Device.h" />
+    <ClInclude Include="Core\HW\HSP\HSP_DeviceARAMExpansion.h" />
+    <ClInclude Include="Core\HW\HSP\HSP_DeviceNull.h" />
     <ClInclude Include="Core\HW\HW.h" />
     <ClInclude Include="Core\HW\Memmap.h" />
     <ClInclude Include="Core\HW\MemoryInterface.h" />
@@ -434,9 +438,12 @@
     <ClInclude Include="DiscIO\FileBlob.h" />
     <ClInclude Include="DiscIO\Filesystem.h" />
     <ClInclude Include="DiscIO\FileSystemGCWii.h" />
+    <ClInclude Include="DiscIO\GameModDescriptor.h" />
     <ClInclude Include="DiscIO\LaggedFibonacciGenerator.h" />
     <ClInclude Include="DiscIO\MultithreadedCompressor.h" />
     <ClInclude Include="DiscIO\NANDImporter.h" />
+    <ClInclude Include="DiscIO\RiivolutionParser.h" />
+    <ClInclude Include="DiscIO\RiivolutionPatcher.h" />
     <ClInclude Include="DiscIO\ScrubbedBlob.h" />
     <ClInclude Include="DiscIO\TGCBlob.h" />
     <ClInclude Include="DiscIO\Volume.h" />
@@ -483,6 +490,8 @@
     <ClInclude Include="InputCommon\ControllerInterface\DualShockUDPClient\DualShockUDPProto.h" />
     <ClInclude Include="InputCommon\ControllerInterface\evdev\evdev.h" />
     <ClInclude Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\MappingCommon.h" />
+    <ClInclude Include="InputCommon\ControllerInterface\WGInput\WGInput.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.h" />
     <ClInclude Include="InputCommon\ControllerInterface\Win32\Win32.h" />
     <ClInclude Include="InputCommon\ControllerInterface\XInput\XInput.h" />
@@ -643,7 +652,6 @@
     <ClInclude Include="VideoCommon\PostProcessing.h" />
     <ClInclude Include="VideoCommon\RenderBase.h" />
     <ClInclude Include="VideoCommon\RenderState.h" />
-    <ClInclude Include="VideoCommon\SamplerCommon.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
     <ClInclude Include="VideoCommon\Statistics.h" />
@@ -711,8 +719,14 @@
     <ClCompile Include="Common\GL\GLInterface\WGL.cpp" />
     <ClCompile Include="Common\GL\GLUtil.cpp" />
     <ClCompile Include="Common\Hash.cpp" />
+    <ClCompile Include="Common\HRWrap.cpp" />
     <ClCompile Include="Common\HttpRequest.cpp" />
     <ClCompile Include="Common\Image.cpp" />
+    <ClCompile Include="Common\ImageC.c">
+      <!-- This is a C file, not a C++ file, so we can't use the C++ pre-compiled header -->
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles />
+    </ClCompile>
     <ClCompile Include="Common\IniFile.cpp" />
     <ClCompile Include="Common\IOFile.cpp" />
     <ClCompile Include="Common\JitRegister.cpp" />
@@ -721,8 +735,7 @@
     <ClCompile Include="Common\Logging\LogManager.cpp" />
     <ClCompile Include="Common\MathUtil.cpp" />
     <ClCompile Include="Common\Matrix.cpp" />
-    <ClCompile Include="Common\MD5.cpp" />
-    <ClCompile Include="Common\MemArena.cpp" />
+    <ClCompile Include="Common\MemArenaWin.cpp" />
     <ClCompile Include="Common\MemoryUtil.cpp" />
     <ClCompile Include="Common\MsgHandler.cpp" />
     <ClCompile Include="Common\NandPaths.cpp" />
@@ -765,6 +778,7 @@
     <ClCompile Include="Core\Config\SessionSettings.cpp" />
     <ClCompile Include="Core\Config\SYSCONFSettings.cpp" />
     <ClCompile Include="Core\Config\UISettings.cpp" />
+    <ClCompile Include="Core\Config\WiimoteSettings.cpp" />
     <ClCompile Include="Core\ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\GameConfigLoader.cpp" />
     <ClCompile Include="Core\ConfigLoaders\IsSettingSaveable.cpp" />
@@ -812,11 +826,8 @@
     <ClCompile Include="Core\DSP\Jit\x64\DSPJitUtil.cpp" />
     <ClCompile Include="Core\DSP\LabelMap.cpp" />
     <ClCompile Include="Core\DSPEmulator.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoDataFile.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoPlaybackAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoPlayer.cpp" />
-    <ClCompile Include="Core\FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="Core\FifoPlayer\FifoRecorder.cpp" />
     <ClCompile Include="Core\FreeLookConfig.cpp" />
     <ClCompile Include="Core\FreeLookManager.cpp" />
@@ -874,6 +885,10 @@
     <ClCompile Include="Core\HW\GCPad.cpp" />
     <ClCompile Include="Core\HW\GCPadEmu.cpp" />
     <ClCompile Include="Core\HW\GPFifo.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP_Device.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP_DeviceARAMExpansion.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP_DeviceNull.cpp" />
     <ClCompile Include="Core\HW\HW.cpp" />
     <ClCompile Include="Core\HW\Memmap.cpp" />
     <ClCompile Include="Core\HW\MemoryInterface.cpp" />
@@ -1025,8 +1040,11 @@
     <ClCompile Include="DiscIO\FileBlob.cpp" />
     <ClCompile Include="DiscIO\Filesystem.cpp" />
     <ClCompile Include="DiscIO\FileSystemGCWii.cpp" />
+    <ClCompile Include="DiscIO\GameModDescriptor.cpp" />
     <ClCompile Include="DiscIO\LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="DiscIO\NANDImporter.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionParser.cpp" />
+    <ClCompile Include="DiscIO\RiivolutionPatcher.cpp" />
     <ClCompile Include="DiscIO\ScrubbedBlob.cpp" />
     <ClCompile Include="DiscIO\TGCBlob.cpp" />
     <ClCompile Include="DiscIO\Volume.cpp" />
@@ -1069,6 +1087,8 @@
     <ClCompile Include="InputCommon\ControllerInterface\DInput\XInputFilter.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\MappingCommon.cpp" />
+    <ClCompile Include="InputCommon\ControllerInterface\WGInput\WGInput.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Wiimote\WiimoteController.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\Win32\Win32.cpp" />
     <ClCompile Include="InputCommon\ControllerInterface\XInput\XInput.cpp" />
@@ -1191,6 +1211,7 @@
     <ClCompile Include="VideoCommon\FPSCounter.cpp" />
     <ClCompile Include="VideoCommon\FramebufferManager.cpp" />
     <ClCompile Include="VideoCommon\FramebufferShaderGen.cpp" />
+    <ClCompile Include="VideoCommon\FrameDump.cpp" />
     <ClCompile Include="VideoCommon\FreeLookCamera.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderGen.cpp" />
     <ClCompile Include="VideoCommon\GeometryShaderManager.cpp" />
@@ -1240,5 +1261,6 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Common\BitField.natvis" />
+    <Natvis Include="Common\EnumMap.natvis" />
   </ItemGroup>
 </Project>

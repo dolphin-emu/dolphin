@@ -134,6 +134,10 @@ bool UpdateRunningGameMetadata(std::optional<u64> title_id = {});
 void ExecuteCommand(ReplyType reply_type);
 void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
                            const DiscIO::Partition& partition, ReplyType reply_type);
+
+// For circumventing Error #001 in DirectoryBlobs, which may have data in the offsets being checked.
+void ForceOutOfBoundsRead(ReplyType reply_type);
+
 // Exposed for use by emulated BS2; does not perform any checks on drive state
 void AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length);
 

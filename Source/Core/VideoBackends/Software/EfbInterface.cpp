@@ -87,7 +87,7 @@ static void SetPixelColorOnly(u32 offset, u8* rgb)
   break;
   case PixelFormat::RGB565_Z16:
   {
-    INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
+    // TODO: RGB565_Z16 is not supported correctly yet
     u32 src = *(u32*)rgb;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
@@ -129,7 +129,7 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
   break;
   case PixelFormat::RGB565_Z16:
   {
-    INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
+    // TODO: RGB565_Z16 is not supported correctly yet
     u32 src = *(u32*)color;
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
@@ -161,7 +161,7 @@ static u32 GetPixelColor(u32 offset)
            Convert6To8((src >> 18) & 0x3f) << 24;   // Red
 
   case PixelFormat::RGB565_Z16:
-    INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
+    // TODO: RGB565_Z16 is not supported correctly yet
     return 0xff | ((src & 0x00ffffff) << 8);
 
   default:
@@ -186,7 +186,7 @@ static void SetPixelDepth(u32 offset, u32 depth)
   break;
   case PixelFormat::RGB565_Z16:
   {
-    INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
+    // TODO: RGB565_Z16 is not supported correctly yet
     u32* dst = (u32*)&efb[offset];
     u32 val = *dst & 0xff000000;
     val |= depth & 0x00ffffff;
@@ -214,7 +214,7 @@ static u32 GetPixelDepth(u32 offset)
   break;
   case PixelFormat::RGB565_Z16:
   {
-    INFO_LOG_FMT(VIDEO, "RGB565_Z16 is not supported correctly yet");
+    // TODO: RGB565_Z16 is not supported correctly yet
     depth = (*(u32*)&efb[offset]) & 0x00ffffff;
   }
   break;
@@ -593,8 +593,8 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const MathUtil::Rectangle<int>
     //         In our implementation, the garbage just so happens to be the top or bottom row.
     //         Statistically, that could happen.
     const u16 y_prev = static_cast<u16>(std::max(clamp_top ? source_rect.top : 0, y - 1));
-    const u16 y_next =
-        static_cast<u16>(std::min<int>(clamp_bottom ? source_rect.bottom : EFB_HEIGHT, y + 1));
+    const u16 y_next = static_cast<u16>(
+        std::min<int>((clamp_bottom ? source_rect.bottom : EFB_HEIGHT) - 1, y + 1));
 
     // Get a scanline of YUV pixels in 4:4:4 format
     for (int i = 1, x = left; x < right; i++, x++)

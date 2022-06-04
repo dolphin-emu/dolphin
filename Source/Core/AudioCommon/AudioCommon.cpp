@@ -211,7 +211,7 @@ void StartAudioDump()
   std::string path_prefix = File::GetUserPath(D_DUMPAUDIO_IDX) + SConfig::GetInstance().GetGameID();
 
   std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, *std::localtime(&start_time));
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}", path_prefix, fmt::localtime(start_time));
 
   const std::string audio_file_name_dtk = fmt::format("{}_dtkdump.wav", base_name);
   const std::string audio_file_name_dsp = fmt::format("{}_dspdump.wav", base_name);

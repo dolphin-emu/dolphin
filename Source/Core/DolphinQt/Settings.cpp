@@ -69,7 +69,7 @@ Settings::Settings()
     }
   });
 
-  g_controller_interface.RegisterDevicesChangedCallback([this] {
+  m_hotplug_callback_handle = g_controller_interface.RegisterDevicesChangedCallback([this] {
     if (Host::GetInstance()->IsHostThread())
     {
       emit DevicesChanged();
@@ -80,8 +80,7 @@ Settings::Settings()
       // they'd continue living until the queued event has run, but some devices can't be recreated
       // until they are destroyed.
       // This is safe from any thread. Devices will be refreshed and re-acquired and in
-      // DevicesChanged(). Waiting on QueueOnObject() to have finished running was not feasible as
-      // it would cause deadlocks without heavy workarounds.
+      // DevicesChanged(). Calling it without queueing shouldn't cause any deadlocks but is slow.
       emit ReleaseDevices();
 
       QueueOnObject(this, [this] { emit DevicesChanged(); });
@@ -90,6 +89,11 @@ Settings::Settings()
 }
 
 Settings::~Settings() = default;
+
+void Settings::UnregisterDevicesChangedCallback()
+{
+  g_controller_interface.UnregisterDevicesChangedCallback(m_hotplug_callback_handle);
+}
 
 Settings& Settings::Instance()
 {
@@ -107,7 +111,7 @@ QSettings& Settings::GetQSettings()
 
 void Settings::SetThemeName(const QString& theme_name)
 {
-  SConfig::GetInstance().theme_name = theme_name.toStdString();
+  Config::SetBaseOrCurrent(Config::MAIN_THEME_NAME, theme_name.toStdString());
   emit ThemeChanged();
 }
 
@@ -120,8 +124,7 @@ QString Settings::GetCurrentUserStyle() const
   return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
 }
 
-// Calling this before the main window has been created breaks the style of some widgets on
-// Windows 10/Qt 5.15.0. But only if we set a stylesheet that isn't an empty string.
+// Calling this before the main window has been created breaks the style of some widgets.
 void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
 {
   QString stylesheet_contents;
@@ -156,22 +159,6 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
             .arg(border_color.rgba(), 0, 16);
     stylesheet_contents.append(QStringLiteral("%1").arg(tooltip_stylesheet));
   }
-#ifdef _WIN32
-  // MSVC has a bug causing QTabBar scroll buttons to be partially transparent when they inherit any
-  // stylesheet (see https://bugreports.qt.io/browse/QTBUG-74187) which is triggered when setting
-  // qApp's stylesheet below. Setting the scroll buttons' color directly fixes the problem.
-
-  // Create a temporary QToolButton that's a child of a QTabBar in case that has different styling
-  // than a plain QToolButton.
-  const auto tab_bar = std::make_unique<QTabBar>();
-  auto* const tool_button = new QToolButton(tab_bar.get());
-
-  const QRgb background_color = tool_button->palette().color(QPalette::Button).rgba();
-
-  const std::string style_var =
-      fmt::format("QTabBar QToolButton {{ background-color: #{:08x}; }}", background_color);
-  stylesheet_contents.append(QString::fromStdString(style_var));
-#endif
 
   qApp->setStyleSheet(stylesheet_contents);
 
@@ -217,7 +204,7 @@ void Settings::GetToolTipStyle(QColor& window_color, QColor& text_color,
 QStringList Settings::GetPaths() const
 {
   QStringList list;
-  for (const auto& path : SConfig::GetInstance().m_ISOFolder)
+  for (const auto& path : Config::GetIsoPaths())
     list << QString::fromStdString(path);
   return list;
 }
@@ -225,25 +212,27 @@ QStringList Settings::GetPaths() const
 void Settings::AddPath(const QString& qpath)
 {
   std::string path = qpath.toStdString();
+  std::vector<std::string> paths = Config::GetIsoPaths();
 
-  std::vector<std::string>& paths = SConfig::GetInstance().m_ISOFolder;
   if (std::find(paths.begin(), paths.end(), path) != paths.end())
     return;
 
   paths.emplace_back(path);
+  Config::SetIsoPaths(paths);
   emit PathAdded(qpath);
 }
 
 void Settings::RemovePath(const QString& qpath)
 {
   std::string path = qpath.toStdString();
-  std::vector<std::string>& paths = SConfig::GetInstance().m_ISOFolder;
+  std::vector<std::string> paths = Config::GetIsoPaths();
 
   auto new_end = std::remove(paths.begin(), paths.end(), path);
   if (new_end == paths.end())
     return;
 
   paths.erase(new_end, paths.end());
+  Config::SetIsoPaths(paths);
   emit PathRemoved(qpath);
 }
 
@@ -326,27 +315,26 @@ void Settings::SetStateSlot(int slot)
   GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
-void Settings::SetCursorVisibility(SConfig::ShowCursor hideCursor)
+void Settings::SetCursorVisibility(Config::ShowCursor hideCursor)
 {
-  SConfig::GetInstance().m_show_cursor = hideCursor;
-
+  Config::SetBaseOrCurrent(Config::MAIN_SHOW_CURSOR, hideCursor);
   emit CursorVisibilityChanged();
 }
 
-SConfig::ShowCursor Settings::GetCursorVisibility() const
+Config::ShowCursor Settings::GetCursorVisibility() const
 {
-  return SConfig::GetInstance().m_show_cursor;
+  return Config::Get(Config::MAIN_SHOW_CURSOR);
 }
 
 void Settings::SetLockCursor(bool lock_cursor)
 {
-  SConfig::GetInstance().bLockCursor = lock_cursor;
+  Config::SetBaseOrCurrent(Config::MAIN_LOCK_CURSOR, lock_cursor);
   emit LockCursorChanged();
 }
 
 bool Settings::GetLockCursor() const
 {
-  return SConfig::GetInstance().bLockCursor;
+  return Config::Get(Config::MAIN_LOCK_CURSOR);
 }
 
 void Settings::SetKeepWindowOnTop(bool top)
@@ -458,7 +446,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 {
   if (IsDebugModeEnabled() != enabled)
   {
-    SConfig::GetInstance().bEnableDebugging = enabled;
+    Config::SetBaseOrCurrent(Config::MAIN_ENABLE_DEBUGGING, enabled);
     emit DebugModeToggled(enabled);
   }
   if (enabled)
@@ -467,7 +455,7 @@ void Settings::SetDebugModeEnabled(bool enabled)
 
 bool Settings::IsDebugModeEnabled() const
 {
-  return SConfig::GetInstance().bEnableDebugging;
+  return Config::Get(Config::MAIN_ENABLE_DEBUGGING);
 }
 
 void Settings::SetRegistersVisible(bool enabled)
@@ -620,6 +608,7 @@ void Settings::SetDebugFont(QFont font)
 QFont Settings::GetDebugFont() const
 {
   QFont default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
+  default_font.setPointSizeF(9.0);
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }
@@ -629,14 +618,14 @@ void Settings::SetAutoUpdateTrack(const QString& mode)
   if (mode == GetAutoUpdateTrack())
     return;
 
-  SConfig::GetInstance().m_auto_update_track = mode.toStdString();
+  Config::SetBase(Config::MAIN_AUTOUPDATE_UPDATE_TRACK, mode.toStdString());
 
   emit AutoUpdateTrackChanged(mode);
 }
 
 QString Settings::GetAutoUpdateTrack() const
 {
-  return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
+  return QString::fromStdString(Config::Get(Config::MAIN_AUTOUPDATE_UPDATE_TRACK));
 }
 
 void Settings::SetFallbackRegion(const DiscIO::Region& region)
@@ -710,32 +699,28 @@ void Settings::SetBatchModeEnabled(bool batch)
 
 bool Settings::IsSDCardInserted() const
 {
-  return SConfig::GetInstance().m_WiiSDCard;
+  return Config::Get(Config::MAIN_WII_SD_CARD);
 }
 
 void Settings::SetSDCardInserted(bool inserted)
 {
   if (IsSDCardInserted() != inserted)
   {
-    SConfig::GetInstance().m_WiiSDCard = inserted;
+    Config::SetBaseOrCurrent(Config::MAIN_WII_SD_CARD, inserted);
     emit SDCardInsertionChanged(inserted);
-
-    auto* ios = IOS::HLE::GetIOS();
-    if (ios)
-      ios->SDIO_EventNotify();
   }
 }
 
 bool Settings::IsUSBKeyboardConnected() const
 {
-  return SConfig::GetInstance().m_WiiKeyboard;
+  return Config::Get(Config::MAIN_WII_KEYBOARD);
 }
 
 void Settings::SetUSBKeyboardConnected(bool connected)
 {
   if (IsUSBKeyboardConnected() != connected)
   {
-    SConfig::GetInstance().m_WiiKeyboard = connected;
+    Config::SetBaseOrCurrent(Config::MAIN_WII_KEYBOARD, connected);
     emit USBKeyboardConnectionChanged(connected);
   }
 }

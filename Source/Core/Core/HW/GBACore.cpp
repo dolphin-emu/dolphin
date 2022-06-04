@@ -612,6 +612,38 @@ void Core::ExportState(std::string_view state_path)
   file.WriteBytes(core_state.data(), core_state.size());
 }
 
+void Core::ImportSave(std::string_view save_path)
+{
+  Flush();
+  if (!IsStarted())
+    return;
+
+  File::IOFile file(std::string(save_path), "rb");
+  std::vector<u8> save_file(file.GetSize());
+  if (!file.ReadBytes(save_file.data(), save_file.size()))
+    return;
+
+  m_core->savedataRestore(m_core, save_file.data(), save_file.size(), true);
+  m_core->reset(m_core);
+}
+
+void Core::ExportSave(std::string_view save_path)
+{
+  Flush();
+  if (!IsStarted())
+    return;
+
+  File::IOFile file(std::string(save_path), "wb");
+
+  void* sram = nullptr;
+  size_t size = m_core->savedataClone(m_core, &sram);
+  if (!sram)
+    return;
+
+  file.WriteBytes(sram, size);
+  free(sram);
+}
+
 void Core::DoState(PointerWrap& p)
 {
   Flush();
@@ -619,7 +651,7 @@ void Core::DoState(PointerWrap& p)
   {
     ::Core::DisplayMessage(fmt::format("GBA{} core not started. Aborting.", m_device_number + 1),
                            3000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
     return;
   }
 
@@ -630,14 +662,13 @@ void Core::DoState(PointerWrap& p)
   auto old_title = m_game_title;
   p.Do(m_game_title);
 
-  if (p.GetMode() == PointerWrap::MODE_READ &&
-      (has_rom != !m_rom_path.empty() ||
-       (has_rom && (old_hash != m_rom_hash || old_title != m_game_title))))
+  if (p.IsReadMode() && (has_rom != !m_rom_path.empty() ||
+                         (has_rom && (old_hash != m_rom_hash || old_title != m_game_title))))
   {
     ::Core::DisplayMessage(
         fmt::format("Incompatible ROM state in GBA{}. Aborting load state.", m_device_number + 1),
         3000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
     return;
   }
 
@@ -652,14 +683,14 @@ void Core::DoState(PointerWrap& p)
   std::vector<u8> core_state;
   core_state.resize(m_core->stateSize(m_core));
 
-  if (p.GetMode() == PointerWrap::MODE_WRITE || p.GetMode() == PointerWrap::MODE_VERIFY)
+  if (p.IsWriteMode() || p.IsVerifyMode())
   {
     m_core->saveState(m_core, core_state.data());
   }
 
   p.Do(core_state);
 
-  if (p.GetMode() == PointerWrap::MODE_READ && m_core->stateSize(m_core) == core_state.size())
+  if (p.IsReadMode() && m_core->stateSize(m_core) == core_state.size())
   {
     m_core->loadState(m_core, core_state.data());
     if (auto host = m_host.lock())

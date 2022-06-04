@@ -19,6 +19,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPushButton>
+#include <QSettings>
 #include <QSignalBlocker>
 #include <QString>
 #include <QTableWidget>
@@ -39,6 +40,7 @@
 
 #include "DolphinQt/Config/CheatCodeEditor.h"
 #include "DolphinQt/Config/CheatWarningWidget.h"
+#include "DolphinQt/Settings.h"
 
 #include "UICommon/GameFile.h"
 
@@ -57,10 +59,21 @@ CheatSearchWidget::CheatSearchWidget(std::unique_ptr<Cheats::CheatSearchSessionB
   setAttribute(Qt::WA_DeleteOnClose);
   CreateWidgets();
   ConnectWidgets();
+  OnValueSourceChanged();
   UpdateGuiTable();
 }
 
-CheatSearchWidget::~CheatSearchWidget() = default;
+CheatSearchWidget::~CheatSearchWidget()
+{
+  auto& settings = Settings::GetQSettings();
+  settings.setValue(QStringLiteral("cheatsearchwidget/displayhex"),
+                    m_display_values_in_hex_checkbox->isChecked());
+  if (m_session->IsIntegerType())
+  {
+    settings.setValue(QStringLiteral("cheatsearchwidget/parsehex"),
+                      m_parse_values_as_hex_checkbox->isChecked());
+  }
+}
 
 Q_DECLARE_METATYPE(Cheats::CompareType);
 Q_DECLARE_METATYPE(Cheats::FilterType);
@@ -157,16 +170,14 @@ void CheatSearchWidget::CreateWidgets()
     session_info_label->setText(tr("%1, %2, %3, %4").arg(ranges).arg(space).arg(type).arg(aligned));
   }
 
-  auto* value_layout = new QHBoxLayout();
-
   // i18n: This label is followed by a dropdown where the user can select things like "is equal to"
   // or "is less than or equal to", followed by another dropdown where the user can select "any
   // value", "last value", or "this value:". These three UI elements are intended to form a sentence
   // together. Because the UI elements can't be reordered by a translation, you may have to give
   // up on the idea of having them form a sentence depending on the grammar of your target language.
   auto* instructions_label = new QLabel(tr("Keep addresses where value in memory"));
-  value_layout->addWidget(instructions_label);
 
+  auto* value_layout = new QHBoxLayout();
   m_compare_type_dropdown = new QComboBox();
   m_compare_type_dropdown->addItem(tr("is equal to"),
                                    QVariant::fromValue(Cheats::CompareType::Equal));
@@ -194,6 +205,15 @@ void CheatSearchWidget::CreateWidgets()
   m_given_value_text = new QLineEdit();
   value_layout->addWidget(m_given_value_text);
 
+  auto& settings = Settings::GetQSettings();
+  m_parse_values_as_hex_checkbox = new QCheckBox(tr("Parse as Hex"));
+  if (m_session->IsIntegerType())
+  {
+    m_parse_values_as_hex_checkbox->setChecked(
+        settings.value(QStringLiteral("cheatsearchwidget/parsehex")).toBool());
+    value_layout->addWidget(m_parse_values_as_hex_checkbox);
+  }
+
   auto* button_layout = new QHBoxLayout();
   m_next_scan_button = new QPushButton(tr("Search and Filter"));
   button_layout->addWidget(m_next_scan_button);
@@ -209,9 +229,12 @@ void CheatSearchWidget::CreateWidgets()
   m_info_label_2 = new QLabel();
 
   m_display_values_in_hex_checkbox = new QCheckBox(tr("Display values in Hex"));
+  m_display_values_in_hex_checkbox->setChecked(
+      settings.value(QStringLiteral("cheatsearchwidget/displayhex")).toBool());
 
   QVBoxLayout* layout = new QVBoxLayout();
   layout->addWidget(session_info_label);
+  layout->addWidget(instructions_label);
   layout->addLayout(value_layout);
   layout->addLayout(button_layout);
   layout->addWidget(m_display_values_in_hex_checkbox);
@@ -234,7 +257,7 @@ void CheatSearchWidget::ConnectWidgets()
   connect(m_value_source_dropdown, &QComboBox::currentTextChanged, this,
           &CheatSearchWidget::OnValueSourceChanged);
   connect(m_display_values_in_hex_checkbox, &QCheckBox::toggled, this,
-          &CheatSearchWidget::OnHexCheckboxStateChanged);
+          &CheatSearchWidget::OnDisplayHexCheckboxStateChanged);
 }
 
 void CheatSearchWidget::OnNextScanClicked()
@@ -253,7 +276,11 @@ void CheatSearchWidget::OnNextScanClicked()
   m_session->SetCompareType(m_compare_type_dropdown->currentData().value<Cheats::CompareType>());
   if (filter_type == Cheats::FilterType::CompareAgainstSpecificValue)
   {
-    if (!m_session->SetValueFromString(m_given_value_text->text().toStdString()))
+    QString search_value = m_given_value_text->text();
+    if (m_session->IsIntegerType() || m_session->IsFloatingType())
+      search_value = search_value.simplified().remove(QLatin1Char(' '));
+    if (!m_session->SetValueFromString(search_value.toStdString(),
+                                       m_parse_values_as_hex_checkbox->isChecked()))
     {
       m_info_label_1->setText(tr("Failed to parse given value into target data type."));
       return;
@@ -421,8 +448,12 @@ void CheatSearchWidget::OnAddressTableContextMenu()
   if (m_address_table->selectedItems().isEmpty())
     return;
 
+  auto* item = m_address_table->selectedItems()[0];
+  const u32 address = item->data(ADDRESS_TABLE_ADDRESS_ROLE).toUInt();
+
   QMenu* menu = new QMenu(this);
 
+  menu->addAction(tr("Show in memory"), [this, address] { emit ShowMemory(address); });
   menu->addAction(tr("Generate Action Replay Code"), this, &CheatSearchWidget::GenerateARCode);
 
   menu->exec(QCursor::pos());
@@ -431,10 +462,12 @@ void CheatSearchWidget::OnAddressTableContextMenu()
 void CheatSearchWidget::OnValueSourceChanged()
 {
   const auto filter_type = m_value_source_dropdown->currentData().value<Cheats::FilterType>();
-  m_given_value_text->setEnabled(filter_type == Cheats::FilterType::CompareAgainstSpecificValue);
+  const bool is_value_search = filter_type == Cheats::FilterType::CompareAgainstSpecificValue;
+  m_given_value_text->setEnabled(is_value_search);
+  m_parse_values_as_hex_checkbox->setEnabled(is_value_search && m_session->IsIntegerType());
 }
 
-void CheatSearchWidget::OnHexCheckboxStateChanged()
+void CheatSearchWidget::OnDisplayHexCheckboxStateChanged()
 {
   if (!m_session->WasFirstSearchDone())
     return;

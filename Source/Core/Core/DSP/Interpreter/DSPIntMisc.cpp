@@ -3,10 +3,11 @@
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
+
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
-#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 namespace DSP::Interpreter
 {
@@ -18,10 +19,7 @@ void Interpreter::mrr(const UDSPInstruction opc)
   const u8 sreg = opc & 0x1f;
   const u8 dreg = (opc >> 5) & 0x1f;
 
-  if (sreg >= DSP_REG_ACM0)
-    OpWriteRegister(dreg, OpReadRegisterAndSaturate(sreg - DSP_REG_ACM0));
-  else
-    OpWriteRegister(dreg, OpReadRegister(sreg));
+  OpWriteRegister(dreg, OpReadRegister(sreg));
 
   ConditionalExtendAccum(dreg);
 }

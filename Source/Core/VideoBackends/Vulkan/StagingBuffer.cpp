@@ -1,13 +1,14 @@
 // Copyright 2016 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoBackends/Vulkan/StagingBuffer.h"
+
 #include <algorithm>
 #include <cstring>
 
 #include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan

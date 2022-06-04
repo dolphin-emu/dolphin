@@ -30,6 +30,8 @@
 #endif
 #include "UICommon/UICommon.h"
 
+#include "InputCommon/GCAdapter.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -149,6 +151,10 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
   return nullptr;
 }
 
+#ifdef _WIN32
+#define main app_main
+#endif
+
 int main(int argc, char* argv[])
 {
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
@@ -187,7 +193,8 @@ int main(int argc, char* argv[])
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(paths, save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;
   }
   else if (options.is_set("nand_title"))
@@ -204,7 +211,8 @@ int main(int argc, char* argv[])
   }
   else if (args.size())
   {
-    boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
+    boot = BootParameters::GenerateFromFile(
+        args.front(), BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     args.erase(args.begin());
     game_specified = true;
   }
@@ -220,6 +228,7 @@ int main(int argc, char* argv[])
 
   UICommon::SetUserDirectory(user_directory);
   UICommon::Init();
+  GCAdapter::Init();
 
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())
@@ -273,3 +282,18 @@ int main(int argc, char* argv[])
 
   return 0;
 }
+
+#ifdef _WIN32
+int wmain(int, wchar_t*[], wchar_t*[])
+{
+  std::vector<std::string> args = CommandLineToUtf8Argv(GetCommandLineW());
+  const int argc = static_cast<int>(args.size());
+  std::vector<char*> argv(args.size());
+  for (size_t i = 0; i < args.size(); ++i)
+    argv[i] = args[i].data();
+
+  return main(argc, argv.data());
+}
+
+#undef main
+#endif

@@ -1,6 +1,13 @@
 set(SRCS
 	glslang/GenericCodeGen/CodeGen.cpp
 	glslang/GenericCodeGen/Link.cpp
+	#glslang/HLSL/hlslAttributes.cpp
+	#glslang/HLSL/hlslGrammar.cpp
+	#glslang/HLSL/hlslOpMap.cpp
+	#glslang/HLSL/hlslParseables.cpp
+	#glslang/HLSL/hlslParseHelper.cpp
+	#glslang/HLSL/hlslScanContext.cpp
+	#glslang/HLSL/hlslTokenStream.cpp
 	glslang/MachineIndependent/attribute.cpp
 	glslang/MachineIndependent/Constant.cpp
 	glslang/MachineIndependent/glslang_tab.cpp
@@ -26,6 +33,7 @@ set(SRCS
 	glslang/MachineIndependent/RemoveTree.cpp
 	glslang/MachineIndependent/Scan.cpp
 	glslang/MachineIndependent/ShaderLang.cpp
+	glslang/MachineIndependent/SpirvIntrinsics.cpp
 	glslang/MachineIndependent/SymbolTable.cpp
 	glslang/MachineIndependent/Versions.cpp
 	OGLCompilersDLL/InitializeDll.cpp
@@ -37,6 +45,7 @@ set(SRCS
 	SPIRV/SpvBuilder.cpp
 	SPIRV/SpvPostProcess.cpp
 	SPIRV/SPVRemapper.cpp
+	SPIRV/SpvTools.cpp
 	StandAlone/ResourceLimits.cpp
 )
 
@@ -64,6 +73,7 @@ endif()
 endif()
 
 add_library(glslang STATIC ${SRCS})
+dolphin_disable_warnings_msvc(glslang)
 
 target_include_directories(glslang
 PRIVATE

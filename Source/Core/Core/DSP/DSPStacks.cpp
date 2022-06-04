@@ -2,10 +2,11 @@
 // Copyright 2004 Duddie & Tratax
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/DSP/DSPCore.h"
+
 #include <cstddef>
 
 #include "Common/CommonTypes.h"
-#include "Core/DSP/DSPCore.h"
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 namespace DSP

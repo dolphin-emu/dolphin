@@ -40,6 +40,7 @@ struct SCPFifoStruct
   std::atomic<u32> bFF_LoWatermark;
   std::atomic<u32> bFF_HiWatermark;
 
+  void Init();
   void DoState(PointerWrap& p);
 };
 
@@ -96,7 +97,6 @@ enum
 
 enum
 {
-  GATHER_PIPE_SIZE = 32,
   INT_CAUSE_CP = 0x800
 };
 
@@ -168,7 +168,7 @@ void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
 
-void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess);
+void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess);
 
 u32 GetPhysicalAddressMask();
 

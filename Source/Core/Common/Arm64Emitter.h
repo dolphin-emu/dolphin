@@ -725,8 +725,18 @@ class ARM64XEmitter
   friend class ARM64FloatEmitter;
 
 private:
-  u8* m_code;
-  u8* m_lastCacheFlushEnd;
+  // Pointer to memory where code will be emitted to.
+  u8* m_code = nullptr;
+
+  // Pointer past the end of the memory region we're allowed to emit to.
+  // Writes that would reach this memory are refused and will set the m_write_failed flag instead.
+  u8* m_code_end = nullptr;
+
+  u8* m_lastCacheFlushEnd = nullptr;
+
+  // Set to true when a write request happens that would write past m_code_end.
+  // Must be cleared with SetCodePtr() afterwards.
+  bool m_write_failed = false;
 
   void AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags);
   void EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr);
@@ -760,6 +770,8 @@ private:
   void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
   void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
+  FixupBranch WriteFixupBranch();
+
   template <typename T>
   void MOVI2RImpl(ARM64Reg Rd, T imm);
 
@@ -767,27 +779,30 @@ protected:
   void Write32(u32 value);
 
 public:
-  ARM64XEmitter() : m_code(nullptr), m_lastCacheFlushEnd(nullptr) {}
-  ARM64XEmitter(u8* code_ptr)
+  ARM64XEmitter() = default;
+  ARM64XEmitter(u8* code, u8* code_end)
+      : m_code(code), m_code_end(code_end), m_lastCacheFlushEnd(code)
   {
-    m_code = code_ptr;
-    m_lastCacheFlushEnd = code_ptr;
   }
 
   virtual ~ARM64XEmitter() {}
 
-  // 'end' and 'write_failed' are unused in the ARM code emitter at the moment.
-  // They're just here for interface compatibility with the x64 code emitter.
   void SetCodePtr(u8* ptr, u8* end, bool write_failed = false);
 
-  void SetCodePtrUnsafe(u8* ptr);
+  void SetCodePtrUnsafe(u8* ptr, u8* end, bool write_failed = false);
+  const u8* GetCodePtr() const;
+  u8* GetWritableCodePtr();
+  const u8* GetCodeEnd() const;
+  u8* GetWritableCodeEnd();
   void ReserveCodeSpace(u32 bytes);
   u8* AlignCode16();
   u8* AlignCodePage();
-  const u8* GetCodePtr() const;
   void FlushIcache();
   void FlushIcacheSection(u8* start, u8* end);
-  u8* GetWritableCodePtr();
+
+  // Should be checked after a block of code has been generated to see if the code has been
+  // successfully written to memory. Do not call the generated code when this returns true!
+  bool HasWriteFailed() const { return m_write_failed; }
 
   // FixupBranch branching
   void SetJumpTarget(FixupBranch const& branch);
@@ -1230,6 +1245,7 @@ public:
   void FABS(ARM64Reg Rd, ARM64Reg Rn);
   void FNEG(ARM64Reg Rd, ARM64Reg Rn);
   void FSQRT(ARM64Reg Rd, ARM64Reg Rn);
+  void FRINTI(ARM64Reg Rd, ARM64Reg Rn);
   void FMOV(ARM64Reg Rd, ARM64Reg Rn, bool top = false);  // Also generalized move between GPR/FP
   void FRECPE(ARM64Reg Rd, ARM64Reg Rn);
   void FRSQRTE(ARM64Reg Rd, ARM64Reg Rn);

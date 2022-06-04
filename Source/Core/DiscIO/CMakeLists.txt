@@ -23,11 +23,17 @@ add_library(discio
   FileSystemGCWii.h
   Filesystem.cpp
   Filesystem.h
+  GameModDescriptor.cpp
+  GameModDescriptor.h
   LaggedFibonacciGenerator.cpp
   LaggedFibonacciGenerator.h
   MultithreadedCompressor.h
   NANDImporter.cpp
   NANDImporter.h
+  RiivolutionParser.cpp
+  RiivolutionParser.h
+  RiivolutionPatcher.cpp
+  RiivolutionPatcher.h
   ScrubbedBlob.cpp
   ScrubbedBlob.h
   TGCBlob.cpp
@@ -60,7 +66,7 @@ add_library(discio
 
 target_link_libraries(discio
 PUBLIC
-  common
+  core
   BZip2::BZip2
   lzma
   zstd
@@ -71,3 +77,8 @@ PRIVATE
   pugixml
   ZLIB::ZLIB
 )
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(discio PRIVATE use_pch)
+endif()

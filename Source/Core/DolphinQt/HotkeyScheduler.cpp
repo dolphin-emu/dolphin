@@ -254,7 +254,7 @@ void HotkeyScheduler::Run()
       if (auto bt = WiiUtils::GetBluetoothRealDevice())
         bt->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
 
-      if (SConfig::GetInstance().bEnableDebugging)
+      if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
       {
         CheckDebuggingHotkeys();
       }
@@ -459,26 +459,26 @@ void HotkeyScheduler::Run()
       Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
 
       auto ShowEmulationSpeed = []() {
+        const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
         OSD::AddMessage(
-            SConfig::GetInstance().m_EmulationSpeed <= 0 ?
+            emulation_speed <= 0 ?
                 "Speed Limit: Unlimited" :
-                StringFromFormat("Speed Limit: %li%%",
-                                 std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)));
+                StringFromFormat("Speed Limit: %li%%", std::lround(emulation_speed * 100.f)));
       };
 
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
-        auto speed = SConfig::GetInstance().m_EmulationSpeed - 0.1;
+        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) - 0.1;
         speed = (speed <= 0 || (speed >= 0.95 && speed <= 1.05)) ? 1.0 : speed;
-        SConfig::GetInstance().m_EmulationSpeed = speed;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
         ShowEmulationSpeed();
       }
 
       if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
       {
-        auto speed = SConfig::GetInstance().m_EmulationSpeed + 0.1;
+        auto speed = Config::Get(Config::MAIN_EMULATION_SPEED) + 0.1;
         speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
-        SConfig::GetInstance().m_EmulationSpeed = speed;
+        Config::SetCurrent(Config::MAIN_EMULATION_SPEED, speed);
         ShowEmulationSpeed();
       }
 

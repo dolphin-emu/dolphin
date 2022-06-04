@@ -3,8 +3,9 @@
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#include "Common/CommonTypes.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
+
+#include "Common/CommonTypes.h"
 
 namespace DSP::Interpreter
 {
@@ -33,10 +34,7 @@ void Interpreter::srs(const UDSPInstruction opc)
   const auto reg = static_cast<u8>(((opc >> 8) & 0x3) + DSP_REG_ACL0);
   const auto addr = static_cast<u16>((state.r.cr << 8) | (opc & 0xFF));
 
-  if (reg >= DSP_REG_ACM0)
-    state.WriteDMEM(addr, OpReadRegisterAndSaturate(reg - DSP_REG_ACM0));
-  else
-    state.WriteDMEM(addr, OpReadRegister(reg));
+  state.WriteDMEM(addr, OpReadRegister(reg));
 }
 
 // LRS $(0x18+D), @M
@@ -79,10 +77,7 @@ void Interpreter::sr(const UDSPInstruction opc)
   const u8 reg = opc & 0x1F;
   const u16 addr = state.FetchInstruction();
 
-  if (reg >= DSP_REG_ACM0)
-    state.WriteDMEM(addr, OpReadRegisterAndSaturate(reg - DSP_REG_ACM0));
-  else
-    state.WriteDMEM(addr, OpReadRegister(reg));
+  state.WriteDMEM(addr, OpReadRegister(reg));
 }
 
 // SI @M, #I
@@ -171,10 +166,7 @@ void Interpreter::srr(const UDSPInstruction opc)
   const u8 sreg = opc & 0x1f;
   auto& state = m_dsp_core.DSPState();
 
-  if (sreg >= DSP_REG_ACM0)
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegisterAndSaturate(sreg - DSP_REG_ACM0));
-  else
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
+  state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
 }
 
 // SRRD @$arD, $S
@@ -187,10 +179,7 @@ void Interpreter::srrd(const UDSPInstruction opc)
   const u8 sreg = opc & 0x1f;
   auto& state = m_dsp_core.DSPState();
 
-  if (sreg >= DSP_REG_ACM0)
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegisterAndSaturate(sreg - DSP_REG_ACM0));
-  else
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
+  state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
 
   state.r.ar[dreg] = DecrementAddressRegister(dreg);
 }
@@ -205,10 +194,7 @@ void Interpreter::srri(const UDSPInstruction opc)
   const u8 sreg = opc & 0x1f;
   auto& state = m_dsp_core.DSPState();
 
-  if (sreg >= DSP_REG_ACM0)
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegisterAndSaturate(sreg - DSP_REG_ACM0));
-  else
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
+  state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
 
   state.r.ar[dreg] = IncrementAddressRegister(dreg);
 }
@@ -223,10 +209,7 @@ void Interpreter::srrn(const UDSPInstruction opc)
   const u8 sreg = opc & 0x1f;
   auto& state = m_dsp_core.DSPState();
 
-  if (sreg >= DSP_REG_ACM0)
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegisterAndSaturate(sreg - DSP_REG_ACM0));
-  else
-    state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
+  state.WriteDMEM(state.r.ar[dreg], OpReadRegister(sreg));
 
   state.r.ar[dreg] = IncreaseAddressRegister(dreg, static_cast<s16>(state.r.ix[dreg]));
 }

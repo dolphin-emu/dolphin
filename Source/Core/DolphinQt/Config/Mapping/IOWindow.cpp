@@ -34,6 +34,7 @@
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/MappingCommon.h"
 
 constexpr int SLIDER_TICK_COUNT = 100;
 
@@ -426,6 +427,7 @@ void IOWindow::Update()
 void IOWindow::ConnectWidgets()
 {
   connect(m_select_button, &QPushButton::clicked, [this] { AppendSelectedOption(); });
+  connect(m_option_list, &QTableWidget::cellDoubleClicked, [this] { AppendSelectedOption(); });
   connect(&Settings::Instance(), &Settings::ReleaseDevices, this, &IOWindow::ReleaseDevices);
   connect(&Settings::Instance(), &Settings::DevicesChanged, this, &IOWindow::UpdateDeviceList);
 
@@ -485,9 +487,10 @@ void IOWindow::AppendSelectedOption()
   if (m_option_list->currentRow() < 0)
     return;
 
-  m_expression_text->insertPlainText(MappingCommon::GetExpressionForControl(
-      m_option_list->item(m_option_list->currentRow(), 0)->text(), m_devq,
-      m_controller->GetDefaultDevice()));
+  m_expression_text->insertPlainText(
+      QString::fromStdString(ciface::MappingCommon::GetExpressionForControl(
+          m_option_list->item(m_option_list->currentRow(), 0)->text().toStdString(), m_devq,
+          m_controller->GetDefaultDevice())));
 }
 
 void IOWindow::OnDeviceChanged()
@@ -526,7 +529,7 @@ void IOWindow::OnDetectButtonPressed()
 {
   const auto expression =
       MappingCommon::DetectExpression(m_detect_button, g_controller_interface, {m_devq.ToString()},
-                                      m_devq, MappingCommon::Quote::Off);
+                                      m_devq, ciface::MappingCommon::Quote::Off);
 
   if (expression.isEmpty())
     return;

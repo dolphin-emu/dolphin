@@ -4,8 +4,10 @@
 #include "VideoCommon/BPFunctions.h"
 
 #include <algorithm>
+#include <cmath>
 #include <string_view>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -36,51 +38,188 @@ void SetGenerationMode()
   g_vertex_manager->SetRasterizationStateChanged();
 }
 
-void SetScissor()
+int ScissorRect::GetArea() const
 {
-  /* NOTE: the minimum value here for the scissor rect is -342.
-   * GX SDK functions internally add an offset of 342 to scissor coords to
-   * ensure that the register was always unsigned.
-   *
-   * The code that was here before tried to "undo" this offset, but
-   * since we always take the difference, the +342 added to both
-   * sides cancels out. */
+  return rect.GetWidth() * rect.GetHeight();
+}
 
-  /* NOTE: With a positive scissor offset, the scissor rect is shifted left and/or up;
-   * With a negative scissor offset, the scissor rect is shifted right and/or down.
-   *
-   * GX SDK functions internally add an offset of 342 to scissor offset.
-   * The scissor offset is always even, so to save space, the scissor offset register
-   * is scaled down by 2. So, if somebody calls GX_SetScissorBoxOffset(20, 20);
-   * the registers will be set to ((20 + 342) / 2 = 181, 181).
-   *
-   * The scissor offset register is 10bit signed [-512, 511].
-   * e.g. In Super Mario Galaxy 1 and 2, during the "Boss roar effect",
-   * for a scissor offset of (0, -464), the scissor offset register will be set to
-   * (171, (-464 + 342) / 2 = -61).
-   */
-  s32 xoff = bpmem.scissorOffset.x * 2;
-  s32 yoff = bpmem.scissorOffset.y * 2;
+int ScissorResult::GetViewportArea(const ScissorRect& rect) const
+{
+  int x0 = std::clamp<int>(rect.rect.left + rect.x_off, viewport_left, viewport_right);
+  int x1 = std::clamp<int>(rect.rect.right + rect.x_off, viewport_left, viewport_right);
 
-  MathUtil::Rectangle<int> native_rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff,
-                                     bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
-  native_rc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
+  int y0 = std::clamp<int>(rect.rect.top + rect.y_off, viewport_top, viewport_bottom);
+  int y1 = std::clamp<int>(rect.rect.bottom + rect.y_off, viewport_top, viewport_bottom);
 
-  auto target_rc = g_renderer->ConvertEFBRectangle(native_rc);
+  return (x1 - x0) * (y1 - y0);
+}
+
+// Compare so that a sorted collection of rectangles has the best one last, so that if they're drawn
+// in order, the best one is the one that is drawn last (and thus over the rest).
+// The exact iteration order on hardware hasn't been tested, but silly things can happen where a
+// polygon can intersect with itself; this only applies outside of the viewport region (in areas
+// that would normally be affected by clipping).  No game is known to care about this.
+bool ScissorResult::IsWorse(const ScissorRect& lhs, const ScissorRect& rhs) const
+{
+  // First, penalize any rect that is not in the viewport
+  int lhs_area = GetViewportArea(lhs);
+  int rhs_area = GetViewportArea(rhs);
+
+  if (lhs_area != rhs_area)
+    return lhs_area < rhs_area;
+
+  // Now compare on total areas, without regard for the viewport
+  return lhs.GetArea() < rhs.GetArea();
+}
+
+namespace
+{
+// Dynamically sized small array of ScissorRanges (used as an heap-less alternative to std::vector
+// to reduce allocation overhead)
+struct RangeList
+{
+  static constexpr u32 MAX_RANGES = 9;
+
+  u32 m_num_ranges = 0;
+  std::array<ScissorRange, MAX_RANGES> m_ranges{};
+
+  void AddRange(int offset, int start, int end)
+  {
+    DEBUG_ASSERT(m_num_ranges < MAX_RANGES);
+    m_ranges[m_num_ranges] = ScissorRange(offset, start, end);
+    m_num_ranges++;
+  }
+  auto begin() const { return m_ranges.begin(); }
+  auto end() const { return m_ranges.begin() + m_num_ranges; }
+
+  u32 size() { return m_num_ranges; }
+};
+
+static RangeList ComputeScissorRanges(int start, int end, int offset, int efb_dim)
+{
+  RangeList ranges;
+
+  for (int extra_off = -4096; extra_off <= 4096; extra_off += 1024)
+  {
+    int new_off = offset + extra_off;
+    int new_start = std::clamp(start - new_off, 0, efb_dim);
+    int new_end = std::clamp(end - new_off + 1, 0, efb_dim);
+    if (new_start < new_end)
+    {
+      ranges.AddRange(new_off, new_start, new_end);
+    }
+  }
+
+  return ranges;
+}
+}  // namespace
+
+ScissorResult::ScissorResult(const BPMemory& bpmemory, const XFMemory& xfmemory)
+    : ScissorResult(bpmemory,
+                    std::minmax(xfmemory.viewport.xOrig - xfmemory.viewport.wd,
+                                xfmemory.viewport.xOrig + xfmemory.viewport.wd),
+                    std::minmax(xfmemory.viewport.yOrig - xfmemory.viewport.ht,
+                                xfmemory.viewport.yOrig + xfmemory.viewport.ht))
+{
+}
+ScissorResult::ScissorResult(const BPMemory& bpmemory, std::pair<float, float> viewport_x,
+                             std::pair<float, float> viewport_y)
+    : scissor_tl{.hex = bpmemory.scissorTL.hex}, scissor_br{.hex = bpmemory.scissorBR.hex},
+      scissor_off{.hex = bpmemory.scissorOffset.hex}, viewport_left(viewport_x.first),
+      viewport_right(viewport_x.second), viewport_top(viewport_y.first),
+      viewport_bottom(viewport_y.second)
+{
+  // Range is [left, right] and [top, bottom] (closed intervals)
+  const int left = scissor_tl.x;
+  const int right = scissor_br.x;
+  const int top = scissor_tl.y;
+  const int bottom = scissor_br.y;
+  // When left > right or top > bottom, nothing renders (even with wrapping from the offsets)
+  if (left > right || top > bottom)
+    return;
+
+  // Note that both the offsets and the coordinates have 342 added to them internally by GX
+  // functions (for the offsets, this is before they are divided by 2/right shifted). This code
+  // could undo both sets of offsets, but it doesn't need to since they cancel out when subtracting
+  // (and those offsets actually matter for the left > right and top > bottom checks).
+  const int x_off = scissor_off.x << 1;
+  const int y_off = scissor_off.y << 1;
+
+  RangeList x_ranges = ComputeScissorRanges(left, right, x_off, EFB_WIDTH);
+  RangeList y_ranges = ComputeScissorRanges(top, bottom, y_off, EFB_HEIGHT);
+
+  m_result.reserve(x_ranges.size() * y_ranges.size());
+
+  // Now we need to form actual rectangles from the x and y ranges,
+  // which is a simple Cartesian product of x_ranges_clamped and y_ranges_clamped.
+  // Each rectangle is also a Cartesian product of x_range and y_range, with
+  // the rectangles being half-open (of the form [x0, x1) X [y0, y1)).
+  for (const auto& x_range : x_ranges)
+  {
+    DEBUG_ASSERT(x_range.start < x_range.end);
+    DEBUG_ASSERT(x_range.end <= EFB_WIDTH);
+    for (const auto& y_range : y_ranges)
+    {
+      DEBUG_ASSERT(y_range.start < y_range.end);
+      DEBUG_ASSERT(y_range.end <= EFB_HEIGHT);
+      m_result.emplace_back(x_range, y_range);
+    }
+  }
+
+  auto cmp = [&](const ScissorRect& lhs, const ScissorRect& rhs) { return IsWorse(lhs, rhs); };
+  std::sort(m_result.begin(), m_result.end(), cmp);
+}
+
+ScissorRect ScissorResult::Best() const
+{
+  // For now, simply choose the best rectangle (see ScissorResult::IsWorse).
+  // This does mean we calculate all rectangles and only choose one, which is not optimal, but this
+  // is called infrequently.  Eventually, all backends will support multiple scissor rects.
+  if (!m_result.empty())
+  {
+    return m_result.back();
+  }
+  else
+  {
+    // But if we have no rectangles, use a bogus one that's out of bounds.
+    // Ideally, all backends will support multiple scissor rects, in which case this won't be
+    // needed.
+    return ScissorRect(ScissorRange{0, 1000, 1001}, ScissorRange{0, 1000, 1001});
+  }
+}
+
+ScissorResult ComputeScissorRects()
+{
+  return ScissorResult{bpmem, xfmem};
+}
+
+void SetScissorAndViewport()
+{
+  auto native_rc = ComputeScissorRects().Best();
+
+  auto target_rc = g_renderer->ConvertEFBRectangle(native_rc.rect);
   auto converted_rc =
       g_renderer->ConvertFramebufferRectangle(target_rc, g_renderer->GetCurrentFramebuffer());
   g_renderer->SetScissorRect(converted_rc);
-}
 
-void SetViewport()
-{
-  s32 xoff = bpmem.scissorOffset.x * 2;
-  s32 yoff = bpmem.scissorOffset.y * 2;
-  float x = g_renderer->EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - xoff);
-  float y = g_renderer->EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - yoff);
+  float raw_x = (xfmem.viewport.xOrig - native_rc.x_off) - xfmem.viewport.wd;
+  float raw_y = (xfmem.viewport.yOrig - native_rc.y_off) + xfmem.viewport.ht;
+  float raw_width = 2.0f * xfmem.viewport.wd;
+  float raw_height = -2.0f * xfmem.viewport.ht;
+  if (g_ActiveConfig.UseVertexRounding())
+  {
+    // Round the viewport to match full 1x IR pixels as well.
+    // This eliminates a line in the archery mode in Wii Sports Resort at 3x IR and higher.
+    raw_x = std::round(raw_x);
+    raw_y = std::round(raw_y);
+    raw_width = std::round(raw_width);
+    raw_height = std::round(raw_height);
+  }
 
-  float width = g_renderer->EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float height = g_renderer->EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float x = g_renderer->EFBToScaledXf(raw_x);
+  float y = g_renderer->EFBToScaledYf(raw_y);
+  float width = g_renderer->EFBToScaledXf(raw_width);
+  float height = g_renderer->EFBToScaledYf(raw_height);
   float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
   float max_depth = xfmem.viewport.farZ / 16777216.0f;
   if (width < 0.f)
@@ -137,17 +276,6 @@ void SetViewport()
     // clipping depth range on the hardware.
     near_depth = 1.0f - max_depth;
     far_depth = 1.0f - min_depth;
-  }
-
-  // Clamp to size if oversized not supported. Required for D3D.
-  if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
-  {
-    const float max_width = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetWidth());
-    const float max_height = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight());
-    x = std::clamp(x, 0.0f, max_width - 1.0f);
-    y = std::clamp(y, 0.0f, max_height - 1.0f);
-    width = std::clamp(width, 1.0f, max_width - x);
-    height = std::clamp(height, 1.0f, max_height - y);
   }
 
   // Lower-left flip.

@@ -5,13 +5,13 @@ package org.dolphinemu.dolphinemu.dialogs;
 import android.app.Dialog;
 import android.os.Bundle;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 public final class AlertMessage extends DialogFragment
 {
@@ -47,8 +47,7 @@ public final class AlertMessage extends DialogFragment
     boolean isWarning = requireArguments().getBoolean(ARG_IS_WARNING);
     setCancelable(false);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
-            R.style.DolphinDialogBase)
+    AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
             .setTitle(title)
             .setMessage(message);
 

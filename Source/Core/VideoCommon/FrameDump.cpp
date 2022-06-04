@@ -7,6 +7,7 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
+#include <array>
 #include <sstream>
 #include <string>
 
@@ -16,15 +17,22 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/error.h>
+#include <libavutil/log.h>
 #include <libavutil/mathematics.h>
+#include <libavutil/opt.h>
+#include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
 
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
@@ -68,11 +76,43 @@ void InitAVCodec()
   static bool first_run = true;
   if (first_run)
   {
-#if LIBAVCODEC_VERSION_MICRO >= 100 && LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
-    av_register_all();
-#endif
+    av_log_set_level(AV_LOG_DEBUG);
+    av_log_set_callback([](void* ptr, int level, const char* fmt, va_list vl) {
+      if (level < 0)
+        level = AV_LOG_DEBUG;
+      if (level >= 0)
+        level &= 0xff;
+
+      if (level > av_log_get_level())
+        return;
+
+      auto log_level = Common::Log::LogLevel::LNOTICE;
+      if (level >= AV_LOG_ERROR && level < AV_LOG_WARNING)
+        log_level = Common::Log::LogLevel::LERROR;
+      else if (level >= AV_LOG_WARNING && level < AV_LOG_INFO)
+        log_level = Common::Log::LogLevel::LWARNING;
+      else if (level >= AV_LOG_INFO && level < AV_LOG_DEBUG)
+        log_level = Common::Log::LogLevel::LINFO;
+      else if (level >= AV_LOG_DEBUG)
+        // keep libav debug messages visible in release build of dolphin
+        log_level = Common::Log::LogLevel::LINFO;
+
+      // Don't perform this formatting if the log level is disabled
+      auto* log_manager = Common::Log::LogManager::GetInstance();
+      if (log_manager != nullptr &&
+          log_manager->IsEnabled(Common::Log::LogType::FRAMEDUMP, log_level))
+      {
+        constexpr size_t MAX_MSGLEN = 1024;
+        char message[MAX_MSGLEN];
+        CharArrayFromFormatV(message, MAX_MSGLEN, fmt, vl);
+
+        GENERIC_LOG_FMT(Common::Log::LogType::FRAMEDUMP, log_level, "{}", message);
+      }
+    });
+
     // TODO: We never call avformat_network_deinit.
     avformat_network_init();
+
     first_run = false;
   }
 }
@@ -86,14 +126,14 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
       File::GetUserPath(D_DUMPFRAMES_IDX) + SConfig::GetInstance().GetGameID();
 
   const std::string base_name =
-      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, *std::localtime(&time), index);
+      fmt::format("{}_{:%Y-%m-%d_%H-%M-%S}_{}", path_prefix, fmt::localtime(time), index);
 
   const std::string path = fmt::format("{}.{}", base_name, extension);
 
   // Ask to delete file.
   if (File::Exists(path))
   {
-    if (SConfig::GetInstance().m_DumpFramesSilent ||
+    if (Config::Get(Config::MAIN_MOVIE_DUMP_FRAMES_SILENT) ||
         AskYesNoFmtT("Delete the existing file '{0}'?", path))
     {
       File::Delete(path);
@@ -106,6 +146,13 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   }
 
   return path;
+}
+
+std::string AVErrorString(int error)
+{
+  std::array<char, AV_ERROR_MAX_STRING_SIZE> msg;
+  av_make_error_string(&msg[0], msg.size(), error);
+  return fmt::format("{:8x} {}", (u32)error, &msg[0]);
 }
 
 }  // namespace
@@ -153,7 +200,7 @@ bool FrameDump::CreateVideoFile()
 
   File::CreateFullPath(dump_path);
 
-  AVOutputFormat* const output_format = av_guess_format(format.c_str(), dump_path.c_str(), nullptr);
+  auto* const output_format = av_guess_format(format.c_str(), dump_path.c_str(), nullptr);
   if (!output_format)
   {
     ERROR_LOG_FMT(FRAMEDUMP, "Invalid format {}", format);
@@ -214,7 +261,31 @@ bool FrameDump::CreateVideoFile()
   m_context->codec->time_base = time_base;
   m_context->codec->gop_size = 1;
   m_context->codec->level = 1;
-  m_context->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGR0 : AV_PIX_FMT_YUV420P;
+
+  AVPixelFormat pix_fmt = AV_PIX_FMT_NONE;
+
+  const std::string& pixel_format_string = g_Config.sDumpPixelFormat;
+  if (!pixel_format_string.empty())
+  {
+    pix_fmt = av_get_pix_fmt(pixel_format_string.c_str());
+    if (pix_fmt == AV_PIX_FMT_NONE)
+      WARN_LOG_FMT(FRAMEDUMP, "Invalid pixel format {}", pixel_format_string);
+  }
+
+  if (pix_fmt == AV_PIX_FMT_NONE)
+  {
+    if (m_context->codec->codec_id == AV_CODEC_ID_FFV1)
+      pix_fmt = AV_PIX_FMT_BGR0;
+    else if (m_context->codec->codec_id == AV_CODEC_ID_UTVIDEO)
+      pix_fmt = AV_PIX_FMT_GBRP;
+    else
+      pix_fmt = AV_PIX_FMT_YUV420P;
+  }
+
+  m_context->codec->pix_fmt = pix_fmt;
+
+  if (m_context->codec->codec_id == AV_CODEC_ID_UTVIDEO)
+    av_opt_set_int(m_context->codec->priv_data, "pred", 3, 0);  // median
 
   if (output_format->flags & AVFMT_GLOBALHEADER)
     m_context->codec->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
@@ -324,7 +395,7 @@ void FrameDump::AddFrame(const FrameData& frame)
 
   if (const int error = avcodec_send_frame(m_context->codec, m_context->scaled_frame))
   {
-    ERROR_LOG_FMT(FRAMEDUMP, "Error while encoding video: {}", error);
+    ERROR_LOG_FMT(FRAMEDUMP, "Error while encoding video: {}", AVErrorString(error));
     return;
   }
 
@@ -333,12 +404,18 @@ void FrameDump::AddFrame(const FrameData& frame)
 
 void FrameDump::ProcessPackets()
 {
+  auto pkt = std::unique_ptr<AVPacket, std::function<void(AVPacket*)>>(
+      av_packet_alloc(), [](AVPacket* packet) { av_packet_free(&packet); });
+
+  if (!pkt)
+  {
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not allocate packet");
+    return;
+  }
+
   while (true)
   {
-    AVPacket pkt;
-    av_init_packet(&pkt);
-
-    const int receive_error = avcodec_receive_packet(m_context->codec, &pkt);
+    const int receive_error = avcodec_receive_packet(m_context->codec, pkt.get());
 
     if (receive_error == AVERROR(EAGAIN) || receive_error == AVERROR_EOF)
     {
@@ -348,16 +425,16 @@ void FrameDump::ProcessPackets()
 
     if (receive_error)
     {
-      ERROR_LOG_FMT(FRAMEDUMP, "Error receiving packet: {}", receive_error);
+      ERROR_LOG_FMT(FRAMEDUMP, "Error receiving packet: {}", AVErrorString(receive_error));
       break;
     }
 
-    av_packet_rescale_ts(&pkt, m_context->codec->time_base, m_context->stream->time_base);
-    pkt.stream_index = m_context->stream->index;
+    av_packet_rescale_ts(pkt.get(), m_context->codec->time_base, m_context->stream->time_base);
+    pkt->stream_index = m_context->stream->index;
 
-    if (const int write_error = av_interleaved_write_frame(m_context->format, &pkt))
+    if (const int write_error = av_interleaved_write_frame(m_context->format, pkt.get()))
     {
-      ERROR_LOG_FMT(FRAMEDUMP, "Error writing packet: {}", write_error);
+      ERROR_LOG_FMT(FRAMEDUMP, "Error writing packet: {}", AVErrorString(write_error));
       break;
     }
   }
@@ -370,7 +447,7 @@ void FrameDump::Stop()
 
   // Signal end of stream to encoder.
   if (const int flush_error = avcodec_send_frame(m_context->codec, nullptr))
-    WARN_LOG_FMT(FRAMEDUMP, "Error sending flush packet: {}", flush_error);
+    WARN_LOG_FMT(FRAMEDUMP, "Error sending flush packet: {}", AVErrorString(flush_error));
 
   ProcessPackets();
   av_write_trailer(m_context->format);
@@ -405,7 +482,7 @@ void FrameDump::CloseVideoFile()
 
 void FrameDump::DoState(PointerWrap& p)
 {
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
     ++m_savestate_index;
 }
 

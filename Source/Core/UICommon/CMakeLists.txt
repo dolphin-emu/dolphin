@@ -68,3 +68,8 @@ if(USE_DISCORD_PRESENCE)
   target_compile_definitions(uicommon PRIVATE -DUSE_DISCORD_PRESENCE)
   target_link_libraries(uicommon PRIVATE discord-rpc)
 endif()
+
+if(MSVC)
+  # Add precompiled header
+  target_link_libraries(uicommon PRIVATE use_pch)
+endif()

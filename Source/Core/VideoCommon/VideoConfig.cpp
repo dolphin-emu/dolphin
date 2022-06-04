@@ -1,18 +1,20 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/VideoConfig.h"
+
 #include <algorithm>
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
@@ -22,7 +24,7 @@ static bool IsVSyncActive(bool enabled)
 {
   // Vsync is disabled when the throttler is disabled by the tab key.
   return enabled && !Core::GetIsThrottlerTempDisabled() &&
-         SConfig::GetInstance().m_EmulationSpeed == 1.0;
+         Config::Get(Config::MAIN_EMULATION_SPEED) == 1.0;
 }
 
 void UpdateActiveConfig()
@@ -42,7 +44,12 @@ void VideoConfig::Refresh()
     // invalid values. Instead, pause emulation first, which will flush the video thread,
     // update the config and correct it, then resume emulation, after which the video
     // thread will detect the config has changed and act accordingly.
-    Config::AddConfigChangedCallback([]() { Core::RunAsCPUThread([]() { g_Config.Refresh(); }); });
+    Config::AddConfigChangedCallback([]() {
+      Core::RunAsCPUThread([]() {
+        g_Config.Refresh();
+        g_Config.VerifyValidity();
+      });
+    });
     s_has_registered_callback = true;
   }
 
@@ -60,6 +67,7 @@ void VideoConfig::Refresh()
   bLogRenderTimeToFile = Config::Get(Config::GFX_LOG_RENDER_TIME_TO_FILE);
   bOverlayStats = Config::Get(Config::GFX_OVERLAY_STATS);
   bOverlayProjStats = Config::Get(Config::GFX_OVERLAY_PROJ_STATS);
+  bOverlayScissorStats = Config::Get(Config::GFX_OVERLAY_SCISSOR_STATS);
   bDumpTextures = Config::Get(Config::GFX_DUMP_TEXTURES);
   bDumpMipmapTextures = Config::Get(Config::GFX_DUMP_MIP_TEXTURES);
   bDumpBaseTextures = Config::Get(Config::GFX_DUMP_BASE_TEXTURES);
@@ -71,6 +79,7 @@ void VideoConfig::Refresh()
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
+  sDumpPixelFormat = Config::Get(Config::GFX_DUMP_PIXEL_FORMAT);
   sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
   sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
   iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
@@ -95,8 +104,6 @@ void VideoConfig::Refresh()
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
-  bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
-  bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
   bDumpObjects = Config::Get(Config::GFX_SW_DUMP_OBJECTS);
   bDumpTevStages = Config::Get(Config::GFX_SW_DUMP_TEV_STAGES);
   bDumpTevTextureFetches = Config::Get(Config::GFX_SW_DUMP_TEV_TEX_FETCHES);
@@ -132,13 +139,12 @@ void VideoConfig::Refresh()
   bSkipPresentingDuplicateXFBs = Config::Get(Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
   bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
-  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
+  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUNDING);
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
   iMissingColorValue = Config::Get(Config::GFX_HACK_MISSING_COLOR_VALUE);
+  bFastTextureSampling = Config::Get(Config::GFX_HACK_FAST_TEXTURE_SAMPLING);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
-
-  VerifyValidity();
 }
 
 void VideoConfig::VerifyValidity()
@@ -175,6 +181,14 @@ static u32 GetNumAutoShaderCompilerThreads()
   return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
 }
 
+static u32 GetNumAutoShaderPreCompilerThreads()
+{
+  // Automatic number. We use clamp(cpus - 2, 1, infty) here.
+  // We chose this because we don't want to limit our speed-up
+  // and at the same time leave two logical cores for the dolphin UI and the rest of the OS.
+  return static_cast<u32>(std::max(cpu_info.num_cores - 2, 1));
+}
+
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
   if (!backend_info.bSupportsBackgroundCompiling)
@@ -197,6 +211,8 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
 
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
+  else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MULTITHREADED_SHADER_PRECOMPILATION))
+    return GetNumAutoShaderPreCompilerThreads();
   else
-    return GetNumAutoShaderCompilerThreads();
+    return 1;
 }

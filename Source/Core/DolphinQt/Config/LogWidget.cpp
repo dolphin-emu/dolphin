@@ -80,21 +80,21 @@ void LogWidget::UpdateLog()
   for (auto& line : elements_to_push)
   {
     const char* color = "white";
-    switch (std::get<Common::Log::LOG_LEVELS>(line))
+    switch (std::get<Common::Log::LogLevel>(line))
     {
-    case Common::Log::LOG_LEVELS::LERROR:
+    case Common::Log::LogLevel::LERROR:
       color = "red";
       break;
-    case Common::Log::LOG_LEVELS::LWARNING:
+    case Common::Log::LogLevel::LWARNING:
       color = "yellow";
       break;
-    case Common::Log::LOG_LEVELS::LNOTICE:
+    case Common::Log::LogLevel::LNOTICE:
       color = "lime";
       break;
-    case Common::Log::LOG_LEVELS::LINFO:
+    case Common::Log::LogLevel::LINFO:
       color = "cyan";
       break;
-    case Common::Log::LOG_LEVELS::LDEBUG:
+    case Common::Log::LogLevel::LDEBUG:
       color = "lightgrey";
       break;
     }
@@ -210,7 +210,7 @@ void LogWidget::SaveSettings()
   UpdateFont();
 }
 
-void LogWidget::Log(Common::Log::LOG_LEVELS level, const char* text)
+void LogWidget::Log(Common::Log::LogLevel level, const char* text)
 {
   size_t text_length = strlen(text);
   while (text_length > 0 && text[text_length - 1] == '\n')

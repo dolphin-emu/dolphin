@@ -1,6 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "UICommon/CommandLineParse.h"
+
 #include <list>
 #include <optional>
 #include <sstream>
@@ -13,7 +15,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/MainSettings.h"
-#include "UICommon/CommandLineParse.h"
 
 namespace CommandLineParse
 {
@@ -77,7 +78,7 @@ private:
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
 {
   auto parser = std::make_unique<optparse::OptionParser>();
-  parser->usage("usage: %prog [options]... [FILE]...").version(Common::scm_rev_str);
+  parser->usage("usage: %prog [options]... [FILE]...").version(Common::GetScmRevStr());
 
   parser->add_option("-u", "--user").action("store").help("User folder path");
   parser->add_option("-m", "--movie").action("store").help("Play a movie file");

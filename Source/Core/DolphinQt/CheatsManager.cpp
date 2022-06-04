@@ -34,9 +34,16 @@ CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
   ConnectWidgets();
 
   RefreshCodeTabs(Core::GetState(), true);
+
+  auto& settings = Settings::GetQSettings();
+  restoreGeometry(settings.value(QStringLiteral("cheatsmanager/geometry")).toByteArray());
 }
 
-CheatsManager::~CheatsManager() = default;
+CheatsManager::~CheatsManager()
+{
+  auto& settings = Settings::GetQSettings();
+  settings.setValue(QStringLiteral("cheatsmanager/geometry"), saveGeometry());
+}
 
 void CheatsManager::OnStateChanged(Core::State state)
 {
@@ -115,12 +122,15 @@ void CheatsManager::OnNewSessionCreated(const Cheats::CheatSearchSessionBase& se
                if (m_ar_code)
                  m_ar_code->AddCode(ar_code);
              });
+  w->connect(w, &CheatSearchWidget::ShowMemory, [this](u32 address) { emit ShowMemory(address); });
   m_tab_widget->setCurrentIndex(tab_index);
 }
 
 void CheatsManager::OnTabCloseRequested(int index)
 {
-  m_tab_widget->removeTab(index);
+  auto* w = m_tab_widget->widget(index);
+  if (w)
+    w->deleteLater();
 }
 
 void CheatsManager::ConnectWidgets()

@@ -19,6 +19,6 @@ std::optional<IPCReply> BluetoothStubDevice::Open(const OpenRequest& request)
 void BluetoothStubDevice::DoState(PointerWrap& p)
 {
   Core::DisplayMessage("The current IPC_HLE_Device_usb is a stub. Aborting load.", 4000);
-  p.SetMode(PointerWrap::MODE_VERIFY);
+  p.SetVerifyMode();
 }
 }  // namespace IOS::HLE

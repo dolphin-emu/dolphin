@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <ItemGroup>
     <ClCompile Include="glslang\GenericCodeGen\Link.cpp">
       <Filter>glslang\GenericCodeGen</Filter>
@@ -7,6 +7,27 @@
     <ClCompile Include="glslang\GenericCodeGen\CodeGen.cpp">
       <Filter>glslang\GenericCodeGen</Filter>
     </ClCompile>
+    <!--<ClCompile Include="glslang\HLSL\hlslAttributes.cpp">
+      <Filter>glslang\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\HLSL\hlslGrammar.cpp">
+      <Filter>glslang\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\HLSL\hlslOpMap.cpp">
+      <Filter>glslang\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\HLSL\hlslParseables.cpp">
+      <Filter>glslang\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\HLSL\hlslParseHelper.cpp">
+      <Filter>glslang\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\HLSL\hlslScanContext.cpp">
+      <Filter>glslang\HLSL</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\HLSL\hlslTokenStream.cpp">
+      <Filter>glslang\HLSL</Filter>
+    </ClCompile>-->
     <ClCompile Include="glslang\MachineIndependent\preprocessor\PpScanner.cpp">
       <Filter>glslang\MachineIndependant\preprocessor</Filter>
     </ClCompile>
@@ -50,6 +71,9 @@
       <Filter>glslang\MachineIndependant</Filter>
     </ClCompile>
     <ClCompile Include="glslang\MachineIndependent\ShaderLang.cpp">
+      <Filter>glslang\MachineIndependant</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\MachineIndependent\SpirvIntrinsics.cpp">
       <Filter>glslang\MachineIndependant</Filter>
     </ClCompile>
     <ClCompile Include="glslang\MachineIndependent\SymbolTable.cpp">
@@ -125,9 +149,6 @@
   <ItemGroup>
     <ClInclude Include="StandAlone\ResourceLimits.h">
       <Filter>StandAlone</Filter>
-    </ClInclude>
-    <ClInclude Include="glslang\Include\revision.h">
-      <Filter>glslang\Include</Filter>
     </ClInclude>
     <ClInclude Include="glslang\Include\ShHandle.h">
       <Filter>glslang\Include</Filter>
@@ -226,6 +247,9 @@
       <Filter>SPIRV</Filter>
     </ClInclude>
     <ClInclude Include="SPIRV\Logger.h">
+      <Filter>SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="SPIRV\NonSemanticDebugPrintf.h">
       <Filter>SPIRV</Filter>
     </ClInclude>
     <ClInclude Include="SPIRV\spirv.hpp">

@@ -16,13 +16,13 @@
 #include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 #include <unzip.h>
-#include <zlib.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -125,7 +125,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
   const std::optional<std::vector<u8>> result =
       request.Get("http://redump.org/datfile/" + system + "/serial,version",
-                  {{"User-Agent", Common::scm_rev_str}});
+                  {{"User-Agent", Common::GetScmRevStr()}});
 
   const std::string output_path = GetPathForSystem(system);
 
@@ -767,7 +767,7 @@ void VolumeVerifier::CheckVolumeSize()
   }
 
   if (m_content_index != m_content_offsets.size() || m_group_index != m_groups.size() ||
-      (volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
+      (!m_is_datel && volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
   {
     const bool second_layer_missing = is_disc && volume_size_roughly_known &&
                                       volume_size >= SL_DVD_SIZE && volume_size <= SL_DVD_R_SIZE;
@@ -1041,7 +1041,7 @@ void VolumeVerifier::SetUpHashing()
             [](const GroupToVerify& a, const GroupToVerify& b) { return a.offset < b.offset; });
 
   if (m_hashes_to_calculate.crc32)
-    m_crc32_context = crc32(0, nullptr, 0);
+    m_crc32_context = Common::StartCRC32();
 
   if (m_hashes_to_calculate.md5)
   {
@@ -1113,10 +1113,11 @@ void VolumeVerifier::Process()
     bytes_to_read = Common::AlignUp(content.size, 0x40);
     content_read = true;
 
-    if (m_content_index + 1 < m_content_offsets.size() &&
-        m_content_offsets[m_content_index + 1] < m_progress + bytes_to_read)
+    const u16 next_content_index = m_content_index + 1;
+    if (next_content_index < m_content_offsets.size() &&
+        m_content_offsets[next_content_index] < m_progress + bytes_to_read)
     {
-      excess_bytes = m_progress + bytes_to_read - m_content_offsets[m_content_index + 1];
+      excess_bytes = m_progress + bytes_to_read - m_content_offsets[next_content_index];
     }
   }
   else if (m_content_index < m_content_offsets.size() &&
@@ -1171,9 +1172,8 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.crc32)
     {
       m_crc32_future = std::async(std::launch::async, [this, byte_increment] {
-        // It would be nice to use crc32_z here instead of crc32, but it isn't available on Android
         m_crc32_context =
-            crc32(m_crc32_context, m_data.data(), static_cast<unsigned int>(byte_increment));
+            Common::UpdateCRC32(m_crc32_context, m_data.data(), static_cast<u32>(byte_increment));
       });
     }
 

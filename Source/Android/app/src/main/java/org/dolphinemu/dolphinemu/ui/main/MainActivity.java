@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,10 +25,9 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig;
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheManager;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.utils.Action1;
@@ -38,6 +36,7 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -75,7 +74,7 @@ public final class MainActivity extends AppCompatActivity
     if (!DirectoryInitialization.isWaitingForWriteAccess(this))
     {
       new AfterDirectoryInitializationRunner()
-              .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
+              .runWithLifecycle(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
   }
 
@@ -88,7 +87,7 @@ public final class MainActivity extends AppCompatActivity
     {
       DirectoryInitialization.start(this);
       new AfterDirectoryInitializationRunner()
-              .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
+              .runWithLifecycle(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
 
     mPresenter.onResume();
@@ -144,6 +143,14 @@ public final class MainActivity extends AppCompatActivity
   {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.menu_game_grid, menu);
+
+    if (WiiUtils.isSystemMenuInstalled())
+    {
+      menu.findItem(R.id.menu_load_wii_system_menu).setTitle(
+              getString(R.string.grid_menu_load_wii_system_menu_installed,
+                      WiiUtils.getSystemMenuVersion()));
+    }
+
     return true;
   }
 
@@ -216,7 +223,7 @@ public final class MainActivity extends AppCompatActivity
         case MainPresenter.REQUEST_GAME_FILE:
           FileBrowserHelper.runAfterExtensionCheck(this, uri,
                   FileBrowserHelper.GAME_LIKE_EXTENSIONS,
-                  () -> EmulationActivity.launch(this, result.getData().toString()));
+                  () -> EmulationActivity.launch(this, result.getData().toString(), false));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
@@ -256,7 +263,7 @@ public final class MainActivity extends AppCompatActivity
 
       DirectoryInitialization.start(this);
       new AfterDirectoryInitializationRunner()
-              .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
+              .runWithLifecycle(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
   }
 
@@ -279,7 +286,7 @@ public final class MainActivity extends AppCompatActivity
   public void onRefresh()
   {
     setRefreshing(true);
-    GameFileCacheService.startRescan(this);
+    GameFileCacheManager.startRescan(this);
   }
 
   /**
@@ -341,6 +348,6 @@ public final class MainActivity extends AppCompatActivity
     mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
 
     showGames();
-    GameFileCacheService.startLoad(this);
+    GameFileCacheManager.startLoad(this);
   }
 }

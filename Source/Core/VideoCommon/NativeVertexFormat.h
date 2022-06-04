@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Hash.h"
+#include "VideoCommon/CPMemory.h"
 
 // m_components
 enum
@@ -24,10 +25,9 @@ enum
   VB_HAS_TEXMTXIDXALL = (0xff << 2),
 
   // VB_HAS_POS=0, // Implied, it always has pos! don't bother testing
-  VB_HAS_NRM0 = (1 << 10),
-  VB_HAS_NRM1 = (1 << 11),
-  VB_HAS_NRM2 = (1 << 12),
-  VB_HAS_NRMALL = (7 << 10),
+  VB_HAS_NORMAL = (1 << 10),
+  VB_HAS_TANGENT = (1 << 11),
+  VB_HAS_BINORMAL = (1 << 12),
 
   VB_COL_SHIFT = 13,
   VB_HAS_COL0 = (1 << 13),
@@ -45,18 +45,9 @@ enum
   VB_HAS_UVTEXMTXSHIFT = 13,
 };
 
-enum VarType
-{
-  VAR_UNSIGNED_BYTE,   // GX_U8  = 0
-  VAR_BYTE,            // GX_S8  = 1
-  VAR_UNSIGNED_SHORT,  // GX_U16 = 2
-  VAR_SHORT,           // GX_S16 = 3
-  VAR_FLOAT,           // GX_F32 = 4
-};
-
 struct AttributeFormat
 {
-  VarType type;
+  ComponentFormat type;
   int components;
   int offset;
   bool enable;

@@ -25,7 +25,7 @@ public class Analytics
 
   public static void checkAnalyticsInit(Context context)
   {
-    new AfterDirectoryInitializationRunner().run(context, false, () ->
+    new AfterDirectoryInitializationRunner().runWithoutLifecycle(context, false, () ->
     {
       if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.getBooleanGlobal())
       {
@@ -36,7 +36,7 @@ public class Analytics
 
   private static void showMessage(Context context)
   {
-    new AlertDialog.Builder(context, R.style.DolphinDialogBase)
+    new AlertDialog.Builder(context)
             .setTitle(context.getString(R.string.analytics))
             .setMessage(context.getString(R.string.analytics_desc))
             .setPositiveButton(R.string.yes, (dialogInterface, i) ->

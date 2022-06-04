@@ -31,6 +31,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/TraversalClient.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
@@ -39,6 +40,7 @@
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
 #endif
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
 
@@ -62,8 +64,35 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model, QWidget* parent)
-    : QDialog(parent), m_game_list_model(game_list_model)
+namespace
+{
+QString InetAddressToString(const TraversalInetAddress& addr)
+{
+  QString ip;
+
+  if (addr.isIPV6)
+  {
+    ip = QStringLiteral("IPv6-Not-Implemented");
+  }
+  else
+  {
+    const auto ipv4 = reinterpret_cast<const u8*>(addr.address);
+    ip = QString::number(ipv4[0]);
+    for (u32 i = 1; i != 4; ++i)
+    {
+      ip += QStringLiteral(".");
+      ip += QString::number(ipv4[i]);
+    }
+  }
+
+  return QStringLiteral("%1:%2").arg(ip, QString::number(ntohs(addr.port)));
+}
+}  // namespace
+
+NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model,
+                             StartGameCallback start_game_callback, QWidget* parent)
+    : QDialog(parent), m_game_list_model(game_list_model),
+      m_start_game_callback(std::move(start_game_callback))
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -266,7 +295,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_room_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &NetPlayDialog::UpdateGUI);
   connect(m_hostcode_action_button, &QPushButton::clicked, [this] {
-    if (m_is_copy_button_retry && m_room_box->currentIndex() == 0)
+    if (m_is_copy_button_retry)
       g_TraversalClient->ReconnectToServer();
     else
       QApplication::clipboard()->setText(m_hostcode_label->text());
@@ -582,25 +611,42 @@ void NetPlayDialog::UpdateGUI()
       {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
   m_players_list->setRowCount(m_player_count);
 
-  static const std::map<NetPlay::SyncIdentifierComparison, QString> player_status{
-      {NetPlay::SyncIdentifierComparison::SameGame, tr("OK")},
-      {NetPlay::SyncIdentifierComparison::DifferentVersion, tr("Wrong Version")},
-      {NetPlay::SyncIdentifierComparison::DifferentGame, tr("Not Found")},
-  };
+  static const std::map<NetPlay::SyncIdentifierComparison, std::pair<QString, QString>>
+      player_status{
+          {NetPlay::SyncIdentifierComparison::SameGame, {tr("OK"), tr("OK")}},
+          {NetPlay::SyncIdentifierComparison::DifferentHash,
+           {tr("Wrong hash"),
+            tr("Game file has a different hash; right-click it, select Properties, switch to the "
+               "Verify tab, and select Verify Integrity to check the hash")}},
+          {NetPlay::SyncIdentifierComparison::DifferentDiscNumber,
+           {tr("Wrong disc number"), tr("Game has a different disc number")}},
+          {NetPlay::SyncIdentifierComparison::DifferentRevision,
+           {tr("Wrong revision"), tr("Game has a different revision")}},
+          {NetPlay::SyncIdentifierComparison::DifferentRegion,
+           {tr("Wrong region"), tr("Game region does not match")}},
+          {NetPlay::SyncIdentifierComparison::DifferentGame,
+           {tr("Not found"), tr("No matching game was found")}},
+      };
 
   for (int i = 0; i < m_player_count; i++)
   {
     const auto* p = players[i];
 
     auto* name_item = new QTableWidgetItem(QString::fromStdString(p->name));
-    auto* status_item = new QTableWidgetItem(player_status.count(p->game_status) ?
-                                                 player_status.at(p->game_status) :
-                                                 QStringLiteral("?"));
+    name_item->setToolTip(name_item->text());
+    const auto& status_info = player_status.count(p->game_status) ?
+                                  player_status.at(p->game_status) :
+                                  std::make_pair(QStringLiteral("?"), QStringLiteral("?"));
+    auto* status_item = new QTableWidgetItem(status_info.first);
+    status_item->setToolTip(status_info.second);
     auto* ping_item = new QTableWidgetItem(QStringLiteral("%1 ms").arg(p->ping));
+    ping_item->setToolTip(ping_item->text());
     auto* mapping_item =
         new QTableWidgetItem(QString::fromStdString(NetPlay::GetPlayerMappingString(
             p->pid, client->GetPadMapping(), client->GetGBAConfig(), client->GetWiimoteMapping())));
+    mapping_item->setToolTip(mapping_item->text());
     auto* revision_item = new QTableWidgetItem(QString::fromStdString(p->revision));
+    revision_item->setToolTip(revision_item->text());
 
     for (auto* item : {name_item, status_item, ping_item, mapping_item, revision_item})
     {
@@ -618,20 +664,48 @@ void NetPlayDialog::UpdateGUI()
       m_players_list->selectRow(i);
   }
 
-  // Update Room ID / IP label
-  if (m_use_traversal && m_room_box->currentIndex() == 0)
+  if (m_old_player_count != m_player_count)
+  {
+    UpdateDiscordPresence();
+    m_old_player_count = m_player_count;
+  }
+
+  if (!server)
+    return;
+
+  const bool is_local_ip_selected = m_room_box->currentIndex() > (m_use_traversal ? 1 : 0);
+  if (is_local_ip_selected)
+  {
+    m_hostcode_label->setText(QString::fromStdString(
+        server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
+    m_hostcode_action_button->setEnabled(true);
+    m_hostcode_action_button->setText(tr("Copy"));
+    m_is_copy_button_retry = false;
+  }
+  else if (m_use_traversal)
   {
     switch (g_TraversalClient->GetState())
     {
     case TraversalClient::State::Connecting:
-      m_hostcode_label->setText(tr("..."));
+      m_hostcode_label->setText(tr("Connecting"));
       m_hostcode_action_button->setEnabled(false);
+      m_hostcode_action_button->setText(tr("..."));
       break;
     case TraversalClient::State::Connected:
     {
-      const auto host_id = g_TraversalClient->GetHostID();
-      m_hostcode_label->setText(
-          QString::fromStdString(std::string(host_id.begin(), host_id.end())));
+      if (m_room_box->currentIndex() == 0)
+      {
+        // Display Room ID.
+        const auto host_id = g_TraversalClient->GetHostID();
+        m_hostcode_label->setText(
+            QString::fromStdString(std::string(host_id.begin(), host_id.end())));
+      }
+      else
+      {
+        // Externally mapped IP and port are known when using the traversal server.
+        m_hostcode_label->setText(InetAddressToString(g_TraversalClient->GetExternalAddress()));
+      }
+
       m_hostcode_action_button->setEnabled(true);
       m_hostcode_action_button->setText(tr("Copy"));
       m_is_copy_button_retry = false;
@@ -645,47 +719,34 @@ void NetPlayDialog::UpdateGUI()
       break;
     }
   }
-  else if (server)
+  else
   {
-    if (m_room_box->currentIndex() == (m_use_traversal ? 1 : 0))
+    // Display External IP.
+    if (!m_external_ip_address->empty())
     {
-      if (!m_external_ip_address->empty())
-      {
-        const int port = Settings::Instance().GetNetPlayServer()->GetPort();
-        m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
-            QString::fromStdString(*m_external_ip_address), QString::number(port)));
-        m_hostcode_action_button->setEnabled(true);
-      }
-      else
-      {
-        m_hostcode_label->setText(tr("Unknown"));
-        m_hostcode_action_button->setEnabled(false);
-      }
+      const int port = Settings::Instance().GetNetPlayServer()->GetPort();
+      m_hostcode_label->setText(QStringLiteral("%1:%2").arg(
+          QString::fromStdString(*m_external_ip_address), QString::number(port)));
+      m_hostcode_action_button->setEnabled(true);
     }
     else
     {
-      m_hostcode_label->setText(QString::fromStdString(
-          server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
-      m_hostcode_action_button->setEnabled(true);
+      m_hostcode_label->setText(tr("Unknown"));
+      m_hostcode_action_button->setEnabled(false);
     }
 
     m_hostcode_action_button->setText(tr("Copy"));
     m_is_copy_button_retry = false;
   }
-
-  if (m_old_player_count != m_player_count)
-  {
-    UpdateDiscordPresence();
-    m_old_player_count = m_player_count;
-  }
 }
 
 // NetPlayUI methods
 
-void NetPlayDialog::BootGame(const std::string& filename)
+void NetPlayDialog::BootGame(const std::string& filename,
+                             std::unique_ptr<BootSessionData> boot_session_data)
 {
   m_got_stop_request = false;
-  emit Boot(QString::fromStdString(filename));
+  m_start_game_callback(filename, std::move(boot_session_data));
 }
 
 void NetPlayDialog::StopGame()
@@ -1172,4 +1233,11 @@ void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
     if (m_chunked_progress_dialog->isVisible())
       m_chunked_progress_dialog->SetProgress(pid, progress);
   });
+}
+
+void NetPlayDialog::SetHostWiiSyncData(std::vector<u64> titles, std::string redirect_folder)
+{
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (client)
+    client->SetWiiSyncData(nullptr, std::move(titles), std::move(redirect_folder));
 }

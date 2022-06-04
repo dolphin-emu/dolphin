@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <Import Project="..\..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
@@ -13,15 +13,12 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VSPropsDir)Base.props" />
-    <Import Project="$(VSPropsDir)PCHUse.props" />
     <Import Project="$(VSPropsDir)PyEmbed.props" />
     <Import Project="$(VSPropsDir)QtCompile.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <!-- 5054  operator '+': deprecated between enumerations of different types (in Qt headers) -->
-      <DisableSpecificWarnings>5054;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)Config\Graphics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)Config\ControllerInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -36,12 +33,6 @@
       <AdditionalIncludeDirectories>$(ProjectDir)TAS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;rpcrt4.lib;comctl32.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ExternalsDir)python\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
@@ -127,6 +118,7 @@
     <ClCompile Include="Config\WiimoteControllersWidget.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
+    <ClCompile Include="Debugger\CodeDiffDialog.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
     <ClCompile Include="Debugger\CodeWidget.cpp" />
     <ClCompile Include="Debugger\JITWidget.cpp" />
@@ -174,6 +166,7 @@
     <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
+    <ClCompile Include="QtUtils\NonDefaultQPushButton.cpp" />
     <ClCompile Include="QtUtils\PartiallyClosableTabWidget.cpp" />
     <ClCompile Include="QtUtils\UTF8CodePointCountValidator.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
@@ -182,6 +175,7 @@
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="RiivolutionBootWidget.cpp" />
     <ClCompile Include="Scripting/ScriptingWidget.cpp" />
     <ClCompile Include="Scripting/ScriptsListModel.cpp" />
     <ClCompile Include="SearchBar.cpp" />
@@ -227,8 +221,10 @@
     <ClInclude Include="QtUtils\FlowLayout.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ModalMessageBox.h" />
+    <ClInclude Include="QtUtils\NonDefaultQPushButton.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />
+    <ClInclude Include="QtUtils\SignalBlocking.h" />
     <ClInclude Include="QtUtils\WinIconHelper.h" />
     <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="ResourcePackManager.h" />
@@ -311,6 +307,7 @@
     <QtMoc Include="Config\WiimoteControllersWidget.h" />
     <QtMoc Include="ConvertDialog.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />
+    <QtMoc Include="Debugger\CodeDiffDialog.h" />
     <QtMoc Include="Debugger\CodeViewWidget.h" />
     <QtMoc Include="Debugger\CodeWidget.h" />
     <QtMoc Include="Debugger\JITWidget.h" />
@@ -356,6 +353,7 @@
     <QtMoc Include="QtUtils\UTF8CodePointCountValidator.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
+    <QtMoc Include="RiivolutionBootWidget.h" />
     <QtMoc Include="Scripting/ScriptingWidget.h" />
     <QtMoc Include="SearchBar.h" />
     <QtMoc Include="Settings.h" />
@@ -384,6 +382,9 @@
     <ResourceCompile Include="DolphinQt.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Natvis Include="qt6.natvis" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="$(CoreDir)DolphinLib.vcxproj">
       <Project>{D79392F7-06D6-4B4B-A39F-4D587C215D3A}</Project>
     </ProjectReference>
@@ -392,6 +393,16 @@
     </ProjectReference>
     <ProjectReference Include="$(DolphinRootDir)Languages\Languages.vcxproj">
       <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
+    </ProjectReference>
+    <!--
+      This project doesn't use PCH during compile (because RTTI setting differs),
+      but we still must link it for the dependants (DolphinLib)
+    -->
+    <ProjectReference Include="$(SourceDir)PCH\pch.vcxproj">
+      <Project>{76563A7F-1011-4EAD-B667-7BB18D09568E}</Project>
+      <Private>false</Private>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(ExternalsDir)ExternalsReferenceAll.props" />

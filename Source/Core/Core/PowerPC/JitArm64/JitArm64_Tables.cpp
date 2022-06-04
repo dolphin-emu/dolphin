@@ -4,6 +4,7 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 
 #include <array>
+
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCTables.h"
 
@@ -304,15 +305,15 @@ constexpr std::array<GekkoOPTemplate, 9> table59{{
 }};
 
 constexpr std::array<GekkoOPTemplate, 15> table63{{
-    {264, &JitArm64::fp_logic},              // fabsx
-    {32, &JitArm64::fcmpX},                  // fcmpo
-    {0, &JitArm64::fcmpX},                   // fcmpu
-    {14, &JitArm64::FallBackToInterpreter},  // fctiwx
-    {15, &JitArm64::fctiwzx},                // fctiwzx
-    {72, &JitArm64::fp_logic},               // fmrx
-    {136, &JitArm64::fp_logic},              // fnabsx
-    {40, &JitArm64::fp_logic},               // fnegx
-    {12, &JitArm64::frspx},                  // frspx
+    {264, &JitArm64::fp_logic},  // fabsx
+    {32, &JitArm64::fcmpX},      // fcmpo
+    {0, &JitArm64::fcmpX},       // fcmpu
+    {14, &JitArm64::fctiwx},     // fctiwx
+    {15, &JitArm64::fctiwx},     // fctiwzx
+    {72, &JitArm64::fp_logic},   // fmrx
+    {136, &JitArm64::fp_logic},  // fnabsx
+    {40, &JitArm64::fp_logic},   // fnegx
+    {12, &JitArm64::frspx},      // frspx
 
     {64, &JitArm64::mcrfs},     // mcrfs
     {583, &JitArm64::mffsx},    // mffsx

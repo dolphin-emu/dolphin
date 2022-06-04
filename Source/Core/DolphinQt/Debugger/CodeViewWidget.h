@@ -70,7 +70,9 @@ private:
 
   void OnFollowBranch();
   void OnCopyAddress();
+  void OnCopyTargetAddress();
   void OnShowInMemory();
+  void OnShowTargetInMemory();
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();

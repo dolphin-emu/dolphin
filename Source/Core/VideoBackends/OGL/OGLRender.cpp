@@ -4,7 +4,6 @@
 #include "VideoBackends/OGL/OGLRender.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <cmath>
 #include <cstdio>
 #include <memory>
@@ -483,6 +482,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       GLExtensions::Supports("GL_EXT_texture_compression_s3tc");
   g_Config.backend_info.bSupportsBPTCTextures =
       GLExtensions::Supports("GL_ARB_texture_compression_bptc");
+  g_Config.backend_info.bSupportsCoarseDerivatives =
+      GLExtensions::Supports("GL_ARB_derivative_control") || GLExtensions::Version() >= 450;
+  g_Config.backend_info.bSupportsTextureQueryLevels =
+      GLExtensions::Supports("GL_ARB_texture_query_levels") || GLExtensions::Version() >= 430;
 
   if (m_main_gl_context->IsGLES())
   {
@@ -508,6 +511,9 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // glReadPixels() can't be used with non-color formats. But, if we support
     // ARB_get_texture_sub_image (unlikely, except maybe on NVIDIA), we can use that instead.
     g_Config.backend_info.bSupportsDepthReadback = g_ogl_config.bSupportsTextureSubImage;
+
+    // GL_TEXTURE_LOD_BIAS is not supported on GLES.
+    g_Config.backend_info.bSupportsLodBiasInSampler = false;
 
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
@@ -577,6 +583,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       g_ogl_config.bSupports3DTextureStorageMultisample = true;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
+      g_Config.backend_info.bSupportsSettingObjectNames = true;
     }
   }
   else
@@ -622,6 +629,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       g_ogl_config.bSupportsTextureStorage = true;
       g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsSSAA = true;
+      g_Config.backend_info.bSupportsSettingObjectNames = true;
 
       // Compute shaders are core in GL4.3.
       g_Config.backend_info.bSupportsComputeShaders = true;
@@ -695,8 +703,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
       glDebugMessageCallbackARB(ErrorCallback, nullptr);
     }
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }
@@ -743,6 +751,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     OSD::AddMessage("This device's performance may be poor.", 60000);
   }
 
+  INFO_LOG_FMT(VIDEO, "Video Info: {}, {}, {}", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+               g_ogl_config.gl_version);
   WARN_LOG_FMT(VIDEO, "Missing OGL Extensions: {}{}{}{}{}{}{}{}{}{}{}{}{}{}",
                g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
                g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
@@ -948,7 +958,7 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable,
     glDepthMask(m_current_depth_state.updateenable);
 
   // Scissor rect must be restored.
-  BPFunctions::SetScissor();
+  BPFunctions::SetScissorAndViewport();
 }
 
 void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
@@ -1026,8 +1036,8 @@ void Renderer::PresentBackbuffer()
 {
   if (g_ogl_config.bSupportsDebug)
   {
-    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
-                                                          Common::Log::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::LogType::HOST_GPU,
+                                                          Common::Log::LogLevel::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }

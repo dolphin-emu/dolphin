@@ -3,6 +3,8 @@
 
 #include "VideoCommon/BoundingBox.h"
 
+#include <algorithm>
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -102,7 +104,7 @@ void BoundingBox::DoState(PointerWrap& p)
   // We handle saving the backend values specially rather than using Readback() and Flush() so that
   // we don't mess up the current cache state
   std::vector<BBoxType> backend_values(NUM_BBOX_VALUES);
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     p.Do(backend_values);
 

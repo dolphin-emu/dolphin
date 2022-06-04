@@ -1,12 +1,13 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
+
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPTables.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
@@ -357,8 +358,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 {
   u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
-  // todo: check if we can use normal variant here
-  dsp_op_read_reg_dont_saturate(reg, RDX, RegisterExtension::Zero);
+  dsp_op_read_reg(reg, RDX, RegisterExtension::Zero);
   u16 loop_pc = m_compile_pc + 1;
 
   TEST(16, R(EDX), R(EDX));
@@ -428,8 +428,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 {
   const u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
-  // todo: check if we can use normal variant here
-  dsp_op_read_reg_dont_saturate(reg, RDX, RegisterExtension::Zero);
+  dsp_op_read_reg(reg, RDX, RegisterExtension::Zero);
   const u16 loop_pc = m_dsp_core.DSPState().ReadIMEM(m_compile_pc + 1);
 
   TEST(16, R(EDX), R(EDX));

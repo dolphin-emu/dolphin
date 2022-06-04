@@ -58,8 +58,8 @@ struct IPv4Header
   u8 ttl = 0;
   u8 protocol = 0;
   u16 header_checksum = 0;
-  u8 source_addr[IPV4_ADDR_LEN]{};
-  u8 destination_addr[IPV4_ADDR_LEN]{};
+  std::array<u8, IPV4_ADDR_LEN> source_addr{};
+  std::array<u8, IPV4_ADDR_LEN> destination_addr{};
 };
 static_assert(sizeof(IPv4Header) == IPv4Header::SIZE);
 

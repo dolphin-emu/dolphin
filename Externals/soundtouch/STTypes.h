@@ -39,21 +39,6 @@
 #ifndef STTypes_H
 #define STTypes_H
 
-typedef unsigned int    uint;
-typedef unsigned long   ulong;
-
-// Patch for MinGW: on Win64 long is 32-bit
-#ifdef _WIN64
-    typedef unsigned long long ulongptr;
-#else
-    typedef ulong ulongptr;
-#endif
-
-
-// Helper macro for aligning pointer up to next 16-byte boundary
-#define SOUNDTOUCH_ALIGN_POINTER_16(x)      ( ( (ulongptr)(x) + 15 ) & ~(ulongptr)15 )
-
-
 #if (defined(__GNUC__) && !defined(ANDROID))
     // In GCC, include soundtouch_config.h made by config scritps.
     // Skip this in Android compilation that uses GCC but without configure scripts.
@@ -63,6 +48,20 @@ typedef unsigned long   ulong;
 
 namespace soundtouch
 {
+    typedef unsigned int    uint;
+    typedef unsigned long   ulong;
+
+    // Patch for MinGW: on Win64 long is 32-bit
+    #ifdef _WIN64
+        typedef unsigned long long ulongptr;
+    #else
+        typedef ulong ulongptr;
+    #endif
+
+
+    // Helper macro for aligning pointer up to next 16-byte boundary
+    #define SOUNDTOUCH_ALIGN_POINTER_16(x)      ( ( (ulongptr)(x) + 15 ) & ~(ulongptr)15 )
+
     /// Activate these undef's to overrule the possible sampletype 
     /// setting inherited from some other header file:
     #undef SOUNDTOUCH_INTEGER_SAMPLES

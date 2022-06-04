@@ -1,4 +1,4 @@
-// Copyright 2017 Dolphin Emulator Project5~5~5~
+// Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
@@ -142,9 +142,10 @@ void GeneralWidget::ConnectWidgets()
   // Video Backend
   connect(m_backend_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &GeneralWidget::SaveSettings);
-  connect(m_adapter_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [](int index) {
+  connect(m_adapter_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int index) {
     g_Config.iAdapter = index;
     Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
+    emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   });
 }
 

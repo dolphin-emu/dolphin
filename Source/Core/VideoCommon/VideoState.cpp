@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/VideoState.h"
+
 #include <cstring>
 
 #include "Common/ChunkFile.h"
@@ -18,7 +20,6 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
 
 void VideoCommon_DoState(PointerWrap& p)
@@ -26,10 +27,10 @@ void VideoCommon_DoState(PointerWrap& p)
   bool software = false;
   p.Do(software);
 
-  if (p.GetMode() == PointerWrap::MODE_READ && software == true)
+  if (p.IsReadMode() && software == true)
   {
     // change mode to abort load of incompatible save state.
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetVerifyMode();
   }
 
   // BP Memory
@@ -85,7 +86,7 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoMarker("Renderer");
 
   // Refresh state.
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     // Inform backend of new state from registers.
     BPReload();

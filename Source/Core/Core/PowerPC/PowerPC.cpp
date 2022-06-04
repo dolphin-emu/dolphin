@@ -18,6 +18,7 @@
 #include "Common/FloatUtils.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -25,6 +26,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/GDBStub.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -98,7 +100,7 @@ std::ostream& operator<<(std::ostream& os, CPUCore core)
 void DoState(PointerWrap& p)
 {
   // some of this code has been disabled, because
-  // it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause
+  // it changes registers even in Mode::Measure (which is suspicious and seems like it could cause
   // desyncs)
   // and because the values it's changing have been added to CoreTiming::DoState, so it might
   // conflict to mess with them here.
@@ -130,7 +132,7 @@ void DoState(PointerWrap& p)
 
   ppcState.iCache.DoState(p);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsReadMode())
   {
     RoundingModeUpdated();
     IBATUpdated();
@@ -218,7 +220,8 @@ static void InitializeCPUCore(CPUCore cpu_core)
     s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
-      WARN_LOG_FMT(POWERPC, "CPU core {} not available. Falling back to default.", cpu_core);
+      WARN_LOG_FMT(POWERPC, "CPU core {} not available. Falling back to default.",
+                   static_cast<int>(cpu_core));
       s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
     }
     break;
@@ -263,7 +266,7 @@ void Init(CPUCore cpu_core)
   InitializeCPUCore(cpu_core);
   ppcState.iCache.Init();
 
-  if (SConfig::GetInstance().bEnableDebugging)
+  if (Config::Get(Config::MAIN_ENABLE_DEBUGGING))
     breakpoints.ClearAllTemporary();
 }
 
@@ -598,7 +601,7 @@ void CheckExternalExceptions()
     }
     else
     {
-      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
+      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == {:08x}", exceptions);
       ERROR_LOG_FMT(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == {:08x}",
                     exceptions);
     }
@@ -611,7 +614,11 @@ void CheckBreakPoints()
     return;
 
   if (PowerPC::breakpoints.IsBreakPointBreakOnHit(PC))
+  {
     CPU::Break();
+    if (GDBStub::IsActive())
+      GDBStub::TakeControl();
+  }
   if (PowerPC::breakpoints.IsBreakPointLogOnHit(PC))
   {
     NOTICE_LOG_FMT(MEMMAP,

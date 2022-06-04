@@ -17,7 +17,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
@@ -275,7 +275,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     std::string lang = qlang.toStdString();
     auto filename =
 #if defined _WIN32
-        File::GetExeDirectory() + StringFromFormat("/Languages/%s/dolphin-emu.mo", lang.c_str())
+        File::GetExeDirectory() + StringFromFormat("/Languages/%s.mo", lang.c_str())
 #elif defined __APPLE__
         File::GetBundleDirectory() +
         StringFromFormat("/Contents/Resources/%s.lproj/dolphin-emu.mo", lang.c_str())
@@ -310,7 +310,7 @@ void Translation::Initialize()
       [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
-  auto& configured_language = SConfig::GetInstance().m_InterfaceLanguage;
+  std::string configured_language = Config::Get(Config::MAIN_INTERFACE_LANGUAGE);
   if (!configured_language.empty())
   {
     if (TryInstallTranslator(QString::fromStdString(configured_language)))
@@ -319,7 +319,7 @@ void Translation::Initialize()
     ModalMessageBox::warning(
         nullptr, QObject::tr("Error"),
         QObject::tr("Error loading selected language. Falling back to system default."));
-    configured_language.clear();
+    Config::SetBase(Config::MAIN_INTERFACE_LANGUAGE, "");
   }
 
   for (const auto& lang : QLocale::system().uiLanguages())

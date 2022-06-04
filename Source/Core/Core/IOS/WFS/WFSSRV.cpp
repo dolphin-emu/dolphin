@@ -4,7 +4,6 @@
 #include "Core/IOS/WFS/WFSSRV.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <string>
 #include <vector>
 
@@ -291,14 +290,14 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     const u64 previous_position = fd_obj->file.Tell();
     if (absolute)
     {
-      fd_obj->file.Seek(position, SEEK_SET);
+      fd_obj->file.Seek(position, File::SeekOrigin::Begin);
     }
     size_t read_bytes;
     fd_obj->file.ReadArray(Memory::GetPointer(addr), size, &read_bytes);
     // TODO(wfs): Handle read errors.
     if (absolute)
     {
-      fd_obj->file.Seek(previous_position, SEEK_SET);
+      fd_obj->file.Seek(previous_position, File::SeekOrigin::Begin);
     }
     else
     {
@@ -332,13 +331,13 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
     const u64 previous_position = fd_obj->file.Tell();
     if (absolute)
     {
-      fd_obj->file.Seek(position, SEEK_SET);
+      fd_obj->file.Seek(position, File::SeekOrigin::Begin);
     }
     fd_obj->file.WriteArray(Memory::GetPointer(addr), size);
     // TODO(wfs): Handle write errors.
     if (absolute)
     {
-      fd_obj->file.Seek(previous_position, SEEK_SET);
+      fd_obj->file.Seek(previous_position, File::SeekOrigin::Begin);
     }
     else
     {
@@ -353,7 +352,8 @@ std::optional<IPCReply> WFSSRVDevice::IOCtl(const IOCtlRequest& request)
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
-    request.DumpUnknown(GetDeviceName(), Common::Log::IOS, Common::Log::LWARNING);
+    request.DumpUnknown(GetDeviceName(), Common::Log::LogType::IOS_WFS,
+                        Common::Log::LogLevel::LWARNING);
     Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
   }

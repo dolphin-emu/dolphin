@@ -83,6 +83,7 @@ struct VideoConfig final
   bool bShowNetPlayMessages = false;
   bool bOverlayStats = false;
   bool bOverlayProjStats = false;
+  bool bOverlayScissorStats = false;
   bool bTexFmtOverlayEnable = false;
   bool bTexFmtOverlayCenter = false;
   bool bLogRenderTimeToFile = false;
@@ -102,6 +103,7 @@ struct VideoConfig final
   bool bDumpFramesAsImages = false;
   bool bUseFFV1 = false;
   std::string sDumpCodec;
+  std::string sDumpPixelFormat;
   std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;
@@ -135,6 +137,7 @@ struct VideoConfig final
   int iLog = 0;           // CONF_ bits
   int iSaveTargetId = 0;  // TODO: Should be dropped
   u32 iMissingColorValue = 0;
+  bool bFastTextureSampling = false;
 
   // Stereoscopy
   StereoMode stereo_mode{};
@@ -151,8 +154,6 @@ struct VideoConfig final
   // VideoSW Debugging
   int drawStart = 0;
   int drawEnd = 0;
-  bool bZComploc = false;
-  bool bZFreeze = false;
   bool bDumpObjects = false;
   bool bDumpTevStages = false;
   bool bDumpTevTextureFetches = false;
@@ -199,7 +200,6 @@ struct VideoConfig final
     bool bSupportsExclusiveFullscreen = false;
     bool bSupportsDualSourceBlend = false;
     bool bSupportsPrimitiveRestart = false;
-    bool bSupportsOversizedViewports = false;
     bool bSupportsGeometryShaders = false;
     bool bSupportsComputeShaders = false;
     bool bSupports3DVision = false;
@@ -230,6 +230,10 @@ struct VideoConfig final
     bool bSupportsDepthReadback = false;
     bool bSupportsShaderBinaries = false;
     bool bSupportsPipelineCacheData = false;
+    bool bSupportsCoarseDerivatives = false;
+    bool bSupportsTextureQueryLevels = false;
+    bool bSupportsLodBiasInSampler = false;
+    bool bSupportsSettingObjectNames = false;
   } backend_info;
 
   // Utility
@@ -243,6 +247,16 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
+  bool ManualTextureSamplingWithHiResTextures() const
+  {
+    // Hi-res textures (including hi-res EFB copies, but not native-resolution EFB copies at higher
+    // internal resolutions) breaks the wrapping logic used by manual texture sampling.
+    if (bFastTextureSampling)
+      return false;
+    if (iEFBScale != 1 && bCopyEFBScaled)
+      return true;
+    return bHiresTextures;
+  }
   bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;

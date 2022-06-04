@@ -115,7 +115,7 @@ public:
   void tst(UDSPInstruction opc);
   void tstaxh(UDSPInstruction opc);
   void cmp(UDSPInstruction opc);
-  void cmpar(UDSPInstruction opc);
+  void cmpaxh(UDSPInstruction opc);
   void cmpi(UDSPInstruction opc);
   void cmpis(UDSPInstruction opc);
   void xorr(UDSPInstruction opc);
@@ -257,8 +257,8 @@ private:
   {
     UpdateSR64AddSub(val1, val2, result, scratch, true);
   }
-  void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
-  void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);
+  void Update_SR_Register16(Gen::X64Reg val);
+  void Update_SR_Register16_OverS32(Gen::X64Reg val, Gen::X64Reg full_val, Gen::X64Reg scratch);
 
   // Register helpers
   void setCompileSR(u16 bit);
@@ -286,8 +286,6 @@ private:
   void dsp_op_write_reg_imm(int reg, u16 val);
   void dsp_conditional_extend_accum(int reg);
   void dsp_conditional_extend_accum_imm(int reg, u16 val);
-  void dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg,
-                                     RegisterExtension extend = RegisterExtension::None);
   void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg,
                        RegisterExtension extend = RegisterExtension::None);
 

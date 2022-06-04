@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
@@ -23,10 +24,11 @@ Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
   return std::make_unique<GLVertexFormat>(vtx_decl);
 }
 
-static inline GLuint VarToGL(VarType t)
+static inline GLuint VarToGL(ComponentFormat t)
 {
-  static const GLuint lookup[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT,
-                                   GL_FLOAT};
+  static constexpr Common::EnumMap<GLuint, ComponentFormat::Float> lookup = {
+      GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT,
+  };
   return lookup[t];
 }
 
@@ -66,7 +68,7 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
   SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, vtx_decl.position);
 
   for (int i = 0; i < 3; i++)
-    SetPointer(SHADER_NORM0_ATTRIB + i, vertex_stride, vtx_decl.normals[i]);
+    SetPointer(SHADER_NORMAL_ATTRIB + i, vertex_stride, vtx_decl.normals[i]);
 
   for (int i = 0; i < 2; i++)
     SetPointer(SHADER_COLOR0_ATTRIB + i, vertex_stride, vtx_decl.colors[i]);

@@ -55,6 +55,11 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool stereo = host_config.stereo;
   const bool use_dual_source = host_config.backend_dual_source_blend;
   const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
+  const bool use_shader_logic_op =
+      !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
+  const bool use_framebuffer_fetch =
+      use_shader_blend || use_shader_logic_op ||
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
   const bool bounding_box = host_config.bounding_box;
@@ -63,45 +68,57 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("// Pixel UberShader for {} texgens{}{}\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
+  WriteBitfieldExtractHeader(out, api_type, host_config);
   WritePixelShaderCommonHeader(out, api_type, host_config, bounding_box);
-  WriteUberShaderCommonHeader(out, api_type, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
 
   // Shader inputs/outputs in GLSL (HLSL is in main).
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (use_dual_source)
+#ifdef __APPLE__
+    // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
+    // if we want to use it.
+    if (api_type == APIType::Vulkan)
     {
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      if (use_dual_source)
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n"
-                  "FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
+                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
+                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
       }
       else
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n"
-                  "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+        // Metal doesn't support a single unified variable for both input and output,
+        // so when using framebuffer fetch, we declare the input separately below.
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 {};\n",
+                  use_framebuffer_fetch ? "real_ocol0" : "ocol0");
       }
-    }
-    else if (use_shader_blend)
-    {
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so pull out the "real" output value
-      // and use a temporary for calculations, then set the output value once at the end of the
-      // shader
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+
+      if (use_framebuffer_fetch)
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
-      }
-      else
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+        // Subpass inputs will be converted to framebuffer fetch by SPIRV-Cross.
+        out.Write("INPUT_ATTACHMENT_BINDING(0, 0, 0) uniform subpassInput in_ocol0;\n");
       }
     }
     else
+#endif
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      bool has_broken_decoration =
+          DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION);
+
+      out.Write("{} {} vec4 {};\n",
+                has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(0)" :
+                                        "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0)",
+                use_framebuffer_fetch ? "FRAGMENT_INOUT" : "out",
+                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
+
+      if (use_dual_source)
+      {
+        out.Write("{} out vec4 ocol1;\n", has_broken_decoration ?
+                                              "FRAGMENT_OUTPUT_LOCATION(1)" :
+                                              "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1)");
+      }
     }
 
     if (per_pixel_depth)
@@ -226,17 +243,17 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     // Doesn't look like DirectX supports this. Oh well the code path is here just in case it
     // supports this in the future.
-    out.Write("int4 sampleTexture(uint sampler_num, float3 uv) {{\n");
+    out.Write("int4 sampleTextureWrapper(uint texmap, int2 uv, int layer) {{\n");
     if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      out.Write("  return iround(texture(samp[sampler_num], uv) * 255.0);\n");
+      out.Write("  return sampleTexture(texmap, samp[texmap], uv, layer);\n");
     else if (api_type == APIType::D3D)
-      out.Write("  return iround(Tex[sampler_num].Sample(samp[sampler_num], uv) * 255.0);\n");
+      out.Write("  return sampleTexture(texmap, tex[texmap], samp[texmap], uv, layer);\n");
     out.Write("}}\n\n");
   }
   else
   {
-    out.Write("int4 sampleTexture(uint sampler_num, float3 uv) {{\n"
-              "  // This is messy, but DirectX, OpenGL 3.3 and OpenGL ES 3.0 doesn't support "
+    out.Write("int4 sampleTextureWrapper(uint sampler_num, int2 uv, int layer) {{\n"
+              "  // This is messy, but DirectX, OpenGL 3.3, and OpenGL ES 3.0 don't support "
               "dynamic indexing of the sampler array\n"
               "  // With any luck the shader compiler will optimise this if the hardware supports "
               "dynamic indexing.\n"
@@ -244,9 +261,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     for (int i = 0; i < 8; i++)
     {
       if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-        out.Write("  case {}u: return iround(texture(samp[{}], uv) * 255.0);\n", i, i);
+      {
+        out.Write("  case {0}u: return sampleTexture({0}u, samp[{0}u], uv, layer);\n", i);
+      }
       else if (api_type == APIType::D3D)
-        out.Write("  case {}u: return iround(Tex[{}].Sample(samp[{}], uv) * 255.0);\n", i, i, i);
+      {
+        out.Write("  case {0}u: return sampleTexture({0}u, tex[{0}u], samp[{0}u], uv, layer);\n",
+                  i);
+      }
     }
     out.Write("  }}\n"
               "}}\n\n");
@@ -284,8 +306,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   // ======================
   //    Indirect Lookup
   // ======================
-  const auto LookupIndirectTexture = [&out, stereo](std::string_view out_var_name,
-                                                    std::string_view in_index_name) {
+  const auto LookupIndirectTexture = [&out](std::string_view out_var_name,
+                                            std::string_view in_index_name) {
     // in_index_name is the indirect stage, not the tev stage
     // bpmem_iref is packed differently from RAS1_IREF
     // This function assumes bpmem_iref is nonzero (i.e. matrix is not off, and the
@@ -301,11 +323,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  else\n"
               "    fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[{} >> 1].zw;\n"
               "\n"
-              "  {} = sampleTexture(texmap, float3(float2(fixedPoint_uv) * " I_TEXDIMS
-              "[texmap].xy, {})).abg;\n"
-              "}}",
-              in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
-              stereo ? "float(layer)" : "0.0");
+              "  {} = sampleTextureWrapper(texmap, fixedPoint_uv, layer).abg;\n"
+              "}}\n",
+              in_index_name, in_index_name, in_index_name, in_index_name, out_var_name);
   };
 
   // ======================
@@ -314,8 +334,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const auto WriteTevLerp = [&out](std::string_view components) {
     out.Write(
         "// TEV's Linear Interpolate, plus bias, add/subtract and scale\n"
-        "int{0} tevLerp{0}(int{0} A, int{0} B, int{0} C, int{0} D, uint bias, bool op, bool alpha, "
-        "uint shift) {{\n"
+        "int{0} tevLerp{0}(int{0} A, int{0} B, int{0} C, int{0} D, uint bias, bool op, "
+        "uint scale) {{\n"
         " // Scale C from 0..255 to 0..256\n"
         "  C += C >> 7;\n"
         "\n"
@@ -324,12 +344,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "  else if (bias == 2u) D -= 128;\n"
         "\n"
         "  int{0} lerp = (A << 8) + (B - A)*C;\n"
-        "  if (shift != 3u) {{\n"
-        "    lerp = lerp << shift;\n"
-        "    D = D << shift;\n"
+        "  if (scale != 3u) {{\n"
+        "    lerp = lerp << scale;\n"
+        "    D = D << scale;\n"
         "  }}\n"
         "\n"
-        "  if ((shift == 3u) == alpha)\n"
+        "  // TODO: Is this rounding bias still added when the scale is divide by 2?  Currently we "
+        "do not apply it.\n"
+        "  if (scale != 3u)\n"
         "    lerp = lerp + (op ? 127 : 128);\n"
         "\n"
         "  int{0} result = lerp >> 8;\n"
@@ -340,9 +362,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
         "  else // Add\n"
         "    result = D + result;\n"
         "\n"
-        "  // Most of the Shift was moved inside the lerp for improved precision\n"
+        "  // Most of the Scale was moved inside the lerp for improved precision\n"
         "  // But we still do the divide by 2 here\n"
-        "  if (shift == 3u)\n"
+        "  if (scale == 3u)\n"
         "    result = result >> 1;\n"
         "  return result;\n"
         "}}\n\n",
@@ -401,263 +423,95 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "int4 getKonstColor(State s, StageState ss);\n"
             "\n");
 
-  // The switch statements in these functions appear to get transformed into an if..else chain
-  // on NVIDIA's OpenGL/Vulkan drivers, resulting in lower performance than the D3D counterparts.
-  // Transforming the switch into a binary tree of ifs can increase performance by up to 20%.
-  if (api_type == APIType::D3D)
-  {
-    out.Write("// Helper function for Alpha Test\n"
-              "bool alphaCompare(int a, int b, uint compare) {{\n"
-              "  switch (compare) {{\n"
-              "  case 0u: // NEVER\n"
-              "    return false;\n"
-              "  case 1u: // LESS\n"
-              "    return a < b;\n"
-              "  case 2u: // EQUAL\n"
-              "    return a == b;\n"
-              "  case 3u: // LEQUAL\n"
-              "    return a <= b;\n"
-              "  case 4u: // GREATER\n"
-              "    return a > b;\n"
-              "  case 5u: // NEQUAL;\n"
-              "    return a != b;\n"
-              "  case 6u: // GEQUAL\n"
-              "    return a >= b;\n"
-              "  case 7u: // ALWAYS\n"
-              "    return true;\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-              "uint index) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev.rgb\n"
-              "    return s.Reg[0].rgb;\n"
-              "  case 1u: // prev.aaa\n"
-              "    return s.Reg[0].aaa;\n"
-              "  case 2u: // c0.rgb\n"
-              "    return s.Reg[1].rgb;\n"
-              "  case 3u: // c0.aaa\n"
-              "    return s.Reg[1].aaa;\n"
-              "  case 4u: // c1.rgb\n"
-              "    return s.Reg[2].rgb;\n"
-              "  case 5u: // c1.aaa\n"
-              "    return s.Reg[2].aaa;\n"
-              "  case 6u: // c2.rgb\n"
-              "    return s.Reg[3].rgb;\n"
-              "  case 7u: // c2.aaa\n"
-              "    return s.Reg[3].aaa;\n"
-              "  case 8u:\n"
-              "    return s.TexColor.rgb;\n"
-              "  case 9u:\n"
-              "    return s.TexColor.aaa;\n"
-              "  case 10u:\n"
-              "    return getRasColor(s, ss, colors_0, colors_1).rgb;\n"
-              "  case 11u:\n"
-              "    return getRasColor(s, ss, colors_0, colors_1).aaa;\n"
-              "  case 12u: // One\n"
-              "    return int3(255, 255, 255);\n"
-              "  case 13u: // Half\n"
-              "    return int3(128, 128, 128);\n"
-              "  case 14u:\n"
-              "    return getKonstColor(s, ss).rgb;\n"
-              "  case 15u: // Zero\n"
-              "    return int3(0, 0, 0);\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-              "uint index) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev.a\n"
-              "    return s.Reg[0].a;\n"
-              "  case 1u: // c0.a\n"
-              "    return s.Reg[1].a;\n"
-              "  case 2u: // c1.a\n"
-              "    return s.Reg[2].a;\n"
-              "  case 3u: // c2.a\n"
-              "    return s.Reg[3].a;\n"
-              "  case 4u:\n"
-              "    return s.TexColor.a;\n"
-              "  case 5u:\n"
-              "    return getRasColor(s, ss, colors_0, colors_1).a;\n"
-              "  case 6u:\n"
-              "    return getKonstColor(s, ss).a;\n"
-              "  case 7u: // Zero\n"
-              "    return 0;\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "int4 getTevReg(in State s, uint index) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev\n"
-              "    return s.Reg[0];\n"
-              "  case 1u: // c0\n"
-              "    return s.Reg[1];\n"
-              "  case 2u: // c1\n"
-              "    return s.Reg[2];\n"
-              "  case 3u: // c2\n"
-              "    return s.Reg[3];\n"
-              "  default: // prev\n"
-              "    return s.Reg[0];\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "void setRegColor(inout State s, uint index, int3 color) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev\n"
-              "    s.Reg[0].rgb = color;\n"
-              "    break;\n"
-              "  case 1u: // c0\n"
-              "    s.Reg[1].rgb = color;\n"
-              "    break;\n"
-              "  case 2u: // c1\n"
-              "    s.Reg[2].rgb = color;\n"
-              "    break;\n"
-              "  case 3u: // c2\n"
-              "    s.Reg[3].rgb = color;\n"
-              "    break;\n"
-              "  }}\n"
-              "}}\n"
-              "\n"
-              "void setRegAlpha(inout State s, uint index, int alpha) {{\n"
-              "  switch (index) {{\n"
-              "  case 0u: // prev\n"
-              "    s.Reg[0].a = alpha;\n"
-              "    break;\n"
-              "  case 1u: // c0\n"
-              "    s.Reg[1].a = alpha;\n"
-              "    break;\n"
-              "  case 2u: // c1\n"
-              "    s.Reg[2].a = alpha;\n"
-              "    break;\n"
-              "  case 3u: // c2\n"
-              "    s.Reg[3].a = alpha;\n"
-              "    break;\n"
-              "  }}\n"
-              "}}\n"
-              "\n");
-  }
-  else
-  {
-    out.Write(
-        "// Helper function for Alpha Test\n"
-        "bool alphaCompare(int a, int b, uint compare) {{\n"
-        "  if (compare < 4u) {{\n"
-        "    if (compare < 2u) {{\n"
-        "      return (compare == 0u) ? (false) : (a < b);\n"
-        "    }} else {{\n"
-        "      return (compare == 2u) ? (a == b) : (a <= b);\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (compare < 6u) {{\n"
-        "      return (compare == 4u) ? (a > b) : (a != b);\n"
-        "    }} else {{\n"
-        "      return (compare == 6u) ? (a >= b) : (true);\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-        "uint index) {{\n"
-        "  if (index < 8u) {{\n"
-        "    if (index < 4u) {{\n"
-        "      if (index < 2u) {{\n"
-        "        return (index == 0u) ? s.Reg[0].rgb : s.Reg[0].aaa;\n"
-        "      }} else {{\n"
-        "        return (index == 2u) ? s.Reg[1].rgb : s.Reg[1].aaa;\n"
-        "      }}\n"
-        "    }} else {{\n"
-        "      if (index < 6u) {{\n"
-        "        return (index == 4u) ? s.Reg[2].rgb : s.Reg[2].aaa;\n"
-        "      }} else {{\n"
-        "        return (index == 6u) ? s.Reg[3].rgb : s.Reg[3].aaa;\n"
-        "      }}\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index < 12u) {{\n"
-        "      if (index < 10u) {{\n"
-        "        return (index == 8u) ? s.TexColor.rgb : s.TexColor.aaa;\n"
-        "      }} else {{\n"
-        "        int4 ras = getRasColor(s, ss, colors_0, colors_1);\n"
-        "        return (index == 10u) ? ras.rgb : ras.aaa;\n"
-        "      }}\n"
-        "    }} else {{\n"
-        "      if (index < 14u) {{\n"
-        "        return (index == 12u) ? int3(255, 255, 255) : int3(128, 128, 128);\n"
-        "      }} else {{\n"
-        "        return (index == 14u) ? getKonstColor(s, ss).rgb : int3(0, 0, 0);\n"
-        "      }}\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
-        "uint index) {{\n"
-        "  if (index < 4u) {{\n"
-        "    if (index < 2u) {{\n"
-        "      return (index == 0u) ? s.Reg[0].a : s.Reg[1].a;\n"
-        "    }} else {{\n"
-        "      return (index == 2u) ? s.Reg[2].a : s.Reg[3].a;\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index < 6u) {{\n"
-        "      return (index == 4u) ? s.TexColor.a : getRasColor(s, ss, colors_0, colors_1).a;\n"
-        "    }} else {{\n"
-        "      return (index == 6u) ? getKonstColor(s, ss).a : 0;\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "int4 getTevReg(in State s, uint index) {{\n"
-        "  if (index < 2u) {{\n"
-        "    if (index == 0u) {{\n"
-        "      return s.Reg[0];\n"
-        "    }} else {{\n"
-        "      return s.Reg[1];\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index == 2u) {{\n"
-        "      return s.Reg[2];\n"
-        "    }} else {{\n"
-        "      return s.Reg[3];\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "void setRegColor(inout State s, uint index, int3 color) {{\n"
-        "  if (index < 2u) {{\n"
-        "    if (index == 0u) {{\n"
-        "      s.Reg[0].rgb = color;\n"
-        "    }} else {{\n"
-        "      s.Reg[1].rgb = color;\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index == 2u) {{\n"
-        "      s.Reg[2].rgb = color;\n"
-        "    }} else {{\n"
-        "      s.Reg[3].rgb = color;\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n"
-        "void setRegAlpha(inout State s, uint index, int alpha) {{\n"
-        "  if (index < 2u) {{\n"
-        "    if (index == 0u) {{\n"
-        "      s.Reg[0].a = alpha;\n"
-        "    }} else {{\n"
-        "      s.Reg[1].a = alpha;\n"
-        "    }}\n"
-        "  }} else {{\n"
-        "    if (index == 2u) {{\n"
-        "      s.Reg[2].a = alpha;\n"
-        "    }} else {{\n"
-        "      s.Reg[3].a = alpha;\n"
-        "    }}\n"
-        "  }}\n"
-        "}}\n"
-        "\n");
-  }
+  static constexpr Common::EnumMap<std::string_view, CompareMode::Always> tev_alpha_funcs_table{
+      "return false;",   // CompareMode::Never
+      "return a <  b;",  // CompareMode::Less
+      "return a == b;",  // CompareMode::Equal
+      "return a <= b;",  // CompareMode::LEqual
+      "return a >  b;",  // CompareMode::Greater
+      "return a != b;",  // CompareMode::NEqual
+      "return a >= b;",  // CompareMode::GEqual
+      "return true;"     // CompareMode::Always
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevColorArg::Zero> tev_c_input_table{
+      "return s.Reg[0].rgb;",                                // CPREV,
+      "return s.Reg[0].aaa;",                                // APREV,
+      "return s.Reg[1].rgb;",                                // C0,
+      "return s.Reg[1].aaa;",                                // A0,
+      "return s.Reg[2].rgb;",                                // C1,
+      "return s.Reg[2].aaa;",                                // A1,
+      "return s.Reg[3].rgb;",                                // C2,
+      "return s.Reg[3].aaa;",                                // A2,
+      "return s.TexColor.rgb;",                              // TEXC,
+      "return s.TexColor.aaa;",                              // TEXA,
+      "return getRasColor(s, ss, colors_0, colors_1).rgb;",  // RASC,
+      "return getRasColor(s, ss, colors_0, colors_1).aaa;",  // RASA,
+      "return int3(255, 255, 255);",                         // ONE
+      "return int3(128, 128, 128);",                         // HALF
+      "return getKonstColor(s, ss).rgb;",                    // KONST
+      "return int3(0, 0, 0);",                               // ZERO
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevAlphaArg::Zero> tev_a_input_table{
+      "return s.Reg[0].a;",                                // APREV,
+      "return s.Reg[1].a;",                                // A0,
+      "return s.Reg[2].a;",                                // A1,
+      "return s.Reg[3].a;",                                // A2,
+      "return s.TexColor.a;",                              // TEXA,
+      "return getRasColor(s, ss, colors_0, colors_1).a;",  // RASA,
+      "return getKonstColor(s, ss).a;",                    // KONST,  (hw1 had quarter)
+      "return 0;",                                         // ZERO
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevOutput::Color2> tev_regs_lookup_table{
+      "return s.Reg[0];",
+      "return s.Reg[1];",
+      "return s.Reg[2];",
+      "return s.Reg[3];",
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevOutput::Color2> tev_c_set_table{
+      "s.Reg[0].rgb = color;",
+      "s.Reg[1].rgb = color;",
+      "s.Reg[2].rgb = color;",
+      "s.Reg[3].rgb = color;",
+  };
+
+  static constexpr Common::EnumMap<std::string_view, TevOutput::Color2> tev_a_set_table{
+      "s.Reg[0].a = alpha;",
+      "s.Reg[1].a = alpha;",
+      "s.Reg[2].a = alpha;",
+      "s.Reg[3].a = alpha;",
+  };
+
+  out.Write("// Helper function for Alpha Test\n"
+            "bool alphaCompare(int a, int b, uint compare) {{\n");
+  WriteSwitch(out, api_type, "compare", tev_alpha_funcs_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+            "uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_c_input_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+            "uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_a_input_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "int4 getTevReg(in State s, uint index) {{\n");
+  WriteSwitch(out, api_type, "index", tev_regs_lookup_table, 2, false);
+  out.Write("}}\n"
+            "\n"
+            "void setRegColor(inout State s, uint index, int3 color) {{\n");
+  WriteSwitch(out, api_type, "index", tev_c_set_table, 2, true);
+  out.Write("}}\n"
+            "\n"
+            "void setRegAlpha(inout State s, uint index, int alpha) {{\n");
+  WriteSwitch(out, api_type, "index", tev_a_set_table, 2, true);
+  out.Write("}}\n"
+            "\n");
 
   // Since the fixed-point texture coodinate variables aren't global, we need to pass
   // them to the select function.  This applies to all backends.
@@ -676,12 +530,29 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
     out.Write("void main()\n{{\n");
     out.Write("  float4 rawpos = gl_FragCoord;\n");
+
+    if (use_framebuffer_fetch)
+    {
+      // Store off a copy of the initial framebuffer value.
+      //
+      // If FB_FETCH_VALUE isn't defined (i.e. no special keyword for fetching from the
+      // framebuffer), we read from real_ocol0.
+      out.Write("#ifdef FB_FETCH_VALUE\n"
+                "  float4 initial_ocol0 = FB_FETCH_VALUE;\n"
+                "#else\n"
+                "  float4 initial_ocol0 = real_ocol0;\n"
+                "#endif\n");
+
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so we pull out the "real" output
+      // value above and use a temporary for calculations, then set the output value once at the
+      // end of the shader.
+      out.Write("  float4 ocol0;\n");
+    }
+
     if (use_shader_blend)
     {
-      // Store off a copy of the initial fb value for blending
-      out.Write("  float4 initial_ocol0 = FB_FETCH_VALUE;\n"
-                "  float4 ocol0;\n"
-                "  float4 ocol1;\n");
+      out.Write("  float4 ocol1;\n");
     }
   }
   else  // D3D
@@ -729,6 +600,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("\n        ) {{\n");
   }
+  if (!stereo)
+    out.Write("  int layer = 0;\n");
 
   out.Write("  int3 tevcoord = int3(0, 0, 0);\n"
             "  State s;\n"
@@ -786,7 +659,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     {
       out.Write("    int2 fixpoint_uv{} = int2(", i);
       out.Write("(tex{}.z == 0.0 ? tex{}.xy : tex{}.xy / tex{}.z)", i, i, i, i);
-      out.Write(" * " I_TEXDIMS "[{}].zw);\n", i);
+      out.Write(" * float2(" I_TEXDIMS "[{}].zw * 128));\n", i);
       // TODO: S24 overflows here?
     }
 
@@ -820,7 +693,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     // For the undefined case, we just skip applying the indirect operation, which is close enough.
     // Viewtiful Joe hits the undefined case (bug 12525).
     // Wrapping and add to previous still apply in this case (and when the stage is disabled).
-    out.Write("      if (bpmem_iref(bt) != 0u) {{");
+    out.Write("      if (bpmem_iref(bt) != 0u) {{\n");
     out.Write("        int3 indcoord;\n");
     LookupIndirectTexture("indcoord", "bt");
     out.Write("        if (bs != 0u)\n"
@@ -910,10 +783,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "      uint sampler_num = {};\n",
               BitfieldExtract<&TwoTevStageOrders::texmap0>("ss.order"));
     out.Write("\n"
-              "      float2 uv = (float2(tevcoord.xy)) * " I_TEXDIMS "[sampler_num].xy;\n");
-    out.Write("      int4 color = sampleTexture(sampler_num, float3(uv, {}));\n",
-              stereo ? "float(layer)" : "0.0");
-    out.Write("      uint swap = {};\n",
+              "      int4 color = sampleTextureWrapper(sampler_num, tevcoord.xy, layer);\n"
+              "      uint swap = {};\n",
               BitfieldExtract<&TevStageCombiner::AlphaCombiner::tswap>("ss.ac"));
     out.Write("      s.TexColor = Swizzle(swap, color);\n");
     out.Write("    }} else {{\n"
@@ -941,13 +812,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             BitfieldExtract<&TevStageCombiner::ColorCombiner::op>("ss.cc"));
   out.Write("      bool color_clamp = bool({});\n",
             BitfieldExtract<&TevStageCombiner::ColorCombiner::clamp>("ss.cc"));
-  out.Write("      uint color_shift = {};\n",
+  out.Write("      uint color_scale = {};\n",
             BitfieldExtract<&TevStageCombiner::ColorCombiner::scale>("ss.cc"));
   out.Write("      uint color_dest = {};\n",
             BitfieldExtract<&TevStageCombiner::ColorCombiner::dest>("ss.cc"));
 
   out.Write(
-      "      uint color_compare_op = color_shift << 1 | uint(color_op);\n"
+      "      uint color_compare_op = color_scale << 1 | uint(color_op);\n"
       "\n"
       "      int3 color_A = selectColorInput(s, ss, {0}colors_0, {0}colors_1, color_a) & "
       "int3(255, 255, 255);\n"
@@ -962,8 +833,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   out.Write(
       "      int3 color;\n"
       "      if (color_bias != 3u) {{ // Normal mode\n"
-      "        color = tevLerp3(color_A, color_B, color_C, color_D, color_bias, color_op, false, "
-      "color_shift);\n"
+      "        color = tevLerp3(color_A, color_B, color_C, color_D, color_bias, color_op, "
+      "color_scale);\n"
       "      }} else {{ // Compare mode\n"
       "        // op 6 and 7 do a select per color channel\n"
       "        if (color_compare_op == 6u) {{\n"
@@ -1011,13 +882,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::op>("ss.ac"));
   out.Write("      bool alpha_clamp = bool({});\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::clamp>("ss.ac"));
-  out.Write("      uint alpha_shift = {};\n",
+  out.Write("      uint alpha_scale = {};\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::scale>("ss.ac"));
   out.Write("      uint alpha_dest = {};\n",
             BitfieldExtract<&TevStageCombiner::AlphaCombiner::dest>("ss.ac"));
 
   out.Write(
-      "      uint alpha_compare_op = alpha_shift << 1 | uint(alpha_op);\n"
+      "      uint alpha_compare_op = alpha_scale << 1 | uint(alpha_op);\n"
       "\n"
       "      int alpha_A;\n"
       "      int alpha_B;\n"
@@ -1035,7 +906,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "      int alpha;\n"
             "      if (alpha_bias != 3u) {{ // Normal mode\n"
             "        alpha = tevLerp(alpha_A, alpha_B, alpha_C, alpha_D, alpha_bias, alpha_op, "
-            "true, alpha_shift);\n"
+            "alpha_scale);\n"
             "      }} else {{ // Compare mode\n"
             "        if (alpha_compare_op == 6u) {{\n"
             "          // TevCompareMode::A8, TevComparison::GT\n"
@@ -1138,8 +1009,21 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
   }
 
-  out.Write("  // Alpha Test\n"
-            "  if (bpmem_alphaTest != 0u) {{\n"
+  out.Write("  // Alpha Test\n");
+
+  if (early_depth && DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+  {
+    // Instead of using discard, fetch the framebuffer's color value and use it as the output
+    // for this fragment.
+    out.Write("  #define discard_fragment {{ {} = float4(initial_ocol0.xyz, 1.0); return; }}\n",
+              use_shader_blend ? "real_ocol0" : "ocol0");
+  }
+  else
+  {
+    out.Write("  #define discard_fragment discard\n");
+  }
+
+  out.Write("  if (bpmem_alphaTest != 0u) {{\n"
             "    bool comp0 = alphaCompare(TevResult.a, " I_ALPHA ".r, {});\n",
             BitfieldExtract<&AlphaTest::comp0>("bpmem_alphaTest"));
   out.Write("    bool comp1 = alphaCompare(TevResult.a, " I_ALPHA ".g, {});\n",
@@ -1150,17 +1034,20 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    switch ({}) {{\n",
             BitfieldExtract<&AlphaTest::logic>("bpmem_alphaTest"));
   out.Write("    case 0u: // AND\n"
-            "      if (comp0 && comp1) break; else discard; break;\n"
+            "      if (comp0 && comp1) break; else discard_fragment; break;\n"
             "    case 1u: // OR\n"
-            "      if (comp0 || comp1) break; else discard; break;\n"
+            "      if (comp0 || comp1) break; else discard_fragment; break;\n"
             "    case 2u: // XOR\n"
-            "      if (comp0 != comp1) break; else discard; break;\n"
+            "      if (comp0 != comp1) break; else discard_fragment; break;\n"
             "    case 3u: // XNOR\n"
-            "      if (comp0 == comp1) break; else discard; break;\n"
+            "      if (comp0 == comp1) break; else discard_fragment; break;\n"
             "    }}\n"
             "  }}\n"
             "\n");
 
+  out.Write("  // Hardware testing indicates that an alpha of 1 can pass an alpha test,\n"
+            "  // but doesn't do anything in blending\n"
+            "  if (TevResult.a == 1) TevResult.a = 0;\n");
   // =========
   // Dithering
   // =========
@@ -1193,7 +1080,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    }} else {{\n"
             "      // orthographic\n"
             "      // ze = a*Zs    (here, no B_SHF)\n"
-            "      ze = " I_FOGF ".z * float(zCoord) / 16777216.0;\n"
+            "      ze = " I_FOGF ".x * float(zCoord) / 16777216.0;\n"
             "    }}\n"
             "\n"
             "    if (bool({})) {{\n",
@@ -1240,6 +1127,40 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  }}\n"
             "\n");
 
+  if (use_shader_logic_op)
+  {
+    static constexpr std::array<const char*, 16> logic_op_mode{
+        "int4(0, 0, 0, 0)",          // CLEAR
+        "TevResult & fb_value",      // AND
+        "TevResult & ~fb_value",     // AND_REVERSE
+        "TevResult",                 // COPY
+        "~TevResult & fb_value",     // AND_INVERTED
+        "fb_value",                  // NOOP
+        "TevResult ^ fb_value",      // XOR
+        "TevResult | fb_value",      // OR
+        "~(TevResult | fb_value)",   // NOR
+        "~(TevResult ^ fb_value)",   // EQUIV
+        "~fb_value",                 // INVERT
+        "TevResult | ~fb_value",     // OR_REVERSE
+        "~TevResult",                // COPY_INVERTED
+        "~TevResult | fb_value",     // OR_INVERTED
+        "~(TevResult & fb_value)",   // NAND
+        "int4(255, 255, 255, 255)",  // SET
+    };
+
+    out.Write("  // Logic Ops\n"
+              "  if (logic_op_enable) {{\n"
+              "    int4 fb_value = iround(initial_ocol0 * 255.0);"
+              "    switch (logic_op_mode) {{\n");
+    for (size_t i = 0; i < logic_op_mode.size(); i++)
+    {
+      out.Write("      case {}u: TevResult = {}; break;\n", i, logic_op_mode[i]);
+    }
+
+    out.Write("    }}\n"
+              "  }}\n");
+  }
+
   // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
   if (api_type == APIType::D3D && uid_data->uint_output)
   {
@@ -1281,78 +1202,65 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   if (use_shader_blend)
   {
-    static constexpr std::array<std::string_view, 8> blendSrcFactor{{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "initial_ocol0.rgb;",                  // DSTCLR
-        "float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
-        "ocol1.aaa;",                          // SRCALPHA
-        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    }};
-    static constexpr std::array<std::string_view, 8> blendSrcFactorAlpha{{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "initial_ocol0.a;",        // DSTCLR
-        "1.0 - initial_ocol0.a;",  // INVDSTCLR
-        "ocol1.a;",                // SRCALPHA
-        "1.0 - ocol1.a;",          // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    }};
-    static constexpr std::array<std::string_view, 8> blendDstFactor{{
-        "float3(0,0,0);",                      // ZERO
-        "float3(1,1,1);",                      // ONE
-        "ocol0.rgb;",                          // SRCCLR
-        "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
-        "ocol1.aaa;",                          // SRCALHA
-        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
-        "initial_ocol0.aaa;",                  // DSTALPHA
-        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    }};
-    static constexpr std::array<std::string_view, 8> blendDstFactorAlpha{{
-        "0.0;",                    // ZERO
-        "1.0;",                    // ONE
-        "ocol0.a;",                // SRCCLR
-        "1.0 - ocol0.a;",          // INVSRCCLR
-        "ocol1.a;",                // SRCALPHA
-        "1.0 - ocol1.a;",          // INVSRCALPHA
-        "initial_ocol0.a;",        // DSTALPHA
-        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    }};
+    using Common::EnumMap;
+
+    static constexpr EnumMap<std::string_view, SrcBlendFactor::InvDstAlpha> blendSrcFactor{
+        "blend_src.rgb = float3(0,0,0);",                      // ZERO
+        "blend_src.rgb = float3(1,1,1);",                      // ONE
+        "blend_src.rgb = initial_ocol0.rgb;",                  // DSTCLR
+        "blend_src.rgb = float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
+        "blend_src.rgb = src_color.aaa;",                      // SRCALPHA
+        "blend_src.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
+        "blend_src.rgb = initial_ocol0.aaa;",                  // DSTALPHA
+        "blend_src.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<std::string_view, SrcBlendFactor::InvDstAlpha> blendSrcFactorAlpha{
+        "blend_src.a = 0.0;",                    // ZERO
+        "blend_src.a = 1.0;",                    // ONE
+        "blend_src.a = initial_ocol0.a;",        // DSTCLR
+        "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTCLR
+        "blend_src.a = src_color.a;",            // SRCALPHA
+        "blend_src.a = 1.0 - src_color.a;",      // INVSRCALPHA
+        "blend_src.a = initial_ocol0.a;",        // DSTALPHA
+        "blend_src.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<std::string_view, DstBlendFactor::InvDstAlpha> blendDstFactor{
+        "blend_dst.rgb = float3(0,0,0);",                      // ZERO
+        "blend_dst.rgb = float3(1,1,1);",                      // ONE
+        "blend_dst.rgb = ocol0.rgb;",                          // SRCCLR
+        "blend_dst.rgb = float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
+        "blend_dst.rgb = src_color.aaa;",                      // SRCALHA
+        "blend_dst.rgb = float3(1,1,1) - src_color.aaa;",      // INVSRCALPHA
+        "blend_dst.rgb = initial_ocol0.aaa;",                  // DSTALPHA
+        "blend_dst.rgb = float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static constexpr EnumMap<std::string_view, DstBlendFactor::InvDstAlpha> blendDstFactorAlpha{
+        "blend_dst.a = 0.0;",                    // ZERO
+        "blend_dst.a = 1.0;",                    // ONE
+        "blend_dst.a = ocol0.a;",                // SRCCLR
+        "blend_dst.a = 1.0 - ocol0.a;",          // INVSRCCLR
+        "blend_dst.a = src_color.a;",            // SRCALPHA
+        "blend_dst.a = 1.0 - src_color.a;",      // INVSRCALPHA
+        "blend_dst.a = initial_ocol0.a;",        // DSTALPHA
+        "blend_dst.a = 1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
 
     out.Write("  if (blend_enable) {{\n"
-              "    float4 blend_src;\n"
-              "    switch (blend_src_factor) {{\n");
-    for (size_t i = 0; i < blendSrcFactor.size(); i++)
-    {
-      out.Write("      case {}u: blend_src.rgb = {}; break;\n", i, blendSrcFactor[i]);
-    }
+              "    float4 src_color;\n"
+              "    if (bpmem_dstalpha != 0u) {{\n"
+              "      src_color = ocol1;\n"
+              "    }} else {{\n"
+              "      src_color = ocol0;\n"
+              "    }}"
+              "    float4 blend_src;\n");
+    WriteSwitch(out, api_type, "blend_src_factor", blendSrcFactor, 4, true);
+    WriteSwitch(out, api_type, "blend_src_factor_alpha", blendSrcFactorAlpha, 4, true);
 
-    out.Write("    }}\n"
-              "    switch (blend_src_factor_alpha) {{\n");
-    for (size_t i = 0; i < blendSrcFactorAlpha.size(); i++)
-    {
-      out.Write("      case {}u: blend_src.a = {}; break;\n", i, blendSrcFactorAlpha[i]);
-    }
-
-    out.Write("    }}\n"
-              "    float4 blend_dst;\n"
-              "    switch (blend_dst_factor) {{\n");
-    for (size_t i = 0; i < blendDstFactor.size(); i++)
-    {
-      out.Write("      case {}u: blend_dst.rgb = {}; break;\n", i, blendDstFactor[i]);
-    }
-    out.Write("    }}\n"
-              "    switch (blend_dst_factor_alpha) {{\n");
-    for (size_t i = 0; i < blendDstFactorAlpha.size(); i++)
-    {
-      out.Write("      case {}u: blend_dst.a = {}; break;\n", i, blendDstFactorAlpha[i]);
-    }
+    out.Write("    float4 blend_dst;\n");
+    WriteSwitch(out, api_type, "blend_dst_factor", blendDstFactor, 4, true);
+    WriteSwitch(out, api_type, "blend_dst_factor_alpha", blendDstFactorAlpha, 4, true);
 
     out.Write(
-        "    }}\n"
         "    float4 blend_result;\n"
         "    if (blend_subtract)\n"
         "      blend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * blend_src.rgb;\n"
@@ -1370,6 +1278,10 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     out.Write("  }} else {{\n"
               "    real_ocol0 = ocol0;\n"
               "  }}\n");
+  }
+  else if (use_framebuffer_fetch)
+  {
+    out.Write("  real_ocol0 = ocol0;\n");
   }
 
   out.Write("}}\n"

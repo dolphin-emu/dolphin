@@ -1,8 +1,11 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "VideoCommon/CommandProcessor.h"
+
 #include <atomic>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -14,7 +17,8 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "VideoCommon/CommandProcessor.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/System.h"
 #include "VideoCommon/Fifo.h"
 
 namespace CommandProcessor
@@ -38,14 +42,42 @@ static u16 m_tokenReg;
 static Common::Flag s_interrupt_set;
 static Common::Flag s_interrupt_waiting;
 
+static bool s_is_fifo_error_seen = false;
+
 static bool IsOnThread()
 {
-  return SConfig::GetInstance().bCPUThread;
+  return Core::System::GetInstance().IsDualCoreMode();
 }
 
 static void UpdateInterrupts_Wrapper(u64 userdata, s64 cyclesLate)
 {
   UpdateInterrupts(userdata);
+}
+
+void SCPFifoStruct::Init()
+{
+  CPBase = 0;
+  CPEnd = 0;
+  CPHiWatermark = 0;
+  CPLoWatermark = 0;
+  CPReadWriteDistance = 0;
+  CPWritePointer = 0;
+  CPReadPointer = 0;
+  CPBreakpoint = 0;
+  SafeCPReadPointer = 0;
+
+  bFF_GPLinkEnable = 0;
+  bFF_GPReadEnable = 0;
+  bFF_BPEnable = 0;
+  bFF_BPInt = 0;
+
+  bFF_Breakpoint.store(0, std::memory_order_relaxed);
+  bFF_HiWatermark.store(0, std::memory_order_relaxed);
+  bFF_HiWatermarkInt.store(0, std::memory_order_relaxed);
+  bFF_LoWatermark.store(0, std::memory_order_relaxed);
+  bFF_LoWatermarkInt.store(0, std::memory_order_relaxed);
+
+  s_is_fifo_error_seen = false;
 }
 
 void SCPFifoStruct::DoState(PointerWrap& p)
@@ -89,11 +121,6 @@ void DoState(PointerWrap& p)
   p.Do(s_interrupt_waiting);
 }
 
-static inline void WriteLow(std::atomic<u32>& reg, u16 lowbits)
-{
-  reg.store((reg.load(std::memory_order_relaxed) & 0xFFFF0000) | lowbits,
-            std::memory_order_relaxed);
-}
 static inline void WriteHigh(std::atomic<u32>& reg, u16 highbits)
 {
   reg.store((reg.load(std::memory_order_relaxed) & 0x0000FFFF) | (static_cast<u32>(highbits) << 16),
@@ -117,12 +144,7 @@ void Init()
 
   m_tokenReg = 0;
 
-  memset(&fifo, 0, sizeof(fifo));
-  fifo.bFF_Breakpoint.store(0, std::memory_order_relaxed);
-  fifo.bFF_HiWatermark.store(0, std::memory_order_relaxed);
-  fifo.bFF_HiWatermarkInt.store(0, std::memory_order_relaxed);
-  fifo.bFF_LoWatermark.store(0, std::memory_order_relaxed);
-  fifo.bFF_LoWatermarkInt.store(0, std::memory_order_relaxed);
+  fifo.Init();
 
   s_interrupt_set.Clear();
   s_interrupt_waiting.Clear();
@@ -178,6 +200,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {FIFO_WRITE_POINTER_HI, MMIO::Utils::HighPart(&fifo.CPWritePointer), false,
        WMASK_HI_RESTRICT},
       // FIFO_READ_POINTER has different code for single/dual core.
+      {FIFO_BP_LO, MMIO::Utils::LowPart(&fifo.CPBreakpoint), false, WMASK_LO_ALIGN_32BIT},
+      {FIFO_BP_HI, MMIO::Utils::HighPart(&fifo.CPBreakpoint), false, WMASK_HI_RESTRICT},
   };
 
   for (auto& mapped_var : directly_mapped_vars)
@@ -186,16 +210,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    mapped_var.readonly ? MMIO::InvalidWrite<u16>() :
                                          MMIO::DirectWrite<u16>(mapped_var.ptr, mapped_var.wmask));
   }
-
-  mmio->Register(base | FIFO_BP_LO, MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPBreakpoint)),
-                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   WriteLow(fifo.CPBreakpoint, val & WMASK_LO_ALIGN_32BIT);
-                 }));
-  mmio->Register(base | FIFO_BP_HI,
-                 MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.CPBreakpoint)),
-                 MMIO::ComplexWrite<u16>([WMASK_HI_RESTRICT](u32, u16 val) {
-                   WriteHigh(fifo.CPBreakpoint, val & WMASK_HI_RESTRICT);
-                 }));
 
   // Timing and metrics MMIOs are stubbed with fixed values.
   struct
@@ -356,7 +370,7 @@ void GatherPipeBursted()
   }
   else
   {
-    fifo.CPWritePointer.fetch_add(GATHER_PIPE_SIZE, std::memory_order_relaxed);
+    fifo.CPWritePointer.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_relaxed);
   }
 
   if (m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
@@ -370,7 +384,7 @@ void GatherPipeBursted()
   if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed) != 0)
     CoreTiming::ForceExceptionCheck(0);
 
-  fifo.CPReadWriteDistance.fetch_add(GATHER_PIPE_SIZE, std::memory_order_seq_cst);
+  fifo.CPReadWriteDistance.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
 
   Fifo::RunGpu();
 
@@ -587,49 +601,69 @@ void SetCpClearRegister()
 {
 }
 
-void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess)
+void HandleUnknownOpcode(u8 cmd_byte, const u8* buffer, bool preprocess)
 {
-  // TODO(Omega): Maybe dump FIFO to file on this error
-  PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, {2}).\n"
-                 "This means one of the following:\n"
-                 "* The emulated GPU got desynced, disabling dual core can help\n"
-                 "* Command stream corrupted by some spurious memory bug\n"
-                 "* This really is an unknown opcode (unlikely)\n"
-                 "* Some other sort of bug\n\n"
-                 "Further errors will be sent to the Video Backend log and\n"
-                 "Dolphin will now likely crash or hang. Enjoy.",
-                 cmd_byte, buffer, preprocess ? "preprocess=true" : "preprocess=false");
+  // Datel software uses 0x01 during startup, and Mario Party 5's Wiggler capsule accidentally uses
+  // 0x01-0x03 due to sending 4 more vertices than intended (see https://dolp.in/i8104).
+  // Prince of Persia: Rival Swords sends 0x3f if the home menu is opened during the intro cutscene
+  // due to a game bug resulting in an incorrect vertex desc that results in the float value 1.0,
+  // encoded as 0x3f800000, being parsed as an opcode (see https://dolp.in/i9203).
+  //
+  // Hardware testing indicates that these opcodes do nothing, so to avoid annoying the user with
+  // spurious popups, we don't create a panic alert in those cases.  Other unknown opcodes
+  // (such as 0x18) seem to result in actual hangs on real hardware, so the alert still is important
+  // to keep around for unexpected cases.
+  const bool suppress_panic_alert = (cmd_byte <= 0x7) || (cmd_byte == 0x3f);
 
+  const auto log_level =
+      suppress_panic_alert ? Common::Log::LogLevel::LWARNING : Common::Log::LogLevel::LERROR;
+
+  // We always generate this log message, though we only generate the panic alerts once.
+  //
+  // PC and LR are generally inaccurate in dual-core and are still misleading in single-core
+  // due to the gather pipe queueing data.  Changing GATHER_PIPE_SIZE to 1 and
+  // GATHER_PIPE_EXTRA_SIZE to 16 * 32 in GPFifo.h, and using the cached interpreter CPU emulation
+  // engine, can result in more accurate information (though it is still a bit delayed).
+  // PC and LR are meaningless when using the fifoplayer, and will generally not be helpful if the
+  // unknown opcode is inside of a display list.  Also note that the changes in GPFifo.h are not
+  // accurate and may introduce timing issues.
+  GENERIC_LOG_FMT(
+      Common::Log::LogType::VIDEO, log_level,
+      "FIFO: Unknown Opcode {:#04x} @ {}, preprocessing = {}, CPBase: {:#010x}, CPEnd: "
+      "{:#010x}, CPHiWatermark: {:#010x}, CPLoWatermark: {:#010x}, CPReadWriteDistance: "
+      "{:#010x}, CPWritePointer: {:#010x}, CPReadPointer: {:#010x}, CPBreakpoint: "
+      "{:#010x}, bFF_GPReadEnable: {}, bFF_BPEnable: {}, bFF_BPInt: {}, bFF_Breakpoint: "
+      "{}, bFF_GPLinkEnable: {}, bFF_HiWatermarkInt: {}, bFF_LoWatermarkInt: {}, "
+      "approximate PC: {:08x}, approximate LR: {:08x}",
+      cmd_byte, fmt::ptr(buffer), preprocess ? "yes" : "no",
+      fifo.CPBase.load(std::memory_order_relaxed), fifo.CPEnd.load(std::memory_order_relaxed),
+      fifo.CPHiWatermark, fifo.CPLoWatermark,
+      fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
+      fifo.CPWritePointer.load(std::memory_order_relaxed),
+      fifo.CPReadPointer.load(std::memory_order_relaxed),
+      fifo.CPBreakpoint.load(std::memory_order_relaxed),
+      fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
+      fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false", PC, LR);
+
+  if (!s_is_fifo_error_seen && !suppress_panic_alert)
   {
-    PanicAlertFmt("Illegal command {:02x}\n"
-                  "CPBase: {:#010x}\n"
-                  "CPEnd: {:#010x}\n"
-                  "CPHiWatermark: {:#010x}\n"
-                  "CPLoWatermark: {:#010x}\n"
-                  "CPReadWriteDistance: {:#010x}\n"
-                  "CPWritePointer: {:#010x}\n"
-                  "CPReadPointer: {:#010x}\n"
-                  "CPBreakpoint: {:#010x}\n"
-                  "bFF_GPReadEnable: {}\n"
-                  "bFF_BPEnable: {}\n"
-                  "bFF_BPInt: {}\n"
-                  "bFF_Breakpoint: {}\n"
-                  "bFF_GPLinkEnable: {}\n"
-                  "bFF_HiWatermarkInt: {}\n"
-                  "bFF_LoWatermarkInt: {}\n",
-                  cmd_byte, fifo.CPBase.load(std::memory_order_relaxed),
-                  fifo.CPEnd.load(std::memory_order_relaxed), fifo.CPHiWatermark,
-                  fifo.CPLoWatermark, fifo.CPReadWriteDistance.load(std::memory_order_relaxed),
-                  fifo.CPWritePointer.load(std::memory_order_relaxed),
-                  fifo.CPReadPointer.load(std::memory_order_relaxed),
-                  fifo.CPBreakpoint.load(std::memory_order_relaxed),
-                  fifo.bFF_GPReadEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_BPEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_BPInt.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_Breakpoint.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_GPLinkEnable.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_HiWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false",
-                  fifo.bFF_LoWatermarkInt.load(std::memory_order_relaxed) ? "true" : "false");
+    s_is_fifo_error_seen = true;
+
+    // TODO(Omega): Maybe dump FIFO to file on this error
+    PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, preprocess={2}).\n"
+                   "This means one of the following:\n"
+                   "* The emulated GPU got desynced, disabling dual core can help\n"
+                   "* Command stream corrupted by some spurious memory bug\n"
+                   "* This really is an unknown opcode (unlikely)\n"
+                   "* Some other sort of bug\n\n"
+                   "Further errors will be sent to the Video Backend log and\n"
+                   "Dolphin will now likely crash or hang. Enjoy.",
+                   cmd_byte, fmt::ptr(buffer), preprocess);
   }
 }
 

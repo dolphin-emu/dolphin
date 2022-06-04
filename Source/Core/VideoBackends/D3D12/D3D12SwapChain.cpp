@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "VideoBackends/D3D12/D3D12SwapChain.h"
+
+#include "Common/Assert.h"
+
 #include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoBackends/D3D12/DX12Texture.h"
 
@@ -31,16 +34,17 @@ bool SwapChain::CreateSwapChainBuffers()
   {
     ComPtr<ID3D12Resource> resource;
     HRESULT hr = m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&resource));
-    CHECK(SUCCEEDED(hr), "Get swap chain buffer");
+    ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to get swap chain buffer {}: {}", i, DX12HRWrap(hr));
 
     BufferResources buffer;
     buffer.texture = DXTexture::CreateAdopted(resource.Get());
-    CHECK(buffer.texture, "Create swap chain buffer texture");
+    ASSERT_MSG(VIDEO, buffer.texture != nullptr, "Failed to create swap chain buffer texture");
     if (!buffer.texture)
       return false;
 
     buffer.framebuffer = DXFramebuffer::Create(buffer.texture.get(), nullptr);
-    CHECK(buffer.texture, "Create swap chain buffer framebuffer");
+    ASSERT_MSG(VIDEO, buffer.framebuffer != nullptr,
+               "Failed to create swap chain buffer framebuffer");
     if (!buffer.framebuffer)
       return false;
 

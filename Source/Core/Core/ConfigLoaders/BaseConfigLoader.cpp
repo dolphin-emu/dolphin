@@ -19,6 +19,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "Core/ConfigManager.h"
@@ -103,6 +104,11 @@ public:
   BaseConfigLayerLoader() : ConfigLayerLoader(Config::LayerType::Base) {}
   void Load(Config::Layer* layer) override
   {
+    // List of settings that under no circumstances should be loaded from the global config INI.
+    static const auto s_setting_disallowed = {
+        &Config::MAIN_MEMORY_CARD_SIZE.GetLocation(),
+    };
+
     LoadFromSYSCONF(layer);
     for (const auto& system : system_to_ini)
     {
@@ -118,6 +124,12 @@ public:
         for (const auto& value : section_map)
         {
           const Config::Location location{system.first, section_name, value.first};
+          const bool load_disallowed =
+              std::any_of(begin(s_setting_disallowed), end(s_setting_disallowed),
+                          [&location](const Config::Location* l) { return *l == location; });
+          if (load_disallowed)
+            continue;
+
           layer->Set(location, value.second);
         }
       }

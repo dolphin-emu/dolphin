@@ -20,6 +20,7 @@
 #include <QTableWidgetItem>
 #include <QWheelEvent>
 
+#include "Common/Assert.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
@@ -234,6 +235,15 @@ static bool IsBranchInstructionWithLink(std::string_view ins)
          StringEndsWith(ins, "la+") || StringEndsWith(ins, "l-") || StringEndsWith(ins, "la-");
 }
 
+static bool IsInstructionLoadStore(std::string_view ins)
+{
+  // Could add check for context address being near PC, because we need gprs to be correct for the
+  // load/store.
+  return (StringBeginsWith(ins, "l") && !StringBeginsWith(ins, "li")) ||
+         StringBeginsWith(ins, "st") || StringBeginsWith(ins, "psq_l") ||
+         StringBeginsWith(ins, "psq_s");
+}
+
 void CodeViewWidget::Update()
 {
   if (!isVisible())
@@ -375,7 +385,7 @@ void CodeViewWidget::Update()
 
 void CodeViewWidget::CalculateBranchIndentation()
 {
-  const size_t rows = rowCount();
+  const u32 rows = rowCount();
   const size_t columns = m_branches.size();
   if (rows < 1 || columns < 1)
     return;
@@ -393,26 +403,27 @@ void CodeViewWidget::CalculateBranchIndentation()
   // build a 2D lookup table representing the columns and rows the arrow could be drawn in
   // and try to place all branch arrows in it as far left as possible
   std::vector<bool> arrow_space_used(columns * rows, false);
-  const auto index = [&](u32 column, u32 row) { return column * rows + row; };
-  const u32 first_visible_addr = AddressForRow(0);
-  const u32 last_visible_addr = AddressForRow(static_cast<int>(rows - 1));
-  for (CodeViewBranch& branch : m_branches)
-  {
+  const auto index = [&](u32 column, u32 row) {
+    ASSERT(row <= rows);
+    ASSERT(column <= columns);
+    return column * rows + row;
+  };
+
+  const auto add_branch_arrow = [&](CodeViewBranch& branch, u32 first_addr, u32 first_row,
+                                    u32 last_addr) {
     const u32 arrow_src_addr = branch.src_addr;
     const u32 arrow_dst_addr = branch.is_link ? branch.src_addr : branch.dst_addr;
-    const u32 arrow_addr_lower = std::min(arrow_src_addr, arrow_dst_addr);
-    const u32 arrow_addr_higher = std::max(arrow_src_addr, arrow_dst_addr);
-    const bool is_visible =
-        last_visible_addr >= arrow_addr_lower || first_visible_addr <= arrow_addr_higher;
-    if (!is_visible)
-      continue;
+    const auto [arrow_addr_lower, arrow_addr_higher] = std::minmax(arrow_src_addr, arrow_dst_addr);
 
-    const u32 arrow_first_visible_addr =
-        std::clamp(arrow_addr_lower, first_visible_addr, last_visible_addr);
-    const u32 arrow_last_visible_addr =
-        std::clamp(arrow_addr_higher, first_visible_addr, last_visible_addr);
-    const u32 arrow_first_visible_row = (arrow_first_visible_addr - first_visible_addr) / 4;
-    const u32 arrow_last_visible_row = (arrow_last_visible_addr - first_visible_addr) / 4;
+    const bool is_visible =
+        std::max(arrow_addr_lower, first_addr) <= std::min(arrow_addr_higher, last_addr);
+    if (!is_visible)
+      return;
+
+    const u32 arrow_first_visible_addr = std::clamp(arrow_addr_lower, first_addr, last_addr);
+    const u32 arrow_last_visible_addr = std::clamp(arrow_addr_higher, first_addr, last_addr);
+    const u32 arrow_first_visible_row = (arrow_first_visible_addr - first_addr) / 4 + first_row;
+    const u32 arrow_last_visible_row = (arrow_last_visible_addr - first_addr) / 4 + first_row;
 
     const auto free_column = [&]() -> std::optional<u32> {
       for (u32 column = 0; column < columns; ++column)
@@ -432,11 +443,43 @@ void CodeViewWidget::CalculateBranchIndentation()
     }();
 
     if (!free_column)
-      continue;
+      return;
 
     branch.indentation = *free_column;
     for (u32 row = arrow_first_visible_row; row <= arrow_last_visible_row; ++row)
       arrow_space_used[index(*free_column, row)] = true;
+  };
+
+  const u32 first_visible_addr = AddressForRow(0);
+  const u32 last_visible_addr = AddressForRow(rows - 1);
+
+  if (first_visible_addr <= last_visible_addr)
+  {
+    for (CodeViewBranch& branch : m_branches)
+      add_branch_arrow(branch, first_visible_addr, 0, last_visible_addr);
+  }
+  else
+  {
+    // Scrolling defaults to being centered around address 00000000, which means addresses before
+    // the start are visible (e.g. ffffffa8 - 00000050).  We need to do this in two parts, one for
+    // first_visible_addr to fffffffc, and the second for 00000000 to last_visible_addr.
+    // That means we need to find the row corresponding to 00000000.
+    int addr_zero_row = -1;
+    for (u32 row = 0; row < rows; row++)
+    {
+      if (AddressForRow(row) == 0)
+      {
+        addr_zero_row = row;
+        break;
+      }
+    }
+    ASSERT(addr_zero_row != -1);
+
+    for (CodeViewBranch& branch : m_branches)
+    {
+      add_branch_arrow(branch, first_visible_addr, 0, 0xfffffffc);
+      add_branch_arrow(branch, 0x00000000, addr_zero_row, last_visible_addr);
+    }
   }
 }
 
@@ -496,7 +539,10 @@ void CodeViewWidget::OnContextMenu()
   auto* copy_hex_action = menu->addAction(tr("Copy &hex"), this, &CodeViewWidget::OnCopyHex);
 
   menu->addAction(tr("Show in &memory"), this, &CodeViewWidget::OnShowInMemory);
-
+  auto* show_target_memory =
+      menu->addAction(tr("Show target in memor&y"), this, &CodeViewWidget::OnShowTargetInMemory);
+  auto* copy_target_memory =
+      menu->addAction(tr("Copy tar&get address"), this, &CodeViewWidget::OnCopyTargetAddress);
   menu->addSeparator();
 
   auto* symbol_rename_action =
@@ -527,6 +573,14 @@ void CodeViewWidget::OnContextMenu()
   for (auto* action : {symbol_rename_action, symbol_size_action, symbol_end_action})
     action->setEnabled(has_symbol);
 
+  const bool valid_load_store = Core::GetState() == Core::State::Paused &&
+                                IsInstructionLoadStore(PowerPC::debug_interface.Disassemble(addr));
+
+  for (auto* action : {copy_target_memory, show_target_memory})
+  {
+    action->setEnabled(valid_load_store);
+  }
+
   restore_action->setEnabled(running && PowerPC::debug_interface.HasEnabledPatch(addr));
 
   menu->exec(QCursor::pos());
@@ -540,9 +594,43 @@ void CodeViewWidget::OnCopyAddress()
   QApplication::clipboard()->setText(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
 }
 
+void CodeViewWidget::OnCopyTargetAddress()
+{
+  if (Core::GetState() != Core::State::Paused)
+    return;
+
+  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+
+  if (!IsInstructionLoadStore(code_line))
+    return;
+
+  const std::optional<u32> addr =
+      PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
+
+  if (addr)
+    QApplication::clipboard()->setText(QStringLiteral("%1").arg(*addr, 8, 16, QLatin1Char('0')));
+}
+
 void CodeViewWidget::OnShowInMemory()
 {
   emit ShowMemory(GetContextAddress());
+}
+
+void CodeViewWidget::OnShowTargetInMemory()
+{
+  if (Core::GetState() != Core::State::Paused)
+    return;
+
+  const std::string code_line = PowerPC::debug_interface.Disassemble(GetContextAddress());
+
+  if (!IsInstructionLoadStore(code_line))
+    return;
+
+  const std::optional<u32> addr =
+      PowerPC::debug_interface.GetMemoryAddressFromInstruction(code_line);
+
+  if (addr)
+    emit ShowMemory(*addr);
 }
 
 void CodeViewWidget::OnCopyCode()

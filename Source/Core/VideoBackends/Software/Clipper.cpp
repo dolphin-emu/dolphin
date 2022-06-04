@@ -289,10 +289,42 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 {
   INCSTAT(g_stats.this_frame.num_triangles_in)
 
-  bool backface;
-
-  if (!CullTest(v0, v1, v2, backface))
+  if (IsTriviallyRejected(v0, v1, v2))
+  {
+    INCSTAT(g_stats.this_frame.num_triangles_rejected)
+    // NOTE: The slope used by zfreeze shouldn't be updated if the triangle is
+    // trivially rejected during clipping
     return;
+  }
+
+  bool backface = IsBackface(v0, v1, v2);
+
+  if (!backface)
+  {
+    if (bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All)
+    {
+      // cull frontfacing - we still need to update the slope for zfreeze
+      PerspectiveDivide(v0);
+      PerspectiveDivide(v1);
+      PerspectiveDivide(v2);
+      Rasterizer::UpdateZSlope(v0, v1, v2, bpmem.scissorOffset.x * 2, bpmem.scissorOffset.y * 2);
+      INCSTAT(g_stats.this_frame.num_triangles_culled)
+      return;
+    }
+  }
+  else
+  {
+    if (bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All)
+    {
+      // cull backfacing - we still need to update the slope for zfreeze
+      PerspectiveDivide(v0);
+      PerspectiveDivide(v2);
+      PerspectiveDivide(v1);
+      Rasterizer::UpdateZSlope(v0, v2, v1, bpmem.scissorOffset.x * 2, bpmem.scissorOffset.y * 2);
+      INCSTAT(g_stats.this_frame.num_triangles_culled)
+      return;
+    }
+  }
 
   int indices[NUM_INDICES] = {0,         1,         2,         SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
                               SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
@@ -313,7 +345,24 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
     Vertices[2] = v2;
   }
 
-  ClipTriangle(indices, &numIndices);
+  // TODO: behavior when disable_clipping_detection is set doesn't quite match actual hardware;
+  // there does still seem to be a maximum size after which things are clipped.  Also, currently
+  // when clipping is enabled triangles are clipped to exactly the viewport, but on hardware there
+  // is a guardband (and with certain scissor configurations, things can show up in it)
+  // Mario Party 8 in widescreen breaks without this: https://bugs.dolphin-emu.org/issues/12769
+  bool skip_clipping = false;
+  if (xfmem.clipDisable.disable_clipping_detection)
+  {
+    // If any w coordinate is negative, then the perspective divide will flip coordinates, breaking
+    // various assumptions (including backface).  So, we still need to do clipping in that case.
+    // This isn't the actual condition hardware uses.
+    if (Vertices[0]->projectedPosition.w >= 0 && Vertices[1]->projectedPosition.w >= 0 &&
+        Vertices[2]->projectedPosition.w >= 0)
+      skip_clipping = true;
+  }
+
+  if (!skip_clipping)
+    ClipTriangle(indices, &numIndices);
 
   for (int i = 0; i + 3 <= numIndices; i += 3)
   {
@@ -461,19 +510,18 @@ void ProcessPoint(OutputVertexData* center)
   Rasterizer::DrawTriangleFrontFace(&ur, &lr, &ul);
 }
 
-bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
-              bool& backface)
+bool IsTriviallyRejected(const OutputVertexData* v0, const OutputVertexData* v1,
+                         const OutputVertexData* v2)
 {
   int mask = CalcClipMask(v0);
   mask &= CalcClipMask(v1);
   mask &= CalcClipMask(v2);
 
-  if (mask)
-  {
-    INCSTAT(g_stats.this_frame.num_triangles_rejected)
-    return false;
-  }
+  return mask != 0;
+}
 
+bool IsBackface(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2)
+{
   float x0 = v0->projectedPosition.x;
   float x1 = v1->projectedPosition.x;
   float x2 = v2->projectedPosition.x;
@@ -486,29 +534,14 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
 
   float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
 
-  backface = normalZDir <= 0.0f;
+  bool backface = normalZDir <= 0.0f;
   // Jimmie Johnson's Anything with an Engine has a positive viewport, while other games have a
   // negative viewport.  The positive viewport does not require vertices to be vertically mirrored,
   // but the backface test does need to be inverted for things to be drawn.
   if (xfmem.viewport.ht > 0)
     backface = !backface;
 
-  // TODO: Are these tests / the definition of backface above backwards?
-  if ((bpmem.genMode.cullmode == CullMode::Back || bpmem.genMode.cullmode == CullMode::All) &&
-      !backface)  // cull frontfacing
-  {
-    INCSTAT(g_stats.this_frame.num_triangles_culled)
-    return false;
-  }
-
-  if ((bpmem.genMode.cullmode == CullMode::Front || bpmem.genMode.cullmode == CullMode::All) &&
-      backface)  // cull backfacing
-  {
-    INCSTAT(g_stats.this_frame.num_triangles_culled)
-    return false;
-  }
-
-  return true;
+  return backface;
 }
 
 void PerspectiveDivide(OutputVertexData* vertex)
@@ -517,10 +550,8 @@ void PerspectiveDivide(OutputVertexData* vertex)
   Vec3& screen = vertex->screenPosition;
 
   float wInverse = 1.0f / projected.w;
-  screen.x =
-      projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2;
-  screen.y =
-      projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2;
+  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig;
+  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig;
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }  // namespace Clipper

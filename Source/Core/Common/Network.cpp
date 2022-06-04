@@ -4,7 +4,6 @@
 #include "Common/Network.h"
 
 #include <algorithm>
-#include <cctype>
 #include <string_view>
 
 #ifndef _WIN32
@@ -18,6 +17,7 @@
 #include <fmt/format.h>
 
 #include "Common/Random.h"
+#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -59,7 +59,7 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 
   for (size_t i = 0; i < mac_string.size() && x < (MAC_ADDRESS_SIZE * 2); ++i)
   {
-    char c = tolower(mac_string.at(i));
+    char c = Common::ToLower(mac_string.at(i));
     if (c >= '0' && c <= '9')
     {
       mac[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4);
@@ -102,8 +102,8 @@ IPv4Header::IPv4Header(u16 data_size, u8 ip_proto, const sockaddr_in& from, cons
   flags_fragment_offset = htons(0x4000);
   ttl = 0x40;
   protocol = ip_proto;
-  std::memcpy(&source_addr, &from.sin_addr, IPV4_ADDR_LEN);
-  std::memcpy(&destination_addr, &to.sin_addr, IPV4_ADDR_LEN);
+  std::memcpy(source_addr.data(), &from.sin_addr, IPV4_ADDR_LEN);
+  std::memcpy(destination_addr.data(), &to.sin_addr, IPV4_ADDR_LEN);
 
   header_checksum = htons(ComputeNetworkChecksum(this, Size()));
 }

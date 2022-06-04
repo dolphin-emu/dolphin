@@ -1,11 +1,11 @@
 // Copyright 2010 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "Common/CommonTypes.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
@@ -193,35 +193,6 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
     SetJumpTarget(not_40bit);
     m_gpr.PutReg(DSP_REG_SR, false);
   }
-  }
-}
-
-void DSPEmitter::dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg,
-                                               RegisterExtension extend)
-{
-  switch (reg & 0x1f)
-  {
-  case DSP_REG_ST0:
-  case DSP_REG_ST1:
-  case DSP_REG_ST2:
-  case DSP_REG_ST3:
-    dsp_reg_load_stack(static_cast<StackRegister>(reg - DSP_REG_ST0), host_dreg);
-    switch (extend)
-    {
-    case RegisterExtension::Sign:
-      MOVSX(64, 16, host_dreg, R(host_dreg));
-      break;
-    case RegisterExtension::Zero:
-      MOVZX(64, 16, host_dreg, R(host_dreg));
-      break;
-    case RegisterExtension::None:
-    default:
-      break;
-    }
-    return;
-  default:
-    m_gpr.ReadReg(reg, host_dreg, extend);
-    return;
   }
 }
 

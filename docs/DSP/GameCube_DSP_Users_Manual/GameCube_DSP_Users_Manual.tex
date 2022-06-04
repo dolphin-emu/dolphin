@@ -46,7 +46,7 @@
 % Document front page material
 \title{\textbf{\Huge GameCube DSP User's Manual}}
 \author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
-\date{\today\\v0.1.0}
+\date{\today\\v0.1.4}
 
 % Title formatting commands
 \newcommand{\OpcodeTitle}[1]{\subsection{#1}\label{instruction:#1}}
@@ -258,6 +258,10 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.0.6            & 2018.04.13    & BhaaL           & Updated register tables, fixed opcode operations                                         \\ \hline
 0.0.7            & Mid 2020      & Tilka           & Fixed typos and register names, and improved readability.                                \\ \hline
 0.1.0            & 2021.08.21    & Pokechu22       & Added missing instructions, improved documentation of hardware registers, documented additional behaviors, and improved formatting. \\ \hline
+0.1.1            & 2022.05.14    & xperia64        & Added tested DSP bootloading transfer size                                               \\ \hline
+0.1.2            & 2022.05.21    & Pokechu22       & Fixed ``ILLR'' typo in Instruction Memory section                                        \\ \hline
+0.1.3            & 2022.05.27    & Pokechu22       & Renamed \texttt{CMPAR} instruction to \texttt{CMPAXH}                                    \\ \hline
+0.1.4            & 2022.06.02    & Pokechu22       & Fixed typos; added sections on 16-bit and 40-bit modes and on main and extended opcode writing to the same register. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -397,7 +401,7 @@ Instruction Memory (IMEM) is divided into instruction RAM (IRAM) and instruction
 
 Exception vectors are located at the top of the RAM and occupy the first 16 words, with 2 words available for each exception (enough for a \Opcode{JMP} instruction for each exception).
 
-There are no DSP instructions that write to IMEM; however, the \texttt{ILLR} family of instructions can read from it.  This is sometimes used for jump tables or indexing into a list of pointers (which may point into either IMEM or DMEM).
+There are no DSP instructions that write to IMEM; however, the \Opcode{ILRR} family of instructions can read from it.  This is sometimes used for jump tables or indexing into a list of pointers (which may point into either IMEM or DMEM).
 
 \begin{table}[htb]
 \centering
@@ -432,7 +436,7 @@ It is possible to both read and write to DMEM, but coefficient data cannot be wr
 
 \section{Initialization}
 
-The DSP is initialized before it is used.  This is done by copying a small program to physical address \Address{0x01000000} (virtual \Address{0x81000000}) in GameCube/Wii main memory, and then writing to \Register{DSP\_CONTROL\_STATUS} at \texttt{0xCC00500A} with the 11th and 0th bits set (SDK titles write \Value{0x08ad}).  The 11th bit being set appears to cause data from \Address{0x01000000} to be DMAd to the start of IMEM; at least 128 bytes of data (64 DSP words) are transferred.  (None of this has been extensively hardware tested, and is instead based on libogc's \Code{\_\_dsp\_bootstrap}.)
+The DSP is initialized before it is used.  This is done by copying a small program to physical address \Address{0x01000000} (virtual \Address{0x81000000}) in GameCube/Wii main memory, and then writing to \Register{DSP\_CONTROL\_STATUS} at \texttt{0xCC00500A} with the 11th and 0th bits set (SDK titles write \Value{0x08ad}).  The 11th bit being set appears to cause data from \Address{0x01000000} to be DMAd to the start of IMEM; a basic hardware test (sending increasingly larger payloads until they fail) indicates 1024 bytes of data (512 DSP words) are transferred.  (None of this has been extensively hardware tested, and is instead based on libogc's \Code{\_\_dsp\_bootstrap}.)
 
 The program that SDK titles send does the following:
 \begin{enumerate}
@@ -502,7 +506,7 @@ The high parts of the 40-bit accumulators (\Register{acX.h}) are sign-extended 8
 and the upper 8 bits read the same as the 7th bit.  For instance, \Value{0x007F} reads back as \Value{0x007F}, but \Value{0x0080} reads
 back as \Value{0xFF80}.
 
-\textbf{Accumulators \Register{\$acX}:}
+\subsection{Accumulators \Register{\$acX}}
 
 40-bit accumulator \Register{\$acX} (\Register{\$acX.hml}) consists of registers:
 
@@ -510,7 +514,7 @@ back as \Value{0xFF80}.
 $acX = $acX.h << 32 | $acX.m << 16 | $acX.l
 \end{lstlisting}
 
-\textbf{Short accumulators \Register{\$acs.X}:}
+\subsection{Short accumulators \Register{\$acsX}}
 
 24-bit accumulator \Register{\$acsX} (\Register{\$acX.hm}) consists of the upper 24 bits of accumulator \Register{\$acX}.
 
@@ -518,11 +522,29 @@ $acX = $acX.h << 32 | $acX.m << 16 | $acX.l
 $acsX = $acX.h << 16 | $acX.m
 \end{lstlisting}
 
-\textbf{Additional accumulators \Register{\$axX}:}
+\subsection{Additional accumulators \Register{\$axX}}
+
+32-bit accumulators \Register{\$axX} (\Register{\$axX.hl}) consist of registers:
 
 \begin{lstlisting}[language=C++]
 $axX = $axX.h << 16 | $axX.l
 \end{lstlisting}
+
+\subsection{16-bit and 40-bit modes}\label{subsec:SET40}
+
+Depending on the value of \RegisterField{\$sr.SXM} (bit 14), loading to \Register{\$acX.m} may also update \Register{\$acX.h} and \Register{\$acX.l}, and stores from \Register{\$acX.m} may experience saturation based on \Register{\$acX.h}. Regardless of the value of \RegisterField{\$sr.SXM}, arithmetic operations such as \Opcode{ADDI}, \Opcode{INCM}, \Opcode{MOVR}, and \Opcode{LSRN} will still affect the entire accumulator.
+
+If \RegisterField{\$sr.SXM} is set to 0, then 16-bit mode (\Opcode{SET16}) is in use. Loads to \Register{\$acX.m} will only change \Register{\$acX.m}, and storing \Register{\$acX.m} will use the value directly contained in \Register{\$acX.m}; the same applies to loads to and stores from \Register{\$acX.h} or \Register{\$acX.l} or any other register.
+
+If \RegisterField{\$sr.SXM} is set to 1, then 40-bit mode (\Opcode{SET40}) is in use. Loads to \Register{\$acX.m} will set \Register{\$acX.l} to 0 and will sign-extend into \Register{\$acX.h} (setting it to \Value{0xFF} if the sign bit is set (\InlineExpression{\$acX.m \& 0x8000 != 0}), and to 0 otherwise).  This means that in 40-bit mode, loads to \Register{\$acX.m} are effectively loads to the whole accumulator \Register{\$acX}. Loads to \Register{\$acX.h} and \Register{\$acX.l} do not have this special behavior; they only modify the specified register (as in 16-bit mode).
+
+Additionally, if \RegisterField{\$sr.SXM} is set to 1, then moving or storing from \Register{\$acX.m} may instead result in \Value{0x7fff} or \Value{0x8000} being used. This happens if \Register{\$acX.hml} is not the same as sign-extending \Register{\$acX.ml}; \Value{0x7fff} is used if \Register{\$acX} is positive and \Value{0x8000} is used if \Register{\$acX} is negative.
+
+The conditions for this saturation are the same as the conditions for \RegisterField{\$sr.AS} (bit 4, above s32) to be set when flags are updated. (This does not mean that the saturation happens if and only if \RegisterField{\$sr.AS} is set, as the flags might have been set after an operation on a different register.)
+
+The following instructions perform sign-extension when writing to \Register{\$acX.m}: \Opcode{ILRR}, \Opcode{ILRRD}, \Opcode{ILRRI}, and \Opcode{ILRRN}; \Opcode{LR}; \Opcode{LRI}; \Opcode{LRIS}; \Opcode{LRR}, \Opcode{LRRD}, \Opcode{LRRI}, and \Opcode{LRRN}; \Opcode{LRS}; \Opcode{MRR}; and \Opcode{'L} and \Opcode{'LN}.
+
+The following instructions experience saturation when reading from \Register{\$acX.m}: \Opcode{BLOOP}; \Opcode{LOOP}; \Opcode{MRR}; \Opcode{SR}; \Opcode{SRR}, \Opcode{SRRD}, \Opcode{SRRI}, and \Opcode{SRRN}; \Opcode{SRS}; \Opcode{'LS}, \Opcode{'LSM}, \Opcode{'LSM}, and \Opcode{'LSNM}; \Opcode{'MV}; \Opcode{'SL}, \Opcode{'SLM}, \Opcode{'SLN}, and \Opcode{'SLNM}; and \Opcode{'S} and \Opcode{'SN}.
 
 \pagebreak{}
 
@@ -566,8 +588,8 @@ Furthermore, it also contains control bits to configure the flow of certain oper
 \begin{tabular}{|l|l|l|}
 \hline
 \textbf{Bit} & \textbf{Name} & \textbf{Comment}                                              \\ \hline
-\texttt{15}  & \texttt{SU}   & Operands are signed (1 = unsigned)                            \\ \hline
-\texttt{14}  & \texttt{SXM}  & Sign extension mode (0 = \texttt{set16}, 1 = \texttt{set40})  \\ \hline
+\texttt{15}  & \texttt{SU}   & Multiplication operands are signed (1 = unsigned)             \\ \hline
+\texttt{14}  & \texttt{SXM}  & Sign extension mode (1 = 40-bit, see \nameref{subsec:SET40})  \\ \hline
 \texttt{13}  & \texttt{AM}   & Product multiply result by 2 (when \texttt{AM = 0})           \\ \hline
 \texttt{12}  &               &                                                               \\ \hline
 \texttt{11}  & \texttt{EIE}  & External interrupt enable                                     \\ \hline
@@ -1214,12 +1236,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ADDI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0000} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    ADDI $amR, #I
+    ADDI $acD, #I
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -1353,7 +1375,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ANDCF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1100} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1381,7 +1403,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ANDF}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1010} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1409,7 +1431,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ANDI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0100} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0100} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -1516,12 +1538,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac1.m & 64)
-        IF (ac1.m & 63) != 0
-            $ac0 >>= (64 - (ac1.m & 63))
+    IF ($ac1.m & 64)
+        IF ($ac1.m & 63) != 0
+            $ac0 >>= (64 - ($ac1.m & 63))
         ENDIF
     ELSE
-        $ac0 <<= ac1.m
+        $ac0 <<= $ac1.m
     ENDIF
     FLAGS($ac0)
     $pc++
@@ -1544,12 +1566,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac(1-D).m & 64)
-        IF (ac(1-D).m & 63) != 0
-            $acD >>= (64 - (ac(1-D).m & 63))
+    IF ($ac(1-D).m & 64)
+        IF ($ac(1-D).m & 63) != 0
+            $acD >>= (64 - ($ac(1-D).m & 63))
         ENDIF
     ELSE
-        $acD <<= ac(1-D).m
+        $acD <<= $ac(1-D).m
     ENDIF
     FLAGS($acD)
     $pc++
@@ -1576,12 +1598,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (axS.h & 64)
-        IF (axS.h & 63) != 0
-            $acD >>= (64 - (axS.h & 63))
+    IF ($axS.h & 64)
+        IF ($axS.h & 63) != 0
+            $acD >>= (64 - ($axS.h & 63))
         ENDIF
     ELSE
-        $acD <<= axS.h
+        $acD <<= $axS.h
     ENDIF
     FLAGS($acD)
     $pc++
@@ -1631,6 +1653,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
           \Register{\$R} reaches zero. Block ends at specified address \Address{addrA} inclusive. i.e. opcode at \Address{addrA} is the last
           opcode included in loop. Counter is pushed on loop stack \Register{\$st3}, end of block address is pushed on loop stack
           \Register{\$st2} and the repeat address is pushed on call stack \Register{\$st0}. Up to 4 nested loops are allowed.
+    \item When using \Register{\$ac0.m} or \Register{\$ac1.m} as the initial counter value, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1927,17 +1950,17 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \DSPOpcodeFlags{X}{-}{X}{X}{X}{X}{X}{X}
 \end{DSPOpcode}
 
-\begin{DSPOpcode}{CMPAR}
+\begin{DSPOpcode}{CMPAXH}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{110r} & \monobitbox{4}{s001} & \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    CMPAR $acS $axR.h
+    CMPAXH $acS, $axR.h
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Compares accumulator \Register{\$acS} with accumulator \Register{\$axR.h}.
+    \item Compares accumulator \Register{\$acS} with high part of secondary accumulator \Register{\$axR.h}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -1950,17 +1973,17 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{CMPI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{1000} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{1000} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    CMPI $amD, #I
+    CMPI $acD, #I
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Compares mid accumulator \Register{\$acD.hm} (\Register{\$amD}) with sign-extended immediate value \Value{I}.
-          However, flags are set with regards to the whole accumulator register.
+    \item Compares accumulator with immediate. Comparison is performed by subtracting the immediate (16-bit sign-extended)
+          from mid accumulator \Register{\$acD.hm} and computing flags based on whole accumulator \Register{\$acD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2135,6 +2158,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \begin{DSPOpcodeDescription}
     \item Move value from instruction memory pointed by addressing register \Register{\$arS}
           to mid accumulator register \Register{\$acD.m}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2157,6 +2181,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \begin{DSPOpcodeDescription}
     \item Move value from instruction memory pointed by addressing register \Register{\$arS}
           to mid accumulator register \Register{\$acD.m}. Decrement addressing register \Register{\$arS}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2180,6 +2205,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \begin{DSPOpcodeDescription}
     \item Move value from instruction memory pointed by addressing register \Register{\$arS} to
           mid accumulator register \Register{\$acD.m}. Increment addressing register \Register{\$arS}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2204,6 +2230,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     \item Move value from instruction memory pointed by addressing register \Register{\$arS}
           to mid accumulator register \Register{\$acD.m}. Add corresponding indexing register
           \Register{\$ixS} to addressing register \Register{\$arS}.
+    \item Optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2364,6 +2391,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
     \item Repeatedly execute the following opcode until the counter specified by the value from register \Register{\$R} reaches zero.
           Each execution decrements the counter. Register \Register{\$R} remains unchanged. If register \Register{\$R} is set to zero at the
           beginning of loop then the looped instruction will not get executed.
+    \item When using \Register{\$ac0.m} or \Register{\$ac1.m} as the initial counter value, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2415,7 +2443,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by address \Address{M} to register \Register{\$D}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2438,7 +2466,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Load immediate value \Value{I} to register \Register{\$D}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2460,7 +2488,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Load immediate value \Value{I} (8-bit sign-extended) to accumulator register \Register{\$(0x18+D)}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2482,7 +2510,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2505,7 +2533,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
           Decrements register \Register{\$arS}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2529,7 +2557,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
           Increments register \Register{\$arS}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2553,7 +2581,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
           Add indexing register \Register{\$ixS} to register \Register{\$arS}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2576,7 +2604,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Move value from data memory pointed by address \Address{(\$cr << 8) | M} to register \Register{\$(0x18+D)}.
-          Perform an additional operation depending on destination register.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -2585,7 +2613,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeOperation}
 
   \begin{DSPOpcodeNote}
-    \item \Opcode{LRS} can use \Register{\$axD} and cannot use \Register{\$acS.h}, while \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
+    \item \Opcode{LRS} can use \Register{\$axD}, but cannot use \Register{\$acD.h}, while \Opcode{SRS} and \Opcode{SRSH} only work on \Register{\$acS}.
   \end{DSPOpcodeNote}
 
   \DSPOpcodeFlagsUnchanged
@@ -2673,12 +2701,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac1.m & 64)
-        IF (ac1.m & 63) != 0
-            $ac0 >>= (64 - (ac1.m & 63))
+    IF ($ac1.m & 64)
+        IF ($ac1.m & 63) != 0
+            $ac0 >>= (64 - ($ac1.m & 63))
         ENDIF
     ELSE
-        $ac0 <<= ac1.m
+        $ac0 <<= $ac1.m
     ENDIF
     FLAGS($ac0)
     $pc++
@@ -2701,12 +2729,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (ac(1-D).m & 64)
-        IF (ac(1-D).m & 63) != 0
-            $acD >>= (64 - (ac(1-D).m & 63))
+    IF ($ac(1-D).m & 64)
+        IF ($ac(1-D).m & 63) != 0
+            $acD >>= (64 - ($ac(1-D).m & 63))
         ENDIF
     ELSE
-        $acD <<= ac(1-D).m
+        $acD <<= $ac(1-D).m
     ENDIF
     FLAGS($acD)
     $pc++
@@ -2733,12 +2761,12 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    IF (axS.h & 64)
-        IF (axS.h & 63) != 0
-            $acD >>= (64 - (axS.h & 63))
+    IF ($axS.h & 64)
+        IF ($axS.h & 63) != 0
+            $acD >>= (64 - ($axS.h & 63))
         ENDIF
     ELSE
-        $acD <<= axS.h
+        $acD <<= $axS.h
     ENDIF
     FLAGS($acD)
     $pc++
@@ -3046,7 +3074,8 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Move value from register \Register{\$S} to register \Register{\$D}.
-          Perform an additional operation depending on destination register.
+    \item When moving to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
+    \item When moving from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3626,7 +3655,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{ORI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0110} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0110} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -3858,6 +3887,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{SET40}
+    \item \nameref{subsec:SET40}
   \end{DSPOpcodeSeeAlso}
 
   \DSPOpcodeFlagsUnchanged
@@ -3883,6 +3913,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeSeeAlso}
     \item \Opcode{SET16}
+    \item \nameref{subsec:SET40}
   \end{DSPOpcodeSeeAlso}
 
   \DSPOpcodeFlagsUnchanged
@@ -3926,7 +3957,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Store value from register \Register{\$S} to a memory pointed by address \Address{M}.
-          Perform an additional operation depending on destination register.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3948,7 +3979,8 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$arD}. Perform an additional operation depending on source register.
+          register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3970,7 +4002,8 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$arD}. Decrement register \Register{\$arD}. Perform an additional operation depending on source register.
+          register \Register{\$arD}. Decrement register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -3993,7 +4026,8 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$arD}. Increment register \Register{\$arD}. Perform an additional operation depending on source register.
+          register \Register{\$arD}. Increment register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4017,7 +4051,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
           register \Register{\$arD}. Add indexing register \Register{\$ixD} to register \Register{\$arD}.
-          Perform an additional operation depending on source register.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4040,7 +4074,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Store value from register \Register{\$(0x1C+S)} to a memory pointed by address \Address{(\$cr << 8) | M}.
-          Perform an additional operation depending on destination register.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4067,7 +4101,6 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
   \begin{DSPOpcodeDescription}
     \item Store value from register \Register{\$acS.h} to a memory pointed by address \Address{(\$cr << 8) | M}.
-          Perform an additional operation depending on destination register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4283,7 +4316,7 @@ A ``-'' indicates that the flag retains its previous value, a ``0'' indicates th
 
 \begin{DSPOpcode}{XORI}
   \begin{DSPOpcodeBytefield}{16}
-    \monobitbox{4}{0000} & \monobitbox{4}{001r} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
+    \monobitbox{4}{0000} & \monobitbox{4}{001d} & \monobitbox{4}{0010} & \monobitbox{4}{0000} \\
     \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii} & \monobitbox{4}{iiii}
   \end{DSPOpcodeBytefield}
 
@@ -4336,8 +4369,15 @@ Extended opcodes do not exist on their own. These opcodes can only be attached t
 Specifically, opcodes where the first nybble is 0, 1, or 2 cannot be extended.
 Opcodes where the first nybble is 4 or higher can be extended, using the 8 lower bits.
 Opcodes where the first nybble is 3 can also be extended, but the main opcode is 9 bits and the extension opcode is 7 bits.  For these instructions, the extension opcode is treated as if the first bit were 0 (i.e. \texttt{0xxxxxxx}).
+(\Opcode{NX} has no behavior of its own, so it can be used to get an extended opcode's behavior on its own.)
 
 Extended opcodes do not modify the program counter (\Register{\$pc} register).
+
+Extended opcodes are run \textit{in parallel} with the main opcode; they see the same register state as the input. (For instance, \texttt{\Opcode{MOVR}\Opcode{'MV} \Register{\$ac1}, \Register{\$ax0.l} : \Register{\$ax0.l}, \Register{\$ac1.m}} (encoded as \Value{0x6113}) \textit{swaps} the values of \Register{\$ac1.m} and \Register{\$ax0.l} (and also extends the new value of \Register{\$ac1.m} into \Register{\$ac1.l} and \Register{\$ac1.h}).)
+
+Since they are executed in parallel, the main and extension opcodes could theoretically write to the same registers. All opcodes that support extension only modify a main accumulator \Register{\$acD}, as well as \Register{\$prod}, \Register{\$sr}, and/or \Register{\$pc}, while the extension opcodes themselves generally only modify an additional accumulator \Register{\$axD} and addressing registers \Register{\$arS}. The exception is \Opcode{'L} and \Opcode{'LN}, which has the option of writing to \Register{\$acD}. Thus, \texttt{\Opcode{INC}\Opcode{'L} \Register{\$ac0} : \Register{\$ac0.l}, @\Register{\$ar0}} (encoded as \Value{0x7660}) increments \Register{\$ac0} (and thus \Register{\$ac0.l}), but also sets \Register{\$ac0.l} to the value in data memory at address \Register{\$ar0} and increments \Register{\$ar0}.
+
+When the main and extension opcodes write to the same register, the register is set to the two values bitwise-or'd together. For the above example, \Register{\$ar0.l} would be set to \InlineExpression{(\Register{\$ar0.l} + 1) | MEM[\Register{\$ar0}]}. \textbf{Note that no official uCode writes to the same register twice like this.}
 
 \pagebreak{}
 
@@ -4393,6 +4433,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
   \begin{DSPOpcodeDescription}
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$arS}.
           Post increment register \Register{\$arS}.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4413,6 +4454,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
   \begin{DSPOpcodeDescription}
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$arS}.
           Add indexing register \Register{\$ixS} to register \Register{\$arS}.
+    \item When loading to \Register{\$ac0.m} or \Register{\$ac1.m}, optionally perform sign extension depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4652,6 +4694,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Increment both \Register{\$ar0} and \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4660,6 +4703,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SL} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSM}
@@ -4675,6 +4722,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$ar0}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4683,6 +4731,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSNM}
@@ -4699,6 +4751,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and add corresponding
           indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4707,6 +4760,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLNM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'LSN}
@@ -4722,6 +4779,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar0}.
           Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and increment \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4730,6 +4788,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'SLN} in that \Register{\$(0x18+D)} is associated with \Register{\$ar0} instead of \Register{\$ar3} and \Register{\$acS.m} is associated with \Register{\$ar3} instead of \Register{\$ar0}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'MV}
@@ -4743,6 +4805,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
 
   \begin{DSPOpcodeDescription}
     \item Move value of register \Register{\$(0x1c+S)} to the register \Register{\$(0x18+D)}.
+    \item When moving from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4764,7 +4827,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeNote}
-     \item Generally written as by not including any extension operation, such as writing \texttt{INC \$ac0} instead of writing \texttt{INC'NOP \$ac0}.
+     \item Generally written by not including any extension operation, such as writing \texttt{INC \$ac0} instead of writing \texttt{INC'NOP \$ac0}.
   \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
@@ -4798,6 +4861,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
   \begin{DSPOpcodeDescription}
     \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$arD}.
           Post increment register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4819,6 +4883,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Increment both \Register{\$ar0} and \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4827,6 +4892,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LS} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLM}
@@ -4842,6 +4911,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix3} to addressing register \Register{\$ar3} and increment \Register{\$ar0}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4850,6 +4920,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLNM}
@@ -4866,6 +4940,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and add corresponding
           indexing register \Register{\$ix3} to addressing register \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4874,6 +4949,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSNM} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SLN}
@@ -4889,6 +4968,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     \item Store value from register \Register{\$acS.m} to memory location pointed by register \Register{\$ar0}.
           Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$ar3}.
           Add corresponding indexing register \Register{\$ix0} to addressing register \Register{\$ar0} and increment \Register{\$ar3}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4897,6 +4977,10 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}
+
+  \begin{DSPOpcodeNote}
+    \item Differs from \Opcode{'LSN} in that \Register{\$(0x18+D)} is associated with \Register{\$ar3} instead of \Register{\$ar0} and \Register{\$acS.m} is associated with \Register{\$ar0} instead of \Register{\$ar3}. In both cases, \Register{\$(0x18+D)} is loaded and \Register{\$acS.m} is stored.
+  \end{DSPOpcodeNote}
 \end{DSPOpcode}
 
 \begin{DSPOpcode}{'SN}
@@ -4911,6 +4995,7 @@ Extended opcodes do not modify the program counter (\Register{\$pc} register).
   \begin{DSPOpcodeDescription}
     \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$arD}.
           Add indexing register \Register{\$ixD} to register \Register{\$arD}.
+    \item When storing from \Register{\$ac0.m} or \Register{\$ac1.m}, optionally apply saturation depending on the value of \RegisterField{\$sr.SXM} (see \nameref{subsec:SET40}).
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
@@ -4950,13 +5035,13 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{0000 0010 1101 cccc}{RETcc}
 \OpcodeRow{0000 0010 1111 cccc}{RTIcc}
 \OpcodeRowSkip
-\OpcodeRow{0000 001r 0000 0000 iiii iiii iiii iiii}{ADDI}
-\OpcodeRow{0000 001r 0010 0000 iiii iiii iiii iiii}{XORI}
-\OpcodeRow{0000 001r 0100 0000 iiii iiii iiii iiii}{ANDI}
-\OpcodeRow{0000 001r 0110 0000 iiii iiii iiii iiii}{ORI}
-\OpcodeRow{0000 001r 1000 0000 iiii iiii iiii iiii}{CMPI}
-\OpcodeRow{0000 001r 1010 0000 iiii iiii iiii iiii}{ANDF}
-\OpcodeRow{0000 001r 1100 0000 iiii iiii iiii iiii}{ANDCF}
+\OpcodeRow{0000 001d 0000 0000 iiii iiii iiii iiii}{ADDI}
+\OpcodeRow{0000 001d 0010 0000 iiii iiii iiii iiii}{XORI}
+\OpcodeRow{0000 001d 0100 0000 iiii iiii iiii iiii}{ANDI}
+\OpcodeRow{0000 001d 0110 0000 iiii iiii iiii iiii}{ORI}
+\OpcodeRow{0000 001d 1000 0000 iiii iiii iiii iiii}{CMPI}
+\OpcodeRow{0000 001d 1010 0000 iiii iiii iiii iiii}{ANDF}
+\OpcodeRow{0000 001d 1100 0000 iiii iiii iiii iiii}{ANDCF}
 \OpcodeRowSkip
 \OpcodeRow{0000 0010 1100 1010}{LSRN}
 \OpcodeRow{0000 0010 1100 1011}{ASRN}
@@ -5063,7 +5148,7 @@ Instruction & Opcode & Page \\ \hline
 \OpcodeRow{101s t11r xxxx xxxx}{MULXMV}
 \OpcodeRowSkip
 \OpcodeRow{110s t000 xxxx xxxx}{MULC}
-\OpcodeRow{110r s001 xxxx xxxx}{CMPAR}
+\OpcodeRow{110r s001 xxxx xxxx}{CMPAXH}
 \OpcodeRow{110s t01r xxxx xxxx}{MULCMVZ}
 \OpcodeRow{110s t10r xxxx xxxx}{MULCAC}
 \OpcodeRow{110s t11r xxxx xxxx}{MULCMV}

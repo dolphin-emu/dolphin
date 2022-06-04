@@ -122,15 +122,23 @@ enum : int
   DSP_REG_AXH1 = 0x1b,
 
   // Accumulator (global)
-  DSP_REG_ACC0 = 0x1c,
-  DSP_REG_ACC1 = 0x1d,
-
   DSP_REG_ACL0 = 0x1c,  // Low accumulator
   DSP_REG_ACL1 = 0x1d,
   DSP_REG_ACM0 = 0x1e,  // Mid accumulator
   DSP_REG_ACM1 = 0x1f,
   DSP_REG_ACH0 = 0x10,  // Sign extended 8 bit register 0
-  DSP_REG_ACH1 = 0x11   // Sign extended 8 bit register 1
+  DSP_REG_ACH1 = 0x11,  // Sign extended 8 bit register 1
+};
+
+enum : int
+{
+  // Magic values used by DSPTables.h
+  // These do not correspond to real registers like above, but instead combined versions of the
+  // registers.
+  DSP_REG_ACC0_FULL = 0x20,
+  DSP_REG_ACC1_FULL = 0x21,
+  DSP_REG_AX0_FULL = 0x22,
+  DSP_REG_AX1_FULL = 0x23,
 };
 
 // Hardware registers address

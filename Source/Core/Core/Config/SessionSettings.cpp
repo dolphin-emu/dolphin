@@ -15,4 +15,6 @@ const Info<bool> SESSION_GCI_FOLDER_CURRENT_GAME_ONLY{
     {System::Session, "Core", "GCIFolderCurrentGameOnly"}, false};
 const Info<bool> SESSION_CODE_SYNC_OVERRIDE{{System::Session, "Core", "CheatSyncOverride"}, false};
 const Info<bool> SESSION_SAVE_DATA_WRITABLE{{System::Session, "Core", "SaveDataWritable"}, true};
+const Info<bool> SESSION_SHOULD_FAKE_ERROR_001{{System::Session, "Core", "ShouldFakeError001"},
+                                               false};
 }  // namespace Config

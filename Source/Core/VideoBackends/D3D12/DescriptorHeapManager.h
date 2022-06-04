@@ -68,6 +68,6 @@ private:
 
   D3D12_CPU_DESCRIPTOR_HANDLE m_heap_base_cpu{};
 
-  std::unordered_map<SamplerState::StorageType, D3D12_CPU_DESCRIPTOR_HANDLE> m_sampler_map;
+  std::unordered_map<SamplerState, D3D12_CPU_DESCRIPTOR_HANDLE> m_sampler_map;
 };
 }  // namespace DX12

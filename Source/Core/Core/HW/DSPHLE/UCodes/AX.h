@@ -18,6 +18,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/Memmap.h"
 
 namespace DSP::HLE
 {
@@ -28,33 +29,37 @@ class DSPHLE;
 // mixer_control value to an AXMixControl bitfield.
 enum AXMixControl
 {
-  MIX_L = 0x000001,
-  MIX_L_RAMP = 0x000002,
-  MIX_R = 0x000004,
-  MIX_R_RAMP = 0x000008,
-  MIX_S = 0x000010,
-  MIX_S_RAMP = 0x000020,
+  // clang-format off
+  MIX_MAIN_L      = 0x000001,
+  MIX_MAIN_L_RAMP = 0x000002,
+  MIX_MAIN_R      = 0x000004,
+  MIX_MAIN_R_RAMP = 0x000008,
+  MIX_MAIN_S      = 0x000010,
+  MIX_MAIN_S_RAMP = 0x000020,
 
-  MIX_AUXA_L = 0x000040,
+  MIX_AUXA_L      = 0x000040,
   MIX_AUXA_L_RAMP = 0x000080,
-  MIX_AUXA_R = 0x000100,
+  MIX_AUXA_R      = 0x000100,
   MIX_AUXA_R_RAMP = 0x000200,
-  MIX_AUXA_S = 0x000400,
+  MIX_AUXA_S      = 0x000400,
   MIX_AUXA_S_RAMP = 0x000800,
 
-  MIX_AUXB_L = 0x001000,
+  MIX_AUXB_L      = 0x001000,
   MIX_AUXB_L_RAMP = 0x002000,
-  MIX_AUXB_R = 0x004000,
+  MIX_AUXB_R      = 0x004000,
   MIX_AUXB_R_RAMP = 0x008000,
-  MIX_AUXB_S = 0x010000,
+  MIX_AUXB_S      = 0x010000,
   MIX_AUXB_S_RAMP = 0x020000,
 
-  MIX_AUXC_L = 0x040000,
+  MIX_AUXC_L      = 0x040000,
   MIX_AUXC_L_RAMP = 0x080000,
-  MIX_AUXC_R = 0x100000,
+  MIX_AUXC_R      = 0x100000,
   MIX_AUXC_R_RAMP = 0x200000,
-  MIX_AUXC_S = 0x400000,
-  MIX_AUXC_S_RAMP = 0x800000
+  MIX_AUXC_S      = 0x400000,
+  MIX_AUXC_S_RAMP = 0x800000,
+
+  MIX_ALL_RAMPS   = 0xAAAAAA,
+  // clang-format on
 };
 
 class AXUCode : public UCodeInterface
@@ -82,9 +87,9 @@ protected:
   };
 
   // 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
-  int m_samples_left[32 * 5]{};
-  int m_samples_right[32 * 5]{};
-  int m_samples_surround[32 * 5]{};
+  int m_samples_main_left[32 * 5]{};
+  int m_samples_main_right[32 * 5]{};
+  int m_samples_main_surround[32 * 5]{};
   int m_samples_auxA_left[32 * 5]{};
   int m_samples_auxA_right[32 * 5]{};
   int m_samples_auxA_surround[32 * 5]{};
@@ -137,6 +142,33 @@ protected:
   virtual void HandleCommandList();
   void SignalWorkEnd();
 
+  struct BufferDesc
+  {
+    int* ptr;
+    int samples_per_milli;
+  };
+
+  template <int Millis, size_t BufCount>
+  void InitMixingBuffers(u32 init_addr, const std::array<BufferDesc, BufCount>& buffers)
+  {
+    std::array<u16, 3 * BufCount> init_array;
+    Memory::CopyFromEmuSwapped(init_array.data(), init_addr, sizeof(init_array));
+    for (size_t i = 0; i < BufCount; ++i)
+    {
+      const BufferDesc& buf = buffers[i];
+      s32 value = s32((u32(init_array[3 * i]) << 16) | init_array[3 * i + 1]);
+      s16 delta = init_array[3 * i + 2];
+      if (value == 0)
+      {
+        memset(buf.ptr, 0, Millis * buf.samples_per_milli * sizeof(int));
+      }
+      else
+      {
+        for (int j = 0; j < Millis * buf.samples_per_milli; ++j)
+          buf.ptr[j] = value + j * delta;
+      }
+    }
+  }
   void SetupProcessing(u32 init_addr);
   void DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb);
   void ProcessPBList(u32 pb_addr);

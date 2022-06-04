@@ -1,11 +1,12 @@
 // Copyright 2013 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/GL/GLExtensions/GLExtensions.h"
+
 #include <sstream>
 #include <unordered_map>
 
 #include "Common/GL/GLContext.h"
-#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/Logging/Log.h"
 
 #if defined(__linux__) || defined(__APPLE__)

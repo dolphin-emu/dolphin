@@ -2,9 +2,19 @@
 *.a
 *.so
 *.exe
+.vscode/
 tags
 TAGS
+bazel-*
 build/
 Test/localResults/
 External/googletest
 External/spirv-tools
+out/
+
+# GN generated files
+.cipd/
+*.gclient_entries
+third_party/
+buildtools/
+tools/

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/text_type"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_medlarge"
+        tools:text="@string/user_data_new_location"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/barrier_buttons"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/text_path"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintWidth_max="400dp" />
+
+    <TextView
+        android:id="@+id/text_path"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_medlarge"
+        tools:text="/storage/emulated/0/Android/data/org.dolphinemu.dolphinemu/files"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/barrier_buttons"
+        app:layout_constraintTop_toBottomOf="@id/text_type"
+        app:layout_constraintBottom_toTopOf="@id/text_android_11"
+        app:layout_constraintWidth_max="400dp" />
+
+    <TextView
+        android:id="@+id/text_android_11"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_medlarge"
+        android:text="@string/user_data_new_location_android_11"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/barrier_buttons"
+        app:layout_constraintTop_toBottomOf="@id/text_path"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_max="400dp" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="text_type,text_path,text_android_11" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="button_open_system_file_manager,button_import_user_data,button_export_user_data" />
+
+    <Button
+        android:id="@+id/button_open_system_file_manager"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_small"
+        android:text="@string/user_data_open_system_file_manager"
+        android:textColor="@color/dolphin_white"
+        app:layout_constraintStart_toEndOf="@id/barrier_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/button_import_user_data"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintWidth_max="400dp" />
+
+    <Button
+        android:id="@+id/button_import_user_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_small"
+        android:text="@string/user_data_import"
+        android:textColor="@color/dolphin_white"
+        app:layout_constraintStart_toEndOf="@id/barrier_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_open_system_file_manager"
+        app:layout_constraintBottom_toTopOf="@id/button_export_user_data"
+        app:layout_constraintWidth_max="400dp" />
+
+    <Button
+        android:id="@+id/button_export_user_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_small"
+        android:text="@string/user_data_export"
+        android:textColor="@color/dolphin_white"
+        app:layout_constraintStart_toEndOf="@id/barrier_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_import_user_data"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_max="400dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

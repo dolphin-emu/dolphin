@@ -1,6 +1,8 @@
 // Copyright 2008 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "Common/MemoryUtil.h"
+
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -8,7 +10,6 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 
 #ifdef _WIN32
@@ -40,11 +41,7 @@ void* AllocateExecutableMemory(size_t size)
 #else
   int map_flags = MAP_ANON | MAP_PRIVATE;
 #if defined(__APPLE__)
-  // This check is in place to prepare for x86_64 MAP_JIT support. While MAP_JIT did exist
-  // prior to 10.14, it had restrictions on the number of JIT allocations that were removed
-  // in 10.14.
-  if (__builtin_available(macOS 10.14, *))
-    map_flags |= MAP_JIT;
+  map_flags |= MAP_JIT;
 #endif
   void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, map_flags, -1, 0);
   if (ptr == MAP_FAILED)

@@ -96,13 +96,13 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
 
     Context context = clicked.getContext();
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase)
+    AlertDialog.Builder builder = new AlertDialog.Builder(context)
             .setMessage(R.string.setting_clear_confirm);
 
     builder
             .setPositiveButton(R.string.ok, (dialog, whichButton) ->
             {
-              getAdapter().clearSetting(item, getAdapterPosition());
+              getAdapter().clearSetting(item, getBindingAdapterPosition());
               bind(item);
               Toast.makeText(context, R.string.setting_cleared, Toast.LENGTH_SHORT).show();
               dialog.dismiss();

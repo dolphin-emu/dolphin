@@ -1,6 +1,8 @@
 // Copyright 2018 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "DolphinQt/TAS/WiiTASInputWindow.h"
+
 #include <cmath>
 
 #include <QCheckBox>
@@ -31,7 +33,6 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/IRWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
-#include "DolphinQt/TAS/WiiTASInputWindow.h"
 
 #include "InputCommon/InputConfig.h"
 
@@ -39,8 +40,8 @@ using namespace WiimoteCommon;
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
 {
-  const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_F);
-  const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_G);
+  const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_F);
+  const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT | Qt::Key_G);
 
   m_ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
                                .arg(tr("IR"),

@@ -24,6 +24,7 @@ public:
   void AddWatch(QString name, u32 addr);
 signals:
   void RequestMemoryBreakpoint(u32 addr);
+  void ShowMemory(u32 addr);
 
 protected:
   void closeEvent(QCloseEvent*) override;
@@ -47,7 +48,7 @@ private:
   void OnItemChanged(QTableWidgetItem* item);
   void DeleteWatch(int row);
   void AddWatchBreakpoint(int row);
-
+  void ShowInMemory(int row);
   void UpdateIcons();
 
   QAction* m_new;

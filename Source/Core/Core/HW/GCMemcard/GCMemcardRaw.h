@@ -17,10 +17,11 @@ class PointerWrap;
 class MemoryCard : public MemoryCardBase
 {
 public:
-  MemoryCard(const std::string& filename, int card_index,
+  MemoryCard(const std::string& filename, ExpansionInterface::Slot card_slot,
              u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043);
   ~MemoryCard();
-  static void CheckPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
+  static void CheckPath(std::string& memcardPath, const std::string& gameRegion,
+                        ExpansionInterface::Slot slot);
   void FlushThread();
   void MakeDirty();
 
