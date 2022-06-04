@@ -90,6 +90,15 @@ void CleanupFromPreviousUpdate()
 #else
   File::Delete(reloc_updater_path);
 #endif
+
+#ifdef __APPLE__
+  // Clean up the old separate updater app if it exists.
+  const std::string old_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
+  if (File::Exists(old_updater_path))
+  {
+    File::DeleteDirRecursively(old_updater_path);
+  }
+#endif
 }
 #endif
 
