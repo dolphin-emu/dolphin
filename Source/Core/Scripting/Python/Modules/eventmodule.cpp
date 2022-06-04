@@ -222,7 +222,7 @@ async def memorybreakpoint():
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
   {
-    ERROR_LOG(SCRIPTING, "Failed to load embedded python code into event module");
+    ERROR_LOG_FMT(SCRIPTING, "Failed to load embedded python code into event module");
   }
   API::EventHub* event_hub = PyScripting::PyScriptingBackend::GetCurrent()->GetEventHub();
   state->event_hub = event_hub;

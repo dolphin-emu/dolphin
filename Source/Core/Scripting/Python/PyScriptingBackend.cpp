@@ -37,28 +37,28 @@ static PyThreadState* InitMainPythonInterpreter()
 #endif
 
   if (PyImport_AppendInittab("dolio_stdout", PyInit_dolio_stdout) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolio_stdout to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolio_stdout to builtins");
   if (PyImport_AppendInittab("dolio_stderr", PyInit_dolio_stderr) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolio_stderr to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolio_stderr to builtins");
   if (PyImport_AppendInittab("dolphin_memory", PyInit_memory) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolphin_memory to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_memory to builtins");
   if (PyImport_AppendInittab("dolphin_event", PyInit_event) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolphin_event to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_event to builtins");
   if (PyImport_AppendInittab("dolphin_gui", PyInit_gui) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolphin_gui to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_gui to builtins");
   if (PyImport_AppendInittab("dolphin_savestate", PyInit_savestate) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolphin_savestate to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_savestate to builtins");
   if (PyImport_AppendInittab("dolphin_controller", PyInit_controller) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolphin_controller to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin_controller to builtins");
 
   if (PyImport_AppendInittab("dolphin", PyInit_dolphin) == -1)
-    ERROR_LOG(SCRIPTING, "failed to add dolphin to builtins");
+    ERROR_LOG_FMT(SCRIPTING, "failed to add dolphin to builtins");
 
 #ifdef _WIN32
   Py_SetPythonHome(const_cast<wchar_t*>(python_home.c_str()));
   Py_SetPath(python_path.c_str());
 #endif
-  INFO_LOG(SCRIPTING, "Initializing embedded python... %s", Py_GetVersion());
+  INFO_LOG_FMT(SCRIPTING, "Initializing embedded python... {}", Py_GetVersion());
   Py_InitializeEx(0);
 
   // Starting with Python 3.7 Py_Initialize* also initializes the GIL in a locked state.
@@ -76,7 +76,7 @@ static void Init(std::filesystem::path script_filepath)
 
   if (!std::filesystem::exists(script_filepath))
   {
-    ERROR_LOG(SCRIPTING, "Script filepath was not found: %s", script_filepath_str.c_str());
+    ERROR_LOG_FMT(SCRIPTING, "Script filepath was not found: {}", script_filepath_str.c_str());
     return;
   }
 
@@ -103,7 +103,7 @@ static void ShutdownMainPythonInterpreter()
 {
   if (Py_FinalizeEx() != 0)
   {
-    ERROR_LOG(SCRIPTING, "Unexpectedly failed to finalize python");
+    ERROR_LOG_FMT(SCRIPTING, "Unexpectedly failed to finalize python");
   }
 }
 
@@ -131,13 +131,13 @@ PyScriptingBackend::PyScriptingBackend(std::filesystem::path script_filepath,
     Py::Object result_stdout = Py::Wrap(PyImport_ImportModule("dolio_stdout"));
     if (result_stdout.IsNull())
     {
-      ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stdout for stdout");
+      ERROR_LOG_FMT(SCRIPTING, "Error auto-importing dolio_stdout for stdout");
       PyErr_Print();
     }
     Py::Object result_stderr = Py::Wrap(PyImport_ImportModule("dolio_stderr"));
     if (result_stderr.IsNull())
     {
-      ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stderr for stderr");
+      ERROR_LOG_FMT(SCRIPTING, "Error auto-importing dolio_stderr for stderr");
       PyErr_Print();
     }
   }

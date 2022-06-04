@@ -14,7 +14,7 @@ namespace Scripting
 
 ScriptingBackend::ScriptingBackend(std::filesystem::path script_filepath)
 {
-  INFO_LOG(SCRIPTING, "Initializing scripting engine...");
+  INFO_LOG_FMT(SCRIPTING, "Initializing scripting engine...");
   // There is only support for python right now.
   // If there was support for multiple backend, a fitting one could be
   // detected based on the script file's extension for example.
@@ -25,7 +25,7 @@ ScriptingBackend::ScriptingBackend(std::filesystem::path script_filepath)
 ScriptingBackend::~ScriptingBackend() {
   if (m_state != nullptr)
   {
-    INFO_LOG(SCRIPTING, "Shutting down scripting engine...");
+    INFO_LOG_FMT(SCRIPTING, "Shutting down scripting engine...");
     delete (PyScripting::PyScriptingBackend*)m_state;
     m_state = nullptr;
   }

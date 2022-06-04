@@ -36,14 +36,14 @@ void HandleCoroutine(const Py::Object module, const Py::Object coro, const Py::O
   PyObject* args_tuple;
   if (!PyArg_ParseTuple(asyncEventTuple.Lend(), "ssO", &magic_string, &event_name, &args_tuple))
   {
-    ERROR_LOG(SCRIPTING, "A coroutine was yielded to the emulator that it cannot process. "
+    ERROR_LOG_FMT(SCRIPTING, "A coroutine was yielded to the emulator that it cannot process. "
                          "Did you await something that isn't a dolphin event? "
                          "(error: await-tuple was not (str, str, args))");
     return;
   }
   if (std::string(magic_string) != "dolphin_async_event_magic_string")
   {
-    ERROR_LOG(SCRIPTING, "A coroutine was yielded to the emulator that it cannot process. "
+    ERROR_LOG_FMT(SCRIPTING, "A coroutine was yielded to the emulator that it cannot process. "
                          "Did you await something that isn't a dolphin event? "
                          "(error: wrong magic string to identify as dolphin-native event)");
     return;
@@ -56,7 +56,7 @@ void HandleCoroutine(const Py::Object module, const Py::Object coro, const Py::O
   auto scheduler_opt = GetCoroutineScheduler(event_name);
   if (!scheduler_opt.has_value())
   {
-    ERROR_LOG(SCRIPTING, "An unknown event was tried to be awaited: %s", event_name);
+    ERROR_LOG_FMT(SCRIPTING, "An unknown event was tried to be awaited: {}", event_name);
     return;
   }
   std::function<void(const Py::Object, const Py::Object)> scheduler = scheduler_opt.value();

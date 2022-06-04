@@ -39,7 +39,6 @@ public:
   void DrawText(const Vec2f pos, u32 color, std::string text);
   void DrawPolyline(const std::vector<Vec2f> points, u32 color, bool closed, float thickness);
   void DrawConvexPolyFilled(const std::vector<Vec2f> points, u32 color);
-  void DrawBezierCurve(const Vec2f pos0, const Vec2f cp0, const Vec2f cp1, const Vec2f pos1, u32 color, float thickness, int num_segments = 0);
 
 private:
   // Pushing all draw calls onto a vector of functions is probably not

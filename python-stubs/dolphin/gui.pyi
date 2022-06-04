@@ -104,10 +104,3 @@ def draw_convex_poly_filled(points: list[Position], color: int):
     Draws a convex polygon through a list of points.
     Points should be defined in clockwise order.
     """
-
-
-def draw_bezier_curve(pos0: Position, cp0: Position, cp1: Position, pos1: Position, color: int, thickness: float = 1,
-                      num_segments: int = 0):
-    """
-    Draws a bezier curve for the given start- and endpoint and two control points.
-    """

@@ -40,7 +40,7 @@ __all__ = [event, memory, gui, savestate, controller]
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
   {
-    ERROR_LOG(SCRIPTING, "Failed to load embedded python code into dolphin module");
+    ERROR_LOG_FMT(SCRIPTING, "Failed to load embedded python code into dolphin module");
   }
 }
 

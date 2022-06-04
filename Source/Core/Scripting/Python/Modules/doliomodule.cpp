@@ -23,7 +23,7 @@ static void flush_stdout(PyObject* module)
   auto content = state->buffer.str();
   if (content.empty())
     return;
-  NOTICE_LOG(SCRIPTING, "Script stdout: %s", content.c_str());
+  NOTICE_LOG_FMT(SCRIPTING, "Script stdout: {}", content.c_str());
   state->buffer.str("");
 }
 
@@ -33,7 +33,7 @@ static void flush_stderr(PyObject* module)
   auto content = state->buffer.str();
   if (content.empty())
     return;
-  ERROR_LOG(SCRIPTING, "Script stderr: %s", content.c_str());
+  ERROR_LOG_FMT(SCRIPTING, "Script stderr: {}", content.c_str());
   state->buffer.str("");
 }
 

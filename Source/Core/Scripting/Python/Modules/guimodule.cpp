@@ -154,15 +154,6 @@ static PyObject* draw_convex_poly_filled(PyObject* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
-static void draw_bezier_curve(PyObject* self, float pos0x, float pos0y, float cp0x, float cp0y, float cp1x,
-                       float cp1y, float pos1x, float pos1y, u32 color, float thickness,
-                       int num_segments = 0)
-{
-  GuiModuleState* state = Py::GetState<GuiModuleState>(self);
-  state->gui->DrawBezierCurve({pos0x, pos0y}, {cp0x, cp0y}, {cp1x, cp1y}, {pos1x, pos1y}, color,
-                              thickness, num_segments);
-}
-
 static void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
   static const char pycode[] = R"(
@@ -208,14 +199,11 @@ def draw_polyline(points, color, closed = False, thickness = 1):
 
 def draw_convex_poly_filled(points, color):
     _draw_convex_poly_filled(points, color)
-
-def draw_bezier_curve(pos0, cp0, cp1, pos1, color, thickness = 1, num_segments = 0):
-    _draw_bezier_curve(pos0[0], pos0[1], cp0[0], cp0[1], cp1[0], cp1[1], pos1[0], pos1[1], color, thickness, num_segments)
 )";
   Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
   {
-    ERROR_LOG(SCRIPTING, "Failed to load embedded python code into gui module");
+    ERROR_LOG_FMT(SCRIPTING, "Failed to load embedded python code into gui module");
   }
   API::Gui* gui = PyScripting::PyScriptingBackend::GetCurrent()->GetGui();
   state->gui = gui;
@@ -244,7 +232,6 @@ PyMODINIT_FUNC PyInit_gui()
       {"_draw_text", Py::as_py_func<draw_text>, METH_VARARGS, ""},
       {"_draw_polyline", draw_polyline, METH_VARARGS, ""},
       {"_draw_convex_poly_filled", draw_convex_poly_filled, METH_VARARGS, ""},
-      {"_draw_bezier_curve", Py::as_py_func<draw_bezier_curve>, METH_VARARGS, ""},
 
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };

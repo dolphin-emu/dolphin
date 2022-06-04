@@ -199,7 +199,7 @@ static T ReadFromHardware(u32 em_address)
     // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
     u64 var = 0;
     for (u32 i = 0; i < sizeof(T); ++i)
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(em_address + i);
+      var = (var << 8) | ReadFromHardware<flag, u8, TranslateCondition::Never>(em_address + i);
     return static_cast<T>(var);
   }
 

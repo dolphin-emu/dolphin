@@ -55,12 +55,13 @@ void Gui::DrawLine(const Vec2f a, const Vec2f b, u32 color, float thickness)
 
 void Gui::DrawRect(const Vec2f a, const Vec2f b, u32 color, float rounding, float thickness)
 {
-  GUI_DRAW_DEFERRED(AddRect(a, b, ARGBToABGR(color), rounding, ImDrawCornerFlags_All, thickness));
+  GUI_DRAW_DEFERRED(
+      AddRect(a, b, ARGBToABGR(color), rounding, ImDrawFlags_RoundCornersAll, thickness));
 }
 
 void Gui::DrawRectFilled(const Vec2f a, const Vec2f b, u32 color, float rounding)
 {
-  GUI_DRAW_DEFERRED(AddRectFilled(a, b, ARGBToABGR(color), rounding, ImDrawCornerFlags_All));
+  GUI_DRAW_DEFERRED(AddRectFilled(a, b, ARGBToABGR(color), rounding, ImDrawFlags_RoundCornersAll));
 }
 
 void Gui::DrawQuad(const Vec2f a, const Vec2f b, const Vec2f c, const Vec2f d, u32 color, float thickness)
@@ -107,12 +108,6 @@ void Gui::DrawPolyline(const std::vector<Vec2f> points, u32 color, bool closed, 
 void Gui::DrawConvexPolyFilled(const std::vector<Vec2f> points, u32 color)
 {
   GUI_DRAW_DEFERRED(AddConvexPolyFilled(points.data(), (int)points.size(), ARGBToABGR(color)));
-}
-
-void Gui::DrawBezierCurve(const Vec2f pos0, const Vec2f cp0, const Vec2f cp1, const Vec2f pos1, u32 color, float thickness, int num_segments)
-{
-  GUI_DRAW_DEFERRED(
-      AddBezierCurve(pos0, cp0, cp1, pos1, ARGBToABGR(color), thickness, num_segments));
 }
 
 #undef GUI_DRAW_DEFERRED

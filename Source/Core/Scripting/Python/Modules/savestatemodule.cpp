@@ -85,7 +85,7 @@ static PyObject* SaveToBytes(PyObject* self, PyObject* args)
   PyObject* pybytes = PyBytes_FromStringAndSize(reinterpret_cast<const char*>(data), buffer.size());
   if (pybytes == nullptr)
   {
-    ERROR_LOG(SCRIPTING, "Failed to turn buffer into python bytes object");
+    ERROR_LOG_FMT(SCRIPTING, "Failed to turn buffer into python bytes object");
     return nullptr;
   }
   return pybytes;
