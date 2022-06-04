@@ -70,6 +70,11 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
   return cmdline;
 }
 
+std::string GetUpdaterPath()
+{
+  return File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
+}
+
 // Used to remove the relocated updater file once we don't need it anymore.
 void CleanupFromPreviousUpdate()
 {
@@ -235,7 +240,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
     updater_flags["binary-to-restart"] = File::GetExePath();
 
   // Copy the updater so it can update itself if needed.
-  std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
+  std::string updater_path = GetUpdaterPath();
   std::string reloc_updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_RELOC_FILENAME;
 
 #ifdef __APPLE__
