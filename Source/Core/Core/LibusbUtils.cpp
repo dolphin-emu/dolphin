@@ -23,7 +23,7 @@ public:
   Impl()
   {
     const int ret = libusb_init(&m_context);
-    ASSERT_MSG(IOS_USB, ret == LIBUSB_SUCCESS, "Failed to init libusb: {}", libusb_error_name(ret));
+    ASSERT_MSG(IOS_USB, ret == LIBUSB_SUCCESS, "Failed to init libusb: {}", ErrorWrap(ret));
     if (ret != LIBUSB_SUCCESS)
       return;
 
@@ -117,5 +117,23 @@ ConfigDescriptor MakeConfigDescriptor(libusb_device* device, u8 config_num)
     return {descriptor, libusb_free_config_descriptor};
 #endif
   return {nullptr, [](auto) {}};
+}
+
+const char* ErrorWrap::GetName() const
+{
+#if defined(__LIBUSB__)
+  return libusb_error_name(m_error);
+#else
+  return "__LIBUSB__ not defined";
+#endif
+}
+
+const char* ErrorWrap::GetStrError() const
+{
+#if defined(__LIBUSB__)
+  return libusb_strerror(static_cast<libusb_error>(m_error));
+#else
+  return "__LIBUSB__ not defined";
+#endif
 }
 }  // namespace LibusbUtils
