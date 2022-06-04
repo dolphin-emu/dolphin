@@ -72,7 +72,12 @@ std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& fla
 
 std::string GetUpdaterPath()
 {
+#ifdef __APPLE__
+  // Starting with PR 10428, the updater app is now embeded in the main bundle.
+  return File::GetBundleDirectory() + "/Contents/MacOS/" + UPDATER_FILENAME;
+#else
   return File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
+#endif
 }
 
 // Used to remove the relocated updater file once we don't need it anymore.
