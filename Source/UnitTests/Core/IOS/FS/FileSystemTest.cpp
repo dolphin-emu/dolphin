@@ -93,7 +93,7 @@ TEST(FileSystem, PathSplitting)
 
 TEST_F(FileSystemTest, EssentialDirectories)
 {
-  for (const std::string& path :
+  for (const std::string path :
        {"/sys", "/ticket", "/title", "/shared1", "/shared2", "/tmp", "/import", "/meta"})
   {
     EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).Succeeded()) << path;
@@ -457,7 +457,7 @@ TEST_F(FileSystemTest, CreateFullPath)
   ASSERT_EQ(m_fs->CreateFullPath(Uid{0}, Gid{0}, "/tmp/a/b/c/d", 0, modes), ResultCode::Success);
 
   // Parent directories should be created by CreateFullPath.
-  for (const std::string& path : {"/tmp", "/tmp/a", "/tmp/a/b", "/tmp/a/b/c"})
+  for (const std::string path : {"/tmp", "/tmp/a", "/tmp/a/b", "/tmp/a/b/c"})
     EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).Succeeded());
 
   // If parent directories already exist, the call should still succeed.
