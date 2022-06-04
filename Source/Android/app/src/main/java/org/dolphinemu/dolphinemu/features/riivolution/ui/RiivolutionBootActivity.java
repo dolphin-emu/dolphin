@@ -17,6 +17,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.riivolution.model.RiivolutionPatches;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public class RiivolutionBootActivity extends AppCompatActivity
 {
@@ -41,6 +42,8 @@ public class RiivolutionBootActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    ThemeHelper.setTheme(this);
+
     super.onCreate(savedInstanceState);
 
     setContentView(R.layout.activity_riivolution_boot);

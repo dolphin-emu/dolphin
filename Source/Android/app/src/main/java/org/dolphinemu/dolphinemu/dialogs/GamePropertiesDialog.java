@@ -8,8 +8,9 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
@@ -117,16 +118,16 @@ public class GamePropertiesDialog extends DialogFragment
     itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
             clearGameSettingsWithConfirmation(gameId));
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(requireContext()
+                    .getString(R.string.preferences_game_properties_with_game_id, gameId));
     itemsBuilder.applyToBuilder(builder);
-    builder.setTitle(requireContext()
-            .getString(R.string.preferences_game_properties_with_game_id, gameId));
     return builder.create();
   }
 
   private void clearGameSettingsWithConfirmation(String gameId)
   {
-    new AlertDialog.Builder(requireContext())
+    new MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.properties_clear_game_settings)
             .setMessage(R.string.properties_clear_game_settings_confirmation)
             .setPositiveButton(R.string.yes, (dialog, i) -> clearGameSettings(gameId))

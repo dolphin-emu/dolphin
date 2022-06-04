@@ -5,7 +5,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:paddingBottom="16dp"
-              android:background="@color/dolphin_blue"
+              android:background="?attr/colorSurface"
               tools:layout_width="250dp">
 
     <TextView
@@ -18,8 +18,8 @@
         android:ellipsize="end"
         android:letterSpacing="0"
         android:maxLines="@integer/game_title_lines"
-        android:textColor="@android:color/white"
         android:textSize="20sp"
+        android:textColor="?attr/colorOnSurface"
         tools:text="The Legend of Zelda: The Wind Waker" />
 
     <ScrollView
@@ -114,7 +114,7 @@
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#FFFFFF"
+        android:background="?attr/colorOnSurfaceVariant"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="16dp"/>
 

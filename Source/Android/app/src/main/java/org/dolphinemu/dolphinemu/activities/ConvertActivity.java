@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.ConvertFragment;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
 public class ConvertActivity extends AppCompatActivity
 {
@@ -25,6 +26,8 @@ public class ConvertActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
+    ThemeHelper.setTheme(this);
+
     super.onCreate(savedInstanceState);
 
     setContentView(R.layout.activity_convert);

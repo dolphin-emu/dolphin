@@ -1,22 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar_user_data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_user_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <TextView
         android:id="@+id/text_type"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_medlarge"
-        tools:text="@string/user_data_new_location"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/divider"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/text_path"
+        app:layout_constraintEnd_toStartOf="@id/divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appbar_user_data"
         app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintWidth_max="400dp" />
+        app:layout_constraintWidth_max="400dp"
+        tools:text="@string/user_data_new_location" />
 
     <TextView
         android:id="@+id/text_path"
@@ -74,11 +91,10 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_small"
         android:text="@string/user_data_open_system_file_manager"
-        android:textColor="@color/dolphin_white"
-        app:layout_constraintStart_toEndOf="@id/divider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/button_import_user_data"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/barrier_text"
+        app:layout_constraintTop_toBottomOf="@+id/appbar_user_data"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintWidth_max="400dp" />
 
@@ -88,8 +104,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_small"
         android:text="@string/user_data_import"
-        android:textColor="@color/dolphin_white"
-        app:layout_constraintStart_toEndOf="@id/divider"
+        app:layout_constraintStart_toEndOf="@id/barrier_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/button_open_system_file_manager"
         app:layout_constraintBottom_toTopOf="@id/button_export_user_data"
@@ -101,8 +116,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/spacing_small"
         android:text="@string/user_data_export"
-        android:textColor="@color/dolphin_white"
-        app:layout_constraintStart_toEndOf="@id/divider"
+        app:layout_constraintStart_toEndOf="@id/barrier_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/button_import_user_data"
         app:layout_constraintBottom_toBottomOf="parent"

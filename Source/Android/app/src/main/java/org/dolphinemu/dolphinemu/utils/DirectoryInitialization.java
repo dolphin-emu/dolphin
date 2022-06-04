@@ -20,6 +20,7 @@ import androidx.lifecycle.MutableLiveData;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -76,6 +77,15 @@ public final class DirectoryInitialization
     NativeLibrary.ReportStartToAnalytics();
 
     areDirectoriesAvailable = true;
+
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    if (IntSetting.MAIN_INTERFACE_THEME.getIntGlobal() !=
+            preferences.getInt(ThemeHelper.CURRENT_THEME, ThemeHelper.DEFAULT))
+    {
+      preferences.edit()
+              .putInt(ThemeHelper.CURRENT_THEME, IntSetting.MAIN_INTERFACE_THEME.getIntGlobal())
+              .apply();
+    }
 
     if (wiimoteIniWritten)
     {

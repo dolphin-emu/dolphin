@@ -33,6 +33,7 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_CONTROL_OPACITY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlOpacity", 65),
   MAIN_EMULATION_ORIENTATION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
           "EmulationOrientation", ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE),
+  MAIN_INTERFACE_THEME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "InterfaceTheme", 0),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
   MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
   MAIN_IR_MODE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "IRMode",

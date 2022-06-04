@@ -6,10 +6,10 @@ import android.content.Context;
 import android.os.Build;
 
 import androidx.annotation.Keep;
-import androidx.appcompat.app.AlertDialog;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
@@ -36,17 +36,11 @@ public class Analytics
 
   private static void showMessage(Context context)
   {
-    new AlertDialog.Builder(context)
+    new MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.analytics))
             .setMessage(context.getString(R.string.analytics_desc))
-            .setPositiveButton(R.string.yes, (dialogInterface, i) ->
-            {
-              firstAnalyticsAdd(true);
-            })
-            .setNegativeButton(R.string.no, (dialogInterface, i) ->
-            {
-              firstAnalyticsAdd(false);
-            })
+            .setPositiveButton(R.string.yes, (dialogInterface, i) -> firstAnalyticsAdd(true))
+            .setNegativeButton(R.string.no, (dialogInterface, i) -> firstAnalyticsAdd(false))
             .show();
   }
 

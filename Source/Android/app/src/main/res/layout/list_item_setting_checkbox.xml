@@ -43,7 +43,6 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/spacing_large"
-        android:buttonTint="@color/dolphin_blue"
         android:clickable="false"
         android:focusable="false"
         android:minHeight="0dp"

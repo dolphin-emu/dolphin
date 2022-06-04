@@ -43,6 +43,7 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
+import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 import org.dolphinemu.dolphinemu.utils.ThreadUtil;
 import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
@@ -323,6 +324,50 @@ public final class SettingsFragmentPresenter
             R.string.download_game_covers, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_SHOW_GAME_TITLES,
             R.string.show_titles_in_game_list, R.string.show_titles_in_game_list_description));
+
+    AbstractIntSetting appTheme = new AbstractIntSetting()
+    {
+      @Override public boolean isOverridden(Settings settings)
+      {
+        return IntSetting.MAIN_INTERFACE_THEME.isOverridden(settings);
+      }
+
+      @Override public boolean isRuntimeEditable()
+      {
+        // This only affects app UI
+        return true;
+      }
+
+      @Override public boolean delete(Settings settings)
+      {
+        ThemeHelper.deleteThemeKey(mView.getActivity());
+        return IntSetting.MAIN_INTERFACE_THEME.delete(settings);
+      }
+
+      @Override public int getInt(Settings settings)
+      {
+        return IntSetting.MAIN_INTERFACE_THEME.getInt(settings);
+      }
+
+      @Override public void setInt(Settings settings, int newValue)
+      {
+        ThemeHelper.saveTheme(mView.getActivity(), newValue);
+        IntSetting.MAIN_INTERFACE_THEME.setInt(settings, newValue);
+        mView.getActivity().recreate();
+      }
+    };
+
+    // If a Monet theme is run on a device below API 31, the app will crash
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    {
+      sl.add(new SingleChoiceSetting(mContext, appTheme, R.string.change_theme, 0,
+              R.array.themeEntriesA12, R.array.themeValuesA12));
+    }
+    else
+    {
+      sl.add(new SingleChoiceSetting(mContext, appTheme, R.string.change_theme, 0,
+              R.array.themeEntries, R.array.themeValues));
+    }
   }
 
   private void addAudioSettings(ArrayList<SettingsItem> sl)
