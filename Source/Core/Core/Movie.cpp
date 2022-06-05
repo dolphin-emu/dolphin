@@ -79,7 +79,7 @@ namespace fs = std::filesystem;
 #include <direct.h>
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
-#include <ShlObj_core.h>
+#include "Core/StateAuxillary.h"
 
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
@@ -1306,6 +1306,9 @@ static void CheckInputEnd()
       (CoreTiming::GetTicks() > s_totalTickCount && !IsRecordingInputFromSaveState()))
   {
     EndPlayInput(!s_bReadOnly);
+    // delete citrus residue if any
+    std::thread t1(&StateAuxillary::endPlayback);
+    t1.detach();
   }
 }
 
@@ -1468,22 +1471,6 @@ void EndPlayInput(bool cont)
     s_playMode = PlayMode::None;
     Core::DisplayMessage("Movie End.", 2000);
     s_bRecordingFromSaveState = false;
-    // delete citrus residue if any
-    PWSTR path;
-    SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
-    std::wstring strpath(path);
-    CoTaskMemFree(path);
-    std::string documents_file_path(strpath.begin(), strpath.end());
-    std::string replays_path = documents_file_path;
-    replays_path += "\\Citrus Replays\\";
-    std::string fileArr[3] = {"output.dtm", "output.dtm.sav", "output.json"};
-    for (int i = 0; i < 3; i++)
-    {
-      std::string innerFileName = replays_path + fileArr[i];
-      std::filesystem::remove(innerFileName);
-    }
-
-
     // we don't clear these things because otherwise we can't resume playback if we load a movie
     // state later
     // s_totalFrames = s_totalBytes = 0;

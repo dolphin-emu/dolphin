@@ -7,6 +7,7 @@
 #include <Core/HW/Wiimote.h>
 #include <Core/Core.h>
 #include <Core/Metadata.h>
+#include <ShlObj_core.h>
 
 static NetPlay::PadMappingArray netplayGCMap;
 
@@ -69,6 +70,23 @@ void StateAuxillary::stopRecording(const std::string replay_path, tm* matchDateT
   Metadata::setMatchMetadata(matchDateTimeParam);
   std::string jsonString = Metadata::getJSONString();
   Metadata::writeJSON(jsonString, true);
+}
+
+void StateAuxillary::endPlayback()
+{
+  PWSTR path;
+  SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &path);
+  std::wstring strpath(path);
+  CoTaskMemFree(path);
+  std::string documents_file_path(strpath.begin(), strpath.end());
+  std::string replays_path = documents_file_path;
+  replays_path += "\\Citrus Replays\\";
+  std::string fileArr[3] = {"output.dtm", "output.dtm.sav", "output.json"};
+  for (int i = 0; i < 3; i++)
+  {
+    std::string innerFileName = replays_path + fileArr[i];
+    std::filesystem::remove(innerFileName);
+  }
 }
 
 void StateAuxillary::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map)
