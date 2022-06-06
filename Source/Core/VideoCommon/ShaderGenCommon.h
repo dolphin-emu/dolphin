@@ -209,12 +209,12 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
                                       bool in = false);
 
 // bitfieldExtract generator for BitFieldView types>
-template <typename BFView_t>
-std::string BFViewExtract(std::string_view source)
+template <typename field_t, const std::size_t start, const std::size_t width, typename host_t>
+std::string BFViewExtract(std::string_view source,
+                          BitFieldFixedView<field_t, start, width, host_t> /*unused*/)
 {
-  return fmt::format("bitfieldExtract({}({}), {}, {})",
-                     std::is_signed_v<typename BFView_t::field_t> ? "int" : "uint", source,
-                     static_cast<u32>(BFView_t::start), static_cast<u32>(BFView_t::width));
+  return fmt::format("bitfieldExtract({}({}), {}, {})", std::is_signed_v<field_t> ? "int" : "uint",
+                     source, static_cast<u32>(start), static_cast<u32>(width));
 }
 
 template <auto last_member, typename = decltype(last_member)>

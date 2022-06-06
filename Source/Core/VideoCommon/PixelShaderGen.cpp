@@ -594,7 +594,7 @@ uint WrapCoord(int coord, uint wrap, int size) {{
       out.Write("  uint texmode0 = samp_texmode0(texmap);\n"
                 "  float lod_bias = float({}) / 256.0f;\n"
                 "  return iround(255.0 * texture(tex, coords, lod_bias));\n",
-                BFViewExtract<decltype(SamplerState::TM0().lod_bias())>("texmode0"));
+                BFViewExtract("texmode0", SamplerState::TM0().lod_bias()));
     }
     else
     {
@@ -621,17 +621,17 @@ uint WrapCoord(int coord, uint wrap, int size) {{
   int min_lod = int({});
   int max_lod = int({});
 )",
-              BFViewExtract<decltype(SamplerState::TM0().wrap_u())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM0().wrap_v())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM0().mag_filter())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM0().mipmap_filter())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM0().min_filter())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM0().diag_lod())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM0().lod_bias())>("texmode0"),
-              // BFViewExtract<decltype(SamplerState::TM0().max_aniso())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM0().lod_clamp())>("texmode0"),
-              BFViewExtract<decltype(SamplerState::TM1().min_lod())>("texmode1"),
-              BFViewExtract<decltype(SamplerState::TM1().max_lod())>("texmode1"));
+              BFViewExtract("texmode0", SamplerState::TM0().wrap_u()),
+              BFViewExtract("texmode0", SamplerState::TM0().wrap_v()),
+              BFViewExtract("texmode0", SamplerState::TM0().mag_filter()),
+              BFViewExtract("texmode0", SamplerState::TM0().mipmap_filter()),
+              BFViewExtract("texmode0", SamplerState::TM0().min_filter()),
+              BFViewExtract("texmode0", SamplerState::TM0().diag_lod()),
+              BFViewExtract("texmode0", SamplerState::TM0().lod_bias()),
+              // BFViewExtract("texmode0", SamplerState::TM0().max_aniso()),
+              BFViewExtract("texmode0", SamplerState::TM0().lod_clamp()),
+              BFViewExtract("texmode1", SamplerState::TM1().min_lod()),
+              BFViewExtract("texmode1", SamplerState::TM1().max_lod()));
 
     if (host_config.manual_texture_sampling_custom_texture_sizes())
     {

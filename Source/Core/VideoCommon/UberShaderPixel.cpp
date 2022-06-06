@@ -265,14 +265,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  // AKA: Color Channel Swapping\n"
             "\n"
             "  int4 ret;\n");
-  out.Write("  ret.r = color[{}];\n",
-            BFViewExtract<decltype(TevKSel().swap1())>("bpmem_tevksel(s * 2u)"));
-  out.Write("  ret.g = color[{}];\n",
-            BFViewExtract<decltype(TevKSel().swap2())>("bpmem_tevksel(s * 2u)"));
+  out.Write("  ret.r = color[{}];\n", BFViewExtract("bpmem_tevksel(s * 2u)", TevKSel().swap1()));
+  out.Write("  ret.g = color[{}];\n", BFViewExtract("bpmem_tevksel(s * 2u)", TevKSel().swap2()));
   out.Write("  ret.b = color[{}];\n",
-            BFViewExtract<decltype(TevKSel().swap1())>("bpmem_tevksel(s * 2u + 1u)"));
+            BFViewExtract("bpmem_tevksel(s * 2u + 1u)", TevKSel().swap1()));
   out.Write("  ret.a = color[{}];\n",
-            BFViewExtract<decltype(TevKSel().swap2())>("bpmem_tevksel(s * 2u + 1u)"));
+            BFViewExtract("bpmem_tevksel(s * 2u + 1u)", TevKSel().swap2()));
   out.Write("  return ret;\n"
             "}}\n\n");
 
@@ -568,7 +566,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   }
 
   out.Write("  uint num_stages = {};\n\n",
-            BFViewExtract<decltype(GenMode().numtevstages())>("bpmem_genmode"));
+            BFViewExtract("bpmem_genmode", GenMode().numtevstages()));
 
   out.Write("  // Main tev loop\n");
 
@@ -596,7 +594,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
     out.Write("\n"
               "    uint tex_coord = {};\n",
-              BFViewExtract<decltype(TwoTevStageOrders().texcoord0())>("ss.order"));
+              BFViewExtract("ss.order", TwoTevStageOrders().texcoord0()));
     out.Write("    int2 fixedPoint_uv = getTexCoord(tex_coord);\n"
               "\n"
               "    bool texture_enabled = (ss.order & {}u) != 0u;\n",
@@ -607,16 +605,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "    if (tevind != 0u)\n"
               "    {{\n"
               "      uint bs = {};\n",
-              BFViewExtract<decltype(TevStageIndirect().bs())>("tevind"));
-    out.Write("      uint fmt = {};\n",
-              BFViewExtract<decltype(TevStageIndirect().fmt())>("tevind"));
-    out.Write("      uint bias = {};\n",
-              BFViewExtract<decltype(TevStageIndirect().bias())>("tevind"));
-    out.Write("      uint bt = {};\n", BFViewExtract<decltype(TevStageIndirect().bt())>("tevind"));
+              BFViewExtract("tevind", TevStageIndirect().bs()));
+    out.Write("      uint fmt = {};\n", BFViewExtract("tevind", TevStageIndirect().fmt()));
+    out.Write("      uint bias = {};\n", BFViewExtract("tevind", TevStageIndirect().bias()));
+    out.Write("      uint bt = {};\n", BFViewExtract("tevind", TevStageIndirect().bt()));
     out.Write("      uint matrix_index = {};\n",
-              BFViewExtract<decltype(TevStageIndirect().matrix_index())>("tevind"));
+              BFViewExtract("tevind", TevStageIndirect().matrix_index()));
     out.Write("      uint matrix_id = {};\n",
-              BFViewExtract<decltype(TevStageIndirect().matrix_id())>("tevind"));
+              BFViewExtract("tevind", TevStageIndirect().matrix_id()));
     out.Write("      int2 indtevtrans = int2(0, 0);\n"
               "\n");
 
@@ -693,13 +689,13 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "\n"
               "      // Wrapping\n"
               "      uint sw = {};\n",
-              BFViewExtract<decltype(TevStageIndirect().sw())>("tevind"));
-    out.Write("      uint tw = {}; \n", BFViewExtract<decltype(TevStageIndirect().tw())>("tevind"));
+              BFViewExtract("tevind", TevStageIndirect().sw()));
+    out.Write("      uint tw = {}; \n", BFViewExtract("tevind", TevStageIndirect().tw()));
     out.Write(
         "      int2 wrapped_coord = int2(Wrap(fixedPoint_uv.x, sw), Wrap(fixedPoint_uv.y, tw));\n"
         "\n"
         "      if ((tevind & {}u) != 0u) // add previous tevcoord\n",
-        1 << TevStageIndirect().fb_addprev().start);
+        1 << decltype(TevStageIndirect().fb_addprev())::start);
     out.Write("        tevcoord.xy += wrapped_coord + indtevtrans;\n"
               "      else\n"
               "        tevcoord.xy = wrapped_coord + indtevtrans;\n"
@@ -715,11 +711,11 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "    // Sample texture for stage\n"
               "    if (texture_enabled) {{\n"
               "      uint sampler_num = {};\n",
-              BFViewExtract<decltype(TwoTevStageOrders().texmap0())>("ss.order"));
+              BFViewExtract("ss.order", TwoTevStageOrders().texmap0()));
     out.Write("\n"
               "      int4 color = sampleTextureWrapper(sampler_num, tevcoord.xy, layer);\n"
               "      uint swap = {};\n",
-              BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().tswap())>("ss.ac"));
+              BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().tswap()));
     out.Write("      s.TexColor = Swizzle(swap, color);\n");
     out.Write("    }} else {{\n"
               "      // Texture is disabled\n"
@@ -732,24 +728,24 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    {{\n"
             "      // Color Combiner\n");
   out.Write("      uint color_a = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().a())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().a()));
   out.Write("      uint color_b = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().b())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().b()));
   out.Write("      uint color_c = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().c())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().c()));
   out.Write("      uint color_d = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().d())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().d()));
 
   out.Write("      uint color_bias = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().bias())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().bias()));
   out.Write("      bool color_op = bool({});\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().op())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().op()));
   out.Write("      bool color_clamp = bool({});\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().clamp())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().clamp()));
   out.Write("      uint color_scale = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().scale())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().scale()));
   out.Write("      uint color_dest = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().dest())>("ss.cc"));
+            BFViewExtract("ss.cc", TevStageCombiner::ColorCombiner().dest()));
 
   out.Write(
       "      uint color_compare_op = color_scale << 1 | uint(color_op);\n"
@@ -802,24 +798,24 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   // Alpha combiner
   out.Write("      // Alpha Combiner\n");
   out.Write("      uint alpha_a = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().a())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().a()));
   out.Write("      uint alpha_b = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().b())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().b()));
   out.Write("      uint alpha_c = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().c())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().c()));
   out.Write("      uint alpha_d = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().d())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().d()));
 
   out.Write("      uint alpha_bias = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().bias())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().bias()));
   out.Write("      bool alpha_op = bool({});\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().op())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().op()));
   out.Write("      bool alpha_clamp = bool({});\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().clamp())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().clamp()));
   out.Write("      uint alpha_scale = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().scale())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().scale()));
   out.Write("      uint alpha_dest = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().dest())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().dest()));
 
   out.Write(
       "      uint alpha_compare_op = alpha_scale << 1 | uint(alpha_op);\n"
@@ -869,12 +865,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   // Select the output color and alpha registers from the last stage.
   out.Write("  int4 TevResult;\n");
-  out.Write("  TevResult.xyz = getTevReg(s, {}).xyz;\n",
-            BFViewExtract<decltype(TevStageCombiner::ColorCombiner().dest())>(
-                "bpmem_combiners(num_stages).x"));
-  out.Write("  TevResult.w = getTevReg(s, {}).w;\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().dest())>(
-                "bpmem_combiners(num_stages).y"));
+  out.Write(
+      "  TevResult.xyz = getTevReg(s, {}).xyz;\n",
+      BFViewExtract("bpmem_combiners(num_stages).x", TevStageCombiner::ColorCombiner().dest()));
+  out.Write(
+      "  TevResult.w = getTevReg(s, {}).w;\n",
+      BFViewExtract("bpmem_combiners(num_stages).y", TevStageCombiner::AlphaCombiner().dest()));
 
   out.Write("  TevResult &= 255;\n\n");
 
@@ -958,14 +954,14 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("  if (bpmem_alphaTest != 0u) {{\n"
             "    bool comp0 = alphaCompare(TevResult.a, " I_ALPHA ".r, {});\n",
-            BFViewExtract<decltype(AlphaTest().comp0())>("bpmem_alphaTest"));
+            BFViewExtract("bpmem_alphaTest", AlphaTest().comp0()));
   out.Write("    bool comp1 = alphaCompare(TevResult.a, " I_ALPHA ".g, {});\n",
-            BFViewExtract<decltype(AlphaTest().comp1())>("bpmem_alphaTest"));
+            BFViewExtract("bpmem_alphaTest", AlphaTest().comp1()));
   out.Write("\n"
             "    // These if statements are written weirdly to work around intel and Qualcomm "
             "bugs with handling booleans.\n"
             "    switch ({}) {{\n",
-            BFViewExtract<decltype(AlphaTest().logic())>("bpmem_alphaTest"));
+            BFViewExtract("bpmem_alphaTest", AlphaTest().logic()));
   out.Write("    case 0u: // AND\n"
             "      if (comp0 && comp1) break; else discard_fragment; break;\n"
             "    case 1u: // OR\n"
@@ -1000,12 +996,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   //        Should be fixed point, and should not make guesses about Range-Based adjustments.
   out.Write("  // Fog\n"
             "  uint fog_function = {};\n",
-            BFViewExtract<decltype(FogParam3().fsel())>("bpmem_fogParam3"));
+            BFViewExtract("bpmem_fogParam3", FogParam3().fsel()));
   out.Write("  if (fog_function != {:s}) {{\n", FogType::Off);
   out.Write("    // TODO: This all needs to be converted from float to fixed point\n"
             "    float ze;\n"
             "    if ({} == 0u) {{\n",
-            BFViewExtract<decltype(FogParam3().proj())>("bpmem_fogParam3"));
+            BFViewExtract("bpmem_fogParam3", FogParam3().proj()));
   out.Write("      // perspective\n"
             "      // ze = A/(B - (Zs >> B_SHF)\n"
             "      ze = (" I_FOGF ".x * 16777216.0) / float(" I_FOGI ".y - (zCoord >> " I_FOGI
@@ -1017,7 +1013,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    }}\n"
             "\n"
             "    if (bool({})) {{\n",
-            BFViewExtract<decltype(FogRangeParams::RangeBase().Enabled())>("bpmem_fogRangeBase"));
+            BFViewExtract("bpmem_fogRangeBase", FogRangeParams::RangeBase().Enabled()));
   out.Write("      // x_adjust = sqrt((x-center)^2 + k^2)/k\n"
             "      // ze *= x_adjust\n"
             "      float offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
@@ -1113,7 +1109,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "\n"
               "  if (bpmem_dstalpha != 0u)\n");
     out.Write("    ocol0.a = float({} >> 2) / 63.0;\n",
-              BFViewExtract<decltype(ConstantAlpha().alpha())>("bpmem_dstalpha"));
+              BFViewExtract("bpmem_dstalpha", ConstantAlpha().alpha()));
     out.Write("  else\n"
               "    ocol0.a = float(TevResult.a >> 2) / 63.0;\n"
               "  \n");
@@ -1223,11 +1219,11 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "int4 getRasColor(State s, StageState ss, float4 colors_0, float4 colors_1) {{\n"
             "  // Select Ras for stage\n"
             "  uint ras = {};\n",
-            BFViewExtract<decltype(TwoTevStageOrders().colorchan0())>("ss.order"));
+            BFViewExtract("ss.order", TwoTevStageOrders().colorchan0()));
   out.Write("  if (ras < 2u) {{ // Lighting Channel 0 or 1\n"
             "    int4 color = iround(((ras == 0u) ? colors_0 : colors_1) * 255.0);\n"
             "    uint swap = {};\n",
-            BFViewExtract<decltype(TevStageCombiner::AlphaCombiner().rswap())>("ss.ac"));
+            BFViewExtract("ss.ac", TevStageCombiner::AlphaCombiner().rswap()));
   out.Write("    return Swizzle(swap, color);\n");
   out.Write("  }} else if (ras == 5u) {{ // Alpha Bumb\n"
             "    return int4(s.AlphaBump, s.AlphaBump, s.AlphaBump, s.AlphaBump);\n"
@@ -1246,12 +1242,12 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  uint tevksel = bpmem_tevksel(ss.stage>>1);\n"
             "  if ((ss.stage & 1u) == 0u)\n"
             "    return int4(konstLookup[{}].rgb, konstLookup[{}].a);\n",
-            BFViewExtract<decltype(TevKSel().kcsel0())>("tevksel"),
-            BFViewExtract<decltype(TevKSel().kasel0())>("tevksel"));
+            BFViewExtract("tevksel", TevKSel().kcsel0()),
+            BFViewExtract("tevksel", TevKSel().kasel0()));
   out.Write("  else\n"
             "    return int4(konstLookup[{}].rgb, konstLookup[{}].a);\n",
-            BFViewExtract<decltype(TevKSel().kcsel1())>("tevksel"),
-            BFViewExtract<decltype(TevKSel().kasel1())>("tevksel"));
+            BFViewExtract("tevksel", TevKSel().kcsel1()),
+            BFViewExtract("tevksel", TevKSel().kasel1()));
   out.Write("}}\n");
 
   return out;
