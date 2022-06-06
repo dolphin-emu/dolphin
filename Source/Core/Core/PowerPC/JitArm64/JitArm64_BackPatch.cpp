@@ -60,17 +60,16 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 {
   const u32 access_size = BackPatchInfo::GetFlagSize(flags);
 
-  const bool fastmem = jo.fastmem_arena && mode != MemAccessMode::AlwaysSafe;
-  const bool do_farcode = jo.fastmem_arena && (mode == MemAccessMode::Auto ||
-                                               mode == MemAccessMode::AutoWithoutBackpatch);
+  const bool emit_fastmem = jo.fastmem_arena && mode != MemAccessMode::AlwaysSafe;
+  const bool emit_slowmem = !jo.fastmem_arena || mode != MemAccessMode::AlwaysUnsafe;
 
   bool in_far_code = false;
   const u8* fastmem_start = GetCodePtr();
   std::optional<FixupBranch> slowmem_fixup;
 
-  if (fastmem)
+  if (emit_fastmem)
   {
-    if (do_farcode && emitting_routine)
+    if (emit_slowmem && emitting_routine)
     {
       const ARM64Reg temp1 = flags & BackPatchInfo::FLAG_STORE ? ARM64Reg::W0 : ARM64Reg::W3;
       const ARM64Reg temp2 = ARM64Reg::W2;
@@ -126,11 +125,11 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
   }
   const u8* fastmem_end = GetCodePtr();
 
-  if (!fastmem || do_farcode)
+  if (emit_slowmem)
   {
     const bool memcheck = jo.memcheck && !emitting_routine;
 
-    if (fastmem && do_farcode)
+    if (emit_fastmem)
     {
       in_far_code = true;
       SwitchToFarCode();
