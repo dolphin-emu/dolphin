@@ -341,10 +341,10 @@ struct UReg_HID0
   u32 Hex = 0;
 
   BFVIEW_M(Hex, bool, 0, 1, NOOPTI);
-  BFVIEW_M(Hex, bool, 1, 1, reserved_1);
+  BFVIEW_M(Hex, u32, 1, 1, reserved_1);
   BFVIEW_M(Hex, bool, 2, 1, BHT);
   BFVIEW_M(Hex, bool, 3, 1, ABE);
-  BFVIEW_M(Hex, bool, 4, 1, reserved_2);
+  BFVIEW_M(Hex, u32, 4, 1, reserved_2);
   BFVIEW_M(Hex, bool, 5, 1, BTIC);
   BFVIEW_M(Hex, bool, 6, 1, DCFA);
   BFVIEW_M(Hex, bool, 7, 1, SGE);
@@ -357,14 +357,14 @@ struct UReg_HID0
   BFVIEW_M(Hex, bool, 14, 1, DCE);
   BFVIEW_M(Hex, bool, 15, 1, ICE);
   BFVIEW_M(Hex, bool, 16, 1, NHR);
-  BFVIEW_M(Hex, bool, 17, 3, reserved_3);
+  BFVIEW_M(Hex, u32, 17, 3, reserved_3);
   BFVIEW_M(Hex, bool, 20, 1, DPM);
   BFVIEW_M(Hex, bool, 21, 1, SLEEP);
   BFVIEW_M(Hex, bool, 22, 1, NAP);
   BFVIEW_M(Hex, bool, 23, 1, DOZE);
   BFVIEW_M(Hex, bool, 24, 1, PAR);
   BFVIEW_M(Hex, bool, 25, 1, ECLK);
-  BFVIEW_M(Hex, bool, 26, 1, reserved_4);
+  BFVIEW_M(Hex, u32, 26, 1, reserved_4);
   BFVIEW_M(Hex, bool, 27, 1, BCLK);
   BFVIEW_M(Hex, bool, 28, 1, EBD);
   BFVIEW_M(Hex, bool, 29, 1, EBA);
@@ -386,7 +386,7 @@ struct UReg_HID2
   BFVIEW_M(Hex, bool, 21, 1, DCMERR);
   BFVIEW_M(Hex, bool, 22, 1, DNCERR);
   BFVIEW_M(Hex, bool, 23, 1, DCHERR);
-  BFVIEW_M(Hex, bool, 24, 4, DMAQL);
+  BFVIEW_M(Hex, u32, 24, 4, DMAQL);
   BFVIEW_M(Hex, bool, 28, 1, LCE);
   BFVIEW_M(Hex, bool, 29, 1, PSE);
   BFVIEW_M(Hex, bool, 30, 1, WPE);
@@ -409,8 +409,8 @@ struct UReg_HID4
   BFVIEW_M(Hex, bool, 24, 1, ST0);
   BFVIEW_M(Hex, bool, 25, 1, SBE);
   BFVIEW_M(Hex, u32, 26, 1, reserved_2);
-  BFVIEW_M(Hex, bool, 27, 2, BPD);
-  BFVIEW_M(Hex, bool, 29, 2, L2FM);
+  BFVIEW_M(Hex, u32, 27, 2, BPD);
+  BFVIEW_M(Hex, u32, 29, 2, L2FM);
   BFVIEW_M(Hex, u32, 31, 1, reserved_3);
 
   UReg_HID4() = default;

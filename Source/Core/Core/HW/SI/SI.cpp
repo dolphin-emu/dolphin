@@ -164,28 +164,28 @@ struct USIStatusReg
   BFVIEW_M(hex, bool,  3, 1, NOREP3);      // (RWC) write 1: bit cleared  read 1: response error
   BFVIEW_M(hex, bool,  4, 1, WRST3);       // (R) 1: buffer channel0 not copied
   BFVIEW_M(hex, bool,  5, 1, RDST3);       // (R) 1: new Data available
-  BFVIEW_M(hex, bool,  6, 2, reserved_1);  // 7:6
+  BFVIEW_M(hex, u32,  6, 2, reserved_1);   // 7:6
   BFVIEW_M(hex, bool,  8, 1, UNRUN2);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
   BFVIEW_M(hex, bool,  9, 1, OVRUN2);      // (RWC) write 1: bit cleared  read 1: overrun error
   BFVIEW_M(hex, bool, 10, 1, COLL2);       // (RWC) write 1: bit cleared  read 1: collision error
   BFVIEW_M(hex, bool, 11, 1, NOREP2);      // (RWC) write 1: bit cleared  read 1: response error
   BFVIEW_M(hex, bool, 12, 1, WRST2);       // (R) 1: buffer channel0 not copied
   BFVIEW_M(hex, bool, 13, 1, RDST2);       // (R) 1: new Data available
-  BFVIEW_M(hex, bool, 14, 2, reserved_2);  // 15:14
+  BFVIEW_M(hex, u32, 14, 2, reserved_2);   // 15:14
   BFVIEW_M(hex, bool, 16, 1, UNRUN1);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
   BFVIEW_M(hex, bool, 17, 1, OVRUN1);      // (RWC) write 1: bit cleared  read 1: overrun error
   BFVIEW_M(hex, bool, 18, 1, COLL1);       // (RWC) write 1: bit cleared  read 1: collision error
   BFVIEW_M(hex, bool, 19, 1, NOREP1);      // (RWC) write 1: bit cleared  read 1: response error
   BFVIEW_M(hex, bool, 20, 1, WRST1);       // (R) 1: buffer channel0 not copied
   BFVIEW_M(hex, bool, 21, 1, RDST1);       // (R) 1: new Data available
-  BFVIEW_M(hex, bool, 22, 2, reserved_3);  // 23:22
+  BFVIEW_M(hex, u32, 22, 2, reserved_3);   // 23:22
   BFVIEW_M(hex, bool, 24, 1, UNRUN0);      // (RWC) write 1: bit cleared  read 1: main proc underrun error
   BFVIEW_M(hex, bool, 25, 1, OVRUN0);      // (RWC) write 1: bit cleared  read 1: overrun error
   BFVIEW_M(hex, bool, 26, 1, COLL0);       // (RWC) write 1: bit cleared  read 1: collision error
   BFVIEW_M(hex, bool, 27, 1, NOREP0);      // (RWC) write 1: bit cleared  read 1: response error
   BFVIEW_M(hex, bool, 28, 1, WRST0);       // (R) 1: buffer channel0 not copied
   BFVIEW_M(hex, bool, 29, 1, RDST0);       // (R) 1: new Data available
-  BFVIEW_M(hex, bool, 30, 1, reserved_4);
+  BFVIEW_M(hex, u32, 30, 1, reserved_4);
   BFVIEW_M(hex, bool, 31, 1, WR);          // (RW) write 1 start copy, read 0 copy done
   // clang-format on
 

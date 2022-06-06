@@ -47,6 +47,8 @@ constexpr field_t GetBitFieldFixed(const host_t host)
                 "Given host type is not sane.  You must define a partial specialization for it");
   static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
                 "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
   using uhost_t = std::make_unsigned_t<host_t>;
   using shost_t = std::make_signed_t<host_t>;
   constexpr std::size_t rshift = 8 * sizeof(host_t) - width;
@@ -67,6 +69,7 @@ constexpr field_t GetBitField(const std::size_t start, const std::size_t width, 
                 "Given host type is not sane.  You must define a partial specialization for it");
   static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
                 "Given field type is not sane.");
+  DEBUG_ASSERT((!std::is_same_v<field_t, bool> || width == 1));
   using uhost_t = std::make_unsigned_t<host_t>;
   using shost_t = std::make_signed_t<host_t>;
   const std::size_t rshift = 8 * sizeof(host_t) - width;
@@ -87,6 +90,8 @@ constexpr void SetBitFieldFixed(host_t& host, const field_t val)
                 "Given host type is not sane.  You must define a partial specialization for it");
   static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
                 "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
   using uhost_t = std::make_unsigned_t<host_t>;
   constexpr std::size_t rshift = 8 * sizeof(host_t) - width;
   constexpr uhost_t mask = std::numeric_limits<uhost_t>::max() >> rshift << start;
@@ -102,6 +107,7 @@ constexpr void SetBitField(const std::size_t start, const std::size_t width, hos
                 "Given host type is not sane.  You must define a partial specialization for it");
   static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
                 "Given field type is not sane.");
+  DEBUG_ASSERT((!std::is_same_v<field_t, bool> || width == 1));
   using uhost_t = std::make_unsigned_t<host_t>;
   const std::size_t rshift = 8 * sizeof(host_t) - width;
   const uhost_t mask = std::numeric_limits<uhost_t>::max() >> rshift << start;
@@ -348,6 +354,11 @@ public:
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
 
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
+
 private:
   host_t& host;
 
@@ -391,6 +402,11 @@ public:
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
 
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
+
 private:
   const host_t& host;
 
@@ -414,6 +430,9 @@ public:
   using host_t = host_t_;
   using field_t = field_t_;
 
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+
 private:
   const std::size_t start;
   const std::size_t width;
@@ -422,7 +441,10 @@ private:
 public:
   BitFieldView() = delete;
   constexpr BitFieldView(const std::size_t start_, const std::size_t width_, host_t& host_)
-      : start(start_), width(width_), host(host_){};
+      : start(start_), width(width_), host(host_)
+  {
+    DEBUG_ASSERT((!std::is_same_v<field_t, bool> || width == 1));
+  };
 
   constexpr field_t Get() const { return GetBitField<field_t>(start, width, host); }
   constexpr void Set(const field_t val) { return SetBitField<field_t>(start, width, host, val); }
@@ -455,6 +477,9 @@ public:
   using host_t = host_t_;
   using field_t = field_t_;
 
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+
 private:
   const std::size_t start;
   const std::size_t width;
@@ -464,7 +489,10 @@ public:
   ConstBitFieldView() = delete;
   constexpr ConstBitFieldView(const std::size_t start_, const std::size_t width_,
                               const host_t& host_)
-      : start(start_), width(width_), host(host_){};
+      : start(start_), width(width_), host(host_)
+  {
+    DEBUG_ASSERT((!std::is_same_v<field_t, bool> || width == 1));
+  };
 
   constexpr field_t Get() const { return GetBitField<field_t>(start, width, host); }
 
@@ -485,6 +513,11 @@ public:
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
   constexpr static std::size_t length = length_;
+
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
 
 private:
   using Iterator = FixedViewArrayIterator<field_t, start, width, host_t>;
@@ -540,6 +573,11 @@ public:
   constexpr static std::size_t width = width_;
   constexpr static std::size_t length = length_;
 
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
+
 private:
   using ConstIterator = FixedViewArrayConstIterator<field_t, start, width, host_t>;
   const host_t& host;
@@ -583,6 +621,11 @@ public:
   using reference = BitFieldView<field_t, host_t>;
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
+
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
 
 private:
   host_t& host;
@@ -633,6 +676,11 @@ public:
   using reference = ConstBitFieldView<field_t, host_t>;
   constexpr static std::size_t start = start_;
   constexpr static std::size_t width = width_;
+
+  static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
+                "Given field type is not sane.");
+  static_assert(!std::is_same_v<field_t, bool> || width == 1,
+                "Boolean fields should only be 1 bit wide");
 
 private:
   const host_t& host;
