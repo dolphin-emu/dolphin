@@ -264,7 +264,7 @@ struct UReg_FPSCR
   BFVIEW_M(Hex, bool, 11, 1, reserved);
   // Floating point result flags (includes FPCC) (not sticky)
   // from more to less significand: class, <, >, =, ?
-  BFVIEW_M(Hex, bool, 12, 5, FPRF);
+  BFVIEW_M(Hex, u32, 12, 5, FPRF);
   // Fraction inexact (not sticky)
   BFVIEW_M(Hex, bool, 17, 1, FI);
   // Fraction rounded (not sticky)
