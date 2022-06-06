@@ -54,11 +54,15 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
   ERROR_LOG_FMT(DYNA_REC, "Full block: {}", pc_memory);
 }
 
-void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, ARM64Reg RS,
-                                    ARM64Reg addr, BitSet32 gprs_to_push, BitSet32 fprs_to_push,
+void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, ARM64Reg addr,
+                                    BitSet32 gprs_to_push, BitSet32 fprs_to_push,
                                     bool emitting_routine)
 {
   const u32 access_size = BackPatchInfo::GetFlagSize(flags);
+
+  const bool fastmem = jo.fastmem_arena && mode != MemAccessMode::AlwaysSafe;
+  const bool do_farcode = jo.fastmem_arena && (mode == MemAccessMode::Auto ||
+                                               mode == MemAccessMode::AutoWithoutBackpatch);
 
   bool in_far_code = false;
   const u8* fastmem_start = GetCodePtr();

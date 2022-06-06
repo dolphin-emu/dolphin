@@ -129,10 +129,11 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (is_immediate)
     mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
 
-  if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, true, false, dest_reg, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, dest_reg, XA, regs_in_use,
+                         fprs_in_use);
   }
   else if (mmio_address)
   {
@@ -142,7 +143,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, dest_reg, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, XA, regs_in_use, fprs_in_use);
   }
 
   gpr.BindToRegister(dest, false, true);
@@ -290,10 +291,10 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
-  else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(flags, MemAccessMode::AlwaysUnsafe, RS, XA, regs_in_use, fprs_in_use);
   }
   else if (mmio_address)
   {
@@ -303,7 +304,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else
   {
     set_addr_reg_if_needed();
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, RS, XA, regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, RS, XA, regs_in_use, fprs_in_use);
   }
 
   if (update && !early_update)
@@ -526,8 +527,8 @@ void JitArm64::lmw(UGeckoInstruction inst)
     if (!jo.memcheck)
       regs_in_use[DecodeReg(dest_reg)] = 0;
 
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, dest_reg, EncodeRegTo64(addr_reg),
-                         regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, dest_reg, EncodeRegTo64(addr_reg), regs_in_use,
+                         fprs_in_use);
 
     gpr.BindToRegister(i, false, true);
     ASSERT(dest_reg == gpr.R(i));
@@ -574,8 +575,8 @@ void JitArm64::stmw(UGeckoInstruction inst)
     if (i == 31)
       regs_in_use[DecodeReg(addr_reg)] = 0;
 
-    EmitBackpatchRoutine(flags, jo.fastmem, jo.fastmem, src_reg, EncodeRegTo64(addr_reg),
-                         regs_in_use, fprs_in_use);
+    EmitBackpatchRoutine(flags, MemAccessMode::Auto, src_reg, EncodeRegTo64(addr_reg), regs_in_use,
+                         fprs_in_use);
 
     if (i != 31)
       ADD(addr_reg, addr_reg, 4);
@@ -839,7 +840,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
   gprs_to_push[DecodeReg(ARM64Reg::W0)] = 0;
 
-  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, jo.fastmem, jo.fastmem, ARM64Reg::W0,
+  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, MemAccessMode::Auto, ARM64Reg::W0,
                        EncodeRegTo64(addr_reg), gprs_to_push, fprs_to_push);
 
   if (using_dcbz_hack)
