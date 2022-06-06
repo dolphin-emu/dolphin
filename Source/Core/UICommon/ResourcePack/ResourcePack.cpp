@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include <unzip.h>
+#include <mz_compat.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
