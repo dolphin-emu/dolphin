@@ -15,7 +15,7 @@ enum class TestEnum : u64
   D,
 };
 
-struct TestUnion
+struct TestStruct
 {
   u64 hex;
 
@@ -35,8 +35,8 @@ struct TestUnion
   BFVIEW_M(hex, TestEnum, 16, 2, enum_1);
   BFVIEW_M(hex, TestEnum, 48, 2, enum_2);
 
-  TestUnion() = default;
-  constexpr TestUnion(u64 val) : hex(val) {}
+  TestStruct() = default;
+  constexpr TestStruct(u64 val) : hex(val) {}
 };
 
 // table of raw numbers to test with
@@ -57,7 +57,7 @@ static u64 table[] = {
 // Verify that bitfields in a union have the same underlying data
 TEST(BitFieldView, Storage)
 {
-  TestUnion object;
+  TestStruct object;
 
   // Now write some values to one field and check if this reflects properly
   // in the others.
@@ -75,7 +75,7 @@ TEST(BitFieldView, Storage)
 
 TEST(BitFieldView, Read)
 {
-  TestUnion object;
+  TestStruct object;
 
   for (u64 val : table)
   {
@@ -109,7 +109,7 @@ TEST(BitFieldView, Read)
 
 TEST(BitFieldView, Assignment)
 {
-  TestUnion object;
+  TestStruct object;
 
   for (u64 val : table)
   {
@@ -149,12 +149,12 @@ TEST(BitFieldView, Alignment)
   struct OddlyAlignedTestStruct
   {
     u8 padding;
-    TestUnion obj;
+    TestStruct obj;
   };
 #pragma pack()
 
   alignas(16) OddlyAlignedTestStruct test_struct;
-  TestUnion& object = test_struct.obj;
+  TestStruct& object = test_struct.obj;
   //  static_assert(alignof(decltype(test_struct.obj.signed_1bit())) == 1,
   //                "Incorrect variable alignment");
 
@@ -198,7 +198,7 @@ struct fmt::formatter<TestEnum> : EnumFormatter<TestEnum::D>
 // Test behavior of using BitFields with fmt
 TEST(BitFieldView, Fmt)
 {
-  TestUnion object;
+  TestStruct object;
 
   for (u64 val : table)
   {
@@ -242,7 +242,7 @@ TEST(BitFieldView, Fmt)
   }
 }
 
-struct TestUnion2
+struct TestStruct2
 {
   u32 hex;
 
@@ -251,14 +251,14 @@ struct TestUnion2
   BFVIEW_M(hex, u32, 4, 2, c);
   BFVIEWARRAY_M(hex, u32, 0, 2, 3, arr);
 
-  TestUnion2() = default;
-  constexpr TestUnion2(u32 val) : hex(val) {}
+  TestStruct2() = default;
+  constexpr TestStruct2(u32 val) : hex(val) {}
 };
 
 TEST(BitFieldViewArray, Unsigned)
 {
-  TestUnion2 object = 0;
-  const TestUnion2& objectc = object;
+  TestStruct2 object = 0;
+  const TestStruct2& objectc = object;
 
   for (u32 value : object.arr())
   {
@@ -321,7 +321,7 @@ TEST(BitFieldViewArray, Unsigned)
   EXPECT_EQ("[0b00, 0b01, 0b10]", fmt::format("[{:#04b}]", fmt::join(object.arr(), ", ")));
 }
 
-struct TestUnion3
+struct TestStruct3
 {
   s32 hex;
 
@@ -330,14 +330,14 @@ struct TestUnion3
   BFVIEW_M(hex, s32, 9, 2, c);
   BFVIEWARRAY_M(hex, s32, 5, 2, 3, arr);
 
-  TestUnion3() = default;
-  constexpr TestUnion3(s32 val) : hex(val) {}
+  TestStruct3() = default;
+  constexpr TestStruct3(s32 val) : hex(val) {}
 };
 
 TEST(BitFieldViewArray, Signed)
 {
-  TestUnion3 object = 0;
-  const TestUnion3& objectc = object;
+  TestStruct3 object = 0;
+  const TestStruct3& objectc = object;
 
   for (s32 value : object.arr())
   {
@@ -399,7 +399,7 @@ TEST(BitFieldViewArray, Signed)
   EXPECT_EQ("[+0b00, +0b01, -0b10]", fmt::format("[{:+#05b}]", fmt::join(object.arr(), ", ")));
 }
 
-struct TestUnion4
+struct TestStruct4
 {
   u64 hex;
 
@@ -409,14 +409,14 @@ struct TestUnion4
   BFVIEW_M(hex, TestEnum, 36, 2, d);
   BFVIEWARRAY_M(hex, TestEnum, 30, 2, 4, arr);
 
-  TestUnion4() = default;
-  constexpr TestUnion4(u64 val) : hex(val) {}
+  TestStruct4() = default;
+  constexpr TestStruct4(u64 val) : hex(val) {}
 };
 
 TEST(BitFieldViewArray, Enum)
 {
-  TestUnion4 object = 0;
-  const TestUnion4& objectc = object;
+  TestStruct4 object = 0;
+  const TestStruct4& objectc = object;
 
   for (TestEnum value : object.arr())
   {
@@ -482,15 +482,15 @@ TEST(BitFieldViewArray, Enum)
             fmt::format("[{:s}]", fmt::join(object.arr(), ", ")));
 }
 
-struct TestUnion5
+struct TestStruct5
 {
   u64 hex;
 
   BFVIEWARRAY_M(hex, u8, 0, 5, 6, arr1);
   BFVIEWARRAY_M(hex, bool, 30, 1, 4, arr2);
 
-  TestUnion5() = default;
-  TestUnion5(u64 val) : hex(val) {}
+  TestStruct5() = default;
+  TestStruct5(u64 val) : hex(val) {}
 };
 
 TEST(BitFieldViewArray, StorageType)
@@ -499,8 +499,8 @@ TEST(BitFieldViewArray, StorageType)
   const u64 arr2_hex_1 = 0b1010ull << 30;
   const u64 arr2_hex_2 = 0b0101ull << 30;
 
-  TestUnion5 object = arr2_hex_1;
-  const TestUnion5& objectc = object;
+  TestStruct5 object = arr2_hex_1;
+  const TestStruct5& objectc = object;
 
   EXPECT_FALSE(object.arr2()[0]);
   EXPECT_TRUE(object.arr2()[1]);
@@ -544,5 +544,115 @@ TEST(BitFieldViewArray, StorageType)
   for (bool value : objectc.arr2())
   {
     EXPECT_EQ(value, object.arr2()[counter++]);
+  }
+}
+
+union TestStruct6
+{
+  float flt;
+  detail::uintflt_t hex;
+
+  BFVIEW_M(flt, u32, 0, 23, mantissa);
+  BFVIEW_M(flt, u8, 23, 8, exponent);
+  BFVIEW_M(flt, bool, 31, 1, sign);
+
+  TestStruct6() = default;
+  TestStruct6(float val) : flt(val) {}
+};
+
+TEST(BitFieldViewArray, FloatHost)
+{
+  if (std::numeric_limits<float>::is_iec559)
+  {
+    TestStruct6 object1 = 0.0f;
+    EXPECT_EQ(0x00000000U, object1.hex);
+    EXPECT_EQ(false, object1.sign());
+    EXPECT_EQ(0, object1.exponent());
+    EXPECT_EQ(0, object1.mantissa());
+
+    TestStruct6 object2 = -0.0f;
+    EXPECT_EQ(0x80000000U, object2.hex);
+    EXPECT_EQ(true, object2.sign());
+    EXPECT_EQ(0, object2.exponent());
+    EXPECT_EQ(0, object2.mantissa());
+
+    TestStruct6 object3 = 1.0f;
+    EXPECT_EQ(0x3f800000U, object3.hex);
+    EXPECT_EQ(false, object3.sign());
+    EXPECT_EQ(127U, object3.exponent());
+    EXPECT_EQ(0U, object3.mantissa());
+
+    TestStruct6 object4 = std::numeric_limits<float>::max();
+    EXPECT_EQ(0x7f7fffffU, object4.hex);
+    EXPECT_EQ(false, object4.sign());
+    EXPECT_EQ(254U, object4.exponent());
+    EXPECT_EQ(8388607U, object4.mantissa());
+
+    TestStruct6 object5 = -1.83755838871002197265625f;
+    EXPECT_EQ(0xbfeb351dU, object5.hex);
+    EXPECT_EQ(true, object5.sign());
+    EXPECT_EQ(127U, object5.exponent());
+    EXPECT_EQ(7025949U, object5.mantissa());
+
+    TestStruct6 object6 = 0.075952999293804168701171875f;
+    EXPECT_EQ(0x3d9b8d3fU, object6.hex);
+    EXPECT_EQ(false, object6.sign());
+    EXPECT_EQ(123U, object6.exponent());
+    EXPECT_EQ(1805631U, object6.mantissa());
+  }
+}
+
+union TestStruct7
+{
+  double dbl;
+  detail::uintdbl_t hex;
+
+  BFVIEW_M(dbl, u64, 0, 52, mantissa);
+  BFVIEW_M(dbl, u16, 52, 11, exponent);
+  BFVIEW_M(dbl, bool, 63, 1, sign);
+
+  TestStruct7() = default;
+  TestStruct7(double val) : dbl(val) {}
+};
+
+TEST(BitFieldViewArray, DoubleHost)
+{
+  if (std::numeric_limits<double>::is_iec559)
+  {
+    TestStruct7 object1 = 0.0;
+    EXPECT_EQ(object1.hex, 0x0000000000000000);
+    EXPECT_EQ(false, object1.sign());
+    EXPECT_EQ(0U, object1.exponent());
+    EXPECT_EQ(0U, object1.mantissa());
+
+    TestStruct7 object2 = -0.0;
+    EXPECT_EQ(object2.hex, 0x8000000000000000);
+    EXPECT_EQ(true, object2.sign());
+    EXPECT_EQ(0U, object2.exponent());
+    EXPECT_EQ(0U, object2.mantissa());
+
+    TestStruct7 object3 = 1.0;
+    EXPECT_EQ(object3.hex, 0x3ff0000000000000);
+    EXPECT_EQ(false, object3.sign());
+    EXPECT_EQ(1023U, object3.exponent());
+    EXPECT_EQ(0U, object3.mantissa());
+
+    TestStruct7 object4 = std::numeric_limits<double>::max();
+    EXPECT_EQ(object4.hex, 0x7fefffffffffffff);
+    EXPECT_EQ(false, object4.sign());
+    EXPECT_EQ(2046U, object4.exponent());
+    EXPECT_EQ(4503599627370495U, object4.mantissa());
+
+    TestStruct7 object5 = -1.83755838871;
+    EXPECT_EQ(object5.hex, 0xbffd66a39fffff9d);
+    EXPECT_EQ(true, object5.sign());
+    EXPECT_EQ(1023U, object5.exponent());
+    EXPECT_EQ(3772027647295389U, object5.mantissa());
+
+    TestStruct7 object6 = 0.0759529992938;
+    EXPECT_EQ(object6.hex, 0x3fb371a7dffffed4);
+    EXPECT_EQ(false, object6.sign());
+    EXPECT_EQ(1019U, object6.exponent());
+    EXPECT_EQ(969390761705172U, object6.mantissa());
   }
 }

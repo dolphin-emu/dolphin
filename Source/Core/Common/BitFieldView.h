@@ -41,17 +41,17 @@
 // Assertation helper classes
 
 template <typename host_t>
-struct HostTypeIsSane
+struct IsHostTypeSane
 {
-  HostTypeIsSane() = default;
+  IsHostTypeSane() = default;
 
   static_assert(std::is_integral_v<host_t> || std::is_enum_v<host_t>,
                 "Given host type is not sane.  You must define a partial specialization for it.");
 };
 template <typename field_t>
-struct FieldTypeIsSane
+struct IsFieldTypeSane
 {
-  FieldTypeIsSane() = default;
+  IsFieldTypeSane() = default;
 
   static_assert(std::is_integral_v<field_t> || std::is_enum_v<field_t>,
                 "Given field type is not sane.  It must be an integral or enumerated type.");
@@ -103,8 +103,8 @@ struct BitFieldAssertations
 template <typename field_t, std::size_t start, std::size_t width, typename host_t>
 constexpr field_t GetBitFieldFixed(const host_t host)
 {
-  HostTypeIsSane<host_t>();
-  FieldTypeIsSane<field_t>();
+  IsHostTypeSane<host_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldFixedAssertions<field_t, start, width, host_t>();
 
   using uhost_t = std::make_unsigned_t<host_t>;
@@ -123,8 +123,8 @@ constexpr field_t GetBitFieldFixed(const host_t host)
 template <typename field_t, typename host_t>
 constexpr field_t GetBitField(const std::size_t start, const std::size_t width, const host_t host)
 {
-  HostTypeIsSane<host_t>();
-  FieldTypeIsSane<field_t>();
+  IsHostTypeSane<host_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldAssertations<field_t, host_t>(start, width);
 
   using uhost_t = std::make_unsigned_t<host_t>;
@@ -143,8 +143,8 @@ constexpr field_t GetBitField(const std::size_t start, const std::size_t width, 
 template <typename field_t, std::size_t start, std::size_t width, typename host_t>
 constexpr void SetBitFieldFixed(host_t& host, const field_t val)
 {
-  HostTypeIsSane<host_t>();
-  FieldTypeIsSane<field_t>();
+  IsHostTypeSane<host_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldFixedAssertions<field_t, start, width, host_t>();
 
   using uhost_t = std::make_unsigned_t<host_t>;
@@ -158,8 +158,8 @@ template <typename field_t, typename host_t>
 constexpr void SetBitField(const std::size_t start, const std::size_t width, host_t& host,
                            const field_t val)
 {
-  HostTypeIsSane<host_t>();
-  FieldTypeIsSane<field_t>();
+  IsHostTypeSane<host_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldAssertations<field_t, host_t>(start, width);
 
   using uhost_t = std::make_unsigned_t<host_t>;
@@ -191,7 +191,7 @@ union UFloatBits
 template <typename field_t, std::size_t start, std::size_t width>
 constexpr field_t GetBitFieldFixed(const float& host)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldFixedAssertions<field_t, start, width, float>();
 
   constexpr std::size_t rshift = 8 * sizeof(float) - width;
@@ -207,7 +207,7 @@ constexpr field_t GetBitFieldFixed(const float& host)
 template <typename field_t>
 constexpr field_t GetBitField(const std::size_t start, const std::size_t width, const float host)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldAssertations<field_t, float>(start, width);
 
   const std::size_t rshift = 8 * sizeof(float) - width;
@@ -223,7 +223,7 @@ constexpr field_t GetBitField(const std::size_t start, const std::size_t width, 
 template <typename field_t, std::size_t start, std::size_t width>
 constexpr void SetBitFieldFixed(float& host, const field_t val)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldFixedAssertions<field_t, start, width, float>();
 
   using detail::uintflt_t;
@@ -239,7 +239,7 @@ template <typename field_t>
 constexpr void SetBitField(const std::size_t start, const std::size_t width, float& host,
                            const field_t val)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldAssertations<field_t, float>(start, width);
 
   using detail::uintflt_t;
@@ -273,7 +273,7 @@ union UDoubleBits
 template <typename field_t, std::size_t start, std::size_t width>
 constexpr field_t GetBitFieldFixed(const double host)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldFixedAssertions<field_t, start, width, double>();
 
   constexpr std::size_t rshift = 8 * sizeof(double) - width;
@@ -283,13 +283,13 @@ constexpr field_t GetBitFieldFixed(const double host)
   if constexpr (std::is_signed_v<field_t>)
     return static_cast<field_t>(static_cast<detail::intdbl_t>(hostbits.ubits << lshift) >> rshift);
   else
-    return static_cast<field_t>(static_cast<detail::intdbl_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<detail::uintdbl_t>(hostbits.ubits << lshift) >> rshift);
 }
 
 template <typename field_t>
 constexpr field_t GetBitField(const std::size_t start, const std::size_t width, const double host)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldAssertations<field_t, double>(start, width);
 
   const std::size_t rshift = 8 * sizeof(double) - width;
@@ -299,13 +299,13 @@ constexpr field_t GetBitField(const std::size_t start, const std::size_t width, 
   if constexpr (std::is_signed_v<field_t>)
     return static_cast<field_t>(static_cast<detail::intdbl_t>(hostbits.ubits << lshift) >> rshift);
   else
-    return static_cast<field_t>(static_cast<detail::intdbl_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<detail::uintdbl_t>(hostbits.ubits << lshift) >> rshift);
 }
 
 template <typename field_t, std::size_t start, std::size_t width>
 constexpr void SetBitFieldFixed(double& host, const field_t val)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldFixedAssertions<field_t, start, width, double>();
 
   using detail::uintdbl_t;
@@ -321,7 +321,7 @@ template <typename field_t>
 constexpr void SetBitField(const std::size_t start, const std::size_t width, double& host,
                            const field_t val)
 {
-  FieldTypeIsSane<field_t>();
+  IsFieldTypeSane<field_t>();
   BitFieldAssertations<field_t, double>(start, width);
 
   using detail::uintdbl_t;
