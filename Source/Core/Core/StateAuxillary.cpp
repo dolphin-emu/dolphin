@@ -10,6 +10,10 @@
 #include <ShlObj_core.h>
 
 static NetPlay::PadMappingArray netplayGCMap;
+static SerialInterface::SIDevices preMoviePort0;
+static SerialInterface::SIDevices preMoviePort1;
+static SerialInterface::SIDevices preMoviePort2;
+static SerialInterface::SIDevices preMoviePort3;
 
 void StateAuxillary::saveState(const std::string& filename, bool wait) {
   std::thread t1(&State::SaveAs, filename, wait);
@@ -92,4 +96,24 @@ void StateAuxillary::endPlayback()
 void StateAuxillary::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map)
 {
   netplayGCMap = m_pad_map;
+}
+
+void StateAuxillary::setPrePort(SerialInterface::SIDevices currentPort0,
+                                SerialInterface::SIDevices currentPort1,
+                                SerialInterface::SIDevices currentPort2,
+                                SerialInterface::SIDevices currentPort3)
+{
+  preMoviePort0 = currentPort0;
+  preMoviePort1 = currentPort1;
+  preMoviePort2 = currentPort2;
+  preMoviePort3 = currentPort3;
+}
+
+void StateAuxillary::setPostPort()
+{
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(0)), preMoviePort0);
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(1)), preMoviePort1);
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(2)), preMoviePort2);
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(3)), preMoviePort3);
+  SConfig::GetInstance().SaveSettings();
 }

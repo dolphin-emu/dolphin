@@ -3,6 +3,8 @@
 #include <string>
 #include "Core/Movie.h"
 #include <Core/NetPlayProto.h>
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/ConfigManager.h"
 
 class StateAuxillary
 {
@@ -12,4 +14,9 @@ public:
   static void stopRecording(const std::string replay_path, tm* matchDateTimeParam);
   static void endPlayback();
   static void setNetPlayControllers(NetPlay::PadMappingArray m_pad_map);
+  static void setPrePort(SerialInterface::SIDevices currentPort0,
+                         SerialInterface::SIDevices currentPort1,
+                         SerialInterface::SIDevices currentPort2,
+                         SerialInterface::SIDevices currentPort3);
+  static void setPostPort();
 };

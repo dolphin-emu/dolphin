@@ -958,6 +958,28 @@ void ReadHeader()
 // NOTE: Host Thread
 bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path)
 {
+  // we need to set port 1 to GCN adapter (12) for correct playback
+  // but need to also know what the user's port 1 was so that we can be nice and set it back after we're done
+
+  // get the user's current port 1 controller type so that we can set it back after the movie is closed out of
+  const SerialInterface::SIDevices currentDevice0 =
+      Config::Get(Config::GetInfoForSIDevice(static_cast<int>(0)));
+  const SerialInterface::SIDevices currentDevice1 =
+      Config::Get(Config::GetInfoForSIDevice(static_cast<int>(1)));
+  const SerialInterface::SIDevices currentDevice2 =
+      Config::Get(Config::GetInfoForSIDevice(static_cast<int>(2)));
+  const SerialInterface::SIDevices currentDevice3 =
+      Config::Get(Config::GetInfoForSIDevice(static_cast<int>(3)));
+  StateAuxillary::setPrePort(currentDevice0, currentDevice1, currentDevice2, currentDevice3);
+
+  // set port 1 to GCN adapter (12) for correct playback.
+  const SerialInterface::SIDevices gcnAdapter = SerialInterface::SIDEVICE_WIIU_ADAPTER;
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(0)), gcnAdapter);
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(1)), SerialInterface::SIDEVICE_NONE);
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(2)), SerialInterface::SIDEVICE_NONE);
+  Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(3)), SerialInterface::SIDEVICE_NONE);
+  SConfig::GetInstance().SaveSettings();
+
   // movie_path is a const and trying to change that breaks a lot of things
   std::string actual_movie_path = movie_path;
 
@@ -1309,6 +1331,7 @@ static void CheckInputEnd()
     // delete citrus residue if any
     std::thread t1(&StateAuxillary::endPlayback);
     t1.detach();
+    StateAuxillary::setPostPort();
   }
 }
 
@@ -1701,7 +1724,7 @@ void Shutdown()
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
   s_temp_input.clear();
   // if they quit the replay early
-  std::thread t1(&StateAuxillary::endPlayback);
-  t1.detach();
+  StateAuxillary::endPlayback();
+  StateAuxillary::setPostPort();
 }
 }  // namespace Movie
