@@ -46,7 +46,7 @@ struct HostTypeIsSane
   HostTypeIsSane() = default;
 
   static_assert(std::is_integral_v<host_t> || std::is_enum_v<host_t>,
-                "Given host type is not sane.  You must define a partial specialization for it");
+                "Given host type is not sane.  You must define a partial specialization for it.");
 };
 template <typename field_t>
 struct FieldTypeIsSane
