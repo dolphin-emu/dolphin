@@ -620,37 +620,37 @@ TEST(BitFieldViewArray, DoubleHost)
   if (std::numeric_limits<double>::is_iec559)
   {
     TestStruct7 object1 = 0.0;
-    EXPECT_EQ(object1.hex, 0x0000000000000000);
+    EXPECT_EQ(0x0000000000000000U, object1.hex);
     EXPECT_EQ(false, object1.sign());
     EXPECT_EQ(0U, object1.exponent());
     EXPECT_EQ(0U, object1.mantissa());
 
     TestStruct7 object2 = -0.0;
-    EXPECT_EQ(object2.hex, 0x8000000000000000);
+    EXPECT_EQ(0x8000000000000000U, object2.hex);
     EXPECT_EQ(true, object2.sign());
     EXPECT_EQ(0U, object2.exponent());
     EXPECT_EQ(0U, object2.mantissa());
 
     TestStruct7 object3 = 1.0;
-    EXPECT_EQ(object3.hex, 0x3ff0000000000000);
+    EXPECT_EQ(0x3ff0000000000000U, object3.hex);
     EXPECT_EQ(false, object3.sign());
     EXPECT_EQ(1023U, object3.exponent());
     EXPECT_EQ(0U, object3.mantissa());
 
     TestStruct7 object4 = std::numeric_limits<double>::max();
-    EXPECT_EQ(object4.hex, 0x7fefffffffffffff);
+    EXPECT_EQ(0x7fefffffffffffffU, object4.hex);
     EXPECT_EQ(false, object4.sign());
     EXPECT_EQ(2046U, object4.exponent());
     EXPECT_EQ(4503599627370495U, object4.mantissa());
 
     TestStruct7 object5 = -1.83755838871;
-    EXPECT_EQ(object5.hex, 0xbffd66a39fffff9d);
+    EXPECT_EQ(0xbffd66a39fffff9dU, object5.hex);
     EXPECT_EQ(true, object5.sign());
     EXPECT_EQ(1023U, object5.exponent());
     EXPECT_EQ(3772027647295389U, object5.mantissa());
 
     TestStruct7 object6 = 0.0759529992938;
-    EXPECT_EQ(object6.hex, 0x3fb371a7dffffed4);
+    EXPECT_EQ(0x3fb371a7dffffed4U, object6.hex);
     EXPECT_EQ(false, object6.sign());
     EXPECT_EQ(1019U, object6.exponent());
     EXPECT_EQ(969390761705172U, object6.mantissa());
