@@ -50,6 +50,7 @@ if(NOT ANDROID)
 endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
+option(USE_SHARED_LIBPNG "Use shared libpng if found" ON)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
 option(ENABLE_QT "Enable Qt (Default)" ON)
@@ -64,6 +65,7 @@ option(ENABLE_VULKAN "Enables vulkan video backend" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 option(USE_MGBA "Enables GBA controllers emulation using libmgba" ON)
 option(ENABLE_AUTOUPDATE "Enables support for automatic updates" ON)
+option(STEAM "Creates a build for Steam" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -405,6 +407,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   find_library(IOB_LIBRARY IOBluetooth)
   find_library(IOK_LIBRARY IOKit)
   find_library(OPENGL_LIBRARY OpenGL)
+
+  # We don't want to use shared libpng.
+  set(USE_SHARED_LIBPNG OFF)
 endif()
 
 if(ENABLE_LTO)
@@ -420,8 +425,10 @@ if(ENABLE_LTO)
   endif()
 endif()
 
-if(UNIX AND LINUX_LOCAL_DEV)
-  add_definitions(-DLINUX_LOCAL_DEV)
+if(UNIX)
+  if(LINUX_LOCAL_DEV OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND STEAM))
+    add_definitions(-DLINUX_LOCAL_DEV)
+  endif()
 endif()
 
 # BSDs put packages in /usr/local instead of /usr, so we need to
@@ -776,7 +783,7 @@ else()
   set(LZO lzo2)
 endif()
 
-if(NOT APPLE)
+if(USE_SHARED_LIBPNG)
   check_lib(PNG libpng png png.h QUIET)
 endif()
 if (PNG_FOUND)
@@ -928,6 +935,10 @@ if(SYSTEMD_FOUND)
   add_definitions(-DHAVE_LIBSYSTEMD)
 else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
+endif()
+
+if(STEAM)
+  add_definitions(-DSTEAM)
 endif()
 
 if (WIN32)
