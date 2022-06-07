@@ -1700,5 +1700,7 @@ void Shutdown()
 {
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
   s_temp_input.clear();
+  // if they quit the replay early
+  StateAuxillary::endPlayback();
 }
 }  // namespace Movie
