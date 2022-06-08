@@ -161,7 +161,7 @@ bool SDSP::Initialize(const DSPInitOptions& opts)
   r.sr |= SR_INT_ENABLE;
   r.sr |= SR_EXT_INT_ENABLE;
 
-  cr = CR_INIT | CR_HALT;
+  control_reg = CR_INIT | CR_HALT;
   InitializeIFX();
   // Mostly keep IRAM write protected. We unprotect only when DMA-ing
   // in new ucodes.
@@ -210,7 +210,7 @@ void SDSP::CheckExternalInterrupt()
   // Signal the SPU about new mail
   SetException(ExceptionType::ExternalInterrupt);
 
-  cr &= ~CR_EXTERNAL_INT;
+  control_reg &= ~CR_EXTERNAL_INT;
 }
 
 void SDSP::CheckExceptions()
@@ -378,7 +378,7 @@ void SDSP::DoState(PointerWrap& p)
 {
   p.Do(r);
   p.Do(pc);
-  p.Do(cr);
+  p.Do(control_reg);
   p.Do(reg_stack_ptrs);
   p.Do(exceptions);
   p.Do(external_interrupt_waiting);

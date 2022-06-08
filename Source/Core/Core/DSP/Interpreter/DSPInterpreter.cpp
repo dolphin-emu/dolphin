@@ -81,7 +81,7 @@ int Interpreter::RunCyclesThread(int cycles)
 
   while (true)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     if (state.external_interrupt_waiting.exchange(false, std::memory_order_acquire))
@@ -104,7 +104,7 @@ int Interpreter::RunCyclesDebug(int cycles)
   // First, let's run a few cycles with no idle skipping so that things can progress a bit.
   for (int i = 0; i < 8; i++)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     if (m_dsp_core.BreakPoints().IsAddressBreakPoint(state.pc))
@@ -124,7 +124,7 @@ int Interpreter::RunCyclesDebug(int cycles)
     // idle loops.
     for (int i = 0; i < 8; i++)
     {
-      if ((state.cr & CR_HALT) != 0)
+      if ((state.control_reg & CR_HALT) != 0)
         return 0;
 
       if (m_dsp_core.BreakPoints().IsAddressBreakPoint(state.pc))
@@ -169,7 +169,7 @@ int Interpreter::RunCycles(int cycles)
   // progress a bit.
   for (int i = 0; i < 8; i++)
   {
-    if ((state.cr & CR_HALT) != 0)
+    if ((state.control_reg & CR_HALT) != 0)
       return 0;
 
     Step();
@@ -185,7 +185,7 @@ int Interpreter::RunCycles(int cycles)
     // idle loops.
     for (int i = 0; i < 8; i++)
     {
-      if ((state.cr & CR_HALT) != 0)
+      if ((state.control_reg & CR_HALT) != 0)
         return 0;
 
       if (state.GetAnalyzer().IsIdleSkip(state.pc))
@@ -212,7 +212,7 @@ int Interpreter::RunCycles(int cycles)
 }
 
 // NOTE: These have nothing to do with SDSP::r::cr!
-void Interpreter::WriteCR(u16 val)
+void Interpreter::WriteControlRegister(u16 val)
 {
   // reset
   if ((val & CR_RESET) != 0)
@@ -232,23 +232,23 @@ void Interpreter::WriteCR(u16 val)
   }
 
   // update cr
-  m_dsp_core.DSPState().cr = val;
+  m_dsp_core.DSPState().control_reg = val;
 }
 
-u16 Interpreter::ReadCR()
+u16 Interpreter::ReadControlRegister()
 {
   auto& state = m_dsp_core.DSPState();
 
   if ((state.pc & 0x8000) != 0)
   {
-    state.cr |= CR_INIT;
+    state.control_reg |= CR_INIT;
   }
   else
   {
-    state.cr &= ~CR_INIT;
+    state.control_reg &= ~CR_INIT;
   }
 
-  return state.cr;
+  return state.control_reg;
 }
 
 void Interpreter::SetSRFlag(u16 flag)

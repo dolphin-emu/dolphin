@@ -419,11 +419,11 @@ struct SDSP
   DSP_Regs r{};
   u16 pc = 0;
 
-  // This is NOT the same cr as r.cr.
+  // This is NOT the same as r.cr.
   // This register is shared with the main emulation, see DSP.cpp
   // The engine has control over 0x0C07 of this reg.
   // Bits are defined in a struct in DSP.cpp.
-  u16 cr = 0;
+  u16 control_reg = 0;
 
   u8 reg_stack_ptrs[4]{};
   u8 exceptions = 0;  // pending exceptions

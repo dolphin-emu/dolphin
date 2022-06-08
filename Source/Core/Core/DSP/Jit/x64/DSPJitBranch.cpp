@@ -304,7 +304,7 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void DSPEmitter::halt(const UDSPInstruction)
 {
-  OR(16, M_SDSP_cr(), Imm16(CR_HALT));
+  OR(16, M_SDSP_control_reg(), Imm16(CR_HALT));
   //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M_SDSP_pc(), R(DX));

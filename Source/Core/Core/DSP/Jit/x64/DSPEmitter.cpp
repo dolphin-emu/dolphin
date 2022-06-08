@@ -443,7 +443,7 @@ void DSPEmitter::CompileDispatcher()
   }
 
   // Check for DSP halt
-  TEST(8, M_SDSP_cr(), Imm8(CR_HALT));
+  TEST(8, M_SDSP_control_reg(), Imm8(CR_HALT));
   FixupBranch _halt = J_CC(CC_NE);
 
   // Execute block. Cycles executed returned in EAX.
@@ -484,9 +484,9 @@ Gen::OpArg DSPEmitter::M_SDSP_exceptions()
   return MDisp(R15, static_cast<int>(offsetof(SDSP, exceptions)));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_cr()
+Gen::OpArg DSPEmitter::M_SDSP_control_reg()
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, cr)));
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, control_reg)));
 }
 
 Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
