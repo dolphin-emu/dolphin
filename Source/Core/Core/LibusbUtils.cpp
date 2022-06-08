@@ -47,16 +47,16 @@ public:
     libusb_exit(m_context);
   }
 
-  libusb_context* GetContext() { return m_context; }
+  libusb_context* GetContext() const { return m_context; }
 
-  bool GetDeviceList(GetDeviceListCallback callback)
+  int GetDeviceList(GetDeviceListCallback callback) const
   {
     std::lock_guard lock{m_device_list_mutex};
 
     libusb_device** list;
     ssize_t count = libusb_get_device_list(m_context, &list);
     if (count < 0)
-      return false;
+      return static_cast<int>(count);
 
     for (ssize_t i = 0; i < count; ++i)
     {
@@ -64,7 +64,7 @@ public:
         break;
     }
     libusb_free_device_list(list, 1);
-    return true;
+    return LIBUSB_SUCCESS;
   }
 
 private:
@@ -81,7 +81,7 @@ private:
   }
 
   libusb_context* m_context = nullptr;
-  std::mutex m_device_list_mutex;
+  mutable std::mutex m_device_list_mutex;
   Common::Flag m_event_thread_running;
   std::thread m_event_thread;
 };
@@ -89,8 +89,8 @@ private:
 class Context::Impl
 {
 public:
-  libusb_context* GetContext() { return nullptr; }
-  bool GetDeviceList(GetDeviceListCallback callback) { return false; }
+  libusb_context* GetContext() const { return nullptr; }
+  int GetDeviceList(GetDeviceListCallback callback) const { return -1; }
 };
 #endif
 
@@ -110,7 +110,7 @@ bool Context::IsValid() const
   return m_impl->GetContext() != nullptr;
 }
 
-bool Context::GetDeviceList(GetDeviceListCallback callback)
+int Context::GetDeviceList(GetDeviceListCallback callback) const
 {
   return m_impl->GetDeviceList(std::move(callback));
 }

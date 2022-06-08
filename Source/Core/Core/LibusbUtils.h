@@ -31,7 +31,7 @@ public:
   bool IsValid() const;
 
   // Only valid if the context is valid.
-  bool GetDeviceList(GetDeviceListCallback callback);
+  int GetDeviceList(GetDeviceListCallback callback) const;
 
 private:
   class Impl;

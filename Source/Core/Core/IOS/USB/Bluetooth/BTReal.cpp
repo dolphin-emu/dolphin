@@ -84,7 +84,7 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
     return IPCReply(IPC_EACCES);
 
   m_last_open_error.clear();
-  m_context.GetDeviceList([this](libusb_device* device) {
+  const int ret = m_context.GetDeviceList([this](libusb_device* device) {
     libusb_device_descriptor device_descriptor;
     libusb_get_device_descriptor(device, &device_descriptor);
     auto config_descriptor = LibusbUtils::MakeConfigDescriptor(device);
@@ -116,6 +116,11 @@ std::optional<IPCReply> BluetoothRealDevice::Open(const OpenRequest& request)
     }
     return true;
   });
+  if (ret != LIBUSB_SUCCESS)
+  {
+    m_last_open_error =
+        Common::FmtFormatT("GetDeviceList failed: {0}", LibusbUtils::ErrorWrap(ret));
+  }
 
   if (m_handle == nullptr)
   {

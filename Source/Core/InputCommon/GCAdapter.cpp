@@ -462,7 +462,7 @@ static void Setup()
   s_controller_type.fill(ControllerType::None);
   s_controller_rumble.fill(0);
 
-  s_libusb_context->GetDeviceList([](libusb_device* device) {
+  const int ret = s_libusb_context->GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
     {
       // Only connect to a single adapter in case the user has multiple connected
@@ -471,6 +471,8 @@ static void Setup()
     }
     return true;
   });
+  if (ret != LIBUSB_SUCCESS)
+    WARN_LOG_FMT(CONTROLLERINTERFACE, "Failed to get device list: {}", LibusbUtils::ErrorWrap(ret));
 
   if (s_status != ADAPTER_DETECTED && prev_status != s_status && s_detect_callback != nullptr)
     s_detect_callback();
