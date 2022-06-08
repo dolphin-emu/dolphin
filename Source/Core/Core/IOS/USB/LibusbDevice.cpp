@@ -36,7 +36,15 @@ LibusbDevice::LibusbDevice(Kernel& ios, libusb_device* device,
           static_cast<u64>(libusb_get_device_address(device)));
 
   for (u8 i = 0; i < descriptor.bNumConfigurations; ++i)
-    m_config_descriptors.emplace_back(LibusbUtils::MakeConfigDescriptor(m_device, i));
+  {
+    auto [ret, config_descriptor] = LibusbUtils::MakeConfigDescriptor(m_device, i);
+    if (ret != LIBUSB_SUCCESS || !config_descriptor)
+    {
+      WARN_LOG_FMT(IOS_USB, "Failed to make config descriptor {} for {:04x}:{:04x}: {}", i, m_vid,
+                   m_pid, LibusbUtils::ErrorWrap(ret));
+    }
+    m_config_descriptors.emplace_back(std::move(config_descriptor));
+  }
 }
 
 LibusbDevice::~LibusbDevice()
