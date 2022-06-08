@@ -397,7 +397,7 @@ static void ApplyFilePatchToFST(const Patch& patch, const File& file,
     if (node)
       ApplyPatchToFile(patch, file, node);
   }
-  else if (CaseInsensitiveEquals(file.m_disc, "main.dol"))
+  else if (dol_node && CaseInsensitiveEquals(file.m_disc, "main.dol"))
   {
     // Special case: If the filename is "main.dol", we want to patch the main executable.
     ApplyPatchToFile(patch, file, dol_node);
