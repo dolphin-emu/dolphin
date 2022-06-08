@@ -80,11 +80,18 @@ struct ContentFixedByte
   u8 m_byte;
 };
 
+// Content chunk representing an arbitrary byte sequence that's stored within the struct itself.
+struct ContentByteVector
+{
+  std::vector<u8> m_bytes;
+};
+
 using ContentSource = std::variant<ContentFile,       // File
                                    const u8*,         // Memory
                                    ContentPartition,  // Partition
                                    ContentVolume,     // Volume
-                                   ContentFixedByte   // Fixed value padding
+                                   ContentFixedByte,  // Fixed value padding
+                                   ContentByteVector  // Byte sequence
                                    >;
 
 struct BuilderContentSource

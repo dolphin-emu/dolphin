@@ -134,6 +134,12 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
       const ContentFixedByte& source = std::get<ContentFixedByte>(m_content_source);
       std::fill_n(*buffer, bytes_to_read, source.m_byte);
     }
+    else if (std::holds_alternative<ContentByteVector>(m_content_source))
+    {
+      const ContentByteVector& source = std::get<ContentByteVector>(m_content_source);
+      std::copy(source.m_bytes.begin() + offset_in_content,
+                source.m_bytes.begin() + offset_in_content + bytes_to_read, *buffer);
+    }
     else
     {
       PanicAlertFmt("DirectoryBlob: Invalid content source in DiscContent.");
