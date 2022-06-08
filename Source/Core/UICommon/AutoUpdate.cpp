@@ -247,7 +247,9 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
     updater_flags["binary-to-restart"] = File::GetExePath();
 
-  // Copy the updater so it can update itself if needed.
+  // The updater may need to update itself, but an application can't modify its own exe. To handle
+  // this create a copy of the updater and run the update process from the copy. Dolphin deletes the
+  // updater copy (if it exists) on startup.
   const std::string updater_path = GetUpdaterPath();
   const std::string updater_copy_path = GetUpdaterCopyPath();
 
