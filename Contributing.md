@@ -116,7 +116,7 @@ Summary:
       // code
     }
     ```
-  - Acceptable:
+  - No:
 
     ```c++
     if (condition)
@@ -124,7 +124,7 @@ Summary:
     else
       // code line
     ```
-  - No:
+  - Definitely no:
 
     ```c++
     if (condition)
