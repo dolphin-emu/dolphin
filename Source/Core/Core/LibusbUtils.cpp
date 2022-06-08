@@ -28,7 +28,9 @@ public:
       return;
 
 #ifdef _WIN32
-    libusb_set_option(m_context, LIBUSB_OPTION_USE_USBDK);
+    const int usbdk_ret = libusb_set_option(m_context, LIBUSB_OPTION_USE_USBDK);
+    if (usbdk_ret != LIBUSB_SUCCESS && usbdk_ret != LIBUSB_ERROR_NOT_FOUND)
+      WARN_LOG_FMT(IOS_USB, "Failed to set LIBUSB_OPTION_USE_USBDK: {}", ErrorWrap(usbdk_ret));
 #endif
     m_event_thread_running.Set();
     m_event_thread = std::thread(&Impl::EventThread, this);
@@ -71,7 +73,11 @@ private:
     Common::SetCurrentThreadName("libusb thread");
     timeval tv{5, 0};
     while (m_event_thread_running.IsSet())
-      libusb_handle_events_timeout_completed(m_context, &tv, nullptr);
+    {
+      const int ret = libusb_handle_events_timeout_completed(m_context, &tv, nullptr);
+      if (ret != LIBUSB_SUCCESS)
+        WARN_LOG_FMT(IOS_USB, "libusb_handle_events_timeout_completed failed: {}", ErrorWrap(ret));
+    }
   }
 
   libusb_context* m_context = nullptr;
