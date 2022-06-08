@@ -379,6 +379,7 @@ void SDSP::DoState(PointerWrap& p)
   p.Do(r);
   p.Do(pc);
   p.Do(control_reg);
+  p.Do(control_reg_init_code_clear_time);
   p.Do(reg_stack_ptrs);
   p.Do(exceptions);
   p.Do(external_interrupt_waiting);

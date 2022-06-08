@@ -330,6 +330,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         s_dspState.DSPReset = tmpControl.DSPReset;
         s_dspState.DSPAssertInt = tmpControl.DSPAssertInt;
         s_dspState.DSPHalt = tmpControl.DSPHalt;
+        s_dspState.DSPInitCode = tmpControl.DSPInitCode;
         s_dspState.DSPInit = tmpControl.DSPInit;
 
         // Interrupt (mask)
@@ -346,7 +347,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           s_dspState.DSP = 0;
 
         // unknown
-        s_dspState.DSPInitCode = tmpControl.DSPInitCode;
         s_dspState.pad = tmpControl.pad;
         if (s_dspState.pad != 0)
         {
