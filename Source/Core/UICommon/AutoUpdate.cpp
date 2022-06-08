@@ -43,6 +43,7 @@ static constexpr char UPDATER_COPY_FILENAME[] = "Updater.2.exe";
 
 static constexpr char UPDATER_FILENAME[] = "Dolphin Updater.app";
 static constexpr char UPDATER_COPY_FILENAME[] = ".Dolphin Updater.2.app";
+static constexpr char UPDATER_BUNDLE_EXE_SUBPATH[] = "/Contents/MacOS/Dolphin Updater";
 
 #endif
 
@@ -67,7 +68,7 @@ std::string GetUpdaterLogPath()
 std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
 #ifdef __APPLE__
-  std::string cmdline = "\"" + GetUpdaterCopyPath() + "/Contents/MacOS/Dolphin Updater\"";
+  std::string cmdline = "\"" + GetUpdaterCopyPath() + UPDATER_BUNDLE_EXE_SUBPATH + "\"";
 #else
   std::string cmdline = GetUpdaterCopyPath();
 #endif
@@ -252,7 +253,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
 
 #ifdef __APPLE__
   File::CopyDir(updater_path, updater_copy_path);
-  chmod((updater_copy_path + "/Contents/MacOS/Dolphin Updater").c_str(), 0700);
+  chmod((updater_copy_path + UPDATER_BUNDLE_EXE_SUBPATH).c_str(), 0700);
 #else
   File::Copy(updater_path, updater_copy_path);
 #endif
