@@ -45,16 +45,20 @@ void Accelerator::WriteD3(u16 value)
   // Pikmin 2 Wii writes non-stop to 0x10008000-0x1000801f (non-zero values too)
   // Zelda TP Wii writes non-stop to 0x10000000-0x1000001f (non-zero values too)
 
-  switch (m_sample_format)
+  // Writes only seem to be accepted when the upper most bit of the address is set
+  if (m_current_address & 0x80000000)
   {
-  case 0xA:  // u16 writes
+    // The format doesn't matter for D3 writes, all writes are u16 and the address is treated as if
+    // we are in a 16-bit format
     WriteMemory(m_current_address * 2, value >> 8);
     WriteMemory(m_current_address * 2 + 1, value & 0xFF);
     m_current_address++;
-    break;
-  default:
-    ERROR_LOG_FMT(DSPLLE, "dsp_write_aram_d3() - unknown format {:#x}", m_sample_format);
-    break;
+  }
+  else
+  {
+    ERROR_LOG_FMT(DSPLLE,
+                  "dsp_write_aram_d3() - tried to write to address {:#x} without high bit set",
+                  m_current_address);
   }
 }
 
