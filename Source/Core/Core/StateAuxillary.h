@@ -19,4 +19,10 @@ public:
                          SerialInterface::SIDevices currentPort2,
                          SerialInterface::SIDevices currentPort3);
   static void setPostPort();
+  static bool getBoolMatchStart();
+  static bool getBoolMatchEnd();
+  static bool getBoolWroteCodes();
+  static void setBoolMatchStart(bool boolValue);
+  static void setBoolMatchEnd(bool boolValue);
+  static void setBoolWroteCodes(bool boolValue);
 };

@@ -50,6 +50,7 @@
 #include "DiscIO/Enums.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "Core/StateAuxillary.h"
 
 namespace BootManager
 {
@@ -63,6 +64,11 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   if (!StartUp.SetPathsAndGameMetadata(*boot))
     return false;
+
+  // set replay and default gecko codes bool value to false for this instance of core
+  StateAuxillary::setBoolMatchStart(false);
+  StateAuxillary::setBoolMatchEnd(false);
+  StateAuxillary::setBoolWroteCodes(false);
 
   // Movie settings
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())

@@ -9,11 +9,45 @@
 #include <Core/Metadata.h>
 #include <ShlObj_core.h>
 
+static bool boolMatchStart = false;
+static bool boolMatchEnd = false;
+static bool wroteCodes = false;
+
 static NetPlay::PadMappingArray netplayGCMap;
 static SerialInterface::SIDevices preMoviePort0;
 static SerialInterface::SIDevices preMoviePort1;
 static SerialInterface::SIDevices preMoviePort2;
 static SerialInterface::SIDevices preMoviePort3;
+
+bool StateAuxillary::getBoolMatchStart()
+{
+  return boolMatchStart;
+}
+
+bool StateAuxillary::getBoolMatchEnd()
+{
+  return boolMatchEnd;
+}
+
+bool StateAuxillary::getBoolWroteCodes()
+{
+  return wroteCodes;
+}
+
+void StateAuxillary::setBoolMatchStart(bool boolValue)
+{
+  boolMatchStart = boolValue;
+}
+
+void StateAuxillary::setBoolMatchEnd(bool boolValue)
+{
+  boolMatchEnd = boolValue;
+}
+
+void StateAuxillary::setBoolWroteCodes(bool boolValue)
+{
+  wroteCodes = boolValue;
+}
 
 void StateAuxillary::saveState(const std::string& filename, bool wait) {
   std::thread t1(&State::SaveAs, filename, wait);

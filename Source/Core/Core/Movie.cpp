@@ -1491,6 +1491,10 @@ void EndPlayInput(bool cont)
       CPU::Break();
     s_rerecords = 0;
     s_currentByte = 0;
+    if (s_playMode == PlayMode::Playing)
+    {
+      StateAuxillary::setPostPort();
+    }
     s_playMode = PlayMode::None;
     Core::DisplayMessage("Movie End.", 2000);
     s_bRecordingFromSaveState = false;
@@ -1704,7 +1708,7 @@ static void CheckMD5()
   if (game_md5 == s_MD5)
     Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
   else
-    Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
+    Core::DisplayMessage("Checksum of curs_playMode = PlayMode::Nonerent game does not match the recorded game!", 3000);
 }
 
 // NOTE: Entrypoint for own thread
@@ -1723,8 +1727,12 @@ void Shutdown()
 {
   s_currentInputCount = s_totalInputCount = s_totalFrames = s_tickCountAtLastInput = 0;
   s_temp_input.clear();
-  // if they quit the replay early
-  StateAuxillary::endPlayback();
-  StateAuxillary::setPostPort();
+
+  // shutdown is called any time the game (core) is closed
+  // delete any residue from shutting down a playback early that wasn't handled from graceful movie end
+  std::thread t1(&StateAuxillary::endPlayback);
+  t1.detach();
+
+
 }
 }  // namespace Movie

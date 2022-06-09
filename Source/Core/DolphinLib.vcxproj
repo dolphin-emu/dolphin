@@ -28,10 +28,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\DefaultGeckoCodes.h" />
     <ClInclude Include="Core\Metadata.h" />
     <ClInclude Include="Core\StateAuxillary.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\DefaultGeckoCodes.cpp" />
     <ClCompile Include="Core\Metadata.cpp" />
     <ClCompile Include="Core\StateAuxillary.cpp" />
   </ItemGroup>

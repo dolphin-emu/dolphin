@@ -4,6 +4,7 @@
 #include "Core/Core.h"
 #include "Core/StateAuxillary.h"
 #include "Core/Metadata.h"
+#include "Core/DefaultGeckoCodes.h"
 
 #include <algorithm>
 #include <atomic>
@@ -105,6 +106,7 @@ namespace Core
 {
 static bool boolMatchStart = false;
 static bool boolMatchEnd = false;
+static bool wroteCodes = false;
 static bool s_wants_determinism;
 
 // Declarations and definitions
@@ -187,6 +189,14 @@ void OnFrameEnd()
   if (s_memory_watcher)
     s_memory_watcher->Step();
 #endif
+  // inject ALWAYS requried replay codes
+  if (!StateAuxillary::getBoolWroteCodes())
+  {
+    DefaultGeckoCodes codeWriter;
+    codeWriter.RunCodeInject(false);
+    StateAuxillary::setBoolWroteCodes(true);
+    wroteCodes = true;
+  }
   static const u32 matchStart = 0x80400000;
   static const u32 matchEnd = 0x80400001;
   static const u32 sceneID = 0x81440ce3;
@@ -195,9 +205,11 @@ void OnFrameEnd()
   // movie cannot be playing input back since we do not want to record that
 
   //match start
-  if (Memory::Read_U8(matchStart) == 1 && !boolMatchStart && !Movie::IsPlayingInput() && !Movie::IsRecordingInput())
+  if (Memory::Read_U8(matchStart) == 1 && !StateAuxillary::getBoolMatchStart() &&
+      !Movie::IsPlayingInput() && !Movie::IsRecordingInput())
   {
     boolMatchStart = true;
+    StateAuxillary::setBoolMatchStart(true);
     // begin recording
 
     /*
@@ -228,6 +240,7 @@ void OnFrameEnd()
     }
     */
     StateAuxillary::startRecording();
+    StateAuxillary::setBoolMatchEnd(false);
     boolMatchEnd = false;
 
     // Create the Citrus Replays directory to ensure writing works (will not overwrite already created dir)
@@ -244,9 +257,11 @@ void OnFrameEnd()
   }
 
   //match end
-  if (Memory::Read_U8(matchEnd) == 1 && !boolMatchEnd && !Movie::IsPlayingInput() &&
+  if (Memory::Read_U8(matchEnd) == 1 && !StateAuxillary::getBoolMatchEnd() &&
+      !Movie::IsPlayingInput() &&
       Movie::IsRecordingInput())
   {
+    StateAuxillary::setBoolMatchEnd(true);
     boolMatchEnd = true;
     time_t curr_time;
     tm* curr_tm;
@@ -269,6 +284,7 @@ void OnFrameEnd()
     std::string fileName = "\\output.dtm";
     replays_path += fileName;
     StateAuxillary::stopRecording(replays_path, curr_tm);
+    StateAuxillary::setBoolMatchStart(false);
     boolMatchStart = false;
     /*
     if (Movie::IsRecordingInput())
@@ -382,6 +398,9 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Start the emu thread
   s_is_booting.Set();
   s_emu_thread = std::thread(EmuThread, std::move(boot), prepared_wsi);
+
+
+
   return true;
 }
 
