@@ -52,7 +52,11 @@ public:
   void UpdateSpeed(float val) { m_speed.store(val); }
 
 private:
-  static constexpr u32 MAX_SAMPLES = 1024 * 4;  // 128 ms
+  // Datel titles supply a large number of samples at a time (pressing B in a menu in Action Replay
+  // Max uses 14624 samples at a time, and MaxPlay uses 5848 samples at a time for its background
+  // music). The Wii compatible Action Replay uses 18384 at a time.
+  // Licensed titles generally use way less than that.
+  static constexpr u32 MAX_SAMPLES = 32768;  // 1024 ms at 32000 Hz
   static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
   static constexpr int MAX_FREQ_SHIFT = 200;  // Per 32000 Hz
   static constexpr float CONTROL_FACTOR = 0.2f;

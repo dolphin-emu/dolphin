@@ -38,12 +38,12 @@ public:
   u32 GetAudioSize() const { return audio_size; }
 
 private:
-  static constexpr size_t BUFFER_SIZE = 32 * 1024;
+  static constexpr size_t BUFFER_SAMPLE_COUNT = 32768;
 
   File::IOFile file;
   bool skip_silence = false;
   u32 audio_size = 0;
-  std::array<short, BUFFER_SIZE> conv_buffer{};
+  std::array<short, BUFFER_SAMPLE_COUNT * 2> conv_buffer{};
   void Write(u32 value);
   void Write4(const char* ptr);
   std::string basename;

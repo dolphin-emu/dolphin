@@ -231,6 +231,13 @@ void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_sample
   // needs to get updates to not deadlock.
   u32 indexW = m_indexW.load();
 
+  // The game is trying to supply too many samples; we'll *never* have enough free space for it.
+  if (num_samples >= MAX_SAMPLES)
+  {
+    ERROR_LOG_FMT(AUDIO, "Game is trying to supply {} samples, but we can only store {}",
+                  num_samples, MAX_SAMPLES);
+  }
+
   // Check if we have enough free space
   // indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
   if (num_samples * 2 + ((indexW - m_indexR.load()) & INDEX_MASK) >= MAX_SAMPLES * 2)

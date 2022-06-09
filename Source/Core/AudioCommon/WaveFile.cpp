@@ -15,8 +15,6 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
-constexpr size_t WaveFileWriter::BUFFER_SIZE;
-
 WaveFileWriter::WaveFileWriter()
 {
 }
@@ -119,8 +117,11 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int
   if (!file)
     ERROR_LOG_FMT(AUDIO, "WaveFileWriter - file not open.");
 
-  if (count > BUFFER_SIZE * 2)
+  if (count > BUFFER_SAMPLE_COUNT)
+  {
     ERROR_LOG_FMT(AUDIO, "WaveFileWriter - buffer too small (count = {}).", count);
+    return;
+  }
 
   if (skip_silence)
   {
