@@ -163,7 +163,7 @@ static CoreTiming::EventType* s_et_CompleteARAM;
 
 static void CompleteARAM(u64 userdata, s64 cyclesLate)
 {
-  s_dspState.DMAState() = 0;
+  s_dspState.DMAState() = false;
   GenerateDSPInterrupt(INT_ARAM);
 }
 
@@ -204,7 +204,7 @@ void Reinit(bool hle)
   s_arDMA = {};
 
   s_dspState.Hex = 0;
-  s_dspState.DSPHalt() = 1;
+  s_dspState.DSPHalt() = true;
 
   s_ARAM_Info.Hex = 0;
   s_AR_MODE = 1;       // ARAM Controller has init'd
@@ -334,11 +334,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
         // Interrupt
         if (tmpControl.AID())
-          s_dspState.AID() = 0;
+          s_dspState.AID() = false;
         if (tmpControl.ARAM())
-          s_dspState.ARAM() = 0;
+          s_dspState.ARAM() = false;
         if (tmpControl.DSP())
-          s_dspState.DSP() = 0;
+          s_dspState.DSP() = false;
 
         // unknown
         s_dspState.pad() = tmpControl.pad();
@@ -497,7 +497,7 @@ void UpdateAudioDMA()
 
 static void Do_ARAM_DMA()
 {
-  s_dspState.DMAState() = 1;
+  s_dspState.DMAState() = true;
 
   // ARAM DMA transfer rate has been measured on real hw
   int ticksToTransfer = (s_arDMA.Cnt.count() / 32) * 246;
