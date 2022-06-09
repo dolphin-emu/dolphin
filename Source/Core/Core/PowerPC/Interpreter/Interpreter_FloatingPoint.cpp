@@ -7,8 +7,8 @@
 #include <limits>
 
 #include "Common/CommonTypes.h"
-#include "Common/FloatUtils.h"
 #include "Common/FPURoundMode.h"
+#include "Common/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
