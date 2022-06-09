@@ -395,10 +395,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
           AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks * 8);
 
-          // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
-          // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          CoreTiming::ScheduleEvent(200, s_et_GenerateDSPInterrupt, INT_AID);
+          // Other Namco games crash too, see issue 9509. Based on https://dolp.in/pr9746 hardware
+          // test this interrupt is scheduled between ~150 and ~240 cycles in the future.
+          CoreTiming::ScheduleEvent(240, s_et_GenerateDSPInterrupt, INT_AID);
         }
       }));
 
