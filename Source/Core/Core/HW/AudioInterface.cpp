@@ -61,7 +61,7 @@ enum
   AI_INTERRUPT_TIMING = 0x6C0C,
 };
 
-enum
+enum : bool
 {
   AIS_32KHz = 0,
   AIS_48KHz = 1,
@@ -218,7 +218,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         if (tmp_ai_ctrl.AIINT())
         {
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Clear AIS Interrupt");
-          s_control.AIINT() = 0;
+          s_control.AIINT() = false;
         }
 
         // Sample Count Reset
@@ -266,12 +266,12 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 static void UpdateInterrupts()
 {
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AI,
-                                   s_control.AIINT() & s_control.AIINTMSK());
+                                   s_control.AIINT() && s_control.AIINTMSK());
 }
 
 static void GenerateAudioInterrupt()
 {
-  s_control.AIINT() = 1;
+  s_control.AIINT() = true;
   UpdateInterrupts();
 }
 
@@ -300,7 +300,7 @@ static void IncreaseSampleCount(const u32 amount)
 
 bool IsPlaying()
 {
-  return (s_control.PSTAT() == 1);
+  return (s_control.PSTAT());
 }
 
 u32 GetAIDSampleRateDivisor()
