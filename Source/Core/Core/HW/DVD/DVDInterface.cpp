@@ -594,7 +594,7 @@ bool AutoChangeDisc()
 static void SetLidOpen()
 {
   const bool old_value = s_DICVR.CVR();
-  s_DICVR.CVR() = IsDiscInside() ? 0 : 1;
+  s_DICVR.CVR() = !IsDiscInside();
   if (s_DICVR.CVR() != old_value)
     GenerateDIInterrupt(DIInterruptType::CVRINT);
 }
@@ -619,13 +619,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    s_DISR.BREAK() = tmp_status_reg.BREAK();
 
                    if (tmp_status_reg.DEINT())
-                     s_DISR.DEINT() = 0;
+                     s_DISR.DEINT() = false;
 
                    if (tmp_status_reg.TCINT())
-                     s_DISR.TCINT() = 0;
+                     s_DISR.TCINT() = false;
 
                    if (tmp_status_reg.BRKINT())
-                     s_DISR.BRKINT() = 0;
+                     s_DISR.BRKINT() = false;
 
                    if (s_DISR.BREAK())
                    {
@@ -642,7 +642,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    s_DICVR.CVRINTMASK() = tmp_cover_reg.CVRINTMASK();
 
                    if (tmp_cover_reg.CVRINT())
-                     s_DICVR.CVRINT() = 0;
+                     s_DICVR.CVRINT() = false;
 
                    UpdateInterrupts();
                  }));
@@ -681,10 +681,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 static void UpdateInterrupts()
 {
-  const bool set_mask = (s_DISR.DEINT() & s_DISR.DEINTMASK()) != 0 ||
-                        (s_DISR.TCINT() & s_DISR.TCINTMASK()) != 0 ||
-                        (s_DISR.BRKINT() & s_DISR.BRKINTMASK()) != 0 ||
-                        (s_DICVR.CVRINT() & s_DICVR.CVRINTMASK()) != 0;
+  const bool set_mask =
+      (s_DISR.DEINT() && s_DISR.DEINTMASK()) || (s_DISR.TCINT() && s_DISR.TCINTMASK()) ||
+      (s_DISR.BRKINT() && s_DISR.BRKINTMASK()) || (s_DICVR.CVRINT() && s_DICVR.CVRINTMASK());
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
@@ -1356,7 +1355,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
   {
     if (s_DICR.TSTART())
     {
-      s_DICR.TSTART() = 0;
+      s_DICR.TSTART() = false;
       GenerateDIInterrupt(interrupt_type);
     }
     break;
