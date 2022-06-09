@@ -92,7 +92,7 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
+void Jit64::HandleNaNs(GeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -204,7 +204,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
     MOVAPD(xmm_out, R(xmm));
 }
 
-void Jit64::fp_arith(UGeckoInstruction inst)
+void Jit64::fp_arith(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -289,7 +289,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   }
 }
 
-void Jit64::fmaddXX(UGeckoInstruction inst)
+void Jit64::fmaddXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -490,7 +490,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     FinalizeDoubleResult(Rd, R(result_xmm));
 }
 
-void Jit64::fsign(UGeckoInstruction inst)
+void Jit64::fsign(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -524,7 +524,7 @@ void Jit64::fsign(UGeckoInstruction inst)
   }
 }
 
-void Jit64::fselx(UGeckoInstruction inst)
+void Jit64::fselx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -597,7 +597,7 @@ void Jit64::fselx(UGeckoInstruction inst)
     MOVSD(Rd, R(XMM1));
 }
 
-void Jit64::fmrx(UGeckoInstruction inst)
+void Jit64::fmrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -630,7 +630,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
   }
 }
 
-void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
+void Jit64::FloatCompare(GeckoInstruction inst, bool upper)
 {
   bool fprf = m_fprf && js.op->wantsFPRF;
   // bool ordered = !!(inst.SUBOP10() & 32);
@@ -640,7 +640,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   int output[4] = {PowerPC::CR_SO, PowerPC::CR_EQ, PowerPC::CR_GT, PowerPC::CR_LT};
 
   // Merge neighboring fcmp and cror (the primary use of cror).
-  UGeckoInstruction next = js.op[1].inst;
+  GeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
       CanMergeNextInstructions(1) && next.OPCD() == 19 && next.SUBOP10() == 449 &&
       static_cast<u32>(next.CRBA() >> 2) == crf && static_cast<u32>(next.CRBB() >> 2) == crf &&
@@ -732,7 +732,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
 }
 
-void Jit64::fcmpX(UGeckoInstruction inst)
+void Jit64::fcmpX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -741,7 +741,7 @@ void Jit64::fcmpX(UGeckoInstruction inst)
   FloatCompare(inst);
 }
 
-void Jit64::fctiwx(UGeckoInstruction inst)
+void Jit64::fctiwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -784,7 +784,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   MOVSD(Rd, XMM0);
 }
 
-void Jit64::frspx(UGeckoInstruction inst)
+void Jit64::frspx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -801,7 +801,7 @@ void Jit64::frspx(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rb, packed, true);
 }
 
-void Jit64::frsqrtex(UGeckoInstruction inst)
+void Jit64::frsqrtex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -820,7 +820,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
   FinalizeDoubleResult(Rd, R(XMM0));
 }
 
-void Jit64::fresx(UGeckoInstruction inst)
+void Jit64::fresx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);

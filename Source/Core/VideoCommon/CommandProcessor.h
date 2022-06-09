@@ -102,7 +102,7 @@ enum
 };
 
 // Fifo Status Register
-struct UCPStatusReg
+struct CPStatusReg
 {
   u16 Hex;
 
@@ -112,12 +112,12 @@ struct UCPStatusReg
   BFVIEW_M(Hex, bool, 3, 1, CommandIdle);
   BFVIEW_M(Hex, bool, 4, 1, Breakpoint);
 
-  UCPStatusReg() { Hex = 0; }
-  UCPStatusReg(u16 _hex) { Hex = _hex; }
+  CPStatusReg() { Hex = 0; }
+  CPStatusReg(u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Control Register
-struct UCPCtrlReg
+struct CPCtrlReg
 {
   u16 Hex;
 
@@ -128,12 +128,12 @@ struct UCPCtrlReg
   BFVIEW_M(Hex, bool, 4, 1, GPLinkEnable);
   BFVIEW_M(Hex, bool, 5, 1, BPInt);
 
-  UCPCtrlReg() { Hex = 0; }
-  UCPCtrlReg(u16 _hex) { Hex = _hex; }
+  CPCtrlReg() { Hex = 0; }
+  CPCtrlReg(u16 _hex) { Hex = _hex; }
 };
 
 // Fifo Clear Register
-struct UCPClearReg
+struct CPClearReg
 {
   u16 Hex;
 
@@ -141,8 +141,8 @@ struct UCPClearReg
   BFVIEW_M(Hex, bool, 1, 1, ClearFifoUnderflow);
   BFVIEW_M(Hex, bool, 2, 1, ClearMetrices);
 
-  UCPClearReg() { Hex = 0; }
-  UCPClearReg(u16 _hex) { Hex = _hex; }
+  CPClearReg() { Hex = 0; }
+  CPClearReg(u16 _hex) { Hex = _hex; }
 };
 
 // Init

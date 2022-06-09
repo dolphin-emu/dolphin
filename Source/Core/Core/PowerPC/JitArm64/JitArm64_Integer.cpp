@@ -177,7 +177,7 @@ static constexpr u32 BitXOR(u32 a, u32 b)
   return a ^ b;
 }
 
-void JitArm64::arith_imm(UGeckoInstruction inst)
+void JitArm64::arith_imm(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -221,7 +221,7 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::addix(UGeckoInstruction inst)
+void JitArm64::addix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -255,7 +255,7 @@ void JitArm64::addix(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::boolX(UGeckoInstruction inst)
+void JitArm64::boolX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -365,7 +365,7 @@ void JitArm64::boolX(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::addx(UGeckoInstruction inst)
+void JitArm64::addx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -400,7 +400,7 @@ void JitArm64::addx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::extsXx(UGeckoInstruction inst)
+void JitArm64::extsXx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -422,7 +422,7 @@ void JitArm64::extsXx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::cntlzwx(UGeckoInstruction inst)
+void JitArm64::cntlzwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -444,7 +444,7 @@ void JitArm64::cntlzwx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::negx(UGeckoInstruction inst)
+void JitArm64::negx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -468,7 +468,7 @@ void JitArm64::negx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::cmp(UGeckoInstruction inst)
+void JitArm64::cmp(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -505,7 +505,7 @@ void JitArm64::cmp(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::cmpl(UGeckoInstruction inst)
+void JitArm64::cmpl(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -533,7 +533,7 @@ void JitArm64::cmpl(UGeckoInstruction inst)
   SUB(gpr.CR(crf), EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
 }
 
-void JitArm64::cmpi(UGeckoInstruction inst)
+void JitArm64::cmpi(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -562,7 +562,7 @@ void JitArm64::cmpi(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::cmpli(UGeckoInstruction inst)
+void JitArm64::cmpli(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -589,7 +589,7 @@ void JitArm64::cmpli(UGeckoInstruction inst)
   SUBI2R(CR, EncodeRegTo64(gpr.R(a)), B, CR);
 }
 
-void JitArm64::rlwinmx(UGeckoInstruction inst)
+void JitArm64::rlwinmx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -638,7 +638,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
     ComputeRC0(gpr.R(a));
 }
 
-void JitArm64::rlwnmx(UGeckoInstruction inst)
+void JitArm64::rlwnmx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -675,7 +675,7 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::srawix(UGeckoInstruction inst)
+void JitArm64::srawix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -749,7 +749,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::addic(UGeckoInstruction inst)
+void JitArm64::addic(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -782,7 +782,7 @@ void JitArm64::addic(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mulli(UGeckoInstruction inst)
+void JitArm64::mulli(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -804,7 +804,7 @@ void JitArm64::mulli(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mullwx(UGeckoInstruction inst)
+void JitArm64::mullwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -828,7 +828,7 @@ void JitArm64::mullwx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mulhwx(UGeckoInstruction inst)
+void JitArm64::mulhwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -853,7 +853,7 @@ void JitArm64::mulhwx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mulhwux(UGeckoInstruction inst)
+void JitArm64::mulhwux(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -878,7 +878,7 @@ void JitArm64::mulhwux(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::addzex(UGeckoInstruction inst)
+void JitArm64::addzex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -933,7 +933,7 @@ void JitArm64::addzex(UGeckoInstruction inst)
     ComputeRC0(gpr.R(d));
 }
 
-void JitArm64::subfx(UGeckoInstruction inst)
+void JitArm64::subfx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -963,7 +963,7 @@ void JitArm64::subfx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::subfex(UGeckoInstruction inst)
+void JitArm64::subfex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1050,7 +1050,7 @@ void JitArm64::subfex(UGeckoInstruction inst)
     ComputeRC0(gpr.R(d));
 }
 
-void JitArm64::subfcx(UGeckoInstruction inst)
+void JitArm64::subfcx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1082,7 +1082,7 @@ void JitArm64::subfcx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::subfzex(UGeckoInstruction inst)
+void JitArm64::subfzex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1128,7 +1128,7 @@ void JitArm64::subfzex(UGeckoInstruction inst)
     ComputeRC0(gpr.R(d));
 }
 
-void JitArm64::subfic(UGeckoInstruction inst)
+void JitArm64::subfic(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1157,7 +1157,7 @@ void JitArm64::subfic(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::addex(UGeckoInstruction inst)
+void JitArm64::addex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1244,7 +1244,7 @@ void JitArm64::addex(UGeckoInstruction inst)
     ComputeRC0(gpr.R(d));
 }
 
-void JitArm64::addcx(UGeckoInstruction inst)
+void JitArm64::addcx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1273,7 +1273,7 @@ void JitArm64::addcx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::divwux(UGeckoInstruction inst)
+void JitArm64::divwux(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1301,7 +1301,7 @@ void JitArm64::divwux(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::divwx(UGeckoInstruction inst)
+void JitArm64::divwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1502,7 +1502,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::slwx(UGeckoInstruction inst)
+void JitArm64::slwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1553,7 +1553,7 @@ void JitArm64::slwx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::srwx(UGeckoInstruction inst)
+void JitArm64::srwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1596,7 +1596,7 @@ void JitArm64::srwx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::srawx(UGeckoInstruction inst)
+void JitArm64::srawx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1725,7 +1725,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
     ComputeRC0(gpr.R(a));
 }
 
-void JitArm64::rlwimix(UGeckoInstruction inst)
+void JitArm64::rlwimix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);

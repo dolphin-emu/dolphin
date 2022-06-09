@@ -2091,7 +2091,7 @@ struct fmt::formatter<FrameToField> : EnumFormatter<FrameToField::InterlacedOdd>
   constexpr formatter() : EnumFormatter(names) {}
 };
 
-struct UPE_Copy
+struct PE_Copy
 {
   u32 Hex;
 
@@ -2123,11 +2123,11 @@ struct UPE_Copy
   }
 };
 template <>
-struct fmt::formatter<UPE_Copy>
+struct fmt::formatter<PE_Copy>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UPE_Copy& copy, FormatContext& ctx) const
+  auto format(const PE_Copy& copy, FormatContext& ctx) const
   {
     static constexpr std::array<const char*, 2> no_yes = {"No", "Yes"};
     std::string_view clamp;
@@ -2428,7 +2428,7 @@ struct BPMemory
   u32 clearcolorAR;                   // 4f
   u32 clearcolorGB;                   // 50
   u32 clearZValue;                    // 51
-  UPE_Copy triggerEFBCopy;            // 52
+  PE_Copy triggerEFBCopy;             // 52
   CopyFilterCoefficients copyfilter;  // 53,54
   u32 boundbox0;                      // 55
   u32 boundbox1;                      // 56

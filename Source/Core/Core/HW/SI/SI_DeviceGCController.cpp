@@ -297,7 +297,7 @@ void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
 // SendCommand
 void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 {
-  UCommand controller_command(command);
+  Command controller_command(command);
 
   if (controller_command.command() == EDirectCommands::CMD_WRITE)
   {

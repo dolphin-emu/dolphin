@@ -1167,7 +1167,7 @@ static void GenerateISIException(u32 effective_address)
 
 void SDRUpdated()
 {
-  const auto sdr = UReg_SDR1{ppcState.spr[SPR_SDR]};
+  const auto sdr = Reg_SDR1{ppcState.spr[SPR_SDR]};
   const u32 htabmask = sdr.htabmask();
 
   if (!Common::IsValidLowMask(htabmask))
@@ -1200,7 +1200,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
   if (tlbe.tag[0] == tag)
   {
-    UPTE_Hi pte2(tlbe.pte[0]);
+    PTE_Hi pte2(tlbe.pte[0]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1223,7 +1223,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
   }
   if (tlbe.tag[1] == tag)
   {
-    UPTE_Hi pte2(tlbe.pte[1]);
+    PTE_Hi pte2(tlbe.pte[1]);
 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
@@ -1247,7 +1247,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
   return TLBLookupResult::NotFound;
 }
 
-static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE_Hi pte2, const u32 address)
+static void UpdateTLBEntry(const XCheckTLBFlag flag, PTE_Hi pte2, const u32 address)
 {
   if (IsNoExceptionFlag(flag))
     return;
@@ -1297,7 +1297,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
                                   translated_address};
   }
 
-  const auto sr = UReg_SR{ppcState.sr[address.SR()]};
+  const auto sr = Reg_SR{ppcState.sr[address.SR()]};
 
   if (sr.T() != 0)
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
@@ -1318,7 +1318,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   // hash function no 1 "xor" .360
   u32 hash = (VSID ^ page_index);
 
-  UPTE_Lo pte1;
+  PTE_Lo pte1;
   pte1.VSID() = VSID;
   pte1.API() = api;
   pte1.V() = 1;
@@ -1341,7 +1341,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
       if (pte1.Hex == pteg)
       {
-        UPTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
+        PTE_Hi pte2(Memory::Read_U32(pteg_addr + 4));
 
         // set the access bits
         switch (flag)
@@ -1390,8 +1390,8 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
   for (int i = 0; i < 4; ++i)
   {
     const u32 spr = base_spr + i * 2;
-    const UReg_BAT_Up batu{ppcState.spr[spr]};
-    const UReg_BAT_Lo batl{ppcState.spr[spr + 1]};
+    const Reg_BAT_Up batu{ppcState.spr[spr]};
+    const Reg_BAT_Lo batl{ppcState.spr[spr + 1]};
     if (batu.VS() == 0 && batu.VP() == 0)
       continue;
 

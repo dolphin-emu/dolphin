@@ -588,7 +588,7 @@ void FifoPlayer::ClearEfb()
   LoadBPReg(BPMEM_MIPMAP_STRIDE, 0x140);
   // The clear color and Z value have already been loaded via LoadRegisters()
   LoadBPReg(BPMEM_EFB_ADDR, 0);
-  UPE_Copy copy = bpmem.triggerEFBCopy;
+  PE_Copy copy = bpmem.triggerEFBCopy;
   copy.clamp_top() = false;
   copy.clamp_bottom() = false;
   copy.yuv() = false;
@@ -617,7 +617,7 @@ void FifoPlayer::ClearEfb()
 
 void FifoPlayer::LoadMemory()
 {
-  UReg_MSR newMSR;
+  Reg_MSR newMSR;
   newMSR.DR() = 1;
   newMSR.IR() = 1;
   MSR.Hex = newMSR.Hex;
@@ -776,14 +776,14 @@ bool FifoPlayer::ShouldLoadXF(u8 reg)
 
 bool FifoPlayer::IsIdleSet()
 {
-  CommandProcessor::UCPStatusReg status =
+  CommandProcessor::CPStatusReg status =
       PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.CommandIdle();
 }
 
 bool FifoPlayer::IsHighWatermarkSet()
 {
-  CommandProcessor::UCPStatusReg status =
+  CommandProcessor::CPStatusReg status =
       PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
   return status.OverflowHiWatermark();
 }

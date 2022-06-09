@@ -43,7 +43,7 @@ constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
 
 constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
 
-static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
+static u32 EvaluateBranchTarget(GeckoInstruction instr, u32 pc)
 {
   switch (instr.OPCD())
   {
@@ -105,7 +105,7 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
       return true;
     }
     const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
+    const GeckoInstruction instr = read_result.hex;
     if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
       // BLR or RFI
@@ -261,7 +261,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::Symbol
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
     const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
+    const GeckoInstruction instr = read_result.hex;
 
     if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
@@ -771,7 +771,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     num_inst++;
 
-    const UGeckoInstruction inst = result.hex;
+    const GeckoInstruction inst = result.hex;
     GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
     code[i] = {};
     code[i].opinfo = opinfo;

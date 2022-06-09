@@ -18,7 +18,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::lfXX(UGeckoInstruction inst)
+void JitArm64::lfXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
@@ -198,7 +198,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     gpr.Unlock(ARM64Reg::W2);
 }
 
-void JitArm64::stfXX(UGeckoInstruction inst)
+void JitArm64::stfXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);

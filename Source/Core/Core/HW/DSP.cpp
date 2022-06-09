@@ -67,8 +67,8 @@ enum
   AUDIO_DMA_BLOCKS_LEFT = 0x503A,
 };
 
-// UARAMCount
-struct UARAMCount
+// ARAMCount
+struct ARAMCount
 {
   u32 Hex = 0;
 
@@ -77,7 +77,7 @@ struct UARAMCount
 };
 
 // Blocks are 32 bytes.
-struct UAudioDMAControl
+struct AudioDMAControl
 {
   u16 Hex = 0;
 
@@ -90,8 +90,8 @@ struct AudioDMA
 {
   u32 current_source_address = 0;
   u16 remaining_blocks_count = 0;
-  u32 SourceAddress = 0;
-  UAudioDMAControl AudioDMAControl;
+  u32 source_address = 0;
+  AudioDMAControl audio_dma_control;
 };
 
 // ARAM_DMA
@@ -99,7 +99,7 @@ struct ARAM_DMA
 {
   u32 MMAddr = 0;
   u32 ARAddr = 0;
-  UARAMCount Cnt;
+  ARAMCount Cnt;
 };
 
 // So we may abstract GC/Wii differences a little
@@ -123,7 +123,7 @@ struct ARAM_Info
 static ARAMInfo s_ARAM;
 static AudioDMA s_audioDMA;
 static ARAM_DMA s_arDMA;
-static UDSPControl s_dspState;
+static DSPControl s_dspState;
 static ARAM_Info s_ARAM_Info;
 // Contains bitfields for some stuff we don't care about (and nothing ever reads):
 //  CAS latency/burst length/addressing mode/write mode
@@ -262,7 +262,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       // For AUDIO_DMA_START_HI, only bits 0x03ff can be set on GCN and 0x1fff on Wii
       // For AUDIO_DMA_START_LO, only bits 0xffe0 can be set
       // AUDIO_DMA_START_HI requires a complex write handler
-      {AUDIO_DMA_START_LO, MMIO::Utils::LowPart(&s_audioDMA.SourceAddress), WMASK_LO_ALIGN_32BIT},
+      {AUDIO_DMA_START_LO, MMIO::Utils::LowPart(&s_audioDMA.source_address), WMASK_LO_ALIGN_32BIT},
   };
   for (auto& mapped_var : directly_mapped_vars)
   {
@@ -308,7 +308,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                (s_dsp_emulator->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
-        UDSPControl tmpControl;
+        DSPControl tmpControl;
         tmpControl.Hex = (val & ~DSP_CONTROL_MASK) |
                          (s_dsp_emulator->DSP_WriteControlRegister(val) & DSP_CONTROL_MASK);
 
@@ -317,7 +317,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         // only viewable to DSP emulator
         if (val & 1 /*DSPReset*/)
         {
-          s_audioDMA.AudioDMAControl.Hex = 0;
+          s_audioDMA.audio_dma_control.Hex = 0;
         }
 
         // Update DSP related flags
@@ -360,34 +360,34 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   mmio->Register(base | AUDIO_DMA_START_HI,
-                 MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&s_audioDMA.SourceAddress)),
+                 MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&s_audioDMA.source_address)),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   *MMIO::Utils::HighPart(&s_audioDMA.SourceAddress) =
+                   *MMIO::Utils::HighPart(&s_audioDMA.source_address) =
                        val & (SConfig::GetInstance().bWii ? WMASK_AUDIO_HI_RESTRICT_WII :
                                                             WMASK_AUDIO_HI_RESTRICT_GCN);
                  }));
 
   // Audio DMA MMIO controlling the DMA start.
   mmio->Register(
-      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&s_audioDMA.AudioDMAControl.Hex),
+      base | AUDIO_DMA_CONTROL_LEN, MMIO::DirectRead<u16>(&s_audioDMA.audio_dma_control.Hex),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
-        bool already_enabled = s_audioDMA.AudioDMAControl.Enable();
-        s_audioDMA.AudioDMAControl.Hex = val;
+        bool already_enabled = s_audioDMA.audio_dma_control.Enable();
+        s_audioDMA.audio_dma_control.Hex = val;
 
         // Only load new values if were not already doing a DMA transfer,
         // otherwise just let the new values be autoloaded in when the
         // current transfer ends.
-        if (!already_enabled && s_audioDMA.AudioDMAControl.Enable())
+        if (!already_enabled && s_audioDMA.audio_dma_control.Enable())
         {
-          s_audioDMA.current_source_address = s_audioDMA.SourceAddress;
-          s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks();
+          s_audioDMA.current_source_address = s_audioDMA.source_address;
+          s_audioDMA.remaining_blocks_count = s_audioDMA.audio_dma_control.NumBlocks();
 
           INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
-                       s_audioDMA.AudioDMAControl.NumBlocks(), s_audioDMA.SourceAddress);
+                       s_audioDMA.audio_dma_control.NumBlocks(), s_audioDMA.source_address);
 
           // We make the samples ready as soon as possible
-          void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
-          AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks() * 8);
+          void* address = Memory::GetPointer(s_audioDMA.source_address);
+          AudioCommon::SendAIBuffer((short*)address, s_audioDMA.audio_dma_control.NumBlocks() * 8);
 
           // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
@@ -463,7 +463,7 @@ void UpdateDSPSlice(int cycles)
 void UpdateAudioDMA()
 {
   static short zero_samples[8 * 2] = {0};
-  if (s_audioDMA.AudioDMAControl.Enable())
+  if (s_audioDMA.audio_dma_control.Enable())
   {
     // Read audio at g_audioDMA.current_source_address in RAM and push onto an
     // external audio fifo in the emulator, to be mixed with the disc
@@ -477,14 +477,14 @@ void UpdateAudioDMA()
 
     if (s_audioDMA.remaining_blocks_count == 0)
     {
-      s_audioDMA.current_source_address = s_audioDMA.SourceAddress;
-      s_audioDMA.remaining_blocks_count = s_audioDMA.AudioDMAControl.NumBlocks();
+      s_audioDMA.current_source_address = s_audioDMA.source_address;
+      s_audioDMA.remaining_blocks_count = s_audioDMA.audio_dma_control.NumBlocks();
 
       if (s_audioDMA.remaining_blocks_count != 0)
       {
         // We make the samples ready as soon as possible
-        void* address = Memory::GetPointer(s_audioDMA.SourceAddress);
-        AudioCommon::SendAIBuffer((short*)address, s_audioDMA.AudioDMAControl.NumBlocks() * 8);
+        void* address = Memory::GetPointer(s_audioDMA.source_address);
+        AudioCommon::SendAIBuffer((short*)address, s_audioDMA.audio_dma_control.NumBlocks() * 8);
       }
       GenerateDSPInterrupt(DSP::INT_AID);
     }

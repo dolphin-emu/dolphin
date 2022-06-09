@@ -65,7 +65,7 @@ void JitArm64::Force25BitPrecision(ARM64Reg output, ARM64Reg input, ARM64Reg tem
     m_float_emit.ADD(output, output, temp);
 }
 
-void JitArm64::fp_arith(UGeckoInstruction inst)
+void JitArm64::fp_arith(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -244,7 +244,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   SetFPRFIfNeeded(outputs_are_singles, VD);
 }
 
-void JitArm64::fp_logic(UGeckoInstruction inst)
+void JitArm64::fp_logic(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -324,7 +324,7 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of fp_logic");
 }
 
-void JitArm64::fselx(UGeckoInstruction inst)
+void JitArm64::fselx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -362,7 +362,7 @@ void JitArm64::fselx(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of fselx");
 }
 
-void JitArm64::frspx(UGeckoInstruction inst)
+void JitArm64::frspx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -398,7 +398,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
+void JitArm64::FloatCompare(GeckoInstruction inst, bool upper)
 {
   const bool fprf = m_fprf && js.op->wantsFPRF;
 
@@ -525,7 +525,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   }
 }
 
-void JitArm64::fcmpX(UGeckoInstruction inst)
+void JitArm64::fcmpX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -534,7 +534,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   FloatCompare(inst);
 }
 
-void JitArm64::fctiwx(UGeckoInstruction inst)
+void JitArm64::fctiwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -599,7 +599,7 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of fctiwzx");
 }
 
-void JitArm64::fresx(UGeckoInstruction inst)
+void JitArm64::fresx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -628,7 +628,7 @@ void JitArm64::fresx(UGeckoInstruction inst)
   fpr.Unlock(ARM64Reg::Q0);
 }
 
-void JitArm64::frsqrtex(UGeckoInstruction inst)
+void JitArm64::frsqrtex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);

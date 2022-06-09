@@ -291,7 +291,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
     ComputeRC(d, needs_test, doop != And || (value & 0x80000000));
 }
 
-void Jit64::reg_imm(UGeckoInstruction inst)
+void Jit64::reg_imm(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -373,7 +373,7 @@ bool Jit64::CheckMergedBranch(u32 crf) const
   if (!CanMergeNextInstructions(1))
     return false;
 
-  const UGeckoInstruction& next = js.op[1].inst;
+  const GeckoInstruction& next = js.op[1].inst;
   return (((next.OPCD() == 16 /* bcx */) ||
            ((next.OPCD() == 19) && (next.SUBOP10() == 528) /* bcctrx */) ||
            ((next.OPCD() == 19) && (next.SUBOP10() == 16) /* bclrx */)) &&
@@ -384,7 +384,7 @@ bool Jit64::CheckMergedBranch(u32 crf) const
 void Jit64::DoMergedBranch()
 {
   // Code that handles successful PPC branching.
-  const UGeckoInstruction& next = js.op[1].inst;
+  const GeckoInstruction& next = js.op[1].inst;
   const u32 nextPC = js.op[1].address;
 
   if (js.op[1].branchIsIdleLoop)
@@ -433,7 +433,7 @@ void Jit64::DoMergedBranchCondition()
 {
   js.downcountAmount++;
   js.skipInstructions = 1;
-  const UGeckoInstruction& next = js.op[1].inst;
+  const GeckoInstruction& next = js.op[1].inst;
   int test_bit = 8 >> (next.BI() & 3);
   bool condition = !!(next.BO() & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
@@ -474,7 +474,7 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 {
   js.downcountAmount++;
   js.skipInstructions = 1;
-  const UGeckoInstruction& next = js.op[1].inst;
+  const GeckoInstruction& next = js.op[1].inst;
   int test_bit = 8 >> (next.BI() & 3);
   bool condition = !!(next.BO() & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
@@ -505,7 +505,7 @@ void Jit64::DoMergedBranchImmediate(s64 val)
   }
 }
 
-void Jit64::cmpXX(UGeckoInstruction inst)
+void Jit64::cmpXX(GeckoInstruction inst)
 {
   // USES_CR
   INSTRUCTION_START
@@ -638,7 +638,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::boolX(UGeckoInstruction inst)
+void Jit64::boolX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -860,7 +860,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     ComputeRC(a, needs_test);
 }
 
-void Jit64::extsXx(UGeckoInstruction inst)
+void Jit64::extsXx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -882,7 +882,7 @@ void Jit64::extsXx(UGeckoInstruction inst)
     ComputeRC(a);
 }
 
-void Jit64::subfic(UGeckoInstruction inst)
+void Jit64::subfic(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -936,7 +936,7 @@ void Jit64::subfic(UGeckoInstruction inst)
   // This instruction has no RC flag
 }
 
-void Jit64::subfx(UGeckoInstruction inst)
+void Jit64::subfx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1101,7 +1101,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
   IMUL(32, Rd, Ra, Imm32(imm));
 }
 
-void Jit64::mulli(UGeckoInstruction inst)
+void Jit64::mulli(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1118,7 +1118,7 @@ void Jit64::mulli(UGeckoInstruction inst)
   }
 }
 
-void Jit64::mullwx(UGeckoInstruction inst)
+void Jit64::mullwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1166,7 +1166,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::mulhwXx(UGeckoInstruction inst)
+void Jit64::mulhwXx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1214,7 +1214,7 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::divwux(UGeckoInstruction inst)
+void Jit64::divwux(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1354,7 +1354,7 @@ void Jit64::divwux(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::divwx(UGeckoInstruction inst)
+void Jit64::divwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1673,7 +1673,7 @@ void Jit64::divwx(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::addx(UGeckoInstruction inst)
+void Jit64::addx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1767,7 +1767,7 @@ void Jit64::addx(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::arithXex(UGeckoInstruction inst)
+void Jit64::arithXex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1840,7 +1840,7 @@ void Jit64::arithXex(UGeckoInstruction inst)
     ComputeRC(d);
 }
 
-void Jit64::rlwinmx(UGeckoInstruction inst)
+void Jit64::rlwinmx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -1941,7 +1941,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   }
 }
 
-void Jit64::rlwimix(UGeckoInstruction inst)
+void Jit64::rlwimix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -2081,7 +2081,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
   }
 }
 
-void Jit64::rlwnmx(UGeckoInstruction inst)
+void Jit64::rlwnmx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -2131,7 +2131,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
     ComputeRC(a, false);
 }
 
-void Jit64::negx(UGeckoInstruction inst)
+void Jit64::negx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -2160,7 +2160,7 @@ void Jit64::negx(UGeckoInstruction inst)
     ComputeRC(d, false);
 }
 
-void Jit64::srwx(UGeckoInstruction inst)
+void Jit64::srwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -2222,7 +2222,7 @@ void Jit64::srwx(UGeckoInstruction inst)
     ComputeRC(a);
 }
 
-void Jit64::slwx(UGeckoInstruction inst)
+void Jit64::slwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -2311,7 +2311,7 @@ void Jit64::slwx(UGeckoInstruction inst)
   }
 }
 
-void Jit64::srawx(UGeckoInstruction inst)
+void Jit64::srawx(GeckoInstruction inst)
 {
   // USES_XER
   INSTRUCTION_START
@@ -2432,7 +2432,7 @@ void Jit64::srawx(UGeckoInstruction inst)
     ComputeRC(a);
 }
 
-void Jit64::srawix(UGeckoInstruction inst)
+void Jit64::srawix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -2496,7 +2496,7 @@ void Jit64::srawix(UGeckoInstruction inst)
 }
 
 // count leading zeroes
-void Jit64::cntlzwx(UGeckoInstruction inst)
+void Jit64::cntlzwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
@@ -2533,7 +2533,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
     ComputeRC(a, needs_test, false);
 }
 
-void Jit64::twX(UGeckoInstruction inst)
+void Jit64::twX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);

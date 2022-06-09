@@ -10,7 +10,7 @@
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void Interpreter::bx(UGeckoInstruction inst)
+void Interpreter::bx(GeckoInstruction inst)
 {
   if (inst.LK())
     LR = PC + 4;
@@ -26,7 +26,7 @@ void Interpreter::bx(UGeckoInstruction inst)
 }
 
 // bcx - ugly, straight from PPC manual equations :)
-void Interpreter::bcx(UGeckoInstruction inst)
+void Interpreter::bcx(GeckoInstruction inst)
 {
   if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
@@ -55,7 +55,7 @@ void Interpreter::bcx(UGeckoInstruction inst)
   m_end_block = true;
 }
 
-void Interpreter::bcctrx(UGeckoInstruction inst)
+void Interpreter::bcctrx(GeckoInstruction inst)
 {
   DEBUG_ASSERT_MSG(POWERPC, (inst.BO() & BO_DONT_DECREMENT_FLAG) != 0,
                    "bcctrx with decrement and test CTR option is invalid!");
@@ -73,7 +73,7 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
   m_end_block = true;
 }
 
-void Interpreter::bclrx(UGeckoInstruction inst)
+void Interpreter::bclrx(GeckoInstruction inst)
 {
   if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
@@ -92,13 +92,13 @@ void Interpreter::bclrx(UGeckoInstruction inst)
   m_end_block = true;
 }
 
-void Interpreter::HLEFunction(UGeckoInstruction inst)
+void Interpreter::HLEFunction(GeckoInstruction inst)
 {
   m_end_block = true;
   HLE::Execute(PC, inst.hex);
 }
 
-void Interpreter::rfi(UGeckoInstruction inst)
+void Interpreter::rfi(GeckoInstruction inst)
 {
   if (MSR.PR())
   {
@@ -125,7 +125,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
 // sc isn't really used for anything important in GameCube games (just for a write barrier) so we
 // really don't have to emulate it.
 // We do it anyway, though :P
-void Interpreter::sc(UGeckoInstruction inst)
+void Interpreter::sc(GeckoInstruction inst)
 {
   PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
   PowerPC::CheckExceptions();

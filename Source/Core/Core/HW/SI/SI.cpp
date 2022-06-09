@@ -60,7 +60,7 @@ enum
 };
 
 // SI Channel Output
-struct USIChannelOut
+struct SIChannelOut
 {
   u32 hex = 0;
 
@@ -71,7 +71,7 @@ struct USIChannelOut
 };
 
 // SI Channel Input
-struct USIChannelIn_Hi
+struct SIChannelIn_Hi
 {
   u32 hex = 0;
 
@@ -84,7 +84,7 @@ struct USIChannelIn_Hi
 };
 
 // SI Channel Input
-struct USIChannelIn_Lo
+struct SIChannelIn_Lo
 {
   u32 hex = 0;
 
@@ -97,16 +97,16 @@ struct USIChannelIn_Lo
 // SI Channel
 struct SSIChannel
 {
-  USIChannelOut out{};
-  USIChannelIn_Hi in_hi{};
-  USIChannelIn_Lo in_lo{};
+  SIChannelOut out{};
+  SIChannelIn_Hi in_hi{};
+  SIChannelIn_Lo in_lo{};
   std::unique_ptr<ISIDevice> device;
 
   bool has_recent_device_change = false;
 };
 
 // SI Poll: Controls how often a device is polled
-struct USIPoll
+struct SIPoll
 {
   u32 hex = 0;
 
@@ -125,7 +125,7 @@ struct USIPoll
 };
 
 // SI Communication Control Status Register
-struct USIComCSR
+struct SIComCSR
 {
   u32 hex = 0;
 
@@ -147,12 +147,12 @@ struct USIComCSR
   BFVIEW_M(hex, bool, 30, 1, TCINTMSK);    // Transfer Complete Interrupt Mask
   BFVIEW_M(hex, bool, 31, 1, TCINT);       // Transfer Complete Interrupt
 
-  USIComCSR() = default;
-  explicit USIComCSR(u32 value) : hex{value} {}
+  SIComCSR() = default;
+  explicit SIComCSR(u32 value) : hex{value} {}
 };
 
 // SI Status Register
-struct USIStatusReg
+struct SIStatusReg
 {
   u32 hex = 0;
 
@@ -188,12 +188,12 @@ struct USIStatusReg
   BFVIEW_M(hex, bool, 31, 1, WR);          // (RW) write 1 start copy, read 0 copy done
   // clang-format on
 
-  USIStatusReg() = default;
-  explicit USIStatusReg(u32 value) : hex{value} {}
+  SIStatusReg() = default;
+  explicit SIStatusReg(u32 value) : hex{value} {}
 };
 
 // SI EXI Clock Count
-struct USIEXIClockCount
+struct SIEXIClockCount
 {
   u32 hex = 0;
 
@@ -210,10 +210,10 @@ static std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> s_desired_device_type
 
 // STATE_TO_SAVE
 static std::array<SSIChannel, MAX_SI_CHANNELS> s_channel;
-static USIPoll s_poll;
-static USIComCSR s_com_csr;
-static USIStatusReg s_status_reg;
-static USIEXIClockCount s_exi_clock_count;
+static SIPoll s_poll;
+static SIComCSR s_com_csr;
+static SIStatusReg s_status_reg;
+static SIEXIClockCount s_exi_clock_count;
 static std::array<u8, 128> s_si_buffer;
 
 static void SetNoResponse(u32 channel)
@@ -522,7 +522,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&s_com_csr.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   const USIComCSR tmp_com_csr(val);
+                   const SIComCSR tmp_com_csr(val);
 
                    s_com_csr.CHANNEL() = tmp_com_csr.CHANNEL();
                    s_com_csr.INLNGTH() = tmp_com_csr.INLNGTH();
@@ -550,7 +550,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&s_status_reg.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   const USIStatusReg tmp_status(val);
+                   const SIStatusReg tmp_status(val);
 
                    // clear bits ( if (tmp.bit) SISR.bit=0 )
                    if (tmp_status.NOREP0())

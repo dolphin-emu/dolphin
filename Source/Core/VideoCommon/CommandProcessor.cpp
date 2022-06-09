@@ -29,9 +29,9 @@ static CoreTiming::EventType* et_UpdateInterrupts;
 
 // STATE_TO_SAVE
 SCPFifoStruct fifo;
-static UCPStatusReg m_CPStatusReg;
-static UCPCtrlReg m_CPCtrlReg;
-static UCPClearReg m_CPClearReg;
+static CPStatusReg m_CPStatusReg;
+static CPCtrlReg m_CPCtrlReg;
+static CPClearReg m_CPClearReg;
 
 static u16 m_bboxleft;
 static u16 m_bboxtop;
@@ -248,7 +248,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | CTRL_REGISTER, MMIO::DirectRead<u16>(&m_CPCtrlReg.Hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UCPCtrlReg tmp(val);
+                   CPCtrlReg tmp(val);
                    m_CPCtrlReg.Hex = tmp.Hex;
                    SetCpControlRegister();
                    Fifo::RunGpu();
@@ -256,7 +256,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | CLEAR_REGISTER, MMIO::DirectRead<u16>(&m_CPClearReg.Hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UCPClearReg tmp(val);
+                   CPClearReg tmp(val);
                    m_CPClearReg.Hex = tmp.Hex;
                    SetCpClearRegister();
                    Fifo::RunGpu();

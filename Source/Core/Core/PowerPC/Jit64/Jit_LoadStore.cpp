@@ -25,7 +25,7 @@
 
 using namespace Gen;
 
-void Jit64::lXXx(UGeckoInstruction inst)
+void Jit64::lXXx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -228,7 +228,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     BSWAP(accessSize, Rd);
 }
 
-void Jit64::dcbx(UGeckoInstruction inst)
+void Jit64::dcbx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -376,7 +376,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   SetJumpTarget(done);
 }
 
-void Jit64::dcbt(UGeckoInstruction inst)
+void Jit64::dcbt(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -396,7 +396,7 @@ void Jit64::dcbt(UGeckoInstruction inst)
 }
 
 // Zero cache line.
-void Jit64::dcbz(UGeckoInstruction inst)
+void Jit64::dcbz(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -459,7 +459,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     SetJumpTarget(end_dcbz_hack);
 }
 
-void Jit64::stX(UGeckoInstruction inst)
+void Jit64::stX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -537,7 +537,7 @@ void Jit64::stX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::stXx(UGeckoInstruction inst)
+void Jit64::stXx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -592,7 +592,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 }
 
 // A few games use these heavily in video codecs.
-void Jit64::lmw(UGeckoInstruction inst)
+void Jit64::lmw(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -615,7 +615,7 @@ void Jit64::lmw(UGeckoInstruction inst)
   }
 }
 
-void Jit64::stmw(UGeckoInstruction inst)
+void Jit64::stmw(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -643,7 +643,7 @@ void Jit64::stmw(UGeckoInstruction inst)
   }
 }
 
-void Jit64::eieio(UGeckoInstruction inst)
+void Jit64::eieio(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);

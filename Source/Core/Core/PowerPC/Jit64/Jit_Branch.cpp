@@ -26,7 +26,7 @@
 
 using namespace Gen;
 
-void Jit64::sc(UGeckoInstruction inst)
+void Jit64::sc(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -39,7 +39,7 @@ void Jit64::sc(UGeckoInstruction inst)
   WriteExceptionExit();
 }
 
-void Jit64::rfi(UGeckoInstruction inst)
+void Jit64::rfi(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -59,7 +59,7 @@ void Jit64::rfi(UGeckoInstruction inst)
   WriteRfiExitDestInRSCRATCH();
 }
 
-void Jit64::bx(UGeckoInstruction inst)
+void Jit64::bx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -104,7 +104,7 @@ void Jit64::bx(UGeckoInstruction inst)
 // TODO - optimize to hell and beyond
 // TODO - make nice easy to optimize special cases for the most common
 // variants of this instruction.
-void Jit64::bcx(UGeckoInstruction inst)
+void Jit64::bcx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -176,7 +176,7 @@ void Jit64::bcx(UGeckoInstruction inst)
   }
 }
 
-void Jit64::bcctrx(UGeckoInstruction inst)
+void Jit64::bcctrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -233,7 +233,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
   }
 }
 
-void Jit64::bclrx(UGeckoInstruction inst)
+void Jit64::bclrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);

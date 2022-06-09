@@ -23,7 +23,7 @@ namespace PPCAnalyst
 {
 struct CodeOp  // 16B
 {
-  UGeckoInstruction inst;
+  GeckoInstruction inst;
   GekkoOPInfo* opinfo = nullptr;
   u32 address = 0;
   u32 branchTo = 0;  // if UINT32_MAX, not a branch

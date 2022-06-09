@@ -357,7 +357,7 @@ FixupBranch JitArm64::CheckIfSafeAddress(Arm64Gen::ARM64Reg addr, Arm64Gen::ARM6
   return fail;
 }
 
-void JitArm64::lXX(UGeckoInstruction inst)
+void JitArm64::lXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -435,7 +435,7 @@ void JitArm64::lXX(UGeckoInstruction inst)
   SafeLoadToReg(d, update ? a : (a ? a : -1), offsetReg, flags, offset, update);
 }
 
-void JitArm64::stX(UGeckoInstruction inst)
+void JitArm64::stX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -500,7 +500,7 @@ void JitArm64::stX(UGeckoInstruction inst)
   SafeStoreFromReg(update ? a : (a ? a : -1), s, regOffset, flags, offset, update);
 }
 
-void JitArm64::lmw(UGeckoInstruction inst)
+void JitArm64::lmw(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -558,7 +558,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
     gpr.Unlock(ARM64Reg::W2);
 }
 
-void JitArm64::stmw(UGeckoInstruction inst)
+void JitArm64::stmw(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -609,7 +609,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
     gpr.Unlock(ARM64Reg::W2);
 }
 
-void JitArm64::dcbx(UGeckoInstruction inst)
+void JitArm64::dcbx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -767,7 +767,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
     gpr.Unlock(loop_counter);
 }
 
-void JitArm64::dcbt(UGeckoInstruction inst)
+void JitArm64::dcbt(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -786,7 +786,7 @@ void JitArm64::dcbt(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::dcbz(UGeckoInstruction inst)
+void JitArm64::dcbz(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
@@ -879,7 +879,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     SetJumpTarget(end_dcbz_hack);
 }
 
-void JitArm64::eieio(UGeckoInstruction inst)
+void JitArm64::eieio(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);

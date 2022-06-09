@@ -99,7 +99,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
 
 void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
 {
-  UCommand wheel_command(command);
+  Command wheel_command(command);
 
   if (wheel_command.command() == EDirectCommands::CMD_FORCE)
   {

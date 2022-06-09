@@ -15,7 +15,7 @@
 
 namespace
 {
-void SetFI(UReg_FPSCR& fpscr, bool FI)
+void SetFI(Reg_FPSCR& fpscr, bool FI)
 {
   if (FI)
   {
@@ -27,7 +27,7 @@ void SetFI(UReg_FPSCR& fpscr, bool FI)
 // Note that the convert to integer operation is defined
 // in Appendix C.4.2 in PowerPC Microprocessor Family:
 // The Programming Environments Manual for 32 and 64-bit Microprocessors
-void ConvertToInteger(UGeckoInstruction inst, FPURoundMode::RoundMode rounding_mode)
+void ConvertToInteger(GeckoInstruction inst, FPURoundMode::RoundMode rounding_mode)
 {
   const double b = rPS(inst.FB()).PS0AsDouble();
   u32 value;
@@ -126,7 +126,7 @@ void ConvertToInteger(UGeckoInstruction inst, FPURoundMode::RoundMode rounding_m
 }
 }  // Anonymous namespace
 
-void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, double fb)
+void Interpreter::Helper_FloatCompareOrdered(GeckoInstruction inst, double fa, double fb)
 {
   FPCC compare_result;
 
@@ -167,7 +167,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, 
   PowerPC::ppcState.cr.SetField(inst.CRFD(), compare_value);
 }
 
-void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa, double fb)
+void Interpreter::Helper_FloatCompareUnordered(GeckoInstruction inst, double fa, double fb)
 {
   FPCC compare_result;
 
@@ -201,7 +201,7 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa
   PowerPC::ppcState.cr.SetField(inst.CRFD(), compare_value);
 }
 
-void Interpreter::fcmpo(UGeckoInstruction inst)
+void Interpreter::fcmpo(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -209,7 +209,7 @@ void Interpreter::fcmpo(UGeckoInstruction inst)
   Helper_FloatCompareOrdered(inst, a.PS0AsDouble(), b.PS0AsDouble());
 }
 
-void Interpreter::fcmpu(UGeckoInstruction inst)
+void Interpreter::fcmpu(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -217,17 +217,17 @@ void Interpreter::fcmpu(UGeckoInstruction inst)
   Helper_FloatCompareUnordered(inst, a.PS0AsDouble(), b.PS0AsDouble());
 }
 
-void Interpreter::fctiwx(UGeckoInstruction inst)
+void Interpreter::fctiwx(GeckoInstruction inst)
 {
   ConvertToInteger(inst, FPSCR.RN());
 }
 
-void Interpreter::fctiwzx(UGeckoInstruction inst)
+void Interpreter::fctiwzx(GeckoInstruction inst)
 {
   ConvertToInteger(inst, FPURoundMode::RoundMode::TowardsZero);
 }
 
-void Interpreter::fmrx(UGeckoInstruction inst)
+void Interpreter::fmrx(GeckoInstruction inst)
 {
   rPS(inst.FD()).SetPS0(rPS(inst.FB()).PS0AsU64());
 
@@ -236,7 +236,7 @@ void Interpreter::fmrx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fabsx(UGeckoInstruction inst)
+void Interpreter::fabsx(GeckoInstruction inst)
 {
   rPS(inst.FD()).SetPS0(fabs(rPS(inst.FB()).PS0AsDouble()));
 
@@ -245,7 +245,7 @@ void Interpreter::fabsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fnabsx(UGeckoInstruction inst)
+void Interpreter::fnabsx(GeckoInstruction inst)
 {
   rPS(inst.FD()).SetPS0(rPS(inst.FB()).PS0AsU64() | (UINT64_C(1) << 63));
 
@@ -254,7 +254,7 @@ void Interpreter::fnabsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fnegx(UGeckoInstruction inst)
+void Interpreter::fnegx(GeckoInstruction inst)
 {
   rPS(inst.FD()).SetPS0(rPS(inst.FB()).PS0AsU64() ^ (UINT64_C(1) << 63));
 
@@ -263,7 +263,7 @@ void Interpreter::fnegx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fselx(UGeckoInstruction inst)
+void Interpreter::fselx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -279,7 +279,7 @@ void Interpreter::fselx(UGeckoInstruction inst)
 // !!! warning !!!
 // PS1 must be set to the value of PS0 or DragonballZ will be f**ked up
 // PS1 is said to be undefined
-void Interpreter::frspx(UGeckoInstruction inst)  // round to single
+void Interpreter::frspx(GeckoInstruction inst)  // round to single
 {
   const double b = rPS(inst.FB()).PS0AsDouble();
   const float rounded = ForceSingle(FPSCR, b);
@@ -311,7 +311,7 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fmulx(UGeckoInstruction inst)
+void Interpreter::fmulx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& c = rPS(inst.FC());
@@ -331,7 +331,7 @@ void Interpreter::fmulx(UGeckoInstruction inst)
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }
-void Interpreter::fmulsx(UGeckoInstruction inst)
+void Interpreter::fmulsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& c = rPS(inst.FC());
@@ -353,7 +353,7 @@ void Interpreter::fmulsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fmaddx(UGeckoInstruction inst)
+void Interpreter::fmaddx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -371,7 +371,7 @@ void Interpreter::fmaddx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fmaddsx(UGeckoInstruction inst)
+void Interpreter::fmaddsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -394,7 +394,7 @@ void Interpreter::fmaddsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::faddx(UGeckoInstruction inst)
+void Interpreter::faddx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -411,7 +411,7 @@ void Interpreter::faddx(UGeckoInstruction inst)
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }
-void Interpreter::faddsx(UGeckoInstruction inst)
+void Interpreter::faddsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -429,7 +429,7 @@ void Interpreter::faddsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fdivx(UGeckoInstruction inst)
+void Interpreter::fdivx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -449,7 +449,7 @@ void Interpreter::fdivx(UGeckoInstruction inst)
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
 }
-void Interpreter::fdivsx(UGeckoInstruction inst)
+void Interpreter::fdivsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -470,7 +470,7 @@ void Interpreter::fdivsx(UGeckoInstruction inst)
 }
 
 // Single precision only.
-void Interpreter::fresx(UGeckoInstruction inst)
+void Interpreter::fresx(GeckoInstruction inst)
 {
   const double b = rPS(inst.FB()).PS0AsDouble();
 
@@ -508,7 +508,7 @@ void Interpreter::fresx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::frsqrtex(UGeckoInstruction inst)
+void Interpreter::frsqrtex(GeckoInstruction inst)
 {
   const double b = rPS(inst.FB()).PS0AsDouble();
 
@@ -554,7 +554,7 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fmsubx(UGeckoInstruction inst)
+void Interpreter::fmsubx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -573,7 +573,7 @@ void Interpreter::fmsubx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fmsubsx(UGeckoInstruction inst)
+void Interpreter::fmsubsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -593,7 +593,7 @@ void Interpreter::fmsubsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fnmaddx(UGeckoInstruction inst)
+void Interpreter::fnmaddx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -614,7 +614,7 @@ void Interpreter::fnmaddx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fnmaddsx(UGeckoInstruction inst)
+void Interpreter::fnmaddsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -636,7 +636,7 @@ void Interpreter::fnmaddsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fnmsubx(UGeckoInstruction inst)
+void Interpreter::fnmsubx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -657,7 +657,7 @@ void Interpreter::fnmsubx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fnmsubsx(UGeckoInstruction inst)
+void Interpreter::fnmsubsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -679,7 +679,7 @@ void Interpreter::fnmsubsx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fsubx(UGeckoInstruction inst)
+void Interpreter::fsubx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
@@ -697,7 +697,7 @@ void Interpreter::fsubx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::fsubsx(UGeckoInstruction inst)
+void Interpreter::fsubsx(GeckoInstruction inst)
 {
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());

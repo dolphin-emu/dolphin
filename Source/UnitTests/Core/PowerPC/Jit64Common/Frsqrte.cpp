@@ -32,7 +32,7 @@ public:
     const auto raw_frsqrte = reinterpret_cast<double (*)(double)>(AlignCode4());
     GenFrsqrte();
 
-    wrapped_frsqrte = reinterpret_cast<u64 (*)(u64, UReg_FPSCR&)>(AlignCode4());
+    wrapped_frsqrte = reinterpret_cast<u64 (*)(u64, Reg_FPSCR&)>(AlignCode4());
     ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 
     // We know the frsqrte implementation only accesses the fpscr. We manufacture a
@@ -51,7 +51,7 @@ public:
     RET();
   }
 
-  u64 (*wrapped_frsqrte)(u64, UReg_FPSCR&);
+  u64 (*wrapped_frsqrte)(u64, Reg_FPSCR&);
   Jit64 jit;
 };
 }  // namespace
@@ -60,7 +60,7 @@ TEST(Jit64, Frsqrte)
 {
   TestCommonAsmRoutines routines;
 
-  UReg_FPSCR fpscr;
+  Reg_FPSCR fpscr;
 
   for (const u64 ivalue : double_test_values)
   {

@@ -61,7 +61,7 @@ private:
   };
 
   // EXI Status Register - "Channel Parameter Register"
-  struct UEXI_STATUS
+  struct EXIStatusRegister
   {
     u32 Hex = 0;
 
@@ -81,12 +81,12 @@ private:
                                              // ROM Disable
     BFVIEW_M(Hex, u32, 7, 3, CHIP_SELECT);   // CS0, CS1, and CS2 merged for convenience.
 
-    UEXI_STATUS() = default;
-    explicit UEXI_STATUS(u32 hex) : Hex{hex} {}
+    EXIStatusRegister() = default;
+    explicit EXIStatusRegister(u32 hex) : Hex{hex} {}
   };
 
   // EXI Control Register
-  struct UEXI_CONTROL
+  struct EXIControlRegister
   {
     u32 Hex = 0;
 
@@ -97,10 +97,10 @@ private:
   };
 
   // STATE_TO_SAVE
-  UEXI_STATUS m_status;
+  EXIStatusRegister m_status;
   u32 m_dma_memory_address = 0;
   u32 m_dma_length = 0;
-  UEXI_CONTROL m_control;
+  EXIControlRegister m_control;
   u32 m_imm_data = 0;
 
   // Since channels operate a bit differently from each other

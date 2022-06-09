@@ -42,7 +42,7 @@ private:
 
   u32 m_position;
   int command;
-  struct UStatus
+  struct Status
   {
     u16 U16;
     u8 U8[2];
@@ -85,7 +85,7 @@ private:
   std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
 
-  UStatus status;
+  Status status;
 
   std::mutex ring_lock;
 

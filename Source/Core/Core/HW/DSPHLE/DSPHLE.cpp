@@ -191,7 +191,7 @@ void DSPHLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 // Other DSP functions
 u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 {
-  DSP::UDSPControl temp(value);
+  DSP::DSPControl temp(value);
 
   if (m_dsp_control.DSPHalt() != temp.DSPHalt())
   {

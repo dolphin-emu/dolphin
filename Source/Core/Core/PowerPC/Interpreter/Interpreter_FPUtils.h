@@ -25,13 +25,13 @@ enum class FPCC
   FU = 1,  // ?
 };
 
-inline void CheckFPExceptions(UReg_FPSCR& fpscr)
+inline void CheckFPExceptions(Reg_FPSCR& fpscr)
 {
   if (fpscr.FEX() && (MSR.FE0() || MSR.FE1()))
     GenerateProgramException(ProgramExceptionCause::FloatingPoint);
 }
 
-inline void UpdateFPExceptionSummary(UReg_FPSCR& fpscr)
+inline void UpdateFPExceptionSummary(Reg_FPSCR& fpscr)
 {
   fpscr.VX() = (fpscr.Hex & FPSCR_VX_ANY) != 0;
   fpscr.FEX() = ((fpscr.Hex >> 22) & (fpscr.Hex & FPSCR_ANY_E)) != 0;
@@ -39,7 +39,7 @@ inline void UpdateFPExceptionSummary(UReg_FPSCR& fpscr)
   CheckFPExceptions(fpscr);
 }
 
-inline void SetFPException(UReg_FPSCR& fpscr, u32 mask)
+inline void SetFPException(Reg_FPSCR& fpscr, u32 mask)
 {
   if ((fpscr.Hex & mask) != mask)
   {
@@ -50,7 +50,7 @@ inline void SetFPException(UReg_FPSCR& fpscr, u32 mask)
   UpdateFPExceptionSummary(fpscr);
 }
 
-inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
+inline float ForceSingle(const Reg_FPSCR& fpscr, double value)
 {
   float x = static_cast<float>(value);
   if (!cpu_info.bFlushToZero && fpscr.NI())
@@ -60,7 +60,7 @@ inline float ForceSingle(const UReg_FPSCR& fpscr, double value)
   return x;
 }
 
-inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
+inline double ForceDouble(const Reg_FPSCR& fpscr, double d)
 {
   if (!cpu_info.bFlushToZero && fpscr.NI())
   {
@@ -92,7 +92,7 @@ struct FPResult
 {
   bool HasNoInvalidExceptions() const { return (exception & FPSCR_VX_ANY) == 0; }
 
-  void SetException(UReg_FPSCR& fpscr, FPSCRExceptionFlag flag)
+  void SetException(Reg_FPSCR& fpscr, FPSCRExceptionFlag flag)
   {
     exception = flag;
     SetFPException(fpscr, flag);
@@ -102,7 +102,7 @@ struct FPResult
   FPSCRExceptionFlag exception{};
 };
 
-inline FPResult NI_mul(UReg_FPSCR& fpscr, double a, double b)
+inline FPResult NI_mul(Reg_FPSCR& fpscr, double a, double b)
 {
   FPResult result{a * b};
 
@@ -134,7 +134,7 @@ inline FPResult NI_mul(UReg_FPSCR& fpscr, double a, double b)
   return result;
 }
 
-inline FPResult NI_div(UReg_FPSCR& fpscr, double a, double b)
+inline FPResult NI_div(Reg_FPSCR& fpscr, double a, double b)
 {
   FPResult result{a / b};
 
@@ -176,7 +176,7 @@ inline FPResult NI_div(UReg_FPSCR& fpscr, double a, double b)
   return result;
 }
 
-inline FPResult NI_add(UReg_FPSCR& fpscr, double a, double b)
+inline FPResult NI_add(Reg_FPSCR& fpscr, double a, double b)
 {
   FPResult result{a + b};
 
@@ -209,7 +209,7 @@ inline FPResult NI_add(UReg_FPSCR& fpscr, double a, double b)
   return result;
 }
 
-inline FPResult NI_sub(UReg_FPSCR& fpscr, double a, double b)
+inline FPResult NI_sub(Reg_FPSCR& fpscr, double a, double b)
 {
   FPResult result{a - b};
 
@@ -245,7 +245,7 @@ inline FPResult NI_sub(UReg_FPSCR& fpscr, double a, double b)
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline FPResult NI_madd(UReg_FPSCR& fpscr, double a, double c, double b)
+inline FPResult NI_madd(Reg_FPSCR& fpscr, double a, double c, double b)
 {
   FPResult result{std::fma(a, c, b)};
 
@@ -283,7 +283,7 @@ inline FPResult NI_madd(UReg_FPSCR& fpscr, double a, double c, double b)
   return result;
 }
 
-inline FPResult NI_msub(UReg_FPSCR& fpscr, double a, double c, double b)
+inline FPResult NI_msub(Reg_FPSCR& fpscr, double a, double c, double b)
 {
   FPResult result{std::fma(a, c, -b)};
 

@@ -62,7 +62,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    return m_status.Hex;
                  }),
                  MMIO::ComplexWrite<u32>([this](u32, u32 val) {
-                   UEXI_STATUS new_status(val);
+                   EXIStatusRegister new_status(val);
 
                    m_status.EXIINTMASK() = new_status.EXIINTMASK();
                    if (new_status.EXIINT())

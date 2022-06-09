@@ -315,7 +315,7 @@ struct fmt::formatter<TVtxDesc>
   }
 };
 
-struct UVAT_group0
+struct VAT_group0
 {
   u32 Hex = 0;
 
@@ -341,11 +341,11 @@ struct UVAT_group0
   BFVIEW_M(Hex, bool, 31, 1, NormalIndex3);
 };
 template <>
-struct fmt::formatter<UVAT_group0>
+struct fmt::formatter<VAT_group0>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group0& g0, FormatContext& ctx) const
+  auto format(const VAT_group0& g0, FormatContext& ctx) const
   {
     static constexpr std::array<const char*, 2> byte_dequant = {
         "shift does not apply to u8/s8 components", "shift applies to u8/s8 components"};
@@ -377,7 +377,7 @@ struct fmt::formatter<UVAT_group0>
   }
 };
 
-struct UVAT_group1
+struct VAT_group1
 {
   u32 Hex = 0;
 
@@ -400,11 +400,11 @@ struct UVAT_group1
   BFVIEW_M(Hex, bool, 31, 1, VCacheEnhance);
 };
 template <>
-struct fmt::formatter<UVAT_group1>
+struct fmt::formatter<VAT_group1>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group1& g1, FormatContext& ctx) const
+  auto format(const VAT_group1& g1, FormatContext& ctx) const
   {
     return fmt::format_to(
         ctx.out(),
@@ -427,7 +427,7 @@ struct fmt::formatter<UVAT_group1>
   }
 };
 
-struct UVAT_group2
+struct VAT_group2
 {
   u32 Hex = 0;
 
@@ -447,11 +447,11 @@ struct UVAT_group2
   BFVIEW_M(Hex, u8, 27, 5, Tex7Frac);
 };
 template <>
-struct fmt::formatter<UVAT_group2>
+struct fmt::formatter<VAT_group2>
 {
   constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
   template <typename FormatContext>
-  auto format(const UVAT_group2& g2, FormatContext& ctx) const
+  auto format(const VAT_group2& g2, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(),
                           "Texture coord 4 shift: {} ({})\n"
@@ -474,9 +474,9 @@ struct fmt::formatter<UVAT_group2>
 
 struct VAT
 {
-  UVAT_group0 g0;
-  UVAT_group1 g1;
-  UVAT_group2 g2;
+  VAT_group0 g0;
+  VAT_group1 g1;
+  VAT_group2 g2;
 
   constexpr ColorComponentCount GetColorElements(size_t idx) const
   {

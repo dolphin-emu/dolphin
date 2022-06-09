@@ -63,7 +63,7 @@ enum class EDirectCommands : u8
   CMD_POLL = 0x54
 };
 
-struct UCommand
+struct Command
 {
   u32 hex = 0;
 
@@ -71,8 +71,8 @@ struct UCommand
   BFVIEW_M(hex, u32, 8, 8, parameter2);
   BFVIEW_M(hex, EDirectCommands, 16, 8, command);
 
-  UCommand() = default;
-  UCommand(u32 value) : hex{value} {}
+  Command() = default;
+  Command(u32 value) : hex{value} {}
 };
 
 // For configuration use, since some devices can have the same SI Device ID

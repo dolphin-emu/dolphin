@@ -17,7 +17,7 @@ using namespace Gen;
 
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
-void Jit64::psq_stXX(UGeckoInstruction inst)
+void Jit64::psq_stXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
@@ -108,7 +108,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::psq_lXX(UGeckoInstruction inst)
+void Jit64::psq_lXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);

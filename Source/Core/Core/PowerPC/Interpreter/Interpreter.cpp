@@ -45,13 +45,13 @@ namespace
 // Determines whether or not the given instruction is one where its execution
 // validity is determined by whether or not HID2's LSQE bit is set.
 // In other words, if the instruction is psq_l, psq_lu, psq_st, or psq_stu
-bool IsPairedSingleQuantizedNonIndexedInstruction(UGeckoInstruction inst)
+bool IsPairedSingleQuantizedNonIndexedInstruction(GeckoInstruction inst)
 {
   const u32 opcode = inst.OPCD();
   return opcode == 0x38 || opcode == 0x39 || opcode == 0x3C || opcode == 0x3D;
 }
 
-bool IsPairedSingleInstruction(UGeckoInstruction inst)
+bool IsPairedSingleInstruction(GeckoInstruction inst)
 {
   return inst.OPCD() == 4 || IsPairedSingleQuantizedNonIndexedInstruction(inst);
 }
@@ -61,7 +61,7 @@ bool IsPairedSingleInstruction(UGeckoInstruction inst)
 // Paired single instructions are illegal to execute if HID2.PSE is not set.
 // It's also illegal to execute psq_l, psq_lu, psq_st, and psq_stu if HID2.PSE is enabled,
 // but HID2.LSQE is not set.
-bool IsInvalidPairedSingleExecution(UGeckoInstruction inst)
+bool IsInvalidPairedSingleExecution(GeckoInstruction inst)
 {
   if (!HID2.PSE() && IsPairedSingleInstruction(inst))
     return true;
@@ -76,23 +76,23 @@ void UpdatePC()
 }
 }  // Anonymous namespace
 
-void Interpreter::RunTable4(UGeckoInstruction inst)
+void Interpreter::RunTable4(GeckoInstruction inst)
 {
   m_op_table4[inst.SUBOP10()](inst);
 }
-void Interpreter::RunTable19(UGeckoInstruction inst)
+void Interpreter::RunTable19(GeckoInstruction inst)
 {
   m_op_table19[inst.SUBOP10()](inst);
 }
-void Interpreter::RunTable31(UGeckoInstruction inst)
+void Interpreter::RunTable31(GeckoInstruction inst)
 {
   m_op_table31[inst.SUBOP10()](inst);
 }
-void Interpreter::RunTable59(UGeckoInstruction inst)
+void Interpreter::RunTable59(GeckoInstruction inst)
 {
   m_op_table59[inst.SUBOP5()](inst);
 }
-void Interpreter::RunTable63(UGeckoInstruction inst)
+void Interpreter::RunTable63(GeckoInstruction inst)
 {
   m_op_table63[inst.SUBOP10()](inst);
 }
@@ -109,7 +109,7 @@ void Interpreter::Shutdown()
 
 static bool s_start_trace = false;
 
-static void Trace(const UGeckoInstruction& inst)
+static void Trace(const GeckoInstruction& inst)
 {
   std::string regs;
   for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
@@ -148,7 +148,7 @@ int Interpreter::SingleStepInner()
     return PPCTables::GetOpInfo(m_prev_inst)->numCycles;
   }
 
-  NPC = PC + sizeof(UGeckoInstruction);
+  NPC = PC + sizeof(GeckoInstruction);
   m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
   // Uncomment to trace the interpreter
@@ -323,7 +323,7 @@ void Interpreter::Run()
   }
 }
 
-void Interpreter::unknown_instruction(UGeckoInstruction inst)
+void Interpreter::unknown_instruction(GeckoInstruction inst)
 {
   const u32 opcode = PowerPC::HostRead_U32(last_pc);
   const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);

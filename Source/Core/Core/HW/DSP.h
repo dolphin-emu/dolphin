@@ -29,9 +29,9 @@ enum
   ARAM_MASK = 0x00FFFFFF,
 };
 
-// UDSPControl
+// DSPControl
 constexpr u16 DSP_CONTROL_MASK = 0x0C07;
-struct UDSPControl
+struct DSPControl
 {
   u16 Hex;
 
@@ -55,7 +55,7 @@ struct UDSPControl
   BFVIEW_M(Hex, bool, 11, 1, DSPInit);      // DSPInit() writes to this flag
   BFVIEW_M(Hex, u16, 12, 4, pad);
 
-  UDSPControl(u16 hex = 0) : Hex(hex) {}
+  DSPControl(u16 hex = 0) : Hex(hex) {}
 };
 
 void Init(bool hle);

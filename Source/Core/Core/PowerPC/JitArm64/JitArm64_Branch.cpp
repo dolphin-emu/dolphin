@@ -14,7 +14,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::sc(UGeckoInstruction inst)
+void JitArm64::sc(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -33,7 +33,7 @@ void JitArm64::sc(UGeckoInstruction inst)
   WriteExceptionExit(js.compilerPC + 4, false, true);
 }
 
-void JitArm64::rfi(UGeckoInstruction inst)
+void JitArm64::rfi(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -71,7 +71,7 @@ void JitArm64::rfi(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::bx(UGeckoInstruction inst)
+void JitArm64::bx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -116,7 +116,7 @@ void JitArm64::bx(UGeckoInstruction inst)
   WriteExit(js.op->branchTo, inst.LK(), js.compilerPC + 4);
 }
 
-void JitArm64::bcx(UGeckoInstruction inst)
+void JitArm64::bcx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -188,7 +188,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::bcctrx(UGeckoInstruction inst)
+void JitArm64::bcctrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -226,7 +226,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::bclrx(UGeckoInstruction inst)
+void JitArm64::bclrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);

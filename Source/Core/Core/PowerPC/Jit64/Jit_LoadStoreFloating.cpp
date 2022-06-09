@@ -15,7 +15,7 @@ using namespace Gen;
 // common,
 // and pshufb could help a lot.
 
-void Jit64::lfXXX(UGeckoInstruction inst)
+void Jit64::lfXXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
@@ -86,7 +86,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::stfXXX(UGeckoInstruction inst)
+void Jit64::stfXXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
@@ -187,7 +187,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 }
 
 // This one is a little bit weird; it stores the low 32 bits of a double without converting it
-void Jit64::stfiwx(UGeckoInstruction inst)
+void Jit64::stfiwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);

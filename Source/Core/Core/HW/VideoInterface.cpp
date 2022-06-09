@@ -35,8 +35,8 @@ namespace VideoInterface
 {
 // STATE_TO_SAVE
 // Registers listed in order:
-static UVIVerticalTimingRegister m_VerticalTimingRegister;
-static UVIDisplayControlRegister m_DisplayControlRegister;
+static VIVerticalTimingRegister m_VerticalTimingRegister;
+static VIDisplayControlRegister m_DisplayControlRegister;
 static UVIHorizontalTiming0 m_HTiming0;
 static UVIHorizontalTiming1 m_HTiming1;
 static UVIVBlankTimingRegister m_VBlankTimingOdd;
@@ -50,12 +50,12 @@ static UVIFBInfoRegister m_3DFBInfoBottom;
 static std::array<UVIInterruptRegister, 4> m_InterruptRegister;
 static std::array<UVILatchRegister, 2> m_LatchRegister;
 static PictureConfigurationRegister m_PictureConfiguration;
-static UVIHorizontalScaling m_HorizontalScaling;
+static VIHorizontalScaling m_HorizontalScaling;
 static SVIFilterCoefTables m_FilterCoefTables;
 static u32 m_UnkAARegister = 0;  // ??? 0x00FF0000
 static u16 m_Clock = 0;          // 0: 27MHz, 1: 54MHz
-static UVIDTVStatus m_DTVStatus;
-static UVIHorizontalStepping m_FBWidth;  // Only correct when scaling is enabled?
+static VIDTVStatus m_DTVStatus;
+static VIHorizontalStepping m_FBWidth;  // Only correct when scaling is enabled?
 static UVIBorderBlankRegister m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
@@ -377,7 +377,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // processing needs to be done if a reset is requested.
   mmio->Register(base | VI_CONTROL_REGISTER, MMIO::DirectRead<u16>(&m_DisplayControlRegister.Hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UVIDisplayControlRegister tmpConfig(val);
+                   VIDisplayControlRegister tmpConfig(val);
                    m_DisplayControlRegister.ENB() = tmpConfig.ENB();
                    m_DisplayControlRegister.NIN() = tmpConfig.NIN();
                    m_DisplayControlRegister.DLR() = tmpConfig.DLR();

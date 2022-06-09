@@ -82,7 +82,7 @@ bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
 
 void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)
 {
-  UCommand keyboard_command(command);
+  Command keyboard_command(command);
 
   if (keyboard_command.command() == EDirectCommands::CMD_POLL)
   {

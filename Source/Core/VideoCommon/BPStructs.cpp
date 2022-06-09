@@ -226,7 +226,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     srcRect.right = bpmem.copyTexSrcXY.x() + bpmem.copyTexSrcWH.x() + 1;
     srcRect.bottom = bpmem.copyTexSrcXY.y() + bpmem.copyTexSrcWH.y() + 1;
 
-    const UPE_Copy PE_copy = bpmem.triggerEFBCopy;
+    const PE_Copy PE_copy = bpmem.triggerEFBCopy;
 
     // Since the copy X and Y coordinates/sizes are 10-bit, the game can configure a copy region up
     // to 1024x1024. Hardware tests have found that the number of bytes written does not depend on
@@ -952,8 +952,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
     return std::make_pair(RegName(BPMEM_CLEAR_Z), fmt::format("Clear Z value: 0x{:06X}", cmddata));
 
   case BPMEM_TRIGGER_EFB_COPY:  // 0x52
-    return std::make_pair(RegName(BPMEM_TRIGGER_EFB_COPY),
-                          fmt::to_string(UPE_Copy{.Hex = cmddata}));
+    return std::make_pair(RegName(BPMEM_TRIGGER_EFB_COPY), fmt::to_string(PE_Copy{.Hex = cmddata}));
 
   case BPMEM_COPYFILTER0:  // 0x53
   {

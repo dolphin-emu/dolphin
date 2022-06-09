@@ -12,7 +12,7 @@
 
 using namespace Gen;
 
-void Jit64::ps_mr(UGeckoInstruction inst)
+void Jit64::ps_mr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -29,7 +29,7 @@ void Jit64::ps_mr(UGeckoInstruction inst)
   MOVAPD(Rd, Rb);
 }
 
-void Jit64::ps_sum(UGeckoInstruction inst)
+void Jit64::ps_sum(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -81,7 +81,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rd);
 }
 
-void Jit64::ps_muls(UGeckoInstruction inst)
+void Jit64::ps_muls(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -116,7 +116,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rd);
 }
 
-void Jit64::ps_mergeXX(UGeckoInstruction inst)
+void Jit64::ps_mergeXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -150,7 +150,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::ps_rsqrte(UGeckoInstruction inst)
+void Jit64::ps_rsqrte(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -175,7 +175,7 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rd);
 }
 
-void Jit64::ps_res(UGeckoInstruction inst)
+void Jit64::ps_res(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -200,7 +200,7 @@ void Jit64::ps_res(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rd);
 }
 
-void Jit64::ps_cmpXX(UGeckoInstruction inst)
+void Jit64::ps_cmpXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);

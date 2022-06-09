@@ -18,7 +18,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::ps_mergeXX(UGeckoInstruction inst)
+void JitArm64::ps_mergeXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -73,7 +73,7 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of ps_mergeXX");
 }
 
-void JitArm64::ps_mulsX(UGeckoInstruction inst)
+void JitArm64::ps_mulsX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -124,7 +124,7 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
   SetFPRFIfNeeded(true, VD);
 }
 
-void JitArm64::ps_maddXX(UGeckoInstruction inst)
+void JitArm64::ps_maddXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -304,7 +304,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   SetFPRFIfNeeded(true, VD);
 }
 
-void JitArm64::ps_sel(UGeckoInstruction inst)
+void JitArm64::ps_sel(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -344,7 +344,7 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of ps_sel");
 }
 
-void JitArm64::ps_sumX(UGeckoInstruction inst)
+void JitArm64::ps_sumX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -391,7 +391,7 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
   SetFPRFIfNeeded(true, VD);
 }
 
-void JitArm64::ps_res(UGeckoInstruction inst)
+void JitArm64::ps_res(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -424,7 +424,7 @@ void JitArm64::ps_res(UGeckoInstruction inst)
   SetFPRFIfNeeded(true, VD);
 }
 
-void JitArm64::ps_rsqrte(UGeckoInstruction inst)
+void JitArm64::ps_rsqrte(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
@@ -457,7 +457,7 @@ void JitArm64::ps_rsqrte(UGeckoInstruction inst)
   SetFPRFIfNeeded(true, VD);
 }
 
-void JitArm64::ps_cmpXX(UGeckoInstruction inst)
+void JitArm64::ps_cmpXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);

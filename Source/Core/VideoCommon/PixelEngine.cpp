@@ -39,7 +39,7 @@ enum class CompareMode : u16
   Always = 7
 };
 
-struct UPEZConfReg
+struct PEZConfReg
 {
   u16 hex;
 
@@ -92,7 +92,7 @@ enum class LogicOp : u16
   Set = 15
 };
 
-struct UPEAlphaConfReg
+struct PEAlphaConfReg
 {
   u16 hex;
 
@@ -107,7 +107,7 @@ struct UPEAlphaConfReg
   BFVIEW_M(hex, LogicOp, 12, 4, logic_op);
 };
 
-struct UPEDstAlphaConfReg
+struct PEDstAlphaConfReg
 {
   u16 hex;
 
@@ -115,7 +115,7 @@ struct UPEDstAlphaConfReg
   BFVIEW_M(hex, bool, 8, 1, enable);
 };
 
-struct UPEAlphaModeConfReg
+struct PEAlphaModeConfReg
 {
   u16 hex;
 
@@ -124,7 +124,7 @@ struct UPEAlphaModeConfReg
   BFVIEW_M(hex, CompareMode, 8, 3, compare_mode);
 };
 
-struct UPEAlphaReadReg
+struct PEAlphaReadReg
 {
   u16 hex;
 
@@ -132,7 +132,7 @@ struct UPEAlphaReadReg
 };
 
 // fifo Control Register
-struct UPECtrlReg
+struct PECtrlReg
 {
   u16 hex;
 
@@ -143,12 +143,12 @@ struct UPECtrlReg
 };
 
 // STATE_TO_SAVE
-static UPEZConfReg m_ZConf;
-static UPEAlphaConfReg m_AlphaConf;
-static UPEDstAlphaConfReg m_DstAlphaConf;
-static UPEAlphaModeConfReg m_AlphaModeConf;
-static UPEAlphaReadReg m_AlphaRead;
-static UPECtrlReg m_Control;
+static PEZConfReg m_ZConf;
+static PEAlphaConfReg m_AlphaConf;
+static PEDstAlphaConfReg m_DstAlphaConf;
+static PEAlphaModeConfReg m_AlphaModeConf;
+static PEAlphaReadReg m_AlphaRead;
+static PECtrlReg m_Control;
 
 static std::mutex s_token_finish_mutex;
 static u16 s_token;
@@ -261,7 +261,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   // Control register
   mmio->Register(base | PE_CTRL_REGISTER, MMIO::DirectRead<u16>(&m_Control.hex),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
-                   UPECtrlReg tmpCtrl{.hex = val};
+                   PECtrlReg tmpCtrl{.hex = val};
 
                    if (tmpCtrl.pe_token())
                      s_signal_token_interrupt = false;

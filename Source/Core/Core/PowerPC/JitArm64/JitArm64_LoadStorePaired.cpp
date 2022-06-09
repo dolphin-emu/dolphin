@@ -17,7 +17,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::psq_lXX(UGeckoInstruction inst)
+void JitArm64::psq_lXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
@@ -142,7 +142,7 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::psq_stXX(UGeckoInstruction inst)
+void JitArm64::psq_stXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);

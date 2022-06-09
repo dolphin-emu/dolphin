@@ -463,27 +463,27 @@ constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable63 = [] {
 }();
 }  // Anonymous namespace
 
-void JitArm64::DynaRunTable4(UGeckoInstruction inst)
+void JitArm64::DynaRunTable4(GeckoInstruction inst)
 {
   (this->*dynaOpTable4[inst.SUBOP10()])(inst);
 }
 
-void JitArm64::DynaRunTable19(UGeckoInstruction inst)
+void JitArm64::DynaRunTable19(GeckoInstruction inst)
 {
   (this->*dynaOpTable19[inst.SUBOP10()])(inst);
 }
 
-void JitArm64::DynaRunTable31(UGeckoInstruction inst)
+void JitArm64::DynaRunTable31(GeckoInstruction inst)
 {
   (this->*dynaOpTable31[inst.SUBOP10()])(inst);
 }
 
-void JitArm64::DynaRunTable59(UGeckoInstruction inst)
+void JitArm64::DynaRunTable59(GeckoInstruction inst)
 {
   (this->*dynaOpTable59[inst.SUBOP5()])(inst);
 }
 
-void JitArm64::DynaRunTable63(UGeckoInstruction inst)
+void JitArm64::DynaRunTable63(GeckoInstruction inst)
 {
   (this->*dynaOpTable63[inst.SUBOP10()])(inst);
 }

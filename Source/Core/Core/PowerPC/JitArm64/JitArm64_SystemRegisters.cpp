@@ -83,7 +83,7 @@ void JitArm64::UpdateRoundingMode()
   ABI_PopRegisters(gprs_to_save);
 }
 
-void JitArm64::mtmsr(UGeckoInstruction inst)
+void JitArm64::mtmsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -102,7 +102,7 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   WriteExceptionExit(js.compilerPC + 4, true);
 }
 
-void JitArm64::mfmsr(UGeckoInstruction inst)
+void JitArm64::mfmsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -111,7 +111,7 @@ void JitArm64::mfmsr(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, gpr.R(inst.RD()), PPC_REG, PPCSTATE_OFF(msr));
 }
 
-void JitArm64::mcrf(UGeckoInstruction inst)
+void JitArm64::mcrf(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -123,7 +123,7 @@ void JitArm64::mcrf(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mcrxr(UGeckoInstruction inst)
+void JitArm64::mcrxr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -153,7 +153,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mfsr(UGeckoInstruction inst)
+void JitArm64::mfsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -162,7 +162,7 @@ void JitArm64::mfsr(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, gpr.R(inst.RD()), PPC_REG, PPCSTATE_OFF_SR(inst.SR()));
 }
 
-void JitArm64::mtsr(UGeckoInstruction inst)
+void JitArm64::mtsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -171,7 +171,7 @@ void JitArm64::mtsr(UGeckoInstruction inst)
   STR(IndexType::Unsigned, gpr.R(inst.RS()), PPC_REG, PPCSTATE_OFF_SR(inst.SR()));
 }
 
-void JitArm64::mfsrin(UGeckoInstruction inst)
+void JitArm64::mfsrin(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -190,7 +190,7 @@ void JitArm64::mfsrin(UGeckoInstruction inst)
   gpr.Unlock(index);
 }
 
-void JitArm64::mtsrin(UGeckoInstruction inst)
+void JitArm64::mtsrin(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -209,7 +209,7 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
   gpr.Unlock(index);
 }
 
-void JitArm64::twx(UGeckoInstruction inst)
+void JitArm64::twx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -275,7 +275,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mfspr(UGeckoInstruction inst)
+void JitArm64::mfspr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -339,7 +339,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 
     if (CanMergeNextInstructions(1))
     {
-      const UGeckoInstruction& next = js.op[1].inst;
+      const GeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
       // if we can.
       u32 nextIndex = (next.SPRU() << 5) | (next.SPRL() & 0x1F);
@@ -401,14 +401,14 @@ void JitArm64::mfspr(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mftb(UGeckoInstruction inst)
+void JitArm64::mftb(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   mfspr(inst);
 }
 
-void JitArm64::mtspr(UGeckoInstruction inst)
+void JitArm64::mtspr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -463,7 +463,7 @@ void JitArm64::mtspr(UGeckoInstruction inst)
   STR(IndexType::Unsigned, RD, PPC_REG, PPCSTATE_OFF_SPR(iIndex));
 }
 
-void JitArm64::crXXX(UGeckoInstruction inst)
+void JitArm64::crXXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -645,7 +645,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mfcr(UGeckoInstruction inst)
+void JitArm64::mfcr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -692,7 +692,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
   gpr.Unlock(WB, WC);
 }
 
-void JitArm64::mtcrf(UGeckoInstruction inst)
+void JitArm64::mtcrf(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -729,7 +729,7 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mcrfs(UGeckoInstruction inst)
+void JitArm64::mcrfs(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -765,7 +765,7 @@ void JitArm64::mcrfs(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mffsx(UGeckoInstruction inst)
+void JitArm64::mffsx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -784,7 +784,7 @@ void JitArm64::mffsx(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mtfsb0x(UGeckoInstruction inst)
+void JitArm64::mtfsb0x(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -812,7 +812,7 @@ void JitArm64::mtfsb0x(UGeckoInstruction inst)
     UpdateRoundingMode();
 }
 
-void JitArm64::mtfsb1x(UGeckoInstruction inst)
+void JitArm64::mtfsb1x(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -848,7 +848,7 @@ void JitArm64::mtfsb1x(UGeckoInstruction inst)
     UpdateRoundingMode();
 }
 
-void JitArm64::mtfsfix(UGeckoInstruction inst)
+void JitArm64::mtfsfix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -890,7 +890,7 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
     UpdateRoundingMode();
 }
 
-void JitArm64::mtfsfx(UGeckoInstruction inst)
+void JitArm64::mtfsfx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);

@@ -25,13 +25,13 @@ mffsx: 80036650 (huh?)
 
 */
 
-static void FPSCRUpdated(UReg_FPSCR& fpscr)
+static void FPSCRUpdated(Reg_FPSCR& fpscr)
 {
   UpdateFPExceptionSummary(fpscr);
   PowerPC::RoundingModeUpdated();
 }
 
-void Interpreter::mtfsb0x(UGeckoInstruction inst)
+void Interpreter::mtfsb0x(GeckoInstruction inst)
 {
   u32 b = 0x80000000 >> inst.CRBD();
 
@@ -43,7 +43,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
 }
 
 // This instruction can affect FX
-void Interpreter::mtfsb1x(UGeckoInstruction inst)
+void Interpreter::mtfsb1x(GeckoInstruction inst)
 {
   const u32 bit = inst.CRBD();
   const u32 b = 0x80000000 >> bit;
@@ -59,7 +59,7 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::mtfsfix(UGeckoInstruction inst)
+void Interpreter::mtfsfix(GeckoInstruction inst)
 {
   const u32 field = inst.CRFD();
   const u32 pre_shifted_mask = 0xF0000000;
@@ -74,7 +74,7 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::mtfsfx(UGeckoInstruction inst)
+void Interpreter::mtfsfx(GeckoInstruction inst)
 {
   const u32 fm = inst.FM();
   u32 m = 0;
@@ -91,19 +91,19 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
     PowerPC::ppcState.UpdateCR1();
 }
 
-void Interpreter::mcrxr(UGeckoInstruction inst)
+void Interpreter::mcrxr(GeckoInstruction inst)
 {
   PowerPC::ppcState.cr.SetField(inst.CRFD(), PowerPC::GetXER().Hex >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
 
-void Interpreter::mfcr(UGeckoInstruction inst)
+void Interpreter::mfcr(GeckoInstruction inst)
 {
   rGPR[inst.RD()] = PowerPC::ppcState.cr.Get();
 }
 
-void Interpreter::mtcrf(UGeckoInstruction inst)
+void Interpreter::mtcrf(GeckoInstruction inst)
 {
   const u32 crm = inst.CRM();
   if (crm == 0xFF)
@@ -124,7 +124,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::mfmsr(UGeckoInstruction inst)
+void Interpreter::mfmsr(GeckoInstruction inst)
 {
   if (MSR.PR())
   {
@@ -135,7 +135,7 @@ void Interpreter::mfmsr(UGeckoInstruction inst)
   rGPR[inst.RD()] = MSR.Hex;
 }
 
-void Interpreter::mfsr(UGeckoInstruction inst)
+void Interpreter::mfsr(GeckoInstruction inst)
 {
   if (MSR.PR())
   {
@@ -146,7 +146,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
   rGPR[inst.RD()] = PowerPC::ppcState.sr[inst.SR()];
 }
 
-void Interpreter::mfsrin(UGeckoInstruction inst)
+void Interpreter::mfsrin(GeckoInstruction inst)
 {
   if (MSR.PR())
   {
@@ -158,7 +158,7 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
   rGPR[inst.RD()] = PowerPC::ppcState.sr[index];
 }
 
-void Interpreter::mtmsr(UGeckoInstruction inst)
+void Interpreter::mtmsr(GeckoInstruction inst)
 {
   if (MSR.PR())
   {
@@ -177,7 +177,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
 
 // Segment registers. MMU control.
 
-void Interpreter::mtsr(UGeckoInstruction inst)
+void Interpreter::mtsr(GeckoInstruction inst)
 {
   if (MSR.PR())
   {
@@ -190,7 +190,7 @@ void Interpreter::mtsr(UGeckoInstruction inst)
   PowerPC::ppcState.SetSR(index, value);
 }
 
-void Interpreter::mtsrin(UGeckoInstruction inst)
+void Interpreter::mtsrin(GeckoInstruction inst)
 {
   if (MSR.PR())
   {
@@ -203,14 +203,14 @@ void Interpreter::mtsrin(UGeckoInstruction inst)
   PowerPC::ppcState.SetSR(index, value);
 }
 
-void Interpreter::mftb(UGeckoInstruction inst)
+void Interpreter::mftb(GeckoInstruction inst)
 {
   [[maybe_unused]] const u32 index = (inst.TBR() >> 5) | ((inst.TBR() & 0x1F) << 5);
   DEBUG_ASSERT_MSG(POWERPC, (index == SPR_TL) || (index == SPR_TU), "Invalid mftb");
   mfspr(inst);
 }
 
-void Interpreter::mfspr(UGeckoInstruction inst)
+void Interpreter::mfspr(GeckoInstruction inst)
 {
   const u32 index = ((inst.SPR() & 0x1F) << 5) + ((inst.SPR() >> 5) & 0x1F);
 
@@ -254,7 +254,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   rGPR[inst.RD()] = rSPR(index);
 }
 
-void Interpreter::mtspr(UGeckoInstruction inst)
+void Interpreter::mtspr(GeckoInstruction inst)
 {
   const u32 index = (inst.SPRU() << 5) | (inst.SPRL() & 0x1F);
 
@@ -295,7 +295,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
   case SPR_HID0:  // HID0
   {
-    UReg_HID0 old_hid0;
+    Reg_HID0 old_hid0;
     old_hid0.Hex = old_value;
     if (HID0.ICE() != old_hid0.ICE())
     {
@@ -394,7 +394,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    PowerPC::SetXER(UReg_XER{rSPR(index)});
+    PowerPC::SetXER(Reg_XER{rSPR(index)});
     break;
 
   case SPR_DBAT0L:
@@ -454,7 +454,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     // TODO: Support thermal interrupts when enabled.
     constexpr u32 SIMULATED_TEMP = 42;  // °C
 
-    auto UpdateThermalReg = [](UReg_THRM12* reg) {
+    auto UpdateThermalReg = [](Reg_THRM12* reg) {
       if (!THRM3.E() || !reg->V())
       {
         reg->TIV() = 0;
@@ -476,7 +476,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   }
 }
 
-void Interpreter::crand(UGeckoInstruction inst)
+void Interpreter::crand(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -484,7 +484,7 @@ void Interpreter::crand(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), a & b);
 }
 
-void Interpreter::crandc(UGeckoInstruction inst)
+void Interpreter::crandc(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -492,7 +492,7 @@ void Interpreter::crandc(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), a & (1 ^ b));
 }
 
-void Interpreter::creqv(UGeckoInstruction inst)
+void Interpreter::creqv(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -500,7 +500,7 @@ void Interpreter::creqv(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), 1 ^ (a ^ b));
 }
 
-void Interpreter::crnand(UGeckoInstruction inst)
+void Interpreter::crnand(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -508,7 +508,7 @@ void Interpreter::crnand(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), 1 ^ (a & b));
 }
 
-void Interpreter::crnor(UGeckoInstruction inst)
+void Interpreter::crnor(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -516,7 +516,7 @@ void Interpreter::crnor(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), 1 ^ (a | b));
 }
 
-void Interpreter::cror(UGeckoInstruction inst)
+void Interpreter::cror(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -524,7 +524,7 @@ void Interpreter::cror(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), a | b);
 }
 
-void Interpreter::crorc(UGeckoInstruction inst)
+void Interpreter::crorc(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -532,7 +532,7 @@ void Interpreter::crorc(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), a | (1 ^ b));
 }
 
-void Interpreter::crxor(UGeckoInstruction inst)
+void Interpreter::crxor(GeckoInstruction inst)
 {
   const u32 a = PowerPC::ppcState.cr.GetBit(inst.CRBA());
   const u32 b = PowerPC::ppcState.cr.GetBit(inst.CRBB());
@@ -540,20 +540,20 @@ void Interpreter::crxor(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetBit(inst.CRBD(), a ^ b);
 }
 
-void Interpreter::mcrf(UGeckoInstruction inst)
+void Interpreter::mcrf(GeckoInstruction inst)
 {
   const u32 cr_f = PowerPC::ppcState.cr.GetField(inst.CRFS());
   PowerPC::ppcState.cr.SetField(inst.CRFD(), cr_f);
 }
 
-void Interpreter::isync(UGeckoInstruction inst)
+void Interpreter::isync(GeckoInstruction inst)
 {
   // shouldn't do anything
 }
 
 // the following commands read from FPSCR
 
-void Interpreter::mcrfs(UGeckoInstruction inst)
+void Interpreter::mcrfs(GeckoInstruction inst)
 {
   const u32 shift = 4 * (7 - inst.CRFS());
   const u32 fpflags = (FPSCR.Hex >> shift) & 0xF;
@@ -565,7 +565,7 @@ void Interpreter::mcrfs(UGeckoInstruction inst)
   PowerPC::ppcState.cr.SetField(inst.CRFD(), fpflags);
 }
 
-void Interpreter::mffsx(UGeckoInstruction inst)
+void Interpreter::mffsx(GeckoInstruction inst)
 {
   rPS(inst.FD()).SetPS0(UINT64_C(0xFFF8000000000000) | FPSCR.Hex);
 

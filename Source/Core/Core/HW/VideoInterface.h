@@ -79,17 +79,17 @@ enum
   // VI_INTERLACE                      = 0x850, // ??? MYSTERY OLD CODE
 };
 
-struct UVIVerticalTimingRegister
+struct VIVerticalTimingRegister
 {
   u16 Hex = 0;
   BFVIEW_M(Hex, u16, 0, 4, EQU);   // Equalization pulse in half lines
   BFVIEW_M(Hex, u16, 4, 10, ACV);  // Active video in lines per field (seems always zero)
 
-  UVIVerticalTimingRegister() = default;
-  explicit UVIVerticalTimingRegister(u16 hex) : Hex{hex} {}
+  VIVerticalTimingRegister() = default;
+  explicit VIVerticalTimingRegister(u16 hex) : Hex{hex} {}
 };
 
-struct UVIDisplayControlRegister
+struct VIDisplayControlRegister
 {
   u16 Hex = 0;
 
@@ -104,8 +104,8 @@ struct UVIDisplayControlRegister
   BFVIEW_M(Hex, u16, 6, 2, LE1);
   BFVIEW_M(Hex, u16, 8, 2, FMT);  // 0: NTSC, 1: PAL, 2: MPAL, 3: Debug
 
-  UVIDisplayControlRegister() = default;
-  explicit UVIDisplayControlRegister(u16 hex) : Hex{hex} {}
+  VIDisplayControlRegister() = default;
+  explicit VIDisplayControlRegister(u16 hex) : Hex{hex} {}
 };
 
 union UVIHorizontalTiming0
@@ -215,7 +215,7 @@ struct PictureConfigurationRegister
   BFVIEW_M(Hex, u16, 8, 7, WPL);
 };
 
-struct UVIHorizontalScaling
+struct VIHorizontalScaling
 {
   u16 Hex = 0;
 
@@ -223,8 +223,8 @@ struct UVIHorizontalScaling
                                       // (0x160 Works for 320)
   BFVIEW_M(Hex, bool, 12, 1, HS_EN);  // Enable Horizontal Scaling
 
-  UVIHorizontalScaling() = default;
-  explicit UVIHorizontalScaling(u16 hex) : Hex{hex} {}
+  VIHorizontalScaling() = default;
+  explicit VIHorizontalScaling(u16 hex) : Hex{hex} {}
 };
 
 // Used for tables 0-2
@@ -277,7 +277,7 @@ union UVIBorderBlankRegister
 };
 
 // ntsc-j and component cable bits
-struct UVIDTVStatus
+struct VIDTVStatus
 {
   u16 Hex;
 
@@ -285,7 +285,7 @@ struct UVIDTVStatus
   BFVIEW_M(Hex, bool, 1, 1, ntsc_j);
 };
 
-struct UVIHorizontalStepping
+struct VIHorizontalStepping
 {
   u16 Hex;
 

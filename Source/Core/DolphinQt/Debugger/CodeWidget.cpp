@@ -418,7 +418,7 @@ void CodeWidget::StepOver()
   if (!CPU::IsStepping())
     return;
 
-  UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+  GeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
   if (inst.LK())
   {
     PowerPC::breakpoints.ClearAllTemporary();
@@ -433,7 +433,7 @@ void CodeWidget::StepOver()
 }
 
 // Returns true on a rfi, blr or on a bclr that evaluates to true.
-static bool WillInstructionReturn(UGeckoInstruction inst)
+static bool WillInstructionReturn(GeckoInstruction inst)
 {
   // Is a rfi instruction
   if (inst.hex == 0x4C000064u)
@@ -462,7 +462,7 @@ void CodeWidget::StepOut()
   // Loop until either the current instruction is a return instruction with no Link flag
   // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
   // on a breakpoint, skip it.
-  UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+  GeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
   do
   {
     if (WillInstructionReturn(inst))

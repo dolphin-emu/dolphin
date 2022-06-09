@@ -159,7 +159,7 @@ void JitArm64::Shutdown()
   FreeStack();
 }
 
-void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
+void JitArm64::FallBackToInterpreter(GeckoInstruction inst)
 {
   FlushCarry();
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
@@ -233,12 +233,12 @@ void JitArm64::HLEFunction(u32 hook_index)
   BLR(ARM64Reg::X8);
 }
 
-void JitArm64::DoNothing(UGeckoInstruction inst)
+void JitArm64::DoNothing(GeckoInstruction inst)
 {
   // Yup, just don't do anything.
 }
 
-void JitArm64::Break(UGeckoInstruction inst)
+void JitArm64::Break(GeckoInstruction inst)
 {
   WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst.hex);
   std::exit(0);

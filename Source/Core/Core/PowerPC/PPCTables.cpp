@@ -33,7 +33,7 @@ size_t m_numInstructions;
 
 namespace PPCTables
 {
-GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
+GekkoOPInfo* GetOpInfo(GeckoInstruction inst)
 {
   const GekkoOPInfo* info = m_infoTable[inst.OPCD()];
   if (info->type == OpType::Subtable)
@@ -66,7 +66,7 @@ GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
   }
 }
 
-Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
+Interpreter::Instruction GetInterpreterOp(GeckoInstruction inst)
 {
   const GekkoOPInfo* info = m_infoTable[inst.OPCD()];
   if (info->type == OpType::Subtable)
@@ -100,7 +100,7 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
   }
 }
 
-bool UsesFPU(UGeckoInstruction inst)
+bool UsesFPU(GeckoInstruction inst)
 {
   GekkoOPInfo* const info = GetOpInfo(inst);
 
@@ -117,19 +117,19 @@ std::vector<u32> rsplocations;
 }
 #endif
 
-const char* GetInstructionName(UGeckoInstruction inst)
+const char* GetInstructionName(GeckoInstruction inst)
 {
   const GekkoOPInfo* info = GetOpInfo(inst);
   return info ? info->opname : nullptr;
 }
 
-bool IsValidInstruction(UGeckoInstruction inst)
+bool IsValidInstruction(GeckoInstruction inst)
 {
   const GekkoOPInfo* info = GetOpInfo(inst);
   return info != nullptr && info->type != OpType::Unknown;
 }
 
-void CountInstruction(UGeckoInstruction inst)
+void CountInstruction(GeckoInstruction inst)
 {
   GekkoOPInfo* info = GetOpInfo(inst);
   if (info)

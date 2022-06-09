@@ -11,12 +11,12 @@
 
 // --- Gekko Instruction ---
 
-struct UGeckoInstruction
+struct GeckoInstruction
 {
   u32 hex = 0;
 
-  UGeckoInstruction() = default;
-  UGeckoInstruction(u32 hex_) : hex(hex_) {}
+  GeckoInstruction() = default;
+  GeckoInstruction(u32 hex_) : hex(hex_) {}
 
   // Opcode
   BFVIEW_M(hex, u32, 26, 6, OPCD);     // Primary opcode
@@ -131,7 +131,7 @@ enum EQuantizeType : u32
 };
 
 // GQR Register
-struct UGQR
+struct Reg_GQR
 {
   u32 Hex = 0;
 
@@ -140,8 +140,8 @@ struct UGQR
   BFVIEW_M(Hex, EQuantizeType, 16, 3, ld_type)
   BFVIEW_M(Hex, u32, 24, 6, ld_scale)
 
-  UGQR() = default;
-  explicit UGQR(u32 hex_) : Hex{hex_} {}
+  Reg_GQR() = default;
+  explicit Reg_GQR(u32 hex_) : Hex{hex_} {}
 };
 
 #define XER_CA_SHIFT 29
@@ -150,7 +150,7 @@ struct UGQR
 #define XER_OV_MASK 1
 #define XER_SO_MASK 2
 // XER
-struct UReg_XER
+struct Reg_XER
 {
   u32 Hex = 0;
 
@@ -162,12 +162,12 @@ struct UReg_XER
   BFVIEW_M(Hex, u32, 30, 1, OV)
   BFVIEW_M(Hex, u32, 31, 1, SO)
 
-  UReg_XER() = default;
-  explicit UReg_XER(u32 hex_) : Hex{hex_} {}
+  Reg_XER() = default;
+  explicit Reg_XER(u32 hex_) : Hex{hex_} {}
 };
 
 // Machine State Register
-struct UReg_MSR
+struct Reg_MSR
 {
   u32 Hex = 0;
 
@@ -192,8 +192,8 @@ struct UReg_MSR
   BFVIEW_M(Hex, bool, 18, 1, POW);
   BFVIEW_M(Hex, u32, 19, 13, reserved_4);
 
-  UReg_MSR() = default;
-  explicit UReg_MSR(u32 hex_) : Hex{hex_} {}
+  Reg_MSR() = default;
+  explicit Reg_MSR(u32 hex_) : Hex{hex_} {}
 };
 
 #define FPRF_SHIFT 12
@@ -235,7 +235,7 @@ enum FPSCRExceptionFlag : u32
 };
 
 // Floating Point Status and Control Register
-struct UReg_FPSCR
+struct Reg_FPSCR
 {
   u32 Hex = 0;
 
@@ -300,28 +300,28 @@ struct UReg_FPSCR
   // are ignored by hardware, so we do the same.
   static constexpr u32 mask = 0xFFFFF7FF;
 
-  UReg_FPSCR() = default;
-  explicit UReg_FPSCR(u32 hex_) : Hex{hex_ & mask} {}
+  Reg_FPSCR() = default;
+  explicit Reg_FPSCR(u32 hex_) : Hex{hex_ & mask} {}
 
-  UReg_FPSCR& operator=(u32 value)
+  Reg_FPSCR& operator=(u32 value)
   {
     Hex = value & mask;
     return *this;
   }
 
-  UReg_FPSCR& operator|=(u32 value)
+  Reg_FPSCR& operator|=(u32 value)
   {
     Hex |= value & mask;
     return *this;
   }
 
-  UReg_FPSCR& operator&=(u32 value)
+  Reg_FPSCR& operator&=(u32 value)
   {
     Hex &= value;
     return *this;
   }
 
-  UReg_FPSCR& operator^=(u32 value)
+  Reg_FPSCR& operator^=(u32 value)
   {
     Hex ^= value & mask;
     return *this;
@@ -335,7 +335,7 @@ struct UReg_FPSCR
 };
 
 // Hardware Implementation-Dependent Register 0
-struct UReg_HID0
+struct Reg_HID0
 {
   u32 Hex = 0;
 
@@ -372,7 +372,7 @@ struct UReg_HID0
 };
 
 // Hardware Implementation-Dependent Register 2
-struct UReg_HID2
+struct Reg_HID2
 {
   u32 Hex = 0;
 
@@ -391,12 +391,12 @@ struct UReg_HID2
   BFVIEW_M(Hex, bool, 30, 1, WPE);
   BFVIEW_M(Hex, bool, 31, 1, LSQE);
 
-  UReg_HID2() = default;
-  explicit UReg_HID2(u32 hex_) : Hex{hex_} {}
+  Reg_HID2() = default;
+  explicit Reg_HID2(u32 hex_) : Hex{hex_} {}
 };
 
 // Hardware Implementation-Dependent Register 4
-struct UReg_HID4
+struct Reg_HID4
 {
   u32 Hex = 0;
 
@@ -412,12 +412,12 @@ struct UReg_HID4
   BFVIEW_M(Hex, u32, 29, 2, L2FM);
   BFVIEW_M(Hex, u32, 31, 1, reserved_3);
 
-  UReg_HID4() = default;
-  explicit UReg_HID4(u32 hex_) : Hex{hex_} {}
+  Reg_HID4() = default;
+  explicit Reg_HID4(u32 hex_) : Hex{hex_} {}
 };
 
 // SDR1 - Page Table format
-struct UReg_SDR1
+struct Reg_SDR1
 {
   u32 Hex = 0;
 
@@ -425,12 +425,12 @@ struct UReg_SDR1
   BFVIEW_M(Hex, u32, 9, 7, reserved);
   BFVIEW_M(Hex, u32, 16, 16, htaborg);
 
-  UReg_SDR1() = default;
-  explicit UReg_SDR1(u32 hex_) : Hex{hex_} {}
+  Reg_SDR1() = default;
+  explicit Reg_SDR1(u32 hex_) : Hex{hex_} {}
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
-struct UReg_MMCR0
+struct Reg_MMCR0
 {
   u32 Hex = 0;
 
@@ -452,7 +452,7 @@ struct UReg_MMCR0
 };
 
 // MMCR1 - Monitor Mode Control Register 1 format
-struct UReg_MMCR1
+struct Reg_MMCR1
 {
   u32 Hex = 0;
 
@@ -462,7 +462,7 @@ struct UReg_MMCR1
 };
 
 // Write Pipe Address Register
-struct UReg_WPAR
+struct Reg_WPAR
 {
   u32 Hex = 0;
 
@@ -470,24 +470,24 @@ struct UReg_WPAR
   BFVIEW_M(Hex, u32, 1, 4, reserved);
   BFVIEW_M(Hex, u32, 5, 27, GB_ADDR);
 
-  UReg_WPAR() = default;
-  explicit UReg_WPAR(u32 hex_) : Hex{hex_} {}
+  Reg_WPAR() = default;
+  explicit Reg_WPAR(u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Upper register
-struct UReg_DMAU
+struct Reg_DMAU
 {
   u32 Hex = 0;
 
   BFVIEW_M(Hex, u32, 0, 5, DMA_LEN_U);
   BFVIEW_M(Hex, u32, 5, 27, MEM_ADDR);
 
-  UReg_DMAU() = default;
-  explicit UReg_DMAU(u32 hex_) : Hex{hex_} {}
+  Reg_DMAU() = default;
+  explicit Reg_DMAU(u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Lower (DMAL) register
-struct UReg_DMAL
+struct Reg_DMAL
 {
   u32 Hex = 0;
 
@@ -497,11 +497,11 @@ struct UReg_DMAL
   BFVIEW_M(Hex, u32, 4, 1, DMA_LD);
   BFVIEW_M(Hex, u32, 5, 27, LC_ADDR);
 
-  UReg_DMAL() = default;
-  explicit UReg_DMAL(u32 hex_) : Hex{hex_} {}
+  Reg_DMAL() = default;
+  explicit Reg_DMAL(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_BAT_Up
+struct Reg_BAT_Up
 {
   u32 Hex = 0;
 
@@ -511,11 +511,11 @@ struct UReg_BAT_Up
   BFVIEW_M(Hex, u32, 13, 4, reserved);
   BFVIEW_M(Hex, u32, 17, 15, BEPI);
 
-  UReg_BAT_Up() = default;
-  explicit UReg_BAT_Up(u32 hex_) : Hex{hex_} {}
+  Reg_BAT_Up() = default;
+  explicit Reg_BAT_Up(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_BAT_Lo
+struct Reg_BAT_Lo
 {
   u32 Hex = 0;
 
@@ -525,12 +525,12 @@ struct UReg_BAT_Lo
   BFVIEW_M(Hex, u32, 7, 10, reserved_2);
   BFVIEW_M(Hex, u32, 17, 15, BRPN);  // Physical Block Number
 
-  UReg_BAT_Lo() = default;
-  explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
+  Reg_BAT_Lo() = default;
+  explicit Reg_BAT_Lo(u32 hex_) : Hex{hex_} {}
 };
 
 // Segment register
-struct UReg_SR
+struct Reg_SR
 {
   u32 Hex = 0;
 
@@ -546,11 +546,11 @@ struct UReg_SR
   BFVIEW_M(Hex, u32, 0, 20, CNTLR_SPEC);  // Device-specific data for I/O controller
   BFVIEW_M(Hex, u32, 20, 9, BUID);        // Bus unit ID
 
-  UReg_SR() = default;
-  explicit UReg_SR(u32 hex_) : Hex{hex_} {}
+  Reg_SR() = default;
+  explicit Reg_SR(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_THRM12
+struct Reg_THRM12
 {
   u32 Hex = 0;
 
@@ -562,11 +562,11 @@ struct UReg_THRM12
   BFVIEW_M(Hex, bool, 30, 1, TIV);       // Thermal Interrupt Valid
   BFVIEW_M(Hex, bool, 31, 1, TIN);       // Thermal Interrupt
 
-  UReg_THRM12() = default;
-  explicit UReg_THRM12(u32 hex_) : Hex{hex_} {}
+  Reg_THRM12() = default;
+  explicit Reg_THRM12(u32 hex_) : Hex{hex_} {}
 };
 
-struct UReg_THRM3
+struct Reg_THRM3
 {
   u32 Hex = 0;
 
@@ -574,11 +574,11 @@ struct UReg_THRM3
   BFVIEW_M(Hex, u32, 1, 13, SITV);  // Sample Interval Timer Value
   BFVIEW_M(Hex, u32, 14, 18, reserved);
 
-  UReg_THRM3() = default;
-  explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
+  Reg_THRM3() = default;
+  explicit Reg_THRM3(u32 hex_) : Hex{hex_} {}
 };
 
-struct UPTE_Lo
+struct PTE_Lo
 {
   u32 Hex = 0;
 
@@ -587,11 +587,11 @@ struct UPTE_Lo
   BFVIEW_M(Hex, u32, 7, 24, VSID);
   BFVIEW_M(Hex, bool, 31, 1, V);
 
-  UPTE_Lo() = default;
-  explicit UPTE_Lo(u32 hex_) : Hex{hex_} {}
+  PTE_Lo() = default;
+  explicit PTE_Lo(u32 hex_) : Hex{hex_} {}
 };
 
-struct UPTE_Hi
+struct PTE_Hi
 {
   u32 Hex = 0;
 
@@ -603,8 +603,8 @@ struct UPTE_Hi
   BFVIEW_M(Hex, u32, 9, 3, reserved_2);
   BFVIEW_M(Hex, u32, 12, 20, RPN);
 
-  UPTE_Hi() = default;
-  explicit UPTE_Hi(u32 hex_) : Hex{hex_} {}
+  PTE_Hi() = default;
+  explicit PTE_Hi(u32 hex_) : Hex{hex_} {}
 };
 
 //

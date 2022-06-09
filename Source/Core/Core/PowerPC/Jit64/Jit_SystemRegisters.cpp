@@ -220,7 +220,7 @@ static void DoICacheReset()
   PowerPC::ppcState.iCache.Reset();
 }
 
-void Jit64::mtspr(UGeckoInstruction inst)
+void Jit64::mtspr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -301,7 +301,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
   MOV(32, PPCSTATE(spr[iIndex]), Rd);
 }
 
-void Jit64::mfspr(UGeckoInstruction inst)
+void Jit64::mfspr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -357,7 +357,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 
     if (CanMergeNextInstructions(1))
     {
-      const UGeckoInstruction& next = js.op[1].inst;
+      const GeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
       // if we can.
       u32 nextIndex = (next.SPRU() << 5) | (next.SPRL() & 0x1F);
@@ -421,7 +421,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
   }
 }
 
-void Jit64::mtmsr(UGeckoInstruction inst)
+void Jit64::mtmsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -465,7 +465,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   WriteExitDestInRSCRATCH();
 }
 
-void Jit64::mfmsr(UGeckoInstruction inst)
+void Jit64::mfmsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -475,14 +475,14 @@ void Jit64::mfmsr(UGeckoInstruction inst)
   MOV(32, Rd, PPCSTATE(msr));
 }
 
-void Jit64::mftb(UGeckoInstruction inst)
+void Jit64::mftb(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   mfspr(inst);
 }
 
-void Jit64::mfcr(UGeckoInstruction inst)
+void Jit64::mfcr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -496,7 +496,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
   MOV(32, Rd, R(RSCRATCH));
 }
 
-void Jit64::mtcrf(UGeckoInstruction inst)
+void Jit64::mtcrf(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -547,7 +547,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
   }
 }
 
-void Jit64::mcrf(UGeckoInstruction inst)
+void Jit64::mcrf(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -560,7 +560,7 @@ void Jit64::mcrf(UGeckoInstruction inst)
   }
 }
 
-void Jit64::mcrxr(UGeckoInstruction inst)
+void Jit64::mcrxr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -582,7 +582,7 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   MOV(8, PPCSTATE(xer_so_ov), Imm8(0));
 }
 
-void Jit64::crXXX(UGeckoInstruction inst)
+void Jit64::crXXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -657,7 +657,7 @@ void Jit64::crXXX(UGeckoInstruction inst)
   SetCRFieldBit(inst.CRBD() >> 2, 3 - (inst.CRBD() & 3), RSCRATCH);
 }
 
-void Jit64::mcrfs(UGeckoInstruction inst)
+void Jit64::mcrfs(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -709,7 +709,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   }
 }
 
-void Jit64::mffsx(UGeckoInstruction inst)
+void Jit64::mffsx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -739,7 +739,7 @@ void Jit64::UpdateMXCSR()
   LDMXCSR(MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0));
 }
 
-void Jit64::mtfsb0x(UGeckoInstruction inst)
+void Jit64::mtfsb0x(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -774,7 +774,7 @@ void Jit64::mtfsb0x(UGeckoInstruction inst)
   }
 }
 
-void Jit64::mtfsb1x(UGeckoInstruction inst)
+void Jit64::mtfsb1x(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -812,7 +812,7 @@ void Jit64::mtfsb1x(UGeckoInstruction inst)
     UpdateMXCSR();
 }
 
-void Jit64::mtfsfix(UGeckoInstruction inst)
+void Jit64::mtfsfix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
@@ -843,7 +843,7 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
     LDMXCSR(MConst(s_fpscr_to_mxcsr, imm & 7));
 }
 
-void Jit64::mtfsfx(UGeckoInstruction inst)
+void Jit64::mtfsfx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
