@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include <cstddef>      // std::size_t
+#include <cstddef>      // std::size_t, std::int32_t, std::uint32_t, std::int64_t, std::uint64_t
 #include <iterator>     // std::input_iterator_tag, std::output_iterator_tag
 #include <limits>       // std::numeric_limits
 #include <type_traits>  // std::make_unsigned, std::make_signed, std::is_integral, std::is_enum

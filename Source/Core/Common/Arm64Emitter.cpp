@@ -15,7 +15,6 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/BitField.h"
 #include "Common/BitFieldView.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"

@@ -5,7 +5,6 @@
 
 #include <array>
 
-#include "Common/BitField.h"
 #include "Common/BitFieldView.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"

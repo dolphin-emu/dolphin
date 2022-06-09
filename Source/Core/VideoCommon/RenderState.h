@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "Common/BitField.h"
 #include "Common/BitFieldView.h"
 
 #include "VideoCommon/BPMemory.h"

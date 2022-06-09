@@ -6,7 +6,6 @@
 #include <fmt/format.h>
 #include <functional>
 
-#include "Common/BitField.h"
 #include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 

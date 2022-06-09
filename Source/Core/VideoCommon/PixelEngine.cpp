@@ -5,7 +5,6 @@
 
 #include <mutex>
 
-#include "Common/BitField.h"
 #include "Common/BitFieldView.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"

@@ -8,7 +8,6 @@
 
 #include <array>
 
-#include "Common/BitField.h"
 #include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumFormatter.h"

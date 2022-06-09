@@ -5,7 +5,6 @@
 
 #include <mutex>
 
-#include "Common/BitField.h"
 #include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_Device.h"
