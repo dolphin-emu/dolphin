@@ -76,7 +76,8 @@ constexpr u32 DI_DMA_CONTROL_REGISTER = 0x1C;
 constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
 constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
-struct DIStatusRegister  // DISR
+// DI Status Register (DISR)
+struct DIStatusRegister
 {
   u32 Hex = 0;
 
@@ -93,7 +94,8 @@ struct DIStatusRegister  // DISR
   explicit DIStatusRegister(u32 hex) : Hex{hex} {}
 };
 
-struct DICoverRegister  // DICVR
+// DI Cover Register (DICVR)
+struct DICoverRegister
 {
   u32 Hex = 0;
 
@@ -106,8 +108,8 @@ struct DICoverRegister  // DICVR
   explicit DICoverRegister(u32 hex) : Hex{hex} {}
 };
 
-// DI DMA Control Register
-struct DIControlRegister  // DICR
+// DI DMA Control Register (DICR)
+struct DIControlRegister
 {
   u32 Hex = 0;
 
@@ -119,7 +121,8 @@ struct DIControlRegister  // DICR
   BFVIEW_M(Hex, u32, 3, 29, reserved);
 };
 
-struct DIConfigRegister  // DICFG
+// DI Config Register (DICFG)
+struct DIConfigRegister
 {
   u32 Hex = 0;
 
