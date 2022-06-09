@@ -46,14 +46,16 @@
 
 namespace ActionReplay
 {
-enum
+enum ZeroCodeType
 {
-  // Zero Code Types
   ZCODE_END = 0x00,
   ZCODE_NORM = 0x02,
   ZCODE_ROW = 0x03,
   ZCODE_04 = 0x04,
-
+};
+enum CodeType
+{
+  NORMAL = 0x00,
   // Conditional Codes
   CONDTIONAL_EQUAL = 0x01,
   CONDTIONAL_NOT_EQUAL = 0x02,
@@ -62,24 +64,28 @@ enum
   CONDTIONAL_LESS_THAN_UNSIGNED = 0x05,
   CONDTIONAL_GREATER_THAN_UNSIGNED = 0x06,
   CONDTIONAL_AND = 0x07,  // bitwise AND
-
+};
+enum CodeSubType
+{
   // Conditional Line Counts
   CONDTIONAL_ONE_LINE = 0x00,
   CONDTIONAL_TWO_LINES = 0x01,
   CONDTIONAL_ALL_LINES_UNTIL = 0x02,
   CONDTIONAL_ALL_LINES = 0x03,
 
-  // Data Types
-  DATATYPE_8BIT = 0x00,
-  DATATYPE_16BIT = 0x01,
-  DATATYPE_32BIT = 0x02,
-  DATATYPE_32BIT_FLOAT = 0x03,
-
   // Normal Code 0 Subtypes
   SUB_RAM_WRITE = 0x00,
   SUB_WRITE_POINTER = 0x01,
   SUB_ADD_CODE = 0x02,
   SUB_MASTER_CODE = 0x03,
+};
+enum CodeSize
+{
+  // Data Types
+  DATATYPE_8BIT = 0x00,
+  DATATYPE_16BIT = 0x01,
+  DATATYPE_32BIT = 0x02,
+  DATATYPE_32BIT_FLOAT = 0x03,
 };
 
 // General lock. Protects codes list and internal log.
@@ -97,9 +103,9 @@ struct ARAddr
   u32 address;
 
   BFVIEW_M(address, u32, 0, 25, gcaddr);
-  BFVIEW_M(address, u32, 25, 2, size);
-  BFVIEW_M(address, u32, 27, 3, type);
-  BFVIEW_M(address, u32, 30, 2, subtype);
+  BFVIEW_M(address, CodeSize, 25, 2, size);
+  BFVIEW_M(address, CodeType, 27, 3, type);
+  BFVIEW_M(address, CodeSubType, 30, 2, subtype);
 
   ARAddr(const u32 addr) : address(addr) {}
   u32 GCAddress() const { return gcaddr() | 0x80000000; }
@@ -549,7 +555,7 @@ static bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 d
 static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const u32 data)
 {
   const u32 new_addr = ARAddr(val_last).GCAddress();
-  const u8 size = ARAddr(val_last).size();
+  const CodeSize size = ARAddr(val_last).size();
 
   const s16 addr_incr = static_cast<s16>(data & 0xFFFF);
   const s8 val_incr = static_cast<s8>(data >> 24);
@@ -715,7 +721,7 @@ static bool NormalCode(const ARAddr& addr, const u32 data)
   return true;
 }
 
-static bool CompareValues(const u32 val1, const u32 val2, const int type)
+static bool CompareValues(const u32 val1, const u32 val2, const CodeType type)
 {
   switch (type)
   {
@@ -902,7 +908,7 @@ static bool RunCodeLocked(const ARCode& arcode)
     // Zero codes
     if (0x0 == addr)  // Check if the code is a zero code
     {
-      const u8 zcode = data >> 29;
+      const ZeroCodeType zcode = ZeroCodeType(data >> 29);
 
       LogInfo("Doing Zero Code {:08x}", zcode);
 
@@ -957,7 +963,7 @@ static bool RunCodeLocked(const ARCode& arcode)
 
     switch (addr.type())
     {
-    case 0x00:
+    case NORMAL:
       if (false == NormalCode(addr, data))
         return false;
       break;
