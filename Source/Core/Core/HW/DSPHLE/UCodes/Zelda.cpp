@@ -130,7 +130,6 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 
 ZeldaUCode::~ZeldaUCode()
 {
-  m_mail_handler.Clear();
 }
 
 void ZeldaUCode::Initialize()

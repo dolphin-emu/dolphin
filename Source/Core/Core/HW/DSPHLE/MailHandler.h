@@ -20,10 +20,14 @@ public:
 
   // TODO: figure out correct timing for interrupts rather than defaulting to "immediately."
   void PushMail(u32 mail, bool interrupt = false, int cycles_into_future = 0);
-  void Clear();
   void Halt(bool _Halt);
   void DoState(PointerWrap& p);
   bool HasPending() const;
+
+  // Clear any pending mail from the current uCode.  This is called by DSPHLE::SetUCode and
+  // DSPHLE::SwapUCode. Since pending mail is an abstraction for DSPHLE and not something that
+  // actually exists on real hardware, HLE implementations do not need to call this directly.
+  void ClearPending();
 
   u16 ReadDSPMailboxHigh();
   u16 ReadDSPMailboxLow();

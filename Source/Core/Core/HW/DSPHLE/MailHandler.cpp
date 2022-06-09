@@ -19,7 +19,6 @@ CMailHandler::CMailHandler()
 
 CMailHandler::~CMailHandler()
 {
-  Clear();
 }
 
 void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
@@ -69,7 +68,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
   return 0x00;
 }
 
-void CMailHandler::Clear()
+void CMailHandler::ClearPending()
 {
   while (!m_Mails.empty())
     m_Mails.pop();
@@ -84,7 +83,7 @@ void CMailHandler::Halt(bool _Halt)
 {
   if (_Halt)
   {
-    Clear();
+    ClearPending();
     PushMail(0x80544348);
   }
 }
@@ -93,7 +92,7 @@ void CMailHandler::DoState(PointerWrap& p)
 {
   if (p.IsReadMode())
   {
-    Clear();
+    ClearPending();
     int sz = 0;
     p.Do(sz);
     for (int i = 0; i < sz; i++)

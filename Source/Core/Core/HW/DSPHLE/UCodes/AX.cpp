@@ -34,7 +34,6 @@ AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 
 AXUCode::~AXUCode()
 {
-  m_mail_handler.Clear();
 }
 
 void AXUCode::Initialize()

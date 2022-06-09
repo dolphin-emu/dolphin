@@ -75,7 +75,6 @@ GBAUCode::GBAUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 
 GBAUCode::~GBAUCode()
 {
-  m_mail_handler.Clear();
 }
 
 void GBAUCode::Initialize()

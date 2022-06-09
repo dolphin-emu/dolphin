@@ -67,7 +67,7 @@ void DSPHLE::SendMailToDSP(u32 mail)
 
 void DSPHLE::SetUCode(u32 crc)
 {
-  m_mail_handler.Clear();
+  m_mail_handler.ClearPending();
   m_ucode = UCodeFactory(crc, this, m_wii);
   m_ucode->Initialize();
 }
@@ -77,7 +77,7 @@ void DSPHLE::SetUCode(u32 crc)
 // Even callers are deleted.
 void DSPHLE::SwapUCode(u32 crc)
 {
-  m_mail_handler.Clear();
+  m_mail_handler.ClearPending();
 
   if (m_last_ucode && UCodeInterface::GetCRC(m_last_ucode.get()) == crc)
   {

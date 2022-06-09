@@ -18,7 +18,6 @@ CARDUCode::CARDUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 
 CARDUCode::~CARDUCode()
 {
-  m_mail_handler.Clear();
 }
 
 void CARDUCode::Initialize()
