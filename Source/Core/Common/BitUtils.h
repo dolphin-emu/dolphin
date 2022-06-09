@@ -201,7 +201,7 @@ inline To BitCast(const From& source) noexcept
   static_assert(std::is_trivially_copyable<To>(),
                 "BitCast destination type must be trivially copyable.");
 
-  std::aligned_storage_t<sizeof(To), alignof(To)> storage;
+  alignas(To) std::byte storage[sizeof(To)];
   std::memcpy(&storage, &source, sizeof(storage));
   return reinterpret_cast<To&>(storage);
 }
