@@ -3,8 +3,6 @@
 
 #include "Core/HW/DSPHLE/MailHandler.h"
 
-#include <queue>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -25,25 +23,25 @@ void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
 {
   if (interrupt)
   {
-    if (m_Mails.empty())
+    if (m_pending_mails.empty())
     {
       DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP, cycles_into_future);
     }
     else
     {
-      m_Mails.front().second = true;
+      m_pending_mails.front().second = true;
     }
   }
-  m_Mails.emplace(mail, false);
+  m_pending_mails.emplace_back(mail, false);
   DEBUG_LOG_FMT(DSP_MAIL, "DSP writes {:#010x}", mail);
 }
 
 u16 CMailHandler::ReadDSPMailboxHigh()
 {
-  // check if we have a mail for the core
-  if (!m_Mails.empty())
+  // check if we have a mail for the CPU core
+  if (!m_pending_mails.empty())
   {
-    u16 result = (m_Mails.front().first >> 16) & 0xFFFF;
+    u16 result = (m_pending_mails.front().first >> 16) & 0xFFFF;
     return result;
   }
   return 0x00;
@@ -51,12 +49,12 @@ u16 CMailHandler::ReadDSPMailboxHigh()
 
 u16 CMailHandler::ReadDSPMailboxLow()
 {
-  // check if we have a mail for the core
-  if (!m_Mails.empty())
+  // check if we have a mail for the CPU core
+  if (!m_pending_mails.empty())
   {
-    u16 result = m_Mails.front().first & 0xFFFF;
-    bool generate_interrupt = m_Mails.front().second;
-    m_Mails.pop();
+    u16 result = m_pending_mails.front().first & 0xFFFF;
+    const bool generate_interrupt = m_pending_mails.front().second;
+    m_pending_mails.pop_front();
 
     if (generate_interrupt)
     {
@@ -70,13 +68,12 @@ u16 CMailHandler::ReadDSPMailboxLow()
 
 void CMailHandler::ClearPending()
 {
-  while (!m_Mails.empty())
-    m_Mails.pop();
+  m_pending_mails.clear();
 }
 
 bool CMailHandler::HasPending() const
 {
-  return !m_Mails.empty();
+  return !m_pending_mails.empty();
 }
 
 void CMailHandler::Halt(bool _Halt)
@@ -90,45 +87,6 @@ void CMailHandler::Halt(bool _Halt)
 
 void CMailHandler::DoState(PointerWrap& p)
 {
-  if (p.IsReadMode())
-  {
-    ClearPending();
-    int sz = 0;
-    p.Do(sz);
-    for (int i = 0; i < sz; i++)
-    {
-      u32 mail = 0;
-      bool interrupt = false;
-      p.Do(mail);
-      p.Do(interrupt);
-      m_Mails.emplace(mail, interrupt);
-    }
-  }
-  else  // WRITE and MEASURE
-  {
-    std::queue<std::pair<u32, bool>> temp;
-    int sz = (int)m_Mails.size();
-    p.Do(sz);
-    for (int i = 0; i < sz; i++)
-    {
-      u32 value = m_Mails.front().first;
-      bool interrupt = m_Mails.front().second;
-      m_Mails.pop();
-      p.Do(value);
-      p.Do(interrupt);
-      temp.emplace(value, interrupt);
-    }
-    if (!m_Mails.empty())
-      PanicAlertFmt("CMailHandler::DoState - WTF?");
-
-    // Restore queue.
-    for (int i = 0; i < sz; i++)
-    {
-      u32 value = temp.front().first;
-      bool interrupt = temp.front().second;
-      temp.pop();
-      m_Mails.emplace(value, interrupt);
-    }
-  }
+  p.Do(m_pending_mails);
 }
 }  // namespace DSP::HLE

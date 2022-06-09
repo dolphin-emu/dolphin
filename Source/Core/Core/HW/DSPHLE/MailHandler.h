@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <queue>
+#include <deque>
 #include <utility>
 
 #include "Common/CommonTypes.h"
@@ -33,7 +33,9 @@ public:
   u16 ReadDSPMailboxLow();
 
 private:
-  // mail handler
-  std::queue<std::pair<u32, bool>> m_Mails;
+  // The actual DSP only has a single pair of mail registers, and doesn't keep track of pending
+  // mails. But for HLE, it's a lot easier to write all the mails that will be read ahead of time,
+  // and then give them to the CPU in the requested order.
+  std::deque<std::pair<u32, bool>> m_pending_mails;
 };
 }  // namespace DSP::HLE
