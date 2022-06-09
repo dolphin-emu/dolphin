@@ -76,8 +76,7 @@ constexpr u32 DI_DMA_CONTROL_REGISTER = 0x1C;
 constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
 constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
-// DI Status Register
-struct Reg_DISR
+struct DIStatusRegister  // DISR
 {
   u32 Hex = 0;
 
@@ -90,12 +89,11 @@ struct Reg_DISR
   BFVIEW_M(Hex, bool, 6, 1, BRKINT);  // w 1: clear brkint
   BFVIEW_M(Hex, u32, 7, 25, reserved);
 
-  Reg_DISR() = default;
-  explicit Reg_DISR(u32 hex) : Hex{hex} {}
+  DIStatusRegister() = default;
+  explicit DIStatusRegister(u32 hex) : Hex{hex} {}
 };
 
-// DI Cover Register
-struct Reg_DICVR
+struct DICoverRegister  // DICVR
 {
   u32 Hex = 0;
 
@@ -104,12 +102,12 @@ struct Reg_DICVR
   BFVIEW_M(Hex, bool, 2, 1, CVRINT);      // r 1: Interrupt requested w 1: Interrupt clear
   BFVIEW_M(Hex, u32, 3, 29, reserved);
 
-  Reg_DICVR() = default;
-  explicit Reg_DICVR(u32 hex) : Hex{hex} {}
+  DICoverRegister() = default;
+  explicit DICoverRegister(u32 hex) : Hex{hex} {}
 };
 
 // DI DMA Control Register
-struct Reg_DICR
+struct DIControlRegister  // DICR
 {
   u32 Hex = 0;
 
@@ -121,29 +119,28 @@ struct Reg_DICR
   BFVIEW_M(Hex, u32, 3, 29, reserved);
 };
 
-// DI Config Register
-struct Reg_DICFG
+struct DIConfigRegister  // DICFG
 {
   u32 Hex = 0;
 
   BFVIEW_M(Hex, u32, 0, 8, CONFIG);
   BFVIEW_M(Hex, u32, 8, 24, reserved);
 
-  Reg_DICFG() = default;
-  explicit Reg_DICFG(u32 hex) : Hex{hex} {}
+  DIConfigRegister() = default;
+  explicit DIConfigRegister(u32 hex) : Hex{hex} {}
 };
 
 // STATE_TO_SAVE
 
 // Hardware registers
-static Reg_DISR s_DISR;
-static Reg_DICVR s_DICVR;
+static DIStatusRegister s_DISR;
+static DICoverRegister s_DICVR;
 static u32 s_DICMDBUF[3];
 static u32 s_DIMAR;
 static u32 s_DILENGTH;
-static Reg_DICR s_DICR;
+static DIControlRegister s_DICR;
 static u32 s_DIIMMBUF;
-static Reg_DICFG s_DICFG;
+static DIConfigRegister s_DICFG;
 
 static StreamADPCM::ADPCMDecoder s_adpcm_decoder;
 
@@ -611,7 +608,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&s_DISR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   const Reg_DISR tmp_status_reg(val);
+                   const DIStatusRegister tmp_status_reg(val);
 
                    s_DISR.DEINTMASK() = tmp_status_reg.DEINTMASK();
                    s_DISR.TCINTMASK() = tmp_status_reg.TCINTMASK();
@@ -637,7 +634,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
   mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&s_DICVR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   const Reg_DICVR tmp_cover_reg(val);
+                   const DICoverRegister tmp_cover_reg(val);
 
                    s_DICVR.CVRINTMASK() = tmp_cover_reg.CVRINTMASK();
 
