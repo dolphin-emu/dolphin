@@ -262,10 +262,10 @@ static void GenerateSIInterrupt(SIInterruptType type)
   switch (type)
   {
   case INT_RDSTINT:
-    s_com_csr.RDSTINT() = 1;
+    s_com_csr.RDSTINT() = true;
     break;
   case INT_TCINT:
-    s_com_csr.TCINT() = 1;
+    s_com_csr.TCINT() = true;
     break;
   }
 
@@ -319,7 +319,7 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
     // 2) Investigate the timeout period for NOREP0
     if (actual_response_length != 0)
     {
-      s_com_csr.TSTART() = 0;
+      s_com_csr.TSTART() = false;
       s_com_csr.COMERR() = actual_response_length < 0;
       if (actual_response_length < 0)
         SetNoResponse(s_com_csr.CHANNEL());
@@ -531,16 +531,16 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    s_com_csr.TCINTMSK() = tmp_com_csr.TCINTMSK();
 
                    if (tmp_com_csr.RDSTINT())
-                     s_com_csr.RDSTINT() = 0;
+                     s_com_csr.RDSTINT() = false;
                    if (tmp_com_csr.TCINT())
-                     s_com_csr.TCINT() = 0;
+                     s_com_csr.TCINT() = false;
 
                    // be careful: run si-buffer after updating the INT flags
                    if (tmp_com_csr.TSTART())
                    {
                      if (s_com_csr.TSTART())
                        CoreTiming::RemoveEvent(s_tranfer_pending_event);
-                     s_com_csr.TSTART() = 1;
+                     s_com_csr.TSTART() = true;
                      RunSIBuffer(0, 0);
                    }
 

@@ -29,7 +29,7 @@ CEXIChannel::CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_head
     : m_channel_id(channel_id), m_memcard_header_data(memcard_header_data)
 {
   if (m_channel_id == 0 || m_channel_id == 1)
-    m_status.EXTINT() = 1;
+    m_status.EXTINT() = true;
   if (m_channel_id == 1)
     m_status.CHIP_SELECT() = 1;
 
@@ -52,11 +52,11 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // pretty sure it is memcard only, not entirely sure
                    if (m_channel_id == 2)
                    {
-                     m_status.EXT() = 0;
+                     m_status.EXT() = false;
                    }
                    else
                    {
-                     m_status.EXT() = GetDevice(1)->IsPresent() ? 1 : 0;
+                     m_status.EXT() = GetDevice(1)->IsPresent();
                    }
 
                    return m_status.Hex;
@@ -66,11 +66,11 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    m_status.EXIINTMASK() = new_status.EXIINTMASK();
                    if (new_status.EXIINT())
-                     m_status.EXIINT() = 0;
+                     m_status.EXIINT() = false;
 
                    m_status.TCINTMASK() = new_status.TCINTMASK();
                    if (new_status.TCINT())
-                     m_status.TCINT() = 0;
+                     m_status.TCINT() = false;
 
                    m_status.CLK() = new_status.CLK();
 
@@ -79,7 +79,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      m_status.EXTINTMASK() = new_status.EXTINTMASK();
 
                      if (new_status.EXTINT())
-                       m_status.EXTINT() = 0;
+                       m_status.EXTINT() = false;
                    }
 
                    if (m_channel_id == 0)
@@ -108,7 +108,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      if (device == nullptr)
                        return;
 
-                     if (m_control.DMA() == 0)
+                     if (!m_control.DMA())
                      {
                        // immediate data
                        switch (m_control.RW())
@@ -144,7 +144,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                        }
                      }
 
-                     m_control.TSTART() = 0;
+                     m_control.TSTART() = false;
 
                      // Check if device needs specific timing, otherwise just complete transfer
                      // immediately
@@ -159,7 +159,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void CEXIChannel::SendTransferComplete()
 {
-  m_status.TCINT() = 1;
+  m_status.TCINT() = true;
   ExpansionInterface::UpdateInterrupts();
 }
 
@@ -193,7 +193,7 @@ void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device
     // m_status.EXT to see if it is now present or not
     if (m_channel_id != 2)
     {
-      m_status.EXTINT() = 1;
+      m_status.EXTINT() = true;
       ExpansionInterface::UpdateInterrupts();
     }
   }
@@ -202,10 +202,10 @@ void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device
 bool CEXIChannel::IsCausingInterrupt()
 {
   if (m_channel_id != 2 && GetDevice(1)->IsInterruptSet())
-    m_status.EXIINT() = 1;  // Always check memcard slots
+    m_status.EXIINT() = true;  // Always check memcard slots
   else if (GetDevice(m_status.CHIP_SELECT()))
     if (GetDevice(m_status.CHIP_SELECT())->IsInterruptSet())
-      m_status.EXIINT() = 1;
+      m_status.EXIINT() = true;
 
   if ((m_status.EXIINT() & m_status.EXIINTMASK()) || (m_status.TCINT() & m_status.TCINTMASK()) ||
       (m_status.EXTINT() & m_status.EXTINTMASK()))
@@ -293,6 +293,6 @@ void CEXIChannel::PauseAndLock(bool do_lock, bool resume_on_unlock)
 
 void CEXIChannel::SetEXIINT(bool exiint)
 {
-  m_status.EXIINT() = !!exiint;
+  m_status.EXIINT() = exiint;
 }
 }  // namespace ExpansionInterface
