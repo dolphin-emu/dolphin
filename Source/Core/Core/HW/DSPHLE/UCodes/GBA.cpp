@@ -85,8 +85,8 @@ void GBAUCode::Initialize()
 
 void GBAUCode::Update()
 {
-  // check if we have to send something
-  if (!m_mail_handler.IsEmpty())
+  // check if we have something to send
+  if (m_mail_handler.HasPending())
   {
     DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }

@@ -75,9 +75,9 @@ void CMailHandler::Clear()
     m_Mails.pop();
 }
 
-bool CMailHandler::IsEmpty() const
+bool CMailHandler::HasPending() const
 {
-  return m_Mails.empty();
+  return !m_Mails.empty();
 }
 
 void CMailHandler::Halt(bool _Halt)

@@ -23,7 +23,7 @@ public:
   void Clear();
   void Halt(bool _Halt);
   void DoState(PointerWrap& p);
-  bool IsEmpty() const;
+  bool HasPending() const;
 
   u16 ReadDSPMailboxHigh();
   u16 ReadDSPMailboxLow();
