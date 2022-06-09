@@ -260,7 +260,7 @@ struct UReg_FPSCR
   // Invalid operation exception for software request (sticky)
   BFVIEW_M(Hex, bool, 10, 1, VXSOFT);
   // reserved
-  BFVIEW_M(Hex, bool, 11, 1, reserved);
+  BFVIEW_M(Hex, u32, 11, 1, reserved);
   // Floating point result flags (includes FPCC) (not sticky)
   // from more to less significand: class, <, >, =, ?
   BFVIEW_M(Hex, u32, 12, 5, FPRF);
@@ -329,8 +329,8 @@ struct UReg_FPSCR
 
   void ClearFIFR()
   {
-    FI() = 0;
-    FR() = 0;
+    FI() = false;
+    FR() = false;
   }
 };
 

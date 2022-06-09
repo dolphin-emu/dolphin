@@ -25,7 +25,7 @@ mffsx: 80036650 (huh?)
 
 */
 
-static void FPSCRUpdated(UReg_FPSCR* fpscr)
+static void FPSCRUpdated(UReg_FPSCR& fpscr)
 {
   UpdateFPExceptionSummary(fpscr);
   PowerPC::RoundingModeUpdated();
@@ -36,7 +36,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
   u32 b = 0x80000000 >> inst.CRBD();
 
   FPSCR.Hex &= ~b;
-  FPSCRUpdated(&FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
@@ -49,11 +49,11 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
   const u32 b = 0x80000000 >> bit;
 
   if ((b & FPSCR_ANY_X) != 0)
-    SetFPException(&FPSCR, b);
+    SetFPException(FPSCR, b);
   else
     FPSCR |= b;
 
-  FPSCRUpdated(&FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
@@ -68,7 +68,7 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
 
   FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
 
-  FPSCRUpdated(&FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
@@ -85,7 +85,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
   }
 
   FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(rPS(inst.FB()).PS0AsU64()) & m);
-  FPSCRUpdated(&FPSCR);
+  FPSCRUpdated(FPSCR);
 
   if (inst.Rc())
     PowerPC::ppcState.UpdateCR1();
@@ -560,7 +560,7 @@ void Interpreter::mcrfs(UGeckoInstruction inst)
 
   // If any exception bits were read, clear them
   FPSCR &= ~((0xF << shift) & (FPSCR_FX | FPSCR_ANY_X));
-  FPSCRUpdated(&FPSCR);
+  FPSCRUpdated(FPSCR);
 
   PowerPC::ppcState.cr.SetField(inst.CRFD(), fpflags);
 }

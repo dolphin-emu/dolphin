@@ -113,8 +113,8 @@ void Interpreter::ps_div(UGeckoInstruction inst)
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
 
-  const float ps0 = ForceSingle(FPSCR, NI_div(&FPSCR, a.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(FPSCR, NI_div(&FPSCR, a.PS1AsDouble(), b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_div(FPSCR, a.PS0AsDouble(), b.PS0AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_div(FPSCR, a.PS1AsDouble(), b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -131,7 +131,7 @@ void Interpreter::ps_res(UGeckoInstruction inst)
 
   if (a == 0.0 || b == 0.0)
   {
-    SetFPException(&FPSCR, FPSCR_ZX);
+    SetFPException(FPSCR, FPSCR_ZX);
     FPSCR.ClearFIFR();
   }
 
@@ -139,7 +139,7 @@ void Interpreter::ps_res(UGeckoInstruction inst)
     FPSCR.ClearFIFR();
 
   if (Common::IsSNAN(a) || Common::IsSNAN(b))
-    SetFPException(&FPSCR, FPSCR_VXSNAN);
+    SetFPException(FPSCR, FPSCR_VXSNAN);
 
   const double ps0 = Common::ApproximateReciprocal(a);
   const double ps1 = Common::ApproximateReciprocal(b);
@@ -158,13 +158,13 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
 
   if (ps0 == 0.0 || ps1 == 0.0)
   {
-    SetFPException(&FPSCR, FPSCR_ZX);
+    SetFPException(FPSCR, FPSCR_ZX);
     FPSCR.ClearFIFR();
   }
 
   if (ps0 < 0.0 || ps1 < 0.0)
   {
-    SetFPException(&FPSCR, FPSCR_VXSQRT);
+    SetFPException(FPSCR, FPSCR_VXSQRT);
     FPSCR.ClearFIFR();
   }
 
@@ -172,7 +172,7 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
     FPSCR.ClearFIFR();
 
   if (Common::IsSNAN(ps0) || Common::IsSNAN(ps1))
-    SetFPException(&FPSCR, FPSCR_VXSNAN);
+    SetFPException(FPSCR, FPSCR_VXSNAN);
 
   const float dst_ps0 = ForceSingle(FPSCR, Common::ApproximateReciprocalSquareRoot(ps0));
   const float dst_ps1 = ForceSingle(FPSCR, Common::ApproximateReciprocalSquareRoot(ps1));
@@ -189,8 +189,8 @@ void Interpreter::ps_sub(UGeckoInstruction inst)
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
 
-  const float ps0 = ForceSingle(FPSCR, NI_sub(&FPSCR, a.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(FPSCR, NI_sub(&FPSCR, a.PS1AsDouble(), b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_sub(FPSCR, a.PS0AsDouble(), b.PS0AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_sub(FPSCR, a.PS1AsDouble(), b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -204,8 +204,8 @@ void Interpreter::ps_add(UGeckoInstruction inst)
   const auto& a = rPS(inst.FA());
   const auto& b = rPS(inst.FB());
 
-  const float ps0 = ForceSingle(FPSCR, NI_add(&FPSCR, a.PS0AsDouble(), b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(FPSCR, NI_add(&FPSCR, a.PS1AsDouble(), b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_add(FPSCR, a.PS0AsDouble(), b.PS0AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_add(FPSCR, a.PS1AsDouble(), b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -222,8 +222,8 @@ void Interpreter::ps_mul(UGeckoInstruction inst)
   const double c0 = Force25Bit(c.PS0AsDouble());
   const double c1 = Force25Bit(c.PS1AsDouble());
 
-  const float ps0 = ForceSingle(FPSCR, NI_mul(&FPSCR, a.PS0AsDouble(), c0).value);
-  const float ps1 = ForceSingle(FPSCR, NI_mul(&FPSCR, a.PS1AsDouble(), c1).value);
+  const float ps0 = ForceSingle(FPSCR, NI_mul(FPSCR, a.PS0AsDouble(), c0).value);
+  const float ps1 = ForceSingle(FPSCR, NI_mul(FPSCR, a.PS1AsDouble(), c1).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -241,8 +241,8 @@ void Interpreter::ps_msub(UGeckoInstruction inst)
   const double c0 = Force25Bit(c.PS0AsDouble());
   const double c1 = Force25Bit(c.PS1AsDouble());
 
-  const float ps0 = ForceSingle(FPSCR, NI_msub(&FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(FPSCR, NI_msub(&FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_msub(FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_msub(FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -260,8 +260,8 @@ void Interpreter::ps_madd(UGeckoInstruction inst)
   const double c0 = Force25Bit(c.PS0AsDouble());
   const double c1 = Force25Bit(c.PS1AsDouble());
 
-  const float ps0 = ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -279,10 +279,8 @@ void Interpreter::ps_nmsub(UGeckoInstruction inst)
   const double c0 = Force25Bit(c.PS0AsDouble());
   const double c1 = Force25Bit(c.PS1AsDouble());
 
-  const float tmp0 =
-      ForceSingle(FPSCR, NI_msub(&FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const float tmp1 =
-      ForceSingle(FPSCR, NI_msub(&FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
+  const float tmp0 = ForceSingle(FPSCR, NI_msub(FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
+  const float tmp1 = ForceSingle(FPSCR, NI_msub(FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   const float ps0 = std::isnan(tmp0) ? tmp0 : -tmp0;
   const float ps1 = std::isnan(tmp1) ? tmp1 : -tmp1;
@@ -303,10 +301,8 @@ void Interpreter::ps_nmadd(UGeckoInstruction inst)
   const double c0 = Force25Bit(c.PS0AsDouble());
   const double c1 = Force25Bit(c.PS1AsDouble());
 
-  const float tmp0 =
-      ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const float tmp1 =
-      ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
+  const float tmp0 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
+  const float tmp1 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   const float ps0 = std::isnan(tmp0) ? tmp0 : -tmp0;
   const float ps1 = std::isnan(tmp1) ? tmp1 : -tmp1;
@@ -324,7 +320,7 @@ void Interpreter::ps_sum0(UGeckoInstruction inst)
   const auto& b = rPS(inst.FB());
   const auto& c = rPS(inst.FC());
 
-  const float ps0 = ForceSingle(FPSCR, NI_add(&FPSCR, a.PS0AsDouble(), b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_add(FPSCR, a.PS0AsDouble(), b.PS1AsDouble()).value);
   const float ps1 = ForceSingle(FPSCR, c.PS1AsDouble());
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
@@ -341,7 +337,7 @@ void Interpreter::ps_sum1(UGeckoInstruction inst)
   const auto& c = rPS(inst.FC());
 
   const float ps0 = ForceSingle(FPSCR, c.PS0AsDouble());
-  const float ps1 = ForceSingle(FPSCR, NI_add(&FPSCR, a.PS0AsDouble(), b.PS1AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_add(FPSCR, a.PS0AsDouble(), b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps1);
@@ -356,8 +352,8 @@ void Interpreter::ps_muls0(UGeckoInstruction inst)
   const auto& c = rPS(inst.FC());
 
   const double c0 = Force25Bit(c.PS0AsDouble());
-  const float ps0 = ForceSingle(FPSCR, NI_mul(&FPSCR, a.PS0AsDouble(), c0).value);
-  const float ps1 = ForceSingle(FPSCR, NI_mul(&FPSCR, a.PS1AsDouble(), c0).value);
+  const float ps0 = ForceSingle(FPSCR, NI_mul(FPSCR, a.PS0AsDouble(), c0).value);
+  const float ps1 = ForceSingle(FPSCR, NI_mul(FPSCR, a.PS1AsDouble(), c0).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -372,8 +368,8 @@ void Interpreter::ps_muls1(UGeckoInstruction inst)
   const auto& c = rPS(inst.FC());
 
   const double c1 = Force25Bit(c.PS1AsDouble());
-  const float ps0 = ForceSingle(FPSCR, NI_mul(&FPSCR, a.PS0AsDouble(), c1).value);
-  const float ps1 = ForceSingle(FPSCR, NI_mul(&FPSCR, a.PS1AsDouble(), c1).value);
+  const float ps0 = ForceSingle(FPSCR, NI_mul(FPSCR, a.PS0AsDouble(), c1).value);
+  const float ps1 = ForceSingle(FPSCR, NI_mul(FPSCR, a.PS1AsDouble(), c1).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -389,8 +385,8 @@ void Interpreter::ps_madds0(UGeckoInstruction inst)
   const auto& c = rPS(inst.FC());
 
   const double c0 = Force25Bit(c.PS0AsDouble());
-  const float ps0 = ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS1AsDouble(), c0, b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS0AsDouble(), c0, b.PS0AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS1AsDouble(), c0, b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
@@ -406,8 +402,8 @@ void Interpreter::ps_madds1(UGeckoInstruction inst)
   const auto& c = rPS(inst.FC());
 
   const double c1 = Force25Bit(c.PS1AsDouble());
-  const float ps0 = ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS0AsDouble(), c1, b.PS0AsDouble()).value);
-  const float ps1 = ForceSingle(FPSCR, NI_madd(&FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
+  const float ps0 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS0AsDouble(), c1, b.PS0AsDouble()).value);
+  const float ps1 = ForceSingle(FPSCR, NI_madd(FPSCR, a.PS1AsDouble(), c1, b.PS1AsDouble()).value);
 
   rPS(inst.FD()).SetBoth(ps0, ps1);
   PowerPC::UpdateFPRFSingle(ps0);
