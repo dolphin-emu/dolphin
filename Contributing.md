@@ -8,6 +8,7 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
 - [C++ coding style and formatting](#cpp-coding-style-and-formatting)
 - [C++ code-specific guidelines](#cpp-code-specific-guidelines)
 - [Android and Java](#android-and-java)
+- [Help](#help)
 
 
 # <a name="introduction"></a>Introduction
@@ -24,7 +25,6 @@ This guide is for developers who wish to contribute to the Dolphin codebase. It 
 Following this guide and formatting your code as detailed will likely get your pull request merged much faster than if you don't (assuming the written code has no mistakes in itself).
 
 This project uses clang-format (stable branch) to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
-
 
 ## <a name="intro-formatting-issues"></a>Checking and fixing formatting issues
 
@@ -275,3 +275,6 @@ Summary:
 # <a name="android-and-java"></a>Android and Java
 
 The Android project is currently written in Java. If you are using Android Studio to contribute, you can import the project's code style from `code-style-java.jar`, located in `[Dolphin Root]/Source/Android`. Please organize imports before committing.
+
+# <a name="help"></a>Help
+If you have any questions about Dolphin's development or would like some help, Dolphin developers use `#dolphin-emu @ irc.libera.chat` to communicate. If you are new to IRC, [Libera.Chat has resources to get started chatting with IRC.](https://libera.chat/)
