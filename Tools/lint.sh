@@ -4,7 +4,14 @@
 
 set -euo pipefail
 
-if ! [ -x "$(command -v git)" ]; then
+# use Windows' git when working under path mounted from host on wsl2
+# inspired by https://markentier.tech/posts/2020/10/faster-git-under-wsl2/#solution
+GIT=git
+if [ "$(stat --file-system --format=%T `pwd -P`)" == "v9fs" ]; then
+  GIT=git.exe
+fi
+
+if ! [ -x "$(command -v $GIT)" ]; then
   echo >&2 "error: git is not installed"
   exit 1
 fi
@@ -55,7 +62,7 @@ if [ $FORCE -eq 0 ]; then
 fi
 
 did_java_setup=0
-JAVA_CODESTYLE_FILE="./$(git rev-parse --show-cdup)/Source/Android/code-style-java.xml"
+JAVA_CODESTYLE_FILE="./$($GIT rev-parse --show-cdup)/Source/Android/code-style-java.xml"
 java_temp_dir=""
 
 function java_setup() {
@@ -77,13 +84,13 @@ fail=0
 COMMIT=${1:---cached}
 
 # Get modified files (must be on own line for exit-code handling)
-modified_files=$(git diff --name-only --diff-filter=ACMRTUXB $COMMIT)
+modified_files=$($GIT diff --name-only --diff-filter=ACMRTUXB $COMMIT)
 
 function java_check() {
   "${ANDROID_STUDIO_ROOT}/bin/format.sh" -s "${JAVA_CODESTYLE_FILE}" -R "${java_temp_dir}" >/dev/null
 
   # ignore 'added'/'deleted' files, we copied only files of interest to the tmpdir
-  d=$(git diff --diff-filter=ad . "${java_temp_dir}" || true)
+  d=$($GIT diff --diff-filter=ad . "${java_temp_dir}" || true)
   if ! [ -z "${d}" ]; then
     echo "!!! Java code is not compliant to coding style, here is the fix:"
     echo "${d}"
