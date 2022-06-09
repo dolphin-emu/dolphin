@@ -131,8 +131,8 @@ struct PowerPCState
 
   ConditionRegister cr{};
 
-  Reg_MSR msr;       // machine state register
-  Reg_FPSCR fpscr;   // floating point flags/status bits
+  Reg_MSR msr;      // machine state register
+  Reg_FPSCR fpscr;  // floating point flags/status bits
 
   // Exception management.
   u32 Exceptions = 0;
