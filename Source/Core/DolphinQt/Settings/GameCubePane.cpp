@@ -54,6 +54,8 @@ GameCubePane::GameCubePane()
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &GameCubePane::LoadSettings);
 }
 
 void GameCubePane::CreateWidgets()

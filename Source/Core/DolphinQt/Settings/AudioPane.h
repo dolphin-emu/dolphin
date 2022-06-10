@@ -32,6 +32,10 @@ private:
   void LoadSettings();
   void SaveSettings();
 
+#ifdef _WIN32
+  void LoadWasapiDevice();
+#endif
+
   void OnEmulationStateChanged(bool running);
   void OnBackendChanged();
   void OnDspChanged();

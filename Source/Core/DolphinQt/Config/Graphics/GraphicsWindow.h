@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string>
+
 #include <QDialog>
 #include <QHash>
 
@@ -33,6 +35,7 @@ signals:
 private:
   void CreateMainLayout();
   void OnBackendChanged(const QString& backend);
+  void CheckForChangedBackend();
 
   QTabWidget* m_tab_widget;
   QDialogButtonBox* m_button_box;
@@ -50,4 +53,6 @@ private:
   QWidget* m_wrapped_software;
 
   X11Utils::XRRConfiguration* m_xrr_config;
+
+  std::string m_active_backend;
 };

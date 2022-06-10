@@ -22,6 +22,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
@@ -39,6 +40,7 @@ AdvancedPane::AdvancedPane(QWidget* parent) : QWidget(parent)
   ConnectLayout();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &AdvancedPane::Update);
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &AdvancedPane::Update);
 }
 
 void AdvancedPane::CreateLayout()
@@ -239,27 +241,25 @@ void AdvancedPane::Update()
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
     if (available_cpu_cores[i] == cpu_core)
-      m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
+      SignalBlocking(m_cpu_emulation_engine_combobox)->setCurrentIndex(int(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
 
-  m_enable_mmu_checkbox->setChecked(Config::Get(Config::MAIN_MMU));
+  SignalBlocking(m_enable_mmu_checkbox)->setChecked(Config::Get(Config::MAIN_MMU));
   m_enable_mmu_checkbox->setEnabled(!running);
 
   QFont bf = font();
   bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=
              Config::LayerType::Base);
   m_cpu_clock_override_checkbox->setFont(bf);
-  m_cpu_clock_override_checkbox->setChecked(enable_cpu_clock_override_widgets);
+  SignalBlocking(m_cpu_clock_override_checkbox)->setChecked(enable_cpu_clock_override_widgets);
 
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
 
-  {
-    const QSignalBlocker blocker(m_cpu_clock_override_slider);
-    m_cpu_clock_override_slider->setValue(static_cast<int>(
-        std::round(std::log2f(Config::Get(Config::MAIN_OVERCLOCK)) * 25.f + 100.f)));
-  }
+  SignalBlocking(m_cpu_clock_override_slider)
+      ->setValue(static_cast<int>(
+          std::round(std::log2f(Config::Get(Config::MAIN_OVERCLOCK)) * 25.f + 100.f)));
 
   m_cpu_clock_override_slider_label->setText([] {
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
@@ -273,11 +273,8 @@ void AdvancedPane::Update()
   m_mem1_override_slider->setEnabled(enable_ram_override_widgets && !running);
   m_mem1_override_slider_label->setEnabled(enable_ram_override_widgets && !running);
 
-  {
-    const QSignalBlocker blocker(m_mem1_override_slider);
-    const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
-    m_mem1_override_slider->setValue(mem1_size);
-  }
+  const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
+  SignalBlocking(m_mem1_override_slider)->setValue(mem1_size);
 
   m_mem1_override_slider_label->setText([] {
     const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
@@ -287,11 +284,8 @@ void AdvancedPane::Update()
   m_mem2_override_slider->setEnabled(enable_ram_override_widgets && !running);
   m_mem2_override_slider_label->setEnabled(enable_ram_override_widgets && !running);
 
-  {
-    const QSignalBlocker blocker(m_mem2_override_slider);
-    const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
-    m_mem2_override_slider->setValue(mem2_size);
-  }
+  const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
+  SignalBlocking(m_mem2_override_slider)->setValue(mem2_size);
 
   m_mem2_override_slider_label->setText([] {
     const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;

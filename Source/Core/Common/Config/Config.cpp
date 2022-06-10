@@ -148,6 +148,32 @@ void ClearCurrentRunLayer()
   s_layers.insert_or_assign(LayerType::CurrentRun, std::make_shared<Layer>(LayerType::CurrentRun));
 }
 
+std::set<Location> GetLocations(LayerType layer)
+{
+  ReadLock lock(s_layers_rw_lock);
+
+  std::set<Location> result;
+  const auto it = s_layers.find(layer);
+  if (it != s_layers.end())
+  {
+    for (const auto& kvp : it->second->GetLayerMap())
+      result.insert(kvp.first);
+  }
+  return result;
+}
+
+void DeleteLocations(LayerType layer, const std::set<Location>& locations)
+{
+  WriteLock lock(s_layers_rw_lock);
+
+  const auto it = s_layers.find(layer);
+  if (it != s_layers.end())
+  {
+    for (const auto& location : locations)
+      it->second->DeleteKey(location);
+  }
+}
+
 static const std::map<System, std::string> system_to_name = {
     {System::Main, "Dolphin"},
     {System::GCPad, "GCPad"},

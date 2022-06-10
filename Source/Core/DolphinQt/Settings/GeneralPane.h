@@ -57,4 +57,9 @@ private:
   QPushButton* m_button_generate_new_identity;
   QCheckBox* m_checkbox_enable_analytics;
 #endif
+
+  void CreateSettingReset();
+  void ResetSettings();
+
+  QPushButton* m_button_reset_settings;
 };
