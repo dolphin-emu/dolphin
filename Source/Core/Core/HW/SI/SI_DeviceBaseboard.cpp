@@ -19,6 +19,11 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
 
   const auto command = static_cast<EBufferCommands>(buffer[0]);
 
+  switch (command)
+  {
+    case EBufferCommands::CMD_RESET:
+  }
+
   ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command ({:#x})", static_cast<u8>(command));
 
   return 0;

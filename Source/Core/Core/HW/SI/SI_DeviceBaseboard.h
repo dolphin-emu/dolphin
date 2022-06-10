@@ -16,5 +16,11 @@ public:
   int RunBuffer(u8* buffer, int request_length) override;
   bool GetData(u32& hi, u32& low) override;
   void SendCommand(u32 command, u8 poll) override;
+
+private:
+  enum EBufferCommands
+  {
+    CMD_RESET = 0x00
+  };
 };
 }  // namespace SerialInterface

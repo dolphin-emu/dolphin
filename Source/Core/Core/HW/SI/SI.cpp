@@ -427,6 +427,11 @@ void Init()
       s_desired_device_types[i] = Config::Get(Config::GetInfoForSIDevice(i));
     }
 
+    if (SConfig::GetInstance().bTriforce)
+    {
+      s_desired_device_types[i] = SIDEVICE_BASEBOARD;
+    }
+
     AddDevice(s_desired_device_types[i], i);
   }
 
