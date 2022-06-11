@@ -2809,7 +2809,8 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
   if (!info)
     return false;
 
-  const AbstractShader* shader = g_shader_cache->GetTextureDecodingShader(format, palette_format);
+  const AbstractShader* shader = g_shader_cache->GetTextureDecodingShader(
+      format, info->palette_size != 0 ? std::make_optional(palette_format) : std::nullopt);
   if (!shader)
     return false;
 
