@@ -27,6 +27,11 @@ namespace Memory
 extern u8* physical_base;
 extern u8* logical_base;
 
+// This page table is used for a "soft MMU" implementation when
+// setting up the full memory map in process memory isn't possible.
+extern u8* physical_page_mappings_base;
+extern u8* logical_page_mappings_base;
+
 // The actual memory used for backing the memory map.
 extern u8* m_pRAM;
 extern u8* m_pEXRAM;

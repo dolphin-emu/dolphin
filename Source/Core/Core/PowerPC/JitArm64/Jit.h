@@ -216,9 +216,6 @@ protected:
   void DumpCode(const u8* start, const u8* end);
 
   // This enum is used for selecting an implementation of EmitBackpatchRoutine.
-  //
-  // The below descriptions of each enum entry apply when jo.fastmem_arena is true.
-  // If jo.fastmem_arena is false, the slow C++ code is always called instead.
   enum class MemAccessMode
   {
     // Always calls the slow C++ code. For performance reasons, should generally only be used if
@@ -227,8 +224,10 @@ protected:
     // Only emits fast access code. Must only be used if the guest address is known in advance
     // and IsOptimizableRAMAddress returns true for it, otherwise Dolphin will likely crash!
     AlwaysUnsafe,
-    // Best in most cases. Tries to run fast access code, and if that fails, uses backpatching to
-    // replace the code with a call to the slow C++ code.
+    // Best in most cases. If backpatching is possible (!emitting_routine && jo.fastmem_arena):
+    // Tries to run fast access code, and if that fails, uses backpatching to replace the code
+    // with a call to the slow C++ code. Otherwise: Checks whether the fast access code will work,
+    // then branches to either the fast access code or the slow C++ code.
     Auto,
   };
 
@@ -249,11 +248,12 @@ protected:
   //
   // Additional scratch registers are used in the following situations:
   //
-  // mode == Auto && emitting_routine:                                            X2
-  // mode == Auto && emitting_routine && (flags & BackPatchInfo::FLAG_STORE):     X0
-  // mode == Auto && emitting_routine && !(flags & BackPatchInfo::FLAG_STORE):    X3
+  // emitting_routine && (mode == Auto || (mode != AlwaysSafe && !jo.fastmem_arena)):   X2
+  // emitting_routine && mode == Auto && (flags & BackPatchInfo::FLAG_STORE):           X0
+  // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):          X3
+  // !emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                      X30
   //
-  // mode != AlwaysUnsafe || !jo.fastmem_arena:
+  // mode != AlwaysUnsafe:
   //             X30 (plus most other registers, unless marked in gprs_to_push and fprs_to_push)
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),

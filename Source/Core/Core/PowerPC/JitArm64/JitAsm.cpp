@@ -93,10 +93,10 @@ void JitArm64::GenerateAsm()
     // set the mem_base based on MSR flags
     LDR(IndexType::Unsigned, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
     FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-    MOVP2R(MEM_REG, Memory::physical_base);
+    MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::physical_base : Memory::physical_page_mappings_base);
     FixupBranch membaseend = B();
     SetJumpTarget(physmem);
-    MOVP2R(MEM_REG, Memory::logical_base);
+    MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::logical_base : Memory::logical_page_mappings_base);
     SetJumpTarget(membaseend);
 
     // iCache[(address >> 2) & iCache_Mask];
@@ -141,10 +141,10 @@ void JitArm64::GenerateAsm()
   // set the mem_base based on MSR flags and jump to next block.
   LDR(IndexType::Unsigned, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
   FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-  MOVP2R(MEM_REG, Memory::physical_base);
+  MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::physical_base : Memory::physical_page_mappings_base);
   BR(ARM64Reg::X0);
   SetJumpTarget(physmem);
-  MOVP2R(MEM_REG, Memory::logical_base);
+  MOVP2R(MEM_REG, jo.fastmem_arena ? Memory::logical_base : Memory::logical_page_mappings_base);
   BR(ARM64Reg::X0);
 
   // Call JIT
