@@ -15,26 +15,67 @@ u16 Accelerator::ReadD3()
 {
   u16 val = 0;
 
-  switch (m_sample_format)
+  // The lower two bits of the sample format indicate the access size
+  switch (m_sample_format & 3)
   {
-  case 0x5:  // u8 reads
+  case 0x0:  // u4 reads
+    val = ReadMemory(m_current_address / 2);
+    if (m_current_address & 1)
+      val &= 0xf;
+    else
+      val >>= 4;
+    m_current_address++;
+    break;
+  case 0x1:  // u8 reads
     val = ReadMemory(m_current_address);
     m_current_address++;
     break;
-  case 0x6:  // u16 reads
+  case 0x2:  // u16 reads
     val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
     m_current_address++;
     break;
-  default:
-    ERROR_LOG_FMT(DSPLLE, "dsp_read_aram_d3() - unknown format {:#x}", m_sample_format);
+  case 0x3:  // produces garbage, but affects the current address
+    ERROR_LOG_FMT(DSPLLE, "dsp_read_aram_d3() - bad format {:#x}", m_sample_format);
+    m_current_address = (m_current_address & ~3) | ((m_current_address + 1) & 3);
     break;
   }
 
-  if (m_current_address >= m_end_address)
+  // There are edge cases that are currently not handled here in u4 and u8 mode
+  // In u8 mode, if ea & 1 == 0 and ca == ea + 1, the accelerator can be read twice. Upon the second
+  // read, the data returned appears to be the other half of the u16 from the first read, and the
+  // DSP resets the current address and throws exception 3
+
+  // During these reads, ca is not incremented normally.
+
+  // Instead, incrementing ca works like this: ca = (ca & ~ 3) | ((ca + 1) & 3)
+  // u4 mode extends this further.
+
+  // When ea & 3 == 0, and ca in [ea + 1, ea + 3], the accelerator can be read (4 - (ca - ea - 1))
+  // times. On the last read, the data returned appears to be the remaining nibble of the u16 from
+  // the first read, and the DSP resets the current address and throws exception 3
+
+  // When ea & 3 == 1, and ca in [ea + 1, ea + 2], the accelerator can be read (4 - (ca - ea - 1))
+  // times. On the last read, the data returned appears to be the remaining nibble of the u16 from
+  // the first read, and the DSP resets the current address and throws exception 3
+
+  // When ea & 3 == 2, and ca == ea + 1, the accelerator can be read 4 times. On the last read, the
+  // data returned appears to be the remaining nibble of the u16 from the first read, and the DSP
+  // resets the current address and throws exception 3
+
+  // There are extra extra edge cases if ca, ea, and potentially other registers are adjusted during
+  // this pre-reset phase
+
+  // The cleanest way to emulate the normal non-edge behavior is to only reset things if we just
+  // read the end address If the current address is larger than the end address (and not in the edge
+  // range), it ignores the end address
+  if (m_current_address - 1 == m_end_address)
   {
-    // Set address back to start address. (never seen this here!)
+    // Set address back to start address (confirmed on hardware)
     m_current_address = m_start_address;
+    OnEndException();
   }
+
+  SetCurrentAddress(m_current_address);
   return val;
 }
 
