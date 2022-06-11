@@ -10,6 +10,7 @@
 
 #include "Common/MsgHandler.h"
 
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Spirv.h"
 
 Metal::DeviceFeatures Metal::g_features;
@@ -81,6 +82,21 @@ void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
 
 void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice> device)
 {
+  // Initialize DriverDetails first so we can use it later
+  DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
+  if ([[device name] containsString:@"NVIDIA"])
+    vendor = DriverDetails::VENDOR_NVIDIA;
+  else if ([[device name] containsString:@"AMD"])
+    vendor = DriverDetails::VENDOR_ATI;
+  else if ([[device name] containsString:@"Intel"])
+    vendor = DriverDetails::VENDOR_INTEL;
+  else if ([[device name] containsString:@"Apple"])
+    vendor = DriverDetails::VENDOR_APPLE;
+  const NSOperatingSystemVersion cocoa_ver = [[NSProcessInfo processInfo] operatingSystemVersion];
+  double version = cocoa_ver.majorVersion * 100 + cocoa_ver.minorVersion;
+  DriverDetails::Init(DriverDetails::API_METAL, vendor, DriverDetails::DRIVER_APPLE, version,
+                      DriverDetails::Family::UNKNOWN);
+
 #if TARGET_OS_OSX
   config->backend_info.bSupportsDepthClamp = true;
   config->backend_info.bSupportsST3CTextures = true;
@@ -117,11 +133,10 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
         [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple6];
     config->backend_info.bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
   }
-  if ([[device name] containsString:@"AMD"])
-  {
-    // Broken
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_INVOCATION_ID))
     g_features.subgroup_ops = false;
-  }
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
+    config->backend_info.bSupportsDynamicSamplerIndexing = false;
 }
 
 // clang-format off
