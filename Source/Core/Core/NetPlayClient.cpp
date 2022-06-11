@@ -1756,7 +1756,7 @@ bool NetPlayClient::StartGame(const std::string& path)
   }
   else
   {
-    StateAuxillary::setNetPlayControllers(m_pad_map);
+    StateAuxillary::setNetPlayControllers(m_pad_map, m_pid);
   }
 
   for (unsigned int i = 0; i < 4; ++i)

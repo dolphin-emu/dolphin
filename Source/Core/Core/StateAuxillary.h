@@ -13,7 +13,8 @@ public:
   static void startRecording();
   static void stopRecording(const std::string replay_path, tm* matchDateTimeParam);
   static void endPlayback();
-  static void setNetPlayControllers(NetPlay::PadMappingArray m_pad_map);
+  static void setNetPlayControllers(NetPlay::PadMappingArray m_pad_map, NetPlay::PlayerId m_pid);
+  static int getOurNetPlayPort();
   static void setPrePort(SerialInterface::SIDevices currentPort0,
                          SerialInterface::SIDevices currentPort1,
                          SerialInterface::SIDevices currentPort2,

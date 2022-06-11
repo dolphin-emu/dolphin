@@ -14,6 +14,9 @@ static bool boolMatchEnd = false;
 static bool wroteCodes = false;
 
 static NetPlay::PadMappingArray netplayGCMap;
+// even if the player is using multiple netplay ports to play, say 1 and 3, the game only needs the first one to do proper playback
+// therefore, we can use a single int instead of an array
+static int ourNetPlayPort;
 static SerialInterface::SIDevices preMoviePort0;
 static SerialInterface::SIDevices preMoviePort1;
 static SerialInterface::SIDevices preMoviePort2;
@@ -127,9 +130,22 @@ void StateAuxillary::endPlayback()
   }
 }
 
-void StateAuxillary::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map)
+void StateAuxillary::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map, NetPlay::PlayerId m_pid)
 {
   netplayGCMap = m_pad_map;
+  for (int i = 0; i < 4; i++)
+  {
+    if (m_pad_map[i] == m_pid)
+    {
+      ourNetPlayPort= i;
+      break;
+    }
+  }
+}
+
+int StateAuxillary::getOurNetPlayPort()
+{
+  return ourNetPlayPort;
 }
 
 void StateAuxillary::setPrePort(SerialInterface::SIDevices currentPort0,

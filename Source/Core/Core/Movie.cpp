@@ -950,6 +950,55 @@ void ReadHeader()
   s_MD5 = tmpHeader.md5;
   s_DSPiromHash = tmpHeader.DSPiromHash;
   s_DSPcoefHash = tmpHeader.DSPcoefHash;
+  const SerialInterface::SIDevices gcnAdapter = SerialInterface::SIDEVICE_WIIU_ADAPTER;
+  if (tmpHeader.bNetPlay)
+  {
+    // update controller settings via RESERVED field if we did netplay
+
+    for (int i = 0; i < 4; i++)
+    {
+      if (tmpHeader.reserved[0] == i)
+      {
+        Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), gcnAdapter);
+      }
+      else
+      {
+        Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)),
+                                 SerialInterface::SIDEVICE_NONE);
+      }
+    }
+  }
+  else
+  {
+    // update controller settings via CONTROLLERS field
+    // they might have plaeyd locally as p4, so we need only P4 to be on (example)
+    // this works, but it's kinda up in the air as to why
+    // also, if someone pauses mid game and has excess ports on they will get polling hell
+    // encourage users to only have ports on that they need when playing locally
+    for (int i = 0; i < 4; i++)
+    {
+      bool setControllerYet = false;
+      if (tmpHeader.controllers & (1 << i))
+      {
+        if (!setControllerYet)
+        {
+          Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), gcnAdapter);
+          setControllerYet = true;
+        }
+        else
+        {
+          Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)),
+                                   SerialInterface::SIDEVICE_NONE);
+        }
+      }
+      else
+      {
+        Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)),
+                                 SerialInterface::SIDEVICE_NONE);
+      }
+    }
+  }
+  SConfig::GetInstance().SaveSettings();
 }
 
 #define dir_delimter '/'
@@ -958,10 +1007,9 @@ void ReadHeader()
 // NOTE: Host Thread
 bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path)
 {
-  // we need to set port 1 to GCN adapter (12) for correct playback
-  // but need to also know what the user's port 1 was so that we can be nice and set it back after we're done
+  // we're going to set controllers on/off about 50 lines after this, so we need to
+  // get the user's current ports so that we can set it back after the movie is closed out of
 
-  // get the user's current port 1 controller type so that we can set it back after the movie is closed out of
   const SerialInterface::SIDevices currentDevice0 =
       Config::Get(Config::GetInfoForSIDevice(static_cast<int>(0)));
   const SerialInterface::SIDevices currentDevice1 =
@@ -971,7 +1019,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   const SerialInterface::SIDevices currentDevice3 =
       Config::Get(Config::GetInfoForSIDevice(static_cast<int>(3)));
   StateAuxillary::setPrePort(currentDevice0, currentDevice1, currentDevice2, currentDevice3);
-
+  /*
   // set port 1 to GCN adapter (12) for correct playback.
   const SerialInterface::SIDevices gcnAdapter = SerialInterface::SIDEVICE_WIIU_ADAPTER;
   Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(0)), gcnAdapter);
@@ -979,7 +1027,7 @@ bool PlayInput(const std::string& movie_path, std::optional<std::string>* savest
   Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(2)), SerialInterface::SIDEVICE_NONE);
   Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(3)), SerialInterface::SIDEVICE_NONE);
   SConfig::GetInstance().SaveSettings();
-
+  */
   // movie_path is a const and trying to change that breaks a lot of things
   std::string actual_movie_path = movie_path;
 
@@ -1556,6 +1604,21 @@ void SaveRecording(const std::string& filename)
   header.DSPiromHash = s_DSPiromHash;
   header.DSPcoefHash = s_DSPcoefHash;
   header.tickCount = s_totalTickCount;
+  std::array<u8, 7> s_ourNetPlayPort;
+  int ourNetPlayPort = StateAuxillary::getOurNetPlayPort();
+  for (int i = 0; i < s_ourNetPlayPort.size(); i++)
+  {
+    if (i == 0)
+    {
+      // 0xA02
+      s_ourNetPlayPort[i] = ourNetPlayPort;
+    }
+    else
+    {
+      s_ourNetPlayPort[i] = 0;
+    }
+  }
+  header.reserved = s_ourNetPlayPort;
 
   // TODO
   header.uniqueID = 0;
