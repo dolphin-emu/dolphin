@@ -418,7 +418,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         bool already_enabled = state.audio_dma.AudioDMAControl.Enable;
         state.audio_dma.AudioDMAControl.Hex = val;
 
-        // Only load new values if were not already doing a DMA transfer,
+        // Only load new values if we're not already doing a DMA transfer,
         // otherwise just let the new values be autoloaded in when the
         // current transfer ends.
         if (!already_enabled && state.audio_dma.AudioDMAControl.Enable)
@@ -428,10 +428,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
           INFO_LOG_FMT(AUDIO_INTERFACE, "Audio DMA configured: {} blocks from {:#010x}",
                        state.audio_dma.AudioDMAControl.NumBlocks, state.audio_dma.SourceAddress);
-
-          // We make the samples ready as soon as possible
-          void* address = Memory::GetPointer(state.audio_dma.SourceAddress);
-          AudioCommon::SendAIBuffer((short*)address, state.audio_dma.AudioDMAControl.NumBlocks * 8);
 
           // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
@@ -524,6 +520,8 @@ void UpdateAudioDMA()
     // Read audio at g_audioDMA.current_source_address in RAM and push onto an
     // external audio fifo in the emulator, to be mixed with the disc
     // streaming output.
+    void* address = Memory::GetPointer(state.audio_dma.current_source_address);
+    AudioCommon::SendAIBuffer(reinterpret_cast<short*>(address), 8);
 
     if (state.audio_dma.remaining_blocks_count != 0)
     {
@@ -536,12 +534,6 @@ void UpdateAudioDMA()
       state.audio_dma.current_source_address = state.audio_dma.SourceAddress;
       state.audio_dma.remaining_blocks_count = state.audio_dma.AudioDMAControl.NumBlocks;
 
-      if (state.audio_dma.remaining_blocks_count != 0)
-      {
-        // We make the samples ready as soon as possible
-        void* address = Memory::GetPointer(state.audio_dma.SourceAddress);
-        AudioCommon::SendAIBuffer((short*)address, state.audio_dma.AudioDMAControl.NumBlocks * 8);
-      }
       GenerateDSPInterrupt(DSP::INT_AID);
     }
   }
