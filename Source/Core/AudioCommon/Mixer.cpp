@@ -256,17 +256,25 @@ void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_sample
 void Mixer::PushSamples(const short* samples, unsigned int num_samples)
 {
   m_dma_mixer.PushSamples(samples, num_samples);
-  int sample_rate = m_dma_mixer.GetInputSampleRate();
   if (m_log_dsp_audio)
-    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate);
+  {
+    int sample_rate = m_dma_mixer.GetInputSampleRate();
+    auto volume = m_dma_mixer.GetVolume();
+    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate, volume.first,
+                                         volume.second);
+  }
 }
 
 void Mixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
 {
   m_streaming_mixer.PushSamples(samples, num_samples);
-  int sample_rate = m_streaming_mixer.GetInputSampleRate();
   if (m_log_dtk_audio)
-    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate);
+  {
+    int sample_rate = m_streaming_mixer.GetInputSampleRate();
+    auto volume = m_streaming_mixer.GetVolume();
+    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate, volume.first,
+                                         volume.second);
+  }
 }
 
 void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
@@ -425,6 +433,11 @@ void Mixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
 {
   m_LVolume.store(lvolume + (lvolume >> 7));
   m_RVolume.store(rvolume + (rvolume >> 7));
+}
+
+std::pair<s32, s32> Mixer::MixerFifo::GetVolume() const
+{
+  return std::make_pair(m_LVolume.load(), m_RVolume.load());
 }
 
 unsigned int Mixer::MixerFifo::AvailableSamples() const
