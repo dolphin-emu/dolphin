@@ -97,7 +97,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
+void CSIDevice_GCSteeringWheel::SendCommand(u32 command, bool poll)
 {
   Command wheel_command(command);
 

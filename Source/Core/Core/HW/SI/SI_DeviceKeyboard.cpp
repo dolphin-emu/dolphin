@@ -80,7 +80,7 @@ bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)
+void CSIDevice_Keyboard::SendCommand(u32 command, bool poll)
 {
   Command keyboard_command(command);
 

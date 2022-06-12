@@ -118,7 +118,7 @@ public:
   virtual bool GetData(u32& hi, u32& low) = 0;
 
   // Send a command directly (no detour per buffer)
-  virtual void SendCommand(u32 command, u8 poll) = 0;
+  virtual void SendCommand(u32 command, bool poll) = 0;
 
   // Savestate support
   virtual void DoState(PointerWrap& p);

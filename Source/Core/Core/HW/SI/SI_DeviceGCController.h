@@ -63,7 +63,7 @@ public:
   bool GetData(u32& hi, u32& low) override;
 
   // Send a command directly
-  void SendCommand(u32 command, u8 poll) override;
+  void SendCommand(u32 command, bool poll) override;
 
   // Savestate support
   void DoState(PointerWrap& p) override;

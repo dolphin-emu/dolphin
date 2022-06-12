@@ -21,7 +21,7 @@ bool CSIDevice_Null::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_Null::SendCommand(u32 command, u8 poll)
+void CSIDevice_Null::SendCommand(u32 command, bool poll)
 {
 }
 }  // namespace SerialInterface

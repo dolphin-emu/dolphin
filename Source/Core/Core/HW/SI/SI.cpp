@@ -118,7 +118,7 @@ struct SIPoll
   BFVIEW_M(hex, bool, 5, 1, EN2);  //  does not affect communication RAM transfers
   BFVIEW_M(hex, bool, 6, 1, EN1);
   BFVIEW_M(hex, bool, 7, 1, EN0);
-  BFVIEW_M(hex, u8, 8, 8, Y);     // Polls per frame
+  BFVIEW_M(hex, u32, 8, 8, Y);    // Polls per frame
   BFVIEW_M(hex, u32, 16, 10, X);  // Polls per X lines.
                                   // begins at vsync, min 7, max depends on video mode
   BFVIEW_M(hex, u32, 26, 6, reserved);
@@ -222,16 +222,16 @@ static void SetNoResponse(u32 channel)
   switch (channel)
   {
   case 0:
-    s_status_reg.NOREP0() = 1;
+    s_status_reg.NOREP0() = true;
     break;
   case 1:
-    s_status_reg.NOREP1() = 1;
+    s_status_reg.NOREP1() = true;
     break;
   case 2:
-    s_status_reg.NOREP2() = 1;
+    s_status_reg.NOREP2() = true;
     break;
   case 3:
-    s_status_reg.NOREP3() = 1;
+    s_status_reg.NOREP3() = true;
     break;
   }
 }
@@ -246,13 +246,13 @@ static void UpdateInterrupts()
 {
   // check if we have to update the RDSTINT flag
   if (s_status_reg.RDST0() || s_status_reg.RDST1() || s_status_reg.RDST2() || s_status_reg.RDST3())
-    s_com_csr.RDSTINT() = 1;
+    s_com_csr.RDSTINT() = true;
   else
-    s_com_csr.RDSTINT() = 0;
+    s_com_csr.RDSTINT() = false;
 
   // check if we have to generate an interrupt
-  const bool generate_interrupt = (s_com_csr.RDSTINT() & s_com_csr.RDSTINTMSK()) != 0 ||
-                                  (s_com_csr.TCINT() & s_com_csr.TCINTMSK()) != 0;
+  const bool generate_interrupt = (s_com_csr.RDSTINT() && s_com_csr.RDSTINTMSK()) ||
+                                  (s_com_csr.TCINT() && s_com_csr.TCINTMSK());
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, generate_interrupt);
 }
@@ -552,42 +552,42 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    const SIStatusReg tmp_status(val);
 
-                   // clear bits ( if (tmp.bit) SISR.bit=0 )
+                   // clear bits ( if (tmp.bit) SISR.bit=false )
                    if (tmp_status.NOREP0())
-                     s_status_reg.NOREP0() = 0;
+                     s_status_reg.NOREP0() = false;
                    if (tmp_status.COLL0())
-                     s_status_reg.COLL0() = 0;
+                     s_status_reg.COLL0() = false;
                    if (tmp_status.OVRUN0())
-                     s_status_reg.OVRUN0() = 0;
+                     s_status_reg.OVRUN0() = false;
                    if (tmp_status.UNRUN0())
-                     s_status_reg.UNRUN0() = 0;
+                     s_status_reg.UNRUN0() = false;
 
                    if (tmp_status.NOREP1())
-                     s_status_reg.NOREP1() = 0;
+                     s_status_reg.NOREP1() = false;
                    if (tmp_status.COLL1())
-                     s_status_reg.COLL1() = 0;
+                     s_status_reg.COLL1() = false;
                    if (tmp_status.OVRUN1())
-                     s_status_reg.OVRUN1() = 0;
+                     s_status_reg.OVRUN1() = false;
                    if (tmp_status.UNRUN1())
-                     s_status_reg.UNRUN1() = 0;
+                     s_status_reg.UNRUN1() = false;
 
                    if (tmp_status.NOREP2())
-                     s_status_reg.NOREP2() = 0;
+                     s_status_reg.NOREP2() = false;
                    if (tmp_status.COLL2())
-                     s_status_reg.COLL2() = 0;
+                     s_status_reg.COLL2() = false;
                    if (tmp_status.OVRUN2())
-                     s_status_reg.OVRUN2() = 0;
+                     s_status_reg.OVRUN2() = false;
                    if (tmp_status.UNRUN2())
-                     s_status_reg.UNRUN2() = 0;
+                     s_status_reg.UNRUN2() = false;
 
                    if (tmp_status.NOREP3())
-                     s_status_reg.NOREP3() = 0;
+                     s_status_reg.NOREP3() = false;
                    if (tmp_status.COLL3())
-                     s_status_reg.COLL3() = 0;
+                     s_status_reg.COLL3() = false;
                    if (tmp_status.OVRUN3())
-                     s_status_reg.OVRUN3() = 0;
+                     s_status_reg.OVRUN3() = false;
                    if (tmp_status.UNRUN3())
-                     s_status_reg.UNRUN3() = 0;
+                     s_status_reg.UNRUN3() = false;
 
                    // send command to devices
                    if (tmp_status.WR())
@@ -597,11 +597,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      s_channel[2].device->SendCommand(s_channel[2].out.hex, s_poll.EN2());
                      s_channel[3].device->SendCommand(s_channel[3].out.hex, s_poll.EN3());
 
-                     s_status_reg.WR() = 0;
-                     s_status_reg.WRST0() = 0;
-                     s_status_reg.WRST1() = 0;
-                     s_status_reg.WRST2() = 0;
-                     s_status_reg.WRST3() = 0;
+                     s_status_reg.WR() = false;
+                     s_status_reg.WRST0() = false;
+                     s_status_reg.WRST1() = false;
+                     s_status_reg.WRST2() = false;
+                     s_status_reg.WRST3() = false;
                    }
                  }));
 
@@ -685,13 +685,13 @@ void UpdateDevices()
 
   // Update channels and set the status bit if there's new data
   s_status_reg.RDST0() =
-      !!s_channel[0].device->GetData(s_channel[0].in_hi.hex, s_channel[0].in_lo.hex);
+      s_channel[0].device->GetData(s_channel[0].in_hi.hex, s_channel[0].in_lo.hex);
   s_status_reg.RDST1() =
-      !!s_channel[1].device->GetData(s_channel[1].in_hi.hex, s_channel[1].in_lo.hex);
+      s_channel[1].device->GetData(s_channel[1].in_hi.hex, s_channel[1].in_lo.hex);
   s_status_reg.RDST2() =
-      !!s_channel[2].device->GetData(s_channel[2].in_hi.hex, s_channel[2].in_lo.hex);
+      s_channel[2].device->GetData(s_channel[2].in_hi.hex, s_channel[2].in_lo.hex);
   s_status_reg.RDST3() =
-      !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
+      s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
 
   UpdateInterrupts();
 
