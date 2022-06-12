@@ -187,7 +187,9 @@
       <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <!--FFmpeg and the libs it pulls in-->
       <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;Bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ExternalsDir)python\libs;$(ExternalsDir)FFmpeg-bin\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)FFmpeg-bin\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <!-- python -->
+      <AdditionalLibraryDirectories>$(ExternalsDir)python\$(Platform)\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <!--See Common/CompatPatches.cpp-->
       <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
     </Link>
