@@ -899,6 +899,10 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
     case RETRO_DEVICE_NONE:
       continue;
 
+    case RETRO_DEVICE_GC_ON_WII:
+      desc = Libretro::Input::descGC;
+      break;
+
     default:
       if (!SConfig::GetInstance().bWii || i > 3)
       {
