@@ -840,7 +840,7 @@ void Tev::Draw()
     output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
   }
 
-  if (bpmem.UseLateDepthTest())
+  if (bpmem.GetEmulatedZ() == EmulatedZ::Late)
   {
     // TODO: Check against hw if these values get incremented even if depth testing is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT);

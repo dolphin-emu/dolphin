@@ -2336,6 +2336,16 @@ struct BPCmd
   int newvalue;
 };
 
+enum class EmulatedZ : u32
+{
+  Disabled = 0,
+  Early = 1,
+  Late = 2,
+  ForcedEarly = 3,
+  EarlyWithFBFetch = 4,
+  EarlyWithZComplocHack = 5,
+};
+
 struct BPMemory
 {
   GenMode genMode;
@@ -2403,8 +2413,15 @@ struct BPMemory
   u32 bpMask;          // 0xFE
   u32 unknown18;       // ff
 
-  bool UseEarlyDepthTest() const { return zcontrol.early_ztest && zmode.testenable; }
-  bool UseLateDepthTest() const { return !zcontrol.early_ztest && zmode.testenable; }
+  EmulatedZ GetEmulatedZ() const
+  {
+    if (!zmode.testenable)
+      return EmulatedZ::Disabled;
+    if (zcontrol.early_ztest)
+      return EmulatedZ::Early;
+    else
+      return EmulatedZ::Late;
+  }
 };
 
 #pragma pack()

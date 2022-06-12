@@ -142,6 +142,8 @@ union BlendingState
   BitField<17, 3, SrcBlendFactor> srcfactoralpha;
   BitField<20, 4, LogicOp> logicmode;
 
+  bool RequiresDualSrc() const;
+
   u32 hex;
 };
 

@@ -21,12 +21,12 @@ PixelShaderUid GetPixelShaderUid()
 
   pixel_ubershader_uid_data* const uid_data = out.GetUidData();
   uid_data->num_texgens = xfmem.numTexGen.numTexGens;
-  uid_data->early_depth = bpmem.UseEarlyDepthTest() &&
+  uid_data->early_depth = bpmem.GetEmulatedZ() == EmulatedZ::Early &&
                           (g_ActiveConfig.bFastDepthCalc ||
                            bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
                           !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->per_pixel_depth =
-      (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.UseLateDepthTest()) ||
+      (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.GetEmulatedZ() == EmulatedZ::Late) ||
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
@@ -38,6 +38,10 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
                                    PixelShaderUid* uid)
 {
   pixel_ubershader_uid_data* const uid_data = uid->GetUidData();
+
+  // Dual source is always enabled in the shader if this bug is not present
+  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
+    uid_data->no_dual_src = 0;
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
@@ -53,8 +57,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
-  const bool use_dual_source = host_config.backend_dual_source_blend;
-  const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
+  const bool use_dual_source = host_config.backend_dual_source_blend && !uid_data->no_dual_src;
+  const bool use_shader_blend = !host_config.backend_dual_source_blend &&
+                                host_config.backend_shader_framebuffer_fetch;
   const bool use_shader_logic_op =
       !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
   const bool use_framebuffer_fetch =
@@ -1273,7 +1278,11 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
         for (u32 uint_output = 0; uint_output < 2; uint_output++)
         {
           puid->uint_output = uint_output;
-          callback(uid);
+          for (u32 no_dual_src = 0; no_dual_src < 2; no_dual_src++)
+          {
+            puid->no_dual_src = no_dual_src;
+            callback(uid);
+          }
         }
       }
     }
