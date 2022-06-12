@@ -243,7 +243,7 @@ protected:
   // Store float:    X1       Q0
   // Load float:     X0
   //
-  // If using MemAccessMode::AlwaysUnsafe, the addr argument can be any register.
+  // If mode == AlwaysUnsafe, the addr argument can be any register.
   // Otherwise it must be the register listed in the table above.
   //
   // Additional scratch registers are used in the following situations:
@@ -254,9 +254,10 @@ protected:
   // emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                 X3
   // mode != AlwaysSafe && !jo.fastmem_arena:                                     X2
   // !emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                X30
+  // !emitting_routine && mode == Auto && jo.fastmem_arena:                       X30
   //
-  // mode != AlwaysUnsafe:
-  //             X30 (plus most other registers, unless marked in gprs_to_push and fprs_to_push)
+  // Furthermore, any callee-saved register which isn't marked in gprs_to_push/fprs_to_push
+  // may be clobbered if mode != AlwaysUnsafe.
   void EmitBackpatchRoutine(u32 flags, MemAccessMode mode, Arm64Gen::ARM64Reg RS,
                             Arm64Gen::ARM64Reg addr, BitSet32 gprs_to_push = BitSet32(0),
                             BitSet32 fprs_to_push = BitSet32(0), bool emitting_routine = false);
