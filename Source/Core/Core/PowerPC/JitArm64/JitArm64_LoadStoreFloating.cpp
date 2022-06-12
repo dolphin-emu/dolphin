@@ -79,6 +79,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
   const ARM64Reg VD = fpr.RW(inst.FD, type, false);
   ARM64Reg addr_reg = ARM64Reg::W0;
@@ -166,6 +168,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
   if (!update || early_update)
     regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
+  if (!jo.fastmem_arena)
+    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
   if (!jo.memcheck)
     fprs_in_use[DecodeReg(VD)] = 0;
@@ -190,6 +194,8 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
 }
 
 void JitArm64::stfXX(UGeckoInstruction inst)
@@ -273,6 +279,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   }
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
+  if (!jo.fastmem_arena)
+    gpr.Lock(ARM64Reg::W2);
 
   ARM64Reg addr_reg = ARM64Reg::W1;
 
@@ -364,6 +372,8 @@ void JitArm64::stfXX(UGeckoInstruction inst)
   regs_in_use[DecodeReg(ARM64Reg::W0)] = 0;
   if (!update || early_update)
     regs_in_use[DecodeReg(ARM64Reg::W1)] = 0;
+  if (!jo.fastmem_arena)
+    regs_in_use[DecodeReg(ARM64Reg::W2)] = 0;
   fprs_in_use[DecodeReg(ARM64Reg::Q0)] = 0;
 
   if (is_immediate)
@@ -418,4 +428,6 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
+  if (!jo.fastmem_arena)
+    gpr.Unlock(ARM64Reg::W2);
 }

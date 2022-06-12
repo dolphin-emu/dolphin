@@ -393,7 +393,7 @@ void Arm64GPRCache::GetAllocationOrder()
       ARM64Reg::W11,
       ARM64Reg::W10,
       ARM64Reg::W9,
-      // ARM64Reg::W8,
+      ARM64Reg::W8,
       ARM64Reg::W7,
       ARM64Reg::W6,
       ARM64Reg::W5,

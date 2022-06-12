@@ -74,10 +74,10 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, MemAccessMode mode, ARM64Reg RS, 
 
     if (!jo.fastmem_arena)
     {
-      const ARM64Reg temp = emitting_routine ? ARM64Reg::W2 : ARM64Reg::W30;
+      const ARM64Reg temp = emitting_routine ? ARM64Reg::W3 : ARM64Reg::W30;
 
       memory_base = EncodeRegTo64(temp);
-      memory_offset = ARM64Reg::W8;  // TODO
+      memory_offset = ARM64Reg::W2;
 
       LSR(temp, addr, PowerPC::BAT_INDEX_SHIFT);
       LDR(memory_base, MEM_REG, ArithOption(temp, true));
