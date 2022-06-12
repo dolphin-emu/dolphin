@@ -28,6 +28,7 @@ public:
   API::GCManip* GetGCManip();
   API::WiiButtonsManip* GetWiiButtonsManip();
   API::WiiIRManip* GetWiiIRManip();
+  void AddCleanupFunc(std::function<void()> cleanup_func);
 
   // this class somewhat is a wrapper around a python interpreter state,
   // and that isn't copyable, so this class isn't copyable either.
@@ -49,6 +50,7 @@ private:
   API::GCManip& m_gc_manip;
   API::WiiButtonsManip& m_wii_buttons_manip;
   API::WiiIRManip& m_wii_ir_manip;
+  std::vector<std::function<void()>> m_cleanups;
 };
 
 }  // namespace PyScripting

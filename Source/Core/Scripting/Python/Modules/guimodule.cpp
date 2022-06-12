@@ -209,10 +209,6 @@ def draw_convex_poly_filled(points, color):
   state->gui = gui;
 }
 
-static void CleanupGuiModule(PyObject* module, GuiModuleState* state)
-{
-}
-
 PyMODINIT_FUNC PyInit_gui()
 {
   static PyMethodDef methods[] = {
@@ -236,7 +232,7 @@ PyMODINIT_FUNC PyInit_gui()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<GuiModuleState, SetupGuiModule, CleanupGuiModule>("gui", methods);
+      Py::MakeStatefulModuleDef<GuiModuleState, SetupGuiModule>("gui", methods);
   PyObject* def_obj = PyModuleDef_Init(&module_def);
   return def_obj;
 }

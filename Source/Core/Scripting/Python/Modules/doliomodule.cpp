@@ -71,10 +71,6 @@ static void setup_dolio_module_stderr(PyObject* module, DolioModuleState* state)
   PySys_SetObject("stderr", module);
 }
 
-static void cleanup_dolio_module(PyObject* module, DolioModuleState* state)
-{
-}
-
 PyMODINIT_FUNC PyInit_dolio_stdout()
 {
   static PyMethodDef method_defs[] = {
@@ -83,8 +79,7 @@ PyMODINIT_FUNC PyInit_dolio_stdout()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<DolioModuleState, setup_dolio_module_stdout, cleanup_dolio_module>(
-          "dolio_stdout", method_defs);
+      Py::MakeStatefulModuleDef<DolioModuleState, setup_dolio_module_stdout>("dolio_stdout", method_defs);
   return PyModuleDef_Init(&module_def);
 }
 
@@ -96,8 +91,7 @@ PyMODINIT_FUNC PyInit_dolio_stderr()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<DolioModuleState, setup_dolio_module_stderr, cleanup_dolio_module>(
-          "dolio_stderr", methods);
+      Py::MakeStatefulModuleDef<DolioModuleState, setup_dolio_module_stderr>("dolio_stderr", methods);
   return PyModuleDef_Init(&module_def);
 }
 

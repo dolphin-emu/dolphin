@@ -44,10 +44,6 @@ __all__ = [event, memory, gui, savestate, controller]
   }
 }
 
-static void CleanupDolphinModule(PyObject* module, DolphinModuleState* state)
-{
-}
-
 PyMODINIT_FUNC PyInit_dolphin()
 {
   static PyMethodDef methods[] = {
@@ -55,8 +51,7 @@ PyMODINIT_FUNC PyInit_dolphin()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<DolphinModuleState, SetupDolphinModule, CleanupDolphinModule>(
-          "dolphin", methods);
+      Py::MakeStatefulModuleDef<DolphinModuleState, SetupDolphinModule>("dolphin", methods);
   PyObject* def_obj = PyModuleDef_Init(&module_def);
   return def_obj;
 }

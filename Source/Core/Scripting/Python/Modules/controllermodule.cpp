@@ -221,13 +221,11 @@ static void setup_controller_module(PyObject* module, ControllerModuleState* sta
   state->gc_manip = PyScriptingBackend::GetCurrent()->GetGCManip();
   state->wii_buttons_manip = PyScriptingBackend::GetCurrent()->GetWiiButtonsManip();
   state->wii_ir_manip = PyScriptingBackend::GetCurrent()->GetWiiIRManip();
-}
-
-static void cleanup_controller_module(PyObject* module, ControllerModuleState* state)
-{
-  state->gc_manip->Clear();
-  state->wii_buttons_manip->Clear();
-  state->wii_ir_manip->Clear();
+  PyScriptingBackend::GetCurrent()->AddCleanupFunc([state] {
+    state->gc_manip->Clear();
+    state->wii_buttons_manip->Clear();
+    state->wii_ir_manip->Clear();
+  });
 }
 
 PyMODINIT_FUNC PyInit_controller()
@@ -241,8 +239,7 @@ PyMODINIT_FUNC PyInit_controller()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<ControllerModuleState, setup_controller_module,
-                                cleanup_controller_module>("controller", method_defs);
+      Py::MakeStatefulModuleDef<ControllerModuleState, setup_controller_module>("controller", method_defs);
   return PyModuleDef_Init(&module_def);
 }
 

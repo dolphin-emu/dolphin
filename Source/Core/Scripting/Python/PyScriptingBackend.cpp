@@ -155,6 +155,9 @@ PyScriptingBackend::~PyScriptingBackend()
   PyEval_RestoreThread(m_interp_threadstate);
   u64 interp_id = PyInterpreterState_GetID(m_interp_threadstate->interp);
   s_instances.erase(interp_id);
+  for (const auto& cleanup_func : m_cleanups)
+    cleanup_func();
+  // TODO felk: fix events sometimes calling into destroyed py objects when reloading a script
   Py_EndInterpreter(m_interp_threadstate);
   PyThreadState_Swap(s_main_threadstate);
   if (s_instances.empty())
@@ -201,6 +204,11 @@ API::WiiButtonsManip* PyScriptingBackend::GetWiiButtonsManip()
 API::WiiIRManip* PyScriptingBackend::GetWiiIRManip()
 {
   return &m_wii_ir_manip;
+}
+
+void PyScriptingBackend::AddCleanupFunc(std::function<void()> cleanup_func)
+{
+  m_cleanups.push_back(cleanup_func);
 }
 
 std::map<u64, PyScriptingBackend*> PyScriptingBackend::s_instances;

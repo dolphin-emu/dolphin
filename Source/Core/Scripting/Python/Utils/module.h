@@ -32,45 +32,20 @@ inline Py::Object LoadPyCodeIntoModule(PyObject* module, const char* pycode)
 template <typename TState>
 using FuncOnState = void(*)(PyObject* module, TState* state);
 
-template <typename TState, FuncOnState<TState> TCleanup>
-static PyObject* CleanupModuleWithState(PyObject* module, PyObject* args)
-{
-  TState** state_ptr = static_cast<TState**>(PyModule_GetState(module));
-  TCleanup(module, *state_ptr);
-  delete *state_ptr;
-  Py_RETURN_NONE;
-}
-
-template <typename TState, FuncOnState<TState> TSetup, FuncOnState<TState> TCleanup>
+template <typename TState, FuncOnState<TState> TSetup>
 static int SetupModuleWithState(PyObject* module)
 {
   TState** state_ptr = static_cast<TState**>(PyModule_GetState(module));
   *state_ptr = new TState();
 
-  // There doesn't seem to be a C-API to register atexit-callbacks,
-  // so let's do it in python code. atexit-callbacks are interpreter-local.
-  static PyMethodDef cleanup_module_methods[] = {
-      {"_dol_mod_cleanup", CleanupModuleWithState<TState, TCleanup>, METH_NOARGS, ""},
-      {nullptr, nullptr, 0, nullptr}  // Sentinel
-  };
-  PyModule_AddFunctions(module, cleanup_module_methods);
-  Py::Object result = LoadPyCodeIntoModule(module, R"(
-import atexit
-atexit.register(_dol_mod_cleanup)
-  )");
-  if (result.IsNull())
-  {
-    return -1;
-  }
-
   TSetup(module, *state_ptr);
   return 0;
 }
 
-template <typename TState, FuncOnState<TState> TSetup, FuncOnState<TState> TCleanup>
+template <typename TState, FuncOnState<TState> TSetup>
 PyModuleDef MakeStatefulModuleDef(const char* name, PyMethodDef func_defs[])
 {
-  auto func = SetupModuleWithState<TState, TSetup, TCleanup>;
+  auto func = SetupModuleWithState<TState, TSetup>;
   static PyModuleDef_Slot slots_with_exec[] = {
       {Py_mod_exec, (void*) func}, {0, nullptr} // Sentinel
   };

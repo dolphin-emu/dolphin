@@ -87,10 +87,6 @@ static void SetupMemoryModule(PyObject* module, MemoryModuleState* state)
   //state->memory = memory;
 }
 
-static void CleanupMemoryModule(PyObject* module, MemoryModuleState* state)
-{
-}
-
 PyMODINIT_FUNC PyInit_memory()
 {
   static PyMethodDef methods[] = {
@@ -126,8 +122,7 @@ PyMODINIT_FUNC PyInit_memory()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<MemoryModuleState, SetupMemoryModule, CleanupMemoryModule>(
-          "memory", methods);
+      Py::MakeStatefulModuleDef<MemoryModuleState, SetupMemoryModule>("memory", methods);
   PyObject* def_obj = PyModuleDef_Init(&module_def);
   return def_obj;
 }

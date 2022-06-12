@@ -5,6 +5,7 @@
 #include "eventmodule.h"
 
 #include <deque>
+#include <functional>
 #include <map>
 
 #include "Common/Logging/Log.h"
@@ -226,12 +227,9 @@ async def memorybreakpoint():
   }
   API::EventHub* event_hub = PyScripting::PyScriptingBackend::GetCurrent()->GetEventHub();
   state->event_hub = event_hub;
+  const std::function cleanup = [state] { EventContainer::UnregisterListeners(state); };
+  PyScripting::PyScriptingBackend::GetCurrent()->AddCleanupFunc(cleanup);
   EventContainer::RegisterListeners(Py::Take(module));
-}
-
-static void CleanupEventModule(PyObject* module, EventModuleState* state)
-{
-  EventContainer::UnregisterListeners(state);
 }
 
 PyMODINIT_FUNC PyInit_event()
@@ -245,8 +243,7 @@ PyMODINIT_FUNC PyInit_event()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<EventModuleState, SetupEventModule, CleanupEventModule>(
-          "event", methods);
+      Py::MakeStatefulModuleDef<EventModuleState, SetupEventModule>("event", methods);
   PyObject* def_obj = PyModuleDef_Init(&module_def);
   return def_obj;
 }

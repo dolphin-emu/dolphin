@@ -119,10 +119,6 @@ static void SetupSavestateModule(PyObject* module, SavestateModuleState* state)
   //state->stateManager = sm;
 }
 
-static void CleanupSavestateModule(PyObject* module, SavestateModuleState* state)
-{
-}
-
 PyMODINIT_FUNC PyInit_savestate()
 {
   static PyMethodDef methods[] = {
@@ -136,8 +132,7 @@ PyMODINIT_FUNC PyInit_savestate()
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
-      Py::MakeStatefulModuleDef<SavestateModuleState, SetupSavestateModule, CleanupSavestateModule>(
-          "savestate", methods);
+      Py::MakeStatefulModuleDef<SavestateModuleState, SetupSavestateModule>("savestate", methods);
   PyObject* def_obj = PyModuleDef_Init(&module_def);
   return def_obj;
 }
