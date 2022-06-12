@@ -80,6 +80,89 @@ void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
   }
 }
 
+static bool DetectIntelGPUFBFetch(id<MTLDevice> dev)
+{
+  // Even though it's nowhere in the feature set tables, some Intel GPUs support fbfetch!
+  // Annoyingly, the Haswell compiler successfully makes a pipeline but actually miscompiles it and
+  // doesn't insert any fbfetch instructions.
+  // The Broadwell compiler inserts the Skylake fbfetch instruction,
+  // but Broadwell doesn't support that.  It seems to make the shader not do anything.
+  // So we actually have to test the thing
+
+  static constexpr const char* shader = R"(
+vertex float4 fs_triangle(uint vid [[vertex_id]]) {
+  return float4(vid & 1 ? 3 : -1, vid & 2 ? 3 : -1, 0, 1);
+}
+fragment float4 fbfetch_test(float4 in [[color(0), raster_order_group(0)]]) {
+  return in * 2;
+}
+)";
+  auto lib = MRCTransfer([dev newLibraryWithSource:[NSString stringWithUTF8String:shader]
+                                           options:nil
+                                             error:nil]);
+  if (!lib)
+    return false;
+  auto pdesc = MRCTransfer([MTLRenderPipelineDescriptor new]);
+  [pdesc setVertexFunction:MRCTransfer([lib newFunctionWithName:@"fs_triangle"])];
+  [pdesc setFragmentFunction:MRCTransfer([lib newFunctionWithName:@"fbfetch_test"])];
+  [[pdesc colorAttachments][0] setPixelFormat:MTLPixelFormatRGBA8Unorm];
+  auto pipe = MRCTransfer([dev newRenderPipelineStateWithDescriptor:pdesc error:nil]);
+  if (!pipe)
+    return false;
+  auto buf = MRCTransfer([dev newBufferWithLength:4 options:MTLResourceStorageModeShared]);
+  auto tdesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                  width:1
+                                                                 height:1
+                                                              mipmapped:false];
+  [tdesc setUsage:MTLTextureUsageRenderTarget];
+  auto tex = MRCTransfer([dev newTextureWithDescriptor:tdesc]);
+  auto q = MRCTransfer([dev newCommandQueue]);
+  u32 px = 0x11223344;
+  memcpy([buf contents], &px, 4);
+  id<MTLCommandBuffer> cmdbuf = [q commandBuffer];
+  id<MTLBlitCommandEncoder> upload_encoder = [cmdbuf blitCommandEncoder];
+  [upload_encoder copyFromBuffer:buf
+                    sourceOffset:0
+               sourceBytesPerRow:4
+             sourceBytesPerImage:4
+                      sourceSize:MTLSizeMake(1, 1, 1)
+                       toTexture:tex
+                destinationSlice:0
+                destinationLevel:0
+               destinationOrigin:MTLOriginMake(0, 0, 0)];
+  [upload_encoder endEncoding];
+  auto rpdesc = MRCTransfer([MTLRenderPassDescriptor new]);
+  [[rpdesc colorAttachments][0] setTexture:tex];
+  [[rpdesc colorAttachments][0] setLoadAction:MTLLoadActionLoad];
+  [[rpdesc colorAttachments][0] setStoreAction:MTLStoreActionStore];
+  id<MTLRenderCommandEncoder> renc = [cmdbuf renderCommandEncoderWithDescriptor:rpdesc];
+  [renc setRenderPipelineState:pipe];
+  [renc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+  [renc endEncoding];
+  id<MTLBlitCommandEncoder> download_encoder = [cmdbuf blitCommandEncoder];
+  [download_encoder copyFromTexture:tex
+                        sourceSlice:0
+                        sourceLevel:0
+                       sourceOrigin:MTLOriginMake(0, 0, 0)
+                         sourceSize:MTLSizeMake(1, 1, 1)
+                           toBuffer:buf
+                  destinationOffset:0
+             destinationBytesPerRow:4
+           destinationBytesPerImage:4];
+  [download_encoder endEncoding];
+  [cmdbuf commit];
+  [cmdbuf waitUntilCompleted];
+  u32 outpx;
+  memcpy(&outpx, [buf contents], 4);
+  // Proper fbfetch will double contents, Haswell will return black, and Broadwell will do nothing
+  if (outpx == 0x22446688)
+    return true;  // Skylake+
+  else if (outpx == 0x11223344)
+    return false;  // Broadwell
+  else
+    return false;  // Haswell
+}
+
 void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice> device)
 {
   // Initialize DriverDetails first so we can use it later
@@ -135,6 +218,11 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
   }
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_INVOCATION_ID))
     g_features.subgroup_ops = false;
+#if TARGET_OS_OSX
+  if (@available(macOS 11, *))
+    if (vendor == DriverDetails::VENDOR_INTEL)
+      config->backend_info.bSupportsFramebufferFetch |= DetectIntelGPUFBFetch(device);
+#endif
   if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
     config->backend_info.bSupportsDynamicSamplerIndexing = false;
 }
