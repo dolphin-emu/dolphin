@@ -5,6 +5,7 @@
 #pragma once
 
 #include <functional>
+#include <mutex>
 
 #include "Common/CommonTypes.h"
 
@@ -55,6 +56,7 @@ class EventContainer final
 public:
   void EmitEvent(T evt)
   {
+    std::lock_guard lock{m_listeners_iterate_mutex};
     // avoid concurrent modification issues by iterating over a copy
     std::vector<std::pair<ListenerID<T>, Listener<T>>> listener_pairs = m_listener_pairs;
     for (auto& listener_pair : listener_pairs)
@@ -92,7 +94,12 @@ public:
     m_one_time_listeners.emplace_back(std::move(listener));
   }
 
+  void TickListeners()
+  {
+      std::lock_guard lock{m_listeners_iterate_mutex};
+  }
 private:
+  std::mutex m_listeners_iterate_mutex{};
   std::vector<std::pair<ListenerID<T>, Listener<T>>> m_listener_pairs{};
   std::vector<Listener<T>> m_one_time_listeners{};
   u64 m_next_listener_id = 0;
@@ -133,6 +140,11 @@ public:
   void ListenEventOnce(Listener<T> listener)
   {
     GetEventContainer<T>().ListenEventOnce(listener);
+  }
+
+  void TickAllListeners()
+  {
+    std::apply([](auto&&... arg) { (arg.TickListeners(), ...); }, m_event_containers);
   }
 
 private:

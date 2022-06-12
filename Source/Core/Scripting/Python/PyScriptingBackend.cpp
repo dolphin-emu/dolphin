@@ -157,7 +157,14 @@ PyScriptingBackend::~PyScriptingBackend()
   s_instances.erase(interp_id);
   for (const auto& cleanup_func : m_cleanups)
     cleanup_func();
-  // TODO felk: fix events sometimes calling into destroyed py objects when reloading a script
+
+  // Cleanup did remove listeners, but there may still be a concurrent iteration over the listeners happening.
+  // We need to wait for all concurrent events to finish first (without holding the GIL to avoid deadlocks),
+  // or else we might crash. See also https://github.com/Felk/dolphin/issues/12
+  PyEval_SaveThread();
+  GetEventHub()->TickAllListeners();
+  PyEval_RestoreThread(m_interp_threadstate);
+
   Py_EndInterpreter(m_interp_threadstate);
   PyThreadState_Swap(s_main_threadstate);
   if (s_instances.empty())
