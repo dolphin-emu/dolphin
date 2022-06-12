@@ -249,7 +249,6 @@ protected:
   // Additional scratch registers are used in the following situations:
   //
   // emitting_routine && mode == Auto:                                            X2
-  // emitting_routine && mode == Auto && (flags & BackPatchInfo::FLAG_STORE):     X0
   // emitting_routine && mode == Auto && !(flags & BackPatchInfo::FLAG_STORE):    X3
   // emitting_routine && mode != AlwaysSafe && !jo.fastmem_arena:                 X3
   // mode != AlwaysSafe && !jo.fastmem_arena:                                     X2
