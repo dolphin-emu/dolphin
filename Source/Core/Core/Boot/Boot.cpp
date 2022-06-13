@@ -538,14 +538,12 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       SetDefaultDisc();
 
       SetupMSR();
+      SetupHID(config.bWii);
       SetupBAT(config.bWii);
       CopyDefaultExceptionHandlers();
 
       if (config.bWii)
       {
-        PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
-        PowerPC::ppcState.spr[SPR_HID4] = 0x82000000;
-
         // Set a value for the SP. It doesn't matter where this points to,
         // as long as it is a valid location. This value is taken from a homebrew binary.
         PowerPC::ppcState.gpr[1] = 0x8004d4bc;
