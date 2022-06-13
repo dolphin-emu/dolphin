@@ -3,7 +3,9 @@
 
 #include "Core/HW/SI/SI_DeviceBaseboard.h"
 
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/HW/SI/SI_Device.h"
 
 namespace SerialInterface
@@ -21,10 +23,17 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
 
   switch (command)
   {
-    case EBufferCommands::CMD_RESET:
+  case EBufferCommands::CMD_RESET:
+  {
+    u32 id = Common::swap32(SI_BASEBOARD);
+    std::memcpy(buffer, &id, sizeof(id));
+    return sizeof(id);
   }
-
-  ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command ({:#x})", static_cast<u8>(command));
+  default:
+  {
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command ({:#x})", static_cast<u8>(command));
+  }
+  }
 
   return 0;
 }
