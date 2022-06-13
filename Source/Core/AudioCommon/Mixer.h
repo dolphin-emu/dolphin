@@ -74,6 +74,7 @@ private:
     void SetInputSampleRate(unsigned int rate);
     unsigned int GetInputSampleRate() const;
     void SetVolume(unsigned int lvolume, unsigned int rvolume);
+    std::pair<s32, s32> GetVolume() const;
     unsigned int AvailableSamples() const;
 
   private:

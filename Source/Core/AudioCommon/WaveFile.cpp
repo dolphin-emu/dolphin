@@ -114,7 +114,8 @@ void WaveFileWriter::Write4(const char* ptr)
   file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int sample_rate)
+void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int sample_rate,
+                                        int l_volume, int r_volume)
 {
   if (!file)
     ERROR_LOG_FMT(AUDIO, "WaveFileWriter - file not open.");
@@ -141,6 +142,10 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int
     // Flip the audio channels from RL to LR
     conv_buffer[2 * i] = Common::swap16((u16)sample_data[2 * i + 1]);
     conv_buffer[2 * i + 1] = Common::swap16((u16)sample_data[2 * i]);
+
+    // Apply volume (volume ranges from 0 to 256)
+    conv_buffer[2 * i] = conv_buffer[2 * i] * l_volume / 256;
+    conv_buffer[2 * i + 1] = conv_buffer[2 * i + 1] * r_volume / 256;
   }
 
   if (sample_rate != current_sample_rate)
