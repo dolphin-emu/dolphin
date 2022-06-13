@@ -34,7 +34,7 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   const u32 num_texgen = uid_data->num_texgens;
   ShaderCode out;
 
-  out.Write("// Vertex UberShader\n\n");
+  out.Write("// {}\n\n", *uid_data);
   out.Write("{}", s_lighting_struct);
 
   // uniforms
