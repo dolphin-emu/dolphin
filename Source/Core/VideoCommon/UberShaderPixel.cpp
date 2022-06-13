@@ -503,14 +503,6 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "int4 getTevReg(in State s, uint index) {{\n");
   WriteSwitch(out, api_type, "index", tev_regs_lookup_table, 2, false);
   out.Write("}}\n"
-            "\n"
-            "void setRegColor(inout State s, uint index, int3 color) {{\n");
-  WriteSwitch(out, api_type, "index", tev_c_set_table, 2, true);
-  out.Write("}}\n"
-            "\n"
-            "void setRegAlpha(inout State s, uint index, int alpha) {{\n");
-  WriteSwitch(out, api_type, "index", tev_a_set_table, 2, true);
-  out.Write("}}\n"
             "\n");
 
   // Since the fixed-point texture coodinate variables aren't global, we need to pass
@@ -861,9 +853,9 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       "      else\n"
       "        color = clamp(color, -1024, 1023);\n"
       "\n"
-      "      // Write result to the correct input register of the next stage\n"
-      "      setRegColor(s, color_dest, color);\n"
-      "\n");
+      "      // Write result to the correct input register of the next stage\n");
+  WriteSwitch(out, api_type, "color_dest", tev_c_set_table, 6, true);
+  out.Write("\n");
 
   // Alpha combiner
   out.Write("      // Alpha Combiner\n");
@@ -927,11 +919,10 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "      else\n"
             "        alpha = clamp(alpha, -1024, 1023);\n"
             "\n"
-            "      // Write result to the correct input register of the next stage\n"
-            "      setRegAlpha(s, alpha_dest, alpha);\n"
-            "    }}\n");
-
-  out.Write("  }} // Main TEV loop\n"
+            "      // Write result to the correct input register of the next stage\n");
+  WriteSwitch(out, api_type, "alpha_dest", tev_a_set_table, 6, true);
+  out.Write("    }}\n"
+            "  }} // Main TEV loop\n"
             "\n");
 
   // Select the output color and alpha registers from the last stage.
