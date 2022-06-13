@@ -9,11 +9,10 @@
 #include "VideoBackends/Metal/MTLStateTracker.h"
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
+#include "VideoBackends/Metal/MTLVertexFormat.h"
 #include "VideoBackends/Metal/MTLVertexManager.h"
 
 #include "VideoCommon/FramebufferManager.h"
-#include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 Metal::Renderer::Renderer(MRCOwned<CAMetalLayer*> layer, int width, int height, float layer_scale)
@@ -109,66 +108,6 @@ Metal::Renderer::CreateFramebuffer(AbstractTexture* color_attachment,
 }
 
 // MARK: Pipeline Creation
-
-namespace Metal
-{
-class VertexFormat : public NativeVertexFormat
-{
-public:
-  VertexFormat(const PortableVertexDeclaration& vtx_decl)
-      : NativeVertexFormat(vtx_decl), m_desc(MRCTransfer([MTLVertexDescriptor new]))
-  {
-    [[[m_desc layouts] objectAtIndexedSubscript:0] setStride:vtx_decl.stride];
-    SetAttribute(SHADER_POSITION_ATTRIB, vtx_decl.position);
-    SetAttributes(SHADER_NORMAL_ATTRIB, vtx_decl.normals);
-    SetAttributes(SHADER_COLOR0_ATTRIB, vtx_decl.colors);
-    SetAttributes(SHADER_TEXTURE0_ATTRIB, vtx_decl.texcoords);
-    SetAttribute(SHADER_POSMTX_ATTRIB, vtx_decl.posmtx);
-  }
-
-  MTLVertexDescriptor* Get() const { return m_desc; }
-
-private:
-  template <size_t N>
-  void SetAttributes(u32 attribute, const AttributeFormat (&format)[N])
-  {
-    for (size_t i = 0; i < N; i++)
-      SetAttribute(attribute + i, format[i]);
-  }
-  void SetAttribute(u32 attribute, const AttributeFormat& format)
-  {
-    if (!format.enable)
-      return;
-    MTLVertexAttributeDescriptor* desc = [[m_desc attributes] objectAtIndexedSubscript:attribute];
-    [desc setFormat:ConvertFormat(format.type, format.components, format.integer)];
-    [desc setOffset:format.offset];
-    [desc setBufferIndex:0];
-  }
-
-  static MTLVertexFormat ConvertFormat(ComponentFormat format, int count, bool int_format)
-  {
-    static constexpr MTLVertexFormat formats[2][5][4] = {
-      [false] = {
-        [static_cast<int>(ComponentFormat::UByte)]  = { MTLVertexFormatUCharNormalized,  MTLVertexFormatUChar2Normalized,  MTLVertexFormatUChar3Normalized,  MTLVertexFormatUChar4Normalized  },
-        [static_cast<int>(ComponentFormat::Byte)]   = { MTLVertexFormatCharNormalized,   MTLVertexFormatChar2Normalized,   MTLVertexFormatChar3Normalized,   MTLVertexFormatChar4Normalized   },
-        [static_cast<int>(ComponentFormat::UShort)] = { MTLVertexFormatUShortNormalized, MTLVertexFormatUShort2Normalized, MTLVertexFormatUShort3Normalized, MTLVertexFormatUShort4Normalized },
-        [static_cast<int>(ComponentFormat::Short)]  = { MTLVertexFormatShortNormalized,  MTLVertexFormatShort2Normalized,  MTLVertexFormatShort3Normalized,  MTLVertexFormatShort4Normalized  },
-        [static_cast<int>(ComponentFormat::Float)]  = { MTLVertexFormatFloat,            MTLVertexFormatFloat2,            MTLVertexFormatFloat3,            MTLVertexFormatFloat4            },
-      },
-      [true] = {
-        [static_cast<int>(ComponentFormat::UByte)]  = { MTLVertexFormatUChar,  MTLVertexFormatUChar2,  MTLVertexFormatUChar3,  MTLVertexFormatUChar4  },
-        [static_cast<int>(ComponentFormat::Byte)]   = { MTLVertexFormatChar,   MTLVertexFormatChar2,   MTLVertexFormatChar3,   MTLVertexFormatChar4   },
-        [static_cast<int>(ComponentFormat::UShort)] = { MTLVertexFormatUShort, MTLVertexFormatUShort2, MTLVertexFormatUShort3, MTLVertexFormatUShort4 },
-        [static_cast<int>(ComponentFormat::Short)]  = { MTLVertexFormatShort,  MTLVertexFormatShort2,  MTLVertexFormatShort3,  MTLVertexFormatShort4  },
-        [static_cast<int>(ComponentFormat::Float)]  = { MTLVertexFormatFloat,  MTLVertexFormatFloat2,  MTLVertexFormatFloat3,  MTLVertexFormatFloat4  },
-      },
-    };
-    return formats[int_format][static_cast<int>(format)][count - 1];
-  }
-
-  MRCOwned<MTLVertexDescriptor*> m_desc;
-};
-}  // namespace Metal
 
 std::unique_ptr<AbstractShader> Metal::Renderer::CreateShaderFromSource(ShaderStage stage,
                                                                         std::string_view source,
@@ -311,157 +250,11 @@ Metal::Renderer::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_d
   }
 }
 
-static MTLPrimitiveTopologyClass GetClass(PrimitiveType prim)
-{
-  switch (prim)
-  {
-  case PrimitiveType::Points:
-    return MTLPrimitiveTopologyClassPoint;
-  case PrimitiveType::Lines:
-    return MTLPrimitiveTopologyClassLine;
-  case PrimitiveType::Triangles:
-  case PrimitiveType::TriangleStrip:
-    return MTLPrimitiveTopologyClassTriangle;
-  }
-}
-
-static MTLPrimitiveType Convert(PrimitiveType prim)
-{
-  switch (prim)
-  {
-    case PrimitiveType::Points:        return MTLPrimitiveTypePoint;
-    case PrimitiveType::Lines:         return MTLPrimitiveTypeLine;
-    case PrimitiveType::Triangles:     return MTLPrimitiveTypeTriangle;
-    case PrimitiveType::TriangleStrip: return MTLPrimitiveTypeTriangleStrip;
-  }
-}
-
-static MTLCullMode Convert(CullMode cull)
-{
-  switch (cull)
-  {
-    case CullMode::None:
-    case CullMode::All: // Handled by disabling rasterization
-      return MTLCullModeNone;
-    case CullMode::Front:
-      return MTLCullModeFront;
-    case CullMode::Back:
-      return MTLCullModeBack;
-  }
-}
-
-static MTLBlendFactor Convert(DstBlendFactor factor, bool src1)
-{
-  static constexpr MTLBlendFactor factors[2][8] = {
-    [false] = {
-      [static_cast<int>(DstBlendFactor::Zero)]        = MTLBlendFactorZero,
-      [static_cast<int>(DstBlendFactor::One)]         = MTLBlendFactorOne,
-      [static_cast<int>(DstBlendFactor::SrcClr)]      = MTLBlendFactorSourceColor,
-      [static_cast<int>(DstBlendFactor::InvSrcClr)]   = MTLBlendFactorOneMinusSourceColor,
-      [static_cast<int>(DstBlendFactor::SrcAlpha)]    = MTLBlendFactorSourceAlpha,
-      [static_cast<int>(DstBlendFactor::InvSrcAlpha)] = MTLBlendFactorOneMinusSourceAlpha,
-      [static_cast<int>(DstBlendFactor::DstAlpha)]    = MTLBlendFactorDestinationAlpha,
-      [static_cast<int>(DstBlendFactor::InvDstAlpha)] = MTLBlendFactorOneMinusDestinationAlpha,
-    },
-    [true] = {
-      [static_cast<int>(DstBlendFactor::Zero)]        = MTLBlendFactorZero,
-      [static_cast<int>(DstBlendFactor::One)]         = MTLBlendFactorOne,
-      [static_cast<int>(DstBlendFactor::SrcClr)]      = MTLBlendFactorSourceColor,
-      [static_cast<int>(DstBlendFactor::InvSrcClr)]   = MTLBlendFactorOneMinusSource1Color,
-      [static_cast<int>(DstBlendFactor::SrcAlpha)]    = MTLBlendFactorSource1Alpha,
-      [static_cast<int>(DstBlendFactor::InvSrcAlpha)] = MTLBlendFactorOneMinusSource1Alpha,
-      [static_cast<int>(DstBlendFactor::DstAlpha)]    = MTLBlendFactorDestinationAlpha,
-      [static_cast<int>(DstBlendFactor::InvDstAlpha)] = MTLBlendFactorOneMinusDestinationAlpha,
-    },
-  };
-  return factors[src1][static_cast<int>(factor)];
-}
-
-static MTLBlendFactor Convert(SrcBlendFactor factor, bool src1)
-{
-  static constexpr MTLBlendFactor factors[2][8] = {
-    [false] = {
-      [static_cast<int>(SrcBlendFactor::Zero)]        = MTLBlendFactorZero,
-      [static_cast<int>(SrcBlendFactor::One)]         = MTLBlendFactorOne,
-      [static_cast<int>(SrcBlendFactor::DstClr)]      = MTLBlendFactorDestinationColor,
-      [static_cast<int>(SrcBlendFactor::InvDstClr)]   = MTLBlendFactorOneMinusDestinationColor,
-      [static_cast<int>(SrcBlendFactor::SrcAlpha)]    = MTLBlendFactorSourceAlpha,
-      [static_cast<int>(SrcBlendFactor::InvSrcAlpha)] = MTLBlendFactorOneMinusSourceAlpha,
-      [static_cast<int>(SrcBlendFactor::DstAlpha)]    = MTLBlendFactorDestinationAlpha,
-      [static_cast<int>(SrcBlendFactor::InvDstAlpha)] = MTLBlendFactorOneMinusDestinationAlpha,
-    },
-    [true] = {
-      [static_cast<int>(SrcBlendFactor::Zero)]        = MTLBlendFactorZero,
-      [static_cast<int>(SrcBlendFactor::One)]         = MTLBlendFactorOne,
-      [static_cast<int>(SrcBlendFactor::DstClr)]      = MTLBlendFactorDestinationColor,
-      [static_cast<int>(SrcBlendFactor::InvDstClr)]   = MTLBlendFactorOneMinusDestinationColor,
-      [static_cast<int>(SrcBlendFactor::SrcAlpha)]    = MTLBlendFactorSource1Alpha,
-      [static_cast<int>(SrcBlendFactor::InvSrcAlpha)] = MTLBlendFactorOneMinusSource1Alpha,
-      [static_cast<int>(SrcBlendFactor::DstAlpha)]    = MTLBlendFactorDestinationAlpha,
-      [static_cast<int>(SrcBlendFactor::InvDstAlpha)] = MTLBlendFactorOneMinusDestinationAlpha,
-    },
-  };
-  return factors[src1][static_cast<int>(factor)];
-}
-
 std::unique_ptr<AbstractPipeline>
 Metal::Renderer::CreatePipeline(const AbstractPipelineConfig& config, const void* cache_data,
                                 size_t cache_data_length)
 {
-  @autoreleasepool
-  {
-    assert(!config.geometry_shader);
-    auto desc = MRCTransfer([MTLRenderPipelineDescriptor new]);
-    [desc setLabel:[NSString stringWithFormat:@"Pipeline %d", m_pipeline_counter++]];
-    [desc setVertexFunction:static_cast<const Shader*>(config.vertex_shader)->GetShader()];
-    [desc setFragmentFunction:static_cast<const Shader*>(config.pixel_shader)->GetShader()];
-    if (config.vertex_format)
-      [desc setVertexDescriptor:static_cast<const VertexFormat*>(config.vertex_format)->Get()];
-    RasterizationState rs = config.rasterization_state;
-    [desc setInputPrimitiveTopology:GetClass(rs.primitive)];
-    if (rs.cullmode == CullMode::All)
-      [desc setRasterizationEnabled:NO];
-    MTLRenderPipelineColorAttachmentDescriptor* color0 = [desc colorAttachments][0];
-    BlendingState bs = config.blending_state;
-    MTLColorWriteMask mask = MTLColorWriteMaskNone;
-    if (bs.colorupdate)
-      mask |= MTLColorWriteMaskRed | MTLColorWriteMaskGreen | MTLColorWriteMaskBlue;
-    if (bs.alphaupdate)
-      mask |= MTLColorWriteMaskAlpha;
-    [color0 setWriteMask:mask];
-    if (bs.blendenable)
-    {
-      [color0 setBlendingEnabled:YES];
-      [color0 setSourceRGBBlendFactor:       Convert(bs.srcfactor,      bs.usedualsrc)];
-      [color0 setSourceAlphaBlendFactor:     Convert(bs.srcfactoralpha, bs.usedualsrc)];
-      [color0 setDestinationRGBBlendFactor:  Convert(bs.dstfactor,      bs.usedualsrc)];
-      [color0 setDestinationAlphaBlendFactor:Convert(bs.dstfactoralpha, bs.usedualsrc)];
-      [color0 setRgbBlendOperation:  bs.subtract      ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
-      [color0 setAlphaBlendOperation:bs.subtractAlpha ? MTLBlendOperationReverseSubtract : MTLBlendOperationAdd];
-    }
-    FramebufferState fs = config.framebuffer_state;
-    [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format)];
-    [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];
-    if (Util::HasStencil(fs.depth_texture_format))
-      [desc setStencilAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];
-    NSError* err = nullptr;
-    MTLRenderPipelineReflection* reflection = nullptr;
-    id<MTLRenderPipelineState> pipe =
-        [g_device newRenderPipelineStateWithDescriptor:desc
-                                               options:MTLPipelineOptionArgumentInfo
-                                            reflection:&reflection
-                                                 error:&err];
-    if (err)
-    {
-      PanicAlertFmt("Failed to compile pipeline for {} and {}: {}",
-                    [[[desc vertexFunction] label] UTF8String],
-                    [[[desc fragmentFunction] label] UTF8String],
-                    [[err localizedDescription] UTF8String]);
-      return nullptr;
-    }
-    return std::make_unique<Pipeline>(MRCTransfer(pipe), reflection, Convert(rs.primitive),
-                                      Convert(rs.cullmode), config.depth_state, config.usage);
-  }
+  return g_object_cache->CreatePipeline(config);
 }
 
 void Metal::Renderer::Flush()

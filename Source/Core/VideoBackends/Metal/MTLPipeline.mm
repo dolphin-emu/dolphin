@@ -47,14 +47,18 @@ static void GetArguments(NSArray<MTLArgument*>* arguments, u32* textures, u32* s
   }
 }
 
+Metal::PipelineReflection::PipelineReflection(MTLRenderPipelineReflection* reflection)
+{
+  GetArguments([reflection vertexArguments], nullptr, nullptr, &vertex_buffers);
+  GetArguments([reflection fragmentArguments], &textures, &samplers, &fragment_buffers);
+}
+
 Metal::Pipeline::Pipeline(MRCOwned<id<MTLRenderPipelineState>> pipeline,
-                          MTLRenderPipelineReflection* reflection, MTLPrimitiveType prim,
+                          const PipelineReflection& reflection, MTLPrimitiveType prim,
                           MTLCullMode cull, DepthState depth, AbstractPipelineUsage usage)
     : m_pipeline(std::move(pipeline)), m_prim(prim), m_cull(cull), m_depth_stencil(depth),
-      m_usage(usage)
+      m_usage(usage), m_reflection(reflection)
 {
-  GetArguments([reflection vertexArguments], nullptr, nullptr, &m_vertex_buffers);
-  GetArguments([reflection fragmentArguments], &m_textures, &m_samplers, &m_fragment_buffers);
 }
 
 Metal::ComputePipeline::ComputePipeline(ShaderStage stage, MTLComputePipelineReflection* reflection,

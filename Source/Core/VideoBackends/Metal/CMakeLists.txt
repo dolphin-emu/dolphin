@@ -11,6 +11,7 @@ add_library(videometal
   MTLPipeline.h
   MTLRenderer.mm
   MTLRenderer.h
+  MTLShader.mm
   MTLShader.h
   MTLStateTracker.mm
   MTLStateTracker.h
@@ -18,6 +19,8 @@ add_library(videometal
   MTLTexture.h
   MTLUtil.mm
   MTLUtil.h
+  MTLVertexFormat.mm
+  MTLVertexFormat.h
   MTLVertexManager.mm
   MTLVertexManager.h
   VideoBackend.h

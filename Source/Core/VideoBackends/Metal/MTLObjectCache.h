@@ -10,8 +10,12 @@
 
 #include "VideoCommon/RenderState.h"
 
+struct AbstractPipelineConfig;
+class AbstractPipeline;
+
 namespace Metal
 {
+class Shader;
 extern MRCOwned<id<MTLDevice>> g_device;
 extern MRCOwned<id<MTLCommandQueue>> g_queue;
 
@@ -87,7 +91,12 @@ public:
 
   void ReloadSamplers();
 
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config);
+  void ShaderDestroyed(const Shader* shader);
+
 private:
+  class Internal;
+  std::unique_ptr<Internal> m_internal;
   MRCOwned<id<MTLSamplerState>> CreateSampler(SamplerSelector sel);
   MRCOwned<id<MTLDepthStencilState>> m_dss[DepthStencilSelector::N_VALUES];
   MRCOwned<id<MTLSamplerState>> m_samplers[SamplerSelector::N_VALUES];

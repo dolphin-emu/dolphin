@@ -15,13 +15,11 @@ namespace Metal
 class Shader : public AbstractShader
 {
 public:
-  explicit Shader(ShaderStage stage, std::string msl, MRCOwned<id<MTLFunction>> shader)
-      : AbstractShader(stage), m_msl(std::move(msl)), m_shader(std::move(shader))
-  {
-  }
+  explicit Shader(ShaderStage stage, std::string msl, MRCOwned<id<MTLFunction>> shader);
+  ~Shader();
 
   id<MTLFunction> GetShader() const { return m_shader; }
-  BinaryData GetBinary() const override { return BinaryData(m_msl.begin(), m_msl.end()); }
+  BinaryData GetBinary() const override;
 
 private:
   std::string m_msl;
