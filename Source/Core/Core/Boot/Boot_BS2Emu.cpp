@@ -37,6 +37,10 @@
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/XFMemory.h"
+
 namespace
 {
 void PresetTimeBaseTicks()
@@ -252,6 +256,17 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
   SetupBAT(/*is_wii*/ false);
 
   SetupGCMemory();
+
+  // Datel titles don't initialize the postMatrices, but they have dual-texture coordinate
+  // transformation enabled. We initialize all of xfmem to 0, which results in everything using
+  // a texture coordinate of (0, 0), breaking textures. Normally the IPL will initialize the last
+  // entry to the identity matrix, but the whole point of BS2 EMU is that it skips the IPL, so we
+  // need to do this initialization ourselves.
+  xfmem.postMatrices[0x3d * 4 + 0] = 1.0f;
+  xfmem.postMatrices[0x3e * 4 + 1] = 1.0f;
+  xfmem.postMatrices[0x3f * 4 + 2] = 1.0f;
+  g_vertex_manager->Flush();
+  VertexShaderManager::InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
 
   DVDReadDiscID(volume, 0x00000000);
 
