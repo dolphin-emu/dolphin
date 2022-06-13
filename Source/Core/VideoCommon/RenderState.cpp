@@ -120,12 +120,12 @@ void BlendingState::Generate(const BPMemory& bp)
   // Start with everything disabled.
   hex = 0;
 
-  bool target_has_alpha = bp.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
-  bool alpha_test_may_succeed = bp.alpha_test.TestResult() != AlphaTestResult::Fail;
+  const bool target_has_alpha = bp.zcontrol.pixel_format == PixelFormat::RGBA6_Z24;
+  const bool alpha_test_may_succeed = bp.alpha_test.TestResult() != AlphaTestResult::Fail;
 
   colorupdate = bp.blendmode.colorupdate && alpha_test_may_succeed;
   alphaupdate = bp.blendmode.alphaupdate && target_has_alpha && alpha_test_may_succeed;
-  dstalpha = bp.dstalpha.enable && alphaupdate;
+  const bool dstalpha = bp.dstalpha.enable && alphaupdate;
   usedualsrc = true;
 
   // The subtract bit has the highest priority

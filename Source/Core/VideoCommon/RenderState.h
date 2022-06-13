@@ -130,7 +130,6 @@ union BlendingState
 
   BitField<0, 1, u32> blendenable;
   BitField<1, 1, u32> logicopenable;
-  BitField<2, 1, u32> dstalpha;
   BitField<3, 1, u32> colorupdate;
   BitField<4, 1, u32> alphaupdate;
   BitField<5, 1, u32> subtract;
