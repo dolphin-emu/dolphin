@@ -11,12 +11,10 @@ std::unique_ptr<Metal::ObjectCache> Metal::g_object_cache;
 
 static void SetupDepthStencil(
     MRCOwned<id<MTLDepthStencilState>> (&dss)[Metal::DepthStencilSelector::N_VALUES]);
-static void SetupSamplers(MRCOwned<id<MTLSamplerState>> (&samplers)[Metal::SamplerSelector::N_VALUES]);
 
 Metal::ObjectCache::ObjectCache()
 {
   SetupDepthStencil(m_dss);
-  SetupSamplers(m_samplers);
 }
 
 Metal::ObjectCache::~ObjectCache()
@@ -147,13 +145,11 @@ static const char* to_string(WrapMode wrap)
 
 // clang-format on
 
-static void SetupSamplers(MRCOwned<id<MTLSamplerState>> (&samplers)[Metal::SamplerSelector::N_VALUES])
+MRCOwned<id<MTLSamplerState>> Metal::ObjectCache::CreateSampler(SamplerSelector sel)
 {
-  auto desc = MRCTransfer([MTLSamplerDescriptor new]);
-  Metal::SamplerSelector sel;
-  for (size_t i = 0; i < std::size(samplers); i++)
+  @autoreleasepool
   {
-    sel.value = i;
+    auto desc = MRCTransfer([MTLSamplerDescriptor new]);
     [desc setMinFilter:ConvertMinMag(sel.MinFilter())];
     [desc setMagFilter:ConvertMinMag(sel.MagFilter())];
     [desc setMipFilter:ConvertMip(sel.MipFilter())];
@@ -165,11 +161,12 @@ static void SetupSamplers(MRCOwned<id<MTLSamplerState>> (&samplers)[Metal::Sampl
                                       to_string(sel.MagFilter()), to_string(sel.MipFilter()),
                                       to_string(sel.WrapU()), to_string(sel.WrapV()),
                                       sel.AnisotropicFiltering() ? "(AF)" : ""])];
-    samplers[i] = MRCTransfer([Metal::g_device newSamplerStateWithDescriptor:desc]);
+    return MRCTransfer([Metal::g_device newSamplerStateWithDescriptor:desc]);
   }
 }
 
 void Metal::ObjectCache::ReloadSamplers()
 {
-  SetupSamplers(m_samplers);
+  for (auto& sampler : m_samplers)
+    sampler = nullptr;
 }
