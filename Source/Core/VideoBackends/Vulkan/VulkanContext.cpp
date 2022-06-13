@@ -377,6 +377,10 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
     // We will use shader blending, so disable hardware dual source blending.
     config->backend_info.bSupportsDualSourceBlend = false;
   }
+
+  // Dynamic sampler indexing locks up Intel GPUs on MoltenVK/Metal
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING))
+    config->backend_info.bSupportsDynamicSamplerIndexing = false;
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(
