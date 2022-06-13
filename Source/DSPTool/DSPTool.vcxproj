@@ -22,12 +22,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Testdata\dsp_test.bin" />
-    <None Include="Testdata\dsp_test.S" />
-    <None Include="Testdata\hermes.bin" />
-    <None Include="Testdata\hermes.s" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="DSPTool.cpp" />
     <ClCompile Include="StubHost.cpp" />
   </ItemGroup>
