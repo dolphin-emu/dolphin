@@ -749,8 +749,8 @@ static void WriteXFBEncoder(ShaderCode& code, APIType api_type, const EFBCopyPar
   WriteSampleColor(code, "rgb", "color1", 1, api_type, params);
 
   // Gamma is only applied to XFB copies.
-  code.Write("  color0 = pow(color0, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n"
-             "  color1 = pow(color1, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
+  code.Write("  color0 = pow(abs(color0), float3(gamma_rcp, gamma_rcp, gamma_rcp));\n"
+             "  color1 = pow(abs(color1), float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
 
   // Convert to YUV.
   code.Write("  const float3 y_const = float3(0.257, 0.504, 0.098);\n"
