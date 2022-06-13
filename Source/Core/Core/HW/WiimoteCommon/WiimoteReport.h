@@ -177,9 +177,11 @@ struct ButtonData
   BFVIEW_M(hex, bool, 2, 1, down);
   BFVIEW_M(hex, bool, 3, 1, up);
   BFVIEW_M(hex, bool, 4, 1, plus);
+  // Take note of the overlapping bitfields
   // For most input reports this is the 2 LSbs of accel.x:
   // For interleaved reports this is alternating bits of accel.z:
-  BFVIEW_M(hex, u16, 5, 2, acc_bits);
+  BFVIEW_M(hex, u16, 5, 2, acc_x_lsb);
+  BFVIEW_M(hex, u16, 5, 2, acc_z_bits1);
   BFVIEW_M(hex, u16, 7, 1, unknown);
 
   BFVIEW_M(hex, bool, 8, 1, two);
@@ -187,9 +189,12 @@ struct ButtonData
   BFVIEW_M(hex, bool, 10, 1, b);
   BFVIEW_M(hex, bool, 11, 1, a);
   BFVIEW_M(hex, bool, 12, 1, minus);
-  // For most input reports this is bits of accel.y/z:
+  // Take note of the overlapping bitfields
+  // For most input reports this is the LSb of accel.y/z:
   // For interleaved reports this is alternating bits of accel.z:
-  BFVIEW_M(hex, u16, 13, 2, acc_bits2);
+  BFVIEW_M(hex, u16, 13, 1, acc_y_lsb);
+  BFVIEW_M(hex, u16, 14, 1, acc_z_lsb);
+  BFVIEW_M(hex, u16, 13, 2, acc_z_bits2);
   BFVIEW_M(hex, bool, 15, 1, home);
 };
 static_assert(sizeof(ButtonData) == 2, "Wrong size");
