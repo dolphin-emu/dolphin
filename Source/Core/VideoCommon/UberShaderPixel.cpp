@@ -3,6 +3,8 @@
 
 #include "VideoCommon/UberShaderPixel.h"
 
+#include "Common/Assert.h"
+
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -39,8 +41,11 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
 {
   pixel_ubershader_uid_data* const uid_data = uid->GetUidData();
 
+  // With fbfetch, ubershaders always blend using that and don't use dual src
+  if (host_config.backend_shader_framebuffer_fetch || !host_config.backend_dual_source_blend)
+    uid_data->no_dual_src = 1;
   // Dual source is always enabled in the shader if this bug is not present
-  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
+  else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING))
     uid_data->no_dual_src = 0;
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
@@ -57,19 +62,16 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
+  const bool use_framebuffer_fetch = host_config.backend_shader_framebuffer_fetch;
   const bool use_dual_source = host_config.backend_dual_source_blend && !uid_data->no_dual_src;
-  const bool use_shader_blend = !host_config.backend_dual_source_blend &&
-                                host_config.backend_shader_framebuffer_fetch;
-  const bool use_shader_logic_op =
-      !host_config.backend_logic_op && host_config.backend_shader_framebuffer_fetch;
-  const bool use_framebuffer_fetch =
-      use_shader_blend || use_shader_logic_op ||
-      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
   const bool bounding_box = host_config.bounding_box;
   const u32 numTexgen = uid_data->num_texgens;
   ShaderCode out;
+
+  ASSERT_MSG(VIDEO, !(use_dual_source && use_framebuffer_fetch),
+             "If you're using framebuffer fetch, you shouldn't need dual source blend!");
 
   out.Write("// {}\n", *uid_data);
   WriteBitfieldExtractHeader(out, api_type, host_config);
@@ -84,9 +86,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     if (use_dual_source)
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
-                "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
-                use_framebuffer_fetch ? "real_ocol0" : "ocol0");
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n"
+                "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
     }
     else
     {
@@ -525,12 +526,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     // intermediate value with multiple reads & modifications, so we pull out the "real" output
     // value above and use a temporary for calculations, then set the output value once at the
     // end of the shader.
-    out.Write("  float4 ocol0;\n");
-  }
-
-  if (use_shader_blend)
-  {
-    out.Write("  float4 ocol1;\n");
+    out.Write("  float4 ocol0;\n"
+              "  float4 ocol1;\n");
   }
 
   if (host_config.backend_geometry_shaders && stereo)
@@ -948,8 +945,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
   {
     // Instead of using discard, fetch the framebuffer's color value and use it as the output
     // for this fragment.
-    out.Write("  #define discard_fragment {{ {} = float4(initial_ocol0.xyz, 1.0); return; }}\n",
-              use_shader_blend ? "real_ocol0" : "ocol0");
+    out.Write(
+        "  #define discard_fragment {{ real_ocol0 = float4(initial_ocol0.xyz, 1.0); return; }}\n");
   }
   else
   {
@@ -1060,7 +1057,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "  }}\n"
             "\n");
 
-  if (use_shader_logic_op)
+  if (use_framebuffer_fetch)
   {
     static constexpr std::array<const char*, 16> logic_op_mode{
         "int4(0, 0, 0, 0)",          // CLEAR
@@ -1117,7 +1114,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "    ocol0.a = float(TevResult.a >> 2) / 63.0;\n"
               "  \n");
 
-    if (use_dual_source || use_shader_blend)
+    if (use_dual_source || use_framebuffer_fetch)
     {
       out.Write("  // Dest alpha override (dual source blending)\n"
                 "  // Colors will be blended against the alpha from ocol1 and\n"
@@ -1133,7 +1130,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  }}\n");
   }
 
-  if (use_shader_blend)
+  if (use_framebuffer_fetch)
   {
     using Common::EnumMap;
 
@@ -1211,10 +1208,6 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     out.Write("  }} else {{\n"
               "    real_ocol0 = ocol0;\n"
               "  }}\n");
-  }
-  else if (use_framebuffer_fetch)
-  {
-    out.Write("  real_ocol0 = ocol0;\n");
   }
 
   out.Write("}}\n"
