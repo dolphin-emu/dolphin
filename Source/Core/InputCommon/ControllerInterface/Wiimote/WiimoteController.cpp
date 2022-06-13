@@ -350,7 +350,7 @@ void Device::RunTasks()
   if (m_leds != desired_leds)
   {
     OutputReportLeds rpt = {};
-    rpt.ack() = 1;
+    rpt.ack() = true;
     rpt.leds() = desired_leds;
     QueueReport(rpt, [this, desired_leds](ErrorCode result) {
       if (result != ErrorCode::Success)
@@ -372,7 +372,7 @@ void Device::RunTasks()
   if (m_reporting_mode != desired_reporting_mode)
   {
     OutputReportMode mode = {};
-    mode.ack() = 1;
+    mode.ack() = true;
     mode.mode = desired_reporting_mode;
     QueueReport(mode, [this](ErrorCode error) {
       if (error != ErrorCode::Success)
@@ -937,8 +937,8 @@ void Device::ConfigureIRCamera()
   if (!m_ir_state.enabled)
   {
     OutputReportIRLogicEnable2 ir_logic2 = {};
-    ir_logic2.ack() = 1;
-    ir_logic2.enable() = 1;
+    ir_logic2.ack() = true;
+    ir_logic2.enable() = true;
     QueueReport(ir_logic2, [this](ErrorCode result) {
       if (result != ErrorCode::Success)
       {
@@ -947,8 +947,8 @@ void Device::ConfigureIRCamera()
       }
 
       OutputReportIRLogicEnable ir_logic = {};
-      ir_logic.ack() = 1;
-      ir_logic.enable() = 1;
+      ir_logic.ack() = true;
+      ir_logic.enable() = true;
       QueueReport(ir_logic, [this](ErrorCode ir_result) {
         if (ir_result != ErrorCode::Success)
         {
@@ -1009,8 +1009,8 @@ void Device::ConfigureIRCamera()
 void Device::ConfigureSpeaker()
 {
   OutputReportSpeakerMute mute = {};
-  mute.enable() = 1;
-  mute.ack() = 1;
+  mute.enable() = true;
+  mute.ack() = true;
   QueueReport(mute, [this](ErrorCode mute_result) {
     if (mute_result != ErrorCode::Success)
     {
@@ -1019,8 +1019,8 @@ void Device::ConfigureSpeaker()
     }
 
     OutputReportSpeakerEnable spkr = {};
-    spkr.enable() = 0;
-    spkr.ack() = 1;
+    spkr.enable() = false;
+    spkr.ack() = true;
     QueueReport(spkr, [this](ErrorCode enable_result) {
       if (enable_result != ErrorCode::Success)
       {

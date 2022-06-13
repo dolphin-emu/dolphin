@@ -226,7 +226,7 @@ void Wiimote::ResetDataReporting()
   // FYI: This also disables rumble.
   OutputReportMode rpt = {};
   rpt.mode = InputReportID::ReportCore;
-  rpt.continuous() = 0;
+  rpt.continuous() = false;
   QueueReport(rpt);
 }
 
@@ -275,7 +275,7 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
     if (0 == leds_rpt.leds())
     {
       // Turn on ALL of the LEDs.
-      leds_rpt.leds() = 0xf;
+      leds_rpt.leds() = 0b1111;
     }
   }
   else if (rpt[1] == u8(OutputReportID::SpeakerData) &&
