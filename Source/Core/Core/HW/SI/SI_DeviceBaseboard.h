@@ -20,7 +20,8 @@ public:
 private:
   enum EBufferCommands
   {
-    CMD_RESET = 0x00
+    CMD_RESET = 0x00,
+    CMD_GCAM = 0x70 // fix naming
   };
 };
 }  // namespace SerialInterface

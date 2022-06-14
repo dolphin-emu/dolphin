@@ -30,6 +30,21 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
+  case EBufferCommands::CMD_GCAM:
+  {
+    // "calculate checksum over buffer"
+    int csum = 0;
+    for (int i=0; i < request_length; ++i)
+      csum += buffer[i];
+
+    int real_len = buffer[1];
+#define ptr(x) buffer[(2 + x)]
+    while (2 < real_len+2)
+    {
+      ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI subcommand {:02x} {:02x} {:02x} {:02x} {:02x}",
+                    ptr(0), ptr(1), ptr(2), ptr(3), ptr(4));
+    }
+  }
   default:
   {
     ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command {:02x} {:02x} {:02x} {:02x} {:02x}",
