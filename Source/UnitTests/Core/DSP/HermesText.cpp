@@ -9,7 +9,9 @@ SPDX-License-Identifier: BSD-3-Clause
 
 */
 
+#include "HermesText.h"
 
+const char s_hermes_text[21370] = R"(
 /********************************/
 /**      REGISTER NAMES        **/
 /********************************/
@@ -542,7 +544,11 @@ no_delay:
 /////////////////////////////////////
 // end of delay time section
 /////////////////////////////////////
-
+)"  // Work around C2026 on MSVC, which allows at most 16380 single-byte characters in a single
+    // non-concatenated string literal (but you can concatenate multiple shorter string literals to
+    // produce a longer string just fine).  (This comment is not part of the actual test program,
+    // and instead there is a single blank line at this location.)
+                                  R"(
 /* bucle de generacion de samples */
 
 	
@@ -1077,4 +1083,4 @@ polla_loca:
 	clr	$ACC0
 	jmp	recv_cmd
 
-
+)";

@@ -8,6 +8,7 @@
 #include "DSPTestBinary.h"
 #include "DSPTestText.h"
 #include "HermesBinary.h"
+#include "HermesText.h"
 
 #include <gtest/gtest.h>
 
@@ -129,6 +130,11 @@ TEST(DSPAssembly, ExtendedInstructions)
                         "   ADDAXL'MV   $ACC1, $AX1.L : $AX1.H, $AC1.M\n"));
 }
 
+TEST(DSPAssembly, HermesText)
+{
+  ASSERT_TRUE(SuperTrip(s_hermes_text));
+}
+
 TEST(DSPAssembly, HermesBinary)
 {
   ASSERT_TRUE(RoundTrip(s_hermes_bin));
@@ -143,12 +149,3 @@ TEST(DSPAssembly, DSPTestBinary)
 {
   ASSERT_TRUE(RoundTrip(s_dsp_test_bin));
 }
-
-/*
-
-if (File::ReadFileToString("C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test))
-  SuperTrip(dsp_test.c_str());
-
-//.File::ReadFileToString("C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
-// This is CLOSE to working. Sorry about the local path btw. This is preliminary code.
-*/
