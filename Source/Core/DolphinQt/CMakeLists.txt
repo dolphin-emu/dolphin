@@ -572,20 +572,31 @@ if(APPLE)
 
   # Copy MoltenVK into the bundle
   if(ENABLE_VULKAN)
-    add_dependencies(dolphin-emu MoltenVK)
-    ExternalProject_Get_Property(MoltenVK SOURCE_DIR)
-    target_sources(dolphin-emu PRIVATE "${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib")
-    set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
+    if(USE_BUNDLED_MOLTENVK)
+      add_dependencies(dolphin-emu MoltenVK)
+      ExternalProject_Get_Property(MoltenVK SOURCE_DIR)
+      target_sources(dolphin-emu PRIVATE "${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib")
+      set_source_files_properties("${SOURCE_DIR}/Package/Release/MoltenVK/dylib/macOS/libMoltenVK.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks GENERATED ON)
+    else()
+      find_file(MOLTENVK_DYLIB NAMES libMoltenVK.dylib PATH_SUFFIXES lib)
+      if(NOT MOLTENVK_DYLIB)
+        message(FATAL_ERROR "Couldn't find libMoltenVK.dylib.  Enable USE_BUNDLED_MOLTENVK?")
+      endif()
+      target_sources(dolphin-emu PRIVATE ${MOLTENVK_DYLIB})
+      set_source_files_properties(${MOLTENVK_DYLIB} PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
+    endif()
   endif()
 
-  # Update library references to make the bundle portable
-  include(DolphinPostprocessBundle)
-  dolphin_postprocess_bundle(dolphin-emu)
-  # Fix rpath
-  add_custom_command(TARGET dolphin-emu
-    POST_BUILD COMMAND
-    ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
-    $<TARGET_FILE:dolphin-emu>)
+  if(NOT SKIP_POSTPROCESS_BUNDLE)
+    # Update library references to make the bundle portable
+    include(DolphinPostprocessBundle)
+    dolphin_postprocess_bundle(dolphin-emu)
+    # Fix rpath
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
+      $<TARGET_FILE:dolphin-emu>)
+  endif()
 
   if(MACOS_CODE_SIGNING)
     # Code sign make file builds
