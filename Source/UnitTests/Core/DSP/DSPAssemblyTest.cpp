@@ -12,7 +12,7 @@
 
 #include <gtest/gtest.h>
 
-static bool RoundTrippableDissassemble(const std::vector<u16>& code, std::string& text)
+static bool RoundTrippableDisassemble(const std::vector<u16>& code, std::string& text)
 {
   DSP::AssemblerSettings settings;
   settings.ext_separator = '\'';
@@ -32,7 +32,7 @@ static bool RoundTrip(const std::vector<u16>& code1)
 {
   std::vector<u16> code2;
   std::string text;
-  if (!RoundTrippableDissassemble(code1, text))
+  if (!RoundTrippableDisassemble(code1, text))
   {
     printf("RoundTrip: Disassembly failed.\n");
     return false;
@@ -63,7 +63,7 @@ static bool SuperTrip(const char* asm_code)
   }
   printf("First assembly: %i words\n", (int)code1.size());
 
-  if (!RoundTrippableDissassemble(code1, text))
+  if (!RoundTrippableDisassemble(code1, text))
   {
     printf("SuperTrip: Disassembly failed\n");
     return false;
