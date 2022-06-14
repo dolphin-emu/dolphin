@@ -46,8 +46,8 @@ static bool RoundTrip(const std::vector<u16>& code1)
   }
   if (!DSP::Compare(code1, code2))
   {
-    DSP::Disassemble(code1, true, text);
-    fmt::print("{}", text);
+    fmt::print("RoundTrip: Assembled code does not match input code\n");
+    return false;
   }
   return true;
 }
@@ -79,6 +79,12 @@ static bool SuperTrip(const char* asm_code)
   if (!DSP::Assemble(text, code2))
   {
     fmt::print("SuperTrip: Second assembly failed\n");
+    return false;
+  }
+
+  if (!DSP::Compare(code1, code2))
+  {
+    fmt::print("SuperTrip: Assembled code does not match between passes\n");
     return false;
   }
   return true;
