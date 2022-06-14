@@ -115,7 +115,7 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
       u16 pc = i;
       std::string line;
       disassembler.DisassembleOpcode(longest, &pc, line);
-      fmt::print("!! {}\n", line);
+      fmt::print("!! {:04x} : {:04x} - {}\n", i, longest[i], line);
     }
   }
   fmt::print("Equal instruction words: {} / {}\n", count_equal, min_size);
