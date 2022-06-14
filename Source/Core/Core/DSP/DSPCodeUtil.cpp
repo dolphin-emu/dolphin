@@ -57,10 +57,12 @@ bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& t
   return success;
 }
 
+// NOTE: This code is called from DSPTool and UnitTests, which do not use the logging system.
+// Thus, fmt::print is used instead of the log system.
 bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
 {
   if (code1.size() != code2.size())
-    WARN_LOG_FMT(AUDIO, "Size difference! 1={} 2={}\n", code1.size(), code2.size());
+    fmt::print("Size difference! 1={} 2={}\n", code1.size(), code2.size());
   u32 count_equal = 0;
   const u16 min_size = static_cast<u16>(std::min(code1.size(), code2.size()));
 
@@ -79,23 +81,23 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
       disassembler.DisassembleOpcode(&code1[0], &pc, line1);
       pc = i;
       disassembler.DisassembleOpcode(&code2[0], &pc, line2);
-      WARN_LOG_FMT(AUDIO, "!! {:04x} : {:04x} vs {:04x} - {}  vs  {}\n", i, code1[i], code2[i],
-                   line1, line2);
+      fmt::print("!! {:04x} : {:04x} vs {:04x} - {}  vs  {}\n", i, code1[i], code2[i], line1,
+                 line2);
     }
   }
   if (code2.size() != code1.size())
   {
-    DEBUG_LOG_FMT(AUDIO, "Extra code words:\n");
+    fmt::print("Extra code words:\n");
     const std::vector<u16>& longest = code1.size() > code2.size() ? code1 : code2;
     for (u16 i = min_size; i < longest.size(); i++)
     {
       u16 pc = i;
       std::string line;
       disassembler.DisassembleOpcode(&longest[0], &pc, line);
-      DEBUG_LOG_FMT(AUDIO, "!! {}\n", line);
+      fmt::print("!! {}\n", line);
     }
   }
-  DEBUG_LOG_FMT(AUDIO, "Equal instruction words: {} / {}\n", count_equal, min_size);
+  fmt::print("Equal instruction words: {} / {}\n", count_equal, min_size);
   return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
