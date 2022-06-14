@@ -3,7 +3,6 @@
 
 #include <fmt/format.h>
 
-#include "Common/FileUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPDisassembler.h"
 
