@@ -83,6 +83,27 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
       disassembler.DisassembleOpcode(code2, &pc, line2);
       fmt::print("!! {:04x} : {:04x} vs {:04x} - {}  vs  {}\n", i, code1[i], code2[i], line1,
                  line2);
+
+      // Also do a comparison one word back if the previous word corresponded to an instruction with
+      // a large immediate. (Compare operates on individual words, so both the main word and the
+      // immediate following it are compared separately; we don't use DisassembleOpcode's ability to
+      // increment pc by 2 for two-word instructions because code1 may have a 1-word instruction
+      // where code2 has a 2-word instruction.)
+      if (i >= 1 && code1[i - 1] == code2[i - 1])
+      {
+        const DSPOPCTemplate* opc = FindOpInfoByOpcode(code1[i - 1]);
+        if (opc != nullptr && opc->size == 2)
+        {
+          line1.clear();
+          line2.clear();
+          pc = i - 1;
+          disassembler.DisassembleOpcode(code1, &pc, line1);
+          pc = i - 1;
+          disassembler.DisassembleOpcode(code2, &pc, line2);
+          fmt::print("   (or {:04x} : {:04x} {:04x} vs {:04x} {:04x} - {}  vs  {})\n", i - 1,
+                     code1[i - 1], code1[i], code2[i - 1], code2[i], line1, line2);
+        }
+      }
     }
   }
   if (code2.size() != code1.size())
