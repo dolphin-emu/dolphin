@@ -967,8 +967,8 @@ wait_dma:
 wait_for_dsp_mail:
 
 	lrs	$ACM1, @DMBH
-	andf	$ACM1, #0x8000
-	jnz	wait_for_dsp_mail
+	andcf	$ACM1, #0x8000
+	jlz	wait_for_dsp_mail
 	ret
 
 wait_for_cpu_mail:
