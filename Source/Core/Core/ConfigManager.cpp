@@ -220,53 +220,6 @@ std::string SConfig::MakeGameID(std::string_view file_name)
   return "ID-" + std::string(file_name.substr(0, lastdot));
 }
 
-// The reason we need this function is because some memory card code
-// expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
-DiscIO::Region SConfig::ToGameCubeRegion(DiscIO::Region region)
-{
-  if (region != DiscIO::Region::NTSC_K)
-    return region;
-
-  // GameCube has no NTSC-K region. No choice of replacement value is completely
-  // non-arbitrary, but let's go with NTSC-J since Korean GameCubes are NTSC-J.
-  return DiscIO::Region::NTSC_J;
-}
-
-const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
-{
-  if (region == DiscIO::Region::Unknown)
-    region = ToGameCubeRegion(GetFallbackRegion());
-
-  switch (region)
-  {
-  case DiscIO::Region::NTSC_J:
-    return JAP_DIR;
-
-  case DiscIO::Region::NTSC_U:
-    return USA_DIR;
-
-  case DiscIO::Region::PAL:
-    return EUR_DIR;
-
-  case DiscIO::Region::NTSC_K:
-    ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
-    return JAP_DIR;  // See ToGameCubeRegion
-
-  default:
-    ASSERT_MSG(BOOT, false, "Default case should not be reached");
-    return EUR_DIR;
-  }
-}
-
-std::string SConfig::GetBootROMPath(const std::string& region_directory) const
-{
-  const std::string path =
-      File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + region_directory + DIR_SEP GC_IPL;
-  if (!File::Exists(path))
-    return File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region_directory + DIR_SEP GC_IPL;
-  return path;
-}
-
 struct SetGameMetadata
 {
   SetGameMetadata(SConfig* config_, DiscIO::Region* region_) : config(config_), region(region_) {}
@@ -375,19 +328,14 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
     return false;
 
   if (m_region == DiscIO::Region::Unknown)
-    m_region = GetFallbackRegion();
+    m_region = Config::Get(Config::MAIN_FALLBACK_REGION);
 
   // Set up paths
-  const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
+  const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(m_region));
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-  m_strBootROM = GetBootROMPath(region_dir);
+  m_strBootROM = Config::GetBootROMPath(region_dir);
 
   return true;
-}
-
-DiscIO::Region SConfig::GetFallbackRegion()
-{
-  return Config::Get(Config::MAIN_FALLBACK_REGION);
 }
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const

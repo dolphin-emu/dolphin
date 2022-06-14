@@ -331,4 +331,15 @@ extern const Info<std::string> MAIN_USB_PASSTHROUGH_DEVICES;
 std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist();
 void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices);
 
+// GameCube path utility functions
+
+// Replaces NTSC-K with some other region, and doesn't replace non-NTSC-K regions
+DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
+// The region argument must be valid for GameCube (i.e. must not be NTSC-K)
+const char* GetDirectoryForRegion(DiscIO::Region region);
+std::string GetBootROMPath(const std::string& region_directory);
+std::string GetMemcardPath(ExpansionInterface::Slot slot, DiscIO::Region region,
+                           u16 size_mb = 0x80);
+std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
+                           DiscIO::Region region, u16 size_mb = 0x80);
 }  // namespace Config

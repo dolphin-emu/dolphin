@@ -12,6 +12,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/EnumMap.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
@@ -19,6 +20,7 @@
 #include "Core/Config/DefaultLocale.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/HSP/HSP_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -522,5 +524,98 @@ std::set<std::pair<u16, u16>> GetUSBDeviceWhitelist()
 void SetUSBDeviceWhitelist(const std::set<std::pair<u16, u16>>& devices)
 {
   Config::SetBase(Config::MAIN_USB_PASSTHROUGH_DEVICES, SaveUSBWhitelistToString(devices));
+}
+
+// The reason we need this function is because some memory card code
+// expects to get a non-NTSC-K region even if we're emulating an NTSC-K Wii.
+DiscIO::Region ToGameCubeRegion(DiscIO::Region region)
+{
+  if (region != DiscIO::Region::NTSC_K)
+    return region;
+
+  // GameCube has no NTSC-K region. No choice of replacement value is completely
+  // non-arbitrary, but let's go with NTSC-J since Korean GameCubes are NTSC-J.
+  return DiscIO::Region::NTSC_J;
+}
+
+const char* GetDirectoryForRegion(DiscIO::Region region)
+{
+  if (region == DiscIO::Region::Unknown)
+    region = ToGameCubeRegion(Config::Get(Config::MAIN_FALLBACK_REGION));
+
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
+    return JAP_DIR;
+
+  case DiscIO::Region::NTSC_U:
+    return USA_DIR;
+
+  case DiscIO::Region::PAL:
+    return EUR_DIR;
+
+  case DiscIO::Region::NTSC_K:
+    ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
+    return JAP_DIR;  // See ToGameCubeRegion
+
+  default:
+    ASSERT_MSG(BOOT, false, "Default case should not be reached");
+    return EUR_DIR;
+  }
+}
+
+std::string GetBootROMPath(const std::string& region_directory)
+{
+  const std::string path =
+      File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + region_directory + DIR_SEP GC_IPL;
+  if (!File::Exists(path))
+    return File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region_directory + DIR_SEP GC_IPL;
+  return path;
+}
+
+std::string GetMemcardPath(ExpansionInterface::Slot slot, DiscIO::Region region, u16 size_mb)
+{
+  return GetMemcardPath(Config::Get(GetInfoForMemcardPath(slot)), slot, region, size_mb);
+}
+
+std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
+                           DiscIO::Region region, u16 size_mb)
+{
+  const std::string region_dir = Config::GetDirectoryForRegion(Config::ToGameCubeRegion(region));
+  const std::string blocks_string = size_mb < Memcard::MBIT_SIZE_MEMORY_CARD_2043 ?
+                                        fmt::format(".{}", Memcard::MbitToFreeBlocks(size_mb)) :
+                                        "";
+
+  if (configured_filename.empty())
+  {
+    // Use default memcard path if there is no user defined one.
+    const bool is_slot_a = slot == ExpansionInterface::Slot::A;
+    return fmt::format("{}{}.{}{}.raw", File::GetUserPath(D_GCUSER_IDX),
+                       is_slot_a ? GC_MEMCARDA : GC_MEMCARDB, region_dir, blocks_string);
+  }
+
+  // Custom path is expected to be stored in the form of
+  // "/path/to/file.{region_code}.raw"
+  // with an arbitrary but supported region code.
+  // Try to extract and replace that region code.
+  // If there's no region code just insert one before the extension.
+
+  std::string dir;
+  std::string name;
+  std::string ext;
+  UnifyPathSeparators(configured_filename);
+  SplitPath(configured_filename, &dir, &name, &ext);
+
+  constexpr std::string_view us_region = "." USA_DIR;
+  constexpr std::string_view jp_region = "." JAP_DIR;
+  constexpr std::string_view eu_region = "." EUR_DIR;
+  if (StringEndsWith(name, us_region))
+    name = name.substr(0, name.size() - us_region.size());
+  else if (StringEndsWith(name, jp_region))
+    name = name.substr(0, name.size() - jp_region.size());
+  else if (StringEndsWith(name, eu_region))
+    name = name.substr(0, name.size() - eu_region.size());
+
+  return fmt::format("{}{}.{}{}{}", dir, name, region_dir, blocks_string, ext);
 }
 }  // namespace Config

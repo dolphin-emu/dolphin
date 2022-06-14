@@ -162,8 +162,8 @@ CEXIMemoryCard::GetGCIFolderPath(Slot card_slot, AllowMovieFolder allow_movie_fo
   if (use_movie_folder)
     path += "Movie" DIR_SEP;
 
-  const DiscIO::Region region = SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region);
-  path = path + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+  const DiscIO::Region region = Config::ToGameCubeRegion(SConfig::GetInstance().m_region);
+  path = path + Config::GetDirectoryForRegion(region) + DIR_SEP +
          fmt::format("Card {}", s_card_short_names[card_slot]);
   return {std::move(path), !use_movie_folder};
 }
@@ -188,7 +188,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
   if (!file_info.Exists())
   {
     if (migrate)  // first use of memcard folder, migrate automatically
-      MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_slot);
+      MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_slot, SConfig::GetInstance().m_region);
     else
       File::CreateFullPath(dir_path + DIR_SEP);
   }
@@ -198,7 +198,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     {
       PanicAlertFmtT("{0} was not a directory, moved to *.original", dir_path);
       if (migrate)
-        MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_slot);
+        MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_slot, SConfig::GetInstance().m_region);
       else
         File::CreateFullPath(dir_path + DIR_SEP);
     }
@@ -218,22 +218,16 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 
 void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
 {
-  std::string filename = Config::Get(Config::GetInfoForMemcardPath(m_card_slot));
+  std::string filename;
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(m_card_slot) &&
       Movie::IsStartingFromClearSave())
   {
     filename = File::GetUserPath(D_GCUSER_IDX) +
                fmt::format("Movie{}.raw", s_card_short_names[m_card_slot]);
   }
-
-  const std::string region_dir =
-      SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
-  MemoryCard::CheckPath(filename, region_dir, m_card_slot);
-
-  if (size_mb < Memcard::MBIT_SIZE_MEMORY_CARD_2043)
+  else
   {
-    filename.insert(filename.find_last_of('.'),
-                    fmt::format(".{}", Memcard::MbitToFreeBlocks(size_mb)));
+    filename = Config::GetMemcardPath(m_card_slot, SConfig::GetInstance().m_region, size_mb);
   }
 
   m_memory_card = std::make_unique<MemoryCard>(filename, m_card_slot, size_mb);

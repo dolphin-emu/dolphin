@@ -335,6 +335,23 @@ bool SplitPath(std::string_view full_path, std::string* path, std::string* filen
   return true;
 }
 
+void UnifyPathSeparators(std::string& path)
+{
+#ifdef _WIN32
+  for (char& c : path)
+  {
+    if (c == '\\')
+      c = '/';
+  }
+#endif
+}
+
+std::string WithUnifiedPathSeparators(std::string path)
+{
+  UnifyPathSeparators(path);
+  return path;
+}
+
 std::string PathToFileName(std::string_view path)
 {
   std::string file_name, extension;
