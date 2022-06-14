@@ -77,13 +77,15 @@ void AutoDisassembly(const SDSP& dsp, u16 start_addr, u16 end_addr)
 
   u16 addr = start_addr;
   const u16* ptr = (start_addr >> 15) != 0 ? dsp.irom : dsp.iram;
+  constexpr size_t size = DSP_IROM_SIZE;
+  static_assert(size == DSP_IRAM_SIZE);
   while (addr < end_addr)
   {
     line_to_addr[line_counter] = addr;
     addr_to_line[addr] = line_counter;
 
     std::string buf;
-    if (!disasm.DisassembleOpcode(ptr, &addr, buf))
+    if (!disasm.DisassembleOpcode(ptr, size, &addr, buf))
     {
       ERROR_LOG_FMT(DSPLLE, "disasm failed at {:04x}", addr);
       break;

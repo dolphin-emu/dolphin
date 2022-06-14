@@ -78,9 +78,9 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
     {
       std::string line1, line2;
       u16 pc = i;
-      disassembler.DisassembleOpcode(&code1[0], &pc, line1);
+      disassembler.DisassembleOpcode(code1, &pc, line1);
       pc = i;
-      disassembler.DisassembleOpcode(&code2[0], &pc, line2);
+      disassembler.DisassembleOpcode(code2, &pc, line2);
       fmt::print("!! {:04x} : {:04x} vs {:04x} - {}  vs  {}\n", i, code1[i], code2[i], line1,
                  line2);
     }
@@ -93,7 +93,7 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
     {
       u16 pc = i;
       std::string line;
-      disassembler.DisassembleOpcode(&longest[0], &pc, line);
+      disassembler.DisassembleOpcode(longest, &pc, line);
       fmt::print("!! {}\n", line);
     }
   }
