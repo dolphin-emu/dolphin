@@ -90,6 +90,29 @@ static bool SuperTrip(const char* asm_code)
   return true;
 }
 
+// Assembles asm_code, and verifies that it matches code1.
+static bool AssembleAndCompare(const char* asm_code, const std::vector<u16>& code1)
+{
+  std::vector<u16> code2;
+  if (!DSP::Assemble(asm_code, code2))
+  {
+    fmt::print("AssembleAndCompare: Assembly failed\n");
+    return false;
+  }
+
+  fmt::print("AssembleAndCompare: Produced {} words; padding to {} words\n", code2.size(),
+             code1.size());
+  while (code2.size() < code1.size())
+    code2.push_back(0);
+
+  if (!DSP::Compare(code1, code2))
+  {
+    fmt::print("AssembleAndCompare: Assembled code does not match expected code\n");
+    return false;
+  }
+  return true;
+}
+
 // Let's start out easy - a trivial instruction..
 TEST(DSPAssembly, TrivialInstruction)
 {
@@ -148,6 +171,11 @@ TEST(DSPAssembly, HermesBinary)
   ASSERT_TRUE(RoundTrip(s_hermes_bin));
 }
 
+TEST(DSPAssembly, HermesAssemble)
+{
+  ASSERT_TRUE(AssembleAndCompare(s_hermes_text, s_hermes_bin));
+}
+
 TEST(DSPAssembly, DSPTestText)
 {
   ASSERT_TRUE(SuperTrip(s_dsp_test_text));
@@ -156,4 +184,9 @@ TEST(DSPAssembly, DSPTestText)
 TEST(DSPAssembly, DSPTestBinary)
 {
   ASSERT_TRUE(RoundTrip(s_dsp_test_bin));
+}
+
+TEST(DSPAssembly, DSPTestAssemble)
+{
+  ASSERT_TRUE(AssembleAndCompare(s_dsp_test_text, s_dsp_test_bin));
 }
