@@ -236,6 +236,7 @@
     <ClInclude Include="Core\HW\DSP.h" />
     <ClInclude Include="Core\HW\DSPHLE\DSPHLE.h" />
     <ClInclude Include="Core\HW\DSPHLE\MailHandler.h" />
+    <ClInclude Include="Core\HW\DSPHLE\UCodes\ASnd.h" />
     <ClInclude Include="Core\HW\DSPHLE\UCodes\AX.h" />
     <ClInclude Include="Core\HW\DSPHLE\UCodes\AXStructs.h" />
     <ClInclude Include="Core\HW\DSPHLE\UCodes\AXVoice.h" />
@@ -836,6 +837,7 @@
     <ClCompile Include="Core\HW\DSP.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\DSPHLE.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\MailHandler.cpp" />
+    <ClCompile Include="Core\HW\DSPHLE\UCodes\ASnd.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\AX.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\AXWii.cpp" />
     <ClCompile Include="Core\HW\DSPHLE\UCodes\CARD.cpp" />
