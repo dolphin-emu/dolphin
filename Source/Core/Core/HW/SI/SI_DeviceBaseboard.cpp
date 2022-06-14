@@ -25,13 +25,15 @@ int CSIDevice_Baseboard::RunBuffer(u8* buffer, int request_length)
   {
   case EBufferCommands::CMD_RESET:
   {
-    u32 id = Common::swap32(SI_BASEBOARD);
+    // Bitwise OR the SI ID against a dipswitch state (progressive in this case)
+    u32 id = Common::swap32(SI_BASEBOARD | 0x100);
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
   default:
   {
-    ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command ({:#x})", static_cast<u8>(command));
+    ERROR_LOG_FMT(SERIALINTERFACE, "Unhandled SI command {:02x} {:02x} {:02x} {:02x} {:02x}",
+                  buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
   }
   }
 

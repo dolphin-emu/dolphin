@@ -38,7 +38,8 @@ enum TSIDevices : u32
   SI_GC_STEERING =
       SI_TYPE_GC,  // (shuffle2)I think the "chainsaw" is the same (Or else it's just standard)
   SI_DANCEMAT = (SI_TYPE_GC | SI_GC_STANDARD | 0x00000300),
-  SI_BASEBOARD = 0x10110900
+  // Undergoes a bitwise OR against a dipswitch state in SI_DeviceBaseboard.cpp
+  SI_BASEBOARD = 0x10110800
 };
 
 // Commands
