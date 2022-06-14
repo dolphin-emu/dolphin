@@ -1,6 +1,8 @@
 // Copyright 2017 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <fmt/format.h>
+
 #include "Common/FileUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPDisassembler.h"
@@ -34,18 +36,18 @@ static bool RoundTrip(const std::vector<u16>& code1)
   std::string text;
   if (!RoundTrippableDisassemble(code1, text))
   {
-    printf("RoundTrip: Disassembly failed.\n");
+    fmt::print("RoundTrip: Disassembly failed.\n");
     return false;
   }
   if (!DSP::Assemble(text, code2))
   {
-    printf("RoundTrip: Assembly failed.\n");
+    fmt::print("RoundTrip: Assembly failed.\n");
     return false;
   }
   if (!DSP::Compare(code1, code2))
   {
     DSP::Disassemble(code1, true, text);
-    printf("%s", text.c_str());
+    fmt::print("{}", text);
   }
   return true;
 }
@@ -58,25 +60,25 @@ static bool SuperTrip(const char* asm_code)
   std::string text;
   if (!DSP::Assemble(asm_code, code1))
   {
-    printf("SuperTrip: First assembly failed\n");
+    fmt::print("SuperTrip: First assembly failed\n");
     return false;
   }
-  printf("First assembly: %i words\n", (int)code1.size());
+  fmt::print("First assembly: {} words\n", code1.size());
 
   if (!RoundTrippableDisassemble(code1, text))
   {
-    printf("SuperTrip: Disassembly failed\n");
+    fmt::print("SuperTrip: Disassembly failed\n");
     return false;
   }
   else
   {
-    printf("Disassembly:\n");
-    printf("%s", text.c_str());
+    fmt::print("Disassembly:\n");
+    fmt::print("{}", text);
   }
 
   if (!DSP::Assemble(text, code2))
   {
-    printf("SuperTrip: Second assembly failed\n");
+    fmt::print("SuperTrip: Second assembly failed\n");
     return false;
   }
   return true;
