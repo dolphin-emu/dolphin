@@ -201,14 +201,16 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
   case MailState::WAITING:
     if (mail & 0x80000000)
     {
-      if ((mail >> 16) != 0xCDD1)
+      if ((mail & TASK_MAIL_MASK) != TASK_MAIL_TO_DSP)
       {
-        PanicAlertFmt("Rendering end mail without prefix CDD1: {:08x}", mail);
+        WARN_LOG_FMT(DSPHLE, "Received rendering end mail without prefix CDD1: {:08x}", mail);
+        mail = TASK_MAIL_TO_DSP | (mail & ~TASK_MAIL_MASK);
+        // The actual uCode does not check for the CDD1 prefix.
       }
 
-      switch (mail & 0xFFFF)
+      switch (mail)
       {
-      case 1:
+      case MAIL_NEW_UCODE:
         m_cmd_can_execute = true;
         RunPendingCommands();
         NOTICE_LOG_FMT(DSPHLE, "UCode being replaced.");
@@ -216,13 +218,13 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
         SetMailState(MailState::WAITING);
         break;
 
-      case 2:
+      case MAIL_RESET:
         NOTICE_LOG_FMT(DSPHLE, "UCode being rebooted to ROM.");
         SetMailState(MailState::HALTED);
         m_dsphle->SetUCode(UCODE_ROM);
         break;
 
-      case 3:
+      case MAIL_CONTINUE:
         m_cmd_can_execute = true;
         RunPendingCommands();
         break;
@@ -230,7 +232,7 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
       default:
         NOTICE_LOG_FMT(DSPHLE, "Unknown end rendering action. Halting.");
         [[fallthrough]];
-      case 0:
+      case MAIL_RESUME:
         NOTICE_LOG_FMT(DSPHLE, "UCode asked to halt. Stopping any processing.");
         SetMailState(MailState::HALTED);
         break;

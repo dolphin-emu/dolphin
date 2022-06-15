@@ -114,14 +114,14 @@ void GBAUCode::HandleMail(u32 mail)
     calc_done = true;
     m_mail_handler.PushMail(DSP_DONE);
   }
-  else if ((mail >> 16 == 0xcdd1) && calc_done)
+  else if (((mail & TASK_MAIL_MASK) == TASK_MAIL_TO_DSP) && calc_done)
   {
-    switch (mail & 0xffff)
+    switch (mail)
     {
-    case 1:
+    case MAIL_NEW_UCODE:
       m_upload_setup_in_progress = true;
       break;
-    case 2:
+    case MAIL_RESET:
       m_dsphle->SetUCode(UCODE_ROM);
       break;
     default:
