@@ -372,6 +372,7 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
     }
   }
 
+  const std::string old_eu_path = Config::GetMemcardPath(slot, DiscIO::Region::PAL);
   Config::SetBase(Config::GetInfoForMemcardPath(slot), raw_path);
 
   if (Core::IsRunning())
@@ -379,7 +380,6 @@ void GameCubePane::BrowseMemcard(ExpansionInterface::Slot slot)
     // If emulation is running and the new card is different from the old one, notify the system to
     // eject the old and insert the new card.
     // TODO: This should probably done by a config change callback instead.
-    const std::string old_eu_path = Config::GetMemcardPath(slot, DiscIO::Region::PAL);
     if (eu_path != old_eu_path)
     {
       // ChangeDevice unplugs the device for 1 second, which means that games should notice that
