@@ -343,8 +343,11 @@ DiscIO::Region ToGameCubeRegion(DiscIO::Region region);
 // The region argument must be valid for GameCube (i.e. must not be NTSC-K)
 const char* GetDirectoryForRegion(DiscIO::Region region);
 std::string GetBootROMPath(const std::string& region_directory);
-std::string GetMemcardPath(ExpansionInterface::Slot slot, DiscIO::Region region,
+// Builds the memory card according to the configuration with the given region and size. If the
+// given region is std::nullopt, the region in the configured path is used if there is one, or the
+// fallback region otherwise.
+std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::Region> region,
                            u16 size_mb = 0x80);
 std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
-                           DiscIO::Region region, u16 size_mb = 0x80);
+                           std::optional<DiscIO::Region> region, u16 size_mb = 0x80);
 }  // namespace Config
