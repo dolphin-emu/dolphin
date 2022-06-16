@@ -30,6 +30,7 @@ enum : u32
 
 static std::mutex s_fatfs_mutex;
 static File::IOFile s_image;
+static bool s_deterministic;
 
 extern "C" DSTATUS disk_status(BYTE pdrv)
 {
@@ -96,6 +97,9 @@ extern "C" DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 
 extern "C" DWORD get_fattime(void)
 {
+  if (s_deterministic)
+    return 0;
+
   const std::time_t time = std::time(nullptr);
   std::tm tm;
 #ifdef _WIN32
@@ -286,13 +290,26 @@ static bool Pack(const File::FSTEntry& entry, bool is_root, std::vector<u8>& tmp
   return true;
 }
 
-bool SyncSDFolderToSDImage()
+static void SortFST(File::FSTEntry* root)
 {
+  std::sort(root->children.begin(), root->children.end(),
+            [](const File::FSTEntry& lhs, const File::FSTEntry& rhs) {
+              return lhs.virtualName < rhs.virtualName;
+            });
+  for (auto& child : root->children)
+    SortFST(&child);
+}
+
+bool SyncSDFolderToSDImage(bool deterministic)
+{
+  deterministic = true;
   const std::string root_path = File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX);
   if (!File::IsDirectory(root_path))
     return false;
 
-  const File::FSTEntry root = File::ScanDirectoryTree(root_path, true);
+  File::FSTEntry root = File::ScanDirectoryTree(root_path, true);
+  if (deterministic)
+    SortFST(&root);
   if (!CheckIfFATCompatible(root))
     return false;
 
@@ -302,6 +319,7 @@ bool SyncSDFolderToSDImage()
   size = AlignUp(size, MAX_CLUSTER_SIZE);
 
   std::lock_guard lk(s_fatfs_mutex);
+  s_deterministic = deterministic;
 
   const std::string image_path = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
   const std::string temp_image_path = File::GetTempFilenameForAtomicWrite(image_path);

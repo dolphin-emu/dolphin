@@ -7,6 +7,6 @@
 
 namespace Common
 {
-bool SyncSDFolderToSDImage();
+bool SyncSDFolderToSDImage(bool deterministic);
 bool SyncSDImageToSDFolder();
 }  // namespace Common
