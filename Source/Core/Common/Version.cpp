@@ -19,17 +19,17 @@ namespace Common
 #endif
 
 #ifndef IS_PLAYBACK
-#define SLIPPI_REV_STR "2.4.0"
+#define SLIPPI_REV_STR "2.4.0" // netplay version
 #else
-#define SLIPPI_REV_STR "2.4.0"
+#define SLIPPI_REV_STR "2.4.1" // playback version
 #endif
 
 const std::string scm_slippi_semver_str = SLIPPI_REV_STR;
 
-#ifdef IS_PLAYBACK
-const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ") - Playback" BUILD_TYPE_STR;
-#else
+#ifndef IS_PLAYBACK
 const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ")" BUILD_TYPE_STR;
+#else
+const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ") - Playback" BUILD_TYPE_STR;
 #endif
 
 const std::string scm_rev_git_str = SCM_REV_STR;
