@@ -27,6 +27,8 @@ public:
   // Clear any pending mail from the current uCode.  This is called by DSPHLE::SetUCode and
   // DSPHLE::SwapUCode. Since pending mail is an abstraction for DSPHLE and not something that
   // actually exists on real hardware, HLE implementations do not need to call this directly.
+  // Note that this function does not reset m_last_mail, which will continue to read the same value
+  // until the new uCode sends mail.
   void ClearPending();
 
   u16 ReadDSPMailboxHigh();
@@ -37,5 +39,8 @@ private:
   // mails. But for HLE, it's a lot easier to write all the mails that will be read ahead of time,
   // and then give them to the CPU in the requested order.
   std::deque<std::pair<u32, bool>> m_pending_mails;
+  // If no pending mail exists, the last mail that was read is returned,
+  // but with the top bit (0x80000000) cleared.
+  u32 m_last_mail = 0;
 };
 }  // namespace DSP::HLE

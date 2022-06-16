@@ -41,10 +41,9 @@ u16 CMailHandler::ReadDSPMailboxHigh()
   // check if we have a mail for the CPU core
   if (!m_pending_mails.empty())
   {
-    u16 result = (m_pending_mails.front().first >> 16) & 0xFFFF;
-    return result;
+    m_last_mail = m_pending_mails.front().first;
   }
-  return 0x00;
+  return u16(m_last_mail >> 0x10);
 }
 
 u16 CMailHandler::ReadDSPMailboxLow()
@@ -52,18 +51,22 @@ u16 CMailHandler::ReadDSPMailboxLow()
   // check if we have a mail for the CPU core
   if (!m_pending_mails.empty())
   {
-    u16 result = m_pending_mails.front().first & 0xFFFF;
+    m_last_mail = m_pending_mails.front().first;
     const bool generate_interrupt = m_pending_mails.front().second;
+
     m_pending_mails.pop_front();
 
     if (generate_interrupt)
     {
       DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
     }
-
-    return result;
   }
-  return 0x00;
+  // Clear the top bit of the high mail word after the mail has been read.
+  // The remaining bits read back the same as the previous mail, until new mail sent.
+  // (The CPU reads the high word first, and then the low word; since this function returns the low
+  // word, this means that the next read of the high word will have the top bit cleared.)
+  m_last_mail &= ~0x8000'0000;
+  return u16(m_last_mail & 0xffff);
 }
 
 void CMailHandler::ClearPending()
