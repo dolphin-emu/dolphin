@@ -5,13 +5,15 @@
 
 #include <QWidget>
 
+class QCheckBox;
+class QComboBox;
 class QLabel;
-class QSlider;
-class QVBoxLayout;
+class QLineEdit;
 class QListWidget;
 class QPushButton;
-class QComboBox;
-class QCheckBox;
+class QSlider;
+class QString;
+class QVBoxLayout;
 
 class WiiPane : public QWidget
 {
@@ -37,6 +39,11 @@ private:
   void OnUSBWhitelistAddButton();
   void OnUSBWhitelistRemoveButton();
 
+  void BrowseSDRaw();
+  void SetSDRaw(const QString& path);
+  void BrowseSDSyncFolder();
+  void SetSDSyncFolder(const QString& path);
+
   // Widgets
   QVBoxLayout* m_main_layout;
 
@@ -55,6 +62,8 @@ private:
   QCheckBox* m_sd_card_checkbox;
   QCheckBox* m_allow_sd_writes_checkbox;
   QCheckBox* m_sync_sd_folder_checkbox;
+  QLineEdit* m_sd_raw_edit;
+  QLineEdit* m_sd_sync_folder_edit;
 
   // Whitelisted USB Passthrough Devices
   QListWidget* m_whitelist_usb_list;
