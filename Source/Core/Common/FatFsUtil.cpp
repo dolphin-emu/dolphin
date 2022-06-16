@@ -8,7 +8,10 @@
 #include <cstdlib>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
+
+#include <fmt/format.h>
 
 // Does not compile if diskio.h is included first.
 // clang-format off
@@ -439,8 +442,21 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
     if (entry.fname[0] == '\0')
       break;
 
-    if (!Unpack(path + "/" + entry.fname, entry.fattrib & AM_DIR, entry.fname, tmp_buffer))
+    const std::string_view childname = entry.fname;
+
+    // Check for path traversal attacks.
+    if (childname.find("\\") != std::string_view::npos)
       return false;
+    if (childname.find('/') != std::string_view::npos)
+      return false;
+    if (std::all_of(childname.begin(), childname.end(), [](char c) { return c == '.'; }))
+      return false;
+
+    if (!Unpack(fmt::format("{}/{}", path, childname), entry.fattrib & AM_DIR, entry.fname,
+                tmp_buffer))
+    {
+      return false;
+    }
   }
 
   if (f_closedir(&directory) != FR_OK)
