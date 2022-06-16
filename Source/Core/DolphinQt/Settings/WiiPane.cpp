@@ -18,6 +18,7 @@
 #include <QStringList>
 
 #include "Common/Config/Config.h"
+#include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
@@ -27,6 +28,7 @@
 #include "Core/Core.h"
 
 #include "DolphinQt/QtUtils/DolphinFileDialog.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/NonDefaultQPushButton.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
@@ -211,6 +213,40 @@ void WiiPane::CreateSDCard()
     sd_settings_group_layout->addLayout(hlayout, row, 0, 1, 2);
     ++row;
   }
+
+  QPushButton* pack_now = new NonDefaultQPushButton(tr("Convert Folder to File now"));
+  QPushButton* unpack_now = new NonDefaultQPushButton(tr("Convert File to Folder now"));
+  connect(pack_now, &QPushButton::clicked, [this] {
+    auto result = ModalMessageBox::warning(
+        this, tr("Convert Folder to File now"),
+        tr("You are about to convert the content of the folder at %1 into the file at %2. All "
+           "current content of the file will be deleted. Are you sure you want to continue?")
+            .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
+            .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
+        QMessageBox::Yes | QMessageBox::No);
+    if (result == QMessageBox::Yes)
+    {
+      if (!Common::SyncSDFolderToSDImage(false))
+        ModalMessageBox::warning(this, tr("Convert Folder to File now"), tr("Conversion failed."));
+    }
+  });
+  connect(unpack_now, &QPushButton::clicked, [this] {
+    auto result = ModalMessageBox::warning(
+        this, tr("Convert File to Folder now"),
+        tr("You are about to convert the content of the file at %2 into the folder at %1. All "
+           "current content of the folder will be deleted. Are you sure you want to continue?")
+            .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
+            .arg(QString::fromStdString(File::GetUserPath(F_WIISDCARDIMAGE_IDX))),
+        QMessageBox::Yes | QMessageBox::No);
+    if (result == QMessageBox::Yes)
+    {
+      if (!Common::SyncSDImageToSDFolder())
+        ModalMessageBox::warning(this, tr("Convert File to Folder now"), tr("Conversion failed."));
+    }
+  });
+  sd_settings_group_layout->addWidget(pack_now, row, 0, 1, 1);
+  sd_settings_group_layout->addWidget(unpack_now, row, 1, 1, 1);
+  ++row;
 }
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
