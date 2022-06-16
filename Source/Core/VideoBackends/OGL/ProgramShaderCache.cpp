@@ -790,7 +790,7 @@ void ProgramShaderCache::CreateHeader()
           "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
           "#define SAMPLER_BINDING(x) layout(binding = x)\n"
           "#define TEXEL_BUFFER_BINDING(x) layout(binding = x)\n"
-          "#define SSBO_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(std430, binding = x)\n"
           "#define IMAGE_BINDING(format, x) layout(format, binding = x)\n" :
           "#define ATTRIBUTE_LOCATION(x)\n"
           "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
@@ -798,7 +798,7 @@ void ProgramShaderCache::CreateHeader()
           "#define UBO_BINDING(packing, x) layout(packing)\n"
           "#define SAMPLER_BINDING(x)\n"
           "#define TEXEL_BUFFER_BINDING(x)\n"
-          "#define SSBO_BINDING(x)\n"
+          "#define SSBO_BINDING(x) layout(std430)\n"
           "#define IMAGE_BINDING(format, x) layout(format)\n",
       // Input/output blocks are matched by name during program linking
       "#define VARYING_LOCATION(x)\n",

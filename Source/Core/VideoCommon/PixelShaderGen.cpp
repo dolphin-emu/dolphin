@@ -464,22 +464,9 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType api_type,
     }
     else
     {
-      out.Write("SSBO_BINDING(0) buffer BBox {{\n");
-
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SSBO_FIELD_ATOMICS))
-      {
-        // AMD drivers on Windows seemingly ignore atomic writes to fields or array elements of an
-        // SSBO other than the first one, but using an int4 seems to work fine
-        out.Write("  int4 bbox_data;\n");
-      }
-      else
-      {
-        // The Metal shader compiler fails to compile the atomic instructions when operating on
-        // individual components of a vector
-        out.Write("  int bbox_data[4];\n");
-      }
-
-      out.Write("}};");
+      out.Write("SSBO_BINDING(0) buffer BBox {{\n"
+                "  int bbox_data[4];\n"
+                "}};");
     }
 
     out.Write(R"(
