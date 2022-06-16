@@ -3,12 +3,17 @@
 
 #include "Common/CPUDetect.h"
 
+#ifdef _WIN32
+#include <processthreadsapi.h>
+#endif
+
 #include <cstring>
 #include <string>
 #include <thread>
 
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
+#include "Common/MsgHandler.h"
 
 #ifndef _WIN32
 
@@ -48,6 +53,29 @@ static u64 xgetbv(u32 index)
 }
 constexpr u32 XCR_XFEATURE_ENABLED_MASK = _XCR_XFEATURE_ENABLED_MASK;
 
+static void WarnIfRunningUnderEmulation()
+{
+  // Starting with win11, arm64 windows can run x64 processes under emulation.
+  // This detects such a scenario and informs the user they probably want to run a native build.
+  PROCESS_MACHINE_INFORMATION info{};
+  if (!GetProcessInformation(GetCurrentProcess(), ProcessMachineTypeInfo, &info, sizeof(info)))
+  {
+    // Possibly we are running on version of windows which doesn't support ProcessMachineTypeInfo.
+    return;
+  }
+  if (info.MachineAttributes & MACHINE_ATTRIBUTES::KernelEnabled)
+  {
+    // KernelEnabled will be set if process arch matches the kernel arch - how we want people to run
+    // dolphin.
+    return;
+  }
+
+  // The process is not native; could use IsWow64Process2 to get native machine type, but for now
+  // we can assume it is arm64.
+  PanicAlertFmtT("This build of Dolphin is not natively compiled for your CPU.\n"
+                 "Please run the ARM64 build of Dolphin for a better experience.");
+}
+
 #else
 
 static u64 xgetbv(u32 index)
@@ -69,6 +97,10 @@ CPUInfo::CPUInfo()
 // Detects the various CPU features
 void CPUInfo::Detect()
 {
+#ifdef _WIN32
+  WarnIfRunningUnderEmulation();
+#endif
+
 #ifdef _M_X86_64
   Mode64bit = true;
   OS64bit = true;
