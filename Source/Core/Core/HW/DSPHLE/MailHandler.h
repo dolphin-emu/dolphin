@@ -20,7 +20,7 @@ public:
 
   // TODO: figure out correct timing for interrupts rather than defaulting to "immediately."
   void PushMail(u32 mail, bool interrupt = false, int cycles_into_future = 0);
-  void Halt(bool _Halt);
+  void SetHalted(bool halt);
   void DoState(PointerWrap& p);
   bool HasPending() const;
 
@@ -42,5 +42,7 @@ private:
   // If no pending mail exists, the last mail that was read is returned,
   // but with the top bit (0x80000000) cleared.
   u32 m_last_mail = 0;
+  // When halted, the DSP itself is not running, but the last mail can be read.
+  bool m_halted = false;
 };
 }  // namespace DSP::HLE

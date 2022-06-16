@@ -39,7 +39,7 @@ void CMailHandler::PushMail(u32 mail, bool interrupt, int cycles_into_future)
 u16 CMailHandler::ReadDSPMailboxHigh()
 {
   // check if we have a mail for the CPU core
-  if (!m_pending_mails.empty())
+  if (!m_halted && !m_pending_mails.empty())
   {
     m_last_mail = m_pending_mails.front().first;
   }
@@ -49,7 +49,7 @@ u16 CMailHandler::ReadDSPMailboxHigh()
 u16 CMailHandler::ReadDSPMailboxLow()
 {
   // check if we have a mail for the CPU core
-  if (!m_pending_mails.empty())
+  if (!m_halted && !m_pending_mails.empty())
   {
     m_last_mail = m_pending_mails.front().first;
     const bool generate_interrupt = m_pending_mails.front().second;
@@ -79,13 +79,9 @@ bool CMailHandler::HasPending() const
   return !m_pending_mails.empty();
 }
 
-void CMailHandler::Halt(bool _Halt)
+void CMailHandler::SetHalted(bool halt)
 {
-  if (_Halt)
-  {
-    ClearPending();
-    PushMail(0x80544348);
-  }
+  m_halted = halt;
 }
 
 void CMailHandler::DoState(PointerWrap& p)
