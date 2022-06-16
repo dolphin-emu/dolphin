@@ -1240,7 +1240,7 @@ void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8
   appendWordToBuffer(&m_read_queue, *(u32*)&data.locationX);
   appendWordToBuffer(&m_read_queue, *(u32*)&data.locationY);
   appendWordToBuffer(&m_read_queue, *(u32*)&data.facingDirection);
-  appendWordToBuffer(&m_read_queue, (u32)data.animation);
+  appendWordToBuffer(&m_read_queue, static_cast<u32>(data.animation));
   m_read_queue.push_back(data.joystickXRaw);
   appendWordToBuffer(&m_read_queue, *(u32*)&data.percent);
   // NOTE TO DEV: If you add data here, make sure to increase the size above
