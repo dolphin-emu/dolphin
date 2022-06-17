@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 #include <functional>
 #include <memory>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 
@@ -31,7 +32,7 @@ public:
   bool IsValid() const;
 
   // Only valid if the context is valid.
-  bool GetDeviceList(GetDeviceListCallback callback);
+  int GetDeviceList(GetDeviceListCallback callback) const;
 
 private:
   class Impl;
@@ -39,7 +40,7 @@ private:
 };
 
 using ConfigDescriptor = UniquePtr<libusb_config_descriptor>;
-ConfigDescriptor MakeConfigDescriptor(libusb_device* device, u8 config_num = 0);
+std::pair<int, ConfigDescriptor> MakeConfigDescriptor(libusb_device* device, u8 config_num = 0);
 
 // Wrapper for libusb_error to be used with fmt.  Note that we can't create a fmt::formatter
 // directly for libusb_error as it is a plain enum and most libusb functions actually return an
