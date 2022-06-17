@@ -3,11 +3,13 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 
 struct cubeb;
 
 namespace CubebUtils
 {
+void RunInCubebContext(const std::function<void()>& func);
 std::shared_ptr<cubeb> GetContext();
 }  // namespace CubebUtils

@@ -66,20 +66,26 @@ bool CubebStream::Init()
 
 bool CubebStream::SetRunning(bool running)
 {
-  if (running)
-    return cubeb_stream_start(m_stream) == CUBEB_OK;
-  else
-    return cubeb_stream_stop(m_stream) == CUBEB_OK;
+  bool return_value = false;
+  CubebUtils::RunInCubebContext([&] {
+    if (running)
+      return_value = cubeb_stream_start(m_stream) == CUBEB_OK;
+    else
+      return_value = cubeb_stream_stop(m_stream) == CUBEB_OK;
+  });
+  return return_value;
 }
 
 CubebStream::~CubebStream()
 {
-  SetRunning(false);
-  cubeb_stream_destroy(m_stream);
+  CubebUtils::RunInCubebContext([&] {
+    SetRunning(false);
+    cubeb_stream_destroy(m_stream);
+  });
   m_ctx.reset();
 }
 
 void CubebStream::SetVolume(int volume)
 {
-  cubeb_stream_set_volume(m_stream, volume / 100.0f);
+  CubebUtils::RunInCubebContext([&] { cubeb_stream_set_volume(m_stream, volume / 100.0f); });
 }
