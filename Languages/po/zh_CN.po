@@ -880,7 +880,7 @@ msgstr "< 小于"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:121
 msgid "<Nothing>"
-msgstr "<Nothing>"
+msgstr "<无>"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:68
 msgid "<System Language>"
@@ -9324,7 +9324,7 @@ msgstr "扬声器音量："
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:115
 msgid "Specialized (Default)"
-msgstr "专门化（默认）"
+msgstr "专用着色器（默认）"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:187
 msgid "Specific"
