@@ -122,12 +122,6 @@ void SDSP::WriteIFX(u32 address, u16 value)
     m_ifx_regs[DSP_DSBL] = 0;
     break;
 
-  case DSP_GAIN:
-    if (value != 0)
-    {
-      DEBUG_LOG_FMT(DSPLLE, "Gain Written: {:#06x}", value);
-    }
-    [[fallthrough]];
   case DSP_DSPA:
   case DSP_DSMAH:
   case DSP_DSMAL:
@@ -160,6 +154,9 @@ void SDSP::WriteIFX(u32 address, u16 value)
     break;
   case DSP_FORMAT:
     m_accelerator->SetSampleFormat(value);
+    break;
+  case DSP_GAIN:
+    m_accelerator->SetGain(value);
     break;
   case DSP_YN1:
     m_accelerator->SetYn1(value);
@@ -231,6 +228,8 @@ u16 SDSP::ReadIFXImpl(u16 address)
     return static_cast<u16>(m_accelerator->GetCurrentAddress());
   case DSP_FORMAT:
     return m_accelerator->GetSampleFormat();
+  case DSP_GAIN:
+    return m_accelerator->GetGain();
   case DSP_YN1:
     return m_accelerator->GetYn1();
   case DSP_YN2:
