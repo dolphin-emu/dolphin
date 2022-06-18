@@ -12,7 +12,7 @@
 #include "Core/Core.h"
 #include "VideoCommon/VideoConfig.h"
 
-static constexpr u64 FPS_REFRESH_INTERVAL = 250000;
+static constexpr u64 FPS_REFRESH_INTERVAL_US = 250000;
 
 FPSCounter::FPSCounter()
 {
@@ -54,7 +54,7 @@ void FPSCounter::Update()
   m_time_since_update += diff;
   m_last_time = time;
 
-  if (m_time_since_update >= FPS_REFRESH_INTERVAL)
+  if (m_time_since_update >= FPS_REFRESH_INTERVAL_US)
   {
     m_fps = m_frame_counter / (m_time_since_update / 1000000.0);
     m_frame_counter = 0;
