@@ -170,8 +170,8 @@ void SDSP::WriteIFX(u32 address, u16 value)
   case DSP_PRED_SCALE:
     m_accelerator->SetPredScale(value);
     break;
-  case DSP_ACDATA1:  // Accelerator write (Zelda type) - "UnkZelda"
-    m_accelerator->WriteD3(value);
+  case DSP_ACDRAW:  // Raw accelerator write
+    m_accelerator->WriteRaw(value);
     break;
 
   default:
@@ -237,10 +237,10 @@ u16 SDSP::ReadIFXImpl(u16 address)
     return m_accelerator->GetYn2();
   case DSP_PRED_SCALE:
     return m_accelerator->GetPredScale();
-  case DSP_ACCELERATOR:  // ADPCM Accelerator reads
-    return m_accelerator->Read(reinterpret_cast<s16*>(&m_ifx_regs[DSP_COEF_A1_0]));
-  case DSP_ACDATA1:  // Accelerator reads (Zelda type) - "UnkZelda"
-    return m_accelerator->ReadD3();
+  case DSP_ACDSAMP:  // Processed sample accelerator read
+    return m_accelerator->ReadSample(reinterpret_cast<s16*>(&m_ifx_regs[DSP_COEF_A1_0]));
+  case DSP_ACDRAW:  // Raw accelerator read
+    return m_accelerator->ReadRaw();
 
   default:
   {

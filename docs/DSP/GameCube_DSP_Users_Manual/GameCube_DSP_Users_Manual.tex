@@ -695,7 +695,7 @@ Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Dat
 \multicolumn{3}{|l|}{\textit{Accelerator}}                            \\ \hline
 \Address{0xFFD1} & \Register{FORMAT}  & Accelerator sample format     \\ \hline
 \Address{0xFFD2} & \Register{ACUNK1}  & Unknown, usually 3            \\ \hline
-\Address{0xFFD3} & \Register{ACDATA1} & Alternative ARAM interface    \\ \hline
+\Address{0xFFD3} & \Register{ACDRAW}  & Accelerator raw data          \\ \hline
 \Address{0xFFD4} & \Register{ACSAH}   & Accelerator start address H   \\ \hline
 \Address{0xFFD5} & \Register{ACSAL}   & Accelerator start address L   \\ \hline
 \Address{0xFFD6} & \Register{ACEAH}   & Accelerator end address H     \\ \hline
@@ -705,7 +705,7 @@ Hardware registers (IFX) occupy the address space at \Address{0xFFxx} in the Dat
 \Address{0xFFDA} & \Register{SCALE}   & ADPCM predictor and scale     \\ \hline
 \Address{0xFFDB} & \Register{YN1}     & ADPCM YN1                     \\ \hline
 \Address{0xFFDC} & \Register{YN2}     & ADPCM YN2                     \\ \hline
-\Address{0xFFDD} & \Register{ACDAT}   & Accelerator data              \\ \hline
+\Address{0xFFDD} & \Register{ACDSAMP} & Accelerator processed sample  \\ \hline
 \Address{0xFFDE} & \Register{GAIN}    & Gain                          \\ \hline
 \Address{0xFFDF} & \Register{ACUNK2}  & Unknown, usually \Value{0x0C} \\ \hline
 \Address{0xFFED} & \Register{AMDM}    & ARAM DMA Request Mask         \\ \hline
