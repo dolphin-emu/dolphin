@@ -1235,32 +1235,32 @@ void ShaderCache::QueueUberShaderPipelines()
   dummy_vertex_decl.stride = sizeof(float) * 4;
   NativeVertexFormat* dummy_vertex_format =
       VertexLoaderManager::GetUberVertexFormat(dummy_vertex_decl);
-  auto QueueDummyPipeline = [&](const UberShader::VertexShaderUid& vs_uid,
-                                const GeometryShaderUid& gs_uid,
-                                const UberShader::PixelShaderUid& ps_uid) {
-    GXUberPipelineUid config;
-    config.vertex_format = dummy_vertex_format;
-    config.vs_uid = vs_uid;
-    config.gs_uid = gs_uid;
-    config.ps_uid = ps_uid;
-    config.rasterization_state = RenderState::GetCullBackFaceRasterizationState(
-        static_cast<PrimitiveType>(gs_uid.GetUidData()->primitive_type));
-    config.depth_state = RenderState::GetNoDepthTestingDepthState();
-    config.blending_state = RenderState::GetNoBlendingBlendState();
-    if (ps_uid.GetUidData()->uint_output)
-    {
-      // uint_output is only ever enabled when logic ops are enabled.
-      config.blending_state.logicopenable = true;
-      config.blending_state.logicmode = LogicOp::And;
-    }
+  auto QueueDummyPipeline =
+      [&](const UberShader::VertexShaderUid& vs_uid, const GeometryShaderUid& gs_uid,
+          const UberShader::PixelShaderUid& ps_uid, const BlendingState& blend) {
+        GXUberPipelineUid config;
+        config.vertex_format = dummy_vertex_format;
+        config.vs_uid = vs_uid;
+        config.gs_uid = gs_uid;
+        config.ps_uid = ps_uid;
+        config.rasterization_state = RenderState::GetCullBackFaceRasterizationState(
+            static_cast<PrimitiveType>(gs_uid.GetUidData()->primitive_type));
+        config.depth_state = RenderState::GetNoDepthTestingDepthState();
+        config.blending_state = blend;
+        if (ps_uid.GetUidData()->uint_output)
+        {
+          // uint_output is only ever enabled when logic ops are enabled.
+          config.blending_state.logicopenable = true;
+          config.blending_state.logicmode = LogicOp::And;
+        }
 
-    auto iter = m_gx_uber_pipeline_cache.find(config);
-    if (iter != m_gx_uber_pipeline_cache.end())
-      return;
+        auto iter = m_gx_uber_pipeline_cache.find(config);
+        if (iter != m_gx_uber_pipeline_cache.end())
+          return;
 
-    auto& entry = m_gx_uber_pipeline_cache[config];
-    entry.second = false;
-  };
+        auto& entry = m_gx_uber_pipeline_cache[config];
+        entry.second = false;
+      };
 
   // Populate the pipeline configs with empty entries, these will be compiled afterwards.
   UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& vuid) {
@@ -1277,7 +1277,45 @@ void ShaderCache::QueueUberShaderPipelines()
         {
           return;
         }
-        QueueDummyPipeline(vuid, guid, cleared_puid);
+        BlendingState blend = RenderState::GetNoBlendingBlendState();
+        QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+        if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+        {
+          // Not all GPUs need all the pipeline state compiled into shaders, so they tend to key
+          // compiled shaders based on some subset of the pipeline state.
+          // Some test results:
+          //   (GPUs tested: AMD Radeon Pro 5600M, Nvidia GT 750M, Intel UHD 630,
+          //    Intel Iris Pro 5200, Apple M1)
+          // MacOS Metal:
+          //  - AMD, Nvidia, Intel GPUs: Shaders are keyed on vertex layout and whether or not
+          //    dual source blend is enabled.  That's it.
+          //  - Apple GPUs: Shaders are keyed on vertex layout and all blending settings.  We use
+          //    framebuffer fetch here, so the only blending settings used by ubershaders are the
+          //    alphaupdate and colorupdate ones.  Also keyed on primitive type, but Metal supports
+          //    setting it to "unknown" and we do for ubershaders (but MoltenVK won't).
+          // Windows Vulkan:
+          //  - AMD, Nvidia: Definitely keyed on dual source blend, but the others seem more random
+          //    Changing a setting on one shader will require a recompile, but changing the same
+          //    setting on another won't.  Compiling a copy with alphaupdate off, colorupdate off,
+          //    and one with DSB on seems to get pretty good coverage though.
+          // Windows D3D12:
+          //  - AMD: Keyed on dual source blend and vertex layout
+          //  - Nvidia Kepler: No recompiles for changes to vertex layout or blend
+          blend.alphaupdate = false;
+          QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+          blend.alphaupdate = true;
+          blend.colorupdate = false;
+          QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+          blend.colorupdate = true;
+          if (!cleared_puid.GetUidData()->no_dual_src && !cleared_puid.GetUidData()->uint_output)
+          {
+            blend.blendenable = true;
+            blend.usedualsrc = true;
+            blend.srcfactor = SrcBlendFactor::SrcAlpha;
+            blend.dstfactor = DstBlendFactor::InvSrcAlpha;
+            QueueDummyPipeline(vuid, guid, cleared_puid, blend);
+          }
+        }
       });
     });
   });
