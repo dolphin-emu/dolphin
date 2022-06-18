@@ -11,33 +11,42 @@
 
 namespace DSP
 {
-u16 Accelerator::ReadRaw()
+u16 Accelerator::GetCurrentSample()
 {
   u16 val = 0;
-
   // The lower two bits of the sample format indicate the access size
-  switch (m_sample_format & 3)
+  switch (m_sample_format.size)
   {
-  case 0x0:  // u4 reads
-    val = ReadMemory(m_current_address / 2);
+  case FormatSize::Size4Bit:
+    val = ReadMemory(m_current_address >> 1);
     if (m_current_address & 1)
       val &= 0xf;
     else
       val >>= 4;
-    m_current_address++;
     break;
-  case 0x1:  // u8 reads
+  case FormatSize::Size8Bit:
     val = ReadMemory(m_current_address);
-    m_current_address++;
     break;
-  case 0x2:  // u16 reads
+  case FormatSize::Size16Bit:
     val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
+    break;
+  default:  // produces garbage, but affects the current address
+    ERROR_LOG_FMT(DSPLLE, "dsp_get_current_sample() - bad format {:#x}", m_sample_format.hex);
+    break;
+  }
+  return val;
+}
+
+u16 Accelerator::ReadRaw()
+{
+  u16 val = GetCurrentSample();
+  if (m_sample_format.size != FormatSize::SizeInvalid)
+  {
     m_current_address++;
-    break;
-  case 0x3:  // produces garbage, but affects the current address
-    ERROR_LOG_FMT(DSPLLE, "dsp_read_aram_raw() - bad format {:#x}", m_sample_format);
+  }
+  else
+  {
     m_current_address = (m_current_address & ~3) | ((m_current_address + 1) & 3);
-    break;
   }
 
   // There are edge cases that are currently not handled here in u4 and u8 mode
@@ -108,34 +117,69 @@ u16 Accelerator::ReadSample(const s16* coefs)
   if (m_reads_stopped)
     return 0x0000;
 
-  u16 val;
-  u8 step_size_bytes = 0;
+  if (m_sample_format.raw_only)
+  {
+    // Seems to return garbage on hardware
+    ERROR_LOG_FMT(
+        DSPLLE,
+        "dsp_read_accelerator_sample() tried sample read with raw only bit set for format {:#x}",
+        m_sample_format.hex);
+    return 0x0000;
+  }
 
-  // let's do the "hardware" decode DSP_FORMAT is interesting - the Zelda
-  // ucode seems to indicate that the bottom two bits specify the "read size"
-  // and the address multiplier.  The bits above that may be things like sign
-  // extension and do/do not use ADPCM.  It also remains to be figured out
-  // whether there's a difference between the usual accelerator "read
-  // address" and 0xd3.
-  switch (m_sample_format)
+  if (m_sample_format.unk != 0)
   {
-  case 0x00:  // ADPCM audio
+    WARN_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() format {:#x} has unknown upper bits set",
+                 m_sample_format.hex);
+  }
+
+  u16 val = 0;
+  u8 step_size = 0;
+
+  s16 raw_sample = GetCurrentSample();
+  int coef_idx = (m_pred_scale >> 4) & 0x7;
+
+  s32 coef1 = coefs[coef_idx * 2 + 0];
+  s32 coef2 = coefs[coef_idx * 2 + 1];
+
+  u8 gain_shift = 0;
+  switch (m_sample_format.gain_cfg)
   {
+  case FormatGainCfg::GainShift11:
+    gain_shift = 11;
+    break;
+  case FormatGainCfg::GainShift0:
+    gain_shift = 0;
+    break;
+  case FormatGainCfg::GainShift16:
+    gain_shift = 16;
+    break;
+  default:
+    ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() invalid gain mode in format {:#x}",
+                  m_sample_format.hex);
+    break;
+  }
+
+  switch (m_sample_format.decode)
+  {
+  case FormatDecode::ADPCM:  // ADPCM audio
+  {
+    if (m_sample_format.size != FormatSize::Size4Bit)
+    {
+      ERROR_LOG_FMT(
+          DSPLLE, "dsp_read_accelerator_sample() tried to read ADPCM with bad size in format {:#x}",
+          m_sample_format.hex);
+      break;
+    }
     int scale = 1 << (m_pred_scale & 0xF);
-    int coef_idx = (m_pred_scale >> 4) & 0x7;
 
-    s32 coef1 = coefs[coef_idx * 2 + 0];
-    s32 coef2 = coefs[coef_idx * 2 + 1];
+    if (raw_sample >= 8)
+      raw_sample -= 16;
 
-    int temp = (m_current_address & 1) ? (ReadMemory(m_current_address >> 1) & 0xF) :
-                                         (ReadMemory(m_current_address >> 1) >> 4);
-
-    if (temp >= 8)
-      temp -= 16;
-
-    s32 val32 = (scale * temp) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
+    // Not sure if GAIN is applied for ADPCM or not
+    s32 val32 = (scale * raw_sample) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
     val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
-    step_size_bytes = 2;
+    step_size = 2;
 
     m_yn2 = m_yn1;
     m_yn1 = val;
@@ -158,42 +202,28 @@ u16 Accelerator::ReadSample(const s16* coefs)
     {
       m_pred_scale = ReadMemory((m_current_address & ~15) >> 1);
       m_current_address += 2;
-      step_size_bytes += 2;
+      step_size += 2;
     }
     break;
   }
-  case 0x0A:  // 16-bit PCM audio
-    val = (ReadMemory(m_current_address * 2) << 8) | ReadMemory(m_current_address * 2 + 1);
+  case FormatDecode::PCM:  // 16-bit PCM audio
+  {
+    s32 val32 = ((static_cast<s32>(m_gain) * raw_sample) >> gain_shift) +
+                (((coef1 * m_yn1) >> gain_shift) + ((coef2 * m_yn2) >> gain_shift));
+    val = static_cast<s16>(val32);
     m_yn2 = m_yn1;
     m_yn1 = val;
-    step_size_bytes = 2;
+    step_size = 2;
     m_current_address += 1;
-    break;
-  case 0x19:  // 8-bit PCM audio
-    val = ReadMemory(m_current_address) << 8;
-    m_yn2 = m_yn1;
-    m_yn1 = val;
-    step_size_bytes = 2;
-    m_current_address += 1;
-    break;
-  default:
-    ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() - unknown format {:#x}", m_sample_format);
-    step_size_bytes = 2;
-    m_current_address += 1;
-    val = 0;
     break;
   }
-
-  // TODO: Take GAIN into account
-  // adpcm = 0, pcm8 = 0x100, pcm16 = 0x800
-  // games using pcm8 : Phoenix Wright Ace Attorney (WiiWare), Megaman 9-10 (WiiWare)
-  // games using pcm16: GC Sega games, ...
+  }
 
   // Check for loop.
   // Somehow, YN1 and YN2 must be initialized with their "loop" values,
   // so yeah, it seems likely that we should raise an exception to let
   // the DSP program do that, at least if DSP_FORMAT == 0x0A.
-  if (m_current_address == (m_end_address + step_size_bytes - 1))
+  if (m_current_address == (m_end_address + step_size - 1))
   {
     // Set address back to start address.
     m_current_address = m_start_address;
@@ -237,7 +267,12 @@ void Accelerator::SetCurrentAddress(u32 address)
 
 void Accelerator::SetSampleFormat(u16 format)
 {
-  m_sample_format = format;
+  m_sample_format.hex = format;
+}
+
+void Accelerator::SetGain(s16 gain)
+{
+  m_gain = gain;
 }
 
 void Accelerator::SetYn1(s16 yn1)
