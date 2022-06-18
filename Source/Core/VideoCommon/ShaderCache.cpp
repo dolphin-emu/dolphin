@@ -743,6 +743,8 @@ static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
 {
   GXUberPipelineUid out;
   memcpy(&out, &in, sizeof(out));  // Copy padding
+  if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    out.vertex_format = nullptr;
   if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
   {
     // Always blend in shader

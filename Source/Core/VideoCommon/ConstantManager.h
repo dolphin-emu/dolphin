@@ -93,6 +93,13 @@ struct VertexShaderConstants
 
   float4 cached_tangent;
   float4 cached_binormal;
+  // For UberShader vertex loader
+  u32 vertex_stride;
+  u32 vertex_offset_normals[3];
+  u32 vertex_offset_position;
+  u32 vertex_offset_posmtx;
+  u32 vertex_offset_colors[2];
+  u32 vertex_offset_texcoords[8];
 };
 
 struct GeometryShaderConstants

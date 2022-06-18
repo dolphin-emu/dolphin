@@ -60,6 +60,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsLodBiasInSampler = false;
   g_Config.backend_info.bSupportsSettingObjectNames = false;
   g_Config.backend_info.bSupportsPartialMultisampleResolve = true;
+  g_Config.backend_info.bSupportsDynamicVertexLoader = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();

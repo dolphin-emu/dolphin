@@ -43,6 +43,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.manual_texture_sampling_custom_texture_sizes =
       g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
   bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
+  bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
   return bits;
 }
 
