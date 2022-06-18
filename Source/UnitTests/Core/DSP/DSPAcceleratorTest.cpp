@@ -17,7 +17,7 @@ public:
   {
     std::array<s16, 16> coefs{};
     m_accov_raised = false;
-    return Read(coefs.data());
+    return ReadSample(coefs.data());
   }
 
   bool EndExceptionRaised() const { return m_accov_raised; }

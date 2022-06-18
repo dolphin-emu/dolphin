@@ -83,7 +83,7 @@ protected:
     BitField<3, 1, FormatDecode> decode;
     BitField<4, 2, FormatGainCfg> gain_cfg;
     BitField<6, 10, u16> unk;
-  } m_sample_format;
+  } m_sample_format{0};
 
   s16 m_gain = 0;
   s16 m_yn1 = 0;
