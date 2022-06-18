@@ -11,7 +11,7 @@
 
 namespace DSP
 {
-u16 Accelerator::ReadD3()
+u16 Accelerator::ReadRaw()
 {
   u16 val = 0;
 
@@ -35,7 +35,7 @@ u16 Accelerator::ReadD3()
     m_current_address++;
     break;
   case 0x3:  // produces garbage, but affects the current address
-    ERROR_LOG_FMT(DSPLLE, "dsp_read_aram_d3() - bad format {:#x}", m_sample_format);
+    ERROR_LOG_FMT(DSPLLE, "dsp_read_aram_raw() - bad format {:#x}", m_sample_format);
     m_current_address = (m_current_address & ~3) | ((m_current_address + 1) & 3);
     break;
   }
@@ -79,7 +79,7 @@ u16 Accelerator::ReadD3()
   return val;
 }
 
-void Accelerator::WriteD3(u16 value)
+void Accelerator::WriteRaw(u16 value)
 {
   // Zelda ucode writes a bunch of zeros to ARAM through d3 during
   // initialization.  Don't know if it ever does it later, too.
@@ -89,7 +89,7 @@ void Accelerator::WriteD3(u16 value)
   // Writes only seem to be accepted when the upper most bit of the address is set
   if (m_current_address & 0x80000000)
   {
-    // The format doesn't matter for D3 writes, all writes are u16 and the address is treated as if
+    // The format doesn't matter for raw writes, all writes are u16 and the address is treated as if
     // we are in a 16-bit format
     WriteMemory(m_current_address * 2, value >> 8);
     WriteMemory(m_current_address * 2 + 1, value & 0xFF);
@@ -98,12 +98,12 @@ void Accelerator::WriteD3(u16 value)
   else
   {
     ERROR_LOG_FMT(DSPLLE,
-                  "dsp_write_aram_d3() - tried to write to address {:#x} without high bit set",
+                  "dsp_write_aram_raw() - tried to write to address {:#x} without high bit set",
                   m_current_address);
   }
 }
 
-u16 Accelerator::Read(const s16* coefs)
+u16 Accelerator::ReadSample(const s16* coefs)
 {
   if (m_reads_stopped)
     return 0x0000;
@@ -177,7 +177,7 @@ u16 Accelerator::Read(const s16* coefs)
     m_current_address += 1;
     break;
   default:
-    ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator() - unknown format {:#x}", m_sample_format);
+    ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() - unknown format {:#x}", m_sample_format);
     step_size_bytes = 2;
     m_current_address += 1;
     val = 0;
