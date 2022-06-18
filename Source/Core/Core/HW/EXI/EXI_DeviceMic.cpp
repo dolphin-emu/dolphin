@@ -12,27 +12,59 @@
 #include "AudioCommon/CubebUtils.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
 
+#ifdef _WIN32
+#include <Objbase.h>
+#endif
+
 namespace ExpansionInterface
 {
 void CEXIMic::StreamInit()
 {
-  m_cubeb_ctx = CubebUtils::GetContext();
-
   stream_buffer = nullptr;
   samples_avail = stream_wpos = stream_rpos = 0;
+
+#ifdef _WIN32
+  if (!m_coinit_success)
+    return;
+  Common::Event sync_event;
+  m_work_queue.EmplaceItem([this, &sync_event] {
+    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
+    m_cubeb_ctx = CubebUtils::GetContext();
+#ifdef _WIN32
+  });
+  sync_event.Wait();
+#endif
 }
 
 void CEXIMic::StreamTerminate()
 {
   StreamStop();
-  m_cubeb_ctx.reset();
+
+  if (m_cubeb_ctx)
+  {
+#ifdef _WIN32
+    if (!m_coinit_success)
+      return;
+    Common::Event sync_event;
+    m_work_queue.EmplaceItem([this, &sync_event] {
+      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
+      m_cubeb_ctx.reset();
+#ifdef _WIN32
+    });
+    sync_event.Wait();
+#endif
+  }
 }
 
 static void state_callback(cubeb_stream* stream, void* user_data, cubeb_state state)
@@ -68,7 +100,13 @@ void CEXIMic::StreamStart()
   if (!m_cubeb_ctx)
     return;
 
-  CubebUtils::RunInCubebContext([&] {
+#ifdef _WIN32
+  if (!m_coinit_success)
+    return;
+  Common::Event sync_event;
+  m_work_queue.EmplaceItem([this, &sync_event] {
+    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
     // Open stream with current parameters
     stream_size = buff_size_samples * 500;
     stream_buffer = new s16[stream_size];
@@ -101,19 +139,29 @@ void CEXIMic::StreamStart()
     }
 
     INFO_LOG_FMT(EXPANSIONINTERFACE, "started cubeb stream");
+#ifdef _WIN32
   });
+  sync_event.Wait();
+#endif
 }
 
 void CEXIMic::StreamStop()
 {
   if (m_cubeb_stream)
   {
-    CubebUtils::RunInCubebContext([&] {
+#ifdef _WIN32
+    Common::Event sync_event;
+    m_work_queue.EmplaceItem([this, &sync_event] {
+      Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+#endif
       if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
         ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error stopping cubeb stream");
       cubeb_stream_destroy(m_cubeb_stream);
+      m_cubeb_stream = nullptr;
+#ifdef _WIN32
     });
-    m_cubeb_stream = nullptr;
+    sync_event.Wait();
+#endif
   }
 
   samples_avail = stream_wpos = stream_rpos = 0;
@@ -147,7 +195,12 @@ void CEXIMic::StreamReadOne()
 
 u8 const CEXIMic::exi_id[] = {0, 0x0a, 0, 0, 0};
 
-CEXIMic::CEXIMic(int index) : slot(index)
+CEXIMic::CEXIMic(int index)
+    : slot(index)
+#ifdef _WIN32
+      ,
+      m_work_queue([](const std::function<void()>& func) { func(); })
+#endif
 {
   m_position = 0;
   command = 0;
@@ -161,6 +214,16 @@ CEXIMic::CEXIMic(int index) : slot(index)
   std::memset(ring_buffer, 0, sizeof(ring_buffer));
 
   next_int_ticks = 0;
+
+#ifdef _WIN32
+  Common::Event sync_event;
+  m_work_queue.EmplaceItem([this, &sync_event] {
+    Common::ScopeGuard sync_event_guard([&sync_event] { sync_event.Set(); });
+    auto result = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+    m_coinit_success = result == S_OK;
+  });
+  sync_event.Wait();
+#endif
 
   StreamInit();
 }

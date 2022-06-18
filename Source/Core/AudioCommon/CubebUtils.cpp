@@ -16,49 +16,6 @@
 
 #include <cubeb/cubeb.h>
 
-#ifdef _WIN32
-#include <Objbase.h>
-#endif
-
-// On Windows, we must manually ensure that COM is initialized in MTA mode on every thread that
-// accesses the cubeb API. See the comment on cubeb_init in cubeb.h
-// We do this with a thread-local variable that keeps track of whether COM is initialized or not,
-// and initialize it if it isn't. When the thread ends COM is uninitialized again.
-#ifdef _WIN32
-namespace
-{
-class auto_com
-{
-public:
-  auto_com() = default;
-  auto_com(const auto_com&) = delete;
-  auto_com(auto_com&&) = delete;
-  auto_com& operator=(const auto_com&) = delete;
-  auto_com& operator=(auto_com&&) = delete;
-  ~auto_com()
-  {
-    if (m_initialized)
-    {
-      CoUninitialize();
-    }
-  }
-  bool initialize()
-  {
-    if (!m_initialized)
-    {
-      HRESULT result = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
-      m_initialized = SUCCEEDED(result);
-    }
-    return m_initialized;
-  }
-
-private:
-  bool m_initialized = false;
-};
-}  // namespace
-static thread_local auto_com tls_com_context;
-#endif
-
 static ptrdiff_t s_path_cutoff_point = 0;
 
 static void LogCallback(const char* format, ...)
@@ -92,38 +49,8 @@ static void DestroyContext(cubeb* ctx)
   }
 }
 
-static bool EnsureCubebCallable()
-{
-#ifdef _WIN32
-  if (!tls_com_context.initialize())
-    return false;
-#endif
-  return true;
-}
-
-void CubebUtils::RunInCubebContext(const std::function<void()>& func)
-{
-  // Cubeb is documented to require MTA COM mode, so if the current thread was initialized in STA
-  // mode, we make a temporary thread to execute the cubeb call.
-  if (EnsureCubebCallable())
-  {
-    func();
-  }
-  else
-  {
-    std::thread([&] {
-      // this should never fail, so yell loudly if it does
-      ASSERT(EnsureCubebCallable());
-      func();
-    }).join();
-  }
-}
-
 std::shared_ptr<cubeb> CubebUtils::GetContext()
 {
-  if (!EnsureCubebCallable())
-    return nullptr;
-
   static std::weak_ptr<cubeb> weak;
 
   std::shared_ptr<cubeb> shared = weak.lock();
