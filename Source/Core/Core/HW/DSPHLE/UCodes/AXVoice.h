@@ -189,7 +189,7 @@ void AcceleratorSetup(HLEAccelerator* accelerator, PB_TYPE* pb)
 // by the accelerator on real hardware).
 u16 AcceleratorGetSample(HLEAccelerator* accelerator)
 {
-  return accelerator->Read(accelerator->acc_pb->adpcm.coefs);
+  return accelerator->ReadSample(accelerator->acc_pb->adpcm.coefs);
 }
 
 // Reads samples from the input callback, resamples them to <count> samples at

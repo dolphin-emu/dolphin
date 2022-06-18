@@ -14,10 +14,10 @@ class Accelerator
 public:
   virtual ~Accelerator() = default;
 
-  u16 Read(const s16* coefs);
+  u16 ReadSample(const s16* coefs);
   // Zelda ucode reads ARAM through 0xffd3.
-  u16 ReadD3();
-  void WriteD3(u16 value);
+  u16 ReadRaw();
+  void WriteRaw(u16 value);
 
   u32 GetStartAddress() const { return m_start_address; }
   u32 GetEndAddress() const { return m_end_address; }
