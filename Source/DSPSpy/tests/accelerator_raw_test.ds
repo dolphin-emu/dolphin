@@ -29,7 +29,7 @@ loop_read_test:
   call send_back ; check the accelerator regs before a read
 
   bloopi #4, end_of_read_loop
-    lr $IX3, @0xffd3 ; Raw D3 reads
+    lr $IX3, @ACDRAW ; Raw reads
     call load_hw_reg_to_regs
     call send_back ; after a read
     nop
@@ -62,7 +62,7 @@ loop_write_test:
   call send_back ; check the accelerator regs before a write
 
   bloopi #4, end_of_write_loop
-    sr @0xffd3, $IX3 ; Raw D3 writes
+    sr @ACDRAW, $IX3 ; Raw writes
     call load_hw_reg_to_regs
     call send_back ; after a write
     nop

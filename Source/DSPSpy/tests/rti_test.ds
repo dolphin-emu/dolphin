@@ -27,15 +27,15 @@ test_main:
 
 
 	LRI $AX1.H, #0x0000
-	LRS $AX0.L, @ARAM ; Trigger interrupt
+	LRS $AX0.L, @ACDSAMP ; Trigger interrupt
 	CALL send_back
 
 	LRI $AX1.H, #0x0001
-	LRS $AX0.L, @ARAM ; Trigger interrupt
+	LRS $AX0.L, @ACDSAMP ; Trigger interrupt
 	CALL send_back
 
 	LRI $AX1.H, #0x0000
-	LRS $AX0.L, @ARAM ; Trigger interrupt
+	LRS $AX0.L, @ACDSAMP ; Trigger interrupt
 	CALL send_back
 
 	jmp end_of_test

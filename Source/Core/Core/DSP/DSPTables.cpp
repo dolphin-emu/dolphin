@@ -402,7 +402,7 @@ const std::array<pdlabel_t, 96> pdlabels =
   {0xffd0, "0xffd0",nullptr,},
   {0xffd1, "SampleFormat", "SampleFormat",},
   {0xffd2, "0xffd2",nullptr,},
-  {0xffd3, "UnkZelda", "Unk Zelda reads/writes from/to it",},
+  {0xffd3, "ACDRAW", "Accelerator raw read/write from ARAM",},
   {0xffd4, "ACSAH", "Accelerator start address H",},
   {0xffd5, "ACSAL", "Accelerator start address L",},
   {0xffd6, "ACEAH", "Accelerator end address H",},
@@ -412,7 +412,7 @@ const std::array<pdlabel_t, 96> pdlabels =
   {0xffda, "pred_scale", "pred_scale",},
   {0xffdb, "yn1", "yn1",},
   {0xffdc, "yn2", "yn2",},
-  {0xffdd, "ARAM", "Direct Read from ARAM (uses ADPCM)",},
+  {0xffdd, "ACDSAMP", "Accelerator processed sample read from ARAM or ACIN",},
   {0xffde, "GAIN", "Gain",},
   {0xffdf, "ACIN", "Accelerator MMIO PCM input value",},
 
