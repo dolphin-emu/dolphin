@@ -16,10 +16,6 @@ CARDUCode::CARDUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   INFO_LOG_FMT(DSPHLE, "CARDUCode - initialized");
 }
 
-CARDUCode::~CARDUCode()
-{
-}
-
 void CARDUCode::Initialize()
 {
   m_mail_handler.PushMail(DSP_INIT);
