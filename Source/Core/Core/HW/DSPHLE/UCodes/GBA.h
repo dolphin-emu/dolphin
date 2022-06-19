@@ -23,5 +23,17 @@ public:
   void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
+
+private:
+  static constexpr u32 REQUEST_MAIL = 0xabba0000;
+
+  enum class MailState
+  {
+    WaitingForRequest,
+    WaitingForAddress,
+    WaitingForNextTask,
+  };
+
+  MailState m_mail_state = MailState::WaitingForRequest;
 };
 }  // namespace DSP::HLE
