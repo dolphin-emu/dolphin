@@ -330,10 +330,13 @@ public:
       // Throw extras in bits we don't otherwise use
       if (cfg.rasterization_state.cullmode == CullMode::All)
         blend.hex |= 1 << 29;
-      if (cfg.rasterization_state.primitive == PrimitiveType::Points)
-        blend.hex |= 1 << 30;
-      else if (cfg.rasterization_state.primitive == PrimitiveType::Lines)
-        blend.hex |= 1 << 31;
+      if (cfg.usage != AbstractPipelineUsage::GXUber)
+      {
+        if (cfg.rasterization_state.primitive == PrimitiveType::Points)
+          blend.hex |= 1 << 30;
+        else if (cfg.rasterization_state.primitive == PrimitiveType::Lines)
+          blend.hex |= 1 << 31;
+      }
     }
     PipelineID() { memset(this, 0, sizeof(*this)); }
     PipelineID(const PipelineID& other) { memcpy(this, &other, sizeof(*this)); }
@@ -386,7 +389,8 @@ public:
       if (config.vertex_format)
         [desc setVertexDescriptor:static_cast<const VertexFormat*>(config.vertex_format)->Get()];
       RasterizationState rs = config.rasterization_state;
-      [desc setInputPrimitiveTopology:GetClass(rs.primitive)];
+      if (config.usage != AbstractPipelineUsage::GXUber)
+        [desc setInputPrimitiveTopology:GetClass(rs.primitive)];
       if (rs.cullmode == CullMode::All)
         [desc setRasterizationEnabled:NO];
       MTLRenderPipelineColorAttachmentDescriptor* color0 =
