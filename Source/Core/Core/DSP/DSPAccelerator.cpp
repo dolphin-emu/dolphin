@@ -143,41 +143,18 @@ u16 Accelerator::ReadSample(const s16* coefs)
   s32 coef1 = coefs[coef_idx * 2 + 0];
   s32 coef2 = coefs[coef_idx * 2 + 1];
 
-  u8 gain_shift = 0;
-  switch (m_sample_format.gain_cfg)
-  {
-  case FormatGainCfg::GainShift11:
-    gain_shift = 11;
-    break;
-  case FormatGainCfg::GainShift0:
-    gain_shift = 0;
-    break;
-  case FormatGainCfg::GainShift16:
-    gain_shift = 16;
-    break;
-  default:
-    ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() invalid gain mode in format {:#x}",
-                  m_sample_format.hex);
-    break;
-  }
-
   switch (m_sample_format.decode)
   {
   case FormatDecode::ADPCM:  // ADPCM audio
   {
-    if (m_sample_format.size != FormatSize::Size4Bit)
-    {
-      ERROR_LOG_FMT(
-          DSPLLE, "dsp_read_accelerator_sample() tried to read ADPCM with bad size in format {:#x}",
-          m_sample_format.hex);
-      break;
-    }
+    // ADPCM really only supports 4-bit decoding, but for larger values on hardware, it just ignores
+    // the upper 12 bits
+    raw_sample &= 0xF;
     int scale = 1 << (m_pred_scale & 0xF);
 
     if (raw_sample >= 8)
       raw_sample -= 16;
 
-    // Not sure if GAIN is applied for ADPCM or not
     s32 val32 = (scale * raw_sample) + ((0x400 + coef1 * m_yn1 + coef2 * m_yn2) >> 11);
     val = static_cast<s16>(std::clamp<s32>(val32, -0x7FFF, 0x7FFF));
     step_size = 2;
@@ -189,7 +166,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
     // These two cases are handled in a special way, separate from normal overflow handling:
     // the ACCOV exception does not fire at all, the predscale register is not updated,
     // and if the end address is 16-byte aligned, the DSP loops to start_address + 1
-    // instead of start_address.
+    // instead of start_address. This probably needs to be adjusted when using 8 or 16-bit accesses.
     if ((m_end_address & 0xf) == 0x0 && m_current_address == m_end_address)
     {
       m_current_address = m_start_address + 1;
@@ -209,6 +186,24 @@ u16 Accelerator::ReadSample(const s16* coefs)
   }
   case FormatDecode::PCM:  // 16-bit PCM audio
   {
+    // Gain seems to only apply for PCM decoding
+    u8 gain_shift = 0;
+    switch (m_sample_format.gain_cfg)
+    {
+    case FormatGainCfg::GainShift11:
+      gain_shift = 11;
+      break;
+    case FormatGainCfg::GainShift0:
+      gain_shift = 0;
+      break;
+    case FormatGainCfg::GainShift16:
+      gain_shift = 16;
+      break;
+    default:
+      ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() invalid gain mode in format {:#x}",
+                    m_sample_format.hex);
+      break;
+    }
     s32 val32 = ((static_cast<s32>(m_gain) * raw_sample) >> gain_shift) +
                 (((coef1 * m_yn1) >> gain_shift) + ((coef2 * m_yn2) >> gain_shift));
     val = static_cast<s16>(val32);
