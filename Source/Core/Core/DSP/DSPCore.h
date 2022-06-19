@@ -166,7 +166,7 @@ enum : u32
   DSP_YN2 = 0xdc,
   DSP_ACDSAMP = 0xdd,  // Accelerator sample reads, processed differently depending on FORMAT
   DSP_GAIN = 0xde,
-  DSP_ACUNK2 = 0xdf,  // Set to 0xc on my dumps
+  DSP_ACIN = 0xdf,  // Feeds PCM samples written here
 
   DSP_AMDM = 0xef,  // ARAM DMA Request Mask 0: DMA with ARAM unmasked 1: masked
 
