@@ -32,7 +32,7 @@ public:
 
   VKFramebuffer* GetFramebuffer() const { return m_framebuffer; }
   const VKPipeline* GetPipeline() const { return m_pipeline; }
-  void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
+  void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset, u32 size);
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
   void SetFramebuffer(VKFramebuffer* framebuffer);
   void SetPipeline(const VKPipeline* pipeline);
@@ -145,6 +145,7 @@ private:
     std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> samplers;
     std::array<VkBufferView, NUM_COMPUTE_TEXEL_BUFFERS> texel_buffers;
     VkDescriptorBufferInfo ssbo;
+    VkDescriptorBufferInfo gx_uber_vertex_ssbo;
     VkDescriptorImageInfo image_texture;
   } m_bindings = {};
   std::array<VkDescriptorSet, NUM_GX_DESCRIPTOR_SETS> m_gx_descriptor_sets = {};
