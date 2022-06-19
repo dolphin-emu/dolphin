@@ -81,7 +81,7 @@ u16 Accelerator::ReadRaw()
   {
     // Set address back to start address (confirmed on hardware)
     m_current_address = m_start_address;
-    OnEndException();
+    OnRawReadEndException();
   }
 
   SetCurrentAddress(m_current_address);
@@ -103,6 +103,7 @@ void Accelerator::WriteRaw(u16 value)
     WriteMemory(m_current_address * 2, value >> 8);
     WriteMemory(m_current_address * 2 + 1, value & 0xFF);
     m_current_address++;
+    OnRawWriteEndException();
   }
   else
   {
@@ -228,7 +229,7 @@ u16 Accelerator::ReadSample(const s16* coefs)
     // Set address back to start address.
     m_current_address = m_start_address;
     m_reads_stopped = true;
-    OnEndException();
+    OnSampleReadEndException();
   }
 
   SetCurrentAddress(m_current_address);

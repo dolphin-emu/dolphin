@@ -226,13 +226,13 @@ enum : u16
 // Exception vectors
 enum class ExceptionType
 {
-  StackOverflow = 1,        // 0x0002 stack under/over flow
-  EXP_2 = 2,                // 0x0004
-  EXP_3 = 3,                // 0x0006
-  EXP_4 = 4,                // 0x0008
-  AcceleratorOverflow = 5,  // 0x000a accelerator address overflow
-  EXP_6 = 6,                // 0x000c
-  ExternalInterrupt = 7     // 0x000e external int (message from CPU)
+  StackOverflow = 1,                  // 0x0002 stack under/over flow
+  EXP_2 = 2,                          // 0x0004
+  AcceleratorRawReadOverflow = 3,     // 0x0006 accelerator raw read address overflow
+  AcceleratorRawWriteOverflow = 4,    // 0x0008 accelerator raw write address overflow
+  AcceleratorSampleReadOverflow = 5,  // 0x000a accelerator sample reads address overflow
+  EXP_6 = 6,                          // 0x000c
+  ExternalInterrupt = 7               // 0x000e external int (message from CPU)
 };
 
 enum class Mailbox
