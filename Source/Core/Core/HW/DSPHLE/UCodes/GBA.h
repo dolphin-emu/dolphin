@@ -15,8 +15,9 @@ class DSPHLE;
 // written back to RAM at the dest address provided in the crypto parameters.
 void ProcessGBACrypto(u32 address);
 
-struct GBAUCode : public UCodeInterface
+class GBAUCode final : public UCodeInterface
 {
+public:
   GBAUCode(DSPHLE* dsphle, u32 crc);
 
   void Initialize() override;

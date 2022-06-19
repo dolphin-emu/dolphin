@@ -10,7 +10,7 @@ namespace DSP::HLE
 {
 class DSPHLE;
 
-class CARDUCode : public UCodeInterface
+class CARDUCode final : public UCodeInterface
 {
 public:
   CARDUCode(DSPHLE* dsphle, u32 crc);

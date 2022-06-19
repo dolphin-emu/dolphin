@@ -10,7 +10,7 @@ namespace DSP::HLE
 {
 class DSPHLE;
 
-class ROMUCode : public UCodeInterface
+class ROMUCode final : public UCodeInterface
 {
 public:
   ROMUCode(DSPHLE* dsphle, u32 crc);

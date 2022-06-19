@@ -62,7 +62,7 @@ enum AXMixControl
   // clang-format on
 };
 
-class AXUCode : public UCodeInterface
+class AXUCode /* not final: subclassed by AXWiiUCode */ : public UCodeInterface
 {
 public:
   AXUCode(DSPHLE* dsphle, u32 crc);

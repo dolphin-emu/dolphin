@@ -10,7 +10,7 @@ namespace DSP::HLE
 {
 class DSPHLE;
 
-class INITUCode : public UCodeInterface
+class INITUCode final : public UCodeInterface
 {
 public:
   INITUCode(DSPHLE* dsphle, u32 crc);
