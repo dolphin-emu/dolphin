@@ -31,7 +31,7 @@ call load_hw_reg_to_regs
 call send_back ; check the accelerator regs before a read
 
 bloopi #40, end_of_loop
-  lr $IX3, @ARAM
+  lr $IX3, @ACDSAMP
   call load_hw_reg_to_regs
   call send_back ; after a read
 end_of_loop:
