@@ -588,10 +588,10 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
     const NativeVertexFormat* vertex_format, const AbstractShader* vertex_shader,
     const AbstractShader* geometry_shader, const AbstractShader* pixel_shader,
     const RasterizationState& rasterization_state, const DepthState& depth_state,
-    const BlendingState& blending_state)
+    const BlendingState& blending_state, AbstractPipelineUsage usage)
 {
   AbstractPipelineConfig config = {};
-  config.usage = AbstractPipelineUsage::GX;
+  config.usage = usage;
   config.vertex_format = vertex_format;
   config.vertex_shader = vertex_shader;
   config.geometry_shader = geometry_shader;
@@ -735,7 +735,7 @@ ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
   }
 
   return GetGXPipelineConfig(config.vertex_format, vs, gs, ps, config.rasterization_state,
-                             config.depth_state, config.blending_state);
+                             config.depth_state, config.blending_state, AbstractPipelineUsage::GX);
 }
 
 /// Edits the UID based on driver bugs and other special configurations
@@ -800,7 +800,8 @@ ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
   }
 
   return GetGXPipelineConfig(config.vertex_format, vs, gs, ps, config.rasterization_state,
-                             config.depth_state, config.blending_state);
+                             config.depth_state, config.blending_state,
+                             AbstractPipelineUsage::GXUber);
 }
 
 const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& config,

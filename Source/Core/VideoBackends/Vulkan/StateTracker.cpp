@@ -452,7 +452,7 @@ void StateTracker::EndClearRenderPass()
 
 bool StateTracker::UpdateDescriptorSet()
 {
-  if (m_pipeline->GetUsage() == AbstractPipelineUsage::GX)
+  if (m_pipeline->GetUsage() != AbstractPipelineUsage::Utility)
     return UpdateGXDescriptorSet();
   else
     return UpdateUtilityDescriptorSet();

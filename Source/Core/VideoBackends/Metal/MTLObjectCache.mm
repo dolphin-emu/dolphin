@@ -377,18 +377,12 @@ public:
       auto desc = MRCTransfer([MTLRenderPipelineDescriptor new]);
       [desc setVertexFunction:static_cast<const Shader*>(config.vertex_shader)->GetShader()];
       [desc setFragmentFunction:static_cast<const Shader*>(config.pixel_shader)->GetShader()];
-      if (config.usage == AbstractPipelineUsage::GX)
-      {
-        if ([[[desc vertexFunction] label] containsString:@"Uber"])
-          [desc
-              setLabel:[NSString stringWithFormat:@"GX Uber Pipeline %d", m_pipeline_counter[0]++]];
-        else
-          [desc setLabel:[NSString stringWithFormat:@"GX Pipeline %d", m_pipeline_counter[1]++]];
-      }
+      if (config.usage == AbstractPipelineUsage::GXUber)
+        [desc setLabel:[NSString stringWithFormat:@"GX Uber Pipeline %d", m_pipeline_counter[0]++]];
+      else if (config.usage == AbstractPipelineUsage::GX)
+        [desc setLabel:[NSString stringWithFormat:@"GX Pipeline %d", m_pipeline_counter[1]++]];
       else
-      {
         [desc setLabel:[NSString stringWithFormat:@"Utility Pipeline %d", m_pipeline_counter[2]++]];
-      }
       if (config.vertex_format)
         [desc setVertexDescriptor:static_cast<const VertexFormat*>(config.vertex_format)->Get()];
       RasterizationState rs = config.rasterization_state;

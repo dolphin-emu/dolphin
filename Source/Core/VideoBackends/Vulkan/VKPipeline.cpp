@@ -249,6 +249,7 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   switch (config.usage)
   {
   case AbstractPipelineUsage::GX:
+  case AbstractPipelineUsage::GXUber:
     pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
     break;
   case AbstractPipelineUsage::Utility:

@@ -572,7 +572,8 @@ bool Renderer::ApplyState()
                                             m_state.sampler_descriptor_base);
   }
 
-  if (static_cast<const DXPipeline*>(m_current_pipeline)->GetUsage() == AbstractPipelineUsage::GX)
+  if (static_cast<const DXPipeline*>(m_current_pipeline)->GetUsage() !=
+      AbstractPipelineUsage::Utility)
   {
     if (dirty_bits & DirtyState_VS_CBV)
     {
