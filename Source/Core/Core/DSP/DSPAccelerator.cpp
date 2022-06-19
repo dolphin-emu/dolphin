@@ -118,16 +118,6 @@ u16 Accelerator::ReadSample(const s16* coefs)
   if (m_reads_stopped)
     return 0x0000;
 
-  if (m_sample_format.raw_only)
-  {
-    // Seems to return garbage on hardware
-    ERROR_LOG_FMT(
-        DSPLLE,
-        "dsp_read_accelerator_sample() tried sample read with raw only bit set for format {:#x}",
-        m_sample_format.hex);
-    return 0x0000;
-  }
-
   if (m_sample_format.unk != 0)
   {
     WARN_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() format {:#x} has unknown upper bits set",
@@ -136,8 +126,18 @@ u16 Accelerator::ReadSample(const s16* coefs)
 
   u16 val = 0;
   u8 step_size = 0;
+  s16 raw_sample;
+  if (m_sample_format.decode == FormatDecode::MMIOPCMHalt ||
+      m_sample_format.decode == FormatDecode::MMIOPCMInc)
+  {
+    // The addresses can be complete nonsense in either of these modes
+    raw_sample = m_input;
+  }
+  else
+  {
+    raw_sample = GetCurrentSample();
+  }
 
-  s16 raw_sample = GetCurrentSample();
   int coef_idx = (m_pred_scale >> 4) & 0x7;
 
   s32 coef1 = coefs[coef_idx * 2 + 0];
@@ -184,7 +184,9 @@ u16 Accelerator::ReadSample(const s16* coefs)
     }
     break;
   }
+  case FormatDecode::MMIOPCMHalt:
   case FormatDecode::PCM:  // 16-bit PCM audio
+  case FormatDecode::MMIOPCMInc:
   {
     // Gain seems to only apply for PCM decoding
     u8 gain_shift = 0;
@@ -210,7 +212,10 @@ u16 Accelerator::ReadSample(const s16* coefs)
     m_yn2 = m_yn1;
     m_yn1 = val;
     step_size = 2;
-    m_current_address += 1;
+    if (m_sample_format.decode != FormatDecode::MMIOPCMHalt)
+    {
+      m_current_address += 1;
+    }
     break;
   }
   }
@@ -286,4 +291,10 @@ void Accelerator::SetPredScale(u16 pred_scale)
 {
   m_pred_scale = pred_scale & 0x7f;
 }
+
+void Accelerator::SetInput(u16 input)
+{
+  m_input = input;
+}
+
 }  // namespace DSP

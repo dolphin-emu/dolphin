@@ -414,7 +414,7 @@ const std::array<pdlabel_t, 96> pdlabels =
   {0xffdc, "yn2", "yn2",},
   {0xffdd, "ARAM", "Direct Read from ARAM (uses ADPCM)",},
   {0xffde, "GAIN", "Gain",},
-  {0xffdf, "0xffdf", nullptr,},
+  {0xffdf, "ACIN", "Accelerator MMIO PCM input value",},
 
   {0xffe0, "0xffe0",nullptr,},
   {0xffe1, "0xffe1",nullptr,},
