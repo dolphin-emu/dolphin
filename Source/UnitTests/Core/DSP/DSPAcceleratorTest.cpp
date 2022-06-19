@@ -23,7 +23,9 @@ public:
   bool EndExceptionRaised() const { return m_accov_raised; }
 
 protected:
-  void OnEndException() override
+  void OnRawReadEndException() override {}
+  void OnRawWriteEndException() override {}
+  void OnSampleReadEndException() override
   {
     EXPECT_TRUE(m_reads_stopped);
     m_accov_raised = true;

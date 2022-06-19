@@ -40,7 +40,9 @@ public:
   void DoState(PointerWrap& p);
 
 protected:
-  virtual void OnEndException() = 0;
+  virtual void OnRawReadEndException() = 0;
+  virtual void OnRawWriteEndException() = 0;
+  virtual void OnSampleReadEndException() = 0;
   virtual u8 ReadMemory(u32 address) = 0;
   virtual void WriteMemory(u32 address, u8 value) = 0;
   u16 GetCurrentSample();
