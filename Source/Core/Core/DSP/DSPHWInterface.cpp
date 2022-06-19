@@ -170,6 +170,9 @@ void SDSP::WriteIFX(u32 address, u16 value)
   case DSP_ACDRAW:  // Raw accelerator write
     m_accelerator->WriteRaw(value);
     break;
+  case DSP_ACIN:
+    m_accelerator->SetInput(value);
+    break;
 
   default:
     if ((address & 0xff) >= 0xa0)
@@ -240,6 +243,8 @@ u16 SDSP::ReadIFXImpl(u16 address)
     return m_accelerator->ReadSample(reinterpret_cast<s16*>(&m_ifx_regs[DSP_COEF_A1_0]));
   case DSP_ACDRAW:  // Raw accelerator read
     return m_accelerator->ReadRaw();
+  case DSP_ACIN:
+    return m_accelerator->GetInput();
 
   default:
   {

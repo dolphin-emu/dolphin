@@ -28,6 +28,7 @@ public:
   s16 GetYn1() const { return m_yn1; }
   s16 GetYn2() const { return m_yn2; }
   u16 GetPredScale() const { return m_pred_scale; }
+  u16 GetInput() const { return m_input; }
   void SetStartAddress(u32 address);
   void SetEndAddress(u32 address);
   void SetCurrentAddress(u32 address);
@@ -36,6 +37,7 @@ public:
   void SetYn1(s16 yn1);
   void SetYn2(s16 yn2);
   void SetPredScale(u16 pred_scale);
+  void SetInput(u16 input);
 
   void DoState(PointerWrap& p);
 
@@ -62,8 +64,10 @@ protected:
 
   enum class FormatDecode : u16
   {
-    ADPCM = 0,
-    PCM = 1,
+    ADPCM = 0,        // ADPCM reads from ARAM, ACCA increments
+    MMIOPCMHalt = 1,  // PCM Reads from ACIN, ACCA doesn't increment
+    PCM = 2,          // PCM reads from ARAM, ACCA increments
+    MMIOPCMInc = 3    // PCM reads from ACIN, ACCA increments
   };
 
   // When reading samples (at least in PCM mode), they are multiplied by the gain, then shifted
@@ -80,9 +84,7 @@ protected:
   {
     u16 hex;
     BitField<0, 2, FormatSize> size;
-    BitField<2, 1, bool, u16>
-        raw_only;  // When this bit is set, sample reads seem broken, while raw accesses work
-    BitField<3, 1, FormatDecode> decode;
+    BitField<2, 2, FormatDecode> decode;
     BitField<4, 2, FormatGainCfg> gain_cfg;
     BitField<6, 10, u16> unk;
   } m_sample_format{0};
@@ -91,6 +93,7 @@ protected:
   s16 m_yn1 = 0;
   s16 m_yn2 = 0;
   u16 m_pred_scale = 0;
+  u16 m_input = 0;
 
   // When an ACCOV is triggered, the accelerator stops reading back anything
   // and updating the current address register, unless the YN2 register is written to.
