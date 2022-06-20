@@ -10,7 +10,7 @@ lri $AC1.M, #0x0000 ; end
 lri $AC1.L, #0x0011 ; end
 
 ; Set the sample format
-lri $AC0.H, #0x0
+lri $AC0.H, #0x08 ; 4-bit PCM, gain scaling = x / 2048
 sr @0xffd1, $AC0.H
 ; Set the starting and current address
 srs @ACSAH, $AC0.M
@@ -21,14 +21,26 @@ srs @ACCAL, $AC0.L
 srs @ACEAH, $AC1.M
 srs @ACEAL, $AC1.L
 
+; Set the gains
+si @GAIN, #0x0800 ; 2048 / 2048 = 1.0
+si @COEF_A1_0, #0x0400 ; 1024 / 2048 = 0.5
+si @COEF_A2_0, #0x0200 ; 512 / 2048 = 0.25
+
 ; Reset some registers (these must be reset after setting FORMAT)
-lri $AC0.H, #0xffff
-sr @0xffda, $AC0.H ; pred scale
+lri $AC0.H, #0x0000
+sr @0xffda, $AC0.H ; pred scale, use 0th coefficients
 sr @0xffdb, $AC0.H ; yn1
 sr @0xffdc, $AC0.H ; yn2
 
 call load_hw_reg_to_regs
 call send_back ; check the accelerator regs before a read
+
+; Expected read sequence
+; r[0] = (data[0] >> 4) + (0/2) + (0/4)
+; r[1] = (data[0] & 0xf) + (r[0]/2) + (0/4)
+; r[2] = (data[1] >> 4) + (r[1]/2) + (r[0]/4)
+; r[3] = (data[1] & 0xf) + (r[2]/2) + (r[1]/4)
+; ...
 
 bloopi #40, end_of_loop
   lr $IX3, @ACDSAMP
