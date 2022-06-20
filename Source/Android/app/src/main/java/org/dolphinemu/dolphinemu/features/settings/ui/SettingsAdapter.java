@@ -277,8 +277,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item, this);
     dialog.setTitle(R.string.input_binding);
     dialog.setMessage(String.format(mContext.getString(
-            item instanceof RumbleBindingSetting ?
-                    R.string.input_rumble_description : R.string.input_binding_description),
+                    item instanceof RumbleBindingSetting ?
+                            R.string.input_rumble_description : R.string.input_binding_description),
             item.getName()));
     dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
     dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
