@@ -4,6 +4,7 @@
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 
 #include "Common/Align.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"
@@ -141,5 +142,11 @@ void GBAUCode::HandleMail(u32 mail)
     }
   }
   }
+}
+
+void GBAUCode::DoState(PointerWrap& p)
+{
+  DoStateShared(p);
+  p.Do(m_mail_state);
 }
 }  // namespace DSP::HLE

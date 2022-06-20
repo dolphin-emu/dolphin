@@ -23,6 +23,7 @@ public:
   void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
+  void DoState(PointerWrap& p) override;
 
 private:
   static constexpr u32 REQUEST_MAIL = 0xabba0000;
