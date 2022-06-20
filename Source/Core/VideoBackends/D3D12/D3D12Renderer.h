@@ -88,7 +88,8 @@ public:
   void SetPixelShaderUAV(D3D12_CPU_DESCRIPTOR_HANDLE handle);
 
   // Graphics vertex/index buffer binding.
-  void SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 stride, u32 size);
+  void SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, D3D12_CPU_DESCRIPTOR_HANDLE srv,
+                       u32 stride, u32 size);
   void SetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 size, DXGI_FORMAT format);
 
   // Binds all dirty state
@@ -126,6 +127,8 @@ private:
     DirtyState_RootSignature = (1 << 17),
     DirtyState_ComputeRootSignature = (1 << 18),
     DirtyState_DescriptorHeaps = (1 << 19),
+    DirtyState_VS_SRV = (1 << 20),
+    DirtyState_VS_SRV_Descriptor = (1 << 21),
 
     DirtyState_All =
         DirtyState_Framebuffer | DirtyState_Pipeline | DirtyState_Textures | DirtyState_Samplers |
@@ -133,7 +136,8 @@ private:
         DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV | DirtyState_GS_CBV |
         DirtyState_SRV_Descriptor | DirtyState_Sampler_Descriptor | DirtyState_UAV_Descriptor |
         DirtyState_VertexBuffer | DirtyState_IndexBuffer | DirtyState_PrimitiveTopology |
-        DirtyState_RootSignature | DirtyState_ComputeRootSignature | DirtyState_DescriptorHeaps
+        DirtyState_RootSignature | DirtyState_ComputeRootSignature | DirtyState_DescriptorHeaps |
+        DirtyState_VS_SRV | DirtyState_VS_SRV_Descriptor
   };
 
   void CheckForSwapChainChanges();
@@ -144,6 +148,7 @@ private:
   void UpdateDescriptorTables();
   bool UpdateSRVDescriptorTable();
   bool UpdateUAVDescriptorTable();
+  bool UpdateVSSRVDescriptorTable();
   bool UpdateComputeUAVDescriptorTable();
   bool UpdateSamplerDescriptorTable();
 
@@ -157,11 +162,13 @@ private:
     DXShader* compute_shader = nullptr;
     std::array<D3D12_GPU_VIRTUAL_ADDRESS, 3> constant_buffers = {};
     std::array<D3D12_CPU_DESCRIPTOR_HANDLE, MAX_TEXTURES> textures = {};
+    D3D12_CPU_DESCRIPTOR_HANDLE vs_srv = {};
     D3D12_CPU_DESCRIPTOR_HANDLE ps_uav = {};
     SamplerStateSet samplers = {};
     const DXTexture* compute_image_texture = nullptr;
     D3D12_VIEWPORT viewport = {};
     D3D12_RECT scissor = {};
+    D3D12_GPU_DESCRIPTOR_HANDLE vertex_srv_descriptor_base = {};
     D3D12_GPU_DESCRIPTOR_HANDLE srv_descriptor_base = {};
     D3D12_GPU_DESCRIPTOR_HANDLE sampler_descriptor_base = {};
     D3D12_GPU_DESCRIPTOR_HANDLE uav_descriptor_base = {};

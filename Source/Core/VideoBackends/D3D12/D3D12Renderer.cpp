@@ -180,7 +180,8 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
       m_state.root_signature = dx_pipeline->GetRootSignature();
       m_dirty_bits |= DirtyState_RootSignature | DirtyState_PS_CBV | DirtyState_VS_CBV |
                       DirtyState_GS_CBV | DirtyState_SRV_Descriptor |
-                      DirtyState_Sampler_Descriptor | DirtyState_UAV_Descriptor;
+                      DirtyState_Sampler_Descriptor | DirtyState_UAV_Descriptor |
+                      DirtyState_VS_SRV_Descriptor;
     }
     if (dx_pipeline->UseIntegerRTV() != m_state.using_integer_rtv)
     {
@@ -362,6 +363,11 @@ void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
   if (!ApplyState())
     return;
 
+  // DX12 is great and doesn't include the base vertex in SV_VertexID
+  if (static_cast<const DXPipeline*>(m_current_pipeline)->GetUsage() ==
+      AbstractPipelineUsage::GXUber)
+    g_dx_context->GetCommandList()->SetGraphicsRoot32BitConstant(
+        ROOT_PARAMETER_BASE_VERTEX_CONSTANT, base_vertex, 0);
   g_dx_context->GetCommandList()->DrawIndexedInstanced(num_indices, 1, base_index, base_vertex, 0);
 }
 
@@ -494,18 +500,22 @@ void Renderer::SetPixelShaderUAV(D3D12_CPU_DESCRIPTOR_HANDLE handle)
   m_dirty_bits |= DirtyState_PS_UAV;
 }
 
-void Renderer::SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 stride, u32 size)
+void Renderer::SetVertexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, D3D12_CPU_DESCRIPTOR_HANDLE srv,
+                               u32 stride, u32 size)
 {
-  if (m_state.vertex_buffer.BufferLocation == address &&
-      m_state.vertex_buffer.StrideInBytes == stride && m_state.vertex_buffer.SizeInBytes == size)
+  if (m_state.vertex_buffer.BufferLocation != address ||
+      m_state.vertex_buffer.StrideInBytes != stride || m_state.vertex_buffer.SizeInBytes != size)
   {
-    return;
+    m_state.vertex_buffer.BufferLocation = address;
+    m_state.vertex_buffer.StrideInBytes = stride;
+    m_state.vertex_buffer.SizeInBytes = size;
+    m_dirty_bits |= DirtyState_VertexBuffer;
   }
-
-  m_state.vertex_buffer.BufferLocation = address;
-  m_state.vertex_buffer.StrideInBytes = stride;
-  m_state.vertex_buffer.SizeInBytes = size;
-  m_dirty_bits |= DirtyState_VertexBuffer;
+  if (m_state.vs_srv.ptr != srv.ptr)
+  {
+    m_state.vs_srv = srv;
+    m_dirty_bits |= DirtyState_VS_SRV;
+  }
 }
 
 void Renderer::SetIndexBuffer(D3D12_GPU_VIRTUAL_ADDRESS address, u32 size, DXGI_FORMAT format)
@@ -535,15 +545,17 @@ bool Renderer::ApplyState()
   // Clear bits before actually changing state. Some state (e.g. cbuffers) can't be set
   // if utility pipelines are bound.
   const u32 dirty_bits = m_dirty_bits;
-  m_dirty_bits &= ~(
-      DirtyState_Framebuffer | DirtyState_Pipeline | DirtyState_Viewport | DirtyState_ScissorRect |
-      DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV | DirtyState_GS_CBV |
-      DirtyState_SRV_Descriptor | DirtyState_Sampler_Descriptor | DirtyState_UAV_Descriptor |
-      DirtyState_VertexBuffer | DirtyState_IndexBuffer | DirtyState_PrimitiveTopology);
+  m_dirty_bits &=
+      ~(DirtyState_Framebuffer | DirtyState_Pipeline | DirtyState_Viewport |
+        DirtyState_ScissorRect | DirtyState_PS_UAV | DirtyState_PS_CBV | DirtyState_VS_CBV |
+        DirtyState_GS_CBV | DirtyState_SRV_Descriptor | DirtyState_Sampler_Descriptor |
+        DirtyState_UAV_Descriptor | DirtyState_VertexBuffer | DirtyState_IndexBuffer |
+        DirtyState_PrimitiveTopology | DirtyState_VS_SRV_Descriptor);
 
   auto* const cmdlist = g_dx_context->GetCommandList();
+  auto* const pipeline = static_cast<const DXPipeline*>(m_current_pipeline);
   if (dirty_bits & DirtyState_Pipeline)
-    cmdlist->SetPipelineState(static_cast<const DXPipeline*>(m_current_pipeline)->GetPipeline());
+    cmdlist->SetPipelineState(pipeline->GetPipeline());
 
   if (dirty_bits & DirtyState_Framebuffer)
     BindFramebuffer(static_cast<DXFramebuffer*>(m_current_framebuffer));
@@ -572,8 +584,7 @@ bool Renderer::ApplyState()
                                             m_state.sampler_descriptor_base);
   }
 
-  if (static_cast<const DXPipeline*>(m_current_pipeline)->GetUsage() !=
-      AbstractPipelineUsage::Utility)
+  if (pipeline->GetUsage() != AbstractPipelineUsage::Utility)
   {
     if (dirty_bits & DirtyState_VS_CBV)
     {
@@ -588,6 +599,13 @@ bool Renderer::ApplyState()
             g_ActiveConfig.bBBoxEnable ? ROOT_PARAMETER_PS_CBV2 : ROOT_PARAMETER_PS_UAV_OR_CBV2,
             m_state.constant_buffers[1]);
       }
+    }
+
+    if (dirty_bits & DirtyState_VS_SRV_Descriptor &&
+        pipeline->GetUsage() == AbstractPipelineUsage::GXUber)
+    {
+      cmdlist->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_VS_SRV,
+                                              m_state.vertex_srv_descriptor_base);
     }
 
     if (dirty_bits & DirtyState_GS_CBV)
@@ -642,7 +660,9 @@ void Renderer::UpdateDescriptorTables()
   const bool sampler_update_failed =
       (m_dirty_bits & DirtyState_Samplers) && !UpdateSamplerDescriptorTable();
   const bool uav_update_failed = (m_dirty_bits & DirtyState_PS_UAV) && !UpdateUAVDescriptorTable();
-  if (texture_update_failed || sampler_update_failed || uav_update_failed)
+  const bool srv_update_failed =
+      (m_dirty_bits & DirtyState_VS_SRV) && !UpdateVSSRVDescriptorTable();
+  if (texture_update_failed || sampler_update_failed || uav_update_failed || srv_update_failed)
   {
     WARN_LOG_FMT(VIDEO, "Executing command list while waiting for temporary {}",
                  texture_update_failed ? "descriptors" : "samplers");
@@ -652,6 +672,7 @@ void Renderer::UpdateDescriptorTables()
     UpdateSRVDescriptorTable();
     UpdateSamplerDescriptorTable();
     UpdateUAVDescriptorTable();
+    UpdateVSSRVDescriptorTable();
   }
 }
 
@@ -698,6 +719,26 @@ bool Renderer::UpdateUAVDescriptorTable()
                                                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
   m_state.uav_descriptor_base = handle.gpu_handle;
   m_dirty_bits = (m_dirty_bits & ~DirtyState_PS_UAV) | DirtyState_UAV_Descriptor;
+  return true;
+}
+
+bool Renderer::UpdateVSSRVDescriptorTable()
+{
+  if (!g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
+      static_cast<const DXPipeline*>(m_current_pipeline)->GetUsage() !=
+          AbstractPipelineUsage::GXUber)
+  {
+    return true;
+  }
+
+  DescriptorHandle handle;
+  if (!g_dx_context->GetDescriptorAllocator()->Allocate(1, &handle))
+    return false;
+
+  g_dx_context->GetDevice()->CopyDescriptorsSimple(1, handle.cpu_handle, m_state.vs_srv,
+                                                   D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+  m_state.vertex_srv_descriptor_base = handle.gpu_handle;
+  m_dirty_bits = (m_dirty_bits & ~DirtyState_VS_SRV) | DirtyState_VS_SRV_Descriptor;
   return true;
 }
 

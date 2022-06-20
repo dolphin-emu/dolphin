@@ -60,11 +60,34 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
 SSBO_BINDING(1) readonly restrict buffer Vertices {{
   uint vertex_buffer[];
 }};
+)");
+    if (api_type == APIType::D3D)
+    {
+      // Write a function to get an offset into vertex_buffer corresponding to this vertex.
+      // This must be done differently for D3D compared to OpenGL/Vulkan/Metal, as on OpenGL, etc.,
+      // gl_VertexID starts counting at the base vertex specified in glDrawElementsBaseVertex,
+      // while on D3D, SV_VertexID (which spirv-cross translates gl_VertexID into) starts counting
+      // at 0 regardless of the BaseVertexLocation value passed to DrawIndexed.  In both cases,
+      // offset 0 of vertex_buffer corresponds to index 0 with basevertex set to 0, so we have to
+      // manually apply the basevertex offset for D3D
+      // D3D12 uses a root constant for this uniform, since it changes with every draw.
+      // D3D11 doesn't currently support dynamic vertex loader, and we'll have to figure something
+      // out for it if we want to support it in the future.
+      out.Write("UBO_BINDING(std140, 3) uniform DX_Constants {{\n"
+                "  uint base_vertex;\n"
+                "}};\n\n"
+                "uint GetVertexBaseOffset() {{\n"
+                "  return (gl_VertexID + base_vertex) * vertex_stride;\n"
+                "}}\n");
+    }
+    else
+    {
+      out.Write("uint GetVertexBaseOffset() {{\n"
+                "  return gl_VertexID * vertex_stride;\n"
+                "}}\n");
+    }
 
-uint GetVertexBaseOffset() {{
-  return gl_VertexID * vertex_stride;
-}}
-
+    out.Write(R"(
 uint4 load_input_uint4_ubyte4(uint vtx_offset, uint attr_offset) {{
   uint value = vertex_buffer[vtx_offset + attr_offset];
   return uint4(value & 0xff, (value >> 8) & 0xff, (value >> 16) & 0xff, value >> 24);
