@@ -96,9 +96,15 @@ void SDSP::WriteIFX(u32 address, u16 value)
   {
   case DSP_DIRQ:
     if ((value & 1) != 0)
+    {
       Host::InterruptRequest();
-    else
+    }
+    else if (value != 0)
+    {
+      // The homebrew libasnd uCode frequently writes 0 to DIRQ with a comment
+      // saying "clear the interrupt" - we don't need to log in this case.
       WARN_LOG_FMT(DSPLLE, "Unknown Interrupt Request pc={:#06x} ({:#06x})", pc, value);
+    }
     break;
 
   case DSP_DMBH:
