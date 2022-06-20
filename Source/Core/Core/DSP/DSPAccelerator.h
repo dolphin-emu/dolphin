@@ -70,14 +70,14 @@ protected:
     MMIOPCMInc = 3    // PCM reads from ACIN, ACCA increments
   };
 
-  // When reading samples (at least in PCM mode), they are multiplied by the gain, then shifted
-  // right by an amount dependent on this config
-  enum class FormatGainCfg : u16
+  // When reading samples (at least in PCM mode), they are multiplied by the gain, then divided by
+  // the value specified here
+  enum class FormatGainScale : u16
   {
-    GainShift11 = 0,
-    GainShift0 = 1,
-    GainShift16 = 2,
-    GainInvalid = 3
+    GainScale2048 = 0,
+    GainScale1 = 1,
+    GainScale65536 = 2,
+    GainScaleInvalid = 3
   };
 
   union SampleFormat
@@ -85,7 +85,7 @@ protected:
     u16 hex;
     BitField<0, 2, FormatSize> size;
     BitField<2, 2, FormatDecode> decode;
-    BitField<4, 2, FormatGainCfg> gain_cfg;
+    BitField<4, 2, FormatGainScale> gain_scale;
     BitField<6, 10, u16> unk;
   } m_sample_format{0};
 
