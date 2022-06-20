@@ -60,10 +60,11 @@ add_library(discio
   WIABlob.h
   WIACompression.cpp
   WIACompression.h
+  WiiBanner.cpp
+  WiiBanner.h
   WiiEncryptionCache.cpp
   WiiEncryptionCache.h
-  WiiSaveBanner.cpp
-  WiiSaveBanner.h
+
 )
 
 target_link_libraries(discio

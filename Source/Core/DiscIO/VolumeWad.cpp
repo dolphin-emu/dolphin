@@ -25,7 +25,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/WiiSaveBanner.h"
+#include "DiscIO/WiiBanner.h"
 
 namespace DiscIO
 {
@@ -310,7 +310,7 @@ std::vector<u32> VolumeWAD::GetBanner(u32* width, u32* height) const
   if (!title_id)
     return std::vector<u32>();
 
-  return WiiSaveBanner(*title_id).GetBanner(width, height);
+  return WiiBanner(*title_id).GetBanner(width, height);
 }
 
 BlobType VolumeWAD::GetBlobType() const

@@ -48,7 +48,7 @@
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDImporter.h"
-#include "DiscIO/WiiSaveBanner.h"
+#include "DiscIO/WiiBanner.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
@@ -1145,7 +1145,7 @@ void MenuBar::CheckNAND()
       }
       else
       {
-        DiscIO::WiiSaveBanner banner(title_id);
+        DiscIO::WiiBanner banner(title_id);
         if (banner.IsValid())
         {
           title_listings += " - " + banner.GetName();
