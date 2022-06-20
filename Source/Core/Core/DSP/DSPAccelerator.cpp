@@ -190,16 +190,16 @@ u16 Accelerator::ReadSample(const s16* coefs)
   {
     // Gain seems to only apply for PCM decoding
     u8 gain_shift = 0;
-    switch (m_sample_format.gain_cfg)
+    switch (m_sample_format.gain_scale)
     {
-    case FormatGainCfg::GainShift11:
-      gain_shift = 11;
+    case FormatGainScale::GainScale2048:
+      gain_shift = 11;  // x / 2048 = x >> 11
       break;
-    case FormatGainCfg::GainShift0:
-      gain_shift = 0;
+    case FormatGainScale::GainScale1:
+      gain_shift = 0;  // x / 1 = x >> 0
       break;
-    case FormatGainCfg::GainShift16:
-      gain_shift = 16;
+    case FormatGainScale::GainScale65536:
+      gain_shift = 16;  // x / 65536 = x >> 16
       break;
     default:
       ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator_sample() invalid gain mode in format {:#x}",
