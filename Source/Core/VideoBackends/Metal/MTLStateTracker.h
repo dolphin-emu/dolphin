@@ -46,6 +46,7 @@ public:
 
   enum class AlignMask : size_t
   {
+    None = 0,
     Other = 15,
     Uniform = 255,
   };
@@ -83,7 +84,7 @@ public:
   void InvalidateUniforms(bool vertex, bool fragment);
   void SetUtilityUniform(const void* buffer, size_t size);
   void SetTexelBuffer(id<MTLBuffer> buffer, u32 offset0, u32 offset1);
-  void SetVerticesAndIndices(Map vertices, Map indices);
+  void SetVerticesAndIndices(id<MTLBuffer> vertices, id<MTLBuffer> indices);
   void SetBBoxBuffer(id<MTLBuffer> bbox, id<MTLFence> upload, id<MTLFence> download);
   void SetVertexBufferNow(u32 idx, id<MTLBuffer> buffer, u32 offset);
   void SetFragmentBufferNow(u32 idx, id<MTLBuffer> buffer, u32 offset);
@@ -107,7 +108,7 @@ public:
     Preallocate(buffer_idx, amt);
     return CommitPreallocation(buffer_idx, amt, align);
   }
-  void* Preallocate(UploadBuffer buffer_idx, size_t amt);
+  std::pair<void*, size_t> Preallocate(UploadBuffer buffer_idx, size_t amt);
   /// Must follow a call to Preallocate where amt is >= to the one provided here
   Map CommitPreallocation(UploadBuffer buffer_idx, size_t amt, AlignMask align)
   {
@@ -247,8 +248,6 @@ private:
     id<MTLBuffer> vertices = nullptr;
     id<MTLBuffer> indices = nullptr;
     id<MTLBuffer> texels = nullptr;
-    u32 vertices_offset;
-    u32 indices_offset;
     u32 texel_buffer_offset0;
     u32 texel_buffer_offset1;
   } m_state;

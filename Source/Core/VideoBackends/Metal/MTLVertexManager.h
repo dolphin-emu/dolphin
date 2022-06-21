@@ -26,5 +26,9 @@ protected:
   void CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices, u32* out_base_vertex,
                     u32* out_base_index) override;
   void UploadUniforms() override;
+
+private:
+  u32 m_vertex_offset;
+  u32 m_base_vertex;
 };
 }  // namespace Metal

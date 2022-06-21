@@ -54,31 +54,36 @@ bool Metal::VertexManager::UploadTexelBuffer(const void* data, u32 data_size,
 void Metal::VertexManager::ResetBuffer(u32 vertex_stride)
 {
   const u32 max_vertex_size = 65535 * vertex_stride;
-  void* vertex = g_state_tracker->Preallocate(StateTracker::UploadBuffer::Vertex, max_vertex_size);
-  void* index =
+  const u32 vertex_alloc = max_vertex_size + vertex_stride - 1;  // for alignment
+  auto vertex = g_state_tracker->Preallocate(StateTracker::UploadBuffer::Vertex, vertex_alloc);
+  auto index =
       g_state_tracker->Preallocate(StateTracker::UploadBuffer::Index, MAXIBUFFERSIZE * sizeof(u16));
 
-  m_cur_buffer_pointer = m_base_buffer_pointer = static_cast<u8*>(vertex);
+  // Align the base vertex
+  m_base_vertex = (vertex.second + vertex_stride - 1) / vertex_stride;
+  m_vertex_offset = m_base_vertex * vertex_stride - vertex.second;
+  m_cur_buffer_pointer = m_base_buffer_pointer = static_cast<u8*>(vertex.first) + m_vertex_offset;
   m_end_buffer_pointer = m_base_buffer_pointer + max_vertex_size;
-  m_index_generator.Start(static_cast<u16*>(index));
+  m_index_generator.Start(static_cast<u16*>(index.first));
 }
 
 void Metal::VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
                                         u32* out_base_vertex, u32* out_base_index)
 {
-  const u32 vsize = num_vertices * vertex_stride;
+  const u32 vsize = num_vertices * vertex_stride + m_vertex_offset;
   const u32 isize = num_indices * sizeof(u16);
   StateTracker::Map vmap = g_state_tracker->CommitPreallocation(
-      StateTracker::UploadBuffer::Vertex, vsize, StateTracker::AlignMask::Other);
+      StateTracker::UploadBuffer::Vertex, vsize, StateTracker::AlignMask::None);
   StateTracker::Map imap = g_state_tracker->CommitPreallocation(
-      StateTracker::UploadBuffer::Index, isize, StateTracker::AlignMask::Other);
+      StateTracker::UploadBuffer::Index, isize, StateTracker::AlignMask::None);
 
   ADDSTAT(g_stats.this_frame.bytes_vertex_streamed, vsize);
   ADDSTAT(g_stats.this_frame.bytes_index_streamed, isize);
 
-  g_state_tracker->SetVerticesAndIndices(vmap, imap);
-  *out_base_vertex = 0;
-  *out_base_index = 0;
+  DEBUG_ASSERT(vmap.gpu_offset + m_vertex_offset == m_base_vertex * vertex_stride);
+  g_state_tracker->SetVerticesAndIndices(vmap.gpu_buffer, imap.gpu_buffer);
+  *out_base_vertex = m_base_vertex;
+  *out_base_index = imap.gpu_offset / sizeof(u16);
 }
 
 void Metal::VertexManager::UploadUniforms()

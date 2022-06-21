@@ -154,7 +154,7 @@ Metal::StateTracker::Map Metal::StateTracker::AllocateForTextureUpload(size_t am
   return ret;
 }
 
-void* Metal::StateTracker::Preallocate(UploadBuffer buffer_idx, size_t amt)
+std::pair<void*, size_t> Metal::StateTracker::Preallocate(UploadBuffer buffer_idx, size_t amt)
 {
   BufferPair& buffer = m_upload_buffers[static_cast<int>(buffer_idx)];
   u64 last_draw = m_last_finished_draw.load(std::memory_order_acquire);
@@ -195,7 +195,8 @@ void* Metal::StateTracker::Preallocate(UploadBuffer buffer_idx, size_t amt)
       ASSERT_MSG(VIDEO, buffer.gpubuffer, "Failed to allocate MTLBuffer (out of memory?)");
     }
   }
-  return reinterpret_cast<char*>(buffer.buffer) + buffer.usage.Pos();
+  size_t pos = buffer.usage.Pos();
+  return std::make_pair(reinterpret_cast<char*>(buffer.buffer) + pos, pos);
 }
 
 Metal::StateTracker::Map Metal::StateTracker::CommitPreallocation(UploadBuffer buffer_idx,
@@ -558,13 +559,14 @@ void Metal::StateTracker::SetTexelBuffer(id<MTLBuffer> buffer, u32 offset0, u32 
   m_flags.has_texel_buffer = false;
 }
 
-void Metal::StateTracker::SetVerticesAndIndices(Map vertices, Map indices)
+void Metal::StateTracker::SetVerticesAndIndices(id<MTLBuffer> vertices, id<MTLBuffer> indices)
 {
-  m_state.vertices = vertices.gpu_buffer;
-  m_state.indices = indices.gpu_buffer;
-  m_state.vertices_offset = vertices.gpu_offset;
-  m_state.indices_offset = indices.gpu_offset;
-  m_flags.has_vertices = false;
+  if (m_state.vertices != vertices)
+  {
+    m_flags.has_vertices = false;
+    m_state.vertices = vertices;
+  }
+  m_state.indices = indices;
 }
 
 void Metal::StateTracker::SetBBoxBuffer(id<MTLBuffer> bbox, id<MTLFence> upload,
@@ -691,7 +693,7 @@ void Metal::StateTracker::PrepareRender()
   {
     m_flags.has_vertices = true;
     if (m_state.vertices)
-      SetVertexBufferNow(0, m_state.vertices, m_state.vertices_offset);
+      SetVertexBufferNow(0, m_state.vertices, 0);
   }
   if (u8 dirty = m_dirty_textures & pipe->GetTextures())
   {
@@ -801,27 +803,14 @@ void Metal::StateTracker::Draw(u32 base_vertex, u32 num_vertices)
 void Metal::StateTracker::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   PrepareRender();
-  if (!base_vertex)
-  {
-    [m_current_render_encoder
-        drawIndexedPrimitives:m_state.render_pipeline->Prim()
-                   indexCount:num_indices
-                    indexType:MTLIndexTypeUInt16
-                  indexBuffer:m_state.indices
-            indexBufferOffset:m_state.indices_offset + base_index * sizeof(u16)];
-  }
-  else
-  {
-    [m_current_render_encoder
-        drawIndexedPrimitives:m_state.render_pipeline->Prim()
-                   indexCount:num_indices
-                    indexType:MTLIndexTypeUInt16
-                  indexBuffer:m_state.indices
-            indexBufferOffset:m_state.indices_offset + base_index * sizeof(u16)
-                instanceCount:1
-                   baseVertex:base_vertex
-                 baseInstance:0];
-  }
+  [m_current_render_encoder drawIndexedPrimitives:m_state.render_pipeline->Prim()
+                                       indexCount:num_indices
+                                        indexType:MTLIndexTypeUInt16
+                                      indexBuffer:m_state.indices
+                                indexBufferOffset:base_index * sizeof(u16)
+                                    instanceCount:1
+                                       baseVertex:base_vertex
+                                     baseInstance:0];
 }
 
 void Metal::StateTracker::DispatchComputeShader(u32 groupsize_x, u32 groupsize_y, u32 groupsize_z,
