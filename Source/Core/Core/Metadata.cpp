@@ -6,22 +6,27 @@
 #include <WinBase.h>
 #include <WinUser.h>
 #include <ShlObj_core.h>
+#include <Core/HW/AddressSpace.h>
 
 // VARIABLES
 
 static tm* matchDateTime;
+static std::string playerName = "";
 
 static u16 controllerPort1;
 static u16 controllerPort2;
 static u16 controllerPort3;
 static u16 controllerPort4;
 static std::map<int, u16> controllerMap;
+static std::vector<int> controllerVector(4);
 
 static u32 leftSideCaptainID;
 static u32 rightSideCaptainID;
 static u32 leftSideSidekickID;
 static u32 rightSideSidekickID;
 static u32 stadiumID;
+static u32 overtimeNotReached;
+static u32 timeElapsed;
 
 // left team
 static u16 leftSideScore;
@@ -39,10 +44,19 @@ static u16 rightSideSteals;
 static u16 rightSideSuperStrikes;
 static u16 rightSidePerfectPasses;
 
+// ruleset
+static u32 matchDifficulty;
+static u32 matchTimeAllotted;
+static u8 matchItemsBool;
+static u8 matchSuperStrikesBool;
+static u8 matchBowserBool;
+static std::array<u8, 16> md5Hash;
+
 // METHODS
 
 std::string Metadata::getJSONString()
 {
+  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
   char date_string[100];
   char file_name[100];
   strftime(date_string, 50, "%B %d %Y %OH:%OM:%OS", matchDateTime);
@@ -54,17 +68,23 @@ std::string Metadata::getJSONString()
   json_stream << "{" << std::endl;
   json_stream << "  \"File Name\": \"" << file_name_string << "\"," << std::endl;
   json_stream << "  \"Date\": \"" << date_string << "\"," << std::endl;
+  std::string md5String = "";
+  for (int i = 0; i < md5Hash.size(); i++)
+  {
+    md5String += std::format("{:x}", md5Hash[i]);
+  }
+  json_stream << "  \"Game Hash\": \"" << md5String << "\"," << std::endl;
   json_stream << "  \"Controller Port Info\": {" << std::endl;
   for (int i = 0; i < 4; i++)
   {
     if (i != 3)
     {
-      json_stream << "    \"Controller Port " + std::to_string(i) + "\": " << std::to_string(controllerMap.at(i)) << "," << std::endl;
+      json_stream << "    \"Controller Port " + std::to_string(i) + "\": " << std::to_string(controllerVector.at(i)) << "," << std::endl;
     }
     else
     {
       // no comma cuz end
-      json_stream << "    \"Controller Port " + std::to_string(i) + "\": " << std::to_string(controllerMap.at(i)) << std::endl;
+      json_stream << "    \"Controller Port " + std::to_string(i) + "\": " << std::to_string(controllerVector.at(i)) << std::endl;
     }
   }
   json_stream << "   }," << std::endl;
@@ -91,7 +111,21 @@ std::string Metadata::getJSONString()
   json_stream << "    \"Steals\": \"" << rightSideSteals << "\"," << std::endl;
   json_stream << "    \"Super Strikes\": \"" << rightSideSuperStrikes << "\"," << std::endl;
   json_stream << "    \"Perfect Passes\": \"" << rightSidePerfectPasses << "\"" << std::endl;
-  json_stream << "   }" << std::endl;
+  json_stream << "   }," << std::endl;
+
+  json_stream << "  \"Netplay Match\": \"" << NetPlay::IsNetPlayRunning() << "\"," << std::endl;
+  json_stream << "  \"Player Name\": \"" << playerName << "\"," << std::endl;
+
+  json_stream << "  \"Overtime Not Reached\": \"" << overtimeNotReached << "\"," << std::endl;
+  json_stream << "  \"Match Time Elapsed\": \"" << accessors->ReadF32(addressTimeElapsed) << "\","
+              << std::endl;
+  json_stream << "  \"Match Difficulty\": \"" << matchDifficulty << "\"," << std::endl;
+  json_stream << "  \"Match Time Allotted\": \"" << matchTimeAllotted << "\"," << std::endl;
+  json_stream << "  \"Match Items\": \"" << std::to_string(matchItemsBool) << "\"," << std::endl;
+  json_stream << "  \"Match Super Strikes\": \"" << std::to_string(matchSuperStrikesBool) << "\","
+              << std::endl;
+  json_stream << "  \"Match Bowser or FTX\": \"" << std::to_string(matchBowserBool) << "\","
+              << std::endl;
 
   json_stream << "}" << std::endl;
 
@@ -171,17 +205,18 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   controllerPort2 = Memory::Read_U16(addressControllerPort2);
   controllerPort3 = Memory::Read_U16(addressControllerPort3);
   controllerPort4 = Memory::Read_U16(addressControllerPort4);
-  controllerMap.insert(std::pair<int, u16>(0, controllerPort1));
-  controllerMap.insert(std::pair<int, u16>(1, controllerPort2));
-  controllerMap.insert(std::pair<int, u16>(2, controllerPort3));
-  controllerMap.insert(std::pair<int, u16>(3, controllerPort4));
+  controllerVector.at(0) = controllerPort1;
+  controllerVector.at(1) = controllerPort2;
+  controllerVector.at(2) = controllerPort3;
+  controllerVector.at(3) = controllerPort4;
 
-  //set captains, sidekicks, and stage
+  //set captains, sidekicks, stage, stadium, and overtime
   leftSideCaptainID = Memory::Read_U32(addressLeftSideCaptainID);
   rightSideCaptainID = Memory::Read_U32(addressRightSideCaptainID);
   leftSideSidekickID = Memory::Read_U32(addressLeftSideSidekickID);
   rightSideSidekickID = Memory::Read_U32(addressRightSideSidekickID);
   stadiumID = Memory::Read_U32(addressStadiumID);
+  overtimeNotReached = Memory::Read_U8(addressOvertimeNotReachedBool);
 
   //set left team stats
   leftSideScore = Memory::Read_U16(addressLeftSideScore);
@@ -198,4 +233,21 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   rightSideSteals = Memory::Read_U16(addressRightSideSteals);
   rightSideSuperStrikes = Memory::Read_U16(addressRightSideSuperStrikes);
   rightSidePerfectPasses = Memory::Read_U16(addressRightSidePerfectPasses);
+
+  //set ruleset
+  matchDifficulty = Memory::Read_U32(addressMatchDifficulty);
+  matchTimeAllotted = Memory::Read_U32(addressMatchTimeAllotted);
+  matchItemsBool = Memory::Read_U8(addressMatchItemsBool);
+  matchBowserBool = Memory::Read_U8(addressMatchBowserBool);
+  matchSuperStrikesBool = Memory::Read_U8(addressMatchSuperStrikesBool);
+}
+
+void Metadata::setPlayerName(std::string playerNameParam)
+{
+  playerName = playerNameParam;
+}
+
+void Metadata::setMD5(std::array<u8, 16> md5Param)
+{
+  md5Hash = md5Param;
 }

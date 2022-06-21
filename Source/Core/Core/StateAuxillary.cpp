@@ -138,9 +138,10 @@ void StateAuxillary::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map, N
     if (m_pad_map[i] == m_pid)
     {
       ourNetPlayPort= i;
-      break;
+      return;
     }
   }
+  ourNetPlayPort = -1;
 }
 
 int StateAuxillary::getOurNetPlayPort()

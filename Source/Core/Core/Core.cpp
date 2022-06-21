@@ -199,46 +199,24 @@ void OnFrameEnd()
   }
   static const u32 matchStart = 0x80400000;
   static const u32 matchEnd = 0x80400001;
-  static const u32 sceneID = 0x81440ce3;
+  static const u32 grudgeMatchBool = 0x80400003;
+  // overtime is at 0x80400002 so don't use that for anything
+  // 81440ce0 is one of the two general scene IDs, but can always be used in-match to see if it's grudge or strikers 101
+  // if it's 60 in float (u32 42700000, dolphin 1114636288) we're in strikers 101
+  static const u32 matchSceneID = 0x81440ce0;
 
   // c2 gecko for hud (800f83bc) must be on to make this happen
   // movie cannot be playing input back since we do not want to record that
 
   //match start
   if (Memory::Read_U8(matchStart) == 1 && !StateAuxillary::getBoolMatchStart() &&
-      !Movie::IsPlayingInput() && !Movie::IsRecordingInput())
+      !Movie::IsPlayingInput() && !Movie::IsRecordingInput() &&
+      StateAuxillary::getOurNetPlayPort() != -1 && Memory::Read_U8(grudgeMatchBool) == 1)
   {
     boolMatchStart = true;
     StateAuxillary::setBoolMatchStart(true);
     // begin recording
 
-    /*
-    Movie::SetReadOnly(false);
-    Movie::ControllerTypeArray controllers{};
-    Movie::WiimoteEnabledArray wiimotes{};
-    */
-
-    /*
-    if (NetPlay::IsNetPlayRunning())
-    {
-      // stub for netplay stuff
-    }
-    */
-
-    /*
-    // this is how they're set up in mainwindow.cpp
-    for (int i = 0; i < 4; i++)
-    {
-      const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
-      if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
-        controllers[i] = Movie::ControllerType::GBA;
-      else if (SerialInterface::SIDevice_IsGCController(si_device))
-        controllers[i] = Movie::ControllerType::GC;
-      else
-        controllers[i] = Movie::ControllerType::None;
-      wiimotes[i] = Config::Get(Config::GetInfoForWiimoteSource(i)) != WiimoteSource::None;
-    }
-    */
     StateAuxillary::startRecording();
     StateAuxillary::setBoolMatchEnd(false);
     boolMatchEnd = false;
@@ -258,8 +236,8 @@ void OnFrameEnd()
 
   //match end
   if (Memory::Read_U8(matchEnd) == 1 && !StateAuxillary::getBoolMatchEnd() &&
-      !Movie::IsPlayingInput() &&
-      Movie::IsRecordingInput())
+      !Movie::IsPlayingInput() && Movie::IsRecordingInput() &&
+      StateAuxillary::getOurNetPlayPort() != -1 && Memory::Read_U8(grudgeMatchBool) == 1)
   {
     StateAuxillary::setBoolMatchEnd(true);
     boolMatchEnd = true;
@@ -286,21 +264,6 @@ void OnFrameEnd()
     StateAuxillary::stopRecording(replays_path, curr_tm);
     StateAuxillary::setBoolMatchStart(false);
     boolMatchStart = false;
-    /*
-    if (Movie::IsRecordingInput())
-      RunAsCPUThread([=] {
-        Movie::SaveRecording(replays_path);
-        });
-    if (Movie::IsMovieActive())
-      RunAsCPUThread(
-          [] { Movie::EndPlayInput(false);
-        });
-    */
-    /*
-    Metadata::setMatchMetadata(curr_tm);
-    std::string jsonString = Metadata::getJSONString();
-    Metadata::writeJSON(jsonString, true);
-    */
   }
 }
 

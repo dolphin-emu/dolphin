@@ -34,7 +34,8 @@ private:
   const DefaultGeckoCode replayStart = {
       0x800f83f8,
       0,
-      {0x38210010, 0x39c00000, 0x3dc08040, 0x39e00001, 0x99ee0000, 0x39e00000, 0x99ee0001}};
+      {0x38210010, 0x39c00000, 0x3dc08040, 0x39e00001, 0x99ee0000,
+        0x39e00000, 0x99ee0001, 0x99EE0002}};
 
   const DefaultGeckoCode replayEnd = {0x80100e14,
                                       0,
@@ -44,12 +45,24 @@ private:
   const DefaultGeckoCode replayQuit = {0x80096898,
                                        0,
                                        {0x3860001c, 0x39c00000, 0x3dc08040, 0x39ce0001, 0x39e00001,
-                                        0x99ee0000, 0x39e00000, 0x99eeffff}};
+                                        0x99ee0000, 0x39e00000, 0x99eeffff, 0x99EE0002}};
+
+  const DefaultGeckoCode replayOvertime = {
+      0x8003CF68, 0, {0x3C80802A, 0x3DC08040, 0x39E00001, 0x99EE0002, 0x39E00000}};
+
+  const DefaultGeckoCode replayGrudgeFlag1 = {
+      0x800d8c80, 0, {0x7fa4eb78, 0x3dc08040, 0x39e00001, 0x99ee0003}};
+
+  const DefaultGeckoCode replayRecordTime = {
+      0x800f90b0, 0, {0x3dc08040, 0x81e30008, 0x91ee0004, 0x806da6c8}};
+
+  const DefaultGeckoCode replayTimeAllottedHUD = {
+      0x8004149c, 0, {0x9001001c, 0x3dc08040, 0x906e0008}};
 
   void WriteAsm(DefaultGeckoCode CodeBlock);
   u32 aWriteAddr;  // address where the first code gets written to
 
-  std::vector<DefaultGeckoCode> sRequiredCodes = {replayStart, replayEnd, replayQuit};
+  std::vector<DefaultGeckoCode> sRequiredCodes = {replayStart, replayEnd, replayQuit, replayOvertime, replayGrudgeFlag1, replayRecordTime};
 
   /*
   std::vector<DefaultGeckoCode> sNetplayCodes = {

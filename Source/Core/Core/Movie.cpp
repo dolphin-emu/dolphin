@@ -80,6 +80,7 @@ namespace fs = std::filesystem;
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "Core/StateAuxillary.h"
+#include <Core/Metadata.h>
 
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
@@ -1604,21 +1605,24 @@ void SaveRecording(const std::string& filename)
   header.DSPiromHash = s_DSPiromHash;
   header.DSPcoefHash = s_DSPcoefHash;
   header.tickCount = s_totalTickCount;
-  std::array<u8, 7> s_ourNetPlayPort;
-  int ourNetPlayPort = StateAuxillary::getOurNetPlayPort();
-  for (int i = 0; i < s_ourNetPlayPort.size(); i++)
+  if (NetPlay::IsNetPlayRunning())
   {
-    if (i == 0)
+    std::array<u8, 7> s_ourNetPlayPort;
+    int ourNetPlayPort = StateAuxillary::getOurNetPlayPort();
+    for (int i = 0; i < s_ourNetPlayPort.size(); i++)
     {
-      // 0xA02
-      s_ourNetPlayPort[i] = ourNetPlayPort;
+      if (i == 0)
+      {
+        // 0xA02
+        s_ourNetPlayPort[i] = ourNetPlayPort;
+      }
+      else
+      {
+        s_ourNetPlayPort[i] = 0;
+      }
     }
-    else
-    {
-      s_ourNetPlayPort[i] = 0;
-    }
+    header.reserved = s_ourNetPlayPort;
   }
-  header.reserved = s_ourNetPlayPort;
 
   // TODO
   header.uniqueID = 0;
@@ -1783,6 +1787,7 @@ static void GetMD5()
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
   mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), s_MD5.data());
   Core::DisplayMessage("Finished calculating checksum.", 2000);
+  Metadata::setMD5(s_MD5);
 }
 
 // NOTE: EmuThread

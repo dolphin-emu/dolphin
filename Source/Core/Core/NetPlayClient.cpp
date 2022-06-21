@@ -73,6 +73,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 #include <Core/StateAuxillary.h>
+#include "Core/Metadata.h"
 
 namespace NetPlay
 {
@@ -1757,6 +1758,7 @@ bool NetPlayClient::StartGame(const std::string& path)
   else
   {
     StateAuxillary::setNetPlayControllers(m_pad_map, m_pid);
+    Metadata::setPlayerName(NetPlayClient::m_player_name);
   }
 
   for (unsigned int i = 0; i < 4; ++i)
