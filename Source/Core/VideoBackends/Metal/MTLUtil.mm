@@ -377,6 +377,12 @@ static const std::string_view MSL_HEADER =
     // These are usually when the compiler doesn't think a switch is exhaustive
     "#pragma clang diagnostic ignored \"-Wreturn-type\"\n";
 
+static constexpr std::pair<std::string_view, std::string_view> MSL_FIXUPS[] = {
+    // Force-unroll the lighting loop in ubershaders, which greatly reduces register pressure on AMD
+    {"for (uint chan = 0u; chan < 2u; chan++)",
+     "_Pragma(\"unroll\") for (uint chan = 0u; chan < 2u; chan++)"},
+};
+
 static constexpr spirv_cross::MSLResourceBinding
 MakeResourceBinding(spv::ExecutionModel stage, u32 set, u32 binding,  //
                     u32 msl_buffer, u32 msl_texture, u32 msl_sampler)
@@ -472,7 +478,27 @@ std::optional<std::string> Metal::Util::TranslateShaderToMSL(ShaderStage stage,
   for (auto& binding : resource_bindings)
     compiler.add_msl_resource_binding(binding);
 
-  std::string msl(MSL_HEADER);
-  msl += compiler.compile();
-  return msl;
+  std::string output(MSL_HEADER);
+  std::string compiled = compiler.compile();
+  std::string_view remaining = compiled;
+  while (!remaining.empty())
+  {
+    // Apply fixups
+    std::string_view piece = remaining;
+    std::string_view fixup_piece = {};
+    size_t next = piece.size();
+    for (const auto& fixup : MSL_FIXUPS)
+    {
+      size_t found = piece.find(fixup.first);
+      if (found == std::string_view::npos)
+        continue;
+      piece = piece.substr(0, found);
+      fixup_piece = fixup.second;
+      next = found + fixup.first.size();
+    }
+    output += piece;
+    output += fixup_piece;
+    remaining = remaining.substr(next);
+  }
+  return output;
 }
