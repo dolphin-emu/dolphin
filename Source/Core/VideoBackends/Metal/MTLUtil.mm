@@ -211,12 +211,13 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
       config->backend_info.AAModes.push_back(i);
   }
 
+  // The unified memory path (using shared buffers for everything) performs noticeably better with
+  // bbox even on discrete GPUs (20fps vs 15fps in Super Paper Mario elevator), so default to that.
+  // The separate buffer + manual upload path is left available for testing and comparison.
   if (char* env = getenv("MTL_UNIFIED_MEMORY"))
     g_features.unified_memory = env[0] == '1' || env[0] == 'y' || env[0] == 'Y';
-  else if (@available(macOS 10.15, iOS 13.0, *))
-    g_features.unified_memory = [device hasUnifiedMemory];
   else
-    g_features.unified_memory = false;
+    g_features.unified_memory = true;
 
   g_features.subgroup_ops = false;
   if (@available(macOS 10.15, iOS 13, *))
