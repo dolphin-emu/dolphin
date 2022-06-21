@@ -54,6 +54,7 @@ extern const Info<bool> MAIN_FASTMEM;
 extern const Info<bool> MAIN_DSP_HLE;
 extern const Info<int> MAIN_TIMING_VARIANCE;
 extern const Info<bool> MAIN_CPU_THREAD;
+extern const Info<bool> MAIN_REPLAYS;
 extern const Info<bool> MAIN_SYNC_ON_SKIP_IDLE;
 extern const Info<std::string> MAIN_DEFAULT_ISO;
 extern const Info<bool> MAIN_ENABLE_CHEATS;

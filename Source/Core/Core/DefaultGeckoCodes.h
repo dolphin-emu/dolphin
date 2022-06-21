@@ -62,7 +62,9 @@ private:
   void WriteAsm(DefaultGeckoCode CodeBlock);
   u32 aWriteAddr;  // address where the first code gets written to
 
-  std::vector<DefaultGeckoCode> sRequiredCodes = {replayStart, replayEnd, replayQuit, replayOvertime, replayGrudgeFlag1, replayRecordTime};
+  std::vector<DefaultGeckoCode> sRequiredCodes = {
+      replayStart,       replayEnd,        replayQuit,           replayOvertime,
+      replayGrudgeFlag1, replayRecordTime, replayTimeAllottedHUD};
 
   /*
   std::vector<DefaultGeckoCode> sNetplayCodes = {

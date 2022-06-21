@@ -85,6 +85,7 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
   const bool running = state != Core::State::Uninitialized;
 
   m_checkbox_dualcore->setEnabled(!running);
+  m_checkbox_enableReplays->setEnabled(!running);
   m_checkbox_cheats->setEnabled(!running);
   m_checkbox_override_region_settings->setEnabled(!running);
 #ifdef USE_DISCORD_PRESENCE
@@ -96,6 +97,7 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_enableReplays, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
@@ -140,6 +142,9 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_dualcore = new QCheckBox(tr("Enable Dual Core (speedup)"));
   basic_group_layout->addWidget(m_checkbox_dualcore);
+
+  m_checkbox_enableReplays = new QCheckBox(tr("Enable Replay Files"));
+  basic_group_layout->addWidget(m_checkbox_enableReplays);
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
   basic_group_layout->addWidget(m_checkbox_cheats);
@@ -259,6 +264,7 @@ void GeneralPane::LoadConfig()
       ->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
   SignalBlocking(m_checkbox_dualcore)->setChecked(Config::Get(Config::MAIN_CPU_THREAD));
+  SignalBlocking(m_checkbox_enableReplays)->setChecked(Config::Get(Config::MAIN_REPLAYS));
   SignalBlocking(m_checkbox_cheats)->setChecked(Settings::Instance().GetCheatsEnabled());
   SignalBlocking(m_checkbox_override_region_settings)
       ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
@@ -354,6 +360,7 @@ void GeneralPane::OnSaveConfig()
   DolphinAnalytics::Instance().ReloadConfig();
 #endif
   Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_REPLAYS, m_checkbox_enableReplays->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());

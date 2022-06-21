@@ -124,7 +124,7 @@ std::string Metadata::getJSONString()
   json_stream << "  \"Match Items\": \"" << std::to_string(matchItemsBool) << "\"," << std::endl;
   json_stream << "  \"Match Super Strikes\": \"" << std::to_string(matchSuperStrikesBool) << "\","
               << std::endl;
-  json_stream << "  \"Match Bowser or FTX\": \"" << std::to_string(matchBowserBool) << "\","
+  json_stream << "  \"Match Bowser or FTX\": \"" << std::to_string(matchBowserBool) << "\""
               << std::endl;
 
   json_stream << "}" << std::endl;
