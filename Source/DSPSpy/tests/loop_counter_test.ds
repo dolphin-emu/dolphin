@@ -1,0 +1,64 @@
+; This test checks how LOOP and BLOOP handle their arguments by running loops with the count
+; ranging from 0 to 0xffff. The current counter is shown via mail at the top of the screen.
+; This test gets slower as the counter gets larger (it runs in O(n^2)).
+incdir  "tests"
+include "dsp_base.inc"
+
+test_main:
+	CLR $acc0
+	LRI $ar0, #0
+	LRI $ix0, #0
+	LRI $ar1, #0
+	LRI $ix1, #0
+
+main_loop:
+	CLR $acc1
+	; Incrementing $acc1 $ac0.l times sets $acc1 to 1 * $ac0.l, which is just $ac0.l
+	LOOP $ac0.l
+	INC $acc1
+	; We are now done looping.  Check that the results match what we want...
+	CMP
+	JZ check_bloop
+	; Did not match.
+	IAR $ar0
+	LRI $ix0, #1
+	CALL send_back
+
+check_bloop:
+	CLR $acc1
+	; Same deal as above.  Here we only have one instruction that is repeated via BLOOP.
+	BLOOP $ac0.l, last_bloop_ins
+	; TODO: This NOP is needed for things to behave properly; if the last_bloop_ins label
+	; is immediately after the BLOOP instruction things break on real hardware.
+	; There's no reason to do this normally though since the LOOP instruction does the same thing
+	; without needing to provide a label. But it's worth checking eventually (along with how these
+	; instructions behave when a 2-word long instruction is at the end).
+	NOP
+last_bloop_ins:
+	INC $acc1
+	; We are now done looping.  Check that the results match what we want...
+	CMP
+	JZ advance_main_loop
+	; Did not match.
+	IAR $ar1
+	LRI $ix1, #1
+	CALL send_back
+
+advance_main_loop:
+	; Report progress as mail
+	SI @DMBH, #0
+	SR @DMBL, $ac0.l
+	SI @DIRQ, #0x0001
+
+	; Move on to the next value.
+	; CMPIS (and CMPI) check the middle of the accumulator, so CMPIS $acc0, #1
+	; checks if the full accumulator is 0x10000 - which is our end point.
+	INC $acc0
+	CMPIS $ac0.m, #1
+	JNZ main_loop
+
+	; Done with the test.  $ar0, $ix0, $ar1, and $ix1 should all be 0.
+	CALL send_back
+
+	; We're done, DO NOT DELETE THIS LINE
+	JMP end_of_test
