@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-30 23:46+0200\n"
+"POT-Creation-Date: 2022-06-21 21:51+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: abuyop <abuyop@gmail.com>, 2018\n"
 "Language-Team: Malay (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -35,7 +35,7 @@ msgid ""
 "that it hasn't been tampered with."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1164
+#: Source/Core/DolphinQt/MenuBar.cpp:1161
 msgid ""
 "\n"
 "\n"
@@ -180,19 +180,19 @@ msgstr ""
 "%2 objek(s)\n"
 "Bingkai Semasa: %3"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:871
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:888
 msgid "%1 has joined"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:876
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:893
 msgid "%1 has left"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1069
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1086
 msgid "%1 is not a valid ROM"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:998
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1015
 msgid "%1 is now golfing"
 msgstr ""
 
@@ -229,7 +229,7 @@ msgstr "%1% (Kelajuan Biasa)"
 msgid "%1, %2, %3, %4"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:604
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:605
 msgid "%1: %2"
 msgstr ""
 
@@ -292,7 +292,7 @@ msgstr ""
 msgid "&About"
 msgstr "Perih&al"
 
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:316
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:317
 msgid "&Add Memory Breakpoint"
 msgstr "&Tambah Titik Henti Ingatan"
 
@@ -384,7 +384,7 @@ msgstr "Pa&dam"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:315
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:316
 msgid "&Delete Watch"
 msgstr "Pa&dam Pantauan"
 
@@ -482,7 +482,7 @@ msgstr ""
 msgid "&JIT"
 msgstr "&JIT"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:112
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:113
 msgid "&Language:"
 msgstr "&Bahasa:"
 
@@ -539,7 +539,7 @@ msgstr "&Jeda"
 msgid "&Play"
 msgstr "&Main"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:357
+#: Source/Core/DolphinQt/GameList/GameList.cpp:396
 msgid "&Properties"
 msgstr "Si&fat"
 
@@ -589,7 +589,7 @@ msgstr "&Had Kelajuan:"
 msgid "&Stop"
 msgstr "&Henti"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:116
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:117
 msgid "&Theme:"
 msgstr "&Tema:"
 
@@ -619,7 +619,7 @@ msgstr "&Tonton"
 msgid "&Website"
 msgstr "&Laman Sesawang"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:360
+#: Source/Core/DolphinQt/GameList/GameList.cpp:399
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -627,15 +627,15 @@ msgstr "&Wiki"
 msgid "&Yes"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1266
+#: Source/Core/DolphinQt/MenuBar.cpp:1263
 msgid "'%1' not found, no symbol names generated"
 msgstr "'%1' tidak ditemui, tiada nama simbol dijana"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1472
+#: Source/Core/DolphinQt/MenuBar.cpp:1469
 msgid "'%1' not found, scanning for common functions instead"
 msgstr "'%1' tidak ditemui, mengimbas fungsi umum sebagai ganti"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:134
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:135
 msgid "(None)"
 msgstr ""
 
@@ -672,9 +672,9 @@ msgid "--> %1"
 msgstr "--> %1"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:225
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:675
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:692
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:167
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:98
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:99
 msgid "..."
 msgstr "..."
 
@@ -864,7 +864,7 @@ msgstr ""
 msgid "<Nothing>"
 msgstr "<Tiada apa>"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:68
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:69
 msgid "<System Language>"
 msgstr "<Bahasa Sistem>"
 
@@ -879,8 +879,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1425
-#: Source/Core/DolphinQt/MainWindow.cpp:1492
+#: Source/Core/DolphinQt/MainWindow.cpp:1431
+#: Source/Core/DolphinQt/MainWindow.cpp:1498
 msgid "A NetPlay Session is already in progress!"
 msgstr "Satu Sesi NetPlay sedang berlangsung!"
 
@@ -894,15 +894,15 @@ msgid ""
 "Installing this WAD will replace it irreversibly. Continue?"
 msgstr ""
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:546
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:555
 msgid "A disc is already about to be inserted."
 msgstr "Cakera A sedia dimasukkan."
 
-#: Source/Core/DolphinQt/Main.cpp:221
+#: Source/Core/DolphinQt/Main.cpp:224
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:894
+#: Source/Core/DolphinQt/MainWindow.cpp:900
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1039,7 +1039,7 @@ msgstr ""
 msgid "Activate NetPlay Chat"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:163
 msgid "Active"
 msgstr "Aktif"
 
@@ -1051,7 +1051,7 @@ msgstr ""
 msgid "Active threads"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:273
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:274
 msgid "Adapter"
 msgstr ""
 
@@ -1081,8 +1081,8 @@ msgstr ""
 msgid "Add New USB Device"
 msgstr "Tambah Peranti USB Baharu"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:441
-#: Source/Core/DolphinQt/GameList/GameList.cpp:444
+#: Source/Core/DolphinQt/GameList/GameList.cpp:480
+#: Source/Core/DolphinQt/GameList/GameList.cpp:483
 msgid "Add Shortcut to Desktop"
 msgstr ""
 
@@ -1109,18 +1109,18 @@ msgstr ""
 msgid "Add to &watch"
 msgstr "Tambah untuk &dipantau"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:619
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:668
 msgid "Add to watch"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:36
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:159
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:168
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:163
 msgid "Add..."
 msgstr "Tambah..."
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:515
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:163
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:77
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:132
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:362
@@ -1209,10 +1209,15 @@ msgstr ""
 msgid "Aligned to data type length"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:361
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:438
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:589
-#: Source/Core/DolphinQt/MainWindow.cpp:742
+#. i18n: A double precision floating point number
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:164
+msgid "All Double"
+msgstr ""
+
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:362
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:439
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:590
+#: Source/Core/DolphinQt/MainWindow.cpp:748
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:121
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:328
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1220,19 +1225,36 @@ msgid "All Files"
 msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:75
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:401
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:425
 msgid "All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:741
+#. i18n: A floating point number
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:161
+msgid "All Float"
+msgstr ""
+
+#: Source/Core/DolphinQt/MainWindow.cpp:747
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1310
-#: Source/Core/DolphinQt/MainWindow.cpp:1318
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:154
+msgid "All Hexadecimal"
+msgstr ""
+
+#: Source/Core/DolphinQt/MainWindow.cpp:1316
+#: Source/Core/DolphinQt/MainWindow.cpp:1324
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Semua Keadaan Simpan (*.sav *.s##);; Semua Fail (*)"
+
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:156
+msgid "All Signed Integer"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:158
+msgid "All Unsigned Integer"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
 msgid "All devices"
@@ -1254,7 +1276,7 @@ msgstr ""
 msgid "Allow Mismatched Region Settings"
 msgstr ""
 
-#: Source/Core/DolphinQt/Main.cpp:254
+#: Source/Core/DolphinQt/Main.cpp:257
 msgid "Allow Usage Statistics Reporting"
 msgstr ""
 
@@ -1276,7 +1298,7 @@ msgstr ""
 msgid "Alternate Input Sources"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:183
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:184
 msgid "Always"
 msgstr ""
 
@@ -1332,7 +1354,7 @@ msgstr "Anti-Alias:"
 msgid "Any Region"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1611
+#: Source/Core/DolphinQt/MenuBar.cpp:1608
 msgid "Append signature to"
 msgstr ""
 
@@ -1358,7 +1380,7 @@ msgstr "Tarikh Pemuatapl:"
 msgid "Apply"
 msgstr "Laksana"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1634
+#: Source/Core/DolphinQt/MenuBar.cpp:1631
 msgid "Apply signature file"
 msgstr ""
 
@@ -1370,7 +1392,7 @@ msgstr ""
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "Anda pasti mahu memadam '%1'?"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:772
+#: Source/Core/DolphinQt/GameList/GameList.cpp:811
 msgid "Are you sure you want to delete this file?"
 msgstr "Anda pasti ingin memadam fail ini?"
 
@@ -1386,7 +1408,7 @@ msgstr "Anda pasti ingin keluar dari NetPlay?"
 msgid "Are you sure?"
 msgstr "Anda pasti?"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:275
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:276
 msgid "Aspect Ratio"
 msgstr ""
 
@@ -1403,7 +1425,7 @@ msgstr "Umpuk Port Kawalan"
 msgid "Assign Controllers"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:534
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:535
 msgid ""
 "At least two of the selected save files have the same internal filename."
 msgstr ""
@@ -1464,11 +1486,11 @@ msgstr "Auto-Laras Saiz Tetingkap"
 msgid "Auto-Hide"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1276
+#: Source/Core/DolphinQt/MenuBar.cpp:1273
 msgid "Auto-detect RSO modules?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:211
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:212
 msgid ""
 "Automatically adjusts the window size to the internal resolution."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -1495,7 +1517,7 @@ msgid ""
 "00:17:ab."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:151
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:152
 msgid "BIOS:"
 msgstr ""
 
@@ -1507,7 +1529,7 @@ msgstr "Daftar BP"
 msgid "Back Chain"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:270
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:271
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:181
 msgid "Backend"
 msgstr ""
@@ -1560,7 +1582,7 @@ msgstr ""
 msgid "Bad value provided."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:935
+#: Source/Core/DolphinQt/GameList/GameList.cpp:974
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:151
 #: Source/Core/DolphinQt/MenuBar.cpp:631
@@ -1595,7 +1617,7 @@ msgstr "Tetapan Asas"
 msgid "Bass"
 msgstr "Bass"
 
-#: Source/Core/DolphinQt/Main.cpp:228
+#: Source/Core/DolphinQt/Main.cpp:231
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr ""
 
@@ -1627,7 +1649,7 @@ msgstr ""
 msgid "Bitrate (kbps):"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:945
+#: Source/Core/DolphinQt/GameList/GameList.cpp:984
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:231
 #: Source/Core/DolphinQt/MenuBar.cpp:641
 msgid "Block Size"
@@ -1671,11 +1693,11 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "But untuk Dijeda"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1648
+#: Source/Core/DolphinQt/MainWindow.cpp:1654
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "Fail sandar NAND BootMii (*.bin);;Semua Fail (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1674
+#: Source/Core/DolphinQt/MainWindow.cpp:1680
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "Fail kunci BootMii (*.bin);;Semua Fail (*)"
 
@@ -1683,7 +1705,7 @@ msgstr "Fail kunci BootMii (*.bin);;Semua Fail (*)"
 msgid "Borderless Fullscreen"
 msgstr "Skrin Penuh Tanpa Sempadan"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:188
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:193
 msgid "Bottom"
 msgstr "Bawah"
 
@@ -1710,7 +1732,7 @@ msgstr "Titik Henti"
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "Titik henti dihadapi! Langkah keluar dihenti paksa."
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:37
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:38
 msgid "Breakpoints"
 msgstr "Titik Henti"
 
@@ -1744,12 +1766,12 @@ msgstr ""
 msgid "Buffer Size:"
 msgstr "Saiz Penimbal:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:886
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:903
 msgid "Buffer size changed to %1"
 msgstr "Saiz penimbal berubah ke %1"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:133
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:917
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:934
 msgid "Buffer:"
 msgstr "Penimbal:"
 
@@ -1864,7 +1886,7 @@ msgstr ""
 msgid "Camera field of view (affects sensitivity of pointing)."
 msgstr ""
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:496
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:500
 msgid "Can only generate AR code for values in virtual memory."
 msgstr ""
 
@@ -1872,14 +1894,14 @@ msgstr ""
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1418
-#: Source/Core/DolphinQt/MainWindow.cpp:1485
+#: Source/Core/DolphinQt/MainWindow.cpp:1424
+#: Source/Core/DolphinQt/MainWindow.cpp:1491
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Tidak dapat memulakan Sesi NetPlay ketika permainan masih berlangsung!"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:57
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:151
-#: Source/Core/DolphinQt/MenuBar.cpp:1306
+#: Source/Core/DolphinQt/MenuBar.cpp:1303
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:59
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:732
@@ -1907,7 +1929,7 @@ msgstr ""
 msgid "Cannot find the GC IPL."
 msgstr "Tidak dapat cari IPL GC."
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:499
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:503
 msgid "Cannot generate AR code for this address."
 msgstr ""
 
@@ -1933,7 +1955,7 @@ msgstr ""
 msgid "Center and Calibrate"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:377
+#: Source/Core/DolphinQt/GameList/GameList.cpp:416
 msgid "Change &Disc"
 msgstr "Ubah &Cakera"
 
@@ -1949,7 +1971,7 @@ msgstr "Ubah Cakera"
 msgid "Change Discs Automatically"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1259
+#: Source/Core/Core/Movie.cpp:1268
 msgid "Change the disc to {0}"
 msgstr ""
 
@@ -2001,7 +2023,7 @@ msgstr ""
 msgid "Check for updates"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:797
+#: Source/Core/DolphinQt/GameList/GameList.cpp:836
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
@@ -2017,16 +2039,19 @@ msgstr ""
 msgid "China"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:306
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:373
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:397
 msgid "Choose a file to open"
 msgstr "Pilih satu fail untuk dibuka"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1652
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:307
+msgid "Choose a file to open or create"
+msgstr ""
+
+#: Source/Core/DolphinQt/MenuBar.cpp:1649
 msgid "Choose priority input file"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1657
+#: Source/Core/DolphinQt/MenuBar.cpp:1654
 msgid "Choose secondary input file"
 msgstr ""
 
@@ -2051,7 +2076,7 @@ msgstr "Pengawal Klasik"
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:136
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:248
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:137
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:108
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:109
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:90
 msgid "Clear"
 msgstr "Kosongkan"
@@ -2104,7 +2129,7 @@ msgstr ""
 msgid "Code:"
 msgstr "Kod:"
 
-#: Source/Core/Core/NetPlayClient.cpp:1820
+#: Source/Core/Core/NetPlayClient.cpp:1777
 msgid "Codes received!"
 msgstr ""
 
@@ -2129,7 +2154,7 @@ msgstr ""
 msgid "Compiling Shaders"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:946
+#: Source/Core/DolphinQt/GameList/GameList.cpp:985
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:233
 #: Source/Core/DolphinQt/MenuBar.cpp:642
 msgid "Compression"
@@ -2181,23 +2206,23 @@ msgstr "Konfigur Output"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:251
 #: Source/Core/DolphinQt/ConvertDialog.cpp:281
 #: Source/Core/DolphinQt/ConvertDialog.cpp:402
-#: Source/Core/DolphinQt/GameList/GameList.cpp:588
-#: Source/Core/DolphinQt/GameList/GameList.cpp:771
-#: Source/Core/DolphinQt/MainWindow.cpp:893
-#: Source/Core/DolphinQt/MainWindow.cpp:1614
+#: Source/Core/DolphinQt/GameList/GameList.cpp:627
+#: Source/Core/DolphinQt/GameList/GameList.cpp:810
+#: Source/Core/DolphinQt/MainWindow.cpp:899
+#: Source/Core/DolphinQt/MainWindow.cpp:1620
 #: Source/Core/DolphinQt/WiiUpdate.cpp:136
 msgid "Confirm"
 msgstr "Sahkan"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:172
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:173
 msgid "Confirm backend change"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:167
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:168
 msgid "Confirm on Stop"
 msgstr "Sahkan bil Berhenti"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1231
+#: Source/Core/DolphinQt/MenuBar.cpp:1228
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:474
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:239
 msgid "Confirmation"
@@ -2252,7 +2277,7 @@ msgstr "Sambung ke Internet dan lakukan kemaskini sistem atas-talian?"
 msgid "Connected"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:673
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:690
 msgid "Connecting"
 msgstr ""
 
@@ -2360,11 +2385,11 @@ msgstr "Ketumpuan:"
 msgid "Convert"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:375
+#: Source/Core/DolphinQt/GameList/GameList.cpp:414
 msgid "Convert File..."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:339
+#: Source/Core/DolphinQt/GameList/GameList.cpp:378
 msgid "Convert Selected Files..."
 msgstr ""
 
@@ -2390,9 +2415,9 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:265
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:665
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:693
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:721
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:682
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:710
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:738
 msgid "Copy"
 msgstr "Salin"
 
@@ -2404,19 +2429,19 @@ msgstr "Salin &fungsi"
 msgid "Copy &hex"
 msgstr "Salin &heks"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:597
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:646
 msgid "Copy Address"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:639
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:640
 msgid "Copy Failed"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:599
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:648
 msgid "Copy Hex"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:605
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:654
 msgid "Copy Value"
 msgstr ""
 
@@ -2424,19 +2449,15 @@ msgstr ""
 msgid "Copy code &line"
 msgstr "Salin &baris kod"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:128
-msgid "Copy failed"
-msgstr "Salin gagal"
-
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:545
 msgid "Copy tar&get address"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:242
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:243
 msgid "Copy to A"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:242
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:243
 msgid "Copy to B"
 msgstr ""
 
@@ -2480,14 +2501,14 @@ msgstr ""
 "Tidak dapat memuat turun maklumat dari Nintendo. Sila periksa sambungan "
 "Internet anda dan cuba lagi."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:125
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:143
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
 "The emulated console will now stop."
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:131
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:149
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "The following error occurred when Dolphin tried to use an adapter:\n"
@@ -2535,7 +2556,7 @@ msgstr ""
 msgid "Could not recognize file {0}"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:186
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:137
 msgid ""
 "Could not write memory card file {0}.\n"
 "\n"
@@ -2547,15 +2568,15 @@ msgid ""
 "options."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:952
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:969
 msgid "Couldn't look up central server"
 msgstr "Tidak dapat cari pelayan pusat"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:826
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:827
 msgid "Couldn't open file."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:829
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:830
 msgid "Couldn't read file."
 msgstr ""
 
@@ -2609,7 +2630,7 @@ msgstr "Resap Silang"
 msgid "Current Region"
 msgstr "Wilayah Semasa"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:515
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
 msgid "Current Value"
 msgstr ""
 
@@ -2712,23 +2733,23 @@ msgstr ""
 msgid "Data Type"
 msgstr "Jenis Data"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:847
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:848
 msgid "Data in area of file that should be unused."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:864
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:865
 msgid "Data in unrecognized format or corrupted."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:376
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:377
 msgid "Data inconsistency in GCMemcardManager, aborting action."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1778
+#: Source/Core/Core/NetPlayClient.cpp:1735
 msgid "Data received!"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:401
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:402
 msgid "Datel MaxDrive/Pro files"
 msgstr ""
 
@@ -2830,21 +2851,21 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:116
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:107
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:108
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:89
 msgid "Delete"
 msgstr "Padam"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:439
+#: Source/Core/DolphinQt/GameList/GameList.cpp:478
 msgid "Delete File..."
 msgstr "Padam Fail..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:350
+#: Source/Core/DolphinQt/GameList/GameList.cpp:389
 msgid "Delete Selected Files..."
 msgstr ""
 
 #: Source/Core/AudioCommon/WaveFile.cpp:35
-#: Source/Core/VideoCommon/FrameDump.cpp:125
+#: Source/Core/VideoCommon/FrameDump.cpp:137
 msgid "Delete the existing file '{0}'?"
 msgstr ""
 
@@ -2860,10 +2881,10 @@ msgstr "Peratus Kedalaman:"
 msgid "Depth:"
 msgstr "Kedalaman:"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:515
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:48
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
-#: Source/Core/DolphinQt/GameList/GameList.cpp:937
+#: Source/Core/DolphinQt/GameList/GameList.cpp:976
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
 #: Source/Core/DolphinQt/MenuBar.cpp:633
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
@@ -2883,7 +2904,7 @@ msgstr ""
 msgid "Detect"
 msgstr "Kesan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1307
+#: Source/Core/DolphinQt/MenuBar.cpp:1304
 msgid "Detecting RSO Modules"
 msgstr ""
 
@@ -2904,7 +2925,7 @@ msgstr "Peranti"
 msgid "Device PID (e.g., 0305)"
 msgstr "PID Peranti (iaitu, 0305)"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:90
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:91
 msgid "Device Settings"
 msgstr "Tetapan Peranti"
 
@@ -2951,8 +2972,8 @@ msgstr ""
 msgid "Dis&connected"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:358
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:375
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:360
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:377
 msgid "Disable"
 msgstr ""
 
@@ -3045,26 +3066,26 @@ msgstr ""
 msgid "Distance of travel from neutral position."
 msgstr ""
 
-#: Source/Core/DolphinQt/Main.cpp:256
+#: Source/Core/DolphinQt/Main.cpp:259
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr ""
 "Adakah anda izinkan Dolphin melaporkan maklumat kepada pembangun Dolphin?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1615
+#: Source/Core/DolphinQt/MainWindow.cpp:1621
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Anda mahu tambah \"%1\" ke dalam senarai Laluan Permainan?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1232
+#: Source/Core/DolphinQt/MenuBar.cpp:1229
 msgid "Do you want to clear the list of symbol names?"
 msgstr "Anda mahu kosongkan senarai nama simbol?"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:657
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:658
 #, c-format
 msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:897
+#: Source/Core/DolphinQt/MainWindow.cpp:903
 msgid "Do you want to stop the current emulation?"
 msgstr "Anda hendak hentikan emulasi semasa?"
 
@@ -3081,9 +3102,9 @@ msgstr "Log FIFO Dolphin (*.dff)"
 msgid "Dolphin Game Mod Preset"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1502
-#: Source/Core/DolphinQt/MenuBar.cpp:1518
-#: Source/Core/DolphinQt/MenuBar.cpp:1536
+#: Source/Core/DolphinQt/MenuBar.cpp:1499
+#: Source/Core/DolphinQt/MenuBar.cpp:1515
+#: Source/Core/DolphinQt/MenuBar.cpp:1533
 msgid "Dolphin Map File (*.map)"
 msgstr "Fail Peta Dolphin (*.map)"
 
@@ -3095,8 +3116,8 @@ msgstr ""
 msgid "Dolphin Signature File"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1695
-#: Source/Core/DolphinQt/MainWindow.cpp:1766
+#: Source/Core/DolphinQt/MainWindow.cpp:1701
+#: Source/Core/DolphinQt/MainWindow.cpp:1772
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Cereka TAS Dolphin (*.dtm)"
 
@@ -3111,7 +3132,7 @@ msgid ""
 "Do you want to continue anyway?"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:246
+#: Source/Core/DolphinQt/GameList/GameList.cpp:276
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
 "Double-click here to set a games directory..."
@@ -3131,7 +3152,7 @@ msgstr "Dolphin gagal menyelesaikan tindakan yang dipinta."
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr "Dolphin ialah emulator GameCube dan Wii bebas dan bersumber-terbuka."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:957
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:974
 msgid "Dolphin is too old for traversal server"
 msgstr "Dolphin terlalu tua untuk pelayan traversal"
 
@@ -3196,7 +3217,7 @@ msgstr "Muat Turun Kod"
 msgid "Download Codes from the WiiRD Database"
 msgstr "Muat turun Kod dar Pangkalan Data WiiRD"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:146
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:147
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr ""
 
@@ -3376,7 +3397,7 @@ msgid "Duration of Turbo Button Release (frames):"
 msgstr ""
 
 #: Source/Core/DiscIO/Enums.cpp:95
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:84
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:85
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:128
 msgid "Dutch"
 msgstr "Bahasa Belanda"
@@ -3449,7 +3470,7 @@ msgstr "Penimbal Bingkai Terbenam (EFB)"
 msgid "Empty"
 msgstr "Kosong"
 
-#: Source/Core/Core/Core.cpp:229
+#: Source/Core/Core/Core.cpp:223
 msgid "Emu Thread already running"
 msgstr "Bebenang Emu sudah berjalan"
 
@@ -3481,8 +3502,8 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:33
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:158
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:358
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:375
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:360
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:377
 msgid "Enable"
 msgstr ""
 
@@ -3532,7 +3553,7 @@ msgid "Enable Progressive Scan"
 msgstr "Benarkan Imbas Progresif"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.cpp:39
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:183
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:188
 msgid "Enable Rumble"
 msgstr "Benarkan Rumble"
 
@@ -3650,7 +3671,7 @@ msgstr ""
 msgid "Encoding"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:614
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:615
 msgid ""
 "Encountered the following errors while opening save files:\n"
 "%1\n"
@@ -3663,7 +3684,7 @@ msgid "Enet Didn't Initialize"
 msgstr "Enet Tidak Diawalkan"
 
 #: Source/Core/DiscIO/Enums.cpp:80
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:83
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:123
 msgid "English"
 msgstr "Bahasa Inggeris"
@@ -3696,7 +3717,7 @@ msgstr ""
 msgid "Enter password"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1281
+#: Source/Core/DolphinQt/MenuBar.cpp:1278
 msgid "Enter the RSO module address:"
 msgstr "Masukkan alamat modul RSO:"
 
@@ -3708,7 +3729,7 @@ msgstr "Masukkan alamat modul RSO:"
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:319
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:325
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:46
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:517
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:518
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:242
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:281
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:232
@@ -3727,46 +3748,47 @@ msgstr "Masukkan alamat modul RSO:"
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:377
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:378
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:241
-#: Source/Core/DolphinQt/GBAWidget.cpp:571
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:345
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:375
-#: Source/Core/DolphinQt/Main.cpp:204 Source/Core/DolphinQt/Main.cpp:220
-#: Source/Core/DolphinQt/Main.cpp:227 Source/Core/DolphinQt/MainWindow.cpp:273
+#: Source/Core/DolphinQt/GBAWidget.cpp:577
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:346
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:376
+#: Source/Core/DolphinQt/Main.cpp:207 Source/Core/DolphinQt/Main.cpp:223
+#: Source/Core/DolphinQt/Main.cpp:230 Source/Core/DolphinQt/MainWindow.cpp:273
 #: Source/Core/DolphinQt/MainWindow.cpp:281
-#: Source/Core/DolphinQt/MainWindow.cpp:1071
-#: Source/Core/DolphinQt/MainWindow.cpp:1417
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1484
-#: Source/Core/DolphinQt/MainWindow.cpp:1491
-#: Source/Core/DolphinQt/MainWindow.cpp:1593
-#: Source/Core/DolphinQt/MenuBar.cpp:1195
-#: Source/Core/DolphinQt/MenuBar.cpp:1265
-#: Source/Core/DolphinQt/MenuBar.cpp:1288
-#: Source/Core/DolphinQt/MenuBar.cpp:1300
-#: Source/Core/DolphinQt/MenuBar.cpp:1331
-#: Source/Core/DolphinQt/MenuBar.cpp:1352
-#: Source/Core/DolphinQt/MenuBar.cpp:1555
-#: Source/Core/DolphinQt/MenuBar.cpp:1564
-#: Source/Core/DolphinQt/MenuBar.cpp:1576
-#: Source/Core/DolphinQt/MenuBar.cpp:1598
-#: Source/Core/DolphinQt/MenuBar.cpp:1624
-#: Source/Core/DolphinQt/MenuBar.cpp:1674
+#: Source/Core/DolphinQt/MainWindow.cpp:1077
+#: Source/Core/DolphinQt/MainWindow.cpp:1423
+#: Source/Core/DolphinQt/MainWindow.cpp:1430
+#: Source/Core/DolphinQt/MainWindow.cpp:1490
+#: Source/Core/DolphinQt/MainWindow.cpp:1497
+#: Source/Core/DolphinQt/MainWindow.cpp:1599
+#: Source/Core/DolphinQt/MenuBar.cpp:1192
+#: Source/Core/DolphinQt/MenuBar.cpp:1262
+#: Source/Core/DolphinQt/MenuBar.cpp:1285
+#: Source/Core/DolphinQt/MenuBar.cpp:1297
+#: Source/Core/DolphinQt/MenuBar.cpp:1328
+#: Source/Core/DolphinQt/MenuBar.cpp:1349
+#: Source/Core/DolphinQt/MenuBar.cpp:1552
+#: Source/Core/DolphinQt/MenuBar.cpp:1561
+#: Source/Core/DolphinQt/MenuBar.cpp:1573
+#: Source/Core/DolphinQt/MenuBar.cpp:1595
+#: Source/Core/DolphinQt/MenuBar.cpp:1621
+#: Source/Core/DolphinQt/MenuBar.cpp:1671
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:315
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:455
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:698
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:941
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1059
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1069
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:715
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:958
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1076
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1086
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:334
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:340
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:347
 #: Source/Core/DolphinQt/RenderWidget.cpp:124
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:203
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:224
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:322
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:346
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:326
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:347
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:368
 #: Source/Core/DolphinQt/Translation.cpp:320
 msgid "Error"
 msgstr "Ralat"
@@ -3787,11 +3809,11 @@ msgstr ""
 msgid "Error occurred while loading some texture packs"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1807
+#: Source/Core/Core/NetPlayClient.cpp:1764
 msgid "Error processing codes."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1779
+#: Source/Core/Core/NetPlayClient.cpp:1736
 msgid "Error processing data."
 msgstr ""
 
@@ -3811,7 +3833,7 @@ msgstr ""
 msgid "Error writing file: {0}"
 msgstr ""
 
-#: Source/Core/Common/ChunkFile.h:295
+#: Source/Core/Common/ChunkFile.h:300
 msgid ""
 "Error: After \"{0}\", found {1} ({2:#x}) instead of save marker {3} ({4:"
 "#x}). Aborting savestate load..."
@@ -3963,10 +3985,10 @@ msgstr ""
 msgid "Export All Wii Saves"
 msgstr "Eskport Semua Simpan Wii"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:421
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:446
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:491
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:498
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:422
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:447
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:492
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:499
 msgid "Export Failed"
 msgstr ""
 
@@ -3978,19 +4000,19 @@ msgstr "Eksport Rakaman"
 msgid "Export Recording..."
 msgstr "Eksport Rakaman..."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:436
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:437
 msgid "Export Save File"
 msgstr "Eksport Fail Simpan"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:453
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:454
 msgid "Export Save Files"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:428
+#: Source/Core/DolphinQt/GameList/GameList.cpp:467
 msgid "Export Wii Save"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:346
+#: Source/Core/DolphinQt/GameList/GameList.cpp:385
 msgid "Export Wii Saves"
 msgstr ""
 
@@ -4002,7 +4024,7 @@ msgstr ""
 msgid "Export as .&sav..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1119
+#: Source/Core/DolphinQt/MenuBar.cpp:1116
 #, c-format
 msgctxt ""
 msgid "Exported %n save(s)"
@@ -4076,7 +4098,7 @@ msgstr "Pemain FIFO"
 msgid "Failed loading XML."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:346
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 msgid ""
 "Failed opening memory card:\n"
 "%1"
@@ -4086,19 +4108,19 @@ msgstr ""
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1625
+#: Source/Core/DolphinQt/MenuBar.cpp:1622
 msgid "Failed to append to signature file '%1'"
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:593
-msgid "Failed to claim interface for BT passthrough"
-msgstr "Gagal menuntut antaramuka untuk passthrough BT"
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:627
+msgid "Failed to claim interface for BT passthrough: {0}"
+msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:107
 msgid "Failed to connect to Redump.org"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:942
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:959
 msgid "Failed to connect to server: %1"
 msgstr ""
 
@@ -4128,11 +4150,11 @@ msgstr ""
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:796
+#: Source/Core/DolphinQt/GameList/GameList.cpp:835
 msgid "Failed to delete the selected file."
 msgstr "Gagal memadam fail terpilih."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:586
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:620
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr ""
 
@@ -4148,16 +4170,16 @@ msgstr ""
 msgid "Failed to dump %1: Failed to write to file"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:487
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:488
 msgctxt ""
 msgid "Failed to export %n out of %1 save file(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:532
+#: Source/Core/DolphinQt/GameList/GameList.cpp:571
 msgid "Failed to export the following save files:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1195
+#: Source/Core/DolphinQt/MenuBar.cpp:1192
 msgid "Failed to extract certificates from NAND"
 msgstr "Gagal mengekstrak sijil dari NAND"
 
@@ -4180,29 +4202,29 @@ msgstr ""
 msgid "Failed to find one or more D3D symbols"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:564
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:565
 msgid "Failed to import \"%1\"."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1095
+#: Source/Core/DolphinQt/MenuBar.cpp:1092
 msgid ""
 "Failed to import save file. Please launch the game once, then try again."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1089
+#: Source/Core/DolphinQt/MenuBar.cpp:1086
 msgid ""
 "Failed to import save file. The given file appears to be corrupted or is not "
 "a valid Wii save."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1102
+#: Source/Core/DolphinQt/MenuBar.cpp:1099
 msgid ""
 "Failed to import save file. Your NAND may be corrupt, or something is "
 "preventing access to files within it. Try repairing your NAND (Tools -> "
 "Manage NAND -> Check NAND...), then import the save again."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1071
+#: Source/Core/DolphinQt/MainWindow.cpp:1077
 msgid "Failed to init core"
 msgstr "Gagal ke teras init"
 
@@ -4222,12 +4244,12 @@ msgstr ""
 msgid "Failed to install pack: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:575
-#: Source/Core/DolphinQt/MenuBar.cpp:1060
+#: Source/Core/DolphinQt/GameList/GameList.cpp:614
+#: Source/Core/DolphinQt/MenuBar.cpp:1057
 msgid "Failed to install this title to the NAND."
 msgstr "Gagal memasang tajuk ini ke NAND."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1517
+#: Source/Core/DolphinQt/MainWindow.cpp:1523
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -4235,8 +4257,8 @@ msgstr ""
 "Gagal mendengar pada port %1. Adakah kejadian lain pelayan NetPlay masih "
 "berjalan?"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1300
-#: Source/Core/DolphinQt/MenuBar.cpp:1352
+#: Source/Core/DolphinQt/MenuBar.cpp:1297
+#: Source/Core/DolphinQt/MenuBar.cpp:1349
 msgid "Failed to load RSO module at %1"
 msgstr "Gagal memuatkan modul RSO pada %1"
 
@@ -4248,7 +4270,7 @@ msgstr ""
 msgid "Failed to load dxgi.dll"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1564
+#: Source/Core/DolphinQt/MenuBar.cpp:1561
 msgid "Failed to load map file '%1'"
 msgstr ""
 
@@ -4262,13 +4284,13 @@ msgid ""
 "update package."
 msgstr ""
 
-#: Source/Core/DolphinQt/GBAWidget.cpp:571
-#: Source/Core/DolphinQt/MainWindow.cpp:1593
+#: Source/Core/DolphinQt/GBAWidget.cpp:577
+#: Source/Core/DolphinQt/MainWindow.cpp:1599
 #: Source/Core/DolphinQt/RenderWidget.cpp:124
 msgid "Failed to open '%1'"
 msgstr "Gagal membuka '%1'"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:572
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:605
 msgid "Failed to open Bluetooth device: {0}"
 msgstr ""
 
@@ -4290,11 +4312,11 @@ msgid ""
 "Make sure there's an application assigned to open INI files."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:860
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:861
 msgid "Failed to open file."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1516
+#: Source/Core/DolphinQt/MainWindow.cpp:1522
 msgid "Failed to open server"
 msgstr "Gagal membuka pelayan"
 
@@ -4303,7 +4325,7 @@ msgid "Failed to open the input file \"%1\"."
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:282 Source/Core/DiscIO/FileBlob.cpp:53
-#: Source/Core/DiscIO/WIABlob.cpp:2045
+#: Source/Core/DiscIO/WIABlob.cpp:2044
 msgid ""
 "Failed to open the output file \"{0}\".\n"
 "Check that you have permissions to write the target folder and that the "
@@ -4323,25 +4345,25 @@ msgstr ""
 msgid "Failed to read DFF file."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:862
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:863
 msgid "Failed to read from file."
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:373 Source/Core/DiscIO/FileBlob.cpp:93
-#: Source/Core/DiscIO/WIABlob.cpp:2060
+#: Source/Core/DiscIO/WIABlob.cpp:2059
 msgid "Failed to read from the input file \"{0}\"."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:422
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:640
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:423
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:641
 msgid "Failed to read selected savefile(s) from memory card."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1015
+#: Source/Core/Core/Movie.cpp:1024
 msgid "Failed to read {0}"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:667
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:668
 msgid "Failed to remove file."
 msgstr ""
 
@@ -4352,7 +4374,7 @@ msgid ""
 "Would you like to convert it without removing junk data?"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:603
+#: Source/Core/DolphinQt/GameList/GameList.cpp:642
 msgid "Failed to remove this title from the NAND."
 msgstr "Gagal membuang tajuk ini dari NAND."
 
@@ -4372,19 +4394,19 @@ msgstr ""
 msgid "Failed to save FIFO log."
 msgstr "Gagal menyimpan log FIFO."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1556
+#: Source/Core/DolphinQt/MenuBar.cpp:1553
 msgid "Failed to save code map to path '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1598
+#: Source/Core/DolphinQt/MenuBar.cpp:1595
 msgid "Failed to save signature file '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1577
+#: Source/Core/DolphinQt/MenuBar.cpp:1574
 msgid "Failed to save symbol map to path '%1'"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1675
+#: Source/Core/DolphinQt/MenuBar.cpp:1672
 msgid "Failed to save to signature file '%1'"
 msgstr ""
 
@@ -4408,9 +4430,9 @@ msgstr ""
 msgid "Failed to write config file!"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:572
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:675
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:690
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:573
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:676
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:691
 msgid "Failed to write modified memory card to disk."
 msgstr ""
 
@@ -4418,21 +4440,21 @@ msgstr ""
 msgid "Failed to write redirected save."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:446
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:447
 msgid "Failed to write savefile to disk."
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:377 Source/Core/DiscIO/FileBlob.cpp:99
-#: Source/Core/DiscIO/WIABlob.cpp:2064
+#: Source/Core/DiscIO/WIABlob.cpp:2063
 msgid ""
 "Failed to write the output file \"{0}\".\n"
 "Check that you have enough space available on the target drive."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:573
-#: Source/Core/DolphinQt/GameList/GameList.cpp:601
-#: Source/Core/DolphinQt/GameList/GameList.cpp:795
-#: Source/Core/DolphinQt/MenuBar.cpp:1060
+#: Source/Core/DolphinQt/GameList/GameList.cpp:612
+#: Source/Core/DolphinQt/GameList/GameList.cpp:640
+#: Source/Core/DolphinQt/GameList/GameList.cpp:834
+#: Source/Core/DolphinQt/MenuBar.cpp:1057
 msgid "Failure"
 msgstr ""
 
@@ -4457,7 +4479,7 @@ msgstr "Pantas"
 msgid "Fast Depth Calculation"
 msgstr "Pengiraan Kedalaman Pantas"
 
-#: Source/Core/Core/Movie.cpp:1292
+#: Source/Core/Core/Movie.cpp:1301
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: {0} != {1}, byte "
 "{2}.){3}"
@@ -4472,7 +4494,7 @@ msgstr ""
 msgid "File Details"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:944
+#: Source/Core/DolphinQt/GameList/GameList.cpp:983
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
 #: Source/Core/DolphinQt/MenuBar.cpp:640
 msgid "File Format"
@@ -4486,19 +4508,19 @@ msgstr ""
 msgid "File Info"
 msgstr "Maklumat Fail"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:939
+#: Source/Core/DolphinQt/GameList/GameList.cpp:978
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
 #: Source/Core/DolphinQt/MenuBar.cpp:635
 msgid "File Name"
 msgstr "Nama Fail"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:940
+#: Source/Core/DolphinQt/GameList/GameList.cpp:979
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
 #: Source/Core/DolphinQt/MenuBar.cpp:636
 msgid "File Path"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:943
+#: Source/Core/DolphinQt/GameList/GameList.cpp:982
 #: Source/Core/DolphinQt/MenuBar.cpp:639
 msgid "File Size"
 msgstr "Saiz Fail"
@@ -4525,11 +4547,11 @@ msgid ""
 "{1}"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:832
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:833
 msgid "Filesize does not match any known GameCube Memory Card size."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:835
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:836
 msgid "Filesize in header mismatches actual card size."
 msgstr ""
 
@@ -4581,7 +4603,7 @@ msgstr ""
 msgid "Fix Checksums"
 msgstr "Baiki Hasil Tambah Semak"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:689
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:690
 msgid "Fix Checksums Failed"
 msgstr ""
 
@@ -4591,7 +4613,7 @@ msgstr ""
 
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:163
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:85
 msgid "Flags"
 msgstr "Bendera"
@@ -4729,11 +4751,11 @@ msgstr "Bingkai untuk Dirakam:"
 msgid "France"
 msgstr "Perancis"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:310
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:311
 msgid "Free Blocks: %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:311
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:312
 msgid "Free Files: %1"
 msgstr ""
 
@@ -4771,7 +4793,7 @@ msgid "Freelook Toggle"
 msgstr ""
 
 #: Source/Core/DiscIO/Enums.cpp:86
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:83
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:84
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:125
 msgid "French"
 msgstr "Perancis"
@@ -4800,7 +4822,7 @@ msgstr "Dari:"
 msgid "FullScr"
 msgstr "SkrPenuh"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:163
 msgid "Function"
 msgstr "Fungsi"
 
@@ -4832,7 +4854,7 @@ msgstr ""
 msgid "GBA Port %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:140
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:141
 msgid "GBA Settings"
 msgstr ""
 
@@ -4844,11 +4866,11 @@ msgstr ""
 msgid "GBA Window Size"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:793
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:810
 msgid "GBA%1 ROM changed to \"%2\""
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:798
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:815
 msgid "GBA%1 ROM disabled"
 msgstr ""
 
@@ -4951,11 +4973,11 @@ msgstr ""
 msgid "Game Boy Advance"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:374
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:398
 msgid "Game Boy Advance Carts (*.gba)"
 msgstr "Kartu Game Boy Advance (*.gba)"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:540
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:568
 msgid ""
 "Game Boy Advance ROMs (*.gba *.gbc *.gb *.7z *.zip *.agb *.mb *.rom *.bin);;"
 "All Files (*)"
@@ -4977,7 +4999,7 @@ msgstr ""
 msgid "Game Folders"
 msgstr "Folder Permainan"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:941
+#: Source/Core/DolphinQt/GameList/GameList.cpp:980
 #: Source/Core/DolphinQt/MenuBar.cpp:637
 msgid "Game ID"
 msgstr "ID Permainan"
@@ -4991,17 +5013,35 @@ msgstr "ID Permainan:"
 msgid "Game Status"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:785
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:802
 msgid "Game changed to \"%1\""
 msgstr "Permainan bertukar ke \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1712
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:619
+msgid ""
+"Game file has a different hash; right-click it, select Properties, switch to "
+"the Verify tab, and select Verify Integrity to check the hash"
+msgstr ""
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:622
+msgid "Game has a different disc number"
+msgstr ""
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:624
+msgid "Game has a different revision"
+msgstr ""
+
+#: Source/Core/Core/NetPlayClient.cpp:1669
 msgid "Game is already running!"
 msgstr "Permainan sudah berjalan!"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:473
 msgid ""
 "Game overwrote with another games save. Data corruption ahead {0:#x}, {1:#x}"
+msgstr ""
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:626
+msgid "Game region does not match"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:145
@@ -5044,12 +5084,12 @@ msgstr "Papan Kekunci GameCube pada Port %1"
 msgid "GameCube Memory Card Manager"
 msgstr "Pengurus Kad Ingatan GameCube"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:361
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:362
 msgid "GameCube Memory Cards"
 msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:75
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:307
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:309
 msgid "GameCube Memory Cards (*.raw *.gcp)"
 msgstr "Kad Ingatan GameCube (*.raw *.gcp)"
 
@@ -5082,7 +5122,7 @@ msgstr "Am"
 msgid "General and Options"
 msgstr "Am dan Pilihan"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:453
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:457
 msgid "Generate Action Replay Code"
 msgstr ""
 
@@ -5090,16 +5130,16 @@ msgstr ""
 msgid "Generate a New Statistics Identity"
 msgstr "Jana satu Identiti Statistik Baharu"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:489
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:493
 msgid "Generated AR code."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1259
+#: Source/Core/DolphinQt/MenuBar.cpp:1256
 msgid "Generated symbol names from '%1'"
 msgstr "Nama simbol terjana dari '%1'"
 
 #: Source/Core/DiscIO/Enums.cpp:83
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:83
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:124
 msgid "German"
 msgstr "Jerman"
@@ -5108,13 +5148,13 @@ msgstr "Jerman"
 msgid "Germany"
 msgstr "Jerman"
 
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:135
+msgid "GetDeviceList failed: {0}"
+msgstr ""
+
 #: Source/Core/UICommon/UICommon.cpp:420
 msgid "GiB"
 msgstr "GiB"
-
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:364
-msgid "Go to"
-msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:171
 msgid "Golf Mode"
@@ -5283,15 +5323,15 @@ msgid ""
 "latency connections."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:895
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:912
 msgid "Host input authority disabled"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:895
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:912
 msgid "Host input authority enabled"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:477
+#: Source/Core/DolphinQt/GameList/GameList.cpp:516
 msgid "Host with NetPlay"
 msgstr "Hos dengan NetPlay"
 
@@ -5309,7 +5349,7 @@ msgstr "Tetapan Kekunci Panas"
 msgid "Hotkeys"
 msgstr "Kekunci Panas"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:148
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
 msgid "Hotkeys Require Window Focus"
 msgstr ""
 
@@ -5354,7 +5394,7 @@ msgstr ""
 msgid "IP Address:"
 msgstr "Alamat IP:"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:65
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:66
 msgid "IPL Settings"
 msgstr "Tetapan IPL"
 
@@ -5363,7 +5403,7 @@ msgid "IR"
 msgstr "IR"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:192
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:197
 msgid "IR Sensitivity:"
 msgstr "Kepekaan IR:"
 
@@ -5400,7 +5440,7 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "Penjanaan Identiti"
 
-#: Source/Core/DolphinQt/Main.cpp:258
+#: Source/Core/DolphinQt/Main.cpp:261
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -5453,7 +5493,7 @@ msgstr ""
 msgid "Ignore Format Changes"
 msgstr "Abai Perubahan Format"
 
-#: Source/Core/DolphinQt/Main.cpp:66
+#: Source/Core/DolphinQt/Main.cpp:71
 msgid "Ignore for this session"
 msgstr ""
 
@@ -5490,14 +5530,14 @@ msgstr ""
 msgid "Import BootMii NAND Backup..."
 msgstr "Import Sandar NAND BootMii..."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:549
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:563
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:571
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:613
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:550
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:564
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:572
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:614
 msgid "Import Failed"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:585
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:586
 msgid "Import Save File(s)"
 msgstr ""
 
@@ -5505,11 +5545,11 @@ msgstr ""
 msgid "Import Wii Save..."
 msgstr "Import Simpan Wii..."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1657
+#: Source/Core/DolphinQt/MainWindow.cpp:1663
 msgid "Importing NAND backup"
 msgstr "Mengimport sandar NAND"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1667
+#: Source/Core/DolphinQt/MainWindow.cpp:1673
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -5583,21 +5623,21 @@ msgid "Info"
 msgstr "Maklumat"
 
 #: Source/Core/Common/MsgHandler.cpp:59
-#: Source/Core/DolphinQt/GameList/GameList.cpp:717
-#: Source/Core/DolphinQt/MenuBar.cpp:1258
-#: Source/Core/DolphinQt/MenuBar.cpp:1482
+#: Source/Core/DolphinQt/GameList/GameList.cpp:756
+#: Source/Core/DolphinQt/MenuBar.cpp:1255
+#: Source/Core/DolphinQt/MenuBar.cpp:1479
 msgid "Information"
 msgstr "Maklumat"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:150
 msgid "Inhibit Screensaver During Emulation"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:254
-#: Source/Core/DolphinQt/MenuBar.cpp:1281
-#: Source/Core/DolphinQt/MenuBar.cpp:1337
-#: Source/Core/DolphinQt/MenuBar.cpp:1583
-#: Source/Core/DolphinQt/MenuBar.cpp:1608
+#: Source/Core/DolphinQt/MenuBar.cpp:1278
+#: Source/Core/DolphinQt/MenuBar.cpp:1334
+#: Source/Core/DolphinQt/MenuBar.cpp:1580
+#: Source/Core/DolphinQt/MenuBar.cpp:1605
 msgid "Input"
 msgstr "Input"
 
@@ -5642,7 +5682,7 @@ msgstr ""
 msgid "Install WAD..."
 msgstr "Pasang WAD..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:400
+#: Source/Core/DolphinQt/GameList/GameList.cpp:439
 msgid "Install to the NAND"
 msgstr "Pasang ke NAND"
 
@@ -5658,7 +5698,7 @@ msgstr ""
 msgid "Instruction Breakpoint"
 msgstr "Titik Henti Arahan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1701
+#: Source/Core/DolphinQt/MenuBar.cpp:1698
 msgid "Instruction:"
 msgstr ""
 
@@ -5705,7 +5745,7 @@ msgstr "Resolusi Dalaman"
 msgid "Internal Resolution:"
 msgstr "Resolusi Dalaman:"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:502
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:506
 msgid "Internal error while generating AR code."
 msgstr ""
 
@@ -5717,7 +5757,7 @@ msgstr "Pentafsir (paling perlahan)"
 msgid "Interpreter Core"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:687
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:688
 msgid "Invalid Expression."
 msgstr ""
 
@@ -5734,7 +5774,7 @@ msgstr ""
 msgid "Invalid Player ID"
 msgstr "ID Pemain Tidak Sah"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1288
+#: Source/Core/DolphinQt/MenuBar.cpp:1285
 msgid "Invalid RSO module address: %1"
 msgstr "Alamat modul RSO tidak sah: %1"
 
@@ -5742,7 +5782,7 @@ msgstr "Alamat modul RSO tidak sah: %1"
 msgid "Invalid callstack"
 msgstr "Tindanan panggilan tidak sah"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:838
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:839
 msgid "Invalid checksums."
 msgstr ""
 
@@ -5750,7 +5790,7 @@ msgstr ""
 msgid "Invalid game."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1938
+#: Source/Core/Core/NetPlayClient.cpp:1895
 msgid "Invalid host"
 msgstr "Hos tidak sah"
 
@@ -5759,7 +5799,7 @@ msgid "Invalid input for the field \"%1\""
 msgstr "Input tidak sah untuk medan \"%1\""
 
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:377
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:378
 msgid "Invalid input provided"
 msgstr "Input tidak sah disediakan"
 
@@ -5791,7 +5831,7 @@ msgstr "Parameter gelintar tidak sah (tidak dapat tukar ke nombor)"
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "Parameter gelintar tidak sah (hanya panjang rentetan disokong)"
 
-#: Source/Core/DolphinQt/Main.cpp:204
+#: Source/Core/DolphinQt/Main.cpp:207
 msgid "Invalid title ID."
 msgstr "ID tajuk tidak sah."
 
@@ -5800,7 +5840,7 @@ msgid "Invalid watch address: %1"
 msgstr ""
 
 #: Source/Core/DiscIO/Enums.cpp:92
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:84
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:85
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:127
 msgid "Italian"
 msgstr "Itali"
@@ -5904,7 +5944,7 @@ msgstr "Jepun"
 msgid "Japanese (Shift-JIS)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:166
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:167
 msgid "Keep Window on Top"
 msgstr "Kekalkan Tetingkap berada Diatas"
 
@@ -5972,7 +6012,7 @@ msgstr ""
 msgid "Label"
 msgstr "Label"
 
-#: Source/Core/DolphinQt/CheatSearchWidget.cpp:515
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
 msgid "Last Value"
 msgstr ""
 
@@ -6070,7 +6110,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:114
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:110
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:111
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:91
 msgid "Load"
 msgstr "Muat"
@@ -6205,7 +6245,7 @@ msgstr "Muat Keadaan dari Slot"
 msgid "Load Wii Save"
 msgstr "Muat Simpan Wii"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1022
+#: Source/Core/DolphinQt/MenuBar.cpp:1019
 msgid "Load Wii System Menu %1"
 msgstr "Muat Menu Sistem Wii %1"
 
@@ -6217,8 +6257,8 @@ msgstr "Muat dari Slot Terpilih"
 msgid "Load from Slot %1 - %2"
 msgstr "Muat dari Slot %1 - %2"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1501
-#: Source/Core/DolphinQt/MenuBar.cpp:1517
+#: Source/Core/DolphinQt/MenuBar.cpp:1498
+#: Source/Core/DolphinQt/MenuBar.cpp:1514
 msgid "Load map file"
 msgstr "Muat fail peta"
 
@@ -6226,7 +6266,7 @@ msgstr "Muat fail peta"
 msgid "Load..."
 msgstr "Muat..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1483
+#: Source/Core/DolphinQt/MenuBar.cpp:1480
 msgid "Loaded symbols from '%1'"
 msgstr "Simbol dimuatkan dari '%1'"
 
@@ -6241,7 +6281,7 @@ msgstr ""
 msgid "Local"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:190
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:191
 msgid "Lock Mouse Cursor"
 msgstr ""
 
@@ -6270,7 +6310,7 @@ msgstr "Log Jenis"
 msgid "Logger Outputs"
 msgstr "Output Pengelog"
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:235
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:236
 msgid ""
 "Logs the render time of every frame to User/Logs/render_time.txt.<br><br>Use "
 "this feature to measure Dolphin's performance.<br><br><dolphin_emphasis>If "
@@ -6281,7 +6321,7 @@ msgstr ""
 msgid "Loop"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:935
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:952
 msgid "Lost connection to NetPlay server..."
 msgstr "Sambung dengan pelayan NetPlay terputus..."
 
@@ -6310,7 +6350,7 @@ msgstr ""
 msgid "MORIBUND"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:399
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:400
 msgid "MadCatz Gameshark files"
 msgstr ""
 
@@ -6318,7 +6358,7 @@ msgstr ""
 msgid "Main Stick"
 msgstr "Bidak Utama"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:938
+#: Source/Core/DolphinQt/GameList/GameList.cpp:977
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:221
 #: Source/Core/DolphinQt/MenuBar.cpp:634
 msgid "Maker"
@@ -6357,11 +6397,11 @@ msgstr ""
 msgid "Match Found"
 msgstr "Padanan Ditemui"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:917
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:934
 msgid "Max Buffer:"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:885
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:902
 msgid "Max buffer size changed to %1"
 msgstr ""
 
@@ -6395,16 +6435,6 @@ msgstr "Kad Ingatan"
 msgid "Memory Card Manager"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:120
-msgid ""
-"Memory Card filename in Slot {0} is incorrect\n"
-"Region not specified\n"
-"\n"
-"Slot {1} path was changed to\n"
-"{2}\n"
-"Would you like to copy the old file to this new location?\n"
-msgstr ""
-
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:101
 msgid "Memory Override"
 msgstr ""
@@ -6413,19 +6443,19 @@ msgstr ""
 msgid "Memory breakpoint options"
 msgstr "Pilihan titik henti ingatan"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:251
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:202
 msgid "MemoryCard: ClearBlock called on invalid address ({0:#x})"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:222
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:173
 msgid "MemoryCard: Read called with invalid source address ({0:#x})"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:234
+#: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:185
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1638
+#: Source/Core/DolphinQt/MainWindow.cpp:1644
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -6455,15 +6485,15 @@ msgstr "Pelbagai"
 msgid "Misc Settings"
 msgstr "Tetapan Pelbagai"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:841
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:842
 msgid "Mismatch between free block count in header and actually unused blocks."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:844
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:845
 msgid "Mismatch between internal data structures."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1061
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1078
 msgid ""
 "Mismatched ROMs\n"
 "Selected: {0}\n"
@@ -6486,8 +6516,8 @@ msgid ""
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1306
-#: Source/Core/DolphinQt/MenuBar.cpp:1450
+#: Source/Core/DolphinQt/MenuBar.cpp:1303
+#: Source/Core/DolphinQt/MenuBar.cpp:1447
 msgid "Modules found: %1"
 msgstr ""
 
@@ -6516,20 +6546,20 @@ msgstr ""
 msgid "Motor"
 msgstr "Motor"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:173
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:174
 msgid "Mouse Cursor Visibility"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:179
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:180
 msgid ""
 "Mouse Cursor hides after inactivity and returns upon Mouse Cursor movement."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:184
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:185
 msgid "Mouse Cursor will always be visible."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:182
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:183
 msgid "Mouse Cursor will never be visible while a game is running."
 msgstr ""
 
@@ -6543,14 +6573,20 @@ msgstr ""
 msgid "Movie"
 msgstr "Cereka"
 
+#: Source/Core/Core/Movie.cpp:993
+msgid ""
+"Movie {0} indicates that it starts from a savestate, but {1} doesn't exist. "
+"The movie will likely not sync!"
+msgstr ""
+
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:722
 msgid "N&o to All"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1128
-#: Source/Core/DolphinQt/MenuBar.cpp:1172
-#: Source/Core/DolphinQt/MenuBar.cpp:1177
-#: Source/Core/DolphinQt/MenuBar.cpp:1181
+#: Source/Core/DolphinQt/MenuBar.cpp:1125
+#: Source/Core/DolphinQt/MenuBar.cpp:1169
+#: Source/Core/DolphinQt/MenuBar.cpp:1174
+#: Source/Core/DolphinQt/MenuBar.cpp:1178
 msgid "NAND Check"
 msgstr "Semak NAND"
 
@@ -6581,11 +6617,11 @@ msgstr "NTSC-U"
 msgid "Name"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1057
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1096
 msgid "Name for a new tag:"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1069
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1108
 msgid "Name of the tag to remove:"
 msgstr ""
 
@@ -6606,8 +6642,8 @@ msgstr "Nama:"
 msgid "Native (640x528)"
 msgstr "Natif (640x528)"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:397
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:404
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:398
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:405
 msgid "Native GCI File"
 msgstr ""
 
@@ -6627,11 +6663,11 @@ msgstr ""
 msgid "Netherlands"
 msgstr "Belanda"
 
-#: Source/Core/Core/NetPlayClient.cpp:2774
+#: Source/Core/Core/NetPlayClient.cpp:2731
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "Netplay telah dinyahsegerak dalam NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:2156
+#: Source/Core/Core/NetPlayClient.cpp:2113
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "Netplay telah dinyahsegerakkan. Tiada lagi cara untuk memulihkannya."
 
@@ -6644,7 +6680,7 @@ msgstr ""
 msgid "Network dump format:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:180
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:181
 msgid "Never"
 msgstr ""
 
@@ -6652,7 +6688,7 @@ msgstr ""
 msgid "Never Auto-Update"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:106
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:107
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:88
 msgid "New"
 msgstr "Baharu"
@@ -6665,7 +6701,7 @@ msgstr "Titik Henti Baharu"
 msgid "New Search"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:472
+#: Source/Core/DolphinQt/GameList/GameList.cpp:511
 msgid "New Tag..."
 msgstr ""
 
@@ -6677,7 +6713,7 @@ msgstr "Identiti baharu dijanakan."
 msgid "New instruction:"
 msgstr "Arahan baharu:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1057
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1096
 msgid "New tag"
 msgstr ""
 
@@ -6734,13 +6770,13 @@ msgstr "Tiada Padanan"
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:537
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:554
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:569
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:722
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:725
-#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:728
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:721
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:724
+#: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:727
 msgid "No description available"
 msgstr "Tiada keterangan tersedia"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:850
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:851
 msgid "No errors."
 msgstr ""
 
@@ -6760,9 +6796,13 @@ msgstr ""
 msgid "No game running."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1128
+#: Source/Core/DolphinQt/MenuBar.cpp:1125
 msgid "No issues have been detected."
 msgstr "Tiada isu dikesan."
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:628
+msgid "No matching game was found"
+msgstr ""
 
 #: Source/Core/Core/Boot/Boot.cpp:110
 msgid "No paths found in the M3U file \"{0}\""
@@ -6791,7 +6831,7 @@ msgstr ""
 msgid "No recording loaded."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:717
+#: Source/Core/DolphinQt/GameList/GameList.cpp:756
 msgid "No save data found."
 msgstr ""
 
@@ -6813,10 +6853,6 @@ msgstr "Tiada"
 msgid "North America"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:617
-msgid "Not Found"
-msgstr ""
-
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:95
 msgid "Not Set"
 msgstr "Tidak Ditetapkan"
@@ -6825,7 +6861,7 @@ msgstr "Tidak Ditetapkan"
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "Bukan semua pemain memilik permainan. Anda pasti mahu mulakannya?"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:527
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:528
 #, c-format
 msgctxt ""
 msgid ""
@@ -6833,12 +6869,16 @@ msgid ""
 "required."
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:520
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:521
 #, c-format
 msgctxt ""
 msgid ""
 "Not enough free files on the target memory card. At least %n free file(s) "
 "required."
+msgstr ""
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:628
+msgid "Not found"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/FreeLookRotation.cpp:27
@@ -6893,7 +6933,7 @@ msgstr "Orientasi Nunchuk"
 msgid "Nunchuk Stick"
 msgstr "Bidak Nunchuk"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:615
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:616
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:57
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:708
 msgid "OK"
@@ -6924,7 +6964,7 @@ msgstr ""
 msgid "On"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:177
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:178
 msgid "On Movement"
 msgstr ""
 
@@ -6932,13 +6972,13 @@ msgstr ""
 msgid "Online &Documentation"
 msgstr "&Dokumentasi Atas Talian"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1608
+#: Source/Core/DolphinQt/MenuBar.cpp:1605
 msgid ""
 "Only append symbols with prefix:\n"
 "(Blank for all symbols)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1583
+#: Source/Core/DolphinQt/MenuBar.cpp:1580
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -6951,7 +6991,7 @@ msgstr ""
 msgid "Open"
 msgstr "Buka"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:438
+#: Source/Core/DolphinQt/GameList/GameList.cpp:477
 msgid "Open &Containing Folder"
 msgstr ""
 
@@ -6963,7 +7003,7 @@ msgstr ""
 msgid "Open FIFO log"
 msgstr "Buka log FIFO"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:434
+#: Source/Core/DolphinQt/GameList/GameList.cpp:473
 msgid "Open GameCube &Save Folder"
 msgstr ""
 
@@ -6971,7 +7011,7 @@ msgstr ""
 msgid "Open Riivolution XML..."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:427
+#: Source/Core/DolphinQt/GameList/GameList.cpp:466
 msgid "Open Wii &Save Folder"
 msgstr ""
 
@@ -7159,7 +7199,7 @@ msgstr "Jeda"
 msgid "Pause at End of Movie"
 msgstr "Jeda Dipenghujung Cereka"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:171
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:172
 msgid "Pause on Focus Loss"
 msgstr "Jeda jika Hilang Fokus"
 
@@ -7186,7 +7226,7 @@ msgstr "Pencahayaan Per-Piksel"
 msgid "Perform Online System Update"
 msgstr "Lakukan Kemaskini Sistem Atas-Talian"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:388
+#: Source/Core/DolphinQt/GameList/GameList.cpp:427
 msgid "Perform System Update"
 msgstr "Lakukan Kemaskini Sistem"
 
@@ -7204,7 +7244,7 @@ msgstr ""
 msgid "PiB"
 msgstr "PiB"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1223
+#: Source/Core/DolphinQt/MenuBar.cpp:1220
 msgid "Pick a debug font"
 msgstr "Ambil satu fon nyahpepijat"
 
@@ -7220,7 +7260,7 @@ msgstr ""
 msgid "Pitch Up"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:934
+#: Source/Core/DolphinQt/GameList/GameList.cpp:973
 #: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "Platform"
 msgstr "Platform"
@@ -7266,7 +7306,7 @@ msgstr ""
 msgid "Port %1"
 msgstr "Port %1"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:160
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:161
 msgid "Port %1 ROM:"
 msgstr ""
 
@@ -7275,7 +7315,7 @@ msgstr ""
 msgid "Port:"
 msgstr "Port:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:928
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:945
 msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr ""
 "Nyahsegerak berkemungkinan dikesan: %1 mungkin telah dinyahsegerak pada "
@@ -7297,15 +7337,15 @@ msgstr ""
 msgid "Prefetch Custom Textures"
 msgstr "Dapatkan Tekstur Suai"
 
-#: Source/Core/Core/Movie.cpp:1194
+#: Source/Core/Core/Movie.cpp:1203
 msgid "Premature movie end in PlayController. {0} + {1} > {2}"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1306
+#: Source/Core/Core/Movie.cpp:1315
 msgid "Premature movie end in PlayWiimote. {0} + {1} > {2}"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1280
+#: Source/Core/Core/Movie.cpp:1289
 msgid "Premature movie end in PlayWiimote. {0} > {1}"
 msgstr ""
 
@@ -7330,7 +7370,7 @@ msgstr "Tekan Butang Segerak"
 msgid "Pressure"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:258
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:259
 msgid ""
 "Prevents shader compilation stuttering by not rendering waiting objects. Can "
 "work in scenarios where Ubershaders doesn't, at the cost of introducing "
@@ -7411,7 +7451,7 @@ msgstr ""
 msgid "Purge Game List Cache"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:459
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:483
 msgid "Put IPL ROMs in User/GC/<region>."
 msgstr ""
 
@@ -7437,8 +7477,8 @@ msgstr ""
 
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:433
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:659
-#: Source/Core/DolphinQt/MainWindow.cpp:1637
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:660
+#: Source/Core/DolphinQt/MainWindow.cpp:1643
 msgid "Question"
 msgstr "Soalan"
 
@@ -7466,7 +7506,7 @@ msgstr ""
 msgid "RSO Modules"
 msgstr "Modul RSO"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1276
+#: Source/Core/DolphinQt/MenuBar.cpp:1273
 msgid "RSO auto-detection"
 msgstr ""
 
@@ -7611,12 +7651,12 @@ msgstr ""
 msgid "Refreshed current values."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:245
+#: Source/Core/DolphinQt/GameList/GameList.cpp:275
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:198
 msgid "Refreshing..."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:942
+#: Source/Core/DolphinQt/GameList/GameList.cpp:981
 #: Source/Core/DolphinQt/MenuBar.cpp:638
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
@@ -7646,12 +7686,12 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:129
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:40
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:160
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:169
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:164
 msgid "Remove"
 msgstr "Buang"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:667
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:674
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:668
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:675
 msgid "Remove Failed"
 msgstr ""
 
@@ -7659,11 +7699,11 @@ msgstr ""
 msgid "Remove Junk Data (Irreversible):"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:473
+#: Source/Core/DolphinQt/GameList/GameList.cpp:512
 msgid "Remove Tag..."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1069
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1108
 msgid "Remove tag"
 msgstr ""
 
@@ -7679,7 +7719,7 @@ msgstr ""
 msgid "Rename symbol"
 msgstr "Nama semula simbol"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:161
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:162
 msgid "Render Window"
 msgstr ""
 
@@ -7758,7 +7798,7 @@ msgstr ""
 msgid "Resource Pack Path:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:309
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:318
 msgid "Restart Required"
 msgstr "Mula Semula Diperlukan"
 
@@ -7770,7 +7810,7 @@ msgstr ""
 msgid "Restore instruction"
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:699
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:716
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:726
 msgid "Retry"
 msgstr "Cuba Lagi"
@@ -7870,7 +7910,7 @@ msgstr "Rumble"
 msgid "Run &To Here"
 msgstr "&Jalankan Di Sini"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:145
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:146
 msgid "Run GBA Cores in Dedicated Threads"
 msgstr ""
 
@@ -7902,7 +7942,7 @@ msgstr ""
 msgid "SHA-1:"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:134
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:135
 msgid "SP1:"
 msgstr "SP1:"
 
@@ -7931,7 +7971,7 @@ msgstr "Selamat"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:21
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:115
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:111
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:112
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:92
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:710
 msgid "Save"
@@ -7941,9 +7981,9 @@ msgstr "Simpan"
 msgid "Save All"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:531
-#: Source/Core/DolphinQt/GameList/GameList.cpp:536
-#: Source/Core/DolphinQt/MenuBar.cpp:1118
+#: Source/Core/DolphinQt/GameList/GameList.cpp:570
+#: Source/Core/DolphinQt/GameList/GameList.cpp:575
+#: Source/Core/DolphinQt/MenuBar.cpp:1115
 msgid "Save Export"
 msgstr ""
 
@@ -7964,11 +8004,11 @@ msgstr ""
 msgid "Save Game Files (*.sav);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1076
+#: Source/Core/DolphinQt/MenuBar.cpp:1073
+#: Source/Core/DolphinQt/MenuBar.cpp:1082
 #: Source/Core/DolphinQt/MenuBar.cpp:1085
-#: Source/Core/DolphinQt/MenuBar.cpp:1088
-#: Source/Core/DolphinQt/MenuBar.cpp:1094
-#: Source/Core/DolphinQt/MenuBar.cpp:1101
+#: Source/Core/DolphinQt/MenuBar.cpp:1091
+#: Source/Core/DolphinQt/MenuBar.cpp:1098
 msgid "Save Import"
 msgstr ""
 
@@ -7980,7 +8020,7 @@ msgstr "Simpan Keadaan Terlama"
 msgid "Save Preset"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1766
+#: Source/Core/DolphinQt/MainWindow.cpp:1772
 msgid "Save Recording File As"
 msgstr ""
 
@@ -8066,26 +8106,26 @@ msgstr ""
 msgid "Save as..."
 msgstr "Simpan sebagai..."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1662
+#: Source/Core/DolphinQt/MenuBar.cpp:1659
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1077
+#: Source/Core/DolphinQt/MenuBar.cpp:1074
 msgid ""
 "Save data for this title already exists in the NAND. Consider backing up the "
 "current data before overwriting.\n"
 "Overwrite now?"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:166
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:167
 msgid "Save in Same Directory as the ROM"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1534
+#: Source/Core/DolphinQt/MenuBar.cpp:1531
 msgid "Save map file"
 msgstr "Simpan fail peta"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1586
+#: Source/Core/DolphinQt/MenuBar.cpp:1583
 msgid "Save signature file"
 msgstr "Simpan fail tandatangan"
 
@@ -8107,11 +8147,11 @@ msgstr ""
 "Perpasangan Wii Remote tersimpan hanya boleh ditetapkan semula bila "
 "permainan Wii berjalan."
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:172
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:173
 msgid "Saves:"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1024
+#: Source/Core/Core/Movie.cpp:1033
 msgid "Savestate movie {0} is corrupted, movie recording stopping..."
 msgstr ""
 
@@ -8164,7 +8204,7 @@ msgstr ""
 msgid "Search games..."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1701
+#: Source/Core/DolphinQt/MenuBar.cpp:1698
 msgid "Search instruction"
 msgstr ""
 
@@ -8196,20 +8236,20 @@ msgstr "Pilih"
 msgid "Select Dump Path"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:511
-#: Source/Core/DolphinQt/MenuBar.cpp:1112
+#: Source/Core/DolphinQt/GameList/GameList.cpp:550
+#: Source/Core/DolphinQt/MenuBar.cpp:1109
 msgid "Select Export Directory"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:400
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:424
 msgid "Select GBA BIOS"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:534
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:562
 msgid "Select GBA ROM"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:429
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:453
 msgid "Select GBA Saves Path"
 msgstr ""
 
@@ -8289,7 +8329,7 @@ msgstr ""
 msgid "Select Wii NAND Root"
 msgstr "Pilih Root NAND Wii"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:258
+#: Source/Core/DolphinQt/GameList/GameList.cpp:288
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:39
 msgid "Select a Directory"
 msgstr "Pilih satu Direktori"
@@ -8297,9 +8337,9 @@ msgstr "Pilih satu Direktori"
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:194
 #: Source/Core/DolphinQt/GBAWidget.cpp:210
 #: Source/Core/DolphinQt/GBAWidget.cpp:241
-#: Source/Core/DolphinQt/MainWindow.cpp:737
-#: Source/Core/DolphinQt/MainWindow.cpp:1309
-#: Source/Core/DolphinQt/MainWindow.cpp:1317
+#: Source/Core/DolphinQt/MainWindow.cpp:743
+#: Source/Core/DolphinQt/MainWindow.cpp:1315
+#: Source/Core/DolphinQt/MainWindow.cpp:1323
 msgid "Select a File"
 msgstr "Pilih satu Fail"
 
@@ -8319,7 +8359,7 @@ msgstr ""
 msgid "Select a game"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1047
+#: Source/Core/DolphinQt/MenuBar.cpp:1044
 msgid "Select a title to install to NAND"
 msgstr "Pilih satu tajuk untuk dipasang ke dalam NAND"
 
@@ -8327,11 +8367,11 @@ msgstr "Pilih satu tajuk untuk dipasang ke dalam NAND"
 msgid "Select e-Reader Cards"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1337
+#: Source/Core/DolphinQt/MenuBar.cpp:1334
 msgid "Select the RSO module address:"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1695
+#: Source/Core/DolphinQt/MainWindow.cpp:1701
 msgid "Select the Recording File to Play"
 msgstr ""
 
@@ -8339,12 +8379,12 @@ msgstr ""
 msgid "Select the Virtual SD Card Root"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1673
+#: Source/Core/DolphinQt/MainWindow.cpp:1679
 msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr "Pilih fail kunci (longgok OTP/SEEPROM)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1647
-#: Source/Core/DolphinQt/MenuBar.cpp:1067
+#: Source/Core/DolphinQt/MainWindow.cpp:1653
+#: Source/Core/DolphinQt/MenuBar.cpp:1064
 msgid "Select the save file"
 msgstr "Pilih fail simpan"
 
@@ -8366,9 +8406,9 @@ msgstr "Profil pengawal terpilih tidak wujud"
 
 #: Source/Core/Core/NetPlayServer.cpp:1282
 #: Source/Core/Core/NetPlayServer.cpp:1625
-#: Source/Core/Core/NetPlayServer.cpp:1907
+#: Source/Core/Core/NetPlayServer.cpp:1902
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:464
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:849
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:866
 msgid "Selected game doesn't exist in game list!"
 msgstr ""
 
@@ -8380,13 +8420,13 @@ msgstr ""
 msgid "Selected thread context"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:327
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:328
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>%1 doesn't "
 "support this feature.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:324
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:325
 msgid ""
 "Selects a hardware adapter to use.<br><br><dolphin_emphasis>If unsure, "
 "select the first one.</dolphin_emphasis>"
@@ -8413,7 +8453,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, select OpenGL.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:218
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:219
 msgid ""
 "Selects which aspect ratio to use when rendering.<br><br>Auto: Uses the "
 "native aspect ratio<br>Force 16:9: Mimics an analog TV with a widescreen "
@@ -8422,7 +8462,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, select Auto.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:200
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:201
 msgid ""
 "Selects which graphics API to use internally.<br><br>The software renderer "
 "is extremely slow and only useful for debugging, so any of the other "
@@ -8436,7 +8476,7 @@ msgstr ""
 msgid "Send"
 msgstr "Hantar"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:185
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:190
 msgid "Sensor Bar Position:"
 msgstr "Kedudukan Palang Penderia:"
 
@@ -8456,7 +8496,7 @@ msgstr ""
 msgid "Server Port"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1935
+#: Source/Core/Core/NetPlayClient.cpp:1892
 msgid "Server rejected traversal attempt"
 msgstr "Pelayan menolak percubaan travesal"
 
@@ -8477,15 +8517,15 @@ msgstr "Tetapkan PC"
 msgid "Set Value From File"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:372
+#: Source/Core/DolphinQt/GameList/GameList.cpp:411
 msgid "Set as &Default ISO"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:357
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:358
 msgid "Set memory card file for Slot A"
 msgstr "Tetapkan fail kad ingatan untuk Slot A"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:358
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:359
 msgid "Set memory card file for Slot B"
 msgstr "Tetapkan fail kad ingatan untuk Slot B"
 
@@ -8568,7 +8608,7 @@ msgstr "Tunjuk &Log"
 msgid "Show &Toolbar"
 msgstr "Tunjuk Palang Ala&t"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:170
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:171
 msgid "Show Active Title in Window Title"
 msgstr "Tunjuk Tajuk Aktif dalam Tajuk Tetingkap"
 
@@ -8584,7 +8624,7 @@ msgstr "Tunjuk Australia"
 msgid "Show Current Game on Discord"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:147
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:148
 msgid "Show Debugging UI"
 msgstr "Tunjuk UI Penyahpepijatan"
 
@@ -8656,7 +8696,7 @@ msgstr "Tunjuk Ping NetPlay"
 msgid "Show Netherlands"
 msgstr "Tunjuk Belanda"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:169
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:170
 msgid "Show On-Screen Display Messages"
 msgstr ""
 
@@ -8726,8 +8766,21 @@ msgstr "Tunjuk Dunia"
 msgid "Show in &memory"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:615
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:359
+msgid "Show in Code"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:376
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:313
+msgid "Show in Memory"
+msgstr ""
+
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:664
 msgid "Show in code"
+msgstr ""
+
+#: Source/Core/DolphinQt/CheatSearchWidget.cpp:456
+msgid "Show in memory"
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:139
@@ -8744,20 +8797,20 @@ msgid ""
 "this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:239
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:240
 msgid ""
 "Shows chat messages, buffer changes, and desync alerts while playing NetPlay."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:228
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:229
 msgid ""
 "Shows the number of frames rendered per second as a measure of emulation "
 "speed.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:232
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:233
 msgid ""
 "Shows the player's maximum ping while playing on NetPlay."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -8846,7 +8899,7 @@ msgstr ""
 msgid "Skip EFB Access from CPU"
 msgstr "Langkau Capaian EFB dari CPU"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:69
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:70
 msgid "Skip Main Menu"
 msgstr "Langkau Menu Utama"
 
@@ -8872,7 +8925,7 @@ msgstr "Palang Pelungsur"
 msgid "Slot A"
 msgstr "SLot A"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:128
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:129
 msgid "Slot A:"
 msgstr "Slot A:"
 
@@ -8880,7 +8933,7 @@ msgstr "Slot A:"
 msgid "Slot B"
 msgstr "Slot B"
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:131
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:132
 msgid "Slot B:"
 msgstr "Slot B:"
 
@@ -8932,7 +8985,7 @@ msgid "Spain"
 msgstr "Sepanyol"
 
 #: Source/Core/DiscIO/Enums.cpp:89
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:83
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:84
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:126
 msgid "Spanish"
 msgstr "Sepanyol"
@@ -8941,7 +8994,7 @@ msgstr "Sepanyol"
 msgid "Speaker Pan"
 msgstr "Lata Pembesar Suara"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:199
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:204
 msgid "Speaker Volume:"
 msgstr "Volum Pembesar Suara:"
 
@@ -9023,11 +9076,11 @@ msgstr ""
 msgid "Start with Riivolution Patches"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:367
+#: Source/Core/DolphinQt/GameList/GameList.cpp:406
 msgid "Start with Riivolution Patches..."
 msgstr ""
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:830
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:847
 msgid "Started game"
 msgstr "Permainan bermula"
 
@@ -9190,10 +9243,10 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:381
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:269
 #: Source/Core/DolphinQt/ConvertDialog.cpp:513
-#: Source/Core/DolphinQt/GameList/GameList.cpp:573
-#: Source/Core/DolphinQt/GameList/GameList.cpp:601
-#: Source/Core/DolphinQt/MenuBar.cpp:1055
-#: Source/Core/DolphinQt/MenuBar.cpp:1190
+#: Source/Core/DolphinQt/GameList/GameList.cpp:612
+#: Source/Core/DolphinQt/GameList/GameList.cpp:640
+#: Source/Core/DolphinQt/MenuBar.cpp:1052
+#: Source/Core/DolphinQt/MenuBar.cpp:1187
 msgid "Success"
 msgstr "Berjaya"
 
@@ -9211,16 +9264,16 @@ msgstr ""
 msgid "Successfully deleted '%1'."
 msgstr "Berjaya memadam '%1'."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:495
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:496
 msgctxt ""
 msgid "Successfully exported %n out of %1 save file(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:536
+#: Source/Core/DolphinQt/GameList/GameList.cpp:575
 msgid "Successfully exported save files"
 msgstr "Berjaya mengimport fail simpan"
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1191
+#: Source/Core/DolphinQt/MenuBar.cpp:1188
 msgid "Successfully extracted certificates from NAND"
 msgstr "Berjaya mengekstrak sijil dari NAND"
 
@@ -9232,16 +9285,16 @@ msgstr "Berjaya mengekstrak fail."
 msgid "Successfully extracted system data."
 msgstr "Berjaya mengekstrak data sistem."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1085
+#: Source/Core/DolphinQt/MenuBar.cpp:1082
 msgid "Successfully imported save file."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:574
-#: Source/Core/DolphinQt/MenuBar.cpp:1056
+#: Source/Core/DolphinQt/GameList/GameList.cpp:613
+#: Source/Core/DolphinQt/MenuBar.cpp:1053
 msgid "Successfully installed this title to the NAND."
 msgstr "Berjaya memasang tajuk ini ke NAND."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:602
+#: Source/Core/DolphinQt/GameList/GameList.cpp:641
 msgid "Successfully removed this title from the NAND."
 msgstr "Berjaya membuang tajuk ini dari NAND."
 
@@ -9249,7 +9302,7 @@ msgstr "Berjaya membuang tajuk ini dari NAND."
 msgid "Support"
 msgstr "Sokongan"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:587
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:588
 msgid "Supported file formats"
 msgstr ""
 
@@ -9282,11 +9335,11 @@ msgstr ""
 msgid "Swing"
 msgstr "Ayun"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:241
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:242
 msgid "Switch to A"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:241
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:242
 msgid "Switch to B"
 msgstr ""
 
@@ -9363,7 +9416,7 @@ msgstr ""
 msgid "Synchronizing save data..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:79
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:80
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:120
 msgid "System Language:"
 msgstr "Bahasa Sistem:"
@@ -9378,8 +9431,8 @@ msgstr "Input TAS"
 msgid "TAS Tools"
 msgstr "Alatan TAS"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:452
-#: Source/Core/DolphinQt/GameList/GameList.cpp:947
+#: Source/Core/DolphinQt/GameList/GameList.cpp:491
+#: Source/Core/DolphinQt/GameList/GameList.cpp:986
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:235
 #: Source/Core/DolphinQt/MenuBar.cpp:643
 msgid "Tags"
@@ -9448,7 +9501,7 @@ msgstr ""
 msgid "The Masterpiece partitions are missing."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1182
+#: Source/Core/DolphinQt/MenuBar.cpp:1179
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
@@ -9456,7 +9509,7 @@ msgstr ""
 "NAND tidak dapat dibaiki. Adalah disarankan menyandar data semasa anda dan "
 "mula kembali dengan NAND yang baharu."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1177
+#: Source/Core/DolphinQt/MenuBar.cpp:1174
 msgid "The NAND has been repaired."
 msgstr "NAND telah dibaiki."
 
@@ -9502,11 +9555,11 @@ msgstr ""
 msgid "The disc could not be read (at {0:#x} - {1:#x})."
 msgstr ""
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:514
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:523
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "Cakera yang hendak dimasukkan tidak ditemui."
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1132
+#: Source/Core/DolphinQt/MenuBar.cpp:1129
 msgid ""
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii "
 "Shop Channel may not work correctly.\n"
@@ -9540,11 +9593,11 @@ msgstr "PID yang dimasukkan tidak sah."
 msgid "The entered VID is invalid."
 msgstr "VID yang dimasukkan tidak sah."
 
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:517
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:518
 msgid "The expression contains a syntax error."
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:323
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:348
 msgid ""
 "The file\n"
 "%1\n"
@@ -9566,6 +9619,13 @@ msgstr ""
 
 #: Source/Core/AudioCommon/WaveFile.cpp:49
 msgid "The file {0} was already open, the file header will not be written."
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:327
+msgid ""
+"The filename %1 does not conform to Dolphin's region code format for memory "
+"cards. Please rename this file to either %2, %3, or %4, matching the region "
+"of the save files that are on it."
 msgstr ""
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:412
@@ -9668,7 +9728,7 @@ msgstr ""
 msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "Kod AR dinyahsulit yang terhasil tidak mengandungi sebarang baris."
 
-#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:347
+#: Source/Core/DolphinQt/Settings/GameCubePane.cpp:369
 msgid ""
 "The same file can't be used in multiple slots; it is already used by %1."
 msgstr ""
@@ -9702,7 +9762,7 @@ msgstr ""
 msgid "The specified file \"{0}\" does not exist"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:542
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:543
 msgid "The target memory card already contains a file \"%1\"."
 msgstr ""
 
@@ -9759,7 +9819,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Tiada apa hendak dibuat asal!"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:445
+#: Source/Core/DolphinQt/GameList/GameList.cpp:484
 msgid "There was an issue adding a shortcut to the desktop"
 msgstr ""
 
@@ -9799,11 +9859,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "Peranti USB sudah berada dalam senarai putih."
 
-#: Source/Core/Core/ConfigManager.cpp:314
+#: Source/Core/Core/ConfigManager.cpp:267
 msgid "This WAD is not bootable."
 msgstr "WAD ini tidak boleh dibutkan."
 
-#: Source/Core/Core/ConfigManager.cpp:309
+#: Source/Core/Core/ConfigManager.cpp:262
 msgid "This WAD is not valid."
 msgstr "WAD ini tidak sah."
 
@@ -9816,7 +9876,7 @@ msgstr ""
 "sendiri mengubahsuai."
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:253
-#: Source/Core/DolphinQt/GameList/GameList.cpp:773
+#: Source/Core/DolphinQt/GameList/GameList.cpp:812
 msgid "This cannot be undone!"
 msgstr "Ia tidak boleh dikembalikan!"
 
@@ -9918,7 +9978,7 @@ msgstr ""
 "Perisian ini tidak seharusnya digunakan untuk main permainan bukan milik "
 "anda secara sah."
 
-#: Source/Core/Core/ConfigManager.cpp:332
+#: Source/Core/Core/ConfigManager.cpp:285
 msgid "This title cannot be booted."
 msgstr "Tajuk ini tidak boleh dibutkan."
 
@@ -9931,7 +9991,7 @@ msgstr ""
 msgid "This title is set to use an invalid common key."
 msgstr ""
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:297
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:298
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -9939,7 +9999,7 @@ msgid ""
 "DSPHLE: Unknown ucode (CRC = {0:08x}) - forcing AX."
 msgstr ""
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:288
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:289
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10002,7 +10062,7 @@ msgstr "Condong"
 msgid "Time period of stable input to trigger calibration. (zero to disable)"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:936
+#: Source/Core/DolphinQt/GameList/GameList.cpp:975
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:153
 #: Source/Core/DolphinQt/MenuBar.cpp:632
@@ -10044,7 +10104,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "Togol Nisbah Bidang"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:624
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:673
 msgid "Toggle Breakpoint"
 msgstr "Togol Titik Henti"
 
@@ -10104,7 +10164,7 @@ msgstr ""
 msgid "Toolbar"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:187
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:192
 msgid "Top"
 msgstr "Atas"
 
@@ -10156,8 +10216,8 @@ msgstr ""
 msgid "Traditional Chinese"
 msgstr "Cina Tradisional"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:952
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:956
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:969
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:973
 msgid "Traversal Error"
 msgstr "Ralat Traversal"
 
@@ -10165,7 +10225,7 @@ msgstr "Ralat Traversal"
 msgid "Traversal Server"
 msgstr "Pelayan Traversal"
 
-#: Source/Core/Core/NetPlayClient.cpp:1932
+#: Source/Core/Core/NetPlayClient.cpp:1889
 msgid "Traversal server timed out connecting to the host"
 msgstr "Pelayan travesal tamat masa ketika menyambung ke hos"
 
@@ -10189,7 +10249,7 @@ msgid "Triggers"
 msgstr "Pemicu"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:127
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:162
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:163
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:305
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:327
 msgid "Type"
@@ -10223,14 +10283,14 @@ msgstr "USB Gecko"
 msgid "USB Whitelist Error"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:243
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:244
 msgid ""
 "Ubershaders are never used. Stuttering will occur during shader compilation, "
 "but GPU demands are low.<br><br>Recommended for low-end hardware. "
 "<br><br><dolphin_emphasis>If unsure, select this mode.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:248
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:249
 msgid ""
 "Ubershaders will always be used. Provides a near stutter-free experience at "
 "the cost of very high GPU performance requirements."
@@ -10238,7 +10298,7 @@ msgid ""
 "with Hybrid Ubershaders and have a very powerful GPU.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:253
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:254
 msgid ""
 "Ubershaders will be used to prevent stuttering during shader compilation, "
 "but specialized shaders will be used when they will not cause stuttering."
@@ -10247,7 +10307,7 @@ msgid ""
 "behavior."
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1331
+#: Source/Core/DolphinQt/MenuBar.cpp:1328
 msgid "Unable to auto-detect RSO module"
 msgstr ""
 
@@ -10303,11 +10363,11 @@ msgstr "Buat Asal Keadaan Simpan"
 msgid "Uninstall"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:401
+#: Source/Core/DolphinQt/GameList/GameList.cpp:440
 msgid "Uninstall from the NAND"
 msgstr "Nyahpasang dari NAND"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:589
+#: Source/Core/DolphinQt/GameList/GameList.cpp:628
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -10326,11 +10386,11 @@ msgstr "Amerika Syarikat"
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:66
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:125
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:129
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:717
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:734
 msgid "Unknown"
 msgstr "Tidak diketahui"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1230
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1239
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr ""
 
@@ -10374,11 +10434,11 @@ msgstr ""
 msgid "Unknown error occurred."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:1941
+#: Source/Core/Core/NetPlayClient.cpp:1898
 msgid "Unknown error {0:x}"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:866
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:867
 msgid "Unknown error."
 msgstr ""
 
@@ -10434,8 +10494,8 @@ msgstr "Integer Tidak Bertanda"
 msgid "Up"
 msgstr "Naik"
 
-#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:227
-#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:324
+#: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:267
+#: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:325
 #: Source/Core/DolphinQt/MenuBar.cpp:567
 msgid "Update"
 msgstr "Kemaskini"
@@ -10497,11 +10557,11 @@ msgstr "Wii Remote Tegak"
 msgid "Usage Statistics Reporting Settings"
 msgstr "Tetapan Pelaporan Statistik Penggunaan"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:143
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:144
 msgid "Use Built-In Database of Game Names"
 msgstr "Guna Pangkalan Data Terbina-Dalam Nama Permainan"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:144
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:145
 msgid "Use Custom User Style"
 msgstr ""
 
@@ -10513,7 +10573,7 @@ msgstr ""
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "Guna Mod PAL60 (EuRGB60)"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:168
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:169
 msgid "Use Panic Handlers"
 msgstr "Guna Pengendali Panik"
 
@@ -10575,11 +10635,11 @@ msgstr ""
 msgid "User Config"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:100
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:101
 msgid "User Interface"
 msgstr "Antaramuka Pengguna"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:129
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:130
 msgid "User Style:"
 msgstr ""
 
@@ -10602,14 +10662,14 @@ msgid ""
 "checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:207
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:208
 msgid ""
 "Uses the entire screen for rendering.<br><br>If disabled, a render window "
 "will be created instead.<br><br><dolphin_emphasis>If unsure, leave this "
 "unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:214
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:215
 msgid ""
 "Uses the main Dolphin window for rendering rather than a separate render "
 "window.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -10746,7 +10806,7 @@ msgstr "Volum Naik"
 msgid "Vulkan"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1047
+#: Source/Core/DolphinQt/MenuBar.cpp:1044
 msgid "WAD files (*.wad)"
 msgstr "Fail WAD (*.wad)"
 
@@ -10807,7 +10867,7 @@ msgstr ""
 msgid "Waiting for first scan..."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:263
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:264
 msgid ""
 "Waits for all shaders to finish compiling before starting a game. Enabling "
 "this option may reduce stuttering or hitching for a short time after the "
@@ -10818,7 +10878,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:223
+#: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:224
 msgid ""
 "Waits for vertical blanks in order to prevent tearing.<br><br>Decreases "
 "performance if emulation speed is below 100%.<br><br><dolphin_emphasis>If "
@@ -10840,7 +10900,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:245
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:261
-#: Source/Core/DolphinQt/MenuBar.cpp:1471
+#: Source/Core/DolphinQt/MenuBar.cpp:1468
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:447
 msgid "Warning"
 msgstr "Amaran"
@@ -10857,28 +10917,28 @@ msgid ""
 "the loaded file header ({1})"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1073
+#: Source/Core/Core/Movie.cpp:1082
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "{0} > {1}) (input {2} > {3}). You should load another save before "
 "continuing, or load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1048
+#: Source/Core/Core/Movie.cpp:1057
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte {0} < {1}) (frame {2} < {3}). You should load another save before "
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1098
+#: Source/Core/Core/Movie.cpp:1107
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte {0} ({1:#x}). You "
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1114
+#: Source/Core/Core/Movie.cpp:1123
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame {0}. You should "
 "load another save before continuing, or load this state with read-only mode "
@@ -10933,7 +10993,7 @@ msgid ""
 "unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:163
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:176
 msgid "Whitelisted USB Passthrough Devices"
 msgstr "Peranti Menerusi USB Senarai Putih"
 
@@ -10979,7 +11039,7 @@ msgstr ""
 msgid "Wii Remote Orientation"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:179
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:184
 msgid "Wii Remote Settings"
 msgstr "Tetapan Kawalan Jauh Wii"
 
@@ -11007,7 +11067,7 @@ msgstr "Wii dan Wii Remote"
 msgid "Wii data is not public yet"
 msgstr ""
 
-#: Source/Core/DolphinQt/MenuBar.cpp:1068
+#: Source/Core/DolphinQt/MenuBar.cpp:1065
 msgid "Wii save files (*.bin);;All Files (*)"
 msgstr "Fail simpan Wii (*.bin);;Semua Fail (*)"
 
@@ -11015,7 +11075,7 @@ msgstr "Fail simpan Wii (*.bin);;Semua Fail (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:191
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:192
 msgid ""
 "Will lock the Mouse Cursor to the Render Widget as long as it has focus. You "
 "can set a hotkey to unlock it."
@@ -11072,8 +11132,20 @@ msgstr "Tulis ke Log dan Henti"
 msgid "Write to Window"
 msgstr "Tulis ke Tetingkap"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:616
-msgid "Wrong Version"
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:622
+msgid "Wrong disc number"
+msgstr ""
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:618
+msgid "Wrong hash"
+msgstr ""
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:626
+msgid "Wrong region"
+msgstr ""
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:624
+msgid "Wrong revision"
 msgstr ""
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
@@ -11140,14 +11212,6 @@ msgid ""
 "Are you sure you want to continue anyway?"
 msgstr ""
 
-#: Source/Core/VideoBackends/Vulkan/VKMain.cpp:355
-msgid ""
-"You are attempting to use the Vulkan (Metal) backend on an unsupported "
-"operating system. For all functionality to be enabled, you must use macOS "
-"10.14 (Mojave) or newer. Please do not report any issues encountered unless "
-"they also occur on 10.14+."
-msgstr ""
-
 #: Source/Core/DolphinQt/MenuBar.cpp:568
 msgid "You are running the latest version available on this update track."
 msgstr ""
@@ -11189,7 +11253,7 @@ msgstr ""
 msgid "You must provide a region for your session!"
 msgstr ""
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:310
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:319
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Anda mesti mulakan semula Dolphin supaya perubahan berkesan."
 
@@ -11259,12 +11323,12 @@ msgstr ""
 msgid "d3d12.dll could not be loaded."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:615
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:635
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:616
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:636
 msgid "default"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:637
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:638
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:375
 msgid "disconnected"
 msgstr ""
@@ -11325,13 +11389,13 @@ msgstr ""
 msgid "none"
 msgstr "tiada"
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:178
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:213
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:179
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:214
 msgid "off"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:178
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:213
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:179
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:214
 msgid "on"
 msgstr "hidup"
 
@@ -11368,7 +11432,7 @@ msgstr ""
 msgid "{0} (Masterpiece)"
 msgstr ""
 
-#: Source/Core/UICommon/GameFile.cpp:800
+#: Source/Core/UICommon/GameFile.cpp:826
 msgid "{0} (NKit)"
 msgstr ""
 
@@ -11391,7 +11455,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:260
-#: Source/Core/DiscIO/WIABlob.cpp:1703
+#: Source/Core/DiscIO/WIABlob.cpp:1702
 msgid "{0} of {1} blocks. Compression ratio {2}%"
 msgstr ""
 
