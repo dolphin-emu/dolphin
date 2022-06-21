@@ -188,12 +188,23 @@ bool FramebufferManager::CreateEFBFramebuffer()
   // Create resolved textures if MSAA is on
   if (g_ActiveConfig.MultisamplingEnabled())
   {
+    u32 flags = 0;
+    if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
+      flags |= AbstractTextureFlag_RenderTarget;
     m_efb_resolve_color_texture = g_renderer->CreateTexture(
         TextureConfig(efb_color_texture_config.width, efb_color_texture_config.height, 1,
-                      efb_color_texture_config.layers, 1, efb_color_texture_config.format, 0),
+                      efb_color_texture_config.layers, 1, efb_color_texture_config.format, flags),
         "EFB color resolve texture");
     if (!m_efb_resolve_color_texture)
       return false;
+
+    if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
+    {
+      m_efb_color_resolve_framebuffer =
+          g_renderer->CreateFramebuffer(m_efb_resolve_color_texture.get(), nullptr);
+      if (!m_efb_color_resolve_framebuffer)
+        return false;
+    }
   }
 
   // We also need one to convert the D24S8 to R32F if that is being used (Adreno).
@@ -248,12 +259,27 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   clamped_region.ClampUL(0, 0, GetEFBWidth(), GetEFBHeight());
 
   // Resolve to our already-created texture.
-  for (u32 layer = 0; layer < GetEFBLayers(); layer++)
+  if (g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
   {
-    m_efb_resolve_color_texture->ResolveFromTexture(m_efb_color_texture.get(), clamped_region,
-                                                    layer, 0);
+    for (u32 layer = 0; layer < GetEFBLayers(); layer++)
+    {
+      m_efb_resolve_color_texture->ResolveFromTexture(m_efb_color_texture.get(), clamped_region,
+                                                      layer, 0);
+    }
   }
-
+  else
+  {
+    m_efb_color_texture->FinishedRendering();
+    g_renderer->BeginUtilityDrawing();
+    g_renderer->SetAndDiscardFramebuffer(m_efb_color_resolve_framebuffer.get());
+    g_renderer->SetPipeline(m_efb_color_resolve_pipeline.get());
+    g_renderer->SetTexture(0, m_efb_color_texture.get());
+    g_renderer->SetSamplerState(0, RenderState::GetPointSamplerState());
+    g_renderer->SetViewportAndScissor(clamped_region);
+    g_renderer->Draw(0, 3);
+    m_efb_resolve_color_texture->FinishedRendering();
+    g_renderer->EndUtilityDrawing();
+  }
   m_efb_resolve_color_texture->FinishedRendering();
   return m_efb_resolve_color_texture.get();
 }
@@ -487,6 +513,22 @@ bool FramebufferManager::CompileReadbackPipelines()
     m_efb_depth_resolve_pipeline = g_renderer->CreatePipeline(config);
     if (!m_efb_depth_resolve_pipeline)
       return false;
+
+    if (!g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
+    {
+      config.framebuffer_state.color_texture_format = GetEFBColorFormat();
+      auto color_resolve_shader = g_renderer->CreateShaderFromSource(
+          ShaderStage::Pixel,
+          FramebufferShaderGen::GenerateResolveColorPixelShader(GetEFBSamples()),
+          "Color resolve pixel shader");
+      if (!color_resolve_shader)
+        return false;
+
+      config.pixel_shader = color_resolve_shader.get();
+      m_efb_color_resolve_pipeline = g_renderer->CreatePipeline(config);
+      if (!m_efb_color_resolve_pipeline)
+        return false;
+    }
   }
 
   // EFB restore pipeline

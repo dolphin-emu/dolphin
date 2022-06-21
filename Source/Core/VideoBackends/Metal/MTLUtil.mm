@@ -68,6 +68,8 @@ void Metal::Util::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsTextureQueryLevels = true;
   config->backend_info.bSupportsLodBiasInSampler = false;
   config->backend_info.bSupportsSettingObjectNames = true;
+  // Metal requires multisample resolve to be done on a render pass
+  config->backend_info.bSupportsPartialMultisampleResolve = false;
 }
 
 void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
@@ -201,6 +203,14 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
   config->backend_info.bSupportsBPTCTextures = supports_mac1;
   config->backend_info.bSupportsFramebufferFetch = true;
 #endif
+
+  config->backend_info.AAModes.clear();
+  for (u32 i = 1; i <= 64; i <<= 1)
+  {
+    if ([device supportsTextureSampleCount:i])
+      config->backend_info.AAModes.push_back(i);
+  }
+
   if (char* env = getenv("MTL_UNIFIED_MEMORY"))
     g_features.unified_memory = env[0] == '1' || env[0] == 'y' || env[0] == 'Y';
   else if (@available(macOS 10.15, iOS 13.0, *))

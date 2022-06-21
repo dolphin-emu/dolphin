@@ -141,7 +141,16 @@ void Metal::VideoBackend::InitBackendInfo()
   @autoreleasepool
   {
     Util::PopulateBackendInfo(&g_Config);
-    Util::PopulateBackendInfoAdapters(&g_Config, Util::GetAdapterList());
+    auto adapters = Util::GetAdapterList();
+    Util::PopulateBackendInfoAdapters(&g_Config, adapters);
+    if (!adapters.empty())
+    {
+      // Use the selected adapter, or the first to fill features.
+      size_t index = static_cast<size_t>(g_Config.iAdapter);
+      if (index >= adapters.size())
+        index = 0;
+      Util::PopulateBackendInfoFeatures(&g_Config, adapters[index]);
+    }
   }
 }
 

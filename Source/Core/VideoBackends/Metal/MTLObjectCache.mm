@@ -311,6 +311,7 @@ public:
       fragment_shader = static_cast<const Shader*>(cfg.pixel_shader);
       framebuffer.color_texture_format = cfg.framebuffer_state.color_texture_format.Value();
       framebuffer.depth_texture_format = cfg.framebuffer_state.depth_texture_format.Value();
+      framebuffer.samples = cfg.framebuffer_state.samples.Value();
       blend.colorupdate = cfg.blending_state.colorupdate.Value();
       blend.alphaupdate = cfg.blending_state.alphaupdate.Value();
       if (cfg.blending_state.blendenable)
@@ -416,6 +417,7 @@ public:
         // clang-format on
       }
       FramebufferState fs = config.framebuffer_state;
+      [desc setRasterSampleCount:fs.samples];
       [color0 setPixelFormat:Util::FromAbstract(fs.color_texture_format)];
       [desc setDepthAttachmentPixelFormat:Util::FromAbstract(fs.depth_texture_format)];
       if (Util::HasStencil(fs.depth_texture_format))

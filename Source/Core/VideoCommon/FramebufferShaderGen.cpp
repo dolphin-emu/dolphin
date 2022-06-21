@@ -338,6 +338,22 @@ std::string GenerateColorPixelShader()
   return code.GetBuffer();
 }
 
+std::string GenerateResolveColorPixelShader(u32 samples)
+{
+  ShaderCode code;
+  EmitSamplerDeclarations(code, 0, 1, true);
+  EmitPixelMainDeclaration(code, 1, 0);
+  code.Write("{{\n"
+             "  int layer = int(v_tex0.z);\n"
+             "  int3 coords = int3(int2(gl_FragCoord.xy), layer);\n"
+             "  ocol0 = float4(0.0f);\n");
+  code.Write("  for (int i = 0; i < {}; i++)\n", samples);
+  code.Write("    ocol0 += texelFetch(samp0, coords, i);\n");
+  code.Write("  ocol0 /= {}.0f;\n", samples);
+  code.Write("}}\n");
+  return code.GetBuffer();
+}
+
 std::string GenerateResolveDepthPixelShader(u32 samples)
 {
   ShaderCode code;
