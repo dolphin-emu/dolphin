@@ -254,6 +254,7 @@ void MemoryViewWidget::Update()
   m_table->verticalHeader()->setDefaultSectionSize(m_font_vspace - 1);
   m_table->verticalHeader()->setMinimumSectionSize(m_font_vspace - 1);
   m_table->horizontalHeader()->setMinimumSectionSize(m_font_width * 2);
+  m_table->setTextElideMode(Qt::TextElideMode::ElideNone);
 
   const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_address_space);
 
