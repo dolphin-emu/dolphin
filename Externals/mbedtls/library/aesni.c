@@ -34,8 +34,10 @@
 
 #ifdef _MSC_VER
 #include <intrin.h>
+#define ATTRIBUTE_TARGET_AES
 #else
 #include <cpuid.h>
+#define ATTRIBUTE_TARGET_AES __attribute__((target("aes")))
 #endif
 
 #include <emmintrin.h>
@@ -81,6 +83,7 @@ int mbedtls_aesni_has_support( unsigned int what )
 /*
  * AES-NI AES-ECB block en(de)cryption
  */
+ATTRIBUTE_TARGET_AES
 int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
                      int mode,
                      const unsigned char input[16],
@@ -113,6 +116,7 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
  * GCM multiplication: c = a times b in GF(2^128)
  * Based on [CLMUL-WP] algorithms 1 (with equation 27) and 5.
  */
+ATTRIBUTE_TARGET_AES
 void mbedtls_aesni_gcm_mult( unsigned char c[16],
                      const unsigned char a[16],
                      const unsigned char b[16] )
@@ -227,6 +231,7 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
 /*
  * Compute decryption round keys from encryption round keys
  */
+ATTRIBUTE_TARGET_AES
 void mbedtls_aesni_inverse_key( unsigned char *invkey,
                         const unsigned char *fwdkey, int nr )
 {
@@ -266,6 +271,7 @@ static inline __m128i aeskeygenassist_finish_128( __m128i *rk,
 /*
  * Key expansion, 128-bit case
  */
+ATTRIBUTE_TARGET_AES
 static void aesni_setkey_enc_128( unsigned char *rk,
                                   const unsigned char *key )
 {
@@ -330,6 +336,7 @@ static inline void aeskeygenassist_finish_192( unsigned char **prk,
 /*
  * Key expansion, 192-bit case
  */
+ATTRIBUTE_TARGET_AES
 static void aesni_setkey_enc_192( unsigned char *rk,
                                   const unsigned char *key )
 {
@@ -361,6 +368,7 @@ static inline void write_roundkey_256( unsigned char **dst,
     *dst += 256 / 8;
 }
 
+ATTRIBUTE_TARGET_AES
 static inline void aeskeygenassist_finish_256( unsigned char **prk,
                                                __m128i *pkl,
                                                __m128i *pkh,
@@ -400,6 +408,7 @@ static inline void aeskeygenassist_finish_256( unsigned char **prk,
 /*
  * Key expansion, 256-bit case
  */
+ATTRIBUTE_TARGET_AES
 static void aesni_setkey_enc_256( unsigned char *rk,
                                   const unsigned char *key )
 {
