@@ -200,5 +200,14 @@ private:
     CMD_COMPRESSOR = 0x12,
     CMD_SEND_AUX_AND_MIX = 0x13,
   };
+
+  enum class MailState
+  {
+    WaitingForCmdListSize,
+    WaitingForCmdListAddress,
+    WaitingForNextTask,
+  };
+
+  MailState m_mail_state = MailState::WaitingForCmdListSize;
 };
 }  // namespace DSP::HLE
