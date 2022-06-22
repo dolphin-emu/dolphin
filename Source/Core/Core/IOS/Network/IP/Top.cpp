@@ -868,9 +868,22 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     if (!Core::WantsDeterminism())
     {
       if (res_init() == 0)
-        address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
+      {
+        for (int i = 0; i < _res.nscount; i++)
+        {
+          // Find the first available IPv4 nameserver.
+          sockaddr_in current = _res.nsaddr_list[i];
+          if (current.sin_family == AF_INET)
+          {
+            address = ntohl(_res.nsaddr_list[i].sin_addr.s_addr);
+            break;
+          }
+        }
+      }
       else
+      {
         WARN_LOG_FMT(IOS_NET, "Call to res_init failed");
+      }
     }
 #endif
     if (address == 0)
