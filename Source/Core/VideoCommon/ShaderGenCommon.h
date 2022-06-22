@@ -71,6 +71,8 @@ public:
   static_assert(std::is_trivially_copyable_v<uid_data>,
                 "uid_data must be a trivially copyable type");
 
+  ShaderUid() { memset(GetUidData(), 0, GetUidDataSize()); }
+
   bool operator==(const ShaderUid& obj) const
   {
     return memcmp(GetUidData(), obj.GetUidData(), GetUidDataSize()) == 0;
