@@ -22,9 +22,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="library\aes.c" />
-    <ClCompile Include="library\aesni.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="library\aesni.c" />
     <ClCompile Include="library\arc4.c" />
     <ClCompile Include="library\aria.c" />
     <ClCompile Include="library\asn1parse.c" />
