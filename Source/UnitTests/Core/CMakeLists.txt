@@ -8,6 +8,7 @@ add_dolphin_test(DSPAssemblyTest
   DSP/DSPTestBinary.cpp
   DSP/DSPTestText.cpp
   DSP/HermesBinary.cpp
+  DSP/HermesText.cpp
 )
 
 add_dolphin_test(ESFormatsTest IOS/ES/FormatsTest.cpp)

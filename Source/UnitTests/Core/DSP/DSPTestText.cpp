@@ -89,7 +89,7 @@ MEM_LO:			equ		0x0f7F
 	CW		0x1305
 	CW		0x1306
 
-	s40
+	s16
 	lri		$r12, #0x00ff
 
 main:
@@ -469,7 +469,7 @@ irq4:
 	jmp		irq
 irq5:
 ;	jmp finale
-	s40
+	s16
 	mrr		$r0d, $r1c
 	mrr		$r0d, $r1e
 	clr		$acc0
@@ -609,7 +609,7 @@ dma_copy:
 
 	ret
 
-send_back_16:
+send_back_40:
 
 	cw		0x8e00
 	call	send_back

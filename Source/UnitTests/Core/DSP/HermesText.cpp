@@ -9,7 +9,9 @@ SPDX-License-Identifier: BSD-3-Clause
 
 */
 
+#include "HermesText.h"
 
+const char s_hermes_text[21370] = R"(
 /********************************/
 /**      REGISTER NAMES        **/
 /********************************/
@@ -173,7 +175,7 @@ MEM_SND:	equ	data_end ; it need 2048 words (4096 bytes)
 
 	lri     $CONFIG, #0xff
 	lri	$SR,#0
-	s40         
+	s16         
 	clr15       
 	m0         
 
@@ -254,7 +256,7 @@ sys_command:
 	jmp		recv_cmd
 	
 run_nexttask:
-	s40
+	s16
 	call		wait_for_cpu_mail
 	lrs			$29,@CMBL
 	call		wait_for_cpu_mail
@@ -542,7 +544,11 @@ no_delay:
 /////////////////////////////////////
 // end of delay time section
 /////////////////////////////////////
-
+)"  // Work around C2026 on MSVC, which allows at most 16380 single-byte characters in a single
+    // non-concatenated string literal (but you can concatenate multiple shorter string literals to
+    // produce a longer string just fine).  (This comment is not part of the actual test program,
+    // and instead there is a single blank line at this location.)
+                                  R"(
 /* bucle de generacion de samples */
 
 	
@@ -655,7 +661,7 @@ left_skip2:
 
 	cmp
 
-	jrl	$AR0 //get_sample or get_sample2 method
+	jrnc	$AR0 //get_sample or get_sample2 method
 
 	sr	@COUNTERH_SMP, $ACH1 
         sr	@COUNTERL_SMP, $ACM1
@@ -711,7 +717,7 @@ get_sample2: // slow method
 
 // if addr>addr end get a new buffer (if you uses double buffer)
 
-	jge	get_new_buffer
+	jc	get_new_buffer
 
 // load samples from dma, return $ar2 with the addr to get the samples and return using $ar0 to the routine to process 8-16bits Mono/Stereo
 
@@ -741,7 +747,7 @@ get_sample: // fast method
 // compares if the current address is >= end address to change the buffer or stops
 
 	cmp
-	jge	get_new_buffer
+	jc	get_new_buffer
 
 // load the new sample from the buffer
 
@@ -961,8 +967,8 @@ wait_dma:
 wait_for_dsp_mail:
 
 	lrs	$ACM1, @DMBH
-	andf	$ACM1, #0x8000
-	jnz	wait_for_dsp_mail
+	andcf	$ACM1, #0x8000
+	jlz	wait_for_dsp_mail
 	ret
 
 wait_for_cpu_mail:
@@ -1077,4 +1083,4 @@ polla_loca:
 	clr	$ACC0
 	jmp	recv_cmd
 
-
+)";
