@@ -605,6 +605,7 @@ if (APPLE)
     ${CORESERV_LIBRARY}
     ${IOB_LIBRARY}
     ${IOK_LIBRARY}
+    resolv
   )
 elseif (ANDROID)
   target_link_libraries(core
