@@ -15,12 +15,14 @@
 #include <windows.h>
 #endif
 
+#include "Common/Benchmark.hpp"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/PerformanceCounter.h"
+#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/x64ABI.h"
@@ -823,6 +825,7 @@ void Jit64::Jit(u32 em_address, bool clear_cache_and_retry_on_failure)
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
+
   const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
   if (code_block.m_memory_exception)
@@ -991,6 +994,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     IntializeSpeculativeConstants();
   }
 
+  if constexpr (Benchmark::Benchmarks_Enabled.at(Benchmark::Benchmarks::JIT_Translation).enabled)
+    Benchmark::BenchmarkStart("JIT PowerPC-to-Host translation");
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -1204,6 +1209,8 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     i += js.skipInstructions;
     js.skipInstructions = 0;
   }
+  if constexpr (Benchmark::Benchmarks_Enabled.at(Benchmark::Benchmarks::JIT_Translation).enabled)
+    Benchmark::BenchmarkEnd("JIT PowerPC-to-Host translation");
 
   if (code_block.m_broken)
   {

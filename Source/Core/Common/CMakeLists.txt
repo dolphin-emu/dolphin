@@ -2,6 +2,7 @@ add_library(common
   Analytics.cpp
   Analytics.h
   Assert.h
+  Benchmark.hpp
   BitField.h
   BitSet.h
   BitUtils.h
