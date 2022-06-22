@@ -30,6 +30,12 @@
       <AdditionalIncludeDirectories>$(ProjectDir)Settings;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)TAS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+
+      <!--Jump through some hoops to generate a pch file local to this project-->
+      <AdditionalIncludeDirectories>$(SourceDir)PCH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch_qt.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>pch_qt.h</ForcedIncludeFiles>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -52,10 +58,10 @@
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\FreeLookWidget.cpp" />
     <ClCompile Include="Config\FreeLookWindow.cpp" />
-    <ClCompile Include="Config\GamecubeControllersWidget.cpp" />
     <ClCompile Include="Config\GameConfigEdit.cpp" />
     <ClCompile Include="Config\GameConfigHighlighter.cpp" />
     <ClCompile Include="Config\GameConfigWidget.cpp" />
+    <ClCompile Include="Config\GamecubeControllersWidget.cpp" />
     <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
     <ClCompile Include="Config\Graphics\BalloonTip.cpp" />
@@ -83,8 +89,8 @@
     <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyControllerProfile.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyDebugging.cpp" />
-    <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGBA.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStatesOther.cpp" />
@@ -155,6 +161,9 @@
     <ClCompile Include="NetPlay\NetPlaySetupDialog.cpp" />
     <ClCompile Include="NetPlay\PadMappingDialog.cpp" />
     <ClCompile Include="NKitWarningDialog.cpp" />
+    <ClCompile Include="pch_qt.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\DolphinFileDialog.cpp" />
@@ -390,8 +399,8 @@
       <Project>{0e033be3-2e08-428e-9ae9-bc673efa12b5}</Project>
     </ProjectReference>
     <!--
-      This project doesn't use PCH during compile (because RTTI setting differs),
-      but we still must link it for the dependants (DolphinLib)
+      This project doesn't uses its own PCH during compile (because RTTI setting differs),
+      but we must also link the "main" pch for the dependants (DolphinLib)
     -->
     <ProjectReference Include="$(SourceDir)PCH\pch.vcxproj">
       <Project>{76563A7F-1011-4EAD-B667-7BB18D09568E}</Project>
