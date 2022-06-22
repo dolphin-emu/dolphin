@@ -16,6 +16,7 @@
     <ClInclude Include="Common\Align.h" />
     <ClInclude Include="Common\Analytics.h" />
     <ClInclude Include="Common\Assert.h" />
+    <ClInclude Include="Common\Benchmark.hpp" />
     <ClInclude Include="Common\BitField.h" />
     <ClInclude Include="Common\BitSet.h" />
     <ClInclude Include="Common\BitUtils.h" />
