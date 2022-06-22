@@ -143,6 +143,7 @@ Option<bool> fastDepthCalc("dolphin_fast_depth_calculation", "Fast Depth Calcula
 Option<bool> bboxEnabled("dolphin_bbox_enabled", "Bounding Box Emulation", false);
 Option<bool> efbToVram("dolphin_efb_to_vram", "Disable EFB to VRAM", false);
 Option<bool> loadCustomTextures("dolphin_load_custom_textures", "Load Custom Textures", false);
+Option<bool> cacheCustomTextures("dolphin_cache_custom_textures", "Prefetch Custom Textures", false);
 Option<PowerPC::CPUCore> cpu_core("dolphin_cpu_core", "CPU Core",
                                   {
 #ifdef _M_X86
