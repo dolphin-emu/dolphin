@@ -108,6 +108,7 @@ extern Option<bool> fastDepthCalc;
 extern Option<bool> bboxEnabled;
 extern Option<bool> efbToVram;
 extern Option<bool> loadCustomTextures;
+extern Option<bool> cacheCustomTextures;
 extern Option<PowerPC::CPUCore> cpu_core;
 extern Option<float> cpuClockRate;
 extern Option<bool> fastmem;
