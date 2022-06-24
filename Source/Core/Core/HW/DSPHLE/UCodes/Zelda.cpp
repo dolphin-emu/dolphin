@@ -128,11 +128,6 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   INFO_LOG_FMT(DSPHLE, "Zelda UCode loaded, crc={:08x}, flags={:08x}", crc, m_flags);
 }
 
-ZeldaUCode::~ZeldaUCode()
-{
-  m_mail_handler.Clear();
-}
-
 void ZeldaUCode::Initialize()
 {
   if (m_flags & LIGHT_PROTOCOL)

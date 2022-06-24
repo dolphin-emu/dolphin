@@ -18,7 +18,6 @@ void ProcessGBACrypto(u32 address);
 struct GBAUCode : public UCodeInterface
 {
   GBAUCode(DSPHLE* dsphle, u32 crc);
-  ~GBAUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;

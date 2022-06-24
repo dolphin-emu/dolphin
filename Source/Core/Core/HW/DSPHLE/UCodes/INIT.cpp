@@ -16,10 +16,6 @@ INITUCode::INITUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   INFO_LOG_FMT(DSPHLE, "INITUCode - initialized");
 }
 
-INITUCode::~INITUCode()
-{
-}
-
 void INITUCode::Initialize()
 {
   m_mail_handler.PushMail(0x80544348);

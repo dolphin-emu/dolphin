@@ -66,7 +66,6 @@ class AXUCode : public UCodeInterface
 {
 public:
   AXUCode(DSPHLE* dsphle, u32 crc);
-  ~AXUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;

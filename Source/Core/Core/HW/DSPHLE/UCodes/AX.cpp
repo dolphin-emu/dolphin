@@ -32,11 +32,6 @@ AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   INFO_LOG_FMT(DSPHLE, "Instantiating AXUCode: crc={:08x}", crc);
 }
 
-AXUCode::~AXUCode()
-{
-  m_mail_handler.Clear();
-}
-
 void AXUCode::Initialize()
 {
   m_mail_handler.PushMail(DSP_INIT, true);
