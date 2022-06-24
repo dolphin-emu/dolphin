@@ -302,14 +302,6 @@ enum Bug
   // Ended version: -1
   BUG_BROKEN_VECTOR_BITWISE_AND,
 
-  // BUG: Atomic writes to different fields or array elements of an SSBO have no effect, only
-  // writing to the first field/element works. This causes bounding box emulation to give garbage
-  // values under OpenGL.
-  // Affected devices: AMD (Windows)
-  // Started version: -1
-  // Ended version: -1
-  BUG_BROKEN_SSBO_FIELD_ATOMICS,
-
   // BUG: Accessing gl_SubgroupInvocationID causes the Metal shader compiler to crash.
   // Affected devices: AMD (macOS)
   // Started version: -1
