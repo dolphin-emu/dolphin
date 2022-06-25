@@ -23,6 +23,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 enum : u32
@@ -32,7 +33,7 @@ enum : u32
 };
 
 static std::mutex s_fatfs_mutex;
-static File::IOFile s_image;
+static File::IOFile* s_image;
 static bool s_deterministic;
 
 extern "C" DSTATUS disk_status(BYTE pdrv)
@@ -48,14 +49,14 @@ extern "C" DSTATUS disk_initialize(BYTE pdrv)
 extern "C" DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
-  if (!s_image.Seek(offset, File::SeekOrigin::Begin))
+  if (!s_image->Seek(offset, File::SeekOrigin::Begin))
   {
     ERROR_LOG_FMT(COMMON, "SD image seek failed (offset={})", offset);
     return RES_ERROR;
   }
 
   const size_t size = static_cast<size_t>(count) * SECTOR_SIZE;
-  if (!s_image.ReadBytes(buff, size))
+  if (!s_image->ReadBytes(buff, size))
   {
     ERROR_LOG_FMT(COMMON, "SD image read failed (offset={}, size={})", offset, size);
     return RES_ERROR;
@@ -67,14 +68,14 @@ extern "C" DRESULT disk_read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count)
 extern "C" DRESULT disk_write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count)
 {
   const u64 offset = static_cast<u64>(sector) * SECTOR_SIZE;
-  if (!s_image.Seek(offset, File::SeekOrigin::Begin))
+  if (!s_image->Seek(offset, File::SeekOrigin::Begin))
   {
     ERROR_LOG_FMT(COMMON, "SD image seek failed (offset={})", offset);
     return RES_ERROR;
   }
 
   const size_t size = static_cast<size_t>(count) * SECTOR_SIZE;
-  if (!s_image.WriteBytes(buff, size))
+  if (!s_image->WriteBytes(buff, size))
   {
     ERROR_LOG_FMT(COMMON, "SD image write failed (offset={}, size={})", offset, size);
     return RES_ERROR;
@@ -90,7 +91,7 @@ extern "C" DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
   case CTRL_SYNC:
     return RES_OK;
   case GET_SECTOR_COUNT:
-    *reinterpret_cast<LBA_t*>(buff) = s_image.GetSize() / SECTOR_SIZE;
+    *reinterpret_cast<LBA_t*>(buff) = s_image->GetSize() / SECTOR_SIZE;
     return RES_OK;
   default:
     WARN_LOG_FMT(COMMON, "Unexpected SD image ioctl {}", cmd);
@@ -154,6 +155,56 @@ extern "C" int ff_del_syncobj(FF_SYNC_t sobj)
 {
   delete reinterpret_cast<std::recursive_mutex*>(sobj);
   return 1;
+}
+
+static const char* FatFsErrorToString(FRESULT error_code)
+{
+  // These are taken from the comment next to each value in ff.h
+  switch (error_code)
+  {
+  case FR_OK:
+    return "Succeeded";
+  case FR_DISK_ERR:
+    return "A hard error occurred in the low level disk I/O layer";
+  case FR_INT_ERR:
+    return "Assertion failed";
+  case FR_NOT_READY:
+    return "The physical drive cannot work";
+  case FR_NO_FILE:
+    return "Could not find the file";
+  case FR_NO_PATH:
+    return "Could not find the path";
+  case FR_INVALID_NAME:
+    return "The path name format is invalid";
+  case FR_DENIED:
+    return "Access denied due to prohibited access or directory full";
+  case FR_EXIST:
+    return "Access denied due to prohibited access";
+  case FR_INVALID_OBJECT:
+    return "The file/directory object is invalid";
+  case FR_WRITE_PROTECTED:
+    return "The physical drive is write protected";
+  case FR_INVALID_DRIVE:
+    return "The logical drive number is invalid";
+  case FR_NOT_ENABLED:
+    return "The volume has no work area";
+  case FR_NO_FILESYSTEM:
+    return "There is no valid FAT volume";
+  case FR_MKFS_ABORTED:
+    return "The f_mkfs() aborted due to any problem";
+  case FR_TIMEOUT:
+    return "Could not get a grant to access the volume within defined period";
+  case FR_LOCKED:
+    return "The operation is rejected according to the file sharing policy";
+  case FR_NOT_ENOUGH_CORE:
+    return "LFN working buffer could not be allocated";
+  case FR_TOO_MANY_OPEN_FILES:
+    return "Number of open files > FF_FS_LOCK";
+  case FR_INVALID_PARAMETER:
+    return "Given parameter is invalid";
+  default:
+    return "Unknown error";
+  }
 }
 
 namespace Common
@@ -231,51 +282,99 @@ static bool Pack(const File::FSTEntry& entry, bool is_root, std::vector<u8>& tmp
   {
     File::IOFile src(entry.physicalName, "rb");
     if (!src)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to open file {}", entry.physicalName);
       return false;
+    }
 
     FIL dst;
-    if (f_open(&dst, entry.virtualName.c_str(), FA_CREATE_ALWAYS | FA_WRITE) != FR_OK)
+    const auto open_error_code =
+        f_open(&dst, entry.virtualName.c_str(), FA_CREATE_ALWAYS | FA_WRITE);
+    if (open_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to open file {} in SD image: {}", entry.physicalName,
+                    FatFsErrorToString(open_error_code));
       return false;
+    }
 
+    const size_t src_size = src.GetSize();
     if (src.GetSize() != entry.size)
+    {
+      ERROR_LOG_FMT(COMMON, "File at {} does not match previously read filesize ({} != {})",
+                    entry.physicalName, entry.size, src_size);
       return false;
+    }
 
     if (entry.size >= GibibytesToBytes(4))
+    {
+      ERROR_LOG_FMT(COMMON, "File at {} is too large to fit into FAT ({} >= 4GiB)",
+                    entry.physicalName, entry.size);
       return false;
+    }
 
     u64 size = entry.size;
     while (size > 0)
     {
       u32 chunk_size = static_cast<u32>(std::min(size, static_cast<u64>(tmp_buffer.size())));
       if (!src.ReadBytes(tmp_buffer.data(), chunk_size))
+      {
+        ERROR_LOG_FMT(COMMON, "Failed to read data from file at {}", entry.physicalName);
         return false;
+      }
 
       u32 written_size;
-      if (f_write(&dst, tmp_buffer.data(), chunk_size, &written_size) != FR_OK)
+      const auto write_error_code = f_write(&dst, tmp_buffer.data(), chunk_size, &written_size);
+      if (write_error_code != FR_OK)
+      {
+        ERROR_LOG_FMT(COMMON, "Failed to write file {} to SD image: {}", entry.physicalName,
+                      FatFsErrorToString(write_error_code));
         return false;
+      }
 
       if (written_size != chunk_size)
+      {
+        ERROR_LOG_FMT(COMMON, "Failed to write bytes of file {} to SD image ({} != {})",
+                      entry.physicalName, written_size, chunk_size);
         return false;
+      }
 
       size -= chunk_size;
     }
 
-    if (f_close(&dst) != FR_OK)
+    const auto close_error_code = f_close(&dst);
+    if (close_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to close file {} in SD image: {}", entry.physicalName,
+                    FatFsErrorToString(close_error_code));
       return false;
+    }
 
     if (!src.Close())
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to close file {}", entry.physicalName);
       return false;
+    }
 
     return true;
   }
 
   if (!is_root)
   {
-    if (f_mkdir(entry.virtualName.c_str()) != FR_OK)
+    const auto mkdir_error_code = f_mkdir(entry.virtualName.c_str());
+    if (mkdir_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to make directory {} in SD image: {}", entry.physicalName,
+                    FatFsErrorToString(mkdir_error_code));
       return false;
+    }
 
-    if (f_chdir(entry.virtualName.c_str()) != FR_OK)
+    const auto chdir_error_code = f_chdir(entry.virtualName.c_str());
+    if (chdir_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to entry directory {} in SD image: {}", entry.physicalName,
+                    FatFsErrorToString(chdir_error_code));
       return false;
+    }
   }
 
   for (const File::FSTEntry& child : entry.children)
@@ -286,8 +385,13 @@ static bool Pack(const File::FSTEntry& entry, bool is_root, std::vector<u8>& tmp
 
   if (!is_root)
   {
-    if (f_chdir("..") != FR_OK)
+    const auto chdir_up_error_code = f_chdir("..");
+    if (chdir_up_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to leave directory {} in SD image: {}", entry.physicalName,
+                    FatFsErrorToString(chdir_up_error_code));
       return false;
+    }
   }
 
   return true;
@@ -305,12 +409,21 @@ static void SortFST(File::FSTEntry* root)
 
 bool SyncSDFolderToSDImage(bool deterministic)
 {
-  deterministic = true;
-  const std::string root_path = File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX);
-  if (!File::IsDirectory(root_path))
+  const std::string source_dir = File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX);
+  const std::string image_path = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
+  if (source_dir.empty() || image_path.empty())
     return false;
 
-  File::FSTEntry root = File::ScanDirectoryTree(root_path, true);
+  INFO_LOG_FMT(COMMON, "Starting SD card conversion from folder {} to file {}", source_dir,
+               image_path);
+
+  if (!File::IsDirectory(source_dir))
+  {
+    ERROR_LOG_FMT(COMMON, "{} is not a directory, not converting", source_dir);
+    return false;
+  }
+
+  File::FSTEntry root = File::ScanDirectoryTree(source_dir, true);
   if (deterministic)
     SortFST(&root);
   if (!CheckIfFATCompatible(root))
@@ -322,21 +435,25 @@ bool SyncSDFolderToSDImage(bool deterministic)
   size = AlignUp(size, MAX_CLUSTER_SIZE);
 
   std::lock_guard lk(s_fatfs_mutex);
+
+  File::IOFile image;
+  s_image = &image;
+  Common::ScopeGuard image_guard{[] { s_image = nullptr; }};
   s_deterministic = deterministic;
 
-  const std::string image_path = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
   const std::string temp_image_path = File::GetTempFilenameForAtomicWrite(image_path);
-  if (!s_image.Open(temp_image_path, "w+b"))
+  if (!image.Open(temp_image_path, "w+b"))
   {
-    ERROR_LOG_FMT(COMMON, "Failed to open SD image");
+    ERROR_LOG_FMT(COMMON, "Failed to create or overwrite SD image at {}", image_path);
     return false;
   }
 
-  if (!s_image.Resize(size))
+  // delete temp file in failure case
+  Common::ScopeGuard image_delete_guard{[&] { File::Delete(temp_image_path); }};
+
+  if (!image.Resize(size))
   {
-    ERROR_LOG_FMT(COMMON, "Failed to allocate space for SD image");
-    s_image.Close();
-    File::Delete(temp_image_path);
+    ERROR_LOG_FMT(COMMON, "Failed to allocate {} bytes for SD image at {}", size, image_path);
     return false;
   }
 
@@ -348,39 +465,49 @@ bool SyncSDFolderToSDImage(bool deterministic)
   options.au_size = 0;  // Cluster size: automatic
 
   std::vector<u8> tmp_buffer(MAX_CLUSTER_SIZE);
-  if (f_mkfs("", &options, tmp_buffer.data(), static_cast<UINT>(tmp_buffer.size())) != FR_OK)
+  const auto mkfs_error_code =
+      f_mkfs("", &options, tmp_buffer.data(), static_cast<UINT>(tmp_buffer.size()));
+  if (mkfs_error_code != FR_OK)
   {
-    ERROR_LOG_FMT(COMMON, "Failed to initialize SD image filesystem");
-    s_image.Close();
-    File::Delete(temp_image_path);
+    ERROR_LOG_FMT(COMMON, "Failed to initialize SD image filesystem: {}",
+                  FatFsErrorToString(mkfs_error_code));
     return false;
   }
 
   FATFS fs;
-  f_mount(&fs, "", 0);
+  const auto mount_error_code = f_mount(&fs, "", 0);
+  if (mount_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to mount SD image filesystem: {}",
+                  FatFsErrorToString(mount_error_code));
+    return false;
+  }
+  Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
 
   if (!Pack(root, true, tmp_buffer))
   {
-    ERROR_LOG_FMT(COMMON, "Failed to pack SD image");
-    s_image.Close();
-    File::Delete(temp_image_path);
+    ERROR_LOG_FMT(COMMON, "Failed to pack folder {} to SD image at {}", source_dir,
+                  temp_image_path);
     return false;
   }
 
-  f_unmount("");
+  unmount_guard.Exit();  // unmount before closing the image
 
-  if (!s_image.Close())
+  if (!image.Close())
   {
-    ERROR_LOG_FMT(COMMON, "Failed to close SD image");
+    ERROR_LOG_FMT(COMMON, "Failed to close SD image at {}", temp_image_path);
     return false;
   }
+
   if (!File::Rename(temp_image_path, image_path))
   {
-    ERROR_LOG_FMT(COMMON, "Failed to rename SD image");
+    ERROR_LOG_FMT(COMMON, "Failed to rename SD image from {} to {}", temp_image_path, image_path);
     return false;
   }
 
-  INFO_LOG_FMT(COMMON, "Successfully packed SD image");
+  image_delete_guard.Dismiss();  // no need to delete the temp file anymore after the rename
+
+  INFO_LOG_FMT(COMMON, "Successfully packed folder {} to SD image at {}", source_dir, image_path);
   return true;
 }
 
@@ -390,54 +517,100 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
   if (!is_directory)
   {
     FIL src;
-    if (f_open(&src, name, FA_READ) != FR_OK)
+    const auto open_error_code = f_open(&src, name, FA_READ);
+    if (open_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to open file {} in SD image: {}", path,
+                    FatFsErrorToString(open_error_code));
       return false;
+    }
 
     File::IOFile dst(path, "wb");
     if (!dst)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to open file {}", path);
       return false;
+    }
 
     u32 size = f_size(&src);
     while (size > 0)
     {
       u32 chunk_size = std::min(size, static_cast<u32>(tmp_buffer.size()));
       u32 read_size;
-      if (f_read(&src, tmp_buffer.data(), chunk_size, &read_size) != FR_OK)
+      const auto read_error_code = f_read(&src, tmp_buffer.data(), chunk_size, &read_size);
+      if (read_error_code != FR_OK)
+      {
+        ERROR_LOG_FMT(COMMON, "Failed to read from file {} in SD image: {}", path,
+                      FatFsErrorToString(read_error_code));
         return false;
+      }
 
       if (read_size != chunk_size)
+      {
+        ERROR_LOG_FMT(COMMON, "Failed to read bytes of file {} in SD image ({} != {})", path,
+                      read_size, chunk_size);
         return false;
+      }
 
       if (!dst.WriteBytes(tmp_buffer.data(), chunk_size))
+      {
+        ERROR_LOG_FMT(COMMON, "Failed to write to file {}", path);
         return false;
+      }
 
       size -= chunk_size;
     }
 
     if (!dst.Close())
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to close file {}", path);
       return false;
+    }
 
-    if (f_close(&src) != FR_OK)
+    const auto close_error_code = f_close(&src);
+    if (close_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to close file {} in SD image: {}", path,
+                    FatFsErrorToString(close_error_code));
       return false;
+    }
 
     return true;
   }
 
   if (!File::CreateDir(path))
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to create directory {}", path);
     return false;
+  }
 
-  if (f_chdir(name) != FR_OK)
+  const auto chdir_error_code = f_chdir(name);
+  if (chdir_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to enter directory {} in SD image: {}", path,
+                  FatFsErrorToString(chdir_error_code));
     return false;
+  }
 
   DIR directory;
-  if (f_opendir(&directory, ".") != FR_OK)
+  const auto opendir_error_code = f_opendir(&directory, ".");
+  if (opendir_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to open directory {} in SD image: {}", path,
+                  FatFsErrorToString(opendir_error_code));
     return false;
+  }
 
   FILINFO entry;
   while (true)
   {
-    if (f_readdir(&directory, &entry) != FR_OK)
+    const auto readdir_error_code = f_readdir(&directory, &entry);
+    if (readdir_error_code != FR_OK)
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to read directory {} in SD image: {}", path,
+                    FatFsErrorToString(readdir_error_code));
       return false;
+    }
 
     if (entry.fname[0] == '\0')
       break;
@@ -445,12 +618,18 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
     const std::string_view childname = entry.fname;
 
     // Check for path traversal attacks.
-    if (childname.find("\\") != std::string_view::npos)
+    const bool is_path_traversal_attack =
+        (childname.find("\\") != std::string_view::npos) ||
+        (childname.find('/') != std::string_view::npos) ||
+        std::all_of(childname.begin(), childname.end(), [](char c) { return c == '.'; });
+    if (is_path_traversal_attack)
+    {
+      ERROR_LOG_FMT(
+          COMMON,
+          "Path traversal attack detected in directory {} in SD image, child filename is {}", path,
+          childname);
       return false;
-    if (childname.find('/') != std::string_view::npos)
-      return false;
-    if (std::all_of(childname.begin(), childname.end(), [](char c) { return c == '.'; }))
-      return false;
+    }
 
     if (!Unpack(fmt::format("{}/{}", path, childname), entry.fattrib & AM_DIR, entry.fname,
                 tmp_buffer))
@@ -459,11 +638,21 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
     }
   }
 
-  if (f_closedir(&directory) != FR_OK)
+  const auto closedir_error_code = f_closedir(&directory);
+  if (closedir_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to close directory {} in SD image: {}", path,
+                  FatFsErrorToString(closedir_error_code));
     return false;
+  }
 
-  if (f_chdir("..") != FR_OK)
+  const auto chdir_up_error_code = f_chdir("..");
+  if (chdir_up_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to leave directory {} in SD image: {}", path,
+                  FatFsErrorToString(chdir_up_error_code));
     return false;
+  }
 
   return true;
 }
@@ -471,55 +660,77 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
 bool SyncSDImageToSDFolder()
 {
   const std::string image_path = File::GetUserPath(F_WIISDCARDIMAGE_IDX);
+  const std::string target_dir = File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX);
+  if (image_path.empty() || target_dir.empty())
+    return false;
 
   std::lock_guard lk(s_fatfs_mutex);
-  if (!s_image.Open(image_path, "r+b"))
+
+  INFO_LOG_FMT(COMMON, "Starting SD card conversion from file {} to folder {}", image_path,
+               target_dir);
+
+  File::IOFile image;
+  s_image = &image;
+  Common::ScopeGuard image_guard{[] { s_image = nullptr; }};
+
+  // this shouldn't matter since we're not modifying the SD image here, but initialize it to
+  // something consistent just in case
+  s_deterministic = true;
+
+  if (!image.Open(image_path, "r+b"))
   {
-    ERROR_LOG_FMT(COMMON, "Failed to open SD image");
+    ERROR_LOG_FMT(COMMON, "Failed to open SD image at {}", image_path);
     return false;
   }
 
   FATFS fs;
-  f_mount(&fs, "", 0);
+  const auto mount_error_code = f_mount(&fs, "", 0);
+  if (mount_error_code != FR_OK)
+  {
+    ERROR_LOG_FMT(COMMON, "Failed to mount SD image file system: {}",
+                  FatFsErrorToString(mount_error_code));
+    return false;
+  }
+  Common::ScopeGuard unmount_guard{[] { f_unmount(""); }};
+
+  // Unpack() and GetTempFilenameForAtomicWrite() don't want the trailing separator.
+  const std::string target_dir_without_slash = target_dir.substr(0, target_dir.length() - 1);
 
   // Most systems don't offer atomic directory renaming, so it's simpler to directly work on the
   // actual one and rollback if needed.
-  const std::string root_path = File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX);
-  if (root_path.empty())
-    return false;
+  const bool target_dir_exists = File::IsDirectory(target_dir);
+  const std::string backup_target_dir_without_slash =
+      File::GetTempFilenameForAtomicWrite(target_dir_without_slash);
 
-  // Unpack() and GetTempFilenameForAtomicWrite() don't want the trailing separator.
-  const std::string target_dir = root_path.substr(0, root_path.length() - 1);
-
-  File::CreateDir(root_path);
-  const std::string temp_root_path = File::GetTempFilenameForAtomicWrite(target_dir);
-  if (!File::Rename(target_dir, temp_root_path))
+  if (target_dir_exists)
   {
-    ERROR_LOG_FMT(COMMON, "Failed to backup SD folder");
-    return false;
+    if (!File::Rename(target_dir_without_slash, backup_target_dir_without_slash))
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to move old SD folder to {}", backup_target_dir_without_slash);
+      return false;
+    }
   }
 
   std::vector<u8> tmp_buffer(MAX_CLUSTER_SIZE);
-  if (!Unpack(target_dir, true, "", tmp_buffer))
+  if (!Unpack(target_dir_without_slash, true, "", tmp_buffer))
   {
-    ERROR_LOG_FMT(COMMON, "Failed to unpack SD image");
-    File::DeleteDirRecursively(target_dir);
-    File::Rename(temp_root_path, target_dir);
+    ERROR_LOG_FMT(COMMON, "Failed to unpack SD image {} to {}", image_path, target_dir);
+    File::DeleteDirRecursively(target_dir_without_slash);
+    if (target_dir_exists)
+      File::Rename(backup_target_dir_without_slash, target_dir_without_slash);
     return false;
   }
 
-  f_unmount("");
+  unmount_guard.Exit();  // unmount before closing the image
 
-  if (!s_image.Close())
-  {
-    ERROR_LOG_FMT(COMMON, "Failed to close SD image");
-    File::DeleteDirRecursively(target_dir);
-    File::Rename(temp_root_path, target_dir);
-    return false;
-  }
+  if (target_dir_exists)
+    File::DeleteDirRecursively(backup_target_dir_without_slash);
 
-  File::DeleteDirRecursively(temp_root_path);
-  INFO_LOG_FMT(COMMON, "Successfully unpacked SD image");
+  // even if this fails the conversion has already succeeded, so we still return true
+  if (!image.Close())
+    ERROR_LOG_FMT(COMMON, "Failed to close SD image {}", image_path);
+
+  INFO_LOG_FMT(COMMON, "Successfully unpacked SD image {} to {}", image_path, target_dir);
   return true;
 }
 }  // namespace Common
