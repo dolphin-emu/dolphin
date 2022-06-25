@@ -104,6 +104,8 @@ add_library(videocommon
   Statistics.h
   TextureCacheBase.cpp
   TextureCacheBase.h
+  TextureCacheEntry.cpp
+  TextureCacheEntry.h
   TextureConfig.cpp
   TextureConfig.h
   TextureConversionShader.cpp

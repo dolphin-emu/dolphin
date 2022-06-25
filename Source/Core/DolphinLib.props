@@ -668,6 +668,7 @@
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
     <ClInclude Include="VideoCommon\Statistics.h" />
     <ClInclude Include="VideoCommon\TextureCacheBase.h" />
+    <ClInclude Include="VideoCommon\TextureCacheEntry.h" />
     <ClInclude Include="VideoCommon\TextureConfig.h" />
     <ClInclude Include="VideoCommon\TextureConversionShader.h" />
     <ClInclude Include="VideoCommon\TextureConverterShaderGen.h" />
@@ -1255,6 +1256,7 @@
     <ClCompile Include="VideoCommon\ShaderGenCommon.cpp" />
     <ClCompile Include="VideoCommon\Statistics.cpp" />
     <ClCompile Include="VideoCommon\TextureCacheBase.cpp" />
+    <ClCompile Include="VideoCommon\TextureCacheEntry.cpp" />
     <ClCompile Include="VideoCommon\TextureConfig.cpp" />
     <ClCompile Include="VideoCommon\TextureConversionShader.cpp" />
     <ClCompile Include="VideoCommon\TextureConverterShaderGen.cpp" />

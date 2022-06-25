@@ -17,7 +17,6 @@
 #include <fmt/format.h>
 
 #include "Common/Align.h"
-#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -33,7 +32,6 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/AbstractFramebuffer.h"
-#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
@@ -44,6 +42,7 @@
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TMEM.h"
+#include "VideoCommon/TextureCacheEntry.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -59,18 +58,6 @@ static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static int xfb_count = 0;
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
-
-TextureCacheBase::TCacheEntry::TCacheEntry(std::unique_ptr<AbstractTexture> tex,
-                                           std::unique_ptr<AbstractFramebuffer> fb)
-    : texture(std::move(tex)), framebuffer(std::move(fb))
-{
-}
-
-TextureCacheBase::TCacheEntry::~TCacheEntry()
-{
-  for (auto& reference : references)
-    reference->references.erase(this);
-}
 
 void TextureCacheBase::CheckTempSize(size_t required_size)
 {
@@ -240,17 +227,6 @@ void TextureCacheBase::Cleanup(int _frameCount)
   }
 }
 
-bool TextureCacheBase::TCacheEntry::OverlapsMemoryRange(u32 range_address, u32 range_size) const
-{
-  if (addr + size_in_bytes <= range_address)
-    return false;
-
-  if (addr >= range_address + range_size)
-    return false;
-
-  return true;
-}
-
 void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 {
   backup_config.color_samples = config.iSafeTextureCache_ColorSamples;
@@ -385,8 +361,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEn
   return reinterpreted_entry;
 }
 
-void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntry* entry, u32 new_width,
-                                                u32 new_height)
+void TextureCacheBase::ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height)
 {
   if (entry->GetWidth() == new_width && entry->GetHeight() == new_height)
   {
@@ -746,30 +721,6 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     if (entry)
       entry->textures_by_hash_iter = textures_by_hash.emplace(hash, entry);
   }
-}
-
-void TextureCacheBase::TCacheEntry::DoState(PointerWrap& p)
-{
-  p.Do(addr);
-  p.Do(size_in_bytes);
-  p.Do(base_hash);
-  p.Do(hash);
-  p.Do(format);
-  p.Do(memory_stride);
-  p.Do(is_efb_copy);
-  p.Do(is_custom_tex);
-  p.Do(may_have_overlapping_textures);
-  p.Do(tmem_only);
-  p.Do(has_arbitrary_mips);
-  p.Do(should_force_safe_hashing);
-  p.Do(is_xfb_copy);
-  p.Do(is_xfb_container);
-  p.Do(id);
-  p.Do(reference_changed);
-  p.Do(native_width);
-  p.Do(native_height);
-  p.Do(native_levels);
-  p.Do(frameCount);
 }
 
 TextureCacheBase::TCacheEntry*
@@ -1272,7 +1223,8 @@ TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
   u64 base_hash = TEXHASH_INVALID;
   u64 full_hash = TEXHASH_INVALID;
 
-  TextureAndTLUTFormat full_format(texture_info.GetTextureFormat(), texture_info.GetTlutFormat());
+  VideoCommon::TextureCache::TextureAndTLUTFormat full_format(texture_info.GetTextureFormat(),
+                                                              texture_info.GetTlutFormat());
 
   // Reject invalid tlut format.
   if (texture_info.GetPaletteSize() && !IsValidTLUTFormat(texture_info.GetTlutFormat()))
@@ -1748,8 +1700,9 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
 
   // Compute total texture size. XFB textures aren't tiled, so this is simple.
   const u32 total_size = height * stride;
-  entry->SetGeneralParameters(address, total_size,
-                              TextureAndTLUTFormat(TextureFormat::XFB, TLUTFormat::IA8), true);
+  entry->SetGeneralParameters(
+      address, total_size,
+      VideoCommon::TextureCache::TextureAndTLUTFormat(TextureFormat::XFB, TLUTFormat::IA8), true);
   entry->SetDimensions(width, height, 1);
   entry->SetXfbCopy(stride);
 
@@ -2409,8 +2362,9 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
                     entry->memory_stride, std::move(entry->pending_efb_copy));
 
   // If the EFB copy was invalidated (e.g. the bloom case mentioned in InvalidateTexture), now is
-  // the time to clean up the TCacheEntry. In which case, we don't need to compute the new hash of
-  // the RAM copy. But we need to clean up the TCacheEntry, as InvalidateTexture doesn't free it.
+  // the time to clean up the TCacheEntry. In which case, we don't need to compute the
+  // new hash of the RAM copy. But we need to clean up the TCacheEntry, as
+  // InvalidateTexture doesn't free it.
   if (entry->pending_efb_copy_invalidated)
   {
     delete entry;
@@ -2583,8 +2537,7 @@ TextureCacheBase::FindMatchingTextureFromPool(const TextureConfig& config)
   return matching_iter != range.second ? matching_iter : texture_pool.end();
 }
 
-TextureCacheBase::TexAddrCache::iterator
-TextureCacheBase::GetTexCacheIter(TextureCacheBase::TCacheEntry* entry)
+TextureCacheBase::TexAddrCache::iterator TextureCacheBase::GetTexCacheIter(TCacheEntry* entry)
 {
   auto iter_range = textures_by_address.equal_range(entry->addr);
   TexAddrCache::iterator iter = iter_range.first;
@@ -2934,109 +2887,6 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
                                            dst_level);
   entry->texture->FinishedRendering();
   return true;
-}
-
-u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
-{
-  // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
-
-  return NumBlocksX() * bytes_per_block;
-}
-
-u32 TextureCacheBase::TCacheEntry::NumBlocksX() const
-{
-  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
-
-  // Round up source height to multiple of block size
-  const u32 actualWidth = Common::AlignUp(native_width, blockW);
-
-  return actualWidth / blockW;
-}
-
-u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
-{
-  u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
-  // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(native_height, blockH);
-
-  return actualHeight / blockH;
-}
-
-void TextureCacheBase::TCacheEntry::SetXfbCopy(u32 stride)
-{
-  is_efb_copy = false;
-  is_xfb_copy = true;
-  is_xfb_container = false;
-  memory_stride = stride;
-
-  ASSERT_MSG(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
-
-  size_in_bytes = memory_stride * NumBlocksY();
-}
-
-void TextureCacheBase::TCacheEntry::SetEfbCopy(u32 stride)
-{
-  is_efb_copy = true;
-  is_xfb_copy = false;
-  is_xfb_container = false;
-  memory_stride = stride;
-
-  ASSERT_MSG(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
-
-  size_in_bytes = memory_stride * NumBlocksY();
-}
-
-void TextureCacheBase::TCacheEntry::SetNotCopy()
-{
-  is_efb_copy = false;
-  is_xfb_copy = false;
-  is_xfb_container = false;
-}
-
-int TextureCacheBase::TCacheEntry::HashSampleSize() const
-{
-  if (should_force_safe_hashing)
-  {
-    return 0;
-  }
-
-  return g_ActiveConfig.iSafeTextureCache_ColorSamples;
-}
-
-u64 TextureCacheBase::TCacheEntry::CalculateHash() const
-{
-  const u32 bytes_per_row = BytesPerRow();
-  const u32 hash_sample_size = HashSampleSize();
-
-  // FIXME: textures from tmem won't get the correct hash.
-  u8* ptr = Memory::GetPointer(addr);
-  if (memory_stride == bytes_per_row)
-  {
-    return Common::GetHash64(ptr, size_in_bytes, hash_sample_size);
-  }
-  else
-  {
-    const u32 num_blocks_y = NumBlocksY();
-    u64 temp_hash = size_in_bytes;
-
-    u32 samples_per_row = 0;
-    if (hash_sample_size != 0)
-    {
-      // Hash at least 4 samples per row to avoid hashing in a bad pattern, like just on the left
-      // side of the efb copy
-      samples_per_row = std::max(hash_sample_size / num_blocks_y, 4u);
-    }
-
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
-      // canceling each other out
-      temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, bytes_per_row, samples_per_row);
-      ptr += memory_stride;
-    }
-    return temp_hash;
-  }
 }
 
 TextureCacheBase::TexPoolEntry::TexPoolEntry(std::unique_ptr<AbstractTexture> tex,
