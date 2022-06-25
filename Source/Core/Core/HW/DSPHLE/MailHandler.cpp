@@ -87,5 +87,7 @@ void CMailHandler::SetHalted(bool halt)
 void CMailHandler::DoState(PointerWrap& p)
 {
   p.Do(m_pending_mails);
+  p.Do(m_last_mail);
+  p.Do(m_halted);
 }
 }  // namespace DSP::HLE
