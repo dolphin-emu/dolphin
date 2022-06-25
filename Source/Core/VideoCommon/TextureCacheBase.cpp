@@ -2225,15 +2225,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     }
     else
     {
-      // Hack: Most games don't actually need the correct texture data in RAM
-      //       and we can just keep a copy in VRAM. We zero the memory so we
-      //       can check it hasn't changed before using our copy in VRAM.
-      u8* ptr = dst;
-      for (u32 i = 0; i < num_blocks_y; i++)
-      {
-        std::memset(ptr, 0, bytes_per_row);
-        ptr += dstStride;
-      }
+      UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
     }
   }
 
@@ -2401,6 +2393,20 @@ std::unique_ptr<AbstractStagingTexture> TextureCacheBase::GetEFBCopyStagingTextu
 void TextureCacheBase::ReleaseEFBCopyStagingTexture(std::unique_ptr<AbstractStagingTexture> tex)
 {
   m_efb_copy_staging_texture_pool.push_back(std::move(tex));
+}
+
+void TextureCacheBase::UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row,
+                                             u32 num_blocks_y)
+{
+  // Hack: Most games don't actually need the correct texture data in RAM
+  //       and we can just keep a copy in VRAM. We zero the memory so we
+  //       can check it hasn't changed before using our copy in VRAM.
+  u8* ptr = dst;
+  for (u32 i = 0; i < num_blocks_y; i++)
+  {
+    std::memset(ptr, 0, bytes_per_row);
+    ptr += stride;
+  }
 }
 
 void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row,

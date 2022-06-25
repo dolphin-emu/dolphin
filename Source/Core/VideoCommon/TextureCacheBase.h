@@ -331,6 +331,7 @@ private:
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter,
                                            bool discard_pending_efb_copy = false);
 
+  void UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
   void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
 
   // Precomputing the coefficients for the previous, current, and next lines for the copy filter.
