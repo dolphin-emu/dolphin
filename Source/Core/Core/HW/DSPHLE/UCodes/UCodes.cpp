@@ -20,6 +20,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/UCodes/ASnd.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 #include "Core/HW/DSPHLE/UCodes/CARD.h"
@@ -281,6 +282,13 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0x7699af32:  // Wii Startup Menu
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: Wii - AXWii chosen", crc);
     return std::make_unique<AXWiiUCode>(dsphle, crc);
+
+  case 0x8d69a19b:
+  case 0xcc2fd441:
+  case 0xa81582e2:
+  case 0xdbbeeb61:
+    INFO_LOG_FMT(DSPHLE, "CRC {:08x}: ASnd chosen (Homebrew)", crc);
+    return std::make_unique<ASndUCode>(dsphle, crc);
 
   default:
     if (wii)
