@@ -20,6 +20,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -470,26 +471,14 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   DeclareAsCPUThread();
   s_frame_step = false;
 
-  // The frontend will likely have initialized the controller interface, as it needs
-  // it to provide the configuration dialogs. In this case, instead of re-initializing
-  // entirely, we switch the window used for inputs to the render window. This way, the
-  // cursor position is relative to the render window, instead of the main window.
-  bool init_controllers = false;
-  if (!g_controller_interface.IsInit())
-  {
-    g_controller_interface.Initialize(wsi);
-    Pad::Initialize();
-    Pad::InitializeGBA();
-    Keyboard::Initialize();
-    init_controllers = true;
-  }
-  else
-  {
-    g_controller_interface.ChangeWindow(wsi.render_window);
-    Pad::LoadConfig();
-    Pad::LoadGBAConfig();
-    Keyboard::LoadConfig();
-  }
+  // Switch the window used for inputs to the render window. This way, the cursor position
+  // is relative to the render window, instead of the main window.
+  ASSERT(g_controller_interface.IsInit());
+  g_controller_interface.ChangeWindow(wsi.render_window);
+
+  Pad::LoadConfig();
+  Pad::LoadGBAConfig();
+  Keyboard::LoadConfig();
 
   BootSessionData boot_session_data = std::move(boot->boot_session_data);
   const std::optional<std::string>& savestate_path = boot_session_data.GetSavestatePath();
@@ -506,53 +495,16 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       Common::SyncSDImageToSDFolder();
   }};
 
-  // Load and Init Wiimotes - only if we are booting in Wii mode
-  bool init_wiimotes = false;
+  // Load Wiimotes - only if we are booting in Wii mode
   if (core_parameter.bWii && !Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED))
   {
-    if (init_controllers)
-    {
-      Wiimote::Initialize(savestate_path ? Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
-                                           Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-      init_wiimotes = true;
-    }
-    else
-    {
-      Wiimote::LoadConfig();
-    }
+    Wiimote::LoadConfig();
 
     if (NetPlay::IsNetPlayRunning())
       NetPlay::SetupWiimotes();
   }
 
-  if (init_controllers)
-  {
-    FreeLook::Initialize();
-  }
-  else
-  {
-    FreeLook::LoadInputConfig();
-  }
-
-  Common::ScopeGuard controller_guard{[init_controllers, init_wiimotes] {
-    if (!init_controllers)
-      return;
-
-    if (init_wiimotes)
-    {
-      Wiimote::ResetAllWiimotes();
-      Wiimote::Shutdown();
-    }
-
-    FreeLook::Shutdown();
-
-    ResetRumble();
-
-    Keyboard::Shutdown();
-    Pad::Shutdown();
-    Pad::ShutdownGBA();
-    g_controller_interface.Shutdown();
-  }};
+  FreeLook::LoadInputConfig();
 
   Movie::Init(*boot);
   Common::ScopeGuard movie_guard{&Movie::Shutdown};
