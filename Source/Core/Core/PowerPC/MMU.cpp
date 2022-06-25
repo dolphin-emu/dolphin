@@ -145,7 +145,7 @@ static void EFB_Write(u32 data, u32 addr)
 }
 
 template <XCheckTLBFlag flag, std::unsigned_integral T, bool never_translate>
-T MMU::ReadFromHardware(u32 em_address)
+T MMU::ReadFromHardware(u32 effective_address)
 {
   // ReadFromHardware is currently used with XCheckTLBFlag::OpcodeNoException by host instruction
   // functions. Actual instruction decoding (which can raise exceptions and uses icache) is handled
@@ -153,9 +153,9 @@ T MMU::ReadFromHardware(u32 em_address)
   static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Read ||
                 flag == XCheckTLBFlag::OpcodeNoException);
 
-  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
-  const u32 em_address_end_page = (em_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
-  if (em_address_start_page != em_address_end_page)
+  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
+  const u32 effective_end_page = (effective_address + sizeof(T) - 1) & ~HW_PAGE_MASK;
+  if (effective_start_page != effective_end_page)
   {
     // This could be unaligned down to the byte level... hopefully this is rare, so doing it this
     // way isn't too terrible.
@@ -164,82 +164,88 @@ T MMU::ReadFromHardware(u32 em_address)
     T var = 0;
     for (u32 i = 0; i < sizeof(T); ++i)
     {
-      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(em_address + i);
+      var = (var << 8) | ReadFromHardware<flag, u8, never_translate>(effective_address + i);
     }
     return var;
   }
 
-  bool wi = false;
+  u32 physical_address;
+  bool wi;
 
   if (!never_translate &&
       (IsOpcodeFlag(flag) ? m_ppc_state.msr.IR.Value() : m_ppc_state.msr.DR.Value()))
   {
-    auto translated_addr = TranslateAddress<flag>(em_address);
+    auto translated_addr = TranslateAddress<flag>(effective_address);
     if (!translated_addr.Success())
     {
       if (flag == XCheckTLBFlag::Read)
-        GenerateDSIException(em_address, false);
+        GenerateDSIException(effective_address, false);
       return 0;
     }
-    em_address = translated_addr.address;
+    physical_address = translated_addr.address;
     wi = translated_addr.wi;
   }
-
-  if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
+  else
   {
-    if (em_address < 0x0c000000)
+    physical_address = effective_address;
+    wi = false;
+  }
+
+  if (flag == XCheckTLBFlag::Read && (physical_address & 0xF8000000) == 0x08000000)
+  {
+    if (physical_address < 0x0c000000)
     {
-      return EFB_Read(em_address);
+      return EFB_Read(physical_address);
     }
     else
     {
       return static_cast<T>(
-          m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, em_address));
+          m_memory.GetMMIOMapping()->Read<std::make_unsigned_t<T>>(m_system, physical_address));
     }
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (m_memory.GetL1Cache() && (em_address >> 28) == 0xE &&
-      (em_address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && (physical_address >> 28) == 0xE &&
+      (physical_address < (0xE0000000 + m_memory.GetL1CacheSize())))
   {
     T value;
-    std::memcpy(&value, &m_memory.GetL1Cache()[em_address & 0x0FFFFFFF], sizeof(T));
+    std::memcpy(&value, &m_memory.GetL1Cache()[physical_address & 0x0FFFFFFF], sizeof(T));
     return bswap(value);
   }
 
-  if (m_memory.GetRAM() && (em_address & 0xF8000000) == 0x00000000)
+  if (m_memory.GetRAM() && (physical_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     T value;
-    em_address &= m_memory.GetRamMask();
+    physical_address &= m_memory.GetRamMask();
 
     if (!m_ppc_state.m_enable_dcache || wi)
     {
-      std::memcpy(&value, &m_memory.GetRAM()[em_address], sizeof(T));
+      std::memcpy(&value, &m_memory.GetRAM()[physical_address], sizeof(T));
     }
     else
     {
-      m_ppc_state.dCache.Read(m_memory, em_address, &value, sizeof(T),
+      m_ppc_state.dCache.Read(m_memory, physical_address, &value, sizeof(T),
                               HID0(m_ppc_state).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
     return bswap(value);
   }
 
-  if (m_memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
+  if (m_memory.GetEXRAM() && (physical_address >> 28) == 0x1 &&
+      (physical_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
   {
     T value;
-    em_address &= 0x0FFFFFFF;
+    physical_address &= 0x0FFFFFFF;
 
     if (!m_ppc_state.m_enable_dcache || wi)
     {
-      std::memcpy(&value, &m_memory.GetEXRAM()[em_address], sizeof(T));
+      std::memcpy(&value, &m_memory.GetEXRAM()[physical_address], sizeof(T));
     }
     else
     {
-      m_ppc_state.dCache.Read(m_memory, em_address + 0x10000000, &value, sizeof(T),
+      m_ppc_state.dCache.Read(m_memory, physical_address + 0x10000000, &value, sizeof(T),
                               HID0(m_ppc_state).DLOCK || flag != XCheckTLBFlag::Read);
     }
 
@@ -249,15 +255,15 @@ T MMU::ReadFromHardware(u32 em_address)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (m_memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && ((physical_address & 0xFE000000) == 0x7E000000))
   {
     T value;
-    std::memcpy(&value, &m_memory.GetFakeVMEM()[em_address & m_memory.GetFakeVMemMask()],
+    std::memcpy(&value, &m_memory.GetFakeVMEM()[physical_address & m_memory.GetFakeVMemMask()],
                 sizeof(T));
     return bswap(value);
   }
 
-  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", em_address, m_ppc_state.pc);
+  PanicAlertFmt("Unable to resolve read address {:x} PC {:x}", physical_address, m_ppc_state.pc);
   if (m_system.IsPauseOnPanicMode())
   {
     m_system.GetCPU().Break();
@@ -267,40 +273,47 @@ T MMU::ReadFromHardware(u32 em_address)
 }
 
 template <XCheckTLBFlag flag, bool never_translate>
-void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
+void MMU::WriteToHardware(const u32 effective_address, const u32 data, const u32 size)
 {
   static_assert(flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::Write);
 
   DEBUG_ASSERT(size <= 4);
 
-  const u32 em_address_start_page = em_address & ~HW_PAGE_MASK;
-  const u32 em_address_end_page = (em_address + size - 1) & ~HW_PAGE_MASK;
-  if (em_address_start_page != em_address_end_page)
+  const u32 effective_start_page = effective_address & ~HW_PAGE_MASK;
+  const u32 effective_end_page = (effective_address + size - 1) & ~HW_PAGE_MASK;
+  if (effective_start_page != effective_end_page)
   {
     // The write crosses a page boundary. Break it up into two writes.
     // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
     // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-    const u32 first_half_size = em_address_end_page - em_address;
+    const u32 first_half_size = effective_end_page - effective_address;
     const u32 second_half_size = size - first_half_size;
-    WriteToHardware<flag, never_translate>(em_address, std::rotr(data, second_half_size * 8),
+    WriteToHardware<flag, never_translate>(effective_address, std::rotr(data, second_half_size * 8),
                                            first_half_size);
-    WriteToHardware<flag, never_translate>(em_address_end_page, data, second_half_size);
+    WriteToHardware<flag, never_translate>(effective_end_page, data, second_half_size);
     return;
   }
 
-  bool wi = false;
+  u32 physical_address;
+  bool wi;
 
   if (!never_translate && m_ppc_state.msr.DR)
   {
-    auto translated_addr = TranslateAddress<flag>(em_address);
+    auto translated_addr = TranslateAddress<flag>(effective_address);
     if (!translated_addr.Success())
     {
       if (flag == XCheckTLBFlag::Write)
-        GenerateDSIException(em_address, true);
+        GenerateDSIException(effective_address, true);
       return;
     }
-    em_address = translated_addr.address;
+
+    physical_address = translated_addr.address;
     wi = translated_addr.wi;
+  }
+  else
+  {
+    physical_address = effective_address;
+    wi = false;
   }
 
   // Check for a gather pipe write (which are not implemented through the MMIO system).
@@ -314,7 +327,7 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   // writes which do not exactly match the masking behave differently, but Pac-Man World 3's writes
   // happen to behave correctly.
   if (flag == XCheckTLBFlag::Write &&
-      (em_address & 0xFFFFF000) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
+      (physical_address & 0xFFFFF000) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
   {
     switch (size)
     {
@@ -339,31 +352,32 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     }
   }
 
-  if (flag == XCheckTLBFlag::Write && (em_address & 0xF8000000) == 0x08000000)
+  if (flag == XCheckTLBFlag::Write && (physical_address & 0xF8000000) == 0x08000000)
   {
-    if (em_address < 0x0c000000)
+    if (physical_address < 0x0c000000)
     {
-      EFB_Write(data, em_address);
+      EFB_Write(data, physical_address);
       return;
     }
 
     switch (size)
     {
     case 1:
-      m_memory.GetMMIOMapping()->Write<u8>(m_system, em_address, static_cast<u8>(data));
+      m_memory.GetMMIOMapping()->Write<u8>(m_system, physical_address, static_cast<u8>(data));
       return;
     case 2:
-      m_memory.GetMMIOMapping()->Write<u16>(m_system, em_address, static_cast<u16>(data));
+      m_memory.GetMMIOMapping()->Write<u16>(m_system, physical_address, static_cast<u16>(data));
       return;
     case 4:
-      m_memory.GetMMIOMapping()->Write<u32>(m_system, em_address, data);
+      m_memory.GetMMIOMapping()->Write<u32>(m_system, physical_address, data);
       return;
     default:
       // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
-      for (size_t i = size * 8; i > 0; em_address++)
+      for (size_t i = size * 8; i > 0; physical_address++)
       {
         i -= 8;
-        m_memory.GetMMIOMapping()->Write<u8>(m_system, em_address, static_cast<u8>(data >> i));
+        m_memory.GetMMIOMapping()->Write<u8>(m_system, physical_address,
+                                             static_cast<u8>(data >> i));
       }
       return;
     }
@@ -372,14 +386,14 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   const u32 swapped_data = Common::swap32(std::rotr(data, size * 8));
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if (m_memory.GetL1Cache() && (em_address >> 28 == 0xE) &&
-      (em_address < (0xE0000000 + m_memory.GetL1CacheSize())))
+  if (m_memory.GetL1Cache() && (physical_address >> 28 == 0xE) &&
+      (physical_address < (0xE0000000 + m_memory.GetL1CacheSize())))
   {
-    std::memcpy(&m_memory.GetL1Cache()[em_address & 0x0FFFFFFF], &swapped_data, size);
+    std::memcpy(&m_memory.GetL1Cache()[physical_address & 0x0FFFFFFF], &swapped_data, size);
     return;
   }
 
-  if (wi && (size < 4 || (em_address & 0x3)))
+  if (wi && (size < 4 || (physical_address & 0x3)))
   {
     // When a write to memory is performed in hardware, 64 bits of data are sent to the memory
     // controller along with a mask. This mask is encoded using just two bits of data - one for
@@ -392,10 +406,10 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     //       (https://github.com/dolphin-emu/hwtests/pull/42)
     m_system.GetProcessorInterface().SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
 
-    const u32 rotated_data = std::rotr(data, ((em_address & 0x3) + size) * 8);
+    const u32 rotated_data = std::rotr(data, ((physical_address & 0x3) + size) * 8);
 
-    const u32 start_addr = Common::AlignDown(em_address, 8);
-    const u32 end_addr = Common::AlignUp(em_address + size, 8);
+    const u32 start_addr = Common::AlignDown(physical_address, 8);
+    const u32 end_addr = Common::AlignUp(physical_address + size, 8);
     for (u32 addr = start_addr; addr != end_addr; addr += 8)
     {
       WriteToHardware<flag, true>(addr, rotated_data, 4);
@@ -405,34 +419,37 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
     return;
   }
 
-  if (m_memory.GetRAM() && (em_address & 0xF8000000) == 0x00000000)
+  if (m_memory.GetRAM() && (physical_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    em_address &= m_memory.GetRamMask();
-
-    if (m_ppc_state.m_enable_dcache && !wi)
-      m_ppc_state.dCache.Write(m_memory, em_address, &swapped_data, size, HID0(m_ppc_state).DLOCK);
-
-    if (!m_ppc_state.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
-      std::memcpy(&m_memory.GetRAM()[em_address], &swapped_data, size);
-
-    return;
-  }
-
-  if (m_memory.GetEXRAM() && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
-  {
-    em_address &= 0x0FFFFFFF;
+    physical_address &= m_memory.GetRamMask();
 
     if (m_ppc_state.m_enable_dcache && !wi)
     {
-      m_ppc_state.dCache.Write(m_memory, em_address + 0x10000000, &swapped_data, size,
+      m_ppc_state.dCache.Write(m_memory, physical_address, &swapped_data, size,
                                HID0(m_ppc_state).DLOCK);
     }
 
     if (!m_ppc_state.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
-      std::memcpy(&m_memory.GetEXRAM()[em_address], &swapped_data, size);
+      std::memcpy(&m_memory.GetRAM()[physical_address], &swapped_data, size);
+
+    return;
+  }
+
+  if (m_memory.GetEXRAM() && (physical_address >> 28) == 0x1 &&
+      (physical_address & 0x0FFFFFFF) < m_memory.GetExRamSizeReal())
+  {
+    physical_address &= 0x0FFFFFFF;
+
+    if (m_ppc_state.m_enable_dcache && !wi)
+    {
+      m_ppc_state.dCache.Write(m_memory, physical_address + 0x10000000, &swapped_data, size,
+                               HID0(m_ppc_state).DLOCK);
+    }
+
+    if (!m_ppc_state.m_enable_dcache || wi || flag != XCheckTLBFlag::Write)
+      std::memcpy(&m_memory.GetEXRAM()[physical_address], &swapped_data, size);
 
     return;
   }
@@ -440,14 +457,14 @@ void MMU::WriteToHardware(u32 em_address, const u32 data, const u32 size)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (m_memory.GetFakeVMEM() && ((em_address & 0xFE000000) == 0x7E000000))
+  if (m_memory.GetFakeVMEM() && ((physical_address & 0xFE000000) == 0x7E000000))
   {
-    std::memcpy(&m_memory.GetFakeVMEM()[em_address & m_memory.GetFakeVMemMask()], &swapped_data,
-                size);
+    std::memcpy(&m_memory.GetFakeVMEM()[physical_address & m_memory.GetFakeVMemMask()],
+                &swapped_data, size);
     return;
   }
 
-  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", em_address, m_ppc_state.pc);
+  PanicAlertFmt("Unable to resolve write address {:x} PC {:x}", effective_address, m_ppc_state.pc);
   if (m_system.IsPauseOnPanicMode())
   {
     m_system.GetCPU().Break();
