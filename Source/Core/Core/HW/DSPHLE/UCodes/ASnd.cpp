@@ -55,7 +55,7 @@ constexpr u32 FLAGS_SAMPLE_FORMAT_BYTES_SHIFT = 16;
 // November 14, 2008 version (padded to 0x05a0 bytes) - initial release
 // https://github.com/devkitPro/libogc/compare/c76d8b851fafc11b0a5debc0b40842929d5a5825~...353a44f038e75e5982eb550173ec8127ab35e3e3
 constexpr u32 HASH_2008 = 0x8d69a19b;
-// February 5, 2009 version (0x05ac bytes) - added MAIL_TERMINATE
+// February 5, 2009 version (padded to 0x05c0 bytes) - added MAIL_TERMINATE
 // https://github.com/devkitPro/libogc/compare/1925217ffb4c97cbee5cf21fa3c0231029b340e2~...3b1f018dbe372859a43bff8560e2525f6efa4433
 constexpr u32 HASH_2009 = 0xcc2fd441;
 // June 11, 2011 version (padded to 0x0620 bytes) - added new sample formats, which shifted flags
