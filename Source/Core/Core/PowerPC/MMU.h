@@ -306,9 +306,9 @@ private:
   void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr);
 
   template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-  T ReadFromHardware(u32 em_address);
+  T ReadFromHardware(u32 effective_address);
   template <XCheckTLBFlag flag, bool never_translate = false>
-  void WriteToHardware(u32 em_address, const u32 data, const u32 size);
+  void WriteToHardware(u32 effective_address, u32 data, u32 size);
   template <XCheckTLBFlag flag>
   bool IsRAMAddress(u32 address, bool translate);
 
