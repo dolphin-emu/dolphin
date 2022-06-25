@@ -87,7 +87,7 @@ void ASndUCode::Initialize()
 void ASndUCode::Update()
 {
   // This is dubious in general, since we set the interrupt parameter on m_mail_handler.PushMail
-  if (!m_mail_handler.IsEmpty())
+  if (m_mail_handler.HasPending())
   {
     DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
   }
