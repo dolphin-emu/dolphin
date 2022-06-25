@@ -28,6 +28,7 @@ bool DSPHLE::Initialize(bool wii, bool dsp_thread)
   m_dsp_control.Hex = 0;
   m_dsp_control.DSPHalt = 1;
   m_dsp_control.DSPInit = 1;
+  m_mail_handler.SetHalted(m_dsp_control.DSPHalt);
 
   m_dsp_state.Reset();
 
