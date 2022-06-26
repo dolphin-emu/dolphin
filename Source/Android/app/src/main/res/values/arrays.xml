@@ -386,23 +386,6 @@
         <item>2</item>
     </integer-array>
 
-    <string-array name="controllersEntries">
-        <item>@string/controller_gc</item>
-        <item>@string/controller_wiimote</item>
-        <item>@string/controller_horizontal_wiimote</item>
-        <item>@string/controller_wiimote_plus_nunchuk</item>
-        <item>@string/controller_classic</item>
-        <item>@string/controller_none</item>
-    </string-array>
-    <string-array name="controllersValues">
-        <item>None</item>
-        <item>None</item>
-        <item>None</item>
-        <item>Nunchuk</item>
-        <item>Classic</item>
-        <item>None</item>
-    </string-array>
-
     <string-array name="gcpadButtons">
         <item>A</item>
         <item>B</item>

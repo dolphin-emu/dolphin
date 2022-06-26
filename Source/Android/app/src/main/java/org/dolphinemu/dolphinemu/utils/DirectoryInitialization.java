@@ -85,14 +85,6 @@ public final class DirectoryInitialization
 
     checkThemeSettings(context);
 
-    // TODO: Does doing this still make sense?
-    if (false)
-    {
-      // This has to be done after calling NativeLibrary.Initialize(),
-      // as it relies on the config system
-      EmulationActivity.updateWiimoteNewIniPreferences(context);
-    }
-
     directoryState.postValue(DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED);
   }
 

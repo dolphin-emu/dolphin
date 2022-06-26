@@ -33,6 +33,10 @@ public enum IntSetting implements AbstractIntSetting
 
   MAIN_AUDIO_VOLUME(Settings.FILE_DOLPHIN, Settings.SECTION_INI_DSP, "Volume", 100),
 
+  MAIN_OVERLAY_GC_CONTROLLER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "OverlayGCController", 0),  // Defaults to GameCube controller 1
+  MAIN_OVERLAY_WII_CONTROLLER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "OverlayWiiController", 4),  // Defaults to Wii Remote 1
   MAIN_CONTROL_SCALE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlScale", 50),
   MAIN_CONTROL_OPACITY(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlOpacity", 65),
   MAIN_EMULATION_ORIENTATION(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
@@ -187,5 +191,17 @@ public enum IntSetting implements AbstractIntSetting
   public void setIntGlobal(int layer, int newValue)
   {
     NativeConfig.setInt(layer, mFile, mSection, mKey, newValue);
+  }
+
+  public static IntSetting getSettingForSIDevice(int channel)
+  {
+    return new IntSetting[]{MAIN_SI_DEVICE_0, MAIN_SI_DEVICE_1, MAIN_SI_DEVICE_2, MAIN_SI_DEVICE_3}
+            [channel];
+  }
+
+  public static IntSetting getSettingForWiimoteSource(int index)
+  {
+    return new IntSetting[]{WIIMOTE_1_SOURCE, WIIMOTE_2_SOURCE, WIIMOTE_3_SOURCE, WIIMOTE_4_SOURCE,
+            WIIMOTE_BB_SOURCE}[index];
   }
 }

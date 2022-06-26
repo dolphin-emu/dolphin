@@ -6,6 +6,8 @@
     <string name="host">app</string>
     <string name="scheme">dolphinemu</string>
 
+    <string name="none">None</string>
+
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
     <string name="controller_2">GameCube Controller 3</string>
@@ -614,7 +616,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="slider_setting_value">%1$d%2$s</string>
     <string name="disc_number">Disc %1$d</string>
     <string name="replug_gc_adapter">GameCube Adapter couldn\'t be opened. Please re-plug the device.</string>
-    <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
+    <string name="disabled_gc_overlay_notice">The selected GameCube controller is set to \"None\"</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
 
     <!-- UI CPU Core selection -->
@@ -757,14 +759,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="wiimote_disabled">Disabled</string>
     <string name="wiimote_emulated">Emulated</string>
     <string name="wiimote_real">Real Wii Remote (DolphinBar required)</string>
-
-    <!-- Controller Types -->
-    <string name="controller_gc">GameCube Controller</string>
-    <string name="controller_wiimote">Wii Remote</string>
-    <string name="controller_horizontal_wiimote">Horizontal Wii Remote</string>
-    <string name="controller_wiimote_plus_nunchuk">Wii Remote + Nunchuk</string>
-    <string name="controller_classic">Classic Controller</string>
-    <string name="controller_none">None</string>
 
     <!-- Gamepad Controls -->
     <string name="gamepad_start">Start</string>

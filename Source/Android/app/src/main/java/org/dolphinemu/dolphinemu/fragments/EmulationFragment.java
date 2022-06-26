@@ -115,7 +115,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       {
         int overlayX = mInputOverlay.getLeft();
         int overlayY = mInputOverlay.getTop();
-        mInputOverlay.setSurfacePosition(new Rect(
+        mInputOverlay.setSurfacePosition(activity.getSettings(), new Rect(
                 surfaceView.getLeft() - overlayX, surfaceView.getTop() - overlayY,
                 surfaceView.getRight() - overlayX, surfaceView.getBottom() - overlayY));
       });
@@ -135,7 +135,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     super.onResume();
 
     if (mInputOverlay != null && NativeLibrary.IsGameMetadataValid())
-      mInputOverlay.refreshControls();
+      mInputOverlay.refreshControls(activity.getSettings());
 
     run(activity.isActivityRecreated());
   }
@@ -174,19 +174,19 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
             .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean(settings));
 
     if (mInputOverlay != null)
-      mInputOverlay.refreshControls();
+      mInputOverlay.refreshControls(settings);
   }
 
-  public void initInputPointer()
+  public void initInputPointer(Settings settings)
   {
     if (mInputOverlay != null)
-      mInputOverlay.initTouchPointer();
+      mInputOverlay.initTouchPointer(settings);
   }
 
-  public void refreshInputOverlay()
+  public void refreshInputOverlay(Settings settings)
   {
     if (mInputOverlay != null)
-      mInputOverlay.refreshControls();
+      mInputOverlay.refreshControls(settings);
   }
 
   public void refreshOverlayPointer(Settings settings)
@@ -195,10 +195,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       mInputOverlay.refreshOverlayPointer(settings);
   }
 
-  public void resetInputOverlay()
+  public void resetInputOverlay(Settings settings)
   {
     if (mInputOverlay != null)
-      mInputOverlay.resetButtonPlacement();
+      mInputOverlay.resetButtonPlacement(settings);
   }
 
   @Override

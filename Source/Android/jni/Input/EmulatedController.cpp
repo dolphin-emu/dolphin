@@ -17,6 +17,7 @@
 #include "jni/Input/Control.h"
 #include "jni/Input/ControlGroup.h"
 #include "jni/Input/ControlReference.h"
+#include "jni/Input/NumericSetting.h"
 
 ControllerEmu::EmulatedController* EmulatedControllerFromJava(JNIEnv* env, jobject obj)
 {
@@ -144,5 +145,30 @@ Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedContro
   auto* attachments = static_cast<ControllerEmu::Attachments*>(
       Wiimote::GetWiimoteGroup(controller_index, WiimoteEmu::WiimoteGroup::Attachments));
   return EmulatedControllerToJava(env, attachments->GetAttachmentList()[attachment_index].get());
+}
+
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getSelectedWiimoteAttachment(
+    JNIEnv* env, jclass, jint controller_index)
+{
+  auto* attachments = static_cast<ControllerEmu::Attachments*>(
+      Wiimote::GetWiimoteGroup(controller_index, WiimoteEmu::WiimoteGroup::Attachments));
+  return static_cast<jint>(attachments->GetSelectedAttachment());
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_controlleremu_EmulatedController_getSidewaysWiimoteSetting(
+    JNIEnv* env, jclass, jint controller_index)
+{
+  ControllerEmu::ControlGroup* options =
+      Wiimote::GetWiimoteGroup(controller_index, WiimoteEmu::WiimoteGroup::Options);
+
+  for (auto& setting : options->numeric_settings)
+  {
+    if (setting->GetININame() == WiimoteEmu::Wiimote::SIDEWAYS_OPTION)
+      return NumericSettingToJava(env, setting.get());
+  }
+
+  return nullptr;
 }
 }

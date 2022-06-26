@@ -2,7 +2,6 @@
 
 package org.dolphinemu.dolphinemu.activities;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -48,7 +47,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig;
 import org.dolphinemu.dolphinemu.features.skylanders.model.Skylander;
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlot;
@@ -62,10 +60,8 @@ import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.main.ThemeProvider;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.ThemeHelper;
 
-import java.io.File;
 import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.List;
@@ -290,21 +286,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     sIgnoreLaunchRequests = false;
   }
 
-  public static void updateWiimoteNewIniPreferences(Context context)
-  {
-    updateWiimoteNewController(InputOverlay.getConfiguredControllerType(context), context);
-  }
-
-  private static void updateWiimoteNewController(int value, Context context)
-  {
-    File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
-    IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
-    wiimoteNewIni.setString("Wiimote1", "Extension",
-            context.getResources().getStringArray(R.array.controllersValues)[value]);
-    wiimoteNewIni.setBoolean("Wiimote1", "Options/Sideways Wiimote", value == 2);
-    wiimoteNewIni.save(wiimoteNewFile);
-  }
-
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -456,7 +437,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
     setTitle(NativeLibrary.GetCurrentTitleDescription());
 
-    mEmulationFragment.refreshInputOverlay();
+    mEmulationFragment.refreshInputOverlay(mSettings);
   }
 
   @Override
@@ -680,7 +661,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
         adjustScale();
         break;
 
-      // (Wii games only) Change the controller for the input overlay.
+      // Change the controller for the input overlay.
       case MENU_ACTION_CHOOSE_CONTROLLER:
         chooseController();
         break;
@@ -850,9 +831,9 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_toggle_controls);
 
-    int currentController = InputOverlay.getConfiguredControllerType(this);
+    int currentController = InputOverlay.getConfiguredControllerType(mSettings);
 
-    if (!NativeLibrary.IsEmulatingWii() || currentController == InputOverlay.OVERLAY_GAMECUBE)
+    if (currentController == InputOverlay.OVERLAY_GAMECUBE)
     {
       boolean[] gcEnabledButtons = new boolean[11];
       String gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_";
@@ -906,7 +887,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     builder.setNeutralButton(R.string.emulation_toggle_all,
                     (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility(mSettings))
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
-                    mEmulationFragment.refreshInputOverlay())
+                    mEmulationFragment.refreshInputOverlay(mSettings))
             .show();
   }
 
@@ -914,7 +895,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   {
     int currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getInt(mSettings);
 
-    int buttonList = InputOverlay.getConfiguredControllerType(this) ==
+    int buttonList = InputOverlay.getConfiguredControllerType(mSettings) ==
             InputOverlay.OVERLAY_WIIMOTE_CLASSIC ? R.array.doubleTapWithClassic : R.array.doubleTap;
 
     int checkedItem = -1;
@@ -933,7 +914,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                     (DialogInterface dialog, int which) -> IntSetting.MAIN_DOUBLE_TAP_BUTTON.setInt(
                             mSettings, InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)))
             .setPositiveButton(R.string.ok,
-                    (dialogInterface, i) -> mEmulationFragment.initInputPointer())
+                    (dialogInterface, i) -> mEmulationFragment.initInputPointer(mSettings))
             .show();
   }
 
@@ -967,35 +948,72 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
             {
               IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, (int) scaleSlider.getValue());
               IntSetting.MAIN_CONTROL_OPACITY.setInt(mSettings, (int) sliderOpacity.getValue());
-              mEmulationFragment.refreshInputOverlay();
+              mEmulationFragment.refreshInputOverlay(mSettings);
             })
             .setNeutralButton(R.string.default_values, (dialog, which) ->
             {
               IntSetting.MAIN_CONTROL_SCALE.delete(mSettings);
               IntSetting.MAIN_CONTROL_OPACITY.delete(mSettings);
-              mEmulationFragment.refreshInputOverlay();
+              mEmulationFragment.refreshInputOverlay(mSettings);
             })
             .show();
   }
 
+  private void addControllerIfNotNone(List<CharSequence> entries, List<Integer> values,
+          IntSetting controller, int entry, int value)
+  {
+    if (controller.getInt(mSettings) != 0)
+    {
+      entries.add(getString(entry));
+      values.add(value);
+    }
+  }
+
   private void chooseController()
   {
+    ArrayList<CharSequence> entries = new ArrayList<>();
+    ArrayList<Integer> values = new ArrayList<>();
+
+    entries.add(getString(R.string.none));
+    values.add(-1);
+
+    addControllerIfNotNone(entries, values, IntSetting.MAIN_SI_DEVICE_0, R.string.controller_0, 0);
+    addControllerIfNotNone(entries, values, IntSetting.MAIN_SI_DEVICE_1, R.string.controller_1, 1);
+    addControllerIfNotNone(entries, values, IntSetting.MAIN_SI_DEVICE_2, R.string.controller_2, 2);
+    addControllerIfNotNone(entries, values, IntSetting.MAIN_SI_DEVICE_3, R.string.controller_3, 3);
+
+    if (NativeLibrary.IsEmulatingWii())
+    {
+      addControllerIfNotNone(entries, values, IntSetting.WIIMOTE_1_SOURCE, R.string.wiimote_0, 4);
+      addControllerIfNotNone(entries, values, IntSetting.WIIMOTE_2_SOURCE, R.string.wiimote_1, 5);
+      addControllerIfNotNone(entries, values, IntSetting.WIIMOTE_3_SOURCE, R.string.wiimote_2, 6);
+      addControllerIfNotNone(entries, values, IntSetting.WIIMOTE_4_SOURCE, R.string.wiimote_3, 7);
+    }
+
+    IntSetting controllerSetting = NativeLibrary.IsEmulatingWii() ?
+            IntSetting.MAIN_OVERLAY_WII_CONTROLLER : IntSetting.MAIN_OVERLAY_GC_CONTROLLER;
+    int currentValue = controllerSetting.getInt(mSettings);
+
+    int checkedItem = -1;
+    for (int i = 0; i < values.size(); i++)
+    {
+      if (values.get(i) == currentValue)
+      {
+        checkedItem = i;
+        break;
+      }
+    }
+
     final SharedPreferences.Editor editor = mPreferences.edit();
     new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_choose_controller)
-            .setSingleChoiceItems(R.array.controllersEntries,
-                    InputOverlay.getConfiguredControllerType(this),
+            .setSingleChoiceItems(entries.toArray(new CharSequence[]{}), checkedItem,
                     (dialog, indexSelected) ->
-                    {
-                      editor.putInt("wiiController", indexSelected);
-
-                      updateWiimoteNewController(indexSelected, this);
-                      NativeLibrary.ReloadWiimoteConfig();
-                    })
+                            controllerSetting.setInt(mSettings, values.get(indexSelected)))
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
             {
               editor.apply();
-              mEmulationFragment.refreshInputOverlay();
+              mEmulationFragment.refreshInputOverlay(mSettings);
             })
             .show();
   }
@@ -1045,7 +1063,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     new MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.emulation_touch_overlay_reset))
             .setPositiveButton(R.string.yes,
-                    (dialogInterface, i) -> mEmulationFragment.resetInputOverlay())
+                    (dialogInterface, i) -> mEmulationFragment.resetInputOverlay(mSettings))
             .setNegativeButton(R.string.cancel, null)
             .show();
   }
@@ -1140,7 +1158,7 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
 
   public void initInputPointer()
   {
-    mEmulationFragment.initInputPointer();
+    mEmulationFragment.initInputPointer(mSettings);
   }
 
   @Override

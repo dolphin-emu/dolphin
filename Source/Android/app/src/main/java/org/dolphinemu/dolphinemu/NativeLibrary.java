@@ -404,8 +404,6 @@ public final class NativeLibrary
    */
   public static native void RefreshWiimotes();
 
-  public static native void ReloadWiimoteConfig();
-
   public static native LinkedHashMap<String, String> GetLogTypeNames();
 
   public static native void ReloadLoggerConfig();

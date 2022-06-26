@@ -45,4 +45,8 @@ public class EmulatedController
 
   public static native EmulatedController getWiimoteAttachment(int controllerIndex,
           int attachmentIndex);
+
+  public static native int getSelectedWiimoteAttachment(int controllerIndex);
+
+  public static native NumericSetting getSidewaysWiimoteSetting(int controllerIndex);
 }

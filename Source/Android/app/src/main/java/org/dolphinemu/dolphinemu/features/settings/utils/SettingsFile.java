@@ -20,8 +20,6 @@ public final class SettingsFile
   public static final String KEY_ISO_PATH_BASE = "ISOPath";
   public static final String KEY_ISO_PATHS = "ISOPaths";
 
-  public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
-
   private static BiMap<String, String> sectionsMap = new BiMap<>();
 
   static

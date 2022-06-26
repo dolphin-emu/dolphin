@@ -299,11 +299,10 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   // Note: "Upright" and "Sideways" options can be enabled at the same time which produces an
   // orientation where the wiimote points towards the left with the buttons towards you.
   m_options->AddSetting(&m_upright_setting,
-                        {"Upright Wiimote", nullptr, nullptr, _trans("Upright Wii Remote")}, false);
+                        {UPRIGHT_OPTION, nullptr, nullptr, _trans("Upright Wii Remote")}, false);
 
   m_options->AddSetting(&m_sideways_setting,
-                        {"Sideways Wiimote", nullptr, nullptr, _trans("Sideways Wii Remote")},
-                        false);
+                        {SIDEWAYS_OPTION, nullptr, nullptr, _trans("Sideways Wii Remote")}, false);
 
   Reset();
 
