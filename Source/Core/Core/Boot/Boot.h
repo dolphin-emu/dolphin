@@ -160,6 +160,7 @@ private:
   static bool BootNANDTitle(u64 title_id);
 
   static void SetupMSR();
+  static void SetupHID(bool is_wii);
   static void SetupBAT(bool is_wii);
   static bool RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
                            const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);

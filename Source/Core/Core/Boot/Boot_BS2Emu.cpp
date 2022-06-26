@@ -37,6 +37,10 @@
 #include "DiscIO/RiivolutionPatcher.h"
 #include "DiscIO/VolumeDisc.h"
 
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/XFMemory.h"
+
 namespace
 {
 void PresetTimeBaseTicks()
@@ -61,10 +65,44 @@ void CBoot::RunFunction(u32 address)
 
 void CBoot::SetupMSR()
 {
-  MSR.FP = 1;
+  // 0x0002032
+  MSR.RI = 1;
   MSR.DR = 1;
   MSR.IR = 1;
-  MSR.EE = 1;
+  MSR.FP = 1;
+}
+
+void CBoot::SetupHID(bool is_wii)
+{
+  // HID0 is 0x0011c464 on GC, 0x0011c664 on Wii
+  HID0.BHT = 1;
+  HID0.BTIC = 1;
+  HID0.DCFA = 1;
+  if (is_wii)
+    HID0.SPD = 1;
+  HID0.DCFI = 1;
+  HID0.DCE = 1;
+  // Note that Datel titles will fail to boot if the instruction cache is not enabled; see
+  // https://bugs.dolphin-emu.org/issues/8223
+  HID0.ICE = 1;
+  HID0.NHR = 1;
+  HID0.DPM = 1;
+
+  // HID1 is initialized in PowerPC.cpp to 0x80000000
+  // HID2 is 0xe0000000
+  HID2.PSE = 1;
+  HID2.WPE = 1;
+  HID2.LSQE = 1;
+
+  // HID4 is 0 on GC and 0x83900000 on Wii
+  if (is_wii)
+  {
+    HID4.L2CFI = 1;
+    HID4.LPE = 1;
+    HID4.ST0 = 1;
+    HID4.SBE = 1;
+    HID4.reserved_3 = 1;
+  }
 }
 
 void CBoot::SetupBAT(bool is_wii)
@@ -214,9 +252,21 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume,
   INFO_LOG_FMT(BOOT, "Faking GC BS2...");
 
   SetupMSR();
+  SetupHID(/*is_wii*/ false);
   SetupBAT(/*is_wii*/ false);
 
   SetupGCMemory();
+
+  // Datel titles don't initialize the postMatrices, but they have dual-texture coordinate
+  // transformation enabled. We initialize all of xfmem to 0, which results in everything using
+  // a texture coordinate of (0, 0), breaking textures. Normally the IPL will initialize the last
+  // entry to the identity matrix, but the whole point of BS2 EMU is that it skips the IPL, so we
+  // need to do this initialization ourselves.
+  xfmem.postMatrices[0x3d * 4 + 0] = 1.0f;
+  xfmem.postMatrices[0x3e * 4 + 1] = 1.0f;
+  xfmem.postMatrices[0x3f * 4 + 2] = 1.0f;
+  g_vertex_manager->Flush();
+  VertexShaderManager::InvalidateXFRange(XFMEM_POSTMATRICES + 0x3d * 4, XFMEM_POSTMATRICES_END);
 
   DVDReadDiscID(volume, 0x00000000);
 
@@ -500,6 +550,7 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume,
   DVDRead(volume, 0, 0x3180, 4, partition);
 
   SetupMSR();
+  SetupHID(/*is_wii*/ true);
   SetupBAT(/*is_wii*/ true);
 
   Memory::Write_U32(0x4c000064, 0x00000300);  // Write default DSI Handler:   rfi
