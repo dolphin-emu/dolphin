@@ -10,6 +10,7 @@
 #include "Common/BitUtils.h"
 
 #include "VideoBackends/Metal/MTLObjectCache.h"
+#include "VideoBackends/Metal/MTLPerfQuery.h"
 #include "VideoBackends/Metal/MTLPipeline.h"
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
@@ -19,6 +20,8 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
+static constexpr u32 PERF_QUERY_BUFFER_SIZE = 512;
+
 std::unique_ptr<Metal::StateTracker> Metal::g_state_tracker;
 
 struct Metal::StateTracker::Backref
@@ -26,6 +29,14 @@ struct Metal::StateTracker::Backref
   std::mutex mtx;
   StateTracker* state_tracker;
   explicit Backref(StateTracker* state_tracker) : state_tracker(state_tracker) {}
+};
+
+struct Metal::StateTracker::PerfQueryTracker
+{
+  MRCOwned<id<MTLBuffer>> buffer;
+  const u64* contents;
+  std::vector<PerfQueryGroup> groups;
+  u32 query_id;
 };
 
 static NSString* GetName(Metal::StateTracker::UploadBuffer buffer)
@@ -328,8 +339,12 @@ void Metal::StateTracker::BeginRenderPass(MTLLoadAction load_action)
 void Metal::StateTracker::BeginRenderPass(MTLRenderPassDescriptor* descriptor)
 {
   EndRenderPass();
+  if (m_current_perf_query)
+    [descriptor setVisibilityResultBuffer:m_current_perf_query->buffer];
   m_current_render_encoder =
       MRCRetain([GetRenderCmdBuf() renderCommandEncoderWithDescriptor:descriptor]);
+  if (m_current_perf_query)
+    [descriptor setVisibilityResultBuffer:nil];
   if (!g_features.unified_memory)
     [m_current_render_encoder waitForFence:m_fence beforeStages:MTLRenderStageVertex];
   AbstractTexture* attachment = m_current_framebuffer->GetColorAttachment();
@@ -347,6 +362,7 @@ void Metal::StateTracker::BeginRenderPass(MTLRenderPassDescriptor* descriptor)
   m_current.depth_stencil = DepthStencilSelector(false, CompareMode::Always);
   m_current.depth_clip_mode = MTLDepthClipModeClip;
   m_current.cull_mode = MTLCullModeNone;
+  m_current.perf_query_group = static_cast<PerfQueryGroup>(-1);
   m_flags.NewEncoder();
   m_dirty_samplers = 0xff;
   m_dirty_textures = 0xff;
@@ -411,15 +427,23 @@ void Metal::StateTracker::FlushEncoders()
     m_texture_upload_cmdbuf = nullptr;
   }
   [m_current_render_cmdbuf
-    addCompletedHandler:[backref = m_backref, draw = m_current_draw](id<MTLCommandBuffer> buf) {
+    addCompletedHandler:[backref = m_backref, draw = m_current_draw,
+                         q = std::move(m_current_perf_query)](id<MTLCommandBuffer> buf) {
       std::lock_guard<std::mutex> guard(backref->mtx);
       if (StateTracker* tracker = backref->state_tracker)
       {
         // We can do the update non-atomically because we only ever update under the lock
         u64 newval = std::max(draw, tracker->m_last_finished_draw.load(std::memory_order_relaxed));
         tracker->m_last_finished_draw.store(newval, std::memory_order_release);
+        if (q)
+        {
+          if (PerfQuery* query = static_cast<PerfQuery*>(g_perf_query.get()))
+            query->ReturnResults(q->contents, q->groups.data(), q->groups.size(), q->query_id);
+          tracker->m_perf_query_tracker_cache.emplace_back(std::move(q));
+        }
       }
     }];
+  m_current_perf_query = nullptr;
   [m_current_render_cmdbuf commit];
   m_last_render_cmdbuf = std::move(m_current_render_cmdbuf);
   m_current_render_cmdbuf = nullptr;
@@ -603,6 +627,57 @@ void Metal::StateTracker::SetFragmentBufferNow(u32 idx, id<MTLBuffer> buffer, u3
   }
 }
 
+std::shared_ptr<Metal::StateTracker::PerfQueryTracker> Metal::StateTracker::NewPerfQueryTracker()
+{
+  static_cast<PerfQuery*>(g_perf_query.get())->IncCount();
+  // The cache is repopulated asynchronously
+  std::lock_guard<std::mutex> lock(m_backref->mtx);
+  if (m_perf_query_tracker_cache.empty())
+  {
+    // Make a new one
+    @autoreleasepool
+    {
+      std::shared_ptr<PerfQueryTracker> tracker = std::make_shared<PerfQueryTracker>();
+      const MTLResourceOptions options =
+          MTLResourceStorageModeShared | MTLResourceHazardTrackingModeUntracked;
+      id<MTLBuffer> buffer = [g_device newBufferWithLength:PERF_QUERY_BUFFER_SIZE * sizeof(u64)
+                                                   options:options];
+      [buffer setLabel:[NSString stringWithFormat:@"PerfQuery Buffer %d",
+                                                  m_perf_query_tracker_counter++]];
+      tracker->buffer = MRCTransfer(buffer);
+      tracker->contents = static_cast<const u64*>([buffer contents]);
+      return tracker;
+    }
+  }
+  else
+  {
+    // Reuse an old one
+    std::shared_ptr<PerfQueryTracker> tracker = std::move(m_perf_query_tracker_cache.back());
+    m_perf_query_tracker_cache.pop_back();
+    return tracker;
+  }
+}
+
+void Metal::StateTracker::EnablePerfQuery(PerfQueryGroup group, u32 query_id)
+{
+  m_state.perf_query_group = group;
+  if (!m_current_perf_query || m_current_perf_query->query_id != query_id ||
+      m_current_perf_query->groups.size() == PERF_QUERY_BUFFER_SIZE)
+  {
+    if (m_current_render_encoder)
+      EndRenderPass();
+    if (!m_current_perf_query)
+      m_current_perf_query = NewPerfQueryTracker();
+    m_current_perf_query->groups.clear();
+    m_current_perf_query->query_id = query_id;
+  }
+}
+
+void Metal::StateTracker::DisablePerfQuery()
+{
+  m_state.perf_query_group = static_cast<PerfQueryGroup>(-1);
+}
+
 // MARK: Render
 
 // clang-format off
@@ -620,6 +695,9 @@ static NSRange RangeOfBits(u32 value)
 
 void Metal::StateTracker::PrepareRender()
 {
+  // BeginRenderPass needs this
+  if (m_state.perf_query_group != static_cast<PerfQueryGroup>(-1) && !m_current_perf_query)
+    m_current_perf_query = NewPerfQueryTracker();
   if (!m_current_render_encoder)
     BeginRenderPass(MTLLoadActionLoad);
   id<MTLRenderCommandEncoder> enc = m_current_render_encoder;
@@ -709,6 +787,20 @@ void Metal::StateTracker::PrepareRender()
                      lodMinClamps:m_state.sampler_min_lod.data()
                      lodMaxClamps:m_state.sampler_max_lod.data()
                         withRange:range];
+  }
+  if (m_state.perf_query_group != m_current.perf_query_group)
+  {
+    m_current.perf_query_group = m_state.perf_query_group;
+    if (m_state.perf_query_group == static_cast<PerfQueryGroup>(-1))
+    {
+      [enc setVisibilityResultMode:MTLVisibilityResultModeDisabled offset:0];
+    }
+    else
+    {
+      [enc setVisibilityResultMode:MTLVisibilityResultModeCounting
+                            offset:m_current_perf_query->groups.size() * 8];
+      m_current_perf_query->groups.push_back(m_state.perf_query_group);
+    }
   }
   if (is_gx)
   {

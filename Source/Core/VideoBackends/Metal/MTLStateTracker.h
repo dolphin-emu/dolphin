@@ -17,6 +17,7 @@
 #include "VideoBackends/Metal/MTLTexture.h"
 #include "VideoBackends/Metal/MTLUtil.h"
 
+#include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/RenderBase.h"
 
 namespace Metal
@@ -90,6 +91,8 @@ public:
   void SetFragmentBufferNow(u32 idx, id<MTLBuffer> buffer, u32 offset);
   /// Use around utility draws that are commonly used immediately before gx draws to the same buffer
   void EnableEncoderLabel(bool enabled) { m_flags.should_apply_label = enabled; }
+  void EnablePerfQuery(PerfQueryGroup group, u32 query_id);
+  void DisablePerfQuery();
   void UnbindTexture(id<MTLTexture> texture);
 
   void Draw(u32 base_vertex, u32 num_vertices);
@@ -157,8 +160,10 @@ private:
   };
 
   struct Backref;
+  struct PerfQueryTracker;
 
   std::shared_ptr<Backref> m_backref;
+  std::vector<std::shared_ptr<PerfQueryTracker>> m_perf_query_tracker_cache;
   MRCOwned<id<MTLFence>> m_fence;
   MRCOwned<id<MTLCommandBuffer>> m_upload_cmdbuf;
   MRCOwned<id<MTLBlitCommandEncoder>> m_upload_encoder;
@@ -224,7 +229,9 @@ private:
     MTLDepthClipMode depth_clip_mode;
     MTLCullMode cull_mode;
     DepthStencilSelector depth_stencil;
+    PerfQueryGroup perf_query_group;
   } m_current;
+  std::shared_ptr<PerfQueryTracker> m_current_perf_query;
 
   /// Things that represent what we'd *like* to have on the encoder for the next draw
   struct State
@@ -250,8 +257,12 @@ private:
     id<MTLBuffer> texels = nullptr;
     u32 texel_buffer_offset0;
     u32 texel_buffer_offset1;
+    PerfQueryGroup perf_query_group = static_cast<PerfQueryGroup>(-1);
   } m_state;
 
+  u32 m_perf_query_tracker_counter = 0;
+
+  std::shared_ptr<PerfQueryTracker> NewPerfQueryTracker();
   void SetSamplerForce(u32 idx, const SamplerState& sampler);
   void Sync(BufferPair& buffer);
   Map CommitPreallocation(UploadBuffer buffer_idx, size_t actual_amt);
