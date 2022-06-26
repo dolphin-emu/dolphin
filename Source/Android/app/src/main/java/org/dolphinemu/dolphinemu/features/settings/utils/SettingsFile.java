@@ -22,10 +22,6 @@ public final class SettingsFile
 
   public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
 
-  public static final String KEY_WIIBIND_IR_PITCH = "IRTotalPitch";
-  public static final String KEY_WIIBIND_IR_YAW = "IRTotalYaw";
-  public static final String KEY_WIIBIND_IR_VERTICAL_OFFSET = "IRVerticalOffset";
-
   private static BiMap<String, String> sectionsMap = new BiMap<>();
 
   static

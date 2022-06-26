@@ -37,9 +37,6 @@
                 android:id="@+id/menu_emulation_set_ir_mode"
                 android:title="@string/emulation_ir_mode"/>
             <item
-                android:id="@+id/menu_emulation_set_ir_sensitivity"
-                android:title="@string/emulation_ir_sensitivity"/>
-            <item
                 android:id="@+id/menu_emulation_choose_doubletap"
                 android:title="@string/emulation_choose_doubletap"/>
         </menu>

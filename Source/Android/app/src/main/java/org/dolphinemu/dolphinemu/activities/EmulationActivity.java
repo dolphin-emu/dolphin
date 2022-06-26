@@ -39,7 +39,6 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.databinding.ActivityEmulationBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogInputAdjustBinding;
-import org.dolphinemu.dolphinemu.databinding.DialogIrSensitivityBinding;
 import org.dolphinemu.dolphinemu.databinding.DialogSkylandersManagerBinding;
 import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface;
 import org.dolphinemu.dolphinemu.features.input.model.DolphinSensorEventListener;
@@ -124,9 +123,9 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                   MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
                   MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
                   MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_RECENTER, MENU_SET_IR_MODE,
-                  MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
-                  MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION,
-                  MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS, MENU_ACTION_SKYLANDERS})
+                  MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_PAUSE_EMULATION,
+                  MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS,
+                  MENU_ACTION_SKYLANDERS})
   public @interface MenuAction
   {
   }
@@ -159,7 +158,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
   public static final int MENU_SET_IR_RECENTER = 27;
   public static final int MENU_SET_IR_MODE = 28;
-  public static final int MENU_SET_IR_SENSITIVITY = 29;
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 30;
   public static final int MENU_ACTION_PAUSE_EMULATION = 32;
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 33;
@@ -195,8 +193,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
             EmulationActivity.MENU_SET_IR_RECENTER);
     buttonsActionsMap.append(R.id.menu_emulation_set_ir_mode,
             EmulationActivity.MENU_SET_IR_MODE);
-    buttonsActionsMap.append(R.id.menu_emulation_set_ir_sensitivity,
-            EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
   }
@@ -786,10 +782,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
         setIRMode();
         break;
 
-      case MENU_SET_IR_SENSITIVITY:
-        setIRSensitivity();
-        break;
-
       case MENU_ACTION_CHOOSE_DOUBLETAP:
         chooseDoubleTapButton();
         break;
@@ -1018,88 +1010,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                             IntSetting.MAIN_IR_MODE.setInt(mSettings, indexSelected))
             .setPositiveButton(R.string.ok, (dialogInterface, i) ->
                     mEmulationFragment.refreshOverlayPointer(mSettings))
-            .show();
-  }
-
-  private void setIRSensitivity()
-  {
-    // IR settings always get saved per-game since WiimoteNew.ini is wiped upon reinstall.
-    File file = SettingsFile.getCustomGameSettingsFile(NativeLibrary.GetCurrentGameID());
-    IniFile ini = new IniFile(file);
-
-    int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 20);
-
-    DialogIrSensitivityBinding dialogBinding =
-            DialogIrSensitivityBinding.inflate(getLayoutInflater());
-
-    TextView text_slider_value_pitch = dialogBinding.textIrPitch;
-    TextView units = dialogBinding.textIrPitchUnits;
-    Slider slider_pitch = dialogBinding.sliderPitch;
-
-    text_slider_value_pitch.setText(String.valueOf(ir_pitch));
-    units.setText(getString(R.string.pitch));
-    slider_pitch.setValueTo(100);
-    slider_pitch.setValue(ir_pitch);
-    slider_pitch.setStepSize(1);
-    slider_pitch.addOnChangeListener(
-            (slider, progress, fromUser) -> text_slider_value_pitch.setText(
-                    String.valueOf((int) progress)));
-
-    int ir_yaw = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, 25);
-
-    TextView text_slider_value_yaw = dialogBinding.textIrYaw;
-    TextView units_yaw = dialogBinding.textIrYawUnits;
-    Slider seekbar_yaw = dialogBinding.sliderYaw;
-
-    text_slider_value_yaw.setText(String.valueOf(ir_yaw));
-    units_yaw.setText(getString(R.string.yaw));
-    seekbar_yaw.setValueTo(100);
-    seekbar_yaw.setValue(ir_yaw);
-    seekbar_yaw.setStepSize(1);
-    seekbar_yaw.addOnChangeListener((slider, progress, fromUser) -> text_slider_value_yaw.setText(
-            String.valueOf((int) progress)));
-
-    int ir_vertical_offset =
-            ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET, 10);
-
-    TextView text_slider_value_vertical_offset = dialogBinding.textIrVerticalOffset;
-    TextView units_vertical_offset = dialogBinding.textIrVerticalOffsetUnits;
-    Slider seekbar_vertical_offset = dialogBinding.sliderVerticalOffset;
-
-    text_slider_value_vertical_offset.setText(String.valueOf(ir_vertical_offset));
-    units_vertical_offset.setText(getString(R.string.vertical_offset));
-    seekbar_vertical_offset.setValueTo(100);
-    seekbar_vertical_offset.setValue(ir_vertical_offset);
-    seekbar_vertical_offset.setStepSize(1);
-    seekbar_vertical_offset.addOnChangeListener(
-            (slider, progress, fromUser) -> text_slider_value_vertical_offset.setText(
-                    String.valueOf((int) progress)));
-
-    new MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.emulation_ir_sensitivity))
-            .setView(dialogBinding.getRoot())
-            .setPositiveButton(R.string.ok, (dialogInterface, i) ->
-            {
-              ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH,
-                      text_slider_value_pitch.getText().toString());
-              ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW,
-                      text_slider_value_yaw.getText().toString());
-              ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
-                      text_slider_value_vertical_offset.getText().toString());
-              ini.save(file);
-
-              NativeLibrary.ReloadWiimoteConfig();
-            })
-            .setNegativeButton(R.string.cancel, null)
-            .setNeutralButton(R.string.default_values, (dialogInterface, i) ->
-            {
-              ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH);
-              ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW);
-              ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET);
-              ini.save(file);
-
-              NativeLibrary.ReloadWiimoteConfig();
-            })
             .show();
   }
 

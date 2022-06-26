@@ -47,7 +47,6 @@ public class Settings implements Closeable
   public static final String SECTION_STEREOSCOPY = "Stereoscopy";
 
   public static final String SECTION_BINDINGS = "Android";
-  public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
 
   public static final String SECTION_ANALYTICS = "Analytics";

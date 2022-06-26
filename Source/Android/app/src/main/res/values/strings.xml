@@ -610,9 +610,6 @@ It can efficiently compress both junk data and encrypted Wii data.
 
     <!-- Misc -->
     <string name="enabled">Enabled</string>
-    <string name="pitch">Total Pitch</string>
-    <string name="yaw">Total Yaw</string>
-    <string name="vertical_offset">Vertical Offset</string>
     <string name="default_values">Default Values</string>
     <string name="slider_setting_value">%1$d%2$s</string>
     <string name="disc_number">Disc %1$d</string>
