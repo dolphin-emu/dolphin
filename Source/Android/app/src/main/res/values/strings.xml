@@ -578,7 +578,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_ir_mode">IR Mode</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
-    <string name="emulation_motion_controls">Motion Controls</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

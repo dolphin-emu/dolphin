@@ -124,9 +124,9 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
                   MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
                   MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
                   MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_RECENTER, MENU_SET_IR_MODE,
-                  MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP, MENU_ACTION_MOTION_CONTROLS,
-                  MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS,
-                  MENU_ACTION_SETTINGS, MENU_ACTION_SKYLANDERS})
+                  MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
+                  MENU_ACTION_PAUSE_EMULATION, MENU_ACTION_UNPAUSE_EMULATION,
+                  MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS, MENU_ACTION_SKYLANDERS})
   public @interface MenuAction
   {
   }
@@ -161,7 +161,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static final int MENU_SET_IR_MODE = 28;
   public static final int MENU_SET_IR_SENSITIVITY = 29;
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 30;
-  public static final int MENU_ACTION_MOTION_CONTROLS = 31;
   public static final int MENU_ACTION_PAUSE_EMULATION = 32;
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 33;
   public static final int MENU_ACTION_OVERLAY_CONTROLS = 34;
@@ -200,8 +199,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
-    buttonsActionsMap.append(R.id.menu_emulation_motion_controls,
-            EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
 
   public static void launch(FragmentActivity activity, String filePath, boolean riivolution)
@@ -300,7 +297,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
   public static void updateWiimoteNewIniPreferences(Context context)
   {
     updateWiimoteNewController(InputOverlay.getConfiguredControllerType(context), context);
-    updateWiimoteNewImuIr(IntSetting.MAIN_MOTION_CONTROLS.getIntGlobal());
   }
 
   private static void updateWiimoteNewController(int value, Context context)
@@ -310,14 +306,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
     wiimoteNewIni.setString("Wiimote1", "Extension",
             context.getResources().getStringArray(R.array.controllersValues)[value]);
     wiimoteNewIni.setBoolean("Wiimote1", "Options/Sideways Wiimote", value == 2);
-    wiimoteNewIni.save(wiimoteNewFile);
-  }
-
-  private static void updateWiimoteNewImuIr(int value)
-  {
-    File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
-    IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
-    wiimoteNewIni.setBoolean("Wiimote1", "IMUIR/Enabled", value != 1);
     wiimoteNewIni.save(wiimoteNewFile);
   }
 
@@ -806,10 +794,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
         chooseDoubleTapButton();
         break;
 
-      case MENU_ACTION_MOTION_CONTROLS:
-        showMotionControlsOptions();
-        break;
-
       case MENU_ACTION_SETTINGS:
         SettingsActivity.launch(this, MenuTag.SETTINGS);
         break;
@@ -1021,23 +1005,6 @@ public final class EmulationActivity extends AppCompatActivity implements ThemeP
               editor.apply();
               mEmulationFragment.refreshInputOverlay();
             })
-            .show();
-  }
-
-  private void showMotionControlsOptions()
-  {
-    new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.emulation_motion_controls)
-            .setSingleChoiceItems(R.array.motionControlsEntries,
-                    IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings),
-                    (dialog, indexSelected) ->
-                    {
-                      IntSetting.MAIN_MOTION_CONTROLS.setInt(mSettings, indexSelected);
-
-                      updateWiimoteNewImuIr(indexSelected);
-                      NativeLibrary.ReloadWiimoteConfig();
-                    })
-            .setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss())
             .show();
   }
 
