@@ -615,6 +615,13 @@ static bool Unpack(const std::string path, bool is_directory, const char* name,
     if (entry.fname[0] == '\0')
       break;
 
+    if (entry.fname[0] == '?' && entry.fname[1] == '\0' && entry.altname[0] == '\0')
+    {
+      // FATFS indicates entries that have neither a short nor a long filename this way.
+      // These are likely corrupted file entries so just skip them.
+      continue;
+    }
+
     const std::string_view childname = entry.fname;
 
     // Check for path traversal attacks.
