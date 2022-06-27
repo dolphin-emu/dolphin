@@ -99,11 +99,11 @@ void ASndUCode::HandleMail(u32 mail)
   {
     PrepareBootUCode(mail);
   }
-  else if (m_next_command_is_voice_addr)
+  else if (m_next_mail_is_voice_addr)
   {
     m_voice_addr = mail;
     INFO_LOG_FMT(DSPHLE, "ASndUCode - Voice data is at {:08x}", mail);
-    m_next_command_is_voice_addr = false;
+    m_next_mail_is_voice_addr = false;
     // No mail is sent in response
   }
   else if ((mail & TASK_MAIL_MASK) == TASK_MAIL_TO_DSP)
@@ -150,7 +150,7 @@ void ASndUCode::HandleMail(u32 mail)
       break;
     case MAIL_SET_VOICE_DATA_BUFFER:
       DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_SET_VOICE_DATA_BUFFER: {:08x}", mail);
-      m_next_command_is_voice_addr = true;
+      m_next_mail_is_voice_addr = true;
       // No mail is sent in response
       break;
     case MAIL_INPUT_NEXT_SAMPLES:
@@ -559,7 +559,7 @@ std::pair<s16, s16> ASndUCode::ReadSampleStereo16BitsLittleEndian() const
 void ASndUCode::DoState(PointerWrap& p)
 {
   DoStateShared(p);
-  p.Do(m_next_command_is_voice_addr);
+  p.Do(m_next_mail_is_voice_addr);
   p.Do(m_voice_addr);
   p.Do(m_current_voice);
   p.Do(m_input_sample_buffer);

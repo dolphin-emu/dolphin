@@ -81,7 +81,7 @@ private:
   };
   static_assert(sizeof(VoiceData) == sizeof(u16) * 0x20);
 
-  bool m_next_command_is_voice_addr = false;
+  bool m_next_mail_is_voice_addr = false;
   u32 m_voice_addr = 0;
 
   VoiceData m_current_voice{};
