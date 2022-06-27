@@ -3,14 +3,17 @@
 #include <string>
 #include <map>
 #include <Core/NetPlayProto.h>
+#include <Core/NetPlayClient.h>
 
 class Metadata
 {
 public:
   static std::string getJSONString();
-  static void writeJSON(std::string jsonString, bool callBatch = false);
+  static void writeJSON(std::string jsonString, bool callBatch = true);
   static void setMatchMetadata(tm* matchDateTimeParam);
   static void setPlayerName(std::string playerNameParam);
+  static void setPlayerArray(std::vector<const NetPlay::Player*>);
+  static void setNetPlayControllers(NetPlay::PadMappingArray m_pad_map);
   static void setMD5(std::array<u8, 16> md5Param);
 
   // CONSTANTS
@@ -63,5 +66,34 @@ public:
   // note, this is same address for first to 7 so need to know if we're on citrus via hash
   static const u32 addressMatchBowserBool = 0x81534c76;
 
-  //stat for item use
+  //stats for item use
+
+  /*
+  one byte for item type, one byte for item amount, two bytes filler
+  full word (4 bytes) for time
+  80410000 for left team item use (start)
+  80420000 for right team item use (start)
+  80430000 for left team item offset
+  80430004 for left team item flag
+  80430008 for left team item count
+  80430010 for right team item offset
+  80430014 for right team item flag
+  80430018 for right team item count
+  */
+  // left team item
+  static const u32 addressLeftTeamItemStart = 0x80410000;
+  static const u32 addressLeftTeamItemOffset = 0x80430000;
+  static const u32 addressLeftTeamGoalOffset = 0x80430004;
+  static const u32 addressLeftTeamItemCount = 0x80430008;
+
+  // right team item
+  static const u32 addressRightTeamItemStart = 0x80420000;
+  static const u32 addressRightTeamItemOffset = 0x80430010;
+  static const u32 addressRightTeamGoalOffset = 0x80430014;
+  static const u32 addressRightTeamItemCount = 0x80430018;
+
+  // left team goal
+  static const u32 addressLeftTeamGoalStart = 0x80440000;
+  // right team goal
+  static const u32 addressRightTeamGoalStart = 0x80450000;
 };

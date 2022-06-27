@@ -8,17 +8,27 @@
 #include <ShlObj_core.h>
 #include <Core/HW/AddressSpace.h>
 
+struct ItemStruct
+{
+  u8 itemID;
+  u8 itemAmount;
+  float itemTime;
+};
+
 // VARIABLES
 
 static tm* matchDateTime;
 static std::string playerName = "";
+std::vector<const NetPlay::Player*> playerArray;
+static NetPlay::PadMappingArray netplayGCMap;
 
 static u16 controllerPort1;
 static u16 controllerPort2;
 static u16 controllerPort3;
 static u16 controllerPort4;
-static std::map<int, u16> controllerMap;
 static std::vector<int> controllerVector(4);
+static std::vector<std::string> leftTeamPlayerNamesVector;
+static std::vector<std::string> rightTeamPlayerNamesVector;
 
 static u32 leftSideCaptainID;
 static u32 rightSideCaptainID;
@@ -52,11 +62,26 @@ static u8 matchSuperStrikesBool;
 static u8 matchBowserBool;
 static std::array<u8, 16> md5Hash;
 
+// items
+static u32 leftTeamItemOffset;
+static u32 leftTeamItemCount;
+static u32 rightTeamItemOffset;
+static u32 rightTeamItemCount;
+static std::vector<ItemStruct> leftTeamItemVector;
+static std::vector<ItemStruct> rightTeamItemVector;
+
+// goals
+static u32 leftTeamGoalOffset;
+static u32 rightTeamGoalOffset;
+static std::vector<float> leftTeamGoalVector;
+static std::vector<float> rightTeamGoalVector;
+
 // METHODS
 
 std::string Metadata::getJSONString()
 {
-  const AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+  const AddressSpace::Accessors* accessors =
+      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
   char date_string[100];
   char file_name[100];
   strftime(date_string, 50, "%B %d %Y %OH:%OM:%OS", matchDateTime);
@@ -114,18 +139,117 @@ std::string Metadata::getJSONString()
   json_stream << "   }," << std::endl;
 
   json_stream << "  \"Netplay Match\": \"" << NetPlay::IsNetPlayRunning() << "\"," << std::endl;
-  json_stream << "  \"Player Name\": \"" << playerName << "\"," << std::endl;
+
+  json_stream << "  \"Left Team Player Info\": [" << std::endl;
+  for (int i = 0; i < leftTeamPlayerNamesVector.size(); i++)
+  {
+    if (i != leftTeamPlayerNamesVector.size() - 1)
+    {
+      json_stream << "    [" << "\"" + leftTeamPlayerNamesVector.at(i) + "\"" << "]" << "," << std::endl;
+    }
+    else
+    {
+      json_stream << "    [" << "\"" + leftTeamPlayerNamesVector.at(i) + "\"" << "]" << std::endl;
+    }
+  }
+  json_stream << "  ]," << std::endl;
+  json_stream << "  \"Right Team Player Info\": [" << std::endl;
+  for (int i = 0; i < rightTeamPlayerNamesVector.size(); i++)
+  {
+    if (i != rightTeamPlayerNamesVector.size() - 1)
+    {
+      json_stream << "    [" << "\"" + rightTeamPlayerNamesVector.at(i) + "\"" << "]" << "," << std::endl;
+    }
+    else
+    {
+      json_stream << "    [" << "\"" + rightTeamPlayerNamesVector.at(i) + "\"" << "]" << std::endl;
+    }
+  }
+  json_stream << "  ]," << std::endl;
 
   json_stream << "  \"Overtime Not Reached\": \"" << overtimeNotReached << "\"," << std::endl;
+  json_stream << "  \"Match Time Allotted\": \"" << matchTimeAllotted << "\"," << std::endl;
   json_stream << "  \"Match Time Elapsed\": \"" << accessors->ReadF32(addressTimeElapsed) << "\","
               << std::endl;
   json_stream << "  \"Match Difficulty\": \"" << matchDifficulty << "\"," << std::endl;
-  json_stream << "  \"Match Time Allotted\": \"" << matchTimeAllotted << "\"," << std::endl;
   json_stream << "  \"Match Items\": \"" << std::to_string(matchItemsBool) << "\"," << std::endl;
   json_stream << "  \"Match Super Strikes\": \"" << std::to_string(matchSuperStrikesBool) << "\","
               << std::endl;
-  json_stream << "  \"Match Bowser or FTX\": \"" << std::to_string(matchBowserBool) << "\""
+  json_stream << "  \"Match Bowser or FTX\": \"" << std::to_string(matchBowserBool) << "\","
               << std::endl;
+
+  json_stream << "  \"Left Team Item Count\": \"" << leftTeamItemCount << "\"," << std::endl;
+  json_stream << "  \"Left Team Item Info\": [" << std::endl;
+  for (int i = 0; i < leftTeamItemVector.size(); i++)
+  {
+    if (i != leftTeamItemVector.size() - 1)
+    {
+      json_stream << "    [" << std::to_string(leftTeamItemVector.at(i).itemID) << ","
+                  << std::to_string(leftTeamItemVector.at(i).itemAmount) << ","
+                  << leftTeamItemVector.at(i).itemTime << "]"
+                  << "," << std::endl; 
+    }
+    else
+    {
+      json_stream << "    [" << std::to_string(leftTeamItemVector.at(i).itemID) << ","
+                  << std::to_string(leftTeamItemVector.at(i).itemAmount) << ","
+                  << leftTeamItemVector.at(i).itemTime << "]"
+                  << std::endl; 
+    }
+  }
+  // add a comma once we add right team items to line below
+  json_stream << "  ]," << std::endl;
+
+  json_stream << "  \"Right Team Item Count\": \"" << rightTeamItemCount << "\"," << std::endl;
+  json_stream << "  \"Right Team Item Info\": [" << std::endl;
+  for (int i = 0; i < rightTeamItemVector.size(); i++)
+  {
+    if (i != rightTeamItemVector.size() - 1)
+    {
+      json_stream << "    [" << std::to_string(rightTeamItemVector.at(i).itemID) << ","
+                  << std::to_string(rightTeamItemVector.at(i).itemAmount) << ","
+                  << rightTeamItemVector.at(i).itemTime << "]"
+                  << "," << std::endl;
+    }
+    else
+    {
+      json_stream << "    [" << std::to_string(rightTeamItemVector.at(i).itemID) << ","
+                  << std::to_string(rightTeamItemVector.at(i).itemAmount) << ","
+                  << rightTeamItemVector.at(i).itemTime << "]" << std::endl;
+    }
+  }
+  // add a comma below if we add more stats
+  json_stream << "  ]," << std::endl;
+
+  json_stream << "  \"Left Team Goal Info\": [" << std::endl;
+  for (int i = 0; i < leftTeamGoalVector.size(); i++)
+  {
+    if (i != leftTeamGoalVector.size() - 1)
+    {
+      json_stream << "    [" << leftTeamGoalVector.at(i) << "]" << "," << std::endl;
+    }
+    else
+    {
+      json_stream << "    [" << leftTeamGoalVector.at(i) << "]" << std::endl;
+    }
+  }
+  // add a comma once we add right team goals to line below
+  json_stream << "  ]," << std::endl;
+
+  json_stream << "  \"Right Team Goal Info\": [" << std::endl;
+  for (int i = 0; i < rightTeamGoalVector.size(); i++)
+  {
+    if (i != rightTeamGoalVector.size() - 1)
+    {
+      json_stream << "    [" << rightTeamGoalVector.at(i) << "]" << "," << std::endl;
+    }
+    else
+    {
+      json_stream << "    [" << rightTeamGoalVector.at(i) << "]" << std::endl;
+    }
+  }
+  // add a comma below if we add more stats
+  json_stream << "  ]" << std::endl;
 
   json_stream << "}" << std::endl;
 
@@ -200,6 +324,9 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
 
   //set match info vars
 
+  const AddressSpace::Accessors* accessors =
+      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+
   //set controllers
   controllerPort1 = Memory::Read_U16(addressControllerPort1);
   controllerPort2 = Memory::Read_U16(addressControllerPort2);
@@ -240,11 +367,168 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   matchItemsBool = Memory::Read_U8(addressMatchItemsBool);
   matchBowserBool = Memory::Read_U8(addressMatchBowserBool);
   matchSuperStrikesBool = Memory::Read_U8(addressMatchSuperStrikesBool);
+
+  //set item metadata
+  leftTeamItemOffset = Memory::Read_U32(addressLeftTeamItemOffset);
+  leftTeamItemCount = Memory::Read_U32(addressLeftTeamItemCount);
+  rightTeamItemOffset = Memory::Read_U32(addressRightTeamItemOffset);
+  rightTeamItemCount = Memory::Read_U32(addressRightTeamItemCount);
+
+  //set goal metadata
+  leftTeamGoalOffset = Memory::Read_U32(addressLeftTeamGoalOffset);
+  rightTeamGoalOffset = Memory::Read_U32(addressRightTeamGoalOffset);
+
+  if (!leftTeamItemVector.empty())
+  {
+    leftTeamItemVector.clear();
+  }
+
+  for (int i = 0; i < (int) leftTeamItemOffset; i += 8)
+  {
+    // we add i to each one as that is the incremented offset
+    u8 leftTeamItemID = Memory::Read_U8(addressLeftTeamItemStart + i);
+    u8 leftTeamItemAmount = Memory::Read_U8(addressLeftTeamItemStart + i + 1);
+    float leftTeamItemTime = accessors->ReadF32(addressLeftTeamItemStart + i + 4);
+    ItemStruct leftTeamItemStruct = {leftTeamItemID, leftTeamItemAmount, leftTeamItemTime};
+    leftTeamItemVector.push_back(leftTeamItemStruct);
+  }
+
+  if (!rightTeamItemVector.empty())
+  {
+      rightTeamItemVector.clear();
+  }
+
+  for (int i = 0; i < (int)rightTeamItemOffset; i += 8)
+  {
+    // we add i to each one as that is the incremented offset
+    u8 rightTeamItemID = Memory::Read_U8(addressRightTeamItemStart + i);
+    u8 rightTeamItemAmount = Memory::Read_U8(addressRightTeamItemStart + i + 1);
+    float rightTeamItemTime = accessors->ReadF32(addressRightTeamItemStart + i + 4);
+    ItemStruct rightTeamItemStruct = {rightTeamItemID, rightTeamItemAmount, rightTeamItemTime};
+    rightTeamItemVector.push_back(rightTeamItemStruct);
+  }
+
+  if (!leftTeamGoalVector.empty())
+  {
+    leftTeamGoalVector.clear();
+  }
+
+  for (int i = 0; i < (int)leftTeamGoalOffset; i += 4)
+  {
+    // we add i to each one as that is the incremented offset
+    float leftTeamGoalTime = accessors->ReadF32(addressLeftTeamGoalStart + i);
+    leftTeamGoalVector.push_back(leftTeamGoalTime);
+  }
+
+  if (!rightTeamGoalVector.empty())
+  {
+    rightTeamGoalVector.clear();
+  }
+
+  for (int i = 0; i < (int)rightTeamGoalOffset; i += 4)
+  {
+    // we add i to each one as that is the incremented offset
+    float rightTeamGoalTime = accessors->ReadF32(addressRightTeamGoalStart + i);
+    rightTeamGoalVector.push_back(rightTeamGoalTime);
+  }
+  if (NetPlay::IsNetPlayRunning())
+  {
+    // even though dolhpin ports can't change during netplay, they might change what side they take
+    leftTeamPlayerNamesVector.clear();
+    rightTeamPlayerNamesVector.clear();
+    for (int i = 0; i < controllerVector.size(); i++)
+    {
+      // example will be me vs me
+      /*
+      "Controller Port Info": {
+      "Controller Port 0": 0,
+      "Controller Port 1": 1,
+      "Controller Port 2": 65535,
+      "Controller Port 3": 65535
+     },
+        / we need to go find who is at port x and add their name to the array
+        // but we need the json to know ports and names
+        // we know ports from controller map
+        // one structure. a left/right team map with port # - name
+      */
+      if (controllerVector.at(i) == 0)
+      {
+        // left team
+        // in this scenario, we first match at index 0
+        // so we're going to go to m_pad_map and find what player id is at port 0
+        // then we're going to search for that player id in our player array and return their name
+        NetPlay::PlayerId pad_map_player_id = netplayGCMap[i];
+        // now get the player name that matches the PID we just stored
+        std::string foundPlayerName = "";
+        for (int j = 0; j < playerArray.size(); j++)
+        {
+          if (playerArray.at(j)->pid == pad_map_player_id)
+          {
+            foundPlayerName = playerArray.at(j)->name;
+            break;
+          }
+        }
+        std::string portAndPlayerName = "P" + std::to_string(i + 1) + " - " + foundPlayerName;
+        leftTeamPlayerNamesVector.push_back(portAndPlayerName);
+      }
+      else if (controllerVector.at(i) == 1)
+      {
+        // right team
+        NetPlay::PlayerId pad_map_player_id = netplayGCMap[i];
+        // now get the player name that matches the PID we just stored
+        std::string foundPlayerName = "";
+        for (int j = 0; j < playerArray.size(); j++)
+        {
+          if (playerArray.at(j)->pid == pad_map_player_id)
+          {
+            foundPlayerName = playerArray.at(j)->name;
+            break;
+          }
+        }
+        std::string portAndPlayerName = "P" + std::to_string(i + 1) + " - " + foundPlayerName;
+        rightTeamPlayerNamesVector.push_back(portAndPlayerName);
+      }
+    }
+  }
+  else
+  {
+    leftTeamPlayerNamesVector.clear();
+    rightTeamPlayerNamesVector.clear();
+    for (int i = 0; i < controllerVector.size(); i++)
+    {
+      if (controllerVector.at(i) == 0)
+      {
+        leftTeamPlayerNamesVector.push_back("P" + std::to_string(i + 1) + " - " + "Local Player");
+      }
+      else if (controllerVector.at(i) == 1)
+      {
+        rightTeamPlayerNamesVector.push_back("P" + std::to_string(i + 1) + " - " + "Local Player");
+      }
+    }
+    if (leftTeamPlayerNamesVector.empty())
+    {
+      leftTeamPlayerNamesVector.push_back("CPU");
+    }
+    if (rightTeamPlayerNamesVector.empty())
+    {
+      rightTeamPlayerNamesVector.push_back("CPU");
+    }
+  }
 }
 
 void Metadata::setPlayerName(std::string playerNameParam)
 {
   playerName = playerNameParam;
+}
+
+void Metadata::setPlayerArray(std::vector<const NetPlay::Player*> playerArrayParam)
+{
+  playerArray = playerArrayParam;
+}
+
+void Metadata::setNetPlayControllers(NetPlay::PadMappingArray m_pad_map)
+{
+  netplayGCMap = m_pad_map;
 }
 
 void Metadata::setMD5(std::array<u8, 16> md5Param)
