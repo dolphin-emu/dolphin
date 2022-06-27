@@ -505,14 +505,14 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
         rightTeamPlayerNamesVector.push_back("P" + std::to_string(i + 1) + " - " + "Local Player");
       }
     }
-    if (leftTeamPlayerNamesVector.empty())
-    {
-      leftTeamPlayerNamesVector.push_back("CPU");
-    }
-    if (rightTeamPlayerNamesVector.empty())
-    {
-      rightTeamPlayerNamesVector.push_back("CPU");
-    }
+  }
+  if (leftTeamPlayerNamesVector.empty())
+  {
+    leftTeamPlayerNamesVector.push_back("CPU");
+  }
+  if (rightTeamPlayerNamesVector.empty())
+  {
+    rightTeamPlayerNamesVector.push_back("CPU");
   }
 }
 
