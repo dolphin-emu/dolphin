@@ -99,15 +99,6 @@ private:
     Read,
     Write,
   };
-  struct ErrorState
-  {
-    int error;
-#ifdef _WIN32
-    int wsa_error;
-#endif
-  };
-  ErrorState SaveState() const;
-  void RestoreState(const ErrorState& state) const;
 
   void Log(LogType log_type, const void* data, std::size_t length, s32 socket, sockaddr* other);
   void LogIPv4(LogType log_type, const u8* data, u16 length, s32 socket, const sockaddr_in& from,
