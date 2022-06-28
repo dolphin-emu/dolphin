@@ -30,9 +30,9 @@ struct GeckoInstruction
                                   // instruction into the link register
   BFVIEW_M(hex, bool, 1, 1, AA);  // Absolute address bit
                                   // 1, if the immediate field represents an absolute address
-  BFVIEW_M(hex, s32, 2, 24, LI);  // 24-bit signed immediate, right-extended by 0b00
+  BFVIEW_M(hex, u32, 2, 24, LI);  // 24-bit signed immediate, right-extended by 0b00
                                   // (branch displacement)
-  BFVIEW_M(hex, s32, 2, 14, BD);  // 14-bit signed immediate, right-extended by 0b00
+  BFVIEW_M(hex, u32, 2, 14, BD);  // 14-bit signed immediate, right-extended by 0b00
                                   // (branch displacement)
   BFVIEW_M(hex, u32, 16, 5, BI);  // Branch condition
   BFVIEW_M(hex, u32, 21, 5, BO);  // Conditional branch control
