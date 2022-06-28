@@ -82,6 +82,8 @@ extern const Info<int> GFX_SW_DRAW_END;
 
 extern const Info<bool> GFX_PREFER_GLES;
 
+extern const Info<bool> GFX_MODS_ENABLE;
+
 // Graphics.Enhancements
 
 extern const Info<bool> GFX_ENHANCE_FORCE_FILTERING;

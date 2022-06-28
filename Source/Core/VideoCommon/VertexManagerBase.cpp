@@ -7,7 +7,6 @@
 #include <cmath>
 #include <memory>
 
-#include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
@@ -30,6 +29,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureInfo.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -337,7 +337,7 @@ bool VertexManagerBase::UploadTexelBuffer(const void* data, u32 data_size, Texel
   return false;
 }
 
-void VertexManagerBase::LoadTextures()
+BitSet32 VertexManagerBase::UsedTextures() const
 {
   BitSet32 usedtextures;
   for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
@@ -349,10 +349,7 @@ void VertexManagerBase::LoadTextures()
       if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
         usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
-  for (unsigned int i : usedtextures)
-    g_texture_cache->Load(i);
-
-  g_texture_cache->BindTextures(usedtextures);
+  return usedtextures;
 }
 
 void VertexManagerBase::Flush()
@@ -455,7 +452,30 @@ void VertexManagerBase::Flush()
 
   CalculateBinormals(VertexLoaderManager::GetCurrentVertexFormat());
   // Calculate ZSlope for zfreeze
-  VertexShaderManager::SetConstants();
+  const auto used_textures = UsedTextures();
+  std::vector<std::string> texture_names;
+  if (!m_cull_all)
+  {
+    if (!g_ActiveConfig.bGraphicMods)
+    {
+      for (const u32 i : used_textures)
+      {
+        g_texture_cache->Load(TextureInfo::FromStage(i));
+      }
+    }
+    else
+    {
+      for (const u32 i : used_textures)
+      {
+        const auto cache_entry = g_texture_cache->Load(TextureInfo::FromStage(i));
+        if (cache_entry)
+        {
+          texture_names.push_back(cache_entry->texture_info_name);
+        }
+      }
+    }
+  }
+  VertexShaderManager::SetConstants(texture_names);
   if (!bpmem.genMode.zfreeze)
   {
     // Must be done after VertexShaderManager::SetConstants()
@@ -469,6 +489,18 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
+    for (const auto& texture_name : texture_names)
+    {
+      bool skip = false;
+      for (const auto action :
+           g_renderer->GetGraphicsModManager().GetDrawStartedActions(texture_name))
+      {
+        action->OnDrawStarted(&skip);
+      }
+      if (skip == true)
+        return;
+    }
+
     // Now the vertices can be flushed to the GPU. Everything following the CommitBuffer() call
     // must be careful to not upload any utility vertices, as the binding will be lost otherwise.
     const u32 num_indices = m_index_generator.GetIndexLen();
@@ -480,7 +512,7 @@ void VertexManagerBase::Flush()
     // Texture loading can cause palettes to be applied (-> uniforms -> draws).
     // Palette application does not use vertices, only a full-screen quad, so this is okay.
     // Same with GPU texture decoding, which uses compute shaders.
-    LoadTextures();
+    g_texture_cache->BindTextures(used_textures);
 
     // Now we can upload uniforms, as nothing else will override them.
     GeometryShaderManager::SetConstants();

@@ -36,6 +36,7 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/FBInfo.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -54,6 +55,8 @@ static const u64 TEXHASH_INVALID = 0;
 // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
 static const int TEXTURE_KILL_THRESHOLD = 64;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
+
+static int xfb_count = 0;
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
 
@@ -153,6 +156,9 @@ void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
     HiresTexture::Update();
   }
 
+  const u32 change_count =
+      config.graphics_mod_config ? config.graphics_mod_config->GetChangeCount() : 0;
+
   // TODO: Invalidating texcache is really stupid in some of these cases
   if (config.iSafeTextureCache_ColorSamples != backup_config.color_samples ||
       config.bTexFmtOverlayEnable != backup_config.texfmt_overlay ||
@@ -160,7 +166,9 @@ void TextureCacheBase::OnConfigChanged(const VideoConfig& config)
       config.bHiresTextures != backup_config.hires_textures ||
       config.bEnableGPUTextureDecoding != backup_config.gpu_texture_decoding ||
       config.bDisableCopyToVRAM != backup_config.disable_vram_copies ||
-      config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection)
+      config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection ||
+      config.bGraphicMods != backup_config.graphics_mods ||
+      change_count != backup_config.graphics_mod_change_count)
   {
     Invalidate();
     TexDecoder_SetTexFmtOverlayOptions(config.bTexFmtOverlayEnable, config.bTexFmtOverlayCenter);
@@ -255,6 +263,9 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
   backup_config.disable_vram_copies = config.bDisableCopyToVRAM;
   backup_config.arbitrary_mipmap_detection = config.bArbitraryMipmapDetection;
+  backup_config.graphics_mods = config.bGraphicMods;
+  backup_config.graphics_mod_change_count =
+      config.graphics_mod_config ? config.graphics_mod_config->GetChangeCount() : 0;
 }
 
 TextureCacheBase::TCacheEntry*
@@ -1205,15 +1216,15 @@ private:
   std::vector<Level> levels;
 };
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
+TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
-  if (TMEM::IsValid(stage) && bound_textures[stage])
+  if (TMEM::IsValid(texture_info.GetStage()) && bound_textures[texture_info.GetStage()])
   {
-    TCacheEntry* entry = bound_textures[stage];
+    TCacheEntry* entry = bound_textures[texture_info.GetStage()];
     // If the TMEM configuration is such that this texture is more or less guaranteed to still
     // be in TMEM, then we know we can reuse the old entry without even hashing the memory
-    if (TMEM::IsCached(stage))
+    if (TMEM::IsCached(texture_info.GetStage()))
     {
       return entry;
     }
@@ -1226,26 +1237,29 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const u32 stage)
     }
   }
 
-  TextureInfo texture_info = TextureInfo::FromStage(stage);
-
   auto entry = GetTexture(g_ActiveConfig.iSafeTextureCache_ColorSamples, texture_info);
 
   if (!entry)
     return nullptr;
 
   entry->frameCount = FRAMECOUNT_INVALID;
-  bound_textures[stage] = entry;
+  if (entry->texture_info_name.empty() && g_ActiveConfig.bGraphicMods)
+  {
+    entry->texture_info_name = texture_info.CalculateTextureName().GetFullName();
+  }
+  bound_textures[texture_info.GetStage()] = entry;
 
   // We need to keep track of invalided textures until they have actually been replaced or
   // re-loaded
-  TMEM::Bind(stage, entry->NumBlocksX(), entry->NumBlocksY(), entry->GetNumLevels() > 1,
-             entry->format == TextureFormat::RGBA8);
+  TMEM::Bind(texture_info.GetStage(), entry->NumBlocksX(), entry->NumBlocksY(),
+             entry->GetNumLevels() > 1, entry->format == TextureFormat::RGBA8);
 
   return entry;
 }
 
 TextureCacheBase::TCacheEntry*
-TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info)
+TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
+                             const TextureInfo& texture_info)
 {
   u32 expanded_width = texture_info.GetExpandedWidth();
   u32 expanded_height = texture_info.GetExpandedHeight();
@@ -1764,12 +1778,20 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
   SETSTAT(g_stats.num_textures_alive, static_cast<int>(textures_by_address.size()));
   INCSTAT(g_stats.num_textures_uploaded);
 
-  if (g_ActiveConfig.bDumpXFBTarget)
+  if (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods)
   {
-    // While this isn't really an xfb copy, we can treat it as such for dumping purposes
-    static int xfb_count = 0;
-    entry->texture->Save(
-        fmt::format("{}xfb_loaded_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++), 0);
+    const std::string id = fmt::format("{}x{}", width, height);
+    if (g_ActiveConfig.bGraphicMods)
+    {
+      entry->texture_info_name = fmt::format("{}_{}", XFB_DUMP_PREFIX, id);
+    }
+
+    if (g_ActiveConfig.bDumpXFBTarget)
+    {
+      entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX),
+                                       XFB_DUMP_PREFIX, xfb_count++, id),
+                           0);
+    }
   }
 
   GetDisplayRectForXFBEntry(entry, width, height, display_rect);
@@ -2119,6 +2141,35 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
   const u32 covered_range = num_blocks_y * dstStride;
 
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    FBInfo info;
+    info.m_width = tex_w;
+    info.m_height = tex_h;
+    info.m_texture_format = baseFormat;
+    if (is_xfb_copy)
+    {
+      for (const auto action : g_renderer->GetGraphicsModManager().GetXFBActions(info))
+      {
+        action->OnXFB();
+      }
+    }
+    else
+    {
+      bool skip = false;
+      for (const auto action : g_renderer->GetGraphicsModManager().GetEFBActions(info))
+      {
+        action->OnEFB(&skip, tex_w, tex_h, &scaled_tex_w, &scaled_tex_h);
+      }
+      if (skip == true)
+      {
+        if (copy_to_ram)
+          UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
+        return;
+      }
+    }
+  }
+
   if (dstStride < bytes_per_row)
   {
     // This kind of efb copy results in a scrambled image.
@@ -2168,20 +2219,38 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                           isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
-      if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
+      if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
       {
-        static int efb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}efb_frame_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), efb_count++),
-            0);
-      }
+        const std::string id = fmt::format("{}x{}", tex_w, tex_h);
+        if (g_ActiveConfig.bGraphicMods)
+        {
+          entry->texture_info_name = fmt::format("{}_{}", XFB_DUMP_PREFIX, id);
+        }
 
-      if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
+        if (g_ActiveConfig.bDumpXFBTarget)
+        {
+          entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png",
+                                           File::GetUserPath(D_DUMPTEXTURES_IDX), XFB_DUMP_PREFIX,
+                                           xfb_count++, id),
+                               0);
+        }
+      }
+      else if (g_ActiveConfig.bDumpEFBTarget || g_ActiveConfig.bGraphicMods)
       {
-        static int xfb_count = 0;
-        entry->texture->Save(
-            fmt::format("{}xfb_copy_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++),
-            0);
+        const std::string id = fmt::format("{}x{}_{}", tex_w, tex_h, static_cast<int>(baseFormat));
+        if (g_ActiveConfig.bGraphicMods)
+        {
+          entry->texture_info_name = fmt::format("{}_{}", EFB_DUMP_PREFIX, id);
+        }
+
+        if (g_ActiveConfig.bDumpEFBTarget)
+        {
+          static int efb_count = 0;
+          entry->texture->Save(fmt::format("{}{}_n{:06}_{}.png",
+                                           File::GetUserPath(D_DUMPTEXTURES_IDX), EFB_DUMP_PREFIX,
+                                           efb_count++, id),
+                               0);
+        }
       }
     }
   }
@@ -2225,15 +2294,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     }
     else
     {
-      // Hack: Most games don't actually need the correct texture data in RAM
-      //       and we can just keep a copy in VRAM. We zero the memory so we
-      //       can check it hasn't changed before using our copy in VRAM.
-      u8* ptr = dst;
-      for (u32 i = 0; i < num_blocks_y; i++)
-      {
-        std::memset(ptr, 0, bytes_per_row);
-        ptr += dstStride;
-      }
+      UninitializeEFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
     }
   }
 
@@ -2401,6 +2462,20 @@ std::unique_ptr<AbstractStagingTexture> TextureCacheBase::GetEFBCopyStagingTextu
 void TextureCacheBase::ReleaseEFBCopyStagingTexture(std::unique_ptr<AbstractStagingTexture> tex)
 {
   m_efb_copy_staging_texture_pool.push_back(std::move(tex));
+}
+
+void TextureCacheBase::UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row,
+                                             u32 num_blocks_y)
+{
+  // Hack: Most games don't actually need the correct texture data in RAM
+  //       and we can just keep a copy in VRAM. We zero the memory so we
+  //       can check it hasn't changed before using our copy in VRAM.
+  u8* ptr = dst;
+  for (u32 i = 0; i < num_blocks_y; i++)
+  {
+    std::memset(ptr, 0, bytes_per_row);
+    ptr += stride;
+  }
 }
 
 void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row,

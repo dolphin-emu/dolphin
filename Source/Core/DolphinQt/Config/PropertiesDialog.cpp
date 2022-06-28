@@ -17,12 +17,14 @@
 #include "DolphinQt/Config/FilesystemWidget.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
 #include "DolphinQt/Config/GeckoCodeWidget.h"
+#include "DolphinQt/Config/GraphicsModListWidget.h"
 #include "DolphinQt/Config/InfoWidget.h"
 #include "DolphinQt/Config/PatchesWidget.h"
 #include "DolphinQt/Config/VerifyWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 
 #include "UICommon/GameFile.h"
+#include "VideoCommon/VideoConfig.h"
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& game)
     : QDialog(parent)
@@ -43,11 +45,15 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
       new GeckoCodeWidget(game.GetGameID(), game.GetGameTDBID(), game.GetRevision());
   PatchesWidget* patches = new PatchesWidget(game);
   GameConfigWidget* game_config = new GameConfigWidget(game);
+  GraphicsModListWidget* graphics_mod_list = new GraphicsModListWidget(game);
 
   connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
           &PropertiesDialog::OpenGeneralSettings);
 
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
+
+  connect(graphics_mod_list, &GraphicsModListWidget::OpenGraphicsSettings, this,
+          &PropertiesDialog::OpenGraphicsSettings);
 
   const int padding_width = 120;
   const int padding_height = 100;
@@ -57,6 +63,8 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   tab_widget->addTab(GetWrappedWidget(ar, this, padding_width, padding_height), tr("AR Codes"));
   tab_widget->addTab(GetWrappedWidget(gecko, this, padding_width, padding_height),
                      tr("Gecko Codes"));
+  tab_widget->addTab(GetWrappedWidget(graphics_mod_list, this, padding_width, padding_height),
+                     tr("Graphics Mods"));
   tab_widget->addTab(GetWrappedWidget(info, this, padding_width, padding_height), tr("Info"));
 
   if (game.GetPlatform() != DiscIO::Platform::ELFOrDOL)
@@ -82,6 +90,8 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(close_box, &QDialogButtonBox::rejected, graphics_mod_list,
+          &GraphicsModListWidget::SaveToDisk);
 
   layout->addWidget(close_box);
 

@@ -18,4 +18,5 @@ public:
 
 signals:
   void OpenGeneralSettings();
+  void OpenGraphicsSettings();
 };

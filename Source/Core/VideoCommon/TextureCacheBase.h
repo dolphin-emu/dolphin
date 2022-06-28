@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,6 +29,9 @@ class AbstractFramebuffer;
 class AbstractStagingTexture;
 class PointerWrap;
 struct VideoConfig;
+
+constexpr std::string_view EFB_DUMP_PREFIX = "efb1";
+constexpr std::string_view XFB_DUMP_PREFIX = "xfb1";
 
 struct TextureAndTLUTFormat
 {
@@ -151,6 +155,8 @@ public:
     u32 pending_efb_copy_height = 0;
     bool pending_efb_copy_invalidated = false;
 
+    std::string texture_info_name = "";
+
     explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex,
                          std::unique_ptr<AbstractFramebuffer> fb);
 
@@ -235,8 +241,9 @@ public:
 
   void Invalidate();
 
-  TCacheEntry* Load(const u32 stage);
-  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize, TextureInfo& texture_info);
+  TCacheEntry* Load(const TextureInfo& texture_info);
+  TCacheEntry* GetTexture(const int textureCacheSafetyColorSampleSize,
+                          const TextureInfo& texture_info);
   TCacheEntry* GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
                              MathUtil::Rectangle<int>* display_rect);
 
@@ -327,6 +334,7 @@ private:
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter,
                                            bool discard_pending_efb_copy = false);
 
+  void UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
   void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
 
   // Precomputing the coefficients for the previous, current, and next lines for the copy filter.
@@ -369,6 +377,8 @@ private:
     bool gpu_texture_decoding;
     bool disable_vram_copies;
     bool arbitrary_mipmap_detection;
+    bool graphics_mods;
+    u32 graphics_mod_change_count;
   };
   BackupConfig backup_config = {};
 

@@ -67,6 +67,7 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -133,6 +134,22 @@ bool Renderer::Initialize()
   {
     PanicAlertFmt("Failed to initialize bounding box.");
     return false;
+  }
+
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    // If a config change occurred in a previous session,
+    // remember the old change count value.  By setting
+    // our current change count to the old value, we
+    // avoid loading the stale data when we
+    // check for config changes.
+    const u32 old_game_mod_changes = g_ActiveConfig.graphics_mod_config ?
+                                         g_ActiveConfig.graphics_mod_config->GetChangeCount() :
+                                         0;
+    g_ActiveConfig.graphics_mod_config = GraphicsModGroupConfig(SConfig::GetInstance().GetGameID());
+    g_ActiveConfig.graphics_mod_config->Load();
+    g_ActiveConfig.graphics_mod_config->SetChangeCount(old_game_mod_changes);
+    m_graphics_mod_manager.Load(*g_ActiveConfig.graphics_mod_config);
   }
 
   return true;
@@ -465,11 +482,26 @@ void Renderer::CheckForConfigChanges()
   const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
+  const u32 old_game_mod_changes =
+      g_ActiveConfig.graphics_mod_config ? g_ActiveConfig.graphics_mod_config->GetChangeCount() : 0;
+  const bool old_graphics_mods_enabled = g_ActiveConfig.bGraphicMods;
 
   UpdateActiveConfig();
   FreeLook::UpdateActiveConfig();
 
   g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
+
+  if (g_ActiveConfig.bGraphicMods && !old_graphics_mods_enabled)
+  {
+    g_ActiveConfig.graphics_mod_config = GraphicsModGroupConfig(SConfig::GetInstance().GetGameID());
+    g_ActiveConfig.graphics_mod_config->Load();
+  }
+
+  if (g_ActiveConfig.graphics_mod_config &&
+      (old_game_mod_changes != g_ActiveConfig.graphics_mod_config->GetChangeCount()))
+  {
+    m_graphics_mod_manager.Load(*g_ActiveConfig.graphics_mod_config);
+  }
 
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
@@ -1309,6 +1341,11 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   // behind the renderer.
   FlushFrameDump();
 
+  if (g_ActiveConfig.bGraphicMods)
+  {
+    m_graphics_mod_manager.EndOfFrame();
+  }
+
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
     // Get the current XFB from texture cache
@@ -1829,4 +1866,9 @@ void Renderer::DoState(PointerWrap& p)
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
 {
   return std::make_unique<VideoCommon::AsyncShaderCompiler>();
+}
+
+const GraphicsModManager& Renderer::GetGraphicsModManager() const
+{
+  return m_graphics_mod_manager;
 }
