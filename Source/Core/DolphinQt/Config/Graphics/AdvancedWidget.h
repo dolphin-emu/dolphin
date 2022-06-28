@@ -48,12 +48,13 @@ private:
   GraphicsBool* m_dump_textures;
   GraphicsBool* m_dump_mip_textures;
   GraphicsBool* m_dump_base_textures;
+  GraphicsInteger* m_texture_png_compression_level;
 
   // Frame dumping
   GraphicsBool* m_dump_use_ffv1;
   GraphicsBool* m_use_fullres_framedumps;
   GraphicsInteger* m_dump_bitrate;
-  GraphicsInteger* m_png_compression_level;
+  GraphicsInteger* m_frame_png_compression_level;
 
   // Misc
   GraphicsBool* m_enable_cropping;

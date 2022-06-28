@@ -99,7 +99,7 @@ static bool DumpFrameToPNG(const FrameDump::FrameData& frame, const std::string&
 {
   return Common::ConvertRGBAToRGBAndSavePNG(file_name, frame.data, frame.width, frame.height,
                                             frame.stride,
-                                            Config::Get(Config::GFX_PNG_COMPRESSION_LEVEL));
+                                            Config::Get(Config::GFX_FRAME_PNG_COMPRESSION_LEVEL));
 }
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer_scale,

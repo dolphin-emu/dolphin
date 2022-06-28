@@ -979,7 +979,7 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
   if (File::Exists(filename))
     return;
 
-  entry->texture->Save(filename, level);
+  entry->texture->Save(filename, level, Config::Get(Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL));
 }
 
 // Helper for checking if a BPMemory TexMode0 register is set to Point

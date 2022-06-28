@@ -37,6 +37,8 @@ const Info<bool> GFX_OVERLAY_SCISSOR_STATS{{System::GFX, "Settings", "OverlaySci
 const Info<bool> GFX_DUMP_TEXTURES{{System::GFX, "Settings", "DumpTextures"}, false};
 const Info<bool> GFX_DUMP_MIP_TEXTURES{{System::GFX, "Settings", "DumpMipTextures"}, true};
 const Info<bool> GFX_DUMP_BASE_TEXTURES{{System::GFX, "Settings", "DumpBaseTextures"}, true};
+const Info<int> GFX_TEXTURE_PNG_COMPRESSION_LEVEL{
+    {System::GFX, "Settings", "TexturePNGCompressionLevel"}, 6};
 const Info<bool> GFX_HIRES_TEXTURES{{System::GFX, "Settings", "HiresTextures"}, false};
 const Info<bool> GFX_CACHE_HIRES_TEXTURES{{System::GFX, "Settings", "CacheHiresTextures"}, false};
 const Info<bool> GFX_DUMP_EFB_TARGET{{System::GFX, "Settings", "DumpEFBTarget"}, false};
@@ -51,7 +53,8 @@ const Info<std::string> GFX_DUMP_PATH{{System::GFX, "Settings", "DumpPath"}, ""}
 const Info<int> GFX_BITRATE_KBPS{{System::GFX, "Settings", "BitrateKbps"}, 25000};
 const Info<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS{
     {System::GFX, "Settings", "InternalResolutionFrameDumps"}, false};
-const Info<int> GFX_PNG_COMPRESSION_LEVEL{{System::GFX, "Settings", "PNGCompressionLevel"}, 6};
+const Info<int> GFX_FRAME_PNG_COMPRESSION_LEVEL{
+    {System::GFX, "Settings", "FramePNGCompressionLevel"}, 6};
 const Info<bool> GFX_ENABLE_GPU_TEXTURE_DECODING{
     {System::GFX, "Settings", "EnableGPUTextureDecoding"}, false};
 const Info<bool> GFX_ENABLE_PIXEL_LIGHTING{{System::GFX, "Settings", "EnablePixelLighting"}, false};

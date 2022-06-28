@@ -91,11 +91,16 @@ void AdvancedWidget::CreateWidgets()
   m_dump_textures = new GraphicsBool(tr("Enable"), Config::GFX_DUMP_TEXTURES);
   m_dump_base_textures = new GraphicsBool(tr("Dump Base Textures"), Config::GFX_DUMP_BASE_TEXTURES);
   m_dump_mip_textures = new GraphicsBool(tr("Dump Mip Maps"), Config::GFX_DUMP_MIP_TEXTURES);
+  m_texture_png_compression_level =
+      new GraphicsInteger(0, 9, Config::GFX_TEXTURE_PNG_COMPRESSION_LEVEL);
 
   texture_dump_layout->addWidget(m_dump_textures, 0, 0);
 
   texture_dump_layout->addWidget(m_dump_base_textures, 1, 0);
   texture_dump_layout->addWidget(m_dump_mip_textures, 1, 1);
+  texture_dump_layout->addWidget(new QLabel(tr("PNG Compression Level:")), 2, 0);
+  m_texture_png_compression_level->SetTitle(tr("PNG Compression Level"));
+  texture_dump_layout->addWidget(m_texture_png_compression_level, 2, 1);
 
   // Frame dumping
   auto* dump_box = new QGroupBox(tr("Frame Dumping"));
@@ -106,7 +111,8 @@ void AdvancedWidget::CreateWidgets()
                                               Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   m_dump_use_ffv1 = new GraphicsBool(tr("Use Lossless Codec (FFV1)"), Config::GFX_USE_FFV1);
   m_dump_bitrate = new GraphicsInteger(0, 1000000, Config::GFX_BITRATE_KBPS, 1000);
-  m_png_compression_level = new GraphicsInteger(0, 9, Config::GFX_PNG_COMPRESSION_LEVEL);
+  m_frame_png_compression_level =
+      new GraphicsInteger(0, 9, Config::GFX_FRAME_PNG_COMPRESSION_LEVEL);
 
   dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
@@ -115,8 +121,8 @@ void AdvancedWidget::CreateWidgets()
   dump_layout->addWidget(m_dump_bitrate, 1, 1);
 #endif
   dump_layout->addWidget(new QLabel(tr("PNG Compression Level:")), 2, 0);
-  m_png_compression_level->SetTitle(tr("PNG Compression Level"));
-  dump_layout->addWidget(m_png_compression_level, 2, 1);
+  m_frame_png_compression_level->SetTitle(tr("PNG Compression Level"));
+  dump_layout->addWidget(m_frame_png_compression_level, 2, 1);
 
   // Misc.
   auto* misc_box = new QGroupBox(tr("Misc"));
@@ -179,6 +185,7 @@ void AdvancedWidget::LoadSettings()
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
+  m_texture_png_compression_level->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
 
   SignalBlocking(m_enable_graphics_mods)->setChecked(Settings::Instance().GetGraphicModsEnabled());
 }
@@ -191,6 +198,7 @@ void AdvancedWidget::SaveSettings()
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
   m_dump_mip_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   m_dump_base_textures->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
+  m_texture_png_compression_level->setEnabled(Config::Get(Config::GFX_DUMP_TEXTURES));
   Settings::Instance().SetGraphicModsEnabled(m_enable_graphics_mods->isChecked());
 }
 
@@ -234,6 +242,15 @@ void AdvancedWidget::AddDescriptions()
       "User/Dump/Textures/&lt;game_id&gt;/.  This includes arbitrary base textures if 'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.<br><br><dolphin_emphasis>If unsure, leave "
       "this checked.</dolphin_emphasis>");
+  static const char TR_TEXTURE_PNG_COMPRESSION_LEVEL_DESCRIPTION[] = QT_TR_NOOP(
+      "Specifies the zlib compression level to use when saving texture PNG images.<br><br>"
+      "Since PNG uses lossless compression, this does not affect the image quality; "
+      "instead, it is a trade-off between file size and compression time.<br><br>"
+      "A value of 0 uses no compression at all.  A value of 1 uses very little "
+      "compression, while the maximum value of 9 applies a lot of compression.  "
+      "However, for PNG files, levels between 3 and 6 are generally about as good as "
+      "level 9 but finish in significantly less time.<br><br>"
+      "<dolphin_emphasis>If unsure, leave this at 6.</dolphin_emphasis>");
   static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
       QT_TR_NOOP("Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and "
                  "User/Load/DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If "
@@ -265,7 +282,7 @@ void AdvancedWidget::AddDescriptions()
       QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
                  "unsure, leave this unchecked.</dolphin_emphasis>");
 #endif
-  static const char TR_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
+  static const char TR_FRAME_PNG_COMPRESSION_LEVEL_DESCRIPTION[] =
       QT_TR_NOOP("Specifies the zlib compression level to use when saving PNG images (both for "
                  "screenshots and framedumping).<br><br>"
                  "Since PNG uses lossless compression, this does not affect the image quality; "
@@ -321,6 +338,7 @@ void AdvancedWidget::AddDescriptions()
   m_dump_textures->SetDescription(tr(TR_DUMP_TEXTURE_DESCRIPTION));
   m_dump_mip_textures->SetDescription(tr(TR_DUMP_MIP_TEXTURE_DESCRIPTION));
   m_dump_base_textures->SetDescription(tr(TR_DUMP_BASE_TEXTURE_DESCRIPTION));
+  m_texture_png_compression_level->SetDescription(tr(TR_TEXTURE_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_load_custom_textures->SetDescription(tr(TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION));
   m_prefetch_custom_textures->SetDescription(tr(TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION));
   m_dump_efb_target->SetDescription(tr(TR_DUMP_EFB_DESCRIPTION));
@@ -331,7 +349,7 @@ void AdvancedWidget::AddDescriptions()
 #ifdef HAVE_FFMPEG
   m_dump_use_ffv1->SetDescription(tr(TR_USE_FFV1_DESCRIPTION));
 #endif
-  m_png_compression_level->SetDescription(tr(TR_PNG_COMPRESSION_LEVEL_DESCRIPTION));
+  m_frame_png_compression_level->SetDescription(tr(TR_FRAME_PNG_COMPRESSION_LEVEL_DESCRIPTION));
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
