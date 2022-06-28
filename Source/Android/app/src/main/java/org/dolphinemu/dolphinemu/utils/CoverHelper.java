@@ -73,7 +73,7 @@ public final class CoverHelper
     try
     {
       FileOutputStream out = new FileOutputStream(path);
-      cover.compress(Bitmap.CompressFormat.PNG, 100, out);
+      cover.compress(Bitmap.CompressFormat.JPEG, 90, out);
       out.close();
     }
     catch (Exception ignored)
