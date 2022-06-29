@@ -23,10 +23,12 @@ class MemoryViewWidget final : public QWidget
 public:
   enum class Type : int
   {
+    Null = 0,
     Hex8 = 1,
     Hex16,
     Hex32,
     Hex64,
+    HexString,
     Unsigned8,
     Unsigned16,
     Unsigned32,
@@ -51,6 +53,7 @@ public:
   void UpdateFont();
   void ToggleBreakpoint(u32 addr, bool row);
 
+  std::vector<u8> ConvertTextToBytes(Type type, QString input_text);
   void SetAddressSpace(AddressSpace::Type address_space);
   AddressSpace::Type GetAddressSpace() const;
   void SetDisplay(Type type, int bytes_per_row, int alignment, bool dual_view);
