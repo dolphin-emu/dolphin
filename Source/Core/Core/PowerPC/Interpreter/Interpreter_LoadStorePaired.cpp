@@ -310,7 +310,7 @@ static void Helper_Dequantize(PowerPC::PowerPCState* ppcs, u32 addr, u32 instI, 
 
 void Interpreter::psq_l(GeckoInstruction inst)
 {
-  if (HID2.LSQE() == 0)
+  if (!HID2.LSQE())
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -322,7 +322,7 @@ void Interpreter::psq_l(GeckoInstruction inst)
 
 void Interpreter::psq_lu(GeckoInstruction inst)
 {
-  if (HID2.LSQE() == 0)
+  if (!HID2.LSQE())
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -341,7 +341,7 @@ void Interpreter::psq_lu(GeckoInstruction inst)
 
 void Interpreter::psq_st(GeckoInstruction inst)
 {
-  if (HID2.LSQE() == 0)
+  if (!HID2.LSQE())
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;
@@ -353,7 +353,7 @@ void Interpreter::psq_st(GeckoInstruction inst)
 
 void Interpreter::psq_stu(GeckoInstruction inst)
 {
-  if (HID2.LSQE() == 0)
+  if (!HID2.LSQE())
   {
     GenerateProgramException(ProgramExceptionCause::IllegalInstruction);
     return;

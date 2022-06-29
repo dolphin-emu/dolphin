@@ -618,8 +618,8 @@ void FifoPlayer::ClearEfb()
 void FifoPlayer::LoadMemory()
 {
   Reg_MSR newMSR;
-  newMSR.DR() = 1;
-  newMSR.IR() = 1;
+  newMSR.DR() = true;
+  newMSR.IR() = true;
   MSR.Hex = newMSR.Hex;
   PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
   PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;

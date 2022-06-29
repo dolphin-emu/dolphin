@@ -434,7 +434,7 @@ public:
   constexpr BitFieldFixedView& operator-=(const field_t rhs) { return operator=(Get() - rhs); }
   constexpr BitFieldFixedView& operator*=(const field_t rhs) { return operator=(Get() * rhs); }
   constexpr BitFieldFixedView& operator/=(const field_t rhs) { return operator=(Get() / rhs); }
-  constexpr BitFieldFixedView& operator|=(const field_t rhs) { return operator=(Get() / rhs); }
+  constexpr BitFieldFixedView& operator|=(const field_t rhs) { return operator=(Get() | rhs); }
   constexpr BitFieldFixedView& operator&=(const field_t rhs) { return operator=(Get() & rhs); }
   constexpr BitFieldFixedView& operator^=(const field_t rhs) { return operator=(Get() ^ rhs); }
 

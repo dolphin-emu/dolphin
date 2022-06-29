@@ -158,9 +158,9 @@ struct Reg_XER
   BFVIEW_M(Hex, u32, 7, 1, reserved_1)
   BFVIEW_M(Hex, u32, 8, 8, BYTE_CMP)
   BFVIEW_M(Hex, u32, 16, 13, reserved_2)
-  BFVIEW_M(Hex, u32, 29, 1, CA)
-  BFVIEW_M(Hex, u32, 30, 1, OV)
-  BFVIEW_M(Hex, u32, 31, 1, SO)
+  BFVIEW_M(Hex, bool, 29, 1, CA)
+  BFVIEW_M(Hex, bool, 30, 1, OV)
+  BFVIEW_M(Hex, bool, 31, 1, SO)
 
   Reg_XER() = default;
   explicit Reg_XER(u32 hex_) : Hex{hex_} {}

@@ -465,7 +465,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const u32 address,
   case RequestedAddressSpace::Effective:
   {
     const u32 value = ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
-    return ReadResult<u32>(!!MSR.DR(), value);
+    return ReadResult<u32>(MSR.DR(), value);
   }
   case RequestedAddressSpace::Physical:
   {
@@ -574,7 +574,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const u32 address, RequestedAd
   case RequestedAddressSpace::Effective:
   {
     T value = ReadFromHardware<XCheckTLBFlag::NoException, T>(address);
-    return ReadResult<T>(!!MSR.DR(), std::move(value));
+    return ReadResult<T>(MSR.DR(), std::move(value));
   }
   case RequestedAddressSpace::Physical:
   {
@@ -763,7 +763,7 @@ static std::optional<WriteResult> HostTryWriteUX(const u32 var, const u32 addres
   {
   case RequestedAddressSpace::Effective:
     WriteToHardware<XCheckTLBFlag::NoException>(address, var, size);
-    return WriteResult(!!MSR.DR());
+    return WriteResult(MSR.DR());
   case RequestedAddressSpace::Physical:
     WriteToHardware<XCheckTLBFlag::NoException, true>(address, var, size);
     return WriteResult(false);
@@ -1205,9 +1205,9 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (pte2.C() == 0)
+      if (!pte2.C())
       {
-        pte2.C() = 1;
+        pte2.C() = true;
         tlbe.pte[0] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
@@ -1228,9 +1228,9 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
     // Check if C bit requires updating
     if (flag == XCheckTLBFlag::Write)
     {
-      if (pte2.C() == 0)
+      if (!pte2.C())
       {
-        pte2.C() = 1;
+        pte2.C() = true;
         tlbe.pte[1] = pte2.Hex;
         return TLBLookupResult::UpdateC;
       }
@@ -1299,13 +1299,13 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
 
   const auto sr = Reg_SR{ppcState.sr[address.SR()]};
 
-  if (sr.T() != 0)
+  if (sr.T())
     return TranslateAddressResult{TranslateAddressResultEnum::DIRECT_STORE_SEGMENT, 0};
 
   // TODO: Handle KS/KP segment register flags.
 
   // No-execute segment register flag.
-  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) && sr.N() != 0)
+  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) && sr.N())
   {
     return TranslateAddressResult{TranslateAddressResultEnum::PAGE_FAULT, 0};
   }
@@ -1321,7 +1321,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   PTE_Lo pte1;
   pte1.VSID() = VSID;
   pte1.API() = api;
-  pte1.V() = 1;
+  pte1.V() = true;
 
   for (int hash_func = 0; hash_func < 2; hash_func++)
   {
@@ -1329,7 +1329,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
     if (hash_func == 1)
     {
       hash = ~hash;
-      pte1.H() = 1;
+      pte1.H() = true;
     }
 
     u32 pteg_addr =
@@ -1350,14 +1350,14 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
         case XCheckTLBFlag::OpcodeNoException:
           break;
         case XCheckTLBFlag::Read:
-          pte2.R() = 1;
+          pte2.R() = true;
           break;
         case XCheckTLBFlag::Write:
-          pte2.R() = 1;
-          pte2.C() = 1;
+          pte2.R() = true;
+          pte2.C() = true;
           break;
         case XCheckTLBFlag::Opcode:
-          pte2.R() = 1;
+          pte2.R() = true;
           break;
         }
 
@@ -1392,7 +1392,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
     const u32 spr = base_spr + i * 2;
     const Reg_BAT_Up batu{ppcState.spr[spr]};
     const Reg_BAT_Lo batl{ppcState.spr[spr + 1]};
-    if (batu.VS() == 0 && batu.VP() == 0)
+    if (!batu.VS() && !batu.VP())
       continue;
 
     if ((batu.BEPI() & batu.BL()) != 0)

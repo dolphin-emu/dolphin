@@ -307,7 +307,7 @@ void Interpreter::mtspr(GeckoInstruction inst)
     }
     if (HID0.ICFI())
     {
-      HID0.ICFI() = 0;
+      HID0.ICFI() = false;
       INFO_LOG_FMT(POWERPC, "Flush Instruction Cache! ICE={}", HID0.ICE());
       // this is rather slow
       // most games do it only once during initialization
@@ -372,7 +372,7 @@ void Interpreter::mtspr(GeckoInstruction inst)
       else
         PowerPC::DMA_LCToMemory(mem_address, cache_address, length);
     }
-    DMAL.DMA_T() = 0;
+    DMAL.DMA_T() = false;
     break;
 
   case SPR_L2CR:
@@ -457,11 +457,11 @@ void Interpreter::mtspr(GeckoInstruction inst)
     auto UpdateThermalReg = [](Reg_THRM12* reg) {
       if (!THRM3.E() || !reg->V())
       {
-        reg->TIV() = 0;
+        reg->TIV() = false;
       }
       else
       {
-        reg->TIV() = 1;
+        reg->TIV() = true;
         if (reg->TID())
           reg->TIN() = SIMULATED_TEMP < reg->THRESHOLD();
         else
