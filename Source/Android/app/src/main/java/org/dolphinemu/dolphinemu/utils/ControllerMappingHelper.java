@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.utils;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+
 import java.util.Arrays;
 
 /**
@@ -60,26 +61,27 @@ public class ControllerMappingHelper
   }
 
   private static final int[] XboxProductIDs = {
-    // Xbox One (Rev. 1)
-    0x2d1,
-    // Xbox One (Rev. 2)
-    0x2dd,
-    // Xbox One (Rev. 3)
-    0x2e0,
-    // Xbox One Elite (Wired)
-    0x2e3,
-    // Xbox One S Controller
-    0x2ea,
-    // Xbox One S Controller (Bluetooth)
-    0x2fd,
-    // Xbox One Wireless Controller (model 1914)
-    0x0b12,
-    // Xbox One Wireless Controller (Firmware > 5.1)
-    0x0b20
+          // Xbox One (Rev. 1)
+          0x2d1,
+          // Xbox One (Rev. 2)
+          0x2dd,
+          // Xbox One (Rev. 3)
+          0x2e0,
+          // Xbox One Elite (Wired)
+          0x2e3,
+          // Xbox One S Controller
+          0x2ea,
+          // Xbox One S Controller (Bluetooth)
+          0x2fd,
+          // Xbox One Wireless Controller (model 1914)
+          0x0b12,
+          // Xbox One Wireless Controller (Firmware > 5.1)
+          0x0b20
   };
 
   private static boolean isXboxOneWireless(InputDevice inputDevice)
   {
-    return inputDevice.getVendorId() == 0x45e && Arrays.asList(XboxProductIDs).contains(inputDevice.getProductId());
+    return inputDevice.getVendorId() == 0x45e &&
+            Arrays.asList(XboxProductIDs).contains(inputDevice.getProductId());
   }
 }
