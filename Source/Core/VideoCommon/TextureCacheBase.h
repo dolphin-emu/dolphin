@@ -4,7 +4,6 @@
 #pragma once
 
 #include <array>
-#include <bitset>
 #include <fmt/format.h>
 #include <map>
 #include <memory>
@@ -296,7 +295,6 @@ protected:
   size_t temp_size = 0;
 
   std::array<TCacheEntry*, 8> bound_textures{};
-  static std::bitset<8> valid_bind_points;
 
 private:
   using TexAddrCache = std::multimap<u32, TCacheEntry*>;
