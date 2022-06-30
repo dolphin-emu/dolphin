@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-21 21:51+0200\n"
+"POT-Creation-Date: 2022-07-01 00:12+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: d1fcc80a35d5442129c384ac221ef98f_d2a8fa7 "
 "<bf6c9fd43ceccaf85c00ef95eb21f12e_11704>, 2015\n"
@@ -95,7 +95,8 @@ msgstr ""
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:67
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:276
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:44
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:76
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:45
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/MixedTriggers.cpp:27
 msgid "%"
 msgstr "%"
@@ -566,6 +567,10 @@ msgstr "&Egenskaper"
 msgid "&Read-Only Mode"
 msgstr "&Skrivebeskyttet modus"
 
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:62
+msgid "&Refresh List"
+msgstr ""
+
 #: Source/Core/DolphinQt/MenuBar.cpp:438
 msgid "&Registers"
 msgstr "&Registere"
@@ -690,7 +695,7 @@ msgstr "- Trekk fra"
 msgid "--> %1"
 msgstr "→ %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:225
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:298
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:692
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:167
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:99
@@ -901,8 +906,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> Større enn"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1431
-#: Source/Core/DolphinQt/MainWindow.cpp:1498
+#: Source/Core/DolphinQt/MainWindow.cpp:1432
+#: Source/Core/DolphinQt/MainWindow.cpp:1499
 msgid "A NetPlay Session is already in progress!"
 msgstr "En NetPlay-økt finnes allerede!"
 
@@ -924,7 +929,7 @@ msgstr "En plate er i ferd med å bli satt inn."
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:900
+#: Source/Core/DolphinQt/MainWindow.cpp:901
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -972,7 +977,7 @@ msgstr ""
 msgid "AR Code"
 msgstr "AR-kode"
 
-#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:57
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:63
 msgid "AR Codes"
 msgstr "<AR-koder>"
 
@@ -1184,6 +1189,11 @@ msgstr ""
 msgid "Address:"
 msgstr "Adresse:"
 
+#. i18n: Refers to plastic shell of game controller (stick gate) that limits stick movements.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:78
+msgid "Adjusts target radius of simulated stick gate."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:237
 msgid ""
 "Adjusts the accuracy at which the GPU receives texture updates from RAM."
@@ -1229,9 +1239,14 @@ msgstr "Advance-spillport"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:72
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:101
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:156
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:43
 msgid "Advanced"
 msgstr "Avansert"
+
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:209
+msgid "Advanced Settings"
+msgstr ""
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "Africa"
@@ -1249,7 +1264,7 @@ msgstr ""
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:362
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:439
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:590
-#: Source/Core/DolphinQt/MainWindow.cpp:748
+#: Source/Core/DolphinQt/MainWindow.cpp:749
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:121
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:328
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:51
@@ -1266,7 +1281,7 @@ msgstr "Alle filer (*)"
 msgid "All Float"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:747
+#: Source/Core/DolphinQt/MainWindow.cpp:748
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:50
 msgid "All GC/Wii files"
 msgstr ""
@@ -1275,8 +1290,8 @@ msgstr ""
 msgid "All Hexadecimal"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1316
-#: Source/Core/DolphinQt/MainWindow.cpp:1324
+#: Source/Core/DolphinQt/MainWindow.cpp:1317
+#: Source/Core/DolphinQt/MainWindow.cpp:1325
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Alle lagringsstadier (*.sav *.s##);; Alle filer (*)"
 
@@ -1424,7 +1439,7 @@ msgstr "Arbitrær Mipmap Oppdagelse"
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "Er du sikker på at du vil slette \"%1\"?"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:811
+#: Source/Core/DolphinQt/GameList/GameList.cpp:813
 msgid "Are you sure you want to delete this file?"
 msgstr "Er du sikker på at du vil slette denne filen?"
 
@@ -1538,7 +1553,7 @@ msgid "Auxiliary"
 msgstr "Støtte"
 
 #. i18n: The symbol for the unit "bytes"
-#: Source/Core/UICommon/UICommon.cpp:420
+#: Source/Core/UICommon/UICommon.cpp:423
 msgid "B"
 msgstr "B"
 
@@ -1570,7 +1585,7 @@ msgstr ""
 msgid "Backend"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:126
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:129
 msgid "Backend Multithreading"
 msgstr ""
 
@@ -1618,7 +1633,7 @@ msgstr ""
 msgid "Bad value provided."
 msgstr "Dårlig verdi angitt."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:974
+#: Source/Core/DolphinQt/GameList/GameList.cpp:976
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:151
 #: Source/Core/DolphinQt/MenuBar.cpp:631
@@ -1681,11 +1696,11 @@ msgstr ""
 msgid "Binary SSL (write)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:111
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:114
 msgid "Bitrate (kbps):"
 msgstr "Bitfrekvens (kbps):"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:984
+#: Source/Core/DolphinQt/GameList/GameList.cpp:986
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:231
 #: Source/Core/DolphinQt/MenuBar.cpp:641
 msgid "Block Size"
@@ -1729,15 +1744,15 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "Start opp i pausemodus"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1654
+#: Source/Core/DolphinQt/MainWindow.cpp:1655
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND sikkerhetskopifil (*.bin);;Alle filer (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1680
+#: Source/Core/DolphinQt/MainWindow.cpp:1681
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii nøkkelfil (*.bin);;Alle filer (*)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:133
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:136
 msgid "Borderless Fullscreen"
 msgstr "Rammefri fullskjermsvisning"
 
@@ -1843,6 +1858,10 @@ msgstr "Knapp"
 msgid "Buttons"
 msgstr "Knapper"
 
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:209
+msgid "By:  "
+msgstr ""
+
 #: Source/Core/Core/HW/GCPadEmu.cpp:69
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:31
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:26
@@ -1873,7 +1892,7 @@ msgstr "CRC32:"
 msgid "Cached Interpreter (slower)"
 msgstr "Hurtiglagret fortolker (tregere)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:235
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
 msgid ""
 "Caches custom textures to system RAM on startup.<br><br>This can require "
 "exponentially more RAM but fixes possible stuttering."
@@ -1930,8 +1949,8 @@ msgstr ""
 msgid "Can't find Wii Remote by connection handle {0:02x}"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1424
-#: Source/Core/DolphinQt/MainWindow.cpp:1491
+#: Source/Core/DolphinQt/MainWindow.cpp:1425
+#: Source/Core/DolphinQt/MainWindow.cpp:1492
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "Kan ikke starte en NetPlay-økt mens et spill er aktivt!"
 
@@ -1961,7 +1980,7 @@ msgstr ""
 msgid "Cannot compare against last value on first search."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:603
+#: Source/Core/Core/Boot/Boot.cpp:601
 msgid "Cannot find the GC IPL."
 msgstr "Finner ikke GC IPL."
 
@@ -1973,7 +1992,7 @@ msgstr ""
 msgid "Cannot refresh without results."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:601
+#: Source/Core/Core/Boot/Boot.cpp:599
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "Kan ikke starte spillet, fordi GC IPL ikke ble funnet."
 
@@ -2060,7 +2079,7 @@ msgstr "Sjekk for endringer i spillisten i bakgrunnen"
 msgid "Check for updates"
 msgstr "Se etter oppdateringer"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:836
+#: Source/Core/DolphinQt/GameList/GameList.cpp:838
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
@@ -2191,7 +2210,7 @@ msgstr "Kompiler shadere før start"
 msgid "Compiling Shaders"
 msgstr "Komplierer skygger"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:985
+#: Source/Core/DolphinQt/GameList/GameList.cpp:987
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:233
 #: Source/Core/DolphinQt/MenuBar.cpp:642
 msgid "Compression"
@@ -2229,6 +2248,7 @@ msgid "Configure Controller"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:43
+#: Source/Core/DolphinQt/Config/GraphicsModWarningWidget.cpp:35
 msgid "Configure Dolphin"
 msgstr "Sett opp Dolphin"
 
@@ -2243,10 +2263,10 @@ msgstr "Sett opp utdata"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:251
 #: Source/Core/DolphinQt/ConvertDialog.cpp:281
 #: Source/Core/DolphinQt/ConvertDialog.cpp:402
-#: Source/Core/DolphinQt/GameList/GameList.cpp:627
-#: Source/Core/DolphinQt/GameList/GameList.cpp:810
-#: Source/Core/DolphinQt/MainWindow.cpp:899
-#: Source/Core/DolphinQt/MainWindow.cpp:1620
+#: Source/Core/DolphinQt/GameList/GameList.cpp:629
+#: Source/Core/DolphinQt/GameList/GameList.cpp:812
+#: Source/Core/DolphinQt/MainWindow.cpp:900
+#: Source/Core/DolphinQt/MainWindow.cpp:1621
 #: Source/Core/DolphinQt/WiiUpdate.cpp:136
 msgid "Confirm"
 msgstr "Bekreft"
@@ -2636,7 +2656,7 @@ msgstr "Opprett et nytt minnekort"
 msgid "Create..."
 msgstr "Opprett …"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:249
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:259
 msgid ""
 "Creates frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within."
@@ -2654,11 +2674,11 @@ msgstr "Skaper:"
 msgid "Critical"
 msgstr "Kritisk"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:123
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:126
 msgid "Crop"
 msgstr "Beskjær"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:269
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:279
 msgid ""
 "Crops the picture from its native aspect ratio to 4:3 or 16:9."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -2796,7 +2816,7 @@ msgstr "Data mottatt!"
 msgid "Datel MaxDrive/Pro files"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:42
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:37
 msgid "Dead Zone"
 msgstr "Dødsone"
@@ -2809,7 +2829,7 @@ msgstr "Feilsøk"
 msgid "Debug Only"
 msgstr "Kun feilretting"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:47
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:48
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:441
 msgid "Debugging"
 msgstr "Feilretting"
@@ -2876,7 +2896,7 @@ msgstr "Forvalgt ISO-fil:"
 msgid "Default thread"
 msgstr "Standardtråd"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:144
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:147
 msgid "Defer EFB Cache Invalidation"
 msgstr "Utsett EFB cahce-invalidering"
 
@@ -2884,7 +2904,7 @@ msgstr "Utsett EFB cahce-invalidering"
 msgid "Defer EFB Copies to RAM"
 msgstr "Utsett EFB Kopier til RAM"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:281
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:291
 msgid ""
 "Defers invalidation of the EFB access cache until a GPU synchronization "
 "command is executed. If disabled, the cache will be invalidated with every "
@@ -2927,7 +2947,7 @@ msgstr "Dybde:"
 #: Source/Core/DolphinQt/CheatSearchWidget.cpp:519
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:48
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:232
-#: Source/Core/DolphinQt/GameList/GameList.cpp:976
+#: Source/Core/DolphinQt/GameList/GameList.cpp:978
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
 #: Source/Core/DolphinQt/MenuBar.cpp:633
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
@@ -2938,6 +2958,10 @@ msgstr "Beskrivelse"
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:158
 msgid "Description:"
 msgstr "Beskrivelse:"
+
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:216
+msgid "Description:  "
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:182
 msgid "Detached"
@@ -3028,7 +3052,7 @@ msgstr "Skru av bounding-box-kalkulasjoner"
 msgid "Disable Copy Filter"
 msgstr "Slå av Kopieringsfilter"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:74
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:75
 msgid "Disable EFB VRAM Copies"
 msgstr "Slå av EFB VRAM Kopier"
 
@@ -3059,7 +3083,7 @@ msgid ""
 "unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:245
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:252
 msgid ""
 "Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
 "upscaling.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
@@ -3113,7 +3137,7 @@ msgstr "Reiseavstand fra nøytral posisjon."
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "Tillater du at Dolphin samler inn informasjon til Dolphins utviklere?"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1621
+#: Source/Core/DolphinQt/MainWindow.cpp:1622
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "Vil du legge til «%1» i listen over spillfilbaner?"
 
@@ -3127,7 +3151,7 @@ msgctxt ""
 msgid "Do you want to delete the %n selected save file(s)?"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:903
+#: Source/Core/DolphinQt/MainWindow.cpp:904
 msgid "Do you want to stop the current emulation?"
 msgstr "Vil du stoppe pågående emulering?"
 
@@ -3158,8 +3182,8 @@ msgstr "Dolphin-signatur-CSV-fil"
 msgid "Dolphin Signature File"
 msgstr "Dolphin-signaturfil"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1701
-#: Source/Core/DolphinQt/MainWindow.cpp:1772
+#: Source/Core/DolphinQt/MainWindow.cpp:1702
+#: Source/Core/DolphinQt/MainWindow.cpp:1773
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS-Filmer (*.dtm)"
 
@@ -3324,11 +3348,11 @@ msgstr "Dump &MRAM"
 msgid "Dump Audio"
 msgstr "Dump lyd"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:89
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:92
 msgid "Dump Base Textures"
 msgstr "Dump grunnteksturer"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:72
 msgid "Dump EFB Target"
 msgstr "Dump EFB-mål"
 
@@ -3336,7 +3360,7 @@ msgstr "Dump EFB-mål"
 msgid "Dump Frames"
 msgstr "Dumping av bilder"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:93
 msgid "Dump Mip Maps"
 msgstr ""
 
@@ -3372,11 +3396,11 @@ msgstr ""
 msgid "Dump Textures"
 msgstr "Dump teksturer"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:72
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:73
 msgid "Dump XFB Target"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:102
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:105
 msgid "Dump at Internal Resolution"
 msgstr ""
 
@@ -3413,20 +3437,20 @@ msgstr ""
 msgid "Dump root CA certificates"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:217
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:224
 msgid ""
 "Dumps decoded game textures based on the other flags to User/Dump/Textures/"
 "&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, leave this unchecked.</"
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:239
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:246
 msgid ""
 "Dumps the contents of EFB copies to User/Dump/Textures/."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:249
 msgid ""
 "Dumps the contents of XFB copies to User/Dump/Textures/."
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3498,7 +3522,7 @@ msgstr "Effektiv"
 msgid "Effective priority"
 msgstr ""
 
-#: Source/Core/UICommon/UICommon.cpp:421
+#: Source/Core/UICommon/UICommon.cpp:424
 msgid "EiB"
 msgstr "EiB"
 
@@ -3544,14 +3568,14 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:29
 #: Source/Core/DolphinQt/Config/FreeLookWidget.cpp:33
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:158
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:91
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:129
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:360
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:377
 msgid "Enable"
 msgstr "Aktiver"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:56
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:57
 msgid "Enable API Validation Layers"
 msgstr "Slå på API-valideringslag"
 
@@ -3587,12 +3611,16 @@ msgstr ""
 msgid "Enable FPRF"
 msgstr "Aktiver FPRF"
 
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:76
+msgid "Enable Graphics Mods"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:88
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:66
 msgid "Enable MMU"
 msgstr "Aktiver MMU"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:124
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:127
 msgid "Enable Progressive Scan"
 msgstr "Aktiver progressiv skanning"
 
@@ -3613,7 +3641,7 @@ msgstr "Tillat høyttalerdata"
 msgid "Enable Usage Statistics Reporting"
 msgstr "Skru på bruks- og statistikkrapportering"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:51
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:52
 msgid "Enable Wireframe"
 msgstr "Aktiver wireframe"
 
@@ -3660,7 +3688,7 @@ msgid ""
 "dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:276
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:286
 msgid ""
 "Enables multithreaded command submission in backends where supported. "
 "Enabling this option may result in a performance improvement on systems with "
@@ -3668,7 +3696,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:272
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:282
 msgid ""
 "Enables progressive scan if supported by the emulated software. Most games "
 "don't have any issue with this.<br><br><dolphin_emphasis>If unsure, leave "
@@ -3696,7 +3724,7 @@ msgstr ""
 "Tillater Memory Management Unit (MMU), som trengs for noen spill. (PÅ = "
 "Kompatibelt, AV = Raskt)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:212
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:219
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
 "in debugging graphical issues. On the Vulkan and D3D backends, this also "
@@ -3704,7 +3732,7 @@ msgid ""
 "unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:255
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:265
 msgid ""
 "Encodes frame dumps using the FFV1 codec.<br><br><dolphin_emphasis>If "
 "unsure, leave this unchecked.</dolphin_emphasis>"
@@ -3800,12 +3828,12 @@ msgstr "Skriv inn RSO-moduladresse:"
 #: Source/Core/DolphinQt/Main.cpp:207 Source/Core/DolphinQt/Main.cpp:223
 #: Source/Core/DolphinQt/Main.cpp:230 Source/Core/DolphinQt/MainWindow.cpp:273
 #: Source/Core/DolphinQt/MainWindow.cpp:281
-#: Source/Core/DolphinQt/MainWindow.cpp:1077
-#: Source/Core/DolphinQt/MainWindow.cpp:1423
-#: Source/Core/DolphinQt/MainWindow.cpp:1430
-#: Source/Core/DolphinQt/MainWindow.cpp:1490
-#: Source/Core/DolphinQt/MainWindow.cpp:1497
-#: Source/Core/DolphinQt/MainWindow.cpp:1599
+#: Source/Core/DolphinQt/MainWindow.cpp:1078
+#: Source/Core/DolphinQt/MainWindow.cpp:1424
+#: Source/Core/DolphinQt/MainWindow.cpp:1431
+#: Source/Core/DolphinQt/MainWindow.cpp:1491
+#: Source/Core/DolphinQt/MainWindow.cpp:1498
+#: Source/Core/DolphinQt/MainWindow.cpp:1600
 #: Source/Core/DolphinQt/MenuBar.cpp:1192
 #: Source/Core/DolphinQt/MenuBar.cpp:1262
 #: Source/Core/DolphinQt/MenuBar.cpp:1285
@@ -4022,7 +4050,7 @@ msgstr "Forventet starten på RegEx-innkapsling."
 msgid "Expected variable name."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:139
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:142
 msgid "Experimental"
 msgstr "Eksperimentell"
 
@@ -4197,7 +4225,7 @@ msgstr ""
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr "Kunne ikke slette NetPlay-minnekort. Verifiser dine skrivetillatelser."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:835
+#: Source/Core/DolphinQt/GameList/GameList.cpp:837
 msgid "Failed to delete the selected file."
 msgstr "Klarte ikke å slette valgt fil."
 
@@ -4222,7 +4250,7 @@ msgctxt ""
 msgid "Failed to export %n out of %1 save file(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:571
+#: Source/Core/DolphinQt/GameList/GameList.cpp:573
 msgid "Failed to export the following save files:"
 msgstr "Kunne ikke eksportere følgende lagringsfiler:"
 
@@ -4271,7 +4299,7 @@ msgid ""
 "Manage NAND -> Check NAND...), then import the save again."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1077
+#: Source/Core/DolphinQt/MainWindow.cpp:1078
 msgid "Failed to init core"
 msgstr "Klarte ikke å igangsette kjerne"
 
@@ -4291,12 +4319,12 @@ msgstr ""
 msgid "Failed to install pack: %1"
 msgstr "Kunne ikke installere pakke: %1"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:614
+#: Source/Core/DolphinQt/GameList/GameList.cpp:616
 #: Source/Core/DolphinQt/MenuBar.cpp:1057
 msgid "Failed to install this title to the NAND."
 msgstr "Klarte ikke å installere denne tittelen til NAND."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1523
+#: Source/Core/DolphinQt/MainWindow.cpp:1524
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -4332,7 +4360,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/GBAWidget.cpp:577
-#: Source/Core/DolphinQt/MainWindow.cpp:1599
+#: Source/Core/DolphinQt/MainWindow.cpp:1600
 #: Source/Core/DolphinQt/RenderWidget.cpp:124
 msgid "Failed to open '%1'"
 msgstr "Klarte ikke å åpne \"%1\""
@@ -4365,7 +4393,7 @@ msgstr ""
 msgid "Failed to open file."
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1522
+#: Source/Core/DolphinQt/MainWindow.cpp:1523
 msgid "Failed to open server"
 msgstr "Klarte ikke å åpne tjener"
 
@@ -4423,7 +4451,7 @@ msgid ""
 "Would you like to convert it without removing junk data?"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:642
+#: Source/Core/DolphinQt/GameList/GameList.cpp:644
 msgid "Failed to remove this title from the NAND."
 msgstr "Kunne ikke fjerne denne tittelen fra NAND."
 
@@ -4503,9 +4531,9 @@ msgid ""
 "Check that you have enough space available on the target drive."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:612
-#: Source/Core/DolphinQt/GameList/GameList.cpp:640
-#: Source/Core/DolphinQt/GameList/GameList.cpp:834
+#: Source/Core/DolphinQt/GameList/GameList.cpp:614
+#: Source/Core/DolphinQt/GameList/GameList.cpp:642
+#: Source/Core/DolphinQt/GameList/GameList.cpp:836
 #: Source/Core/DolphinQt/MenuBar.cpp:1057
 msgid "Failure"
 msgstr "Feil"
@@ -4546,7 +4574,7 @@ msgstr ""
 msgid "File Details"
 msgstr "Fildetaljer"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:983
+#: Source/Core/DolphinQt/GameList/GameList.cpp:985
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
 #: Source/Core/DolphinQt/MenuBar.cpp:640
 msgid "File Format"
@@ -4560,19 +4588,19 @@ msgstr "Filformat:"
 msgid "File Info"
 msgstr "Fil-informasjon"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:978
+#: Source/Core/DolphinQt/GameList/GameList.cpp:980
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
 #: Source/Core/DolphinQt/MenuBar.cpp:635
 msgid "File Name"
 msgstr "Filnavn"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:979
+#: Source/Core/DolphinQt/GameList/GameList.cpp:981
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
 #: Source/Core/DolphinQt/MenuBar.cpp:636
 msgid "File Path"
 msgstr "Filbane"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:982
+#: Source/Core/DolphinQt/GameList/GameList.cpp:984
 #: Source/Core/DolphinQt/MenuBar.cpp:639
 msgid "File Size"
 msgstr "Filstørrelse"
@@ -4608,7 +4636,7 @@ msgstr ""
 msgid "Filesize in header mismatches actual card size."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:75
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:83
 msgid "Filesystem"
 msgstr "Filsystem"
 
@@ -4786,7 +4814,7 @@ msgstr "Øk hastighet for bildeforskuddsvisning"
 msgid "Frame Advance Reset Speed"
 msgstr "Tilbakestill bilde-for-bilde-hastighet"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:98
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:101
 msgid "Frame Dumping"
 msgstr ""
 
@@ -4794,7 +4822,7 @@ msgstr ""
 msgid "Frame Range"
 msgstr "Bildespennvidde"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1766
+#: Source/Core/VideoCommon/RenderBase.cpp:1803
 msgid "Frame dump image(s) '{0}' already exists. Overwrite?"
 msgstr ""
 
@@ -5042,7 +5070,7 @@ msgstr ""
 msgid "Game Boy Advance at Port %1"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:55
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:61
 msgid "Game Config"
 msgstr "Spilloppsett"
 
@@ -5054,7 +5082,7 @@ msgstr "Spilldetaljer"
 msgid "Game Folders"
 msgstr "Spillmapper"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:980
+#: Source/Core/DolphinQt/GameList/GameList.cpp:982
 #: Source/Core/DolphinQt/MenuBar.cpp:637
 msgid "Game ID"
 msgstr "Spill-ID"
@@ -5156,8 +5184,12 @@ msgstr "GameCube-mikrofoninngang i inngang %1"
 msgid "GameCube TAS Input %1"
 msgstr "GameCube TAS-inndata %1"
 
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/AnalogStick.cpp:74
+msgid "Gate Size"
+msgstr ""
+
 #: Source/Core/DolphinQt/CheatsManager.cpp:91
-#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:59
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:65
 msgid "Gecko Codes"
 msgstr "Gecko-juksekoder"
 
@@ -5207,7 +5239,7 @@ msgstr "Tyskland"
 msgid "GetDeviceList failed: {0}"
 msgstr ""
 
-#: Source/Core/UICommon/UICommon.cpp:420
+#: Source/Core/UICommon/UICommon.cpp:423
 msgid "GiB"
 msgstr "GiB"
 
@@ -5225,10 +5257,18 @@ msgstr "God dump"
 msgid "Graphics"
 msgstr "Grafikk"
 
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:67
+msgid "Graphics Mods"
+msgstr ""
+
 #: Source/Core/Core/HotkeyManager.cpp:340
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:20
 msgid "Graphics Toggles"
 msgstr "Grafikkbrytere"
+
+#: Source/Core/DolphinQt/Config/GraphicsModWarningWidget.cpp:59
+msgid "Graphics mods are currently disabled."
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:311
 msgid ""
@@ -5571,7 +5611,7 @@ msgstr ""
 msgid "Immediately Present XFB"
 msgstr "Øyeblikkelig tilgjengelig XFB"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:300
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:310
 msgid ""
 "Implements fullscreen mode with a borderless window spanning the whole "
 "screen instead of using exclusive mode. Allows for faster transitions "
@@ -5599,11 +5639,11 @@ msgstr ""
 msgid "Import Wii Save..."
 msgstr "Importer Wii-lagringsfil …"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1663
+#: Source/Core/DolphinQt/MainWindow.cpp:1664
 msgid "Importing NAND backup"
 msgstr "Importing NAND sikkerhetskopi"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1673
+#: Source/Core/DolphinQt/MainWindow.cpp:1674
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -5671,13 +5711,13 @@ msgid "Incremental Rotation (rad/sec)"
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
-#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:60
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:68
 #: Source/Core/DolphinQt/ConvertDialog.cpp:99
 msgid "Info"
 msgstr "Info"
 
 #: Source/Core/Common/MsgHandler.cpp:59
-#: Source/Core/DolphinQt/GameList/GameList.cpp:756
+#: Source/Core/DolphinQt/GameList/GameList.cpp:758
 #: Source/Core/DolphinQt/MenuBar.cpp:1255
 #: Source/Core/DolphinQt/MenuBar.cpp:1479
 msgid "Information"
@@ -5701,7 +5741,7 @@ msgid "Input strength required for activation."
 msgstr "Inndata styrke kreves for aktivering."
 
 #. i18n: Refers to the dead-zone setting of gamepad inputs.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:46
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:47
 msgid "Input strength to ignore and remap."
 msgstr ""
 
@@ -6025,7 +6065,7 @@ msgstr "Tastatur"
 msgid "Keys"
 msgstr "Nøkler"
 
-#: Source/Core/UICommon/UICommon.cpp:420
+#: Source/Core/UICommon/UICommon.cpp:423
 msgid "KiB"
 msgstr "KiB"
 
@@ -6181,7 +6221,7 @@ msgstr "Last &Dårlig kartfil..."
 msgid "Load &Other Map File..."
 msgstr "Last &Annen kartfil..."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:68
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:69
 msgid "Load Custom Textures"
 msgstr "Last inn brukerlagde teksturer"
 
@@ -6328,11 +6368,17 @@ msgstr "Last..."
 msgid "Loaded symbols from '%1'"
 msgstr "Lastet symboler fra '%1'"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:231
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:238
 msgid ""
 "Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/"
 "DynamicInputTextures/&lt;game_id&gt;/.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:256
+msgid ""
+"Loads graphics mods from User/Load/GraphicsMods/."
+"<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:503
@@ -6416,7 +6462,7 @@ msgstr ""
 msgid "Main Stick"
 msgstr "Hoved-joystick"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:977
+#: Source/Core/DolphinQt/GameList/GameList.cpp:979
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:221
 #: Source/Core/DolphinQt/MenuBar.cpp:634
 msgid "Maker"
@@ -6439,7 +6485,7 @@ msgstr ""
 msgid "Manage NAND"
 msgstr "Administrer NAND"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:146
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:149
 msgid "Manual Texture Sampling"
 msgstr ""
 
@@ -6513,7 +6559,7 @@ msgstr ""
 msgid "MemoryCard: Write called with invalid destination address ({0:#x})"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1644
+#: Source/Core/DolphinQt/MainWindow.cpp:1645
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -6525,7 +6571,7 @@ msgstr ""
 "det er anbefalt at du bevarer sikkerhetskopier av begge NAND-filer. Er du "
 "sikker på at du vil fortsette?"
 
-#: Source/Core/UICommon/UICommon.cpp:420
+#: Source/Core/UICommon/UICommon.cpp:423
 msgid "MiB"
 msgstr "MiB"
 
@@ -6535,7 +6581,7 @@ msgstr "MiB"
 msgid "Microphone"
 msgstr "Mikrofon"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:119
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:122
 msgid "Misc"
 msgstr "Diverse"
 
@@ -6567,7 +6613,7 @@ msgstr ""
 msgid "Modifier"
 msgstr "Modifiserer"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:208
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:215
 msgid ""
 "Modifies textures to show the format they're encoded in.<br><br>May require "
 "an emulation reset to apply.<br><br><dolphin_emphasis>If unsure, leave this "
@@ -6675,11 +6721,11 @@ msgstr "NTSC-U"
 msgid "Name"
 msgstr "Navn"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1096
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1098
 msgid "Name for a new tag:"
 msgstr "Navn for en ny merkelapp:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1108
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1110
 msgid "Name of the tag to remove:"
 msgstr "Navn for tagg til å fjerne:"
 
@@ -6773,7 +6819,7 @@ msgstr "Ny identietet opprettet."
 msgid "New instruction:"
 msgstr "Ny instruksjon:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1096
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1098
 msgid "New tag"
 msgstr "Ny etikett"
 
@@ -6894,7 +6940,7 @@ msgstr ""
 msgid "No recording loaded."
 msgstr "Ingen opptak lastet."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:756
+#: Source/Core/DolphinQt/GameList/GameList.cpp:758
 msgid "No save data found."
 msgstr "Ingen lagringsfiler funnet."
 
@@ -7173,11 +7219,11 @@ msgstr "PAL"
 msgid "PCAP"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:115
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:118
 msgid "PNG Compression Level"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:114
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:117
 msgid "PNG Compression Level:"
 msgstr ""
 
@@ -7244,7 +7290,7 @@ msgstr "Patch Editor"
 msgid "Patch name"
 msgstr "Patch-navn"
 
-#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:56
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:62
 msgid "Patches"
 msgstr "Patcher"
 
@@ -7306,7 +7352,7 @@ msgstr "Fysisk"
 msgid "Physical address space"
 msgstr ""
 
-#: Source/Core/UICommon/UICommon.cpp:421
+#: Source/Core/UICommon/UICommon.cpp:424
 msgid "PiB"
 msgstr "PiB"
 
@@ -7326,7 +7372,7 @@ msgstr ""
 msgid "Pitch Up"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:973
+#: Source/Core/DolphinQt/GameList/GameList.cpp:975
 #: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "Platform"
 msgstr "Plattform"
@@ -7398,7 +7444,7 @@ msgstr "Postbehandlingseffekt:"
 msgid "Post-Processing Shader Configuration"
 msgstr "Oppsett av Etterbehandlings-skyggelegging"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:70
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
 msgid "Prefetch Custom Textures"
 msgstr "Forhåndsinnlasting av egendefinerte teksturer"
 
@@ -7549,7 +7595,7 @@ msgstr ""
 #: Source/Core/Common/MsgHandler.cpp:60
 #: Source/Core/DolphinQt/ConvertDialog.cpp:433
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:660
-#: Source/Core/DolphinQt/MainWindow.cpp:1643
+#: Source/Core/DolphinQt/MainWindow.cpp:1644
 msgid "Question"
 msgstr "Spørsmål"
 
@@ -7727,7 +7773,7 @@ msgstr ""
 msgid "Refreshing..."
 msgstr "Gjennoppfrisker..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:981
+#: Source/Core/DolphinQt/GameList/GameList.cpp:983
 #: Source/Core/DolphinQt/MenuBar.cpp:638
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
@@ -7774,7 +7820,7 @@ msgstr ""
 msgid "Remove Tag..."
 msgstr "Fjern merkelapp..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:1108
+#: Source/Core/DolphinQt/GameList/GameList.cpp:1110
 msgid "Remove tag"
 msgstr "Fjern merkelapp"
 
@@ -7802,7 +7848,7 @@ msgstr "Spill i hovedvinduet"
 msgid "Rendering"
 msgstr "Opptegning"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:202
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:209
 msgid ""
 "Renders the scene as a wireframe.<br><br><dolphin_emphasis>If unsure, leave "
 "this unchecked.</dolphin_emphasis>"
@@ -7825,6 +7871,7 @@ msgstr "Forespørsel om å bli med i din gruppe"
 msgid "Reset"
 msgstr "Nullstill"
 
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:215
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:87
 msgid "Reset All"
 msgstr ""
@@ -8052,8 +8099,8 @@ msgstr "Lagre"
 msgid "Save All"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:570
-#: Source/Core/DolphinQt/GameList/GameList.cpp:575
+#: Source/Core/DolphinQt/GameList/GameList.cpp:572
+#: Source/Core/DolphinQt/GameList/GameList.cpp:577
 #: Source/Core/DolphinQt/MenuBar.cpp:1115
 msgid "Save Export"
 msgstr "Lagringsfil Eksport"
@@ -8091,7 +8138,7 @@ msgstr "Lagre eldste hurtiglagring"
 msgid "Save Preset"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1772
+#: Source/Core/DolphinQt/MainWindow.cpp:1773
 msgid "Save Recording File As"
 msgstr ""
 
@@ -8310,7 +8357,7 @@ msgstr "Velg"
 msgid "Select Dump Path"
 msgstr "Velg dumpens filbane"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:550
+#: Source/Core/DolphinQt/GameList/GameList.cpp:552
 #: Source/Core/DolphinQt/MenuBar.cpp:1109
 msgid "Select Export Directory"
 msgstr "Velg eksportmappe"
@@ -8411,9 +8458,9 @@ msgstr "Velg mappe"
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:194
 #: Source/Core/DolphinQt/GBAWidget.cpp:210
 #: Source/Core/DolphinQt/GBAWidget.cpp:241
-#: Source/Core/DolphinQt/MainWindow.cpp:743
-#: Source/Core/DolphinQt/MainWindow.cpp:1315
-#: Source/Core/DolphinQt/MainWindow.cpp:1323
+#: Source/Core/DolphinQt/MainWindow.cpp:744
+#: Source/Core/DolphinQt/MainWindow.cpp:1316
+#: Source/Core/DolphinQt/MainWindow.cpp:1324
 msgid "Select a File"
 msgstr "Velg en fil"
 
@@ -8445,7 +8492,7 @@ msgstr ""
 msgid "Select the RSO module address:"
 msgstr "Velg RSO-moduladressen:"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1701
+#: Source/Core/DolphinQt/MainWindow.cpp:1702
 msgid "Select the Recording File to Play"
 msgstr ""
 
@@ -8453,11 +8500,11 @@ msgstr ""
 msgid "Select the Virtual SD Card Root"
 msgstr ""
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1679
+#: Source/Core/DolphinQt/MainWindow.cpp:1680
 msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr "Velg nøkkelfil (OTP/SEEPROM dump)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1653
+#: Source/Core/DolphinQt/MainWindow.cpp:1654
 #: Source/Core/DolphinQt/MenuBar.cpp:1064
 msgid "Select the save file"
 msgstr "Velg lagringsfil"
@@ -8650,7 +8697,7 @@ msgstr ""
 msgid "Settings"
 msgstr "Innstillinger"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:360
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:410
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Kan ikke opprette «setting.txt»-fil"
 
@@ -8805,7 +8852,7 @@ msgstr "Vis Russland"
 msgid "Show Spain"
 msgstr "Vis Spania"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:52
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:53
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:60
 msgid "Show Statistics"
 msgstr "Vis statistikker"
@@ -8892,7 +8939,7 @@ msgid ""
 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:205
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:212
 msgid ""
 "Shows various rendering statistics.<br><br><dolphin_emphasis>If unsure, "
 "leave this unchecked.</dolphin_emphasis>"
@@ -9084,7 +9131,7 @@ msgstr ""
 msgid "Specific"
 msgstr "Spesifikk"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:259
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:269
 msgid ""
 "Specifies the zlib compression level to use when saving PNG images (both for "
 "screenshots and framedumping).<br><br>Since PNG uses lossless compression, "
@@ -9321,8 +9368,8 @@ msgstr "Penn"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:381
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:269
 #: Source/Core/DolphinQt/ConvertDialog.cpp:513
-#: Source/Core/DolphinQt/GameList/GameList.cpp:612
-#: Source/Core/DolphinQt/GameList/GameList.cpp:640
+#: Source/Core/DolphinQt/GameList/GameList.cpp:614
+#: Source/Core/DolphinQt/GameList/GameList.cpp:642
 #: Source/Core/DolphinQt/MenuBar.cpp:1052
 #: Source/Core/DolphinQt/MenuBar.cpp:1187
 msgid "Success"
@@ -9347,7 +9394,7 @@ msgctxt ""
 msgid "Successfully exported %n out of %1 save file(s)."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:575
+#: Source/Core/DolphinQt/GameList/GameList.cpp:577
 msgid "Successfully exported save files"
 msgstr "Eksportering av lagringsfiler var vellykket"
 
@@ -9367,12 +9414,12 @@ msgstr "Ekstrahering av systemdata vellykket."
 msgid "Successfully imported save file."
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:613
+#: Source/Core/DolphinQt/GameList/GameList.cpp:615
 #: Source/Core/DolphinQt/MenuBar.cpp:1053
 msgid "Successfully installed this title to the NAND."
 msgstr "Installering av tittelen til NAND var vellykket."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:641
+#: Source/Core/DolphinQt/GameList/GameList.cpp:643
 msgid "Successfully removed this title from the NAND."
 msgstr "Fjerning av tittelen fra NAND var vellykket."
 
@@ -9512,7 +9559,7 @@ msgid "TAS Tools"
 msgstr "TAS-verktøy"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:491
-#: Source/Core/DolphinQt/GameList/GameList.cpp:986
+#: Source/Core/DolphinQt/GameList/GameList.cpp:988
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:235
 #: Source/Core/DolphinQt/MenuBar.cpp:643
 msgid "Tags"
@@ -9549,11 +9596,11 @@ msgstr "Tekstur-hurtiglager"
 msgid "Texture Cache Accuracy"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:85
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
 msgid "Texture Dumping"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:54
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:55
 msgid "Texture Format Overlay"
 msgstr "Teksturformat-overlegg"
 
@@ -9970,8 +10017,14 @@ msgstr ""
 "Denne Action Replay-simulatoren støtter ikke koder som modifiserer selve "
 "Action Replay."
 
+#: Source/Core/Common/x64CPUDetect.cpp:75
+msgid ""
+"This build of Dolphin is not natively compiled for your CPU.\n"
+"Please run the ARM64 build of Dolphin for a better experience."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:253
-#: Source/Core/DolphinQt/GameList/GameList.cpp:812
+#: Source/Core/DolphinQt/GameList/GameList.cpp:814
 msgid "This cannot be undone!"
 msgstr "Dette kan ikke omgjøres!"
 
@@ -10105,7 +10158,7 @@ msgstr "Tittelen er satt til en ugyldig IOS."
 msgid "This title is set to use an invalid common key."
 msgstr "Tittelen er satt til å bruke en ugyldig fellesnøkkel."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:298
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:306
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10113,7 +10166,7 @@ msgid ""
 "DSPHLE: Unknown ucode (CRC = {0:08x}) - forcing AX."
 msgstr ""
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:289
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:297
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10162,7 +10215,7 @@ msgstr "Tråder"
 msgid "Threshold"
 msgstr "Terskel"
 
-#: Source/Core/UICommon/UICommon.cpp:421
+#: Source/Core/UICommon/UICommon.cpp:424
 msgid "TiB"
 msgstr "TiB"
 
@@ -10177,7 +10230,7 @@ msgstr "Vend"
 msgid "Time period of stable input to trigger calibration. (zero to disable)"
 msgstr ""
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:975
+#: Source/Core/DolphinQt/GameList/GameList.cpp:977
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:153
 #: Source/Core/DolphinQt/MenuBar.cpp:632
@@ -10488,7 +10541,7 @@ msgstr "Avinstaller"
 msgid "Uninstall from the NAND"
 msgstr "Avinstaller fra NAND"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:628
+#: Source/Core/DolphinQt/GameList/GameList.cpp:630
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -10686,7 +10739,7 @@ msgstr "Bruk den innebygde databasen over spillnavn"
 msgid "Use Custom User Style"
 msgstr "Bruk egendefinert brukerstil"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:104
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:107
 msgid "Use Lossless Codec (FFV1)"
 msgstr "Bruk tapsfri kodek (FFV1)"
 
@@ -10698,7 +10751,7 @@ msgstr "Bruk PAL60-modus (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "Bruk panikkadvarslere"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:287
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:297
 msgid ""
 "Use a manual implementation of texture sampling instead of the graphics "
 "backend's built-in functionality.<br><br>This setting can fix graphical "
@@ -10819,7 +10872,7 @@ msgstr ""
 msgid "Usually used for tex coord matrices"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:64
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:65
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:64
 msgid "Utility"
 msgstr "Verktøyet"
@@ -10844,7 +10897,7 @@ msgstr "Hastighet"
 msgid "Verbosity"
 msgstr "Detaljgrad"
 
-#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:69
+#: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:77
 msgid "Verify"
 msgstr "Verifiser"
 
@@ -11098,7 +11151,7 @@ msgstr "Vestlig (Windows-1252)"
 msgid "Whammy"
 msgstr "Whammy"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:226
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:233
 msgid ""
 "Whether to dump base game textures to User/Dump/Textures/&lt;game_id&gt;/.  "
 "This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is "
@@ -11106,7 +11159,7 @@ msgid ""
 "checked.</dolphin_emphasis>"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:221
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:228
 msgid ""
 "Whether to dump mipmapped game textures to User/Dump/Textures/&lt;"
 "game_id&gt;/.  This includes arbitrary mipmapped textures if 'Arbitrary "
