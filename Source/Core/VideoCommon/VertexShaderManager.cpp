@@ -38,6 +38,7 @@ static bool bProjectionChanged;
 static bool bViewportChanged;
 static bool bTexMtxInfoChanged;
 static bool bLightingConfigChanged;
+static bool bProjectionGraphicsModChange;
 static BitSet32 nMaterialsChanged;
 static std::array<int, 2> nTransformMatricesChanged;      // min,max
 static std::array<int, 2> nNormalMatricesChanged;         // min,max
@@ -63,6 +64,7 @@ void VertexShaderManager::Init()
   bViewportChanged = false;
   bTexMtxInfoChanged = false;
   bLightingConfigChanged = false;
+  bProjectionGraphicsModChange = false;
 
   std::memset(static_cast<void*>(&xfmem), 0, sizeof(xfmem));
   constants = {};
@@ -322,9 +324,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   }
 
   if (bProjectionChanged || g_freelook_camera.GetController()->IsDirty() ||
-      !projection_actions.empty())
+      !projection_actions.empty() || bProjectionGraphicsModChange)
   {
     bProjectionChanged = false;
+    bProjectionGraphicsModChange = !projection_actions.empty();
 
     const auto& rawProjection = xfmem.projection.rawProjection;
 
