@@ -15,6 +15,20 @@ struct ItemStruct
   float itemTime;
 };
 
+struct GoalStruct
+{
+  float goalTime;
+  float ballX;
+  float ballY;
+};
+
+struct MissedShots
+{
+  float goalTime;
+  float ballX;
+  float ballY;
+};
+
 // VARIABLES
 
 static tm* matchDateTime;
@@ -73,8 +87,16 @@ static std::vector<ItemStruct> rightTeamItemVector;
 // goals
 static u32 leftTeamGoalOffset;
 static u32 rightTeamGoalOffset;
-static std::vector<float> leftTeamGoalVector;
-static std::vector<float> rightTeamGoalVector;
+static std::vector<GoalStruct> leftTeamGoalVector;
+static std::vector<GoalStruct> rightTeamGoalVector;
+
+// missed shots
+static u16 leftTeamMissedShotsOffset;
+static u16 rightTeamMissedShotsOffset;
+static u16 leftTeamMissedShotsFlag;
+static u16 rightTeamMissedShotsFlag;
+static std::vector<MissedShots> leftTeamMissedShotsVector;
+static std::vector<MissedShots> rightTeamMissedShotsVector;
 
 // METHODS
 
@@ -226,11 +248,19 @@ std::string Metadata::getJSONString()
   {
     if (i != leftTeamGoalVector.size() - 1)
     {
-      json_stream << "    [" << leftTeamGoalVector.at(i) << "]" << "," << std::endl;
+      json_stream << "    [" << std::to_string(leftTeamGoalVector.at(i).goalTime) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballX) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballY)
+                  << "],"
+                  << std::endl;
     }
     else
     {
-      json_stream << "    [" << leftTeamGoalVector.at(i) << "]" << std::endl;
+      json_stream << "    [" << std::to_string(leftTeamGoalVector.at(i).goalTime) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballX) << ","
+                  << std::to_string(leftTeamGoalVector.at(i).ballY)
+                  << "]"
+                  << std::endl;
     }
   }
   // add a comma once we add right team goals to line below
@@ -241,11 +271,56 @@ std::string Metadata::getJSONString()
   {
     if (i != rightTeamGoalVector.size() - 1)
     {
-      json_stream << "    [" << rightTeamGoalVector.at(i) << "]" << "," << std::endl;
+      json_stream << "    [" << std::to_string(rightTeamGoalVector.at(i).goalTime) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballX) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballY)
+                  << "],"
+                  << std::endl;
     }
     else
     {
-      json_stream << "    [" << rightTeamGoalVector.at(i) << "]" << std::endl;
+      json_stream << "    [" << std::to_string(rightTeamGoalVector.at(i).goalTime) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballX) << ","
+                  << std::to_string(rightTeamGoalVector.at(i).ballY)
+                  << "]"
+                  << std::endl;
+    }
+  }
+  json_stream << "  ]," << std::endl;
+
+  json_stream << "  \"Left Team Missed Shots Info\": [" << std::endl;
+  for (int i = 0; i < leftTeamMissedShotsVector.size(); i++)
+  {
+    if (i != leftTeamMissedShotsVector.size() - 1)
+    {
+      json_stream << "    [" << std::to_string(leftTeamMissedShotsVector.at(i).goalTime) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballX) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballY) << "]," << std::endl;
+    }
+    else
+    {
+      json_stream << "    [" << std::to_string(leftTeamMissedShotsVector.at(i).goalTime) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballX) << ","
+                  << std::to_string(leftTeamMissedShotsVector.at(i).ballY) << "]" << std::endl;
+    }
+  }
+  // add a comma once we add right team goals to line below
+  json_stream << "  ]," << std::endl;
+
+  json_stream << "  \"Right Team Missed Shots Info\": [" << std::endl;
+  for (int i = 0; i < rightTeamMissedShotsVector.size(); i++)
+  {
+    if (i != rightTeamMissedShotsVector.size() - 1)
+    {
+      json_stream << "    [" << std::to_string(rightTeamMissedShotsVector.at(i).goalTime) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballX) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballY) << "]," << std::endl;
+    }
+    else
+    {
+      json_stream << "    [" << std::to_string(rightTeamMissedShotsVector.at(i).goalTime) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballX) << ","
+                  << std::to_string(rightTeamMissedShotsVector.at(i).ballY) << "]" << std::endl;
     }
   }
   // add a comma below if we add more stats
@@ -313,7 +388,18 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     std::string batchPath = cwd.string();
     //std::string batchPath("./createcit.bat");
     batchPath += gameVar;
-    WinExec(batchPath.c_str(), SW_HIDE);
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    memset(&si, 0, sizeof(si));
+    si.cb = sizeof(si);
+    si.wShowWindow = SW_HIDE;
+    CreateProcessA(cwd.string().c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL,
+                   NULL,
+                   (LPSTARTUPINFOA)&si, &pi);
+    // the task has ended so close the handle
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    //WinExec(batchPath.c_str(), SW_HIDE);
   }
 }
 
@@ -322,12 +408,12 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   // have consistent time across the output file and the in-json time
   matchDateTime = matchDateTimeParam;
 
-  //set match info vars
+  // set match info vars
 
   const AddressSpace::Accessors* accessors =
       AddressSpace::GetAccessors(AddressSpace::Type::Effective);
 
-  //set controllers
+  // set controllers
   controllerPort1 = Memory::Read_U16(addressControllerPort1);
   controllerPort2 = Memory::Read_U16(addressControllerPort2);
   controllerPort3 = Memory::Read_U16(addressControllerPort3);
@@ -337,7 +423,7 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   controllerVector.at(2) = controllerPort3;
   controllerVector.at(3) = controllerPort4;
 
-  //set captains, sidekicks, stage, stadium, and overtime
+  // set captains, sidekicks, stage, stadium, and overtime
   leftSideCaptainID = Memory::Read_U32(addressLeftSideCaptainID);
   rightSideCaptainID = Memory::Read_U32(addressRightSideCaptainID);
   leftSideSidekickID = Memory::Read_U32(addressLeftSideSidekickID);
@@ -345,7 +431,7 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   stadiumID = Memory::Read_U32(addressStadiumID);
   overtimeNotReached = Memory::Read_U8(addressOvertimeNotReachedBool);
 
-  //set left team stats
+  // set left team stats
   leftSideScore = Memory::Read_U16(addressLeftSideScore);
   leftSideShots = Memory::Read_U32(addressLeftSideShots);
   leftSideHits = Memory::Read_U16(addressLeftSideHits);
@@ -353,7 +439,7 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   leftSideSuperStrikes = Memory::Read_U16(addressLeftSideSuperStrikes);
   leftSidePerfectPasses = Memory::Read_U16(addressLeftSidePerfectPasses);
 
-  //set right team stats
+  // set right team stats
   rightSideScore = Memory::Read_U16(addressRightSideScore);
   rightSideShots = Memory::Read_U32(addressRightSideShots);
   rightSideHits = Memory::Read_U16(addressRightSideHits);
@@ -361,29 +447,35 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
   rightSideSuperStrikes = Memory::Read_U16(addressRightSideSuperStrikes);
   rightSidePerfectPasses = Memory::Read_U16(addressRightSidePerfectPasses);
 
-  //set ruleset
+  // set ruleset
   matchDifficulty = Memory::Read_U32(addressMatchDifficulty);
   matchTimeAllotted = Memory::Read_U32(addressMatchTimeAllotted);
   matchItemsBool = Memory::Read_U8(addressMatchItemsBool);
   matchBowserBool = Memory::Read_U8(addressMatchBowserBool);
   matchSuperStrikesBool = Memory::Read_U8(addressMatchSuperStrikesBool);
 
-  //set item metadata
+  // set item metadata
   leftTeamItemOffset = Memory::Read_U32(addressLeftTeamItemOffset);
   leftTeamItemCount = Memory::Read_U32(addressLeftTeamItemCount);
   rightTeamItemOffset = Memory::Read_U32(addressRightTeamItemOffset);
   rightTeamItemCount = Memory::Read_U32(addressRightTeamItemCount);
 
-  //set goal metadata
+  // set goal metadata
   leftTeamGoalOffset = Memory::Read_U32(addressLeftTeamGoalOffset);
   rightTeamGoalOffset = Memory::Read_U32(addressRightTeamGoalOffset);
+
+  // set missed shots metadata
+  leftTeamMissedShotsOffset = Memory::Read_U16(addressLeftTeamMissedShotsOffset);
+  leftTeamMissedShotsFlag = Memory::Read_U16(addressLeftTeamMissedShotsFlag);
+  rightTeamMissedShotsOffset = Memory::Read_U16(addressRightTeamMissedShotsOffset);
+  rightTeamMissedShotsFlag = Memory::Read_U16(addressRightTeamMissedShotsFlag);
 
   if (!leftTeamItemVector.empty())
   {
     leftTeamItemVector.clear();
   }
 
-  for (int i = 0; i < (int) leftTeamItemOffset; i += 8)
+  for (int i = 0; i < (int)leftTeamItemOffset; i += 8)
   {
     // we add i to each one as that is the incremented offset
     u8 leftTeamItemID = Memory::Read_U8(addressLeftTeamItemStart + i);
@@ -395,7 +487,7 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
 
   if (!rightTeamItemVector.empty())
   {
-      rightTeamItemVector.clear();
+    rightTeamItemVector.clear();
   }
 
   for (int i = 0; i < (int)rightTeamItemOffset; i += 8)
@@ -413,11 +505,14 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
     leftTeamGoalVector.clear();
   }
 
-  for (int i = 0; i < (int)leftTeamGoalOffset; i += 4)
+  for (int i = 0; i < (int)leftTeamGoalOffset; i += 12)
   {
     // we add i to each one as that is the incremented offset
     float leftTeamGoalTime = accessors->ReadF32(addressLeftTeamGoalStart + i);
-    leftTeamGoalVector.push_back(leftTeamGoalTime);
+    float leftTeamBallX = accessors->ReadF32(addressLeftTeamGoalStart + i + 4);
+    float leftTeamBallY = accessors->ReadF32(addressLeftTeamGoalStart + i + 8);
+    GoalStruct leftTeamGoalStruct = {leftTeamGoalTime, leftTeamBallX, leftTeamBallY};
+    leftTeamGoalVector.push_back(leftTeamGoalStruct);
   }
 
   if (!rightTeamGoalVector.empty())
@@ -425,12 +520,61 @@ void Metadata::setMatchMetadata(tm* matchDateTimeParam)
     rightTeamGoalVector.clear();
   }
 
-  for (int i = 0; i < (int)rightTeamGoalOffset; i += 4)
+  for (int i = 0; i < (int)rightTeamGoalOffset; i += 12)
   {
     // we add i to each one as that is the incremented offset
     float rightTeamGoalTime = accessors->ReadF32(addressRightTeamGoalStart + i);
-    rightTeamGoalVector.push_back(rightTeamGoalTime);
+    float rightTeamBallX = accessors->ReadF32(addressRightTeamGoalStart + i + 4);
+    float rightTeamBallY = accessors->ReadF32(addressRightTeamGoalStart + i + 8);
+    GoalStruct rightTeamGoalStruct = {rightTeamGoalTime, rightTeamBallX, rightTeamBallY};
+    rightTeamGoalVector.push_back(rightTeamGoalStruct);
   }
+
+  leftTeamMissedShotsVector.clear();
+
+  for (int i = 0; i < (int)leftTeamMissedShotsOffset; i += 12)
+  {
+    float leftTeamMissedShotTime = accessors->ReadF32(addressLeftTeamMissedShotsStart + i);
+    float leftTeamMissedShotBallX = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 4);
+    float leftTeamMissedShotBallY = accessors->ReadF32(addressLeftTeamMissedShotsStart + i + 8);
+    MissedShots leftTeamMissedShotsStruct = {leftTeamMissedShotTime, leftTeamMissedShotBallX,
+                                             leftTeamMissedShotBallY};
+    leftTeamMissedShotsVector.push_back(leftTeamMissedShotsStruct);
+  }
+  if (leftTeamMissedShotsFlag == 1)
+  {
+    // this means we left off on a missed shot that we weren't able to record so we need to record it now
+    float leftTeamMissedShotTime = accessors->ReadF32(addressLeftTeamMissedShotsTimestamp);
+    float leftTeamMissedShotBallX = accessors->ReadF32(addressLeftTeamMissedShotsBallXPos);
+    float leftTeamMissedShotBallY = accessors->ReadF32(addressLeftTeamMissedShotsBallYPos);
+    MissedShots leftTeamMissedShotsStruct = {leftTeamMissedShotTime, leftTeamMissedShotBallX,
+                                             leftTeamMissedShotBallY};
+    leftTeamMissedShotsVector.push_back(leftTeamMissedShotsStruct);
+  }
+
+  rightTeamMissedShotsVector.clear();
+
+  for (int i = 0; i < (int)rightTeamMissedShotsOffset; i += 12)
+  {
+    float rightTeamMissedShotTime = accessors->ReadF32(addressRightTeamMissedShotsStart + i );
+    float rightTeamMissedShotBallX = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 4);
+    float rightTeamMissedShotBallY = accessors->ReadF32(addressRightTeamMissedShotsStart + i + 8);
+    MissedShots rightTeamMissedShotsStruct = {rightTeamMissedShotTime, rightTeamMissedShotBallX,
+                                             rightTeamMissedShotBallY};
+    rightTeamMissedShotsVector.push_back(rightTeamMissedShotsStruct);
+  }
+  if (rightTeamMissedShotsFlag == 1)
+  {
+    // this means we left off on a missed shot that we weren't able to record so we need to record
+    // it now
+    float rightTeamMissedShotTime = accessors->ReadF32(addressRightTeamMissedShotsTimestamp);
+    float rightTeamMissedShotBallX = accessors->ReadF32(addressRightTeamMissedShotsBallXPos);
+    float rightTeamMissedShotBallY = accessors->ReadF32(addressRightTeamMissedShotsBallYPos);
+    MissedShots rightTeamMissedShotsStruct = {rightTeamMissedShotTime, rightTeamMissedShotBallX,
+                                             rightTeamMissedShotBallY};
+    rightTeamMissedShotsVector.push_back(rightTeamMissedShotsStruct);
+  }
+
   if (NetPlay::IsNetPlayRunning())
   {
     // even though dolhpin ports can't change during netplay, they might change what side they take

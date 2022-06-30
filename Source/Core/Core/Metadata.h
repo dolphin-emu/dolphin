@@ -85,15 +85,32 @@ public:
   static const u32 addressLeftTeamItemOffset = 0x80430000;
   static const u32 addressLeftTeamGoalOffset = 0x80430004;
   static const u32 addressLeftTeamItemCount = 0x80430008;
+  // left team shots
+  static const u32 addressLeftTeamMissedShotsOffset = 0x8043000c;
+  static const u32 addressLeftTeamMissedShotsFlag = 0x8043000e;
+  static const u32 addressLeftTeamMissedShotsBallXPos = 0x80430020;
+  static const u32 addressLeftTeamMissedShotsBallYPos = 0x80430024;
+  static const u32 addressLeftTeamMissedShotsTimestamp = 0x80430028;
 
   // right team item
   static const u32 addressRightTeamItemStart = 0x80420000;
   static const u32 addressRightTeamItemOffset = 0x80430010;
   static const u32 addressRightTeamGoalOffset = 0x80430014;
   static const u32 addressRightTeamItemCount = 0x80430018;
+  // right team shots
+  static const u32 addressRightTeamMissedShotsOffset = 0x8043001c;
+  static const u32 addressRightTeamMissedShotsFlag = 0x8043001e;
+  static const u32 addressRightTeamMissedShotsBallXPos = 0x80430030;
+  static const u32 addressRightTeamMissedShotsBallYPos = 0x80430034;
+  static const u32 addressRightTeamMissedShotsTimestamp = 0x80430038;
 
   // left team goal
   static const u32 addressLeftTeamGoalStart = 0x80440000;
   // right team goal
   static const u32 addressRightTeamGoalStart = 0x80450000;
+
+  // left team missed shots
+  static const u32 addressLeftTeamMissedShotsStart = 0x80460000;
+  // right team missed shots
+  static const u32 addressRightTeamMissedShotsStart = 0x80470000;
 };
