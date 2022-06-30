@@ -5,6 +5,7 @@ package org.dolphinemu.dolphinemu.utils;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import java.util.Arrays;
 
 /**
  * Some controllers have incorrect mappings. This class has special-case fixes for them.
@@ -40,7 +41,8 @@ public class ControllerMappingHelper
         return (value + 1) / 2.0f;
       }
     }
-    else if (isXboxOneWireless(inputDevice))
+    // 0x0b20 is Firmware > 5.1 where the scaling is correct.
+    else if (isXboxOneWireless(inputDevice) && inputDevice.getProductId() != 0x0b20)
     {
       // Same as the DualShock 4, the mappings are missing.
       if (axis == MotionEvent.AXIS_Z || axis == MotionEvent.AXIS_RZ)
@@ -57,9 +59,27 @@ public class ControllerMappingHelper
     return inputDevice.getVendorId() == 0x54c && inputDevice.getProductId() == 0x9cc;
   }
 
+  private static final int[] XboxProductIDs = {
+    // Xbox One (Rev. 1)
+    0x2d1,
+    // Xbox One (Rev. 2)
+    0x2dd,
+    // Xbox One (Rev. 3)
+    0x2e0,
+    // Xbox One Elite (Wired)
+    0x2e3,
+    // Xbox One S Controller
+    0x2ea,
+    // Xbox One S Controller (Bluetooth)
+    0x2fd,
+    // Xbox One Wireless Controller (model 1914)
+    0x0b12,
+    // Xbox One Wireless Controller (Firmware > 5.1)
+    0x0b20
+  };
+
   private static boolean isXboxOneWireless(InputDevice inputDevice)
   {
-    // Microsoft Xbox One controller
-    return inputDevice.getVendorId() == 0x45e && inputDevice.getProductId() == 0x2e0;
+    return inputDevice.getVendorId() == 0x45e && Arrays.asList(XboxProductIDs).contains(inputDevice.getProductId());
   }
 }
