@@ -2257,10 +2257,11 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
   if (copy_to_ram)
   {
-    EFBCopyFilterCoefficients coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
-    PixelFormat srcFormat = bpmem.zcontrol.pixel_format();
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
-                         NeedsCopyFilterInShader(coefficients));
+    const EFBCopyFilterCoefficients coefficients =
+        GetRAMCopyFilterCoefficients(filter_coefficients);
+    const PixelFormat srcFormat = bpmem.zcontrol.pixel_format();
+    const EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
+                               NeedsCopyFilterInShader(coefficients));
 
     std::unique_ptr<AbstractStagingTexture> staging_texture = GetEFBCopyStagingTexture();
     if (staging_texture)

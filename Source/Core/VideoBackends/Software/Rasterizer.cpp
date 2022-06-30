@@ -244,7 +244,7 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   s32 lod = FixedLog2(std::max(sDelta, tDelta));
 
   // bias is s2.5
-  int bias = tm0.lod_bias();
+  s32 bias = tm0.lod_bias();
   bias >>= 1;
   lod += bias;
 

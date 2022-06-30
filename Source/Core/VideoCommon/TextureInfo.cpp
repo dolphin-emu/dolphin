@@ -13,13 +13,13 @@
 
 TextureInfo TextureInfo::FromStage(u32 stage)
 {
-  const auto tex = bpmem.tex.GetUnit(stage);
+  const TexUnit& tex = bpmem.tex.GetUnit(stage);
 
-  const auto texture_format = tex.texImage0.format();
-  const auto tlut_format = tex.texTlut.tlut_format();
+  const TextureFormat texture_format = tex.texImage0.format();
+  const TLUTFormat tlut_format = tex.texTlut.tlut_format();
 
-  const auto width = tex.texImage0.width() + 1;
-  const auto height = tex.texImage0.height() + 1;
+  const u32 width = tex.texImage0.width() + 1;
+  const u32 height = tex.texImage0.height() + 1;
 
   const u32 address = (tex.texImage3.image_base() /* & 0x1FFFFF*/) << 5;
 
@@ -33,7 +33,7 @@ TextureInfo TextureInfo::FromStage(u32 stage)
     mip_count = (tex.texMode1.max_lod() + 0xf) / 0x10;
   }
 
-  const bool from_tmem = tex.texImage1.cache_manually_managed() != 0;
+  const bool from_tmem = tex.texImage1.cache_manually_managed();
   const u32 tmem_address_even = from_tmem ? tex.texImage1.tmem_even() * TMEM_LINE_SIZE : 0;
   const u32 tmem_address_odd = from_tmem ? tex.texImage2.tmem_odd() * TMEM_LINE_SIZE : 0;
 

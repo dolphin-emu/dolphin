@@ -139,7 +139,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample)
   int image_width_minus_1 = ti0.width();
   int image_height_minus_1 = ti0.height();
 
-  const int tlutAddress = texTlut.tmem_offset() << 9;
+  const u32 tlutAddress = texTlut.tmem_offset() << 9;
   const u8* tlut = &texMem[tlutAddress];
 
   // reduce sample location and texture size to mip level

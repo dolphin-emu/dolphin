@@ -94,7 +94,7 @@ void PixelShaderManager::SetConstants()
   {
     // set by two components, so keep changed flag here
     // TODO: try to split both registers and move this logic to the shader
-    if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled() == true)
+    if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled())
     {
       // bpmem.fogRange.Base.Center : center of the viewport in x axis. observation:
       // bpmem.fogRange.Base.Center = realcenter + 342;
@@ -145,7 +145,7 @@ void PixelShaderManager::SetConstants()
     for (int i = 0; i < 4; i++)
       constants.pack1[i][3] = 0;
 
-    for (u32 i = 0; i < (bpmem.genMode.numtevstages() + 1); ++i)
+    for (u32 i = 0; i < (bpmem.genMode.numtevstages() + 1u); ++i)
     {
       // Note: a tevind of zero just happens to be a passthrough, so no need
       // to set an extra bit.  Furthermore, wrap and add to previous apply even if there is no
@@ -388,8 +388,8 @@ void PixelShaderManager::SetZTextureOpChanged()
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
   TCoordInfo& tc = bpmem.texcoords[texmapid];
-  constants.texdims[texmapid][2] = tc.s.scale_minus_1() + 1;
-  constants.texdims[texmapid][3] = tc.t.scale_minus_1() + 1;
+  constants.texdims[texmapid][2] = tc.s.scale_minus_1() + 1u;
+  constants.texdims[texmapid][3] = tc.t.scale_minus_1() + 1u;
   dirty = true;
 }
 

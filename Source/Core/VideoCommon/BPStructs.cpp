@@ -95,7 +95,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
   case BPMEM_GENMODE:  // Set the Generation Mode
     PRIM_LOG("genmode: texgen={}, col={}, multisampling={}, tev={}, cullmode={}, ind={}, zfeeze={}",
              bpmem.genMode.numtexgens(), bpmem.genMode.numcolchans(), bpmem.genMode.multisampling(),
-             bpmem.genMode.numtevstages() + 1, bpmem.genMode.cullmode().Get(),
+             bpmem.genMode.numtevstages() + 1u, bpmem.genMode.cullmode().Get(),
              bpmem.genMode.numindstages(), bpmem.genMode.zfreeze());
 
     if (bp.changes)
@@ -252,7 +252,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
         // Just ignore it
         // Apparently Mario Kart Wii in wifi mode can generate a deformed EFB copy of size 4x4
         // at offset (328,1020)
-        if (PE_copy.copy_to_xfb() == 1)
+        if (PE_copy.copy_to_xfb())
         {
           // Make sure we disable Bounding box to match the side effects of the non-failure path
           g_renderer->BBoxDisable();
@@ -270,7 +270,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     const u32 copy_height = srcRect.GetHeight();
 
     // Check if we are to copy from the EFB or draw to the XFB
-    if (PE_copy.copy_to_xfb() == 0)
+    if (!PE_copy.copy_to_xfb())
     {
       // bpmem.zcontrol.pixel_format to PixelFormat::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
@@ -811,7 +811,7 @@ std::pair<std::string, std::string> GetBPRegInfo(u8 cmd, u32 cmddata)
   case BPMEM_IND_CMD + 14:
   case BPMEM_IND_CMD + 15:
     return std::make_pair(fmt::format("BPMEM_IND_CMD command {}", cmd - BPMEM_IND_CMD),
-                          fmt::to_string(TevStageIndirect{.fullhex = cmddata}));
+                          fmt::to_string(TevStageIndirect{.hex = cmddata}));
 
   case BPMEM_SCISSORTL:  // 0x20
     return std::make_pair(RegName(BPMEM_SCISSORTL), fmt::to_string(ScissorPos{.hex = cmddata}));

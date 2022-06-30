@@ -315,10 +315,10 @@ void SetBlendMode()
 */
 void ClearScreen(const MathUtil::Rectangle<int>& rc)
 {
-  bool colorEnable = (bpmem.blendmode.colorupdate() != 0);
-  bool alphaEnable = (bpmem.blendmode.alphaupdate() != 0);
-  bool zEnable = (bpmem.zmode.updateenable() != 0);
-  auto pixel_format = bpmem.zcontrol.pixel_format();
+  bool colorEnable = bpmem.blendmode.colorupdate();
+  bool alphaEnable = bpmem.blendmode.alphaupdate();
+  bool zEnable = bpmem.zmode.updateenable();
+  PixelFormat pixel_format = bpmem.zcontrol.pixel_format();
 
   // (1): Disable unused color channels
   if (pixel_format == PixelFormat::RGB8_Z24 || pixel_format == PixelFormat::RGB565_Z16 ||
@@ -364,8 +364,8 @@ void OnPixelFormatChange()
   if (!g_ActiveConfig.bEFBEmulateFormatChanges)
     return;
 
-  const auto old_format = g_renderer->GetPrevPixelFormat();
-  const auto new_format = bpmem.zcontrol.pixel_format().Get();
+  const PixelFormat old_format = g_renderer->GetPrevPixelFormat();
+  const PixelFormat new_format = bpmem.zcontrol.pixel_format().Get();
   g_renderer->StorePixelFormat(new_format);
 
   DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat().Get());

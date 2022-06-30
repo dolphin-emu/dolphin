@@ -579,7 +579,8 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
             "    ss.order = bpmem_tevorder(stage>>1);\n"
             "    if ((stage & 1u) == 1u)\n"
             "      ss.order = ss.order >> {};\n\n",
-            int(TwoTevStageOrders().enable1().start - TwoTevStageOrders().enable0().start));
+            int(decltype(TwoTevStageOrders().enable1())::start -
+                decltype(TwoTevStageOrders().enable0())::start));
 
   // Disable texturing when there are no texgens (for now)
   if (numTexgen != 0)
@@ -898,7 +899,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     // Zfreeze forces early depth off
     out.Write("  // ZFreeze\n"
               "  if ((bpmem_genmode & {}u) != 0u) {{\n",
-              1 << GenMode().zfreeze().start);
+              1 << decltype(GenMode().zfreeze())::start);
     out.Write("    float2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
     if (api_type == APIType::OpenGL)
     {

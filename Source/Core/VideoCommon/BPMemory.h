@@ -713,38 +713,32 @@ struct fmt::formatter<TevStageCombiner::AlphaCombiner>
 
 struct TevStageIndirect
 {
-  union
-  {
-    u32 fullhex;
-    struct
-    {
-      u32 hex : 21;
-      u32 unused : 11;
-    };
-  };
+  u32 hex;
 
   // Indirect tex stage ID
-  BFVIEW_M(fullhex, u32, 0, 2, bt);
-  BFVIEW_M(fullhex, IndTexFormat, 2, 2, fmt);
-  BFVIEW_M(fullhex, IndTexBias, 4, 3, bias);
-  BFVIEW_M(fullhex, bool, 4, 1, bias_s);
-  BFVIEW_M(fullhex, bool, 5, 1, bias_t);
-  BFVIEW_M(fullhex, bool, 6, 1, bias_u);
+  BFVIEW_M(hex, u32, 0, 2, bt);
+  BFVIEW_M(hex, IndTexFormat, 2, 2, fmt);
+  BFVIEW_M(hex, IndTexBias, 4, 3, bias);
+  BFVIEW_M(hex, bool, 4, 1, bias_s);
+  BFVIEW_M(hex, bool, 5, 1, bias_t);
+  BFVIEW_M(hex, bool, 6, 1, bias_u);
   // Indicates which coordinate will become the 'bump alpha'
-  BFVIEW_M(fullhex, IndTexBumpAlpha, 7, 2, bs);
+  BFVIEW_M(hex, IndTexBumpAlpha, 7, 2, bs);
   // Indicates which indirect matrix is used when matrix_id is Indirect.  Also always indicates
   // which indirect matrix to use for the scale factor, even with S or T.
-  BFVIEW_M(fullhex, IndMtxIndex, 9, 2, matrix_index);
+  BFVIEW_M(hex, IndMtxIndex, 9, 2, matrix_index);
   // Should be set to Indirect (0) if matrix_index is Off (0)
-  BFVIEW_M(fullhex, IndMtxId, 11, 2, matrix_id);
+  BFVIEW_M(hex, IndMtxId, 11, 2, matrix_id);
   // Wrapping factor for S of regular coord
-  BFVIEW_M(fullhex, IndTexWrap, 13, 3, sw);
+  BFVIEW_M(hex, IndTexWrap, 13, 3, sw);
   // Wrapping factor for T of regular coord
-  BFVIEW_M(fullhex, IndTexWrap, 16, 3, tw);
+  BFVIEW_M(hex, IndTexWrap, 16, 3, tw);
   // Use modified or unmodified texture coordinates for LOD computation
-  BFVIEW_M(fullhex, bool, 19, 1, lb_utclod);
+  BFVIEW_M(hex, bool, 19, 1, lb_utclod);
   // True if the texture coordinate results from the previous TEV stage should be added
-  BFVIEW_M(fullhex, bool, 20, 1, fb_addprev);
+  BFVIEW_M(hex, bool, 20, 1, fb_addprev);
+
+  BFVIEW_M(hex, u32, 21, 11, unused);
 
   // If bs and matrix are zero, the result of the stage is independent of
   // the texture sample data, so we can skip sampling the texture.
@@ -812,7 +806,7 @@ struct TwoTevStageOrders
 
   u32 getTexMap(int i) const { return i ? texmap1() : texmap0(); }
   u32 getTexCoord(int i) const { return i ? texcoord1() : texcoord0(); }
-  u32 getEnable(int i) const { return i ? enable1() : enable0(); }
+  bool getEnable(int i) const { return i ? enable1() : enable0(); }
   RasColorChan getColorChan(int i) const { return i ? colorchan1().Get() : colorchan0().Get(); }
 };
 template <>
@@ -1204,7 +1198,7 @@ struct fmt::formatter<GenMode>
                           "ZFreeze: {}",
                           mode.numtexgens(), mode.numcolchans(), mode.unused(),
                           mode.flat_shading() ? "Yes" : "No", mode.multisampling() ? "Yes" : "No",
-                          mode.numtevstages() + 1, mode.cullmode().Get(), mode.numindstages(),
+                          mode.numtevstages() + 1u, mode.cullmode().Get(), mode.numindstages(),
                           mode.zfreeze() ? "Yes" : "No");
   }
 };
@@ -1648,7 +1642,7 @@ struct ConstantAlpha
 {
   u32 hex;
 
-  BFVIEW_M(hex, u32, 0, 8, alpha);
+  BFVIEW_M(hex, u8, 0, 8, alpha);
   BFVIEW_M(hex, bool, 8, 1, enable);
 };
 template <>
@@ -1809,7 +1803,7 @@ struct fmt::formatter<TCInfo>
                           "Cylindric wrap: {}\n"
                           "Use line offset: {} (s only)\n"
                           "Use point offset: {} (s only)",
-                          info.scale_minus_1() + 1, info.range_bias() ? "Yes" : "No",
+                          info.scale_minus_1() + 1u, info.range_bias() ? "Yes" : "No",
                           info.cylindric_wrap() ? "Yes" : "No", info.line_offset() ? "Yes" : "No",
                           info.point_offset() ? "Yes" : "No");
   }
