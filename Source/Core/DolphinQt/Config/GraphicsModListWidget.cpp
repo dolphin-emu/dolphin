@@ -107,6 +107,11 @@ void GraphicsModListWidget::ConnectWidgets()
 
 void GraphicsModListWidget::RefreshModList()
 {
+  if (m_needs_save)
+  {
+    SaveToDisk();
+  }
+
   m_mod_list->setCurrentItem(nullptr);
   m_mod_list->clear();
 
