@@ -137,6 +137,26 @@ void TextureCacheBase::Invalidate()
   texture_pool.clear();
 }
 
+void TextureCacheBase::RecordActiveTextures()
+{
+  // Record textures that are currently bound. Needed to get proper behavior for some homebrew (e.g.
+  // the lesson08 example) that binds textures once and then uses that same binding across multiple
+  // frames (without binding the texture each frame).
+  for (const TCacheEntry* entry : bound_textures)
+  {
+    if (entry != nullptr)
+    {
+      // Note: not checking entry->tmem_only, because that seems to be incorrectly set by Cleanup
+      // since frameCount isn't getting updated for lesson08.
+      if (entry->base_hash == entry->CalculateHash())
+      {
+        FifoRecorder::GetInstance().UseMemory(entry->addr, entry->size_in_bytes,
+                                              MemoryUpdate::TEXTURE_MAP);
+      }
+    }
+  }
+}
+
 void TextureCacheBase::ForceReload()
 {
   Invalidate();

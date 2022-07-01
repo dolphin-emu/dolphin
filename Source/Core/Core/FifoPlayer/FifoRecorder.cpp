@@ -14,6 +14,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/XFStructs.h"
 
 class FifoRecorder::FifoRecordAnalyzer : public OpcodeDecoder::Callback
@@ -198,6 +199,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 
   m_File->SetIsWii(SConfig::GetInstance().bWii);
 
+  g_texture_cache->RecordActiveTextures();
+
   if (!m_IsRecording)
   {
     m_WasRecording = false;
@@ -350,7 +353,7 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 }
 
 void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
-                                  const u32* xfRegs, u32 xfRegsSize, const u8* texMem)
+                                  const u32* xfRegs, u32 xfRegsSize, const u8* texMem_)
 {
   std::lock_guard lk(m_mutex);
 
@@ -363,7 +366,7 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
     u32 xfRegsCopySize = std::min((u32)FifoDataFile::XF_REGS_SIZE, xfRegsSize);
     memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
 
-    memcpy(m_File->GetTexMem(), texMem, FifoDataFile::TEX_MEM_SIZE);
+    memcpy(m_File->GetTexMem(), texMem_, FifoDataFile::TEX_MEM_SIZE);
   }
 
   m_record_analyzer = std::make_unique<FifoRecordAnalyzer>(this, cpMem);
