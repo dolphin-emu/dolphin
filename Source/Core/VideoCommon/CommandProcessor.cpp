@@ -66,16 +66,16 @@ void SCPFifoStruct::Init()
   CPBreakpoint = 0;
   SafeCPReadPointer = 0;
 
-  bFF_GPLinkEnable = 0;
-  bFF_GPReadEnable = 0;
-  bFF_BPEnable = 0;
-  bFF_BPInt = 0;
+  bFF_GPLinkEnable = false;
+  bFF_GPReadEnable = false;
+  bFF_BPEnable = false;
+  bFF_BPInt = false;
 
-  bFF_Breakpoint.store(0, std::memory_order_relaxed);
-  bFF_HiWatermark.store(0, std::memory_order_relaxed);
-  bFF_HiWatermarkInt.store(0, std::memory_order_relaxed);
-  bFF_LoWatermark.store(0, std::memory_order_relaxed);
-  bFF_LoWatermarkInt.store(0, std::memory_order_relaxed);
+  bFF_Breakpoint.store(false, std::memory_order_relaxed);
+  bFF_HiWatermark.store(false, std::memory_order_relaxed);
+  bFF_HiWatermarkInt.store(false, std::memory_order_relaxed);
+  bFF_LoWatermark.store(false, std::memory_order_relaxed);
+  bFF_LoWatermarkInt.store(false, std::memory_order_relaxed);
 
   s_is_fifo_error_seen = false;
 }
@@ -381,7 +381,7 @@ void GatherPipeBursted()
   }
 
   // If the game is running close to overflowing, make the exception checking more frequent.
-  if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed) != 0)
+  if (fifo.bFF_HiWatermark.load(std::memory_order_relaxed))
     CoreTiming::ForceExceptionCheck(0);
 
   fifo.CPReadWriteDistance.fetch_add(GPFifo::GATHER_PIPE_SIZE, std::memory_order_seq_cst);
@@ -441,7 +441,7 @@ void SetCPStatusFromGPU()
 {
   // breakpoint
   const bool breakpoint = fifo.bFF_Breakpoint.load(std::memory_order_relaxed);
-  if (fifo.bFF_BPEnable.load(std::memory_order_relaxed) != 0)
+  if (fifo.bFF_BPEnable.load(std::memory_order_relaxed))
   {
     if (fifo.CPBreakpoint.load(std::memory_order_relaxed) ==
         fifo.CPReadPointer.load(std::memory_order_relaxed))
@@ -450,7 +450,7 @@ void SetCPStatusFromGPU()
       {
         DEBUG_LOG_FMT(COMMANDPROCESSOR, "Hit breakpoint at {}",
                       fifo.CPReadPointer.load(std::memory_order_relaxed));
-        fifo.bFF_Breakpoint.store(1, std::memory_order_relaxed);
+        fifo.bFF_Breakpoint.store(true, std::memory_order_relaxed);
       }
     }
     else
@@ -459,7 +459,7 @@ void SetCPStatusFromGPU()
       {
         DEBUG_LOG_FMT(COMMANDPROCESSOR, "Cleared breakpoint at {}",
                       fifo.CPReadPointer.load(std::memory_order_relaxed));
-        fifo.bFF_Breakpoint.store(0, std::memory_order_relaxed);
+        fifo.bFF_Breakpoint.store(false, std::memory_order_relaxed);
       }
     }
   }
