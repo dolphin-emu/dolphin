@@ -219,6 +219,7 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
   {
     auto* description_label =
         new QLabel(tr("Description:  ") + QString::fromStdString(mod->m_description));
+    description_label->setWordWrap(true);
     m_mod_meta_layout->addWidget(description_label);
   }
 }
