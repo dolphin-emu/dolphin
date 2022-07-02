@@ -157,34 +157,44 @@ const AbstractPipeline* ShaderCache::GetUberPipelineForUid(const GXUberPipelineU
 
 void ShaderCache::WaitForAsyncCompiler()
 {
-  while (m_async_shader_compiler->HasPendingWork() || m_async_shader_compiler->HasCompletedWork())
+  bool running = true;
+
+  constexpr auto update_ui_progress = [](size_t completed, size_t total) {
+    g_renderer->BeginUIFrame();
+
+    const float center_x = ImGui::GetIO().DisplaySize.x * 0.5f;
+    const float center_y = ImGui::GetIO().DisplaySize.y * 0.5f;
+    const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
+
+    ImGui::SetNextWindowSize(ImVec2(400.0f * scale, 50.0f * scale), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(center_x, center_y), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    if (ImGui::Begin(Common::GetStringT("Compiling Shaders").c_str(), nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+    {
+      ImGui::Text("Compiling shaders: %zu/%zu", completed, total);
+      ImGui::ProgressBar(static_cast<float>(completed) /
+                             static_cast<float>(std::max(total, static_cast<size_t>(1))),
+                         ImVec2(-1.0f, 0.0f), "");
+    }
+    ImGui::End();
+
+    g_renderer->EndUIFrame();
+  };
+
+  while (running &&
+         (m_async_shader_compiler->HasPendingWork() || m_async_shader_compiler->HasCompletedWork()))
   {
-    m_async_shader_compiler->WaitUntilCompletion([](size_t completed, size_t total) {
-      g_renderer->BeginUIFrame();
+    running = m_async_shader_compiler->WaitUntilCompletion(update_ui_progress);
 
-      const float center_x = ImGui::GetIO().DisplaySize.x * 0.5f;
-      const float center_y = ImGui::GetIO().DisplaySize.y * 0.5f;
-      const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
-
-      ImGui::SetNextWindowSize(ImVec2(400.0f * scale, 50.0f * scale), ImGuiCond_Always);
-      ImGui::SetNextWindowPos(ImVec2(center_x, center_y), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-      if (ImGui::Begin(Common::GetStringT("Compiling Shaders").c_str(), nullptr,
-                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
-                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
-                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
-      {
-        ImGui::Text("Compiling shaders: %zu/%zu", completed, total);
-        ImGui::ProgressBar(static_cast<float>(completed) /
-                               static_cast<float>(std::max(total, static_cast<size_t>(1))),
-                           ImVec2(-1.0f, 0.0f), "");
-      }
-      ImGui::End();
-
-      g_renderer->EndUIFrame();
-    });
     m_async_shader_compiler->RetrieveWorkItems();
   }
+
+  // Just render nothing to clear the screen
+  g_renderer->BeginUIFrame();
+  g_renderer->EndUIFrame();
 }
 
 template <typename SerializedUidType, typename UidType>
