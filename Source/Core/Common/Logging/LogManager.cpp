@@ -23,8 +23,6 @@
 
 namespace Common::Log
 {
-constexpr size_t MAX_MSGLEN = 1024;
-
 const Config::Info<bool> LOGGER_WRITE_TO_FILE{{Config::System::Logger, "Options", "WriteToFile"},
                                               false};
 const Config::Info<bool> LOGGER_WRITE_TO_CONSOLE{
