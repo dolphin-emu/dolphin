@@ -107,6 +107,11 @@ void GraphicsModListWidget::ConnectWidgets()
 
 void GraphicsModListWidget::RefreshModList()
 {
+  if (m_needs_save)
+  {
+    SaveToDisk();
+  }
+
   m_mod_list->setCurrentItem(nullptr);
   m_mod_list->clear();
 
@@ -214,6 +219,7 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
   {
     auto* description_label =
         new QLabel(tr("Description:  ") + QString::fromStdString(mod->m_description));
+    description_label->setWordWrap(true);
     m_mod_meta_layout->addWidget(description_label);
   }
 }
