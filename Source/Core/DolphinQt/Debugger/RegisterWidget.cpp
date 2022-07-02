@@ -114,11 +114,11 @@ void RegisterWidget::ShowContextMenu()
 {
   QMenu* menu = new QMenu(this);
 
-  auto variant = m_table->currentItem()->data(DATA_TYPE);
+  auto* raw_item = m_table->currentItem();
 
-  if (!variant.isNull())
+  if (raw_item != nullptr && !raw_item->data(DATA_TYPE).isNull())
   {
-    auto* item = static_cast<RegisterColumn*>(m_table->currentItem());
+    auto* item = static_cast<RegisterColumn*>(raw_item);
     auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
     auto display = item->GetDisplay();
 
