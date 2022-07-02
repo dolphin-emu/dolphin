@@ -1,0 +1,14 @@
+{
+	"meta":
+	{
+		"title": "Remove HUD",
+		"author": "Dolphin Team",
+		"description": "Skips drawing elements designated as the HUD.  Can be used for taking screenshots or increasing immersion."
+	},
+	"features": [
+		{
+			"group": "HUD",
+			"action": "skip"
+		}
+	]
+}

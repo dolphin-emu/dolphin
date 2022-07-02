@@ -1,0 +1,15 @@
+{
+	"meta":
+	{
+		"title": "Bloom Removal",
+		"author": "Dolphin Team",
+		"description": "Skips drawing bloom effects.  May be preferable when using a bloom solution from Dolphin's post processing shaders or a third party tool."
+	},
+	"features":
+	[
+		{
+			"group": "Bloom",
+			"action": "skip"
+		}
+	]
+}
