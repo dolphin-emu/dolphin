@@ -21,6 +21,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/FreeLookCamera.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -415,9 +416,10 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
     if (g_freelook_camera.IsActive() && xfmem.projection.type == ProjectionType::Perspective)
       corrected_matrix *= g_freelook_camera.GetView();
 
+    GraphicsModActionData::Projection projection{&corrected_matrix};
     for (auto action : projection_actions)
     {
-      action->OnProjection(&corrected_matrix);
+      action->OnProjection(&projection);
     }
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));

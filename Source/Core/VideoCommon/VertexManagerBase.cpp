@@ -21,6 +21,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -492,10 +493,11 @@ void VertexManagerBase::Flush()
     for (const auto& texture_name : texture_names)
     {
       bool skip = false;
+      GraphicsModActionData::DrawStarted draw_started{&skip};
       for (const auto action :
            g_renderer->GetGraphicsModManager().GetDrawStartedActions(texture_name))
       {
-        action->OnDrawStarted(&skip);
+        action->OnDrawStarted(&draw_started);
       }
       if (skip == true)
         return;

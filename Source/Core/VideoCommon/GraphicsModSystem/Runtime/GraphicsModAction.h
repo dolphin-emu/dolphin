@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
-#include "Common/Matrix.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionData.h"
 
 class GraphicsModAction
 {
@@ -16,14 +15,11 @@ public:
   GraphicsModAction& operator=(const GraphicsModAction&) = default;
   GraphicsModAction& operator=(GraphicsModAction&&) = default;
 
-  virtual void OnDrawStarted(bool* skip) {}
-  virtual void OnEFB(bool* skip, u32 texture_width, u32 texture_height, u32* scaled_width,
-                     u32* scaled_height)
-  {
-  }
+  virtual void OnDrawStarted(GraphicsModActionData::DrawStarted*) {}
+  virtual void OnEFB(GraphicsModActionData::EFB*) {}
   virtual void OnXFB() {}
-  virtual void OnProjection(Common::Matrix44* matrix) {}
-  virtual void OnProjectionAndTexture(Common::Matrix44* matrix) {}
+  virtual void OnProjection(GraphicsModActionData::Projection*) {}
+  virtual void OnProjectionAndTexture(GraphicsModActionData::Projection*) {}
   virtual void OnTextureLoad() {}
   virtual void OnFrameEnd() {}
 };

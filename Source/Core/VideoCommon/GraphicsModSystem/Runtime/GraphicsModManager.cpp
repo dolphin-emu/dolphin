@@ -22,30 +22,29 @@ public:
       : m_action_impl(std::move(action)), m_mod(std::move(mod))
   {
   }
-  void OnDrawStarted(bool* skip) override
+  void OnDrawStarted(GraphicsModActionData::DrawStarted* draw_started) override
   {
     if (!m_mod.m_enabled)
       return;
-    m_action_impl->OnDrawStarted(skip);
+    m_action_impl->OnDrawStarted(draw_started);
   }
-  void OnEFB(bool* skip, u32 texture_width, u32 texture_height, u32* scaled_width,
-             u32* scaled_height) override
+  void OnEFB(GraphicsModActionData::EFB* efb) override
   {
     if (!m_mod.m_enabled)
       return;
-    m_action_impl->OnEFB(skip, texture_width, texture_height, scaled_width, scaled_height);
+    m_action_impl->OnEFB(efb);
   }
-  void OnProjection(Common::Matrix44* matrix) override
+  void OnProjection(GraphicsModActionData::Projection* projection) override
   {
     if (!m_mod.m_enabled)
       return;
-    m_action_impl->OnProjection(matrix);
+    m_action_impl->OnProjection(projection);
   }
-  void OnProjectionAndTexture(Common::Matrix44* matrix) override
+  void OnProjectionAndTexture(GraphicsModActionData::Projection* projection) override
   {
     if (!m_mod.m_enabled)
       return;
-    m_action_impl->OnProjectionAndTexture(matrix);
+    m_action_impl->OnProjectionAndTexture(projection);
   }
   void OnTextureLoad() override
   {
