@@ -112,7 +112,7 @@ protected:
 class VertexLoaderParamTest
     : public VertexLoaderTest,
       public ::testing::WithParamInterface<
-          std::tuple<VertexComponentFormat, ComponentFormat, CoordComponentCount, int>>
+          std::tuple<VertexComponentFormat, ComponentFormat, CoordComponentCount, u8>>
 {
 };
 INSTANTIATE_TEST_CASE_P(
@@ -123,7 +123,7 @@ INSTANTIATE_TEST_CASE_P(
         ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
                           ComponentFormat::Short, ComponentFormat::Float),
         ::testing::Values(CoordComponentCount::XY, CoordComponentCount::XYZ),
-        ::testing::Values(0, 1, 31)  // frac
+        ::testing::Values(0u, 1u, 31u)  // frac
         ));
 
 TEST_P(VertexLoaderParamTest, PositionAll)
@@ -131,7 +131,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   VertexComponentFormat addr;
   ComponentFormat format;
   CoordComponentCount elements;
-  int frac;
+  u8 frac;
   std::tie(addr, format, elements, frac) = GetParam();
   this->m_vtx_desc.low.Position() = addr;
   this->m_vtx_attr.g0.PosFormat() = format;
@@ -306,15 +306,15 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 {
   // Enables most attributes in floating point indexed mode to test speed.
-  m_vtx_desc.low.PosMatIdx() = 1;
-  m_vtx_desc.low.Tex0MatIdx() = 1;
-  m_vtx_desc.low.Tex1MatIdx() = 1;
-  m_vtx_desc.low.Tex2MatIdx() = 1;
-  m_vtx_desc.low.Tex3MatIdx() = 1;
-  m_vtx_desc.low.Tex4MatIdx() = 1;
-  m_vtx_desc.low.Tex5MatIdx() = 1;
-  m_vtx_desc.low.Tex6MatIdx() = 1;
-  m_vtx_desc.low.Tex7MatIdx() = 1;
+  m_vtx_desc.low.PosMatIdx() = true;
+  m_vtx_desc.low.Tex0MatIdx() = true;
+  m_vtx_desc.low.Tex1MatIdx() = true;
+  m_vtx_desc.low.Tex2MatIdx() = true;
+  m_vtx_desc.low.Tex3MatIdx() = true;
+  m_vtx_desc.low.Tex4MatIdx() = true;
+  m_vtx_desc.low.Tex5MatIdx() = true;
+  m_vtx_desc.low.Tex6MatIdx() = true;
+  m_vtx_desc.low.Tex7MatIdx() = true;
   m_vtx_desc.low.Position() = VertexComponentFormat::Index16;
   m_vtx_desc.low.Normal() = VertexComponentFormat::Index16;
   m_vtx_desc.low.Color0() = VertexComponentFormat::Index16;

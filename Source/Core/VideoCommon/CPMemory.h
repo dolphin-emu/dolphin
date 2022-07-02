@@ -322,7 +322,7 @@ struct VAT_group0
   // 0:8
   BFVIEW_M(Hex, CoordComponentCount, 0, 1, PosElements);
   BFVIEW_M(Hex, ComponentFormat, 1, 3, PosFormat);
-  BFVIEW_M(Hex, u32, 4, 5, PosFrac);
+  BFVIEW_M(Hex, u8, 4, 5, PosFrac);
   // 9:12
   BFVIEW_M(Hex, NormalComponentCount, 9, 1, NormalElements);
   BFVIEW_M(Hex, ComponentFormat, 10, 3, NormalFormat);
@@ -596,11 +596,11 @@ struct TMatrixIndexA
 {
   u32 Hex;
 
-  BFVIEW_M(Hex, u32, 0, 6, PosNormalMtxIdx);
-  BFVIEW_M(Hex, u32, 6, 6, Tex0MtxIdx);
-  BFVIEW_M(Hex, u32, 12, 6, Tex1MtxIdx);
-  BFVIEW_M(Hex, u32, 18, 6, Tex2MtxIdx);
-  BFVIEW_M(Hex, u32, 24, 6, Tex3MtxIdx);
+  BFVIEW_M(Hex, u8, 0, 6, PosNormalMtxIdx);
+  BFVIEW_M(Hex, u8, 6, 6, Tex0MtxIdx);
+  BFVIEW_M(Hex, u8, 12, 6, Tex1MtxIdx);
+  BFVIEW_M(Hex, u8, 18, 6, Tex2MtxIdx);
+  BFVIEW_M(Hex, u8, 24, 6, Tex3MtxIdx);
 };
 template <>
 struct fmt::formatter<TMatrixIndexA>
@@ -619,10 +619,10 @@ struct TMatrixIndexB
 {
   u32 Hex;
 
-  BFVIEW_M(Hex, u32, 0, 6, Tex4MtxIdx);
-  BFVIEW_M(Hex, u32, 6, 6, Tex5MtxIdx);
-  BFVIEW_M(Hex, u32, 12, 6, Tex6MtxIdx);
-  BFVIEW_M(Hex, u32, 18, 6, Tex7MtxIdx);
+  BFVIEW_M(Hex, u8, 0, 6, Tex4MtxIdx);
+  BFVIEW_M(Hex, u8, 6, 6, Tex5MtxIdx);
+  BFVIEW_M(Hex, u8, 12, 6, Tex6MtxIdx);
+  BFVIEW_M(Hex, u8, 18, 6, Tex7MtxIdx);
 };
 template <>
 struct fmt::formatter<TMatrixIndexB>
