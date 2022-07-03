@@ -48,6 +48,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include <cmath>
 #include <cstdlib>
 
+#include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
@@ -110,7 +111,8 @@ void DSPCallback(u64 userdata, s64 cyclesLate)
 int GetAudioDMACallbackPeriod()
 {
   // System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
-  return s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
+  return static_cast<u64>(s_cpu_core_clock) * AudioInterface::GetAIDSampleRateDivisor() /
+         (Mixer::FIXED_SAMPLE_RATE_DIVIDEND * 4 / 32);
 }
 
 void AudioDMACallback(u64 userdata, s64 cyclesLate)

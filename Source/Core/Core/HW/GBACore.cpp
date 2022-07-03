@@ -405,7 +405,8 @@ void Core::SetSampleRates()
   m_core->setAudioBufferSize(m_core, SAMPLES);
   blip_set_rates(m_core->getAudioChannel(m_core, 0), m_core->frequency(m_core), SAMPLE_RATE);
   blip_set_rates(m_core->getAudioChannel(m_core, 1), m_core->frequency(m_core), SAMPLE_RATE);
-  g_sound_stream->GetMixer()->SetGBAInputSampleRates(m_device_number, SAMPLE_RATE);
+  g_sound_stream->GetMixer()->SetGBAInputSampleRateDivisors(
+      m_device_number, Mixer::FIXED_SAMPLE_RATE_DIVIDEND / SAMPLE_RATE);
 }
 
 void Core::AddCallbacks()

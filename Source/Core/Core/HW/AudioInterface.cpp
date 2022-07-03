@@ -112,8 +112,8 @@ static u32 s_interrupt_timing = 0;
 static u64 s_last_cpu_time = 0;
 static u64 s_cpu_cycles_per_sample = 0;
 
-static u32 s_ais_sample_rate = 48000;
-static u32 s_aid_sample_rate = 32000;
+static u32 s_ais_sample_rate_divisor = Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 48000;
+static u32 s_aid_sample_rate_divisor = Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 32000;
 
 void DoState(PointerWrap& p)
 {
@@ -122,8 +122,8 @@ void DoState(PointerWrap& p)
   p.Do(s_sample_counter);
   p.Do(s_interrupt_timing);
   p.Do(s_last_cpu_time);
-  p.Do(s_ais_sample_rate);
-  p.Do(s_aid_sample_rate);
+  p.Do(s_ais_sample_rate_divisor);
+  p.Do(s_aid_sample_rate_divisor);
   p.Do(s_cpu_cycles_per_sample);
 
   g_sound_stream->GetMixer()->DoState(p);
@@ -148,14 +148,15 @@ void Init()
 
   s_last_cpu_time = 0;
 
-  s_ais_sample_rate = Get48KHzSampleRate();
-  s_aid_sample_rate = Get32KHzSampleRate();
-  s_cpu_cycles_per_sample = SystemTimers::GetTicksPerSecond() / s_ais_sample_rate;
+  s_ais_sample_rate_divisor = Get48KHzSampleRateDivisor();
+  s_aid_sample_rate_divisor = Get32KHzSampleRateDivisor();
+  s_cpu_cycles_per_sample = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
+                            s_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
 
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
 
-  g_sound_stream->GetMixer()->SetDMAInputSampleRate(GetAIDSampleRate());
-  g_sound_stream->GetMixer()->SetStreamInputSampleRate(GetAISSampleRate());
+  g_sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(GetAIDSampleRateDivisor());
+  g_sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(GetAISSampleRateDivisor());
 }
 
 void Shutdown()
@@ -188,9 +189,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AISFR to {}",
                         tmp_ai_ctrl.AISFR ? "48khz" : "32khz");
           s_control.AISFR = tmp_ai_ctrl.AISFR;
-          s_ais_sample_rate = tmp_ai_ctrl.AISFR ? Get48KHzSampleRate() : Get32KHzSampleRate();
-          g_sound_stream->GetMixer()->SetStreamInputSampleRate(s_ais_sample_rate);
-          s_cpu_cycles_per_sample = SystemTimers::GetTicksPerSecond() / s_ais_sample_rate;
+          s_ais_sample_rate_divisor =
+              tmp_ai_ctrl.AISFR ? Get48KHzSampleRateDivisor() : Get32KHzSampleRateDivisor();
+          g_sound_stream->GetMixer()->SetStreamInputSampleRateDivisor(s_ais_sample_rate_divisor);
+          s_cpu_cycles_per_sample = static_cast<u64>(SystemTimers::GetTicksPerSecond()) *
+                                    s_ais_sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
         }
         // Set frequency of DMA
         if (tmp_ai_ctrl.AIDFR != s_control.AIDFR)
@@ -198,8 +201,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           DEBUG_LOG_FMT(AUDIO_INTERFACE, "Change AIDFR to {}",
                         tmp_ai_ctrl.AIDFR ? "32khz" : "48khz");
           s_control.AIDFR = tmp_ai_ctrl.AIDFR;
-          s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? Get32KHzSampleRate() : Get48KHzSampleRate();
-          g_sound_stream->GetMixer()->SetDMAInputSampleRate(s_aid_sample_rate);
+          s_aid_sample_rate_divisor =
+              tmp_ai_ctrl.AIDFR ? Get32KHzSampleRateDivisor() : Get48KHzSampleRateDivisor();
+          g_sound_stream->GetMixer()->SetDMAInputSampleRateDivisor(s_aid_sample_rate_divisor);
         }
 
         // Streaming counter
@@ -301,24 +305,24 @@ bool IsPlaying()
   return (s_control.PSTAT == 1);
 }
 
-u32 GetAIDSampleRate()
+u32 GetAIDSampleRateDivisor()
 {
-  return s_aid_sample_rate;
+  return s_aid_sample_rate_divisor;
 }
 
-u32 GetAISSampleRate()
+u32 GetAISSampleRateDivisor()
 {
-  return s_ais_sample_rate;
+  return s_ais_sample_rate_divisor;
 }
 
-u32 Get32KHzSampleRate()
+u32 Get32KHzSampleRateDivisor()
 {
-  return SConfig::GetInstance().bWii ? 32000 : 32029;
+  return Get48KHzSampleRateDivisor() * 3 / 2;
 }
 
-u32 Get48KHzSampleRate()
+u32 Get48KHzSampleRateDivisor()
 {
-  return SConfig::GetInstance().bWii ? 48000 : 48043;
+  return (SConfig::GetInstance().bWii ? 1125 : 1124) * 2;
 }
 
 static void Update(u64 userdata, s64 cycles_late)
@@ -339,7 +343,8 @@ static void Update(u64 userdata, s64 cycles_late)
 int GetAIPeriod()
 {
   u64 period = s_cpu_cycles_per_sample * (s_interrupt_timing - s_sample_counter);
-  u64 s_period = s_cpu_cycles_per_sample * s_ais_sample_rate;
+  u64 s_period =
+      s_cpu_cycles_per_sample * Mixer::FIXED_SAMPLE_RATE_DIVIDEND / s_ais_sample_rate_divisor;
   if (period == 0)
     return static_cast<int>(s_period);
   return static_cast<int>(std::min(period, s_period));

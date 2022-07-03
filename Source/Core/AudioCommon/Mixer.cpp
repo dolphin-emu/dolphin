@@ -76,16 +76,18 @@ unsigned int Mixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   // advance indexR with sample position
   // remember fractional offset
 
-  float aid_sample_rate = static_cast<float>(m_input_sample_rate);
+  float aid_sample_rate =
+      FIXED_SAMPLE_RATE_DIVIDEND / static_cast<float>(m_input_sample_rate_divisor);
   if (consider_framelimit && emulationspeed > 0.0f)
   {
     float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
 
-    u32 low_waterwark = m_input_sample_rate * timing_variance / 1000;
-    low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
+    u32 low_watermark = (FIXED_SAMPLE_RATE_DIVIDEND * timing_variance) /
+                        (static_cast<u64>(m_input_sample_rate_divisor) * 1000);
+    low_watermark = std::min(low_watermark, MAX_SAMPLES / 2);
 
     m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
-    float offset = (m_numLeftI - low_waterwark) * CONTROL_FACTOR;
+    float offset = (m_numLeftI - low_watermark) * CONTROL_FACTOR;
     if (offset > MAX_FREQ_SHIFT)
       offset = MAX_FREQ_SHIFT;
     if (offset < -MAX_FREQ_SHIFT)
@@ -258,9 +260,9 @@ void Mixer::PushSamples(const short* samples, unsigned int num_samples)
   m_dma_mixer.PushSamples(samples, num_samples);
   if (m_log_dsp_audio)
   {
-    int sample_rate = m_dma_mixer.GetInputSampleRate();
+    int sample_rate_divisor = m_dma_mixer.GetInputSampleRateDivisor();
     auto volume = m_dma_mixer.GetVolume();
-    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate, volume.first,
+    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
                                          volume.second);
   }
 }
@@ -270,21 +272,21 @@ void Mixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
   m_streaming_mixer.PushSamples(samples, num_samples);
   if (m_log_dtk_audio)
   {
-    int sample_rate = m_streaming_mixer.GetInputSampleRate();
+    int sample_rate_divisor = m_streaming_mixer.GetInputSampleRateDivisor();
     auto volume = m_streaming_mixer.GetVolume();
-    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate, volume.first,
+    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate_divisor, volume.first,
                                          volume.second);
   }
 }
 
 void Mixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
-                                      unsigned int sample_rate)
+                                      unsigned int sample_rate_divisor)
 {
   short samples_stereo[MAX_SAMPLES * 2];
 
   if (num_samples < MAX_SAMPLES)
   {
-    m_wiimote_speaker_mixer.SetInputSampleRate(sample_rate);
+    m_wiimote_speaker_mixer.SetInputSampleRateDivisor(sample_rate_divisor);
 
     for (unsigned int i = 0; i < num_samples; ++i)
     {
@@ -301,19 +303,19 @@ void Mixer::PushGBASamples(int device_number, const short* samples, unsigned int
   m_gba_mixers[device_number].PushSamples(samples, num_samples);
 }
 
-void Mixer::SetDMAInputSampleRate(unsigned int rate)
+void Mixer::SetDMAInputSampleRateDivisor(unsigned int rate_divisor)
 {
-  m_dma_mixer.SetInputSampleRate(rate);
+  m_dma_mixer.SetInputSampleRateDivisor(rate_divisor);
 }
 
-void Mixer::SetStreamInputSampleRate(unsigned int rate)
+void Mixer::SetStreamInputSampleRateDivisor(unsigned int rate_divisor)
 {
-  m_streaming_mixer.SetInputSampleRate(rate);
+  m_streaming_mixer.SetInputSampleRateDivisor(rate_divisor);
 }
 
-void Mixer::SetGBAInputSampleRates(int device_number, unsigned int rate)
+void Mixer::SetGBAInputSampleRateDivisors(int device_number, unsigned int rate_divisor)
 {
-  m_gba_mixers[device_number].SetInputSampleRate(rate);
+  m_gba_mixers[device_number].SetInputSampleRateDivisor(rate_divisor);
 }
 
 void Mixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
@@ -335,7 +337,7 @@ void Mixer::StartLogDTKAudio(const std::string& filename)
 {
   if (!m_log_dtk_audio)
   {
-    bool success = m_wave_writer_dtk.Start(filename, m_streaming_mixer.GetInputSampleRate());
+    bool success = m_wave_writer_dtk.Start(filename, m_streaming_mixer.GetInputSampleRateDivisor());
     if (success)
     {
       m_log_dtk_audio = true;
@@ -372,7 +374,7 @@ void Mixer::StartLogDSPAudio(const std::string& filename)
 {
   if (!m_log_dsp_audio)
   {
-    bool success = m_wave_writer_dsp.Start(filename, m_dma_mixer.GetInputSampleRate());
+    bool success = m_wave_writer_dsp.Start(filename, m_dma_mixer.GetInputSampleRateDivisor());
     if (success)
     {
       m_log_dsp_audio = true;
@@ -414,19 +416,19 @@ void Mixer::RefreshConfig()
 
 void Mixer::MixerFifo::DoState(PointerWrap& p)
 {
-  p.Do(m_input_sample_rate);
+  p.Do(m_input_sample_rate_divisor);
   p.Do(m_LVolume);
   p.Do(m_RVolume);
 }
 
-void Mixer::MixerFifo::SetInputSampleRate(unsigned int rate)
+void Mixer::MixerFifo::SetInputSampleRateDivisor(unsigned int rate_divisor)
 {
-  m_input_sample_rate = rate;
+  m_input_sample_rate_divisor = rate_divisor;
 }
 
-unsigned int Mixer::MixerFifo::GetInputSampleRate() const
+unsigned int Mixer::MixerFifo::GetInputSampleRateDivisor() const
 {
-  return m_input_sample_rate;
+  return m_input_sample_rate_divisor;
 }
 
 void Mixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
@@ -445,5 +447,6 @@ unsigned int Mixer::MixerFifo::AvailableSamples() const
   unsigned int samples_in_fifo = ((m_indexW.load() - m_indexR.load()) & INDEX_MASK) / 2;
   if (samples_in_fifo <= 1)
     return 0;  // Mixer::MixerFifo::Mix always keeps one sample in the buffer.
-  return (samples_in_fifo - 1) * m_mixer->m_sampleRate / m_input_sample_rate;
+  return (samples_in_fifo - 1) * static_cast<u64>(m_mixer->m_sampleRate) *
+         m_input_sample_rate_divisor / FIXED_SAMPLE_RATE_DIVIDEND;
 }

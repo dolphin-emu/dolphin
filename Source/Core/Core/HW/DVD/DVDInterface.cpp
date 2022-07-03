@@ -294,12 +294,16 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
 static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
                                  s64 cycles_late)
 {
-  // TODO: Should we use GetAISSampleRate instead of a fixed 48 KHz? The audio mixer is using
-  // GetAISSampleRate. (This doesn't affect any actual games, since they all set it to 48 KHz.)
-  const u32 sample_rate = AudioInterface::Get48KHzSampleRate();
+  // Actual games always set this to 48 KHz
+  // but let's make sure to use GetAISSampleRateDivisor()
+  // just in case it changes to 32 KHz
+  const u32 sample_rate_divisor = AudioInterface::GetAISSampleRateDivisor();
 
   // Determine which audio data to read next.
-  const u32 maximum_samples = sample_rate / 2000 * 7;  // 3.5 ms of samples
+
+  // 3.5 ms of samples
+  const u32 maximum_samples =
+      ((Mixer::FIXED_SAMPLE_RATE_DIVIDEND / 2000) * 7) / sample_rate_divisor;
   u64 read_offset = 0;
   u32 read_length = 0;
 
@@ -328,7 +332,8 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(s_pending_samples) / sample_rate;
+  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(s_pending_samples) *
+                     sample_rate_divisor / Mixer::FIXED_SAMPLE_RATE_DIVIDEND;
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
