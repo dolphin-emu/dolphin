@@ -85,7 +85,6 @@ private:
   QComboBox* m_row_length_combo;
   QCheckBox* m_dual_check;
   QPushButton* m_set_value;
-  QPushButton* m_from_file;
   QPushButton* m_dump_mram;
   QPushButton* m_dump_exram;
   QPushButton* m_dump_aram;

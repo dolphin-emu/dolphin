@@ -114,7 +114,6 @@ void MemoryWidget::CreateWidgets()
   m_data_edit = new QLineEdit;
   m_base_check = new QCheckBox(tr("Hex"));
   m_set_value = new QPushButton(tr("Set &Value"));
-  m_from_file = new QPushButton(tr("Set Value From File"));
   m_data_preview = new QLabel;
 
   m_base_check->setLayoutDirection(Qt::RightToLeft);
@@ -139,6 +138,7 @@ void MemoryWidget::CreateWidgets()
   m_input_combo->addItem(tr("Signed 8"), int(Type::Signed8));
   m_input_combo->addItem(tr("Signed 16"), int(Type::Signed16));
   m_input_combo->addItem(tr("Signed 32"), int(Type::Signed32));
+  m_input_combo->addItem(tr("Set value from file"), -1);
 
   // Dump
   auto* dump_group = new QGroupBox(tr("Dump"));
@@ -258,9 +258,9 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(m_address_splitter);
   sidebar_layout->addLayout(input_layout);
   sidebar_layout->addWidget(m_input_combo);
+  sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(m_data_preview);
   sidebar_layout->addWidget(m_set_value);
-  sidebar_layout->addWidget(m_from_file);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
   sidebar_layout->addWidget(search_group);
   sidebar_layout->addItem(new QSpacerItem(1, 10));
@@ -302,9 +302,12 @@ void MemoryWidget::ConnectWidgets()
 
   connect(m_input_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &MemoryWidget::ValidateAndPreviewInputValue);
-
-  connect(m_set_value, &QPushButton::clicked, this, &MemoryWidget::OnSetValue);
-  connect(m_from_file, &QPushButton::clicked, this, &MemoryWidget::OnSetValueFromFile);
+  connect(m_set_value, &QPushButton::clicked, [this]() {
+    if (m_input_combo->currentData().toInt() == -1)
+      OnSetValueFromFile();
+    else
+      OnSetValue();
+  });
 
   connect(m_dump_mram, &QPushButton::clicked, this, &MemoryWidget::OnDumpMRAM);
   connect(m_dump_exram, &QPushButton::clicked, this, &MemoryWidget::OnDumpExRAM);
@@ -523,6 +526,10 @@ void MemoryWidget::OnSearchAddress()
 void MemoryWidget::ValidateAndPreviewInputValue()
 {
   m_data_preview->clear();
+
+  if (m_input_combo->currentData().toInt() == -1)
+    return;
+
   QString input_text = m_data_edit->text();
   const auto input_type = static_cast<Type>(m_input_combo->currentData().toInt());
 
@@ -688,6 +695,13 @@ void MemoryWidget::OnSetValueFromFile()
   }
 
   AddressSpace::Accessors* accessors = AddressSpace::GetAccessors(m_memory_view->GetAddressSpace());
+
+  if (!accessors->IsValidAddress(target_addr.address) ||
+      !accessors->IsValidAddress(target_addr.address + file_length - 1))
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Target address range is invalid."));
+    return;
+  }
 
   for (u8 b : file_contents)
     accessors->WriteU8(target_addr.address++, b);
