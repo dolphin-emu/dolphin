@@ -23,22 +23,13 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+enum class CompareMode : u32;
+enum class SrcBlendFactor : u32;
+enum class DstBlendFactor : u32;
+enum class LogicOp : u32;
+
 namespace PixelEngine
 {
-// Note: These enums are (assumed to be) identical to the one in BPMemory, but the base type is set
-// to u16 instead of u32 for BitField
-enum class CompareMode : u16
-{
-  Never = 0,
-  Less = 1,
-  Equal = 2,
-  LEqual = 3,
-  Greater = 4,
-  NEqual = 5,
-  GEqual = 6,
-  Always = 7
-};
-
 struct PEZConfReg
 {
   u16 hex;
@@ -46,50 +37,6 @@ struct PEZConfReg
   BFVIEW_M(hex, bool, 0, 1, z_comparator_enable);
   BFVIEW_M(hex, CompareMode, 1, 3, function);
   BFVIEW_M(hex, bool, 4, 1, z_update_enable);
-};
-
-enum class SrcBlendFactor : u16
-{
-  Zero = 0,
-  One = 1,
-  DstClr = 2,
-  InvDstClr = 3,
-  SrcAlpha = 4,
-  InvSrcAlpha = 5,
-  DstAlpha = 6,
-  InvDstAlpha = 7
-};
-
-enum class DstBlendFactor : u16
-{
-  Zero = 0,
-  One = 1,
-  SrcClr = 2,
-  InvSrcClr = 3,
-  SrcAlpha = 4,
-  InvSrcAlpha = 5,
-  DstAlpha = 6,
-  InvDstAlpha = 7
-};
-
-enum class LogicOp : u16
-{
-  Clear = 0,
-  And = 1,
-  AndReverse = 2,
-  Copy = 3,
-  AndInverted = 4,
-  NoOp = 5,
-  Xor = 6,
-  Or = 7,
-  Nor = 8,
-  Equiv = 9,
-  Invert = 10,
-  OrReverse = 11,
-  CopyInverted = 12,
-  OrInverted = 13,
-  Nand = 14,
-  Set = 15
 };
 
 struct PEAlphaConfReg

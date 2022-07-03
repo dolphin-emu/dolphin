@@ -58,23 +58,19 @@ struct pixel_shader_uid_data
   BFVIEW_M(_data2, bool, 10, 1, rgba6_format);
   BFVIEW_M(_data2, bool, 11, 1, dither);
   BFVIEW_M(_data2, bool, 12, 1, uint_output);
-
-  // shader_framebuffer_fetch blend
-  BFVIEW_M(_data2, bool, 13, 1, blend_enable);
-  BFVIEW_M(_data2, SrcBlendFactor, 14, 3, blend_src_factor);
-  BFVIEW_M(_data2, SrcBlendFactor, 17, 3, blend_src_factor_alpha);
-  BFVIEW_M(_data2, DstBlendFactor, 20, 3, blend_dst_factor);
-  BFVIEW_M(_data2, DstBlendFactor, 23, 3, blend_dst_factor_alpha);
-  BFVIEW_M(_data2, bool, 26, 1, blend_subtract);
-  BFVIEW_M(_data2, bool, 27, 1, blend_subtract_alpha);
-  BFVIEW_M(_data2, u32, 28, 4, _pad2);
+  BFVIEW_M(_data2, bool, 13, 1, blend_enable);                      // shader_framebuffer_fetch
+  BFVIEW_M(_data2, SrcBlendFactor, 14, 3, blend_src_factor);        // shader_framebuffer_fetch
+  BFVIEW_M(_data2, SrcBlendFactor, 17, 3, blend_src_factor_alpha);  // shader_framebuffer_fetch
+  BFVIEW_M(_data2, DstBlendFactor, 20, 3, blend_dst_factor);        // shader_framebuffer_fetch
+  BFVIEW_M(_data2, DstBlendFactor, 23, 3, blend_dst_factor_alpha);  // shader_framebuffer_fetch
+  BFVIEW_M(_data2, bool, 26, 1, blend_subtract);                    // shader_framebuffer_fetch
+  BFVIEW_M(_data2, bool, 27, 1, blend_subtract_alpha);              // shader_framebuffer_fetch
+  // 4 bits of padding
 
   u32 _data3;
 
-  // shader_framebuffer_fetch logic ops
-  BFVIEW_M(_data3, bool, 0, 1, logic_op_enable);
-  BFVIEW_M(_data3, LogicOp, 1, 4, logic_op_mode);
-
+  BFVIEW_M(_data3, bool, 0, 1, logic_op_enable);   // shader_framebuffer_fetch
+  BFVIEW_M(_data3, LogicOp, 1, 4, logic_op_mode);  // shader_framebuffer_fetch
   BFVIEW_M(_data3, u32, 5, 3, tevindref_bi0);
   BFVIEW_M(_data3, u32, 8, 3, tevindref_bc0);
   BFVIEW_M(_data3, u32, 11, 3, tevindref_bi1);
@@ -83,7 +79,7 @@ struct pixel_shader_uid_data
   BFVIEW_M(_data3, u32, 20, 3, tevindref_bc2);
   BFVIEW_M(_data3, u32, 23, 3, tevindref_bi3);
   BFVIEW_M(_data3, u32, 26, 3, tevindref_bc3);
-  BFVIEW_M(_data3, u32, 29, 2, _pad3);
+  // 2 bits of padding
 
   u32 NumValues() const { return num_values; }
 
@@ -145,11 +141,11 @@ struct pixel_shader_uid_data
     BFVIEW_M(_data4, u32, 0, 24, cc);
     // tswap and rswap are left blank (encoded into the tevksel fields below)
     BFVIEW_M(_data4, u32, 24, 24, ac);
-    BFVIEW_M(_data4, u64, 48, 3, tevorders_texmap);
-    BFVIEW_M(_data4, u64, 51, 3, tevorders_texcoord);
+    BFVIEW_M(_data4, u32, 48, 3, tevorders_texmap);
+    BFVIEW_M(_data4, u32, 51, 3, tevorders_texcoord);
     BFVIEW_M(_data4, bool, 54, 1, tevorders_enable);
     BFVIEW_M(_data4, RasColorChan, 55, 3, tevorders_colorchan);
-    BFVIEW_M(_data4, u64, 58, 6, _pad1);
+    // 6 bits of padding
 
     // TODO: Clean up the swapXY mess
 
@@ -166,7 +162,7 @@ struct pixel_shader_uid_data
     BFVIEW_M(_data5, u32, 35, 2, tevksel_swap2d);
     BFVIEW_M(_data5, KonstSel, 37, 5, tevksel_kc);
     BFVIEW_M(_data5, KonstSel, 42, 5, tevksel_ka);
-    BFVIEW_M(_data5, u32, 47, 17, _pad2);
+    // 17 bits of padding
   } stagehash[16];
 
   LightingUidData lighting;
