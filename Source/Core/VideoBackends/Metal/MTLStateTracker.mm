@@ -80,6 +80,10 @@ bool Metal::StateTracker::UsageTracker::PrepareForAllocation(u64 last_draw, size
 
 size_t Metal::StateTracker::UsageTracker::Allocate(u64 current_draw, size_t amt)
 {
+  // Allocation of zero bytes would make the buffer think it's full
+  // Zero bytes is useless anyways, so don't mark usage in that case
+  if (!amt)
+    return m_pos;
   if (m_usage.empty() || m_usage.back().drawno != current_draw)
     m_usage.push_back({current_draw, m_pos});
   size_t ret = m_pos;
@@ -886,6 +890,8 @@ void Metal::StateTracker::PrepareCompute()
 
 void Metal::StateTracker::Draw(u32 base_vertex, u32 num_vertices)
 {
+  if (!num_vertices)
+    return;
   PrepareRender();
   [m_current_render_encoder drawPrimitives:m_state.render_pipeline->Prim()
                                vertexStart:base_vertex
@@ -894,6 +900,8 @@ void Metal::StateTracker::Draw(u32 base_vertex, u32 num_vertices)
 
 void Metal::StateTracker::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
 {
+  if (!num_indices)  // Happens in Metroid Prime, Metal API validation doesn't like this
+    return;
   PrepareRender();
   [m_current_render_encoder drawIndexedPrimitives:m_state.render_pipeline->Prim()
                                        indexCount:num_indices
