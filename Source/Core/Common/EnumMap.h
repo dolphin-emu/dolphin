@@ -8,8 +8,14 @@
 
 #include "Common/TypeUtils.h"
 
-template <std::size_t position, std::size_t bits, typename T, typename StorageType>
-struct BitField;
+template <typename field_t, std::size_t start, std::size_t width, typename host_t>
+class BitFieldFixedView;
+template <typename field_t, std::size_t start, std::size_t width, typename host_t>
+class ConstBitFieldFixedView;
+template <typename field_t, typename host_t>
+class BitFieldView;
+template <typename field_t, typename host_t>
+class ConstBitFieldView;
 
 namespace Common
 {
@@ -45,20 +51,56 @@ public:
   constexpr const V& operator[](T key) const { return m_array[static_cast<std::size_t>(key)]; }
   constexpr V& operator[](T key) { return m_array[static_cast<std::size_t>(key)]; }
 
-  // These only exist to perform the safety check; without them, BitField's implicit conversion
-  // would work (but since BitField is used for game-generated data, we need to be careful about
+  // These only exist to perform the safety check; without them, BitFieldView's implicit conversion
+  // would work (but since BitFieldView is used for game-generated data, we need to be careful about
   // bounds-checking)
-  template <std::size_t position, std::size_t bits, typename StorageType>
-  constexpr const V& operator[](BitField<position, bits, T, StorageType> key) const
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](BitFieldFixedView<field_t, start, width, T> key) const
   {
-    static_assert(1 << bits == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
-    return m_array[static_cast<std::size_t>(key.Value())];
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
   }
-  template <std::size_t position, std::size_t bits, typename StorageType>
-  constexpr V& operator[](BitField<position, bits, T, StorageType> key)
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](BitFieldFixedView<field_t, start, width, T> key)
   {
-    static_assert(1 << bits == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
-    return m_array[static_cast<std::size_t>(key.value())];
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
+  }
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](ConstBitFieldFixedView<field_t, start, width, T> key) const
+  {
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
+  }
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](ConstBitFieldFixedView<field_t, start, width, T> key)
+  {
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
+  }
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](BitFieldView<field_t, T> key) const
+  {
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
+  }
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](BitFieldView<field_t, T> key)
+  {
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
+  }
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr const V& operator[](ConstBitFieldView<field_t, T> key) const
+  {
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
+  }
+  template <typename field_t, std::size_t start, std::size_t width>
+  constexpr V& operator[](ConstBitFieldView<field_t, T> key)
+  {
+    static_assert(1 << width == s_size, "Unsafe indexing into EnumMap (may go out of bounds)");
+    return m_array[static_cast<std::size_t>(key.Get())];
   }
 
   constexpr bool InBounds(T key) const { return static_cast<std::size_t>(key) < s_size; }
