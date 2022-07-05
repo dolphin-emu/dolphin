@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-01 00:12+0200\n"
+"POT-Creation-Date: 2022-07-05 23:35+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2022\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
@@ -356,7 +356,7 @@ msgstr "断点(&B)"
 msgid "&Bug Tracker"
 msgstr "错误跟踪器(&B)"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:100
+#: Source/Core/DolphinQt/WiiUpdate.cpp:104
 msgid "&Cancel"
 msgstr "取消(&C)"
 
@@ -709,7 +709,7 @@ msgstr "/ 除"
 msgid "128 Mbit (2043 blocks)"
 msgstr "128 Mbit (2043 区块)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:218
 msgid "16 Bytes"
 msgstr "16 字节"
 
@@ -797,7 +797,7 @@ msgstr "3x"
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x 原生 (1920x1584) 适合 1080p"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
 msgid "4 Bytes"
 msgstr "4 字节"
 
@@ -849,7 +849,7 @@ msgstr "6x 原生  (3840x3168) 适合 4K"
 msgid "7x Native (4480x3696)"
 msgstr "7x 原生 (4480x3696)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:215
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:217
 msgid "8 Bytes"
 msgstr "8 字节"
 
@@ -925,7 +925,7 @@ msgstr ""
 "\n"
 "安装此 WAD 替换是不可逆转的。是否继续？"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:555
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:560
 msgid "A disc is already about to be inserted."
 msgstr "光盘已可插入。"
 
@@ -984,8 +984,8 @@ msgstr "AR 代码"
 msgid "AR Codes"
 msgstr "AR 代码"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:131
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:204
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:206
 msgid "ASCII"
 msgstr "ASCII"
 
@@ -1162,7 +1162,7 @@ msgstr "添加内存断点"
 msgid "Add to &watch"
 msgstr "添加到监视(&W)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:668
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:846
 msgid "Add to watch"
 msgstr "添加到监视"
 
@@ -1190,7 +1190,7 @@ msgid "Address"
 msgstr "地址"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:44
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:170
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:172
 msgid "Address Space"
 msgstr "地址空间"
 
@@ -1327,7 +1327,7 @@ msgstr ""
 msgid "All devices"
 msgstr "所有设备"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:738
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:668
 msgid "All files (*)"
 msgstr "所有文件 (*)"
 
@@ -1573,7 +1573,7 @@ msgstr ""
 "勾选此项。</dolphin_emphasis>"
 
 #. i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:178
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:180
 msgid "Auxiliary"
 msgstr "副内存"
 
@@ -1636,13 +1636,13 @@ msgstr "后台输入"
 msgid "Backward"
 msgstr "后"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:864
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:794
 msgid "Bad Value Given"
 msgstr "给定值错误"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:850
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:780
 msgid "Bad address provided."
 msgstr "地址格式不正确。"
 
@@ -1650,13 +1650,13 @@ msgstr "地址格式不正确。"
 msgid "Bad dump"
 msgstr "错误的转储"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:856
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:620
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:663
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:786
 msgid "Bad offset provided."
 msgstr "提交的偏移量不正确。"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:629
 msgid "Bad value provided."
 msgstr "值格式不正确。"
 
@@ -1886,7 +1886,7 @@ msgstr "按键"
 msgid "Buttons"
 msgstr "按键"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:209
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:214
 msgid "By:  "
 msgstr ""
 
@@ -2302,7 +2302,7 @@ msgstr "配置输出"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:812
 #: Source/Core/DolphinQt/MainWindow.cpp:900
 #: Source/Core/DolphinQt/MainWindow.cpp:1621
-#: Source/Core/DolphinQt/WiiUpdate.cpp:136
+#: Source/Core/DolphinQt/WiiUpdate.cpp:140
 msgid "Confirm"
 msgstr "确定"
 
@@ -2361,7 +2361,7 @@ msgstr "连接 Wii 遥控器"
 msgid "Connect Wii Remotes for Emulated Controllers"
 msgstr "连接用于模拟控制器的 Wii 遥控器"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:137
+#: Source/Core/DolphinQt/WiiUpdate.cpp:141
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "是否连接到互联网并执行在线系统更新？"
 
@@ -2533,7 +2533,7 @@ msgstr "复制函数(&F)"
 msgid "Copy &hex"
 msgstr "复制十六进制(&H)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:646
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:824
 msgid "Copy Address"
 msgstr "复制地址"
 
@@ -2541,11 +2541,11 @@ msgstr "复制地址"
 msgid "Copy Failed"
 msgstr "复制失败"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:648
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:826
 msgid "Copy Hex"
 msgstr "复制十六进制"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:654
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:832
 msgid "Copy Value"
 msgstr "复制数值"
 
@@ -2589,19 +2589,19 @@ msgstr "无法创建客户端。"
 msgid "Could not create peer."
 msgstr "无法创建对等点。"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:47
+#: Source/Core/DolphinQt/WiiUpdate.cpp:48
 msgid ""
 "Could not download update files from Nintendo. Please check your Internet "
 "connection and try again."
 msgstr "无法从任天堂下载更新文件。请检查你的互联网连接然后重试。"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:42
+#: Source/Core/DolphinQt/WiiUpdate.cpp:43
 msgid ""
 "Could not download update information from Nintendo. Please check your "
 "Internet connection and try again."
 msgstr "无法从任天堂下载更新信息。请检查你的互联网连接然后重试。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:143
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:144
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -2611,7 +2611,7 @@ msgstr ""
 "\n"
 "模拟主机即将停止运行。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:149
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:150
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "The following error occurred when Dolphin tried to use an adapter:\n"
@@ -2625,7 +2625,7 @@ msgstr ""
 "\n"
 "模拟主机即将停止运行。"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:52
+#: Source/Core/DolphinQt/WiiUpdate.cpp:53
 msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
@@ -2993,7 +2993,7 @@ msgstr "删除文件..."
 msgid "Delete Selected Files..."
 msgstr "删除所选文件..."
 
-#: Source/Core/AudioCommon/WaveFile.cpp:35
+#: Source/Core/AudioCommon/WaveFile.cpp:36
 #: Source/Core/VideoCommon/FrameDump.cpp:137
 msgid "Delete the existing file '{0}'?"
 msgstr "删除已经存在的文件 ‘{0}’ 吗?"
@@ -3025,7 +3025,7 @@ msgstr "说明"
 msgid "Description:"
 msgstr "说明："
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:216
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:221
 msgid "Description:  "
 msgstr ""
 
@@ -3184,7 +3184,7 @@ msgstr "光盘"
 msgid "Discard"
 msgstr "丢弃"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:191
 msgid "Display Type"
 msgstr "显示类型"
 
@@ -3347,8 +3347,8 @@ msgid "Done compressing disc image."
 msgstr "光盘镜像已压缩完成。"
 
 #. i18n: A double precision floating point number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:206
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:208
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:150
 msgid "Double"
 msgstr "双精度"
@@ -3401,7 +3401,7 @@ msgstr "架子鼓"
 msgid "Dual Core"
 msgstr "双核"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:219
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:221
 msgid "Dual View"
 msgstr "双视图"
 
@@ -3409,23 +3409,23 @@ msgstr "双视图"
 msgid "Dummy"
 msgstr "虚设"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:144
 msgid "Dump"
 msgstr "转储"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:149
 msgid "Dump &ARAM"
 msgstr "转储副内存(&A)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:146
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
 msgid "Dump &ExRAM"
 msgstr "转储扩展内存(&E)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:150
 msgid "Dump &FakeVMEM"
 msgstr "转储伪显存(&F)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:145
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 msgid "Dump &MRAM"
 msgstr "转储主内存(&M)"
 
@@ -3617,7 +3617,7 @@ msgstr "效果"
 
 #. i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
 #. translation via the MMU to physical addresses.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:176
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:178
 msgid "Effective"
 msgstr "有效"
 
@@ -3933,15 +3933,16 @@ msgstr "请输入 RSO 模块地址:"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:620
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:629
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:638
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:663
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:678
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:686
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:708
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:715
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -4325,7 +4326,7 @@ msgstr "无法将此会话添加到联机索引: %1"
 msgid "Failed to append to signature file '%1'"
 msgstr "附加到签名文件 '%1' 失败"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:627
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:628
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr ""
 
@@ -4367,7 +4368,7 @@ msgstr "删除联机存储卡失败。请验证你的写入权限。"
 msgid "Failed to delete the selected file."
 msgstr "无法删除所选文件。"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:620
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:621
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "分离蓝牙直通内核驱动失败: {0}"
 
@@ -4375,11 +4376,11 @@ msgstr "分离蓝牙直通内核驱动失败: {0}"
 msgid "Failed to download codes."
 msgstr "下载代码失败。"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:779
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:709
 msgid "Failed to dump %1: Can't open file"
 msgstr "转储 %1 失败：无法打开文件"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:786
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:716
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "转储 %1 失败：无法写入文件"
 
@@ -4509,7 +4510,7 @@ msgstr "加载 {0} 失败。如果你使用的是 Windows 7，请尝试安装 KB
 msgid "Failed to open '%1'"
 msgstr "无法打开 '%1'"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:605
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:606
 msgid "Failed to open Bluetooth device: {0}"
 msgstr "打开蓝牙设备失败: {0} "
 
@@ -4809,11 +4810,11 @@ msgstr ""
 "理质量，但会导致另一些游戏出现问题。<br><br><dolphin_emphasis>如果不确定，请"
 "不要勾选此项。</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:160
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:162
 msgid "Find &Next"
 msgstr "查找下一个(&N)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:161
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:163
 msgid "Find &Previous"
 msgstr "查找上一个(&P)"
 
@@ -4821,7 +4822,7 @@ msgstr "查找上一个(&P)"
 msgid "Finish Calibration"
 msgstr "完成校准"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:105
+#: Source/Core/DolphinQt/WiiUpdate.cpp:109
 msgid ""
 "Finishing the update...\n"
 "This can take a while."
@@ -4841,7 +4842,7 @@ msgstr "修正校验和"
 msgid "Fix Checksums Failed"
 msgstr "修正校验和失败"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
 msgid "Fixed Alignment"
 msgstr "固定对齐"
 
@@ -4854,8 +4855,8 @@ msgstr "标记"
 
 #. i18n: A floating point number
 #. i18n: Floating-point (non-integer) number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:207
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:148
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:161
 msgid "Float"
@@ -5428,7 +5429,7 @@ msgstr "德语"
 msgid "Germany"
 msgstr "德国"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:135
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:136
 msgid "GetDeviceList failed: {0}"
 msgstr ""
 
@@ -5519,23 +5520,23 @@ msgstr "头"
 msgid "Help"
 msgstr "帮助"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:113
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
 msgid "Hex"
 msgstr "十六进制"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:196
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
 msgid "Hex 16"
 msgstr "十六进制 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:199
 msgid "Hex 32"
 msgstr "十六进制 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:195
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
 msgid "Hex 8"
 msgstr "十六进制 8"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
 msgid "Hex Byte String"
 msgstr "十六进制字节字符串"
 
@@ -6635,7 +6636,7 @@ msgid "Lock Mouse Cursor"
 msgstr "锁定鼠标光标"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:34
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:243
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:245
 msgid "Log"
 msgstr "日志"
 
@@ -6748,7 +6749,7 @@ msgstr "映射"
 msgid "Mask ROM"
 msgstr "伪装 ROM"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:882
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:812
 msgid "Match Found"
 msgstr "找到匹配"
 
@@ -6774,7 +6775,7 @@ msgstr "这会导致 Wii 菜单和一些游戏减速。"
 msgid "Medium"
 msgstr "中等"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:41
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:43
 msgid "Memory"
 msgstr "内存"
 
@@ -6794,7 +6795,7 @@ msgstr "存储卡管理器"
 msgid "Memory Override"
 msgstr "内存覆盖"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:227
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:229
 msgid "Memory breakpoint options"
 msgstr "内存断点选项"
 
@@ -7111,7 +7112,7 @@ msgstr "否"
 msgid "No Adapter Detected"
 msgstr "未检测到适配器"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:213
 msgid "No Alignment"
 msgstr "未对齐"
 
@@ -7125,7 +7126,7 @@ msgstr "无音频输出"
 msgid "No Compression"
 msgstr "不压缩"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:894
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:824
 msgid "No Match"
 msgstr "无匹配"
 
@@ -7318,7 +7319,7 @@ msgstr "大洋洲"
 msgid "Off"
 msgstr "关"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:103
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:105
 msgid "Offset"
 msgstr "偏移量"
 
@@ -7596,7 +7597,7 @@ msgstr "执行系统更新"
 
 #. i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
 #. physically wired up.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:181
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:183
 msgid "Physical"
 msgstr "物理"
 
@@ -7711,7 +7712,7 @@ msgstr "在 PlayWiimote 中提前结束影片。{0} + {1} > {2}"
 msgid "Premature movie end in PlayWiimote. {0} > {1}"
 msgstr "在PlayWiimote 中提前结束影片。{0} > {1}"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:92
+#: Source/Core/DolphinQt/WiiUpdate.cpp:96
 msgid ""
 "Preparing to update...\n"
 "This can take a while."
@@ -7909,14 +7910,14 @@ msgstr "读取"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation or write operation occurs.
 #. The string is not a command to read and write something or to allow reading and writing.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:234
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:236
 msgid "Read and write"
 msgstr "读取和写入"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation occurs.
 #. The string does not mean "read-only" in the sense that something cannot be written to.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:238
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:240
 msgid "Read only"
 msgstr "只读"
 
@@ -8544,14 +8545,14 @@ msgstr "扫描成功。"
 msgid "ScrShot"
 msgstr "截图"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:158
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
 #: Source/Core/DolphinQt/MenuBar.cpp:514
 msgid "Search"
 msgstr "搜索"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:102
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:102
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:104
 msgid "Search Address"
 msgstr "搜索地址"
 
@@ -8728,7 +8729,7 @@ msgstr "选择游戏"
 msgid "Select a SD Card Image"
 msgstr "选择 SD 卡镜像"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:667
 msgid "Select a file"
 msgstr "选择文件"
 
@@ -8901,7 +8902,7 @@ msgstr "服务器端口"
 msgid "Server rejected traversal attempt"
 msgstr "穿透尝试被服务器拒绝"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:114
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:116
 msgid "Set &Value"
 msgstr "设置值(&V)"
 
@@ -8914,7 +8915,7 @@ msgstr "设置 blr (&B)"
 msgid "Set PC"
 msgstr "设置 PC"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:117
 msgid "Set Value From File"
 msgstr "从文件中设置数值"
 
@@ -9179,7 +9180,7 @@ msgstr ""
 msgid "Show in Memory"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:664
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:842
 msgid "Show in code"
 msgstr "在代码中显示"
 
@@ -9256,18 +9257,18 @@ msgstr "横握 Wii 遥控器"
 msgid "Signature Database"
 msgstr "签名数据库"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:140
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:204
 msgid "Signed 16"
 msgstr "有符号 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:203
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
 msgid "Signed 32"
 msgstr "有符号 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:201
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:203
 msgid "Signed 8"
 msgstr "有符号 8"
 
@@ -9894,6 +9895,10 @@ msgstr "台湾"
 msgid "Take Screenshot"
 msgstr "屏幕截图"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:638
+msgid "Target address range is invalid."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:246
 msgid "Test"
 msgstr "测试"
@@ -9997,7 +10002,7 @@ msgstr ""
 msgid "The disc could not be read (at {0:#x} - {1:#x})."
 msgstr "无法读取此光盘 (at {0:#x} - {1:#x})。"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:523
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:528
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "无法找到已可插入的光盘。"
 
@@ -10012,11 +10017,11 @@ msgstr ""
 "\n"
 "您是否要尝试修复此 NAND？"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:32
+#: Source/Core/DolphinQt/WiiUpdate.cpp:33
 msgid "The emulated Wii console has been updated."
 msgstr "模拟的 Wii 主机已更新。"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:37
+#: Source/Core/DolphinQt/WiiUpdate.cpp:38
 msgid "The emulated Wii console is already up-to-date."
 msgstr "模拟的 Wii 主机已经是最新的。"
 
@@ -10058,13 +10063,13 @@ msgstr ""
 "文件 %1 已经存在。\n"
 "是否替换?"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:57
+#: Source/Core/AudioCommon/WaveFile.cpp:58
 msgid ""
 "The file {0} could not be opened for writing. Please check if it's already "
 "opened by another program."
 msgstr "文件 {0} 无法以写入形式打开。请检查该文件是否已经被另一程序打开。"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:49
+#: Source/Core/AudioCommon/WaveFile.cpp:50
 msgid "The file {0} was already open, the file header will not be written."
 msgstr "文件 {0} 已经打开，文件头不会被写入。"
 
@@ -10097,7 +10102,7 @@ msgstr "游戏 ID 异常短。"
 msgid "The game ID is {0} but should be {1}."
 msgstr "游戏 ID 是 {0} ，但应该为 {1} 。"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:71
+#: Source/Core/DolphinQt/WiiUpdate.cpp:72
 msgid "The game disc does not contain any usable update information."
 msgstr "此游戏光盘未包含任何可用的更新信息。"
 
@@ -10105,7 +10110,7 @@ msgstr "此游戏光盘未包含任何可用的更新信息。"
 msgid "The game is currently running."
 msgstr "游戏当前正在运行。"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:64
+#: Source/Core/DolphinQt/WiiUpdate.cpp:65
 msgid ""
 "The game's region does not match your console's. To avoid issues with the "
 "system menu, it is not possible to update the emulated console using this "
@@ -10233,7 +10238,7 @@ msgstr "ticket 文件未正确签名。"
 msgid "The type of a partition could not be read."
 msgstr "无法读取的分区类型。"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:58
+#: Source/Core/DolphinQt/WiiUpdate.cpp:59
 msgid ""
 "The update has been cancelled. It is strongly recommended to finish it in "
 "order to avoid inconsistent system software versions."
@@ -10582,7 +10587,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "切换长宽比"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:673
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
 msgid "Toggle Breakpoint"
 msgstr "切换断点"
 
@@ -10733,7 +10738,7 @@ msgstr "扳机"
 msgid "Type"
 msgstr "类型"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:210
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:212
 msgid "Type-based Alignment"
 msgstr "基于类型对齐"
 
@@ -10798,7 +10803,7 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "无法自动检测 RSO 模块"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:678
 msgid "Unable to open file."
 msgstr "无法打开文件。"
 
@@ -10825,7 +10830,7 @@ msgstr ""
 "\n"
 "是否要忽略此行继续分析？"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:686
 msgid "Unable to read file."
 msgstr "无法读取文件。"
 
@@ -10880,7 +10885,7 @@ msgstr "美国"
 msgid "Unknown"
 msgstr "未知"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1239
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1244
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "未知 DVD 命令 {0:08x} - 致命错误"
 
@@ -10956,18 +10961,18 @@ msgstr "解锁光标"
 msgid "Unpacking"
 msgstr "正在解包"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:199
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:201
 msgid "Unsigned 16"
 msgstr "无符号 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:200
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
 msgid "Unsigned 32"
 msgstr "无符号 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:200
 msgid "Unsigned 8"
 msgstr "无符号 8"
 
@@ -11002,28 +11007,28 @@ msgstr "关闭 Dolphin 后更新"
 msgid "Update available"
 msgstr "更新可用"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:57
+#: Source/Core/DolphinQt/WiiUpdate.cpp:58
 msgid "Update cancelled"
 msgstr "更新已取消"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:31
-#: Source/Core/DolphinQt/WiiUpdate.cpp:36
+#: Source/Core/DolphinQt/WiiUpdate.cpp:32
+#: Source/Core/DolphinQt/WiiUpdate.cpp:37
 msgid "Update completed"
 msgstr "更新已完成"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:41
-#: Source/Core/DolphinQt/WiiUpdate.cpp:46
-#: Source/Core/DolphinQt/WiiUpdate.cpp:51
-#: Source/Core/DolphinQt/WiiUpdate.cpp:63
-#: Source/Core/DolphinQt/WiiUpdate.cpp:70
+#: Source/Core/DolphinQt/WiiUpdate.cpp:42
+#: Source/Core/DolphinQt/WiiUpdate.cpp:47
+#: Source/Core/DolphinQt/WiiUpdate.cpp:52
+#: Source/Core/DolphinQt/WiiUpdate.cpp:64
+#: Source/Core/DolphinQt/WiiUpdate.cpp:71
 msgid "Update failed"
 msgstr "更新失败"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:93
+#: Source/Core/DolphinQt/WiiUpdate.cpp:97
 msgid "Updating"
 msgstr "正在更新"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:119
+#: Source/Core/DolphinQt/WiiUpdate.cpp:123
 msgid ""
 "Updating title %1...\n"
 "This can take a while."
@@ -11226,7 +11231,7 @@ msgstr "实用功能"
 msgid "V-Sync"
 msgstr "垂直同步"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:119
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:121
 msgid "Value"
 msgstr "值"
 
@@ -11665,7 +11670,7 @@ msgstr "写入存档数据"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
 #. The string does not mean "write-only" in the sense that something cannot be read from.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:242
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:244
 msgid "Write only"
 msgstr "只写"
 

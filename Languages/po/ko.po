@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-01 00:12+0200\n"
+"POT-Creation-Date: 2022-07-05 23:35+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: Siegfried, 2013-2022\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -349,7 +349,7 @@ msgstr "중단점 (&B)"
 msgid "&Bug Tracker"
 msgstr "버그 추적자(&B)"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:100
+#: Source/Core/DolphinQt/WiiUpdate.cpp:104
 msgid "&Cancel"
 msgstr "취소(&C)"
 
@@ -702,7 +702,7 @@ msgstr "/ 나누기"
 msgid "128 Mbit (2043 blocks)"
 msgstr "128 Mbit (2043 블락)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:218
 msgid "16 Bytes"
 msgstr "16 바이트"
 
@@ -790,7 +790,7 @@ msgstr "3x"
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x 원본 (1920x1584) 1080p용"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:214
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:216
 msgid "4 Bytes"
 msgstr "4 바이트"
 
@@ -842,7 +842,7 @@ msgstr "6x 원본 (3840x3168) 4K용"
 msgid "7x Native (4480x3696)"
 msgstr "7x 원본 (4480x3696)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:215
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:217
 msgid "8 Bytes"
 msgstr "8 바이트"
 
@@ -919,7 +919,7 @@ msgstr ""
 "\n"
 "이 WAD 를 설치하면 되돌릴 수 없게 바꾸게 됩니다. 계속합니까?"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:555
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:560
 msgid "A disc is already about to be inserted."
 msgstr "디스크가 이미 삽입되려는 중입니다."
 
@@ -980,8 +980,8 @@ msgstr "AR 코드"
 msgid "AR Codes"
 msgstr "AR 코드"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:131
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:204
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:206
 msgid "ASCII"
 msgstr "애스키"
 
@@ -1162,7 +1162,7 @@ msgstr "메모리 중단점 추가"
 msgid "Add to &watch"
 msgstr "관찰에 추가 (&w)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:668
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:846
 msgid "Add to watch"
 msgstr "관찰에 추가"
 
@@ -1190,7 +1190,7 @@ msgid "Address"
 msgstr "주소"
 
 #: Source/Core/DolphinQt/CheatSearchFactoryWidget.cpp:44
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:170
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:172
 msgid "Address Space"
 msgstr "주소 공간"
 
@@ -1331,7 +1331,7 @@ msgstr ""
 msgid "All devices"
 msgstr "모든 장치"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:738
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:668
 msgid "All files (*)"
 msgstr "모든 파일 (*)"
 
@@ -1578,7 +1578,7 @@ msgstr ""
 "면, 체크 해제해 두세요.</dolphin_emphasis>"
 
 #. i18n: The "Auxiliary" address space is the address space of ARAM (Auxiliary RAM).
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:178
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:180
 msgid "Auxiliary"
 msgstr "보조"
 
@@ -1642,13 +1642,13 @@ msgstr "백그라운드 입력"
 msgid "Backward"
 msgstr "뒤로"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:864
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:794
 msgid "Bad Value Given"
 msgstr "안 좋은 값이 주어짐"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:850
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:780
 msgid "Bad address provided."
 msgstr "안 좋은 주소가 제공되었습니다."
 
@@ -1656,13 +1656,13 @@ msgstr "안 좋은 주소가 제공되었습니다."
 msgid "Bad dump"
 msgstr "안 좋은 덤프"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:856
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:620
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:663
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:786
 msgid "Bad offset provided."
 msgstr "안 좋은 오프셋이 제공되었습니다."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:629
 msgid "Bad value provided."
 msgstr "안 좋은 값이 제공되었습니다."
 
@@ -1893,7 +1893,7 @@ msgstr "버튼"
 msgid "Buttons"
 msgstr "버튼"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:209
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:214
 msgid "By:  "
 msgstr ""
 
@@ -2316,7 +2316,7 @@ msgstr "출력 설정"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:812
 #: Source/Core/DolphinQt/MainWindow.cpp:900
 #: Source/Core/DolphinQt/MainWindow.cpp:1621
-#: Source/Core/DolphinQt/WiiUpdate.cpp:136
+#: Source/Core/DolphinQt/WiiUpdate.cpp:140
 msgid "Confirm"
 msgstr "확정"
 
@@ -2375,7 +2375,7 @@ msgstr "Wii 리모트 연결"
 msgid "Connect Wii Remotes for Emulated Controllers"
 msgstr "에뮬된 컨트롤러에 대한 Wii 리모트 연결"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:137
+#: Source/Core/DolphinQt/WiiUpdate.cpp:141
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "인터넷에 연결하여 온라인 시스템 업데이트를 하시겠습니까?"
 
@@ -2554,7 +2554,7 @@ msgstr "함수 복사 (&f)"
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:646
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:824
 msgid "Copy Address"
 msgstr "주소 복사"
 
@@ -2562,11 +2562,11 @@ msgstr "주소 복사"
 msgid "Copy Failed"
 msgstr "복사가 실패했습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:648
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:826
 msgid "Copy Hex"
 msgstr "헥스 복사"
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:654
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:832
 msgid "Copy Value"
 msgstr "값 복사"
 
@@ -2610,7 +2610,7 @@ msgstr "클라이언트를 생성할 수 없었습니다."
 msgid "Could not create peer."
 msgstr "피어를 생성할 수 없었습니다."
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:47
+#: Source/Core/DolphinQt/WiiUpdate.cpp:48
 msgid ""
 "Could not download update files from Nintendo. Please check your Internet "
 "connection and try again."
@@ -2618,7 +2618,7 @@ msgstr ""
 "닌텐도로부터 업데이트 파일을 다운로드할 수 없었습니다. 인터넷 연결을 확인하시"
 "고 다시 시도하세요."
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:42
+#: Source/Core/DolphinQt/WiiUpdate.cpp:43
 msgid ""
 "Could not download update information from Nintendo. Please check your "
 "Internet connection and try again."
@@ -2626,7 +2626,7 @@ msgstr ""
 "닌텐도로부터 업데이트 정보를 다운로드할 수 없었습니다. 인터넷 연결을 확인하시"
 "고 다시 시도하세요."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:143
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:144
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "\n"
@@ -2636,7 +2636,7 @@ msgstr ""
 "\n"
 "에뮬된 콘솔이 지금 멈출 것입니다."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:149
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:150
 msgid ""
 "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
 "The following error occurred when Dolphin tried to use an adapter:\n"
@@ -2650,7 +2650,7 @@ msgstr ""
 "\n"
 "에뮬된 콘솔이 지금 멈출 것입니다."
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:52
+#: Source/Core/DolphinQt/WiiUpdate.cpp:53
 msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
@@ -3026,7 +3026,7 @@ msgstr "파일 삭제..."
 msgid "Delete Selected Files..."
 msgstr "선택된 파일들 삭제..."
 
-#: Source/Core/AudioCommon/WaveFile.cpp:35
+#: Source/Core/AudioCommon/WaveFile.cpp:36
 #: Source/Core/VideoCommon/FrameDump.cpp:137
 msgid "Delete the existing file '{0}'?"
 msgstr "존재하는 파일 '{0}' 를 삭제합니까?"
@@ -3058,7 +3058,7 @@ msgstr "설명"
 msgid "Description:"
 msgstr "설명:"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:216
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:221
 msgid "Description:  "
 msgstr ""
 
@@ -3223,7 +3223,7 @@ msgstr "디스크"
 msgid "Discard"
 msgstr "폐기"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:189
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:191
 msgid "Display Type"
 msgstr "디스플레이 타입"
 
@@ -3391,8 +3391,8 @@ msgid "Done compressing disc image."
 msgstr "디스크 이미지 압축이 완료되었습니다."
 
 #. i18n: A double precision floating point number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:133
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:206
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:208
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:150
 msgid "Double"
 msgstr "더블"
@@ -3445,7 +3445,7 @@ msgstr "드럼 키트"
 msgid "Dual Core"
 msgstr "듀얼 코어"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:219
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:221
 msgid "Dual View"
 msgstr "듀얼 뷰"
 
@@ -3453,23 +3453,23 @@ msgstr "듀얼 뷰"
 msgid "Dummy"
 msgstr "더미"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:142
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:144
 msgid "Dump"
 msgstr "덤프"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:149
 msgid "Dump &ARAM"
 msgstr "ARAM 덤프(&A)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:146
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
 msgid "Dump &ExRAM"
 msgstr "확장램 덤프(&E)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:148
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:150
 msgid "Dump &FakeVMEM"
 msgstr "가짜가상메모리 덤프(&F)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:145
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:147
 msgid "Dump &MRAM"
 msgstr "MRAM 덤프(&M)"
 
@@ -3665,7 +3665,7 @@ msgstr "효과"
 
 #. i18n: "Effective" addresses are the addresses used directly by the CPU and may be subject to
 #. translation via the MMU to physical addresses.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:176
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:178
 msgid "Effective"
 msgstr "효과적인"
 
@@ -3992,15 +3992,16 @@ msgstr "RSO 모듈 주소를 입력:"
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:259
 #: Source/Core/DolphinQt/ConvertDialog.cpp:452
 #: Source/Core/DolphinQt/ConvertDialog.cpp:506
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:691
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:697
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:706
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:727
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:733
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:778
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:785
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:614
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:620
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:629
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:638
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:663
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:678
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:686
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:708
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:715
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:150
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:86
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:261
@@ -4387,7 +4388,7 @@ msgstr "넷플레이 목록 : %1 에 이 세션을 추가하는데에 실패했�
 msgid "Failed to append to signature file '%1'"
 msgstr "서명 파일 '%1' 에 덧붙이기에 실패했습니다."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:627
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:628
 msgid "Failed to claim interface for BT passthrough: {0}"
 msgstr ""
 
@@ -4429,7 +4430,7 @@ msgstr "넷플레이 메모리 카드를 삭제에 실패했습니다. 쓰기 �
 msgid "Failed to delete the selected file."
 msgstr "선택된 파일 삭제에 실패했습니다."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:620
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:621
 msgid "Failed to detach kernel driver for BT passthrough: {0}"
 msgstr "블투 패스쓰루용 커널 드라이버를 분리하는데에 실패했습니다: {0}"
 
@@ -4437,11 +4438,11 @@ msgstr "블투 패스쓰루용 커널 드라이버를 분리하는데에 실패�
 msgid "Failed to download codes."
 msgstr "코드 다운로드에 실패했습니다."
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:779
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:709
 msgid "Failed to dump %1: Can't open file"
 msgstr "덤프에 실패했습니다 %1: 파일을 열 수 없습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:786
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:716
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "덤프에 실패했습니다 %1: 파일에 쓰기를 실패했습니다"
 
@@ -4580,7 +4581,7 @@ msgstr ""
 msgid "Failed to open '%1'"
 msgstr "'%1' 를 열기에 실패했습니다"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:605
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:606
 msgid "Failed to open Bluetooth device: {0}"
 msgstr "블루투스 장치 열기에 실패했습니다: {0}"
 
@@ -4884,11 +4885,11 @@ msgstr ""
 "게임에서 이슈를 일으킬 것입니다.<br><br><dolphin_emphasis>잘 모르겠으면, 체"
 "크 해제해 두세요.</dolphin_emphasis>"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:160
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:162
 msgid "Find &Next"
 msgstr "다음 찾기(&N)"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:161
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:163
 msgid "Find &Previous"
 msgstr "이전 찾기(&P)"
 
@@ -4896,7 +4897,7 @@ msgstr "이전 찾기(&P)"
 msgid "Finish Calibration"
 msgstr "측정 완료"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:105
+#: Source/Core/DolphinQt/WiiUpdate.cpp:109
 msgid ""
 "Finishing the update...\n"
 "This can take a while."
@@ -4916,7 +4917,7 @@ msgstr "체크섬을 고치기"
 msgid "Fix Checksums Failed"
 msgstr "실패한 체크섬 고치기"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:209
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
 msgid "Fixed Alignment"
 msgstr "고정된 정돈"
 
@@ -4929,8 +4930,8 @@ msgstr "플래그"
 
 #. i18n: A floating point number
 #. i18n: Floating-point (non-integer) number
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:207
 #: Source/Core/DolphinQt/Debugger/RegisterWidget.cpp:148
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:161
 msgid "Float"
@@ -5507,7 +5508,7 @@ msgstr "독일어"
 msgid "Germany"
 msgstr "독일"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:135
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:136
 msgid "GetDeviceList failed: {0}"
 msgstr ""
 
@@ -5599,23 +5600,23 @@ msgstr "헤드"
 msgid "Help"
 msgstr "도움"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:113
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
 msgid "Hex"
 msgstr "헥스"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:196
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
 msgid "Hex 16"
 msgstr "헥스 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:199
 msgid "Hex 32"
 msgstr "헥스 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:195
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:197
 msgid "Hex 8"
 msgstr "헥스 8"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:130
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:132
 msgid "Hex Byte String"
 msgstr "헥스 바이트 스트링"
 
@@ -6727,7 +6728,7 @@ msgid "Lock Mouse Cursor"
 msgstr "마우스 커서 가두기"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:34
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:243
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:245
 msgid "Log"
 msgstr "로그"
 
@@ -6841,7 +6842,7 @@ msgstr "매핑"
 msgid "Mask ROM"
 msgstr "마스크 롬"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:882
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:812
 msgid "Match Found"
 msgstr "일치 발견"
 
@@ -6867,7 +6868,7 @@ msgstr "Wii 메뉴와 일부 게임에서 느려짐을 유발할지도 모릅니
 msgid "Medium"
 msgstr "중간"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:41
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:43
 msgid "Memory"
 msgstr "메모리"
 
@@ -6887,7 +6888,7 @@ msgstr "메모리 카드 관리자"
 msgid "Memory Override"
 msgstr "메모리 오버라이드"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:227
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:229
 msgid "Memory breakpoint options"
 msgstr "메모리 중단점 옵션"
 
@@ -7206,7 +7207,7 @@ msgstr "아니요"
 msgid "No Adapter Detected"
 msgstr "감지된 어댑터가 없습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:211
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:213
 msgid "No Alignment"
 msgstr "정돈 없음"
 
@@ -7220,7 +7221,7 @@ msgstr "오디오 출력 없음"
 msgid "No Compression"
 msgstr "압축하지 않음"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:894
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:824
 msgid "No Match"
 msgstr "일치 없음"
 
@@ -7420,7 +7421,7 @@ msgstr "오시애니아"
 msgid "Off"
 msgstr "끄기"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:103
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:105
 msgid "Offset"
 msgstr "오프셋"
 
@@ -7698,7 +7699,7 @@ msgstr "시스텝 업데이트 하기"
 
 #. i18n: The "Physical" address space is the address space that reflects how devices (e.g. RAM) is
 #. physically wired up.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:181
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:183
 msgid "Physical"
 msgstr "피지컬"
 
@@ -7813,7 +7814,7 @@ msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} + {1} >
 msgid "Premature movie end in PlayWiimote. {0} > {1}"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. {0} > {1}"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:92
+#: Source/Core/DolphinQt/WiiUpdate.cpp:96
 msgid ""
 "Preparing to update...\n"
 "This can take a while."
@@ -8018,14 +8019,14 @@ msgstr "읽기"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation or write operation occurs.
 #. The string is not a command to read and write something or to allow reading and writing.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:234
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:236
 msgid "Read and write"
 msgstr "읽고 쓰기"
 
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a read operation occurs.
 #. The string does not mean "read-only" in the sense that something cannot be written to.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:238
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:240
 msgid "Read only"
 msgstr "읽기 전용"
 
@@ -8658,14 +8659,14 @@ msgstr "스캔을 성공했습니다."
 msgid "ScrShot"
 msgstr "스크린샷"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:156
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:158
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:86
 #: Source/Core/DolphinQt/MenuBar.cpp:514
 msgid "Search"
 msgstr "찾기"
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:102
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:102
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:104
 msgid "Search Address"
 msgstr "주소 검색"
 
@@ -8844,7 +8845,7 @@ msgstr "게임 선택"
 msgid "Select a SD Card Image"
 msgstr "SD 카드 이미지 선택"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:737
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:667
 msgid "Select a file"
 msgstr "파일 선택"
 
@@ -9024,7 +9025,7 @@ msgstr "서버 포트"
 msgid "Server rejected traversal attempt"
 msgstr "서버가 횡단 시도를 거절했습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:114
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:116
 msgid "Set &Value"
 msgstr "값 설정(&V)"
 
@@ -9037,7 +9038,7 @@ msgstr "blr 설정(&b)"
 msgid "Set PC"
 msgstr "PC 설정"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:115
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:117
 msgid "Set Value From File"
 msgstr "파일로 부터 값을 설정"
 
@@ -9305,7 +9306,7 @@ msgstr ""
 msgid "Show in Memory"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:664
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:842
 msgid "Show in code"
 msgstr "코드로 보기"
 
@@ -9385,18 +9386,18 @@ msgstr "Wii 리모트 옆으로"
 msgid "Signature Database"
 msgstr "서명 데이터베이스"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:140
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:204
 msgid "Signed 16"
 msgstr "부호화 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:203
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:141
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:205
 msgid "Signed 32"
 msgstr "부호화 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:201
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:139
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:203
 msgid "Signed 8"
 msgstr "부호화 8"
 
@@ -10033,6 +10034,10 @@ msgstr "타이완"
 msgid "Take Screenshot"
 msgstr "스크린샷 찍기"
 
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:638
+msgid "Target address range is invalid."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:246
 msgid "Test"
 msgstr "테스트"
@@ -10143,7 +10148,7 @@ msgstr ""
 msgid "The disc could not be read (at {0:#x} - {1:#x})."
 msgstr "디스크가 읽혀질 수 없었습니다 (위치 {0:#x} - {1:#x})."
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:523
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:528
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "삽입되려 했던 디스크를 찾을 수 없습니다."
 
@@ -10159,11 +10164,11 @@ msgstr ""
 "\n"
 "NAND 고치기 시도를 하고 싶습니까?"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:32
+#: Source/Core/DolphinQt/WiiUpdate.cpp:33
 msgid "The emulated Wii console has been updated."
 msgstr "에뮬된 Wii 콘솔이 업데이트되었습니다."
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:37
+#: Source/Core/DolphinQt/WiiUpdate.cpp:38
 msgid "The emulated Wii console is already up-to-date."
 msgstr "에뮬된 Wii 콘솔이 이미 최신입니다."
 
@@ -10205,7 +10210,7 @@ msgstr ""
 "파일 %1 이 이미 존재합니다.\n"
 "바꾸시겠습니까?"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:57
+#: Source/Core/AudioCommon/WaveFile.cpp:58
 msgid ""
 "The file {0} could not be opened for writing. Please check if it's already "
 "opened by another program."
@@ -10213,7 +10218,7 @@ msgstr ""
 "{0} 파일은 쓰기 위해 열릴 수 없었습니다. 다른 프로그램에 의해 이미 열려있는"
 "지 확인해주세요."
 
-#: Source/Core/AudioCommon/WaveFile.cpp:49
+#: Source/Core/AudioCommon/WaveFile.cpp:50
 msgid "The file {0} was already open, the file header will not be written."
 msgstr "{0} 파일이 이미 열려 있습니다, 파일 헤더는 기록되지 않을 것입니다."
 
@@ -10247,7 +10252,7 @@ msgstr "게임 ID 가 비정상적으로 짧습니다."
 msgid "The game ID is {0} but should be {1}."
 msgstr "게임 ID 가 {0} 이지만 {1} 이어야 합니다."
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:71
+#: Source/Core/DolphinQt/WiiUpdate.cpp:72
 msgid "The game disc does not contain any usable update information."
 msgstr "게임 디스크가 사용가능한 업데이트 정보를 가지고 있지 않습니다."
 
@@ -10255,7 +10260,7 @@ msgstr "게임 디스크가 사용가능한 업데이트 정보를 가지고 있
 msgid "The game is currently running."
 msgstr "게임이 현재 구동중입니다."
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:64
+#: Source/Core/DolphinQt/WiiUpdate.cpp:65
 msgid ""
 "The game's region does not match your console's. To avoid issues with the "
 "system menu, it is not possible to update the emulated console using this "
@@ -10389,7 +10394,7 @@ msgstr "티켓이 올바르게 서명되어 있지 않습니다."
 msgid "The type of a partition could not be read."
 msgstr "파티션 종류가 읽혀질 수 없었습니다."
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:58
+#: Source/Core/DolphinQt/WiiUpdate.cpp:59
 msgid ""
 "The update has been cancelled. It is strongly recommended to finish it in "
 "order to avoid inconsistent system software versions."
@@ -10758,7 +10763,7 @@ msgid "Toggle Aspect Ratio"
 msgstr "종횡비 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
-#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:673
+#: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
 msgid "Toggle Breakpoint"
 msgstr "중단점 토글"
 
@@ -10911,7 +10916,7 @@ msgstr "트리거"
 msgid "Type"
 msgstr "타입"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:210
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:212
 msgid "Type-based Alignment"
 msgstr "타입-기반 정돈"
 
@@ -10979,7 +10984,7 @@ msgstr ""
 msgid "Unable to auto-detect RSO module"
 msgstr "RSO 모듈을 자동-감지할 수 없습니다"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:748
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:678
 msgid "Unable to open file."
 msgstr "파일 열기가 불가능합니다."
 
@@ -11007,7 +11012,7 @@ msgstr ""
 "\n"
 "이 라인을 무시하고 분석을 계속합니까?"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:756
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:686
 msgid "Unable to read file."
 msgstr "파일 읽기가 불가능합니다."
 
@@ -11062,7 +11067,7 @@ msgstr "미국"
 msgid "Unknown"
 msgstr "알려지지 않음"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1239
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1244
 msgid "Unknown DVD command {0:08x} - fatal error"
 msgstr "알려지지 않은 DVD 명령 {0:08x} - 치명적 오류"
 
@@ -11143,18 +11148,18 @@ msgstr "마우스 커서 풀기"
 msgid "Unpacking"
 msgstr "풀기"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:135
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:199
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:137
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:201
 msgid "Unsigned 16"
 msgstr "비부호화 16"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:200
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:138
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:202
 msgid "Unsigned 32"
 msgstr "비부호화 32"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:134
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:198
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:136
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:200
 msgid "Unsigned 8"
 msgstr "비부호화 8"
 
@@ -11189,28 +11194,28 @@ msgstr "돌핀을 닫은 후에 업데이트"
 msgid "Update available"
 msgstr "업데이트 사용가능"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:57
+#: Source/Core/DolphinQt/WiiUpdate.cpp:58
 msgid "Update cancelled"
 msgstr "업데이트가 취소되었습니다"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:31
-#: Source/Core/DolphinQt/WiiUpdate.cpp:36
+#: Source/Core/DolphinQt/WiiUpdate.cpp:32
+#: Source/Core/DolphinQt/WiiUpdate.cpp:37
 msgid "Update completed"
 msgstr "업데이트가 완료되었습니다"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:41
-#: Source/Core/DolphinQt/WiiUpdate.cpp:46
-#: Source/Core/DolphinQt/WiiUpdate.cpp:51
-#: Source/Core/DolphinQt/WiiUpdate.cpp:63
-#: Source/Core/DolphinQt/WiiUpdate.cpp:70
+#: Source/Core/DolphinQt/WiiUpdate.cpp:42
+#: Source/Core/DolphinQt/WiiUpdate.cpp:47
+#: Source/Core/DolphinQt/WiiUpdate.cpp:52
+#: Source/Core/DolphinQt/WiiUpdate.cpp:64
+#: Source/Core/DolphinQt/WiiUpdate.cpp:71
 msgid "Update failed"
 msgstr "업데이트가 실패했습니다"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:93
+#: Source/Core/DolphinQt/WiiUpdate.cpp:97
 msgid "Updating"
 msgstr "업데이트하기"
 
-#: Source/Core/DolphinQt/WiiUpdate.cpp:119
+#: Source/Core/DolphinQt/WiiUpdate.cpp:123
 msgid ""
 "Updating title %1...\n"
 "This can take a while."
@@ -11424,7 +11429,7 @@ msgstr "유틸리티"
 msgid "V-Sync"
 msgstr "수직-동기화"
 
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:119
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:121
 msgid "Value"
 msgstr "값"
 
@@ -11881,7 +11886,7 @@ msgstr "저장 데이터 쓰기"
 #. i18n: This string is used for a radio button that represents the type of
 #. memory breakpoint that gets triggered when a write operation occurs.
 #. The string does not mean "write-only" in the sense that something cannot be read from.
-#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:242
+#: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:244
 msgid "Write only"
 msgstr "쓰기 전용"
 
