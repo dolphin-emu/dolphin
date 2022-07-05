@@ -433,8 +433,18 @@ bool Copy(const std::string& source_path, const std::string& destination_path)
 #else
   std::ifstream source{source_path, std::ios::binary};
   std::ofstream destination{destination_path, std::ios::binary};
-  destination << source.rdbuf();
-  return source.good() && destination.good();
+
+  // Only attempt to write with << if there is actually something in the file
+  if (source.peek() != std::ifstream::traits_type::eof())
+  {
+    destination << source.rdbuf();
+    return source.good() && destination.good();
+  }
+  else
+  {
+    // We can't use source.good() here because eofbit will be set, so check for the other bits.
+    return !source.fail() && !source.bad() && destination.good();
+  }
 #endif
 }
 
