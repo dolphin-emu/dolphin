@@ -102,9 +102,10 @@ std::pair<Arm64Gen::ARM64Reg, u32> VertexLoaderARM64::GetVertexAddr(CPArray arra
   }
 }
 
-int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentFormat format,
-                                  int count_in, int count_out, bool dequantize, u8 scaling_exponent,
-                                  AttributeFormat* native_format, ARM64Reg reg, u32 offset)
+void VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentFormat format,
+                                   int count_in, int count_out, bool dequantize,
+                                   u8 scaling_exponent, AttributeFormat* native_format,
+                                   ARM64Reg reg, u32 offset)
 {
   ARM64Reg coords = count_in == 3 ? ARM64Reg::Q31 : ARM64Reg::D31;
   ARM64Reg scale = count_in == 3 ? ARM64Reg::Q30 : ARM64Reg::D30;
@@ -113,7 +114,6 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
   int load_bytes = elem_size * count_in;
   int load_size = GetLoadSize(load_bytes);
   load_size <<= 3;
-  elem_size <<= 3;
 
   m_float_emit.LDUR(load_size, coords, reg, offset);
 
@@ -189,8 +189,6 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
 
   if (attribute == VertexComponentFormat::Direct)
     m_src_ofs += load_bytes;
-
-  return load_bytes;
 }
 
 void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat format, ARM64Reg reg,
@@ -400,23 +398,32 @@ void VertexLoaderARM64::GenerateVertexLoader()
     static constexpr Common::EnumMap<u8, static_cast<ComponentFormat>(7)> SCALE_MAP = {7, 6, 15, 14,
                                                                                        0, 0, 0,  0};
     const u8 scaling_exponent = SCALE_MAP[m_VtxAttr.g0.NormalFormat];
-    const int limit = m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1;
 
-    ARM64Reg reg{};
-    u32 offset{};
-    for (int i = 0; i < limit; i++)
+    // Normal
+    auto [reg, offset] = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
+    ReadVertex(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true, scaling_exponent,
+               &m_native_vtx_decl.normals[0], reg, offset);
+
+    if (m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB)
     {
-      if (!i || m_VtxAttr.g0.NormalIndex3)
-      {
-        const int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat);
+      const bool index3 = IsIndexed(m_VtxDesc.low.Normal) && m_VtxAttr.g0.NormalIndex3;
+      const int elem_size = GetElementSize(m_VtxAttr.g0.NormalFormat);
+      const int load_bytes = elem_size * 3;
 
+      // Tangent
+      // If in Index3 mode, and indexed components are used, replace the index with a new index.
+      if (index3)
         std::tie(reg, offset) = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
-        offset += i * elem_size * 3;
-      }
-      int bytes_read = ReadVertex(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true,
-                                  scaling_exponent, &m_native_vtx_decl.normals[i], reg, offset);
-
-      offset += bytes_read;
+      // The tangent comes after the normal; even in index3 mode, an extra offset of load_bytes is
+      // applied. Note that this is different from adding 1 to the index, as the stride for indices
+      // may be different from the size of the tangent itself.
+      ReadVertex(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true, scaling_exponent,
+                 &m_native_vtx_decl.normals[1], reg, offset + load_bytes);
+      // Binormal
+      if (index3)
+        std::tie(reg, offset) = GetVertexAddr(CPArray::Normal, m_VtxDesc.low.Normal);
+      ReadVertex(m_VtxDesc.low.Normal, m_VtxAttr.g0.NormalFormat, 3, 3, true, scaling_exponent,
+                 &m_native_vtx_decl.normals[2], reg, offset + load_bytes * 2);
     }
   }
 
