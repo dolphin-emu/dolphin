@@ -1752,7 +1752,7 @@ bool Renderer::StartFrameDumpToFFMPEG(const FrameDump::FrameData& frame)
   // If dumping started at boot, the start time must be set to the boot time to maintain audio sync.
   // TODO: Perhaps we should care about this when starting dumping in the middle of emulation too,
   // but it's less important there since the first frame to dump usually gets delivered quickly.
-  const u64 start_ticks = /*frame.state.frame_number == 0 ? 0 : */frame.state.ticks;
+  const u64 start_ticks = frame.state.frame_number == 0 ? 0 : frame.state.ticks;
   return m_frame_dump.Start(frame.width, frame.height, start_ticks);
 }
 

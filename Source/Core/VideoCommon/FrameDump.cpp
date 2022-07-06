@@ -38,6 +38,7 @@ extern "C" {
 
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 
@@ -202,7 +203,11 @@ bool FrameDump::PrepareEncoding(int w, int h, u64 start_ticks, u32 savestate_ind
   m_context->start_ticks = start_ticks;
   m_context->savestate_index = savestate_index;
 
-  m_context->audio.num_mixed_samples = 0;
+  // this is a bit of a hack, if we're starting from the beginning, make sure num_mixed_samples represents current time
+  // just hope no games are playing sound before the first frame is rendered...
+  m_context->audio.num_mixed_samples =
+      start_ticks ? 0 :
+                    (static_cast<u64>(OUT_RESAMPLE_RATE) * CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond());
   // resampling rate will probably change later
   m_context->audio.dma_state.sample_rate_divisor =
       Mixer::FIXED_SAMPLE_RATE_DIVIDEND / OUT_RESAMPLE_RATE;
@@ -372,7 +377,7 @@ bool FrameDump::CreateVideoFile()
   m_context->audio.frame->nb_samples = OUT_RESAMPLE_RATE;
   m_context->audio.frame->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
 
-  if (av_frame_get_buffer(m_context->audio.frame, 0))
+  if (av_frame_get_buffer(m_context->audio.frame, 1))
     return false;
 
   m_context->stream = avformat_new_stream(m_context->format, codec);
@@ -573,7 +578,6 @@ void FrameDump::FlushAudio()
 
   m_context->audio.frame->data[0] = reinterpret_cast<u8*>(mixed_samples.data());
   m_context->audio.frame->nb_samples = int(out_stereo_samples);
-  m_context->audio.frame->format = AV_SAMPLE_FMT_S16;
 
   if (const int error = avcodec_send_frame(m_context->audio.codec, m_context->audio.frame))
   {
