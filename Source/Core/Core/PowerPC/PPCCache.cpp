@@ -116,6 +116,8 @@ void InstructionCache::Init()
 
 void InstructionCache::Invalidate(u32 addr)
 {
+  JitInterface::InvalidateICacheLine(addr);
+
   if (!HID0.ICE || m_disable_icache)
     return;
 
@@ -134,7 +136,6 @@ void InstructionCache::Invalidate(u32 addr)
     }
   }
   valid[set] = 0;
-  JitInterface::InvalidateICacheLine(addr);
 }
 
 u32 InstructionCache::ReadInstruction(u32 addr)
