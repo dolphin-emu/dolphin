@@ -5,8 +5,11 @@
 
 #include <ctime>
 #include <memory>
+#include <queue>
 
 #include "Common/CommonTypes.h"
+
+#include <speex/speex_resampler.h>
 
 struct FrameDumpContext;
 class PointerWrap;
@@ -37,8 +40,28 @@ public:
     FrameState state;
   };
 
+  static constexpr u32 OUT_RESAMPLE_RATE = 48000;
+
+  struct AudioState
+  {
+    std::queue<s16> sample_buffer = {};
+    u32 sample_rate_divisor = 0;
+    SpeexResamplerState* speex_ctx = nullptr;
+  };
+
+  struct AudioData
+  {
+    const s16* data = nullptr;
+    u32 num_samples = 0;
+    u32 sample_rate_divisor = 0;  // dividend is constant
+    std::pair<u32, u32> volume = {};
+    bool is_dtk = false;
+  };
+
   bool Start(int w, int h, u64 start_ticks);
   void AddFrame(const FrameData&);
+  void AddAudio(const AudioData&);
+  void FlushAudio();
   void Stop();
   void DoState(PointerWrap&);
   bool IsStarted() const;
@@ -55,6 +78,8 @@ private:
 #if defined(HAVE_FFMPEG)
   std::unique_ptr<FrameDumpContext> m_context;
 #endif
+
+  std::mutex m_mutex;
 
   // Used for FetchState:
   u32 m_savestate_index = 0;

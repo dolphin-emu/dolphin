@@ -271,6 +271,9 @@ public:
 
   const GraphicsModManager& GetGraphicsModManager() const;
 
+  // UGLY
+  void DumpAudioToFFMPEG(const FrameDump::AudioData&);
+
 protected:
   // Bitmask containing information about which configuration has changed for the backend.
   enum ConfigChangeBits : u32
