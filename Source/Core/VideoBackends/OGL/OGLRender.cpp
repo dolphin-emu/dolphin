@@ -1142,14 +1142,14 @@ void Renderer::ApplyDepthState(const DepthState state)
   if (m_current_depth_state == state)
     return;
 
-  const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
-                                GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
+  constexpr static Common::EnumMap<GLenum, CompareMode::Always> glCmpFuncs = {
+      GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
   if (state.testenable())
   {
     glEnable(GL_DEPTH_TEST);
     glDepthMask(state.updateenable() ? GL_TRUE : GL_FALSE);
-    glDepthFunc(glCmpFuncs[u32(state.func().Get())]);
+    glDepthFunc(glCmpFuncs[state.func()]);
   }
   else
   {

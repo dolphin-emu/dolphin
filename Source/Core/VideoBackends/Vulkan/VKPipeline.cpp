@@ -40,9 +40,12 @@ static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
 static VkPipelineRasterizationStateCreateInfo
 GetVulkanRasterizationState(const RasterizationState& state)
 {
-  static constexpr std::array<VkCullModeFlags, 4> cull_modes = {
-      {VK_CULL_MODE_NONE, VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT,
-       VK_CULL_MODE_FRONT_AND_BACK}};
+  static constexpr Common::EnumMap<VkCullModeFlags, CullMode::All> cull_modes = {
+      VK_CULL_MODE_NONE,            // None
+      VK_CULL_MODE_BACK_BIT,        // Back
+      VK_CULL_MODE_FRONT_BIT,       // Front
+      VK_CULL_MODE_FRONT_AND_BACK,  // All
+  };
 
   bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
 
@@ -53,8 +56,8 @@ GetVulkanRasterizationState(const RasterizationState& state)
       depth_clamp,           // VkBool32                                  depthClampEnable
       VK_FALSE,              // VkBool32                                  rasterizerDiscardEnable
       VK_POLYGON_MODE_FILL,  // VkPolygonMode                             polygonMode
-      cull_modes[u32(state.cullmode().Get())],  // VkCullModeFlags        cullMode
-      VK_FRONT_FACE_CLOCKWISE,                  // VkFrontFace            frontFace
+      cull_modes[state.cullmode()],  // VkCullModeFlags                   cullMode
+      VK_FRONT_FACE_CLOCKWISE,       // VkFrontFace                       frontFace
       VK_FALSE,  // VkBool32                                              depthBiasEnable
       0.0f,      // float                                                 depthBiasConstantFactor
       0.0f,      // float                                                 depthBiasClamp
@@ -289,13 +292,16 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
           empty_vertex_input_state;
 
   // Input assembly
-  static constexpr std::array<VkPrimitiveTopology, 4> vk_primitive_topologies = {
-      {VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
-       VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP}};
+  static constexpr Common::EnumMap<VkPrimitiveTopology, PrimitiveType::TriangleStrip>
+      vk_primitive_topologies{
+          VK_PRIMITIVE_TOPOLOGY_POINT_LIST,      // Points
+          VK_PRIMITIVE_TOPOLOGY_LINE_LIST,       // Lines
+          VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,   // Triangles
+          VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,  // TriangleStrip
+      };
   VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, nullptr, 0,
-      vk_primitive_topologies[static_cast<u32>(config.rasterization_state.primitive().Get())],
-      VK_FALSE};
+      vk_primitive_topologies[config.rasterization_state.primitive()], VK_FALSE};
 
   // See Vulkan spec, section 19:
   // If topology is VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
