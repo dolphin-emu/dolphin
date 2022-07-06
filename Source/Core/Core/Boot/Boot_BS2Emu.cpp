@@ -232,7 +232,7 @@ void CBoot::SetupGCMemory()
   PowerPC::HostWrite_U32(0x09a7ec80, 0x800000F8);  // Bus Clock Speed
   PowerPC::HostWrite_U32(0x1cf7c580, 0x800000FC);  // CPU Clock Speed
 
-  PowerPC::HostWrite_U32(0x4c000064, 0x80000300);  // Write default DFI Handler:     rfi
+  PowerPC::HostWrite_U32(0x4c000064, 0x80000300);  // Write default DSI Handler:     rfi
   PowerPC::HostWrite_U32(0x4c000064, 0x80000800);  // Write default FPU Handler:     rfi
   PowerPC::HostWrite_U32(0x4c000064, 0x80000C00);  // Write default Syscall Handler: rfi
 
