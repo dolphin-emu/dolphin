@@ -1663,7 +1663,7 @@ void FpsControls::init_mod_mp1_gc_r2() {
   // Grapple point yaw fix
   add_code_change(0x8017a970, 0x7fa3eb78);
   add_code_change(0x8017a974, 0x3881006c);
-  add_code_change(0x8017a978, 0x4bed885c);
+  add_code_change(0x8017a978, 0x4bed885d);
 
   // Show crosshair but don't consider pressing R button
   add_code_change(0x800171c4, 0x3b000001, "show_crosshair"); // li r24, 1
