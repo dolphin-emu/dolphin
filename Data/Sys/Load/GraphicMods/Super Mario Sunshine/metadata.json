@@ -1,0 +1,68 @@
+{
+	"meta":
+	{
+		"title": "Native Resolution Goop",
+		"author": "Techjar",
+		"description": "Scales goop maps to draw at their native resolution, regardless of internal resolution. Results in goop having more rounded off edges rather than looking very blocky at higher resolutions."
+	},
+	"groups":
+	[
+		{
+			"name": "Goop",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_32x32_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_64x32_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_32x64_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_64x64_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_128x64_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_64x128_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_128x128_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_256x128_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_128x256_1"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000000_256x256_1"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "Goop",
+			"action": "scale",
+			"action_data": {
+				"X": 1.0,
+				"Y": 1.0,
+				"Z": 1.0
+			}
+		}
+	]
+}
