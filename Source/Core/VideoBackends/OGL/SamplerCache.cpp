@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "VideoBackends/OGL/OGLRender.h"
 #include "VideoCommon/VideoConfig.h"
 

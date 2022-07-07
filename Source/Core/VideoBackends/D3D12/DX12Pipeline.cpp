@@ -4,6 +4,7 @@
 #include "VideoBackends/D3D12/DX12Pipeline.h"
 
 #include "Common/Assert.h"
+#include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/D3D12/Common.h"
@@ -62,55 +63,70 @@ static void GetD3DRasterizerDesc(D3D12_RASTERIZER_DESC* desc, const Rasterizatio
                                  const FramebufferState& fb_state)
 {
   // No CULL_ALL here.
-  static constexpr std::array<D3D12_CULL_MODE, 4> cull_modes = {
-      {D3D12_CULL_MODE_NONE, D3D12_CULL_MODE_BACK, D3D12_CULL_MODE_FRONT, D3D12_CULL_MODE_FRONT}};
+  static constexpr Common::EnumMap<D3D12_CULL_MODE, CullMode::All> cull_modes = {
+      D3D12_CULL_MODE_NONE,
+      D3D12_CULL_MODE_BACK,
+      D3D12_CULL_MODE_FRONT,
+      D3D12_CULL_MODE_FRONT,
+  };
 
   desc->FillMode = D3D12_FILL_MODE_SOLID;
-  desc->CullMode = cull_modes[u32(rs_state.cullmode().Get())];
+  desc->CullMode = cull_modes[rs_state.cullmode()];
   desc->MultisampleEnable = fb_state.samples() > 1;
 }
 
 static void GetD3DDepthDesc(D3D12_DEPTH_STENCIL_DESC* desc, const DepthState& state)
 {
   // Less/greater are swapped due to inverted depth.
-  static constexpr std::array<D3D12_COMPARISON_FUNC, 8> compare_funcs = {
-      {D3D12_COMPARISON_FUNC_NEVER, D3D12_COMPARISON_FUNC_GREATER, D3D12_COMPARISON_FUNC_EQUAL,
-       D3D12_COMPARISON_FUNC_GREATER_EQUAL, D3D12_COMPARISON_FUNC_LESS,
-       D3D12_COMPARISON_FUNC_NOT_EQUAL, D3D12_COMPARISON_FUNC_LESS_EQUAL,
-       D3D12_COMPARISON_FUNC_ALWAYS}};
+  static constexpr Common::EnumMap<D3D12_COMPARISON_FUNC, CompareMode::Always> compare_funcs = {
+      D3D12_COMPARISON_FUNC_NEVER,      D3D12_COMPARISON_FUNC_GREATER,
+      D3D12_COMPARISON_FUNC_EQUAL,      D3D12_COMPARISON_FUNC_GREATER_EQUAL,
+      D3D12_COMPARISON_FUNC_LESS,       D3D12_COMPARISON_FUNC_NOT_EQUAL,
+      D3D12_COMPARISON_FUNC_LESS_EQUAL, D3D12_COMPARISON_FUNC_ALWAYS,
+  };
 
   desc->DepthEnable = state.testenable();
-  desc->DepthFunc = compare_funcs[u32(state.func().Get())];
+  desc->DepthFunc = compare_funcs[state.func()];
   desc->DepthWriteMask =
       state.updateenable() ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 }
 
 static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
 {
-  static constexpr std::array<D3D12_BLEND, 8> src_dual_src_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
-       D3D12_BLEND_SRC1_ALPHA, D3D12_BLEND_INV_SRC1_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
-  static constexpr std::array<D3D12_BLEND, 8> dst_dual_src_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_SRC_COLOR, D3D12_BLEND_INV_SRC_COLOR,
-       D3D12_BLEND_SRC1_ALPHA, D3D12_BLEND_INV_SRC1_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
-  static constexpr std::array<D3D12_BLEND, 8> src_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
-       D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
-
-  static constexpr std::array<D3D12_BLEND, 8> dst_factors = {
-      {D3D12_BLEND_ZERO, D3D12_BLEND_ONE, D3D12_BLEND_SRC_COLOR, D3D12_BLEND_INV_SRC_COLOR,
-       D3D12_BLEND_SRC_ALPHA, D3D12_BLEND_INV_SRC_ALPHA, D3D12_BLEND_DEST_ALPHA,
-       D3D12_BLEND_INV_DEST_ALPHA}};
-
-  static constexpr std::array<D3D12_LOGIC_OP, 16> logic_ops = {
-      {D3D12_LOGIC_OP_CLEAR, D3D12_LOGIC_OP_AND, D3D12_LOGIC_OP_AND_REVERSE, D3D12_LOGIC_OP_COPY,
-       D3D12_LOGIC_OP_AND_INVERTED, D3D12_LOGIC_OP_NOOP, D3D12_LOGIC_OP_XOR, D3D12_LOGIC_OP_OR,
-       D3D12_LOGIC_OP_NOR, D3D12_LOGIC_OP_EQUIV, D3D12_LOGIC_OP_INVERT, D3D12_LOGIC_OP_OR_REVERSE,
-       D3D12_LOGIC_OP_COPY_INVERTED, D3D12_LOGIC_OP_OR_INVERTED, D3D12_LOGIC_OP_NAND,
-       D3D12_LOGIC_OP_SET}};
+  static constexpr Common::EnumMap<D3D12_BLEND, SrcBlendFactor::InvDstAlpha> src_dual_src_factors =
+      {
+          D3D12_BLEND_ZERO,       D3D12_BLEND_ONE,
+          D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
+          D3D12_BLEND_SRC1_ALPHA, D3D12_BLEND_INV_SRC1_ALPHA,
+          D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA,
+      };
+  static constexpr Common::EnumMap<D3D12_BLEND, DstBlendFactor::InvDstAlpha> dst_dual_src_factors =
+      {
+          D3D12_BLEND_ZERO,       D3D12_BLEND_ONE,
+          D3D12_BLEND_SRC_COLOR,  D3D12_BLEND_INV_SRC_COLOR,
+          D3D12_BLEND_SRC1_ALPHA, D3D12_BLEND_INV_SRC1_ALPHA,
+          D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA,
+      };
+  static constexpr Common::EnumMap<D3D12_BLEND, SrcBlendFactor::InvDstAlpha> src_factors = {
+      D3D12_BLEND_ZERO,       D3D12_BLEND_ONE,
+      D3D12_BLEND_DEST_COLOR, D3D12_BLEND_INV_DEST_COLOR,
+      D3D12_BLEND_SRC_ALPHA,  D3D12_BLEND_INV_SRC_ALPHA,
+      D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA,
+  };
+  static constexpr Common::EnumMap<D3D12_BLEND, DstBlendFactor::InvDstAlpha> dst_factors = {
+      D3D12_BLEND_ZERO,       D3D12_BLEND_ONE,
+      D3D12_BLEND_SRC_COLOR,  D3D12_BLEND_INV_SRC_COLOR,
+      D3D12_BLEND_SRC_ALPHA,  D3D12_BLEND_INV_SRC_ALPHA,
+      D3D12_BLEND_DEST_ALPHA, D3D12_BLEND_INV_DEST_ALPHA,
+  };
+  static constexpr Common::EnumMap<D3D12_LOGIC_OP, LogicOp::Set> logic_ops = {
+      D3D12_LOGIC_OP_CLEAR,         D3D12_LOGIC_OP_AND,          D3D12_LOGIC_OP_AND_REVERSE,
+      D3D12_LOGIC_OP_COPY,          D3D12_LOGIC_OP_AND_INVERTED, D3D12_LOGIC_OP_NOOP,
+      D3D12_LOGIC_OP_XOR,           D3D12_LOGIC_OP_OR,           D3D12_LOGIC_OP_NOR,
+      D3D12_LOGIC_OP_EQUIV,         D3D12_LOGIC_OP_INVERT,       D3D12_LOGIC_OP_OR_REVERSE,
+      D3D12_LOGIC_OP_COPY_INVERTED, D3D12_LOGIC_OP_OR_INVERTED,  D3D12_LOGIC_OP_NAND,
+      D3D12_LOGIC_OP_SET,
+  };
 
   desc->AlphaToCoverageEnable = FALSE;
   desc->IndependentBlendEnable = FALSE;
@@ -136,24 +152,24 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
         state.subtractAlpha() ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
     if (state.usedualsrc())
     {
-      rtblend->SrcBlend = src_dual_src_factors[u32(state.srcfactor().Get())];
-      rtblend->SrcBlendAlpha = src_dual_src_factors[u32(state.srcfactoralpha().Get())];
-      rtblend->DestBlend = dst_dual_src_factors[u32(state.dstfactor().Get())];
-      rtblend->DestBlendAlpha = dst_dual_src_factors[u32(state.dstfactoralpha().Get())];
+      rtblend->SrcBlend = src_dual_src_factors[state.srcfactor()];
+      rtblend->SrcBlendAlpha = src_dual_src_factors[state.srcfactoralpha()];
+      rtblend->DestBlend = dst_dual_src_factors[state.dstfactor()];
+      rtblend->DestBlendAlpha = dst_dual_src_factors[state.dstfactoralpha()];
     }
     else
     {
-      rtblend->SrcBlend = src_factors[u32(state.srcfactor().Get())];
-      rtblend->SrcBlendAlpha = src_factors[u32(state.srcfactoralpha().Get())];
-      rtblend->DestBlend = dst_factors[u32(state.dstfactor().Get())];
-      rtblend->DestBlendAlpha = dst_factors[u32(state.dstfactoralpha().Get())];
+      rtblend->SrcBlend = src_factors[state.srcfactor()];
+      rtblend->SrcBlendAlpha = src_factors[state.srcfactoralpha()];
+      rtblend->DestBlend = dst_factors[state.dstfactor()];
+      rtblend->DestBlendAlpha = dst_factors[state.dstfactoralpha()];
     }
   }
   else
   {
     rtblend->LogicOpEnable = state.logicopenable();
     if (state.logicopenable())
-      rtblend->LogicOp = logic_ops[u32(state.logicmode().Get())];
+      rtblend->LogicOp = logic_ops[state.logicmode()];
   }
 }
 

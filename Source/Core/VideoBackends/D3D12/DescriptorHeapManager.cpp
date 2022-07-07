@@ -118,11 +118,14 @@ static void GetD3DSamplerDesc(D3D12_SAMPLER_DESC* desc, const SamplerState& stat
     }
   }
 
-  static constexpr std::array<D3D12_TEXTURE_ADDRESS_MODE, 3> address_modes = {
-      {D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-       D3D12_TEXTURE_ADDRESS_MODE_MIRROR}};
-  desc->AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u().Get())];
-  desc->AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v().Get())];
+  static constexpr Common::EnumMap<D3D12_TEXTURE_ADDRESS_MODE, WrapMode::Invalid> address_modes = {
+      D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+      D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+      D3D12_TEXTURE_ADDRESS_MODE_MIRROR,
+      D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+  };
+  desc->AddressU = address_modes[state.tm0.wrap_u()];
+  desc->AddressV = address_modes[state.tm0.wrap_v()];
   desc->AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
   desc->MaxLOD = state.tm1.max_lod() / 16.f;
   desc->MinLOD = state.tm1.min_lod() / 16.f;

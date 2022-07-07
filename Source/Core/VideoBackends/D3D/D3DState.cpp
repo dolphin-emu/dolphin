@@ -9,6 +9,7 @@
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -334,10 +335,14 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
                           D3D11_FILTER_MIN_MAG_MIP_POINT;
   }
 
-  static constexpr std::array<D3D11_TEXTURE_ADDRESS_MODE, 3> address_modes = {
-      {D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_MIRROR}};
-  sampdc.AddressU = address_modes[static_cast<u32>(state.tm0.wrap_u().Get())];
-  sampdc.AddressV = address_modes[static_cast<u32>(state.tm0.wrap_v().Get())];
+  static constexpr Common::EnumMap<D3D11_TEXTURE_ADDRESS_MODE, WrapMode::Invalid> address_modes = {
+      D3D11_TEXTURE_ADDRESS_CLAMP,
+      D3D11_TEXTURE_ADDRESS_WRAP,
+      D3D11_TEXTURE_ADDRESS_MIRROR,
+      D3D11_TEXTURE_ADDRESS_CLAMP,
+  };
+  sampdc.AddressU = address_modes[state.tm0.wrap_u()];
+  sampdc.AddressV = address_modes[state.tm0.wrap_v()];
   sampdc.MaxLOD = state.tm1.max_lod() / 16.f;
   sampdc.MinLOD = state.tm1.min_lod() / 16.f;
   sampdc.MipLODBias = state.tm0.lod_bias() / 256.f;
@@ -373,14 +378,16 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     if (state.alphaupdate())
       tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
-    static constexpr std::array<D3D11_LOGIC_OP, 16> logic_ops = {
-        {D3D11_LOGIC_OP_CLEAR, D3D11_LOGIC_OP_AND, D3D11_LOGIC_OP_AND_REVERSE, D3D11_LOGIC_OP_COPY,
-         D3D11_LOGIC_OP_AND_INVERTED, D3D11_LOGIC_OP_NOOP, D3D11_LOGIC_OP_XOR, D3D11_LOGIC_OP_OR,
-         D3D11_LOGIC_OP_NOR, D3D11_LOGIC_OP_EQUIV, D3D11_LOGIC_OP_INVERT, D3D11_LOGIC_OP_OR_REVERSE,
-         D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED, D3D11_LOGIC_OP_NAND,
-         D3D11_LOGIC_OP_SET}};
+    static constexpr Common::EnumMap<D3D11_LOGIC_OP, LogicOp::Set> logic_ops = {
+        D3D11_LOGIC_OP_CLEAR,         D3D11_LOGIC_OP_AND,          D3D11_LOGIC_OP_AND_REVERSE,
+        D3D11_LOGIC_OP_COPY,          D3D11_LOGIC_OP_AND_INVERTED, D3D11_LOGIC_OP_NOOP,
+        D3D11_LOGIC_OP_XOR,           D3D11_LOGIC_OP_OR,           D3D11_LOGIC_OP_NOR,
+        D3D11_LOGIC_OP_EQUIV,         D3D11_LOGIC_OP_INVERT,       D3D11_LOGIC_OP_OR_REVERSE,
+        D3D11_LOGIC_OP_COPY_INVERTED, D3D11_LOGIC_OP_OR_INVERTED,  D3D11_LOGIC_OP_NAND,
+        D3D11_LOGIC_OP_SET,
+    };
     tdesc.LogicOpEnable = TRUE;
-    tdesc.LogicOp = logic_ops[u32(state.logicmode().Get())];
+    tdesc.LogicOp = logic_ops[state.logicmode()];
 
     ComPtr<ID3D11BlendState1> res;
     HRESULT hr = D3D::device1->CreateBlendState1(&desc, res.GetAddressOf());
@@ -407,21 +414,31 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
     tdesc.RenderTargetWriteMask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
 
   const bool use_dual_source = state.usedualsrc();
-  const std::array<D3D11_BLEND, 8> src_factors = {
-      {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
-       use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
-       use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
-       D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
-  const std::array<D3D11_BLEND, 8> dst_factors = {
-      {D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR,
-       use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
-       use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
-       D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
+  const Common::EnumMap<D3D11_BLEND, SrcBlendFactor::InvDstAlpha> src_factors = {
+      D3D11_BLEND_ZERO,
+      D3D11_BLEND_ONE,
+      D3D11_BLEND_DEST_COLOR,
+      D3D11_BLEND_INV_DEST_COLOR,
+      use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
+      use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
+      D3D11_BLEND_DEST_ALPHA,
+      D3D11_BLEND_INV_DEST_ALPHA,
+  };
+  const Common::EnumMap<D3D11_BLEND, DstBlendFactor::InvDstAlpha> dst_factors = {
+      D3D11_BLEND_ZERO,
+      D3D11_BLEND_ONE,
+      D3D11_BLEND_SRC_COLOR,
+      D3D11_BLEND_INV_SRC_COLOR,
+      use_dual_source ? D3D11_BLEND_SRC1_ALPHA : D3D11_BLEND_SRC_ALPHA,
+      use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
+      D3D11_BLEND_DEST_ALPHA,
+      D3D11_BLEND_INV_DEST_ALPHA,
+  };
 
-  tdesc.SrcBlend = src_factors[u32(state.srcfactor().Get())];
-  tdesc.SrcBlendAlpha = src_factors[u32(state.srcfactoralpha().Get())];
-  tdesc.DestBlend = dst_factors[u32(state.dstfactor().Get())];
-  tdesc.DestBlendAlpha = dst_factors[u32(state.dstfactoralpha().Get())];
+  tdesc.SrcBlend = src_factors[state.srcfactor()];
+  tdesc.SrcBlendAlpha = src_factors[state.srcfactoralpha()];
+  tdesc.DestBlend = dst_factors[state.dstfactor()];
+  tdesc.DestBlendAlpha = dst_factors[state.dstfactoralpha()];
   tdesc.BlendOp = state.subtract() ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
   tdesc.BlendOpAlpha = state.subtractAlpha() ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD;
 
@@ -438,12 +455,16 @@ ID3D11RasterizerState* StateCache::Get(RasterizationState state)
   if (it != m_raster.end())
     return it->second.Get();
 
-  static constexpr std::array<D3D11_CULL_MODE, 4> cull_modes = {
-      {D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK}};
+  static constexpr Common::EnumMap<D3D11_CULL_MODE, CullMode::All> cull_modes = {
+      D3D11_CULL_NONE,
+      D3D11_CULL_BACK,
+      D3D11_CULL_FRONT,
+      D3D11_CULL_BACK,
+  };
 
   D3D11_RASTERIZER_DESC desc = {};
   desc.FillMode = D3D11_FILL_SOLID;
-  desc.CullMode = cull_modes[u32(state.cullmode().Get())];
+  desc.CullMode = cull_modes[state.cullmode()];
   desc.ScissorEnable = TRUE;
 
   ComPtr<ID3D11RasterizerState> res;
@@ -469,17 +490,18 @@ ID3D11DepthStencilState* StateCache::Get(DepthState state)
   depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
   // Less/greater are swapped due to inverted depth.
-  const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {
+  static constexpr Common::EnumMap<D3D11_COMPARISON_FUNC, CompareMode::Always> d3dCmpFuncs = {
       D3D11_COMPARISON_NEVER,         D3D11_COMPARISON_GREATER, D3D11_COMPARISON_EQUAL,
       D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,
-      D3D11_COMPARISON_LESS_EQUAL,    D3D11_COMPARISON_ALWAYS};
+      D3D11_COMPARISON_LESS_EQUAL,    D3D11_COMPARISON_ALWAYS,
+  };
 
   if (state.testenable())
   {
     depthdc.DepthEnable = TRUE;
     depthdc.DepthWriteMask =
         state.updateenable() ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    depthdc.DepthFunc = d3dCmpFuncs[u32(state.func().Get())];
+    depthdc.DepthFunc = d3dCmpFuncs[state.func()];
   }
   else
   {

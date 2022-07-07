@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Common/Assert.h"
+#include "Common/EnumMap.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"

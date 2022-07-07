@@ -10,6 +10,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
