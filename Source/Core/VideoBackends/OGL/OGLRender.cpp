@@ -1181,24 +1181,26 @@ void Renderer::ApplyBlendingState(const BlendingState state)
   }
   else
   {
-    const GLenum src_factors[8] = {GL_ZERO,
-                                   GL_ONE,
-                                   GL_DST_COLOR,
-                                   GL_ONE_MINUS_DST_COLOR,
-                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-                                   GL_DST_ALPHA,
-                                   GL_ONE_MINUS_DST_ALPHA};
-    const GLenum dst_factors[8] = {GL_ZERO,
-                                   GL_ONE,
-                                   GL_SRC_COLOR,
-                                   GL_ONE_MINUS_SRC_COLOR,
-                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
-                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-                                   GL_DST_ALPHA,
-                                   GL_ONE_MINUS_DST_ALPHA};
+    const Common::EnumMap<GLenum, SrcBlendFactor::InvDstAlpha> src_factors = {
+        GL_ZERO,
+        GL_ONE,
+        GL_DST_COLOR,
+        GL_ONE_MINUS_DST_COLOR,
+        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+        GL_DST_ALPHA,
+        GL_ONE_MINUS_DST_ALPHA,
+    };
+    const Common::EnumMap<GLenum, DstBlendFactor::InvDstAlpha> dst_factors = {
+        GL_ZERO,
+        GL_ONE,
+        GL_SRC_COLOR,
+        GL_ONE_MINUS_SRC_COLOR,
+        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+        GL_DST_ALPHA,
+        GL_ONE_MINUS_DST_ALPHA,
+    };
 
     if (state.blendenable())
       glEnable(GL_BLEND);
@@ -1212,13 +1214,11 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     GLenum equation = state.subtract() ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     GLenum equationAlpha = state.subtractAlpha() ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     glBlendEquationSeparate(equation, equationAlpha);
-    glBlendFuncSeparate(src_factors[u32(state.srcfactor().Get())],
-                        dst_factors[u32(state.dstfactor().Get())],
-                        src_factors[u32(state.srcfactoralpha().Get())],
-                        dst_factors[u32(state.dstfactoralpha().Get())]);
+    glBlendFuncSeparate(src_factors[state.srcfactor()], dst_factors[state.dstfactor()],
+                        src_factors[state.srcfactoralpha()], dst_factors[state.dstfactoralpha()]);
   }
 
-  const GLenum logic_op_codes[16] = {
+  constexpr static Common::EnumMap<GLenum, LogicOp::Set> logic_op_codes = {
       GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
       GL_XOR,           GL_OR,          GL_NOR,         GL_EQUIV, GL_INVERT,       GL_OR_REVERSE,
       GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET};
@@ -1229,7 +1229,7 @@ void Renderer::ApplyBlendingState(const BlendingState state)
     if (state.logicopenable())
     {
       glEnable(GL_COLOR_LOGIC_OP);
-      glLogicOp(logic_op_codes[u32(state.logicmode().Get())]);
+      glLogicOp(logic_op_codes[state.logicmode()]);
     }
     else
     {

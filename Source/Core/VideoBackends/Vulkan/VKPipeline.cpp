@@ -159,40 +159,43 @@ GetVulkanAttachmentBlendState(const BlendingState& state, AbstractPipelineUsage 
 
     if (use_dual_source)
     {
-      static constexpr std::array<VkBlendFactor, 8> src_factors = {
-          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-           VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-      static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-           VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+      static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors = {
+          VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
+          VK_BLEND_FACTOR_DST_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+          VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+          VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+      };
+      static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors = {
+          VK_BLEND_FACTOR_ZERO,       VK_BLEND_FACTOR_ONE,
+          VK_BLEND_FACTOR_SRC_COLOR,  VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+          VK_BLEND_FACTOR_SRC1_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+          VK_BLEND_FACTOR_DST_ALPHA,  VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+      };
 
-      vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor().Get())];
-      vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha().Get())];
-      vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor().Get())];
-      vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha().Get())];
+      vk_state.srcColorBlendFactor = src_factors[state.srcfactor()];
+      vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha()];
+      vk_state.dstColorBlendFactor = dst_factors[state.dstfactor()];
+      vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha()];
     }
     else
     {
-      static constexpr std::array<VkBlendFactor, 8> src_factors = {
-          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-           VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+      static constexpr Common::EnumMap<VkBlendFactor, SrcBlendFactor::InvDstAlpha> src_factors = {
+          VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
+          VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+          VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+          VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+      };
+      static constexpr Common::EnumMap<VkBlendFactor, DstBlendFactor::InvDstAlpha> dst_factors = {
+          VK_BLEND_FACTOR_ZERO,      VK_BLEND_FACTOR_ONE,
+          VK_BLEND_FACTOR_SRC_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+          VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+          VK_BLEND_FACTOR_DST_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+      };
 
-      static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-          {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-           VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-           VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-
-      vk_state.srcColorBlendFactor = src_factors[u32(state.srcfactor().Get())];
-      vk_state.srcAlphaBlendFactor = src_factors[u32(state.srcfactoralpha().Get())];
-      vk_state.dstColorBlendFactor = dst_factors[u32(state.dstfactor().Get())];
-      vk_state.dstAlphaBlendFactor = dst_factors[u32(state.dstfactoralpha().Get())];
+      vk_state.srcColorBlendFactor = src_factors[state.srcfactor()];
+      vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha()];
+      vk_state.dstColorBlendFactor = dst_factors[state.dstfactor()];
+      vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha()];
     }
   }
 
@@ -217,11 +220,14 @@ GetVulkanColorBlendState(const BlendingState& state,
                          const VkPipelineColorBlendAttachmentState* attachments,
                          uint32_t num_attachments)
 {
-  static constexpr std::array<VkLogicOp, 16> vk_logic_ops = {
-      {VK_LOGIC_OP_CLEAR, VK_LOGIC_OP_AND, VK_LOGIC_OP_AND_REVERSE, VK_LOGIC_OP_COPY,
-       VK_LOGIC_OP_AND_INVERTED, VK_LOGIC_OP_NO_OP, VK_LOGIC_OP_XOR, VK_LOGIC_OP_OR,
-       VK_LOGIC_OP_NOR, VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT, VK_LOGIC_OP_OR_REVERSE,
-       VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED, VK_LOGIC_OP_NAND, VK_LOGIC_OP_SET}};
+  static constexpr Common::EnumMap<VkLogicOp, LogicOp::Set> vk_logic_ops = {
+      VK_LOGIC_OP_CLEAR,         VK_LOGIC_OP_AND,          VK_LOGIC_OP_AND_REVERSE,
+      VK_LOGIC_OP_COPY,          VK_LOGIC_OP_AND_INVERTED, VK_LOGIC_OP_NO_OP,
+      VK_LOGIC_OP_XOR,           VK_LOGIC_OP_OR,           VK_LOGIC_OP_NOR,
+      VK_LOGIC_OP_EQUIVALENT,    VK_LOGIC_OP_INVERT,       VK_LOGIC_OP_OR_REVERSE,
+      VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED,  VK_LOGIC_OP_NAND,
+      VK_LOGIC_OP_SET,
+  };
 
   VkBool32 vk_logic_op_enable = static_cast<VkBool32>(state.logicopenable());
   if (vk_logic_op_enable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
@@ -232,8 +238,7 @@ GetVulkanColorBlendState(const BlendingState& state,
     vk_logic_op_enable = VK_FALSE;
   }
 
-  VkLogicOp vk_logic_op =
-      vk_logic_op_enable ? vk_logic_ops[u32(state.logicmode().Get())] : VK_LOGIC_OP_CLEAR;
+  VkLogicOp vk_logic_op = vk_logic_op_enable ? vk_logic_ops[state.logicmode()] : VK_LOGIC_OP_CLEAR;
 
   VkPipelineColorBlendStateCreateInfo vk_state = {
       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // VkStructureType sType

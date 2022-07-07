@@ -111,7 +111,7 @@ struct SamplerState
 
   // Based on BPMemory TexMode0/TexMode1, but with slightly higher precision and some
   // simplifications
-  union TM0
+  struct TM0
   {
     u32 hex;
 
@@ -128,7 +128,7 @@ struct SamplerState
     BFVIEW_M(hex, bool, 24, 1, lod_clamp);  // TODO: This isn't currently implemented
     BFVIEW_M(hex, bool, 25, 1, anisotropic_filtering);  // TODO: This doesn't use the BP one yet
   };
-  union TM1
+  struct TM1
   {
     u32 hex;
 

@@ -70,29 +70,35 @@ void SamplerCache::InvalidateBinding(u32 stage)
 
 void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
 {
-  GLenum min_filter;
-  GLenum mag_filter = (params.tm0.mag_filter() == FilterMode::Near) ? GL_NEAREST : GL_LINEAR;
-  if (params.tm0.mipmap_filter() == FilterMode::Linear)
+  struct GLMinFilter
   {
-    min_filter = (params.tm0.min_filter() == FilterMode::Near) ? GL_NEAREST_MIPMAP_LINEAR :
-                                                                 GL_LINEAR_MIPMAP_LINEAR;
-  }
-  else
-  {
-    min_filter = (params.tm0.min_filter() == FilterMode::Near) ? GL_NEAREST_MIPMAP_NEAREST :
-                                                                 GL_LINEAR_MIPMAP_NEAREST;
-  }
+    GLenum mip_near, mip_linear;
+  };
+  // TODO: I think the type of the nested initialization braces could be deduced automatically if
+  // EnumMap were an aggregate type.
+  static constexpr Common::EnumMap<GLMinFilter, FilterMode::Linear> min_filters = {
+      GLMinFilter{GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR},
+      GLMinFilter{GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_LINEAR},
+  };
+  static constexpr Common::EnumMap<GLenum, FilterMode::Linear> mag_filters = {
+      GL_NEAREST,
+      GL_LINEAR,
+  };
+  static constexpr Common::EnumMap<GLenum, WrapMode::Invalid> address_modes = {
+      GL_CLAMP_TO_EDGE,
+      GL_REPEAT,
+      GL_MIRRORED_REPEAT,
+      GL_CLAMP_TO_EDGE,
+  };
 
-  glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, min_filter);
-  glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, mag_filter);
+  glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER,
+                      params.tm0.mipmap_filter() == FilterMode::Near ?
+                          min_filters[params.tm0.min_filter()].mip_near :
+                          min_filters[params.tm0.min_filter()].mip_linear);
+  glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, mag_filters[params.tm0.mag_filter()]);
 
-  static constexpr std::array<GLenum, 3> address_modes = {
-      {GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT}};
-
-  glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S,
-                      address_modes[static_cast<u32>(params.tm0.wrap_u().Get())]);
-  glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T,
-                      address_modes[static_cast<u32>(params.tm0.wrap_v().Get())]);
+  glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, address_modes[params.tm0.wrap_u()]);
+  glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, address_modes[params.tm0.wrap_v()]);
 
   glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, params.tm1.min_lod() / 16.f);
   glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.tm1.max_lod() / 16.f);

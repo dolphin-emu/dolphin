@@ -164,7 +164,7 @@ void BlendingState::Generate(const BPMemory& bp)
 
 void BlendingState::ApproximateLogicOpWithBlending()
 {
-  struct LogicOpApproximation
+  struct LogicOpApprox
   {
     bool subtract;
     SrcBlendFactor srcfactor;
@@ -173,32 +173,35 @@ void BlendingState::ApproximateLogicOpWithBlending()
   // TODO: This previously had a warning about SRC and DST being aliased and not to mix them,
   // but INVSRCCLR and INVDSTCLR were also aliased and were mixed.
   // Thus, NOR, EQUIV, INVERT, COPY_INVERTED, and OR_INVERTED duplicate(d) other values.
-  static constexpr std::array<LogicOpApproximation, 16> approximations = {{
-      {false, SrcBlendFactor::Zero, DstBlendFactor::Zero},            // CLEAR
-      {false, SrcBlendFactor::DstClr, DstBlendFactor::Zero},          // AND
-      {true, SrcBlendFactor::One, DstBlendFactor::InvSrcClr},         // AND_REVERSE
-      {false, SrcBlendFactor::One, DstBlendFactor::Zero},             // COPY
-      {true, SrcBlendFactor::DstClr, DstBlendFactor::One},            // AND_INVERTED
-      {false, SrcBlendFactor::Zero, DstBlendFactor::One},             // NOOP
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // XOR
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},        // OR
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // NOR
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::Zero},       // EQUIV
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // INVERT
-      {false, SrcBlendFactor::One, DstBlendFactor::InvDstAlpha},      // OR_REVERSE
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // COPY_INVERTED
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},        // OR_INVERTED
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // NAND
-      {false, SrcBlendFactor::One, DstBlendFactor::One},              // SET
-  }};
+  // TODO: I think the type of the nested initialization braces could be deduced automatically if
+  // EnumMap were an aggregate type.
+  static constexpr Common::EnumMap<LogicOpApprox, LogicOp::Set> approximations = {
+      LogicOpApprox{false, SrcBlendFactor::Zero, DstBlendFactor::Zero},            // CLEAR
+      LogicOpApprox{false, SrcBlendFactor::DstClr, DstBlendFactor::Zero},          // AND
+      LogicOpApprox{true, SrcBlendFactor::One, DstBlendFactor::InvSrcClr},         // AND_REVERSE
+      LogicOpApprox{false, SrcBlendFactor::One, DstBlendFactor::Zero},             // COPY
+      LogicOpApprox{true, SrcBlendFactor::DstClr, DstBlendFactor::One},            // AND_INVERTED
+      LogicOpApprox{false, SrcBlendFactor::Zero, DstBlendFactor::One},             // NOOP
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // XOR
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},        // OR
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // NOR
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::Zero},       // EQUIV
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // INVERT
+      LogicOpApprox{false, SrcBlendFactor::One, DstBlendFactor::InvDstAlpha},      // OR_REVERSE
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // COPY_INVERTED
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},        // OR_INVERTED
+      LogicOpApprox{false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // NAND
+      LogicOpApprox{false, SrcBlendFactor::One, DstBlendFactor::One},              // SET
+  };
+  // clang-format on
 
   logicopenable() = false;
   blendenable() = true;
-  subtract() = approximations[u32(logicmode().Get())].subtract;
-  srcfactor() = approximations[u32(logicmode().Get())].srcfactor;
-  srcfactoralpha() = approximations[u32(logicmode().Get())].srcfactor;
-  dstfactor() = approximations[u32(logicmode().Get())].dstfactor;
-  dstfactoralpha() = approximations[u32(logicmode().Get())].dstfactor;
+  subtract() = approximations[logicmode()].subtract;
+  srcfactor() = approximations[logicmode()].srcfactor;
+  srcfactoralpha() = approximations[logicmode()].srcfactor;
+  dstfactor() = approximations[logicmode()].dstfactor;
+  dstfactoralpha() = approximations[logicmode()].dstfactor;
 }
 
 void SamplerState::Generate(const BPMemory& bp, u32 index)
@@ -232,7 +235,7 @@ void SamplerState::Generate(const BPMemory& bp, u32 index)
   // Wrap modes
   // Hardware testing indicates that wrap_mode set to 3 behaves the same as clamp.
   auto filter_invalid_wrap = [](WrapMode mode) {
-    return (mode <= WrapMode::Mirror) ? mode : WrapMode::Clamp;
+    return (mode >= WrapMode::Invalid) ? WrapMode::Clamp : mode;
   };
   tm0.wrap_u() = filter_invalid_wrap(bp_tm0.wrap_s());
   tm0.wrap_v() = filter_invalid_wrap(bp_tm0.wrap_t());
