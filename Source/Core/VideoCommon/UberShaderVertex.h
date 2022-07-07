@@ -15,7 +15,7 @@ struct vertex_ubershader_uid_data
 {
   u8 _data1;
 
-  BFVIEW_M(_data1, u8, 0, 4, num_texgens);
+  BFVIEW_M(_data1, u32, 0, 4, num_texgens);
 
   u32 NumValues() const { return sizeof(vertex_ubershader_uid_data); }
 };

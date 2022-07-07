@@ -19,7 +19,7 @@ struct geometry_shader_uid_data
 {
   u8 _data1;
 
-  BFVIEW_M(_data1, u8, 0, 4, numTexGens);
+  BFVIEW_M(_data1, u32, 0, 4, numTexGens);
   BFVIEW_M(_data1, PrimitiveType, 4, 2, primitive_type);
 
   u32 NumValues() const { return sizeof(geometry_shader_uid_data); }

@@ -18,7 +18,7 @@ struct pixel_ubershader_uid_data
 {
   u8 _data1;
 
-  BFVIEW_M(_data1, u8, 0, 4, num_texgens);
+  BFVIEW_M(_data1, u32, 0, 4, num_texgens);
   BFVIEW_M(_data1, bool, 4, 1, early_depth);
   BFVIEW_M(_data1, bool, 5, 1, per_pixel_depth);
   BFVIEW_M(_data1, bool, 6, 1, uint_output);
