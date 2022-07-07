@@ -98,6 +98,15 @@
 					"texture_filename": "tex1_256x256_83aa16840fa69ffb_0"
 				}
 			]
+		},
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000002_320x240_1"
+				}
+			]
 		}
 	]
 }
