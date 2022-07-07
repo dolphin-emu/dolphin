@@ -43,7 +43,7 @@ void ClearUnusedPixelShaderUidBits(APIType api_type, const ShaderHostConfig& hos
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
   // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
   if (api_type != APIType::D3D || !host_config.backend_logic_op())
-    uid_data->uint_output() = 0;
+    uid_data->uint_output() = false;
 }
 
 ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
@@ -1275,7 +1275,7 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
         puid->per_pixel_depth() = per_pixel_depth != 0;
         for (u32 uint_output = 0; uint_output < 2; uint_output++)
         {
-          puid->uint_output() = uint_output;
+          puid->uint_output() = uint_output != 0;
           callback(uid);
         }
       }
