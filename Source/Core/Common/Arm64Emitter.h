@@ -538,38 +538,26 @@ struct LogicalImm
       value |= value >> kWRegSizeInBits;
     }
 
-    // Identify the smallest repeating element size.
-    size_t esize = 0;
-    for (size_t i = 64; i > 1; i /= 2)
-    {
-      if (value != Common::RotateRight(value, i / 2))
-      {
-        esize = i;
-        break;
-      }
-    }
-
-    if (value == 0 || (~value) == 0 || esize == 0 || esize > width)
+    if (value == 0 || (~value) == 0)
     {
       valid = false;
       return;
     }
 
-    const u64 emask = (~u64{0}) >> (64 - esize);
-
-    // Extract the repeating element, rotating it such that the LSB is 1:
+    // Normalize value, rotating it such that the LSB is 1:
     // If LSB is already one, we mask away the trailing sequence of ones and
     // pick the next sequence of ones. This ensures we get a complete element
     // that has not been cut-in-half due to rotation across the word boundary.
 
-    const u64 inverse_mask_from_trailing_ones = ~value | (value + 1);
-    const size_t rotation = Common::LeastSignificantSetBit(value & inverse_mask_from_trailing_ones);
-    const u64 element = Common::RotateRight(value, rotation) & emask;
+    const size_t rotation = Common::CountTrailingZeros(value & (value + 1));
+    const u64 normalized = Common::RotateRight(value, rotation);
 
-    // In order to be a valid element of an AArch64 logical immediate, it must
-    // be contiguous.
+    const size_t element_size = Common::CountTrailingZeros(normalized & (normalized + 1));
+    const size_t ones = Common::CountTrailingZeros(~normalized);
 
-    if (!Common::IsValidLowMask(element))
+    // Check the value is repeating; also ensures element size is a power of two.
+
+    if (Common::RotateRight(value, element_size) != value)
     {
       valid = false;
       return;
@@ -579,11 +567,9 @@ struct LogicalImm
     // it gives both the number of set bits and the length of the repeated
     // segment.
 
-    const size_t tmp = ((~esize + 1) << 1) | (Common::CountSetBits(element) - 1);
-
-    r = static_cast<u8>((esize - rotation) & (esize - 1));
-    s = tmp & 0x3f;
-    n = (~tmp >> 6) & 1;
+    r = static_cast<u8>((element_size - rotation) & (element_size - 1));
+    s = (((~element_size + 1) << 1) | (ones - 1)) & 0x3f;
+    n = (element_size >> 6) & 1;
 
     valid = true;
   }
