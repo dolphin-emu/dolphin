@@ -47,6 +47,8 @@ namespace Memory
 // Store the MemArena here
 u8* physical_base = nullptr;
 u8* logical_base = nullptr;
+u8* physical_page_mappings_base = nullptr;
+u8* logical_page_mappings_base = nullptr;
 static bool is_fastmem_arena_initialized = false;
 
 // The MemArena class
@@ -223,6 +225,9 @@ static std::array<PhysicalMemoryRegion, 4> s_physical_regions;
 
 static std::vector<LogicalMemoryView> logical_mapped_entries;
 
+static std::array<void*, PowerPC::BAT_PAGE_COUNT> s_physical_page_mappings;
+static std::array<void*, PowerPC::BAT_PAGE_COUNT> s_logical_page_mappings;
+
 void Init()
 {
   const auto get_mem1_size = [] {
@@ -280,6 +285,8 @@ void Init()
   }
   g_arena.GrabSHMSegment(mem_size);
 
+  s_physical_page_mappings.fill(nullptr);
+
   // Create an anonymous view of the physical memory
   for (const PhysicalMemoryRegion& region : s_physical_regions)
   {
@@ -295,7 +302,16 @@ void Init()
           region.physical_address, region.size);
       exit(0);
     }
+
+    for (u32 i = 0; i < region.size; i += PowerPC::BAT_PAGE_SIZE)
+    {
+      const size_t index = (i + region.physical_address) >> PowerPC::BAT_INDEX_SHIFT;
+      s_physical_page_mappings[index] = *region.out_pointer + i;
+    }
   }
+
+  physical_page_mappings_base = reinterpret_cast<u8*>(s_physical_page_mappings.data());
+  logical_page_mappings_base = reinterpret_cast<u8*>(s_logical_page_mappings.data());
 
   InitMMIO(wii);
 
@@ -347,14 +363,14 @@ bool InitFastmemArena()
 
 void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
-  if (!is_fastmem_arena_initialized)
-    return;
-
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.UnmapFromMemoryRegion(entry.mapped_pointer, entry.mapped_size);
   }
   logical_mapped_entries.clear();
+
+  s_logical_page_mappings.fill(nullptr);
+
   for (u32 i = 0; i < dbat_table.size(); ++i)
   {
     if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
@@ -375,19 +391,27 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
         if (intersection_start < intersection_end)
         {
           // Found an overlapping region; map it.
-          u32 position = physical_region.shm_position + intersection_start - mapping_address;
-          u8* base = logical_base + logical_address + intersection_start - translated_address;
-          u32 mapped_size = intersection_end - intersection_start;
 
-          void* mapped_pointer = g_arena.MapInMemoryRegion(position, mapped_size, base);
-          if (!mapped_pointer)
+          if (is_fastmem_arena_initialized)
           {
-            PanicAlertFmt("Memory::UpdateLogicalMemory(): Failed to map memory region at 0x{:08X} "
-                          "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
-                          intersection_start, mapped_size, logical_address);
-            exit(0);
+            u32 position = physical_region.shm_position + intersection_start - mapping_address;
+            u8* base = logical_base + logical_address + intersection_start - translated_address;
+            u32 mapped_size = intersection_end - intersection_start;
+
+            void* mapped_pointer = g_arena.MapInMemoryRegion(position, mapped_size, base);
+            if (!mapped_pointer)
+            {
+              PanicAlertFmt(
+                  "Memory::UpdateLogicalMemory(): Failed to map memory region at 0x{:08X} "
+                  "(size 0x{:08X}) into logical fastmem region at 0x{:08X}.",
+                  intersection_start, mapped_size, logical_address);
+              exit(0);
+            }
+            logical_mapped_entries.push_back({mapped_pointer, mapped_size});
           }
-          logical_mapped_entries.push_back({mapped_pointer, mapped_size});
+
+          s_logical_page_mappings[i] =
+              *physical_region.out_pointer + intersection_start - mapping_address;
         }
       }
     }
