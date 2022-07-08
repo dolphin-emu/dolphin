@@ -216,7 +216,11 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
   if (wireframe)
     out.Write("\tVS_OUTPUT first;\n");
 
-  out.Write("\tfor (int i = 0; i < {}; ++i) {{\n", vertex_in);
+  // Avoid D3D warning about forced unrolling of single-iteration loop
+  if (vertex_in > 1)
+    out.Write("\tfor (int i = 0; i < {}; ++i) {{\n", vertex_in);
+  else
+    out.Write("\tint i = 0;\n");
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
@@ -307,7 +311,9 @@ ShaderCode GenerateGeometryShaderCode(APIType api_type, const ShaderHostConfig& 
     EmitVertex(out, host_config, uid_data, "f", api_type, wireframe, stereo, true);
   }
 
-  out.Write("\t}}\n");
+  // Only close loop if previous code was in one (See D3D warning above)
+  if (vertex_in > 1)
+    out.Write("\t}}\n");
 
   EndPrimitive(out, host_config, uid_data, api_type, wireframe, stereo);
 
