@@ -200,9 +200,6 @@ void InstructionCache::Reset()
 {
   valid.fill(0);
   plru.fill(0);
-  lookup_table.fill(0xFF);
-  lookup_table_ex.fill(0xFF);
-  lookup_table_vmem.fill(0xFF);
   JitInterface::ClearSafe();
 }
 
@@ -224,18 +221,6 @@ void InstructionCache::Invalidate(u32 addr)
 
   // Invalidates the whole set
   const u32 set = (addr >> 5) & 0x7f;
-  for (size_t i = 0; i < 8; i++)
-  {
-    if (valid[set] & (1U << i))
-    {
-      if (tags[set][i] & (ICACHE_VMEM_BIT >> 12))
-        lookup_table_vmem[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
-      else if (tags[set][i] & (ICACHE_EXRAM_BIT >> 12))
-        lookup_table_ex[((tags[set][i] << 7) | set) & 0x1fffff] = 0xff;
-      else
-        lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
-    }
-  }
   valid[set] = 0;
   JitInterface::InvalidateICacheLine(addr);
 }
@@ -247,18 +232,14 @@ u32 InstructionCache::ReadInstruction(u32 addr)
   u32 set = (addr >> 5) & 0x7f;
   u32 tag = addr >> 12;
 
-  u32 t;
-  if (addr & ICACHE_VMEM_BIT)
+  u32 t = 0xff;
+  for (u32 i = 0; i < tags[set].size(); i++)
   {
-    t = lookup_table_vmem[(addr >> 5) & 0xfffff];
-  }
-  else if (addr & ICACHE_EXRAM_BIT)
-  {
-    t = lookup_table_ex[(addr >> 5) & 0x1fffff];
-  }
-  else
-  {
-    t = lookup_table[(addr >> 5) & 0xfffff];
+    if (tags[set][i] == tag && (valid[set] & (1 << i) != 0))
+    {
+      t = i;
+      break;
+    }
   }
 
   if (t == 0xff)  // load to the cache
@@ -272,22 +253,6 @@ u32 InstructionCache::ReadInstruction(u32 addr)
       t = WAY_FROM_PLRU[plru[set]];
     // load
     Memory::CopyFromEmu(reinterpret_cast<u8*>(data[set][t].data()), (addr & ~0x1f), 32);
-    if (valid[set] & (1 << t))
-    {
-      if (tags[set][t] & (ICACHE_VMEM_BIT >> 12))
-        lookup_table_vmem[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
-      else if (tags[set][t] & (ICACHE_EXRAM_BIT >> 12))
-        lookup_table_ex[((tags[set][t] << 7) | set) & 0x1fffff] = 0xff;
-      else
-        lookup_table[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
-    }
-
-    if (addr & ICACHE_VMEM_BIT)
-      lookup_table_vmem[(addr >> 5) & 0xfffff] = t;
-    else if (addr & ICACHE_EXRAM_BIT)
-      lookup_table_ex[(addr >> 5) & 0x1fffff] = t;
-    else
-      lookup_table[(addr >> 5) & 0xfffff] = t;
     tags[set][t] = tag;
     valid[set] |= (1 << t);
   }
@@ -308,53 +273,10 @@ u32 InstructionCache::ReadInstruction(u32 addr)
 
 void InstructionCache::DoState(PointerWrap& p)
 {
-  if (p.IsReadMode())
-  {
-    // Clear valid parts of the lookup tables (this is done instead of using fill(0xff) to avoid
-    // loading the entire 4MB of tables into cache)
-    for (u32 set = 0; set < ICACHE_SETS; set++)
-    {
-      for (u32 way = 0; way < ICACHE_WAYS; way++)
-      {
-        if ((valid[set] & (1 << way)) != 0)
-        {
-          const u32 addr = (tags[set][way] << 12) | (set << 5);
-          if (addr & ICACHE_VMEM_BIT)
-            lookup_table_vmem[(addr >> 5) & 0xfffff] = 0xff;
-          else if (addr & ICACHE_EXRAM_BIT)
-            lookup_table_ex[(addr >> 5) & 0x1fffff] = 0xff;
-          else
-            lookup_table[(addr >> 5) & 0xfffff] = 0xff;
-        }
-      }
-    }
-  }
-
   p.DoArray(data);
   p.DoArray(tags);
   p.DoArray(plru);
   p.DoArray(valid);
-
-  if (p.IsReadMode())
-  {
-    // Recompute lookup tables
-    for (u32 set = 0; set < ICACHE_SETS; set++)
-    {
-      for (u32 way = 0; way < ICACHE_WAYS; way++)
-      {
-        if ((valid[set] & (1 << way)) != 0)
-        {
-          const u32 addr = (tags[set][way] << 12) | (set << 5);
-          if (addr & ICACHE_VMEM_BIT)
-            lookup_table_vmem[(addr >> 5) & 0xfffff] = way;
-          else if (addr & ICACHE_EXRAM_BIT)
-            lookup_table_ex[(addr >> 5) & 0x1fffff] = way;
-          else
-            lookup_table[(addr >> 5) & 0xfffff] = way;
-        }
-      }
-    }
-  }
 }
 
 void InstructionCache::RefreshConfig()
