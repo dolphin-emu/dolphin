@@ -56,48 +56,27 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
 
 static void WriteHeader(ShaderCode& code, APIType api_type)
 {
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  // left, top, of source rectangle within source texture
+  // width of the destination rectangle, scale_factor (1 or 2)
+  code.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
+             "  int4 position;\n"
+             "  float y_scale;\n"
+             "  float gamma_rcp;\n"
+             "  float2 clamp_tb;\n"
+             "  float3 filter_coefficients;\n"
+             "}};\n");
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    // left, top, of source rectangle within source texture
-    // width of the destination rectangle, scale_factor (1 or 2)
-    code.Write("UBO_BINDING(std140, 1) uniform PSBlock {{\n"
-               "  int4 position;\n"
-               "  float y_scale;\n"
-               "  float gamma_rcp;\n"
-               "  float2 clamp_tb;\n"
-               "  float3 filter_coefficients;\n"
+    code.Write("VARYING_LOCATION(0) in VertexData {{\n"
+               "  float3 v_tex0;\n"
                "}};\n");
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      code.Write("VARYING_LOCATION(0) in VertexData {{\n"
-                 "  float3 v_tex0;\n"
-                 "}};\n");
-    }
-    else
-    {
-      code.Write("VARYING_LOCATION(0) in float3 v_tex0;\n");
-    }
-    code.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
-               "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n");
   }
-  else  // D3D
+  else
   {
-    code.Write("cbuffer PSBlock : register(b0) {{\n"
-               "  int4 position;\n"
-               "  float y_scale;\n"
-               "  float gamma_rcp;\n"
-               "  float2 clamp_tb;\n"
-               "  float3 filter_coefficients;\n"
-               "}};\n"
-               "sampler samp0 : register(s0);\n"
-               "Texture2DArray Tex0 : register(t0);\n");
+    code.Write("VARYING_LOCATION(0) in float3 v_tex0;\n");
   }
-
-  // D3D does not have roundEven(), only round(), which is specified "to the nearest integer".
-  // This differs from the roundEven() behavior, but to get consistency across drivers in OpenGL
-  // we need to use roundEven().
-  if (api_type == APIType::D3D)
-    code.Write("#define roundEven(x) round(x)\n");
+  code.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
+             "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n");
 
   // Alpha channel in the copy is set to 1 the EFB format does not have an alpha channel.
   code.Write("float4 RGBA8ToRGB8(float4 src)\n"
@@ -149,10 +128,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
         code.Write("(");
     }
 
-    if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-      code.Write("texture(samp0, float3(");
-    else
-      code.Write("Tex0.Sample(samp0, float3(");
+    code.Write("texture(samp0, float3(");
 
     code.Write("uv.x + float(xoffset) * pixel_size.x, ");
 
@@ -211,23 +187,10 @@ static void WriteSwizzler(ShaderCode& code, const EFBCopyParams& params, EFBCopy
   WriteHeader(code, api_type);
   WriteSampleFunction(code, params, api_type);
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-  {
-    code.Write("void main()\n"
-               "{{\n"
-               "  int2 sampleUv;\n"
-               "  int2 uv1 = int2(gl_FragCoord.xy);\n");
-  }
-  else  // D3D
-  {
-    code.Write("void main(\n"
-               "  in float3 v_tex0 : TEXCOORD0,\n"
-               "  in float4 rawpos : SV_Position,\n"
-               "  out float4 ocol0 : SV_Target)\n"
-               "{{\n"
-               "  int2 sampleUv;\n"
-               "  int2 uv1 = int2(rawpos.xy);\n");
-  }
+  code.Write("void main()\n"
+             "{{\n"
+             "  int2 sampleUv;\n"
+             "  int2 uv1 = int2(gl_FragCoord.xy);\n");
 
   const int blkW = TexDecoder_GetEFBCopyBlockWidthInTexels(format);
   const int blkH = TexDecoder_GetEFBCopyBlockHeightInTexels(format);
@@ -853,48 +816,13 @@ static const char decoding_shader_header[] = R"(
 #define HAS_PALETTE 1
 #endif
 
-#ifdef API_D3D
-cbuffer UBO : register(b0) {
-#else
 UBO_BINDING(std140, 1) uniform UBO {
-#endif
   uint2 u_dst_size;
   uint2 u_src_size;
   uint u_src_offset;
   uint u_src_row_stride;
   uint u_palette_offset;
 };
-
-#ifdef API_D3D
-
-Buffer<uint4> s_input_buffer : register(t0);
-#ifdef HAS_PALETTE
-Buffer<uint4> s_palette_buffer : register(t1);
-#endif
-
-RWTexture2DArray<unorm float4> output_image : register(u0);
-
-// Helpers for reading/writing.
-#define texelFetch(buffer, pos) buffer.Load(pos)
-#define imageStore(image, coords, value) image[coords] = value
-#define GROUP_MEMORY_BARRIER_WITH_SYNC GroupMemoryBarrierWithGroupSync();
-#define GROUP_SHARED groupshared
-
-#define DEFINE_MAIN(lx, ly) \
-  [numthreads(lx, ly, 1)] \
-  void main(uint3 gl_WorkGroupID : SV_GroupId, \
-            uint3 gl_LocalInvocationID : SV_GroupThreadID, \
-            uint3 gl_GlobalInvocationID : SV_DispatchThreadID)
-
-uint bitfieldExtract(uint val, int off, int size)
-{
-  // This built-in function is only support in OpenGL 4.0+ and ES 3.1+\n"
-  // Microsoft's HLSL compiler automatically optimises this to a bitfield extract instruction.
-  uint mask = uint((1 << size) - 1);
-  return uint(val >> off) & mask;
-}
-
-#else
 
 TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer s_input_buffer;
 #ifdef HAS_PALETTE
@@ -908,8 +836,6 @@ IMAGE_BINDING(rgba8, 0) uniform writeonly image2DArray output_image;
 #define DEFINE_MAIN(lx, ly) \
   layout(local_size_x = lx, local_size_y = ly) in; \
   void main()
-
-#endif
 
 uint Swap16(uint v)
 {
@@ -1498,48 +1424,29 @@ float4 DecodePixel(int val)
 
   ss << "\n";
 
-  if (api_type == APIType::D3D)
-  {
-    ss << "Buffer<uint> tex0 : register(t0);\n";
-    ss << "Texture2DArray tex1 : register(t1);\n";
-    ss << "SamplerState samp1 : register(s1);\n";
-    ss << "cbuffer PSBlock : register(b0) {\n";
-  }
-  else
-  {
-    ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
-    ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
-    ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
-  }
+  ss << "TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp0;\n";
+  ss << "SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n";
+  ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
 
   ss << "  float multiplier;\n";
   ss << "  int texel_buffer_offset;\n";
   ss << "};\n";
 
-  if (api_type == APIType::D3D)
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "void main(in float3 v_tex0 : TEXCOORD0, out float4 ocol0 : SV_Target) {\n";
-    ss << "  int src = int(round(tex1.Sample(samp1, v_tex0).r * multiplier));\n";
-    ss << "  src = int(tex0.Load(src + texel_buffer_offset).r);\n";
+    ss << "VARYING_LOCATION(0) in VertexData {\n";
+    ss << "  float3 v_tex0;\n";
+    ss << "};\n";
   }
   else
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      ss << "VARYING_LOCATION(0) in VertexData {\n";
-      ss << "  float3 v_tex0;\n";
-      ss << "};\n";
-    }
-    else
-    {
-      ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
-    }
-    ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
-    ss << "void main() {\n";
-    ss << "  float3 coords = v_tex0;\n";
-    ss << "  int src = int(round(texture(samp1, coords).r * multiplier));\n";
-    ss << "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
+    ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
   }
+  ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
+  ss << "void main() {\n";
+  ss << "  float3 coords = v_tex0;\n";
+  ss << "  int src = int(round(texture(samp1, coords).r * multiplier));\n";
+  ss << "  src = int(texelFetch(samp0, src + texel_buffer_offset).r);\n";
 
   ss << "  src = ((src << 8) & 0xFF00) | (src >> 8);\n";
   ss << "  ocol0 = DecodePixel(src);\n";

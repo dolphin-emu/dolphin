@@ -93,20 +93,7 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
 
 void WriteIsNanHeader(ShaderCode& out, APIType api_type)
 {
-  if (api_type == APIType::D3D)
-  {
-    out.Write("bool dolphin_isnan(float f) {{\n"
-              "  // Workaround for the HLSL compiler deciding that isnan can never be true and\n"
-              "  // optimising away the call, even though the value can actually be NaN\n"
-              "  // Just look for the bit pattern that indicates NaN instead\n"
-              "  return (asint(f) & 0x7FFFFFFF) > 0x7F800000;\n"
-              "}}\n\n");
-    // If isfinite is needed, (asint(f) & 0x7F800000) != 0x7F800000 can be used
-  }
-  else
-  {
-    out.Write("#define dolphin_isnan(f) isnan(f)\n");
-  }
+  out.Write("#define dolphin_isnan(f) isnan(f)\n");
 }
 
 void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
@@ -135,14 +122,15 @@ void WriteBitfieldExtractHeader(ShaderCode& out, APIType api_type,
 
 static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string_view qualifier,
                                std::string_view type, std::string_view name, int var_index,
-                               std::string_view semantic = {}, int semantic_index = -1)
+                               ShaderStage stage, std::string_view semantic = {},
+                               int semantic_index = -1)
 {
   object.Write("\t{} {} {}", qualifier, type, name);
 
   if (var_index != -1)
     object.Write("{}", var_index);
 
-  if (api_type == APIType::D3D && !semantic.empty())
+  if (api_type == APIType::D3D && !semantic.empty() && stage == ShaderStage::Geometry)
   {
     if (semantic_index != -1)
       object.Write(" : {}{}", semantic, semantic_index);
@@ -154,30 +142,83 @@ static void DefineOutputMember(ShaderCode& object, APIType api_type, std::string
 }
 
 void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
-                             const ShaderHostConfig& host_config, std::string_view qualifier)
+                             const ShaderHostConfig& host_config, std::string_view qualifier,
+                             ShaderStage stage)
 {
-  DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "SV_Position");
-  DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
-  DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
-
-  for (unsigned int i = 0; i < texgens; ++i)
-    DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
-
-  if (!host_config.fast_depth_calc)
-    DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
-
-  if (host_config.per_pixel_lighting)
+  // SPIRV-Cross names all semantics as "TEXCOORD"
+  // Unfortunately Geometry shaders (which also uses this function)
+  // aren't supported.  The output semantic name needs to match
+  // up with the input semantic name for both the next stage (pixel shader)
+  // and the previous stage (vertex shader), so
+  // we need to handle geometry in a special way...
+  if (api_type == APIType::D3D && stage == ShaderStage::Geometry)
   {
-    DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD",
-                       texgens + 1);
-    DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
-                       texgens + 2);
+    DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, stage, "TEXCOORD", 0);
+    DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, stage, "TEXCOORD", 1);
+    DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, stage, "TEXCOORD", 2);
+
+    const unsigned int index_base = 3;
+    unsigned int index_offset = 0;
+    if (host_config.backend_geometry_shaders)
+    {
+      DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, stage, "TEXCOORD",
+                         index_base + index_offset);
+      DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, stage, "TEXCOORD",
+                         index_base + index_offset + 1);
+      index_offset += 2;
+    }
+
+    for (unsigned int i = 0; i < texgens; ++i)
+    {
+      DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, stage, "TEXCOORD",
+                         index_base + index_offset + i);
+    }
+    index_offset += texgens;
+
+    if (!host_config.fast_depth_calc)
+    {
+      DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
+                         index_base + index_offset);
+      index_offset++;
+    }
+
+    if (host_config.per_pixel_lighting)
+    {
+      DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, stage, "TEXCOORD",
+                         index_base + index_offset);
+      DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, stage, "TEXCOORD",
+                         index_base + index_offset + 1);
+      index_offset += 2;
+    }
   }
-
-  if (host_config.backend_geometry_shaders)
+  else
   {
-    DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
-    DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
+    DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, stage, "SV_Position");
+    DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, stage, "COLOR", 0);
+    DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, stage, "COLOR", 1);
+
+    if (host_config.backend_geometry_shaders)
+    {
+      DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, stage,
+                         "SV_ClipDistance", 0);
+      DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, stage,
+                         "SV_ClipDistance", 1);
+    }
+
+    for (unsigned int i = 0; i < texgens; ++i)
+      DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, stage, "TEXCOORD", i);
+
+    if (!host_config.fast_depth_calc)
+      DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
+                         texgens);
+
+    if (host_config.per_pixel_lighting)
+    {
+      DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, stage, "TEXCOORD",
+                         texgens + 1);
+      DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, stage, "TEXCOORD",
+                         texgens + 2);
+    }
   }
 }
 

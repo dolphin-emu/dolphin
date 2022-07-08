@@ -441,10 +441,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
 {
   std::ostringstream ss;
   u32 unused_counter = 1;
-  if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
-    ss << "cbuffer PSBlock : register(b0) {\n";
-  else
-    ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
+  ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
 
   // Builtin uniforms
   ss << "  float4 resolution;\n";
@@ -499,42 +496,20 @@ std::string PostProcessing::GetHeader() const
 {
   std::ostringstream ss;
   ss << GetUniformBufferHeader();
-  if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
+  ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
+
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "Texture2DArray samp0 : register(t0);\n";
-    ss << "SamplerState samp0_ss : register(s0);\n";
+    ss << "VARYING_LOCATION(0) in VertexData {\n";
+    ss << "  float3 v_tex0;\n";
+    ss << "};\n";
   }
   else
   {
-    ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n";
-
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      ss << "VARYING_LOCATION(0) in VertexData {\n";
-      ss << "  float3 v_tex0;\n";
-      ss << "};\n";
-    }
-    else
-    {
-      ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
-    }
-
-    ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
+    ss << "VARYING_LOCATION(0) in float3 v_tex0;\n";
   }
 
-  // Rename main, since we need to set up globals
-  if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
-  {
-    ss << R"(
-#define main real_main
-static float3 v_tex0;
-static float4 ocol0;
-
-// Wrappers for sampling functions.
-#define texture(sampler, coords) sampler.Sample(sampler##_ss, coords)
-#define textureOffset(sampler, coords, offset) sampler.Sample(sampler##_ss, coords, offset)
-)";
-  }
+  ss << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n";
 
   ss << R"(
 float4 Sample() { return texture(samp0, v_tex0); }
@@ -591,22 +566,7 @@ void SetOutput(float4 color)
 
 std::string PostProcessing::GetFooter() const
 {
-  if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
-  {
-    return R"(
-
-#undef main
-void main(in float3 v_tex0_ : TEXCOORD0, out float4 ocol0_ : SV_Target)
-{
-  v_tex0 = v_tex0_;
-  real_main();
-  ocol0_ = ocol0;
-})";
-  }
-  else
-  {
-    return {};
-  }
+  return {};
 }
 
 bool PostProcessing::CompileVertexShader()
@@ -614,28 +574,20 @@ bool PostProcessing::CompileVertexShader()
   std::ostringstream ss;
   ss << GetUniformBufferHeader();
 
-  if (g_ActiveConfig.backend_info.api_type == APIType::D3D)
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
   {
-    ss << "void main(in uint id : SV_VertexID, out float3 v_tex0 : TEXCOORD0,\n";
-    ss << "          out float4 opos : SV_Position) {\n";
+    ss << "VARYING_LOCATION(0) out VertexData {\n";
+    ss << "  float3 v_tex0;\n";
+    ss << "};\n";
   }
   else
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-    {
-      ss << "VARYING_LOCATION(0) out VertexData {\n";
-      ss << "  float3 v_tex0;\n";
-      ss << "};\n";
-    }
-    else
-    {
-      ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
-    }
-
-    ss << "#define id gl_VertexID\n";
-    ss << "#define opos gl_Position\n";
-    ss << "void main() {\n";
+    ss << "VARYING_LOCATION(0) out float3 v_tex0;\n";
   }
+
+  ss << "#define id gl_VertexID\n";
+  ss << "#define opos gl_Position\n";
+  ss << "void main() {\n";
   ss << "  v_tex0 = float3(float((id << 1) & 2), float(id & 2), 0.0f);\n";
   ss << "  opos = float4(v_tex0.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), 0.0f, 1.0f);\n";
   ss << "  v_tex0 = float3(src_rect.xy + (src_rect.zw * v_tex0.xy), float(src_layer));\n";

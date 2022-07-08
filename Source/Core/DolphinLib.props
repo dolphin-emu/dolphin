@@ -666,6 +666,7 @@
     <ClInclude Include="VideoCommon\RenderState.h" />
     <ClInclude Include="VideoCommon\ShaderCache.h" />
     <ClInclude Include="VideoCommon\ShaderGenCommon.h" />
+    <ClInclude Include="VideoCommon\Spirv.h" />
     <ClInclude Include="VideoCommon\Statistics.h" />
     <ClInclude Include="VideoCommon\TextureCacheBase.h" />
     <ClInclude Include="VideoCommon\TextureConfig.h" />
@@ -1253,6 +1254,7 @@
     <ClCompile Include="VideoCommon\RenderState.cpp" />
     <ClCompile Include="VideoCommon\ShaderCache.cpp" />
     <ClCompile Include="VideoCommon\ShaderGenCommon.cpp" />
+    <ClCompile Include="VideoCommon\Spirv.cpp" />
     <ClCompile Include="VideoCommon\Statistics.cpp" />
     <ClCompile Include="VideoCommon\TextureCacheBase.cpp" />
     <ClCompile Include="VideoCommon\TextureConfig.cpp" />

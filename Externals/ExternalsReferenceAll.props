@@ -82,6 +82,9 @@
     <ProjectReference Include="$(ExternalsDir)soundtouch\SoundTouch.vcxproj">
       <Project>{ec082900-b4d8-42e9-9663-77f02f6936ae}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)spirv_cross\spirv_cross.vcxproj">
+      <Project>{3d780617-ec8c-4721-b9fd-dfc9bb658c7c}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
       <Project>{677ea016-1182-440c-9345-dc88d1e98c0c}</Project>
     </ProjectReference>

@@ -18,3 +18,8 @@
 	url = https://github.com/libusb/libusb.git
 	branch = master
 	shallow = true
+[submodule "Externals/spirv_cross/SPIRV-Cross"]
+	path = Externals/spirv_cross/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git
+	branch = master
+	shallow = true

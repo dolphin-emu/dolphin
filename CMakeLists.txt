@@ -660,6 +660,7 @@ else()
 endif()
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/glslang)
+add_subdirectory(Externals/spirv_cross)
 
 if(ENABLE_VULKAN)
   add_definitions(-DHAS_VULKAN)

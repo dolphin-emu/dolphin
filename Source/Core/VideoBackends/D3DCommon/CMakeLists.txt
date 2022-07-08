@@ -11,6 +11,7 @@ target_link_libraries(videod3dcommon
 PUBLIC
   common
   videocommon
+  spirv_cross
 )
 
 if(MSVC)

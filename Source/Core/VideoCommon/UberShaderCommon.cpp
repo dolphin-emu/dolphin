@@ -77,8 +77,7 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
                          std::string_view out_color_1_var)
 {
   out.Write("// Lighting\n");
-  out.Write("{}for (uint chan = 0u; chan < {}u; chan++) {{\n",
-            api_type == APIType::D3D ? "[loop] " : "", NUM_XF_COLOR_CHANNELS);
+  out.Write("for (uint chan = 0u; chan < {}u; chan++) {{\n", NUM_XF_COLOR_CHANNELS);
   out.Write("  uint colorreg = xfmem_color(chan);\n"
             "  uint alphareg = xfmem_alpha(chan);\n"
             "  int4 mat = " I_MATERIALS "[chan + 2u]; \n"
