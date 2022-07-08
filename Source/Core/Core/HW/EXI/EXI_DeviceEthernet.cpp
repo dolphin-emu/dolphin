@@ -18,8 +18,6 @@
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
-//#define BBA_TRACK_PAGE_PTRS
-
 namespace ExpansionInterface
 {
 // XXX: The BBA stores multi-byte elements as little endian.

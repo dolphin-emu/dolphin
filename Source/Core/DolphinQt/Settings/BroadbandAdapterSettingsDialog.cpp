@@ -50,7 +50,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
 
   case Type::BuiltIn:
     address_label = new QLabel(tr("Enter the DNS server to use:"));
-    address_placeholder = QString::fromStdString("8.8.8.8");
+    address_placeholder = QStringLiteral("8.8.8.8");
     current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_BUILTIN_DNS));
     description = new QLabel(tr("Use 8.8.8.8 for normal DNS, else enter your custom one"));
 
