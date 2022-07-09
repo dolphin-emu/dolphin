@@ -133,7 +133,7 @@ std::optional<SPIRVCodeVector> CompileFragmentShader(std::string_view source_cod
 
 std::optional<SPIRVCodeVector> CompileComputeShader(std::string_view source_code)
 {
-  return SPIRV::CompileComputeShader(GetShaderCode(source_code, SHADER_HEADER), APIType::Vulkan,
-                                     GetLanguageVersion());
+  return SPIRV::CompileComputeShader(GetShaderCode(source_code, COMPUTE_SHADER_HEADER),
+                                     APIType::Vulkan, GetLanguageVersion());
 }
 }  // namespace Vulkan::ShaderCompiler
