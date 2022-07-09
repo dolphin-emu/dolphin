@@ -276,9 +276,9 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W1, ARM64Reg::W30);
   fpr.Unlock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize || !jo.fastmem_arena)
-    gpr.Lock(ARM64Reg::W2);
+    gpr.Unlock(ARM64Reg::W2);
   if (!js.assumeNoPairedQuantize && !jo.fastmem_arena)
-    gpr.Lock(ARM64Reg::W3);
+    gpr.Unlock(ARM64Reg::W3);
   if (!js.assumeNoPairedQuantize)
     fpr.Unlock(ARM64Reg::Q1);
 }
