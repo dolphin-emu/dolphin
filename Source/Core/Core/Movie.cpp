@@ -951,6 +951,13 @@ void ReadHeader()
   s_MD5 = tmpHeader.md5;
   s_DSPiromHash = tmpHeader.DSPiromHash;
   s_DSPcoefHash = tmpHeader.DSPcoefHash;
+
+  for (int i = 0; i < 4; i++)
+  {
+    Config::SetBaseOrCurrent(Config::GetInfoForSIDevice(static_cast<int>(i)), SerialInterface::SIDevices(tmpHeader.reserved2[i+4]));
+  }
+  SConfig::GetInstance().SaveSettings();
+  /*
   const SerialInterface::SIDevices gcnAdapter = SerialInterface::SIDEVICE_WIIU_ADAPTER;
   if (tmpHeader.bNetPlay)
   {
@@ -1000,6 +1007,7 @@ void ReadHeader()
     }
   }
   SConfig::GetInstance().SaveSettings();
+  */
 }
 
 #define dir_delimter '/'
@@ -1605,23 +1613,51 @@ void SaveRecording(const std::string& filename)
   header.DSPiromHash = s_DSPiromHash;
   header.DSPcoefHash = s_DSPcoefHash;
   header.tickCount = s_totalTickCount;
+  std::array<u8, 11> s_ourPortInfo;
+  s_ourPortInfo.fill(0);
+  int portCounter = 0;
   if (NetPlay::IsNetPlayRunning())
   {
-    std::array<u8, 7> s_ourNetPlayPort;
-    int ourNetPlayPort = StateAuxillary::getOurNetPlayPort();
-    for (int i = 0; i < s_ourNetPlayPort.size(); i++)
+    std::vector<int> ourNetPlayPorts = StateAuxillary::getOurNetPlayPorts();
+    for (int i = 0; i < 4; i++)
     {
-      if (i == 0)
+      int portValue = ourNetPlayPorts.at(i);
+      s_ourPortInfo[i] = portValue;
+      if (portValue)
       {
-        // 0xA02
-        s_ourNetPlayPort[i] = ourNetPlayPort;
+        // we need to know what kind of controller they were using for playback purposes
+        // netplay uses your si device from port 1 (index 0) so we need to use a counter that tracks
+        // how many ports we've used
+        const SerialInterface::SIDevices currentDevice =
+            Config::Get(Config::GetInfoForSIDevice(static_cast<int>(portCounter)));
+        s_ourPortInfo[i + 4] = currentDevice;
+        portCounter++;
       }
       else
       {
-        s_ourNetPlayPort[i] = 0;
+        s_ourPortInfo[i + 4] = 0;
       }
     }
-    header.reserved = s_ourNetPlayPort;
+    header.reserved2 = s_ourPortInfo;
+  }
+  else
+  {
+    for (int i = 0; i < 4; i++)
+    {
+      if (IsUsingPad(i))
+      {
+        s_ourPortInfo[i] = 1;
+        const SerialInterface::SIDevices currentDevice =
+            Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
+        s_ourPortInfo[i+4] = currentDevice;
+      }
+      else
+      {
+        s_ourPortInfo[i] = 0;
+        s_ourPortInfo[i+4] = 0;
+      }
+    }
+    header.reserved2 = s_ourPortInfo;
   }
 
   // TODO

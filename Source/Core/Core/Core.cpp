@@ -210,8 +210,8 @@ void OnFrameEnd()
 
   //match start
   if (Memory::Read_U8(matchStart) == 1 && !StateAuxillary::getBoolMatchStart() &&
-      !Movie::IsPlayingInput() && !Movie::IsRecordingInput() &&
-      StateAuxillary::getOurNetPlayPort() != -1 && Memory::Read_U8(grudgeMatchBool) == 1 &&
+      !Movie::IsPlayingInput() && !Movie::IsRecordingInput() && !StateAuxillary::isSpectator() &&
+      Memory::Read_U8(grudgeMatchBool) == 1 &&
       Config::Get(Config::MAIN_REPLAYS))
   {
     boolMatchStart = true;
@@ -237,8 +237,7 @@ void OnFrameEnd()
 
   //match end
   if (Memory::Read_U8(matchEnd) == 1 && !StateAuxillary::getBoolMatchEnd() &&
-      !Movie::IsPlayingInput() && Movie::IsRecordingInput() &&
-      StateAuxillary::getOurNetPlayPort() != -1 && Memory::Read_U8(grudgeMatchBool) == 1)
+      !Movie::IsPlayingInput() && Movie::IsRecordingInput())
   {
     StateAuxillary::setBoolMatchEnd(true);
     boolMatchEnd = true;

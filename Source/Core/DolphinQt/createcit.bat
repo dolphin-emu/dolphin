@@ -7,3 +7,4 @@ rename out.zip %1.cit
 del output.dtm
 del output.dtm.sav
 del output.json
+pause

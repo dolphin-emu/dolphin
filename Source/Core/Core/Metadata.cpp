@@ -393,7 +393,7 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     memset(&si, 0, sizeof(si));
     si.cb = sizeof(si);
     si.wShowWindow = SW_HIDE;
-    CreateProcessA(cwd.string().c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL,
+    CreateProcessA(cwd.string().c_str(), &batchPath[0], NULL, NULL, TRUE, 0, NULL,
                    NULL,
                    (LPSTARTUPINFOA)&si, &pi);
     // the task has ended so close the handle
