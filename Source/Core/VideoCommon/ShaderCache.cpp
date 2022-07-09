@@ -1371,8 +1371,8 @@ ShaderCache::GetTextureDecodingShader(TextureFormat format,
 
   const std::string name =
       palette_format.has_value() ?
-          fmt::format("Texture decoding compute shader: {}", format) :
-          fmt::format("Texture decoding compute shader: {}, {}", format, *palette_format);
+          fmt::format("Texture decoding compute shader: {}, {}", format, *palette_format) :
+          fmt::format("Texture decoding compute shader: {}", format);
 
   std::unique_ptr<AbstractShader> shader =
       g_renderer->CreateShaderFromSource(ShaderStage::Compute, shader_source, name);
