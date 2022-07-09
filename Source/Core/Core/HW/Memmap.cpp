@@ -141,14 +141,14 @@ static void InitMMIO(bool is_wii)
   ProcessorInterface::RegisterMMIO(mmio_mapping.get(), 0x0C003000);
   MemoryInterface::RegisterMMIO(mmio_mapping.get(), 0x0C004000);
   DSP::RegisterMMIO(mmio_mapping.get(), 0x0C005000);
-  DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006000);
+  DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006000, false);
   SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006400);
   ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006800);
   AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006C00);
   if (is_wii)
   {
     IOS::RegisterMMIO(mmio_mapping.get(), 0x0D000000);
-    DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006000);
+    DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006000, true);
     SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006400);
     ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006800);
     AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006C00);
