@@ -585,7 +585,13 @@ void Interpreter::eieio(UGeckoInstruction inst)
 
 void Interpreter::icbi(UGeckoInstruction inst)
 {
-  // TODO: Raise DSI if translation fails (except for direct-store segments).
+  // TODO: The 750cl manual gives conflicting information about whether translation to a physical
+  // address is performed (and thus whether an exception can be raised); subsection
+  // 3.4.2.6 Instruction Cache Block Invalidate (icbi) on page 140 (in section 3.4 Cache Control)
+  // says that it does not need to be translated because it invalidates all ways associated with the
+  // set index for the address, and the same set index is used for both physical and virtual
+  // addresses, but the information on the icbi instruction on page 432 does not mention this.
+  // For now, we don't raise any exceptions, and don't translate the address.
   const u32 address = Helper_Get_EA_X(PowerPC::ppcState, inst);
   PowerPC::ppcState.iCache.Invalidate(address);
 }

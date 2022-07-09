@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
 #include "Core/Config/MainSettings.h"
@@ -29,6 +30,31 @@ namespace PowerPC
 // cache only has two (invalid (I) and valid (V)).
 namespace
 {
+constexpr u32 BLOCK_NUM_BITS = 5;
+constexpr u32 BLOCK_SIZE_BYTES = ICACHE_BLOCK_SIZE_WORDS * sizeof(u32);  // 0x20
+constexpr u32 BLOCK_MASK = BLOCK_SIZE_BYTES - 1;                         // 0x1f
+static_assert(1 << BLOCK_NUM_BITS == BLOCK_SIZE_BYTES);
+
+constexpr u32 SET_NUM_BITS = 7;
+constexpr u32 SET_SHIFT = BLOCK_NUM_BITS;
+constexpr u32 SET_MASK = ICACHE_SETS - 1;  // 0x7f
+static_assert(1 << SET_NUM_BITS == ICACHE_SETS);
+
+// The tag is composed of the remaining 20 bits not used to identify the block or set.
+// The tag is a physical address, while the block offset and set index can come from the effective
+// address or physical address, as address translation will not change them. (Real hardware does
+// address translation in parallel with set selection, but we can just use the physical address for
+// set index.) See section 3.2 Instruction Cache Organization on page 128 of the 750cl manual.
+// Note that the tag could be determined in two ways: shifting right by 12 bits (to disacrd the
+// non-tag bits), or masking off the bottom 12 bits. We do the latter to make debugging easier since
+// then the tag corresponds to the physical address without needing to shift back.
+constexpr u32 NON_TAG_NUM_BITS = BLOCK_NUM_BITS + SET_NUM_BITS;  // 12
+constexpr u32 TAG_NUM_BITS = 32 - NON_TAG_NUM_BITS;              // 20
+constexpr u32 TAG_MASK = ((1 << TAG_NUM_BITS) - 1) << NON_TAG_NUM_BITS;
+
+constexpr u8 ALL_WAYS_VALID = 0b11111111;
+static_assert(ALL_WAYS_VALID == (1 << ICACHE_WAYS) - 1);
+
 constexpr u32 NUM_PLRU_BITS = ICACHE_WAYS - 1;
 constexpr u8 NUM_PLRU_BIT_VALUES = 1 << NUM_PLRU_BITS;
 constexpr u8 PLRU_BIT_MASK = NUM_PLRU_BIT_VALUES - 1;
@@ -214,60 +240,93 @@ void InstructionCache::Init()
   Reset();
 }
 
-void InstructionCache::Invalidate(u32 addr)
+void InstructionCache::Invalidate(const u32 addr)
 {
   if (!HID0.ICE || m_disable_icache)
     return;
 
-  // Invalidates the whole set
-  const u32 set = (addr >> 5) & 0x7f;
-  valid[set] = 0;
+  // Per the 750cl manual, section 3.4.1.5 Instruction Cache Enabling/Disabling (page 137)
+  // and section 3.4.2.6 Instruction Cache Block Invalidate (icbi) (page 140), the icbi
+  // instruction always invalidates, even if the instruction cache is disabled or locked,
+  // and it also invalidates all ways of the corresponding cache set, not just the way corresponding
+  // to the given address. This also means that the address does not *actually* need to be converted
+  // to a physical address. Currently, Interpreter::icbi does not do this conversion.
+  // (However, the icbi instruction's info on page 432 does not include this information)
+  const u32 set = (addr >> SET_SHIFT) & SET_MASK;
+  valid[set] = 0b00000000;
+  // Also tell the JIT that the corresponding address has been invalidated. This function takes a
+  // virtual address.
   JitInterface::InvalidateICacheLine(addr);
 }
 
-u32 InstructionCache::ReadInstruction(u32 addr)
+u32 InstructionCache::ReadInstruction(const u32 physical_addr)
 {
   if (!HID0.ICE || m_disable_icache)  // instruction cache is disabled
-    return Memory::Read_U32(addr);
-  u32 set = (addr >> 5) & 0x7f;
-  u32 tag = addr >> 12;
+    return Memory::Read_U32(physical_addr);
 
-  u32 t = 0xff;
-  for (u32 i = 0; i < tags[set].size(); i++)
+  const u32 set = (physical_addr >> SET_SHIFT) & SET_MASK;
+  const u32 tag = physical_addr & TAG_MASK;
+  const u32 block_offset_bytes = physical_addr & BLOCK_MASK;
+  const u32 block_offset_words = block_offset_bytes >> 2;  // assume already word-aligned
+
+  for (u32 way = 0; way < ICACHE_WAYS; way++)
   {
-    if (tags[set][i] == tag && (valid[set] & (1 << i) != 0))
+    if (tags[set][way] == tag && (valid[set] & (1 << way)) != 0)
     {
-      t = i;
-      break;
+      // We found a valid cache way that matches the tag, so it contains data corresponding to the
+      // input address.
+      const u32 res = ReadFromBlock(set, way, block_offset_words);
+
+      // Verify the result, to determine if icache was actually needed.
+      // (This is not something that happens on real hardware.)
+      const u32 inmem = Memory::Read_U32(physical_addr);
+      if (res != inmem)
+      {
+        INFO_LOG_FMT(POWERPC,
+                     "ICache read at {:08x} returned stale data: CACHED: {:08x} vs. RAM: {:08x}",
+                     physical_addr, res, inmem);
+        DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::ICACHE_MATTERS);
+      }
+
+      return res;
     }
   }
 
-  if (t == 0xff)  // load to the cache
-  {
-    if (HID0.ILOCK)  // instruction cache is locked
-      return Memory::Read_U32(addr);
-    // select a way
-    if (valid[set] != 0xff)
-      t = WAY_FROM_VALID[valid[set]];
-    else
-      t = WAY_FROM_PLRU[plru[set]];
-    // load
-    Memory::CopyFromEmu(reinterpret_cast<u8*>(data[set][t].data()), (addr & ~0x1f), 32);
-    tags[set][t] = tag;
-    valid[set] |= (1 << t);
-  }
-  // update plru
-  plru[set] = (plru[set] & ~PLRU_RULES[t].first) | PLRU_RULES[t].second;
+  // We failed to find a matching cache way. Load data into a new way, instead.
+  if (HID0.ILOCK)  // instruction cache is locked
+    return Memory::Read_U32(physical_addr);
 
-  const u32 res = Common::swap32(data[set][t][(addr >> 2) & 7]);
-  const u32 inmem = Memory::Read_U32(addr);
-  if (res != inmem)
+  // Select a way
+  u32 way;
+  if (valid[set] != ALL_WAYS_VALID)
   {
-    INFO_LOG_FMT(POWERPC,
-                 "ICache read at {:08x} returned stale data: CACHED: {:08x} vs. RAM: {:08x}", addr,
-                 res, inmem);
-    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::ICACHE_MATTERS);
+    // There is a free way available, so we use that one.
+    way = WAY_FROM_VALID[valid[set]];
   }
+  else
+  {
+    // All ways contain valid data, so use the pseudo least recently used logic to pick the one to
+    // replace.
+    way = WAY_FROM_PLRU[plru[set]];
+  }
+
+  // load
+  Memory::CopyFromEmu(reinterpret_cast<u8*>(data[set][way].data()), (physical_addr & ~BLOCK_MASK),
+                      BLOCK_SIZE_BYTES);
+  tags[set][way] = tag;
+  valid[set] |= (1 << way);
+
+  return ReadFromBlock(set, way, block_offset_words);
+  // It's impossible for stale data to be read in this case.
+}
+
+u32 InstructionCache::ReadFromBlock(const u32 set, const u32 way, const u32 block_offset_words)
+{
+  // update plru
+  plru[set] = (plru[set] & ~PLRU_RULES[way].first) | PLRU_RULES[way].second;
+
+  const u32 res = Common::swap32(data[set][way][block_offset_words]);
+
   return res;
 }
 
