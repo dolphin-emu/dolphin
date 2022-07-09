@@ -17,6 +17,11 @@ enum class PrimitiveType : u32
   Triangles,
   TriangleStrip,
 };
+template <>
+struct fmt::formatter<PrimitiveType> : EnumFormatter<PrimitiveType::TriangleStrip>
+{
+  constexpr formatter() : EnumFormatter({"Points", "Lines", "Triangles", "TriangleStrip"}) {}
+};
 
 struct RasterizationState
 {

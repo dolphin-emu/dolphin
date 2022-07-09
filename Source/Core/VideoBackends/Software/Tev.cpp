@@ -276,7 +276,7 @@ void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const Inpu
       break;
 
     default:
-      PanicAlertFmt("Invalid compare mode {}", cc.compare_mode().Get());
+      PanicAlertFmt("Invalid compare mode {}", cc.compare_mode());
       continue;
     }
 
@@ -330,7 +330,7 @@ void Tev::DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const Inpu
     break;
 
   default:
-    PanicAlertFmt("Invalid compare mode {}", ac.compare_mode().Get());
+    PanicAlertFmt("Invalid compare mode {}", ac.compare_mode());
     return;
   }
 
@@ -382,7 +382,7 @@ static bool TevAlphaTest(int alpha)
   case AlphaTestOp::Xnor:
     return !(comp0 ^ comp1);
   default:
-    PanicAlertFmt("Invalid AlphaTestOp {}", bpmem.alpha_test.logic().Get());
+    PanicAlertFmt("Invalid AlphaTestOp {}", bpmem.alpha_test.logic());
     return true;
   }
 }
@@ -434,7 +434,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
     AlphaBump = indmap[TextureSampler::GRN_SMP];
     break;
   default:
-    PanicAlertFmt("Invalid alpha bump {}", indirect.bs().Get());
+    PanicAlertFmt("Invalid alpha bump {}", indirect.bs());
     return;
   }
 
@@ -473,7 +473,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
     AlphaBump = AlphaBump << 3;
     break;
   default:
-    PanicAlertFmt("Invalid indirect format {}", indirect.fmt().Get());
+    PanicAlertFmt("Invalid indirect format {}", indirect.fmt());
     return;
   }
 
@@ -509,7 +509,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
       indtevtrans[1] = t * indcoord[1] / 256;
       break;
     default:
-      PanicAlertFmt("Invalid indirect matrix ID {}", indirect.matrix_id().Get());
+      PanicAlertFmt("Invalid indirect matrix ID {}", indirect.matrix_id());
       return;
     }
 
@@ -739,7 +739,7 @@ void Tev::Draw()
       ztex += TexColor[RED_C] << 16 | TexColor[GRN_C] << 8 | TexColor[BLU_C];
       break;
     default:
-      PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type().Get());
+      PanicAlertFmt("Invalid ztex format {}", bpmem.ztex2.type());
     }
 
     if (bpmem.ztex2.op() == ZTexOp::Add)

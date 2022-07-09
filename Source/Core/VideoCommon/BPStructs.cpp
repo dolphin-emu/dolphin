@@ -95,7 +95,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
   case BPMEM_GENMODE:  // Set the Generation Mode
     PRIM_LOG("genmode: texgen={}, col={}, multisampling={}, tev={}, cullmode={}, ind={}, zfeeze={}",
              bpmem.genMode.numtexgens(), bpmem.genMode.numcolchans(), bpmem.genMode.multisampling(),
-             bpmem.genMode.numtevstages() + 1u, bpmem.genMode.cullmode().Get(),
+             bpmem.genMode.numtevstages() + 1u, bpmem.genMode.cullmode(),
              bpmem.genMode.numindstages(), bpmem.genMode.zfreeze());
 
     if (bp.changes)
@@ -138,7 +138,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     GeometryShaderManager::SetLinePtWidthChanged();
     return;
   case BPMEM_ZMODE:  // Depth Control
-    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.testenable(), bpmem.zmode.func().Get(),
+    PRIM_LOG("zmode: test={}, func={}, upd={}", bpmem.zmode.testenable(), bpmem.zmode.func(),
              bpmem.zmode.updateenable());
     SetDepthMode();
     PixelShaderManager::SetZModeControl();
@@ -149,8 +149,8 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
       PRIM_LOG("blendmode: en={}, open={}, colupd={}, alphaupd={}, dst={}, src={}, sub={}, mode={}",
                bpmem.blendmode.blendenable(), bpmem.blendmode.logicopenable(),
                bpmem.blendmode.colorupdate(), bpmem.blendmode.alphaupdate(),
-               bpmem.blendmode.dstfactor().Get(), bpmem.blendmode.srcfactor().Get(),
-               bpmem.blendmode.subtract(), bpmem.blendmode.logicmode().Get());
+               bpmem.blendmode.dstfactor(), bpmem.blendmode.srcfactor(), bpmem.blendmode.subtract(),
+               bpmem.blendmode.logicmode());
 
       SetBlendMode();
 
@@ -378,8 +378,8 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     return;
   case BPMEM_ALPHACOMPARE:  // Compare Alpha Values
     PRIM_LOG("alphacmp: ref0={}, ref1={}, comp0={}, comp1={}, logic={}", bpmem.alpha_test.ref0(),
-             bpmem.alpha_test.ref1(), bpmem.alpha_test.comp0().Get(),
-             bpmem.alpha_test.comp1().Get(), bpmem.alpha_test.logic().Get());
+             bpmem.alpha_test.ref1(), bpmem.alpha_test.comp0(), bpmem.alpha_test.comp1(),
+             bpmem.alpha_test.logic());
     if (bp.changes & 0xFFFF)
       PixelShaderManager::SetAlpha();
     if (bp.changes)
@@ -399,7 +399,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
       PixelShaderManager::SetZTextureTypeChanged();
     if (bp.changes & 12)
       PixelShaderManager::SetZTextureOpChanged();
-    PRIM_LOG("ztex op={}, type={}", bpmem.ztex2.op().Get(), bpmem.ztex2.type().Get());
+    PRIM_LOG("ztex op={}, type={}", bpmem.ztex2.op(), bpmem.ztex2.type());
   }
     return;
   // ----------------------------------

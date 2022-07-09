@@ -365,10 +365,10 @@ void OnPixelFormatChange()
     return;
 
   const PixelFormat old_format = g_renderer->GetPrevPixelFormat();
-  const PixelFormat new_format = bpmem.zcontrol.pixel_format().Get();
+  const PixelFormat new_format = bpmem.zcontrol.pixel_format();
   g_renderer->StorePixelFormat(new_format);
 
-  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat().Get());
+  DEBUG_LOG_FMT(VIDEO, "pixelfmt: pixel={}, zc={}", new_format, bpmem.zcontrol.zformat());
 
   // no need to reinterpret pixel data in these cases
   if (new_format == old_format || old_format == PixelFormat::INVALID_FMT)
@@ -443,15 +443,15 @@ void SetInterlacingMode(const BPCmd& bp)
   {
     // SDK always sets bpmem.lineptwidth.lineaspect via BPMEM_LINEPTWIDTH
     // just before this cmd
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", bpmem.fieldmode.texLOD().Get(),
-                  bpmem.lineptwidth.adjust_for_aspect_ratio().Get());
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMODE texLOD:{} lineaspect:{}", bpmem.fieldmode.texLOD(),
+                  bpmem.lineptwidth.adjust_for_aspect_ratio());
   }
   break;
   case BPMEM_FIELDMASK:
   {
     // Determines if fields will be written to EFB (always computed)
-    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even().Get(),
-                  bpmem.fieldmask.odd().Get());
+    DEBUG_LOG_FMT(VIDEO, "BPMEM_FIELDMASK even:{} odd:{}", bpmem.fieldmask.even(),
+                  bpmem.fieldmask.odd());
   }
   break;
   default:
