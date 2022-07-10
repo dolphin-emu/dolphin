@@ -85,9 +85,13 @@ std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 
 EthernetHeader::EthernetHeader() = default;
 
-EthernetHeader::EthernetHeader(u16 ether_type)
+EthernetHeader::EthernetHeader(u16 ether_type) : ethertype(htons(ether_type))
 {
-  ethertype = htons(ether_type);
+}
+
+EthernetHeader::EthernetHeader(const MACAddress& dest, const MACAddress& src, u16 ether_type)
+    : destination(dest), source(src), ethertype(htons(ether_type))
+{
 }
 
 u16 EthernetHeader::Size() const
@@ -339,13 +343,10 @@ TCPPacket::TCPPacket() = default;
 
 TCPPacket::TCPPacket(const MACAddress& destination, const MACAddress& source,
                      const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags)
+    : eth_header(destination, source, IPV4_ETHERTYPE),
+      ip_header(Common::TCPHeader::SIZE, IPPROTO_TCP, from, to),
+      tcp_header(from, to, seq, ack, flags)
 {
-  eth_header.destination = destination;
-  eth_header.source = source;
-  eth_header.ethertype = htons(IPV4_ETHERTYPE);
-
-  ip_header = Common::IPv4Header(Common::TCPHeader::SIZE, IPPROTO_TCP, from, to);
-  tcp_header = Common::TCPHeader(from, to, seq, ack, flags);
 }
 
 std::vector<u8> TCPPacket::Build()
@@ -401,15 +402,10 @@ UDPPacket::UDPPacket() = default;
 
 UDPPacket::UDPPacket(const MACAddress& destination, const MACAddress& source,
                      const sockaddr_in& from, const sockaddr_in& to, const std::vector<u8>& payload)
+    : eth_header(destination, source, IPV4_ETHERTYPE),
+      ip_header(static_cast<u16>(payload.size() + Common::UDPHeader::SIZE), IPPROTO_UDP, from, to),
+      udp_header(from, to, static_cast<u16>(payload.size())), data(payload)
 {
-  eth_header.destination = destination;
-  eth_header.source = source;
-  eth_header.ethertype = htons(IPV4_ETHERTYPE);
-
-  ip_header = Common::IPv4Header(static_cast<u16>(payload.size() + Common::UDPHeader::SIZE),
-                                 IPPROTO_UDP, from, to);
-  udp_header = Common::UDPHeader(from, to, static_cast<u16>(payload.size()));
-  data = payload;
 }
 
 std::vector<u8> UDPPacket::Build()

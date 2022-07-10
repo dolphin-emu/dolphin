@@ -47,6 +47,7 @@ struct EthernetHeader
 {
   EthernetHeader();
   explicit EthernetHeader(u16 ether_type);
+  EthernetHeader(const MACAddress& dest, const MACAddress& src, u16 ether_type);
   u16 Size() const;
 
   static constexpr std::size_t SIZE = 14;
