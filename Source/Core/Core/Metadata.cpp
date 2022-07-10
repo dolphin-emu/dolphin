@@ -385,15 +385,17 @@ void Metadata::writeJSON(std::string jsonString, bool callBatch)
     // Game_May_05_2022_11_51_34 C://Users//Brian//Documents//Citrus Replays
     // we need to pass the path the replays are held in in order to CD into them in the batch file
     std::filesystem::path cwd = std::filesystem::current_path() / "createcit.bat";
-    std::string batchPath = cwd.string();
+    std::string pathToBatch = cwd.string();
+    std::string batchPath = "\"\"" + pathToBatch + "\"";
     //std::string batchPath("./createcit.bat");
-    batchPath += gameVar;
+    batchPath += gameVar + "\"";
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     memset(&si, 0, sizeof(si));
     si.cb = sizeof(si);
-    si.wShowWindow = SW_HIDE;
-    CreateProcessA(cwd.string().c_str(), &batchPath[0], NULL, NULL, TRUE, 0, NULL,
+    //si.wShowWindow = SW_HIDE;
+    // CREATE_NO_WINDOW
+    CreateProcessA(pathToBatch.c_str(), &batchPath[0], NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL,
                    NULL,
                    (LPSTARTUPINFOA)&si, &pi);
     // the task has ended so close the handle
