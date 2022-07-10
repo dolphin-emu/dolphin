@@ -46,6 +46,10 @@ void DummyNetworkCaptureLogger::LogWrite(const void* data, std::size_t length, s
 {
 }
 
+void DummyNetworkCaptureLogger::LogBBA(const void* data, std::size_t length)
+{
+}
+
 NetworkCaptureType DummyNetworkCaptureLogger::GetCaptureType() const
 {
   return NetworkCaptureType::None;
@@ -113,6 +117,13 @@ void PCAPSSLCaptureLogger::LogRead(const void* data, std::size_t length, s32 soc
 void PCAPSSLCaptureLogger::LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to)
 {
   Log(LogType::Write, data, length, socket, to);
+}
+
+void PCAPSSLCaptureLogger::LogBBA(const void* data, std::size_t length)
+{
+  if (!Config::Get(Config::MAIN_NETWORK_DUMP_BBA))
+    return;
+  m_file->AddPacket(static_cast<const u8*>(data), length);
 }
 
 void PCAPSSLCaptureLogger::Log(LogType log_type, const void* data, std::size_t length, s32 socket,
