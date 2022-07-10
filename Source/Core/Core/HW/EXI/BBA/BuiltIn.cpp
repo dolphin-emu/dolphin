@@ -142,7 +142,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   reply.AddOption(3, ip_part);                                     // router ip
   reply.AddOption(255, {});                                        // end
 
-  Common::UDPPacket response(bba_mac, m_fake_mac, from, to, reply.Build());
+  const Common::UDPPacket response(bba_mac, m_fake_mac, from, to, reply.Build());
 
   WriteToQueue(response.Build());
 }
@@ -179,8 +179,8 @@ StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_po
 
 std::vector<u8> BuildFINFrame(StackRef* ref)
 {
-  Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                           ref->ack_num, TCP_FLAG_FIN | TCP_FLAG_ACK | TCP_FLAG_RST);
+  const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
+                                 ref->ack_num, TCP_FLAG_FIN | TCP_FLAG_ACK | TCP_FLAG_RST);
 
   for (auto& tcp_buf : ref->tcp_buffers)
     tcp_buf.used = false;
@@ -189,8 +189,8 @@ std::vector<u8> BuildFINFrame(StackRef* ref)
 
 std::vector<u8> BuildAckFrame(StackRef* ref)
 {
-  Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                           ref->ack_num, TCP_FLAG_ACK);
+  const Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
+                                 ref->ack_num, TCP_FLAG_ACK);
   return result.Build();
 }
 
@@ -498,7 +498,7 @@ std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref)
       ref->from.sin_port = htons(remote_port);
       ref->from.sin_addr.s_addr = htonl(ref->target.toInteger());
       const std::vector<u8> udp_data(buffer.begin(), buffer.begin() + datasize);
-      Common::UDPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, udp_data);
+      const Common::UDPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, udp_data);
       return packet.Build();
     }
     break;

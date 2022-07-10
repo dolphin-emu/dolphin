@@ -202,7 +202,7 @@ struct TCPPacket
   TCPPacket();
   TCPPacket(const MACAddress& destination, const MACAddress& source, const sockaddr_in& from,
             const sockaddr_in& to, u32 seq, u32 ack, u16 flags);
-  std::vector<u8> Build();
+  std::vector<u8> Build() const;
   u16 Size() const;
 
   EthernetHeader eth_header;
@@ -220,7 +220,7 @@ struct UDPPacket
   UDPPacket();
   UDPPacket(const MACAddress& destination, const MACAddress& source, const sockaddr_in& from,
             const sockaddr_in& to, const std::vector<u8>& payload);
-  std::vector<u8> Build();
+  std::vector<u8> Build() const;
   u16 Size() const;
 
   EthernetHeader eth_header;
