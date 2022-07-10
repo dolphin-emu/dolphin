@@ -314,6 +314,14 @@ u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const 
   return htons(static_cast<u16>(tcp_checksum));
 }
 
+template <typename Container, typename T>
+static inline void InsertObj(Container* container, const T& obj)
+{
+  static_assert(std::is_trivially_copyable_v<T>);
+  const u8* const ptr = reinterpret_cast<const u8*>(&obj);
+  container->insert(container->end(), ptr, ptr + sizeof(obj));
+}
+
 ARPPacket::ARPPacket() = default;
 
 u16 ARPPacket::Size() const
@@ -332,10 +340,8 @@ std::vector<u8> ARPPacket::Build() const
 {
   std::vector<u8> result;
   result.reserve(EthernetHeader::SIZE + ARPHeader::SIZE);
-  const u8* eth_ptr = reinterpret_cast<const u8*>(&eth_header);
-  result.insert(result.end(), eth_ptr, eth_ptr + EthernetHeader::SIZE);
-  const u8* arp_ptr = reinterpret_cast<const u8*>(&arp_header);
-  result.insert(result.end(), arp_ptr, arp_ptr + ARPHeader::SIZE);
+  InsertObj(&result, eth_header);
+  InsertObj(&result, arp_header);
   return result;
 }
 
@@ -359,10 +365,8 @@ std::vector<u8> TCPPacket::Build()
                                                TCPHeader::SIZE + tcp_options.size() + data.size()));
 
   // copy data
-  const u8* eth_ptr = reinterpret_cast<const u8*>(&eth_header);
-  result.insert(result.end(), eth_ptr, eth_ptr + EthernetHeader::SIZE);
-  const u8* ip_ptr = reinterpret_cast<const u8*>(&ip_header);
-  result.insert(result.end(), ip_ptr, ip_ptr + IPv4Header::SIZE);
+  InsertObj(&result, eth_header);
+  InsertObj(&result, ip_header);
   std::size_t offset = EthernetHeader::SIZE + IPv4Header::SIZE;
   if (ipv4_options.size() > 0)
   {
@@ -419,10 +423,8 @@ std::vector<u8> UDPPacket::Build()
   udp_header.length = htons(static_cast<u16>(UDPHeader::SIZE + data.size()));
 
   // copy data
-  const u8* eth_ptr = reinterpret_cast<const u8*>(&eth_header);
-  result.insert(result.end(), eth_ptr, eth_ptr + EthernetHeader::SIZE);
-  const u8* ip_ptr = reinterpret_cast<const u8*>(&ip_header);
-  result.insert(result.end(), ip_ptr, ip_ptr + IPv4Header::SIZE);
+  InsertObj(&result, eth_header);
+  InsertObj(&result, ip_header);
   std::size_t offset = EthernetHeader::SIZE + IPv4Header::SIZE;
   if (ipv4_options.size() > 0)
   {
