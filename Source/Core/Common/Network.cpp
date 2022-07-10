@@ -337,13 +337,6 @@ std::vector<u8> ARPPacket::Build() const
 
 TCPPacket::TCPPacket() = default;
 
-TCPPacket::TCPPacket(const MACAddress& destination, const MACAddress& source)
-{
-  eth_header.destination = destination;
-  eth_header.source = source;
-  eth_header.ethertype = htons(IPV4_ETHERTYPE);
-}
-
 TCPPacket::TCPPacket(const MACAddress& destination, const MACAddress& source,
                      const sockaddr_in& from, const sockaddr_in& to, u32 seq, u32 ack, u16 flags)
 {
@@ -405,13 +398,6 @@ u16 TCPPacket::Size() const
 }
 
 UDPPacket::UDPPacket() = default;
-
-UDPPacket::UDPPacket(const MACAddress& destination, const MACAddress& source)
-{
-  eth_header.destination = destination;
-  eth_header.source = source;
-  eth_header.ethertype = htons(IPV4_ETHERTYPE);
-}
 
 UDPPacket::UDPPacket(const MACAddress& destination, const MACAddress& source,
                      const sockaddr_in& from, const sockaddr_in& to, const std::vector<u8>& payload)
