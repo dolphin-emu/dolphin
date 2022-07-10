@@ -377,8 +377,14 @@ std::vector<u8> TCPPacket::Build() const
       (static_cast<u16>((tcp_options.size() + TCPHeader::SIZE) & 0x3c) << 10);
   Common::BitCastPtr<u16>(tcp_ptr + offsetof(TCPHeader, properties)) = htons(tcp_properties);
 
-  const u16 ip_total_len = static_cast<u16>(IPv4Header::SIZE + ipv4_options.size() + tcp_length);
+  const u16 ip_header_size = static_cast<u16>(IPv4Header::SIZE + ipv4_options.size());
+  const u16 ip_total_len = ip_header_size + tcp_length;
   Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, total_len)) = htons(ip_total_len);
+
+  auto ip_checksum_bitcast_ptr =
+      Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
+  ip_checksum_bitcast_ptr = u16(0);
+  ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(tcp_ptr + offsetof(TCPHeader, checksum));
   checksum_bitcast_ptr = u16(0);
@@ -421,8 +427,14 @@ std::vector<u8> UDPPacket::Build() const
   const u16 udp_length = static_cast<u16>(UDPHeader::SIZE + data.size());
   Common::BitCastPtr<u16>(udp_ptr + offsetof(UDPHeader, length)) = htons(udp_length);
 
-  const u16 ip_total_len = static_cast<u16>(IPv4Header::SIZE + ipv4_options.size() + udp_length);
+  const u16 ip_header_size = static_cast<u16>(IPv4Header::SIZE + ipv4_options.size());
+  const u16 ip_total_len = ip_header_size + udp_length;
   Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, total_len)) = htons(ip_total_len);
+
+  auto ip_checksum_bitcast_ptr =
+      Common::BitCastPtr<u16>(ip_ptr + offsetof(IPv4Header, header_checksum));
+  ip_checksum_bitcast_ptr = u16(0);
+  ip_checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
 
   auto checksum_bitcast_ptr = Common::BitCastPtr<u16>(udp_ptr + offsetof(UDPHeader, checksum));
   checksum_bitcast_ptr = u16(0);
