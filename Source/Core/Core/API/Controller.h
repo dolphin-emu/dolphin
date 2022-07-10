@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include <vector>
-
 #include "Common/CommonTypes.h"
 #include "Core/API/Events.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
-#include "Core/Movie.h"
 #include "InputCommon/GCPadStatus.h"
 
 namespace API

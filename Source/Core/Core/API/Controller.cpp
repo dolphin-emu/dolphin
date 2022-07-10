@@ -4,9 +4,12 @@
 
 #include "Controller.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/HW/GCPad.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Camera.h"
+#include "InputCommon/GCAdapter.h"
 
 namespace API
 {
@@ -16,7 +19,10 @@ GCPadStatus GCManip::Get(int controller_id)
   auto iter = m_overrides.find(controller_id);
   if (iter != m_overrides.end())
     return iter->second.pad_status;
-  return Pad::GetStatus(controller_id);
+  if (Config::Get(Config::GetInfoForSIDevice(controller_id)) == SerialInterface::SIDEVICE_WIIU_ADAPTER)
+    return GCAdapter::Input(controller_id);
+  else
+    return Pad::GetStatus(controller_id);
 }
 
 void GCManip::Set(GCPadStatus pad_status, int controller_id, ClearOn clear_on)
