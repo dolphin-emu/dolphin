@@ -320,6 +320,12 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_DISCARD_WITH_EARLY_Z,
+
+  // BUG: Using dynamic sampler indexing locks up the GPU
+  // Affected devices: Intel (macOS Metal)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING,
 };
 
 // Initializes our internal vendor, device family, and driver version
