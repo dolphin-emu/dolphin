@@ -34,9 +34,15 @@ public:
   void Clear() { m_overrides.clear(); }
   void NotifyFrameAdvanced()
   {
-    std::erase_if(m_overrides, [](const auto& kvp) {
-      return kvp.second.clear_on == ClearOn::NextFrame && kvp.second.used;
-    });
+    // std::erase_if back-ported to C++17
+    for (auto i = m_overrides.begin(), last = m_overrides.end(); i != last; )
+    {
+      auto kvp = *i;
+      if (kvp.second.clear_on == ClearOn::NextFrame && kvp.second.used)
+        i = m_overrides.erase(i);
+      else
+        ++i;
+    }
   }
 
 protected:
