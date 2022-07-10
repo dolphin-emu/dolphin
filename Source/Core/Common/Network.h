@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -57,6 +58,7 @@ struct EthernetHeader
   u16 ethertype = 0;
 };
 static_assert(sizeof(EthernetHeader) == EthernetHeader::SIZE);
+static_assert(std::is_standard_layout_v<EthernetHeader>);
 
 struct IPv4Header
 {
@@ -79,6 +81,7 @@ struct IPv4Header
   IPAddress destination_addr{};
 };
 static_assert(sizeof(IPv4Header) == IPv4Header::SIZE);
+static_assert(std::is_standard_layout_v<IPv4Header>);
 
 struct TCPHeader
 {
@@ -101,6 +104,7 @@ struct TCPHeader
   u16 urgent_pointer = 0;
 };
 static_assert(sizeof(TCPHeader) == TCPHeader::SIZE);
+static_assert(std::is_standard_layout_v<TCPHeader>);
 
 struct UDPHeader
 {
@@ -117,6 +121,7 @@ struct UDPHeader
   u16 checksum = 0;
 };
 static_assert(sizeof(UDPHeader) == UDPHeader::SIZE);
+static_assert(std::is_standard_layout_v<UDPHeader>);
 
 #pragma pack(push, 1)
 struct ARPHeader
