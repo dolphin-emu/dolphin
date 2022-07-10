@@ -367,9 +367,8 @@ std::vector<u8> TCPPacket::Build()
   // copy data
   InsertObj(&result, eth_header);
   InsertObj(&result, ip_header);
-  std::size_t offset = EthernetHeader::SIZE + IPv4Header::SIZE;
   result.insert(result.end(), ipv4_options.begin(), ipv4_options.end());
-  offset += ipv4_options.size();
+  const std::size_t tcp_offset = result.size();
 
   tcp_header.checksum = 0;
   const u16 props = (ntohs(tcp_header.properties) & 0xfff) |
@@ -377,11 +376,7 @@ std::vector<u8> TCPPacket::Build()
   tcp_header.properties = htons(props);
   const u8* tcp_ptr = reinterpret_cast<const u8*>(&tcp_header);
   result.insert(result.end(), tcp_ptr, tcp_ptr + TCPHeader::SIZE);
-  const std::size_t tcp_offset = offset;
-  offset += TCPHeader::SIZE;
   result.insert(result.end(), tcp_options.begin(), tcp_options.end());
-  offset += tcp_options.size();
-
   result.insert(result.end(), data.begin(), data.end());
 
   tcp_header.checksum = ComputeTCPNetworkChecksum(
@@ -419,15 +414,12 @@ std::vector<u8> UDPPacket::Build()
   // copy data
   InsertObj(&result, eth_header);
   InsertObj(&result, ip_header);
-  std::size_t offset = EthernetHeader::SIZE + IPv4Header::SIZE;
   result.insert(result.end(), ipv4_options.begin(), ipv4_options.end());
-  offset += ipv4_options.size();
+  const std::size_t udp_offset = result.size();
 
   udp_header.checksum = 0;
   const u8* udp_ptr = reinterpret_cast<const u8*>(&udp_header);
   result.insert(result.end(), udp_ptr, udp_ptr + UDPHeader::SIZE);
-  const std::size_t udp_offset = offset;
-  offset += UDPHeader::SIZE;
   result.insert(result.end(), data.begin(), data.end());
 
   udp_header.checksum = ComputeTCPNetworkChecksum(
