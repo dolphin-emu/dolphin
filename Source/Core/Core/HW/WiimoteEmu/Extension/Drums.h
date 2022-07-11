@@ -47,29 +47,29 @@ public:
   {
     u32 _data1;
 
-    BFVIEW_M(_data1, u32, 0, 6, stick_x);
+    BFVIEW_M(_data1, u8, 0, 6, stick_x);
     // Seemingly random.
-    BFVIEW_M(_data1, u32, 6, 2, unk1);
+    BFVIEW_M(_data1, u8, 6, 2, unk1);
 
-    BFVIEW_M(_data1, u32, 8, 6, stick_y);
+    BFVIEW_M(_data1, u8, 8, 6, stick_y);
     // Seemingly random.
-    BFVIEW_M(_data1, u32, 14, 2, unk2);
+    BFVIEW_M(_data1, u8, 14, 2, unk2);
 
     // Always 1 with no velocity data and seemingly random otherwise.
-    BFVIEW_M(_data1, u32, 16, 1, unk3);
+    BFVIEW_M(_data1, u8, 16, 1, unk3);
     // For which "pad" the velocity data is for.
     BFVIEW_M(_data1, VelocityID, 17, 7, velocity_id);
 
     // Always 1 with no velocity data and seemingly random otherwise.
-    BFVIEW_M(_data1, u32, 24, 1, unk4);
+    BFVIEW_M(_data1, u8, 24, 1, unk4);
     // 1 with no velocity data and 0 when velocity data is present.
     BFVIEW_M(_data1, bool, 25, 1, no_velocity_data_1);
     // These two bits seem to always be set. (0b11)
-    BFVIEW_M(_data1, u32, 26, 2, unk5);
+    BFVIEW_M(_data1, u8, 26, 2, unk5);
     // 1 with no velocity data and 0 when velocity data is present.
     BFVIEW_M(_data1, bool, 28, 1, no_velocity_data_2);
     // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
-    BFVIEW_M(_data1, u32, 29, 3, softness);
+    BFVIEW_M(_data1, u8, 29, 3, softness);
 
     // Button bits.
     u8 buttons;

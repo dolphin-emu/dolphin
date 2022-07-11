@@ -90,8 +90,8 @@ void Drums::Update()
 
   // Send no velocity data by default.
   drum_data.velocity_id() = VelocityID::None;
-  drum_data.no_velocity_data_1() = 1;
-  drum_data.no_velocity_data_2() = 1;
+  drum_data.no_velocity_data_1() = true;
+  drum_data.no_velocity_data_2() = true;
   drum_data.softness() = 7;
 
   // Stick.
@@ -127,8 +127,8 @@ void Drums::Update()
 
       drum_data.velocity_id() = drum_pad_velocity_ids[i];
 
-      drum_data.no_velocity_data_1() = 0;
-      drum_data.no_velocity_data_2() = 0;
+      drum_data.no_velocity_data_1() = false;
+      drum_data.no_velocity_data_2() = false;
 
       // Set softness from user-configured hit strength setting.
       drum_data.softness() = u8(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
