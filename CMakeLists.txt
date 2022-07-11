@@ -613,7 +613,9 @@ if(UNIX)
 endif()
 
 if(ENABLE_SDL)
-  find_package(SDL2)
+  if(NOT APPLE)
+    find_package(SDL2)
+  endif()
 
   if(SDL2_FOUND)
     message(STATUS "Using system SDL2")
