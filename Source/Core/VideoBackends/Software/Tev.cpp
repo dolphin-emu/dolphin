@@ -146,20 +146,20 @@ void Tev::Init()
     m_KonstLUT[31][comp] = &KonstantColors[3][ALP_C];
   }
 
-  m_BiasLUT[TevBias::Zero] = 0;
-  m_BiasLUT[TevBias::AddHalf] = 128;
-  m_BiasLUT[TevBias::SubHalf] = -128;
-  m_BiasLUT[TevBias::Compare] = 0;
+  m_BiasLUT[0] = 0;
+  m_BiasLUT[1] = 128;
+  m_BiasLUT[2] = -128;
+  m_BiasLUT[3] = 0;
 
-  m_ScaleLShiftLUT[TevScale::Scale1] = 0;
-  m_ScaleLShiftLUT[TevScale::Scale2] = 1;
-  m_ScaleLShiftLUT[TevScale::Scale4] = 2;
-  m_ScaleLShiftLUT[TevScale::Divide2] = 0;
+  m_ScaleLShiftLUT[0] = 0;
+  m_ScaleLShiftLUT[1] = 1;
+  m_ScaleLShiftLUT[2] = 2;
+  m_ScaleLShiftLUT[3] = 0;
 
-  m_ScaleRShiftLUT[TevScale::Scale1] = 0;
-  m_ScaleRShiftLUT[TevScale::Scale2] = 0;
-  m_ScaleRShiftLUT[TevScale::Scale4] = 0;
-  m_ScaleRShiftLUT[TevScale::Divide2] = 1;
+  m_ScaleRShiftLUT[0] = 0;
+  m_ScaleRShiftLUT[1] = 0;
+  m_ScaleRShiftLUT[2] = 0;
+  m_ScaleRShiftLUT[3] = 1;
 }
 
 static inline s16 Clamp255(s16 in)
@@ -236,13 +236,15 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
     const u16 c = InputReg.c() + (InputReg.c() >> 7);
 
     s32 temp = InputReg.a() * (256 - c) + (InputReg.b() * c);
-    temp <<= m_ScaleLShiftLUT[cc.scale()];
+    temp <<= m_ScaleLShiftLUT[u32(cc.scale().Get())];
     temp += (cc.scale() == TevScale::Divide2) ? 0 : (cc.op() == TevOp::Sub) ? 127 : 128;
     temp >>= 8;
     temp = cc.op() == TevOp::Sub ? -temp : temp;
 
-    s32 result = ((InputReg.d() + m_BiasLUT[cc.bias()]) << m_ScaleLShiftLUT[cc.scale()]) + temp;
-    result = result >> m_ScaleRShiftLUT[cc.scale()];
+    s32 result = ((InputReg.d() + m_BiasLUT[u32(cc.bias().Get())])
+                  << m_ScaleLShiftLUT[u32(cc.scale().Get())]) +
+                 temp;
+    result = result >> m_ScaleRShiftLUT[u32(cc.scale().Get())];
 
     Reg[u32(cc.dest().Get())][i] = result;
   }
@@ -294,12 +296,14 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
   const u16 c = InputReg.c() + (InputReg.c() >> 7);
 
   s32 temp = InputReg.a() * (256 - c) + (InputReg.b() * c);
-  temp <<= m_ScaleLShiftLUT[ac.scale()];
+  temp <<= m_ScaleLShiftLUT[u32(ac.scale().Get())];
   temp += (ac.scale() == TevScale::Divide2) ? 0 : (ac.op() == TevOp::Sub) ? 127 : 128;
   temp = ac.op() == TevOp::Sub ? (-temp >> 8) : (temp >> 8);
 
-  s32 result = ((InputReg.d() + m_BiasLUT[ac.bias()]) << m_ScaleLShiftLUT[ac.scale()]) + temp;
-  result = result >> m_ScaleRShiftLUT[ac.scale()];
+  s32 result = ((InputReg.d() + m_BiasLUT[u32(ac.bias().Get())])
+                << m_ScaleLShiftLUT[u32(ac.scale().Get())]) +
+               temp;
+  result = result >> m_ScaleRShiftLUT[u32(ac.scale().Get())];
 
   Reg[u32(ac.dest().Get())][ALP_C] = result;
 }
