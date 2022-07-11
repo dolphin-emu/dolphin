@@ -457,7 +457,7 @@ constexpr int CountTrailingZeros(uint32_t value)
     return _BitScanForward(&index, value) ? index : 32;
   }
 #else
-  return CountLeadingZerosConst(value);
+  return CountTrailingZerosConst(value);
 #endif
 }
 
