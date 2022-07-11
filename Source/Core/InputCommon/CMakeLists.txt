@@ -179,7 +179,11 @@ if(SDL2_FOUND)
     ControllerInterface/SDL/SDL.cpp
     ControllerInterface/SDL/SDL.h
   )
-  target_link_libraries(inputcommon PRIVATE SDL2::SDL2)
+  if(SDL_STATIC)
+    target_link_libraries(inputcommon PRIVATE SDL2::SDL2-static)
+  else()
+    target_link_libraries(inputcommon PRIVATE SDL2::SDL2)
+  endif()
 endif()
 
 if(MSVC)
