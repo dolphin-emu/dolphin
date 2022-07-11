@@ -375,8 +375,9 @@ bool StateTracker::Bind()
 
   // Re-bind parts of the pipeline
   const VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  if (m_pipeline->GetUsage() != AbstractPipelineUsage::GXUber &&
-      (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER))
+  const bool needs_vertex_buffer = !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader ||
+                                   m_pipeline->GetUsage() != AbstractPipelineUsage::GXUber;
+  if (needs_vertex_buffer && (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER))
   {
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
     m_dirty_flags &= ~DIRTY_FLAG_VERTEX_BUFFER;
@@ -530,7 +531,8 @@ bool StateTracker::UpdateGXDescriptorSet()
   }
 
   const bool needs_bbox_ssbo = g_ActiveConfig.backend_info.bSupportsBBox;
-  const bool needs_vertex_ssbo = m_pipeline->GetUsage() == AbstractPipelineUsage::GXUber;
+  const bool needs_vertex_ssbo = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader &&
+                                 m_pipeline->GetUsage() == AbstractPipelineUsage::GXUber;
   const bool needs_ssbo = needs_bbox_ssbo || needs_vertex_ssbo;
 
   if (needs_ssbo &&
@@ -546,16 +548,19 @@ bool StateTracker::UpdateGXDescriptorSet()
         VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, m_gx_descriptor_sets[2], 0,      0, 1,
         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,      nullptr, &m_bindings.ssbo,        nullptr};
 
-    writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                            nullptr,
-                            m_gx_descriptor_sets[2],
-                            1,
-                            0,
-                            1,
-                            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                            nullptr,
-                            &m_bindings.gx_uber_vertex_ssbo,
-                            nullptr};
+    if (g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    {
+      writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                              nullptr,
+                              m_gx_descriptor_sets[2],
+                              1,
+                              0,
+                              1,
+                              VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                              nullptr,
+                              &m_bindings.gx_uber_vertex_ssbo,
+                              nullptr};
+    }
 
     m_dirty_flags = (m_dirty_flags & ~DIRTY_FLAG_GX_SSBO) | DIRTY_FLAG_DESCRIPTOR_SETS;
   }

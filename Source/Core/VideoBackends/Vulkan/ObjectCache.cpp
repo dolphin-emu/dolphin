@@ -247,6 +247,10 @@ bool ObjectCache::CreatePipelineLayouts()
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
   if (!g_ActiveConfig.backend_info.bSupportsBBox)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
+  // If neither SSBO-using feature is supported, skip in ubershaders too
+  if (!g_ActiveConfig.backend_info.bSupportsBBox &&
+      !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+    pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
   {
