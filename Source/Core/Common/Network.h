@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -47,6 +48,7 @@ struct EthernetHeader
 {
   EthernetHeader();
   explicit EthernetHeader(u16 ether_type);
+  EthernetHeader(const MACAddress& dest, const MACAddress& src, u16 ether_type);
   u16 Size() const;
 
   static constexpr std::size_t SIZE = 14;
@@ -56,6 +58,7 @@ struct EthernetHeader
   u16 ethertype = 0;
 };
 static_assert(sizeof(EthernetHeader) == EthernetHeader::SIZE);
+static_assert(std::is_standard_layout_v<EthernetHeader>);
 
 struct IPv4Header
 {
@@ -78,6 +81,7 @@ struct IPv4Header
   IPAddress destination_addr{};
 };
 static_assert(sizeof(IPv4Header) == IPv4Header::SIZE);
+static_assert(std::is_standard_layout_v<IPv4Header>);
 
 struct TCPHeader
 {
@@ -100,6 +104,7 @@ struct TCPHeader
   u16 urgent_pointer = 0;
 };
 static_assert(sizeof(TCPHeader) == TCPHeader::SIZE);
+static_assert(std::is_standard_layout_v<TCPHeader>);
 
 struct UDPHeader
 {
@@ -116,6 +121,7 @@ struct UDPHeader
   u16 checksum = 0;
 };
 static_assert(sizeof(UDPHeader) == UDPHeader::SIZE);
+static_assert(std::is_standard_layout_v<UDPHeader>);
 
 #pragma pack(push, 1)
 struct ARPHeader
@@ -194,10 +200,9 @@ static_assert(sizeof(ARPPacket) == ARPPacket::SIZE);
 struct TCPPacket
 {
   TCPPacket();
-  TCPPacket(const MACAddress& destination, const MACAddress& source);
   TCPPacket(const MACAddress& destination, const MACAddress& source, const sockaddr_in& from,
             const sockaddr_in& to, u32 seq, u32 ack, u16 flags);
-  std::vector<u8> Build();
+  std::vector<u8> Build() const;
   u16 Size() const;
 
   EthernetHeader eth_header;
@@ -213,10 +218,9 @@ struct TCPPacket
 struct UDPPacket
 {
   UDPPacket();
-  UDPPacket(const MACAddress& destination, const MACAddress& source);
   UDPPacket(const MACAddress& destination, const MACAddress& source, const sockaddr_in& from,
             const sockaddr_in& to, const std::vector<u8>& payload);
-  std::vector<u8> Build();
+  std::vector<u8> Build() const;
   u16 Size() const;
 
   EthernetHeader eth_header;
