@@ -37,16 +37,16 @@ public:
   {
     u32 _data1;
 
-    BFVIEW_M(_data1, u32, 0, 6, sx);
-    BFVIEW_M(_data1, u32, 6, 2, rtable3);
-    BFVIEW_M(_data1, u32, 8, 6, sy);
-    BFVIEW_M(_data1, u32, 14, 2, rtable2);
-    BFVIEW_M(_data1, u32, 16, 1, rtable4);
-    BFVIEW_M(_data1, u32, 17, 4, slider);
-    BFVIEW_M(_data1, u32, 21, 2, dial2);
-    BFVIEW_M(_data1, u32, 23, 1, rtable1);
-    BFVIEW_M(_data1, u32, 24, 5, ltable1);
-    BFVIEW_M(_data1, u32, 29, 3, dial1);
+    BFVIEW_M(_data1, u8, 0, 6, sx);
+    BFVIEW_M(_data1, u8, 6, 2, rtable3);
+    BFVIEW_M(_data1, u8, 8, 6, sy);
+    BFVIEW_M(_data1, u8, 14, 2, rtable2);
+    BFVIEW_M(_data1, u8, 16, 1, rtable4);
+    BFVIEW_M(_data1, u8, 17, 4, slider);
+    BFVIEW_M(_data1, u8, 21, 2, dial2);
+    BFVIEW_M(_data1, u8, 23, 1, rtable1);
+    BFVIEW_M(_data1, u8, 24, 5, ltable1);
+    BFVIEW_M(_data1, u8, 29, 3, dial1);
 
     union
     {
@@ -54,7 +54,7 @@ public:
       u16 bt;  // buttons
     };
 
-    BFVIEW_M(_data2, u16, 0, 1, ltable2);
+    BFVIEW_M(_data2, u8, 0, 1, ltable2);
   };
 #pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
