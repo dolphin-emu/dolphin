@@ -36,14 +36,14 @@ public:
   {
     u32 _data1;
 
-    BFVIEW_M(_data1, u32, 0, 6, sx);
-    BFVIEW_M(_data1, u32, 6, 2, pad1);  // 1 on gh3, 0 on ghwt
-    BFVIEW_M(_data1, u32, 8, 6, sy);
-    BFVIEW_M(_data1, u32, 14, 2, pad2);  // 1 on gh3, 0 on ghwt
-    BFVIEW_M(_data1, u32, 16, 5, sb);    // not used in gh3
-    BFVIEW_M(_data1, u32, 21, 3, pad3);  // always 0
-    BFVIEW_M(_data1, u32, 24, 5, whammy);
-    BFVIEW_M(_data1, u32, 29, 3, pad4);  // always 0
+    BFVIEW_M(_data1, u8, 0, 6, sx);
+    BFVIEW_M(_data1, u8, 6, 2, pad1);  // 1 on gh3, 0 on ghwt
+    BFVIEW_M(_data1, u8, 8, 6, sy);
+    BFVIEW_M(_data1, u8, 14, 2, pad2);  // 1 on gh3, 0 on ghwt
+    BFVIEW_M(_data1, u8, 16, 5, sb);    // not used in gh3
+    BFVIEW_M(_data1, u8, 21, 3, pad3);  // always 0
+    BFVIEW_M(_data1, u8, 24, 5, whammy);
+    BFVIEW_M(_data1, u8, 29, 3, pad4);  // always 0
 
     u16 bt;  // buttons
   };
