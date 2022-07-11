@@ -1397,8 +1397,8 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     // Wrapping
     // ---------
 
-    static constexpr std::array<const char*, 5> tev_ind_wrap_start{
-        "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)",
+    static constexpr Common::EnumMap<const char*, IndTexWrap::ITW_0> tev_ind_wrap_start = {
+        nullptr, "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)", nullptr,
     };
 
     // wrap S
@@ -1414,7 +1414,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
     {
       out.Write("\twrappedcoord.x = fixpoint_uv{}.x & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.sw().Get()) - u32(IndTexWrap::ITW_256)]);
+                tev_ind_wrap_start[tevind.sw()]);
     }
 
     // wrap T
@@ -1430,7 +1430,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     else
     {
       out.Write("\twrappedcoord.y = fixpoint_uv{}.y & ({} - 1);\n", texcoord,
-                tev_ind_wrap_start[u32(tevind.tw().Get()) - u32(IndTexWrap::ITW_256)]);
+                tev_ind_wrap_start[tevind.tw()]);
     }
 
     if (tevind.fb_addprev())  // add previous tevcoord

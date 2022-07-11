@@ -247,7 +247,7 @@ void PixelShaderManager::SetAlpha()
 {
   constants.alpha[0] = bpmem.alpha_test.ref0();
   constants.alpha[1] = bpmem.alpha_test.ref1();
-  constants.alpha[3] = static_cast<s32>(bpmem.dstalpha.alpha().Get());
+  constants.alpha[3] = bpmem.dstalpha.alpha();
   dirty = true;
 }
 
