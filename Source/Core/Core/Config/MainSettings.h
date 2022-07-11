@@ -350,4 +350,5 @@ std::string GetMemcardPath(ExpansionInterface::Slot slot, std::optional<DiscIO::
                            u16 size_mb = 0x80);
 std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::Slot slot,
                            std::optional<DiscIO::Region> region, u16 size_mb = 0x80);
+bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot);
 }  // namespace Config

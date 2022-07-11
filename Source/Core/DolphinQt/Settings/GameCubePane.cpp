@@ -300,14 +300,18 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
   {
   case ExpansionInterface::Slot::A:
   case ExpansionInterface::Slot::B:
+  {
     has_config = (device == ExpansionInterface::EXIDeviceType::MemoryCard ||
                   device == ExpansionInterface::EXIDeviceType::AGP ||
                   device == ExpansionInterface::EXIDeviceType::Microphone);
-    m_memcard_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::MemoryCard);
-    m_memcard_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::MemoryCard);
+    const bool hide_memory_card = device != ExpansionInterface::EXIDeviceType::MemoryCard ||
+                                  Config::IsDefaultMemcardPathConfigured(slot);
+    m_memcard_path_labels[slot]->setHidden(hide_memory_card);
+    m_memcard_paths[slot]->setHidden(hide_memory_card);
     m_agp_path_labels[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
     m_agp_paths[slot]->setHidden(device != ExpansionInterface::EXIDeviceType::AGP);
     break;
+  }
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
                   device == ExpansionInterface::EXIDeviceType::EthernetXLink ||

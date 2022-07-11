@@ -644,4 +644,9 @@ std::string GetMemcardPath(std::string configured_filename, ExpansionInterface::
                      Config::GetDirectoryForRegion(Config::ToGameCubeRegion(used_region)),
                      blocks_string, ext);
 }
+
+bool IsDefaultMemcardPathConfigured(ExpansionInterface::Slot slot)
+{
+  return Config::Get(GetInfoForMemcardPath(slot)).empty();
+}
 }  // namespace Config
