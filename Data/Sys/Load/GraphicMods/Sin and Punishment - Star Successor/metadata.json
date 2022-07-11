@@ -1,0 +1,27 @@
+{
+	"meta":
+	{
+		"title": "Bloom Texture Definitions",
+		"author": "Silent Hell"
+	},
+	"groups":
+	[
+		{
+			"name": "Bloom",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000142_38x28_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000143_19x14_6"
+				},
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000144_9x7_6"
+				}
+			]
+		}
+	]
+}
