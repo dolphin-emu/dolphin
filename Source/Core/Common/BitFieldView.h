@@ -27,6 +27,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // BitFieldView.h - A C++17 library
+// TODO: C++20 concepts sound like a good replacement for all of the type sanity static assertions.
 
 #pragma once
 
@@ -35,7 +36,8 @@
 #include <limits>       // std::numeric_limits
 #include <type_traits>  // std::make_unsigned, std::make_signed, std::is_integral, std::is_enum
 
-#include "Common/Assert.h"  // DEBUG_ASSERT
+#include "Common/Assert.h"    // DEBUG_ASSERT
+#include "Common/BitUtils.h"  // Common::BitCast
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Assertation helper classes
@@ -167,22 +169,6 @@ constexpr void SetBitField(const std::size_t start, const std::size_t width, hos
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Float host type specialization
 
-namespace detail
-{
-using intflt_t = std::int32_t;
-using uintflt_t = std::uint32_t;
-static_assert(sizeof(float) == sizeof(intflt_t));
-union UFloatBits
-{
-  float flt;
-  intflt_t sbits;
-  uintflt_t ubits;
-  explicit constexpr UFloatBits(float flt_) : flt(flt_) {}
-  explicit constexpr UFloatBits(intflt_t sbits_) : sbits(sbits_) {}
-  explicit constexpr UFloatBits(uintflt_t ubits_) : ubits(ubits_) {}
-};
-}  // namespace detail
-
 template <typename field_t, std::size_t start, std::size_t width>
 constexpr field_t GetBitFieldFixed(const float& host)
 {
@@ -192,15 +178,15 @@ constexpr field_t GetBitFieldFixed(const float& host)
   constexpr std::size_t rshift = 8 * sizeof(float) - width;
   constexpr std::size_t lshift = rshift - start;
 
-  detail::UFloatBits hostbits(host);
+  std::uint32_t hostbits = Common::BitCast<std::uint32_t>(host);
   if constexpr (std::is_signed_v<field_t>)
-    return static_cast<field_t>(static_cast<detail::intflt_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::int32_t>(hostbits << lshift) >> rshift);
   else
-    return static_cast<field_t>(static_cast<detail::uintflt_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::uint32_t>(hostbits << lshift) >> rshift);
 }
 
 template <typename field_t>
-constexpr field_t GetBitField(const std::size_t start, const std::size_t width, const float host)
+constexpr field_t GetBitField(const std::size_t start, const std::size_t width, const float& host)
 {
   AssertFieldTypeIsSane<field_t>();
   AssertBitFieldIsSane<field_t, float>(start, width);
@@ -208,11 +194,11 @@ constexpr field_t GetBitField(const std::size_t start, const std::size_t width, 
   const std::size_t rshift = 8 * sizeof(float) - width;
   const std::size_t lshift = rshift - start;
 
-  detail::UFloatBits hostbits(host);
+  std::uint32_t hostbits = Common::BitCast<std::uint32_t>(host);
   if constexpr (std::is_signed_v<field_t>)
-    return static_cast<field_t>(static_cast<detail::intflt_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::int32_t>(hostbits << lshift) >> rshift);
   else
-    return static_cast<field_t>(static_cast<detail::uintflt_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::uint32_t>(hostbits << lshift) >> rshift);
 }
 
 template <typename field_t, std::size_t start, std::size_t width>
@@ -221,13 +207,12 @@ constexpr void SetBitFieldFixed(float& host, const field_t val)
   AssertFieldTypeIsSane<field_t>();
   AssertBitFieldFixedIsSane<field_t, start, width, float>();
 
-  using detail::uintflt_t;
   constexpr std::size_t rshift = 8 * sizeof(float) - width;
-  constexpr uintflt_t mask = std::numeric_limits<uintflt_t>::max() >> rshift << start;
+  constexpr std::uint32_t mask = std::numeric_limits<std::uint32_t>::max() >> rshift << start;
 
-  detail::UFloatBits hostbits(host);
-  hostbits.ubits = (hostbits.ubits & ~mask) | ((static_cast<uintflt_t>(val) << start) & mask);
-  host = hostbits.flt;
+  std::uint32_t hostbits = Common::BitCast<std::uint32_t>(host);
+  hostbits = (hostbits & ~mask) | ((static_cast<std::uint32_t>(val) << start) & mask);
+  host = Common::BitCast<float>(hostbits);
 }
 
 template <typename field_t>
@@ -237,36 +222,19 @@ constexpr void SetBitField(const std::size_t start, const std::size_t width, flo
   AssertFieldTypeIsSane<field_t>();
   AssertBitFieldIsSane<field_t, float>(start, width);
 
-  using detail::uintflt_t;
   const std::size_t rshift = 8 * sizeof(float) - width;
-  const uintflt_t mask = std::numeric_limits<uintflt_t>::max() >> rshift << start;
+  const std::uint32_t mask = std::numeric_limits<std::uint32_t>::max() >> rshift << start;
 
-  detail::UFloatBits hostbits(host);
-  hostbits.ubits = (hostbits.ubits & ~mask) | ((static_cast<uintflt_t>(val) << start) & mask);
-  host = hostbits.flt;
+  std::uint32_t hostbits = Common::BitCast<std::uint32_t>(host);
+  hostbits = (hostbits & ~mask) | ((static_cast<std::uint32_t>(val) << start) & mask);
+  host = Common::BitCast<float>(hostbits);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Double host type specialization
 
-namespace detail
-{
-using intdbl_t = std::int64_t;
-using uintdbl_t = std::uint64_t;
-static_assert(sizeof(double) == sizeof(intdbl_t));
-union UDoubleBits
-{
-  double dbl;
-  intdbl_t sbits;
-  uintdbl_t ubits;
-  explicit constexpr UDoubleBits(double dbl_) : dbl(dbl_) {}
-  explicit constexpr UDoubleBits(intdbl_t sbits_) : sbits(sbits_) {}
-  explicit constexpr UDoubleBits(uintdbl_t ubits_) : ubits(ubits_) {}
-};
-}  // namespace detail
-
 template <typename field_t, std::size_t start, std::size_t width>
-constexpr field_t GetBitFieldFixed(const double host)
+constexpr field_t GetBitFieldFixed(const double& host)
 {
   AssertFieldTypeIsSane<field_t>();
   AssertBitFieldFixedIsSane<field_t, start, width, double>();
@@ -274,15 +242,15 @@ constexpr field_t GetBitFieldFixed(const double host)
   constexpr std::size_t rshift = 8 * sizeof(double) - width;
   constexpr std::size_t lshift = rshift - start;
 
-  detail::UDoubleBits hostbits(host);
+  std::uint64_t hostbits = Common::BitCast<std::uint64_t>(host);
   if constexpr (std::is_signed_v<field_t>)
-    return static_cast<field_t>(static_cast<detail::intdbl_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::int64_t>(hostbits << lshift) >> rshift);
   else
-    return static_cast<field_t>(static_cast<detail::uintdbl_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::uint64_t>(hostbits << lshift) >> rshift);
 }
 
 template <typename field_t>
-constexpr field_t GetBitField(const std::size_t start, const std::size_t width, const double host)
+constexpr field_t GetBitField(const std::size_t start, const std::size_t width, const double& host)
 {
   AssertFieldTypeIsSane<field_t>();
   AssertBitFieldIsSane<field_t, double>(start, width);
@@ -290,11 +258,11 @@ constexpr field_t GetBitField(const std::size_t start, const std::size_t width, 
   const std::size_t rshift = 8 * sizeof(double) - width;
   const std::size_t lshift = rshift - start;
 
-  detail::UDoubleBits hostbits(host);
+  std::uint64_t hostbits = Common::BitCast<std::uint64_t>(host);
   if constexpr (std::is_signed_v<field_t>)
-    return static_cast<field_t>(static_cast<detail::intdbl_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::int64_t>(hostbits << lshift) >> rshift);
   else
-    return static_cast<field_t>(static_cast<detail::uintdbl_t>(hostbits.ubits << lshift) >> rshift);
+    return static_cast<field_t>(static_cast<std::uint64_t>(hostbits << lshift) >> rshift);
 }
 
 template <typename field_t, std::size_t start, std::size_t width>
@@ -303,13 +271,12 @@ constexpr void SetBitFieldFixed(double& host, const field_t val)
   AssertFieldTypeIsSane<field_t>();
   AssertBitFieldFixedIsSane<field_t, start, width, double>();
 
-  using detail::uintdbl_t;
   constexpr std::size_t rshift = 8 * sizeof(double) - width;
-  constexpr uintdbl_t mask = std::numeric_limits<uintdbl_t>::max() >> rshift << start;
+  constexpr std::uint64_t mask = std::numeric_limits<std::uint64_t>::max() >> rshift << start;
 
-  detail::UDoubleBits hostbits(host);
-  hostbits.ubits = (hostbits.ubits & ~mask) | ((static_cast<uintdbl_t>(val) << start) & mask);
-  host = hostbits.dbl;
+  std::uint64_t hostbits = Common::BitCast<std::uint64_t>(host);
+  hostbits = (hostbits & ~mask) | ((static_cast<std::uint64_t>(val) << start) & mask);
+  host = Common::BitCast<double>(hostbits);
 }
 
 template <typename field_t>
@@ -319,13 +286,12 @@ constexpr void SetBitField(const std::size_t start, const std::size_t width, dou
   AssertFieldTypeIsSane<field_t>();
   AssertBitFieldIsSane<field_t, double>(start, width);
 
-  using detail::uintdbl_t;
   const std::size_t rshift = 8 * sizeof(double) - width;
-  const uintdbl_t mask = std::numeric_limits<uintdbl_t>::max() >> rshift << start;
+  const std::uint64_t mask = std::numeric_limits<std::uint64_t>::max() >> rshift << start;
 
-  detail::UDoubleBits hostbits(host);
-  hostbits.ubits = (hostbits.ubits & ~mask) | ((static_cast<uintdbl_t>(val) << start) & mask);
-  host = hostbits.dbl;
+  std::uint64_t hostbits = Common::BitCast<std::uint64_t>(host);
+  hostbits = (hostbits & ~mask) | ((static_cast<std::uint64_t>(val) << start) & mask);
+  host = Common::BitCast<double>(hostbits);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

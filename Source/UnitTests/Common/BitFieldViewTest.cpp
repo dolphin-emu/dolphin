@@ -550,7 +550,7 @@ TEST(BitFieldViewArray, StorageType)
 union TestStruct6
 {
   float flt;
-  detail::uintflt_t hex;
+  u32 hex;
 
   BFVIEW_M(flt, u32, 0, 23, mantissa);
   BFVIEW_M(flt, u8, 23, 8, exponent);
@@ -605,7 +605,7 @@ TEST(BitFieldViewArray, FloatHost)
 union TestStruct7
 {
   double dbl;
-  detail::uintdbl_t hex;
+  u64 hex;
 
   BFVIEW_M(dbl, u64, 0, 52, mantissa);
   BFVIEW_M(dbl, u16, 52, 11, exponent);
