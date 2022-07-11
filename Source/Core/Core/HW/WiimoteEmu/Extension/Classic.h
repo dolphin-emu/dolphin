@@ -111,15 +111,15 @@ public:
 
     u32 _data1;  // byte 0, 1, 2, 3
 
-    BFVIEW_M(_data1, u32, 0, 6, lx);
-    BFVIEW_M(_data1, u32, 6, 2, rx3);
-    BFVIEW_M(_data1, u32, 8, 6, ly);
-    BFVIEW_M(_data1, u32, 14, 2, rx2);
-    BFVIEW_M(_data1, u32, 16, 5, ry);
-    BFVIEW_M(_data1, u32, 21, 2, lt2);
-    BFVIEW_M(_data1, u32, 23, 1, rx1);
-    BFVIEW_M(_data1, u32, 24, 5, rt);
-    BFVIEW_M(_data1, u32, 29, 3, lt1);
+    BFVIEW_M(_data1, u8, 0, 6, lx);
+    BFVIEW_M(_data1, u8, 6, 2, rx3);
+    BFVIEW_M(_data1, u8, 8, 6, ly);
+    BFVIEW_M(_data1, u8, 14, 2, rx2);
+    BFVIEW_M(_data1, u8, 16, 5, ry);
+    BFVIEW_M(_data1, u8, 21, 2, lt2);
+    BFVIEW_M(_data1, u8, 23, 1, rx1);
+    BFVIEW_M(_data1, u8, 24, 5, rt);
+    BFVIEW_M(_data1, u8, 29, 3, lt1);
 
     ButtonFormat bt;  // byte 4, 5
   };
