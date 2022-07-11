@@ -509,7 +509,7 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
   std::string format;
   for (size_t i = 0; i < 16; ++i)
   {
-    format.push_back(Common::ExtractBit(x, 15 - i) ? '1' : '0');
+    format.push_back(Common::ExtractBit(15 - i, x) ? '1' : '0');
   }
   return format;
 }
@@ -523,7 +523,7 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
   std::string speed;
   for (size_t i = 0; i < 16; ++i)
   {
-    speed.push_back(Common::ExtractBit(x, 15 - i) ? '1' : '0');
+    speed.push_back(Common::ExtractBit(15 - i, x) ? '1' : '0');
   }
   return speed;
 }

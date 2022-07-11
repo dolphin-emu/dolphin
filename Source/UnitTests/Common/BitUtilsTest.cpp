@@ -40,21 +40,87 @@ TEST(BitUtils, ExtractBits)
   //       mangling the template function usages.
 
   constexpr s32 two_hundred_four_signed = 0b0011001100;
-  EXPECT_EQ((Common::ExtractBits<2, 3>(two_hundred_four_signed)), 3u);
-  EXPECT_EQ((Common::ExtractBits<2, 7>(two_hundred_four_signed)), 51u);
-  EXPECT_EQ((Common::ExtractBits<3, 6>(two_hundred_four_signed)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<2, 2>(two_hundred_four_signed)), 3u);
+  EXPECT_EQ((Common::ExtractBitsU<2, 6>(two_hundred_four_signed)), 51u);
+  EXPECT_EQ((Common::ExtractBitsU<3, 4>(two_hundred_four_signed)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<5, 5>(two_hundred_four_signed)), 6u);
+  EXPECT_EQ((Common::ExtractBitsS<2, 2>(two_hundred_four_signed)), -1);
+  EXPECT_EQ((Common::ExtractBitsS<2, 6>(two_hundred_four_signed)), -13);
+  EXPECT_EQ((Common::ExtractBitsS<3, 4>(two_hundred_four_signed)), -7);
+  EXPECT_EQ((Common::ExtractBitsS<5, 5>(two_hundred_four_signed)), 6);
 
   constexpr u32 two_hundred_four_unsigned = 0b0011001100;
-  EXPECT_EQ((Common::ExtractBits<2, 3>(two_hundred_four_unsigned)), 3u);
-  EXPECT_EQ((Common::ExtractBits<2, 7>(two_hundred_four_unsigned)), 51u);
-  EXPECT_EQ((Common::ExtractBits<3, 6>(two_hundred_four_unsigned)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<2, 2>(two_hundred_four_unsigned)), 3u);
+  EXPECT_EQ((Common::ExtractBitsU<2, 6>(two_hundred_four_unsigned)), 51u);
+  EXPECT_EQ((Common::ExtractBitsU<3, 4>(two_hundred_four_unsigned)), 9u);
+  EXPECT_EQ((Common::ExtractBitsU<5, 5>(two_hundred_four_unsigned)), 6u);
+  EXPECT_EQ((Common::ExtractBitsS<2, 2>(two_hundred_four_unsigned)), -1);
+  EXPECT_EQ((Common::ExtractBitsS<2, 6>(two_hundred_four_unsigned)), -13);
+  EXPECT_EQ((Common::ExtractBitsS<3, 4>(two_hundred_four_unsigned)), -7);
+  EXPECT_EQ((Common::ExtractBitsS<5, 5>(two_hundred_four_unsigned)), 6);
 
-  // Ensure bit extraction remains sign-independent even when signed types are used.
+  // Ensure the identity operation remains sign-independent.
   constexpr s32 negative_one = -1;
-  EXPECT_EQ((Common::ExtractBits<0, 31>(negative_one)), 0xFFFFFFFFU);
+  constexpr u32 unsigned_max = 0xFFFFFFFFU;
+  EXPECT_EQ((Common::ExtractBitsU<0, 32>(negative_one)), 0xFFFFFFFFU);
+  EXPECT_EQ((Common::ExtractBitsU<0, 32>(unsigned_max)), 0xFFFFFFFFU);
+  EXPECT_EQ((Common::ExtractBitsS<0, 32>(negative_one)), -1);
+  EXPECT_EQ((Common::ExtractBitsS<0, 32>(unsigned_max)), -1);
+}
 
-  // Ensure bit extraction with type overriding works as expected
-  EXPECT_EQ((Common::ExtractBits<0, 31, s32, s32>(negative_one)), -1);
+TEST(BitUtils, InsertBit)
+{
+  u32 host = 0;
+
+  Common::InsertBit<2>(host, true);
+  EXPECT_EQ(host, 0b0000000'1'00u);
+  Common::InsertBit<4>(host, true);
+  EXPECT_EQ(host, 0b00000'1'0100u);
+  Common::InsertBit<2>(host, true);  // true over true
+  EXPECT_EQ(host, 0b0000010'1'00u);
+  Common::InsertBit<2>(host, false);
+  EXPECT_EQ(host, 0b0000010'0'00u);
+  Common::InsertBit<4>(host, false);
+  EXPECT_EQ(host, 0b00000'0'0000u);
+  Common::InsertBit<2>(host, false);  // false over false
+  EXPECT_EQ(host, 0b0000000'0'00u);
+}
+
+TEST(BitUtils, InsertBits)
+{
+  u32 host;
+
+  host = 0;
+  // A typical field, a field larger than the value, and overwriting bits with 1s
+  Common::InsertBits<2, 2>(host, 3u);
+  EXPECT_EQ(host, 0b000000'11'00u);
+  Common::InsertBits<2, 2 + 4>(host, 3u);
+  EXPECT_EQ(host, 0b00'000011'00u);
+  Common::InsertBits<1, 8>(host, 255u);
+  EXPECT_EQ(host, 0b0'11111111'0u);
+
+  host = 0;
+  // Overflow by 1 (same as writing 0s)
+  Common::InsertBits<1, 8>(host, 256u);
+  EXPECT_EQ(host, 0b0'00000000'0u);
+
+  enum class TestEnum
+  {
+    A = 5,
+    B = 12,
+    C = -7,
+  };
+
+  host = 0;
+  // Negative value and enum values
+  Common::InsertBits<1, 6>(host, -7);
+  EXPECT_EQ(host, 0b000'111001'0u);
+  Common::InsertBits<1, 6>(host, TestEnum::A);
+  EXPECT_EQ(host, 0b000'000101'0u);
+  Common::InsertBits<1, 6>(host, TestEnum::B);
+  EXPECT_EQ(host, 0b000'001100'0u);
+  Common::InsertBits<1, 6>(host, TestEnum::C);
+  EXPECT_EQ(host, 0b000'111001'0u);
 }
 
 TEST(BitUtils, RotateLeft)
