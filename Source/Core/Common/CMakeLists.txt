@@ -3,6 +3,7 @@ add_library(common
   Analytics.h
   Assert.h
   BitField.h
+  BitFieldView.h
   BitSet.h
   BitUtils.h
   BlockingLoop.h
@@ -17,6 +18,7 @@ add_library(common
   CommonFuncs.h
   CommonPaths.h
   CommonTypes.h
+  Concepts.h
   Config/Config.cpp
   Config/Config.h
   Config/ConfigInfo.cpp

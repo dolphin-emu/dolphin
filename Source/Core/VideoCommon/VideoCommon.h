@@ -128,7 +128,7 @@ inline u32 CompressZ16(u32 z24depth, DepthFormat format)
   u32 bottom = top - mantissa_bits;
 
   u32 exponent = leading_ones << mantissa_bits;  // Upper bits contain exponent
-  u32 mantissa = Common::ExtractBits(z24depth, bottom, top - 1);
+  u32 mantissa = Common::ExtractBitsU(z24depth, bottom, mantissa_bits);
 
   return exponent | mantissa;
 }
