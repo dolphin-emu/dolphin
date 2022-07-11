@@ -121,10 +121,10 @@ void Preset(bool _bNTSC)
   m_VerticalTimingRegister.EQU() = 6;
   m_VerticalTimingRegister.ACV() = 0;
 
-  m_DisplayControlRegister.ENB() = 1;
-  m_DisplayControlRegister.RST() = 0;
-  m_DisplayControlRegister.NIN() = 0;
-  m_DisplayControlRegister.DLR() = 0;
+  m_DisplayControlRegister.ENB() = true;
+  m_DisplayControlRegister.RST() = false;
+  m_DisplayControlRegister.NIN() = false;
+  m_DisplayControlRegister.DLR() = false;
   m_DisplayControlRegister.LE0() = 0;
   m_DisplayControlRegister.LE1() = 0;
   m_DisplayControlRegister.FMT() = _bNTSC ? 0 : 1;
@@ -157,12 +157,12 @@ void Preset(bool _bNTSC)
 
   m_InterruptRegister[0].HCT() = 430;
   m_InterruptRegister[0].VCT() = 263;
-  m_InterruptRegister[0].IR_MASK() = 1;
-  m_InterruptRegister[0].IR_INT() = 0;
+  m_InterruptRegister[0].IR_MASK() = true;
+  m_InterruptRegister[0].IR_INT() = false;
   m_InterruptRegister[1].HCT() = 1;
   m_InterruptRegister[1].VCT() = 1;
-  m_InterruptRegister[1].IR_MASK() = 1;
-  m_InterruptRegister[1].IR_INT() = 0;
+  m_InterruptRegister[1].IR_MASK() = true;
+  m_InterruptRegister[1].IR_INT() = false;
   m_InterruptRegister[2].Hex = 0;
   m_InterruptRegister[3].Hex = 0;
 
@@ -940,8 +940,8 @@ void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height)
     fb_stride = fb_stride * 2;
   }
 
-  m_XFBInfoTop.POFF() = 1;
-  m_XFBInfoBottom.POFF() = 1;
+  m_XFBInfoTop.POFF() = true;
+  m_XFBInfoBottom.POFF() = true;
   m_VerticalTimingRegister.ACV() = fb_height;
   m_VerticalTimingRegister.EQU() = 6;
   m_VBlankTimingOdd.PRB() = 502 - fb_height * 2;
