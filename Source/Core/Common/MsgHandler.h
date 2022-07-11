@@ -41,7 +41,11 @@ bool MsgAlertFmt(bool yes_no, MsgType style, Common::Log::LogType log_type, cons
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
+#if FMT_VERSION >= 90000
+  static_assert(fmt::detail::is_compile_string<S>::value);
+#else
   static_assert(fmt::is_compile_string<S>::value);
+#endif
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, format,
                          fmt::make_format_args(args...));
 }
@@ -56,7 +60,11 @@ bool MsgAlertFmtT(bool yes_no, MsgType style, Common::Log::LogType log_type, con
   static_assert(NumFields == sizeof...(args),
                 "Unexpected number of replacement fields in format string; did you pass too few or "
                 "too many arguments?");
+#if FMT_VERSION >= 90000
+  static_assert(fmt::detail::is_compile_string<S>::value);
+#else
   static_assert(fmt::is_compile_string<S>::value);
+#endif
   auto arg_list = fmt::make_format_args(args...);
   return MsgAlertFmtImpl(yes_no, style, log_type, file, line, translated_format, arg_list);
 }
