@@ -84,8 +84,8 @@ option(OPROFILING "Enable profiling" OFF)
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
-# Enable SDL for default on operating systems that aren't Android, Linux or Windows.
-if(NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT MSVC)
+# Enable SDL for default on operating systems that aren't Android or Linux.
+if(NOT ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
   option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
 else()
   option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)
@@ -610,6 +610,23 @@ if(UNIX)
   add_definitions(-DUSE_PIPES=1)
   message(STATUS "Watching game memory for changes")
   add_definitions(-DUSE_MEMORYWATCHER=1)
+endif()
+
+if(ENABLE_SDL)
+  find_package(SDL2)
+
+  if(SDL2_FOUND)
+    message(STATUS "Using system SDL2")
+  else()
+    message(STATUS "Using static SDL2 from Externals")
+    set(SDL_SHARED OFF)
+    set(SDL_SHARED_ENABLED_BY_DEFAULT OFF)
+    set(SDL_STATIC ON)
+    set(SDL_STATIC_ENABLED_BY_DEFAULT ON)
+    add_subdirectory(Externals/SDL/SDL)
+    set(SDL2_FOUND TRUE)
+  endif()
+  add_definitions(-DHAVE_SDL2=1)
 endif()
 
 if(ENABLE_ANALYTICS)
