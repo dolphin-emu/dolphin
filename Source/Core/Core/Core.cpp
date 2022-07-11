@@ -25,6 +25,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FPURoundMode.h"
+#include "Common/FatFsUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
@@ -494,6 +495,16 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   const std::optional<std::string>& savestate_path = boot_session_data.GetSavestatePath();
   const bool delete_savestate =
       boot_session_data.GetDeleteSavestate() == DeleteSavestateAfterBoot::Yes;
+
+  bool sync_sd_folder = core_parameter.bWii && Config::Get(Config::MAIN_WII_SD_CARD) &&
+                        Config::Get(Config::MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC);
+  if (sync_sd_folder)
+    sync_sd_folder = Common::SyncSDFolderToSDImage(Core::WantsDeterminism());
+
+  Common::ScopeGuard sd_folder_sync_guard{[sync_sd_folder] {
+    if (sync_sd_folder && Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+      Common::SyncSDImageToSDFolder();
+  }};
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   bool init_wiimotes = false;
