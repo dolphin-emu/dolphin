@@ -264,6 +264,9 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
 void VideoBackendBase::PopulateBackendInfo()
 {
   g_Config.Refresh();
+  // Reset backend_info so if the backend forgets to initialize something it doesn't end up using
+  // a value from the previously used renderer
+  g_Config.backend_info = {};
   ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
   g_video_backend->InitBackendInfo();
   // We validate the config after initializing the backend info, as system-specific settings
