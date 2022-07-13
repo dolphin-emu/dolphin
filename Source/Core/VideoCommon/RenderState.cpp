@@ -185,6 +185,7 @@ void BlendingState::ApproximateLogicOpWithBlending()
 {
   struct LogicOpApproximation
   {
+    bool blendEnable;
     bool subtract;
     SrcBlendFactor srcfactor;
     DstBlendFactor dstfactor;
@@ -193,31 +194,69 @@ void BlendingState::ApproximateLogicOpWithBlending()
   // but INVSRCCLR and INVDSTCLR were also aliased and were mixed.
   // Thus, NOR, EQUIV, INVERT, COPY_INVERTED, and OR_INVERTED duplicate(d) other values.
   static constexpr std::array<LogicOpApproximation, 16> approximations = {{
-      {false, SrcBlendFactor::Zero, DstBlendFactor::Zero},            // CLEAR
-      {false, SrcBlendFactor::DstClr, DstBlendFactor::Zero},          // AND
-      {true, SrcBlendFactor::One, DstBlendFactor::InvSrcClr},         // AND_REVERSE
-      {false, SrcBlendFactor::One, DstBlendFactor::Zero},             // COPY
-      {true, SrcBlendFactor::DstClr, DstBlendFactor::One},            // AND_INVERTED
-      {false, SrcBlendFactor::Zero, DstBlendFactor::One},             // NOOP
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // XOR
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},        // OR
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // NOR
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::Zero},       // EQUIV
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // INVERT
-      {false, SrcBlendFactor::One, DstBlendFactor::InvDstAlpha},      // OR_REVERSE
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // COPY_INVERTED
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},        // OR_INVERTED
-      {false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},  // NAND
-      {false, SrcBlendFactor::One, DstBlendFactor::One},              // SET
+      // clang-format off
+      {false, false, SrcBlendFactor::One,       DstBlendFactor::Zero},        // CLEAR (Shader outputs 0)
+      {true,  false, SrcBlendFactor::DstClr,    DstBlendFactor::Zero},        // AND
+      {true,  true,  SrcBlendFactor::One,       DstBlendFactor::InvSrcClr},   // AND_REVERSE
+      {false, false, SrcBlendFactor::One,       DstBlendFactor::Zero},        // COPY
+      {true,  true,  SrcBlendFactor::DstClr,    DstBlendFactor::One},         // AND_INVERTED
+      {true,  false, SrcBlendFactor::Zero,      DstBlendFactor::One},         // NOOP
+      {true,  false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},   // XOR
+      {true,  false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},         // OR
+      {true,  false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},   // NOR
+      {true,  false, SrcBlendFactor::InvDstClr, DstBlendFactor::Zero},        // EQUIV
+      {true,  false, SrcBlendFactor::InvDstClr, DstBlendFactor::Zero},        // INVERT (Shader outputs 255)
+      {true,  false, SrcBlendFactor::One,       DstBlendFactor::InvDstAlpha}, // OR_REVERSE
+      {false, false, SrcBlendFactor::One,       DstBlendFactor::Zero},        // COPY_INVERTED (Shader inverts)
+      {true,  false, SrcBlendFactor::InvDstClr, DstBlendFactor::One},         // OR_INVERTED
+      {true,  false, SrcBlendFactor::InvDstClr, DstBlendFactor::InvSrcClr},   // NAND
+      {false, false, SrcBlendFactor::One,       DstBlendFactor::Zero},        // SET (Shader outputs 255)
+      // clang-format on
   }};
 
   logicopenable = false;
-  blendenable = true;
-  subtract = approximations[u32(logicmode.Value())].subtract;
-  srcfactor = approximations[u32(logicmode.Value())].srcfactor;
-  srcfactoralpha = approximations[u32(logicmode.Value())].srcfactor;
-  dstfactor = approximations[u32(logicmode.Value())].dstfactor;
-  dstfactoralpha = approximations[u32(logicmode.Value())].dstfactor;
+  usedualsrc = false;
+  const LogicOpApproximation& approximation = approximations[static_cast<u32>(logicmode.Value())];
+  if (approximation.blendEnable)
+  {
+    blendenable = true;
+    subtract = approximation.subtract;
+    srcfactor = approximation.srcfactor;
+    srcfactoralpha = approximation.srcfactor;
+    dstfactor = approximation.dstfactor;
+    dstfactoralpha = approximation.dstfactor;
+  }
+}
+
+bool BlendingState::LogicOpApproximationIsExact()
+{
+  switch (logicmode.Value())
+  {
+  case LogicOp::Clear:
+  case LogicOp::Set:
+  case LogicOp::NoOp:
+  case LogicOp::Invert:
+  case LogicOp::CopyInverted:
+  case LogicOp::Copy:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool BlendingState::LogicOpApproximationWantsShaderHelp()
+{
+  switch (logicmode.Value())
+  {
+  case LogicOp::Clear:
+  case LogicOp::Set:
+  case LogicOp::NoOp:
+  case LogicOp::Invert:
+  case LogicOp::CopyInverted:
+    return true;
+  default:
+    return false;
+  }
 }
 
 void SamplerState::Generate(const BPMemory& bp, u32 index)
