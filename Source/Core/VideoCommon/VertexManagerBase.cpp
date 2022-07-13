@@ -789,6 +789,16 @@ void VertexManagerBase::OnDraw()
 {
   m_draw_counter++;
 
+  // If the last efb copy was too close to the one before it, don't forget about it until the next
+  // efb copy happens (which might not be for a long time)
+  u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
+  if (m_unflushed_efb_copy && diff > MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
+  {
+    g_renderer->Flush();
+    m_unflushed_efb_copy = false;
+    m_last_efb_copy_draw_counter = m_draw_counter;
+  }
+
   // If we didn't have any CPU access last frame, do nothing.
   if (m_scheduled_command_buffer_kicks.empty() || !m_allow_background_execution)
     return;
@@ -800,6 +810,8 @@ void VertexManagerBase::OnDraw()
   {
     // Kick a command buffer on the background thread.
     g_renderer->Flush();
+    m_unflushed_efb_copy = false;
+    m_last_efb_copy_draw_counter = m_draw_counter;
   }
 }
 
@@ -826,8 +838,12 @@ void VertexManagerBase::OnEFBCopyToRAM()
   const u32 diff = m_draw_counter - m_last_efb_copy_draw_counter;
   m_last_efb_copy_draw_counter = m_draw_counter;
   if (diff < MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
+  {
+    m_unflushed_efb_copy = true;
     return;
+  }
 
+  m_unflushed_efb_copy = false;
   g_renderer->Flush();
 }
 
