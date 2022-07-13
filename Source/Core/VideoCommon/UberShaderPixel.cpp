@@ -1086,6 +1086,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     }
 
     out.Write("    }}\n"
+              "    TevResult &= 0xff;\n"
               "  }}\n");
   }
 
