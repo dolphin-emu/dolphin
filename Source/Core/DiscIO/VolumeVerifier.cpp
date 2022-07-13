@@ -1151,6 +1151,8 @@ void VolumeVerifier::Process()
       excess_bytes = 0;
     else
       excess_bytes -= bytes_over_max;
+    content_read = false;
+    group_read = false;
   }
 
   const bool is_data_needed = m_calculating_any_hash || content_read || group_read;
