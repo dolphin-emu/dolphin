@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitFieldView.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -28,40 +29,6 @@ enum class DrumsGroup
 class Drums : public Extension1stParty
 {
 public:
-  struct DataFormat
-  {
-    u8 stick_x : 6;
-    // Seemingly random.
-    u8 unk1 : 2;
-
-    u8 stick_y : 6;
-    // Seemingly random.
-    u8 unk2 : 2;
-
-    // Always 1 with no velocity data and seemingly random otherwise.
-    u8 unk3 : 1;
-    // For which "pad" the velocity data is for.
-    u8 velocity_id : 7;
-
-    // Always 1 with no velocity data and seemingly random otherwise.
-    u8 unk4 : 1;
-    // 1 with no velocity data and 0 when velocity data is present.
-    u8 no_velocity_data_1 : 1;
-    // These two bits seem to always be set. (0b11)
-    u8 unk5 : 2;
-    // 1 with no velocity data and 0 when velocity data is present.
-    u8 no_velocity_data_2 : 1;
-    // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
-    u8 softness : 3;
-
-    // Button bits.
-    u8 buttons;
-
-    // Drum-pad bits.
-    u8 drum_pads;
-  };
-  static_assert(sizeof(DataFormat) == 6, "Wrong size");
-
   enum class VelocityID : u8
   {
     None = 0b1111111,
@@ -74,6 +41,44 @@ public:
     Orange = 0b1001110,
     Green = 0b1010010,
   };
+
+#pragma pack(push, 1)
+  struct DataFormat
+  {
+    u32 _data1;
+
+    BFVIEW_IN(_data1, u8, 0, 6, stick_x);
+    // Seemingly random.
+    BFVIEW_IN(_data1, u8, 6, 2, unk1);
+
+    BFVIEW_IN(_data1, u8, 8, 6, stick_y);
+    // Seemingly random.
+    BFVIEW_IN(_data1, u8, 14, 2, unk2);
+
+    // Always 1 with no velocity data and seemingly random otherwise.
+    BFVIEW_IN(_data1, u8, 16, 1, unk3);
+    // For which "pad" the velocity data is for.
+    BFVIEW_IN(_data1, VelocityID, 17, 7, velocity_id);
+
+    // Always 1 with no velocity data and seemingly random otherwise.
+    BFVIEW_IN(_data1, u8, 24, 1, unk4);
+    // 1 with no velocity data and 0 when velocity data is present.
+    BFVIEW_IN(_data1, bool, 25, 1, no_velocity_data_1);
+    // These two bits seem to always be set. (0b11)
+    BFVIEW_IN(_data1, u8, 26, 2, unk5);
+    // 1 with no velocity data and 0 when velocity data is present.
+    BFVIEW_IN(_data1, bool, 28, 1, no_velocity_data_2);
+    // How "soft" a drum pad has been hit as a range from 0:very-hard to 7:very-soft.
+    BFVIEW_IN(_data1, u8, 29, 3, softness);
+
+    // Button bits.
+    u8 buttons;
+
+    // Drum-pad bits.
+    u8 drum_pads;
+  };
+#pragma pack(pop)
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   Drums();
 

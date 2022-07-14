@@ -5,6 +5,7 @@
 
 #include <limits>
 
+#include "Common/BitFieldView.h"
 #include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
@@ -31,30 +32,25 @@ enum class ClassicGroup
 class Classic : public Extension1stParty
 {
 public:
-  union ButtonFormat
+  struct ButtonFormat
   {
     u16 hex;
 
-    struct
-    {
-      u8 : 1;
-      u8 rt : 1;  // right trigger
-      u8 plus : 1;
-      u8 home : 1;
-      u8 minus : 1;
-      u8 lt : 1;  // left trigger
-      u8 dpad_down : 1;
-      u8 dpad_right : 1;
-
-      u8 dpad_up : 1;
-      u8 dpad_left : 1;
-      u8 zr : 1;
-      u8 x : 1;
-      u8 a : 1;
-      u8 y : 1;
-      u8 b : 1;
-      u8 zl : 1;  // left z button
-    };
+    BFVIEW(bool, 1, 1, rt);  // right trigger
+    BFVIEW(bool, 2, 1, plus);
+    BFVIEW(bool, 3, 1, home);
+    BFVIEW(bool, 4, 1, minus);
+    BFVIEW(bool, 5, 1, lt);  // left trigger
+    BFVIEW(bool, 6, 1, dpad_down);
+    BFVIEW(bool, 7, 1, dpad_right);
+    BFVIEW(bool, 8, 1, dpad_up);
+    BFVIEW(bool, 9, 1, dpad_left);
+    BFVIEW(bool, 10, 1, zr);
+    BFVIEW(bool, 11, 1, x);
+    BFVIEW(bool, 12, 1, a);
+    BFVIEW(bool, 13, 1, y);
+    BFVIEW(bool, 14, 1, b);
+    BFVIEW(bool, 15, 1, zl);  // left z button
   };
   static_assert(sizeof(ButtonFormat) == 2, "Wrong size");
 
@@ -62,6 +58,7 @@ public:
   static constexpr int RIGHT_STICK_BITS = 5;
   static constexpr int TRIGGER_BITS = 5;
 
+#pragma pack(push, 1)
   struct DataFormat
   {
     using StickType = Common::TVec2<u8>;
@@ -71,34 +68,48 @@ public:
     using TriggerType = u8;
     using TriggerRawValue = ControllerEmu::RawValue<TriggerType, TRIGGER_BITS>;
 
+    u32 _data1;  // byte 0, 1, 2, 3
+
+    BFVIEW_IN(_data1, u8, 0, 6, lx);
+    BFVIEW_IN(_data1, u8, 6, 2, rx3);
+    BFVIEW_IN(_data1, u8, 8, 6, ly);
+    BFVIEW_IN(_data1, u8, 14, 2, rx2);
+    BFVIEW_IN(_data1, u8, 16, 5, ry);
+    BFVIEW_IN(_data1, u8, 21, 2, lt2);
+    BFVIEW_IN(_data1, u8, 23, 1, rx1);
+    BFVIEW_IN(_data1, u8, 24, 5, rt);
+    BFVIEW_IN(_data1, u8, 29, 3, lt1);
+
+    ButtonFormat bt;  // byte 4, 5
+
     // 6-bit X and Y values (0-63)
-    auto GetLeftStick() const { return LeftStickRawValue{StickType(lx, ly)}; };
+    auto GetLeftStick() const { return LeftStickRawValue{StickType(lx(), ly())}; };
     void SetLeftStick(const StickType& value)
     {
-      lx = value.x;
-      ly = value.y;
+      lx() = value.x;
+      ly() = value.y;
     }
     // 5-bit X and Y values (0-31)
     auto GetRightStick() const
     {
-      return RightStickRawValue{StickType(rx1 | rx2 << 1 | rx3 << 3, ry)};
+      return RightStickRawValue{StickType(rx1() | rx2() << 1 | rx3() << 3, ry())};
     };
     void SetRightStick(const StickType& value)
     {
-      rx1 = value.x & 0b1;
-      rx2 = (value.x >> 1) & 0b11;
-      rx3 = (value.x >> 3) & 0b11;
-      ry = value.y;
+      rx1() = value.x & 0b1;
+      rx2() = (value.x >> 1) & 0b11;
+      rx3() = (value.x >> 3) & 0b11;
+      ry() = value.y;
     }
     // 5-bit values (0-31)
-    auto GetLeftTrigger() const { return TriggerRawValue(lt1 | lt2 << 3); }
+    auto GetLeftTrigger() const { return TriggerRawValue(lt1() | lt2() << 3); }
     void SetLeftTrigger(TriggerType value)
     {
-      lt1 = value & 0b111;
-      lt2 = (value >> 3) & 0b11;
+      lt1() = value & 0b111;
+      lt2() = (value >> 3) & 0b11;
     }
-    auto GetRightTrigger() const { return TriggerRawValue(rt); }
-    void SetRightTrigger(TriggerType value) { rt = value; }
+    auto GetRightTrigger() const { return TriggerRawValue(rt()); }
+    void SetRightTrigger(TriggerType value) { rt() = value; }
 
     u16 GetButtons() const
     {
@@ -111,22 +122,8 @@ public:
       // 0 == pressed.
       bt.hex = ~value;
     }
-
-    u8 lx : 6;  // byte 0
-    u8 rx3 : 2;
-
-    u8 ly : 6;  // byte 1
-    u8 rx2 : 2;
-
-    u8 ry : 5;
-    u8 lt2 : 2;
-    u8 rx1 : 1;
-
-    u8 rt : 5;
-    u8 lt1 : 3;
-
-    ButtonFormat bt;  // byte 4, 5
   };
+#pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   static constexpr int CAL_STICK_BITS = 8;

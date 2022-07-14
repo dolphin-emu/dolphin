@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/BitFieldView.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -30,22 +31,23 @@ enum class GuitarGroup
 class Guitar : public Extension1stParty
 {
 public:
+#pragma pack(push, 1)
   struct DataFormat
   {
-    u8 sx : 6;
-    u8 pad1 : 2;  // 1 on gh3, 0 on ghwt
+    u32 _data1;
 
-    u8 sy : 6;
-    u8 pad2 : 2;  // 1 on gh3, 0 on ghwt
-
-    u8 sb : 5;    // not used in gh3
-    u8 pad3 : 3;  // always 0
-
-    u8 whammy : 5;
-    u8 pad4 : 3;  // always 0
+    BFVIEW_IN(_data1, u8, 0, 6, sx);
+    BFVIEW_IN(_data1, u8, 6, 2, pad1);  // 1 on gh3, 0 on ghwt
+    BFVIEW_IN(_data1, u8, 8, 6, sy);
+    BFVIEW_IN(_data1, u8, 14, 2, pad2);  // 1 on gh3, 0 on ghwt
+    BFVIEW_IN(_data1, u8, 16, 5, sb);    // not used in gh3
+    BFVIEW_IN(_data1, u8, 21, 3, pad3);  // always 0
+    BFVIEW_IN(_data1, u8, 24, 5, whammy);
+    BFVIEW_IN(_data1, u8, 29, 3, pad4);  // always 0
 
     u16 bt;  // buttons
   };
+#pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   Guitar();

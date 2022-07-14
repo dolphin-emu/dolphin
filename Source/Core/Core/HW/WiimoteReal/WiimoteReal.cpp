@@ -226,7 +226,7 @@ void Wiimote::ResetDataReporting()
   // FYI: This also disables rumble.
   OutputReportMode rpt = {};
   rpt.mode = InputReportID::ReportCore;
-  rpt.continuous = 0;
+  rpt.continuous() = false;
   QueueReport(rpt);
 }
 
@@ -272,10 +272,10 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
   if (rpt[1] == u8(OutputReportID::LED))
   {
     auto& leds_rpt = *reinterpret_cast<OutputReportLeds*>(&rpt[2]);
-    if (0 == leds_rpt.leds)
+    if (0 == leds_rpt.leds())
     {
       // Turn on ALL of the LEDs.
-      leds_rpt.leds = 0xf;
+      leds_rpt.leds() = 0b1111;
     }
   }
   else if (rpt[1] == u8(OutputReportID::SpeakerData) &&
@@ -379,7 +379,7 @@ bool Wiimote::IsBalanceBoard()
     {
       const auto* status = reinterpret_cast<InputReportStatus*>(&buf[2]);
       // A Balance Board has a Balance Board extension.
-      if (!status->extension)
+      if (!status->extension())
         return false;
       // Read two bytes from 0xa400fe to identify the extension.
       static const u8 identify_ext_rpt[] = {WR_SET_REPORT | BT_OUTPUT,
@@ -642,7 +642,7 @@ void WiimoteScanner::PoolThreadFunc()
     for (auto& wiimote : s_wiimote_pool)
     {
       OutputReportLeds leds = {};
-      leds.leds = led_value;
+      leds.leds() = led_value;
       wiimote.wiimote->QueueReport(leds);
     }
 
@@ -922,7 +922,7 @@ static bool TryToConnectWiimoteToSlot(std::unique_ptr<Wiimote>& wm, unsigned int
 
   // Set LEDs.
   OutputReportLeds led_report = {};
-  led_report.leds = u8(1 << (i % WIIMOTE_BALANCE_BOARD));
+  led_report.leds() = u8(1 << (i % WIIMOTE_BALANCE_BOARD));
   wm->QueueReport(led_report);
 
   Core::RunAsCPUThread([i, &wm] {

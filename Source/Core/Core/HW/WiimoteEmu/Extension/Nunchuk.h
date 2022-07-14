@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitFieldView.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
@@ -33,20 +34,17 @@ enum class NunchukGroup
 class Nunchuk : public Extension1stParty
 {
 public:
-  union ButtonFormat
+  struct ButtonFormat
   {
     u8 hex;
 
-    struct
-    {
-      u8 z : 1;
-      u8 c : 1;
+    BFVIEW(bool, 0, 1, z);
+    BFVIEW(bool, 1, 1, c);
 
-      // LSBs of accelerometer
-      u8 acc_x_lsb : 2;
-      u8 acc_y_lsb : 2;
-      u8 acc_z_lsb : 2;
-    };
+    // LSBs of accelerometer
+    BFVIEW(u8, 2, 2, acc_x_lsb);
+    BFVIEW(u8, 4, 2, acc_y_lsb);
+    BFVIEW(u8, 6, 2, acc_z_lsb);
   };
   static_assert(sizeof(ButtonFormat) == 1, "Wrong size");
 
@@ -61,25 +59,25 @@ public:
     auto GetStick() const { return StickRawValue(StickType(jx, jy)); }
 
     // Components have 10 bits of precision.
-    u16 GetAccelX() const { return ax << 2 | bt.acc_x_lsb; }
-    u16 GetAccelY() const { return ay << 2 | bt.acc_y_lsb; }
-    u16 GetAccelZ() const { return az << 2 | bt.acc_z_lsb; }
+    u16 GetAccelX() const { return ax << 2 | bt.acc_x_lsb(); }
+    u16 GetAccelY() const { return ay << 2 | bt.acc_y_lsb(); }
+    u16 GetAccelZ() const { return az << 2 | bt.acc_z_lsb(); }
     auto GetAccel() const { return AccelData{AccelType{GetAccelX(), GetAccelY(), GetAccelZ()}}; }
 
     void SetAccelX(u16 val)
     {
       ax = val >> 2;
-      bt.acc_x_lsb = val & 0b11;
+      bt.acc_x_lsb() = val & 0b11;
     }
     void SetAccelY(u16 val)
     {
       ay = val >> 2;
-      bt.acc_y_lsb = val & 0b11;
+      bt.acc_y_lsb() = val & 0b11;
     }
     void SetAccelZ(u16 val)
     {
       az = val >> 2;
-      bt.acc_z_lsb = val & 0b11;
+      bt.acc_z_lsb() = val & 0b11;
     }
     void SetAccel(const AccelType& accel)
     {

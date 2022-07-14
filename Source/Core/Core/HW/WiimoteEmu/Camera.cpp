@@ -141,7 +141,7 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
         IRExtended irdata = {};
 
         irdata.SetPosition(p.position);
-        irdata.size = p.size;
+        irdata.size() = p.size;
 
         Common::BitCastPtr<IRExtended>(&data[i * sizeof(IRExtended)]) = irdata;
       }
@@ -156,15 +156,15 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
         IRFull irdata = {};
 
         irdata.SetPosition(p.position);
-        irdata.size = p.size;
+        irdata.size() = p.size;
 
         // TODO: does size need to be scaled up?
         // E.g. does size 15 cover the entire sensor range?
 
-        irdata.xmin = std::max(p.position.x - p.size, 0);
-        irdata.ymin = std::max(p.position.y - p.size, 0);
-        irdata.xmax = std::min(p.position.x + p.size, CAMERA_RES_X);
-        irdata.ymax = std::min(p.position.y + p.size, CAMERA_RES_Y);
+        irdata.xmin() = std::max(p.position.x - p.size, 0);
+        irdata.ymin() = std::max(p.position.y - p.size, 0);
+        irdata.xmax() = std::min(p.position.x + p.size, CAMERA_RES_X);
+        irdata.ymax() = std::min(p.position.y + p.size, CAMERA_RES_Y);
 
         constexpr int SUBPIXEL_RESOLUTION = 8;
         constexpr long MAX_INTENSITY = 0xff;
@@ -172,7 +172,7 @@ void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_o
         // This is apparently the number of pixels the point takes up at 128x96 resolution.
         // We simulate a circle that shrinks at sensor edges.
         const auto intensity =
-            std::lround((irdata.xmax - irdata.xmin) * (irdata.ymax - irdata.ymin) /
+            std::lround((irdata.xmax() - irdata.xmin()) * (irdata.ymax() - irdata.ymin()) /
                         SUBPIXEL_RESOLUTION / SUBPIXEL_RESOLUTION * MathUtil::TAU / 8);
 
         irdata.intensity = u8(std::min(MAX_INTENSITY, intensity));

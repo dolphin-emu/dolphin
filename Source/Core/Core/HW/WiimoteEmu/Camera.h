@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/BitFieldView.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -23,29 +24,32 @@ struct IRBasic
 
   u8 x1;
   u8 y1;
-  u8 x2hi : 2;
-  u8 y2hi : 2;
-  u8 x1hi : 2;
-  u8 y1hi : 2;
+  u8 _data1;
+
+  BFVIEW_IN(_data1, u8, 0, 2, x2hi);
+  BFVIEW_IN(_data1, u8, 2, 2, y2hi);
+  BFVIEW_IN(_data1, u8, 4, 2, x1hi);
+  BFVIEW_IN(_data1, u8, 6, 2, y1hi);
+
   u8 x2;
   u8 y2;
 
-  auto GetObject1() const { return IRObject(x1hi << 8 | x1, y1hi << 8 | y1); }
-  auto GetObject2() const { return IRObject(x2hi << 8 | x2, y2hi << 8 | y2); }
+  auto GetObject1() const { return IRObject(x1hi() << 8 | x1, y1hi() << 8 | y1); }
+  auto GetObject2() const { return IRObject(x2hi() << 8 | x2, y2hi() << 8 | y2); }
 
   void SetObject1(const IRObject& obj)
   {
     x1 = obj.x;
-    x1hi = obj.x >> 8;
+    x1hi() = obj.x >> 8;
     y1 = obj.y;
-    y1hi = obj.y >> 8;
+    y1hi() = obj.y >> 8;
   }
   void SetObject2(const IRObject& obj)
   {
     x2 = obj.x;
-    x2hi = obj.x >> 8;
+    x2hi() = obj.x >> 8;
     y2 = obj.y;
-    y2hi = obj.y >> 8;
+    y2hi() = obj.y >> 8;
   }
 };
 static_assert(sizeof(IRBasic) == 5, "Wrong size");
@@ -55,17 +59,19 @@ struct IRExtended
 {
   u8 x;
   u8 y;
-  u8 size : 4;
-  u8 xhi : 2;
-  u8 yhi : 2;
+  u8 _data1;
 
-  auto GetPosition() const { return IRBasic::IRObject(xhi << 8 | x, yhi << 8 | y); }
+  BFVIEW_IN(_data1, u8, 0, 4, size);
+  BFVIEW_IN(_data1, u8, 4, 2, xhi);
+  BFVIEW_IN(_data1, u8, 6, 2, yhi);
+
+  auto GetPosition() const { return IRBasic::IRObject(xhi() << 8 | x, yhi() << 8 | y); }
   void SetPosition(const IRBasic::IRObject& obj)
   {
     x = obj.x;
-    xhi = obj.x >> 8;
+    xhi() = obj.x >> 8;
     y = obj.y;
-    yhi = obj.y >> 8;
+    yhi() = obj.y >> 8;
   }
 };
 static_assert(sizeof(IRExtended) == 3, "Wrong size");
@@ -74,14 +80,16 @@ static_assert(sizeof(IRExtended) == 3, "Wrong size");
 // first 3 bytes are the same as extended
 struct IRFull : IRExtended
 {
-  u8 xmin : 7;
-  u8 : 1;
-  u8 ymin : 7;
-  u8 : 1;
-  u8 xmax : 7;
-  u8 : 1;
-  u8 ymax : 7;
-  u8 : 1;
+  u8 _byte3;
+  u8 _byte4;
+  u8 _byte5;
+  u8 _byte6;
+
+  BFVIEW_IN(_byte3, u8, 0, 7, xmin);
+  BFVIEW_IN(_byte4, u8, 0, 7, ymin);
+  BFVIEW_IN(_byte5, u8, 0, 7, xmax);
+  BFVIEW_IN(_byte6, u8, 0, 7, ymax);
+
   u8 zero;
   u8 intensity;
 };

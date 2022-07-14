@@ -95,7 +95,7 @@ template <typename T>
 void Device::QueueReport(T&& report, std::function<void(ErrorCode)> ack_callback)
 {
   // Maintain proper rumble state.
-  report.rumble = m_rumble;
+  report.rumble() = m_rumble;
 
   m_wiimote->QueueReport(report.REPORT_ID, &report, sizeof(report));
 
@@ -350,8 +350,8 @@ void Device::RunTasks()
   if (m_leds != desired_leds)
   {
     OutputReportLeds rpt = {};
-    rpt.ack = 1;
-    rpt.leds = desired_leds;
+    rpt.ack() = true;
+    rpt.leds() = desired_leds;
     QueueReport(rpt, [this, desired_leds](ErrorCode result) {
       if (result != ErrorCode::Success)
       {
@@ -372,7 +372,7 @@ void Device::RunTasks()
   if (m_reporting_mode != desired_reporting_mode)
   {
     OutputReportMode mode = {};
-    mode.ack = 1;
+    mode.ack() = true;
     mode.mode = desired_reporting_mode;
     QueueReport(mode, [this](ErrorCode error) {
       if (error != ErrorCode::Success)
@@ -937,8 +937,8 @@ void Device::ConfigureIRCamera()
   if (!m_ir_state.enabled)
   {
     OutputReportIRLogicEnable2 ir_logic2 = {};
-    ir_logic2.ack = 1;
-    ir_logic2.enable = 1;
+    ir_logic2.ack() = true;
+    ir_logic2.enable() = true;
     QueueReport(ir_logic2, [this](ErrorCode result) {
       if (result != ErrorCode::Success)
       {
@@ -947,8 +947,8 @@ void Device::ConfigureIRCamera()
       }
 
       OutputReportIRLogicEnable ir_logic = {};
-      ir_logic.ack = 1;
-      ir_logic.enable = 1;
+      ir_logic.ack() = true;
+      ir_logic.enable() = true;
       QueueReport(ir_logic, [this](ErrorCode ir_result) {
         if (ir_result != ErrorCode::Success)
         {
@@ -1009,8 +1009,8 @@ void Device::ConfigureIRCamera()
 void Device::ConfigureSpeaker()
 {
   OutputReportSpeakerMute mute = {};
-  mute.enable = 1;
-  mute.ack = 1;
+  mute.enable() = true;
+  mute.ack() = true;
   QueueReport(mute, [this](ErrorCode mute_result) {
     if (mute_result != ErrorCode::Success)
     {
@@ -1019,8 +1019,8 @@ void Device::ConfigureSpeaker()
     }
 
     OutputReportSpeakerEnable spkr = {};
-    spkr.enable = 0;
-    spkr.ack = 1;
+    spkr.enable() = false;
+    spkr.ack() = true;
     QueueReport(spkr, [this](ErrorCode enable_result) {
       if (enable_result != ErrorCode::Success)
       {
@@ -1311,7 +1311,7 @@ void Device::ProcessMotionPlusExtensionData(const u8* ext_data, u32 ext_size)
   const WiimoteEmu::MotionPlus::DataFormat mplus_data =
       Common::BitCastPtr<WiimoteEmu::MotionPlus::DataFormat>(ext_data);
 
-  const bool is_ext_connected = mplus_data.extension_connected;
+  const bool is_ext_connected = mplus_data.extension_connected();
 
   // Handle passthrough extension change.
   if (is_ext_connected != m_mplus_state.passthrough_port)
@@ -1327,7 +1327,7 @@ void Device::ProcessMotionPlusExtensionData(const u8* ext_data, u32 ext_size)
     ProcessExtensionEvent(is_ext_connected);
   }
 
-  if (mplus_data.is_mp_data)
+  if (mplus_data.is_mp_data())
   {
     m_mplus_state.ProcessData(mplus_data);
     return;
@@ -1466,8 +1466,8 @@ void Device::ReadData(AddressSpace space, u8 slave, u16 address, u16 size,
                       std::function<void(ReadResponse)> callback)
 {
   OutputReportReadData read_data{};
-  read_data.space = u8(space);
-  read_data.slave_address = slave;
+  read_data.space() = space;
+  read_data.slave_address() = slave;
   read_data.address[0] = u8(address >> 8);
   read_data.address[1] = u8(address);
   read_data.size[0] = u8(size >> 8);
@@ -1494,15 +1494,15 @@ void Device::AddReadDataReplyHandler(AddressSpace space, u8 slave, u16 address, 
     if (Common::swap16(reply.address) != address)
       return ReportHandler::HandlerResult::NotHandled;
 
-    if (reply.error != u8(ErrorCode::Success))
+    if (reply.error() != ErrorCode::Success)
     {
-      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", int(reply.error));
+      DEBUG_LOG_FMT(WIIMOTE, "WiiRemote: Read reply error: {}.", u8(reply.error()));
       callback(ReadResponse{});
 
       return ReportHandler::HandlerResult::Handled;
     }
 
-    const auto read_count = reply.size_minus_one + 1;
+    const auto read_count = reply.size_minus_one() + 1;
 
     data.insert(data.end(), reply.data, reply.data + read_count);
 
@@ -1531,8 +1531,8 @@ template <typename T, typename C>
 void Device::WriteData(AddressSpace space, u8 slave, u16 address, T&& data, C&& callback)
 {
   OutputReportWriteData write_data = {};
-  write_data.space = u8(space);
-  write_data.slave_address = slave;
+  write_data.space() = space;
+  write_data.slave_address() = slave;
   write_data.address[0] = u8(address >> 8);
   write_data.address[1] = u8(address);
 
@@ -1649,12 +1649,12 @@ void Device::ProcessStatusReport(const InputReportStatus& status)
   m_status_outdated_time = Clock::now() + std::chrono::seconds(10);
 
   m_battery = status.GetEstimatedCharge() * BATTERY_INPUT_MAX_VALUE;
-  m_leds = status.leds;
+  m_leds = status.leds();
 
-  if (!status.ir)
+  if (!status.ir())
     m_ir_state = {};
 
-  const bool is_ext_connected = status.extension;
+  const bool is_ext_connected = status.extension();
 
   // Handle extension port state change.
   if (is_ext_connected != m_extension_port)

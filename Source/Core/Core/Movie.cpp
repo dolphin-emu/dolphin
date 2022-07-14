@@ -713,27 +713,27 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     ButtonData buttons;
     rpt.GetCoreData(&buttons);
 
-    if (buttons.left)
+    if (buttons.left())
       display_str += " LEFT";
-    if (buttons.right)
+    if (buttons.right())
       display_str += " RIGHT";
-    if (buttons.down)
+    if (buttons.down())
       display_str += " DOWN";
-    if (buttons.up)
+    if (buttons.up())
       display_str += " UP";
-    if (buttons.a)
+    if (buttons.a())
       display_str += " A";
-    if (buttons.b)
+    if (buttons.b())
       display_str += " B";
-    if (buttons.plus)
+    if (buttons.plus())
       display_str += " +";
-    if (buttons.minus)
+    if (buttons.minus())
       display_str += " -";
-    if (buttons.one)
+    if (buttons.one())
       display_str += " 1";
-    if (buttons.two)
+    if (buttons.two())
       display_str += " 2";
-    if (buttons.home)
+    if (buttons.home())
       display_str += " HOME";
   }
 
@@ -767,14 +767,14 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     Nunchuk::DataFormat nunchuk;
     memcpy(&nunchuk, extData, sizeof(nunchuk));
     key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
-    nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
+    nunchuk.bt.hex ^= 0x3;
 
     const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
                                           nunchuk.GetAccelY(), nunchuk.GetAccelZ());
 
-    if (nunchuk.bt.c)
+    if (nunchuk.bt.c())
       display_str += " C";
-    if (nunchuk.bt.z)
+    if (nunchuk.bt.z())
       display_str += " Z";
     display_str += accel;
     display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
@@ -788,33 +788,33 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     Classic::DataFormat cc;
     memcpy(&cc, extData, sizeof(cc));
     key.Decrypt((u8*)&cc, 0, sizeof(cc));
-    cc.bt.hex = cc.bt.hex ^ 0xFFFF;
+    cc.bt.hex ^= 0xFFFF;
 
-    if (cc.bt.dpad_left)
+    if (cc.bt.dpad_left())
       display_str += " LEFT";
-    if (cc.bt.dpad_right)
+    if (cc.bt.dpad_right())
       display_str += " RIGHT";
-    if (cc.bt.dpad_down)
+    if (cc.bt.dpad_down())
       display_str += " DOWN";
-    if (cc.bt.dpad_up)
+    if (cc.bt.dpad_up())
       display_str += " UP";
-    if (cc.bt.a)
+    if (cc.bt.a())
       display_str += " A";
-    if (cc.bt.b)
+    if (cc.bt.b())
       display_str += " B";
-    if (cc.bt.x)
+    if (cc.bt.x())
       display_str += " X";
-    if (cc.bt.y)
+    if (cc.bt.y())
       display_str += " Y";
-    if (cc.bt.zl)
+    if (cc.bt.zl())
       display_str += " ZL";
-    if (cc.bt.zr)
+    if (cc.bt.zr())
       display_str += " ZR";
-    if (cc.bt.plus)
+    if (cc.bt.plus())
       display_str += " +";
-    if (cc.bt.minus)
+    if (cc.bt.minus())
       display_str += " -";
-    if (cc.bt.home)
+    if (cc.bt.home())
       display_str += " HOME";
 
     display_str += Analog1DToString(cc.GetLeftTrigger().value, " L", 31);

@@ -388,18 +388,18 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
         if (x[i * 2] < 1024 && y < 768)
         {
           ir_basic[i].x1 = static_cast<u8>(x[i * 2]);
-          ir_basic[i].x1hi = x[i * 2] >> 8;
+          ir_basic[i].x1hi() = x[i * 2] >> 8;
 
           ir_basic[i].y1 = static_cast<u8>(y);
-          ir_basic[i].y1hi = y >> 8;
+          ir_basic[i].y1hi() = y >> 8;
         }
         if (x[i * 2 + 1] < 1024 && y < 768)
         {
           ir_basic[i].x2 = static_cast<u8>(x[i * 2 + 1]);
-          ir_basic[i].x2hi = x[i * 2 + 1] >> 8;
+          ir_basic[i].x2hi() = x[i * 2 + 1] >> 8;
 
           ir_basic[i].y2 = static_cast<u8>(y);
-          ir_basic[i].y2hi = y >> 8;
+          ir_basic[i].y2hi() = y >> 8;
         }
       }
     }
@@ -414,12 +414,12 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
         if (x[i] < 1024 && y < 768)
         {
           ir_extended[i].x = static_cast<u8>(x[i]);
-          ir_extended[i].xhi = x[i] >> 8;
+          ir_extended[i].xhi() = x[i] >> 8;
 
           ir_extended[i].y = static_cast<u8>(y);
-          ir_extended[i].yhi = y >> 8;
+          ir_extended[i].yhi() = y >> 8;
 
-          ir_extended[i].size = 10;
+          ir_extended[i].size() = 10;
         }
       }
     }

@@ -82,24 +82,24 @@ void Drums::Update()
   DataFormat drum_data = {};
 
   // The meaning of these bits are unknown but they are usually set.
-  drum_data.unk1 = 0b11;
-  drum_data.unk2 = 0b11;
-  drum_data.unk3 = 0b1;
-  drum_data.unk4 = 0b1;
-  drum_data.unk5 = 0b11;
+  drum_data.unk1() = 0b11;
+  drum_data.unk2() = 0b11;
+  drum_data.unk3() = 0b1;
+  drum_data.unk4() = 0b1;
+  drum_data.unk5() = 0b11;
 
   // Send no velocity data by default.
-  drum_data.velocity_id = u8(VelocityID::None);
-  drum_data.no_velocity_data_1 = 1;
-  drum_data.no_velocity_data_2 = 1;
-  drum_data.softness = 7;
+  drum_data.velocity_id() = VelocityID::None;
+  drum_data.no_velocity_data_1() = true;
+  drum_data.no_velocity_data_2() = true;
+  drum_data.softness() = 7;
 
   // Stick.
   {
     const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    drum_data.stick_x = MapFloat(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
-    drum_data.stick_y = MapFloat(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
+    drum_data.stick_x() = MapFloat(stick_state.x, STICK_CENTER, STICK_MIN, STICK_MAX);
+    drum_data.stick_y() = MapFloat(stick_state.y, STICK_CENTER, STICK_MIN, STICK_MAX);
   }
 
   // Buttons.
@@ -125,13 +125,13 @@ void Drums::Update()
       // Clear the bit so velocity data is not sent again until the next hit.
       m_new_pad_hits &= ~drum_pad;
 
-      drum_data.velocity_id = u8(drum_pad_velocity_ids[i]);
+      drum_data.velocity_id() = drum_pad_velocity_ids[i];
 
-      drum_data.no_velocity_data_1 = 0;
-      drum_data.no_velocity_data_2 = 0;
+      drum_data.no_velocity_data_1() = false;
+      drum_data.no_velocity_data_2() = false;
 
       // Set softness from user-configured hit strength setting.
-      drum_data.softness = u8(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
+      drum_data.softness() = u8(7 - std::lround(m_hit_strength_setting.GetValue() * 7 / 100));
 
       // A drum-pad hit causes the relevent bit to be triggered for the next 10 frames.
       constexpr u8 HIT_FRAME_COUNT = 10;

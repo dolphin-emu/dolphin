@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "Common/BitFieldView.h"
+
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -30,28 +32,31 @@ enum class TurntableGroup
 class Turntable : public Extension1stParty
 {
 public:
+#pragma pack(push, 1)
   struct DataFormat
   {
-    u8 sx : 6;
-    u8 rtable3 : 2;
+    u32 _data1;
 
-    u8 sy : 6;
-    u8 rtable2 : 2;
-
-    u8 rtable4 : 1;
-    u8 slider : 4;
-    u8 dial2 : 2;
-    u8 rtable1 : 1;
-
-    u8 ltable1 : 5;
-    u8 dial1 : 3;
+    BFVIEW_IN(_data1, u8, 0, 6, sx);
+    BFVIEW_IN(_data1, u8, 6, 2, rtable3);
+    BFVIEW_IN(_data1, u8, 8, 6, sy);
+    BFVIEW_IN(_data1, u8, 14, 2, rtable2);
+    BFVIEW_IN(_data1, u8, 16, 1, rtable4);
+    BFVIEW_IN(_data1, u8, 17, 4, slider);
+    BFVIEW_IN(_data1, u8, 21, 2, dial2);
+    BFVIEW_IN(_data1, u8, 23, 1, rtable1);
+    BFVIEW_IN(_data1, u8, 24, 5, ltable1);
+    BFVIEW_IN(_data1, u8, 29, 3, dial1);
 
     union
     {
-      u16 ltable2 : 1;
+      u16 _data2;
       u16 bt;  // buttons
     };
+
+    BFVIEW_IN(_data2, u8, 0, 1, ltable2);
   };
+#pragma pack(pop)
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 
   Turntable();

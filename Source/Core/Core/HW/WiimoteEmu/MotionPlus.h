@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
@@ -74,6 +75,31 @@ public:
     using SlowType = CalibrationBlocks::SlowType;
     using GyroRawValue = ControllerEmu::RawValue<GyroType, 14>;
 
+    // yaw1, roll1, pitch1: Bits 0-7
+    // yaw2, roll2, pitch2: Bits 8-13
+
+    u8 yaw1;
+    u8 roll1;
+    u8 pitch1;
+
+    u8 _data1;
+
+    BFVIEW_IN(_data1, bool, 0, 1, pitch_slow);
+    BFVIEW_IN(_data1, bool, 1, 1, yaw_slow);
+    BFVIEW_IN(_data1, u8, 2, 6, yaw2);
+
+    u8 _data2;
+
+    BFVIEW_IN(_data2, bool, 0, 1, extension_connected);
+    BFVIEW_IN(_data2, bool, 1, 1, roll_slow);
+    BFVIEW_IN(_data2, u8, 2, 6, roll2);
+
+    u8 _data3;
+
+    BFVIEW_IN(_data3, bool, 0, 1, zero);
+    BFVIEW_IN(_data3, bool, 1, 1, is_mp_data);
+    BFVIEW_IN(_data3, u8, 2, 6, pitch2);
+
     struct Data
     {
       // Return radian/s following "right-hand rule" with given calibration blocks.
@@ -86,28 +112,9 @@ public:
     auto GetData() const
     {
       return Data{
-          GyroRawValue{GyroType(pitch1 | pitch2 << 8, roll1 | roll2 << 8, yaw1 | yaw2 << 8)},
-          SlowType(pitch_slow, roll_slow, yaw_slow)};
+          GyroRawValue{GyroType(pitch1 | pitch2() << 8, roll1 | roll2() << 8, yaw1 | yaw2() << 8)},
+          SlowType(pitch_slow(), roll_slow(), yaw_slow())};
     }
-
-    // yaw1, roll1, pitch1: Bits 0-7
-    // yaw2, roll2, pitch2: Bits 8-13
-
-    u8 yaw1;
-    u8 roll1;
-    u8 pitch1;
-
-    u8 pitch_slow : 1;
-    u8 yaw_slow : 1;
-    u8 yaw2 : 6;
-
-    u8 extension_connected : 1;
-    u8 roll_slow : 1;
-    u8 roll2 : 6;
-
-    u8 zero : 1;
-    u8 is_mp_data : 1;
-    u8 pitch2 : 6;
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
 #pragma pack(pop)

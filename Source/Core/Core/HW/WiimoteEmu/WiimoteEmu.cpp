@@ -181,7 +181,7 @@ void Wiimote::Reset()
   m_status = {};
   // This will suppress a status report on connect when an extension is already attached.
   // TODO: I am not 100% sure if this is proper.
-  m_status.extension = m_extension_port.IsDeviceConnected();
+  m_status.extension() = m_extension_port.IsDeviceConnected();
 
   // Dynamics:
   m_swing_state = {};
@@ -405,7 +405,7 @@ bool Wiimote::ProcessExtensionPortEvent()
   // WiiBrew: Following a connection or disconnection event on the Extension Port,
   // data reporting is disabled and the Data Reporting Mode must be reset before new data can
   // arrive.
-  if (m_extension_port.IsDeviceConnected() == m_status.extension)
+  if (m_extension_port.IsDeviceConnected() == m_status.extension())
     return false;
 
   // FYI: This happens even during a read request which continues after the status report is sent.

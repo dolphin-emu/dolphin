@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Common/BitFieldView.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
 
 namespace ControllerEmu
@@ -42,8 +43,10 @@ public:
     // Y increases from bottom to top
     u8 stylus_x1;
     u8 stylus_y1;
-    u8 stylus_x2 : 4;
-    u8 stylus_y2 : 4;
+    u8 _x2y2;
+
+    BFVIEW_IN(_x2y2, u8, 0, 4, stylus_x2);
+    BFVIEW_IN(_x2y2, u8, 4, 4, stylus_y2);
 
     // Valid even when stylus is lifted
     u8 pressure;

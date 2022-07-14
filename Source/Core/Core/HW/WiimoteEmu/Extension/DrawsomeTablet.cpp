@@ -67,7 +67,7 @@ void DrawsomeTablet::Update()
   if (is_stylus_lifted)
     status |= PEN_LIFTED_BIT;
 
-  tablet_data.status = status;
+  tablet_data.status() = status;
 
   // Pressure (0 - 0x7ff):
   constexpr u16 MAX_PRESSURE = 0x7ff;
@@ -76,7 +76,7 @@ void DrawsomeTablet::Update()
   const auto pressure = u16(std::lround(touch_state.data[0] * MAX_PRESSURE));
 
   tablet_data.pressure1 = u8(pressure);
-  tablet_data.pressure2 = u8(pressure >> 8);
+  tablet_data.pressure2() = u8(pressure >> 8);
 
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = tablet_data;
 }
