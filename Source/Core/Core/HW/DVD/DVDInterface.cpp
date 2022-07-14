@@ -12,7 +12,7 @@
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/Align.h"
-#include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -77,73 +77,72 @@ constexpr u32 DI_DMA_CONTROL_REGISTER = 0x1C;
 constexpr u32 DI_IMMEDIATE_DATA_BUFFER = 0x20;
 constexpr u32 DI_CONFIG_REGISTER = 0x24;
 
-// DI Status Register
-union UDISR
+// DI Status Register (DISR)
+struct DIStatusRegister
 {
   u32 Hex = 0;
 
-  BitField<0, 1, u32> BREAK;      // Stop the Device + Interrupt
-  BitField<1, 1, u32> DEINTMASK;  // Access Device Error Int Mask
-  BitField<2, 1, u32> DEINT;      // Access Device Error Int
-  BitField<3, 1, u32> TCINTMASK;  // Transfer Complete Int Mask
-  BitField<4, 1, u32> TCINT;      // Transfer Complete Int
-  BitField<5, 1, u32> BRKINTMASK;
-  BitField<6, 1, u32> BRKINT;  // w 1: clear brkint
-  BitField<7, 25, u32> reserved;
+  BFVIEW(bool, 1, 0, BREAK)      // Stop the Device + Interrupt
+  BFVIEW(bool, 1, 1, DEINTMASK)  // Access Device Error Int Mask
+  BFVIEW(bool, 1, 2, DEINT)      // Access Device Error Int
+  BFVIEW(bool, 1, 3, TCINTMASK)  // Transfer Complete Int Mask
+  BFVIEW(bool, 1, 4, TCINT)      // Transfer Complete Int
+  BFVIEW(bool, 1, 5, BRKINTMASK)
+  BFVIEW(bool, 1, 6, BRKINT)  // w 1: clear brkint
+  BFVIEW(u32, 25, 7, reserved)
 
-  UDISR() = default;
-  explicit UDISR(u32 hex) : Hex{hex} {}
+  DIStatusRegister() = default;
+  explicit DIStatusRegister(u32 hex) : Hex{hex} {}
 };
 
-// DI Cover Register
-union UDICVR
+// DI Cover Register (DICVR)
+struct DICoverRegister
 {
   u32 Hex = 0;
 
-  BitField<0, 1, u32> CVR;         // 0: Cover closed  1: Cover open
-  BitField<1, 1, u32> CVRINTMASK;  // 1: Interrupt enabled
-  BitField<2, 1, u32> CVRINT;      // r 1: Interrupt requested w 1: Interrupt clear
-  BitField<3, 29, u32> reserved;
+  BFVIEW(bool, 1, 0, CVR)         // 0: Cover closed  1: Cover open
+  BFVIEW(bool, 1, 1, CVRINTMASK)  // 1: Interrupt enabled
+  BFVIEW(bool, 1, 2, CVRINT)      // r 1: Interrupt requested w 1: Interrupt clear
+  BFVIEW(u32, 29, 3, reserved)
 
-  UDICVR() = default;
-  explicit UDICVR(u32 hex) : Hex{hex} {}
+  DICoverRegister() = default;
+  explicit DICoverRegister(u32 hex) : Hex{hex} {}
 };
 
-// DI DMA Control Register
-union UDICR
+// DI DMA Control Register (DICR)
+struct DIControlRegister
 {
   u32 Hex = 0;
 
-  BitField<0, 1, u32> TSTART;  // w:1 start   r:0 ready
-  BitField<1, 1, u32> DMA;     // 1: DMA Mode
-                               // 0: Immediate Mode (can only do Access Register Command)
-  BitField<2, 1, u32> RW;      // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
-  BitField<3, 29, u32> reserved;
+  BFVIEW(bool, 1, 0, TSTART)  // w:1 start   r:0 ready
+  BFVIEW(bool, 1, 1, DMA)  // 1: DMA Mode  0: Immediate Mode (can only do Access Register Command)
+  BFVIEW(bool, 1, 2, RW)   // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
+  BFVIEW(u32, 29, 3, reserved)
 };
 
-// DI Config Register
-union UDICFG
+// DI Config Register (DICFG)
+struct DIConfigRegister
 {
   u32 Hex = 0;
 
-  BitField<0, 8, u32> CONFIG;
-  BitField<8, 24, u32> reserved;
+  BFVIEW(u32, 8, 0, CONFIG)
+  BFVIEW(u32, 24, 8, reserved)
 
-  UDICFG() = default;
-  explicit UDICFG(u32 hex) : Hex{hex} {}
+  DIConfigRegister() = default;
+  explicit DIConfigRegister(u32 hex) : Hex{hex} {}
 };
 
 struct DVDInterfaceState::Data
 {
   // Hardware registers
-  UDISR DISR;
-  UDICVR DICVR;
+  DIStatusRegister DISR;
+  DICoverRegister DICVR;
   u32 DICMDBUF[3];
   u32 DIMAR;
   u32 DILENGTH;
-  UDICR DICR;
+  DIControlRegister DICR;
   u32 DIIMMBUF;
-  UDICFG DICFG;
+  DIConfigRegister DICFG;
 
   StreamADPCM::ADPCMDecoder adpcm_decoder;
 
@@ -385,7 +384,7 @@ void Init()
   state.DICR.Hex = 0;
   state.DIIMMBUF = 0;
   state.DICFG.Hex = 0;
-  state.DICFG.CONFIG = 1;  // Disable bootrom descrambler
+  state.DICFG.CONFIG() = 1;  // Disable bootrom descrambler
 
   ResetDrive(false);
 
@@ -622,9 +621,9 @@ bool AutoChangeDisc()
 static void SetLidOpen()
 {
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
-  const u32 old_value = state.DICVR.CVR;
-  state.DICVR.CVR = IsDiscInside() ? 0 : 1;
-  if (state.DICVR.CVR != old_value)
+  const bool old_value = state.DICVR.CVR();
+  state.DICVR.CVR() = !IsDiscInside();
+  if (state.DICVR.CVR() != old_value)
     GenerateDIInterrupt(DIInterruptType::CVRINT);
 }
 
@@ -642,23 +641,23 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
   mmio->Register(base | DI_STATUS_REGISTER, MMIO::DirectRead<u32>(&state.DISR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
-                   const UDISR tmp_status_reg(val);
+                   const DIStatusRegister tmp_status_reg(val);
 
-                   state.DISR.DEINTMASK = tmp_status_reg.DEINTMASK.Value();
-                   state.DISR.TCINTMASK = tmp_status_reg.TCINTMASK.Value();
-                   state.DISR.BRKINTMASK = tmp_status_reg.BRKINTMASK.Value();
-                   state.DISR.BREAK = tmp_status_reg.BREAK.Value();
+                   state.DISR.DEINTMASK() = tmp_status_reg.DEINTMASK();
+                   state.DISR.TCINTMASK() = tmp_status_reg.TCINTMASK();
+                   state.DISR.BRKINTMASK() = tmp_status_reg.BRKINTMASK();
+                   state.DISR.BREAK() = tmp_status_reg.BREAK();
 
-                   if (tmp_status_reg.DEINT)
-                     state.DISR.DEINT = 0;
+                   if (tmp_status_reg.DEINT())
+                     state.DISR.DEINT() = false;
 
-                   if (tmp_status_reg.TCINT)
-                     state.DISR.TCINT = 0;
+                   if (tmp_status_reg.TCINT())
+                     state.DISR.TCINT() = false;
 
-                   if (tmp_status_reg.BRKINT)
-                     state.DISR.BRKINT = 0;
+                   if (tmp_status_reg.BRKINT())
+                     state.DISR.BRKINT() = false;
 
-                   if (state.DISR.BREAK)
+                   if (state.DISR.BREAK())
                    {
                      DEBUG_ASSERT(0);
                    }
@@ -669,12 +668,12 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
   mmio->Register(base | DI_COVER_REGISTER, MMIO::DirectRead<u32>(&state.DICVR.Hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
-                   const UDICVR tmp_cover_reg(val);
+                   const DICoverRegister tmp_cover_reg(val);
 
-                   state.DICVR.CVRINTMASK = tmp_cover_reg.CVRINTMASK.Value();
+                   state.DICVR.CVRINTMASK() = tmp_cover_reg.CVRINTMASK();
 
-                   if (tmp_cover_reg.CVRINT)
-                     state.DICVR.CVRINT = 0;
+                   if (tmp_cover_reg.CVRINT())
+                     state.DICVR.CVRINT() = false;
 
                    UpdateInterrupts();
                  }));
@@ -708,7 +707,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
                    state.DICR.Hex = val & 7;
-                   if (state.DICR.TSTART)
+                   if (state.DICR.TSTART())
                    {
                      ExecuteCommand(ReplyType::Interrupt);
                    }
@@ -725,10 +724,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
 static void UpdateInterrupts()
 {
   auto& state = Core::System::GetInstance().GetDVDInterfaceState().GetData();
-  const bool set_mask = (state.DISR.DEINT & state.DISR.DEINTMASK) != 0 ||
-                        (state.DISR.TCINT & state.DISR.TCINTMASK) != 0 ||
-                        (state.DISR.BRKINT & state.DISR.BRKINTMASK) != 0 ||
-                        (state.DICVR.CVRINT & state.DICVR.CVRINTMASK) != 0;
+  const bool set_mask = (state.DISR.DEINT() && state.DISR.DEINTMASK()) ||
+                        (state.DISR.TCINT() && state.DISR.TCINTMASK()) ||
+                        (state.DISR.BRKINT() && state.DISR.BRKINTMASK()) ||
+                        (state.DICVR.CVRINT() && state.DICVR.CVRINTMASK());
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
@@ -742,16 +741,16 @@ static void GenerateDIInterrupt(DIInterruptType dvd_interrupt)
   switch (dvd_interrupt)
   {
   case DIInterruptType::DEINT:
-    state.DISR.DEINT = true;
+    state.DISR.DEINT() = true;
     break;
   case DIInterruptType::TCINT:
-    state.DISR.TCINT = true;
+    state.DISR.TCINT() = true;
     break;
   case DIInterruptType::BRKINT:
-    state.DISR.BRKINT = true;
+    state.DISR.BRKINT() = true;
     break;
   case DIInterruptType::CVRINT:
-    state.DICVR.CVRINT = true;
+    state.DICVR.CVRINT() = true;
     break;
   }
 
@@ -764,16 +763,16 @@ void SetInterruptEnabled(DIInterruptType interrupt, bool enabled)
   switch (interrupt)
   {
   case DIInterruptType::DEINT:
-    state.DISR.DEINTMASK = enabled;
+    state.DISR.DEINTMASK() = enabled;
     break;
   case DIInterruptType::TCINT:
-    state.DISR.TCINTMASK = enabled;
+    state.DISR.TCINTMASK() = enabled;
     break;
   case DIInterruptType::BRKINT:
-    state.DISR.BRKINTMASK = enabled;
+    state.DISR.BRKINTMASK() = enabled;
     break;
   case DIInterruptType::CVRINT:
-    state.DICVR.CVRINTMASK = enabled;
+    state.DICVR.CVRINTMASK() = enabled;
     break;
   }
 }
@@ -784,16 +783,16 @@ void ClearInterrupt(DIInterruptType interrupt)
   switch (interrupt)
   {
   case DIInterruptType::DEINT:
-    state.DISR.DEINT = false;
+    state.DISR.DEINT() = false;
     break;
   case DIInterruptType::TCINT:
-    state.DISR.TCINT = false;
+    state.DISR.TCINT() = false;
     break;
   case DIInterruptType::BRKINT:
-    state.DISR.BRKINT = false;
+    state.DISR.BRKINT() = false;
     break;
   case DIInterruptType::CVRINT:
-    state.DICVR.CVRINT = false;
+    state.DICVR.CVRINT() = false;
     break;
   }
 }
@@ -1418,9 +1417,9 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::Interrupt:
   {
-    if (state.DICR.TSTART)
+    if (state.DICR.TSTART())
     {
-      state.DICR.TSTART = 0;
+      state.DICR.TSTART() = false;
       GenerateDIInterrupt(interrupt_type);
     }
     break;
