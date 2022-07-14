@@ -59,14 +59,14 @@ struct CtrlRegister
 {
   u8 hex;
 
-  BFVIEW_M(hex, bool, 0, 1, X1);
-  BFVIEW_M(hex, bool, 1, 1, X2);
-  BFVIEW_M(hex, bool, 2, 1, Y1);
-  BFVIEW_M(hex, bool, 3, 1, Y2);
-  BFVIEW_M(hex, bool, 4, 1, IX1);
-  BFVIEW_M(hex, bool, 5, 1, IX2);
-  BFVIEW_M(hex, bool, 6, 1, IY1);
-  BFVIEW_M(hex, bool, 7, 1, IY2);
+  BFVIEW_M(hex, u8, 0, 1, X1);
+  BFVIEW_M(hex, u8, 1, 1, X2);
+  BFVIEW_M(hex, u8, 2, 1, Y1);
+  BFVIEW_M(hex, u8, 3, 1, Y2);
+  BFVIEW_M(hex, u8, 4, 1, IX1);
+  BFVIEW_M(hex, u8, 5, 1, IX2);
+  BFVIEW_M(hex, u8, 6, 1, IY1);
+  BFVIEW_M(hex, u8, 7, 1, IY2);
 
   inline u8 ppc()
   {
