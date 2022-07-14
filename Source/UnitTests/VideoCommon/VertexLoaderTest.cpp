@@ -366,3 +366,167 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
   for (int i = 0; i < 100; ++i)
     RunVertices(100000);
 }
+
+TEST_F(VertexLoaderTest, DirectAllComponents)
+{
+  m_vtx_desc.low.PosMatIdx = 1;
+  m_vtx_desc.low.Tex0MatIdx = 1;
+  m_vtx_desc.low.Tex1MatIdx = 1;
+  m_vtx_desc.low.Tex2MatIdx = 1;
+  m_vtx_desc.low.Tex3MatIdx = 1;
+  m_vtx_desc.low.Tex4MatIdx = 1;
+  m_vtx_desc.low.Tex5MatIdx = 1;
+  m_vtx_desc.low.Tex6MatIdx = 1;
+  m_vtx_desc.low.Tex7MatIdx = 1;
+  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Normal = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Color0 = VertexComponentFormat::Direct;
+  m_vtx_desc.low.Color1 = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex0Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex1Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex2Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex3Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex4Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex5Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex6Coord = VertexComponentFormat::Direct;
+  m_vtx_desc.high.Tex7Coord = VertexComponentFormat::Direct;
+
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XYZ;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.NormalElements = NormalComponentCount::NTB;
+  m_vtx_attr.g0.NormalFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.Color0Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color0Comp = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Color1Elements = ColorComponentCount::RGBA;
+  m_vtx_attr.g0.Color1Comp = ColorFormat::RGBA8888;
+  m_vtx_attr.g0.Tex0CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g0.Tex0CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex1CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex1CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex2CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex2CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex3CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex3CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g1.Tex4CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g1.Tex4CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex5CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex5CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex6CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex6CoordFormat = ComponentFormat::Float;
+  m_vtx_attr.g2.Tex7CoordElements = TexComponentCount::ST;
+  m_vtx_attr.g2.Tex7CoordFormat = ComponentFormat::Float;
+
+  CreateAndCheckSizes(129, 39 * sizeof(float));
+
+  // Pos matrix idx
+  Input<u8>(20);
+  // Tex matrix idx
+  Input<u8>(0);
+  Input<u8>(1);
+  Input<u8>(2);
+  Input<u8>(3);
+  Input<u8>(4);
+  Input<u8>(5);
+  Input<u8>(6);
+  Input<u8>(7);
+  // Position
+  Input(-1.0f);
+  Input(-2.0f);
+  Input(-3.0f);
+  // Normal
+  Input(-4.0f);
+  Input(-5.0f);
+  Input(-6.0f);
+  // Tangent
+  Input(-7.0f);
+  Input(-8.0f);
+  Input(-9.0f);
+  // Binormal
+  Input(-10.0f);
+  Input(-11.0f);
+  Input(-12.0f);
+  // Colors
+  Input<u32>(0x01234567);
+  Input<u32>(0x89abcdef);
+  // Texture coordinates
+  Input(0.1f);
+  Input(-0.9f);
+  Input(1.1f);
+  Input(-1.9f);
+  Input(2.1f);
+  Input(-2.9f);
+  Input(3.1f);
+  Input(-3.9f);
+  Input(4.1f);
+  Input(-4.9f);
+  Input(5.1f);
+  Input(-5.9f);
+  Input(6.1f);
+  Input(-6.9f);
+  Input(7.1f);
+  Input(-7.9f);
+
+  RunVertices(1);
+
+  // Position matrix
+  ASSERT_EQ(m_loader->m_native_vtx_decl.posmtx.offset, 0 * sizeof(float));
+  EXPECT_EQ((m_dst.Read<u32, false>()), 20u);
+  // Position
+  ASSERT_EQ(m_loader->m_native_vtx_decl.position.offset, 1 * sizeof(float));
+  ExpectOut(-1.0f);
+  ExpectOut(-2.0f);
+  ExpectOut(-3.0f);
+  // Normal
+  ASSERT_EQ(m_loader->m_native_vtx_decl.normals[0].offset, 4 * sizeof(float));
+  ExpectOut(-4.0f);
+  ExpectOut(-5.0f);
+  ExpectOut(-6.0f);
+  // Tangent
+  ASSERT_EQ(m_loader->m_native_vtx_decl.normals[1].offset, 7 * sizeof(float));
+  ExpectOut(-7.0f);
+  ExpectOut(-8.0f);
+  ExpectOut(-9.0f);
+  // Binormal
+  ASSERT_EQ(m_loader->m_native_vtx_decl.normals[2].offset, 10 * sizeof(float));
+  ExpectOut(-10.0f);
+  ExpectOut(-11.0f);
+  ExpectOut(-12.0f);
+  // Colors
+  ASSERT_EQ(m_loader->m_native_vtx_decl.colors[0].offset, 13 * sizeof(float));
+  EXPECT_EQ((m_dst.Read<u32, true>()), 0x01234567u);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.colors[1].offset, 14 * sizeof(float));
+  EXPECT_EQ((m_dst.Read<u32, true>()), 0x89abcdefu);
+  // Texture coordinates and matrices (interleaved)
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[0].offset, 15 * sizeof(float));
+  ExpectOut(0.1f);   // S
+  ExpectOut(-0.9f);  // T
+  ExpectOut(0.0f);   // matrix (yes, a float)
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[1].offset, 18 * sizeof(float));
+  ExpectOut(1.1f);
+  ExpectOut(-1.9f);
+  ExpectOut(1.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[2].offset, 21 * sizeof(float));
+  ExpectOut(2.1f);
+  ExpectOut(-2.9f);
+  ExpectOut(2.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[3].offset, 24 * sizeof(float));
+  ExpectOut(3.1f);
+  ExpectOut(-3.9f);
+  ExpectOut(3.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[4].offset, 27 * sizeof(float));
+  ExpectOut(4.1f);
+  ExpectOut(-4.9f);
+  ExpectOut(4.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[5].offset, 30 * sizeof(float));
+  ExpectOut(5.1f);
+  ExpectOut(-5.9f);
+  ExpectOut(5.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[6].offset, 33 * sizeof(float));
+  ExpectOut(6.1f);
+  ExpectOut(-6.9f);
+  ExpectOut(6.0f);
+  ASSERT_EQ(m_loader->m_native_vtx_decl.texcoords[7].offset, 36 * sizeof(float));
+  ExpectOut(7.1f);
+  ExpectOut(-7.9f);
+  ExpectOut(7.0f);
+}
