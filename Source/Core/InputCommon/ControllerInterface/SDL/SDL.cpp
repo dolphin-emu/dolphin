@@ -16,8 +16,6 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-
-#pragma comment(lib, "SDL2.lib")
 #endif
 
 namespace ciface::SDL
