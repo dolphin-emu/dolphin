@@ -7,7 +7,7 @@
 #include <cstring>
 #include <type_traits>
 
-#include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIO.h"
@@ -64,39 +64,39 @@ union MIRegion
   };
 };
 
-union MIProtType
+struct MIProtType
 {
   u16 hex = 0;
 
-  BitField<0, 2, u16> reg0;
-  BitField<2, 2, u16> reg1;
-  BitField<4, 2, u16> reg2;
-  BitField<6, 2, u16> reg3;
-  BitField<8, 8, u16> reserved;
+  BFVIEW(u16, 2, 0, reg0)
+  BFVIEW(u16, 2, 2, reg1)
+  BFVIEW(u16, 2, 4, reg2)
+  BFVIEW(u16, 2, 6, reg3)
+  BFVIEW(u16, 8, 8, reserved)
 };
 
-union MIIRQMask
+struct MIIRQMask
 {
   u16 hex = 0;
 
-  BitField<0, 1, u16> reg0;
-  BitField<1, 1, u16> reg1;
-  BitField<2, 1, u16> reg2;
-  BitField<3, 1, u16> reg3;
-  BitField<4, 1, u16> all_regs;
-  BitField<5, 11, u16> reserved;
+  BFVIEW(bool, 1, 0, reg0)
+  BFVIEW(bool, 1, 1, reg1)
+  BFVIEW(bool, 1, 2, reg2)
+  BFVIEW(bool, 1, 3, reg3)
+  BFVIEW(u16, 1, 4, all_regs)
+  BFVIEW(u16, 11, 5, reserved)
 };
 
-union MIIRQFlag
+struct MIIRQFlag
 {
   u16 hex = 0;
 
-  BitField<0, 1, u16> reg0;
-  BitField<1, 1, u16> reg1;
-  BitField<2, 1, u16> reg2;
-  BitField<3, 1, u16> reg3;
-  BitField<4, 1, u16> all_regs;
-  BitField<5, 11, u16> reserved;
+  BFVIEW(bool, 1, 0, reg0)
+  BFVIEW(bool, 1, 1, reg1)
+  BFVIEW(bool, 1, 2, reg2)
+  BFVIEW(bool, 1, 3, reg3)
+  BFVIEW(u16, 1, 4, all_regs)
+  BFVIEW(u16, 11, 5, reserved)
 };
 
 union MIProtAddr
@@ -107,9 +107,10 @@ union MIProtAddr
     u16 lo;
     u16 hi;
   };
-  BitField<0, 5, u32> reserved_1;
-  BitField<5, 25, u32> addr;
-  BitField<30, 2, u32> reserved_2;
+
+  BFVIEW_IN(hex, u32, 5, 0, reserved_1)
+  BFVIEW_IN(hex, u32, 25, 5, addr)
+  BFVIEW_IN(hex, u32, 2, 30, reserved_2)
 };
 
 union MITimer
