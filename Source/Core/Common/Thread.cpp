@@ -37,6 +37,8 @@ int CurrentThreadId()
   return GetCurrentThreadId();
 #elif defined __APPLE__
   return mach_thread_self();
+#elif defined __linux__
+  return gettid();
 #else
   return 0;
 #endif
