@@ -17,22 +17,22 @@ using namespace Gen;
 
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
-void Jit64::psq_stXX(UGeckoInstruction inst)
+void Jit64::psq_stXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
 
   // For performance, the AsmCommon routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  FALLBACK_IF(!MSR.DR());
 
-  s32 offset = inst.SIMM_12;
-  bool indexed = inst.OPCD == 4;
-  bool update = (inst.OPCD == 61 && offset) || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
-  int a = inst.RA;
-  int b = indexed ? inst.RB : a;
-  int s = inst.FS;
-  int i = indexed ? inst.Ix : inst.I;
-  int w = indexed ? inst.Wx : inst.W;
+  s32 offset = inst.SIMM_12();
+  bool indexed = inst.OPCD() == 4;
+  bool update = (inst.OPCD() == 61 && offset) || (inst.OPCD() == 4 && !!(inst.SUBOP6() & 32));
+  int a = inst.RA();
+  int b = indexed ? inst.RB() : a;
+  int s = inst.FS();
+  int i = indexed ? inst.Ix() : inst.I();
+  int w = indexed ? inst.Wx() : inst.W();
   FALLBACK_IF(!a);
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
@@ -106,22 +106,22 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::psq_lXX(UGeckoInstruction inst)
+void Jit64::psq_lXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
 
   // For performance, the AsmCommon routines assume address translation is on.
-  FALLBACK_IF(!MSR.DR);
+  FALLBACK_IF(!MSR.DR());
 
-  s32 offset = inst.SIMM_12;
-  bool indexed = inst.OPCD == 4;
-  bool update = (inst.OPCD == 57 && offset) || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
-  int a = inst.RA;
-  int b = indexed ? inst.RB : a;
-  int s = inst.FS;
-  int i = indexed ? inst.Ix : inst.I;
-  int w = indexed ? inst.Wx : inst.W;
+  s32 offset = inst.SIMM_12();
+  bool indexed = inst.OPCD() == 4;
+  bool update = (inst.OPCD() == 57 && offset) || (inst.OPCD() == 4 && !!(inst.SUBOP6() & 32));
+  int a = inst.RA();
+  int b = indexed ? inst.RB() : a;
+  int s = inst.FS();
+  int i = indexed ? inst.Ix() : inst.I();
+  int w = indexed ? inst.Wx() : inst.W();
   FALLBACK_IF(!a);
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);

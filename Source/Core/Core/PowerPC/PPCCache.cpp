@@ -116,7 +116,7 @@ void InstructionCache::Init()
 
 void InstructionCache::Invalidate(u32 addr)
 {
-  if (!HID0.ICE || m_disable_icache)
+  if (!HID0.ICE() || m_disable_icache)
     return;
 
   // Invalidates the whole set
@@ -139,7 +139,7 @@ void InstructionCache::Invalidate(u32 addr)
 
 u32 InstructionCache::ReadInstruction(u32 addr)
 {
-  if (!HID0.ICE || m_disable_icache)  // instruction cache is disabled
+  if (!HID0.ICE() || m_disable_icache)  // instruction cache is disabled
     return Memory::Read_U32(addr);
   u32 set = (addr >> 5) & 0x7f;
   u32 tag = addr >> 12;
@@ -160,7 +160,7 @@ u32 InstructionCache::ReadInstruction(u32 addr)
 
   if (t == 0xff)  // load to the cache
   {
-    if (HID0.ILOCK)  // instruction cache is locked
+    if (HID0.ILOCK())  // instruction cache is locked
       return Memory::Read_U32(addr);
     // select a way
     if (valid[set] != 0xff)

@@ -204,7 +204,7 @@ Cheats::NewSearch(const std::vector<Cheats::MemoryRange>& memory_ranges,
       return;
     }
 
-    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !MSR.DR)
+    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !MSR.DR())
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
       return;
@@ -263,7 +263,7 @@ Cheats::NextSearch(const std::vector<Cheats::SearchResult<T>>& previous_results,
       return;
     }
 
-    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !MSR.DR)
+    if (address_space == PowerPC::RequestedAddressSpace::Virtual && !MSR.DR())
     {
       error_code = Cheats::SearchErrorCode::VirtualAddressesCurrentlyNotAccessible;
       return;

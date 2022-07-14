@@ -43,22 +43,22 @@ constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
 
 constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
 
-static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
+static u32 EvaluateBranchTarget(GeckoInstruction instr, u32 pc)
 {
-  switch (instr.OPCD)
+  switch (instr.OPCD())
   {
   case 16:  // bcx - Branch Conditional instructions
   {
-    u32 target = SignExt16(instr.BD << 2);
-    if (!instr.AA)
+    u32 target = SignExt16(instr.BD() << 2);
+    if (!instr.AA())
       target += pc;
 
     return target;
   }
   case 18:  // bx - Branch instructions
   {
-    u32 target = SignExt26(instr.LI << 2);
-    if (!instr.AA)
+    u32 target = SignExt26(instr.LI() << 2);
+    if (!instr.AA())
       target += pc;
 
     return target;
@@ -105,7 +105,7 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
       return true;
     }
     const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
+    const GeckoInstruction instr = read_result.hex;
     if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
       // BLR or RFI
@@ -143,13 +143,13 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
           continue;
 
         const bool is_external = target < startAddr || (max_size && target >= startAddr + max_size);
-        if (instr.LK || is_external)
+        if (instr.LK() || is_external)
         {
           // Found a function call
           func.calls.emplace_back(target, addr);
           func.flags &= ~Common::FFLAG_LEAF;
         }
-        else if (instr.OPCD == 16)
+        else if (instr.OPCD() == 16)
         {
           // Found a conditional branch
           if (target > farthestInternalBranchTarget)
@@ -215,12 +215,12 @@ bool PPCAnalyzer::CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b) const
     return false;
   if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
-  if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
+  if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc()))
     return false;
   if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
     return false;
 
-  switch (b.inst.OPCD)
+  switch (b.inst.OPCD())
   {
   case 16:
   case 18:
@@ -261,18 +261,18 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::Symbol
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
     const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
-    const UGeckoInstruction instr = read_result.hex;
+    const GeckoInstruction instr = read_result.hex;
 
     if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
-      switch (instr.OPCD)
+      switch (instr.OPCD())
       {
       case 18:  // branch instruction
       {
-        if (instr.LK)  // bl
+        if (instr.LK())  // bl
         {
-          u32 target = SignExt26(instr.LI << 2);
-          if (!instr.AA)
+          u32 target = SignExt26(instr.LI() << 2);
+          if (!instr.AA())
             target += addr;
           if (PowerPC::HostIsRAMAddress(target))
           {
@@ -436,8 +436,8 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
 
 static bool isCmp(const CodeOp& a)
 {
-  return (a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
-         (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32));
+  return (a.inst.OPCD() == 10 || a.inst.OPCD() == 11) ||
+         (a.inst.OPCD() == 31 && (a.inst.SUBOP10() == 0 || a.inst.SUBOP10() == 32));
 }
 
 static bool isCarryOp(const CodeOp& a)
@@ -448,7 +448,7 @@ static bool isCarryOp(const CodeOp& a)
 
 static bool isCror(const CodeOp& a)
 {
-  return a.inst.OPCD == 19 && a.inst.SUBOP10 == 449;
+  return a.inst.OPCD() == 19 && a.inst.SUBOP10() == 449;
 }
 
 void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse,
@@ -540,7 +540,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   // Does the instruction output CR0?
   if (opinfo->flags & FL_RC_BIT)
     code->outputCR0 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
+  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD() == 0)
     code->outputCR0 = true;
   else
     code->outputCR0 = (opinfo->flags & FL_SET_CR0) != 0;
@@ -548,7 +548,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   // Does the instruction output CR1?
   if (opinfo->flags & FL_RC_BIT_F)
     code->outputCR1 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
+  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD() == 1)
     code->outputCR1 = true;
   else
     code->outputCR1 = (opinfo->flags & FL_SET_CR1) != 0;
@@ -576,54 +576,49 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   // mfspr/mtspr can affect/use XER, so be super careful here
   // we need to note specifically that mfspr needs CA in XER, not in the x86 carry flag
-  if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 339)  // mfspr
-    code->wantsCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
-  if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 467)  // mtspr
-    code->outputCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
+  if (code->inst.OPCD() == 31 && code->inst.SUBOP10() == 339)  // mfspr
+    code->wantsCA = ((code->inst.SPRU() << 5) | (code->inst.SPRL() & 0x1F)) == SPR_XER;
+  if (code->inst.OPCD() == 31 && code->inst.SUBOP10() == 467)  // mtspr
+    code->outputCA = ((code->inst.SPRU() << 5) | (code->inst.SPRL() & 0x1F)) == SPR_XER;
 
   code->regsIn = BitSet32(0);
   code->regsOut = BitSet32(0);
   if (opinfo->flags & FL_OUT_A)
   {
-    code->regsOut[code->inst.RA] = true;
-    block->m_gpa->SetOutputRegister(code->inst.RA, index);
+    code->regsOut[code->inst.RA()] = true;
+    block->m_gpa->SetOutputRegister(code->inst.RA(), index);
   }
   if (opinfo->flags & FL_OUT_D)
   {
-    code->regsOut[code->inst.RD] = true;
-    block->m_gpa->SetOutputRegister(code->inst.RD, index);
+    code->regsOut[code->inst.RD()] = true;
+    block->m_gpa->SetOutputRegister(code->inst.RD(), index);
   }
-  if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
+  if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA() != 0))
   {
-    code->regsIn[code->inst.RA] = true;
-    block->m_gpa->SetInputRegister(code->inst.RA, index);
+    code->regsIn[code->inst.RA()] = true;
+    block->m_gpa->SetInputRegister(code->inst.RA(), index);
   }
   if (opinfo->flags & FL_IN_B)
   {
-    code->regsIn[code->inst.RB] = true;
-    block->m_gpa->SetInputRegister(code->inst.RB, index);
-  }
-  if (opinfo->flags & FL_IN_C)
-  {
-    code->regsIn[code->inst.RC] = true;
-    block->m_gpa->SetInputRegister(code->inst.RC, index);
+    code->regsIn[code->inst.RB()] = true;
+    block->m_gpa->SetInputRegister(code->inst.RB(), index);
   }
   if (opinfo->flags & FL_IN_S)
   {
-    code->regsIn[code->inst.RS] = true;
-    block->m_gpa->SetInputRegister(code->inst.RS, index);
+    code->regsIn[code->inst.RS()] = true;
+    block->m_gpa->SetInputRegister(code->inst.RS(), index);
   }
-  if (code->inst.OPCD == 46)  // lmw
+  if (code->inst.OPCD() == 46)  // lmw
   {
-    for (int iReg = code->inst.RD; iReg < 32; ++iReg)
+    for (int iReg = code->inst.RD(); iReg < 32; ++iReg)
     {
       code->regsOut[iReg] = true;
       block->m_gpa->SetOutputRegister(iReg, index);
     }
   }
-  else if (code->inst.OPCD == 47)  // stmw
+  else if (code->inst.OPCD() == 47)  // stmw
   {
-    for (int iReg = code->inst.RS; iReg < 32; ++iReg)
+    for (int iReg = code->inst.RS(); iReg < 32; ++iReg)
     {
       code->regsIn[iReg] = true;
       block->m_gpa->SetInputRegister(iReg, index);
@@ -632,48 +627,48 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   code->fregOut = -1;
   if (opinfo->flags & FL_OUT_FLOAT_D)
-    code->fregOut = code->inst.FD;
+    code->fregOut = code->inst.FD();
 
   code->fregsIn = BitSet32(0);
   if (opinfo->flags & FL_IN_FLOAT_A)
-    code->fregsIn[code->inst.FA] = true;
+    code->fregsIn[code->inst.FA()] = true;
   if (opinfo->flags & FL_IN_FLOAT_B)
-    code->fregsIn[code->inst.FB] = true;
+    code->fregsIn[code->inst.FB()] = true;
   if (opinfo->flags & FL_IN_FLOAT_C)
-    code->fregsIn[code->inst.FC] = true;
+    code->fregsIn[code->inst.FC()] = true;
   if (opinfo->flags & FL_IN_FLOAT_D)
-    code->fregsIn[code->inst.FD] = true;
+    code->fregsIn[code->inst.FD()] = true;
   if (opinfo->flags & FL_IN_FLOAT_S)
-    code->fregsIn[code->inst.FS] = true;
+    code->fregsIn[code->inst.FS()] = true;
 
   code->branchUsesCtr = false;
   code->branchTo = UINT32_MAX;
 
   // For branch with immediate addresses (bx/bcx), compute the destination.
-  if (code->inst.OPCD == 18)  // bx
+  if (code->inst.OPCD() == 18)  // bx
   {
-    if (code->inst.AA)  // absolute
-      code->branchTo = SignExt26(code->inst.LI << 2);
+    if (code->inst.AA())  // absolute
+      code->branchTo = SignExt26(code->inst.LI() << 2);
     else
-      code->branchTo = code->address + SignExt26(code->inst.LI << 2);
+      code->branchTo = code->address + SignExt26(code->inst.LI() << 2);
   }
-  else if (code->inst.OPCD == 16)  // bcx
+  else if (code->inst.OPCD() == 16)  // bcx
   {
-    if (code->inst.AA)  // absolute
-      code->branchTo = SignExt16(code->inst.BD << 2);
+    if (code->inst.AA())  // absolute
+      code->branchTo = SignExt16(code->inst.BD() << 2);
     else
-      code->branchTo = code->address + SignExt16(code->inst.BD << 2);
-    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
+      code->branchTo = code->address + SignExt16(code->inst.BD() << 2);
+    if (!(code->inst.BO() & BO_DONT_DECREMENT_FLAG))
       code->branchUsesCtr = true;
   }
-  else if (code->inst.OPCD == 19 && code->inst.SUBOP10 == 16)  // bclrx
+  else if (code->inst.OPCD() == 19 && code->inst.SUBOP10() == 16)  // bclrx
   {
-    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
+    if (!(code->inst.BO() & BO_DONT_DECREMENT_FLAG))
       code->branchUsesCtr = true;
   }
-  else if (code->inst.OPCD == 19 && code->inst.SUBOP10 == 528)  // bcctrx
+  else if (code->inst.OPCD() == 19 && code->inst.SUBOP10() == 528)  // bcctrx
   {
-    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
+    if (!(code->inst.BO() & BO_DONT_DECREMENT_FLAG))
       code->branchUsesCtr = true;
   }
 }
@@ -776,7 +771,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     num_inst++;
 
-    const UGeckoInstruction inst = result.hex;
+    const GeckoInstruction inst = result.hex;
     GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
     code[i] = {};
     code[i].opinfo = opinfo;
@@ -798,31 +793,31 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
     //       cache clearning will happen many times.
     if (enable_follow && HasOption(OPTION_BRANCH_FOLLOW))
     {
-      if (inst.OPCD == 18 && block_size > 1)
+      if (inst.OPCD() == 18 && block_size > 1)
       {
         // Always follow BX instructions.
         follow = true;
-        if (inst.LK)
+        if (inst.LK())
         {
           found_call = true;
           caller = i;
         }
       }
-      else if (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-               (inst.BO & BO_DONT_CHECK_CONDITION) && block_size > 1)
+      else if (inst.OPCD() == 16 && (inst.BO() & BO_DONT_DECREMENT_FLAG) &&
+               (inst.BO() & BO_DONT_CHECK_CONDITION) && block_size > 1)
       {
         // Always follow unconditional BCX instructions, but they are very rare.
         follow = true;
-        if (inst.LK)
+        if (inst.LK())
         {
           found_call = true;
           caller = i;
         }
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call)
+      else if (inst.OPCD() == 19 && inst.SUBOP10() == 16 && !inst.LK() && found_call)
       {
         code[i].branchTo = code[caller].address + 4;
-        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION) &&
+        if ((inst.BO() & BO_DONT_DECREMENT_FLAG) && (inst.BO() & BO_DONT_CHECK_CONDITION) &&
             numFollows < BRANCH_FOLLOWING_THRESHOLD)
         {
           // bclrx with unconditional branch = return
@@ -839,10 +834,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           code[caller].skipLRStack = true;
         }
       }
-      else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
+      else if (inst.OPCD() == 31 && inst.SUBOP10() == 467)
       {
         // mtspr, skip CALL/RET merging as LR is overwritten.
-        const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+        const u32 index = (inst.SPRU() << 5) | (inst.SPRL() & 0x1F);
         if (index == SPR_LR)
         {
           // We give up to follow the return address
@@ -854,25 +849,26 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     if (HasOption(OPTION_CONDITIONAL_CONTINUE))
     {
-      if (inst.OPCD == 16 &&
-          ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+      if (inst.OPCD() == 16 &&
+          ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO() & BO_DONT_CHECK_CONDITION) == 0))
       {
         // bcx with conditional branch
         conditional_continue = true;
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
-               ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 ||
-                (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+      else if (inst.OPCD() == 19 && inst.SUBOP10() == 16 &&
+               ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0 ||
+                (inst.BO() & BO_DONT_CHECK_CONDITION) == 0))
       {
         // bclrx with conditional branch
         conditional_continue = true;
       }
-      else if (inst.OPCD == 3 || (inst.OPCD == 31 && inst.SUBOP10 == 4))
+      else if (inst.OPCD() == 3 || (inst.OPCD() == 31 && inst.SUBOP10() == 4))
       {
         // tw/twi tests and raises an exception
         conditional_continue = true;
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 528 && (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
+      else if (inst.OPCD() == 19 && inst.SUBOP10() == 528 &&
+               (inst.BO() & BO_DONT_CHECK_CONDITION) == 0)
       {
         // Rare bcctrx with conditional branch
         // Seen in NES games
@@ -985,11 +981,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
           (FL_IN_FLOAT_A_BITEXACT | FL_IN_FLOAT_B_BITEXACT | FL_IN_FLOAT_C_BITEXACT))
       {
         if (op.opinfo->flags & FL_IN_FLOAT_A_BITEXACT)
-          bitexact_inputs[op.inst.FA] = true;
+          bitexact_inputs[op.inst.FA()] = true;
         if (op.opinfo->flags & FL_IN_FLOAT_B_BITEXACT)
-          bitexact_inputs[op.inst.FB] = true;
+          bitexact_inputs[op.inst.FB()] = true;
         if (op.opinfo->flags & FL_IN_FLOAT_C_BITEXACT)
-          bitexact_inputs[op.inst.FC] = true;
+          bitexact_inputs[op.inst.FC()] = true;
       }
 
       if (op.opinfo->type == OpType::SingleFP || !strncmp(op.opinfo->opname, "frsp", 4))
@@ -1049,13 +1045,13 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
 
     if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
     {
-      const int gqr = op.inst.OPCD == 4 ? op.inst.Ix : op.inst.I;
+      const int gqr = op.inst.OPCD() == 4 ? op.inst.Ix() : op.inst.I();
       gqrUsed[gqr] = true;
     }
 
-    if (op.inst.OPCD == 31 && op.inst.SUBOP10 == 467)  // mtspr
+    if (op.inst.OPCD() == 31 && op.inst.SUBOP10() == 467)  // mtspr
     {
-      const int gqr = ((op.inst.SPRU << 5) | op.inst.SPRL) - SPR_GQR0;
+      const int gqr = ((op.inst.SPRU() << 5) | op.inst.SPRL()) - SPR_GQR0;
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }

@@ -33,23 +33,23 @@ size_t m_numInstructions;
 
 namespace PPCTables
 {
-GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
+GekkoOPInfo* GetOpInfo(GeckoInstruction inst)
 {
-  const GekkoOPInfo* info = m_infoTable[inst.OPCD];
+  const GekkoOPInfo* info = m_infoTable[inst.OPCD()];
   if (info->type == OpType::Subtable)
   {
-    switch (inst.OPCD)
+    switch (inst.OPCD())
     {
     case 4:
-      return m_infoTable4[inst.SUBOP10];
+      return m_infoTable4[inst.SUBOP10()];
     case 19:
-      return m_infoTable19[inst.SUBOP10];
+      return m_infoTable19[inst.SUBOP10()];
     case 31:
-      return m_infoTable31[inst.SUBOP10];
+      return m_infoTable31[inst.SUBOP10()];
     case 59:
-      return m_infoTable59[inst.SUBOP5];
+      return m_infoTable59[inst.SUBOP5()];
     case 63:
-      return m_infoTable63[inst.SUBOP10];
+      return m_infoTable63[inst.SUBOP10()];
     default:
       ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid subtable op {:08x} @ {:08x}", inst.hex, PC);
       return nullptr;
@@ -62,27 +62,27 @@ GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
       ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op {:08x} @ {:08x}", inst.hex, PC);
       return nullptr;
     }
-    return m_infoTable[inst.OPCD];
+    return m_infoTable[inst.OPCD()];
   }
 }
 
-Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
+Interpreter::Instruction GetInterpreterOp(GeckoInstruction inst)
 {
-  const GekkoOPInfo* info = m_infoTable[inst.OPCD];
+  const GekkoOPInfo* info = m_infoTable[inst.OPCD()];
   if (info->type == OpType::Subtable)
   {
-    switch (inst.OPCD)
+    switch (inst.OPCD())
     {
     case 4:
-      return Interpreter::m_op_table4[inst.SUBOP10];
+      return Interpreter::m_op_table4[inst.SUBOP10()];
     case 19:
-      return Interpreter::m_op_table19[inst.SUBOP10];
+      return Interpreter::m_op_table19[inst.SUBOP10()];
     case 31:
-      return Interpreter::m_op_table31[inst.SUBOP10];
+      return Interpreter::m_op_table31[inst.SUBOP10()];
     case 59:
-      return Interpreter::m_op_table59[inst.SUBOP5];
+      return Interpreter::m_op_table59[inst.SUBOP5()];
     case 63:
-      return Interpreter::m_op_table63[inst.SUBOP10];
+      return Interpreter::m_op_table63[inst.SUBOP10()];
     default:
       ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid subtable op {:08x} @ {:08x}", inst.hex,
                  PC);
@@ -96,11 +96,11 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
       ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid op {:08x} @ {:08x}", inst.hex, PC);
       return nullptr;
     }
-    return Interpreter::m_op_table[inst.OPCD];
+    return Interpreter::m_op_table[inst.OPCD()];
   }
 }
 
-bool UsesFPU(UGeckoInstruction inst)
+bool UsesFPU(GeckoInstruction inst)
 {
   GekkoOPInfo* const info = GetOpInfo(inst);
 
@@ -117,19 +117,19 @@ std::vector<u32> rsplocations;
 }
 #endif
 
-const char* GetInstructionName(UGeckoInstruction inst)
+const char* GetInstructionName(GeckoInstruction inst)
 {
   const GekkoOPInfo* info = GetOpInfo(inst);
   return info ? info->opname : nullptr;
 }
 
-bool IsValidInstruction(UGeckoInstruction inst)
+bool IsValidInstruction(GeckoInstruction inst)
 {
   const GekkoOPInfo* info = GetOpInfo(inst);
   return info != nullptr && info->type != OpType::Unknown;
 }
 
-void CountInstruction(UGeckoInstruction inst)
+void CountInstruction(GeckoInstruction inst)
 {
   GekkoOPInfo* info = GetOpInfo(inst);
   if (info)

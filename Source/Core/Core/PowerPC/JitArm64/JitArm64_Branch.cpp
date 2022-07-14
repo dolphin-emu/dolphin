@@ -14,7 +14,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::sc(UGeckoInstruction inst)
+void JitArm64::sc(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -33,7 +33,7 @@ void JitArm64::sc(UGeckoInstruction inst)
   WriteExceptionExit(js.compilerPC + 4, false, true);
 }
 
-void JitArm64::rfi(UGeckoInstruction inst)
+void JitArm64::rfi(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
@@ -71,12 +71,12 @@ void JitArm64::rfi(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::bx(UGeckoInstruction inst)
+void JitArm64::bx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  if (inst.LK)
+  if (inst.LK())
   {
     ARM64Reg WA = gpr.GetReg();
     MOVI2R(WA, js.compilerPC + 4);
@@ -86,7 +86,7 @@ void JitArm64::bx(UGeckoInstruction inst)
 
   if (!js.isLastInstruction)
   {
-    if (inst.LK && !js.op->skipLRStack)
+    if (inst.LK() && !js.op->skipLRStack)
     {
       // We have to fake the stack as the RET instruction was not
       // found in the same block. This is a big overhead, but still
@@ -113,23 +113,23 @@ void JitArm64::bx(UGeckoInstruction inst)
     return;
   }
 
-  WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+  WriteExit(js.op->branchTo, inst.LK(), js.compilerPC + 4);
 }
 
-void JitArm64::bcx(UGeckoInstruction inst)
+void JitArm64::bcx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
   ARM64Reg WA = gpr.GetReg();
   FixupBranch pCTRDontBranch;
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
     LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
     SUBS(WA, WA, 1);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
 
-    if (inst.BO & BO_BRANCH_IF_CTR_0)
+    if (inst.BO() & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = B(CC_NEQ);
     else
       pCTRDontBranch = B(CC_EQ);
@@ -137,17 +137,17 @@ void JitArm64::bcx(UGeckoInstruction inst)
 
   FixupBranch pConditionDontBranch;
 
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI() >> 2, 3 - (inst.BI() & 3), !(inst.BO() & BO_BRANCH_IF_TRUE));
   }
 
   FixupBranch far_addr = B();
   SwitchToFarCode();
   SetJumpTarget(far_addr);
 
-  if (inst.LK)
+  if (inst.LK())
   {
     MOVI2R(WA, js.compilerPC + 4);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
@@ -168,14 +168,14 @@ void JitArm64::bcx(UGeckoInstruction inst)
   }
   else
   {
-    WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+    WriteExit(js.op->branchTo, inst.LK(), js.compilerPC + 4);
   }
 
   SwitchToNearCode();
 
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
@@ -188,27 +188,27 @@ void JitArm64::bcx(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::bcctrx(UGeckoInstruction inst)
+void JitArm64::bcctrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
   // Rare condition seen in (just some versions of?) Nintendo's NES Emulator
-  // BO_2 == 001zy -> b if false
-  // BO_2 == 011zy -> b if true
-  FALLBACK_IF(!(inst.BO_2 & BO_DONT_CHECK_CONDITION));
+  // BO == 001zy -> b if false
+  // BO == 011zy -> b if true
+  FALLBACK_IF(!(inst.BO() & BO_DONT_CHECK_CONDITION));
 
   // bcctrx doesn't decrement and/or test CTR
-  ASSERT_MSG(DYNA_REC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
+  ASSERT_MSG(DYNA_REC, inst.BO() & BO_DONT_DECREMENT_FLAG,
              "bcctrx with decrement and test CTR option is invalid!");
 
-  // BO_2 == 1z1zz -> b always
+  // BO == 1z1zz -> b always
 
   // NPC = CTR & 0xfffffffc;
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
 
-  if (inst.LK_3)
+  if (inst.LK())
   {
     ARM64Reg WB = gpr.GetReg();
     MOVI2R(WB, js.compilerPC + 4);
@@ -221,40 +221,40 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
   AND(WA, WA, LogicalImm(~0x3, 32));
 
-  WriteExit(WA, inst.LK_3, js.compilerPC + 4);
+  WriteExit(WA, inst.LK(), js.compilerPC + 4);
 
   gpr.Unlock(WA);
 }
 
-void JitArm64::bclrx(UGeckoInstruction inst)
+void JitArm64::bclrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
   bool conditional =
-      (inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0;
+      (inst.BO() & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO() & BO_DONT_CHECK_CONDITION) == 0;
 
   ARM64Reg WA = gpr.GetReg();
-  ARM64Reg WB = conditional || inst.LK ? gpr.GetReg() : ARM64Reg::INVALID_REG;
+  ARM64Reg WB = conditional || inst.LK() ? gpr.GetReg() : ARM64Reg::INVALID_REG;
 
   FixupBranch pCTRDontBranch;
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
     LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
     SUBS(WA, WA, 1);
     STR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_CTR));
 
-    if (inst.BO & BO_BRANCH_IF_CTR_0)
+    if (inst.BO() & BO_BRANCH_IF_CTR_0)
       pCTRDontBranch = B(CC_NEQ);
     else
       pCTRDontBranch = B(CC_EQ);
   }
 
   FixupBranch pConditionDontBranch;
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
     pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+        JumpIfCRFieldBit(inst.BI() >> 2, 3 - (inst.BI() & 3), !(inst.BO() & BO_BRANCH_IF_TRUE));
   }
 
   if (conditional)
@@ -267,7 +267,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
   AND(WA, WA, LogicalImm(~0x3, 32));
 
-  if (inst.LK)
+  if (inst.LK())
   {
     MOVI2R(WB, js.compilerPC + 4);
     STR(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF_SPR(SPR_LR));
@@ -294,9 +294,9 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   if (conditional)
     SwitchToNearCode();
 
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
+  if ((inst.BO() & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))

@@ -126,7 +126,7 @@ public:
   void FinalizeSingleResult(Gen::X64Reg output, const Gen::OpArg& input, bool packed = true,
                             bool duplicate = false);
   void FinalizeDoubleResult(Gen::X64Reg output, const Gen::OpArg& input);
-  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm, Gen::X64Reg clobber);
+  void HandleNaNs(GeckoInstruction inst, Gen::X64Reg xmm, Gen::X64Reg clobber);
 
   void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
@@ -134,117 +134,117 @@ public:
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
                 void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
                 bool Rc = false, bool carry = false);
-  void FloatCompare(UGeckoInstruction inst, bool upper = false);
+  void FloatCompare(GeckoInstruction inst, bool upper = false);
   void UpdateMXCSR();
 
   // OPCODES
-  using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
-  void FallBackToInterpreter(UGeckoInstruction _inst);
-  void DoNothing(UGeckoInstruction _inst);
+  using Instruction = void (Jit64::*)(GeckoInstruction instCode);
+  void FallBackToInterpreter(GeckoInstruction _inst);
+  void DoNothing(GeckoInstruction _inst);
   void HLEFunction(u32 hook_index);
 
-  void DynaRunTable4(UGeckoInstruction inst);
-  void DynaRunTable19(UGeckoInstruction inst);
-  void DynaRunTable31(UGeckoInstruction inst);
-  void DynaRunTable59(UGeckoInstruction inst);
-  void DynaRunTable63(UGeckoInstruction inst);
+  void DynaRunTable4(GeckoInstruction inst);
+  void DynaRunTable19(GeckoInstruction inst);
+  void DynaRunTable31(GeckoInstruction inst);
+  void DynaRunTable59(GeckoInstruction inst);
+  void DynaRunTable63(GeckoInstruction inst);
 
-  void addx(UGeckoInstruction inst);
-  void mulli(UGeckoInstruction inst);
-  void mulhwXx(UGeckoInstruction inst);
-  void mullwx(UGeckoInstruction inst);
-  void divwux(UGeckoInstruction inst);
-  void divwx(UGeckoInstruction inst);
-  void srawix(UGeckoInstruction inst);
-  void srawx(UGeckoInstruction inst);
-  void arithXex(UGeckoInstruction inst);
+  void addx(GeckoInstruction inst);
+  void mulli(GeckoInstruction inst);
+  void mulhwXx(GeckoInstruction inst);
+  void mullwx(GeckoInstruction inst);
+  void divwux(GeckoInstruction inst);
+  void divwx(GeckoInstruction inst);
+  void srawix(GeckoInstruction inst);
+  void srawx(GeckoInstruction inst);
+  void arithXex(GeckoInstruction inst);
 
-  void extsXx(UGeckoInstruction inst);
+  void extsXx(GeckoInstruction inst);
 
-  void sc(UGeckoInstruction _inst);
-  void rfi(UGeckoInstruction _inst);
+  void sc(GeckoInstruction _inst);
+  void rfi(GeckoInstruction _inst);
 
-  void bx(UGeckoInstruction inst);
-  void bclrx(UGeckoInstruction _inst);
-  void bcctrx(UGeckoInstruction _inst);
-  void bcx(UGeckoInstruction inst);
+  void bx(GeckoInstruction inst);
+  void bclrx(GeckoInstruction _inst);
+  void bcctrx(GeckoInstruction _inst);
+  void bcx(GeckoInstruction inst);
 
-  void mtspr(UGeckoInstruction inst);
-  void mfspr(UGeckoInstruction inst);
-  void mtmsr(UGeckoInstruction inst);
-  void mfmsr(UGeckoInstruction inst);
-  void mftb(UGeckoInstruction inst);
-  void mtcrf(UGeckoInstruction inst);
-  void mfcr(UGeckoInstruction inst);
-  void mcrf(UGeckoInstruction inst);
-  void mcrxr(UGeckoInstruction inst);
-  void mcrfs(UGeckoInstruction inst);
-  void mffsx(UGeckoInstruction inst);
-  void mtfsb0x(UGeckoInstruction inst);
-  void mtfsb1x(UGeckoInstruction inst);
-  void mtfsfix(UGeckoInstruction inst);
-  void mtfsfx(UGeckoInstruction inst);
+  void mtspr(GeckoInstruction inst);
+  void mfspr(GeckoInstruction inst);
+  void mtmsr(GeckoInstruction inst);
+  void mfmsr(GeckoInstruction inst);
+  void mftb(GeckoInstruction inst);
+  void mtcrf(GeckoInstruction inst);
+  void mfcr(GeckoInstruction inst);
+  void mcrf(GeckoInstruction inst);
+  void mcrxr(GeckoInstruction inst);
+  void mcrfs(GeckoInstruction inst);
+  void mffsx(GeckoInstruction inst);
+  void mtfsb0x(GeckoInstruction inst);
+  void mtfsb1x(GeckoInstruction inst);
+  void mtfsfix(GeckoInstruction inst);
+  void mtfsfx(GeckoInstruction inst);
 
-  void boolX(UGeckoInstruction inst);
-  void crXXX(UGeckoInstruction inst);
+  void boolX(GeckoInstruction inst);
+  void crXXX(GeckoInstruction inst);
 
-  void reg_imm(UGeckoInstruction inst);
+  void reg_imm(GeckoInstruction inst);
 
-  void ps_mr(UGeckoInstruction inst);
-  void ps_mergeXX(UGeckoInstruction inst);
-  void ps_res(UGeckoInstruction inst);
-  void ps_rsqrte(UGeckoInstruction inst);
-  void ps_sum(UGeckoInstruction inst);
-  void ps_muls(UGeckoInstruction inst);
-  void ps_cmpXX(UGeckoInstruction inst);
+  void ps_mr(GeckoInstruction inst);
+  void ps_mergeXX(GeckoInstruction inst);
+  void ps_res(GeckoInstruction inst);
+  void ps_rsqrte(GeckoInstruction inst);
+  void ps_sum(GeckoInstruction inst);
+  void ps_muls(GeckoInstruction inst);
+  void ps_cmpXX(GeckoInstruction inst);
 
-  void fp_arith(UGeckoInstruction inst);
+  void fp_arith(GeckoInstruction inst);
 
-  void fcmpX(UGeckoInstruction inst);
-  void fctiwx(UGeckoInstruction inst);
-  void fmrx(UGeckoInstruction inst);
-  void frspx(UGeckoInstruction inst);
-  void frsqrtex(UGeckoInstruction inst);
-  void fresx(UGeckoInstruction inst);
+  void fcmpX(GeckoInstruction inst);
+  void fctiwx(GeckoInstruction inst);
+  void fmrx(GeckoInstruction inst);
+  void frspx(GeckoInstruction inst);
+  void frsqrtex(GeckoInstruction inst);
+  void fresx(GeckoInstruction inst);
 
-  void cmpXX(UGeckoInstruction inst);
+  void cmpXX(GeckoInstruction inst);
 
-  void cntlzwx(UGeckoInstruction inst);
+  void cntlzwx(GeckoInstruction inst);
 
-  void lfXXX(UGeckoInstruction inst);
-  void stfXXX(UGeckoInstruction inst);
-  void stfiwx(UGeckoInstruction inst);
-  void psq_lXX(UGeckoInstruction inst);
-  void psq_stXX(UGeckoInstruction inst);
+  void lfXXX(GeckoInstruction inst);
+  void stfXXX(GeckoInstruction inst);
+  void stfiwx(GeckoInstruction inst);
+  void psq_lXX(GeckoInstruction inst);
+  void psq_stXX(GeckoInstruction inst);
 
-  void fmaddXX(UGeckoInstruction inst);
-  void fsign(UGeckoInstruction inst);
-  void fselx(UGeckoInstruction inst);
-  void stX(UGeckoInstruction inst);  // stw sth stb
-  void rlwinmx(UGeckoInstruction inst);
-  void rlwimix(UGeckoInstruction inst);
-  void rlwnmx(UGeckoInstruction inst);
-  void negx(UGeckoInstruction inst);
-  void slwx(UGeckoInstruction inst);
-  void srwx(UGeckoInstruction inst);
-  void dcbt(UGeckoInstruction inst);
-  void dcbz(UGeckoInstruction inst);
+  void fmaddXX(GeckoInstruction inst);
+  void fsign(GeckoInstruction inst);
+  void fselx(GeckoInstruction inst);
+  void stX(GeckoInstruction inst);  // stw sth stb
+  void rlwinmx(GeckoInstruction inst);
+  void rlwimix(GeckoInstruction inst);
+  void rlwnmx(GeckoInstruction inst);
+  void negx(GeckoInstruction inst);
+  void slwx(GeckoInstruction inst);
+  void srwx(GeckoInstruction inst);
+  void dcbt(GeckoInstruction inst);
+  void dcbz(GeckoInstruction inst);
 
-  void subfic(UGeckoInstruction inst);
-  void subfx(UGeckoInstruction inst);
+  void subfic(GeckoInstruction inst);
+  void subfx(GeckoInstruction inst);
 
-  void twX(UGeckoInstruction inst);
+  void twX(GeckoInstruction inst);
 
-  void lXXx(UGeckoInstruction inst);
+  void lXXx(GeckoInstruction inst);
 
-  void stXx(UGeckoInstruction inst);
+  void stXx(GeckoInstruction inst);
 
-  void lmw(UGeckoInstruction inst);
-  void stmw(UGeckoInstruction inst);
+  void lmw(GeckoInstruction inst);
+  void stmw(GeckoInstruction inst);
 
-  void dcbx(UGeckoInstruction inst);
+  void dcbx(GeckoInstruction inst);
 
-  void eieio(UGeckoInstruction inst);
+  void eieio(GeckoInstruction inst);
 
 private:
   void CompileInstruction(PPCAnalyst::CodeOp& op);

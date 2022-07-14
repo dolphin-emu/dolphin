@@ -145,7 +145,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
 JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 {
   u32 translated_addr = addr;
-  if (UReg_MSR(msr).IR)
+  if (Reg_MSR(msr).IR())
   {
     auto translated = PowerPC::JitCache_TranslateAddress(addr);
     if (!translated.valid)

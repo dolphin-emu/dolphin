@@ -460,34 +460,34 @@ constexpr std::array<Jit64::Instruction, 1024> s_dyna_op_table63 = [] {
 
 }  // Anonymous namespace
 
-void Jit64::DynaRunTable4(UGeckoInstruction inst)
+void Jit64::DynaRunTable4(GeckoInstruction inst)
 {
-  (this->*s_dyna_op_table4[inst.SUBOP10])(inst);
+  (this->*s_dyna_op_table4[inst.SUBOP10()])(inst);
 }
 
-void Jit64::DynaRunTable19(UGeckoInstruction inst)
+void Jit64::DynaRunTable19(GeckoInstruction inst)
 {
-  (this->*s_dyna_op_table19[inst.SUBOP10])(inst);
+  (this->*s_dyna_op_table19[inst.SUBOP10()])(inst);
 }
 
-void Jit64::DynaRunTable31(UGeckoInstruction inst)
+void Jit64::DynaRunTable31(GeckoInstruction inst)
 {
-  (this->*s_dyna_op_table31[inst.SUBOP10])(inst);
+  (this->*s_dyna_op_table31[inst.SUBOP10()])(inst);
 }
 
-void Jit64::DynaRunTable59(UGeckoInstruction inst)
+void Jit64::DynaRunTable59(GeckoInstruction inst)
 {
-  (this->*s_dyna_op_table59[inst.SUBOP5])(inst);
+  (this->*s_dyna_op_table59[inst.SUBOP5()])(inst);
 }
 
-void Jit64::DynaRunTable63(UGeckoInstruction inst)
+void Jit64::DynaRunTable63(GeckoInstruction inst)
 {
-  (this->*s_dyna_op_table63[inst.SUBOP10])(inst);
+  (this->*s_dyna_op_table63[inst.SUBOP10()])(inst);
 }
 
 void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-  (this->*s_dyna_op_table[op.inst.OPCD])(op.inst);
+  (this->*s_dyna_op_table[op.inst.OPCD()])(op.inst);
 
   GekkoOPInfo* info = op.opinfo;
   if (info)

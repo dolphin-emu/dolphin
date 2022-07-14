@@ -16,11 +16,11 @@
 
 struct CachedInterpreter::Instruction
 {
-  using CommonCallback = void (*)(UGeckoInstruction);
+  using CommonCallback = void (*)(GeckoInstruction);
   using ConditionalCallback = bool (*)(u32);
 
   Instruction() {}
-  Instruction(const CommonCallback c, UGeckoInstruction i)
+  Instruction(const CommonCallback c, GeckoInstruction i)
       : common_callback(c), data(i.hex), type(Type::Common)
   {
   }
@@ -91,7 +91,7 @@ void CachedInterpreter::ExecuteOneBlock()
     switch (code->type)
     {
     case Instruction::Type::Common:
-      code->common_callback(UGeckoInstruction(code->data));
+      code->common_callback(GeckoInstruction(code->data));
       break;
 
     case Instruction::Type::Conditional:
@@ -130,37 +130,37 @@ void CachedInterpreter::SingleStep()
   ExecuteOneBlock();
 }
 
-static void EndBlock(UGeckoInstruction data)
+static void EndBlock(GeckoInstruction data)
 {
   PC = NPC;
   PowerPC::ppcState.downcount -= data.hex;
   PowerPC::UpdatePerformanceMonitor(data.hex, 0, 0);
 }
 
-static void UpdateNumLoadStoreInstructions(UGeckoInstruction data)
+static void UpdateNumLoadStoreInstructions(GeckoInstruction data)
 {
   PowerPC::UpdatePerformanceMonitor(0, data.hex, 0);
 }
 
-static void UpdateNumFloatingPointInstructions(UGeckoInstruction data)
+static void UpdateNumFloatingPointInstructions(GeckoInstruction data)
 {
   PowerPC::UpdatePerformanceMonitor(0, 0, data.hex);
 }
 
-static void WritePC(UGeckoInstruction data)
+static void WritePC(GeckoInstruction data)
 {
   PC = data.hex;
   NPC = data.hex + 4;
 }
 
-static void WriteBrokenBlockNPC(UGeckoInstruction data)
+static void WriteBrokenBlockNPC(GeckoInstruction data)
 {
   NPC = data.hex;
 }
 
 static bool CheckFPU(u32 data)
 {
-  if (!MSR.FP)
+  if (!MSR.FP())
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     PowerPC::CheckExceptions();

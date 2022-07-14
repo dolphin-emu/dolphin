@@ -65,24 +65,24 @@ void JitArm64::Force25BitPrecision(ARM64Reg output, ARM64Reg input, ARM64Reg tem
     m_float_emit.ADD(output, output, temp);
 }
 
-void JitArm64::fp_arith(UGeckoInstruction inst)
+void JitArm64::fp_arith(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(jo.fp_exceptions || (jo.div_by_zero_exceptions && inst.SUBOP5 == 18));
+  FALLBACK_IF(inst.Rc());
+  FALLBACK_IF(jo.fp_exceptions || (jo.div_by_zero_exceptions && inst.SUBOP5() == 18));
 
-  u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-  u32 op5 = inst.SUBOP5;
+  u32 a = inst.FA(), b = inst.FB(), c = inst.FC(), d = inst.FD();
+  u32 op5 = inst.SUBOP5();
 
-  bool single = inst.OPCD == 59;
-  bool packed = inst.OPCD == 4;
+  bool single = inst.OPCD() == 59;
+  bool packed = inst.OPCD() == 4;
 
   const bool use_c = op5 >= 25;  // fmul and all kind of fmaddXX
   const bool use_b = op5 != 25;  // fmul uses no B
 
   const bool outputs_are_singles = single || packed;
-  const bool round_c = use_c && outputs_are_singles && !js.op->fprIsSingle[inst.FC];
+  const bool round_c = use_c && outputs_are_singles && !js.op->fprIsSingle[inst.FC()];
 
   const auto inputs_are_singles_func = [&] {
     return fpr.IsSingle(a, !packed) && (!use_b || fpr.IsSingle(b, !packed)) &&
@@ -244,17 +244,17 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   SetFPRFIfNeeded(outputs_are_singles, VD);
 }
 
-void JitArm64::fp_logic(UGeckoInstruction inst)
+void JitArm64::fp_logic(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
-  const u32 op10 = inst.SUBOP10;
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
+  const u32 op10 = inst.SUBOP10();
 
-  bool packed = inst.OPCD == 4;
+  bool packed = inst.OPCD() == 4;
 
   // MR with source === dest => no-op
   if (op10 == 72 && b == d)
@@ -324,16 +324,16 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of fp_logic");
 }
 
-void JitArm64::fselx(UGeckoInstruction inst)
+void JitArm64::fselx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  const u32 a = inst.FA;
-  const u32 b = inst.FB;
-  const u32 c = inst.FC;
-  const u32 d = inst.FD;
+  const u32 a = inst.FA();
+  const u32 b = inst.FB();
+  const u32 c = inst.FC();
+  const u32 d = inst.FD();
 
   const bool b_and_c_singles = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
   const RegType b_and_c_type = b_and_c_singles ? RegType::LowerPairSingle : RegType::LowerPair;
@@ -362,15 +362,15 @@ void JitArm64::fselx(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of fselx");
 }
 
-void JitArm64::frspx(UGeckoInstruction inst)
+void JitArm64::frspx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
 
   const bool single = fpr.IsSingle(b, true);
   if (single && js.fpr_is_store_safe[b])
@@ -398,13 +398,13 @@ void JitArm64::frspx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
+void JitArm64::FloatCompare(GeckoInstruction inst, bool upper)
 {
   const bool fprf = m_fprf && js.op->wantsFPRF;
 
-  const u32 a = inst.FA;
-  const u32 b = inst.FB;
-  const int crf = inst.CRFD;
+  const u32 a = inst.FA();
+  const u32 b = inst.FB();
+  const int crf = inst.CRFD();
 
   // On the GC/Wii CPU, outputs are flushed to zero if FPSCR.NI is set, and inputs are never
   // flushed to zero. Ideally we would emulate FPSCR.NI by setting FPCR.FZ and FPCR.AH, but
@@ -525,7 +525,7 @@ void JitArm64::FloatCompare(UGeckoInstruction inst, bool upper)
   }
 }
 
-void JitArm64::fcmpX(UGeckoInstruction inst)
+void JitArm64::fcmpX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -534,18 +534,18 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   FloatCompare(inst);
 }
 
-void JitArm64::fctiwx(UGeckoInstruction inst)
+void JitArm64::fctiwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
 
   const bool single = fpr.IsSingle(b, true);
-  const bool is_fctiwzx = inst.SUBOP10 == 15;
+  const bool is_fctiwzx = inst.SUBOP10() == 15;
 
   const ARM64Reg VB = fpr.R(b, single ? RegType::LowerPairSingle : RegType::LowerPair);
   const ARM64Reg VD = fpr.RW(d, RegType::LowerPair);
@@ -599,15 +599,15 @@ void JitArm64::fctiwx(UGeckoInstruction inst)
              "Register allocation turned singles into doubles in the middle of fctiwzx");
 }
 
-void JitArm64::fresx(UGeckoInstruction inst)
+void JitArm64::fresx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
   fpr.Lock(ARM64Reg::Q0);
 
   const ARM64Reg VB = fpr.R(b, RegType::LowerPair);
@@ -628,15 +628,15 @@ void JitArm64::fresx(UGeckoInstruction inst)
   fpr.Unlock(ARM64Reg::Q0);
 }
 
-void JitArm64::frsqrtex(UGeckoInstruction inst)
+void JitArm64::frsqrtex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
 
-  const u32 b = inst.FB;
-  const u32 d = inst.FD;
+  const u32 b = inst.FB();
+  const u32 d = inst.FD();
 
   fpr.Lock(ARM64Reg::Q0);
 

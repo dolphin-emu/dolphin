@@ -17,13 +17,13 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::psq_lXX(UGeckoInstruction inst)
+void JitArm64::psq_lXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
 
   // If we have a fastmem arena, the asm routines assume address translation is on.
-  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR());
 
   // X30 is LR
   // X0 is the address
@@ -31,11 +31,11 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   // X2 is a temporary
   // Q0 is the return register
   // Q1 is a temporary
-  const s32 offset = inst.SIMM_12;
-  const bool indexed = inst.OPCD == 4;
-  const bool update = inst.OPCD == 57 || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
-  const int i = indexed ? inst.Ix : inst.I;
-  const int w = indexed ? inst.Wx : inst.W;
+  const s32 offset = inst.SIMM_12();
+  const bool indexed = inst.OPCD() == 4;
+  const bool update = inst.OPCD() == 57 || (inst.OPCD() == 4 && !!(inst.SUBOP6() & 32));
+  const int i = indexed ? inst.Ix() : inst.I();
+  const int w = indexed ? inst.Wx() : inst.W();
 
   gpr.Lock(ARM64Reg::W0, ARM64Reg::W30);
   fpr.Lock(ARM64Reg::Q0);
@@ -52,21 +52,21 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   constexpr ARM64Reg addr_reg = ARM64Reg::W0;
   constexpr ARM64Reg scale_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
-  ARM64Reg VS = fpr.RW(inst.RS, RegType::Single, false);
+  ARM64Reg VS = fpr.RW(inst.RS(), RegType::Single, false);
 
-  if (inst.RA || update)  // Always uses the register on update
+  if (inst.RA() || update)  // Always uses the register on update
   {
     if (indexed)
-      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
+      ADD(addr_reg, gpr.R(inst.RA()), gpr.R(inst.RB()));
     else if (offset >= 0)
-      ADD(addr_reg, gpr.R(inst.RA), offset);
+      ADD(addr_reg, gpr.R(inst.RA()), offset);
     else
-      SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
+      SUB(addr_reg, gpr.R(inst.RA()), std::abs(offset));
   }
   else
   {
     if (indexed)
-      MOV(addr_reg, gpr.R(inst.RB));
+      MOV(addr_reg, gpr.R(inst.RB()));
     else
       MOVI2R(addr_reg, (u32)offset);
   }
@@ -74,8 +74,8 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   const bool early_update = !jo.memcheck;
   if (update && early_update)
   {
-    gpr.BindToRegister(inst.RA, false);
-    MOV(gpr.R(inst.RA), addr_reg);
+    gpr.BindToRegister(inst.RA(), false);
+    MOV(gpr.R(inst.RA()), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
@@ -120,13 +120,13 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
     m_float_emit.INS(32, VS, 1, ARM64Reg::Q0, 0);
   }
 
-  const ARM64Reg VS_again = fpr.RW(inst.RS, RegType::Single, true);
+  const ARM64Reg VS_again = fpr.RW(inst.RS(), RegType::Single, true);
   ASSERT(VS == VS_again);
 
   if (update && !early_update)
   {
-    gpr.BindToRegister(inst.RA, false);
-    MOV(gpr.R(inst.RA), addr_reg);
+    gpr.BindToRegister(inst.RA(), false);
+    MOV(gpr.R(inst.RA()), addr_reg);
   }
 
   gpr.Unlock(ARM64Reg::W0, ARM64Reg::W30);
@@ -142,32 +142,32 @@ void JitArm64::psq_lXX(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::psq_stXX(UGeckoInstruction inst)
+void JitArm64::psq_stXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
 
   // If we have a fastmem arena, the asm routines assume address translation is on.
-  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR);
+  FALLBACK_IF(!js.assumeNoPairedQuantize && jo.fastmem_arena && !MSR.DR());
 
   // X30 is LR
   // X0 contains the scale
   // X1 is the address
   // Q0 is the store register
 
-  const s32 offset = inst.SIMM_12;
-  const bool indexed = inst.OPCD == 4;
-  const bool update = inst.OPCD == 61 || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
-  const int i = indexed ? inst.Ix : inst.I;
-  const int w = indexed ? inst.Wx : inst.W;
+  const s32 offset = inst.SIMM_12();
+  const bool indexed = inst.OPCD() == 4;
+  const bool update = inst.OPCD() == 61 || (inst.OPCD() == 4 && !!(inst.SUBOP6() & 32));
+  const int i = indexed ? inst.Ix() : inst.I();
+  const int w = indexed ? inst.Wx() : inst.W();
 
   fpr.Lock(ARM64Reg::Q0);
   if (!js.assumeNoPairedQuantize)
     fpr.Lock(ARM64Reg::Q1);
 
-  const bool have_single = fpr.IsSingle(inst.RS);
+  const bool have_single = fpr.IsSingle(inst.RS());
 
-  ARM64Reg VS = fpr.R(inst.RS, have_single ? RegType::Single : RegType::Register);
+  ARM64Reg VS = fpr.R(inst.RS(), have_single ? RegType::Single : RegType::Register);
 
   if (js.assumeNoPairedQuantize)
   {
@@ -208,19 +208,19 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   constexpr ARM64Reg addr_reg = ARM64Reg::W1;
   constexpr ARM64Reg type_reg = ARM64Reg::W2;
 
-  if (inst.RA || update)  // Always uses the register on update
+  if (inst.RA() || update)  // Always uses the register on update
   {
     if (indexed)
-      ADD(addr_reg, gpr.R(inst.RA), gpr.R(inst.RB));
+      ADD(addr_reg, gpr.R(inst.RA()), gpr.R(inst.RB()));
     else if (offset >= 0)
-      ADD(addr_reg, gpr.R(inst.RA), offset);
+      ADD(addr_reg, gpr.R(inst.RA()), offset);
     else
-      SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
+      SUB(addr_reg, gpr.R(inst.RA()), std::abs(offset));
   }
   else
   {
     if (indexed)
-      MOV(addr_reg, gpr.R(inst.RB));
+      MOV(addr_reg, gpr.R(inst.RB()));
     else
       MOVI2R(addr_reg, (u32)offset);
   }
@@ -228,8 +228,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
   const bool early_update = !jo.memcheck;
   if (update && early_update)
   {
-    gpr.BindToRegister(inst.RA, false);
-    MOV(gpr.R(inst.RA), addr_reg);
+    gpr.BindToRegister(inst.RA(), false);
+    MOV(gpr.R(inst.RA()), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize)
@@ -266,8 +266,8 @@ void JitArm64::psq_stXX(UGeckoInstruction inst)
 
   if (update && !early_update)
   {
-    gpr.BindToRegister(inst.RA, false);
-    MOV(gpr.R(inst.RA), addr_reg);
+    gpr.BindToRegister(inst.RA(), false);
+    MOV(gpr.R(inst.RA()), addr_reg);
   }
 
   if (js.assumeNoPairedQuantize && !have_single)

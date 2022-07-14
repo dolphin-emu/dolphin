@@ -18,22 +18,22 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::lfXX(UGeckoInstruction inst)
+void JitArm64::lfXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
 
-  u32 a = inst.RA, b = inst.RB;
+  u32 a = inst.RA(), b = inst.RB();
 
-  s32 offset = inst.SIMM_16;
+  s32 offset = inst.SIMM_16();
   u32 flags = BackPatchInfo::FLAG_LOAD | BackPatchInfo::FLAG_FLOAT;
   bool update = false;
   s32 offset_reg = -1;
 
-  switch (inst.OPCD)
+  switch (inst.OPCD())
   {
   case 31:
-    switch (inst.SUBOP10)
+    switch (inst.SUBOP10())
     {
     case 567:  // lfsux
       flags |= BackPatchInfo::FLAG_SIZE_32;
@@ -82,7 +82,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   if (!jo.fastmem_arena)
     gpr.Lock(ARM64Reg::W2);
 
-  const ARM64Reg VD = fpr.RW(inst.FD, type, false);
+  const ARM64Reg VD = fpr.RW(inst.FD(), type, false);
   ARM64Reg addr_reg = ARM64Reg::W0;
 
   if (update)
@@ -183,7 +183,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     EmitBackpatchRoutine(flags, MemAccessMode::Auto, VD, XA, regs_in_use, fprs_in_use);
   }
 
-  const ARM64Reg VD_again = fpr.RW(inst.FD, type, true);
+  const ARM64Reg VD_again = fpr.RW(inst.FD(), type, true);
   ASSERT(VD == VD_again);
 
   if (update && !early_update)
@@ -198,23 +198,23 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     gpr.Unlock(ARM64Reg::W2);
 }
 
-void JitArm64::stfXX(UGeckoInstruction inst)
+void JitArm64::stfXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
 
-  u32 a = inst.RA, b = inst.RB;
+  u32 a = inst.RA(), b = inst.RB();
 
   bool want_single = false;
-  s32 offset = inst.SIMM_16;
+  s32 offset = inst.SIMM_16();
   u32 flags = BackPatchInfo::FLAG_STORE | BackPatchInfo::FLAG_FLOAT;
   bool update = false;
   s32 offset_reg = -1;
 
-  switch (inst.OPCD)
+  switch (inst.OPCD())
   {
   case 31:
-    switch (inst.SUBOP10)
+    switch (inst.SUBOP10())
     {
     case 663:  // stfsx
       want_single = true;
@@ -266,15 +266,15 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   fpr.Lock(ARM64Reg::Q0);
 
-  const bool have_single = fpr.IsSingle(inst.FS, true);
+  const bool have_single = fpr.IsSingle(inst.FS(), true);
 
   ARM64Reg V0 =
-      fpr.R(inst.FS, want_single && have_single ? RegType::LowerPairSingle : RegType::LowerPair);
+      fpr.R(inst.FS(), want_single && have_single ? RegType::LowerPairSingle : RegType::LowerPair);
 
   if (want_single && !have_single)
   {
     const ARM64Reg single_reg = fpr.GetReg();
-    ConvertDoubleToSingleLower(inst.FS, single_reg, V0);
+    ConvertDoubleToSingleLower(inst.FS(), single_reg, V0);
     V0 = single_reg;
   }
 

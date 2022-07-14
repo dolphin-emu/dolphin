@@ -66,42 +66,42 @@ void CBoot::RunFunction(u32 address)
 void CBoot::SetupMSR()
 {
   // 0x0002032
-  MSR.RI = 1;
-  MSR.DR = 1;
-  MSR.IR = 1;
-  MSR.FP = 1;
+  MSR.RI() = true;
+  MSR.DR() = true;
+  MSR.IR() = true;
+  MSR.FP() = true;
 }
 
 void CBoot::SetupHID(bool is_wii)
 {
   // HID0 is 0x0011c464 on GC, 0x0011c664 on Wii
-  HID0.BHT = 1;
-  HID0.BTIC = 1;
-  HID0.DCFA = 1;
+  HID0.BHT() = true;
+  HID0.BTIC() = true;
+  HID0.DCFA() = true;
   if (is_wii)
-    HID0.SPD = 1;
-  HID0.DCFI = 1;
-  HID0.DCE = 1;
+    HID0.SPD() = true;
+  HID0.DCFI() = true;
+  HID0.DCE() = true;
   // Note that Datel titles will fail to boot if the instruction cache is not enabled; see
   // https://bugs.dolphin-emu.org/issues/8223
-  HID0.ICE = 1;
-  HID0.NHR = 1;
-  HID0.DPM = 1;
+  HID0.ICE() = true;
+  HID0.NHR() = true;
+  HID0.DPM() = true;
 
   // HID1 is initialized in PowerPC.cpp to 0x80000000
   // HID2 is 0xe0000000
-  HID2.PSE = 1;
-  HID2.WPE = 1;
-  HID2.LSQE = 1;
+  HID2.PSE() = true;
+  HID2.WPE() = true;
+  HID2.LSQE() = true;
 
   // HID4 is 0 on GC and 0x83900000 on Wii
   if (is_wii)
   {
-    HID4.L2CFI = 1;
-    HID4.LPE = 1;
-    HID4.ST0 = 1;
-    HID4.SBE = 1;
-    HID4.reserved_3 = 1;
+    HID4.L2CFI() = true;
+    HID4.LPE() = true;
+    HID4.ST0() = true;
+    HID4.SBE() = true;
+    HID4.reserved_3() = true;
   }
 }
 
@@ -121,7 +121,7 @@ void CBoot::SetupBAT(bool is_wii)
     PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
     PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
     PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
-    HID4.SBE = 1;
+    HID4.SBE() = true;
   }
   PowerPC::DBATUpdated();
   PowerPC::IBATUpdated();

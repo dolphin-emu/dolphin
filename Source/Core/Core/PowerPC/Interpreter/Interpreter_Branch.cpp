@@ -10,14 +10,14 @@
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void Interpreter::bx(UGeckoInstruction inst)
+void Interpreter::bx(GeckoInstruction inst)
 {
-  if (inst.LK)
+  if (inst.LK())
     LR = PC + 4;
 
-  const auto address = u32(SignExt26(inst.LI << 2));
+  const auto address = u32(SignExt26(inst.LI() << 2));
 
-  if (inst.AA)
+  if (inst.AA())
     NPC = address;
   else
     NPC = PC + address;
@@ -26,27 +26,27 @@ void Interpreter::bx(UGeckoInstruction inst)
 }
 
 // bcx - ugly, straight from PPC manual equations :)
-void Interpreter::bcx(UGeckoInstruction inst)
+void Interpreter::bcx(GeckoInstruction inst)
 {
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
 
-  const bool true_false = ((inst.BO >> 3) & 1) != 0;
-  const bool only_counter_check = ((inst.BO >> 4) & 1) != 0;
-  const bool only_condition_check = ((inst.BO >> 2) & 1) != 0;
-  const u32 ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
+  const bool true_false = ((inst.BO() >> 3) & 1) != 0;
+  const bool only_counter_check = ((inst.BO() >> 4) & 1) != 0;
+  const bool only_condition_check = ((inst.BO() >> 2) & 1) != 0;
+  const u32 ctr_check = ((CTR != 0) ^ (inst.BO() >> 1)) & 1;
   const bool counter = only_condition_check || ctr_check != 0;
   const bool condition =
-      only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI) == u32(true_false));
+      only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI()) == u32(true_false));
 
   if (counter && condition)
   {
-    if (inst.LK)
+    if (inst.LK())
       LR = PC + 4;
 
-    const auto address = u32(SignExt16(s16(inst.BD << 2)));
+    const auto address = u32(SignExt16(s16(inst.BD() << 2)));
 
-    if (inst.AA)
+    if (inst.AA())
       NPC = address;
     else
       NPC = PC + address;
@@ -55,52 +55,52 @@ void Interpreter::bcx(UGeckoInstruction inst)
   m_end_block = true;
 }
 
-void Interpreter::bcctrx(UGeckoInstruction inst)
+void Interpreter::bcctrx(GeckoInstruction inst)
 {
-  DEBUG_ASSERT_MSG(POWERPC, (inst.BO_2 & BO_DONT_DECREMENT_FLAG) != 0,
+  DEBUG_ASSERT_MSG(POWERPC, (inst.BO() & BO_DONT_DECREMENT_FLAG) != 0,
                    "bcctrx with decrement and test CTR option is invalid!");
 
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO() >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI()) == ((inst.BO() >> 3) & 1))) & 1;
 
   if (condition != 0)
   {
     NPC = CTR & (~3);
-    if (inst.LK_3)
+    if (inst.LK())
       LR = PC + 4;
   }
 
   m_end_block = true;
 }
 
-void Interpreter::bclrx(UGeckoInstruction inst)
+void Interpreter::bclrx(GeckoInstruction inst)
 {
-  if ((inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0)
+  if ((inst.BO() & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
 
-  const u32 counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
+  const u32 counter = ((inst.BO() >> 2) | ((CTR != 0) ^ (inst.BO() >> 1))) & 1;
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO() >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI()) == ((inst.BO() >> 3) & 1))) & 1;
 
   if ((counter & condition) != 0)
   {
     NPC = LR & (~3);
-    if (inst.LK_3)
+    if (inst.LK())
       LR = PC + 4;
   }
 
   m_end_block = true;
 }
 
-void Interpreter::HLEFunction(UGeckoInstruction inst)
+void Interpreter::HLEFunction(GeckoInstruction inst)
 {
   m_end_block = true;
   HLE::Execute(PC, inst.hex);
 }
 
-void Interpreter::rfi(UGeckoInstruction inst)
+void Interpreter::rfi(GeckoInstruction inst)
 {
-  if (MSR.PR)
+  if (MSR.PR())
   {
     GenerateProgramException(ProgramExceptionCause::PrivilegedInstruction);
     return;
@@ -125,7 +125,7 @@ void Interpreter::rfi(UGeckoInstruction inst)
 // sc isn't really used for anything important in GameCube games (just for a write barrier) so we
 // really don't have to emulate it.
 // We do it anyway, though :P
-void Interpreter::sc(UGeckoInstruction inst)
+void Interpreter::sc(GeckoInstruction inst)
 {
   PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
   PowerPC::CheckExceptions();

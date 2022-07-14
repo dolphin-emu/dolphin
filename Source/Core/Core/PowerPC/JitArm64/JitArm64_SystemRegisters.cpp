@@ -83,14 +83,14 @@ void JitArm64::UpdateRoundingMode()
   ABI_PopRegisters(gprs_to_save);
 }
 
-void JitArm64::mtmsr(UGeckoInstruction inst)
+void JitArm64::mtmsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(jo.fp_exceptions);
 
-  gpr.BindToRegister(inst.RS, true);
-  STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(msr));
+  gpr.BindToRegister(inst.RS(), true);
+  STR(IndexType::Unsigned, gpr.R(inst.RS()), PPC_REG, PPCSTATE_OFF(msr));
 
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
   fpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
@@ -102,39 +102,39 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
   WriteExceptionExit(js.compilerPC + 4, true);
 }
 
-void JitArm64::mfmsr(UGeckoInstruction inst)
+void JitArm64::mfmsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  gpr.BindToRegister(inst.RD, false);
-  LDR(IndexType::Unsigned, gpr.R(inst.RD), PPC_REG, PPCSTATE_OFF(msr));
+  gpr.BindToRegister(inst.RD(), false);
+  LDR(IndexType::Unsigned, gpr.R(inst.RD()), PPC_REG, PPCSTATE_OFF(msr));
 }
 
-void JitArm64::mcrf(UGeckoInstruction inst)
+void JitArm64::mcrf(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  if (inst.CRFS != inst.CRFD)
+  if (inst.CRFS() != inst.CRFD())
   {
-    gpr.BindCRToRegister(inst.CRFD, false);
-    MOV(gpr.CR(inst.CRFD), gpr.CR(inst.CRFS));
+    gpr.BindCRToRegister(inst.CRFD(), false);
+    MOV(gpr.CR(inst.CRFD()), gpr.CR(inst.CRFS()));
   }
 }
 
-void JitArm64::mcrxr(UGeckoInstruction inst)
+void JitArm64::mcrxr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  gpr.BindCRToRegister(inst.CRFD, false);
+  gpr.BindCRToRegister(inst.CRFD(), false);
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
-  ARM64Reg XB = gpr.CR(inst.CRFD);
+  ARM64Reg XB = gpr.CR(inst.CRFD());
   ARM64Reg WB = EncodeRegTo32(XB);
 
-  // Copy XER[0-3] into CR[inst.CRFD]
+  // Copy XER[0-3] into CR[inst.CRFD()]
   LDRB(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
   LDRB(IndexType::Unsigned, WB, PPC_REG, PPCSTATE_OFF(xer_so_ov));
 
@@ -153,30 +153,30 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mfsr(UGeckoInstruction inst)
+void JitArm64::mfsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  gpr.BindToRegister(inst.RD, false);
-  LDR(IndexType::Unsigned, gpr.R(inst.RD), PPC_REG, PPCSTATE_OFF_SR(inst.SR));
+  gpr.BindToRegister(inst.RD(), false);
+  LDR(IndexType::Unsigned, gpr.R(inst.RD()), PPC_REG, PPCSTATE_OFF_SR(inst.SR()));
 }
 
-void JitArm64::mtsr(UGeckoInstruction inst)
+void JitArm64::mtsr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  gpr.BindToRegister(inst.RS, true);
-  STR(IndexType::Unsigned, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF_SR(inst.SR));
+  gpr.BindToRegister(inst.RS(), true);
+  STR(IndexType::Unsigned, gpr.R(inst.RS()), PPC_REG, PPCSTATE_OFF_SR(inst.SR()));
 }
 
-void JitArm64::mfsrin(UGeckoInstruction inst)
+void JitArm64::mfsrin(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  u32 b = inst.RB, d = inst.RD;
+  u32 b = inst.RB(), d = inst.RD();
   gpr.BindToRegister(d, d == b);
 
   ARM64Reg index = gpr.GetReg();
@@ -190,12 +190,12 @@ void JitArm64::mfsrin(UGeckoInstruction inst)
   gpr.Unlock(index);
 }
 
-void JitArm64::mtsrin(UGeckoInstruction inst)
+void JitArm64::mtsrin(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  u32 b = inst.RB, d = inst.RD;
+  u32 b = inst.RB(), d = inst.RD();
   gpr.BindToRegister(d, d == b);
 
   ARM64Reg index = gpr.GetReg();
@@ -209,22 +209,22 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
   gpr.Unlock(index);
 }
 
-void JitArm64::twx(UGeckoInstruction inst)
+void JitArm64::twx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  s32 a = inst.RA;
+  s32 a = inst.RA();
 
   ARM64Reg WA = gpr.GetReg();
 
-  if (inst.OPCD == 3)  // twi
+  if (inst.OPCD() == 3)  // twi
   {
-    CMPI2R(gpr.R(a), (s32)(s16)inst.SIMM_16, WA);
+    CMPI2R(gpr.R(a), (s32)(s16)inst.SIMM_16(), WA);
   }
   else  // tw
   {
-    CMP(gpr.R(a), gpr.R(inst.RB));
+    CMP(gpr.R(a), gpr.R(inst.RB()));
   }
 
   std::vector<FixupBranch> fixups;
@@ -232,7 +232,7 @@ void JitArm64::twx(UGeckoInstruction inst)
 
   for (int i = 0; i < 5; i++)
   {
-    if (inst.TO & (1 << i))
+    if (inst.TO() & (1 << i))
     {
       FixupBranch f = B(conditions[i]);
       fixups.push_back(f);
@@ -275,13 +275,13 @@ void JitArm64::twx(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mfspr(UGeckoInstruction inst)
+void JitArm64::mfspr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-  int d = inst.RD;
+  u32 iIndex = (inst.SPRU() << 5) | (inst.SPRL() & 0x1F);
+  int d = inst.RD();
   switch (iIndex)
   {
   case SPR_TL:
@@ -340,14 +340,14 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 
     if (CanMergeNextInstructions(1))
     {
-      const UGeckoInstruction& next = js.op[1].inst;
+      const GeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
       // if we can.
-      u32 nextIndex = (next.SPRU << 5) | (next.SPRL & 0x1F);
+      u32 nextIndex = (next.SPRU() << 5) | (next.SPRL() & 0x1F);
       // Be careful; the actual opcode is for mftb (371), not mfspr (339)
-      int n = next.RD;
-      if (next.OPCD == 31 && next.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) &&
-          n != d)
+      int n = next.RD();
+      if (next.OPCD() == 31 && next.SUBOP10() == 371 &&
+          (nextIndex == SPR_TU || nextIndex == SPR_TL) && n != d)
       {
         js.downcountAmount++;
         js.skipInstructions = 1;
@@ -402,19 +402,19 @@ void JitArm64::mfspr(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mftb(UGeckoInstruction inst)
+void JitArm64::mftb(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   mfspr(inst);
 }
 
-void JitArm64::mtspr(UGeckoInstruction inst)
+void JitArm64::mtspr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+  u32 iIndex = (inst.SPRU() << 5) | (inst.SPRL() & 0x1F);
 
   switch (iIndex)
   {
@@ -444,7 +444,7 @@ void JitArm64::mtspr(UGeckoInstruction inst)
     break;
   case SPR_XER:
   {
-    ARM64Reg RD = gpr.R(inst.RD);
+    ARM64Reg RD = gpr.R(inst.RD());
     ARM64Reg WA = gpr.GetReg();
     AND(WA, RD, LogicalImm(0xFFFFFF7F, 32));
     STRH(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(xer_stringctrl));
@@ -460,21 +460,21 @@ void JitArm64::mtspr(UGeckoInstruction inst)
   }
 
   // OK, this is easy.
-  ARM64Reg RD = gpr.R(inst.RD);
+  ARM64Reg RD = gpr.R(inst.RD());
   STR(IndexType::Unsigned, RD, PPC_REG, PPCSTATE_OFF_SPR(iIndex));
 }
 
-void JitArm64::crXXX(UGeckoInstruction inst)
+void JitArm64::crXXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
   // Special case: crclr
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
+  if (inst.CRBA() == inst.CRBB() && inst.CRBA() == inst.CRBD() && inst.SUBOP10() == 193)
   {
     // Clear CR field bit
-    int field = inst.CRBD >> 2;
-    int bit = 3 - (inst.CRBD & 3);
+    int field = inst.CRBD() >> 2;
+    int bit = 3 - (inst.CRBD() & 3);
 
     gpr.BindCRToRegister(field, true);
     ARM64Reg XA = gpr.CR(field);
@@ -501,11 +501,11 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   }
 
   // Special case: crset
-  if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
+  if (inst.CRBA() == inst.CRBB() && inst.CRBA() == inst.CRBD() && inst.SUBOP10() == 289)
   {
     // SetCRFieldBit
-    int field = inst.CRBD >> 2;
-    int bit = 3 - (inst.CRBD & 3);
+    int field = inst.CRBD() >> 2;
+    int bit = 3 - (inst.CRBD() & 3);
 
     gpr.BindCRToRegister(field, true);
     ARM64Reg XA = gpr.CR(field);
@@ -542,16 +542,16 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   ARM64Reg XB = EncodeRegTo64(WB);
 
   // creqv or crnand or crnor
-  bool negateA = inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+  bool negateA = inst.SUBOP10() == 289 || inst.SUBOP10() == 225 || inst.SUBOP10() == 33;
   // crandc or crorc or crnand or crnor
-  bool negateB =
-      inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+  bool negateB = inst.SUBOP10() == 129 || inst.SUBOP10() == 417 || inst.SUBOP10() == 225 ||
+                 inst.SUBOP10() == 33;
 
   // GetCRFieldBit
   for (int i = 0; i < 2; i++)
   {
-    int field = i ? inst.CRBB >> 2 : inst.CRBA >> 2;
-    int bit = i ? 3 - (inst.CRBB & 3) : 3 - (inst.CRBA & 3);
+    int field = i ? inst.CRBB() >> 2 : inst.CRBA() >> 2;
+    int bit = i ? 3 - (inst.CRBB() & 3) : 3 - (inst.CRBA() & 3);
     ARM64Reg out = i ? XB : XA;
     bool negate = i ? negateB : negateA;
 
@@ -587,7 +587,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   }
 
   // Compute combined bit
-  switch (inst.SUBOP10)
+  switch (inst.SUBOP10())
   {
   case 33:   // crnor: ~(A || B) == (~A && ~B)
   case 129:  // crandc: A && ~B
@@ -608,8 +608,8 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   }
 
   // Store result bit in CRBD
-  int field = inst.CRBD >> 2;
-  int bit = 3 - (inst.CRBD & 3);
+  int field = inst.CRBD() >> 2;
+  int bit = 3 - (inst.CRBD() & 3);
 
   gpr.Unlock(WB);
   WB = ARM64Reg::INVALID_REG;
@@ -646,13 +646,13 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mfcr(UGeckoInstruction inst)
+void JitArm64::mfcr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  gpr.BindToRegister(inst.RD, false);
-  ARM64Reg WA = gpr.R(inst.RD);
+  gpr.BindToRegister(inst.RD(), false);
+  ARM64Reg WA = gpr.R(inst.RD());
   ARM64Reg WB = gpr.GetReg();
   ARM64Reg WC = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
@@ -693,15 +693,15 @@ void JitArm64::mfcr(UGeckoInstruction inst)
   gpr.Unlock(WB, WC);
 }
 
-void JitArm64::mtcrf(UGeckoInstruction inst)
+void JitArm64::mtcrf(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  u32 crm = inst.CRM;
+  u32 crm = inst.CRM();
   if (crm != 0)
   {
-    ARM64Reg RS = gpr.R(inst.RS);
+    ARM64Reg RS = gpr.R(inst.RS());
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XB = EncodeRegTo64(WB);
     MOVP2R(XB, PowerPC::ConditionRegister::s_crTable.data());
@@ -730,14 +730,14 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::mcrfs(UGeckoInstruction inst)
+void JitArm64::mcrfs(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  u8 shift = 4 * (7 - inst.CRFS);
+  u8 shift = 4 * (7 - inst.CRFS());
   u32 mask = 0xF << shift;
-  u32 field = inst.CRFD;
+  u32 field = inst.CRFD();
 
   // Only clear exception bits (but not FEX/VX).
   mask &= FPSCR_FX | FPSCR_ANY_X;
@@ -766,18 +766,18 @@ void JitArm64::mcrfs(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mffsx(UGeckoInstruction inst)
+void JitArm64::mffsx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
 
   LDR(IndexType::Unsigned, WA, PPC_REG, PPCSTATE_OFF(fpscr));
 
-  ARM64Reg VD = fpr.RW(inst.FD, RegType::LowerPair);
+  ARM64Reg VD = fpr.RW(inst.FD(), RegType::LowerPair);
 
   ORR(XA, XA, LogicalImm(0xFFF8'0000'0000'0000, 64));
   m_float_emit.FMOV(EncodeRegToDouble(VD), XA);
@@ -785,13 +785,13 @@ void JitArm64::mffsx(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::mtfsb0x(UGeckoInstruction inst)
+void JitArm64::mtfsb0x(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  const u32 mask = 0x80000000 >> inst.CRBD;
+  const u32 mask = 0x80000000 >> inst.CRBD();
   const u32 inverted_mask = ~mask;
 
   if (mask == FPSCR_FEX || mask == FPSCR_VX)
@@ -809,18 +809,18 @@ void JitArm64::mtfsb0x(UGeckoInstruction inst)
 
   gpr.Unlock(WA);
 
-  if (inst.CRBD >= 29)
+  if (inst.CRBD() >= 29)
     UpdateRoundingMode();
 }
 
-void JitArm64::mtfsb1x(UGeckoInstruction inst)
+void JitArm64::mtfsb1x(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  const u32 mask = 0x80000000 >> inst.CRBD;
+  const u32 mask = 0x80000000 >> inst.CRBD();
 
   if (mask == FPSCR_FEX || mask == FPSCR_VX)
     return;
@@ -845,19 +845,19 @@ void JitArm64::mtfsb1x(UGeckoInstruction inst)
 
   gpr.Unlock(WA);
 
-  if (inst.CRBD >= 29)
+  if (inst.CRBD() >= 29)
     UpdateRoundingMode();
 }
 
-void JitArm64::mtfsfix(UGeckoInstruction inst)
+void JitArm64::mtfsfix(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
   u8 imm = (inst.hex >> (31 - 19)) & 0xF;
-  u8 shift = 28 - 4 * inst.CRFD;
+  u8 shift = 28 - 4 * inst.CRFD();
   u32 mask = 0xF << shift;
 
   ARM64Reg WA = gpr.GetReg();
@@ -887,27 +887,27 @@ void JitArm64::mtfsfix(UGeckoInstruction inst)
   gpr.Unlock(WA);
 
   // Field 7 contains NI and RN.
-  if (inst.CRFD == 7)
+  if (inst.CRFD() == 7)
     UpdateRoundingMode();
 }
 
-void JitArm64::mtfsfx(UGeckoInstruction inst)
+void JitArm64::mtfsfx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
   u32 mask = 0;
   for (int i = 0; i < 8; i++)
   {
-    if (inst.FM & (1 << i))
+    if (inst.FM() & (1 << i))
       mask |= 0xFU << (4 * i);
   }
 
   if (mask == 0xFFFFFFFF)
   {
-    ARM64Reg VB = fpr.R(inst.FB, RegType::LowerPair);
+    ARM64Reg VB = fpr.R(inst.FB(), RegType::LowerPair);
     ARM64Reg WA = gpr.GetReg();
 
     m_float_emit.FMOV(WA, EncodeRegToSingle(VB));
@@ -919,7 +919,7 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
   }
   else if (mask != 0)
   {
-    ARM64Reg VB = fpr.R(inst.FB, RegType::LowerPair);
+    ARM64Reg VB = fpr.R(inst.FB(), RegType::LowerPair);
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg WB = gpr.GetReg();
 
@@ -953,6 +953,6 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
     gpr.Unlock(WA);
   }
 
-  if (inst.FM & 1)
+  if (inst.FM() & 1)
     UpdateRoundingMode();
 }

@@ -15,18 +15,18 @@ using namespace Gen;
 // common,
 // and pshufb could help a lot.
 
-void Jit64::lfXXX(UGeckoInstruction inst)
+void Jit64::lfXXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
-  bool indexed = inst.OPCD == 31;
-  bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
-  bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
-  update &= indexed || inst.SIMM_16;
+  bool indexed = inst.OPCD() == 31;
+  bool update = indexed ? !!(inst.SUBOP10() & 0x20) : !!(inst.OPCD() & 1);
+  bool single = indexed ? !(inst.SUBOP10() & 0x40) : !(inst.OPCD() & 2);
+  update &= indexed || inst.SIMM_16();
 
-  int d = inst.RD;
-  int a = inst.RA;
-  int b = inst.RB;
+  int d = inst.RD();
+  int a = inst.RA();
+  int b = inst.RB();
 
   FALLBACK_IF(!indexed && !a);
 
@@ -56,9 +56,9 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   else
   {
     if (update)
-      ADD(32, addr, Imm32((s32)(s16)inst.SIMM_16));
+      ADD(32, addr, Imm32((s32)(s16)inst.SIMM_16()));
     else
-      offset = (s16)inst.SIMM_16;
+      offset = (s16)inst.SIMM_16();
   }
 
   RCMode Rd_mode = !single ? RCMode::ReadWrite : RCMode::Write;
@@ -86,19 +86,19 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::stfXXX(UGeckoInstruction inst)
+void Jit64::stfXXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
-  bool indexed = inst.OPCD == 31;
-  bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
-  bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
-  update &= indexed || inst.SIMM_16;
+  bool indexed = inst.OPCD() == 31;
+  bool update = indexed ? !!(inst.SUBOP10() & 0x20) : !!(inst.OPCD() & 1);
+  bool single = indexed ? !(inst.SUBOP10() & 0x40) : !(inst.OPCD() & 2);
+  update &= indexed || inst.SIMM_16();
 
-  int s = inst.RS;
-  int a = inst.RA;
-  int b = inst.RB;
-  s32 imm = (s16)inst.SIMM_16;
+  int s = inst.RS();
+  int a = inst.RA();
+  int b = inst.RB();
+  s32 imm = (s16)inst.SIMM_16();
   int accessSize = single ? 32 : 64;
 
   FALLBACK_IF(update && jo.memcheck && a == b);
@@ -187,14 +187,14 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 }
 
 // This one is a little bit weird; it stores the low 32 bits of a double without converting it
-void Jit64::stfiwx(UGeckoInstruction inst)
+void Jit64::stfiwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
 
-  int s = inst.RS;
-  int a = inst.RA;
-  int b = inst.RB;
+  int s = inst.RS();
+  int a = inst.RA();
+  int b = inst.RB();
 
   RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
   RCOpArg Rb = gpr.Use(b, RCMode::Read);

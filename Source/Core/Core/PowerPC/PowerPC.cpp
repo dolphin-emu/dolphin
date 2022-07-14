@@ -389,7 +389,7 @@ void WriteFullTimeBaseValue(u64 value)
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
 {
-  switch (MMCR0.PMC1SELECT)
+  switch (MMCR0.PMC1SELECT())
   {
   case 0:  // No change
     break;
@@ -400,7 +400,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR0.PMC2SELECT)
+  switch (MMCR0.PMC2SELECT())
   {
   case 0:  // No change
     break;
@@ -414,7 +414,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR1.PMC3SELECT)
+  switch (MMCR1.PMC3SELECT())
   {
   case 0:  // No change
     break;
@@ -428,7 +428,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  switch (MMCR1.PMC4SELECT)
+  switch (MMCR1.PMC4SELECT())
   {
   case 0:  // No change
     break;
@@ -439,10 +439,10 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
     break;
   }
 
-  if ((MMCR0.PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
-      (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
+  if ((MMCR0.PMC1INTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
+      (MMCR0.PMCINTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
+      (MMCR0.PMCINTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
+      (MMCR0.PMCINTCONTROL() && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
     PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
 }
 
@@ -476,7 +476,7 @@ void CheckExceptions()
     SRR0 = NPC;
     // Page fault occurred
     SRR1 = (MSR.Hex & 0x87C0FFFF) | (1 << 30);
-    MSR.LE = MSR.ILE;
+    MSR.LE() = MSR.ILE();
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
@@ -488,7 +488,7 @@ void CheckExceptions()
     SRR0 = PC;
     // SRR1 was partially set by GenerateProgramException, so bitwise or is used here
     SRR1 |= MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
+    MSR.LE() = MSR.ILE();
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
@@ -499,7 +499,7 @@ void CheckExceptions()
   {
     SRR0 = NPC;
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
+    MSR.LE() = MSR.ILE();
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
@@ -511,7 +511,7 @@ void CheckExceptions()
     // This happens a lot - GameCube OS uses deferred FPU context switching
     SRR0 = PC;  // re-execute the instruction
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
+    MSR.LE() = MSR.ILE();
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
@@ -526,7 +526,7 @@ void CheckExceptions()
   {
     SRR0 = PC;
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
+    MSR.LE() = MSR.ILE();
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
@@ -538,7 +538,7 @@ void CheckExceptions()
   {
     SRR0 = PC;
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE = MSR.ILE;
+    MSR.LE() = MSR.ILE();
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000600;
 
@@ -561,14 +561,14 @@ void CheckExternalExceptions()
 
   // EXTERNAL INTERRUPT
   // Handling is delayed until MSR.EE=1.
-  if (exceptions && MSR.EE)
+  if (exceptions && MSR.EE())
   {
     if (exceptions & EXCEPTION_EXTERNAL_INT)
     {
       // Pokemon gets this "too early", it hasn't a handler yet
       SRR0 = NPC;
       SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE = MSR.ILE;
+      MSR.LE() = MSR.ILE();
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
@@ -581,7 +581,7 @@ void CheckExternalExceptions()
     {
       SRR0 = NPC;
       SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE = MSR.ILE;
+      MSR.LE() = MSR.ILE();
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
@@ -592,7 +592,7 @@ void CheckExternalExceptions()
     {
       SRR0 = NPC;
       SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE = MSR.ILE;
+      MSR.LE() = MSR.ILE();
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
@@ -641,12 +641,12 @@ void PowerPCState::SetSR(u32 index, u32 value)
 
 void UpdateFPRFDouble(double dvalue)
 {
-  FPSCR.FPRF = Common::ClassifyDouble(dvalue);
+  FPSCR.FPRF() = Common::ClassifyDouble(dvalue);
 }
 
 void UpdateFPRFSingle(float fvalue)
 {
-  FPSCR.FPRF = Common::ClassifyFloat(fvalue);
+  FPSCR.FPRF() = Common::ClassifyFloat(fvalue);
 }
 
 void RoundingModeUpdated()
@@ -654,7 +654,7 @@ void RoundingModeUpdated()
   // The rounding mode is separate for each thread, so this must run on the CPU thread
   ASSERT(Core::IsCPUThread());
 
-  FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
+  FPURoundMode::SetSIMDMode(FPSCR.RN(), FPSCR.NI());
 }
 
 }  // namespace PowerPC

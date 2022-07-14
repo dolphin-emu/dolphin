@@ -448,8 +448,8 @@ void CodeWidget::StepOver()
   if (!CPU::IsStepping())
     return;
 
-  UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
-  if (inst.LK)
+  GeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+  if (inst.LK())
   {
     PowerPC::breakpoints.ClearAllTemporary();
     PowerPC::breakpoints.Add(PC + 4, true);
@@ -463,16 +463,16 @@ void CodeWidget::StepOver()
 }
 
 // Returns true on a rfi, blr or on a bclr that evaluates to true.
-static bool WillInstructionReturn(UGeckoInstruction inst)
+static bool WillInstructionReturn(GeckoInstruction inst)
 {
   // Is a rfi instruction
   if (inst.hex == 0x4C000064u)
     return true;
-  bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO_2 >> 1 & 1) != 0);
+  bool counter = (inst.BO() >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO() >> 1 & 1) != 0);
   bool condition =
-      inst.BO_2 >> 4 != 0 || PowerPC::ppcState.cr.GetBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
-  bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
-  return isBclr && counter && condition && !inst.LK_3;
+      inst.BO() >> 4 != 0 || PowerPC::ppcState.cr.GetBit(inst.BI()) == (inst.BO() >> 3 & 1);
+  bool isBclr = inst.OPCD() == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
+  return isBclr && counter && condition && !inst.LK();
 }
 
 void CodeWidget::StepOut()
@@ -492,7 +492,7 @@ void CodeWidget::StepOut()
   // Loop until either the current instruction is a return instruction with no Link flag
   // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
   // on a breakpoint, skip it.
-  UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+  GeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
   do
   {
     if (WillInstructionReturn(inst))
@@ -501,7 +501,7 @@ void CodeWidget::StepOut()
       break;
     }
 
-    if (inst.LK)
+    if (inst.LK())
     {
       // Step over branches
       u32 next_pc = PC + 4;

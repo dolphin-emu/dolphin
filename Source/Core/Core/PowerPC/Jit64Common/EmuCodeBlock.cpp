@@ -366,7 +366,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 
   FixupBranch exit;
-  const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR;
+  const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR();
   const bool fast_check_address = !slowmem && dr_set && m_jit.jo.fastmem_arena;
   if (fast_check_address)
   {
@@ -534,7 +534,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   }
 
   FixupBranch exit;
-  const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR;
+  const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR();
   const bool fast_check_address = !slowmem && dr_set && m_jit.jo.fastmem_arena;
   if (fast_check_address)
   {

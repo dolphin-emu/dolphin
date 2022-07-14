@@ -131,8 +131,8 @@ struct PowerPCState
 
   ConditionRegister cr{};
 
-  UReg_MSR msr;      // machine state register
-  UReg_FPSCR fpscr;  // floating point flags/status bits
+  Reg_MSR msr;      // machine state register
+  Reg_FPSCR fpscr;  // floating point flags/status bits
 
   // Exception management.
   u32 Exceptions = 0;
@@ -179,7 +179,7 @@ struct PowerPCState
 
   void UpdateCR1()
   {
-    cr.SetField(1, (fpscr.FX << 3) | (fpscr.FEX << 2) | (fpscr.VX << 1) | fpscr.OX);
+    cr.SetField(1, (fpscr.FX() << 3) | (fpscr.FEX() << 2) | (fpscr.VX() << 1) | fpscr.OX());
   }
 
   void SetSR(u32 index, u32 value);
@@ -233,16 +233,16 @@ void WriteFullTimeBaseValue(u64 value);
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 
 // Easy register access macros.
-#define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
-#define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
-#define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
-#define DMAU (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
-#define DMAL (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
-#define MMCR0 ((UReg_MMCR0&)PowerPC::ppcState.spr[SPR_MMCR0])
-#define MMCR1 ((UReg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
-#define THRM1 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM1])
-#define THRM2 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM2])
-#define THRM3 ((UReg_THRM3&)PowerPC::ppcState.spr[SPR_THRM3])
+#define HID0 ((Reg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
+#define HID2 ((Reg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
+#define HID4 ((Reg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
+#define DMAU (*(Reg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
+#define DMAL (*(Reg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
+#define MMCR0 ((Reg_MMCR0&)PowerPC::ppcState.spr[SPR_MMCR0])
+#define MMCR1 ((Reg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
+#define THRM1 ((Reg_THRM12&)PowerPC::ppcState.spr[SPR_THRM1])
+#define THRM2 ((Reg_THRM12&)PowerPC::ppcState.spr[SPR_THRM2])
+#define THRM3 ((Reg_THRM3&)PowerPC::ppcState.spr[SPR_THRM3])
 #define PC PowerPC::ppcState.pc
 #define NPC PowerPC::ppcState.npc
 #define FPSCR PowerPC::ppcState.fpscr
@@ -276,20 +276,20 @@ inline u32 GetCarry()
   return PowerPC::ppcState.xer_ca;
 }
 
-inline UReg_XER GetXER()
+inline Reg_XER GetXER()
 {
   u32 xer = 0;
   xer |= PowerPC::ppcState.xer_stringctrl;
   xer |= PowerPC::ppcState.xer_ca << XER_CA_SHIFT;
   xer |= PowerPC::ppcState.xer_so_ov << XER_OV_SHIFT;
-  return UReg_XER{xer};
+  return Reg_XER{xer};
 }
 
-inline void SetXER(UReg_XER new_xer)
+inline void SetXER(Reg_XER new_xer)
 {
-  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
-  PowerPC::ppcState.xer_ca = new_xer.CA;
-  PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
+  PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT() + (new_xer.BYTE_CMP() << 8);
+  PowerPC::ppcState.xer_ca = new_xer.CA();
+  PowerPC::ppcState.xer_so_ov = (new_xer.SO() << 1) + new_xer.OV();
 }
 
 inline u32 GetXER_SO()

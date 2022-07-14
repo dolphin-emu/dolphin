@@ -28,7 +28,7 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
       (2 << 13) | EXCEPTION_MASK,  // +inf
       (1 << 13) | EXCEPTION_MASK,  // -inf
   };
-  u32 csr = simd_rounding_table[rounding_mode];
+  u32 csr = simd_rounding_table[u32(rounding_mode)];
 
   if (non_ieee_mode)
   {

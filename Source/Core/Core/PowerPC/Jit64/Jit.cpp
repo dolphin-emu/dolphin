@@ -410,7 +410,7 @@ void Jit64::Shutdown()
   m_const_pool.Shutdown();
 }
 
-void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
+void Jit64::FallBackToInterpreter(GeckoInstruction inst)
 {
   gpr.Flush();
   fpr.Flush();
@@ -478,7 +478,7 @@ void Jit64::HLEFunction(u32 hook_index)
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
-void Jit64::DoNothing(UGeckoInstruction _inst)
+void Jit64::DoNothing(GeckoInstruction _inst)
 {
   // Yup, just don't do anything.
 }

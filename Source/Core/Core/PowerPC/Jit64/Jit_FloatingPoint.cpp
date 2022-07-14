@@ -92,7 +92,7 @@ void Jit64::FinalizeDoubleResult(X64Reg output, const OpArg& input)
   SetFPRFIfNeeded(input, false);
 }
 
-void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
+void Jit64::HandleNaNs(GeckoInstruction inst, X64Reg xmm, X64Reg clobber)
 {
   //                      | PowerPC  | x86
   // ---------------------+----------+---------
@@ -108,7 +108,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
   ASSERT(xmm != clobber);
 
   std::vector<u32> inputs;
-  u32 a = inst.FA, b = inst.FB, c = inst.FC;
+  u32 a = inst.FA(), b = inst.FB(), c = inst.FC();
   for (u32 i : {a, b, c})
   {
     if (!js.op->fregsIn[i])
@@ -116,7 +116,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
     if (std::find(inputs.begin(), inputs.end(), i) == inputs.end())
       inputs.push_back(i);
   }
-  if (inst.OPCD != 4)
+  if (inst.OPCD() != 4)
   {
     // not paired-single
     UCOMISD(xmm, R(xmm));
@@ -198,32 +198,32 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm, X64Reg clobber)
   }
 }
 
-void Jit64::fp_arith(UGeckoInstruction inst)
+void Jit64::fp_arith(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
-  FALLBACK_IF(jo.fp_exceptions || (jo.div_by_zero_exceptions && inst.SUBOP5 == 18));
+  FALLBACK_IF(inst.Rc());
+  FALLBACK_IF(jo.fp_exceptions || (jo.div_by_zero_exceptions && inst.SUBOP5() == 18));
 
-  int a = inst.FA;
-  int b = inst.FB;
-  int c = inst.FC;
-  int d = inst.FD;
-  int arg2 = inst.SUBOP5 == 25 ? c : b;
+  int a = inst.FA();
+  int b = inst.FB();
+  int c = inst.FC();
+  int d = inst.FD();
+  int arg2 = inst.SUBOP5() == 25 ? c : b;
 
-  bool single = inst.OPCD == 4 || inst.OPCD == 59;
+  bool single = inst.OPCD() == 4 || inst.OPCD() == 59;
   // If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP
   // at the end by
   // using packed arithmetic instead.
-  bool packed = inst.OPCD == 4 ||
-                (inst.OPCD == 59 && js.op->fprIsDuplicated[a] && js.op->fprIsDuplicated[arg2]);
+  bool packed = inst.OPCD() == 4 ||
+                (inst.OPCD() == 59 && js.op->fprIsDuplicated[a] && js.op->fprIsDuplicated[arg2]);
   // Packed divides are slower than scalar divides on basically all x86, so this optimization isn't
   // worth it in that case.
   // Atoms (and a few really old CPUs) are also slower on packed operations than scalar ones.
-  if (inst.OPCD == 59 && (inst.SUBOP5 == 18 || cpu_info.bAtom))
+  if (inst.OPCD() == 59 && (inst.SUBOP5() == 18 || cpu_info.bAtom))
     packed = false;
 
-  bool round_input = single && !js.op->fprIsSingle[inst.FC];
+  bool round_input = single && !js.op->fprIsSingle[inst.FC()];
   bool preserve_inputs = m_accurate_nans;
 
   const auto fp_tri_op = [&](int op1, int op2, bool reversible,
@@ -260,7 +260,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
       FinalizeDoubleResult(Rd, R(dest));
   };
 
-  switch (inst.SUBOP5)
+  switch (inst.SUBOP5())
   {
   case 18:
     fp_tri_op(a, b, false, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
@@ -283,11 +283,11 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   }
 }
 
-void Jit64::fmaddXX(UGeckoInstruction inst)
+void Jit64::fmaddXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
   // We would like to emulate FMA instructions accurately without rounding error if possible, but
@@ -306,15 +306,15 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   const bool use_fma = Config::Get(Config::SESSION_USE_FMA);
   const bool software_fma = use_fma && !cpu_info.bFMA;
 
-  int a = inst.FA;
-  int b = inst.FB;
-  int c = inst.FC;
-  int d = inst.FD;
-  bool single = inst.OPCD == 4 || inst.OPCD == 59;
+  int a = inst.FA();
+  int b = inst.FB();
+  int c = inst.FC();
+  int d = inst.FD();
+  bool single = inst.OPCD() == 4 || inst.OPCD() == 59;
   bool round_input = single && !js.op->fprIsSingle[c];
-  bool packed =
-      inst.OPCD == 4 || (!cpu_info.bAtom && !software_fma && single && js.op->fprIsDuplicated[a] &&
-                         js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
+  bool packed = inst.OPCD() == 4 ||
+                (!cpu_info.bAtom && !software_fma && single && js.op->fprIsDuplicated[a] &&
+                 js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
 
   RCOpArg Ra;
   RCOpArg Rb;
@@ -342,10 +342,10 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     RegCache::Realize(Ra, Rb, Rc, Rd);
   }
 
-  const bool subtract = inst.SUBOP5 == 28 || inst.SUBOP5 == 30;  // msub, nmsub
-  const bool negate = inst.SUBOP5 == 30 || inst.SUBOP5 == 31;    // nmsub, nmadd
-  const bool madds0 = inst.SUBOP5 == 14;
-  const bool madds1 = inst.SUBOP5 == 15;
+  const bool subtract = inst.SUBOP5() == 28 || inst.SUBOP5() == 30;  // msub, nmsub
+  const bool negate = inst.SUBOP5() == 30 || inst.SUBOP5() == 31;    // nmsub, nmadd
+  const bool madds0 = inst.SUBOP5() == 14;
+  const bool madds1 = inst.SUBOP5() == 15;
 
   X64Reg scratch_xmm = XMM0;
   X64Reg result_xmm = XMM1;
@@ -484,21 +484,21 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     FinalizeDoubleResult(Rd, R(result_xmm));
 }
 
-void Jit64::fsign(UGeckoInstruction inst)
+void Jit64::fsign(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  int d = inst.FD;
-  int b = inst.FB;
-  bool packed = inst.OPCD == 4;
+  int d = inst.FD();
+  int b = inst.FB();
+  bool packed = inst.OPCD() == 4;
 
   RCOpArg src = fpr.Use(b, RCMode::Read);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(src, Rd);
 
-  switch (inst.SUBOP10)
+  switch (inst.SUBOP10())
   {
   case 40:  // neg
     avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
@@ -518,18 +518,18 @@ void Jit64::fsign(UGeckoInstruction inst)
   }
 }
 
-void Jit64::fselx(UGeckoInstruction inst)
+void Jit64::fselx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  int d = inst.FD;
-  int a = inst.FA;
-  int b = inst.FB;
-  int c = inst.FC;
+  int d = inst.FD();
+  int a = inst.FA();
+  int b = inst.FB();
+  int c = inst.FC();
 
-  bool packed = inst.OPCD == 4;  // ps_sel
+  bool packed = inst.OPCD() == 4;  // ps_sel
 
   RCOpArg Ra = fpr.Use(a, RCMode::Read);
   RCOpArg Rb = fpr.Use(b, RCMode::Read);
@@ -591,14 +591,14 @@ void Jit64::fselx(UGeckoInstruction inst)
     MOVSD(Rd, R(XMM1));
 }
 
-void Jit64::fmrx(UGeckoInstruction inst)
+void Jit64::fmrx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  int d = inst.FD;
-  int b = inst.FB;
+  int d = inst.FD();
+  int b = inst.FB();
 
   if (d == b)
     return;
@@ -624,28 +624,28 @@ void Jit64::fmrx(UGeckoInstruction inst)
   }
 }
 
-void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
+void Jit64::FloatCompare(GeckoInstruction inst, bool upper)
 {
   bool fprf = m_fprf && js.op->wantsFPRF;
-  // bool ordered = !!(inst.SUBOP10 & 32);
-  int a = inst.FA;
-  int b = inst.FB;
-  u32 crf = inst.CRFD;
+  // bool ordered = !!(inst.SUBOP10() & 32);
+  int a = inst.FA();
+  int b = inst.FB();
+  u32 crf = inst.CRFD();
   int output[4] = {PowerPC::CR_SO, PowerPC::CR_EQ, PowerPC::CR_GT, PowerPC::CR_LT};
 
   // Merge neighboring fcmp and cror (the primary use of cror).
-  UGeckoInstruction next = js.op[1].inst;
+  GeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
-      CanMergeNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
-      static_cast<u32>(next.CRBA >> 2) == crf && static_cast<u32>(next.CRBB >> 2) == crf &&
-      static_cast<u32>(next.CRBD >> 2) == crf)
+      CanMergeNextInstructions(1) && next.OPCD() == 19 && next.SUBOP10() == 449 &&
+      static_cast<u32>(next.CRBA() >> 2) == crf && static_cast<u32>(next.CRBB() >> 2) == crf &&
+      static_cast<u32>(next.CRBD() >> 2) == crf)
   {
     js.skipInstructions = 1;
     js.downcountAmount++;
-    int dst = 3 - (next.CRBD & 3);
-    output[3 - (next.CRBD & 3)] &= ~(1 << dst);
-    output[3 - (next.CRBA & 3)] |= 1 << dst;
-    output[3 - (next.CRBB & 3)] |= 1 << dst;
+    int dst = 3 - (next.CRBD() & 3);
+    output[3 - (next.CRBD() & 3)] &= ~(1 << dst);
+    output[3 - (next.CRBA() & 3)] |= 1 << dst;
+    output[3 - (next.CRBB() & 3)] |= 1 << dst;
   }
 
   RCOpArg Ra = upper ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
@@ -726,7 +726,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   MOV(64, PPCSTATE(cr.fields[crf]), R(RSCRATCH));
 }
 
-void Jit64::fcmpX(UGeckoInstruction inst)
+void Jit64::fcmpX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
@@ -735,15 +735,15 @@ void Jit64::fcmpX(UGeckoInstruction inst)
   FloatCompare(inst);
 }
 
-void Jit64::fctiwx(UGeckoInstruction inst)
+void Jit64::fctiwx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  int d = inst.RD;
-  int b = inst.RB;
+  int d = inst.RD();
+  int b = inst.RB();
 
   RCOpArg Rb = fpr.Use(b, RCMode::Read);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
@@ -762,7 +762,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 
   MOVAPD(XMM0, MConst(half_qnan_and_s32_max));
   MINSD(XMM0, Rb);
-  switch (inst.SUBOP10)
+  switch (inst.SUBOP10())
   {
   // fctiwx
   case 14:
@@ -778,14 +778,14 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   MOVSD(Rd, XMM0);
 }
 
-void Jit64::frspx(UGeckoInstruction inst)
+void Jit64::frspx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
-  int b = inst.FB;
-  int d = inst.FD;
+  int b = inst.FB();
+  int d = inst.FD();
   bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
   RCOpArg Rb = fpr.Bind(b, RCMode::Read);
@@ -795,14 +795,14 @@ void Jit64::frspx(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rb, packed, true);
 }
 
-void Jit64::frsqrtex(UGeckoInstruction inst)
+void Jit64::frsqrtex(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
-  int b = inst.FB;
-  int d = inst.FD;
+  int b = inst.FB();
+  int d = inst.FD();
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCOpArg Rb = fpr.Use(b, RCMode::Read);
@@ -814,14 +814,14 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
   FinalizeDoubleResult(Rd, R(XMM0));
 }
 
-void Jit64::fresx(UGeckoInstruction inst)
+void Jit64::fresx(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
-  int b = inst.FB;
-  int d = inst.FD;
+  int b = inst.FB();
+  int d = inst.FD();
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCOpArg Rb = fpr.Use(b, RCMode::Read);

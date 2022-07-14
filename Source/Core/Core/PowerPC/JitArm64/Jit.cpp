@@ -159,7 +159,7 @@ void JitArm64::Shutdown()
   FreeStack();
 }
 
-void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
+void JitArm64::FallBackToInterpreter(GeckoInstruction inst)
 {
   FlushCarry();
   gpr.Flush(FlushMode::All, ARM64Reg::INVALID_REG);
@@ -233,12 +233,12 @@ void JitArm64::HLEFunction(u32 hook_index)
   BLR(ARM64Reg::X8);
 }
 
-void JitArm64::DoNothing(UGeckoInstruction inst)
+void JitArm64::DoNothing(GeckoInstruction inst)
 {
   // Yup, just don't do anything.
 }
 
-void JitArm64::Break(UGeckoInstruction inst)
+void JitArm64::Break(GeckoInstruction inst)
 {
   WARN_LOG_FMT(DYNA_REC, "Breaking! {:08x} - Fix me ;)", inst.hex);
   std::exit(0);
@@ -824,7 +824,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     // Skip calling UpdateLastUsed for lmw/stmw - it usually hurts more than it helps
-    if (op.inst.OPCD != 46 && op.inst.OPCD != 47)
+    if (op.inst.OPCD() != 46 && op.inst.OPCD() != 47)
       gpr.UpdateLastUsed(op.regsIn | op.regsOut);
 
     BitSet32 fpr_used = op.fregsIn;

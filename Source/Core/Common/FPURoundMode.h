@@ -7,12 +7,12 @@
 
 namespace FPURoundMode
 {
-enum RoundMode : u32
+enum class RoundMode
 {
-  ROUND_NEAR = 0,
-  ROUND_CHOP = 1,
-  ROUND_UP = 2,
-  ROUND_DOWN = 3
+  Nearest = 0b00,
+  TowardsZero = 0b01,
+  TowardsPositiveInfinity = 0b10,
+  TowardsNegativeInfinity = 0b11
 };
 
 void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode);

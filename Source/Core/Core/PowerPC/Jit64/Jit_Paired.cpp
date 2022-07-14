@@ -12,14 +12,14 @@
 
 using namespace Gen;
 
-void Jit64::ps_mr(UGeckoInstruction inst)
+void Jit64::ps_mr(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  int d = inst.FD;
-  int b = inst.FB;
+  int d = inst.FD();
+  int b = inst.FB();
   if (d == b)
     return;
 
@@ -29,17 +29,17 @@ void Jit64::ps_mr(UGeckoInstruction inst)
   MOVAPD(Rd, Rb);
 }
 
-void Jit64::ps_sum(UGeckoInstruction inst)
+void Jit64::ps_sum(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  int d = inst.FD;
-  int a = inst.FA;
-  int b = inst.FB;
-  int c = inst.FC;
+  int d = inst.FD();
+  int a = inst.FA();
+  int b = inst.FB();
+  int c = inst.FC();
 
   RCOpArg Ra = fpr.Use(a, RCMode::Read);
   RCOpArg Rb = fpr.Use(b, RCMode::Read);
@@ -50,7 +50,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   X64Reg tmp = XMM1;
   MOVDDUP(tmp, Ra);  // {a.ps0, a.ps0}
   ADDPD(tmp, Rb);    // {a.ps0 + b.ps0, a.ps0 + b.ps1}
-  switch (inst.SUBOP5)
+  switch (inst.SUBOP5())
   {
   case 10:  // ps_sum0: {a.ps0 + b.ps1, c.ps1}
     UNPCKHPD(tmp, Rc);
@@ -81,16 +81,16 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, R(tmp));
 }
 
-void Jit64::ps_muls(UGeckoInstruction inst)
+void Jit64::ps_muls(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions);
 
-  int d = inst.FD;
-  int a = inst.FA;
-  int c = inst.FC;
+  int d = inst.FD();
+  int a = inst.FA();
+  int c = inst.FC();
   bool round_input = !js.op->fprIsSingle[c];
 
   RCOpArg Ra = fpr.Use(a, RCMode::Read);
@@ -98,7 +98,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rc, Rd);
 
-  switch (inst.SUBOP5)
+  switch (inst.SUBOP5())
   {
   case 12:  // ps_muls0
     MOVDDUP(XMM1, Rc);
@@ -116,22 +116,22 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, R(XMM1));
 }
 
-void Jit64::ps_mergeXX(UGeckoInstruction inst)
+void Jit64::ps_mergeXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITPairedOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
 
-  int d = inst.FD;
-  int a = inst.FA;
-  int b = inst.FB;
+  int d = inst.FD();
+  int a = inst.FA();
+  int b = inst.FB();
 
   RCOpArg Ra = fpr.Use(a, RCMode::Read);
   RCOpArg Rb = fpr.Use(b, RCMode::Read);
   RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
   RegCache::Realize(Ra, Rb, Rd);
 
-  switch (inst.SUBOP10)
+  switch (inst.SUBOP10())
   {
   case 528:
     avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
@@ -150,14 +150,14 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
   }
 }
 
-void Jit64::ps_rsqrte(UGeckoInstruction inst)
+void Jit64::ps_rsqrte(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
-  int b = inst.FB;
-  int d = inst.FD;
+  int b = inst.FB();
+  int d = inst.FD();
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCX64Reg Rb = fpr.Bind(b, RCMode::Read);
@@ -175,14 +175,14 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rd);
 }
 
-void Jit64::ps_res(UGeckoInstruction inst)
+void Jit64::ps_res(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc);
+  FALLBACK_IF(inst.Rc());
   FALLBACK_IF(jo.fp_exceptions || jo.div_by_zero_exceptions);
-  int b = inst.FB;
-  int d = inst.FD;
+  int b = inst.FB();
+  int d = inst.FD();
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   RCX64Reg Rb = fpr.Bind(b, RCMode::Read);
@@ -200,11 +200,11 @@ void Jit64::ps_res(UGeckoInstruction inst)
   FinalizeSingleResult(Rd, Rd);
 }
 
-void Jit64::ps_cmpXX(UGeckoInstruction inst)
+void Jit64::ps_cmpXX(GeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(jo.fp_exceptions);
 
-  FloatCompare(inst, !!(inst.SUBOP10 & 64));
+  FloatCompare(inst, !!(inst.SUBOP10() & 64));
 }

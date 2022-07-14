@@ -66,7 +66,7 @@ void SetSIMDMode(RoundMode rounding_mode, bool non_ieee_mode)
       (2 << 22),  // -inf
   };
   constexpr u32 rounding_mode_mask = 3 << 22;
-  const u32 rounding_mode_bits = rounding_mode_table[rounding_mode];
+  const u32 rounding_mode_bits = rounding_mode_table[u32(rounding_mode)];
 
   const u64 base = default_fpcr & ~(flush_to_zero_mask | rounding_mode_mask);
   SetFPCR(base | rounding_mode_bits | flush_to_zero_bits);
