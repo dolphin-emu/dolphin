@@ -5,6 +5,7 @@
 
 #include <iosfwd>
 #include <memory>
+#include "Common/BitFieldView.h"
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -61,18 +62,16 @@ enum class EDirectCommands : u8
   CMD_POLL = 0x54
 };
 
-union UCommand
+struct Command
 {
   u32 hex = 0;
-  struct
-  {
-    u32 parameter1 : 8;
-    u32 parameter2 : 8;
-    u32 command : 8;
-    u32 : 8;
-  };
-  UCommand() = default;
-  UCommand(u32 value) : hex{value} {}
+
+  BFVIEW(u32, 8, 0, parameter1)
+  BFVIEW(u32, 8, 8, parameter2)
+  BFVIEW(EDirectCommands, 8, 16, command)
+
+  Command() = default;
+  Command(u32 value) : hex{value} {}
 };
 
 // For configuration use, since some devices can have the same SI Device ID
@@ -118,7 +117,7 @@ public:
   virtual bool GetData(u32& hi, u32& low) = 0;
 
   // Send a command directly (no detour per buffer)
-  virtual void SendCommand(u32 command, u8 poll) = 0;
+  virtual void SendCommand(u32 command, bool poll) = 0;
 
   // Savestate support
   virtual void DoState(PointerWrap& p);

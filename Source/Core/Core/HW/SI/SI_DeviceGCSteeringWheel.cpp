@@ -97,11 +97,11 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
+void CSIDevice_GCSteeringWheel::SendCommand(u32 command, bool poll)
 {
-  UCommand wheel_command(command);
+  Command wheel_command(command);
 
-  if (static_cast<EDirectCommands>(wheel_command.command) == EDirectCommands::CMD_FORCE)
+  if (wheel_command.command() == EDirectCommands::CMD_FORCE)
   {
     // get the correct pad number that should rumble locally when using netplay
     const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
@@ -109,11 +109,11 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
     if (pad_num < 4)
     {
       // Lowest bit is the high bit of the strength field.
-      const auto type = ForceCommandType(wheel_command.parameter2 >> 1);
+      const auto type = ForceCommandType(wheel_command.parameter2() >> 1);
 
       // Strength is a 9 bit value from 0 to 256.
       // 0 = left strong, 256 = right strong
-      const u32 strength = ((wheel_command.parameter2 & 1) << 8) | wheel_command.parameter1;
+      const u32 strength = ((wheel_command.parameter2() & 1) << 8) | wheel_command.parameter1();
 
       switch (type)
       {
@@ -135,7 +135,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
 
     if (poll == 0)
     {
-      m_mode = wheel_command.parameter2;
+      m_mode = wheel_command.parameter2();
       INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
     }
   }

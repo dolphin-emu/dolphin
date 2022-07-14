@@ -11,7 +11,7 @@
 #include <memory>
 #include <sstream>
 
-#include "Common/BitField.h"
+#include "Common/BitFieldView.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -61,142 +61,142 @@ enum
 };
 
 // SI Channel Output
-union USIChannelOut
+struct SIChannelOut
 {
   u32 hex = 0;
 
-  BitField<0, 8, u32> OUTPUT1;
-  BitField<8, 8, u32> OUTPUT0;
-  BitField<16, 8, u32> CMD;
-  BitField<24, 8, u32> reserved;
+  BFVIEW(u8, 8, 0, OUTPUT1)
+  BFVIEW(u8, 8, 8, OUTPUT0)
+  BFVIEW(u8, 8, 16, CMD)
+  BFVIEW(u8, 8, 24, reserved)
 };
 
 // SI Channel Input High u32
-union USIChannelIn_Hi
+struct SIChannelIn_Hi
 {
   u32 hex = 0;
 
-  BitField<0, 8, u32> INPUT3;
-  BitField<8, 8, u32> INPUT2;
-  BitField<16, 8, u32> INPUT1;
-  BitField<24, 6, u32> INPUT0;
-  BitField<30, 1, u32> ERRLATCH;  // 0: no error  1: Error latched. Check SISR.
-  BitField<31, 1, u32> ERRSTAT;   // 0: no error  1: error on last transfer
+  BFVIEW(u8, 8, 0, INPUT3)
+  BFVIEW(u8, 8, 8, INPUT2)
+  BFVIEW(u8, 8, 16, INPUT1)
+  BFVIEW(u8, 6, 24, INPUT0)
+  BFVIEW(bool, 1, 30, ERRLATCH)  // 0: no error  1: Error latched. Check SISR.
+  BFVIEW(bool, 1, 31, ERRSTAT)   // 0: no error  1: error on last transfer
 };
 
 // SI Channel Input Low u32
-union USIChannelIn_Lo
+struct SIChannelIn_Lo
 {
   u32 hex = 0;
 
-  BitField<0, 8, u32> INPUT7;
-  BitField<8, 8, u32> INPUT6;
-  BitField<16, 8, u32> INPUT5;
-  BitField<24, 8, u32> INPUT4;
+  BFVIEW(u8, 8, 0, INPUT7)
+  BFVIEW(u8, 8, 8, INPUT6)
+  BFVIEW(u8, 8, 16, INPUT5)
+  BFVIEW(u8, 8, 24, INPUT4)
 };
 
 // SI Channel
 struct SSIChannel
 {
-  USIChannelOut out{};
-  USIChannelIn_Hi in_hi{};
-  USIChannelIn_Lo in_lo{};
+  SIChannelOut out{};
+  SIChannelIn_Hi in_hi{};
+  SIChannelIn_Lo in_lo{};
   std::unique_ptr<ISIDevice> device;
 
   bool has_recent_device_change = false;
 };
 
 // SI Poll: Controls how often a device is polled
-union USIPoll
+struct SIPoll
 {
   u32 hex = 0;
 
-  BitField<0, 1, u32> VBCPY3;  // 1: write to output buffer only on vblank
-  BitField<1, 1, u32> VBCPY2;
-  BitField<2, 1, u32> VBCPY1;
-  BitField<3, 1, u32> VBCPY0;
-  BitField<4, 1, u32> EN3;  // Enable polling of channel
-  BitField<5, 1, u32> EN2;  //  does not affect communication RAM transfers
-  BitField<6, 1, u32> EN1;
-  BitField<7, 1, u32> EN0;
-  BitField<8, 8, u32> Y;    // Polls per frame
-  BitField<16, 10, u32> X;  // Polls per X lines. begins at vsync, min 7, max depends on video mode
-  BitField<26, 6, u32> reserved;
+  BFVIEW(bool, 1, 0, VBCPY3)  // 1: write to output buffer only on vblank
+  BFVIEW(bool, 1, 1, VBCPY2)
+  BFVIEW(bool, 1, 2, VBCPY1)
+  BFVIEW(bool, 1, 3, VBCPY0)
+  BFVIEW(bool, 1, 4, EN3)  // Enable polling of channel
+  BFVIEW(bool, 1, 5, EN2)  //  does not affect communication RAM transfers
+  BFVIEW(bool, 1, 6, EN1)
+  BFVIEW(bool, 1, 7, EN0)
+  BFVIEW(u32, 8, 8, Y)    // Polls per frame
+  BFVIEW(u32, 10, 16, X)  // Polls per X lines. begins at vsync, min 7, max depends on video mode
+  BFVIEW(u32, 6, 26, reserved)
 };
 
 // SI Communication Control Status Register
-union USIComCSR
+struct SIComCSR
 {
   u32 hex = 0;
 
-  BitField<0, 1, u32> TSTART;   // write: start transfer  read: transfer status
-  BitField<1, 2, u32> CHANNEL;  // determines which SI channel will be
-                                // used on the communication interface.
-  BitField<3, 3, u32> reserved_1;
-  BitField<6, 1, u32> CALLBEN;  // Callback enable
-  BitField<7, 1, u32> CMDEN;    // Command enable?
-  BitField<8, 7, u32> INLNGTH;
-  BitField<15, 1, u32> reserved_2;
-  BitField<16, 7, u32> OUTLNGTH;  // Communication Channel Output Length in bytes
-  BitField<23, 1, u32> reserved_3;
-  BitField<24, 1, u32> CHANEN;      // Channel enable?
-  BitField<25, 2, u32> CHANNUM;     // Channel number?
-  BitField<27, 1, u32> RDSTINTMSK;  // Read Status Interrupt Status Mask
-  BitField<28, 1, u32> RDSTINT;     // Read Status Interrupt Status
-  BitField<29, 1, u32> COMERR;      // Communication Error (set 0)
-  BitField<30, 1, u32> TCINTMSK;    // Transfer Complete Interrupt Mask
-  BitField<31, 1, u32> TCINT;       // Transfer Complete Interrupt
+  BFVIEW(bool, 1, 0, TSTART)  // write: start transfer  read: transfer status
+  BFVIEW(u32, 2, 1, CHANNEL)  // determines which SI channel will be
+                              // used on the communication interface.
+  BFVIEW(u32, 3, 3, reserved_1)
+  BFVIEW(bool, 1, 6, CALLBEN)  // Callback enable
+  BFVIEW(bool, 1, 7, CMDEN)    // Command enable?
+  BFVIEW(u32, 7, 8, INLNGTH)
+  BFVIEW(bool, 1, 15, reserved_2)
+  BFVIEW(u32, 7, 16, OUTLNGTH)  // Communication Channel Output Length in bytes
+  BFVIEW(bool, 1, 23, reserved_3)
+  BFVIEW(bool, 1, 24, CHANEN)      // Channel enable?
+  BFVIEW(u32, 2, 25, CHANNUM)      // Channel number?
+  BFVIEW(bool, 1, 27, RDSTINTMSK)  // Read Status Interrupt Status Mask
+  BFVIEW(bool, 1, 28, RDSTINT)     // Read Status Interrupt Status
+  BFVIEW(bool, 1, 29, COMERR)      // Communication Error (set 0)
+  BFVIEW(bool, 1, 30, TCINTMSK)    // Transfer Complete Interrupt Mask
+  BFVIEW(bool, 1, 31, TCINT)       // Transfer Complete Interrupt
 
-  USIComCSR() = default;
-  explicit USIComCSR(u32 value) : hex{value} {}
+  SIComCSR() = default;
+  explicit SIComCSR(u32 value) : hex{value} {}
 };
 
 // SI Status Register
-union USIStatusReg
+struct SIStatusReg
 {
   u32 hex = 0;
 
-  BitField<0, 1, u32> UNRUN3;       // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  BitField<1, 1, u32> OVRUN3;       // (RWC) write 1: bit cleared  read 1: overrun error
-  BitField<2, 1, u32> COLL3;        // (RWC) write 1: bit cleared  read 1: collision error
-  BitField<3, 1, u32> NOREP3;       // (RWC) write 1: bit cleared  read 1: response error
-  BitField<4, 1, u32> WRST3;        // (R) 1: buffer channel0 not copied
-  BitField<5, 1, u32> RDST3;        // (R) 1: new Data available
-  BitField<6, 2, u32> reserved_1;   // 7:6
-  BitField<8, 1, u32> UNRUN2;       // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  BitField<9, 1, u32> OVRUN2;       // (RWC) write 1: bit cleared  read 1: overrun error
-  BitField<10, 1, u32> COLL2;       // (RWC) write 1: bit cleared  read 1: collision error
-  BitField<11, 1, u32> NOREP2;      // (RWC) write 1: bit cleared  read 1: response error
-  BitField<12, 1, u32> WRST2;       // (R) 1: buffer channel0 not copied
-  BitField<13, 1, u32> RDST2;       // (R) 1: new Data available
-  BitField<14, 2, u32> reserved_2;  // 15:14
-  BitField<16, 1, u32> UNRUN1;      // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  BitField<17, 1, u32> OVRUN1;      // (RWC) write 1: bit cleared  read 1: overrun error
-  BitField<18, 1, u32> COLL1;       // (RWC) write 1: bit cleared  read 1: collision error
-  BitField<19, 1, u32> NOREP1;      // (RWC) write 1: bit cleared  read 1: response error
-  BitField<20, 1, u32> WRST1;       // (R) 1: buffer channel0 not copied
-  BitField<21, 1, u32> RDST1;       // (R) 1: new Data available
-  BitField<22, 2, u32> reserved_3;  // 23:22
-  BitField<24, 1, u32> UNRUN0;      // (RWC) write 1: bit cleared  read 1: main proc underrun error
-  BitField<25, 1, u32> OVRUN0;      // (RWC) write 1: bit cleared  read 1: overrun error
-  BitField<26, 1, u32> COLL0;       // (RWC) write 1: bit cleared  read 1: collision error
-  BitField<27, 1, u32> NOREP0;      // (RWC) write 1: bit cleared  read 1: response error
-  BitField<28, 1, u32> WRST0;       // (R) 1: buffer channel0 not copied
-  BitField<29, 1, u32> RDST0;       // (R) 1: new Data available
-  BitField<30, 1, u32> reserved_4;
-  BitField<31, 1, u32> WR;  // (RW) write 1 start copy, read 0 copy done
+  BFVIEW(bool, 1, 0, UNRUN3)      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW(bool, 1, 1, OVRUN3)      // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW(bool, 1, 2, COLL3)       // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW(bool, 1, 3, NOREP3)      // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW(bool, 1, 4, WRST3)       // (R) 1: buffer channel0 not copied
+  BFVIEW(bool, 1, 5, RDST3)       // (R) 1: new Data available
+  BFVIEW(u32, 2, 6, reserved_1)   // 7:6
+  BFVIEW(bool, 1, 8, UNRUN2)      // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW(bool, 1, 9, OVRUN2)      // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW(bool, 1, 10, COLL2)      // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW(bool, 1, 11, NOREP2)     // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW(bool, 1, 12, WRST2)      // (R) 1: buffer channel0 not copied
+  BFVIEW(bool, 1, 13, RDST2)      // (R) 1: new Data available
+  BFVIEW(u32, 2, 14, reserved_2)  // 15:14
+  BFVIEW(bool, 1, 16, UNRUN1)     // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW(bool, 1, 17, OVRUN1)     // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW(bool, 1, 18, COLL1)      // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW(bool, 1, 19, NOREP1)     // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW(bool, 1, 20, WRST1)      // (R) 1: buffer channel0 not copied
+  BFVIEW(bool, 1, 21, RDST1)      // (R) 1: new Data available
+  BFVIEW(u32, 2, 22, reserved_3)  // 23:22
+  BFVIEW(bool, 1, 24, UNRUN0)     // (RWC) write 1: bit cleared  read 1: main proc underrun error
+  BFVIEW(bool, 1, 25, OVRUN0)     // (RWC) write 1: bit cleared  read 1: overrun error
+  BFVIEW(bool, 1, 26, COLL0)      // (RWC) write 1: bit cleared  read 1: collision error
+  BFVIEW(bool, 1, 27, NOREP0)     // (RWC) write 1: bit cleared  read 1: response error
+  BFVIEW(bool, 1, 28, WRST0)      // (R) 1: buffer channel0 not copied
+  BFVIEW(bool, 1, 29, RDST0)      // (R) 1: new Data available
+  BFVIEW(u32, 1, 30, reserved_4)
+  BFVIEW(bool, 1, 31, WR)  // (RW) write 1 start copy, read 0 copy done
 
-  USIStatusReg() = default;
-  explicit USIStatusReg(u32 value) : hex{value} {}
+  SIStatusReg() = default;
+  explicit SIStatusReg(u32 value) : hex{value} {}
 };
 
 // SI EXI Clock Count
-union USIEXIClockCount
+struct SIEXIClockCount
 {
   u32 hex = 0;
 
-  BitField<0, 1, u32> LOCK;  // 1: prevents CPU from setting EXI clock to 32MHz
-  BitField<1, 30, u32> reserved;
+  BFVIEW(bool, 1, 0, LOCK)  // 1: prevents CPU from setting EXI clock to 32MHz
+  BFVIEW(u32, 30, 1, reserved)
 };
 
 struct SerialInterfaceState::Data
@@ -209,10 +209,10 @@ struct SerialInterfaceState::Data
   std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> desired_device_types;
 
   std::array<SSIChannel, MAX_SI_CHANNELS> channel;
-  USIPoll poll;
-  USIComCSR com_csr;
-  USIStatusReg status_reg;
-  USIEXIClockCount exi_clock_count;
+  SIPoll poll;
+  SIComCSR com_csr;
+  SIStatusReg status_reg;
+  SIEXIClockCount exi_clock_count;
   std::array<u8, 128> si_buffer;
 };
 
@@ -229,16 +229,16 @@ static void SetNoResponse(u32 channel)
   switch (channel)
   {
   case 0:
-    state.status_reg.NOREP0 = 1;
+    state.status_reg.NOREP0() = true;
     break;
   case 1:
-    state.status_reg.NOREP1 = 1;
+    state.status_reg.NOREP1() = true;
     break;
   case 2:
-    state.status_reg.NOREP2 = 1;
+    state.status_reg.NOREP2() = true;
     break;
   case 3:
-    state.status_reg.NOREP3 = 1;
+    state.status_reg.NOREP3() = true;
     break;
   }
 }
@@ -254,19 +254,19 @@ static void UpdateInterrupts()
 {
   // check if we have to update the RDSTINT flag
   auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
-  if (state.status_reg.RDST0 || state.status_reg.RDST1 || state.status_reg.RDST2 ||
-      state.status_reg.RDST3)
+  if (state.status_reg.RDST0() || state.status_reg.RDST1() || state.status_reg.RDST2() ||
+      state.status_reg.RDST3())
   {
-    state.com_csr.RDSTINT = 1;
+    state.com_csr.RDSTINT() = true;
   }
   else
   {
-    state.com_csr.RDSTINT = 0;
+    state.com_csr.RDSTINT() = false;
   }
 
   // check if we have to generate an interrupt
-  const bool generate_interrupt = (state.com_csr.RDSTINT & state.com_csr.RDSTINTMSK) != 0 ||
-                                  (state.com_csr.TCINT & state.com_csr.TCINTMSK) != 0;
+  const bool generate_interrupt = (state.com_csr.RDSTINT() && state.com_csr.RDSTINTMSK()) ||
+                                  (state.com_csr.TCINT() & state.com_csr.TCINTMSK());
 
   ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, generate_interrupt);
 }
@@ -277,10 +277,10 @@ static void GenerateSIInterrupt(SIInterruptType type)
   switch (type)
   {
   case INT_RDSTINT:
-    state.com_csr.RDSTINT = 1;
+    state.com_csr.RDSTINT() = true;
     break;
   case INT_TCINT:
-    state.com_csr.TCINT = 1;
+    state.com_csr.TCINT() = true;
     break;
   }
 
@@ -298,20 +298,20 @@ constexpr s32 ConvertSILengthField(u32 field)
 static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
   auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
-  if (state.com_csr.TSTART)
+  if (state.com_csr.TSTART())
   {
-    const s32 request_length = ConvertSILengthField(state.com_csr.OUTLNGTH);
-    const s32 expected_response_length = ConvertSILengthField(state.com_csr.INLNGTH);
+    const s32 request_length = ConvertSILengthField(state.com_csr.OUTLNGTH());
+    const s32 expected_response_length = ConvertSILengthField(state.com_csr.INLNGTH());
     const std::vector<u8> request_copy(state.si_buffer.data(),
                                        state.si_buffer.data() + request_length);
 
-    const std::unique_ptr<ISIDevice>& device = state.channel[state.com_csr.CHANNEL].device;
+    const std::unique_ptr<ISIDevice>& device = state.channel[state.com_csr.CHANNEL()].device;
     const s32 actual_response_length = device->RunBuffer(state.si_buffer.data(), request_length);
 
     DEBUG_LOG_FMT(SERIALINTERFACE,
                   "RunSIBuffer  chan: {}  request_length: {}  expected_response_length: {}  "
                   "actual_response_length: {}",
-                  state.com_csr.CHANNEL, request_length, expected_response_length,
+                  state.com_csr.CHANNEL(), request_length, expected_response_length,
                   actual_response_length);
     if (actual_response_length > 0 && expected_response_length != actual_response_length)
     {
@@ -336,10 +336,10 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
     // 2) Investigate the timeout period for NOREP0
     if (actual_response_length != 0)
     {
-      state.com_csr.TSTART = 0;
-      state.com_csr.COMERR = actual_response_length < 0;
+      state.com_csr.TSTART() = 0;
+      state.com_csr.COMERR() = actual_response_length < 0;
       if (actual_response_length < 0)
-        SetNoResponse(state.com_csr.CHANNEL);
+        SetNoResponse(state.com_csr.CHANNEL());
       GenerateSIInterrupt(INT_TCINT);
     }
     else
@@ -459,7 +459,7 @@ void Init()
   }
 
   state.poll.hex = 0;
-  state.poll.X = 492;
+  state.poll.X() = 492;
 
   state.com_csr.hex = 0;
 
@@ -556,89 +556,90 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | SI_COM_CSR, MMIO::DirectRead<u32>(&state.com_csr.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
-                   const USIComCSR tmp_com_csr(val);
+                   const SIComCSR tmp_com_csr(val);
 
-                   state.com_csr.CHANNEL = tmp_com_csr.CHANNEL.Value();
-                   state.com_csr.INLNGTH = tmp_com_csr.INLNGTH.Value();
-                   state.com_csr.OUTLNGTH = tmp_com_csr.OUTLNGTH.Value();
-                   state.com_csr.RDSTINTMSK = tmp_com_csr.RDSTINTMSK.Value();
-                   state.com_csr.TCINTMSK = tmp_com_csr.TCINTMSK.Value();
+                   state.com_csr.CHANNEL() = tmp_com_csr.CHANNEL();
+                   state.com_csr.INLNGTH() = tmp_com_csr.INLNGTH();
+                   state.com_csr.OUTLNGTH() = tmp_com_csr.OUTLNGTH();
+                   state.com_csr.RDSTINTMSK() = tmp_com_csr.RDSTINTMSK();
+                   state.com_csr.TCINTMSK() = tmp_com_csr.TCINTMSK();
 
-                   if (tmp_com_csr.RDSTINT)
-                     state.com_csr.RDSTINT = 0;
-                   if (tmp_com_csr.TCINT)
-                     state.com_csr.TCINT = 0;
+                   if (tmp_com_csr.RDSTINT())
+                     state.com_csr.RDSTINT() = false;
+                   if (tmp_com_csr.TCINT())
+                     state.com_csr.TCINT() = false;
 
                    // be careful: run si-buffer after updating the INT flags
-                   if (tmp_com_csr.TSTART)
+                   if (tmp_com_csr.TSTART())
                    {
-                     if (state.com_csr.TSTART)
+                     if (state.com_csr.TSTART())
                        CoreTiming::RemoveEvent(state.event_type_tranfer_pending);
-                     state.com_csr.TSTART = 1;
+                     state.com_csr.TSTART() = true;
                      RunSIBuffer(0, 0);
                    }
 
-                   if (!state.com_csr.TSTART)
+                   if (!state.com_csr.TSTART())
                      UpdateInterrupts();
                  }));
 
-  mmio->Register(base | SI_STATUS_REG, MMIO::DirectRead<u32>(&state.status_reg.hex),
-                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
-                   auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
-                   const USIStatusReg tmp_status(val);
+  mmio->Register(
+      base | SI_STATUS_REG, MMIO::DirectRead<u32>(&state.status_reg.hex),
+      MMIO::ComplexWrite<u32>([](u32, u32 val) {
+        auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
+        const SIStatusReg tmp_status(val);
 
-                   // clear bits ( if (tmp.bit) SISR.bit=0 )
-                   if (tmp_status.NOREP0)
-                     state.status_reg.NOREP0 = 0;
-                   if (tmp_status.COLL0)
-                     state.status_reg.COLL0 = 0;
-                   if (tmp_status.OVRUN0)
-                     state.status_reg.OVRUN0 = 0;
-                   if (tmp_status.UNRUN0)
-                     state.status_reg.UNRUN0 = 0;
+        // clear bits ( if (tmp.bit) SISR.bit=0 )
+        if (tmp_status.NOREP0())
+          state.status_reg.NOREP0() = false;
+        if (tmp_status.COLL0())
+          state.status_reg.COLL0() = false;
+        if (tmp_status.OVRUN0())
+          state.status_reg.OVRUN0() = false;
+        if (tmp_status.UNRUN0())
+          state.status_reg.UNRUN0() = false;
 
-                   if (tmp_status.NOREP1)
-                     state.status_reg.NOREP1 = 0;
-                   if (tmp_status.COLL1)
-                     state.status_reg.COLL1 = 0;
-                   if (tmp_status.OVRUN1)
-                     state.status_reg.OVRUN1 = 0;
-                   if (tmp_status.UNRUN1)
-                     state.status_reg.UNRUN1 = 0;
+        if (tmp_status.NOREP1())
+          state.status_reg.NOREP1() = false;
+        if (tmp_status.COLL1())
+          state.status_reg.COLL1() = false;
+        if (tmp_status.OVRUN1())
+          state.status_reg.OVRUN1() = false;
+        if (tmp_status.UNRUN1())
+          state.status_reg.UNRUN1() = false;
 
-                   if (tmp_status.NOREP2)
-                     state.status_reg.NOREP2 = 0;
-                   if (tmp_status.COLL2)
-                     state.status_reg.COLL2 = 0;
-                   if (tmp_status.OVRUN2)
-                     state.status_reg.OVRUN2 = 0;
-                   if (tmp_status.UNRUN2)
-                     state.status_reg.UNRUN2 = 0;
+        if (tmp_status.NOREP2())
+          state.status_reg.NOREP2() = false;
+        if (tmp_status.COLL2())
+          state.status_reg.COLL2() = false;
+        if (tmp_status.OVRUN2())
+          state.status_reg.OVRUN2() = false;
+        if (tmp_status.UNRUN2())
+          state.status_reg.UNRUN2() = false;
 
-                   if (tmp_status.NOREP3)
-                     state.status_reg.NOREP3 = 0;
-                   if (tmp_status.COLL3)
-                     state.status_reg.COLL3 = 0;
-                   if (tmp_status.OVRUN3)
-                     state.status_reg.OVRUN3 = 0;
-                   if (tmp_status.UNRUN3)
-                     state.status_reg.UNRUN3 = 0;
+        if (tmp_status.NOREP3())
+          state.status_reg.NOREP3() = false;
+        if (tmp_status.COLL3())
+          state.status_reg.COLL3() = false;
+        if (tmp_status.OVRUN3())
+          state.status_reg.OVRUN3() = false;
+        if (tmp_status.UNRUN3())
+          state.status_reg.UNRUN3() = false;
 
-                   // send command to devices
-                   if (tmp_status.WR)
-                   {
-                     state.channel[0].device->SendCommand(state.channel[0].out.hex, state.poll.EN0);
-                     state.channel[1].device->SendCommand(state.channel[1].out.hex, state.poll.EN1);
-                     state.channel[2].device->SendCommand(state.channel[2].out.hex, state.poll.EN2);
-                     state.channel[3].device->SendCommand(state.channel[3].out.hex, state.poll.EN3);
+        // send command to devices
+        if (tmp_status.WR())
+        {
+          state.channel[0].device->SendCommand(state.channel[0].out.hex, state.poll.EN0());
+          state.channel[1].device->SendCommand(state.channel[1].out.hex, state.poll.EN1());
+          state.channel[2].device->SendCommand(state.channel[2].out.hex, state.poll.EN2());
+          state.channel[3].device->SendCommand(state.channel[3].out.hex, state.poll.EN3());
 
-                     state.status_reg.WR = 0;
-                     state.status_reg.WRST0 = 0;
-                     state.status_reg.WRST1 = 0;
-                     state.status_reg.WRST2 = 0;
-                     state.status_reg.WRST3 = 0;
-                   }
-                 }));
+          state.status_reg.WR() = false;
+          state.status_reg.WRST0() = false;
+          state.status_reg.WRST1() = false;
+          state.status_reg.WRST2() = false;
+          state.status_reg.WRST3() = false;
+        }
+      }));
 
   mmio->Register(base | SI_EXI_CLOCK_COUNT, MMIO::DirectRead<u32>(&state.exi_clock_count.hex),
                  MMIO::DirectWrite<u32>(&state.exi_clock_count.hex));
@@ -726,14 +727,14 @@ void UpdateDevices()
   g_controller_interface.UpdateInput();
 
   // Update channels and set the status bit if there's new data
-  state.status_reg.RDST0 =
-      !!state.channel[0].device->GetData(state.channel[0].in_hi.hex, state.channel[0].in_lo.hex);
-  state.status_reg.RDST1 =
-      !!state.channel[1].device->GetData(state.channel[1].in_hi.hex, state.channel[1].in_lo.hex);
-  state.status_reg.RDST2 =
-      !!state.channel[2].device->GetData(state.channel[2].in_hi.hex, state.channel[2].in_lo.hex);
-  state.status_reg.RDST3 =
-      !!state.channel[3].device->GetData(state.channel[3].in_hi.hex, state.channel[3].in_lo.hex);
+  state.status_reg.RDST0() =
+      state.channel[0].device->GetData(state.channel[0].in_hi.hex, state.channel[0].in_lo.hex);
+  state.status_reg.RDST1() =
+      state.channel[1].device->GetData(state.channel[1].in_hi.hex, state.channel[1].in_lo.hex);
+  state.status_reg.RDST2() =
+      state.channel[2].device->GetData(state.channel[2].in_hi.hex, state.channel[2].in_lo.hex);
+  state.status_reg.RDST3() =
+      state.channel[3].device->GetData(state.channel[3].in_hi.hex, state.channel[3].in_lo.hex);
 
   UpdateInterrupts();
 
@@ -753,7 +754,7 @@ SIDevices GetDeviceType(int channel)
 u32 GetPollXLines()
 {
   auto& state = Core::System::GetInstance().GetSerialInterfaceState().GetData();
-  return state.poll.X;
+  return state.poll.X();
 }
 
 }  // namespace SerialInterface

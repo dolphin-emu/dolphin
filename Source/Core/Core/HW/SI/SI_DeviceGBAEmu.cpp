@@ -147,7 +147,7 @@ bool CSIDevice_GBAEmu::GetData(u32& hi, u32& low)
   return false;
 }
 
-void CSIDevice_GBAEmu::SendCommand(u32 command, u8 poll)
+void CSIDevice_GBAEmu::SendCommand(u32 command, bool poll)
 {
 }
 

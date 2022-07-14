@@ -349,7 +349,7 @@ bool CSIDevice_GBA::GetData(u32& hi, u32& low)
   return false;
 }
 
-void CSIDevice_GBA::SendCommand(u32 command, u8 poll)
+void CSIDevice_GBA::SendCommand(u32 command, bool poll)
 {
 }
 }  // namespace SerialInterface

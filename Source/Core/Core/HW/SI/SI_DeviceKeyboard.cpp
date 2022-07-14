@@ -80,16 +80,16 @@ bool CSIDevice_Keyboard::GetData(u32& hi, u32& low)
   return true;
 }
 
-void CSIDevice_Keyboard::SendCommand(u32 command, u8 poll)
+void CSIDevice_Keyboard::SendCommand(u32 command, bool poll)
 {
-  UCommand keyboard_command(command);
+  Command keyboard_command(command);
 
-  if (static_cast<EDirectCommands>(keyboard_command.command) == EDirectCommands::CMD_POLL)
+  if (keyboard_command.command() == EDirectCommands::CMD_POLL)
   {
     m_counter++;
     m_counter &= 15;
   }
-  else if (keyboard_command.command != 0x00)
+  else if (static_cast<u8>(keyboard_command.command()) != 0x00)
   {
     ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);
   }

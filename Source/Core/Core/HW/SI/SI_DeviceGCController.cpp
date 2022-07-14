@@ -293,13 +293,13 @@ void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
 }
 
 // SendCommand
-void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
+void CSIDevice_GCController::SendCommand(u32 command, bool poll)
 {
-  UCommand controller_command(command);
+  Command controller_command(command);
 
-  if (static_cast<EDirectCommands>(controller_command.command) == EDirectCommands::CMD_WRITE)
+  if (controller_command.command() == EDirectCommands::CMD_WRITE)
   {
-    const u32 type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
+    const u32 type = controller_command.parameter1();  // 0 = stop, 1 = rumble, 2 = stop hard
 
     // get the correct pad number that should rumble locally when using netplay
     const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
@@ -315,11 +315,11 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 
     if (poll == 0)
     {
-      m_mode = controller_command.parameter2;
+      m_mode = controller_command.parameter2();
       INFO_LOG_FMT(SERIALINTERFACE, "PAD {} set to mode {}", m_device_number, m_mode);
     }
   }
-  else if (controller_command.command != 0x00)
+  else if (static_cast<u8>(controller_command.command()) != 0x00)
   {
     // Costis sent 0x00 in some demos :)
     ERROR_LOG_FMT(SERIALINTERFACE, "Unknown direct command     ({:#x})", command);
