@@ -85,6 +85,7 @@ extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1;
 const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_BBA_MAC;
 extern const Info<std::string> MAIN_BBA_XLINK_IP;
+extern const Info<std::string> netplay_bba_MAC;
 extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;
 const Info<SerialInterface::SIDevices>& GetInfoForSIDevice(int channel);
 const Info<bool>& GetInfoForAdapterRumble(int channel);

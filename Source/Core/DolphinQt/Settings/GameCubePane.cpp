@@ -117,6 +117,7 @@ void GameCubePane::CreateWidgets()
            EXIDeviceType::Dummy,
            EXIDeviceType::Ethernet,
            EXIDeviceType::EthernetXLink,
+           EXIDeviceType::netplay_bba,
 #ifdef __APPLE__
            EXIDeviceType::EthernetTapServer,
 #endif
@@ -259,6 +260,7 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
     break;
   case ExpansionInterface::Slot::SP1:
     has_config = (device == ExpansionInterface::EXIDeviceType::Ethernet ||
+                  device == ExpansionInterface::EXIDeviceType::netplay_bba ||
                   device == ExpansionInterface::EXIDeviceType::EthernetXLink);
     break;
   }
@@ -292,6 +294,11 @@ void GameCubePane::OnConfigPressed(ExpansionInterface::Slot slot)
   {
     BroadbandAdapterSettingsDialog(this, BroadbandAdapterSettingsDialog::Type::XLinkKai).exec();
     return;
+  case ExpansionInterface::EXIDeviceType::netplay_bba:
+  {
+    BroadbandAdapterSettingsDialog(this, BroadbandAdapterSettingsDialog::Type::Netplaybba).exec();
+    return;
+  }
   }
   default:
     PanicAlertFmt("Unknown settings pressed for {}", device);

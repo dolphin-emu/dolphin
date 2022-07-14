@@ -57,6 +57,19 @@ void BroadbandAdapterSettingsDialog::InitControls()
                       "href=\"https://www.teamxlink.co.uk/wiki/Dolphin\">refer to this page</a>."));
     window_title = tr("XLink Kai BBA Destination Address");
     break;
+
+    
+    //This window is not needed but is here to prevent crashing. considering This adapter won't be visible to the end user it does not matter anyway.
+          case Type::Netplaybba:
+    address_label = new QLabel(tr("There is nothing to do here.:"));
+    address_placeholder = QString::fromStdString("This info will be filled in by the host");
+    current_address = QString::fromStdString(Config::Get(Config::netplay_bba_MAC));
+    description =
+        new QLabel(tr("There is nothing to do here. "
+                      "  "));
+    window_title = tr("Null");
+    break;
+
   }
 
   setWindowTitle(window_title);
@@ -106,6 +119,11 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
   case Type::XLinkKai:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_XLINK_IP, bba_new_address);
     break;
+
+      case Type::Netplaybba:
+    Config::SetBaseOrCurrent(Config::netplay_bba_MAC, bba_new_address);
+    break;
+
   }
 
   accept();

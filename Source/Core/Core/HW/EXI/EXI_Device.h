@@ -35,6 +35,7 @@ enum class EXIDeviceType : int
   MemoryCardFolder,
   AGP,
   EthernetXLink,
+  netplay_bba,
   // Only used on Apple devices.
   EthernetTapServer,
   None = 0xFF
@@ -94,6 +95,7 @@ struct fmt::formatter<ExpansionInterface::EXIDeviceType>
       _trans("GCI Folder"),
       _trans("Advance Game Port"),
       _trans("Broadband Adapter (XLink Kai)"),
+      _trans("Broadband Adapter (Netplay)"),
       _trans("Broadband Adapter (tapserver)"),
   };
 

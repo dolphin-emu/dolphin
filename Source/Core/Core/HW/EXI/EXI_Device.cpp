@@ -143,6 +143,10 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const EXIDeviceType device_type, co
     result = std::make_unique<CEXIETHERNET>(BBADeviceType::XLINK);
     break;
 
+  case EXIDeviceType::netplay_bba:
+    result = std::make_unique<CEXIETHERNET>(BBADeviceType::netplaybba);
+    break;
+
   case EXIDeviceType::Gecko:
     result = std::make_unique<CEXIGecko>();
     break;
