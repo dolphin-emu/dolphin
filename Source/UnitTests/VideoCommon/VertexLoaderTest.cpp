@@ -530,3 +530,249 @@ TEST_F(VertexLoaderTest, DirectAllComponents)
   ExpectOut(-7.9f);
   ExpectOut(7.0f);
 }
+
+class VertexLoaderNormalTest
+    : public VertexLoaderTest,
+      public ::testing::WithParamInterface<
+          std::tuple<VertexComponentFormat, ComponentFormat, NormalComponentCount, bool>>
+{
+};
+INSTANTIATE_TEST_CASE_P(
+    AllCombinations, VertexLoaderNormalTest,
+    ::testing::Combine(
+        ::testing::Values(VertexComponentFormat::NotPresent, VertexComponentFormat::Direct,
+                          VertexComponentFormat::Index8, VertexComponentFormat::Index16),
+        ::testing::Values(ComponentFormat::UByte, ComponentFormat::Byte, ComponentFormat::UShort,
+                          ComponentFormat::Short, ComponentFormat::Float),
+        ::testing::Values(NormalComponentCount::N, NormalComponentCount::NTB),
+        ::testing::Values(false, true)));
+
+TEST_P(VertexLoaderNormalTest, NormalAll)
+{
+  VertexComponentFormat addr;
+  ComponentFormat format;
+  NormalComponentCount elements;
+  bool index3;
+  std::tie(addr, format, elements, index3) = GetParam();
+
+  m_vtx_desc.low.Position = VertexComponentFormat::Direct;
+  m_vtx_attr.g0.PosFormat = ComponentFormat::Float;
+  m_vtx_attr.g0.PosElements = CoordComponentCount::XY;
+  m_vtx_attr.g0.PosFrac = 0;
+  m_vtx_desc.low.Normal = addr;
+  m_vtx_attr.g0.NormalFormat = format;
+  m_vtx_attr.g0.NormalElements = elements;
+  m_vtx_attr.g0.NormalIndex3 = index3;
+
+  const u32 in_size = [&]() -> u32 {
+    if (addr == VertexComponentFormat::NotPresent)
+      return 0;
+
+    if (IsIndexed(addr))
+    {
+      const u32 base_size = (addr == VertexComponentFormat::Index8) ? 1 : 2;
+      if (elements == NormalComponentCount::NTB)
+        return (index3 ? 3 : 1) * base_size;
+      else
+        return 1 * base_size;
+    }
+    else
+    {
+      const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+      const u32 base_size = GetElementSize(format);
+      return base_count * base_size;
+    }
+  }();
+  const u32 out_size = [&]() -> u32 {
+    if (addr == VertexComponentFormat::NotPresent)
+      return 0;
+
+    const u32 base_count = (elements == NormalComponentCount::NTB) ? 9 : 3;
+    return base_count * sizeof(float);
+  }();
+
+  CreateAndCheckSizes(2 * sizeof(float) + in_size, 2 * sizeof(float) + out_size);
+
+  auto input_with_expected_type = [&](float value) {
+    switch (format)
+    {
+    case ComponentFormat::UByte:
+      Input<u8>(value * (1 << 7));
+      break;
+    case ComponentFormat::Byte:
+      Input<s8>(value * (1 << 6));
+      break;
+    case ComponentFormat::UShort:
+      Input<u16>(value * (1 << 15));
+      break;
+    case ComponentFormat::Short:
+      Input<s16>(value * (1 << 14));
+      break;
+    case ComponentFormat::Float:
+    default:
+      Input<float>(value);
+      break;
+    }
+  };
+
+  auto create_normal = [&](int counter_base) {
+    if (addr == VertexComponentFormat::Direct)
+    {
+      input_with_expected_type(counter_base / 32.f);
+      input_with_expected_type((counter_base + 1) / 32.f);
+      input_with_expected_type((counter_base + 2) / 32.f);
+    }
+    else if (addr == VertexComponentFormat::Index8)
+    {
+      // We set up arrays so that this works
+      Input<u8>(counter_base);
+    }
+    else if (addr == VertexComponentFormat::Index16)
+    {
+      Input<u16>(counter_base);
+    }
+    // Do nothing for NotPresent
+  };
+  auto create_tangent_and_binormal = [&](int counter_base) {
+    if (IsIndexed(addr))
+    {
+      // With NormalIndex3, specifying the same index 3 times should give the same result
+      // as specifying one index in non-index3 mode (as the index is biased by bytes).
+      // If index3 is disabled, we don't want to write any more indices.
+      if (index3)
+      {
+        // Tangent
+        create_normal(counter_base);
+        // Binormal
+        create_normal(counter_base);
+      }
+    }
+    else
+    {
+      // Tangent
+      create_normal(counter_base + 3);
+      // Binormal
+      create_normal(counter_base + 6);
+    }
+  };
+
+  // Create our two vertices
+  // Position 1
+  Input(4.0f);
+  Input(8.0f);
+  // Normal 1
+  create_normal(1);
+  if (elements == NormalComponentCount::NTB)
+  {
+    create_tangent_and_binormal(1);
+  }
+
+  // Position 2
+  Input(6.0f);
+  Input(12.0f);
+  // Normal 1
+  create_normal(10);
+  if (elements == NormalComponentCount::NTB)
+  {
+    create_tangent_and_binormal(10);
+  }
+
+  // Create an array for indexed representations
+  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
+  {
+    VertexLoaderManager::cached_arraybases[static_cast<CPArray>(i)] = m_src.GetPointer();
+    g_main_cp_state.array_strides[static_cast<CPArray>(i)] = GetElementSize(format);
+  }
+
+  for (int i = 0; i < 32; i++)
+    input_with_expected_type(i / 32.f);
+
+  // Pre-fill these values to detect if they're modified
+  VertexLoaderManager::binormal_cache = {42.f, 43.f, 44.f, 45.f};
+  VertexLoaderManager::tangent_cache = {46.f, 47.f, 48.f, 49.f};
+
+  RunVertices(2);
+
+  // First vertex, position
+  ExpectOut(4.0f);
+  ExpectOut(8.0f);
+  if (addr != VertexComponentFormat::NotPresent)
+  {
+    // Normal
+    ExpectOut(1 / 32.f);
+    ExpectOut(2 / 32.f);
+    ExpectOut(3 / 32.f);
+    if (elements == NormalComponentCount::NTB)
+    {
+      // Tangent
+      ExpectOut(4 / 32.f);
+      ExpectOut(5 / 32.f);
+      ExpectOut(6 / 32.f);
+      // Binormal
+      ExpectOut(7 / 32.f);
+      ExpectOut(8 / 32.f);
+      ExpectOut(9 / 32.f);
+    }
+  }
+
+  // Second vertex, position
+  ExpectOut(6.0f);
+  ExpectOut(12.0f);
+  if (addr != VertexComponentFormat::NotPresent)
+  {
+    // Normal
+    ExpectOut(10 / 32.f);
+    ExpectOut(11 / 32.f);
+    ExpectOut(12 / 32.f);
+    if (elements == NormalComponentCount::NTB)
+    {
+      // Tangent
+      ExpectOut(13 / 32.f);
+      ExpectOut(14 / 32.f);
+      ExpectOut(15 / 32.f);
+      // Binormal
+      ExpectOut(16 / 32.f);
+      ExpectOut(17 / 32.f);
+      ExpectOut(18 / 32.f);
+
+      EXPECT_EQ(VertexLoaderManager::tangent_cache[0], 13 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::tangent_cache[1], 14 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::tangent_cache[2], 15 / 32.f);
+      // Last index is padding/junk
+      EXPECT_EQ(VertexLoaderManager::binormal_cache[0], 16 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::binormal_cache[1], 17 / 32.f);
+      EXPECT_EQ(VertexLoaderManager::binormal_cache[2], 18 / 32.f);
+    }
+  }
+
+  if (addr == VertexComponentFormat::NotPresent || elements == NormalComponentCount::N)
+  {
+    // Expect these to not be written
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[0], 42.f);
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[1], 43.f);
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[2], 44.f);
+    EXPECT_EQ(VertexLoaderManager::binormal_cache[3], 45.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[0], 46.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[1], 47.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[2], 48.f);
+    EXPECT_EQ(VertexLoaderManager::tangent_cache[3], 49.f);
+  }
+}
+
+// For gtest, which doesn't know about our fmt::formatters by default
+static void PrintTo(const VertexComponentFormat& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
+}
+static void PrintTo(const ComponentFormat& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
+}
+static void PrintTo(const CoordComponentCount& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
+}
+static void PrintTo(const NormalComponentCount& t, std::ostream* os)
+{
+  *os << fmt::to_string(t);
+}
