@@ -485,13 +485,22 @@ void ARM64XEmitter::EncodeLoadStorePairedInst(u32 op, ARM64Reg Rt, ARM64Reg Rt2,
   bool bVec = IsVector(Rt);
 
   if (b128Bit)
+  {
+    ASSERT_MSG(DYNA_REC, (imm & 0xf) == 0, "128-bit load/store must use aligned offset: {}", imm);
     imm >>= 4;
+  }
   else if (b64Bit)
+  {
+    ASSERT_MSG(DYNA_REC, (imm & 0x7) == 0, "64-bit load/store must use aligned offset: {}", imm);
     imm >>= 3;
+  }
   else
+  {
+    ASSERT_MSG(DYNA_REC, (imm & 0x3) == 0, "32-bit load/store must use aligned offset: {}", imm);
     imm >>= 2;
+  }
 
-  ASSERT_MSG(DYNA_REC, !(imm & ~0xF), "offset too large {}", imm);
+  ASSERT_MSG(DYNA_REC, (imm & ~0xF) == 0, "offset too large {}", imm);
 
   u32 opc = 0;
   if (b128Bit)
@@ -524,11 +533,20 @@ void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn,
   bool bVec = IsVector(Rt);
 
   if (size == 64)
+  {
+    ASSERT_MSG(DYNA_REC, (imm & 0x7) == 0, "64-bit load/store must use aligned offset: {}", imm);
     imm >>= 3;
+  }
   else if (size == 32)
+  {
+    ASSERT_MSG(DYNA_REC, (imm & 0x3) == 0, "32-bit load/store must use aligned offset: {}", imm);
     imm >>= 2;
+  }
   else if (size == 16)
+  {
+    ASSERT_MSG(DYNA_REC, (imm & 0x1) == 0, "16-bit load/store must use aligned offset: {}", imm);
     imm >>= 1;
+  }
 
   ASSERT_MSG(DYNA_REC, imm >= 0, "(IndexType::Unsigned): offset must be positive {}", imm);
   ASSERT_MSG(DYNA_REC, !(imm & ~0xFFF), "(IndexType::Unsigned): offset too large {}", imm);
@@ -615,10 +633,12 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
   if (b64Bit)
   {
     op |= 0b10;
+    ASSERT_MSG(DYNA_REC, (imm & 0x7) == 0, "64-bit load/store must use aligned offset: {}", imm);
     imm >>= 3;
   }
   else
   {
+    ASSERT_MSG(DYNA_REC, (imm & 0x3) == 0, "32-bit load/store must use aligned offset: {}", imm);
     imm >>= 2;
   }
 
@@ -2072,19 +2092,29 @@ void ARM64FloatEmitter::EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type,
 
   if (type == IndexType::Unsigned)
   {
-    ASSERT_MSG(DYNA_REC, !(imm & ((size - 1) >> 3)),
-               "(IndexType::Unsigned) immediate offset must be aligned to size! ({}) ({})", imm,
-               fmt::ptr(m_emit->GetCodePtr()));
     ASSERT_MSG(DYNA_REC, imm >= 0, "(IndexType::Unsigned) immediate offset must be positive! ({})",
                imm);
     if (size == 16)
+    {
+      ASSERT_MSG(DYNA_REC, (imm & 0x1) == 0, "16-bit load/store must use aligned offset: {}", imm);
       imm >>= 1;
+    }
     else if (size == 32)
+    {
+      ASSERT_MSG(DYNA_REC, (imm & 0x3) == 0, "32-bit load/store must use aligned offset: {}", imm);
       imm >>= 2;
+    }
     else if (size == 64)
+    {
+      ASSERT_MSG(DYNA_REC, (imm & 0x7) == 0, "64-bit load/store must use aligned offset: {}", imm);
       imm >>= 3;
+    }
     else if (size == 128)
+    {
+      ASSERT_MSG(DYNA_REC, (imm & 0xf) == 0, "128-bit load/store must use aligned offset: {}", imm);
       imm >>= 4;
+    }
+    ASSERT_MSG(DYNA_REC, imm <= 0xFFF, "Immediate value is too big: {}", imm);
     encoded_imm = (imm & 0xFFF);
   }
   else
