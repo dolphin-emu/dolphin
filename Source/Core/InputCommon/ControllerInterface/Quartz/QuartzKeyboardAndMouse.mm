@@ -226,7 +226,7 @@ ControlState KeyboardAndMouse::Button::GetState() const
 
 std::string KeyboardAndMouse::Cursor::GetName() const
 {
-  static char tmpstr[] = "Cursor ..";
+  char tmpstr[] = "Cursor ..";
   tmpstr[7] = (char)('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;
