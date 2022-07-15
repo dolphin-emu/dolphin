@@ -66,32 +66,12 @@ void VertexLoaderARM64::GetVertexAddr(CPArray array, VertexComponentFormat attri
   {
     if (attribute == VertexComponentFormat::Index8)
     {
-      if (m_src_ofs < 4096)
-      {
-        LDRB(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
-      }
-      else
-      {
-        ADD(reg, src_reg, m_src_ofs);
-        LDRB(IndexType::Unsigned, scratch1_reg, reg, 0);
-      }
+      LDURB(scratch1_reg, src_reg, m_src_ofs);
       m_src_ofs += 1;
     }
-    else
+    else  // Index16
     {
-      if (m_src_ofs < 256)
-      {
-        LDURH(scratch1_reg, src_reg, m_src_ofs);
-      }
-      else if (m_src_ofs <= 8190 && !(m_src_ofs & 1))
-      {
-        LDRH(IndexType::Unsigned, scratch1_reg, src_reg, m_src_ofs);
-      }
-      else
-      {
-        ADD(reg, src_reg, m_src_ofs);
-        LDRH(IndexType::Unsigned, scratch1_reg, reg, 0);
-      }
+      LDURH(scratch1_reg, src_reg, m_src_ofs);
       m_src_ofs += 2;
       REV16(scratch1_reg, scratch1_reg);
     }
@@ -118,7 +98,7 @@ void VertexLoaderARM64::GetVertexAddr(CPArray array, VertexComponentFormat attri
 s32 VertexLoaderARM64::GetAddressImm(CPArray array, VertexComponentFormat attribute,
                                      Arm64Gen::ARM64Reg reg, u32 align)
 {
-  if (IsIndexed(attribute) || (m_src_ofs > 255 && (m_src_ofs & (align - 1))))
+  if (IsIndexed(attribute))
     GetVertexAddr(array, attribute, reg);
   else
     return m_src_ofs;
@@ -145,13 +125,9 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
     else
       m_float_emit.LD1(elem_size, 1, coords, EncodeRegTo64(scratch1_reg));
   }
-  else if (offset & (load_size - 1))  // Not aligned - unscaled
-  {
-    m_float_emit.LDUR(load_size, coords, src_reg, offset);
-  }
   else
   {
-    m_float_emit.LDR(load_size, IndexType::Unsigned, coords, src_reg, offset);
+    m_float_emit.LDUR(load_size, coords, src_reg, offset);
   }
 
   if (format != ComponentFormat::Float)
@@ -191,20 +167,7 @@ int VertexLoaderARM64::ReadVertex(VertexComponentFormat attribute, ComponentForm
   }
 
   const u32 write_size = count_out == 3 ? 128 : count_out * 32;
-  const u32 mask = count_out == 3 ? 0xF : count_out == 2 ? 0x7 : 0x3;
-  if (m_dst_ofs < 256)
-  {
-    m_float_emit.STUR(write_size, coords, dst_reg, m_dst_ofs);
-  }
-  else if (!(m_dst_ofs & mask))
-  {
-    m_float_emit.STR(write_size, IndexType::Unsigned, coords, dst_reg, m_dst_ofs);
-  }
-  else
-  {
-    ADD(EncodeRegTo64(scratch2_reg), dst_reg, m_dst_ofs);
-    m_float_emit.ST1(32, 1, coords, EncodeRegTo64(scratch2_reg));
-  }
+  m_float_emit.STUR(write_size, coords, dst_reg, m_dst_ofs);
 
   // Z-Freeze
   if (native_format == &m_native_vtx_decl.position)
@@ -253,10 +216,8 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
   case ColorFormat::RGBA8888:
     if (offset == -1)
       LDR(IndexType::Unsigned, scratch2_reg, EncodeRegTo64(scratch1_reg), 0);
-    else if (offset & 3)  // Not aligned - unscaled
-      LDUR(scratch2_reg, src_reg, offset);
     else
-      LDR(IndexType::Unsigned, scratch2_reg, src_reg, offset);
+      LDUR(scratch2_reg, src_reg, offset);
 
     if (format != ColorFormat::RGBA8888)
       ORR(scratch2_reg, scratch2_reg, LogicalImm(0xFF000000, 32));
@@ -269,10 +230,8 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     if (offset == -1)
       LDRH(IndexType::Unsigned, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
-    else if (offset & 1)  // Not aligned - unscaled
-      LDURH(scratch3_reg, src_reg, offset);
     else
-      LDRH(IndexType::Unsigned, scratch3_reg, src_reg, offset);
+      LDURH(scratch3_reg, src_reg, offset);
 
     REV16(scratch3_reg, scratch3_reg);
 
@@ -306,10 +265,8 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     if (offset == -1)
       LDRH(IndexType::Unsigned, scratch3_reg, EncodeRegTo64(scratch1_reg), 0);
-    else if (offset & 1)  // Not aligned - unscaled
-      LDURH(scratch3_reg, src_reg, offset);
     else
-      LDRH(IndexType::Unsigned, scratch3_reg, src_reg, offset);
+      LDURH(scratch3_reg, src_reg, offset);
 
     // R
     UBFM(scratch1_reg, scratch3_reg, 4, 7);
@@ -337,17 +294,9 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
     //          RRRRRRGG GGGGBBBB BBAAAAAA
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     if (offset == -1)
-    {
       LDUR(scratch3_reg, EncodeRegTo64(scratch1_reg), -1);
-    }
     else
-    {
-      offset -= 1;
-      if (offset & 3)  // Not aligned - unscaled
-        LDUR(scratch3_reg, src_reg, offset);
-      else
-        LDR(IndexType::Unsigned, scratch3_reg, src_reg, offset);
-    }
+      LDUR(scratch3_reg, src_reg, offset - 1);
 
     REV32(scratch3_reg, scratch3_reg);
 
@@ -385,6 +334,12 @@ void VertexLoaderARM64::ReadColor(VertexComponentFormat attribute, ColorFormat f
 
 void VertexLoaderARM64::GenerateVertexLoader()
 {
+  // The largest input vertex (with the position matrix index and all texture matrix indices
+  // enabled, and all components set as direct) is 129 bytes (corresponding to a 156-byte
+  // output). This is small enough that we can always use the unscaled load/store instructions
+  // (which allow an offset from -256 to +255).
+  ASSERT(m_vertex_size <= 255);
+
   // R0 - Source pointer
   // R1 - Destination pointer
   // R2 - Count
@@ -568,22 +523,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
       {
         m_native_vtx_decl.texcoords[i].offset = m_dst_ofs;
 
-        if (m_dst_ofs < 256)
-        {
-          STUR(ARM64Reg::SP, dst_reg, m_dst_ofs);
-        }
-        else if (!(m_dst_ofs & 7))
-        {
-          // If m_dst_ofs isn't 8byte aligned we can't store an 8byte zero register
-          // So store two 4byte zero registers
-          // The destination is always 4byte aligned
-          STR(IndexType::Unsigned, ARM64Reg::WSP, dst_reg, m_dst_ofs);
-          STR(IndexType::Unsigned, ARM64Reg::WSP, dst_reg, m_dst_ofs + 4);
-        }
-        else
-        {
-          STR(IndexType::Unsigned, ARM64Reg::SP, dst_reg, m_dst_ofs);
-        }
+        STUR(ARM64Reg::SP, dst_reg, m_dst_ofs);
         m_float_emit.STR(32, IndexType::Unsigned, ARM64Reg::D31, dst_reg, m_dst_ofs + 8);
 
         m_dst_ofs += sizeof(float) * 3;
