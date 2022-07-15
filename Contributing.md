@@ -17,7 +17,7 @@ Summary:
 
 - [Aims](#intro-aims)
 - [Checking and fixing formatting issues](#intro-formatting-issues)
-- [Guidelines for When to Start a Pull Request](#when-to-pr)
+- [Guidelines for when to start a pull request](#when-to-pr)
 
 ## <a name="intro-aims"></a>Aims
 
@@ -54,7 +54,7 @@ In most cases, clang-format can and **should** be used to automatically reformat
 
 - Visual Studio supports automatically formatting the current document according to the clang-format configuration by pressing <kbd>Control</kbd>+<kbd>K</kbd> followed by <kbd>Control</kbd>+<kbd>D</kbd> (or selecting Edit &rarr; Advanced &rarr; Format Document). This can be used without separately installing clang-format.
 
-## <a name="when-to-pr"></a>Guidelines for When to Start a Pull Request
+## <a name="when-to-pr"></a>Guidelines for when to start a pull request
 
 To help merge your code in a timely manner, try to follow these guidelines when creating your pull requests.
 
