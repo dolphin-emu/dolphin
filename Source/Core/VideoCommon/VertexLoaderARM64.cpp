@@ -470,8 +470,9 @@ void VertexLoaderARM64::GenerateVertexLoader()
 
   if (m_VtxDesc.low.Normal != VertexComponentFormat::NotPresent)
   {
-    static const u8 map[8] = {7, 6, 15, 14};
-    const u8 scaling_exponent = map[u32(m_VtxAttr.g0.NormalFormat.Value())];
+    static constexpr Common::EnumMap<u8, static_cast<ComponentFormat>(7)> SCALE_MAP = {7, 6, 15, 14,
+                                                                                       0, 0, 0,  0};
+    const u8 scaling_exponent = SCALE_MAP[m_VtxAttr.g0.NormalFormat];
     const int limit = m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1;
 
     s32 offset = -1;
