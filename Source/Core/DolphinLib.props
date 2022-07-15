@@ -654,6 +654,7 @@
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModAction.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionData.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionFactory.h" />
+    <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModActionInputOutput.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModGroup.h" />
     <ClInclude Include="VideoCommon\GraphicsModSystem\Runtime\GraphicsModManager.h" />
     <ClInclude Include="VideoCommon\GXPipelineTypes.h" />
