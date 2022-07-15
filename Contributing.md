@@ -2,11 +2,11 @@
 
 If you make any contributions to Dolphin after December 1st, 2014, you are agreeing that any code you have contributed will be licensed under the GNU GPL version 2 (or any later version).
 
-# <a name="main-section-overview"></a>Main sections
+# <a name="main-section-overview"></a>Main Sections
 
 - [Introduction](#introduction)
-- [C++ coding style and formatting](#cpp-coding-style-and-formatting)
-- [C++ code-specific guidelines](#cpp-code-specific-guidelines)
+- [C++ Coding Style and Formatting](#cpp-coding-style-and-formatting)
+- [C++ Code-Specific Guidelines](#cpp-code-specific-guidelines)
 - [Android and Java](#android-and-java)
 - [Help](#help)
 
@@ -16,7 +16,7 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
 Summary:
 
 - [Aims](#intro-aims)
-- [Checking and fixing formatting issues](#intro-formatting-issues)
+- [Checking and Fixing Formatting Issues](#intro-formatting-issues)
 
 ## <a name="intro-aims"></a>Aims
 
@@ -26,7 +26,7 @@ Following this guide and formatting your code as detailed will likely get your p
 
 This project uses clang-format (stable branch) to check for common style issues. In case of conflicts between this guide and clang-format rules, the latter should be followed instead of this guide.
 
-## <a name="intro-formatting-issues"></a>Checking and fixing formatting issues
+## <a name="intro-formatting-issues"></a>Checking and Fixing Formatting Issues
 
 Windows users need to be careful about line endings. Windows users should configure git to checkout UNIX-style line endings to keep clang-format simple.
 
@@ -53,7 +53,7 @@ In most cases, clang-format can and **should** be used to automatically reformat
 
 - Visual Studio supports automatically formatting the current document according to the clang-format configuration by pressing <kbd>Control</kbd>+<kbd>K</kbd> followed by <kbd>Control</kbd>+<kbd>D</kbd> (or selecting Edit &rarr; Advanced &rarr; Format Document). This can be used without separately installing clang-format.
 
-# <a name="cpp-coding-style-and-formatting"></a>C++ coding style and formatting
+# <a name="cpp-coding-style-and-formatting"></a>C++ Coding Style and Formatting
 
 Summary:
 
@@ -136,7 +136,7 @@ Summary:
     ```
 
 
-## <a name="cpp-style-classes-and-structs"></a>Classes and structs
+## <a name="cpp-style-classes-and-structs"></a>Classes and Structs
 - If making a [POD](https://en.wikipedia.org/wiki/Passive_data_structure) type, use a `struct` for this. Use a `class` otherwise.
 - Class layout should be in the order, `public`, `protected`, and then `private`.
   - If one or more of these sections are not needed, then simply don't include them.
@@ -162,7 +162,7 @@ private:
 };
 ```
 
-# <a name="cpp-code-specific-guidelines"></a>C++ code-specific guidelines
+# <a name="cpp-code-specific-guidelines"></a>C++ Code-Specific Guidelines
 
 Summary:
 
@@ -262,7 +262,7 @@ Summary:
   };
   ```
 
-## <a name="cpp-code-classes-and-structs"></a>Classes and structs
+## <a name="cpp-code-classes-and-structs"></a>Classes and Structs
 - Classes and structs that are not intended to be extended through inheritance should be marked with the `final` specifier.
 
   ```c++
