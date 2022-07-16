@@ -429,6 +429,7 @@ public final class SettingsFragmentPresenter
 
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
+    sl.add(new HeaderSetting(mContext, R.string.wii_misc_settings, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_LANGUAGE, R.string.system_language,
             0, R.array.wiiSystemLanguageEntries, R.array.wiiSystemLanguageValues));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_WIDESCREEN, R.string.wii_widescreen,
@@ -439,10 +440,14 @@ public final class SettingsFragmentPresenter
             R.string.wii_screensaver, R.string.wii_screensaver_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_SOUND_MODE, R.string.sound_mode, 0,
             R.array.soundModeEntries, R.array.soundModeValues));
+
+    sl.add(new HeaderSetting(mContext, R.string.wii_sd_card_settings, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_WII_SD_CARD, R.string.insert_sd_card,
             R.string.insert_sd_card_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ALLOW_SD_WRITES,
             R.string.wii_sd_card_allow_writes, 0));
+
+    sl.add(new HeaderSetting(mContext, R.string.wii_wiimote_settings, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_WIIMOTE_MOTOR,
             R.string.wiimote_rumble, 0));
     sl.add(new IntSliderSetting(mContext, IntSetting.SYSCONF_SPEAKER_VOLUME,

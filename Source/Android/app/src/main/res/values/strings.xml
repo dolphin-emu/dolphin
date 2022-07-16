@@ -132,6 +132,9 @@
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="wii_submenu">Wii</string>
+    <string name="wii_misc_settings">Misc Settings</string>
+    <string name="wii_sd_card_settings">SD Card Settings</string>
+    <string name="wii_wiimote_settings">Wii Remote Settings</string>
     <string name="wii_widescreen">Widescreen</string>
     <string name="wii_widescreen_description">Changes aspect ratio from 4:3 to 16:9 in games that support it.</string>
     <string name="wii_pal60">Use PAL60 Mode (EuRGB60)</string>
