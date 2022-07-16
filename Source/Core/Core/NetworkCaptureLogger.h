@@ -51,6 +51,8 @@ public:
   virtual void LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from) = 0;
   virtual void LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to) = 0;
 
+  virtual void LogBBA(const void* data, std::size_t length) = 0;
+
   virtual NetworkCaptureType GetCaptureType() const = 0;
 };
 
@@ -64,6 +66,8 @@ public:
 
   void LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from) override;
   void LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to) override;
+
+  void LogBBA(const void* data, std::size_t length) override;
 
   NetworkCaptureType GetCaptureType() const override;
 };
@@ -90,6 +94,8 @@ public:
 
   void LogRead(const void* data, std::size_t length, s32 socket, sockaddr* from) override;
   void LogWrite(const void* data, std::size_t length, s32 socket, sockaddr* to) override;
+
+  void LogBBA(const void* data, std::size_t length) override;
 
   NetworkCaptureType GetCaptureType() const override;
 

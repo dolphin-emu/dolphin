@@ -208,6 +208,7 @@ extern const Info<bool> MAIN_NETWORK_SSL_DUMP_WRITE;
 extern const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT;
+extern const Info<bool> MAIN_NETWORK_DUMP_BBA;
 extern const Info<bool> MAIN_NETWORK_DUMP_AS_PCAP;
 extern const Info<int> MAIN_NETWORK_TIMEOUT;
 

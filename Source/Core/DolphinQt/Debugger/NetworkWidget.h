@@ -58,5 +58,6 @@ private:
   QCheckBox* m_dump_root_ca_checkbox;
   QCheckBox* m_dump_peer_cert_checkbox;
   QCheckBox* m_verify_certificates_checkbox;
+  QCheckBox* m_dump_bba_checkbox;
   QPushButton* m_open_dump_folder;
 };

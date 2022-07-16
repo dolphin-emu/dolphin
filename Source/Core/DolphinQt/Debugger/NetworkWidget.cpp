@@ -223,6 +223,9 @@ void NetworkWidget::ConnectWidgets()
   connect(m_verify_certificates_checkbox, &QCheckBox::stateChanged, [](int state) {
     Config::SetBaseOrCurrent(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES, state == Qt::Checked);
   });
+  connect(m_dump_bba_checkbox, &QCheckBox::stateChanged, [](int state) {
+    Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_BBA, state == Qt::Checked);
+  });
   connect(m_open_dump_folder, &QPushButton::pressed, [] {
     const std::string location = File::GetUserPath(D_DUMPSSL_IDX);
     const QUrl url = QUrl::fromLocalFile(QString::fromStdString(location));
@@ -352,6 +355,7 @@ QGroupBox* NetworkWidget::CreateDumpOptionsGroup()
   // i18n: CA stands for certificate authority
   m_dump_root_ca_checkbox = new QCheckBox(tr("Dump root CA certificates"));
   m_dump_peer_cert_checkbox = new QCheckBox(tr("Dump peer certificates"));
+  m_dump_bba_checkbox = new QCheckBox(tr("Dump GameCube BBA traffic"));
   m_open_dump_folder = new QPushButton(tr("Open dump folder"));
   m_open_dump_folder->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -370,6 +374,7 @@ QGroupBox* NetworkWidget::CreateDumpOptionsGroup()
   dump_options_layout->addWidget(m_dump_ssl_write_checkbox);
   dump_options_layout->addWidget(m_dump_root_ca_checkbox);
   dump_options_layout->addWidget(m_dump_peer_cert_checkbox);
+  dump_options_layout->addWidget(m_dump_bba_checkbox);
   dump_options_layout->addWidget(m_open_dump_folder);
 
   dump_options_layout->setSpacing(1);
@@ -414,23 +419,28 @@ void NetworkWidget::OnDumpFormatComboChanged(int index)
   case FormatComboId::BinarySSL:
     m_dump_ssl_read_checkbox->setChecked(true);
     m_dump_ssl_write_checkbox->setChecked(true);
+    m_dump_bba_checkbox->setChecked(false);
     break;
   case FormatComboId::BinarySSLRead:
     m_dump_ssl_read_checkbox->setChecked(true);
     m_dump_ssl_write_checkbox->setChecked(false);
+    m_dump_bba_checkbox->setChecked(false);
     break;
   case FormatComboId::BinarySSLWrite:
     m_dump_ssl_read_checkbox->setChecked(false);
     m_dump_ssl_write_checkbox->setChecked(true);
+    m_dump_bba_checkbox->setChecked(false);
     break;
   default:
     m_dump_ssl_read_checkbox->setChecked(false);
     m_dump_ssl_write_checkbox->setChecked(false);
+    m_dump_bba_checkbox->setChecked(false);
     break;
   }
   // Enable raw or decrypted SSL choices for PCAP
   const bool is_pcap = combo_id == FormatComboId::PCAP;
   m_dump_ssl_read_checkbox->setEnabled(is_pcap);
   m_dump_ssl_write_checkbox->setEnabled(is_pcap);
+  m_dump_bba_checkbox->setEnabled(is_pcap);
   Config::SetBaseOrCurrent(Config::MAIN_NETWORK_DUMP_AS_PCAP, is_pcap);
 }
