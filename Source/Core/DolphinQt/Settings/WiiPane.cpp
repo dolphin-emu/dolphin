@@ -193,8 +193,9 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
-  m_sync_sd_folder_checkbox =
-      new QCheckBox(tr("Automatically sync with Folder on emulation start and end"));
+  m_sync_sd_folder_checkbox = new QCheckBox(tr("Automatically Sync with Folder"));
+  m_sync_sd_folder_checkbox->setToolTip(
+      tr("Synchronizes the SD Card with the SD Sync Folder when starting and ending emulation."));
   sd_settings_group_layout->addWidget(m_sync_sd_folder_checkbox, row, 0, 1, 2);
   ++row;
 
@@ -214,11 +215,11 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
-  QPushButton* pack_now = new NonDefaultQPushButton(tr("Convert Folder to File now"));
-  QPushButton* unpack_now = new NonDefaultQPushButton(tr("Convert File to Folder now"));
+  QPushButton* pack_now = new NonDefaultQPushButton(tr("Convert Folder to File Now"));
+  QPushButton* unpack_now = new NonDefaultQPushButton(tr("Convert File to Folder Now"));
   connect(pack_now, &QPushButton::clicked, [this] {
     auto result = ModalMessageBox::warning(
-        this, tr("Convert Folder to File now"),
+        this, tr("Convert Folder to File Now"),
         tr("You are about to convert the content of the folder at %1 into the file at %2. All "
            "current content of the file will be deleted. Are you sure you want to continue?")
             .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
@@ -227,12 +228,12 @@ void WiiPane::CreateSDCard()
     if (result == QMessageBox::Yes)
     {
       if (!Common::SyncSDFolderToSDImage(false))
-        ModalMessageBox::warning(this, tr("Convert Folder to File now"), tr("Conversion failed."));
+        ModalMessageBox::warning(this, tr("Convert Folder to File Now"), tr("Conversion failed."));
     }
   });
   connect(unpack_now, &QPushButton::clicked, [this] {
     auto result = ModalMessageBox::warning(
-        this, tr("Convert File to Folder now"),
+        this, tr("Convert File to Folder Now"),
         tr("You are about to convert the content of the file at %2 into the folder at %1. All "
            "current content of the folder will be deleted. Are you sure you want to continue?")
             .arg(QString::fromStdString(File::GetUserPath(D_WIISDCARDSYNCFOLDER_IDX)))
@@ -241,7 +242,7 @@ void WiiPane::CreateSDCard()
     if (result == QMessageBox::Yes)
     {
       if (!Common::SyncSDImageToSDFolder())
-        ModalMessageBox::warning(this, tr("Convert File to Folder now"), tr("Conversion failed."));
+        ModalMessageBox::warning(this, tr("Convert File to Folder Now"), tr("Conversion failed."));
     }
   });
   sd_settings_group_layout->addWidget(pack_now, row, 0, 1, 1);
