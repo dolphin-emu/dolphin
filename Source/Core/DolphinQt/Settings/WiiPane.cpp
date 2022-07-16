@@ -193,8 +193,9 @@ void WiiPane::CreateSDCard()
     ++row;
   }
 
-  m_sync_sd_folder_checkbox =
-      new QCheckBox(tr("Automatically sync with Folder on emulation start and end"));
+  m_sync_sd_folder_checkbox = new QCheckBox(tr("Automatically Sync with Folder"));
+  m_sync_sd_folder_checkbox->setToolTip(
+    tr("Synchronizes the SD Card with the SD Sync Folder when starting and ending emulation."));
   sd_settings_group_layout->addWidget(m_sync_sd_folder_checkbox, row, 0, 1, 2);
   ++row;
 
