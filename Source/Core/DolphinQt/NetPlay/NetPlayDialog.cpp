@@ -153,6 +153,16 @@ void NetPlayDialog::CreateMainLayout()
          "resolution.\nMay prevent desync in some games that use EFB reads. Please ensure everyone "
          "uses the same video backend."));
   m_strict_settings_sync_action->setCheckable(true);
+  m_netplay_bba = m_data_menu->addAction(tr("Enable Broadband Adapter"));
+  m_netplay_bba->setToolTip(
+      tr("Enables the use of the Broadband Adapter to allow the netplay session to act as one "
+         "console in a LAN. \nNote that only the host will actually be able to"
+         " connect to other systems on their "
+         "network. \nGuests will not be able to link to any devices on their network and will only "
+         "mirror what the host sees."
+         "\n \n The host will need to enable the Broadband Adapter in the GameCube settings under "
+         "SP1."));
+  m_netplay_bba->setCheckable(true);
 
   m_network_menu = m_menu_bar->addMenu(tr("Network"));
   m_network_menu->setToolTipsVisible(true);
@@ -208,9 +218,10 @@ void NetPlayDialog::CreateMainLayout()
 
   m_game_button->setDefault(false);
   m_game_button->setAutoDefault(false);
-
+  
   m_sync_save_data_action->setChecked(true);
   m_sync_codes_action->setChecked(true);
+  m_netplay_bba->setChecked(true);
 
   m_main_layout->setMenuBar(m_menu_bar);
 
@@ -401,6 +412,7 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_golf_mode_overlay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_fixed_delay_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_hide_remote_gbas_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
+  connect(m_netplay_bba, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
 }
 
 void NetPlayDialog::SendMessage(const std::string& msg)
@@ -837,6 +849,7 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_sync_all_wii_saves_action->setEnabled(enabled && m_sync_save_data_action->isChecked());
     m_golf_mode_action->setEnabled(enabled);
     m_fixed_delay_action->setEnabled(enabled);
+    m_netplay_bba->setEnabled(enabled);
   }
 
   m_record_input_action->setEnabled(enabled);
@@ -1118,6 +1131,7 @@ void NetPlayDialog::LoadSettings()
   m_sync_all_wii_saves_action->setChecked(sync_all_wii_saves);
   m_golf_mode_overlay_action->setChecked(golf_mode_overlay);
   m_hide_remote_gbas_action->setChecked(hide_remote_gbas);
+  m_netplay_bba->setChecked(netplay_bba);
 
   const std::string network_mode = Config::Get(Config::NETPLAY_NETWORK_MODE);
 
@@ -1153,12 +1167,13 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
-  Config::SetBase(Config::NETPLAY_BBA, m_bba_action->isChecked());
+  Config::SetBase(Config::NETPLAY_BBA, m_netplay_bba->isChecked());
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
   Config::SetBase(Config::NETPLAY_GOLF_MODE_OVERLAY, m_golf_mode_overlay_action->isChecked());
   Config::SetBase(Config::NETPLAY_HIDE_REMOTE_GBAS, m_hide_remote_gbas_action->isChecked());
+
 
   std::string network_mode;
   if (m_fixed_delay_action->isChecked())
