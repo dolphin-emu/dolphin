@@ -21,7 +21,10 @@ public enum StringSetting implements AbstractStringSetting
   MAIN_RESOURCEPACK_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "ResourcePackPath",
           ""),
   MAIN_FS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "NANDRootPath", ""),
-  MAIN_SD_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WiiSDCardPath", ""),
+  MAIN_WII_SD_CARD_IMAGE_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WiiSDCardPath",
+          ""),
+  MAIN_WII_SD_CARD_SYNC_FOLDER_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
+          "WiiSDCardSyncFolder", ""),
   MAIN_WFS_PATH(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL, "WFSPath", ""),
 
   GFX_ENHANCE_POST_SHADER(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,

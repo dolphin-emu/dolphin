@@ -27,6 +27,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_SIMULATE_KONGA_2(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SimulateKonga2", false),
   MAIN_SIMULATE_KONGA_3(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "SimulateKonga3", false),
   MAIN_WII_SD_CARD(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "WiiSDCard", true),
+  MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
+          "WiiSDCardEnableFolderSync", false),
   MAIN_WIIMOTE_CONTINUOUS_SCANNING(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,
           "WiimoteContinuousScanning", false),
   MAIN_WIIMOTE_ENABLE_SPEAKER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE,

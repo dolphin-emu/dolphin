@@ -187,16 +187,11 @@ public final class EmulationActivity extends AppCompatActivity
   {
     new AfterDirectoryInitializationRunner().runWithLifecycle(activity, true, () ->
     {
-      if (FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_LOAD_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH) &&
-              FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_SD_PATH))
-      {
-        continueCallback.run();
-      }
-      else
+      if (!FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DEFAULT_ISO) ||
+              !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_FS_PATH) ||
+              !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_DUMP_PATH) ||
+              !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_LOAD_PATH) ||
+              !FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_RESOURCEPACK_PATH))
       {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setMessage(R.string.unavailable_paths);
@@ -206,9 +201,24 @@ public final class EmulationActivity extends AppCompatActivity
                 continueCallback.run());
         builder.show();
       }
+      else if (!FileBrowserHelper.isPathEmptyOrValid(StringSetting.MAIN_WII_SD_CARD_IMAGE_PATH) ||
+              !FileBrowserHelper.isPathEmptyOrValid(
+                      StringSetting.MAIN_WII_SD_CARD_SYNC_FOLDER_PATH))
+      {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setMessage(R.string.unavailable_paths);
+        builder.setPositiveButton(R.string.yes, (dialogInterface, i) ->
+                SettingsActivity.launch(activity, MenuTag.CONFIG_WII));
+        builder.setNeutralButton(R.string.continue_anyway, (dialogInterface, i) ->
+                continueCallback.run());
+        builder.show();
+      }
+      else
+      {
+        continueCallback.run();
+      }
     });
   }
-
 
   public static void launchSystemMenu(FragmentActivity activity)
   {
