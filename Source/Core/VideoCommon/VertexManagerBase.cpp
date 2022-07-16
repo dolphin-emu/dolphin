@@ -16,6 +16,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
 
+#include "Core/Config/MainSettings.h"
+
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
@@ -426,7 +428,7 @@ void VertexManagerBase::Flush()
 #endif
 
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
-  if (!SConfig::GetInstance().bWii)
+  if (!Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     const bool is_perspective = xfmem.projection.type == ProjectionType::Perspective;
 

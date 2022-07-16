@@ -51,7 +51,7 @@ void Init()
   CPU::Init(Config::Get(Config::MAIN_CPU_CORE));
   SystemTimers::Init();
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
@@ -102,7 +102,7 @@ void DoState(PointerWrap& p)
   HSP::DoState(p);
   p.DoMarker("HSP");
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     IOS::DoState(p);
     p.DoMarker("IOS");

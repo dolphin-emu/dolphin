@@ -260,7 +260,7 @@ void Init()
   s_physical_regions[3] = {&m_pEXRAM, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY,
                            false};
 
-  const bool wii = SConfig::GetInstance().bWii;
+  const bool wii = Config::Get(Config::MAIN_CURRENTLY_WII);
   const bool mmu = Core::System::GetInstance().IsMMUMode();
 
   bool fake_vmem = false;

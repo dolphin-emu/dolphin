@@ -134,7 +134,7 @@ static Installation InstallCodeHandlerLocked()
   }
 
   u8 mmio_addr = 0xCC;
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     mmio_addr = 0xCD;
   }

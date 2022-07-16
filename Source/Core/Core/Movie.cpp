@@ -1044,7 +1044,7 @@ void LoadInput(const std::string& movie_path)
   }
 
   ChangePads();
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
     ChangeWiiPads(true);
 
   u64 totalSavedBytes = t_record.GetSize() - 256;
@@ -1372,7 +1372,7 @@ void SaveRecording(const std::string& filename)
   header.filetype[2] = 'M';
   header.filetype[3] = 0x1A;
   strncpy(header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6);
-  header.bWii = SConfig::GetInstance().bWii;
+  header.bWii = Config::Get(Config::MAIN_CURRENTLY_WII);
   header.controllers = 0;
   header.GBAControllers = 0;
   for (int i = 0; i < 4; ++i)
@@ -1381,7 +1381,7 @@ void SaveRecording(const std::string& filename)
       header.GBAControllers |= 1 << i;
     if (IsUsingPad(i))
       header.controllers |= 1 << i;
-    if (IsUsingWiimote(i) && SConfig::GetInstance().bWii)
+    if (IsUsingWiimote(i) && Config::Get(Config::MAIN_CURRENTLY_WII))
       header.controllers |= 1 << (i + 4);
   }
 
@@ -1471,7 +1471,7 @@ void GetSettings()
 
   s_bSaveConfig = true;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     u64 title_id = SConfig::GetInstance().GetTitleID();
     s_bClearSave = !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) +

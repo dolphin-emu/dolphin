@@ -165,7 +165,7 @@ void CheatSearchFactoryWidget::OnNewSearchClicked()
     }
 
     memory_ranges.emplace_back(0x80000000, Memory::GetRamSizeReal());
-    if (SConfig::GetInstance().bWii)
+    if (Config::Get(Config::MAIN_CURRENTLY_WII))
       memory_ranges.emplace_back(0x90000000, Memory::GetExRamSizeReal());
     address_space = PowerPC::RequestedAddressSpace::Virtual;
   }

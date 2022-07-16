@@ -156,7 +156,7 @@ u32 GetPhysicalAddressMask()
 {
   // Physical addresses in CP seem to ignore some of the upper bits (depending on platform)
   // This can be observed in CP MMIO registers by setting to 0xffffffff and then reading back.
-  return SConfig::GetInstance().bWii ? 0x1fffffff : 0x03ffffff;
+  return Config::Get(Config::MAIN_CURRENTLY_WII) ? 0x1fffffff : 0x03ffffff;
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)

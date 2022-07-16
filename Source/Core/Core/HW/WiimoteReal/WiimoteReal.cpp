@@ -701,7 +701,7 @@ void WiimoteScanner::ThreadFunc()
       // We don't want any remotes in passthrough mode or running in GC mode.
       const bool core_running = Core::GetState() != Core::State::Uninitialized;
       if (Config::Get(Config::MAIN_BLUETOOTH_PASSTHROUGH_ENABLED) ||
-          (core_running && !SConfig::GetInstance().bWii))
+          (core_running && !Config::Get(Config::MAIN_CURRENTLY_WII)))
         continue;
 
       // We don't want any remotes if we already connected everything we need.

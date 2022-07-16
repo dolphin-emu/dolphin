@@ -59,7 +59,7 @@ bool OnThread()
 
 bool IsWiiHost()
 {
-  return SConfig::GetInstance().bWii;
+  return Config::Get(Config::MAIN_CURRENTLY_WII);
 }
 
 void InterruptRequest()

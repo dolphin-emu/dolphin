@@ -36,6 +36,8 @@
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "Core/Config/MainSettings.h"
+
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -160,7 +162,7 @@ static void DoState(PointerWrap& p)
     return;
   }
 
-  bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
+  bool is_wii = Config::Get(Config::MAIN_CURRENTLY_WII) || Config::Get(Config::MAIN_CURRENTLY_MIOS);
   const bool is_wii_currently = is_wii;
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
@@ -208,7 +210,7 @@ static void DoState(PointerWrap& p)
   p.DoMarker("CoreTiming");
   HW::DoState(p);
   p.DoMarker("HW");
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
     Wiimote::DoState(p);
   p.DoMarker("Wiimote");
   Gecko::DoState(p);

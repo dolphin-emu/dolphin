@@ -123,7 +123,7 @@ void AudioDMACallback(u64 userdata, s64 cyclesLate)
 
 void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
 {
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     IOS::HLE::GetIOS()->UpdateDevices();
     CoreTiming::ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
@@ -278,7 +278,7 @@ double GetEstimatedEmulationPerformance()
 // SystemTimers::Init
 void PreInit()
 {
-  ChangePPCClock(SConfig::GetInstance().bWii ? Mode::Wii : Mode::GC);
+  ChangePPCClock(Config::Get(Config::MAIN_CURRENTLY_WII) ? Mode::Wii : Mode::GC);
 }
 
 void ChangePPCClock(Mode mode)
@@ -293,7 +293,7 @@ void ChangePPCClock(Mode mode)
 
 void Init()
 {
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     // AyuanX: TO BE TWEAKED
     // Now the 1500 is a pure assumption
@@ -334,7 +334,7 @@ void Init()
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
     CoreTiming::ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
 
   s_emu_to_real_time_ring_buffer.fill(0);

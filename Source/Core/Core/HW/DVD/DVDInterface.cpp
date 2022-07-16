@@ -472,8 +472,8 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
     // DirectoryBlobs (including Riivolution-patched discs) may end up larger than a real physical
     // Wii disc, which triggers Error #001. In those cases we manually make the check succeed to
     // avoid problems.
-    const bool should_fake_error_001 =
-        SConfig::GetInstance().bWii && blob.GetBlobType() == DiscIO::BlobType::DIRECTORY;
+    const bool should_fake_error_001 = Config::Get(Config::MAIN_CURRENTLY_WII) &&
+                                       blob.GetBlobType() == DiscIO::BlobType::DIRECTORY;
     Config::SetCurrent(Config::SESSION_SHOULD_FAKE_ERROR_001, should_fake_error_001);
 
     if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)

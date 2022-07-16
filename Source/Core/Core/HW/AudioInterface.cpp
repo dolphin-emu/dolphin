@@ -43,6 +43,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include "AudioCommon/AudioCommon.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -322,7 +323,7 @@ u32 Get32KHzSampleRateDivisor()
 
 u32 Get48KHzSampleRateDivisor()
 {
-  return (SConfig::GetInstance().bWii ? 1125 : 1124) * 2;
+  return (Config::Get(Config::MAIN_CURRENTLY_WII) ? 1125 : 1124) * 2;
 }
 
 static void Update(u64 userdata, s64 cycles_late)

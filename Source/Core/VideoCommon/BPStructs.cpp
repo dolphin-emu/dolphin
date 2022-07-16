@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DolphinAnalytics.h"
@@ -343,7 +344,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     u32 addr = bpmem.tmem_config.tlut_src << 5;
 
     // The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
-    if (!SConfig::GetInstance().bWii)
+    if (!Config::Get(Config::MAIN_CURRENTLY_WII))
       addr = addr & 0x01FFFFFF;
 
     Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);

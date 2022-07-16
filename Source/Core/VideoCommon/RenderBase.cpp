@@ -114,7 +114,8 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer
   UpdateDrawRectangle();
   CalculateTargetSize();
 
-  m_is_game_widescreen = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
+  m_is_game_widescreen =
+      Config::Get(Config::MAIN_CURRENTLY_WII) && Config::Get(Config::SYSCONF_WIDESCREEN);
   g_freelook_camera.SetControlType(FreeLook::GetActiveConfig().camera_config.control_type);
 }
 
@@ -1266,7 +1267,7 @@ void Renderer::ForceReloadTextures()
 void Renderer::UpdateWidescreenHeuristic()
 {
   // VertexManager maintains no statistics in Wii mode.
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
     return;
 
   const auto flush_statistics = g_vertex_manager->ResetFlushAspectRatioCount();
@@ -1317,7 +1318,7 @@ void Renderer::UpdateWidescreenHeuristic()
 
 void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
     m_is_game_widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 
   // suggested_aspect_mode overrides SYSCONF_WIDESCREEN

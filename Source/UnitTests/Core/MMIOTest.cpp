@@ -37,7 +37,7 @@ TEST(IsMMIOAddress, SpecialAddresses)
   UICommon::SetUserDirectory(profile_path);
   Config::Init();
   SConfig::Init();
-  SConfig::GetInstance().bWii = true;
+  Config::SetCurrent(Config::MAIN_CURRENTLY_WII, true);
 
   // WG Pipe address, should not be handled by MMIO.
   EXPECT_FALSE(MMIO::IsMMIOAddress(0x0C008000));

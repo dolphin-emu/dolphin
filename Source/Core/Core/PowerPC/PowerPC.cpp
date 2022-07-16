@@ -163,7 +163,7 @@ static void ResetRegisters()
   // 0x00083214 = gekko 2.4e (8SE) - retail HW2
   // Wii:
   // 0x00087102 = broadway retail hw
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     ppcState.spr[SPR_PVR] = 0x00087102;
   }

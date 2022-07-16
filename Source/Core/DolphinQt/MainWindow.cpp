@@ -1806,7 +1806,7 @@ void MainWindow::ShowTASInput()
   for (int i = 0; i < num_wii_controllers; i++)
   {
     if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
-        (!Core::IsRunning() || SConfig::GetInstance().bWii))
+        (!Core::IsRunning() || Config::Get(Config::MAIN_CURRENTLY_WII)))
     {
       m_wii_tas_input_windows[i]->show();
       m_wii_tas_input_windows[i]->raise();

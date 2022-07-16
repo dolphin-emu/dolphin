@@ -1493,7 +1493,7 @@ void DBATUpdated()
 {
   dbat_table = {};
   UpdateBATs(dbat_table, SPR_DBAT0U);
-  bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
+  bool extended_bats = Config::Get(Config::MAIN_CURRENTLY_WII) && HID4.SBE;
   if (extended_bats)
     UpdateBATs(dbat_table, SPR_DBAT4U);
   if (Memory::m_pFakeVMEM)
@@ -1515,7 +1515,7 @@ void IBATUpdated()
 {
   ibat_table = {};
   UpdateBATs(ibat_table, SPR_IBAT0U);
-  bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
+  bool extended_bats = Config::Get(Config::MAIN_CURRENTLY_WII) && HID4.SBE;
   if (extended_bats)
     UpdateBATs(ibat_table, SPR_IBAT4U);
   if (Memory::m_pFakeVMEM)

@@ -82,7 +82,7 @@ void PatchFixedFunctions()
   // that get patched by MIOS. See https://bugs.dolphin-emu.org/issues/11952 for more info.
   // Not applying the Gecko HLE patches means that Gecko codes will not work under MIOS,
   // but this is better than the alternative of having specific games crash.
-  if (SConfig::GetInstance().m_is_mios)
+  if (Config::Get(Config::MAIN_CURRENTLY_MIOS))
     return;
 
   // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code

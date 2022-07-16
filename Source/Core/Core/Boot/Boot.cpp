@@ -497,8 +497,9 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
   }
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  VideoInterface::Preset(DiscIO::IsNTSC(config.m_region) ||
-                         (config.bWii && Config::Get(Config::SYSCONF_PAL60)));
+  VideoInterface::Preset(
+      DiscIO::IsNTSC(config.m_region) ||
+      (Config::Get(Config::MAIN_CURRENTLY_WII) && Config::Get(Config::SYSCONF_PAL60)));
 
   struct BootTitle
   {
@@ -515,7 +516,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       if (!volume)
         return false;
 
-      if (!EmulatedBS2(config.bWii, *volume, riivolution_patches))
+      if (!EmulatedBS2(Config::Get(Config::MAIN_CURRENTLY_WII), *volume, riivolution_patches))
         return false;
 
       SConfig::OnNewTitleLoad();
@@ -538,11 +539,11 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       SetDefaultDisc();
 
       SetupMSR();
-      SetupHID(config.bWii);
-      SetupBAT(config.bWii);
+      SetupHID(Config::Get(Config::MAIN_CURRENTLY_WII));
+      SetupBAT(Config::Get(Config::MAIN_CURRENTLY_WII));
       CopyDefaultExceptionHandlers();
 
-      if (config.bWii)
+      if (Config::Get(Config::MAIN_CURRENTLY_WII))
       {
         // Set a value for the SP. It doesn't matter where this points to,
         // as long as it is a valid location. This value is taken from a homebrew binary.

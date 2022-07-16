@@ -261,7 +261,7 @@ void HotkeyScheduler::Run()
 
       // TODO: HK_MBP_ADD
 
-      if (SConfig::GetInstance().bWii)
+      if (Config::Get(Config::MAIN_CURRENTLY_WII))
       {
         int wiimote_id = -1;
         if (IsHotkey(HK_WIIMOTE1_CONNECT))

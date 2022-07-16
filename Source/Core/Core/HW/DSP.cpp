@@ -29,6 +29,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
@@ -190,7 +191,7 @@ void Reinit(bool hle)
   s_dsp_emulator = CreateDSPEmulator(hle);
   s_dsp_is_lle = s_dsp_emulator->IsLLE();
 
-  if (SConfig::GetInstance().bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     s_ARAM.wii_mode = true;
     s_ARAM.size = Memory::GetExRamSizeReal();
@@ -369,8 +370,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&s_audioDMA.SourceAddress)),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    *MMIO::Utils::HighPart(&s_audioDMA.SourceAddress) =
-                       val & (SConfig::GetInstance().bWii ? WMASK_AUDIO_HI_RESTRICT_WII :
-                                                            WMASK_AUDIO_HI_RESTRICT_GCN);
+                       val &
+                       (Config::Get(Config::MAIN_CURRENTLY_WII) ? WMASK_AUDIO_HI_RESTRICT_WII :
+                                                                  WMASK_AUDIO_HI_RESTRICT_GCN);
                  }));
 
   // Audio DMA MMIO controlling the DMA start.

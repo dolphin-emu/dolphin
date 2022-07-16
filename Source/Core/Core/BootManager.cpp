@@ -69,7 +69,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   {
     for (ExpansionInterface::Slot slot : ExpansionInterface::MEMCARD_SLOTS)
     {
-      if (Movie::IsUsingMemcard(slot) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+      if (Movie::IsUsingMemcard(slot) && Movie::IsStartingFromClearSave() &&
+          !Config::Get(Config::MAIN_CURRENTLY_WII))
       {
         const auto raw_path =
             File::GetUserPath(D_GCUSER_IDX) +
@@ -102,7 +103,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
         Config::MAIN_GC_LANGUAGE,
         DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(false, StartUp.m_region)));
 
-    if (StartUp.bWii)
+    if (Config::Get(Config::MAIN_CURRENTLY_WII))
     {
       const u32 wii_language =
           static_cast<u32>(StartUp.GetLanguageAdjustedForRegion(true, StartUp.m_region));
@@ -135,7 +136,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   // Some NTSC Wii games such as Doc Louis's Punch-Out!! and
   // 1942 (Virtual Console) crash if the PAL60 option is enabled
-  if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region) && Config::Get(Config::SYSCONF_PAL60))
+  if (Config::Get(Config::MAIN_CURRENTLY_WII) && DiscIO::IsNTSC(StartUp.m_region) &&
+      Config::Get(Config::SYSCONF_PAL60))
     Config::SetCurrent(Config::SYSCONF_PAL60, false);
 
   // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
@@ -146,7 +148,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 
-  if (StartUp.bWii)
+  if (Config::Get(Config::MAIN_CURRENTLY_WII))
   {
     Core::InitializeWiiRoot(Core::WantsDeterminism());
 
@@ -164,7 +166,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     }
   }
 
-  const bool load_ipl = !StartUp.bWii && !Config::Get(Config::MAIN_SKIP_IPL) &&
+  const bool load_ipl = !Config::Get(Config::MAIN_CURRENTLY_WII) &&
+                        !Config::Get(Config::MAIN_SKIP_IPL) &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {

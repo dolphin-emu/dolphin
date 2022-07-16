@@ -431,7 +431,8 @@ void GameList::ShowContextMenu(const QPoint&)
                                                     // system menu, trigger a refresh.
                                                     Settings::Instance().NANDRefresh();
                                                   });
-      perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+      perform_disc_update->setEnabled(!Core::IsRunning() ||
+                                      !Config::Get(Config::MAIN_CURRENTLY_WII));
     }
 
     if (!is_mod_descriptor && platform == DiscIO::Platform::WiiWAD)

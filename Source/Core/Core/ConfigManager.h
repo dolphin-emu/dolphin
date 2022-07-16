@@ -43,8 +43,8 @@ struct SConfig
 
   bool bCopyWiiSaveNetplay = true;
 
-  bool bWii = false;
-  bool m_is_mios = false;
+  // bool bWii = false;
+  // bool m_is_mios = false;
 
   DiscIO::Region m_region;
 
