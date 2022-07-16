@@ -45,6 +45,7 @@ extern const Info<bool> NETPLAY_WRITE_SAVE_DATA;
 extern const Info<bool> NETPLAY_LOAD_WII_SAVE;
 extern const Info<bool> NETPLAY_SYNC_SAVES;
 extern const Info<bool> NETPLAY_SYNC_CODES;
+extern const Info<bool> NETPLAY_BBA;
 extern const Info<bool> NETPLAY_RECORD_INPUTS;
 extern const Info<bool> NETPLAY_STRICT_SETTINGS_SYNC;
 extern const Info<std::string> NETPLAY_NETWORK_MODE;

@@ -1106,6 +1106,7 @@ void NetPlayDialog::LoadSettings()
   const bool sync_all_wii_saves = Config::Get(Config::NETPLAY_SYNC_ALL_WII_SAVES);
   const bool golf_mode_overlay = Config::Get(Config::NETPLAY_GOLF_MODE_OVERLAY);
   const bool hide_remote_gbas = Config::Get(Config::NETPLAY_HIDE_REMOTE_GBAS);
+  const bool netplay_bba = Config::Get(Config::NETPLAY_BBA);
 
   m_buffer_size_box->setValue(buffer_size);
   m_write_save_data_action->setChecked(write_save_data);
@@ -1152,6 +1153,7 @@ void NetPlayDialog::SaveSettings()
   Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_CODES, m_sync_codes_action->isChecked());
+  Config::SetBase(Config::NETPLAY_BBA, m_bba_action->isChecked());
   Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_action->isChecked());
   Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_action->isChecked());
   Config::SetBase(Config::NETPLAY_SYNC_ALL_WII_SAVES, m_sync_all_wii_saves_action->isChecked());
