@@ -182,7 +182,7 @@ static void WriteSampleFunction(ShaderCode& code, const EFBCopyParams& params, A
                "                         dot(u_const, float4(texcol_raw.rgb, 256)),\n"
                "                         dot(v_const, float4(texcol_raw.rgb, 256)));\n"
                "  // Divide by 256 and round .5 and higher up\n"
-               "  texcol_raw.rgb = (texcol_raw.rgb >> 8) + ((texcol_raw.rgb >> 7) & 1);\n");
+               "  texcol_raw.rgb = (texcol_raw.rgb >> 8) + ((texcol_raw.rgb >> 7) & 1u);\n");
   }
 
   code.Write("  return float4(texcol_raw) / 255.0;\n");

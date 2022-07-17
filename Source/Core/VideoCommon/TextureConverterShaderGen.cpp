@@ -161,7 +161,7 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
               "                         dot(u_const, float4(texcol_raw.rgb, 256)),\n"
               "                         dot(v_const, float4(texcol_raw.rgb, 256)));\n"
               "  // Divide by 256 and round .5 and higher up\n"
-              "  texcol_raw.rgb = (texcol_raw.rgb >> 8) + ((texcol_raw.rgb >> 7) & 1);\n");
+              "  texcol_raw.rgb = (texcol_raw.rgb >> 8) + ((texcol_raw.rgb >> 7) & 1u);\n");
   }
 
   switch (uid_data->dst_format)
