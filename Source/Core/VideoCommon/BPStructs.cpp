@@ -11,6 +11,7 @@
 #include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
@@ -42,7 +43,8 @@
 
 using namespace BPFunctions;
 
-static const float s_gammaLUT[] = {1.0f, 1.7f, 2.2f, 1.0f};
+static constexpr Common::EnumMap<float, GammaCorrection::Invalid2_2> s_gammaLUT = {1.0f, 1.7f, 2.2f,
+                                                                                   2.2f};
 
 void BPInit()
 {
@@ -276,9 +278,9 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PixelFormat::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, PE_copy.tp_realFormat(), copy_width, copy_height, destStride, is_depth_copy,
-          srcRect, PE_copy.intensity_fmt, PE_copy.half_scale, 1.0f, 1.0f,
-          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom,
-          bpmem.copyfilter.GetCoefficients());
+          srcRect, PE_copy.intensity_fmt && PE_copy.auto_conv, PE_copy.half_scale, 1.0f,
+          s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
+          bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
     }
     else
     {
