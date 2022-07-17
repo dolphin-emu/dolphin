@@ -167,9 +167,6 @@ constexpr Common::EnumMap<const char*, TevOutput::Color2> tev_a_output_table{
     "c2.a",
 };
 
-// FIXME: Some of the video card's capabilities (BBox support, EarlyZ support, dstAlpha support)
-//        leak into this UID; This is really unhelpful if these UIDs ever move from one machine to
-//        another.
 PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
@@ -189,20 +186,25 @@ PixelShaderUid GetPixelShaderUid()
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
-  const bool forced_early_z =
-      bpmem.UseEarlyDepthTest() &&
+  uid_data->Pretest = bpmem.alpha_test.TestResult();
+  uid_data->ztest = bpmem.GetEmulatedZ();
+  if (uid_data->ztest == EmulatedZ::Early &&
       (g_ActiveConfig.bFastDepthCalc ||
        bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined)
       // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
       // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
-      && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+      && !bpmem.genMode.zfreeze)
+  {
+    uid_data->ztest = EmulatedZ::ForcedEarly;
+  }
+
+  const bool forced_early_z = uid_data->ztest == EmulatedZ::ForcedEarly;
   const bool per_pixel_depth =
-      (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.UseLateDepthTest()) ||
+      (bpmem.ztex2.op != ZTexOp::Disabled && uid_data->ztest == EmulatedZ::Late) ||
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
   uid_data->per_pixel_depth = per_pixel_depth;
-  uid_data->forced_early_z = forced_early_z;
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
@@ -285,58 +287,23 @@ PixelShaderUid GetPixelShaderUid()
                              sizeof(*uid_data) :
                              MY_STRUCT_OFFSET(*uid_data, stagehash[numStages]);
 
-  uid_data->Pretest = bpmem.alpha_test.TestResult();
-  uid_data->late_ztest = bpmem.UseLateDepthTest();
-
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
   if (uid_data->Pretest == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->late_ztest))
+      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
   {
     uid_data->alpha_test_comp0 = bpmem.alpha_test.comp0;
     uid_data->alpha_test_comp1 = bpmem.alpha_test.comp1;
     uid_data->alpha_test_logic = bpmem.alpha_test.logic;
-
-    // ZCOMPLOC HACK:
-    // The only way to emulate alpha test + early-z is to force early-z in the shader.
-    // As this isn't available on all drivers and as we can't emulate this feature otherwise,
-    // we are only able to choose which one we want to respect more.
-    // Tests seem to have proven that writing depth even when the alpha test fails is more
-    // important that a reliable alpha test, so we just force the alpha test to always succeed.
-    // At least this seems to be less buggy.
-    uid_data->alpha_test_use_zcomploc_hack =
-        bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable &&
-        !g_ActiveConfig.backend_info.bSupportsEarlyZ && !bpmem.genMode.zfreeze;
   }
 
   uid_data->zfreeze = bpmem.genMode.zfreeze;
   uid_data->ztex_op = bpmem.ztex2.op;
-  uid_data->early_ztest = bpmem.UseEarlyDepthTest();
 
   uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
   uid_data->fog_proj = bpmem.fog.c_proj_fsel.proj;
   uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
-
-  BlendingState state = {};
-  state.Generate(bpmem);
-
-  if (((state.usedualsrc && state.dstalpha) ||
-       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
-      g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
-      !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
-  {
-    uid_data->blend_enable = state.blendenable;
-    uid_data->blend_src_factor = state.srcfactor;
-    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
-    uid_data->blend_dst_factor = state.dstfactor;
-    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
-    uid_data->blend_subtract = state.subtract;
-    uid_data->blend_subtract_alpha = state.subtractAlpha;
-  }
-
-  uid_data->logic_op_enable = state.logicopenable;
-  uid_data->logic_op_mode = u32(state.logicmode.Value());
 
   return out;
 }
@@ -798,7 +765,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   out.Write("\n#define sampleTextureWrapper(texmap, uv, layer) "
             "sampleTexture(texmap, samp[texmap], uv, layer)\n");
 
-  if (uid_data->forced_early_z && g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  if (uid_data->ztest == EmulatedZ::ForcedEarly)
   {
     // Zcomploc (aka early_ztest) is a way to control whether depth test is done before
     // or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
@@ -837,28 +804,15 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("FORCE_EARLY_Z; \n");
   }
 
-  // Only use dual-source blending when required on drivers that don't support it very well.
-  const bool use_dual_source =
-      host_config.backend_dual_source_blend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
-       uid_data->useDstAlpha);
-  const bool use_shader_blend =
-      !use_dual_source &&
-      (uid_data->useDstAlpha ||
-       DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z)) &&
-      host_config.backend_shader_framebuffer_fetch;
-  const bool use_shader_logic_op = !host_config.backend_logic_op && uid_data->logic_op_enable &&
-                                   host_config.backend_shader_framebuffer_fetch;
-  const bool use_framebuffer_fetch =
-      use_shader_blend || use_shader_logic_op ||
-      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z);
+  const bool use_framebuffer_fetch = uid_data->blend_enable || uid_data->logic_op_enable ||
+                                     uid_data->ztest == EmulatedZ::EarlyWithFBFetch;
 
 #ifdef __APPLE__
   // Framebuffer fetch is only supported by Metal, so ensure that we're running Vulkan (MoltenVK)
   // if we want to use it.
   if (api_type == APIType::Vulkan)
   {
-    if (use_dual_source)
+    if (!uid_data->no_dual_src)
     {
       out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 {};\n"
                 "FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n",
@@ -891,7 +845,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
               uid_data->uint_output ? "uvec4" : "vec4",
               use_framebuffer_fetch ? "real_ocol0" : "ocol0");
 
-    if (use_dual_source)
+    if (!uid_data->no_dual_src)
     {
       out.Write("{} out {} ocol1;\n",
                 has_broken_decoration ? "FRAGMENT_OUTPUT_LOCATION(1)" :
@@ -960,7 +914,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tfloat4 ocol0;\n");
   }
 
-  if (use_shader_blend)
+  if (uid_data->blend_enable)
   {
     out.Write("\tfloat4 ocol1;\n");
   }
@@ -1086,10 +1040,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
   // testing result)
   if (uid_data->Pretest == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->late_ztest))
+      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
   {
     WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
-                   use_dual_source || use_shader_blend);
+                   !uid_data->no_dual_src || uid_data->blend_enable);
   }
 
   // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
@@ -1144,7 +1098,10 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   const bool skip_ztexture = !uid_data->per_pixel_depth && uid_data->fog_fsel == FogType::Off;
 
   // Note: z-textures are not written to depth buffer if early depth test is used
-  if (uid_data->per_pixel_depth && uid_data->early_ztest)
+  const bool early_ztest = uid_data->ztest == EmulatedZ::Early ||
+                           uid_data->ztest == EmulatedZ::EarlyWithFBFetch ||
+                           uid_data->ztest == EmulatedZ::EarlyWithZComplocHack;
+  if (uid_data->per_pixel_depth && early_ztest)
   {
     if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
@@ -1165,7 +1122,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
   }
 
-  if (uid_data->per_pixel_depth && uid_data->late_ztest)
+  if (uid_data->per_pixel_depth && uid_data->ztest == EmulatedZ::Late)
   {
     if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
@@ -1184,14 +1141,14 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
 
   WriteFog(out, uid_data);
 
-  if (use_shader_logic_op)
+  if (uid_data->logic_op_enable)
     WriteLogicOp(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
   // If using shader blend, we still use the separate alpha
-  WriteColor(out, api_type, uid_data, use_dual_source || use_shader_blend);
+  WriteColor(out, api_type, uid_data, !uid_data->no_dual_src || uid_data->blend_enable);
 
-  if (use_shader_blend)
+  if (uid_data->blend_enable)
     WriteBlend(out, uid_data);
   else if (use_framebuffer_fetch)
     out.Write("\treal_ocol0 = ocol0;\n");
@@ -1728,11 +1685,10 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   }
 
   // ZCOMPLOC HACK:
-  if (!uid_data->alpha_test_use_zcomploc_hack)
+  if (uid_data->ztest != EmulatedZ::EarlyWithZComplocHack)
   {
 #ifdef __APPLE__
-    if (uid_data->forced_early_z &&
-        DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z))
+    if (uid_data->ztest == EmulatedZ::EarlyWithFBFetch)
     {
       // Instead of using discard, fetch the framebuffer's color value and use it as the output
       // for this fragment.
