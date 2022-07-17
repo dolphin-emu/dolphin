@@ -26,6 +26,7 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
+#include "Common/Timer.h"
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FrameDump.h"
@@ -53,6 +54,11 @@ enum class EFBAccessType;
 enum class EFBReinterpretType;
 enum class StagingTextureType;
 enum class AspectMode;
+
+namespace VideoCommon::PE
+{
+class ShaderGroup;
+}  // namespace VideoCommon::PE
 
 struct EfbPokeData
 {
@@ -309,6 +315,10 @@ protected:
   // Should be called with the ImGui lock held.
   void DrawImGui();
 
+  // Draws the texture with any post processing effects if available
+  void DrawXFB(const MathUtil::Rectangle<int>& target_rc, const AbstractTexture* source_texture,
+               const MathUtil::Rectangle<int>& source_rc, int layer);
+
   virtual std::unique_ptr<BoundingBox> CreateBoundingBox() const = 0;
 
   AbstractFramebuffer* m_current_framebuffer = nullptr;
@@ -445,6 +455,16 @@ private:
   std::unique_ptr<NetPlayChatUI> m_netplay_chat_ui;
 
   Common::Flag m_force_reload_textures;
+
+  // Default shader to apply if no post processing is available
+  // or post processing failed to compile
+  std::unique_ptr<VideoCommon::PE::ShaderGroup> m_default_shader_group;
+
+  // Post processing group to apply
+  std::unique_ptr<VideoCommon::PE::ShaderGroup> m_post_shader_group;
+
+  // Timer for post processing effects
+  Common::Timer m_timer;
 
   GraphicsModManager m_graphics_mod_manager;
 };

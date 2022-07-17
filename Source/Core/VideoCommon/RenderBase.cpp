@@ -73,6 +73,9 @@
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PEShaderSystem/Config/PEShaderConfigGroup.h"
+#include "VideoCommon/PEShaderSystem/Constants.h"
+#include "VideoCommon/PEShaderSystem/Runtime/PEShaderGroup.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/ShaderCache.h"
@@ -148,6 +151,20 @@ bool Renderer::Initialize()
     m_graphics_mod_manager.Load(*g_ActiveConfig.graphics_mod_config);
   }
 
+  m_timer.Start();
+  m_post_shader_group = std::make_unique<VideoCommon::PE::ShaderGroup>();
+  m_post_shader_group->UpdateConfig(g_ActiveConfig.m_post_processing_config);
+
+  const auto default_shader =
+      fmt::format("{}/{}/{}", File::GetSysDirectory(),
+                  VideoCommon::PE::Constants::dolphin_shipped_internal_shader_directory,
+                  "DefaultVertexPixelShader.glsl");
+  VideoCommon::PE::ShaderConfigGroup default_shader_config;
+  default_shader_config.AddShader(default_shader, VideoCommon::PE::ShaderConfig::Source::System);
+
+  m_default_shader_group = std::make_unique<VideoCommon::PE::ShaderGroup>();
+  m_default_shader_group->UpdateConfig(default_shader_config);
+
   return true;
 }
 
@@ -155,6 +172,8 @@ void Renderer::Shutdown()
 {
   // Disable ControllerInterface's aspect ratio adjustments so mapping dialog behaves normally.
   g_controller_interface.SetAspectRatioAdjustment(1);
+
+  m_timer.Stop();
 
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
@@ -528,6 +547,10 @@ void Renderer::CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_BBOX;
   if (CalculateTargetSize())
     changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
+
+  // Update post processing shader with any changes
+  if (m_post_shader_group)
+    m_post_shader_group->UpdateConfig(g_ActiveConfig.m_post_processing_config);
 
   // No changes?
   if (changed_bits == 0)
@@ -1468,6 +1491,40 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
                                  const AbstractTexture* source_texture,
                                  const MathUtil::Rectangle<int>& source_rc)
 {
+  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
+      g_ActiveConfig.stereo_mode == StereoMode::TAB)
+  {
+    const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
+
+    DrawXFB(left_rc, source_texture, source_rc, 0);
+    DrawXFB(right_rc, source_texture, source_rc, 1);
+  }
+  else
+  {
+    DrawXFB(target_rc, source_texture, source_rc, 0);
+  }
+}
+
+void Renderer::DrawXFB(const MathUtil::Rectangle<int>& target_rc,
+                       const AbstractTexture* source_texture,
+                       const MathUtil::Rectangle<int>& source_rc, int layer)
+{
+  VideoCommon::PE::ShaderApplyOptions options;
+  options.m_dest_fb = m_current_framebuffer;
+  options.m_dest_rect = target_rc;
+  options.m_source_color_tex = source_texture;
+  options.m_source_depth_tex = nullptr;
+  options.m_source_layer = layer;
+  options.m_source_rect = source_rc;
+  options.m_time_elapsed = m_timer.ElapsedMs();
+  if (m_post_shader_group && !m_post_shader_group->ShouldSkip())
+  {
+    m_post_shader_group->Apply(options, m_default_shader_group.get());
+  }
+  else
+  {
+    m_default_shader_group->Apply(options);
+  }
 }
 
 bool Renderer::IsFrameDumping() const
