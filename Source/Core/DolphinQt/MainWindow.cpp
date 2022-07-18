@@ -321,24 +321,12 @@ void MainWindow::InitControllers()
   if (g_controller_interface.IsInit())
     return;
 
-  g_controller_interface.Initialize(GetWindowSystemInfo(windowHandle()));
-  if (!g_controller_interface.HasDefaultDevice())
-  {
-    // Note that the CI default device could be still temporarily removed at any time
-    WARN_LOG_FMT(CONTROLLERINTERFACE,
-                 "No default device has been added in time. EmulatedController(s) defaulting adds"
-                 " input mappings made for a specific default device depending on the platform");
-  }
-  GCAdapter::Init();
-  Pad::Initialize();
-  Pad::InitializeGBA();
-  Keyboard::Initialize();
-  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-  FreeLook::Initialize();
+  UICommon::InitControllers(GetWindowSystemInfo(windowHandle()));
+
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
 
-  // Defaults won't work reliabily without loading and saving the config first
+  // Defaults won't work reliably without loading and saving the config first
 
   Wiimote::LoadConfig();
   Wiimote::GetConfig()->SaveConfig();
@@ -362,13 +350,7 @@ void MainWindow::ShutdownControllers()
 
   Settings::Instance().UnregisterDevicesChangedCallback();
 
-  Pad::Shutdown();
-  Pad::ShutdownGBA();
-  Keyboard::Shutdown();
-  Wiimote::Shutdown();
-  HotkeyManagerEmu::Shutdown();
-  FreeLook::Shutdown();
-  g_controller_interface.Shutdown();
+  UICommon::ShutdownControllers();
 
   m_hotkey_scheduler->deleteLater();
 }
