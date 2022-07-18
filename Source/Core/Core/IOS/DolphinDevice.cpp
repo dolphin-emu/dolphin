@@ -45,7 +45,7 @@ IPCReply GetSystemTime(const IOCtlVRequest& request)
     return IPCReply(IPC_EINVAL);
   }
 
-  const u32 milliseconds = Common::Timer::GetTimeMs();
+  const u32 milliseconds = Common::Timer::NowMs();
 
   Memory::Write_U32(milliseconds, request.io_vectors[0].address);
   return IPCReply(IPC_SUCCESS);

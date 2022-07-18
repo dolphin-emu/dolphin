@@ -286,7 +286,7 @@ static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offs
   request.id = id;
 
   request.time_started_ticks = CoreTiming::GetTicks();
-  request.realtime_started_us = Common::Timer::GetTimeUs();
+  request.realtime_started_us = Common::Timer::NowUs();
 
   s_request_queue.Push(std::move(request));
   s_request_queue_expanded.Set();
@@ -336,7 +336,7 @@ static void FinishRead(u64 id, s64 cycles_late)
                 "Real time including delay: {} us. "
                 "Emulated time including delay: {} us.",
                 request.realtime_done_us - request.realtime_started_us,
-                Common::Timer::GetTimeUs() - request.realtime_started_us,
+                Common::Timer::NowUs() - request.realtime_started_us,
                 (CoreTiming::GetTicks() - request.time_started_ticks) /
                     (SystemTimers::GetTicksPerSecond() / 1000000));
 
@@ -381,7 +381,7 @@ static void DVDThread()
       if (!s_disc->Read(request.dvd_offset, request.length, buffer.data(), request.partition))
         buffer.resize(0);
 
-      request.realtime_done_us = Common::Timer::GetTimeUs();
+      request.realtime_done_us = Common::Timer::NowUs();
 
       s_result_queue.Push(ReadResult(std::move(request), std::move(buffer)));
       s_result_queue_expanded.Set();

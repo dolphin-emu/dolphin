@@ -1066,7 +1066,7 @@ bool Renderer::InitializeImGui()
   if (!RecompileImGuiPipeline())
     return false;
 
-  m_imgui_last_frame_time = Common::Timer::GetTimeUs();
+  m_imgui_last_frame_time = Common::Timer::NowUs();
   BeginImGuiFrame();
   return true;
 }
@@ -1139,7 +1139,7 @@ void Renderer::BeginImGuiFrame()
 {
   std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
 
-  const u64 current_time_us = Common::Timer::GetTimeUs();
+  const u64 current_time_us = Common::Timer::NowUs();
   const u64 time_diff_us = current_time_us - m_imgui_last_frame_time;
   const float time_diff_secs = static_cast<float>(time_diff_us / 1000000.0);
   m_imgui_last_frame_time = current_time_us;

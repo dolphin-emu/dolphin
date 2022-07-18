@@ -11,43 +11,36 @@ namespace Common
 class Timer
 {
 public:
-  Timer();
+  static u64 NowUs();
+  static u64 NowMs();
 
   void Start();
+  // Start(), then decrement start time by the offset.
+  // Effectively "resumes" a timer
+  void StartWithOffset(u64 offset);
   void Stop();
-  void Update();
+  bool IsRunning() const { return m_running; }
+  u64 ElapsedMs() const;
 
-  // The time difference is always returned in milliseconds, regardless of alternative internal
-  // representation
-  u64 GetTimeDifference();
-  void AddTimeDifference();
+  static u64 GetLocalTimeSinceJan1970();
 
-  bool IsRunning() const { return m_Running; }
+  // Returns biased system timestamp as double
+  // It is very unlikely you want to use this in new code; ideally we can remove it completely.
+  static double GetSystemTimeAsDouble();
+  // Formats a timestamp from GetSystemTimeAsDouble() into a date and time string
+  static std::string SystemTimeAsDoubleToString(double time);
 
   static void IncreaseResolution();
   static void RestoreResolution();
-  static u64 GetTimeSinceJan1970();
-  static u64 GetLocalTimeSinceJan1970();
-  // Returns a timestamp with decimals for precise time comparisons
-  static double GetDoubleTime();
 
-  static std::string GetTimeFormatted();
-  // Formats a timestamp from GetDoubleTime() into a date and time string
-  static std::string GetDateTimeFormatted(double time);
-  std::string GetTimeElapsedFormatted() const;
-  u64 GetTimeElapsed();
-
-  static u32 GetTimeMs();
-  static u64 GetTimeUs();
-
-  // Arbitrarily chosen value (38 years) that is subtracted in GetDoubleTime()
+  // Arbitrarily chosen value (38 years) that is subtracted in GetSystemTimeAsDouble()
   // to increase sub-second precision of the resulting double timestamp
   static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
 
 private:
-  u64 m_LastTime;
-  u64 m_StartTime;
-  bool m_Running;
+  u64 m_start_ms{0};
+  u64 m_end_ms{0};
+  bool m_running{false};
 };
 
 }  // Namespace Common

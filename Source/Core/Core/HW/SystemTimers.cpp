@@ -172,7 +172,7 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
   // Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
   Fifo::GpuMaySleep();
 
-  u64 time = Common::Timer::GetTimeUs();
+  u64 time = Common::Timer::NowUs();
 
   s64 diff = last_time - time;
   const float emulation_speed = Config::Get(Config::MAIN_EMULATION_SPEED);
@@ -200,7 +200,7 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
     else if (diff > 1000)
     {
       Common::SleepCurrentThread(diff / 1000);
-      s_time_spent_sleeping += Common::Timer::GetTimeUs() - time;
+      s_time_spent_sleeping += Common::Timer::NowUs() - time;
     }
   }
   CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1000);
@@ -330,7 +330,7 @@ void Init()
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
   CoreTiming::ScheduleEvent(0, et_DSP);
   CoreTiming::ScheduleEvent(GetAudioDMACallbackPeriod(), et_AudioDMA);
-  CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeUs());
+  CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::NowUs());
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 

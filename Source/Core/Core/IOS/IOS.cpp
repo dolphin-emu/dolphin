@@ -657,7 +657,7 @@ std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
     return IPCReply{IPC_EINVAL, 550_tbticks};
 
   std::optional<IPCReply> ret;
-  const u64 wall_time_before = Common::Timer::GetTimeUs();
+  const u64 wall_time_before = Common::Timer::NowUs();
 
   switch (request.command)
   {
@@ -686,7 +686,7 @@ std::optional<IPCReply> Kernel::HandleIPCCommand(const Request& request)
     break;
   }
 
-  const u64 wall_time_after = Common::Timer::GetTimeUs();
+  const u64 wall_time_after = Common::Timer::NowUs();
   constexpr u64 BLOCKING_IPC_COMMAND_THRESHOLD_US = 2000;
   if (wall_time_after - wall_time_before > BLOCKING_IPC_COMMAND_THRESHOLD_US)
   {

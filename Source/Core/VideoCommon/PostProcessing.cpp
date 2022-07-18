@@ -640,7 +640,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
        static_cast<float>(src.GetWidth()) * rcp_src_width,
        static_cast<float>(src.GetHeight()) * rcp_src_height},
       static_cast<s32>(src_layer),
-      static_cast<u32>(m_timer.GetTimeElapsed()),
+      static_cast<u32>(m_timer.ElapsedMs()),
   };
 
   u8* buf = m_uniform_staging_buffer.data();

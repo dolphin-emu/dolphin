@@ -231,18 +231,18 @@ void DolphinAnalytics::InitializePerformanceSampling()
   u64 wait_us =
       PERFORMANCE_SAMPLING_INITIAL_WAIT_TIME_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::GetTimeUs() + wait_us;
+  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
 }
 
 bool DolphinAnalytics::ShouldStartPerformanceSampling()
 {
-  if (Common::Timer::GetTimeUs() < m_sampling_next_start_us)
+  if (Common::Timer::NowUs() < m_sampling_next_start_us)
     return false;
 
   u64 wait_us =
       PERFORMANCE_SAMPLING_INTERVAL_SECS * 1000000 +
       Common::Random::GenerateValue<u64>() % (PERFORMANCE_SAMPLING_WAIT_TIME_JITTER_SECS * 1000000);
-  m_sampling_next_start_us = Common::Timer::GetTimeUs() + wait_us;
+  m_sampling_next_start_us = Common::Timer::NowUs() + wait_us;
   return true;
 }
 
