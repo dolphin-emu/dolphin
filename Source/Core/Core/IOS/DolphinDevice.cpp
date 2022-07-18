@@ -33,24 +33,6 @@ enum
 
 };
 
-IPCReply GetSystemTime(const IOCtlVRequest& request)
-{
-  if (!request.HasNumberOfValidVectors(0, 1))
-  {
-    return IPCReply(IPC_EINVAL);
-  }
-
-  if (request.io_vectors[0].size != 4)
-  {
-    return IPCReply(IPC_EINVAL);
-  }
-
-  const u32 milliseconds = Common::Timer::NowMs();
-
-  Memory::Write_U32(milliseconds, request.io_vectors[0].address);
-  return IPCReply(IPC_SUCCESS);
-}
-
 IPCReply GetVersion(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
@@ -158,6 +140,32 @@ IPCReply GetRealProductCode(const IOCtlVRequest& request)
 }
 
 }  // namespace
+
+IPCReply DolphinDevice::GetSystemTime(const IOCtlVRequest& request) const
+{
+  if (!request.HasNumberOfValidVectors(0, 1))
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  if (request.io_vectors[0].size != 4)
+  {
+    return IPCReply(IPC_EINVAL);
+  }
+
+  // This ioctl is used by emulated software to judge if emulation is running too fast or slow.
+  // By using Common::Timer, the same clock Dolphin uses internally for the same task is exposed.
+  // Return elapsed time instead of current timestamp to make buggy emulated code less likely to
+  // have issuses.
+  const u32 milliseconds = static_cast<u32>(m_timer.ElapsedMs());
+  Memory::Write_U32(milliseconds, request.io_vectors[0].address);
+  return IPCReply(IPC_SUCCESS);
+}
+
+DolphinDevice::DolphinDevice(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+{
+  m_timer.Start();
+}
 
 std::optional<IPCReply> DolphinDevice::IOCtlV(const IOCtlVRequest& request)
 {
