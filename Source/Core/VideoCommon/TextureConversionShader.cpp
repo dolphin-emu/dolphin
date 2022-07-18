@@ -1119,7 +1119,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
       GROUP_SHARED uint2 shared_temp[BLOCKS_PER_GROUP];
 
-      DEFINE_MAIN(GROUP_SIZE, 8)
+      DEFINE_MAIN(GROUP_SIZE, 1)
       {
         uint local_thread_id = gl_LocalInvocationID.x;
         uint block_in_group = local_thread_id / BLOCK_SIZE;
