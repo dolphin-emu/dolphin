@@ -39,6 +39,8 @@ public:
   static void Shutdown();
 
   void Log(LogLevel level, LogType type, const char* file, int line, const char* message);
+  void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
+                       const char* message);
 
   LogLevel GetLogLevel() const;
   void SetLogLevel(LogLevel level);
@@ -72,9 +74,6 @@ private:
   LogManager& operator=(const LogManager&) = delete;
   LogManager(LogManager&&) = delete;
   LogManager& operator=(LogManager&&) = delete;
-
-  void LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
-                       const char* message);
 
   LogLevel m_level;
   EnumMap<LogContainer, LogType::WIIMOTE> m_log{};
