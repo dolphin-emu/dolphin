@@ -21,6 +21,7 @@ public:
   bool IsRunning() const { return m_running; }
   u64 ElapsedMs() const;
 
+  // The rest of these functions probably belong somewhere else
   static u64 GetLocalTimeSinceJan1970();
 
   static void IncreaseResolution();

@@ -102,6 +102,22 @@ u64 Timer::GetLocalTimeSinceJan1970()
 void Timer::IncreaseResolution()
 {
 #ifdef _WIN32
+  // Disable execution speed and timer resolution throttling process-wide.
+  // This mainly will keep Dolphin marked as high performance if it's in the background. The OS
+  // should make it high performance if it's in the foreground anyway (or for some specific
+  // threads e.g. audio).
+  // This is best-effort (i.e. the call may fail on older versions of Windows, where such throttling
+  // doesn't exist, anyway), and we don't bother reverting once set.
+  // This adjusts behavior on CPUs with "performance" and "efficiency" cores
+  PROCESS_POWER_THROTTLING_STATE PowerThrottling{};
+  PowerThrottling.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+  PowerThrottling.ControlMask =
+      PROCESS_POWER_THROTTLING_EXECUTION_SPEED | PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
+  PowerThrottling.StateMask = 0;
+  SetProcessInformation(GetCurrentProcess(), ProcessPowerThrottling, &PowerThrottling,
+                        sizeof(PowerThrottling));
+
+  // Not actually sure how useful this is these days.. :')
   timeBeginPeriod(1);
 #endif
 }
