@@ -75,6 +75,8 @@ private:
   LogManager(LogManager&&) = delete;
   LogManager& operator=(LogManager&&) = delete;
 
+  static std::string GetTimestamp();
+
   LogLevel m_level;
   EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};

@@ -4,6 +4,7 @@
 #include "Common/Logging/LogManager.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdarg>
 #include <cstring>
 #include <locale>
@@ -11,6 +12,7 @@
 #include <ostream>
 #include <string>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include "Common/CommonPaths.h"
@@ -19,7 +21,6 @@
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 
 namespace Common::Log
 {
@@ -204,11 +205,23 @@ void LogManager::Log(LogLevel level, LogType type, const char* file, int line, c
   LogWithFullPath(level, type, file + m_path_cutoff_point, line, message);
 }
 
+std::string LogManager::GetTimestamp()
+{
+  // NOTE: the Qt LogWidget hardcodes the expected length of the timestamp portion of the log line,
+  // so ensure they stay in sync
+
+  // We want milliseconds *and not hours*, so can't directly use STL formatters
+  const auto now = std::chrono::system_clock::now();
+  const auto now_s = std::chrono::floor<std::chrono::seconds>(now);
+  const auto now_ms = std::chrono::floor<std::chrono::milliseconds>(now);
+  return fmt::format("{:%M:%S}:{:03}", now_s, (now_ms - now_s).count());
+}
+
 void LogManager::LogWithFullPath(LogLevel level, LogType type, const char* file, int line,
                                  const char* message)
 {
   const std::string msg =
-      fmt::format("{} {}:{} {}[{}]: {}\n", Common::Timer::GetTimeFormatted(), file, line,
+      fmt::format("{} {}:{} {}[{}]: {}\n", GetTimestamp(), file, line,
                   LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), message);
 
   for (const auto listener_id : m_listener_ids)
