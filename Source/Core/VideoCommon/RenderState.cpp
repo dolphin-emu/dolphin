@@ -32,16 +32,7 @@ static bool IsDualSrc(SrcBlendFactor factor)
 
 static bool IsDualSrc(DstBlendFactor factor)
 {
-  switch (factor)
-  {
-  case DstBlendFactor::SrcClr:
-  case DstBlendFactor::SrcAlpha:
-  case DstBlendFactor::InvSrcClr:
-  case DstBlendFactor::InvSrcAlpha:
-    return true;
-  default:
-    return false;
-  }
+  return factor == DstBlendFactor::SrcAlpha || factor == DstBlendFactor::InvSrcAlpha;
 }
 
 bool BlendingState::RequiresDualSrc() const
