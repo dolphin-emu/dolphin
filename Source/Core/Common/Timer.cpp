@@ -4,23 +4,16 @@
 #include "Common/Timer.h"
 
 #include <chrono>
-#include <string>
 
 #ifdef _WIN32
-#include <cwchar>
-
 #include <Windows.h>
-#include <mmsystem.h>
-#include <sys/timeb.h>
+#include <ctime>
+#include <timeapi.h>
 #else
 #include <sys/time.h>
 #endif
 
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -104,38 +97,6 @@ u64 Timer::GetLocalTimeSinceJan1970()
   tzDiff = sysTime - mktime(gmTime);
 
   return static_cast<u64>(sysTime + tzDiff + tzDST);
-}
-
-double Timer::GetSystemTimeAsDouble()
-{
-  // FYI: std::chrono::system_clock epoch is not required to be 1970 until c++20.
-  // We will however assume time_t IS unix time.
-  using Clock = std::chrono::system_clock;
-
-  // TODO: Use this on switch to c++20:
-  // const auto since_epoch = Clock::now().time_since_epoch();
-  const auto unix_epoch = Clock::from_time_t({});
-  const auto since_epoch = Clock::now() - unix_epoch;
-
-  const auto since_double_time_epoch = since_epoch - std::chrono::seconds(DOUBLE_TIME_OFFSET);
-  return std::chrono::duration_cast<std::chrono::duration<double>>(since_double_time_epoch).count();
-}
-
-std::string Timer::SystemTimeAsDoubleToString(double time)
-{
-  // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
-  time_t seconds = (time_t)time + DOUBLE_TIME_OFFSET;
-  tm* localTime = localtime(&seconds);
-
-#ifdef _WIN32
-  wchar_t tmp[32] = {};
-  wcsftime(tmp, std::size(tmp), L"%x %X", localTime);
-  return WStringToUTF8(tmp);
-#else
-  char tmp[32] = {};
-  strftime(tmp, sizeof(tmp), "%x %X", localTime);
-  return tmp;
-#endif
 }
 
 void Timer::IncreaseResolution()

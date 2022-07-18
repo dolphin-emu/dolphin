@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <string>
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -24,18 +23,8 @@ public:
 
   static u64 GetLocalTimeSinceJan1970();
 
-  // Returns biased system timestamp as double
-  // It is very unlikely you want to use this in new code; ideally we can remove it completely.
-  static double GetSystemTimeAsDouble();
-  // Formats a timestamp from GetSystemTimeAsDouble() into a date and time string
-  static std::string SystemTimeAsDoubleToString(double time);
-
   static void IncreaseResolution();
   static void RestoreResolution();
-
-  // Arbitrarily chosen value (38 years) that is subtracted in GetSystemTimeAsDouble()
-  // to increase sub-second precision of the resulting double timestamp
-  static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
 
 private:
   u64 m_start_ms{0};

@@ -270,6 +270,42 @@ static int GetEmptySlot(std::map<double, int> m)
   return -1;
 }
 
+// Arbitrarily chosen value (38 years) that is subtracted in GetSystemTimeAsDouble()
+// to increase sub-second precision of the resulting double timestamp
+static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
+
+static double GetSystemTimeAsDouble()
+{
+  // FYI: std::chrono::system_clock epoch is not required to be 1970 until c++20.
+  // We will however assume time_t IS unix time.
+  using Clock = std::chrono::system_clock;
+
+  // TODO: Use this on switch to c++20:
+  // const auto since_epoch = Clock::now().time_since_epoch();
+  const auto unix_epoch = Clock::from_time_t({});
+  const auto since_epoch = Clock::now() - unix_epoch;
+
+  const auto since_double_time_epoch = since_epoch - std::chrono::seconds(DOUBLE_TIME_OFFSET);
+  return std::chrono::duration_cast<std::chrono::duration<double>>(since_double_time_epoch).count();
+}
+
+static std::string SystemTimeAsDoubleToString(double time)
+{
+  // revert adjustments from GetSystemTimeAsDouble() to get a normal Unix timestamp again
+  time_t seconds = (time_t)time + DOUBLE_TIME_OFFSET;
+  tm* localTime = localtime(&seconds);
+
+#ifdef _WIN32
+  wchar_t tmp[32] = {};
+  wcsftime(tmp, std::size(tmp), L"%x %X", localTime);
+  return WStringToUTF8(tmp);
+#else
+  char tmp[32] = {};
+  strftime(tmp, sizeof(tmp), "%x %X", localTime);
+  return tmp;
+#endif
+}
+
 static std::string MakeStateFilename(int number);
 
 // read state timestamps
@@ -284,7 +320,7 @@ static std::map<double, int> GetSavedStates()
     {
       if (ReadHeader(filename, header))
       {
-        double d = Common::Timer::GetSystemTimeAsDouble() - header.time;
+        double d = GetSystemTimeAsDouble() - header.time;
 
         // increase time until unique value is obtained
         while (m.find(d) != m.end())
@@ -359,7 +395,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   StateHeader header{};
   SConfig::GetInstance().GetGameID().copy(header.gameID, std::size(header.gameID));
   header.size = s_use_compression ? (u32)buffer_size : 0;
-  header.time = Common::Timer::GetSystemTimeAsDouble();
+  header.time = GetSystemTimeAsDouble();
 
   f.WriteArray(&header, 1);
 
@@ -471,7 +507,7 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   if (!ReadHeader(filename, header))
     return translate ? Common::GetStringT("Unknown") : "Unknown";
 
-  return Common::Timer::SystemTimeAsDoubleToString(header.time);
+  return SystemTimeAsDoubleToString(header.time);
 }
 
 u64 GetUnixTimeOfSlot(int slot)
@@ -481,8 +517,7 @@ u64 GetUnixTimeOfSlot(int slot)
     return 0;
 
   constexpr u64 MS_PER_SEC = 1000;
-  return static_cast<u64>(header.time * MS_PER_SEC) +
-         (Common::Timer::DOUBLE_TIME_OFFSET * MS_PER_SEC);
+  return static_cast<u64>(header.time * MS_PER_SEC) + (DOUBLE_TIME_OFFSET * MS_PER_SEC);
 }
 
 static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
