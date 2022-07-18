@@ -18,7 +18,6 @@ public:
   // Effectively "resumes" a timer
   void StartWithOffset(u64 offset);
   void Stop();
-  bool IsRunning() const { return m_running; }
   u64 ElapsedMs() const;
 
   // The rest of these functions probably belong somewhere else

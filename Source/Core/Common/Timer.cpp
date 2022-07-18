@@ -48,8 +48,7 @@ void Timer::Start()
 void Timer::StartWithOffset(u64 offset)
 {
   Start();
-  if (m_start_ms > offset)
-    m_start_ms -= offset;
+  m_start_ms -= offset;
 }
 
 void Timer::Stop()
@@ -60,23 +59,10 @@ void Timer::Stop()
 
 u64 Timer::ElapsedMs() const
 {
-  // If we have not started yet, return zero
-  if (m_start_ms == 0)
-    return 0;
-
-  if (m_running)
-  {
-    u64 now = NowMs();
-    if (m_start_ms >= now)
-      return 0;
-    return now - m_start_ms;
-  }
-  else
-  {
-    if (m_start_ms >= m_end_ms)
-      return 0;
-    return m_end_ms - m_start_ms;
-  }
+  const u64 end = m_running ? NowMs() : m_end_ms;
+  // Can handle up to 1 rollover event (underflow produces correct result)
+  // If Start() has never been called, will return 0
+  return end - m_start_ms;
 }
 
 u64 Timer::GetLocalTimeSinceJan1970()
