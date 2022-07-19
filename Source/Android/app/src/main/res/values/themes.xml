@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.Dolphin.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/dolphin_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dolphin</item>
+        <item name="postSplashScreenTheme">@style/Theme.Dolphin.Main</item>
+    </style>
+
     <!-- Base theme -->
     <style name="Theme.Dolphin.Main" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorSurface">@color/dolphin_blue</item>
