@@ -298,7 +298,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       constexpr auto is_hex_str = [](const std::string& s) {
         return !s.empty() && s.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos;
       };
-      const std::string stripped_line(StripSpaces(line));
+      const std::string stripped_line(StripWhitespace(line));
       std::istringstream iss(stripped_line);
       iss.imbue(std::locale::classic());
       std::string word;

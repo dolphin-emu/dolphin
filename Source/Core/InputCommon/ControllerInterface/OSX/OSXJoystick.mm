@@ -164,7 +164,7 @@ std::string Joystick::Button::GetName() const
 {
   std::ostringstream s;
   s << IOHIDElementGetUsage(m_element);
-  return std::string("Button ").append(StripSpaces(s.str()));
+  return std::string("Button ").append(StripWhitespace(s.str()));
 }
 
 Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
@@ -210,7 +210,7 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
     std::ostringstream s;
     s << "CK-";
     s << elementCookie;
-    description = StripSpaces(s.str());
+    description = StripWhitespace(s.str());
     break;
   }
   }
