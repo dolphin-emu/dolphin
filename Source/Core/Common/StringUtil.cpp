@@ -248,6 +248,13 @@ void ReplaceBreaksWithSpaces(std::string& str)
   std::replace(str.begin(), str.end(), '\n', ' ');
 }
 
+void TruncateToCString(std::string* s)
+{
+  const size_t terminator = s->find_first_of('\0');
+  if (terminator != s->npos)
+    s->resize(terminator);
+}
+
 bool TryParse(const std::string& str, bool* const output)
 {
   float value;
