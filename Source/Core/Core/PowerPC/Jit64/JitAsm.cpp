@@ -246,21 +246,4 @@ void Jit64AsmRoutineManager::GenerateCommon()
   GenQuantizedSingleLoads();
   GenQuantizedStores();
   GenQuantizedSingleStores();
-
-  // CMPSD(R(XMM0), M(&zero),
-  // TODO
-
-  // Fast write routines - special case the most common hardware write
-  // TODO: use this.
-  // Even in x86, the param values will be in the right registers.
-  /*
-  const u8 *fastMemWrite8 = AlignCode16();
-  CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
-  FixupBranch skip_fast_write = J_CC(CC_NE, false);
-  MOV(32, RSCRATCH, M(&m_gatherPipeCount));
-  MOV(8, MDisp(RSCRATCH, (u32)&m_gatherPipe), ABI_PARAM1);
-  ADD(32, 1, M(&m_gatherPipeCount));
-  RET();
-  SetJumpTarget(skip_fast_write);
-  CALL((void *)&PowerPC::Write_U8);*/
 }
