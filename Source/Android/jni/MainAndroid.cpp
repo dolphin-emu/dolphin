@@ -519,6 +519,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(J
   Common::RegisterMsgAlertHandler(&MsgAlert);
   Common::AndroidSetReportHandler(&ReportSend);
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
+
+  WiimoteReal::InitAdapterClass();
   UICommon::Init();
   UICommon::InitControllers(WindowSystemInfo(WindowSystemType::Android, nullptr, nullptr, nullptr));
 }
@@ -548,8 +550,6 @@ static float GetRenderSurfaceScale(JNIEnv* env)
 static void Run(JNIEnv* env, std::unique_ptr<BootParameters>&& boot, bool riivolution)
 {
   std::unique_lock<std::mutex> host_identity_guard(s_host_identity_lock);
-
-  WiimoteReal::InitAdapterClass();
 
   if (riivolution && std::holds_alternative<BootParameters::Disc>(boot->parameters))
   {
