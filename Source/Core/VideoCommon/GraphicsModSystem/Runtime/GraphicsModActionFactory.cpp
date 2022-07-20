@@ -4,13 +4,15 @@
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModActionFactory.h"
 
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/MoveAction.h"
+#include "VideoCommon/GraphicsModSystem/Runtime/Actions/PostProcessAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/PrintAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/ScaleAction.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/Actions/SkipAction.h"
 
 namespace GraphicsModActionFactory
 {
-std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data)
+std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson::value& json_data,
+                                          std::string_view path)
 {
   if (name == "print")
   {
@@ -27,6 +29,10 @@ std::unique_ptr<GraphicsModAction> Create(std::string_view name, const picojson:
   else if (name == "scale")
   {
     return ScaleAction::Create(json_data);
+  }
+  else if (name == "post_process")
+  {
+    return PostProcessAction::Create(json_data, path);
   }
 
   return nullptr;

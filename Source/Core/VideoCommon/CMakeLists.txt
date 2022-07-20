@@ -50,6 +50,8 @@ add_library(videocommon
   GraphicsModSystem/Constants.h
   GraphicsModSystem/Runtime/Actions/MoveAction.cpp
   GraphicsModSystem/Runtime/Actions/MoveAction.h
+  GraphicsModSystem/Runtime/Actions/PostProcessAction.cpp
+  GraphicsModSystem/Runtime/Actions/PostProcessAction.h
   GraphicsModSystem/Runtime/Actions/PrintAction.cpp
   GraphicsModSystem/Runtime/Actions/PrintAction.h
   GraphicsModSystem/Runtime/Actions/ScaleAction.cpp

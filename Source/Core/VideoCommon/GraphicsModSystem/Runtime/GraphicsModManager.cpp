@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Common/VariantUtil.h"
 
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsMod.h"
@@ -170,7 +171,10 @@ void GraphicsModManager::Load(const GraphicsModGroupConfig& config)
       const auto create_action = [](const std::string_view& action_name,
                                     const picojson::value& json_data,
                                     GraphicsModConfig mod) -> std::unique_ptr<GraphicsModAction> {
-        auto action = GraphicsModActionFactory::Create(action_name, json_data);
+        std::string base_path;
+        SplitPath(mod.GetAbsolutePath(), &base_path, nullptr, nullptr);
+
+        auto action = GraphicsModActionFactory::Create(action_name, json_data, base_path);
         if (action == nullptr)
         {
           return nullptr;
