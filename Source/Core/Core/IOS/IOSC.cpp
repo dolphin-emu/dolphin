@@ -649,6 +649,7 @@ void IOSC::KeyEntry::DoState(PointerWrap& p)
   p.Do(type);
   p.Do(subtype);
   p.Do(data);
+  p.Do(misc_data);
   p.Do(owner_mask);
 }
 }  // namespace IOS::HLE
