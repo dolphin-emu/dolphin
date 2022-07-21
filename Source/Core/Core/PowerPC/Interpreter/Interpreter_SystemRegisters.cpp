@@ -341,7 +341,8 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_WPAR:
-    ASSERT_MSG(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ {:08x}", PC);
+    ASSERT_MSG(POWERPC, rSPR(SPR_WPAR) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS,
+               "Gather pipe changed to unexpected address {:08x} @ PC {:08x}", rSPR(SPR_WPAR), PC);
     GPFifo::ResetGatherPipe();
     break;
 

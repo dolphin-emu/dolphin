@@ -285,7 +285,8 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
   // Check for a gather pipe write.
   // Note that we must mask the address to correctly emulate certain games;
   // Pac-Man World 3 in particular is affected by this.
-  if (flag == XCheckTLBFlag::Write && (em_address & 0xFFFFF000) == 0x0C008000)
+  if (flag == XCheckTLBFlag::Write &&
+      (em_address & 0xFFFFF000) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
   {
     switch (size)
     {
@@ -1086,7 +1087,7 @@ bool IsOptimizableGatherPipeWrite(u32 address)
     return false;
 
   // Check whether the translated address equals the address in WPAR.
-  return address == 0x0C008000;
+  return address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS;
 }
 
 TranslateResult JitCache_TranslateAddress(u32 address)

@@ -13,6 +13,7 @@
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIOHandlers.h"
 
 namespace MMIO
@@ -43,7 +44,7 @@ const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 // interface.
 inline bool IsMMIOAddress(u32 address)
 {
-  if (address == 0x0C008000)
+  if (address == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
     return false;  // WG Pipe
   if ((address & 0xFFFF0000) == 0x0C000000)
     return true;  // GameCube MMIOs

@@ -9,6 +9,10 @@ class PointerWrap;
 
 namespace GPFifo
 {
+// This address is configurable in the WPAR SPR, but all games put it at this address
+// (and presumably the hardware backing this system uses this address).
+constexpr u32 GATHER_PIPE_PHYSICAL_ADDRESS = 0x0C008000;
+
 constexpr u32 GATHER_PIPE_SIZE = 32;
 constexpr u32 GATHER_PIPE_EXTRA_SIZE = GATHER_PIPE_SIZE * 16;
 
