@@ -99,19 +99,6 @@ void PathPane::BrowseResourcePack()
   }
 }
 
-void PathPane::BrowseSDCard()
-{
-  QString file = QDir::toNativeSeparators(DolphinFileDialog::getOpenFileName(
-      this, tr("Select a SD Card Image"), QString::fromStdString(Config::Get(Config::MAIN_SD_PATH)),
-      tr("SD Card Image (*.raw);;"
-         "All Files (*)")));
-  if (!file.isEmpty())
-  {
-    m_sdcard_edit->setText(file);
-    OnSDCardPathChanged();
-  }
-}
-
 void PathPane::BrowseWFS()
 {
   const QString dir = QDir::toNativeSeparators(DolphinFileDialog::getExistingDirectory(
@@ -121,11 +108,6 @@ void PathPane::BrowseWFS()
     m_wfs_edit->setText(dir);
     Config::SetBase(Config::MAIN_WFS_PATH, dir.toStdString());
   }
-}
-
-void PathPane::OnSDCardPathChanged()
-{
-  Config::SetBase(Config::MAIN_SD_PATH, m_sdcard_edit->text().toStdString());
 }
 
 void PathPane::OnNANDPathChanged()
@@ -241,22 +223,14 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(m_resource_pack_edit, 4, 1);
   layout->addWidget(resource_pack_open, 4, 2);
 
-  m_sdcard_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(F_WIISDCARD_IDX)));
-  connect(m_sdcard_edit, &QLineEdit::editingFinished, this, &PathPane::OnSDCardPathChanged);
-  QPushButton* sdcard_open = new NonDefaultQPushButton(QStringLiteral("..."));
-  connect(sdcard_open, &QPushButton::clicked, this, &PathPane::BrowseSDCard);
-  layout->addWidget(new QLabel(tr("SD Card Path:")), 5, 0);
-  layout->addWidget(m_sdcard_edit, 5, 1);
-  layout->addWidget(sdcard_open, 5, 2);
-
   m_wfs_edit = new QLineEdit(QString::fromStdString(File::GetUserPath(D_WFSROOT_IDX)));
   connect(m_load_edit, &QLineEdit::editingFinished,
           [=] { Config::SetBase(Config::MAIN_WFS_PATH, m_wfs_edit->text().toStdString()); });
   QPushButton* wfs_open = new NonDefaultQPushButton(QStringLiteral("..."));
   connect(wfs_open, &QPushButton::clicked, this, &PathPane::BrowseWFS);
-  layout->addWidget(new QLabel(tr("WFS Path:")), 6, 0);
-  layout->addWidget(m_wfs_edit, 6, 1);
-  layout->addWidget(wfs_open, 6, 2);
+  layout->addWidget(new QLabel(tr("WFS Path:")), 5, 0);
+  layout->addWidget(m_wfs_edit, 5, 1);
+  layout->addWidget(wfs_open, 5, 2);
 
   return layout;
 }

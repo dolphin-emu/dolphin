@@ -275,7 +275,7 @@ std::string KeyboardMouse::Button::GetName() const
 
 std::string KeyboardMouse::Axis::GetName() const
 {
-  static char tmpstr[] = "Axis ..";
+  char tmpstr[] = "Axis ..";
   tmpstr[5] = (char)('X' + m_index);
   tmpstr[6] = (m_range < 0 ? '-' : '+');
   return tmpstr;
@@ -283,7 +283,7 @@ std::string KeyboardMouse::Axis::GetName() const
 
 std::string KeyboardMouse::Cursor::GetName() const
 {
-  static char tmpstr[] = "Cursor ..";
+  char tmpstr[] = "Cursor ..";
   tmpstr[7] = (char)('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;

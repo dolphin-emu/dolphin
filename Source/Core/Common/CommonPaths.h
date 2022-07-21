@@ -73,6 +73,7 @@
 #define RESOURCEPACK_DIR "ResourcePacks"
 #define DYNAMICINPUT_DIR "DynamicInputTextures"
 #define GRAPHICSMOD_DIR "GraphicMods"
+#define WIISDSYNC_DIR "WiiSDSync"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -128,7 +129,7 @@
 
 #define WII_STATE "state.dat"
 
-#define WII_SDCARD "sd.raw"
+#define WII_SD_CARD_IMAGE "WiiSD.raw"
 #define WII_BTDINF_BACKUP "btdinf.bak"
 
 #define WII_SETTING "setting.txt"

@@ -44,6 +44,8 @@ add_library(common
   EnumFormatter.h
   EnumMap.h
   Event.h
+  FatFsUtil.cpp
+  FatFsUtil.h
   FileSearch.cpp
   FileSearch.h
   FileUtil.cpp
@@ -144,6 +146,7 @@ PUBLIC
 
 PRIVATE
   ${CURL_LIBRARIES}
+  FatFs
   ${ICONV_LIBRARIES}
   png
   ${VTUNE_LIBRARIES}

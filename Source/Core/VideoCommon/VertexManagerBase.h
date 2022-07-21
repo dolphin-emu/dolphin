@@ -212,6 +212,7 @@ private:
   // CPU access tracking
   u32 m_draw_counter = 0;
   u32 m_last_efb_copy_draw_counter = 0;
+  bool m_unflushed_efb_copy = false;
   std::vector<u32> m_cpu_accesses_this_frame;
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;

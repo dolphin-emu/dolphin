@@ -535,9 +535,14 @@ static yuv444 ConvertColorToYUV(u32 color)
 
   // GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
   // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-  return {static_cast<u8>(0.257f * red + 0.504f * green + 0.098f * blue),
-          static_cast<s8>(-0.148f * red + -0.291f * green + 0.439f * blue),
-          static_cast<s8>(0.439f * red + -0.368f * green + -0.071f * blue)};
+  // These numbers were determined by hardware testing
+  const u16 y = +66 * red + 129 * green + +25 * blue;
+  const s16 u = -38 * red + -74 * green + 112 * blue;
+  const s16 v = 112 * red + -94 * green + -18 * blue;
+  const u8 y_round = static_cast<u8>((y >> 8) + ((y >> 7) & 1));
+  const s8 u_round = static_cast<s8>((u >> 8) + ((u >> 7) & 1));
+  const s8 v_round = static_cast<s8>((v >> 8) + ((v >> 7) & 1));
+  return {y_round, u_round, v_round};
 }
 
 u32 GetDepth(u16 x, u16 y)

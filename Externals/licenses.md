@@ -14,6 +14,8 @@ Dolphin includes or links code of the following third-party software projects:
    [MIT](https://github.com/discordapp/discord-rpc/blob/master/LICENSE)
 - [ENet](http://enet.bespin.org/):
    [MIT](http://enet.bespin.org/License.html)
+- [FatFs](http://elm-chan.org/fsw/ff/00index_e.html):
+   [BSD-1-Clause](http://elm-chan.org/fsw/ff/doc/appnote.html#license)
 - [GCEmu](http://sourceforge.net/projects/gcemu-project/):
    GPLv2+
 - [gettext](https://www.gnu.org/software/gettext/):

@@ -411,6 +411,56 @@ constexpr int CountLeadingZeros(uint32_t value)
 #endif
 }
 
+template <typename T>
+constexpr int CountTrailingZerosConst(T value)
+{
+  int result = sizeof(T) * 8;
+  while (value)
+  {
+    result--;
+    value <<= 1;
+  }
+  return result;
+}
+
+constexpr int CountTrailingZeros(uint64_t value)
+{
+#if defined(__GNUC__)
+  return value ? __builtin_ctzll(value) : 64;
+#elif defined(_MSC_VER)
+  if (std::is_constant_evaluated())
+  {
+    return CountTrailingZerosConst(value);
+  }
+  else
+  {
+    unsigned long index = 0;
+    return _BitScanForward64(&index, value) ? index : 64;
+  }
+#else
+  return CountTrailingZerosConst(value);
+#endif
+}
+
+constexpr int CountTrailingZeros(uint32_t value)
+{
+#if defined(__GNUC__)
+  return value ? __builtin_ctz(value) : 32;
+#elif defined(_MSC_VER)
+  if (std::is_constant_evaluated())
+  {
+    return CountTrailingZerosConst(value);
+  }
+  else
+  {
+    unsigned long index = 0;
+    return _BitScanForward(&index, value) ? index : 32;
+  }
+#else
+  return CountTrailingZerosConst(value);
+#endif
+}
+
 #undef CONSTEXPR_FROM_INTRINSIC
 
 template <typename T>

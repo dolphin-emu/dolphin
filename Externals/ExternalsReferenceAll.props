@@ -34,6 +34,9 @@
     <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
       <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)FatFs\FatFs.vcxproj">
+      <Project>{3F17D282-A77D-4931-B844-903AD0809A5E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)fmt\fmt.vcxproj">
       <Project>{4BC5A148-0AB3-440F-A980-A29B4B999190}</Project>
     </ProjectReference>
@@ -93,6 +96,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)zstd\zstd.vcxproj">
       <Project>{1bea10f3-80ce-4bc4-9331-5769372cdf99}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)SDL\SDL2.vcxproj">
+      <Project>{8DC244EE-A0BD-4038-BAF7-CFAFA5EB2BAA}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

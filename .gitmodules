@@ -23,3 +23,8 @@
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
 	branch = master
 	shallow = true
+[submodule "SDL"]
+	path = Externals/SDL/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = main
+	shallow = true

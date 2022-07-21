@@ -10,6 +10,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/RenderBase.h"
@@ -612,8 +613,95 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   return config;
 }
 
-std::optional<AbstractPipelineConfig> ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config)
+/// Edits the UID based on driver bugs and other special configurations
+static GXPipelineUid ApplyDriverBugs(const GXPipelineUid& in)
 {
+  GXPipelineUid out;
+  memcpy(&out, &in, sizeof(out));  // copy padding
+  pixel_shader_uid_data* ps = out.ps_uid.GetUidData();
+  BlendingState& blend = out.blending_state;
+
+  if (ps->ztest == EmulatedZ::ForcedEarly && !out.depth_state.updateenable)
+  {
+    // No need to force early depth test if you're not writing z
+    ps->ztest = EmulatedZ::Early;
+  }
+
+  const bool benefits_from_ps_dual_source_off =
+      (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+       g_ActiveConfig.backend_info.bSupportsFramebufferFetch) ||
+      DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
+  if (benefits_from_ps_dual_source_off && !blend.RequiresDualSrc())
+  {
+    // Only use dual-source blending when required on drivers that don't support it very well.
+    ps->no_dual_src = true;
+    blend.usedualsrc = false;
+  }
+
+  if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    bool fbfetch_blend = false;
+    if ((DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DISCARD_WITH_EARLY_Z) ||
+         !g_ActiveConfig.backend_info.bSupportsEarlyZ) &&
+        ps->ztest == EmulatedZ::ForcedEarly)
+    {
+      ps->ztest = EmulatedZ::EarlyWithFBFetch;
+      fbfetch_blend |= static_cast<bool>(out.blending_state.blendenable);
+      ps->no_dual_src = true;
+    }
+    fbfetch_blend |= blend.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp;
+    fbfetch_blend |= blend.usedualsrc && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+    if (fbfetch_blend)
+    {
+      ps->no_dual_src = true;
+      if (blend.logicopenable)
+      {
+        ps->logic_op_enable = true;
+        ps->logic_op_mode = static_cast<u32>(blend.logicmode.Value());
+        blend.logicopenable = false;
+      }
+      if (blend.blendenable)
+      {
+        ps->blend_enable = true;
+        ps->blend_src_factor = blend.srcfactor;
+        ps->blend_src_factor_alpha = blend.srcfactoralpha;
+        ps->blend_dst_factor = blend.dstfactor;
+        ps->blend_dst_factor_alpha = blend.dstfactoralpha;
+        ps->blend_subtract = blend.subtract;
+        ps->blend_subtract_alpha = blend.subtractAlpha;
+        blend.blendenable = false;
+      }
+    }
+  }
+
+  // force dual src off if we can't support it
+  if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  {
+    ps->no_dual_src = true;
+    blend.usedualsrc = false;
+  }
+
+  if (ps->ztest == EmulatedZ::ForcedEarly && !g_ActiveConfig.backend_info.bSupportsEarlyZ)
+  {
+    // These things should be false
+    ASSERT(!ps->zfreeze);
+    // ZCOMPLOC HACK:
+    // The only way to emulate alpha test + early-z is to force early-z in the shader.
+    // As this isn't available on all drivers and as we can't emulate this feature otherwise,
+    // we are only able to choose which one we want to respect more.
+    // Tests seem to have proven that writing depth even when the alpha test fails is more
+    // important that a reliable alpha test, so we just force the alpha test to always succeed.
+    // At least this seems to be less buggy.
+    ps->ztest = EmulatedZ::EarlyWithZComplocHack;
+  }
+
+  return out;
+}
+
+std::optional<AbstractPipelineConfig>
+ShaderCache::GetGXPipelineConfig(const GXPipelineUid& config_in)
+{
+  GXPipelineUid config = ApplyDriverBugs(config_in);
   const AbstractShader* vs;
   auto vs_iter = m_vs_cache.shader_map.find(config.vs_uid);
   if (vs_iter != m_vs_cache.shader_map.end() && !vs_iter->second.pending)
@@ -650,9 +738,33 @@ std::optional<AbstractPipelineConfig> ShaderCache::GetGXPipelineConfig(const GXP
                              config.depth_state, config.blending_state);
 }
 
-std::optional<AbstractPipelineConfig>
-ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config)
+/// Edits the UID based on driver bugs and other special configurations
+static GXUberPipelineUid ApplyDriverBugs(const GXUberPipelineUid& in)
 {
+  GXUberPipelineUid out;
+  memcpy(&out, &in, sizeof(out));  // Copy padding
+  if (g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+  {
+    // Always blend in shader
+    out.blending_state.hex = 0;
+    out.blending_state.colorupdate = in.blending_state.colorupdate.Value();
+    out.blending_state.alphaupdate = in.blending_state.alphaupdate.Value();
+    out.ps_uid.GetUidData()->no_dual_src = true;
+  }
+  else if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend ||
+           (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) &&
+            !out.blending_state.RequiresDualSrc()))
+  {
+    out.blending_state.usedualsrc = false;
+    out.ps_uid.GetUidData()->no_dual_src = true;
+  }
+  return out;
+}
+
+std::optional<AbstractPipelineConfig>
+ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
+{
+  GXUberPipelineUid config = ApplyDriverBugs(config_in);
   const AbstractShader* vs;
   auto vs_iter = m_uber_vs_cache.shader_map.find(config.vs_uid);
   if (vs_iter != m_uber_vs_cache.shader_map.end() && !vs_iter->second.pending)
@@ -981,12 +1093,14 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     {
       stages_ready = true;
 
-      auto vs_it = shader_cache->m_vs_cache.shader_map.find(uid.vs_uid);
+      GXPipelineUid actual_uid = ApplyDriverBugs(uid);
+
+      auto vs_it = shader_cache->m_vs_cache.shader_map.find(actual_uid.vs_uid);
       stages_ready &= vs_it != shader_cache->m_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_vs_cache.shader_map.end())
-        shader_cache->QueueVertexShaderCompile(uid.vs_uid, priority);
+        shader_cache->QueueVertexShaderCompile(actual_uid.vs_uid, priority);
 
-      PixelShaderUid ps_uid = uid.ps_uid;
+      PixelShaderUid ps_uid = actual_uid.ps_uid;
       ClearUnusedPixelShaderUidBits(shader_cache->m_api_type, shader_cache->m_host_config, &ps_uid);
 
       auto ps_it = shader_cache->m_ps_cache.shader_map.find(ps_uid);
@@ -1051,13 +1165,15 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
     {
       stages_ready = true;
 
-      auto vs_it = shader_cache->m_uber_vs_cache.shader_map.find(uid.vs_uid);
+      GXUberPipelineUid actual_uid = ApplyDriverBugs(uid);
+
+      auto vs_it = shader_cache->m_uber_vs_cache.shader_map.find(actual_uid.vs_uid);
       stages_ready &=
           vs_it != shader_cache->m_uber_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_uber_vs_cache.shader_map.end())
-        shader_cache->QueueVertexUberShaderCompile(uid.vs_uid, priority);
+        shader_cache->QueueVertexUberShaderCompile(actual_uid.vs_uid, priority);
 
-      UberShader::PixelShaderUid ps_uid = uid.ps_uid;
+      UberShader::PixelShaderUid ps_uid = actual_uid.ps_uid;
       UberShader::ClearUnusedPixelShaderUidBits(shader_cache->m_api_type,
                                                 shader_cache->m_host_config, &ps_uid);
 
@@ -1371,8 +1487,8 @@ ShaderCache::GetTextureDecodingShader(TextureFormat format,
 
   const std::string name =
       palette_format.has_value() ?
-          fmt::format("Texture decoding compute shader: {}", format) :
-          fmt::format("Texture decoding compute shader: {}, {}", format, *palette_format);
+          fmt::format("Texture decoding compute shader: {}, {}", format, *palette_format) :
+          fmt::format("Texture decoding compute shader: {}", format);
 
   std::unique_ptr<AbstractShader> shader =
       g_renderer->CreateShaderFromSource(ShaderStage::Compute, shader_source, name);

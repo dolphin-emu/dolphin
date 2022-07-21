@@ -17,6 +17,7 @@
 #include <Windows.h>
 #endif
 
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -226,16 +227,23 @@ int main(int argc, char* argv[])
   if (options.is_set("user"))
     user_directory = static_cast<const char*>(options.get("user"));
 
-  UICommon::SetUserDirectory(user_directory);
-  UICommon::Init();
-  GCAdapter::Init();
-
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())
   {
     fprintf(stderr, "No platform found, or failed to initialize.\n");
     return 1;
   }
+
+  const WindowSystemInfo wsi = s_platform->GetWindowSystemInfo();
+
+  UICommon::SetUserDirectory(user_directory);
+  UICommon::Init();
+  UICommon::InitControllers(wsi);
+
+  Common::ScopeGuard ui_common_guard([] {
+    UICommon::ShutdownControllers();
+    UICommon::Shutdown();
+  });
 
   if (save_state_path && !game_specified)
   {
@@ -263,7 +271,7 @@ int main(int argc, char* argv[])
 
   DolphinAnalytics::Instance().ReportDolphinStart("nogui");
 
-  if (!BootManager::BootCore(std::move(boot), s_platform->GetWindowSystemInfo()))
+  if (!BootManager::BootCore(std::move(boot), wsi))
   {
     fprintf(stderr, "Could not boot the specified file\n");
     return 1;
@@ -278,7 +286,6 @@ int main(int argc, char* argv[])
 
   Core::Shutdown();
   s_platform.reset();
-  UICommon::Shutdown();
 
   return 0;
 }

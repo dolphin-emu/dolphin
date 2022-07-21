@@ -12,6 +12,7 @@ enum class AlphaTestOp : u32;
 enum class AlphaTestResult;
 enum class CompareMode : u32;
 enum class DstBlendFactor : u32;
+enum class EmulatedZ : u32;
 enum class FogProjection : u32;
 enum class FogType : u32;
 enum class KonstSel : u32;
@@ -28,6 +29,7 @@ struct pixel_shader_uid_data
   u32 NumValues() const { return num_values; }
   u32 pad0 : 4;
   u32 useDstAlpha : 1;
+  u32 no_dual_src : 1;
   AlphaTestResult Pretest : 2;
   u32 nIndirectStagesUsed : 4;
   u32 genMode_numtexgens : 4;
@@ -36,16 +38,13 @@ struct pixel_shader_uid_data
   CompareMode alpha_test_comp0 : 3;
   CompareMode alpha_test_comp1 : 3;
   AlphaTestOp alpha_test_logic : 2;
-  u32 alpha_test_use_zcomploc_hack : 1;
   FogProjection fog_proj : 1;
 
   FogType fog_fsel : 3;
   u32 fog_RangeBaseEnabled : 1;
   ZTexOp ztex_op : 2;
   u32 per_pixel_depth : 1;
-  u32 forced_early_z : 1;
-  u32 early_ztest : 1;
-  u32 late_ztest : 1;
+  EmulatedZ ztest : 3;
   u32 bounding_box : 1;
   u32 zfreeze : 1;
   u32 numColorChans : 2;

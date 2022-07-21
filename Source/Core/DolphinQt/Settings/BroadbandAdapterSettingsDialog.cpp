@@ -48,6 +48,15 @@ void BroadbandAdapterSettingsDialog::InitControls()
     window_title = tr("Broadband Adapter MAC Address");
     break;
 
+  case Type::BuiltIn:
+    address_label = new QLabel(tr("Enter the DNS server to use:"));
+    address_placeholder = QStringLiteral("8.8.8.8");
+    current_address = QString::fromStdString(Config::Get(Config::MAIN_BBA_BUILTIN_DNS));
+    description = new QLabel(tr("Use 8.8.8.8 for normal DNS, else enter your custom one"));
+
+    window_title = tr("Broadband Adapter DNS setting");
+    break;
+
   case Type::XLinkKai:
     address_label = new QLabel(tr("Enter IP address of device running the XLink Kai Client:"));
     address_placeholder = QString::fromStdString("127.0.0.1");
@@ -103,6 +112,9 @@ void BroadbandAdapterSettingsDialog::SaveAddress()
     Config::SetBaseOrCurrent(Config::MAIN_BBA_MAC, bba_new_address);
     break;
 
+  case Type::BuiltIn:
+    Config::SetBaseOrCurrent(Config::MAIN_BBA_BUILTIN_DNS, bba_new_address);
+    break;
   case Type::XLinkKai:
     Config::SetBaseOrCurrent(Config::MAIN_BBA_XLINK_IP, bba_new_address);
     break;

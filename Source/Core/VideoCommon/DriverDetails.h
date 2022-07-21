@@ -237,7 +237,8 @@ enum Bug
   // crash. Sometimes this happens in the kernel mode part of the driver, resulting in a BSOD.
   // These shaders are also particularly problematic on macOS's Intel drivers. On OpenGL, they can
   // cause depth issues. On Metal, they can cause the driver to not write a primitive to the depth
-  // buffer whenever a fragment is discarded. Disable dual-source blending support on these drivers.
+  // buffer if dual source blending is output in the shader but not subsequently used in blending.
+  // Compile separate shaders for DSB on vs off for these drivers.
   BUG_BROKEN_DUAL_SOURCE_BLENDING,
 
   // BUG: ImgTec GLSL shader compiler fails when negating the input to a bitwise operation
@@ -320,6 +321,12 @@ enum Bug
   // Started version: -1
   // Ended version: -1
   BUG_BROKEN_DISCARD_WITH_EARLY_Z,
+
+  // BUG: Using dynamic sampler indexing locks up the GPU
+  // Affected devices: Intel (macOS Metal)
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_DYNAMIC_SAMPLER_INDEXING,
 };
 
 // Initializes our internal vendor, device family, and driver version
