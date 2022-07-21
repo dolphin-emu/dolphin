@@ -6,7 +6,7 @@ import android.content.Context;
 
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 
-public final class HeaderSetting extends SettingsItem
+public class HeaderSetting extends SettingsItem
 {
   public HeaderSetting(Context context, int titleId, int descriptionId)
   {

@@ -97,6 +97,18 @@
         <item>8</item>
     </integer-array>
 
+    <!-- Slot SP1 Device selection -->
+    <string-array name="serialPort1DeviceEntries" translatable="false">
+        <item>Nothing</item>
+        <item>Dummy</item>
+        <item>Broadband Adapter (XLink Kai)</item>
+    </string-array>
+    <integer-array name="serialPort1DeviceValues" translatable="false">
+        <item>255</item>
+        <item>0</item>
+        <item>10</item>
+    </integer-array>
+
     <!-- GameCube System Languages -->
     <string-array name="wiiSystemLanguageEntries">
         <item>Japanese</item>

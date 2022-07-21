@@ -72,6 +72,15 @@ public interface SettingsFragmentView
   void onSettingChanged();
 
   /**
+   * Called by a containing Fragment to tell the containing Activity that the Serial Port 1 setting
+   * was modified.
+   *
+   * @param menuTag Identifier for the SerialPort that was modified.
+   * @param value   New setting for the SerialPort.
+   */
+  void onSerialPort1SettingChanged(MenuTag menuTag, int value);
+
+  /**
    * Have the fragment tell the containing Activity that a GCPad's setting was modified.
    *
    * @param menuTag Identifier for the GCPad that was modified.

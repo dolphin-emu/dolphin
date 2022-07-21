@@ -135,6 +135,16 @@ public final class SettingsActivityPresenter
     return mShouldSave;
   }
 
+  public void onSerialPort1SettingChanged(MenuTag key, int value)
+  {
+    if (value != 0 && value != 255) // Not disabled or dummy
+    {
+      Bundle bundle = new Bundle();
+      bundle.putInt(SettingsFragmentPresenter.ARG_SERIALPORT1_TYPE, value);
+      mView.showSettingsFragment(key, bundle, true, mGameId);
+    }
+  }
+
   public void onGcPadSettingChanged(MenuTag key, int value)
   {
     if (value != 0) // Not disabled

@@ -131,6 +131,7 @@
     <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
+    <string name="serial_port_1_device">GameCube Serial Port 1 Device</string>
     <string name="wii_submenu">Wii</string>
     <string name="wii_widescreen">Widescreen</string>
     <string name="wii_widescreen_description">Changes aspect ratio from 4:3 to 16:9 in games that support it.</string>
@@ -159,6 +160,12 @@
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="analytics_new_id">Generate a New Statistics Identity</string>
     <string name="analytics_new_id_confirmation">Are you sure you want to generate a new statistics identity?</string>
+
+    <!-- SerialPort1 Subsetting Fragment -->
+    <string name="serialport1_submenu">Serial Port 1</string>
+    <string name="xlink_kai_guide_header">For setup instructions, <a href="https://www.teamxlink.co.uk/wiki/Dolphin">refer to this page.</a></string>
+    <string name="xlink_kai_bba_ip">XLink Kai IP Address/hostname</string>
+    <string name="xlink_kai_bba_ip_description">IP address or hostname of device running the XLink Kai client</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
