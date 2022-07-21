@@ -97,6 +97,14 @@ void ShaderConfigGroup::DeserializeFromProfile(const picojson::array& serialized
           new_group.back().DeserializeFromProfile(serialized_shader_obj);
         }
       }
+      else if (source == "mod")
+      {
+        if (const auto config = ShaderConfig::Load(shader_relative_path, ShaderConfig::Source::Mod))
+        {
+          new_group.push_back(*config);
+          new_group.back().DeserializeFromProfile(serialized_shader_obj);
+        }
+      }
       else if (source == "system")
       {
         const auto shader_full_path =

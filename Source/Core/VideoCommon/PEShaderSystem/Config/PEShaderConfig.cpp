@@ -186,6 +186,12 @@ void ShaderConfig::SerializeToProfile(picojson::object& obj) const
   {
   case Source::Default:
     return;
+  case Source::Mod:
+  {
+    obj["source"] = picojson::value{"mod"};
+    obj["path"] = picojson::value{m_shader_path};
+  }
+  break;
   case Source::User:
   {
     obj["source"] = picojson::value{"user"};

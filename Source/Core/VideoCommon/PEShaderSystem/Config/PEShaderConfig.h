@@ -41,6 +41,7 @@ struct ShaderConfig
   enum class Source
   {
     Default,
+    Mod,
     User,
     System
   };
