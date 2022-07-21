@@ -283,8 +283,15 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
   }
 
   // Check for a gather pipe write.
-  // Note that we must mask the address to correctly emulate certain games;
-  // Pac-Man World 3 in particular is affected by this.
+  //
+  // Note that we must mask the address to correctly emulate certain games; Pac-Man World 3
+  // in particular is affected by this. (See https://bugs.dolphin-emu.org/issues/8386)
+  //
+  // Note that the PowerPC 750CL manual says (in section 9.4.2 Write Gather Pipe Operation on page
+  // 327): "A noncacheable store to an address with bits 0-26 matching WPAR[GB_ADDR] but with bits
+  // 27-31 not all zero will result in incorrect data in the buffer." So, it's possible that in some
+  // cases writes which do not exactly match the masking behave differently, but Pac-Man World 3's
+  // writes happen to behave correctly.
   if (flag == XCheckTLBFlag::Write &&
       (em_address & 0xFFFFF000) == GPFifo::GATHER_PIPE_PHYSICAL_ADDRESS)
   {
