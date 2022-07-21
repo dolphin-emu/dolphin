@@ -16,18 +16,19 @@ namespace Common
 #else
 #define BUILD_TYPE_STR ""
 #endif
+#define CITRUS_REV_STR "0.1.0"
 
 const std::string& GetScmRevStr()
 {
-  static const std::string scm_rev_str = "Dolphin "
+  static const std::string scm_rev_str = "Citrus Dolphin "
 #if !SCM_IS_MASTER
                                          "[" SCM_BRANCH_STR "] "
 #endif
 
 #ifdef __INTEL_COMPILER
-      BUILD_TYPE_STR SCM_DESC_STR "-ICC";
+      BUILD_TYPE_STR CITRUS_REV_STR "-ICC";
 #else
-      BUILD_TYPE_STR SCM_DESC_STR;
+      BUILD_TYPE_STR CITRUS_REV_STR;
 #endif
   return scm_rev_str;
 }
@@ -38,9 +39,15 @@ const std::string& GetScmRevGitStr()
   return scm_rev_git_str;
 }
 
+const std::string& GetCitrusRevStr()
+{
+  static const std::string rio_rev_str = CITRUS_REV_STR;
+  return rio_rev_str;
+}
+
 const std::string& GetScmDescStr()
 {
-  static const std::string scm_desc_str = SCM_DESC_STR;
+  static const std::string scm_desc_str = CITRUS_REV_STR;
   return scm_desc_str;
 }
 

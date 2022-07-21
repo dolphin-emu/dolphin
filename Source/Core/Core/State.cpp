@@ -398,7 +398,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
     f.WriteBytes(buffer_data, buffer_size);
   }
 
-  Core::DisplayMessage(fmt::format("Saved State to {}", filename), 2000);
+  Core::DisplayMessage("Saved State", 2000);
   Host_UpdateMainFrame();
 }
 
@@ -600,7 +600,7 @@ void LoadAs(const std::string& filename)
         {
           if (loadedSuccessfully)
           {
-            Core::DisplayMessage(fmt::format("Loaded state from {}", filename), 2000);
+            Core::DisplayMessage("Loaded state", 2000);
             if (File::Exists(filename + ".dtm"))
               Movie::LoadInput(filename + ".dtm");
             else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&

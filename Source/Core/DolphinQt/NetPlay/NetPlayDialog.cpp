@@ -233,7 +233,7 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
   options_widget->addWidget(m_quit_button, 0, 7, Qt::AlignVCenter | Qt::AlignRight);
   options_widget->setColumnStretch(6, 1000);
-  options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
+  //options_widget->addWidget(m_ranked_box, 0, 3, Qt::AlignVCenter);
 
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
   m_main_layout->setRowStretch(1, 1000);

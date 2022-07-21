@@ -1675,9 +1675,9 @@ void SaveRecording(const std::string& filename)
   }
 
   if (success)
-    Core::DisplayMessage(fmt::format("DTM {} saved", filename), 2000);
+    Core::DisplayMessage("DTM saved", 2000);
   else
-    Core::DisplayMessage(fmt::format("Failed to save {}", filename), 2000);
+    Core::DisplayMessage("Failed to save DTM", 2000);
 }
 
 void SetGCInputManip(GCManipFunction func)
