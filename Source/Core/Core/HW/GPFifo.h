@@ -26,7 +26,7 @@ void UpdateGatherPipe();
 void CheckGatherPipe();
 void FastCheckGatherPipe();
 
-bool IsEmpty();
+bool IsBNE();
 
 // Write
 void Write8(u8 value);
