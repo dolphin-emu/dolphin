@@ -1175,8 +1175,8 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.crc32)
     {
       m_crc32_future = std::async(std::launch::async, [this, byte_increment] {
-        m_crc32_context =
-            Common::UpdateCRC32(m_crc32_context, m_data.data(), static_cast<u32>(byte_increment));
+        m_crc32_context = Common::UpdateCRC32(m_crc32_context, m_data.data(),
+                                              static_cast<size_t>(byte_increment));
       });
     }
 
