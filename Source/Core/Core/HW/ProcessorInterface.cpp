@@ -106,7 +106,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    // Used by GXAbortFrame
                    INFO_LOG_FMT(PROCESSORINTERFACE, "Wrote PI_FIFO_RESET: {:08x}", val);
                    if ((val & 1) != 0)
+                   {
+                     GPFifo::ResetGatherPipe();
                      Fifo::ResetVideoBuffer();
+                   }
                  }));
 
   mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](u32) {
