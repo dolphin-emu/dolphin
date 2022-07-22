@@ -65,6 +65,12 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (!StartUp.SetPathsAndGameMetadata(*boot))
     return false;
 
+  // don't allow SMS games to be played on here. will undoubtedly result in bad results
+  if (StartUp.GetGameID() != "G4QE01")
+  {
+    return false;
+  }
+
   // set replay and default gecko codes bool value to false for this instance of core
   StateAuxillary::setBoolMatchStart(false);
   StateAuxillary::setBoolMatchEnd(false);

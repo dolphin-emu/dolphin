@@ -60,7 +60,7 @@ void Updater::OnUpdateAvailable(std::string info)
 
     auto* buttons = new QDialogButtonBox;
     auto* projectrio =
-        buttons->addButton(tr("Go to Project Rio website"), QDialogButtonBox::AcceptRole);
+        buttons->addButton(tr("Download Citrus Dolphin here"), QDialogButtonBox::AcceptRole);
 
     connect(projectrio, &QPushButton::clicked, this, []() {
       QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/hueybud/Project-Citrus/releases/latest")));

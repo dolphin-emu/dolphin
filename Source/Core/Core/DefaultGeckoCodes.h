@@ -31,6 +31,13 @@ private:
     std::vector<u32> codeLines;
   };
 
+  // gameplay settings
+  const DefaultGeckoCode netplayCommunitySettings = {
+      0x800963bc,
+      0,
+      {0x3860002c, 0x3dc08153, 0x39ce4c6c, 0x39e00001, 0x99eefffc, 0x39e00004, 0x91ee0000,
+       0x39e0012c, 0x91ee0004, 0x39e00001, 0x99ee0008, 0x39e00000, 0x99ee0009, 0x99ee000a}};
+
   const DefaultGeckoCode replayStart = {
       0x800f83f8,
       0, {0x38210010, 0x3DC08040, 0x89EE0000, 0x2C0F0000, 0x4082005C, 0x39E00001,
@@ -100,7 +107,7 @@ private:
   u32 aWriteAddr;  // address where the first code gets written to
 
   std::vector<DefaultGeckoCode> sRequiredCodes = {
-      replayStart,       replayEnd,        replayQuit,           replayOvertime,        replayGrudgeFlag1, replayRecordTime,
+      netplayCommunitySettings, replayStart,       replayEnd,        replayQuit,           replayOvertime,        replayGrudgeFlag1, replayRecordTime,
       replayTimeAllottedHUD, recordItemUse, recordGoalTimestamp, recordMissedShots};
 
   /*
