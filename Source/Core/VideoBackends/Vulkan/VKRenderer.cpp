@@ -155,7 +155,7 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
       bpmem.zcontrol.pixel_format == PixelFormat::RGB8_Z24 ||
       bpmem.zcontrol.pixel_format == PixelFormat::Z24)
   {
-    // Force alpha writes, and clear the alpha channel. This is different to the other backends,
+    // Force alpha writes, and clear the alpha channel. This is different from the other backends,
     // where the existing values of the alpha channel are preserved.
     alpha_enable = true;
     color &= 0x00FFFFFF;
