@@ -83,7 +83,8 @@
 #include "zutil.h"
 #include "inftrees.h"
 #include "inflate.h"
-#include "inffast.h"
+#include "contrib/optimizations/inffast_chunk.h"
+#include "contrib/optimizations/chunkcopy.h"
 
 #ifdef MAKEFIXED
 #  ifndef BUILDFIXED
@@ -407,10 +408,20 @@ unsigned copy;
 
     /* if it hasn't been done already, allocate space for the window */
     if (state->window == Z_NULL) {
+        unsigned wsize = 1U << state->wbits;
         state->window = (unsigned char FAR *)
-                        ZALLOC(strm, 1U << state->wbits,
+                        ZALLOC(strm, wsize + CHUNKCOPY_CHUNK_SIZE,
                                sizeof(unsigned char));
         if (state->window == Z_NULL) return 1;
+#ifdef INFLATE_CLEAR_UNUSED_UNDEFINED
+        /* Copies from the overflow portion of this buffer are undefined and
+           may cause analysis tools to raise a warning if we don't initialize
+           it.  However, this undefined data overwrites other undefined data
+           and is subsequently either overwritten or left deliberately
+           undefined at the end of decode; so there's really no point.
+         */
+        zmemzero(state->window + wsize, CHUNKCOPY_CHUNK_SIZE);
+#endif
     }
 
     /* if window not in use yet, initialize */
@@ -1063,7 +1074,7 @@ int flush;
             if (have >= INFLATE_FAST_MIN_INPUT &&
                 left >= INFLATE_FAST_MIN_OUTPUT) {
                 RESTORE();
-                inflate_fast(strm, out);
+                inflate_fast_chunk_(strm, out);
                 LOAD();
                 if (state->mode == TYPE)
                     state->back = -1;
@@ -1198,17 +1209,16 @@ int flush;
                 else
                     from = state->window + (state->wnext - copy);
                 if (copy > state->length) copy = state->length;
+                if (copy > left) copy = left;
+                put = chunkcopy_safe(put, from, copy, put + left);
             }
             else {                              /* copy from output */
-                from = put - state->offset;
                 copy = state->length;
+                if (copy > left) copy = left;
+                put = chunkcopy_lapped_safe(put, state->offset, copy, put + left);
             }
-            if (copy > left) copy = left;
             left -= copy;
             state->length -= copy;
-            do {
-                *put++ = *from++;
-            } while (--copy);
             if (state->length == 0) state->mode = LEN;
             break;
         case LIT:
@@ -1277,6 +1287,16 @@ int flush;
        Note: a memory error from inflate() is non-recoverable.
      */
   inf_leave:
+   /* We write a defined value in the unused space to help mark
+    * where the stream has ended. We don't use zeros as that can
+    * mislead clients relying on undefined behavior (i.e. assuming
+    * that the data is over when the buffer has a zero/null value).
+    */
+   if (left >= CHUNKCOPY_CHUNK_SIZE)
+      memset(put, 0x55, CHUNKCOPY_CHUNK_SIZE);
+   else
+      memset(put, 0x55, left);
+
     RESTORE();
     if (state->wsize || (out != strm->avail_out && state->mode < BAD &&
             (state->mode < CHECK || flush != Z_FINISH)))

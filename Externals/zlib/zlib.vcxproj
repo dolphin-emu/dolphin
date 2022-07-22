@@ -15,9 +15,32 @@
     <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>INFLATE_CHUNK_READ_64LE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Condition="'$(Platform)'=='x64'">
+      <PreprocessorDefinitions>X86_WINDOWS;ADLER32_SIMD_SSSE3;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRC32_SIMD_SSE42_PCLMUL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEFLATE_SLIDE_HASH_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INFLATE_CHUNK_SIMD_SSE2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Condition="'$(Platform)'=='ARM64'">
+      <PreprocessorDefinitions>ARMV8_OS_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRC32_ARMV8_CRC32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEFLATE_SLIDE_HASH_NEON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INFLATE_CHUNK_SIMD_NEON;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="adler32_simd.c" />
     <ClCompile Include="adler32.c" />
     <ClCompile Include="compress.c" />
+    <ClCompile Include="contrib\optimizations\inffast_chunk.c" />
+    <ClCompile Include="contrib\optimizations\inflate.c" />
+    <ClCompile Include="cpu_features.c" />
+    <ClCompile Include="crc_folding.c" />
+    <ClCompile Include="crc32_simd.c" />
     <ClCompile Include="crc32.c" />
     <ClCompile Include="deflate.c" />
     <ClCompile Include="gzclose.c" />
@@ -26,19 +49,21 @@
     <ClCompile Include="gzwrite.c" />
     <ClCompile Include="infback.c" />
     <ClCompile Include="inffast.c" />
-    <ClCompile Include="inflate.c" />
     <ClCompile Include="inftrees.c" />
     <ClCompile Include="trees.c" />
     <ClCompile Include="uncompr.c" />
     <ClCompile Include="zutil.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ChangeLog" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="adler32_simd.h" />
+    <ClInclude Include="contrib\optimizations\chunkcopy.h" />
+    <ClInclude Include="contrib\optimizations\inffast_chunk.h" />
+    <ClInclude Include="contrib\optimizations\insert_string.h" />
+    <ClInclude Include="cpu_features.h" />
+    <ClInclude Include="crc32_simd.h" />
     <ClInclude Include="crc32.h" />
     <ClInclude Include="deflate.h" />
     <ClInclude Include="gzguts.h" />
@@ -46,6 +71,7 @@
     <ClInclude Include="inffixed.h" />
     <ClInclude Include="inflate.h" />
     <ClInclude Include="inftrees.h" />
+    <ClInclude Include="slide_hash_simd.h" />
     <ClInclude Include="trees.h" />
     <ClInclude Include="zconf.h" />
     <ClInclude Include="zlib.h" />

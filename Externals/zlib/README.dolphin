@@ -1,0 +1,8 @@
+snapshot of zlib as used in chromium, source:
+https://chromium.googlesource.com/chromium/src/+/f2c70a1264eff5f762bf97d2c50e15116c2633dc
+
+Changes:
+- Removed chromeconf.h and unneeded files from the repo
+- Enabled CRC32 simd code paths on msvc/armv8
+- Fixed _cpu_check_features for msvc/armv8
+- Integrated into dolphin's buildsystem
