@@ -34,6 +34,7 @@ public:
     Uniform,
     Vertex,
     Index,
+    TextureData,
     Texels,
     Last = Texels
   };
@@ -105,7 +106,6 @@ public:
   {
     return (amt + static_cast<size_t>(align)) & ~static_cast<size_t>(align);
   }
-  Map AllocateForTextureUpload(size_t amt);
   Map Allocate(UploadBuffer buffer_idx, size_t amt, AlignMask align)
   {
     Preallocate(buffer_idx, amt);
@@ -119,7 +119,6 @@ public:
                   static_cast<size_t>(align)) == 0);
     return CommitPreallocation(buffer_idx, Align(amt, align));
   }
-  id<MTLBlitCommandEncoder> GetUploadEncoder();
   id<MTLBlitCommandEncoder> GetTextureUploadEncoder();
   id<MTLCommandBuffer> GetRenderCmdBuf();
 
@@ -143,20 +142,11 @@ private:
     void Reset(size_t new_size);
   };
 
-  struct CPUBuffer
+  struct Buffer
   {
     UsageTracker usage;
     MRCOwned<id<MTLBuffer>> mtlbuffer;
     void* buffer = nullptr;
-  };
-
-  struct BufferPair
-  {
-    UsageTracker usage;
-    MRCOwned<id<MTLBuffer>> cpubuffer;
-    MRCOwned<id<MTLBuffer>> gpubuffer;
-    void* buffer = nullptr;
-    size_t last_upload = 0;
   };
 
   struct Backref;
@@ -164,7 +154,6 @@ private:
 
   std::shared_ptr<Backref> m_backref;
   std::vector<std::shared_ptr<PerfQueryTracker>> m_perf_query_tracker_cache;
-  MRCOwned<id<MTLFence>> m_fence;
   MRCOwned<id<MTLCommandBuffer>> m_upload_cmdbuf;
   MRCOwned<id<MTLBlitCommandEncoder>> m_upload_encoder;
   MRCOwned<id<MTLCommandBuffer>> m_texture_upload_cmdbuf;
@@ -176,8 +165,7 @@ private:
   MRCOwned<MTLRenderPassDescriptor*> m_render_pass_desc[3];
   MRCOwned<MTLRenderPassDescriptor*> m_resolve_pass_desc;
   Framebuffer* m_current_framebuffer;
-  CPUBuffer m_texture_upload_buffer;
-  BufferPair m_upload_buffers[static_cast<int>(UploadBuffer::Last) + 1];
+  Buffer m_upload_buffers[static_cast<int>(UploadBuffer::Last) + 1];
   u64 m_current_draw = 1;
   std::atomic<u64> m_last_finished_draw{0};
 
@@ -264,7 +252,6 @@ private:
 
   std::shared_ptr<PerfQueryTracker> NewPerfQueryTracker();
   void SetSamplerForce(u32 idx, const SamplerState& sampler);
-  void Sync(BufferPair& buffer);
   Map CommitPreallocation(UploadBuffer buffer_idx, size_t actual_amt);
   void CheckViewport();
   void CheckScissor();

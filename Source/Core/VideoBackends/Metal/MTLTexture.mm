@@ -59,7 +59,8 @@ void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
     const u32 num_rows = Common::AlignUp(height, block_size) / block_size;
     const u32 source_pitch = CalculateStrideForFormat(m_config.format, row_length);
     const u32 upload_size = source_pitch * num_rows;
-    StateTracker::Map map = g_state_tracker->AllocateForTextureUpload(upload_size);
+    StateTracker::Map map = g_state_tracker->Allocate(StateTracker::UploadBuffer::TextureData,
+                                                      upload_size, StateTracker::AlignMask::Other);
     memcpy(map.cpu_buffer, buffer, upload_size);
     id<MTLBlitCommandEncoder> encoder = g_state_tracker->GetTextureUploadEncoder();
     [encoder copyFromBuffer:map.gpu_buffer

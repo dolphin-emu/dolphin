@@ -16,28 +16,16 @@ Metal::BoundingBox::~BoundingBox()
 
 bool Metal::BoundingBox::Initialize()
 {
-  const MTLResourceOptions gpu_storage_mode =
-      g_features.unified_memory ? MTLResourceStorageModeShared : MTLResourceStorageModePrivate;
-  const MTLResourceOptions gpu_options = gpu_storage_mode | MTLResourceHazardTrackingModeUntracked;
+  const MTLResourceOptions gpu_options =
+      MTLResourceStorageModeShared | MTLResourceHazardTrackingModeUntracked;
   const id<MTLDevice> dev = g_device;
   m_upload_fence = MRCTransfer([dev newFence]);
   [m_upload_fence setLabel:@"BBox Upload Fence"];
   m_download_fence = MRCTransfer([dev newFence]);
   [m_download_fence setLabel:@"BBox Download Fence"];
   m_gpu_buffer = MRCTransfer([dev newBufferWithLength:BUFFER_SIZE options:gpu_options]);
-  if (g_features.unified_memory)
-  {
-    [m_gpu_buffer setLabel:@"BBox Buffer"];
-    m_cpu_buffer_ptr = static_cast<BBoxType*>([m_gpu_buffer contents]);
-  }
-  else
-  {
-    m_cpu_buffer = MRCTransfer([dev newBufferWithLength:BUFFER_SIZE
-                                                options:MTLResourceStorageModeShared]);
-    m_cpu_buffer_ptr = static_cast<BBoxType*>([m_cpu_buffer contents]);
-    [m_gpu_buffer setLabel:@"BBox GPU Buffer"];
-    [m_cpu_buffer setLabel:@"BBox CPU Buffer"];
-  }
+  [m_gpu_buffer setLabel:@"BBox Buffer"];
+  m_cpu_buffer_ptr = static_cast<BBoxType*>([m_gpu_buffer contents]);
   g_state_tracker->SetBBoxBuffer(m_gpu_buffer, m_upload_fence, m_download_fence);
   return true;
 }
@@ -47,18 +35,6 @@ std::vector<BBoxType> Metal::BoundingBox::Read(u32 index, u32 length)
   @autoreleasepool
   {
     g_state_tracker->EndRenderPass();
-    if (!g_features.unified_memory)
-    {
-      id<MTLBlitCommandEncoder> download = [g_state_tracker->GetRenderCmdBuf() blitCommandEncoder];
-      [download setLabel:@"BBox Download"];
-      [download waitForFence:m_download_fence];
-      [download copyFromBuffer:m_gpu_buffer
-                  sourceOffset:0
-                      toBuffer:m_cpu_buffer
-             destinationOffset:0
-                          size:BUFFER_SIZE];
-      [download endEncoding];
-    }
     g_state_tracker->FlushEncoders();
     g_state_tracker->WaitForFlushedEncoders();
     return std::vector<BBoxType>(m_cpu_buffer_ptr + index, m_cpu_buffer_ptr + index + length);
@@ -68,8 +44,7 @@ std::vector<BBoxType> Metal::BoundingBox::Read(u32 index, u32 length)
 void Metal::BoundingBox::Write(u32 index, const std::vector<BBoxType>& values)
 {
   const u32 size = values.size() * sizeof(BBoxType);
-  if (g_features.unified_memory && !g_state_tracker->HasUnflushedData() &&
-      !g_state_tracker->GPUBusy())
+  if (!g_state_tracker->HasUnflushedData() && !g_state_tracker->GPUBusy())
   {
     // We can just write directly to the buffer!
     memcpy(m_cpu_buffer_ptr + index, values.data(), size);

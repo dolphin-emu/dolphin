@@ -16,7 +16,6 @@ namespace Metal
 {
 struct DeviceFeatures
 {
-  bool unified_memory;
   bool subgroup_ops;
 };
 
