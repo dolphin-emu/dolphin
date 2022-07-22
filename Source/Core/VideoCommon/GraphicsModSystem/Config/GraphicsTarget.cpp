@@ -124,30 +124,30 @@ std::optional<std::string> ExtractTextureFilenameForConfig(const picojson::objec
     return std::nullopt;
   }
   std::string texture_info = texture_filename_iter->second.get<std::string>();
-  if (texture_info.find(EFB_DUMP_PREFIX) != std::string::npos)
-  {
-    const auto letter_c_pos = texture_info.find_first_of('n');
-    if (letter_c_pos == std::string::npos)
+
+  const auto handle_fb_texture =
+      [&texture_info](std::string_view type) -> std::optional<std::string> {
+    const auto letter_n_pos = texture_info.find("_n");
+    if (letter_n_pos == std::string::npos)
     {
-      ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, value in 'texture_filename' "
-                           "is an efb without a count");
+      ERROR_LOG_FMT(VIDEO,
+                    "Failed to load mod configuration file, value in 'texture_filename' "
+                    "is {} without a count",
+                    type);
       return std::nullopt;
     }
-    texture_info =
-        texture_info.substr(letter_c_pos - 1, texture_info.find_first_of("_", letter_c_pos));
-  }
-  else if (texture_info.find(XFB_DUMP_PREFIX) != std::string::npos)
-  {
-    const auto letter_c_pos = texture_info.find_first_of('n');
-    if (letter_c_pos == std::string::npos)
-    {
-      ERROR_LOG_FMT(VIDEO, "Failed to load mod configuration file, value in 'texture_filename' "
-                           "is an xfb without a count");
-      return std::nullopt;
-    }
-    texture_info =
-        texture_info.substr(letter_c_pos - 1, texture_info.find_first_of("_", letter_c_pos));
-  }
+
+    const auto post_underscore = texture_info.find_first_of('_', letter_n_pos + 2);
+    if (post_underscore == std::string::npos)
+      return texture_info.erase(letter_n_pos, texture_info.size() - letter_n_pos);
+    else
+      return texture_info.erase(letter_n_pos, post_underscore - letter_n_pos);
+  };
+
+  if (texture_info.starts_with(EFB_DUMP_PREFIX))
+    return handle_fb_texture("an efb");
+  else if (texture_info.starts_with(XFB_DUMP_PREFIX))
+    return handle_fb_texture("a xfb");
   return texture_info;
 }
 }  // namespace
