@@ -319,7 +319,9 @@
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
 
     <string name="advanced_graphics_submenu">Advanced</string>
-    <string name="custom_textures">Custom Textures</string>
+    <string name="gfx_mods_and_custom_textures">Graphics Mods and Custom Textures</string>
+    <string name="gfx_mods">Graphics Mods</string>
+    <string name="gfx_mods_description">Loads graphics mods from User/Load/GraphicsMods/.</string>
     <string name="load_custom_texture">Load Custom Textures</string>
     <string name="load_custom_texture_description">Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/DynamicInputTextures/&lt;game_id&gt;/.</string>
     <string name="cache_custom_texture">Prefetch Custom Textures</string>

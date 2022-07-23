@@ -756,7 +756,9 @@ public final class SettingsFragmentPresenter
 
   private void addAdvancedGraphicsSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new HeaderSetting(mContext, R.string.custom_textures, 0));
+    sl.add(new HeaderSetting(mContext, R.string.gfx_mods_and_custom_textures, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_MODS_ENABLE,
+            R.string.gfx_mods, R.string.gfx_mods_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_HIRES_TEXTURES,
             R.string.load_custom_texture, R.string.load_custom_texture_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.GFX_CACHE_HIRES_TEXTURES,
