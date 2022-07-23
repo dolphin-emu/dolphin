@@ -9,6 +9,11 @@ public abstract class AbstractCheat implements Cheat
 {
   private Runnable mChangedCallback = null;
 
+  public boolean supportsCode()
+  {
+    return true;
+  }
+
   public int trySet(@NonNull String name, @NonNull String creator, @NonNull String notes,
           @NonNull String code)
   {
