@@ -133,6 +133,9 @@
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="serial_port_1_device">GameCube Serial Port 1 Device</string>
     <string name="wii_submenu">Wii</string>
+    <string name="wii_misc_settings">Misc Settings</string>
+    <string name="wii_sd_card_settings">SD Card Settings</string>
+    <string name="wii_wiimote_settings">Wii Remote Settings</string>
     <string name="wii_widescreen">Widescreen</string>
     <string name="wii_widescreen_description">Changes aspect ratio from 4:3 to 16:9 in games that support it.</string>
     <string name="wii_pal60">Use PAL60 Mode (EuRGB60)</string>
@@ -143,6 +146,17 @@
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
     <string name="wii_sd_card_allow_writes">Allow Writes to SD Card</string>
+    <string name="wii_sd_card_sync">Automatically Sync with Folder</string>
+    <string name="wii_sd_card_sync_description">Synchronizes the SD Card with the SD Sync Folder when starting and ending emulation.</string>
+    <string name="wii_sd_card_path">SD Card Path</string>
+    <string name="wii_sd_sync_folder">SD Sync Folder</string>
+    <string name="wii_sd_card_folder_to_file">Convert Folder to File Now</string>
+    <string name="wii_sd_card_folder_to_file_confirmation">You are about to convert the content of the SD sync folder into the SD card file. All current content of the file will be deleted. Are you sure you want to continue?</string>
+    <string name="wii_sd_card_file_to_folder">Convert File to Folder Now</string>
+    <string name="wii_sd_card_file_to_folder_confirmation">You are about to convert the content of the SD card file into the SD sync folder. All current content of the folder will be deleted. Are you sure you want to continue?</string>
+    <string name="wii_converting">Converting...</string>
+    <string name="wii_convert_success">Conversion done.</string>
+    <string name="wii_convert_failure">Conversion failed.</string>
     <string name="wiimote_rumble">Wii Remote Rumble</string>
     <string name="wiimote_volume">Wii Remote Speaker Volume</string>
     <string name="sensor_bar_sensitivity">Sensor Bar Sensitivity</string>
@@ -218,7 +232,6 @@
     <string name="dump_path">Dump Path</string>
     <string name="load_path">Load Path</string>
     <string name="resource_pack_path">Resource Pack Path</string>
-    <string name="SD_card_path">SD Card Path</string>
     <string name="wfs_path">WFS Path</string>
 
     <!-- Graphics Settings -->

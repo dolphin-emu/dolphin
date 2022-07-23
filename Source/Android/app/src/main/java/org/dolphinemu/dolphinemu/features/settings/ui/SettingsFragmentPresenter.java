@@ -41,7 +41,10 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoice
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.BooleanSupplier;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
+import org.dolphinemu.dolphinemu.utils.ThreadUtil;
+import org.dolphinemu.dolphinemu.utils.WiiUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -423,8 +426,6 @@ public final class SettingsFragmentPresenter
             MainPresenter.REQUEST_DIRECTORY, "/Load"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_RESOURCEPACK_PATH,
             R.string.resource_pack_path, 0, MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
-    sl.add(new FilePicker(mContext, StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
-            MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
     sl.add(new FilePicker(mContext, StringSetting.MAIN_WFS_PATH, R.string.wfs_path, 0,
             MainPresenter.REQUEST_DIRECTORY, "/WFS"));
   }
@@ -445,6 +446,7 @@ public final class SettingsFragmentPresenter
 
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
+    sl.add(new HeaderSetting(mContext, R.string.wii_misc_settings, 0));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_LANGUAGE, R.string.system_language,
             0, R.array.wiiSystemLanguageEntries, R.array.wiiSystemLanguageValues));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_WIDESCREEN, R.string.wii_widescreen,
@@ -455,10 +457,29 @@ public final class SettingsFragmentPresenter
             R.string.wii_screensaver, R.string.wii_screensaver_description));
     sl.add(new SingleChoiceSetting(mContext, IntSetting.SYSCONF_SOUND_MODE, R.string.sound_mode, 0,
             R.array.soundModeEntries, R.array.soundModeValues));
+
+    sl.add(new HeaderSetting(mContext, R.string.wii_sd_card_settings, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_WII_SD_CARD, R.string.insert_sd_card,
             R.string.insert_sd_card_description));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_ALLOW_SD_WRITES,
             R.string.wii_sd_card_allow_writes, 0));
+    sl.add(new CheckBoxSetting(mContext, BooleanSetting.MAIN_WII_SD_CARD_ENABLE_FOLDER_SYNC,
+            R.string.wii_sd_card_sync, R.string.wii_sd_card_sync_description));
+    // TODO: Hardcoding "Load" here is wrong, because the user may have changed the Load path.
+    // The code structure makes this hard to fix, and with scoped storage active the Load path
+    // can't be changed anyway
+    sl.add(new FilePicker(mContext, StringSetting.MAIN_WII_SD_CARD_IMAGE_PATH,
+            R.string.wii_sd_card_path, 0, MainPresenter.REQUEST_SD_FILE, "/Load/WiiSD.raw"));
+    sl.add(new FilePicker(mContext, StringSetting.MAIN_WII_SD_CARD_SYNC_FOLDER_PATH,
+            R.string.wii_sd_sync_folder, 0, MainPresenter.REQUEST_DIRECTORY, "/Load/WiiSDSync/"));
+    sl.add(new RunRunnable(mContext, R.string.wii_sd_card_folder_to_file, 0,
+            R.string.wii_sd_card_folder_to_file_confirmation, 0,
+            () -> convertOnThread(WiiUtils::syncSdFolderToSdImage)));
+    sl.add(new RunRunnable(mContext, R.string.wii_sd_card_file_to_folder, 0,
+            R.string.wii_sd_card_file_to_folder_confirmation, 0,
+            () -> convertOnThread(WiiUtils::syncSdImageToSdFolder)));
+
+    sl.add(new HeaderSetting(mContext, R.string.wii_wiimote_settings, 0));
     sl.add(new CheckBoxSetting(mContext, BooleanSetting.SYSCONF_WIIMOTE_MOTOR,
             R.string.wiimote_rumble, 0));
     sl.add(new IntSliderSetting(mContext, IntSetting.SYSCONF_SPEAKER_VOLUME,
@@ -1383,5 +1404,12 @@ public final class SettingsFragmentPresenter
     }
 
     mView.getAdapter().notifyAllSettingsChanged();
+  }
+
+  private void convertOnThread(BooleanSupplier f)
+  {
+    ThreadUtil.runOnThreadAndShowResult(mView.getActivity(), R.string.wii_converting, 0, () ->
+            mContext.getResources().getString(
+                    f.get() ? R.string.wii_convert_success : R.string.wii_convert_failure));
   }
 }
