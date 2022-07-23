@@ -3,6 +3,9 @@
 
 #include "VideoBackends/Metal/VideoBackend.h"
 
+// This must be included before we use any TARGET_OS_* macros.
+#include <TargetConditionals.h>
+
 #if TARGET_OS_OSX
 #include <AppKit/AppKit.h>
 #endif
