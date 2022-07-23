@@ -60,13 +60,13 @@ static int xfb_count = 0;
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
 
-TextureCacheBase::TCacheEntry::TCacheEntry(std::unique_ptr<AbstractTexture> tex,
-                                           std::unique_ptr<AbstractFramebuffer> fb)
+TCacheEntry::TCacheEntry(std::unique_ptr<AbstractTexture> tex,
+                         std::unique_ptr<AbstractFramebuffer> fb)
     : texture(std::move(tex)), framebuffer(std::move(fb))
 {
 }
 
-TextureCacheBase::TCacheEntry::~TCacheEntry()
+TCacheEntry::~TCacheEntry()
 {
   for (auto& reference : references)
     reference->references.erase(this);
@@ -240,7 +240,7 @@ void TextureCacheBase::Cleanup(int _frameCount)
   }
 }
 
-bool TextureCacheBase::TCacheEntry::OverlapsMemoryRange(u32 range_address, u32 range_size) const
+bool TCacheEntry::OverlapsMemoryRange(u32 range_address, u32 range_size) const
 {
   if (addr + size_in_bytes <= range_address)
     return false;
@@ -268,8 +268,8 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
       config.graphics_mod_config ? config.graphics_mod_config->GetChangeCount() : 0;
 }
 
-TextureCacheBase::TCacheEntry*
-TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, const u8* palette, TLUTFormat tlutfmt)
+TCacheEntry* TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, const u8* palette,
+                                                   TLUTFormat tlutfmt)
 {
   DEBUG_ASSERT(g_ActiveConfig.backend_info.bSupportsPaletteConversion);
 
@@ -337,8 +337,8 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, const u8* palette, TLU
   return decoded_entry;
 }
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEntry* existing_entry,
-                                                                  TextureFormat new_format)
+TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEntry* existing_entry,
+                                                TextureFormat new_format)
 {
   const AbstractPipeline* pipeline =
       g_shader_cache->GetTextureReinterpretPipeline(existing_entry->format.texfmt, new_format);
@@ -383,8 +383,7 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEn
   return reinterpreted_entry;
 }
 
-void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntry* entry, u32 new_width,
-                                                u32 new_height)
+void TextureCacheBase::ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height)
 {
   if (entry->GetWidth() == new_width && entry->GetHeight() == new_height)
   {
@@ -746,7 +745,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
   }
 }
 
-void TextureCacheBase::TCacheEntry::DoState(PointerWrap& p)
+void TCacheEntry::DoState(PointerWrap& p)
 {
   p.Do(addr);
   p.Do(size_in_bytes);
@@ -770,9 +769,8 @@ void TextureCacheBase::TCacheEntry::DoState(PointerWrap& p)
   p.Do(frameCount);
 }
 
-TextureCacheBase::TCacheEntry*
-TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, const u8* palette,
-                                          TLUTFormat tlutfmt)
+TCacheEntry* TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update,
+                                                       const u8* palette, TLUTFormat tlutfmt)
 {
   // If the flag may_have_overlapping_textures is cleared, there are no overlapping EFB copies,
   // which aren't applied already. It is set for new textures, and for the affected range
@@ -1214,7 +1212,7 @@ private:
   std::vector<Level> levels;
 };
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
+TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 {
   // if this stage was not invalidated by changes to texture registers, keep the current texture
   if (TMEM::IsValid(texture_info.GetStage()) && bound_textures[texture_info.GetStage()])
@@ -1255,9 +1253,8 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture
   return entry;
 }
 
-TextureCacheBase::TCacheEntry*
-TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
-                             const TextureInfo& texture_info)
+TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
+                                          const TextureInfo& texture_info)
 {
   u32 expanded_width = texture_info.GetExpandedWidth();
   u32 expanded_height = texture_info.GetExpandedHeight();
@@ -1705,7 +1702,7 @@ TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
   return entry;
 }
 
-static void GetDisplayRectForXFBEntry(TextureCacheBase::TCacheEntry* entry, u32 width, u32 height,
+static void GetDisplayRectForXFBEntry(TCacheEntry* entry, u32 width, u32 height,
                                       MathUtil::Rectangle<int>* display_rect)
 {
   // Scale the sub-rectangle to the full resolution of the texture.
@@ -1715,9 +1712,8 @@ static void GetDisplayRectForXFBEntry(TextureCacheBase::TCacheEntry* entry, u32 
   display_rect->bottom = static_cast<int>(height * entry->GetHeight() / entry->native_height);
 }
 
-TextureCacheBase::TCacheEntry*
-TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
-                                MathUtil::Rectangle<int>* display_rect)
+TCacheEntry* TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
+                                             MathUtil::Rectangle<int>* display_rect)
 {
   const u8* src_data = Memory::GetPointer(address);
   if (!src_data)
@@ -1796,8 +1792,7 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
   return entry;
 }
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::GetXFBFromCache(u32 address, u32 width, u32 height,
-                                                                 u32 stride)
+TCacheEntry* TextureCacheBase::GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride)
 {
   auto iter_range = textures_by_address.equal_range(address);
   TexAddrCache::iterator iter = iter_range.first;
@@ -2524,7 +2519,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   }
 }
 
-TextureCacheBase::TCacheEntry* TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
+TCacheEntry* TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
 {
   std::optional<TexPoolEntry> alloc = AllocateTexture(config);
   if (!alloc)
@@ -2587,8 +2582,7 @@ TextureCacheBase::FindMatchingTextureFromPool(const TextureConfig& config)
   return matching_iter != range.second ? matching_iter : texture_pool.end();
 }
 
-TextureCacheBase::TexAddrCache::iterator
-TextureCacheBase::GetTexCacheIter(TextureCacheBase::TCacheEntry* entry)
+TextureCacheBase::TexAddrCache::iterator TextureCacheBase::GetTexCacheIter(TCacheEntry* entry)
 {
   auto iter_range = textures_by_address.equal_range(entry->addr);
   TexAddrCache::iterator iter = iter_range.first;
@@ -2936,7 +2930,7 @@ bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, con
   return true;
 }
 
-u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
+u32 TCacheEntry::BytesPerRow() const
 {
   // RGBA takes two cache lines per block; all others take one
   const u32 bytes_per_block = format == TextureFormat::RGBA8 ? 64 : 32;
@@ -2944,7 +2938,7 @@ u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
   return NumBlocksX() * bytes_per_block;
 }
 
-u32 TextureCacheBase::TCacheEntry::NumBlocksX() const
+u32 TCacheEntry::NumBlocksX() const
 {
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(format.texfmt);
 
@@ -2954,7 +2948,7 @@ u32 TextureCacheBase::TCacheEntry::NumBlocksX() const
   return actualWidth / blockW;
 }
 
-u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
+u32 TCacheEntry::NumBlocksY() const
 {
   u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
   // Round up source height to multiple of block size
@@ -2963,7 +2957,7 @@ u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
   return actualHeight / blockH;
 }
 
-void TextureCacheBase::TCacheEntry::SetXfbCopy(u32 stride)
+void TCacheEntry::SetXfbCopy(u32 stride)
 {
   is_efb_copy = false;
   is_xfb_copy = true;
@@ -2975,7 +2969,7 @@ void TextureCacheBase::TCacheEntry::SetXfbCopy(u32 stride)
   size_in_bytes = memory_stride * NumBlocksY();
 }
 
-void TextureCacheBase::TCacheEntry::SetEfbCopy(u32 stride)
+void TCacheEntry::SetEfbCopy(u32 stride)
 {
   is_efb_copy = true;
   is_xfb_copy = false;
@@ -2987,14 +2981,14 @@ void TextureCacheBase::TCacheEntry::SetEfbCopy(u32 stride)
   size_in_bytes = memory_stride * NumBlocksY();
 }
 
-void TextureCacheBase::TCacheEntry::SetNotCopy()
+void TCacheEntry::SetNotCopy()
 {
   is_efb_copy = false;
   is_xfb_copy = false;
   is_xfb_container = false;
 }
 
-int TextureCacheBase::TCacheEntry::HashSampleSize() const
+int TCacheEntry::HashSampleSize() const
 {
   if (should_force_safe_hashing)
   {
@@ -3004,7 +2998,7 @@ int TextureCacheBase::TCacheEntry::HashSampleSize() const
   return g_ActiveConfig.iSafeTextureCache_ColorSamples;
 }
 
-u64 TextureCacheBase::TCacheEntry::CalculateHash() const
+u64 TCacheEntry::CalculateHash() const
 {
   const u32 bytes_per_row = BytesPerRow();
   const u32 hash_sample_size = HashSampleSize();
