@@ -17,6 +17,10 @@ public enum StringSetting implements AbstractStringSetting
   MAIN_BBA_MAC(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "BBA_MAC", ""),
   MAIN_BBA_XLINK_IP(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "BBA_XLINK_IP", ""),
 
+  // Schthack PSO Server - https://schtserv.com/
+  MAIN_BBA_BUILTIN_DNS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "BBA_BUILTIN_DNS",
+          "149.56.167.128"),
+
   MAIN_GFX_BACKEND(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "GFXBackend",
           NativeLibrary.GetDefaultGraphicsBackendName()),
 

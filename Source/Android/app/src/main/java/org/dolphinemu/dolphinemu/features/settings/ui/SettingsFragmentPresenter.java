@@ -577,11 +577,16 @@ public final class SettingsFragmentPresenter
 
   private void addSerialPortSubSettings(ArrayList<SettingsItem> sl, int serialPort1Type)
   {
-    if (serialPort1Type == 10) // XLink Kai
+    if (serialPort1Type == 10) // Broadband Adapter (XLink Kai)
     {
       sl.add(new HyperLinkHeaderSetting(mContext, R.string.xlink_kai_guide_header, 0));
       sl.add(new InputStringSetting(mContext, StringSetting.MAIN_BBA_XLINK_IP,
               R.string.xlink_kai_bba_ip, R.string.xlink_kai_bba_ip_description));
+    }
+    else if (serialPort1Type == 12) // Broadband Adapter (Built In)
+    {
+      sl.add(new InputStringSetting(mContext, StringSetting.MAIN_BBA_BUILTIN_DNS,
+              R.string.bba_builtin_dns, R.string.bba_builtin_dns_description));
     }
   }
 

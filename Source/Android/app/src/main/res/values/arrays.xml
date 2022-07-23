@@ -102,11 +102,13 @@
         <item>Nothing</item>
         <item>Dummy</item>
         <item>Broadband Adapter (XLink Kai)</item>
+        <item>Broadband Adapter (Built In)</item>
     </string-array>
     <integer-array name="serialPort1DeviceValues" translatable="false">
         <item>255</item>
         <item>0</item>
         <item>10</item>
+        <item>12</item>
     </integer-array>
 
     <!-- GameCube System Languages -->
