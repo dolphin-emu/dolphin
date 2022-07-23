@@ -511,6 +511,7 @@
     <string name="cheats_download_empty">File contained no codes.</string>
     <string name="cheats_download_succeeded">Downloaded %1$d codes. (added %2$d)</string>
     <string name="cheats_disabled_warning">Dolphin\'s cheat system is currently disabled.</string>
+    <string name="gfx_mods_disabled_warning">Graphics mods are currently disabled.</string>
     <string name="cheats_open_settings">Settings</string>
 
     <!-- Convert Screen -->
