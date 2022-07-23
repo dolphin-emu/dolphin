@@ -20,6 +20,7 @@ Metal::Renderer::Renderer(MRCOwned<CAMetalLayer*> layer, int width, int height, 
       m_layer(std::move(layer))
 {
   UpdateActiveConfig();
+  [m_layer setDisplaySyncEnabled:g_ActiveConfig.bVSyncActive];
 }
 
 Metal::Renderer::~Renderer() = default;
