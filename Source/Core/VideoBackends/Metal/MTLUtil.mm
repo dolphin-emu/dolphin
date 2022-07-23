@@ -22,12 +22,15 @@ std::vector<MRCOwned<id<MTLDevice>>> Metal::Util::GetAdapterList()
   if (default_dev)
     list.push_back(MRCTransfer(default_dev));
 
+#if TARGET_OS_OSX
   auto devices = MRCTransfer(MTLCopyAllDevices());
   for (id<MTLDevice> device in devices.Get())
   {
     if (device != default_dev)
       list.push_back(MRCRetain(device));
   }
+#endif
+
   return list;
 }
 
