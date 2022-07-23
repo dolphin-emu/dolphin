@@ -13,6 +13,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.cheats.model.ARCheat;
 import org.dolphinemu.dolphinemu.features.cheats.model.CheatsViewModel;
 import org.dolphinemu.dolphinemu.features.cheats.model.GeckoCheat;
+import org.dolphinemu.dolphinemu.features.cheats.model.GraphicsMod;
 import org.dolphinemu.dolphinemu.features.cheats.model.PatchCheat;
 
 import java.util.ArrayList;
@@ -90,8 +91,8 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
   @Override
   public int getItemCount()
   {
-    return mViewModel.getARCheats().size() + mViewModel.getGeckoCheats().size() +
-            mViewModel.getPatchCheats().size() + 7;
+    return mViewModel.getGraphicsMods().size() + mViewModel.getPatchCheats().size() +
+            mViewModel.getARCheats().size() + mViewModel.getGeckoCheats().size() + 8;
   }
 
   @Override
@@ -108,6 +109,17 @@ public class CheatsAdapter extends RecyclerView.Adapter<CheatItemViewHolder>
 
   private CheatItem getItemAt(int position)
   {
+    // Graphics mods
+
+    if (position == 0)
+      return new CheatItem(CheatItem.TYPE_HEADER, R.string.cheats_header_graphics_mod);
+    position -= 1;
+
+    ArrayList<GraphicsMod> graphicsMods = mViewModel.getGraphicsMods();
+    if (position < graphicsMods.size())
+      return new CheatItem(graphicsMods.get(position));
+    position -= graphicsMods.size();
+
     // Patches
 
     if (position == 0)

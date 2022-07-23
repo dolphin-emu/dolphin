@@ -490,6 +490,7 @@
     <string name="cheats_header_ar">AR Codes</string>
     <string name="cheats_header_gecko">Gecko Codes</string>
     <string name="cheats_header_patch">Patches</string>
+    <string name="cheats_header_graphics_mod">Graphics Mods</string>
     <string name="cheats_add_ar">Add New AR Code</string>
     <string name="cheats_add_gecko">Add New Gecko Code</string>
     <string name="cheats_add_patch">Add New Patch</string>
