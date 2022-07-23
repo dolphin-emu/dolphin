@@ -224,7 +224,7 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
         [device supportsFamily:MTLGPUFamilyMac2] || [device supportsFamily:MTLGPUFamilyApple6];
     config->backend_info.bSupportsFramebufferFetch = [device supportsFamily:MTLGPUFamilyApple1];
   }
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_INVOCATION_ID))
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_OPS))
     g_features.subgroup_ops = false;
 #if TARGET_OS_OSX
   if (@available(macOS 11, *))

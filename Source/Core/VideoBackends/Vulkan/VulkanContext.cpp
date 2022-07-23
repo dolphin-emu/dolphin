@@ -984,7 +984,7 @@ void VulkanContext::PopulateShaderSubgroupSupport()
   m_supports_shader_subgroup_operations =
       (subgroup_properties.supportedOperations & required_operations) == required_operations &&
       subgroup_properties.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_INVOCATION_ID);
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_SUBGROUP_OPS);
 }
 
 bool VulkanContext::SupportsExclusiveFullscreen(const WindowSystemInfo& wsi, VkSurfaceKHR surface)
