@@ -365,8 +365,8 @@ void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
   g_dx_context->GetCommandList()->DrawIndexedInstanced(num_indices, 1, base_index, base_vertex, 0);
 }
 
-void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groups_x, u32 groups_y,
-                                     u32 groups_z)
+void Renderer::DispatchComputeShader(const AbstractShader* shader, u32 groupsize_x, u32 groupsize_y,
+                                     u32 groupsize_z, u32 groups_x, u32 groups_y, u32 groups_z)
 {
   SetRootSignatures();
   SetDescriptorHeaps();

@@ -13,7 +13,8 @@ namespace DriverDetails
 enum API
 {
   API_OPENGL = (1 << 0),
-  API_VULKAN = (1 << 1)
+  API_VULKAN = (1 << 1),
+  API_METAL = (1 << 2),
 };
 
 // Enum of supported operating systems
@@ -64,6 +65,7 @@ enum Driver
   DRIVER_IMGTEC,       // Official PowerVR driver
   DRIVER_VIVANTE,      // Official Vivante driver
   DRIVER_PORTABILITY,  // Vulkan via Metal on macOS
+  DRIVER_APPLE,        // Metal on macOS
   DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 };
 

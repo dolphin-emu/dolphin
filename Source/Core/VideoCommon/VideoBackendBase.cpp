@@ -35,6 +35,9 @@
 #ifdef HAS_VULKAN
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #endif
+#ifdef __APPLE__
+#include "VideoBackends/Metal/VideoBackend.h"
+#endif
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -227,6 +230,7 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
 #ifdef __APPLE__
     // Emplace the Vulkan backend at the beginning so it takes precedence over OpenGL.
     backends.emplace(backends.begin(), std::make_unique<Vulkan::VideoBackend>());
+    backends.push_back(std::make_unique<Metal::VideoBackend>());
 #else
     backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif

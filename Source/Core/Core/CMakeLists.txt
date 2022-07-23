@@ -631,6 +631,10 @@ if(ENABLE_VULKAN)
   target_link_libraries(core PUBLIC videovulkan)
 endif()
 
+if(APPLE)
+  target_link_libraries(core PUBLIC videometal)
+endif()
+
 if(USE_MGBA)
   target_sources(core PRIVATE
     HW/GBACore.cpp
