@@ -11,6 +11,7 @@ enum class APIType;
 enum class TexInputForm : u32;
 enum class TexGenType : u32;
 enum class SourceRow : u32;
+enum class VSExpand : u32;
 
 // TODO should be reordered
 enum : int
@@ -42,10 +43,12 @@ struct vertex_shader_uid_data
   u32 numTexGens : 4;
   u32 numColorChans : 2;
   u32 dualTexTrans_enabled : 1;
+  VSExpand vs_expand : 2;
+  u32 position_has_3_elems : 1;
 
-  u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the texMtxInfo struct is
-                                     // 8 bits wide
-  u32 pad : 18;
+  u16 texcoord_elem_count;      // 2 bits per texcoord input
+  u16 texMtxInfo_n_projection;  // Stored separately to guarantee that the texMtxInfo struct is
+                                // 8 bits wide
 
   struct
   {

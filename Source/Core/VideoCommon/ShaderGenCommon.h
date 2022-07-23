@@ -178,6 +178,7 @@ union ShaderHostConfig
   BitField<25, 1, bool, u32> manual_texture_sampling_custom_texture_sizes;
   BitField<26, 1, bool, u32> backend_sampler_lod_bias;
   BitField<27, 1, bool, u32> backend_dynamic_vertex_loader;
+  BitField<28, 1, bool, u32> backend_vs_point_line_expand;
 
   static ShaderHostConfig GetCurrent();
 };
@@ -316,3 +317,8 @@ static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\t#define xfmem_postMtxInfo(i) (xfmem_pack1[(i)].y)\n"
                                         "\t#define xfmem_color(i) (xfmem_pack1[(i)].z)\n"
                                         "\t#define xfmem_alpha(i) (xfmem_pack1[(i)].w)\n";
+
+static const char s_geometry_shader_uniforms[] = "\tfloat4 " I_STEREOPARAMS ";\n"
+                                                 "\tfloat4 " I_LINEPTPARAMS ";\n"
+                                                 "\tint4 " I_TEXOFFSET ";\n"
+                                                 "\tuint vs_expand;\n";

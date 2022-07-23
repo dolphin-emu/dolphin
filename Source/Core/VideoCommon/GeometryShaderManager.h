@@ -7,6 +7,7 @@
 #include "VideoCommon/ConstantManager.h"
 
 class PointerWrap;
+enum class PrimitiveType : u32;
 
 // The non-API dependent parts.
 class GeometryShaderManager
@@ -16,7 +17,7 @@ public:
   static void Dirty();
   static void DoState(PointerWrap& p);
 
-  static void SetConstants();
+  static void SetConstants(PrimitiveType prim);
   static void SetViewportChanged();
   static void SetProjectionChanged();
   static void SetLinePtWidthChanged();

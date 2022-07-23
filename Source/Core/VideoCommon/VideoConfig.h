@@ -222,9 +222,16 @@ struct VideoConfig final
     bool bSupportsSettingObjectNames = false;
     bool bSupportsPartialMultisampleResolve = false;
     bool bSupportsDynamicVertexLoader = false;
+    bool bSupportsVSLinePointExpand = false;
   } backend_info;
 
   // Utility
+  bool UseVSForLinePointExpand() const
+  {
+    if (!backend_info.bSupportsVSLinePointExpand)
+      return false;
+    return !backend_info.bSupportsGeometryShaders;
+  }
   bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool ExclusiveFullscreenEnabled() const
   {

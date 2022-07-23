@@ -8,6 +8,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -36,10 +37,22 @@ void GeometryShaderManager::Dirty()
   // Any constants that can changed based on settings should be re-calculated
   s_projection_changed = true;
 
+  // Uses EFB scale config
+  SetLinePtWidthChanged();
+
   dirty = true;
 }
 
-void GeometryShaderManager::SetConstants()
+static void SetVSExpand(VSExpand expand)
+{
+  if (GeometryShaderManager::constants.vs_expand != expand)
+  {
+    GeometryShaderManager::constants.vs_expand = expand;
+    GeometryShaderManager::dirty = true;
+  }
+}
+
+void GeometryShaderManager::SetConstants(PrimitiveType prim)
 {
   if (s_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
   {
@@ -61,6 +74,16 @@ void GeometryShaderManager::SetConstants()
                                         (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
 
     dirty = true;
+  }
+
+  if (g_ActiveConfig.UseVSForLinePointExpand())
+  {
+    if (prim == PrimitiveType::Points)
+      SetVSExpand(VSExpand::Point);
+    else if (prim == PrimitiveType::Lines)
+      SetVSExpand(VSExpand::Line);
+    else
+      SetVSExpand(VSExpand::None);
   }
 
   if (s_viewport_changed)

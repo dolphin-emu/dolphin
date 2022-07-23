@@ -5,6 +5,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -44,6 +45,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
       g_ActiveConfig.ManualTextureSamplingWithHiResTextures();
   bits.backend_sampler_lod_bias = g_ActiveConfig.backend_info.bSupportsLodBiasInSampler;
   bits.backend_dynamic_vertex_loader = g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader;
+  bits.backend_vs_point_line_expand = g_ActiveConfig.UseVSForLinePointExpand();
   return bits;
 }
 
