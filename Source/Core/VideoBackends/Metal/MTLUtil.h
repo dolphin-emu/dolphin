@@ -16,6 +16,10 @@ namespace Metal
 {
 struct DeviceFeatures
 {
+  /// Manually copy buffer data to the GPU (instead of letting the GPU read from system memory)
+  /// On discrete GPUs, this tends to be faster if the copy is able to operate in parallel with a
+  /// previous render.  This is the case unless a game uses features like bbox or texture downloads.
+  bool manual_buffer_upload;
   bool subgroup_ops;
 };
 

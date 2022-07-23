@@ -6,6 +6,7 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 
+#include "VideoBackends/Metal/MTLRenderer.h"
 #include "VideoBackends/Metal/MTLStateTracker.h"
 
 Metal::Texture::Texture(MRCOwned<id<MTLTexture>> tex, const TextureConfig& config)
@@ -59,8 +60,7 @@ void Metal::Texture::Load(u32 level, u32 width, u32 height, u32 row_length,  //
     const u32 num_rows = Common::AlignUp(height, block_size) / block_size;
     const u32 source_pitch = CalculateStrideForFormat(m_config.format, row_length);
     const u32 upload_size = source_pitch * num_rows;
-    StateTracker::Map map = g_state_tracker->Allocate(StateTracker::UploadBuffer::TextureData,
-                                                      upload_size, StateTracker::AlignMask::Other);
+    StateTracker::Map map = g_state_tracker->AllocateForTextureUpload(upload_size);
     memcpy(map.cpu_buffer, buffer, upload_size);
     id<MTLBlitCommandEncoder> encoder = g_state_tracker->GetTextureUploadEncoder();
     [encoder copyFromBuffer:map.gpu_buffer
@@ -163,6 +163,7 @@ void Metal::StagingTexture::Flush()
   {
     // Flush while we wait, since who knows how long we'll be sitting here
     g_state_tracker->FlushEncoders();
+    g_state_tracker->NotifyOfCPUGPUSync();
     [m_wait_buffer waitUntilCompleted];
   }
   m_wait_buffer = nullptr;

@@ -216,6 +216,27 @@ void Metal::Util::PopulateBackendInfoFeatures(VideoConfig* config, id<MTLDevice>
       config->backend_info.AAModes.push_back(i);
   }
 
+  switch (config->iManuallyUploadBuffers)
+  {
+  case TriState::Off:
+    g_features.manual_buffer_upload = false;
+    break;
+  case TriState::On:
+    g_features.manual_buffer_upload = true;
+    break;
+  case TriState::Auto:
+#if TARGET_OS_OSX
+    g_features.manual_buffer_upload = false;
+    if (@available(macOS 10.15, *))
+      if (![device hasUnifiedMemory])
+        g_features.manual_buffer_upload = true;
+#else
+    // All iOS devices have unified memory
+    g_features.manual_buffer_upload = false;
+#endif
+    break;
+  }
+
   g_features.subgroup_ops = false;
   if (@available(macOS 10.15, iOS 13, *))
   {
