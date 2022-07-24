@@ -74,7 +74,7 @@ Dolphin includes or links code of the following third-party software projects:
    [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
 - [xxHash](https://github.com/Cyan4973/xxHash):
    [2-clause BSD](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
-- [zlib](http://www.zlib.net/):
-   [zlib license](http://www.zlib.net/zlib_license.html)
+- [zlib-ng](https://github.com/zlib-ng/zlib-ng):
+   [zlib license](https://github.com/zlib-ng/zlib-ng/blob/develop/LICENSE.md)
 - [Zstandard](https://facebook.github.io/zstd/):
    [3-clause BSD](https://github.com/facebook/zstd/blob/dev/LICENSE) or [GPLv2](https://github.com/facebook/zstd/blob/dev/COPYING)
