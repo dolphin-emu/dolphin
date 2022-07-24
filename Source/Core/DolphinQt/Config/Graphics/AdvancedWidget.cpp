@@ -128,15 +128,18 @@ void AdvancedWidget::CreateWidgets()
   m_enable_prog_scan = new ToolTipCheckBox(tr("Enable Progressive Scan"));
   m_backend_multithreading =
       new GraphicsBool(tr("Backend Multithreading"), Config::GFX_BACKEND_MULTITHREADING);
+  m_prefer_vs_for_point_line_expansion = new GraphicsBool(
+      tr("Prefer VS for Point/Line Expansion"), Config::GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
   misc_layout->addWidget(m_backend_multithreading, 1, 0);
+  misc_layout->addWidget(m_prefer_vs_for_point_line_expansion, 1, 1);
 #ifdef _WIN32
   m_borderless_fullscreen =
       new GraphicsBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN);
 
-  misc_layout->addWidget(m_borderless_fullscreen, 1, 1);
+  misc_layout->addWidget(m_borderless_fullscreen, 2, 0);
 #endif
 
   // Experimental.
@@ -198,11 +201,19 @@ void AdvancedWidget::SaveSettings()
 void AdvancedWidget::OnBackendChanged()
 {
   m_backend_multithreading->setEnabled(g_Config.backend_info.bSupportsMultithreading);
+  m_prefer_vs_for_point_line_expansion->setEnabled(
+      Core::GetState() == Core::State::Uninitialized &&
+      g_Config.backend_info.bSupportsGeometryShaders &&
+      g_Config.backend_info.bSupportsVSLinePointExpand);
 }
 
 void AdvancedWidget::OnEmulationStateChanged(bool running)
 {
   m_enable_prog_scan->setEnabled(!running);
+  m_prefer_vs_for_point_line_expansion->setEnabled(
+      !running &&
+      g_Config.backend_info.bSupportsGeometryShaders &&
+      g_Config.backend_info.bSupportsVSLinePointExpand);
 }
 
 void AdvancedWidget::AddDescriptions()
@@ -289,6 +300,11 @@ void AdvancedWidget::AddDescriptions()
                  "this option may result in a performance improvement on systems with more than "
                  "two CPU cores. Currently, this is limited to the Vulkan backend.<br><br>"
                  "<dolphin_emphasis>If unsure, leave this checked.</dolphin_emphasis>");
+  static const char TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION[] =
+      QT_TR_NOOP("On backends that support both using the geometry shader and the vertex shader "
+                 "for expanding points and lines, selects the vertex shader for the job.  May "
+                 "affect performance."
+                 "<br><br><dolphin_emphasis>If unsure, leave this unchecked.</dolphin_emphasis>");
   static const char TR_DEFER_EFB_ACCESS_INVALIDATION_DESCRIPTION[] = QT_TR_NOOP(
       "Defers invalidation of the EFB access cache until a GPU synchronization command "
       "is executed. If disabled, the cache will be invalidated with every draw call. "
@@ -337,6 +353,8 @@ void AdvancedWidget::AddDescriptions()
   m_enable_cropping->SetDescription(tr(TR_CROPPING_DESCRIPTION));
   m_enable_prog_scan->SetDescription(tr(TR_PROGRESSIVE_SCAN_DESCRIPTION));
   m_backend_multithreading->SetDescription(tr(TR_BACKEND_MULTITHREADING_DESCRIPTION));
+  m_prefer_vs_for_point_line_expansion->SetDescription(
+      tr(TR_PREFER_VS_FOR_POINT_LINE_EXPANSION_DESCRIPTION));
 #ifdef _WIN32
   m_borderless_fullscreen->SetDescription(tr(TR_BORDERLESS_FULLSCREEN_DESCRIPTION));
 #endif

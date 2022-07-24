@@ -106,6 +106,7 @@ struct VideoConfig final
   bool bInternalResolutionFrameDumps = false;
   bool bBorderlessFullscreen = false;
   bool bEnableGPUTextureDecoding = false;
+  bool bPreferVSForLinePointExpansion = false;
   int iBitrateKbps = 0;
   bool bGraphicMods = false;
   std::optional<GraphicsModGroupConfig> graphics_mod_config;
@@ -230,7 +231,9 @@ struct VideoConfig final
   {
     if (!backend_info.bSupportsVSLinePointExpand)
       return false;
-    return !backend_info.bSupportsGeometryShaders;
+    if (!backend_info.bSupportsGeometryShaders)
+      return true;
+    return bPreferVSForLinePointExpansion;
   }
   bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool ExclusiveFullscreenEnabled() const
