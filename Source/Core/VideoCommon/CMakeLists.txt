@@ -164,7 +164,7 @@ PUBLIC
   core
 PRIVATE
   fmt::fmt
-  png
+  spng
   xxhash
   imgui
   glslang

@@ -79,7 +79,7 @@ PUBLIC
 
 PRIVATE
   fmt::fmt
-  png
+  spng
 )
 
 if(WIN32)

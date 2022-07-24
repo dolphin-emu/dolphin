@@ -53,7 +53,6 @@ if(NOT ANDROID)
 endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
-option(USE_SHARED_LIBPNG "Use shared libpng if found" ON)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
 option(ENABLE_QT "Enable Qt (Default)" ON)
@@ -411,9 +410,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   find_library(IOB_LIBRARY IOBluetooth)
   find_library(IOK_LIBRARY IOKit)
   find_library(OPENGL_LIBRARY OpenGL)
-
-  # We don't want to use shared libpng.
-  set(USE_SHARED_LIBPNG OFF)
 endif()
 
 if(ENABLE_LTO)
@@ -810,17 +806,7 @@ else()
   set(LZO lzo2)
 endif()
 
-if(USE_SHARED_LIBPNG)
-  check_lib(PNG libpng png png.h QUIET)
-endif()
-if (PNG_FOUND)
-  message(STATUS "Using shared libpng")
-else()
-  check_vendoring_approved(libpng)
-  message(STATUS "Using static libpng from Externals")
-  add_subdirectory(Externals/libpng)
-  set(PNG png)
-endif()
+add_subdirectory(Externals/libspng)
 
 # Using static FreeSurround from Externals
 # There is no system FreeSurround library.

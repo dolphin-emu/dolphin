@@ -52,8 +52,8 @@
     <ProjectReference Include="$(ExternalsDir)liblzma\liblzma.vcxproj">
       <Project>{055a775f-b4f5-4970-9240-f6cf7661f37b}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
-      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
+    <ProjectReference Include="$(ExternalsDir)libspng\spng.vcxproj">
+      <Project>{447B7B1E-1D74-4AEF-B2B9-6EB41C5D5313}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)libusb\libusb-1.0.vcxproj">
       <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
