@@ -18,13 +18,13 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 
 #include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/IOFile.h"
@@ -627,22 +627,18 @@ std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) 
   return name + " (" + ss.str() + ")";
 }
 
-static std::array<u8, 20> GetHash(u32 value)
+static Common::SHA1::Digest GetHash(u32 value)
 {
   auto data = Common::BitCastToArray<u8>(value);
-  std::array<u8, 20> hash;
-  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(data.data()), data.size(), hash.data());
-  return hash;
+  return Common::SHA1::CalculateDigest(data);
 }
 
-static std::array<u8, 20> GetHash(std::string_view str)
+static Common::SHA1::Digest GetHash(std::string_view str)
 {
-  std::array<u8, 20> hash;
-  mbedtls_sha1_ret(reinterpret_cast<const unsigned char*>(str.data()), str.size(), hash.data());
-  return hash;
+  return Common::SHA1::CalculateDigest(str);
 }
 
-static std::optional<std::array<u8, 20>> GetFileHash(const std::string& path)
+static std::optional<Common::SHA1::Digest> GetFileHash(const std::string& path)
 {
   std::string buffer;
   if (!File::ReadFileToString(path, buffer))
@@ -650,22 +646,22 @@ static std::optional<std::array<u8, 20>> GetFileHash(const std::string& path)
   return GetHash(buffer);
 }
 
-static std::optional<std::array<u8, 20>> MixHash(const std::optional<std::array<u8, 20>>& lhs,
-                                                 const std::optional<std::array<u8, 20>>& rhs)
+static std::optional<Common::SHA1::Digest> MixHash(const std::optional<Common::SHA1::Digest>& lhs,
+                                                   const std::optional<Common::SHA1::Digest>& rhs)
 {
   if (!lhs && !rhs)
     return std::nullopt;
   if (!lhs || !rhs)
     return !rhs ? lhs : rhs;
-  std::array<u8, 20> result;
+  Common::SHA1::Digest result;
   for (size_t i = 0; i < result.size(); ++i)
     result[i] = (*lhs)[i] ^ (*rhs)[(i + 1) % result.size()];
   return result;
 }
 
-std::array<u8, 20> GameFile::GetSyncHash() const
+Common::SHA1::Digest GameFile::GetSyncHash() const
 {
-  std::optional<std::array<u8, 20>> hash;
+  std::optional<Common::SHA1::Digest> hash;
 
   if (m_platform == DiscIO::Platform::ELFOrDOL)
   {
@@ -703,7 +699,7 @@ std::array<u8, 20> GameFile::GetSyncHash() const
       hash = volume->GetSyncHash();
   }
 
-  return hash.value_or(std::array<u8, 20>{});
+  return hash.value_or(Common::SHA1::Digest{});
 }
 
 NetPlay::SyncIdentifier GameFile::GetSyncIdentifier() const

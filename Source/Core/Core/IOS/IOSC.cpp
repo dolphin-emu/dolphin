@@ -14,11 +14,11 @@
 #include <fmt/format.h>
 #include <mbedtls/md.h>
 #include <mbedtls/rsa.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Crypto/AES.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -249,8 +249,7 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
   const std::array<u8, 0x3c> shared_secret =
       Common::ec::ComputeSharedSecret(private_entry->data.data(), public_entry->data.data());
 
-  std::array<u8, 20> sha1;
-  mbedtls_sha1_ret(shared_secret.data(), shared_secret.size() / 2, sha1.data());
+  const auto sha1 = Common::SHA1::CalculateDigest(shared_secret.data(), shared_secret.size() / 2);
 
   dest_entry->data.resize(AES128_KEY_SIZE);
   std::copy_n(sha1.cbegin(), AES128_KEY_SIZE, dest_entry->data.begin());
@@ -437,7 +436,6 @@ CertECC IOSC::GetDeviceCertificate() const
 
 void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const
 {
-  std::array<u8, 20> hash{};
   std::array<u8, 30> ap_priv{};
 
   ap_priv[0x1d] = 1;
@@ -451,13 +449,15 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   CertECC cert = MakeBlankEccCert(signer, name, ap_priv.data(), 0);
   // Sign the AP cert.
   const size_t skip = offsetof(CertECC, signature.issuer);
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&cert) + skip, sizeof(cert) - skip, hash.data());
-  cert.signature.sig = Common::ec::Sign(m_key_entries[HANDLE_CONSOLE_KEY].data.data(), hash.data());
+  const auto ap_cert_digest =
+      Common::SHA1::CalculateDigest(reinterpret_cast<const u8*>(&cert) + skip, sizeof(cert) - skip);
+  cert.signature.sig =
+      Common::ec::Sign(m_key_entries[HANDLE_CONSOLE_KEY].data.data(), ap_cert_digest.data());
   std::memcpy(ap_cert_out, &cert, sizeof(cert));
 
   // Sign the data.
-  mbedtls_sha1_ret(data, data_size, hash.data());
-  const auto signature = Common::ec::Sign(ap_priv.data(), hash.data());
+  const auto data_digest = Common::SHA1::CalculateDigest(data, data_size);
+  const auto signature = Common::ec::Sign(ap_priv.data(), data_digest.data());
   std::copy(signature.cbegin(), signature.cend(), sig_out);
 }
 

@@ -14,6 +14,7 @@
 #include <mbedtls/aes.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Lazy.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Filesystem.h"
@@ -34,7 +35,6 @@ class VolumeWii : public VolumeDisc
 {
 public:
   static constexpr size_t AES_KEY_SIZE = 16;
-  static constexpr size_t SHA1_SIZE = 20;
 
   static constexpr u32 BLOCKS_PER_GROUP = 0x40;
 
@@ -48,12 +48,12 @@ public:
 
   struct HashBlock
   {
-    u8 h0[31][SHA1_SIZE];
-    u8 padding_0[20];
-    u8 h1[8][SHA1_SIZE];
-    u8 padding_1[32];
-    u8 h2[8][SHA1_SIZE];
-    u8 padding_2[32];
+    std::array<Common::SHA1::Digest, 31> h0;
+    std::array<u8, 20> padding_0;
+    std::array<Common::SHA1::Digest, 8> h1;
+    std::array<u8, 32> padding_1;
+    std::array<Common::SHA1::Digest, 8> h2;
+    std::array<u8, 32> padding_2;
   };
   static_assert(sizeof(HashBlock) == BLOCK_HEADER_SIZE);
 

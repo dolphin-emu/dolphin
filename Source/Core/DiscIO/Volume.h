@@ -11,9 +11,8 @@
 #include <string>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
@@ -164,9 +163,9 @@ protected:
       return CP1252ToUTF8(string);
   }
 
-  void ReadAndAddToSyncHash(mbedtls_sha1_context* context, u64 offset, u64 length,
+  void ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
                             const Partition& partition) const;
-  void AddTMDToSyncHash(mbedtls_sha1_context* context, const Partition& partition) const;
+  void AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& partition) const;
 
   virtual u32 GetOffsetShift() const { return 0; }
   static std::map<Language, std::string> ReadWiiNames(const std::vector<char16_t>& data);

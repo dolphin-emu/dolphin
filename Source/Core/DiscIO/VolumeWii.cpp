@@ -17,11 +17,11 @@
 #include <vector>
 
 #include <mbedtls/aes.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 
@@ -366,29 +366,25 @@ const BlobReader& VolumeWii::GetBlobReader() const
 
 std::array<u8, 20> VolumeWii::GetSyncHash() const
 {
-  mbedtls_sha1_context context;
-  mbedtls_sha1_init(&context);
-  mbedtls_sha1_starts_ret(&context);
+  auto context = Common::SHA1::CreateContext();
 
   // Disc header
-  ReadAndAddToSyncHash(&context, 0, 0x80, PARTITION_NONE);
+  ReadAndAddToSyncHash(context.get(), 0, 0x80, PARTITION_NONE);
 
   // Region code
-  ReadAndAddToSyncHash(&context, 0x4E000, 4, PARTITION_NONE);
+  ReadAndAddToSyncHash(context.get(), 0x4E000, 4, PARTITION_NONE);
 
   // The data offset of the game partition - an important factor for disc drive timings
   const u64 data_offset = PartitionOffsetToRawOffset(0, GetGamePartition());
-  mbedtls_sha1_update_ret(&context, reinterpret_cast<const u8*>(&data_offset), sizeof(data_offset));
+  context->Update(reinterpret_cast<const u8*>(&data_offset), sizeof(data_offset));
 
   // TMD
-  AddTMDToSyncHash(&context, GetGamePartition());
+  AddTMDToSyncHash(context.get(), GetGamePartition());
 
   // Game partition contents
-  AddGamePartitionToSyncHash(&context);
+  AddGamePartitionToSyncHash(context.get());
 
-  std::array<u8, 20> hash;
-  mbedtls_sha1_finish_ret(&context, hash.data());
-  return hash;
+  return context->Finish();
 }
 
 bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
@@ -410,9 +406,7 @@ bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
   if (contents.size() != 1)
     return false;
 
-  std::array<u8, 20> h3_table_sha1;
-  mbedtls_sha1_ret(h3_table.data(), h3_table.size(), h3_table_sha1.data());
-  return h3_table_sha1 == contents[0].sha1;
+  return Common::SHA1::CalculateDigest(h3_table) == contents[0].sha1;
 }
 
 bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
@@ -423,7 +417,8 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
     return false;
   const PartitionDetails& partition_details = it->second;
 
-  if (block_index / BLOCKS_PER_GROUP * SHA1_SIZE >= partition_details.h3_table->size())
+  if (block_index / BLOCKS_PER_GROUP * Common::SHA1::DIGEST_LEN >=
+      partition_details.h3_table->size())
     return false;
 
   mbedtls_aes_context* aes_context = partition_details.key->get();
@@ -438,25 +433,22 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
 
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
-    u8 h0_hash[SHA1_SIZE];
-    mbedtls_sha1_ret(cluster_data + hash_index * 0x400, 0x400, h0_hash);
-    if (memcmp(h0_hash, hashes.h0[hash_index], SHA1_SIZE))
+    if (Common::SHA1::CalculateDigest(cluster_data + hash_index * 0x400, 0x400) !=
+        hashes.h0[hash_index])
       return false;
   }
 
-  u8 h1_hash[SHA1_SIZE];
-  mbedtls_sha1_ret(reinterpret_cast<u8*>(hashes.h0), sizeof(hashes.h0), h1_hash);
-  if (memcmp(h1_hash, hashes.h1[block_index % 8], SHA1_SIZE))
+  if (Common::SHA1::CalculateDigest(hashes.h0) != hashes.h1[block_index % 8])
     return false;
 
-  u8 h2_hash[SHA1_SIZE];
-  mbedtls_sha1_ret(reinterpret_cast<u8*>(hashes.h1), sizeof(hashes.h1), h2_hash);
-  if (memcmp(h2_hash, hashes.h2[block_index / 8 % 8], SHA1_SIZE))
+  if (Common::SHA1::CalculateDigest(hashes.h1) != hashes.h2[block_index / 8 % 8])
     return false;
 
-  u8 h3_hash[SHA1_SIZE];
-  mbedtls_sha1_ret(reinterpret_cast<u8*>(hashes.h2), sizeof(hashes.h2), h3_hash);
-  if (memcmp(h3_hash, partition_details.h3_table->data() + block_index / 64 * SHA1_SIZE, SHA1_SIZE))
+  Common::SHA1::Digest h3_digest;
+  auto h3_digest_ptr =
+      partition_details.h3_table->data() + block_index / 64 * Common::SHA1::DIGEST_LEN;
+  memcpy(h3_digest.data(), h3_digest_ptr, sizeof(h3_digest));
+  if (Common::SHA1::CalculateDigest(hashes.h2) != h3_digest)
     return false;
 
   return true;
@@ -496,14 +488,13 @@ bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GR
       {
         // H0 hashes
         for (size_t j = 0; j < 31; ++j)
-          mbedtls_sha1_ret(in[i].data() + j * 0x400, 0x400, out[i].h0[j]);
+          out[i].h0[j] = Common::SHA1::CalculateDigest(in[i].data() + j * 0x400, 0x400);
 
         // H0 padding
-        std::memset(out[i].padding_0, 0, sizeof(HashBlock::padding_0));
+        out[i].padding_0 = {};
 
         // H1 hash
-        mbedtls_sha1_ret(reinterpret_cast<u8*>(out[i].h0), sizeof(HashBlock::h0),
-                         out[h1_base].h1[i - h1_base]);
+        out[h1_base].h1[i - h1_base] = Common::SHA1::CalculateDigest(out[i].h0);
       }
 
       if (i % 8 == 7)
@@ -514,15 +505,14 @@ bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GR
         if (success)
         {
           // H1 padding
-          std::memset(out[h1_base].padding_1, 0, sizeof(HashBlock::padding_1));
+          out[h1_base].padding_1 = {};
 
           // H1 copies
           for (size_t j = 1; j < 8; ++j)
-            std::memcpy(out[h1_base + j].h1, out[h1_base].h1, sizeof(HashBlock::h1));
+            out[h1_base + j].h1 = out[h1_base].h1;
 
           // H2 hash
-          mbedtls_sha1_ret(reinterpret_cast<u8*>(out[i].h1), sizeof(HashBlock::h1),
-                           out[0].h2[h1_base / 8]);
+          out[0].h2[h1_base / 8] = Common::SHA1::CalculateDigest(out[i].h1);
         }
 
         if (i == BLOCKS_PER_GROUP - 1)
@@ -533,11 +523,11 @@ bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GR
           if (success)
           {
             // H2 padding
-            std::memset(out[0].padding_2, 0, sizeof(HashBlock::padding_2));
+            out[0].padding_2 = {};
 
             // H2 copies
             for (size_t j = 1; j < BLOCKS_PER_GROUP; ++j)
-              std::memcpy(out[j].h2, out[0].h2, sizeof(HashBlock::h2));
+              out[j].h2 = out[0].h2;
           }
         }
       }

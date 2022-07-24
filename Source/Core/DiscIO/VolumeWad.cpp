@@ -14,11 +14,11 @@
 #include <vector>
 
 #include <mbedtls/aes.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -171,9 +171,7 @@ bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
   mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, decrypted_data.size(), iv.data(),
                         encrypted_data.data(), decrypted_data.data());
 
-  std::array<u8, 20> sha1;
-  mbedtls_sha1_ret(decrypted_data.data(), content.size, sha1.data());
-  return sha1 == content.sha1;
+  return Common::SHA1::CalculateDigest(decrypted_data.data(), content.size) == content.sha1;
 }
 
 bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content, u64 content_offset,
@@ -349,17 +347,13 @@ std::array<u8, 20> VolumeWAD::GetSyncHash() const
   // We can skip hashing the contents since the TMD contains hashes of the contents.
   // We specifically don't hash the ticket, since its console ID can differ without any problems.
 
-  mbedtls_sha1_context context;
-  mbedtls_sha1_init(&context);
-  mbedtls_sha1_starts_ret(&context);
+  auto context = Common::SHA1::CreateContext();
 
-  AddTMDToSyncHash(&context, PARTITION_NONE);
+  AddTMDToSyncHash(context.get(), PARTITION_NONE);
 
-  ReadAndAddToSyncHash(&context, m_opening_bnr_offset, m_opening_bnr_size, PARTITION_NONE);
+  ReadAndAddToSyncHash(context.get(), m_opening_bnr_offset, m_opening_bnr_size, PARTITION_NONE);
 
-  std::array<u8, 20> hash;
-  mbedtls_sha1_finish_ret(&context, hash.data());
-  return hash;
+  return context->Finish();
 }
 
 }  // namespace DiscIO

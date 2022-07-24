@@ -13,7 +13,6 @@
 #include <unordered_set>
 
 #include <mbedtls/md5.h>
-#include <mbedtls/sha1.h>
 #include <mz_compat.h>
 #include <pugixml.hpp>
 
@@ -21,6 +20,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/HttpRequest.h"
@@ -1053,8 +1053,7 @@ void VolumeVerifier::SetUpHashing()
 
   if (m_hashes_to_calculate.sha1)
   {
-    mbedtls_sha1_init(&m_sha1_context);
-    mbedtls_sha1_starts_ret(&m_sha1_context);
+    m_sha1_context = Common::SHA1::CreateContext();
   }
 }
 
@@ -1191,7 +1190,7 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.sha1)
     {
       m_sha1_future = std::async(std::launch::async, [this, byte_increment] {
-        mbedtls_sha1_update_ret(&m_sha1_context, m_data.data(), byte_increment);
+        m_sha1_context->Update(m_data.data(), byte_increment);
       });
     }
   }
@@ -1283,8 +1282,8 @@ void VolumeVerifier::Finish()
 
     if (m_hashes_to_calculate.sha1)
     {
-      m_result.hashes.sha1 = std::vector<u8>(20);
-      mbedtls_sha1_finish_ret(&m_sha1_context, m_result.hashes.sha1.data());
+      const auto digest = m_sha1_context->Finish();
+      m_result.hashes.sha1 = std::vector<u8>(digest.begin(), digest.end());
     }
   }
 
