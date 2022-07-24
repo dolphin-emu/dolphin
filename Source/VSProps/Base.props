@@ -104,6 +104,8 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <!--This doesn't seem required but nice to be future-proof-->
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
       <!--Enable latest C++ standard-->
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <!--Enable Standard Conformance-->
