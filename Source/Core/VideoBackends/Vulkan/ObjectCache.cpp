@@ -156,9 +156,11 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {5, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
   }};
 
+  std::array<VkDescriptorSetLayoutBinding, 3> ubo_bindings = standard_ubo_bindings;
+
   std::array<VkDescriptorSetLayoutCreateInfo, NUM_DESCRIPTOR_SET_LAYOUTS> create_infos{{
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(standard_ubo_bindings.size()), standard_ubo_bindings.data()},
+       static_cast<u32>(ubo_bindings.size()), ubo_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(standard_sampler_bindings.size()), standard_sampler_bindings.data()},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
@@ -172,8 +174,17 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   }};
 
   // Don't set the GS bit if geometry shaders aren't available.
-  if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  if (g_ActiveConfig.UseVSForLinePointExpand())
+  {
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+      ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags |= VK_SHADER_STAGE_VERTEX_BIT;
+    else
+      ubo_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  }
+  else if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+  {
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS].bindingCount--;
+  }
 
   // Remove the dynamic vertex loader's buffer if it'll never be needed
   if (!g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
@@ -244,12 +255,14 @@ bool ObjectCache::CreatePipelineLayouts()
        static_cast<u32>(compute_sets.size()), compute_sets.data(), 0, nullptr},
   }};
 
+  const bool ssbos_in_standard =
+      g_ActiveConfig.backend_info.bSupportsBBox || g_ActiveConfig.UseVSForLinePointExpand();
+
   // If bounding box is unsupported, don't bother with the SSBO descriptor set.
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  if (!ssbos_in_standard)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
   // If neither SSBO-using feature is supported, skip in ubershaders too
-  if (!g_ActiveConfig.backend_info.bSupportsBBox &&
-      !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
+  if (!ssbos_in_standard && !g_ActiveConfig.backend_info.bSupportsDynamicVertexLoader)
     pipeline_layout_info[PIPELINE_LAYOUT_UBER].setLayoutCount--;
 
   for (size_t i = 0; i < pipeline_layout_info.size(); i++)
