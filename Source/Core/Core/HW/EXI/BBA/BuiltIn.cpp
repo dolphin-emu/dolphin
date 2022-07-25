@@ -1,12 +1,16 @@
 // Copyright 2022 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <SFML/Network.hpp>
+#include "Core/HW/EXI/BBA/BuiltIn.h"
+
+#ifndef _WIN32
+#include <sys/socket.h>
+#include <sys/types.h>
+#endif
 
 #include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Core/HW/EXI/BBA/BuiltIn.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
