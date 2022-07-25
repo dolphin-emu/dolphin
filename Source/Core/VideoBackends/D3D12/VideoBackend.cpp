@@ -157,19 +157,7 @@ void VideoBackend::Shutdown()
   if (g_renderer)
     Renderer::GetInstance()->ExecuteCommandList(true);
 
-  if (g_shader_cache)
-    g_shader_cache->Shutdown();
-
-  if (g_renderer)
-    g_renderer->Shutdown();
-
-  g_perf_query.reset();
-  g_texture_cache.reset();
-  g_framebuffer_manager.reset();
-  g_shader_cache.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
-  DXContext::Destroy();
   ShutdownShared();
+  DXContext::Destroy();
 }
 }  // namespace DX12

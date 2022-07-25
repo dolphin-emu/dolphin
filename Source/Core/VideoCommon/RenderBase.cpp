@@ -1354,7 +1354,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   {
     // Get the current XFB from texture cache
     MathUtil::Rectangle<int> xfb_rect;
-    const auto* xfb_entry =
+    const auto xfb_entry =
         g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
     const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
 
