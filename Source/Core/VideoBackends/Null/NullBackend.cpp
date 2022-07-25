@@ -93,15 +93,6 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void VideoBackend::Shutdown()
 {
-  g_shader_cache->Shutdown();
-  g_renderer->Shutdown();
-
-  g_texture_cache.reset();
-  g_perf_query.reset();
-  g_vertex_manager.reset();
-  g_framebuffer_manager.reset();
-  g_renderer.reset();
-
   ShutdownShared();
 }
 

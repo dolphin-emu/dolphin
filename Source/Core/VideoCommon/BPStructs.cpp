@@ -185,6 +185,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
     {
       INCSTAT(g_stats.this_frame.num_draw_done);
       g_texture_cache->FlushEFBCopies();
+      g_texture_cache->FlushStaleBinds();
       g_framebuffer_manager->InvalidatePeekCache(false);
       g_framebuffer_manager->RefreshPeekCache();
       auto& system = Core::System::GetInstance();
@@ -203,6 +204,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   {
     INCSTAT(g_stats.this_frame.num_token);
     g_texture_cache->FlushEFBCopies();
+    g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
     auto& system = Core::System::GetInstance();
@@ -218,6 +220,7 @@ static void BPWritten(PixelShaderManager& pixel_shader_manager,
   {
     INCSTAT(g_stats.this_frame.num_token_int);
     g_texture_cache->FlushEFBCopies();
+    g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     g_framebuffer_manager->RefreshPeekCache();
     auto& system = Core::System::GetInstance();

@@ -19,7 +19,7 @@ protected:
     TextureEncoder::Encode(dst, params, native_width, bytes_per_row, num_blocks_y, memory_stride,
                            src_rect, scale_by_half, y_scale, gamma);
   }
-  void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
+  void CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_copy,
                            const MathUtil::Rectangle<int>& src_rect, bool scale_by_half,
                            bool linear_filter, EFBCopyFormat dst_format, bool is_intensity,
                            float gamma, bool clamp_top, bool clamp_bottom,

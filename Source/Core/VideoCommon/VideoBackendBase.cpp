@@ -44,6 +44,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -339,6 +340,20 @@ void VideoBackendBase::InitializeShared()
 
 void VideoBackendBase::ShutdownShared()
 {
+  if (g_shader_cache)
+    g_shader_cache->Shutdown();
+  if (g_renderer)
+    g_renderer->Shutdown();
+  if (g_texture_cache)
+    g_texture_cache->Shutdown();
+
+  g_perf_query.reset();
+  g_texture_cache.reset();
+  g_framebuffer_manager.reset();
+  g_shader_cache.reset();
+  g_vertex_manager.reset();
+  g_renderer.reset();
+
   m_initialized = false;
 
   auto& system = Core::System::GetInstance();

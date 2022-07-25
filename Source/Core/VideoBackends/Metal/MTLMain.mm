@@ -132,16 +132,6 @@ bool Metal::VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
 void Metal::VideoBackend::Shutdown()
 {
-  g_shader_cache->Shutdown();
-  g_renderer->Shutdown();
-
-  g_shader_cache.reset();
-  g_texture_cache.reset();
-  g_framebuffer_manager.reset();
-  g_perf_query.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
-  g_state_tracker.reset();
   ObjectCache::Shutdown();
   ShutdownShared();
 }

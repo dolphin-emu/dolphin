@@ -127,18 +127,6 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 
 void VideoSoftware::Shutdown()
 {
-  if (g_shader_cache)
-    g_shader_cache->Shutdown();
-
-  if (g_renderer)
-    g_renderer->Shutdown();
-
-  g_texture_cache.reset();
-  g_perf_query.reset();
-  g_framebuffer_manager.reset();
-  g_shader_cache.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
   ShutdownShared();
 }
 }  // namespace SW
