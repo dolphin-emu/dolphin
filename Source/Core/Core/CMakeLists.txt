@@ -144,6 +144,8 @@ add_library(core
   HW/DSPHLE/MailHandler.h
   HW/DSPHLE/UCodes/ASnd.cpp
   HW/DSPHLE/UCodes/ASnd.h
+  HW/DSPHLE/UCodes/AESnd.cpp
+  HW/DSPHLE/UCodes/AESnd.h
   HW/DSPHLE/UCodes/AX.cpp
   HW/DSPHLE/UCodes/AX.h
   HW/DSPHLE/UCodes/AXStructs.h

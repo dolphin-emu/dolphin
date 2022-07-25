@@ -20,6 +20,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/UCodes/AESnd.h"
 #include "Core/HW/DSPHLE/UCodes/ASnd.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
@@ -289,6 +290,12 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
   case 0xdbbeeb61:
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: ASnd chosen (Homebrew)", crc);
     return std::make_unique<ASndUCode>(dsphle, crc);
+
+  case 0x008366af:
+  case 0x078066ab:
+  case 0x84c680a9:
+    INFO_LOG_FMT(DSPHLE, "CRC {:08x}: AESnd chosen (Homebrew)", crc);
+    return std::make_unique<AESndUCode>(dsphle, crc);
 
   default:
     if (wii)
