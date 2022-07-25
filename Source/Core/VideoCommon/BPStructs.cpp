@@ -178,6 +178,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     {
     case 0x02:
       g_texture_cache->FlushEFBCopies();
+      g_texture_cache->FlushStaleBinds();
       g_framebuffer_manager->InvalidatePeekCache(false);
       if (!Fifo::UseDeterministicGPUThread())
         PixelEngine::SetFinish(cycles_into_future);  // may generate interrupt
@@ -191,6 +192,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     return;
   case BPMEM_PE_TOKEN_ID:  // Pixel Engine Token ID
     g_texture_cache->FlushEFBCopies();
+    g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     if (!Fifo::UseDeterministicGPUThread())
       PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false, cycles_into_future);
@@ -198,6 +200,7 @@ static void BPWritten(const BPCmd& bp, int cycles_into_future)
     return;
   case BPMEM_PE_TOKEN_INT_ID:  // Pixel Engine Interrupt Token ID
     g_texture_cache->FlushEFBCopies();
+    g_texture_cache->FlushStaleBinds();
     g_framebuffer_manager->InvalidatePeekCache(false);
     if (!Fifo::UseDeterministicGPUThread())
       PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true, cycles_into_future);

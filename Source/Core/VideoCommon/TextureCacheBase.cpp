@@ -70,6 +70,8 @@ TCacheEntry::~TCacheEntry()
 {
   for (auto& reference : references)
     reference->references.erase(this);
+  ASSERT_MSG(VIDEO, g_texture_cache, "Texture cache destroyed before TCacheEntry was destroyed");
+  g_texture_cache->ReleaseToPool(this);
 }
 
 void TextureCacheBase::CheckTempSize(size_t required_size)
@@ -99,13 +101,19 @@ TextureCacheBase::TextureCacheBase()
   TMEM::InvalidateAll();
 }
 
-TextureCacheBase::~TextureCacheBase()
+void TextureCacheBase::Shutdown()
 {
   // Clear pending EFB copies first, so we don't try to flush them.
   m_pending_efb_copies.clear();
 
   HiresTexture::Shutdown();
+
+  // For correctness, we need to invalidate textures before the gpu context starts shutting down.
   Invalidate();
+}
+
+TextureCacheBase::~TextureCacheBase()
+{
   Common::FreeAlignedMemory(temp);
   temp = nullptr;
 }
@@ -126,13 +134,10 @@ void TextureCacheBase::Invalidate()
   FlushEFBCopies();
   TMEM::InvalidateAll();
 
-  bound_textures.fill(nullptr);
-  for (auto& tex : textures_by_address)
-  {
-    delete tex.second;
-  }
-  textures_by_address.clear();
+  for (auto& bind : bound_textures)
+    bind.reset();
   textures_by_hash.clear();
+  textures_by_address.clear();
 
   texture_pool.clear();
 }
@@ -183,11 +188,7 @@ void TextureCacheBase::Cleanup(int _frameCount)
   TexAddrCache::iterator tcend = textures_by_address.end();
   while (iter != tcend)
   {
-    if (iter->second->tmem_only)
-    {
-      iter = InvalidateTexture(iter);
-    }
-    else if (iter->second->frameCount == FRAMECOUNT_INVALID)
+    if (iter->second->frameCount == FRAMECOUNT_INVALID)
     {
       iter->second->frameCount = _frameCount;
       ++iter;
@@ -268,8 +269,8 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
       config.graphics_mod_config ? config.graphics_mod_config->GetChangeCount() : 0;
 }
 
-TCacheEntry* TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, const u8* palette,
-                                                   TLUTFormat tlutfmt)
+RcTcacheEntry TextureCacheBase::ApplyPaletteToEntry(RcTcacheEntry& entry, const u8* palette,
+                                                    TLUTFormat tlutfmt)
 {
   DEBUG_ASSERT(g_ActiveConfig.backend_info.bSupportsPaletteConversion);
 
@@ -277,16 +278,16 @@ TCacheEntry* TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, const u8*
   if (!pipeline)
   {
     ERROR_LOG_FMT(VIDEO, "Failed to get conversion pipeline for format {}", tlutfmt);
-    return nullptr;
+    return {};
   }
 
   TextureConfig new_config = entry->texture->GetConfig();
   new_config.levels = 1;
   new_config.flags |= AbstractTextureFlag_RenderTarget;
 
-  TCacheEntry* decoded_entry = AllocateCacheEntry(new_config);
+  RcTcacheEntry decoded_entry = AllocateCacheEntry(new_config);
   if (!decoded_entry)
-    return nullptr;
+    return decoded_entry;
 
   decoded_entry->SetGeneralParameters(entry->addr, entry->size_in_bytes, entry->format,
                                       entry->should_force_safe_hashing);
@@ -337,8 +338,8 @@ TCacheEntry* TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, const u8*
   return decoded_entry;
 }
 
-TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEntry* existing_entry,
-                                                TextureFormat new_format)
+RcTcacheEntry TextureCacheBase::ReinterpretEntry(const RcTcacheEntry& existing_entry,
+                                                 TextureFormat new_format)
 {
   const AbstractPipeline* pipeline =
       g_shader_cache->GetTextureReinterpretPipeline(existing_entry->format.texfmt, new_format);
@@ -346,16 +347,16 @@ TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEntry* existing_entr
   {
     ERROR_LOG_FMT(VIDEO, "Failed to obtain texture reinterpreting pipeline from format {} to {}",
                   existing_entry->format.texfmt, new_format);
-    return nullptr;
+    return {};
   }
 
   TextureConfig new_config = existing_entry->texture->GetConfig();
   new_config.levels = 1;
   new_config.flags |= AbstractTextureFlag_RenderTarget;
 
-  TCacheEntry* reinterpreted_entry = AllocateCacheEntry(new_config);
+  RcTcacheEntry reinterpreted_entry = AllocateCacheEntry(new_config);
   if (!reinterpreted_entry)
-    return nullptr;
+    return {};
 
   reinterpreted_entry->SetGeneralParameters(existing_entry->addr, existing_entry->size_in_bytes,
                                             new_format, existing_entry->should_force_safe_hashing);
@@ -383,7 +384,7 @@ TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEntry* existing_entr
   return reinterpreted_entry;
 }
 
-void TextureCacheBase::ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height)
+void TextureCacheBase::ScaleTextureCacheEntryTo(RcTcacheEntry& entry, u32 new_width, u32 new_height)
 {
   if (entry->GetWidth() == new_width && entry->GetHeight() == new_height)
   {
@@ -558,15 +559,19 @@ void TextureCacheBase::DoState(PointerWrap& p)
 
 void TextureCacheBase::DoSaveState(PointerWrap& p)
 {
+  // Flush all stale binds
+  FlushStaleBinds();
+
   std::map<const TCacheEntry*, u32> entry_map;
   std::vector<TCacheEntry*> entries_to_save;
-  auto ShouldSaveEntry = [](const TCacheEntry* entry) {
+  auto ShouldSaveEntry = [](const RcTcacheEntry& entry) {
     // We skip non-copies as they can be decoded from RAM when the state is loaded.
     // Storing them would duplicate data in the save state file, adding to decompression time.
-    return entry->IsCopy();
+    // We also need to store invalidated entires, as they can't be restored from RAM.
+    return entry->IsCopy() || entry->invalidated;
   };
-  auto AddCacheEntryToMap = [&entry_map, &entries_to_save](TCacheEntry* entry) -> u32 {
-    auto iter = entry_map.find(entry);
+  auto AddCacheEntryToMap = [&entry_map, &entries_to_save](const RcTcacheEntry& entry) -> u32 {
+    auto iter = entry_map.find(entry.get());
     if (iter != entry_map.end())
       return iter->second;
 
@@ -574,8 +579,8 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     // same order they were collected. This is because of iterating both the address and hash maps.
     // Therefore, the map is used for fast lookup, and the vector for ordering.
     u32 id = static_cast<u32>(entry_map.size());
-    entry_map.emplace(entry, id);
-    entries_to_save.push_back(entry);
+    entry_map.emplace(entry.get(), id);
+    entries_to_save.push_back(entry.get());
     return id;
   };
   auto GetCacheEntryId = [&entry_map](const TCacheEntry* entry) -> std::optional<u32> {
@@ -587,6 +592,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
   // of address/hash to entry ID.
   std::vector<std::pair<u32, u32>> textures_by_address_list;
   std::vector<std::pair<u64, u32>> textures_by_hash_list;
+  std::vector<std::pair<u32, u32>> bound_textures_list;
   if (Config::Get(Config::GFX_SAVE_TEXTURE_CACHE_TO_STATE))
   {
     for (const auto& it : textures_by_address)
@@ -603,6 +609,15 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
       {
         const u32 id = AddCacheEntryToMap(it.second);
         textures_by_hash_list.emplace_back(it.first, id);
+      }
+    }
+    for (u32 i = 0; i < bound_textures.size(); i++)
+    {
+      const auto& tentry = bound_textures[i];
+      if (bound_textures[i] && ShouldSaveEntry(tentry))
+      {
+        const u32 id = AddCacheEntryToMap(tentry);
+        bound_textures_list.emplace_back(i, id);
       }
     }
   }
@@ -640,29 +655,20 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     }
   }
 
-  size = static_cast<u32>(reference_pairs.size());
-  p.Do(size);
-  for (const auto& it : reference_pairs)
-  {
-    p.Do(it.first);
-    p.Do(it.second);
-  }
+  auto doList = [&p](auto list) {
+    u32 size = static_cast<u32>(list.size());
+    p.Do(size);
+    for (const auto& it : list)
+    {
+      p.Do(it.first);
+      p.Do(it.second);
+    }
+  };
 
-  size = static_cast<u32>(textures_by_address_list.size());
-  p.Do(size);
-  for (const auto& it : textures_by_address_list)
-  {
-    p.Do(it.first);
-    p.Do(it.second);
-  }
-
-  size = static_cast<u32>(textures_by_hash_list.size());
-  p.Do(size);
-  for (const auto& it : textures_by_hash_list)
-  {
-    p.Do(it.first);
-    p.Do(it.second);
-  }
+  doList(reference_pairs);
+  doList(textures_by_address_list);
+  doList(textures_by_hash_list);
+  doList(bound_textures_list);
 
   // Free the readback texture to potentially save host-mapped GPU memory, depending on where
   // the driver mapped the staging buffer.
@@ -672,10 +678,11 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
 void TextureCacheBase::DoLoadState(PointerWrap& p)
 {
   // Helper for getting a cache entry from an ID.
-  std::map<u32, TCacheEntry*> id_map;
-  auto GetEntry = [&id_map](u32 id) {
+  std::map<u32, RcTcacheEntry> id_map;
+  RcTcacheEntry null_entry;
+  auto GetEntry = [&id_map, &null_entry](u32 id) -> RcTcacheEntry& {
     auto iter = id_map.find(id);
-    return iter == id_map.end() ? nullptr : iter->second;
+    return iter == id_map.end() ? null_entry : iter->second;
   };
 
   // Only clear out state when actually restoring/loading.
@@ -693,13 +700,11 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     // Even if the texture isn't valid, we still need to create the cache entry object
     // to update the point in the state state. We'll just throw it away if it's invalid.
     auto tex = DeserializeTexture(p);
-    TCacheEntry* entry = new TCacheEntry(std::move(tex->texture), std::move(tex->framebuffer));
+    auto entry = Common::make_rc<TCacheEntry>(std::move(tex->texture), std::move(tex->framebuffer));
     entry->textures_by_hash_iter = textures_by_hash.end();
     entry->DoState(p);
     if (entry->texture && commit_state)
       id_map.emplace(i, entry);
-    else
-      delete entry;
   }
   p.DoMarker("TextureCacheEntries");
 
@@ -710,10 +715,10 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     u32 id1 = 0, id2 = 0;
     p.Do(id1);
     p.Do(id2);
-    TCacheEntry* e1 = GetEntry(id1);
-    TCacheEntry* e2 = GetEntry(id2);
+    auto e1 = GetEntry(id1);
+    auto e2 = GetEntry(id2);
     if (e1 && e2)
-      e1->CreateReference(e2);
+      e1->CreateReference(e2.get());
   }
 
   // Fill in address map.
@@ -725,7 +730,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     p.Do(addr);
     p.Do(id);
 
-    TCacheEntry* entry = GetEntry(id);
+    auto& entry = GetEntry(id);
     if (entry)
       textures_by_address.emplace(addr, entry);
   }
@@ -739,9 +744,27 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     p.Do(hash);
     p.Do(id);
 
-    TCacheEntry* entry = GetEntry(id);
+    auto& entry = GetEntry(id);
     if (entry)
       entry->textures_by_hash_iter = textures_by_hash.emplace(hash, entry);
+  }
+
+  // Clear bound textures
+  for (u32 i = 0; i < bound_textures.size(); i++)
+    bound_textures[i].reset();
+
+  // Fill in bound textures
+  p.Do(size);
+  for (u32 i = 0; i < size; i++)
+  {
+    u32 index = 0;
+    u32 id = 0;
+    p.Do(index);
+    p.Do(id);
+
+    auto& entry = GetEntry(id);
+    if (entry)
+      bound_textures[index] = entry;
   }
 }
 
@@ -756,7 +779,7 @@ void TCacheEntry::DoState(PointerWrap& p)
   p.Do(is_efb_copy);
   p.Do(is_custom_tex);
   p.Do(may_have_overlapping_textures);
-  p.Do(tmem_only);
+  p.Do(invalidated);
   p.Do(has_arbitrary_mips);
   p.Do(should_force_safe_hashing);
   p.Do(is_xfb_copy);
@@ -769,8 +792,8 @@ void TCacheEntry::DoState(PointerWrap& p)
   p.Do(frameCount);
 }
 
-TCacheEntry* TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update,
-                                                       const u8* palette, TLUTFormat tlutfmt)
+RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_update,
+                                                        const u8* palette, TLUTFormat tlutfmt)
 {
   // If the flag may_have_overlapping_textures is cleared, there are no overlapping EFB copies,
   // which aren't applied already. It is set for new textures, and for the affected range
@@ -796,9 +819,9 @@ TCacheEntry* TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_upd
   auto iter = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
   while (iter.first != iter.second)
   {
-    TCacheEntry* entry = iter.first->second;
-    if (entry != entry_to_update && entry->IsCopy() && !entry->tmem_only &&
-        entry->references.count(entry_to_update) == 0 &&
+    auto& entry = iter.first->second;
+    if (entry != entry_to_update && entry->IsCopy() &&
+        entry->references.count(entry_to_update.get()) == 0 &&
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
         entry->memory_stride == numBlocksX * block_size)
     {
@@ -813,20 +836,19 @@ TCacheEntry* TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_upd
             continue;
           }
 
-          TCacheEntry* reinterpreted_entry =
-              ReinterpretEntry(entry, entry_to_update->format.texfmt);
+          auto reinterpreted_entry = ReinterpretEntry(entry, entry_to_update->format.texfmt);
           if (reinterpreted_entry)
             entry = reinterpreted_entry;
         }
 
         if (isPaletteTexture)
         {
-          TCacheEntry* decoded_entry = ApplyPaletteToEntry(entry, palette, tlutfmt);
+          auto decoded_entry = ApplyPaletteToEntry(entry, palette, tlutfmt);
           if (decoded_entry)
           {
             // Link the efb copy with the partially updated texture, so we won't apply this partial
             // update again
-            entry->CreateReference(entry_to_update);
+            entry->CreateReference(entry_to_update.get());
             // Mark the texture update as used, as if it was loaded directly
             entry->frameCount = FRAMECOUNT_INVALID;
             entry = decoded_entry;
@@ -927,7 +949,7 @@ TCacheEntry* TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_upd
         else
         {
           // Link the two textures together, so we won't apply this partial update again
-          entry->CreateReference(entry_to_update);
+          entry->CreateReference(entry_to_update.get());
           // Mark the texture update as used, as if it was loaded directly
           entry->frameCount = FRAMECOUNT_INVALID;
         }
@@ -945,7 +967,7 @@ TCacheEntry* TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_upd
   return entry_to_update;
 }
 
-void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, unsigned int level,
+void TextureCacheBase::DumpTexture(RcTcacheEntry& entry, std::string basename, unsigned int level,
                                    bool is_arbitrary)
 {
   std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
@@ -1053,7 +1075,7 @@ void TextureCacheBase::BindTextures(BitSet32 used_textures)
 {
   for (u32 i = 0; i < bound_textures.size(); i++)
   {
-    const TCacheEntry* tentry = bound_textures[i];
+    const RcTcacheEntry& tentry = bound_textures[i];
     if (used_textures[i] && tentry)
     {
       g_renderer->SetTexture(i, tentry->texture.get());
@@ -1217,9 +1239,16 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
   // if this stage was not invalidated by changes to texture registers, keep the current texture
   if (TMEM::IsValid(texture_info.GetStage()) && bound_textures[texture_info.GetStage()])
   {
-    TCacheEntry* entry = bound_textures[texture_info.GetStage()];
+    TCacheEntry* entry = bound_textures[texture_info.GetStage()].get();
     // If the TMEM configuration is such that this texture is more or less guaranteed to still
     // be in TMEM, then we know we can reuse the old entry without even hashing the memory
+    //
+    // It's possible this texture has already been overwritten in emulated memory and therfore
+    // invalidated from our texture cache, but we want to use it anyway to approximate the
+    // result of the game using an overwritten texture cached in TMEM.
+    //
+    // Spyro: A Hero's Tail is known for (deliberately?) using such overwritten textures
+    // in it's bloom effect, which breaks without giving it the invalidated texture.
     if (TMEM::IsCached(texture_info.GetStage()))
     {
       return entry;
@@ -1227,7 +1256,7 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
 
     // Otherwise, hash the backing memory and check it's unchanged.
     // FIXME: this doesn't correctly handle textures from tmem.
-    if (!entry->tmem_only && entry->base_hash == entry->CalculateHash())
+    if (!entry->invalidated && entry->base_hash == entry->CalculateHash())
     {
       return entry;
     }
@@ -1250,11 +1279,11 @@ TCacheEntry* TextureCacheBase::Load(const TextureInfo& texture_info)
   TMEM::Bind(texture_info.GetStage(), entry->NumBlocksX(), entry->NumBlocksY(),
              entry->GetNumLevels() > 1, entry->format == TextureFormat::RGBA8);
 
-  return entry;
+  return entry.get();
 }
 
-TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
-                                          const TextureInfo& texture_info)
+RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampleSize,
+                                           const TextureInfo& texture_info)
 {
   u32 expanded_width = texture_info.GetExpandedWidth();
   u32 expanded_height = texture_info.GetExpandedHeight();
@@ -1271,7 +1300,7 @@ TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampl
 
   // Reject invalid tlut format.
   if (texture_info.GetPaletteSize() && !IsValidTLUTFormat(texture_info.GetTlutFormat()))
-    return nullptr;
+    return {};
 
   u32 bytes_per_block = (texture_info.GetBlockWidth() * texture_info.GetBlockHeight() *
                          TexDecoder_GetTexelSizeInNibbles(texture_info.GetTextureFormat())) /
@@ -1284,7 +1313,7 @@ TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampl
   {
     ERROR_LOG_FMT(VIDEO, "Trying to use an invalid texture address {:#010x}",
                   texture_info.GetRawAddress());
-    return nullptr;
+    return {};
   }
 
   // If we are recording a FifoLog, keep track of what memory we read. FifoRecorder does
@@ -1348,14 +1377,7 @@ TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampl
 
   while (iter != iter_range.second)
   {
-    TCacheEntry* entry = iter->second;
-
-    // Skip entries that are only left in our texture cache for the tmem cache emulation
-    if (entry->tmem_only)
-    {
-      ++iter;
-      continue;
-    }
+    RcTcacheEntry& entry = iter->second;
 
     // TODO: Some games (Rogue Squadron 3, Twin Snakes) seem to load a previously made XFB
     // copy as a regular texture. You can see this particularly well in RS3 whenever the
@@ -1458,7 +1480,7 @@ TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampl
 
   if (unreinterpreted_copy != textures_by_address.end())
   {
-    TCacheEntry* decoded_entry =
+    auto decoded_entry =
         ReinterpretEntry(unreinterpreted_copy->second, texture_info.GetTextureFormat());
 
     // It's possible to combine reinterpreted textures + palettes.
@@ -1472,7 +1494,7 @@ TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampl
 
   if (unconverted_copy != textures_by_address.end())
   {
-    TCacheEntry* decoded_entry = ApplyPaletteToEntry(
+    auto decoded_entry = ApplyPaletteToEntry(
         unconverted_copy->second, texture_info.GetTlutAddress(), texture_info.GetTlutFormat());
 
     if (decoded_entry)
@@ -1495,7 +1517,7 @@ TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampl
     TexHashCache::iterator hash_iter = hash_range.first;
     while (hash_iter != hash_range.second)
     {
-      TCacheEntry* entry = hash_iter->second;
+      RcTcacheEntry& entry = hash_iter->second;
       // All parameters, except the address, need to match here
       if (entry->format == full_format && entry->native_levels >= texture_info.GetLevelCount() &&
           entry->native_width == texture_info.GetRawWidth() &&
@@ -1550,9 +1572,9 @@ TCacheEntry* TextureCacheBase::GetTexture(const int textureCacheSafetyColorSampl
   // create the entry/texture
   const TextureConfig config(width, height, texLevels, 1, 1,
                              hires_tex ? hires_tex->GetFormat() : AbstractTextureFormat::RGBA8, 0);
-  TCacheEntry* entry = AllocateCacheEntry(config);
+  RcTcacheEntry entry = AllocateCacheEntry(config);
   if (!entry)
-    return nullptr;
+    return entry;
 
   ArbitraryMipmapDetector arbitrary_mip_detector;
   if (hires_tex)
@@ -1712,18 +1734,18 @@ static void GetDisplayRectForXFBEntry(TCacheEntry* entry, u32 width, u32 height,
   display_rect->bottom = static_cast<int>(height * entry->GetHeight() / entry->native_height);
 }
 
-TCacheEntry* TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
-                                             MathUtil::Rectangle<int>* display_rect)
+RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
+                                              MathUtil::Rectangle<int>* display_rect)
 {
   const u8* src_data = Memory::GetPointer(address);
   if (!src_data)
   {
     ERROR_LOG_FMT(VIDEO, "Trying to load XFB texture from invalid address {:#010x}", address);
-    return nullptr;
+    return {};
   }
 
   // Do we currently have a version of this XFB copy in VRAM?
-  TCacheEntry* entry = GetXFBFromCache(address, width, height, stride);
+  RcTcacheEntry entry = GetXFBFromCache(address, width, height, stride);
   if (entry)
   {
     if (entry->is_xfb_container)
@@ -1732,7 +1754,7 @@ TCacheEntry* TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height,
       entry->texture->FinishedRendering();
     }
 
-    GetDisplayRectForXFBEntry(entry, width, height, display_rect);
+    GetDisplayRectForXFBEntry(entry.get(), width, height, display_rect);
     return entry;
   }
 
@@ -1788,18 +1810,18 @@ TCacheEntry* TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height,
     }
   }
 
-  GetDisplayRectForXFBEntry(entry, width, height, display_rect);
+  GetDisplayRectForXFBEntry(entry.get(), width, height, display_rect);
   return entry;
 }
 
-TCacheEntry* TextureCacheBase::GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride)
+RcTcacheEntry TextureCacheBase::GetXFBFromCache(u32 address, u32 width, u32 height, u32 stride)
 {
   auto iter_range = textures_by_address.equal_range(address);
   TexAddrCache::iterator iter = iter_range.first;
 
   while (iter != iter_range.second)
   {
-    TCacheEntry* entry = iter->second;
+    auto& entry = iter->second;
 
     // The only thing which has to match exactly is the stride. We can use a partial rectangle if
     // the VI width/height differs from that of the XFB copy.
@@ -1823,10 +1845,10 @@ TCacheEntry* TextureCacheBase::GetXFBFromCache(u32 address, u32 width, u32 heigh
     ++iter;
   }
 
-  return nullptr;
+  return {};
 }
 
-void TextureCacheBase::StitchXFBCopy(TCacheEntry* stitched_entry)
+void TextureCacheBase::StitchXFBCopy(RcTcacheEntry& stitched_entry)
 {
   // It is possible that some of the overlapping textures overlap each other. This behavior has been
   // seen with XFB copies in Rogue Leader. To get the correct result, we apply the texture updates
@@ -1845,8 +1867,8 @@ void TextureCacheBase::StitchXFBCopy(TCacheEntry* stitched_entry)
     // our force progressive hack means that an XFB copy should always have a matching stride. If
     // the hack is disabled, XFB2RAM should also be enabled. Should we wish to implement interlaced
     // stitching in the future, this would require a shader which grabs every second line.
-    TCacheEntry* entry = iter.first->second;
-    if (entry != stitched_entry && entry->IsCopy() && !entry->tmem_only &&
+    auto& entry = iter.first->second;
+    if (entry != stitched_entry && entry->IsCopy() &&
         entry->OverlapsMemoryRange(stitched_entry->addr, stitched_entry->size_in_bytes) &&
         entry->memory_stride == stitched_entry->memory_stride)
     {
@@ -1856,7 +1878,7 @@ void TextureCacheBase::StitchXFBCopy(TCacheEntry* stitched_entry)
         if (entry->native_width != entry->GetWidth())
           create_upscaled_copy = true;
 
-        candidates.emplace_back(entry);
+        candidates.emplace_back(entry.get());
       }
       else
       {
@@ -1966,7 +1988,7 @@ void TextureCacheBase::StitchXFBCopy(TCacheEntry* stitched_entry)
     }
 
     // Link the two textures together, so we won't apply this partial update again
-    entry->CreateReference(stitched_entry);
+    entry->CreateReference(stitched_entry.get());
 
     // Mark the texture update as used, as if it was loaded directly
     entry->frameCount = FRAMECOUNT_INVALID;
@@ -2189,7 +2211,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   const bool linear_filter =
       !is_depth_copy && (scaleByHalf || g_renderer->GetEFBScale() != 1 || y_scale > 1.0f);
 
-  TCacheEntry* entry = nullptr;
+  RcTcacheEntry entry;
   if (copy_to_vram)
   {
     // create the texture
@@ -2280,7 +2302,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
         entry->pending_efb_copy = std::move(staging_texture);
         entry->pending_efb_copy_width = bytes_per_row / sizeof(u32);
         entry->pending_efb_copy_height = num_blocks_y;
-        entry->pending_efb_copy_invalidated = false;
         m_pending_efb_copies.push_back(entry);
       }
     }
@@ -2305,7 +2326,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   auto iter = FindOverlappingTextures(dstAddr, covered_range);
   while (iter.first != iter.second)
   {
-    TCacheEntry* overlapping_entry = iter.first->second;
+    RcTcacheEntry& overlapping_entry = iter.first->second;
 
     if (overlapping_entry->addr == dstAddr && overlapping_entry->is_xfb_copy)
     {
@@ -2378,7 +2399,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   {
     const u64 hash = entry->CalculateHash();
     entry->SetHashes(hash, hash);
-    textures_by_address.emplace(dstAddr, entry);
+    textures_by_address.emplace(dstAddr, std::move(entry));
   }
 }
 
@@ -2387,9 +2408,18 @@ void TextureCacheBase::FlushEFBCopies()
   if (m_pending_efb_copies.empty())
     return;
 
-  for (TCacheEntry* entry : m_pending_efb_copies)
-    FlushEFBCopy(entry);
+  for (auto& entry : m_pending_efb_copies)
+    FlushEFBCopy(entry.get());
   m_pending_efb_copies.clear();
+}
+
+void TextureCacheBase::FlushStaleBinds()
+{
+  for (u32 i = 0; i < bound_textures.size(); i++)
+  {
+    if (!TMEM::IsCached(i))
+      bound_textures[i].reset();
+  }
 }
 
 void TextureCacheBase::WriteEFBCopyToRAM(u8* dst_ptr, u32 width, u32 height, u32 stride,
@@ -2407,14 +2437,10 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
   WriteEFBCopyToRAM(dst, entry->pending_efb_copy_width, entry->pending_efb_copy_height,
                     entry->memory_stride, std::move(entry->pending_efb_copy));
 
-  // If the EFB copy was invalidated (e.g. the bloom case mentioned in InvalidateTexture), now is
-  // the time to clean up the TCacheEntry. In which case, we don't need to compute the new hash of
-  // the RAM copy. But we need to clean up the TCacheEntry, as InvalidateTexture doesn't free it.
-  if (entry->pending_efb_copy_invalidated)
-  {
-    delete entry;
+  // If the EFB copy was invalidated (e.g. the bloom case mentioned in InvalidateTexture), we don't
+  // need to do anything more. The entry will be automatically deleted by smart pointers
+  if (entry->invalidated)
     return;
-  }
 
   // Re-hash the texture now that the guest memory is populated.
   // This should be safe because we'll catch any writes before the game can modify it.
@@ -2429,7 +2455,7 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
     auto range = FindOverlappingTextures(entry->addr, covered_range);
     for (auto iter = range.first; iter != range.second; ++iter)
     {
-      TCacheEntry* overlapping_entry = iter->second;
+      auto& overlapping_entry = iter->second;
       if (overlapping_entry->may_have_overlapping_textures && overlapping_entry->is_xfb_copy &&
           overlapping_entry->OverlapsMemoryRange(entry->addr, covered_range))
       {
@@ -2519,14 +2545,14 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   }
 }
 
-TCacheEntry* TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
+RcTcacheEntry TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
 {
   std::optional<TexPoolEntry> alloc = AllocateTexture(config);
   if (!alloc)
-    return nullptr;
+    return {};
 
-  TCacheEntry* cacheEntry =
-      new TCacheEntry(std::move(alloc->texture), std::move(alloc->framebuffer));
+  auto cacheEntry =
+      Common::make_rc<TCacheEntry>(std::move(alloc->texture), std::move(alloc->framebuffer));
   cacheEntry->textures_by_hash_iter = textures_by_hash.end();
   cacheEntry->id = last_entry_id++;
   return cacheEntry;
@@ -2588,7 +2614,7 @@ TextureCacheBase::TexAddrCache::iterator TextureCacheBase::GetTexCacheIter(TCach
   TexAddrCache::iterator iter = iter_range.first;
   while (iter != iter_range.second)
   {
-    if (iter->second == entry)
+    if (iter->second.get() == entry)
     {
       return iter;
     }
@@ -2620,32 +2646,12 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
   if (iter == textures_by_address.end())
     return textures_by_address.end();
 
-  TCacheEntry* entry = iter->second;
+  RcTcacheEntry& entry = iter->second;
 
   if (entry->textures_by_hash_iter != textures_by_hash.end())
   {
     textures_by_hash.erase(entry->textures_by_hash_iter);
     entry->textures_by_hash_iter = textures_by_hash.end();
-  }
-
-  for (size_t i = 0; i < bound_textures.size(); ++i)
-  {
-    if (bound_textures[i] == entry)
-    {
-      if (TMEM::IsCached(static_cast<u32>(i)))
-      {
-        // If the entry is currently bound and tmem has it recorded as cached, keep it, but mark it
-        // as invalidated. This way it can still be used via tmem cache emulation, but nothing else.
-        // Spyro: A Hero's Tail is known for using such overwritten textures.
-        bound_textures[i]->tmem_only = true;
-        return ++iter;
-      }
-      else
-      {
-        // Otherwise, delete the reference to it from bound_textures
-        bound_textures[i] = nullptr;
-      }
-    }
   }
 
   // If this is a pending EFB copy, we don't want to flush it here.
@@ -2670,19 +2676,23 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     }
     else
     {
-      entry->pending_efb_copy_invalidated = true;
+      // The texture data has already been copied into the staging texture, so it's valid to
+      // optimistically release the texture data. Will slightly lower VRAM usage.
+      ReleaseToPool(entry.get());
     }
   }
+  entry->invalidated = true;
 
+  return textures_by_address.erase(iter);
+}
+
+void TextureCacheBase::ReleaseToPool(TCacheEntry* entry)
+{
+  if (!entry->texture)
+    return;
   auto config = entry->texture->GetConfig();
   texture_pool.emplace(config,
                        TexPoolEntry(std::move(entry->texture), std::move(entry->framebuffer)));
-
-  // Don't delete if there's a pending EFB copy, as we need the TCacheEntry alive.
-  if (!entry->pending_efb_copy)
-    delete entry;
-
-  return textures_by_address.erase(iter);
 }
 
 bool TextureCacheBase::CreateUtilityTextures()
@@ -2711,7 +2721,7 @@ bool TextureCacheBase::CreateUtilityTextures()
   return true;
 }
 
-void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
+void TextureCacheBase::CopyEFBToCacheEntry(RcTcacheEntry& entry, bool is_depth_copy,
                                            const MathUtil::Rectangle<int>& src_rect,
                                            bool scale_by_half, bool linear_filter,
                                            EFBCopyFormat dst_format, bool is_intensity, float gamma,
@@ -2867,7 +2877,7 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   g_vertex_manager->OnEFBCopyToRAM();
 }
 
-bool TextureCacheBase::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u8* data,
+bool TextureCacheBase::DecodeTextureOnGPU(RcTcacheEntry& entry, u32 dst_level, const u8* data,
                                           u32 data_size, TextureFormat format, u32 width,
                                           u32 height, u32 aligned_width, u32 aligned_height,
                                           u32 row_stride, const u8* palette,
