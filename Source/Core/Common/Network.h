@@ -257,6 +257,14 @@ struct NetworkErrorState
 #endif
 };
 
+// u32 values are in network endian
+struct DefaultInterface
+{
+  u32 inet;       // IPv4 address
+  u32 netmask;    // IPv4 subnet mask
+  u32 broadcast;  // IPv4 broadcast address
+};
+
 MACAddress GenerateMacAddress(MACConsumer type);
 std::string MacAddressToString(const MACAddress& mac);
 std::optional<MACAddress> StringToMacAddress(std::string_view mac_string);
@@ -265,4 +273,6 @@ u16 ComputeTCPNetworkChecksum(const IPAddress& from, const IPAddress& to, const 
                               u16 length, u8 protocol);
 NetworkErrorState SaveNetworkErrorState();
 void RestoreNetworkErrorState(const NetworkErrorState& state);
+std::optional<DefaultInterface> GetSystemDefaultInterface();
+DefaultInterface GetSystemDefaultInterfaceOrFallback();
 }  // namespace Common
