@@ -34,6 +34,24 @@ struct TcpBuffer
   std::vector<u8> data;
 };
 
+// Socket helper class to ensure network interface consistency
+class BbaTcpSocket : public sf::TcpSocket
+{
+public:
+  BbaTcpSocket();
+
+  sf::Socket::Status Connect(const sf::IpAddress& addr, u16 port,
+                             sf::Time timeout = sf::Time::Zero);
+};
+
+class BbaUdpSocket : public sf::UdpSocket
+{
+public:
+  BbaUdpSocket();
+
+  sf::Socket::Status Bind(u16 port);
+};
+
 struct StackRef
 {
   u32 ip;
@@ -52,7 +70,7 @@ struct StackRef
   sockaddr_in to;
   Common::MACAddress bba_mac{};
   Common::MACAddress my_mac{};
-  sf::UdpSocket udp_socket;
-  sf::TcpSocket tcp_socket;
+  BbaUdpSocket udp_socket;
+  BbaTcpSocket tcp_socket;
   u64 poke_time;
 };

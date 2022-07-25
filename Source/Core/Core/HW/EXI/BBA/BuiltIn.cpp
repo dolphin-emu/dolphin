@@ -342,7 +342,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
 
     ref->seq_num++;
     target = sf::IpAddress(ntohl(Common::BitCast<u32>(ip_header.destination_addr)));
-    ref->tcp_socket.connect(target, ntohs(tcp_header.destination_port));
+    ref->tcp_socket.Connect(target, ntohs(tcp_header.destination_port));
     ref->ready = false;
     ref->ip = Common::BitCast<u32>(ip_header.destination_addr);
 
@@ -428,7 +428,7 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   ref->to.sin_addr.s_addr = m_current_ip;
   ref->to.sin_port = htons(port);
   ref->udp_socket.setBlocking(false);
-  if (ref->udp_socket.bind(port) != sf::Socket::Done)
+  if (ref->udp_socket.Bind(port) != sf::Socket::Done)
   {
     ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
     PanicAlertFmt("Could't open port {:x}, this game might not work proprely in LAN mode.", port);
@@ -458,12 +458,12 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     ref->to.sin_addr.s_addr = Common::BitCast<u32>(ip_header.source_addr);
     ref->to.sin_port = udp_header.source_port;
     ref->udp_socket.setBlocking(false);
-    if (ref->udp_socket.bind(htons(udp_header.source_port)) != sf::Socket::Done)
+    if (ref->udp_socket.Bind(ntohs(udp_header.source_port)) != sf::Socket::Done)
     {
       PanicAlertFmt(
           "Port {:x} is already in use, this game might not work as intented in LAN Mode.",
           htons(udp_header.source_port));
-      if (ref->udp_socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
+      if (ref->udp_socket.Bind(sf::Socket::AnyPort) != sf::Socket::Done)
       {
         ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
         return;
@@ -674,6 +674,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::RecvInit()
 
 void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 {
+  Common::GetDefaultIp(true);
   m_read_enabled.Set();
 }
 
@@ -692,3 +693,22 @@ void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
   m_queue_write = 0;
 }
 }  // namespace ExpansionInterface
+
+BbaTcpSocket::BbaTcpSocket() = default;
+
+sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& ip, u16 port, sf::Time timeout)
+{
+  sockaddr_in addr;
+  addr.sin_addr.s_addr = Common::GetDefaultIp();
+  addr.sin_family = AF_INET;
+  addr.sin_port = 0;
+  ::bind(getHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+  return this->connect(ip, port, timeout);
+}
+
+BbaUdpSocket::BbaUdpSocket() = default;
+
+sf::Socket::Status BbaUdpSocket::Bind(u16 port)
+{
+  return this->bind(port, sf::IpAddress(ntohl(Common::GetDefaultIp())));
+}
