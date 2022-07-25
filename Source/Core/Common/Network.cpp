@@ -8,17 +8,27 @@
 #include <vector>
 
 #ifndef _WIN32
+#include <arpa/inet.h>
+#include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #else
 #include <WinSock2.h>
+#include <iphlpapi.h>
+#include <ws2tcpip.h>
+#endif
+
+#ifdef __ANDROID__
+#include "jni/AndroidCommon/AndroidCommon.h"
 #endif
 
 #include <fmt/format.h>
 
 #include "Common/BitUtils.h"
 #include "Common/Random.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 namespace Common
@@ -544,5 +554,125 @@ void RestoreNetworkErrorState(const NetworkErrorState& state)
 #ifdef _WIN32
   WSASetLastError(state.wsa_error);
 #endif
+}
+
+std::optional<DefaultInterface> GetSystemDefaultInterface()
+{
+#ifdef _WIN32
+  std::unique_ptr<MIB_IPFORWARDTABLE> forward_table;
+  DWORD forward_table_size = 0;
+  if (GetIpForwardTable(nullptr, &forward_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
+  {
+    forward_table =
+        std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE) operator new(forward_table_size));
+  }
+
+  std::unique_ptr<MIB_IPADDRTABLE> ip_table;
+  DWORD ip_table_size = 0;
+  if (GetIpAddrTable(nullptr, &ip_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
+  {
+    ip_table = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE) operator new(ip_table_size));
+  }
+
+  // find the interface IP used for the default route and use that
+  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
+  DWORD result = GetIpForwardTable(forward_table.get(), &forward_table_size, FALSE);
+  // can return ERROR_MORE_DATA on XP even after the first call
+  while (result == NO_ERROR || result == ERROR_MORE_DATA)
+  {
+    for (DWORD i = 0; i < forward_table->dwNumEntries; ++i)
+    {
+      if (forward_table->table[i].dwForwardDest == 0)
+      {
+        ifIndex = forward_table->table[i].dwForwardIfIndex;
+        break;
+      }
+    }
+
+    if (result == NO_ERROR || ifIndex != NET_IFINDEX_UNSPECIFIED)
+      break;
+
+    result = GetIpForwardTable(forward_table.get(), &forward_table_size, FALSE);
+  }
+
+  if (ifIndex != NET_IFINDEX_UNSPECIFIED &&
+      GetIpAddrTable(ip_table.get(), &ip_table_size, FALSE) == NO_ERROR)
+  {
+    for (DWORD i = 0; i < ip_table->dwNumEntries; ++i)
+    {
+      const auto& entry = ip_table->table[i];
+      if (entry.dwIndex == ifIndex)
+        return DefaultInterface{entry.dwAddr, entry.dwMask, entry.dwBCastAddr};
+    }
+  }
+#elif defined(__ANDROID__)
+  const u32 addr = GetNetworkIpAddress();
+  const u32 prefix_length = GetNetworkPrefixLength();
+  const u32 netmask = (1 << prefix_length) - 1;
+  const u32 gateway = GetNetworkGateway();
+  if (addr || netmask || gateway)
+    return DefaultInterface{addr, netmask, gateway};
+#else
+  // Assume that the address that is used to access the Internet corresponds
+  // to the default interface.
+  auto get_default_address = []() -> std::optional<in_addr> {
+    const int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    Common::ScopeGuard sock_guard{[sock] { close(sock); }};
+
+    sockaddr_in addr{};
+    socklen_t length = sizeof(addr);
+    addr.sin_family = AF_INET;
+    // The address and port are irrelevant -- no packet is actually sent. These just need to be set
+    // to a valid IP and port.
+    addr.sin_addr.s_addr = inet_addr("8.8.8.8");
+    addr.sin_port = htons(53);
+    if (connect(sock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) == -1)
+      return {};
+    if (getsockname(sock, reinterpret_cast<sockaddr*>(&addr), &length) == -1)
+      return {};
+    return addr.sin_addr;
+  };
+
+  auto get_addr = [](const sockaddr* addr) {
+    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr;
+  };
+
+  const auto default_interface_address = get_default_address();
+  if (!default_interface_address)
+    return {};
+
+  ifaddrs* iflist;
+  if (getifaddrs(&iflist) != 0)
+    return {};
+  Common::ScopeGuard iflist_guard{[iflist] { freeifaddrs(iflist); }};
+
+  for (const ifaddrs* iface = iflist; iface; iface = iface->ifa_next)
+  {
+    if (iface->ifa_addr && iface->ifa_addr->sa_family == AF_INET &&
+        get_addr(iface->ifa_addr) == default_interface_address->s_addr)
+    {
+      return DefaultInterface{get_addr(iface->ifa_addr), get_addr(iface->ifa_netmask),
+                              get_addr(iface->ifa_broadaddr)};
+    }
+  }
+#endif
+  return std::nullopt;
+}
+
+DefaultInterface GetSystemDefaultInterfaceOrFallback()
+{
+  static const u32 FALLBACK_IP = inet_addr("10.0.1.30");
+  static const u32 FALLBACK_NETMASK = inet_addr("255.255.255.0");
+  static const u32 FALLBACK_GATEWAY = inet_addr("10.0.255.255");
+  static const DefaultInterface FALLBACK_VALUES{FALLBACK_IP, FALLBACK_NETMASK, FALLBACK_GATEWAY};
+  return GetSystemDefaultInterface().value_or(FALLBACK_VALUES);
+}
+
+u32 GetDefaultIp(bool refresh)
+{
+  static std::optional<u32> inet_ip;
+  if (!inet_ip || refresh)
+    inet_ip = GetSystemDefaultInterfaceOrFallback().inet;
+  return *inet_ip;
 }
 }  // namespace Common

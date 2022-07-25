@@ -23,7 +23,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
-#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
@@ -33,7 +32,6 @@
 #include "Core/IOS/Network/Socket.h"
 
 #ifdef _WIN32
-#include <iphlpapi.h>
 #include <ws2tcpip.h>
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
@@ -47,10 +45,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#endif
-
-#ifdef __ANDROID__
-#include "jni/AndroidCommon/AndroidCommon.h"
 #endif
 
 namespace IOS::HLE
@@ -158,126 +152,6 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
 
   INFO_LOG_FMT(IOS_NET, "SO_SETSOCKOPT: unknown optname {}", optname);
   return optname;
-}
-
-// u32 values are in little endian (i.e. 0x0100007f means 127.0.0.1)
-struct DefaultInterface
-{
-  u32 inet;       // IPv4 address
-  u32 netmask;    // IPv4 subnet mask
-  u32 broadcast;  // IPv4 broadcast address
-};
-
-static std::optional<DefaultInterface> GetSystemDefaultInterface()
-{
-#ifdef _WIN32
-  std::unique_ptr<MIB_IPFORWARDTABLE> forward_table;
-  DWORD forward_table_size = 0;
-  if (GetIpForwardTable(nullptr, &forward_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
-  {
-    forward_table =
-        std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE) operator new(forward_table_size));
-  }
-
-  std::unique_ptr<MIB_IPADDRTABLE> ip_table;
-  DWORD ip_table_size = 0;
-  if (GetIpAddrTable(nullptr, &ip_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
-  {
-    ip_table = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE) operator new(ip_table_size));
-  }
-
-  // find the interface IP used for the default route and use that
-  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
-  DWORD result = GetIpForwardTable(forward_table.get(), &forward_table_size, FALSE);
-  // can return ERROR_MORE_DATA on XP even after the first call
-  while (result == NO_ERROR || result == ERROR_MORE_DATA)
-  {
-    for (DWORD i = 0; i < forward_table->dwNumEntries; ++i)
-    {
-      if (forward_table->table[i].dwForwardDest == 0)
-      {
-        ifIndex = forward_table->table[i].dwForwardIfIndex;
-        break;
-      }
-    }
-
-    if (result == NO_ERROR || ifIndex != NET_IFINDEX_UNSPECIFIED)
-      break;
-
-    result = GetIpForwardTable(forward_table.get(), &forward_table_size, FALSE);
-  }
-
-  if (ifIndex != NET_IFINDEX_UNSPECIFIED &&
-      GetIpAddrTable(ip_table.get(), &ip_table_size, FALSE) == NO_ERROR)
-  {
-    for (DWORD i = 0; i < ip_table->dwNumEntries; ++i)
-    {
-      const auto& entry = ip_table->table[i];
-      if (entry.dwIndex == ifIndex)
-        return DefaultInterface{entry.dwAddr, entry.dwMask, entry.dwBCastAddr};
-    }
-  }
-#elif defined(__ANDROID__)
-  const u32 addr = GetNetworkIpAddress();
-  const u32 prefix_length = GetNetworkPrefixLength();
-  const u32 netmask = (1 << prefix_length) - 1;
-  const u32 gateway = GetNetworkGateway();
-  if (addr || netmask || gateway)
-    return DefaultInterface{addr, netmask, gateway};
-#else
-  // Assume that the address that is used to access the Internet corresponds
-  // to the default interface.
-  auto get_default_address = []() -> std::optional<in_addr> {
-    const int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    Common::ScopeGuard sock_guard{[sock] { close(sock); }};
-
-    sockaddr_in addr{};
-    socklen_t length = sizeof(addr);
-    addr.sin_family = AF_INET;
-    // The address and port are irrelevant -- no packet is actually sent. These just need to be set
-    // to a valid IP and port.
-    addr.sin_addr.s_addr = inet_addr("8.8.8.8");
-    addr.sin_port = htons(53);
-    if (connect(sock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) == -1)
-      return {};
-    if (getsockname(sock, reinterpret_cast<sockaddr*>(&addr), &length) == -1)
-      return {};
-    return addr.sin_addr;
-  };
-
-  auto get_addr = [](const sockaddr* addr) {
-    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr;
-  };
-
-  const auto default_interface_address = get_default_address();
-  if (!default_interface_address)
-    return {};
-
-  ifaddrs* iflist;
-  if (getifaddrs(&iflist) != 0)
-    return {};
-  Common::ScopeGuard iflist_guard{[iflist] { freeifaddrs(iflist); }};
-
-  for (const ifaddrs* iface = iflist; iface; iface = iface->ifa_next)
-  {
-    if (iface->ifa_addr && iface->ifa_addr->sa_family == AF_INET &&
-        get_addr(iface->ifa_addr) == default_interface_address->s_addr)
-    {
-      return DefaultInterface{get_addr(iface->ifa_addr), get_addr(iface->ifa_netmask),
-                              get_addr(iface->ifa_broadaddr)};
-    }
-  }
-#endif
-  return std::nullopt;
-}
-
-static DefaultInterface GetSystemDefaultInterfaceOrFallback()
-{
-  static const u32 FALLBACK_IP = inet_addr("10.0.1.30");
-  static const u32 FALLBACK_NETMASK = inet_addr("255.255.255.0");
-  static const u32 FALLBACK_GATEWAY = inet_addr("10.0.255.255");
-  static const DefaultInterface FALLBACK_VALUES{FALLBACK_IP, FALLBACK_NETMASK, FALLBACK_GATEWAY};
-  return GetSystemDefaultInterface().value_or(FALLBACK_VALUES);
 }
 
 std::optional<IPCReply> NetIPTopDevice::IOCtl(const IOCtlRequest& request)
@@ -576,7 +450,7 @@ IPCReply NetIPTopDevice::HandleGetPeerNameRequest(const IOCtlRequest& request)
 
 IPCReply NetIPTopDevice::HandleGetHostIDRequest(const IOCtlRequest& request)
 {
-  const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
+  const Common::DefaultInterface interface = Common::GetSystemDefaultInterfaceOrFallback();
   const u32 host_ip = Common::swap32(interface.inet);
   INFO_LOG_FMT(IOS_NET, "IOCTL_SO_GETHOSTID = {}.{}.{}.{}", host_ip >> 24, (host_ip >> 16) & 0xFF,
                (host_ip >> 8) & 0xFF, host_ip & 0xFF);
@@ -925,7 +799,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     // XXX: this isn't exactly right; the buffer can be larger than 12 bytes, in which case
     // SO can write 12 more bytes.
     Memory::Write_U32(0xC, request.io_vectors[1].address);
-    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
+    const Common::DefaultInterface interface = Common::GetSystemDefaultInterfaceOrFallback();
     Memory::Write_U32(Common::swap32(interface.inet), request.io_vectors[0].address);
     Memory::Write_U32(Common::swap32(interface.netmask), request.io_vectors[0].address + 4);
     Memory::Write_U32(Common::swap32(interface.broadcast), request.io_vectors[0].address + 8);
