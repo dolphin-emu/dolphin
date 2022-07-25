@@ -3,7 +3,13 @@
 
 #include "VideoBackends/Metal/VideoBackend.h"
 
+// This must be included before we use any TARGET_OS_* macros.
+#include <TargetConditionals.h>
+
+#if TARGET_OS_OSX
 #include <AppKit/AppKit.h>
+#endif
+
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
 
@@ -156,6 +162,7 @@ void Metal::VideoBackend::InitBackendInfo()
 
 void Metal::VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 {
+#if TARGET_OS_OSX
   if (wsi.type != WindowSystemType::MacOS)
     return;
   NSView* view = static_cast<NSView*>(wsi.render_surface);
@@ -163,4 +170,5 @@ void Metal::VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
   [view setWantsLayer:YES];
   [view setLayer:layer];
   wsi.render_surface = layer;
+#endif
 }

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 
+#include <TargetConditionals.h>
 #include <spirv_msl.hpp>
 
 #include "Common/MsgHandler.h"
@@ -22,12 +23,15 @@ std::vector<MRCOwned<id<MTLDevice>>> Metal::Util::GetAdapterList()
   if (default_dev)
     list.push_back(MRCTransfer(default_dev));
 
+#if TARGET_OS_OSX
   auto devices = MRCTransfer(MTLCopyAllDevices());
   for (id<MTLDevice> device in devices.Get())
   {
     if (device != default_dev)
       list.push_back(MRCRetain(device));
   }
+#endif
+
   return list;
 }
 
@@ -238,13 +242,17 @@ AbstractTextureFormat Metal::Util::ToAbstract(MTLPixelFormat format)
   {
   case MTLPixelFormatRGBA8Unorm:            return AbstractTextureFormat::RGBA8;
   case MTLPixelFormatBGRA8Unorm:            return AbstractTextureFormat::BGRA8;
+#if TARGET_OS_OSX
   case MTLPixelFormatBC1_RGBA:              return AbstractTextureFormat::DXT1;
   case MTLPixelFormatBC2_RGBA:              return AbstractTextureFormat::DXT3;
   case MTLPixelFormatBC3_RGBA:              return AbstractTextureFormat::DXT5;
   case MTLPixelFormatBC7_RGBAUnorm:         return AbstractTextureFormat::BPTC;
+#endif
   case MTLPixelFormatR16Unorm:              return AbstractTextureFormat::R16;
   case MTLPixelFormatDepth16Unorm:          return AbstractTextureFormat::D16;
+#if TARGET_OS_OSX
   case MTLPixelFormatDepth24Unorm_Stencil8: return AbstractTextureFormat::D24_S8;
+#endif
   case MTLPixelFormatR32Float:              return AbstractTextureFormat::R32F;
   case MTLPixelFormatDepth32Float:          return AbstractTextureFormat::D32F;
   case MTLPixelFormatDepth32Float_Stencil8: return AbstractTextureFormat::D32F_S8;
@@ -258,17 +266,21 @@ MTLPixelFormat Metal::Util::FromAbstract(AbstractTextureFormat format)
   {
   case AbstractTextureFormat::RGBA8:     return MTLPixelFormatRGBA8Unorm;
   case AbstractTextureFormat::BGRA8:     return MTLPixelFormatBGRA8Unorm;
+#if TARGET_OS_OSX
   case AbstractTextureFormat::DXT1:      return MTLPixelFormatBC1_RGBA;
   case AbstractTextureFormat::DXT3:      return MTLPixelFormatBC2_RGBA;
   case AbstractTextureFormat::DXT5:      return MTLPixelFormatBC3_RGBA;
   case AbstractTextureFormat::BPTC:      return MTLPixelFormatBC7_RGBAUnorm;
+#endif
   case AbstractTextureFormat::R16:       return MTLPixelFormatR16Unorm;
   case AbstractTextureFormat::D16:       return MTLPixelFormatDepth16Unorm;
+#if TARGET_OS_OSX
   case AbstractTextureFormat::D24_S8:    return MTLPixelFormatDepth24Unorm_Stencil8;
+#endif
   case AbstractTextureFormat::R32F:      return MTLPixelFormatR32Float;
   case AbstractTextureFormat::D32F:      return MTLPixelFormatDepth32Float;
   case AbstractTextureFormat::D32F_S8:   return MTLPixelFormatDepth32Float_Stencil8;
-  case AbstractTextureFormat::Undefined: return MTLPixelFormatInvalid;
+  default:                               return MTLPixelFormatInvalid;
   }
 }
 
