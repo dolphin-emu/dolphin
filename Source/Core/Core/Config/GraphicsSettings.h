@@ -82,6 +82,7 @@ extern const Info<int> GFX_SHADER_COMPILER_THREADS;
 extern const Info<int> GFX_SHADER_PRECOMPILER_THREADS;
 extern const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE;
 extern const Info<bool> GFX_PREFER_VS_FOR_LINE_POINT_EXPANSION;
+extern const Info<bool> GFX_CPU_CULL;
 
 extern const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS;
 extern const Info<bool> GFX_MTL_USE_PRESENT_DRAWABLE;
