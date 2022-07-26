@@ -15,6 +15,8 @@
 
 #include "Common/StringUtil.h"
 
+#include "Core/Host.h"
+
 // This is an input plugin using the XInput 2.0 extension to the X11 protocol,
 // loosely based on the old XLib plugin. (Has nothing to do with the XInput
 // API on Windows.)
@@ -209,30 +211,44 @@ KeyboardMouse::~KeyboardMouse()
 }
 
 // Update the mouse cursor controls
-void KeyboardMouse::UpdateCursor()
+void KeyboardMouse::UpdateCursor(bool should_center_mouse)
 {
   double root_x, root_y, win_x, win_y;
   Window root, child;
 
-  // unused-- we're not interested in button presses here, as those are
-  // updated using events
-  XIButtonState button_state;
-  XIModifierState mods;
-  XIGroupState group;
-
-  XIQueryPointer(m_display, pointer_deviceid, m_window, &root, &child, &root_x, &root_y, &win_x,
-                 &win_y, &button_state, &mods, &group);
-
-  free(button_state.mask);
-
   XWindowAttributes win_attribs;
   XGetWindowAttributes(m_display, m_window, &win_attribs);
+  const auto win_width = std::max(win_attribs.width, 1);
+  const auto win_height = std::max(win_attribs.height, 1);
+
+  if (should_center_mouse)
+  {
+    win_x = win_width / 2;
+    win_y = win_height / 2;
+
+    XIWarpPointer(m_display, pointer_deviceid, None, m_window, 0.0, 0.0, 0, 0, win_x, win_y);
+
+    g_controller_interface.SetMouseCenteringRequested(false);
+  }
+  else
+  {
+    // unused-- we're not interested in button presses here, as those are
+    // updated using events
+    XIButtonState button_state;
+    XIModifierState mods;
+    XIGroupState group;
+
+    XIQueryPointer(m_display, pointer_deviceid, m_window, &root, &child, &root_x, &root_y, &win_x,
+                   &win_y, &button_state, &mods, &group);
+
+    free(button_state.mask);
+  }
 
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
   // the mouse position as a range from -1 to 1
-  m_state.cursor.x = (win_x / std::max(win_attribs.width, 1) * 2 - 1) * window_scale.x;
-  m_state.cursor.y = (win_y / std::max(win_attribs.height, 1) * 2 - 1) * window_scale.y;
+  m_state.cursor.x = (win_x / win_width * 2 - 1) * window_scale.x;
+  m_state.cursor.y = (win_y / win_height * 2 - 1) * window_scale.y;
 }
 
 void KeyboardMouse::UpdateInput()
@@ -318,8 +334,10 @@ void KeyboardMouse::UpdateInput()
   m_state.axis.y /= MOUSE_AXIS_SMOOTHING + 1.0f;
 
   // Get the absolute position of the mouse pointer
-  if (mouse_moved)
-    UpdateCursor();
+  const bool should_center_mouse =
+      g_controller_interface.IsMouseCenteringRequested() && Host_RendererHasFocus();
+  if (mouse_moved || should_center_mouse)
+    UpdateCursor(should_center_mouse);
 
   // KeyRelease and FocusOut events are sometimes not received.
   // Cycling Alt-Tab and landing on the same window results in a stuck "Alt" key.

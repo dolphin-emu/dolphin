@@ -233,6 +233,9 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_UNLOCK_CURSOR))
         emit UnlockCursor();
 
+      if (IsHotkey(HK_CENTER_MOUSE, true))
+        g_controller_interface.SetMouseCenteringRequested(true);
+
       auto& settings = Settings::Instance();
 
       // Toggle Chat
