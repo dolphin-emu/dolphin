@@ -161,7 +161,30 @@ void AESndUCode::HandleMail(u32 mail)
       break;
     case MAIL_TERMINATE:
       INFO_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE: {:08x}", mail);
-      // This doesn't actually change the state of the system.
+      if (true)  // currently no mainline libogc uCode has this issue fixed
+      {
+        // The relevant code looks like this:
+        //
+        // lrs $acc1.m,@CMBL
+        // ...
+        // cmpi $acc1.m,#0xdead
+        // jeq task_terminate
+        //
+        // The cmpi instruction always sign-extends, so it will compare $acc1 with 0xff'dead'0000.
+        // However, recv_cmd runs in set16 mode, so the load to $acc1 will produce 0x00'dead'0000.
+        // This means that the comparison never succeeds, and no mail is sent in response to
+        // MAIL_TERMINATE. This means that __dsp_donecallback is never called (since that's
+        // normally called in response to DSP_DONE), so __aesnddspinit is never cleared, so
+        // AESND_Reset never returns, resulting in a hang. We always send the mail to avoid this
+        // hang. (It's possible to exit without calling AESND_Reset, so most homebrew probably
+        // isn't affected by this bug in the first place.)
+        //
+        // A fix exists, but has not yet been added to mainline libogc:
+        // https://github.com/extremscorner/libogc2/commit/38edc9db93232faa612f680c91be1eb4d95dd1c6
+        WARN_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE is broken in this version of the "
+                             "uCode; this will hang on real hardware or with DSP LLE");
+      }
+      // This doesn't actually change the state of the DSP code.
       m_mail_handler.PushMail(DSP_DONE, true);
       break;
     default:
