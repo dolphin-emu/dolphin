@@ -99,13 +99,13 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   if (!Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS))
   {
     Config::SetCurrent(Config::MAIN_GC_LANGUAGE,
-                       DiscIO::ToGameCubeLanguage(StartUp.GetLanguageAdjustedForRegion(
+                       DiscIO::ToGameCubeLanguage(StartUp.GetAdjustedLanguage(
                            DiscIO::Platform::GameCubeDisc, StartUp.m_region)));
 
     if (StartUp.bWii)
     {
       const u32 wii_language = static_cast<u32>(
-          StartUp.GetLanguageAdjustedForRegion(DiscIO::Platform::WiiDisc, StartUp.m_region));
+          StartUp.GetAdjustedLanguage(DiscIO::Platform::WiiDisc, StartUp.m_region));
       if (wii_language != Config::Get(Config::SYSCONF_LANGUAGE))
         Config::SetCurrent(Config::SYSCONF_LANGUAGE, wii_language);
 

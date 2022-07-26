@@ -67,7 +67,7 @@ bool UseGameCovers()
 
 DiscIO::Language GameFile::GetConfigLanguage() const
 {
-  return SConfig::GetInstance().GetLanguageAdjustedForRegion(m_platform, m_region);
+  return SConfig::GetInstance().GetAdjustedLanguage(m_platform, m_region);
 }
 
 bool operator==(const GameBanner& lhs, const GameBanner& rhs)

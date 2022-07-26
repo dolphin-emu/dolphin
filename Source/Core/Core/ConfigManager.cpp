@@ -174,7 +174,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   const Core::TitleDatabase title_database;
   const DiscIO::Platform platform =
       bWii ? DiscIO::Platform::WiiDisc : DiscIO::Platform::GameCubeDisc;
-  const DiscIO::Language language = GetLanguageAdjustedForRegion(platform, region);
+  const DiscIO::Language language = GetAdjustedLanguage(platform, region);
   m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
@@ -354,8 +354,8 @@ DiscIO::Language SConfig::GetCurrentLanguage(const DiscIO::Platform platform) co
   return language;
 }
 
-DiscIO::Language SConfig::GetLanguageAdjustedForRegion(const DiscIO::Platform platform,
-                                                       DiscIO::Region region) const
+DiscIO::Language SConfig::GetAdjustedLanguage(const DiscIO::Platform platform,
+                                              DiscIO::Region region) const
 {
   const DiscIO::Language language = GetCurrentLanguage(platform);
   const bool wii = DiscIO::IsWii(platform);
