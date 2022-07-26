@@ -133,25 +133,25 @@ void AESndUCode::HandleMail(u32 mail)
     switch (mail)
     {
     case MAIL_PROCESS_FIRST_VOICE:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_PROCESS_FIRST_VOICE");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_PROCESS_FIRST_VOICE");
       DMAInParameterBlock();  // dma_pb_block
       m_output_buffer.fill(0);
       DoMixing();  // fall through to dsp_mixer
       // Mail is handled by DoMixing()
       break;
     case MAIL_PROCESS_NEXT_VOICE:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_PROCESS_NEXT_VOICE");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_PROCESS_NEXT_VOICE");
       DMAInParameterBlock();  // dma_pb_block
       DoMixing();             // jump to dsp_mixer
       // Mail is handled by DoMixing()
       break;
     case MAIL_GET_PB_ADDRESS:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_GET_PB_ADDRESS");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_GET_PB_ADDRESS");
       m_next_mail_is_parameter_block_addr = true;
       // No mail is sent in response
       break;
     case MAIL_SEND_SAMPLES:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_SEND_SAMPLES");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_SEND_SAMPLES");
       // send_samples
       for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
       {
@@ -160,7 +160,7 @@ void AESndUCode::HandleMail(u32 mail)
       m_mail_handler.PushMail(DSP_SYNC, true);
       break;
     case MAIL_TERMINATE:
-      INFO_LOG_FMT(DSPHLE, "ASndUCode - MAIL_TERMINATE: {:08x}", mail);
+      INFO_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE: {:08x}", mail);
       // This doesn't actually change the state of the system.
       m_mail_handler.PushMail(DSP_DONE, true);
       break;
