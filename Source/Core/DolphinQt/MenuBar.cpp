@@ -1119,7 +1119,7 @@ void MenuBar::ExportWiiSaves()
 void MenuBar::CheckNAND()
 {
   IOS::HLE::Kernel ios;
-  WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
+  const WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
   if (!result.bad)
   {
     ModalMessageBox::information(this, tr("NAND Check"), tr("No issues have been detected."));
@@ -1132,8 +1132,9 @@ void MenuBar::CheckNAND()
   if (!result.titles_to_remove.empty())
   {
     std::string title_listings;
-    Core::TitleDatabase title_db;
-    const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(true);
+    const Core::TitleDatabase title_db;
+    const DiscIO::Language language =
+        SConfig::GetInstance().GetCurrentLanguage(DiscIO::Platform::WiiDisc);
     for (const u64 title_id : result.titles_to_remove)
     {
       title_listings += StringFromFormat("%016" PRIx64, title_id);
