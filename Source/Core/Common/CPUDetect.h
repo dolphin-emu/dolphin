@@ -14,6 +14,8 @@ enum class CPUVendor
   Other,
 };
 
+// we are testing
+
 struct CPUInfo
 {
   CPUVendor vendor = CPUVendor::Intel;
