@@ -31,6 +31,10 @@ public:
   // First included with libogc 1.8.11 on April 22, 2012: https://devkitpro.org/viewtopic.php?t=3094
   // https://github.com/devkitPro/libogc/commit/8f188e12b6a3d8b5a0d49a109fe6a3e4e1702aab
   static constexpr u32 HASH_2012 = 0x078066ab;
+  // Modified version used by EDuke32 Wii (padded to 0x03e0 bytes) - added unsigned 8-bit formats;
+  // broke the mono formats. The patch is based on the 2010 version, but it also includes the 2012
+  // input channel swap change. https://dukeworld.duke4.net/eduke32/wii/library_source_code/
+  static constexpr u32 HASH_EDUKE32 = 0x5ad4d933;
   // June 14, 2020 version (0x03e6 bytes) - added unsigned formats
   // First included with libogc 2.1.0 on June 15, 2020: https://devkitpro.org/viewtopic.php?t=9079
   // https://github.com/devkitPro/libogc/commit/eac8fe2c29aa790d552dd6166a1fb195dfdcb825
@@ -41,6 +45,9 @@ private:
   void DMAOutParameterBlock();
   void SetUpAccelerator(u16 format, u16 gain);
   void DoMixing();
+
+  bool SwapLeftRight() const;
+  bool UseNewFlagMasks() const;
 
   // Copied from libaesnd/aesndlib.c's aesndpb_t (specifically the first 64 bytes)
 #pragma pack(1)
@@ -83,5 +90,7 @@ private:
   static constexpr u32 NUM_OUTPUT_SAMPLES = 96;
 
   std::array<s16, NUM_OUTPUT_SAMPLES * 2> m_output_buffer{};
+
+  bool m_has_shown_unsupported_sample_format_warning = false;
 };
 }  // namespace DSP::HLE

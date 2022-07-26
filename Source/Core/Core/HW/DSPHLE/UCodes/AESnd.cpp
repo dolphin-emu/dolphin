@@ -68,6 +68,16 @@ constexpr u32 ACCELERATOR_GAIN_8_BIT = 0x0100;
 // Multiply samples by 0x800/2048 = 1 (for ACCELERATOR_FORMAT_16_BIT)
 constexpr u32 ACCELERATOR_GAIN_16_BIT = 0x0800;
 
+bool AESndUCode::SwapLeftRight() const
+{
+  return m_crc == HASH_2012 || m_crc == HASH_EDUKE32 || m_crc == HASH_2020;
+}
+
+bool AESndUCode::UseNewFlagMasks() const
+{
+  return m_crc == HASH_EDUKE32 || m_crc == HASH_2020;
+}
+
 AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
 }
@@ -235,8 +245,8 @@ void AESndUCode::SetUpAccelerator(u16 format, [[maybe_unused]] u16 gain)
 
 void AESndUCode::DoMixing()
 {
-  const u32 pause_flag = (m_crc == HASH_2020) ? VOICE_PAUSE_NEW : VOICE_PAUSE_OLD;
-  const u32 format_mask = (m_crc == HASH_2020) ? VOICE_FORMAT_MASK_NEW : VOICE_FORMAT_MASK_OLD;
+  const u32 pause_flag = UseNewFlagMasks() ? VOICE_PAUSE_NEW : VOICE_PAUSE_OLD;
+  const u32 format_mask = UseNewFlagMasks() ? VOICE_FORMAT_MASK_NEW : VOICE_FORMAT_MASK_OLD;
   // dsp_mixer
   const bool paused = (m_parameter_block.flags & pause_flag) != 0;
   const bool running = (m_parameter_block.flags & VOICE_RUNNING) != 0;
@@ -246,6 +256,22 @@ void AESndUCode::DoMixing()
     // no_change_buffer
     const u32 voice_format = m_parameter_block.flags & format_mask;
     const bool is_16_bit = (voice_format & VOICE_16_BIT_FLAG) != 0;
+    if (m_crc == HASH_EDUKE32)
+    {
+      if (voice_format != VOICE_STEREO8 && voice_format != VOICE_STEREO16 &&
+          voice_format != VOICE_STEREO8_UNSIGNED)
+      {
+        // The EDuke32 Wii version does not support 16-but unsigned stereo, and also has broken
+        // handling of all mono formats.
+        if (!m_has_shown_unsupported_sample_format_warning)
+        {
+          m_has_shown_unsupported_sample_format_warning = true;
+          PanicAlertFmt("EDuke32 Wii aesndlib uCode does not correctly handle this sample format: "
+                        "{} (flags: {:08x})",
+                        voice_format, m_parameter_block.flags);
+        }
+      }
+    }
     // select_format table
     const u16 accelerator_format = is_16_bit ? ACCELERATOR_FORMAT_16_BIT : ACCELERATOR_FORMAT_8_BIT;
     const u16 accelerator_gain = is_16_bit ? ACCELERATOR_GAIN_16_BIT : ACCELERATOR_GAIN_8_BIT;
@@ -350,7 +376,7 @@ void AESndUCode::DoMixing()
           new_l ^= 0x8000;
           break;
         }
-        if (m_crc == HASH_2012 || m_crc == HASH_2020)
+        if (SwapLeftRight())
         {
           // The 2012 version swapped the left and right input channels so that left comes first,
           // and then right. Before, right came before left. The 2012 version didn't update comments
