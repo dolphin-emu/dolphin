@@ -50,6 +50,11 @@ public:
   BbaUdpSocket();
 
   sf::Socket::Status Bind(u16 port);
+  sf::Socket::Status Send(const void* data, std::size_t size, const sf::IpAddress& addr,
+                          unsigned short port);
+
+private:
+  bool m_bind_any = false;
 };
 
 struct StackRef

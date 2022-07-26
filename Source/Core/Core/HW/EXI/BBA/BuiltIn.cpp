@@ -489,7 +489,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     target = sf::IpAddress(0xFFFFFFFF);  // force real broadcast
   else
     target = sf::IpAddress(ntohl(Common::BitCast<u32>(ip_header.destination_addr)));
-  ref->udp_socket.send(data.data(), data.size(), target, ntohs(udp_header.destination_port));
+  ref->udp_socket.Send(data.data(), data.size(), target, ntohs(udp_header.destination_port));
 }
 
 bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
@@ -708,5 +708,23 @@ BbaUdpSocket::BbaUdpSocket() = default;
 sf::Socket::Status BbaUdpSocket::Bind(u16 port)
 {
   const auto net_interface = Common::GetSystemDefaultInterfaceOrFallback();
-  return this->bind(port, sf::IpAddress(ntohl(net_interface.inet)));
+  const auto result = this->bind(port, sf::IpAddress(ntohl(net_interface.inet)));
+  if (port != 1900 || result == sf::Socket::Status::Done)
+    return result;
+
+  // SSDP broadcast workaround
+  m_bind_any = true;
+  return this->bind(1900, sf::IpAddress::Any);
+}
+
+sf::Socket::Status BbaUdpSocket::Send(const void* data, std::size_t size, const sf::IpAddress& addr,
+                                      unsigned short port)
+{
+  if (!m_bind_any)
+    return this->send(data, size, addr, port);
+
+  // Ensure broadcasts are sent from the right interface
+  BbaUdpSocket s;
+  s.Bind(sf::Socket::AnyPort);
+  return s.send(data, size, addr, port);
 }
