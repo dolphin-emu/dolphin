@@ -1,7 +1,10 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
+
+cmake_policy(SET CMP0079 NEW) # let target_link_libraries() link to a target defined in a different directory
+cmake_policy(SET CMP0080 OLD) # allow using BundleUtilities at configure time
 
 # Weird chicken-and-egg problem: We can't check the compiler before the project() call, but we have to set the policies before it.
 # So we do this in two steps: Set the policies if they exist, then error out afterwards if we end up being MSVC and they don't exist.
@@ -782,14 +785,7 @@ else()
   add_subdirectory(Externals/zstd)
 endif()
 
-find_package(ZLIB)
-if(ZLIB_FOUND)
-  message(STATUS "Using shared zlib")
-else()
-  check_vendoring_approved(zlib)
-  message(STATUS "Shared zlib not found, falling back to the static library")
-  add_subdirectory(Externals/zlib)
-endif()
+add_subdirectory(Externals/zlib-ng)
 
 pkg_check_modules(MINIZIP minizip-ng>=3.0.0)
 if(MINIZIP_FOUND)

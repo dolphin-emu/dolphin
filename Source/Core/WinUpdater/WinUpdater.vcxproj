@@ -42,8 +42,8 @@
     <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
-      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    <ProjectReference Include="$(ExternalsDir)zlib-ng\zlib-ng.vcxproj">
+      <Project>{F6EA7144-8D64-4EBB-A13E-76DFBD911EAE}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
