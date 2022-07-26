@@ -179,8 +179,8 @@ bool VideoConfig::UsingUberShaders() const
 
 static u32 GetNumAutoShaderCompilerThreads()
 {
-  // Automatic number. We use clamp(cpus - 3, 1, 4).
-  return static_cast<u32>(std::min(std::max(cpu_info.num_cores - 3, 1), 4));
+  // Automatic number.
+  return static_cast<u32>(std::clamp(cpu_info.num_cores - 3, 1, 4));
 }
 
 static u32 GetNumAutoShaderPreCompilerThreads()
