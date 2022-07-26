@@ -26,19 +26,6 @@ constexpr u32 MAIL_GET_PB_ADDRESS = MAIL_PREFIX | 0x0080;
 constexpr u32 MAIL_SEND_SAMPLES = MAIL_PREFIX | 0x0100;
 constexpr u32 MAIL_TERMINATE = MAIL_PREFIX | 0xdead;
 
-// June 5, 2010 version (padded to 0x03e0 bytes) - initial release
-// First included with libogc 1.8.4 on October 3, 2010: https://devkitpro.org/viewtopic.php?t=2249
-// https://github.com/devkitPro/libogc/blob/b5fdbdb069c45584aa4dfd950a136a8db9b1144c/libaesnd/dspcode/dspmixer.s
-constexpr u32 HASH_2010 = 0x008366af;
-// April 11, 2012 version (padded to 0x03e0 bytes) - swapped input channels
-// First included with libogc 1.8.11 on April 22, 2012: https://devkitpro.org/viewtopic.php?t=3094
-// https://github.com/devkitPro/libogc/commit/8f188e12b6a3d8b5a0d49a109fe6a3e4e1702aab
-constexpr u32 HASH_2012 = 0x078066ab;
-// June 14, 2020 version (0x03e6 bytes) - added unsigned formats
-// First included with libogc 2.1.0 on June 15, 2020: https://devkitpro.org/viewtopic.php?t=9079
-// https://github.com/devkitPro/libogc/commit/eac8fe2c29aa790d552dd6166a1fb195dfdcb825
-constexpr u32 HASH_2020 = 0x84c680a9;
-
 constexpr u32 VOICE_MONO8 = 0x00000000;
 constexpr u32 VOICE_STEREO8 = 0x00000001;
 constexpr u32 VOICE_MONO16 = 0x00000002;

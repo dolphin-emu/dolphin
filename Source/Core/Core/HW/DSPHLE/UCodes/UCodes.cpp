@@ -291,9 +291,9 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: ASnd chosen (Homebrew)", crc);
     return std::make_unique<ASndUCode>(dsphle, crc);
 
-  case 0x008366af:
-  case 0x078066ab:
-  case 0x84c680a9:
+  case AESndUCode::HASH_2010:
+  case AESndUCode::HASH_2012:
+  case AESndUCode::HASH_2020:
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: AESnd chosen (Homebrew)", crc);
     return std::make_unique<AESndUCode>(dsphle, crc);
 
