@@ -26,19 +26,6 @@ constexpr u32 MAIL_GET_PB_ADDRESS = MAIL_PREFIX | 0x0080;
 constexpr u32 MAIL_SEND_SAMPLES = MAIL_PREFIX | 0x0100;
 constexpr u32 MAIL_TERMINATE = MAIL_PREFIX | 0xdead;
 
-// June 5, 2010 version (padded to 0x03e0 bytes) - initial release
-// First included with libogc 1.8.4 on October 3, 2010: https://devkitpro.org/viewtopic.php?t=2249
-// https://github.com/devkitPro/libogc/blob/b5fdbdb069c45584aa4dfd950a136a8db9b1144c/libaesnd/dspcode/dspmixer.s
-constexpr u32 HASH_2010 = 0x008366af;
-// April 11, 2012 version (padded to 0x03e0 bytes) - swapped input channels
-// First included with libogc 1.8.11 on April 22, 2012: https://devkitpro.org/viewtopic.php?t=3094
-// https://github.com/devkitPro/libogc/commit/8f188e12b6a3d8b5a0d49a109fe6a3e4e1702aab
-constexpr u32 HASH_2012 = 0x078066ab;
-// June 14, 2020 version (0x03e6 bytes) - added unsigned formats
-// First included with libogc 2.1.0 on June 15, 2020: https://devkitpro.org/viewtopic.php?t=9079
-// https://github.com/devkitPro/libogc/commit/eac8fe2c29aa790d552dd6166a1fb195dfdcb825
-constexpr u32 HASH_2020 = 0x84c680a9;
-
 constexpr u32 VOICE_MONO8 = 0x00000000;
 constexpr u32 VOICE_STEREO8 = 0x00000001;
 constexpr u32 VOICE_MONO16 = 0x00000002;
@@ -80,6 +67,16 @@ constexpr u32 ACCELERATOR_FORMAT_16_BIT = 0x000a;
 constexpr u32 ACCELERATOR_GAIN_8_BIT = 0x0100;
 // Multiply samples by 0x800/2048 = 1 (for ACCELERATOR_FORMAT_16_BIT)
 constexpr u32 ACCELERATOR_GAIN_16_BIT = 0x0800;
+
+bool AESndUCode::SwapLeftRight() const
+{
+  return m_crc == HASH_2012 || m_crc == HASH_EDUKE32 || m_crc == HASH_2020;
+}
+
+bool AESndUCode::UseNewFlagMasks() const
+{
+  return m_crc == HASH_EDUKE32 || m_crc == HASH_2020;
+}
 
 AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
@@ -136,25 +133,25 @@ void AESndUCode::HandleMail(u32 mail)
     switch (mail)
     {
     case MAIL_PROCESS_FIRST_VOICE:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_PROCESS_FIRST_VOICE");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_PROCESS_FIRST_VOICE");
       DMAInParameterBlock();  // dma_pb_block
       m_output_buffer.fill(0);
       DoMixing();  // fall through to dsp_mixer
       // Mail is handled by DoMixing()
       break;
     case MAIL_PROCESS_NEXT_VOICE:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_PROCESS_NEXT_VOICE");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_PROCESS_NEXT_VOICE");
       DMAInParameterBlock();  // dma_pb_block
       DoMixing();             // jump to dsp_mixer
       // Mail is handled by DoMixing()
       break;
     case MAIL_GET_PB_ADDRESS:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_GET_PB_ADDRESS");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_GET_PB_ADDRESS");
       m_next_mail_is_parameter_block_addr = true;
       // No mail is sent in response
       break;
     case MAIL_SEND_SAMPLES:
-      DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIL_SEND_SAMPLES");
+      DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_SEND_SAMPLES");
       // send_samples
       for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
       {
@@ -163,8 +160,31 @@ void AESndUCode::HandleMail(u32 mail)
       m_mail_handler.PushMail(DSP_SYNC, true);
       break;
     case MAIL_TERMINATE:
-      INFO_LOG_FMT(DSPHLE, "ASndUCode - MAIL_TERMINATE: {:08x}", mail);
-      // This doesn't actually change the state of the system.
+      INFO_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE: {:08x}", mail);
+      if (true)  // currently no mainline libogc uCode has this issue fixed
+      {
+        // The relevant code looks like this:
+        //
+        // lrs $acc1.m,@CMBL
+        // ...
+        // cmpi $acc1.m,#0xdead
+        // jeq task_terminate
+        //
+        // The cmpi instruction always sign-extends, so it will compare $acc1 with 0xff'dead'0000.
+        // However, recv_cmd runs in set16 mode, so the load to $acc1 will produce 0x00'dead'0000.
+        // This means that the comparison never succeeds, and no mail is sent in response to
+        // MAIL_TERMINATE. This means that __dsp_donecallback is never called (since that's
+        // normally called in response to DSP_DONE), so __aesnddspinit is never cleared, so
+        // AESND_Reset never returns, resulting in a hang. We always send the mail to avoid this
+        // hang. (It's possible to exit without calling AESND_Reset, so most homebrew probably
+        // isn't affected by this bug in the first place.)
+        //
+        // A fix exists, but has not yet been added to mainline libogc:
+        // https://github.com/extremscorner/libogc2/commit/38edc9db93232faa612f680c91be1eb4d95dd1c6
+        WARN_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE is broken in this version of the "
+                             "uCode; this will hang on real hardware or with DSP LLE");
+      }
+      // This doesn't actually change the state of the DSP code.
       m_mail_handler.PushMail(DSP_DONE, true);
       break;
     default:
@@ -248,8 +268,8 @@ void AESndUCode::SetUpAccelerator(u16 format, [[maybe_unused]] u16 gain)
 
 void AESndUCode::DoMixing()
 {
-  const u32 pause_flag = (m_crc == HASH_2020) ? VOICE_PAUSE_NEW : VOICE_PAUSE_OLD;
-  const u32 format_mask = (m_crc == HASH_2020) ? VOICE_FORMAT_MASK_NEW : VOICE_FORMAT_MASK_OLD;
+  const u32 pause_flag = UseNewFlagMasks() ? VOICE_PAUSE_NEW : VOICE_PAUSE_OLD;
+  const u32 format_mask = UseNewFlagMasks() ? VOICE_FORMAT_MASK_NEW : VOICE_FORMAT_MASK_OLD;
   // dsp_mixer
   const bool paused = (m_parameter_block.flags & pause_flag) != 0;
   const bool running = (m_parameter_block.flags & VOICE_RUNNING) != 0;
@@ -259,6 +279,22 @@ void AESndUCode::DoMixing()
     // no_change_buffer
     const u32 voice_format = m_parameter_block.flags & format_mask;
     const bool is_16_bit = (voice_format & VOICE_16_BIT_FLAG) != 0;
+    if (m_crc == HASH_EDUKE32)
+    {
+      if (voice_format != VOICE_STEREO8 && voice_format != VOICE_STEREO16 &&
+          voice_format != VOICE_STEREO8_UNSIGNED)
+      {
+        // The EDuke32 Wii version does not support 16-but unsigned stereo, and also has broken
+        // handling of all mono formats.
+        if (!m_has_shown_unsupported_sample_format_warning)
+        {
+          m_has_shown_unsupported_sample_format_warning = true;
+          PanicAlertFmt("EDuke32 Wii aesndlib uCode does not correctly handle this sample format: "
+                        "{} (flags: {:08x})",
+                        voice_format, m_parameter_block.flags);
+        }
+      }
+    }
     // select_format table
     const u16 accelerator_format = is_16_bit ? ACCELERATOR_FORMAT_16_BIT : ACCELERATOR_FORMAT_8_BIT;
     const u16 accelerator_gain = is_16_bit ? ACCELERATOR_GAIN_16_BIT : ACCELERATOR_GAIN_8_BIT;
@@ -363,7 +399,7 @@ void AESndUCode::DoMixing()
           new_l ^= 0x8000;
           break;
         }
-        if (m_crc == HASH_2012 || m_crc == HASH_2020)
+        if (SwapLeftRight())
         {
           // The 2012 version swapped the left and right input channels so that left comes first,
           // and then right. Before, right came before left. The 2012 version didn't update comments

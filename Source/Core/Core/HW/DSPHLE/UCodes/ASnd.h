@@ -23,6 +23,27 @@ public:
   void Update() override;
   void DoState(PointerWrap& p) override;
 
+  // November 14, 2008 version (padded to 0x05a0 bytes) - initial release
+  // https://github.com/devkitPro/libogc/compare/c76d8b851fafc11b0a5debc0b40842929d5a5825~...353a44f038e75e5982eb550173ec8127ab35e3e3
+  static constexpr u32 HASH_2008 = 0x8d69a19b;
+  // February 5, 2009 version (padded to 0x05c0 bytes) - added MAIL_TERMINATE
+  // https://github.com/devkitPro/libogc/compare/1925217ffb4c97cbee5cf21fa3c0231029b340e2~...3b1f018dbe372859a43bff8560e2525f6efa4433
+  static constexpr u32 HASH_2009 = 0xcc2fd441;
+  // June 11, 2011 version (padded to 0x0620 bytes) - added new sample formats, which shifted flags
+  // Note that the source include in the repo does not match the compiled binary exactly; the
+  // compiled version differs by using asl instead of lsl, $acc1 instead of $acc0, and $ac0.l
+  // instead of $ac0.m in various locations, as well as having the "jmp out_samp" line uncommented
+  // in stereo_16bits_le. None of these result in a behavior difference, from the source, though.
+  // Note that gcdsptool was also updated, which results in some differences in the source that
+  // don't actually correspond to different instructions (e.g. s40 was renamed to s16)
+  // https://github.com/devkitPro/libogc/commit/b1b8ecab3af3745c8df0b401abd512bdf5fcc011
+  static constexpr u32 HASH_2011 = 0xa81582e2;
+  // June 12, 2020 version (0x0606 bytes) - libogc switched to compiling the ucode at build time
+  // instead of including a pre-compiled version in the repo, so this now corresponds to the code
+  // provided in the repo. There appear to be no behavior differences from the 2011 version.
+  // https://github.com/devkitPro/libogc/compare/bfb705fe1607a3031d18b65d603975b68a1cffd4~...d20f9bdcfb43260c6c759f4fb98d724931443f93
+  static constexpr u32 HASH_2020 = 0xdbbeeb61;
+
 private:
   void DMAInVoiceData();
   void DMAOutVoiceData();
