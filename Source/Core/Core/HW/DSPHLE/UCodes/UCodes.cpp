@@ -284,10 +284,10 @@ std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: Wii - AXWii chosen", crc);
     return std::make_unique<AXWiiUCode>(dsphle, crc);
 
-  case 0x8d69a19b:
-  case 0xcc2fd441:
-  case 0xa81582e2:
-  case 0xdbbeeb61:
+  case ASndUCode::HASH_2008:
+  case ASndUCode::HASH_2009:
+  case ASndUCode::HASH_2011:
+  case ASndUCode::HASH_2020:
     INFO_LOG_FMT(DSPHLE, "CRC {:08x}: ASnd chosen (Homebrew)", crc);
     return std::make_unique<ASndUCode>(dsphle, crc);
 
