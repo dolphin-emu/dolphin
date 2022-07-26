@@ -1991,8 +1991,6 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
   header_2.partition_entry_size = Common::swap32(sizeof(PartitionEntry));
   header_2.partition_entries_offset = Common::swap64(partition_entries_offset);
 
-  if (partition_entries.data() == nullptr)
-    partition_entries.reserve(1);  // Avoid a crash in mbedtls_sha1_ret TODO examine this
   header_2.partition_entries_hash = Common::SHA1::CalculateDigest(partition_entries);
 
   header_2.number_of_raw_data_entries = Common::swap32(static_cast<u32>(raw_data_entries.size()));
