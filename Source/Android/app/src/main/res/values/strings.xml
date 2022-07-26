@@ -319,7 +319,9 @@
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
 
     <string name="advanced_graphics_submenu">Advanced</string>
-    <string name="custom_textures">Custom Textures</string>
+    <string name="gfx_mods_and_custom_textures">Graphics Mods and Custom Textures</string>
+    <string name="gfx_mods">Graphics Mods</string>
+    <string name="gfx_mods_description">Loads graphics mods from User/Load/GraphicsMods/.</string>
     <string name="load_custom_texture">Load Custom Textures</string>
     <string name="load_custom_texture_description">Loads custom textures from User/Load/Textures/&lt;game_id&gt;/ and User/Load/DynamicInputTextures/&lt;game_id&gt;/.</string>
     <string name="cache_custom_texture">Prefetch Custom Textures</string>
@@ -488,6 +490,7 @@
     <string name="cheats_header_ar">AR Codes</string>
     <string name="cheats_header_gecko">Gecko Codes</string>
     <string name="cheats_header_patch">Patches</string>
+    <string name="cheats_header_graphics_mod">Graphics Mods</string>
     <string name="cheats_add_ar">Add New AR Code</string>
     <string name="cheats_add_gecko">Add New Gecko Code</string>
     <string name="cheats_add_patch">Add New Patch</string>
@@ -508,6 +511,7 @@
     <string name="cheats_download_empty">File contained no codes.</string>
     <string name="cheats_download_succeeded">Downloaded %1$d codes. (added %2$d)</string>
     <string name="cheats_disabled_warning">Dolphin\'s cheat system is currently disabled.</string>
+    <string name="gfx_mods_disabled_warning">Graphics mods are currently disabled.</string>
     <string name="cheats_open_settings">Settings</string>
 
     <!-- Convert Screen -->

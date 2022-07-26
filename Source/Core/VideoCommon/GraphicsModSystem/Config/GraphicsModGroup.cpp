@@ -168,6 +168,11 @@ const std::vector<GraphicsModConfig>& GraphicsModGroupConfig::GetMods() const
   return m_graphics_mods;
 }
 
+std::vector<GraphicsModConfig>& GraphicsModGroupConfig::GetMods()
+{
+  return m_graphics_mods;
+}
+
 GraphicsModConfig* GraphicsModGroupConfig::GetMod(const std::string& absolute_path) const
 {
   if (const auto iter = m_path_to_graphics_mod.find(absolute_path);

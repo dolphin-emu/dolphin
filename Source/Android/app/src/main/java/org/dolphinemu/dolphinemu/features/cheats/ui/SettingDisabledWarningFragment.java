@@ -7,20 +7,34 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 
-public class CheatWarningFragment extends Fragment implements View.OnClickListener
+public abstract class SettingDisabledWarningFragment extends Fragment
+        implements View.OnClickListener
 {
   private View mView;
+
+  private final AbstractBooleanSetting mSetting;
+  private final MenuTag mSettingShortcut;
+  private final int mText;
+
+  public SettingDisabledWarningFragment(AbstractBooleanSetting setting, MenuTag settingShortcut,
+          int text)
+  {
+    mSetting = setting;
+    mSettingShortcut = settingShortcut;
+    mText = text;
+  }
 
   @Nullable
   @Override
@@ -34,6 +48,9 @@ public class CheatWarningFragment extends Fragment implements View.OnClickListen
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
   {
     mView = view;
+
+    TextView textView = view.findViewById(R.id.text_warning);
+    textView.setText(mText);
 
     Button settingsButton = view.findViewById(R.id.button_settings);
     settingsButton.setOnClickListener(this);
@@ -51,13 +68,13 @@ public class CheatWarningFragment extends Fragment implements View.OnClickListen
     CheatsActivity activity = (CheatsActivity) requireActivity();
     try (Settings settings = activity.loadGameSpecificSettings())
     {
-      boolean cheatsEnabled = BooleanSetting.MAIN_ENABLE_CHEATS.getBoolean(settings);
+      boolean cheatsEnabled = mSetting.getBoolean(settings);
       mView.setVisibility(cheatsEnabled ? View.GONE : View.VISIBLE);
     }
   }
 
   public void onClick(View view)
   {
-    SettingsActivity.launch(requireContext(), MenuTag.CONFIG_GENERAL);
+    SettingsActivity.launch(requireContext(), mSettingShortcut);
   }
 }
