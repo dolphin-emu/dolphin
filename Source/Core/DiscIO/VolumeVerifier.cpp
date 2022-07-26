@@ -261,7 +261,7 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
       // disc with the game ID "G96P" and the serial "DL-DOL-D96P-EUR, DL-DOL-G96P-EUR".
       for (const std::string& serial_str : SplitString(serials, ','))
       {
-        const std::string_view serial = StripSpaces(serial_str);
+        const std::string_view serial = StripWhitespace(serial_str);
 
         // Skip the prefix, normally either "DL-DOL-" or "RVL-" (depending on the console),
         // but there are some exceptions like the "RVLE-SBSE-USA-B0" serial.
