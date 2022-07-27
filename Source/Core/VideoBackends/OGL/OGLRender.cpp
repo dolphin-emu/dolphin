@@ -942,7 +942,7 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable,
   {
     glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
     if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
-      glClearDepthdNV(float(z & 0xFFFFFF) / 16777216.0f);
+      glClearDepthdNV(float(z & 0xFFFFFF));
     else
       glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
     clear_mask |= GL_DEPTH_BUFFER_BIT;

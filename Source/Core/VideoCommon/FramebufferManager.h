@@ -103,7 +103,7 @@ public:
 
   // Writes a value to the framebuffer. This will never block, and writes will be batched.
   void PokeEFBColor(u32 x, u32 y, u32 color);
-  void PokeEFBDepth(u32 x, u32 y, float depth);
+  void PokeEFBDepth(u32 x, u32 y, u32 depth);
   void FlushEFBPokes();
 
   // Save state load/save.

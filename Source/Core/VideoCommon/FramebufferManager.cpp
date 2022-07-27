@@ -224,10 +224,14 @@ bool FramebufferManager::CreateEFBFramebuffer()
       return false;
   }
 
+  // Unrestricted depth range buffers should be cleared to the integer max depth.
+  const float max_depth =
+      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? EFB_MAX_DEPTH : 1.0f;
+
   // Clear the renderable textures out.
   g_renderer->SetAndClearFramebuffer(
       m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-      g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
+      g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? max_depth : 0.0f);
   return true;
 }
 
@@ -715,19 +719,23 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear
     float padding1, padding2, padding3;
   };
   static_assert(std::is_standard_layout<Uniforms>::value);
+
+  float depth = static_cast<float>(z & 0xFFFFFF);
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    depth = EFB_MAX_DEPTH - depth;
   Uniforms uniforms = {{static_cast<float>((color >> 16) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 8) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 0) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 24) & 0xFF) / 255.0f},
-                       static_cast<float>(z & 0xFFFFFF) / 16777216.0f};
-  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-    uniforms.clear_depth = 1.0f - uniforms.clear_depth;
+                       depth / 16777216.0f};
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
+  const float max_depth =
+      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? 16777216.0f : 1.0f;
   const auto target_rc = g_renderer->ConvertFramebufferRectangle(
       g_renderer->ConvertEFBRectangle(rc), m_efb_framebuffer.get());
   g_renderer->SetPipeline(m_efb_clear_pipelines[clear_color][clear_alpha][clear_z].get());
-  g_renderer->SetViewportAndScissor(target_rc);
+  g_renderer->SetViewportAndScissor(target_rc, 0.0f, max_depth);
   g_renderer->Draw(0, 3);
   g_renderer->EndUtilityDrawing();
 }
@@ -805,13 +813,13 @@ void FramebufferManager::PokeEFBColor(u32 x, u32 y, u32 color)
     m_efb_color_cache.readback_texture->WriteTexel(x, y, &color);
 }
 
-void FramebufferManager::PokeEFBDepth(u32 x, u32 y, float depth)
+void FramebufferManager::PokeEFBDepth(u32 x, u32 y, u32 depth)
 {
   // Flush if we exceeded the number of vertices per batch.
   if ((m_depth_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
     FlushEFBPokes();
 
-  CreatePokeVertices(&m_depth_poke_vertices, x, y, depth, 0);
+  CreatePokeVertices(&m_depth_poke_vertices, x, y, depth / 16777216.0f, 0);
 
   // See comment above for reasoning for lower-left coordinates.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -878,8 +886,12 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, u32 ver
                                           static_cast<u32>(vertex_count), nullptr, 0, &base_vertex,
                                           &base_index);
 
+  // For unrestricted depth range we need to set the 2^24 divisor as the maximum depth.
+  const float max_depth =
+      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? 16777216.0f : 1.0f;
+
   // Now we can draw.
-  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect());
+  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect(), 0.0f, max_depth);
   g_renderer->SetPipeline(pipeline);
   g_renderer->Draw(base_vertex, vertex_count);
   g_renderer->EndUtilityDrawing();
@@ -992,9 +1004,14 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
       color_tex->texture->GetLayers() != m_efb_color_texture->GetLayers())
   {
     WARN_LOG_FMT(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
+
+    // Unrestricted depth range buffers should be cleared to the integer max depth.
+    const float max_depth =
+        g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? EFB_MAX_DEPTH : 1.0f;
+
     g_renderer->SetAndClearFramebuffer(
         m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-        g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
+        g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? max_depth : 0.0f);
     return;
   }
 

@@ -20,7 +20,8 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.wireframe = g_ActiveConfig.bWireFrame;
   bits.per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   bits.vertex_rounding = g_ActiveConfig.UseVertexRounding();
-  bits.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
+  bits.backend_unrestricted_depth_range =
+      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange;
   bits.bounding_box = g_ActiveConfig.bBBoxEnable;
   bits.backend_dual_source_blend = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
   bits.backend_geometry_shaders = g_ActiveConfig.backend_info.bSupportsGeometryShaders;
@@ -178,7 +179,7 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     }
     index_offset += texgens;
 
-    if (!host_config.fast_depth_calc)
+    if (!host_config.backend_unrestricted_depth_range)
     {
       DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
                          index_base + index_offset);
@@ -211,7 +212,7 @@ void GenerateVSOutputMembers(ShaderCode& object, APIType api_type, u32 texgens,
     for (unsigned int i = 0; i < texgens; ++i)
       DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, stage, "TEXCOORD", i);
 
-    if (!host_config.fast_depth_calc)
+    if (!host_config.backend_unrestricted_depth_range)
       DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, stage, "TEXCOORD",
                          texgens);
 
@@ -235,7 +236,7 @@ void AssignVSOutputMembers(ShaderCode& object, std::string_view a, std::string_v
   for (unsigned int i = 0; i < texgens; ++i)
     object.Write("\t{}.tex{} = {}.tex{};\n", a, i, b, i);
 
-  if (!host_config.fast_depth_calc)
+  if (!host_config.backend_unrestricted_depth_range)
     object.Write("\t{}.clipPos = {}.clipPos;\n", a, b);
 
   if (host_config.per_pixel_lighting)

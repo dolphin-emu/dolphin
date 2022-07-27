@@ -9,6 +9,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/VideoCommon.h"
@@ -23,13 +24,11 @@ PixelShaderUid GetPixelShaderUid()
 
   pixel_ubershader_uid_data* const uid_data = out.GetUidData();
   uid_data->num_texgens = xfmem.numTexGen.numTexGens;
-  uid_data->early_depth = bpmem.GetEmulatedZ() == EmulatedZ::Early &&
-                          (g_ActiveConfig.bFastDepthCalc ||
-                           bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined) &&
+  uid_data->early_depth = bpmem.GetEmulatedZ() == EmulatedZ::Early && !g_renderer->UseSlowDepth() &&
                           !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->per_pixel_depth =
       (bpmem.ztex2.op != ZTexOp::Disabled && bpmem.GetEmulatedZ() == EmulatedZ::Late) ||
-      (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
+      (g_renderer->UseSlowDepth() && bpmem.zmode.testenable && !uid_data->early_depth) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
 
@@ -149,7 +148,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
       out.Write("VARYING_LOCATION({}) {} in float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.backend_unrestricted_depth_range)
     {
       out.Write("VARYING_LOCATION({}) {} in float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -875,20 +874,20 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
 
   out.Write("  TevResult &= 255;\n\n");
 
-  if (host_config.fast_depth_calc)
+  if (host_config.backend_unrestricted_depth_range)
   {
     if (!host_config.backend_reversed_depth_range)
-      out.Write("  int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+      out.Write("  int zCoord = 0xFFFFFF - int(rawpos.z);\n");
     else
-      out.Write("  int zCoord = int(rawpos.z * 16777216.0);\n");
-    out.Write("  zCoord = clamp(zCoord, 0, 0xFFFFFF);\n"
-              "\n");
+      out.Write("  int zCoord = int(rawpos.z);\n");
   }
   else
   {
     out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
               "[1].y));\n");
   }
+  out.Write("  zCoord = clamp(zCoord, 0, 0xFFFFFF);\n"
+            "\n");
 
   // ===========
   //   ZFreeze
@@ -934,7 +933,10 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
               "  // If early depth isn't enabled, we write to the zbuffer here\n"
               "  int zbuffer_zCoord = bpmem_late_ztest ? zCoord : early_zCoord;\n");
     if (!host_config.backend_reversed_depth_range)
-      out.Write("  depth = 1.0 - float(zbuffer_zCoord) / 16777216.0;\n");
+      out.Write("  zbuffer_zCoord = 0xFFFFFF - zbuffer_zCoord;\n");
+
+    if (host_config.backend_unrestricted_depth_range)
+      out.Write("  depth = float(zbuffer_zCoord);\n");
     else
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
   }

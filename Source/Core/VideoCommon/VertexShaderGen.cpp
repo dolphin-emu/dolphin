@@ -145,7 +145,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("VARYING_LOCATION({}) {} out float3 tex{};\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa), i);
     }
-    if (!host_config.fast_depth_calc)
+    if (!host_config.backend_unrestricted_depth_range)
     {
       out.Write("VARYING_LOCATION({}) {} out float4 clipPos;\n", counter++,
                 GetInterpolationQualifier(msaa, ssaa));
@@ -426,7 +426,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   }
 
   // clipPos/w needs to be done in pixel shader, not here
-  if (!host_config.fast_depth_calc)
+  if (!host_config.backend_unrestricted_depth_range)
     out.Write("o.clipPos = o.pos;\n");
 
   if (per_pixel_lighting)
@@ -461,19 +461,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("o.pos.z = o.pos.z * (1.0 - 1e-7);\n");
   }
 
-  // Write the true depth value. If the game uses depth textures, then the pixel shader will
-  // override it with the correct values if not then early z culling will improve speed.
-  // There are two different ways to do this, when the depth range is oversized, we process
-  // the depth range in the vertex shader, if not we let the host driver handle it.
-  //
+  // Write the true depth value. If the game uses depth textures or the z range is oversized,
+  // then the pixel shader will override it with the correct values if not then early z culling
+  // will improve performance.
   // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
   // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
-  // We have to handle the depth range in the vertex shader instead of after the perspective
-  // divide, because some games will use a depth range larger than what is allowed by the
-  // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
-  // games effectively add a depth bias to the values written to the depth buffer.
-  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
-            "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
+  out.Write("o.pos.z = -o.pos.z;\n");
 
   if (!host_config.backend_clip_control)
   {
@@ -528,7 +521,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     // are not supported, however that will require at least OpenGL 3.2 support.
     for (u32 i = 0; i < uid_data->numTexGens; ++i)
       out.Write("tex{}.xyz = o.tex{};\n", i, i);
-    if (!host_config.fast_depth_calc)
+    if (!host_config.backend_unrestricted_depth_range)
       out.Write("clipPos = o.clipPos;\n");
     if (per_pixel_lighting)
     {

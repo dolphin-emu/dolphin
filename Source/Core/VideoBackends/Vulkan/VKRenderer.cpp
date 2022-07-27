@@ -168,9 +168,11 @@ void Renderer::ClearScreen(const MathUtil::Rectangle<int>& rc, bool color_enable
   clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
   clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
-  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
+  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF);
   if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-    clear_depth_value.depthStencil.depth = 1.0f - clear_depth_value.depthStencil.depth;
+    clear_depth_value.depthStencil.depth = EFB_MAX_DEPTH - clear_depth_value.depthStencil.depth;
+  if (!g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+    clear_depth_value.depthStencil.depth = clear_depth_value.depthStencil.depth / 16777216.0f;
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
   // to discard the data, rather than loading and then clearing.
@@ -319,6 +321,10 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
       PanicAlertFmt("Failed to grab image from swap chain: {:#010X}", res);
   }
 
+  // Unrestricted depth range buffers should be cleared to the integer max depth.
+  const float max_depth =
+      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? EFB_MAX_DEPTH : 1.0f;
+
   // Transition from undefined (or present src, but it can be substituted) to
   // color attachment ready for writing. These transitions must occur outside
   // a render pass, unless the render pass declares a self-dependency.
@@ -326,7 +332,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
   m_swap_chain->GetCurrentTexture()->TransitionToLayout(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   SetAndClearFramebuffer(m_swap_chain->GetCurrentFramebuffer(),
-                         ClearColor{{0.0f, 0.0f, 0.0f, 1.0f}});
+                         ClearColor{{0.0f, 0.0f, 0.0f, max_depth}});
 }
 
 void Renderer::PresentBackbuffer()

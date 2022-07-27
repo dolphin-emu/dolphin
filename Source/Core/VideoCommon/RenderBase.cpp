@@ -300,11 +300,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   {
     // Depth buffer is inverted for improved precision near far plane
     float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
+    if (!g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+      depth = depth * 16777216.0f;
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-      depth = 1.0f - depth;
+      depth = EFB_MAX_DEPTH - depth;
 
     // Convert to 24bit depth
-    u32 z24depth = std::clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+    u32 z24depth = std::clamp<u32>(static_cast<u32>(depth), 0, 0xFFFFFF);
 
     if (bpmem.zcontrol.pixel_format == PixelFormat::RGB565_Z16)
     {
@@ -342,11 +344,11 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   {
     for (size_t i = 0; i < num_points; i++)
     {
-      // Convert to floating-point depth.
+      // Invert depth if needed
       const EfbPokeData& point = points[i];
-      float depth = float(point.data & 0xFFFFFF) / 16777216.0f;
+      u32 depth = point.data & 0xFFFFFF;
       if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
-        depth = 1.0f - depth;
+        depth = 0xFFFFFF - depth;
 
       g_framebuffer_manager->PokeEFBDepth(point.x, point.y, depth);
     }
@@ -1814,23 +1816,23 @@ void Renderer::DumpFrameToImage(const FrameDump::FrameData& frame)
   m_frame_dump_image_counter++;
 }
 
-bool Renderer::UseVertexDepthRange() const
+bool Renderer::UseSlowDepth() const
 {
-  // We can't compute the depth range in the vertex shader if we don't support depth clamp.
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  // TODO: Why can't slow depth be used if the alpha test result is undetermined?
+  if (bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined)
     return false;
 
-  // We need a full depth range if a ztexture is used.
-  if (bpmem.ztex2.op != ZTexOp::Disabled && !bpmem.zcontrol.early_ztest)
+  // Always use slow depth if fast depth is disabled
+  if (!g_ActiveConfig.bFastDepthCalc)
     return true;
 
-  // If an inverted depth range is unsupported, we also need to check if the range is inverted.
+  // If a reversed depth range is unsupported, we also need to check if the range is negative.
   if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange && xfmem.viewport.zRange < 0.0f)
     return true;
 
   // If an oversized depth range or a ztexture is used, we need to calculate the depth range
   // in the vertex shader.
-  return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
+  return fabs(xfmem.viewport.zRange) > EFB_MAX_DEPTH || fabs(xfmem.viewport.farZ) > EFB_MAX_DEPTH;
 }
 
 void Renderer::DoState(PointerWrap& p)

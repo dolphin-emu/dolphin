@@ -14,6 +14,11 @@
 constexpr u32 EFB_WIDTH = 640;
 constexpr u32 EFB_HEIGHT = 528;
 
+// The maximum depth that is written to the depth buffer should never exceed this
+// value. If the real depth value exceeds the maximum we need to clamp it in the
+// pixel shader.
+constexpr float EFB_MAX_DEPTH = 16777215.0f;
+
 // Max XFB width is 720. You can only copy out 640 wide areas of efb to XFB
 // so you need multiple copies to do the full width.
 // The VI can do horizontal scaling (TODO: emulate).
