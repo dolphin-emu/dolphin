@@ -809,6 +809,13 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
   if (entry_to_update->IsCopy())
     return entry_to_update;
 
+  if (entry_to_update->IsLocked())
+  {
+    // TODO: Shouldn't be too hard, just need to clone the texture entry + texture contents.
+    PanicAlertFmt("TextureCache: PartialTextureUpdates of locked textures is not implemented");
+    return {};
+  }
+
   u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format.texfmt);
   u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format.texfmt);
   u32 block_size = block_width * block_height *
@@ -1474,8 +1481,11 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       {
         entry = DoPartialTextureUpdates(iter->second, texture_info.GetTlutAddress(),
                                         texture_info.GetTlutFormat());
-        entry->texture->FinishedRendering();
-        return entry;
+        if (entry)
+        {
+          entry->texture->FinishedRendering();
+          return entry;
+        }
       }
     }
 
@@ -1511,9 +1521,8 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 
   if (unconverted_copy != textures_by_address.end())
   {
-    auto decoded_entry =
-        ApplyPaletteToEntry(unconverted_copy->second, texture_info.GetTlutAddress(),
-                            texture_info.GetTlutFormat());
+    auto decoded_entry = ApplyPaletteToEntry(
+        unconverted_copy->second, texture_info.GetTlutAddress(), texture_info.GetTlutFormat());
 
     if (decoded_entry)
     {
@@ -1543,8 +1552,11 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       {
         entry = DoPartialTextureUpdates(hash_iter->second, texture_info.GetTlutAddress(),
                                         texture_info.GetTlutFormat());
-        entry->texture->FinishedRendering();
-        return entry;
+        if (entry)
+        {
+          entry->texture->FinishedRendering();
+          return entry;
+        }
       }
       ++hash_iter;
     }
@@ -1771,11 +1783,11 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
     return {};
   }
 
-  // Do we currently have a version of this XFB copy in VRAM?
+  // Do we currently have a mutable version of this XFB copy in VRAM?
   RcTcacheEntry entry = GetXFBFromCache(address, width, height, stride);
   if (entry)
   {
-    if (entry->is_xfb_container)
+    if (entry->is_xfb_container && !entry->IsLocked())
     {
       StitchXFBCopy(entry);
       entry->texture->FinishedRendering();
@@ -2265,8 +2277,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter,
-                          dstFormat, isIntensity, gamma, clamp_top, clamp_bottom,
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter, dstFormat,
+                          isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
       if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
@@ -2710,7 +2722,8 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     {
       // The texture data has already been copied into the staging texture, so it's valid to
       // optimistically release the texture data. Will slightly lower VRAM usage.
-      ReleaseToPool(entry.get());
+      if (!entry->IsLocked())
+        ReleaseToPool(entry.get());
     }
   }
   entry->invalidated = true;

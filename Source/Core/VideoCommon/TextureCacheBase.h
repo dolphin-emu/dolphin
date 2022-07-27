@@ -127,6 +127,7 @@ struct TCacheEntry
   bool is_xfb_copy = false;
   bool is_xfb_container = false;
   u64 id = 0;
+  u32 content_semaphore = 0; // Counts up
 
   // Indicates that this TCacheEntry has been invalided from textures_by_address
   bool invalidated = false;
@@ -193,6 +194,14 @@ struct TCacheEntry
     this->references.emplace(other_entry);
     other_entry->references.emplace(this);
   }
+
+  // Acquiring a content lock will lock the current contents and prevent texture cache from
+  // reusing the same entry for a newer version of the texture.
+  void AcquireContentLock() { content_semaphore++; }
+  void ReleaseContentLock() { content_semaphore--; }
+
+  // Can this be mutated?
+  bool IsLocked() const { return content_semaphore > 0; }
 
   void SetXfbCopy(u32 stride);
   void SetEfbCopy(u32 stride);
