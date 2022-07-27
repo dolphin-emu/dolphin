@@ -1,5 +1,6 @@
 set(ZLIB_ENABLE_TESTS OFF)
 set(ZLIB_COMPAT ON)
+set(SKIP_INSTALL_ALL ON)
 
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 
