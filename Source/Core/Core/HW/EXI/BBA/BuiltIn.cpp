@@ -494,7 +494,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
 
 bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
 {
-  std::lock_guard<std::mutex> lock(m_mtx);
+  std::lock_guard lock(m_mtx);
   const Common::PacketView view(frame, size);
 
   const std::optional<u16> ethertype = view.GetEtherType();
@@ -594,7 +594,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
     if ((wp - rp) >= 8)
       continue;
 
-    std::lock_guard<std::mutex> lock(self->m_mtx);
+    std::lock_guard lock(self->m_mtx);
     // process queue file first
     if (self->m_queue_read != self->m_queue_write)
     {
@@ -669,14 +669,19 @@ bool CEXIETHERNET::BuiltInBBAInterface::RecvInit()
 
 void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 {
-  InitUDPPort(26512);  // MK DD and 1080
-  InitUDPPort(26502);  // Air Ride
+  if (!m_read_enabled.IsSet())
+  {
+    std::lock_guard lock(m_mtx);
+    InitUDPPort(26512);  // MK DD and 1080
+    InitUDPPort(26502);  // Air Ride
+  }
   m_read_enabled.Set();
 }
 
 void CEXIETHERNET::BuiltInBBAInterface::RecvStop()
 {
   m_read_enabled.Clear();
+  std::lock_guard lock(m_mtx);
   for (auto& net_ref : network_ref)
   {
     if (net_ref.ip != 0)
