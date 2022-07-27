@@ -271,10 +271,16 @@ ReturnCode IOSC::DecryptEncrypt(Common::AES::Mode mode, Handle key_handle, u8* i
   if (entry->data.size() != AES128_KEY_SIZE)
     return IOSC_FAIL_INTERNAL;
 
-  const std::vector<u8> data =
-      Common::AES::DecryptEncrypt(entry->data.data(), iv, input, size, mode);
+  auto key = entry->data.data();
+  // TODO? store enc + dec ctxs in the KeyEntry so they only need to be created once.
+  // This doesn't seem like a hot path, though.
+  std::unique_ptr<Common::AES::Context> ctx;
+  if (mode == Common::AES::Mode::Encrypt)
+    ctx = Common::AES::CreateContextEncrypt(key);
+  else
+    ctx = Common::AES::CreateContextDecrypt(key);
 
-  std::memcpy(output, data.data(), data.size());
+  ctx->Crypt(iv, iv, input, output, size);
   return IPC_SUCCESS;
 }
 

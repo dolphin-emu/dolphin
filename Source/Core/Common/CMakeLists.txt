@@ -136,6 +136,12 @@ add_library(common
   WorkQueueThread.h
 )
 
+if(NOT MSVC AND _M_ARM_64)
+  set_source_files_properties(
+    Crypto/AES.cpp
+    PROPERTIES COMPILE_FLAGS "-march=armv8-a+crypto")
+endif()
+
 target_link_libraries(common
 PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}

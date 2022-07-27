@@ -1318,8 +1318,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
   {
     const PartitionEntry& partition_entry = partition_entries[parameters.data_entry->index];
 
-    mbedtls_aes_context aes_context;
-    mbedtls_aes_setkey_dec(&aes_context, partition_entry.partition_key.data(), 128);
+    auto aes_context = Common::AES::CreateContextDecrypt(partition_entry.partition_key.data());
 
     const u64 groups = Common::AlignUp(parameters.data.size(), VolumeWii::GROUP_TOTAL_SIZE) /
                        VolumeWii::GROUP_TOTAL_SIZE;
@@ -1388,7 +1387,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
           {
             const u64 offset_of_block = offset_of_group + j * VolumeWii::BLOCK_TOTAL_SIZE;
             VolumeWii::DecryptBlockData(parameters.data.data() + offset_of_block,
-                                        state->decryption_buffer[j].data(), &aes_context);
+                                        state->decryption_buffer[j].data(), aes_context.get());
           }
           else
           {
@@ -1413,7 +1412,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
           VolumeWii::HashBlock hashes;
           VolumeWii::DecryptBlockHashes(parameters.data.data() + offset_of_block, &hashes,
-                                        &aes_context);
+                                        aes_context.get());
 
           const auto compare_hash = [&](size_t offset_in_block) {
             ASSERT(offset_in_block + Common::SHA1::DIGEST_LEN <= VolumeWii::BLOCK_HEADER_SIZE);

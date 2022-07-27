@@ -760,11 +760,11 @@ ReturnCode ESDevice::ExportContentData(Context& context, u32 content_fd, u8* dat
   buffer.resize(Common::AlignUp(buffer.size(), 32));
 
   std::vector<u8> output(buffer.size());
-  const ReturnCode decrypt_ret = m_ios.GetIOSC().Encrypt(
+  const ReturnCode encrypt_ret = m_ios.GetIOSC().Encrypt(
       context.title_import_export.key_handle, context.title_import_export.content.iv.data(),
       buffer.data(), buffer.size(), output.data(), PID_ES);
-  if (decrypt_ret != IPC_SUCCESS)
-    return decrypt_ret;
+  if (encrypt_ret != IPC_SUCCESS)
+    return encrypt_ret;
 
   std::copy(output.cbegin(), output.cend(), data);
   return IPC_SUCCESS;
