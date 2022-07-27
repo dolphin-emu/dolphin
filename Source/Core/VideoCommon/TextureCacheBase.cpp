@@ -700,7 +700,8 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
     // Even if the texture isn't valid, we still need to create the cache entry object
     // to update the point in the state state. We'll just throw it away if it's invalid.
     auto tex = DeserializeTexture(p);
-    auto entry = Common::make_rc<TCacheEntry>(std::move(tex->texture), std::move(tex->framebuffer));
+    auto entry =
+        std::make_shared<TCacheEntry>(std::move(tex->texture), std::move(tex->framebuffer));
     entry->textures_by_hash_iter = textures_by_hash.end();
     entry->DoState(p);
     if (entry->texture && commit_state)
@@ -808,6 +809,13 @@ RcTcacheEntry TextureCacheBase::DoPartialTextureUpdates(RcTcacheEntry& entry_to_
   // benefit from updating. This would require more work to be done.
   if (entry_to_update->IsCopy())
     return entry_to_update;
+
+  if (entry_to_update->IsLocked())
+  {
+    // TODO: Shouldn't be too hard, just need to clone the texture entry + texture contents.
+    PanicAlertFmt("TextureCache: PartialTextureUpdates of locked textures is not implemented");
+    return {};
+  }
 
   u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format.texfmt);
   u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format.texfmt);
@@ -1474,8 +1482,11 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       {
         entry = DoPartialTextureUpdates(iter->second, texture_info.GetTlutAddress(),
                                         texture_info.GetTlutFormat());
-        entry->texture->FinishedRendering();
-        return entry;
+        if (entry)
+        {
+          entry->texture->FinishedRendering();
+          return entry;
+        }
       }
     }
 
@@ -1511,9 +1522,8 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
 
   if (unconverted_copy != textures_by_address.end())
   {
-    auto decoded_entry =
-        ApplyPaletteToEntry(unconverted_copy->second, texture_info.GetTlutAddress(),
-                            texture_info.GetTlutFormat());
+    auto decoded_entry = ApplyPaletteToEntry(
+        unconverted_copy->second, texture_info.GetTlutAddress(), texture_info.GetTlutFormat());
 
     if (decoded_entry)
     {
@@ -1543,8 +1553,11 @@ RcTcacheEntry TextureCacheBase::GetTexture(const int textureCacheSafetyColorSamp
       {
         entry = DoPartialTextureUpdates(hash_iter->second, texture_info.GetTlutAddress(),
                                         texture_info.GetTlutFormat());
-        entry->texture->FinishedRendering();
-        return entry;
+        if (entry)
+        {
+          entry->texture->FinishedRendering();
+          return entry;
+        }
       }
       ++hash_iter;
     }
@@ -1771,9 +1784,9 @@ RcTcacheEntry TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height
     return {};
   }
 
-  // Do we currently have a version of this XFB copy in VRAM?
+  // Do we currently have a mutable version of this XFB copy in VRAM?
   RcTcacheEntry entry = GetXFBFromCache(address, width, height, stride);
-  if (entry)
+  if (entry && !entry->IsLocked())
   {
     if (entry->is_xfb_container)
     {
@@ -2265,8 +2278,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter,
-                          dstFormat, isIntensity, gamma, clamp_top, clamp_bottom,
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, linear_filter, dstFormat,
+                          isIntensity, gamma, clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
       if (is_xfb_copy && (g_ActiveConfig.bDumpXFBTarget || g_ActiveConfig.bGraphicMods))
@@ -2584,7 +2597,7 @@ RcTcacheEntry TextureCacheBase::AllocateCacheEntry(const TextureConfig& config)
     return {};
 
   auto cacheEntry =
-      Common::make_rc<TCacheEntry>(std::move(alloc->texture), std::move(alloc->framebuffer));
+      std::make_shared<TCacheEntry>(std::move(alloc->texture), std::move(alloc->framebuffer));
   cacheEntry->textures_by_hash_iter = textures_by_hash.end();
   cacheEntry->id = last_entry_id++;
   return cacheEntry;
@@ -2710,7 +2723,8 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pe
     {
       // The texture data has already been copied into the staging texture, so it's valid to
       // optimistically release the texture data. Will slightly lower VRAM usage.
-      ReleaseToPool(entry.get());
+      if (!entry->IsLocked())
+        ReleaseToPool(entry.get());
     }
   }
   entry->invalidated = true;

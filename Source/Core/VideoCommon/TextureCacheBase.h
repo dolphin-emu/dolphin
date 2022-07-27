@@ -19,7 +19,6 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/RcPtr.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureConfig.h"
@@ -127,6 +126,7 @@ struct TCacheEntry
   bool is_xfb_copy = false;
   bool is_xfb_container = false;
   u64 id = 0;
+  u32 content_semaphore = 0;  // Counts up
 
   // Indicates that this TCacheEntry has been invalided from textures_by_address
   bool invalidated = false;
@@ -143,7 +143,7 @@ struct TCacheEntry
 
   // Keep an iterator to the entry in textures_by_hash, so it does not need to be searched when
   // removing the cache entry
-  std::multimap<u64, Common::rc_ptr<TCacheEntry>>::iterator textures_by_hash_iter;
+  std::multimap<u64, std::shared_ptr<TCacheEntry>>::iterator textures_by_hash_iter;
 
   // This is used to keep track of both:
   //   * efb copies used by this partially updated texture
@@ -194,6 +194,14 @@ struct TCacheEntry
     other_entry->references.emplace(this);
   }
 
+  // Acquiring a content lock will lock the current contents and prevent texture cache from
+  // reusing the same entry for a newer version of the texture.
+  void AcquireContentLock() { content_semaphore++; }
+  void ReleaseContentLock() { content_semaphore--; }
+
+  // Can this be mutated?
+  bool IsLocked() const { return content_semaphore > 0; }
+
   void SetXfbCopy(u32 stride);
   void SetEfbCopy(u32 stride);
   void SetNotCopy();
@@ -217,7 +225,7 @@ struct TCacheEntry
   void DoState(PointerWrap& p);
 };
 
-using RcTcacheEntry = Common::rc_ptr<TCacheEntry>;
+using RcTcacheEntry = std::shared_ptr<TCacheEntry>;
 
 class TextureCacheBase
 {
