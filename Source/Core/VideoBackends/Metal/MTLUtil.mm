@@ -74,6 +74,7 @@ void Metal::Util::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsSettingObjectNames = true;
   // Metal requires multisample resolve to be done on a render pass
   config->backend_info.bSupportsPartialMultisampleResolve = false;
+  config->backend_info.bSupportsUnrestrictedDepthRange = false;
 }
 
 void Metal::Util::PopulateBackendInfoAdapters(VideoConfig* config,
