@@ -151,8 +151,8 @@ void WiiIPC::InitState()
   m_arm_irq_flags = 0;
   m_arm_irq_masks = 0;
 
-  // The only inputs are POWER, EJECT_BTN, SLOT_IN, and EEP_MISO; Broadway only has access to
-  // SLOT_IN
+  // The only inputs are POWER, EJECT_BTN, SLOT_IN, EEP_MISO, and sometimes AVE_SCL and AVE_SDA;
+  // Broadway only has access to SLOT_IN, AVE_SCL, and AVE_SDA.
   m_gpio_dir = {
       GPIO::POWER,      GPIO::SHUTDOWN, GPIO::FAN,    GPIO::DC_DC,   GPIO::DI_SPIN,  GPIO::SLOT_LED,
       GPIO::SENSOR_BAR, GPIO::DO_EJECT, GPIO::EEP_CS, GPIO::EEP_CLK, GPIO::EEP_MOSI, GPIO::AVE_SCL,
