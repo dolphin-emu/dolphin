@@ -70,12 +70,14 @@ constexpr u32 ACCELERATOR_GAIN_16_BIT = 0x0800;
 
 bool AESndUCode::SwapLeftRight() const
 {
-  return m_crc == HASH_2012 || m_crc == HASH_EDUKE32 || m_crc == HASH_2020;
+  return m_crc == HASH_2012 || m_crc == HASH_EDUKE32 || m_crc == HASH_2020 ||
+         m_crc == HASH_2020_PAD || m_crc == HASH_2022_PAD;
 }
 
 bool AESndUCode::UseNewFlagMasks() const
 {
-  return m_crc == HASH_EDUKE32 || m_crc == HASH_2020;
+  return m_crc == HASH_EDUKE32 || m_crc == HASH_2020 || m_crc == HASH_2020_PAD ||
+         m_crc == HASH_2022_PAD;
 }
 
 AESndUCode::AESndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
@@ -161,7 +163,7 @@ void AESndUCode::HandleMail(u32 mail)
       break;
     case MAIL_TERMINATE:
       INFO_LOG_FMT(DSPHLE, "AESndUCode - MAIL_TERMINATE: {:08x}", mail);
-      if (true)  // currently no mainline libogc uCode has this issue fixed
+      if (m_crc != HASH_2022_PAD)
       {
         // The relevant code looks like this:
         //
