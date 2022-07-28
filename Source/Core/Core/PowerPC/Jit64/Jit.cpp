@@ -319,7 +319,7 @@ bool Jit64::BackPatch(SContext* ctx)
       *ptr = Common::swap64(static_cast<u64>(*ptr));
       break;
     default:
-      DEBUG_ASSERT(0);
+      DEBUG_ASSERT(false);
       break;
     }
   }

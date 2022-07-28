@@ -558,7 +558,7 @@ std::optional<ReadResult<u32>> HostTryReadInstruction(const Core::CPUThreadGuard
   }
   }
 
-  ASSERT(0);
+  ASSERT(false);
   return std::nullopt;
 }
 
@@ -679,7 +679,7 @@ static std::optional<ReadResult<T>> HostTryReadUX(const Core::CPUThreadGuard& gu
   }
   }
 
-  ASSERT(0);
+  ASSERT(false);
   return std::nullopt;
 }
 
@@ -900,7 +900,7 @@ static std::optional<WriteResult> HostTryWriteUX(const Core::CPUThreadGuard& gua
     return WriteResult(true);
   }
 
-  ASSERT(0);
+  ASSERT(false);
   return std::nullopt;
 }
 
@@ -1051,7 +1051,7 @@ bool HostIsRAMAddress(const Core::CPUThreadGuard& guard, u32 address, RequestedA
     return IsRAMAddress<XCheckTLBFlag::NoException>(memory, address, true);
   }
 
-  ASSERT(0);
+  ASSERT(false);
   return false;
 }
 
@@ -1078,7 +1078,7 @@ bool HostIsInstructionRAMAddress(const Core::CPUThreadGuard& guard, u32 address,
     return IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(memory, address, true);
   }
 
-  ASSERT(0);
+  ASSERT(false);
   return false;
 }
 

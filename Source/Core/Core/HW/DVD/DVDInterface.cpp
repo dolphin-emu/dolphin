@@ -666,7 +666,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base, bool is_wii)
 
                    if (state_.DISR.BREAK)
                    {
-                     DEBUG_ASSERT(0);
+                     DEBUG_ASSERT(false);
                    }
 
                    UpdateInterrupts();

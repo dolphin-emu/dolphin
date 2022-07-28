@@ -3,7 +3,6 @@
 
 #include "DolphinQt/CheatSearchWidget.h"
 
-#include <cassert>
 #include <functional>
 #include <optional>
 #include <string>

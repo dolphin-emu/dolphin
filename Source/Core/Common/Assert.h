@@ -11,7 +11,7 @@
 #define ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                           \
   do                                                                                               \
   {                                                                                                \
-    if (!(_a_))                                                                                    \
+    if (!(_a_)) [[unlikely]]                                                                       \
     {                                                                                              \
       if (!PanicYesNoFmtAssert(_t_,                                                                \
                                "An error occurred.\n\n" _fmt_ "\n\n"                               \
@@ -32,7 +32,7 @@
 #define ASSERT(_a_)                                                                                \
   do                                                                                               \
   {                                                                                                \
-    if (!(_a_))                                                                                    \
+    if (!(_a_)) [[unlikely]]                                                                       \
     {                                                                                              \
       if (!PanicYesNoFmt("An error occurred.\n\n"                                                  \
                          "  Condition: {}\n  File: {}\n  Line: {}\n  Function: {}\n\n"             \
