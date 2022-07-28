@@ -95,8 +95,11 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   if (spng_set_ihdr(ctx.get(), &ihdr))
     return false;
 
-  if (spng_encode_image(ctx.get(), nullptr, 0, SPNG_FMT_PNG, SPNG_ENCODE_PROGRESSIVE))
+  if (spng_encode_image(ctx.get(), nullptr, 0, SPNG_FMT_PNG,
+                        SPNG_ENCODE_PROGRESSIVE | SPNG_ENCODE_FINALIZE))
+  {
     return false;
+  }
   for (u32 row = 0; row < height; row++)
   {
     const int err = spng_encode_row(ctx.get(), &input[row * stride], stride);
