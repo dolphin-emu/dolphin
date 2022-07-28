@@ -57,11 +57,22 @@ int VerifyCommand::Main(const std::vector<std::string>& args)
     algorithm = static_cast<const char*>(options.get("algorithm"));
   }
 
-  bool enable_crc32 = algorithm == std::nullopt || algorithm == "crc32";
-  bool enable_md5 = algorithm == std::nullopt || algorithm == "md5";
-  bool enable_sha1 = algorithm == std::nullopt || algorithm == "sha1";
+  DiscIO::Hashes<bool> hashes_to_calculate{};
+  if (algorithm == std::nullopt)
+  {
+    hashes_to_calculate = DiscIO::VolumeVerifier::GetDefaultHashesToCalculate();
+  }
+  else
+  {
+    if (algorithm == "crc32")
+      hashes_to_calculate.crc32 = true;
+    else if (algorithm == "md5")
+      hashes_to_calculate.md5 = true;
+    else if (algorithm == "sha1")
+      hashes_to_calculate.sha1 = true;
+  }
 
-  if (!enable_crc32 && !enable_md5 && !enable_sha1)
+  if (!hashes_to_calculate.crc32 && !hashes_to_calculate.md5 && !hashes_to_calculate.sha1)
   {
     // optparse should protect from this
     std::cerr << "Error: No algorithms selected for the operation" << std::endl;
@@ -78,7 +89,7 @@ int VerifyCommand::Main(const std::vector<std::string>& args)
 
   // Verify the volume
   const std::optional<DiscIO::VolumeVerifier::Result> result =
-      VerifyVolume(volume, enable_crc32, enable_md5, enable_sha1);
+      VerifyVolume(volume, hashes_to_calculate);
   if (!result)
   {
     std::cerr << "Error: Unable to verify volume" << std::endl;
@@ -91,15 +102,15 @@ int VerifyCommand::Main(const std::vector<std::string>& args)
   }
   else
   {
-    if (enable_crc32 && !result->hashes.crc32.empty())
+    if (hashes_to_calculate.crc32 && !result->hashes.crc32.empty())
       std::cout << HashToHexString(result->hashes.crc32) << std::endl;
-    else if (enable_md5 && !result->hashes.md5.empty())
+    else if (hashes_to_calculate.md5 && !result->hashes.md5.empty())
       std::cout << HashToHexString(result->hashes.md5) << std::endl;
-    else if (enable_sha1 && !result->hashes.sha1.empty())
+    else if (hashes_to_calculate.sha1 && !result->hashes.sha1.empty())
       std::cout << HashToHexString(result->hashes.sha1) << std::endl;
     else
     {
-      std::cerr << "Error: No hash available" << std::endl;
+      std::cerr << "Error: No hash computed" << std::endl;
       return 1;
     }
   }
@@ -112,17 +123,17 @@ void VerifyCommand::PrintFullReport(const std::optional<DiscIO::VolumeVerifier::
   if (!result->hashes.crc32.empty())
     std::cout << "CRC32: " << HashToHexString(result->hashes.crc32) << std::endl;
   else
-    std::cout << "CRC32 not available" << std::endl;
+    std::cout << "CRC32 not computed" << std::endl;
 
   if (!result->hashes.md5.empty())
     std::cout << "MD5: " << HashToHexString(result->hashes.md5) << std::endl;
   else
-    std::cout << "MD5 not available" << std::endl;
+    std::cout << "MD5 not computed" << std::endl;
 
   if (!result->hashes.sha1.empty())
     std::cout << "SHA1: " << HashToHexString(result->hashes.sha1) << std::endl;
   else
-    std::cout << "SHA1 not available" << std::endl;
+    std::cout << "SHA1 not computed" << std::endl;
 
   std::cout << "Problems Found: " << (result->problems.size() > 0 ? "Yes" : "No") << std::endl;
 
@@ -156,13 +167,13 @@ void VerifyCommand::PrintFullReport(const std::optional<DiscIO::VolumeVerifier::
 }
 
 std::optional<DiscIO::VolumeVerifier::Result>
-VerifyCommand::VerifyVolume(std::shared_ptr<DiscIO::VolumeDisc> volume, bool enable_crc32,
-                            bool enable_md5, bool enable_sha1)
+VerifyCommand::VerifyVolume(std::shared_ptr<DiscIO::VolumeDisc> volume,
+                            const DiscIO::Hashes<bool>& hashes_to_calculate)
 {
   if (!volume)
     return std::nullopt;
 
-  DiscIO::VolumeVerifier verifier(*volume, false, {enable_crc32, enable_md5, enable_sha1});
+  DiscIO::VolumeVerifier verifier(*volume, false, hashes_to_calculate);
 
   verifier.Start();
   while (verifier.GetBytesProcessed() != verifier.GetTotalBytes())

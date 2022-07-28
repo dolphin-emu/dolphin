@@ -23,8 +23,8 @@ private:
   void PrintFullReport(const std::optional<DiscIO::VolumeVerifier::Result> result);
 
   std::optional<DiscIO::VolumeVerifier::Result>
-  VerifyVolume(std::shared_ptr<DiscIO::VolumeDisc> volume, bool enable_crc32, bool enable_md5,
-               bool enable_sha1);
+  VerifyVolume(std::shared_ptr<DiscIO::VolumeDisc> volume,
+               const DiscIO::Hashes<bool>& hashes_to_calculate);
 
   std::string HashToHexString(const std::vector<u8>& hash);
 };

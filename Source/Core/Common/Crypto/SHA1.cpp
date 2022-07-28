@@ -59,6 +59,7 @@ public:
     ASSERT(!mbedtls_sha1_finish_ret(&ctx, digest.data()));
     return digest;
   }
+  virtual bool HwAccelerated() const override { return false; }
 
 private:
   mbedtls_sha1_context ctx{};
@@ -249,6 +250,8 @@ private:
     return digest;
   }
 
+  virtual bool HwAccelerated() const override { return true; }
+
   std::array<__m128i, 2> state{};
 };
 
@@ -362,6 +365,8 @@ private:
     std::memcpy(&digest[sizeof(state.abcd)], &e, sizeof(e));
     return digest;
   }
+
+  virtual bool HwAccelerated() const override { return true; }
 
   State state;
 };

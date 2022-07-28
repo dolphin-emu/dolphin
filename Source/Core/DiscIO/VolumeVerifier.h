@@ -127,6 +127,7 @@ public:
   VolumeVerifier(const Volume& volume, bool redump_verification, Hashes<bool> hashes_to_calculate);
   ~VolumeVerifier();
 
+  static Hashes<bool> GetDefaultHashesToCalculate();
   void Start();
   void Process();
   u64 GetBytesProcessed() const;

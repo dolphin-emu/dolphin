@@ -25,6 +25,7 @@ public:
   virtual void Update(const u8* msg, size_t len) = 0;
   void Update(const std::vector<u8>& msg) { return Update(msg.data(), msg.size()); }
   virtual Digest Finish() = 0;
+  virtual bool HwAccelerated() const = 0;
 };
 
 std::unique_ptr<Context> CreateContext();
