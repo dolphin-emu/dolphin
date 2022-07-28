@@ -1108,10 +1108,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     else
       out.Write("\tint zbuffer_zCoord = 0xFFFFFF - zCoord;\n");
 
-    if (host_config.backend_unrestricted_depth_range)
-      out.Write("\tdepth = float(zbuffer_zCoord);\n");
-    else
-      out.Write("\tdepth = float(zbuffer_zCoord) / 16777216.0;\n");
+    out.Write("\tdepth = float(zbuffer_zCoord) / 16777215.0;\n");
   }
 
   // Note: depth texture output is only written to depth buffer if late depth test is used
@@ -1134,10 +1131,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     else
       out.Write("\tint zbuffer_zCoord = 0xFFFFFF - zCoord;\n");
 
-    if (host_config.backend_unrestricted_depth_range)
-      out.Write("\tdepth = float(zbuffer_zCoord);\n");
-    else
-      out.Write("\tdepth = float(zbuffer_zCoord) / 16777216.0;\n");
+    out.Write("\tdepth = float(zbuffer_zCoord) / 16777215.0;\n");
   }
 
   // No dithering for RGB8 mode
@@ -1691,8 +1685,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (per_pixel_depth)
   {
     out.Write("\t\tdepth = {};\n",
-              !g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? "0.0" :
-              !g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? "1.0" : "16777216.0");
+              !g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? "0.0" : "1.0");
   }
 
   // ZCOMPLOC HACK:

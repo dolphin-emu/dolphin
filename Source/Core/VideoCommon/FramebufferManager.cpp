@@ -122,13 +122,7 @@ AbstractTextureFormat FramebufferManager::GetEFBColorFormat()
 
 AbstractTextureFormat FramebufferManager::GetEFBDepthFormat()
 {
-  // 32-bit depth clears are broken in the Adreno Vulkan driver, and have no effect.
-  // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
-  // We still resolve this to a R32F texture, as there is no 24-bit format.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_D32F_CLEAR))
-    return AbstractTextureFormat::D24_S8;
-  else
-    return AbstractTextureFormat::D32F;
+  return AbstractTextureFormat::D24_S8;
 }
 
 AbstractTextureFormat FramebufferManager::GetEFBDepthCopyFormat()
@@ -224,14 +218,10 @@ bool FramebufferManager::CreateEFBFramebuffer()
       return false;
   }
 
-  // Unrestricted depth range buffers should be cleared to the integer max depth.
-  const float max_depth =
-      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? EFB_MAX_DEPTH : 1.0f;
-
   // Clear the renderable textures out.
   g_renderer->SetAndClearFramebuffer(
       m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-      g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? max_depth : 0.0f);
+      g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
   return true;
 }
 
@@ -727,15 +717,13 @@ void FramebufferManager::ClearEFB(const MathUtil::Rectangle<int>& rc, bool clear
                         static_cast<float>((color >> 8) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 0) & 0xFF) / 255.0f,
                         static_cast<float>((color >> 24) & 0xFF) / 255.0f},
-                       depth / 16777216.0f};
+                       depth / 16777215.0f};
   g_vertex_manager->UploadUtilityUniforms(&uniforms, sizeof(uniforms));
 
-  const float max_depth =
-      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? 16777216.0f : 1.0f;
   const auto target_rc = g_renderer->ConvertFramebufferRectangle(
       g_renderer->ConvertEFBRectangle(rc), m_efb_framebuffer.get());
   g_renderer->SetPipeline(m_efb_clear_pipelines[clear_color][clear_alpha][clear_z].get());
-  g_renderer->SetViewportAndScissor(target_rc, 0.0f, max_depth);
+  g_renderer->SetViewportAndScissor(target_rc);
   g_renderer->Draw(0, 3);
   g_renderer->EndUtilityDrawing();
 }
@@ -819,7 +807,7 @@ void FramebufferManager::PokeEFBDepth(u32 x, u32 y, u32 depth)
   if ((m_depth_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
     FlushEFBPokes();
 
-  CreatePokeVertices(&m_depth_poke_vertices, x, y, depth / 16777216.0f, 0);
+  CreatePokeVertices(&m_depth_poke_vertices, x, y, depth / EFB_MAX_DEPTH, 0);
 
   // See comment above for reasoning for lower-left coordinates.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
@@ -886,12 +874,8 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, u32 ver
                                           static_cast<u32>(vertex_count), nullptr, 0, &base_vertex,
                                           &base_index);
 
-  // For unrestricted depth range we need to set the 2^24 divisor as the maximum depth.
-  const float max_depth =
-      g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? 16777216.0f : 1.0f;
-
   // Now we can draw.
-  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect(), 0.0f, max_depth);
+  g_renderer->SetViewportAndScissor(m_efb_framebuffer->GetRect());
   g_renderer->SetPipeline(pipeline);
   g_renderer->Draw(base_vertex, vertex_count);
   g_renderer->EndUtilityDrawing();
@@ -1005,13 +989,9 @@ void FramebufferManager::DoLoadState(PointerWrap& p)
   {
     WARN_LOG_FMT(VIDEO, "Failed to deserialize EFB contents. Clearing instead.");
 
-    // Unrestricted depth range buffers should be cleared to the integer max depth.
-    const float max_depth =
-        g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange ? EFB_MAX_DEPTH : 1.0f;
-
     g_renderer->SetAndClearFramebuffer(
         m_efb_framebuffer.get(), {{0.0f, 0.0f, 0.0f, 0.0f}},
-        g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? max_depth : 0.0f);
+        g_ActiveConfig.backend_info.bSupportsReversedDepthRange ? 1.0f : 0.0f);
     return;
   }
 

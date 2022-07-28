@@ -300,8 +300,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   {
     // Depth buffer is inverted for improved precision near far plane
     float depth = g_framebuffer_manager->PeekEFBDepth(x, y);
-    if (!g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
-      depth = depth * 16777216.0f;
+    depth = depth * 16777215.0f;
     if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
       depth = EFB_MAX_DEPTH - depth;
 
@@ -1818,6 +1817,10 @@ void Renderer::DumpFrameToImage(const FrameDump::FrameData& frame)
 
 bool Renderer::UseSlowDepth() const
 {
+  // We don't need slow depth if we support unrestricted depth range
+  if (g_ActiveConfig.backend_info.bSupportsUnrestrictedDepthRange)
+    return false;
+
   // TODO: Why can't slow depth be used if the alpha test result is undetermined?
   if (bpmem.alpha_test.TestResult() == AlphaTestResult::Undetermined)
     return false;

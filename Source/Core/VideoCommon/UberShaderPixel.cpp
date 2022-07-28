@@ -935,10 +935,7 @@ ShaderCode GenPixelShader(APIType api_type, const ShaderHostConfig& host_config,
     if (!host_config.backend_reversed_depth_range)
       out.Write("  zbuffer_zCoord = 0xFFFFFF - zbuffer_zCoord;\n");
 
-    if (host_config.backend_unrestricted_depth_range)
-      out.Write("  depth = float(zbuffer_zCoord);\n");
-    else
-      out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
+    out.Write("  depth = float(zbuffer_zCoord) / 16777215.0;\n");
   }
 
   out.Write("  // Alpha Test\n");

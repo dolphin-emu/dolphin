@@ -253,15 +253,16 @@ void SetScissorAndViewport()
   {
     // If the API doesn't support unrestricted depth range we have to normalize the depth
     // range to a 0..1 value. To do this we use a 2^24 divisor to prevent rounding errors.
-    near_depth = std::clamp(near_depth / 16777216.0f, 0.0f, 1.0f);
-    far_depth = std::clamp(far_depth / 16777216.0f, 0.0f, 1.0f);
+    near_depth = std::clamp(near_depth, 0.0f, EFB_MAX_DEPTH);
+    far_depth = std::clamp(far_depth, 0.0f, EFB_MAX_DEPTH);
   }
 
   // Lower-left flip.
   if (g_ActiveConfig.backend_info.bUsesLowerLeftOrigin)
     y = static_cast<float>(g_renderer->GetCurrentFramebuffer()->GetHeight()) - y - height;
 
-  g_renderer->SetViewport(x, y, width, height, near_depth, far_depth);
+  g_renderer->SetViewport(x, y, width, height, near_depth / EFB_MAX_DEPTH,
+                          far_depth / EFB_MAX_DEPTH);
 }
 
 void SetDepthMode()
