@@ -25,6 +25,8 @@
 #pragma comment(lib, "libittnotify.lib")
 #endif
 
+#include <climits>
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
@@ -131,7 +133,7 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 #endif
   CPU_ZERO(&cpu_set);
 
-  for (int i = 0; i != sizeof(mask) * 8; ++i)
+  for (int i = 0; i != sizeof(mask) * CHAR_BIT; ++i)
     if ((mask >> i) & 1)
       CPU_SET(i, &cpu_set);
 
@@ -139,7 +141,7 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 #else
   cpuset_t* cpu_set = cpuset_create();
 
-  for (int i = 0; i != sizeof(mask) * 8; ++i)
+  for (int i = 0; i != sizeof(mask) * CHAR_BIT; ++i)
     if ((mask >> i) & 1)
       cpuset_set(i, cpu_set);
 

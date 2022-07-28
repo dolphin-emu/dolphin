@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/Jit64Common/EmuCodeBlock.h"
 
+#include <climits>
 #include <functional>
 #include <limits>
 
@@ -215,14 +216,14 @@ public:
   {
   }
 
-  void VisitConstant(T value) override { LoadConstantToReg(8 * sizeof(T), value); }
+  void VisitConstant(T value) override { LoadConstantToReg(CHAR_BIT * sizeof(T), value); }
   void VisitDirect(const T* addr, u32 mask) override
   {
-    LoadAddrMaskToReg(8 * sizeof(T), addr, mask);
+    LoadAddrMaskToReg(CHAR_BIT * sizeof(T), addr, mask);
   }
   void VisitComplex(const std::function<T(u32)>* lambda) override
   {
-    CallLambda(8 * sizeof(T), lambda);
+    CallLambda(CHAR_BIT * sizeof(T), lambda);
   }
 
 private:

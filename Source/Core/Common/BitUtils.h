@@ -364,7 +364,7 @@ T ExpandValue(T value, size_t left_shift_amount)
 template <typename T>
 constexpr int CountLeadingZerosConst(T value)
 {
-  int result = sizeof(T) * 8;
+  int result = sizeof(T) * CHAR_BIT;
   while (value)
   {
     result--;
@@ -414,7 +414,7 @@ constexpr int CountLeadingZeros(uint32_t value)
 template <typename T>
 constexpr int CountTrailingZerosConst(T value)
 {
-  int result = sizeof(T) * 8;
+  int result = sizeof(T) * CHAR_BIT;
   while (value)
   {
     result--;

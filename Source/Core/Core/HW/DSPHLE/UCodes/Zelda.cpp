@@ -7,6 +7,7 @@
 #include <array>
 #include <map>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -1581,7 +1582,7 @@ void ZeldaAudioRenderer::DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requ
     u16 samples_to_download = std::min(vpb->GetRemainingLength(), (u32)requested_samples_count);
 
     for (u16 i = 0; i < samples_to_download; ++i)
-      *dst++ = Common::FromBigEndian<T>(*src_ptr++) << (16 - 8 * sizeof(T));
+      *dst++ = Common::FromBigEndian<T>(*src_ptr++) << (16 - Common::BitSize<T>());
 
     vpb->SetRemainingLength(vpb->GetRemainingLength() - samples_to_download);
     vpb->SetCurrentARAMAddr(vpb->GetCurrentARAMAddr() + samples_to_download * sizeof(T));

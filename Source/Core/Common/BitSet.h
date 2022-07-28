@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include <climits>
 #include <cstddef>
 #include <initializer_list>
 #include <type_traits>
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 #ifdef _WIN32
@@ -22,7 +24,7 @@ constexpr int CountSetBits(T v)
   v = v - ((v >> 1) & (T) ~(T)0 / 3);
   v = (v & (T) ~(T)0 / 15 * 3) + ((v >> 2) & (T) ~(T)0 / 15 * 3);
   v = (v + (v >> 4)) & (T) ~(T)0 / 255 * 15;
-  return (T)(v * ((T) ~(T)0 / 255)) >> (sizeof(T) - 1) * 8;
+  return (T)(v * ((T) ~(T)0 / 255)) >> (sizeof(T) - 1) * CHAR_BIT;
 }
 inline int LeastSignificantSetBit(u8 val)
 {
@@ -178,7 +180,7 @@ public:
 
   constexpr static BitSet AllTrue(size_t count)
   {
-    return BitSet(count == sizeof(IntTy) * 8 ? ~(IntTy)0 : (((IntTy)1 << count) - 1));
+    return BitSet(count == BitSize<IntTy>() ? ~(IntTy)0 : (((IntTy)1 << count) - 1));
   }
 
   Ref operator[](size_t bit) { return Ref(this, (IntTy)1 << bit); }

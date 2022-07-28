@@ -6,6 +6,7 @@
 #include <array>
 #include <type_traits>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/EnumMap.h"
 
@@ -30,7 +31,7 @@ constexpr float FracAdjust(T val)
   // auto const U16FRAC = 1.f / (1u << 15);
 
   // TODO: is this right?
-  return val / float(1u << (sizeof(T) * 8 - std::is_signed_v<T> - 1));
+  return val / float(1u << (Common::BitSize<T>() - std::is_signed_v<T> - 1));
 }
 
 template <>

@@ -1,6 +1,8 @@
 // Copyright 2015 Dolphin Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <climits>
+
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
 
 #include "Common/Arm64Emitter.h"
@@ -27,10 +29,10 @@ public:
   {
     // Do nothing
   }
-  void VisitDirect(T* addr, u32 mask) override { WriteRegToAddr(8 * sizeof(T), addr, mask); }
+  void VisitDirect(T* addr, u32 mask) override { WriteRegToAddr(CHAR_BIT * sizeof(T), addr, mask); }
   void VisitComplex(const std::function<void(u32, T)>* lambda) override
   {
-    CallLambda(8 * sizeof(T), lambda);
+    CallLambda(CHAR_BIT * sizeof(T), lambda);
   }
 
 private:
@@ -103,14 +105,14 @@ public:
   {
   }
 
-  void VisitConstant(T value) override { LoadConstantToReg(8 * sizeof(T), value); }
+  void VisitConstant(T value) override { LoadConstantToReg(CHAR_BIT * sizeof(T), value); }
   void VisitDirect(const T* addr, u32 mask) override
   {
-    LoadAddrMaskToReg(8 * sizeof(T), addr, mask);
+    LoadAddrMaskToReg(CHAR_BIT * sizeof(T), addr, mask);
   }
   void VisitComplex(const std::function<T(u32)>* lambda) override
   {
-    CallLambda(8 * sizeof(T), lambda);
+    CallLambda(CHAR_BIT * sizeof(T), lambda);
   }
 
 private:

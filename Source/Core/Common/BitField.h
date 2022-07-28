@@ -36,6 +36,7 @@
 #include <limits>
 #include <type_traits>
 
+#include "Common/BitUtils.h"
 #include "Common/Inline.h"
 
 /*
@@ -159,7 +160,7 @@ private:
 
   constexpr T Value(std::true_type) const
   {
-    const size_t shift_amount = 8 * sizeof(StorageType) - bits;
+    const size_t shift_amount = Common::BitSize<StorageType>() - bits;
     return static_cast<T>((storage << (shift_amount - position)) >> shift_amount);
   }
 
@@ -170,18 +171,18 @@ private:
 
   static constexpr StorageType GetMask()
   {
-    return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(StorageType) - bits))
+    return (std::numeric_limits<StorageTypeU>::max() >> (Common::BitSize<StorageType>() - bits))
            << position;
   }
 
   StorageType storage;
 
-  static_assert(bits + position <= 8 * sizeof(StorageType), "Bitfield out of range");
+  static_assert(bits + position <= Common::BitSize<StorageType>(), "Bitfield out of range");
   static_assert(sizeof(T) <= sizeof(StorageType), "T must fit in StorageType");
 
   // And, you know, just in case people specify something stupid like bits=position=0x80000000
-  static_assert(position < 8 * sizeof(StorageType), "Invalid position");
-  static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
+  static_assert(position < Common::BitSize<StorageType>(), "Invalid position");
+  static_assert(bits <= Common::BitSize<T>(), "Invalid number of bits");
   static_assert(bits > 0, "Invalid number of bits");
 };
 #pragma pack()
@@ -275,7 +276,7 @@ private:
   constexpr T Value(std::true_type, size_t index) const
   {
     const size_t pos = position + bits * index;
-    const size_t shift_amount = 8 * sizeof(StorageType) - bits;
+    const size_t shift_amount = Common::BitSize<StorageType>() - bits;
     return static_cast<T>((storage << (shift_amount - pos)) >> shift_amount);
   }
 
@@ -288,19 +289,21 @@ private:
   static constexpr StorageType GetElementMask(size_t index)
   {
     const size_t pos = position + bits * index;
-    return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(StorageType) - bits)) << pos;
+    return (std::numeric_limits<StorageTypeU>::max() >> (Common::BitSize<StorageType>() - bits))
+           << pos;
   }
 
   StorageType storage;
 
-  static_assert(bits * size + position <= 8 * sizeof(StorageType), "Bitfield array out of range");
+  static_assert(bits * size + position <= Common::BitSize<StorageType>(),
+                "Bitfield array out of range");
   static_assert(sizeof(T) <= sizeof(StorageType), "T must fit in StorageType");
 
   // And, you know, just in case people specify something stupid like bits=position=0x80000000
-  static_assert(position < 8 * sizeof(StorageType), "Invalid position");
-  static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
+  static_assert(position < Common::BitSize<StorageType>(), "Invalid position");
+  static_assert(bits <= Common::BitSize<T>(), "Invalid number of bits");
   static_assert(bits > 0, "Invalid number of bits");
-  static_assert(size <= 8 * sizeof(StorageType), "Invalid size");
+  static_assert(size <= Common::BitSize<StorageType>(), "Invalid size");
   static_assert(size > 0, "Invalid size");
 };
 #pragma pack()

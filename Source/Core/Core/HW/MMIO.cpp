@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/MMIOHandlers.h"
 
@@ -174,7 +175,7 @@ ReadHandlingMethod<T>* InvalidRead()
 {
   return ComplexRead<T>([](u32 addr) {
     ERROR_LOG_FMT(MEMMAP, "Trying to read {} bits from an invalid MMIO (addr={:08x})",
-                  8 * sizeof(T), addr);
+                  Common::BitSize<T>(), addr);
     return -1;
   });
 }
@@ -183,7 +184,7 @@ WriteHandlingMethod<T>* InvalidWrite()
 {
   return ComplexWrite<T>([](u32 addr, T val) {
     ERROR_LOG_FMT(MEMMAP, "Trying to write {} bits to an invalid MMIO (addr={:08x}, val={:08x})",
-                  8 * sizeof(T), addr, val);
+                  Common::BitSize<T>(), addr, val);
   });
 }
 
@@ -230,7 +231,8 @@ ReadHandlingMethod<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_
 
   // TODO(delroth): optimize
   return ComplexRead<T>([=](u32 addr) {
-    return ((T)high_part->Read(high_part_addr) << (8 * sizeof(ST))) | low_part->Read(low_part_addr);
+    return ((T)high_part->Read(high_part_addr) << Common::BitSize<ST>()) |
+           low_part->Read(low_part_addr);
   });
 }
 
@@ -244,7 +246,7 @@ WriteHandlingMethod<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 lo
 
   // TODO(delroth): optimize
   return ComplexWrite<T>([=](u32 addr, T val) {
-    high_part->Write(high_part_addr, val >> (8 * sizeof(ST)));
+    high_part->Write(high_part_addr, val >> Common::BitSize<ST>());
     low_part->Write(low_part_addr, (ST)val);
   });
 }
