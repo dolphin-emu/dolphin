@@ -36,7 +36,8 @@ enum
   IPC_ARMMSG = 0x08,
   IPC_ARMCTRL = 0x0c,
 
-  PPCSPEED = 0x18,
+  VI1CFG = 0x18,
+  VIDIM = 0x1c,
   VISOLID = 0x24,
 
   PPC_IRQFLAG = 0x30,
@@ -44,17 +45,31 @@ enum
   ARM_IRQFLAG = 0x38,
   ARM_IRQMASK = 0x3c,
 
+  SRNPROT = 0x60,
+  AHBPROT = 0x64,
+
+  // Broadway GPIO access. We don't currently implement the interrupts.
   GPIOB_OUT = 0xc0,
   GPIOB_DIR = 0xc4,
   GPIOB_IN = 0xc8,
-
+  GPIOB_INTLVL = 0xcc,
+  GPIOB_INTFLAG = 0xd0,
+  GPIOB_INTMASK = 0xd4,
+  GPIOB_STRAPS = 0xd8,
+  // Starlet GPIO access. We emulate some of these for /dev/di.
+  GPIO_ENABLE = 0xdc,
   GPIO_OUT = 0xe0,
   GPIO_DIR = 0xe4,
   GPIO_IN = 0xe8,
+  GPIO_INTLVL = 0xec,
+  GPIO_INTFLAG = 0xf0,
+  GPIO_INTMASK = 0xf4,
+  GPIO_STRAPS = 0xf8,
+  GPIO_OWNER = 0xfc,
 
-  HW_RESETS = 0x194,
+  COMPAT = 0x180,
+  RESETS = 0x194,
 
-  UNK_180 = 0x180,
   UNK_1CC = 0x1cc,
   UNK_1D0 = 0x1d0,
 };
@@ -480,7 +495,7 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }),
                  MMIO::Nop<u32>());
 
-  mmio->Register(base | HW_RESETS, MMIO::DirectRead<u32>(&m_resets),
+  mmio->Register(base | RESETS, MMIO::DirectRead<u32>(&m_resets),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    // A reset occurs when the corresponding bit is cleared
                    auto& wii_ipc = system.GetWiiIPC();
@@ -496,9 +511,10 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   // Register some stubbed/unknown MMIOs required to make Wii games work.
-  mmio->Register(base | PPCSPEED, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
-  mmio->Register(base | VISOLID, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
-  mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
+  mmio->Register(base | VI1CFG, MMIO::InvalidRead<u32>(), MMIO::InvalidWrite<u32>());
+  mmio->Register(base | VIDIM, MMIO::InvalidRead<u32>(), MMIO::InvalidWrite<u32>());
+  mmio->Register(base | VISOLID, MMIO::InvalidRead<u32>(), MMIO::InvalidWrite<u32>());
+  mmio->Register(base | COMPAT, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
 }
