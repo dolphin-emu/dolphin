@@ -1068,13 +1068,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
-  case MessageID::MD5Progress:
+  case MessageID::GameDigestProgress:
   {
     int progress;
     packet >> progress;
 
     sf::Packet spac;
-    spac << MessageID::MD5Progress;
+    spac << MessageID::GameDigestProgress;
     spac << player.pid;
     spac << progress;
 
@@ -1082,13 +1082,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
-  case MessageID::MD5Result:
+  case MessageID::GameDigestResult:
   {
     std::string result;
     packet >> result;
 
     sf::Packet spac;
-    spac << MessageID::MD5Result;
+    spac << MessageID::GameDigestResult;
     spac << player.pid;
     spac << result;
 
@@ -1096,13 +1096,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
-  case MessageID::MD5Error:
+  case MessageID::GameDigestError:
   {
     std::string error;
     packet >> error;
 
     sf::Packet spac;
-    spac << MessageID::MD5Error;
+    spac << MessageID::GameDigestError;
     spac << player.pid;
     spac << error;
 
@@ -1252,10 +1252,10 @@ bool NetPlayServer::ChangeGame(const SyncIdentifier& sync_identifier,
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::ComputeMD5(const SyncIdentifier& sync_identifier)
+bool NetPlayServer::ComputeGameDigest(const SyncIdentifier& sync_identifier)
 {
   sf::Packet spac;
-  spac << MessageID::ComputeMD5;
+  spac << MessageID::ComputeGameDigest;
   SendSyncIdentifier(spac, sync_identifier);
 
   SendAsyncToClients(std::move(spac));
@@ -1264,10 +1264,10 @@ bool NetPlayServer::ComputeMD5(const SyncIdentifier& sync_identifier)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::AbortMD5()
+bool NetPlayServer::AbortGameDigest()
 {
   sf::Packet spac;
-  spac << MessageID::MD5Abort;
+  spac << MessageID::GameDigestAbort;
 
   SendAsyncToClients(std::move(spac));
   return true;

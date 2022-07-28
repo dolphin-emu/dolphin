@@ -73,10 +73,10 @@ public:
                SyncIdentifierComparison* found = nullptr) = 0;
   virtual std::string FindGBARomPath(const std::array<u8, 20>& hash, std::string_view title,
                                      int device_number) = 0;
-  virtual void ShowMD5Dialog(const std::string& title) = 0;
-  virtual void SetMD5Progress(int pid, int progress) = 0;
-  virtual void SetMD5Result(int pid, const std::string& result) = 0;
-  virtual void AbortMD5() = 0;
+  virtual void ShowGameDigestDialog(const std::string& title) = 0;
+  virtual void SetGameDigestProgress(int pid, int progress) = 0;
+  virtual void SetGameDigestResult(int pid, const std::string& result) = 0;
+  virtual void AbortGameDigest() = 0;
 
   virtual void OnIndexAdded(bool success, std::string error) = 0;
   virtual void OnIndexRefreshFailed(std::string error) = 0;
@@ -248,7 +248,7 @@ private:
   void Disconnect();
   bool Connect();
   void SendGameStatus();
-  void ComputeMD5(const SyncIdentifier& sync_identifier);
+  void ComputeGameDigest(const SyncIdentifier& sync_identifier);
   void DisplayPlayersPing();
   u32 GetPlayersMaxPing() const;
 
@@ -291,11 +291,11 @@ private:
   void OnSyncCodesDataGecko(sf::Packet& packet);
   void OnSyncCodesNotifyAR(sf::Packet& packet);
   void OnSyncCodesDataAR(sf::Packet& packet);
-  void OnComputeMD5(sf::Packet& packet);
-  void OnMD5Progress(sf::Packet& packet);
-  void OnMD5Result(sf::Packet& packet);
-  void OnMD5Error(sf::Packet& packet);
-  void OnMD5Abort();
+  void OnComputeGameDigest(sf::Packet& packet);
+  void OnGameDigestProgress(sf::Packet& packet);
+  void OnGameDigestResult(sf::Packet& packet);
+  void OnGameDigestError(sf::Packet& packet);
+  void OnGameDigestAbort();
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;
@@ -307,8 +307,8 @@ private:
   std::string m_player_name;
   bool m_connecting = false;
   TraversalClient* m_traversal_client = nullptr;
-  std::thread m_MD5_thread;
-  bool m_should_compute_MD5 = false;
+  std::thread m_game_digest_thread;
+  bool m_should_compute_game_digest = false;
   Common::Event m_gc_pad_event;
   Common::Event m_wii_pad_event;
   Common::Event m_first_pad_status_received_event;

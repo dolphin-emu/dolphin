@@ -45,8 +45,8 @@ public:
   ~NetPlayServer();
 
   bool ChangeGame(const SyncIdentifier& sync_identifier, const std::string& netplay_name);
-  bool ComputeMD5(const SyncIdentifier& sync_identifier);
-  bool AbortMD5();
+  bool ComputeGameDigest(const SyncIdentifier& sync_identifier);
+  bool AbortGameDigest();
   void SendChatMessage(const std::string& msg);
 
   bool DoAllPlayersHaveIPLDump() const;

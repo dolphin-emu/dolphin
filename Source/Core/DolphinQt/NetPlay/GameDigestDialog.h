@@ -16,15 +16,15 @@ class QProgressBar;
 class QVBoxLayout;
 class QWidget;
 
-class MD5Dialog : public QDialog
+class GameDigestDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit MD5Dialog(QWidget* parent);
+  explicit GameDigestDialog(QWidget* parent);
 
   void show(const QString& title);
   void SetProgress(int pid, int progress);
-  void SetResult(int pid, const std::string& md5);
+  void SetResult(int pid, const std::string& result);
 
   void reject() override;
 
