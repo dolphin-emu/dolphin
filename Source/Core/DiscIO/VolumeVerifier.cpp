@@ -1158,9 +1158,9 @@ void VolumeVerifier::Process()
   }
 
   const bool is_data_needed = m_calculating_any_hash || content_read || group_read;
-  const bool read_succeeded = is_data_needed && ReadChunkAndWaitForAsyncOperations(bytes_to_read);
+  const bool read_failed = is_data_needed && !ReadChunkAndWaitForAsyncOperations(bytes_to_read);
 
-  if (!read_succeeded)
+  if (read_failed)
   {
     ERROR_LOG_FMT(DISCIO, "Read failed at {:#x} to {:#x}", m_progress, m_progress + bytes_to_read);
 
@@ -1198,8 +1198,8 @@ void VolumeVerifier::Process()
 
   if (content_read)
   {
-    m_content_future = std::async(std::launch::async, [this, read_succeeded, content] {
-      if (!read_succeeded || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
+    m_content_future = std::async(std::launch::async, [this, read_failed, content] {
+      if (read_failed || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
       {
         AddProblem(Severity::High, Common::FmtFormatT("Content {0:08x} is corrupt.", content.id));
       }
@@ -1210,7 +1210,7 @@ void VolumeVerifier::Process()
 
   if (group_read)
   {
-    m_group_future = std::async(std::launch::async, [this, read_succeeded,
+    m_group_future = std::async(std::launch::async, [this, read_failed,
                                                      group_index = m_group_index] {
       const GroupToVerify& group = m_groups[group_index];
       u64 offset_in_group = 0;
@@ -1219,8 +1219,8 @@ void VolumeVerifier::Process()
       {
         const u64 block_offset = group.offset + offset_in_group;
 
-        if (read_succeeded && m_volume.CheckBlockIntegrity(
-                                  block_index, m_data.data() + offset_in_group, group.partition))
+        if (!read_failed && m_volume.CheckBlockIntegrity(
+                                block_index, m_data.data() + offset_in_group, group.partition))
         {
           m_biggest_verified_offset =
               std::max(m_biggest_verified_offset, block_offset + VolumeWii::BLOCK_TOTAL_SIZE);
