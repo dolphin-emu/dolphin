@@ -40,7 +40,7 @@ GameDigestDialog::GameDigestDialog(QWidget* parent) : QDialog(parent)
 {
   CreateWidgets();
   ConnectWidgets();
-  setWindowTitle(tr("MD5 Checksum"));
+  setWindowTitle(tr("SHA1 Digest"));
   setWindowFlags(Qt::Sheet | Qt::Dialog);
   setWindowModality(Qt::WindowModal);
 }

@@ -16,11 +16,11 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/md5.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -2436,16 +2436,15 @@ bool NetPlayClient::DoAllPlayersHaveGame()
   });
 }
 
-static std::string MD5Sum(const std::string& file_path, std::function<bool(int)> report_progress)
+static std::string SHA1Sum(const std::string& file_path, std::function<bool(int)> report_progress)
 {
   std::vector<u8> data(8 * 1024 * 1024);
   u64 read_offset = 0;
-  mbedtls_md5_context ctx;
 
   std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(file_path));
   u64 game_size = file->GetDataSize();
 
-  mbedtls_md5_starts_ret(&ctx);
+  auto ctx = Common::SHA1::CreateContext();
 
   while (read_offset < game_size)
   {
@@ -2453,7 +2452,7 @@ static std::string MD5Sum(const std::string& file_path, std::function<bool(int)>
     if (!file->Read(read_offset, read_size, data.data()))
       return "";
 
-    mbedtls_md5_update_ret(&ctx, data.data(), read_size);
+    ctx->Update(data.data(), read_size);
     read_offset += read_size;
 
     int progress =
@@ -2462,11 +2461,8 @@ static std::string MD5Sum(const std::string& file_path, std::function<bool(int)>
       return "";
   }
 
-  std::array<u8, 16> output;
-  mbedtls_md5_finish_ret(&ctx, output.data());
-
   // Convert to hex
-  return fmt::format("{:02x}", fmt::join(output, ""));
+  return fmt::format("{:02x}", fmt::join(ctx->Finish(), ""));
 }
 
 void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
@@ -2495,7 +2491,7 @@ void NetPlayClient::ComputeGameDigest(const SyncIdentifier& sync_identifier)
   if (m_game_digest_thread.joinable())
     m_game_digest_thread.join();
   m_game_digest_thread = std::thread([this, file]() {
-    std::string sum = MD5Sum(file, [&](int progress) {
+    std::string sum = SHA1Sum(file, [&](int progress) {
       sf::Packet packet;
       packet << MessageID::GameDigestProgress;
       packet << progress;
