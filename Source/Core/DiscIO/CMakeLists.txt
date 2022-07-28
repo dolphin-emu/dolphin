@@ -69,7 +69,7 @@ PUBLIC
   core
   BZip2::BZip2
   lzma
-  zstd
+  ${ZSTD_LIB_NAME}
 
 PRIVATE
   fmt::fmt
