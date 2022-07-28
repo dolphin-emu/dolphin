@@ -140,7 +140,8 @@ private:
 
   static void UpdateInterruptsCallback(Core::System& system, u64 userdata, s64 cycles_late);
   void UpdateInterrupts();
-  void WriteGPIOOut(Core::System& system, bool broadway, u32 value);
+  u32 GetGPIOOut();
+  void GPIOOutChanged(u32 old_value_hex);
 
   u32 m_ppc_msg = 0;
   u32 m_arm_msg = 0;

@@ -245,19 +245,25 @@ static u32 ReadGPIOIn(Core::System& system)
   return gpio_in.m_hex;
 }
 
-void WiiIPC::WriteGPIOOut(Core::System& system, bool broadway, u32 value)
+u32 WiiIPC::GetGPIOOut()
 {
-  Common::Flags<GPIO> old_value = m_gpio_out;
+  // In the direction field, a '1' bit for a pin indicates that it will behave as an output (drive),
+  // while a '0' bit tristates the pin and it becomes a high-impedance input.
+  // In practice this means that (at least for the AVE I²C pins) a 1 is output when the pin is an
+  // input. (RVLoader depends on this.)
+  // https://github.com/Aurelio92/RVLoader/blob/75732f248019f589deb1109bba7b5323a8afaadf/source/i2c.c#L101-L109
+  return m_gpio_out.m_hex | ~m_gpio_dir.m_hex;
+}
 
-  if (broadway)
-    m_gpio_out.m_hex = (value & gpio_owner.m_hex) | (m_gpio_out.m_hex & ~gpio_owner.m_hex);
-  else
-    m_gpio_out.m_hex = (value & ~gpio_owner.m_hex) | (m_gpio_out.m_hex & gpio_owner.m_hex);
+void WiiIPC::GPIOOutChanged(u32 old_value_hex)
+{
+  Common::Flags<GPIO> old_value;
+  old_value.m_hex = old_value_hex;
 
   if (m_gpio_out[GPIO::DO_EJECT])
   {
     INFO_LOG_FMT(WII_IPC, "Ejecting disc due to GPIO write");
-    system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{system}, DVD::EjectCause::Software);
+    m_system.GetDVDInterface().EjectDisc(Core::CPUThreadGuard{m_system}, DVD::EjectCause::Software);
   }
 
   // I²C logic for the audio/video encoder (AVE)
@@ -425,13 +431,18 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | GPIOB_OUT, MMIO::DirectRead<u32>(&m_gpio_out.m_hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.WriteGPIOOut(system, true, val);
+                   const u32 old_out = wii_ipc.GetGPIOOut();
+                   wii_ipc.m_gpio_out.m_hex =
+                       (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_out.m_hex & ~gpio_owner.m_hex);
+                   wii_ipc.GPIOOutChanged(old_out);
                  }));
   mmio->Register(base | GPIOB_DIR, MMIO::DirectRead<u32>(&m_gpio_dir.m_hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
+                   const u32 old_out = wii_ipc.GetGPIOOut();
                    wii_ipc.m_gpio_dir.m_hex =
                        (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_dir.m_hex & ~gpio_owner.m_hex);
+                   wii_ipc.GPIOOutChanged(old_out);
                  }));
   mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    return ReadGPIOIn(system);
@@ -451,13 +462,18 @@ void WiiIPC::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | GPIO_OUT, MMIO::DirectRead<u32>(&m_gpio_out.m_hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
-                   wii_ipc.WriteGPIOOut(system, false, val);
+                   const u32 old_out = wii_ipc.GetGPIOOut();
+                   wii_ipc.m_gpio_out.m_hex =
+                       (val & ~gpio_owner.m_hex) | (wii_ipc.m_gpio_out.m_hex & gpio_owner.m_hex);
+                   wii_ipc.GPIOOutChanged(old_out);
                  }));
   mmio->Register(base | GPIO_DIR, MMIO::DirectRead<u32>(&m_gpio_dir.m_hex),
                  MMIO::ComplexWrite<u32>([](Core::System& system, u32, u32 val) {
                    auto& wii_ipc = system.GetWiiIPC();
+                   const u32 old_out = wii_ipc.GetGPIOOut();
                    wii_ipc.m_gpio_dir.m_hex =
-                       (wii_ipc.m_gpio_dir.m_hex & gpio_owner.m_hex) | (val & ~gpio_owner.m_hex);
+                       (val & gpio_owner.m_hex) | (wii_ipc.m_gpio_dir.m_hex & ~gpio_owner.m_hex);
+                   wii_ipc.GPIOOutChanged(old_out);
                  }));
   mmio->Register(base | GPIO_IN, MMIO::ComplexRead<u32>([](Core::System& system, u32) {
                    return ReadGPIOIn(system);
