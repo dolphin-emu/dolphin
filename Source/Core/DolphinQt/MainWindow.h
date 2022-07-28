@@ -11,11 +11,12 @@
 #include <optional>
 #include <string>
 
+#include "Core/Boot/Boot.h"
+
 class QStackedWidget;
 class QString;
 
 class BreakpointWidget;
-class BootSessionData;
 struct BootParameters;
 class CheatsManager;
 class CodeWidget;
