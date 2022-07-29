@@ -160,7 +160,8 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::VolumeDisc& volume,
 
   // iAppLoaderInit
   DEBUG_LOG_FMT(MASTER_LOG, "Call iAppLoaderInit");
-  HLE::Patch(0x81300000, "AppLoaderReport");  // HLE OSReport for Apploader
+  PowerPC::HostWrite_U32(0x4E800020, 0x81300000);  // Write BLR
+  HLE::Patch(0x81300000, "AppLoaderReport");       // HLE OSReport for Apploader
   PowerPC::ppcState.gpr[3] = 0x81300000;
   RunFunction(iAppLoaderInit);
 
