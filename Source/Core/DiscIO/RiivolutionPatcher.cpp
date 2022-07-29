@@ -5,15 +5,18 @@
 
 #include <algorithm>
 #include <locale>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include <fmt/format.h>
 
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -629,5 +632,85 @@ ExtractSavegameRedirect(const std::vector<Patch>& riivolution_patches)
     }
   }
   return std::nullopt;
+}
+
+void ApplyDolphinConfig(const std::vector<Patch>& patches)
+{
+  std::optional<double> cpu_overclock;
+  std::optional<u32> mem1_size;
+  std::optional<u32> mem2_size;
+
+  for (const auto& patch : patches)
+  {
+    for (const auto& dolphin_config : patch.m_dolphin_configs)
+    {
+      if (!cpu_overclock && dolphin_config.m_setting == "cpu")
+      {
+        double value;
+        if (TryParse<double>(dolphin_config.m_value, &value))
+        {
+          cpu_overclock = value;
+        }
+        else
+        {
+          WARN_LOG_FMT(COMMON,
+                       "Riivolution: Failed to parse patch '{}' dolphin_config setting '{}' value "
+                       "'{}' as double.",
+                       patch.m_id, dolphin_config.m_setting, dolphin_config.m_value);
+        }
+      }
+      else if (!mem1_size && dolphin_config.m_setting == "mem1")
+      {
+        u32 value;
+        if (TryParse<u32>(dolphin_config.m_value, &value))
+        {
+          mem1_size = value;
+        }
+        else
+        {
+          WARN_LOG_FMT(COMMON,
+                       "Riivolution: Failed to parse patch '{}' dolphin_config setting '{}' value "
+                       "'{}' as u32.",
+                       patch.m_id, dolphin_config.m_setting, dolphin_config.m_value);
+        }
+      }
+      else if (!mem2_size && dolphin_config.m_setting == "mem2")
+      {
+        u32 value;
+        if (TryParse<u32>(dolphin_config.m_value, &value))
+        {
+          mem2_size = value;
+        }
+        else
+        {
+          WARN_LOG_FMT(COMMON,
+                       "Riivolution: Failed to parse patch '{}' dolphin_config setting '{}' value "
+                       "'{}' as u32.",
+                       patch.m_id, dolphin_config.m_setting, dolphin_config.m_value);
+        }
+      }
+      else
+      {
+        WARN_LOG_FMT(COMMON,
+                     "Riivolution: Ignored patch '{}' dolphin_config setting '{}' value '{}'.",
+                     patch.m_id, dolphin_config.m_setting, dolphin_config.m_value);
+      }
+    }
+  }
+
+  // We only actually apply these if the user hasn't manually enabled an override.
+
+  if (cpu_overclock && !::Config::Get(::Config::MAIN_OVERCLOCK_ENABLE))
+  {
+    ::Config::SetCurrent(::Config::MAIN_OVERCLOCK, *cpu_overclock);
+    ::Config::SetCurrent(::Config::MAIN_OVERCLOCK_ENABLE, true);
+  }
+
+  if ((mem1_size || mem2_size) && !::Config::Get(::Config::MAIN_RAM_OVERRIDE_ENABLE))
+  {
+    ::Config::SetCurrent(::Config::MAIN_MEM1_SIZE, mem1_size ? *mem1_size : 24 * 1024 * 1024);
+    ::Config::SetCurrent(::Config::MAIN_MEM2_SIZE, mem2_size ? *mem2_size : 64 * 1024 * 1024);
+    ::Config::SetCurrent(::Config::MAIN_RAM_OVERRIDE_ENABLE, true);
+  }
 }
 }  // namespace DiscIO::Riivolution

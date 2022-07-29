@@ -79,4 +79,5 @@ void ApplyApploaderMemoryPatches(const std::vector<Patch>& patches, u32 ram_addr
                                  u32 ram_length);
 std::optional<SavegameRedirect>
 ExtractSavegameRedirect(const std::vector<Patch>& riivolution_patches);
+void ApplyDolphinConfig(const std::vector<Patch>& patches);
 }  // namespace DiscIO::Riivolution

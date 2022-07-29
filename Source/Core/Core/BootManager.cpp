@@ -48,6 +48,7 @@
 #include "Core/WiiRoot.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/RiivolutionPatcher.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -141,6 +142,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   // Disable loading time emulation for Riivolution-patched games until we have proper emulation.
   if (!boot->riivolution_patches.empty())
     Config::SetCurrent(Config::MAIN_FAST_DISC_SPEED, true);
+
+  DiscIO::Riivolution::ApplyDolphinConfig(boot->riivolution_patches);
 
   Core::System::GetInstance().Initialize();
 

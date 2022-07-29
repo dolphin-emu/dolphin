@@ -213,6 +213,12 @@ std::optional<Disc> ParseString(std::string_view xml, std::string xml_path)
         memory.m_search = patch_subnode.attribute("search").as_bool(false);
         memory.m_align = patch_subnode.attribute("align").as_uint(1);
       }
+      else if (patch_name == "dolphin_config")
+      {
+        auto& config = patch.m_dolphin_configs.emplace_back();
+        config.m_setting = patch_subnode.attribute("setting").as_string();
+        config.m_value = patch_subnode.attribute("value").as_string();
+      }
     }
   }
 

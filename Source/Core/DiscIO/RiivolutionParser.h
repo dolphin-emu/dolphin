@@ -153,6 +153,16 @@ struct Memory
   u32 m_align = 1;
 };
 
+// Dolphin-specific exension to modify the emulated system configuration.
+struct DolphinConfig
+{
+  // The setting to adjust.
+  std::string m_setting;
+
+  // The value to set it to.
+  std::string m_value;
+};
+
 struct Patch
 {
   // Internal name of this patch.
@@ -170,6 +180,7 @@ struct Patch
   std::vector<Folder> m_sys_folder_patches;
   std::vector<Savegame> m_savegame_patches;
   std::vector<Memory> m_memory_patches;
+  std::vector<DolphinConfig> m_dolphin_configs;
 
   ~Patch();
 };
