@@ -475,7 +475,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
       {
         InitUDPPort(26512);  // MK DD and 1080
         InitUDPPort(26502);  // Air Ride
-        if (udp_header.length > 150)
+        if (ntohs(udp_header.length) > 150)
         {
           // Quick hack to unlock the connection, throw it back at him
           Common::UDPPacket reply = packet;
