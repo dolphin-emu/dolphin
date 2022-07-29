@@ -65,7 +65,13 @@ private:
   std::string m_patch_root;
 };
 
-void ApplyPatchesToFiles(const std::vector<Patch>& patches,
+enum class PatchIndex
+{
+  FileSystem,
+  DolphinSysFiles,
+};
+
+void ApplyPatchesToFiles(const std::vector<Patch>& patches, PatchIndex index,
                          std::vector<DiscIO::FSTBuilderNode>* fst,
                          DiscIO::FSTBuilderNode* dol_node);
 void ApplyGeneralMemoryPatches(const std::vector<Patch>& patches);
