@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-25 10:54+0200\n"
+"POT-Creation-Date: 2022-07-29 22:48+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: JosJuice, 2015-2022\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
@@ -742,12 +742,12 @@ msgstr "16:9"
 msgid "16x"
 msgstr "16x"
 
-#: Source/Core/Core/HotkeyManager.cpp:190
+#: Source/Core/Core/HotkeyManager.cpp:191
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "1x"
 msgstr "1x"
 
-#: Source/Core/Core/HotkeyManager.cpp:191
+#: Source/Core/Core/HotkeyManager.cpp:192
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "2x"
 msgstr "2x"
@@ -780,19 +780,19 @@ msgid "32-bit Unsigned Integer"
 msgstr "32-bitars osignerat heltal"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:344
+#: Source/Core/Core/HotkeyManager.cpp:345
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:447
 msgid "3D"
 msgstr "3D"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:346
+#: Source/Core/Core/HotkeyManager.cpp:347
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:25
 msgid "3D Depth"
 msgstr "3D-djup"
 
-#: Source/Core/Core/HotkeyManager.cpp:192
+#: Source/Core/Core/HotkeyManager.cpp:193
 msgid "3x"
 msgstr "3x"
 
@@ -812,7 +812,7 @@ msgstr "4 Mbit (59 block)"
 msgid "4:3"
 msgstr "4:3"
 
-#: Source/Core/Core/HotkeyManager.cpp:193
+#: Source/Core/Core/HotkeyManager.cpp:194
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "4x"
 msgstr "4x"
@@ -1106,7 +1106,7 @@ msgstr "Action Replay: Normalkod 0: Ogiltig undertyp {0:08x} ({1})"
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 msgstr "Action Replay: Normalkod {0}: Ogiltig undertyp {1:08x} ({2})"
 
-#: Source/Core/Core/HotkeyManager.cpp:38
+#: Source/Core/Core/HotkeyManager.cpp:39
 msgid "Activate NetPlay Chat"
 msgstr "Aktivera nätspelschatt"
 
@@ -1157,11 +1157,11 @@ msgstr "Lägg till ny USB-enhet"
 msgid "Add Shortcut to Desktop"
 msgstr "Skapa genväg på skrivbordet"
 
-#: Source/Core/Core/HotkeyManager.cpp:76
+#: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Add a Breakpoint"
 msgstr "Lägg till brytpunkt"
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:78
 msgid "Add a Memory Breakpoint"
 msgstr "Lägg till en minnesbrytpunkt"
 
@@ -1833,7 +1833,7 @@ msgstr "Grenar"
 msgid "Break"
 msgstr "Bryt"
 
-#: Source/Core/Core/HotkeyManager.cpp:334
+#: Source/Core/Core/HotkeyManager.cpp:335
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:26
 msgid "Breakpoint"
 msgstr "Brytpunkt"
@@ -1847,7 +1847,7 @@ msgid "Breakpoints"
 msgstr "Brytpunkter"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:99
-msgid "Broadband Adapter (Built In)"
+msgid "Broadband Adapter (HLE)"
 msgstr ""
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:92
@@ -1928,7 +1928,7 @@ msgstr "Knapp"
 msgid "Buttons"
 msgstr "Knappar"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:214
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:205
 msgid "By:  "
 msgstr ""
 
@@ -2089,6 +2089,10 @@ msgstr "Kortstorlek"
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:220
 msgid "Center"
 msgstr "Center"
+
+#: Source/Core/Core/HotkeyManager.cpp:38
+msgid "Center Mouse"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:898
 msgid "Center and Calibrate"
@@ -2381,7 +2385,7 @@ msgstr "Bekräftelse"
 msgid "Connect"
 msgstr "Anslut"
 
-#: Source/Core/Core/HotkeyManager.cpp:84 Source/Core/DolphinQt/MenuBar.cpp:302
+#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:302
 msgid "Connect Balance Board"
 msgstr "Anslut balansbräda"
 
@@ -2393,19 +2397,19 @@ msgstr "Anslut USB-tangentbord"
 msgid "Connect Wii Remote %1"
 msgstr "Anslut Wii-fjärrkontroll %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Connect Wii Remote 1"
 msgstr "Anslut Wii-fjärrkontroll 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:81
+#: Source/Core/Core/HotkeyManager.cpp:82
 msgid "Connect Wii Remote 2"
 msgstr "Anslut Wii-fjärrkontroll 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Connect Wii Remote 3"
 msgstr "Anslut Wii-fjärrkontroll 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:83
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Connect Wii Remote 4"
 msgstr "Anslut Wii-fjärrkontroll 4"
 
@@ -2441,7 +2445,7 @@ msgstr "Innehåll {0:08x} är korrupt."
 msgid "Continuous Scanning"
 msgstr "Kontinuerlig skanning"
 
-#: Source/Core/Core/HotkeyManager.cpp:39
+#: Source/Core/Core/HotkeyManager.cpp:40
 msgid "Control NetPlay Golf Mode"
 msgstr "Kontrollera nätspelsgolfläge"
 
@@ -2454,19 +2458,19 @@ msgstr "Kontrollspak"
 msgid "Controller Profile"
 msgstr "Kontrollprofil"
 
-#: Source/Core/Core/HotkeyManager.cpp:336
+#: Source/Core/Core/HotkeyManager.cpp:337
 msgid "Controller Profile 1"
 msgstr "Kontrollprofil 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:337
+#: Source/Core/Core/HotkeyManager.cpp:338
 msgid "Controller Profile 2"
 msgstr "Kontrollprofil 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:338
+#: Source/Core/Core/HotkeyManager.cpp:339
 msgid "Controller Profile 3"
 msgstr "Kontrollprofil 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:339
+#: Source/Core/Core/HotkeyManager.cpp:340
 msgid "Controller Profile 4"
 msgstr "Kontrollprofil 4"
 
@@ -3010,20 +3014,20 @@ msgstr "Dekodningskvalitet:"
 msgid "Decrease"
 msgstr "Minska"
 
-#: Source/Core/Core/HotkeyManager.cpp:127
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Decrease Convergence"
 msgstr "Sänk konvergens"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Decrease Depth"
 msgstr "Sänk djup"
 
-#: Source/Core/Core/HotkeyManager.cpp:45
+#: Source/Core/Core/HotkeyManager.cpp:46
 msgid "Decrease Emulation Speed"
 msgstr "Minska emuleringshastighet"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:118
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Decrease IR"
 msgstr "Sänk intern upplösning"
 
@@ -3128,7 +3132,7 @@ msgstr "Beskrivning"
 msgid "Description:"
 msgstr "Beskrivning:"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:221
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:212
 msgid "Description:  "
 msgstr ""
 
@@ -3231,7 +3235,7 @@ msgstr "Inaktivera kopieringsfilter"
 msgid "Disable EFB VRAM Copies"
 msgstr "Inaktivera EFB-VRAM-kopior"
 
-#: Source/Core/Core/HotkeyManager.cpp:47
+#: Source/Core/Core/HotkeyManager.cpp:48
 msgid "Disable Emulation Speed Limit"
 msgstr "Inaktivera emuleringshastighetsgräns"
 
@@ -3792,7 +3796,7 @@ msgstr ""
 "Nuvarande: MEM1 {0:08X} ({1} MiB), MEM2 {2:08X} ({3} MiB)\n"
 "DFF: MEM1 {4:08X} ({5} MiB), MEM2 {6:08X} ({7} MiB)"
 
-#: Source/Core/Core/HotkeyManager.cpp:329
+#: Source/Core/Core/HotkeyManager.cpp:330
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:26
 msgid "Emulation Speed"
 msgstr "Emuleringshastighet"
@@ -4343,7 +4347,7 @@ msgstr "Exportera alla Wii-sparningar"
 msgid "Export Failed"
 msgstr "Exportering misslyckades"
 
-#: Source/Core/Core/HotkeyManager.cpp:56
+#: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Export Recording"
 msgstr "Exportera inspelning"
 
@@ -5123,20 +5127,20 @@ msgstr "Hittade %n adress(er)."
 msgid "Frame %1"
 msgstr "Bildruta %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:49 Source/Core/Core/HotkeyManager.cpp:330
+#: Source/Core/Core/HotkeyManager.cpp:50 Source/Core/Core/HotkeyManager.cpp:331
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:21
 msgid "Frame Advance"
 msgstr "Gå fram en bildruta"
 
-#: Source/Core/Core/HotkeyManager.cpp:50
+#: Source/Core/Core/HotkeyManager.cpp:51
 msgid "Frame Advance Decrease Speed"
 msgstr "Gå fram en bildruta - Sänk hastighet"
 
-#: Source/Core/Core/HotkeyManager.cpp:51
+#: Source/Core/Core/HotkeyManager.cpp:52
 msgid "Frame Advance Increase Speed"
 msgstr "Gå fram en bildruta - Öka hastighet"
 
-#: Source/Core/Core/HotkeyManager.cpp:52
+#: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Frame Advance Reset Speed"
 msgstr "Gå fram en bildruta - Nollställ hastighet"
 
@@ -5197,11 +5201,11 @@ msgstr ""
 msgid "FreeLook"
 msgstr "Fri vy"
 
-#: Source/Core/Core/HotkeyManager.cpp:342
+#: Source/Core/Core/HotkeyManager.cpp:343
 msgid "Freelook"
 msgstr "Fri kamera"
 
-#: Source/Core/Core/HotkeyManager.cpp:120
+#: Source/Core/Core/HotkeyManager.cpp:121
 msgid "Freelook Toggle"
 msgstr "Fri kamera - Slå på/av"
 
@@ -5259,7 +5263,7 @@ msgstr "GBA (integrerad)"
 msgid "GBA (TCP)"
 msgstr "GBA (TCP)"
 
-#: Source/Core/Core/HotkeyManager.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:353
 msgid "GBA Core"
 msgstr "GBA-kärna"
 
@@ -5271,11 +5275,11 @@ msgstr "GBA i uttag %1"
 msgid "GBA Settings"
 msgstr "GBA-inställningar"
 
-#: Source/Core/Core/HotkeyManager.cpp:353
+#: Source/Core/Core/HotkeyManager.cpp:354
 msgid "GBA Volume"
 msgstr "GBA-volym"
 
-#: Source/Core/Core/HotkeyManager.cpp:354
+#: Source/Core/Core/HotkeyManager.cpp:355
 msgid "GBA Window Size"
 msgstr "GBA-fönsterstorlek"
 
@@ -5554,7 +5558,7 @@ msgstr ""
 msgid "Gecko Codes"
 msgstr "Gecko-koder"
 
-#: Source/Core/Core/HotkeyManager.cpp:327
+#: Source/Core/Core/HotkeyManager.cpp:328
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:195
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:69
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:98
@@ -5622,7 +5626,7 @@ msgstr "Grafik"
 msgid "Graphics Mods"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:340
+#: Source/Core/Core/HotkeyManager.cpp:341
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:20
 msgid "Graphics Toggles"
 msgstr "Växla grafikalternativ"
@@ -5809,7 +5813,7 @@ msgstr "Värdnamn"
 msgid "Hotkey Settings"
 msgstr "Kortkommandoinställningar"
 
-#: Source/Core/Core/HotkeyManager.cpp:204
+#: Source/Core/Core/HotkeyManager.cpp:205
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:41
 msgid "Hotkeys"
@@ -6106,20 +6110,20 @@ msgstr ""
 msgid "Increase"
 msgstr "Öka"
 
-#: Source/Core/Core/HotkeyManager.cpp:128
+#: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Increase Convergence"
 msgstr "Öka konvergens"
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Increase Depth"
 msgstr "Öka djup"
 
-#: Source/Core/Core/HotkeyManager.cpp:46
+#: Source/Core/Core/HotkeyManager.cpp:47
 msgid "Increase Emulation Speed"
 msgstr "Öka emuleringshastighet"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Increase IR"
 msgstr "Öka intern upplösning"
 
@@ -6267,7 +6271,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Internt LZO-fel - lzo_init() misslyckades"
 
-#: Source/Core/Core/HotkeyManager.cpp:341
+#: Source/Core/Core/HotkeyManager.cpp:342
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:375
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:27
 msgid "Internal Resolution"
@@ -6672,7 +6676,7 @@ msgstr "Läs in anpassade texturer"
 msgid "Load GameCube Main Menu"
 msgstr "Ladda GameCube-huvudmeny"
 
-#: Source/Core/Core/HotkeyManager.cpp:350
+#: Source/Core/Core/HotkeyManager.cpp:351
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:22
 msgid "Load Last State"
 msgstr "Läs in senaste snabbsparning"
@@ -6681,92 +6685,92 @@ msgstr "Läs in senaste snabbsparning"
 msgid "Load Path:"
 msgstr "Laddningssökväg:"
 
-#: Source/Core/Core/HotkeyManager.cpp:182
+#: Source/Core/Core/HotkeyManager.cpp:183
 msgid "Load ROM"
 msgstr "Ladda in ROM"
 
-#: Source/Core/Core/HotkeyManager.cpp:180
-#: Source/Core/Core/HotkeyManager.cpp:347
+#: Source/Core/Core/HotkeyManager.cpp:181
+#: Source/Core/Core/HotkeyManager.cpp:348
 msgid "Load State"
 msgstr "Läs in snabbsparning"
 
-#: Source/Core/Core/HotkeyManager.cpp:165
+#: Source/Core/Core/HotkeyManager.cpp:166
 msgid "Load State Last 1"
 msgstr "Läs in senaste snabbsparning 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:174
+#: Source/Core/Core/HotkeyManager.cpp:175
 msgid "Load State Last 10"
 msgstr "Läs in senaste snabbsparning 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:166
+#: Source/Core/Core/HotkeyManager.cpp:167
 msgid "Load State Last 2"
 msgstr "Läs in senaste snabbsparning 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:167
+#: Source/Core/Core/HotkeyManager.cpp:168
 msgid "Load State Last 3"
 msgstr "Läs in senaste snabbsparning 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:168
+#: Source/Core/Core/HotkeyManager.cpp:169
 msgid "Load State Last 4"
 msgstr "Läs in senaste snabbsparning 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:169
+#: Source/Core/Core/HotkeyManager.cpp:170
 msgid "Load State Last 5"
 msgstr "Läs in senaste snabbsparning 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:170
+#: Source/Core/Core/HotkeyManager.cpp:171
 msgid "Load State Last 6"
 msgstr "Läs in senaste snabbsparning 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:171
+#: Source/Core/Core/HotkeyManager.cpp:172
 msgid "Load State Last 7"
 msgstr "Läs in senaste snabbsparning 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:172
+#: Source/Core/Core/HotkeyManager.cpp:173
 msgid "Load State Last 8"
 msgstr "Läs in senaste snabbsparning 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:173
+#: Source/Core/Core/HotkeyManager.cpp:174
 msgid "Load State Last 9"
 msgstr "Läs in senaste snabbsparning 9"
 
-#: Source/Core/Core/HotkeyManager.cpp:130
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Load State Slot 1"
 msgstr "Läs in snabbsparningsplats 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:139
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load State Slot 10"
 msgstr "Läs in snabbsparningsplats 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Load State Slot 2"
 msgstr "Läs in snabbsparningsplats 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:132
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Load State Slot 3"
 msgstr "Läs in snabbsparningsplats 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:133
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Load State Slot 4"
 msgstr "Läs in snabbsparningsplats 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:134
+#: Source/Core/Core/HotkeyManager.cpp:135
 msgid "Load State Slot 5"
 msgstr "Läs in snabbsparningsplats 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:135
+#: Source/Core/Core/HotkeyManager.cpp:136
 msgid "Load State Slot 6"
 msgstr "Läs in snabbsparningsplats 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:136
+#: Source/Core/Core/HotkeyManager.cpp:137
 msgid "Load State Slot 7"
 msgstr "Läs in snabbsparningsplats 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:137
+#: Source/Core/Core/HotkeyManager.cpp:138
 msgid "Load State Slot 8"
 msgstr "Läs in snabbsparningsplats 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:138
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Load State Slot 9"
 msgstr "Läs in snabbsparningsplats 9"
 
@@ -6790,7 +6794,7 @@ msgstr "Ladda Wii-spardata"
 msgid "Load Wii System Menu %1"
 msgstr "Starta Wii-systemmeny %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:140
+#: Source/Core/Core/HotkeyManager.cpp:141
 msgid "Load from Selected Slot"
 msgstr "Ladda från vald plats"
 
@@ -7139,7 +7143,7 @@ msgstr "Muspekaren syns aldrig medan ett spel körs."
 msgid "Move"
 msgstr "Flytta"
 
-#: Source/Core/Core/HotkeyManager.cpp:331
+#: Source/Core/Core/HotkeyManager.cpp:332
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:23
 msgid "Movie"
 msgstr "Inspelning"
@@ -7293,8 +7297,8 @@ msgstr "Ny instruktion:"
 msgid "New tag"
 msgstr "Ny etikett"
 
-#: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
-#: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
+#: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
 msgid "Next Game Profile"
 msgstr "Nästa spelprofil"
 
@@ -7302,8 +7306,8 @@ msgstr "Nästa spelprofil"
 msgid "Next Match"
 msgstr "Nästa matchning"
 
-#: Source/Core/Core/HotkeyManager.cpp:88 Source/Core/Core/HotkeyManager.cpp:92
-#: Source/Core/Core/HotkeyManager.cpp:96 Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
+#: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
 msgid "Next Profile"
 msgstr "Nästa profil"
 
@@ -7663,7 +7667,7 @@ msgstr "Övrigt"
 msgid "Other Partition (%1)"
 msgstr "Annan partition (%1)"
 
-#: Source/Core/Core/HotkeyManager.cpp:351
+#: Source/Core/Core/HotkeyManager.cpp:352
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:25
 msgid "Other State Hotkeys"
 msgstr "Andra snabbsparningskortkommandon"
@@ -7859,7 +7863,7 @@ msgstr "Spela"
 msgid "Play / Record"
 msgstr "Spela / spela in"
 
-#: Source/Core/Core/HotkeyManager.cpp:55
+#: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Play Recording"
 msgstr "Spela upp inspelning"
 
@@ -7949,7 +7953,7 @@ msgstr ""
 msgid "Presets"
 msgstr "Förval"
 
-#: Source/Core/Core/HotkeyManager.cpp:79
+#: Source/Core/Core/HotkeyManager.cpp:80
 msgid "Press Sync Button"
 msgstr "Synkknapptryckning"
 
@@ -7972,8 +7976,9 @@ msgstr ""
 "<br><br><dolphin_emphasis>Rekommenderas inte. Använd bara detta om de andra "
 "alternativen ger dåliga resultat.</dolphin_emphasis>"
 
-#: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
-#: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
+#: Source/Core/Core/HotkeyManager.cpp:92 Source/Core/Core/HotkeyManager.cpp:96
+#: Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Previous Game Profile"
 msgstr "Föregående spelprofil"
 
@@ -7981,8 +7986,8 @@ msgstr "Föregående spelprofil"
 msgid "Previous Match"
 msgstr "Föregående matchning"
 
-#: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
-#: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
+#: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
 msgid "Previous Profile"
 msgstr "Föregående profil"
 
@@ -8032,7 +8037,7 @@ msgstr ""
 msgid "Profile"
 msgstr "Profil"
 
-#: Source/Core/Core/HotkeyManager.cpp:333
+#: Source/Core/Core/HotkeyManager.cpp:334
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:24
 msgid "Program Counter"
 msgstr "Program Counter"
@@ -8159,7 +8164,7 @@ msgstr "Endast läs"
 msgid "Read or Write"
 msgstr "Läs eller skriv"
 
-#: Source/Core/Core/HotkeyManager.cpp:57
+#: Source/Core/Core/HotkeyManager.cpp:58
 msgid "Read-Only Mode"
 msgstr "Skrivskyddat läge"
 
@@ -8356,7 +8361,7 @@ msgid "Request to Join Your Party"
 msgstr "Förfrågan att vara med i din grupp"
 
 #: Source/Core/Core/FreeLookManager.cpp:97
-#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:184
+#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:185
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:899
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:136
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:94
@@ -8631,7 +8636,7 @@ msgstr "Sparfiler (*.sav);;Alla filer (*)"
 msgid "Save Import"
 msgstr "Sparfilsimportering"
 
-#: Source/Core/Core/HotkeyManager.cpp:176
+#: Source/Core/Core/HotkeyManager.cpp:177
 msgid "Save Oldest State"
 msgstr "Spara äldsta snabbsparning"
 
@@ -8643,49 +8648,49 @@ msgstr "Spara förinställningar"
 msgid "Save Recording File As"
 msgstr "Spara inspelning som"
 
-#: Source/Core/Core/HotkeyManager.cpp:179
-#: Source/Core/Core/HotkeyManager.cpp:348
+#: Source/Core/Core/HotkeyManager.cpp:180
+#: Source/Core/Core/HotkeyManager.cpp:349
 #: Source/Core/DolphinQt/GBAWidget.cpp:413
 msgid "Save State"
 msgstr "Spara snabbsparning"
 
-#: Source/Core/Core/HotkeyManager.cpp:142
+#: Source/Core/Core/HotkeyManager.cpp:143
 msgid "Save State Slot 1"
 msgstr "Spara snabbsparningsplats 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:151
+#: Source/Core/Core/HotkeyManager.cpp:152
 msgid "Save State Slot 10"
 msgstr "Spara snabbsparningsplats 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:143
+#: Source/Core/Core/HotkeyManager.cpp:144
 msgid "Save State Slot 2"
 msgstr "Spara snabbsparningsplats 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:144
+#: Source/Core/Core/HotkeyManager.cpp:145
 msgid "Save State Slot 3"
 msgstr "Spara snabbsparningsplats 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:145
+#: Source/Core/Core/HotkeyManager.cpp:146
 msgid "Save State Slot 4"
 msgstr "Spara snabbsparningsplats 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:146
+#: Source/Core/Core/HotkeyManager.cpp:147
 msgid "Save State Slot 5"
 msgstr "Spara snabbsparningsplats 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:147
+#: Source/Core/Core/HotkeyManager.cpp:148
 msgid "Save State Slot 6"
 msgstr "Spara snabbsparningsplats 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:148
+#: Source/Core/Core/HotkeyManager.cpp:149
 msgid "Save State Slot 7"
 msgstr "Spara snabbsparningsplats 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:149
+#: Source/Core/Core/HotkeyManager.cpp:150
 msgid "Save State Slot 8"
 msgstr "Spara snabbsparningsplats 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:150
+#: Source/Core/Core/HotkeyManager.cpp:151
 msgid "Save State Slot 9"
 msgstr "Spara snabbsparningsplats 9"
 
@@ -8751,7 +8756,7 @@ msgstr "Spara map-fil"
 msgid "Save signature file"
 msgstr "Spara signaturfil"
 
-#: Source/Core/Core/HotkeyManager.cpp:152
+#: Source/Core/Core/HotkeyManager.cpp:153
 msgid "Save to Selected Slot"
 msgstr "Spara på vald plats"
 
@@ -8897,7 +8902,7 @@ msgstr "Välj Riivolution-XML-fil"
 msgid "Select Slot %1 - %2"
 msgstr "Välj plats %1 - %2"
 
-#: Source/Core/Core/HotkeyManager.cpp:349
+#: Source/Core/Core/HotkeyManager.cpp:350
 msgid "Select State"
 msgstr "Välj snabbsparning"
 
@@ -8905,43 +8910,43 @@ msgstr "Välj snabbsparning"
 msgid "Select State Slot"
 msgstr "Välj snabbsparningsplats"
 
-#: Source/Core/Core/HotkeyManager.cpp:154
+#: Source/Core/Core/HotkeyManager.cpp:155
 msgid "Select State Slot 1"
 msgstr "Välj snabbsparningsplats 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:163
+#: Source/Core/Core/HotkeyManager.cpp:164
 msgid "Select State Slot 10"
 msgstr "Välj snabbsparningsplats 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:155
+#: Source/Core/Core/HotkeyManager.cpp:156
 msgid "Select State Slot 2"
 msgstr "Välj snabbsparningsplats 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:156
+#: Source/Core/Core/HotkeyManager.cpp:157
 msgid "Select State Slot 3"
 msgstr "Välj snabbsparningsplats 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:157
+#: Source/Core/Core/HotkeyManager.cpp:158
 msgid "Select State Slot 4"
 msgstr "Välj snabbsparningsplats 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:158
+#: Source/Core/Core/HotkeyManager.cpp:159
 msgid "Select State Slot 5"
 msgstr "Välj snabbsparningsplats 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:159
+#: Source/Core/Core/HotkeyManager.cpp:160
 msgid "Select State Slot 6"
 msgstr "Välj snabbsparningsplats 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:160
+#: Source/Core/Core/HotkeyManager.cpp:161
 msgid "Select State Slot 7"
 msgstr "Välj snabbsparningsplats 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:161
+#: Source/Core/Core/HotkeyManager.cpp:162
 msgid "Select State Slot 8"
 msgstr "Välj snabbsparningsplats 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:162
+#: Source/Core/Core/HotkeyManager.cpp:163
 msgid "Select State Slot 9"
 msgstr "Välj snabbsparningsplats 9"
 
@@ -9173,7 +9178,7 @@ msgid "Set &blr"
 msgstr ""
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:73 Source/Core/DolphinQt/ToolBar.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:74 Source/Core/DolphinQt/ToolBar.cpp:114
 msgid "Set PC"
 msgstr "Sätt PC"
 
@@ -9375,7 +9380,7 @@ msgid "Show PAL"
 msgstr "Visa PAL"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:71 Source/Core/DolphinQt/ToolBar.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:72 Source/Core/DolphinQt/ToolBar.cpp:112
 msgid "Show PC"
 msgstr "Visa PC"
 
@@ -9569,7 +9574,7 @@ msgstr ""
 "Sträckningsbuffertens storlek i millisekunder. Om värdet är för lågt kan "
 "ljudet låta hackigt."
 
-#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:69 Source/Core/DolphinQt/ToolBar.cpp:110
 msgid "Skip"
 msgstr "Hoppa över"
 
@@ -9763,7 +9768,7 @@ msgstr "Starta ny fusksökning"
 msgid "Start Re&cording Input"
 msgstr "Starta &inspelning"
 
-#: Source/Core/Core/HotkeyManager.cpp:54
+#: Source/Core/Core/HotkeyManager.cpp:55
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:54
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:200
 msgid "Start Recording"
@@ -9804,19 +9809,19 @@ msgstr "Stega"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:61
+#: Source/Core/Core/HotkeyManager.cpp:62
 msgid "Step Into"
 msgstr "Stega in"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:67 Source/Core/DolphinQt/ToolBar.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:109
 msgid "Step Out"
 msgstr "Stega ut"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:64 Source/Core/DolphinQt/ToolBar.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:65 Source/Core/DolphinQt/ToolBar.cpp:106
 msgid "Step Over"
 msgstr "Stega över"
 
@@ -9836,7 +9841,7 @@ msgstr "Överstegning pågår..."
 msgid "Step successful!"
 msgstr "Stegning lyckades!"
 
-#: Source/Core/Core/HotkeyManager.cpp:332
+#: Source/Core/Core/HotkeyManager.cpp:333
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:21
 msgid "Stepping"
 msgstr "Stega"
@@ -10647,7 +10652,7 @@ msgstr ""
 "Denna Action Replay-simulator stöder inte koder som förändrar själva Action "
 "Replay."
 
-#: Source/Core/Common/x64CPUDetect.cpp:75
+#: Source/Core/Common/x64CPUDetect.cpp:81
 msgid ""
 "This build of Dolphin is not natively compiled for your CPU.\n"
 "Please run the ARM64 build of Dolphin for a better experience."
@@ -10797,7 +10802,7 @@ msgstr "Denna titel är inställd på att använda ett ogiltigt IOS."
 msgid "This title is set to use an invalid common key."
 msgstr "Denna titel är inställd på att använda en ogiltig gemensam nyckel."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:306
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:314
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10809,7 +10814,7 @@ msgstr ""
 "\n"
 "DSPHLE: Okänd µcode (CRC = {0:08x}) - AX kommer användas."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:297
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:305
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10906,15 +10911,15 @@ msgstr "Till:"
 msgid "Toggle &Fullscreen"
 msgstr "&Helskärm"
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Toggle 3D Anaglyph"
 msgstr "Slå på/av 3D-anaglyf"
 
-#: Source/Core/Core/HotkeyManager.cpp:122
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Toggle 3D Side-by-Side"
 msgstr "Slå på/av 3D sida-vid-sida"
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Toggle 3D Top-Bottom"
 msgstr "Slå på/av 3D topp-och-botten"
 
@@ -10922,28 +10927,28 @@ msgstr "Slå på/av 3D topp-och-botten"
 msgid "Toggle All Log Types"
 msgstr "Slå på/av alla loggtyper"
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Toggle Aspect Ratio"
 msgstr "Växla bildförhållande"
 
-#: Source/Core/Core/HotkeyManager.cpp:75
+#: Source/Core/Core/HotkeyManager.cpp:76
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
 msgid "Toggle Breakpoint"
 msgstr "Slå på/av brytpunkt"
 
-#: Source/Core/Core/HotkeyManager.cpp:105
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Toggle Crop"
 msgstr "Slå på/av beskärning"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle Custom Textures"
 msgstr "Slå på/av anpassade texturer"
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Toggle EFB Copies"
 msgstr "Slå på/av EFB-kopior"
 
-#: Source/Core/Core/HotkeyManager.cpp:111
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Toggle Fog"
 msgstr "Slå på/av dimma"
 
@@ -10955,27 +10960,27 @@ msgstr "Slå på/av helskärm"
 msgid "Toggle Pause"
 msgstr "Slå på/av paus"
 
-#: Source/Core/Core/HotkeyManager.cpp:85
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Toggle SD Card"
 msgstr "Mata in/ut SD-kort"
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Toggle Skip EFB Access"
 msgstr "Växla Hoppa över EFB-åtkomst"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Toggle Texture Dumping"
 msgstr "Slå på/av texturdumpning"
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Toggle USB Keyboard"
 msgstr "Slå på/av USB-tangentbord"
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Toggle XFB Copies"
 msgstr "Slå på/av XFB-kopior"
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Toggle XFB Immediate Mode"
 msgstr "Slå på/av omedelbar XFB-presentation"
 
@@ -11193,11 +11198,11 @@ msgstr "Obunden"
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "Okomprimerade GC/Wii-skivavbildningar (*.iso *.gcm)"
 
-#: Source/Core/Core/HotkeyManager.cpp:177 Source/Core/DolphinQt/MenuBar.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:335
 msgid "Undo Load State"
 msgstr "Ångra inläsning av snabbsparning"
 
-#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Undo Save State"
 msgstr "Ångra snabbsparning"
 
@@ -11303,7 +11308,7 @@ msgstr ""
 msgid "Unlimited"
 msgstr "Obegränsad"
 
-#: Source/Core/Core/HotkeyManager.cpp:183
+#: Source/Core/Core/HotkeyManager.cpp:184
 msgid "Unload ROM"
 msgstr "Ladda ur ROM"
 
@@ -11661,22 +11666,22 @@ msgstr "Virtuella jack"
 msgid "Virtual address space"
 msgstr "Virtuellt adressutrymme"
 
-#: Source/Core/Core/HotkeyManager.cpp:328
+#: Source/Core/Core/HotkeyManager.cpp:329
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:24
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:60
 msgid "Volume"
 msgstr "Volym"
 
-#: Source/Core/Core/HotkeyManager.cpp:41 Source/Core/Core/HotkeyManager.cpp:186
+#: Source/Core/Core/HotkeyManager.cpp:42 Source/Core/Core/HotkeyManager.cpp:187
 msgid "Volume Down"
 msgstr "Volym ner"
 
-#: Source/Core/Core/HotkeyManager.cpp:43 Source/Core/Core/HotkeyManager.cpp:188
+#: Source/Core/Core/HotkeyManager.cpp:44 Source/Core/Core/HotkeyManager.cpp:189
 msgid "Volume Toggle Mute"
 msgstr "Slå på/av ljudvolym"
 
-#: Source/Core/Core/HotkeyManager.cpp:42 Source/Core/Core/HotkeyManager.cpp:187
+#: Source/Core/Core/HotkeyManager.cpp:43 Source/Core/Core/HotkeyManager.cpp:188
 msgid "Volume Up"
 msgstr "Volym upp"
 
@@ -11946,7 +11951,7 @@ msgstr "Enheter som används med USB-genomsläppning"
 msgid "Widescreen Hack"
 msgstr "Bredbildshack"
 
-#: Source/Core/Core/HotkeyManager.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:336
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyWii.cpp:20
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:42
 msgid "Wii"

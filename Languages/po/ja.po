@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-25 10:54+0200\n"
+"POT-Creation-Date: 2022-07-29 22:48+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: DanbSky <danbsky@live.jp>, 2015-2022\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
@@ -746,12 +746,12 @@ msgstr "16:9"
 msgid "16x"
 msgstr "16x"
 
-#: Source/Core/Core/HotkeyManager.cpp:190
+#: Source/Core/Core/HotkeyManager.cpp:191
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "1x"
 msgstr "1x"
 
-#: Source/Core/Core/HotkeyManager.cpp:191
+#: Source/Core/Core/HotkeyManager.cpp:192
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "2x"
 msgstr "2x"
@@ -784,19 +784,19 @@ msgid "32-bit Unsigned Integer"
 msgstr ""
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:344
+#: Source/Core/Core/HotkeyManager.cpp:345
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:447
 msgid "3D"
 msgstr "3D"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:346
+#: Source/Core/Core/HotkeyManager.cpp:347
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:25
 msgid "3D Depth"
 msgstr "3D深度"
 
-#: Source/Core/Core/HotkeyManager.cpp:192
+#: Source/Core/Core/HotkeyManager.cpp:193
 msgid "3x"
 msgstr "3x"
 
@@ -816,7 +816,7 @@ msgstr "4 Mbit (59 ブロック)"
 msgid "4:3"
 msgstr "4:3"
 
-#: Source/Core/Core/HotkeyManager.cpp:193
+#: Source/Core/Core/HotkeyManager.cpp:194
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "4x"
 msgstr "4x"
@@ -1104,7 +1104,7 @@ msgstr "Action Replay: Normal Code 0: Invalid Subtype {0:08x} ({1})"
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 msgstr "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 
-#: Source/Core/Core/HotkeyManager.cpp:38
+#: Source/Core/Core/HotkeyManager.cpp:39
 msgid "Activate NetPlay Chat"
 msgstr "ネットプレイ：チャットをアクティブ"
 
@@ -1155,11 +1155,11 @@ msgstr "USBデバイスを追加"
 msgid "Add Shortcut to Desktop"
 msgstr "ショートカットをデスクトップに追加"
 
-#: Source/Core/Core/HotkeyManager.cpp:76
+#: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Add a Breakpoint"
 msgstr "Add a Breakpoint"
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:78
 msgid "Add a Memory Breakpoint"
 msgstr "Add a Memory Breakpoint"
 
@@ -1833,7 +1833,7 @@ msgstr "Branches"
 msgid "Break"
 msgstr "Break"
 
-#: Source/Core/Core/HotkeyManager.cpp:334
+#: Source/Core/Core/HotkeyManager.cpp:335
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:26
 msgid "Breakpoint"
 msgstr "Breakpoint"
@@ -1847,7 +1847,7 @@ msgid "Breakpoints"
 msgstr "Breakpoints"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:99
-msgid "Broadband Adapter (Built In)"
+msgid "Broadband Adapter (HLE)"
 msgstr ""
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:92
@@ -1925,7 +1925,7 @@ msgstr "ボタン"
 msgid "Buttons"
 msgstr "ボタン"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:214
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:205
 msgid "By:  "
 msgstr ""
 
@@ -2080,6 +2080,10 @@ msgstr "容量"
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:220
 msgid "Center"
 msgstr "面"
+
+#: Source/Core/Core/HotkeyManager.cpp:38
+msgid "Center Mouse"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:898
 msgid "Center and Calibrate"
@@ -2368,7 +2372,7 @@ msgstr "確認"
 msgid "Connect"
 msgstr "ホストに接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:84 Source/Core/DolphinQt/MenuBar.cpp:302
+#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:302
 msgid "Connect Balance Board"
 msgstr "バランスWii ボードを接続"
 
@@ -2380,19 +2384,19 @@ msgstr "USBキーボードの接続をエミュレート"
 msgid "Connect Wii Remote %1"
 msgstr "%1 のWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Connect Wii Remote 1"
 msgstr "1PのWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:81
+#: Source/Core/Core/HotkeyManager.cpp:82
 msgid "Connect Wii Remote 2"
 msgstr "2PのWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Connect Wii Remote 3"
 msgstr "3PのWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:83
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Connect Wii Remote 4"
 msgstr "4PのWiiリモコンを接続"
 
@@ -2428,7 +2432,7 @@ msgstr "Content {0:08x} is corrupt."
 msgid "Continuous Scanning"
 msgstr "接続状況を常に監視"
 
-#: Source/Core/Core/HotkeyManager.cpp:39
+#: Source/Core/Core/HotkeyManager.cpp:40
 msgid "Control NetPlay Golf Mode"
 msgstr ""
 
@@ -2441,19 +2445,19 @@ msgstr "コントロールスティック"
 msgid "Controller Profile"
 msgstr "入力設定"
 
-#: Source/Core/Core/HotkeyManager.cpp:336
+#: Source/Core/Core/HotkeyManager.cpp:337
 msgid "Controller Profile 1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:337
+#: Source/Core/Core/HotkeyManager.cpp:338
 msgid "Controller Profile 2"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:338
+#: Source/Core/Core/HotkeyManager.cpp:339
 msgid "Controller Profile 3"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:339
+#: Source/Core/Core/HotkeyManager.cpp:340
 msgid "Controller Profile 4"
 msgstr ""
 
@@ -2959,20 +2963,20 @@ msgstr "デコード精度"
 msgid "Decrease"
 msgstr "移動速度 減少"
 
-#: Source/Core/Core/HotkeyManager.cpp:127
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Decrease Convergence"
 msgstr "収束距離 減少"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Decrease Depth"
 msgstr "深度 減少"
 
-#: Source/Core/Core/HotkeyManager.cpp:45
+#: Source/Core/Core/HotkeyManager.cpp:46
 msgid "Decrease Emulation Speed"
 msgstr "エミュレーション速度 減少"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:118
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Decrease IR"
 msgstr "レンダリング解像度 縮小"
 
@@ -3071,7 +3075,7 @@ msgstr "説明"
 msgid "Description:"
 msgstr "説明"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:221
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:212
 msgid "Description:  "
 msgstr ""
 
@@ -3174,7 +3178,7 @@ msgstr "Disable Copy Filter"
 msgid "Disable EFB VRAM Copies"
 msgstr "Disable EFB VRAM Copies"
 
-#: Source/Core/Core/HotkeyManager.cpp:47
+#: Source/Core/Core/HotkeyManager.cpp:48
 msgid "Disable Emulation Speed Limit"
 msgstr "エミュレーション速度 無効化"
 
@@ -3713,7 +3717,7 @@ msgstr ""
 "Current: MEM1 {0:08X} ({1} MiB), MEM2 {2:08X} ({3} MiB)\n"
 "DFF: MEM1 {4:08X} ({5} MiB), MEM2 {6:08X} ({7} MiB)"
 
-#: Source/Core/Core/HotkeyManager.cpp:329
+#: Source/Core/Core/HotkeyManager.cpp:330
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:26
 msgid "Emulation Speed"
 msgstr "エミュレーション速度"
@@ -4251,7 +4255,7 @@ msgstr "全てのWiiセーブデータをエクスポート"
 msgid "Export Failed"
 msgstr "エクスポート失敗"
 
-#: Source/Core/Core/HotkeyManager.cpp:56
+#: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Export Recording"
 msgstr "録画ファイルのエクスポート"
 
@@ -4997,20 +5001,20 @@ msgstr ""
 msgid "Frame %1"
 msgstr "フレーム %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:49 Source/Core/Core/HotkeyManager.cpp:330
+#: Source/Core/Core/HotkeyManager.cpp:50 Source/Core/Core/HotkeyManager.cpp:331
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:21
 msgid "Frame Advance"
 msgstr "Frame Advance"
 
-#: Source/Core/Core/HotkeyManager.cpp:50
+#: Source/Core/Core/HotkeyManager.cpp:51
 msgid "Frame Advance Decrease Speed"
 msgstr "Frame Advance速度 減少"
 
-#: Source/Core/Core/HotkeyManager.cpp:51
+#: Source/Core/Core/HotkeyManager.cpp:52
 msgid "Frame Advance Increase Speed"
 msgstr "Frame Advance速度 増加"
 
-#: Source/Core/Core/HotkeyManager.cpp:52
+#: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Frame Advance Reset Speed"
 msgstr "Frame Advance速度 リセット"
 
@@ -5071,11 +5075,11 @@ msgstr ""
 msgid "FreeLook"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:342
+#: Source/Core/Core/HotkeyManager.cpp:343
 msgid "Freelook"
 msgstr "フリールック"
 
-#: Source/Core/Core/HotkeyManager.cpp:120
+#: Source/Core/Core/HotkeyManager.cpp:121
 msgid "Freelook Toggle"
 msgstr "フリールック 切替"
 
@@ -5133,7 +5137,7 @@ msgstr "GBA (統合型)"
 msgid "GBA (TCP)"
 msgstr "GBA (TCP)"
 
-#: Source/Core/Core/HotkeyManager.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:353
 msgid "GBA Core"
 msgstr "GBA コア"
 
@@ -5145,11 +5149,11 @@ msgstr "GBAポート %1"
 msgid "GBA Settings"
 msgstr "GBA設定"
 
-#: Source/Core/Core/HotkeyManager.cpp:353
+#: Source/Core/Core/HotkeyManager.cpp:354
 msgid "GBA Volume"
 msgstr "GBA 音量"
 
-#: Source/Core/Core/HotkeyManager.cpp:354
+#: Source/Core/Core/HotkeyManager.cpp:355
 msgid "GBA Window Size"
 msgstr "GBA 画面サイズ"
 
@@ -5416,7 +5420,7 @@ msgstr ""
 msgid "Gecko Codes"
 msgstr "Geckoコード"
 
-#: Source/Core/Core/HotkeyManager.cpp:327
+#: Source/Core/Core/HotkeyManager.cpp:328
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:195
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:69
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:98
@@ -5484,7 +5488,7 @@ msgstr "ビデオ"
 msgid "Graphics Mods"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:340
+#: Source/Core/Core/HotkeyManager.cpp:341
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:20
 msgid "Graphics Toggles"
 msgstr "グラフィック設定 切替"
@@ -5669,7 +5673,7 @@ msgstr "Hostname"
 msgid "Hotkey Settings"
 msgstr "ホットキーのカスタマイズ"
 
-#: Source/Core/Core/HotkeyManager.cpp:204
+#: Source/Core/Core/HotkeyManager.cpp:205
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:41
 msgid "Hotkeys"
@@ -5945,20 +5949,20 @@ msgstr ""
 msgid "Increase"
 msgstr "移動速度 増加"
 
-#: Source/Core/Core/HotkeyManager.cpp:128
+#: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Increase Convergence"
 msgstr "収束距離 増加"
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Increase Depth"
 msgstr "深度 増加"
 
-#: Source/Core/Core/HotkeyManager.cpp:46
+#: Source/Core/Core/HotkeyManager.cpp:47
 msgid "Increase Emulation Speed"
 msgstr "エミュレーション速度 増加"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Increase IR"
 msgstr "レンダリング解像度 拡大"
 
@@ -6106,7 +6110,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Internal LZO Error - lzo_init() failed"
 
-#: Source/Core/Core/HotkeyManager.cpp:341
+#: Source/Core/Core/HotkeyManager.cpp:342
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:375
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:27
 msgid "Internal Resolution"
@@ -6511,7 +6515,7 @@ msgstr "カスタムテクスチャを読み込む"
 msgid "Load GameCube Main Menu"
 msgstr "ゲームキューブ メインメニューを起動"
 
-#: Source/Core/Core/HotkeyManager.cpp:350
+#: Source/Core/Core/HotkeyManager.cpp:351
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:22
 msgid "Load Last State"
 msgstr "以前のステートをロード"
@@ -6520,92 +6524,92 @@ msgstr "以前のステートをロード"
 msgid "Load Path:"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:182
+#: Source/Core/Core/HotkeyManager.cpp:183
 msgid "Load ROM"
 msgstr "ROMの読込"
 
-#: Source/Core/Core/HotkeyManager.cpp:180
-#: Source/Core/Core/HotkeyManager.cpp:347
+#: Source/Core/Core/HotkeyManager.cpp:181
+#: Source/Core/Core/HotkeyManager.cpp:348
 msgid "Load State"
 msgstr "ステートロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:165
+#: Source/Core/Core/HotkeyManager.cpp:166
 msgid "Load State Last 1"
 msgstr "1個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:174
+#: Source/Core/Core/HotkeyManager.cpp:175
 msgid "Load State Last 10"
 msgstr "10個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:166
+#: Source/Core/Core/HotkeyManager.cpp:167
 msgid "Load State Last 2"
 msgstr "2個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:167
+#: Source/Core/Core/HotkeyManager.cpp:168
 msgid "Load State Last 3"
 msgstr "3個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:168
+#: Source/Core/Core/HotkeyManager.cpp:169
 msgid "Load State Last 4"
 msgstr "4個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:169
+#: Source/Core/Core/HotkeyManager.cpp:170
 msgid "Load State Last 5"
 msgstr "5個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:170
+#: Source/Core/Core/HotkeyManager.cpp:171
 msgid "Load State Last 6"
 msgstr "6個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:171
+#: Source/Core/Core/HotkeyManager.cpp:172
 msgid "Load State Last 7"
 msgstr "7個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:172
+#: Source/Core/Core/HotkeyManager.cpp:173
 msgid "Load State Last 8"
 msgstr "8個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:173
+#: Source/Core/Core/HotkeyManager.cpp:174
 msgid "Load State Last 9"
 msgstr "9個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:130
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Load State Slot 1"
 msgstr "ステートロード - スロット 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:139
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load State Slot 10"
 msgstr "ステートロード - スロット 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Load State Slot 2"
 msgstr "ステートロード - スロット 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:132
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Load State Slot 3"
 msgstr "ステートロード - スロット 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:133
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Load State Slot 4"
 msgstr "ステートロード - スロット 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:134
+#: Source/Core/Core/HotkeyManager.cpp:135
 msgid "Load State Slot 5"
 msgstr "ステートロード - スロット 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:135
+#: Source/Core/Core/HotkeyManager.cpp:136
 msgid "Load State Slot 6"
 msgstr "ステートロード - スロット 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:136
+#: Source/Core/Core/HotkeyManager.cpp:137
 msgid "Load State Slot 7"
 msgstr "ステートロード - スロット 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:137
+#: Source/Core/Core/HotkeyManager.cpp:138
 msgid "Load State Slot 8"
 msgstr "ステートロード - スロット 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:138
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Load State Slot 9"
 msgstr "ステートロード - スロット 9"
 
@@ -6629,7 +6633,7 @@ msgstr "Wiiのセーブデータを読込む"
 msgid "Load Wii System Menu %1"
 msgstr "Wiiメニューを起動 %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:140
+#: Source/Core/Core/HotkeyManager.cpp:141
 msgid "Load from Selected Slot"
 msgstr "選択したスロットから読込"
 
@@ -6974,7 +6978,7 @@ msgstr "常に非表示にします"
 msgid "Move"
 msgstr "移動"
 
-#: Source/Core/Core/HotkeyManager.cpp:331
+#: Source/Core/Core/HotkeyManager.cpp:332
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:23
 msgid "Movie"
 msgstr "記録"
@@ -7128,8 +7132,8 @@ msgstr "New instruction:"
 msgid "New tag"
 msgstr "新しいタグ"
 
-#: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
-#: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
+#: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
 msgid "Next Game Profile"
 msgstr "次のゲームプロファイル"
 
@@ -7137,8 +7141,8 @@ msgstr "次のゲームプロファイル"
 msgid "Next Match"
 msgstr "次を検索"
 
-#: Source/Core/Core/HotkeyManager.cpp:88 Source/Core/Core/HotkeyManager.cpp:92
-#: Source/Core/Core/HotkeyManager.cpp:96 Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
+#: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
 msgid "Next Profile"
 msgstr "次のプロファイル"
 
@@ -7497,7 +7501,7 @@ msgstr "その他"
 msgid "Other Partition (%1)"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:351
+#: Source/Core/Core/HotkeyManager.cpp:352
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:25
 msgid "Other State Hotkeys"
 msgstr "その他"
@@ -7693,7 +7697,7 @@ msgstr "開始"
 msgid "Play / Record"
 msgstr "再生／記録"
 
-#: Source/Core/Core/HotkeyManager.cpp:55
+#: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Play Recording"
 msgstr "録画ファイルを再生"
 
@@ -7779,7 +7783,7 @@ msgstr ""
 msgid "Presets"
 msgstr "プリセット"
 
-#: Source/Core/Core/HotkeyManager.cpp:79
+#: Source/Core/Core/HotkeyManager.cpp:80
 msgid "Press Sync Button"
 msgstr "Syncボタン 押下"
 
@@ -7801,8 +7805,9 @@ msgstr ""
 "<br><br><dolphin_emphasis>他の方式ではパフォーマンスに影響が出てしまう場合以"
 "外、オススメできません</dolphin_emphasis>"
 
-#: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
-#: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
+#: Source/Core/Core/HotkeyManager.cpp:92 Source/Core/Core/HotkeyManager.cpp:96
+#: Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Previous Game Profile"
 msgstr "前のゲームプロファイル"
 
@@ -7810,8 +7815,8 @@ msgstr "前のゲームプロファイル"
 msgid "Previous Match"
 msgstr "前を検索"
 
-#: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
-#: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
+#: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
 msgid "Previous Profile"
 msgstr "前のプロファイル"
 
@@ -7859,7 +7864,7 @@ msgstr ""
 msgid "Profile"
 msgstr "プロファイル"
 
-#: Source/Core/Core/HotkeyManager.cpp:333
+#: Source/Core/Core/HotkeyManager.cpp:334
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:24
 msgid "Program Counter"
 msgstr "Program Counter"
@@ -7987,7 +7992,7 @@ msgstr "Read only"
 msgid "Read or Write"
 msgstr "Read or Write"
 
-#: Source/Core/Core/HotkeyManager.cpp:57
+#: Source/Core/Core/HotkeyManager.cpp:58
 msgid "Read-Only Mode"
 msgstr "読み込み専用"
 
@@ -8185,7 +8190,7 @@ msgid "Request to Join Your Party"
 msgstr "参加要請"
 
 #: Source/Core/Core/FreeLookManager.cpp:97
-#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:184
+#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:185
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:899
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:136
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:94
@@ -8460,7 +8465,7 @@ msgstr ""
 msgid "Save Import"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:176
+#: Source/Core/Core/HotkeyManager.cpp:177
 msgid "Save Oldest State"
 msgstr "最古のステートに上書き保存"
 
@@ -8472,49 +8477,49 @@ msgstr ""
 msgid "Save Recording File As"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:179
-#: Source/Core/Core/HotkeyManager.cpp:348
+#: Source/Core/Core/HotkeyManager.cpp:180
+#: Source/Core/Core/HotkeyManager.cpp:349
 #: Source/Core/DolphinQt/GBAWidget.cpp:413
 msgid "Save State"
 msgstr "ステートセーブ"
 
-#: Source/Core/Core/HotkeyManager.cpp:142
+#: Source/Core/Core/HotkeyManager.cpp:143
 msgid "Save State Slot 1"
 msgstr "ステートセーブ - スロット 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:151
+#: Source/Core/Core/HotkeyManager.cpp:152
 msgid "Save State Slot 10"
 msgstr "ステートセーブ - スロット 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:143
+#: Source/Core/Core/HotkeyManager.cpp:144
 msgid "Save State Slot 2"
 msgstr "ステートセーブ - スロット 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:144
+#: Source/Core/Core/HotkeyManager.cpp:145
 msgid "Save State Slot 3"
 msgstr "ステートセーブ - スロット 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:145
+#: Source/Core/Core/HotkeyManager.cpp:146
 msgid "Save State Slot 4"
 msgstr "ステートセーブ - スロット 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:146
+#: Source/Core/Core/HotkeyManager.cpp:147
 msgid "Save State Slot 5"
 msgstr "ステートセーブ - スロット 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:147
+#: Source/Core/Core/HotkeyManager.cpp:148
 msgid "Save State Slot 6"
 msgstr "ステートセーブ - スロット 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:148
+#: Source/Core/Core/HotkeyManager.cpp:149
 msgid "Save State Slot 7"
 msgstr "ステートセーブ - スロット 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:149
+#: Source/Core/Core/HotkeyManager.cpp:150
 msgid "Save State Slot 8"
 msgstr "ステートセーブ - スロット 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:150
+#: Source/Core/Core/HotkeyManager.cpp:151
 msgid "Save State Slot 9"
 msgstr "ステートセーブ - スロット 9"
 
@@ -8580,7 +8585,7 @@ msgstr "Save map file"
 msgid "Save signature file"
 msgstr "Save signature file"
 
-#: Source/Core/Core/HotkeyManager.cpp:152
+#: Source/Core/Core/HotkeyManager.cpp:153
 msgid "Save to Selected Slot"
 msgstr "選択したスロットに保存"
 
@@ -8722,7 +8727,7 @@ msgstr ""
 msgid "Select Slot %1 - %2"
 msgstr "スロット %1 - %2"
 
-#: Source/Core/Core/HotkeyManager.cpp:349
+#: Source/Core/Core/HotkeyManager.cpp:350
 msgid "Select State"
 msgstr "スロットの選択"
 
@@ -8730,43 +8735,43 @@ msgstr "スロットの選択"
 msgid "Select State Slot"
 msgstr "スロットの選択"
 
-#: Source/Core/Core/HotkeyManager.cpp:154
+#: Source/Core/Core/HotkeyManager.cpp:155
 msgid "Select State Slot 1"
 msgstr "ステートスロット 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:163
+#: Source/Core/Core/HotkeyManager.cpp:164
 msgid "Select State Slot 10"
 msgstr "ステートスロット 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:155
+#: Source/Core/Core/HotkeyManager.cpp:156
 msgid "Select State Slot 2"
 msgstr "ステートスロット 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:156
+#: Source/Core/Core/HotkeyManager.cpp:157
 msgid "Select State Slot 3"
 msgstr "ステートスロット 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:157
+#: Source/Core/Core/HotkeyManager.cpp:158
 msgid "Select State Slot 4"
 msgstr "ステートスロット 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:158
+#: Source/Core/Core/HotkeyManager.cpp:159
 msgid "Select State Slot 5"
 msgstr "ステートスロット 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:159
+#: Source/Core/Core/HotkeyManager.cpp:160
 msgid "Select State Slot 6"
 msgstr "ステートスロット 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:160
+#: Source/Core/Core/HotkeyManager.cpp:161
 msgid "Select State Slot 7"
 msgstr "ステートスロット 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:161
+#: Source/Core/Core/HotkeyManager.cpp:162
 msgid "Select State Slot 8"
 msgstr "ステートスロット 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:162
+#: Source/Core/Core/HotkeyManager.cpp:163
 msgid "Select State Slot 9"
 msgstr "ステートスロット 9"
 
@@ -8991,7 +8996,7 @@ msgid "Set &blr"
 msgstr ""
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:73 Source/Core/DolphinQt/ToolBar.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:74 Source/Core/DolphinQt/ToolBar.cpp:114
 msgid "Set PC"
 msgstr "Set PC"
 
@@ -9187,7 +9192,7 @@ msgid "Show PAL"
 msgstr "PAL規格"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:71 Source/Core/DolphinQt/ToolBar.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:72 Source/Core/DolphinQt/ToolBar.cpp:112
 msgid "Show PC"
 msgstr "Show PC"
 
@@ -9382,7 +9387,7 @@ msgstr ""
 "ストレッチに使用するバッファサイズをミリ秒単位で変更できます。小さくしすぎる"
 "と音割れの原因になります。"
 
-#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:69 Source/Core/DolphinQt/ToolBar.cpp:110
 msgid "Skip"
 msgstr "Skip"
 
@@ -9566,7 +9571,7 @@ msgstr ""
 msgid "Start Re&cording Input"
 msgstr "操作の記録を開始(&C)"
 
-#: Source/Core/Core/HotkeyManager.cpp:54
+#: Source/Core/Core/HotkeyManager.cpp:55
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:54
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:200
 msgid "Start Recording"
@@ -9607,19 +9612,19 @@ msgstr "Step"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:61
+#: Source/Core/Core/HotkeyManager.cpp:62
 msgid "Step Into"
 msgstr "Step Into"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:67 Source/Core/DolphinQt/ToolBar.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:109
 msgid "Step Out"
 msgstr "Step Out"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:64 Source/Core/DolphinQt/ToolBar.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:65 Source/Core/DolphinQt/ToolBar.cpp:106
 msgid "Step Over"
 msgstr "Step Over"
 
@@ -9639,7 +9644,7 @@ msgstr "Step over in progress..."
 msgid "Step successful!"
 msgstr "Step successful!"
 
-#: Source/Core/Core/HotkeyManager.cpp:332
+#: Source/Core/Core/HotkeyManager.cpp:333
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:21
 msgid "Stepping"
 msgstr "Stepping"
@@ -10409,7 +10414,7 @@ msgstr ""
 "このアクションリプレイシミュレータは、アクションリプレイそのものを変更する"
 "コードはサポートしていません。"
 
-#: Source/Core/Common/x64CPUDetect.cpp:75
+#: Source/Core/Common/x64CPUDetect.cpp:81
 msgid ""
 "This build of Dolphin is not natively compiled for your CPU.\n"
 "Please run the ARM64 build of Dolphin for a better experience."
@@ -10537,7 +10542,7 @@ msgstr "This title is set to use an invalid IOS."
 msgid "This title is set to use an invalid common key."
 msgstr "This title is set to use an invalid common key."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:306
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:314
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10549,7 +10554,7 @@ msgstr ""
 "\n"
 "DSPHLE: Unknown ucode (CRC = {0:08x}) - forcing AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:297
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:305
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10634,15 +10639,15 @@ msgstr "終了"
 msgid "Toggle &Fullscreen"
 msgstr "全画面表示 切り替え(&F)"
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Toggle 3D Anaglyph"
 msgstr "立体視 Anaglyph 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:122
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Toggle 3D Side-by-Side"
 msgstr "立体視 Side-by-side 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Toggle 3D Top-Bottom"
 msgstr "立体視 Top-bottom 切替"
 
@@ -10650,28 +10655,28 @@ msgstr "立体視 Top-bottom 切替"
 msgid "Toggle All Log Types"
 msgstr "全てのログ情報を選択／解除"
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Toggle Aspect Ratio"
 msgstr "アスペクト比 設定切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:75
+#: Source/Core/Core/HotkeyManager.cpp:76
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
 msgid "Toggle Breakpoint"
 msgstr "Toggle Breakpoint"
 
-#: Source/Core/Core/HotkeyManager.cpp:105
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Toggle Crop"
 msgstr "クロッピング 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle Custom Textures"
 msgstr "カスタムテクスチャ 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Toggle EFB Copies"
 msgstr "EFB Copies 設定切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:111
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Toggle Fog"
 msgstr "フォグ処理 設定切替"
 
@@ -10683,27 +10688,27 @@ msgstr "フルスクリーン表示 切替"
 msgid "Toggle Pause"
 msgstr "一時停止 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:85
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Toggle SD Card"
 msgstr "SDカード挿入 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Toggle Skip EFB Access"
 msgstr "Skip EFB Access 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Toggle Texture Dumping"
 msgstr "Toggle Texture Dumping"
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Toggle USB Keyboard"
 msgstr "USB キーボード 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Toggle XFB Copies"
 msgstr "EFB Copies 設定切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Toggle XFB Immediate Mode"
 msgstr "XFB Immediate Mode 設定切替"
 
@@ -10918,11 +10923,11 @@ msgstr "Unbound"
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "未圧縮のGC/Wii ISOファイル (*.iso *.gcm)"
 
-#: Source/Core/Core/HotkeyManager.cpp:177 Source/Core/DolphinQt/MenuBar.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:335
 msgid "Undo Load State"
 msgstr "直前のステートロードを取消"
 
-#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Undo Save State"
 msgstr "直前のステートセーブの取消"
 
@@ -11020,7 +11025,7 @@ msgstr ""
 msgid "Unlimited"
 msgstr "制限なし"
 
-#: Source/Core/Core/HotkeyManager.cpp:183
+#: Source/Core/Core/HotkeyManager.cpp:184
 msgid "Unload ROM"
 msgstr "ROMを取り外してリセット"
 
@@ -11362,22 +11367,22 @@ msgstr ""
 msgid "Virtual address space"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:328
+#: Source/Core/Core/HotkeyManager.cpp:329
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:24
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:60
 msgid "Volume"
 msgstr "音量"
 
-#: Source/Core/Core/HotkeyManager.cpp:41 Source/Core/Core/HotkeyManager.cpp:186
+#: Source/Core/Core/HotkeyManager.cpp:42 Source/Core/Core/HotkeyManager.cpp:187
 msgid "Volume Down"
 msgstr "音量を下げる"
 
-#: Source/Core/Core/HotkeyManager.cpp:43 Source/Core/Core/HotkeyManager.cpp:188
+#: Source/Core/Core/HotkeyManager.cpp:44 Source/Core/Core/HotkeyManager.cpp:189
 msgid "Volume Toggle Mute"
 msgstr "ミュート 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:42 Source/Core/Core/HotkeyManager.cpp:187
+#: Source/Core/Core/HotkeyManager.cpp:43 Source/Core/Core/HotkeyManager.cpp:188
 msgid "Volume Up"
 msgstr "音量を上げる"
 
@@ -11593,7 +11598,7 @@ msgstr "常にパススルーを行うUSBデバイスリスト"
 msgid "Widescreen Hack"
 msgstr "疑似ワイドスクリーン化"
 
-#: Source/Core/Core/HotkeyManager.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:336
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyWii.cpp:20
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:42
 msgid "Wii"

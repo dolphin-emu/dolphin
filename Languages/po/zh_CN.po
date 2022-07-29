@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-25 10:54+0200\n"
+"POT-Creation-Date: 2022-07-29 22:48+0200\n"
 "PO-Revision-Date: 2013-01-23 13:48+0000\n"
 "Last-Translator: 天绝星 <c.cejhb@gmail.com>, 2015-2022\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
@@ -745,12 +745,12 @@ msgstr "16:9"
 msgid "16x"
 msgstr "16x"
 
-#: Source/Core/Core/HotkeyManager.cpp:190
+#: Source/Core/Core/HotkeyManager.cpp:191
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "1x"
 msgstr "1x"
 
-#: Source/Core/Core/HotkeyManager.cpp:191
+#: Source/Core/Core/HotkeyManager.cpp:192
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "2x"
 msgstr "2x"
@@ -783,19 +783,19 @@ msgid "32-bit Unsigned Integer"
 msgstr "32 位无符号整数"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:344
+#: Source/Core/Core/HotkeyManager.cpp:345
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:447
 msgid "3D"
 msgstr "3D"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:346
+#: Source/Core/Core/HotkeyManager.cpp:347
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:25
 msgid "3D Depth"
 msgstr "3D 深度"
 
-#: Source/Core/Core/HotkeyManager.cpp:192
+#: Source/Core/Core/HotkeyManager.cpp:193
 msgid "3x"
 msgstr "3x"
 
@@ -815,7 +815,7 @@ msgstr "4 Mbit (59 区块)"
 msgid "4:3"
 msgstr "4:3"
 
-#: Source/Core/Core/HotkeyManager.cpp:193
+#: Source/Core/Core/HotkeyManager.cpp:194
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:76
 msgid "4x"
 msgstr "4x"
@@ -1013,7 +1013,7 @@ msgstr "加速度计"
 #. i18n: Percentage value of accelerometer data (complementary filter coefficient).
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:44
 msgid "Accelerometer Influence"
-msgstr ""
+msgstr "加速度器影响"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:74
 msgid "Accuracy:"
@@ -1099,7 +1099,7 @@ msgstr "Action Replay: 正常代码 0: 无效子类型 {0:08x} ({1})"
 msgid "Action Replay: Normal Code {0}: Invalid subtype {1:08x} ({2})"
 msgstr "Action Replay: 正常代码 {0}: 无效子类型 {1:08x} ({2})"
 
-#: Source/Core/Core/HotkeyManager.cpp:38
+#: Source/Core/Core/HotkeyManager.cpp:39
 msgid "Activate NetPlay Chat"
 msgstr "激活联机聊天"
 
@@ -1150,11 +1150,11 @@ msgstr "添加新的 USB 设备"
 msgid "Add Shortcut to Desktop"
 msgstr "添加快捷方式到桌面"
 
-#: Source/Core/Core/HotkeyManager.cpp:76
+#: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Add a Breakpoint"
 msgstr "添加一个断点"
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:78
 msgid "Add a Memory Breakpoint"
 msgstr "添加内存断点"
 
@@ -1577,7 +1577,7 @@ msgstr "自动检测 RSO 模块？"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:196
 msgid "Automatically Sync with Folder"
-msgstr ""
+msgstr "自动与文件夹同步"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:212
 msgid ""
@@ -1816,7 +1816,7 @@ msgstr "分支"
 msgid "Break"
 msgstr "中断"
 
-#: Source/Core/Core/HotkeyManager.cpp:334
+#: Source/Core/Core/HotkeyManager.cpp:335
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:26
 msgid "Breakpoint"
 msgstr "断点"
@@ -1830,7 +1830,7 @@ msgid "Breakpoints"
 msgstr "断点"
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:99
-msgid "Broadband Adapter (Built In)"
+msgid "Broadband Adapter (HLE)"
 msgstr ""
 
 #: Source/Core/Core/HW/EXI/EXI_Device.h:92
@@ -1847,7 +1847,7 @@ msgstr "宽带适配器（tap 服务器）"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:57
 msgid "Broadband Adapter DNS setting"
-msgstr ""
+msgstr "宽带适配器 DNS 设置"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:106
 msgid "Broadband Adapter Error"
@@ -1910,7 +1910,7 @@ msgstr "按键"
 msgid "Buttons"
 msgstr "按键"
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:214
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:205
 msgid "By:  "
 msgstr "作者："
 
@@ -2063,6 +2063,10 @@ msgstr "卡大小"
 msgid "Center"
 msgstr "中心"
 
+#: Source/Core/Core/HotkeyManager.cpp:38
+msgid "Center Mouse"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:898
 msgid "Center and Calibrate"
 msgstr "中心和校准"
@@ -2100,9 +2104,9 @@ msgid ""
 msgstr ""
 "在自由视点下更改游戏中的镜头类型。<br><br>六轴：在所有轴上提供完整的镜头控"
 "制，类似于在零重力下移动航天器。这是功能最强大的自由视点选项，但使用起来最具"
-"挑战性。<br /><br>第一人称视角：控制自由镜头类似于第一人称视角游戏。镜头可以"
-"旋转和移动，但无法滚动。 易于使用，但有局限性。<br><br>轨道：将自由镜头围绕原"
-"始镜头旋转。没有横向移动，只能旋转，可以放大视角到镜头的原点。"
+"挑战性。<br><br>第一人称视角：控制自由镜头类似于第一人称视角游戏。镜头可以旋"
+"转和移动，但无法滚动。易于使用，但有局限性。<br><br>轨道：将自由镜头围绕原始"
+"镜头旋转。没有横向移动，只能旋转，可以放大视角到镜头的原点。"
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:66
 msgid "Changing cheats will only take effect when the game is restarted."
@@ -2349,7 +2353,7 @@ msgstr "确认"
 msgid "Connect"
 msgstr "连接"
 
-#: Source/Core/Core/HotkeyManager.cpp:84 Source/Core/DolphinQt/MenuBar.cpp:302
+#: Source/Core/Core/HotkeyManager.cpp:85 Source/Core/DolphinQt/MenuBar.cpp:302
 msgid "Connect Balance Board"
 msgstr "连接平衡板"
 
@@ -2361,19 +2365,19 @@ msgstr "连接 USB 键盘"
 msgid "Connect Wii Remote %1"
 msgstr "连接 Wii 遥控器 %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Connect Wii Remote 1"
 msgstr "连接 Wii 遥控器 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:81
+#: Source/Core/Core/HotkeyManager.cpp:82
 msgid "Connect Wii Remote 2"
 msgstr "连接 Wii 遥控器 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Connect Wii Remote 3"
 msgstr "连接 Wii 遥控器 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:83
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Connect Wii Remote 4"
 msgstr "连接 Wii 遥控器 4"
 
@@ -2409,7 +2413,7 @@ msgstr "内容 {0:08x} 已损坏。"
 msgid "Continuous Scanning"
 msgstr "持续扫描"
 
-#: Source/Core/Core/HotkeyManager.cpp:39
+#: Source/Core/Core/HotkeyManager.cpp:40
 msgid "Control NetPlay Golf Mode"
 msgstr "控制联机高尔夫模式"
 
@@ -2422,19 +2426,19 @@ msgstr "控制摇杆"
 msgid "Controller Profile"
 msgstr "控制器预设"
 
-#: Source/Core/Core/HotkeyManager.cpp:336
+#: Source/Core/Core/HotkeyManager.cpp:337
 msgid "Controller Profile 1"
 msgstr "控制器预设 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:337
+#: Source/Core/Core/HotkeyManager.cpp:338
 msgid "Controller Profile 2"
 msgstr "控制器预设 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:338
+#: Source/Core/Core/HotkeyManager.cpp:339
 msgid "Controller Profile 3"
 msgstr "控制器预设 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:339
+#: Source/Core/Core/HotkeyManager.cpp:340
 msgid "Controller Profile 4"
 msgstr "控制器预设 4"
 
@@ -2508,7 +2512,7 @@ msgstr "会聚："
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:231
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:245
 msgid "Conversion failed."
-msgstr ""
+msgstr "转换失败。"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:41
 msgid "Convert"
@@ -2518,7 +2522,7 @@ msgstr "转换"
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:236
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:245
 msgid "Convert File to Folder Now"
-msgstr ""
+msgstr "立即将文件转换为文件夹"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:414
 msgid "Convert File..."
@@ -2528,7 +2532,7 @@ msgstr "转换文件..."
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:222
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:231
 msgid "Convert Folder to File Now"
-msgstr ""
+msgstr "立即将文件夹转换为文件"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:378
 msgid "Convert Selected Files..."
@@ -2951,20 +2955,20 @@ msgstr "解码质量:"
 msgid "Decrease"
 msgstr "减小"
 
-#: Source/Core/Core/HotkeyManager.cpp:127
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Decrease Convergence"
 msgstr "减小会聚"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Decrease Depth"
 msgstr "减小深度"
 
-#: Source/Core/Core/HotkeyManager.cpp:45
+#: Source/Core/Core/HotkeyManager.cpp:46
 msgid "Decrease Emulation Speed"
 msgstr "减小模拟速度"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:118
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Decrease IR"
 msgstr "减小内部分辨率"
 
@@ -3066,7 +3070,7 @@ msgstr "说明"
 msgid "Description:"
 msgstr "说明："
 
-#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:221
+#: Source/Core/DolphinQt/Config/GraphicsModListWidget.cpp:212
 msgid "Description:  "
 msgstr "说明："
 
@@ -3167,7 +3171,7 @@ msgstr "禁用复制过滤"
 msgid "Disable EFB VRAM Copies"
 msgstr "禁用 EFB VRAM 副本"
 
-#: Source/Core/Core/HotkeyManager.cpp:47
+#: Source/Core/Core/HotkeyManager.cpp:48
 msgid "Disable Emulation Speed Limit"
 msgstr "禁用模拟速度限制"
 
@@ -3488,7 +3492,7 @@ msgstr "转储帧"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:358
 msgid "Dump GameCube BBA traffic"
-msgstr ""
+msgstr "转储 GameCube BBA 流量"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:93
 msgid "Dump Mip Maps"
@@ -3708,7 +3712,7 @@ msgstr ""
 "当前: 内存 1 {0:08X} ({1} MiB)，内存 2 {2:08X} ({3} MiB)\n"
 "差异: 内存 1 {4:08X} ({5} MiB)，内存 2 {6:08X} ({7} MiB)"
 
-#: Source/Core/Core/HotkeyManager.cpp:329
+#: Source/Core/Core/HotkeyManager.cpp:330
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:26
 msgid "Emulation Speed"
 msgstr "模拟速度"
@@ -3961,7 +3965,7 @@ msgstr "输入密码"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:52
 msgid "Enter the DNS server to use:"
-msgstr ""
+msgstr "输入要使用的 DNS 服务器："
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1278
 msgid "Enter the RSO module address:"
@@ -4253,7 +4257,7 @@ msgstr "导出所有 Wii 存档"
 msgid "Export Failed"
 msgstr "导出失败"
 
-#: Source/Core/Core/HotkeyManager.cpp:56
+#: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Export Recording"
 msgstr "导出录制"
 
@@ -5009,20 +5013,20 @@ msgstr "找到 %n 个地址。"
 msgid "Frame %1"
 msgstr "帧 %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:49 Source/Core/Core/HotkeyManager.cpp:330
+#: Source/Core/Core/HotkeyManager.cpp:50 Source/Core/Core/HotkeyManager.cpp:331
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:21
 msgid "Frame Advance"
 msgstr "逐帧播放"
 
-#: Source/Core/Core/HotkeyManager.cpp:50
+#: Source/Core/Core/HotkeyManager.cpp:51
 msgid "Frame Advance Decrease Speed"
 msgstr "逐帧播放减小速度"
 
-#: Source/Core/Core/HotkeyManager.cpp:51
+#: Source/Core/Core/HotkeyManager.cpp:52
 msgid "Frame Advance Increase Speed"
 msgstr "逐帧播放增加速度"
 
-#: Source/Core/Core/HotkeyManager.cpp:52
+#: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Frame Advance Reset Speed"
 msgstr "逐帧播放重置速度"
 
@@ -5082,11 +5086,11 @@ msgstr ""
 msgid "FreeLook"
 msgstr "自由视点"
 
-#: Source/Core/Core/HotkeyManager.cpp:342
+#: Source/Core/Core/HotkeyManager.cpp:343
 msgid "Freelook"
 msgstr "自由视点"
 
-#: Source/Core/Core/HotkeyManager.cpp:120
+#: Source/Core/Core/HotkeyManager.cpp:121
 msgid "Freelook Toggle"
 msgstr "自由视点切换"
 
@@ -5144,7 +5148,7 @@ msgstr "GBA (集成)"
 msgid "GBA (TCP)"
 msgstr "GBA (TCP)"
 
-#: Source/Core/Core/HotkeyManager.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:353
 msgid "GBA Core"
 msgstr "GBA 核心"
 
@@ -5156,11 +5160,11 @@ msgstr "GBA 端口 %1"
 msgid "GBA Settings"
 msgstr "GBA 设置"
 
-#: Source/Core/Core/HotkeyManager.cpp:353
+#: Source/Core/Core/HotkeyManager.cpp:354
 msgid "GBA Volume"
 msgstr "GBA 音量"
 
-#: Source/Core/Core/HotkeyManager.cpp:354
+#: Source/Core/Core/HotkeyManager.cpp:355
 msgid "GBA Window Size"
 msgstr "GBA 窗口大小"
 
@@ -5223,7 +5227,7 @@ msgid ""
 "GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
 "GPU: Does your video card support OpenGL 3.0?"
 msgstr ""
-"GPU：错误：需要 GL_ARB_framebuffer_object 渲染目标。\n"
+"GPU：错误：需要 GL_ARB_framebuffer_object 来多重渲染目标。\n"
 "GPU：您的显卡是否支持 OpenGL 3.0？"
 
 #: Source/Core/VideoBackends/OGL/OGLMain.cpp:129
@@ -5438,7 +5442,7 @@ msgstr "洞口大小"
 msgid "Gecko Codes"
 msgstr "Gecko 代码"
 
-#: Source/Core/Core/HotkeyManager.cpp:327
+#: Source/Core/Core/HotkeyManager.cpp:328
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:195
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:69
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:98
@@ -5506,7 +5510,7 @@ msgstr "图形"
 msgid "Graphics Mods"
 msgstr "图形模组"
 
-#: Source/Core/Core/HotkeyManager.cpp:340
+#: Source/Core/Core/HotkeyManager.cpp:341
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:20
 msgid "Graphics Toggles"
 msgstr "图形切换"
@@ -5689,7 +5693,7 @@ msgstr "主机名"
 msgid "Hotkey Settings"
 msgstr "热键设置"
 
-#: Source/Core/Core/HotkeyManager.cpp:204
+#: Source/Core/Core/HotkeyManager.cpp:205
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:41
 msgid "Hotkeys"
@@ -5965,20 +5969,20 @@ msgstr ""
 msgid "Increase"
 msgstr "增加"
 
-#: Source/Core/Core/HotkeyManager.cpp:128
+#: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Increase Convergence"
 msgstr "增加会聚"
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Increase Depth"
 msgstr "增加深度"
 
-#: Source/Core/Core/HotkeyManager.cpp:46
+#: Source/Core/Core/HotkeyManager.cpp:47
 msgid "Increase Emulation Speed"
 msgstr "增加模拟速度"
 
 #. i18n: IR stands for internal resolution
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Increase IR"
 msgstr "增加内部分辨率"
 
@@ -6004,6 +6008,8 @@ msgid ""
 "Influence of accelerometer data on pitch and roll. Higher values will reduce "
 "drift at the cost of noise. Consider values between 1% and 3%."
 msgstr ""
+"加速度器数据对俯仰和翻滚的影响。较高的值将以噪声为代价减少漂移。建议为 1% 到 "
+"3% 之间的值。"
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:68
@@ -6126,7 +6132,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "内部 LZO 错误 - lzo_init() 失败"
 
-#: Source/Core/Core/HotkeyManager.cpp:341
+#: Source/Core/Core/HotkeyManager.cpp:342
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:375
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGraphics.cpp:27
 msgid "Internal Resolution"
@@ -6530,7 +6536,7 @@ msgstr "加载自定义纹理"
 msgid "Load GameCube Main Menu"
 msgstr "载入 GameCube 主菜单"
 
-#: Source/Core/Core/HotkeyManager.cpp:350
+#: Source/Core/Core/HotkeyManager.cpp:351
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:22
 msgid "Load Last State"
 msgstr "载入最近状态"
@@ -6539,92 +6545,92 @@ msgstr "载入最近状态"
 msgid "Load Path:"
 msgstr "加载路径:"
 
-#: Source/Core/Core/HotkeyManager.cpp:182
+#: Source/Core/Core/HotkeyManager.cpp:183
 msgid "Load ROM"
 msgstr "载入 ROM"
 
-#: Source/Core/Core/HotkeyManager.cpp:180
-#: Source/Core/Core/HotkeyManager.cpp:347
+#: Source/Core/Core/HotkeyManager.cpp:181
+#: Source/Core/Core/HotkeyManager.cpp:348
 msgid "Load State"
 msgstr "载入状态"
 
-#: Source/Core/Core/HotkeyManager.cpp:165
+#: Source/Core/Core/HotkeyManager.cpp:166
 msgid "Load State Last 1"
 msgstr "载入最近状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:174
+#: Source/Core/Core/HotkeyManager.cpp:175
 msgid "Load State Last 10"
 msgstr "载入最近状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:166
+#: Source/Core/Core/HotkeyManager.cpp:167
 msgid "Load State Last 2"
 msgstr "载入最近状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:167
+#: Source/Core/Core/HotkeyManager.cpp:168
 msgid "Load State Last 3"
 msgstr "载入最近状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:168
+#: Source/Core/Core/HotkeyManager.cpp:169
 msgid "Load State Last 4"
 msgstr "载入最近状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:169
+#: Source/Core/Core/HotkeyManager.cpp:170
 msgid "Load State Last 5"
 msgstr "载入最近状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:170
+#: Source/Core/Core/HotkeyManager.cpp:171
 msgid "Load State Last 6"
 msgstr "载入最近状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:171
+#: Source/Core/Core/HotkeyManager.cpp:172
 msgid "Load State Last 7"
 msgstr "载入最近状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:172
+#: Source/Core/Core/HotkeyManager.cpp:173
 msgid "Load State Last 8"
 msgstr "载入最近状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:173
+#: Source/Core/Core/HotkeyManager.cpp:174
 msgid "Load State Last 9"
 msgstr "载入最近状态 9"
 
-#: Source/Core/Core/HotkeyManager.cpp:130
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Load State Slot 1"
 msgstr "载入状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:139
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load State Slot 10"
 msgstr "载入状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Load State Slot 2"
 msgstr "载入状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:132
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Load State Slot 3"
 msgstr "载入状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:133
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Load State Slot 4"
 msgstr "载入状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:134
+#: Source/Core/Core/HotkeyManager.cpp:135
 msgid "Load State Slot 5"
 msgstr "载入状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:135
+#: Source/Core/Core/HotkeyManager.cpp:136
 msgid "Load State Slot 6"
 msgstr "载入状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:136
+#: Source/Core/Core/HotkeyManager.cpp:137
 msgid "Load State Slot 7"
 msgstr "载入状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:137
+#: Source/Core/Core/HotkeyManager.cpp:138
 msgid "Load State Slot 8"
 msgstr "载入状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:138
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Load State Slot 9"
 msgstr "载入状态 9"
 
@@ -6648,7 +6654,7 @@ msgstr "载入 Wii 存档"
 msgid "Load Wii System Menu %1"
 msgstr "加载 Wii 系统菜单 %1"
 
-#: Source/Core/Core/HotkeyManager.cpp:140
+#: Source/Core/Core/HotkeyManager.cpp:141
 msgid "Load from Selected Slot"
 msgstr "从选择的插槽中加载"
 
@@ -6991,7 +6997,7 @@ msgstr "游戏运行时鼠标光标将一直不可见。"
 msgid "Move"
 msgstr "移动"
 
-#: Source/Core/Core/HotkeyManager.cpp:331
+#: Source/Core/Core/HotkeyManager.cpp:332
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyTAS.cpp:23
 msgid "Movie"
 msgstr "影片"
@@ -7005,7 +7011,7 @@ msgstr "影片 {0} 表示从一个保存状态开始播放，但 {1} 不存在�
 #. i18n: Controller input values are multiplied by this percentage value.
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:322
 msgid "Multiplier"
-msgstr ""
+msgstr "多重分插器"
 
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:722
 msgid "N&o to All"
@@ -7145,8 +7151,8 @@ msgstr "新指令:"
 msgid "New tag"
 msgstr "新标签"
 
-#: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
-#: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
+#: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
 msgid "Next Game Profile"
 msgstr "下一个游戏预设"
 
@@ -7154,8 +7160,8 @@ msgstr "下一个游戏预设"
 msgid "Next Match"
 msgstr "匹配下一个"
 
-#: Source/Core/Core/HotkeyManager.cpp:88 Source/Core/Core/HotkeyManager.cpp:92
-#: Source/Core/Core/HotkeyManager.cpp:96 Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
+#: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
 msgid "Next Profile"
 msgstr "下一个预设"
 
@@ -7507,7 +7513,7 @@ msgstr "其他"
 msgid "Other Partition (%1)"
 msgstr "其他分区 (%1)"
 
-#: Source/Core/Core/HotkeyManager.cpp:351
+#: Source/Core/Core/HotkeyManager.cpp:352
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStatesOther.cpp:25
 msgid "Other State Hotkeys"
 msgstr "其他状态热键"
@@ -7703,7 +7709,7 @@ msgstr "开始"
 msgid "Play / Record"
 msgstr "播放/录制"
 
-#: Source/Core/Core/HotkeyManager.cpp:55
+#: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Play Recording"
 msgstr "播放录制"
 
@@ -7789,7 +7795,7 @@ msgstr ""
 msgid "Presets"
 msgstr "预设"
 
-#: Source/Core/Core/HotkeyManager.cpp:79
+#: Source/Core/Core/HotkeyManager.cpp:80
 msgid "Press Sync Button"
 msgstr "按下同步按钮"
 
@@ -7810,8 +7816,9 @@ msgstr ""
 "但会导致图像瑕疵并破坏效果。<br><br><dolphin_emphasis>不推荐，仅在其他选项效"
 "果不好时使用。</dolphin_emphasis>"
 
-#: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
-#: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
+#: Source/Core/Core/HotkeyManager.cpp:92 Source/Core/Core/HotkeyManager.cpp:96
+#: Source/Core/Core/HotkeyManager.cpp:100
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Previous Game Profile"
 msgstr "上一个游戏预设"
 
@@ -7819,8 +7826,8 @@ msgstr "上一个游戏预设"
 msgid "Previous Match"
 msgstr "匹配上一个"
 
-#: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
-#: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
+#: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
 msgid "Previous Profile"
 msgstr "上一个预设"
 
@@ -7864,7 +7871,7 @@ msgstr "发现中等严重性问题。游戏整体或特定部分可能无法正
 msgid "Profile"
 msgstr "预设"
 
-#: Source/Core/Core/HotkeyManager.cpp:333
+#: Source/Core/Core/HotkeyManager.cpp:334
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:24
 msgid "Program Counter"
 msgstr "程序计数器"
@@ -7990,7 +7997,7 @@ msgstr "只读"
 msgid "Read or Write"
 msgstr "读取或写入"
 
-#: Source/Core/Core/HotkeyManager.cpp:57
+#: Source/Core/Core/HotkeyManager.cpp:58
 msgid "Read-Only Mode"
 msgstr "只读模式"
 
@@ -8184,7 +8191,7 @@ msgid "Request to Join Your Party"
 msgstr "请求加入你的派对"
 
 #: Source/Core/Core/FreeLookManager.cpp:97
-#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:184
+#: Source/Core/Core/HotkeyManager.cpp:33 Source/Core/Core/HotkeyManager.cpp:185
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:899
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:136
 #: Source/Core/DolphinQt/Config/WiimoteControllersWidget.cpp:94
@@ -8374,7 +8381,7 @@ msgstr "SD 卡路径:"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:168
 msgid "SD Card Settings"
-msgstr ""
+msgstr "SD 卡设置"
 
 #: Source/Core/DolphinQt/RiivolutionBootWidget.cpp:168
 msgid "SD Root:"
@@ -8382,7 +8389,7 @@ msgstr "SD 根目录："
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:210
 msgid "SD Sync Folder:"
-msgstr ""
+msgstr "SD 同步文件夹："
 
 #: Source/Core/Core/HW/GBAPadEmu.cpp:18 Source/Core/Core/HW/GBAPadEmu.cpp:27
 msgid "SELECT"
@@ -8462,7 +8469,7 @@ msgstr "游戏存档文件 (*.sav);;所有文件 (*)"
 msgid "Save Import"
 msgstr "存档导入"
 
-#: Source/Core/Core/HotkeyManager.cpp:176
+#: Source/Core/Core/HotkeyManager.cpp:177
 msgid "Save Oldest State"
 msgstr "保存到最早状态存档"
 
@@ -8474,49 +8481,49 @@ msgstr "保存预设"
 msgid "Save Recording File As"
 msgstr "录制文件另存为"
 
-#: Source/Core/Core/HotkeyManager.cpp:179
-#: Source/Core/Core/HotkeyManager.cpp:348
+#: Source/Core/Core/HotkeyManager.cpp:180
+#: Source/Core/Core/HotkeyManager.cpp:349
 #: Source/Core/DolphinQt/GBAWidget.cpp:413
 msgid "Save State"
 msgstr "保存状态"
 
-#: Source/Core/Core/HotkeyManager.cpp:142
+#: Source/Core/Core/HotkeyManager.cpp:143
 msgid "Save State Slot 1"
 msgstr "保存状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:151
+#: Source/Core/Core/HotkeyManager.cpp:152
 msgid "Save State Slot 10"
 msgstr "保存状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:143
+#: Source/Core/Core/HotkeyManager.cpp:144
 msgid "Save State Slot 2"
 msgstr "保存状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:144
+#: Source/Core/Core/HotkeyManager.cpp:145
 msgid "Save State Slot 3"
 msgstr "保存状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:145
+#: Source/Core/Core/HotkeyManager.cpp:146
 msgid "Save State Slot 4"
 msgstr "保存状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:146
+#: Source/Core/Core/HotkeyManager.cpp:147
 msgid "Save State Slot 5"
 msgstr "保存状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:147
+#: Source/Core/Core/HotkeyManager.cpp:148
 msgid "Save State Slot 6"
 msgstr "保存状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:148
+#: Source/Core/Core/HotkeyManager.cpp:149
 msgid "Save State Slot 7"
 msgstr "保存状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:149
+#: Source/Core/Core/HotkeyManager.cpp:150
 msgid "Save State Slot 8"
 msgstr "保存状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:150
+#: Source/Core/Core/HotkeyManager.cpp:151
 msgid "Save State Slot 9"
 msgstr "保存状态 9"
 
@@ -8581,7 +8588,7 @@ msgstr "保存映射文件"
 msgid "Save signature file"
 msgstr "保存签名文件"
 
-#: Source/Core/Core/HotkeyManager.cpp:152
+#: Source/Core/Core/HotkeyManager.cpp:153
 msgid "Save to Selected Slot"
 msgstr "保存至所选插槽"
 
@@ -8723,7 +8730,7 @@ msgstr "选择 Riivolutione XML 文件"
 msgid "Select Slot %1 - %2"
 msgstr "选择插槽 %1 - %2"
 
-#: Source/Core/Core/HotkeyManager.cpp:349
+#: Source/Core/Core/HotkeyManager.cpp:350
 msgid "Select State"
 msgstr "选择状态"
 
@@ -8731,43 +8738,43 @@ msgstr "选择状态"
 msgid "Select State Slot"
 msgstr "选择状态插槽"
 
-#: Source/Core/Core/HotkeyManager.cpp:154
+#: Source/Core/Core/HotkeyManager.cpp:155
 msgid "Select State Slot 1"
 msgstr "选择状态 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:163
+#: Source/Core/Core/HotkeyManager.cpp:164
 msgid "Select State Slot 10"
 msgstr "选择状态 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:155
+#: Source/Core/Core/HotkeyManager.cpp:156
 msgid "Select State Slot 2"
 msgstr "选择状态 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:156
+#: Source/Core/Core/HotkeyManager.cpp:157
 msgid "Select State Slot 3"
 msgstr "选择状态 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:157
+#: Source/Core/Core/HotkeyManager.cpp:158
 msgid "Select State Slot 4"
 msgstr "选择状态 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:158
+#: Source/Core/Core/HotkeyManager.cpp:159
 msgid "Select State Slot 5"
 msgstr "选择状态 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:159
+#: Source/Core/Core/HotkeyManager.cpp:160
 msgid "Select State Slot 6"
 msgstr "选择状态 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:160
+#: Source/Core/Core/HotkeyManager.cpp:161
 msgid "Select State Slot 7"
 msgstr "选择状态 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:161
+#: Source/Core/Core/HotkeyManager.cpp:162
 msgid "Select State Slot 8"
 msgstr "选择状态 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:162
+#: Source/Core/Core/HotkeyManager.cpp:163
 msgid "Select State Slot 9"
 msgstr "选择状态 9"
 
@@ -8795,7 +8802,7 @@ msgstr "选择文件"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:429
 msgid "Select a Folder to sync with the SD Card Image"
-msgstr ""
+msgstr "选择要与 SD 卡镜像同步的文件夹"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:47
 msgid "Select a Game"
@@ -8987,7 +8994,7 @@ msgid "Set &blr"
 msgstr "设置 blr (&B)"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:73 Source/Core/DolphinQt/ToolBar.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:74 Source/Core/DolphinQt/ToolBar.cpp:114
 msgid "Set PC"
 msgstr "设置 PC"
 
@@ -9186,7 +9193,7 @@ msgid "Show PAL"
 msgstr "显示 PAL"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
-#: Source/Core/Core/HotkeyManager.cpp:71 Source/Core/DolphinQt/ToolBar.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:72 Source/Core/DolphinQt/ToolBar.cpp:112
 msgid "Show PC"
 msgstr "显示 PC"
 
@@ -9376,7 +9383,7 @@ msgid ""
 "crackling."
 msgstr "伸缩缓冲区的大小，以毫秒计。数值过低可能导致噼啪声。"
 
-#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:69 Source/Core/DolphinQt/ToolBar.cpp:110
 msgid "Skip"
 msgstr "跳过"
 
@@ -9563,7 +9570,7 @@ msgstr "开始新的金手指搜索"
 msgid "Start Re&cording Input"
 msgstr "开始录制输入(&C)"
 
-#: Source/Core/Core/HotkeyManager.cpp:54
+#: Source/Core/Core/HotkeyManager.cpp:55
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:54
 #: Source/Core/DolphinQt/Debugger/CodeDiffDialog.cpp:200
 msgid "Start Recording"
@@ -9604,19 +9611,19 @@ msgstr "单步"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:61
+#: Source/Core/Core/HotkeyManager.cpp:62
 msgid "Step Into"
 msgstr "跳入"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:67 Source/Core/DolphinQt/ToolBar.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:68 Source/Core/DolphinQt/ToolBar.cpp:109
 msgid "Step Out"
 msgstr "单步跳出"
 
 #. i18n: Here, "Step" is a verb. This feature is used for
 #. going through code step by step.
-#: Source/Core/Core/HotkeyManager.cpp:64 Source/Core/DolphinQt/ToolBar.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:65 Source/Core/DolphinQt/ToolBar.cpp:106
 msgid "Step Over"
 msgstr "单步跳过"
 
@@ -9636,7 +9643,7 @@ msgstr "跳过正在处理..."
 msgid "Step successful!"
 msgstr "单步成功！"
 
-#: Source/Core/Core/HotkeyManager.cpp:332
+#: Source/Core/Core/HotkeyManager.cpp:333
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyDebugging.cpp:21
 msgid "Stepping"
 msgstr "步进"
@@ -9923,7 +9930,7 @@ msgstr ""
 msgid ""
 "Synchronizes the SD Card with the SD Sync Folder when starting and ending "
 "emulation."
-msgstr ""
+msgstr "在开始和结束模拟时将 SD 卡与 SD 同步文件夹同步。"
 
 #: Source/Core/Core/NetPlayClient.cpp:1377
 msgid "Synchronizing AR codes..."
@@ -10418,7 +10425,7 @@ msgid ""
 "Replay itself."
 msgstr "此Action Replay模拟器不支持修改Action Replay本身的代码。"
 
-#: Source/Core/Common/x64CPUDetect.cpp:75
+#: Source/Core/Common/x64CPUDetect.cpp:81
 msgid ""
 "This build of Dolphin is not natively compiled for your CPU.\n"
 "Please run the ARM64 build of Dolphin for a better experience."
@@ -10554,7 +10561,7 @@ msgstr "此游戏设置为使用无效的 IOS。"
 msgid "This title is set to use an invalid common key."
 msgstr "此游戏设置为使用无效的公用密钥。"
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:306
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:314
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10565,7 +10572,7 @@ msgstr ""
 "\n"
 "DSP HLE: 未知 Ucode (CRC = {0:08x}) - 强制 AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:297
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:305
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
 "this is homebrew.\n"
@@ -10652,15 +10659,15 @@ msgstr "至："
 msgid "Toggle &Fullscreen"
 msgstr "切换全屏(&F)"
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Toggle 3D Anaglyph"
 msgstr "切换色差 3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:122
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Toggle 3D Side-by-Side"
 msgstr "切换左右 3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:124
 msgid "Toggle 3D Top-Bottom"
 msgstr "切换上下 3D"
 
@@ -10668,28 +10675,28 @@ msgstr "切换上下 3D"
 msgid "Toggle All Log Types"
 msgstr "全选/反选所有日志类型"
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Toggle Aspect Ratio"
 msgstr "切换长宽比"
 
-#: Source/Core/Core/HotkeyManager.cpp:75
+#: Source/Core/Core/HotkeyManager.cpp:76
 #: Source/Core/DolphinQt/Debugger/MemoryViewWidget.cpp:851
 msgid "Toggle Breakpoint"
 msgstr "切换断点"
 
-#: Source/Core/Core/HotkeyManager.cpp:105
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Toggle Crop"
 msgstr "切换画面边界"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Toggle Custom Textures"
 msgstr "切换自定义纹理"
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Toggle EFB Copies"
 msgstr "切换 EFB 副本"
 
-#: Source/Core/Core/HotkeyManager.cpp:111
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Toggle Fog"
 msgstr "切换雾"
 
@@ -10701,27 +10708,27 @@ msgstr "切换全屏"
 msgid "Toggle Pause"
 msgstr "切换暂停"
 
-#: Source/Core/Core/HotkeyManager.cpp:85
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Toggle SD Card"
 msgstr "切换 SD 卡"
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Toggle Skip EFB Access"
 msgstr "切换跳过 EFB 访问"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:113
 msgid "Toggle Texture Dumping"
 msgstr "切换纹理转储"
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Toggle USB Keyboard"
 msgstr "切换 USB 键盘"
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Toggle XFB Copies"
 msgstr "切换 XFB 副本"
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Toggle XFB Immediate Mode"
 msgstr "切换 XFB 立即模式"
 
@@ -10932,11 +10939,11 @@ msgstr "未绑定"
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "未压缩的 GC/Wii 镜像 (*.iso *.gcm)"
 
-#: Source/Core/Core/HotkeyManager.cpp:177 Source/Core/DolphinQt/MenuBar.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:335
 msgid "Undo Load State"
 msgstr "撤销载入状态"
 
-#: Source/Core/Core/HotkeyManager.cpp:178 Source/Core/DolphinQt/MenuBar.cpp:352
+#: Source/Core/Core/HotkeyManager.cpp:179 Source/Core/DolphinQt/MenuBar.cpp:352
 msgid "Undo Save State"
 msgstr "撤销保存状态"
 
@@ -11035,7 +11042,7 @@ msgstr "收到未知的消息，ID：{0} 来自玩家：{1} 剔除玩家！"
 msgid "Unlimited"
 msgstr "无限制"
 
-#: Source/Core/Core/HotkeyManager.cpp:183
+#: Source/Core/Core/HotkeyManager.cpp:184
 msgid "Unload ROM"
 msgstr "卸载 ROM"
 
@@ -11140,7 +11147,7 @@ msgstr "使用情况统计报告设置"
 
 #: Source/Core/DolphinQt/Settings/BroadbandAdapterSettingsDialog.cpp:55
 msgid "Use 8.8.8.8 for normal DNS, else enter your custom one"
-msgstr ""
+msgstr "使用 8.8.8.8 作为通用 DNS，或输入你的自定义设置"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:144
 msgid "Use Built-In Database of Game Names"
@@ -11395,22 +11402,22 @@ msgstr "虚拟接口"
 msgid "Virtual address space"
 msgstr "虚拟地址空间"
 
-#: Source/Core/Core/HotkeyManager.cpp:328
+#: Source/Core/Core/HotkeyManager.cpp:329
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGBA.cpp:23
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:24
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:60
 msgid "Volume"
 msgstr "音量"
 
-#: Source/Core/Core/HotkeyManager.cpp:41 Source/Core/Core/HotkeyManager.cpp:186
+#: Source/Core/Core/HotkeyManager.cpp:42 Source/Core/Core/HotkeyManager.cpp:187
 msgid "Volume Down"
 msgstr "减小音量"
 
-#: Source/Core/Core/HotkeyManager.cpp:43 Source/Core/Core/HotkeyManager.cpp:188
+#: Source/Core/Core/HotkeyManager.cpp:44 Source/Core/Core/HotkeyManager.cpp:189
 msgid "Volume Toggle Mute"
 msgstr "静音切换"
 
-#: Source/Core/Core/HotkeyManager.cpp:42 Source/Core/Core/HotkeyManager.cpp:187
+#: Source/Core/Core/HotkeyManager.cpp:43 Source/Core/Core/HotkeyManager.cpp:188
 msgid "Volume Up"
 msgstr "增大音量"
 
@@ -11655,7 +11662,7 @@ msgstr "USB 直通设备白名单"
 msgid "Widescreen Hack"
 msgstr "宽屏修正"
 
-#: Source/Core/Core/HotkeyManager.cpp:335
+#: Source/Core/Core/HotkeyManager.cpp:336
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyWii.cpp:20
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:42
 msgid "Wii"
@@ -11853,6 +11860,8 @@ msgid ""
 "%1. All current content of the folder will be deleted. Are you sure you want "
 "to continue?"
 msgstr ""
+"即将把 %2 的文件内容转换到 %1 的文件夹中。文件夹的所有当前内容将被删除。请确"
+"定是否要继续？"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:223
 msgid ""
@@ -11860,6 +11869,8 @@ msgid ""
 "%2. All current content of the file will be deleted. Are you sure you want "
 "to continue?"
 msgstr ""
+"即将把 %1 的文件夹内容转换到 %2 的文件中。文件的所有当前内容将被删除。请确定"
+"是否要继续？"
 
 #: Source/Core/DolphinQt/NKitWarningDialog.cpp:36
 msgid ""
