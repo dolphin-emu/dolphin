@@ -466,8 +466,6 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
       }
       if (ntohs(udp_header.destination_port) == 1900)
       {
-        InitUDPPort(26512);  // MK DD and 1080
-        InitUDPPort(26502);  // Air Ride
         if (udp_header.length > 150)
         {
           // Quick hack to unlock the connection, throw it back at him
@@ -670,6 +668,10 @@ bool CEXIETHERNET::BuiltInBBAInterface::RecvInit()
 
 void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 {
+  if (m_read_enabled.IsSet())
+    return;
+  InitUDPPort(26502);  // Kirby Air Ride
+  InitUDPPort(26512);  // Mario Kart: Double Dash!! and 1080° Avalanche
   m_read_enabled.Set();
 }
 
