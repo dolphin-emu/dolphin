@@ -454,7 +454,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     ref->to.sin_addr.s_addr = Common::BitCast<u32>(ip_header.source_addr);
     ref->to.sin_port = udp_header.source_port;
     ref->udp_socket.setBlocking(false);
-    if (ref->udp_socket.bind(htons(udp_header.source_port)) != sf::Socket::Done)
+    if (ref->udp_socket.bind(ntohs(udp_header.source_port)) != sf::Socket::Done)
     {
       PanicAlertFmt(
           "Port {:x} is already in use, this game might not work as intented in LAN Mode.",
@@ -468,7 +468,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
       {
         InitUDPPort(26512);  // MK DD and 1080
         InitUDPPort(26502);  // Air Ride
-        if (udp_header.length > 150)
+        if (ntohs(udp_header.length) > 150)
         {
           // Quick hack to unlock the connection, throw it back at him
           Common::UDPPacket reply = packet;
