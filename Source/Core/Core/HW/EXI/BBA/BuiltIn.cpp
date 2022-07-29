@@ -464,23 +464,18 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
         ERROR_LOG_FMT(SP1, "Couldn't open UDP socket");
         return;
       }
-      if (ntohs(udp_header.destination_port) == 1900)
+      if (ntohs(udp_header.destination_port) == 1900 && ntohs(udp_header.length) > 150)
       {
-        InitUDPPort(26512);  // MK DD and 1080
-        InitUDPPort(26502);  // Air Ride
-        if (ntohs(udp_header.length) > 150)
-        {
-          // Quick hack to unlock the connection, throw it back at him
-          Common::UDPPacket reply = packet;
-          reply.eth_header.destination = hwdata.source;
-          reply.eth_header.source = hwdata.destination;
-          reply.ip_header.destination_addr = ip_header.source_addr;
-          if (ip_header.destination_addr == Common::IP_ADDR_SSDP)
-            reply.ip_header.source_addr = Common::IP_ADDR_BROADCAST;
-          else
-            reply.ip_header.source_addr = Common::BitCast<Common::IPAddress>(destination_addr);
-          WriteToQueue(reply.Build());
-        }
+        // Quick hack to unlock the connection, throw it back at him
+        Common::UDPPacket reply = packet;
+        reply.eth_header.destination = hwdata.source;
+        reply.eth_header.source = hwdata.destination;
+        reply.ip_header.destination_addr = ip_header.source_addr;
+        if (ip_header.destination_addr == Common::IP_ADDR_SSDP)
+          reply.ip_header.source_addr = Common::IP_ADDR_BROADCAST;
+        else
+          reply.ip_header.source_addr = Common::BitCast<Common::IPAddress>(destination_addr);
+        WriteToQueue(reply.Build());
       }
     }
   }
@@ -670,6 +665,10 @@ bool CEXIETHERNET::BuiltInBBAInterface::RecvInit()
 
 void CEXIETHERNET::BuiltInBBAInterface::RecvStart()
 {
+  if (m_read_enabled.IsSet())
+    return;
+  InitUDPPort(26502);  // Kirby Air Ride
+  InitUDPPort(26512);  // Mario Kart: Double Dash!! and 1080° Avalanche
   m_read_enabled.Set();
 }
 
