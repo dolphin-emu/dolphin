@@ -56,77 +56,6 @@ void SetIPIdentification(u8* ptr, std::size_t size, u16 value)
   checksum_bitcast_ptr = u16(0);
   checksum_bitcast_ptr = htons(Common::ComputeNetworkChecksum(ip_ptr, ip_header_size));
 }
-
-std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref)
-{
-  size_t datasize = 0;  // Set by socket.receive using a non-const reference
-  unsigned short remote_port;
-
-  switch (ref->type)
-  {
-  case IPPROTO_UDP:
-  {
-    std::array<u8, MAX_UDP_LENGTH> buffer;
-    ref->udp_socket.receive(buffer.data(), MAX_UDP_LENGTH, datasize, ref->target, remote_port);
-    if (datasize > 0)
-    {
-      ref->from.sin_port = htons(remote_port);
-      ref->from.sin_addr.s_addr = htonl(ref->target.toInteger());
-      const std::vector<u8> udp_data(buffer.begin(), buffer.begin() + datasize);
-      const Common::UDPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, udp_data);
-      return packet.Build();
-    }
-    break;
-  }
-
-  case IPPROTO_TCP:
-    sf::Socket::Status st = sf::Socket::Status::Done;
-    TcpBuffer* tcp_buffer = nullptr;
-    for (auto& tcp_buf : ref->tcp_buffers)
-    {
-      if (tcp_buf.used)
-        continue;
-      tcp_buffer = &tcp_buf;
-      break;
-    }
-
-    // set default size to 0 to avoid issue
-    datasize = 0;
-    const bool can_go = (GetTickCountStd() - ref->poke_time > 100 || ref->window_size > 2000);
-    std::array<u8, MAX_TCP_LENGTH> buffer;
-    if (tcp_buffer != nullptr && ref->ready && can_go)
-      st = ref->tcp_socket.receive(buffer.data(), MAX_TCP_LENGTH, datasize);
-
-    if (datasize > 0)
-    {
-      Common::TCPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
-                               ref->ack_num, TCP_FLAG_ACK);
-      packet.data = std::vector<u8>(buffer.begin(), buffer.begin() + datasize);
-
-      // build buffer
-      tcp_buffer->seq_id = ref->seq_num;
-      tcp_buffer->tick = GetTickCountStd();
-      tcp_buffer->data = packet.Build();
-      tcp_buffer->seq_id = ref->seq_num;
-      tcp_buffer->used = true;
-      ref->seq_num += static_cast<u32>(datasize);
-      ref->poke_time = GetTickCountStd();
-      return tcp_buffer->data;
-    }
-    if (GetTickCountStd() - ref->delay > 3000)
-    {
-      if (st == sf::Socket::Disconnected || st == sf::Socket::Error)
-      {
-        ref->ip = 0;
-        ref->tcp_socket.disconnect();
-        return BuildFINFrame(ref);
-      }
-    }
-    break;
-  }
-
-  return std::nullopt;
-}
 }  // namespace
 
 bool CEXIETHERNET::BuiltInBBAInterface::Activate()
@@ -287,6 +216,78 @@ StackRef* CEXIETHERNET::BuiltInBBAInterface::GetTCPSlot(u16 src_port, u16 dst_po
     }
   }
   return nullptr;
+}
+
+std::optional<std::vector<u8>>
+CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
+{
+  size_t datasize = 0;  // Set by socket.receive using a non-const reference
+  unsigned short remote_port;
+
+  switch (ref->type)
+  {
+  case IPPROTO_UDP:
+  {
+    std::array<u8, MAX_UDP_LENGTH> buffer;
+    ref->udp_socket.receive(buffer.data(), MAX_UDP_LENGTH, datasize, ref->target, remote_port);
+    if (datasize > 0)
+    {
+      ref->from.sin_port = htons(remote_port);
+      ref->from.sin_addr.s_addr = htonl(ref->target.toInteger());
+      const std::vector<u8> udp_data(buffer.begin(), buffer.begin() + datasize);
+      const Common::UDPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, udp_data);
+      return packet.Build();
+    }
+    break;
+  }
+
+  case IPPROTO_TCP:
+    sf::Socket::Status st = sf::Socket::Status::Done;
+    TcpBuffer* tcp_buffer = nullptr;
+    for (auto& tcp_buf : ref->tcp_buffers)
+    {
+      if (tcp_buf.used)
+        continue;
+      tcp_buffer = &tcp_buf;
+      break;
+    }
+
+    // set default size to 0 to avoid issue
+    datasize = 0;
+    const bool can_go = (GetTickCountStd() - ref->poke_time > 100 || ref->window_size > 2000);
+    std::array<u8, MAX_TCP_LENGTH> buffer;
+    if (tcp_buffer != nullptr && ref->ready && can_go)
+      st = ref->tcp_socket.receive(buffer.data(), MAX_TCP_LENGTH, datasize);
+
+    if (datasize > 0)
+    {
+      Common::TCPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
+                               ref->ack_num, TCP_FLAG_ACK);
+      packet.data = std::vector<u8>(buffer.begin(), buffer.begin() + datasize);
+
+      // build buffer
+      tcp_buffer->seq_id = ref->seq_num;
+      tcp_buffer->tick = GetTickCountStd();
+      tcp_buffer->data = packet.Build();
+      tcp_buffer->seq_id = ref->seq_num;
+      tcp_buffer->used = true;
+      ref->seq_num += static_cast<u32>(datasize);
+      ref->poke_time = GetTickCountStd();
+      return tcp_buffer->data;
+    }
+    if (GetTickCountStd() - ref->delay > 3000)
+    {
+      if (st == sf::Socket::Disconnected || st == sf::Socket::Error)
+      {
+        ref->ip = 0;
+        ref->tcp_socket.disconnect();
+        return BuildFINFrame(ref);
+      }
+    }
+    break;
+  }
+
+  return std::nullopt;
 }
 
 void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& packet)
@@ -629,7 +630,7 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
       {
         if (net_ref.ip == 0)
           continue;
-        const auto socket_data = TryGetDataFromSocket(&net_ref);
+        const auto socket_data = self->TryGetDataFromSocket(&net_ref);
         if (socket_data.has_value())
         {
           datasize = socket_data->size();
