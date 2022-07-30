@@ -233,7 +233,9 @@ CEXIETHERNET::BuiltInBBAInterface::TryGetDataFromSocket(StackRef* ref)
     if (datasize > 0)
     {
       ref->from.sin_port = htons(remote_port);
-      ref->from.sin_addr.s_addr = htonl(ref->target.toInteger());
+      const u32 remote_ip = htonl(ref->target.toInteger());
+      ref->from.sin_addr.s_addr = remote_ip;
+      ref->my_mac = ResolveAddress(remote_ip);
       const std::vector<u8> udp_data(buffer.begin(), buffer.begin() + datasize);
       const Common::UDPPacket packet(ref->bba_mac, ref->my_mac, ref->from, ref->to, udp_data);
       return packet.Build();
@@ -324,12 +326,13 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->type = IPPROTO_TCP;
     for (auto& tcp_buf : ref->tcp_buffers)
       tcp_buf.used = false;
-    ref->from.sin_addr.s_addr = Common::BitCast<u32>(ip_header.destination_addr);
+    const u32 destination_ip = Common::BitCast<u32>(ip_header.destination_addr);
+    ref->from.sin_addr.s_addr = destination_ip;
     ref->from.sin_port = tcp_header.destination_port;
     ref->to.sin_addr.s_addr = Common::BitCast<u32>(ip_header.source_addr);
     ref->to.sin_port = tcp_header.source_port;
     ref->bba_mac = m_current_mac;
-    ref->my_mac = m_fake_mac;
+    ref->my_mac = ResolveAddress(destination_ip);
     ref->tcp_socket.setBlocking(false);
 
     // reply with a sin_ack
@@ -339,7 +342,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     result.tcp_options = {0x02, 0x04, 0x05, 0xb4, 0x01, 0x01, 0x01, 0x01};
 
     ref->seq_num++;
-    target = sf::IpAddress(ntohl(Common::BitCast<u32>(ip_header.destination_addr)));
+    target = sf::IpAddress(ntohl(destination_ip));
     ref->tcp_socket.connect(target, ntohs(tcp_header.destination_port));
     ref->ready = false;
     ref->ip = Common::BitCast<u32>(ip_header.destination_addr);
