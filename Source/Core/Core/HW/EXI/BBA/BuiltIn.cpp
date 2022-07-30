@@ -66,7 +66,6 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   m_active = true;
   for (auto& buf : m_queue_data)
     buf.reserve(2048);
-  m_fake_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
 
   // Workaround to get the host IP (might not be accurate)
   const u32 ip = m_local_ip.empty() ? sf::IpAddress::getLocalAddress().toInteger() :
@@ -74,6 +73,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   m_current_ip = htonl(ip);
   m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
   m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
+  m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
 
   // clear all ref
   for (auto& ref : network_ref)
@@ -127,7 +127,7 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
 void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
 {
   const auto& [hwdata, arpdata] = packet;
-  Common::ARPPacket response(m_current_mac, m_fake_mac);
+  Common::ARPPacket response(m_current_mac, m_router_mac);
 
   if (arpdata.target_ip == m_current_ip)
   {
@@ -183,7 +183,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   reply.AddOption(3, ip_part);                                     // router ip
   reply.AddOption(255, {});                                        // end
 
-  const Common::UDPPacket response(m_current_mac, m_fake_mac, from, to, reply.Build());
+  const Common::UDPPacket response(m_current_mac, m_router_mac, from, to, reply.Build());
 
   WriteToQueue(response.Build());
 }
@@ -423,7 +423,7 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   ref->remote = htons(port);
   ref->type = IPPROTO_UDP;
   ref->bba_mac = m_current_mac;
-  ref->my_mac = m_fake_mac;
+  ref->my_mac = m_router_mac;
   ref->from.sin_addr.s_addr = 0;
   ref->from.sin_port = htons(port);
   ref->to.sin_addr.s_addr = m_current_ip;
@@ -453,7 +453,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     ref->remote = udp_header.destination_port;
     ref->type = IPPROTO_UDP;
     ref->bba_mac = m_current_mac;
-    ref->my_mac = m_fake_mac;
+    ref->my_mac = m_router_mac;
     ref->from.sin_addr.s_addr = destination_addr;
     ref->from.sin_port = udp_header.destination_port;
     ref->to.sin_addr.s_addr = Common::BitCast<u32>(ip_header.source_addr);

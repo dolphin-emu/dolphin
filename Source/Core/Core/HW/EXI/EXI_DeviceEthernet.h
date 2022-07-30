@@ -447,6 +447,7 @@ private:
     u32 m_current_ip = 0;
     Common::MACAddress m_current_mac{};
     u32 m_router_ip = 0;
+    Common::MACAddress m_router_mac{};
     std::map<u32, Common::MACAddress> m_arp_table;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
@@ -455,7 +456,6 @@ private:
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
-    Common::MACAddress m_fake_mac{};
     static void ReadThreadHandler(BuiltInBBAInterface* self);
 #endif
     void WriteToQueue(const std::vector<u8>& data);
