@@ -217,13 +217,15 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
   static auto s_available_backends = [] {
     std::vector<std::unique_ptr<VideoBackendBase>> backends;
 
-    // OGL > D3D11 > D3D12 > Vulkan > SW > Null
-#ifdef HAS_OPENGL
-    backends.push_back(std::make_unique<OGL::VideoBackend>());
-#endif
+    // Mainline prefers OGL > D3D11 > D3D12 > Vulkan > SW > Null
+    // Slippi will instead prefer D3D11 > D3D12 > OGL > Vulkan > SW > Null
+    // SLIPPITODO: Check what works best in practice for each OS
 #ifdef _WIN32
     backends.push_back(std::make_unique<DX11::VideoBackend>());
     backends.push_back(std::make_unique<DX12::VideoBackend>());
+#endif
+#ifdef HAS_OPENGL
+    backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
 #ifdef HAS_VULKAN
     backends.push_back(std::make_unique<Vulkan::VideoBackend>());
