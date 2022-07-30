@@ -27,8 +27,8 @@ const Info<AspectMode> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "Sug
 const Info<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
 const Info<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};
-const Info<bool> GFX_SHOW_FPS{{System::GFX, "Settings", "ShowFPS"}, false};
-const Info<bool> GFX_SHOW_NETPLAY_PING{{System::GFX, "Settings", "ShowNetPlayPing"}, false};
+const Info<bool> GFX_SHOW_FPS{{System::GFX, "Settings", "ShowFPS"}, true};
+const Info<bool> GFX_SHOW_NETPLAY_PING{{System::GFX, "Settings", "ShowNetPlayPing"}, true};
 const Info<bool> GFX_SHOW_NETPLAY_MESSAGES{{System::GFX, "Settings", "ShowNetPlayMessages"}, false};
 const Info<bool> GFX_LOG_RENDER_TIME_TO_FILE{{System::GFX, "Settings", "LogRenderTimeToFile"},
                                              false};
@@ -59,7 +59,7 @@ const Info<bool> GFX_ENABLE_PIXEL_LIGHTING{{System::GFX, "Settings", "EnablePixe
 const Info<bool> GFX_FAST_DEPTH_CALC{{System::GFX, "Settings", "FastDepthCalc"}, true};
 const Info<u32> GFX_MSAA{{System::GFX, "Settings", "MSAA"}, 1};
 const Info<bool> GFX_SSAA{{System::GFX, "Settings", "SSAA"}, false};
-const Info<int> GFX_EFB_SCALE{{System::GFX, "Settings", "InternalResolution"}, 1};
+const Info<int> GFX_EFB_SCALE{{System::GFX, "Settings", "InternalResolution"}, 3};
 const Info<int> GFX_MAX_EFB_SCALE{{System::GFX, "Settings", "MaxInternalResolution"}, 8};
 const Info<bool> GFX_TEXFMT_OVERLAY_ENABLE{{System::GFX, "Settings", "TexFmtOverlayEnable"}, false};
 const Info<bool> GFX_TEXFMT_OVERLAY_CENTER{{System::GFX, "Settings", "TexFmtOverlayCenter"}, false};
