@@ -92,18 +92,20 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
   auto it = m_functions.lower_bound(addr);
-  if (it == m_functions.end())
-    return nullptr;
 
-  // If the address is exactly the start address of a symbol, we're done.
-  if (it->second.address == addr)
-    return &it->second;
-
-  // Otherwise, check whether the address is within the bounds of a symbol.
+  if (it != m_functions.end())
+  {
+    // If the address is exactly the start address of a symbol, we're done.
+    if (it->second.address == addr)
+      return &it->second;
+  }
   if (it != m_functions.begin())
+  {
+    // Otherwise, check whether the address is within the bounds of a symbol.
     --it;
-  if (addr >= it->second.address && addr < it->second.address + it->second.size)
-    return &it->second;
+    if (addr >= it->second.address && addr < it->second.address + it->second.size)
+      return &it->second;
+  }
 
   return nullptr;
 }
