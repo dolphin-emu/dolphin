@@ -449,7 +449,7 @@ ShaderCache::CompileVertexUberShader(const UberShader::VertexShaderUid& uid) con
 std::unique_ptr<AbstractShader> ShaderCache::CompilePixelShader(const PixelShaderUid& uid) const
 {
   const ShaderCode source_code =
-      GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData());
+      GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData(), {});
   return g_gfx->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer());
 }
 
