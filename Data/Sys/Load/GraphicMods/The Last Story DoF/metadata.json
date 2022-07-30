@@ -1,0 +1,31 @@
+{
+	"meta":
+	{
+		"title": "Native Resolution Depth of Field",
+		"author": "Silent Hell"
+	},
+	"groups":
+	[
+		{
+			"name": "DoF",
+			"targets": [
+				{
+					"type": "efb",
+					"texture_filename": "efb1_n000009_320x224_6"
+				}
+			]
+		}
+	],
+	"features":
+	[
+		{
+			"group": "DoF",
+			"action": "scale",
+			"action_data": {
+				"X": 1.0,
+				"Y": 1.0,
+				"Z": 1.0
+			}
+		}
+	]
+}
