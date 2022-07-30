@@ -40,7 +40,8 @@ TEST(Flag, MultiThreaded)
     for (int i = 0; i < ITERATIONS_COUNT; ++i)
     {
       while (f.IsSet())
-        ;
+      {
+      }
       f.Set();
     }
   };
@@ -49,7 +50,8 @@ TEST(Flag, MultiThreaded)
     for (int i = 0; i < ITERATIONS_COUNT; ++i)
     {
       while (!f.IsSet())
-        ;
+      {
+      }
       count++;
       f.Clear();
     }
@@ -77,7 +79,8 @@ TEST(Flag, SpinLock)
     {
       // Acquire the spinlock.
       while (!f.TestAndSet())
-        ;
+      {
+      }
       count++;
       f.Clear();
     }

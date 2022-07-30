@@ -38,7 +38,8 @@ void RealDSP::Reset()
   _dspReg[5] = (_dspReg[5] & ~(DSPCR_HALT | DSPCR_AIINT | DSPCR_ARINT | DSPCR_DSPINT));
   _dspReg[5] |= DSPCR_RES;
   while (_dspReg[5] & DSPCR_RES)
-    ;
+  {
+  }
   _dspReg[9] = 0x63;
 }
 

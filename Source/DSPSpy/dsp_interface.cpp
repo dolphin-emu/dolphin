@@ -12,35 +12,46 @@ void IDSP::SendTask(void* addr, u16 iram_addr, u16 len, u16 start)
   //											(8191 % 4 = 3) wtffff
   // start		dsp iram entry point
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(0x80F3A001);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo((u32)addr);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(0x80F3C002);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(iram_addr);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(0x80F3A002);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(len);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(0x80F3B002);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(0);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(0x80F3D001);
   while (CheckMailTo())
-    ;
+  {
+  }
   SendMailTo(start);
   while (CheckMailTo())
-    ;
+  {
+  }
 }

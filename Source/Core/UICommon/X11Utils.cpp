@@ -57,7 +57,8 @@ void InhibitScreensaver(Window win, bool suspend)
   {
     int status;
     while (waitpid(pid, &status, 0) == -1)
-      ;
+    {
+    }
 
     INFO_LOG_FMT(VIDEO, "Started xdg-screensaver (PID = {})", pid);
   }

@@ -367,19 +367,23 @@ void handle_dsp_mail(void)
       u16* tmpBuf = (u16*)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
       real_dsp.SendMailTo((u32)tmpBuf);
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
     }
     else if (mail == 0x8888beef)
     {
       // Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct place)
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
       real_dsp.SendMailTo((u32)dspbufP);
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
     }
     else if (mail == 0x8888feeb)
     {
@@ -391,10 +395,12 @@ void handle_dsp_mail(void)
       dsp_steps++;
 
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
       real_dsp.SendMailTo(0x8000dead);
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
     }
     else if (mail == 0x80050000)
     {
@@ -406,19 +412,23 @@ void handle_dsp_mail(void)
     {
       // DSP has copied irom to its DRAM...send address so it can dma it back
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
       real_dsp.SendMailTo((u32)dspbufP);
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
     }
     else if (mail == 0x8888da7a)
     {
       // DSP has copied coef to its DRAM...send address so it can DMA it back
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
       real_dsp.SendMailTo((u32)&dspbufP[0x1000]);
       while (real_dsp.CheckMailTo())
-        ;
+      {
+      }
 
       // Now we can do something useful with the buffer :)
       DumpDSP_ROMs(dspbufP, &dspbufP[0x1000]);
@@ -430,16 +440,22 @@ void handle_dsp_mail(void)
     else if (mail == 0xdcd10000) // DSP_INIT
     {
       real_dsp.SendMailTo(0xabba0000);
-      while (real_dsp.CheckMailTo());
+      while (real_dsp.CheckMailTo())
+      {
+      }
       DCFlushRange(SecParams_in, sizeof(SecParams_in));
       CON_PrintRow(4, 25, "SecParams_out = %x", SecParams_in[4]);
       real_dsp.SendMailTo((u32)SecParams_in);
-      while (real_dsp.CheckMailTo());
+      while (real_dsp.CheckMailTo())
+      {
+      }
     }
     else if (mail == 0xdcd10003) // DSP_DONE
     {
       real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell DSP to halt (calls end_of_test)
-      while (real_dsp.CheckMailTo());
+      while (real_dsp.CheckMailTo())
+      {
+      }
 
       DCInvalidateRange(SecParams_out, sizeof(SecParams_out));
       CON_PrintRow(4, 26, "SecParams_out: %08x %08x",

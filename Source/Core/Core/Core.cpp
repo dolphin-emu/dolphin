@@ -733,7 +733,8 @@ static std::string GenerateScreenshotName()
   if (File::Exists(name))
   {
     for (u32 i = 1; File::Exists(name = fmt::format("{}_{}.png", base_name, i)); ++i)
-      ;
+    {
+    }
   }
 
   return name;
