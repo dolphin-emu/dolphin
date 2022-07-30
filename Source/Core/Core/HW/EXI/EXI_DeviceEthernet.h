@@ -4,6 +4,8 @@
 #pragma once
 
 #include <atomic>
+#include <map>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -13,7 +15,6 @@
 
 #include <SFML/Network.hpp>
 
-#include <mutex>
 #include "Common/Flag.h"
 #include "Common/Network.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
@@ -445,6 +446,7 @@ private:
     std::string m_local_ip;
     u32 m_current_ip = 0;
     u32 m_router_ip = 0;
+    std::map<u32, Common::MACAddress> m_arp_table;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
@@ -464,6 +466,7 @@ private:
     void HandleTCPFrame(const Common::TCPPacket& packet);
     void InitUDPPort(u16 port);
     void HandleUDPFrame(const Common::UDPPacket& packet);
+    const Common::MACAddress& ResolveAddress(u32 inet_ip);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;
