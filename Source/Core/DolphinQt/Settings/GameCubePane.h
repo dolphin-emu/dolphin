@@ -29,6 +29,6 @@ private:
   QCheckBox* m_skip_main_menu;
   QComboBox* m_language_combo;
 
-  QPushButton* m_slot_buttons[3];
-  QComboBox* m_slot_combos[3];
+  QPushButton* m_slot_buttons[2];
+  QComboBox* m_slot_combos[2];
 };

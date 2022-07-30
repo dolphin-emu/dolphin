@@ -16,6 +16,8 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/EXI/EXI_Device.h"
+
 class IniFile;
 
 namespace DiscIO
@@ -268,7 +270,9 @@ struct SConfig
 
   std::string m_strGbaCartA;
   std::string m_strGbaCartB;
-  ExpansionInterface::TEXIDevices m_EXIDevice[3];
+  ExpansionInterface::TEXIDevices m_EXIDevice[3] = {ExpansionInterface::EXIDEVICE_NONE,
+                                                    ExpansionInterface::EXIDEVICE_SLIPPI,
+                                                    ExpansionInterface::EXIDEVICE_NONE};
   SerialInterface::SIDevices m_SIDevice[4];
 
   std::string m_bba_mac;
