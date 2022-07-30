@@ -35,4 +35,5 @@ void HLE_LogDPrint(const Core::CPUThreadGuard& guard);
 void HLE_LogVDPrint(const Core::CPUThreadGuard& guard);
 void HLE_LogFPrint(const Core::CPUThreadGuard& guard);
 void HLE_LogVFPrint(const Core::CPUThreadGuard& guard);
+void HLE_AppLoaderReport(const Core::CPUThreadGuard& guard);
 }  // namespace HLE_OS

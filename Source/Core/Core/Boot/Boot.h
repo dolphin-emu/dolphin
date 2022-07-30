@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -172,12 +173,17 @@ public:
   static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
   static bool LoadMapFromFilename(const Core::CPUThreadGuard& guard, PPCSymbolDB& ppc_symbol_db);
 
+  static void HLEAppLoaderAfterEntry(const Core::CPUThreadGuard& guard);
+  static void HLEAppLoaderAfterInit(const Core::CPUThreadGuard& guard);
+  static void HLEAppLoaderAfterMain(const Core::CPUThreadGuard& guard);
+  static void HLEAppLoaderAfterClose(const Core::CPUThreadGuard& guard);
+  static void HLEAppLoaderReport(std::string_view message);
+
 private:
   static bool DVDRead(Core::System& system, const DiscIO::VolumeDisc& disc, u64 dvd_offset,
                       u32 output_address, u32 length, const DiscIO::Partition& partition);
   static bool DVDReadDiscID(Core::System& system, const DiscIO::VolumeDisc& disc,
                             u32 output_address);
-  static void RunFunction(Core::System& system, u32 address);
 
   static bool Boot_WiiWAD(Core::System& system, const DiscIO::VolumeWAD& wad);
   static bool BootNANDTitle(Core::System& system, u64 title_id);
