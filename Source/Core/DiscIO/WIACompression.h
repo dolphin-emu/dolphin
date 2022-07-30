@@ -10,10 +10,10 @@
 
 #include <bzlib.h>
 #include <lzma.h>
-#include <mbedtls/sha1.h>
 #include <zstd.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "DiscIO/LaggedFibonacciGenerator.h"
 
 namespace DiscIO
@@ -23,8 +23,6 @@ struct DecompressionBuffer
   std::vector<u8> data;
   size_t bytes_written = 0;
 };
-
-using SHA1 = std::array<u8, 20>;
 
 struct PurgeSegment
 {
@@ -71,7 +69,7 @@ private:
   size_t m_out_bytes_written = 0;
   bool m_started = false;
 
-  mbedtls_sha1_context m_sha1_context;
+  std::unique_ptr<Common::SHA1::Context> m_sha1_context;
 };
 
 class Bzip2Decompressor final : public Decompressor
@@ -179,7 +177,7 @@ public:
 private:
   std::vector<u8> m_buffer;
   size_t m_bytes_written = 0;
-  mbedtls_sha1_context m_sha1_context;
+  std::unique_ptr<Common::SHA1::Context> m_sha1_context;
 };
 
 class Bzip2Compressor final : public Compressor

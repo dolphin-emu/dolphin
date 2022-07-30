@@ -12,9 +12,9 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/ScopeGuard.h"
@@ -197,9 +197,7 @@ ESDevice::GetStoredContentsFromTMD(const ES::TMDReader& tmd,
                  std::vector<u8> content_data(file->GetStatus()->size);
                  if (!file->Read(content_data.data(), content_data.size()))
                    return false;
-                 std::array<u8, 20> sha1{};
-                 mbedtls_sha1_ret(content_data.data(), content_data.size(), sha1.data());
-                 return sha1 == content.sha1;
+                 return Common::SHA1::CalculateDigest(content_data) == content.sha1;
                });
 
   return stored_contents;

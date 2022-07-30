@@ -31,6 +31,8 @@ add_library(common
   Crypto/bn.h
   Crypto/ec.cpp
   Crypto/ec.h
+  Crypto/SHA1.cpp
+  Crypto/SHA1.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
   Debug/Threads.h
