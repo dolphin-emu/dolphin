@@ -39,3 +39,5 @@ PRIVATE
   ${METAL_LIBRARY}
   ${QUARTZCORE_LIBRARY}
 )
+
+target_compile_options(videometal PRIVATE -fno-objc-arc)
