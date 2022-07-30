@@ -13,7 +13,6 @@
 #include <cstdio>
 #include <cstring>
 #include <mbedtls/md5.h>
-#include <mbedtls/sha1.h>
 #include <memory>
 #include <optional>
 #include <string>
@@ -24,6 +23,7 @@
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
@@ -439,14 +439,14 @@ private:
       return false;
 
     // Read data to sign.
-    std::array<u8, 20> data_sha1;
+    Common::SHA1::Digest data_sha1;
     {
       const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
       auto data = std::make_unique<u8[]>(data_size);
       m_file.Seek(sizeof(Header), File::SeekOrigin::Begin);
       if (!m_file.ReadBytes(data.get(), data_size))
         return false;
-      mbedtls_sha1_ret(data.get(), data_size, data_sha1.data());
+      data_sha1 = Common::SHA1::CalculateDigest(data.get(), data_size);
     }
 
     // Sign the data.

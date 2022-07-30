@@ -9,9 +9,9 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Core/CommonTitles.h"
@@ -353,9 +353,7 @@ IPCReply ESDevice::ImportContentData(Context& context, const IOCtlVRequest& requ
 
 static bool CheckIfContentHashMatches(const std::vector<u8>& content, const ES::Content& info)
 {
-  std::array<u8, 20> sha1;
-  mbedtls_sha1_ret(content.data(), info.size, sha1.data());
-  return sha1 == info.sha1;
+  return Common::SHA1::CalculateDigest(content.data(), info.size) == info.sha1;
 }
 
 static std::string GetImportContentPath(u64 title_id, u32 content_id)

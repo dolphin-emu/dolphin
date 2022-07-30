@@ -12,9 +12,8 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/StringUtil.h"
 
 #include "Core/IOS/ES/Formats.h"
@@ -33,21 +32,21 @@ const IOS::ES::TMDReader Volume::INVALID_TMD{};
 const std::vector<u8> Volume::INVALID_CERT_CHAIN{};
 
 template <typename T>
-static void AddToSyncHash(mbedtls_sha1_context* context, const T& data)
+static void AddToSyncHash(Common::SHA1::Context* context, const T& data)
 {
   static_assert(std::is_trivially_copyable_v<T>);
-  mbedtls_sha1_update_ret(context, reinterpret_cast<const u8*>(&data), sizeof(data));
+  context->Update(reinterpret_cast<const u8*>(&data), sizeof(data));
 }
 
-void Volume::ReadAndAddToSyncHash(mbedtls_sha1_context* context, u64 offset, u64 length,
+void Volume::ReadAndAddToSyncHash(Common::SHA1::Context* context, u64 offset, u64 length,
                                   const Partition& partition) const
 {
   std::vector<u8> buffer(length);
   if (Read(offset, length, buffer.data(), partition))
-    mbedtls_sha1_update_ret(context, buffer.data(), buffer.size());
+    context->Update(buffer);
 }
 
-void Volume::AddTMDToSyncHash(mbedtls_sha1_context* context, const Partition& partition) const
+void Volume::AddTMDToSyncHash(Common::SHA1::Context* context, const Partition& partition) const
 {
   // We want to hash some important parts of the TMD, but nothing that changes when fakesigning.
   // (Fakesigned WADs are very popular, and we don't want people with properly signed WADs to

@@ -14,11 +14,11 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -109,10 +109,8 @@ static size_t GetIssuerOffset(SignatureType signature_type)
 
 std::array<u8, 20> SignedBlobReader::GetSha1() const
 {
-  std::array<u8, 20> sha1;
   const size_t skip = GetIssuerOffset(GetSignatureType());
-  mbedtls_sha1_ret(m_bytes.data() + skip, m_bytes.size() - skip, sha1.data());
-  return sha1;
+  return Common::SHA1::CalculateDigest(m_bytes.data() + skip, m_bytes.size() - skip);
 }
 
 bool SignedBlobReader::IsSignatureValid() const
