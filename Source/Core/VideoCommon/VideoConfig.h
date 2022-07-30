@@ -157,6 +157,7 @@ struct VideoConfig final
 
   // Metal only config
   TriState iManuallyUploadBuffers = TriState::Auto;
+  bool bUsePresentDrawable = false;
 
   // Enable API validation layers, currently only supported with Vulkan.
   bool bEnableValidationLayer = false;

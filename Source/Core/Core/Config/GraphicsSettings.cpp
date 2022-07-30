@@ -94,6 +94,8 @@ const Info<bool> GFX_SAVE_TEXTURE_CACHE_TO_STATE{
 
 const Info<TriState> GFX_MTL_MANUALLY_UPLOAD_BUFFERS{
     {System::GFX, "Settings", "ManuallyUploadBuffers"}, TriState::Auto};
+const Info<bool> GFX_MTL_USE_PRESENT_DRAWABLE{{System::GFX, "Settings", "MTLUsePresentDrawable"},
+                                              false};
 
 const Info<bool> GFX_SW_DUMP_OBJECTS{{System::GFX, "Settings", "SWDumpObjects"}, false};
 const Info<bool> GFX_SW_DUMP_TEV_STAGES{{System::GFX, "Settings", "SWDumpTevStages"}, false};
