@@ -445,6 +445,7 @@ private:
     std::mutex m_mtx;
     std::string m_local_ip;
     u32 m_current_ip = 0;
+    Common::MACAddress m_current_mac{};
     u32 m_router_ip = 0;
     std::map<u32, Common::MACAddress> m_arp_table;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
