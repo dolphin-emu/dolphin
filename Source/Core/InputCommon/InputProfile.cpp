@@ -34,7 +34,7 @@ std::vector<std::string> GetProfilesFromSetting(const std::string& setting, cons
   std::vector<std::string> result;
   for (const std::string& setting_choice : setting_choices)
   {
-    const std::string path = root + std::string(StripSpaces(setting_choice));
+    const std::string path = root + std::string(StripWhitespace(setting_choice));
     if (File::IsDirectory(path))
     {
       const auto files_under_directory = Common::DoFileSearch({path}, {".ini"}, true);

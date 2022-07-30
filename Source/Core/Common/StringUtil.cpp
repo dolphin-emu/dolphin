@@ -219,20 +219,31 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
   return oss.str();
 }
 
-// Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
-std::string_view StripSpaces(std::string_view str)
+template <typename T>
+static std::string_view StripEnclosingChars(std::string_view str, T chars)
 {
-  const size_t s = str.find_first_not_of(" \t\r\n");
+  const size_t s = str.find_first_not_of(chars);
 
   if (str.npos != s)
-    return str.substr(s, str.find_last_not_of(" \t\r\n") - s + 1);
+    return str.substr(s, str.find_last_not_of(chars) - s + 1);
   else
     return "";
 }
 
+// Turns "\n\r\t hello " into "hello" (trims at the start and end but not inside).
+std::string_view StripWhitespace(std::string_view str)
+{
+  return StripEnclosingChars(str, " \t\r\n");
+}
+
+std::string_view StripSpaces(std::string_view str)
+{
+  return StripEnclosingChars(str, ' ');
+}
+
 // "\"hello\"" is turned to "hello"
 // This one assumes that the string has already been space stripped in both
-// ends, as done by StripSpaces above, for example.
+// ends, as done by StripWhitespace above, for example.
 std::string_view StripQuotes(std::string_view s)
 {
   if (!s.empty() && '\"' == s[0] && '\"' == *s.rbegin())
@@ -246,6 +257,13 @@ void ReplaceBreaksWithSpaces(std::string& str)
 {
   std::replace(str.begin(), str.end(), '\r', ' ');
   std::replace(str.begin(), str.end(), '\n', ' ');
+}
+
+void TruncateToCString(std::string* s)
+{
+  const size_t terminator = s->find_first_of('\0');
+  if (terminator != s->npos)
+    s->resize(terminator);
 }
 
 bool TryParse(const std::string& str, bool* const output)

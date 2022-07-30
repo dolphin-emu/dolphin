@@ -106,6 +106,11 @@ public:
   // Inputs based on window coordinates should be multiplied by this.
   Common::Vec2 GetWindowInputScale() const;
 
+  // Request that the mouse cursor should be centered in the render window at the next opportunity.
+  void SetMouseCenteringRequested(bool center);
+
+  bool IsMouseCenteringRequested() const;
+
   HotplugCallbackHandle RegisterDevicesChangedCallback(std::function<void(void)> callback);
   void UnregisterDevicesChangedCallback(const HotplugCallbackHandle& handle);
   void InvokeDevicesChangedCallbacks() const;
@@ -127,6 +132,7 @@ private:
   std::atomic<int> m_populating_devices_counter;
   WindowSystemInfo m_wsi;
   std::atomic<float> m_aspect_ratio_adjustment = 1;
+  std::atomic<bool> m_requested_mouse_centering = false;
 };
 
 namespace ciface

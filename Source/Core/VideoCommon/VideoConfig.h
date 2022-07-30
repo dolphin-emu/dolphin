@@ -238,6 +238,7 @@ struct VideoConfig final
     bool bSupportsTextureQueryLevels = false;
     bool bSupportsLodBiasInSampler = false;
     bool bSupportsSettingObjectNames = false;
+    bool bSupportsPartialMultisampleResolve = false;
   } backend_info;
 
   // Utility

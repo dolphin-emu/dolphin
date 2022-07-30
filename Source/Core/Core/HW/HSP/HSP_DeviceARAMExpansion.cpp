@@ -37,7 +37,7 @@ u64 CHSPDevice_ARAMExpansion::Read(u32 address)
 void CHSPDevice_ARAMExpansion::Write(u32 address, u64 value)
 {
   value = Common::swap64(value);
-  std::memcpy(&value, &m_ptr[address & m_mask], sizeof(value));
+  std::memcpy(&m_ptr[address & m_mask], &value, sizeof(value));
 }
 
 void CHSPDevice_ARAMExpansion::DoState(PointerWrap& p)

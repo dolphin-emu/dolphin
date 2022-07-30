@@ -49,8 +49,8 @@ AXL1:  equ	0x19
 AXH0:  equ	0x1A	// SMP_R accel
 AXH1:  equ	0x1b	// SMP_L accel
 
-ACC0:  equ	0x1c	// accumulator (global)
-ACC1:  equ	0x1d
+ACC0:  equ	0x20	// accumulator (global)
+ACC1:  equ	0x21
 
 ACL0:  equ	0x1c	// Low accumulator
 ACL1:  equ	0x1d
@@ -567,7 +567,7 @@ no_delay:
 	
 // test the freq value
 
-	clr	$ACL0
+	clr	$ACC0
 	lr	$ACH0, @FREQH_SMP
 	lr	$ACM0, @FREQL_SMP
 	
@@ -647,10 +647,10 @@ left_skip2:
 	
 // adds the counter with the voice frequency and test if it >=48000 to get the next sample
 
-	clr	$ACL1
+	clr	$ACC1
 	lr	$ACH1, @COUNTERH_SMP
 	lr	$ACM1, @COUNTERL_SMP
-	clr	$ACL0
+	clr	$ACC0
 	lr	$ACH0, @FREQH_SMP
 	lr	$ACM0, @FREQL_SMP
 	
@@ -803,8 +803,8 @@ mono_8bits:
 	andf	$ACM1, #0x1
 
 	iflz	// obtain sample0-sample1 from 8bits packet
-	asr	$ACL0, #-8
-	asl	$ACL0, #8
+	asr	$ACC0, #-8
+	asl	$ACC0, #8
 
 	mrr	$AXH1,$ACL0
 	mrr	$AXH0,$ACL0
@@ -818,7 +818,7 @@ stereo_8bits:
 	mrr	$ACM0, $ACL0
 	andi	$ACM0, #0xff00
 	mrr	$AXH1, $ACM0
-	lsl	$ACL0, #8
+	lsl	$ACC0, #8
 	mrr	$AXH0, $ACL0
 
 	jmp	out_samp
@@ -845,15 +845,15 @@ out_samp:
 	//   LEFT_VOLUME
 	mrr	$AXL0,$IX0
 	mul	$AXL0,$AXH0
-	movp	$ACL0
-	asr	$ACL0,#-8
+	movp	$ACC0
+	asr	$ACC0,#-8
 	mrr	$AXH0, $ACL0
 
         // RIGHT VOLUME
 	mrr	$AXL1,$IX1
 	mul	$AXL1,$AXH1
-	movp	$ACL0
-	asr	$ACL0,#-8
+	movp	$ACC0
+	asr	$ACC0,#-8
 	mrr	$AXH1, $ACL0
 
 loop_end:

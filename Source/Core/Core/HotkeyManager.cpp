@@ -35,6 +35,7 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Take Screenshot"),
     _trans("Exit"),
     _trans("Unlock Cursor"),
+    _trans("Center Mouse"),
     _trans("Activate NetPlay Chat"),
     _trans("Control NetPlay Golf Mode"),
 

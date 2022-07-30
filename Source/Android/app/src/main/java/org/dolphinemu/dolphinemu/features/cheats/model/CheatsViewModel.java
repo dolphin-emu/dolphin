@@ -24,10 +24,13 @@ public class CheatsViewModel extends ViewModel
   private final MutableLiveData<Integer> mGeckoCheatsDownloadedEvent = new MutableLiveData<>(null);
   private final MutableLiveData<Boolean> mOpenDetailsViewEvent = new MutableLiveData<>(false);
 
+  private GraphicsModGroup mGraphicsModGroup;
+  private ArrayList<GraphicsMod> mGraphicsMods;
   private ArrayList<PatchCheat> mPatchCheats;
   private ArrayList<ARCheat> mARCheats;
   private ArrayList<GeckoCheat> mGeckoCheats;
 
+  private boolean mGraphicsModsNeedSaving = false;
   private boolean mPatchCheatsNeedSaving = false;
   private boolean mARCheatsNeedSaving = false;
   private boolean mGeckoCheatsNeedSaving = false;
@@ -37,13 +40,23 @@ public class CheatsViewModel extends ViewModel
     if (mLoaded)
       return;
 
+    mGraphicsModGroup = GraphicsModGroup.load(gameID);
+    mGraphicsMods = new ArrayList<>();
+    Collections.addAll(mGraphicsMods, mGraphicsModGroup.getMods());
+
     mPatchCheats = new ArrayList<>();
     Collections.addAll(mPatchCheats, PatchCheat.loadCodes(gameID, revision));
+
     mARCheats = new ArrayList<>();
     Collections.addAll(mARCheats, ARCheat.loadCodes(gameID, revision));
+
     mGeckoCheats = new ArrayList<>();
     Collections.addAll(mGeckoCheats, GeckoCheat.loadCodes(gameID, revision));
 
+    for (GraphicsMod mod : mGraphicsMods)
+    {
+      mod.setChangedCallback(() -> mGraphicsModsNeedSaving = true);
+    }
     for (PatchCheat cheat : mPatchCheats)
     {
       cheat.setChangedCallback(() -> mPatchCheatsNeedSaving = true);
@@ -62,6 +75,12 @@ public class CheatsViewModel extends ViewModel
 
   public void saveIfNeeded(String gameID, int revision)
   {
+    if (mGraphicsModsNeedSaving)
+    {
+      mGraphicsModGroup.save();
+      mGraphicsModsNeedSaving = false;
+    }
+
     if (mPatchCheatsNeedSaving)
     {
       PatchCheat.saveCodes(gameID, revision, mPatchCheats.toArray(new PatchCheat[0]));
@@ -278,6 +297,11 @@ public class CheatsViewModel extends ViewModel
   {
     mOpenDetailsViewEvent.setValue(true);
     mOpenDetailsViewEvent.setValue(false);
+  }
+
+  public ArrayList<GraphicsMod> getGraphicsMods()
+  {
+    return mGraphicsMods;
   }
 
   public ArrayList<PatchCheat> getPatchCheats()

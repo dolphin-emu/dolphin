@@ -17,6 +17,8 @@ public interface Cheat
 
   boolean supportsNotes();
 
+  boolean supportsCode();
+
   @NonNull
   String getName();
 
@@ -33,7 +35,10 @@ public interface Cheat
   }
 
   @NonNull
-  String getCode();
+  default String getCode()
+  {
+    return "";
+  }
 
   int trySet(@NonNull String name, @NonNull String creator, @NonNull String notes,
           @NonNull String code);

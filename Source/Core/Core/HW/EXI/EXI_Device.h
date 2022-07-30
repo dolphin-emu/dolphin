@@ -96,7 +96,7 @@ struct fmt::formatter<ExpansionInterface::EXIDeviceType>
       _trans("Advance Game Port"),
       _trans("Broadband Adapter (XLink Kai)"),
       _trans("Broadband Adapter (tapserver)"),
-      _trans("Broadband Adapter (Built In)"),
+      _trans("Broadband Adapter (HLE)"),
   };
 
   constexpr formatter() : EnumFormatter(names) {}

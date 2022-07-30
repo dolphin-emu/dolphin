@@ -13,7 +13,6 @@
 #include <unordered_set>
 
 #include <mbedtls/md5.h>
-#include <mbedtls/sha1.h>
 #include <mz_compat.h>
 #include <pugixml.hpp>
 
@@ -21,6 +20,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/HttpRequest.h"
@@ -261,7 +261,7 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
       // disc with the game ID "G96P" and the serial "DL-DOL-D96P-EUR, DL-DOL-G96P-EUR".
       for (const std::string& serial_str : SplitString(serials, ','))
       {
-        const std::string_view serial = StripSpaces(serial_str);
+        const std::string_view serial = StripWhitespace(serial_str);
 
         // Skip the prefix, normally either "DL-DOL-" or "RVL-" (depending on the console),
         // but there are some exceptions like the "RVLE-SBSE-USA-B0" serial.
@@ -1053,8 +1053,7 @@ void VolumeVerifier::SetUpHashing()
 
   if (m_hashes_to_calculate.sha1)
   {
-    mbedtls_sha1_init(&m_sha1_context);
-    mbedtls_sha1_starts_ret(&m_sha1_context);
+    m_sha1_context = Common::SHA1::CreateContext();
   }
 }
 
@@ -1158,9 +1157,9 @@ void VolumeVerifier::Process()
   }
 
   const bool is_data_needed = m_calculating_any_hash || content_read || group_read;
-  const bool read_succeeded = is_data_needed && ReadChunkAndWaitForAsyncOperations(bytes_to_read);
+  const bool read_failed = is_data_needed && !ReadChunkAndWaitForAsyncOperations(bytes_to_read);
 
-  if (!read_succeeded)
+  if (read_failed)
   {
     ERROR_LOG_FMT(DISCIO, "Read failed at {:#x} to {:#x}", m_progress, m_progress + bytes_to_read);
 
@@ -1191,15 +1190,15 @@ void VolumeVerifier::Process()
     if (m_hashes_to_calculate.sha1)
     {
       m_sha1_future = std::async(std::launch::async, [this, byte_increment] {
-        mbedtls_sha1_update_ret(&m_sha1_context, m_data.data(), byte_increment);
+        m_sha1_context->Update(m_data.data(), byte_increment);
       });
     }
   }
 
   if (content_read)
   {
-    m_content_future = std::async(std::launch::async, [this, read_succeeded, content] {
-      if (!read_succeeded || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
+    m_content_future = std::async(std::launch::async, [this, read_failed, content] {
+      if (read_failed || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
       {
         AddProblem(Severity::High, Common::FmtFormatT("Content {0:08x} is corrupt.", content.id));
       }
@@ -1210,7 +1209,7 @@ void VolumeVerifier::Process()
 
   if (group_read)
   {
-    m_group_future = std::async(std::launch::async, [this, read_succeeded,
+    m_group_future = std::async(std::launch::async, [this, read_failed,
                                                      group_index = m_group_index] {
       const GroupToVerify& group = m_groups[group_index];
       u64 offset_in_group = 0;
@@ -1219,8 +1218,8 @@ void VolumeVerifier::Process()
       {
         const u64 block_offset = group.offset + offset_in_group;
 
-        if (read_succeeded && m_volume.CheckBlockIntegrity(
-                                  block_index, m_data.data() + offset_in_group, group.partition))
+        if (!read_failed && m_volume.CheckBlockIntegrity(
+                                block_index, m_data.data() + offset_in_group, group.partition))
         {
           m_biggest_verified_offset =
               std::max(m_biggest_verified_offset, block_offset + VolumeWii::BLOCK_TOTAL_SIZE);
@@ -1283,8 +1282,8 @@ void VolumeVerifier::Finish()
 
     if (m_hashes_to_calculate.sha1)
     {
-      m_result.hashes.sha1 = std::vector<u8>(20);
-      mbedtls_sha1_finish_ret(&m_sha1_context, m_result.hashes.sha1.data());
+      const auto digest = m_sha1_context->Finish();
+      m_result.hashes.sha1 = std::vector<u8>(digest.begin(), digest.end());
     }
   }
 

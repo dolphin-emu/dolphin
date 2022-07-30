@@ -299,7 +299,7 @@ void VertexLoaderX64::ReadColor(OpArg data, VertexComponentFormat attribute, Col
     //                   RRRRRGGG GGGBBBBB
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     LoadAndSwap(16, scratch1, data);
-    if (cpu_info.bBMI1 && cpu_info.bFastBMI2)
+    if (cpu_info.bBMI1 && cpu_info.bBMI2FastParallelBitOps)
     {
       MOV(32, R(scratch2), Imm32(0x07C3F7C0));
       PDEP(32, scratch3, scratch1, R(scratch2));
@@ -339,7 +339,7 @@ void VertexLoaderX64::ReadColor(OpArg data, VertexComponentFormat attribute, Col
     //                   RRRRGGGG BBBBAAAA
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     LoadAndSwap(16, scratch1, data);
-    if (cpu_info.bFastBMI2)
+    if (cpu_info.bBMI2FastParallelBitOps)
     {
       MOV(32, R(scratch2), Imm32(0x0F0F0F0F));
       PDEP(32, scratch1, scratch1, R(scratch2));
@@ -368,7 +368,7 @@ void VertexLoaderX64::ReadColor(OpArg data, VertexComponentFormat attribute, Col
     // AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
     data.AddMemOffset(-1);  // subtract one from address so we can use a 32bit load and bswap
     LoadAndSwap(32, scratch1, data);
-    if (cpu_info.bFastBMI2)
+    if (cpu_info.bBMI2FastParallelBitOps)
     {
       MOV(32, R(scratch2), Imm32(0xFCFCFCFC));
       PDEP(32, scratch1, scratch1, R(scratch2));

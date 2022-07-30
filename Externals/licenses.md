@@ -15,13 +15,13 @@ Dolphin includes or links code of the following third-party software projects:
 - [ENet](http://enet.bespin.org/):
    [MIT](http://enet.bespin.org/License.html)
 - [FatFs](http://elm-chan.org/fsw/ff/00index_e.html):
-   [BSD-1-Clause](http://elm-chan.org/fsw/ff/doc/appnote.html#license)
+   [BSD 1-Clause](http://elm-chan.org/fsw/ff/doc/appnote.html#license)
 - [GCEmu](http://sourceforge.net/projects/gcemu-project/):
    GPLv2+
 - [gettext](https://www.gnu.org/software/gettext/):
    [GPLv3+](http://git.savannah.gnu.org/cgit/gettext.git/tree/COPYING)
 - [googletest](https://github.com/google/googletest):
-   [3-clause BSD](https://github.com/google/googletest/blob/master/LICENSE)
+   [BSD 3-Clause](https://github.com/google/googletest/blob/master/LICENSE)
 - [libao](https://www.xiph.org/ao/):
    [GPLv2+](https://trac.xiph.org/browser/trunk/ao/README)
 - [libav](https://libav.org/):
@@ -32,8 +32,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2+](http://git.savannah.gnu.org/cgit/libiconv.git/tree/COPYING.LIB)
 - [liblzma](https://tukaani.org/xz/):
    [Public domain](https://git.tukaani.org/?p=xz.git;a=blob_plain;f=COPYING;hb=HEAD)
-- [libpng](http://www.libpng.org/pub/png/libpng.html):
-   [libpng license](http://www.libpng.org/pub/png/src/libpng-LICENSE.txt)
+- [libspng](https://github.com/randy408/libspng):
+   [BSD 2-Clause](https://github.com/randy408/libspng/blob/master/LICENSE)
 - [libusb](http://libusb.info/):
    [LGPLv2.1+](https://github.com/libusb/libusb/blob/master/COPYING)
 - [LLVM](http://llvm.org/):
@@ -43,7 +43,7 @@ Dolphin includes or links code of the following third-party software projects:
 - [mGBA](http://mgba.io)
    [MPL 2.0](https://github.com/mgba-emu/mgba/blob/master/LICENSE)
 - [MiniUPnPc](http://miniupnp.free.fr/):
-   [3-clause BSD](https://github.com/miniupnp/miniupnp/blob/master/miniupnpc/LICENSE)
+   [BSD 3-Clause](https://github.com/miniupnp/miniupnp/blob/master/miniupnpc/LICENSE)
 - [Microsoft Visual C++ Runtime Library](http://www.microsoft.com/en-us/download/details.aspx?id=40784):
    [System Library if not distributed](https://www.gnu.org/licenses/gpl-faq.html#WindowsRuntimeAndGPL)
 - [OpenAL Soft](http://kcat.strangesoft.net/openal.html):
@@ -73,8 +73,8 @@ Dolphin includes or links code of the following third-party software projects:
 - [Windows Implementation Libraries](https://github.com/microsoft/wil):
    [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
 - [xxHash](https://github.com/Cyan4973/xxHash):
-   [2-clause BSD](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
-- [zlib](http://www.zlib.net/):
-   [zlib license](http://www.zlib.net/zlib_license.html)
+   [BSD 2-Clause](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
+- [zlib-ng](https://github.com/zlib-ng/zlib-ng):
+   [zlib license](https://github.com/zlib-ng/zlib-ng/blob/develop/LICENSE.md)
 - [Zstandard](https://facebook.github.io/zstd/):
-   [3-clause BSD](https://github.com/facebook/zstd/blob/dev/LICENSE) or [GPLv2](https://github.com/facebook/zstd/blob/dev/COPYING)
+   [BSD 3-Clause](https://github.com/facebook/zstd/blob/dev/LICENSE) or [GPLv2](https://github.com/facebook/zstd/blob/dev/COPYING)

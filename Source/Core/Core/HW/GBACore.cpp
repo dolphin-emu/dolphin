@@ -3,8 +3,6 @@
 
 #include "Core/HW/GBACore.h"
 
-#include <mbedtls/sha1.h>
-
 #define PYCPARSE  // Remove static functions from the header
 #include <mgba/core/interface.h>
 #undef PYCPARSE
@@ -20,6 +18,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/MinizipUtil.h"
@@ -143,11 +142,10 @@ static std::array<u8, 20> GetROMHash(VFile* rom)
   size_t size = rom->size(rom);
   u8* buffer = static_cast<u8*>(rom->map(rom, size, MAP_READ));
 
-  std::array<u8, 20> hash;
-  mbedtls_sha1_ret(buffer, size, hash.data());
+  const auto digest = Common::SHA1::CalculateDigest(buffer, size);
   rom->unmap(rom, buffer, size);
 
-  return hash;
+  return digest;
 }
 
 Core::Core(int device_number) : m_device_number(device_number)

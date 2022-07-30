@@ -95,7 +95,7 @@ void BroadbandAdapterSettingsDialog::InitControls()
 
 void BroadbandAdapterSettingsDialog::SaveAddress()
 {
-  const std::string bba_new_address(StripSpaces(m_address_input->text().toStdString()));
+  const std::string bba_new_address(StripWhitespace(m_address_input->text().toStdString()));
 
   switch (m_bba_type)
   {

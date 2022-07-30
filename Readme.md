@@ -61,7 +61,7 @@ since the Binary directory contains a working Dolphin distribution.
 Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
-missing packages yourself.
+missing packages yourself. You may refer to the [wiki](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux) for more information.
 
 Make sure to pull submodules before building:
 ```sh

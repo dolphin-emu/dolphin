@@ -32,6 +32,7 @@ public:
   u32 GetChangeCount() const;
 
   const std::vector<GraphicsModConfig>& GetMods() const;
+  std::vector<GraphicsModConfig>& GetMods();
 
   GraphicsModConfig* GetMod(const std::string& absolute_path) const;
 

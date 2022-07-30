@@ -31,6 +31,7 @@ public class CheatDetailsFragment extends Fragment
   private EditText mEditCreator;
   private TextView mLabelNotes;
   private EditText mEditNotes;
+  private TextView mLabelCode;
   private EditText mEditCode;
   private Button mButtonDelete;
   private Button mButtonEdit;
@@ -59,6 +60,7 @@ public class CheatDetailsFragment extends Fragment
     mEditCreator = view.findViewById(R.id.edit_creator);
     mLabelNotes = view.findViewById(R.id.label_notes);
     mEditNotes = view.findViewById(R.id.edit_notes);
+    mLabelCode = view.findViewById(R.id.label_code);
     mEditCode = view.findViewById(R.id.edit_code);
     mButtonDelete = view.findViewById(R.id.button_delete);
     mButtonEdit = view.findViewById(R.id.button_edit);
@@ -158,10 +160,13 @@ public class CheatDetailsFragment extends Fragment
 
     int creatorVisibility = cheat != null && cheat.supportsCreator() ? View.VISIBLE : View.GONE;
     int notesVisibility = cheat != null && cheat.supportsNotes() ? View.VISIBLE : View.GONE;
+    int codeVisibility = cheat != null && cheat.supportsCode() ? View.VISIBLE : View.GONE;
     mLabelCreator.setVisibility(creatorVisibility);
     mEditCreator.setVisibility(creatorVisibility);
     mLabelNotes.setVisibility(notesVisibility);
     mEditNotes.setVisibility(notesVisibility);
+    mLabelCode.setVisibility(codeVisibility);
+    mEditCode.setVisibility(codeVisibility);
 
     boolean userDefined = cheat != null && cheat.getUserDefined();
     mButtonDelete.setEnabled(userDefined);

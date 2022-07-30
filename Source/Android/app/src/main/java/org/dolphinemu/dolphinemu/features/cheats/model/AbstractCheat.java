@@ -3,11 +3,13 @@
 package org.dolphinemu.dolphinemu.features.cheats.model;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-public abstract class AbstractCheat implements Cheat
+public abstract class AbstractCheat extends ReadOnlyCheat
 {
-  private Runnable mChangedCallback = null;
+  public boolean supportsCode()
+  {
+    return true;
+  }
 
   public int trySet(@NonNull String name, @NonNull String creator, @NonNull String notes,
           @NonNull String code)
@@ -38,25 +40,6 @@ public abstract class AbstractCheat implements Cheat
     return result;
   }
 
-  public void setEnabled(boolean enabled)
-  {
-    setEnabledImpl(enabled);
-    onChanged();
-  }
-
-  public void setChangedCallback(@Nullable Runnable callback)
-  {
-    mChangedCallback = callback;
-  }
-
-  protected void onChanged()
-  {
-    if (mChangedCallback != null)
-      mChangedCallback.run();
-  }
-
   protected abstract int trySetImpl(@NonNull String name, @NonNull String creator,
           @NonNull String notes, @NonNull String code);
-
-  protected abstract void setEnabledImpl(boolean enabled);
 }

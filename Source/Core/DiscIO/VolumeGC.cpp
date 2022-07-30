@@ -11,11 +11,10 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -152,15 +151,11 @@ bool VolumeGC::IsDatelDisc() const
 
 std::array<u8, 20> VolumeGC::GetSyncHash() const
 {
-  mbedtls_sha1_context context;
-  mbedtls_sha1_init(&context);
-  mbedtls_sha1_starts_ret(&context);
+  auto context = Common::SHA1::CreateContext();
 
-  AddGamePartitionToSyncHash(&context);
+  AddGamePartitionToSyncHash(context.get());
 
-  std::array<u8, 20> hash;
-  mbedtls_sha1_finish_ret(&context, hash.data());
-  return hash;
+  return context->Finish();
 }
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const

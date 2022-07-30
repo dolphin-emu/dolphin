@@ -10,7 +10,6 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <mbedtls/sha1.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -25,6 +24,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
+#include "Common/Crypto/SHA1.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -100,9 +100,8 @@ void DolphinAnalytics::GenerateNewIdentity()
 
 std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const
 {
-  std::array<u8, 20> digest;
   const auto input = std::string{m_unique_id}.append(data);
-  mbedtls_sha1_ret(reinterpret_cast<const u8*>(input.c_str()), input.size(), digest.data());
+  const auto digest = Common::SHA1::CalculateDigest(input);
 
   // Convert to hex string and truncate to 64 bits.
   std::string out;

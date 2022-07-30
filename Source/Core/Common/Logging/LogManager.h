@@ -76,7 +76,7 @@ private:
   LogManager& operator=(LogManager&&) = delete;
 
   LogLevel m_level;
-  EnumMap<LogContainer, LogType::WIIMOTE> m_log{};
+  EnumMap<LogContainer, LAST_LOG_TYPE> m_log{};
   std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners{};
   BitSet32 m_listener_ids;
   size_t m_path_cutoff_point = 0;

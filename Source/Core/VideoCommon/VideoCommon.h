@@ -39,6 +39,7 @@ enum class APIType
   OpenGL,
   D3D,
   Vulkan,
+  Metal,
   Nothing
 };
 

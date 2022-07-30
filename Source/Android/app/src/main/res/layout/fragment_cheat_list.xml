@@ -6,13 +6,23 @@
     android:layout_height="match_parent">
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/cheat_warning"
-        android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatWarningFragment"
+        android:id="@+id/cheats_warning"
+        android:name="org.dolphinemu.dolphinemu.features.cheats.ui.CheatsDisabledWarningFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/gfx_mods_warning" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/gfx_mods_warning"
+        android:name="org.dolphinemu.dolphinemu.features.cheats.ui.GraphicsModsDisabledWarningFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cheats_warning"
         app:layout_constraintBottom_toTopOf="@id/cheat_list" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -21,7 +31,7 @@
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cheat_warning"
+        app:layout_constraintTop_toBottomOf="@id/gfx_mods_warning"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
