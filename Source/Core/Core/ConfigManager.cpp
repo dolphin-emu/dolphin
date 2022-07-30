@@ -502,10 +502,15 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("BBA_MAC", &m_bba_mac);
   core->Get("BBA_XLINK_IP", &m_bba_xlink_ip, "127.0.0.1");
   core->Get("BBA_XLINK_CHAT_OSD", &m_bba_xlink_chat_osd, true);
+#ifndef IS_PLAYBACK
+  const bool default_rumble = true;
+#else
+  const bool default_rumble = false;
+#endif
   for (size_t i = 0; i < std::size(m_SIDevice); ++i)
   {
     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i], SerialInterface::SIDevices::SIDEVICE_WIIU_ADAPTER);
-    core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
+    core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], default_rumble);
     core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
   }
   core->Get("WiiSDCard", &m_WiiSDCard, true);
