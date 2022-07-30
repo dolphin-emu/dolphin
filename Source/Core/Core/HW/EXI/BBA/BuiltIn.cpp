@@ -72,8 +72,10 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
                                       sf::IpAddress(m_local_ip).toInteger();
   m_current_ip = htonl(ip);
   m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
+  m_arp_table[m_current_ip] = m_current_mac;
   m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
   m_router_mac = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+  m_arp_table[m_router_ip] = m_router_mac;
 
   // clear all ref
   for (auto& ref : network_ref)
@@ -128,19 +130,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packe
 {
   const auto& [hwdata, arpdata] = packet;
   Common::ARPPacket response(m_current_mac, m_router_mac);
-
-  if (arpdata.target_ip == m_current_ip)
-  {
-    // game asked for himself, reply with his mac address
-    response.arp_header =
-        Common::ARPHeader(arpdata.target_ip, m_current_mac, m_current_ip, m_current_mac);
-  }
-  else
-  {
-    response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
-                                            m_current_ip, m_current_mac);
-  }
-
+  response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
+                                          m_current_ip, m_current_mac);
   WriteToQueue(response.Build());
 }
 
