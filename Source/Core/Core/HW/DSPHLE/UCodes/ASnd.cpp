@@ -54,6 +54,11 @@ constexpr u32 FLAGS_SAMPLE_FORMAT_BYTES_SHIFT = 16;
 
 constexpr u32 SAMPLE_RATE = 48000;
 
+bool ASndUCode::UseNewFlagMasks() const
+{
+  return m_crc == HASH_2011 || m_crc == HASH_2020 || m_crc == HASH_2020_PAD;
+}
+
 ASndUCode::ASndUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
 }
@@ -239,9 +244,8 @@ void ASndUCode::DoMixing(u32 return_mail)
 
   // start_main
 
-  const u32 sample_format_mask = (m_crc == HASH_2011 || m_crc == HASH_2020) ?
-                                     NEW_FLAGS_SAMPLE_FORMAT_MASK :
-                                     OLD_FLAGS_SAMPLE_FORMAT_MASK;
+  const u32 sample_format_mask =
+      UseNewFlagMasks() ? NEW_FLAGS_SAMPLE_FORMAT_MASK : OLD_FLAGS_SAMPLE_FORMAT_MASK;
   const u32 sample_format = m_current_voice.flags & sample_format_mask;
   const u32 sample_format_step =
       (m_current_voice.flags & FLAGS_SAMPLE_FORMAT_BYTES_MASK) >> FLAGS_SAMPLE_FORMAT_BYTES_SHIFT;
@@ -255,8 +259,7 @@ void ASndUCode::DoMixing(u32 return_mail)
   };
   const auto sample_function = sample_selector[sample_format];
 
-  const u32 pause_mask =
-      (m_crc == HASH_2011 || m_crc == HASH_2020) ? NEW_FLAGS_VOICE_PAUSE : OLD_FLAGS_VOICE_PAUSE;
+  const u32 pause_mask = UseNewFlagMasks() ? NEW_FLAGS_VOICE_PAUSE : OLD_FLAGS_VOICE_PAUSE;
 
   if ((m_current_voice.flags & pause_mask) == 0)
   {
@@ -417,8 +420,7 @@ void ASndUCode::ChangeBuffer()
   m_current_voice.start_addr = m_current_voice.start_addr2;
   m_current_voice.backup_addr = m_current_voice.start_addr2;
 
-  const u32 loop_mask =
-      (m_crc == HASH_2011 || m_crc == HASH_2020) ? NEW_FLAGS_VOICE_LOOP : OLD_FLAGS_VOICE_LOOP;
+  const u32 loop_mask = UseNewFlagMasks() ? NEW_FLAGS_VOICE_LOOP : OLD_FLAGS_VOICE_LOOP;
 
   if ((m_current_voice.flags & loop_mask) == 0)
   {

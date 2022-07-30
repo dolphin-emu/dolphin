@@ -43,6 +43,14 @@ public:
   // provided in the repo. There appear to be no behavior differences from the 2011 version.
   // https://github.com/devkitPro/libogc/compare/bfb705fe1607a3031d18b65d603975b68a1cffd4~...d20f9bdcfb43260c6c759f4fb98d724931443f93
   static constexpr u32 HASH_2020 = 0xdbbeeb61;
+  // Variant of the above used in libogc-rice and libogc2 starting on December 11, 2020 and padded
+  // to 0x0620 bytes. These forks have gcdsptool generate a header file instead of a bin file
+  // (followed by bin2o), so padding is still applied (for libogc-rice, the header is manually
+  // generated, while libogc2 generates it as part of the build process).
+  // https://github.com/extremscorner/libogc2/commit/80e01cbd8ead0370d98e092b426f851f21175e60
+  // https://github.com/extremscorner/libogc2/commit/0b64f879808953d80ba06501a1c079b0fbf017d2
+  // https://github.com/extremscorner/libogc-rice/commit/ce22c3269699fdbd474f2f28ca2ffca211954659
+  static constexpr u32 HASH_2020_PAD = 0xbad876ef;
 
 private:
   void DMAInVoiceData();
@@ -51,6 +59,8 @@ private:
   void DMAInSampleDataAssumeAligned();
   void ChangeBuffer();
   void DoMixing(u32 return_mail);
+
+  bool UseNewFlagMasks() const;
 
   std::pair<s16, s16> ReadSampleMono8Bits() const;
   std::pair<s16, s16> ReadSampleStereo8Bits() const;

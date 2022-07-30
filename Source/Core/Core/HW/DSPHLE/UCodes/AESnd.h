@@ -39,6 +39,16 @@ public:
   // First included with libogc 2.1.0 on June 15, 2020: https://devkitpro.org/viewtopic.php?t=9079
   // https://github.com/devkitPro/libogc/commit/eac8fe2c29aa790d552dd6166a1fb195dfdcb825
   static constexpr u32 HASH_2020 = 0x84c680a9;
+  // Padded version of the above (0x0400 bytes), added to libogc-rice on June 16, 2012 (that's the
+  // commit author date; the commit date is November 24, 2016) and libogc2 on 25 May 2020. Used by
+  // Not64 and OpenTTD (starting with the December 1, 2012 release).
+  // https://github.com/extremscorner/libogc-rice/commit/cfddd4f3bec77812d6d333954e39d401d2276cd8
+  // https://github.com/extremscorner/libogc2/commit/89ae39544e22f720a9c986af3524f7e6f20e7293
+  static constexpr u32 HASH_2020_PAD = 0xa02a6131;
+  // July 19, 2022 version (padded to 0x0400 bytes) - fixed MAIL_TERMINATE. This is not currently
+  // included in libogc, only in libogc2 and libogc-rice (which generate a padded header file).
+  // https://github.com/extremscorner/libogc2/commit/38edc9db93232faa612f680c91be1eb4d95dd1c6
+  static constexpr u32 HASH_2022_PAD = 0x2e5e4100;
 
 private:
   void DMAInParameterBlock();
