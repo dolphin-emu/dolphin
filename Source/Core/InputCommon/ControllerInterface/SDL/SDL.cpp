@@ -153,8 +153,11 @@ void Init()
 #else
 #if defined(__APPLE__) && !SDL_VERSION_ATLEAST(2, 0, 24)
   // Bug in SDL 2.0.22 requires the first init to be done on the main thread to avoid crashing
+  // (See https://github.com/libsdl-org/SDL/pull/5598)
   SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-  SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+  // If we QuitSubSystem here, HIDAPI joysticks will disappear and won't reappear when we init later
+  // (See https://github.com/libsdl-org/SDL/pull/5870)
+  // We'll just have to live with the leaks
 #endif
 
   EnableSDLLogging();
