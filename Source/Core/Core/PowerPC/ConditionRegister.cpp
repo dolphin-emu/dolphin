@@ -27,7 +27,7 @@ const std::array<u64, 16> ConditionRegister::s_crTable = {{
 u32 ConditionRegister::Get() const
 {
   u32 new_cr = 0;
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
     new_cr |= GetField(i) << (28 - i * 4);
   }
@@ -36,7 +36,7 @@ u32 ConditionRegister::Get() const
 
 void ConditionRegister::Set(u32 cr)
 {
-  for (u32 i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; ++i)
   {
     SetField(i, (cr >> (28 - i * 4)) & 0xF);
   }

@@ -230,7 +230,7 @@ void JitArm64::twx(UGeckoInstruction inst)
   std::vector<FixupBranch> fixups;
   CCFlags conditions[] = {CC_LT, CC_GT, CC_EQ, CC_VC, CC_VS};
 
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 5; ++i)
   {
     if (inst.TO & (1 << i))
     {
@@ -547,7 +547,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
 
   // GetCRFieldBit
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; ++i)
   {
     int field = i ? inst.CRBB >> 2 : inst.CRBA >> 2;
     int bit = i ? 3 - (inst.CRBB & 3) : 3 - (inst.CRBA & 3);
@@ -657,7 +657,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
   ARM64Reg XA = EncodeRegTo64(WA);
   ARM64Reg XC = EncodeRegTo64(WC);
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     ARM64Reg CR = gpr.CR(i);
     ARM64Reg WCR = EncodeRegTo32(CR);
@@ -898,7 +898,7 @@ void JitArm64::mtfsfx(UGeckoInstruction inst)
   FALLBACK_IF(jo.fp_exceptions);
 
   u32 mask = 0;
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     if (inst.FM & (1 << i))
       mask |= 0xFU << (4 * i);

@@ -116,7 +116,7 @@ NetSSLDevice::~NetSSLDevice()
 
 int NetSSLDevice::GetSSLFreeID() const
 {
-  for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
+  for (int i = 0; i < NET_SSL_MAXINSTANCES; ++i)
   {
     if (!_SSL[i].active)
     {

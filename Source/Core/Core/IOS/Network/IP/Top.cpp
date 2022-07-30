@@ -870,7 +870,7 @@ IPCReply NetIPTopDevice::HandleGetInterfaceOptRequest(const IOCtlVRequest& reque
     {
       if (res_init() == 0)
       {
-        for (int i = 0; i < _res.nscount; i++)
+        for (int i = 0; i < _res.nscount; ++i)
         {
           // Find the first available IPv4 nameserver.
           sockaddr_in current = _res.nsaddr_list[i];

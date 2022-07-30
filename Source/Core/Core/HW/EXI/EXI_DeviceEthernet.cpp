@@ -215,7 +215,7 @@ u32 CEXIETHERNET::ImmRead(u32 size)
   }
   else
   {
-    for (int i = size - 1; i >= 0; i--)
+    for (int i = size - 1; i >= 0; --i)
       ret |= mBbaMem[transfer.address++] << (i * 8);
   }
 
@@ -418,7 +418,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 
   write_to_register:
   default:
-    for (int i = size - 1; i >= 0; i--)
+    for (int i = size - 1; i >= 0; --i)
     {
       mBbaMem[transfer.address++] = (data >> (i * 8)) & 0xff;
     }
@@ -565,7 +565,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   descriptor = (Descriptor*)write_ptr;
   current_rwp = page_ptr(BBA_RWP);
   DEBUG_LOG_FMT(SP1, "Frame recv: {:x}", mRecvBufferLength);
-  for (u32 i = 0; i < mRecvBufferLength; i++)
+  for (u32 i = 0; i < mRecvBufferLength; ++i)
   {
     write_ptr[off] = mRecvBuffer[i];
     off++;

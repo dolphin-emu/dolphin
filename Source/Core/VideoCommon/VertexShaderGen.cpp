@@ -171,7 +171,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   // If color 1 is present but not color 0, it is used for lighting channel 0.
   const bool use_color_1 =
       (uid_data->components & (VB_HAS_COL0 | VB_HAS_COL1)) == (VB_HAS_COL0 | VB_HAS_COL1);
-  for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; color++)
+  for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; ++color)
   {
     if ((color == 0 || use_color_1) && (uid_data->components & (VB_HAS_COL0 << color)) != 0)
     {

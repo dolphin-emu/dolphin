@@ -715,7 +715,7 @@ void MigrateFromMemcardFile(const std::string& directory_name, ExpansionInterfac
     auto [error_code, memcard] = Memcard::GCMemcard::Open(ini_memcard.c_str());
     if (!error_code.HasCriticalErrors() && memcard && memcard->IsValid())
     {
-      for (u8 i = 0; i < Memcard::DIRLEN; i++)
+      for (u8 i = 0; i < Memcard::DIRLEN; ++i)
       {
         const auto savefile = memcard->ExportFile(i);
         if (!savefile)

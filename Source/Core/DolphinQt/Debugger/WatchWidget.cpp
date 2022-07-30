@@ -160,7 +160,7 @@ void WatchWidget::Update()
        // i18n: Floating-point (non-integer) number
        tr("Float")});
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < size; ++i)
   {
     auto entry = PowerPC::debug_interface.GetWatch(i);
 
@@ -195,7 +195,7 @@ void WatchWidget::Update()
     address->setForeground(brush);
     string->setFlags(Qt::ItemIsEnabled);
 
-    for (int column = 0; column < NUM_COLUMNS; column++)
+    for (int column = 0; column < NUM_COLUMNS; ++column)
     {
       auto* item = items[column];
       item->setData(Qt::UserRole, i);
@@ -209,7 +209,7 @@ void WatchWidget::Update()
 
   m_table->setItem(size, 0, label);
 
-  for (int i = 1; i < NUM_COLUMNS; i++)
+  for (int i = 1; i < NUM_COLUMNS; ++i)
   {
     auto* no_edit = new QTableWidgetItem;
     no_edit->setFlags(Qt::ItemIsEnabled);

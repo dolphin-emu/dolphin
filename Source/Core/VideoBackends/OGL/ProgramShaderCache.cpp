@@ -144,7 +144,7 @@ void SHADER::SetProgramBindings(bool is_compute)
     glBindAttribLocation(glprogid, SHADER_BINORMAL_ATTRIB, "rawbinormal");
   }
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     std::string attrib_name = StringFromFormat("rawtex%d", i);
     glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB + i, attrib_name.c_str());
@@ -258,7 +258,7 @@ void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
   s_buffer->Unmap(alloc_size);
 
   // bind the same sub-buffer to all stages
-  for (u32 index = 1; index <= 3; index++)
+  for (u32 index = 1; index <= 3; ++index)
     glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, buffer.second, data_size);
 
   ADDSTAT(g_stats.this_frame.bytes_uniform_streamed, data_size);

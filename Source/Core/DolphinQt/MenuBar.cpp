@@ -196,7 +196,7 @@ void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
 
   const std::vector<std::string> drives = Common::GetCDDevices();
   // Windows Limitation of 24 character drives
-  for (size_t i = 0; i < drives.size() && i < 24; i++)
+  for (size_t i = 0; i < drives.size() && i < 24; ++i)
   {
     auto drive = QString::fromStdString(drives[i]);
     m_backup_menu->addAction(drive, this, [this, drive] { emit BootDVDBackup(drive); });
@@ -289,7 +289,7 @@ void MenuBar::AddToolsMenu()
   tools_menu->addSeparator();
   tools_menu->addMenu(menu);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     m_wii_remotes[i] = menu->addAction(tr("Connect Wii Remote %1").arg(i + 1), this,
                                        [this, i] { emit ConnectWiiRemote(i); });
@@ -334,7 +334,7 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
   m_state_load_slots_menu = m_state_load_menu->addMenu(tr("Load State from Slot"));
   m_state_load_menu->addAction(tr("Undo Load State"), this, &MenuBar::StateLoadUndo);
 
-  for (int i = 1; i <= 10; i++)
+  for (int i = 1; i <= 10; ++i)
   {
     QAction* action = m_state_load_slots_menu->addAction(QString{});
 
@@ -351,7 +351,7 @@ void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
   m_state_save_slots_menu = m_state_save_menu->addMenu(tr("Save State to Slot"));
   m_state_save_menu->addAction(tr("Undo Save State"), this, &MenuBar::StateSaveUndo);
 
-  for (int i = 1; i <= 10; i++)
+  for (int i = 1; i <= 10; ++i)
   {
     QAction* action = m_state_save_slots_menu->addAction(QString{});
 
@@ -364,7 +364,7 @@ void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
   m_state_slot_menu = emu_menu->addMenu(tr("Select State Slot"));
   m_state_slots = new QActionGroup(this);
 
-  for (int i = 1; i <= 10; i++)
+  for (int i = 1; i <= 10; ++i)
   {
     QAction* action = m_state_slot_menu->addAction(QString{});
     action->setCheckable(true);
@@ -381,7 +381,7 @@ void MenuBar::UpdateStateSlotMenu()
   QList<QAction*> actions_slot = m_state_slots->actions();
   QList<QAction*> actions_load = m_state_load_slots_menu->actions();
   QList<QAction*> actions_save = m_state_save_slots_menu->actions();
-  for (int i = 0; i < actions_slot.length(); i++)
+  for (int i = 0; i < actions_slot.length(); ++i)
   {
     int slot = i + 1;
     QString info = QString::fromStdString(State::GetInfoStringOfSlot(slot));
@@ -1028,7 +1028,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
   const auto bt = WiiUtils::GetBluetoothEmuDevice();
   const bool enable_wiimotes = emulation_started && bt != nullptr;
 
-  for (std::size_t i = 0; i < m_wii_remotes.size(); i++)
+  for (std::size_t i = 0; i < m_wii_remotes.size(); ++i)
   {
     QAction* const wii_remote = m_wii_remotes[i];
 

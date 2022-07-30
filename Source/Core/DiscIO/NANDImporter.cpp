@@ -58,7 +58,7 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
 
   m_nand.resize(NAND_SIZE);
 
-  for (size_t i = 0; i < NAND_TOTAL_BLOCKS; i++)
+  for (size_t i = 0; i < NAND_TOTAL_BLOCKS; ++i)
   {
     // Instead of updating on every cycle, we only update every 1000 cycles for a balance between
     // not updating fast enough vs updating too fast
@@ -93,7 +93,7 @@ bool NANDImporter::FindSuperblock()
   constexpr size_t NAND_SUPERBLOCK_START = 0x1fc00000;
 
   // There are 16 superblocks, choose the highest/newest version
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; ++i)
   {
     auto superblock = std::make_unique<NANDSuperblock>();
     std::memcpy(superblock.get(), &m_nand[NAND_SUPERBLOCK_START + i * sizeof(NANDSuperblock)],

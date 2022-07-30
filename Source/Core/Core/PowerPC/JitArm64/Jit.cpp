@@ -807,7 +807,7 @@ bool JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   fpr.Start(js.fpa);
 
   // Translate instructions
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
+  for (u32 i = 0; i < code_block.m_num_instructions; ++i)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 

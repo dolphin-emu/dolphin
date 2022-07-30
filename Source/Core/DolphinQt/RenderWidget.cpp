@@ -512,7 +512,7 @@ void RenderWidget::PassEventToImGui(const QEvent* event)
   {
     auto lock = g_renderer->GetImGuiLock();
     const u32 button_mask = static_cast<u32>(static_cast<const QMouseEvent*>(event)->buttons());
-    for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); i++)
+    for (size_t i = 0; i < std::size(ImGui::GetIO().MouseDown); ++i)
       ImGui::GetIO().MouseDown[i] = (button_mask & (1u << i)) != 0;
   }
   break;

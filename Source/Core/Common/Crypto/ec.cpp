@@ -31,7 +31,7 @@ struct Elt
   {
     u8 carry = data[0] & 1;
     u8 x = 0;
-    for (std::size_t i = 0; i < data.size() - 1; i++)
+    for (std::size_t i = 0; i < data.size() - 1; ++i)
     {
       u8 y = data[i + 1];
       data[i] = x ^ (y >> 7);
@@ -44,12 +44,12 @@ struct Elt
   Elt Square() const
   {
     std::array<u8, 60> wide;
-    for (std::size_t i = 0; i < data.size(); i++)
+    for (std::size_t i = 0; i < data.size(); ++i)
     {
       wide[2 * i] = square[data[i] >> 4];
       wide[2 * i + 1] = square[data[i] & 15];
     }
-    for (std::size_t i = 0; i < data.size(); i++)
+    for (std::size_t i = 0; i < data.size(); ++i)
     {
       u8 x = wide[i];
 
@@ -100,7 +100,7 @@ struct Elt
 static Elt operator+(const Elt& a, const Elt& b)
 {
   Elt d;
-  for (std::size_t i = 0; i < std::tuple_size<decltype(Elt::data)>{}; i++)
+  for (std::size_t i = 0; i < std::tuple_size<decltype(Elt::data)>{}; ++i)
     d.data[i] = a.data[i] ^ b.data[i];
   return d;
 }
@@ -110,7 +110,7 @@ static Elt operator*(const Elt& a, const Elt& b)
   Elt d;
   std::size_t i = 0;
   u8 mask = 1;
-  for (std::size_t n = 0; n < 233; n++)
+  for (std::size_t n = 0; n < 233; ++n)
   {
     d.MulX();
 
@@ -209,7 +209,7 @@ static Point operator+(const Point& a, const Point& b)
 static Point operator*(const u8* a, const Point& b)
 {
   Point d;
-  for (std::size_t i = 0; i < 30; i++)
+  for (std::size_t i = 0; i < 30; ++i)
   {
     for (u8 mask = 0x80; mask != 0; mask >>= 1)
     {

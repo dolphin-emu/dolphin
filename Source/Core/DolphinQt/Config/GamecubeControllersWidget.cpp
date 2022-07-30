@@ -73,7 +73,7 @@ void GamecubeControllersWidget::CreateLayout()
   m_gc_layout->setVerticalSpacing(7);
   m_gc_layout->setColumnStretch(1, 1);
 
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
+  for (size_t i = 0; i < m_gc_groups.size(); ++i)
   {
     auto* gc_label = new QLabel(tr("Port %1").arg(i + 1));
     auto* gc_box = m_gc_controller_boxes[i] = new QComboBox();
@@ -100,7 +100,7 @@ void GamecubeControllersWidget::CreateLayout()
 
 void GamecubeControllersWidget::ConnectWidgets()
 {
-  for (size_t i = 0; i < m_gc_controller_boxes.size(); i++)
+  for (size_t i = 0; i < m_gc_controller_boxes.size(); ++i)
   {
     connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GamecubeControllersWidget::SaveSettings);
@@ -115,7 +115,7 @@ void GamecubeControllersWidget::OnGCTypeChanged(int type)
 {
   const auto* box = static_cast<QComboBox*>(QObject::sender());
 
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
+  for (size_t i = 0; i < m_gc_groups.size(); ++i)
   {
     if (m_gc_controller_boxes[i] == box)
     {
@@ -131,7 +131,7 @@ void GamecubeControllersWidget::OnGCTypeChanged(int type)
 void GamecubeControllersWidget::OnGCPadConfigure()
 {
   size_t index;
-  for (index = 0; index < m_gc_groups.size(); index++)
+  for (index = 0; index < m_gc_groups.size(); ++index)
   {
     if (m_gc_buttons[index] == QObject::sender())
       break;
@@ -177,7 +177,7 @@ void GamecubeControllersWidget::OnGCPadConfigure()
 
 void GamecubeControllersWidget::LoadSettings()
 {
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
+  for (size_t i = 0; i < m_gc_groups.size(); ++i)
   {
     const SerialInterface::SIDevices si_device =
         Config::Get(Config::GetInfoForSIDevice(static_cast<int>(i)));
@@ -192,7 +192,7 @@ void GamecubeControllersWidget::LoadSettings()
 
 void GamecubeControllersWidget::SaveSettings()
 {
-  for (size_t i = 0; i < m_gc_groups.size(); i++)
+  for (size_t i = 0; i < m_gc_groups.size(); ++i)
   {
     const int index = m_gc_controller_boxes[i]->currentIndex();
     const SerialInterface::SIDevices si_device = FromGCMenuIndex(index);

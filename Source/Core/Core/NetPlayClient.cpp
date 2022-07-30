@@ -1070,7 +1070,7 @@ void NetPlayClient::OnSyncSaveDataGCI(sf::Packet& packet)
     return;
   }
 
-  for (u8 i = 0; i < file_count; i++)
+  for (u8 i = 0; i < file_count; ++i)
   {
     std::string file_name;
     packet >> file_name;
@@ -1136,7 +1136,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
   // Read the saves
   u32 save_count;
   packet >> save_count;
-  for (u32 n = 0; n < save_count; n++)
+  for (u32 n = 0; n < save_count; ++n)
   {
     u64 title_id = Common::PacketReadU64(packet);
     titles.push_back(title_id);
@@ -1158,7 +1158,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
     for (u8& byte : header.md5)
       packet >> byte;
     packet >> header.unk2;
-    for (size_t i = 0; i < header.banner_size; i++)
+    for (size_t i = 0; i < header.banner_size; ++i)
       packet >> header.banner[i];
 
     // BkHeader
@@ -1179,7 +1179,7 @@ void NetPlayClient::OnSyncSaveDataWii(sf::Packet& packet)
 
     // Files
     std::vector<WiiSave::Storage::SaveFile> files;
-    for (u32 i = 0; i < bk_header.number_of_files; i++)
+    for (u32 i = 0; i < bk_header.number_of_files; ++i)
     {
       WiiSave::Storage::SaveFile file;
       packet >> file.mode >> file.attributes;
@@ -1325,7 +1325,7 @@ void NetPlayClient::OnSyncCodesDataGecko(sf::Packet& packet)
   gcode.enabled = true;
 
   // Receive code contents from packet
-  for (u32 i = 0; i < m_sync_gecko_codes_count; i++)
+  for (u32 i = 0; i < m_sync_gecko_codes_count; ++i)
   {
     Gecko::GeckoCode::Code new_code;
     packet >> new_code.address;
@@ -1392,7 +1392,7 @@ void NetPlayClient::OnSyncCodesDataAR(sf::Packet& packet)
   arcode.enabled = true;
 
   // Receive code contents from packet
-  for (u32 i = 0; i < m_sync_ar_codes_count; i++)
+  for (u32 i = 0; i < m_sync_ar_codes_count; ++i)
   {
     ActionReplay::AREntry new_code;
     packet >> new_code.cmd_addr;
@@ -1958,7 +1958,7 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
 
     bool send_packet = false;
     const int num_local_pads = NumLocalPads();
-    for (int local_pad = 0; local_pad < num_local_pads; local_pad++)
+    for (int local_pad = 0; local_pad < num_local_pads; ++local_pad)
     {
       send_packet = PollLocalPad(local_pad, packet) || send_packet;
     }
@@ -2195,7 +2195,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 
   if (pad_num < 0)
   {
-    for (size_t i = 0; i < m_pad_map.size(); i++)
+    for (size_t i = 0; i < m_pad_map.size(); ++i)
     {
       if (m_pad_map[i] <= 0)
         continue;
@@ -2209,7 +2209,7 @@ void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
       }
     }
 
-    for (size_t i = 0; i < m_pad_map.size(); i++)
+    for (size_t i = 0; i < m_pad_map.size(); ++i)
     {
       if (m_pad_map[i] == 0 || m_pad_buffer[i].Size() > 0)
         continue;
@@ -2347,7 +2347,7 @@ int NetPlayClient::InGamePadToLocalPad(int ingame_pad) const
   int local_pad = 0;
   int pad = 0;
 
-  for (; pad < ingame_pad; pad++)
+  for (; pad < ingame_pad; ++pad)
   {
     if (m_pad_map[pad] == m_local_player->pid)
       local_pad++;
@@ -2363,7 +2363,7 @@ int NetPlayClient::LocalPadToInGamePad(int local_pad) const
   // go in order.
   int local_pad_count = -1;
   int ingame_pad = 0;
-  for (; ingame_pad < 4; ingame_pad++)
+  for (; ingame_pad < 4; ++ingame_pad)
   {
     if (m_pad_map[ingame_pad] == m_local_player->pid)
       local_pad_count++;
@@ -2608,7 +2608,7 @@ void SetupWiimotes()
   ASSERT(IsNetPlayRunning());
   const NetSettings& netplay_settings = netplay_client->GetNetSettings();
   const PadMappingArray& wiimote_map = netplay_client->GetWiimoteMapping();
-  for (size_t i = 0; i < netplay_settings.m_WiimoteExtension.size(); i++)
+  for (size_t i = 0; i < netplay_settings.m_WiimoteExtension.size(); ++i)
   {
     if (wiimote_map[i] > 0)
     {

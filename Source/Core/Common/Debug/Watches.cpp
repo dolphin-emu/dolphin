@@ -17,7 +17,7 @@ Watch::Watch(u32 address_, std::string name_, State is_enabled_)
 std::size_t Watches::SetWatch(u32 address, std::string name)
 {
   const std::size_t size = m_watches.size();
-  for (std::size_t index = 0; index < size; index++)
+  for (std::size_t index = 0; index < size; ++index)
   {
     if (m_watches.at(index).address == address)
     {

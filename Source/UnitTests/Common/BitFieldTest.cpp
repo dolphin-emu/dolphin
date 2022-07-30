@@ -306,7 +306,7 @@ TEST(BitFieldArray, Unsigned)
   EXPECT_EQ(object.arr[2], 3u);
   EXPECT_EQ(object.hex, 0b11'11'11u);
 
-  for (u32 i = 0; i < object.arr.Size(); i++)
+  for (u32 i = 0; i < object.arr.Size(); ++i)
   {
     object.arr[i] = i;
   }
@@ -382,7 +382,7 @@ TEST(BitFieldArray, Signed)
   EXPECT_EQ(object.arr[2], -1);
   EXPECT_EQ(object.hex, 0b11'11'11'00000);
 
-  for (u32 i = 0; i < object.arr.Size(); i++)
+  for (u32 i = 0; i < object.arr.Size(); ++i)
   {
     object.arr[i] = i;
   }
@@ -460,7 +460,7 @@ TEST(BitFieldArray, Enum)
   EXPECT_EQ(object.d, TestEnum::C);
   EXPECT_EQ(object.hex, 0b10'10'10'10ull << 30);
 
-  for (u32 i = 0; i < object.arr.Size(); i++)
+  for (u32 i = 0; i < object.arr.Size(); ++i)
   {
     object.arr[i] = static_cast<TestEnum>(i);
   }

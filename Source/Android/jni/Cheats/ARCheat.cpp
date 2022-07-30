@@ -91,7 +91,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_features_cheats_model_ARCh
 
   std::vector<std::string> lines = SplitString(GetJString(env, code_string), '\n');
 
-  for (size_t i = 0; i < lines.size(); i++)
+  for (size_t i = 0; i < lines.size(); ++i)
   {
     const std::string& line = lines[i];
 

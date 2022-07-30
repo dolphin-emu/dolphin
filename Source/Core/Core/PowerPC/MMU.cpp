@@ -338,7 +338,7 @@ static void WriteToHardware(u32 em_address, const u32 data, const u32 size)
       return;
     default:
       // Some kind of misaligned write. TODO: Does this match how the actual hardware handles it?
-      for (size_t i = size * 8; i > 0; em_address++)
+      for (size_t i = size * 8; i > 0; ++em_address)
       {
         i -= 8;
         Memory::mmio_mapping->Write<u8>(em_address, static_cast<u8>(data >> i));
@@ -1331,7 +1331,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
   pte1.API = api;
   pte1.V = 1;
 
-  for (int hash_func = 0; hash_func < 2; hash_func++)
+  for (int hash_func = 0; hash_func < 2; ++hash_func)
   {
     // hash function no 2 "not" .360
     if (hash_func == 1)
@@ -1343,7 +1343,7 @@ static TranslateAddressResult TranslatePageAddress(const EffectiveAddress addres
     u32 pteg_addr =
         ((hash & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 
-    for (int i = 0; i < 8; i++, pteg_addr += 8)
+    for (int i = 0; i < 8; ++i, pteg_addr += 8)
     {
       const u32 pteg = Memory::Read_U32(pteg_addr);
 

@@ -260,7 +260,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
     return;
   }
 
-  for (u32 i = inst.RD; i <= 31; i++, address += 4)
+  for (u32 i = inst.RD; i <= 31; ++i, address += 4)
   {
     const u32 temp_reg = PowerPC::Read_U32(address);
 
@@ -288,7 +288,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
     return;
   }
 
-  for (u32 i = inst.RS; i <= 31; i++, address += 4)
+  for (u32 i = inst.RS; i <= 31; ++i, address += 4)
   {
     PowerPC::Write_U32(rGPR[i], address);
     if ((PowerPC::ppcState.Exceptions & EXCEPTION_DSI) != 0)
@@ -678,7 +678,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
   }
 
   // Confirmed by hardware test that the zero case doesn't zero rGPR[r]
-  for (u32 n = 0; n < static_cast<u8>(PowerPC::ppcState.xer_stringctrl); n++)
+  for (u32 n = 0; n < static_cast<u8>(PowerPC::ppcState.xer_stringctrl); ++n)
   {
     const u32 reg = (inst.RD + (n >> 2)) & 0x1f;
     const u32 offset = (n & 3) << 3;

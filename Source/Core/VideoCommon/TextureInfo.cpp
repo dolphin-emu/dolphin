@@ -87,7 +87,7 @@ TextureInfo::TextureInfo(u32 stage, const u8* ptr, const u8* tlut_ptr, u32 addre
     if (tmem_even)
       tmem_even += GetTextureSize();
 
-    for (u32 i = 0; i < limited_mip_count; i++)
+    for (u32 i = 0; i < limited_mip_count; ++i)
     {
       MipLevel mip_level(i + 1, *this, m_from_tmem, src_data, tmem_even, tmem_odd);
       m_mip_levels.push_back(std::move(mip_level));
@@ -116,7 +116,7 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
   case 0:
     break;
   case 16 * 2:
-    for (size_t i = 0; i < m_texture_size; i++)
+    for (size_t i = 0; i < m_texture_size; ++i)
     {
       const u32 low_nibble = m_ptr[i] & 0xf;
       const u32 high_nibble = m_ptr[i] >> 4;
@@ -127,7 +127,7 @@ TextureInfo::NameDetails TextureInfo::CalculateTextureName() const
     break;
   case 256 * 2:
   {
-    for (size_t i = 0; i < m_texture_size; i++)
+    for (size_t i = 0; i < m_texture_size; ++i)
     {
       const u32 texture_byte = m_ptr[i];
 

@@ -1008,7 +1008,7 @@ void GameList::OnSectionResized(int index, int, int)
 
   bool last = true;
 
-  for (int i = vis_index + 1; i < col_count; i++)
+  for (int i = vis_index + 1; i < col_count; ++i)
   {
     const int logical_index = hor_header->logicalIndex(i);
     if (hor_header->sectionResizeMode(logical_index) != QHeaderView::Interactive)
@@ -1020,7 +1020,7 @@ void GameList::OnSectionResized(int index, int, int)
 
   if (!last)
   {
-    for (int i = 0; i < vis_index; i++)
+    for (int i = 0; i < vis_index; ++i)
     {
       const int logical_index = hor_header->logicalIndex(i);
       if (hor_header->sectionResizeMode(logical_index) != QHeaderView::Interactive)
@@ -1064,7 +1064,7 @@ void GameList::OnHeaderViewChanged()
   std::vector<int> candidate_columns;
 
   // Iterate through all columns
-  for (int i = 0; i < static_cast<int>(GameListModel::Column::Count); i++)
+  for (int i = 0; i < static_cast<int>(GameListModel::Column::Count); ++i)
   {
     if (m_list->isColumnHidden(i))
       continue;

@@ -28,7 +28,7 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain, float backbuffer_scale
   m_state.root_signature = g_dx_context->GetGXRootSignature();
 
   // Textures must be populated with null descriptors, since we copy directly from this array.
-  for (u32 i = 0; i < MAX_TEXTURES; i++)
+  for (u32 i = 0; i < MAX_TEXTURES; ++i)
   {
     m_state.textures[i].ptr = g_dx_context->GetNullSRVDescriptor().cpu_handle.ptr;
     m_state.samplers.states[i] = RenderState::GetPointSamplerState();
@@ -315,7 +315,7 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 {
   const auto srv_shadow_descriptor =
       static_cast<const DXTexture*>(texture)->GetSRVDescriptor().cpu_handle;
-  for (u32 i = 0; i < MAX_TEXTURES; i++)
+  for (u32 i = 0; i < MAX_TEXTURES; ++i)
   {
     if (m_state.textures[i].ptr == srv_shadow_descriptor.ptr)
     {

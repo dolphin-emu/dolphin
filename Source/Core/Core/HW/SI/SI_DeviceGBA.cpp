@@ -196,7 +196,7 @@ void GBASockServer::Send(const u8* si_buffer)
     return;
 
   std::array<u8, SEND_MAX_SIZE> send_data;
-  for (size_t i = 0; i < send_data.size(); i++)
+  for (size_t i = 0; i < send_data.size(); ++i)
     send_data[i] = si_buffer[i];
 
   const auto cmd = static_cast<EBufferCommands>(send_data[0]);
@@ -239,7 +239,7 @@ int GBASockServer::Receive(u8* si_buffer, u8 bytes)
   }
   m_booted = true;
 
-  for (size_t i = 0; i < recv_data.size(); i++)
+  for (size_t i = 0; i < recv_data.size(); ++i)
     si_buffer[i] = recv_data[i];
   return static_cast<int>(std::min(num_received, recv_data.size()));
 }

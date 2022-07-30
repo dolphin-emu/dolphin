@@ -30,7 +30,7 @@ std::unique_ptr<SwapChain> SwapChain::Create(const WindowSystemInfo& wsi)
 
 bool SwapChain::CreateSwapChainBuffers()
 {
-  for (u32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
+  for (u32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
   {
     ComPtr<ID3D12Resource> resource;
     HRESULT hr = m_swap_chain->GetBuffer(i, IID_PPV_ARGS(&resource));

@@ -70,7 +70,7 @@ bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
 
     // The size of the data to write is 'out_len'
     packet << static_cast<u32>(out_len);
-    for (size_t j = 0; j < out_len; j++)
+    for (size_t j = 0; j < out_len; ++j)
     {
       packet << out_buffer[j];
     }
@@ -154,7 +154,7 @@ bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& pack
 
     // The size of the data to write is 'out_len'
     packet << static_cast<u32>(out_len);
-    for (size_t j = 0; j < out_len; j++)
+    for (size_t j = 0; j < out_len; ++j)
     {
       packet << out_buffer[j];
     }
@@ -197,7 +197,7 @@ bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
     if (!cur_len)
       break;  // We reached the end of the data stream
 
-    for (size_t j = 0; j < cur_len; j++)
+    for (size_t j = 0; j < cur_len; ++j)
     {
       packet >> in_buffer[j];
     }
@@ -281,7 +281,7 @@ std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet)
     if (!cur_len)
       break;  // We reached the end of the data stream
 
-    for (size_t j = 0; j < cur_len; j++)
+    for (size_t j = 0; j < cur_len; ++j)
     {
       packet >> in_buffer[j];
     }

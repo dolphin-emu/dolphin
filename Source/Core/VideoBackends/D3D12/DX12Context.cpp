@@ -415,7 +415,7 @@ bool DXContext::CreateCommandLists()
   static constexpr size_t MAX_DRAWS_PER_FRAME = 8192;
   static constexpr size_t TEMPORARY_SLOTS = MAX_DRAWS_PER_FRAME * 8;
 
-  for (u32 i = 0; i < NUM_COMMAND_LISTS; i++)
+  for (u32 i = 0; i < NUM_COMMAND_LISTS; ++i)
   {
     CommandListResources& res = m_command_lists[i];
     HRESULT hr = m_device->CreateCommandAllocator(
@@ -544,7 +544,7 @@ void DXContext::WaitForFence(u64 fence)
 
   // Release resources for as many command lists which have completed.
   u32 index = (m_current_command_list + 1) % NUM_COMMAND_LISTS;
-  for (u32 i = 0; i < NUM_COMMAND_LISTS; i++)
+  for (u32 i = 0; i < NUM_COMMAND_LISTS; ++i)
   {
     CommandListResources& res = m_command_lists[index];
     if (m_completed_fence_value < res.ready_fence_value)

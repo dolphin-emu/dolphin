@@ -155,7 +155,7 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
   }
 
   auto iter = block_map.equal_range(translated_addr);
-  for (; iter.first != iter.second; iter.first++)
+  for (; iter.first != iter.second; ++iter.first)
   {
     JitBlock& b = iter.first->second;
     if (b.effectiveAddress == addr && b.msrBits == (msr & JIT_CACHE_MSR_MASK))

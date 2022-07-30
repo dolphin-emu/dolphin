@@ -294,7 +294,7 @@ RegCache::RegCache(Jit64& jit) : m_jit{jit}
 void RegCache::Start()
 {
   m_xregs.fill({});
-  for (size_t i = 0; i < m_regs.size(); i++)
+  for (size_t i = 0; i < m_regs.size(); ++i)
   {
     m_regs[i] = PPCCachedReg{GetDefaultLocation(i)};
   }
@@ -307,7 +307,7 @@ void RegCache::SetEmitter(XEmitter* emitter)
 
 bool RegCache::SanityCheck() const
 {
-  for (size_t i = 0; i < m_regs.size(); i++)
+  for (size_t i = 0; i < m_regs.size(); ++i)
   {
     switch (m_regs[i].GetLocationType())
     {
@@ -487,7 +487,7 @@ void RegCache::PreloadRegisters(BitSet32 to_preload)
 BitSet32 RegCache::RegistersInUse() const
 {
   BitSet32 result;
-  for (size_t i = 0; i < m_xregs.size(); i++)
+  for (size_t i = 0; i < m_xregs.size(); ++i)
   {
     if (!m_xregs[i].IsFree())
       result[i] = true;
@@ -590,7 +590,7 @@ X64Reg RegCache::GetFreeXReg()
 {
   size_t aCount;
   const X64Reg* aOrder = GetAllocationOrder(&aCount);
-  for (size_t i = 0; i < aCount; i++)
+  for (size_t i = 0; i < aCount; ++i)
   {
     X64Reg xr = aOrder[i];
     if (m_xregs[xr].IsFree())
@@ -604,7 +604,7 @@ X64Reg RegCache::GetFreeXReg()
   float min_score = std::numeric_limits<float>::max();
   X64Reg best_xreg = INVALID_REG;
   size_t best_preg = 0;
-  for (size_t i = 0; i < aCount; i++)
+  for (size_t i = 0; i < aCount; ++i)
   {
     X64Reg xreg = (X64Reg)aOrder[i];
     preg_t preg = m_xregs[xreg].Contents();
@@ -635,7 +635,7 @@ int RegCache::NumFreeRegisters() const
   int count = 0;
   size_t aCount;
   const X64Reg* aOrder = GetAllocationOrder(&aCount);
-  for (size_t i = 0; i < aCount; i++)
+  for (size_t i = 0; i < aCount; ++i)
     if (m_xregs[aOrder[i]].IsFree())
       count++;
   return count;

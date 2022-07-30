@@ -69,7 +69,7 @@ static std::string CodeToHeader(const std::vector<u16>& code, const std::string&
   header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
   header.append("\t{\n\t\t");
-  for (u32 j = 0; j < code_padded.size(); j++)
+  for (u32 j = 0; j < code_padded.size(); ++j)
   {
     if (j && ((j & 15) == 0))
       header.append("\n\t\t");
@@ -86,7 +86,7 @@ static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
 {
   std::vector<std::vector<u16>> codes_padded;
   std::size_t reserve_size = 0;
-  for (std::size_t i = 0; i < codes.size(); i++)
+  for (std::size_t i = 0; i < codes.size(); ++i)
   {
     codes_padded.push_back(codes[i]);
     // Pad with nops to 32byte boundary
@@ -110,13 +110,13 @@ static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
   header.append("};\n\n");
   header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
-  for (std::size_t i = 0; i < codes.size(); i++)
+  for (std::size_t i = 0; i < codes.size(); ++i)
   {
     if (codes[i].empty())
       continue;
 
     header.append("\t{\n\t\t");
-    for (std::size_t j = 0; j < codes_padded[i].size(); j++)
+    for (std::size_t j = 0; j < codes_padded[i].size(); ++j)
     {
       if (j && ((j & 15) == 0))
         header.append("\n\t\t");
@@ -150,7 +150,7 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
   const std::vector<u16> reg_vector = DSP::BinaryStringBEToCode(dumpfile);
 
   std::string results("Start:\n");
-  for (int initial_reg = 0; initial_reg < 32; initial_reg++)
+  for (int initial_reg = 0; initial_reg < 32; ++initial_reg)
   {
     results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
     if ((initial_reg + 1) % 8 == 0)
@@ -160,7 +160,7 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
   results.append("\n");
   results.append("Step [number]:\n[Reg] [last value] [current value]\n\n");
 
-  for (unsigned int step = 1; step < reg_vector.size() / 32; step++)
+  for (unsigned int step = 1; step < reg_vector.size() / 32; ++step)
   {
     bool changed = false;
     u16 current_reg;
@@ -169,7 +169,7 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
     // results.append(StringFromFormat("Step %3d: (CW 0x%04x) UC:%03d\n", step, 0x8fff+step,
     // (step-1)/32));
     results.append(StringFromFormat("Step %3d:\n", step));
-    for (int reg = 0; reg < 32; reg++)
+    for (int reg = 0; reg < 32; ++reg)
     {
       if (reg >= 0x0c && reg <= 0x0f)
         continue;
@@ -300,7 +300,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
 
       std::vector<std::vector<u16>> codes(lines);
 
-      for (std::size_t i = 0; i < lines; i++)
+      for (std::size_t i = 0; i < lines; ++i)
       {
         if (!File::ReadFileToString(files[i], currentSource))
         {
@@ -404,7 +404,7 @@ int main(int argc, const char* argv[])
 
   bool disassemble = false, compare = false, multiple = false, outputSize = false, force = false,
        print_results = false, print_results_prodhack = false, print_results_srhack = false;
-  for (int i = 1; i < argc; i++)
+  for (int i = 1; i < argc; ++i)
   {
     const std::string argument = argv[i];
     if (argument == "-d")

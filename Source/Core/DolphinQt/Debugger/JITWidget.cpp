@@ -170,7 +170,7 @@ void JITWidget::Update()
   if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, code_buffer.size()) != 0xFFFFFFFF)
   {
     std::ostringstream ppc_disasm;
-    for (u32 i = 0; i < code_block.m_num_instructions; i++)
+    for (u32 i = 0; i < code_block.m_num_instructions; ++i)
     {
       const PPCAnalyst::CodeOp& op = code_buffer[i];
       const std::string opcode = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);

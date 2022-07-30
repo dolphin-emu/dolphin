@@ -68,7 +68,7 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
 
   AssemblerSettings settings;
   DSPDisassembler disassembler(settings);
-  for (u16 i = 0; i < min_size; i++)
+  for (u16 i = 0; i < min_size; ++i)
   {
     if (code1[i] == code2[i])
     {
@@ -110,7 +110,7 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   {
     fmt::print("Extra code words:\n");
     const std::vector<u16>& longest = code1.size() > code2.size() ? code1 : code2;
-    for (u16 i = min_size; i < longest.size(); i++)
+    for (u16 i = min_size; i < longest.size(); ++i)
     {
       u16 pc = i;
       std::string line;
@@ -126,7 +126,7 @@ std::string CodeToBinaryStringBE(const std::vector<u16>& code)
 {
   std::string str(code.size() * 2, '\0');
 
-  for (size_t i = 0; i < code.size(); i++)
+  for (size_t i = 0; i < code.size(); ++i)
   {
     str[i * 2 + 0] = code[i] >> 8;
     str[i * 2 + 1] = code[i] & 0xff;
@@ -139,7 +139,7 @@ std::vector<u16> BinaryStringBEToCode(const std::string& str)
 {
   std::vector<u16> code(str.size() / 2);
 
-  for (size_t i = 0; i < code.size(); i++)
+  for (size_t i = 0; i < code.size(); ++i)
   {
     code[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
   }
@@ -178,7 +178,7 @@ bool DumpDSPCode(const u8* code_be, size_t size_in_bytes, u32 crc)
 
   // The disassembler works in native endian
   std::vector<u16> code(size_in_bytes / 2);
-  for (size_t i = 0; i < code.size(); i++)
+  for (size_t i = 0; i < code.size(); ++i)
     code[i] = Common::swap16(&code_be[i * 2]);
 
   std::string text;

@@ -261,7 +261,7 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   // Resolve to our already-created texture.
   if (g_ActiveConfig.backend_info.bSupportsPartialMultisampleResolve)
   {
-    for (u32 layer = 0; layer < GetEFBLayers(); layer++)
+    for (u32 layer = 0; layer < GetEFBLayers(); ++layer)
     {
       m_efb_resolve_color_texture->ResolveFromTexture(m_efb_color_texture.get(), clamped_region,
                                                       layer, 0);
@@ -339,7 +339,7 @@ bool FramebufferManager::ReinterpretPixelData(EFBReinterpretType convtype)
 
 bool FramebufferManager::CompileConversionPipelines()
 {
-  for (u32 i = 0; i < NUM_EFB_REINTERPRET_TYPES; i++)
+  for (u32 i = 0; i < NUM_EFB_REINTERPRET_TYPES; ++i)
   {
     EFBReinterpretType convtype = static_cast<EFBReinterpretType>(i);
     std::unique_ptr<AbstractShader> pixel_shader = g_renderer->CreateShaderFromSource(
@@ -751,13 +751,13 @@ bool FramebufferManager::CompileClearPipelines()
   config.framebuffer_state = GetEFBFramebufferState();
   config.usage = AbstractPipelineUsage::Utility;
 
-  for (u32 color_enable = 0; color_enable < 2; color_enable++)
+  for (u32 color_enable = 0; color_enable < 2; ++color_enable)
   {
     config.blending_state.colorupdate = color_enable != 0;
-    for (u32 alpha_enable = 0; alpha_enable < 2; alpha_enable++)
+    for (u32 alpha_enable = 0; alpha_enable < 2; ++alpha_enable)
     {
       config.blending_state.alphaupdate = alpha_enable != 0;
-      for (u32 depth_enable = 0; depth_enable < 2; depth_enable++)
+      for (u32 depth_enable = 0; depth_enable < 2; ++depth_enable)
       {
         config.depth_state.testenable = depth_enable != 0;
         config.depth_state.updateenable = depth_enable != 0;
@@ -775,11 +775,11 @@ bool FramebufferManager::CompileClearPipelines()
 
 void FramebufferManager::DestroyClearPipelines()
 {
-  for (u32 color_enable = 0; color_enable < 2; color_enable++)
+  for (u32 color_enable = 0; color_enable < 2; ++color_enable)
   {
-    for (u32 alpha_enable = 0; alpha_enable < 2; alpha_enable++)
+    for (u32 alpha_enable = 0; alpha_enable < 2; ++alpha_enable)
     {
-      for (u32 depth_enable = 0; depth_enable < 2; depth_enable++)
+      for (u32 depth_enable = 0; depth_enable < 2; ++depth_enable)
       {
         m_efb_clear_pipelines[color_enable][alpha_enable][depth_enable].reset();
       }

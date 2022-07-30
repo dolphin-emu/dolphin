@@ -39,7 +39,7 @@ void CopyTextureData(const TextureConfig& src_config, const u8* src_ptr, u32 src
 
   src_ptr += src_offset;
   dst_ptr += dst_offset;
-  for (u32 i = 0; i < height; i++)
+  for (u32 i = 0; i < height; ++i)
   {
     std::memcpy(dst_ptr, src_ptr, copy_len);
     src_ptr += src_stride;

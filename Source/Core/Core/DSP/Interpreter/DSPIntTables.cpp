@@ -263,7 +263,7 @@ void InitInstructionTables()
     return;
 
   // ext op table
-  for (size_t i = 0; i < s_ext_op_table.size(); i++)
+  for (size_t i = 0; i < s_ext_op_table.size(); ++i)
   {
     s_ext_op_table[i] = &Interpreter::nop;
 
@@ -275,7 +275,7 @@ void InitInstructionTables()
   }
 
   // op table
-  for (size_t i = 0; i < s_op_table.size(); i++)
+  for (size_t i = 0; i < s_op_table.size(); ++i)
   {
     s_op_table[i] = &Interpreter::nop;
 

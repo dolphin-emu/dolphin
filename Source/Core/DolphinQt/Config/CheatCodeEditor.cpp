@@ -119,7 +119,7 @@ bool CheatCodeEditor::AcceptAR()
 
   QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
 
-  for (int i = 0; i < lines.size(); i++)
+  for (int i = 0; i < lines.size(); ++i)
   {
     QString line = lines[i];
 
@@ -211,7 +211,7 @@ bool CheatCodeEditor::AcceptGecko()
 
   QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
 
-  for (int i = 0; i < lines.size(); i++)
+  for (int i = 0; i < lines.size(); ++i)
   {
     QString line = lines[i];
 

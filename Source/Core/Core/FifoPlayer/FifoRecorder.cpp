@@ -97,7 +97,7 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
                          vertex_data);
   offset += norm_size;
 
-  for (u32 i = 0; i < vtx_desc.low.Color.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.low.Color.Size(); ++i)
   {
     const u32 color_size =
         VertexLoader_Color::GetSize(vtx_desc.low.Color[i], vtx_attr.GetColorFormat(i));
@@ -105,7 +105,7 @@ void FifoRecorder::FifoRecordAnalyzer::OnPrimitiveCommand(OpcodeDecoder::Primiti
                            num_vertices, vertex_data);
     offset += color_size;
   }
-  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); i++)
+  for (u32 i = 0; i < vtx_desc.high.TexCoord.Size(); ++i)
   {
     const u32 tc_size = VertexLoader_TextCoord::GetSize(
         vtx_desc.high.TexCoord[i], vtx_attr.GetTexFormat(i), vtx_attr.GetTexElements(i));
@@ -133,7 +133,7 @@ void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(CPArray array_inde
   // Determine min and max indices
   if (array_type == VertexComponentFormat::Index8)
   {
-    for (u16 vertex_num = 0; vertex_num < num_vertices; vertex_num++)
+    for (u16 vertex_num = 0; vertex_num < num_vertices; ++vertex_num)
     {
       const u8 index = vertex_data[component_offset];
       vertex_data += vertex_size;
@@ -148,7 +148,7 @@ void FifoRecorder::FifoRecordAnalyzer::ProcessVertexComponent(CPArray array_inde
   }
   else
   {
-    for (u16 vertex_num = 0; vertex_num < num_vertices; vertex_num++)
+    for (u16 vertex_num = 0; vertex_num < num_vertices; ++vertex_num)
     {
       const u16 index = Common::swap16(&vertex_data[component_offset]);
       vertex_data += vertex_size;

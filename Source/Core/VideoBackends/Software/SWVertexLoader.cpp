@@ -69,7 +69,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
   m_setup_unit.Init(primitive_type);
 
   // set all states with are stored within video sw
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     Rasterizer::SetTevReg(i, Tev::RED_C, PixelShaderManager::constants.kcolors[i][0]);
     Rasterizer::SetTevReg(i, Tev::GRN_C, PixelShaderManager::constants.kcolors[i][1]);
@@ -77,7 +77,7 @@ void SWVertexLoader::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_
     Rasterizer::SetTevReg(i, Tev::ALP_C, PixelShaderManager::constants.kcolors[i][3]);
   }
 
-  for (u32 i = 0; i < m_index_generator.GetIndexLen(); i++)
+  for (u32 i = 0; i < m_index_generator.GetIndexLen(); ++i)
   {
     const u16 index = m_cpu_index_buffer[i];
     memset(static_cast<void*>(&m_vertex), 0, sizeof(m_vertex));
@@ -139,7 +139,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
     src.Skip(base_component * GetElementSize(format.type));
 
     int i;
-    for (i = 0; i < std::min(format.components - base_component, components); i++)
+    for (i = 0; i < std::min(format.components - base_component, components); ++i)
     {
       int i_dst = reverse ? components - i - 1 : i;
       switch (format.type)
@@ -164,7 +164,7 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
       ASSERT_MSG(VIDEO, !format.integer || format.type != ComponentFormat::Float,
                  "only non-float values are allowed to be streamed as integer");
     }
-    for (; i < components; i++)
+    for (; i < components; ++i)
     {
       int i_dst = reverse ? components - i - 1 : i;
       dst[i_dst] = i == 3;
@@ -210,7 +210,7 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
 
   ReadVertexAttribute<float>(&m_vertex.position[0], src, vdec.position, 0, 3, false);
 
-  for (std::size_t i = 0; i < m_vertex.normal.size(); i++)
+  for (std::size_t i = 0; i < m_vertex.normal.size(); ++i)
   {
     ReadVertexAttribute<float>(&m_vertex.normal[i][0], src, vdec.normals[i], 0, 3, false);
   }
@@ -229,7 +229,7 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
 
   ParseColorAttributes(&m_vertex, src, vdec);
 
-  for (std::size_t i = 0; i < m_vertex.texCoords.size(); i++)
+  for (std::size_t i = 0; i < m_vertex.texCoords.size(); ++i)
   {
     ReadVertexAttribute<float>(m_vertex.texCoords[i].data(), src, vdec.texcoords[i], 0, 2, false);
 

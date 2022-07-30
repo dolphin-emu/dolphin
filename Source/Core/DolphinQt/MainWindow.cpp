@@ -298,7 +298,7 @@ MainWindow::~MainWindow()
   delete m_render_widget;
   delete m_netplay_dialog;
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     delete m_gc_tas_input_windows[i];
     delete m_wii_tas_input_windows[i];
@@ -399,7 +399,7 @@ void MainWindow::CreateComponents()
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
     m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
@@ -1718,7 +1718,7 @@ void MainWindow::OnStartRecording()
   Movie::ControllerTypeArray controllers{};
   Movie::WiimoteEnabledArray wiimotes{};
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     const SerialInterface::SIDevices si_device = Config::Get(Config::GetInfoForSIDevice(i));
     if (si_device == SerialInterface::SIDEVICE_GC_GBA_EMULATED)
@@ -1773,7 +1773,7 @@ void MainWindow::OnRequestGolfControl()
 
 void MainWindow::ShowTASInput()
 {
-  for (int i = 0; i < num_gc_controllers; i++)
+  for (int i = 0; i < num_gc_controllers; ++i)
   {
     const auto si_device = Config::Get(Config::GetInfoForSIDevice(i));
     if (si_device != SerialInterface::SIDEVICE_NONE &&
@@ -1785,7 +1785,7 @@ void MainWindow::ShowTASInput()
     }
   }
 
-  for (int i = 0; i < num_wii_controllers; i++)
+  for (int i = 0; i < num_wii_controllers; ++i)
   {
     if (Config::Get(Config::GetInfoForWiimoteSource(i)) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))

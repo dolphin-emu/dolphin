@@ -34,7 +34,7 @@ TEST(BitSet, Count)
                           0xf267644a, 0xac00a719, 0x6d45f19b, 0xf7e91c5b, 0xf687e694,
                           0x9057c24e, 0x5eb65c39, 0x85d3038b, 0x101f4e66, 0xc202d136};
   u32 counts[] = {17, 14, 14, 19, 20, 14, 20, 20, 16, 13, 16, 12, 18, 20, 18, 14, 18, 14, 14, 12};
-  for (size_t i = 0; i < 20; i++)
+  for (size_t i = 0; i < 20; ++i)
   {
     EXPECT_EQ(counts[i], BitSet32(random_numbers[i]).Count());
   }
@@ -43,7 +43,7 @@ TEST(BitSet, Count)
                              0x06e4189be67d2b17ULL, 0x3eb0681f65cb6d25ULL, 0xccab8a7c74a51203ULL,
                              0x09d470516694c64bULL, 0x38cd077e075c778fULL, 0xd69ebfa6355ebfdeULL};
   u32 counts_64[] = {39, 34, 31, 32, 33, 29, 27, 35, 43};
-  for (size_t i = 0; i < 9; i++)
+  for (size_t i = 0; i < 9; ++i)
   {
     EXPECT_EQ(counts_64[i], BitSet64(random_numbers_64[i]).Count());
   }

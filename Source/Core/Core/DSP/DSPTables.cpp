@@ -587,7 +587,7 @@ const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst)
 void InitInstructionTable()
 {
   // ext op table
-  for (size_t i = 0; i < s_ext_op_table.size(); i++)
+  for (size_t i = 0; i < s_ext_op_table.size(); ++i)
   {
     s_ext_op_table[i] = &cw;
 
@@ -613,7 +613,7 @@ void InitInstructionTable()
   // op table
   s_op_table.fill(&cw);
 
-  for (size_t i = 0; i < s_op_table.size(); i++)
+  for (size_t i = 0; i < s_op_table.size(); ++i)
   {
     const auto iter = FindByOpcode(static_cast<UDSPInstruction>(i), s_opcodes);
     if (iter == s_opcodes.cend())

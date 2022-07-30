@@ -100,7 +100,7 @@ void CopyFromEmuSwapped(T* data, u32 address, size_t size)
   if (src == nullptr)
     return;
 
-  for (size_t i = 0; i < size / sizeof(T); i++)
+  for (size_t i = 0; i < size / sizeof(T); ++i)
     data[i] = Common::FromBigEndian(src[i]);
 }
 
@@ -112,7 +112,7 @@ void CopyToEmuSwapped(u32 address, const T* data, size_t size)
   if (dest == nullptr)
     return;
 
-  for (size_t i = 0; i < size / sizeof(T); i++)
+  for (size_t i = 0; i < size / sizeof(T); ++i)
     dest[i] = Common::FromBigEndian(data[i]);
 }
 }  // namespace Memory

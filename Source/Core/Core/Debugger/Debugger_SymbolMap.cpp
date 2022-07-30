@@ -125,7 +125,7 @@ void PrintDataBuffer(Common::Log::LogType type, const u8* data, size_t size, std
   for (u32 j = 0; j < size;)
   {
     std::string hex_line;
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; ++i)
     {
       hex_line += fmt::format("{:02x} ", data[j++]);
 

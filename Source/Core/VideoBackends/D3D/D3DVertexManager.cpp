@@ -78,7 +78,7 @@ bool VertexManager::Initialize()
                              D3D11_BIND_INDEX_BUFFER | D3D11_BIND_VERTEX_BUFFER,
                              D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-  for (int i = 0; i < BUFFER_COUNT; i++)
+  for (int i = 0; i < BUFFER_COUNT; ++i)
   {
     HRESULT hr = D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i]);
     ASSERT_MSG(VIDEO, SUCCEEDED(hr), "Failed to create buffer: {}", DX11HRWrap(hr));

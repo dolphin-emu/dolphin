@@ -169,7 +169,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   if (IsIndexed(addr))
   {
     input_size = addr == VertexComponentFormat::Index8 ? 1 : 2;
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < count; ++i)
       if (addr == VertexComponentFormat::Index8)
         Input<u8>(i);
       else
@@ -355,7 +355,7 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 
   CreateAndCheckSizes(33, 156);
 
-  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; i++)
+  for (int i = 0; i < NUM_VERTEX_COMPONENT_ARRAYS; ++i)
   {
     VertexLoaderManager::cached_arraybases[static_cast<CPArray>(i)] = m_src.GetPointer();
     g_main_cp_state.array_strides[static_cast<CPArray>(i)] = 129;

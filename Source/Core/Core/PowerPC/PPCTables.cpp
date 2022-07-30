@@ -165,7 +165,7 @@ void LogCompiledInstructions()
   static unsigned int time = 0;
 
   File::IOFile f(fmt::format("{}inst_log{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
-  for (size_t i = 0; i < m_numInstructions; i++)
+  for (size_t i = 0; i < m_numInstructions; ++i)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount > 0)
@@ -176,7 +176,7 @@ void LogCompiledInstructions()
   }
 
   f.Open(fmt::format("{}inst_not{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
-  for (size_t i = 0; i < m_numInstructions; i++)
+  for (size_t i = 0; i < m_numInstructions; ++i)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount == 0)

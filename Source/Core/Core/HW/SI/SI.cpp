@@ -331,7 +331,7 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
 
 void DoState(PointerWrap& p)
 {
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
+  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
   {
     p.Do(s_channel[i].in_hi.hex);
     p.Do(s_channel[i].in_lo.hex);
@@ -395,7 +395,7 @@ void Init()
 {
   RegisterEvents();
 
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
+  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
   {
     s_channel[i].out.hex = 0;
     s_channel[i].in_hi.hex = 0;
@@ -447,7 +447,7 @@ void Init()
 
 void Shutdown()
 {
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
+  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
     RemoveDevice(i);
   GBAConnectionWaiter_Shutdown();
 }

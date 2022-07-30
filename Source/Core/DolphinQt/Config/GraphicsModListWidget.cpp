@@ -217,7 +217,7 @@ void GraphicsModListWidget::OnModChanged(std::optional<std::string> absolute_pat
 
 void GraphicsModListWidget::SaveModList()
 {
-  for (int i = 0; i < m_mod_list->count(); i++)
+  for (int i = 0; i < m_mod_list->count(); ++i)
   {
     const auto absolute_path = m_mod_list->model()
                                    ->data(m_mod_list->model()->index(i, 0), Qt::UserRole)

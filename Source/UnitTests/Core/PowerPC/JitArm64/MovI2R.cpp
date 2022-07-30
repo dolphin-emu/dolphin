@@ -61,7 +61,7 @@ TEST(JitArm64, MovI2R_32BitValues)
 {
   Common::Random::PRNG rng{0};
   TestMovI2R test;
-  for (u64 i = 0; i < 0x100000; i++)
+  for (u64 i = 0; i < 0x100000; ++i)
   {
     const u32 value = rng.GenerateValue<u32>();
     test.Check32(value);
@@ -73,7 +73,7 @@ TEST(JitArm64, MovI2R_Rand)
 {
   Common::Random::PRNG rng{0};
   TestMovI2R test;
-  for (u64 i = 0; i < 0x100000; i++)
+  for (u64 i = 0; i < 0x100000; ++i)
   {
     test.Check64(rng.GenerateValue<u64>());
   }
@@ -116,7 +116,7 @@ TEST(JitArm64, MovI2R_ADP)
   const u64 base = Common::BitCast<u64>(test.GetCodePtr());
 
   // Test offsets around 0
-  for (s64 i = -0x20000; i < 0x20000; i++)
+  for (s64 i = -0x20000; i < 0x20000; ++i)
   {
     const u64 offset = static_cast<u64>(i);
     test.Check64(base + offset);
@@ -125,7 +125,7 @@ TEST(JitArm64, MovI2R_ADP)
   // Test offsets around the maximum
   for (const s64 i : {-0x200000ll, 0x200000ll})
   {
-    for (s64 j = -4; j < 4; j++)
+    for (s64 j = -4; j < 4; ++j)
     {
       const u64 offset = static_cast<u64>(i + j);
       test.Check64(base + offset);
@@ -139,7 +139,7 @@ TEST(JitArm64, MovI2R_ADRP)
   const u64 base = Common::BitCast<u64>(test.GetCodePtr()) & ~0xFFF;
 
   // Test offsets around 0
-  for (s64 i = -0x20000; i < 0x20000; i++)
+  for (s64 i = -0x20000; i < 0x20000; ++i)
   {
     const u64 offset = static_cast<u64>(i) << 12;
     test.Check64(base + offset);
@@ -148,7 +148,7 @@ TEST(JitArm64, MovI2R_ADRP)
   // Test offsets around the maximum
   for (const s64 i : {-0x100000000ll, -0x80000000ll, 0x80000000ll, 0x100000000ll})
   {
-    for (s64 j = -4; j < 4; j++)
+    for (s64 j = -4; j < 4; ++j)
     {
       const u64 offset = static_cast<u64>(i + (j << 12));
       test.Check64(base + offset);

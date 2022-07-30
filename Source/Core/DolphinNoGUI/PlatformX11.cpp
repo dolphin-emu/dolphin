@@ -184,7 +184,7 @@ void PlatformX11::ProcessEvents()
 {
   XEvent event;
   KeySym key;
-  for (int num_events = XPending(m_display); num_events > 0; num_events--)
+  for (int num_events = XPending(m_display); num_events > 0; --num_events)
   {
     XNextEvent(m_display, &event);
     switch (event.type)

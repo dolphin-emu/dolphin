@@ -374,19 +374,19 @@ void Interpreter::InitializeInstructionTables()
     return;
 
   // clear
-  for (int i = 0; i < 64; i++)
+  for (int i = 0; i < 64; ++i)
   {
     m_op_table[i] = Interpreter::unknown_instruction;
     m_infoTable[i] = &unknownopinfo;
   }
 
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
   {
     m_op_table59[i] = Interpreter::unknown_instruction;
     m_infoTable59[i] = &unknownopinfo;
   }
 
-  for (int i = 0; i < 1024; i++)
+  for (int i = 0; i < 1024; ++i)
   {
     m_op_table4[i] = Interpreter::unknown_instruction;
     m_op_table19[i] = Interpreter::unknown_instruction;
@@ -404,7 +404,7 @@ void Interpreter::InitializeInstructionTables()
     m_infoTable[tpl.opcode] = &tpl.opinfo;
   }
 
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
   {
     int fill = i << 5;
     for (auto& tpl : table4_2)
@@ -415,7 +415,7 @@ void Interpreter::InitializeInstructionTables()
     }
   }
 
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; ++i)
   {
     int fill = i << 6;
     for (auto& tpl : table4_3)
@@ -461,7 +461,7 @@ void Interpreter::InitializeInstructionTables()
     m_infoTable63[op] = &tpl.opinfo;
   }
 
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
   {
     int fill = i << 5;
     for (auto& tpl : table63_2)

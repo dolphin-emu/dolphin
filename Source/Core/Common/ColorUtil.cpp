@@ -45,9 +45,9 @@ void Decode5A3Image(u32* dst, const u16* src, int width, int height)
   {
     for (int x = 0; x < width; x += 4)
     {
-      for (int iy = 0; iy < 4; iy++, src += 4)
+      for (int iy = 0; iy < 4; ++iy, src += 4)
       {
-        for (int ix = 0; ix < 4; ix++)
+        for (int ix = 0; ix < 4; ++ix)
         {
           u32 RGBA = Decode5A3(Common::swap16(src[ix]));
           dst[(y + iy) * width + (x + ix)] = RGBA;
@@ -63,10 +63,10 @@ void DecodeCI8Image(u32* dst, const u8* src, const u16* pal, int width, int heig
   {
     for (int x = 0; x < width; x += 8)
     {
-      for (int iy = 0; iy < 4; iy++, src += 8)
+      for (int iy = 0; iy < 4; ++iy, src += 8)
       {
         u32* tdst = dst + (y + iy) * width + x;
-        for (int ix = 0; ix < 8; ix++)
+        for (int ix = 0; ix < 8; ++ix)
         {
           // huh, this seems wrong. CI8, not 5A3, no?
           tdst[ix] = Decode5A3(Common::swap16(pal[src[ix]]));

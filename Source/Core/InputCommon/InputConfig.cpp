@@ -65,7 +65,7 @@ bool InputConfig::LoadConfig(InputClass type)
     IniFile game_ini = SConfig::GetInstance().LoadGameIni();
     IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
     {
       const auto profile_name = fmt::format("{}Profile{}", type_str, num[i]);
 

@@ -108,7 +108,7 @@ u8* ARM64XEmitter::GetWritableCodeEnd()
 
 void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
 {
-  for (u32 i = 0; i < bytes / 4; i++)
+  for (u32 i = 0; i < bytes / 4; ++i)
     BRK(0);
 }
 
@@ -2005,7 +2005,7 @@ void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
   }
 
   // Fast store for all other registers, this is always an even number.
-  for (int i = 0; i < (num_regs - 1) / 2; i++)
+  for (int i = 0; i < (num_regs - 1) / 2; ++i)
   {
     ARM64Reg odd_reg = ARM64Reg::X0 + *it++;
     ARM64Reg even_reg = ARM64Reg::X0 + *it++;
@@ -2036,7 +2036,7 @@ void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
   // Only update the SP on the last load to avoid the dependency between those loads.
 
   // Fast load for all but the first (two) registers, this is always an even number.
-  for (int i = 0; i < (num_regs - 1) / 2; i++)
+  for (int i = 0; i < (num_regs - 1) / 2; ++i)
   {
     ARM64Reg odd_reg = ARM64Reg::X0 + *it++;
     ARM64Reg even_reg = ARM64Reg::X0 + *it++;

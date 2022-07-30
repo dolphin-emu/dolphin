@@ -1291,7 +1291,7 @@ void Renderer::SetComputeImageTexture(AbstractTexture* texture, bool read, bool 
 
 void Renderer::UnbindTexture(const AbstractTexture* texture)
 {
-  for (size_t i = 0; i < m_bound_textures.size(); i++)
+  for (size_t i = 0; i < m_bound_textures.size(); ++i)
   {
     if (m_bound_textures[i] != texture)
       continue;

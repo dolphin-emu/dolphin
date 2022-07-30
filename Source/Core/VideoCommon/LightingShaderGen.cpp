@@ -84,7 +84,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data,
                                 std::string_view in_color_name, std::string_view dest)
 {
-  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; ++j)
   {
     object.Write("{{\n");
 
@@ -152,7 +152,7 @@ void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_d
 
 void GetLightingShaderUid(LightingUidData& uid_data)
 {
-  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; j++)
+  for (u32 j = 0; j < NUM_XF_COLOR_CHANNELS; ++j)
   {
     uid_data.matsource |= static_cast<u32>(xfmem.color[j].matsource.Value()) << j;
     uid_data.matsource |= static_cast<u32>(xfmem.alpha[j].matsource.Value()) << (j + 2);

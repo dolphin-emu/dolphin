@@ -1567,7 +1567,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_SyncCodes;
   spac << m_settings.m_SyncAllWiiSaves;
 
-  for (size_t i = 0; i < m_settings.m_WiimoteExtension.size(); i++)
+  for (size_t i = 0; i < m_settings.m_WiimoteExtension.size(); ++i)
   {
     const int extension =
         static_cast<ControllerEmu::Attachments*>(
@@ -1807,7 +1807,7 @@ bool NetPlayServer::SyncSaveData()
         for (u8 byte : header->md5)
           pac << byte;
         pac << header->unk2;
-        for (size_t i = 0; i < header->banner_size; i++)
+        for (size_t i = 0; i < header->banner_size; ++i)
           pac << header->banner[i];
 
         // BkHeader

@@ -93,7 +93,7 @@ void SetCardFlashID(const u8* buffer, ExpansionInterface::Slot card_slot)
 
   u64 rand = Common::swap64(&buffer[12]);
   u8 csum = 0;
-  for (int i = 0; i < 12; i++)
+  for (int i = 0; i < 12; ++i)
   {
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
     csum += g_SRAM.settings_ex.flash_id[card_index][i] = buffer[i] - ((u8)rand & 0xff);
@@ -109,7 +109,7 @@ void FixSRAMChecksums()
   u16 checksum = 0;
   u16 checksum_inv = 0;
   for (auto p = reinterpret_cast<u16*>(&g_SRAM.settings.rtc_bias);
-       p != reinterpret_cast<u16*>(&g_SRAM.settings_ex); p++)
+       p != reinterpret_cast<u16*>(&g_SRAM.settings_ex); ++p)
   {
     u16 value = Common::FromBigEndian(*p);
     checksum += value;

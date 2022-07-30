@@ -107,7 +107,7 @@ int Interpreter::RunCyclesDebug(int cycles)
   auto& state = m_dsp_core.DSPState();
 
   // First, let's run a few cycles with no idle skipping so that things can progress a bit.
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     if ((state.control_reg & CR_HALT) != 0)
       return 0;
@@ -127,7 +127,7 @@ int Interpreter::RunCyclesDebug(int cycles)
   {
     // Next, let's run a few cycles with idle skipping, so that we can skip
     // idle loops.
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
       if ((state.control_reg & CR_HALT) != 0)
         return 0;
@@ -148,7 +148,7 @@ int Interpreter::RunCyclesDebug(int cycles)
     }
 
     // Now, lets run some more without idle skipping.
-    for (int i = 0; i < 200; i++)
+    for (int i = 0; i < 200; ++i)
     {
       if (m_dsp_core.BreakPoints().IsAddressBreakPoint(state.pc))
       {
@@ -172,7 +172,7 @@ int Interpreter::RunCycles(int cycles)
 
   // First, let's run a few cycles with no idle skipping so that things can
   // progress a bit.
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     if ((state.control_reg & CR_HALT) != 0)
       return 0;
@@ -188,7 +188,7 @@ int Interpreter::RunCycles(int cycles)
   {
     // Next, let's run a few cycles with idle skipping, so that we can skip
     // idle loops.
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
       if ((state.control_reg & CR_HALT) != 0)
         return 0;
@@ -204,7 +204,7 @@ int Interpreter::RunCycles(int cycles)
     }
 
     // Now, lets run some more without idle skipping.
-    for (int i = 0; i < 200; i++)
+    for (int i = 0; i < 200; ++i)
     {
       Step();
       cycles--;
@@ -848,7 +848,7 @@ void Interpreter::ApplyWriteBackLog()
 {
   // Always make sure to have an extra entry at the end w/ -1 to avoid
   // infinite loops
-  for (int i = 0; m_write_back_log_idx[i] != -1; i++)
+  for (int i = 0; m_write_back_log_idx[i] != -1; ++i)
   {
     u16 value = m_write_back_log[i];
 #ifdef PRECISE_BACKLOG
@@ -884,7 +884,7 @@ void Interpreter::ZeroWriteBackLog()
 #ifdef PRECISE_BACKLOG
   // always make sure to have an extra entry at the end w/ -1 to avoid
   // infinite loops
-  for (int i = 0; m_write_back_log_idx[i] != -1; i++)
+  for (int i = 0; m_write_back_log_idx[i] != -1; ++i)
   {
     OpWriteRegister(m_write_back_log_idx[i], 0);
   }
@@ -894,7 +894,7 @@ void Interpreter::ZeroWriteBackLog()
 void Interpreter::ZeroWriteBackLogPreserveAcc([[maybe_unused]] u8 acc)
 {
 #ifdef PRECISE_BACKLOG
-  for (int i = 0; m_write_back_log_idx[i] != -1; i++)
+  for (int i = 0; m_write_back_log_idx[i] != -1; ++i)
   {
     // acc0
     if (acc == 0 &&

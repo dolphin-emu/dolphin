@@ -78,7 +78,7 @@ void PopulateDevices(void* const hwnd)
 
   all_masters = XIQueryDevice(dpy, XIAllMasterDevices, &num_masters);
 
-  for (int i = 0; i < num_masters; i++)
+  for (int i = 0; i < num_masters; ++i)
   {
     current_master = &all_masters[i];
     if (current_master->use == XIMasterPointer)
@@ -113,7 +113,7 @@ void KeyboardMouse::SelectEventsForDevice(XIEventMask* mask, int deviceid)
   int num_slaves;
   XIDeviceInfo* const all_slaves = XIQueryDevice(m_display, XIAllDevices, &num_slaves);
 
-  for (int i = 0; i < num_slaves; i++)
+  for (int i = 0; i < num_slaves; ++i)
   {
     XIDeviceInfo* const slave = &all_slaves[i];
     if ((slave->use != XISlavePointer && slave->use != XISlaveKeyboard) ||
@@ -188,7 +188,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   AddCombinedInput("Ctrl", {"Control_L", "Control_R"});
 
   // Mouse Buttons
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
     AddInput(new Button(i, &m_state.buttons));
 
   // Mouse Cursor, X-/+ and Y-/+

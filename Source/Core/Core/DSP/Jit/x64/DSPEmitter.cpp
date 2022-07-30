@@ -73,7 +73,7 @@ void DSPEmitter::DoState(PointerWrap& p)
 
 void DSPEmitter::ClearIRAM()
 {
-  for (size_t i = 0; i < DSP_IRAM_SIZE; i++)
+  for (size_t i = 0; i < DSP_IRAM_SIZE; ++i)
   {
     m_blocks[i] = (DSPCompiledCode)m_stub_entry_point;
     m_block_links[i] = nullptr;
@@ -89,7 +89,7 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
   CompileDispatcher();
   m_stub_entry_point = CompileStub();
 
-  for (size_t i = 0; i < MAX_BLOCKS; i++)
+  for (size_t i = 0; i < MAX_BLOCKS; ++i)
   {
     m_blocks[i] = (DSPCompiledCode)m_stub_entry_point;
     m_block_links[i] = nullptr;

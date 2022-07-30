@@ -120,7 +120,7 @@ void WiimoteControllersWidget::CreateLayout()
   // Emulated BT
   m_wiimote_layout->addWidget(m_wiimote_emu, m_wiimote_layout->rowCount(), 0, 1, -1);
 
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  for (size_t i = 0; i < m_wiimote_groups.size(); ++i)
   {
     auto* wm_label = m_wiimote_labels[i] = new QLabel(tr("Wii Remote %1").arg(i + 1));
     auto* wm_box = m_wiimote_boxes[i] = new QComboBox();
@@ -178,7 +178,7 @@ void WiimoteControllersWidget::ConnectWidgets()
   connect(m_wiimote_refresh, &QPushButton::clicked, this,
           &WiimoteControllersWidget::OnWiimoteRefreshPressed);
 
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  for (size_t i = 0; i < m_wiimote_groups.size(); ++i)
   {
     connect(m_wiimote_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &WiimoteControllersWidget::SaveSettings);
@@ -216,7 +216,7 @@ void WiimoteControllersWidget::UpdateDisabledWiimoteControls()
   for (auto* pt_label : m_wiimote_pt_labels)
     pt_label->setEnabled(enable_passthrough);
 
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  for (size_t i = 0; i < m_wiimote_groups.size(); ++i)
   {
     m_wiimote_labels[i]->setEnabled(enable_emu_bt);
     m_wiimote_boxes[i]->setEnabled(enable_emu_bt);
@@ -276,7 +276,7 @@ void WiimoteControllersWidget::OnWiimoteRefreshPressed()
 void WiimoteControllersWidget::OnWiimoteConfigure()
 {
   size_t index;
-  for (index = 0; index < m_wiimote_groups.size(); index++)
+  for (index = 0; index < m_wiimote_groups.size(); ++index)
   {
     if (m_wiimote_buttons[index] == QObject::sender())
       break;
@@ -303,7 +303,7 @@ void WiimoteControllersWidget::OnWiimoteConfigure()
 
 void WiimoteControllersWidget::LoadSettings()
 {
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  for (size_t i = 0; i < m_wiimote_groups.size(); ++i)
   {
     m_wiimote_boxes[i]->setCurrentIndex(int(Config::Get(Config::GetInfoForWiimoteSource(int(i)))));
   }
@@ -336,7 +336,7 @@ void WiimoteControllersWidget::SaveSettings()
       m_wiimote_real_balance_board->isChecked() ? WiimoteSource::Real : WiimoteSource::None;
   Config::SetBaseOrCurrent(Config::WIIMOTE_BB_SOURCE, bb_source);
 
-  for (size_t i = 0; i < m_wiimote_groups.size(); i++)
+  for (size_t i = 0; i < m_wiimote_groups.size(); ++i)
   {
     const int index = m_wiimote_boxes[i]->currentIndex();
     Config::SetBaseOrCurrent(Config::GetInfoForWiimoteSource(int(i)), WiimoteSource(index));

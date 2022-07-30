@@ -354,7 +354,7 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
   };
 
   m_context_table->setRowCount(0);
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
   {
     m_context_table->insertRow(i);
     m_context_table->setItem(i, 0, new QTableWidgetItem(QStringLiteral("GPR%1").arg(i)));
@@ -409,7 +409,7 @@ void ThreadWidget::UpdateThreadContext(const Common::Debug::PartialContext& cont
       m_context_table->setItem(i, 7, new QTableWidgetItem(format_hex(context.state)));
       break;
     default:
-      for (int j = 6; j <= 7; j++)
+      for (int j = 6; j <= 7; ++j)
       {
         auto* disabled_item = new QTableWidgetItem();
         auto flags = disabled_item->flags();
@@ -437,7 +437,7 @@ void ThreadWidget::UpdateThreadCallstack(const Common::Debug::PartialContext& co
   };
 
   u32 sp = context.gpr->at(1);
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; ++i)
   {
     if (sp == 0 || sp == 0xffffffff || !PowerPC::HostIsRAMAddress(sp))
       break;

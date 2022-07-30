@@ -300,7 +300,7 @@ void CommonAsmRoutines::GenMfcr()
   XOR(32, R(dst), R(dst));
   // Upper bits of tmp need to be zeroed.
   XOR(32, R(tmp), R(tmp));
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     if (i != 0)
       SHL(32, R(dst), Imm8(4));
@@ -345,7 +345,7 @@ void CommonAsmRoutines::GenQuantizedStores()
   paired_store_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
-  for (int type = 0; type < 8; type++)
+  for (int type = 0; type < 8; ++type)
   {
     paired_store_quantized[type] =
         GenQuantizedStoreRuntime(false, static_cast<EQuantizeType>(type));
@@ -359,7 +359,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
   single_store_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
-  for (int type = 0; type < 8; type++)
+  for (int type = 0; type < 8; ++type)
     single_store_quantized[type] = GenQuantizedStoreRuntime(true, static_cast<EQuantizeType>(type));
 }
 
@@ -380,7 +380,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
   paired_load_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
-  for (int type = 0; type < 8; type++)
+  for (int type = 0; type < 8; ++type)
     paired_load_quantized[type] = GenQuantizedLoadRuntime(false, static_cast<EQuantizeType>(type));
 }
 
@@ -390,7 +390,7 @@ void CommonAsmRoutines::GenQuantizedSingleLoads()
   single_load_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
-  for (int type = 0; type < 8; type++)
+  for (int type = 0; type < 8; ++type)
     single_load_quantized[type] = GenQuantizedLoadRuntime(true, static_cast<EQuantizeType>(type));
 }
 

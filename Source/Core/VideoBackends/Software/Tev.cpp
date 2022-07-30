@@ -102,7 +102,7 @@ void Tev::Init()
   m_AlphaInputLUT[6] = &StageKonst[ALP_C];  // konst
   m_AlphaInputLUT[7] = &Zero16[ALP_C];      // zero
 
-  for (int comp = 0; comp < 4; comp++)
+  for (int comp = 0; comp < 4; ++comp)
   {
     m_KonstLUT[0][comp] = &FixedConstants[8];
     m_KonstLUT[1][comp] = &FixedConstants[7];
@@ -229,7 +229,7 @@ void Tev::SetRasColor(RasColorChan colorChan, int swaptable)
 
 void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
 {
-  for (int i = BLU_C; i <= RED_C; i++)
+  for (int i = BLU_C; i <= RED_C; ++i)
   {
     const InputRegType& InputReg = inputs[i];
 
@@ -252,7 +252,7 @@ void Tev::DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const Inpu
 
 void Tev::DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4])
 {
-  for (int i = BLU_C; i <= RED_C; i++)
+  for (int i = BLU_C; i <= RED_C; ++i)
   {
     u32 a, b;
     switch (cc.compare_mode)
@@ -546,7 +546,7 @@ void Tev::Draw()
   INCSTAT(g_stats.this_frame.tev_pixels_in);
 
   // initial color values
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
   {
     Reg[i][RED_C] = PixelShaderManager::constants.colors[i][0];
     Reg[i][GRN_C] = PixelShaderManager::constants.colors[i][1];
@@ -554,7 +554,7 @@ void Tev::Draw()
     Reg[i][ALP_C] = PixelShaderManager::constants.colors[i][3];
   }
 
-  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; ++stageNum)
   {
     const int stageNum2 = stageNum >> 1;
     const int stageOdd = stageNum & 1;
@@ -588,7 +588,7 @@ void Tev::Draw()
 #endif
   }
 
-  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; ++stageNum)
   {
     const int stageNum2 = stageNum >> 1;
     const int stageOdd = stageNum & 1;
@@ -654,7 +654,7 @@ void Tev::Draw()
 
     // combine inputs
     InputRegType inputs[4];
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; ++i)
     {
       inputs[BLU_C + i].a = *m_ColorInputLUT[u32(cc.a.Value())][i];
       inputs[BLU_C + i].b = *m_ColorInputLUT[u32(cc.b.Value())][i];

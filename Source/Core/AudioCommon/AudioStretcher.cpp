@@ -75,7 +75,7 @@ void AudioStretcher::GetStretchedSamples(short* out, unsigned int num_out)
   }
 
   // Perform padding if we've run out of samples.
-  for (size_t i = samples_received; i < num_out; i++)
+  for (size_t i = samples_received; i < num_out; ++i)
   {
     out[i * 2 + 0] = m_last_stretched_sample[0];
     out[i * 2 + 1] = m_last_stretched_sample[1];

@@ -347,7 +347,7 @@ ControllerEmu::ControlGroup* GetInputGroup(int pad_num, FreeLookGroup group)
 
 void UpdateInput()
 {
-  for (int i = 0; i < s_config.GetControllerCount(); i++)
+  for (int i = 0; i < s_config.GetControllerCount(); ++i)
   {
     static_cast<FreeLookController*>(s_config.GetController(i))->Update();
   }

@@ -253,7 +253,7 @@ void SaveToBuffer(std::vector<u8>& buffer)
 // return state number not in map
 static int GetEmptySlot(std::map<double, int> m)
 {
-  for (int i = 1; i <= (int)NUM_STATES; i++)
+  for (int i = 1; i <= (int)NUM_STATES; ++i)
   {
     bool found = false;
     for (auto& p : m)
@@ -277,7 +277,7 @@ static std::map<double, int> GetSavedStates()
 {
   StateHeader header;
   std::map<double, int> m;
-  for (int i = 1; i <= (int)NUM_STATES; i++)
+  for (int i = 1; i <= (int)NUM_STATES; ++i)
   {
     std::string filename = MakeStateFilename(i);
     if (File::Exists(filename))

@@ -740,14 +740,14 @@ void Jit64::Trace()
   std::string fregs;
 
 #ifdef JIT_LOG_GPR
-  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); ++i)
   {
     regs += fmt::format("r{:02d}: {:08x} ", i, PowerPC::ppcState.gpr[i]);
   }
 #endif
 
 #ifdef JIT_LOG_FPR
-  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); ++i)
   {
     fregs += fmt::format("f{:02d}: {:016x} ", i, PowerPC::ppcState.ps[i].PS0AsU64());
   }
@@ -992,7 +992,7 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   // Translate instructions
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
+  for (u32 i = 0; i < code_block.m_num_instructions; ++i)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
@@ -1312,7 +1312,7 @@ bool Jit64::HandleFunctionHooking(u32 address)
 void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
                      const JitBlock* b)
 {
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size; ++i)
   {
     const PPCAnalyst::CodeOp& op = code_buffer[i];
     const std::string disasm = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
@@ -1336,7 +1336,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
   {
     std::ostringstream ss;
     ss << std::hex;
-    for (u8 i = 0; i <= b->codeSize; i++)
+    for (u8 i = 0; i <= b->codeSize; ++i)
     {
       ss.width(2);
       ss.fill('0');

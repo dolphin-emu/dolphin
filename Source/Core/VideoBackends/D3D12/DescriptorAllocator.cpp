@@ -91,7 +91,7 @@ bool SamplerAllocator::GetGroupHandle(const SamplerStateSet& sss,
 
   // Lookup sampler handles from global cache.
   std::array<D3D12_CPU_DESCRIPTOR_HANDLE, SamplerStateSet::NUM_SAMPLERS_PER_GROUP> source_handles;
-  for (u32 i = 0; i < SamplerStateSet::NUM_SAMPLERS_PER_GROUP; i++)
+  for (u32 i = 0; i < SamplerStateSet::NUM_SAMPLERS_PER_GROUP; ++i)
   {
     if (!g_dx_context->GetSamplerHeapManager().Lookup(sss.states[i], &source_handles[i]))
       return false;

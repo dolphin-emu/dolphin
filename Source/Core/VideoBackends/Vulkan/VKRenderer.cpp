@@ -587,7 +587,7 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 void Renderer::ResetSamplerStates()
 {
   // Invalidate all sampler states, next draw will re-initialize them.
-  for (u32 i = 0; i < m_sampler_states.size(); i++)
+  for (u32 i = 0; i < m_sampler_states.size(); ++i)
   {
     m_sampler_states[i] = RenderState::GetPointSamplerState();
     StateTracker::GetInstance()->SetSampler(i, g_object_cache->GetPointSampler());

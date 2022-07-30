@@ -18,23 +18,23 @@ namespace Core::Debug
 //  - OSExceptionVector
 void OSContext::Read(u32 addr)
 {
-  for (std::size_t i = 0; i < gpr.size(); i++)
+  for (std::size_t i = 0; i < gpr.size(); ++i)
     gpr[i] = PowerPC::HostRead_U32(addr + u32(i * sizeof(int)));
   cr = PowerPC::HostRead_U32(addr + 0x80);
   lr = PowerPC::HostRead_U32(addr + 0x84);
   ctr = PowerPC::HostRead_U32(addr + 0x88);
   xer = PowerPC::HostRead_U32(addr + 0x8C);
-  for (std::size_t i = 0; i < fpr.size(); i++)
+  for (std::size_t i = 0; i < fpr.size(); ++i)
     fpr[i] = PowerPC::HostRead_F64(addr + 0x90 + u32(i * sizeof(double)));
   fpscr = PowerPC::HostRead_U64(addr + 0x190);
   srr0 = PowerPC::HostRead_U32(addr + 0x198);
   srr1 = PowerPC::HostRead_U32(addr + 0x19c);
   dummy = PowerPC::HostRead_U16(addr + 0x1a0);
   state = static_cast<OSContext::State>(PowerPC::HostRead_U16(addr + 0x1a2));
-  for (std::size_t i = 0; i < gqr.size(); i++)
+  for (std::size_t i = 0; i < gqr.size(); ++i)
     gqr[i] = PowerPC::HostRead_U32(addr + 0x1a4 + u32(i * sizeof(int)));
   psf_padding = 0;
-  for (std::size_t i = 0; i < psf.size(); i++)
+  for (std::size_t i = 0; i < psf.size(); ++i)
     psf[i] = PowerPC::HostRead_F64(addr + 0x1c8 + u32(i * sizeof(double)));
 }
 

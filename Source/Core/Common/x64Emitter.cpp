@@ -187,7 +187,7 @@ void XEmitter::ReserveCodeSpace(int bytes)
     return;
   }
 
-  for (int i = 0; i < bytes; i++)
+  for (int i = 0; i < bytes; ++i)
     *code++ = 0xCC;
 }
 

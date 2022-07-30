@@ -125,7 +125,7 @@ void ASndUCode::HandleMail(u32 mail)
       // input_samples2
       DMAInVoiceData();  // first do_dma call
       // second do_dma call
-      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
+      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; ++i)
       {
         m_output_buffer[i] = HLEMemory_Read_U16(m_current_voice.out_buf + i * sizeof(u16));
       }
@@ -147,7 +147,7 @@ void ASndUCode::HandleMail(u32 mail)
       break;
     case MAIN_SEND_SAMPLES:
       DEBUG_LOG_FMT(DSPHLE, "ASndUCode - MAIN_SEND_SAMPLES: {:08x}", mail);
-      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
+      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; ++i)
       {
         HLEMemory_Write_U16(m_current_voice.out_buf + i * sizeof(u16), m_output_buffer[i]);
       }
@@ -436,7 +436,7 @@ void ASndUCode::DMAInSampleData()
   // The only difference is that this one forces the address to be aligned, while when
   // jump_load_smp_dma is used, the address is expected to already be aligned.
   const u32 addr = m_current_voice.start_addr & ~INPUT_SAMPLE_BUFFER_BYTE_MASK;
-  for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; i++)
+  for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; ++i)
   {
     m_input_sample_buffer[i] = HLEMemory_Read_U16(addr + i * sizeof(u16));
   }
@@ -448,7 +448,7 @@ void ASndUCode::DMAInSampleDataAssumeAligned()
   // This is technically not a function, but instead is directly jumped to and then jumps to $ar3
   // (which is set to an address from sample_selector). We can just treat it as a function though.
   const u32 addr = m_current_voice.start_addr;
-  for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; i++)
+  for (u16 i = 0; i < INPUT_SAMPLE_BUFFER_SIZE_WORDS; ++i)
   {
     m_input_sample_buffer[i] = HLEMemory_Read_U16(addr + i * sizeof(u16));
   }

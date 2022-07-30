@@ -45,7 +45,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "Keyboard - Direct (Request Length: {})", request_length);
     u32 high, low;
     GetData(high, low);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
     {
       buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
       buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
@@ -178,7 +178,7 @@ CSIDevice_Keyboard::KeyArray CSIDevice_Keyboard::MapKeys(const KeyboardStatus& k
   KeyArray key{};
 
   const auto check_masks = [&](const auto& masks, const auto& keys, u32 field) {
-    for (size_t i = 0; i < masks.size(); i++)
+    for (size_t i = 0; i < masks.size(); ++i)
     {
       if ((field & masks[i]) == 0)
         continue;

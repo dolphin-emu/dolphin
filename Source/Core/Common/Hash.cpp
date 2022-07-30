@@ -34,7 +34,7 @@ u32 HashEctor(const u8* data, size_t len)
 {
   u32 crc = 0;
 
-  for (size_t i = 0; i < len; i++)
+  for (size_t i = 0; i < len; ++i)
   {
     crc ^= data[i];
     crc = (crc << 3) | (crc >> 29);

@@ -369,7 +369,7 @@ u8 GCMemcard::GetNumFiles() const
     return 0;
 
   u8 j = 0;
-  for (int i = 0; i < DIRLEN; i++)
+  for (int i = 0; i < DIRLEN; ++i)
   {
     if (GetActiveDirectory().m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
       j++;
@@ -382,7 +382,7 @@ u8 GCMemcard::GetFileIndex(u8 fileNumber) const
   if (m_valid)
   {
     u8 j = 0;
-    for (u8 i = 0; i < DIRLEN; i++)
+    for (u8 i = 0; i < DIRLEN; ++i)
     {
       if (GetActiveDirectory().m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
       {
@@ -457,7 +457,7 @@ std::string GCMemcard::DEntry_BIFlags(u8 index) const
 
   std::string flags;
   int x = GetActiveDirectory().m_dir_entries[index].m_banner_and_icon_flags;
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     flags.push_back((x & 0x80) ? '1' : '0');
     x = x << 1;
@@ -860,7 +860,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const Savefile& savefile)
   Directory UpdatedDir = GetActiveDirectory();
 
   // find first free dir entry
-  for (int i = 0; i < DIRLEN; i++)
+  for (int i = 0; i < DIRLEN; ++i)
   {
     if (UpdatedDir.m_dir_entries[i].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
     {
@@ -1209,12 +1209,12 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
   *(u16*)&FileBuffer[1].m_block[0x0200] = Common::swap16(u16(Common::swap32(serial2) & 0xFFFF));
 
   // calc 16-bit checksum
-  for (i = 0x02; i < 0x8000; i++)
+  for (i = 0x02; i < 0x8000; ++i)
   {
     const int block = i / 0x2000;
     const int offset = i % 0x2000;
     chksum ^= (FileBuffer[block].m_block[offset] & 0xFF);
-    for (j = 8; j > 0; j--)
+    for (j = 8; j > 0; --j)
     {
       if (chksum & 1)
         chksum = (chksum >> 1) ^ 0x8408;
@@ -1272,10 +1272,10 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   *(u32*)&FileBuffer[1].m_block[0x015C] = serial2;
 
   // generate crc32 LUT
-  for (i = 0; i < 256; i++)
+  for (i = 0; i < 256; ++i)
   {
     chksum = i;
-    for (j = 8; j > 0; j--)
+    for (j = 8; j > 0; --j)
     {
       if (chksum & 1)
         chksum = (chksum >> 1) ^ 0xEDB88320;
@@ -1290,7 +1290,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& dir
   chksum = 0xDEBB20E3;
 
   // calc 32-bit checksum
-  for (i = 0x004C; i < 0x0164 + pso3offset; i++)
+  for (i = 0x004C; i < 0x0164 + pso3offset; ++i)
   {
     chksum = ((chksum >> 8) & 0xFFFFFF) ^ crc32LUT[(chksum ^ FileBuffer[1].m_block[i]) & 0xFF];
   }
@@ -1327,7 +1327,7 @@ void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 siz
   data->m_encoding = shift_jis ? 1 : 0;
   data->m_format_time = format_time;
   u64 rand = format_time;
-  for (int i = 0; i < 12; i++)
+  for (int i = 0; i < 12; ++i)
   {
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
     data->m_serial[i] = (u8)(flash_id[i] + (u32)rand);

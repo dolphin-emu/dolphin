@@ -237,7 +237,7 @@ PixelShaderUid GetPixelShaderUid()
       uid_data->SetTevindrefValues(i, bpmem.tevindref.getTexCoord(i), bpmem.tevindref.getTexMap(i));
   }
 
-  for (unsigned int n = 0; n < numStages; n++)
+  for (unsigned int n = 0; n < numStages; ++n)
   {
     uid_data->stagehash[n].tevorders_texcoord = bpmem.tevorders[n / 2].getTexCoord(n & 1);
     uid_data->stagehash[n].tevind = bpmem.tevind[n].hex;
@@ -1012,7 +1012,7 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     }
   }
 
-  for (u32 i = 0; i < numStages; i++)
+  for (u32 i = 0; i < numStages; ++i)
   {
     // Build the equation for this stage
     WriteStage(out, uid_data, i, api_type, stereo);

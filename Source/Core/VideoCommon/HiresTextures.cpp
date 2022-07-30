@@ -301,7 +301,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   LoadDDSTexture(ret.get(), first_mip_file.path);
 
   // Load remaining mip levels, or from the start if it's not a DDS texture.
-  for (u32 mip_level = static_cast<u32>(ret->m_levels.size());; mip_level++)
+  for (u32 mip_level = static_cast<u32>(ret->m_levels.size());; ++mip_level)
   {
     std::string filename = base_filename;
     if (mip_level != 0)
@@ -357,7 +357,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   // Verify that each mip level is the correct size (divide by 2 each time).
   u32 current_mip_width = first_mip.width;
   u32 current_mip_height = first_mip.height;
-  for (u32 mip_level = 1; mip_level < static_cast<u32>(ret->m_levels.size()); mip_level++)
+  for (u32 mip_level = 1; mip_level < static_cast<u32>(ret->m_levels.size()); ++mip_level)
   {
     if (current_mip_width != 1 || current_mip_height != 1)
     {

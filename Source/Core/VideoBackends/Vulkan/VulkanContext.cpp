@@ -562,7 +562,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   // Find graphics and present queues.
   m_graphics_queue_family_index = queue_family_count;
   m_present_queue_family_index = queue_family_count;
-  for (uint32_t i = 0; i < queue_family_count; i++)
+  for (uint32_t i = 0; i < queue_family_count; ++i)
   {
     VkBool32 graphics_supported = queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
     if (graphics_supported)
@@ -761,7 +761,7 @@ std::optional<u32> VulkanContext::GetMemoryType(u32 bits, VkMemoryPropertyFlags 
 
   const u32 mask = strict ? ALL_MEMORY_PROPERTY_FLAGS : properties;
 
-  for (u32 i = 0; i < VK_MAX_MEMORY_TYPES; i++)
+  for (u32 i = 0; i < VK_MAX_MEMORY_TYPES; ++i)
   {
     if ((bits & (1 << i)) != 0)
     {

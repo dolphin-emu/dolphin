@@ -101,7 +101,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
   const u64 mix_id_copy1 = mix_id;
 
   u32 ctr = 0;
-  for (ctr = 0; ctr <= 42; ctr++)
+  for (ctr = 0; ctr <= 42; ++ctr)
   {
     u64 value = mix_id >> (52 - ctr);
     if ((value & 1) != 0)
@@ -114,7 +114,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
   mix_id = (mix_id_copy1 | (mix_id & 0xFFFFFFFFUL)) ^ 0x0000B3B3B3B3B3B3ULL;
   mix_id = (mix_id >> 10) | ((mix_id & 0x3FF) << (11 + 32));
 
-  for (ctr = 0; ctr <= 5; ctr++)
+  for (ctr = 0; ctr <= 5; ++ctr)
   {
     const u8 ret = u64_get_byte(mix_id, ctr);
     const u8 foobar = u8((u32{table1[(ret >> 4) & 0xF]} << 4) | table1[ret & 0xF]);
@@ -123,7 +123,7 @@ s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, HardwareModel h
 
   const u64 mix_id_copy2 = mix_id;
 
-  for (ctr = 0; ctr <= 5; ctr++)
+  for (ctr = 0; ctr <= 5; ++ctr)
   {
     const u8 ret = u64_get_byte(mix_id_copy2, ctr);
     mix_id = u64_insert_byte(mix_id, table2[ctr], ret);

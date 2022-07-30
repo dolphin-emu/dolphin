@@ -156,12 +156,12 @@ constexpr Seeds genseeds = [] {
 
   for (int i = 0; i < 0x10; ++i)
   {
-    for (u32 j = 0; j < 8; j++)
+    for (u32 j = 0; j < 8; ++j)
       array2[j] = 0;
 
     const u8 tmp2 = gentable2[i];
 
-    for (u32 j = 0; j < 0x38; j++)
+    for (u32 j = 0; j < 0x38; ++j)
     {
       auto tmp = u8(tmp2 + j);
 
@@ -179,7 +179,7 @@ constexpr Seeds genseeds = [] {
 
       array1[j] = array0[tmp];
     }
-    for (u32 j = 0; j < 0x30; j++)
+    for (u32 j = 0; j < 0x30; ++j)
     {
       if (array1[gentable3[j] - 1] == 0)
       {
@@ -422,7 +422,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
   for (; size; --size)
   {
     bin[0] = 0;
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       bin[0] |= (GetVal(filter, alpha[j >> 1][i]) << (((5 - i) * 5) + 2));
     }
@@ -430,7 +430,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
     dst[j++] = bin[0];
 
     bin[1] = 0;
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; ++i)
     {
       bin[1] |= (GetVal(filter, alpha[j >> 1][i + 6]) << (((5 - i) * 5) + 4));
     }
@@ -440,7 +440,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
     // verify parity bit
     int k = 0;
     parity = 0;
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < 64; ++i)
     {
       if (i == 32)
       {

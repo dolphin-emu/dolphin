@@ -107,7 +107,7 @@ static void ForEachNamedDevice(const std::function<bool(ComPtr<IMMDevice>, std::
   UINT count;
   devices->GetCount(&count);
 
-  for (u32 i = 0; i < count; i++)
+  for (u32 i = 0; i < count; ++i)
   {
     ComPtr<IMMDevice> device;
     devices->Item(i, device.GetAddressOf());
@@ -342,7 +342,7 @@ void WASAPIStream::SoundLoop()
     {
       const float volume = Config::Get(Config::MAIN_AUDIO_VOLUME) / 100.0f;
 
-      for (u32 i = 0; i < m_frames_in_buffer * 2; i++)
+      for (u32 i = 0; i < m_frames_in_buffer * 2; ++i)
         *audio_data++ *= volume;
     }
 

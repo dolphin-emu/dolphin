@@ -26,7 +26,7 @@ constexpr std::array<u32, 8> s_plru_value{
 
 constexpr std::array<u32, 255> s_way_from_valid = [] {
   std::array<u32, 255> data{};
-  for (size_t m = 0; m < data.size(); m++)
+  for (size_t m = 0; m < data.size(); ++m)
   {
     u32 w = 0;
     while ((m & (size_t{1} << w)) != 0)
@@ -39,10 +39,10 @@ constexpr std::array<u32, 255> s_way_from_valid = [] {
 constexpr std::array<u32, 128> s_way_from_plru = [] {
   std::array<u32, 128> data{};
 
-  for (size_t m = 0; m < data.size(); m++)
+  for (size_t m = 0; m < data.size(); ++m)
   {
     std::array<u32, 7> b{};
-    for (size_t i = 0; i < b.size(); i++)
+    for (size_t i = 0; i < b.size(); ++i)
       b[i] = u32(m & (size_t{1} << i));
 
     u32 w = 0;
@@ -121,7 +121,7 @@ void InstructionCache::Invalidate(u32 addr)
 
   // Invalidates the whole set
   const u32 set = (addr >> 5) & 0x7f;
-  for (size_t i = 0; i < 8; i++)
+  for (size_t i = 0; i < 8; ++i)
   {
     if (valid[set] & (1U << i))
     {

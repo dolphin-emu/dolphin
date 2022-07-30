@@ -107,7 +107,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
   if (status != ERROR_SUCCESS)
     return false;
 
-  for (DWORD i = 0; i < cSubKeys; i++)
+  for (DWORD i = 0; i < cSubKeys; ++i)
   {
     TCHAR enum_name[256];
     TCHAR connection_string[256];

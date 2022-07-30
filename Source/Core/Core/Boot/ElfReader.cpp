@@ -94,12 +94,12 @@ void ElfReader::Initialize(u8* ptr)
   segments = (Elf32_Phdr*)(base + header->e_phoff);
   sections = (Elf32_Shdr*)(base + header->e_shoff);
 
-  for (int i = 0; i < GetNumSegments(); i++)
+  for (int i = 0; i < GetNumSegments(); ++i)
   {
     byteswapSegment(segments[i]);
   }
 
-  for (int i = 0; i < GetNumSections(); i++)
+  for (int i = 0; i < GetNumSections(); ++i)
   {
     byteswapSection(sections[i]);
   }
@@ -136,7 +136,7 @@ bool ElfReader::LoadIntoMemory(bool only_in_mem1) const
   INFO_LOG_FMT(BOOT, "{} segments:", header->e_phnum);
 
   // Copy segments into ram.
-  for (int i = 0; i < header->e_phnum; i++)
+  for (int i = 0; i < header->e_phnum; ++i)
   {
     Elf32_Phdr* p = segments + i;
 
@@ -167,7 +167,7 @@ bool ElfReader::LoadIntoMemory(bool only_in_mem1) const
 
 SectionID ElfReader::GetSectionByName(const char* name, int firstSection) const
 {
-  for (int i = firstSection; i < header->e_shnum; i++)
+  for (int i = firstSection; i < header->e_shnum; ++i)
   {
     const char* secname = GetSectionName(i);
 
@@ -189,7 +189,7 @@ bool ElfReader::LoadSymbols() const
     // We have a symbol table!
     Elf32_Sym* symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
     int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
-    for (int sym = 0; sym < numSymbols; sym++)
+    for (int sym = 0; sym < numSymbols; ++sym)
     {
       int size = Common::swap32(symtab[sym].st_size);
       if (size == 0)

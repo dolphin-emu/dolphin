@@ -47,7 +47,7 @@ long CEXIMic::DataCallback(cubeb_stream* stream, void* user_data, const void* in
   std::lock_guard lk(mic->ring_lock);
 
   const s16* buff_in = static_cast<const s16*>(input_buffer);
-  for (long i = 0; i < nframes; i++)
+  for (long i = 0; i < nframes; ++i)
   {
     mic->stream_buffer[mic->stream_wpos] = buff_in[i];
     mic->stream_wpos = (mic->stream_wpos + 1) % mic->stream_size;

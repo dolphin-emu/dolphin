@@ -238,7 +238,7 @@ void USB_KBD::Update()
   PressedKeyData pressed_keys{0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   bool got_event = false;
   size_t num_pressed_keys = 0;
-  for (size_t i = 0; i < m_old_key_buffer.size(); i++)
+  for (size_t i = 0; i < m_old_key_buffer.size(); ++i)
   {
     const bool key_pressed_now = IsKeyPressed(static_cast<int>(i));
     const bool key_pressed_before = m_old_key_buffer[i];

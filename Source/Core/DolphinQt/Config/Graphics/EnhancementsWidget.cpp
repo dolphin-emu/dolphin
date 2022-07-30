@@ -61,7 +61,7 @@ void EnhancementsWidget::CreateWidgets()
   // when the settings are saved we don't lose the user-modified value from the ini.
   const int max_efb_scale =
       std::max(Config::Get(Config::GFX_EFB_SCALE), Config::Get(Config::GFX_MAX_EFB_SCALE));
-  for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; scale++)
+  for (int scale = static_cast<int>(resolution_options.size()); scale <= max_efb_scale; ++scale)
   {
     resolution_options.append(tr("%1x Native (%2x%3)")
                                   .arg(QString::number(scale),

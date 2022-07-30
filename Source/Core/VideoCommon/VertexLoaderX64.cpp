@@ -225,7 +225,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, VertexComponentFormat attribute, Com
       // so we can just load/swap/store them directly
       // and return early.
       // (In SSSE3 we still need to store them.)
-      for (int i = 0; i < count_in; i++)
+      for (int i = 0; i < count_in; ++i)
       {
         LoadAndSwap(32, scratch3, data);
         MOV(32, dest, R(scratch3));
@@ -446,7 +446,7 @@ void VertexLoaderX64::GenerateVertexLoader()
   }
 
   std::array<u32, 8> texmatidx_ofs;
-  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx.Size(); i++)
+  for (size_t i = 0; i < m_VtxDesc.low.TexMatIdx.Size(); ++i)
   {
     if (m_VtxDesc.low.TexMatIdx[i])
       texmatidx_ofs[i] = m_src_ofs++;
@@ -463,7 +463,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     const u8 scaling_exponent = map[u32(m_VtxAttr.g0.NormalFormat.Value())];
     const int limit = m_VtxAttr.g0.NormalElements == NormalComponentCount::NTB ? 3 : 1;
 
-    for (int i = 0; i < limit; i++)
+    for (int i = 0; i < limit; ++i)
     {
       if (!i || m_VtxAttr.g0.NormalIndex3)
       {
@@ -476,7 +476,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.low.Color.Size(); ++i)
   {
     if (m_VtxDesc.low.Color[i] != VertexComponentFormat::NotPresent)
     {
@@ -491,7 +491,7 @@ void VertexLoaderX64::GenerateVertexLoader()
     }
   }
 
-  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); i++)
+  for (u8 i = 0; i < m_VtxDesc.high.TexCoord.Size(); ++i)
   {
     int elements = m_VtxAttr.GetTexElements(i) == TexComponentCount::ST ? 2 : 1;
     if (m_VtxDesc.high.TexCoord[i] != VertexComponentFormat::NotPresent)

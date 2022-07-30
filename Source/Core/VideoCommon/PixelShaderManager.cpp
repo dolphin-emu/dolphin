@@ -42,7 +42,7 @@ void PixelShaderManager::Init()
   SetTexCoordChanged(7);
 
   // fixed Konstants
-  for (int component = 0; component < 4; component++)
+  for (int component = 0; component < 4; ++component)
   {
     constants.konst[0][component] = 255;  // 1
     constants.konst[1][component] = 223;  // 7/8
@@ -113,7 +113,7 @@ void PixelShaderManager::SetConstants()
       constants.fogf[3] =
           static_cast<float>(g_renderer->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
 
-      for (size_t i = 0, vec_index = 0; i < std::size(bpmem.fogRange.K); i++)
+      for (size_t i = 0, vec_index = 0; i < std::size(bpmem.fogRange.K); ++i)
       {
         constexpr float scale = 4.0f;
         constants.fogrange[vec_index / 4][vec_index % 4] = bpmem.fogRange.K[i].GetValue(0) * scale;
@@ -142,7 +142,7 @@ void PixelShaderManager::SetConstants()
 
   if (s_bIndirectDirty)
   {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
       constants.pack1[i][3] = 0;
 
     for (u32 i = 0; i < (bpmem.genMode.numtevstages + 1); ++i)

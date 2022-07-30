@@ -185,7 +185,7 @@ s32 DSPAssembler::ParseValue(const char* str)
   {
     if (ptr[1] >= '0' && ptr[1] <= '9')
     {
-      for (int i = 0; ptr[i] != 0; i++)
+      for (int i = 0; ptr[i] != 0; ++i)
       {
         val *= 10;
         if (ptr[i] >= '0' && ptr[i] <= '9')
@@ -199,7 +199,7 @@ s32 DSPAssembler::ParseValue(const char* str)
       switch (ptr[1])
       {
       case 'X':  // hex
-        for (int i = 2; ptr[i] != 0; i++)
+        for (int i = 2; ptr[i] != 0; ++i)
         {
           val <<= 4;
           if (ptr[i] >= 'a' && ptr[i] <= 'f')
@@ -213,7 +213,7 @@ s32 DSPAssembler::ParseValue(const char* str)
         }
         break;
       case '\'':  // binary
-        for (int i = 2; ptr[i] != 0; i++)
+        for (int i = 2; ptr[i] != 0; ++i)
         {
           val *= 2;
           if (ptr[i] >= '0' && ptr[i] <= '1')
@@ -234,7 +234,7 @@ s32 DSPAssembler::ParseValue(const char* str)
     // Symbol starts with a digit - it's a dec number.
     if (ptr[0] >= '0' && ptr[0] <= '9')
     {
-      for (int i = 0; ptr[i] != 0; i++)
+      for (int i = 0; ptr[i] != 0; ++i)
       {
         val *= 10;
         if (ptr[i] >= '0' && ptr[i] <= '9')
@@ -278,7 +278,7 @@ char* DSPAssembler::FindBrackets(char* src, char* dst)
   s32 count = 0;
   s32 i, j;
   j = 0;
-  for (i = 0; i < len; i++)
+  for (i = 0; i < len; ++i)
   {
     if (src[i] == '(')
     {
@@ -335,14 +335,14 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
   }
 
   int j = 0;
-  for (int i = 0; i < ((s32)strlen(s_buffer) + 1); i++)
+  for (int i = 0; i < ((s32)strlen(s_buffer) + 1); ++i)
   {
     char c = s_buffer[i];
     if (c != ' ')
       d_buffer[j++] = c;
   }
 
-  for (int i = 0; i < ((s32)strlen(d_buffer) + 1); i++)
+  for (int i = 0; i < ((s32)strlen(d_buffer) + 1); ++i)
   {
     char c = d_buffer[i];
     if (c == '-')
@@ -424,7 +424,7 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   u32 count = 0;
   char* tmpstr = skip_spaces(parstr);
   tmpstr = strtok(tmpstr, ",\x00");
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < 10; ++i)
   {
     if (tmpstr == nullptr)
       break;
@@ -514,7 +514,7 @@ static u16 get_mask_shifted_down(u16 mask)
 bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count,
                                 OpcodeType type)
 {
-  for (size_t i = 0; i < count; i++)
+  for (size_t i = 0; i < count; ++i)
   {
     m_location.opcode_param_number = i + 1;
     if (opc->params[i].type != par[i].type || (par[i].type & P_REG))
@@ -729,7 +729,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
 void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_count, u16* outbuf)
 {
   outbuf[m_cur_addr] |= opc->opcode;
-  for (u32 i = 0; i < par_count; i++)
+  for (u32 i = 0; i < par_count; ++i)
   {
     // Ignore the "reverse" parameters since they are implicit.
     if (opc->params[i].type != P_ACC_D && opc->params[i].type != P_ACCM_D)
@@ -792,7 +792,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     param_t params_ext[10] = {{0, P_NONE, nullptr}};
 
     bool upper = true;
-    for (int i = 0; i < LINEBUF_SIZE; i++)
+    for (int i = 0; i < LINEBUF_SIZE; ++i)
     {
       char c = line[i];
       // This stuff handles /**/ and // comments.
@@ -845,7 +845,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     {
       bool valid = true;
 
-      for (int j = 0; j < (int)col_pos; j++)
+      for (int j = 0; j < (int)col_pos; ++j)
       {
         if (j == 0)
           if (!((ptr[j] >= 'A' && ptr[j] <= 'Z') || (ptr[j] == '_')))

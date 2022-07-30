@@ -360,7 +360,7 @@ constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable4 = [] {
     entry = &JitArm64::FallBackToInterpreter;
   }
 
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
   {
     const int fill = i << 5;
     for (const auto& tpl : table4_2)
@@ -370,7 +370,7 @@ constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable4 = [] {
     }
   }
 
-  for (int i = 0; i < 16; i++)
+  for (int i = 0; i < 16; ++i)
   {
     const int fill = i << 6;
     for (const auto& tpl : table4_3)
@@ -449,7 +449,7 @@ constexpr std::array<JitArm64::Instruction, 1024> dynaOpTable63 = [] {
     table[tpl.opcode] = tpl.fn;
   }
 
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; ++i)
   {
     const int fill = i << 5;
     for (const auto& tpl : table63_2)

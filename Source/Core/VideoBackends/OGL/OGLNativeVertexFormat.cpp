@@ -67,13 +67,13 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& vtx_decl)
 
   SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, vtx_decl.position);
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
     SetPointer(SHADER_NORMAL_ATTRIB + i, vertex_stride, vtx_decl.normals[i]);
 
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; ++i)
     SetPointer(SHADER_COLOR0_ATTRIB + i, vertex_stride, vtx_decl.colors[i]);
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
     SetPointer(SHADER_TEXTURE0_ATTRIB + i, vertex_stride, vtx_decl.texcoords[i]);
 
   SetPointer(SHADER_POSMTX_ATTRIB, vertex_stride, vtx_decl.posmtx);

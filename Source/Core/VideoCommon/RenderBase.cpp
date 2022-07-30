@@ -328,7 +328,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 {
   if (type == EFBAccessType::PokeColor)
   {
-    for (size_t i = 0; i < num_points; i++)
+    for (size_t i = 0; i < num_points; ++i)
     {
       // Convert to expected format (BGRA->RGBA)
       // TODO: Check alpha, depending on mode?
@@ -340,7 +340,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   }
   else  // if (type == EFBAccessType::PokeZ)
   {
-    for (size_t i = 0; i < num_points; i++)
+    for (size_t i = 0; i < num_points; ++i)
     {
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
@@ -1175,7 +1175,7 @@ void Renderer::DrawImGui()
   SetSamplerState(0, RenderState::GetPointSamplerState());
   g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
 
-  for (int i = 0; i < draw_data->CmdListsCount; i++)
+  for (int i = 0; i < draw_data->CmdListsCount; ++i)
   {
     const ImDrawList* cmdlist = draw_data->CmdLists[i];
     if (cmdlist->VtxBuffer.empty() || cmdlist->IdxBuffer.empty())

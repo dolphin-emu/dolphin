@@ -61,7 +61,7 @@ void ADPCMDecoder::DoState(PointerWrap& p)
 
 void ADPCMDecoder::DecodeBlock(s16* pcm, const u8* adpcm)
 {
-  for (int i = 0; i < SAMPLES_PER_BLOCK; i++)
+  for (int i = 0; i < SAMPLES_PER_BLOCK; ++i)
   {
     pcm[i * 2] = ADPDecodeSample(adpcm[i + (ONE_BLOCK_SIZE - SAMPLES_PER_BLOCK)] & 0xf, adpcm[0],
                                  m_histl1, m_histl2);

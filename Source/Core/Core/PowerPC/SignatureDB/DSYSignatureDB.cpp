@@ -30,7 +30,7 @@ bool DSYSignatureDB::Load(const std::string& file_path)
     return false;
   u32 fcount = 0;
   f.ReadArray(&fcount, 1);
-  for (size_t i = 0; i < fcount; i++)
+  for (size_t i = 0; i < fcount; ++i)
   {
     FuncDesc temp;
     memset(&temp, 0, sizeof(temp));

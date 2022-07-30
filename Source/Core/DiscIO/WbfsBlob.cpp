@@ -39,7 +39,7 @@ WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
   m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/,
                        File::SeekOrigin::Begin);
   m_files[0].file.ReadBytes(m_wlba_table.data(), m_blocks_per_disc * sizeof(u16));
-  for (size_t i = 0; i < m_blocks_per_disc; i++)
+  for (size_t i = 0; i < m_blocks_per_disc; ++i)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
 

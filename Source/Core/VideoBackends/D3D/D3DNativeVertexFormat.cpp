@@ -114,7 +114,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
     ++m_num_elems;
   }
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
   {
     format = &vtx_decl.normals[i];
     if (format->enable)
@@ -128,7 +128,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
     }
   }
 
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; ++i)
   {
     format = &vtx_decl.colors[i];
     if (format->enable)
@@ -142,7 +142,7 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
     }
   }
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     format = &vtx_decl.texcoords[i];
     if (format->enable)

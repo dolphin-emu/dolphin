@@ -156,7 +156,7 @@ void PerfQuery::ReadbackQueries()
   // Need to save these since ProcessResults will modify them.
   const u32 outstanding_queries = m_query_count.load(std::memory_order_relaxed);
   u32 readback_count = 0;
-  for (u32 i = 0; i < outstanding_queries; i++)
+  for (u32 i = 0; i < outstanding_queries; ++i)
   {
     u32 index = (m_query_readback_pos + readback_count) % PERF_QUERY_BUFFER_SIZE;
     const ActiveQuery& entry = m_query_buffer[index];
@@ -193,7 +193,7 @@ void PerfQuery::ReadbackQueries(u32 query_count)
     LOG_VULKAN_ERROR(res, "vkGetQueryPoolResults failed: ");
 
   // Remove pending queries.
-  for (u32 i = 0; i < query_count; i++)
+  for (u32 i = 0; i < query_count; ++i)
   {
     u32 index = (m_query_readback_pos + i) % PERF_QUERY_BUFFER_SIZE;
     ActiveQuery& entry = m_query_buffer[index];

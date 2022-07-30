@@ -119,7 +119,7 @@ static inline void AddInterpolatedVertex(float t, int out, int in, int* numVerti
       int outcount = 0;                                                                            \
                                                                                                    \
       inlist[n] = inlist[0];                                                                       \
-      for (int j = 1; j <= n; j++)                                                                 \
+      for (int j = 1; j <= n; ++j)                                                                 \
       {                                                                                            \
         int idx = inlist[j];                                                                       \
         float dp = CLIP_DOTPROD(idx, A, B, C, D);                                                  \
@@ -400,7 +400,7 @@ static void CopyLineVertex(OutputVertexData* dst, const OutputVertexData* src, i
 
   if (apply_line_offset && LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff] != 0)
   {
-    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; ++coord_num)
     {
       if (bpmem.texcoords[coord_num].s.line_offset)
       {
@@ -480,7 +480,7 @@ static void CopyPointVertex(OutputVertexData* dst, const OutputVertexData* src, 
   const float point_offset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
   if (point_offset != 0)
   {
-    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; coord_num++)
+    for (u32 coord_num = 0; coord_num < xfmem.numTexGen.numTexGens; ++coord_num)
     {
       const auto coord_info = bpmem.texcoords[coord_num];
       if (coord_info.s.point_offset)

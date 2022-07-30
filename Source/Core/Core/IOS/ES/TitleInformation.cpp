@@ -123,7 +123,7 @@ IPCReply ESDevice::GetTitles(const std::vector<u64>& titles, const IOCtlVRequest
     return IPCReply(ES_EINVAL);
 
   const size_t max_count = Memory::Read_U32(request.in_vectors[0].address);
-  for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
+  for (size_t i = 0; i < std::min(max_count, titles.size()); ++i)
   {
     Memory::Write_U64(titles[i], request.io_vectors[0].address + static_cast<u32>(i) * sizeof(u64));
     INFO_LOG_FMT(IOS_ES, "     title {:016x}", titles[i]);

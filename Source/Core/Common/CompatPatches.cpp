@@ -89,14 +89,14 @@ public:
   {
     auto import_dir = &directories[IMAGE_DIRECTORY_ENTRY_IMPORT];
     for (auto import_desc = GetRva<PIMAGE_IMPORT_DESCRIPTOR>(import_dir->VirtualAddress);
-         import_desc->OriginalFirstThunk; import_desc++)
+         import_desc->OriginalFirstThunk; ++import_desc)
     {
       auto module = GetRva<const char*>(import_desc->Name);
       auto names = GetRva<PIMAGE_THUNK_DATA>(import_desc->OriginalFirstThunk);
       auto thunks = GetRva<PIMAGE_THUNK_DATA>(import_desc->FirstThunk);
       if (!stricmp(module, module_name))
       {
-        for (auto name = names; name->u1.Function; name++)
+        for (auto name = names; name->u1.Function; ++name)
         {
           if (!IMAGE_SNAP_BY_ORDINAL(name->u1.Ordinal))
           {

@@ -446,9 +446,9 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
   {
     // First, measure the amount of memory needed.
     u32 total_size = 0;
-    for (u32 layer = 0; layer < config.layers; layer++)
+    for (u32 layer = 0; layer < config.layers; ++layer)
     {
-      for (u32 level = 0; level < config.levels; level++)
+      for (u32 level = 0; level < config.levels; ++level)
       {
         u32 level_width = std::max(config.width >> level, 1u);
         u32 level_height = std::max(config.height >> level, 1u);
@@ -475,9 +475,9 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
     if (!skip_readback)
     {
       // Save out each layer of the texture to the pointer.
-      for (u32 layer = 0; layer < config.layers; layer++)
+      for (u32 layer = 0; layer < config.layers; ++layer)
       {
-        for (u32 level = 0; level < config.levels; level++)
+        for (u32 level = 0; level < config.levels; ++level)
         {
           u32 level_width = std::max(config.width >> level, 1u);
           u32 level_height = std::max(config.height >> level, 1u);
@@ -520,9 +520,9 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
   }
 
   size_t start = 0;
-  for (u32 layer = 0; layer < config.layers; layer++)
+  for (u32 layer = 0; layer < config.layers; ++layer)
   {
-    for (u32 level = 0; level < config.levels; level++)
+    for (u32 level = 0; level < config.levels; ++level)
     {
       const u32 level_width = std::max(config.width >> level, 1u);
       const u32 level_height = std::max(config.height >> level, 1u);
@@ -687,7 +687,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
   // Preload all cache entries.
   u32 size = 0;
   p.Do(size);
-  for (u32 i = 0; i < size; i++)
+  for (u32 i = 0; i < size; ++i)
   {
     // Even if the texture isn't valid, we still need to create the cache entry object
     // to update the point in the state state. We'll just throw it away if it's invalid.
@@ -704,7 +704,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
 
   // Link all cache entry references.
   p.Do(size);
-  for (u32 i = 0; i < size; i++)
+  for (u32 i = 0; i < size; ++i)
   {
     u32 id1 = 0, id2 = 0;
     p.Do(id1);
@@ -717,7 +717,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
 
   // Fill in address map.
   p.Do(size);
-  for (u32 i = 0; i < size; i++)
+  for (u32 i = 0; i < size; ++i)
   {
     u32 addr = 0;
     u32 id = 0;
@@ -731,7 +731,7 @@ void TextureCacheBase::DoLoadState(PointerWrap& p)
 
   // Fill in hash map.
   p.Do(size);
-  for (u32 i = 0; i < size; i++)
+  for (u32 i = 0; i < size; ++i)
   {
     u64 hash = 0;
     u32 id = 0;
@@ -911,7 +911,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntry* entry_to_update, const u8
 
         // If one copy is stereo, and the other isn't... not much we can do here :/
         const u32 layers_to_copy = std::min(entry->GetNumLayers(), entry_to_update->GetNumLayers());
-        for (u32 layer = 0; layer < layers_to_copy; layer++)
+        for (u32 layer = 0; layer < layers_to_copy; ++layer)
         {
           entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer,
                                                              0, dstrect, layer, 0);
@@ -1051,7 +1051,7 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
 
 void TextureCacheBase::BindTextures(BitSet32 used_textures)
 {
-  for (u32 i = 0; i < bound_textures.size(); i++)
+  for (u32 i = 0; i < bound_textures.size(); ++i)
   {
     const TCacheEntry* tentry = bound_textures[i];
     if (used_textures[i] && tentry)
@@ -1164,7 +1164,7 @@ private:
           }};
 
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;
-          for (int channel = 0; channel < 4; channel++)
+          for (int channel = 0; channel < 4; ++channel)
           {
             uint32_t channel_value = samples[0][channel] + samples[1][channel] +
                                      samples[2][channel] + samples[3][channel];
@@ -1191,7 +1191,7 @@ private:
         for (u32 j = 0; j < shape.width; ++j, row1 += 4, row2 += 4)
         {
           int pixel_diff = 0;
-          for (int channel = 0; channel < 4; channel++)
+          for (int channel = 0; channel < 4; ++channel)
           {
             const int diff = static_cast<int>(row1[channel]) - static_cast<int>(row2[channel]);
             const int diff_squared = diff * diff;
@@ -1961,7 +1961,7 @@ void TextureCacheBase::StitchXFBCopy(TCacheEntry* stitched_entry)
     {
       // If one copy is stereo, and the other isn't... not much we can do here :/
       const u32 layers_to_copy = std::min(entry->GetNumLayers(), stitched_entry->GetNumLayers());
-      for (u32 layer = 0; layer < layers_to_copy; layer++)
+      for (u32 layer = 0; layer < layers_to_copy; ++layer)
       {
         stitched_entry->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer, 0,
                                                           dstrect, layer, 0);
@@ -2367,7 +2367,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   {
     // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
     u32 address = dstAddr;
-    for (u32 i = 0; i < num_blocks_y; i++)
+    for (u32 i = 0; i < num_blocks_y; ++i)
     {
       FifoRecorder::GetInstance().UseMemory(address, bytes_per_row, MemoryUpdate::TEXTURE_MAP,
                                             true);
@@ -2473,7 +2473,7 @@ void TextureCacheBase::UninitializeEFBMemory(u8* dst, u32 stride, u32 bytes_per_
   //       and we can just keep a copy in VRAM. We zero the memory so we
   //       can check it hasn't changed before using our copy in VRAM.
   u8* ptr = dst;
-  for (u32 i = 0; i < num_blocks_y; i++)
+  for (u32 i = 0; i < num_blocks_y; ++i)
   {
     std::memset(ptr, 0, bytes_per_row);
     ptr += stride;
@@ -2495,7 +2495,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
 #endif
 
-  for (u32 i = 0; i < num_blocks_y; i++)
+  for (u32 i = 0; i < num_blocks_y; ++i)
   {
     u32 size = bytes_per_row;
     u8* rowdst = dst;
@@ -2507,7 +2507,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
       rowdst += 16;
     }
 #endif
-    for (u32 offset = 0; offset < size; offset++)
+    for (u32 offset = 0; offset < size; ++offset)
     {
       if (offset & 1)
       {
@@ -3026,7 +3026,7 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
       samples_per_row = std::max(hash_sample_size / num_blocks_y, 4u);
     }
 
-    for (u32 i = 0; i < num_blocks_y; i++)
+    for (u32 i = 0; i < num_blocks_y; ++i)
     {
       // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
       // canceling each other out

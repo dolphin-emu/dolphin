@@ -33,7 +33,7 @@ static int BufferBase[NUM_OBJECT_BUFFERS];
 
 void Init()
 {
-  for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
+  for (int i = 0; i < NUM_OBJECT_BUFFERS; ++i)
   {
     ObjectBuffer[i] = new u32[EFB_WIDTH * EFB_HEIGHT]();
     DrawnToBuffer[i] = false;
@@ -63,9 +63,9 @@ static void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
 
 void GetTextureRGBA(u8* dst, u32 texmap, s32 mip, u32 width, u32 height)
 {
-  for (u32 y = 0; y < height; y++)
+  for (u32 y = 0; y < height; ++y)
   {
-    for (u32 x = 0; x < width; x++)
+    for (u32 x = 0; x < width; ++x)
     {
       TextureSampler::SampleMip(x << 7, y << 7, mip, false, texmap, dst);
       dst += 4;
@@ -87,7 +87,7 @@ static s32 GetMaxTextureLod(u32 texmap)
 
 void DumpActiveTextures()
 {
-  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; ++stageNum)
   {
     u32 texmap = bpmem.tevindref.getTexMap(stageNum);
 
@@ -101,7 +101,7 @@ void DumpActiveTextures()
     }
   }
 
-  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
+  for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; ++stageNum)
   {
     int stageNum2 = stageNum >> 1;
     int stageOdd = stageNum & 1;
@@ -125,9 +125,9 @@ static void DumpEfb(const std::string& filename)
   auto data = std::make_unique<u8[]>(EFB_WIDTH * EFB_HEIGHT * 4);
   u8* writePtr = data.get();
 
-  for (u32 y = 0; y < EFB_HEIGHT; y++)
+  for (u32 y = 0; y < EFB_HEIGHT; ++y)
   {
-    for (u32 x = 0; x < EFB_WIDTH; x++)
+    for (u32 x = 0; x < EFB_WIDTH; ++x)
     {
       // ABGR to RGBA
       const u32 sample = Common::swap32(EfbInterface::GetColor(x, y));
@@ -199,7 +199,7 @@ void OnObjectEnd()
                              g_stats.this_frame.num_drawn_objects));
   }
 
-  for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
+  for (int i = 0; i < NUM_OBJECT_BUFFERS; ++i)
   {
     if (DrawnToBuffer[i])
     {

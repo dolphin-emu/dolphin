@@ -148,12 +148,12 @@ void Analyzer::FindInstructionStarts(const SDSP& dsp, u16 start_addr, u16 end_ad
 
 void Analyzer::FindIdleSkips(const SDSP& dsp, u16 start_addr, u16 end_addr)
 {
-  for (size_t s = 0; s < NUM_IDLE_SIGS; s++)
+  for (size_t s = 0; s < NUM_IDLE_SIGS; ++s)
   {
-    for (u16 addr = start_addr; addr < end_addr; addr++)
+    for (u16 addr = start_addr; addr < end_addr; ++addr)
     {
       bool found = false;
-      for (size_t i = 0; i < MAX_IDLE_SIG_SIZE + 1; i++)
+      for (size_t i = 0; i < MAX_IDLE_SIG_SIZE + 1; ++i)
       {
         if (idle_skip_sigs[s][i] == 0)
           found = true;

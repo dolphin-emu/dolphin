@@ -100,7 +100,7 @@ bool SavePNG(const std::string& path, const u8* input, ImageByteFormat format, u
   {
     return false;
   }
-  for (u32 row = 0; row < height; row++)
+  for (u32 row = 0; row < height; ++row)
   {
     const int err = spng_encode_row(ctx.get(), &input[row * stride], stride);
     if (err == SPNG_EOI)

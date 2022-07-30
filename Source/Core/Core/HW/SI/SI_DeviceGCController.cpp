@@ -72,7 +72,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Direct (Request length: {})", request_length);
     u32 high, low;
     GetData(high, low);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
     {
       buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
       buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
@@ -85,7 +85,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Get Origin");
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
-    for (int i = 0; i < (int)sizeof(SOrigin); i++)
+    for (int i = 0; i < (int)sizeof(SOrigin); ++i)
     {
       buffer[i] = *calibration++;
     }
@@ -98,7 +98,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
     INFO_LOG_FMT(SERIALINTERFACE, "PAD - Recalibrate");
 
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
-    for (int i = 0; i < (int)sizeof(SOrigin); i++)
+    for (int i = 0; i < (int)sizeof(SOrigin); ++i)
     {
       buffer[i] = *calibration++;
     }

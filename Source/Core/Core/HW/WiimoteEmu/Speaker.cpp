@@ -162,7 +162,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   wav.AddMonoSamples(samples.get(), length * 2);
   if (ofile.good())
   {
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < length; ++i)
     {
       ofile << data[i];
     }

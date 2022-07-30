@@ -155,7 +155,7 @@ void AESndUCode::HandleMail(u32 mail)
     case MAIL_SEND_SAMPLES:
       DEBUG_LOG_FMT(DSPHLE, "AESndUCode - MAIL_SEND_SAMPLES");
       // send_samples
-      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; i++)
+      for (u32 i = 0; i < NUM_OUTPUT_SAMPLES * 2; ++i)
       {
         HLEMemory_Write_U16(m_parameter_block.out_buf + i * sizeof(u16), m_output_buffer[i]);
       }

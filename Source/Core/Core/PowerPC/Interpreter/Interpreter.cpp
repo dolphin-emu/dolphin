@@ -112,13 +112,13 @@ static bool s_start_trace = false;
 static void Trace(const UGeckoInstruction& inst)
 {
   std::string regs;
-  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); ++i)
   {
     regs += fmt::format("r{:02d}: {:08x} ", i, PowerPC::ppcState.gpr[i]);
   }
 
   std::string fregs;
-  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); ++i)
   {
     const auto& ps = PowerPC::ppcState.ps[i];
     fregs += fmt::format("f{:02d}: {:08x} {:08x} ", i, ps.PS0AsU64(), ps.PS1AsU64());
@@ -278,7 +278,7 @@ void Interpreter::Run()
               NOTICE_LOG_FMT(POWERPC, "PC: {:#010x}", entry);
             NOTICE_LOG_FMT(POWERPC, "----------------------------");
             NOTICE_LOG_FMT(POWERPC, "Steps:");
-            for (size_t j = 0; j < s_pc_vec.size(); j++)
+            for (size_t j = 0; j < s_pc_vec.size(); ++j)
             {
               // Write space
               if (j > 0)

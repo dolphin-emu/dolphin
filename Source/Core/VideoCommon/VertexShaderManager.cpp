@@ -115,7 +115,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   {
     int startn = nNormalMatricesChanged[0] / 3;
     int endn = (nNormalMatricesChanged[1] + 2) / 3;
-    for (int i = startn; i < endn; i++)
+    for (int i = startn; i < endn; ++i)
     {
       memcpy(constants.normalmatrices[i].data(), &xfmem.normalMatrices[3 * i], 12);
     }
@@ -423,9 +423,9 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   {
     bTexMtxInfoChanged = false;
     constants.xfmem_dualTexInfo = xfmem.dualTexTrans.enabled;
-    for (size_t i = 0; i < std::size(xfmem.texMtxInfo); i++)
+    for (size_t i = 0; i < std::size(xfmem.texMtxInfo); ++i)
       constants.xfmem_pack1[i][0] = xfmem.texMtxInfo[i].hex;
-    for (size_t i = 0; i < std::size(xfmem.postMtxInfo); i++)
+    for (size_t i = 0; i < std::size(xfmem.postMtxInfo); ++i)
       constants.xfmem_pack1[i][1] = xfmem.postMtxInfo[i].hex;
 
     dirty = true;
@@ -435,7 +435,7 @@ void VertexShaderManager::SetConstants(const std::vector<std::string>& textures)
   {
     bLightingConfigChanged = false;
 
-    for (size_t i = 0; i < 2; i++)
+    for (size_t i = 0; i < 2; ++i)
     {
       constants.xfmem_pack1[i][2] = xfmem.color[i].hex;
       constants.xfmem_pack1[i][3] = xfmem.alpha[i].hex;

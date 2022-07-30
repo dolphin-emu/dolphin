@@ -107,7 +107,7 @@ void BluetoothEmuDevice::DoState(PointerWrap& p)
   p.Do(m_event_queue);
   m_acl_pool.DoState(p);
 
-  for (unsigned int i = 0; i < MAX_BBMOTES; i++)
+  for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
     m_wiimotes[i]->DoState(p);
 }
 
@@ -752,7 +752,7 @@ bool BluetoothEmuDevice::SendEventNumberOfCompletedPackets()
 
   u32 acc = 0;
 
-  for (unsigned int i = 0; i < m_wiimotes.size(); i++)
+  for (unsigned int i = 0; i < m_wiimotes.size(); ++i)
   {
     event_hdr->length += sizeof(hci_num_compl_pkts_info);
     hci_event->num_con_handles++;
@@ -820,7 +820,7 @@ bool BluetoothEmuDevice::SendEventLinkKeyNotification(const u8 num_to_send)
 
   // copy infos - this only works correctly if we're meant to start at first device and read all
   // keys
-  for (int i = 0; i < num_to_send; i++)
+  for (int i = 0; i < num_to_send; ++i)
   {
     hci_link_key_rep_cp* link_key_info =
         (hci_link_key_rep_cp*)((u8*)&event_link_key->bdaddr + sizeof(hci_link_key_rep_cp) * i);
@@ -1079,7 +1079,7 @@ void BluetoothEmuDevice::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl
     if (ogf == HCI_OGF_VENDOR)
     {
       ERROR_LOG_FMT(IOS_WIIMOTE, "Command: vendor specific: {:#06x} (ocf: {:#x})", msg.Opcode, ocf);
-      for (int i = 0; i < msg.len; i++)
+      for (int i = 0; i < msg.len; ++i)
       {
         ERROR_LOG_FMT(IOS_WIIMOTE, "  0x02{:#x}", input[i]);
       }

@@ -45,7 +45,7 @@ std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u1
 {
   std::string buf;
 
-  for (int j = 0; j < opc.param_count; j++)
+  for (int j = 0; j < opc.param_count; ++j)
   {
     if (j > 0)
       buf += ", ";

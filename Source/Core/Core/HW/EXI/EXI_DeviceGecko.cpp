@@ -56,7 +56,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
 
   sf::TcpListener server;
   server_port = 0xd6ec;  // "dolphin gecko"
-  for (int bind_tries = 0; bind_tries <= 10 && !server_running.IsSet(); bind_tries++)
+  for (int bind_tries = 0; bind_tries <= 10 && !server_running.IsSet(); ++bind_tries)
   {
     server_running.Set(server.listen(server_port) == sf::Socket::Done);
     if (!server_running.IsSet())

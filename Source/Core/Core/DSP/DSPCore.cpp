@@ -219,7 +219,7 @@ void SDSP::CheckExceptions()
   if (exceptions == 0)
     return;
 
-  for (int i = 7; i > 0; i--)
+  for (int i = 7; i > 0; --i)
   {
     // Seems exp int are not masked by sr_int_enable
     if ((exceptions & (1U << i)) != 0)

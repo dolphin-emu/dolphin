@@ -356,12 +356,12 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
 
 HotkeyManager::HotkeyManager()
 {
-  for (std::size_t group = 0; group < m_hotkey_groups.size(); group++)
+  for (std::size_t group = 0; group < m_hotkey_groups.size(); ++group)
   {
     m_hotkey_groups[group] =
         (m_keys[group] = new ControllerEmu::Buttons(s_groups_info[group].name));
     groups.emplace_back(m_hotkey_groups[group]);
-    for (int key = s_groups_info[group].first; key <= s_groups_info[group].last; key++)
+    for (int key = s_groups_info[group].first; key <= s_groups_info[group].last; ++key)
     {
       m_keys[group]->AddInput(ControllerEmu::Translate, s_hotkey_labels[key]);
     }
@@ -380,14 +380,14 @@ std::string HotkeyManager::GetName() const
 void HotkeyManager::GetInput(HotkeyStatus* kb, bool ignore_focus)
 {
   const auto lock = GetStateLock();
-  for (std::size_t group = 0; group < s_groups_info.size(); group++)
+  for (std::size_t group = 0; group < s_groups_info.size(); ++group)
   {
     if (s_groups_info[group].ignore_focus != ignore_focus)
       continue;
 
     const int group_count = (s_groups_info[group].last - s_groups_info[group].first) + 1;
     std::vector<u32> bitmasks(group_count);
-    for (size_t key = 0; key < bitmasks.size(); key++)
+    for (size_t key = 0; key < bitmasks.size(); ++key)
       bitmasks[key] = static_cast<u32>(1 << key);
 
     kb->button[group] = 0;
@@ -454,7 +454,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Savestates
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; ++i)
   {
     set_key_expression(HK_LOAD_STATE_SLOT_1 + i, fmt::format("F{}", i + 1));
     set_key_expression(HK_SAVE_STATE_SLOT_1 + i,

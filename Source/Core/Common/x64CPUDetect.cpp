@@ -211,7 +211,7 @@ void CPUInfo::Detect()
   {
     // Extract CPU model string
     model_name.resize(sizeof(info) * 3);
-    for (u32 i = 0; i < 3; i++)
+    for (u32 i = 0; i < 3; ++i)
     {
       info = cpuid(0x80000002 + i);
       memcpy(&model_name[sizeof(info) * i], &info, sizeof(info));

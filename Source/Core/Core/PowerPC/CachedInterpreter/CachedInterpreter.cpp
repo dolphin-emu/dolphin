@@ -259,7 +259,7 @@ void CachedInterpreter::Jit(u32 address)
   b->checkedEntry = GetCodePtr();
   b->normalEntry = GetCodePtr();
 
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
+  for (u32 i = 0; i < code_block.m_num_instructions; ++i)
   {
     PPCAnalyst::CodeOp& op = m_code_buffer[i];
 

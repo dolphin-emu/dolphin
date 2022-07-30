@@ -158,9 +158,9 @@ u32 GetBlockCount(u32 extent, u32 block_size)
 void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
 {
   u8* data_ptr = level->data.data();
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // Set alpha channel to full intensity.
       data_ptr[3] = 0xFF;
@@ -172,9 +172,9 @@ void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
 void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
 {
   u8* data_ptr = level->data.data();
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // Byte swap ABGR -> RGBA
       u32 val;
@@ -189,9 +189,9 @@ void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
 void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
 {
   u8* data_ptr = level->data.data();
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // Byte swap XBGR -> RGBX, and set alpha to full intensity.
       u32 val;
@@ -210,9 +210,9 @@ void ConvertTexture_R8G8B8(HiresTexture::Level* level)
   const u8* rgb_data_ptr = level->data.data();
   u8* data_ptr = new_data.data();
 
-  for (u32 row = 0; row < level->height; row++)
+  for (u32 row = 0; row < level->height; ++row)
   {
-    for (u32 x = 0; x < level->row_length; x++)
+    for (u32 x = 0; x < level->row_length; ++x)
     {
       // This is BGR in memory.
       u32 val;
@@ -460,7 +460,7 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
   // If the .dds file does not contain a full mip chain, we'll fall back to the old path.
   u32 mip_width = info.width;
   u32 mip_height = info.height;
-  for (u32 i = 1; i < info.mip_count; i++)
+  for (u32 i = 1; i < info.mip_count; ++i)
   {
     mip_width = std::max(mip_width / 2, 1u);
     mip_height = std::max(mip_height / 2, 1u);

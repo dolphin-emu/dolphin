@@ -190,7 +190,7 @@ std::string GetStringVA(u32 str_reg, ParameterType parameter_type)
                 std::make_unique<HLE::SystemVABI::VAListStruct>(GPR(str_reg + 1)) :
                 std::make_unique<HLE::SystemVABI::VAList>(GPR(1) + 0x8, str_reg + 1);
 
-  for (size_t i = 0; i < string.size(); i++)
+  for (size_t i = 0; i < string.size(); ++i)
   {
     if (string[i] == '%')
     {

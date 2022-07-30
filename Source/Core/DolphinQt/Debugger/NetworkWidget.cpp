@@ -239,7 +239,7 @@ void NetworkWidget::Update()
     return;
 
   m_socket_table->setRowCount(0);
-  for (u32 wii_fd = 0; wii_fd < IOS::HLE::WII_SOCKET_FD_MAX; wii_fd++)
+  for (u32 wii_fd = 0; wii_fd < IOS::HLE::WII_SOCKET_FD_MAX; ++wii_fd)
   {
     m_socket_table->insertRow(wii_fd);
     const s32 host_fd = IOS::HLE::WiiSockMan::GetInstance().GetHostSocket(wii_fd);
@@ -253,7 +253,7 @@ void NetworkWidget::Update()
   m_socket_table->resizeColumnsToContents();
 
   m_ssl_table->setRowCount(0);
-  for (u32 ssl_id = 0; ssl_id < IOS::HLE::NET_SSL_MAXINSTANCES; ssl_id++)
+  for (u32 ssl_id = 0; ssl_id < IOS::HLE::NET_SSL_MAXINSTANCES; ++ssl_id)
   {
     m_ssl_table->insertRow(ssl_id);
     s32 host_fd = -1;

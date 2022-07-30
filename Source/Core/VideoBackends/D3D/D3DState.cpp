@@ -264,7 +264,7 @@ void StateManager::SyncComputeBindings()
     m_compute_textures[start] = m_pending.textures[start];
 
     u32 end = start + 1;
-    for (; end < static_cast<u32>(m_compute_textures.size()); end++)
+    for (; end < static_cast<u32>(m_compute_textures.size()); ++end)
     {
       if (m_compute_textures[end] == m_pending.textures[end])
         break;
@@ -287,7 +287,7 @@ void StateManager::SyncComputeBindings()
     m_compute_samplers[start] = m_pending.samplers[start];
 
     u32 end = start + 1;
-    for (; end < static_cast<u32>(m_compute_samplers.size()); end++)
+    for (; end < static_cast<u32>(m_compute_samplers.size()); ++end)
     {
       if (m_compute_samplers[end] == m_pending.samplers[end])
         break;

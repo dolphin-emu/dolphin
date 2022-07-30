@@ -46,7 +46,7 @@ CEXIAgp::~CEXIAgp()
 
 void CEXIAgp::CRC8(const u8* data, u32 size)
 {
-  for (u32 it = 0; it < size; it++)
+  for (u32 it = 0; it < size; ++it)
   {
     u8 crc = 0;
     m_hash = m_hash ^ data[it];
@@ -119,10 +119,10 @@ void CEXIAgp::LoadFileToEEPROM(const std::string& filename)
     if ((m_eeprom_size == 512) || (m_eeprom_size == 8192))
     {
       // Handle endian read - could be done with byte access in 0xAE commands instead
-      for (u32 index = 0; index < (m_eeprom_size / 8); index++)
+      for (u32 index = 0; index < (m_eeprom_size / 8); ++index)
       {
         u64 NewVal = 0;
-        for (u32 indexb = 0; indexb < 8; indexb++)
+        for (u32 indexb = 0; indexb < 8; ++indexb)
           NewVal = (NewVal << 0x8) | m_eeprom[index * 8 + indexb];
         ((u64*)(m_eeprom.data()))[index] = NewVal;
       }
@@ -150,10 +150,10 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
     {
       // Handle endian write - could be done with byte access in 0xAE commands instead
       std::vector<u8> temp_eeprom(m_eeprom_size);
-      for (u32 index = 0; index < (m_eeprom_size / 8); index++)
+      for (u32 index = 0; index < (m_eeprom_size / 8); ++index)
       {
         u64 NewVal = ((u64*)(m_eeprom.data()))[index];
-        for (u32 indexb = 0; indexb < 8; indexb++)
+        for (u32 indexb = 0; indexb < 8; ++indexb)
           temp_eeprom[index * 8 + (7 - indexb)] = (NewVal >> (indexb * 8)) & 0xFF;
       }
       pStream.WriteBytes(temp_eeprom.data(), m_eeprom_size);

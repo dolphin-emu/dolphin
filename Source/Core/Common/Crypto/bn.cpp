@@ -55,7 +55,7 @@ void bn_mul(u8* d, const u8* a, const u8* b, const u8* N, int n)
 {
   bn_zero(d, n);
 
-  for (int i = 0; i < n; i++)
+  for (int i = 0; i < n; ++i)
   {
     for (u8 mask = 0x80; mask != 0; mask >>= 1)
     {
@@ -72,7 +72,7 @@ void bn_exp(u8* d, const u8* a, const u8* N, int n, const u8* e, int en)
 
   bn_zero(d, n);
   d[n - 1] = 1;
-  for (int i = 0; i < en; i++)
+  for (int i = 0; i < en; ++i)
   {
     for (u8 mask = 0x80; mask != 0; mask >>= 1)
     {

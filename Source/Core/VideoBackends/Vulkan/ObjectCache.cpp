@@ -173,7 +173,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     create_infos[DESCRIPTOR_SET_LAYOUT_STANDARD_UNIFORM_BUFFERS].bindingCount--;
 
-  for (size_t i = 0; i < create_infos.size(); i++)
+  for (size_t i = 0; i < create_infos.size(); ++i)
   {
     VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
                                                nullptr, &m_descriptor_set_layouts[i]);
@@ -233,7 +233,7 @@ bool ObjectCache::CreatePipelineLayouts()
   if (!g_ActiveConfig.backend_info.bSupportsBBox)
     pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
 
-  for (size_t i = 0; i < pipeline_layout_info.size(); i++)
+  for (size_t i = 0; i < pipeline_layout_info.size(); ++i)
   {
     VkResult res;
     if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &pipeline_layout_info[i],

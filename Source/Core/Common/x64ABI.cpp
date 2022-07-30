@@ -78,7 +78,7 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignmen
   if (subtraction)
     ADD(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
 
-  for (int r = 15; r >= 0; r--)
+  for (int r = 15; r >= 0; --r)
   {
     if (mask[r])
       POP((X64Reg)r);

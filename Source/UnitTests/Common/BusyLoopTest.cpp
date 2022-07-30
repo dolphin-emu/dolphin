@@ -13,13 +13,13 @@ TEST(BusyLoopTest, MultiThreaded)
 {
   Common::BlockingLoop loop;
   Common::Event e;
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < 10; ++i)
   {
     loop.Prepare();
     std::thread loop_thread([&]() { loop.Run([&]() { e.Set(); }); });
 
     // Ping - Pong
-    for (int j = 0; j < 10; j++)
+    for (int j = 0; j < 10; ++j)
     {
       loop.Wakeup();
       e.Wait();
@@ -28,7 +28,7 @@ TEST(BusyLoopTest, MultiThreaded)
       Common::SleepCurrentThread(1);
     }
 
-    for (int j = 0; j < 100; j++)
+    for (int j = 0; j < 100; ++j)
     {
       // We normally have to call Wakeup to assure the Event is triggered.
       // But this check is for an internal feature of the BlockingLoop.

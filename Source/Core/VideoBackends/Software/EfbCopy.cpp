@@ -24,9 +24,9 @@ void ClearEfb()
   int right = left + bpmem.copyTexSrcWH.x;
   int bottom = top + bpmem.copyTexSrcWH.y;
 
-  for (u16 y = top; y <= bottom; y++)
+  for (u16 y = top; y <= bottom; ++y)
   {
-    for (u16 x = left; x <= right; x++)
+    for (u16 x = left; x <= right; ++x)
     {
       EfbInterface::SetColor(x, y, (u8*)(&clearColor));
       EfbInterface::SetDepth(x, y, bpmem.clearZValue);

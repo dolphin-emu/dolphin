@@ -922,7 +922,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   // wants flags, to be safe.
   bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
   BitSet32 fprInUse, gprInUse, gprDiscardable, fprDiscardable, fprInXmm;
-  for (int i = block->m_num_instructions - 1; i >= 0; i--)
+  for (int i = block->m_num_instructions - 1; i >= 0; --i)
   {
     CodeOp& op = code[i];
 
@@ -968,7 +968,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer,
   // Forward scan, for flags that need the other direction for calculation.
   BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe, gprDefined, gprBlockInputs;
   BitSet8 gqrUsed, gqrModified;
-  for (u32 i = 0; i < block->m_num_instructions; i++)
+  for (u32 i = 0; i < block->m_num_instructions; ++i)
   {
     CodeOp& op = code[i];
 

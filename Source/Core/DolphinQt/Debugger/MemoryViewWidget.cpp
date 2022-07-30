@@ -291,7 +291,7 @@ void MemoryViewWidget::Update()
 
   m_table->setRowCount(rows);
 
-  for (int i = 0; i < rows; i++)
+  for (int i = 0; i < rows; ++i)
   {
     u32 row_address = address - ((m_table->rowCount() / 2) * m_bytes_per_row) + i * m_bytes_per_row;
 
@@ -318,7 +318,7 @@ void MemoryViewWidget::Update()
 
     if (Core::GetState() != Core::State::Paused || !accessors->IsValidAddress(row_address))
     {
-      for (int c = 2; c < m_table->columnCount(); c++)
+      for (int c = 2; c < m_table->columnCount(); ++c)
       {
         auto* item = new QTableWidgetItem(QStringLiteral("-"));
         item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -351,7 +351,7 @@ void MemoryViewWidget::Update()
     const int column_count = m_bytes_per_row / GetTypeSize(left_type);
 
     // Update column width
-    for (int i = starting_column; i < starting_column + column_count - 1; i++)
+    for (int i = starting_column; i < starting_column + column_count - 1; ++i)
       m_table->setColumnWidth(i, m_font_width * GetCharacterCount(left_type));
 
     // Extra spacing between dual views.
@@ -366,7 +366,7 @@ void MemoryViewWidget::Update()
 
   m_table->setColumnWidth(0, m_table->rowHeight(0));
 
-  for (int i = starting_column; i <= m_table->columnCount(); i++)
+  for (int i = starting_column; i <= m_table->columnCount(); ++i)
     m_table->setColumnWidth(i, m_font_width * GetCharacterCount(m_type));
 
   m_table->viewport()->update();
@@ -389,14 +389,14 @@ void MemoryViewWidget::UpdateColumns(Type type, int first_column)
     text_alignment = Qt::AlignRight;
   }
 
-  for (int i = 0; i < m_table->rowCount(); i++)
+  for (int i = 0; i < m_table->rowCount(); ++i)
   {
     u32 row_address = m_table->item(i, 1)->data(USER_ROLE_CELL_ADDRESS).toUInt();
     if (!accessors->IsValidAddress(row_address))
       continue;
 
     auto update_values = [&](auto value_to_string) {
-      for (int c = 0; c < data_columns; c++)
+      for (int c = 0; c < data_columns; ++c)
       {
         auto* cell_item = new QTableWidgetItem;
         cell_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
@@ -512,11 +512,11 @@ void MemoryViewWidget::UpdateBreakpointTags()
   if (Core::GetState() != Core::State::Paused)
     return;
 
-  for (int i = 0; i < m_table->rowCount(); i++)
+  for (int i = 0; i < m_table->rowCount(); ++i)
   {
     bool row_breakpoint = false;
 
-    for (int c = 2; c < m_table->columnCount(); c++)
+    for (int c = 2; c < m_table->columnCount(); ++c)
     {
       // Pull address from cell itself, helpful for dual column view.
       auto cell = m_table->item(i, c);
@@ -761,7 +761,7 @@ void MemoryViewWidget::ToggleBreakpoint(u32 addr, bool row)
   if (row && PowerPC::memchecks.OverlapsMemcheck(addr, m_bytes_per_row))
     overlap = true;
 
-  for (int i = 0; i < breaks; i++)
+  for (int i = 0; i < breaks; ++i)
   {
     u32 address = addr + length * i;
     TMemCheck* check_ptr = PowerPC::memchecks.GetMemCheck(address, length);

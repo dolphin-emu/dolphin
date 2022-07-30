@@ -274,7 +274,7 @@ void NetPlayDialog::CreatePlayersLayout()
   m_players_list->horizontalHeader()->setStretchLastSection(true);
   m_players_list->horizontalHeader()->setHighlightSections(false);
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 4; ++i)
     m_players_list->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
 
   auto* layout = new QGridLayout;
@@ -628,7 +628,7 @@ void NetPlayDialog::UpdateGUI()
            {tr("Not found"), tr("No matching game was found")}},
       };
 
-  for (int i = 0; i < m_player_count; i++)
+  for (int i = 0; i < m_player_count; ++i)
   {
     const auto* p = players[i];
 
@@ -1035,7 +1035,7 @@ NetPlayDialog::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
 
   std::optional<std::shared_ptr<const UICommon::GameFile>> game_file =
       RunOnObject(this, [this, &sync_identifier, found] {
-        for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
+        for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); ++i)
         {
           auto file = m_game_list_model.GetGameFile(i);
           *found = std::min(*found, file->CompareSyncIdentifier(sync_identifier));

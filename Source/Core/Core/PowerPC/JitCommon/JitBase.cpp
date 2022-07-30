@@ -68,7 +68,7 @@ bool JitBase::CanMergeNextInstructions(int count) const
   if (CPU::IsStepping() || js.instructionsLeft < count)
     return false;
   // Be careful: a breakpoint kills flags in between instructions
-  for (int i = 1; i <= count; i++)
+  for (int i = 1; i <= count; ++i)
   {
     if (m_enable_debugging && PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
       return false;

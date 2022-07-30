@@ -266,7 +266,7 @@ void CodeViewWidget::Update()
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
   const int rowh = fm.height() + 1;
 
-  for (int i = 0; i < rows; i++)
+  for (int i = 0; i < rows; ++i)
     setRowHeight(i, rowh);
 
   u32 pc = PowerPC::ppcState.pc;
@@ -278,7 +278,7 @@ void CodeViewWidget::Update()
 
   m_branches.clear();
 
-  for (int i = 0; i < rowCount(); i++)
+  for (int i = 0; i < rowCount(); ++i)
   {
     const u32 addr = AddressForRow(i);
     const u32 color = PowerPC::debug_interface.GetColor(addr);
@@ -465,7 +465,7 @@ void CodeViewWidget::CalculateBranchIndentation()
     // first_visible_addr to fffffffc, and the second for 00000000 to last_visible_addr.
     // That means we need to find the row corresponding to 00000000.
     int addr_zero_row = -1;
-    for (u32 row = 0; row < rows; row++)
+    for (u32 row = 0; row < rows; ++row)
     {
       if (AddressForRow(row) == 0)
       {

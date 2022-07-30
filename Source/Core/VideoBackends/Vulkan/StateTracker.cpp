@@ -65,7 +65,7 @@ bool StateTracker::Initialize()
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Initialize all samplers to point by default
-  for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
+  for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; ++i)
   {
     m_bindings.samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.samplers[i].imageView = m_dummy_texture->GetView();
@@ -473,7 +473,7 @@ bool StateTracker::UpdateGXDescriptorSet()
     if (m_gx_descriptor_sets[0] == VK_NULL_HANDLE)
       return false;
 
-    for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; i++)
+    for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; ++i)
     {
       if (i == UBO_DESCRIPTOR_SET_BINDING_GS &&
           !g_ActiveConfig.backend_info.bSupportsGeometryShaders)

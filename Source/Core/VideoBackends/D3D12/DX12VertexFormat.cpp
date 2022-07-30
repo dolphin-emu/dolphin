@@ -88,7 +88,7 @@ void DXVertexFormat::MapAttributes()
         m_decl.position.offset);
   }
 
-  for (uint32_t i = 0; i < 3; i++)
+  for (uint32_t i = 0; i < 3; ++i)
   {
     if (m_decl.normals[i].enable)
     {
@@ -99,7 +99,7 @@ void DXVertexFormat::MapAttributes()
     }
   }
 
-  for (uint32_t i = 0; i < 2; i++)
+  for (uint32_t i = 0; i < 2; ++i)
   {
     if (m_decl.colors[i].enable)
     {
@@ -110,7 +110,7 @@ void DXVertexFormat::MapAttributes()
     }
   }
 
-  for (uint32_t i = 0; i < 8; i++)
+  for (uint32_t i = 0; i < 8; ++i)
   {
     if (m_decl.texcoords[i].enable)
     {

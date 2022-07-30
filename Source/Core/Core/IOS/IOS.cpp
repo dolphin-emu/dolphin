@@ -576,7 +576,7 @@ void Kernel::AddStaticDevices()
 
 s32 Kernel::GetFreeDeviceID()
 {
-  for (u32 i = 0; i < IPC_MAX_FDS; i++)
+  for (u32 i = 0; i < IPC_MAX_FDS; ++i)
   {
     if (m_fdmap[i] == nullptr)
     {
@@ -809,7 +809,7 @@ void Kernel::DoState(PointerWrap& p)
 
   if (p.IsReadMode())
   {
-    for (u32 i = 0; i < IPC_MAX_FDS; i++)
+    for (u32 i = 0; i < IPC_MAX_FDS; ++i)
     {
       u32 exists = 0;
       p.Do(exists);

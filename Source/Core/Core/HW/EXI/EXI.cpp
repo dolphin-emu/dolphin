@@ -124,7 +124,7 @@ void Init()
     const u64 format_time =
         Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
 
-    for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
+    for (u32 i = 0; i < MAX_EXI_CHANNELS; ++i)
     {
       Memcard::HeaderData header_data;
       Memcard::InitializeHeaderData(&header_data, flash_id, size_mbits, shift_jis, rtc_bias,

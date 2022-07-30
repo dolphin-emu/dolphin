@@ -38,7 +38,7 @@ public:
   Semaphore(int initial_count, int maximum_count)
   {
     m_handle = dispatch_semaphore_create(0);
-    for (int i = 0; i < initial_count; i++)
+    for (int i = 0; i < initial_count; ++i)
       dispatch_semaphore_signal(m_handle);
   }
   ~Semaphore() { dispatch_release(m_handle); }

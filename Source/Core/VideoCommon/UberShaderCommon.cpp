@@ -77,7 +77,7 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
                          std::string_view out_color_1_var)
 {
   out.Write("// Lighting\n");
-  out.Write("for (uint chan = 0u; chan < {}u; chan++) {{\n", NUM_XF_COLOR_CHANNELS);
+  out.Write("for (uint chan = 0u; chan < {}u; ++chan) {{\n", NUM_XF_COLOR_CHANNELS);
   out.Write("  uint colorreg = xfmem_color(chan);\n"
             "  uint alphareg = xfmem_alpha(chan);\n"
             "  int4 mat = " I_MATERIALS "[chan + 2u]; \n"
@@ -108,7 +108,7 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
   out.Write("    uint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>("colorreg"));
   out.Write("    uint diffusefunc = {};\n", BitfieldExtract<&LitChannel::diffusefunc>("colorreg"));
   out.Write(
-      "    for (uint light_index = 0u; light_index < 8u; light_index++) {{\n"
+      "    for (uint light_index = 0u; light_index < 8u; ++light_index) {{\n"
       "      if ((light_mask & (1u << light_index)) != 0u)\n"
       "        lacc.xyz += CalculateLighting(light_index, attnfunc, diffusefunc, {}, {}).xyz;\n",
       world_pos_var, normal_var);
@@ -134,7 +134,7 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             BitfieldExtract<&LitChannel::lightMask4_7>("alphareg"));
   out.Write("    uint attnfunc = {};\n", BitfieldExtract<&LitChannel::attnfunc>("alphareg"));
   out.Write("    uint diffusefunc = {};\n", BitfieldExtract<&LitChannel::diffusefunc>("alphareg"));
-  out.Write("    for (uint light_index = 0u; light_index < 8u; light_index++) {{\n\n"
+  out.Write("    for (uint light_index = 0u; light_index < 8u; ++light_index) {{\n\n"
             "      if ((light_mask & (1u << light_index)) != 0u)\n\n"
             "        lacc.w += CalculateLighting(light_index, attnfunc, diffusefunc, {}, {}).w;\n",
             world_pos_var, normal_var);
