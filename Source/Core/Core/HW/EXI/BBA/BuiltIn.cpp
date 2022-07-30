@@ -143,6 +143,7 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
   const u32 ip = m_local_ip.empty() ? sf::IpAddress::getLocalAddress().toInteger() :
                                       sf::IpAddress(m_local_ip).toInteger();
   m_current_ip = htonl(ip);
+  m_current_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
   m_router_ip = (m_current_ip & 0xFFFFFF) | 0x01000000;
 
   // clear all ref
@@ -197,19 +198,18 @@ void CEXIETHERNET::BuiltInBBAInterface::WriteToQueue(const std::vector<u8>& data
 void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packet)
 {
   const auto& [hwdata, arpdata] = packet;
-  const Common::MACAddress bba_mac =
-      Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
-  Common::ARPPacket response(bba_mac, m_fake_mac);
+  Common::ARPPacket response(m_current_mac, m_fake_mac);
 
   if (arpdata.target_ip == m_current_ip)
   {
     // game asked for himself, reply with his mac address
-    response.arp_header = Common::ARPHeader(arpdata.target_ip, bba_mac, m_current_ip, bba_mac);
+    response.arp_header =
+        Common::ARPHeader(arpdata.target_ip, m_current_mac, m_current_ip, m_current_mac);
   }
   else
   {
     response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
-                                            m_current_ip, bba_mac);
+                                            m_current_ip, m_current_mac);
   }
 
   WriteToQueue(response.Build());
@@ -234,10 +234,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
 
   const std::vector<u8> timeout_24h = {0, 1, 0x51, 0x80};
 
-  const Common::MACAddress bba_mac =
-      Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
   Common::DHCPPacket reply;
-  reply.body = Common::DHCPBody(request.transaction_id, bba_mac, m_current_ip, m_router_ip);
+  reply.body = Common::DHCPBody(request.transaction_id, m_current_mac, m_current_ip, m_router_ip);
 
   // options
   // send our emulated lan settings
@@ -256,7 +254,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleDHCP(const Common::UDPPacket& pack
   reply.AddOption(3, ip_part);                                     // router ip
   reply.AddOption(255, {});                                        // end
 
-  const Common::UDPPacket response(bba_mac, m_fake_mac, from, to, reply.Build());
+  const Common::UDPPacket response(m_current_mac, m_fake_mac, from, to, reply.Build());
 
   WriteToQueue(response.Build());
 }
@@ -329,7 +327,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->from.sin_port = tcp_header.destination_port;
     ref->to.sin_addr.s_addr = Common::BitCast<u32>(ip_header.source_addr);
     ref->to.sin_port = tcp_header.source_port;
-    ref->bba_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
+    ref->bba_mac = m_current_mac;
     ref->my_mac = m_fake_mac;
     ref->tcp_socket.setBlocking(false);
 
@@ -420,7 +418,7 @@ void CEXIETHERNET::BuiltInBBAInterface::InitUDPPort(u16 port)
   ref->local = htons(port);
   ref->remote = htons(port);
   ref->type = IPPROTO_UDP;
-  ref->bba_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
+  ref->bba_mac = m_current_mac;
   ref->my_mac = m_fake_mac;
   ref->from.sin_addr.s_addr = 0;
   ref->from.sin_port = htons(port);
@@ -450,7 +448,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
     ref->local = udp_header.source_port;
     ref->remote = udp_header.destination_port;
     ref->type = IPPROTO_UDP;
-    ref->bba_mac = Common::BitCastPtr<Common::MACAddress>(&m_eth_ref->mBbaMem[BBA_NAFR_PAR0]);
+    ref->bba_mac = m_current_mac;
     ref->my_mac = m_fake_mac;
     ref->from.sin_addr.s_addr = destination_addr;
     ref->from.sin_port = udp_header.destination_port;
