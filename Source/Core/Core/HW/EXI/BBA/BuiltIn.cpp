@@ -174,6 +174,8 @@ void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
     ref.ip = 0;
   }
 
+  m_arp_table.clear();
+
   // Wait for read thread to exit.
   if (m_read_thread.joinable())
     m_read_thread.join();
@@ -206,7 +208,8 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleARP(const Common::ARPPacket& packe
   }
   else
   {
-    response.arp_header = Common::ARPHeader(arpdata.target_ip, m_fake_mac, m_current_ip, bba_mac);
+    response.arp_header = Common::ARPHeader(arpdata.target_ip, ResolveAddress(arpdata.target_ip),
+                                            m_current_ip, bba_mac);
   }
 
   WriteToQueue(response.Build());
@@ -486,6 +489,21 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
   else
     target = sf::IpAddress(ntohl(Common::BitCast<u32>(ip_header.destination_addr)));
   ref->udp_socket.send(data.data(), data.size(), target, ntohs(udp_header.destination_port));
+}
+
+const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 inet_ip)
+{
+  auto it = m_arp_table.lower_bound(inet_ip);
+  if (it != m_arp_table.end() && it->first == inet_ip)
+  {
+    return it->second;
+  }
+  else
+  {
+    return m_arp_table
+        .emplace_hint(it, inet_ip, Common::GenerateMacAddress(Common::MACConsumer::BBA))
+        ->second;
+  }
 }
 
 bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
