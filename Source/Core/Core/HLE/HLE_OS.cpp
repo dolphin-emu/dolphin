@@ -79,8 +79,6 @@ void HLE_GeneralDebugPrint(ParameterType parameter_type)
 
   StringPopBackIf(&report_message, '\n');
 
-  NPC = LR;
-
   NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
 }
 
@@ -117,16 +115,12 @@ void HLE_write_console()
 
   StringPopBackIf(&report_message, '\n');
 
-  NPC = LR;
-
   NOTICE_LOG_FMT(OSREPORT_HLE, "{:08x}->{:08x}| {}", LR, PC, SHIFTJISToUTF8(report_message));
 }
 
 // Log (v)dprintf message if fd is 1 (stdout) or 2 (stderr)
 void HLE_LogDPrint(ParameterType parameter_type)
 {
-  NPC = LR;
-
   if (GPR(3) != 1 && GPR(3) != 2)
     return;
 
@@ -152,8 +146,6 @@ void HLE_LogVDPrint()
 // Log (v)fprintf message if FILE is stdout or stderr
 void HLE_LogFPrint(ParameterType parameter_type)
 {
-  NPC = LR;
-
   // The structure FILE is implementation defined.
   // Both libogc and Dolphin SDK seem to store the fd at the same address.
   int fd = -1;
@@ -245,7 +237,7 @@ std::string GetStringVA(u32 str_reg, ParameterType parameter_type)
 
       case 'n':
         // %n doesn't output anything, so the result variable is untouched
-        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), ap->GetArgT<u32>());
+        // the actual PPC function will take care of the memory write
         break;
 
       default:
