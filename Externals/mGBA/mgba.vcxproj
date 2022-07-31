@@ -205,6 +205,7 @@
     <ClCompile Include="mgba\src\feature\thread-proxy.c" />
     <ClCompile Include="mgba\src\feature\video-logger.c" />
   </ItemGroup>
+  <Import Project="$(ExternalsDir)zlib-ng\exports.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
