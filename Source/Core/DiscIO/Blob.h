@@ -40,6 +40,7 @@ enum class BlobType
   WIA,
   RVZ,
   MOD_DESCRIPTOR,
+  NFS,
 };
 
 std::string GetName(BlobType blob_type, bool translate);
