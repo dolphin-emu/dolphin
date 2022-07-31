@@ -287,12 +287,6 @@ private:
     u32 e{};
   };
 
-  static inline uint32x4_t byterev_16B(uint32x4_t x)
-  {
-    // Just rev32 with casting wrappers
-    return vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(x)));
-  }
-
   TARGET_ARMV8_SHA1
   static inline uint32x4_t MsgSchedule(WorkBlock* wblock, size_t i)
   {
@@ -330,7 +324,7 @@ private:
   {
     WorkBlock w;
     for (size_t i = 0; i < w.size(); i++)
-      w[i] = byterev_16B(vld1q_u8(&msg[sizeof(uint32x4_t) * i]));
+      w[i] = vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(&msg[sizeof(uint32x4_t) * i])));
 
     std::array<State, 2> states{state};
 
@@ -363,7 +357,7 @@ private:
   virtual Digest GetDigest() override
   {
     Digest digest;
-    vst1q_u8(&digest[0], byterev_16B(state.abcd));
+    vst1q_u8(&digest[0], vrev32q_u8(vreinterpretq_u8_u32(state.abcd)));
     u32 e = Common::FromBigEndian(state.e);
     std::memcpy(&digest[sizeof(state.abcd)], &e, sizeof(e));
     return digest;
