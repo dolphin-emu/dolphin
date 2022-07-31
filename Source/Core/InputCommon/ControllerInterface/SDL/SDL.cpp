@@ -151,14 +151,6 @@ void Init()
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "SDL failed to initialize");
   return;
 #else
-#if defined(__APPLE__) && !SDL_VERSION_ATLEAST(2, 0, 24)
-  // Bug in SDL 2.0.22 requires the first init to be done on the main thread to avoid crashing
-  // (See https://github.com/libsdl-org/SDL/pull/5598)
-  SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-  // If we QuitSubSystem here, HIDAPI joysticks will disappear and won't reappear when we init later
-  // (See https://github.com/libsdl-org/SDL/pull/5870)
-  // We'll just have to live with the leaks
-#endif
 
   EnableSDLLogging();
 
@@ -167,8 +159,22 @@ void Init()
   SDL_SetHint(SDL_HINT_JOYSTICK_THREAD, "1");
 #endif
 
+#if SDL_VERSION_ATLEAST(2, 0, 16) && !SDL_VERSION_ATLEAST(2, 0, 24)
+  // HIDAPI driver supports motion and other fun things
+  SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
+#endif
+
 #if SDL_VERSION_ATLEAST(2, 0, 9)
   SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
+#endif
+
+#if defined(__APPLE__) && !SDL_VERSION_ATLEAST(2, 0, 24)
+  // Bug in SDL 2.0.22 requires the first init to be done on the main thread to avoid crashing
+  // (See https://github.com/libsdl-org/SDL/pull/5598)
+  SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+  // If we QuitSubSystem here, HIDAPI joysticks will disappear and won't reappear when we init later
+  // (See https://github.com/libsdl-org/SDL/pull/5870)
+  // We'll just have to live with the leaks
 #endif
 
   s_hotplug_thread = std::thread([] {
