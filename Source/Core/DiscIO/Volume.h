@@ -63,7 +63,8 @@ public:
     return static_cast<u64>(*temp) << GetOffsetShift();
   }
 
-  virtual bool IsEncryptedAndHashed() const { return false; }
+  virtual bool HasWiiHashes() const { return false; }
+  virtual bool HasWiiEncryption() const { return false; }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   virtual std::optional<u32> GetPartitionType(const Partition& partition) const
@@ -122,7 +123,6 @@ public:
   virtual Platform GetVolumeType() const = 0;
   virtual bool IsDatelDisc() const = 0;
   virtual bool IsNKit() const = 0;
-  virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
   virtual bool CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
                                    const Partition& partition) const

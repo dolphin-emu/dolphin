@@ -41,7 +41,7 @@ void DoState(PointerWrap& p);
 void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
 bool HasDisc();
 
-bool IsEncryptedAndHashed();
+bool HasWiiHashes();
 DiscIO::Platform GetDiscType();
 u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition);
 IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition);

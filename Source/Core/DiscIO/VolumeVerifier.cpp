@@ -403,9 +403,8 @@ void VolumeVerifier::Start()
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
   m_is_datel = m_volume.IsDatelDisc();
-  m_is_not_retail =
-      (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
-      IsDebugSigned();
+  m_is_not_retail = (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.HasWiiHashes()) ||
+                    IsDebugSigned();
 
   const std::vector<Partition> partitions = CheckPartitions();
 
@@ -492,7 +491,7 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
                  Common::GetStringT("The update partition is not at its normal position."));
     }
 
-    const u64 normal_data_offset = m_volume.IsEncryptedAndHashed() ? 0xF800000 : 0x838000;
+    const u64 normal_data_offset = m_volume.HasWiiHashes() ? 0xF800000 : 0x838000;
     if (m_volume.GetPartitionType(partition) == PARTITION_DATA &&
         partition.offset != normal_data_offset && !has_channel_partition && !has_install_partition)
     {
@@ -593,14 +592,14 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     }
   }
 
-  if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
+  if (m_volume.HasWiiHashes() && !m_volume.CheckH3TableIntegrity(partition))
   {
     AddProblem(Severity::Low,
                Common::FmtFormatT("The H3 hash table for the {0} partition is not correct.", name));
   }
 
   // Prepare for hash verification in the Process step
-  if (m_volume.SupportsIntegrityCheck())
+  if (m_volume.HasWiiHashes())
   {
     const u64 data_size =
         m_volume.ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE).value_or(0);
@@ -780,7 +779,7 @@ void VolumeVerifier::CheckVolumeSize()
                Common::GetStringT("The format that the disc image is saved in does not "
                                   "store the size of the disc image."));
 
-    if (m_volume.SupportsIntegrityCheck())
+    if (m_volume.HasWiiHashes())
     {
       volume_size = m_biggest_verified_offset;
       volume_size_roughly_known = true;
