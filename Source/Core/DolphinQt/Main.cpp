@@ -156,6 +156,15 @@ int main(int argc, char* argv[])
   QApplication app(argc, argv);
 #endif
 
+#if defined(_WIN32) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+  // On Windows, Qt 5's default system font (MS Shell Dlg 2) is outdated.
+  // Interestingly, the QMenu font is correct and comes from lfMenuFont
+  // (Segoe UI on English computers).
+  // So use it for the entire application.
+  // This code will become unnecessary and obsolete once we switch to Qt 6.
+  QApplication::setFont(QApplication::font("QMenu"));
+#endif 
+
 #ifdef _WIN32
   FreeConsole();
 #endif
