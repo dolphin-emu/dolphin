@@ -1385,8 +1385,18 @@ void VolumeVerifier::Finish()
   if (m_result.redump.status == RedumpVerifier::Status::BadDump &&
       highest_severity <= Severity::Low)
   {
-    m_result.summary_text = Common::GetStringT(
-        "This is a bad dump. This doesn't necessarily mean that the game won't run correctly.");
+    if (m_volume.GetBlobType() == BlobType::NFS)
+    {
+      m_result.summary_text =
+          Common::GetStringT("Compared to the Wii disc release of the game, this is a bad dump. "
+                             "Despite this, it's possible that this is a good dump compared to the "
+                             "Wii U eShop release of the game. Dolphin can't verify this.");
+    }
+    else
+    {
+      m_result.summary_text = Common::GetStringT(
+          "This is a bad dump. This doesn't necessarily mean that the game won't run correctly.");
+    }
   }
   else
   {
@@ -1411,9 +1421,18 @@ void VolumeVerifier::Finish()
       }
       break;
     case Severity::Low:
-      m_result.summary_text =
-          Common::GetStringT("Problems with low severity were found. They will most "
-                             "likely not prevent the game from running.");
+      if (m_volume.GetBlobType() == BlobType::NFS)
+      {
+        m_result.summary_text = Common::GetStringT(
+            "Compared to the Wii disc release of the game, problems of low severity were found. "
+            "Despite this, it's possible that this is a good dump compared to the Wii U eShop "
+            "release of the game. Dolphin can't verify this.");
+      }
+      else
+      {
+        Common::GetStringT("Problems with low severity were found. They will most "
+                           "likely not prevent the game from running.");
+      }
       break;
     case Severity::Medium:
       m_result.summary_text +=
