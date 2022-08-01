@@ -761,16 +761,13 @@ endif()
 
 # macOS ships with liblzma.dylib but no headers, so check for the headers too
 find_package(LibLZMA)
-check_include_file(lzma.h HAVE_LZMA_H)
-if(LIBLZMA_FOUND AND HAVE_LZMA_H)
+if(LIBLZMA_FOUND)
+  # Imported target added in CMake 3.14
+  dolphin_make_imported_target_if_missing(LibLZMA::LibLZMA LIBLZMA)
   message(STATUS "Using shared lzma")
 else()
   check_vendoring_approved(lzma)
-  if(LIBLZMA_FOUND AND NOT HAVE_LZMA_H)
-    message(STATUS "Shared lzma found but lacks headers, falling back to the static library")
-  else()
-    message(STATUS "Shared lzma not found, falling back to the static library")
-  endif()
+  message(STATUS "Shared lzma not found, falling back to the static library")
   add_subdirectory(Externals/liblzma)
 endif()
 
