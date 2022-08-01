@@ -104,7 +104,7 @@ public:
   const std::string& GetApploaderDate() const { return m_apploader_date; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
-  bool IsVolumeSizeAccurate() const { return m_volume_size_is_accurate; }
+  DiscIO::DataSizeType GetVolumeSizeType() const { return m_volume_size_type; }
   bool IsDatelDisc() const { return m_is_datel_disc; }
   bool IsNKit() const { return m_is_nkit; }
   bool IsModDescriptor() const;
@@ -145,7 +145,7 @@ private:
 
   u64 m_file_size{};
   u64 m_volume_size{};
-  bool m_volume_size_is_accurate{};
+  DiscIO::DataSizeType m_volume_size_type{};
   bool m_is_datel_disc{};
   bool m_is_nkit{};
 

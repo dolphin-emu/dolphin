@@ -369,14 +369,14 @@ BlobType VolumeWii::GetBlobType() const
   return m_reader->GetBlobType();
 }
 
-u64 VolumeWii::GetSize() const
+u64 VolumeWii::GetDataSize() const
 {
   return m_reader->GetDataSize();
 }
 
-bool VolumeWii::IsSizeAccurate() const
+DataSizeType VolumeWii::GetDataSizeType() const
 {
-  return m_reader->IsDataSizeAccurate();
+  return m_reader->GetDataSizeType();
 }
 
 u64 VolumeWii::GetRawSize() const

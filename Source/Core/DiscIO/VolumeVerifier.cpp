@@ -62,7 +62,7 @@ void RedumpVerifier::Start(const Volume& volume)
 
   m_revision = volume.GetRevision().value_or(0);
   m_disc_number = volume.GetDiscNumber().value_or(0);
-  m_size = volume.GetSize();
+  m_size = volume.GetDataSize();
 
   const DiscIO::Platform platform = volume.GetVolumeType();
 
@@ -364,7 +364,7 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
       m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
                              hashes_to_calculate.sha1),
-      m_max_progress(volume.GetSize())
+      m_max_progress(volume.GetDataSize())
 {
   if (!m_calculating_any_hash)
     m_redump_verification = false;
@@ -758,10 +758,10 @@ bool VolumeVerifier::ShouldBeDualLayer() const
 
 void VolumeVerifier::CheckVolumeSize()
 {
-  u64 volume_size = m_volume.GetSize();
+  u64 volume_size = m_volume.GetDataSize();
   const bool is_disc = IsDisc(m_volume.GetVolumeType());
   const bool should_be_dual_layer = is_disc && ShouldBeDualLayer();
-  const bool is_size_accurate = m_volume.IsSizeAccurate();
+  const bool is_size_accurate = m_volume.GetDataSizeType() != DiscIO::DataSizeType::Accurate;
   bool volume_size_roughly_known = is_size_accurate;
 
   if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)

@@ -45,8 +45,8 @@ public:
   bool IsDatelDisc() const override;
   Region GetRegion() const override;
   BlobType GetBlobType() const override;
-  u64 GetSize() const override;
-  bool IsSizeAccurate() const override;
+  u64 GetDataSize() const override;
+  DataSizeType GetDataSizeType() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
 

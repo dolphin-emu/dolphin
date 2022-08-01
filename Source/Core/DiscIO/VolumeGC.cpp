@@ -119,14 +119,14 @@ BlobType VolumeGC::GetBlobType() const
   return m_reader->GetBlobType();
 }
 
-u64 VolumeGC::GetSize() const
+u64 VolumeGC::GetDataSize() const
 {
   return m_reader->GetDataSize();
 }
 
-bool VolumeGC::IsSizeAccurate() const
+DataSizeType VolumeGC::GetDataSizeType() const
 {
-  return m_reader->IsDataSizeAccurate();
+  return m_reader->GetDataSizeType();
 }
 
 u64 VolumeGC::GetRawSize() const

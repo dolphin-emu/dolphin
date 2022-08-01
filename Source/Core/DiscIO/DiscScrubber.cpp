@@ -30,7 +30,7 @@ bool DiscScrubber::SetupScrub(const Volume* disc)
     return false;
   m_disc = disc;
 
-  m_file_size = m_disc->GetSize();
+  m_file_size = m_disc->GetDataSize();
 
   // Round up when diving by CLUSTER_SIZE, otherwise MarkAsUsed might write out of bounds
   const size_t num_clusters = static_cast<size_t>((m_file_size + CLUSTER_SIZE - 1) / CLUSTER_SIZE);

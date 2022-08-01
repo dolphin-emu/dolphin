@@ -22,6 +22,7 @@ namespace DiscIO
 {
 class BlobReader;
 enum class BlobType;
+enum class DataSizeType;
 class FileSystem;
 class VolumeDisc;
 class VolumeWAD;
@@ -137,8 +138,8 @@ public:
   virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (may be inaccurate depending on the blob type)
-  virtual u64 GetSize() const = 0;
-  virtual bool IsSizeAccurate() const = 0;
+  virtual u64 GetDataSize() const = 0;
+  virtual DataSizeType GetDataSizeType() const = 0;
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const = 0;
   virtual const BlobReader& GetBlobReader() const = 0;

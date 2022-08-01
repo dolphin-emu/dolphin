@@ -430,9 +430,9 @@ void Shutdown()
 
 static u64 GetDiscEndOffset(const DiscIO::VolumeDisc& disc)
 {
-  u64 size = disc.GetSize();
+  u64 size = disc.GetDataSize();
 
-  if (disc.IsSizeAccurate())
+  if (disc.GetDataSizeType() == DiscIO::DataSizeType::Accurate)
   {
     if (size == DiscIO::MINI_DVD_SIZE)
       return DiscIO::MINI_DVD_SIZE;
@@ -464,7 +464,7 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
   if (has_disc)
   {
     s_disc_end_offset = GetDiscEndOffset(*disc);
-    if (!disc->IsSizeAccurate())
+    if (disc->GetDataSizeType() != DiscIO::DataSizeType::Accurate)
       WARN_LOG_FMT(DVDINTERFACE, "Unknown disc size, guessing {0} bytes", s_disc_end_offset);
 
     const DiscIO::BlobReader& blob = disc->GetBlobReader();
