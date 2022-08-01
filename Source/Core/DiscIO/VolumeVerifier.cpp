@@ -364,7 +364,7 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
       m_hashes_to_calculate(hashes_to_calculate),
       m_calculating_any_hash(hashes_to_calculate.crc32 || hashes_to_calculate.md5 ||
                              hashes_to_calculate.sha1),
-      m_max_progress(volume.GetDataSize())
+      m_max_progress(volume.GetDataSize()), m_data_size_type(volume.GetDataSizeType())
 {
   if (!m_calculating_any_hash)
     m_redump_verification = false;
@@ -761,8 +761,7 @@ void VolumeVerifier::CheckVolumeSize()
   u64 volume_size = m_volume.GetDataSize();
   const bool is_disc = IsDisc(m_volume.GetVolumeType());
   const bool should_be_dual_layer = is_disc && ShouldBeDualLayer();
-  const bool is_size_accurate = m_volume.GetDataSizeType() != DiscIO::DataSizeType::Accurate;
-  bool volume_size_roughly_known = is_size_accurate;
+  bool volume_size_roughly_known = m_data_size_type != DiscIO::DataSizeType::UpperBound;
 
   if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
@@ -773,13 +772,13 @@ void VolumeVerifier::CheckVolumeSize()
                    "This problem generally only exists in illegal copies of games."));
   }
 
-  if (!is_size_accurate)
+  if (m_data_size_type != DiscIO::DataSizeType::Accurate)
   {
     AddProblem(Severity::Low,
                Common::GetStringT("The format that the disc image is saved in does not "
                                   "store the size of the disc image."));
 
-    if (m_volume.HasWiiHashes())
+    if (!volume_size_roughly_known && m_volume.HasWiiHashes())
     {
       volume_size = m_biggest_verified_offset;
       volume_size_roughly_known = true;
@@ -803,7 +802,10 @@ void VolumeVerifier::CheckVolumeSize()
     return;
   }
 
-  if (is_disc && is_size_accurate && !m_is_tgc)
+  // The reason why this condition is checking for m_data_size_type != UpperBound instead of
+  // m_data_size_type == Accurate is because we want to show the warning about input recordings and
+  // NetPlay for NFS disc images (which are the only disc images that have it set to LowerBound).
+  if (is_disc && m_data_size_type != DiscIO::DataSizeType::UpperBound && !m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
     const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
@@ -1117,7 +1119,7 @@ void VolumeVerifier::Process()
   ASSERT(m_started);
   ASSERT(!m_done);
 
-  if (m_progress == m_max_progress)
+  if (m_progress >= m_max_progress)
     return;
 
   IOS::ES::Content content{};
@@ -1165,13 +1167,24 @@ void VolumeVerifier::Process()
   if (m_progress + bytes_to_read > m_max_progress)
   {
     const u64 bytes_over_max = m_progress + bytes_to_read - m_max_progress;
-    bytes_to_read -= bytes_over_max;
-    if (excess_bytes < bytes_over_max)
-      excess_bytes = 0;
+
+    if (m_data_size_type == DataSizeType::LowerBound)
+    {
+      // Disc images in NFS format can have the last referenced block be past m_max_progress.
+      // For NFS, reading beyond m_max_progress doesn't return an error, so let's read beyond it.
+      excess_bytes = std::max(excess_bytes, bytes_over_max);
+    }
     else
-      excess_bytes -= bytes_over_max;
-    content_read = false;
-    group_read = false;
+    {
+      // Don't read beyond the end of the disc.
+      bytes_to_read -= bytes_over_max;
+      if (excess_bytes < bytes_over_max)
+        excess_bytes = 0;
+      else
+        excess_bytes -= bytes_over_max;
+      content_read = false;
+      group_read = false;
+    }
   }
 
   const bool is_data_needed = m_calculating_any_hash || content_read || group_read;

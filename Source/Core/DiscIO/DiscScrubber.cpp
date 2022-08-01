@@ -47,7 +47,11 @@ bool DiscScrubber::SetupScrub(const Volume* disc)
 
 bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const
 {
-  return m_is_scrubbing && m_free_table[offset / CLUSTER_SIZE];
+  if (!m_is_scrubbing)
+    return false;
+
+  const u64 cluster_index = offset / CLUSTER_SIZE;
+  return cluster_index >= m_free_table.size() || m_free_table[cluster_index];
 }
 
 void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
