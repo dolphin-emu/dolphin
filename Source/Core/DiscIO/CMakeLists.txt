@@ -71,7 +71,7 @@ PUBLIC
   core
   BZip2::BZip2
   lzma
-  zstd
+  zstd::zstd
 
 PRIVATE
   fmt::fmt
