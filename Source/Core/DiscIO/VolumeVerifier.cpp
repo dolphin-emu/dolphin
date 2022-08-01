@@ -1178,10 +1178,7 @@ void VolumeVerifier::Process()
     {
       // Don't read beyond the end of the disc.
       bytes_to_read -= bytes_over_max;
-      if (excess_bytes < bytes_over_max)
-        excess_bytes = 0;
-      else
-        excess_bytes -= bytes_over_max;
+      excess_bytes -= std::min(excess_bytes, bytes_over_max);
       content_read = false;
       group_read = false;
     }
