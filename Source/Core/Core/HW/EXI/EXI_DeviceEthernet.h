@@ -4,6 +4,8 @@
 #pragma once
 
 #include <atomic>
+#include <map>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -13,7 +15,6 @@
 
 #include <SFML/Network.hpp>
 
-#include <mutex>
 #include "Common/Flag.h"
 #include "Common/Network.h"
 #include "Core/HW/EXI/BBA/BuiltIn.h"
@@ -444,7 +445,10 @@ private:
     std::mutex m_mtx;
     std::string m_local_ip;
     u32 m_current_ip = 0;
+    Common::MACAddress m_current_mac{};
     u32 m_router_ip = 0;
+    Common::MACAddress m_router_mac{};
+    std::map<u32, Common::MACAddress> m_arp_table;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__HAIKU__)
     std::array<StackRef, 10> network_ref{};  // max 10 at same time, i think most gc game had a
@@ -452,18 +456,19 @@ private:
     std::thread m_read_thread;
     Common::Flag m_read_enabled;
     Common::Flag m_read_thread_shutdown;
-    Common::MACAddress m_fake_mac{};
     static void ReadThreadHandler(BuiltInBBAInterface* self);
 #endif
     void WriteToQueue(const std::vector<u8>& data);
     StackRef* GetAvailableSlot(u16 port);
     StackRef* GetTCPSlot(u16 src_port, u16 dst_port, u32 ip);
+    std::optional<std::vector<u8>> TryGetDataFromSocket(StackRef* ref);
 
     void HandleARP(const Common::ARPPacket& packet);
     void HandleDHCP(const Common::UDPPacket& packet);
     void HandleTCPFrame(const Common::TCPPacket& packet);
     void InitUDPPort(u16 port);
     void HandleUDPFrame(const Common::UDPPacket& packet);
+    const Common::MACAddress& ResolveAddress(u32 inet_ip);
   };
 
   std::unique_ptr<NetworkInterface> m_network_interface;
