@@ -204,13 +204,53 @@ u32 InstructionCache::ReadInstruction(u32 addr)
 
 void InstructionCache::DoState(PointerWrap& p)
 {
+  if (p.IsReadMode())
+  {
+    // Clear valid parts of the lookup tables (this is done instead of using fill(0xff) to avoid
+    // loading the entire 4MB of tables into cache)
+    for (u32 set = 0; set < ICACHE_SETS; set++)
+    {
+      for (u32 way = 0; way < ICACHE_WAYS; way++)
+      {
+        if ((valid[set] & (1 << way)) != 0)
+        {
+          const u32 addr = (tags[set][way] << 12) | (set << 5);
+          if (addr & ICACHE_VMEM_BIT)
+            lookup_table_vmem[(addr >> 5) & 0xfffff] = 0xff;
+          else if (addr & ICACHE_EXRAM_BIT)
+            lookup_table_ex[(addr >> 5) & 0x1fffff] = 0xff;
+          else
+            lookup_table[(addr >> 5) & 0xfffff] = 0xff;
+        }
+      }
+    }
+  }
+
   p.DoArray(data);
   p.DoArray(tags);
   p.DoArray(plru);
   p.DoArray(valid);
-  p.DoArray(lookup_table);
-  p.DoArray(lookup_table_ex);
-  p.DoArray(lookup_table_vmem);
+
+  if (p.IsReadMode())
+  {
+    // Recompute lookup tables
+    for (u32 set = 0; set < ICACHE_SETS; set++)
+    {
+      for (u32 way = 0; way < ICACHE_WAYS; way++)
+      {
+        if ((valid[set] & (1 << way)) != 0)
+        {
+          const u32 addr = (tags[set][way] << 12) | (set << 5);
+          if (addr & ICACHE_VMEM_BIT)
+            lookup_table_vmem[(addr >> 5) & 0xfffff] = way;
+          else if (addr & ICACHE_EXRAM_BIT)
+            lookup_table_ex[(addr >> 5) & 0x1fffff] = way;
+          else
+            lookup_table[(addr >> 5) & 0xfffff] = way;
+        }
+      }
+    }
+  }
 }
 
 void InstructionCache::RefreshConfig()
