@@ -16,11 +16,10 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/aes.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
@@ -128,14 +127,11 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
         return h3_table;
       };
 
-      auto get_key = [this, partition]() -> std::unique_ptr<mbedtls_aes_context> {
+      auto get_key = [this, partition]() -> std::unique_ptr<Common::AES::Context> {
         const IOS::ES::TicketReader& ticket = *m_partitions[partition].ticket;
         if (!ticket.IsValid())
           return nullptr;
-        const std::array<u8, AES_KEY_SIZE> key = ticket.GetTitleKey();
-        std::unique_ptr<mbedtls_aes_context> aes_context = std::make_unique<mbedtls_aes_context>();
-        mbedtls_aes_setkey_dec(aes_context.get(), key.data(), 128);
-        return aes_context;
+        return Common::AES::CreateContextDecrypt(ticket.GetTitleKey().data());
       };
 
       auto get_file_system = [this, partition]() -> std::unique_ptr<FileSystem> {
@@ -148,7 +144,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
       };
 
       m_partitions.emplace(
-          partition, PartitionDetails{Common::Lazy<std::unique_ptr<mbedtls_aes_context>>(get_key),
+          partition, PartitionDetails{Common::Lazy<std::unique_ptr<Common::AES::Context>>(get_key),
                                       Common::Lazy<IOS::ES::TicketReader>(get_ticket),
                                       Common::Lazy<IOS::ES::TMDReader>(get_tmd),
                                       Common::Lazy<std::vector<u8>>(get_cert_chain),
@@ -183,11 +179,11 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
                           buffer);
   }
 
-  mbedtls_aes_context* aes_context = partition_details.key->get();
+  auto aes_context = partition_details.key->get();
   if (!aes_context)
     return false;
 
-  std::vector<u8> read_buffer(BLOCK_TOTAL_SIZE);
+  auto read_buffer = std::make_unique<u8[]>(BLOCK_TOTAL_SIZE);
   while (length > 0)
   {
     // Calculate offsets
@@ -198,11 +194,11 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
     if (m_last_decrypted_block != block_offset_on_disc)
     {
       // Read the current block
-      if (!m_reader->Read(block_offset_on_disc, BLOCK_TOTAL_SIZE, read_buffer.data()))
+      if (!m_reader->Read(block_offset_on_disc, BLOCK_TOTAL_SIZE, read_buffer.get()))
         return false;
 
       // Decrypt the block's data
-      DecryptBlockData(read_buffer.data(), m_last_decrypted_block_data, aes_context);
+      DecryptBlockData(read_buffer.get(), m_last_decrypted_block_data, aes_context);
       m_last_decrypted_block = block_offset_on_disc;
     }
 
@@ -421,19 +417,19 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const u8* encrypted_data,
       partition_details.h3_table->size())
     return false;
 
-  mbedtls_aes_context* aes_context = partition_details.key->get();
+  auto aes_context = partition_details.key->get();
   if (!aes_context)
     return false;
 
   HashBlock hashes;
   DecryptBlockHashes(encrypted_data, &hashes, aes_context);
 
-  u8 cluster_data[BLOCK_DATA_SIZE];
-  DecryptBlockData(encrypted_data, cluster_data, aes_context);
+  auto cluster_data = std::make_unique<u8[]>(BLOCK_DATA_SIZE);
+  DecryptBlockData(encrypted_data, cluster_data.get(), aes_context);
 
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
-    if (Common::SHA1::CalculateDigest(cluster_data + hash_index * 0x400, 0x400) !=
+    if (Common::SHA1::CalculateDigest(&cluster_data[hash_index * 0x400], 0x400) !=
         hashes.h0[hash_index])
       return false;
   }
@@ -577,8 +573,7 @@ bool VolumeWii::EncryptGroup(
 
   std::vector<std::future<void>> encryption_futures(threads);
 
-  mbedtls_aes_context aes_context;
-  mbedtls_aes_setkey_enc(&aes_context, key.data(), 128);
+  auto aes_context = Common::AES::CreateContextEncrypt(key.data());
 
   for (size_t i = 0; i < threads; ++i)
   {
@@ -589,13 +584,11 @@ bool VolumeWii::EncryptGroup(
           {
             u8* out_ptr = out->data() + j * BLOCK_TOTAL_SIZE;
 
-            u8 iv[16] = {};
-            mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_HEADER_SIZE, iv,
-                                  reinterpret_cast<u8*>(&unencrypted_hashes[j]), out_ptr);
+            aes_context->CryptIvZero(reinterpret_cast<u8*>(&unencrypted_hashes[j]), out_ptr,
+                                     BLOCK_HEADER_SIZE);
 
-            std::memcpy(iv, out_ptr + 0x3D0, sizeof(iv));
-            mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_DATA_SIZE, iv,
-                                  unencrypted_data[j].data(), out_ptr + BLOCK_HEADER_SIZE);
+            aes_context->Crypt(out_ptr + 0x3D0, unencrypted_data[j].data(),
+                               out_ptr + BLOCK_HEADER_SIZE, BLOCK_DATA_SIZE);
           }
         },
         i * BLOCKS_PER_GROUP / threads, (i + 1) * BLOCKS_PER_GROUP / threads);
@@ -607,20 +600,14 @@ bool VolumeWii::EncryptGroup(
   return true;
 }
 
-void VolumeWii::DecryptBlockHashes(const u8* in, HashBlock* out, mbedtls_aes_context* aes_context)
+void VolumeWii::DecryptBlockHashes(const u8* in, HashBlock* out, Common::AES::Context* aes_context)
 {
-  std::array<u8, 16> iv;
-  iv.fill(0);
-  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(HashBlock), iv.data(), in,
-                        reinterpret_cast<u8*>(out));
+  aes_context->CryptIvZero(in, reinterpret_cast<u8*>(out), sizeof(HashBlock));
 }
 
-void VolumeWii::DecryptBlockData(const u8* in, u8* out, mbedtls_aes_context* aes_context)
+void VolumeWii::DecryptBlockData(const u8* in, u8* out, Common::AES::Context* aes_context)
 {
-  std::array<u8, 16> iv;
-  std::copy(&in[0x3d0], &in[0x3e0], iv.data());
-  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE, iv.data(),
-                        &in[BLOCK_HEADER_SIZE], out);
+  aes_context->Crypt(&in[0x3d0], &in[sizeof(HashBlock)], out, BLOCK_DATA_SIZE);
 }
 
 }  // namespace DiscIO

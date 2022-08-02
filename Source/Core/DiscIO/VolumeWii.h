@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-#include <mbedtls/aes.h>
-
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Lazy.h"
@@ -20,6 +18,8 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDisc.h"
+
+#include "Common/Crypto/AES.h"
 
 namespace DiscIO
 {
@@ -34,7 +34,7 @@ enum class Platform;
 class VolumeWii : public VolumeDisc
 {
 public:
-  static constexpr size_t AES_KEY_SIZE = 16;
+  static constexpr size_t AES_KEY_SIZE = Common::AES::Context::KEY_SIZE;
 
   static constexpr u32 BLOCKS_PER_GROUP = 0x40;
 
@@ -106,8 +106,8 @@ public:
                            const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>&
                                hash_exception_callback = {});
 
-  static void DecryptBlockHashes(const u8* in, HashBlock* out, mbedtls_aes_context* aes_context);
-  static void DecryptBlockData(const u8* in, u8* out, mbedtls_aes_context* aes_context);
+  static void DecryptBlockHashes(const u8* in, HashBlock* out, Common::AES::Context* aes_context);
+  static void DecryptBlockData(const u8* in, u8* out, Common::AES::Context* aes_context);
 
 protected:
   u32 GetOffsetShift() const override { return 2; }
@@ -115,7 +115,7 @@ protected:
 private:
   struct PartitionDetails
   {
-    Common::Lazy<std::unique_ptr<mbedtls_aes_context>> key;
+    Common::Lazy<std::unique_ptr<Common::AES::Context>> key;
     Common::Lazy<IOS::ES::TicketReader> ticket;
     Common::Lazy<IOS::ES::TMDReader> tmd;
     Common::Lazy<std::vector<u8>> cert_chain;

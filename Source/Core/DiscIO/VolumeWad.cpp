@@ -13,11 +13,10 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/aes.h>
-
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 #include "Common/Crypto/SHA1.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -159,17 +158,14 @@ bool VolumeWAD::CheckContentIntegrity(const IOS::ES::Content& content,
   if (encrypted_data.size() != Common::AlignUp(content.size, 0x40))
     return false;
 
-  mbedtls_aes_context context;
-  const std::array<u8, 16> key = ticket.GetTitleKey();
-  mbedtls_aes_setkey_dec(&context, key.data(), 128);
+  auto context = Common::AES::CreateContextDecrypt(ticket.GetTitleKey().data());
 
   std::array<u8, 16> iv{};
   iv[0] = static_cast<u8>(content.index >> 8);
   iv[1] = static_cast<u8>(content.index & 0xFF);
 
   std::vector<u8> decrypted_data(encrypted_data.size());
-  mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, decrypted_data.size(), iv.data(),
-                        encrypted_data.data(), decrypted_data.data());
+  context->Crypt(iv.data(), encrypted_data.data(), decrypted_data.data(), decrypted_data.size());
 
   return Common::SHA1::CalculateDigest(decrypted_data.data(), content.size) == content.sha1;
 }

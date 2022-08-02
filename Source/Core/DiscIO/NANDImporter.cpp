@@ -171,14 +171,13 @@ std::vector<u8> NANDImporter::GetEntryData(const NANDFSTEntry& entry)
   std::vector<u8> data{};
   data.reserve(remaining_bytes);
 
+  auto block = std::make_unique<u8[]>(NAND_FAT_BLOCK_SIZE);
   while (remaining_bytes > 0)
   {
-    std::array<u8, 16> iv{};
-    std::vector<u8> block = Common::AES::Decrypt(
-        m_aes_key.data(), iv.data(), &m_nand[NAND_FAT_BLOCK_SIZE * sub], NAND_FAT_BLOCK_SIZE);
+    m_aes_ctx->CryptIvZero(&m_nand[NAND_FAT_BLOCK_SIZE * sub], block.get(), NAND_FAT_BLOCK_SIZE);
 
-    size_t size = std::min(remaining_bytes, block.size());
-    data.insert(data.end(), block.begin(), block.begin() + size);
+    size_t size = std::min(remaining_bytes, NAND_FAT_BLOCK_SIZE);
+    data.insert(data.end(), block.get(), block.get() + size);
     remaining_bytes -= size;
 
     sub = m_superblock->fat[sub];
@@ -260,7 +259,7 @@ void NANDImporter::ExportKeys()
 {
   constexpr size_t NAND_AES_KEY_OFFSET = 0x158;
 
-  std::copy_n(&m_nand_keys[NAND_AES_KEY_OFFSET], m_aes_key.size(), m_aes_key.begin());
+  m_aes_ctx = Common::AES::CreateContextDecrypt(&m_nand_keys[NAND_AES_KEY_OFFSET]);
 
   const std::string file_path = m_nand_root + "/keys.bin";
   File::IOFile file(file_path, "wb");
