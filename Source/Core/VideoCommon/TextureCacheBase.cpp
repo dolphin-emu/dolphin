@@ -94,8 +94,6 @@ TextureCacheBase::TextureCacheBase()
 
   HiresTexture::Init();
 
-  Common::SetHash64Function();
-
   TMEM::InvalidateAll();
 }
 
