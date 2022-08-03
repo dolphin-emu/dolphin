@@ -139,6 +139,7 @@ add_library(common
 if(NOT MSVC AND _M_ARM_64)
   set_source_files_properties(
     Crypto/AES.cpp
+    Crypto/SHA1.cpp
     PROPERTIES COMPILE_FLAGS "-march=armv8-a+crypto")
 endif()
 
