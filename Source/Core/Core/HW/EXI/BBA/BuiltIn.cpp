@@ -556,6 +556,18 @@ bool CEXIETHERNET::BuiltInBBAInterface::SendFrame(const u8* frame, u32 size)
       HandleTCPFrame(*tcp_packet);
       break;
     }
+
+    case IPPROTO_IGMP:
+    {
+      // Acknowledge IGMP packet
+      const std::vector<u8> data(frame, frame + size);
+      WriteToQueue(data);
+      break;
+    }
+
+    default:
+      ERROR_LOG_FMT(SP1, "Unsupported IP protocol {}", *ip_proto);
+      break;
     }
     break;
   }
