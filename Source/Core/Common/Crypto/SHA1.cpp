@@ -293,10 +293,6 @@ private:
   template <size_t Func>
   static inline constexpr State FourRounds(State state, uint32x4_t w)
   {
-#ifdef _MSC_VER
-    // FIXME it seems the msvc optimizer gets a little too happy
-    _ReadBarrier();
-#endif
     return {f<Func>(state, w), vsha1h_u32(vgetq_lane_u32(state.abcd, 0))};
   }
 
