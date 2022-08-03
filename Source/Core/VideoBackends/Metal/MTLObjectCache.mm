@@ -289,7 +289,8 @@ public:
       }
     };
     template <size_t N>
-    static void CopyAll(std::array<VertexAttribute, N>& output, const AttributeFormat (&input)[N])
+    static void CopyAll(std::array<VertexAttribute, N>& output,
+                        const std::array<AttributeFormat, N>& input)
     {
       for (size_t i = 0; i < N; ++i)
         output[i] = VertexAttribute(input[i]);
