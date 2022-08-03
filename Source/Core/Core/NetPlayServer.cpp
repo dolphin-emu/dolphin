@@ -240,9 +240,10 @@ void NetPlayServer::ThreadFunc()
   while (m_do_loop)
   {
     // update pings every so many seconds
-    if ((m_ping_timer.GetTimeElapsed() > 1000) || m_update_pings)
+    if ((m_ping_timer.ElapsedMs() > 1000) || m_update_pings)
     {
-      m_ping_key = Common::Timer::GetTimeMs();
+      // only used as an identifier, not time value, so truncation is fine
+      m_ping_key = static_cast<u32>(Common::Timer::NowMs());
 
       sf::Packet spac;
       spac << MessageID::Ping;
@@ -951,7 +952,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case MessageID::Pong:
   {
-    const u32 ping = (u32)m_ping_timer.GetTimeElapsed();
+    // truncation (> ~49 days elapsed) should never happen here
+    const u32 ping = static_cast<u32>(m_ping_timer.ElapsedMs());
     u32 ping_key = 0;
     packet >> ping_key;
 
@@ -1459,7 +1461,8 @@ bool NetPlayServer::StartGame()
   m_timebase_by_frame.clear();
   m_desync_detected = false;
   std::lock_guard lkg(m_crit.game);
-  m_current_game = Common::Timer::GetTimeMs();
+  // only used as an identifier, not time value, so truncation is fine
+  m_current_game = static_cast<u32>(Common::Timer::NowMs());
 
   // no change, just update with clients
   if (!m_host_input_authority)

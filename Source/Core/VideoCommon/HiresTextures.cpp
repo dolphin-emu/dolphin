@@ -159,7 +159,8 @@ void HiresTexture::Prefetch()
   const size_t max_mem =
       (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
 
-  const u32 start_time = Common::Timer::GetTimeMs();
+  Common::Timer timer;
+  timer.Start();
   for (const auto& entry : s_textureMap)
   {
     const std::string& base_filename = entry.first;
@@ -207,9 +208,8 @@ void HiresTexture::Prefetch()
     }
   }
 
-  const u32 stop_time = Common::Timer::GetTimeMs();
   OSD::AddMessage(fmt::format("Custom Textures loaded, {:.1f} MB in {:.1f}s",
-                              size_sum / (1024.0 * 1024.0), (stop_time - start_time) / 1000.0),
+                              size_sum / (1024.0 * 1024.0), timer.ElapsedMs() / 1000.0),
                   10000);
 }
 

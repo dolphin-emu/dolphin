@@ -32,12 +32,14 @@ static std::atomic<int> s_obscured_pixels_top = 0;
 struct Message
 {
   Message() = default;
-  Message(std::string text_, u32 timestamp_, u32 duration_, u32 color_)
-      : text(std::move(text_)), timestamp(timestamp_), duration(duration_), color(color_)
+  Message(std::string text_, u32 duration_, u32 color_)
+      : text(std::move(text_)), duration(duration_), color(color_)
   {
+    timer.Start();
   }
+  s64 TimeRemaining() const { return duration - timer.ElapsedMs(); }
   std::string text;
-  u32 timestamp = 0;
+  Common::Timer timer;
   u32 duration = 0;
   bool ever_drawn = false;
   u32 color = 0;
@@ -93,20 +95,18 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms, u32 argb)
 {
   std::lock_guard lock{s_messages_mutex};
   s_messages.erase(type);
-  s_messages.emplace(type, Message(std::move(message), Common::Timer::GetTimeMs() + ms, ms, argb));
+  s_messages.emplace(type, Message(std::move(message), ms, argb));
 }
 
 void AddMessage(std::string message, u32 ms, u32 argb)
 {
   std::lock_guard lock{s_messages_mutex};
-  s_messages.emplace(MessageType::Typeless,
-                     Message(std::move(message), Common::Timer::GetTimeMs() + ms, ms, argb));
+  s_messages.emplace(MessageType::Typeless, Message(std::move(message), ms, argb));
 }
 
 void DrawMessages()
 {
   const bool draw_messages = Config::Get(Config::MAIN_OSD_MESSAGES);
-  const u32 now = Common::Timer::GetTimeMs();
   const float current_x =
       LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x + s_obscured_pixels_left;
   float current_y = TOP_MARGIN * ImGui::GetIO().DisplayFramebufferScale.y + s_obscured_pixels_top;
@@ -117,7 +117,7 @@ void DrawMessages()
   for (auto it = s_messages.begin(); it != s_messages.end();)
   {
     Message& msg = it->second;
-    const int time_left = static_cast<int>(msg.timestamp - now);
+    const s64 time_left = msg.TimeRemaining();
 
     // Make sure we draw them at least once if they were printed with 0ms,
     // unless enough time has expired, in that case, we drop them

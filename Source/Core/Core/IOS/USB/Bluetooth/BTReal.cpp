@@ -371,12 +371,12 @@ void BluetoothRealDevice::UpdateSyncButtonState(const bool is_held)
 {
   if (m_sync_button_state == SyncButtonState::Unpressed && is_held)
   {
-    m_sync_button_held_timer.Update();
+    m_sync_button_held_timer.Start();
     m_sync_button_state = SyncButtonState::Held;
   }
 
   if (m_sync_button_state == SyncButtonState::Held && is_held &&
-      m_sync_button_held_timer.GetTimeDifference() > SYNC_BUTTON_HOLD_MS_TO_RESET)
+      m_sync_button_held_timer.ElapsedMs() > SYNC_BUTTON_HOLD_MS_TO_RESET)
     m_sync_button_state = SyncButtonState::LongPressed;
   else if (m_sync_button_state == SyncButtonState::Held && !is_held)
     m_sync_button_state = SyncButtonState::Pressed;

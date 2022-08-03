@@ -224,7 +224,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
           break;
         }
       }
-      if (connect_timer.GetTimeElapsed() > 5000)
+      if (connect_timer.ElapsedMs() > 5000)
         break;
     }
     m_dialog->OnConnectionError(_trans("Could not communicate with host."));

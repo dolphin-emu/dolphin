@@ -99,6 +99,7 @@ static bool s_wants_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
+static u64 s_timer_offset;
 static std::atomic<u32> s_drawn_frame;
 static std::atomic<u32> s_drawn_video;
 
@@ -270,8 +271,6 @@ void Stop()  // - Hammertime!
     return;
 
   s_is_stopping = true;
-
-  s_timer.Stop();
 
   CallOnStateChangedCallbacks(State::Stopping);
 
@@ -662,21 +661,18 @@ void SetState(State state)
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
     ResetRumble();
-    s_timer.Update();
+    s_timer_offset = s_timer.ElapsedMs();
     break;
   case State::Running:
+  {
     CPU::EnableStepping(false);
     Wiimote::Resume();
-    if (!s_timer.IsRunning())
-    {
-      s_timer.Start();
-    }
-    else
-    {
-      // Add time difference from the last pause
-      s_timer.AddTimeDifference();
-    }
+    // Restart timer, accounting for time that had elapsed between previous s_timer.Start() and
+    // emulator pause
+    s_timer.StartWithOffset(s_timer_offset);
+    s_timer_offset = 0;
     break;
+  }
   default:
     PanicAlertFmt("Invalid state");
     break;
@@ -848,12 +844,12 @@ void RunOnCPUThread(std::function<void()> function, bool wait_for_completion)
 void VideoThrottle()
 {
   // Update info per second
-  u32 ElapseTime = (u32)s_timer.GetTimeElapsed();
-  if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_frame_step)
+  u64 elapsed_ms = s_timer.ElapsedMs();
+  if ((elapsed_ms >= 1000 && s_drawn_video.load() > 0) || s_frame_step)
   {
     s_timer.Start();
 
-    UpdateTitle(ElapseTime);
+    UpdateTitle(elapsed_ms);
 
     s_drawn_frame.store(0);
     s_drawn_video.store(0);
@@ -895,15 +891,15 @@ void Callback_NewField()
   }
 }
 
-void UpdateTitle(u32 ElapseTime)
+void UpdateTitle(u64 elapsed_ms)
 {
-  if (ElapseTime == 0)
-    ElapseTime = 1;
+  if (elapsed_ms == 0)
+    elapsed_ms = 1;
 
-  float FPS = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
-  float VPS = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
+  float FPS = (float)(s_drawn_frame.load() * 1000.0 / elapsed_ms);
+  float VPS = (float)(s_drawn_video.load() * 1000.0 / elapsed_ms);
   float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) /
-                        (VideoInterface::GetTargetRefreshRate() * ElapseTime));
+                        (VideoInterface::GetTargetRefreshRate() * elapsed_ms));
 
   // Settings are shown the same for both extended and summary info
   const std::string SSettings = fmt::format(
