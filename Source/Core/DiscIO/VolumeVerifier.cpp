@@ -18,6 +18,7 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/SHA1.h"
@@ -372,6 +373,24 @@ VolumeVerifier::VolumeVerifier(const Volume& volume, bool redump_verification,
 VolumeVerifier::~VolumeVerifier()
 {
   WaitForAsyncOperations();
+}
+
+Hashes<bool> VolumeVerifier::GetDefaultHashesToCalculate()
+{
+  Hashes<bool> hashes_to_calculate{.crc32 = true, .md5 = true, .sha1 = true};
+  // If the system can compute certain hashes faster than others, only default-enable the fast ones.
+  const bool sha1_hw_accel = Common::SHA1::CreateContext()->HwAccelerated();
+  // For crc32, we assume zlib-ng will be fast if cpu supports crc32
+  const bool crc32_hw_accel = cpu_info.bCRC32;
+  if (crc32_hw_accel || sha1_hw_accel)
+  {
+    hashes_to_calculate.crc32 = crc32_hw_accel;
+    // md5 has no accelerated implementation at the moment, always default to off
+    hashes_to_calculate.md5 = false;
+    // Always enable SHA1, to avoid situation where only crc32 is computed
+    hashes_to_calculate.sha1 = true;
+  }
+  return hashes_to_calculate;
 }
 
 void VolumeVerifier::Start()
