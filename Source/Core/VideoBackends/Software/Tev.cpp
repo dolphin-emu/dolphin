@@ -711,9 +711,6 @@ void Tev::Draw()
   u8 output[4] = {(u8)Reg[alpha_index][ALP_C], (u8)Reg[color_index][BLU_C],
                   (u8)Reg[color_index][GRN_C], (u8)Reg[color_index][RED_C]};
 
-  if (!TevAlphaTest(output[ALP_C]))
-    return;
-
   // Hardware testing indicates that an alpha of 1 can pass an alpha test,
   // but doesn't do anything in blending
   // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
@@ -726,6 +723,9 @@ void Tev::Draw()
   // there might not be any good way of changing blending behavior)
   if (output[ALP_C] == 1)
     output[ALP_C] = 0;
+
+  if (!TevAlphaTest(output[ALP_C]))
+    return;
 
   // z texture
   if (bpmem.ztex2.op != ZTexOp::Disabled)

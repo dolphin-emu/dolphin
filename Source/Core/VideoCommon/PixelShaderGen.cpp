@@ -1036,16 +1036,6 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   }
   out.Write("\tprev = prev & 255;\n");
 
-  // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
-  // (in this case we need to write a depth value if depth test passes regardless of the alpha
-  // testing result)
-  if (uid_data->Pretest == AlphaTestResult::Undetermined ||
-      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
-  {
-    WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
-                   !uid_data->no_dual_src || uid_data->blend_enable);
-  }
-
   // This situation is important for Mario Kart Wii's menus (they will render incorrectly if the
   // alpha test for the FMV in the background fails, since they depend on depth for drawing a yellow
   // border) and Fortune Street's gameplay (where a rectangle with an alpha value of 1 is drawn over
@@ -1057,6 +1047,16 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
   out.Write("\t// Hardware testing indicates that an alpha of 1 can pass an alpha test,\n"
             "\t// but doesn't do anything in blending\n"
             "\tif (prev.a == 1) prev.a = 0;\n");
+
+  // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
+  // (in this case we need to write a depth value if depth test passes regardless of the alpha
+  // testing result)
+  if (uid_data->Pretest == AlphaTestResult::Undetermined ||
+      (uid_data->Pretest == AlphaTestResult::Fail && uid_data->ztest == EmulatedZ::Late))
+  {
+    WriteAlphaTest(out, uid_data, api_type, uid_data->per_pixel_depth,
+                   !uid_data->no_dual_src || uid_data->blend_enable);
+  }
 
   if (uid_data->zfreeze)
   {
