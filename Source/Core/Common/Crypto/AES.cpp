@@ -264,7 +264,7 @@ public:
   template <size_t RoundIdx>
   inline constexpr void StoreRoundKey(const u32* rk)
   {
-    const uint8x16_t rk_block = vld1q_u32(rk);
+    const uint8x16_t rk_block = vreinterpretq_u8_u32(vld1q_u32(rk));
     if constexpr (AesMode == Mode::Encrypt)
       round_keys[RoundIdx] = rk_block;
     else
