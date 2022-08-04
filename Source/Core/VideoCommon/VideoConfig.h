@@ -17,12 +17,6 @@
 #include "VideoCommon/GraphicsModSystem/Config/GraphicsModGroup.h"
 #include "VideoCommon/VideoCommon.h"
 
-// Log in two categories, and save three other options in the same byte
-#define CONF_LOG 1
-#define CONF_PRIMLOG 2
-#define CONF_SAVETARGETS 8
-#define CONF_SAVESHADERS 16
-
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
 enum class AspectMode : int
@@ -138,7 +132,6 @@ struct VideoConfig final
   bool bFastDepthCalc = false;
   bool bVertexRounding = false;
   int iEFBAccessTileSize = 0;
-  int iLog = 0;           // CONF_ bits
   int iSaveTargetId = 0;  // TODO: Should be dropped
   u32 iMissingColorValue = 0;
   bool bFastTextureSampling = false;

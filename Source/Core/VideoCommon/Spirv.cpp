@@ -155,31 +155,6 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
   if (!spv_messages.empty())
     WARN_LOG_FMT(VIDEO, "SPIR-V conversion messages: {}", spv_messages);
 
-  // Dump source code of shaders out to file if enabled.
-  if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
-  {
-    static int counter = 0;
-    std::string filename = StringFromFormat("%s%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-                                            stage_filename, counter++);
-
-    std::ofstream stream;
-    File::OpenFStream(stream, filename, std::ios_base::out);
-    if (stream.good())
-    {
-      stream << source << std::endl;
-      stream << "Shader Info Log:" << std::endl;
-      stream << shader->getInfoLog() << std::endl;
-      stream << shader->getInfoDebugLog() << std::endl;
-      stream << "Program Info Log:" << std::endl;
-      stream << program->getInfoLog() << std::endl;
-      stream << program->getInfoDebugLog() << std::endl;
-      stream << "SPIR-V conversion messages: " << std::endl;
-      stream << spv_messages;
-      stream << "SPIR-V:" << std::endl;
-      spv::Disassemble(stream, out_code);
-    }
-  }
-
   return out_code;
 }
 }  // namespace
