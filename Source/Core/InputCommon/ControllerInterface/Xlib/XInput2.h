@@ -15,6 +15,7 @@ extern "C" {
 
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/OctagonalMouseGate.h"
 
 namespace ciface::XInput2
 {
@@ -129,5 +130,6 @@ private:
   const int keyboard_deviceid;
   const double scroll_increment;
   std::string name;
+  ciface::OctagonalMouseGate m_mouse_stick_gate;
 };
 }  // namespace ciface::XInput2

@@ -15,6 +15,8 @@
 
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
+#include "Core/Core.h"
 #include "Core/Host.h"
 
 // This is an input plugin using the XInput 2.0 extension to the X11 protocol,
@@ -244,6 +246,10 @@ KeyboardMouse::~KeyboardMouse()
 // Update the mouse cursor controls
 void KeyboardMouse::UpdateCursor(bool should_center_mouse)
 {
+  const double scale_x = Config::Get(Config::MAIN_MOUSE_CURSOR_SCALE_HORIZONTAL);
+  const double scale_y = Config::Get(Config::MAIN_MOUSE_CURSOR_SCALE_VERTICAL);
+  const bool gate_enabled = Config::Get(Config::MAIN_MOUSE_STICK_GATE_ENABLED);
+
   double root_x, root_y, win_x, win_y;
   Window root, child;
 
@@ -273,13 +279,37 @@ void KeyboardMouse::UpdateCursor(bool should_center_mouse)
                    &win_y, &button_state, &mods, &group);
 
     free(button_state.mask);
+
+    if (gate_enabled && Host_RendererHasFocus() && ::Core::GetState() == ::Core::State::Running)
+    {
+      const auto locked = m_mouse_stick_gate.LockMouseInGate(
+          static_cast<int>(0), static_cast<int>(win_width), static_cast<int>(0),
+          static_cast<int>(win_height), static_cast<int>(win_x), static_cast<int>(win_y),
+          Config::Get(Config::MAIN_MOUSE_STICK_GATE_RADIUS),
+          Config::Get(Config::MAIN_MOUSE_STICK_GATE_SNAPPING_DISTANCE));
+      if (locked)
+      {
+        if (locked->x != static_cast<int>(win_x) || locked->y != static_cast<int>(win_y))
+        {
+          win_x = static_cast<double>(locked->x);
+          win_y = static_cast<double>(locked->y);
+          XIWarpPointer(m_display, pointer_deviceid, None, m_window, 0.0, 0.0, 0, 0, win_x, win_y);
+        }
+
+        const auto relative = m_mouse_stick_gate.CalculateRelativeCursorPosition(
+            static_cast<int>(win_x), static_cast<int>(win_y), scale_x, scale_y);
+        m_state.cursor.x = relative.x;
+        m_state.cursor.y = relative.y;
+        return;
+      }
+    }
   }
 
   const auto window_scale = g_controller_interface.GetWindowInputScale();
 
   // the mouse position as a range from -1 to 1
-  m_state.cursor.x = (win_x / win_width * 2 - 1) * window_scale.x;
-  m_state.cursor.y = (win_y / win_height * 2 - 1) * window_scale.y;
+  m_state.cursor.x = (win_x / win_width * 2 - 1) * scale_x * window_scale.x;
+  m_state.cursor.y = (win_y / win_height * 2 - 1) * scale_y * window_scale.y;
 }
 
 void KeyboardMouse::UpdateInput()
