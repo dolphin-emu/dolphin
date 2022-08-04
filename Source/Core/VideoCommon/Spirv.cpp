@@ -124,6 +124,7 @@ CompileShaderToSPV(EShLanguage stage, APIType api_type,
   if (g_ActiveConfig.bEnableValidationLayer)
   {
     // Attach the source code to the SPIR-V for tools like RenderDoc.
+    intermediate->setSourceFile(stage_filename);
     intermediate->addSourceText(pass_source_code, pass_source_code_length);
 
     options.generateDebugInfo = true;
