@@ -379,7 +379,7 @@ static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_iden
 }
 
 // called from ---NETPLAY--- thread
-ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
+ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& received_packet)
 {
   PlayerId pid = 1;
   for (auto i = m_players.begin(); i != m_players.end(); ++i)
@@ -393,7 +393,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   socket->data = new PlayerId(pid);
 
   std::string netplay_version;
-  rpac >> netplay_version;
+  received_packet >> netplay_version;
   if (netplay_version != Common::GetScmRevGitStr())
     return ConnectionError::VersionMismatch;
 
@@ -407,8 +407,8 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   player.pid = pid;
   player.socket = socket;
 
-  rpac >> player.revision;
-  rpac >> player.name;
+  received_packet >> player.revision;
+  received_packet >> player.name;
 
   if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
     return ConnectionError::NameTooLong;
