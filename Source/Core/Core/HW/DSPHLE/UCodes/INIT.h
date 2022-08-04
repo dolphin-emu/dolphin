@@ -10,7 +10,7 @@ namespace DSP::HLE
 {
 class DSPHLE;
 
-class INITUCode : public UCodeInterface
+class INITUCode final : public UCodeInterface
 {
 public:
   INITUCode(DSPHLE* dsphle, u32 crc);
@@ -18,5 +18,6 @@ public:
   void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
+  void DoState(PointerWrap& p) override;
 };
 }  // namespace DSP::HLE

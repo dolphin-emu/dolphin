@@ -28,4 +28,9 @@ void INITUCode::Update()
 void INITUCode::HandleMail(u32 mail)
 {
 }
+
+void INITUCode::DoState(PointerWrap& p)
+{
+  // We don't need to call DoStateShared() as the init uCode doesn't support launching new uCode
+}
 }  // namespace DSP::HLE

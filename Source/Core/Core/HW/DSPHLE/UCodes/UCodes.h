@@ -46,7 +46,7 @@ public:
   virtual void HandleMail(u32 mail) = 0;
   virtual void Update() = 0;
 
-  virtual void DoState(PointerWrap& p) { DoStateShared(p); }
+  virtual void DoState(PointerWrap& p) = 0;
   static u32 GetCRC(UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
 
 protected:

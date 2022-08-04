@@ -10,7 +10,7 @@ namespace DSP::HLE
 {
 class DSPHLE;
 
-class CARDUCode : public UCodeInterface
+class CARDUCode final : public UCodeInterface
 {
 public:
   CARDUCode(DSPHLE* dsphle, u32 crc);
@@ -18,5 +18,17 @@ public:
   void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
+  void DoState(PointerWrap& p) override;
+
+private:
+  enum class State
+  {
+    WaitingForRequest,
+    WaitingForAddress,
+    WaitingForNextTask,
+  };
+
+  // Currently unused, will be used in a later version
+  State m_state = State::WaitingForRequest;
 };
 }  // namespace DSP::HLE
