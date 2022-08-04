@@ -92,6 +92,9 @@ bool CEXIETHERNET::BuiltInBBAInterface::Activate()
     ref.ip = 0;
   }
 
+  m_upnp_httpd.listen(Common::SSDP_PORT, sf::IpAddress(ip));
+  m_upnp_httpd.setBlocking(false);
+
   return RecvInit();
 }
 
@@ -116,6 +119,7 @@ void CEXIETHERNET::BuiltInBBAInterface::Deactivate()
   }
 
   m_arp_table.clear();
+  m_upnp_httpd.close();
 
   // Wait for read thread to exit.
   if (m_read_thread.joinable())
@@ -298,18 +302,30 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
   sf::IpAddress target;
   StackRef* ref = GetTCPSlot(tcp_header.source_port, tcp_header.destination_port,
                              Common::BitCast<u32>(ip_header.destination_addr));
-  const u16 properties = ntohs(tcp_header.properties);
-  if (properties & (TCP_FLAG_FIN | TCP_FLAG_RST))
+  const u16 flags = ntohs(tcp_header.properties) & 0xfff;
+  if (flags & (TCP_FLAG_FIN | TCP_FLAG_RST))
   {
     if (ref == nullptr)
       return;  // not found
 
-    ref->ack_num++;
+    ref->ack_num += 1 + static_cast<u32>(data.size());
     WriteToQueue(BuildFINFrame(ref));
     ref->ip = 0;
+    if (!data.empty())
+      ref->tcp_socket.send(data.data(), data.size());
     ref->tcp_socket.disconnect();
   }
-  else if (properties & TCP_FLAG_SIN)
+  else if (flags == (TCP_FLAG_SIN | TCP_FLAG_ACK))
+  {
+    if (ref == nullptr)
+      return;  // not found
+
+    ref->seq_num++;
+    ref->ack_num = ntohl(tcp_header.sequence_number) + 1;
+    ref->ready = true;
+    WriteToQueue(BuildAckFrame(ref));
+  }
+  else if (flags & TCP_FLAG_SIN)
   {
     // new connection
     if (ref != nullptr)
@@ -322,7 +338,7 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     ref->ack_num = ntohl(tcp_header.sequence_number) + 1;
     ref->ack_base = ref->ack_num;
     ref->seq_num = 0x1000000;
-    ref->window_size = ntohl(tcp_header.window_size);
+    ref->window_size = ntohs(tcp_header.window_size);
     ref->type = IPPROTO_TCP;
     for (auto& tcp_buf : ref->tcp_buffers)
       tcp_buf.used = false;
@@ -339,7 +355,10 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleTCPFrame(const Common::TCPPacket& 
     Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
                              ref->ack_num, TCP_FLAG_SIN | TCP_FLAG_ACK);
 
-    result.tcp_options = {0x02, 0x04, 0x05, 0xb4, 0x01, 0x01, 0x01, 0x01};
+    result.tcp_options = {
+        0x02, 0x04, 0x05, 0xb4,  // Maximum segment size: 1460 bytes
+        0x01, 0x01, 0x01, 0x01   // NOPs
+    };
 
     ref->seq_num++;
     target = sf::IpAddress(ntohl(destination_ip));
@@ -486,6 +505,48 @@ void CEXIETHERNET::BuiltInBBAInterface::HandleUDPFrame(const Common::UDPPacket& 
   else
     target = sf::IpAddress(ntohl(Common::BitCast<u32>(ip_header.destination_addr)));
   ref->udp_socket.send(data.data(), data.size(), target, ntohs(udp_header.destination_port));
+}
+
+void CEXIETHERNET::BuiltInBBAInterface::HandleUPnPClient()
+{
+  StackRef* ref = GetAvailableSlot(0);
+  if (m_upnp_httpd.accept(ref->tcp_socket) != sf::Socket::Done)
+    return;
+
+  if (ref->tcp_socket.GetPeerName(&ref->from) != sf::Socket::Status::Done ||
+      ref->tcp_socket.GetSockName(&ref->to) != sf::Socket::Status::Done)
+  {
+    ERROR_LOG_FMT(SP1, "Failed to accept new UPnP client: {}", Common::StrNetworkError());
+    return;
+  }
+
+  ref->delay = GetTickCountStd();
+  ref->ip = ref->from.sin_addr.s_addr;
+  ref->local = ref->to.sin_port;
+  ref->remote = ref->from.sin_port;
+  ref->ack_num = 0;
+  ref->ack_base = ref->ack_num;
+  ref->seq_num = 0x1000000;
+  ref->window_size = 8192;
+  ref->type = IPPROTO_TCP;
+  for (auto& tcp_buf : ref->tcp_buffers)
+    tcp_buf.used = false;
+  ref->bba_mac = m_current_mac;
+  ref->my_mac = ResolveAddress(ref->from.sin_addr.s_addr);
+  ref->tcp_socket.setBlocking(false);
+  ref->ready = false;
+
+  Common::TCPPacket result(ref->bba_mac, ref->my_mac, ref->from, ref->to, ref->seq_num,
+                           ref->ack_num, TCP_FLAG_SIN);
+  // Based on Nintendont packet capture of Mario Kart: Double Dash!!
+  result.tcp_options = {
+      0x02, 0x04, 0x05, 0xb4,  // Maximum segment size: 1460 bytes
+      0x01,                    // NOP
+      0x03, 0x03, 0x08,        // Window scale: 8 (multiply by 256)
+      0x01, 0x01,              // NOPs
+      0x04, 0x02               // SACK permitted
+  };
+  WriteToQueue(result.Build());
 }
 
 const Common::MACAddress& CEXIETHERNET::BuiltInBBAInterface::ResolveAddress(u32 inet_ip)
@@ -669,6 +730,9 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
       }
     }
 
+    // Check for new UPnP client
+    self->HandleUPnPClient();
+
     if (datasize > 0)
     {
       u8* buffer = reinterpret_cast<u8*>(self->m_eth_ref->mRecvBuffer.get());
@@ -678,7 +742,12 @@ void CEXIETHERNET::BuiltInBBAInterface::ReadThreadHandler(CEXIETHERNET::BuiltInB
       {
         SetIPIdentification(buffer, datasize, ++self->m_ip_frame_id);
       }
-      self->m_eth_ref->mRecvBufferLength = datasize > 64 ? static_cast<u32>(datasize) : 64;
+      if (datasize < 64)
+      {
+        std::fill(buffer + datasize, buffer + 64, 0);
+        datasize = 64;
+      }
+      self->m_eth_ref->mRecvBufferLength = static_cast<u32>(datasize);
       self->m_eth_ref->RecvHandlePacket();
     }
   }
@@ -725,6 +794,28 @@ sf::Socket::Status BbaTcpSocket::Connect(const sf::IpAddress& dest, u16 port, u3
   addr.sin_port = 0;
   ::bind(getHandle(), reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
   return this->connect(dest, port);
+}
+
+sf::Socket::Status BbaTcpSocket::GetPeerName(sockaddr_in* addr) const
+{
+  socklen_t size = sizeof(*addr);
+  if (getpeername(getHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
+  {
+    ERROR_LOG_FMT(SP1, "getpeername failed: {}", Common::StrNetworkError());
+    return sf::Socket::Status::Error;
+  }
+  return sf::Socket::Status::Done;
+}
+
+sf::Socket::Status BbaTcpSocket::GetSockName(sockaddr_in* addr) const
+{
+  socklen_t size = sizeof(*addr);
+  if (getsockname(getHandle(), reinterpret_cast<sockaddr*>(addr), &size) == -1)
+  {
+    ERROR_LOG_FMT(SP1, "getsockname failed: {}", Common::StrNetworkError());
+    return sf::Socket::Status::Error;
+  }
+  return sf::Socket::Status::Done;
 }
 
 BbaUdpSocket::BbaUdpSocket() = default;
