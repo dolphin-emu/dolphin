@@ -407,7 +407,7 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   if (m_players.size() >= 255)
     return ConnectionError::ServerFull;
 
-  Client player;
+  Client player{};
   player.pid = pid;
   player.socket = socket;
 
