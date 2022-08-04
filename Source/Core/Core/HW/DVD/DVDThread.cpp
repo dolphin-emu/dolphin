@@ -184,10 +184,10 @@ bool HasDisc()
   return s_disc != nullptr;
 }
 
-bool IsEncryptedAndHashed()
+bool HasWiiHashes()
 {
-  // IsEncryptedAndHashed is thread-safe, so calling WaitUntilIdle isn't necessary.
-  return s_disc->IsEncryptedAndHashed();
+  // HasWiiHashes is thread-safe, so calling WaitUntilIdle isn't necessary.
+  return s_disc->HasWiiHashes();
 }
 
 DiscIO::Platform GetDiscType()

@@ -52,7 +52,7 @@ public:
 
   u64 GetRawSize() const override { return Common::swap64(m_header_1.wia_file_size); }
   u64 GetDataSize() const override { return Common::swap64(m_header_1.iso_file_size); }
-  bool IsDataSizeAccurate() const override { return true; }
+  DataSizeType GetDataSizeType() const override { return DataSizeType::Accurate; }
 
   u64 GetBlockSize() const override { return Common::swap32(m_header_2.chunk_size); }
   bool HasFastRandomAccessInBlock() const override { return false; }

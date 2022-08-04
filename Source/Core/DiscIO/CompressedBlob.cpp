@@ -273,7 +273,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
                   const std::string& outfile_path, u32 sub_type, int block_size,
                   CompressCB callback)
 {
-  ASSERT(infile->IsDataSizeAccurate());
+  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
 
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)

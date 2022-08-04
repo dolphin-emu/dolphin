@@ -668,7 +668,7 @@ void DirectoryBlobReader::SetPartitions(std::vector<PartitionWithType>&& partiti
     m_partitions.emplace(partition_data_offset, std::move(partitions[i].partition));
     m_nonpartition_contents.Add(partition_data_offset, data_size,
                                 ContentPartition{this, 0, partition_data_offset});
-    const u64 unaligned_next_partition_address = VolumeWii::EncryptedPartitionOffsetToRawOffset(
+    const u64 unaligned_next_partition_address = VolumeWii::OffsetInHashedPartitionToRawOffset(
         data_size, Partition(partition_address), PARTITION_DATA_OFFSET);
     partition_address = Common::AlignUp(unaligned_next_partition_address, 0x10000ull);
   }
@@ -743,7 +743,7 @@ void DirectoryBlobReader::SetPartitionHeader(DirectoryBlobPartition* partition,
 
   if (wrapped_partition)
   {
-    if (m_wrapped_volume->IsEncryptedAndHashed())
+    if (m_wrapped_volume->HasWiiHashes())
     {
       const std::optional<u64> offset = m_wrapped_volume->ReadSwappedAndShifted(
           wrapped_partition->offset + WII_PARTITION_H3_OFFSET_ADDRESS, PARTITION_NONE);

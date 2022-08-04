@@ -318,14 +318,14 @@ BlobType VolumeWAD::GetBlobType() const
   return m_reader->GetBlobType();
 }
 
-u64 VolumeWAD::GetSize() const
+u64 VolumeWAD::GetDataSize() const
 {
   return m_reader->GetDataSize();
 }
 
-bool VolumeWAD::IsSizeAccurate() const
+DataSizeType VolumeWAD::GetDataSizeType() const
 {
-  return m_reader->IsDataSizeAccurate();
+  return m_reader->GetDataSizeType();
 }
 
 u64 VolumeWAD::GetRawSize() const

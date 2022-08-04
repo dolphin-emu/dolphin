@@ -133,8 +133,8 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_block_size = volume->GetBlobReader().GetBlockSize();
       m_compression_method = volume->GetBlobReader().GetCompressionMethod();
       m_file_size = volume->GetRawSize();
-      m_volume_size = volume->GetSize();
-      m_volume_size_is_accurate = volume->IsSizeAccurate();
+      m_volume_size = volume->GetDataSize();
+      m_volume_size_type = volume->GetDataSizeType();
       m_is_datel_disc = volume->IsDatelDisc();
       m_is_nkit = volume->IsNKit();
 
@@ -158,7 +158,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     m_valid = true;
     m_file_size = m_volume_size = File::GetSize(m_file_path);
     m_game_id = SConfig::MakeGameID(m_file_name);
-    m_volume_size_is_accurate = true;
+    m_volume_size_type = DiscIO::DataSizeType::Accurate;
     m_is_datel_disc = false;
     m_is_nkit = false;
     m_platform = DiscIO::Platform::ELFOrDOL;
@@ -349,7 +349,7 @@ void GameFile::DoState(PointerWrap& p)
 
   p.Do(m_file_size);
   p.Do(m_volume_size);
-  p.Do(m_volume_size_is_accurate);
+  p.Do(m_volume_size_type);
   p.Do(m_is_datel_disc);
   p.Do(m_is_nkit);
 
@@ -827,7 +827,7 @@ std::string GameFile::GetFileFormatName() const
 
 bool GameFile::ShouldAllowConversion() const
 {
-  return DiscIO::IsDisc(m_platform) && m_volume_size_is_accurate;
+  return DiscIO::IsDisc(m_platform) && m_volume_size_type == DiscIO::DataSizeType::Accurate;
 }
 
 bool GameFile::IsModDescriptor() const

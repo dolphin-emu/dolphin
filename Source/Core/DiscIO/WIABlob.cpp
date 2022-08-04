@@ -925,7 +925,7 @@ ConversionResultCode WIARVZFileReader<RVZ>::SetUpDataEntriesForWriting(
     std::vector<DataEntry>* data_entries, std::vector<const FileSystem*>* partition_file_systems)
 {
   std::vector<Partition> partitions;
-  if (volume && volume->IsEncryptedAndHashed())
+  if (volume && volume->HasWiiHashes() && volume->HasWiiEncryption())
     partitions = volume->GetPartitions();
 
   std::sort(partitions.begin(), partitions.end(),
@@ -1731,7 +1731,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
                                File::IOFile* outfile, WIARVZCompressionType compression_type,
                                int compression_level, int chunk_size, CompressCB callback)
 {
-  ASSERT(infile->IsDataSizeAccurate());
+  ASSERT(infile->GetDataSizeType() == DataSizeType::Accurate);
   ASSERT(chunk_size > 0);
 
   const u64 iso_size = infile->GetDataSize();

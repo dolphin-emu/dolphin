@@ -212,7 +212,7 @@ int ConvertCommand::Main(const std::vector<std::string>& args)
     }
 
     if (format == DiscIO::BlobType::GCZ && volume &&
-        !DiscIO::IsGCZBlockSizeLegacyCompatible(block_size_o.value(), volume->GetSize()))
+        !DiscIO::IsGCZBlockSizeLegacyCompatible(block_size_o.value(), volume->GetDataSize()))
     {
       std::cerr << "Warning: For GCZs to be compatible with Dolphin < 5.0-11893, "
                    "the file size must be an integer multiple of the block size "

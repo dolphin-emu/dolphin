@@ -202,6 +202,7 @@ private:
   bool m_done = false;
   u64 m_progress = 0;
   u64 m_max_progress = 0;
+  DataSizeType m_data_size_type;
 };
 
 }  // namespace DiscIO
