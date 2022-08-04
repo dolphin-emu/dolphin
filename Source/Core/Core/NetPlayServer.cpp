@@ -381,7 +381,6 @@ static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_iden
 // called from ---NETPLAY--- thread
 ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 {
-  // give new client first available id
   PlayerId pid = 1;
   for (auto i = m_players.begin(); i != m_players.end(); ++i)
   {
@@ -395,15 +394,12 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 
   std::string netplay_version;
   rpac >> netplay_version;
-  // Dolphin netplay version
   if (netplay_version != Common::GetScmRevGitStr())
     return ConnectionError::VersionMismatch;
 
-  // game is currently running or game start is pending
   if (m_is_running || m_start_pending)
     return ConnectionError::GameRunning;
 
-  // too many players
   if (m_players.size() >= 255)
     return ConnectionError::ServerFull;
 
@@ -417,13 +413,10 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
     return ConnectionError::NameTooLong;
 
-  // Extend reliable traffic timeout
   enet_peer_timeout(socket, 0, PEER_TIMEOUT, PEER_TIMEOUT);
 
-  // cause pings to be updated
   m_update_pings = true;
 
-  // try to automatically assign new user a pad
   for (PlayerId& mapping : m_pad_map)
   {
     if (mapping == 0)
@@ -433,61 +426,54 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
     }
   }
 
-  // send join message to already connected clients
-  sf::Packet spac;
-  spac << MessageID::PlayerJoin;
-  spac << player.pid << player.name << player.revision;
-  SendToClients(spac);
+  sf::Packet send_packet;
+  send_packet << MessageID::PlayerJoin;
+  send_packet << player.pid << player.name << player.revision;
+  SendToClients(send_packet);
 
-  // send new client success message with their ID
-  spac.clear();
-  spac << MessageID::ConnectionSuccessful;
-  spac << player.pid;
-  Send(player.socket, spac);
+  send_packet.clear();
+  send_packet << MessageID::ConnectionSuccessful;
+  send_packet << player.pid;
+  Send(player.socket, send_packet);
 
-  // send new client the selected game
   if (!m_selected_game_name.empty())
   {
-    spac.clear();
-    spac << MessageID::ChangeGame;
-    SendSyncIdentifier(spac, m_selected_game_identifier);
-    spac << m_selected_game_name;
-    Send(player.socket, spac);
+    send_packet.clear();
+    send_packet << MessageID::ChangeGame;
+    SendSyncIdentifier(send_packet, m_selected_game_identifier);
+    send_packet << m_selected_game_name;
+    Send(player.socket, send_packet);
   }
 
   if (!m_host_input_authority)
   {
-    // send the pad buffer value
-    spac.clear();
-    spac << MessageID::PadBuffer;
-    spac << m_target_buffer_size;
-    Send(player.socket, spac);
+    send_packet.clear();
+    send_packet << MessageID::PadBuffer;
+    send_packet << m_target_buffer_size;
+    Send(player.socket, send_packet);
   }
 
-  // send input authority state
-  spac.clear();
-  spac << MessageID::HostInputAuthority;
-  spac << m_host_input_authority;
-  Send(player.socket, spac);
+  send_packet.clear();
+  send_packet << MessageID::HostInputAuthority;
+  send_packet << m_host_input_authority;
+  Send(player.socket, send_packet);
 
-  // sync values with new client
   for (const auto& p : m_players)
   {
-    spac.clear();
-    spac << MessageID::PlayerJoin;
-    spac << p.second.pid << p.second.name << p.second.revision;
-    Send(player.socket, spac);
+    send_packet.clear();
+    send_packet << MessageID::PlayerJoin;
+    send_packet << p.second.pid << p.second.name << p.second.revision;
+    Send(player.socket, send_packet);
 
-    spac.clear();
-    spac << MessageID::GameStatus;
-    spac << p.second.pid << p.second.game_status;
-    Send(player.socket, spac);
+    send_packet.clear();
+    send_packet << MessageID::GameStatus;
+    send_packet << p.second.pid << p.second.game_status;
+    Send(player.socket, send_packet);
   }
 
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
     player.qos_session = Common::QoSSession(player.socket);
 
-  // add client to the player list
   {
     std::lock_guard lkp(m_crit.players);
     m_players.emplace(*PeerPlayerId(player.socket), std::move(player));
