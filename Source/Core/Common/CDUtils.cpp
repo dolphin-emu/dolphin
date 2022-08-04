@@ -195,7 +195,7 @@ std::vector<std::string> GetCDDevices()
   {
     for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
     {
-      std::string drive = fmt::format(checklist[i].format, j);
+      std::string drive = fmt::format(fmt::runtime(checklist[i].format), j);
       if (IsCDROM(drive))
       {
         drives.push_back(std::move(drive));
