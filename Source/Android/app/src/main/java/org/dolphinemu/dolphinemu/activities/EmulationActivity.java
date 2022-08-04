@@ -270,9 +270,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public static void updateWiimoteNewIniPreferences(Context context)
   {
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    updateWiimoteNewController(preferences.getInt("wiiController", 3), context);
-
+    updateWiimoteNewController(InputOverlay.getConfiguredControllerType(context), context);
     updateWiimoteNewImuIr(IntSetting.MAIN_MOTION_CONTROLS.getIntGlobal());
   }
 
@@ -820,7 +818,10 @@ public final class EmulationActivity extends AppCompatActivity
   {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_toggle_controls);
-    if (!NativeLibrary.IsEmulatingWii() || mPreferences.getInt("wiiController", 3) == 0)
+
+    int currentController = InputOverlay.getConfiguredControllerType(this);
+
+    if (!NativeLibrary.IsEmulatingWii() || currentController == InputOverlay.OVERLAY_GAMECUBE)
     {
       boolean[] gcEnabledButtons = new boolean[11];
       String gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_";
@@ -833,7 +834,7 @@ public final class EmulationActivity extends AppCompatActivity
               (dialog, indexSelected, isChecked) -> BooleanSetting
                       .valueOf(gcSettingBase + indexSelected).setBoolean(mSettings, isChecked));
     }
-    else if (mPreferences.getInt("wiiController", 3) == 4)
+    else if (currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
     {
       boolean[] wiiClassicEnabledButtons = new boolean[14];
       String classicSettingBase = "MAIN_BUTTON_TOGGLE_CLASSIC_";
@@ -857,7 +858,7 @@ public final class EmulationActivity extends AppCompatActivity
       {
         wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).getBoolean(mSettings);
       }
-      if (mPreferences.getInt("wiiController", 3) == 3)
+      if (currentController == InputOverlay.OVERLAY_WIIMOTE_NUNCHUK)
       {
         builder.setMultiChoiceItems(R.array.nunchukButtons, wiiEnabledButtons,
                 (dialog, indexSelected, isChecked) -> BooleanSetting
@@ -870,6 +871,7 @@ public final class EmulationActivity extends AppCompatActivity
                         .valueOf(wiiSettingBase + indexSelected).setBoolean(mSettings, isChecked));
       }
     }
+
     builder.setNeutralButton(R.string.emulation_toggle_all,
             (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility(mSettings));
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
@@ -882,13 +884,10 @@ public final class EmulationActivity extends AppCompatActivity
   {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-    int currentController =
-            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK);
-
     int currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getInt(mSettings);
 
-    int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
-            R.array.doubleTapWithClassic : R.array.doubleTap;
+    int buttonList = InputOverlay.getConfiguredControllerType(this) ==
+            InputOverlay.OVERLAY_WIIMOTE_CLASSIC ? R.array.doubleTapWithClassic : R.array.doubleTap;
 
     int checkedItem = -1;
     int itemCount = getResources().getStringArray(buttonList).length;
@@ -991,7 +990,7 @@ public final class EmulationActivity extends AppCompatActivity
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_choose_controller);
     builder.setSingleChoiceItems(R.array.controllersEntries,
-            mPreferences.getInt("wiiController", 3),
+            InputOverlay.getConfiguredControllerType(this),
             (dialog, indexSelected) ->
             {
               editor.putInt("wiiController", indexSelected);
