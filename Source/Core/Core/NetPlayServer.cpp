@@ -393,10 +393,10 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   }
   socket->data = new PlayerId(pid);
 
-  std::string npver;
-  rpac >> npver;
+  std::string netplay_version;
+  rpac >> netplay_version;
   // Dolphin netplay version
-  if (npver != Common::GetScmRevGitStr())
+  if (netplay_version != Common::GetScmRevGitStr())
     return ConnectionError::VersionMismatch;
 
   // game is currently running or game start is pending
