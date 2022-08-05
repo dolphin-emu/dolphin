@@ -238,13 +238,13 @@ void AXUCode::HandleCommandList()
       break;
     }
 
-    // Send the contents of MAIN LRS, AUXA LRS and AUXB S to RAM, and
+    // Send the contents of AUXA LRS and AUXB S to RAM, and
     // mix data to MAIN LR and AUXB LR.
     case CMD_SEND_AUX_AND_MIX:
     {
-      // Address for Main + AUXA LRS upload
-      u16 main_auxa_up_hi = m_cmdlist[curr_idx++];
-      u16 main_auxa_up_lo = m_cmdlist[curr_idx++];
+      // Address for AUXA LRS upload
+      u16 auxa_lrs_up_hi = m_cmdlist[curr_idx++];
+      u16 auxa_lrs_up_lo = m_cmdlist[curr_idx++];
 
       // Address for AUXB S upload
       u16 auxb_s_up_hi = m_cmdlist[curr_idx++];
@@ -266,7 +266,7 @@ void AXUCode::HandleCommandList()
       u16 auxb_r_dl_hi = m_cmdlist[curr_idx++];
       u16 auxb_r_dl_lo = m_cmdlist[curr_idx++];
 
-      SendAUXAndMix(HILO_TO_32(main_auxa_up), HILO_TO_32(auxb_s_up), HILO_TO_32(main_l_dl),
+      SendAUXAndMix(HILO_TO_32(auxa_lrs_up), HILO_TO_32(auxb_s_up), HILO_TO_32(main_l_dl),
                     HILO_TO_32(main_r_dl), HILO_TO_32(auxb_l_dl), HILO_TO_32(auxb_r_dl));
       break;
     }
@@ -605,7 +605,7 @@ void AXUCode::SetOppositeLR(u32 src_addr)
   }
 }
 
-void AXUCode::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl,
+void AXUCode::SendAUXAndMix(u32 auxa_lrs_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl,
                             u32 auxb_l_dl, u32 auxb_r_dl)
 {
   // Buffers to upload first
@@ -616,7 +616,7 @@ void AXUCode::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 
   };
 
   // Upload AUXA LRS
-  int* ptr = (int*)HLEMemory_Get_Pointer(main_auxa_up);
+  int* ptr = (int*)HLEMemory_Get_Pointer(auxa_lrs_up);
   for (const auto& up_buffer : up_buffers)
   {
     for (u32 j = 0; j < 32 * 5; ++j)
