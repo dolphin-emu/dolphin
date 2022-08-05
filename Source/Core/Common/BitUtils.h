@@ -461,15 +461,4 @@ constexpr int CountTrailingZeros(uint32_t value)
 #endif
 }
 
-#undef CONSTEXPR_FROM_INTRINSIC
-
-template <typename T>
-constexpr T LargestPowerOf2Divisor(T value)
-{
-  static_assert(std::is_unsigned<T>(),
-                "LargestPowerOf2Divisor only makes sense for unsigned types.");
-
-  return value & -static_cast<std::make_signed_t<T>>(value);
-}
-
 }  // namespace Common
