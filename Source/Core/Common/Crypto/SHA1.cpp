@@ -19,14 +19,6 @@
 #ifdef _M_X86_64
 #include <immintrin.h>
 #elif defined(_M_ARM_64)
-#if defined(__clang__)
-// This is a bit of a hack to get clang to accept the sha1 intrinsics without modifying cmdline
-// flags. Note __ARM_FEATURE_CRYPTO is deprecated and "SHA2" flag is the lowest one which includes
-// SHA1.
-#define __ARM_FEATURE_SHA2
-// ...needed for older clang before they made the switchover to more granular flags.
-#define __ARM_FEATURE_CRYPTO
-#endif
 #include <arm_acle.h>
 #include <arm_neon.h>
 #endif
@@ -259,17 +251,6 @@ private:
 
 #ifdef _M_ARM_64
 
-// The armv8 flags are very annoying:
-// clang inserts "+" prefixes itself, gcc does not.
-// clang has deprecated "crypto" (removed in clang 13), gcc has not.
-#ifdef _MSC_VER
-#define TARGET_ARMV8_SHA1
-#elif defined(__clang__)
-#define TARGET_ARMV8_SHA1 [[gnu::target("sha2")]]
-#elif defined(__GNUC__)
-#define TARGET_ARMV8_SHA1 [[gnu::target("+crypto")]]
-#endif
-
 class ContextNeon final : public BlockContext
 {
 public:
@@ -290,7 +271,6 @@ private:
     u32 e{};
   };
 
-  TARGET_ARMV8_SHA1
   static inline uint32x4_t MsgSchedule(WorkBlock* wblock, size_t i)
   {
     auto& w = *wblock;
@@ -302,7 +282,7 @@ private:
   }
 
   template <size_t Func>
-  TARGET_ARMV8_SHA1 static inline constexpr uint32x4_t f(State state, uint32x4_t w)
+  static inline constexpr uint32x4_t f(State state, uint32x4_t w)
   {
     const auto wk = vaddq_u32(w, vdupq_n_u32(K[Func]));
     if constexpr (Func == 0)
@@ -314,12 +294,8 @@ private:
   }
 
   template <size_t Func>
-  TARGET_ARMV8_SHA1 static inline constexpr State FourRounds(State state, uint32x4_t w)
+  static inline constexpr State FourRounds(State state, uint32x4_t w)
   {
-#ifdef _MSC_VER
-    // FIXME it seems the msvc optimizer gets a little too happy
-    _ReadBarrier();
-#endif
     return {f<Func>(state, w), vsha1h_u32(vgetq_lane_u32(state.abcd, 0))};
   }
 

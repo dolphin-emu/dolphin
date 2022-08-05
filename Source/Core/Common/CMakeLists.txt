@@ -136,9 +136,18 @@ add_library(common
   WorkQueueThread.h
 )
 
+if(MSVC AND _M_ARM_64)
+  # Workaround msvc arm64 optimizer bug
+  # TODO remove after updating to VS 17.4
+  set_source_files_properties(
+    Crypto/SHA1.cpp
+    PROPERTIES COMPILE_FLAGS "/d2ssa-peeps-post-color-")
+endif()
+
 if(NOT MSVC AND _M_ARM_64)
   set_source_files_properties(
     Crypto/AES.cpp
+    Crypto/SHA1.cpp
     PROPERTIES COMPILE_FLAGS "-march=armv8-a+crypto")
 endif()
 
