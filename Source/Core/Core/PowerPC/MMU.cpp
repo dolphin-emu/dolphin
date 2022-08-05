@@ -3,6 +3,7 @@
 
 #include "Core/PowerPC/MMU.h"
 
+#include <bit>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -267,8 +268,8 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
     // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
     const u32 first_half_size = em_address_end_page - em_address;
     const u32 second_half_size = size - first_half_size;
-    WriteToHardware<flag, never_translate>(
-        memory, em_address, Common::RotateRight(data, second_half_size * 8), first_half_size);
+    WriteToHardware<flag, never_translate>(memory, em_address,
+                                           std::rotr(data, second_half_size * 8), first_half_size);
     WriteToHardware<flag, never_translate>(memory, em_address_end_page, data, second_half_size);
     return;
   }
@@ -353,7 +354,7 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
     }
   }
 
-  const u32 swapped_data = Common::swap32(Common::RotateRight(data, size * 8));
+  const u32 swapped_data = Common::swap32(std::rotr(data, size * 8));
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
   if (memory.GetL1Cache() && (em_address >> 28 == 0xE) &&
@@ -376,7 +377,7 @@ static void WriteToHardware(Memory::MemoryManager& memory, u32 em_address, const
     //       (https://github.com/dolphin-emu/hwtests/pull/42)
     ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PI);
 
-    const u32 rotated_data = Common::RotateRight(data, ((em_address & 0x3) + size) * 8);
+    const u32 rotated_data = std::rotr(data, ((em_address & 0x3) + size) * 8);
 
     for (u32 addr = em_address & ~0x7; addr < em_address + size; addr += 8)
     {

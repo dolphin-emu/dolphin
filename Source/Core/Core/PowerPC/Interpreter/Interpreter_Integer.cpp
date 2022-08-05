@@ -3,6 +3,8 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
+#include <bit>
+
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -151,7 +153,7 @@ void Interpreter::xoris(UGeckoInstruction inst)
 void Interpreter::rlwimix(UGeckoInstruction inst)
 {
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-  rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask);
+  rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (std::rotl(rGPR[inst.RS], inst.SH) & mask);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -160,7 +162,7 @@ void Interpreter::rlwimix(UGeckoInstruction inst)
 void Interpreter::rlwinmx(UGeckoInstruction inst)
 {
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-  rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask;
+  rGPR[inst.RA] = std::rotl(rGPR[inst.RS], inst.SH) & mask;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -169,7 +171,7 @@ void Interpreter::rlwinmx(UGeckoInstruction inst)
 void Interpreter::rlwnmx(UGeckoInstruction inst)
 {
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-  rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
+  rGPR[inst.RA] = std::rotl(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);

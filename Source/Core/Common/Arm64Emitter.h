@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <bit>
 #include <cstring>
 #include <functional>
 #include <optional>
@@ -558,15 +559,15 @@ struct LogicalImm
     // pick the next sequence of ones. This ensures we get a complete element
     // that has not been cut-in-half due to rotation across the word boundary.
 
-    const size_t rotation = Common::CountTrailingZeros(value & (value + 1));
-    const u64 normalized = Common::RotateRight(value, rotation);
+    const int rotation = Common::CountTrailingZeros(value & (value + 1));
+    const u64 normalized = std::rotr(value, rotation);
 
-    const size_t element_size = Common::CountTrailingZeros(normalized & (normalized + 1));
-    const size_t ones = Common::CountTrailingZeros(~normalized);
+    const int element_size = Common::CountTrailingZeros(normalized & (normalized + 1));
+    const int ones = Common::CountTrailingZeros(~normalized);
 
     // Check the value is repeating; also ensures element size is a power of two.
 
-    if (Common::RotateRight(value, element_size) != value)
+    if (std::rotr(value, element_size) != value)
     {
       valid = false;
       return;

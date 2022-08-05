@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <array>
+#include <bit>
 #include <memory>
 
 #include <mbedtls/aes.h>
 
 #include "Common/Assert.h"
-#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/Crypto/AES.h"
 
@@ -294,7 +294,7 @@ public:
     {
       const uint8x16_t enc = vaeseq_u8(vreinterpretq_u8_u32(vmovq_n_u32(rk[i + 3])), vmovq_n_u8(0));
       const u32 temp = vgetq_lane_u32(vreinterpretq_u32_u8(enc), 0);
-      rk[i + 4] = rk[i + 0] ^ Common::RotateRight(temp, 8) ^ rcon[i / Nk];
+      rk[i + 4] = rk[i + 0] ^ std::rotr(temp, 8) ^ rcon[i / Nk];
       rk[i + 5] = rk[i + 4] ^ rk[i + 1];
       rk[i + 6] = rk[i + 5] ^ rk[i + 2];
       rk[i + 7] = rk[i + 6] ^ rk[i + 3];
