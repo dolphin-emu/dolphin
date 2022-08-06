@@ -276,14 +276,7 @@ static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
 
 static double GetSystemTimeAsDouble()
 {
-  // FYI: std::chrono::system_clock epoch is not required to be 1970 until c++20.
-  // We will however assume time_t IS unix time.
-  using Clock = std::chrono::system_clock;
-
-  // TODO: Use this on switch to c++20:
-  // const auto since_epoch = Clock::now().time_since_epoch();
-  const auto unix_epoch = Clock::from_time_t({});
-  const auto since_epoch = Clock::now() - unix_epoch;
+  const auto since_epoch = std::chrono::system_clock::now().time_since_epoch();
 
   const auto since_double_time_epoch = since_epoch - std::chrono::seconds(DOUBLE_TIME_OFFSET);
   return std::chrono::duration_cast<std::chrono::duration<double>>(since_double_time_epoch).count();
