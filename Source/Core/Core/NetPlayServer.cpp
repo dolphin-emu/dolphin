@@ -379,19 +379,8 @@ static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_iden
 }
 
 // called from ---NETPLAY--- thread
-ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& received_packet)
+ConnectionError NetPlayServer::OnConnect(ENetPeer* incoming_connection, sf::Packet& received_packet)
 {
-  PlayerId pid = 1;
-  for (auto i = m_players.begin(); i != m_players.end(); ++i)
-  {
-    if (i->second.pid == pid)
-    {
-      pid++;
-      i = m_players.begin();
-    }
-  }
-  socket->data = new PlayerId(pid);
-
   std::string netplay_version;
   received_packet >> netplay_version;
   if (netplay_version != Common::GetScmRevGitStr())
@@ -403,81 +392,49 @@ ConnectionError NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& received_
   if (m_players.size() >= 255)
     return ConnectionError::ServerFull;
 
-  Client player{};
-  player.pid = pid;
-  player.socket = socket;
+  Client new_player{};
+  new_player.pid = GiveFirstAvailableIDTo(incoming_connection);
+  new_player.socket = incoming_connection;
 
-  received_packet >> player.revision;
-  received_packet >> player.name;
+  received_packet >> new_player.revision;
+  received_packet >> new_player.name;
 
-  if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
+  if (StringUTF8CodePointCount(new_player.name) > MAX_NAME_LENGTH)
     return ConnectionError::NameTooLong;
 
-  enet_peer_timeout(socket, 0, PEER_TIMEOUT, PEER_TIMEOUT);
+  enet_peer_timeout(incoming_connection, 0, PEER_TIMEOUT.count(), PEER_TIMEOUT.count());
 
+  // force a ping on first netplay loop
   m_update_pings = true;
 
-  for (PlayerId& mapping : m_pad_map)
-  {
-    if (mapping == 0)
-    {
-      mapping = player.pid;
-      break;
-    }
-  }
+  AssignNewUserAPad(new_player);
 
-  sf::Packet send_packet;
-  send_packet << MessageID::PlayerJoin;
-  send_packet << player.pid << player.name << player.revision;
-  SendToClients(send_packet);
+  // tell other players a new player joined
+  SendResponse(MessageID::PlayerJoin);
 
-  send_packet.clear();
-  send_packet << MessageID::ConnectionSuccessful;
-  send_packet << player.pid;
-  Send(player.socket, send_packet);
+  // tell new client they connected and their ID
+  SendResponse(MessageID::ConnectionSuccessful, new_player);
 
+  // tell new client the selected game
   if (!m_selected_game_name.empty())
-  {
-    send_packet.clear();
-    send_packet << MessageID::ChangeGame;
-    SendSyncIdentifier(send_packet, m_selected_game_identifier);
-    send_packet << m_selected_game_name;
-    Send(player.socket, send_packet);
-  }
+    SendResponse(MessageID::ChangeGame, new_player);
 
   if (!m_host_input_authority)
-  {
-    send_packet.clear();
-    send_packet << MessageID::PadBuffer;
-    send_packet << m_target_buffer_size;
-    Send(player.socket, send_packet);
-  }
+    SendResponse(MessageID::PadBuffer, new_player);
 
-  send_packet.clear();
-  send_packet << MessageID::HostInputAuthority;
-  send_packet << m_host_input_authority;
-  Send(player.socket, send_packet);
+  SendResponse(MessageID::HostInputAuthority, new_player);
 
-  for (const auto& p : m_players)
-  {
-    send_packet.clear();
-    send_packet << MessageID::PlayerJoin;
-    send_packet << p.second.pid << p.second.name << p.second.revision;
-    Send(player.socket, send_packet);
-
-    send_packet.clear();
-    send_packet << MessageID::GameStatus;
-    send_packet << p.second.pid << p.second.game_status;
-    Send(player.socket, send_packet);
-  }
+  TellNewPlayerAboutExistingPlayers(new_player);
 
   if (Config::Get(Config::NETPLAY_ENABLE_QOS))
-    player.qos_session = Common::QoSSession(player.socket);
+    new_player.qos_session = Common::QoSSession(new_player.socket);
 
   {
     std::lock_guard lkp(m_crit.players);
-    m_players.emplace(*PeerPlayerId(player.socket), std::move(player));
-    UpdatePadMapping();  // sync pad mappings with everyone
+    // add new player to list of players
+    m_players.emplace(*PeerPlayerId(new_player.socket), std::move(new_player));
+    // sync pad mappings with everyone
+    UpdatePadMapping();
     UpdateGBAConfig();
     UpdateWiimoteMapping();
   }
@@ -2069,6 +2026,89 @@ bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
 
   return std::any_of(m_pad_map.begin(), m_pad_map.end(), mapping_matches_player_id) ||
          std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+}
+
+void NetPlayServer::AssignNewUserAPad(const Client& player)
+{
+  for (PlayerId& mapping : m_pad_map)
+  {
+    if (mapping == Unmapped)
+    {
+      mapping = player.pid;
+      break;
+    }
+  }
+}
+
+PlayerId NetPlayServer::GiveFirstAvailableIDTo(ENetPeer* player)
+{
+  PlayerId pid = 1;
+  for (auto i = m_players.begin(); i != m_players.end(); ++i)
+  {
+    if (i->second.pid == pid)
+    {
+      pid++;
+      i = m_players.begin();
+    }
+  }
+  player->data = new PlayerId(pid);
+  return pid;
+}
+
+void NetPlayServer::SendResponse(MessageID message_id, const Client& player)
+{
+  sf::Packet response;
+  switch (message_id)
+  {
+  case MessageID::PlayerJoin:
+    response << MessageID::PlayerJoin;
+    response << player.pid << player.name << player.revision;
+    break;
+
+  case MessageID::ConnectionSuccessful:
+    response << MessageID::ConnectionSuccessful;
+    response << player.pid;
+    break;
+
+  case MessageID::ChangeGame:
+    response << MessageID::ChangeGame;
+    SendSyncIdentifier(response, m_selected_game_identifier);
+    response << m_selected_game_name;
+    break;
+
+  case MessageID::PadBuffer:
+    response << MessageID::PadBuffer;
+    response << m_target_buffer_size;
+    break;
+
+  case MessageID::HostInputAuthority:
+    response << MessageID::HostInputAuthority;
+    response << m_host_input_authority;
+    break;
+  }
+
+  // no player specified
+  if (player == Client{})
+    SendToClients(response);
+  else
+    Send(player.socket, response);
+}
+
+void NetPlayServer::TellNewPlayerAboutExistingPlayers(const Client& new_player)
+{
+  sf::Packet send_packet;
+  for (const auto& p : m_players)
+  {
+    send_packet.clear();
+    send_packet << MessageID::PlayerJoin;
+    send_packet << p.second.pid << p.second.name << p.second.revision;
+    Send(new_player.socket, send_packet);
+
+    send_packet.clear();
+    send_packet << MessageID::GameStatus;
+    send_packet << p.second.pid << p.second.game_status;
+    Send(new_player.socket, send_packet);
+  }
 }
 
 u16 NetPlayServer::GetPort() const

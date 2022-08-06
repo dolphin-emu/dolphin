@@ -103,6 +103,12 @@ private:
     AllExcept
   };
 
+  enum MappedState
+  {
+    Unmapped,
+    Mapped
+  };
+
   struct AsyncQueueEntry
   {
     sf::Packet packet;
@@ -146,6 +152,12 @@ private:
 
   void SetupIndex();
   bool PlayerHasControllerMapped(PlayerId pid) const;
+
+  void AssignNewUserAPad(const Client& player);
+  // returns the PID given
+  PlayerId GiveFirstAvailableIDTo(ENetPeer* player);
+  void SendResponse(MessageID message_id, const Client& player = Client{});
+  void TellNewPlayerAboutExistingPlayers(const Client& new_player);
 
   NetSettings m_settings;
 
